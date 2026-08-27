@@ -24,17 +24,16 @@ Add server-owned inventory, harvesting, campfire warmth, basic crafting, placeme
 
 Build the bounded interaction grid, fire/wetness/temperature rules, and client visual feedback.
 
-**Accept:** a torch lights dry wood, soaked wood resists, water extinguishes fire, and both clients observe equivalent outcomes.
+**Accept:** a player who stands in rain receives the **Wet** status effect. Moving to a camp and standing near a lit campfire removes the effect, with clear client-side visual feedback for both state changes.
 
-## M4 — Combat and songcraft
+## M4 — Combat and support magic
 
-Add combat attributes, damage execution, three enemy archetypes, one expedition, and ember/gust/binding abilities.
+Add combat attributes, damage execution, the Mireling, boar, and deer creature archetypes, one expedition, and scroll-learned support magic. Implement Mending, Hearth Shield, Bear's Vigor, and Deer Call; place scroll discoveries across the biome and make one a boss reward.
 
-**Accept:** two players finish an expedition, use all verses, defeat all archetypes, and return a progression reward.
+**Accept:** two players finish an expedition, learn and use every support effect, encounter all three creature archetypes, and return a progression reward. No magic effect directly damages an enemy.
 
 ## M5 — Vertical-slice finish
 
 Add original art/audio pass, tutorial beats, settings/accessibility, performance pass, balance, regression tests, packaging, and a dedicated-server playtest.
 
 **Accept:** a new player can complete the documented 20–30 minute co-op loop without developer tools.
-

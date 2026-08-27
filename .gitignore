@@ -1,0 +1,55 @@
+# Unreal Engine generated folders
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+
+# Generated folders inside plugins
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+Plugins/*/Saved/
+
+# Visual Studio / Rider / VS Code local state
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.opendb
+*.opensdf
+*.sdf
+*.ncb
+*.ipch
+
+# Unreal / IDE generated project files
+*.sln
+*.xcodeproj
+*.xcworkspace
+*.xcuserstate
+*.code-workspace
+
+# Build and packaging output
+Build/Receipts/
+Build/*/FileOpenOrder/
+Build/*/Cooked/
+Build/*/Logs/
+Build/*/StagedBuilds/
+Build/*/Archive/
+Saved/StagedBuilds/
+
+# Local caches and logs
+.cache/
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+Thumbs.db
+Desktop.ini
+
+# JetBrains Rider UnrealLink cache
+.idea/.idea.Kalmala/.idea/
+

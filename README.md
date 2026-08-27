@@ -9,11 +9,10 @@ The project is designed to be built primarily by AI agents. The documentation in
 - **Original world first.** Reference games inform high-level design lessons only; no copied assets, names, lore, levels, code, or distinctive content.
 - **Playable early.** Every milestone produces a testable game loop.
 - **Server-authoritative multiplayer.** The game must remain valid when played on a dedicated server.
-- **Systems create stories.** Materials, weather, construction, and magic interact in surprising but understandable ways.
+- **Shelter earns progression.** Materials, weather, construction, and expeditions create a clear path from a temporary camp to durable structures and better gear.
 
 ## Start here
 
 1. Read [`docs/00-project-brief.md`](docs/00-project-brief.md).
 2. Follow the delivery sequence in [`docs/04-roadmap.md`](docs/04-roadmap.md).
 3. Give an implementation agent the relevant prompt from [`docs/06-agent-prompts.md`](docs/06-agent-prompts.md).
-
