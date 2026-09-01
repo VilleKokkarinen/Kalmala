@@ -5,6 +5,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "KalmalaInteractable.h"
 
 AKalmalaCharacter::AKalmalaCharacter()
 {
@@ -36,6 +37,7 @@ void AKalmalaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &AKalmalaCharacter::MoveRight);
     PlayerInputComponent->BindAxis(TEXT("Turn"), this, &APawn::AddControllerYawInput);
     PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
+    PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AKalmalaCharacter::RequestInteract);
 }
 
 void AKalmalaCharacter::MoveForward(const float Value)
@@ -55,5 +57,40 @@ void AKalmalaCharacter::MoveRight(const float Value)
         const FRotator ControlRotation = Controller->GetControlRotation();
         const FRotator YawRotation(0.0f, ControlRotation.Yaw, 0.0f);
         AddMovementInput(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y), Value);
+    }
+}
+
+void AKalmalaCharacter::RequestInteract()
+{
+    if (IsLocallyControlled())
+    {
+        ServerRequestInteract();
+    }
+}
+
+void AKalmalaCharacter::ServerRequestInteract_Implementation()
+{
+    if (Controller == nullptr || GetWorld() == nullptr)
+    {
+        return;
+    }
+
+    FVector ViewLocation;
+    FRotator ViewRotation;
+    Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaInteraction), false, this);
+    FHitResult Hit;
+    const FVector TraceEnd = ViewLocation + ViewRotation.Vector() * InteractionRange;
+    if (!GetWorld()->LineTraceSingleByChannel(Hit, ViewLocation, TraceEnd, ECC_Visibility, QueryParams))
+    {
+        return;
+    }
+
+    AActor* Target = Hit.GetActor();
+    if (IsValid(Target) && Target->Implements<UKalmalaInteractable>()
+        && IKalmalaInteractable::Execute_CanInteract(Target, this))
+    {
+        IKalmalaInteractable::Execute_Interact(Target, this);
     }
 }
