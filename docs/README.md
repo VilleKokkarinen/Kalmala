@@ -11,6 +11,7 @@ This folder is the project’s durable operating manual. An agent must read the 
 | [04 Roadmap](04-roadmap.md) | Incremental milestones and acceptance criteria |
 | [05 Decision log](05-decision-log.md) | Decisions that should not be silently reversed |
 | [06 Agent prompts](06-agent-prompts.md) | Ready-to-use implementation prompts |
+| [07 Development setup](07-development-setup.md) | Build, editor, and dedicated-server setup |
 
 ## Authority order
 
@@ -21,4 +22,3 @@ This folder is the project’s durable operating manual. An agent must read the 
 5. Project brief
 
 When documents conflict, resolve the conflict in this order and record a decision rather than silently choosing.
-

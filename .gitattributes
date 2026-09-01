@@ -1,0 +1,12 @@
+# Unreal assets are binary and should never be line-merged.
+*.uasset binary
+*.umap binary
+
+# Common binary game assets.
+*.fbx binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
