@@ -8,6 +8,6 @@ public class KalmalaEditorTarget : TargetRules
         Type = TargetType.Editor;
         DefaultBuildSettings = BuildSettingsVersion.V7;
         IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_8;
-        ExtraModuleNames.AddRange(new string[] { "KalmalaCore", "KalmalaGameplay", "KalmalaWorld", "KalmalaUI" });
+        ExtraModuleNames.AddRange(new string[] { "KalmalaCore", "KalmalaGameplay", "KalmalaWorld", "KalmalaUI", "KalmalaEditor" });
     }
 }

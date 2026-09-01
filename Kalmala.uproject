@@ -25,6 +25,11 @@
       "LoadingPhase": "Default"
     },
     {
+      "Name": "KalmalaEditor",
+      "Type": "Editor",
+      "LoadingPhase": "Default"
+    },
+    {
       "Name": "KalmalaServer",
       "Type": "ServerOnly",
       "LoadingPhase": "Default"
