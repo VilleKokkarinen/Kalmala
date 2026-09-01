@@ -12,6 +12,7 @@ This folder is the project’s durable operating manual. An agent must read the 
 | [05 Decision log](05-decision-log.md) | Decisions that should not be silently reversed |
 | [06 Agent prompts](06-agent-prompts.md) | Ready-to-use implementation prompts |
 | [07 Development setup](07-development-setup.md) | Build, editor, and dedicated-server setup |
+| [08 World generation and biomes](08-world-generation-and-biomes.md) | Original deterministic expedition-generation roadmap and biome prototype parameters |
 
 ## Authority order
 
