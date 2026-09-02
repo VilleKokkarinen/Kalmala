@@ -23,6 +23,8 @@ public:
     UFUNCTION(BlueprintPure, Category = "Interaction")
     int32 GetInteractionCount() const { return InteractionCount; }
 
+    static bool IsInteractionAllowed(bool bServerAuthority, const FVector& InteractorLocation, const FVector& TargetLocation, float MaximumDistance);
+
 private:
     UPROPERTY(VisibleAnywhere, Category = "Interaction")
     TObjectPtr<USphereComponent> Collision;

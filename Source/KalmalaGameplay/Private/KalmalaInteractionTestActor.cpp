@@ -17,9 +17,14 @@ AKalmalaInteractionTestActor::AKalmalaInteractionTestActor()
 
 bool AKalmalaInteractionTestActor::CanInteract_Implementation(AKalmalaCharacter* Interactor) const
 {
-    return HasAuthority() && IsValid(Interactor)
-        && FVector::DistSquared(Interactor->GetActorLocation(), GetActorLocation())
-            <= FMath::Square(MaximumInteractionDistance);
+    return IsValid(Interactor)
+        && IsInteractionAllowed(HasAuthority(), Interactor->GetActorLocation(), GetActorLocation(), MaximumInteractionDistance);
+}
+
+bool AKalmalaInteractionTestActor::IsInteractionAllowed(const bool bServerAuthority, const FVector& InteractorLocation, const FVector& TargetLocation, const float MaximumDistance)
+{
+    return bServerAuthority && MaximumDistance > 0.0f
+        && FVector::DistSquared(InteractorLocation, TargetLocation) <= FMath::Square(MaximumDistance);
 }
 
 void AKalmalaInteractionTestActor::Interact_Implementation(AKalmalaCharacter* Interactor)
