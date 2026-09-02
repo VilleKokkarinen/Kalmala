@@ -12,7 +12,8 @@ public class KalmalaEditor : ModuleRules
             "CoreUObject",
             "Engine",
             "UnrealEd",
-            "KalmalaGameplay"
+            "KalmalaGameplay",
+            "KalmalaWorld"
         });
     }
 }
