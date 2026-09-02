@@ -1,128 +1,126 @@
-# World generation and biome prototype roadmap
+# World generation and biome roadmap
 
-## Status and reference boundary
+## Direction
 
-This is a **working proposal**, not an accepted product decision or a commitment to build an open world for the vertical slice.
+Kalmala is a seed-generated, player-directed open wilderness. The world contains no authored gameplay areas, fixed camp zones, prescribed routes, or required quest sequence. Players choose where to travel, build, gather, and take risks.
 
-Kalmala may borrow broad survival-world design lessons from contemporary games: a memorable safe home region, escalating environmental pressure, landmark-led discovery, and a world seed that makes co-op sessions shareable. It must not reproduce another game's source code, biome names, terrain layout, creatures, structures, progression order, or visual language. Kalmala remains a Nordic-Finnic-inspired but wholly original world.
+The world is built from continuous procedural maps, not a visible square grid. Streaming limits and server spatial partitions exist only to manage performance, spawning, and persistence; they must never shape biome boundaries or create gameplay zones.
 
-The vertical slice continues to use one camp location, one biome, and a small handcrafted expedition. Procedural generation first supports **bounded expedition spaces**, then expands only when profiling and multiplayer tests justify it.
+Kalmala may learn from broad survival-world principles—shared seeds, player-made homes, environmental risk, and landmark-led discovery—but must remain wholly original in its world layout, content, names, visual language, and implementation.
 
-## Design goals
+## Goals
 
-1. **Readable geography.** Players should identify shelter, water, wind, and route risk at a glance.
-2. **Shelter-driven progression.** A biome changes which shelter, clothing, food, and construction decisions matter; it is not merely a higher-level enemy zone.
-3. **Shared, repeatable discovery.** A seed and generator revision produce the same authoritative layout for every player in a session.
-4. **Landmarks over empty distance.** Every expedition must contain a useful choice: a resource, safe resting point, story site, hazard, or return route.
-5. **Bounded simulation.** Weather, elemental interactions, AI, and replication run only in active cells around players.
+1. **A world worth wandering.** Terrain, weather, and natural features should invite curiosity without giving players a required route.
+2. **Shelter changes travel.** Different environments alter how players prepare, build, and move through the world.
+3. **A shared world.** The same seed and generator revision produce the same world for every player in a session.
+4. **Optional discovery.** Resources, wildlife, hazards, and points of interest enrich exploration without becoming a checklist.
+5. **Multiplayer-safe scale.** The server owns gameplay state while clients receive only the information needed to render and play nearby world content.
 
-## Generation model
+## World seed and generation
 
-The server owns a `WorldSeed` (unsigned 64-bit), `GeneratorRevision`, and an `ExpeditionId`. The complete world-save contract records all three before any player modification is saved.
+The server creates and saves two immutable values with every world:
 
-Generation is a deterministic, layered pipeline:
+- `WorldSeed` — unsigned 64-bit value that defines the world.
+- `GeneratorRevision` — version of the generation rules used to create it.
+
+Changing either value creates a different base world. Existing saves must never silently reinterpret terrain or object locations after a generator revision changes.
+
+### Four continuous Perlin maps
+
+The generator derives four independent Perlin-noise maps from the world seed. Each map uses its own deterministic sub-seed so that changing one map's tuning does not accidentally reshape the others.
+
+| Map | Controls | Derived uses |
+| --- | --- | --- |
+| **Elevation** | Height of the terrain | Slope, drainage, lakes, shorelines, cliffs, and mountain forms. |
+| **Humidity** | Availability of surface and ground moisture | Wet ground, lakeside conditions, marsh potential, and vegetation support. |
+| **Temperature** | Local climate tendency | Snow, frost, rainfall type, warmth pressure, and cold-weather conditions. |
+| **Flora** | Vegetation suitability and density | Meadows, forest density, ground cover, and plant population potential. |
+
+At any world position, the generator samples all four maps, normalizes the results, and classifies the biome from their combined values. Biome transitions are continuous blends, not fixed-width borders. Wind, wetness, wildlife, ruins, scroll sites, and harvest nodes are generated later; they are not additional biome maps.
 
 ```text
-Seed + generator revision
-  -> region layout (routes, basin, shore, high ground)
-  -> terrain fields (height, slope, drainage)
-  -> climate fields (cold, wetness, wind exposure, fertility)
-  -> biome and local-variant classification
-  -> landmark reservation and traversal validation
-  -> resources, wildlife, hazards, and cosmetic dressing
+WorldSeed + GeneratorRevision
+  -> Perlin maps: Elevation, Humidity, Temperature, Flora
+  -> sample at world position
+  -> terrain and biome classification
+  -> seeded world content
+  -> weather, survival, and player-made changes
 ```
 
-### Initial parameters
+## Biome palette
 
-| Parameter | Prototype value | Purpose |
-| --- | ---: | --- |
-| Expedition footprint | 1.0 km x 1.0 km | Keeps M0–M4 traversal and replication measurable. |
-| Authoritative generation cell | 128 m square | Unit for spawn ownership, persistence, and activation. |
-| Active simulation radius | 2 cells per player | Limits world simulation to nearby areas. |
-| Terrain height range | -12 m to +96 m | Supports lakes, low forest, ridges, and sheltered sites. |
-| Landmark spacing | 180–320 m | Keeps discovery frequent without becoming a checklist. |
-| Safe return path | at least 1 per expedition | Guarantees a non-combat route back to camp. |
-| Biome transition width | 48–96 m | Avoids abrupt climate and material changes. |
-| Determinism tolerance | exact server result | Gameplay placement must not depend on client hardware or frame rate. |
+Development order is not player progression. The seed decides which biomes are nearby; players decide whether and when to enter them.
 
-`Elevation`, `Moisture`, `Cold`, `WindExposure`, `Fertility`, and `Oldness` are normalized scalar fields. The classifier selects a biome from weighted ranges, then selects a local variant. `Oldness` is Kalmala's original world-history field: it affects ruin density, anomalous flora, and protective-scroll sites, but never substitutes for a player-facing map marker.
-
-## Proposed biome palette
-
-These are Kalmala concepts, deliberately distinct from any reference game's biome list. Their names, content, and progression are provisional.
-
-| Biome | Environmental rule | Shelter/material pressure | Discovery role | Vertical-slice status |
+| Biome | Character | Shelter and travel pressure | Discovery focus | Development order |
 | --- | --- | --- | --- | --- |
-| **Lakewood Vale** | Light rain and lake fog raise wetness; ridges are windier than shore paths. | Teaches fire cover, simple wood structures, and dry storage. | First camp, deer routes, small stone-and-birch sites. | Build first. |
-| **Ironmoss Fen** | Saturated ground slows travel and cools exposed players; dry hummocks form routes. | Rewards raised floors, drainage, and waterproof fuel storage. | Bog-iron deposits, causeway ruins, Mireling scavenging sites. | Second prototype. |
-| **Kelo Crown** | Cold wind and sparse cover drain warmth; fallen silver-pine trunks create natural bridges. | Rewards insulated clothing, enclosed roofs, and windbreak placement. | High overlooks, ice-fed springs, protective-scroll shrines. | Third prototype. |
-| **Stormglass Shore** | Crosswinds and spray alternate rapidly with temporary lee pockets. | Rewards anchors, low profiles, and stone reinforcement. | Shipwreck-like original structures, wave-carved caves, rare coastal materials. | Post-slice exploration. |
-| **Emberpeat Hollow** | Subsurface heat, warm ground, and smoke pockets create conflicting local temperatures. | Rewards ventilation and heat-aware camp placement, not stronger damage output. | Charred root halls, warm-water pools, unusual forging resources. | Post-slice exploration. |
+| **Meadows** | Gentle hills, moderate humidity, open sightlines. | Introduces fire cover, simple timber shelter, and dry storage. | Deer routes, stones, birch stands, and calm camp locations. | First |
+| **Shimmering Lakes** | Interlocking lakes, shore fog, and saturated low ground. | Favors bridges, boats, dry stores, and raised shelter. | Fishing waters, small islands, and lake-edge resources. | Second |
+| **Elderwood** | Dense canopy, deep shade, and heavy growth. | Rewards marked trails, compact camps, and careful visibility management. | Ancient roots, wildlife dens, and overgrown stone sites. | Third |
+| **Mossy Mire** | Wet ground, slow travel, and dry hummock paths. | Rewards raised floors, drainage, and waterproof fuel storage. | Bog iron, causeways, and Mireling scavenging sites. | Fourth |
+| **Freezing Tundra** | Bitter wind, sparse cover, and rolling high ground. | Rewards insulated clothing, enclosed roofs, and windbreaks. | Ice-fed springs, exposed shrines, and weather-read routes. | Fifth |
+| **Thunder Mountains** | Sheer ridges, thunder squalls, and exposed passes. | Rewards lightning-safe shelter, durable construction, and route planning. | Storm-carved overlooks, mineral seams, and deep cave systems. | Sixth |
+| **Ocean** | Open water, currents, waves, and storms. | Rewards seaworthy construction, anchors, and coastal shelters. | Distant islands, sea caves, and rare shoreline materials. | Seventh |
 
-The first three biomes form a **shelter progression**, not a linear combat ladder: wetness and drainage, then cold and wind. Each must have at least one viable low-risk route and one high-risk shortcut.
+Biomes should differ primarily through environment, travel, and shelter—not a linear increase in enemy strength. Every reachable biome needs a viable lower-risk approach and a riskier shortcut or reward opportunity.
 
-## Landmark and encounter contract
+## Seeded world content
 
-Each active 128 m cell may reserve one primary purpose: `Resource`, `Shelter`, `Story`, `Hazard`, `Wildlife`, or `Transit`. Reservation happens before decorative spawn placement, preventing a landmark from being blocked by foliage or terrain dressing.
+Terrain and biomes establish the world; separate seeded systems populate it. No area is assigned a mandatory purpose.
 
-For every generated expedition, validate these minimums before it becomes playable:
+- Wildlife, harvest nodes, and hazards use deterministic server-side spatial seeds and spawn budgets.
+- Landmarks and major discoveries are optional points of interest generated by their own seed rules.
+- Decorative vegetation, rocks, and ambient detail are cosmetic where possible; gameplay-relevant content is server-owned.
+- Player-made changes override generated content through persisted save data.
 
-- camp-to-goal route exists without requiring a jump, swim, or damage exploit;
-- one sheltered rest option appears before the highest environmental-pressure segment;
-- at least two route choices differ in exposure, distance, or resource opportunity;
-- a fixed scroll/major-reward site has a stable server ID and is reachable;
-- wildlife, harvest nodes, and hazards use deterministic cell seeds and server-side spawn budgets.
+## Multiplayer, persistence, and performance
 
-## Multiplayer, persistence, and performance rules
-
-- The server generates and persists gameplay-affecting placements. Clients receive replicated actors/state; they may generate only non-authoritative cosmetic dressing.
-- Save modified cells as sparse deltas keyed by `GeneratorRevision + WorldSeed + ExpeditionId + CellCoord`; never serialize the entire generated base map.
-- A generator revision change requires either a migration path or a new expedition instance. Never silently reinterpret saved cell coordinates.
-- Use pooled or instanced rendering for non-interactable vegetation and rocks. Promote only nearby/interactive objects to replicated actors.
-- Profile generation time, memory, replicated actor count, and late-join synchronization separately before enlarging the footprint or cell radius.
+- The server generates and persists all gameplay-affecting placements, AI, harvest state, hazards, construction, and survival state.
+- Clients may generate cosmetic detail locally, but never decide gameplay placement, loot, damage, or rewards.
+- Save only sparse player/world deltas keyed by `WorldSeed`, `GeneratorRevision`, and a server spatial key; never serialize the entire generated base world.
+- Server spatial partitions are implementation-defined and invisible to players. They may manage activation and budgets, but may not create square biome borders or authored gameplay areas.
+- Use instancing or pooling for non-interactable vegetation and rocks. Promote only nearby interactive content to replicated actors.
+- Profile generation time, memory, replicated actor count, save size, and late-join synchronization before increasing content density or streaming distance.
 
 ## Delivery roadmap
 
-### WG0 — Data contract and deterministic test harness
+Build the world in visible, playable layers. Start the next phase only when the preceding phase is repeatable and stable in host/client play.
 
-Define `FWorldGenerationKey`, `FGenerationCellCoord`, a revisioned `UWorldGenerationProfile` Data Asset, and a command-line determinism test that compares two server-side layouts for the same key.
+### 1. Seed and map proof
 
-**Accept:** identical key produces identical cell classifications, landmark IDs, and traversal graph in an automated test.
+Generate the four Perlin maps and a developer-only visualization for terrain and biome classification.
 
-### WG1 — Lakewood Vale expedition
+**Done when:** the same seed always produces the same maps and biome layout, while a different seed visibly produces a different world.
 
-Generate one 1 km x 1 km bounded Lakewood Vale expedition using simple terrain, water mask, forest density, and a handcrafted camp anchor. Keep the final goal/expedition site authored while terrain and minor routes vary.
+### 2. First playable generated world
 
-**Accept:** host and client load matching terrain classification and landmarks; each generated seed has a valid camp-to-goal path and sheltered rest point.
+Turn the map output into traversable terrain with a seed-generated player start, Meadows, lakes, trees, and rocks. Do not add a fixed sanctuary, quest route, boss arena, or authored map area.
 
-### WG2 — Local climate and shelter probes
+**Done when:** host and client can travel through the same generated terrain and see the same meaningful natural features.
 
-Connect wind, rain, wetness, temperature, and shelter to the active cell model. Expose debug overlays for scalar fields and route validation, but do not ship them in the player HUD.
+### 3. Natural population
 
-**Accept:** moving between shore, forest, and ridge produces the documented environmental differences with server-authoritative outcomes.
+Add seeded wildlife, harvest nodes, hazards, and ambient detail. Keep gameplay-relevant spawning server-owned and budgeted.
 
-### WG3 — Landmark reservation and encounter budgets
+**Done when:** the same seed produces matching gameplay content and consumed or defeated content remains consistent after reconnecting.
 
-Add deterministic reservations, resource/wildlife budgets, and stable IDs for scroll sites. Validate that gameplay locations are not obstructed and that reconnecting does not respawn consumed rewards.
+### 4. Weather, shelter, and survival
 
-**Accept:** two players reconnect to an expedition and observe the same consumed reward, harvest, and landmark state.
+Connect rain, wind, wetness, warmth, fires, and shelter to the generated terrain. Environment should influence preparation and travel without blocking exploration behind a quest.
 
-### WG4 — Ironmoss Fen contrast test
+**Done when:** players naturally choose different routes, camps, and gear because of the terrain and weather they encounter.
 
-Add Ironmoss Fen as the second profile using wet ground, hummock routing, and drainage-focused construction pressure. Do not increase enemy tiers until the environmental loop is fun and legible.
+### 5. Add biomes one at a time
 
-**Accept:** playtests choose different routes and construction responses than Lakewood Vale for measurable environmental reasons.
+Add Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, and Thunder Mountains individually. Each biome needs a clear environmental identity, original content, and a reason to build or travel differently.
 
-### WG5 — Kelo Crown and multi-biome seams
+**Done when:** every added biome is enjoyable on its own, blends naturally with its neighbours, and remains consistent for host and client.
 
-Add Kelo Crown plus 48–96 m blended transitions. Test seed compatibility, save deltas across seams, and host/client late join.
+### 6. Ocean and long-distance travel
 
-**Accept:** all three profiles stream without terrain gaps, duplicate landmarks, or cell-state disagreement.
+Add ocean travel, islands, and the systems needed for long-distance movement after land biomes are stable. Tune streaming only from profiling evidence; technical limits must not become gameplay zones.
 
-### WG6 — Scale decision
+**Done when:** players can travel between land and ocean without terrain gaps, duplicate content, or host/client disagreement.
 
-Decide whether to keep authored expedition islands, generate a connected regional map, or use a hybrid. This requires profiling evidence and a separate product decision; it is not part of the vertical-slice commitment.
+## Immediate next step
 
-## Next prototype task
-
-When M0–M2 permits world-generation work, begin with WG0 only: create the revisioned generation key/profile data contract and a deterministic commandlet test. Do not add terrain plugins, external procedural-generation frameworks, or a full open-world streamer without approval.
+Implement Phase 1 only: generate and inspect the four seed-derived Perlin maps. Do not add external terrain or procedural-generation plugins without approval.

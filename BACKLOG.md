@@ -4,19 +4,63 @@ This file is the execution queue for Codex automations. Keep items small, ordere
 
 ## M0 — Bootstrap
 
-- [ ] Verify that `KalmalaEditor Win64 Development` builds with the command in `docs/07-development-setup.md`; record the exact result in `PROGRESS.md`.
-- [ ] Open the project in Unreal Editor and create the prototype map at `/Game/Kalmala/Maps/Prototype/L_Prototype`; document the result.
-- [ ] Configure and verify a packaged development build launches after the prototype map exists.
-- [ ] Confirm whether a server-capable Unreal 5.8 build is available; otherwise document the dedicated-server build blocker.
+- [x] Verify that `KalmalaEditor Win64 Development` builds with the command in `docs/07-development-setup.md`.
+- [x] Open the project in Unreal Editor and create the prototype map at `/Game/Kalmala/Maps/Prototype/L_Prototype`; document the result.
+- [x] Configure and verify a packaged development build launches after the prototype map exists.
+- [x] Confirm whether a server-capable Unreal 5.8 build is available; otherwise document the dedicated-server build blocker.
 
 ## M1 — Networked traversal and interaction
 
 Do not begin until M0 acceptance criteria in `docs/04-roadmap.md` are met.
 
-- [ ] Implement the smallest server-authoritative replicated character and camera setup needed for the two-player prototype map.
-- [ ] Add a server-validated interaction trace and an interactable interface.
-- [ ] Add a two-player test map flow and verify invalid client interactions are rejected.
+- [x] Implement the smallest server-authoritative replicated character and camera setup needed for the two-player prototype map.
+- [x] Add a server-validated interaction trace and an interactable interface.
+- [x] Add a two-player test map flow and verify invalid client interactions are rejected.
 
-## Later milestones
+## World generation track
+
+Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` is the authoritative contract: the world is seed-generated from continuous `Elevation`, `Humidity`, `Temperature`, and `Flora` maps; do not introduce authored gameplay regions, fixed routes, or additional biome maps.
+
+### Phase 1 — Seed and map proof
+
+- [x] Define the immutable server-owned `WorldSeed` and `GeneratorRevision` world-generation contract.
+- [x] Implement deterministic sub-seed derivation for `Elevation`, `Humidity`, `Temperature`, and `Flora`.
+- [x] Implement continuous Perlin sampling and normalization for all four maps at a world position.
+- [x] Implement deterministic biome classification and continuous transition blending from the four sampled values.
+- [ ] Add a developer-only visualization of the four fields and final biome classification.
+- [ ] Verify same-seed reproducibility and visible different-seed variation in host/client play.
+
+### Phase 2 — First playable generated world
+
+- [ ] Generate traversable terrain from the seed, including a seed-generated player start, Meadows, lakes, trees, and rocks.
+- [ ] Verify host and client traverse matching generated terrain and observe the same meaningful natural features.
+
+### Phase 3 — Natural population
+
+- [ ] Add deterministic server-side spatial seeds and spawn budgets for wildlife, harvest nodes, and hazards.
+- [ ] Persist consumed or defeated gameplay content as sparse world deltas keyed by seed, generator revision, and server spatial key.
+- [ ] Verify the same seed produces matching gameplay content and that state remains consistent after reconnecting.
+
+### Phase 4 — Weather, shelter, and survival
+
+- [ ] Connect generated terrain to rain, wind, wetness, warmth, fires, and shelter without a prescribed route.
+- [ ] Verify terrain and weather create meaningful player choices in routes, camps, and preparation.
+
+### Phase 5 — Biome expansion
+
+- [ ] Add Shimmering Lakes with its environmental, shelter, and discovery identity.
+- [ ] Add Elderwood with its environmental, shelter, and discovery identity.
+- [ ] Add Mossy Mire with its environmental, shelter, and discovery identity.
+- [ ] Add Freezing Tundra with its environmental, shelter, and discovery identity.
+- [ ] Add Thunder Mountains with its environmental, shelter, and discovery identity.
+- [ ] Verify each added biome is independently enjoyable, blends naturally, and is host/client-consistent.
+
+### Phase 6 — Ocean and long-distance travel
+
+- [ ] Add ocean terrain, islands, and the systems required for long-distance movement.
+- [ ] Profile generation time, memory, replicated actor count, save size, and late-join synchronization before increasing density or streaming distance.
+- [ ] Verify land-to-ocean travel has no terrain gaps, duplicate content, or host/client disagreement.
+
+## Later gameplay milestones
 
 Use `docs/04-roadmap.md` as the source of truth. Add decomposed M2–M5 tasks here only after their preceding milestone acceptance criteria pass.

@@ -6,11 +6,11 @@ Up to four wanderers build a sanctuary in a mythic northern wilderness, learn an
 
 ## Player promise
 
-Players should feel rewarded for turning gathered materials into shelter that withstands a changing climate and harsh weather. A temporary camp offers a welcome moment of safety, while the wilderness and its supernatural forces draw players into expeditions for rarer materials, more durable structures, and better gear.
+Players should feel rewarded for turning gathered materials into shelter that withstands a changing climate and harsh weather. A temporary camp offers a welcome moment of safety, while an open wilderness lets players choose their own routes toward rarer materials, more durable structures, and better gear.
 
 ## Product frame
 
-- **Genre:** Third-person cooperative survival-action RPG with procedural expedition spaces.
+- **Genre:** Third-person cooperative open-world survival-action RPG with a seeded wilderness.
 - **Platform target:** Windows PC first.
 - **Engine:** Unreal Engine 5, C++ foundations with Blueprint-facing gameplay APIs.
 - **Session model:** Solo, listen server, and dedicated server; 1–4 players for the first release.
@@ -20,14 +20,14 @@ Players should feel rewarded for turning gathered materials into shelter that wi
 ## Creative pillars
 
 1. **A world that behaves believably.** Weather and materials follow clear, useful rules. Rain soaks players and wood; fire provides warmth but will not survive in open rain; roofs and sturdy materials protect a camp from the elements. Players learn these rules naturally through play and use them to survive and build better—not by memorising a complex simulation.
-2. **Shelter is earned.** A camp begins with a fire and a dry place to sleep, then grows into a dependable home through smart placement, a roof, structural support, stronger materials, food, and crafting facilities. The wilderness remains dangerous, but thoughtful construction makes expeditions longer, safer, and more rewarding.
+2. **Shelter is earned.** A camp begins with a fire and a dry place to sleep, then grows into a dependable home through smart placement, a roof, structural support, stronger materials, food, and crafting facilities. The wilderness remains dangerous, but thoughtful construction lets players range farther and choose their own risks.
 3. **Magic supports the journey.** Magic is learned from scrolls recovered in biomes and earned from boss encounters. It heals, shields, strengthens, and influences the natural world. It requires no runes and never deals direct damage.
 4. **Kalevala-inflected original fantasy.** Old songs, lake country, forests, smithing, weaving, and the long northern twilight guide the mood. The world, characters, locations, symbols, and narrative must be original.
 5. **Cooperation with consequences.** Distinct player choices should combine productively. Friendly fire and environmental risks are intentional, but configurable.
 
 ## Scope guardrails
 
-The first playable release is a **vertical slice**, not an open-world simulation. It requires one biome, one camp location, three creature archetypes (Mireling, boar, and deer), a small handcrafted expedition, basic building, one support-magic discipline, and a complete co-op session loop.
+The first playable release is a **vertical slice** of the eventual open world. The world is assembled from seed-generated biomes rather than authored areas; the slice focuses on the systems needed to explore it, with three creature archetypes (Mireling, boar, and deer), basic building, one support-magic discipline, and a complete co-op session loop. It does not require quests or a prescribed route.
 
 ## Reference boundary
 

@@ -9,7 +9,7 @@ The project is designed to be built primarily by AI agents. The documentation in
 - **Original world first.** Reference games inform high-level design lessons only; no copied assets, names, lore, levels, code, or distinctive content.
 - **Playable early.** Every milestone produces a testable game loop.
 - **Server-authoritative multiplayer.** The game must remain valid when played on a dedicated server.
-- **Shelter earns progression.** Materials, weather, construction, and expeditions create a clear path from a temporary camp to durable structures and better gear.
+- **Shelter earns progression.** Materials, weather, construction, and open-world exploration create a clear path from a temporary camp to durable structures and better gear.
 
 ## Start here
 

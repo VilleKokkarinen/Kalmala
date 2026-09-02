@@ -2,11 +2,11 @@
 
 ## Core loop
 
-1. Prepare at camp: eat, repair and craft equipment, rest, resupply for the next expedition.
-2. Travel into the wild: gather, hunt, discover lore, survive weather and hazards.
-3. Overcome a site: use combat, construction, terrain, and elemental reactions.
+1. Prepare at camp: eat, repair and craft equipment, rest, and choose a direction or goal.
+2. Travel through the open wilderness: gather, hunt, discover lore, and survive weather and hazards.
+3. Engage with optional sites: use combat, construction, terrain, and elemental reactions when the player chooses.
 4. Return with materials and, on major discoveries, new materials, gear and or magic scrolls.
-5. Improve the sanctuary and unlock safer or stranger expeditions.
+5. Improve the sanctuary and range farther into stranger parts of the world.
 
 ## Vertical-slice player kit
 
