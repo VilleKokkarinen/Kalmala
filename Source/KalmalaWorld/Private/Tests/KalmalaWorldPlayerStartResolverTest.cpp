@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWorldFieldSampler.h"
@@ -79,6 +80,30 @@ bool FKalmalaSurfaceWaterCoverageTest::RunTest(const FString& Parameters)
     }
 
     TestTrue(TEXT("The shared elevation field contains deterministic submerged terrain samples"), SubmergedSampleCount > 0);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaShimmeringLakeCoverageTest,
+    "Kalmala.World.ShimmeringLakes.Coverage",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaShimmeringLakeCoverageTest::RunTest(const FString& Parameters)
+{
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = 418;
+    Config.GeneratorRevision = 1;
+
+    int32 LakeWaterSampleCount = 0;
+    for (int32 Y = -48000; Y <= 48000; Y += 500)
+    {
+        for (int32 X = -48000; X <= 48000; X += 500)
+        {
+            LakeWaterSampleCount += FKalmalaShimmeringLakeSampler::IsWater(Config, FVector2D(X, Y)) ? 1 : 0;
+        }
+    }
+
+    TestTrue(TEXT("The shared fields contain deterministic Shimmering Lakes water samples"), LakeWaterSampleCount > 0);
     return true;
 }
 

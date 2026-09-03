@@ -35,6 +35,12 @@ private:
     TObjectPtr<UProceduralMeshComponent> SurfaceWater;
 
     UPROPERTY(VisibleAnywhere, Category = "World Generation")
+    TObjectPtr<UProceduralMeshComponent> ShimmeringLakeWater;
+
+    UPROPERTY(VisibleAnywhere, Category = "World Generation")
+    TObjectPtr<UProceduralMeshComponent> ShimmeringLakeShore;
+
+    UPROPERTY(VisibleAnywhere, Category = "World Generation")
     TObjectPtr<UInstancedStaticMeshComponent> MeadowRocks;
 
     UPROPERTY(VisibleAnywhere, Category = "World Generation")
@@ -54,6 +60,7 @@ private:
 
     bool bVisualSurfaceBuilt = false;
     bool bSurfaceWaterBuilt = false;
+    bool bShimmeringLakeTreatmentBuilt = false;
     bool bMeadowRocksBuilt = false;
     bool bMeadowTreesBuilt = false;
 
@@ -62,6 +69,7 @@ private:
 
     bool BuildVisualSurface();
     bool BuildSurfaceWater();
+    bool BuildShimmeringLakeTreatment();
     bool BuildMeadowRocks();
     bool BuildMeadowTrees();
 };
