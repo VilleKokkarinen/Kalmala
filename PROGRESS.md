@@ -523,3 +523,17 @@ Multiplayer impact: Only `GameMode` on the server creates harvest nodes from det
 Known limits: Nodes have no reward, art, persistence, or dedicated host/client interaction smoke test yet. Wildlife and hazard descriptors still use inert markers.
 
 Next task: Add an automated authority/depletion test for generated harvest nodes before adding rewards or persistence.
+
+### 2026-09-03 15:49 EEST — Verify generated harvest authority
+
+Outcome: Partial. Added focused automated coverage for generated harvest-node authorization and depletion. The test proves client-side requests, distant requests, and already-depleted nodes are rejected, while an in-range server request is accepted.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`; `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion` completed with exit code 0.
+
+Multiplayer impact: The shared validation seam requires server authority, non-depleted state, a positive server range, and in-range locations before mutation. It accepts no client-provided item, reward, or result.
+
+Known limits: The test covers the server gate rather than physical remote-client input. Harvest nodes still grant no resource and do not persist depletion across activation or reconnect.
+
+Next task: Add a stable server spatial identifier to generated harvest nodes as the prerequisite for sparse depletion persistence.
