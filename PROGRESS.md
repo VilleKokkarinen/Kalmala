@@ -467,3 +467,17 @@ Multiplayer impact: The production movement path is unchanged unless the explici
 Known limits: The harness is a headless automated traversal check rather than a player-facing QA mode. It intentionally does not add water interaction, decoration collision, harvesting, wildlife, or other later-milestone gameplay.
 
 Next task: Add deterministic server-side spatial seeds and spawn budgets for wildlife, harvest nodes, and hazards.
+
+### 2026-09-03 15:00 EEST — Define deterministic population layout
+
+Outcome: Partial. Added the first Phase 3 contract: invisible server spatial keys, independent deterministic seeds for wildlife, harvest nodes, and hazards, and bounded field-informed budgets for each key. This does not yet spawn gameplay actors.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `docs/02-technical-architecture.md`; `docs/08-world-generation-and-biomes.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.PopulationLayout.Determinism` completed with exit code 0, verifying stable key mapping, same-input seed reproducibility, per-kind seed separation, changed-seed variation, and non-negative budgets.
+
+Multiplayer impact: This is a pure server-side generation policy. It accepts only immutable world identity and position-derived keys; it creates no client-controlled placement, actor, loot, damage, or replicated state.
+
+Known limits: Wildlife, harvest nodes, and hazards are not yet represented as server-owned actors or activated by player proximity. Persistence of consumed/defeated content remains the next Phase 3 task after gameplay content exists.
+
+Next task: Add the first bounded server-owned gameplay population activation using the deterministic spatial layout.
