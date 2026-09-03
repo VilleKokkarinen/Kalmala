@@ -2,11 +2,17 @@
 
 #include "KalmalaCharacter.h"
 #include "KalmalaGeneratedTerrainPatch.h"
+#include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 
 #include "Engine/World.h"
 #include "GameFramework/PlayerStart.h"
+
+namespace KalmalaGameMode
+{
+    constexpr int32 InitialTerrainPatchRadius = 1;
+}
 
 AKalmalaGameMode::AKalmalaGameMode()
 {
@@ -43,12 +49,24 @@ void AKalmalaGameMode::BeginPlay()
         GeneratedPlayerStart->Tags.Add(TEXT("GeneratedWorldPlayerStart"));
         UE_LOG(LogTemp, Display, TEXT("Server created seed-derived player start at %s."), *GeneratedPlayerStart->GetActorLocation().ToCompactString());
 
-        AKalmalaGeneratedTerrainPatch* TerrainPatch = GetWorld()->SpawnActor<AKalmalaGeneratedTerrainPatch>(AKalmalaGeneratedTerrainPatch::StaticClass());
-        if (TerrainPatch != nullptr)
+        int32 SpawnedTerrainPatchCount = 0;
+        const FVector StartLocation = GeneratedPlayerStart->GetActorLocation();
+        const FVector2D StartPatchCenter(StartLocation.X, StartLocation.Y);
+        for (int32 PatchY = -KalmalaGameMode::InitialTerrainPatchRadius; PatchY <= KalmalaGameMode::InitialTerrainPatchRadius; ++PatchY)
         {
-            const FVector StartLocation = GeneratedPlayerStart->GetActorLocation();
-            TerrainPatch->Initialize(WorldGenerationState->GetWorldGenerationConfig(), FVector2D(StartLocation.X, StartLocation.Y));
+            for (int32 PatchX = -KalmalaGameMode::InitialTerrainPatchRadius; PatchX <= KalmalaGameMode::InitialTerrainPatchRadius; ++PatchX)
+            {
+                AKalmalaGeneratedTerrainPatch* TerrainPatch = GetWorld()->SpawnActor<AKalmalaGeneratedTerrainPatch>(AKalmalaGeneratedTerrainPatch::StaticClass());
+                if (TerrainPatch != nullptr)
+                {
+                    TerrainPatch->Initialize(
+                        WorldGenerationState->GetWorldGenerationConfig(),
+                        FKalmalaTerrainPatchLayout::GetPatchCenter(StartPatchCenter, PatchX, PatchY));
+                    ++SpawnedTerrainPatchCount;
+                }
+            }
         }
+        UE_LOG(LogTemp, Display, TEXT("Server activated %d seed-derived terrain patches around the generated start."), SpawnedTerrainPatchCount);
     }
 }
 

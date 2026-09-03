@@ -33,11 +33,12 @@ bool FKalmalaWorldPlayerStartResolverTest::RunTest(const FString& Parameters)
     TestTrue(
         TEXT("The shared terrain surface normal is normalized"),
         FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, FVector2D(FirstLocation.X, FirstLocation.Y)).IsNormalized());
-    const FVector CenterTile = FKalmalaTerrainPatchLayout::GetTileCenter(Config, FVector2D(FirstLocation.X, FirstLocation.Y), 0, 0);
+    const FVector2D PatchOrigin(FirstLocation.X, FirstLocation.Y);
+    const FVector2D EastPatchCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(PatchOrigin, 1, 0);
     TestEqual(
-        TEXT("The collision tile top matches the shared terrain surface"),
-        static_cast<double>(CenterTile.Z + FKalmalaTerrainPatchLayout::CollisionDepth),
-        static_cast<double>(FKalmalaTerrainHeightSampler::SampleHeight(Config, FVector2D(FirstLocation.X, FirstLocation.Y))),
+        TEXT("Adjacent terrain patches are separated by one continuous patch width"),
+        static_cast<double>(EastPatchCenter.X - PatchOrigin.X),
+        static_cast<double>(FKalmalaTerrainPatchLayout::PatchSize),
         0.01);
 
     Config.WorldSeed = 419;
