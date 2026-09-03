@@ -5,17 +5,26 @@
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPlayerStartResolver.h"
+#include "KalmalaShimmeringLakeSampler.h"
 
 #include "Engine/World.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerStart.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 namespace KalmalaGameMode
 {
     constexpr int32 PlayerTerrainPatchRadius = 1;
     constexpr int32 MaxActiveTerrainPatches = 25;
     constexpr float TerrainPatchActivationIntervalSeconds = 1.0f;
+    constexpr float TraversalTestSpeed = 1800.0f;
+    constexpr float TraversalTestArrivalDistance = 180.0f;
+    constexpr int32 TraversalTargetSearchExtent = 12000;
+    constexpr int32 TraversalTargetSearchStep = 250;
 }
 
 AKalmalaGameMode::AKalmalaGameMode()
@@ -60,6 +69,7 @@ void AKalmalaGameMode::BeginPlay()
         TerrainPatchOrigin = FVector2D(StartLocation.X, StartLocation.Y);
         ActivateTerrainPatchNeighborhood(TerrainPatchOrigin);
         UE_LOG(LogTemp, Display, TEXT("Server activated %d seed-derived terrain patches around the generated start."), ActiveTerrainPatchCoordinates.Num());
+        ConfigureTraversalTest();
     }
 }
 
@@ -67,7 +77,14 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    if (!HasAuthority() || !WorldGenerationConfig.IsValid() || GetWorld() == nullptr || GetWorld()->GetTimeSeconds() < NextTerrainPatchActivationTime)
+    if (!HasAuthority() || !WorldGenerationConfig.IsValid() || GetWorld() == nullptr)
+    {
+        return;
+    }
+
+    DriveTraversalTest();
+
+    if (GetWorld()->GetTimeSeconds() < NextTerrainPatchActivationTime)
     {
         return;
     }
@@ -81,6 +98,105 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
         {
             ActivateTerrainPatchNeighborhood(FVector2D(PlayerPawn->GetActorLocation()));
         }
+    }
+}
+
+void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
+{
+    Super::PostLogin(NewPlayer);
+
+    if (!bTraversalTestEnabled || NewPlayer == nullptr)
+    {
+        return;
+    }
+
+    // GameModeBase does not guarantee a pawn for a headless, command-line client.
+    // The harness creates its normal default pawn only when the test switch is enabled.
+    if (NewPlayer->GetPawn() == nullptr)
+    {
+        RestartPlayer(NewPlayer);
+    }
+
+    UE_LOG(LogTemp, Display, TEXT("Traversal-test server player joined with pawn: %s."), *GetNameSafe(NewPlayer->GetPawn()));
+}
+
+void AKalmalaGameMode::ConfigureTraversalTest()
+{
+    bTraversalTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaTraversalTest"));
+    if (!bTraversalTestEnabled)
+    {
+        return;
+    }
+
+    float ClosestDistanceSquared = TNumericLimits<float>::Max();
+    for (int32 Y = -KalmalaGameMode::TraversalTargetSearchExtent; Y <= KalmalaGameMode::TraversalTargetSearchExtent; Y += KalmalaGameMode::TraversalTargetSearchStep)
+    {
+        for (int32 X = -KalmalaGameMode::TraversalTargetSearchExtent; X <= KalmalaGameMode::TraversalTargetSearchExtent; X += KalmalaGameMode::TraversalTargetSearchStep)
+        {
+            const FVector2D Candidate = TerrainPatchOrigin + FVector2D(X, Y);
+            if (!FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Candidate))
+            {
+                continue;
+            }
+
+            const float DistanceSquared = FVector2D::DistSquared(TerrainPatchOrigin, Candidate);
+            if (DistanceSquared < ClosestDistanceSquared)
+            {
+                ClosestDistanceSquared = DistanceSquared;
+                TraversalTestTarget = Candidate;
+            }
+        }
+    }
+
+    if (ClosestDistanceSquared == TNumericLimits<float>::Max())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Traversal-test switch was requested but no Shimmering Lakes target was found within %d units."), KalmalaGameMode::TraversalTargetSearchExtent);
+        bTraversalTestEnabled = false;
+        return;
+    }
+
+    UE_LOG(LogTemp, Display, TEXT("Traversal-test server target is %s, %.0f units from the generated start."), *TraversalTestTarget.ToString(), FMath::Sqrt(ClosestDistanceSquared));
+}
+
+void AKalmalaGameMode::DriveTraversalTest()
+{
+    if (!bTraversalTestEnabled)
+    {
+        return;
+    }
+
+    for (FConstPlayerControllerIterator PlayerControllerIterator = GetWorld()->GetPlayerControllerIterator(); PlayerControllerIterator; ++PlayerControllerIterator)
+    {
+        const APlayerController* PlayerController = PlayerControllerIterator->Get();
+        if (PlayerController == nullptr || !PlayerController->IsLocalController())
+        {
+            continue;
+        }
+
+        AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(PlayerController->GetPawn());
+        if (Character == nullptr || TraversalTestCompletedPawns.Contains(Character))
+        {
+            continue;
+        }
+
+        if (!TraversalTestStartedPawns.Contains(Character))
+        {
+            TraversalTestStartedPawns.Add(Character);
+            Character->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+            UE_LOG(LogTemp, Display, TEXT("Traversal-test server is driving pawn %s from %s toward the Shimmering Lakes target."), *Character->GetName(), *Character->GetActorLocation().ToCompactString());
+        }
+
+        const FVector CurrentLocation = Character->GetActorLocation();
+        const FVector2D RemainingOffset = TraversalTestTarget - FVector2D(CurrentLocation);
+        if (RemainingOffset.SizeSquared() <= FMath::Square(KalmalaGameMode::TraversalTestArrivalDistance))
+        {
+            TraversalTestCompletedPawns.Add(Character);
+            UE_LOG(LogTemp, Display, TEXT("Traversal-test server pawn %s reached the Shimmering Lakes target after travelling %.0f units."), *Character->GetName(), FMath::Sqrt(FVector2D::DistSquared(TerrainPatchOrigin, FVector2D(CurrentLocation))));
+            continue;
+        }
+
+        Character->GetCharacterMovement()->MaxWalkSpeed = KalmalaGameMode::TraversalTestSpeed;
+        Character->AddMovementInput(FVector(RemainingOffset.GetSafeNormal(), 0.0f), 1.0f, true);
     }
 }
 

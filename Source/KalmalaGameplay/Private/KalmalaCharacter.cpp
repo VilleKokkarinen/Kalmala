@@ -6,6 +6,11 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "KalmalaInteractable.h"
+#include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaWorldPlayerStartResolver.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 AKalmalaCharacter::AKalmalaCharacter()
 {
@@ -27,6 +32,90 @@ AKalmalaCharacter::AKalmalaCharacter()
     FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
     FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
     FollowCamera->bUsePawnControlRotation = false;
+}
+
+void AKalmalaCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+    bTraversalTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaTraversalTest"));
+    TraversalStartLocation = GetActorLocation();
+}
+
+void AKalmalaCharacter::Tick(const float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    ConfigureTraversalTestTarget();
+    if (!bTraversalTargetConfigured)
+    {
+        return;
+    }
+
+    const FVector2D RemainingOffset = TraversalTestTarget - FVector2D(GetActorLocation());
+    if (RemainingOffset.SizeSquared() <= FMath::Square(180.0f))
+    {
+        if (!bTraversalArrivalLogged)
+        {
+            bTraversalArrivalLogged = true;
+            UE_LOG(LogTemp, Display, TEXT("Traversal-test %s pawn %s reached the Shimmering Lakes target."), HasAuthority() ? TEXT("server") : TEXT("client"), *GetName());
+        }
+        return;
+    }
+
+    if (IsLocallyControlled())
+    {
+        GetCharacterMovement()->MaxWalkSpeed = 1800.0f;
+        AddMovementInput(FVector(RemainingOffset.GetSafeNormal(), 0.0f), 1.0f, true);
+    }
+}
+
+void AKalmalaCharacter::ConfigureTraversalTestTarget()
+{
+    if (!bTraversalTelemetryEnabled || bTraversalTargetConfigured || GetWorld() == nullptr)
+    {
+        return;
+    }
+
+    const AKalmalaWorldGenerationGameState* WorldGenerationState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (WorldGenerationState == nullptr || !WorldGenerationState->GetWorldGenerationConfig().IsValid())
+    {
+        return;
+    }
+
+    const FKalmalaWorldGenerationConfig& Config = WorldGenerationState->GetWorldGenerationConfig();
+    const FVector StartLocation = FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config).GetLocation();
+    const FVector2D StartPosition(StartLocation);
+    float ClosestDistanceSquared = TNumericLimits<float>::Max();
+    for (int32 Y = -12000; Y <= 12000; Y += 250)
+    {
+        for (int32 X = -12000; X <= 12000; X += 250)
+        {
+            const FVector2D Candidate = StartPosition + FVector2D(X, Y);
+            if (FKalmalaShimmeringLakeSampler::IsWater(Config, Candidate))
+            {
+                const float DistanceSquared = FVector2D::DistSquared(StartPosition, Candidate);
+                if (DistanceSquared < ClosestDistanceSquared)
+                {
+                    ClosestDistanceSquared = DistanceSquared;
+                    TraversalTestTarget = Candidate;
+                }
+            }
+        }
+    }
+
+    bTraversalTargetConfigured = ClosestDistanceSquared != TNumericLimits<float>::Max();
+}
+
+void AKalmalaCharacter::OnRep_ReplicatedMovement()
+{
+    Super::OnRep_ReplicatedMovement();
+
+    if (bTraversalTelemetryEnabled && !HasAuthority() && !bTraversalMovementLogged
+        && FVector::DistSquared2D(TraversalStartLocation, GetActorLocation()) >= FMath::Square(3000.0f))
+    {
+        bTraversalMovementLogged = true;
+        UE_LOG(LogTemp, Display, TEXT("Traversal-test client observed replicated pawn movement of at least 3,000 units."));
+    }
 }
 
 void AKalmalaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
