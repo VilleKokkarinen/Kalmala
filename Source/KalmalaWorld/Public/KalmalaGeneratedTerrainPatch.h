@@ -34,6 +34,12 @@ private:
     UPROPERTY(VisibleAnywhere, Category = "World Generation")
     TObjectPtr<UInstancedStaticMeshComponent> MeadowRocks;
 
+    UPROPERTY(VisibleAnywhere, Category = "World Generation")
+    TObjectPtr<UInstancedStaticMeshComponent> MeadowTreeTrunks;
+
+    UPROPERTY(VisibleAnywhere, Category = "World Generation")
+    TObjectPtr<UInstancedStaticMeshComponent> MeadowTreeCanopies;
+
     UPROPERTY(ReplicatedUsing = OnRep_GenerationData)
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
 
@@ -45,10 +51,12 @@ private:
 
     bool bVisualSurfaceBuilt = false;
     bool bMeadowRocksBuilt = false;
+    bool bMeadowTreesBuilt = false;
 
     UFUNCTION()
     void OnRep_GenerationData();
 
     bool BuildVisualSurface();
     bool BuildMeadowRocks();
+    bool BuildMeadowTrees();
 };

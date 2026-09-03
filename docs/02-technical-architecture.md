@@ -26,6 +26,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Terrain collision | server | create collision from the server's same continuous terrain mesh; clients derive matching local collision only for prediction, never as authority |
 | Generated player start | server | resolve a Meadow-preferred seed-specific transform at the sampled terrain height, then spawn pawns there |
 | Meadow rocks | client cosmetic | derive non-interactable instanced rocks from the replicated identity, terrain sample, and biome classification |
+| Meadow trees | client cosmetic | derive non-interactable instanced trunks and canopies from the replicated identity, terrain sample, and biome classification |
 | Cosmetics | client | derive from replicated state/events |
 
 ## Module boundaries

@@ -16,6 +16,9 @@ namespace KalmalaGeneratedTerrainPatch
     constexpr int32 SurfaceCellsPerSide = 24;
     constexpr int32 RockCandidateCount = 48;
     constexpr float RockEdgeMargin = 150.0f;
+    constexpr int32 TreeCandidateCount = 18;
+    constexpr float TreeEdgeMargin = 260.0f;
+    constexpr uint64 TreeSeedSalt = 0xD1B54A32D192ED03ull;
 
     static_assert(FKalmalaTerrainPatchLayout::TilesPerSide % 2 == 1, "The terrain patch requires a centered tile layout.");
 }
@@ -46,6 +49,30 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
     {
         MeadowRocks->SetStaticMesh(RockMesh.Object);
     }
+
+    MeadowTreeTrunks = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("MeadowTreeTrunks"));
+    MeadowTreeTrunks->SetupAttachment(SceneRoot);
+    MeadowTreeTrunks->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    MeadowTreeTrunks->SetGenerateOverlapEvents(false);
+    MeadowTreeTrunks->SetCastShadow(true);
+
+    MeadowTreeCanopies = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("MeadowTreeCanopies"));
+    MeadowTreeCanopies->SetupAttachment(SceneRoot);
+    MeadowTreeCanopies->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    MeadowTreeCanopies->SetGenerateOverlapEvents(false);
+    MeadowTreeCanopies->SetCastShadow(true);
+
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> TrunkMesh(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+    if (TrunkMesh.Succeeded())
+    {
+        MeadowTreeTrunks->SetStaticMesh(TrunkMesh.Object);
+    }
+
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> CanopyMesh(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+    if (CanopyMesh.Succeeded())
+    {
+        MeadowTreeCanopies->SetStaticMesh(CanopyMesh.Object);
+    }
 }
 
 void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConfig& InConfig, const FVector2D InPatchCenter)
@@ -56,10 +83,15 @@ void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConf
     bIsConfigured = true;
     bVisualSurfaceBuilt = false;
     bMeadowRocksBuilt = false;
+    bMeadowTreesBuilt = false;
     BuildVisualSurface();
     if (BuildMeadowRocks())
     {
         UE_LOG(LogTemp, Display, TEXT("Server built %d deterministic Meadow rock instances."), MeadowRocks->GetInstanceCount());
+    }
+    if (BuildMeadowTrees())
+    {
+        UE_LOG(LogTemp, Display, TEXT("Server built %d deterministic Meadow tree instances."), MeadowTreeTrunks->GetInstanceCount());
     }
     ForceNetUpdate();
 }
@@ -75,6 +107,10 @@ void AKalmalaGeneratedTerrainPatch::OnRep_GenerationData()
         if (BuildMeadowRocks())
         {
             UE_LOG(LogTemp, Display, TEXT("Client built %d deterministic Meadow rock instances from the replicated patch descriptor."), MeadowRocks->GetInstanceCount());
+        }
+        if (BuildMeadowTrees())
+        {
+            UE_LOG(LogTemp, Display, TEXT("Client built %d deterministic Meadow tree instances from the replicated patch descriptor."), MeadowTreeTrunks->GetInstanceCount());
         }
     }
 }
@@ -177,6 +213,51 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowRocks()
     }
 
     bMeadowRocksBuilt = true;
+    return true;
+}
+
+bool AKalmalaGeneratedTerrainPatch::BuildMeadowTrees()
+{
+    if (bMeadowTreesBuilt || !bIsConfigured || !WorldGenerationConfig.IsValid() || MeadowTreeTrunks == nullptr || MeadowTreeCanopies == nullptr
+        || MeadowTreeTrunks->GetStaticMesh() == nullptr || MeadowTreeCanopies->GetStaticMesh() == nullptr)
+    {
+        return false;
+    }
+
+    constexpr float SurfaceSize = FKalmalaTerrainPatchLayout::TilesPerSide * FKalmalaTerrainPatchLayout::TileSize;
+    constexpr float HalfSurfaceSize = SurfaceSize * 0.5f;
+    const uint64 FloraSeed = FKalmalaWorldGenerationSeeds::DeriveFieldSeed(WorldGenerationConfig, EKalmalaWorldField::Flora);
+    FRandomStream RandomStream(static_cast<int32>((FloraSeed ^ KalmalaGeneratedTerrainPatch::TreeSeedSalt) >> 32));
+
+    MeadowTreeTrunks->ClearInstances();
+    MeadowTreeCanopies->ClearInstances();
+    for (int32 CandidateIndex = 0; CandidateIndex < KalmalaGeneratedTerrainPatch::TreeCandidateCount; ++CandidateIndex)
+    {
+        const FVector2D LocalPosition(
+            RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::TreeEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::TreeEdgeMargin),
+            RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::TreeEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::TreeEdgeMargin));
+        const FVector2D SamplePosition = PatchCenter + LocalPosition;
+        if (FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition)) != EKalmalaBiome::Meadows)
+        {
+            continue;
+        }
+
+        const float TrunkHeightScale = RandomStream.FRandRange(3.5f, 6.5f);
+        const float TrunkRadiusScale = RandomStream.FRandRange(0.10f, 0.18f);
+        const float CanopyScale = RandomStream.FRandRange(1.1f, 1.7f);
+        const float SurfaceHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition);
+        const float TreeYaw = RandomStream.FRandRange(0.0f, 360.0f);
+        const FVector TrunkScale(TrunkRadiusScale, TrunkRadiusScale, TrunkHeightScale);
+        const float TrunkHeight = 100.0f * TrunkHeightScale;
+
+        MeadowTreeTrunks->AddInstance(FTransform(FRotator(0.0f, TreeYaw, 0.0f), FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight + TrunkHeight * 0.5f), TrunkScale));
+        MeadowTreeCanopies->AddInstance(FTransform(
+            FRotator(0.0f, TreeYaw, RandomStream.FRandRange(-8.0f, 8.0f)),
+            FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight + TrunkHeight + CanopyScale * 25.0f),
+            FVector(CanopyScale, CanopyScale, CanopyScale * RandomStream.FRandRange(0.8f, 1.2f))));
+    }
+
+    bMeadowTreesBuilt = true;
     return true;
 }
 
