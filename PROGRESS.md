@@ -425,3 +425,17 @@ Multiplayer impact: Lake and shoreline mesh vertices are local cosmetic derivati
 Known limits: The treatment uses temporary procedural geometry and vertex colors pending original water and shoreline materials. It does not yet add fog, fishing, islands, boats, or other Phase 5 Shimmering Lakes gameplay; actual host/client traversal remains outstanding.
 
 Next task: Replace temporary engine primitive meshes/materials with original terrain, rock, tree, and water assets.
+
+### 2026-09-03 12:16 EEST — Create original generated-world materials
+
+Outcome: Partial. Added a reproducible editor commandlet that creates three project-owned material assets: muted lichen-green terrain, cold-blue water, and a lake-shore material. The generated terrain, generic water, Shimmering Lakes water, and shoreline components now load those assets instead of the default engine material.
+
+Changed: `Source/KalmalaEditor/Public/CreateWorldMaterialsCommandlet.h`; `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset`; `Content/Kalmala/World/Materials/M_GeneratedWater.uasset`; `Content/Kalmala/World/Materials/M_GeneratedLakeShore.uasset`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. `UnrealEditor-Cmd.exe ... -run=CreateWorldMaterials -unattended` created the three material packages; its repeat run found every package, completed with exit code 0, and reported 0 errors and 0 warnings.
+
+Multiplayer impact: Material assignment is client-side presentation only. No material, mesh, terrain, collision, or gameplay state is replicated; all generation identity and patch selection authority remains on the server.
+
+Known limits: Rocks and trees still use temporary engine primitive meshes. The new original materials are deliberately simple color/roughness baselines; texture detail, water motion, fog, and final art direction remain future visual work.
+
+Next task: Create and apply project-owned rock and tree meshes/materials to replace the remaining temporary primitive meshes.
