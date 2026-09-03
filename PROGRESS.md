@@ -509,3 +509,17 @@ Multiplayer impact: Only the server activates keys and spawns replicated markers
 Known limits: Markers are not wildlife, harvest nodes, or hazards yet; they only establish server-owned activation and replication. Sparse consumed/defeated persistence remains unimplemented.
 
 Next task: Replace population markers with the first minimal server-owned harvest-node gameplay actor while retaining the deterministic activation contract.
+
+### 2026-09-03 15:37 EEST — Add generated server-owned harvest nodes
+
+Outcome: Partial. Replaced harvest-node population markers with replicated, collision-query-only one-use harvest nodes. The existing server trace and interaction validation decide whether a node can be harvested; successful harvesting hides and disables only that node. Rewards and persistence are intentionally deferred.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`; `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`, compiling the generated harvest node, UHT reflection code, and updated server population activation.
+
+Multiplayer impact: Only `GameMode` on the server creates harvest nodes from deterministic descriptors. A client can request interaction but supplies no target or harvest result; the existing server trace, authority check, range check, and replicated harvested state remain authoritative.
+
+Known limits: Nodes have no reward, art, persistence, or dedicated host/client interaction smoke test yet. Wildlife and hazard descriptors still use inert markers.
+
+Next task: Add an automated authority/depletion test for generated harvest nodes before adding rewards or persistence.
