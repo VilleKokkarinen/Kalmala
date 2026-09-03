@@ -24,8 +24,13 @@ void AKalmalaHarvestNode::InitializeServer(const FKalmalaWorldPopulationSpawn& S
 
 bool AKalmalaHarvestNode::CanInteract_Implementation(AKalmalaCharacter* Interactor) const
 {
-    return HasAuthority() && !bHarvested && IsValid(Interactor)
-        && FVector::DistSquared(Interactor->GetActorLocation(), GetActorLocation()) <= FMath::Square(250.0f);
+    return IsValid(Interactor) && IsHarvestAllowed(HasAuthority(), bHarvested, Interactor->GetActorLocation(), GetActorLocation());
+}
+
+bool AKalmalaHarvestNode::IsHarvestAllowed(const bool bServerAuthority, const bool bAlreadyHarvested, const FVector& InteractorLocation, const FVector& NodeLocation, const float MaximumDistance)
+{
+    return bServerAuthority && !bAlreadyHarvested && MaximumDistance > 0.0f
+        && FVector::DistSquared(InteractorLocation, NodeLocation) <= FMath::Square(MaximumDistance);
 }
 
 void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)

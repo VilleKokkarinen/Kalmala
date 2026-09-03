@@ -18,6 +18,7 @@ public:
     AKalmalaHarvestNode();
 
     void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn);
+    static bool IsHarvestAllowed(bool bServerAuthority, bool bAlreadyHarvested, const FVector& InteractorLocation, const FVector& NodeLocation, float MaximumDistance = 250.0f);
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
     virtual void Interact_Implementation(AKalmalaCharacter* Interactor) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
