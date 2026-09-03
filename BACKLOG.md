@@ -57,6 +57,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 - [ ] Add deterministic server-side spatial seeds and spawn budgets for wildlife, harvest nodes, and hazards.
   - [x] Define deterministic invisible spatial keys, per-kind seeds, and field-informed spawn budgets.
+  - [x] Derive deterministic terrain-aligned spawn descriptors within each bounded spatial budget.
 - [ ] Persist consumed or defeated gameplay content as sparse world deltas keyed by seed, generator revision, and server spatial key.
 - [ ] Verify the same seed produces matching gameplay content and that state remains consistent after reconnecting.
 

@@ -481,3 +481,17 @@ Multiplayer impact: This is a pure server-side generation policy. It accepts onl
 Known limits: Wildlife, harvest nodes, and hazards are not yet represented as server-owned actors or activated by player proximity. Persistence of consumed/defeated content remains the next Phase 3 task after gameplay content exists.
 
 Next task: Add the first bounded server-owned gameplay population activation using the deterministic spatial layout.
+
+### 2026-09-03 15:12 EEST — Derive bounded population spawn descriptors
+
+Outcome: Partial. Extended the Phase 3 population layout with deterministic terrain-aligned spawn descriptors. Each descriptor is generated within its invisible server spatial key from a per-kind seed and never exceeds that key's field-informed budget; no gameplay actor is spawned yet.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.PopulationLayout.Determinism` completed with exit code 0, including stable repeated descriptor seeds, budget bounds, and spatial-key containment assertions.
+
+Multiplayer impact: Descriptors are pure server generation inputs derived from immutable identity and continuous terrain height. They create no actors or replicated content, and clients cannot supply keys, seeds, budgets, or locations.
+
+Known limits: The layout has no server activation policy or replicated wildlife, harvest-node, or hazard actor yet. No persistent deltas are written.
+
+Next task: Activate the bounded population descriptors around players on the server without making spatial keys player-facing areas.
