@@ -1,14 +1,21 @@
 #include "KalmalaGeneratedTerrainPatch.h"
 
 #include "Components/SceneComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "KalmalaBiomeClassifier.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
+#include "KalmalaWorldGenerationSeeds.h"
 #include "Net/UnrealNetwork.h"
 #include "ProceduralMeshComponent.h"
+#include "UObject/ConstructorHelpers.h"
 
 namespace KalmalaGeneratedTerrainPatch
 {
     constexpr int32 SurfaceCellsPerSide = 24;
+    constexpr int32 RockCandidateCount = 48;
+    constexpr float RockEdgeMargin = 150.0f;
 
     static_assert(FKalmalaTerrainPatchLayout::TilesPerSide % 2 == 1, "The terrain patch requires a centered tile layout.");
 }
@@ -27,6 +34,18 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
     TerrainSurface->SetCollisionProfileName(TEXT("BlockAll"));
     TerrainSurface->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     TerrainSurface->SetGenerateOverlapEvents(false);
+
+    MeadowRocks = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("MeadowRocks"));
+    MeadowRocks->SetupAttachment(SceneRoot);
+    MeadowRocks->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    MeadowRocks->SetGenerateOverlapEvents(false);
+    MeadowRocks->SetCastShadow(true);
+
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> RockMesh(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+    if (RockMesh.Succeeded())
+    {
+        MeadowRocks->SetStaticMesh(RockMesh.Object);
+    }
 }
 
 void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConfig& InConfig, const FVector2D InPatchCenter)
@@ -36,7 +55,12 @@ void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConf
     PatchCenter = InPatchCenter;
     bIsConfigured = true;
     bVisualSurfaceBuilt = false;
+    bMeadowRocksBuilt = false;
     BuildVisualSurface();
+    if (BuildMeadowRocks())
+    {
+        UE_LOG(LogTemp, Display, TEXT("Server built %d deterministic Meadow rock instances."), MeadowRocks->GetInstanceCount());
+    }
     ForceNetUpdate();
 }
 
@@ -47,6 +71,10 @@ void AKalmalaGeneratedTerrainPatch::OnRep_GenerationData()
         if (BuildVisualSurface())
         {
             UE_LOG(LogTemp, Display, TEXT("Client built the seed-derived terrain surface from the replicated patch descriptor."));
+        }
+        if (BuildMeadowRocks())
+        {
+            UE_LOG(LogTemp, Display, TEXT("Client built %d deterministic Meadow rock instances from the replicated patch descriptor."), MeadowRocks->GetInstanceCount());
         }
     }
 }
@@ -112,6 +140,43 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
     {
         UE_LOG(LogTemp, Display, TEXT("Server built a seed-derived terrain surface with %d collision triangles."), Triangles.Num() / 3);
     }
+    return true;
+}
+
+bool AKalmalaGeneratedTerrainPatch::BuildMeadowRocks()
+{
+    if (bMeadowRocksBuilt || !bIsConfigured || !WorldGenerationConfig.IsValid() || MeadowRocks == nullptr || MeadowRocks->GetStaticMesh() == nullptr)
+    {
+        return false;
+    }
+
+    constexpr float SurfaceSize = FKalmalaTerrainPatchLayout::TilesPerSide * FKalmalaTerrainPatchLayout::TileSize;
+    constexpr float HalfSurfaceSize = SurfaceSize * 0.5f;
+    const uint64 Seed = FKalmalaWorldGenerationSeeds::DeriveFieldSeed(WorldGenerationConfig, EKalmalaWorldField::Flora);
+    FRandomStream RandomStream(static_cast<int32>(Seed ^ (Seed >> 32)));
+
+    MeadowRocks->ClearInstances();
+    for (int32 CandidateIndex = 0; CandidateIndex < KalmalaGeneratedTerrainPatch::RockCandidateCount; ++CandidateIndex)
+    {
+        const FVector2D LocalPosition(
+            RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::RockEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::RockEdgeMargin),
+            RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::RockEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::RockEdgeMargin));
+        const FVector2D SamplePosition = PatchCenter + LocalPosition;
+        if (FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition)) != EKalmalaBiome::Meadows)
+        {
+            continue;
+        }
+
+        const float ZScale = RandomStream.FRandRange(0.18f, 0.42f);
+        const FVector RockScale(RandomStream.FRandRange(0.35f, 0.75f), RandomStream.FRandRange(0.30f, 0.65f), ZScale);
+        const float RockRadius = 50.0f * ZScale;
+        MeadowRocks->AddInstance(FTransform(
+            FRotator(0.0f, RandomStream.FRandRange(0.0f, 360.0f), RandomStream.FRandRange(-12.0f, 12.0f)),
+            FVector(LocalPosition.X, LocalPosition.Y, FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition) + RockRadius),
+            RockScale));
+    }
+
+    bMeadowRocksBuilt = true;
     return true;
 }
 

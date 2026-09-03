@@ -7,6 +7,7 @@
 
 class USceneComponent;
 class UProceduralMeshComponent;
+class UInstancedStaticMeshComponent;
 
 /**
  * Server-owned descriptor for a continuous authoritative terrain surface and
@@ -30,6 +31,9 @@ private:
     UPROPERTY(VisibleAnywhere, Category = "World Generation")
     TObjectPtr<UProceduralMeshComponent> TerrainSurface;
 
+    UPROPERTY(VisibleAnywhere, Category = "World Generation")
+    TObjectPtr<UInstancedStaticMeshComponent> MeadowRocks;
+
     UPROPERTY(ReplicatedUsing = OnRep_GenerationData)
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
 
@@ -40,9 +44,11 @@ private:
     bool bIsConfigured = false;
 
     bool bVisualSurfaceBuilt = false;
+    bool bMeadowRocksBuilt = false;
 
     UFUNCTION()
     void OnRep_GenerationData();
 
     bool BuildVisualSurface();
+    bool BuildMeadowRocks();
 };
