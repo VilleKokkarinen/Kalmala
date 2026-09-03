@@ -1,6 +1,7 @@
 #include "KalmalaGameMode.h"
 
 #include "KalmalaCharacter.h"
+#include "KalmalaHarvestNode.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -117,11 +118,23 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     {
         for (const FKalmalaWorldPopulationSpawn& Spawn : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, Kind))
         {
-            AKalmalaWorldPopulationMarker* Marker = GetWorld()->SpawnActor<AKalmalaWorldPopulationMarker>(AKalmalaWorldPopulationMarker::StaticClass(), Spawn.Location, FRotator::ZeroRotator);
-            if (Marker != nullptr)
+            if (Kind == EKalmalaWorldPopulationKind::HarvestNode)
             {
-                Marker->InitializeServer(Spawn);
-                ++SpawnedMarkerCount;
+                AKalmalaHarvestNode* HarvestNode = GetWorld()->SpawnActor<AKalmalaHarvestNode>(AKalmalaHarvestNode::StaticClass(), Spawn.Location, FRotator::ZeroRotator);
+                if (HarvestNode != nullptr)
+                {
+                    HarvestNode->InitializeServer(Spawn);
+                    ++SpawnedMarkerCount;
+                }
+            }
+            else
+            {
+                AKalmalaWorldPopulationMarker* Marker = GetWorld()->SpawnActor<AKalmalaWorldPopulationMarker>(AKalmalaWorldPopulationMarker::StaticClass(), Spawn.Location, FRotator::ZeroRotator);
+                if (Marker != nullptr)
+                {
+                    Marker->InitializeServer(Spawn);
+                    ++SpawnedMarkerCount;
+                }
             }
         }
     }
