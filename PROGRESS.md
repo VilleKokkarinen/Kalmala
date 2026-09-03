@@ -243,3 +243,171 @@ Multiplayer impact: Classification is a pure function of shared seed-derived fie
 Known limits: The initial thresholds establish continuous source fields but visual material/terrain blending is still needed.
 
 Next task: Add a developer-only visualization of the four fields and final biome classification.
+
+### 2026-09-02 15:40 EEST — Render world-generation field previews
+
+Outcome: Complete. Added an editor-only commandlet that renders deterministic previews of all four continuous fields and the final biome classification. The default visualization is checked in under the Developer content path for immediate inspection and can be regenerated for any immutable world identity.
+
+Changed: `Source/KalmalaEditor/KalmalaEditor.Build.cs`; `Source/KalmalaEditor/Public/RenderWorldGenerationVisualizationCommandlet.h`; `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`; `Content/Kalmala/Developer/WorldGeneration/`; `docs/08-world-generation-and-biomes.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. `UnrealEditor-Cmd.exe ... -run=RenderWorldGenerationVisualization -unattended -nop4 -DDC-ForceMemoryCache` exited 0 and reported `Success - 0 error(s), 0 warning(s)`. The five 256x256 PPM images contain 184–214 distinct grayscale values for the source fields and seven expected palette colours for biome classification. Re-running the default immutable identity produced identical SHA-256 values for all five images.
+
+Multiplayer impact: None. This is an editor-only visualization of pure seed-derived sampling. It creates no gameplay actors, chooses no session seed, and replicates no state.
+
+Known limits: The previews establish development inspection only; the next task must verify same-seed reproducibility and visible different-seed variation in host/client play.
+
+Next task: Verify same-seed reproducibility and visible different-seed variation in host/client play.
+
+### 2026-09-03 09:12 EEST — Verify replicated world identity and seed variation
+
+Outcome: Complete. Added a replicated world-generation `GameState` that selects the immutable identity only on the server and replicates it to connected clients. The seed-map proof now has host/client evidence in addition to the developer previews.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWorldGenerationGameState.h`; `Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp`; `Source/KalmalaGameplay/KalmalaGameplay.Build.cs`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `docs/08-world-generation-and-biomes.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. A hidden local listen server launched with `-WorldSeed=418` logged `Server selected ... Seed=418 Revision=1`; a client launched with its conflicting `-WorldSeed=999` connected successfully and logged `Client received ... Seed=418 Revision=1`. Rendering the developer previews with seed `419` changed the SHA-256 hash of all five field/biome images; rendering the default seed again restored all five checked-in hashes exactly.
+
+Multiplayer impact: The server alone reads command-line world identity overrides and replicates the selected pair through `GameState`. Clients cannot choose or mutate the session identity; their later cosmetic generation will consume the replicated values.
+
+Known limits: This proves field-map reproducibility and shared session identity, not generated traversable terrain. Terrain, player start, and natural features remain Phase 2 work.
+
+Next task: Generate traversable terrain from the seed, including a seed-generated player start, Meadows, lakes, trees, and rocks.
+
+### 2026-09-03 09:27 EEST — Add a seed-derived player start
+
+Outcome: Partial. Added the first Phase 2 runtime slice: a deterministic resolver selects a Meadow-preferred spawn position from continuous world fields, and the listen server creates that start before player spawning. The terrain-generation backlog item remains open because it still needs traversable terrain, lakes, trees, and rocks.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWorldPlayerStartResolver.h`; `Source/KalmalaWorld/Private/KalmalaWorldPlayerStartResolver.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaWorld/Public/KalmalaWorldGenerationGameState.h`; `Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.GeneratedPlayerStart.Determinism` completed with exit code 0, verifying same-identity resolution, Meadow classification, and a changed-seed start. A local listen server with `-WorldSeed=418` logged `Server created seed-derived player start at V(X=6553.65, Y=-5645.55, Z=120.00)`; its client joined successfully and received `Seed=418 Revision=1`.
+
+Multiplayer impact: The generated transform is resolved and selected only by `GameMode` on the server. Clients receive the ordinary replicated pawn spawn and the replicated world identity; no client position or seed influences start placement.
+
+Known limits: The Z value is a temporary prototype elevation until terrain generation supplies a sampled terrain height. No terrain mesh, lake, tree, or rock generation exists yet.
+
+Next task: Add a deterministic terrain-height sampling contract that the generated player start and later terrain representation can share.
+
+### 2026-09-03 09:41 EEST — Share deterministic terrain-height sampling
+
+Outcome: Partial. Added a single continuous terrain-surface sampler that converts Elevation into world height and a finite-difference surface normal. The generated player start now uses this shared sampled height instead of a prototype constant.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaTerrainHeightSampler.h`; `Source/KalmalaWorld/Private/KalmalaWorldPlayerStartResolver.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `docs/02-technical-architecture.md`; `docs/08-world-generation-and-biomes.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.GeneratedPlayerStart.Determinism` completed with exit code 0, including the shared-height and normalized-surface-normal assertions. A local listen server with `-WorldSeed=418` logged its generated player start at `V(X=6553.65, Y=-5645.55, Z=904.12)`; the client was welcomed and received the shared world identity.
+
+Multiplayer impact: The surface function is a pure function of the replicated immutable identity. The server uses it for gameplay-affecting pawn placement; future client terrain rendering may use the same function but cannot select a different base world.
+
+Known limits: No terrain collision or visible terrain mesh exists yet, so the sampled surface is a contract rather than a traversable representation. Lakes, trees, and rocks remain unimplemented.
+
+Next task: Add the smallest server-owned terrain collision representation from the shared surface so the generated player start is physically traversable.
+
+### 2026-09-03 10:00 EEST — Add replicated terrain collision around the generated start
+
+Outcome: Partial. Added the first traversable terrain representation: a server-spawned, invisible 3×3 collision patch derived from the shared Elevation surface around the generated player start. The patch remains an implementation detail, not a visible grid or biome boundary.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaTerrainPatchLayout.h`; `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainTile.h`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainTile.cpp`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `docs/02-technical-architecture.md`; `docs/08-world-generation-and-biomes.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.GeneratedPlayerStart.Determinism` completed with exit code 0, including the collision-tile surface assertion. A local listen server with seed 418 spawned nine collision tiles; its client joined and received all nine replicated tile actors. The final server/client logs contained zero `FNetGUIDCache::SupportsObject` and `ClientAdjustPosition` warnings after giving the stable tile actors high replication priority.
+
+Multiplayer impact: The server alone creates collision tile actors and their transforms. Tiles use stable default `UBoxComponent` roots so replicated character movement can resolve authoritative movement bases; clients cannot supply terrain configuration or collision data.
+
+Known limits: The patch is collision-only and covers only the generated start area. It has no visible terrain mesh, no terrain streaming, and no lakes, trees, or rocks.
+
+Next task: Add a minimal client-visible terrain surface for the start-area collision patch without introducing a visible grid or external terrain-generation plugin.
+
+### 2026-09-03 10:17 EEST — Render the seed-derived start-area terrain surface
+
+Outcome: Partial. With explicit approval, enabled Unreal Engine's bundled `ProceduralMeshComponent` and added one contiguous, collision-free visual surface for the existing start-area patch. The mesh samples the same shared Elevation function and surface normals as the server-selected start, contains no visible biome-grid boundary, and is rebuilt locally from the replicated immutable identity and patch descriptor.
+
+Changed: `Kalmala.uproject`; `Source/KalmalaWorld/KalmalaWorld.Build.cs`; `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `docs/02-technical-architecture.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. A hidden listen server launched with `-WorldSeed=418` and a client launched with conflicting `-WorldSeed=999` both remained alive; the client received `Seed=418 Revision=1`, logged exactly one local terrain-surface build, and logged zero `FNetGUIDCache::SupportsObject` or `ClientAdjustPosition` warnings.
+
+Multiplayer impact: Mesh vertices and triangles are cosmetic local derivations, never replicated and never used for collision. The server still owns the seed, the terrain collision actors, and player placement; clients cannot supply terrain configuration or physics state.
+
+Known limits: This is a small prototype surface only. It currently uses the default engine material and approximate 3x3 collision tiles, with no terrain streaming, lake treatment, trees, or rocks.
+
+Next task: Improve local terrain collision fidelity so traversable surface collision follows the shared continuous height field before extending the generated world with natural features.
+
+### 2026-09-03 10:31 EEST — Match terrain collision to the continuous generated surface
+
+Outcome: Partial. Replaced the coarse replicated box-tile collision with collision cooked from the same contiguous 24x24-cell terrain mesh used for rendering. The server owns the authoritative mesh collision; connected clients build identical local collision from replicated immutable generation data only for movement prediction.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `docs/02-technical-architecture.md`; `docs/08-world-generation-and-biomes.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. A hidden listen server with seed 418 logged one build of 1,152 collision triangles. A client started with conflicting seed 999 joined, received `Seed=418 Revision=1`, built one local terrain surface, and logged zero `FNetGUIDCache::SupportsObject` or `ClientAdjustPosition` warnings.
+
+Multiplayer impact: Terrain collision is now an exact server-side derivative of the shared continuous surface, rather than client-provided or separately replicated tile transforms. Clients receive only immutable generation inputs and have no authority over collision or terrain identity.
+
+Known limits: The collision/rendering patch remains limited to the start area and has no authored terrain material, streaming, lake shoreline treatment, trees, or rocks. The older collision-tile actor class remains in the module but is no longer spawned.
+
+Next task: Add the first deterministic Meadow decoration set, starting with non-interactable rocks derived from the shared generation data.
+
+### 2026-09-03 10:44 EEST — Add deterministic Meadow rock decoration
+
+Outcome: Partial. Added local instanced Meadow rocks to the generated start-area patch. Candidate positions, proportions, orientation, sampled surface height, and biome filtering are deterministic derivatives of the replicated immutable identity; rocks are cosmetic and use no collision or replicated gameplay actor state.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `docs/02-technical-architecture.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. A hidden listen server with seed 418 and a client launched with conflicting seed 999 both remained alive; after receiving `Seed=418 Revision=1`, each independently built 47 Meadow rock instances. The client log contained zero `FNetGUIDCache::SupportsObject` or `ClientAdjustPosition` warnings.
+
+Multiplayer impact: Rocks are non-interactable local `UInstancedStaticMeshComponent` instances and have collision disabled. They are never replicated, do not affect navigation or movement, and are generated only after consuming the server-selected identity.
+
+Known limits: Rocks use a temporary built-in engine sphere mesh scaled as a low-profile stone; a dedicated original rock asset/material is still needed. Trees, lake treatment, and a larger streamed terrain area remain unimplemented.
+
+Next task: Add a deterministic Meadow tree-decoration foundation using instancing and no gameplay collision.
+
+### 2026-09-03 10:56 EEST — Add deterministic Meadow tree decoration
+
+Outcome: Partial. Added local instanced Meadow trees as paired trunk and canopy instances around the generated start area. Placement, dimensions, orientation, sampled ground height, and Meadow filtering are deterministic seed derivatives; the paired instances are visual-only and collision-free.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `docs/02-technical-architecture.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. A hidden listen server with seed 418 and a client started with conflicting seed 999 both remained alive; after the client received `Seed=418 Revision=1`, each built 16 deterministic Meadow tree instances. The client logged zero `FNetGUIDCache::SupportsObject` or `ClientAdjustPosition` warnings.
+
+Multiplayer impact: Tree trunks and canopies are local `UInstancedStaticMeshComponent` cosmetics with collision disabled. They create no replicated actors, navigation changes, or gameplay state; both peers consume only the server-selected immutable identity.
+
+Known limits: Trees use temporary built-in primitive meshes pending original tree assets/materials. The generated patch remains small, and lake surface/shoreline treatment is still missing.
+
+Next task: Add a cosmetic seed-derived shallow-water surface for below-sea-level terrain within the generated patch.
+
+### 2026-09-03 11:14 EEST — Add seed-derived surface-water rendering
+
+Outcome: Partial. Added a collision-free sea-level procedural mesh over fully submerged terrain cells in the generated patch. Water geometry is a local visual derivation from the replicated identity and shared terrain function; it carries no collision, interaction, or gameplay state.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `docs/02-technical-architecture.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.SurfaceWater.Coverage` completed with exit code 0, proving seed 418 has deterministic submerged terrain samples across a 48,000-unit scan. A listen server with seed 418 and a conflicting-seed client both built zero water triangles in the Meadow-preferred start patch and emitted zero movement-base/network GUID warnings; this dry patch result is expected.
+
+Multiplayer impact: Surface water is never replicated and has collision disabled. The server remains authoritative for terrain collision and all gameplay state; clients construct water only from the replicated immutable identity.
+
+Known limits: The current Meadow-start patch does not intersect submerged terrain, so water rendering will become visible only after the generated patch streams or expands into a low-elevation area. This is sea-level coverage, not yet the distinct Shimmering Lakes water/shoreline treatment.
+
+Next task: Add deterministic local terrain-patch activation around connected players so low-elevation water and varied biomes can become visible beyond the initial Meadow start area.
+
+### 2026-09-03 11:27 EEST — Expand initial terrain activation around the generated start
+
+Outcome: Partial. Expanded the server-created initial terrain coverage from one patch to an invisible 3x3 neighborhood centered on the seed-derived player start. All patches sample the shared continuous surface at matching edges; the layout is an implementation-level activation neighborhood, never a visible biome grid or gameplay zone.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaTerrainPatchLayout.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `docs/02-technical-architecture.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.GeneratedPlayerStart.Determinism` completed with exit code 0, including the one-patch-width layout assertion. A hidden listen server with seed 418 logged activation of nine terrain patches; a client launched with seed 999 joined, received `Seed=418 Revision=1`, built nine terrain surfaces, and logged zero `FNetGUIDCache::SupportsObject` or `ClientAdjustPosition` warnings.
+
+Multiplayer impact: Only the server chooses and spawns patch descriptors. Clients derive rendering and local prediction collision exclusively from the replicated immutable identity and patch centers; they cannot choose coverage, terrain, or gameplay state.
+
+Known limits: The 3x3 neighborhood is fixed at startup rather than following connected players. It expands initial traversal but is not streaming, and prototype materials/assets and distinct lake treatment remain incomplete.
+
+Next task: Add bounded server-side patch activation around connected players, with deduplication and a fixed maximum active patch count before expanding the traversal radius further.
+
+### 2026-09-03 11:52 EEST — Bound terrain activation around connected players
+
+Outcome: Partial. Added server-owned player-neighborhood terrain activation. Every second, the server maps each connected pawn to an invisible terrain-patch coordinate, activates its 3x3 neighborhood only once, and stops after 25 active patches. The initial 3x3 start neighborhood still initializes before any player pawn is available.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaWorld/Public/KalmalaTerrainPatchLayout.h`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.GeneratedPlayerStart.Determinism` completed successfully; it now verifies that the generated start maps to coordinate `(0, 0)` and that crossing the east activation boundary maps to `(1, 0)`.
+
+Multiplayer impact: Patch selection and spawning remain entirely server-authoritative. A client cannot request a coordinate, expand the active set, override the 25-patch cap, or provide terrain inputs; it still receives only replicated patch descriptors and the immutable world identity for local rendering/prediction.
+
+Known limits: This bounded activation set does not unload distant patches yet, and the actual two-player movement/traversal test remains outstanding. Distinct Shimmering Lakes treatment and original visual assets are also still incomplete.
+
+Next task: Add distinct Shimmering Lakes water and shoreline treatment beyond the current generic sea-level surface coverage.
