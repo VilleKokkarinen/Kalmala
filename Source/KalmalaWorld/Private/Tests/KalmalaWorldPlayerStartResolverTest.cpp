@@ -46,4 +46,31 @@ bool FKalmalaWorldPlayerStartResolverTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaSurfaceWaterCoverageTest,
+    "Kalmala.World.SurfaceWater.Coverage",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaSurfaceWaterCoverageTest::RunTest(const FString& Parameters)
+{
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = 418;
+    Config.GeneratorRevision = 1;
+
+    int32 SubmergedSampleCount = 0;
+    for (int32 Y = -24000; Y <= 24000; Y += 1500)
+    {
+        for (int32 X = -24000; X <= 24000; X += 1500)
+        {
+            if (FKalmalaTerrainHeightSampler::SampleHeight(Config, FVector2D(X, Y)) <= FKalmalaTerrainHeightSampler::SeaLevelWorldHeight)
+            {
+                ++SubmergedSampleCount;
+            }
+        }
+    }
+
+    TestTrue(TEXT("The shared elevation field contains deterministic submerged terrain samples"), SubmergedSampleCount > 0);
+    return true;
+}
+
 #endif

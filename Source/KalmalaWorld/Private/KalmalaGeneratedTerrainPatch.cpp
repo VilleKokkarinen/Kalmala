@@ -38,6 +38,12 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
     TerrainSurface->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     TerrainSurface->SetGenerateOverlapEvents(false);
 
+    SurfaceWater = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("SurfaceWater"));
+    SurfaceWater->SetupAttachment(SceneRoot);
+    SurfaceWater->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    SurfaceWater->SetGenerateOverlapEvents(false);
+    SurfaceWater->SetCastShadow(false);
+
     MeadowRocks = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("MeadowRocks"));
     MeadowRocks->SetupAttachment(SceneRoot);
     MeadowRocks->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -82,9 +88,14 @@ void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConf
     PatchCenter = InPatchCenter;
     bIsConfigured = true;
     bVisualSurfaceBuilt = false;
+    bSurfaceWaterBuilt = false;
     bMeadowRocksBuilt = false;
     bMeadowTreesBuilt = false;
     BuildVisualSurface();
+    if (BuildSurfaceWater())
+    {
+        UE_LOG(LogTemp, Display, TEXT("Server built %d seed-derived surface-water triangles."), SurfaceWater->GetNumSections() > 0 ? SurfaceWater->GetProcMeshSection(0)->ProcIndexBuffer.Num() / 3 : 0);
+    }
     if (BuildMeadowRocks())
     {
         UE_LOG(LogTemp, Display, TEXT("Server built %d deterministic Meadow rock instances."), MeadowRocks->GetInstanceCount());
@@ -103,6 +114,10 @@ void AKalmalaGeneratedTerrainPatch::OnRep_GenerationData()
         if (BuildVisualSurface())
         {
             UE_LOG(LogTemp, Display, TEXT("Client built the seed-derived terrain surface from the replicated patch descriptor."));
+        }
+        if (BuildSurfaceWater())
+        {
+            UE_LOG(LogTemp, Display, TEXT("Client built %d seed-derived surface-water triangles from the replicated patch descriptor."), SurfaceWater->GetNumSections() > 0 ? SurfaceWater->GetProcMeshSection(0)->ProcIndexBuffer.Num() / 3 : 0);
         }
         if (BuildMeadowRocks())
         {
@@ -176,6 +191,70 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
     {
         UE_LOG(LogTemp, Display, TEXT("Server built a seed-derived terrain surface with %d collision triangles."), Triangles.Num() / 3);
     }
+    return true;
+}
+
+bool AKalmalaGeneratedTerrainPatch::BuildSurfaceWater()
+{
+    if (bSurfaceWaterBuilt || !bIsConfigured || !WorldGenerationConfig.IsValid() || SurfaceWater == nullptr)
+    {
+        return false;
+    }
+
+    constexpr float SurfaceSize = FKalmalaTerrainPatchLayout::TilesPerSide * FKalmalaTerrainPatchLayout::TileSize;
+    constexpr float HalfSurfaceSize = SurfaceSize * 0.5f;
+    constexpr float CellSize = SurfaceSize / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide;
+
+    TArray<FVector> Vertices;
+    TArray<int32> Triangles;
+    TArray<FVector> Normals;
+    TArray<FVector2D> UVs;
+    TArray<FLinearColor> VertexColors;
+    TArray<FProcMeshTangent> Tangents;
+
+    Vertices.Reserve(KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * 4);
+    Triangles.Reserve(KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * 6);
+
+    for (int32 GridY = 0; GridY < KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide; ++GridY)
+    {
+        for (int32 GridX = 0; GridX < KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide; ++GridX)
+        {
+            const FVector2D BottomLeft(-HalfSurfaceSize + GridX * CellSize, -HalfSurfaceSize + GridY * CellSize);
+            const FVector2D BottomRight = BottomLeft + FVector2D(CellSize, 0.0f);
+            const FVector2D TopLeft = BottomLeft + FVector2D(0.0f, CellSize);
+            const FVector2D TopRight = BottomLeft + FVector2D(CellSize, CellSize);
+            if (FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, PatchCenter + BottomLeft) > FKalmalaTerrainHeightSampler::SeaLevelWorldHeight
+                || FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, PatchCenter + BottomRight) > FKalmalaTerrainHeightSampler::SeaLevelWorldHeight
+                || FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, PatchCenter + TopLeft) > FKalmalaTerrainHeightSampler::SeaLevelWorldHeight
+                || FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, PatchCenter + TopRight) > FKalmalaTerrainHeightSampler::SeaLevelWorldHeight)
+            {
+                continue;
+            }
+
+            const int32 FirstVertex = Vertices.Num();
+            Vertices.Append({
+                FVector(BottomLeft.X, BottomLeft.Y, FKalmalaTerrainHeightSampler::SeaLevelWorldHeight),
+                FVector(TopLeft.X, TopLeft.Y, FKalmalaTerrainHeightSampler::SeaLevelWorldHeight),
+                FVector(BottomRight.X, BottomRight.Y, FKalmalaTerrainHeightSampler::SeaLevelWorldHeight),
+                FVector(TopRight.X, TopRight.Y, FKalmalaTerrainHeightSampler::SeaLevelWorldHeight)});
+            Triangles.Append({FirstVertex, FirstVertex + 1, FirstVertex + 2, FirstVertex + 2, FirstVertex + 1, FirstVertex + 3});
+            Normals.Append({FVector::UpVector, FVector::UpVector, FVector::UpVector, FVector::UpVector});
+            UVs.Append({
+                FVector2D(static_cast<float>(GridX) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide, static_cast<float>(GridY) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide),
+                FVector2D(static_cast<float>(GridX) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide, static_cast<float>(GridY + 1) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide),
+                FVector2D(static_cast<float>(GridX + 1) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide, static_cast<float>(GridY) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide),
+                FVector2D(static_cast<float>(GridX + 1) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide, static_cast<float>(GridY + 1) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide)});
+            VertexColors.Append({FLinearColor(0.08f, 0.28f, 0.45f), FLinearColor(0.08f, 0.28f, 0.45f), FLinearColor(0.08f, 0.28f, 0.45f), FLinearColor(0.08f, 0.28f, 0.45f)});
+            Tangents.Append({FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f)});
+        }
+    }
+
+    SurfaceWater->ClearAllMeshSections();
+    if (!Triangles.IsEmpty())
+    {
+        SurfaceWater->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, false);
+    }
+    bSurfaceWaterBuilt = true;
     return true;
 }
 

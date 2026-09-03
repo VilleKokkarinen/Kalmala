@@ -32,6 +32,9 @@ private:
     TObjectPtr<UProceduralMeshComponent> TerrainSurface;
 
     UPROPERTY(VisibleAnywhere, Category = "World Generation")
+    TObjectPtr<UProceduralMeshComponent> SurfaceWater;
+
+    UPROPERTY(VisibleAnywhere, Category = "World Generation")
     TObjectPtr<UInstancedStaticMeshComponent> MeadowRocks;
 
     UPROPERTY(VisibleAnywhere, Category = "World Generation")
@@ -50,6 +53,7 @@ private:
     bool bIsConfigured = false;
 
     bool bVisualSurfaceBuilt = false;
+    bool bSurfaceWaterBuilt = false;
     bool bMeadowRocksBuilt = false;
     bool bMeadowTreesBuilt = false;
 
@@ -57,6 +61,7 @@ private:
     void OnRep_GenerationData();
 
     bool BuildVisualSurface();
+    bool BuildSurfaceWater();
     bool BuildMeadowRocks();
     bool BuildMeadowTrees();
 };
