@@ -20,6 +20,15 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Building | server | replicated building actors; save stable IDs |
 | AI | server | replicate actor state, not decision logic |
 | Element grid | server | replicate sparse changes near relevant players |
+| World identity | server | replicate immutable `WorldSeed` and `GeneratorRevision` through `GameState` |
+| Terrain surface | shared seed function | convert Elevation to continuous height and normal for terrain, collision, and server-selected spawns |
+| Terrain activation | server | initialize an invisible 3x3 neighborhood of continuous terrain patches around the generated start; activation cells never define biome or gameplay boundaries |
+| Terrain rendering | client cosmetic | derive one continuous local mesh from the replicated identity and patch descriptor; mesh geometry is never replicated |
+| Terrain collision | server | create collision from the server's same continuous terrain mesh; clients derive matching local collision only for prediction, never as authority |
+| Surface water | client cosmetic | derive a collision-free sea-level mesh over fully submerged terrain cells from the replicated identity and patch descriptor |
+| Generated player start | server | resolve a Meadow-preferred seed-specific transform at the sampled terrain height, then spawn pawns there |
+| Meadow rocks | client cosmetic | derive non-interactable instanced rocks from the replicated identity, terrain sample, and biome classification |
+| Meadow trees | client cosmetic | derive non-interactable instanced trunks and canopies from the replicated identity, terrain sample, and biome classification |
 | Cosmetics | client | derive from replicated state/events |
 
 ## Module boundaries

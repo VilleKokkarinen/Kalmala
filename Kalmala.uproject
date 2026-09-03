@@ -57,6 +57,10 @@
       "Enabled": true
     },
     {
+      "Name": "ProceduralMeshComponent",
+      "Enabled": true
+    },
+    {
       "Name": "VisualStudioTools",
       "Enabled": true,
       "SupportedTargetPlatforms": [

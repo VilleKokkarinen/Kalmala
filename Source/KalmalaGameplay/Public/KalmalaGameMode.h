@@ -15,4 +15,10 @@ class KALMALAGAMEPLAY_API AKalmalaGameMode : public AGameModeBase
 
 public:
     AKalmalaGameMode();
+
+    virtual void BeginPlay() override;
+    virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
+private:
+    class APlayerStart* GeneratedPlayerStart = nullptr;
 };
