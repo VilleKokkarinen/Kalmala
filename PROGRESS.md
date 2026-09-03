@@ -453,3 +453,17 @@ Multiplayer impact: All replacement geometry and material use is collision-free 
 Known limits: The low-poly shapes and flat color materials are an original baseline rather than final art. The remaining Phase 2 acceptance criterion is an actual two-player traversal across matching terrain, water, rocks, and trees.
 
 Next task: Run an actual two-player traversal test across matching terrain, water, rocks, and trees.
+
+### 2026-09-03 14:40 EEST — Verify generated-world two-player traversal
+
+Outcome: Complete. Added a developer-only `-KalmalaTraversalTest` harness that derives the same Shimmering Lakes destination from the replicated world identity, drives each locally controlled pawn through normal Character Movement input, and records server/client arrival telemetry. The Phase 2 generated-world acceptance criteria are now complete.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. A hidden listen server with `-WorldSeed=418 -KalmalaTraversalTest` and a client launched with conflicting `-WorldSeed=999` both stayed alive. The client received `Seed=418 Revision=1`; the server logged both `KalmalaCharacter_0` and client-owned `KalmalaCharacter_1` reaching the same Shimmering Lakes target; the client logged replicated movement over 3,000 units. The client also rebuilt matching terrain, water, rock, and tree patch descriptors. No fatal or network warning was logged.
+
+Multiplayer impact: The production movement path is unchanged unless the explicit developer switch is supplied. During that test only, locally controlled pawns provide ordinary movement input, the server validates and replicates movement through Character Movement, and temporary pawn-to-pawn collision ignoring prevents the two automated pawns blocking each other at the shared generated start. Terrain collision, world identity, terrain activation, and all gameplay authority remain server-owned.
+
+Known limits: The harness is a headless automated traversal check rather than a player-facing QA mode. It intentionally does not add water interaction, decoration collision, harvesting, wildlife, or other later-milestone gameplay.
+
+Next task: Add deterministic server-side spatial seeds and spawn budgets for wildlife, harvest nodes, and hazards.

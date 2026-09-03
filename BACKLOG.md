@@ -28,30 +28,30 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [x] Implement continuous Perlin sampling and normalization for all four maps at a world position.
 - [x] Implement deterministic biome classification and continuous transition blending from the four sampled values.
 - [x] Add a developer-only visualization of the four fields and final biome classification.
-- [x] Add the deterministic `RenderWorldGenerationVisualization` editor commandlet and committed field/biome previews.
+  - [x] Add the deterministic `RenderWorldGenerationVisualization` editor commandlet and committed field/biome previews.
 - [x] Verify same-seed reproducibility and visible different-seed variation in host/client play.
-- [x] Replicate the server-selected world identity through `GameState` and verify a conflicting-seed client receives it.
-- [x] Verify field and biome previews reproduce for the same seed and vary for a different seed.
+  - [x] Replicate the server-selected world identity through `GameState` and verify a conflicting-seed client receives it.
+  - [x] Verify field and biome previews reproduce for the same seed and vary for a different seed.
 
 ### Phase 2 — First playable generated world
 
-- [ ] Generate traversable terrain from the seed, including a seed-generated player start, Meadows, lakes, trees, and rocks.
-- [x] Resolve and spawn a deterministic Meadow-preferred player start on the server.
-- [x] Add one continuous Elevation-derived terrain height and normal contract for spawns, rendering, and collision.
-- [x] Generate a 24×24-cell continuous terrain mesh with server-authoritative collision and matching client prediction collision.
-- [x] Replace the earlier coarse collision tiles with collision from the continuous mesh itself.
-- [x] Render collision-free seed-derived sea-level surface water over submerged terrain cells and verify world-scale coverage.
-- [x] Add local deterministic, non-interactable Meadow rock instances.
-- [x] Add local deterministic, non-interactable Meadow tree trunk and canopy instances.
-- [x] Activate an initial server-owned 3×3 terrain-patch neighborhood around the generated start.
-- [x] Add bounded, deduplicated server-side patch activation around connected players.
-- [x] Add distinct Shimmering Lakes water and shoreline treatment beyond sea-level coverage.
-- [x] Replace temporary engine primitive meshes/materials with original terrain, rock, tree, and water assets.
-- [x] Create and apply project-owned generated terrain, water, and lake-shore materials.
-- [x] Create and apply project-owned rock and tree meshes/materials.
-- [ ] Verify host and client traverse matching generated terrain and observe the same meaningful natural features.
-- [x] Verify a conflicting-seed client receives the server identity and builds all nine initial terrain surfaces without movement-base warnings.
-- [ ] Run an actual two-player traversal test across matching terrain, water, rocks, and trees.
+- [x] Generate traversable terrain from the seed, including a seed-generated player start, Meadows, lakes, trees, and rocks.
+  - [x] Resolve and spawn a deterministic Meadow-preferred player start on the server.
+  - [x] Add one continuous Elevation-derived terrain height and normal contract for spawns, rendering, and collision.
+  - [x] Generate a 24×24-cell continuous terrain mesh with server-authoritative collision and matching client prediction collision.
+  - [x] Replace the earlier coarse collision tiles with collision from the continuous mesh itself.
+  - [x] Render collision-free seed-derived sea-level surface water over submerged terrain cells and verify world-scale coverage.
+  - [x] Add local deterministic, non-interactable Meadow rock instances.
+  - [x] Add local deterministic, non-interactable Meadow tree trunk and canopy instances.
+  - [x] Activate an initial server-owned 3×3 terrain-patch neighborhood around the generated start.
+  - [x] Add bounded, deduplicated server-side patch activation around connected players.
+  - [x] Add distinct Shimmering Lakes water and shoreline treatment beyond sea-level coverage.
+  - [x] Replace temporary engine primitive meshes/materials with original terrain, rock, tree, and water assets.
+    - [x] Create and apply project-owned generated terrain, water, and lake-shore materials.
+    - [x] Create and apply project-owned rock and tree meshes/materials.
+- [x] Verify host and client traverse matching generated terrain and observe the same meaningful natural features.
+  - [x] Verify a conflicting-seed client receives the server identity and builds all nine initial terrain surfaces without movement-base warnings.
+  - [x] Run an actual two-player traversal test across matching terrain, water, rocks, and trees.
 
 ### Phase 3 — Natural population
 
