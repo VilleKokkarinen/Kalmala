@@ -2,6 +2,7 @@
 
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaTerrainHeightSampler.h"
+#include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/AutomationTest.h"
@@ -32,6 +33,12 @@ bool FKalmalaWorldPlayerStartResolverTest::RunTest(const FString& Parameters)
     TestTrue(
         TEXT("The shared terrain surface normal is normalized"),
         FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, FVector2D(FirstLocation.X, FirstLocation.Y)).IsNormalized());
+    const FVector CenterTile = FKalmalaTerrainPatchLayout::GetTileCenter(Config, FVector2D(FirstLocation.X, FirstLocation.Y), 0, 0);
+    TestEqual(
+        TEXT("The collision tile top matches the shared terrain surface"),
+        static_cast<double>(CenterTile.Z + FKalmalaTerrainPatchLayout::CollisionDepth),
+        static_cast<double>(FKalmalaTerrainHeightSampler::SampleHeight(Config, FVector2D(FirstLocation.X, FirstLocation.Y))),
+        0.01);
 
     Config.WorldSeed = 419;
     const FTransform DifferentSeedStart = FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config);

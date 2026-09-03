@@ -1,6 +1,7 @@
 #include "KalmalaGameMode.h"
 
 #include "KalmalaCharacter.h"
+#include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 
@@ -41,6 +42,13 @@ void AKalmalaGameMode::BeginPlay()
     {
         GeneratedPlayerStart->Tags.Add(TEXT("GeneratedWorldPlayerStart"));
         UE_LOG(LogTemp, Display, TEXT("Server created seed-derived player start at %s."), *GeneratedPlayerStart->GetActorLocation().ToCompactString());
+
+        AKalmalaGeneratedTerrainPatch* TerrainPatch = GetWorld()->SpawnActor<AKalmalaGeneratedTerrainPatch>(AKalmalaGeneratedTerrainPatch::StaticClass());
+        if (TerrainPatch != nullptr)
+        {
+            const FVector StartLocation = GeneratedPlayerStart->GetActorLocation();
+            TerrainPatch->Initialize(WorldGenerationState->GetWorldGenerationConfig(), FVector2D(StartLocation.X, StartLocation.Y));
+        }
     }
 }
 
