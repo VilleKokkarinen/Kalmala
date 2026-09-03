@@ -6,6 +6,8 @@
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaWorldPopulationLayout.h"
+#include "KalmalaWorldPopulationMarker.h"
 
 #include "Engine/World.h"
 #include "Components/CapsuleComponent.h"
@@ -20,6 +22,7 @@ namespace KalmalaGameMode
 {
     constexpr int32 PlayerTerrainPatchRadius = 1;
     constexpr int32 MaxActiveTerrainPatches = 25;
+    constexpr int32 MaxActivePopulationSpatialKeys = 9;
     constexpr float TerrainPatchActivationIntervalSeconds = 1.0f;
     constexpr float TraversalTestSpeed = 1800.0f;
     constexpr float TraversalTestArrivalDistance = 180.0f;
@@ -97,8 +100,34 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
         if (PlayerPawn != nullptr)
         {
             ActivateTerrainPatchNeighborhood(FVector2D(PlayerPawn->GetActorLocation()));
+            ActivatePopulationKey(FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(PlayerPawn->GetActorLocation())));
         }
     }
+}
+
+void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
+{
+    if (!HasAuthority() || GetWorld() == nullptr || ActivePopulationSpatialKeys.Contains(SpatialKey) || ActivePopulationSpatialKeys.Num() >= KalmalaGameMode::MaxActivePopulationSpatialKeys)
+    {
+        return;
+    }
+
+    int32 SpawnedMarkerCount = 0;
+    for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard })
+    {
+        for (const FKalmalaWorldPopulationSpawn& Spawn : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, Kind))
+        {
+            AKalmalaWorldPopulationMarker* Marker = GetWorld()->SpawnActor<AKalmalaWorldPopulationMarker>(AKalmalaWorldPopulationMarker::StaticClass(), Spawn.Location, FRotator::ZeroRotator);
+            if (Marker != nullptr)
+            {
+                Marker->InitializeServer(Spawn);
+                ++SpawnedMarkerCount;
+            }
+        }
+    }
+
+    ActivePopulationSpatialKeys.Add(SpatialKey);
+    UE_LOG(LogTemp, Display, TEXT("Server activated %d deterministic population markers for spatial key (%d, %d); %d/%d active."), SpawnedMarkerCount, SpatialKey.X, SpatialKey.Y, ActivePopulationSpatialKeys.Num(), KalmalaGameMode::MaxActivePopulationSpatialKeys);
 }
 
 void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)

@@ -25,6 +25,7 @@ public:
 private:
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);
     void ActivateTerrainPatchNeighborhood(const FVector2D& WorldPosition);
+    void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void ConfigureTraversalTest();
     void DriveTraversalTest();
 
@@ -32,6 +33,7 @@ private:
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;
     TSet<FIntPoint> ActiveTerrainPatchCoordinates;
+    TSet<FIntPoint> ActivePopulationSpatialKeys;
     float NextTerrainPatchActivationTime = 0.0f;
     bool bTraversalTestEnabled = false;
     FVector2D TraversalTestTarget = FVector2D::ZeroVector;

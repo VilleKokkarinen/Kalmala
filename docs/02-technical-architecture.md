@@ -30,7 +30,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Generated player start | server | resolve a Meadow-preferred seed-specific transform at the sampled terrain height, then spawn pawns there |
 | Meadow rocks | client cosmetic | derive non-interactable low-poly procedural rocks from the replicated identity, terrain sample, and biome classification |
 | Meadow trees | client cosmetic | derive non-interactable low-poly procedural trunks and canopies from the replicated identity, terrain sample, and biome classification |
-| Gameplay population layout | server | derive invisible spatial keys, per-kind deterministic seeds, bounded wildlife/harvest/hazard budgets, and terrain-aligned spawn descriptors from immutable world identity and continuous fields; clients never select gameplay placements |
+| Gameplay population layout | server | activate a bounded set of invisible spatial keys around pawns, then spawn replicated server-owned population markers from deterministic per-kind, field-informed descriptors; clients never select gameplay placements |
 | Cosmetics | client | derive from replicated state/events |
 
 ## Module boundaries
