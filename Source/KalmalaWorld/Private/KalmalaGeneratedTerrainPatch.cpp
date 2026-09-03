@@ -3,6 +3,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Materials/MaterialInterface.h"
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
@@ -75,6 +76,12 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
     TerrainSurface->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     TerrainSurface->SetGenerateOverlapEvents(false);
 
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> TerrainMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrain.M_GeneratedTerrain"));
+    if (TerrainMaterial.Succeeded())
+    {
+        TerrainSurface->SetMaterial(0, TerrainMaterial.Object);
+    }
+
     SurfaceWater = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("SurfaceWater"));
     SurfaceWater->SetupAttachment(SceneRoot);
     SurfaceWater->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -92,6 +99,19 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
     ShimmeringLakeShore->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     ShimmeringLakeShore->SetGenerateOverlapEvents(false);
     ShimmeringLakeShore->SetCastShadow(false);
+
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> WaterMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedWater.M_GeneratedWater"));
+    if (WaterMaterial.Succeeded())
+    {
+        SurfaceWater->SetMaterial(0, WaterMaterial.Object);
+        ShimmeringLakeWater->SetMaterial(0, WaterMaterial.Object);
+    }
+
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> LakeShoreMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedLakeShore.M_GeneratedLakeShore"));
+    if (LakeShoreMaterial.Succeeded())
+    {
+        ShimmeringLakeShore->SetMaterial(0, LakeShoreMaterial.Object);
+    }
 
     MeadowRocks = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("MeadowRocks"));
     MeadowRocks->SetupAttachment(SceneRoot);
