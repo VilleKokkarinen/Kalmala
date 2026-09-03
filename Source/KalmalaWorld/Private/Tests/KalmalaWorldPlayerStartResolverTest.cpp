@@ -6,6 +6,7 @@
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaWorldPlayerStartResolver.h"
+#include "KalmalaWorldPopulationLayout.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -104,6 +105,40 @@ bool FKalmalaShimmeringLakeCoverageTest::RunTest(const FString& Parameters)
     }
 
     TestTrue(TEXT("The shared fields contain deterministic Shimmering Lakes water samples"), LakeWaterSampleCount > 0);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaWorldPopulationLayoutTest,
+    "Kalmala.World.PopulationLayout.Determinism",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaWorldPopulationLayoutTest::RunTest(const FString& Parameters)
+{
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = 418;
+    Config.GeneratorRevision = 1;
+
+    const FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(6500.0f, -5500.0f));
+    TestEqual(TEXT("World positions map to a deterministic invisible spatial key"), SpatialKey, FIntPoint(1, -1));
+
+    for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard })
+    {
+        const uint64 FirstSeed = FKalmalaWorldPopulationLayout::DeriveSpatialSeed(Config, SpatialKey, Kind);
+        TestEqual(TEXT("The same identity, spatial key, and content kind produce the same seed"), FirstSeed, FKalmalaWorldPopulationLayout::DeriveSpatialSeed(Config, SpatialKey, Kind));
+        TestTrue(TEXT("Every population budget is non-negative"), FKalmalaWorldPopulationLayout::GetSpawnBudget(Config, SpatialKey, Kind) >= 0);
+    }
+
+    FKalmalaWorldGenerationConfig DifferentConfig = Config;
+    DifferentConfig.WorldSeed = 419;
+    TestNotEqual(
+        TEXT("Different content kinds use independent spatial seeds"),
+        FKalmalaWorldPopulationLayout::DeriveSpatialSeed(Config, SpatialKey, EKalmalaWorldPopulationKind::Wildlife),
+        FKalmalaWorldPopulationLayout::DeriveSpatialSeed(Config, SpatialKey, EKalmalaWorldPopulationKind::HarvestNode));
+    TestNotEqual(
+        TEXT("A different world seed changes the spatial seed"),
+        FKalmalaWorldPopulationLayout::DeriveSpatialSeed(Config, SpatialKey, EKalmalaWorldPopulationKind::Wildlife),
+        FKalmalaWorldPopulationLayout::DeriveSpatialSeed(DifferentConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife));
     return true;
 }
 
