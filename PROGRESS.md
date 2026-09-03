@@ -495,3 +495,17 @@ Multiplayer impact: Descriptors are pure server generation inputs derived from i
 Known limits: The layout has no server activation policy or replicated wildlife, harvest-node, or hazard actor yet. No persistent deltas are written.
 
 Next task: Activate the bounded population descriptors around players on the server without making spatial keys player-facing areas.
+
+### 2026-09-03 15:24 EEST — Activate server-owned population markers
+
+Outcome: Partial. Added bounded server population activation: at the existing one-second player activation interval, `GameMode` activates up to nine invisible spatial keys and spawns replicated, collision-free population markers from the deterministic wildlife, harvest-node, and hazard descriptors. Markers are deliberately placeholders until each content type gains its own gameplay actor.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWorldPopulationMarker.h`; `Source/KalmalaWorld/Private/KalmalaWorldPopulationMarker.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. A hidden listen server with seed 418 and a client successfully joined with the same replicated identity. The server activated six deterministic markers for spatial key `(0, -1)` and seven for `(1, -1)` after the client joined; no fatal, `FNetGUIDCache::SupportsObject`, or `ClientAdjustPosition` warning was logged.
+
+Multiplayer impact: Only the server activates keys and spawns replicated markers. Clients receive ordinary replicated actor state and cannot request keys, select a kind, provide a seed, alter a budget, or choose a population location. Markers have no collision, interaction, loot, AI, or damage behavior.
+
+Known limits: Markers are not wildlife, harvest nodes, or hazards yet; they only establish server-owned activation and replication. Sparse consumed/defeated persistence remains unimplemented.
+
+Next task: Replace population markers with the first minimal server-owned harvest-node gameplay actor while retaining the deterministic activation contract.
