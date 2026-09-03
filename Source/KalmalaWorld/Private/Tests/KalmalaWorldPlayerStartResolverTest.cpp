@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/AutomationTest.h"
@@ -23,6 +24,14 @@ bool FKalmalaWorldPlayerStartResolverTest::RunTest(const FString& Parameters)
     const FVector FirstLocation = FirstStart.GetLocation();
     const FKalmalaWorldFieldSample FirstSample = FKalmalaWorldFieldSampler::Sample(Config, FVector2D(FirstLocation.X, FirstLocation.Y));
     TestTrue(TEXT("The start is selected from a Meadow candidate"), FKalmalaBiomeClassifier::Classify(FirstSample) == EKalmalaBiome::Meadows);
+    TestEqual(
+        TEXT("The start uses the shared terrain height plus pawn clearance"),
+        static_cast<double>(FirstLocation.Z),
+        static_cast<double>(FKalmalaTerrainHeightSampler::SampleHeight(Config, FVector2D(FirstLocation.X, FirstLocation.Y)) + 120.0f),
+        0.01);
+    TestTrue(
+        TEXT("The shared terrain surface normal is normalized"),
+        FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, FVector2D(FirstLocation.X, FirstLocation.Y)).IsNormalized());
 
     Config.WorldSeed = 419;
     const FTransform DifferentSeedStart = FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config);

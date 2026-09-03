@@ -1,6 +1,7 @@
 #include "KalmalaWorldPlayerStartResolver.h"
 
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaWorldGenerationSeeds.h"
 
@@ -34,6 +35,8 @@ FTransform FKalmalaWorldPlayerStartResolver::ResolveStartTransform(const FKalmal
         }
     }
 
-    // Terrain height will replace this temporary prototype elevation when generated terrain arrives.
-    return FTransform(FRotator::ZeroRotator, FVector(BestLocation.X, BestLocation.Y, 120.0f));
+    constexpr float PawnClearance = 120.0f;
+    return FTransform(
+        FRotator::ZeroRotator,
+        FVector(BestLocation.X, BestLocation.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, BestLocation) + PawnClearance));
 }
