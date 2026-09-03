@@ -7,11 +7,10 @@
 
 class USceneComponent;
 class UProceduralMeshComponent;
-class AKalmalaGeneratedTerrainTile;
 
 /**
- * Server-owned descriptor for an invisible authoritative collision patch and
- * a locally-derived visual terrain surface around a generated start.
+ * Server-owned descriptor for a continuous authoritative terrain surface and
+ * its locally-derived client counterpart around a generated start.
  */
 UCLASS(NotPlaceable)
 class KALMALAWORLD_API AKalmalaGeneratedTerrainPatch : public AActor
@@ -40,14 +39,10 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_GenerationData)
     bool bIsConfigured = false;
 
-    UPROPERTY(Transient)
-    TArray<TObjectPtr<AKalmalaGeneratedTerrainTile>> CollisionTiles;
-
     bool bVisualSurfaceBuilt = false;
 
     UFUNCTION()
     void OnRep_GenerationData();
 
-    void SpawnCollisionTiles();
     bool BuildVisualSurface();
 };

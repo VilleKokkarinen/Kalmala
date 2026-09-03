@@ -1,7 +1,6 @@
 #include "KalmalaGeneratedTerrainPatch.h"
 
 #include "Components/SceneComponent.h"
-#include "KalmalaGeneratedTerrainTile.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "Net/UnrealNetwork.h"
@@ -25,7 +24,8 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
 
     TerrainSurface = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("TerrainSurface"));
     TerrainSurface->SetupAttachment(SceneRoot);
-    TerrainSurface->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    TerrainSurface->SetCollisionProfileName(TEXT("BlockAll"));
+    TerrainSurface->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     TerrainSurface->SetGenerateOverlapEvents(false);
 }
 
@@ -37,7 +37,6 @@ void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConf
     bIsConfigured = true;
     bVisualSurfaceBuilt = false;
     BuildVisualSurface();
-    SpawnCollisionTiles();
     ForceNetUpdate();
 }
 
@@ -107,41 +106,13 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
         }
     }
 
-    TerrainSurface->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, false);
+    TerrainSurface->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
     bVisualSurfaceBuilt = true;
+    if (HasAuthority())
+    {
+        UE_LOG(LogTemp, Display, TEXT("Server built a seed-derived terrain surface with %d collision triangles."), Triangles.Num() / 3);
+    }
     return true;
-}
-
-void AKalmalaGeneratedTerrainPatch::SpawnCollisionTiles()
-{
-    if (!HasAuthority() || !bIsConfigured || !WorldGenerationConfig.IsValid())
-    {
-        return;
-    }
-
-    for (AKalmalaGeneratedTerrainTile* CollisionTile : CollisionTiles)
-    {
-        if (CollisionTile != nullptr)
-        {
-            CollisionTile->Destroy();
-        }
-    }
-    CollisionTiles.Reset();
-
-    const int32 HalfTileCount = FKalmalaTerrainPatchLayout::TilesPerSide / 2;
-    for (int32 TileY = -HalfTileCount; TileY <= HalfTileCount; ++TileY)
-    {
-        for (int32 TileX = -HalfTileCount; TileX <= HalfTileCount; ++TileX)
-        {
-            const FTransform TileTransform(FRotator::ZeroRotator, FKalmalaTerrainPatchLayout::GetTileCenter(WorldGenerationConfig, PatchCenter, TileX, TileY));
-            if (AKalmalaGeneratedTerrainTile* CollisionTile = GetWorld()->SpawnActor<AKalmalaGeneratedTerrainTile>(AKalmalaGeneratedTerrainTile::StaticClass(), TileTransform))
-            {
-                CollisionTiles.Add(CollisionTile);
-            }
-        }
-    }
-
-    UE_LOG(LogTemp, Display, TEXT("Server spawned %d seed-derived terrain collision tiles."), CollisionTiles.Num());
 }
 
 void AKalmalaGeneratedTerrainPatch::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
