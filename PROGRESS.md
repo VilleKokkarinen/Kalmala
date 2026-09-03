@@ -411,3 +411,17 @@ Multiplayer impact: Patch selection and spawning remain entirely server-authorit
 Known limits: This bounded activation set does not unload distant patches yet, and the actual two-player movement/traversal test remains outstanding. Distinct Shimmering Lakes treatment and original visual assets are also still incomplete.
 
 Next task: Add distinct Shimmering Lakes water and shoreline treatment beyond the current generic sea-level surface coverage.
+
+### 2026-09-03 12:03 EEST — Add Shimmering Lakes water and shoreline treatment
+
+Outcome: Partial. Added a distinct collision-free water surface for low Shimmering Lakes cells and a one-unit-raised shoreline ribbon around each generated lake boundary. The generic sea-level mesh remains responsible for ocean/submerged terrain; the new treatment is limited to the existing Shimmering Lakes biome classification and a deterministic lake water level.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaShimmeringLakeSampler.h`; `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.ShimmeringLakes.Coverage` completed successfully, verifying that seed 418 has deterministic Shimmering Lakes water samples across a 96,000-unit scan.
+
+Multiplayer impact: Lake and shoreline mesh vertices are local cosmetic derivations of replicated patch descriptors, the server-selected immutable identity, and shared field/height functions. They have no collision, interaction, replicated mesh data, or client-controlled terrain/physics authority.
+
+Known limits: The treatment uses temporary procedural geometry and vertex colors pending original water and shoreline materials. It does not yet add fog, fishing, islands, boats, or other Phase 5 Shimmering Lakes gameplay; actual host/client traversal remains outstanding.
+
+Next task: Replace temporary engine primitive meshes/materials with original terrain, rock, tree, and water assets.
