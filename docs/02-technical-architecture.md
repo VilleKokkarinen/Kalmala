@@ -28,8 +28,8 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Surface water | client cosmetic | derive a collision-free sea-level mesh over fully submerged terrain cells from the replicated identity and patch descriptor |
 | Shimmering Lakes treatment | client cosmetic | derive collision-free lake-water and shoreline meshes from the replicated identity, lake classification, and continuous terrain height; no lake geometry or physics state is replicated |
 | Generated player start | server | resolve a Meadow-preferred seed-specific transform at the sampled terrain height, then spawn pawns there |
-| Meadow rocks | client cosmetic | derive non-interactable instanced rocks from the replicated identity, terrain sample, and biome classification |
-| Meadow trees | client cosmetic | derive non-interactable instanced trunks and canopies from the replicated identity, terrain sample, and biome classification |
+| Meadow rocks | client cosmetic | derive non-interactable low-poly procedural rocks from the replicated identity, terrain sample, and biome classification |
+| Meadow trees | client cosmetic | derive non-interactable low-poly procedural trunks and canopies from the replicated identity, terrain sample, and biome classification |
 | Cosmetics | client | derive from replicated state/events |
 
 ## Module boundaries

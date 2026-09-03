@@ -75,5 +75,8 @@ int32 UCreateWorldMaterialsCommandlet::Main(const FString& Params)
     const bool bTerrainCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrain"), FLinearColor(0.22f, 0.34f, 0.17f), 0.92f);
     const bool bWaterCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedWater"), FLinearColor(0.05f, 0.24f, 0.38f), 0.28f);
     const bool bLakeShoreCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedLakeShore"), FLinearColor(0.30f, 0.46f, 0.35f), 0.78f);
-    return bTerrainCreated && bWaterCreated && bLakeShoreCreated ? 0 : 1;
+    const bool bRockCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedRock"), FLinearColor(0.24f, 0.27f, 0.23f), 0.95f);
+    const bool bBarkCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedBark"), FLinearColor(0.20f, 0.13f, 0.09f), 0.88f);
+    const bool bCanopyCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedCanopy"), FLinearColor(0.12f, 0.30f, 0.14f), 0.82f);
+    return bTerrainCreated && bWaterCreated && bLakeShoreCreated && bRockCreated && bBarkCreated && bCanopyCreated ? 0 : 1;
 }
