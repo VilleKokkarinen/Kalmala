@@ -40,6 +40,14 @@ bool FKalmalaWorldPlayerStartResolverTest::RunTest(const FString& Parameters)
         static_cast<double>(EastPatchCenter.X - PatchOrigin.X),
         static_cast<double>(FKalmalaTerrainPatchLayout::PatchSize),
         0.01);
+    TestEqual(
+        TEXT("Generated start belongs to the origin terrain patch"),
+        FKalmalaTerrainPatchLayout::GetPatchCoordinate(PatchOrigin, PatchOrigin),
+        FIntPoint::ZeroValue);
+    TestEqual(
+        TEXT("A position beyond the east patch boundary activates patch one"),
+        FKalmalaTerrainPatchLayout::GetPatchCoordinate(PatchOrigin, PatchOrigin + FVector2D(FKalmalaTerrainPatchLayout::PatchSize * 0.51f, 0.0f)),
+        FIntPoint(1, 0));
 
     Config.WorldSeed = 419;
     const FTransform DifferentSeedStart = FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config);

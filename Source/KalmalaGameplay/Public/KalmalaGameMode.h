@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaGameMode.generated.h"
 
 /**
@@ -17,8 +18,16 @@ public:
     AKalmalaGameMode();
 
     virtual void BeginPlay() override;
+    virtual void Tick(float DeltaSeconds) override;
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 private:
+    void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);
+    void ActivateTerrainPatchNeighborhood(const FVector2D& WorldPosition);
+
     class APlayerStart* GeneratedPlayerStart = nullptr;
+    FKalmalaWorldGenerationConfig WorldGenerationConfig;
+    FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;
+    TSet<FIntPoint> ActiveTerrainPatchCoordinates;
+    float NextTerrainPatchActivationTime = 0.0f;
 };
