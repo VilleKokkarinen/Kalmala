@@ -127,6 +127,15 @@ bool FKalmalaWorldPopulationLayoutTest::RunTest(const FString& Parameters)
         const uint64 FirstSeed = FKalmalaWorldPopulationLayout::DeriveSpatialSeed(Config, SpatialKey, Kind);
         TestEqual(TEXT("The same identity, spatial key, and content kind produce the same seed"), FirstSeed, FKalmalaWorldPopulationLayout::DeriveSpatialSeed(Config, SpatialKey, Kind));
         TestTrue(TEXT("Every population budget is non-negative"), FKalmalaWorldPopulationLayout::GetSpawnBudget(Config, SpatialKey, Kind) >= 0);
+        const TArray<FKalmalaWorldPopulationSpawn> FirstSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
+        const TArray<FKalmalaWorldPopulationSpawn> RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
+        TestEqual(TEXT("Each spatial key produces its bounded spawn budget"), FirstSpawns.Num(), FKalmalaWorldPopulationLayout::GetSpawnBudget(Config, SpatialKey, Kind));
+        TestEqual(TEXT("Repeated spatial layouts produce the same number of spawn descriptors"), FirstSpawns.Num(), RepeatedSpawns.Num());
+        for (int32 SpawnIndex = 0; SpawnIndex < FirstSpawns.Num(); ++SpawnIndex)
+        {
+            TestEqual(TEXT("Repeated spatial layouts preserve spawn seeds"), FirstSpawns[SpawnIndex].SpawnSeed, RepeatedSpawns[SpawnIndex].SpawnSeed);
+            TestTrue(TEXT("Spawn descriptors remain within their invisible spatial key"), FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(FirstSpawns[SpawnIndex].Location)) == SpatialKey);
+        }
     }
 
     FKalmalaWorldGenerationConfig DifferentConfig = Config;
