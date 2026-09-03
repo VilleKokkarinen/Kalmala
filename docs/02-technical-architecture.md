@@ -20,6 +20,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Building | server | replicated building actors; save stable IDs |
 | AI | server | replicate actor state, not decision logic |
 | Element grid | server | replicate sparse changes near relevant players |
+| World identity | server | replicate immutable `WorldSeed` and `GeneratorRevision` through `GameState` |
 | Cosmetics | client | derive from replicated state/events |
 
 ## Module boundaries

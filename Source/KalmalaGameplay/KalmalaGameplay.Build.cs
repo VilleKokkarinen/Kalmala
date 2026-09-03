@@ -16,7 +16,8 @@ public class KalmalaGameplay : ModuleRules
             "GameplayAbilities",
             "GameplayTags",
             "GameplayTasks",
-            "KalmalaCore"
+            "KalmalaCore",
+            "KalmalaWorld"
         });
     }
 }
