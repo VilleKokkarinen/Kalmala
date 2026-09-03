@@ -439,3 +439,17 @@ Multiplayer impact: Material assignment is client-side presentation only. No mat
 Known limits: Rocks and trees still use temporary engine primitive meshes. The new original materials are deliberately simple color/roughness baselines; texture detail, water motion, fog, and final art direction remain future visual work.
 
 Next task: Create and apply project-owned rock and tree meshes/materials to replace the remaining temporary primitive meshes.
+
+### 2026-09-03 14:12 EEST — Replace temporary rock and tree primitives
+
+Outcome: Complete. Replaced the engine sphere and cylinder dependencies with original low-poly procedural rock, tapered-trunk, and canopy geometry assembled from the deterministic Meadow candidates. Added project-owned rock, bark, and canopy materials alongside the earlier terrain/water materials.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`; `Content/Kalmala/World/Materials/M_GeneratedRock.uasset`; `Content/Kalmala/World/Materials/M_GeneratedBark.uasset`; `Content/Kalmala/World/Materials/M_GeneratedCanopy.uasset`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. `CreateWorldMaterials` created the three new material packages; its repeat run completed with exit code 0 and 0 errors/warnings. A hidden listen server with seed 418 and a client launched with seed 999 both remained alive; the client received `Seed=418 Revision=1`, generated matching rock/tree counts for every replicated active patch, and logged zero `FNetGUIDCache::SupportsObject` or `ClientAdjustPosition` warnings.
+
+Multiplayer impact: All replacement geometry and material use is collision-free local presentation derived from server-replicated patch descriptors and immutable identity. No rock/tree geometry, material selection, collision, or gameplay state is client-controlled or replicated.
+
+Known limits: The low-poly shapes and flat color materials are an original baseline rather than final art. The remaining Phase 2 acceptance criterion is an actual two-player traversal across matching terrain, water, rocks, and trees.
+
+Next task: Run an actual two-player traversal test across matching terrain, water, rocks, and trees.
