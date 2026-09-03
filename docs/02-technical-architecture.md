@@ -21,6 +21,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | AI | server | replicate actor state, not decision logic |
 | Element grid | server | replicate sparse changes near relevant players |
 | World identity | server | replicate immutable `WorldSeed` and `GeneratorRevision` through `GameState` |
+| Generated player start | server | resolve a Meadow-preferred seed-specific transform, then spawn pawns at the server-selected transform |
 | Cosmetics | client | derive from replicated state/events |
 
 ## Module boundaries

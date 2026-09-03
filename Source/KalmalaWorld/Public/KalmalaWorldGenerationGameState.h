@@ -18,7 +18,7 @@ class KALMALAWORLD_API AKalmalaWorldGenerationGameState : public AGameStateBase
 public:
     AKalmalaWorldGenerationGameState();
 
-    virtual void BeginPlay() override;
+    virtual void PostInitializeComponents() override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
     const FKalmalaWorldGenerationConfig& GetWorldGenerationConfig() const { return WorldGenerationConfig; }

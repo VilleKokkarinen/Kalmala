@@ -10,9 +10,9 @@ AKalmalaWorldGenerationGameState::AKalmalaWorldGenerationGameState()
     WorldGenerationConfig.GeneratorRevision = 1;
 }
 
-void AKalmalaWorldGenerationGameState::BeginPlay()
+void AKalmalaWorldGenerationGameState::PostInitializeComponents()
 {
-    Super::BeginPlay();
+    Super::PostInitializeComponents();
 
     if (!HasAuthority())
     {
