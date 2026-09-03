@@ -12,7 +12,8 @@ public class KalmalaWorld : ModuleRules
             "CoreUObject",
             "Engine",
             "GameplayTags",
-            "KalmalaCore"
+            "KalmalaCore",
+            "ProceduralMeshComponent"
         });
     }
 }

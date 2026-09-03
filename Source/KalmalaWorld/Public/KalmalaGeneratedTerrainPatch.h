@@ -6,9 +6,13 @@
 #include "KalmalaGeneratedTerrainPatch.generated.h"
 
 class USceneComponent;
+class UProceduralMeshComponent;
 class AKalmalaGeneratedTerrainTile;
 
-/** Server-owned descriptor that spawns replicated collision tiles around a generated start. */
+/**
+ * Server-owned descriptor for an invisible authoritative collision patch and
+ * a locally-derived visual terrain surface around a generated start.
+ */
 UCLASS(NotPlaceable)
 class KALMALAWORLD_API AKalmalaGeneratedTerrainPatch : public AActor
 {
@@ -24,6 +28,9 @@ private:
     UPROPERTY()
     TObjectPtr<USceneComponent> SceneRoot;
 
+    UPROPERTY(VisibleAnywhere, Category = "World Generation")
+    TObjectPtr<UProceduralMeshComponent> TerrainSurface;
+
     UPROPERTY(ReplicatedUsing = OnRep_GenerationData)
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
 
@@ -36,8 +43,11 @@ private:
     UPROPERTY(Transient)
     TArray<TObjectPtr<AKalmalaGeneratedTerrainTile>> CollisionTiles;
 
+    bool bVisualSurfaceBuilt = false;
+
     UFUNCTION()
     void OnRep_GenerationData();
 
     void SpawnCollisionTiles();
+    bool BuildVisualSurface();
 };
