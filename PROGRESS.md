@@ -580,6 +580,20 @@ Known limits: The container remains in-memory only. Slot serialization, reconnec
 
 Next task: Persist the validated server harvest-depletion container to a local/listen-server slot and reload it only when the immutable world identity matches.
 
+### 2026-09-04 11:35 EEST — Verify sparse depletion serialization
+
+Outcome: Partial. Extended the sparse population save test to serialize its server-owned harvest-depletion container to memory and reload it. The round trip retains the immutable world identity and harvested stable spawn ID without creating a project save slot or serializing generated base content.
+
+Changed: `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.PopulationSaveGame.SparseDeltas` completed successfully, including the memory round-trip assertions.
+
+Multiplayer impact: None at runtime. The test reinforces that only server-derived world identity and stable spawn IDs are persisted; it accepts no client-provided placement, item, or result.
+
+Known limits: This validates in-memory serialization only. Writing and reloading a local/listen-server slot remains deferred because it would generate project save output.
+
+Next task: Decide whether to authorize local generated save-slot output for reconnect-persistence verification, or continue with non-writing persistence-contract coverage.
+
 ### 2026-09-04 11:15 EEST — Clarify fully open exploration
 
 Outcome: Complete. Clarified the world contract: Kalmala has no pre-built roads, trails, crossings, safe corridors, intended travel solutions, or guided direction of travel. Terrain and weather create local environmental conditions only; players freely choose where to explore and camp.

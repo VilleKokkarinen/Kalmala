@@ -55,7 +55,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 ### Phase 3 — Natural population
 
-- [ ] Add deterministic server-side spatial seeds and spawn budgets for wildlife, harvest nodes, and hazards.
+- [x] Add deterministic server-side spatial seeds and spawn budgets for wildlife, harvest nodes, and hazards.
   - [x] Define deterministic invisible spatial keys, per-kind seeds, and field-informed spawn budgets.
   - [x] Derive deterministic terrain-aligned spawn descriptors within each bounded spatial budget.
   - [x] Activate bounded server-owned population markers around players from those descriptors.
@@ -65,6 +65,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [ ] Persist consumed or defeated gameplay content as sparse world deltas keyed by seed, generator revision, and server spatial key.
   - [x] Define a versioned sparse server save container for harvest depletion keyed to immutable world identity and stable spawn IDs.
   - [x] Apply in-session harvest depletion deltas before server activation recreates a generated harvest node.
+  - [x] Verify sparse harvest depletion deltas round-trip through `SaveGame` memory serialization without writing generated project files.
 - [ ] Verify the same seed produces matching gameplay content and that state remains consistent after reconnecting.
 
 ### Phase 4 — Weather, shelter, and survival
