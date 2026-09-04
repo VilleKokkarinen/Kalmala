@@ -566,6 +566,20 @@ Known limits: The container is not yet loaded, saved to a slot, or consulted by 
 
 Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.
 
+### 2026-09-04 11:25 EEST — Apply in-session harvest depletion deltas
+
+Outcome: Partial. `GameMode` now owns the sparse population save container for its authoritative session, records a stable spawn ID only after a harvest node accepts a server-side interaction, and checks that container before recreating a generated harvest node. A consumed node therefore remains absent if its spatial key is activated again during the same session.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`; `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.PopulationSaveGame.SparseDeltas` and `Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion` both completed successfully.
+
+Multiplayer impact: The server owns the session delta container and is its sole writer. Harvest nodes report their immutable generated identifier only after the existing server-authority/range/depletion gate succeeds; clients cannot submit an identifier or control whether a node is recreated.
+
+Known limits: The container remains in-memory only. Slot serialization, reconnect persistence, and wildlife/hazard deltas remain unimplemented.
+
+Next task: Persist the validated server harvest-depletion container to a local/listen-server slot and reload it only when the immutable world identity matches.
+
 ### 2026-09-04 11:15 EEST — Clarify fully open exploration
 
 Outcome: Complete. Clarified the world contract: Kalmala has no pre-built roads, trails, crossings, safe corridors, intended travel solutions, or guided direction of travel. Terrain and weather create local environmental conditions only; players freely choose where to explore and camp.
