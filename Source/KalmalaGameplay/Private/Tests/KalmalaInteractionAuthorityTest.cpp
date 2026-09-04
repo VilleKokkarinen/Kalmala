@@ -1,6 +1,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaInteractionTestActor.h"
+#include "KalmalaCampfire.h"
+#include "KalmalaCampfireWeatherResponse.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaHazardSpawn.h"
 #include "KalmalaWildlifeSpawn.h"
@@ -49,6 +51,29 @@ bool FKalmalaHarvestNodeAuthorityTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("The server rejects a distant harvester"), AKalmalaHarvestNode::IsHarvestAllowed(true, false, FVector(1000.0f, 0.0f, 0.0f), NodeLocation));
     TestFalse(TEXT("The server rejects a depleted node"), AKalmalaHarvestNode::IsHarvestAllowed(true, true, FVector(100.0f, 0.0f, 0.0f), NodeLocation));
     TestTrue(TEXT("The server accepts an in-range harvester for an available node"), AKalmalaHarvestNode::IsHarvestAllowed(true, false, FVector(100.0f, 0.0f, 0.0f), NodeLocation));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaCampfireWeatherTest,
+    "Kalmala.Gameplay.Campfire.ServerWeatherResponse",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaCampfireWeatherTest::RunTest(const FString& Parameters)
+{
+    TestFalse(TEXT("A client cannot light a campfire"), AKalmalaCampfire::IsLightingAllowed(false, 0.0f));
+    TestFalse(TEXT("The server rejects soaked fuel"), AKalmalaCampfire::IsLightingAllowed(true, FKalmalaCampfireWeatherResponse::ExtinguishWetness));
+    TestTrue(TEXT("The server can light dry fuel"), AKalmalaCampfire::IsLightingAllowed(true, 0.0f));
+
+    const float DryWarmth = FKalmalaCampfireWeatherResponse::CalculateEffectiveWarmth(true, 0.0f, 0.0f, 0.0f);
+    const float StormWarmth = FKalmalaCampfireWeatherResponse::CalculateEffectiveWarmth(true, 0.35f, 1.0f, 1.0f);
+    const float WetFuel = FKalmalaCampfireWeatherResponse::AdvanceFuelWetness(0.0f, 1.0f, 1.0f, 10.0f, true);
+    const float DryingFuel = FKalmalaCampfireWeatherResponse::AdvanceFuelWetness(0.5f, 0.0f, 0.0f, 10.0f, true);
+    TestEqual(TEXT("A dry sheltered campfire produces its full warmth contribution"), DryWarmth, 1.0f);
+    TestTrue(TEXT("Rain, wind, and damp fuel reduce effective campfire warmth"), StormWarmth < DryWarmth);
+    TestTrue(TEXT("Rain and wind soak exposed campfire fuel"), WetFuel > 0.0f);
+    TestTrue(TEXT("A lit campfire dries fuel when rain stops"), DryingFuel < 0.5f);
+    TestFalse(TEXT("Soaked fuel extinguishes a lit campfire"), FKalmalaCampfireWeatherResponse::ShouldRemainLit(true, FKalmalaCampfireWeatherResponse::ExtinguishWetness));
     return true;
 }
 

@@ -52,6 +52,8 @@ The server derives ambient temperature from the continuous Temperature field. Gr
 
 Shelter is also sampled by the server at the pawn. Natural cover supplies continuous partial shelter from Flora. A player-built roof contributes only when an overhead `ECC_Visibility` trace hits collision geometry tagged `KalmalaShelterRoof`; a player-built windbreak contributes only when a trace toward the current wind source hits collision geometry tagged `KalmalaShelterWindbreak`. Construction must add those tags only after server-authoritative placement. The sampler never queries authored shelter volumes, accepts client hit results, or treats untagged terrain/level geometry as shelter.
 
+The campfire seam is a replicated, server-owned actor. Only a validated server interaction may light dry fuel; the server advances fuel wetness from the replicated weather's precipitation and wind, replicates the resulting lit state and effective warmth, and extinguishes soaked fuel. Its nearby warmth contribution is a server-readable falloff value for the later per-pawn exposure update; clients only render the replicated firelight and cannot submit fuel wetness, weather, or warmth.
+
 ### Weather-cycle contract
 
 `GameMode` advances a server-owned weather cycle and writes the current immutable-in-session state to the replicated world `GameState`. A state contains a monotonically increasing `WeatherCycleIndex`, server start time, duration, precipitation intensity, wind direction, and wind strength. `WeatherCycleIndex` is derived from no client input; the server selects it at session start as zero and increments it only after the active duration elapses. A late-joining client consumes the replicated active state rather than inferring it from local time.

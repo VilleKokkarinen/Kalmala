@@ -20,6 +20,34 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 16:02 EEST — Verify server-owned weather-responsive campfire
+
+Outcome: Complete. Forced a fresh editor makefile and rebuilt the previously added campfire seam. The focused automation now discovers and passes, confirming the compiled module applies server-only lighting, rain/wind wetness, drying, extinguishing, and reduced warmth behavior.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`; previously uncommitted campfire source and test files from the immediately preceding blocked increment are now verified and included in this completion.
+
+Verification: `KalmalaEditor Win64 Development -Force -MaxParallelActions=4` succeeded, compiling and linking `KalmalaCampfire.cpp`, `KalmalaInteractionAuthorityTest.cpp`, and `UnrealEditor-KalmalaGameplay.dll`. Headless `Kalmala.Gameplay.Campfire.ServerWeatherResponse` completed with `Result={Success}` using `-DDC-ForceMemoryCache`.
+
+Multiplayer impact: Campfire state remains server-owned. Clients may use only the existing validated interaction intent; they cannot light soaked fuel or write fuel wetness, weather inputs, extinguishing, or warmth. The lit state, wetness, effective warmth, and firelight presentation replicate outward.
+
+Known limits: Construction placement, fuel inventory consumption, per-pawn runtime application of campfire warmth, and the two-player recovery scenario remain deferred.
+
+Next task: Let prolonged exposure reduce warmth and apply a clear, reversible travel or stamina penalty, with shelter and campfires providing recovery.
+
+### 2026-09-04 15:57 EEST — Add server-owned weather-responsive campfire
+
+Outcome: BLOCKED on verification. Added the narrow campfire seam: a replicated server-owned `AKalmalaCampfire` may be lit only through the existing server-validated interaction path when fuel is dry. Its server tick derives fuel wetness, extinguishing, effective warmth, and firelight intensity from the replicated precipitation and wind; nearby warmth is exposed as a server-readable falloff for the later exposure update.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaCampfire.h`; `Source/KalmalaGameplay/Public/KalmalaCampfireWeatherResponse.h`; `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` invocation returned successfully, but the local Unreal Build Tool log shows it used a pre-existing makefile and never compiled the new campfire source; `UnrealEditor-KalmalaGameplay.dll` remains timestamped 15:44 while the new source is 15:52. The first headless attempt failed before automation initialization because the installed cache has no writable node. Retrying with `-DDC-ForceMemoryCache` reached the runner, but it reported `No automation tests matched 'Kalmala.Gameplay.Campfire.ServerWeatherResponse'`, confirming the editor still loaded the stale module. A rebuild retry remained blocked behind the same stale/locked local build state. No commit was made.
+
+Multiplayer impact: Intended contract remains server-owned: clients can request only the pre-existing interaction intent; they cannot set lit state, fuel wetness, weather inputs, extinction, or warmth. Replicated fields are display-only.
+
+Known limits: The source increment is uncommitted until it compiles and its focused automation executes. Campfire construction, fuel inventory, runtime player wetness/warmth application, and the two-player recovery scenario remain deferred.
+
+Next task: Clear the local Unreal build lock/cache state, then rebuild and run `Kalmala.Gameplay.Campfire.ServerWeatherResponse`; if it passes, commit this increment and unblock the checklist item.
+
 ### 2026-09-04 15:45 EEST — Sample natural and constructed shelter
 
 Outcome: Complete. Added server-side shelter sampling: continuous Flora-derived natural cover now provides partial shelter, while overhead roof and wind-facing windbreak geometry contribute only when server-owned construction collision carries the dedicated shelter tag. No authored shelter volumes or biome-zone rules were added.
