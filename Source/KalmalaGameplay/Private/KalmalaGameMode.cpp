@@ -17,6 +17,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerStart.h"
+#include "Kismet/GameplayStatics.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 
@@ -30,6 +31,7 @@ namespace KalmalaGameMode
     constexpr float TraversalTestArrivalDistance = 180.0f;
     constexpr int32 TraversalTargetSearchExtent = 12000;
     constexpr int32 TraversalTargetSearchStep = 250;
+    const FString PopulationSaveSlot = TEXT("KalmalaPopulationDeltas");
 }
 
 AKalmalaGameMode::AKalmalaGameMode()
@@ -57,8 +59,12 @@ void AKalmalaGameMode::BeginPlay()
     }
 
     WorldGenerationConfig = WorldGenerationState->GetWorldGenerationConfig();
-    PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
-    PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
+    PopulationSaveGame = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromSlot(KalmalaGameMode::PopulationSaveSlot, 0));
+    if (PopulationSaveGame == nullptr || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
+    {
+        PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
+        PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
+    }
 
     FActorSpawnParameters SpawnParameters;
     SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -158,6 +164,7 @@ void AKalmalaGameMode::RecordHarvestedSpawn(const FString& PersistentSpawnId)
     if (HasAuthority() && PopulationSaveGame != nullptr && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
     {
         PopulationSaveGame->MarkHarvested(PersistentSpawnId);
+        UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot, 0);
     }
 }
 

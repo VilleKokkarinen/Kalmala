@@ -182,6 +182,16 @@ bool FKalmalaWorldPopulationSaveGameTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("The reloaded container retains only the harvested sparse delta"), ReloadedSave->IsHarvested(SpawnId));
     }
 
+    const FString SlotName = TEXT("KalmalaPopulationSaveGameAutomation");
+    TestTrue(TEXT("The sparse delta container saves to a local test slot"), UGameplayStatics::SaveGameToSlot(SaveGame, SlotName, 0));
+    UKalmalaWorldPopulationSaveGame* SlotReloadedSave = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
+    TestNotNull(TEXT("The local test slot reloads as its expected type"), SlotReloadedSave);
+    if (SlotReloadedSave != nullptr)
+    {
+        TestTrue(TEXT("The local test slot retains its immutable world identity"), SlotReloadedSave->MatchesWorld(Config));
+        TestTrue(TEXT("The local test slot retains the harvested sparse delta"), SlotReloadedSave->IsHarvested(SpawnId));
+    }
+
     Config.WorldSeed = 419;
     TestFalse(TEXT("A different seed cannot reuse this population delta save"), SaveGame->MatchesWorld(Config));
     return true;
