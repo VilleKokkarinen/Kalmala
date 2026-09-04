@@ -8,6 +8,7 @@
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWorldPopulationSaveGame.h"
+#include "KalmalaWeatherCycle.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 
@@ -205,6 +206,30 @@ bool FKalmalaWorldPopulationSaveGameTest::RunTest(const FString& Parameters)
 
     Config.WorldSeed = 419;
     TestFalse(TEXT("A different seed cannot reuse this population delta save"), SaveGame->MatchesWorld(Config));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaWeatherCycleTest,
+    "Kalmala.World.WeatherCycle.Determinism",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaWeatherCycleTest::RunTest(const FString& Parameters)
+{
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = 418;
+    Config.GeneratorRevision = 1;
+
+    const FKalmalaWeatherState First = FKalmalaWeatherCycle::DeriveState(Config, 0, 10.0f);
+    const FKalmalaWeatherState Repeated = FKalmalaWeatherCycle::DeriveState(Config, 0, 10.0f);
+    const FKalmalaWeatherState Next = FKalmalaWeatherCycle::DeriveState(Config, 1, 10.0f + First.DurationSeconds);
+    TestTrue(TEXT("A weather interval is within the replicated contract bounds"), First.IsValid());
+    TestEqual(TEXT("The same immutable identity and cycle index repeat duration"), First.DurationSeconds, Repeated.DurationSeconds);
+    TestEqual(TEXT("The same immutable identity and cycle index repeat precipitation"), First.PrecipitationIntensity, Repeated.PrecipitationIntensity);
+    TestEqual(TEXT("The same immutable identity and cycle index repeat wind direction"), First.WindDirectionDegrees, Repeated.WindDirectionDegrees);
+    TestEqual(TEXT("The same immutable identity and cycle index repeat wind strength"), First.WindStrength, Repeated.WindStrength);
+    TestEqual(TEXT("The next interval increments its immutable cycle index"), Next.WeatherCycleIndex, 1);
+    TestEqual(TEXT("The next interval starts where the previous one ended"), Next.ServerStartTimeSeconds, First.ServerStartTimeSeconds + First.DurationSeconds);
     return true;
 }
 

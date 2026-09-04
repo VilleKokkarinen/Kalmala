@@ -37,10 +37,25 @@ void AKalmalaWorldGenerationGameState::OnRep_WorldGenerationConfig()
     LogWorldGenerationIdentity(TEXT("Client received"));
 }
 
+void AKalmalaWorldGenerationGameState::SetWeatherStateFromServer(const FKalmalaWeatherState& InWeatherState)
+{
+    check(HasAuthority());
+    check(InWeatherState.IsValid());
+    WeatherState = InWeatherState;
+    ForceNetUpdate();
+    UE_LOG(LogTemp, Display, TEXT("Server selected weather cycle %d: Start=%.2f Duration=%.2f Precipitation=%.2f WindDirection=%d WindStrength=%.2f."), WeatherState.WeatherCycleIndex, WeatherState.ServerStartTimeSeconds, WeatherState.DurationSeconds, WeatherState.PrecipitationIntensity, WeatherState.WindDirectionDegrees, WeatherState.WindStrength);
+}
+
+void AKalmalaWorldGenerationGameState::OnRep_WeatherState()
+{
+    UE_LOG(LogTemp, Display, TEXT("Client received weather cycle %d: Start=%.2f Duration=%.2f Precipitation=%.2f WindDirection=%d WindStrength=%.2f."), WeatherState.WeatherCycleIndex, WeatherState.ServerStartTimeSeconds, WeatherState.DurationSeconds, WeatherState.PrecipitationIntensity, WeatherState.WindDirectionDegrees, WeatherState.WindStrength);
+}
+
 void AKalmalaWorldGenerationGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaWorldGenerationGameState, WorldGenerationConfig);
+    DOREPLIFETIME(AKalmalaWorldGenerationGameState, WeatherState);
 }
 
 void AKalmalaWorldGenerationGameState::LogWorldGenerationIdentity(const TCHAR* Source) const

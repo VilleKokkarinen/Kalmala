@@ -12,6 +12,7 @@
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWorldPopulationMarker.h"
 #include "KalmalaWorldPopulationSaveGame.h"
+#include "KalmalaWeatherCycle.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 
@@ -64,6 +65,7 @@ void AKalmalaGameMode::BeginPlay()
     }
 
     WorldGenerationConfig = WorldGenerationState->GetWorldGenerationConfig();
+    InitializeWeatherCycle();
     PopulationSaveGame = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromSlot(KalmalaGameMode::PopulationSaveSlot, 0));
     if (PopulationSaveGame == nullptr || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
     {
@@ -109,7 +111,34 @@ void AKalmalaGameMode::LogExposureInspection(const FVector& Location) const
     const float GroundWetness = Fields.Humidity;
     const float WindExposure = FMath::Clamp(1.0f - Normal.Z, 0.0f, 1.0f);
     const float AmbientTemperature = FMath::Lerp(-20.0f, 20.0f, Fields.Temperature);
-    UE_LOG(LogTemp, Display, TEXT("Exposure inspection (server): Pos=%s Temp=%.1f Humidity=%.2f Elevation=%.2f GroundWet=%.2f Wind=%.2f Precipitation=0.00 Shelter=0.00 Wetness=0.00 Warmth=100.00 Mitigation=None."), *Location.ToCompactString(), AmbientTemperature, Fields.Humidity, Fields.Elevation, GroundWetness, WindExposure);
+    const FKalmalaWeatherState& Weather = GetGameStateChecked<AKalmalaWorldGenerationGameState>()->GetWeatherState();
+    UE_LOG(LogTemp, Display, TEXT("Exposure inspection (server): Pos=%s Temp=%.1f Humidity=%.2f Elevation=%.2f GroundWet=%.2f Wind=%.2f Precipitation=%.2f WeatherWind=%.2f WindDirection=%d Shelter=0.00 Wetness=0.00 Warmth=100.00 Mitigation=None."), *Location.ToCompactString(), AmbientTemperature, Fields.Humidity, Fields.Elevation, GroundWetness, WindExposure, Weather.PrecipitationIntensity, Weather.WindStrength, Weather.WindDirectionDegrees);
+}
+
+void AKalmalaGameMode::InitializeWeatherCycle()
+{
+    check(HasAuthority());
+    AKalmalaWorldGenerationGameState* WorldGenerationState = GetGameState<AKalmalaWorldGenerationGameState>();
+    check(WorldGenerationState != nullptr);
+    WorldGenerationState->SetWeatherStateFromServer(FKalmalaWeatherCycle::DeriveState(WorldGenerationConfig, 0, GetWorld()->GetTimeSeconds()));
+}
+
+void AKalmalaGameMode::AdvanceWeatherCycleIfNeeded()
+{
+    AKalmalaWorldGenerationGameState* WorldGenerationState = GetGameState<AKalmalaWorldGenerationGameState>();
+    if (WorldGenerationState == nullptr)
+    {
+        return;
+    }
+
+    FKalmalaWeatherState Weather = WorldGenerationState->GetWeatherState();
+    const float ServerTimeSeconds = GetWorld()->GetTimeSeconds();
+    while (ServerTimeSeconds >= Weather.ServerStartTimeSeconds + Weather.DurationSeconds)
+    {
+        const float NextStartTimeSeconds = Weather.ServerStartTimeSeconds + Weather.DurationSeconds;
+        Weather = FKalmalaWeatherCycle::DeriveState(WorldGenerationConfig, Weather.WeatherCycleIndex + 1, NextStartTimeSeconds);
+        WorldGenerationState->SetWeatherStateFromServer(Weather);
+    }
 }
 
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
@@ -122,6 +151,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     }
 
     DriveTraversalTest();
+    AdvanceWeatherCycleIfNeeded();
 
     if (GetWorld()->GetTimeSeconds() < NextTerrainPatchActivationTime)
     {

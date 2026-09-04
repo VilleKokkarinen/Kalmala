@@ -81,7 +81,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Define the per-pawn state and update rules for ambient temperature, precipitation, wind exposure, wetness, warmth, and shelter.
   - [x] Derive terrain-dependent inputs from the continuous world fields, local terrain, and server weather; clients may display state but never determine it.
   - [x] Add a developer-only inspection view for the sampled inputs, resulting exposure state, and active mitigation.
-- [ ] Add a small replicated server weather cycle.
+- [x] Add a small replicated server weather cycle.
   - [x] Define deterministic weather-state selection, duration, rain intensity, wind direction, and wind strength.
   - [ ] Make exposed ridges, low wet ground, shorelines, and natural cover produce different exposure without turning biomes into hard zones.
 - [ ] Connect player counterplay to the existing survival-camp systems.

@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 15:25 EEST — Add replicated server weather cycle
+
+Outcome: Complete. Added deterministic 120–240-second dry, drizzle, and rain intervals derived from immutable world identity and a monotonic cycle index. `GameMode` selects index zero, advances elapsed intervals on the server, and writes the active state to the replicated world `GameState` for clients and late joiners.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWeatherState.h`; `Source/KalmalaWorld/Public/KalmalaWeatherCycle.h`; `Source/KalmalaWorld/Public/KalmalaWorldGenerationGameState.h`; `Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Added the compiled `Kalmala.World.WeatherCycle.Determinism` automation coverage for repeatable values, contract bounds, index advancement, and contiguous interval start times. A separate unattended automation invocation did not reach test execution before editor startup stalled, so the successful build is the runtime-independent verification for this increment.
+
+Multiplayer impact: `GameMode` is the only weather selector and cycle advancer. `GameState` replicates the index, server start time, duration, precipitation, quantized wind direction, and wind strength; clients receive the state only and have no RPC or input path to alter weather or time.
+
+Known limits: Weather has no visual presentation, mid-cycle persistence, weather-zone logic, shelter sampling, or runtime wetness/warmth tick integration. The existing exposure inspection now reports the active server weather values alongside its provisional state.
+
+Next task: Make exposed ridges, low wet ground, shorelines, and natural cover produce different exposure without turning biomes into hard zones.
+
 ### 2026-09-04 15:11 EEST — Define deterministic weather-cycle contract
 
 Outcome: Complete. Defined the first small weather-cycle increment: the server derives each cycle state from immutable world identity and a monotonic cycle index, replicates its active timing and values through `GameState`, and never accepts client weather control.

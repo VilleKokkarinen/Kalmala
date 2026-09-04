@@ -32,6 +32,8 @@ private:
     void DriveTraversalTest();
     void RunReconnectVerification(APawn* ServerPawn);
     void LogExposureInspection(const FVector& Location) const;
+    void InitializeWeatherCycle();
+    void AdvanceWeatherCycleIfNeeded();
 
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
