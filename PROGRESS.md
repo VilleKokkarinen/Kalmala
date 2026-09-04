@@ -594,6 +594,20 @@ Known limits: This validates in-memory serialization only. Writing and reloading
 
 Next task: Decide whether to authorize local generated save-slot output for reconnect-persistence verification, or continue with non-writing persistence-contract coverage.
 
+### 2026-09-04 11:40 EEST — Persist harvest depletion to a local slot
+
+Outcome: Partial. With explicit approval for generated save output, the server now loads its sparse harvest-depletion container from a local/listen-server slot only when the immutable world identity matches, and saves it after an accepted server harvest. The focused automation verifies a slot round trip retains the identity and harvested spawn ID.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.PopulationSaveGame.SparseDeltas` completed successfully, including local-slot save and load assertions. Generated test output under `Saved/` remains untracked.
+
+Multiplayer impact: Only the authoritative `GameMode` loads or writes the slot and only after its existing server harvest validation succeeds. A mismatched seed or generator revision starts a new empty delta container; clients cannot choose a slot, world identity, or harvested ID.
+
+Known limits: The runtime slot path is verified through the same `SaveGame` API, but an end-to-end reconnect scenario that harvests a node, restarts a listen server, and observes its absence remains outstanding. Wildlife and hazard deltas remain unimplemented.
+
+Next task: Add an end-to-end listen-server reconnect verification proving a harvested generated node remains absent after server restart for the same immutable world identity.
+
 ### 2026-09-04 11:15 EEST — Clarify fully open exploration
 
 Outcome: Complete. Clarified the world contract: Kalmala has no pre-built roads, trails, crossings, safe corridors, intended travel solutions, or guided direction of travel. Terrain and weather create local environmental conditions only; players freely choose where to explore and camp.

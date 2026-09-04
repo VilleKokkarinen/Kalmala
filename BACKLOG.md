@@ -66,6 +66,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Define a versioned sparse server save container for harvest depletion keyed to immutable world identity and stable spawn IDs.
   - [x] Apply in-session harvest depletion deltas before server activation recreates a generated harvest node.
   - [x] Verify sparse harvest depletion deltas round-trip through `SaveGame` memory serialization without writing generated project files.
+  - [x] Persist and reload server harvest-depletion deltas through the local/listen-server save slot only when world identity matches.
 - [ ] Verify the same seed produces matching gameplay content and that state remains consistent after reconnecting.
 
 ### Phase 4 — Weather, shelter, and survival
