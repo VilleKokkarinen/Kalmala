@@ -29,6 +29,7 @@ private:
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
     void ConfigureTraversalTest();
     void DriveTraversalTest();
+    void RunReconnectVerification(APawn* ServerPawn);
 
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
@@ -38,6 +39,7 @@ private:
     TSet<FIntPoint> ActivePopulationSpatialKeys;
     float NextTerrainPatchActivationTime = 0.0f;
     bool bTraversalTestEnabled = false;
+    FString ReconnectVerificationMode;
     FVector2D TraversalTestTarget = FVector2D::ZeroVector;
     TSet<TWeakObjectPtr<APawn>> TraversalTestCompletedPawns;
     TSet<TWeakObjectPtr<APawn>> TraversalTestStartedPawns;

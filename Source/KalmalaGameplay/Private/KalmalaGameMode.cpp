@@ -12,6 +12,7 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Pawn.h"
@@ -83,6 +84,12 @@ void AKalmalaGameMode::BeginPlay()
         ActivateTerrainPatchNeighborhood(TerrainPatchOrigin);
         UE_LOG(LogTemp, Display, TEXT("Server activated %d seed-derived terrain patches around the generated start."), ActiveTerrainPatchCoordinates.Num());
         ConfigureTraversalTest();
+        if (!ReconnectVerificationMode.IsEmpty())
+        {
+            AKalmalaCharacter* VerificationPawn = GetWorld()->SpawnActor<AKalmalaCharacter>(
+                AKalmalaCharacter::StaticClass(), GeneratedPlayerStart->GetActorLocation(), FRotator::ZeroRotator, SpawnParameters);
+            RunReconnectVerification(VerificationPawn);
+        }
     }
 }
 
@@ -172,7 +179,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer);
 
-    if (!bTraversalTestEnabled || NewPlayer == nullptr)
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty()) || NewPlayer == nullptr)
     {
         return;
     }
@@ -184,12 +191,14 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
         RestartPlayer(NewPlayer);
     }
 
-    UE_LOG(LogTemp, Display, TEXT("Traversal-test server player joined with pawn: %s."), *GetNameSafe(NewPlayer->GetPawn()));
+    UE_LOG(LogTemp, Display, TEXT("Developer verification server player joined with pawn: %s."), *GetNameSafe(NewPlayer->GetPawn()));
+    RunReconnectVerification(NewPlayer->GetPawn());
 }
 
 void AKalmalaGameMode::ConfigureTraversalTest()
 {
     bTraversalTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaTraversalTest"));
+    FParse::Value(FCommandLine::Get(), TEXT("KalmalaReconnectVerification="), ReconnectVerificationMode);
     if (!bTraversalTestEnabled)
     {
         return;
@@ -223,6 +232,68 @@ void AKalmalaGameMode::ConfigureTraversalTest()
     }
 
     UE_LOG(LogTemp, Display, TEXT("Traversal-test server target is %s, %.0f units from the generated start."), *TraversalTestTarget.ToString(), FMath::Sqrt(ClosestDistanceSquared));
+}
+
+void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
+{
+    if (ReconnectVerificationMode.IsEmpty() || ServerPawn == nullptr || PopulationSaveGame == nullptr)
+    {
+        return;
+    }
+
+    const FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(ServerPawn->GetActorLocation()));
+    const TArray<FKalmalaWorldPopulationSpawn> HarvestSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::HarvestNode);
+    if (HarvestSpawns.IsEmpty())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Reconnect verification found no generated harvest node for its server spatial key."));
+        FPlatformMisc::RequestExit(false);
+        return;
+    }
+
+    const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(HarvestSpawns[0]);
+    ActivatePopulationKey(SpatialKey);
+    if (ReconnectVerificationMode.Equals(TEXT("Harvest"), ESearchCase::IgnoreCase))
+    {
+        for (TActorIterator<AKalmalaHarvestNode> NodeIterator(GetWorld()); NodeIterator; ++NodeIterator)
+        {
+            AKalmalaHarvestNode* Node = *NodeIterator;
+            if (Node != nullptr && Node->GetPersistentSpawnId() == PersistentSpawnId)
+            {
+                ServerPawn->SetActorLocation(Node->GetActorLocation());
+                Node->Interact_Implementation(Cast<AKalmalaCharacter>(ServerPawn));
+                UE_LOG(LogTemp, Display, TEXT("Reconnect verification harvested generated node %s before listen-server restart."), *PersistentSpawnId);
+                FPlatformMisc::RequestExit(false);
+                return;
+            }
+        }
+        UE_LOG(LogTemp, Error, TEXT("Reconnect verification could not activate its generated harvest node before restart."));
+    }
+    else if (ReconnectVerificationMode.Equals(TEXT("Verify"), ESearchCase::IgnoreCase))
+    {
+        bool bNodeRecreated = false;
+        for (TActorIterator<AKalmalaHarvestNode> NodeIterator(GetWorld()); NodeIterator; ++NodeIterator)
+        {
+            if ((*NodeIterator)->GetPersistentSpawnId() == PersistentSpawnId)
+            {
+                bNodeRecreated = true;
+                break;
+            }
+        }
+        if (PopulationSaveGame->IsHarvested(PersistentSpawnId) && !bNodeRecreated)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Reconnect verification passed: harvested generated node %s remained absent after listen-server restart."), *PersistentSpawnId);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Reconnect verification failed: harvested state=%d, node recreated=%d."), PopulationSaveGame->IsHarvested(PersistentSpawnId), bNodeRecreated);
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Reconnect verification mode must be Harvest or Verify."));
+    }
+
+    FPlatformMisc::RequestExit(false);
 }
 
 void AKalmalaGameMode::DriveTraversalTest()

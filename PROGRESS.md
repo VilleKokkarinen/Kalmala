@@ -608,6 +608,20 @@ Known limits: The runtime slot path is verified through the same `SaveGame` API,
 
 Next task: Add an end-to-end listen-server reconnect verification proving a harvested generated node remains absent after server restart for the same immutable world identity.
 
+### 2026-09-04 12:06 EEST — Verify generated harvest reconnect persistence
+
+Outcome: Complete. Restored the previously committed generated-world implementation chain that had been omitted from `master`, then added a developer-only listen-server reconnect harness. It runs the normal server population activation, range-validated harvest interaction, sparse-slot write, fresh server load, and generated-node suppression paths across two separate listen-server processes.
+
+Changed: Restored generated terrain, population, harvest, and sparse-persistence implementation commits; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. The focused `Kalmala.World.PopulationSaveGame.SparseDeltas` headless automation completed with exit code 0. A headless listen server with `WorldSeed=418`, `GeneratorRevision=1`, and `-KalmalaReconnectVerification=Harvest` activated seven entries for spatial key `(1, -1)`, harvested node `1/1/-1/6205970461120004174`, saved `KalmalaPopulationDeltas.sav`, and exited. A fresh listen server with the same identity and `-KalmalaReconnectVerification=Verify` activated six entries for that key and logged that the harvested node remained absent after restart.
+
+Multiplayer impact: The developer switch is read only from the local server command line. The server derives the spatial key and stable node ID, uses the existing server-only range/depletion validation to mutate the node, and alone saves/loads the slot. No client can select a spawn ID, harvest outcome, slot, seed, or revision.
+
+Known limits: This verifies one generated harvest-node delta. Wildlife and hazard depletion remain future content; the test server creates a temporary server-owned verification pawn only when the developer switch is present. Generated save output under `Saved/` remains untracked.
+
+Next task: Decide the next Phase 3 population increment after harvesting persistence; do not advance into Phase 4 before Phase 3's remaining sparse wildlife/hazard content is scoped.
+
 ### 2026-09-04 11:15 EEST — Clarify fully open exploration
 
 Outcome: Complete. Clarified the world contract: Kalmala has no pre-built roads, trails, crossings, safe corridors, intended travel solutions, or guided direction of travel. Terrain and weather create local environmental conditions only; players freely choose where to explore and camp.
