@@ -1,6 +1,8 @@
 #include "KalmalaGameMode.h"
 
 #include "KalmalaCharacter.h"
+#include "KalmalaCampfire.h"
+#include "KalmalaExposureResponse.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaHazardSpawn.h"
 #include "KalmalaWildlifeSpawn.h"
@@ -35,11 +37,46 @@ namespace KalmalaGameMode
     constexpr int32 MaxActiveTerrainPatches = 25;
     constexpr int32 MaxActivePopulationSpatialKeys = 9;
     constexpr float TerrainPatchActivationIntervalSeconds = 1.0f;
+    constexpr float ExposureUpdateIntervalSeconds = 1.0f;
     constexpr float TraversalTestSpeed = 1800.0f;
     constexpr float TraversalTestArrivalDistance = 180.0f;
     constexpr int32 TraversalTargetSearchExtent = 12000;
     constexpr int32 TraversalTargetSearchStep = 250;
     const FString PopulationSaveSlot = TEXT("KalmalaPopulationDeltas");
+}
+
+void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
+{
+    const AKalmalaWorldGenerationGameState* WorldGenerationState = GetGameState<AKalmalaWorldGenerationGameState>();
+    if (WorldGenerationState == nullptr)
+    {
+        return;
+    }
+
+    const FKalmalaWeatherState& Weather = WorldGenerationState->GetWeatherState();
+    for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+    {
+        AKalmalaCharacter* Character = Iterator->Get() != nullptr ? Cast<AKalmalaCharacter>(Iterator->Get()->GetPawn()) : nullptr;
+        if (Character == nullptr)
+        {
+            continue;
+        }
+
+        const FVector Location = Character->GetActorLocation();
+        const FKalmalaEnvironmentalExposureSample Environment = FKalmalaEnvironmentalExposureSampler::Sample(WorldGenerationConfig, FVector2D(Location));
+        const FKalmalaShelterSample Shelter = FKalmalaShelterSampler::Sample(GetWorld(), Character, Environment.NaturalCover, Weather.WindDirectionDegrees);
+        float FireWarmth = 0.0f;
+        for (TActorIterator<AKalmalaCampfire> CampfireIterator(GetWorld()); CampfireIterator; ++CampfireIterator)
+        {
+            FireWarmth = FMath::Max(FireWarmth, CampfireIterator->GetWarmthContributionAt(Location));
+        }
+
+        FKalmalaExposureState State = Character->GetExposureState();
+        State.Wetness = FKalmalaExposureResponse::AdvanceWetness(State.Wetness, Weather.PrecipitationIntensity, Environment.GroundWetness, Environment.WindExposure * Weather.WindStrength, Shelter.Shelter, FireWarmth, DeltaSeconds);
+        State.Warmth = FKalmalaExposureResponse::AdvanceWarmth(State.Warmth, Environment.AmbientTemperature, State.Wetness, Environment.WindExposure * Weather.WindStrength, Shelter.Shelter, FireWarmth, DeltaSeconds);
+        State.TravelSpeedMultiplier = FKalmalaExposureResponse::GetTravelSpeedMultiplier(State.Warmth);
+        Character->SetExposureStateFromServer(State);
+    }
 }
 
 AKalmalaGameMode::AKalmalaGameMode()
@@ -161,6 +198,12 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
 
     DriveTraversalTest();
     AdvanceWeatherCycleIfNeeded();
+
+    if (GetWorld()->GetTimeSeconds() >= NextExposureUpdateTime)
+    {
+        NextExposureUpdateTime = GetWorld()->GetTimeSeconds() + KalmalaGameMode::ExposureUpdateIntervalSeconds;
+        UpdatePlayerExposure(KalmalaGameMode::ExposureUpdateIntervalSeconds);
+    }
 
     if (GetWorld()->GetTimeSeconds() < NextTerrainPatchActivationTime)
     {

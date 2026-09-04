@@ -32,6 +32,7 @@ private:
     void DriveTraversalTest();
     void RunReconnectVerification(APawn* ServerPawn);
     void LogExposureInspection(const AActor* Occupant) const;
+    void UpdatePlayerExposure(float DeltaSeconds);
     void InitializeWeatherCycle();
     void AdvanceWeatherCycleIfNeeded();
 
@@ -42,6 +43,7 @@ private:
     TSet<FIntPoint> ActiveTerrainPatchCoordinates;
     TSet<FIntPoint> ActivePopulationSpatialKeys;
     float NextTerrainPatchActivationTime = 0.0f;
+    float NextExposureUpdateTime = 0.0f;
     bool bTraversalTestEnabled = false;
     bool bExposureInspectionEnabled = false;
     FString ReconnectVerificationMode;

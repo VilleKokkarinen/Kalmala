@@ -11,6 +11,7 @@
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "Net/UnrealNetwork.h"
 
 AKalmalaCharacter::AKalmalaCharacter()
 {
@@ -23,6 +24,7 @@ AKalmalaCharacter::AKalmalaCharacter()
 
     GetCharacterMovement()->bOrientRotationToMovement = true;
     GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
+    BaselineMaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
     CameraBoom->SetupAttachment(RootComponent);
@@ -32,6 +34,26 @@ AKalmalaCharacter::AKalmalaCharacter()
     FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
     FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
     FollowCamera->bUsePawnControlRotation = false;
+}
+
+void AKalmalaCharacter::SetExposureStateFromServer(const FKalmalaExposureState& NewExposureState)
+{
+    if (!HasAuthority())
+    {
+        return;
+    }
+
+    ExposureState.Wetness = FMath::Clamp(NewExposureState.Wetness, 0.0f, 100.0f);
+    ExposureState.Warmth = FMath::Clamp(NewExposureState.Warmth, 0.0f, 100.0f);
+    ExposureState.TravelSpeedMultiplier = FMath::Clamp(NewExposureState.TravelSpeedMultiplier, 0.68f, 1.0f);
+    ApplyExposureTravelPenalty();
+    ForceNetUpdate();
+}
+
+void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(AKalmalaCharacter, ExposureState);
 }
 
 void AKalmalaCharacter::BeginPlay()
@@ -104,6 +126,19 @@ void AKalmalaCharacter::ConfigureTraversalTestTarget()
     }
 
     bTraversalTargetConfigured = ClosestDistanceSquared != TNumericLimits<float>::Max();
+}
+
+void AKalmalaCharacter::OnRep_ExposureState()
+{
+    ApplyExposureTravelPenalty();
+}
+
+void AKalmalaCharacter::ApplyExposureTravelPenalty()
+{
+    if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+    {
+        Movement->MaxWalkSpeed = BaselineMaxWalkSpeed * ExposureState.TravelSpeedMultiplier;
+    }
 }
 
 void AKalmalaCharacter::OnRep_ReplicatedMovement()

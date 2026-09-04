@@ -87,8 +87,8 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [x] Connect player counterplay to the existing survival-camp systems.
   - [x] Make natural cover and player-built roof/windbreak geometry contribute shelter; no authored shelter volumes.
   - [x] Make a lit, server-owned campfire add warmth and interact correctly with rain, wind, and wet materials.
-- [ ] Add recoverable survival consequences that create choices rather than a hard travel gate.
-  - [ ] Let prolonged exposure reduce warmth and apply a clear, reversible travel or stamina penalty; shelter, a fire, and preparation must offer viable recovery.
+- [x] Add recoverable survival consequences that create choices rather than a hard travel gate.
+  - [x] Let prolonged exposure reduce warmth and apply a clear, reversible travel or stamina penalty; shelter, a fire, and preparation must offer viable recovery.
 - [ ] Ensure generated terrain offers varied local conditions for freely chosen camps, with understandable differences in cover, ground wetness, distance, and resources.
 - [ ] Verify host/client agreement and meaningful choices.
   - [ ] Verify host and client observe matching weather, exposure, shelter, fire, and recovery state, and that clients cannot alter any authoritative value.

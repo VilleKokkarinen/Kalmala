@@ -3,6 +3,7 @@
 #include "KalmalaInteractionTestActor.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaCampfireWeatherResponse.h"
+#include "KalmalaExposureResponse.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaHazardSpawn.h"
 #include "KalmalaWildlifeSpawn.h"
@@ -74,6 +75,28 @@ bool FKalmalaCampfireWeatherTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Rain and wind soak exposed campfire fuel"), WetFuel > 0.0f);
     TestTrue(TEXT("A lit campfire dries fuel when rain stops"), DryingFuel < 0.5f);
     TestFalse(TEXT("Soaked fuel extinguishes a lit campfire"), FKalmalaCampfireWeatherResponse::ShouldRemainLit(true, FKalmalaCampfireWeatherResponse::ExtinguishWetness));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaExposureConsequenceTest,
+    "Kalmala.Gameplay.Exposure.RecoverableTravelPenalty",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaExposureConsequenceTest::RunTest(const FString& Parameters)
+{
+    const float ExposedWetness = FKalmalaExposureResponse::AdvanceWetness(0.0f, 1.0f, 0.8f, 1.0f, 0.0f, 0.0f, 120.0f);
+    const float ExposedWarmth = FKalmalaExposureResponse::AdvanceWarmth(100.0f, -12.0f, ExposedWetness, 1.0f, 0.0f, 0.0f, 120.0f);
+    const float ExposedSpeed = FKalmalaExposureResponse::GetTravelSpeedMultiplier(ExposedWarmth);
+    const float RecoveredWetness = FKalmalaExposureResponse::AdvanceWetness(ExposedWetness, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 60.0f);
+    const float RecoveredWarmth = FKalmalaExposureResponse::AdvanceWarmth(ExposedWarmth, -12.0f, RecoveredWetness, 0.0f, 1.0f, 1.0f, 60.0f);
+
+    TestTrue(TEXT("Prolonged exposed rain produces wetness"), ExposedWetness > 0.0f);
+    TestTrue(TEXT("Prolonged cold exposure reduces warmth"), ExposedWarmth < 50.0f);
+    TestTrue(TEXT("Low warmth applies a visible reversible travel penalty"), ExposedSpeed < 1.0f);
+    TestTrue(TEXT("Shelter and a lit fire dry the player"), RecoveredWetness < ExposedWetness);
+    TestTrue(TEXT("Shelter and a lit fire recover warmth"), RecoveredWarmth > ExposedWarmth);
+    TestEqual(TEXT("Recovered warmth removes the travel penalty"), FKalmalaExposureResponse::GetTravelSpeedMultiplier(RecoveredWarmth), 1.0f);
     return true;
 }
 

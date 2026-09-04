@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 16:17 EEST — Add recoverable exposure travel consequence
+
+Outcome: Complete. The server now advances each connected character's wetness and warmth once per second from authoritative terrain, weather, shelter, and nearby lit-campfire inputs. Prolonged cold, wet, wind-exposed travel reduces replicated warmth and applies a reversible 68–100% Character Movement travel-speed multiplier; shelter dries and recovers a dry player slowly, while a nearby fire accelerates both recovery paths.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaExposureResponse.h`; `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -Force -MaxParallelActions=4` succeeded, compiling and linking the character, game mode, and focused automation. Headless `Kalmala.Gameplay.Exposure.RecoverableTravelPenalty` completed with `Result={Success}` and exit code 0 using `-DDC-ForceMemoryCache`.
+
+Multiplayer impact: `GameMode` alone samples inputs, advances exposure, and writes the replicated display state and movement multiplier. The existing Character Movement server-authority path applies the speed change; clients only receive it and cannot provide weather, terrain, shelter, fire, wetness, warmth, or multiplier values.
+
+Known limits: This increment exposes replicated gameplay state but does not add HUD feedback, stamina coupling, clothing/preparation items, construction placement, or the required two-player recovery scenario. Campfire discovery/placement remains in the M2 camp loop.
+
+Next task: Ensure generated terrain offers varied local conditions for freely chosen camps, with understandable differences in cover, ground wetness, distance, and resources.
+
 ### 2026-09-04 16:02 EEST — Verify server-owned weather-responsive campfire
 
 Outcome: Complete. Forced a fresh editor makefile and rebuilt the previously added campfire seam. The focused automation now discovers and passes, confirming the compiled module applies server-only lighting, rain/wind wetness, drying, extinguishing, and reduced warmth behavior.
