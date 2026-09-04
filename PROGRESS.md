@@ -22,7 +22,7 @@ Next task:
 
 ### 2026-09-04 17:02 EEST — Plan companion minimap
 
-Outcome: Complete. Added an M5 delivery plan for a top-right circular minimap with a centred player-facing marker and mouse-wheel zoom clamped between tunable minimum and maximum levels. The plan preserves the generated-world and multiplayer-information contracts.
+Outcome: Complete. Added and placed the companion minimap as Phase 5 of the world-generation track, moving biome expansion to Phase 6 and ocean travel to Phase 7. The plan specifies a top-right circular map with a centred player-facing marker and mouse-wheel zoom clamped between tunable minimum and maximum levels while preserving the generated-world and multiplayer-information contracts.
 
 Changed: `BACKLOG.md`; `docs/02-technical-architecture.md`; `docs/04-roadmap.md`; `PROGRESS.md`.
 

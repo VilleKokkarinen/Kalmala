@@ -94,7 +94,16 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [ ] Verify host and client observe matching weather, exposure, shelter, fire, and recovery state, and that clients cannot alter any authoritative value.
 - [ ] Run a two-player scenario showing freely chosen camp locations with different weather preparation tradeoffs and no built or guided path.
 
-### Phase 5 — Biome expansion
+### Phase 5 — Companion minimap
+
+**Intent:** give each player an unobtrusive, circular, player-centred orientation aid without creating a second world simulation, revealing hidden server-owned content, or directing a route through the wilderness.
+
+- [ ] Add a top-right circular minimap through a `KalmalaUI` view model, derived from local generated-world presentation and the owning player's replicated transform.
+- [ ] Render terrain, water, known player-facing landmarks, and a centred owning-player facing marker without revealing hidden server-owned content or adding a biome map.
+- [ ] Bind mouse-wheel zoom with tunable, clamped minimum and maximum levels; modal UI must retain its own input.
+- [ ] Verify circular clipping, UI-scale/aspect-ratio placement, min/max zoom clamping, and host/client player-centred views with no authoritative state mutation or information leak.
+
+### Phase 6 — Biome expansion
 
 **Intent:** add one biome at a time as a distinct, seed-generated place to explore, prepare, and discover—not as a combat tier or a separate authored region. Each biome must use the same continuous four-field classifier and Phase 4 exposure contract. Terrain can create local environmental variation, but never designed travel corridors, shortcuts, roads, or trails.
 
@@ -103,7 +112,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [ ] Require each new biome to have a visual silhouette, a travel pressure, a shelter response, and an optional discovery payoff that cannot be mistaken for another biome.
 - [ ] Add developer inspection coverage for continuous seam sampling, feature placement, exposure inputs, and biome-specific population budgets.
 - [ ] Expand Shimmering Lakes beyond its existing visual water and shoreline treatment.
-- [ ] Add interlocking lakes, saturated low ground, and seed-generated lake-edge or island discoveries without requiring a boat before Phase 6.
+- [ ] Add interlocking lakes, saturated low ground, and seed-generated lake-edge or island discoveries without requiring a boat before Phase 7.
 - [ ] Make wet shore conditions, dry storage, raised shelter, and available natural cover create understandable camp tradeoffs without guiding travel.
 - [ ] Add Elderwood as a dense-canopy biome.
 - [ ] Add field-driven dense vegetation, shade, roots, and clearings that change visibility and camp footprint without creating a trail or directed path.
@@ -121,7 +130,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [ ] For each biome, verify same-seed reproducibility, different-seed variation, continuous seam samples, collision/traversal continuity, and stable server-owned discovery/population identifiers.
 - [ ] Run a host/client scenario in each biome that demonstrates matching terrain, weather/exposure, shelter response, and freely chosen camp locations; clients must not alter gameplay state.
 
-### Phase 6 — Ocean and long-distance travel
+### Phase 7 — Ocean and long-distance travel
 
 - [ ] Add ocean terrain, islands, and the systems required for long-distance movement.
 - [ ] Profile generation time, memory, replicated actor count, save size, and late-join synchronization before increasing density or streaming distance.
@@ -130,10 +139,3 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 ## Later gameplay milestones
 
 Use `docs/04-roadmap.md` as the source of truth. Add decomposed M2–M5 tasks here only after their preceding milestone acceptance criteria pass.
-
-### M5 — Companion minimap
-
-- [ ] Add a top-right circular minimap through a `KalmalaUI` view model, derived from local generated-world presentation and the owning player's replicated transform.
-- [ ] Render terrain, water, known player-facing landmarks, and a centred owning-player facing marker without revealing hidden server-owned content or adding a biome map.
-- [ ] Bind mouse-wheel zoom with tunable, clamped minimum and maximum levels; modal UI must retain its own input.
-- [ ] Verify circular clipping, UI-scale/aspect-ratio placement, min/max zoom clamping, and host/client player-centred views with no authoritative state mutation or information leak.

@@ -38,9 +38,9 @@ Add original art/audio pass, tutorial beats, settings/accessibility, performance
 
 **Accept:** a new player can complete the documented 20–30 minute co-op loop without developer tools.
 
-### Companion minimap delivery plan
+### World-generation Phase 5 — Companion minimap delivery plan
 
-Deliver this UI feature during M5's settings/accessibility and polish pass, once generated-world traversal is stable. It is a navigation aid, not a separate world simulation or a source of hidden gameplay information.
+Deliver this UI feature as Phase 5 of the world-generation track, before biome expansion. It is a navigation aid, not a separate world simulation or a source of hidden gameplay information.
 
 1. Add a `KalmalaUI` minimap view model that converts the locally available generated-world presentation and the owning player's replicated transform into map-space data. It must not query world actors directly or expose undiscovered server-owned population, loot, hazards, or other players beyond the normal game presentation contract.
 2. Add a circular minimap widget anchored to the top-right HUD. Clip all terrain, water, and markers to the circle; keep the owning-player marker visible at the centre and rotate it to communicate facing direction.

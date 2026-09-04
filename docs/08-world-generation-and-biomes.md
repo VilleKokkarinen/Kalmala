@@ -110,13 +110,19 @@ Connect rain, wind, wetness, warmth, fires, and shelter to the generated terrain
 
 **Done when:** players naturally choose different routes, camps, and gear because of the terrain and weather they encounter.
 
-### 5. Add biomes one at a time
+### 5. Companion minimap
+
+Add a circular, top-right minimap that keeps the owning player at its centre, shows facing direction, and uses mouse-wheel zoom clamped between tunable minimum and maximum levels. It is a local UI view of available seed-derived terrain, water, and player-facing landmarks; it must not reveal hidden server-owned gameplay content, create a second biome map, or direct travel.
+
+**Done when:** the map remains circular and legible at supported UI scales and aspect ratios, zoom clamps at both bounds, and host/client peers each see only their own player-centred local view without any gameplay-state mutation.
+
+### 6. Add biomes one at a time
 
 Add Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, and Thunder Mountains individually. Each biome needs a clear environmental identity, original content, and a reason to build or travel differently.
 
 **Done when:** every added biome is enjoyable on its own, blends naturally with its neighbours, and remains consistent for host and client.
 
-### 6. Ocean and long-distance travel
+### 7. Ocean and long-distance travel
 
 Add ocean travel, islands, and the systems needed for long-distance movement after land biomes are stable. Tune streaming only from profiling evidence; technical limits must not become gameplay zones.
 
