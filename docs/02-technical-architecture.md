@@ -48,6 +48,8 @@ Do not make UI call world actors directly. Use components, interfaces, gameplay 
 
 Each pawn has server-owned, replicated display state: ambient temperature, precipitation intensity, wind exposure, wetness, warmth, and shelter. Inputs are normalized to `[0,1]` except ambient temperature; wetness and warmth are clamped to `[0,100]`. On each fixed server tick, precipitation and wind increase wetness and reduce warmth, while shelter reduces both effects; future fire warmth is an additional server input. Clients never submit or simulate inputs or outcomes.
 
+The server derives ambient temperature from the continuous Temperature field, ground wetness from Humidity plus local submerged/shoreline terrain, and wind exposure from terrain slope and local elevation. Server weather supplies precipitation and wind strength. These inputs are sampled at the pawn's server transform; they are environmental conditions, never authored zones or client-selected values.
+
 ## Content conventions
 
 - `/Game/Kalmala/Core`, `/Characters`, `/World`, `/Items`, `/Abilities`, `/UI`, `/Audio`, `/Maps`, `/Developer`.

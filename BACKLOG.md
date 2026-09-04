@@ -79,7 +79,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 - [ ] Establish the server-authoritative environmental exposure contract.
   - [x] Define the per-pawn state and update rules for ambient temperature, precipitation, wind exposure, wetness, warmth, and shelter.
-  - [ ] Derive terrain-dependent inputs from the continuous world fields, local terrain, and server weather; clients may display state but never determine it.
+  - [x] Derive terrain-dependent inputs from the continuous world fields, local terrain, and server weather; clients may display state but never determine it.
   - [ ] Add a developer-only inspection view for the sampled inputs, resulting exposure state, and active mitigation.
 - [ ] Add a small replicated server weather cycle.
   - [ ] Define deterministic or persisted weather-state selection, duration, rain intensity, wind direction, and wind strength.

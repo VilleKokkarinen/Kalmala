@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 13:18 EEST — Define terrain-derived exposure inputs
+
+Outcome: Partial. Defined the server sampling contract for exposure: Temperature, Humidity, elevation/slope, shoreline/submerged terrain, and server weather feed each pawn's environmental inputs without authored zones.
+
+Changed: `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Reviewed against the continuous four-field generation and Phase 4 authority contracts.
+
+Multiplayer impact: The server samples all inputs at authoritative pawn transforms; clients only display replicated results.
+
+Known limits: Runtime sampling and weather state are not yet implemented.
+
+Next task: Add a developer-only inspection view for sampled inputs, exposure state, and mitigation.
+
 ### 2026-09-04 13:31 EEST — Define environmental exposure contract
 
 Outcome: Partial. Defined the server-authoritative per-pawn exposure state and fixed-tick update contract for ambient temperature, precipitation, wind exposure, wetness, warmth, and shelter.
