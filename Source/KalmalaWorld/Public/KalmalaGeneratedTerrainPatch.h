@@ -60,6 +60,7 @@ private:
     bool bVisualSurfaceBuilt = false;
     bool bSurfaceWaterBuilt = false;
     bool bShimmeringLakeTreatmentBuilt = false;
+    bool bBiomeDebugOverlayBuilt = false;
     bool bMeadowRocksBuilt = false;
     bool bMeadowTreesBuilt = false;
     int32 MeadowRockCount = 0;
@@ -71,6 +72,7 @@ private:
     bool BuildVisualSurface();
     bool BuildSurfaceWater();
     bool BuildShimmeringLakeTreatment();
+    bool BuildBiomeDebugOverlay();
     bool BuildMeadowRocks();
     bool BuildMeadowTrees();
 };

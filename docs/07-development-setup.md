@@ -49,6 +49,10 @@ Launch a listen server with `-KalmalaExposureInspection` to log server-sampled t
 
 Launch a listen server with `-KalmalaCampConditionInspection` and join a player. The server logs the freely chosen position's continuous natural cover, ground wetness, bounded nearest-water distance, and nearby deterministic harvest-node count. It only explains local tradeoffs; it neither creates nor marks a camp location, and clients cannot invoke or alter it.
 
+## Biome-colour debug overlay
+
+Launch the game with `-KalmalaBiomeDebug` to draw a local, persistent colour overlay across every active generated terrain patch. It uses the same continuous four-field biome classifier as terrain generation: Meadows are green, Shimmering Lakes cyan, Elderwood dark green, Mossy Mire olive, Freezing Tundra pale blue, Thunder Mountains grey, and Ocean blue. The overlay is developer-only, is built independently on each peer from the replicated world identity and patch descriptor, and changes no terrain, collision, gameplay state, or replication.
+
 ## Source-control rules
 
 - Commit `Config/`, `Source/`, `.uproject`, and `.uasset`/`.umap` content assets.

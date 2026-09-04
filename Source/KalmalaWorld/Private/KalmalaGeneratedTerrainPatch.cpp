@@ -1,6 +1,7 @@
 #include "KalmalaGeneratedTerrainPatch.h"
 
 #include "Components/SceneComponent.h"
+#include "DrawDebugHelpers.h"
 #include "Materials/MaterialInterface.h"
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaShimmeringLakeSampler.h"
@@ -10,6 +11,7 @@
 #include "Net/UnrealNetwork.h"
 #include "ProceduralMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Misc/CommandLine.h"
 
 namespace KalmalaGeneratedTerrainPatch
 {
@@ -20,6 +22,21 @@ namespace KalmalaGeneratedTerrainPatch
     constexpr float TreeEdgeMargin = 260.0f;
     constexpr uint64 TreeSeedSalt = 0xD1B54A32D192ED03ull;
     constexpr float LakeShoreWidth = 24.0f;
+
+    FColor GetBiomeDebugColor(const EKalmalaBiome Biome)
+    {
+        switch (Biome)
+        {
+        case EKalmalaBiome::Ocean: return FColor(23, 88, 160);
+        case EKalmalaBiome::ShimmeringLakes: return FColor(61, 177, 190);
+        case EKalmalaBiome::Elderwood: return FColor(30, 100, 47);
+        case EKalmalaBiome::MossyMire: return FColor(76, 113, 55);
+        case EKalmalaBiome::FreezingTundra: return FColor(213, 236, 238);
+        case EKalmalaBiome::ThunderMountains: return FColor(104, 98, 112);
+        case EKalmalaBiome::Meadows: return FColor(131, 174, 76);
+        default: return FColor::Magenta;
+        }
+    }
 
     static bool IsLakeWaterCell(const FKalmalaWorldGenerationConfig& Config, const FVector2D BottomLeft, const float CellSize)
     {
@@ -223,11 +240,13 @@ void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConf
     bVisualSurfaceBuilt = false;
     bSurfaceWaterBuilt = false;
     bShimmeringLakeTreatmentBuilt = false;
+    bBiomeDebugOverlayBuilt = false;
     bMeadowRocksBuilt = false;
     bMeadowTreesBuilt = false;
     MeadowRockCount = 0;
     MeadowTreeCount = 0;
     BuildVisualSurface();
+    BuildBiomeDebugOverlay();
     if (BuildSurfaceWater())
     {
         UE_LOG(LogTemp, Display, TEXT("Server built %d seed-derived surface-water triangles."), SurfaceWater->GetNumSections() > 0 ? SurfaceWater->GetProcMeshSection(0)->ProcIndexBuffer.Num() / 3 : 0);
@@ -257,6 +276,7 @@ void AKalmalaGeneratedTerrainPatch::OnRep_GenerationData()
         {
             UE_LOG(LogTemp, Display, TEXT("Client built the seed-derived terrain surface from the replicated patch descriptor."));
         }
+        BuildBiomeDebugOverlay();
         if (BuildSurfaceWater())
         {
             UE_LOG(LogTemp, Display, TEXT("Client built %d seed-derived surface-water triangles from the replicated patch descriptor."), SurfaceWater->GetNumSections() > 0 ? SurfaceWater->GetProcMeshSection(0)->ProcIndexBuffer.Num() / 3 : 0);
@@ -339,6 +359,63 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
     {
         UE_LOG(LogTemp, Display, TEXT("Server built a seed-derived terrain surface with %d collision triangles."), Triangles.Num() / 3);
     }
+    return true;
+}
+
+bool AKalmalaGeneratedTerrainPatch::BuildBiomeDebugOverlay()
+{
+    if (bBiomeDebugOverlayBuilt || !bIsConfigured || !WorldGenerationConfig.IsValid() || GetWorld() == nullptr || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeDebug")))
+    {
+        return false;
+    }
+
+    constexpr float SurfaceSize = FKalmalaTerrainPatchLayout::TilesPerSide * FKalmalaTerrainPatchLayout::TileSize;
+    constexpr float HalfSurfaceSize = SurfaceSize * 0.5f;
+    constexpr int32 CellsPerSide = KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide;
+    constexpr int32 BiomeCount = static_cast<int32>(EKalmalaBiome::Ocean) + 1;
+    TArray<FVector> VerticesByBiome[BiomeCount];
+    TArray<int32> TrianglesByBiome[BiomeCount];
+
+    for (int32 GridY = 0; GridY < CellsPerSide; ++GridY)
+    {
+        const float BottomY = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(GridY) / CellsPerSide);
+        const float TopY = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(GridY + 1) / CellsPerSide);
+        for (int32 GridX = 0; GridX < CellsPerSide; ++GridX)
+        {
+            const float LeftX = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(GridX) / CellsPerSide);
+            const float RightX = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(GridX + 1) / CellsPerSide);
+            const FVector2D SamplePosition = PatchCenter + FVector2D((LeftX + RightX) * 0.5f, (BottomY + TopY) * 0.5f);
+            const int32 BiomeIndex = static_cast<int32>(FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition)));
+            TArray<FVector>& Vertices = VerticesByBiome[BiomeIndex];
+            TArray<int32>& Triangles = TrianglesByBiome[BiomeIndex];
+            const int32 FirstVertex = Vertices.Num();
+
+            const auto AddTerrainVertex = [this](const float X, const float Y)
+            {
+                const FVector2D Position = PatchCenter + FVector2D(X, Y);
+                return GetActorLocation() + FVector(X, Y, FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Position))
+                    + FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, Position) * 16.0f;
+            };
+
+            Vertices.Append({
+                AddTerrainVertex(LeftX, BottomY),
+                AddTerrainVertex(LeftX, TopY),
+                AddTerrainVertex(RightX, BottomY),
+                AddTerrainVertex(RightX, TopY)});
+            Triangles.Append({FirstVertex, FirstVertex + 1, FirstVertex + 2, FirstVertex + 2, FirstVertex + 1, FirstVertex + 3});
+        }
+    }
+
+    for (int32 BiomeIndex = 0; BiomeIndex < BiomeCount; ++BiomeIndex)
+    {
+        if (!TrianglesByBiome[BiomeIndex].IsEmpty())
+        {
+            DrawDebugMesh(GetWorld(), VerticesByBiome[BiomeIndex], TrianglesByBiome[BiomeIndex], GetBiomeDebugColor(static_cast<EKalmalaBiome>(BiomeIndex)), true, -1.0f, SDPG_World);
+        }
+    }
+
+    bBiomeDebugOverlayBuilt = true;
+    UE_LOG(LogTemp, Display, TEXT("Built the local biome debug overlay. Use -KalmalaBiomeDebug only for development launches."));
     return true;
 }
 
