@@ -78,7 +78,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 **Intent:** turn the generated wilderness into a legible preparation loop: weather and terrain create exposure; natural cover, player-built shelter, and fires provide counterplay. Use M2's server-owned campfire, construction, and inventory primitives rather than parallel systems. Do not create pre-built roads, trails, safe corridors, mandatory camp sites, or a guided direction of travel.
 
 - [ ] Establish the server-authoritative environmental exposure contract.
-  - [ ] Define the per-pawn state and update rules for ambient temperature, precipitation, wind exposure, wetness, warmth, and shelter.
+  - [x] Define the per-pawn state and update rules for ambient temperature, precipitation, wind exposure, wetness, warmth, and shelter.
   - [ ] Derive terrain-dependent inputs from the continuous world fields, local terrain, and server weather; clients may display state but never determine it.
   - [ ] Add a developer-only inspection view for the sampled inputs, resulting exposure state, and active mitigation.
 - [ ] Add a small replicated server weather cycle.

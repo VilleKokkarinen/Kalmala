@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 13:31 EEST — Define environmental exposure contract
+
+Outcome: Partial. Defined the server-authoritative per-pawn exposure state and fixed-tick update contract for ambient temperature, precipitation, wind exposure, wetness, warmth, and shelter.
+
+Changed: `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Reviewed the contract against the Phase 4 backlog and generated-world server-authority requirements.
+
+Multiplayer impact: Inputs and state transitions are server-owned; clients will receive replicated display state only.
+
+Known limits: No runtime exposure component, weather cycle, terrain sampling, shelter geometry, or fire mitigation is implemented yet.
+
+Next task: Derive terrain-dependent exposure inputs from continuous world fields, local terrain, and server weather.
+
 ### 2026-09-04 13:18 EEST — Close defeated-spawn reconnect checkpoint
 
 Outcome: Complete. Corrected the Phase 3 checklist to reflect the already recorded and committed wildlife restart verification from the prior run.

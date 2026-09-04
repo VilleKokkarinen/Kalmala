@@ -31,6 +31,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Meadow rocks | client cosmetic | derive non-interactable low-poly procedural rocks from the replicated identity, terrain sample, and biome classification |
 | Meadow trees | client cosmetic | derive non-interactable low-poly procedural trunks and canopies from the replicated identity, terrain sample, and biome classification |
 | Gameplay population layout | server | activate a bounded set of invisible spatial keys around pawns, then spawn replicated server-owned harvest nodes, minimal wildlife spawns, and minimal hazard spawns from deterministic per-kind, field-informed descriptors; each carries a stable spatial ID for sparse server persistence; clients never select gameplay placements or defeat outcomes |
+| Environmental exposure | server | sample ambient temperature, precipitation, wind exposure, and shelter for each pawn; update clamped wetness and warmth at a fixed server interval; replicate the resulting state for display only |
 | Cosmetics | client | derive from replicated state/events |
 
 ## Module boundaries
@@ -42,6 +43,10 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 - `KalmalaServer`: dedicated-server configuration and server-only services.
 
 Do not make UI call world actors directly. Use components, interfaces, gameplay messages, or subsystem APIs.
+
+## Environmental exposure contract
+
+Each pawn has server-owned, replicated display state: ambient temperature, precipitation intensity, wind exposure, wetness, warmth, and shelter. Inputs are normalized to `[0,1]` except ambient temperature; wetness and warmth are clamped to `[0,100]`. On each fixed server tick, precipitation and wind increase wetness and reduce warmth, while shelter reduces both effects; future fire warmth is an additional server input. Clients never submit or simulate inputs or outcomes.
 
 ## Content conventions
 
