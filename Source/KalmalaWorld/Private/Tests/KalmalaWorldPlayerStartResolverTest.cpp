@@ -7,6 +7,7 @@
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "KalmalaWorldPopulationLayout.h"
+#include "KalmalaWorldPopulationSaveGame.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -149,6 +150,28 @@ bool FKalmalaWorldPopulationLayoutTest::RunTest(const FString& Parameters)
         TEXT("A different world seed changes the spatial seed"),
         FKalmalaWorldPopulationLayout::DeriveSpatialSeed(Config, SpatialKey, EKalmalaWorldPopulationKind::Wildlife),
         FKalmalaWorldPopulationLayout::DeriveSpatialSeed(DifferentConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaWorldPopulationSaveGameTest,
+    "Kalmala.World.PopulationSaveGame.SparseDeltas",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaWorldPopulationSaveGameTest::RunTest(const FString& Parameters)
+{
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = 418;
+    Config.GeneratorRevision = 1;
+    UKalmalaWorldPopulationSaveGame* SaveGame = NewObject<UKalmalaWorldPopulationSaveGame>();
+    SaveGame->InitializeForWorld(Config);
+    const FString SpawnId = TEXT("1/1/-1/1234");
+    TestTrue(TEXT("A sparse delta save belongs to its initialized world identity"), SaveGame->MatchesWorld(Config));
+    TestFalse(TEXT("An untouched generated node has no saved depletion delta"), SaveGame->IsHarvested(SpawnId));
+    SaveGame->MarkHarvested(SpawnId);
+    TestTrue(TEXT("A harvested node is recorded as one sparse delta"), SaveGame->IsHarvested(SpawnId));
+    Config.WorldSeed = 419;
+    TestFalse(TEXT("A different seed cannot reuse this population delta save"), SaveGame->MatchesWorld(Config));
     return true;
 }
 
