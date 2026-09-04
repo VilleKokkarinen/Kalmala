@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 15:02 EEST — Inspect provisional environmental exposure
+
+Outcome: Complete. Closed the Phase 4 exposure-contract increment by verifying the developer-only listen-server inspection. It logs the authoritative pawn position, continuous field and terrain inputs, provisional exposure state, and active mitigation without granting clients authority.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` build command completed without compile errors. A headless listen server on `L_Prototype` with `WorldSeed=418`, `GeneratorRevision=1`, `-KalmalaExposureInspection`, and `-DDC-ForceMemoryCache` logged `Temp=-1.2`, `Humidity=0.57`, `Elevation=0.61`, `GroundWet=0.57`, `Wind=0.03`, provisional `Wetness=0.00`, `Warmth=100.00`, and `Mitigation=None`, then exited cleanly. The memory-cache override was needed only because this host's local Unreal cache has no writable node.
+
+Multiplayer impact: The inspection runs only on the authoritative listen server and samples the server-owned generated-world identity and start location. It accepts no client-provided input or state; clients will remain display-only when runtime exposure replication is added.
+
+Known limits: Weather, runtime exposure ticks, replicated pawn state, natural-cover sampling, and fire mitigation are not implemented. Precipitation and shelter therefore remain visibly provisional zero values in the inspection output.
+
+Next task: Define the deterministic or persisted server weather-state selection, duration, rain intensity, wind direction, and wind strength.
+
 ### 2026-09-04 13:18 EEST — Define terrain-derived exposure inputs
 
 Outcome: Partial. Defined the server sampling contract for exposure: Temperature, Humidity, elevation/slope, shoreline/submerged terrain, and server weather feed each pawn's environmental inputs without authored zones.
