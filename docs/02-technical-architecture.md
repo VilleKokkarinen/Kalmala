@@ -50,6 +50,14 @@ Each pawn has server-owned, replicated display state: ambient temperature, preci
 
 The server derives ambient temperature from the continuous Temperature field, ground wetness from Humidity plus local submerged/shoreline terrain, and wind exposure from terrain slope and local elevation. Server weather supplies precipitation and wind strength. These inputs are sampled at the pawn's server transform; they are environmental conditions, never authored zones or client-selected values.
 
+### Weather-cycle contract
+
+`GameMode` advances a server-owned weather cycle and writes the current immutable-in-session state to the replicated world `GameState`. A state contains a monotonically increasing `WeatherCycleIndex`, server start time, duration, precipitation intensity, wind direction, and wind strength. `WeatherCycleIndex` is derived from no client input; the server selects it at session start as zero and increments it only after the active duration elapses. A late-joining client consumes the replicated active state rather than inferring it from local time.
+
+Each state is deterministically derived from `WorldSeed`, `GeneratorRevision`, and `WeatherCycleIndex` using a dedicated weather sub-seed. It selects a duration from 120–240 server seconds, precipitation intensity in `[0,1]`, wind direction as a quantized yaw in `[0,360)`, and wind strength in `[0,1]`. The first weather increment uses dry/calm, drizzle, and rain outcomes; the resulting intensity and strength remain continuous values, so no biome becomes a hard weather zone. Restarting a local/listen-server session restarts the deterministic sequence at index zero; persisting mid-cycle weather is intentionally deferred until persistent world-time is introduced.
+
+Only the server advances the index, computes values, or changes the replicated state. Clients use that state for presentation and their replicated exposure display, but cannot request a weather outcome, duration, direction, strength, or clock adjustment.
+
 ## Content conventions
 
 - `/Game/Kalmala/Core`, `/Characters`, `/World`, `/Items`, `/Abilities`, `/UI`, `/Audio`, `/Maps`, `/Developer`.

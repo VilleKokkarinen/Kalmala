@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 15:11 EEST — Define deterministic weather-cycle contract
+
+Outcome: Complete. Defined the first small weather-cycle increment: the server derives each cycle state from immutable world identity and a monotonic cycle index, replicates its active timing and values through `GameState`, and never accepts client weather control.
+
+Changed: `BACKLOG.md`; `docs/02-technical-architecture.md`; `docs/08-world-generation-and-biomes.md`; `PROGRESS.md`.
+
+Verification: Reviewed the contract against the existing world-identity replication, continuous four-field generation contract, environmental-exposure inputs, and host/client authority rules. Confirmed the design adds no biome map, authored weather zone, route, or save-schema change.
+
+Multiplayer impact: `GameMode` alone will advance and select weather. `GameState` will replicate the server start time, duration, precipitation intensity, quantized wind direction, and wind strength so late joiners use the authoritative active state; clients cannot submit a weather choice or clock adjustment.
+
+Known limits: This run defines the contract only. No replicated weather struct, state advance, exposure tick integration, visuals, persistent world time, or host/client runtime verification exists yet.
+
+Next task: Implement the small replicated server weather-state cycle from this contract.
+
 ### 2026-09-04 15:02 EEST — Inspect provisional environmental exposure
 
 Outcome: Complete. Closed the Phase 4 exposure-contract increment by verifying the developer-only listen-server inspection. It logs the authoritative pawn position, continuous field and terrain inputs, provisional exposure state, and active mitigation without granting clients authority.
