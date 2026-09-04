@@ -566,6 +566,20 @@ Known limits: The container is not yet loaded, saved to a slot, or consulted by 
 
 Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.
 
+### 2026-09-04 11:00 EEST — Polish world-generation roadmap formatting
+
+Outcome: Complete. Reformatted the Phase 4 and Phase 5 sections into short labelled statements, completion standards, biome identity bullets, and guardrails. The content and delivery scope are unchanged; the contract is easier to scan during implementation and review.
+
+Changed: `docs/08-world-generation-and-biomes.md`; `PROGRESS.md`.
+
+Verification: Markdown structure and checklist references were reviewed for consistent heading hierarchy, list nesting, and alignment with the matching Phase 4 and Phase 5 backlog items.
+
+Multiplayer impact: None; this is a documentation-only formatting change.
+
+Known limits: No runtime weather, shelter, survival, or biome-expansion feature is implemented by this formatting pass.
+
+Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.
+
 ### 2026-09-04 10:50 EEST — Define Phase 5 biome expansion outcomes
 
 Outcome: Complete. Replaced Phase 5's name-only biome list with an ordered delivery contract. Every biome now has required environmental pressure, shelter response, optional discovery payoff, deterministic server-owned content requirements, seam/traversal checks, and a host/client scenario. The plan explicitly excludes combat-tier progression, authored regions, forced routes, single safe crossings, and pre-ocean boat requirements.
