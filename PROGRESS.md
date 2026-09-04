@@ -551,3 +551,17 @@ Multiplayer impact: The server derives the identifier solely from authoritative 
 Known limits: Identifiers are not saved yet and harvested nodes still reappear after a fresh world activation. The next increment adds the sparse server delta container without serializing the generated base world.
 
 Next task: Add a versioned server-only sparse harvest-depletion delta container keyed by immutable world identity and stable spawn identifier.
+
+### 2026-09-04 10:34 EEST — Define sparse population depletion save
+
+Outcome: Partial. Added a versioned `SaveGame` container that records only harvested stable spawn IDs together with the immutable world identity. The base generated population remains derived from the seed and is never serialized.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWorldPopulationSaveGame.h`; `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.PopulationSaveGame.SparseDeltas` completed with exit code 0, verifying identity matching, sparse harvested-state recording, and rejection of a different world identity.
+
+Multiplayer impact: This is a server save-data contract only. It accepts no client-provided world identity or generated placement; later runtime integration will apply it only after the server creates deterministic harvest nodes.
+
+Known limits: The container is not yet loaded, saved to a slot, or consulted by generated harvest nodes. Wildlife and hazard deltas remain future work.
+
+Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.

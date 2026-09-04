@@ -63,6 +63,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Verify generated harvest nodes reject client, distant, and depleted requests.
   - [x] Assign a stable spatial spawn identifier to each generated harvest node.
 - [ ] Persist consumed or defeated gameplay content as sparse world deltas keyed by seed, generator revision, and server spatial key.
+  - [x] Define a versioned sparse server save container for harvest depletion keyed to immutable world identity and stable spawn IDs.
 - [ ] Verify the same seed produces matching gameplay content and that state remains consistent after reconnecting.
 
 ### Phase 4 — Weather, shelter, and survival
