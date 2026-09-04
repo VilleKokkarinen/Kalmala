@@ -8,6 +8,7 @@
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWorldPopulationSaveGame.h"
+#include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -170,6 +171,17 @@ bool FKalmalaWorldPopulationSaveGameTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("An untouched generated node has no saved depletion delta"), SaveGame->IsHarvested(SpawnId));
     SaveGame->MarkHarvested(SpawnId);
     TestTrue(TEXT("A harvested node is recorded as one sparse delta"), SaveGame->IsHarvested(SpawnId));
+
+    TArray<uint8> SerializedSave;
+    TestTrue(TEXT("The sparse delta container serializes without writing a slot"), UGameplayStatics::SaveGameToMemory(SaveGame, SerializedSave));
+    UKalmalaWorldPopulationSaveGame* ReloadedSave = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromMemory(SerializedSave));
+    TestNotNull(TEXT("The serialized sparse delta container reloads as its expected type"), ReloadedSave);
+    if (ReloadedSave != nullptr)
+    {
+        TestTrue(TEXT("The reloaded container retains its immutable world identity"), ReloadedSave->MatchesWorld(Config));
+        TestTrue(TEXT("The reloaded container retains only the harvested sparse delta"), ReloadedSave->IsHarvested(SpawnId));
+    }
+
     Config.WorldSeed = 419;
     TestFalse(TEXT("A different seed cannot reuse this population delta save"), SaveGame->MatchesWorld(Config));
     return true;
