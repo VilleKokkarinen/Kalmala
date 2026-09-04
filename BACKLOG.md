@@ -68,8 +68,24 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 ### Phase 4 — Weather, shelter, and survival
 
-- [ ] Connect generated terrain to rain, wind, wetness, warmth, fires, and shelter without a prescribed route.
-- [ ] Verify terrain and weather create meaningful player choices in routes, camps, and preparation.
+**Intent:** turn the generated wilderness into a legible preparation loop: weather and terrain create exposure; natural cover, player-built shelter, and fires provide counterplay. Use M2's server-owned campfire, construction, and inventory primitives rather than parallel systems. Do not create fixed safe corridors, mandatory camp sites, or a prescribed route.
+
+- [ ] Establish the server-authoritative environmental exposure contract.
+  - [ ] Define the per-pawn state and update rules for ambient temperature, precipitation, wind exposure, wetness, warmth, and shelter.
+  - [ ] Derive terrain-dependent inputs from the continuous world fields, local terrain, and server weather; clients may display state but never determine it.
+  - [ ] Add a developer-only inspection view for the sampled inputs, resulting exposure state, and active mitigation.
+- [ ] Add a small replicated server weather cycle.
+  - [ ] Define deterministic or persisted weather-state selection, duration, rain intensity, wind direction, and wind strength.
+  - [ ] Make exposed ridges, low wet ground, shorelines, and natural cover produce different exposure without turning biomes into hard zones.
+- [ ] Connect player counterplay to the existing survival-camp systems.
+  - [ ] Make natural cover and player-built roof/windbreak geometry contribute shelter; no authored shelter volumes.
+  - [ ] Make a lit, server-owned campfire add warmth and interact correctly with rain, wind, and wet materials.
+- [ ] Add recoverable survival consequences that create choices rather than a hard travel gate.
+  - [ ] Let prolonged exposure reduce warmth and apply a clear, reversible travel or stamina penalty; shelter, a fire, and preparation must offer viable recovery.
+  - [ ] Ensure at least two viable route or camp choices exist in a generated area, with understandable tradeoffs in cover, ground wetness, travel distance, and resources.
+- [ ] Verify host/client agreement and meaningful choices.
+  - [ ] Verify host and client observe matching weather, exposure, shelter, fire, and recovery state, and that clients cannot alter any authoritative value.
+  - [ ] Run a two-player scenario showing distinct viable routes or camp locations with different weather preparation tradeoffs and no required route.
 
 ### Phase 5 — Biome expansion
 

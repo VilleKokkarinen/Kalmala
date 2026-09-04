@@ -565,3 +565,17 @@ Multiplayer impact: This is a server save-data contract only. It accepts no clie
 Known limits: The container is not yet loaded, saved to a slot, or consulted by generated harvest nodes. Wildlife and hazard deltas remain future work.
 
 Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.
+
+### 2026-09-04 10:40 EEST — Define Phase 4 weather and survival outcomes
+
+Outcome: Complete. Replaced Phase 4's broad theme with an ordered, testable delivery contract: server-authoritative exposure, a replicated weather cycle, terrain and shelter sampling, campfire counterplay, recoverable consequences, and a two-player choice scenario. The phase explicitly uses M2 camp systems and excludes authored routes, safe zones, and mandatory camp locations.
+
+Changed: `BACKLOG.md`; `docs/08-world-generation-and-biomes.md`; `PROGRESS.md`.
+
+Verification: Reviewed the refined backlog against the server-authoritative World simulation v0 contract in `docs/01-game-design.md`, the M2 campfire/construction scope in `docs/04-roadmap.md`, and the generated-world constraints in `docs/08-world-generation-and-biomes.md`.
+
+Multiplayer impact: Phase 4 now explicitly requires that the server own weather, terrain sampling, shelter classification, fire effects, and survival outcomes. Clients receive replicated state and visual feedback only.
+
+Known limits: This is a planning and contract refinement; no weather, shelter, fire, or survival runtime behavior has been implemented.
+
+Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.
