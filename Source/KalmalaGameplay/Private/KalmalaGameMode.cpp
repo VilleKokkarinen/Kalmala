@@ -276,6 +276,57 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
     }
 
     const FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(ServerPawn->GetActorLocation()));
+    if (ReconnectVerificationMode.Equals(TEXT("WildlifeDefeat"), ESearchCase::IgnoreCase) || ReconnectVerificationMode.Equals(TEXT("WildlifeVerify"), ESearchCase::IgnoreCase))
+    {
+        const TArray<FKalmalaWorldPopulationSpawn> WildlifeSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        if (WildlifeSpawns.IsEmpty())
+        {
+            UE_LOG(LogTemp, Error, TEXT("Reconnect verification found no generated wildlife spawn for its server spatial key."));
+            FPlatformMisc::RequestExit(false);
+            return;
+        }
+
+        const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(WildlifeSpawns[0]);
+        ActivatePopulationKey(SpatialKey);
+        if (ReconnectVerificationMode.Equals(TEXT("WildlifeDefeat"), ESearchCase::IgnoreCase))
+        {
+            for (TActorIterator<AKalmalaWildlifeSpawn> WildlifeIterator(GetWorld()); WildlifeIterator; ++WildlifeIterator)
+            {
+                AKalmalaWildlifeSpawn* WildlifeSpawn = *WildlifeIterator;
+                if (WildlifeSpawn != nullptr && WildlifeSpawn->GetPersistentSpawnId() == PersistentSpawnId && WildlifeSpawn->DefeatServer())
+                {
+                    UE_LOG(LogTemp, Display, TEXT("Reconnect verification defeated generated wildlife spawn %s before listen-server restart."), *PersistentSpawnId);
+                    FPlatformMisc::RequestExit(false);
+                    return;
+                }
+            }
+            UE_LOG(LogTemp, Error, TEXT("Reconnect verification could not activate its generated wildlife spawn before restart."));
+        }
+        else
+        {
+            bool bWildlifeRecreated = false;
+            for (TActorIterator<AKalmalaWildlifeSpawn> WildlifeIterator(GetWorld()); WildlifeIterator; ++WildlifeIterator)
+            {
+                if ((*WildlifeIterator)->GetPersistentSpawnId() == PersistentSpawnId)
+                {
+                    bWildlifeRecreated = true;
+                    break;
+                }
+            }
+            if (PopulationSaveGame->IsDefeated(PersistentSpawnId) && !bWildlifeRecreated)
+            {
+                UE_LOG(LogTemp, Display, TEXT("Reconnect verification passed: defeated generated wildlife spawn %s remained absent after listen-server restart."), *PersistentSpawnId);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Error, TEXT("Reconnect verification failed: wildlife defeated state=%d, spawn recreated=%d."), PopulationSaveGame->IsDefeated(PersistentSpawnId), bWildlifeRecreated);
+            }
+        }
+
+        FPlatformMisc::RequestExit(false);
+        return;
+    }
+
     const TArray<FKalmalaWorldPopulationSpawn> HarvestSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::HarvestNode);
     if (HarvestSpawns.IsEmpty())
     {
@@ -324,7 +375,7 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
     }
     else
     {
-        UE_LOG(LogTemp, Error, TEXT("Reconnect verification mode must be Harvest or Verify."));
+        UE_LOG(LogTemp, Error, TEXT("Reconnect verification mode must be Harvest, Verify, WildlifeDefeat, or WildlifeVerify."));
     }
 
     FPlatformMisc::RequestExit(false);

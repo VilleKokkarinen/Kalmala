@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 13:06 EEST — Verify defeated wildlife reconnect persistence
+
+Outcome: Complete. Extended the developer-only reconnect harness with server-local `WildlifeDefeat` and `WildlifeVerify` modes. It activates one deterministic wildlife spawn, applies its authority-gated defeat, writes the sparse delta, restarts with the same immutable identity, and confirms activation suppresses that exact spawn.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. A headless listen server on `L_Prototype` with `WorldSeed=418`, `GeneratorRevision=1`, and `-KalmalaReconnectVerification=WildlifeDefeat` logged the defeat of spawn `0/1/-1/1549352356770910657`. A fresh headless listen server with the same identity and `WildlifeVerify` logged that the same defeated spawn remained absent after restart.
+
+Multiplayer impact: The developer switch is local to the authoritative listen server. It derives the spawn ID from server generation inputs, calls the actor's server-only defeat method, and relies on the server-owned sparse slot; no client supplies an identifier, target, damage, or outcome.
+
+Known limits: The wildlife and hazard actors remain minimal persistence/replication placeholders with no combat, AI, collision, interaction, or rewards. The equivalent wildlife reconnect scenario is sufficient to verify the shared defeated-delta path; hazards use the same server callback and activation gate but do not yet have a separate restart harness.
+
+Next task: Establish the server-authoritative environmental exposure contract.
+
 ### 2026-09-04 12:54 EEST — Apply hazard defeated deltas on the server
 
 Outcome: Partial. Replaced deterministic hazard markers with minimal replicated, server-owned hazard spawns. As with wildlife, activation excludes a saved defeated ID, and only the authoritative actor method may transition and record a defeated delta. Hazards remain non-interactive: no damage, trigger, collision, rewards, or player-controlled target selection was added.

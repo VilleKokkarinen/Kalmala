@@ -62,7 +62,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Replace deterministic harvest markers with server-owned, one-use harvest nodes.
   - [x] Verify generated harvest nodes reject client, distant, and depleted requests.
   - [x] Assign a stable spatial spawn identifier to each generated harvest node.
-- [ ] Persist consumed or defeated gameplay content as sparse world deltas keyed by seed, generator revision, and server spatial key.
+- [x] Persist consumed or defeated gameplay content as sparse world deltas keyed by seed, generator revision, and server spatial key.
   - [x] Define a versioned sparse server save container for harvest depletion keyed to immutable world identity and stable spawn IDs.
   - [x] Define sparse defeated-state storage for deterministic wildlife and hazard spawn IDs before those actor types are activated.
   - [x] Apply server-validated defeated deltas when the first generated wildlife or hazard actor is activated.

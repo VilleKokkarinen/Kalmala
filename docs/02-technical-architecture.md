@@ -55,6 +55,8 @@ Vertical slice persistence is a versioned `SaveGame` schema for local/listen-ser
 
 Generated population saves store only sparse server deltas. `UKalmalaWorldPopulationSaveGame` records its schema version and immutable world identity, then separately records harvested and defeated stable spawn IDs; it never serializes the generated base population. During a session, `GameMode` owns this container, records harvests only after the server accepts them, and consults it before recreating a generated harvest node. Future wildlife and hazards must use the defeated set only after server-owned defeat validation and must consult it before activation.
 
+The developer-only reconnect harness verifies both harvest and wildlife paths across two listen-server processes with the same world identity: it writes one accepted server delta, reloads the slot, and succeeds only when the corresponding deterministic spawn is not recreated.
+
 The sparse container must round-trip through `SaveGame` memory serialization before any slot-writing integration is added. The automated round-trip test verifies that immutable world identity and harvested IDs survive serialization without creating project `Saved/` output.
 
 Magic-scroll discoveries and learned support effects are server-authoritative progression. Save stable scroll IDs and learned-effect IDs, validate scroll rewards once, and replicate only the effect state needed by other players (such as an active shield or stat boost), not private inventory detail.

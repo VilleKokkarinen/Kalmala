@@ -39,7 +39,7 @@ For the developer-only two-player traversal verification, launch a listen server
 
 ## Generated harvest reconnect smoke test
 
-Run the prototype map twice as a listen server with `-KalmalaReconnectVerification=Harvest` and then `-KalmalaReconnectVerification=Verify`. The first process activates a deterministic harvest node, uses the normal server interaction path to harvest it, saves its sparse delta, and exits. The restarted server uses the same immutable world identity and succeeds only when that node is suppressed. This developer-only switch is server-local and accepts no client-supplied node identifier or outcome.
+Run the prototype map twice as a listen server with `-KalmalaReconnectVerification=Harvest` and then `-KalmalaReconnectVerification=Verify`. The first process activates a deterministic harvest node, uses the normal server interaction path to harvest it, saves its sparse delta, and exits. The restarted server uses the same immutable world identity and succeeds only when that node is suppressed. `WildlifeDefeat` and `WildlifeVerify` run the equivalent server-only path for one deterministic wildlife spawn. This developer-only switch is server-local and accepts no client-supplied node identifier or outcome.
 
 ## Source-control rules
 
