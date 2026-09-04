@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 12:54 EEST — Apply hazard defeated deltas on the server
+
+Outcome: Partial. Replaced deterministic hazard markers with minimal replicated, server-owned hazard spawns. As with wildlife, activation excludes a saved defeated ID, and only the authoritative actor method may transition and record a defeated delta. Hazards remain non-interactive: no damage, trigger, collision, rewards, or player-controlled target selection was added.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaHazardSpawn.h`; `Source/KalmalaGameplay/Private/KalmalaHazardSpawn.cpp`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.Gameplay.HazardSpawn.ServerOnlyDefeat` completed with exit code 0, rejecting client and repeat transitions while accepting the initial authoritative transition.
+
+Multiplayer impact: The server derives hazard IDs, creates the replicated placeholders, checks the sparse server save before activation, and writes defeat deltas only after the actor's authority gate. Clients have no RPC and cannot submit hazard IDs, targets, damage, or outcomes.
+
+Known limits: Hazards currently establish only persistence and replication seams. The completed sparse-delta paths still need an end-to-end listen-server restart scenario for a wildlife or hazard defeat.
+
+Next task: Verify a defeated generated wildlife or hazard remains absent after a listen-server restart.
+
 ### 2026-09-04 12:42 EEST — Apply wildlife defeated deltas on the server
 
 Outcome: Partial. Replaced deterministic wildlife markers with minimal replicated, server-owned wildlife spawns. A spawn is omitted when its server save has the matching defeated ID; the actor can transition to defeated only through its authority-gated server method, which records and saves the delta before a future activation. No combat, damage input, rewards, movement, collision, or AI was added.

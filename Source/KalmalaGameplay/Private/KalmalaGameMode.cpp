@@ -2,6 +2,7 @@
 
 #include "KalmalaCharacter.h"
 #include "KalmalaHarvestNode.h"
+#include "KalmalaHazardSpawn.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaTerrainPatchLayout.h"
@@ -167,12 +168,19 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                     ++SpawnedMarkerCount;
                 }
             }
-            else
+            else if (Kind == EKalmalaWorldPopulationKind::Hazard)
             {
-                AKalmalaWorldPopulationMarker* Marker = GetWorld()->SpawnActor<AKalmalaWorldPopulationMarker>(AKalmalaWorldPopulationMarker::StaticClass(), Spawn.Location, FRotator::ZeroRotator);
-                if (Marker != nullptr)
+                const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                if (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(PersistentSpawnId))
                 {
-                    Marker->InitializeServer(Spawn);
+                    continue;
+                }
+
+                AKalmalaHazardSpawn* HazardSpawn = GetWorld()->SpawnActor<AKalmalaHazardSpawn>(AKalmalaHazardSpawn::StaticClass(), Spawn.Location, FRotator::ZeroRotator);
+                if (HazardSpawn != nullptr)
+                {
+                    HazardSpawn->InitializeServer(Spawn);
+                    HazardSpawn->OnDefeated.AddUObject(this, &AKalmalaGameMode::RecordDefeatedSpawn);
                     ++SpawnedMarkerCount;
                 }
             }

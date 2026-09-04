@@ -2,6 +2,7 @@
 
 #include "KalmalaInteractionTestActor.h"
 #include "KalmalaHarvestNode.h"
+#include "KalmalaHazardSpawn.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "Misc/AutomationTest.h"
 
@@ -61,6 +62,19 @@ bool FKalmalaWildlifeSpawnAuthorityTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Clients cannot defeat a generated wildlife spawn"), AKalmalaWildlifeSpawn::IsDefeatAllowed(false, false));
     TestFalse(TEXT("The server cannot defeat an already defeated wildlife spawn"), AKalmalaWildlifeSpawn::IsDefeatAllowed(true, true));
     TestTrue(TEXT("The server can record the first validated wildlife defeat"), AKalmalaWildlifeSpawn::IsDefeatAllowed(true, false));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaHazardSpawnAuthorityTest,
+    "Kalmala.Gameplay.HazardSpawn.ServerOnlyDefeat",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaHazardSpawnAuthorityTest::RunTest(const FString& Parameters)
+{
+    TestFalse(TEXT("Clients cannot defeat a generated hazard spawn"), AKalmalaHazardSpawn::IsDefeatAllowed(false, false));
+    TestFalse(TEXT("The server cannot defeat an already defeated hazard spawn"), AKalmalaHazardSpawn::IsDefeatAllowed(true, true));
+    TestTrue(TEXT("The server can record the first validated hazard defeat"), AKalmalaHazardSpawn::IsDefeatAllowed(true, false));
     return true;
 }
 
