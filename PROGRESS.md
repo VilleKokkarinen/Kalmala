@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 12:29 EEST — Define sparse defeated population deltas
+
+Outcome: Partial. Extended the versioned population save container with a separate sparse defeated-ID set for future generated wildlife and hazards. The base world remains wholly seed-derived; the new IDs use the existing server-derived kind/spatial-key/spawn-seed format and round-trip independently of harvest depletion.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWorldPopulationSaveGame.h`; `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.PopulationSaveGame.SparseDeltas` completed with exit code 0, including in-memory and local-slot round trips for independent wildlife and hazard defeated IDs.
+
+Multiplayer impact: No client-visible gameplay behavior changed. The save container is server-owned and accepts only stable IDs already derived from immutable world generation inputs; future actor integration must record a defeat only after server-side validation and must ignore client-supplied IDs or outcomes.
+
+Known limits: Wildlife and hazards are still inert placeholder markers, so no runtime actor yet records or consumes defeated state. The parent persistence task remains open until that server-owned activation integration exists.
+
+Next task: Apply server-validated defeated deltas when the first generated wildlife or hazard actor is activated.
+
 ### 2026-09-01 10:00 EEST — Verify KalmalaEditor development build
 
 Outcome: Complete. The earlier exit-code-1 attempts were caused by the restricted execution environment denying UnrealBuildTool access while rotating its per-user log file; they did not identify a project compilation failure. With normal scoped access to UnrealBuildTool's user log/cache location, the target built successfully.

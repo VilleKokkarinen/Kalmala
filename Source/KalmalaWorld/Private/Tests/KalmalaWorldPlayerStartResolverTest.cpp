@@ -167,10 +167,17 @@ bool FKalmalaWorldPopulationSaveGameTest::RunTest(const FString& Parameters)
     UKalmalaWorldPopulationSaveGame* SaveGame = NewObject<UKalmalaWorldPopulationSaveGame>();
     SaveGame->InitializeForWorld(Config);
     const FString SpawnId = TEXT("1/1/-1/1234");
+    const FString WildlifeSpawnId = TEXT("0/1/-1/5678");
+    const FString HazardSpawnId = TEXT("2/1/-1/9012");
     TestTrue(TEXT("A sparse delta save belongs to its initialized world identity"), SaveGame->MatchesWorld(Config));
     TestFalse(TEXT("An untouched generated node has no saved depletion delta"), SaveGame->IsHarvested(SpawnId));
     SaveGame->MarkHarvested(SpawnId);
     TestTrue(TEXT("A harvested node is recorded as one sparse delta"), SaveGame->IsHarvested(SpawnId));
+    TestFalse(TEXT("An untouched generated wildlife spawn has no defeated delta"), SaveGame->IsDefeated(WildlifeSpawnId));
+    SaveGame->MarkDefeated(WildlifeSpawnId);
+    SaveGame->MarkDefeated(HazardSpawnId);
+    TestTrue(TEXT("A defeated generated wildlife spawn is recorded as a sparse delta"), SaveGame->IsDefeated(WildlifeSpawnId));
+    TestTrue(TEXT("A defeated generated hazard spawn is recorded as a sparse delta"), SaveGame->IsDefeated(HazardSpawnId));
 
     TArray<uint8> SerializedSave;
     TestTrue(TEXT("The sparse delta container serializes without writing a slot"), UGameplayStatics::SaveGameToMemory(SaveGame, SerializedSave));
@@ -180,6 +187,8 @@ bool FKalmalaWorldPopulationSaveGameTest::RunTest(const FString& Parameters)
     {
         TestTrue(TEXT("The reloaded container retains its immutable world identity"), ReloadedSave->MatchesWorld(Config));
         TestTrue(TEXT("The reloaded container retains only the harvested sparse delta"), ReloadedSave->IsHarvested(SpawnId));
+        TestTrue(TEXT("The reloaded container retains the defeated wildlife sparse delta"), ReloadedSave->IsDefeated(WildlifeSpawnId));
+        TestTrue(TEXT("The reloaded container retains the defeated hazard sparse delta"), ReloadedSave->IsDefeated(HazardSpawnId));
     }
 
     const FString SlotName = TEXT("KalmalaPopulationSaveGameAutomation");
@@ -190,6 +199,8 @@ bool FKalmalaWorldPopulationSaveGameTest::RunTest(const FString& Parameters)
     {
         TestTrue(TEXT("The local test slot retains its immutable world identity"), SlotReloadedSave->MatchesWorld(Config));
         TestTrue(TEXT("The local test slot retains the harvested sparse delta"), SlotReloadedSave->IsHarvested(SpawnId));
+        TestTrue(TEXT("The local test slot retains the defeated wildlife sparse delta"), SlotReloadedSave->IsDefeated(WildlifeSpawnId));
+        TestTrue(TEXT("The local test slot retains the defeated hazard sparse delta"), SlotReloadedSave->IsDefeated(HazardSpawnId));
     }
 
     Config.WorldSeed = 419;

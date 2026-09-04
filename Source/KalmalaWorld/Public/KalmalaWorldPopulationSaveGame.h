@@ -16,6 +16,8 @@ public:
     bool MatchesWorld(const FKalmalaWorldGenerationConfig& InWorldConfig) const;
     bool IsHarvested(const FString& PersistentSpawnId) const;
     void MarkHarvested(const FString& PersistentSpawnId);
+    bool IsDefeated(const FString& PersistentSpawnId) const;
+    void MarkDefeated(const FString& PersistentSpawnId);
 
 private:
     UPROPERTY(SaveGame)
@@ -26,4 +28,8 @@ private:
 
     UPROPERTY(SaveGame)
     TSet<FString> HarvestedSpawnIds;
+
+    /** Server-authored deltas for generated wildlife or hazards removed by gameplay. */
+    UPROPERTY(SaveGame)
+    TSet<FString> DefeatedSpawnIds;
 };
