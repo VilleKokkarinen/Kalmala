@@ -85,7 +85,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Define deterministic weather-state selection, duration, rain intensity, wind direction, and wind strength.
   - [x] Make exposed ridges, low wet ground, shorelines, and natural cover produce different exposure without turning biomes into hard zones.
 - [ ] Connect player counterplay to the existing survival-camp systems.
-  - [ ] Make natural cover and player-built roof/windbreak geometry contribute shelter; no authored shelter volumes.
+  - [x] Make natural cover and player-built roof/windbreak geometry contribute shelter; no authored shelter volumes.
   - [ ] Make a lit, server-owned campfire add warmth and interact correctly with rain, wind, and wet materials.
 - [ ] Add recoverable survival consequences that create choices rather than a hard travel gate.
   - [ ] Let prolonged exposure reduce warmth and apply a clear, reversible travel or stamina penalty; shelter, a fire, and preparation must offer viable recovery.

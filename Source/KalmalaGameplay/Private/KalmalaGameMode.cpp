@@ -14,6 +14,7 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "KalmalaWeatherCycle.h"
 #include "KalmalaEnvironmentalExposureSampler.h"
+#include "KalmalaShelterSampler.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 
@@ -91,10 +92,7 @@ void AKalmalaGameMode::BeginPlay()
         ActivateTerrainPatchNeighborhood(TerrainPatchOrigin);
         UE_LOG(LogTemp, Display, TEXT("Server activated %d seed-derived terrain patches around the generated start."), ActiveTerrainPatchCoordinates.Num());
         ConfigureTraversalTest();
-        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureInspection")))
-        {
-            LogExposureInspection(GeneratedPlayerStart->GetActorLocation());
-        }
+        bExposureInspectionEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureInspection"));
         if (!ReconnectVerificationMode.IsEmpty())
         {
             AKalmalaCharacter* VerificationPawn = GetWorld()->SpawnActor<AKalmalaCharacter>(
@@ -104,13 +102,26 @@ void AKalmalaGameMode::BeginPlay()
     }
 }
 
-void AKalmalaGameMode::LogExposureInspection(const FVector& Location) const
+void AKalmalaGameMode::LogExposureInspection(const AActor* Occupant) const
 {
+    if (Occupant == nullptr)
+    {
+        return;
+    }
+
+    const FVector Location = Occupant->GetActorLocation();
     const FVector2D Position(Location);
     const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, Position);
     const FKalmalaEnvironmentalExposureSample Exposure = FKalmalaEnvironmentalExposureSampler::Sample(WorldGenerationConfig, Position);
-    const FKalmalaWeatherState& Weather = GetGameStateChecked<AKalmalaWorldGenerationGameState>()->GetWeatherState();
-    UE_LOG(LogTemp, Display, TEXT("Exposure inspection (server): Pos=%s Temp=%.1f Humidity=%.2f Elevation=%.2f GroundWet=%.2f LowWet=%d Shoreline=%d ShoreWet=%.2f Ridge=%.2f Cover=%.2f Wind=%.2f Precipitation=%.2f WeatherWind=%.2f WindDirection=%d Shelter=0.00 Wetness=0.00 Warmth=100.00 Mitigation=None."), *Location.ToCompactString(), Exposure.AmbientTemperature, Fields.Humidity, Fields.Elevation, Exposure.GroundWetness, Exposure.bIsLowWetGround, Exposure.bIsShoreline, Exposure.ShorelineWetness, Exposure.RidgeExposure, Exposure.NaturalCover, Exposure.WindExposure, Weather.PrecipitationIntensity, Weather.WindStrength, Weather.WindDirectionDegrees);
+    const AKalmalaWorldGenerationGameState* WorldGenerationState = GetGameState<AKalmalaWorldGenerationGameState>();
+    if (WorldGenerationState == nullptr)
+    {
+        return;
+    }
+
+    const FKalmalaWeatherState& Weather = WorldGenerationState->GetWeatherState();
+    const FKalmalaShelterSample Shelter = FKalmalaShelterSampler::Sample(GetWorld(), Occupant, Exposure.NaturalCover, Weather.WindDirectionDegrees);
+    UE_LOG(LogTemp, Display, TEXT("Exposure inspection (server): Pos=%s Temp=%.1f Humidity=%.2f Elevation=%.2f GroundWet=%.2f LowWet=%d Shoreline=%d ShoreWet=%.2f Ridge=%.2f Cover=%.2f Wind=%.2f Precipitation=%.2f WeatherWind=%.2f WindDirection=%d NaturalShelter=%.2f Roof=%d Windbreak=%d Shelter=%.2f Wetness=0.00 Warmth=100.00 Mitigation=None."), *Location.ToCompactString(), Exposure.AmbientTemperature, Fields.Humidity, Fields.Elevation, Exposure.GroundWetness, Exposure.bIsLowWetGround, Exposure.bIsShoreline, Exposure.ShorelineWetness, Exposure.RidgeExposure, Exposure.NaturalCover, Exposure.WindExposure, Weather.PrecipitationIntensity, Weather.WindStrength, Weather.WindDirectionDegrees, Shelter.NaturalCoverShelter, Shelter.bHasRoof, Shelter.bHasWindbreak, Shelter.Shelter);
 }
 
 void AKalmalaGameMode::InitializeWeatherCycle()
@@ -258,7 +269,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer);
 
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty()) || NewPlayer == nullptr)
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled) || NewPlayer == nullptr)
     {
         return;
     }
@@ -268,6 +279,11 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     if (NewPlayer->GetPawn() == nullptr)
     {
         RestartPlayer(NewPlayer);
+    }
+
+    if (bExposureInspectionEnabled)
+    {
+        LogExposureInspection(NewPlayer->GetPawn());
     }
 
     UE_LOG(LogTemp, Display, TEXT("Developer verification server player joined with pawn: %s."), *GetNameSafe(NewPlayer->GetPawn()));

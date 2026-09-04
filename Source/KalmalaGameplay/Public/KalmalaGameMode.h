@@ -31,7 +31,7 @@ private:
     void ConfigureTraversalTest();
     void DriveTraversalTest();
     void RunReconnectVerification(APawn* ServerPawn);
-    void LogExposureInspection(const FVector& Location) const;
+    void LogExposureInspection(const AActor* Occupant) const;
     void InitializeWeatherCycle();
     void AdvanceWeatherCycleIfNeeded();
 
@@ -43,6 +43,7 @@ private:
     TSet<FIntPoint> ActivePopulationSpatialKeys;
     float NextTerrainPatchActivationTime = 0.0f;
     bool bTraversalTestEnabled = false;
+    bool bExposureInspectionEnabled = false;
     FString ReconnectVerificationMode;
     FVector2D TraversalTestTarget = FVector2D::ZeroVector;
     TSet<TWeakObjectPtr<APawn>> TraversalTestCompletedPawns;

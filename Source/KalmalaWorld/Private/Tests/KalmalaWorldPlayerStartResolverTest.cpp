@@ -2,6 +2,7 @@
 
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaEnvironmentalExposureSampler.h"
+#include "KalmalaShelterSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
@@ -276,6 +277,26 @@ bool FKalmalaEnvironmentalExposureSamplerTest::RunTest(const FString& Parameters
     TestTrue(TEXT("Lake adjacency supplies shoreline wetness without a biome zone"), bFoundShoreline);
     TestTrue(TEXT("Exposed ridges can produce substantial wind exposure"), HighestRidgeWind >= 0.45f);
     TestTrue(TEXT("Dense natural cover reduces wind exposure compared with open ground"), LowestCoveredWind < HighestOpenWind);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaShelterSamplerTest,
+    "Kalmala.World.EnvironmentalExposure.ShelterComposition",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaShelterSamplerTest::RunTest(const FString& Parameters)
+{
+    const FKalmalaShelterSample NaturalOnly = FKalmalaShelterSampler::Compose(0.8f, false, false);
+    const FKalmalaShelterSample RoofAndWindbreak = FKalmalaShelterSampler::Compose(0.0f, true, true);
+    const FKalmalaShelterSample CompleteShelter = FKalmalaShelterSampler::Compose(1.0f, true, true);
+
+    TestEqual(TEXT("Natural cover contributes continuous partial shelter"), NaturalOnly.NaturalCoverShelter, 0.24f);
+    TestEqual(TEXT("Natural cover alone is not complete shelter"), NaturalOnly.Shelter, 0.24f);
+    TestTrue(TEXT("A roof is recorded only from shelter geometry"), RoofAndWindbreak.bHasRoof);
+    TestTrue(TEXT("A windbreak is recorded only from shelter geometry"), RoofAndWindbreak.bHasWindbreak);
+    TestEqual(TEXT("Roof and windbreak geometry compose substantial shelter"), RoofAndWindbreak.Shelter, 0.8f);
+    TestEqual(TEXT("All shelter inputs remain clamped"), CompleteShelter.Shelter, 1.0f);
     return true;
 }
 

@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 15:45 EEST — Sample natural and constructed shelter
+
+Outcome: Complete. Added server-side shelter sampling: continuous Flora-derived natural cover now provides partial shelter, while overhead roof and wind-facing windbreak geometry contribute only when server-owned construction collision carries the dedicated shelter tag. No authored shelter volumes or biome-zone rules were added.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaShelterSampler.h`; `Source/KalmalaWorld/Private/KalmalaShelterSampler.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.EnvironmentalExposure.ShelterComposition` completed with exit code 0, covering continuous natural cover, roof/windbreak composition, and clamped shelter output.
+
+Multiplayer impact: The server traces only from the authoritative pawn transform and accepts geometry only when a constructed actor's collision has the prescribed server-assigned tag. Clients cannot submit shelter hits, tags, geometry, weather direction, or shelter values; the inspection view is server-only.
+
+Known limits: No construction actor currently applies the tags, so this creates the integration seam for the later camp construction pieces. Shelter is inspected rather than yet applied to replicated wetness/warmth; campfire warmth and rain/wind material interaction remain next.
+
+Next task: Make a lit, server-owned campfire add warmth and interact correctly with rain, wind, and wet materials.
+
 ### 2026-09-04 15:34 EEST — Add continuous terrain exposure variation
 
 Outcome: Complete. Added a pure server-consumed environmental sampler that derives low-ground wetness, lake-adjacent shoreline wetness, ridge/slope wind exposure, and Flora-derived natural cover from the continuous generated world. The developer exposure inspection now reports those distinct local inputs; no biome map or authored environmental zone was added.
