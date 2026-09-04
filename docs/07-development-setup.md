@@ -51,7 +51,7 @@ Launch a listen server with `-KalmalaCampConditionInspection` and join a player.
 
 ## Biome-colour debug overlay
 
-Launch the game with `-KalmalaBiomeDebug` to draw a local, persistent colour overlay across every active generated terrain patch. It uses the same continuous four-field biome classifier as terrain generation: Meadows are green, Shimmering Lakes cyan, Elderwood dark green, Mossy Mire olive, Freezing Tundra pale blue, Thunder Mountains grey, and Ocean blue. The overlay is developer-only, is built independently on each peer from the replicated world identity and patch descriptor, and changes no terrain, collision, gameplay state, or replication.
+Launch the game with `-KalmalaBiomeDebug` to replace the generated terrain's normal material with a project-owned vertex-colour debug material. It uses the same continuous four-field biome classifier as terrain generation: Meadows are green, Shimmering Lakes cyan, Elderwood dark green, Mossy Mire olive, Freezing Tundra pale blue, Thunder Mountains grey, and Ocean blue. The material is developer-only, is built independently on each peer from the replicated world identity and patch descriptor, and changes no terrain, collision, gameplay state, or replication.
 
 ## Source-control rules
 

@@ -20,9 +20,23 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 16:41 EEST — Repair biome-colour debug rendering
+
+Outcome: Complete. Replaced the unreliable debug-draw overlay with a dedicated project-owned vertex-colour terrain material. With `-KalmalaBiomeDebug`, each generated terrain vertex receives the deterministic classifier colour and the terrain surface switches to that material, making the colour diagnostic part of the rendered world rather than a debug-line primitive.
+
+Changed: `Content/Kalmala/World/Materials/M_GeneratedTerrainBiomeDebug.uasset`; `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`; `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -Force -MaxParallelActions=4` build succeeded. The headless prototype-map game launch with `-KalmalaBiomeDebug` logged `Biome debug material is active on the generated terrain surface` for all activated patches, after the `CreateWorldMaterials` commandlet created the debug material asset.
+
+Multiplayer impact: The material choice and vertex colours are local cosmetic output derived from the replicated immutable world identity and patch descriptor. They create no actor, collision, server state, client input, or gameplay mutation.
+
+Known limits: This is a developer launch material mode, not a player HUD or world-map feature. Vertex interpolation makes biome seams visibly continuous, consistent with the classifier's transition intent.
+
+Next task: Verify host and client observe matching weather, exposure, shelter, fire, and recovery state, and that clients cannot alter any authoritative value.
+
 ### 2026-09-04 16:36 EEST — Add launch-gated biome-colour overlay
 
-Outcome: Complete. Added a developer-only in-world biome-colour overlay for generated terrain patches. Launching with `-KalmalaBiomeDebug` draws persistent, terrain-conforming debug meshes using the existing biome classifier palette; a normal launch remains unchanged.
+Outcome: Superseded. The initial debug-mesh overlay did not render reliably in the user's launch path and was replaced by the vertex-colour terrain material in the subsequent run.
 
 Changed: `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `PROGRESS.md`.
 

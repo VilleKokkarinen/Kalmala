@@ -24,7 +24,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Terrain surface | shared seed function | convert Elevation to continuous height and normal for terrain, collision, and server-selected spawns |
 | Terrain activation | server | initialize an invisible 3x3 neighborhood of continuous terrain patches around the generated start, then deduplicate player-neighborhood activation at a one-second interval up to 25 patches; activation cells never define biome or gameplay boundaries |
 | Terrain rendering | client cosmetic | derive one continuous local mesh from the replicated identity and patch descriptor; mesh geometry is never replicated |
-| Biome debug overlay | local developer cosmetic | with `-KalmalaBiomeDebug`, draw the classifier's colour for each terrain cell from the replicated identity and patch descriptor; it changes no terrain, collision, or gameplay state |
+| Biome debug material | local developer cosmetic | with `-KalmalaBiomeDebug`, replace the generated terrain material with classifier-driven vertex colours from the replicated identity and patch descriptor; it changes no terrain, collision, or gameplay state |
 | Terrain collision | server | create collision from the server's same continuous terrain mesh; clients derive matching local collision only for prediction, never as authority |
 | Surface water | client cosmetic | derive a collision-free sea-level mesh over fully submerged terrain cells from the replicated identity and patch descriptor |
 | Shimmering Lakes treatment | client cosmetic | derive collision-free lake-water and shoreline meshes from the replicated identity, lake classification, and continuous terrain height; no lake geometry or physics state is replicated |
