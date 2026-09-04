@@ -537,3 +537,17 @@ Multiplayer impact: The shared validation seam requires server authority, non-de
 Known limits: The test covers the server gate rather than physical remote-client input. Harvest nodes still grant no resource and do not persist depletion across activation or reconnect.
 
 Next task: Add a stable server spatial identifier to generated harvest nodes as the prerequisite for sparse depletion persistence.
+
+### 2026-09-04 10:30 EEST — Identify generated harvest nodes for persistence
+
+Outcome: Partial. Added a stable generated spawn identifier composed from population kind, invisible spatial key, and deterministic spawn seed. The server assigns and replicates it to each harvest node; the surrounding save will pair it with the immutable world identity and revision.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`; `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.World.PopulationLayout.Determinism` completed with exit code 0, including repeatable sparse-delta identifier assertions.
+
+Multiplayer impact: The server derives the identifier solely from authoritative generation inputs, then replicates it as ordinary harvest-node state. Clients neither construct nor select identifiers, spatial keys, or seeds.
+
+Known limits: Identifiers are not saved yet and harvested nodes still reappear after a fresh world activation. The next increment adds the sparse server delta container without serializing the generated base world.
+
+Next task: Add a versioned server-only sparse harvest-depletion delta container keyed by immutable world identity and stable spawn identifier.
