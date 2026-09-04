@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 13:18 EEST — Close defeated-spawn reconnect checkpoint
+
+Outcome: Complete. Corrected the Phase 3 checklist to reflect the already recorded and committed wildlife restart verification from the prior run.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Rechecked the prior run's committed `WildlifeDefeat`/`WildlifeVerify` evidence: the same immutable identity (`WorldSeed=418`, `GeneratorRevision=1`) recorded defeated spawn `0/1/-1/1549352356770910657`, then logged that it remained absent after the fresh listen-server restart.
+
+Multiplayer impact: None; this is a handoff correction. The verified behavior remains server-local and server-authoritative.
+
+Known limits: No runtime code changed. Wildlife and hazard actors remain minimal persistence/replication placeholders.
+
+Next task: Establish the server-authoritative environmental exposure contract.
+
 ### 2026-09-04 13:06 EEST — Verify defeated wildlife reconnect persistence
 
 Outcome: Complete. Extended the developer-only reconnect harness with server-local `WildlifeDefeat` and `WildlifeVerify` modes. It activates one deterministic wildlife spawn, applies its authority-gated defeat, writes the sparse delta, restarts with the same immutable identity, and confirms activation suppresses that exact spawn.
