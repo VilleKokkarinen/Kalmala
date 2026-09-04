@@ -16,6 +16,16 @@ struct KALMALAWORLD_API FKalmalaTerrainPatchLayout
         return Origin + FVector2D(PatchX * PatchSize, PatchY * PatchSize);
     }
 
+    /** Returns the invisible terrain-patch coordinate containing a world position. */
+    static FIntPoint GetPatchCoordinate(const FVector2D Origin, const FVector2D WorldPosition)
+    {
+        const FVector2D RelativePosition = WorldPosition - Origin;
+        const float HalfPatchSize = PatchSize * 0.5f;
+        return FIntPoint(
+            FMath::FloorToInt((RelativePosition.X + HalfPatchSize) / PatchSize),
+            FMath::FloorToInt((RelativePosition.Y + HalfPatchSize) / PatchSize));
+    }
+
     static FVector GetTileCenter(const FKalmalaWorldGenerationConfig& Config, const FVector2D PatchCenter, const int32 TileX, const int32 TileY)
     {
         const FVector2D TilePosition = PatchCenter + FVector2D(TileX * TileSize, TileY * TileSize);

@@ -7,7 +7,6 @@
 
 class USceneComponent;
 class UProceduralMeshComponent;
-class UInstancedStaticMeshComponent;
 
 /**
  * Server-owned descriptor for a continuous authoritative terrain surface and
@@ -35,13 +34,19 @@ private:
     TObjectPtr<UProceduralMeshComponent> SurfaceWater;
 
     UPROPERTY(VisibleAnywhere, Category = "World Generation")
-    TObjectPtr<UInstancedStaticMeshComponent> MeadowRocks;
+    TObjectPtr<UProceduralMeshComponent> ShimmeringLakeWater;
 
     UPROPERTY(VisibleAnywhere, Category = "World Generation")
-    TObjectPtr<UInstancedStaticMeshComponent> MeadowTreeTrunks;
+    TObjectPtr<UProceduralMeshComponent> ShimmeringLakeShore;
 
     UPROPERTY(VisibleAnywhere, Category = "World Generation")
-    TObjectPtr<UInstancedStaticMeshComponent> MeadowTreeCanopies;
+    TObjectPtr<UProceduralMeshComponent> MeadowRocks;
+
+    UPROPERTY(VisibleAnywhere, Category = "World Generation")
+    TObjectPtr<UProceduralMeshComponent> MeadowTreeTrunks;
+
+    UPROPERTY(VisibleAnywhere, Category = "World Generation")
+    TObjectPtr<UProceduralMeshComponent> MeadowTreeCanopies;
 
     UPROPERTY(ReplicatedUsing = OnRep_GenerationData)
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
@@ -54,14 +59,18 @@ private:
 
     bool bVisualSurfaceBuilt = false;
     bool bSurfaceWaterBuilt = false;
+    bool bShimmeringLakeTreatmentBuilt = false;
     bool bMeadowRocksBuilt = false;
     bool bMeadowTreesBuilt = false;
+    int32 MeadowRockCount = 0;
+    int32 MeadowTreeCount = 0;
 
     UFUNCTION()
     void OnRep_GenerationData();
 
     bool BuildVisualSurface();
     bool BuildSurfaceWater();
+    bool BuildShimmeringLakeTreatment();
     bool BuildMeadowRocks();
     bool BuildMeadowTrees();
 };

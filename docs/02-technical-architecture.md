@@ -22,13 +22,15 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Element grid | server | replicate sparse changes near relevant players |
 | World identity | server | replicate immutable `WorldSeed` and `GeneratorRevision` through `GameState` |
 | Terrain surface | shared seed function | convert Elevation to continuous height and normal for terrain, collision, and server-selected spawns |
-| Terrain activation | server | initialize an invisible 3x3 neighborhood of continuous terrain patches around the generated start; activation cells never define biome or gameplay boundaries |
+| Terrain activation | server | initialize an invisible 3x3 neighborhood of continuous terrain patches around the generated start, then deduplicate player-neighborhood activation at a one-second interval up to 25 patches; activation cells never define biome or gameplay boundaries |
 | Terrain rendering | client cosmetic | derive one continuous local mesh from the replicated identity and patch descriptor; mesh geometry is never replicated |
 | Terrain collision | server | create collision from the server's same continuous terrain mesh; clients derive matching local collision only for prediction, never as authority |
 | Surface water | client cosmetic | derive a collision-free sea-level mesh over fully submerged terrain cells from the replicated identity and patch descriptor |
+| Shimmering Lakes treatment | client cosmetic | derive collision-free lake-water and shoreline meshes from the replicated identity, lake classification, and continuous terrain height; no lake geometry or physics state is replicated |
 | Generated player start | server | resolve a Meadow-preferred seed-specific transform at the sampled terrain height, then spawn pawns there |
-| Meadow rocks | client cosmetic | derive non-interactable instanced rocks from the replicated identity, terrain sample, and biome classification |
-| Meadow trees | client cosmetic | derive non-interactable instanced trunks and canopies from the replicated identity, terrain sample, and biome classification |
+| Meadow rocks | client cosmetic | derive non-interactable low-poly procedural rocks from the replicated identity, terrain sample, and biome classification |
+| Meadow trees | client cosmetic | derive non-interactable low-poly procedural trunks and canopies from the replicated identity, terrain sample, and biome classification |
+| Gameplay population layout | server | activate a bounded set of invisible spatial keys around pawns, then spawn replicated server-owned harvest nodes and placeholder markers from deterministic per-kind, field-informed descriptors; harvest nodes carry stable spatial spawn IDs for sparse server persistence; clients never select gameplay placements |
 | Cosmetics | client | derive from replicated state/events |
 
 ## Module boundaries
@@ -50,6 +52,10 @@ Do not make UI call world actors directly. Use components, interfaces, gameplay 
 ## Persistence and online progression
 
 Vertical slice persistence is a versioned `SaveGame` schema for local/listen-server testing. Isolate persistence behind interfaces so a later backend can replace it. Do not connect production identity, payments, analytics, or cloud databases until there is an explicit product decision.
+
+Generated population saves store only sparse server deltas. `UKalmalaWorldPopulationSaveGame` records its schema version and immutable world identity, then records harvested stable spawn IDs; it never serializes the generated base population. During a session, `GameMode` owns this container, records harvests only after the server accepts them, and consults it before recreating a generated harvest node.
+
+The sparse container must round-trip through `SaveGame` memory serialization before any slot-writing integration is added. The automated round-trip test verifies that immutable world identity and harvested IDs survive serialization without creating project `Saved/` output.
 
 Magic-scroll discoveries and learned support effects are server-authoritative progression. Save stable scroll IDs and learned-effect IDs, validate scroll rewards once, and replicate only the effect state needed by other players (such as an active shield or stat boost), not private inventory detail.
 
