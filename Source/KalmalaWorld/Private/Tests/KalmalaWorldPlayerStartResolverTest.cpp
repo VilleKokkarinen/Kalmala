@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
@@ -230,6 +231,51 @@ bool FKalmalaWeatherCycleTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("The same immutable identity and cycle index repeat wind strength"), First.WindStrength, Repeated.WindStrength);
     TestEqual(TEXT("The next interval increments its immutable cycle index"), Next.WeatherCycleIndex, 1);
     TestEqual(TEXT("The next interval starts where the previous one ended"), Next.ServerStartTimeSeconds, First.ServerStartTimeSeconds + First.DurationSeconds);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaEnvironmentalExposureSamplerTest,
+    "Kalmala.World.EnvironmentalExposure.TerrainVariation",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaEnvironmentalExposureSamplerTest::RunTest(const FString& Parameters)
+{
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = 418;
+    Config.GeneratorRevision = 1;
+
+    bool bFoundLowWetGround = false;
+    bool bFoundShoreline = false;
+    float HighestRidgeWind = 0.0f;
+    float HighestOpenWind = 0.0f;
+    float LowestCoveredWind = 1.0f;
+    for (int32 Y = -48000; Y <= 48000; Y += 400)
+    {
+        for (int32 X = -48000; X <= 48000; X += 400)
+        {
+            const FKalmalaEnvironmentalExposureSample Sample = FKalmalaEnvironmentalExposureSampler::Sample(Config, FVector2D(X, Y));
+            bFoundLowWetGround |= Sample.bIsLowWetGround && Sample.GroundWetness >= 0.5f;
+            bFoundShoreline |= Sample.bIsShoreline && Sample.ShorelineWetness > 0.0f;
+            if (Sample.RidgeExposure >= 0.75f)
+            {
+                HighestRidgeWind = FMath::Max(HighestRidgeWind, Sample.WindExposure);
+            }
+            if (Sample.NaturalCover <= 0.2f)
+            {
+                HighestOpenWind = FMath::Max(HighestOpenWind, Sample.WindExposure);
+            }
+            if (Sample.NaturalCover >= 0.8f)
+            {
+                LowestCoveredWind = FMath::Min(LowestCoveredWind, Sample.WindExposure);
+            }
+        }
+    }
+
+    TestTrue(TEXT("Continuous terrain supplies low humid ground with increased wetness"), bFoundLowWetGround);
+    TestTrue(TEXT("Lake adjacency supplies shoreline wetness without a biome zone"), bFoundShoreline);
+    TestTrue(TEXT("Exposed ridges can produce substantial wind exposure"), HighestRidgeWind >= 0.45f);
+    TestTrue(TEXT("Dense natural cover reduces wind exposure compared with open ground"), LowestCoveredWind < HighestOpenWind);
     return true;
 }
 

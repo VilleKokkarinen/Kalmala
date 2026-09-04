@@ -13,6 +13,7 @@
 #include "KalmalaWorldPopulationMarker.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "KalmalaWeatherCycle.h"
+#include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 
@@ -107,12 +108,9 @@ void AKalmalaGameMode::LogExposureInspection(const FVector& Location) const
 {
     const FVector2D Position(Location);
     const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, Position);
-    const FVector Normal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, Position);
-    const float GroundWetness = Fields.Humidity;
-    const float WindExposure = FMath::Clamp(1.0f - Normal.Z, 0.0f, 1.0f);
-    const float AmbientTemperature = FMath::Lerp(-20.0f, 20.0f, Fields.Temperature);
+    const FKalmalaEnvironmentalExposureSample Exposure = FKalmalaEnvironmentalExposureSampler::Sample(WorldGenerationConfig, Position);
     const FKalmalaWeatherState& Weather = GetGameStateChecked<AKalmalaWorldGenerationGameState>()->GetWeatherState();
-    UE_LOG(LogTemp, Display, TEXT("Exposure inspection (server): Pos=%s Temp=%.1f Humidity=%.2f Elevation=%.2f GroundWet=%.2f Wind=%.2f Precipitation=%.2f WeatherWind=%.2f WindDirection=%d Shelter=0.00 Wetness=0.00 Warmth=100.00 Mitigation=None."), *Location.ToCompactString(), AmbientTemperature, Fields.Humidity, Fields.Elevation, GroundWetness, WindExposure, Weather.PrecipitationIntensity, Weather.WindStrength, Weather.WindDirectionDegrees);
+    UE_LOG(LogTemp, Display, TEXT("Exposure inspection (server): Pos=%s Temp=%.1f Humidity=%.2f Elevation=%.2f GroundWet=%.2f LowWet=%d Shoreline=%d ShoreWet=%.2f Ridge=%.2f Cover=%.2f Wind=%.2f Precipitation=%.2f WeatherWind=%.2f WindDirection=%d Shelter=0.00 Wetness=0.00 Warmth=100.00 Mitigation=None."), *Location.ToCompactString(), Exposure.AmbientTemperature, Fields.Humidity, Fields.Elevation, Exposure.GroundWetness, Exposure.bIsLowWetGround, Exposure.bIsShoreline, Exposure.ShorelineWetness, Exposure.RidgeExposure, Exposure.NaturalCover, Exposure.WindExposure, Weather.PrecipitationIntensity, Weather.WindStrength, Weather.WindDirectionDegrees);
 }
 
 void AKalmalaGameMode::InitializeWeatherCycle()

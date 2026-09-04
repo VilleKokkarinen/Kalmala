@@ -43,7 +43,7 @@ Run the prototype map twice as a listen server with `-KalmalaReconnectVerificati
 
 ## Exposure inspection
 
-Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. The weather cycle is selected and advanced only by the server; until shelter and runtime exposure are added, shelter is logged as zero and mitigation as `None`.
+Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. The output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, and Flora-derived natural cover. The weather cycle is selected and advanced only by the server; until shelter and runtime exposure are added, shelter is logged as zero and mitigation as `None`.
 
 ## Source-control rules
 

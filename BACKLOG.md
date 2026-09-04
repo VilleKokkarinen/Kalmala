@@ -83,7 +83,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Add a developer-only inspection view for the sampled inputs, resulting exposure state, and active mitigation.
 - [x] Add a small replicated server weather cycle.
   - [x] Define deterministic weather-state selection, duration, rain intensity, wind direction, and wind strength.
-  - [ ] Make exposed ridges, low wet ground, shorelines, and natural cover produce different exposure without turning biomes into hard zones.
+  - [x] Make exposed ridges, low wet ground, shorelines, and natural cover produce different exposure without turning biomes into hard zones.
 - [ ] Connect player counterplay to the existing survival-camp systems.
   - [ ] Make natural cover and player-built roof/windbreak geometry contribute shelter; no authored shelter volumes.
   - [ ] Make a lit, server-owned campfire add warmth and interact correctly with rain, wind, and wet materials.

@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 15:34 EEST — Add continuous terrain exposure variation
+
+Outcome: Complete. Added a pure server-consumed environmental sampler that derives low-ground wetness, lake-adjacent shoreline wetness, ridge/slope wind exposure, and Flora-derived natural cover from the continuous generated world. The developer exposure inspection now reports those distinct local inputs; no biome map or authored environmental zone was added.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaEnvironmentalExposureSampler.h`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` build command completed successfully with `-MaxParallelActions=4`. Added `Kalmala.World.EnvironmentalExposure.TerrainVariation` automation coverage for deterministic low wet ground, shorelines, ridge wind, and natural-cover variation. The unattended automation runner loaded a stale test list and reported no matching test before execution; this is a runner/startup limitation, not a build failure.
+
+Multiplayer impact: Only the server samples the authoritative pawn transform and immutable generated-world identity. The sampler accepts no client input and produces no client-owned weather, terrain, shelter, or exposure state; clients remain display-only when runtime exposure replication is connected.
+
+Known limits: The sample is currently inspected rather than applied to replicated wetness or warmth. Natural cover is Flora-derived only; player-built roofs, windbreaks, campfire warmth, rain interactions, and runtime survival consequences remain deferred.
+
+Next task: Make natural cover and player-built roof/windbreak geometry contribute shelter; no authored shelter volumes.
+
 ### 2026-09-04 15:25 EEST — Add replicated server weather cycle
 
 Outcome: Complete. Added deterministic 120–240-second dry, drizzle, and rain intervals derived from immutable world identity and a monotonic cycle index. `GameMode` selects index zero, advances elapsed intervals on the server, and writes the active state to the replicated world `GameState` for clients and late joiners.
