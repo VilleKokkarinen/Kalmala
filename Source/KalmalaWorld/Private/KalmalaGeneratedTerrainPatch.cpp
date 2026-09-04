@@ -410,7 +410,7 @@ bool AKalmalaGeneratedTerrainPatch::BuildBiomeDebugOverlay()
     {
         if (!TrianglesByBiome[BiomeIndex].IsEmpty())
         {
-            DrawDebugMesh(GetWorld(), VerticesByBiome[BiomeIndex], TrianglesByBiome[BiomeIndex], GetBiomeDebugColor(static_cast<EKalmalaBiome>(BiomeIndex)), true, -1.0f, SDPG_World);
+            DrawDebugMesh(GetWorld(), VerticesByBiome[BiomeIndex], TrianglesByBiome[BiomeIndex], KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(static_cast<EKalmalaBiome>(BiomeIndex)), true, -1.0f, SDPG_World);
         }
     }
 

@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 16:36 EEST — Add launch-gated biome-colour overlay
+
+Outcome: Complete. Added a developer-only in-world biome-colour overlay for generated terrain patches. Launching with `-KalmalaBiomeDebug` draws persistent, terrain-conforming debug meshes using the existing biome classifier palette; a normal launch remains unchanged.
+
+Changed: `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -Force -MaxParallelActions=4` succeeded after compiling and linking `KalmalaGeneratedTerrainPatch.cpp` and the World module.
+
+Multiplayer impact: The overlay is local cosmetic debug rendering derived only from the already replicated world identity and terrain-patch descriptor. It creates no actors, collision, terrain data, server state, or client-controlled gameplay input.
+
+Known limits: The overlay is intentionally a development-launch diagnostic rather than a player-facing map, HUD, or material mode. It persists only for the life of the running world.
+
+Next task: Verify host and client observe matching weather, exposure, shelter, fire, and recovery state, and that clients cannot alter any authoritative value.
+
 ### 2026-09-04 16:25 EEST — Expose varied local camp conditions
 
 Outcome: Complete. Added a deterministic local camp-condition assessment for any freely chosen position. It derives natural cover, ground wetness, bounded nearest-water distance, and nearby generated harvest-node availability from the existing continuous terrain, lake, and population contracts; it neither selects nor reserves a camp location. A developer-only server inspection exposes these tradeoffs after a player joins.
