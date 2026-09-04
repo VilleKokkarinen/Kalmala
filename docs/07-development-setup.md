@@ -41,6 +41,10 @@ For the developer-only two-player traversal verification, launch a listen server
 
 Run the prototype map twice as a listen server with `-KalmalaReconnectVerification=Harvest` and then `-KalmalaReconnectVerification=Verify`. The first process activates a deterministic harvest node, uses the normal server interaction path to harvest it, saves its sparse delta, and exits. The restarted server uses the same immutable world identity and succeeds only when that node is suppressed. `WildlifeDefeat` and `WildlifeVerify` run the equivalent server-only path for one deterministic wildlife spawn. This developer-only switch is server-local and accepts no client-supplied node identifier or outcome.
 
+## Exposure inspection
+
+Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the current provisional exposure state and mitigation. Until weather and shelter runtime systems are added, precipitation and shelter are logged as zero and mitigation as `None`.
+
 ## Source-control rules
 
 - Commit `Config/`, `Source/`, `.uproject`, and `.uasset`/`.umap` content assets.

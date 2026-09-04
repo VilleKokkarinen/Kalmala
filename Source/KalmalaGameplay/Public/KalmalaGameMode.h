@@ -31,6 +31,7 @@ private:
     void ConfigureTraversalTest();
     void DriveTraversalTest();
     void RunReconnectVerification(APawn* ServerPawn);
+    void LogExposureInspection(const FVector& Location) const;
 
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;

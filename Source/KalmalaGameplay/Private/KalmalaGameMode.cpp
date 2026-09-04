@@ -12,6 +12,8 @@
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWorldPopulationMarker.h"
 #include "KalmalaWorldPopulationSaveGame.h"
+#include "KalmalaWorldFieldSampler.h"
+#include "KalmalaTerrainHeightSampler.h"
 
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -86,6 +88,10 @@ void AKalmalaGameMode::BeginPlay()
         ActivateTerrainPatchNeighborhood(TerrainPatchOrigin);
         UE_LOG(LogTemp, Display, TEXT("Server activated %d seed-derived terrain patches around the generated start."), ActiveTerrainPatchCoordinates.Num());
         ConfigureTraversalTest();
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureInspection")))
+        {
+            LogExposureInspection(GeneratedPlayerStart->GetActorLocation());
+        }
         if (!ReconnectVerificationMode.IsEmpty())
         {
             AKalmalaCharacter* VerificationPawn = GetWorld()->SpawnActor<AKalmalaCharacter>(
@@ -93,6 +99,17 @@ void AKalmalaGameMode::BeginPlay()
             RunReconnectVerification(VerificationPawn);
         }
     }
+}
+
+void AKalmalaGameMode::LogExposureInspection(const FVector& Location) const
+{
+    const FVector2D Position(Location);
+    const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, Position);
+    const FVector Normal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, Position);
+    const float GroundWetness = Fields.Humidity;
+    const float WindExposure = FMath::Clamp(1.0f - Normal.Z, 0.0f, 1.0f);
+    const float AmbientTemperature = FMath::Lerp(-20.0f, 20.0f, Fields.Temperature);
+    UE_LOG(LogTemp, Display, TEXT("Exposure inspection (server): Pos=%s Temp=%.1f Humidity=%.2f Elevation=%.2f GroundWet=%.2f Wind=%.2f Precipitation=0.00 Shelter=0.00 Wetness=0.00 Warmth=100.00 Mitigation=None."), *Location.ToCompactString(), AmbientTemperature, Fields.Humidity, Fields.Elevation, GroundWetness, WindExposure);
 }
 
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
