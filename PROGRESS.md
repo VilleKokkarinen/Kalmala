@@ -566,6 +566,20 @@ Known limits: The container is not yet loaded, saved to a slot, or consulted by 
 
 Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.
 
+### 2026-09-04 10:50 EEST — Define Phase 5 biome expansion outcomes
+
+Outcome: Complete. Replaced Phase 5's name-only biome list with an ordered delivery contract. Every biome now has required environmental pressure, shelter response, optional discovery payoff, deterministic server-owned content requirements, seam/traversal checks, and a host/client scenario. The plan explicitly excludes combat-tier progression, authored regions, forced routes, single safe crossings, and pre-ocean boat requirements.
+
+Changed: `BACKLOG.md`; `docs/08-world-generation-and-biomes.md`; `PROGRESS.md`.
+
+Verification: Reviewed the plan against the continuous four-field generation contract and biome palette in `docs/08-world-generation-and-biomes.md`, Phase 4's server-authoritative exposure contract, and the M2 campfire/construction scope in `docs/04-roadmap.md`.
+
+Multiplayer impact: Each biome's gameplay-relevant terrain features, population budgets, discovery identifiers, and survival outcomes are now explicitly server-owned. Clients derive cosmetic detail only and receive replicated nearby gameplay state.
+
+Known limits: This refines the delivery contract only. Shimmering Lakes currently has visual water and shoreline treatment from Phase 2; the five Phase 5 biome gameplay expansions remain unimplemented.
+
+Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.
+
 ### 2026-09-04 10:40 EEST — Define Phase 4 weather and survival outcomes
 
 Outcome: Complete. Replaced Phase 4's broad theme with an ordered, testable delivery contract: server-authoritative exposure, a replicated weather cycle, terrain and shelter sampling, campfire counterplay, recoverable consequences, and a two-player choice scenario. The phase explicitly uses M2 camp systems and excludes authored routes, safe zones, and mandatory camp locations.
