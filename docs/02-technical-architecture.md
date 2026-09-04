@@ -54,6 +54,8 @@ Shelter is also sampled by the server at the pawn. Natural cover supplies contin
 
 The campfire seam is a replicated, server-owned actor. Only a validated server interaction may light dry fuel; the server advances fuel wetness from the replicated weather's precipitation and wind, replicates the resulting lit state and effective warmth, and extinguishes soaked fuel. Its nearby warmth contribution is a server-readable falloff value for the later per-pawn exposure update; clients only render the replicated firelight and cannot submit fuel wetness, weather, or warmth.
 
+`FKalmalaCampConditionSampler` evaluates any freely chosen position from the same deterministic terrain, exposure, lake, and harvest-descriptor contracts. It reports natural cover, ground wetness, bounded nearest-water distance, and nearby generated harvest-node availability for developer inspection and validation only. It does not spawn, reserve, reveal, or direct players to a camp site; `GameMode` invokes the optional inspection only on the server.
+
 ### Weather-cycle contract
 
 `GameMode` advances a server-owned weather cycle and writes the current immutable-in-session state to the replicated world `GameState`. A state contains a monotonically increasing `WeatherCycleIndex`, server start time, duration, precipitation intensity, wind direction, and wind strength. `WeatherCycleIndex` is derived from no client input; the server selects it at session start as zero and increments it only after the active duration elapses. A late-joining client consumes the replicated active state rather than inferring it from local time.

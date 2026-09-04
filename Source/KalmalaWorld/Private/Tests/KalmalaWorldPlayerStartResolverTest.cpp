@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaCampConditionSampler.h"
 #include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaShelterSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
@@ -297,6 +298,35 @@ bool FKalmalaShelterSamplerTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("A windbreak is recorded only from shelter geometry"), RoofAndWindbreak.bHasWindbreak);
     TestEqual(TEXT("Roof and windbreak geometry compose substantial shelter"), RoofAndWindbreak.Shelter, 0.8f);
     TestEqual(TEXT("All shelter inputs remain clamped"), CompleteShelter.Shelter, 1.0f);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaCampConditionSamplerTest,
+    "Kalmala.World.CampConditions.LocalTradeoffs",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaCampConditionSamplerTest::RunTest(const FString& Parameters)
+{
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = 418;
+    Config.GeneratorRevision = 1;
+    float LowestWetness = 1.0f, HighestWetness = 0.0f, LowestCover = 1.0f, HighestCover = 0.0f;
+    float NearestWater = FKalmalaCampConditionSampler::WaterSearchRadius, FarthestWater = 0.0f;
+    int32 LowestResources = MAX_int32, HighestResources = 0;
+    for (int32 Y = -24000; Y <= 24000; Y += 800)
+    for (int32 X = -24000; X <= 24000; X += 800)
+    {
+        const FKalmalaCampConditionSample Sample = FKalmalaCampConditionSampler::Sample(Config, FVector2D(X, Y));
+        LowestWetness = FMath::Min(LowestWetness, Sample.GroundWetness); HighestWetness = FMath::Max(HighestWetness, Sample.GroundWetness);
+        LowestCover = FMath::Min(LowestCover, Sample.NaturalCover); HighestCover = FMath::Max(HighestCover, Sample.NaturalCover);
+        NearestWater = FMath::Min(NearestWater, Sample.WaterDistance); FarthestWater = FMath::Max(FarthestWater, Sample.WaterDistance);
+        LowestResources = FMath::Min(LowestResources, Sample.NearbyHarvestNodeCount); HighestResources = FMath::Max(HighestResources, Sample.NearbyHarvestNodeCount);
+    }
+    TestTrue(TEXT("Freely sampled camp ground has meaningful wetness variation"), HighestWetness - LowestWetness >= 0.30f);
+    TestTrue(TEXT("Freely sampled camp ground has meaningful natural-cover variation"), HighestCover - LowestCover >= 0.30f);
+    TestTrue(TEXT("Freely sampled camp ground has both near and distant water"), NearestWater < FarthestWater);
+    TestTrue(TEXT("Freely sampled camp ground has different nearby harvest-resource availability"), LowestResources < HighestResources);
     return true;
 }
 

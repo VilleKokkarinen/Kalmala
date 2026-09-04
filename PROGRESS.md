@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 16:25 EEST — Expose varied local camp conditions
+
+Outcome: Complete. Added a deterministic local camp-condition assessment for any freely chosen position. It derives natural cover, ground wetness, bounded nearest-water distance, and nearby generated harvest-node availability from the existing continuous terrain, lake, and population contracts; it neither selects nor reserves a camp location. A developer-only server inspection exposes these tradeoffs after a player joins.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaCampConditionSampler.h`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -Force -MaxParallelActions=4` build succeeded, compiling and linking the updated World and Gameplay modules. Headless `Kalmala.World.CampConditions.LocalTradeoffs` completed with `Result={Success}` and exit code 0 using `-DDC-ForceMemoryCache`; it verifies meaningful variation in wetness, natural cover, water distance, and nearby deterministic harvest-resource availability across seed 418.
+
+Multiplayer impact: `FKalmalaCampConditionSampler` is deterministic input evaluation only. `GameMode` invokes the optional inspection on the server; it never accepts client-provided samples, creates a camp actor, reveals resource locations, changes population budgets, or writes world state. Clients cannot alter the reported environmental or resource values.
+
+Known limits: The assessment is developer logging rather than player HUD feedback, camp construction placement, inventory, or a two-player scenario. It reports existing harvest descriptors only; it does not add a reward, route, safe zone, or guided camp choice.
+
+Next task: Verify host and client observe matching weather, exposure, shelter, fire, and recovery state, and that clients cannot alter any authoritative value.
+
 ### 2026-09-04 16:17 EEST — Add recoverable exposure travel consequence
 
 Outcome: Complete. The server now advances each connected character's wetness and warmth once per second from authoritative terrain, weather, shelter, and nearby lit-campfire inputs. Prolonged cold, wet, wind-exposed travel reduces replicated warmth and applies a reversible 68–100% Character Movement travel-speed multiplier; shelter dries and recovers a dry player slowly, while a nearby fire accelerates both recovery paths.

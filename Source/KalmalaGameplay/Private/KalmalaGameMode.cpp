@@ -16,6 +16,7 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "KalmalaWeatherCycle.h"
 #include "KalmalaEnvironmentalExposureSampler.h"
+#include "KalmalaCampConditionSampler.h"
 #include "KalmalaShelterSampler.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
@@ -130,6 +131,7 @@ void AKalmalaGameMode::BeginPlay()
         UE_LOG(LogTemp, Display, TEXT("Server activated %d seed-derived terrain patches around the generated start."), ActiveTerrainPatchCoordinates.Num());
         ConfigureTraversalTest();
         bExposureInspectionEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureInspection"));
+        bCampConditionInspectionEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampConditionInspection"));
         if (!ReconnectVerificationMode.IsEmpty())
         {
             AKalmalaCharacter* VerificationPawn = GetWorld()->SpawnActor<AKalmalaCharacter>(
@@ -159,6 +161,14 @@ void AKalmalaGameMode::LogExposureInspection(const AActor* Occupant) const
     const FKalmalaWeatherState& Weather = WorldGenerationState->GetWeatherState();
     const FKalmalaShelterSample Shelter = FKalmalaShelterSampler::Sample(GetWorld(), Occupant, Exposure.NaturalCover, Weather.WindDirectionDegrees);
     UE_LOG(LogTemp, Display, TEXT("Exposure inspection (server): Pos=%s Temp=%.1f Humidity=%.2f Elevation=%.2f GroundWet=%.2f LowWet=%d Shoreline=%d ShoreWet=%.2f Ridge=%.2f Cover=%.2f Wind=%.2f Precipitation=%.2f WeatherWind=%.2f WindDirection=%d NaturalShelter=%.2f Roof=%d Windbreak=%d Shelter=%.2f Wetness=0.00 Warmth=100.00 Mitigation=None."), *Location.ToCompactString(), Exposure.AmbientTemperature, Fields.Humidity, Fields.Elevation, Exposure.GroundWetness, Exposure.bIsLowWetGround, Exposure.bIsShoreline, Exposure.ShorelineWetness, Exposure.RidgeExposure, Exposure.NaturalCover, Exposure.WindExposure, Weather.PrecipitationIntensity, Weather.WindStrength, Weather.WindDirectionDegrees, Shelter.NaturalCoverShelter, Shelter.bHasRoof, Shelter.bHasWindbreak, Shelter.Shelter);
+}
+
+void AKalmalaGameMode::LogCampConditionInspection(const AActor* Occupant) const
+{
+    if (Occupant == nullptr) return;
+    const FVector Location = Occupant->GetActorLocation();
+    const FKalmalaCampConditionSample Conditions = FKalmalaCampConditionSampler::Sample(WorldGenerationConfig, FVector2D(Location));
+    UE_LOG(LogTemp, Display, TEXT("Camp condition inspection (server): Pos=%s Cover=%.2f GroundWet=%.2f WaterDistance=%.0f NearbyHarvestNodes=%d ResourceScore=%.2f. Local assessment only; no camp is authored or reserved."), *Location.ToCompactString(), Conditions.NaturalCover, Conditions.GroundWetness, Conditions.WaterDistance, Conditions.NearbyHarvestNodeCount, Conditions.NearbyResourceScore);
 }
 
 void AKalmalaGameMode::InitializeWeatherCycle()
@@ -312,7 +322,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer);
 
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled) || NewPlayer == nullptr)
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bCampConditionInspectionEnabled) || NewPlayer == nullptr)
     {
         return;
     }
@@ -327,6 +337,11 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     if (bExposureInspectionEnabled)
     {
         LogExposureInspection(NewPlayer->GetPawn());
+    }
+
+    if (bCampConditionInspectionEnabled)
+    {
+        LogCampConditionInspection(NewPlayer->GetPawn());
     }
 
     UE_LOG(LogTemp, Display, TEXT("Developer verification server player joined with pawn: %s."), *GetNameSafe(NewPlayer->GetPawn()));
