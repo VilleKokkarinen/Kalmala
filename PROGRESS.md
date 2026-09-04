@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 17:02 EEST — Plan companion minimap
+
+Outcome: Complete. Added an M5 delivery plan for a top-right circular minimap with a centred player-facing marker and mouse-wheel zoom clamped between tunable minimum and maximum levels. The plan preserves the generated-world and multiplayer-information contracts.
+
+Changed: `BACKLOG.md`; `docs/02-technical-architecture.md`; `docs/04-roadmap.md`; `PROGRESS.md`.
+
+Verification: Reviewed the plan against the existing generated-world, UI module-boundary, and server-authority contracts. Documentation-only change; no runtime build or content changes.
+
+Multiplayer impact: The future map is explicitly client UI derived from locally available presentation and the owning player's replicated transform. It must not mutate server state, reveal hidden server-owned content, or become an additional biome/world map.
+
+Known limits: This adds the roadmap only; no widget, input binding, renderer, texture, or persistence implementation exists yet.
+
+Next task: Resolve the active generated-world spawn/collision repair before beginning new roadmap work.
+
 ### 2026-09-04 16:41 EEST — Repair biome-colour debug rendering
 
 Outcome: Complete. Replaced the unreliable debug-draw overlay with a dedicated project-owned vertex-colour terrain material. With `-KalmalaBiomeDebug`, each generated terrain vertex receives the deterministic classifier colour and the terrain surface switches to that material, making the colour diagnostic part of the rendered world rather than a debug-line primitive.

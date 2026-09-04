@@ -22,17 +22,18 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Element grid | server | replicate sparse changes near relevant players |
 | World identity | server | replicate immutable `WorldSeed` and `GeneratorRevision` through `GameState` |
 | Terrain surface | shared seed function | convert Elevation to continuous height and normal for terrain, collision, and server-selected spawns |
-| Terrain activation | server | initialize an invisible 3x3 neighborhood of continuous terrain patches around the generated start, then deduplicate player-neighborhood activation at a one-second interval up to 25 patches; activation cells never define biome or gameplay boundaries |
+| Terrain activation | server | initialize an invisible 3x3 neighborhood of continuous terrain patches around the generated start, placing every replicated patch actor at its deterministic patch centre; then deduplicate player-neighborhood activation at a one-second interval up to 25 patches; activation cells never define biome or gameplay boundaries |
 | Terrain rendering | client cosmetic | derive one continuous local mesh from the replicated identity and patch descriptor; mesh geometry is never replicated |
 | Biome debug material | local developer cosmetic | with `-KalmalaBiomeDebug`, replace the generated terrain material with classifier-driven vertex colours from the replicated identity and patch descriptor; it changes no terrain, collision, or gameplay state |
 | Terrain collision | server | create collision from the server's same continuous terrain mesh; clients derive matching local collision only for prediction, never as authority |
 | Surface water | client cosmetic | derive a collision-free sea-level mesh over fully submerged terrain cells from the replicated identity and patch descriptor |
 | Shimmering Lakes treatment | client cosmetic | derive collision-free lake-water and shoreline meshes from the replicated identity, lake classification, and continuous terrain height; no lake geometry or physics state is replicated |
-| Generated player start | server | resolve a Meadow-preferred seed-specific transform at the sampled terrain height, then spawn pawns there |
+| Generated player start | server | resolve a Meadow-preferred seed-specific transform above the sampled terrain height, then place each pawn with its actual collision half-height plus server clearance after the terrain patch collision exists |
 | Meadow rocks | client cosmetic | derive non-interactable low-poly procedural rocks from the replicated identity, terrain sample, and biome classification |
 | Meadow trees | client cosmetic | derive non-interactable low-poly procedural trunks and canopies from the replicated identity, terrain sample, and biome classification |
 | Gameplay population layout | server | activate a bounded set of invisible spatial keys around pawns, then spawn replicated server-owned harvest nodes, minimal wildlife spawns, and minimal hazard spawns from deterministic per-kind, field-informed descriptors; each carries a stable spatial ID for sparse server persistence; clients never select gameplay placements or defeat outcomes |
 | Environmental exposure | server | sample ambient temperature, precipitation, wind exposure, and shelter for each pawn; update clamped wetness and warmth at a fixed server interval; replicate the resulting state for display only |
+| Companion minimap | client UI | build a circular, player-centred top-right map from locally available seed-derived terrain presentation and the owning player's replicated transform; clamp local mouse-wheel zoom between tunable bounds and never reveal hidden server-owned content |
 | Cosmetics | client | derive from replicated state/events |
 
 ## Module boundaries

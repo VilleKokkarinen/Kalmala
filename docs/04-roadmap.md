@@ -37,3 +37,14 @@ Add combat attributes, damage execution, the Mireling, boar, and deer creature a
 Add original art/audio pass, tutorial beats, settings/accessibility, performance pass, balance, regression tests, packaging, and a dedicated-server playtest.
 
 **Accept:** a new player can complete the documented 20–30 minute co-op loop without developer tools.
+
+### Companion minimap delivery plan
+
+Deliver this UI feature during M5's settings/accessibility and polish pass, once generated-world traversal is stable. It is a navigation aid, not a separate world simulation or a source of hidden gameplay information.
+
+1. Add a `KalmalaUI` minimap view model that converts the locally available generated-world presentation and the owning player's replicated transform into map-space data. It must not query world actors directly or expose undiscovered server-owned population, loot, hazards, or other players beyond the normal game presentation contract.
+2. Add a circular minimap widget anchored to the top-right HUD. Clip all terrain, water, and markers to the circle; keep the owning-player marker visible at the centre and rotate it to communicate facing direction.
+3. Render a lightweight local representation of terrain, water, and known player-facing landmarks. Reuse the replicated world identity and deterministic terrain/biome sampling where appropriate; do not add a second biome map or replicate minimap textures.
+4. Bind mouse-wheel input to the minimap zoom only while no modal UI owns the input. Expose tunable `MinZoom` and `MaxZoom` limits, clamp every wheel update to that range, and retain the selected local zoom for the active session.
+5. Verify at multiple aspect ratios and UI scales that the circular mask remains top-right, the player marker remains legible, zooming clamps at both limits, and opening/closing other UI cannot trap movement or mouse-wheel input.
+6. Run a host/client test confirming both players see a minimap derived from the same world identity while each sees only their own player-centred view; minimap interaction must neither mutate nor reveal server-authoritative gameplay state.
