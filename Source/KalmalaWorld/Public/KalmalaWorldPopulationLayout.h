@@ -82,6 +82,12 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         return Spawns;
     }
 
+    /** Stable server identifier for sparse deltas within a world identity/revision save. */
+    static FString GetPersistentSpawnId(const FKalmalaWorldPopulationSpawn& Spawn)
+    {
+        return FString::Printf(TEXT("%d/%d/%d/%llu"), static_cast<uint8>(Spawn.Kind), Spawn.SpatialKey.X, Spawn.SpatialKey.Y, Spawn.SpawnSeed);
+    }
+
 private:
     static uint64 Mix(uint64 Value)
     {

@@ -19,6 +19,7 @@ public:
 
     void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn);
     static bool IsHarvestAllowed(bool bServerAuthority, bool bAlreadyHarvested, const FVector& InteractorLocation, const FVector& NodeLocation, float MaximumDistance = 250.0f);
+    const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
     virtual void Interact_Implementation(AKalmalaCharacter* Interactor) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -31,6 +32,9 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_Harvested, VisibleAnywhere, Category = "Harvest")
     bool bHarvested = false;
+
+    UPROPERTY(Replicated, VisibleAnywhere, Category = "Harvest")
+    FString PersistentSpawnId;
 
     UFUNCTION()
     void OnRep_Harvested();

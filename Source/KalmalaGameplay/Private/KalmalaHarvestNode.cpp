@@ -19,6 +19,7 @@ void AKalmalaHarvestNode::InitializeServer(const FKalmalaWorldPopulationSpawn& S
     if (HasAuthority())
     {
         SetActorLocation(Spawn.Location);
+        PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
     }
 }
 
@@ -47,6 +48,7 @@ void AKalmalaHarvestNode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaHarvestNode, bHarvested);
+    DOREPLIFETIME(AKalmalaHarvestNode, PersistentSpawnId);
 }
 
 void AKalmalaHarvestNode::OnRep_Harvested()

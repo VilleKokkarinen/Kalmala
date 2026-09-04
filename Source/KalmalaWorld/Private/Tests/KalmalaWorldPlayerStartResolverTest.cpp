@@ -134,6 +134,7 @@ bool FKalmalaWorldPopulationLayoutTest::RunTest(const FString& Parameters)
         for (int32 SpawnIndex = 0; SpawnIndex < FirstSpawns.Num(); ++SpawnIndex)
         {
             TestEqual(TEXT("Repeated spatial layouts preserve spawn seeds"), FirstSpawns[SpawnIndex].SpawnSeed, RepeatedSpawns[SpawnIndex].SpawnSeed);
+            TestEqual(TEXT("Repeated spatial layouts preserve sparse-delta identifiers"), FKalmalaWorldPopulationLayout::GetPersistentSpawnId(FirstSpawns[SpawnIndex]), FKalmalaWorldPopulationLayout::GetPersistentSpawnId(RepeatedSpawns[SpawnIndex]));
             TestTrue(TEXT("Spawn descriptors remain within their invisible spatial key"), FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(FirstSpawns[SpawnIndex].Location)) == SpatialKey);
         }
     }
