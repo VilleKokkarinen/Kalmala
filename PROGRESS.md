@@ -566,6 +566,20 @@ Known limits: The container is not yet loaded, saved to a slot, or consulted by 
 
 Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.
 
+### 2026-09-04 11:15 EEST — Clarify fully open exploration
+
+Outcome: Complete. Clarified the world contract: Kalmala has no pre-built roads, trails, crossings, safe corridors, intended travel solutions, or guided direction of travel. Terrain and weather create local environmental conditions only; players freely choose where to explore and camp.
+
+Changed: `BACKLOG.md`; `docs/00-project-brief.md`; `docs/04-roadmap.md`; `docs/05-decision-log.md`; `docs/08-world-generation-and-biomes.md`; `PROGRESS.md`.
+
+Verification: Searched the active backlog and documentation for route, road, trail, crossing, shortcut, and pathway language. Remaining references are explicit prohibitions only.
+
+Multiplayer impact: None; this is a design-contract clarification. Existing server authority over generated terrain, weather, and gameplay content is unchanged.
+
+Known limits: No terrain, navigation, road, or survival runtime behavior was added or removed.
+
+Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.
+
 ### 2026-09-04 11:00 EEST — Polish world-generation roadmap formatting
 
 Outcome: Complete. Reformatted the Phase 4 and Phase 5 sections into short labelled statements, completion standards, biome identity bullets, and guardrails. The content and delivery scope are unchanged; the contract is easier to scan during implementation and review.

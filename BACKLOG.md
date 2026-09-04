@@ -19,7 +19,7 @@ Do not begin until M0 acceptance criteria in `docs/04-roadmap.md` are met.
 
 ## World generation track
 
-Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` is the authoritative contract: the world is seed-generated from continuous `Elevation`, `Humidity`, `Temperature`, and `Flora` maps; do not introduce authored gameplay regions, fixed routes, or additional biome maps.
+Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` is the authoritative contract: the world is seed-generated from continuous `Elevation`, `Humidity`, `Temperature`, and `Flora` maps; do not introduce authored gameplay regions, pre-built roads or trails, or additional biome maps.
 
 ### Phase 1 — Seed and map proof
 
@@ -68,7 +68,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 ### Phase 4 — Weather, shelter, and survival
 
-**Intent:** turn the generated wilderness into a legible preparation loop: weather and terrain create exposure; natural cover, player-built shelter, and fires provide counterplay. Use M2's server-owned campfire, construction, and inventory primitives rather than parallel systems. Do not create fixed safe corridors, mandatory camp sites, or a prescribed route.
+**Intent:** turn the generated wilderness into a legible preparation loop: weather and terrain create exposure; natural cover, player-built shelter, and fires provide counterplay. Use M2's server-owned campfire, construction, and inventory primitives rather than parallel systems. Do not create pre-built roads, trails, safe corridors, mandatory camp sites, or a guided direction of travel.
 
 - [ ] Establish the server-authoritative environmental exposure contract.
   - [ ] Define the per-pawn state and update rules for ambient temperature, precipitation, wind exposure, wetness, warmth, and shelter.
@@ -82,14 +82,14 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [ ] Make a lit, server-owned campfire add warmth and interact correctly with rain, wind, and wet materials.
 - [ ] Add recoverable survival consequences that create choices rather than a hard travel gate.
   - [ ] Let prolonged exposure reduce warmth and apply a clear, reversible travel or stamina penalty; shelter, a fire, and preparation must offer viable recovery.
-  - [ ] Ensure at least two viable route or camp choices exist in a generated area, with understandable tradeoffs in cover, ground wetness, travel distance, and resources.
+- [ ] Ensure generated terrain offers varied local conditions for freely chosen camps, with understandable differences in cover, ground wetness, distance, and resources.
 - [ ] Verify host/client agreement and meaningful choices.
   - [ ] Verify host and client observe matching weather, exposure, shelter, fire, and recovery state, and that clients cannot alter any authoritative value.
-  - [ ] Run a two-player scenario showing distinct viable routes or camp locations with different weather preparation tradeoffs and no required route.
+- [ ] Run a two-player scenario showing freely chosen camp locations with different weather preparation tradeoffs and no built or guided path.
 
 ### Phase 5 — Biome expansion
 
-**Intent:** add one biome at a time as a distinct, seed-generated place to travel, prepare, and discover—not as a combat tier or a separate authored region. Each biome must use the same continuous four-field classifier and Phase 4 exposure contract, retain a viable lower-risk approach and a riskier shortcut or reward opportunity, and remain optional.
+**Intent:** add one biome at a time as a distinct, seed-generated place to explore, prepare, and discover—not as a combat tier or a separate authored region. Each biome must use the same continuous four-field classifier and Phase 4 exposure contract. Terrain can create local environmental variation, but never designed travel corridors, shortcuts, roads, or trails.
 
 - [ ] Establish the shared biome-expansion delivery contract.
 - [ ] Define the deterministic, server-owned rules for each biome's terrain features, interactive population budgets, exposure modifiers, and stable discovery identifiers.
@@ -97,22 +97,22 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [ ] Add developer inspection coverage for continuous seam sampling, feature placement, exposure inputs, and biome-specific population budgets.
 - [ ] Expand Shimmering Lakes beyond its existing visual water and shoreline treatment.
 - [ ] Add interlocking lakes, saturated low ground, and seed-generated lake-edge or island discoveries without requiring a boat before Phase 6.
-- [ ] Make wet shore travel, dry storage, raised shelter, and available natural cover create understandable camp and route tradeoffs.
+- [ ] Make wet shore conditions, dry storage, raised shelter, and available natural cover create understandable camp tradeoffs without guiding travel.
 - [ ] Add Elderwood as a dense-canopy biome.
-- [ ] Add field-driven dense vegetation, shade, roots, and clearings that change visibility, navigation, and camp footprint without creating a fixed trail.
+- [ ] Add field-driven dense vegetation, shade, roots, and clearings that change visibility and camp footprint without creating a trail or directed path.
 - [ ] Add optional ancient-root, wildlife-den, or overgrown-stone discoveries and make compact camps versus open clearings a legible shelter choice.
 - [ ] Add Mossy Mire as a wet-ground biome.
-- [ ] Add saturated terrain, slower traversable ground, and naturally generated dry hummocks or causeways; never require a single safe crossing.
-- [ ] Make raised floors, drainage, waterproof fuel storage, and bog-iron or scavenging discoveries meaningful alternatives to a shorter wet route.
+- [ ] Add saturated terrain, slower traversable ground, and naturally generated dry hummocks; never create a required crossing or directional corridor.
+- [ ] Make raised floors, drainage, waterproof fuel storage, and bog-iron or scavenging discoveries meaningful camp-preparation choices.
 - [ ] Add Freezing Tundra as a cold, wind-exposed biome.
 - [ ] Add sparse cover, rolling high ground, and terrain-derived wind exposure that rewards enclosed roofs, windbreaks, and warmth preparation.
-- [ ] Add optional ice-fed springs, exposed shrines, or weather-read discoveries, with sheltered detours remaining viable.
+- [ ] Add optional ice-fed springs, exposed shrines, or weather-read discoveries that players may approach from any freely chosen direction.
 - [ ] Add Thunder Mountains as a high-exposure biome.
-- [ ] Add steep but traversable ridges, exposed passes, and storm pressure while preserving multiple routes and avoiding mandatory precision traversal.
-- [ ] Make durable, lightning-safe shelter and route planning meaningful; add optional storm-carved overlooks, mineral seams, or cave discoveries.
+- [ ] Add steep but traversable ridges, exposed passes, and storm pressure without mandatory precision traversal or designed passages.
+- [ ] Make durable, lightning-safe shelter and open-ended expedition preparation meaningful; add optional storm-carved overlooks, mineral seams, or cave discoveries.
 - [ ] Verify every completed biome is independently playable and blends into its neighbours.
 - [ ] For each biome, verify same-seed reproducibility, different-seed variation, continuous seam samples, collision/traversal continuity, and stable server-owned discovery/population identifiers.
-- [ ] Run a host/client scenario in each biome that demonstrates matching terrain, weather/exposure, shelter response, and at least two viable route or camp choices; clients must not alter gameplay state.
+- [ ] Run a host/client scenario in each biome that demonstrates matching terrain, weather/exposure, shelter response, and freely chosen camp locations; clients must not alter gameplay state.
 
 ### Phase 6 — Ocean and long-distance travel
 
