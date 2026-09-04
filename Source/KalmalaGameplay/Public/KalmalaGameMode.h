@@ -27,6 +27,7 @@ private:
     void ActivateTerrainPatchNeighborhood(const FVector2D& WorldPosition);
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
+    void RecordDefeatedSpawn(const FString& PersistentSpawnId);
     void ConfigureTraversalTest();
     void DriveTraversalTest();
     void RunReconnectVerification(APawn* ServerPawn);

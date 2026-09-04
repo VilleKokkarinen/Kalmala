@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-04 12:42 EEST — Apply wildlife defeated deltas on the server
+
+Outcome: Partial. Replaced deterministic wildlife markers with minimal replicated, server-owned wildlife spawns. A spawn is omitted when its server save has the matching defeated ID; the actor can transition to defeated only through its authority-gated server method, which records and saves the delta before a future activation. No combat, damage input, rewards, movement, collision, or AI was added.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development` built successfully with `-MaxParallelActions=4`. Headless `Kalmala.Gameplay.WildlifeSpawn.ServerOnlyDefeat` completed with exit code 0, rejecting client and already-defeated transitions while accepting the first server transition.
+
+Multiplayer impact: `GameMode` alone creates wildlife from deterministic descriptors, skips server-saved defeated IDs, and writes a delta only from the authoritative actor callback. There is no client RPC or client-supplied ID, target, damage, or defeat result.
+
+Known limits: The actor is an authority/persistence seam only; wildlife remains non-interactive and hazards still use placeholder markers. End-to-end restart verification currently covers harvested nodes, not a wildlife defeat.
+
+Next task: Apply server-validated defeated deltas when generated hazards replace their placeholder markers.
+
 ### 2026-09-04 12:29 EEST — Define sparse defeated population deltas
 
 Outcome: Partial. Extended the versioned population save container with a separate sparse defeated-ID set for future generated wildlife and hazards. The base world remains wholly seed-derived; the new IDs use the existing server-derived kind/spatial-key/spawn-seed format and round-trip independently of harvest depletion.

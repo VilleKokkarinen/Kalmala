@@ -65,7 +65,8 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [ ] Persist consumed or defeated gameplay content as sparse world deltas keyed by seed, generator revision, and server spatial key.
   - [x] Define a versioned sparse server save container for harvest depletion keyed to immutable world identity and stable spawn IDs.
   - [x] Define sparse defeated-state storage for deterministic wildlife and hazard spawn IDs before those actor types are activated.
-  - [ ] Apply server-validated defeated deltas when the first generated wildlife or hazard actor is activated.
+  - [x] Apply server-validated defeated deltas when the first generated wildlife or hazard actor is activated.
+  - [ ] Apply server-validated defeated deltas when generated hazards replace their placeholder markers.
   - [x] Apply in-session harvest depletion deltas before server activation recreates a generated harvest node.
   - [x] Verify sparse harvest depletion deltas round-trip through `SaveGame` memory serialization without writing generated project files.
   - [x] Persist and reload server harvest-depletion deltas through the local/listen-server save slot only when world identity matches.

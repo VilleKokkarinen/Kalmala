@@ -2,6 +2,7 @@
 
 #include "KalmalaCharacter.h"
 #include "KalmalaHarvestNode.h"
+#include "KalmalaWildlifeSpawn.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -150,6 +151,22 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                     ++SpawnedMarkerCount;
                 }
             }
+            else if (Kind == EKalmalaWorldPopulationKind::Wildlife)
+            {
+                const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                if (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(PersistentSpawnId))
+                {
+                    continue;
+                }
+
+                AKalmalaWildlifeSpawn* WildlifeSpawn = GetWorld()->SpawnActor<AKalmalaWildlifeSpawn>(AKalmalaWildlifeSpawn::StaticClass(), Spawn.Location, FRotator::ZeroRotator);
+                if (WildlifeSpawn != nullptr)
+                {
+                    WildlifeSpawn->InitializeServer(Spawn);
+                    WildlifeSpawn->OnDefeated.AddUObject(this, &AKalmalaGameMode::RecordDefeatedSpawn);
+                    ++SpawnedMarkerCount;
+                }
+            }
             else
             {
                 AKalmalaWorldPopulationMarker* Marker = GetWorld()->SpawnActor<AKalmalaWorldPopulationMarker>(AKalmalaWorldPopulationMarker::StaticClass(), Spawn.Location, FRotator::ZeroRotator);
@@ -171,6 +188,15 @@ void AKalmalaGameMode::RecordHarvestedSpawn(const FString& PersistentSpawnId)
     if (HasAuthority() && PopulationSaveGame != nullptr && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
     {
         PopulationSaveGame->MarkHarvested(PersistentSpawnId);
+        UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot, 0);
+    }
+}
+
+void AKalmalaGameMode::RecordDefeatedSpawn(const FString& PersistentSpawnId)
+{
+    if (HasAuthority() && PopulationSaveGame != nullptr && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
+    {
+        PopulationSaveGame->MarkDefeated(PersistentSpawnId);
         UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot, 0);
     }
 }

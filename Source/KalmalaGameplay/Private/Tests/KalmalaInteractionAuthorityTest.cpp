@@ -2,6 +2,7 @@
 
 #include "KalmalaInteractionTestActor.h"
 #include "KalmalaHarvestNode.h"
+#include "KalmalaWildlifeSpawn.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -47,6 +48,19 @@ bool FKalmalaHarvestNodeAuthorityTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("The server rejects a distant harvester"), AKalmalaHarvestNode::IsHarvestAllowed(true, false, FVector(1000.0f, 0.0f, 0.0f), NodeLocation));
     TestFalse(TEXT("The server rejects a depleted node"), AKalmalaHarvestNode::IsHarvestAllowed(true, true, FVector(100.0f, 0.0f, 0.0f), NodeLocation));
     TestTrue(TEXT("The server accepts an in-range harvester for an available node"), AKalmalaHarvestNode::IsHarvestAllowed(true, false, FVector(100.0f, 0.0f, 0.0f), NodeLocation));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaWildlifeSpawnAuthorityTest,
+    "Kalmala.Gameplay.WildlifeSpawn.ServerOnlyDefeat",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaWildlifeSpawnAuthorityTest::RunTest(const FString& Parameters)
+{
+    TestFalse(TEXT("Clients cannot defeat a generated wildlife spawn"), AKalmalaWildlifeSpawn::IsDefeatAllowed(false, false));
+    TestFalse(TEXT("The server cannot defeat an already defeated wildlife spawn"), AKalmalaWildlifeSpawn::IsDefeatAllowed(true, true));
+    TestTrue(TEXT("The server can record the first validated wildlife defeat"), AKalmalaWildlifeSpawn::IsDefeatAllowed(true, false));
     return true;
 }
 
