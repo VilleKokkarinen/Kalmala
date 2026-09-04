@@ -9,6 +9,7 @@
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWorldPopulationMarker.h"
+#include "KalmalaWorldPopulationSaveGame.h"
 
 #include "Engine/World.h"
 #include "Components/CapsuleComponent.h"
@@ -56,6 +57,8 @@ void AKalmalaGameMode::BeginPlay()
     }
 
     WorldGenerationConfig = WorldGenerationState->GetWorldGenerationConfig();
+    PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
+    PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
 
     FActorSpawnParameters SpawnParameters;
     SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -120,10 +123,17 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
         {
             if (Kind == EKalmalaWorldPopulationKind::HarvestNode)
             {
+                const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                if (PopulationSaveGame != nullptr && PopulationSaveGame->IsHarvested(PersistentSpawnId))
+                {
+                    continue;
+                }
+
                 AKalmalaHarvestNode* HarvestNode = GetWorld()->SpawnActor<AKalmalaHarvestNode>(AKalmalaHarvestNode::StaticClass(), Spawn.Location, FRotator::ZeroRotator);
                 if (HarvestNode != nullptr)
                 {
                     HarvestNode->InitializeServer(Spawn);
+                    HarvestNode->OnHarvested.AddUObject(this, &AKalmalaGameMode::RecordHarvestedSpawn);
                     ++SpawnedMarkerCount;
                 }
             }
@@ -141,6 +151,14 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
 
     ActivePopulationSpatialKeys.Add(SpatialKey);
     UE_LOG(LogTemp, Display, TEXT("Server activated %d deterministic population markers for spatial key (%d, %d); %d/%d active."), SpawnedMarkerCount, SpatialKey.X, SpatialKey.Y, ActivePopulationSpatialKeys.Num(), KalmalaGameMode::MaxActivePopulationSpatialKeys);
+}
+
+void AKalmalaGameMode::RecordHarvestedSpawn(const FString& PersistentSpawnId)
+{
+    if (HasAuthority() && PopulationSaveGame != nullptr && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
+    {
+        PopulationSaveGame->MarkHarvested(PersistentSpawnId);
+    }
 }
 
 void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)

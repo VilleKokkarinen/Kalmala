@@ -40,6 +40,7 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
     {
         bHarvested = true;
         ApplyHarvestedState();
+        OnHarvested.Broadcast(PersistentSpawnId);
         ForceNetUpdate();
     }
 }
