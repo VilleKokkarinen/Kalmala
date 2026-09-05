@@ -1053,3 +1053,16 @@ Multiplayer impact: Only authoritative `GameMode` evaluates active lake keys, ap
 Known limits: The discovery reuses the current minimal harvest-node presentation and reward contract. Human lake-camp usability and full host/client biome scenario coverage are deferred to the Phase 6 verification task; no water traversal system exists before Phase 7.
 
 Next task: Deliver the full Elderwood slice: field-driven canopy, shade, roots, and clearings plus an optional discovery and a compact-versus-open camp tradeoff; never create a trail.
+### 2026-09-05 11:14 EEST - Deliver Elderwood slice
+
+Outcome: Complete. Added field-driven Elderwood canopy, non-colliding root buttresses, and continuous lower-density clearings to local terrain presentation. Elderwood-classified server spatial keys now use the bounded shared population profile, server pawn exposure applies the compact-canopy cover/wind tradeoff, and a deterministic search materializes at most one gently sloped lower-flora optional harvest discovery with a stable ID. No trail, route, reserved camp, authored clearing, collision change, or new persistence contract was added.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/08-world-generation-and-biomes.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` succeeded. Headless `Kalmala.World.BiomeExpansion.ElderwoodSlice` completed successfully with `-DDC-ForceMemoryCache`, checking a deterministic Elderwood lower-flora clearing discovery, gently traversable terrain, compact-cover wind/natural-cover tradeoff, and stable ID reproduction. `git diff --check` passed.
+
+Multiplayer impact: Only authoritative `GameMode` classifies active keys, applies the profile, creates the discovery node, validates its existing harvest interaction, and records its existing sparse depletion delta. Clients cannot choose an Elderwood position, candidate, population budget, exposure input, discovery ID, or harvest outcome. Canopy, roots, and clearings are local collision-free meshes derived only from replicated world identity and patch descriptor.
+
+Known limits: The discovery reuses the current minimal harvest-node presentation and reward contract. The focused test verifies deterministic rules rather than rendered host/client canopy presentation; full cross-biome host/client scenario coverage remains the final Phase 6 task.
+
+Next task: Deliver the full Mossy Mire slice: saturated, slower traversable ground, dry hummocks, drainage/raised-shelter preparation, and an optional discovery; never require a crossing.

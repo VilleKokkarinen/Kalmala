@@ -124,6 +124,8 @@ The shared biome-expansion contract uses the existing world identity, four-field
 
 Shimmering Lakes is complete: continuous patch rendering supplies interlocking collision-free water and shore treatment, while its server slice increases wet-shore pressure through the existing exposure loop and resolves one dry, water-adjacent optional harvest discovery from the active server spatial key. The discovery uses the normal validated harvest and sparse depletion path. It adds no boat, swimming physics, route, bridge, island crossing requirement, or authored camp location.
 
+Elderwood is complete: local terrain presentation derives larger field-driven canopy and non-colliding root buttresses, with continuous Flora leaving lower-density natural clearings. Its server slice applies the Elderwood population and exposure profile only at Elderwood-classified keys and pawn positions, and resolves at most one gently sloped, lower-flora optional harvest discovery per active key. The compact canopy reduces wind and increases natural cover relative to open ground through the existing exposure loop. It adds no trail, route, reserved camp, authored clearing, or client-selected discovery.
+
 **Done when:** every added biome is enjoyable on its own, blends naturally with its neighbours, and remains consistent for host and client.
 
 ### 7. Ocean and long-distance travel

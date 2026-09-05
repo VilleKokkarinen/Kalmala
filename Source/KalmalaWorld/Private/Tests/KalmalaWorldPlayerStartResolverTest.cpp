@@ -384,4 +384,33 @@ bool FKalmalaShimmeringLakesSliceTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaElderwoodSliceTest, "Kalmala.World.BiomeExpansion.ElderwoodSlice", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaElderwoodSliceTest::RunTest(const FString& Parameters)
+{
+    const FKalmalaWorldGenerationConfig Config{ 418ull, 1 };
+    bool bFoundClearingDiscovery = false;
+    for (int32 Y = -6; Y <= 6 && !bFoundClearingDiscovery; ++Y)
+    {
+        for (int32 X = -6; X <= 6 && !bFoundClearingDiscovery; ++X)
+        {
+            const FIntPoint SpatialKey(X, Y);
+            FKalmalaBiomeDiscoveryCandidate Discovery;
+            if (!FKalmalaBiomeExpansionContract::TryBuildElderwoodDiscovery(Config, SpatialKey, Discovery)) continue;
+            const FVector2D Position(Discovery.Location);
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
+            const FKalmalaEnvironmentalExposureSample OpenExposure = FKalmalaEnvironmentalExposureSampler::Sample(Config, Position);
+            const FKalmalaEnvironmentalExposureSample CompactExposure = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(OpenExposure, EKalmalaBiome::Elderwood);
+            TestEqual(TEXT("Elderwood discovery remains inside the continuous Elderwood classifier"), FKalmalaBiomeClassifier::Classify(Fields), EKalmalaBiome::Elderwood);
+            TestTrue(TEXT("Elderwood discovery resolves a lower-flora clearing rather than an authored site"), Fields.Flora <= 0.76f);
+            TestTrue(TEXT("Elderwood discovery stays on gently traversable terrain"), FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.86f);
+            TestTrue(TEXT("Compact Elderwood cover reduces wind exposure versus an open camp"), CompactExposure.WindExposure <= OpenExposure.WindExposure);
+            TestTrue(TEXT("Compact Elderwood cover increases natural shelter versus an open camp"), CompactExposure.NaturalCover >= OpenExposure.NaturalCover);
+            TestEqual(TEXT("Elderwood clearing discovery has a stable sparse identifier"), Discovery.StableId, FKalmalaBiomeExpansionContract::BuildDiscoveryCandidate(Config, SpatialKey, EKalmalaBiome::Elderwood).StableId);
+            bFoundClearingDiscovery = true;
+        }
+    }
+    TestTrue(TEXT("Seed contains a deterministic Elderwood clearing discovery without a trail"), bFoundClearingDiscovery);
+    return true;
+}
+
 #endif

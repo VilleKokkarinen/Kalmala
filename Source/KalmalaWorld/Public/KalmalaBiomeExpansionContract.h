@@ -126,6 +126,30 @@ struct KALMALAWORLD_API FKalmalaBiomeExpansionContract
         return false;
     }
 
+    /** Finds one gently sloped, lower-flora Elderwood clearing. It is a server input and does not form a trail or reserved camp. */
+    static bool TryBuildElderwoodDiscovery(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, FKalmalaBiomeDiscoveryCandidate& OutCandidate)
+    {
+        const FKalmalaBiomeDiscoveryCandidate BaseCandidate = BuildDiscoveryCandidate(Config, SpatialKey, EKalmalaBiome::Elderwood);
+        for (int32 Attempt = 0; Attempt < 24; ++Attempt)
+        {
+            const uint64 AttemptSeed = Mix(BaseCandidate.CandidateSeed ^ static_cast<uint64>(Attempt + 1) * 0xD1B54A32D192ED03ull);
+            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FVector2D Position = Origin + FVector2D(
+                static_cast<float>(AttemptSeed & 0xFFFFu) / 65535.0f,
+                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
+            if (FKalmalaBiomeClassifier::Classify(Fields) == EKalmalaBiome::Elderwood
+                && Fields.Flora <= 0.76f
+                && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.86f)
+            {
+                OutCandidate = BaseCandidate;
+                OutCandidate.Location = FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position) + 20.0f);
+                return true;
+            }
+        }
+        return false;
+    }
+
 private:
     static uint64 Mix(uint64 Value)
     {

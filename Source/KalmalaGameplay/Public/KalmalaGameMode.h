@@ -52,6 +52,7 @@ private:
     TSet<FIntPoint> ActiveTerrainPatchCoordinates;
     TSet<FIntPoint> ActivePopulationSpatialKeys;
     TSet<FIntPoint> ActiveShimmeringLakeDiscoveryKeys;
+    TSet<FIntPoint> ActiveElderwoodDiscoveryKeys;
     float NextTerrainPatchActivationTime = 0.0f;
     float NextExposureUpdateTime = 0.0f;
     bool bTraversalTestEnabled = false;

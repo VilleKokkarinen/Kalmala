@@ -77,6 +77,10 @@ Launch a listen server with `-KalmalaBiomeFeatureInspection` and join a player t
 
 After an editor build, run the focused `Kalmala.World.BiomeExpansion.ShimmeringLakesSlice` headless automation with `-DDC-ForceMemoryCache`. It searches deterministic spatial keys for a dry Shimmering Lakes discovery location, verifies adjacent seed-derived water and the wet-shore exposure tradeoff, and confirms that the stable discovery ID reproduces. Runtime activation remains server-only: it creates at most one normal validated harvest discovery per active lake key and requires neither water physics nor a boat.
 
+## Elderwood slice verification
+
+After an editor build, run the focused `Kalmala.World.BiomeExpansion.ElderwoodSlice` headless automation with `-DDC-ForceMemoryCache`. It searches deterministic spatial keys for a gently sloped, lower-flora Elderwood clearing discovery, verifies the compact-canopy exposure tradeoff and stable ID reproduction, and does not create a trail or reserve a camp. Runtime activation remains server-only: it creates at most one normal validated harvest discovery per active Elderwood key; field-driven canopy and root presentation are local cosmetic meshes derived from the replicated world identity and patch descriptor.
+
 ## Source-control rules
 
 - Commit `Config/`, `Source/`, `.uproject`, and `.uasset`/`.umap` content assets.

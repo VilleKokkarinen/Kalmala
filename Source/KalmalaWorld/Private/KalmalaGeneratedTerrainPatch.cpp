@@ -17,7 +17,8 @@ namespace KalmalaGeneratedTerrainPatch
     constexpr int32 SurfaceCellsPerSide = 24;
     constexpr int32 RockCandidateCount = 48;
     constexpr float RockEdgeMargin = 150.0f;
-    constexpr int32 TreeCandidateCount = 18;
+    constexpr int32 MeadowTreeCandidateCount = 18;
+    constexpr int32 ElderwoodTreeCandidateCount = 72;
     constexpr float TreeEdgeMargin = 260.0f;
     constexpr uint64 TreeSeedSalt = 0xD1B54A32D192ED03ull;
     constexpr float LakeShoreWidth = 24.0f;
@@ -135,6 +136,26 @@ namespace KalmalaGeneratedTerrainPatch
             const int32 NextIndex = (SideIndex + 1) % SideCount;
             Triangles.Append({TrunkFirstVertex + SideIndex * 2, TrunkFirstVertex + NextIndex * 2, TrunkFirstVertex + SideIndex * 2 + 1, TrunkFirstVertex + SideIndex * 2 + 1, TrunkFirstVertex + NextIndex * 2, TrunkFirstVertex + NextIndex * 2 + 1});
             CanopyTriangles.Append({CanopyFirstVertex + SideIndex, CanopyApex, CanopyFirstVertex + NextIndex});
+        }
+    }
+
+    static void AppendRootButtresses(
+        TArray<FVector>& Vertices, TArray<int32>& Triangles, TArray<FVector>& Normals, TArray<FVector2D>& UVs, TArray<FLinearColor>& VertexColors, TArray<FProcMeshTangent>& Tangents,
+        const FVector BaseCenter, const float Radius, const float YawDegrees)
+    {
+        constexpr int32 RootCount = 4;
+        for (int32 RootIndex = 0; RootIndex < RootCount; ++RootIndex)
+        {
+            const float Angle = FMath::DegreesToRadians(YawDegrees + 360.0f * RootIndex / RootCount);
+            const FVector Direction(FMath::Cos(Angle), FMath::Sin(Angle), 0.0f);
+            const FVector Side(-Direction.Y, Direction.X, 0.0f);
+            const int32 FirstVertex = Vertices.Num();
+            Vertices.Append({ BaseCenter + Side * Radius * 0.55f, BaseCenter - Side * Radius * 0.55f, BaseCenter + Direction * Radius * 3.2f, BaseCenter + FVector(0.0f, 0.0f, Radius * 2.1f) });
+            Normals.Append({ FVector::UpVector, FVector::UpVector, FVector::UpVector, (Direction + FVector::UpVector).GetSafeNormal() });
+            UVs.Append({ FVector2D::ZeroVector, FVector2D(1.0f, 0.0f), FVector2D(0.5f, 1.0f), FVector2D(0.5f, 0.5f) });
+            VertexColors.Append({ FLinearColor(0.16f, 0.10f, 0.06f), FLinearColor(0.16f, 0.10f, 0.06f), FLinearColor(0.13f, 0.08f, 0.05f), FLinearColor(0.20f, 0.13f, 0.08f) });
+            Tangents.Append({ FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f) });
+            Triangles.Append({ FirstVertex, FirstVertex + 2, FirstVertex + 3, FirstVertex + 2, FirstVertex + 1, FirstVertex + 3 });
         }
     }
 
@@ -274,7 +295,7 @@ void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConf
     }
     if (BuildMeadowTrees())
     {
-        UE_LOG(LogTemp, Display, TEXT("Server built %d deterministic Meadow trees."), MeadowTreeCount);
+        UE_LOG(LogTemp, Display, TEXT("Server built %d deterministic Meadow/Elderwood trees and roots."), MeadowTreeCount);
     }
     ForceNetUpdate();
 }
@@ -303,7 +324,7 @@ void AKalmalaGeneratedTerrainPatch::OnRep_GenerationData()
         }
         if (BuildMeadowTrees())
         {
-            UE_LOG(LogTemp, Display, TEXT("Client built %d deterministic Meadow trees from the replicated patch descriptor."), MeadowTreeCount);
+            UE_LOG(LogTemp, Display, TEXT("Client built %d deterministic Meadow/Elderwood trees and roots from the replicated patch descriptor."), MeadowTreeCount);
         }
     }
 }
@@ -623,27 +644,44 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowTrees()
     TArray<FLinearColor> CanopyColors;
     TArray<FProcMeshTangent> CanopyTangents;
     MeadowTreeCount = 0;
-    for (int32 CandidateIndex = 0; CandidateIndex < KalmalaGeneratedTerrainPatch::TreeCandidateCount; ++CandidateIndex)
+    for (int32 CandidateIndex = 0; CandidateIndex < KalmalaGeneratedTerrainPatch::ElderwoodTreeCandidateCount; ++CandidateIndex)
     {
         const FVector2D LocalPosition(
             RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::TreeEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::TreeEdgeMargin),
             RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::TreeEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::TreeEdgeMargin));
         const FVector2D SamplePosition = PatchCenter + LocalPosition;
-        if (FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition)) != EKalmalaBiome::Meadows)
+        const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition);
+        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(Fields);
+        if (Biome != EKalmalaBiome::Meadows && Biome != EKalmalaBiome::Elderwood)
         {
             continue;
         }
 
-        const float TrunkHeight = RandomStream.FRandRange(340.0f, 620.0f);
-        const float TrunkRadius = RandomStream.FRandRange(14.0f, 25.0f);
-        const float CanopyRadius = RandomStream.FRandRange(105.0f, 170.0f);
-        const float CanopyHeight = RandomStream.FRandRange(140.0f, 240.0f);
+        if (Biome == EKalmalaBiome::Meadows && CandidateIndex >= KalmalaGeneratedTerrainPatch::MeadowTreeCandidateCount)
+        {
+            continue;
+        }
+        // Flora continuously controls Elderwood density: lower-flora pockets stay clear without becoming authored spaces.
+        if (Biome == EKalmalaBiome::Elderwood && RandomStream.FRand() > FMath::Clamp((Fields.Flora - 0.60f) / 0.24f, 0.20f, 0.92f))
+        {
+            continue;
+        }
+
+        const bool bElderwood = Biome == EKalmalaBiome::Elderwood;
+        const float TrunkHeight = RandomStream.FRandRange(bElderwood ? 520.0f : 340.0f, bElderwood ? 850.0f : 620.0f);
+        const float TrunkRadius = RandomStream.FRandRange(bElderwood ? 28.0f : 14.0f, bElderwood ? 48.0f : 25.0f);
+        const float CanopyRadius = RandomStream.FRandRange(bElderwood ? 185.0f : 105.0f, bElderwood ? 285.0f : 170.0f);
+        const float CanopyHeight = RandomStream.FRandRange(bElderwood ? 220.0f : 140.0f, bElderwood ? 360.0f : 240.0f);
         const float SurfaceHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition);
         const float TreeYaw = RandomStream.FRandRange(0.0f, 360.0f);
         KalmalaGeneratedTerrainPatch::AppendTaperedTree(
             TrunkVertices, TrunkTriangles, TrunkNormals, TrunkUVs, TrunkColors, TrunkTangents,
             FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight), TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw,
             CanopyVertices, CanopyTriangles, CanopyNormals, CanopyUVs, CanopyColors, CanopyTangents);
+        if (bElderwood)
+        {
+            KalmalaGeneratedTerrainPatch::AppendRootButtresses(TrunkVertices, TrunkTriangles, TrunkNormals, TrunkUVs, TrunkColors, TrunkTangents, FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight), TrunkRadius, TreeYaw);
+        }
         ++MeadowTreeCount;
     }
 
