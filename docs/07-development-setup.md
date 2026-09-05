@@ -45,6 +45,10 @@ Run the prototype map twice as a listen server with `-KalmalaReconnectVerificati
 
 Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 68–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.
 
+## Exposure replication smoke test
+
+Launch a headless listen server and then join one headless client with `-KalmalaExposureReplicationTest`. The server spawns a temporary lit campfire and initializes each normal player pawn to a wet, low-warmth state. Its server log records weather, sampled shelter, fire warmth, and the resulting exposure values; the client log records the replicated weather, campfire, and exposure values. The developer-only path has no client RPCs for weather, exposure, or campfire mutation and adds no persistent gameplay content.
+
 ## Camp-condition inspection
 
 Launch a listen server with `-KalmalaCampConditionInspection` and join a player. The server logs the freely chosen position's continuous natural cover, ground wetness, bounded nearest-water distance, and nearby deterministic harvest-node count. It only explains local tradeoffs; it neither creates nor marks a camp location, and clients cannot invoke or alter it.

@@ -35,7 +35,7 @@ FTransform FKalmalaWorldPlayerStartResolver::ResolveStartTransform(const FKalmal
         }
     }
 
-    constexpr float PawnClearance = 120.0f;
+    constexpr float PawnClearance = 136.0f;
     return FTransform(
         FRotator::ZeroRotator,
         FVector(BestLocation.X, BestLocation.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, BestLocation) + PawnClearance));

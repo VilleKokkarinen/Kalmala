@@ -77,6 +77,10 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
         State.Warmth = FKalmalaExposureResponse::AdvanceWarmth(State.Warmth, Environment.AmbientTemperature, State.Wetness, Environment.WindExposure * Weather.WindStrength, Shelter.Shelter, FireWarmth, DeltaSeconds);
         State.TravelSpeedMultiplier = FKalmalaExposureResponse::GetTravelSpeedMultiplier(State.Warmth);
         Character->SetExposureStateFromServer(State);
+        if (bExposureReplicationTestEnabled)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Exposure replication test server state for %s: Weather=%d/%.2f/%d/%.2f Shelter=%.2f FireWarmth=%.2f Wetness=%.2f Warmth=%.2f TravelMultiplier=%.2f."), *Character->GetName(), Weather.WeatherCycleIndex, Weather.PrecipitationIntensity, Weather.WindDirectionDegrees, Weather.WindStrength, Shelter.Shelter, FireWarmth, State.Wetness, State.Warmth, State.TravelSpeedMultiplier);
+        }
     }
 }
 
@@ -129,8 +133,13 @@ void AKalmalaGameMode::BeginPlay()
         TerrainPatchOrigin = FVector2D(StartLocation.X, StartLocation.Y);
         ActivateTerrainPatchNeighborhood(TerrainPatchOrigin);
         UE_LOG(LogTemp, Display, TEXT("Server activated %d seed-derived terrain patches around the generated start."), ActiveTerrainPatchCoordinates.Num());
+        for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+        {
+            PlacePawnAtGeneratedStart(Iterator->Get());
+        }
         ConfigureTraversalTest();
         bExposureInspectionEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureInspection"));
+        bExposureReplicationTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureReplicationTest"));
         bCampConditionInspectionEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampConditionInspection"));
         if (!ReconnectVerificationMode.IsEmpty())
         {
@@ -322,7 +331,9 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer);
 
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bCampConditionInspectionEnabled) || NewPlayer == nullptr)
+    PlacePawnAtGeneratedStart(NewPlayer);
+
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled) || NewPlayer == nullptr)
     {
         return;
     }
@@ -342,6 +353,32 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     if (bCampConditionInspectionEnabled)
     {
         LogCampConditionInspection(NewPlayer->GetPawn());
+    }
+
+    if (bExposureReplicationTestEnabled && !bExposureReplicationCampfireSpawned && NewPlayer->GetPawn() != nullptr)
+    {
+        FActorSpawnParameters SpawnParameters;
+        SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        AKalmalaCampfire* Campfire = GetWorld()->SpawnActor<AKalmalaCampfire>(AKalmalaCampfire::StaticClass(), NewPlayer->GetPawn()->GetActorLocation() + FVector(120.0f, 0.0f, 0.0f), FRotator::ZeroRotator, SpawnParameters);
+        if (Campfire != nullptr)
+        {
+            Campfire->Interact_Implementation(Cast<AKalmalaCharacter>(NewPlayer->GetPawn()));
+            bExposureReplicationCampfireSpawned = Campfire->IsLit();
+            UE_LOG(LogTemp, Display, TEXT("Exposure replication test server spawned lit campfire: Lit=%d FuelWetness=%.2f EffectiveWarmth=%.2f."), Campfire->IsLit(), Campfire->GetFuelWetness(), Campfire->GetEffectiveWarmth());
+        }
+    }
+
+    if (bExposureReplicationTestEnabled)
+    {
+        if (AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(NewPlayer->GetPawn()))
+        {
+            FKalmalaExposureState RecoveryState;
+            RecoveryState.Wetness = 45.0f;
+            RecoveryState.Warmth = 65.0f;
+            RecoveryState.TravelSpeedMultiplier = FKalmalaExposureResponse::GetTravelSpeedMultiplier(RecoveryState.Warmth);
+            Character->SetExposureStateFromServer(RecoveryState);
+            UE_LOG(LogTemp, Display, TEXT("Exposure replication test server initialized recovery state for %s: Wetness=%.2f Warmth=%.2f."), *Character->GetName(), RecoveryState.Wetness, RecoveryState.Warmth);
+        }
     }
 
     UE_LOG(LogTemp, Display, TEXT("Developer verification server player joined with pawn: %s."), *GetNameSafe(NewPlayer->GetPawn()));
@@ -542,6 +579,35 @@ void AKalmalaGameMode::DriveTraversalTest()
     }
 }
 
+void AKalmalaGameMode::PlacePawnAtGeneratedStart(APlayerController* PlayerController)
+{
+    if (!HasAuthority() || PlayerController == nullptr || GeneratedPlayerStart == nullptr)
+    {
+        return;
+    }
+
+    if (PlayerController->GetPawn() == nullptr)
+    {
+        RestartPlayer(PlayerController);
+    }
+
+    APawn* Pawn = PlayerController->GetPawn();
+    if (Pawn == nullptr)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Could not spawn a pawn at the generated player start for %s."), *PlayerController->GetName());
+        return;
+    }
+
+    const FVector2D StartPosition(GeneratedPlayerStart->GetActorLocation());
+    const float TerrainHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, StartPosition);
+    const float RequiredCentreHeight = TerrainHeight + Pawn->GetSimpleCollisionHalfHeight() + 30.0f;
+    FVector SpawnLocation = GeneratedPlayerStart->GetActorLocation();
+    SpawnLocation.Z = FMath::Max(SpawnLocation.Z, RequiredCentreHeight);
+    Pawn->SetActorLocationAndRotation(SpawnLocation, GeneratedPlayerStart->GetActorRotation(), false, nullptr, ETeleportType::TeleportPhysics);
+    Pawn->ForceNetUpdate();
+    UE_LOG(LogTemp, Display, TEXT("Server placed %s at generated terrain height %.2f with capsule bottom %.2f."), *Pawn->GetName(), TerrainHeight, SpawnLocation.Z - Pawn->GetSimpleCollisionHalfHeight());
+}
+
 void AKalmalaGameMode::ActivateTerrainPatch(const FIntPoint& PatchCoordinate)
 {
     if (!HasAuthority() || ActiveTerrainPatchCoordinates.Contains(PatchCoordinate) || ActiveTerrainPatchCoordinates.Num() >= KalmalaGameMode::MaxActiveTerrainPatches || GetWorld() == nullptr)
@@ -549,16 +615,18 @@ void AKalmalaGameMode::ActivateTerrainPatch(const FIntPoint& PatchCoordinate)
         return;
     }
 
-    AKalmalaGeneratedTerrainPatch* TerrainPatch = GetWorld()->SpawnActor<AKalmalaGeneratedTerrainPatch>(AKalmalaGeneratedTerrainPatch::StaticClass());
+    const FVector2D PatchCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(TerrainPatchOrigin, PatchCoordinate.X, PatchCoordinate.Y);
+    AKalmalaGeneratedTerrainPatch* TerrainPatch = GetWorld()->SpawnActor<AKalmalaGeneratedTerrainPatch>(
+        AKalmalaGeneratedTerrainPatch::StaticClass(), FVector(PatchCenter.X, PatchCenter.Y, 0.0f), FRotator::ZeroRotator);
     if (TerrainPatch == nullptr)
     {
         UE_LOG(LogTemp, Warning, TEXT("Could not activate terrain patch (%d, %d)."), PatchCoordinate.X, PatchCoordinate.Y);
         return;
     }
 
-    TerrainPatch->Initialize(WorldGenerationConfig, FKalmalaTerrainPatchLayout::GetPatchCenter(TerrainPatchOrigin, PatchCoordinate.X, PatchCoordinate.Y));
+    TerrainPatch->Initialize(WorldGenerationConfig, PatchCenter);
     ActiveTerrainPatchCoordinates.Add(PatchCoordinate);
-    UE_LOG(LogTemp, Display, TEXT("Server activated terrain patch (%d, %d); %d/%d active."), PatchCoordinate.X, PatchCoordinate.Y, ActiveTerrainPatchCoordinates.Num(), KalmalaGameMode::MaxActiveTerrainPatches);
+    UE_LOG(LogTemp, Display, TEXT("Server activated terrain patch (%d, %d) at %s; %d/%d active."), PatchCoordinate.X, PatchCoordinate.Y, *TerrainPatch->GetActorLocation().ToCompactString(), ActiveTerrainPatchCoordinates.Num(), KalmalaGameMode::MaxActiveTerrainPatches);
 }
 
 void AKalmalaGameMode::ActivateTerrainPatchNeighborhood(const FVector2D& WorldPosition)

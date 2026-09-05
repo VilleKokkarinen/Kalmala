@@ -24,6 +24,7 @@ public:
 
     const FKalmalaWorldGenerationConfig& GetWorldGenerationConfig() const { return WorldGenerationConfig; }
     const FKalmalaWeatherState& GetWeatherState() const { return WeatherState; }
+    static bool IsWeatherUpdateAllowed(bool bServerAuthority);
 
     /** Called by the authoritative GameMode after deterministic weather selection. */
     void SetWeatherStateFromServer(const FKalmalaWeatherState& InWeatherState);

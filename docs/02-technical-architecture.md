@@ -87,3 +87,5 @@ Magic-scroll discoveries and learned support effects are server-authoritative pr
 ## Verification minimum
 
 Every feature needs an automated test where practical, plus a reproducible multiplayer test: host + one client or dedicated server + two clients. Profile before increasing simulation area, actor count, or replication frequency.
+
+`-KalmalaExposureReplicationTest` is the Phase 4 host/client smoke path. It is server-configured only: the server records its sampled weather, shelter, fire contribution, and exposure result; the client logs only replicated weather, campfire, and exposure state. It starts each verification pawn wet and low on warmth beside a temporary server-owned fire so the logs show recovery without changing persistent world data.

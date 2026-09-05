@@ -36,9 +36,14 @@ AKalmalaCharacter::AKalmalaCharacter()
     FollowCamera->bUsePawnControlRotation = false;
 }
 
+bool AKalmalaCharacter::IsExposureUpdateAllowed(const bool bServerAuthority)
+{
+    return bServerAuthority;
+}
+
 void AKalmalaCharacter::SetExposureStateFromServer(const FKalmalaExposureState& NewExposureState)
 {
-    if (!HasAuthority())
+    if (!IsExposureUpdateAllowed(HasAuthority()))
     {
         return;
     }
@@ -60,6 +65,7 @@ void AKalmalaCharacter::BeginPlay()
 {
     Super::BeginPlay();
     bTraversalTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaTraversalTest"));
+    bExposureReplicationTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureReplicationTest"));
     TraversalStartLocation = GetActorLocation();
 }
 
@@ -131,6 +137,10 @@ void AKalmalaCharacter::ConfigureTraversalTestTarget()
 void AKalmalaCharacter::OnRep_ExposureState()
 {
     ApplyExposureTravelPenalty();
+    if (bExposureReplicationTelemetryEnabled)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Exposure replication test client received state: Wetness=%.2f Warmth=%.2f TravelMultiplier=%.2f."), ExposureState.Wetness, ExposureState.Warmth, ExposureState.TravelSpeedMultiplier);
+    }
 }
 
 void AKalmalaCharacter::ApplyExposureTravelPenalty()

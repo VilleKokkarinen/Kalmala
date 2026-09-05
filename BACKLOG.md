@@ -91,7 +91,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Let prolonged exposure reduce warmth and apply a clear, reversible travel or stamina penalty; shelter, a fire, and preparation must offer viable recovery.
 - [x] Ensure generated terrain offers varied local conditions for freely chosen camps, with understandable differences in cover, ground wetness, distance, and resources.
 - [ ] Verify host/client agreement and meaningful choices.
-  - [ ] Verify host and client observe matching weather, exposure, shelter, fire, and recovery state, and that clients cannot alter any authoritative value.
+  - [x] Verify host and client observe matching weather, exposure, shelter, fire, and recovery state, and that clients cannot alter any authoritative value.
 - [ ] Run a two-player scenario showing freely chosen camp locations with different weather preparation tradeoffs and no built or guided path.
 
 ### Phase 5 — Companion minimap

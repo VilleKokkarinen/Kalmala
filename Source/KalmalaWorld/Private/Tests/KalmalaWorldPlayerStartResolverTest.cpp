@@ -36,7 +36,7 @@ bool FKalmalaWorldPlayerStartResolverTest::RunTest(const FString& Parameters)
     TestEqual(
         TEXT("The start uses the shared terrain height plus pawn clearance"),
         static_cast<double>(FirstLocation.Z),
-        static_cast<double>(FKalmalaTerrainHeightSampler::SampleHeight(Config, FVector2D(FirstLocation.X, FirstLocation.Y)) + 120.0f),
+        static_cast<double>(FKalmalaTerrainHeightSampler::SampleHeight(Config, FVector2D(FirstLocation.X, FirstLocation.Y)) + 136.0f),
         0.01);
     TestTrue(
         TEXT("The shared terrain surface normal is normalized"),

@@ -37,9 +37,14 @@ void AKalmalaWorldGenerationGameState::OnRep_WorldGenerationConfig()
     LogWorldGenerationIdentity(TEXT("Client received"));
 }
 
+bool AKalmalaWorldGenerationGameState::IsWeatherUpdateAllowed(const bool bServerAuthority)
+{
+    return bServerAuthority;
+}
+
 void AKalmalaWorldGenerationGameState::SetWeatherStateFromServer(const FKalmalaWeatherState& InWeatherState)
 {
-    check(HasAuthority());
+    check(IsWeatherUpdateAllowed(HasAuthority()));
     check(InWeatherState.IsValid());
     WeatherState = InWeatherState;
     ForceNetUpdate();

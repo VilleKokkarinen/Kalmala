@@ -28,6 +28,9 @@ public:
 
     static bool IsLightingAllowed(bool bServerAuthority, float FuelWetness);
     float GetWarmthContributionAt(const FVector& Location) const;
+    bool IsLit() const { return bIsLit; }
+    float GetFuelWetness() const { return FuelWetness; }
+    float GetEffectiveWarmth() const { return EffectiveWarmth; }
 
 private:
     void UpdateFromServerWeather(float DeltaSeconds);

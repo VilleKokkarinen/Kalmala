@@ -5,6 +5,8 @@
 #include "KalmalaCampfireWeatherResponse.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
 
 namespace KalmalaCampfire
@@ -95,6 +97,10 @@ void AKalmalaCampfire::UpdateFromServerWeather(const float DeltaSeconds)
 void AKalmalaCampfire::OnRep_CampfireState()
 {
     ApplyReplicatedState();
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureReplicationTest")))
+    {
+        UE_LOG(LogTemp, Display, TEXT("Exposure replication test client received campfire: Lit=%d FuelWetness=%.2f EffectiveWarmth=%.2f."), bIsLit, FuelWetness, EffectiveWarmth);
+    }
 }
 
 void AKalmalaCampfire::ApplyReplicatedState()

@@ -1,12 +1,14 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaInteractionTestActor.h"
+#include "KalmalaCharacter.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaCampfireWeatherResponse.h"
 #include "KalmalaExposureResponse.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaHazardSpawn.h"
 #include "KalmalaWildlifeSpawn.h"
+#include "KalmalaWorldGenerationGameState.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -97,6 +99,21 @@ bool FKalmalaExposureConsequenceTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Shelter and a lit fire dry the player"), RecoveredWetness < ExposedWetness);
     TestTrue(TEXT("Shelter and a lit fire recover warmth"), RecoveredWarmth > ExposedWarmth);
     TestEqual(TEXT("Recovered warmth removes the travel penalty"), FKalmalaExposureResponse::GetTravelSpeedMultiplier(RecoveredWarmth), 1.0f);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaExposureAuthorityTest,
+    "Kalmala.Gameplay.Exposure.ServerAuthoritativeReplicationContract",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaExposureAuthorityTest::RunTest(const FString& Parameters)
+{
+    TestFalse(TEXT("A client cannot update replicated weather"), AKalmalaWorldGenerationGameState::IsWeatherUpdateAllowed(false));
+    TestTrue(TEXT("Only the server can update replicated weather"), AKalmalaWorldGenerationGameState::IsWeatherUpdateAllowed(true));
+    TestFalse(TEXT("A client cannot update replicated exposure"), AKalmalaCharacter::IsExposureUpdateAllowed(false));
+    TestTrue(TEXT("Only the server can update replicated exposure"), AKalmalaCharacter::IsExposureUpdateAllowed(true));
+    TestFalse(TEXT("A client cannot light a replicated campfire"), AKalmalaCampfire::IsLightingAllowed(false, 0.0f));
     return true;
 }
 

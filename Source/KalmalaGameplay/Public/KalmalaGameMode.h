@@ -36,6 +36,7 @@ private:
     void UpdatePlayerExposure(float DeltaSeconds);
     void InitializeWeatherCycle();
     void AdvanceWeatherCycleIfNeeded();
+    void PlacePawnAtGeneratedStart(class APlayerController* PlayerController);
 
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
@@ -47,6 +48,8 @@ private:
     float NextExposureUpdateTime = 0.0f;
     bool bTraversalTestEnabled = false;
     bool bExposureInspectionEnabled = false;
+    bool bExposureReplicationTestEnabled = false;
+    bool bExposureReplicationCampfireSpawned = false;
     bool bCampConditionInspectionEnabled = false;
     FString ReconnectVerificationMode;
     FVector2D TraversalTestTarget = FVector2D::ZeroVector;

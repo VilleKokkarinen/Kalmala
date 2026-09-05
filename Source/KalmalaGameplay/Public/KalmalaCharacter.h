@@ -36,6 +36,7 @@ public:
     AKalmalaCharacter();
 
     const FKalmalaExposureState& GetExposureState() const { return ExposureState; }
+    static bool IsExposureUpdateAllowed(bool bServerAuthority);
     void SetExposureStateFromServer(const FKalmalaExposureState& NewExposureState);
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -74,6 +75,7 @@ private:
     float BaselineMaxWalkSpeed = 0.0f;
 
     bool bTraversalTelemetryEnabled = false;
+    bool bExposureReplicationTelemetryEnabled = false;
     bool bTraversalMovementLogged = false;
     bool bTraversalTargetConfigured = false;
     bool bTraversalArrivalLogged = false;
