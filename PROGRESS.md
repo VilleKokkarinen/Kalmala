@@ -985,3 +985,17 @@ Multiplayer impact: The model runs only for a local controller and consumes only
 Known limits: No widget, circular clipping, landmarks, player marker rendering, zoom binding, or host/client visual scenario exists yet. The model deliberately produces a square normalized presentation grid; the next circular-widget increment owns clipping and top-right layout.
 
 Next task: Render the local terrain/water grid and centred owning-player facing marker in a circular top-right widget, without exposing hidden server-owned content.
+
+### 2026-09-05 10.18 EEST - Render circular companion minimap presentation
+
+Outcome: Complete. Added a local UKalmalaMinimapSubsystem that creates a top-right, 208-pixel circular minimap widget for each local controller. The widget refreshes the existing seed-derived terrain/water view model, renders only samples within the circular boundary, and keeps a centred marker rotated to the owning pawn's yaw. There are currently no separately implemented player-facing landmarks, so the widget intentionally renders none rather than querying hidden actors.
+
+Changed: Source/KalmalaUI/KalmalaUI.Build.cs; Source/KalmalaUI/Public/KalmalaMinimapWidget.h; Source/KalmalaUI/Private/KalmalaMinimapWidget.cpp; Source/KalmalaUI/Public/KalmalaMinimapSubsystem.h; Source/KalmalaUI/Private/KalmalaMinimapSubsystem.cpp; Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp; docs/02-technical-architecture.md; docs/07-development-setup.md; BACKLOG.md; PROGRESS.md.
+
+Verification: KalmalaEditor Win64 Development -NoHotReload -MaxParallelActions=4 succeeded. Headless Kalmala.UI.Minimap.LocalPresentation completed with exit code 0 after adding circular inclusion/exclusion assertions. git diff --check passed.
+
+Multiplayer impact: The subsystem runs only in local game instances. The widget reads only the existing local controller/pawn transform and replicated immutable world identity through the view model; it creates no RPC, replication, actor query, landmark/population discovery, collision, or authoritative mutation path.
+
+Known limits: The rendering uses the existing lightweight 9x9 sample grid and has no landmark source because no player-facing landmark contract exists yet. Mouse-wheel zoom, modal-input ownership, aspect-ratio/UI-scale checks, and the host/client presentation scenario remain outstanding.
+
+Next task: Bind mouse-wheel zoom with tunable clamped minimum and maximum levels while preserving modal UI input ownership.

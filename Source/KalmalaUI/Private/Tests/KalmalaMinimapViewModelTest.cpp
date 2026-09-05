@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaMinimapViewModel.h"
+#include "KalmalaMinimapWidget.h"
 
 #include "KalmalaWorldGenerationConfig.h"
 #include "Misc/AutomationTest.h"
@@ -27,6 +28,9 @@ bool FKalmalaMinimapViewModelTest::RunTest(const FString& Parameters)
     }
 
     TestEqual(TEXT("Invalid local presentation input produces no samples"), UKalmalaMinimapViewModel::BuildTerrainSamples(Config, FVector2D::ZeroVector, 0.0f, 5).Num(), 0);
+    TestTrue(TEXT("Circular minimap includes its centred player marker"), UKalmalaMinimapWidget::IsInsideCircularMap(FVector2D::ZeroVector));
+    TestTrue(TEXT("Circular minimap includes positions on its edge"), UKalmalaMinimapWidget::IsInsideCircularMap(FVector2D(1.0f, 0.0f)));
+    TestFalse(TEXT("Circular minimap rejects square-grid corners"), UKalmalaMinimapWidget::IsInsideCircularMap(FVector2D(1.0f, 1.0f)));
     return true;
 }
 

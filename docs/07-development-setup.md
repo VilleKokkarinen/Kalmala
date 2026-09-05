@@ -63,6 +63,10 @@ Launch a listen server with `-KalmalaCampConditionInspection` and join a player.
 
 Launch the game with `-KalmalaBiomeDebug` to replace the generated terrain's normal material with a project-owned vertex-colour debug material. It uses the same continuous four-field biome classifier as terrain generation: Meadows are green, Shimmering Lakes cyan, Elderwood dark green, Mossy Mire olive, Freezing Tundra pale blue, Thunder Mountains grey, and Ocean blue. The material is developer-only, is built independently on each peer from the replicated world identity and patch descriptor, and changes no terrain, collision, gameplay state, or replication.
 
+## Companion minimap presentation
+
+The local `UKalmalaMinimapSubsystem` creates a 208-pixel `UKalmalaMinimapWidget` for each local player once its controller is available. The widget is anchored to the top-right viewport corner with a 24-pixel margin. It refreshes local seed-derived terrain/water samples around that player's pawn and draws only samples inside a circular radius, together with a centred marker rotated to the pawn's facing yaw. It reads no world actors, population, landmarks, or gameplay state beyond the already-replicated world identity and owning pawn transform.
+
 ## Source-control rules
 
 - Commit `Config/`, `Source/`, `.uproject`, and `.uasset`/`.umap` content assets.

@@ -13,6 +13,8 @@ public class KalmalaUI : ModuleRules
             "Engine",
             "UMG",
             "CommonUI",
+            "Slate",
+            "SlateCore",
             "KalmalaCore",
             "KalmalaWorld"
         });
