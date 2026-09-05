@@ -971,3 +971,17 @@ Multiplayer impact: The non-shipping scenario runs only in authoritative GameMod
 Known limits: This is a headless automated comparison of optional camp fixtures in cold, dry starting weather, not human camp-choice usability, rendered presentation, construction/inventory, or rain-preparation validation. Existing CommonUI viewport and rootless wildlife/hazard relevance warnings remain outside this increment. Test processes use unique temporary user directories and are stopped by the runner; no generated output is staged. Work ran directly in the main checkout, so no handoff synchronization was necessary.
 
 Next task: Phase 5 first item — add the top-right circular minimap through a KalmalaUI view model within the existing information/authority contract.
+
+### 2026-09-05 09:45 EEST - Add local companion-minimap view model
+
+Outcome: Complete. Added `UKalmalaMinimapViewModel` as the first companion-minimap increment. It accepts only a local owning controller, reads that controller's possessed pawn transform and the replicated generated-world identity, then deterministically derives a normalized terrain/water presentation grid. It contains no population, actor-discovery, landmark, RPC, replication, or gameplay-mutation path; the circular widget and zoom input remain the next increments.
+
+Changed: `Source/KalmalaUI/KalmalaUI.Build.cs`; `Source/KalmalaUI/Public/KalmalaMinimapViewModel.h`; `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -WaitMutex -MaxParallelActions=4` completed successfully. Headless `Kalmala.UI.Minimap.LocalPresentation` completed successfully: it verified deterministic 5x5 terrain/water samples, a centred owning-player map coordinate, normalized sample coordinates suitable for later circular clipping, and rejection of invalid sampling input. `git diff --check` passed.
+
+Multiplayer impact: The model runs only for a local controller and consumes only the already-replicated world identity plus the owning pawn's normal replicated transform. Terrain height and water treatment are derived locally; no actor/population query, hidden-content exposure, minimap texture replication, RPC, or authoritative mutation was added.
+
+Known limits: No widget, circular clipping, landmarks, player marker rendering, zoom binding, or host/client visual scenario exists yet. The model deliberately produces a square normalized presentation grid; the next circular-widget increment owns clipping and top-right layout.
+
+Next task: Render the local terrain/water grid and centred owning-player facing marker in a circular top-right widget, without exposing hidden server-owned content.

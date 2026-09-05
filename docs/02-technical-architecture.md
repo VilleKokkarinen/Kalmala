@@ -33,7 +33,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Meadow trees | client cosmetic | derive non-interactable low-poly procedural trunks and canopies from the replicated identity, terrain sample, and biome classification |
 | Gameplay population layout | server | activate a bounded set of invisible spatial keys around pawns, then spawn replicated server-owned harvest nodes, minimal wildlife spawns, and minimal hazard spawns from deterministic per-kind, field-informed descriptors; each carries a stable spatial ID for sparse server persistence; clients never select gameplay placements or defeat outcomes |
 | Environmental exposure | server | sample ambient temperature, precipitation, wind exposure, and shelter for each pawn; update clamped wetness and warmth at a fixed server interval; replicate the resulting state for display only |
-| Companion minimap | client UI | build a circular, player-centred top-right map from locally available seed-derived terrain presentation and the owning player's replicated transform; clamp local mouse-wheel zoom between tunable bounds and never reveal hidden server-owned content |
+| Companion minimap | client UI | `UKalmalaMinimapViewModel` derives a local terrain/water sample grid from the replicated world identity and owning pawn transform; a later widget clips it to a circular, player-centred top-right map, clamps local mouse-wheel zoom between tunable bounds, and never reveals hidden server-owned content |
 | Cosmetics | client | derive from replicated state/events |
 
 ## Module boundaries
