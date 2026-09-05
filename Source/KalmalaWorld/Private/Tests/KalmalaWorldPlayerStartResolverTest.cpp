@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaBiomeExpansionContract.h"
 #include "KalmalaCampConditionSampler.h"
 #include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaShelterSampler.h"
@@ -327,6 +328,32 @@ bool FKalmalaCampConditionSamplerTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Freely sampled camp ground has meaningful natural-cover variation"), HighestCover - LowestCover >= 0.30f);
     TestTrue(TEXT("Freely sampled camp ground has both near and distant water"), NearestWater < FarthestWater);
     TestTrue(TEXT("Freely sampled camp ground has different nearby harvest-resource availability"), LowestResources < HighestResources);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaBiomeExpansionContractTest, "Kalmala.World.BiomeExpansion.SharedContract", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaBiomeExpansionContractTest::RunTest(const FString& Parameters)
+{
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = 418;
+    Config.GeneratorRevision = 1;
+    const FIntPoint SpatialKey(2, -3);
+    for (const EKalmalaBiome Biome : { EKalmalaBiome::Meadows, EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::Elderwood, EKalmalaBiome::MossyMire, EKalmalaBiome::FreezingTundra, EKalmalaBiome::ThunderMountains })
+    {
+        const FKalmalaBiomeExpansionProfile Profile = FKalmalaBiomeExpansionContract::GetProfile(Biome);
+        TestTrue(TEXT("Every land biome has a non-negative terrain feature strength"), Profile.TerrainFeatureStrength >= 0.0f);
+        TestTrue(TEXT("Every land biome keeps bounded server population budgets"), FKalmalaBiomeExpansionContract::ApplyPopulationBudget(4, EKalmalaWorldPopulationKind::HarvestNode, Biome) >= 0);
+        const FKalmalaBiomeDiscoveryCandidate First = FKalmalaBiomeExpansionContract::BuildDiscoveryCandidate(Config, SpatialKey, Biome);
+        const FKalmalaBiomeDiscoveryCandidate Repeated = FKalmalaBiomeExpansionContract::BuildDiscoveryCandidate(Config, SpatialKey, Biome);
+        TestEqual(TEXT("Discovery candidates have stable server identifiers"), First.StableId, Repeated.StableId);
+        TestEqual(TEXT("Discovery candidates reproduce their terrain-aligned location"), First.Location, Repeated.Location);
+    }
+    const FKalmalaEnvironmentalExposureSample BaseExposure = FKalmalaEnvironmentalExposureSampler::Sample(Config, FVector2D(3000.0f, -2000.0f));
+    const FKalmalaEnvironmentalExposureSample MireExposure = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(BaseExposure, EKalmalaBiome::MossyMire);
+    TestTrue(TEXT("Biome exposure modifiers remain normalized"), MireExposure.GroundWetness >= 0.0f && MireExposure.GroundWetness <= 1.0f && MireExposure.WindExposure >= 0.0f && MireExposure.WindExposure <= 1.0f);
+    const FKalmalaBiomeFeatureInspection Inspection = FKalmalaBiomeExpansionContract::Inspect(Config, FVector2D(3000.0f, -2000.0f));
+    TestFalse(TEXT("Developer inspection never creates a discovery actor"), Inspection.DiscoveryCandidate.StableId.IsEmpty());
     return true;
 }
 

@@ -17,6 +17,7 @@
 #include "KalmalaWeatherCycle.h"
 #include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaCampConditionSampler.h"
+#include "KalmalaBiomeExpansionContract.h"
 #include "KalmalaShelterSampler.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
@@ -146,6 +147,7 @@ void AKalmalaGameMode::BeginPlay()
         bExposureInspectionEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureInspection"));
         bExposureReplicationTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureReplicationTest"));
         bCampConditionInspectionEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampConditionInspection"));
+        bBiomeFeatureInspectionEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeFeatureInspection"));
         if (!ReconnectVerificationMode.IsEmpty())
         {
             AKalmalaCharacter* VerificationPawn = GetWorld()->SpawnActor<AKalmalaCharacter>(
@@ -183,6 +185,14 @@ void AKalmalaGameMode::LogCampConditionInspection(const AActor* Occupant) const
     const FVector Location = Occupant->GetActorLocation();
     const FKalmalaCampConditionSample Conditions = FKalmalaCampConditionSampler::Sample(WorldGenerationConfig, FVector2D(Location));
     UE_LOG(LogTemp, Display, TEXT("Camp condition inspection (server): Pos=%s Cover=%.2f GroundWet=%.2f WaterDistance=%.0f NearbyHarvestNodes=%d ResourceScore=%.2f. Local assessment only; no camp is authored or reserved."), *Location.ToCompactString(), Conditions.NaturalCover, Conditions.GroundWetness, Conditions.WaterDistance, Conditions.NearbyHarvestNodeCount, Conditions.NearbyResourceScore);
+}
+
+void AKalmalaGameMode::LogBiomeFeatureInspection(const AActor* Occupant) const
+{
+    if (Occupant == nullptr) return;
+    const FVector Location = Occupant->GetActorLocation();
+    const FKalmalaBiomeFeatureInspection Inspection = FKalmalaBiomeExpansionContract::Inspect(WorldGenerationConfig, FVector2D(Location));
+    UE_LOG(LogTemp, Display, TEXT("Biome feature inspection (server): Pos=%s Biome=%d Seam=%d Terrain=%.2f Population=%.2f/%.2f/%.2f Exposure=%.2f/%.2f/%.2f Discovery=%s. Candidate is not spawned, revealed, or persisted."), *Location.ToCompactString(), static_cast<uint8>(Inspection.Biome), Inspection.bHasClassifierSeam, Inspection.Profile.TerrainFeatureStrength, Inspection.Profile.WildlifeBudgetMultiplier, Inspection.Profile.HarvestBudgetMultiplier, Inspection.Profile.HazardBudgetMultiplier, Inspection.Profile.GroundWetnessMultiplier, Inspection.Profile.WindExposureMultiplier, Inspection.Profile.NaturalCoverMultiplier, *Inspection.DiscoveryCandidate.StableId);
 }
 
 void AKalmalaGameMode::InitializeWeatherCycle()
@@ -339,7 +349,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 
     PlacePawnAtGeneratedStart(NewPlayer);
 
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest"))) || NewPlayer == nullptr)
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest"))) || NewPlayer == nullptr)
     {
         return;
     }
@@ -359,6 +369,11 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     if (bCampConditionInspectionEnabled)
     {
         LogCampConditionInspection(NewPlayer->GetPawn());
+    }
+
+    if (bBiomeFeatureInspectionEnabled)
+    {
+        LogBiomeFeatureInspection(NewPlayer->GetPawn());
     }
 
     if (bExposureReplicationTestEnabled && !bExposureReplicationCampfireSpawned && NewPlayer->GetPawn() != nullptr)

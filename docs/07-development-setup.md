@@ -69,6 +69,10 @@ The local `UKalmalaMinimapSubsystem` creates a 208-pixel `UKalmalaMinimapWidget`
 
 Run `Scripts/Verify-Minimap.ps1` after an editor build for the two-peer identity check. It starts a memory-only hidden listen server with seed 418 and a conflicting-seed client with seed 999, then confirms that the client receives the server world identity. The focused `Kalmala.UI.Minimap.LocalPresentation` automation checks the two player-centred local views from that same identity, circular clipping, min/max zoom, modal input gating, and the top-right footprint at 4:3/75%, 16:9/100%, and ultrawide/125% UI scales. These checks are local presentation only and create no replicated, gameplay, or save mutation.
 
+## Biome feature inspection
+
+Launch a listen server with `-KalmalaBiomeFeatureInspection` and join a player to log the server-sampled biome-expansion profile, a nearby classifier-seam flag, and a stable but non-materialized discovery candidate. The switch only inspects deterministic inputs from the replicated world identity; it does not spawn, save, reveal, or route toward content, and clients cannot request it.
+
 ## Source-control rules
 
 - Commit `Config/`, `Source/`, `.uproject`, and `.uasset`/`.umap` content assets.

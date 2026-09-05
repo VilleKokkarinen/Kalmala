@@ -33,6 +33,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Meadow trees | client cosmetic | derive non-interactable low-poly procedural trunks and canopies from the replicated identity, terrain sample, and biome classification |
 | Gameplay population layout | server | activate a bounded set of invisible spatial keys around pawns, then spawn replicated server-owned harvest nodes, minimal wildlife spawns, and minimal hazard spawns from deterministic per-kind, field-informed descriptors; each carries a stable spatial ID for sparse server persistence; clients never select gameplay placements or defeat outcomes |
 | Environmental exposure | server | sample ambient temperature, precipitation, wind exposure, and shelter for each pawn; update clamped wetness and warmth at a fixed server interval; replicate the resulting state for display only |
+| Biome expansion | server | `FKalmalaBiomeExpansionContract` supplies deterministic per-biome terrain-feature intent, bounded population multipliers, normalized exposure modifiers, and stable discovery candidates. Only a future server slice may materialize a candidate as a replicated actor or persistent delta; clients receive no candidate list or discovery location. |
 | Companion minimap | client UI | `UKalmalaMinimapViewModel` derives a local terrain/water sample grid from the replicated world identity and owning pawn transform; `UKalmalaMinimapSubsystem` creates a local top-right circular presentation that draws only in-circle terrain/water samples and a centred facing marker. Local mouse-wheel input adjusts a session-only view radius between tunable 2,500–10,000 cm bounds only while CommonUI allows normal game input; a modal UI retains wheel ownership. The UI never reveals hidden server-owned content. |
 | Cosmetics | client | derive from replicated state/events |
 
@@ -79,6 +80,12 @@ Vertical slice persistence is a versioned `SaveGame` schema for local/listen-ser
 Generated population saves store only sparse server deltas. `UKalmalaWorldPopulationSaveGame` records its schema version and immutable world identity, then separately records harvested and defeated stable spawn IDs; it never serializes the generated base population. During a session, `GameMode` owns this container, records harvests only after the server accepts them, and consults it before recreating a generated harvest node. Future wildlife and hazards must use the defeated set only after server-owned defeat validation and must consult it before activation.
 
 The developer-only reconnect harness verifies both harvest and wildlife paths across two listen-server processes with the same world identity: it writes one accepted server delta, reloads the slot, and succeeds only when the corresponding deterministic spawn is not recreated.
+
+## Biome-expansion shared contract
+
+Each land-biome slice consumes `FKalmalaBiomeExpansionContract` rather than creating a parallel seed, placement, exposure, or persistence scheme. A profile supplies bounded terrain-feature intent, per-kind population multipliers, and normalized wetness, wind, and natural-cover modifiers. The current exposure simulation continues unchanged until a completed biome slice explicitly adopts its profile. Discovery candidates are deterministic, terrain-aligned server inputs with stable IDs derived from world identity, biome, and invisible spatial key; candidates are neither spawned, replicated, revealed, nor saved by this contract alone.
+
+`-KalmalaBiomeFeatureInspection` is a server-only developer switch. After a player joins, it logs the sampled biome, nearby classifier seam flag, profile values, and the non-materialized stable discovery candidate. It accepts no client location, creates no actor, and never directs a player toward a feature.
 
 The sparse container must round-trip through `SaveGame` memory serialization before any slot-writing integration is added. The automated round-trip test verifies that immutable world identity and harvested IDs survive serialization without creating project `Saved/` output.
 

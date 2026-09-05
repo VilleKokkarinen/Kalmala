@@ -1027,3 +1027,16 @@ Multiplayer impact: The verification exercises only the existing client-local se
 Known limits: The headless peer runner verifies replicated identity; its local player-centred presentation assertions remain deterministic UI automation because UMG does not tick under `-nullrhi`. The failed regular-renderer attempt exposed an engine shader-worker crash in this constrained environment, so it is not used by the reproducible runner. No player-facing landmark source exists yet.
 
 Next task: Phase 6 first item - establish the shared biome-expansion contract: deterministic server-owned terrain, population budgets, exposure modifiers, stable discoveries, and developer seam/feature inspection.
+### 2026-09-05 10:59 EEST - Establish shared biome-expansion contract
+
+Outcome: Complete. Added one pure shared contract for the Phase 6 land-biome slices. It supplies deterministic terrain-feature intent, bounded per-kind population-budget multipliers, normalized exposure modifiers, and terrain-aligned stable discovery candidates from the immutable world identity and invisible server spatial key. A server-only inspection switch reports the sampled biome, nearby classifier seam flag, profile values, and non-materialized candidate without creating, revealing, or reserving content.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/08-world-generation-and-biomes.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -WaitMutex -MaxParallelActions=4` succeeded. Headless `Kalmala.World.BiomeExpansion.SharedContract` succeeded with exit code 0, checking every land-biome profile, bounded server budget calculation, repeatable terrain-aligned stable IDs, normalized exposure modifiers, and side-effect-free inspection. `git diff --check` passed.
+
+Multiplayer impact: This contract is pure input data. Only `GameMode` can invoke `-KalmalaBiomeFeatureInspection`, and it samples the server pawn location; clients cannot submit a location, candidate, budget, terrain value, or exposure result. No actor, RPC, replicated property, persistence delta, collision change, or gameplay mutation was added.
+
+Known limits: The profiles intentionally do not alter the live terrain, population, or exposure simulation until the corresponding complete biome slice consumes them. Discovery candidates are identifiers and positions only, with no actor, reward, minimap marker, save integration, or client visibility.
+
+Next task: Deliver the full Shimmering Lakes slice: interlocking water, saturated low ground, lake-edge or island discoveries, and wet-shore camp tradeoffs; no boat requirement before Phase 7.

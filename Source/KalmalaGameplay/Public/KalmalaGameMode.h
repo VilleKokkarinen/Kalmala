@@ -33,6 +33,7 @@ private:
     void RunReconnectVerification(APawn* ServerPawn);
     void LogExposureInspection(const AActor* Occupant) const;
     void LogCampConditionInspection(const AActor* Occupant) const;
+    void LogBiomeFeatureInspection(const AActor* Occupant) const;
     void UpdatePlayerExposure(float DeltaSeconds);
     void DriveCampChoiceTest();
     float CampChoiceStartTime = -1.0f;
@@ -57,6 +58,7 @@ private:
     bool bExposureReplicationTestEnabled = false;
     bool bExposureReplicationCampfireSpawned = false;
     bool bCampConditionInspectionEnabled = false;
+    bool bBiomeFeatureInspectionEnabled = false;
     FString ReconnectVerificationMode;
     FVector2D TraversalTestTarget = FVector2D::ZeroVector;
     TSet<TWeakObjectPtr<APawn>> TraversalTestCompletedPawns;
