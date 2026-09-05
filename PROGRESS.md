@@ -1121,3 +1121,17 @@ Multiplayer impact: Sprint intent travels through Character Movement compressed 
 Known limits: This is a rigid-part placeholder, not a skeletal animation set; stamina is not implemented. Automated input invokes the bound delegates, not physical keyboard events. Restart the editor to load the native components; packaged builds need rebuilding. The pre-existing Character.cpp include-order change remains untouched and excluded from this commit; verification used the preserved working tree. All verification processes exited or were stopped by the runner.
 
 Next task: Resume the Freezing Tundra backlog slice; this user-requested traversal increment adds no biome work.
+
+### 2026-09-06 EEST - Repair suspended lake edges at biome boundaries
+
+Outcome: Complete. The previous clipping repair still cut the 400 cm lake sheet at humidity/temperature boundaries above lower ground. Added a presentation-only connected terrain-basin check: a lake-biome seed fills its enclosed sublevel component to physical banks, while sea-connected or unresolved oversized components are omitted. Internal biome boundaries no longer cut the sheet. The minimap uses the same visible-basin decision.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaLakeBasin.h`; `Source/KalmalaWorld/Private/KalmalaLakeBasin.cpp`; `Source/KalmalaWorld/Private/KalmalaWaterSurfaceMesh.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWaterSurfaceMeshTest.cpp`; `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Editor Development build passed. Water and minimap automation passed with exit 0 (`C:/Users/Ville/AppData/Local/Temp/KalmalaBasinFinal-4bc355c55d6842e293a279a81907d008/test.log`). Water tests exercise closed seeded bowls, drainage to sea, unbounded and unseeded rejection, flat clipped surfaces, deterministic output, and actual nonempty matching shared patch edges (165 vertices in the seed fixture). Final direct biome-cut regression log: `C:/Users/Ville/AppData/Local/Temp/KalmalaBasinRegression/test.log`. Rendered host/client player-controls scenario passed; inspected the host screenshot showing continuous water against banks (`C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-22ab6c2892bd450aa53934f1a8f37072`). `git diff --check` passed.
+
+Multiplayer impact: Both peers derive cosmetic basin decisions from existing world identity and the same six-connected terrain lattice. No terrain height/collision, server wetland/exposure/discovery rule, generator revision, RPC, or persistence schema changed. Minimap rasterization now reflects visible lake geometry. Basin results are bounded and cached by identity and lattice origin; the search is independent of active streaming patches.
+
+Known limits: This is fixed-level lake enclosure, not variable-level hydrology, rivers, swimming, or vegetation regeneration. Basins over 8,192 wet vertices are conservatively omitted; existing environmental wetland sampling retains its prior field-based semantics. Newly covered low ground may retain decorative trees. Screenshot verification covers the seed-418 starting area, not the user's exact camera position. Restart the editor to load the rebuilt modules. The user's pre-existing Character.cpp include-order change remains untouched and excluded.
+
+Next task: Resume the Freezing Tundra backlog slice after this user-requested water repair.

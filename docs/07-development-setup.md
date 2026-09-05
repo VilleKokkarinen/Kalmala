@@ -27,7 +27,7 @@ The existing `L_Prototype` is now the configured editor startup and game default
 
 ## Water surface regression check
 
-`Kalmala.World.Water.ClippedSurface` checks partial-cell water coverage, flat surface height, winding, narrow lake regions whose original corners are dry, absence of shore frames at deep biome edges, real shallow shoreline treatment, determinism, and matching patch-edge intersections. Water now clips the same 24x24 terrain triangles against the existing sea level or lake field constraints. The old all-four-corners cell gate and rectangular shore ribbons are removed. A shore tint is restricted to the shallow 12 cm next to the terrain intersection. Water remains collision-free and the sampler, water levels, generator revision, and save rules are unchanged. This is a geometry repair, not a new connected-basin hydrology or swimming system.
+`Kalmala.World.Water.ClippedSurface` checks partial-cell coverage, winding, flat levels, shallow shore treatment, seeded closed basins, rejection of sea-connected/unbounded/unseeded basins, deterministic meshes, and nonempty matching patch-edge intersections. Lake-biome fields seed enclosed terrain basins rather than clipping floating sheets at humidity/temperature boundaries. Basins exceeding 8,192 wet lattice vertices are conservatively omitted. The minimap uses the same visible water decision. Terrain/collision, server wetland rules, generator revision, and saved-data schemas are unchanged. Run `Scripts/Verify-PlayerControls.ps1 -Rendered` for rendered host/client traversal and screenshots after building. Restart the editor to load the repaired native module.
 
 ## Dedicated-server build
 

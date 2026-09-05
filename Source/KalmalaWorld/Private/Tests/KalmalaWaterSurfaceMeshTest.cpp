@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaWaterSurfaceMesh.h"
+#include "KalmalaLakeBasin.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWaterSurfaceMeshTest, "Kalmala.World.Water.ClippedSurface",
@@ -28,13 +29,14 @@ bool FKalmalaWaterSurfaceMeshTest::RunTest(const FString& Parameters)
     for (const FVector& V : Ocean.Vertices) TestEqual(TEXT("Sea water remains level"), V.Z, 0.0);
 
     FKalmalaWaterMesh Lake, Shore;
-    // The old four-corner gate discarded this wet band entirely.
+    // Once a basin is accepted, humidity edges must not cut its water surface.
     const auto A = Vertex(0, 0, 300, 0.6f);
     const auto B = Vertex(0, 100, 300, 0.8f);
     const auto C = Vertex(100, 0, 300, 0.8f);
     FKalmalaWaterSurfaceMesh::AppendTriangle(A, B, C, true, false, Lake);
     FKalmalaWaterSurfaceMesh::AppendTriangle(A, B, C, true, true, Shore);
-    TestTrue(TEXT("Lake crossing dry corners survives continuous clipping"), !Lake.Triangles.IsEmpty());
+    TestEqual(TEXT("Accepted basin keeps its whole triangle across internal biome edges"), Lake.Vertices.Num(), 3);
+    TestTrue(TEXT("A humidity boundary cannot create an exposed water edge"), Lake.Vertices.Contains(FVector(A.Position, 400.0f)));
     TestTrue(TEXT("Deep biome edges do not get floating shore frames"), Shore.Triangles.IsEmpty());
     for (const FVector& V : Lake.Vertices) TestEqual(TEXT("Lake water remains at its existing level"), V.Z, 400.0);
 
@@ -61,7 +63,18 @@ bool FKalmalaWaterSurfaceMeshTest::RunTest(const FString& Parameters)
                 { return FMath::IsNearlyEqual(R.X, -1500.0, 0.001) && FMath::IsNearlyEqual(R.Y, V.Y, 0.01) && R.Z == V.Z; }));
         }
     }
-    TestTrue(TEXT("Seed fixture exercises wet patch boundaries"), SharedVertices > 0);
+    TestTrue(TEXT("Seed fixture exercises contained lake patch boundaries"), SharedVertices > 0);
+    TArray<FIntPoint> Wet;
+    auto Bowl = [](FIntPoint P) { return TPair<float, bool>(P.X*P.X + P.Y*P.Y < 25 ? 300.0f : 500.0f, P == FIntPoint(0,0)); };
+    TestTrue(TEXT("Enclosed depression containing a lake seed fills"), FKalmalaLakeBasin::Find(FIntPoint(0,0), Bowl, Wet));
+    TestTrue(TEXT("Water extends past biome boundaries to physical banks"), Wet.Contains(FIntPoint(3,0)));
+    TestFalse(TEXT("A channel to sea level rejects the entire suspended sheet"), FKalmalaLakeBasin::Find(FIntPoint(0,0), [&](FIntPoint P)
+    {
+        if (P.Y == 0 && P.X >= 0) return TPair<float,bool>(P.X >= 8 ? 0.0f : 300.0f, P.X == 0);
+        return Bowl(P);
+    }, Wet));
+    TestFalse(TEXT("Unbounded water is omitted instead of cut at a streaming edge"), FKalmalaLakeBasin::Find(FIntPoint(0,0), [](FIntPoint P) { return TPair<float,bool>(300.0f, true); }, Wet, 128));
+    TestFalse(TEXT("Unseeded depression does not become a lake"), FKalmalaLakeBasin::Find(FIntPoint(0,0), [&](FIntPoint P) { return TPair<float,bool>(Bowl(P).Key, false); }, Wet));
     return true;
 }
 #endif

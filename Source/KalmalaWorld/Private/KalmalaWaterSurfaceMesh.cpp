@@ -1,4 +1,5 @@
 #include "KalmalaWaterSurfaceMesh.h"
+#include "KalmalaLakeBasin.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
 
@@ -43,16 +44,6 @@ void FKalmalaWaterSurfaceMesh::AppendTriangle(const FKalmalaWaterMeshVertex& A,
         : FKalmalaTerrainHeightSampler::SeaLevelWorldHeight;
     FPolygon Polygon = { A, B, C };
     Clip(Polygon, [Level](const auto& V) { return Level - V.TerrainHeight; });
-    if (bLake)
-    {
-        // At elevation <= 0.42 (lake level), these are exactly the existing
-        // classifier's lake constraints. Clip each separately so a narrow wet
-        // region can survive even when all original triangle corners are dry.
-        Clip(Polygon, [](const auto& V) { return V.Fields.Elevation - 0.22f; });
-        Clip(Polygon, [](const auto& V) { return V.Fields.Temperature - 0.28f; });
-        Clip(Polygon, [](const auto& V) { return V.Fields.Humidity - 0.63f; });
-        Clip(Polygon, [](const auto& V) { return 0.72f - V.Fields.Humidity; });
-    }
     if (bShore)
     {
         // Only actual shallow terrain gets a shore tint. Never frame cells or
@@ -97,8 +88,13 @@ FKalmalaWaterMesh FKalmalaWaterSurfaceMesh::BuildPatch(const FKalmalaWorldGenera
         for (int32 X = 0; X < CellsPerSide; ++X)
         {
             const int32 I = Y * Side + X;
-            AppendTriangle(Grid[I], Grid[I + Side], Grid[I + 1], bLake, bShore, Mesh);
-            AppendTriangle(Grid[I + 1], Grid[I + Side], Grid[I + Side + 1], bLake, bShore, Mesh);
+            auto AppendBasinTriangle = [&](const auto& A, const auto& B, const auto& C)
+            {
+                const auto Wet = [&](const auto& V) { return V.TerrainHeight < FKalmalaShimmeringLakeSampler::WaterSurfaceWorldHeight && FKalmalaLakeBasin::Contains(Config, PatchCenter + V.Position, PatchCenter); };
+                if (!bLake || Wet(A) || Wet(B) || Wet(C)) AppendTriangle(A, B, C, bLake, bShore, Mesh);
+            };
+            AppendBasinTriangle(Grid[I], Grid[I + Side], Grid[I + 1]);
+            AppendBasinTriangle(Grid[I + 1], Grid[I + Side], Grid[I + Side + 1]);
         }
     }
     return Mesh;
