@@ -22,6 +22,14 @@ public:
     /** Pure geometry seam: all drawn map points must remain inside this circle. */
     static bool IsInsideCircularMap(const FVector2D& NormalizedMapPosition);
 
+    /** Pure local zoom seam used by input routing and automation coverage. */
+    static float ClampZoom(float RequestedZoom, float MinZoom, float MaxZoom);
+    static bool ShouldAcceptZoomInput(bool bCanProcessNormalGameInput);
+
+    /** Applies a local mouse-wheel delta. No world, server, or save state is changed. */
+    void AdjustZoom(float WheelDelta);
+    float GetCurrentZoom() const { return CurrentZoom; }
+
 protected:
     virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
     virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
@@ -33,6 +41,18 @@ private:
 
     UPROPERTY(EditDefaultsOnly, Category = "Minimap", meta = (ClampMin = "96.0", ClampMax = "512.0"))
     float MapDiameter = 208.0f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Minimap|Zoom", meta = (ClampMin = "100.0"))
+    float MinZoom = 2500.0f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Minimap|Zoom", meta = (ClampMin = "100.0"))
+    float MaxZoom = 10000.0f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Minimap|Zoom", meta = (ClampMin = "1.0"))
+    float ZoomStep = 750.0f;
+
+    UPROPERTY(VisibleAnywhere, Category = "Minimap|Zoom")
+    float CurrentZoom = 5000.0f;
 
     float RefreshAccumulator = 0.0f;
 };

@@ -999,3 +999,17 @@ Multiplayer impact: The subsystem runs only in local game instances. The widget 
 Known limits: The rendering uses the existing lightweight 9x9 sample grid and has no landmark source because no player-facing landmark contract exists yet. Mouse-wheel zoom, modal-input ownership, aspect-ratio/UI-scale checks, and the host/client presentation scenario remain outstanding.
 
 Next task: Bind mouse-wheel zoom with tunable clamped minimum and maximum levels while preserving modal UI input ownership.
+
+### 2026-09-05 10:33 EEST - Add modal-safe minimap zoom
+
+Outcome: Complete. Bound `MouseWheelAxis` to local companion-minimap zoom. The widget keeps a session-only sampled radius, uses tunable 2500-10000 cm limits with 750 cm wheel steps, and clamps every update. The local subsystem consults CommonUI's normal-game-input gate before applying a wheel event, so a modal UI retains wheel ownership.
+
+Changed: `Config/DefaultInput.ini`; `Source/KalmalaUI/Public/KalmalaMinimapViewModel.h`; `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`; `Source/KalmalaUI/Public/KalmalaMinimapWidget.h`; `Source/KalmalaUI/Private/KalmalaMinimapWidget.cpp`; `Source/KalmalaUI/Public/KalmalaMinimapSubsystem.h`; `Source/KalmalaUI/Private/KalmalaMinimapSubsystem.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -Force -MaxParallelActions=4` succeeded. Headless `Kalmala.UI.Minimap.LocalPresentation` completed with exit code 0 and verifies minimum/maximum clamping, in-range retention, and the modal-input gate. `git diff --check` passed.
+
+Multiplayer impact: Zoom is a local UI radius only. It reads neither new replicated data nor world actors, sends no RPC, and changes no server, gameplay, collision, population, or save state. Each peer keeps its own active-session zoom while still sampling only the existing replicated world identity and owning-pawn transform.
+
+Known limits: The next Phase 5 verification increment still needs multi-aspect-ratio/UI-scale presentation checks and a host/client player-centred scenario. The map still intentionally has no landmark source because no player-facing landmark contract exists.
+
+Next task: Verify circular clipping, UI-scale/aspect-ratio placement, min/max zoom clamping, and host/client player-centred views with no authoritative state mutation or information leak.

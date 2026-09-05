@@ -5,6 +5,7 @@
 #include "KalmalaMinimapSubsystem.generated.h"
 
 class UKalmalaMinimapWidget;
+class APlayerController;
 
 /** Creates the local-only minimap after a local player controller is available. */
 UCLASS()
@@ -18,6 +19,14 @@ public:
     virtual bool IsTickable() const override { return !IsTemplate(); }
 
 private:
+    void BindLocalInput(APlayerController* LocalController);
+    void HandleMinimapZoom(float WheelDelta);
+
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaMinimapWidget> MinimapWidget;
+
+    UPROPERTY(Transient)
+    TObjectPtr<APlayerController> LocalController;
+
+    bool bInputBound = false;
 };

@@ -13,12 +13,38 @@ void UKalmalaMinimapWidget::InitializeForLocalPlayer(APlayerController* InOwning
 
     ViewModel = NewObject<UKalmalaMinimapViewModel>(this);
     ViewModel->Initialize(InOwningPlayer);
+    CurrentZoom = ClampZoom(CurrentZoom, MinZoom, MaxZoom);
+    ViewModel->SetMapRadius(CurrentZoom);
     SetDesiredSizeInViewport(FVector2D(MapDiameter, MapDiameter));
 }
 
 bool UKalmalaMinimapWidget::IsInsideCircularMap(const FVector2D& NormalizedMapPosition)
 {
     return NormalizedMapPosition.SizeSquared() <= 1.0f;
+}
+
+float UKalmalaMinimapWidget::ClampZoom(const float RequestedZoom, const float InMinZoom, const float InMaxZoom)
+{
+    const float SafeMinZoom = FMath::Max(100.0f, FMath::Min(InMinZoom, InMaxZoom));
+    const float SafeMaxZoom = FMath::Max(SafeMinZoom, FMath::Max(InMinZoom, InMaxZoom));
+    return FMath::Clamp(RequestedZoom, SafeMinZoom, SafeMaxZoom);
+}
+
+bool UKalmalaMinimapWidget::ShouldAcceptZoomInput(const bool bCanProcessNormalGameInput)
+{
+    return bCanProcessNormalGameInput;
+}
+
+void UKalmalaMinimapWidget::AdjustZoom(const float WheelDelta)
+{
+    if (ViewModel == nullptr || FMath::IsNearlyZero(WheelDelta))
+    {
+        return;
+    }
+
+    CurrentZoom = ClampZoom(CurrentZoom - WheelDelta * ZoomStep, MinZoom, MaxZoom);
+    ViewModel->SetMapRadius(CurrentZoom);
+    ViewModel->Refresh();
 }
 
 void UKalmalaMinimapWidget::NativeTick(const FGeometry& MyGeometry, const float InDeltaTime)

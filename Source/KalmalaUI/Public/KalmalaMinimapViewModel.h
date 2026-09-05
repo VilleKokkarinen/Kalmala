@@ -58,6 +58,9 @@ public:
     UFUNCTION(BlueprintPure, Category = "Minimap")
     float GetPlayerFacingDegrees() const { return PlayerFacingDegrees; }
 
+    /** Changes only the local presentation radius; it is never replicated or persisted. */
+    void SetMapRadius(float InMapRadius);
+
     UFUNCTION(BlueprintPure, Category = "Minimap")
     const TArray<FKalmalaMinimapTerrainSample>& GetTerrainSamples() const { return TerrainSamples; }
 

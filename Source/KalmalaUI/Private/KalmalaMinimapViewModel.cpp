@@ -13,6 +13,11 @@ void UKalmalaMinimapViewModel::Initialize(APlayerController* InOwningPlayer)
     bIsReady = false;
 }
 
+void UKalmalaMinimapViewModel::SetMapRadius(const float InMapRadius)
+{
+    MapRadius = FMath::Max(100.0f, InMapRadius);
+}
+
 bool UKalmalaMinimapViewModel::Refresh()
 {
     bIsReady = false;

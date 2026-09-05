@@ -31,6 +31,11 @@ bool FKalmalaMinimapViewModelTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Circular minimap includes its centred player marker"), UKalmalaMinimapWidget::IsInsideCircularMap(FVector2D::ZeroVector));
     TestTrue(TEXT("Circular minimap includes positions on its edge"), UKalmalaMinimapWidget::IsInsideCircularMap(FVector2D(1.0f, 0.0f)));
     TestFalse(TEXT("Circular minimap rejects square-grid corners"), UKalmalaMinimapWidget::IsInsideCircularMap(FVector2D(1.0f, 1.0f)));
+    TestEqual(TEXT("Minimap zoom clamps at its minimum"), UKalmalaMinimapWidget::ClampZoom(500.0f, 2500.0f, 10000.0f), 2500.0f);
+    TestEqual(TEXT("Minimap zoom clamps at its maximum"), UKalmalaMinimapWidget::ClampZoom(15000.0f, 2500.0f, 10000.0f), 10000.0f);
+    TestEqual(TEXT("Minimap zoom retains values inside its bounds"), UKalmalaMinimapWidget::ClampZoom(6000.0f, 2500.0f, 10000.0f), 6000.0f);
+    TestFalse(TEXT("A modal UI retains mouse-wheel ownership"), UKalmalaMinimapWidget::ShouldAcceptZoomInput(false));
+    TestTrue(TEXT("Minimap accepts mouse-wheel input without a modal UI"), UKalmalaMinimapWidget::ShouldAcceptZoomInput(true));
     return true;
 }
 
