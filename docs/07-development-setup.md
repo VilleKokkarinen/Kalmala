@@ -23,6 +23,12 @@ Open the project in the editor with:
 
 The first editor launch must create the prototype map at `/Game/Kalmala/Maps/Prototype/L_Prototype`. Do not set it as the default map until it exists.
 
+The existing `L_Prototype` is now the configured editor startup and game default map. It contains the M1 fixtures and tagged sun/sky lighting, with no template floor or landscape underneath the generated terrain. `Scripts/Setup-PrototypeEnvironment.py` reproducibly adds that lighting through Unreal's Python commandlet and saves only this map. Run it while other editor/test processes are closed to avoid a map file lock. Press Play in `L_Prototype`; an already-open `/Engine/Maps/Templates/OpenWorld` has its own landscape that intersects the generated world and can show checkerboard patches in depressions. Restart the editor to use the configured startup map, or open `L_Prototype` explicitly before Play.
+
+## Water surface regression check
+
+`Kalmala.World.Water.ClippedSurface` checks partial-cell water coverage, flat surface height, winding, narrow lake regions whose original corners are dry, absence of shore frames at deep biome edges, real shallow shoreline treatment, determinism, and matching patch-edge intersections. Water now clips the same 24x24 terrain triangles against the existing sea level or lake field constraints. The old all-four-corners cell gate and rectangular shore ribbons are removed. A shore tint is restricted to the shallow 12 cm next to the terrain intersection. Water remains collision-free and the sampler, water levels, generator revision, and save rules are unchanged. This is a geometry repair, not a new connected-basin hydrology or swimming system.
+
 ## Dedicated-server build
 
 The Epic Games Launcher engine distribution does not include dedicated-server support. The `KalmalaServer` target remains in the project, but building it requires a UE 5.8 source build or another UE 5.8 distribution with server support. Do not attempt the command below with the installed Launcher engine.

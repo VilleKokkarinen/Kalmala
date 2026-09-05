@@ -46,6 +46,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Activate an initial server-owned 3×3 terrain-patch neighborhood around the generated start.
   - [x] Add bounded, deduplicated server-side patch activation around connected players.
   - [x] Add distinct Shimmering Lakes water and shoreline treatment beyond sea-level coverage.
+  - [x] Repair partial-cell water clipping and floating shore frames; configure a lit startup map without overlapping template terrain.
   - [x] Replace temporary engine primitive meshes/materials with original terrain, rock, tree, and water assets.
     - [x] Create and apply project-owned generated terrain, water, and lake-shore materials.
     - [x] Create and apply project-owned rock and tree meshes/materials.

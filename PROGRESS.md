@@ -958,7 +958,7 @@ Known limits: This is a planning and contract refinement; no weather, shelter, f
 
 Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.
 
-### 2026-09-05 09:20 EEST — Verify two-player camp-choice recovery
+### 2026-09-05 09:20 EEST ï¿½ Verify two-player camp-choice recovery
 
 Outcome: Complete automated Phase 4 scenario. Two normal players occupy separated generated low/high-cover dry-land fixtures, spend twelve simulation seconds without fires, then recover for twenty seconds beside temporary fires lit through the normal server interaction gate. No path, camp marker, authored shelter, persistent world change, or later-phase work was added. The checkout was clean at run start; the previous handoff conflict is resolved.
 
@@ -970,7 +970,7 @@ Multiplayer impact: The non-shipping scenario runs only in authoritative GameMod
 
 Known limits: This is a headless automated comparison of optional camp fixtures in cold, dry starting weather, not human camp-choice usability, rendered presentation, construction/inventory, or rain-preparation validation. Existing CommonUI viewport and rootless wildlife/hazard relevance warnings remain outside this increment. Test processes use unique temporary user directories and are stopped by the runner; no generated output is staged. Work ran directly in the main checkout, so no handoff synchronization was necessary.
 
-Next task: Phase 5 first item — add the top-right circular minimap through a KalmalaUI view model within the existing information/authority contract.
+Next task: Phase 5 first item ï¿½ add the top-right circular minimap through a KalmalaUI view model within the existing information/authority contract.
 
 ### 2026-09-05 09:45 EEST - Add local companion-minimap view model
 
@@ -1079,7 +1079,9 @@ Multiplayer impact: Only authoritative `GameMode` classifies active keys, applie
 
 Known limits: The optional discovery reuses the current minimal harvest-node presentation and reward contract. The automated test validates deterministic terrain and exposure rules rather than rendered host/client mire presentation or player-built drainage usability; full cross-biome host/client scenario coverage remains the final Phase 6 task. `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp` was already modified at run start and was preserved unchanged.
 
-Next task: Deliver the full Freezing Tundra slice: sparse cover, rolling high ground, wind exposure, enclosed-shelter preparation, and an optional discovery.### 2026-09-05 23:28 EEST - Repair companion minimap visibility and biome textures
+Next task: Deliver the full Freezing Tundra slice: sparse cover, rolling high ground, wind exposure, enclosed-shelter preparation, and an optional discovery.
+
+### 2026-09-05 23:28 EEST - Repair companion minimap visibility and biome textures
 
 Outcome: Complete. User-requested Phase 5 repair. UE 5.8's SetPositionInViewport resets anchors to top-left; the previous call order placed the right-aligned map off the left edge. Apply size/position before anchoring. Replace the sparse 9x9 dots with a filled 129x129 circular transient texture using original world-anchored patterns for all seven biomes, including sea-level ocean and inland lake water. Give each local player its own subsystem, recover after controller/widget replacement, preserve session zoom, and configure CommonUI viewport routing. The centred facing marker has a dark outline for snowy terrain.
 
@@ -1092,3 +1094,16 @@ Multiplayer impact: Presentation consumes only existing world identity and the o
 Known limits: Offscreen captures validate the HUD against a black world background, not terrain rendering. There is still no known-landmark visibility contract, so no hidden discovery/resource/actor markers are shown. Human mouse interaction, split-screen, and map-travel recovery were not separately playtested. Existing wildlife/hazard root-component warnings are unrelated. Older packaged executables are unchanged and need repackaging; restart the editor/game to load the rebuilt modules and viewport setting. Pre-existing character edits were preserved; concurrent Mossy Mire work was committed by its own run and excluded from this commit.
 
 Next task: Resume the backlog with the Freezing Tundra slice; no Phase 6 gameplay changes were made by this repair.
+### 2026-09-05 23:44 EEST - Repair water contours and default Play map
+
+Outcome: Complete. Replaced all-four-corners water quads with polygon clipping against the same 24x24 linear terrain triangles and existing lake field constraints. Partly wet cells and narrow wet regions now render, and shared patch edges use matching interpolated intersections. Removed cell-edge shoreline frames; shore tint now appears only within 12 cm of the physical terrain intersection. Editor settings showed the last-opened map was `/Engine/Maps/Templates/OpenWorld`, whose template landscape overlaps generated terrain. Configured the existing `L_Prototype` as editor/game default and added tagged sun/sky lighting there without a floor or landscape.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWaterSurfaceMesh.h`; `Source/KalmalaWorld/Private/KalmalaWaterSurfaceMesh.cpp`; `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaWaterSurfaceMeshTest.cpp`; `Scripts/Setup-PrototypeEnvironment.py`; `Content/Kalmala/Maps/Prototype/L_Prototype.umap`; `Config/DefaultEngine.ini`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md` (also repaired the missing newline before the previous run heading).
+
+Verification: `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -MaxParallelActions=4` succeeded. `Kalmala.World.Water.ClippedSurface` passed, exit 0, testing exact partial-triangle area, winding, level height, a wet band with dry source vertices, absence of deep-edge shore frames, physical shore coverage, deterministic output, and matching adjacent-patch intersections. Unreal inspection confirmed project water materials load and are opaque; saved L_Prototype contained no floor/landscape. Lighting setup succeeded after retrying a save initially locked by the concurrently running test process. Rendered 1280x720 host/client smoke passed on the lit map with seed 418 overriding client seed 999 (`C:/Users/Ville/AppData/Local/Temp/KalmalaMinimap-18eedd52f03645d4b43494a75c1072f4`). The normal traversal harness reached its lake target 1,624 cm from spawn; inspected `C:/Users/Ville/AppData/Local/Temp/KalmalaWaterCloseup.png`, showing continuous water against terrain without the rectangular shore frames or checkerboard overlap. Test log: `C:/Users/Ville/AppData/Local/Temp/KalmalaWaterTests.log`; setup log: `C:/Users/Ville/AppData/Local/Temp/KalmalaWaterSetupRetry.log`. `git diff --check` passed.
+
+Multiplayer impact: Water remains a collision-free cosmetic mesh independently derived from the existing replicated identity and patch centre. Terrain, collision, lake/biome classification, exposure rules, population placement, water levels, generator revision, and persistence schemas are unchanged. Startup-map additions are environment lighting only; existing fixtures are preserved. No RPC or client-authoritative gameplay path was introduced.
+
+Known limits: Water still uses the existing biome footprint and flat levels; this does not add connected-basin hydrology, waves, transparency, swimming, or boats. The camera capture verifies one lake approach, not all seeds. An already-open template map stays open until the user loads L_Prototype or restarts the editor. The user's pre-existing `KalmalaCharacter.cpp` edits were preserved and excluded from the commit. All verification processes launched by this run were stopped or exited.
+
+Next task: Resume the Freezing Tundra backlog slice; no new biome gameplay was implemented in this repair.

@@ -6,6 +6,7 @@
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
+#include "KalmalaWaterSurfaceMesh.h"
 #include "KalmalaWorldGenerationSeeds.h"
 #include "Net/UnrealNetwork.h"
 #include "ProceduralMeshComponent.h"
@@ -14,7 +15,7 @@
 
 namespace KalmalaGeneratedTerrainPatch
 {
-    constexpr int32 SurfaceCellsPerSide = 24;
+    constexpr int32 SurfaceCellsPerSide = FKalmalaWaterSurfaceMesh::CellsPerSide;
     constexpr int32 RockCandidateCount = 48;
     constexpr float RockEdgeMargin = 150.0f;
     constexpr int32 MeadowTreeCandidateCount = 18;
@@ -38,41 +39,25 @@ namespace KalmalaGeneratedTerrainPatch
         }
     }
 
-    static bool IsLakeWaterCell(const FKalmalaWorldGenerationConfig& Config, const FVector2D BottomLeft, const float CellSize)
+    static void ApplyWaterMesh(UProceduralMeshComponent* Component, const FKalmalaWaterMesh& Mesh, const FLinearColor Colour)
     {
-        return FKalmalaShimmeringLakeSampler::IsWater(Config, BottomLeft)
-            && FKalmalaShimmeringLakeSampler::IsWater(Config, BottomLeft + FVector2D(CellSize, 0.0f))
-            && FKalmalaShimmeringLakeSampler::IsWater(Config, BottomLeft + FVector2D(0.0f, CellSize))
-            && FKalmalaShimmeringLakeSampler::IsWater(Config, BottomLeft + FVector2D(CellSize, CellSize));
+        TArray<FVector> Normals;
+        TArray<FVector2D> UVs;
+        TArray<FLinearColor> Colors;
+        TArray<FProcMeshTangent> Tangents;
+        for (const FVector& V : Mesh.Vertices)
+        {
+            Normals.Add(FVector::UpVector);
+            UVs.Add(FVector2D(V.X, V.Y) / 1000.0f);
+            Colors.Add(Colour);
+            Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+        }
+        Component->ClearAllMeshSections();
+        if (!Mesh.Triangles.IsEmpty())
+        {
+            Component->CreateMeshSection_LinearColor(0, Mesh.Vertices, Mesh.Triangles, Normals, UVs, Colors, Tangents, false);
+        }
     }
-
-    static void AppendFlatQuad(
-        TArray<FVector>& Vertices,
-        TArray<int32>& Triangles,
-        TArray<FVector>& Normals,
-        TArray<FVector2D>& UVs,
-        TArray<FLinearColor>& VertexColors,
-        TArray<FProcMeshTangent>& Tangents,
-        const FVector2D BottomLeft,
-        const FVector2D TopLeft,
-        const FVector2D BottomRight,
-        const FVector2D TopRight,
-        const float Height,
-        const FLinearColor Color)
-    {
-        const int32 FirstVertex = Vertices.Num();
-        Vertices.Append({
-            FVector(BottomLeft.X, BottomLeft.Y, Height),
-            FVector(TopLeft.X, TopLeft.Y, Height),
-            FVector(BottomRight.X, BottomRight.Y, Height),
-            FVector(TopRight.X, TopRight.Y, Height)});
-        Triangles.Append({FirstVertex, FirstVertex + 1, FirstVertex + 2, FirstVertex + 2, FirstVertex + 1, FirstVertex + 3});
-        Normals.Append({FVector::UpVector, FVector::UpVector, FVector::UpVector, FVector::UpVector});
-        UVs.Append({BottomLeft, TopLeft, BottomRight, TopRight});
-        VertexColors.Append({Color, Color, Color, Color});
-        Tangents.Append({FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f)});
-    }
-
     static void AppendLowPolyRock(
         TArray<FVector>& Vertices, TArray<int32>& Triangles, TArray<FVector>& Normals, TArray<FVector2D>& UVs, TArray<FLinearColor>& VertexColors, TArray<FProcMeshTangent>& Tangents,
         const FVector Center, const float Radius, const float Height, const float YawDegrees)
@@ -396,181 +381,24 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
 
 bool AKalmalaGeneratedTerrainPatch::BuildSurfaceWater()
 {
-    if (bSurfaceWaterBuilt || !bIsConfigured || !WorldGenerationConfig.IsValid() || SurfaceWater == nullptr)
-    {
-        return false;
-    }
-
-    constexpr float SurfaceSize = FKalmalaTerrainPatchLayout::TilesPerSide * FKalmalaTerrainPatchLayout::TileSize;
-    constexpr float HalfSurfaceSize = SurfaceSize * 0.5f;
-    constexpr float CellSize = SurfaceSize / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide;
-
-    TArray<FVector> Vertices;
-    TArray<int32> Triangles;
-    TArray<FVector> Normals;
-    TArray<FVector2D> UVs;
-    TArray<FLinearColor> VertexColors;
-    TArray<FProcMeshTangent> Tangents;
-
-    Vertices.Reserve(KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * 4);
-    Triangles.Reserve(KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * 6);
-
-    for (int32 GridY = 0; GridY < KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide; ++GridY)
-    {
-        for (int32 GridX = 0; GridX < KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide; ++GridX)
-        {
-            const FVector2D BottomLeft(-HalfSurfaceSize + GridX * CellSize, -HalfSurfaceSize + GridY * CellSize);
-            const FVector2D BottomRight = BottomLeft + FVector2D(CellSize, 0.0f);
-            const FVector2D TopLeft = BottomLeft + FVector2D(0.0f, CellSize);
-            const FVector2D TopRight = BottomLeft + FVector2D(CellSize, CellSize);
-            if (FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, PatchCenter + BottomLeft) > FKalmalaTerrainHeightSampler::SeaLevelWorldHeight
-                || FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, PatchCenter + BottomRight) > FKalmalaTerrainHeightSampler::SeaLevelWorldHeight
-                || FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, PatchCenter + TopLeft) > FKalmalaTerrainHeightSampler::SeaLevelWorldHeight
-                || FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, PatchCenter + TopRight) > FKalmalaTerrainHeightSampler::SeaLevelWorldHeight)
-            {
-                continue;
-            }
-
-            const int32 FirstVertex = Vertices.Num();
-            Vertices.Append({
-                FVector(BottomLeft.X, BottomLeft.Y, FKalmalaTerrainHeightSampler::SeaLevelWorldHeight),
-                FVector(TopLeft.X, TopLeft.Y, FKalmalaTerrainHeightSampler::SeaLevelWorldHeight),
-                FVector(BottomRight.X, BottomRight.Y, FKalmalaTerrainHeightSampler::SeaLevelWorldHeight),
-                FVector(TopRight.X, TopRight.Y, FKalmalaTerrainHeightSampler::SeaLevelWorldHeight)});
-            Triangles.Append({FirstVertex, FirstVertex + 1, FirstVertex + 2, FirstVertex + 2, FirstVertex + 1, FirstVertex + 3});
-            Normals.Append({FVector::UpVector, FVector::UpVector, FVector::UpVector, FVector::UpVector});
-            UVs.Append({
-                FVector2D(static_cast<float>(GridX) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide, static_cast<float>(GridY) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide),
-                FVector2D(static_cast<float>(GridX) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide, static_cast<float>(GridY + 1) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide),
-                FVector2D(static_cast<float>(GridX + 1) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide, static_cast<float>(GridY) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide),
-                FVector2D(static_cast<float>(GridX + 1) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide, static_cast<float>(GridY + 1) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide)});
-            VertexColors.Append({FLinearColor(0.08f, 0.28f, 0.45f), FLinearColor(0.08f, 0.28f, 0.45f), FLinearColor(0.08f, 0.28f, 0.45f), FLinearColor(0.08f, 0.28f, 0.45f)});
-            Tangents.Append({FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f)});
-        }
-    }
-
-    SurfaceWater->ClearAllMeshSections();
-    if (!Triangles.IsEmpty())
-    {
-        SurfaceWater->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, false);
-    }
+    if (bSurfaceWaterBuilt || !bIsConfigured || !WorldGenerationConfig.IsValid() || SurfaceWater == nullptr) return false;
+    KalmalaGeneratedTerrainPatch::ApplyWaterMesh(SurfaceWater,
+        FKalmalaWaterSurfaceMesh::BuildPatch(WorldGenerationConfig, PatchCenter, false), FLinearColor(0.08f, 0.28f, 0.45f));
     bSurfaceWaterBuilt = true;
     return true;
 }
 
 bool AKalmalaGeneratedTerrainPatch::BuildShimmeringLakeTreatment()
 {
-    if (bShimmeringLakeTreatmentBuilt || !bIsConfigured || !WorldGenerationConfig.IsValid() || ShimmeringLakeWater == nullptr || ShimmeringLakeShore == nullptr)
-    {
-        return false;
-    }
-
-    constexpr float SurfaceSize = FKalmalaTerrainPatchLayout::TilesPerSide * FKalmalaTerrainPatchLayout::TileSize;
-    constexpr float HalfSurfaceSize = SurfaceSize * 0.5f;
-    constexpr float CellSize = SurfaceSize / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide;
-    constexpr int32 CellCount = KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide;
-
-    TArray<bool> LakeWaterCells;
-    LakeWaterCells.SetNumZeroed(CellCount);
-
-    TArray<FVector> WaterVertices;
-    TArray<int32> WaterTriangles;
-    TArray<FVector> WaterNormals;
-    TArray<FVector2D> WaterUVs;
-    TArray<FLinearColor> WaterColors;
-    TArray<FProcMeshTangent> WaterTangents;
-    TArray<FVector> ShoreVertices;
-    TArray<int32> ShoreTriangles;
-    TArray<FVector> ShoreNormals;
-    TArray<FVector2D> ShoreUVs;
-    TArray<FLinearColor> ShoreColors;
-    TArray<FProcMeshTangent> ShoreTangents;
-
-    for (int32 GridY = 0; GridY < KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide; ++GridY)
-    {
-        for (int32 GridX = 0; GridX < KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide; ++GridX)
-        {
-            const FVector2D BottomLeft(-HalfSurfaceSize + GridX * CellSize, -HalfSurfaceSize + GridY * CellSize);
-            const FVector2D WorldBottomLeft = PatchCenter + BottomLeft;
-            const bool bIsLakeWater = KalmalaGeneratedTerrainPatch::IsLakeWaterCell(WorldGenerationConfig, WorldBottomLeft, CellSize);
-            LakeWaterCells[GridY * KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide + GridX] = bIsLakeWater;
-            if (!bIsLakeWater)
-            {
-                continue;
-            }
-
-            KalmalaGeneratedTerrainPatch::AppendFlatQuad(
-                WaterVertices, WaterTriangles, WaterNormals, WaterUVs, WaterColors, WaterTangents,
-                BottomLeft, BottomLeft + FVector2D(0.0f, CellSize), BottomLeft + FVector2D(CellSize, 0.0f), BottomLeft + FVector2D(CellSize, CellSize),
-                FKalmalaShimmeringLakeSampler::WaterSurfaceWorldHeight, FLinearColor(0.10f, 0.42f, 0.62f));
-        }
-    }
-
-    const auto IsNeighborWater = [this, &LakeWaterCells, CellSize, HalfSurfaceSize](const int32 GridX, const int32 GridY)
-    {
-        if (GridX >= 0 && GridX < KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide && GridY >= 0 && GridY < KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide)
-        {
-            return LakeWaterCells[GridY * KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide + GridX];
-        }
-
-        const FVector2D NeighborBottomLeft(-HalfSurfaceSize + GridX * CellSize, -HalfSurfaceSize + GridY * CellSize);
-        return KalmalaGeneratedTerrainPatch::IsLakeWaterCell(WorldGenerationConfig, PatchCenter + NeighborBottomLeft, CellSize);
-    };
-
-    for (int32 GridY = 0; GridY < KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide; ++GridY)
-    {
-        for (int32 GridX = 0; GridX < KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide; ++GridX)
-        {
-            if (!LakeWaterCells[GridY * KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide + GridX])
-            {
-                continue;
-            }
-
-            const FVector2D BottomLeft(-HalfSurfaceSize + GridX * CellSize, -HalfSurfaceSize + GridY * CellSize);
-            const FVector2D BottomRight = BottomLeft + FVector2D(CellSize, 0.0f);
-            const FVector2D TopLeft = BottomLeft + FVector2D(0.0f, CellSize);
-            const FVector2D TopRight = BottomLeft + FVector2D(CellSize, CellSize);
-            const float ShoreHeight = FKalmalaShimmeringLakeSampler::WaterSurfaceWorldHeight + 1.0f;
-            const FLinearColor ShoreColor(0.48f, 0.70f, 0.67f);
-
-            if (!IsNeighborWater(GridX, GridY - 1))
-            {
-                KalmalaGeneratedTerrainPatch::AppendFlatQuad(ShoreVertices, ShoreTriangles, ShoreNormals, ShoreUVs, ShoreColors, ShoreTangents,
-                    BottomLeft, BottomLeft + FVector2D(0.0f, KalmalaGeneratedTerrainPatch::LakeShoreWidth), BottomRight, BottomRight + FVector2D(0.0f, KalmalaGeneratedTerrainPatch::LakeShoreWidth), ShoreHeight, ShoreColor);
-            }
-            if (!IsNeighborWater(GridX, GridY + 1))
-            {
-                KalmalaGeneratedTerrainPatch::AppendFlatQuad(ShoreVertices, ShoreTriangles, ShoreNormals, ShoreUVs, ShoreColors, ShoreTangents,
-                    TopLeft - FVector2D(0.0f, KalmalaGeneratedTerrainPatch::LakeShoreWidth), TopLeft, TopRight - FVector2D(0.0f, KalmalaGeneratedTerrainPatch::LakeShoreWidth), TopRight, ShoreHeight, ShoreColor);
-            }
-            if (!IsNeighborWater(GridX - 1, GridY))
-            {
-                KalmalaGeneratedTerrainPatch::AppendFlatQuad(ShoreVertices, ShoreTriangles, ShoreNormals, ShoreUVs, ShoreColors, ShoreTangents,
-                    BottomLeft, TopLeft, BottomLeft + FVector2D(KalmalaGeneratedTerrainPatch::LakeShoreWidth, 0.0f), TopLeft + FVector2D(KalmalaGeneratedTerrainPatch::LakeShoreWidth, 0.0f), ShoreHeight, ShoreColor);
-            }
-            if (!IsNeighborWater(GridX + 1, GridY))
-            {
-                KalmalaGeneratedTerrainPatch::AppendFlatQuad(ShoreVertices, ShoreTriangles, ShoreNormals, ShoreUVs, ShoreColors, ShoreTangents,
-                    BottomRight - FVector2D(KalmalaGeneratedTerrainPatch::LakeShoreWidth, 0.0f), TopRight - FVector2D(KalmalaGeneratedTerrainPatch::LakeShoreWidth, 0.0f), BottomRight, TopRight, ShoreHeight, ShoreColor);
-            }
-        }
-    }
-
-    ShimmeringLakeWater->ClearAllMeshSections();
-    ShimmeringLakeShore->ClearAllMeshSections();
-    if (!WaterTriangles.IsEmpty())
-    {
-        ShimmeringLakeWater->CreateMeshSection_LinearColor(0, WaterVertices, WaterTriangles, WaterNormals, WaterUVs, WaterColors, WaterTangents, false);
-    }
-    if (!ShoreTriangles.IsEmpty())
-    {
-        ShimmeringLakeShore->CreateMeshSection_LinearColor(0, ShoreVertices, ShoreTriangles, ShoreNormals, ShoreUVs, ShoreColors, ShoreTangents, false);
-    }
-
+    if (bShimmeringLakeTreatmentBuilt || !bIsConfigured || !WorldGenerationConfig.IsValid()
+        || ShimmeringLakeWater == nullptr || ShimmeringLakeShore == nullptr) return false;
+    KalmalaGeneratedTerrainPatch::ApplyWaterMesh(ShimmeringLakeWater,
+        FKalmalaWaterSurfaceMesh::BuildPatch(WorldGenerationConfig, PatchCenter, true), FLinearColor(0.10f, 0.42f, 0.62f));
+    KalmalaGeneratedTerrainPatch::ApplyWaterMesh(ShimmeringLakeShore,
+        FKalmalaWaterSurfaceMesh::BuildPatch(WorldGenerationConfig, PatchCenter, true, true), FLinearColor(0.48f, 0.70f, 0.67f));
     bShimmeringLakeTreatmentBuilt = true;
     return true;
 }
-
 bool AKalmalaGeneratedTerrainPatch::BuildMeadowRocks()
 {
     if (bMeadowRocksBuilt || !bIsConfigured || !WorldGenerationConfig.IsValid() || MeadowRocks == nullptr)
