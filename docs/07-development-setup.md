@@ -99,6 +99,12 @@ After an editor build, run the focused `Kalmala.World.BiomeExpansion.ElderwoodSl
 
 After an editor build, run the focused `Kalmala.World.BiomeExpansion.MossyMireSlice` headless automation with `-DDC-ForceMemoryCache`. It searches deterministic spatial keys for a gently sloped, relatively dry Mire hummock discovery, verifies increased wet-ground preparation pressure and stable ID reproduction, and does not create a crossing, route, or reserved camp. Runtime activation remains server-only: it creates at most one normal validated harvest discovery per active Mire key; the server applies the bounded Mire footing drag through the existing replicated travel-speed state, while clients receive only that normal replicated state.
 
+## Basic player controls
+
+Restart the editor after building the native modules, then play `L_Prototype`. The third-person character has a simple segmented humanoid model with walking and airborne poses. Press Space to jump once; hold either Shift key to sprint at 1.5 times the current walking speed. Releasing Shift restores walking speed, including the existing exposure penalty. Sprint has no stamina cost in this prototype.
+
+After an editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered`. It launches a hidden listen server and client, exercises the bound jump/sprint/release delegates through normal movement prediction, and checks server-observed remote sprint, upward jump, release, landing, matching world identity, and nine collision-free model parts. It retains host/client screenshots and logs in its printed temporary directory and stops its own processes. Physical keyboard input is not simulated by this test. Run the focused `Kalmala.Gameplay.Movement.SprintSavedMoves` headless automation to verify compressed flags, release, move-combination boundaries, and saved-move clearing.
+
 ## Source-control rules
 
 - Commit `Config/`, `Source/`, `.uproject`, and `.uasset`/`.umap` content assets.

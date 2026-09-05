@@ -6,6 +6,7 @@
 
 class UCameraComponent;
 class USpringArmComponent;
+class UKalmalaPlayerModelComponent;
 
 USTRUCT(BlueprintType)
 struct FKalmalaExposureState
@@ -33,7 +34,7 @@ class KALMALAGAMEPLAY_API AKalmalaCharacter : public ACharacter
     GENERATED_BODY()
 
 public:
-    AKalmalaCharacter();
+    AKalmalaCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
     const FKalmalaExposureState& GetExposureState() const { return ExposureState; }
     static bool IsExposureUpdateAllowed(bool bServerAuthority);
@@ -53,6 +54,19 @@ private:
     void RequestInteract();
     void ConfigureTraversalTestTarget();
     void ApplyExposureTravelPenalty();
+    void StartSprint();
+    void StopSprint();
+    void VerifyPlayerControls(float DeltaSeconds);
+    bool bControlsTestEnabled = false;
+    int32 ControlsTestStage = 0;
+    float ControlsTestElapsed = 0.0f;
+    bool bControlsTestSprintObserved = false;
+    bool bControlsTestJumpObserved = false;
+    bool bControlsTestReleaseObserved = false;
+    bool bControlsTestLocalJumpObserved = false;
+
+    UPROPERTY(VisibleAnywhere, Category = "Presentation")
+    TObjectPtr<UKalmalaPlayerModelComponent> PlayerModel;
 
     UFUNCTION()
     void OnRep_ExposureState();

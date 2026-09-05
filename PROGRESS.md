@@ -1107,3 +1107,17 @@ Multiplayer impact: Water remains a collision-free cosmetic mesh independently d
 Known limits: Water still uses the existing biome footprint and flat levels; this does not add connected-basin hydrology, waves, transparency, swimming, or boats. The camera capture verifies one lake approach, not all seeds. An already-open template map stays open until the user loads L_Prototype or restarts the editor. The user's pre-existing `KalmalaCharacter.cpp` edits were preserved and excluded from the commit. All verification processes launched by this run were stopped or exited.
 
 Next task: Resume the Freezing Tundra backlog slice; no new biome gameplay was implemented in this repair.
+
+### 2026-09-06 EEST - Add basic player model, jump, and sprint
+
+Outcome: Complete. Added an original nine-part humanoid with simple velocity-driven limb motion and airborne pose, Space single-jump, and held left/right Shift sprint at 1.5 times the current walking speed. Adjusted the third-person camera to frame the body.
+
+Changed: `Config/DefaultInput.ini`; `Source/KalmalaGameplay/KalmalaGameplay.Build.cs`; character header/source; new character movement component header/source; new player model component header/source; `Source/KalmalaGameplay/Private/KalmalaPlayerControlsTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaPlayerMovementTest.cpp`; `Scripts/Verify-PlayerControls.ps1`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Final `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -MaxParallelActions=4` build succeeded. `Kalmala.Gameplay.Movement.SprintSavedMoves` passed with exit 0 (`C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerMovementTests.log`). `Scripts/Verify-PlayerControls.ps1 -Rendered` passed: both owners jumped and landed, released sprint, and built nine collision-free model parts; the server observed remote sprint at 900/base 600, jump, and release. Inspected host/client screenshots in `C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-36229854589b462a99676e685781e30e`. Initial compile errors in saved-move alias/parameter naming and test delegate arguments were repaired before the passing build. `git diff --check` passed.
+
+Multiplayer impact: Sprint intent travels through Character Movement compressed saved moves and prediction replay; the server computes speed from its configured multiplier and existing exposure-adjusted base. Jump uses standard Character Movement authority. Cosmetic body parts have no collision and are generated locally from the replicated pawn's motion; dedicated servers skip them. No new RPC, numeric client speed, persistence schema, or gameplay reward path.
+
+Known limits: This is a rigid-part placeholder, not a skeletal animation set; stamina is not implemented. Automated input invokes the bound delegates, not physical keyboard events. Restart the editor to load the native components; packaged builds need rebuilding. The pre-existing Character.cpp include-order change remains untouched and excluded from this commit; verification used the preserved working tree. All verification processes exited or were stopped by the runner.
+
+Next task: Resume the Freezing Tundra backlog slice; this user-requested traversal increment adds no biome work.

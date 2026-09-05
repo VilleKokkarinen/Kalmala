@@ -13,8 +13,12 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
+#include "KalmalaCharacterMovementComponent.h"
+#include "KalmalaPlayerModelComponent.h"
+#include "Components/CapsuleComponent.h"
 
-AKalmalaCharacter::AKalmalaCharacter()
+AKalmalaCharacter::AKalmalaCharacter(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer.SetDefaultSubobjectClass<UKalmalaCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
     bReplicates = true;
     SetReplicateMovement(true);
@@ -26,10 +30,18 @@ AKalmalaCharacter::AKalmalaCharacter()
     GetCharacterMovement()->bOrientRotationToMovement = true;
     GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
     BaselineMaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+    GetCharacterMovement()->JumpZVelocity = 500.0f;
+    GetCharacterMovement()->AirControl = 0.25f;
+    JumpMaxCount = 1;
+
+    PlayerModel = CreateDefaultSubobject<UKalmalaPlayerModelComponent>(TEXT("PlayerModel"));
+    PlayerModel->SetupAttachment(RootComponent);
+    PlayerModel->SetRelativeLocation(FVector(0, 0, -GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight()));
 
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
     CameraBoom->SetupAttachment(RootComponent);
     CameraBoom->TargetArmLength = 320.0f;
+    CameraBoom->TargetOffset = FVector(0, 0, 45.0f);
     CameraBoom->bUsePawnControlRotation = true;
 
     FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -68,11 +80,19 @@ void AKalmalaCharacter::BeginPlay()
     bTraversalTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaTraversalTest"));
     bExposureReplicationTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureReplicationTest"));
     TraversalStartLocation = GetActorLocation();
+    bControlsTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaPlayerControlsTest"));
 }
 
 void AKalmalaCharacter::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+    VerifyPlayerControls(DeltaSeconds);
+
+    if (IsLocallyControlled() && Controller && Controller->IsMoveInputIgnored())
+    {
+        StopSprint();
+        StopJumping();
+    }
 
     ConfigureTraversalTestTarget();
     if (!bTraversalTargetConfigured)
@@ -177,6 +197,23 @@ void AKalmalaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAxis(TEXT("Turn"), this, &APawn::AddControllerYawInput);
     PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
     PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AKalmalaCharacter::RequestInteract);
+    PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
+    PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
+    PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &AKalmalaCharacter::StartSprint);
+    PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &AKalmalaCharacter::StopSprint);
+}
+
+void AKalmalaCharacter::StartSprint()
+{
+    if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored())
+    {
+        CastChecked<UKalmalaCharacterMovementComponent>(GetCharacterMovement())->SetSprintRequested(true);
+    }
+}
+
+void AKalmalaCharacter::StopSprint()
+{
+    CastChecked<UKalmalaCharacterMovementComponent>(GetCharacterMovement())->SetSprintRequested(false);
 }
 
 void AKalmalaCharacter::MoveForward(const float Value)

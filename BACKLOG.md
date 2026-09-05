@@ -16,6 +16,7 @@ Do not begin until M0 acceptance criteria in `docs/04-roadmap.md` are met.
 - [x] Implement the smallest server-authoritative replicated character and camera setup needed for the two-player prototype map.
 - [x] Add a server-validated interaction trace and an interactable interface.
 - [x] Add a two-player test map flow and verify invalid client interactions are rejected.
+- [x] Add an original basic player model, Space jumping, and held-Shift sprinting with predicted, server-authoritative movement.
 
 ## World generation track
 

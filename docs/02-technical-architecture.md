@@ -105,6 +105,12 @@ The sparse container must round-trip through `SaveGame` memory serialization bef
 
 Magic-scroll discoveries and learned support effects are server-authoritative progression. Save stable scroll IDs and learned-effect IDs, validate scroll rewards once, and replicate only the effect state needed by other players (such as an active shield or stat boost), not private inventory detail.
 
+## Prototype player presentation and movement
+
+`AKalmalaCharacter` constructs a collision-free, nine-part original humanoid through `UKalmalaPlayerModelComponent`. Each rendering peer generates the same rigid geometry using existing project materials; velocity drives a simple limb swing and airborne pose. Dedicated servers skip the model. The character capsule remains the collision authority.
+
+Space uses Character Movement's built-in single jump (500 cm/s vertical launch, 0.25 air control). Held Shift requests sprint through `UKalmalaCharacterMovementComponent`: saved moves preserve the intent in `FLAG_Custom_0`, restore it during prediction replay, and prevent combining moves across sprint transitions. The server decodes intent and applies its configured 1.5 multiplier to the existing exposure-adjusted walking speed, only while grounded and not crouching. Clients send no numeric speed or new RPC. Ignored local movement clears held sprint/jump. This adds no stamina or save-data contract.
+
 ## Verification minimum
 
 Every feature needs an automated test where practical, plus a reproducible multiplayer test: host + one client or dedicated server + two clients. Profile before increasing simulation area, actor count, or replication frequency.
