@@ -24,6 +24,10 @@ struct FKalmalaMinimapTerrainSample
     /** Locally derived water treatment, never a gameplay boundary. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap")
     bool bIsWater = false;
+
+    /** Original biome texture sampled in world space; cosmetic output only. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap")
+    FLinearColor TerrainColour = FLinearColor::Black;
 };
 
 /**
@@ -61,6 +65,8 @@ public:
     /** Changes only the local presentation radius; it is never replicated or persisted. */
     void SetMapRadius(float InMapRadius);
 
+    uint32 GetPresentationRevision() const { return PresentationRevision; }
+
     UFUNCTION(BlueprintPure, Category = "Minimap")
     const TArray<FKalmalaMinimapTerrainSample>& GetTerrainSamples() const { return TerrainSamples; }
 
@@ -71,8 +77,14 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap", meta = (AllowPrivateAccess = "true", ClampMin = "100.0"))
     float MapRadius = 5000.0f;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap", meta = (AllowPrivateAccess = "true", ClampMin = "3", ClampMax = "33"))
-    int32 SamplesPerAxis = 9;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap", meta = (AllowPrivateAccess = "true", ClampMin = "3", ClampMax = "129"))
+    int32 SamplesPerAxis = 129;
+
+    FVector2D LastLocation = FVector2D::ZeroVector;
+    uint64 LastSeed = 0;
+    int32 LastGeneratorRevision = 0;
+    float LastRadius = 0.0f;
+    uint32 PresentationRevision = 0;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap", meta = (AllowPrivateAccess = "true"))
     float PlayerFacingDegrees = 0.0f;

@@ -5,6 +5,7 @@
 #include "KalmalaMinimapWidget.generated.h"
 
 class UKalmalaMinimapViewModel;
+class UTexture2D;
 
 /**
  * Local HUD presentation for the companion minimap.  It deliberately draws
@@ -17,7 +18,8 @@ class KALMALAUI_API UKalmalaMinimapWidget : public UUserWidget
     GENERATED_BODY()
 
 public:
-    void InitializeForLocalPlayer(APlayerController* InOwningPlayer);
+    void InitializeForLocalPlayer(APlayerController* InOwningPlayer, float InitialZoom = 5000.0f);
+    void ConfigureViewportPlacement();
 
     /** Pure geometry seam: all drawn map points must remain inside this circle. */
     static bool IsInsideCircularMap(const FVector2D& NormalizedMapPosition);
@@ -39,6 +41,17 @@ protected:
         FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
 private:
+    void UpdateMapTexture();
+
+    UPROPERTY(Transient)
+    TObjectPtr<UTexture2D> MapTexture;
+
+    FSlateBrush MapBrush;
+    uint32 UploadedRevision = 0;
+    mutable bool bLoggedPaint = false;
+    bool bRequestedVerificationScreenshot = false;
+    float VerificationElapsed = 0.0f;
+
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaMinimapViewModel> ViewModel;
 

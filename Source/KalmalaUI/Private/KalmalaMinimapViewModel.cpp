@@ -1,4 +1,5 @@
 #include "KalmalaMinimapViewModel.h"
+#include "KalmalaMinimapRaster.h"
 
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
@@ -20,27 +21,38 @@ void UKalmalaMinimapViewModel::SetMapRadius(const float InMapRadius)
 
 bool UKalmalaMinimapViewModel::Refresh()
 {
-    bIsReady = false;
-    TerrainSamples.Reset();
-
     if (OwningPlayer == nullptr || !OwningPlayer->IsLocalController() || OwningPlayer->GetPawn() == nullptr || OwningPlayer->GetWorld() == nullptr)
     {
+        bIsReady = false;
         return false;
     }
 
     const AKalmalaWorldGenerationGameState* WorldGenerationState = OwningPlayer->GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (WorldGenerationState == nullptr || !WorldGenerationState->GetWorldGenerationConfig().IsValid())
     {
+        bIsReady = false;
         return false;
     }
 
     const APawn* OwningPawn = OwningPlayer->GetPawn();
+    const FVector2D Location(OwningPawn->GetActorLocation());
+    const FKalmalaWorldGenerationConfig& Config = WorldGenerationState->GetWorldGenerationConfig();
+    PlayerFacingDegrees = OwningPawn->GetActorRotation().Yaw;
+    if (bIsReady && Location.Equals(LastLocation, 1.0f) && LastRadius == MapRadius
+        && LastSeed == Config.WorldSeed && LastGeneratorRevision == Config.GeneratorRevision)
+    {
+        return true;
+    }
     TerrainSamples = BuildTerrainSamples(
-        WorldGenerationState->GetWorldGenerationConfig(),
-        FVector2D(OwningPawn->GetActorLocation()),
+        Config,
+        Location,
         MapRadius,
         SamplesPerAxis);
-    PlayerFacingDegrees = OwningPawn->GetActorRotation().Yaw;
+    LastLocation = Location;
+    LastRadius = MapRadius;
+    LastSeed = Config.WorldSeed;
+    LastGeneratorRevision = Config.GeneratorRevision;
+    ++PresentationRevision;
     bIsReady = TerrainSamples.Num() > 0;
     return bIsReady;
 }
@@ -57,7 +69,7 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
         return Samples;
     }
 
-    const int32 ClampedSamplesPerAxis = FMath::Clamp(InSamplesPerAxis, 3, 33);
+    const int32 ClampedSamplesPerAxis = FMath::Clamp(InSamplesPerAxis, 3, 129);
     Samples.Reserve(ClampedSamplesPerAxis * ClampedSamplesPerAxis);
     for (int32 Y = 0; Y < ClampedSamplesPerAxis; ++Y)
     {
@@ -71,7 +83,14 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
             FKalmalaMinimapTerrainSample& Sample = Samples.AddDefaulted_GetRef();
             Sample.MapPosition = MapPosition;
             Sample.TerrainHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldConfig, WorldPosition);
-            Sample.bIsWater = FKalmalaShimmeringLakeSampler::IsWater(WorldConfig, WorldPosition);
+            const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldConfig, WorldPosition));
+            Sample.bIsWater = Sample.TerrainHeight <= FKalmalaTerrainHeightSampler::SeaLevelWorldHeight
+                || FKalmalaShimmeringLakeSampler::IsWater(WorldConfig, WorldPosition);
+            Sample.TerrainColour = FKalmalaMinimapRaster::SampleBiomeTexture(Sample.bIsWater ? EKalmalaBiome::Ocean : Biome, WorldPosition);
+            if (Sample.bIsWater && Biome == EKalmalaBiome::ShimmeringLakes)
+            {
+                Sample.TerrainColour = Sample.TerrainColour * FLinearColor(1.3f, 1.8f, 1.6f);
+            }
         }
     }
 

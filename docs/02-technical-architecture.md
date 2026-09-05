@@ -37,6 +37,10 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Companion minimap | client UI | `UKalmalaMinimapViewModel` derives a local terrain/water sample grid from the replicated world identity and owning pawn transform; `UKalmalaMinimapSubsystem` creates a local top-right circular presentation that draws only in-circle terrain/water samples and a centred facing marker. Local mouse-wheel input adjusts a session-only view radius between tunable 2,500–10,000 cm bounds only while CommonUI allows normal game input; a modal UI retains wheel ownership. The UI never reveals hidden server-owned content. |
 | Cosmetics | client | derive from replicated state/events |
 
+## Companion minimap presentation
+
+The companion minimap uses a `ULocalPlayerSubsystem` per local player and rebuilds its widget/input binding when that player's controller changes. Viewport sizing and positioning precede anchoring because UE 5.8 resets anchors in both setters. A transient 129x129 sRGB texture fills the circle with world-anchored original biome patterns, bilinear filtering, and a transparent feathered edge; sea-level water and inland lake water override land treatment. This is disposable presentation of the existing classifier, not a new world-generation field or persisted biome map. Unchanged position/radius/world identity reuses the raster; facing still refreshes. Texture uploads update an existing GPU resource. The configured CommonUI viewport client routes modal input; Menu mode always retains wheel ownership, including menus with captured previews. No discovery/landmark visibility contract exists yet, so the minimap does not query or draw harvest nodes, hidden discoveries, hazards, or other players.
+
 ## Module boundaries
 
 - `KalmalaCore`: tags, logging, shared data types, save interfaces.

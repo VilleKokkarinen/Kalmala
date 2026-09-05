@@ -2,6 +2,8 @@
 
 #include "KalmalaMinimapViewModel.h"
 #include "KalmalaMinimapWidget.h"
+#include "KalmalaMinimapRaster.h"
+#include "Blueprint/GameViewportSubsystem.h"
 
 #include "KalmalaWorldGenerationConfig.h"
 #include "Misc/AutomationTest.h"
@@ -47,6 +49,54 @@ bool FKalmalaMinimapViewModelTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Minimap zoom retains values inside its bounds"), UKalmalaMinimapWidget::ClampZoom(6000.0f, 2500.0f, 10000.0f), 6000.0f);
     TestFalse(TEXT("A modal UI retains mouse-wheel ownership"), UKalmalaMinimapWidget::ShouldAcceptZoomInput(false));
     TestTrue(TEXT("Minimap accepts mouse-wheel input without a modal UI"), UKalmalaMinimapWidget::ShouldAcceptZoomInput(true));
+
+    // Exercise the production setters: the former math-only footprint test
+    // missed SetPositionInViewport silently resetting the anchor to top-left.
+    UKalmalaMinimapWidget* Widget = NewObject<UKalmalaMinimapWidget>();
+    Widget->ConfigureViewportPlacement();
+    const FGameViewportWidgetSlot Slot = UGameViewportSubsystem::Get()->GetWidgetSlot(Widget);
+    TestTrue(TEXT("Actual viewport slot is anchored top-right"), Slot.Anchors == FAnchors(1.0f, 0.0f));
+    TestEqual(TEXT("Actual slot aligns its right edge"), Slot.Alignment, FVector2D(1.0f, 0.0f));
+    TestEqual(TEXT("Margin stays in UI units without double DPI scaling"), Slot.Offsets.Left, -24.0f);
+    TestEqual(TEXT("Actual viewport slot has a nonzero fixed width"), Slot.Offsets.Right, 208.0f);
+    UGameViewportSubsystem::Get()->RemoveWidget(Widget);
+
+    const auto DetailedSamples = UKalmalaMinimapViewModel::BuildTerrainSamples(Config, FVector2D::ZeroVector, 5000.0f, 129);
+    const auto Pixels = FKalmalaMinimapRaster::BuildPixels(DetailedSamples);
+    TestEqual(TEXT("A full texture replaces the sparse dots"), Pixels.Num(), 129 * 129);
+    for (int32 Index = 0; Index < Pixels.Num(); ++Index)
+    {
+        const double Distance = DetailedSamples[Index].MapPosition.Size();
+        if (Distance >= 1.0) TestEqual(TEXT("Outside the circle is transparent"), Pixels[Index].A, uint8(0));
+        if (Distance < 0.98) TestEqual(TEXT("Inside the circle is filled without gaps"), Pixels[Index].A, uint8(255));
+    }
+    TSet<FColor> BiomeColours;
+    for (int32 BiomeIndex = 0; BiomeIndex <= static_cast<int32>(EKalmalaBiome::Ocean); ++BiomeIndex)
+    {
+        const auto Biome = static_cast<EKalmalaBiome>(BiomeIndex);
+        const FLinearColor First = FKalmalaMinimapRaster::SampleBiomeTexture(Biome, FVector2D(113.0, -291.0));
+        BiomeColours.Add(First.ToFColorSRGB());
+        TestEqual(TEXT("Biome texture repeats at a fixed world coordinate"), First,
+            FKalmalaMinimapRaster::SampleBiomeTexture(Biome, FVector2D(113.0, -291.0)));
+        TestNotEqual(TEXT("Every biome has texture detail, not a flat fill"), First,
+            FKalmalaMinimapRaster::SampleBiomeTexture(Biome, FVector2D(331.0, 89.0)));
+    }
+    TestEqual(TEXT("All seven biome swatches are distinct"), BiomeColours.Num(), 7);
+    bool bFoundOcean = false;
+    for (int32 Y = -40; Y <= 40 && !bFoundOcean; ++Y)
+    {
+        for (int32 X = -40; X <= 40 && !bFoundOcean; ++X)
+        {
+            const FVector2D Position(X * 1500.0, Y * 1500.0);
+            if (FKalmalaWorldFieldSampler::Sample(Config, Position).Elevation < 0.22f)
+            {
+                const auto Ocean = UKalmalaMinimapViewModel::BuildTerrainSamples(Config, Position, 100.0f, 3);
+                TestTrue(TEXT("Sea-level ocean is drawn as water as well as inland lakes"), Ocean[4].bIsWater);
+                bFoundOcean = true;
+            }
+        }
+    }
+    TestTrue(TEXT("Ocean fixture found"), bFoundOcean);
     return true;
 }
 
