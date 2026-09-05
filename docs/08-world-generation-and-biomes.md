@@ -122,6 +122,8 @@ Add Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, and Thunder Mounta
 
 The shared biome-expansion contract uses the existing world identity, four-field classifier, invisible server spatial keys, and Phase 4 exposure inputs. It defines deterministic terrain-feature intent, bounded per-kind population multipliers, normalized exposure modifiers, and stable terrain-aligned discovery candidates. A candidate is not content: only its completed biome slice may have the server materialize it, replicate it when relevant, and persist a sparse state delta. A server-only feature inspection may report a nearby classifier seam and candidate identifier for development; it must not reveal, reserve, or route players toward a discovery.
 
+Shimmering Lakes is complete: continuous patch rendering supplies interlocking collision-free water and shore treatment, while its server slice increases wet-shore pressure through the existing exposure loop and resolves one dry, water-adjacent optional harvest discovery from the active server spatial key. The discovery uses the normal validated harvest and sparse depletion path. It adds no boat, swimming physics, route, bridge, island crossing requirement, or authored camp location.
+
 **Done when:** every added biome is enjoyable on its own, blends naturally with its neighbours, and remains consistent for host and client.
 
 ### 7. Ocean and long-distance travel

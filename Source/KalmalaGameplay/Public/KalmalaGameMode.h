@@ -51,6 +51,7 @@ private:
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;
     TSet<FIntPoint> ActiveTerrainPatchCoordinates;
     TSet<FIntPoint> ActivePopulationSpatialKeys;
+    TSet<FIntPoint> ActiveShimmeringLakeDiscoveryKeys;
     float NextTerrainPatchActivationTime = 0.0f;
     float NextExposureUpdateTime = 0.0f;
     bool bTraversalTestEnabled = false;

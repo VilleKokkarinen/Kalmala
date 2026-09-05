@@ -1040,3 +1040,16 @@ Multiplayer impact: This contract is pure input data. Only `GameMode` can invoke
 Known limits: The profiles intentionally do not alter the live terrain, population, or exposure simulation until the corresponding complete biome slice consumes them. Discovery candidates are identifiers and positions only, with no actor, reward, minimap marker, save integration, or client visibility.
 
 Next task: Deliver the full Shimmering Lakes slice: interlocking water, saturated low ground, lake-edge or island discoveries, and wet-shore camp tradeoffs; no boat requirement before Phase 7.
+### 2026-09-05 11:06 EEST - Deliver Shimmering Lakes slice
+
+Outcome: Complete. The existing continuous lake water and shore treatment is now consumed as a full biome slice: lake-classified server spatial keys use the bounded lake population profile, server exposure applies the wet-ground/reduced-cover lake modifiers, and a deterministic search materializes one dry water-adjacent optional harvest discovery with a stable candidate ID. No boat, swimming physics, bridge, route, authored camp, or crossing requirement was added.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`; `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/08-world-generation-and-biomes.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -WaitMutex -MaxParallelActions=4` succeeded. Headless `Kalmala.World.BiomeExpansion.ShimmeringLakesSlice` succeeded with `-DDC-ForceMemoryCache`, verifying a deterministic dry lake-edge discovery, adjacent water, lake wetness/cover camp tradeoff, and stable ID reproduction. `git diff --check` passed.
+
+Multiplayer impact: Only authoritative `GameMode` evaluates active lake keys, applies gameplay exposure inputs, spawns the discovery node, validates its normal interaction, and writes its existing sparse harvest delta. Clients cannot provide a location, biome, profile, ID, harvest result, or save state; they receive only the ordinary replicated harvest node and exposure state.
+
+Known limits: The discovery reuses the current minimal harvest-node presentation and reward contract. Human lake-camp usability and full host/client biome scenario coverage are deferred to the Phase 6 verification task; no water traversal system exists before Phase 7.
+
+Next task: Deliver the full Elderwood slice: field-driven canopy, shade, roots, and clearings plus an optional discovery and a compact-versus-open camp tradeoff; never create a trail.

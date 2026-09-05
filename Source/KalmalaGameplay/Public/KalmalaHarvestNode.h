@@ -20,6 +20,7 @@ public:
     AKalmalaHarvestNode();
 
     void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn);
+    void InitializeDiscoveryServer(const FString& InPersistentSpawnId, const FVector& InLocation);
     static bool IsHarvestAllowed(bool bServerAuthority, bool bAlreadyHarvested, const FVector& InteractorLocation, const FVector& NodeLocation, float MaximumDistance = 250.0f);
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
     FKalmalaHarvestNodeHarvested OnHarvested;

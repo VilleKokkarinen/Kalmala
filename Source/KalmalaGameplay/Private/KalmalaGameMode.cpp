@@ -66,7 +66,12 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
         }
 
         const FVector Location = Character->GetActorLocation();
-        const FKalmalaEnvironmentalExposureSample Environment = FKalmalaEnvironmentalExposureSampler::Sample(WorldGenerationConfig, FVector2D(Location));
+        FKalmalaEnvironmentalExposureSample Environment = FKalmalaEnvironmentalExposureSampler::Sample(WorldGenerationConfig, FVector2D(Location));
+        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, FVector2D(Location)));
+        if (Biome == EKalmalaBiome::ShimmeringLakes)
+        {
+            Environment = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(Environment, Biome);
+        }
         const FKalmalaShelterSample Shelter = FKalmalaShelterSampler::Sample(GetWorld(), Character, Environment.NaturalCover, Weather.WindDirectionDegrees);
         float FireWarmth = 0.0f;
         for (TActorIterator<AKalmalaCampfire> CampfireIterator(GetWorld()); CampfireIterator; ++CampfireIterator)
@@ -266,9 +271,15 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     }
 
     int32 SpawnedMarkerCount = 0;
+    const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f)) * FKalmalaWorldPopulationLayout::SpatialKeySize));
     for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard })
     {
-        for (const FKalmalaWorldPopulationSpawn& Spawn : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, Kind))
+        TArray<FKalmalaWorldPopulationSpawn> Spawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, Kind);
+        if (KeyBiome == EKalmalaBiome::ShimmeringLakes)
+        {
+            Spawns.SetNum(FMath::Min(Spawns.Num(), FKalmalaBiomeExpansionContract::ApplyPopulationBudget(Spawns.Num(), Kind, KeyBiome)));
+        }
+        for (const FKalmalaWorldPopulationSpawn& Spawn : Spawns)
         {
             if (Kind == EKalmalaWorldPopulationKind::HarvestNode)
             {
@@ -319,6 +330,26 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                 }
             }
         }
+    }
+
+    if (KeyBiome == EKalmalaBiome::ShimmeringLakes && !ActiveShimmeringLakeDiscoveryKeys.Contains(SpatialKey))
+    {
+        FKalmalaBiomeDiscoveryCandidate Discovery;
+        if (FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(WorldGenerationConfig, SpatialKey, Discovery)
+            && (PopulationSaveGame == nullptr || !PopulationSaveGame->IsHarvested(Discovery.StableId)))
+        {
+            FActorSpawnParameters SpawnParameters;
+            SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+            AKalmalaHarvestNode* DiscoveryNode = GetWorld()->SpawnActor<AKalmalaHarvestNode>(AKalmalaHarvestNode::StaticClass(), Discovery.Location, FRotator::ZeroRotator, SpawnParameters);
+            if (DiscoveryNode != nullptr)
+            {
+                DiscoveryNode->InitializeDiscoveryServer(Discovery.StableId, Discovery.Location);
+                DiscoveryNode->OnHarvested.AddUObject(this, &AKalmalaGameMode::RecordHarvestedSpawn);
+                ++SpawnedMarkerCount;
+                UE_LOG(LogTemp, Display, TEXT("Server materialized Shimmering Lakes lake-edge discovery %s."), *Discovery.StableId);
+            }
+        }
+        ActiveShimmeringLakeDiscoveryKeys.Add(SpatialKey);
     }
 
     ActivePopulationSpatialKeys.Add(SpatialKey);

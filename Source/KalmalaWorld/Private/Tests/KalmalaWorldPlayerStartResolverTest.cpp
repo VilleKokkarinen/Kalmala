@@ -357,4 +357,31 @@ bool FKalmalaBiomeExpansionContractTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaShimmeringLakesSliceTest, "Kalmala.World.BiomeExpansion.ShimmeringLakesSlice", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaShimmeringLakesSliceTest::RunTest(const FString& Parameters)
+{
+    const FKalmalaWorldGenerationConfig Config{ 418ull, 1 };
+    bool bFoundLakeEdgeDiscovery = false;
+    for (int32 Y = -6; Y <= 6 && !bFoundLakeEdgeDiscovery; ++Y)
+    {
+        for (int32 X = -6; X <= 6 && !bFoundLakeEdgeDiscovery; ++X)
+        {
+            const FIntPoint SpatialKey(X, Y);
+            FKalmalaBiomeDiscoveryCandidate Discovery;
+            if (!FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(Config, SpatialKey, Discovery)) continue;
+            const FVector2D Position(Discovery.Location);
+            const FKalmalaEnvironmentalExposureSample Base = FKalmalaEnvironmentalExposureSampler::Sample(Config, Position);
+            const FKalmalaEnvironmentalExposureSample Modified = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(Base, EKalmalaBiome::ShimmeringLakes);
+            TestFalse(TEXT("Lake-edge discovery remains on dry traversable ground"), FKalmalaShimmeringLakeSampler::IsWater(Config, Position));
+            TestTrue(TEXT("Lake-edge discovery has adjacent interlocking lake water"), FKalmalaShimmeringLakeSampler::IsWater(Config, Position + FVector2D(350.0f, 0.0f)) || FKalmalaShimmeringLakeSampler::IsWater(Config, Position - FVector2D(350.0f, 0.0f)) || FKalmalaShimmeringLakeSampler::IsWater(Config, Position + FVector2D(0.0f, 350.0f)) || FKalmalaShimmeringLakeSampler::IsWater(Config, Position - FVector2D(0.0f, 350.0f)));
+            TestTrue(TEXT("Lake shore increases wet-ground camp pressure"), Modified.GroundWetness >= Base.GroundWetness);
+            TestTrue(TEXT("Lake shore preserves a bounded natural-cover tradeoff"), Modified.NaturalCover <= Base.NaturalCover);
+            TestEqual(TEXT("Lake discovery is stable for the same seed and spatial key"), Discovery.StableId, FKalmalaBiomeExpansionContract::BuildDiscoveryCandidate(Config, SpatialKey, EKalmalaBiome::ShimmeringLakes).StableId);
+            bFoundLakeEdgeDiscovery = true;
+        }
+    }
+    TestTrue(TEXT("Seed contains a deterministic dry Shimmering Lakes discovery without requiring a boat"), bFoundLakeEdgeDiscovery);
+    return true;
+}
+
 #endif

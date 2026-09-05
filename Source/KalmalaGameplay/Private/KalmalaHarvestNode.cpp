@@ -23,6 +23,15 @@ void AKalmalaHarvestNode::InitializeServer(const FKalmalaWorldPopulationSpawn& S
     }
 }
 
+void AKalmalaHarvestNode::InitializeDiscoveryServer(const FString& InPersistentSpawnId, const FVector& InLocation)
+{
+    if (HasAuthority() && !InPersistentSpawnId.IsEmpty())
+    {
+        SetActorLocation(InLocation);
+        PersistentSpawnId = InPersistentSpawnId;
+    }
+}
+
 bool AKalmalaHarvestNode::CanInteract_Implementation(AKalmalaCharacter* Interactor) const
 {
     return IsValid(Interactor) && IsHarvestAllowed(HasAuthority(), bHarvested, Interactor->GetActorLocation(), GetActorLocation());

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaEnvironmentalExposureSampler.h"
+#include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaWorldPopulationLayout.h"
 
@@ -96,6 +97,33 @@ struct KALMALAWORLD_API FKalmalaBiomeExpansionContract
             Inspection.bHasClassifierSeam |= FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position + Offset)) != Biome;
         }
         return Inspection;
+    }
+
+    /** Finds one dry, saturated lake-edge location in a spatial key. The result is a server input, not a client-visible candidate list. */
+    static bool TryBuildShimmeringLakeDiscovery(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, FKalmalaBiomeDiscoveryCandidate& OutCandidate)
+    {
+        const FKalmalaBiomeDiscoveryCandidate BaseCandidate = BuildDiscoveryCandidate(Config, SpatialKey, EKalmalaBiome::ShimmeringLakes);
+        constexpr float ShoreProbeDistance = 350.0f;
+        for (int32 Attempt = 0; Attempt < 16; ++Attempt)
+        {
+            const uint64 AttemptSeed = Mix(BaseCandidate.CandidateSeed ^ static_cast<uint64>(Attempt + 1) * 0x9E3779B185EBCA87ull);
+            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FVector2D Position = Origin + FVector2D(
+                static_cast<float>(AttemptSeed & 0xFFFFu) / 65535.0f,
+                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const bool bLakeBiome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position)) == EKalmalaBiome::ShimmeringLakes;
+            const bool bWaterNearby = FKalmalaShimmeringLakeSampler::IsWater(Config, Position + FVector2D(ShoreProbeDistance, 0.0f))
+                || FKalmalaShimmeringLakeSampler::IsWater(Config, Position - FVector2D(ShoreProbeDistance, 0.0f))
+                || FKalmalaShimmeringLakeSampler::IsWater(Config, Position + FVector2D(0.0f, ShoreProbeDistance))
+                || FKalmalaShimmeringLakeSampler::IsWater(Config, Position - FVector2D(0.0f, ShoreProbeDistance));
+            if (bLakeBiome && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position) && bWaterNearby)
+            {
+                OutCandidate = BaseCandidate;
+                OutCandidate.Location = FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position) + 20.0f);
+                return true;
+            }
+        }
+        return false;
     }
 
 private:
