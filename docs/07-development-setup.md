@@ -49,6 +49,12 @@ Launch a listen server with `-KalmalaExposureInspection` to log server-sampled t
 
 Launch a headless listen server and then join one headless client with `-KalmalaExposureReplicationTest`. The server spawns a temporary lit campfire and initializes each normal player pawn to a wet, low-warmth state. Its server log records weather, sampled shelter, fire warmth, and the resulting exposure values; the client log records the replicated weather, campfire, and exposure values. The developer-only path has no client RPCs for weather, exposure, or campfire mutation and adds no persistent gameplay content.
 
+## Two-player camp-choice scenario
+
+After the editor build, run `Scripts/Verify-CampChoices.ps1` from PowerShell. It starts a hidden listen server (seed 418) and a conflicting-seed client (999) on port 17841, with logs and user data in a unique temporary directory. Both use `-KalmalaCampChoiceTest`; this developer-only scenario requires two normal possessed pawns including a remote player. It compares separated low/high-cover dry-land fixtures within the generated starting neighborhood, logs ground wetness, water distance, and harvest availability, and samples twelve seconds without fires followed by twenty seconds with normally interacted server-owned fires. Both players must dry, warm, and improve travel speed. The runner checks matching world identity, weather, and at least ten exact exposure snapshots per replicated player ID, then stops only its own processes. It fails on timeout or scenario assertions and retains logs for diagnosis.
+
+The fixtures represent two optional camp choices, not runtime camp recommendations: no route, camp marker, authored shelter, or persistent content is added. This is automated systems verification in cold, dry starting weather, not a human usability test or validation of inventory, construction, rain preparation, or rendered feedback. Those systems retain their existing scope and limitations.
+
 ## Camp-condition inspection
 
 Launch a listen server with `-KalmalaCampConditionInspection` and join a player. The server logs the freely chosen position's continuous natural cover, ground wetness, bounded nearest-water distance, and nearby deterministic harvest-node count. It only explains local tradeoffs; it neither creates nor marks a camp location, and clients cannot invoke or alter it.

@@ -1,3 +1,4 @@
+#include "GameFramework/PlayerState.h"
 #include "KalmalaCharacter.h"
 
 #include "Camera/CameraComponent.h"
@@ -137,6 +138,10 @@ void AKalmalaCharacter::ConfigureTraversalTestTarget()
 void AKalmalaCharacter::OnRep_ExposureState()
 {
     ApplyExposureTravelPenalty();
+    if (GetPlayerState() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")))
+    {
+        UE_LOG(LogTemp, Display, TEXT("Camp choice client %s: Wetness=%.2f Warmth=%.2f Travel=%.2f."), *FString::FromInt(GetPlayerState()->GetPlayerId()), ExposureState.Wetness, ExposureState.Warmth, ExposureState.TravelSpeedMultiplier);
+    }
     if (bExposureReplicationTelemetryEnabled)
     {
         UE_LOG(LogTemp, Display, TEXT("Exposure replication test client received state: Wetness=%.2f Warmth=%.2f TravelMultiplier=%.2f."), ExposureState.Wetness, ExposureState.Warmth, ExposureState.TravelSpeedMultiplier);

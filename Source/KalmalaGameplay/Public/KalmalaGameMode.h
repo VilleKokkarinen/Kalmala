@@ -34,6 +34,12 @@ private:
     void LogExposureInspection(const AActor* Occupant) const;
     void LogCampConditionInspection(const AActor* Occupant) const;
     void UpdatePlayerExposure(float DeltaSeconds);
+    void DriveCampChoiceTest();
+    float CampChoiceStartTime = -1.0f;
+    int32 CampChoiceStage = 0;
+    TArray<TWeakObjectPtr<class AKalmalaCharacter>> CampChoicePlayers;
+    TArray<float> CampChoiceBaselineWarmth;
+    TArray<float> CampChoiceBaselineWetness;
     void InitializeWeatherCycle();
     void AdvanceWeatherCycleIfNeeded();
     void PlacePawnAtGeneratedStart(class APlayerController* PlayerController);

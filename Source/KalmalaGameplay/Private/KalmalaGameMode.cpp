@@ -27,6 +27,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerState.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/CommandLine.h"
@@ -77,6 +78,10 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
         State.Warmth = FKalmalaExposureResponse::AdvanceWarmth(State.Warmth, Environment.AmbientTemperature, State.Wetness, Environment.WindExposure * Weather.WindStrength, Shelter.Shelter, FireWarmth, DeltaSeconds);
         State.TravelSpeedMultiplier = FKalmalaExposureResponse::GetTravelSpeedMultiplier(State.Warmth);
         Character->SetExposureStateFromServer(State);
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")))
+        {
+            UE_LOG(LogTemp, Display, TEXT("Camp choice server %s: Wetness=%.2f Warmth=%.2f Travel=%.2f."), *FString::FromInt(Character->GetPlayerState()->GetPlayerId()), State.Wetness, State.Warmth, State.TravelSpeedMultiplier);
+        }
         if (bExposureReplicationTestEnabled)
         {
             UE_LOG(LogTemp, Display, TEXT("Exposure replication test server state for %s: Weather=%d/%.2f/%d/%.2f Shelter=%.2f FireWarmth=%.2f Wetness=%.2f Warmth=%.2f TravelMultiplier=%.2f."), *Character->GetName(), Weather.WeatherCycleIndex, Weather.PrecipitationIntensity, Weather.WindDirectionDegrees, Weather.WindStrength, Shelter.Shelter, FireWarmth, State.Wetness, State.Warmth, State.TravelSpeedMultiplier);
@@ -216,6 +221,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     }
 
     DriveTraversalTest();
+    DriveCampChoiceTest();
     AdvanceWeatherCycleIfNeeded();
 
     if (GetWorld()->GetTimeSeconds() >= NextExposureUpdateTime)
@@ -333,7 +339,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 
     PlacePawnAtGeneratedStart(NewPlayer);
 
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled) || NewPlayer == nullptr)
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest"))) || NewPlayer == nullptr)
     {
         return;
     }

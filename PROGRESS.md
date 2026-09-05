@@ -957,3 +957,17 @@ Multiplayer impact: Phase 4 now explicitly requires that the server own weather,
 Known limits: This is a planning and contract refinement; no weather, shelter, fire, or survival runtime behavior has been implemented.
 
 Next task: Integrate the sparse depletion container into server harvest-node activation so consumed nodes do not respawn during the session.
+
+### 2026-09-05 09:20 EEST — Verify two-player camp-choice recovery
+
+Outcome: Complete automated Phase 4 scenario. Two normal players occupy separated generated low/high-cover dry-land fixtures, spend twelve simulation seconds without fires, then recover for twenty seconds beside temporary fires lit through the normal server interaction gate. No path, camp marker, authored shelter, persistent world change, or later-phase work was added. The checkout was clean at run start; the previous handoff conflict is resolved.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaCampChoiceTest.cpp`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Scripts/Verify-CampChoices.ps1`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -Force -MaxParallelActions=4` succeeded after repairing a UE_LOG bracing compile error. The first network comparison exposed peer-local actor-name differences; switching telemetry to replicated player IDs fixed the verifier. `Scripts/Verify-CampChoices.ps1` exited 0: seed-999 client received seed 418/revision 1, matching weather, and 33 exact server exposure snapshots for each player (IDs 256/257). Site A cover/ground wetness/water distance were 0.21/0.13/2200 cm; site B 0.80/0.26/800 cm; each had one nearby harvest descriptor. A changed from wetness 45.01/warmth 27.75/travel 0.80 to 33.29/66.68/1.00; B from 44.52/26.84/0.79 to 31.96/64.67/1.00. Logs: `C:/Users/Ville/AppData/Local/Temp/KalmalaCampChoices-9c09d69d058c4e48856e9b1254501e0e`. `git diff --check` passed.
+
+Multiplayer impact: The non-shipping scenario runs only in authoritative GameMode and requires a remote player. The server chooses test fixtures and initial exposure, lights fires with normal authority/range validation, and uses unchanged runtime exposure ticks. Clients only log replicated player identity and exposure; no new RPC, client-selected gameplay input, population change, or save schema was introduced.
+
+Known limits: This is a headless automated comparison of optional camp fixtures in cold, dry starting weather, not human camp-choice usability, rendered presentation, construction/inventory, or rain-preparation validation. Existing CommonUI viewport and rootless wildlife/hazard relevance warnings remain outside this increment. Test processes use unique temporary user directories and are stopped by the runner; no generated output is staged. Work ran directly in the main checkout, so no handoff synchronization was necessary.
+
+Next task: Phase 5 first item — add the top-right circular minimap through a KalmalaUI view model within the existing information/authority contract.
