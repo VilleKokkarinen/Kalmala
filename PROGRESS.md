@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-05 09:12 EEST — Consolidate biome-expansion increments
+
+Outcome: Complete. Condensed Phase 6 from granular feature substeps into seven integrated delivery increments: shared rules and inspection, one complete slice per biome, and one repeatable verification scenario per completed biome.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Reviewed the condensed checklist against the continuous four-field generation, server-authority, exposure, open-exploration, and Phase 7 boat constraints in the world-generation roadmap.
+
+Multiplayer impact: Each biome slice still requires server-owned gameplay placement and identifiers, with clients receiving only replicated nearby gameplay state and local cosmetic presentation.
+
+Known limits: This changes planning granularity only; it adds no biome runtime content or new verification harness.
+
+Next task: Complete the remaining Phase 4 two-player camp-choice scenario before starting Phase 5.
+
 ### 2026-09-04 17:02 EEST — Plan companion minimap
 
 Outcome: Complete. Added and placed the companion minimap as Phase 5 of the world-generation track, moving biome expansion to Phase 6 and ocean travel to Phase 7. The plan specifies a top-right circular map with a centred player-facing marker and mouse-wheel zoom clamped between tunable minimum and maximum levels while preserving the generated-world and multiplayer-information contracts.

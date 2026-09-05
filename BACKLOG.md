@@ -107,28 +107,13 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 **Intent:** add one biome at a time as a distinct, seed-generated place to explore, prepare, and discover—not as a combat tier or a separate authored region. Each biome must use the same continuous four-field classifier and Phase 4 exposure contract. Terrain can create local environmental variation, but never designed travel corridors, shortcuts, roads, or trails.
 
-- [ ] Establish the shared biome-expansion delivery contract.
-- [ ] Define the deterministic, server-owned rules for each biome's terrain features, interactive population budgets, exposure modifiers, and stable discovery identifiers.
-- [ ] Require each new biome to have a visual silhouette, a travel pressure, a shelter response, and an optional discovery payoff that cannot be mistaken for another biome.
-- [ ] Add developer inspection coverage for continuous seam sampling, feature placement, exposure inputs, and biome-specific population budgets.
-- [ ] Expand Shimmering Lakes beyond its existing visual water and shoreline treatment.
-- [ ] Add interlocking lakes, saturated low ground, and seed-generated lake-edge or island discoveries without requiring a boat before Phase 7.
-- [ ] Make wet shore conditions, dry storage, raised shelter, and available natural cover create understandable camp tradeoffs without guiding travel.
-- [ ] Add Elderwood as a dense-canopy biome.
-- [ ] Add field-driven dense vegetation, shade, roots, and clearings that change visibility and camp footprint without creating a trail or directed path.
-- [ ] Add optional ancient-root, wildlife-den, or overgrown-stone discoveries and make compact camps versus open clearings a legible shelter choice.
-- [ ] Add Mossy Mire as a wet-ground biome.
-- [ ] Add saturated terrain, slower traversable ground, and naturally generated dry hummocks; never create a required crossing or directional corridor.
-- [ ] Make raised floors, drainage, waterproof fuel storage, and bog-iron or scavenging discoveries meaningful camp-preparation choices.
-- [ ] Add Freezing Tundra as a cold, wind-exposed biome.
-- [ ] Add sparse cover, rolling high ground, and terrain-derived wind exposure that rewards enclosed roofs, windbreaks, and warmth preparation.
-- [ ] Add optional ice-fed springs, exposed shrines, or weather-read discoveries that players may approach from any freely chosen direction.
-- [ ] Add Thunder Mountains as a high-exposure biome.
-- [ ] Add steep but traversable ridges, exposed passes, and storm pressure without mandatory precision traversal or designed passages.
-- [ ] Make durable, lightning-safe shelter and open-ended expedition preparation meaningful; add optional storm-carved overlooks, mineral seams, or cave discoveries.
-- [ ] Verify every completed biome is independently playable and blends into its neighbours.
-- [ ] For each biome, verify same-seed reproducibility, different-seed variation, continuous seam samples, collision/traversal continuity, and stable server-owned discovery/population identifiers.
-- [ ] Run a host/client scenario in each biome that demonstrates matching terrain, weather/exposure, shelter response, and freely chosen camp locations; clients must not alter gameplay state.
+- [ ] Establish the shared biome-expansion contract: deterministic server-owned terrain, population budgets, exposure modifiers, stable discoveries, and developer seam/feature inspection.
+- [ ] Deliver the full Shimmering Lakes slice: interlocking water, saturated low ground, lake-edge or island discoveries, and wet-shore camp tradeoffs; no boat requirement before Phase 7.
+- [ ] Deliver the full Elderwood slice: field-driven canopy, shade, roots, and clearings plus an optional discovery and a compact-versus-open camp tradeoff; never create a trail.
+- [ ] Deliver the full Mossy Mire slice: saturated, slower traversable ground, dry hummocks, drainage/raised-shelter preparation, and an optional discovery; never require a crossing.
+- [ ] Deliver the full Freezing Tundra slice: sparse cover, rolling high ground, wind exposure, enclosed-shelter preparation, and an optional discovery.
+- [ ] Deliver the full Thunder Mountains slice: steep but traversable ridges, storm pressure, lightning-safe shelter preparation, and an optional discovery; no designed passages or precision gate.
+- [ ] Verify each completed biome as one integrated scenario: same-seed reproduction, different-seed variation, continuous seams and collision, stable server IDs, and matching host/client terrain, exposure, shelter, and freely chosen camps.
 
 ### Phase 7 — Ocean and long-distance travel
 
