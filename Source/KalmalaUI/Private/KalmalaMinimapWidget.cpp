@@ -23,6 +23,20 @@ bool UKalmalaMinimapWidget::IsInsideCircularMap(const FVector2D& NormalizedMapPo
     return NormalizedMapPosition.SizeSquared() <= 1.0f;
 }
 
+bool UKalmalaMinimapWidget::IsTopRightPlacementValid(const FVector2D& ViewportSize, const float InMapDiameter, const float Margin, const float UiScale)
+{
+    if (ViewportSize.X <= 0.0f || ViewportSize.Y <= 0.0f || InMapDiameter <= 0.0f || Margin < 0.0f || UiScale <= 0.0f)
+    {
+        return false;
+    }
+
+    const float ScaledDiameter = InMapDiameter * UiScale;
+    const float ScaledMargin = Margin * UiScale;
+    const FVector2D TopLeft(ViewportSize.X - ScaledMargin - ScaledDiameter, ScaledMargin);
+    const FVector2D BottomRight = TopLeft + FVector2D(ScaledDiameter, ScaledDiameter);
+    return TopLeft.X >= 0.0f && TopLeft.Y >= 0.0f && BottomRight.X <= ViewportSize.X && BottomRight.Y <= ViewportSize.Y;
+}
+
 float UKalmalaMinimapWidget::ClampZoom(const float RequestedZoom, const float InMinZoom, const float InMaxZoom)
 {
     const float SafeMinZoom = FMath::Max(100.0f, FMath::Min(InMinZoom, InMaxZoom));
@@ -56,6 +70,7 @@ void UKalmalaMinimapWidget::NativeTick(const FGeometry& MyGeometry, const float 
         RefreshAccumulator = 0.0f;
         ViewModel->Refresh();
     }
+
 }
 
 int32 UKalmalaMinimapWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,

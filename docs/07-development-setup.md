@@ -67,6 +67,8 @@ Launch the game with `-KalmalaBiomeDebug` to replace the generated terrain's nor
 
 The local `UKalmalaMinimapSubsystem` creates a 208-pixel `UKalmalaMinimapWidget` for each local player once its controller is available. The widget is anchored to the top-right viewport corner with a 24-pixel margin. It refreshes local seed-derived terrain/water samples around that player's pawn and draws only samples inside a circular radius, together with a centred marker rotated to the pawn's facing yaw. `MouseWheelAxis` changes only the local session's sampled radius, clamped from 2,500 to 10,000 cm in 750 cm steps; CommonUI's normal-game-input gate leaves wheel input to any modal UI. It reads no world actors, population, landmarks, or gameplay state beyond the already-replicated world identity and owning pawn transform.
 
+Run `Scripts/Verify-Minimap.ps1` after an editor build for the two-peer identity check. It starts a memory-only hidden listen server with seed 418 and a conflicting-seed client with seed 999, then confirms that the client receives the server world identity. The focused `Kalmala.UI.Minimap.LocalPresentation` automation checks the two player-centred local views from that same identity, circular clipping, min/max zoom, modal input gating, and the top-right footprint at 4:3/75%, 16:9/100%, and ultrawide/125% UI scales. These checks are local presentation only and create no replicated, gameplay, or save mutation.
+
 ## Source-control rules
 
 - Commit `Config/`, `Source/`, `.uproject`, and `.uasset`/`.umap` content assets.

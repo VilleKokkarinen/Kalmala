@@ -1013,3 +1013,17 @@ Multiplayer impact: Zoom is a local UI radius only. It reads neither new replica
 Known limits: The next Phase 5 verification increment still needs multi-aspect-ratio/UI-scale presentation checks and a host/client player-centred scenario. The map still intentionally has no landmark source because no player-facing landmark contract exists.
 
 Next task: Verify circular clipping, UI-scale/aspect-ratio placement, min/max zoom clamping, and host/client player-centred views with no authoritative state mutation or information leak.
+
+### 2026-09-05 10:51 EEST - Verify companion-minimap presentation
+
+Outcome: Complete. Added repeatable minimap verification for circular clipping, 4:3/75%, 16:9/100%, and ultrawide/125% top-right placement, zoom bounds, modal input ownership, and distinct player-centred views from the same immutable world identity. Added a two-peer identity runner using a stable headless memory-only launch.
+
+Changed: `Source/KalmalaUI/Public/KalmalaMinimapWidget.h`; `Source/KalmalaUI/Private/KalmalaMinimapWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp`; `Scripts/Verify-Minimap.ps1`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -Force -MaxParallelActions=4` succeeded. Headless `Kalmala.UI.Minimap.LocalPresentation` succeeded, including the new circular, placement, zoom/input, and two-player-centred model assertions. `Scripts/Verify-Minimap.ps1` succeeded: conflicting-seed client 999 received server seed 418/revision 1. Logs: `C:/Users/Ville/AppData/Local/Temp/KalmalaMinimap-3432838f77c246cfa50ab1e4515a0f27`. `git diff --check` passed.
+
+Multiplayer impact: The verification exercises only the existing client-local seed-derived model and existing replicated world identity. It adds no RPC, replicated field, actor query, population/landmark discovery, collision, server mutation, gameplay input, or save change. Each model centres its own supplied player transform, while its surrounding samples use the same identity.
+
+Known limits: The headless peer runner verifies replicated identity; its local player-centred presentation assertions remain deterministic UI automation because UMG does not tick under `-nullrhi`. The failed regular-renderer attempt exposed an engine shader-worker crash in this constrained environment, so it is not used by the reproducible runner. No player-facing landmark source exists yet.
+
+Next task: Phase 6 first item - establish the shared biome-expansion contract: deterministic server-owned terrain, population budgets, exposure modifiers, stable discoveries, and developer seam/feature inspection.

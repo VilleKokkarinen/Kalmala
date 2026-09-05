@@ -22,6 +22,9 @@ public:
     /** Pure geometry seam: all drawn map points must remain inside this circle. */
     static bool IsInsideCircularMap(const FVector2D& NormalizedMapPosition);
 
+    /** Tests the top-right HUD footprint independently of viewport aspect ratio and UI scale. */
+    static bool IsTopRightPlacementValid(const FVector2D& ViewportSize, float InMapDiameter, float Margin, float UiScale);
+
     /** Pure local zoom seam used by input routing and automation coverage. */
     static float ClampZoom(float RequestedZoom, float MinZoom, float MaxZoom);
     static bool ShouldAcceptZoomInput(bool bCanProcessNormalGameInput);
