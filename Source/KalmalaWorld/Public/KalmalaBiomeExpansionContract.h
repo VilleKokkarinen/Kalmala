@@ -150,6 +150,31 @@ struct KALMALAWORLD_API FKalmalaBiomeExpansionContract
         return false;
     }
 
+    /** Finds one relatively dry, gently sloped Mire hummock. It remains an optional server-owned discovery, never a crossing or route. */
+    static bool TryBuildMossyMireDiscovery(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, FKalmalaBiomeDiscoveryCandidate& OutCandidate)
+    {
+        const FKalmalaBiomeDiscoveryCandidate BaseCandidate = BuildDiscoveryCandidate(Config, SpatialKey, EKalmalaBiome::MossyMire);
+        for (int32 Attempt = 0; Attempt < 32; ++Attempt)
+        {
+            const uint64 AttemptSeed = Mix(BaseCandidate.CandidateSeed ^ static_cast<uint64>(Attempt + 1) * 0x94D049BB133111EBull);
+            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FVector2D Position = Origin + FVector2D(
+                static_cast<float>(AttemptSeed & 0xFFFFu) / 65535.0f,
+                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
+            const FKalmalaEnvironmentalExposureSample Exposure = FKalmalaEnvironmentalExposureSampler::Sample(Config, Position);
+            if (FKalmalaBiomeClassifier::Classify(Fields) == EKalmalaBiome::MossyMire
+                && Exposure.GroundWetness <= 0.72f
+                && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.84f)
+            {
+                OutCandidate = BaseCandidate;
+                OutCandidate.Location = FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position) + 20.0f);
+                return true;
+            }
+        }
+        return false;
+    }
+
 private:
     static uint64 Mix(uint64 Value)
     {

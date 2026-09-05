@@ -68,7 +68,7 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
         const FVector Location = Character->GetActorLocation();
         FKalmalaEnvironmentalExposureSample Environment = FKalmalaEnvironmentalExposureSampler::Sample(WorldGenerationConfig, FVector2D(Location));
         const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, FVector2D(Location)));
-        if (Biome == EKalmalaBiome::ShimmeringLakes || Biome == EKalmalaBiome::Elderwood)
+        if (Biome == EKalmalaBiome::ShimmeringLakes || Biome == EKalmalaBiome::Elderwood || Biome == EKalmalaBiome::MossyMire)
         {
             Environment = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(Environment, Biome);
         }
@@ -83,6 +83,11 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
         State.Wetness = FKalmalaExposureResponse::AdvanceWetness(State.Wetness, Weather.PrecipitationIntensity, Environment.GroundWetness, Environment.WindExposure * Weather.WindStrength, Shelter.Shelter, FireWarmth, DeltaSeconds);
         State.Warmth = FKalmalaExposureResponse::AdvanceWarmth(State.Warmth, Environment.AmbientTemperature, State.Wetness, Environment.WindExposure * Weather.WindStrength, Shelter.Shelter, FireWarmth, DeltaSeconds);
         State.TravelSpeedMultiplier = FKalmalaExposureResponse::GetTravelSpeedMultiplier(State.Warmth);
+        // Saturated Mire ground stays traversable, but server-owned footing drag makes dry hummocks and raised shelter meaningful.
+        if (Biome == EKalmalaBiome::MossyMire)
+        {
+            State.TravelSpeedMultiplier = FMath::Max(0.68f, State.TravelSpeedMultiplier * 0.88f);
+        }
         Character->SetExposureStateFromServer(State);
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")))
         {
@@ -275,7 +280,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard })
     {
         TArray<FKalmalaWorldPopulationSpawn> Spawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, Kind);
-        if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood)
+        if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood || KeyBiome == EKalmalaBiome::MossyMire)
         {
             Spawns.SetNum(FMath::Min(Spawns.Num(), FKalmalaBiomeExpansionContract::ApplyPopulationBudget(Spawns.Num(), Kind, KeyBiome)));
         }
@@ -370,6 +375,26 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
             }
         }
         ActiveElderwoodDiscoveryKeys.Add(SpatialKey);
+    }
+
+    if (KeyBiome == EKalmalaBiome::MossyMire && !ActiveMossyMireDiscoveryKeys.Contains(SpatialKey))
+    {
+        FKalmalaBiomeDiscoveryCandidate Discovery;
+        if (FKalmalaBiomeExpansionContract::TryBuildMossyMireDiscovery(WorldGenerationConfig, SpatialKey, Discovery)
+            && (PopulationSaveGame == nullptr || !PopulationSaveGame->IsHarvested(Discovery.StableId)))
+        {
+            FActorSpawnParameters SpawnParameters;
+            SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+            AKalmalaHarvestNode* DiscoveryNode = GetWorld()->SpawnActor<AKalmalaHarvestNode>(AKalmalaHarvestNode::StaticClass(), Discovery.Location, FRotator::ZeroRotator, SpawnParameters);
+            if (DiscoveryNode != nullptr)
+            {
+                DiscoveryNode->InitializeDiscoveryServer(Discovery.StableId, Discovery.Location);
+                DiscoveryNode->OnHarvested.AddUObject(this, &AKalmalaGameMode::RecordHarvestedSpawn);
+                ++SpawnedMarkerCount;
+                UE_LOG(LogTemp, Display, TEXT("Server materialized Mossy Mire dry-hummock discovery %s."), *Discovery.StableId);
+            }
+        }
+        ActiveMossyMireDiscoveryKeys.Add(SpatialKey);
     }
 
     ActivePopulationSpatialKeys.Add(SpatialKey);

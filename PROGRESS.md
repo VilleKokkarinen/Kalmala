@@ -1066,3 +1066,17 @@ Multiplayer impact: Only authoritative `GameMode` classifies active keys, applie
 Known limits: The discovery reuses the current minimal harvest-node presentation and reward contract. The focused test verifies deterministic rules rather than rendered host/client canopy presentation; full cross-biome host/client scenario coverage remains the final Phase 6 task.
 
 Next task: Deliver the full Mossy Mire slice: saturated, slower traversable ground, dry hummocks, drainage/raised-shelter preparation, and an optional discovery; never require a crossing.
+
+### 2026-09-05 23:12 EEST - Deliver Mossy Mire slice
+
+Outcome: Complete. Mossy Mire-classified server spatial keys now consume the bounded shared population and exposure profile, materialize at most one deterministic gently sloped relatively dry hummock harvest discovery, and apply a bounded 12% server-owned footing drag after the normal warmth-derived travel calculation. The existing 68% minimum preserves traversability. Dry hummocks provide optional terrain-selected preparation for raised shelter or drainage; no crossing, route, authored dry ground, reserved camp, collision gate, or new save schema was added.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -WaitMutex -Force -MaxParallelActions=4` succeeded. Headless `Kalmala.World.BiomeExpansion.MossyMireSlice` completed successfully with `-DDC-ForceMemoryCache`, verifying a deterministic gently sloped dry hummock discovery, Mire wet-ground preparation pressure, normalized exposure inputs, and stable ID reproduction. `git diff --check` passed.
+
+Multiplayer impact: Only authoritative `GameMode` classifies active keys, applies the profile and footing drag, spawns the discovery, validates its existing harvest interaction, and records its existing sparse depletion delta. Clients cannot select a Mire location, discovery candidate, population budget, exposure input, travel multiplier, ID, or harvest outcome; they receive only ordinary replicated harvest and exposure state. No RPC, replicated field, collision, or persistence schema was introduced.
+
+Known limits: The optional discovery reuses the current minimal harvest-node presentation and reward contract. The automated test validates deterministic terrain and exposure rules rather than rendered host/client mire presentation or player-built drainage usability; full cross-biome host/client scenario coverage remains the final Phase 6 task. `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp` was already modified at run start and was preserved unchanged.
+
+Next task: Deliver the full Freezing Tundra slice: sparse cover, rolling high ground, wind exposure, enclosed-shelter preparation, and an optional discovery.

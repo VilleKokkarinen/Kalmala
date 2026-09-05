@@ -81,6 +81,10 @@ After an editor build, run the focused `Kalmala.World.BiomeExpansion.ShimmeringL
 
 After an editor build, run the focused `Kalmala.World.BiomeExpansion.ElderwoodSlice` headless automation with `-DDC-ForceMemoryCache`. It searches deterministic spatial keys for a gently sloped, lower-flora Elderwood clearing discovery, verifies the compact-canopy exposure tradeoff and stable ID reproduction, and does not create a trail or reserve a camp. Runtime activation remains server-only: it creates at most one normal validated harvest discovery per active Elderwood key; field-driven canopy and root presentation are local cosmetic meshes derived from the replicated world identity and patch descriptor.
 
+## Mossy Mire slice verification
+
+After an editor build, run the focused `Kalmala.World.BiomeExpansion.MossyMireSlice` headless automation with `-DDC-ForceMemoryCache`. It searches deterministic spatial keys for a gently sloped, relatively dry Mire hummock discovery, verifies increased wet-ground preparation pressure and stable ID reproduction, and does not create a crossing, route, or reserved camp. Runtime activation remains server-only: it creates at most one normal validated harvest discovery per active Mire key; the server applies the bounded Mire footing drag through the existing replicated travel-speed state, while clients receive only that normal replicated state.
+
 ## Source-control rules
 
 - Commit `Config/`, `Source/`, `.uproject`, and `.uasset`/`.umap` content assets.

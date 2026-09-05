@@ -413,4 +413,32 @@ bool FKalmalaElderwoodSliceTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMossyMireSliceTest, "Kalmala.World.BiomeExpansion.MossyMireSlice", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaMossyMireSliceTest::RunTest(const FString& Parameters)
+{
+    const FKalmalaWorldGenerationConfig Config{ 418ull, 1 };
+    bool bFoundHummockDiscovery = false;
+    for (int32 Y = -8; Y <= 8 && !bFoundHummockDiscovery; ++Y)
+    {
+        for (int32 X = -8; X <= 8 && !bFoundHummockDiscovery; ++X)
+        {
+            const FIntPoint SpatialKey(X, Y);
+            FKalmalaBiomeDiscoveryCandidate Discovery;
+            if (!FKalmalaBiomeExpansionContract::TryBuildMossyMireDiscovery(Config, SpatialKey, Discovery)) continue;
+            const FVector2D Position(Discovery.Location);
+            const FKalmalaEnvironmentalExposureSample Base = FKalmalaEnvironmentalExposureSampler::Sample(Config, Position);
+            const FKalmalaEnvironmentalExposureSample Mire = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(Base, EKalmalaBiome::MossyMire);
+            TestEqual(TEXT("Mire discovery remains inside the continuous Mossy Mire classifier"), FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position)), EKalmalaBiome::MossyMire);
+            TestTrue(TEXT("Mire dry hummock remains gently traversable"), FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.84f);
+            TestTrue(TEXT("Mire hummock is drier than the saturated ground threshold"), Base.GroundWetness <= 0.72f);
+            TestTrue(TEXT("Mire profile increases wet-ground shelter preparation pressure"), Mire.GroundWetness >= Base.GroundWetness);
+            TestTrue(TEXT("Mire profile retains bounded wind and cover inputs"), Mire.WindExposure >= 0.0f && Mire.WindExposure <= 1.0f && Mire.NaturalCover >= 0.0f && Mire.NaturalCover <= 1.0f);
+            TestEqual(TEXT("Mire hummock discovery has a stable sparse identifier"), Discovery.StableId, FKalmalaBiomeExpansionContract::BuildDiscoveryCandidate(Config, SpatialKey, EKalmalaBiome::MossyMire).StableId);
+            bFoundHummockDiscovery = true;
+        }
+    }
+    TestTrue(TEXT("Seed contains a deterministic dry Mossy Mire hummock discovery without requiring a crossing"), bFoundHummockDiscovery);
+    return true;
+}
+
 #endif
