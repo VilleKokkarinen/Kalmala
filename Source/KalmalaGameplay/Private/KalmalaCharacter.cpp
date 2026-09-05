@@ -1,6 +1,5 @@
-#include "GameFramework/PlayerState.h"
 #include "KalmalaCharacter.h"
-
+#include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
