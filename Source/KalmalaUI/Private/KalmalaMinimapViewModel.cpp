@@ -1,5 +1,6 @@
 #include "KalmalaMinimapViewModel.h"
 #include "KalmalaLakeBasin.h"
+#include "KalmalaOceanSampler.h"
 #include "KalmalaMinimapRaster.h"
 
 #include "GameFramework/Pawn.h"
@@ -83,9 +84,10 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
 
             FKalmalaMinimapTerrainSample& Sample = Samples.AddDefaulted_GetRef();
             Sample.MapPosition = MapPosition;
-            Sample.TerrainHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldConfig, WorldPosition);
+            const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(WorldConfig, WorldPosition);
+            Sample.TerrainHeight = Ocean.TerrainHeight;
             const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldConfig, WorldPosition));
-            Sample.bIsWater = Sample.TerrainHeight <= FKalmalaTerrainHeightSampler::SeaLevelWorldHeight
+            Sample.bIsWater = Ocean.IsWater()
                 || FKalmalaLakeBasin::IsVisibleWater(WorldConfig, WorldPosition);
             Sample.TerrainColour = FKalmalaMinimapRaster::SampleBiomeTexture(Sample.bIsWater ? EKalmalaBiome::Ocean : Biome, WorldPosition);
             if (Sample.bIsWater && Biome == EKalmalaBiome::ShimmeringLakes)

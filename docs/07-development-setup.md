@@ -29,6 +29,10 @@ The existing `L_Prototype` is now the configured editor startup and game default
 
 `Kalmala.World.Water.ClippedSurface` checks partial-cell coverage, winding, flat levels, shallow shore treatment, seeded closed basins, rejection of sea-connected/unbounded/unseeded basins, deterministic meshes, and nonempty matching patch-edge intersections. Lake-biome fields seed enclosed terrain basins rather than clipping floating sheets at humidity/temperature boundaries. Basins exceeding 8,192 wet lattice vertices are conservatively omitted. The minimap uses the same visible water decision. Terrain/collision, server wetland rules, generator revision, and saved-data schemas are unchanged. Run `Scripts/Verify-PlayerControls.ps1 -Rendered` for rendered host/client traversal and screenshots after building. Restart the editor to load the repaired native module.
 
+## Ocean-depth regression
+
+After an editor build, run headless automation with `-unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -ExecCmds="Automation RunTests Kalmala.World.Water+Kalmala.UI.Minimap.LocalPresentation" -TestExit="Automation Test Queue Empty"`, directing `-UserDir` and `-abslog` into a unique temporary directory. `Kalmala.World.Water.OceanDepth` verifies depth against both collision-triangle planes, negative coordinates, equivalent adjacent-patch origins, same-identity reproduction, different-seed variation, and actual clipped coastline vertices; the fixture must contain wet sea floor, dry land, and mixed coastal triangles. It also rejects invalid identity and nonfinite query positions. Run `Scripts/Verify-Minimap.ps1 -Rendered` for live host/client identity and HUD integration. These checks do not verify swimming, island travel, or extended streaming.
+
 ## Dedicated-server build
 
 The Epic Games Launcher engine distribution does not include dedicated-server support. The `KalmalaServer` target remains in the project, but building it requires a UE 5.8 source build or another UE 5.8 distribution with server support. Do not attempt the command below with the installed Launcher engine.

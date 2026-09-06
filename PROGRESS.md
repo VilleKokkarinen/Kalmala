@@ -1177,3 +1177,17 @@ Multiplayer impact: Only authoritative `GameMode` classifies active keys, applie
 Known limits: The optional discovery reuses the current minimal harvest-node presentation and reward contract. The focused test verifies deterministic ridge and exposure rules rather than rendered host/client Mountain presentation or player-built lightning-safe-shelter usability; the final Phase 6 cross-biome host/client scenario remains required.
 
 Next task: Verify each completed biome as one integrated scenario: same-seed reproduction, different-seed variation, continuous seams and collision, stable server IDs, and matching host/client terrain, exposure, shelter, and freely chosen camps.
+
+### 2026-09-06 12:24 EEST - Establish ocean depth and matching minimap coastlines
+
+Outcome: Complete small Phase 7 increment. Added a shared sea-depth query over the actual terrain triangle lattice and integrated it into minimap terrain height and ocean coverage. Decomposed the broader ocean task, which remains unchecked, with swimming next.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaOceanSampler.h`; `Source/KalmalaWorld/Private/KalmalaOceanSampler.cpp`; `Source/KalmalaWorld/Private/Tests/KalmalaOceanSamplerTest.cpp`; `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: KalmalaEditor Win64 Development -WaitMutex -NoHotReload -MaxParallelActions=4 build passed. The initial sandboxed command exited before emitting a build diagnostic; the approved external-tooling retry succeeded. Headless OceanDepth, ClippedSurface, and LocalPresentation tests all passed, process exit 0. Ocean fixture covered 320 wet and 32,448 dry triangle centroids and 177 coastal triangles, both triangle orientations, negative coordinates, equivalent patch origins, identity reproduction, different-seed variation, and invalid-input rejection. Log: `C:/Users/Ville/AppData/Local/Temp/KalmalaOcean-4d46b8aacdaf4f7cba7096cf1aa7efde/automation.log`. Rendered `Scripts/Verify-Minimap.ps1 -Rendered` passed conflicting client-seed replacement, both HUD paints, and modal-safe bound zoom; inspected both screenshots in `C:/Users/Ville/AppData/Local/Temp/KalmalaMinimap-e3af0680bcf44ba4b80f202ab8bf0b39`. All launched verification processes exited or were stopped by the runner. `git diff --check` passed.
+
+Multiplayer impact: Pure deterministic derived geometry; no RPC, gameplay mutation, replicated field, collision modification, population placement, generator revision, or save-schema change. Client usage is local minimap presentation only. Future gameplay must query using server-owned identity and positions and validate active collision. Same immutable identity determines the shared lattice origin and sea depth.
+
+Known limits: No swimming, boats, island generation, hydrology, open-ocean connectivity proof, inland lake-depth query, or streaming expansion. Existing enclosed lake presentation remains unchanged. Screenshots verify the starting neighborhood HUD, not an ocean crossing. Work ran directly in the clean main checkout, so no handoff synchronization was needed.
+
+Next task: Add server-authoritative swimming entry, movement, and return to land using shared water-depth sampling; verify host/client agreement. Keep the broad Phase 7 ocean task open and retain profiling requirements before increasing streaming distance.
