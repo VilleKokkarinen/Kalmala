@@ -107,6 +107,10 @@ After an editor build, run the focused `Kalmala.World.BiomeExpansion.FreezingTun
 
 After an editor build, run the focused `Kalmala.World.BiomeExpansion.ThunderMountainsSlice` headless automation with `-DDC-ForceMemoryCache`. It searches deterministic spatial keys for a high, steep-but-traversable Mountain overlook discovery, verifies stronger weather-driven wind pressure, bounded cover, and stable ID reproduction, and does not create a designed passage, authored ridge, reserved shelter, or precision gate. Runtime activation remains server-only: it creates at most one normal validated harvest discovery per active Mountain key; the existing server weather and player-built roof/windbreak shelter provide storm and lightning-safe-enclosure counterplay through ordinary replicated exposure state.
 
+## Integrated biome-expansion scenario
+
+After an editor build, run `Scripts/Verify-BiomeExpansion.ps1`. It runs `Kalmala.World.BiomeExpansion.IntegratedScenario`, which compares same-seed host/client terrain, classification, exposure inputs, seams, stable optional-discovery IDs, and roof/windbreak counterplay across Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, and Thunder Mountains. It then runs the existing conflicting-seed two-player camp scenario to verify replicated world identity, weather, exposure state, and recovery from two freely selected camps. This is verification only: it does not activate remote biome content, add paths, or let a client choose a server location or outcome.
+
 ## Basic player controls
 
 Restart the editor after building the native modules, then play `L_Prototype`. The third-person character has a simple segmented humanoid model with walking and airborne poses. Press Space to jump once; hold either Shift key to sprint at 1.5 times the current walking speed. Releasing Shift restores walking speed, including the existing exposure penalty. Sprint has no stamina cost in this prototype.

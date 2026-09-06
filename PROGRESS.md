@@ -1150,6 +1150,20 @@ Known limits: The optional discovery reuses the current minimal harvest-node pre
 
 Next task: Deliver the full Thunder Mountains slice: steep but traversable ridges, storm pressure, lightning-safe shelter preparation, and an optional discovery; no designed passages or precision gate.
 
+### 2026-09-06 12:15 EEST - Verify integrated biome-expansion scenario
+
+Outcome: Complete. Added one repeatable Phase 6 integrated automation covering Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, and Thunder Mountains. It verifies same-seed host/client terrain, classification, exposure inputs, deterministic discovery IDs and terrain-aligned locations, different-seed field variation, classifier-seam continuity in the terrain collision input, and viable player-built roof/windbreak shelter composition. The accompanying runner executes it and the existing conflicting-seed two-player camp-recovery scenario.
+
+Changed: `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Scripts/Verify-BiomeExpansion.ps1`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build succeeded. `Kalmala.World.BiomeExpansion.IntegratedScenario` passed with one test performed (`C:/Users/Ville/AppData/Local/Temp/KalmalaBiomeExpansion-353c043cd6ab4bdaba2315aadb26d64a/automation.log`). The existing two-peer camp scenario passed: both prepared states reached full travel recovery after normal server fire interaction (`C:/Users/Ville/AppData/Local/Temp/KalmalaCampChoices-39a6035d0a7e4f89a874ce488474be0c/server.log`). `git diff --check` passed.
+
+Multiplayer impact: This is developer-only verification. It uses identical immutable identities to prove deterministic local presentation inputs, then the existing server-authoritative camp scenario to prove replicated identity, weather, and exposure recovery. It adds no runtime actor, RPC, replication property, collision rule, client-selected discovery, population activation, or persistence schema.
+
+Known limits: The all-biome portion is a pure automation scenario rather than a five-location live traversal; remote biome gameplay content remains server-owned and is not revealed by the test. The camp fixture continues to cover freely selected Meadow-neighborhood conditions, not player-built construction or human usability in every biome. Existing wildlife/hazard root-component warnings are unrelated.
+
+Next task: Phase 7 — add ocean terrain, islands, and the systems required for long-distance movement.
+
 ### 2026-09-06 12:01 EEST - Deliver Thunder Mountains slice
 
 Outcome: Complete. Thunder Mountains-classified server spatial keys now consume the bounded mountain population profile, server pawn exposure applies stronger wind through the existing weather and shelter response, and a deterministic search materializes at most one high, steep-but-traversable storm-carved overlook harvest discovery with a stable ID. Existing player-built roof and windbreak shelter remain the lightning-safe-enclosure preparation. No designed passage, precision gate, authored ridge, reserved shelter, client-selected location, collision change, or save-schema change was added.
