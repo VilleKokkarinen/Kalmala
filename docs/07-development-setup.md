@@ -33,6 +33,10 @@ The existing `L_Prototype` is now the configured editor startup and game default
 
 After an editor build, run headless automation with `-unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -ExecCmds="Automation RunTests Kalmala.World.Water+Kalmala.UI.Minimap.LocalPresentation" -TestExit="Automation Test Queue Empty"`, directing `-UserDir` and `-abslog` into a unique temporary directory. `Kalmala.World.Water.OceanDepth` verifies depth against both collision-triangle planes, negative coordinates, equivalent adjacent-patch origins, same-identity reproduction, different-seed variation, and actual clipped coastline vertices; the fixture must contain wet sea floor, dry land, and mixed coastal triangles. It also rejects invalid identity and nonfinite query positions. Run `Scripts/Verify-Minimap.ps1 -Rendered` for live host/client identity and HUD integration. These checks do not verify swimming, island travel, or extended streaming.
 
+## Generated-ocean swimming regression
+
+After an editor build, run `Scripts/Verify-Swimming.ps1`. It starts a memory-only listen server with seed 418 and a conflicting-seed client with seed 999. Each owning pawn walks to the nearest deterministic sea-depth fixture and must enter the generated-ocean custom movement mode; the server log proves authoritative entry and the client log proves prediction from the server-replicated identity. Entry requires at least 100 cm depth and return-to-land uses a 75 cm hysteresis threshold. The test adds no water volume, RPC, client depth input, island, boat, or streaming change.
+
 ## Dedicated-server build
 
 The Epic Games Launcher engine distribution does not include dedicated-server support. The `KalmalaServer` target remains in the project, but building it requires a UE 5.8 source build or another UE 5.8 distribution with server support. Do not attempt the command below with the installed Launcher engine.

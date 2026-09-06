@@ -57,6 +57,8 @@ private:
     void StartSprint();
     void StopSprint();
     void VerifyPlayerControls(float DeltaSeconds);
+    void VerifySwimming(float DeltaSeconds);
+    void ConfigureSwimmingTestTarget();
     bool bControlsTestEnabled = false;
     int32 ControlsTestStage = 0;
     float ControlsTestElapsed = 0.0f;
@@ -64,6 +66,12 @@ private:
     bool bControlsTestJumpObserved = false;
     bool bControlsTestReleaseObserved = false;
     bool bControlsTestLocalJumpObserved = false;
+    bool bSwimmingTestEnabled = false;
+    bool bSwimmingTargetConfigured = false;
+    bool bSwimmingEntryLogged = false;
+    bool bSwimmingReturnLogged = false;
+    FVector2D SwimmingTestTarget = FVector2D::ZeroVector;
+    FVector2D SwimmingTestStart = FVector2D::ZeroVector;
 
     UPROPERTY(VisibleAnywhere, Category = "Presentation")
     TObjectPtr<UKalmalaPlayerModelComponent> PlayerModel;

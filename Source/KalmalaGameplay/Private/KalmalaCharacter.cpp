@@ -7,6 +7,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "KalmalaInteractable.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaOceanSampler.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/CommandLine.h"
@@ -80,12 +81,14 @@ void AKalmalaCharacter::BeginPlay()
     bExposureReplicationTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureReplicationTest"));
     TraversalStartLocation = GetActorLocation();
     bControlsTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaPlayerControlsTest"));
+    bSwimmingTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaSwimmingTest"));
 }
 
 void AKalmalaCharacter::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     VerifyPlayerControls(DeltaSeconds);
+    VerifySwimming(DeltaSeconds);
 
     if (IsLocallyControlled() && Controller && Controller->IsMoveInputIgnored())
     {
@@ -200,6 +203,55 @@ void AKalmalaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
     PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &AKalmalaCharacter::StartSprint);
     PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &AKalmalaCharacter::StopSprint);
+}
+
+void AKalmalaCharacter::ConfigureSwimmingTestTarget()
+{
+    if (!bSwimmingTestEnabled || bSwimmingTargetConfigured || GetWorld() == nullptr) return;
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr || !State->GetWorldGenerationConfig().IsValid()) return;
+    const FVector2D Start(GetActorLocation());
+    SwimmingTestStart = Start;
+    float ClosestDistanceSquared = TNumericLimits<float>::Max();
+    for (int32 Y = -12000; Y <= 12000; Y += 250)
+    {
+        for (int32 X = -12000; X <= 12000; X += 250)
+        {
+            const FVector2D Candidate = Start + FVector2D(X, Y);
+            if (FKalmalaOceanSampler::Sample(State->GetWorldGenerationConfig(), Candidate).WaterDepth >= 150.0f)
+            {
+                const float DistanceSquared = FVector2D::DistSquared(Start, Candidate);
+                if (DistanceSquared < ClosestDistanceSquared) { ClosestDistanceSquared = DistanceSquared; SwimmingTestTarget = Candidate; }
+            }
+        }
+    }
+    bSwimmingTargetConfigured = ClosestDistanceSquared != TNumericLimits<float>::Max();
+}
+
+void AKalmalaCharacter::VerifySwimming(const float DeltaSeconds)
+{
+    ConfigureSwimmingTestTarget();
+    if (!bSwimmingTargetConfigured) return;
+    if (IsLocallyControlled() && !bSwimmingReturnLogged)
+    {
+        const FVector2D Goal = bSwimmingEntryLogged ? SwimmingTestStart : SwimmingTestTarget;
+        const FVector2D Remaining = Goal - FVector2D(GetActorLocation());
+        if (Remaining.SizeSquared() > FMath::Square(100.0f))
+        {
+            AddMovementInput(FVector(Remaining.GetSafeNormal(), 0.0f), 1.0f, true);
+        }
+    }
+    if (Cast<UKalmalaCharacterMovementComponent>(GetCharacterMovement())->IsSwimmingInGeneratedOcean() && !bSwimmingEntryLogged)
+    {
+        bSwimmingEntryLogged = true;
+        UE_LOG(LogTemp, Display, TEXT("Swimming test %s entered generated ocean. Authority=%d."), IsLocallyControlled() ? TEXT("owner") : TEXT("replica"), HasAuthority() ? 1 : 0);
+    }
+    if (bSwimmingEntryLogged && !Cast<UKalmalaCharacterMovementComponent>(GetCharacterMovement())->IsSwimmingInGeneratedOcean()
+        && FVector2D::DistSquared(FVector2D(GetActorLocation()), SwimmingTestStart) <= FMath::Square(150.0f) && !bSwimmingReturnLogged)
+    {
+        bSwimmingReturnLogged = true;
+        UE_LOG(LogTemp, Display, TEXT("Swimming test %s returned to land. Authority=%d."), IsLocallyControlled() ? TEXT("owner") : TEXT("replica"), HasAuthority() ? 1 : 0);
+    }
 }
 
 void AKalmalaCharacter::StartSprint()

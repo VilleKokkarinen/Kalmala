@@ -14,10 +14,19 @@ public:
     virtual float GetMaxSpeed() const override;
     virtual void UpdateFromCompressedFlags(uint8 Flags) override;
     virtual FNetworkPredictionData_Client* GetPredictionData_Client() const override;
+    virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
+    virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
+
+    bool IsSwimmingInGeneratedOcean() const { return MovementMode == MOVE_Custom && CustomMovementMode == GeneratedOceanSwimmingMode; }
+    static bool ShouldEnterGeneratedOcean(float WaterDepth) { return WaterDepth >= 100.0f; }
+    static bool ShouldReturnToLand(float WaterDepth) { return WaterDepth < 75.0f; }
+
+    static constexpr uint8 GeneratedOceanSwimmingMode = 1;
 
     UPROPERTY(EditDefaultsOnly, Category = "Movement", meta = (ClampMin = "1.0", ClampMax = "2.0"))
     float SprintMultiplier = 1.5f;
 private:
+    bool GetGeneratedOceanDepth(float& OutDepth) const;
     bool bSprintRequested = false;
 };
 

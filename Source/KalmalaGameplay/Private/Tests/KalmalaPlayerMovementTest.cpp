@@ -24,6 +24,11 @@ bool FKalmalaPlayerMovementTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Sprint and release moves cannot be combined and lose the transition"), Move.CanCombineWith(Released, nullptr, 0.125f));
     Move.Clear();
     TestFalse(TEXT("Recycled saved moves cannot keep a stale sprint flag"), Move.bSavedSprint);
+    TestEqual(TEXT("Generated ocean swim uses a dedicated custom movement mode"), UKalmalaCharacterMovementComponent::GeneratedOceanSwimmingMode, static_cast<uint8>(1));
+    TestFalse(TEXT("Shallow shore does not enter swimming"), UKalmalaCharacterMovementComponent::ShouldEnterGeneratedOcean(99.9f));
+    TestTrue(TEXT("Deep shared sea enters swimming"), UKalmalaCharacterMovementComponent::ShouldEnterGeneratedOcean(100.0f));
+    TestFalse(TEXT("Shore hysteresis retains swimming at 75 cm"), UKalmalaCharacterMovementComponent::ShouldReturnToLand(75.0f));
+    TestTrue(TEXT("Shore hysteresis returns to land below 75 cm"), UKalmalaCharacterMovementComponent::ShouldReturnToLand(74.9f));
     return true;
 }
 #endif

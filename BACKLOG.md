@@ -124,7 +124,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 - [ ] Add ocean terrain, islands, and the systems required for long-distance movement.
   - [x] Establish a shared sea-depth query over the actual terrain triangles and integrate matching minimap coastlines.
-  - [ ] Add server-authoritative swimming entry, movement, and return to land using shared water-depth sampling; verify host/client agreement.
+  - [x] Add server-authoritative swimming entry, movement, and return to land using shared water-depth sampling; verify host/client agreement.
   - [ ] Complete seed-derived island and long-distance ocean travel support within the existing profiling constraints.
 - [ ] Profile generation time, memory, replicated actor count, save size, and late-join synchronization before increasing density or streaming distance.
 - [ ] Verify land-to-ocean travel has no terrain gaps, duplicate content, or host/client disagreement.

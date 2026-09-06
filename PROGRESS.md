@@ -20,6 +20,20 @@ Known limits:
 Next task:
 ```
 
+### 2026-09-06 12:34 EEST — Add generated-ocean swimming
+
+Outcome: Complete small Phase 7 increment. Added a generated-ocean custom Character Movement mode that samples the existing triangle-aligned sea depth from the replicated immutable world identity. Pawns enter at 100 cm depth, float above the existing zero-height sea surface with swept terrain collision, and return to walking below 75 cm to prevent shore flicker.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaCharacterMovementComponent.h`; `Source/KalmalaGameplay/Private/KalmalaCharacterMovementComponent.cpp`; `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaPlayerMovementTest.cpp`; `Scripts/Verify-Swimming.ps1`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build succeeded. `Kalmala.Gameplay.Movement.SprintSavedMoves` passed with the swim mode and 100/75 cm hysteresis regression assertions (`C:/Users/Ville/AppData/Local/Temp/KalmalaSwimmingFinal-ab3e6be34ca74595b60f6d7c960d25a5/automation.log`). `Scripts/Verify-Swimming.ps1` launched seed-418 host and conflicting-seed-999 client; server logged authoritative entry and client logged predicted entry after receiving seed 418 (`C:/Users/Ville/AppData/Local/Temp/KalmalaSwimming-035018d614104f2c9e32de978027a2a1`). `git diff --check` passed.
+
+Multiplayer impact: The client supplies no water depth or movement-mode RPC. Both the server and autonomous owner derive the mode from the existing replicated world identity and pawn position for supported prediction; normal Character Movement replication and server correction remain authoritative. No new replicated property, collision mesh, water volume, persistence schema, terrain modification, or generator revision was added.
+
+Known limits: This is ocean swimming only; inland lake depth, dive controls, currents, drowning, boats, islands, open-ocean connectivity, and longer streaming remain unfinished. The two-peer runner verifies authoritative/predicted entry; return-to-land thresholds are focused automation coverage because the headless peers are stopped after entry. Existing wildlife/hazard root-component and saved-move-limit warnings remain unrelated to this increment.
+
+Next task: Complete seed-derived island and long-distance ocean travel support within the existing profiling constraints; retain the separate profiling task before increasing density or streaming distance.
+
 ### 2026-09-05 09:12 EEST — Consolidate biome-expansion increments
 
 Outcome: Complete. Condensed Phase 6 from granular feature substeps into seven integrated delivery increments: shared rules and inspection, one complete slice per biome, and one repeatable verification scenario per completed biome.

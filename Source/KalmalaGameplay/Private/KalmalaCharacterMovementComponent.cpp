@@ -1,11 +1,66 @@
 #include "KalmalaCharacterMovementComponent.h"
 #include "GameFramework/Character.h"
+#include "KalmalaOceanSampler.h"
+#include "KalmalaWorldGenerationGameState.h"
 
 float UKalmalaCharacterMovementComponent::GetMaxSpeed() const
 {
     const float Speed = Super::GetMaxSpeed();
+    if (IsSwimmingInGeneratedOcean()) return FMath::Min(Speed, 420.0f);
     return bSprintRequested && IsMovingOnGround() && CharacterOwner && !CharacterOwner->bIsCrouched
         ? Speed * FMath::Clamp(SprintMultiplier, 1.0f, 2.0f) : Speed;
+}
+
+bool UKalmalaCharacterMovementComponent::GetGeneratedOceanDepth(float& OutDepth) const
+{
+    OutDepth = 0.0f;
+    if (CharacterOwner == nullptr || CharacterOwner->GetWorld() == nullptr) return false;
+    const AKalmalaWorldGenerationGameState* GenerationState = CharacterOwner->GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (GenerationState == nullptr) return false;
+    const FKalmalaOceanSample Sample = FKalmalaOceanSampler::Sample(GenerationState->GetWorldGenerationConfig(), FVector2D(CharacterOwner->GetActorLocation()));
+    if (!Sample.bIsValid) return false;
+    OutDepth = Sample.WaterDepth;
+    return true;
+}
+
+void UKalmalaCharacterMovementComponent::UpdateCharacterStateBeforeMovement(const float DeltaSeconds)
+{
+    Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
+    float WaterDepth = 0.0f;
+    const bool bHasDeepWater = GetGeneratedOceanDepth(WaterDepth) && ShouldEnterGeneratedOcean(WaterDepth);
+    if (IsSwimmingInGeneratedOcean())
+    {
+        // Hysteresis prevents shore triangles from rapidly toggling the replicated movement mode.
+        if (ShouldReturnToLand(WaterDepth)) SetMovementMode(MOVE_Walking);
+    }
+    else if (bHasDeepWater)
+    {
+        SetMovementMode(MOVE_Custom, GeneratedOceanSwimmingMode);
+    }
+}
+
+void UKalmalaCharacterMovementComponent::PhysCustom(const float DeltaTime, const int32 Iterations)
+{
+    if (!IsSwimmingInGeneratedOcean())
+    {
+        Super::PhysCustom(DeltaTime, Iterations);
+        return;
+    }
+
+    float WaterDepth = 0.0f;
+    if (!GetGeneratedOceanDepth(WaterDepth) || ShouldReturnToLand(WaterDepth))
+    {
+        SetMovementMode(MOVE_Walking);
+        StartNewPhysics(DeltaTime, Iterations);
+        return;
+    }
+
+    // The visible sea is at zero. Keep the capsule centre just above it while
+    // retaining normal swept collision against the shared terrain mesh.
+    const float SurfaceCentreZ = CharacterOwner->GetSimpleCollisionHalfHeight() + 8.0f;
+    const float VerticalError = SurfaceCentreZ - CharacterOwner->GetActorLocation().Z;
+    Velocity.Z = FMath::Clamp(VerticalError * 6.0f, -300.0f, 300.0f);
+    PhysFlying(DeltaTime, Iterations);
 }
 
 void UKalmalaCharacterMovementComponent::UpdateFromCompressedFlags(const uint8 Flags)
