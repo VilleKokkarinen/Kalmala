@@ -12,12 +12,16 @@ struct KALMALAWORLD_API FKalmalaWorldGenerationConfig
 {
     GENERATED_BODY()
 
+    static constexpr int32 CurrentGeneratorRevision = 2;
+
     /** Server-generated 64-bit base seed. */
     UPROPERTY(EditAnywhere, Category = "World Generation")
     uint64 WorldSeed = 0;
 
     /** Version of generation rules used to interpret WorldSeed. */
     UPROPERTY(EditAnywhere, Category = "World Generation", meta = (ClampMin = "1"))
+    // Keep the serialized default for revision-one saves; new-world entry points
+    // explicitly select CurrentGeneratorRevision.
     int32 GeneratorRevision = 1;
 
     bool IsValid() const

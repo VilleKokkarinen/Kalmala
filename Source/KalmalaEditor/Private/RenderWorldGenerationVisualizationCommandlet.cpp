@@ -62,7 +62,7 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
 
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 10323456789ull;
-    Config.GeneratorRevision = 1;
+    Config.GeneratorRevision = FKalmalaWorldGenerationConfig::CurrentGeneratorRevision;
     int32 ImageSize = DefaultImageSize;
     float WorldExtent = DefaultWorldExtent;
 

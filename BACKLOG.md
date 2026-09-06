@@ -129,6 +129,76 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [ ] Profile generation time, memory, replicated actor count, save size, and late-join synchronization before increasing density or streaming distance.
 - [ ] Verify land-to-ocean travel has no terrain gaps, duplicate content, or host/client disagreement.
 
+**### Phase 8 — Macro-biome coherence and regional shaping**
+
+**Intent:** replace the current threshold-speckled biome distribution with broad, coherent, Valheim-like natural regions while preserving the authoritative four-field world-generation contract. Biomes must remain deterministic, seed-derived, continuous, and free of authored gameplay regions, roads, trails, or hand-placed corridors. Do not add serialized, replicated, or independently authoritative biome maps. Any macro-region signal must be derived deterministically from the existing world seed and the existing `Elevation`, `Humidity`, `Temperature`, and `Flora` generation contract.
+
+- [ ] Establish a macro-scale biome-region sampling contract that prevents small isolated biome dots.
+  - [ ] Keep `Elevation`, `Humidity`, `Temperature`, and `Flora` as the only authoritative continuous world fields.
+  - [ ] Add deterministic low-frequency regional samples used only by biome classification. Derive their seeds from the existing world-generation seed contract rather than introducing authored or saved biome regions.
+  - [ ] Use substantially lower frequencies for biome-scale regional variation than for local terrain or vegetation detail so biome regions span large world areas instead of repeatedly crossing thresholds over short distances.
+  - [ ] Add a single tunable biome-scale control, or equivalent clearly named constants, so the physical size of regional biome features can be adjusted without retuning every classifier threshold.
+  - [ ] Preserve same-seed reproducibility, different-seed variation, world-coordinate continuity, and generator-revision compatibility.
+- [ ] Separate biome identity from local vegetation density.
+  - [ ] Stop using the high-frequency `Flora` value as the direct deciding threshold for whether a sample belongs to `Elderwood`.
+  - [ ] Determine whether an area is part of a broad Elderwood-capable region using a low-frequency regional signal plus environmental suitability such as humidity and terrain.
+  - [ ] Keep `Flora` as a local-detail field used after biome selection to vary tree density, undergrowth, clearings, shrubs, and other vegetation inside the chosen biome.
+  - [ ] Verify that a clearing inside a large Elderwood remains classified as Elderwood instead of becoming a small Meadows island solely because local flora density dropped.
+- [ ] Refactor biome classification into ordered physical constraints plus regional suitability.
+  - [ ] Keep physical terrain overrides first: submerged terrain remains `Ocean`, and sufficiently high terrain remains `ThunderMountains`.
+  - [ ] Gate `FreezingTundra` by broad cold-region suitability, temperature, and upland or mountain influence so tundra forms coherent high-country regions rather than isolated cold pixels.
+  - [ ] Gate `MossyMire` by a broad wetland-region signal plus low elevation, humidity, and minimum temperature so mire appears as connected lowland regions.
+  - [ ] Gate `Elderwood` by a broad forest-region signal plus moisture suitability rather than local `Flora` threshold crossings.
+  - [ ] Leave `Meadows` as the natural fallback biome where no stronger region and physical rule wins.
+  - [ ] Keep classifier priority explicit and deterministic so overlapping viable regions always resolve identically for the same world position and seed.
+- [ ] Replace brittle hard-threshold-only decisions with deterministic biome suitability scoring where it improves continuity.
+  - [ ] Define a suitability score for each non-physical land biome from its broad regional signal and relevant environmental fields.
+  - [ ] Apply hard viability constraints only where physically meaningful, such as sea level, mountain elevation, minimum wetland humidity, or tundra temperature.
+  - [ ] Among viable land biomes, prefer the highest deterministic suitability score instead of allowing a tiny crossing of one independent threshold to immediately create a biome island.
+  - [ ] Add deterministic tie-breaking with no dependence on iteration order, frame state, actor state, or client-local data.
+  - [ ] Keep scoring constants centralized and documented so later tuning does not require rewriting classifier logic.
+- [ ] Make biome boundaries irregular without reintroducing small-scale noise.
+  - [ ] Add optional low-frequency domain warping to the coordinates used for macro-region sampling.
+  - [ ] Ensure warp frequency is lower than or comparable to biome-region frequency and never use high-frequency warping that creates small islands or noisy borders.
+  - [ ] Derive warp offsets and seeds deterministically from the existing world identity.
+  - [ ] Centralize warp strength and frequency as tuning constants and ensure warping is continuous across terrain-patch boundaries.
+  - [ ] Verify domain warping bends and elongates large biome borders without changing world determinism or producing visible patch seams.
+- [ ] Make lakes follow terrain-basin logic rather than humidity alone.
+  - [ ] Stop classifying arbitrary humid lowland samples as `ShimmeringLakes` when no enclosed standing-water basin exists.
+  - [ ] Use the existing deterministic basin or standing-water query as the primary requirement for `ShimmeringLakes`.
+  - [ ] Allow humidity, elevation, shoreline conditions, or a broad wet-region signal to influence lake suitability, but never let humidity alone create disconnected lake-biome dots.
+  - [ ] Preserve the existing lake water, shoreline, minimap, collision, and host/client consistency contracts.
+- [ ] Improve regional relationships between mountains, tundra, forest, wetland, and meadow.
+  - [ ] Derive a smooth mountain or upland influence from elevation so tundra naturally tends to occupy cold uplands surrounding or approaching mountain terrain.
+  - [ ] Keep wetland suitability concentrated in low terrain and prevent mire from appearing on physically implausible ridges.
+  - [ ] Allow forest and meadow to form large neighboring regions with local vegetation variation inside each region rather than alternating at vegetation-noise frequency.
+  - [ ] Do not create mandatory biome rings, authored progression bands, guaranteed routes, or fixed travel corridors; all relationships must remain seed-generated and probabilistic.
+- [ ] Tune field and regional frequencies by semantic scale.
+  - [ ] Use very-low-frequency sampling for macro biome regions and climate-scale structure.
+  - [ ] Keep `Flora` at a meaningfully higher frequency than biome-region signals so it can create local clearings and density variation without changing biome identity.
+  - [ ] Document the assumed Unreal world-unit scale and the approximate world distance represented by each important frequency so future tuning is based on physical size rather than arbitrary constants.
+  - [ ] Add developer-visible tuning values for macro biome scale, regional frequencies, warp frequency, and warp strength without exposing them as client-authoritative state.
+- [ ] Add developer visualization and quantitative checks for biome coherence.
+  - [ ] Extend `RenderWorldGenerationVisualization` to render the macro regional signals, final biome classification, and optionally biome suitability scores alongside the four authoritative fields.
+  - [ ] Add a visualization mode that makes isolated biome components and narrow one-cell or few-cell biome slivers easy to identify.
+  - [ ] Add deterministic automated sampling over a large fixed world area and report biome component statistics such as approximate connected-region count, median region area, small-component count, and boundary density.
+  - [ ] Define a regression threshold that fails when the classifier returns to highly fragmented "biome confetti" behavior.
+  - [ ] Verify that broad regions remain irregular and varied rather than collapsing into oversized uniform blobs.
+- [ ] Preserve generator revision compatibility.
+  - [ ] Do not silently change the layout of existing revision-1 worlds.
+  - [ ] Introduce the coherent macro-biome classifier behind a new `GeneratorRevision` when required by the existing save/world-identity contract.
+  - [ ] Keep the revision-1 classifier available for worlds that explicitly use revision 1.
+  - [ ] Ensure the server-selected generator revision remains authoritative and clients reproduce the same regional samples and biome decisions.
+- [ ] Verify Phase 8 as an integrated world-generation change.
+  - [ ] Render at least two large-area previews for the same seed and confirm pixel-identical biome classification and regional signals.
+  - [ ] Render at least one different seed and confirm meaningfully different macro-region placement.
+  - [ ] Verify that Elderwood, Mossy Mire, Freezing Tundra, Meadows, Thunder Mountains, Shimmering Lakes, and Ocean appear as geographically coherent regions appropriate to their physical constraints.
+  - [ ] Verify that local `Flora` variation produces clearings and density changes without repeatedly changing Elderwood to Meadows.
+  - [ ] Verify lake classification agrees with deterministic standing-water basins rather than humidity-only patches.
+  - [ ] Verify no biome or warp seam appears at terrain-patch boundaries.
+  - [ ] Verify host and client classify matching biomes at sampled world positions and that no client can alter macro-region, scoring, or biome-selection state.
+  - [ ] Run 
+
 ## Later gameplay milestones
 
 Use `docs/04-roadmap.md` as the source of truth. Add decomposed M2–M5 tasks here only after their preceding milestone acceptance criteria pass.

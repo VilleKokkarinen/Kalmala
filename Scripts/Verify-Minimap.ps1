@@ -3,7 +3,8 @@ param(
     [int]$Port = 17842,
     [switch]$Rendered,
     [int]$Width = 1280,
-    [int]$Height = 720
+    [int]$Height = 720,
+    [ValidateRange(1, 2)][int]$GeneratorRevision = 1
 )
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
@@ -18,7 +19,7 @@ if ($Rendered) {
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -KalmalaMinimapScreenshot=`"$output/host.png`" -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+    $server = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=$GeneratorRevision $common -KalmalaMinimapScreenshot=`"$output/host.png`" -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
     $deadline = (Get-Date).AddSeconds(60)
     do {
         if ($server.HasExited) { throw 'Listen server exited before accepting connections.' }
@@ -32,13 +33,13 @@ try {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before minimap verification.' }
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
-        $identityReady = $clientText -match 'Client received world-generation identity: Seed=418 Revision=1'
+        $identityReady = $clientText -match "Client received world-generation identity: Seed=418 Revision=$GeneratorRevision"
         $renderReady = !$Rendered -or (($serverText -match 'Minimap painted:') -and ($clientText -match 'Minimap painted:') -and (Test-Path "$output/host.png") -and (Test-Path "$output/client.png"))
         if ($identityReady -and $renderReady) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Host/client minimap presentation timed out.' }
-    if ($clientText -notmatch 'Client received world-generation identity: Seed=418 Revision=1') { throw 'Client did not receive the server world identity.' }
+    if ($clientText -notmatch "Client received world-generation identity: Seed=418 Revision=$GeneratorRevision") { throw 'Client did not receive the server world identity.' }
     if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:') { throw 'Unreal reported a fatal error.' }
     if ($Rendered) {
         foreach ($peerText in @($serverText, $clientText)) {

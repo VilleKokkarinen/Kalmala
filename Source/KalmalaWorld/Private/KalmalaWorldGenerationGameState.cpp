@@ -7,7 +7,7 @@
 AKalmalaWorldGenerationGameState::AKalmalaWorldGenerationGameState()
 {
     WorldGenerationConfig.WorldSeed = 10323456789ull;
-    WorldGenerationConfig.GeneratorRevision = 1;
+    WorldGenerationConfig.GeneratorRevision = FKalmalaWorldGenerationConfig::CurrentGeneratorRevision;
 }
 
 void AKalmalaWorldGenerationGameState::PostInitializeComponents()
@@ -24,8 +24,8 @@ void AKalmalaWorldGenerationGameState::PostInitializeComponents()
 
     if (!WorldGenerationConfig.IsValid())
     {
-        UE_LOG(LogTemp, Error, TEXT("Invalid GeneratorRevision %d; falling back to revision 1."), WorldGenerationConfig.GeneratorRevision);
-        WorldGenerationConfig.GeneratorRevision = 1;
+        UE_LOG(LogTemp, Error, TEXT("Invalid GeneratorRevision %d; falling back to revision %d."), WorldGenerationConfig.GeneratorRevision, FKalmalaWorldGenerationConfig::CurrentGeneratorRevision);
+        WorldGenerationConfig.GeneratorRevision = FKalmalaWorldGenerationConfig::CurrentGeneratorRevision;
     }
 
     ForceNetUpdate();

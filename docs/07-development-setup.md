@@ -93,6 +93,8 @@ After building, run `Scripts/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 10
 
 ## Biome feature inspection
 
+`Kalmala.World.Biomes.TerrainSelection` verifies terrain precedence, exact boundaries, lowland/upland climate distinctions, forest moisture support, legacy selection, all-seven-biome coverage, same-identity agreement, different-seed variation, and Meadow starts for revisions 1 and 2. Run it with the headless automation flags above. `Kalmala.World.BiomeExpansion.IntegratedScenario` now covers both revisions. Existing two-peer fixture scripts explicitly select server revision 1 to retain their established terrain/weather fixtures; normal game launches default to revision 2. To retain an existing world, launch with its original seed and `-GeneratorRevision=1`.
+
 Launch a listen server with `-KalmalaBiomeFeatureInspection` and join a player to log the server-sampled biome-expansion profile, a nearby classifier-seam flag, and a stable but non-materialized discovery candidate. The switch only inspects deterministic inputs from the replicated world identity; it does not spawn, save, reveal, or route toward content, and clients cannot request it.
 
 ## Shimmering Lakes slice verification

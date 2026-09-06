@@ -16,6 +16,7 @@ namespace
         V.Fields.Humidity = FMath::Lerp(A.Fields.Humidity, B.Fields.Humidity, T);
         V.Fields.Temperature = FMath::Lerp(A.Fields.Temperature, B.Fields.Temperature, T);
         V.Fields.Flora = FMath::Lerp(A.Fields.Flora, B.Fields.Flora, T);
+        V.Fields.GeneratorRevision = A.Fields.GeneratorRevision;
         return V;
     }
 

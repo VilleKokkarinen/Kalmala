@@ -502,56 +502,59 @@ bool FKalmalaThunderMountainsSliceTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaBiomeExpansionIntegratedScenarioTest, "Kalmala.World.BiomeExpansion.IntegratedScenario", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaBiomeExpansionIntegratedScenarioTest::RunTest(const FString& Parameters)
 {
-    const FKalmalaWorldGenerationConfig HostConfig{ 418ull, 1 }, ClientConfig{ 418ull, 1 }, DifferentSeedConfig{ 419ull, 1 };
-    const TArray<EKalmalaBiome> LandBiomes = { EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::Elderwood, EKalmalaBiome::MossyMire, EKalmalaBiome::FreezingTundra, EKalmalaBiome::ThunderMountains };
-    bool bFoundClassifierSeam = false, bFoundDifferentSeedVariation = false;
-    for (int32 Y = -48000; Y <= 48000; Y += 500) for (int32 X = -48000; X <= 48000; X += 500)
+    for (int32 Revision = 1; Revision <= FKalmalaWorldGenerationConfig::CurrentGeneratorRevision; ++Revision)
     {
-        const FVector2D Position(X, Y);
-        const FKalmalaWorldFieldSample HostFields = FKalmalaWorldFieldSampler::Sample(HostConfig, Position), ClientFields = FKalmalaWorldFieldSampler::Sample(ClientConfig, Position);
-        TestEqual(TEXT("Host and client reproduce each sampled biome classification"), FKalmalaBiomeClassifier::Classify(HostFields), FKalmalaBiomeClassifier::Classify(ClientFields));
-        TestEqual(TEXT("Host and client reproduce sampled terrain height"), FKalmalaTerrainHeightSampler::SampleHeight(HostConfig, Position), FKalmalaTerrainHeightSampler::SampleHeight(ClientConfig, Position));
-        const FKalmalaEnvironmentalExposureSample HostExposure = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(FKalmalaEnvironmentalExposureSampler::Sample(HostConfig, Position), FKalmalaBiomeClassifier::Classify(HostFields));
-        const FKalmalaEnvironmentalExposureSample ClientExposure = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(FKalmalaEnvironmentalExposureSampler::Sample(ClientConfig, Position), FKalmalaBiomeClassifier::Classify(ClientFields));
-        TestEqual(TEXT("Host and client reproduce server-derived ground wetness inputs"), HostExposure.GroundWetness, ClientExposure.GroundWetness);
-        TestEqual(TEXT("Host and client reproduce server-derived wind inputs"), HostExposure.WindExposure, ClientExposure.WindExposure);
-        bFoundDifferentSeedVariation |= !FMath::IsNearlyEqual(HostFields.Elevation, FKalmalaWorldFieldSampler::Sample(DifferentSeedConfig, Position).Elevation);
-        const FVector2D EastPosition = Position + FVector2D(250.0f, 0.0f);
-        if (FKalmalaBiomeClassifier::Classify(HostFields) != FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(HostConfig, EastPosition)))
+        const FKalmalaWorldGenerationConfig HostConfig{ 418ull, Revision }, ClientConfig{ 418ull, Revision }, DifferentSeedConfig{ 419ull, Revision };
+        const TArray<EKalmalaBiome> LandBiomes = { EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::Elderwood, EKalmalaBiome::MossyMire, EKalmalaBiome::FreezingTundra, EKalmalaBiome::ThunderMountains };
+        bool bFoundClassifierSeam = false, bFoundDifferentSeedVariation = false;
+        for (int32 Y = -48000; Y <= 48000; Y += 500) for (int32 X = -48000; X <= 48000; X += 500)
         {
-            bFoundClassifierSeam = true;
-            const float WestHeight = FKalmalaTerrainHeightSampler::SampleHeight(HostConfig, Position + FVector2D(124.0f, 0.0f)), EastHeight = FKalmalaTerrainHeightSampler::SampleHeight(HostConfig, Position + FVector2D(126.0f, 0.0f));
-            TestTrue(TEXT("Biome seams retain continuous terrain collision input"), FMath::Abs(EastHeight - WestHeight) < 20.0f);
-        }
-    }
-    TestTrue(TEXT("Same-seed scenario contains a continuous classifier seam"), bFoundClassifierSeam);
-    TestTrue(TEXT("Different seed produces visible field variation"), bFoundDifferentSeedVariation);
-    for (const EKalmalaBiome Biome : LandBiomes)
-    {
-        bool bFoundDiscovery = false;
-        for (int32 Y = -6; Y <= 6 && !bFoundDiscovery; ++Y) for (int32 X = -6; X <= 6 && !bFoundDiscovery; ++X)
-        {
-            FKalmalaBiomeDiscoveryCandidate HostDiscovery, ClientDiscovery;
-            const FIntPoint SpatialKey(X, Y);
-            bool bHostFound = false, bClientFound = false;
-            switch (Biome)
+            const FVector2D Position(X, Y);
+            const FKalmalaWorldFieldSample HostFields = FKalmalaWorldFieldSampler::Sample(HostConfig, Position), ClientFields = FKalmalaWorldFieldSampler::Sample(ClientConfig, Position);
+            TestEqual(TEXT("Host and client reproduce each sampled biome classification"), FKalmalaBiomeClassifier::Classify(HostFields), FKalmalaBiomeClassifier::Classify(ClientFields));
+            TestEqual(TEXT("Host and client reproduce sampled terrain height"), FKalmalaTerrainHeightSampler::SampleHeight(HostConfig, Position), FKalmalaTerrainHeightSampler::SampleHeight(ClientConfig, Position));
+            const FKalmalaEnvironmentalExposureSample HostExposure = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(FKalmalaEnvironmentalExposureSampler::Sample(HostConfig, Position), FKalmalaBiomeClassifier::Classify(HostFields));
+            const FKalmalaEnvironmentalExposureSample ClientExposure = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(FKalmalaEnvironmentalExposureSampler::Sample(ClientConfig, Position), FKalmalaBiomeClassifier::Classify(ClientFields));
+            TestEqual(TEXT("Host and client reproduce server-derived ground wetness inputs"), HostExposure.GroundWetness, ClientExposure.GroundWetness);
+            TestEqual(TEXT("Host and client reproduce server-derived wind inputs"), HostExposure.WindExposure, ClientExposure.WindExposure);
+            bFoundDifferentSeedVariation |= !FMath::IsNearlyEqual(HostFields.Elevation, FKalmalaWorldFieldSampler::Sample(DifferentSeedConfig, Position).Elevation);
+            const FVector2D EastPosition = Position + FVector2D(250.0f, 0.0f);
+            if (FKalmalaBiomeClassifier::Classify(HostFields) != FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(HostConfig, EastPosition)))
             {
-            case EKalmalaBiome::ShimmeringLakes: bHostFound = FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(HostConfig, SpatialKey, HostDiscovery); bClientFound = FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(ClientConfig, SpatialKey, ClientDiscovery); break;
-            case EKalmalaBiome::Elderwood: bHostFound = FKalmalaBiomeExpansionContract::TryBuildElderwoodDiscovery(HostConfig, SpatialKey, HostDiscovery); bClientFound = FKalmalaBiomeExpansionContract::TryBuildElderwoodDiscovery(ClientConfig, SpatialKey, ClientDiscovery); break;
-            case EKalmalaBiome::MossyMire: bHostFound = FKalmalaBiomeExpansionContract::TryBuildMossyMireDiscovery(HostConfig, SpatialKey, HostDiscovery); bClientFound = FKalmalaBiomeExpansionContract::TryBuildMossyMireDiscovery(ClientConfig, SpatialKey, ClientDiscovery); break;
-            case EKalmalaBiome::FreezingTundra: bHostFound = FKalmalaBiomeExpansionContract::TryBuildFreezingTundraDiscovery(HostConfig, SpatialKey, HostDiscovery); bClientFound = FKalmalaBiomeExpansionContract::TryBuildFreezingTundraDiscovery(ClientConfig, SpatialKey, ClientDiscovery); break;
-            case EKalmalaBiome::ThunderMountains: bHostFound = FKalmalaBiomeExpansionContract::TryBuildThunderMountainsDiscovery(HostConfig, SpatialKey, HostDiscovery); bClientFound = FKalmalaBiomeExpansionContract::TryBuildThunderMountainsDiscovery(ClientConfig, SpatialKey, ClientDiscovery); break;
-            default: break;
+                bFoundClassifierSeam = true;
+                const float WestHeight = FKalmalaTerrainHeightSampler::SampleHeight(HostConfig, Position + FVector2D(124.0f, 0.0f)), EastHeight = FKalmalaTerrainHeightSampler::SampleHeight(HostConfig, Position + FVector2D(126.0f, 0.0f));
+                TestTrue(TEXT("Biome seams retain continuous terrain collision input"), FMath::Abs(EastHeight - WestHeight) < 20.0f);
             }
-            if (!bHostFound) continue;
-            TestTrue(TEXT("Client reproduces each server discovery candidate"), bClientFound);
-            TestEqual(TEXT("Discovery IDs are stable across host and client"), HostDiscovery.StableId, ClientDiscovery.StableId);
-            TestEqual(TEXT("Discovery locations are terrain-aligned across host and client"), HostDiscovery.Location, ClientDiscovery.Location);
-            const FKalmalaEnvironmentalExposureSample Exposure = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(FKalmalaEnvironmentalExposureSampler::Sample(HostConfig, FVector2D(HostDiscovery.Location)), Biome);
-            TestTrue(TEXT("Player-built roof and windbreak remain viable biome shelter counterplay"), FKalmalaShelterSampler::Compose(Exposure.NaturalCover, true, true).Shelter >= 0.8f);
-            bFoundDiscovery = true;
         }
-        TestTrue(FString::Printf(TEXT("Scenario finds a stable optional discovery for biome %d"), static_cast<uint8>(Biome)), bFoundDiscovery);
+        TestTrue(TEXT("Same-seed scenario contains a continuous classifier seam"), bFoundClassifierSeam);
+        TestTrue(TEXT("Different seed produces visible field variation"), bFoundDifferentSeedVariation);
+        for (const EKalmalaBiome Biome : LandBiomes)
+        {
+            bool bFoundDiscovery = false;
+            for (int32 Y = -6; Y <= 6 && !bFoundDiscovery; ++Y) for (int32 X = -6; X <= 6 && !bFoundDiscovery; ++X)
+            {
+                FKalmalaBiomeDiscoveryCandidate HostDiscovery, ClientDiscovery;
+                const FIntPoint SpatialKey(X, Y);
+                bool bHostFound = false, bClientFound = false;
+                switch (Biome)
+                {
+                case EKalmalaBiome::ShimmeringLakes: bHostFound = FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(HostConfig, SpatialKey, HostDiscovery); bClientFound = FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(ClientConfig, SpatialKey, ClientDiscovery); break;
+                case EKalmalaBiome::Elderwood: bHostFound = FKalmalaBiomeExpansionContract::TryBuildElderwoodDiscovery(HostConfig, SpatialKey, HostDiscovery); bClientFound = FKalmalaBiomeExpansionContract::TryBuildElderwoodDiscovery(ClientConfig, SpatialKey, ClientDiscovery); break;
+                case EKalmalaBiome::MossyMire: bHostFound = FKalmalaBiomeExpansionContract::TryBuildMossyMireDiscovery(HostConfig, SpatialKey, HostDiscovery); bClientFound = FKalmalaBiomeExpansionContract::TryBuildMossyMireDiscovery(ClientConfig, SpatialKey, ClientDiscovery); break;
+                case EKalmalaBiome::FreezingTundra: bHostFound = FKalmalaBiomeExpansionContract::TryBuildFreezingTundraDiscovery(HostConfig, SpatialKey, HostDiscovery); bClientFound = FKalmalaBiomeExpansionContract::TryBuildFreezingTundraDiscovery(ClientConfig, SpatialKey, ClientDiscovery); break;
+                case EKalmalaBiome::ThunderMountains: bHostFound = FKalmalaBiomeExpansionContract::TryBuildThunderMountainsDiscovery(HostConfig, SpatialKey, HostDiscovery); bClientFound = FKalmalaBiomeExpansionContract::TryBuildThunderMountainsDiscovery(ClientConfig, SpatialKey, ClientDiscovery); break;
+                default: break;
+                }
+                if (!bHostFound) continue;
+                TestTrue(TEXT("Client reproduces each server discovery candidate"), bClientFound);
+                TestEqual(TEXT("Discovery IDs are stable across host and client"), HostDiscovery.StableId, ClientDiscovery.StableId);
+                TestEqual(TEXT("Discovery locations are terrain-aligned across host and client"), HostDiscovery.Location, ClientDiscovery.Location);
+                const FKalmalaEnvironmentalExposureSample Exposure = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(FKalmalaEnvironmentalExposureSampler::Sample(HostConfig, FVector2D(HostDiscovery.Location)), Biome);
+                TestTrue(TEXT("Player-built roof and windbreak remain viable biome shelter counterplay"), FKalmalaShelterSampler::Compose(Exposure.NaturalCover, true, true).Shelter >= 0.8f);
+                bFoundDiscovery = true;
+            }
+            TestTrue(FString::Printf(TEXT("Scenario finds a stable optional discovery for biome %d"), static_cast<uint8>(Biome)), bFoundDiscovery);
+        }
     }
     return true;
 }

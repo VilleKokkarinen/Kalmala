@@ -9,20 +9,49 @@ struct FKalmalaWorldFieldSample
     float Humidity = 0.0f;
     float Temperature = 0.0f;
     float Flora = 0.0f;
+
+    /** Rule-version metadata, not a fifth procedural field. */
+    int32 GeneratorRevision = FKalmalaWorldGenerationConfig::CurrentGeneratorRevision;
 };
 
 /** Continuous, deterministic normalized Perlin samples for a world position. */
 struct KALMALAWORLD_API FKalmalaWorldFieldSampler
 {
-    static FKalmalaWorldFieldSample Sample(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)
-    {
-        FKalmalaWorldFieldSample Result;
-        Result.Elevation = SampleField(Config, EKalmalaWorldField::Elevation, Position, 0.00035f);
-        Result.Humidity = SampleField(Config, EKalmalaWorldField::Humidity, Position, 0.00050f);
-        Result.Temperature = SampleField(Config, EKalmalaWorldField::Temperature, Position, 0.00028f);
-        Result.Flora = SampleField(Config, EKalmalaWorldField::Flora, Position, 0.00075f);
-        return Result;
-    }
+   static FKalmalaWorldFieldSample Sample(
+    const FKalmalaWorldGenerationConfig& Config,
+    const FVector2D Position)
+{
+    constexpr float BiomeScale = 1.0f; // Smaller = larger biomes
+
+    FKalmalaWorldFieldSample Result;
+    Result.GeneratorRevision = Config.GeneratorRevision;
+
+    Result.Elevation = SampleField(
+        Config,
+        EKalmalaWorldField::Elevation,
+        Position,
+        0.00035f * BiomeScale);
+
+    Result.Humidity = SampleField(
+        Config,
+        EKalmalaWorldField::Humidity,
+        Position,
+        0.00050f * BiomeScale);
+
+    Result.Temperature = SampleField(
+        Config,
+        EKalmalaWorldField::Temperature,
+        Position,
+        0.00028f * BiomeScale);
+
+    Result.Flora = SampleField(
+        Config,
+        EKalmalaWorldField::Flora,
+        Position,
+        0.00075f * BiomeScale);
+
+    return Result;
+}
 
 private:
     static float SampleField(const FKalmalaWorldGenerationConfig& Config, const EKalmalaWorldField Field, const FVector2D Position, const float Frequency)
