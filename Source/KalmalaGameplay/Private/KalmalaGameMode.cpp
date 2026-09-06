@@ -68,7 +68,7 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
         const FVector Location = Character->GetActorLocation();
         FKalmalaEnvironmentalExposureSample Environment = FKalmalaEnvironmentalExposureSampler::Sample(WorldGenerationConfig, FVector2D(Location));
         const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, FVector2D(Location)));
-        if (Biome == EKalmalaBiome::ShimmeringLakes || Biome == EKalmalaBiome::Elderwood || Biome == EKalmalaBiome::MossyMire || Biome == EKalmalaBiome::FreezingTundra)
+        if (Biome == EKalmalaBiome::ShimmeringLakes || Biome == EKalmalaBiome::Elderwood || Biome == EKalmalaBiome::MossyMire || Biome == EKalmalaBiome::FreezingTundra || Biome == EKalmalaBiome::ThunderMountains)
         {
             Environment = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(Environment, Biome);
         }
@@ -280,7 +280,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard })
     {
         TArray<FKalmalaWorldPopulationSpawn> Spawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, Kind);
-        if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood || KeyBiome == EKalmalaBiome::MossyMire || KeyBiome == EKalmalaBiome::FreezingTundra)
+        if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood || KeyBiome == EKalmalaBiome::MossyMire || KeyBiome == EKalmalaBiome::FreezingTundra || KeyBiome == EKalmalaBiome::ThunderMountains)
         {
             Spawns.SetNum(FMath::Min(Spawns.Num(), FKalmalaBiomeExpansionContract::ApplyPopulationBudget(Spawns.Num(), Kind, KeyBiome)));
         }
@@ -415,6 +415,26 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
             }
         }
         ActiveFreezingTundraDiscoveryKeys.Add(SpatialKey);
+    }
+
+    if (KeyBiome == EKalmalaBiome::ThunderMountains && !ActiveThunderMountainsDiscoveryKeys.Contains(SpatialKey))
+    {
+        FKalmalaBiomeDiscoveryCandidate Discovery;
+        if (FKalmalaBiomeExpansionContract::TryBuildThunderMountainsDiscovery(WorldGenerationConfig, SpatialKey, Discovery)
+            && (PopulationSaveGame == nullptr || !PopulationSaveGame->IsHarvested(Discovery.StableId)))
+        {
+            FActorSpawnParameters SpawnParameters;
+            SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+            AKalmalaHarvestNode* DiscoveryNode = GetWorld()->SpawnActor<AKalmalaHarvestNode>(AKalmalaHarvestNode::StaticClass(), Discovery.Location, FRotator::ZeroRotator, SpawnParameters);
+            if (DiscoveryNode != nullptr)
+            {
+                DiscoveryNode->InitializeDiscoveryServer(Discovery.StableId, Discovery.Location);
+                DiscoveryNode->OnHarvested.AddUObject(this, &AKalmalaGameMode::RecordHarvestedSpawn);
+                ++SpawnedMarkerCount;
+                UE_LOG(LogTemp, Display, TEXT("Server materialized Thunder Mountains storm-carved overlook discovery %s."), *Discovery.StableId);
+            }
+        }
+        ActiveThunderMountainsDiscoveryKeys.Add(SpatialKey);
     }
 
     ActivePopulationSpatialKeys.Add(SpatialKey);

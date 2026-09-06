@@ -55,6 +55,7 @@ private:
     TSet<FIntPoint> ActiveElderwoodDiscoveryKeys;
     TSet<FIntPoint> ActiveMossyMireDiscoveryKeys;
     TSet<FIntPoint> ActiveFreezingTundraDiscoveryKeys;
+    TSet<FIntPoint> ActiveThunderMountainsDiscoveryKeys;
     float NextTerrainPatchActivationTime = 0.0f;
     float NextExposureUpdateTime = 0.0f;
     bool bTraversalTestEnabled = false;

@@ -1149,3 +1149,17 @@ Multiplayer impact: Only authoritative `GameMode` classifies active keys, applie
 Known limits: The optional discovery reuses the current minimal harvest-node presentation and reward contract. The focused test verifies deterministic terrain and exposure rules rather than rendered host/client Tundra presentation or player-built enclosed-shelter usability; full cross-biome host/client scenario coverage remains the final Phase 6 task.
 
 Next task: Deliver the full Thunder Mountains slice: steep but traversable ridges, storm pressure, lightning-safe shelter preparation, and an optional discovery; no designed passages or precision gate.
+
+### 2026-09-06 12:01 EEST - Deliver Thunder Mountains slice
+
+Outcome: Complete. Thunder Mountains-classified server spatial keys now consume the bounded mountain population profile, server pawn exposure applies stronger wind through the existing weather and shelter response, and a deterministic search materializes at most one high, steep-but-traversable storm-carved overlook harvest discovery with a stable ID. Existing player-built roof and windbreak shelter remain the lightning-safe-enclosure preparation. No designed passage, precision gate, authored ridge, reserved shelter, client-selected location, collision change, or save-schema change was added.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/08-world-generation-and-biomes.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` succeeded. Headless `Kalmala.World.BiomeExpansion.ThunderMountainsSlice` completed successfully with `-DDC-ForceMemoryCache`, verifying a deterministic high, steep-but-traversable Mountain discovery, stronger wind pressure, bounded cover, and stable ID reproduction. `git diff --check` passed.
+
+Multiplayer impact: Only authoritative `GameMode` classifies active keys, applies the Mountain profile, creates the discovery node, validates its existing harvest interaction, and records its existing sparse depletion delta. Clients cannot select a Mountain location, population budget, exposure input, discovery ID, or harvest outcome; they receive only the ordinary replicated node and exposure state. No RPC, replicated field, collision, or persistence schema was introduced.
+
+Known limits: The optional discovery reuses the current minimal harvest-node presentation and reward contract. The focused test verifies deterministic ridge and exposure rules rather than rendered host/client Mountain presentation or player-built lightning-safe-shelter usability; the final Phase 6 cross-biome host/client scenario remains required.
+
+Next task: Verify each completed biome as one integrated scenario: same-seed reproduction, different-seed variation, continuous seams and collision, stable server IDs, and matching host/client terrain, exposure, shelter, and freely chosen camps.

@@ -126,6 +126,8 @@ Shimmering Lakes is complete: continuous patch rendering supplies interlocking c
 
 Elderwood is complete: local terrain presentation derives larger field-driven canopy and non-colliding root buttresses, with continuous Flora leaving lower-density natural clearings. Its server slice applies the Elderwood population and exposure profile only at Elderwood-classified keys and pawn positions, and resolves at most one gently sloped, lower-flora optional harvest discovery per active key. The compact canopy reduces wind and increases natural cover relative to open ground through the existing exposure loop. It adds no trail, route, reserved camp, authored clearing, or client-selected discovery.
 
+Thunder Mountains is complete: continuous elevation forms high, steep-but-traversable ridges without designed passes. Its server slice applies the bounded mountain population and stronger-wind profile only at Mountain-classified keys and pawn positions, and resolves at most one high-ridge storm-carved overlook harvest discovery per active key. Existing server weather and player-built roof/windbreak shelter provide storm and lightning-safe-enclosure preparation. It adds no precision gate, authored route, reserved shelter, client-selected discovery, or new persistence contract.
+
 **Done when:** every added biome is enjoyable on its own, blends naturally with its neighbours, and remains consistent for host and client.
 
 ### 7. Ocean and long-distance travel

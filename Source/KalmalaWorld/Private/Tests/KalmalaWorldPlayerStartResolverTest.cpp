@@ -469,4 +469,33 @@ bool FKalmalaFreezingTundraSliceTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaThunderMountainsSliceTest, "Kalmala.World.BiomeExpansion.ThunderMountainsSlice", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaThunderMountainsSliceTest::RunTest(const FString& Parameters)
+{
+    const FKalmalaWorldGenerationConfig Config{ 418ull, 1 };
+    bool bFoundMountainDiscovery = false;
+    for (int32 Y = -12; Y <= 12 && !bFoundMountainDiscovery; ++Y)
+    {
+        for (int32 X = -12; X <= 12 && !bFoundMountainDiscovery; ++X)
+        {
+            const FIntPoint SpatialKey(X, Y);
+            FKalmalaBiomeDiscoveryCandidate Discovery;
+            if (!FKalmalaBiomeExpansionContract::TryBuildThunderMountainsDiscovery(Config, SpatialKey, Discovery)) continue;
+            const FVector2D Position(Discovery.Location);
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
+            const float NormalZ = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z;
+            const FKalmalaEnvironmentalExposureSample Base = FKalmalaEnvironmentalExposureSampler::Sample(Config, Position);
+            const FKalmalaEnvironmentalExposureSample Mountains = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(Base, EKalmalaBiome::ThunderMountains);
+            TestEqual(TEXT("Mountain discovery remains inside the continuous Thunder Mountains classifier"), FKalmalaBiomeClassifier::Classify(Fields), EKalmalaBiome::ThunderMountains);
+            TestTrue(TEXT("Mountain discovery selects a high steep but traversable ridge"), Fields.Elevation >= 0.80f && NormalZ >= 0.72f && NormalZ <= 0.94f);
+            TestTrue(TEXT("Mountain storm pressure increases wind exposure for lightning-safe shelter preparation"), Mountains.WindExposure >= Base.WindExposure);
+            TestTrue(TEXT("Mountain shelter inputs remain normalized"), Mountains.GroundWetness >= 0.0f && Mountains.GroundWetness <= 1.0f && Mountains.NaturalCover >= 0.0f && Mountains.NaturalCover <= Base.NaturalCover);
+            TestEqual(TEXT("Mountain overlook discovery has a stable sparse identifier"), Discovery.StableId, FKalmalaBiomeExpansionContract::BuildDiscoveryCandidate(Config, SpatialKey, EKalmalaBiome::ThunderMountains).StableId);
+            bFoundMountainDiscovery = true;
+        }
+    }
+    TestTrue(TEXT("Seed contains a deterministic Thunder Mountains discovery without a designed passage or precision gate"), bFoundMountainDiscovery);
+    return true;
+}
+
 #endif

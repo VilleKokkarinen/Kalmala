@@ -199,6 +199,32 @@ struct KALMALAWORLD_API FKalmalaBiomeExpansionContract
         return false;
     }
 
+    /** Finds one steep but traversable Thunder Mountains overlook. It is optional server-owned content, never a passage or precision gate. */
+    static bool TryBuildThunderMountainsDiscovery(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, FKalmalaBiomeDiscoveryCandidate& OutCandidate)
+    {
+        const FKalmalaBiomeDiscoveryCandidate BaseCandidate = BuildDiscoveryCandidate(Config, SpatialKey, EKalmalaBiome::ThunderMountains);
+        for (int32 Attempt = 0; Attempt < 40; ++Attempt)
+        {
+            const uint64 AttemptSeed = Mix(BaseCandidate.CandidateSeed ^ static_cast<uint64>(Attempt + 1) * 0xD6E8FEB86659FD93ull);
+            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FVector2D Position = Origin + FVector2D(
+                static_cast<float>(AttemptSeed & 0xFFFFu) / 65535.0f,
+                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
+            const float NormalZ = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z;
+            if (FKalmalaBiomeClassifier::Classify(Fields) == EKalmalaBiome::ThunderMountains
+                && Fields.Elevation >= 0.80f
+                && NormalZ >= 0.72f
+                && NormalZ <= 0.94f)
+            {
+                OutCandidate = BaseCandidate;
+                OutCandidate.Location = FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position) + 20.0f);
+                return true;
+            }
+        }
+        return false;
+    }
+
 private:
     static uint64 Mix(uint64 Value)
     {
