@@ -441,4 +441,32 @@ bool FKalmalaMossyMireSliceTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaFreezingTundraSliceTest, "Kalmala.World.BiomeExpansion.FreezingTundraSlice", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaFreezingTundraSliceTest::RunTest(const FString& Parameters)
+{
+    const FKalmalaWorldGenerationConfig Config{ 418ull, 1 };
+    bool bFoundTundraDiscovery = false;
+    for (int32 Y = -8; Y <= 8 && !bFoundTundraDiscovery; ++Y)
+    {
+        for (int32 X = -8; X <= 8 && !bFoundTundraDiscovery; ++X)
+        {
+            const FIntPoint SpatialKey(X, Y);
+            FKalmalaBiomeDiscoveryCandidate Discovery;
+            if (!FKalmalaBiomeExpansionContract::TryBuildFreezingTundraDiscovery(Config, SpatialKey, Discovery)) continue;
+            const FVector2D Position(Discovery.Location);
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
+            const FKalmalaEnvironmentalExposureSample Base = FKalmalaEnvironmentalExposureSampler::Sample(Config, Position);
+            const FKalmalaEnvironmentalExposureSample Tundra = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(Base, EKalmalaBiome::FreezingTundra);
+            TestEqual(TEXT("Tundra discovery remains inside the continuous Freezing Tundra classifier"), FKalmalaBiomeClassifier::Classify(Fields), EKalmalaBiome::FreezingTundra);
+            TestTrue(TEXT("Tundra discovery selects rolling high ground rather than an authored site"), Fields.Elevation >= 0.35f && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.88f);
+            TestTrue(TEXT("Tundra profile increases wind pressure for enclosed-shelter preparation"), Tundra.WindExposure >= Base.WindExposure);
+            TestTrue(TEXT("Tundra profile keeps sparse natural cover bounded"), Tundra.NaturalCover >= 0.0f && Tundra.NaturalCover <= Base.NaturalCover);
+            TestEqual(TEXT("Tundra discovery has a stable sparse identifier"), Discovery.StableId, FKalmalaBiomeExpansionContract::BuildDiscoveryCandidate(Config, SpatialKey, EKalmalaBiome::FreezingTundra).StableId);
+            bFoundTundraDiscovery = true;
+        }
+    }
+    TestTrue(TEXT("Seed contains a deterministic Freezing Tundra discovery without a route or travel gate"), bFoundTundraDiscovery);
+    return true;
+}
+
 #endif

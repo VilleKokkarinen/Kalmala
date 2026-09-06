@@ -68,7 +68,7 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
         const FVector Location = Character->GetActorLocation();
         FKalmalaEnvironmentalExposureSample Environment = FKalmalaEnvironmentalExposureSampler::Sample(WorldGenerationConfig, FVector2D(Location));
         const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, FVector2D(Location)));
-        if (Biome == EKalmalaBiome::ShimmeringLakes || Biome == EKalmalaBiome::Elderwood || Biome == EKalmalaBiome::MossyMire)
+        if (Biome == EKalmalaBiome::ShimmeringLakes || Biome == EKalmalaBiome::Elderwood || Biome == EKalmalaBiome::MossyMire || Biome == EKalmalaBiome::FreezingTundra)
         {
             Environment = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(Environment, Biome);
         }
@@ -280,7 +280,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard })
     {
         TArray<FKalmalaWorldPopulationSpawn> Spawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, Kind);
-        if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood || KeyBiome == EKalmalaBiome::MossyMire)
+        if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood || KeyBiome == EKalmalaBiome::MossyMire || KeyBiome == EKalmalaBiome::FreezingTundra)
         {
             Spawns.SetNum(FMath::Min(Spawns.Num(), FKalmalaBiomeExpansionContract::ApplyPopulationBudget(Spawns.Num(), Kind, KeyBiome)));
         }
@@ -395,6 +395,26 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
             }
         }
         ActiveMossyMireDiscoveryKeys.Add(SpatialKey);
+    }
+
+    if (KeyBiome == EKalmalaBiome::FreezingTundra && !ActiveFreezingTundraDiscoveryKeys.Contains(SpatialKey))
+    {
+        FKalmalaBiomeDiscoveryCandidate Discovery;
+        if (FKalmalaBiomeExpansionContract::TryBuildFreezingTundraDiscovery(WorldGenerationConfig, SpatialKey, Discovery)
+            && (PopulationSaveGame == nullptr || !PopulationSaveGame->IsHarvested(Discovery.StableId)))
+        {
+            FActorSpawnParameters SpawnParameters;
+            SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+            AKalmalaHarvestNode* DiscoveryNode = GetWorld()->SpawnActor<AKalmalaHarvestNode>(AKalmalaHarvestNode::StaticClass(), Discovery.Location, FRotator::ZeroRotator, SpawnParameters);
+            if (DiscoveryNode != nullptr)
+            {
+                DiscoveryNode->InitializeDiscoveryServer(Discovery.StableId, Discovery.Location);
+                DiscoveryNode->OnHarvested.AddUObject(this, &AKalmalaGameMode::RecordHarvestedSpawn);
+                ++SpawnedMarkerCount;
+                UE_LOG(LogTemp, Display, TEXT("Server materialized Freezing Tundra exposed-high-ground discovery %s."), *Discovery.StableId);
+            }
+        }
+        ActiveFreezingTundraDiscoveryKeys.Add(SpatialKey);
     }
 
     ActivePopulationSpatialKeys.Add(SpatialKey);

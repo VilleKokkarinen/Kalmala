@@ -1135,3 +1135,17 @@ Multiplayer impact: Both peers derive cosmetic basin decisions from existing wor
 Known limits: This is fixed-level lake enclosure, not variable-level hydrology, rivers, swimming, or vegetation regeneration. Basins over 8,192 wet vertices are conservatively omitted; existing environmental wetland sampling retains its prior field-based semantics. Newly covered low ground may retain decorative trees. Screenshot verification covers the seed-418 starting area, not the user's exact camera position. Restart the editor to load the rebuilt modules. The user's pre-existing Character.cpp include-order change remains untouched and excluded.
 
 Next task: Resume the Freezing Tundra backlog slice after this user-requested water repair.
+
+### 2026-09-06 11:47 EEST - Deliver Freezing Tundra slice
+
+Outcome: Complete. Freezing Tundra-classified server spatial keys now consume the bounded sparse population profile, server pawn exposure applies reduced natural cover and stronger wind before the existing shelter/fire response, and a deterministic search materializes at most one gently rolling exposed-high-ground harvest discovery with a stable ID. The existing continuous terrain supplies the rolling ground, while player-built enclosed roofs and windbreaks remain the preparation counterplay. No authored ridge, camp, route, travel gate, client-selected location, collision change, or save-schema change was added.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h`; `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` succeeded. Headless `Kalmala.World.BiomeExpansion.FreezingTundraSlice` completed successfully with `-DDC-ForceMemoryCache`, verifying a deterministic Tundra discovery, rolling terrain, stronger wind pressure, bounded sparse cover, and stable ID reproduction. Log: `C:/Users/Ville/AppData/Local/Temp/KalmalaFreezingTundra-6bb77afcd58f490bbbb8caf33bbe2c4a/automation.log`. `git diff --check` passed.
+
+Multiplayer impact: Only authoritative `GameMode` classifies active keys, applies the Tundra profile, creates the discovery node, validates its existing harvest interaction, and records its existing sparse depletion delta. Clients cannot select a Tundra location, population budget, exposure input, discovery ID, or harvest outcome; they receive only the ordinary replicated node and exposure state. No RPC, replicated field, collision, or persistence schema was introduced.
+
+Known limits: The optional discovery reuses the current minimal harvest-node presentation and reward contract. The focused test verifies deterministic terrain and exposure rules rather than rendered host/client Tundra presentation or player-built enclosed-shelter usability; full cross-biome host/client scenario coverage remains the final Phase 6 task.
+
+Next task: Deliver the full Thunder Mountains slice: steep but traversable ridges, storm pressure, lightning-safe shelter preparation, and an optional discovery; no designed passages or precision gate.
