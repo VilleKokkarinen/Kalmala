@@ -12,7 +12,7 @@ struct KALMALAWORLD_API FKalmalaWorldGenerationConfig
 {
     GENERATED_BODY()
 
-    static constexpr int32 CurrentGeneratorRevision = 3;
+    static constexpr int32 CurrentGeneratorRevision = 4;
 
     /** Server-generated 64-bit base seed. */
     UPROPERTY(EditAnywhere, Category = "World Generation")

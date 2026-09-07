@@ -177,6 +177,38 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldFie
     R.Height = Source;
     for (int32 I = 0; I < 7; ++I) R.Height += R.Weights[I] * Shapes[I] * (I == 6 ? 1 : Land);
 
+    // Revision 4 adds occasional seed-derived emergent islands. They are a
+    // smooth deformation of the existing ocean floor, never an actor, map, or
+    // saved placement; older identities deliberately retain their terrain.
+    double IslandSupport = 0.0;
+    if (C.GeneratorRevision >= 4)
+    {
+        constexpr double IslandSpacing = 60000.0;
+        const FIntPoint IslandCell = CellAt(P, IslandSpacing);
+        for (int32 Y = -1; Y <= 1; ++Y) for (int32 X = -1; X <= 1; ++X)
+        {
+            const FIntPoint Cell = IslandCell + FIntPoint(X, Y);
+            const uint64 S = Seed(C, 500, Cell);
+            const FVector2D Centre = (FVector2D(Cell) + FVector2D(0.2 + 0.6 * Unit(S), 0.2 + 0.6 * Unit(S >> 24))) * IslandSpacing;
+            const double Radius = 6500.0 + 3500.0 * Unit(S >> 12);
+            const double Distance = FVector2D::Distance(P, Centre) / Radius;
+            const double Support = 1.0 - Smooth(1.0, 1.8, Distance);
+            if (Support <= IslandSupport) continue;
+            const float Summit = 240.0f + 360.0f * Unit(S >> 36);
+            // A gentle shore rises above sea only in the central support, with
+            // a broad submerged apron that joins the existing ocean floor.
+            const float IslandHeight = FMath::Lerp(-220.0f, Summit, float(Smooth(0.78, 0.0, Distance)));
+            R.Height = FMath::Lerp(R.Height, IslandHeight, float(Support));
+            IslandSupport = Support;
+        }
+        if (IslandSupport > 0.0)
+        {
+            const float IslandLand = float(Smooth(0.45, 0.85, IslandSupport));
+            R.Weights[0] = FMath::Max(R.Weights[0], IslandLand);
+            R.Weights[6] *= 1.0f - IslandLand;
+        }
+    }
+
     // Analytic enclosed bowls: source-qualified lowland centers, continuous raised rims.
     // Centers are separated by at least 28,000 cm; bowl supports never overlap.
     const auto BasinCell = CellAt(P, T::BasinSpacing);
@@ -230,10 +262,10 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldFie
     }
     // Shores retain the source sea-level sign outside inland basins/courses.
     if (BasinSupport == 0 && Sum == 0) R.WaterLevel = FMath::Min(0.0f, R.Height - 1.0f);
-    if (F.Elevation < T::SeaElevation && BasinSupport == 0) R.Height = FMath::Min(R.Height, Source);
+    if (F.Elevation < T::SeaElevation && BasinSupport == 0 && IslandSupport == 0) R.Height = FMath::Min(R.Height, Source);
     R.bHasWater = R.WaterLevel > R.Height;
     for (uint8 I = 1; I < 6; ++I) if (R.Weights[I] > R.Weights[R.Biome]) R.Biome = I;
-    if (F.Elevation < T::SeaElevation) R.Biome = 6;
+    if (F.Elevation < T::SeaElevation && IslandSupport < 0.5) R.Biome = 6;
     else if (F.Elevation > T::MountainElevation) R.Biome = 5;
     return R;
 }

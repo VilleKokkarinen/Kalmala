@@ -25,6 +25,7 @@ public:
 private:
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);
     void ActivateTerrainPatchNeighborhood(const FVector2D& WorldPosition);
+    void RefreshTerrainPatchNeighborhoods();
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
     void RecordDefeatedSpawn(const FString& PersistentSpawnId);
@@ -50,6 +51,7 @@ private:
     TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;
     TSet<FIntPoint> ActiveTerrainPatchCoordinates;
+    TMap<FIntPoint, TObjectPtr<class AKalmalaGeneratedTerrainPatch>> ActiveTerrainPatches;
     TSet<FIntPoint> ActivePopulationSpatialKeys;
     TSet<FIntPoint> ActiveShimmeringLakeDiscoveryKeys;
     TSet<FIntPoint> ActiveElderwoodDiscoveryKeys;

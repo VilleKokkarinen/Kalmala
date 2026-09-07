@@ -1219,3 +1219,31 @@ Multiplayer impact: Pure deterministic derived geometry; no RPC, gameplay mutati
 Known limits: No swimming, boats, island generation, hydrology, open-ocean connectivity proof, inland lake-depth query, or streaming expansion. Existing enclosed lake presentation remains unchanged. Screenshots verify the starting neighborhood HUD, not an ocean crossing. Work ran directly in the clean main checkout, so no handoff synchronization was needed.
 
 Next task: Add server-authoritative swimming entry, movement, and return to land using shared water-depth sampling; verify host/client agreement. Keep the broad Phase 7 ocean task open and retain profiling requirements before increasing streaming distance.
+
+### 2026-09-07 10:00 EEST - Phase 8 long-distance patch recycling (verification blocked)
+
+Outcome: Implemented an uncommitted bounded server terrain-patch refresh: on the existing one-second activation interval, the server now retains only the union of 3x3 neighborhoods around its observed player pawns, destroys retired replicated terrain-patch actors, and activates newly required deterministic patches. This allows ordinary open-ocean movement to advance the same 25-patch collision/render budget rather than exhausting it near the generated start. The existing island locator remains developer-only and creates or reserves no content.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `PROGRESS.md`. Preserved the user's pre-existing uncommitted `BACKLOG.md` milestone reorganization and did not stage it.
+
+Verification: An approved forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build succeeded. Focused automation ran `Kalmala.Gameplay.Movement.SprintSavedMoves` and `Kalmala.World.Water.OceanDepth` successfully, but the already committed `Kalmala.World.Ocean.IslandLocator` failed for seed 418 in both revision 1 and revision 3: `FKalmalaIslandLocator::FindNearest` returned false. Latest log: `C:/Users/Ville/AppData/Local/Temp/KalmalaOceanPatch-a9ea6089ff724e10bb35c2a3863e1fb7/automation.log`. No commit was made because the required focused verification did not pass.
+
+Multiplayer impact: Patch choice is computed only by `GameMode` from authoritative pawn locations. The resulting ordinary replicated patch actors retain the existing immutable world identity and deterministic centers; clients cannot request, retain, select, or influence a patch. No RPC, world field, generator revision, actor density increase, persistence schema, population rule, or client-authoritative terrain/collision path was added.
+
+Known limits: This retains at most 25 terrain patches and does not yet solve the island-generation failure, test an actual multi-kilometre host/client crossing, retire population actors, add boats, or provide profiling evidence. The Phase 8 island/travel task remains unchecked; do not commit this increment until its focused verification is repaired.
+
+Next task: Repair the deterministic island-generation/locator contract for the current generator, then rerun focused ocean/island and host/client long-distance traversal verification before committing this patch-recycling increment.
+
+### 2026-09-07 13:30 EEST - Establish revision-4 emergent island contract
+
+Outcome: Complete small Phase 8 increment. Revision 4 now derives occasional 6,500–10,000 cm-radius emergent islands from a coarse identity-seeded lattice, blending each summit into a submerged apron and the existing ocean floor. The developer-only locator probes a sufficiently dense radial lattice and wide shoreline ring to find these islands reproducibly. The prior bounded server terrain-patch recycling increment remains included: it refreshes ordinary replicated collision/render patches around server-observed players without raising the 25-patch cap.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWorldGenerationConfig.h`; `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`; `Source/KalmalaWorld/Public/KalmalaIslandLocator.h`; `Source/KalmalaWorld/Private/Tests/KalmalaIslandLocatorTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/08-world-generation-and-biomes.md`; `PROGRESS.md`. Preserved the user's pre-existing `BACKLOG.md` edit and will not stage it.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build succeeded. Focused `Kalmala.World.Ocean.IslandLocator` passed with the revision-4 seed-418 fixture (`C:/Users/Ville/AppData/Local/Temp/KalmalaIslandFinal-0cea13189aa641a783911f24c65a83c7/automation.log`). Earlier focused OceanDepth and SprintSavedMoves checks passed; rerun all focused checks together before committing. `git diff --check` passes.
+
+Multiplayer impact: Islands and patch descriptors are derived only from replicated immutable world identity; server `GameMode` alone determines which bounded patch actors are active from authoritative pawns. Clients send no island, patch, terrain, depth, or movement-mode selection. No new actor class, RPC, replication property, population content, persistence data, density increase, or save schema is introduced.
+
+Known limits: No boat, currents, waves, island gameplay population, population-actor retirement, profiling gate, or actual two-player long-distance ocean crossing has yet been verified. Revision 4 is a new world identity and existing revision-1/2/3 saves remain unchanged.
+
+Next task: Run a focused host/client land-to-ocean-to-island traversal scenario with the bounded patch refresh, then profile before any density or streaming-distance expansion.

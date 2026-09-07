@@ -261,13 +261,13 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     }
 
     NextTerrainPatchActivationTime = GetWorld()->GetTimeSeconds() + KalmalaGameMode::TerrainPatchActivationIntervalSeconds;
+    RefreshTerrainPatchNeighborhoods();
     for (FConstPlayerControllerIterator PlayerControllerIterator = GetWorld()->GetPlayerControllerIterator(); PlayerControllerIterator; ++PlayerControllerIterator)
     {
         const APlayerController* PlayerController = PlayerControllerIterator->Get();
         const APawn* PlayerPawn = PlayerController != nullptr ? PlayerController->GetPawn() : nullptr;
         if (PlayerPawn != nullptr)
         {
-            ActivateTerrainPatchNeighborhood(FVector2D(PlayerPawn->GetActorLocation()));
             ActivatePopulationKey(FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(PlayerPawn->GetActorLocation())));
         }
     }
@@ -768,6 +768,7 @@ void AKalmalaGameMode::ActivateTerrainPatch(const FIntPoint& PatchCoordinate)
 
     TerrainPatch->Initialize(WorldGenerationConfig, PatchCenter);
     ActiveTerrainPatchCoordinates.Add(PatchCoordinate);
+    ActiveTerrainPatches.Add(PatchCoordinate, TerrainPatch);
     UE_LOG(LogTemp, Display, TEXT("Server activated terrain patch (%d, %d) at %s; %d/%d active."), PatchCoordinate.X, PatchCoordinate.Y, *TerrainPatch->GetActorLocation().ToCompactString(), ActiveTerrainPatchCoordinates.Num(), KalmalaGameMode::MaxActiveTerrainPatches);
 }
 
@@ -780,6 +781,43 @@ void AKalmalaGameMode::ActivateTerrainPatchNeighborhood(const FVector2D& WorldPo
         {
             ActivateTerrainPatch(FIntPoint(PatchX, PatchY));
         }
+    }
+}
+
+void AKalmalaGameMode::RefreshTerrainPatchNeighborhoods()
+{
+    if (!HasAuthority() || GetWorld() == nullptr) return;
+
+    // Keep only the bounded union of server-observed player neighborhoods. This
+    // recycles old generated collision/render patches as players cross open sea;
+    // it neither expands streaming density nor allows a client to select patches.
+    TSet<FIntPoint> RequiredPatches;
+    for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+    {
+        const APawn* Pawn = Iterator->Get() != nullptr ? Iterator->Get()->GetPawn() : nullptr;
+        if (Pawn == nullptr) continue;
+        const FIntPoint Centre = FKalmalaTerrainPatchLayout::GetPatchCoordinate(TerrainPatchOrigin, FVector2D(Pawn->GetActorLocation()));
+        for (int32 Y = Centre.Y - KalmalaGameMode::PlayerTerrainPatchRadius; Y <= Centre.Y + KalmalaGameMode::PlayerTerrainPatchRadius; ++Y)
+        {
+            for (int32 X = Centre.X - KalmalaGameMode::PlayerTerrainPatchRadius; X <= Centre.X + KalmalaGameMode::PlayerTerrainPatchRadius; ++X)
+            {
+                RequiredPatches.Add(FIntPoint(X, Y));
+            }
+        }
+    }
+
+    for (auto Iterator = ActiveTerrainPatches.CreateIterator(); Iterator; ++Iterator)
+    {
+        if (!RequiredPatches.Contains(Iterator.Key()))
+        {
+            if (AKalmalaGeneratedTerrainPatch* Patch = Iterator.Value()) Patch->Destroy();
+            ActiveTerrainPatchCoordinates.Remove(Iterator.Key());
+            Iterator.RemoveCurrent();
+        }
+    }
+    for (const FIntPoint& PatchCoordinate : RequiredPatches)
+    {
+        ActivateTerrainPatch(PatchCoordinate);
     }
 }
 
