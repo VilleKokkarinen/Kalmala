@@ -2,6 +2,7 @@
 
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
+#include "KalmalaRegionalGeneration.h"
 
 enum class EKalmalaBiome : uint8 { Meadows, ShimmeringLakes, Elderwood, MossyMire, FreezingTundra, ThunderMountains, Ocean };
 
@@ -10,6 +11,10 @@ struct KALMALAWORLD_API FKalmalaBiomeClassifier
     /** Dominant biome from normalized continuous fields; does not model slope or basin connectivity. */
     static EKalmalaBiome Classify(const FKalmalaWorldFieldSample& Field)
     {
+        if (Field.GeneratorRevision >= 3)
+        {
+            return static_cast<EKalmalaBiome>(FKalmalaRegionalGeneration::Sample(Field).Biome);
+        }
         // Preserve the biome layout (and derived gameplay placements) of existing worlds.
         if (Field.GeneratorRevision == 1)
         {

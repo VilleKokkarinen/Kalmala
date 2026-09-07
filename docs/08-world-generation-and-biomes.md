@@ -49,13 +49,13 @@ WorldSeed + GeneratorRevision
 
 ## Biome palette
 
-### Terrain-based classifier (generator revision 2)
+### Legacy terrain-based classifier (generator revision 2)
 
-New game worlds and visualization commands default to revision 2. Selection uses only the existing four normalized fields, in priority order: submerged terrain (`Elevation < 0.22`) is Ocean; peaks (`> 0.78`) are Thunder Mountains; cold uplands (`Elevation >= 0.55`, `Temperature < 0.35`) are Freezing Tundra. Mossy Mire requires low ground (`Elevation < 0.45`), high moisture (`Humidity > 0.72`), and temperate conditions (`Temperature >= 0.28`). Remaining wet lowlands (`Elevation < 0.55`, `Humidity > 0.63`) are Shimmering Lakes. Elderwood requires both dense growth (`Flora > 0.64`) and moisture (`Humidity >= 0.35`); remaining land is Meadows.
+Revision 2 remains available for existing worlds; new worlds now default to revision 3. Selection uses only the existing four normalized fields, in priority order: submerged terrain (`Elevation < 0.22`) is Ocean; peaks (`> 0.78`) are Thunder Mountains; cold uplands (`Elevation >= 0.55`, `Temperature < 0.35`) are Freezing Tundra. Mossy Mire requires low ground (`Elevation < 0.45`), high moisture (`Humidity > 0.72`), and temperate conditions (`Temperature >= 0.28`). Remaining wet lowlands (`Elevation < 0.55`, `Humidity > 0.63`) are Shimmering Lakes. Elderwood requires both dense growth (`Flora > 0.64`) and moisture (`Humidity >= 0.35`); remaining land is Meadows.
 
 These are original terrain-suitability rules, with no distance-from-spawn progression or extra noise map. Classification returns one dominant biome; it does not calculate slope, blend weights, or connected water basins. Existing continuous fields still drive terrain and environmental variation, and the separate lake-basin query determines visible standing water.
 
-Revision 1 retains its original classifier and field seeds. Sampled fields carry revision metadata so existing callers select the correct rules. Use `-GeneratorRevision=1` to reopen the old layout (`-Revision=1` for visualization). Revision 2 creates a different base world because revision also participates in field seeds. The serialized config default remains 1 for compatibility; only new-world entry points default to 2. Revision-2 population saves use a seed/revision-specific slot, leaving the legacy revision-1 slot intact; no save schema is changed.
+Revision 1 retains its original classifier and field seeds. Sampled fields carry revision metadata so existing callers select the correct rules. Use `-GeneratorRevision=1` to reopen the old layout (`-Revision=1` for visualization). Revision 2 creates a different base world because revision also participates in field seeds. The serialized config default remains 1 for compatibility; new-world entry points now select revision 3. Revision-2 population saves use a seed/revision-specific slot, leaving the legacy revision-1 slot intact; no save schema is changed.
 
 Development order is not player progression. The seed decides which biomes are nearby; players decide whether and when to enter them.
 
@@ -138,7 +138,31 @@ Thunder Mountains is complete: continuous elevation forms high, steep-but-traver
 
 **Done when:** every added biome is enjoyable on its own, blends naturally with its neighbours, and remains consistent for host and client.
 
-### 7. Ocean and long-distance travel
+### 7. Coherent biome generation and hydrology (revision 3)
+
+The regional generator retains four authoritative continuous source fields. Elevation uses a 100,000 cm noise wavelength with only 1.5% local relief amplitude; Humidity and Temperature use 150,000 cm wavelengths. Flora remains local at roughly 1,333 cm and never selects a regional biome or shapes terrain. These wavelengths describe noise sampling, not guaranteed biome diameters.
+
+`FKalmalaRegionalTuning` centralizes the 60,000 cm macro scale, regional frequency, 120,000 cm warp wavelength, 8,000 cm warp displacement, ring overlap and edge waves, source frequencies, and hydrology dimensions. These are versioned developer constants, printed in visualization `Tuning.txt`, rather than mutable client settings. Changing production tuning requires another generator revision.
+
+Each biome has seeded offsets and overlapping concentric core/ring signals around procedural centers, with continuous motion noise and angular sine edge variation. Signals are evaluated on demand, never stored as a biome map. Environmental suitability bounds Elderwood by moisture, Mire by humid temperate lowlands, and Tundra by cold uplands. Normalized weights blend terrain-shaping contributions; maximum weight selects a dominant label, ties follow the stable enum order. Submerged source terrain explicitly selects Ocean and mountain-height source terrain selects Thunder Mountains. Meadow retains a nonzero fallback weight. Physical coast/mountain transition weights are smooth even when the dominant label changes.
+
+Shimmering Lakes requires a deterministic source-qualified basin, not just humidity. Seeded lowland centers on a coarse 40,000 cm lattice produce separated elliptical bowls with raised enclosing rims, 4,000–8,500 cm major radii, and source-relative water levels. A broad lake-region signal and center climate qualify each bowl. The bowl and its rim blend into surrounding terrain; lake weights cover the water and immediate banks. This replaces flood-cache decisions only for revision 3. Legacy lake flood-fill semantics remain intact for revisions 1 and 2.
+
+Rivers and streams derive separate candidate sets from 18,000 cm coarse cells. Nearby candidates coalesce to the lowest stable seed ID within 5,000 cm. Each retained point connects to an eligible lower neighbor within 28,000 cm with deterministic score/tie order. Streams require both ends on low land (40–560 cm above sea, starts at least 80 cm). Sine-displaced spline samples share exact endpoints and use seeded amplitude, wavelength, and phase; samples are at most 250 cm apart along the underlying segment. River/stream influence widths are 600/220 cm. A 6,000 cm spatial index includes every intersecting segment envelope across cell edges. Only generated spline segments are cached, bounded to 256 cells for one identity; eviction, rebuild, and query order do not change the network.
+
+Final height blends per-biome relief, then enclosed bowls and continuous channel carving. Inland water levels are clipped against those same shaped terrain triangles and interpolated at intersections, including river grades. Sea depth continues to use the shared final collision-triangle plane. The minimap interpolates the same inland water-depth differences on the same lattice. Basin rims take precedence over channel carving to retain enclosure. This is deterministic geometric hydrology; it does not simulate water volume, catchment discharge, erosion, currents, flooding, or inland swimming physics.
+
+New game worlds and preview commandlets select revision 3. Serialized config defaults, revision-1/2 source sampling, terrain formulas, classifiers, and legacy save identities remain unchanged. Use the original seed and `-GeneratorRevision=1` or `2` to reopen an existing layout. Revision-3 population deltas use the existing identity-specific save-slot convention and unchanged schema. The server owns world identity, population, interactions, exposure, and persistence; client terrain and water are reproducible presentation/prediction inputs only.
+
+`RenderWorldGenerationVisualization -Revision=3 -Seed=418 -Extent=400000 -Size=256 -Output=<directory>` writes the four fields, dominant biomes, seven weight images (enum order), overlap strength, boundary overlay, indexed river/stream splines (red/green, basins blue), shaped height, and tuning values. The 400,000 cm square is a 4 km-wide diagnostic area. `Scripts/Verify-RegionalGeneration.ps1` runs large-area coherence, Flora independence, spline rebuild, GridCell continuity, shaped collision-depth and nonempty adjacent-water-edge tests, repeated/different-seed renders, and a conflicting-seed live peer fingerprint comparison.
+
+**Done when:** those checks pass for seeds 418 and 419, repeated images are identical, and live peers reproduce the same 81-position fingerprint from the server identity. Coherence thresholds are boundary density below 0.18 and fewer than 250 components of one or two samples on a 161×161, 2,500 cm diagnostic lattice. These bounds detect regressions without claiming every seed or tiny sub-grid feature has been exhaustively verified.
+
+Verified 2026-09-07: boundary densities 0.0923/0.0927, component counts 183/184, median component sizes 17/16 samples, and tiny-component counts 43/47 for seeds 418/419. Both adjacent-water fixtures matched 72 vertices. All repeated render images matched byte-for-byte and live peers agreed on fingerprint `7654679350939909151` for 81 positions.
+
+![Revision-3 biome, hydrology, and shaped-height previews for seeds 418 and 419](phase7-generation-preview.png)
+
+### 8. Ocean and long-distance travel
 
 Add ocean travel, islands, and the systems needed for long-distance movement after land biomes are stable. Tune streaming only from profiling evidence; technical limits must not become gameplay zones.
 

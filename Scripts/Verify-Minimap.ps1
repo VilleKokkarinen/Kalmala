@@ -4,7 +4,7 @@ param(
     [switch]$Rendered,
     [int]$Width = 1280,
     [int]$Height = 720,
-    [ValidateRange(1, 2)][int]$GeneratorRevision = 1
+    [ValidateRange(1, 3)][int]$GeneratorRevision = 1
 )
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
@@ -17,6 +17,7 @@ if ($Rendered) {
     $common = "-game -windowed -RenderOffscreen -ForceRes -ResX=$Width -ResY=$Height -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaMinimapVerification"
 }
 $server = $null
+if ($GeneratorRevision -ge 3) { $common += ' -KalmalaRegionalVerification' }
 $client = $null
 try {
     $server = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=$GeneratorRevision $common -KalmalaMinimapScreenshot=`"$output/host.png`" -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
@@ -34,12 +35,19 @@ try {
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
         $identityReady = $clientText -match "Client received world-generation identity: Seed=418 Revision=$GeneratorRevision"
+        if ($GeneratorRevision -ge 3) { $identityReady = $identityReady -and ($clientText -match 'Regional verification Seed=418 Revision=3 Fingerprint=\d+ Samples=81') }
         $renderReady = !$Rendered -or (($serverText -match 'Minimap painted:') -and ($clientText -match 'Minimap painted:') -and (Test-Path "$output/host.png") -and (Test-Path "$output/client.png"))
         if ($identityReady -and $renderReady) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Host/client minimap presentation timed out.' }
     if ($clientText -notmatch "Client received world-generation identity: Seed=418 Revision=$GeneratorRevision") { throw 'Client did not receive the server world identity.' }
+    if ($GeneratorRevision -ge 3) {
+        $pattern = 'Regional verification Seed=418 Revision=3 Fingerprint=\d+ Samples=81'
+        $fingerprint = [regex]::Match((Get-Content $serverLog -Raw), $pattern).Value
+        if (!$fingerprint -or !$clientText.Contains($fingerprint)) { throw 'Regional host/client terrain, weights, or hydrology disagree.' }
+        Write-Output "PASS: $fingerprint"
+    }
     if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:') { throw 'Unreal reported a fatal error.' }
     if ($Rendered) {
         foreach ($peerText in @($serverText, $clientText)) {

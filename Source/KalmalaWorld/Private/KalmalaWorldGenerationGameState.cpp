@@ -3,6 +3,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
+#include "KalmalaRegionalGeneration.h"
 
 AKalmalaWorldGenerationGameState::AKalmalaWorldGenerationGameState()
 {
@@ -66,4 +67,17 @@ void AKalmalaWorldGenerationGameState::GetLifetimeReplicatedProps(TArray<FLifeti
 void AKalmalaWorldGenerationGameState::LogWorldGenerationIdentity(const TCHAR* Source) const
 {
     UE_LOG(LogTemp, Display, TEXT("%s world-generation identity: Seed=%llu Revision=%d."), Source, WorldGenerationConfig.WorldSeed, WorldGenerationConfig.GeneratorRevision);
+    if (WorldGenerationConfig.GeneratorRevision >= 3 && FParse::Param(FCommandLine::Get(), TEXT("KalmalaRegionalVerification")))
+    {
+        uint64 Fingerprint = 1469598103934665603ull;
+        auto Mix = [&](int64 Value) { Fingerprint = (Fingerprint ^ uint64(Value)) * 1099511628211ull; };
+        for (int32 Y = -4; Y <= 4; ++Y) for (int32 X = -4; X <= 4; ++X)
+        {
+            const auto R = FKalmalaRegionalGeneration::Sample(WorldGenerationConfig, FVector2D(X * 25000, Y * 25000));
+            Mix(R.Biome); Mix(FMath::RoundToInt64(R.Height * 1000)); Mix(FMath::RoundToInt64(R.WaterLevel * 1000));
+            Mix(FMath::RoundToInt64(R.RiverWeight * 100000)); Mix(FMath::RoundToInt64(R.StreamWeight * 100000));
+            for (float W : R.Weights) Mix(FMath::RoundToInt64(W * 100000));
+        }
+        UE_LOG(LogTemp, Display, TEXT("Regional verification Seed=%llu Revision=%d Fingerprint=%llu Samples=81"), WorldGenerationConfig.WorldSeed, WorldGenerationConfig.GeneratorRevision, Fingerprint);
+    }
 }

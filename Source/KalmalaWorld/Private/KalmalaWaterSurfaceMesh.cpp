@@ -17,6 +17,7 @@ namespace
         V.Fields.Temperature = FMath::Lerp(A.Fields.Temperature, B.Fields.Temperature, T);
         V.Fields.Flora = FMath::Lerp(A.Fields.Flora, B.Fields.Flora, T);
         V.Fields.GeneratorRevision = A.Fields.GeneratorRevision;
+        V.WaterLevel = FMath::Lerp(A.WaterLevel, B.WaterLevel, T);
         return V;
     }
 
@@ -44,12 +45,13 @@ void FKalmalaWaterSurfaceMesh::AppendTriangle(const FKalmalaWaterMeshVertex& A,
     const float Level = bLake ? FKalmalaShimmeringLakeSampler::WaterSurfaceWorldHeight
         : FKalmalaTerrainHeightSampler::SeaLevelWorldHeight;
     FPolygon Polygon = { A, B, C };
-    Clip(Polygon, [Level](const auto& V) { return Level - V.TerrainHeight; });
+    const bool Regional = bLake && A.Fields.GeneratorRevision >= 3;
+    Clip(Polygon, [Level, Regional](const auto& V) { return (Regional ? V.WaterLevel : Level) - V.TerrainHeight; });
     if (bShore)
     {
         // Only actual shallow terrain gets a shore tint. Never frame cells or
         // biome boundaries with a floating rectangular ribbon.
-        Clip(Polygon, [Level](const auto& V) { return ShoreDepth - (Level - V.TerrainHeight); });
+        Clip(Polygon, [Level, Regional](const auto& V) { return ShoreDepth - ((Regional ? V.WaterLevel : Level) - V.TerrainHeight); });
     }
     if (Polygon.Num() < 3) return;
     const float Z = Level + (bShore ? 0.5f : 0.0f);
@@ -60,7 +62,12 @@ void FKalmalaWaterSurfaceMesh::AppendTriangle(const FKalmalaWaterMeshVertex& A,
         const auto& R = Polygon[I + 1].Position;
         if (FMath::Abs(FVector2D::CrossProduct(Q - P, R - P)) < 0.001) continue;
         const int32 Start = Mesh.Vertices.Num();
-        Mesh.Vertices.Append({ FVector(P, Z), FVector(Q, Z), FVector(R, Z) });
+        if (Regional)
+        {
+            const float Offset = bShore ? 0.5f : 0.0f;
+            Mesh.Vertices.Append({ FVector(P, Polygon[0].WaterLevel + Offset), FVector(Q, Polygon[I].WaterLevel + Offset), FVector(R, Polygon[I + 1].WaterLevel + Offset) });
+        }
+        else Mesh.Vertices.Append({ FVector(P, Z), FVector(Q, Z), FVector(R, Z) });
         Mesh.Triangles.Append({ Start, Start + 1, Start + 2 });
     }
 }
@@ -82,6 +89,8 @@ FKalmalaWaterMesh FKalmalaWaterSurfaceMesh::BuildPatch(const FKalmalaWorldGenera
             V.Position = FVector2D(-Size * 0.5f + X * Size / CellsPerSide, -Size * 0.5f + Y * Size / CellsPerSide);
             V.Fields = FKalmalaWorldFieldSampler::Sample(Config, PatchCenter + V.Position);
             V.TerrainHeight = FKalmalaTerrainHeightSampler::SampleHeight(Config, PatchCenter + V.Position);
+            if (Config.GeneratorRevision >= 3)
+                V.WaterLevel = FKalmalaRegionalGeneration::Sample(V.Fields).WaterLevel;
         }
     }
     for (int32 Y = 0; Y < CellsPerSide; ++Y)
@@ -92,7 +101,7 @@ FKalmalaWaterMesh FKalmalaWaterSurfaceMesh::BuildPatch(const FKalmalaWorldGenera
             auto AppendBasinTriangle = [&](const auto& A, const auto& B, const auto& C)
             {
                 const auto Wet = [&](const auto& V) { return V.TerrainHeight < FKalmalaShimmeringLakeSampler::WaterSurfaceWorldHeight && FKalmalaLakeBasin::Contains(Config, PatchCenter + V.Position, PatchCenter); };
-                if (!bLake || Wet(A) || Wet(B) || Wet(C)) AppendTriangle(A, B, C, bLake, bShore, Mesh);
+                if (Config.GeneratorRevision >= 3 || !bLake || Wet(A) || Wet(B) || Wet(C)) AppendTriangle(A, B, C, bLake, bShore, Mesh);
             };
             AppendBasinTriangle(Grid[I], Grid[I + Side], Grid[I + 1]);
             AppendBasinTriangle(Grid[I + 1], Grid[I + Side], Grid[I + Side + 1]);

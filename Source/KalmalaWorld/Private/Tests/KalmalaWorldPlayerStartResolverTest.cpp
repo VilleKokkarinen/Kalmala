@@ -502,7 +502,8 @@ bool FKalmalaThunderMountainsSliceTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaBiomeExpansionIntegratedScenarioTest, "Kalmala.World.BiomeExpansion.IntegratedScenario", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaBiomeExpansionIntegratedScenarioTest::RunTest(const FString& Parameters)
 {
-    for (int32 Revision = 1; Revision <= FKalmalaWorldGenerationConfig::CurrentGeneratorRevision; ++Revision)
+    // Legacy local-scale fixtures; revision 3 has its own large-area Regional.Integrated scenario.
+    for (int32 Revision = 1; Revision <= 2; ++Revision)
     {
         const FKalmalaWorldGenerationConfig HostConfig{ 418ull, Revision }, ClientConfig{ 418ull, Revision }, DifferentSeedConfig{ 419ull, Revision };
         const TArray<EKalmalaBiome> LandBiomes = { EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::Elderwood, EKalmalaBiome::MossyMire, EKalmalaBiome::FreezingTundra, EKalmalaBiome::ThunderMountains };

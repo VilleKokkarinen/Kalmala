@@ -34,6 +34,8 @@ Add combat attributes, damage execution, the Mireling, boar, and deer creature a
 
 ## M5 — Vertical-slice finish
 
+The world-generation track now places **Phase 7 — Coherent biome generation and hydrology** before **Phase 8 — Ocean and long-distance travel**. Phase 7 replaces local threshold speckling with derived regional weights, deterministic spline hydrology, enclosed lake bowls, and blended terrain under generator revision 3. Its detailed contracts and acceptance checks are in `docs/08-world-generation-and-biomes.md` and `BACKLOG.md`. This does not expand the vertical-slice creature, platform, or online-service scope.
+
 Add original art/audio pass, tutorial beats, settings/accessibility, performance pass, balance, regression tests, packaging, and a dedicated-server playtest.
 
 **Accept:** a new player can complete the documented 20–30 minute co-op loop without developer tools.

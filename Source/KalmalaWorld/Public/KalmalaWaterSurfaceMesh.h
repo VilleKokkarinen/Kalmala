@@ -8,6 +8,7 @@ struct FKalmalaWaterMeshVertex
     FVector2D Position;
     float TerrainHeight = 0.0f;
     FKalmalaWorldFieldSample Fields;
+    float WaterLevel = 0.0f;
 };
 
 struct FKalmalaWaterMesh

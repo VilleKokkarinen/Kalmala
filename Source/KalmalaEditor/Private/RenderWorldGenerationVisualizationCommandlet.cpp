@@ -5,6 +5,7 @@
 #include "KalmalaWorldFieldSampler.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
+#include "Misc/FileHelper.h"
 
 namespace KalmalaWorldGenerationVisualization
 {
@@ -77,7 +78,8 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
         return 1;
     }
 
-    const FString OutputDirectory = FPaths::ProjectContentDir() / TEXT("Kalmala/Developer/WorldGeneration");
+    FString OutputDirectory = FPaths::ProjectContentDir() / TEXT("Kalmala/Developer/WorldGeneration");
+    FParse::Value(*Params, TEXT("Output="), OutputDirectory);
     IFileManager::Get().MakeDirectory(*OutputDirectory, true);
 
     TArray<FVisualizationPixel> ElevationPixels;
@@ -85,6 +87,8 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
     TArray<FVisualizationPixel> TemperaturePixels;
     TArray<FVisualizationPixel> FloraPixels;
     TArray<FVisualizationPixel> BiomePixels;
+    TArray<FVisualizationPixel> WeightPixels[7], OverlapPixels, HydrologyPixels, HeightPixels, BoundaryPixels;
+    TArray<uint8> BiomeIds;
     ElevationPixels.Reserve(ImageSize * ImageSize);
     HumidityPixels.Reserve(ImageSize * ImageSize);
     TemperaturePixels.Reserve(ImageSize * ImageSize);
@@ -112,15 +116,66 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
             AddFieldPixel(TemperaturePixels, Sample.Temperature);
             AddFieldPixel(FloraPixels, Sample.Flora);
             BiomePixels.Add(GetBiomeColor(FKalmalaBiomeClassifier::Classify(Sample)));
+            if (Config.GeneratorRevision >= 3)
+            {
+                const auto Region = FKalmalaRegionalGeneration::Sample(Sample);
+                for (int32 I = 0; I < 7; ++I) AddFieldPixel(WeightPixels[I], Region.Weights[I]);
+                float Strongest = 0;
+                for (float W : Region.Weights) Strongest = FMath::Max(Strongest, W);
+                AddFieldPixel(OverlapPixels, 1 - Strongest);
+                AddFieldPixel(HeightPixels, (Region.Height + 500) / 2500.0f);
+                HydrologyPixels.Add({ uint8(Region.RiverWeight * 255), uint8(Region.StreamWeight * 255), uint8(Region.BasinWeight * 255) });
+                BiomeIds.Add(Region.Biome);
+                const int32 Index = BiomeIds.Num() - 1;
+                const bool Edge = (X > 0 && BiomeIds[Index - 1] != Region.Biome)
+                    || (Y > 0 && BiomeIds[Index - ImageSize] != Region.Biome);
+                BoundaryPixels.Add(Edge ? FVisualizationPixel{255, 40, 40} : BiomePixels.Last());
+            }
         }
     }
 
-    const bool bWroteAllImages =
+    bool bWroteAllImages =
         WritePpm(OutputDirectory / TEXT("Elevation.ppm"), ImageSize, ElevationPixels) &&
         WritePpm(OutputDirectory / TEXT("Humidity.ppm"), ImageSize, HumidityPixels) &&
         WritePpm(OutputDirectory / TEXT("Temperature.ppm"), ImageSize, TemperaturePixels) &&
         WritePpm(OutputDirectory / TEXT("Flora.ppm"), ImageSize, FloraPixels) &&
         WritePpm(OutputDirectory / TEXT("BiomeClassification.ppm"), ImageSize, BiomePixels);
+
+    if (Config.GeneratorRevision >= 3)
+    {
+        // Overlay the actual indexed splines, so subpixel-width streams remain legible.
+        const int32 First = int32(FMath::FloorToInt(-WorldExtent * 0.5 / FKalmalaRegionalTuning::GridCell));
+        const int32 Last = int32(FMath::FloorToInt(WorldExtent * 0.5 / FKalmalaRegionalTuning::GridCell));
+        for (int32 Y = First; Y <= Last; ++Y) for (int32 X = First; X <= Last; ++X)
+        for (const auto& Segment : FKalmalaRegionalGeneration::GetHydrology(Config, FIntPoint(X, Y)))
+        {
+            const FVector2D A = (FVector2D(Segment.A) / WorldExtent + FVector2D(0.5)) * (ImageSize - 1);
+            const FVector2D B = (FVector2D(Segment.B) / WorldExtent + FVector2D(0.5)) * (ImageSize - 1);
+            const int32 Steps = FMath::Max(1, int32(FMath::CeilToInt(FVector2D::Distance(A, B))));
+            for (int32 I = 0; I <= Steps; ++I)
+            {
+                const auto P = FMath::Lerp(A, B, double(I) / Steps);
+                const int32 PX = int32(FMath::RoundToInt(P.X)), PY = int32(FMath::RoundToInt(P.Y));
+                if (PX >= 0 && PX < ImageSize && PY >= 0 && PY < ImageSize)
+                {
+                    auto& Pixel = HydrologyPixels[PY * ImageSize + PX];
+                    if (Segment.bStream) Pixel.G = 255; else Pixel.R = 255;
+                }
+            }
+        }
+        for (int32 I = 0; I < 7; ++I) bWroteAllImages &= WritePpm(OutputDirectory / FString::Printf(TEXT("Weight%d.ppm"), I), ImageSize, WeightPixels[I]);
+        bWroteAllImages &= WritePpm(OutputDirectory / TEXT("Overlap.ppm"), ImageSize, OverlapPixels);
+        bWroteAllImages &= WritePpm(OutputDirectory / TEXT("Hydrology.ppm"), ImageSize, HydrologyPixels);
+        bWroteAllImages &= WritePpm(OutputDirectory / TEXT("ShapedHeight.ppm"), ImageSize, HeightPixels);
+        bWroteAllImages &= WritePpm(OutputDirectory / TEXT("Boundaries.ppm"), ImageSize, BoundaryPixels);
+        const FString Tuning = FString::Printf(TEXT("Seed=%llu Revision=%d\nBiomeScale=%.0f RegionFrequency=%.9f ElevationFrequency=%.9f ClimateFrequency=%.9f\nWarpStrength=%.0f WarpFrequency=%.9f EdgeWaveStrength=%.3f RingOverlap=%.3f\nRiverSpacing=%.0f MergeDistance=%.0f RiverRange=%.0f SplineAmplitude=%.0f SplineWavelength=%.0f SplineStep=%.0f GridCell=%.0f\n"),
+            Config.WorldSeed, Config.GeneratorRevision, FKalmalaRegionalTuning::BiomeScale, FKalmalaRegionalTuning::RegionFrequency,
+            FKalmalaRegionalTuning::ElevationFrequency, FKalmalaRegionalTuning::ClimateFrequency,
+            FKalmalaRegionalTuning::WarpStrength, FKalmalaRegionalTuning::WarpFrequency, FKalmalaRegionalTuning::EdgeWaveStrength, FKalmalaRegionalTuning::RingOverlap,
+            FKalmalaRegionalTuning::RiverSpacing, FKalmalaRegionalTuning::MergeDistance, FKalmalaRegionalTuning::RiverRange, FKalmalaRegionalTuning::SplineAmplitude,
+            FKalmalaRegionalTuning::SplineWavelength, FKalmalaRegionalTuning::SplineStep, FKalmalaRegionalTuning::GridCell);
+        bWroteAllImages &= FFileHelper::SaveStringToFile(Tuning, *(OutputDirectory / TEXT("Tuning.txt")));
+    }
 
     if (!bWroteAllImages)
     {

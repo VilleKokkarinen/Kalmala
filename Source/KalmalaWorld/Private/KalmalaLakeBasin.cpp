@@ -38,6 +38,10 @@ bool FKalmalaLakeBasin::Find(const FIntPoint Start,
 bool FKalmalaLakeBasin::Contains(const FKalmalaWorldGenerationConfig& Config,
     const FVector2D Position, const FVector2D GridOrigin)
 {
+    if (Config.GeneratorRevision >= 3)
+    {
+        return FKalmalaRegionalGeneration::Sample(Config, Position).BasinWeight > 0;
+    }
     // Cache only completed component decisions. Identity/origin are part of the
     // key; neither query order nor which streaming patch arrives first matters.
     static FCriticalSection Mutex;
@@ -77,6 +81,16 @@ bool FKalmalaLakeBasin::IsVisibleWater(const FKalmalaWorldGenerationConfig& Conf
     const bool Upper = X + Y > 1.0;
     const FIntPoint Corners[] = {Base + FIntPoint(1,0), Base + FIntPoint(0,1), Base + (Upper ? FIntPoint(1,1) : FIntPoint(0,0))};
     const double Weights[] = {Upper ? 1.0-Y : X, Upper ? 1.0-X : Y, Upper ? X+Y-1.0 : 1.0-X-Y};
+    if (Config.GeneratorRevision >= 3)
+    {
+        double Depth = 0;
+        for (int32 I = 0; I < 3; ++I)
+        {
+            const auto Region = FKalmalaRegionalGeneration::Sample(Config, Origin + FVector2D(Corners[I]) * GridSpacing);
+            Depth += (Region.WaterLevel - Region.Height) * Weights[I];
+        }
+        return Depth > 0;
+    }
     float Height = 0;
     bool Contained = false;
     for (int32 I=0; I<3; ++I)

@@ -127,6 +127,14 @@ Restart the editor after building the native modules, then play `L_Prototype`. T
 
 After an editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered`. It launches a hidden listen server and client, exercises the bound jump/sprint/release delegates through normal movement prediction, and checks server-observed remote sprint, upward jump, release, landing, matching world identity, and nine collision-free model parts. It retains host/client screenshots and logs in its printed temporary directory and stops its own processes. Physical keyboard input is not simulated by this test. Run the focused `Kalmala.Gameplay.Movement.SprintSavedMoves` headless automation to verify compressed flags, release, move-combination boundaries, and saved-move clearing.
 
+## Regional generation verification (Phase 7)
+
+Build `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -MaxParallelActions=4`, then run `Scripts/Verify-RegionalGeneration.ps1`. The runner explicitly rejects failed automation results even when Unreal returns exit code zero, generates two seed-418 previews and one seed-419 preview, hashes every PPM for reproduction, checks biome/hydrology/height variation, and launches a revision-3 host with a conflicting-seed client. It uses a unique temporary user/cache/output directory and retains all logs and images. `-SkipPeers` is available for local analysis only; full Phase 7 acceptance requires the peer run.
+
+`Kalmala.World.Regional.Integrated` measures seven-biome coverage, boundary density, connected components, tiny components, and maximum nearby height/weight change over a 4 km square for both seeds. It also verifies Flora independence, spline regeneration, GridCell continuity, shaped ocean-depth triangle planes, and nonempty matching water-patch edges. Legacy `Kalmala.World.Biomes.TerrainSelection`, water, sparse-save and minimap tests run alongside it. The older `BiomeExpansion.IntegratedScenario` remains a revision-1/2 local-scale fixture; it is not the regional test.
+
+`Verify-Minimap.ps1 -GeneratorRevision 3` enables the read-only `-KalmalaRegionalVerification` fingerprint over 81 world positions on host and client. The fingerprint includes dominant biomes, all seven weights, final terrain height, water levels, and river/stream weights. It creates no client RPC or saved inspection data. Normal launches default to revision 3; existing worlds must explicitly retain their original seed/revision.
+
 ## Source-control rules
 
 - Commit `Config/`, `Source/`, `.uproject`, and `.uasset`/`.umap` content assets.
