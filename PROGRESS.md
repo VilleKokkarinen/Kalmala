@@ -1289,3 +1289,27 @@ Multiplayer impact: Local presentation and local user preferences only. The subs
 Known limits: Audio, Controls, and Settings tabs provide the requested navigation shell but do not yet expose controls; audio sliders, input remapping, accessibility options, confirmation/rollback for display-mode changes, and a translated UI remain future work. The user's pre-existing `BACKLOG.md` reorganization remains untouched and unstaged.
 
 Next task: Resume the user-directed UI/accessibility expansion when requested; otherwise retain the existing Phase 8 ocean-travel backlog ordering.
+
+### 2026-09-07 - Define expanded world-map backlog
+
+Outcome: Added a user-directed, decomposed backlog for an original nearly full-screen world map. The work starts with M-toggle modal input, pan, cursor-anchored zoom, recentering, and per-local-player ownership, then adds asynchronous tiled presentation, personal fog-of-war, pins, opt-in player awareness, server-validated temporary pings, and a deferred shared-cartography feature after construction prerequisites exist.
+
+Research basis: Current Valheim control documentation confirms the high-level interaction conventions of M-toggle, mouse-wheel map zoom, click-drag panning, marker placement/removal/toggling, and Escape menu behavior; its cartography documentation describes explicit map/marker sharing. Kalmala will use only these interaction principles, with original UI, visuals, names, and systems. Sources: [controls](https://valheim.gamecore.wiki/en/tutorials/controls/) and [cartography table](https://valheim.fandom.com/wiki/Cartography_table).
+
+Multiplayer and scope: The backlog retains the existing local, seed-derived map contract and does not reveal hidden server-owned content. Only the future temporary ping and deferred sharing increments require server authority; both explicitly require validation and no-spoiler rules. No feature implementation, build, asset, save schema, or gameplay contract changed in this planning increment.
+
+Next task: Complete the existing Phase 8 ocean-travel verification before implementing backlog items, unless the user explicitly prioritizes the expanded-map implementation.
+
+### 2026-09-07 - Add expanded-map core controls
+
+Outcome: Implemented the first user-prioritized expanded-map increment. `M` opens a local near-full-screen terrain/water map and closes it again; Escape closes it before the Settings menu opens. The map reuses the minimap's asynchronous seed-derived view model, supports left-drag panning, cursor-anchored mouse-wheel zoom from 2,500–50,000 cm, and `R` recentering. It disables movement/look while open and restores normal local input when closed.
+
+Changed: `Config/DefaultInput.ini`; `Source/KalmalaUI/KalmalaUI.Build.cs`; `Source/KalmalaUI/Public/KalmalaMinimapViewModel.h`; `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`; `Source/KalmalaUI/Public/KalmalaWorldMapSubsystem.h`; `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. Focused `Kalmala.UI.WorldMap.LocalPresentation` automation passed one test for zoom bounds and viewport placement (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapFinal-2809f8d069834615b9dddb2fdbf420e1/automation.log`).
+
+Multiplayer impact: Entirely local presentation/input. The map samples only the existing immutable replicated identity and owning pawn transform; it sends no RPC and changes no replicated state, collision, persistence, population, discoveries, or server authority. The map centre and zoom exist only for the active local UI instance.
+
+Known limits: The full map currently stretches the existing square raster across its panel and has no fog-of-war, personal pins, player markers, pings, sharing, controller navigation, or rendered multi-aspect interaction verification. The outstanding expanded-map layout/input coexistence verification remains unchecked.
+
+Next task: Complete rendered multi-aspect map interaction verification and correct the map raster's aspect-aware sampling before starting fog-of-war or pins.

@@ -15,6 +15,7 @@ public class KalmalaUI : ModuleRules
             "CommonUI",
             "Slate",
             "SlateCore",
+            "InputCore",
             "KalmalaCore",
             "KalmalaWorld"
         });

@@ -97,6 +97,10 @@ After building, run `Scripts/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 10
 
 Press Escape during normal play to open the local Settings menu; press Escape again to close it and restore game input. The menu's main screen provides Options and Quit. Options contains Video, Audio, Controls, and Settings tabs; Video immediately applies and saves resolution, V-Sync, window mode, and render-distance quality through Unreal `GameUserSettings`. Run `Kalmala.UI.Settings.LocalPresentation` after an editor build for the render-distance bounds seam. This is local presentation/preferences only: no setting, menu action, or quit request is sent to the server.
 
+## Expanded world map
+
+Press `M` to open the local expanded map. It occupies the viewport with a map surface derived asynchronously from the replicated world identity and owning pawn, so it never reveals population, discoveries, or other server-only data. Drag with the left mouse button to pan, use the mouse wheel to zoom at the pointer, and press `R` to recenter on the owning player. Press `M` or Escape to close it; Escape closes the map before opening Settings. Run `Kalmala.UI.WorldMap.LocalPresentation` after an editor build to verify zoom bounds and the stretch-to-viewport slot. Fog-of-war, pins, pings, sharing, and controller navigation are not in this first increment.
+
 ## Biome feature inspection
 
 `Kalmala.World.Biomes.TerrainSelection` verifies terrain precedence, exact boundaries, lowland/upland climate distinctions, forest moisture support, legacy selection, all-seven-biome coverage, same-identity agreement, different-seed variation, and Meadow starts for revisions 1 and 2. Run it with the headless automation flags above. `Kalmala.World.BiomeExpansion.IntegratedScenario` now covers both revisions. Existing two-peer fixture scripts explicitly select server revision 1 to retain their established terrain/weather fixtures; normal game launches default to revision 2. To retain an existing world, launch with its original seed and `-GeneratorRevision=1`.

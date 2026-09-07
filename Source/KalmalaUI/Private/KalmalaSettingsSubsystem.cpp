@@ -3,6 +3,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaWorldMapSubsystem.h"
 #include "Engine/LocalPlayer.h"
 
 void UKalmalaSettingsSubsystem::Tick(float DeltaTime)
@@ -49,6 +50,7 @@ void UKalmalaSettingsSubsystem::BindLocalInput(APlayerController* InLocalControl
 void UKalmalaSettingsSubsystem::HandleSettingsMenu()
 {
     if (LocalController == nullptr) return;
+    if (UKalmalaWorldMapSubsystem* MapSubsystem = GetLocalPlayer()->GetSubsystem<UKalmalaWorldMapSubsystem>(); MapSubsystem != nullptr && MapSubsystem->CloseMapIfOpen()) return;
     if (SettingsWidget == nullptr)
     {
         SettingsWidget = CreateWidget<UKalmalaSettingsWidget>(LocalController, UKalmalaSettingsWidget::StaticClass());

@@ -24,6 +24,18 @@ void UKalmalaMinimapViewModel::SetMapRadius(const float InMapRadius)
     MapRadius = FMath::Max(100.0f, InMapRadius);
 }
 
+void UKalmalaMinimapViewModel::SetMapCentre(const FVector2D& InMapCentre)
+{
+    if (InMapCentre.ContainsNaN()) return;
+    CustomCentre = InMapCentre;
+    bUseCustomCentre = true;
+}
+
+void UKalmalaMinimapViewModel::RecenterOnOwningPlayer()
+{
+    bUseCustomCentre = false;
+}
+
 bool UKalmalaMinimapViewModel::Refresh()
 {
     if (OwningPlayer == nullptr || !OwningPlayer->IsLocalController() || OwningPlayer->GetPawn() == nullptr || OwningPlayer->GetWorld() == nullptr)
@@ -40,7 +52,8 @@ bool UKalmalaMinimapViewModel::Refresh()
     }
 
     const APawn* OwningPawn = OwningPlayer->GetPawn();
-    const FVector2D Location(OwningPawn->GetActorLocation());
+    const FVector2D PawnLocation(OwningPawn->GetActorLocation());
+    const FVector2D Location = bUseCustomCentre ? CustomCentre : PawnLocation;
     const FKalmalaWorldGenerationConfig& Config = WorldGenerationState->GetWorldGenerationConfig();
     PlayerFacingDegrees = OwningPawn->GetActorRotation().Yaw;
     return RefreshTerrain(Config, Location);

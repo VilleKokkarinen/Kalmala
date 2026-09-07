@@ -67,6 +67,11 @@ public:
     /** Changes only the local presentation radius; it is never replicated or persisted. */
     void SetMapRadius(float InMapRadius);
 
+    /** Centres a local map presentation at a chosen world location without changing gameplay state. */
+    void SetMapCentre(const FVector2D& InMapCentre);
+    void RecenterOnOwningPlayer();
+    FVector2D GetMapCentre() const { return bUseCustomCentre ? CustomCentre : LastLocation; }
+
     uint32 GetPresentationRevision() const { return PresentationRevision; }
 
     UFUNCTION(BlueprintPure, Category = "Minimap")
@@ -95,6 +100,8 @@ private:
     int32 LastGeneratorRevision = 0;
     float LastRadius = 0.0f;
     uint32 PresentationRevision = 0;
+    FVector2D CustomCentre = FVector2D::ZeroVector;
+    bool bUseCustomCentre = false;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap", meta = (AllowPrivateAccess = "true"))
     float PlayerFacingDegrees = 0.0f;
