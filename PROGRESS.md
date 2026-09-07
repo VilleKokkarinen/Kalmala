@@ -1275,3 +1275,17 @@ Multiplayer impact: Local presentation only. Workers capture no UObject or actor
 Known limits: The map can briefly lag movement while a raster completes. The focused timings measure refresh CPU cost, not end-to-end rendered frame rate; the exact reported 1 FPS was not reproduced. Existing wildlife/hazard root-component warnings remain. An already-running editor must restart to load the rebuilt native module.
 
 Next task: Confirm movement in the user's editor after restart; if severe stalls remain, capture an Unreal Insights movement trace before changing further generation or streaming behavior. The unrelated backlog remains unchanged.
+
+### 2026-09-07 - Add local Escape settings menu
+
+Outcome: Added a native local-player Settings menu toggled by Escape. Its main screen offers Options and Quit; Quit uses Unreal's normal `QuitGame` request. Options has Video, Audio, Controls, and Settings tabs. The Video tab cycles resolution, V-Sync, windowed/borderless/fullscreen mode, and render-distance quality, applying and saving each change through `UGameUserSettings`. Escape closes the menu from either screen and restores normal mouse, movement, look, and game input.
+
+Changed: `Config/DefaultInput.ini`; `Source/KalmalaUI/Public/KalmalaSettingsSubsystem.h`; `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`; `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaSettingsWidgetTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. Focused `Kalmala.UI.Settings.LocalPresentation` automation passed one test, validating render-distance bounds (`C:/Users/Ville/AppData/Local/Temp/KalmalaSettings-172371bcc79941ffa0fb7e0d09db29ca/automation.log`). `git diff --check` remains required.
+
+Multiplayer impact: Local presentation and local user preferences only. The subsystem binds only the owning local controller; no RPC, replication, world-generation state, collision, save-game schema, or server-owned gameplay data changes. Quit follows the engine's standard local exit path.
+
+Known limits: Audio, Controls, and Settings tabs provide the requested navigation shell but do not yet expose controls; audio sliders, input remapping, accessibility options, confirmation/rollback for display-mode changes, and a translated UI remain future work. The user's pre-existing `BACKLOG.md` reorganization remains untouched and unstaged.
+
+Next task: Resume the user-directed UI/accessibility expansion when requested; otherwise retain the existing Phase 8 ocean-travel backlog ordering.
