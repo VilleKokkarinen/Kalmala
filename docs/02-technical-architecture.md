@@ -125,6 +125,8 @@ Space uses Character Movement's built-in single jump (500 cm/s vertical launch, 
 
 ## Verification minimum
 
+Regional sampling shares the per-position warp and per-biome motion calculation, and bounds ring/basin support before evaluating expensive noise or trigonometry. These are exact evaluation optimizations, not generation tuning. The revision-3/4 minimap uses per-call scratch vertex results to interpolate both terrain and inland depth on the existing collision lattice; scratch data is discarded after each raster build. It retains exact per-pixel biome classification, full resolution, identity-specific start origin, and the legacy revision-1/2 path. No persistent biome/height cache, authoritative map, replication property, save schema, or new generator revision is introduced.
+
 Every feature needs an automated test where practical, plus a reproducible multiplayer test: host + one client or dedicated server + two clients. Profile before increasing simulation area, actor count, or replication frequency.
 
 `-KalmalaExposureReplicationTest` is the Phase 4 host/client smoke path. It is server-configured only: the server records its sampled weather, shelter, fire contribution, and exposure result; the client logs only replicated weather, campfire, and exposure state. It starts each verification pawn wet and low on warmth beside a temporary server-owned fire so the logs show recovery without changing persistent world data.

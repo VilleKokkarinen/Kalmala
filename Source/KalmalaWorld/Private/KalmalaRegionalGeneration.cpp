@@ -90,14 +90,19 @@ namespace
     FKalmalaWorldGenerationConfig CacheIdentity;
     TMap<FIntPoint, TArray<FKalmalaHydrologySegment>> SplineIndex;
 
-    double Region(const FKalmalaWorldGenerationConfig& C, FVector2D P, int32 Biome)
+    FVector2D Warp(const FKalmalaWorldGenerationConfig& C, FVector2D P)
+    {
+        return P + FVector2D(G::Noise(C, 200, P, T::WarpFrequency), G::Noise(C, 201, P, T::WarpFrequency)) * T::WarpStrength;
+    }
+
+    double WarpedRegion(const FKalmalaWorldGenerationConfig& C, FVector2D P, int32 Biome)
     {
         const uint64 Domain = 100 + Biome * 8;
-        P += FVector2D(G::Noise(C, 200, P, T::WarpFrequency), G::Noise(C, 201, P, T::WarpFrequency)) * T::WarpStrength;
         const uint64 Bits = G::Seed(C, Domain);
         const FVector2D Offset(Unit(Bits) * T::BiomeScale, Unit(Bits >> 24) * T::BiomeScale);
         P += Offset;
         const auto Base = CellAt(P, T::BiomeScale);
+        const double Motion = G::Noise(C, Domain + 1, P, T::RegionFrequency);
         double Weight = 0;
         for (int32 Y = -1; Y <= 1; ++Y) for (int32 X = -1; X <= 1; ++X)
         {
@@ -105,9 +110,11 @@ namespace
             const uint64 CellSeed = G::Seed(C, Domain, Cell);
             const FVector2D Center = (FVector2D(Cell) + FVector2D(0.25 + 0.5 * Unit(CellSeed), 0.25 + 0.5 * Unit(CellSeed >> 24))) * T::BiomeScale;
             const FVector2D D = (P - Center) / T::BiomeScale;
-            const double Angle = FMath::Atan2(D.Y, D.X);
-            const double Motion = G::Noise(C, Domain + 1, P, T::RegionFrequency);
             const double Radius = D.Size();
+            // Both layers are exactly zero beyond this conservative edge bound.
+            const double MaxEdge = FMath::Abs(T::EdgeWaveStrength) + 0.12 * FMath::Abs(Motion);
+            if (Radius >= FMath::Max(0.43 + T::RingOverlap, 0.62) + MaxEdge) continue;
+            const double Angle = FMath::Atan2(D.Y, D.X);
             const double Edge = (T::EdgeWaveStrength * FMath::Sin(3 * Angle + Unit(CellSeed) * 2 * PI) + 0.12 * Motion) * Smooth(0.0, 0.15, Radius);
             // Two overlapping concentric layers, with independently disturbed inner/outer edges.
             const double Core = 1.0 - Smooth(0.16 + Edge, 0.43 + Edge + T::RingOverlap, Radius);
@@ -162,18 +169,19 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldFie
     const float Source = (F.Elevation - T::SeaElevation) * 2000.0f;
     const double Land = Smooth(T::SeaElevation, 0.30, F.Elevation);
     const double Mountain = Smooth(0.68, T::MountainElevation, F.Elevation);
-    R.Weights[0] = 0.20f + 0.08f * Region(C, P, 0);
-    R.Weights[2] = Region(C, P, 2) * Smooth(0.22, 0.42, F.Humidity);
-    R.Weights[3] = Region(C, P, 3) * Smooth(0.48, 0.65, F.Humidity)
+    const FVector2D Warped = Warp(C, P);
+    R.Weights[0] = 0.20f + 0.08f * WarpedRegion(C, Warped, 0);
+    R.Weights[2] = WarpedRegion(C, Warped, 2) * Smooth(0.22, 0.42, F.Humidity);
+    R.Weights[3] = WarpedRegion(C, Warped, 3) * Smooth(0.48, 0.65, F.Humidity)
         * (1 - Smooth(0.43, 0.58, F.Elevation)) * Smooth(0.18, 0.32, F.Temperature);
-    R.Weights[4] = Region(C, P, 4) * (1 - Smooth(0.40, 0.60, F.Temperature)) * Smooth(0.44, 0.64, F.Elevation);
+    R.Weights[4] = WarpedRegion(C, Warped, 4) * (1 - Smooth(0.40, 0.60, F.Temperature)) * Smooth(0.44, 0.64, F.Elevation);
     float Total = R.Weights[0] + R.Weights[2] + R.Weights[3] + R.Weights[4];
     for (int32 I = 0; I < 5; ++I) R.Weights[I] = R.Weights[I] / Total * Land * (1 - Mountain);
     R.Weights[5] = Land * Mountain;
     R.Weights[6] = 1 - Land;
     const double Detail = Noise(C, 250, P, 0.00015);
     const float Shapes[] = { float(40 * Detail), 0, float(65 * Detail), float(-60 + 15 * Detail),
-        float(50 * Detail), float(160 * Detail + 100 * Region(C, P, 5)), float(-60 * (1 - Land) * Region(C, P, 6)) };
+        float(50 * Detail), float(160 * Detail + 100 * WarpedRegion(C, Warped, 5)), float(-60 * (1 - Land) * WarpedRegion(C, Warped, 6)) };
     R.Height = Source;
     for (int32 I = 0; I < 7; ++I) R.Height += R.Weights[I] * Shapes[I] * (I == 6 ? 1 : Land);
 
@@ -218,14 +226,15 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldFie
         const auto Cell = BasinCell + FIntPoint(X, Y);
         const uint64 S = Seed(C, 400, Cell);
         const FVector2D Center = (FVector2D(Cell) + FVector2D(0.35 + Unit(S) * 0.3, 0.35 + Unit(S >> 24) * 0.3)) * T::BasinSpacing;
-        const auto CenterFields = FKalmalaWorldFieldSampler::Sample(C, Center);
-        if (CenterFields.Elevation < 0.32f || CenterFields.Elevation > 0.58f || CenterFields.Humidity < 0.4f) continue;
-        if (Region(C, Center, 1) < 0.25) continue;
         const double Radius = 4000 + 4500 * Unit(S >> 12);
         const FVector2D Delta = P - Center;
         const double Aspect = 0.65 + 0.35 * Unit(S >> 32);
         const double D = FVector2D(Delta.X, Delta.Y / Aspect).Size() / Radius;
         if (D >= 1.5) continue;
+        // Reject out-of-support bowls before evaluating their fields and region.
+        const auto CenterFields = FKalmalaWorldFieldSampler::Sample(C, Center);
+        if (CenterFields.Elevation < 0.32f || CenterFields.Elevation > 0.58f || CenterFields.Humidity < 0.4f) continue;
+        if (WarpedRegion(C, Warp(C, Center), 1) < 0.25) continue;
         const double Support = 1 - Smooth(1.0, 1.5, D);
         const float Level = (CenterFields.Elevation - T::SeaElevation) * 2000.0f;
         const float Bowl = Level - 120.0f + 240.0f * D * D;

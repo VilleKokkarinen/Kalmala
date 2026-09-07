@@ -8,6 +8,7 @@
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaWorldPlayerStartResolver.h"
 
 void UKalmalaMinimapViewModel::Initialize(APlayerController* InOwningPlayer)
 {
@@ -72,6 +73,30 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
     }
 
     const int32 ClampedSamplesPerAxis = FMath::Clamp(InSamplesPerAxis, 3, 129);
+    // Scratch results live only for this raster build. Adjacent pixels share
+    // collision vertices; sample each once for both terrain and inland water.
+    // This is not a persistent biome/height map or an authoritative world cache.
+    TMap<FIntPoint, FKalmalaRegionalSample> Vertices;
+    FVector2D GridOrigin = FVector2D::ZeroVector;
+    if (WorldConfig.GeneratorRevision >= 3)
+    {
+        static thread_local FKalmalaWorldGenerationConfig OriginConfig;
+        static thread_local FVector2D Origin;
+        static thread_local bool bHasOrigin = false;
+        if (!bHasOrigin || !(OriginConfig == WorldConfig))
+        {
+            Origin = FVector2D(FKalmalaWorldPlayerStartResolver::ResolveStartTransform(WorldConfig).GetLocation());
+            OriginConfig = WorldConfig;
+            bHasOrigin = true;
+        }
+        GridOrigin = Origin;
+    }
+    auto Vertex = [&](FIntPoint Key)
+    {
+        if (const auto* Found = Vertices.Find(Key)) return *Found;
+        return Vertices.Add(Key, FKalmalaRegionalGeneration::Sample(WorldConfig,
+            GridOrigin + FVector2D(Key) * FKalmalaLakeBasin::GridSpacing));
+    };
     Samples.Reserve(ClampedSamplesPerAxis * ClampedSamplesPerAxis);
     for (int32 Y = 0; Y < ClampedSamplesPerAxis; ++Y)
     {
@@ -84,11 +109,31 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
 
             FKalmalaMinimapTerrainSample& Sample = Samples.AddDefaulted_GetRef();
             Sample.MapPosition = MapPosition;
-            const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(WorldConfig, WorldPosition);
-            Sample.TerrainHeight = Ocean.TerrainHeight;
-            const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldConfig, WorldPosition));
-            Sample.bIsWater = Ocean.IsWater()
-                || FKalmalaLakeBasin::IsVisibleWater(WorldConfig, WorldPosition);
+            EKalmalaBiome Biome;
+            if (WorldConfig.GeneratorRevision >= 3)
+            {
+                const FVector2D Cell = (WorldPosition - GridOrigin) / FKalmalaLakeBasin::GridSpacing;
+                const FIntPoint Base(FMath::FloorToInt(Cell.X), FMath::FloorToInt(Cell.Y));
+                const double U = Cell.X - Base.X, V = Cell.Y - Base.Y;
+                const bool bUpper = U + V > 1.0;
+                const auto East = Vertex(Base + FIntPoint(1, 0));
+                const auto North = Vertex(Base + FIntPoint(0, 1));
+                const auto Opposite = Vertex(Base + (bUpper ? FIntPoint(1, 1) : FIntPoint(0, 0)));
+                const double A = bUpper ? 1.0 - V : U, B = bUpper ? 1.0 - U : V;
+                const double D = bUpper ? U + V - 1.0 : 1.0 - U - V;
+                Sample.TerrainHeight = double(East.Height) * A + double(North.Height) * B + double(Opposite.Height) * D;
+                const double InlandDepth = (East.WaterLevel - East.Height) * A
+                    + (North.WaterLevel - North.Height) * B + (Opposite.WaterLevel - Opposite.Height) * D;
+                Sample.bIsWater = Sample.TerrainHeight < 0.0f || InlandDepth > 0.0;
+                Biome = static_cast<EKalmalaBiome>(FKalmalaRegionalGeneration::Sample(WorldConfig, WorldPosition).Biome);
+            }
+            else
+            {
+                const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(WorldConfig, WorldPosition);
+                Sample.TerrainHeight = Ocean.TerrainHeight;
+                Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldConfig, WorldPosition));
+                Sample.bIsWater = Ocean.IsWater() || FKalmalaLakeBasin::IsVisibleWater(WorldConfig, WorldPosition);
+            }
             Sample.TerrainColour = FKalmalaMinimapRaster::SampleBiomeTexture(Sample.bIsWater ? EKalmalaBiome::Ocean : Biome, WorldPosition);
             if (Sample.bIsWater && Biome == EKalmalaBiome::ShimmeringLakes)
             {
