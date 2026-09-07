@@ -1261,3 +1261,17 @@ Multiplayer impact: Islands and patch descriptors are derived only from replicat
 Known limits: No boat, currents, waves, island gameplay population, population-actor retirement, profiling gate, or actual two-player long-distance ocean crossing has yet been verified. Revision 4 is a new world identity and existing revision-1/2/3 saves remain unchanged.
 
 Next task: Run a focused host/client land-to-ocean-to-island traversal scenario with the bounded patch refresh, then profile before any density or streaming-distance expansion.
+
+### 2026-09-07 - Remove synchronous minimap generation from movement
+
+Outcome: Fixed the movement-triggered minimap game-thread stall. The 129x129 raster now builds from value snapshots on one pending background job per view model; ticks poll without waiting, reuse the completed map, coalesce movement, and reject obsolete zoom/identity results. This directly addresses a moving-only bottleneck without changing generated terrain or reducing map resolution.
+
+Changed: `Source/KalmalaUI/Public/KalmalaMinimapViewModel.h`; `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaMinimapAsyncTest.cpp`; `Scripts/Verify-Minimap.ps1`; `Scripts/Verify-PlayerControls.ps1`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `PROGRESS.md`. Preserved the pre-existing `BACKLOG.md` changes without staging them.
+
+Verification: KalmalaEditor Win64 Development build passed. All three Kalmala.UI.Minimap tests passed, including exact revision-3/4 fingerprints and worker output equivalence. Maximum measured production refresh-call time was 0.060 ms; full revision-4 raster sampling measured 24.316 ms at radius 5000 and 46.122 ms at radius 10000. Log: `C:/Users/Ville/AppData/Local/Temp/KalmalaAsyncMinimap-0d7d1b7883d04f73b154853490310c00/automation.log`. Rendered revision-4 minimap host/client checks passed with matching world fingerprints, full HUD textures, screenshots, and modal-safe zoom (`C:/Users/Ville/AppData/Local/Temp/KalmalaMinimap-0cdcd89818d9494685168df7a847f008`); client screenshot inspected. Rendered revision-4 player controls passed walking/sprint/jump/release/landing and server-observed remote movement (`C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-00cbda75033245e58d0d0dd01cca68d2`). `git diff --check` passed.
+
+Multiplayer impact: Local presentation only. Workers capture no UObject or actor and mutate no authoritative state. Results are applied on the game thread only for the current server-replicated identity and requested zoom. No RPC, collision, generator revision, population, or persistence contract changed.
+
+Known limits: The map can briefly lag movement while a raster completes. The focused timings measure refresh CPU cost, not end-to-end rendered frame rate; the exact reported 1 FPS was not reproduced. Existing wildlife/hazard root-component warnings remain. An already-running editor must restart to load the rebuilt native module.
+
+Next task: Confirm movement in the user's editor after restart; if severe stalls remain, capture an Unreal Insights movement trace before changing further generation or streaming behavior. The unrelated backlog remains unchanged.

@@ -1,7 +1,8 @@
 param(
     [string]$Editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe',
     [int]$Port = 17843,
-    [switch]$Rendered
+    [switch]$Rendered,
+    [ValidateRange(1, 4)][int]$GeneratorRevision = 1
 )
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
@@ -14,7 +15,7 @@ $common = "-game $renderer -nosound -unattended -nosplash -DDC-ForceMemoryCache 
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=1 $common -KalmalaMinimapScreenshot=`"$output/host.png`" -abslog=`"$serverLog`" -UserDir=`"$output/Host`""
+    $server = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=$GeneratorRevision $common -KalmalaMinimapScreenshot=`"$output/host.png`" -abslog=`"$serverLog`" -UserDir=`"$output/Host`""
     $deadline = (Get-Date).AddSeconds(60)
     do {
         if ($server.HasExited) { throw 'Server exited during startup.' }
@@ -36,7 +37,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Player controls verification timed out.' }
-    if ($clientText -notmatch 'Client received world-generation identity: Seed=418 Revision=1') { throw 'Client world identity mismatch.' }
+    if ($clientText -notmatch "Client received world-generation identity: Seed=418 Revision=$GeneratorRevision") { throw 'Client world identity mismatch.' }
     foreach ($match in [regex]::Matches($serverText, 'Controls server sprint: Remote=\d Speed=([\d.]+) Base=([\d.]+)')) {
         if ([Math]::Abs([double]$match.Groups[1].Value - 1.5 * [double]$match.Groups[2].Value) -gt 0.2) { throw 'Server sprint did not retain the base exposure penalty.' }
     }

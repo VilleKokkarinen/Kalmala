@@ -2,6 +2,7 @@
 #include "KalmalaLakeBasin.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaMinimapRaster.h"
+#include "Async/Async.h"
 
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
@@ -13,6 +14,7 @@
 void UKalmalaMinimapViewModel::Initialize(APlayerController* InOwningPlayer)
 {
     OwningPlayer = InOwningPlayer;
+    PendingSamples = {};
     TerrainSamples.Reset();
     bIsReady = false;
 }
@@ -41,22 +43,46 @@ bool UKalmalaMinimapViewModel::Refresh()
     const FVector2D Location(OwningPawn->GetActorLocation());
     const FKalmalaWorldGenerationConfig& Config = WorldGenerationState->GetWorldGenerationConfig();
     PlayerFacingDegrees = OwningPawn->GetActorRotation().Yaw;
+    return RefreshTerrain(Config, Location);
+}
+
+bool UKalmalaMinimapViewModel::RefreshTerrain(const FKalmalaWorldGenerationConfig& Config, const FVector2D& Location)
+{
+    if (LastSeed != Config.WorldSeed || LastGeneratorRevision != Config.GeneratorRevision)
+    {
+        bIsReady = false;
+    }
+    // Never wait on procedural generation from a widget tick. Coalesce movement
+    // while a job is running, then request the latest position on completion.
+    if (PendingSamples.IsValid())
+    {
+        if (!PendingSamples.IsReady()) return bIsReady;
+        auto CompletedSamples = PendingSamples.Get();
+        PendingSamples = {};
+        if (PendingConfig == Config && PendingRadius == MapRadius)
+        {
+            TerrainSamples = MoveTemp(CompletedSamples);
+            LastLocation = PendingLocation;
+            LastRadius = PendingRadius;
+            LastSeed = PendingConfig.WorldSeed;
+            LastGeneratorRevision = PendingConfig.GeneratorRevision;
+            ++PresentationRevision;
+            bIsReady = !TerrainSamples.IsEmpty();
+        }
+    }
     if (bIsReady && Location.Equals(LastLocation, 1.0f) && LastRadius == MapRadius
         && LastSeed == Config.WorldSeed && LastGeneratorRevision == Config.GeneratorRevision)
     {
         return true;
     }
-    TerrainSamples = BuildTerrainSamples(
-        Config,
-        Location,
-        MapRadius,
-        SamplesPerAxis);
-    LastLocation = Location;
-    LastRadius = MapRadius;
-    LastSeed = Config.WorldSeed;
-    LastGeneratorRevision = Config.GeneratorRevision;
-    ++PresentationRevision;
-    bIsReady = TerrainSamples.Num() > 0;
+    PendingConfig = Config;
+    PendingLocation = Location;
+    PendingRadius = MapRadius;
+    PendingSamples = Async(EAsyncExecution::ThreadPool,
+        [Config, Location, Radius = MapRadius, Count = SamplesPerAxis]()
+        {
+            return BuildTerrainSamples(Config, Location, Radius, Count);
+        });
     return bIsReady;
 }
 

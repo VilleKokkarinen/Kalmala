@@ -4,7 +4,7 @@ param(
     [switch]$Rendered,
     [int]$Width = 1280,
     [int]$Height = 720,
-    [ValidateRange(1, 3)][int]$GeneratorRevision = 1
+    [ValidateRange(1, 4)][int]$GeneratorRevision = 1
 )
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
@@ -35,7 +35,7 @@ try {
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
         $identityReady = $clientText -match "Client received world-generation identity: Seed=418 Revision=$GeneratorRevision"
-        if ($GeneratorRevision -ge 3) { $identityReady = $identityReady -and ($clientText -match 'Regional verification Seed=418 Revision=3 Fingerprint=\d+ Samples=81') }
+        if ($GeneratorRevision -ge 3) { $identityReady = $identityReady -and ($clientText -match "Regional verification Seed=418 Revision=$GeneratorRevision Fingerprint=\d+ Samples=81") }
         $renderReady = !$Rendered -or (($serverText -match 'Minimap painted:') -and ($clientText -match 'Minimap painted:') -and (Test-Path "$output/host.png") -and (Test-Path "$output/client.png"))
         if ($identityReady -and $renderReady) { break }
         Start-Sleep -Milliseconds 500
@@ -43,7 +43,7 @@ try {
     if ((Get-Date) -ge $deadline) { throw 'Host/client minimap presentation timed out.' }
     if ($clientText -notmatch "Client received world-generation identity: Seed=418 Revision=$GeneratorRevision") { throw 'Client did not receive the server world identity.' }
     if ($GeneratorRevision -ge 3) {
-        $pattern = 'Regional verification Seed=418 Revision=3 Fingerprint=\d+ Samples=81'
+        $pattern = "Regional verification Seed=418 Revision=$GeneratorRevision Fingerprint=\d+ Samples=81"
         $fingerprint = [regex]::Match((Get-Content $serverLog -Raw), $pattern).Value
         if (!$fingerprint -or !$clientText.Contains($fingerprint)) { throw 'Regional host/client terrain, weights, or hydrology disagree.' }
         Write-Output "PASS: $fingerprint"

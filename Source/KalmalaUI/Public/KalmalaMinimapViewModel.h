@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Async/Future.h"
+#include "KalmalaWorldGenerationConfig.h"
 #include "UObject/Object.h"
 #include "KalmalaMinimapViewModel.generated.h"
 
@@ -71,6 +73,14 @@ public:
     const TArray<FKalmalaMinimapTerrainSample>& GetTerrainSamples() const { return TerrainSamples; }
 
 private:
+    friend class FKalmalaMinimapAsyncTest;
+    bool RefreshTerrain(const FKalmalaWorldGenerationConfig& Config, const FVector2D& Location);
+    // The worker owns value snapshots only; destroying the model never waits for it.
+    TFuture<TArray<FKalmalaMinimapTerrainSample>> PendingSamples;
+    FKalmalaWorldGenerationConfig PendingConfig;
+    FVector2D PendingLocation = FVector2D::ZeroVector;
+    float PendingRadius = 0.0f;
+
     UPROPERTY(Transient)
     TObjectPtr<APlayerController> OwningPlayer;
 
