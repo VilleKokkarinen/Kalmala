@@ -8,6 +8,7 @@
 #include "KalmalaInteractable.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaOceanSampler.h"
+#include "KalmalaIslandLocator.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/CommandLine.h"
@@ -82,6 +83,13 @@ void AKalmalaCharacter::BeginPlay()
     TraversalStartLocation = GetActorLocation();
     bControlsTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaPlayerControlsTest"));
     bSwimmingTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaSwimmingTest"));
+    bOceanTravelTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanTravelTest"));
+    if (bOceanTravelTestEnabled)
+    {
+        // The fixture compares terrain streaming and movement agreement, not
+        // pawn blocking at a shared generated start.
+        GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+    }
 }
 
 void AKalmalaCharacter::Tick(const float DeltaSeconds)
@@ -89,6 +97,7 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
     Super::Tick(DeltaSeconds);
     VerifyPlayerControls(DeltaSeconds);
     VerifySwimming(DeltaSeconds);
+    VerifyOceanTravel(DeltaSeconds);
 
     if (IsLocallyControlled() && Controller && Controller->IsMoveInputIgnored())
     {
@@ -251,6 +260,83 @@ void AKalmalaCharacter::VerifySwimming(const float DeltaSeconds)
     {
         bSwimmingReturnLogged = true;
         UE_LOG(LogTemp, Display, TEXT("Swimming test %s returned to land. Authority=%d."), IsLocallyControlled() ? TEXT("owner") : TEXT("replica"), HasAuthority() ? 1 : 0);
+    }
+}
+
+void AKalmalaCharacter::ConfigureOceanTravelTarget()
+{
+    if (!bOceanTravelTestEnabled || bOceanTravelTargetConfigured || GetWorld() == nullptr)
+    {
+        return;
+    }
+
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr || !State->GetWorldGenerationConfig().IsValid())
+    {
+        return;
+    }
+
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector2D Start(FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config).GetLocation());
+    if (!FKalmalaIslandLocator::FindNearest(Config, Start, OceanTravelTarget))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Ocean travel test could not resolve a seeded island from the generated start."));
+        return;
+    }
+
+    bool bFoundDeepOcean = false;
+    for (int32 Radius = 12000; Radius <= 30000 && !bFoundDeepOcean; Radius += 1000)
+    {
+        for (int32 Direction = 0; Direction < 72; ++Direction)
+        {
+            const float Angle = Direction * (2.0f * PI / 72.0f);
+            const FVector2D Candidate = Start + FVector2D(FMath::Cos(Angle), FMath::Sin(Angle)) * Radius;
+            if (FKalmalaOceanSampler::Sample(Config, Candidate).WaterDepth >= 150.0f)
+            {
+                OceanTravelWaypoint = Candidate;
+                bFoundDeepOcean = true;
+                break;
+            }
+        }
+    }
+    if (!bFoundDeepOcean)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Ocean travel test could not find a deep-ocean waypoint toward the seeded island."));
+        return;
+    }
+
+    bOceanTravelTargetConfigured = true;
+    UE_LOG(LogTemp, Display, TEXT("Ocean travel test %s resolved a deep-ocean waypoint and isolated island %.0f units from generated start."),
+        IsLocallyControlled() ? TEXT("owner") : TEXT("replica"), FVector2D::Distance(Start, OceanTravelTarget));
+}
+
+void AKalmalaCharacter::VerifyOceanTravel(const float DeltaSeconds)
+{
+    ConfigureOceanTravelTarget();
+    if (!bOceanTravelTargetConfigured || bOceanTravelArrivalLogged)
+    {
+        return;
+    }
+
+    const FVector2D Goal = bOceanTravelHeadingToOcean ? OceanTravelWaypoint : OceanTravelTarget;
+    const FVector2D Remaining = Goal - FVector2D(GetActorLocation());
+    if (IsLocallyControlled() && Remaining.SizeSquared() > FMath::Square(260.0f))
+    {
+        AddMovementInput(FVector(Remaining.GetSafeNormal(), 0.0f), 1.0f, true);
+    }
+
+    const UKalmalaCharacterMovementComponent* Movement = Cast<UKalmalaCharacterMovementComponent>(GetCharacterMovement());
+    if (IsLocallyControlled() && Movement != nullptr && Movement->IsSwimmingInGeneratedOcean() && !bOceanTravelOceanEntryLogged)
+    {
+        bOceanTravelOceanEntryLogged = true;
+        bOceanTravelHeadingToOcean = false;
+        UE_LOG(LogTemp, Display, TEXT("Ocean travel test owner entered open ocean. Authority=%d."), HasAuthority() ? 1 : 0);
+    }
+
+    if (IsLocallyControlled() && !bOceanTravelHeadingToOcean && Remaining.SizeSquared() <= FMath::Square(260.0f))
+    {
+        bOceanTravelArrivalLogged = true;
+        UE_LOG(LogTemp, Display, TEXT("Ocean travel test owner reached the seeded island. Authority=%d."), HasAuthority() ? 1 : 0);
     }
 }
 

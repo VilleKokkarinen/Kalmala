@@ -59,6 +59,8 @@ private:
     void VerifyPlayerControls(float DeltaSeconds);
     void VerifySwimming(float DeltaSeconds);
     void ConfigureSwimmingTestTarget();
+    void VerifyOceanTravel(float DeltaSeconds);
+    void ConfigureOceanTravelTarget();
     bool bControlsTestEnabled = false;
     int32 ControlsTestStage = 0;
     float ControlsTestElapsed = 0.0f;
@@ -72,6 +74,13 @@ private:
     bool bSwimmingReturnLogged = false;
     FVector2D SwimmingTestTarget = FVector2D::ZeroVector;
     FVector2D SwimmingTestStart = FVector2D::ZeroVector;
+    bool bOceanTravelTestEnabled = false;
+    bool bOceanTravelTargetConfigured = false;
+    bool bOceanTravelOceanEntryLogged = false;
+    bool bOceanTravelArrivalLogged = false;
+    bool bOceanTravelHeadingToOcean = true;
+    FVector2D OceanTravelTarget = FVector2D::ZeroVector;
+    FVector2D OceanTravelWaypoint = FVector2D::ZeroVector;
 
     UPROPERTY(VisibleAnywhere, Category = "Presentation")
     TObjectPtr<UKalmalaPlayerModelComponent> PlayerModel;
