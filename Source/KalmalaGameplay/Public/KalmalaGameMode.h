@@ -31,6 +31,7 @@ private:
     void RecordDefeatedSpawn(const FString& PersistentSpawnId);
     void ConfigureTraversalTest();
     void DriveTraversalTest();
+    void ReportWorldProfileIfReady();
     void RunReconnectVerification(APawn* ServerPawn);
     void LogExposureInspection(const AActor* Occupant) const;
     void LogCampConditionInspection(const AActor* Occupant) const;
@@ -60,12 +61,16 @@ private:
     TSet<FIntPoint> ActiveThunderMountainsDiscoveryKeys;
     float NextTerrainPatchActivationTime = 0.0f;
     float NextExposureUpdateTime = 0.0f;
+    float WorldProfileReportTime = -1.0f;
+    double InitialGenerationMilliseconds = -1.0;
     bool bTraversalTestEnabled = false;
     bool bExposureInspectionEnabled = false;
     bool bExposureReplicationTestEnabled = false;
     bool bExposureReplicationCampfireSpawned = false;
     bool bCampConditionInspectionEnabled = false;
     bool bBiomeFeatureInspectionEnabled = false;
+    bool bWorldProfileEnabled = false;
+    bool bWorldProfileReported = false;
     FString ReconnectVerificationMode;
     FVector2D TraversalTestTarget = FVector2D::ZeroVector;
     TSet<TWeakObjectPtr<APawn>> TraversalTestCompletedPawns;

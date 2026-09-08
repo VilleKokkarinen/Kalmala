@@ -122,6 +122,8 @@ void AKalmalaGameMode::BeginPlay()
         return;
     }
 
+    const double GenerationStartTime = FPlatformTime::Seconds();
+    bWorldProfileEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldProfile"));
     const AKalmalaWorldGenerationGameState* WorldGenerationState = GetGameState<AKalmalaWorldGenerationGameState>();
     if (WorldGenerationState == nullptr)
     {
@@ -170,6 +172,8 @@ void AKalmalaGameMode::BeginPlay()
             RunReconnectVerification(VerificationPawn);
         }
     }
+
+    InitialGenerationMilliseconds = (FPlatformTime::Seconds() - GenerationStartTime) * 1000.0;
 }
 
 void AKalmalaGameMode::LogExposureInspection(const AActor* Occupant) const
@@ -247,6 +251,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
 
     DriveTraversalTest();
     DriveCampChoiceTest();
+    ReportWorldProfileIfReady();
     AdvanceWeatherCycleIfNeeded();
 
     if (GetWorld()->GetTimeSeconds() >= NextExposureUpdateTime)
@@ -271,6 +276,40 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
             ActivatePopulationKey(FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(PlayerPawn->GetActorLocation())));
         }
     }
+}
+
+void AKalmalaGameMode::ReportWorldProfileIfReady()
+{
+    if (!bWorldProfileEnabled || bWorldProfileReported || WorldProfileReportTime < 0.0f || GetWorld()->GetTimeSeconds() < WorldProfileReportTime)
+    {
+        return;
+    }
+
+    int32 ActorCount = 0;
+    int32 ReplicatedActorCount = 0;
+    int32 TerrainPatchCount = 0;
+    for (TActorIterator<AActor> ActorIterator(GetWorld()); ActorIterator; ++ActorIterator)
+    {
+        ++ActorCount;
+        ReplicatedActorCount += ActorIterator->GetIsReplicated() ? 1 : 0;
+        TerrainPatchCount += Cast<AKalmalaGeneratedTerrainPatch>(*ActorIterator) != nullptr ? 1 : 0;
+    }
+
+    TArray<uint8> SerializedSave;
+    const bool bSaveSerialized = PopulationSaveGame != nullptr && UGameplayStatics::SaveGameToMemory(PopulationSaveGame, SerializedSave);
+    const FPlatformMemoryStats MemoryStats = FPlatformMemory::GetStats();
+    int32 PlayerCount = 0;
+    for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+    {
+        PlayerCount += Iterator->Get() != nullptr ? 1 : 0;
+    }
+
+    UE_LOG(LogTemp, Display, TEXT("World profile: InitialGenerationMs=%.2f UsedPhysicalMB=%.2f AvailablePhysicalMB=%.2f Actors=%d ReplicatedActors=%d TerrainPatches=%d PopulationKeys=%d SaveBytes=%d SaveSerialized=%d LateJoinPlayers=%d."),
+        InitialGenerationMilliseconds,
+        static_cast<double>(MemoryStats.UsedPhysical) / (1024.0 * 1024.0),
+        static_cast<double>(MemoryStats.AvailablePhysical) / (1024.0 * 1024.0),
+        ActorCount, ReplicatedActorCount, TerrainPatchCount, ActivePopulationSpatialKeys.Num(), SerializedSave.Num(), bSaveSerialized ? 1 : 0, PlayerCount);
+    bWorldProfileReported = true;
 }
 
 void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
@@ -470,7 +509,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 
     PlacePawnAtGeneratedStart(NewPlayer);
 
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest"))) || NewPlayer == nullptr)
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest"))) || NewPlayer == nullptr)
     {
         return;
     }
@@ -524,6 +563,18 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     }
 
     UE_LOG(LogTemp, Display, TEXT("Developer verification server player joined with pawn: %s."), *GetNameSafe(NewPlayer->GetPawn()));
+    if (bWorldProfileEnabled && !bWorldProfileReported)
+    {
+        int32 PlayerCount = 0;
+        for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+        {
+            PlayerCount += Iterator->Get() != nullptr ? 1 : 0;
+        }
+        if (PlayerCount >= 2)
+        {
+            WorldProfileReportTime = GetWorld()->GetTimeSeconds() + 3.0f;
+        }
+    }
     RunReconnectVerification(NewPlayer->GetPawn());
 }
 
