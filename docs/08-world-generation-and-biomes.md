@@ -164,7 +164,7 @@ Verified 2026-09-07: boundary densities 0.0923/0.0927, component counts 183/184,
 
 ### 8. Ocean and long-distance travel
 
-Add ocean travel, islands, and the systems needed for long-distance movement after land biomes are stable. Tune streaming only from profiling evidence; technical limits must not become gameplay zones.
+Revision 4 supplies occasional seed-derived emergent islands and generated-ocean swimming uses the same final terrain triangles as collision and coastlines. `Scripts/Verify-OceanTravel.ps1` drives a revision-4 host and conflicting-seed client through a sampled deep-ocean waypoint to the same existing island, while the server recycles only the bounded terrain-patch neighborhoods around authoritative pawns. It proves normal movement prediction and replicated identity agree through land, ocean, and island arrival without a boat, route, island actor, client-selected target, or streaming-budget increase. Tune streaming only from profiling evidence; technical limits must not become gameplay zones.
 
 **Done when:** players can travel between land and ocean without terrain gaps, duplicate content, or host/client disagreement.
 

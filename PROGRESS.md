@@ -1313,3 +1313,51 @@ Multiplayer impact: Entirely local presentation/input. The map samples only the 
 Known limits: The full map currently stretches the existing square raster across its panel and has no fog-of-war, personal pins, player markers, pings, sharing, controller navigation, or rendered multi-aspect interaction verification. The outstanding expanded-map layout/input coexistence verification remains unchecked.
 
 Next task: Complete rendered multi-aspect map interaction verification and correct the map raster's aspect-aware sampling before starting fog-of-war or pins.
+
+### 2026-09-07 - Make expanded-map sampling aspect-aware
+
+Outcome: Replaced the expanded map's stretched square texture with an asynchronous rectangular sample grid matched to the live map-panel aspect ratio. The map now derives a wider world extent for wide viewports and produces a matching non-circular raster; the existing minimap stays square with its circular transparent edge. Pan and cursor-anchored zoom now use the same rectangular world extent.
+
+Changed: `Source/KalmalaUI/Public/KalmalaMinimapRaster.h`; `Source/KalmalaUI/Private/KalmalaMinimapRaster.cpp`; `Source/KalmalaUI/Public/KalmalaMinimapViewModel.h`; `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. Headless `Kalmala.UI.Minimap.LocalPresentation` and `Kalmala.UI.WorldMap.LocalPresentation` both passed (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapAspect-30f8643bf4e94d8db6b7de93621a8c31/automation.log`). The map test verifies a 9×5 world-aligned grid, a centred sample, rectangular output dimensions, opaque rectangular edges, zoom bounds, and stretched viewport anchoring.
+
+Multiplayer impact: Local presentation only. The rectangular extent/dimensions are transient view settings, sampled from only the existing replicated world identity and owning-player transform. No RPC, replicated data, hidden-content query, gameplay mutation, collision, or save schema changed.
+
+Known limits: The presentation still uses one bounded asynchronous raster rather than cached world tiles. Fog-of-war, pins, pings, player markers, sharing, controller navigation, and rendered multi-aspect interaction coverage remain unfinished.
+
+Next task: Add rendered 4:3/16:9/ultrawide map interaction verification before beginning exploration fog-of-war.
+
+### 2026-09-08 09:56 EEST - Verify host/client long-distance ocean travel
+
+Outcome: Complete small Phase 8 increment. Added a development-only two-peer ocean-travel fixture that resolves an existing revision-4 emergent island plus a sampled deep-ocean waypoint from the server-selected immutable identity. Both owning pawns cross the generated ocean with ordinary Character Movement and reach the island while the existing bounded server terrain-patch refresh recycles terrain around their authoritative locations.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Scripts/Verify-OceanTravel.ps1`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/08-world-generation-and-biomes.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build passed. Focused `Kalmala.World.Ocean.IslandLocator` and `Kalmala.World.Water.OceanDepth` both passed (`C:/Users/Ville/AppData/Local/Temp/KalmalaOceanFocused-ba742056f8c141dfa14c9db4c0f8e124/automation.log`). The live revision-4 seed-418 listen server and conflicting-seed client each logged deep-ocean entry and seeded-island arrival; the client received `Seed=418 Revision=4` (`C:/Users/Ville/AppData/Local/Temp/KalmalaOceanTravel-5e6860b0c3c54d2f884c417c3ff716cf`). `git diff --check` passed.
+
+Multiplayer impact: The server still alone selects the immutable world identity and refreshes bounded terrain patches from authoritative pawn locations. The fixture's target is locally re-derived only from that replicated identity; clients send no target, water depth, movement mode, patch, island, or terrain request. It adds no gameplay RPC, replicated property, terrain actor, collision contract, population content, persistence data, generator revision, or save-schema change. Temporary pawn collision relaxation exists only under the development test switch.
+
+Known limits: This verifies one seeded host/client route, not a boat, currents, waves, island population, population-actor retirement, late-join synchronization, or a profiling gate. The next Phase 8 task remains profiling generation time, memory, replicated actor count, save size, and late-join synchronization before any density or streaming-distance increase. The pre-existing expanded-map changes remain separate and unstaged by this increment.
+
+### 2026-09-08 10:05 EEST - Profile bounded generated-world late join
+
+Outcome: Completed the Phase 8 profiling gate without changing world density or streaming distance. `-KalmalaWorldProfile` records the existing initial generated-world setup time and, after a second player joins, reports physical memory, total/replicated actors, active terrain patches/population keys, and sparse population save serialization size. `Verify-WorldProfile.ps1` starts a revision-4 seed-418 listen server and a conflicting-seed client, requiring the client to receive the authoritative identity before accepting the server metric snapshot.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Scripts/Verify-WorldProfile.ps1`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build passed. The two-peer profile passed: initial setup 171.96 ms, physical memory 1758.27 MB, 45 actors / 27 replicated actors, nine terrain patches, one population key, and a 2,266-byte memory-serialized sparse save; the late client received `Seed=418 Revision=4` (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldProfile-57f8f193525a44b6bc9b257c98e501e8`). `git diff --check` passed.
+
+Multiplayer impact: Server-only metric collection reads existing authoritative state after normal login. The client is checked only for the already replicated immutable identity; it submits no profile data and cannot select a patch, actor, identity, terrain, or save entry. No RPC, replicated property, world-generation revision, collision, density, streaming budget, or save schema changed.
+
+Known limits: This is a NullRHI two-player baseline, not an end-to-end frame-time or large-session profile; the `CreateSavedMove` saturation warnings from the automated headless session remain outside this static metric capture. No density or streaming increase is authorized from this one baseline. Next task: verify land-to-ocean travel has no terrain gaps, duplicate content, or host/client disagreement.
+
+### 2026-09-08 10:29 EEST - Blocked ocean terrain-consistency verification
+
+Outcome: Blocked after three attempts to build a focused host/client terrain-descriptor audit. The intended development-only audit would require each peer, after reaching the revision-4 seeded island, to observe a complete unique 3x3 replicated terrain-patch neighborhood and reject movement-correction evidence. The change was reverted because the updated source could not be compiled or verified.
+
+Verification evidence: the prior revision-4 host/client route still reached the seeded island in `C:/Users/Ville/AppData/Local/Temp/KalmalaOceanTravel-b537541251cf4dbc87d94ec88216dbb7`, but it loaded the existing gameplay DLL. Three `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build attempts failed to produce a new `UnrealEditor-KalmalaGameplay.dll`; direct batch, `Start-Process`, and `cmd.exe /c` paths terminated with exit code `-532462766`. UnrealBuildTool log: `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`. No source, terrain, collision, networking, or save contract change remains from this run. `git diff --check` passes.
+
+Multiplayer impact: None; the proposed audit was development-only and reverted. Existing server-only terrain-patch selection and immutable identity replication remain unchanged.
+
+Known limits: The long-distance route confirms arrival but does not yet prove absence of terrain gaps, duplicate descriptors, or movement disagreement. Repair the local UnrealBuildTool failure, then reapply and run the focused audit before reopening this backlog item. User-staged expanded-map work remains preserved and uncommitted.

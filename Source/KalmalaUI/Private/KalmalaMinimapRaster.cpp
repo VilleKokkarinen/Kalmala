@@ -50,15 +50,23 @@ FLinearColor FKalmalaMinimapRaster::SampleBiomeTexture(const EKalmalaBiome Biome
 
 TArray<FColor> FKalmalaMinimapRaster::BuildPixels(const TArray<FKalmalaMinimapTerrainSample>& Samples)
 {
-    TArray<FColor> Pixels;
     const int32 Side = FMath::RoundToInt(FMath::Sqrt(static_cast<float>(Samples.Num())));
-    if (Side < 3 || Side * Side != Samples.Num()) return Pixels;
+    return BuildPixels(Samples, FIntPoint(Side, Side));
+}
+
+TArray<FColor> FKalmalaMinimapRaster::BuildPixels(const TArray<FKalmalaMinimapTerrainSample>& Samples, const FIntPoint Dimensions)
+{
+    TArray<FColor> Pixels;
+    if (Dimensions.X < 3 || Dimensions.Y < 3 || Dimensions.X * Dimensions.Y != Samples.Num()) return Pixels;
     Pixels.Reserve(Samples.Num());
     for (const FKalmalaMinimapTerrainSample& Sample : Samples)
     {
         FLinearColor Colour = Sample.TerrainColour;
-        // Fade inside the boundary by one texel. Nothing outside the circle is opaque.
-        Colour.A = FMath::Clamp((1.0f - Sample.MapPosition.Size()) * (Side - 1) * 0.5f, 0.0f, 1.0f);
+        // Square maps render fully; minimaps retain their circular feathered edge.
+        const float Edge = Dimensions.X == Dimensions.Y
+            ? FMath::Clamp((1.0f - Sample.MapPosition.Size()) * (Dimensions.X - 1) * 0.5f, 0.0f, 1.0f)
+            : 1.0f;
+        Colour.A = Edge;
         Pixels.Add(Colour.ToFColorSRGB());
     }
     return Pixels;

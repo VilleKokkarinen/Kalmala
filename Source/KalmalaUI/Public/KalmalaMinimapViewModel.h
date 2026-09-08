@@ -57,6 +57,11 @@ public:
         const FVector2D& PlayerLocation,
         float MapRadius,
         int32 SamplesPerAxis);
+    static TArray<FKalmalaMinimapTerrainSample> BuildTerrainSamples(
+        const FKalmalaWorldGenerationConfig& WorldConfig,
+        const FVector2D& PlayerLocation,
+        FVector2D MapExtent,
+        FIntPoint SampleDimensions);
 
     UFUNCTION(BlueprintPure, Category = "Minimap")
     bool IsReady() const { return bIsReady; }
@@ -66,6 +71,10 @@ public:
 
     /** Changes only the local presentation radius; it is never replicated or persisted. */
     void SetMapRadius(float InMapRadius);
+    void SetMapAspectRatio(float InAspectRatio);
+    void SetMapSampleDimensions(FIntPoint InDimensions);
+    FVector2D GetMapExtent() const { return FVector2D(MapRadius * MapAspectRatio, MapRadius); }
+    FIntPoint GetMapSampleDimensions() const { return SampleDimensions; }
 
     /** Centres a local map presentation at a chosen world location without changing gameplay state. */
     void SetMapCentre(const FVector2D& InMapCentre);
@@ -85,6 +94,8 @@ private:
     FKalmalaWorldGenerationConfig PendingConfig;
     FVector2D PendingLocation = FVector2D::ZeroVector;
     float PendingRadius = 0.0f;
+    FVector2D PendingExtent = FVector2D::ZeroVector;
+    FIntPoint PendingDimensions = FIntPoint::ZeroValue;
 
     UPROPERTY(Transient)
     TObjectPtr<APlayerController> OwningPlayer;
@@ -92,13 +103,15 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap", meta = (AllowPrivateAccess = "true", ClampMin = "100.0"))
     float MapRadius = 5000.0f;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap", meta = (AllowPrivateAccess = "true", ClampMin = "3", ClampMax = "129"))
-    int32 SamplesPerAxis = 129;
+    float MapAspectRatio = 1.0f;
+    FIntPoint SampleDimensions = FIntPoint(129, 129);
 
     FVector2D LastLocation = FVector2D::ZeroVector;
     uint64 LastSeed = 0;
     int32 LastGeneratorRevision = 0;
     float LastRadius = 0.0f;
+    FVector2D LastExtent = FVector2D::ZeroVector;
+    FIntPoint LastDimensions = FIntPoint::ZeroValue;
     uint32 PresentationRevision = 0;
     FVector2D CustomCentre = FVector2D::ZeroVector;
     bool bUseCustomCentre = false;

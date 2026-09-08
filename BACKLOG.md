@@ -120,84 +120,110 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [x] Deliver the full Thunder Mountains slice: steep but traversable ridges, storm pressure, lightning-safe shelter preparation, and an optional discovery; no designed passages or precision gate.
 - [x] Verify each completed biome as one integrated scenario: same-seed reproduction, different-seed variation, continuous seams and collision, stable server IDs, and matching host/client terrain, exposure, shelter, and freely chosen camps.
 
-### Phase 7 — Ocean and long-distance travel
+### Phase 7 — Coherent biome generation and hydrology
+
+**Intent:** replace threshold-speckled biome placement with large, coherent, seed-generated regions. Biomes are sampled procedurally from the existing world identity and source heightfield; do not create serialized, replicated, or independently authoritative biome maps. Local vegetation, terrain shaping, rivers, and streams are derived from deterministic functions, with only hydrology spline data cached where required for efficient lookup.
+
+- [x] **Establish the deterministic regional generation contract.**
+
+  - [x] Derive all generation seeds from the server-owned `WorldSeed`, including unique biome noise offsets, biome motion/warp noise, rivers, and streams.
+  - [x] Keep `Elevation`, `Humidity`, `Temperature`, and `Flora` as the authoritative continuous source fields; regional biome data must remain derived rather than stored.
+  - [x] Centralize biome scale, edge distortion, overlap, and other generation constants so region size can be tuned without rewriting classifier logic.
+  - [x] Preserve world-coordinate continuity, same-seed reproducibility, different-seed variation, and `GeneratorRevision` compatibility.
+
+- [x] **Generate broad overlapping biome regions from layered noise rings.**
+
+  - [x] Give each biome deterministic multi-layer concentric regional noise with unique seeded offsets and substantially larger scale than local terrain or vegetation noise.
+  - [x] Bound regional biome viability using the source heightfield and relevant environmental fields so physically invalid placements are rejected.
+  - [x] Distort the inner and outer edges of regions with continuous seeded motion noise and sine-based edge variation, producing irregular overlapping boundaries without small biome speckles.
+  - [x] Resolve overlapping biome weights deterministically, keeping physical overrides explicit: submerged terrain becomes `Ocean`, mountain-height terrain becomes `ThunderMountains`, and `Meadows` remains the natural fallback.
+  - [x] Use broad suitability for `Elderwood`, `MossyMire`, and `FreezingTundra`; keep high-frequency `Flora` for vegetation density, undergrowth, and clearings rather than biome identity.
+  - [x] Require `ShimmeringLakes` to agree with deterministic standing-water/basin logic rather than humidity alone.
+
+- [x] **Generate deterministic rivers and streams.**
+
+  - [x] Generate seeded candidate points on a coarse world grid and merge nearby candidates into a stable final point set.
+  - [x] Build rivers by connecting eligible points within a defined range, then generate spline points between them using deterministic wavelength, amplitude, and direction variation.
+  - [x] Generate streams through the same spline system, but restrict their start and end points to land within an appropriate low-altitude range.
+  - [x] Spatially index river and stream spline points by `GridCell` so nearby water-course weights can be queried without scanning the full network.
+  - [x] Cache only the generated hydrology spline data; biome regions, field values, weights, and terrain shaping remain function-derived.
+
+- [x] **Derive final terrain height from biome and hydrology weights.**
+
+  - [x] Sample the source heightfield, resolved biome weights, and nearby river/stream weights at any world position.
+  - [x] Give each biome a deterministic terrain-shaping function that derives its final height from those inputs rather than requiring a baked biome heightmap.
+  - [x] Apply river and stream weights to carve or reshape the terrain continuously while preserving terrain-patch seams, collision agreement, shorelines, and water-depth queries.
+  - [x] Ensure overlapping biome edges blend continuously so terrain shaping transitions naturally between neighboring regions.
+
+- [x] **Add visualization and tuning coverage.**
+
+  - [x] Extend `RenderWorldGenerationVisualization` to show biome-region weights, overlap boundaries, resolved biome identity, hydrology splines, and final shaped height.
+  - [x] Make macro biome scale, regional frequencies, edge-wave strength, motion/warp strength, river spacing, spline amplitude, and spline wavelength developer-visible tuning values.
+  - [x] Add large-area checks that make isolated biome fragments, excessive boundary density, broken rivers, and terrain-patch seams easy to identify.
+
+- [x] **Verify Phase 7 as one integrated generation change.**
+
+  - [x] Confirm repeated renders of the same seed are identical and different seeds produce meaningfully different biome regions and hydrology.
+  - [x] Confirm `Elderwood`, `MossyMire`, `FreezingTundra`, `Meadows`, `ThunderMountains`, `ShimmeringLakes`, and `Ocean` form coherent regions appropriate to their physical constraints.
+  - [x] Confirm local `Flora` creates clearings and density variation without changing broad biome identity.
+  - [x] Confirm rivers and streams reproduce deterministically, remain continuous across grid and terrain-patch boundaries, and produce matching terrain deformation.
+  - [x] Confirm host and client sample identical biome, terrain, and hydrology results while the server-selected `WorldSeed` and `GeneratorRevision` remain authoritative.
+  - [x] Preserve the revision-1 generator for existing worlds and place the new regional generator behind a new `GeneratorRevision` where required.
+
+### Phase 8 — Ocean and long-distance travel
 
 - [ ] Add ocean terrain, islands, and the systems required for long-distance movement.
   - [x] Establish a shared sea-depth query over the actual terrain triangles and integrate matching minimap coastlines.
   - [x] Add server-authoritative swimming entry, movement, and return to land using shared water-depth sampling; verify host/client agreement.
-  - [ ] Complete seed-derived island and long-distance ocean travel support within the existing profiling constraints.
-- [ ] Profile generation time, memory, replicated actor count, save size, and late-join synchronization before increasing density or streaming distance.
-- [ ] Verify land-to-ocean travel has no terrain gaps, duplicate content, or host/client disagreement.
+  - [x] Complete seed-derived island and long-distance ocean travel support within the existing profiling constraints.
+- [x] Profile generation time, memory, replicated actor count, save size, and late-join synchronization before increasing density or streaming distance.
+- [ ] BLOCKED (2026-09-08): Verify land-to-ocean travel has no terrain gaps, duplicate content, or host/client disagreement. UnrealBuildTool exits `-532462766` before compiling the focused audit harness; see `PROGRESS.md` for attempts and evidence.
 
-**### Phase 8 — Macro-biome coherence and regional shaping**
+### Phase 9 - Expanded world map
 
-**Intent:** replace the current threshold-speckled biome distribution with broad, coherent, Valheim-like natural regions while preserving the authoritative four-field world-generation contract. Biomes must remain deterministic, seed-derived, continuous, and free of authored gameplay regions, roads, trails, or hand-placed corridors. Do not add serialized, replicated, or independently authoritative biome maps. Any macro-region signal must be derived deterministically from the existing world seed and the existing `Elevation`, `Humidity`, `Temperature`, and `Flora` generation contract.
+**Intent:** add an original, nearly full-screen navigational map that expands the existing companion-minimap presentation without creating a second world simulation, exposing hidden server-owned content, or prescribing routes. It adopts familiar survival-map interactions—toggle, pan, zoom, personal pins, and intentional co-op sharing—without copying another game's UI, art, terminology, icons, or map data.
 
-- [ ] Establish a macro-scale biome-region sampling contract that prevents small isolated biome dots.
-  - [ ] Keep `Elevation`, `Humidity`, `Temperature`, and `Flora` as the only authoritative continuous world fields.
-  - [ ] Add deterministic low-frequency regional samples used only by biome classification. Derive their seeds from the existing world-generation seed contract rather than introducing authored or saved biome regions.
-  - [ ] Use substantially lower frequencies for biome-scale regional variation than for local terrain or vegetation detail so biome regions span large world areas instead of repeatedly crossing thresholds over short distances.
-  - [ ] Add a single tunable biome-scale control, or equivalent clearly named constants, so the physical size of regional biome features can be adjusted without retuning every classifier threshold.
-  - [ ] Preserve same-seed reproducibility, different-seed variation, world-coordinate continuity, and generator-revision compatibility.
-- [ ] Separate biome identity from local vegetation density.
-  - [ ] Stop using the high-frequency `Flora` value as the direct deciding threshold for whether a sample belongs to `Elderwood`.
-  - [ ] Determine whether an area is part of a broad Elderwood-capable region using a low-frequency regional signal plus environmental suitability such as humidity and terrain.
-  - [ ] Keep `Flora` as a local-detail field used after biome selection to vary tree density, undergrowth, clearings, shrubs, and other vegetation inside the chosen biome.
-  - [ ] Verify that a clearing inside a large Elderwood remains classified as Elderwood instead of becoming a small Meadows island solely because local flora density dropped.
-- [ ] Refactor biome classification into ordered physical constraints plus regional suitability.
-  - [ ] Keep physical terrain overrides first: submerged terrain remains `Ocean`, and sufficiently high terrain remains `ThunderMountains`.
-  - [ ] Gate `FreezingTundra` by broad cold-region suitability, temperature, and upland or mountain influence so tundra forms coherent high-country regions rather than isolated cold pixels.
-  - [ ] Gate `MossyMire` by a broad wetland-region signal plus low elevation, humidity, and minimum temperature so mire appears as connected lowland regions.
-  - [ ] Gate `Elderwood` by a broad forest-region signal plus moisture suitability rather than local `Flora` threshold crossings.
-  - [ ] Leave `Meadows` as the natural fallback biome where no stronger region and physical rule wins.
-  - [ ] Keep classifier priority explicit and deterministic so overlapping viable regions always resolve identically for the same world position and seed.
-- [ ] Replace brittle hard-threshold-only decisions with deterministic biome suitability scoring where it improves continuity.
-  - [ ] Define a suitability score for each non-physical land biome from its broad regional signal and relevant environmental fields.
-  - [ ] Apply hard viability constraints only where physically meaningful, such as sea level, mountain elevation, minimum wetland humidity, or tundra temperature.
-  - [ ] Among viable land biomes, prefer the highest deterministic suitability score instead of allowing a tiny crossing of one independent threshold to immediately create a biome island.
-  - [ ] Add deterministic tie-breaking with no dependence on iteration order, frame state, actor state, or client-local data.
-  - [ ] Keep scoring constants centralized and documented so later tuning does not require rewriting classifier logic.
-- [ ] Make biome boundaries irregular without reintroducing small-scale noise.
-  - [ ] Add optional low-frequency domain warping to the coordinates used for macro-region sampling.
-  - [ ] Ensure warp frequency is lower than or comparable to biome-region frequency and never use high-frequency warping that creates small islands or noisy borders.
-  - [ ] Derive warp offsets and seeds deterministically from the existing world identity.
-  - [ ] Centralize warp strength and frequency as tuning constants and ensure warping is continuous across terrain-patch boundaries.
-  - [ ] Verify domain warping bends and elongates large biome borders without changing world determinism or producing visible patch seams.
-- [ ] Make lakes follow terrain-basin logic rather than humidity alone.
-  - [ ] Stop classifying arbitrary humid lowland samples as `ShimmeringLakes` when no enclosed standing-water basin exists.
-  - [ ] Use the existing deterministic basin or standing-water query as the primary requirement for `ShimmeringLakes`.
-  - [ ] Allow humidity, elevation, shoreline conditions, or a broad wet-region signal to influence lake suitability, but never let humidity alone create disconnected lake-biome dots.
-  - [ ] Preserve the existing lake water, shoreline, minimap, collision, and host/client consistency contracts.
-- [ ] Improve regional relationships between mountains, tundra, forest, wetland, and meadow.
-  - [ ] Derive a smooth mountain or upland influence from elevation so tundra naturally tends to occupy cold uplands surrounding or approaching mountain terrain.
-  - [ ] Keep wetland suitability concentrated in low terrain and prevent mire from appearing on physically implausible ridges.
-  - [ ] Allow forest and meadow to form large neighboring regions with local vegetation variation inside each region rather than alternating at vegetation-noise frequency.
-  - [ ] Do not create mandatory biome rings, authored progression bands, guaranteed routes, or fixed travel corridors; all relationships must remain seed-generated and probabilistic.
-- [ ] Tune field and regional frequencies by semantic scale.
-  - [ ] Use very-low-frequency sampling for macro biome regions and climate-scale structure.
-  - [ ] Keep `Flora` at a meaningfully higher frequency than biome-region signals so it can create local clearings and density variation without changing biome identity.
-  - [ ] Document the assumed Unreal world-unit scale and the approximate world distance represented by each important frequency so future tuning is based on physical size rather than arbitrary constants.
-  - [ ] Add developer-visible tuning values for macro biome scale, regional frequencies, warp frequency, and warp strength without exposing them as client-authoritative state.
-- [ ] Add developer visualization and quantitative checks for biome coherence.
-  - [ ] Extend `RenderWorldGenerationVisualization` to render the macro regional signals, final biome classification, and optionally biome suitability scores alongside the four authoritative fields.
-  - [ ] Add a visualization mode that makes isolated biome components and narrow one-cell or few-cell biome slivers easy to identify.
-  - [ ] Add deterministic automated sampling over a large fixed world area and report biome component statistics such as approximate connected-region count, median region area, small-component count, and boundary density.
-  - [ ] Define a regression threshold that fails when the classifier returns to highly fragmented "biome confetti" behavior.
-  - [ ] Verify that broad regions remain irregular and varied rather than collapsing into oversized uniform blobs.
-- [ ] Preserve generator revision compatibility.
-  - [ ] Do not silently change the layout of existing revision-1 worlds.
-  - [ ] Introduce the coherent macro-biome classifier behind a new `GeneratorRevision` when required by the existing save/world-identity contract.
-  - [ ] Keep the revision-1 classifier available for worlds that explicitly use revision 1.
-  - [ ] Ensure the server-selected generator revision remains authoritative and clients reproduce the same regional samples and biome decisions.
-- [ ] Verify Phase 8 as an integrated world-generation change.
-  - [ ] Render at least two large-area previews for the same seed and confirm pixel-identical biome classification and regional signals.
-  - [ ] Render at least one different seed and confirm meaningfully different macro-region placement.
-  - [ ] Verify that Elderwood, Mossy Mire, Freezing Tundra, Meadows, Thunder Mountains, Shimmering Lakes, and Ocean appear as geographically coherent regions appropriate to their physical constraints.
-  - [ ] Verify that local `Flora` variation produces clearings and density changes without repeatedly changing Elderwood to Meadows.
-  - [ ] Verify lake classification agrees with deterministic standing-water basins rather than humidity-only patches.
-  - [ ] Verify no biome or warp seam appears at terrain-patch boundaries.
-  - [ ] Verify host and client classify matching biomes at sampled world positions and that no client can alter macro-region, scoring, or biome-selection state.
-  - [ ] Run 
+- [ ] **Establish the local expanded-map contract.**
+  - [x] Bind `M` to open/close an almost full-screen local map overlay; Escape closes it before the Settings menu can open.
+  - [x] Make opening the map pause local movement/look input and retain pointer/wheel input; closing restores the prior game-input state.
+  - [x] Define continuous world-space pan, cursor-anchored wheel zoom, explicit zoom bounds, and a recenter-on-owning-player action.
+  - [x] Keep one local map instance per local player, with no RPC, replicated UI state, world mutation, or gameplay authority change.
+  - [ ] Verify toggle/input priority, zoom clamping, panning bounds, player recentering, 4:3/16:9/ultrawide layout, and coexistence with the minimap and Settings menu.
+
+- [ ] **Build a scalable full-map presentation from the existing generated-world contract.**
+  - [x] Reuse immutable replicated world identity and local owning-pawn transform; do not sample actors, population layouts, hidden discoveries, hazards, or server-only state.
+  - [ ] Replace a single huge synchronous raster with bounded, cached, asynchronously generated world-space tiles and discard obsolete jobs after pan, zoom, identity, or player changes.
+  - [x] Render original Kalmala terrain, ocean, inland water, and player-facing map treatment at multiple scales, preserving coastline agreement with terrain triangles.
+  - [ ] Establish measurable refresh/memory budgets and retain minimap responsiveness while the expanded map is open.
+  - [ ] Verify deterministic same-identity tiles, different-seed variation, seamless tile edges, no game-thread waits, and host/client presentation agreement.
+
+- [ ] **Add local exploration and fog-of-war without information leaks.**
+  - [ ] Define a bounded owning-player reveal radius driven only by that pawn's already replicated movement; unexplored areas must not disclose terrain classification, water, landmarks, population, or discoveries.
+  - [ ] Persist personal explored coverage under the immutable world identity and version it independently from generated-world/save data.
+  - [ ] Distinguish personal exploration from later shared exploration visually with original Kalmala treatment.
+  - [ ] Verify reconnect/restart persistence, identity mismatch rejection, reveal-edge continuity, and that a client cannot reveal remote terrain or another player's exploration through UI input.
+
+- [ ] **Add personal map pins and player orientation.**
+  - [ ] Draw a centred, facing owning-player marker and optional local coordinate/grid aids without route guidance.
+  - [ ] Support an original finite pin palette, label entry with validation/length limits, click placement, click-to-toggle completion/visibility, and explicit removal.
+  - [ ] Persist pins per player and world identity; never accept client pin data as a server gameplay instruction or discovery claim.
+  - [ ] Add accessible non-colour-only pin states and keyboard/controller alternatives for every pointer interaction.
+  - [ ] Verify map-to-world coordinate conversion at every zoom level, pin persistence, overlap selection, input focus, and no network/gameplay side effects.
+
+- [ ] **Add opt-in co-op awareness and temporary pings.**
+  - [ ] Define an owner-controlled opt-in for visible connected-player markers, using only normal replicated transforms and clear privacy/offline handling.
+  - [ ] Add a short-lived, rate-limited map ping that the server validates and relays only to eligible session members; it must not reveal unexplored terrain or create a persistent waypoint.
+  - [ ] Verify server rejection of malformed, distant, excessive, or unauthorized pings and matching expiry/order across host and clients.
+
+- [ ] **Defer shared-cartography interaction until construction and persistence prerequisites exist.**
+  - [ ] After the M2 construction system is available, design an original server-owned cartography interaction that explicitly exchanges opted-in explored coverage and selected shared pins.
+  - [ ] Define permissions, conflict/duplicate handling, sparse storage limits, world-identity compatibility, and a no-spoiler default before implementation.
+  - [ ] Verify clients cannot forge shared exploration/pins, access another session's data, or use shared map state to materialize hidden gameplay content.
+
+- [ ] **Validate the full map as one integrated feature.**
+  - [ ] Run build plus focused automation for modal input, tiled rendering, fog, pins, and pings; include rendered host/client screenshots at three aspect ratios.
+  - [ ] Profile full-map open/pan/zoom memory, worker time, game-thread time, and late-join behavior before raising tile density or map range.
+  - [ ] Document all map/pin/share contracts, accessibility controls, known limits, and multiplayer authority decisions.
 
 ## Later gameplay milestones
 

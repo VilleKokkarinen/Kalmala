@@ -24,6 +24,17 @@ void UKalmalaMinimapViewModel::SetMapRadius(const float InMapRadius)
     MapRadius = FMath::Max(100.0f, InMapRadius);
 }
 
+void UKalmalaMinimapViewModel::SetMapAspectRatio(const float InAspectRatio)
+{
+    MapAspectRatio = FMath::Clamp(InAspectRatio, 0.5f, 3.0f);
+}
+
+void UKalmalaMinimapViewModel::SetMapSampleDimensions(const FIntPoint InDimensions)
+{
+    SampleDimensions.X = FMath::Clamp(InDimensions.X, 3, 193);
+    SampleDimensions.Y = FMath::Clamp(InDimensions.Y, 3, 129);
+}
+
 void UKalmalaMinimapViewModel::SetMapCentre(const FVector2D& InMapCentre)
 {
     if (InMapCentre.ContainsNaN()) return;
@@ -72,18 +83,20 @@ bool UKalmalaMinimapViewModel::RefreshTerrain(const FKalmalaWorldGenerationConfi
         if (!PendingSamples.IsReady()) return bIsReady;
         auto CompletedSamples = PendingSamples.Get();
         PendingSamples = {};
-        if (PendingConfig == Config && PendingRadius == MapRadius)
+        if (PendingConfig == Config && PendingRadius == MapRadius && PendingExtent == GetMapExtent() && PendingDimensions == SampleDimensions)
         {
             TerrainSamples = MoveTemp(CompletedSamples);
             LastLocation = PendingLocation;
             LastRadius = PendingRadius;
+            LastExtent = PendingExtent;
+            LastDimensions = PendingDimensions;
             LastSeed = PendingConfig.WorldSeed;
             LastGeneratorRevision = PendingConfig.GeneratorRevision;
             ++PresentationRevision;
             bIsReady = !TerrainSamples.IsEmpty();
         }
     }
-    if (bIsReady && Location.Equals(LastLocation, 1.0f) && LastRadius == MapRadius
+    if (bIsReady && Location.Equals(LastLocation, 1.0f) && LastRadius == MapRadius && LastExtent == GetMapExtent() && LastDimensions == SampleDimensions
         && LastSeed == Config.WorldSeed && LastGeneratorRevision == Config.GeneratorRevision)
     {
         return true;
@@ -91,10 +104,12 @@ bool UKalmalaMinimapViewModel::RefreshTerrain(const FKalmalaWorldGenerationConfi
     PendingConfig = Config;
     PendingLocation = Location;
     PendingRadius = MapRadius;
+    PendingExtent = GetMapExtent();
+    PendingDimensions = SampleDimensions;
     PendingSamples = Async(EAsyncExecution::ThreadPool,
-        [Config, Location, Radius = MapRadius, Count = SamplesPerAxis]()
+        [Config, Location, Extent = PendingExtent, Dimensions = PendingDimensions]()
         {
-            return BuildTerrainSamples(Config, Location, Radius, Count);
+            return BuildTerrainSamples(Config, Location, Extent, Dimensions);
         });
     return bIsReady;
 }
@@ -105,13 +120,22 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
     const float InMapRadius,
     const int32 InSamplesPerAxis)
 {
+    return BuildTerrainSamples(WorldConfig, PlayerLocation, FVector2D(InMapRadius), FIntPoint(InSamplesPerAxis, InSamplesPerAxis));
+}
+
+TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSamples(
+    const FKalmalaWorldGenerationConfig& WorldConfig,
+    const FVector2D& PlayerLocation,
+    const FVector2D InMapExtent,
+    const FIntPoint InSampleDimensions)
+{
     TArray<FKalmalaMinimapTerrainSample> Samples;
-    if (!WorldConfig.IsValid() || InMapRadius <= 0.0f || InSamplesPerAxis < 3)
+    if (!WorldConfig.IsValid() || InMapExtent.X <= 0.0f || InMapExtent.Y <= 0.0f || InSampleDimensions.X < 3 || InSampleDimensions.Y < 3)
     {
         return Samples;
     }
 
-    const int32 ClampedSamplesPerAxis = FMath::Clamp(InSamplesPerAxis, 3, 129);
+    const FIntPoint Dimensions(FMath::Clamp(InSampleDimensions.X, 3, 193), FMath::Clamp(InSampleDimensions.Y, 3, 129));
     // Scratch results live only for this raster build. Adjacent pixels share
     // collision vertices; sample each once for both terrain and inland water.
     // This is not a persistent biome/height map or an authoritative world cache.
@@ -136,15 +160,15 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
         return Vertices.Add(Key, FKalmalaRegionalGeneration::Sample(WorldConfig,
             GridOrigin + FVector2D(Key) * FKalmalaLakeBasin::GridSpacing));
     };
-    Samples.Reserve(ClampedSamplesPerAxis * ClampedSamplesPerAxis);
-    for (int32 Y = 0; Y < ClampedSamplesPerAxis; ++Y)
+    Samples.Reserve(Dimensions.X * Dimensions.Y);
+    for (int32 Y = 0; Y < Dimensions.Y; ++Y)
     {
-        for (int32 X = 0; X < ClampedSamplesPerAxis; ++X)
+        for (int32 X = 0; X < Dimensions.X; ++X)
         {
             const FVector2D MapPosition(
-                -1.0f + (2.0f * X / (ClampedSamplesPerAxis - 1)),
-                -1.0f + (2.0f * Y / (ClampedSamplesPerAxis - 1)));
-            const FVector2D WorldPosition = PlayerLocation + MapPosition * InMapRadius;
+                -1.0f + (2.0f * X / (Dimensions.X - 1)),
+                -1.0f + (2.0f * Y / (Dimensions.Y - 1)));
+            const FVector2D WorldPosition = PlayerLocation + MapPosition * InMapExtent;
 
             FKalmalaMinimapTerrainSample& Sample = Samples.AddDefaulted_GetRef();
             Sample.MapPosition = MapPosition;

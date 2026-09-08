@@ -25,6 +25,10 @@ The first editor launch must create the prototype map at `/Game/Kalmala/Maps/Pro
 
 The existing `L_Prototype` is now the configured editor startup and game default map. It contains the M1 fixtures and tagged sun/sky lighting, with no template floor or landscape underneath the generated terrain. `Scripts/Setup-PrototypeEnvironment.py` reproducibly adds that lighting through Unreal's Python commandlet and saves only this map. Run it while other editor/test processes are closed to avoid a map file lock. Press Play in `L_Prototype`; an already-open `/Engine/Maps/Templates/OpenWorld` has its own landscape that intersects the generated world and can show checkerboard patches in depressions. Restart the editor to use the configured startup map, or open `L_Prototype` explicitly before Play.
 
+## Bounded generated-world profile
+
+After an editor build, run `Scripts/Verify-WorldProfile.ps1`. It starts a revision-4 seed-418 listen server, then joins a conflicting-seed client and waits for the existing replicated immutable identity. The server logs initial generated-world setup time, process physical-memory snapshot, total and replicated actor counts, active terrain patches/population keys, and sparse population-save bytes serialized to memory. It does not mutate the save, change the 25-patch budget, adjust density, or accept client-selected world data. The runner succeeds only after the late-joining client reports `Seed=418 Revision=4` and the server reports two players plus successful save serialization.
+
 ## Water surface regression check
 
 `Kalmala.World.Water.ClippedSurface` checks partial-cell coverage, winding, flat levels, shallow shore treatment, seeded closed basins, rejection of sea-connected/unbounded/unseeded basins, deterministic meshes, and nonempty matching patch-edge intersections. Lake-biome fields seed enclosed terrain basins rather than clipping floating sheets at humidity/temperature boundaries. Basins exceeding 8,192 wet lattice vertices are conservatively omitted. The minimap uses the same visible water decision. Terrain/collision, server wetland rules, generator revision, and saved-data schemas are unchanged. Run `Scripts/Verify-PlayerControls.ps1 -Rendered` for rendered host/client traversal and screenshots after building. Restart the editor to load the repaired native module.
@@ -36,6 +40,10 @@ After an editor build, run headless automation with `-unattended -nop4 -nosplash
 ## Generated-ocean swimming regression
 
 After an editor build, run `Scripts/Verify-Swimming.ps1`. It starts a memory-only listen server with seed 418 and a conflicting-seed client with seed 999. Each owning pawn walks to the nearest deterministic sea-depth fixture and must enter the generated-ocean custom movement mode; the server log proves authoritative entry and the client log proves prediction from the server-replicated identity. Entry requires at least 100 cm depth and return-to-land uses a 75 cm hysteresis threshold. The test adds no water volume, RPC, client depth input, island, boat, or streaming change.
+
+## Long-distance ocean travel regression
+
+After an editor build, run `Scripts/Verify-OceanTravel.ps1`. It starts a revision-4 seed-418 listen server and a conflicting-seed client. Each locally controlled pawn derives the same existing nearest emergent-island target from the server-replicated immutable identity, crosses generated ocean through ordinary predicted Character Movement, and must log both ocean entry and island arrival. The server's bounded terrain-patch refresh follows authoritative pawn positions throughout; the test rejects failed identity replacement and does not add a boat, route, island actor, client target request, replication property, or save mutation.
 
 ## Dedicated-server build
 
@@ -99,7 +107,7 @@ Press Escape during normal play to open the local Settings menu; press Escape ag
 
 ## Expanded world map
 
-Press `M` to open the local expanded map. It occupies the viewport with a map surface derived asynchronously from the replicated world identity and owning pawn, so it never reveals population, discoveries, or other server-only data. Drag with the left mouse button to pan, use the mouse wheel to zoom at the pointer, and press `R` to recenter on the owning player. Press `M` or Escape to close it; Escape closes the map before opening Settings. Run `Kalmala.UI.WorldMap.LocalPresentation` after an editor build to verify zoom bounds and the stretch-to-viewport slot. Fog-of-war, pins, pings, sharing, and controller navigation are not in this first increment.
+Press `M` to open the local expanded map. It occupies the viewport with an asynchronous, aspect-aware terrain/water raster derived from the replicated world identity and owning pawn, so it never reveals population, discoveries, or other server-only data. Drag with the left mouse button to pan, use the mouse wheel to zoom at the pointer, and press `R` to recenter on the owning player. Press `M` or Escape to close it; Escape closes the map before opening Settings. Run `Kalmala.UI.WorldMap.LocalPresentation` and `Kalmala.UI.Minimap.LocalPresentation` after an editor build to verify rectangular map sampling and preserve circular minimap behavior. Fog-of-war, pins, pings, sharing, and controller navigation are not in this increment.
 
 ## Biome feature inspection
 

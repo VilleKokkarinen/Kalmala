@@ -15,6 +15,7 @@ void UKalmalaWorldMapWidget::InitializeForLocalPlayer(APlayerController* InOwnin
     ViewModel = NewObject<UKalmalaMinimapViewModel>(this);
     ViewModel->Initialize(InOwningPlayer);
     ViewModel->SetMapRadius(MapZoom);
+    ViewModel->SetMapSampleDimensions(FIntPoint(161, 91));
     SetIsFocusable(true);
     SetVisibility(ESlateVisibility::Collapsed);
 }
@@ -73,21 +74,21 @@ float UKalmalaWorldMapWidget::ClampMapZoom(const float RequestedZoom, const floa
 void UKalmalaWorldMapWidget::UpdateMapTexture()
 {
     if (ViewModel == nullptr || !ViewModel->IsReady() || UploadedRevision == ViewModel->GetPresentationRevision()) return;
-    TArray<FColor> Pixels = FKalmalaMinimapRaster::BuildPixels(ViewModel->GetTerrainSamples());
-    const int32 Side = FMath::RoundToInt(FMath::Sqrt(static_cast<float>(Pixels.Num())));
+    const FIntPoint Dimensions = ViewModel->GetMapSampleDimensions();
+    TArray<FColor> Pixels = FKalmalaMinimapRaster::BuildPixels(ViewModel->GetTerrainSamples(), Dimensions);
     if (Pixels.IsEmpty()) return;
-    if (MapTexture == nullptr)
+    if (MapTexture == nullptr || MapTexture->GetSizeX() != Dimensions.X || MapTexture->GetSizeY() != Dimensions.Y)
     {
-        MapTexture = UTexture2D::CreateTransient(Side, Side, PF_B8G8R8A8);
+        MapTexture = UTexture2D::CreateTransient(Dimensions.X, Dimensions.Y, PF_B8G8R8A8);
         if (MapTexture == nullptr) return;
         MapTexture->SRGB = true; MapTexture->Filter = TF_Bilinear; MapTexture->NeverStream = true; MapTexture->UpdateResource();
-        MapBrush.SetResourceObject(MapTexture); MapBrush.ImageSize = FVector2D(Side, Side); MapBrush.DrawAs = ESlateBrushDrawType::Image;
+        MapBrush.SetResourceObject(MapTexture); MapBrush.ImageSize = FVector2D(Dimensions); MapBrush.DrawAs = ESlateBrushDrawType::Image;
     }
     if (MapTexture->GetResource() == nullptr) return;
     const uint32 ByteCount = Pixels.Num() * sizeof(FColor);
     uint8* Upload = static_cast<uint8*>(FMemory::Malloc(ByteCount)); FMemory::Memcpy(Upload, Pixels.GetData(), ByteCount);
-    auto* Region = new FUpdateTextureRegion2D(0, 0, 0, 0, Side, Side);
-    MapTexture->UpdateTextureRegions(0, 1, Region, Side * sizeof(FColor), sizeof(FColor), Upload,
+    auto* Region = new FUpdateTextureRegion2D(0, 0, 0, 0, Dimensions.X, Dimensions.Y);
+    MapTexture->UpdateTextureRegions(0, 1, Region, Dimensions.X * sizeof(FColor), sizeof(FColor), Upload,
         [](uint8* Data, const FUpdateTextureRegion2D* Regions) { FMemory::Free(Data); delete Regions; });
     UploadedRevision = ViewModel->GetPresentationRevision();
 }
@@ -96,6 +97,10 @@ void UKalmalaWorldMapWidget::NativeTick(const FGeometry& MyGeometry, const float
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
     if (!bMapOpen || ViewModel == nullptr) return;
+    const FVector2D MapSize = MyGeometry.GetLocalSize() - FVector2D(88.0f);
+    const float AspectRatio = MapSize.Y > 0.0f ? MapSize.X / MapSize.Y : 1.0f;
+    ViewModel->SetMapAspectRatio(AspectRatio);
+    ViewModel->SetMapSampleDimensions(FIntPoint(161, FMath::Clamp(FMath::RoundToInt(161.0f / AspectRatio), 61, 129)));
     RefreshAccumulator += InDeltaTime;
     if (RefreshAccumulator >= 0.10f) { RefreshAccumulator = 0.0f; ViewModel->Refresh(); UpdateMapTexture(); }
 }
@@ -131,7 +136,8 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
 void UKalmalaWorldMapWidget::PanByScreenDelta(const FVector2D& ScreenDelta, const FVector2D& MapSize)
 {
     if (ViewModel == nullptr || MapSize.X <= 0.0f || MapSize.Y <= 0.0f) return;
-    const FVector2D WorldDelta(-ScreenDelta.X / MapSize.X * 2.0f * MapZoom, -ScreenDelta.Y / MapSize.Y * 2.0f * MapZoom);
+    const FVector2D Extent = ViewModel->GetMapExtent();
+    const FVector2D WorldDelta(-ScreenDelta.X / MapSize.X * 2.0f * Extent.X, -ScreenDelta.Y / MapSize.Y * 2.0f * Extent.Y);
     ViewModel->SetMapCentre(ViewModel->GetMapCentre() + WorldDelta);
     ViewModel->Refresh();
 }
@@ -140,10 +146,10 @@ void UKalmalaWorldMapWidget::ZoomAtScreenPosition(const float WheelDelta, const 
 {
     if (ViewModel == nullptr || FMath::IsNearlyZero(WheelDelta) || MapSize.X <= 0.0f || MapSize.Y <= 0.0f) return;
     const FVector2D Normalized((ScreenPosition.X / MapSize.X - 0.5f) * 2.0f, (ScreenPosition.Y / MapSize.Y - 0.5f) * 2.0f);
-    const FVector2D PinnedWorld = ViewModel->GetMapCentre() + Normalized * MapZoom;
+    const FVector2D PinnedWorld = ViewModel->GetMapCentre() + Normalized * ViewModel->GetMapExtent();
     MapZoom = ClampMapZoom(MapZoom * (1.0f - WheelDelta * ZoomStep), MinZoom, MaxZoom);
     ViewModel->SetMapRadius(MapZoom);
-    ViewModel->SetMapCentre(PinnedWorld - Normalized * MapZoom);
+    ViewModel->SetMapCentre(PinnedWorld - Normalized * ViewModel->GetMapExtent());
     ViewModel->Refresh();
 }
 
