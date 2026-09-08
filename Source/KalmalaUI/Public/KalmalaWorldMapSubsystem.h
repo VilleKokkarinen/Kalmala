@@ -34,4 +34,5 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<APlayerController> LocalController;
     TWeakObjectPtr<UInputComponent> BoundInputComponent;
+    bool bDeveloperVerificationStarted = false;
 };

@@ -7,6 +7,9 @@
 #include "KalmalaMinimapRaster.h"
 #include "KalmalaMinimapViewModel.h"
 #include "Rendering/DrawElements.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "UnrealClient.h"
 
 void UKalmalaWorldMapWidget::InitializeForLocalPlayer(APlayerController* InOwningPlayer)
 {
@@ -66,6 +69,24 @@ void UKalmalaWorldMapWidget::Recenter()
     ViewModel->Refresh();
 }
 
+void UKalmalaWorldMapWidget::RunDeveloperVerification()
+{
+    if (!bMapOpen || ViewModel == nullptr || bDeveloperVerificationLogged) return;
+    const FVector2D InitialCentre = ViewModel->GetMapCentre();
+    ZoomAtScreenPosition(1000.0f, FVector2D(400.0f, 300.0f), FVector2D(800.0f, 600.0f));
+    const bool bMinimumZoom = FMath::IsNearlyEqual(MapZoom, MinZoom);
+    ZoomAtScreenPosition(-1000.0f, FVector2D(400.0f, 300.0f), FVector2D(800.0f, 600.0f));
+    const bool bMaximumZoom = FMath::IsNearlyEqual(MapZoom, MaxZoom);
+    PanByScreenDelta(FVector2D(160.0f, -120.0f), FVector2D(800.0f, 600.0f));
+    const bool bPanChangedCentre = !ViewModel->GetMapCentre().Equals(InitialCentre, 1.0f);
+    Recenter();
+    const bool bRecentered = ViewModel->GetMapCentre().Equals(InitialCentre, 1.0f);
+    bDeveloperVerificationLogged = true;
+    UE_LOG(LogTemp, Display, TEXT("World map verification: Open=%d Input=%d ZoomMin=%d ZoomMax=%d Pan=%d Recenter=%d."),
+        bMapOpen ? 1 : 0, GetOwningPlayer() && GetOwningPlayer()->IsMoveInputIgnored() && GetOwningPlayer()->IsLookInputIgnored() ? 1 : 0,
+        bMinimumZoom ? 1 : 0, bMaximumZoom ? 1 : 0, bPanChangedCentre ? 1 : 0, bRecentered ? 1 : 0);
+}
+
 float UKalmalaWorldMapWidget::ClampMapZoom(const float RequestedZoom, const float InMinZoom, const float InMaxZoom)
 {
     return FMath::Clamp(RequestedZoom, FMath::Min(InMinZoom, InMaxZoom), FMath::Max(InMinZoom, InMaxZoom));
@@ -103,6 +124,16 @@ void UKalmalaWorldMapWidget::NativeTick(const FGeometry& MyGeometry, const float
     ViewModel->SetMapSampleDimensions(FIntPoint(161, FMath::Clamp(FMath::RoundToInt(161.0f / AspectRatio), 61, 129)));
     RefreshAccumulator += InDeltaTime;
     if (RefreshAccumulator >= 0.10f) { RefreshAccumulator = 0.0f; ViewModel->Refresh(); UpdateMapTexture(); }
+    if (bDeveloperVerificationLogged && !bRequestedVerificationScreenshot)
+    {
+        VerificationElapsed += InDeltaTime;
+        FString ScreenshotPath;
+        if (VerificationElapsed >= 3.0f && FParse::Value(FCommandLine::Get(), TEXT("KalmalaWorldMapScreenshot="), ScreenshotPath))
+        {
+            FScreenshotRequest::RequestScreenshot(ScreenshotPath, true, false);
+            bRequestedVerificationScreenshot = true;
+        }
+    }
 }
 
 int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
@@ -118,6 +149,10 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
     if (MapTexture != nullptr && ViewModel != nullptr && ViewModel->IsReady())
     {
         FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 1, MapGeometry, &MapBrush, ESlateDrawEffect::None, FLinearColor::White);
+        if (bDeveloperVerificationLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
+        {
+            UE_LOG(LogTemp, VeryVerbose, TEXT("World map painted: Size=%.0fx%.0f Map=%.0fx%.0f Samples=%d."), Size.X, Size.Y, MapSize.X, MapSize.Y, ViewModel->GetTerrainSamples().Num());
+        }
     }
     FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 2, MapGeometry, FCoreStyle::Get().GetBrush("WhiteBrush"),
         ESlateDrawEffect::None, FLinearColor(0.55f, 0.75f, 0.68f, 0.9f));

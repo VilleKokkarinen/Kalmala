@@ -20,6 +20,7 @@ public:
     void Close();
     bool IsMapOpen() const { return bMapOpen; }
     void Recenter();
+    void RunDeveloperVerification();
 
     static float ClampMapZoom(float RequestedZoom, float MinZoom, float MaxZoom);
 
@@ -49,6 +50,9 @@ private:
     FVector2D LastDragPosition = FVector2D::ZeroVector;
     float MapZoom = 18000.0f;
     float RefreshAccumulator = 0.0f;
+    bool bDeveloperVerificationLogged = false;
+    bool bRequestedVerificationScreenshot = false;
+    float VerificationElapsed = 0.0f;
 
     static constexpr float MinZoom = 2500.0f;
     static constexpr float MaxZoom = 50000.0f;

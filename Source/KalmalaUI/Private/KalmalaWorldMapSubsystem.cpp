@@ -4,6 +4,7 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "KalmalaWorldMapWidget.h"
+#include "Misc/CommandLine.h"
 
 void UKalmalaWorldMapSubsystem::Tick(float DeltaTime)
 {
@@ -12,6 +13,12 @@ void UKalmalaWorldMapSubsystem::Tick(float DeltaTime)
     if (LocalController != FoundController) ReleaseController();
     if (FoundController == nullptr || !FoundController->IsLocalController()) return;
     LocalController = FoundController; BindLocalInput(LocalController);
+    if (!bDeveloperVerificationStarted && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")) && LocalController->GetPawn() != nullptr)
+    {
+        bDeveloperVerificationStarted = true;
+        ToggleMap();
+        if (MapWidget != nullptr) MapWidget->RunDeveloperVerification();
+    }
 }
 
 void UKalmalaWorldMapSubsystem::Deinitialize() { ReleaseController(); Super::Deinitialize(); }
