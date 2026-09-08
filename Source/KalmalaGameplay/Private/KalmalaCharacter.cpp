@@ -17,6 +17,9 @@
 #include "KalmalaCharacterMovementComponent.h"
 #include "KalmalaPlayerModelComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "EngineUtils.h"
+#include "KalmalaGeneratedTerrainPatch.h"
+#include "KalmalaTerrainPatchLayout.h"
 
 AKalmalaCharacter::AKalmalaCharacter(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<UKalmalaCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -313,8 +316,14 @@ void AKalmalaCharacter::ConfigureOceanTravelTarget()
 void AKalmalaCharacter::VerifyOceanTravel(const float DeltaSeconds)
 {
     ConfigureOceanTravelTarget();
-    if (!bOceanTravelTargetConfigured || bOceanTravelArrivalLogged)
+    if (!bOceanTravelTargetConfigured)
     {
+        return;
+    }
+
+    if (bOceanTravelArrivalLogged)
+    {
+        AuditOceanTravelTerrain();
         return;
     }
 
@@ -337,7 +346,67 @@ void AKalmalaCharacter::VerifyOceanTravel(const float DeltaSeconds)
     {
         bOceanTravelArrivalLogged = true;
         UE_LOG(LogTemp, Display, TEXT("Ocean travel test owner reached the seeded island. Authority=%d."), HasAuthority() ? 1 : 0);
+        AuditOceanTravelTerrain();
     }
+}
+
+void AKalmalaCharacter::AuditOceanTravelTerrain()
+{
+    if (!IsLocallyControlled() || bOceanTravelTerrainAuditLogged || GetWorld() == nullptr)
+    {
+        return;
+    }
+
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr || !State->GetWorldGenerationConfig().IsValid())
+    {
+        return;
+    }
+
+    const FVector2D Origin(FKalmalaWorldPlayerStartResolver::ResolveStartTransform(State->GetWorldGenerationConfig()).GetLocation());
+    const FIntPoint Centre = FKalmalaTerrainPatchLayout::GetPatchCoordinate(Origin, FVector2D(GetActorLocation()));
+    TSet<FIntPoint> ObservedPatches;
+    bool bDuplicateDescriptor = false;
+    for (TActorIterator<AKalmalaGeneratedTerrainPatch> Iterator(GetWorld()); Iterator; ++Iterator)
+    {
+        const AKalmalaGeneratedTerrainPatch* Patch = *Iterator;
+        if (Patch == nullptr || !Patch->HasGenerationData())
+        {
+            continue;
+        }
+        const FIntPoint Coordinate = FKalmalaTerrainPatchLayout::GetPatchCoordinate(Origin, Patch->GetGeneratedPatchCenter());
+        bDuplicateDescriptor |= ObservedPatches.Contains(Coordinate);
+        ObservedPatches.Add(Coordinate);
+    }
+
+    int32 MissingNeighborhoodPatches = 0;
+    for (int32 Y = Centre.Y - 1; Y <= Centre.Y + 1; ++Y)
+    {
+        for (int32 X = Centre.X - 1; X <= Centre.X + 1; ++X)
+        {
+            MissingNeighborhoodPatches += ObservedPatches.Contains(FIntPoint(X, Y)) ? 0 : 1;
+        }
+    }
+
+    if (MissingNeighborhoodPatches > 0)
+    {
+        if (GetWorld()->GetTimeSeconds() >= OceanTravelTerrainAuditNextLogTime)
+        {
+            OceanTravelTerrainAuditNextLogTime = GetWorld()->GetTimeSeconds() + 5.0f;
+            UE_LOG(LogTemp, Display, TEXT("Ocean travel terrain audit waiting: %d replicated descriptors, %d missing island-neighborhood patches. Authority=%d."),
+                ObservedPatches.Num(), MissingNeighborhoodPatches, HasAuthority() ? 1 : 0);
+        }
+        return;
+    }
+
+    bOceanTravelTerrainAuditLogged = true;
+    if (bDuplicateDescriptor)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Ocean travel terrain audit failed: duplicate replicated terrain patch descriptor."));
+        return;
+    }
+    UE_LOG(LogTemp, Display, TEXT("Ocean travel terrain audit passed: %d unique replicated terrain patches and a complete island neighborhood. Authority=%d."),
+        ObservedPatches.Num(), HasAuthority() ? 1 : 0);
 }
 
 void AKalmalaCharacter::StartSprint()

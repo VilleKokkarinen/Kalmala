@@ -61,6 +61,7 @@ private:
     void ConfigureSwimmingTestTarget();
     void VerifyOceanTravel(float DeltaSeconds);
     void ConfigureOceanTravelTarget();
+    void AuditOceanTravelTerrain();
     bool bControlsTestEnabled = false;
     int32 ControlsTestStage = 0;
     float ControlsTestElapsed = 0.0f;
@@ -78,6 +79,8 @@ private:
     bool bOceanTravelTargetConfigured = false;
     bool bOceanTravelOceanEntryLogged = false;
     bool bOceanTravelArrivalLogged = false;
+    bool bOceanTravelTerrainAuditLogged = false;
+    float OceanTravelTerrainAuditNextLogTime = 0.0f;
     bool bOceanTravelHeadingToOcean = true;
     FVector2D OceanTravelTarget = FVector2D::ZeroVector;
     FVector2D OceanTravelWaypoint = FVector2D::ZeroVector;

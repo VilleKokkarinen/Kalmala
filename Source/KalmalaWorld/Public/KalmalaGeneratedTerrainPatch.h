@@ -21,6 +21,8 @@ public:
     AKalmalaGeneratedTerrainPatch();
 
     void Initialize(const FKalmalaWorldGenerationConfig& InConfig, const FVector2D InPatchCenter);
+    bool HasGenerationData() const { return bIsConfigured && WorldGenerationConfig.IsValid(); }
+    FVector2D GetGeneratedPatchCenter() const { return PatchCenter; }
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
