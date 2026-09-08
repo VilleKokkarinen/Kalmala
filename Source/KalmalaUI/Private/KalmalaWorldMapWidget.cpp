@@ -1,11 +1,13 @@
 #include "KalmalaWorldMapWidget.h"
 
+#include "Async/Async.h"
 #include "Components/CanvasPanel.h"
 #include "Engine/Texture2D.h"
 #include "GameFramework/PlayerController.h"
 #include "Input/Reply.h"
 #include "KalmalaMinimapRaster.h"
 #include "KalmalaMinimapViewModel.h"
+#include "Misc/Crc.h"
 #include "Rendering/DrawElements.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -66,7 +68,7 @@ void UKalmalaWorldMapWidget::Recenter()
     if (ViewModel == nullptr) return;
     ViewModel->RecenterOnOwningPlayer();
     ViewModel->SetMapRadius(MapZoom);
-    ViewModel->Refresh();
+    InvalidateOutstandingTileJobs();
 }
 
 void UKalmalaWorldMapWidget::RunDeveloperVerification()
@@ -92,38 +94,156 @@ float UKalmalaWorldMapWidget::ClampMapZoom(const float RequestedZoom, const floa
     return FMath::Clamp(RequestedZoom, FMath::Min(InMinZoom, InMaxZoom), FMath::Max(InMinZoom, InMaxZoom));
 }
 
-void UKalmalaWorldMapWidget::UpdateMapTexture()
+TArray<FColor> UKalmalaWorldMapWidget::BuildTilePixels(const FKalmalaWorldGenerationConfig Config, const FIntPoint TileCoordinate)
 {
-    if (ViewModel == nullptr || !ViewModel->IsReady() || UploadedRevision == ViewModel->GetPresentationRevision()) return;
-    const FIntPoint Dimensions = ViewModel->GetMapSampleDimensions();
-    TArray<FColor> Pixels = FKalmalaMinimapRaster::BuildPixels(ViewModel->GetTerrainSamples(), Dimensions);
-    if (Pixels.IsEmpty()) return;
-    if (MapTexture == nullptr || MapTexture->GetSizeX() != Dimensions.X || MapTexture->GetSizeY() != Dimensions.Y)
+    const FVector2D Centre = (FVector2D(TileCoordinate) + FVector2D(0.5f)) * TileWorldSize;
+    return FKalmalaMinimapRaster::BuildPixels(UKalmalaMinimapViewModel::BuildTerrainSamples(
+        Config, Centre, FVector2D(TileWorldSize * 0.5f), FIntPoint(TileSamplesPerAxis, TileSamplesPerAxis)),
+        FIntPoint(TileSamplesPerAxis, TileSamplesPerAxis));
+}
+
+void UKalmalaWorldMapWidget::InvalidateOutstandingTileJobs()
+{
+    ++TileEpoch;
+    if (TileEpoch == 0) ++TileEpoch;
+}
+
+void UKalmalaWorldMapWidget::StartTile(const FIntPoint& TileCoordinate, const FKalmalaWorldGenerationConfig& Config)
+{
+    FWorldMapTile& Tile = Tiles.FindOrAdd(TileCoordinate);
+    if (Tile.PendingPixels.IsValid() || Tile.Texture != nullptr) return;
+    Tile.RequestEpoch = TileEpoch;
+    Tile.PendingPixels = Async(EAsyncExecution::ThreadPool, [Config, TileCoordinate]() { return BuildTilePixels(Config, TileCoordinate); });
+}
+
+void UKalmalaWorldMapWidget::UploadCompletedTiles()
+{
+    for (TPair<FIntPoint, FWorldMapTile>& Pair : Tiles)
     {
-        MapTexture = UTexture2D::CreateTransient(Dimensions.X, Dimensions.Y, PF_B8G8R8A8);
-        if (MapTexture == nullptr) return;
-        MapTexture->SRGB = true; MapTexture->Filter = TF_Bilinear; MapTexture->NeverStream = true; MapTexture->UpdateResource();
-        MapBrush.SetResourceObject(MapTexture); MapBrush.ImageSize = FVector2D(Dimensions); MapBrush.DrawAs = ESlateBrushDrawType::Image;
+        FWorldMapTile& Tile = Pair.Value;
+        if (!Tile.PendingPixels.IsValid() || !Tile.PendingPixels.IsReady()) continue;
+        TArray<FColor> Pixels = Tile.PendingPixels.Get();
+        Tile.PendingPixels = {};
+        // A stale worker never reaches the render resource after pan, zoom,
+        // identity, or player-centre changes.
+        if (Tile.RequestEpoch != TileEpoch || Pixels.Num() != TileSamplesPerAxis * TileSamplesPerAxis) continue;
+        Tile.PixelHash = FCrc::MemCrc32(Pixels.GetData(), Pixels.Num() * sizeof(FColor));
+        Tile.Texture = TStrongObjectPtr<UTexture2D>(UTexture2D::CreateTransient(TileSamplesPerAxis, TileSamplesPerAxis, PF_B8G8R8A8));
+        if (Tile.Texture == nullptr) continue;
+        Tile.Texture->SRGB = true; Tile.Texture->Filter = TF_Bilinear; Tile.Texture->NeverStream = true; Tile.Texture->UpdateResource();
+        const uint32 ByteCount = Pixels.Num() * sizeof(FColor);
+        uint8* Upload = static_cast<uint8*>(FMemory::Malloc(ByteCount)); FMemory::Memcpy(Upload, Pixels.GetData(), ByteCount);
+        auto* Region = new FUpdateTextureRegion2D(0, 0, 0, 0, TileSamplesPerAxis, TileSamplesPerAxis);
+        Tile.Texture->UpdateTextureRegions(0, 1, Region, TileSamplesPerAxis * sizeof(FColor), sizeof(FColor), Upload,
+            [](uint8* Data, const FUpdateTextureRegion2D* Regions) { FMemory::Free(Data); delete Regions; });
     }
-    if (MapTexture->GetResource() == nullptr) return;
-    const uint32 ByteCount = Pixels.Num() * sizeof(FColor);
-    uint8* Upload = static_cast<uint8*>(FMemory::Malloc(ByteCount)); FMemory::Memcpy(Upload, Pixels.GetData(), ByteCount);
-    auto* Region = new FUpdateTextureRegion2D(0, 0, 0, 0, Dimensions.X, Dimensions.Y);
-    MapTexture->UpdateTextureRegions(0, 1, Region, Dimensions.X * sizeof(FColor), sizeof(FColor), Upload,
-        [](uint8* Data, const FUpdateTextureRegion2D* Regions) { FMemory::Free(Data); delete Regions; });
-    UploadedRevision = ViewModel->GetPresentationRevision();
+}
+
+void UKalmalaWorldMapWidget::EvictUnusedTiles()
+{
+    if (Tiles.Num() <= MaxCachedTiles) return;
+    TArray<FIntPoint> Evictable;
+    for (const TPair<FIntPoint, FWorldMapTile>& Pair : Tiles)
+    {
+        if (Pair.Value.LastUsedEpoch != TileEpoch && !Pair.Value.PendingPixels.IsValid()) Evictable.Add(Pair.Key);
+    }
+    Evictable.Sort([](const FIntPoint& Left, const FIntPoint& Right) { return Left.X == Right.X ? Left.Y < Right.Y : Left.X < Right.X; });
+    for (const FIntPoint& Key : Evictable)
+    {
+        if (Tiles.Num() <= MaxCachedTiles) break;
+        Tiles.Remove(Key);
+    }
+}
+
+TArray<FIntPoint> UKalmalaWorldMapWidget::BuildPrioritizedTileCoordinates(const FVector2D& Centre, const FVector2D& Extent)
+{
+    const FIntPoint Min(FMath::FloorToInt((Centre.X - Extent.X) / TileWorldSize), FMath::FloorToInt((Centre.Y - Extent.Y) / TileWorldSize));
+    const FIntPoint Max(FMath::FloorToInt((Centre.X + Extent.X) / TileWorldSize), FMath::FloorToInt((Centre.Y + Extent.Y) / TileWorldSize));
+    TArray<FIntPoint> Coordinates;
+    for (int32 Y = Min.Y; Y <= Max.Y; ++Y) for (int32 X = Min.X; X <= Max.X; ++X) Coordinates.Add(FIntPoint(X, Y));
+    Coordinates.Sort([Centre](const FIntPoint& Left, const FIntPoint& Right)
+    {
+        const FVector2D LeftCentre = (FVector2D(Left) + FVector2D(0.5f)) * TileWorldSize;
+        const FVector2D RightCentre = (FVector2D(Right) + FVector2D(0.5f)) * TileWorldSize;
+        const double LeftDistance = FVector2D::DistSquared(LeftCentre, Centre);
+        const double RightDistance = FVector2D::DistSquared(RightCentre, Centre);
+        if (!FMath::IsNearlyEqual(LeftDistance, RightDistance)) return LeftDistance < RightDistance;
+        return Left.X == Right.X ? Left.Y < Right.Y : Left.X < Right.X;
+    });
+    Coordinates.SetNum(FMath::Min(Coordinates.Num(), MaxCachedTiles));
+    return Coordinates;
+}
+
+void UKalmalaWorldMapWidget::LogDeveloperTileFingerprint()
+{
+    if (bDeveloperTileFingerprintLogged || !bDeveloperVerificationLogged || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification"))) return;
+    TArray<FIntPoint> Coordinates;
+    uint32 Digest = 0;
+    for (const TPair<FIntPoint, FWorldMapTile>& Pair : Tiles)
+    {
+        if (Pair.Value.LastUsedEpoch != TileEpoch) continue;
+        if (Pair.Value.Texture == nullptr) return;
+        Coordinates.Add(Pair.Key);
+    }
+    if (Coordinates.IsEmpty()) return;
+    Coordinates.Sort([](const FIntPoint& Left, const FIntPoint& Right) { return Left.X == Right.X ? Left.Y < Right.Y : Left.X < Right.X; });
+    for (const FIntPoint& Coordinate : Coordinates)
+    {
+        const FWorldMapTile& Tile = Tiles.FindChecked(Coordinate);
+        Digest = FCrc::MemCrc32(&Coordinate, sizeof(Coordinate), Digest);
+        Digest = FCrc::MemCrc32(&Tile.PixelHash, sizeof(Tile.PixelHash), Digest);
+    }
+    bDeveloperTileFingerprintLogged = true;
+    UE_LOG(LogTemp, Display, TEXT("World map tile presentation: Seed=%d Revision=%d Tiles=%d Fingerprint=%u PollOnly=1."),
+        TileConfig.WorldSeed, TileConfig.GeneratorRevision, Coordinates.Num(), Digest);
+}
+
+void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
+{
+    if (ViewModel == nullptr || MapSize.X <= 0.0f || MapSize.Y <= 0.0f) return;
+    FKalmalaWorldGenerationConfig Config;
+    FVector2D PawnLocation;
+    if (!ViewModel->GetPresentationInputs(Config, PawnLocation))
+    {
+        if (!bDeveloperTileInputsUnavailableLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
+        {
+            bDeveloperTileInputsUnavailableLogged = true;
+            UE_LOG(LogTemp, Display, TEXT("World map tile inputs are not ready."));
+        }
+        return;
+    }
+    if (!(Config == TileConfig)) { Tiles.Reset(); TileConfig = Config; InvalidateOutstandingTileJobs(); }
+    const FVector2D Centre = ViewModel->GetMapCentre();
+    const FVector2D Extent = ViewModel->GetMapExtent();
+    for (const FIntPoint& Key : BuildPrioritizedTileCoordinates(Centre, Extent))
+    {
+        FWorldMapTile* ExistingTile = Tiles.Find(Key);
+        if (ExistingTile == nullptr && Tiles.Num() >= MaxCachedTiles) continue;
+        FWorldMapTile& Tile = Tiles.FindOrAdd(Key); Tile.LastUsedEpoch = TileEpoch; StartTile(Key, Config);
+    }
+    UploadCompletedTiles();
+    EvictUnusedTiles();
+}
+
+void UKalmalaWorldMapWidget::TickTilePresentation(const float DeltaTime)
+{
+    if (!bMapOpen || ViewModel == nullptr) return;
+    int32 ViewportWidth = 0;
+    int32 ViewportHeight = 0;
+    if (APlayerController* Controller = GetOwningPlayer()) Controller->GetViewportSize(ViewportWidth, ViewportHeight);
+    const FVector2D MapSize = FVector2D(ViewportWidth, ViewportHeight) - FVector2D(88.0f);
+    if (MapSize.X <= 0.0f || MapSize.Y <= 0.0f) return;
+    const float AspectRatio = MapSize.Y > 0.0f ? MapSize.X / MapSize.Y : 1.0f;
+    ViewModel->SetMapAspectRatio(AspectRatio);
+    ViewModel->SetMapSampleDimensions(FIntPoint(161, FMath::Clamp(FMath::RoundToInt(161.0f / AspectRatio), 61, 129)));
+    RefreshAccumulator += DeltaTime;
+    if (RefreshAccumulator >= 0.10f) { RefreshAccumulator = 0.0f; RefreshTiles(MapSize); LogDeveloperTileFingerprint(); }
 }
 
 void UKalmalaWorldMapWidget::NativeTick(const FGeometry& MyGeometry, const float InDeltaTime)
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
-    if (!bMapOpen || ViewModel == nullptr) return;
-    const FVector2D MapSize = MyGeometry.GetLocalSize() - FVector2D(88.0f);
-    const float AspectRatio = MapSize.Y > 0.0f ? MapSize.X / MapSize.Y : 1.0f;
-    ViewModel->SetMapAspectRatio(AspectRatio);
-    ViewModel->SetMapSampleDimensions(FIntPoint(161, FMath::Clamp(FMath::RoundToInt(161.0f / AspectRatio), 61, 129)));
-    RefreshAccumulator += InDeltaTime;
-    if (RefreshAccumulator >= 0.10f) { RefreshAccumulator = 0.0f; ViewModel->Refresh(); UpdateMapTexture(); }
+    TickTilePresentation(InDeltaTime);
     if (bDeveloperVerificationLogged && !bRequestedVerificationScreenshot)
     {
         VerificationElapsed += InDeltaTime;
@@ -146,12 +266,24 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
     const FPaintGeometry MapGeometry = AllottedGeometry.ToPaintGeometry(MapSize, FSlateLayoutTransform(FVector2D(Margin.Left, Margin.Top)));
     FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer, AllottedGeometry.ToPaintGeometry(), FCoreStyle::Get().GetBrush("WhiteBrush"),
         ESlateDrawEffect::None, FLinearColor(0.008f, 0.018f, 0.025f, 0.96f));
-    if (MapTexture != nullptr && ViewModel != nullptr && ViewModel->IsReady())
+    if (ViewModel != nullptr)
     {
-        FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 1, MapGeometry, &MapBrush, ESlateDrawEffect::None, FLinearColor::White);
+        const FVector2D Centre = ViewModel->GetMapCentre();
+        const FVector2D Extent = ViewModel->GetMapExtent();
+        for (const TPair<FIntPoint, FWorldMapTile>& Pair : Tiles) if (Pair.Value.Texture != nullptr)
+        {
+            const FVector2D WorldMin = FVector2D(Pair.Key) * TileWorldSize;
+            const FVector2D Offset = (WorldMin - (Centre - Extent)) / (Extent * 2.0f);
+            const FVector2D TileFraction(TileWorldSize / (Extent.X * 2.0f), TileWorldSize / (Extent.Y * 2.0f));
+            const FPaintGeometry TileGeometry = AllottedGeometry.ToPaintGeometry(MapSize * TileFraction,
+                FSlateLayoutTransform(FVector2D(Margin.Left, Margin.Top) + Offset * MapSize));
+            FSlateBrush TileBrush;
+            TileBrush.SetResourceObject(Pair.Value.Texture.Get()); TileBrush.ImageSize = FVector2D(TileSamplesPerAxis); TileBrush.DrawAs = ESlateBrushDrawType::Image;
+            FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 1, TileGeometry, &TileBrush, ESlateDrawEffect::None, FLinearColor::White);
+        }
         if (bDeveloperVerificationLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
         {
-            UE_LOG(LogTemp, VeryVerbose, TEXT("World map painted: Size=%.0fx%.0f Map=%.0fx%.0f Samples=%d."), Size.X, Size.Y, MapSize.X, MapSize.Y, ViewModel->GetTerrainSamples().Num());
+            UE_LOG(LogTemp, VeryVerbose, TEXT("World map painted: Size=%.0fx%.0f Map=%.0fx%.0f Tiles=%d."), Size.X, Size.Y, MapSize.X, MapSize.Y, Tiles.Num());
         }
     }
     FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 2, MapGeometry, FCoreStyle::Get().GetBrush("WhiteBrush"),
@@ -174,7 +306,7 @@ void UKalmalaWorldMapWidget::PanByScreenDelta(const FVector2D& ScreenDelta, cons
     const FVector2D Extent = ViewModel->GetMapExtent();
     const FVector2D WorldDelta(-ScreenDelta.X / MapSize.X * 2.0f * Extent.X, -ScreenDelta.Y / MapSize.Y * 2.0f * Extent.Y);
     ViewModel->SetMapCentre(ViewModel->GetMapCentre() + WorldDelta);
-    ViewModel->Refresh();
+    InvalidateOutstandingTileJobs();
 }
 
 void UKalmalaWorldMapWidget::ZoomAtScreenPosition(const float WheelDelta, const FVector2D& ScreenPosition, const FVector2D& MapSize)
@@ -185,7 +317,7 @@ void UKalmalaWorldMapWidget::ZoomAtScreenPosition(const float WheelDelta, const 
     MapZoom = ClampMapZoom(MapZoom * (1.0f - WheelDelta * ZoomStep), MinZoom, MaxZoom);
     ViewModel->SetMapRadius(MapZoom);
     ViewModel->SetMapCentre(PinnedWorld - Normalized * ViewModel->GetMapExtent());
-    ViewModel->Refresh();
+    InvalidateOutstandingTileJobs();
 }
 
 FReply UKalmalaWorldMapWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)

@@ -19,6 +19,7 @@ void UKalmalaWorldMapSubsystem::Tick(float DeltaTime)
         ToggleMap();
         if (MapWidget != nullptr) MapWidget->RunDeveloperVerification();
     }
+    if (MapWidget != nullptr && MapWidget->IsMapOpen()) MapWidget->TickTilePresentation(DeltaTime);
 }
 
 void UKalmalaWorldMapSubsystem::Deinitialize() { ReleaseController(); Super::Deinitialize(); }

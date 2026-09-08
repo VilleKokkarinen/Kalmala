@@ -172,12 +172,12 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 ### Phase 8 — Ocean and long-distance travel
 
-- [ ] Add ocean terrain, islands, and the systems required for long-distance movement.
+- [x] Add ocean terrain, islands, and the systems required for long-distance movement.
   - [x] Establish a shared sea-depth query over the actual terrain triangles and integrate matching minimap coastlines.
   - [x] Add server-authoritative swimming entry, movement, and return to land using shared water-depth sampling; verify host/client agreement.
   - [x] Complete seed-derived island and long-distance ocean travel support within the existing profiling constraints.
 - [x] Profile generation time, memory, replicated actor count, save size, and late-join synchronization before increasing density or streaming distance.
-- [ ] BLOCKED (2026-09-08): Verify land-to-ocean travel has no terrain gaps, duplicate content, or host/client disagreement. UnrealBuildTool exits `-532462766` before compiling the focused audit harness; see `PROGRESS.md` for attempts and evidence.
+- [x] Verify land-to-ocean travel has no terrain gaps, duplicate content, or host/client disagreement.
 
 ### Phase 9 - Expanded world map
 
@@ -188,13 +188,13 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Make opening the map pause local movement/look input and retain pointer/wheel input; closing restores the prior game-input state.
   - [x] Define continuous world-space pan, cursor-anchored wheel zoom, explicit zoom bounds, and a recenter-on-owning-player action.
   - [x] Keep one local map instance per local player, with no RPC, replicated UI state, world mutation, or gameplay authority change.
-  - [ ] Verify toggle/input priority, zoom clamping, panning bounds, player recentering, 4:3/16:9/ultrawide layout, and coexistence with the minimap and Settings menu.
+  - [x] Verify toggle/input priority, zoom clamping, panning bounds, player recentering, 4:3/16:9/ultrawide layout, and coexistence with the minimap and Settings menu.
 
 - [ ] **Build a scalable full-map presentation from the existing generated-world contract.**
   - [x] Reuse immutable replicated world identity and local owning-pawn transform; do not sample actors, population layouts, hidden discoveries, hazards, or server-only state.
-  - [ ] Replace a single huge synchronous raster with bounded, cached, asynchronously generated world-space tiles and discard obsolete jobs after pan, zoom, identity, or player changes.
+  - [x] Replace a single huge synchronous raster with bounded, cached, asynchronously generated world-space tiles and discard obsolete jobs after pan, zoom, identity, or player changes.
   - [x] Render original Kalmala terrain, ocean, inland water, and player-facing map treatment at multiple scales, preserving coastline agreement with terrain triangles.
-  - [ ] Establish measurable refresh/memory budgets and retain minimap responsiveness while the expanded map is open.
+  - [x] Establish measurable refresh/memory budgets and retain minimap responsiveness while the expanded map is open.
   - [ ] Verify deterministic same-identity tiles, different-seed variation, seamless tile edges, no game-thread waits, and host/client presentation agreement.
 
 - [ ] **Add local exploration and fog-of-war without information leaks.**

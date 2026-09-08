@@ -47,6 +47,23 @@ void UKalmalaMinimapViewModel::RecenterOnOwningPlayer()
     bUseCustomCentre = false;
 }
 
+bool UKalmalaMinimapViewModel::GetPresentationInputs(FKalmalaWorldGenerationConfig& OutConfig, FVector2D& OutPawnLocation) const
+{
+    if (OwningPlayer == nullptr || !OwningPlayer->IsLocalController() || OwningPlayer->GetPawn() == nullptr || OwningPlayer->GetWorld() == nullptr) return false;
+    const AKalmalaWorldGenerationGameState* State = OwningPlayer->GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr || !State->GetWorldGenerationConfig().IsValid()) return false;
+    OutConfig = State->GetWorldGenerationConfig();
+    OutPawnLocation = FVector2D(OwningPlayer->GetPawn()->GetActorLocation());
+    return true;
+}
+
+FVector2D UKalmalaMinimapViewModel::GetMapCentre() const
+{
+    if (bUseCustomCentre) return CustomCentre;
+    return OwningPlayer != nullptr && OwningPlayer->GetPawn() != nullptr
+        ? FVector2D(OwningPlayer->GetPawn()->GetActorLocation()) : LastLocation;
+}
+
 bool UKalmalaMinimapViewModel::Refresh()
 {
     if (OwningPlayer == nullptr || !OwningPlayer->IsLocalController() || OwningPlayer->GetPawn() == nullptr || OwningPlayer->GetWorld() == nullptr)

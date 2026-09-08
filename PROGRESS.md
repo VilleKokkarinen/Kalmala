@@ -1361,3 +1361,73 @@ Verification evidence: the prior revision-4 host/client route still reached the 
 Multiplayer impact: None; the proposed audit was development-only and reverted. Existing server-only terrain-patch selection and immutable identity replication remain unchanged.
 
 Known limits: The long-distance route confirms arrival but does not yet prove absence of terrain gaps, duplicate descriptors, or movement disagreement. Repair the local UnrealBuildTool failure, then reapply and run the focused audit before reopening this backlog item. User-staged expanded-map work remains preserved and uncommitted.
+
+### 2026-09-08 10:36 EEST - Verify ocean terrain consistency
+
+Outcome: Completed the final Phase 8 gate. The development-only ocean-travel fixture now audits each owning peer after island arrival, waiting for the replicated patch set to contain the complete local 3x3 terrain neighborhood and rejecting duplicate patch coordinates. The runner also treats `ClientAdjustPosition` and movement-base warnings as disagreement evidence.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`; `Scripts/Verify-OceanTravel.ps1`; `docs/08-world-generation-and-biomes.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: With sandbox access to UnrealBuildTool's AppData trace logs, forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. The revision-4 seed-418 host and conflicting-seed client both entered ocean and reached the island. The host audit passed with 15 unique replicated descriptors and the client audit passed with 12; each had the required complete island neighborhood and no rejected movement warnings (`C:/Users/Ville/AppData/Local/Temp/KalmalaOceanTravel-9ce9c66422134be986a536363f867f8d`). `git diff --check` passed.
+
+Multiplayer impact: The audit is local development telemetry over existing replicated terrain descriptors and immutable world identity. The server continues to select/recycle patches from authoritative pawns; clients cannot request a patch, alter terrain, submit an audit result, select movement mode, or mutate replicated or saved world state. No gameplay RPC, actor density, generator revision, collision contract, or save schema changed.
+
+Known limits: The check covers one two-peer revision-4 route, not boats, currents, waves, island population, large sessions, or render-frame profiling. The next unblocked milestone is Phase 9 expanded-map interaction verification; preserve the user's staged work.
+
+### 2026-09-08 10:41 EEST - Verify rendered expanded-map interaction
+
+Outcome: Completed the first Phase 9 verification gate. A development-only local verifier opens the existing M-map overlay, confirms movement/look input suppression, exercises min/max cursor zoom, pan, and recenter, and captures its rendered map. The existing Escape handler closes an open map before invoking Settings, and the minimap remains independently owned by its local-player subsystem.
+
+Changed: `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Public/KalmalaWorldMapSubsystem.h`; `Source/KalmalaUI/Private/KalmalaWorldMapSubsystem.cpp`; `Scripts/Verify-WorldMap.ps1`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. `Verify-WorldMap.ps1` passed rendered 1024×768, 1280×720, and 2560×1080 runs with screenshots; every run logged `Open=1 Input=1 ZoomMin=1 ZoomMax=1 Pan=1 Recenter=1` (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMap-5ea2c9a3a46d470b8feaf50f9d95cc8b`).
+
+Multiplayer impact: Local presentation/input verification only. The map continues to sample only existing immutable replicated identity and the owning pawn transform; it sends no RPC and changes no replicated state, terrain, collision, population, discovery, or save data.
+
+Known limits: This proves viewport layout and local controls, but not controller navigation, fog, pins, pings, sharing, tile caching, or end-to-end map frame-time. Next task: replace the one bounded raster with cached asynchronous world-space tiles.
+
+### 2026-09-08 11:00 EEST - Cache expanded world-map tiles
+
+Outcome: Replaced the full expanded-map raster refresh with bounded 10,000 cm world-space tiles. Each tile is generated asynchronously at 33×33 samples from only the immutable world identity, uses exact shared edge samples, and is retained in a capped local cache. Pan, zoom, recenter, and identity changes advance a local request epoch so stale worker output is discarded without a game-thread wait.
+
+Changed: `Source/KalmalaUI/Public/KalmalaMinimapViewModel.h`; `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`; `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build passed. The headless UI automation launch remained behind an existing Unreal build/editor process in this shared checkout; the compiled focused test now covers bounded tile size, same-identity reproduction, exact adjacent edge equality, and different-seed variation. `git diff --check` passed.
+
+Multiplayer impact: Local presentation only. Tiles sample no actors or server-owned content and send no RPC; all worker inputs are the existing replicated identity and local pawn transform. No gameplay authority, replication, collision, generator, population, or save contract changed.
+
+Known limits: The cache is capped but has not yet been profiled for memory or refresh time under continuous movement. Next task: establish measurable refresh/memory budgets while retaining minimap responsiveness with the expanded map open.
+
+### 2026-09-08 11:15 EEST - Budget expanded-map tile presentation
+
+Outcome: Added a development-only expanded-map budget gate. It fixes the maximum CPU tile-pixel payload at 278,784 bytes (64 cached 33x33 `FColor` tiles), requires one revision-4 tile worker to finish within 250 ms, and requires a full 129x129 companion-minimap raster to finish within 1.5 s while four expanded-map workers run concurrently. The runtime remains nonblocking: it polls futures only after readiness and publishes only completed results on the game thread.
+
+Changed: `Source/KalmalaUI/Private/Tests/KalmalaWorldMapPerformanceTest.cpp`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Repairing the local build invocation revealed that sandboxed UnrealBuildTool could not rotate `%LOCALAPPDATA%/UnrealBuildTool/Trace-backup-2026.09.08-06.49.09.uba`; the resulting unhandled `UnauthorizedAccessException` caused exit `-532462766` before compilation. After removing that stale 318-byte trace backup and running the standard build with write access to UBT's local trace/log cache, forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. Focused `Kalmala.UI.WorldMap.PerformanceBudget` passed: 29.575 ms tile worker, 53.832 ms full minimap alongside four tiles, and 278,784-byte bounded pixel payload (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapBudget-b711a4b2c2694443827a564aa6946955/automation.log`). `git diff --check` passes.
+
+Multiplayer impact: None. This is local deterministic sampling and development telemetry from the existing immutable replicated identity. It sends no RPC, samples no actors or hidden server content, and changes no replication, terrain, collision, population, persistence, or save schema.
+
+Known limits: These are CPU worker/payload guardrails on development hardware, not a rendered frame-time, continuous-pan, or late-join budget. The next unblocked Phase 9 task is verifying deterministic same-identity tiles, different-seed variation, seamless tile edges, no game-thread waits, and host/client presentation agreement.
+
+### 2026-09-08 11:31 EEST - Expanded-map peer presentation verification incomplete
+
+Outcome: Added a development-only completed-tile fingerprint and `Scripts/Verify-WorldMapTiles.ps1` for the remaining Phase 9 presentation gate, but did not mark the task complete or commit it. The fingerprint hashes only ready visible tile pixels after the existing nonblocking `IsReady` poll; the runner starts a revision-4 host and conflicting-seed client and requires immutable identity replication before comparing their tile count and digest.
+
+Changed: `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Scripts/Verify-WorldMapTiles.ps1`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build passed. Focused `Kalmala.UI.WorldMap.LocalPresentation` and `Kalmala.UI.WorldMap.PerformanceBudget` passed (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapFocused-3e7e6b3f8f10432db83c7ce33ba2c38b/automation.log`): 29.545 ms tile worker, 53.367 ms minimap alongside four tiles, and 278,784-byte payload. Two isolated rendered peer attempts reached `World map verification: Open=1 Input=1 ZoomMin=1 ZoomMax=1 Pan=1 Recenter=1`, and the client connected, but neither produced `World map tile presentation` before the verifier deadline (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapTiles-058587d381ad4722b15675784499236c`). The verifier-owned processes were stopped after confirmation.
+
+Multiplayer impact: The proposed telemetry is local presentation over immutable replicated identity only. It sends no RPC, samples no actors or hidden content, and cannot change authoritative state, terrain, collision, population, persistence, or save data.
+
+Known limits: Diagnose why the rendered widget does not reach completed tile upload/fingerprint in the live peer fixture, then rerun the host/client verifier before checking this backlog item. Preserve the existing unstaged expanded-map and documentation work.
+
+### 2026-09-08 11:38 EEST - Repaired live expanded-map tile servicing
+
+Outcome: Found that the offscreen fixture did not enter the widget `NativeTick`, leaving tile refresh and readiness polling dormant. `UKalmalaWorldMapSubsystem`, which already ticks per local player, now services the open widget's tile presentation using viewport dimensions; the widget keeps its native path for normal Slate operation. The rendered revision-4 host then emitted a completed local fingerprint: `Tiles=209 Fingerprint=3332234327 PollOnly=1` (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapTiles-0171942de82d454a9af4f3322c9425f7/server.log`).
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build passed after the repair and `git diff --check` passed. The peer processes were stopped after host confirmation, before the conflicting-seed client completed its comparison. The 209 current-view requests at max zoom also reveal that the cache needs to bound requested/pending tiles, not just evict unused completed entries, before this task can be accepted.
+
+Multiplayer impact: Local UI scheduling only. The subsystem invokes the same local deterministic tile sampler from immutable replicated identity and owning-pawn transform; no RPC, replication, actor query, authority, collision, population, or persistence path changes.
+
+Known limits: Cap/prioritize visible tile requests at max zoom, then rerun `Verify-WorldMapTiles.ps1` through both peer fingerprints before checking the Phase 9 verification task. Preserve all existing unstaged work and do not commit until that verification passes.

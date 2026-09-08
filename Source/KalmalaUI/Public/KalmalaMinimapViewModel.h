@@ -79,9 +79,12 @@ public:
     /** Centres a local map presentation at a chosen world location without changing gameplay state. */
     void SetMapCentre(const FVector2D& InMapCentre);
     void RecenterOnOwningPlayer();
-    FVector2D GetMapCentre() const { return bUseCustomCentre ? CustomCentre : LastLocation; }
+    FVector2D GetMapCentre() const;
 
     uint32 GetPresentationRevision() const { return PresentationRevision; }
+
+    /** Returns only the existing replicated world identity and local pawn location for another local presentation. */
+    bool GetPresentationInputs(FKalmalaWorldGenerationConfig& OutConfig, FVector2D& OutPawnLocation) const;
 
     UFUNCTION(BlueprintPure, Category = "Minimap")
     const TArray<FKalmalaMinimapTerrainSample>& GetTerrainSamples() const { return TerrainSamples; }
