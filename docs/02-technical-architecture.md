@@ -55,6 +55,8 @@ This query adds no world field, terrain deformation, island placement, collision
 
 The companion minimap uses a `ULocalPlayerSubsystem` per local player and rebuilds its widget/input binding when that player's controller changes. Viewport sizing and positioning precede anchoring because UE 5.8 resets anchors in both setters. A transient 129x129 sRGB texture fills the circle with world-anchored original biome patterns, bilinear filtering, and a transparent feathered edge; sea-level water and inland lake water override land treatment. This is disposable presentation of the existing classifier, not a new world-generation field or persisted biome map. Unchanged position/radius/world identity reuses the raster; facing still refreshes. Texture uploads update an existing GPU resource. The configured CommonUI viewport client routes modal input; Menu mode always retains wheel ownership, including menus with captured previews. No discovery/landmark visibility contract exists yet, so the minimap does not query or draw harvest nodes, hidden discoveries, hazards, or other players.
 
+The expanded map now places a local fog texture over all generated terrain/water tiles and clears only a fixed 6,500 cm circle around the owning pawn's normal replicated transform. Map pan and zoom merely transform that circle into the current view; neither can widen it, choose another player, issue an RPC, or query actors. Opaque fog pixels contain no terrain, water, landmark, population, or discovery treatment. This first reveal step is intentionally transient; the following personal-coverage increment will version and persist prior explored area under immutable world identity.
+
 ## Module boundaries
 
 - `KalmalaCore`: tags, logging, shared data types, save interfaces.

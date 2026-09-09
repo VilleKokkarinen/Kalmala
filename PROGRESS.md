@@ -1443,3 +1443,17 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: Local presentation scheduling only. Tile inputs remain the existing immutable replicated identity and owning pawn transform; clients send no RPC and cannot request tiles, mutate the world, reveal population/discoveries, affect terrain/collision, or write save data. No replicated property, server authority path, generator revision, or persistence schema changed.
 
 Known limits: The 64-tile bound is a local development presentation guardrail, not a shipping frame-time, controller-navigation, fog, pins, sharing, or late-join performance guarantee. Next task: define the bounded owning-player fog-of-war reveal contract without information leaks.
+
+### 2026-09-09 09:14 EEST - Add bounded local expanded-map reveal fog
+
+Outcome: Complete small Phase 9 increment. The expanded map now draws a transient local fog texture over generated tiles and clears only a fixed 6,500 cm circle around the owning pawn. The fog is recomputed from the existing map centre/extent and owning pawn's normal replicated transform, so panning and zooming can only reposition the visible circle; they cannot expand it, select a remote pawn, or expose terrain/water treatment outside it. Persistent personal coverage remains intentionally deferred to the next task.
+
+Changed: `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build passed. Focused `Kalmala.UI.WorldMap.LocalPresentation` passed, including fixed-radius inside/outside checks and opaque remote fog samples (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapFog-93fe8a13-7c2d-421a-aec1-f08720a14b21/automation.log`). `git diff --check` passed.
+
+Multiplayer impact: Local UI presentation only. The reveal uses only the owning pawn transform already replicated for normal play and the existing immutable world identity readiness check; it queries no actors, population, landmarks, discoveries, or other players and sends no RPC. There is no server mutation, replicated field, gameplay authority, generator, collision, or save-data change.
+
+Known limits: Fog coverage is current-session-only and has no memory of prior movement, identity-mismatch rejection, personal/shared visual distinction, pins, player markers, pings, controller navigation, or late-join profile. The opaque mask protects the rendered map, while the existing disposable tile cache remains local presentation data.
+
+Next task: Persist versioned personal explored coverage under immutable world identity, rejecting mismatches independently of generated-world sparse saves.

@@ -40,6 +40,15 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     const TArray<FIntPoint> MaximumZoomTiles = UKalmalaWorldMapWidget::BuildPrioritizedTileCoordinates(FVector2D::ZeroVector, FVector2D(94000.0f, 50000.0f));
     TestEqual(TEXT("Expanded map caps max-zoom tile requests"), MaximumZoomTiles.Num(), 64);
     TestTrue(TEXT("Expanded map prioritizes the player-centre tile at max zoom"), MaximumZoomTiles.Contains(FIntPoint(0, 0)));
+    TestTrue(TEXT("Owning pawn opens only its bounded local reveal radius"),
+        UKalmalaWorldMapWidget::IsWithinLocalRevealRadius(FVector2D(6400.0f, 0.0f), FVector2D::ZeroVector, 6500.0f));
+    TestFalse(TEXT("Remote terrain remains outside the local reveal radius"),
+        UKalmalaWorldMapWidget::IsWithinLocalRevealRadius(FVector2D(6501.0f, 0.0f), FVector2D::ZeroVector, 6500.0f));
+    const TArray<FColor> FogPixels = UKalmalaWorldMapWidget::BuildFogPixels(FVector2D::ZeroVector, FVector2D(10000.0f, 5000.0f),
+        FVector2D::ZeroVector, FIntPoint(9, 5));
+    TestEqual(TEXT("Fog covers every local map sample"), FogPixels.Num(), 45);
+    TestEqual(TEXT("Fog clears only the owning-pawn sample"), FogPixels[22].A, uint8(0));
+    TestEqual(TEXT("Fog fully hides remote map samples"), FogPixels[0].A, uint8(255));
     UKalmalaWorldMapWidget* Widget = NewObject<UKalmalaWorldMapWidget>();
     Widget->ConfigureViewportPlacement();
     const FGameViewportWidgetSlot Slot = UGameViewportSubsystem::Get()->GetWidgetSlot(Widget);
