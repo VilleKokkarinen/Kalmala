@@ -1505,3 +1505,15 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: None. The marker reads only the owning pawn transform and yaw already used by the local minimap view model; the grid is derived from the local map centre, zoom, and world coordinates. It sends no RPC, queries no remote pawn or actor, and changes no replicated state, terrain, collision, population, discovery, save, or authority path.
 
 Known limits: The marker has no accessibility alternative or controller focus path yet, and this increment adds no pin data, labels, placement, completion state, sharing, pings, or route guidance. Next task: support an original finite pin palette, validated label entry, click placement, click-to-toggle completion/visibility, and explicit removal.
+
+### 2026-09-09 10:08 EEST - Add transient personal map pins
+
+Outcome: Completed the first pin interaction increment. The local expanded map now supports a finite original Cairn/Lantern/Thread palette, a 1–32-character sanitized keyboard label draft, Shift-click placement, normal-click completion toggling, Ctrl-click visibility toggling, and right-click removal. Pins render from the player's own chosen world coordinates only and remain transient local presentation pending the next persistence task.
+
+Changed: `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: The initial forced build exposed one UE 5.8 `FVector2D` constexpr incompatibility; after replacing it with a local constant, forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. Focused `Kalmala.UI.WorldMap.LocalPresentation` passed label sanitation/rejection and transient placement style/label/world-coordinate assertions alongside existing map coverage (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapPinsFinal-6939341e4af043669dbf40bdc96a1999/automation.log`). `git diff --check` passed.
+
+Multiplayer impact: None. Pin coordinates originate only from local pointer-to-map conversion; pin labels/styles/state are local widget memory, with no RPC, replicated field, actor query, discovery claim, terrain/collision change, save write, or server authority path.
+
+Known limits: Hidden pins require their later keyboard/controller interaction path to be restored, and pins are deliberately lost on map/widget recreation until the next identity-scoped local persistence increment. There is no overlap selection, accessibility alternative, sharing, or ping. Next task: persist pins per player and world identity while keeping them out of server gameplay instructions and discovery claims.

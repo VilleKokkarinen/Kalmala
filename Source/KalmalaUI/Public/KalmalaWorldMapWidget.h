@@ -11,6 +11,15 @@ class UKalmalaMinimapViewModel;
 class UKalmalaWorldMapExplorationSaveGame;
 class UTexture2D;
 
+/** Original local pin treatments; these are presentation labels, not gameplay claims. */
+UENUM()
+enum class EKalmalaWorldMapPinStyle : uint8
+{
+    Cairn,
+    Lantern,
+    Thread
+};
+
 /** Local fog treatments deliberately reserve a distinct colour for a later, opt-in shared-cartography feature. */
 enum class EKalmalaWorldMapFogTreatment : uint8
 {
@@ -46,6 +55,9 @@ public:
     static FVector2D GetFacingDirection(float FacingDegrees);
     /** Chooses a world-aligned reference grid spacing from the current local map radius. */
     static float ChooseGridSpacing(float MapRadius);
+    /** Bounds a local player-entered label before it can become presentation state. */
+    static FString SanitizePinLabel(FString Label);
+    static bool IsValidPinLabel(const FString& Label);
     /** Original map-fog palette; ReservedShared has no data source until shared cartography is authorized. */
     static FColor GetFogTreatmentColor(EKalmalaWorldMapFogTreatment Treatment);
     static TArray<FColor> BuildFogPixels(FVector2D MapCentre, FVector2D MapExtent, FVector2D OwningPawnLocation, FIntPoint Dimensions,
@@ -59,6 +71,8 @@ protected:
     virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual FReply NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+    virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
+    virtual FReply NativeOnKeyChar(const FGeometry& InGeometry, const FCharacterEvent& InCharacterEvent) override;
 
 private:
     friend class FKalmalaWorldMapWidgetTest;
@@ -69,6 +83,14 @@ private:
         uint32 RequestEpoch = 0;
         uint32 LastUsedEpoch = 0;
         uint32 PixelHash = 0;
+    };
+    struct FLocalPin
+    {
+        FVector2D WorldLocation = FVector2D::ZeroVector;
+        FString Label;
+        EKalmalaWorldMapPinStyle Style = EKalmalaWorldMapPinStyle::Cairn;
+        bool bComplete = false;
+        bool bVisible = true;
     };
 
     void RefreshTiles(const FVector2D& MapSize);
@@ -85,10 +107,18 @@ private:
     static TArray<FIntPoint> BuildPrioritizedTileCoordinates(const FVector2D& Centre, const FVector2D& Extent);
     void PanByScreenDelta(const FVector2D& ScreenDelta, const FVector2D& MapSize);
     void ZoomAtScreenPosition(float WheelDelta, const FVector2D& ScreenPosition, const FVector2D& MapSize);
+    FVector2D ScreenToWorld(const FVector2D& ScreenPosition, const FVector2D& MapSize) const;
+    int32 FindVisiblePinAtScreenPosition(const FVector2D& ScreenPosition, const FVector2D& MapSize) const;
+    void BeginPinPlacement(const FVector2D& WorldLocation);
+    void CommitPinPlacement();
+    void CancelPinPlacement();
+    void DrawPins(const FGeometry& AllottedGeometry, const FVector2D& MapSize, int32 LayerId, FSlateWindowElementList& OutDrawElements) const;
+    static FLinearColor GetPinColour(EKalmalaWorldMapPinStyle Style);
 
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaMinimapViewModel> ViewModel;
     TMap<FIntPoint, FWorldMapTile> Tiles;
+    TArray<FLocalPin> LocalPins;
     TStrongObjectPtr<UTexture2D> FogTexture;
     FSlateBrush FogBrush;
     UPROPERTY(Transient)
@@ -97,7 +127,11 @@ private:
     uint32 TileEpoch = 1;
     bool bMapOpen = false;
     bool bDragging = false;
+    bool bPinLabelEntry = false;
     FVector2D LastDragPosition = FVector2D::ZeroVector;
+    FVector2D PendingPinLocation = FVector2D::ZeroVector;
+    FString PendingPinLabel;
+    EKalmalaWorldMapPinStyle PendingPinStyle = EKalmalaWorldMapPinStyle::Cairn;
     float MapZoom = 18000.0f;
     float RefreshAccumulator = 0.0f;
     bool bDeveloperVerificationLogged = false;
@@ -117,4 +151,5 @@ private:
     static constexpr int32 MaxCachedTiles = 64;
     // Local coverage is versioned and persisted independently from world deltas.
     static constexpr float LocalRevealRadius = 6500.0f;
+    static constexpr int32 MaxPinLabelLength = 32;
 };

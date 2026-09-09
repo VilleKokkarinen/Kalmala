@@ -25,6 +25,23 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
         UKalmalaWorldMapWidget::GetFacingDirection(90.0f).Equals(FVector2D(0.0f, 1.0f), KINDA_SMALL_NUMBER));
     TestEqual(TEXT("Expanded map uses a bounded local grid at close zoom"), UKalmalaWorldMapWidget::ChooseGridSpacing(2500.0f), 2500.0f);
     TestEqual(TEXT("Expanded map uses a broad local grid at maximum zoom"), UKalmalaWorldMapWidget::ChooseGridSpacing(50000.0f), 10000.0f);
+    TestEqual(TEXT("Pin labels trim unsupported characters and respect the maximum length"),
+        UKalmalaWorldMapWidget::SanitizePinLabel(TEXT("  Ember! cairn @ north  ")), FString(TEXT("Ember cairn  north")));
+    TestTrue(TEXT("Pin labels accept bounded original player text"), UKalmalaWorldMapWidget::IsValidPinLabel(TEXT("Ember cairn")));
+    TestFalse(TEXT("Pin labels reject empty text"), UKalmalaWorldMapWidget::IsValidPinLabel(TEXT("")));
+    TestFalse(TEXT("Pin labels reject unsanitized text"), UKalmalaWorldMapWidget::IsValidPinLabel(TEXT("Ember!")));
+    UKalmalaWorldMapWidget* PinWidget = NewObject<UKalmalaWorldMapWidget>();
+    PinWidget->BeginPinPlacement(FVector2D(1250.0f, -750.0f));
+    PinWidget->PendingPinLabel = TEXT("  Lantern! ridge  ");
+    PinWidget->PendingPinStyle = EKalmalaWorldMapPinStyle::Lantern;
+    PinWidget->CommitPinPlacement();
+    TestEqual(TEXT("Local pin placement commits one transient personal marker"), PinWidget->LocalPins.Num(), 1);
+    if (!PinWidget->LocalPins.IsEmpty())
+    {
+        TestEqual(TEXT("Local pin placement keeps its selected finite style"), PinWidget->LocalPins[0].Style, EKalmalaWorldMapPinStyle::Lantern);
+        TestEqual(TEXT("Local pin placement stores only a sanitized label"), PinWidget->LocalPins[0].Label, FString(TEXT("Lantern ridge")));
+        TestEqual(TEXT("Local pin placement preserves the clicked world coordinate"), PinWidget->LocalPins[0].WorldLocation, FVector2D(1250.0f, -750.0f));
+    }
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
     Config.GeneratorRevision = 1;
