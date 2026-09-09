@@ -77,7 +77,12 @@ private:
     friend class FKalmalaWorldMapWidgetTest;
     struct FWorldMapTile
     {
-        TFuture<TArray<FColor>> PendingPixels;
+        struct FBuildResult
+        {
+            TArray<FColor> Pixels;
+            double WorkerSeconds = 0.0;
+        };
+        TFuture<FBuildResult> PendingPixels;
         TStrongObjectPtr<UTexture2D> Texture;
         uint32 RequestEpoch = 0;
         uint32 LastUsedEpoch = 0;
@@ -95,6 +100,7 @@ private:
     void PersistPins();
     FString GetPinsSaveSlot(const FKalmalaWorldGenerationConfig& Config) const;
     void LogDeveloperTileFingerprint();
+    void LogDeveloperProfile();
     void InvalidateOutstandingTileJobs();
     static TArray<FColor> BuildTilePixels(FKalmalaWorldGenerationConfig Config, FIntPoint TileCoordinate);
     static TArray<FIntPoint> BuildPrioritizedTileCoordinates(const FVector2D& Centre, const FVector2D& Extent);
@@ -143,10 +149,17 @@ private:
     bool bDeveloperTileFingerprintLogged = false;
     bool bDeveloperFogVerificationLogged = false;
     bool bDeveloperTileInputsUnavailableLogged = false;
+    bool bDeveloperProfileLogged = false;
     bool bRequestedVerificationScreenshot = false;
     /** True only when this widget instance accepted a matching personal-coverage slot. */
     bool bExplorationLoadedForWorld = false;
     float VerificationElapsed = 0.0f;
+    double DeveloperProfileOpenedAt = 0.0;
+    double DeveloperProfileWorkerSeconds = 0.0;
+    double DeveloperProfileMaxWorkerSeconds = 0.0;
+    double DeveloperProfileGameThreadSeconds = 0.0;
+    double DeveloperProfileMaxGameThreadSeconds = 0.0;
+    int32 DeveloperProfileGameThreadTicks = 0;
 
     static constexpr float MinZoom = 2500.0f;
     static constexpr float MaxZoom = 50000.0f;

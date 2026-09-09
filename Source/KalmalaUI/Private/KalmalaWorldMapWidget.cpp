@@ -15,6 +15,7 @@
 #include "Rendering/DrawElements.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "HAL/PlatformTime.h"
 #include "UnrealClient.h"
 
 void UKalmalaWorldMapWidget::InitializeForLocalPlayer(APlayerController* InOwningPlayer)
@@ -41,6 +42,16 @@ void UKalmalaWorldMapWidget::Open()
 {
     if (GetOwningPlayer() == nullptr || ViewModel == nullptr) return;
     bMapOpen = true;
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapProfile")))
+    {
+        DeveloperProfileOpenedAt = FPlatformTime::Seconds();
+        DeveloperProfileWorkerSeconds = 0.0;
+        DeveloperProfileMaxWorkerSeconds = 0.0;
+        DeveloperProfileGameThreadSeconds = 0.0;
+        DeveloperProfileMaxGameThreadSeconds = 0.0;
+        DeveloperProfileGameThreadTicks = 0;
+        bDeveloperProfileLogged = false;
+    }
     Recenter();
     SetVisibility(ESlateVisibility::Visible);
     APlayerController* Controller = GetOwningPlayer();
@@ -283,7 +294,14 @@ void UKalmalaWorldMapWidget::StartTile(const FIntPoint& TileCoordinate, const FK
     FWorldMapTile& Tile = Tiles.FindOrAdd(TileCoordinate);
     if (Tile.PendingPixels.IsValid() || Tile.Texture != nullptr) return;
     Tile.RequestEpoch = TileEpoch;
-    Tile.PendingPixels = Async(EAsyncExecution::ThreadPool, [Config, TileCoordinate]() { return BuildTilePixels(Config, TileCoordinate); });
+    Tile.PendingPixels = Async(EAsyncExecution::ThreadPool, [Config, TileCoordinate]()
+    {
+        FWorldMapTile::FBuildResult Result;
+        const double StartedAt = FPlatformTime::Seconds();
+        Result.Pixels = BuildTilePixels(Config, TileCoordinate);
+        Result.WorkerSeconds = FPlatformTime::Seconds() - StartedAt;
+        return Result;
+    });
 }
 
 void UKalmalaWorldMapWidget::UploadCompletedTiles()
@@ -292,11 +310,14 @@ void UKalmalaWorldMapWidget::UploadCompletedTiles()
     {
         FWorldMapTile& Tile = Pair.Value;
         if (!Tile.PendingPixels.IsValid() || !Tile.PendingPixels.IsReady()) continue;
-        TArray<FColor> Pixels = Tile.PendingPixels.Get();
+        FWorldMapTile::FBuildResult BuildResult = Tile.PendingPixels.Get();
         Tile.PendingPixels = {};
         // A stale worker never reaches the render resource after pan, zoom,
         // identity, or player-centre changes.
-        if (Tile.RequestEpoch != TileEpoch || Pixels.Num() != TileSamplesPerAxis * TileSamplesPerAxis) continue;
+        if (Tile.RequestEpoch != TileEpoch || BuildResult.Pixels.Num() != TileSamplesPerAxis * TileSamplesPerAxis) continue;
+        DeveloperProfileWorkerSeconds += BuildResult.WorkerSeconds;
+        DeveloperProfileMaxWorkerSeconds = FMath::Max(DeveloperProfileMaxWorkerSeconds, BuildResult.WorkerSeconds);
+        TArray<FColor>& Pixels = BuildResult.Pixels;
         Tile.PixelHash = FCrc::MemCrc32(Pixels.GetData(), Pixels.Num() * sizeof(FColor));
         Tile.Texture = TStrongObjectPtr<UTexture2D>(UTexture2D::CreateTransient(TileSamplesPerAxis, TileSamplesPerAxis, PF_B8G8R8A8));
         if (Tile.Texture == nullptr) continue;
@@ -449,6 +470,26 @@ void UKalmalaWorldMapWidget::LogDeveloperTileFingerprint()
         TileConfig.WorldSeed, TileConfig.GeneratorRevision, Coordinates.Num(), Digest);
 }
 
+void UKalmalaWorldMapWidget::LogDeveloperProfile()
+{
+    if (bDeveloperProfileLogged || !bDeveloperVerificationLogged || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapProfile"))) return;
+    int32 ReadyTiles = 0;
+    for (const TPair<FIntPoint, FWorldMapTile>& Pair : Tiles)
+    {
+        if (Pair.Value.LastUsedEpoch != TileEpoch) continue;
+        if (Pair.Value.Texture == nullptr) return;
+        ++ReadyTiles;
+    }
+    if (ReadyTiles == 0) return;
+    bDeveloperProfileLogged = true;
+    const double OpenMilliseconds = (FPlatformTime::Seconds() - DeveloperProfileOpenedAt) * 1000.0;
+    const SIZE_T CacheBytes = static_cast<SIZE_T>(ReadyTiles) * TileSamplesPerAxis * TileSamplesPerAxis * sizeof(FColor);
+    UE_LOG(LogTemp, Display, TEXT("World map profile: OpenMs=%.3f WorkerTotalMs=%.3f WorkerMaxMs=%.3f GameThreadTotalMs=%.3f GameThreadMaxMs=%.3f Ticks=%d Tiles=%d CacheBytes=%llu."),
+        OpenMilliseconds, DeveloperProfileWorkerSeconds * 1000.0, DeveloperProfileMaxWorkerSeconds * 1000.0,
+        DeveloperProfileGameThreadSeconds * 1000.0, DeveloperProfileMaxGameThreadSeconds * 1000.0,
+        DeveloperProfileGameThreadTicks, ReadyTiles, static_cast<uint64>(CacheBytes));
+}
+
 void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
 {
     if (ViewModel == nullptr || MapSize.X <= 0.0f || MapSize.Y <= 0.0f) return;
@@ -491,6 +532,7 @@ void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
 
 void UKalmalaWorldMapWidget::TickTilePresentation(const float DeltaTime)
 {
+    const double TickStartedAt = FPlatformTime::Seconds();
     if (!bMapOpen || ViewModel == nullptr) return;
     int32 ViewportWidth = 0;
     int32 ViewportHeight = 0;
@@ -501,7 +543,14 @@ void UKalmalaWorldMapWidget::TickTilePresentation(const float DeltaTime)
     ViewModel->SetMapAspectRatio(AspectRatio);
     ViewModel->SetMapSampleDimensions(FIntPoint(161, FMath::Clamp(FMath::RoundToInt(161.0f / AspectRatio), 61, 129)));
     RefreshAccumulator += DeltaTime;
-    if (RefreshAccumulator >= 0.10f) { RefreshAccumulator = 0.0f; RefreshTiles(MapSize); LogDeveloperTileFingerprint(); }
+    if (RefreshAccumulator >= 0.10f) { RefreshAccumulator = 0.0f; RefreshTiles(MapSize); LogDeveloperTileFingerprint(); LogDeveloperProfile(); }
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapProfile")))
+    {
+        const double TickSeconds = FPlatformTime::Seconds() - TickStartedAt;
+        DeveloperProfileGameThreadSeconds += TickSeconds;
+        DeveloperProfileMaxGameThreadSeconds = FMath::Max(DeveloperProfileMaxGameThreadSeconds, TickSeconds);
+        ++DeveloperProfileGameThreadTicks;
+    }
 }
 
 void UKalmalaWorldMapWidget::NativeTick(const FGeometry& MyGeometry, const float InDeltaTime)

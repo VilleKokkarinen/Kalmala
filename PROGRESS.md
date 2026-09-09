@@ -8,6 +8,18 @@
 
 ## Run log
 
+### 2026-09-09 15:37 EEST - Profile expanded-map open and late join
+
+Outcome: Completed the full-map profiling gate. The development-only peer runner opens, zooms, pans, and recentres the existing local map on a revision-4 host and a conflicting-seed late-joining client. Once the final local tile set is ready, each peer logs open latency, aggregate and maximum tile-worker time, aggregate and maximum local map-tick time, ready-tile count, and bounded CPU tile-cache bytes. The client profile is accepted only after its normal replicated immutable identity is received.
+
+Changed: `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Scripts/Verify-WorldMapProfile.ps1`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. `Scripts/Verify-WorldMapProfile.ps1` completed its revision-4 host plus conflicting-seed late-join scenario: the host reported `OpenMs=683.703`, `WorkerTotalMs=4660.040`, `WorkerMaxMs=143.222`, `GameThreadTotalMs=6.228`, `GameThreadMaxMs=6.214`, `Tiles=64`, and `CacheBytes=278784`; after receiving `Seed=418 Revision=4`, the client reported `OpenMs=792.286`, `WorkerTotalMs=12716.991`, `WorkerMaxMs=680.799`, `GameThreadTotalMs=75.685`, `GameThreadMaxMs=6.891`, `Tiles=64`, and `CacheBytes=278784` (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapProfile-274a7ca40fca42c58a4e4a2d35703268`). `git diff --check` passed.
+
+Multiplayer impact: Profile-only local presentation instrumentation. It observes tiles generated from the already replicated immutable identity and owning-player transform; it sends no RPC, queries no remote actor, and changes no authority, replication, terrain, collision, discovery, population, persistence, or gameplay contract.
+
+Known limits: The values are development-hardware measurements, not shipping frame-time targets. Tile density and range remain fixed at their existing bounds; shared cartography remains construction-gated. Next task: document the completed map/pin/share contracts, accessibility controls, known limits, and multiplayer authority decisions.
+
 ### 2026-09-07 13:41 EEST — Repair regional-generation performance regression
 
 Outcome: Complete user-requested focused performance repair. The moving 129x129 minimap was synchronously performing up to seven full regional queries per pixel, taking 381–455 ms per refresh at a 0.10-second cadence. Shared warp/motion calculations, conservative region-support rejection, and early basin-distance rejection remove redundant generator work. Per-raster scratch vertices now supply both collision-aligned terrain and inland water. Revision-4 default-zoom refresh fell from 455.339 to 24.712 ms (18.4x); minimum/maximum zoom fell from 448.688/453.155 to 18.097/47.071 ms. Resolution, refresh cadence, world layout and revision remain unchanged.
