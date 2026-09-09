@@ -210,10 +210,10 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Add accessible non-colour-only pin states and keyboard/controller alternatives for every pointer interaction.
   - [x] Verify map-to-world coordinate conversion at every zoom level, pin persistence, overlap selection, input focus, and no network/gameplay side effects.
 
-- [ ] **Add opt-in co-op awareness and temporary pings.**
-  - [ ] Define an owner-controlled opt-in for visible connected-player markers, using only normal replicated transforms and clear privacy/offline handling.
-  - [ ] Add a short-lived, rate-limited map ping that the server validates and relays only to eligible session members; it must not reveal unexplored terrain or create a persistent waypoint.
-  - [ ] Verify server rejection of malformed, distant, excessive, or unauthorized pings and matching expiry/order across host and clients.
+- [x] **Add opt-in co-op awareness and temporary pings.**
+  - [x] Define an owner-controlled opt-in for visible connected-player markers, using only normal replicated transforms and clear privacy/offline handling.
+  - [x] Add a short-lived, rate-limited map ping that the server validates and relays only to eligible session members; it must not reveal unexplored terrain or create a persistent waypoint.
+  - [x] Verify server rejection of malformed, distant, excessive, or unauthorized pings and matching expiry/order across host and clients.
 
 - [ ] **Defer shared-cartography interaction until construction and persistence prerequisites exist.**
   - [ ] After the M2 construction system is available, design an original server-owned cartography interaction that explicitly exchanges opted-in explored coverage and selected shared pins.
