@@ -22,6 +22,15 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
         UKalmalaWorldMapWidget::WorldToMapNormalized(FVector2D(1000.0f, -500.0f), FVector2D(1000.0f, -500.0f), FVector2D(8000.0f, 4500.0f)), FVector2D(0.5f, 0.5f));
     TestEqual(TEXT("Map marker follows only its world-space offset"),
         UKalmalaWorldMapWidget::WorldToMapNormalized(FVector2D(9000.0f, 4000.0f), FVector2D(1000.0f, -500.0f), FVector2D(8000.0f, 4500.0f)), FVector2D(1.0f, 1.0f));
+    const FVector2D CoordinateCentre(4375.0f, -8125.0f);
+    const FVector2D CoordinateNormalized(0.73f, 0.18f);
+    for (const float Zoom : { 2500.0f, 18000.0f, 50000.0f })
+    {
+        const FVector2D Extent(Zoom * 1.6f, Zoom);
+        const FVector2D WorldCoordinate = UKalmalaWorldMapWidget::MapNormalizedToWorld(CoordinateNormalized, CoordinateCentre, Extent);
+        TestTrue(FString::Printf(TEXT("Map/pin coordinates round-trip at %.0f cm zoom"), Zoom),
+            UKalmalaWorldMapWidget::WorldToMapNormalized(WorldCoordinate, CoordinateCentre, Extent).Equals(CoordinateNormalized, KINDA_SMALL_NUMBER));
+    }
     TestTrue(TEXT("Owning marker faces actor yaw in map space"),
         UKalmalaWorldMapWidget::GetFacingDirection(90.0f).Equals(FVector2D(0.0f, 1.0f), KINDA_SMALL_NUMBER));
     TestEqual(TEXT("Expanded map uses a bounded local grid at close zoom"), UKalmalaWorldMapWidget::ChooseGridSpacing(2500.0f), 2500.0f);
@@ -32,6 +41,8 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Pin labels reject empty text"), UKalmalaWorldMapWidget::IsValidPinLabel(TEXT("")));
     TestFalse(TEXT("Pin labels reject unsanitized text"), UKalmalaWorldMapWidget::IsValidPinLabel(TEXT("Ember!")));
     UKalmalaWorldMapWidget* PinWidget = NewObject<UKalmalaWorldMapWidget>();
+    PinWidget->SetIsFocusable(true);
+    TestTrue(TEXT("Expanded map accepts local keyboard focus for pin actions"), PinWidget->IsFocusable());
     PinWidget->BeginPinPlacement(FVector2D(1250.0f, -750.0f));
     PinWidget->PendingPinLabel = TEXT("  Lantern! ridge  ");
     PinWidget->PendingPinStyle = EKalmalaWorldMapPinStyle::Lantern;
@@ -56,6 +67,25 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
         PinWidget->PendingPinStyle = EKalmalaWorldMapPinStyle::Lantern;
         PinWidget->CommitPinPlacement();
     }
+    PinWidget->ViewModel = NewObject<UKalmalaMinimapViewModel>(PinWidget);
+    PinWidget->ViewModel->SetMapRadius(10000.0f);
+    PinWidget->ViewModel->SetMapAspectRatio(1.0f);
+    PinWidget->ViewModel->SetMapCentre(FVector2D::ZeroVector);
+    FKalmalaWorldMapPersonalPin& OverlappedPin = PinWidget->LocalPins.AddDefaulted_GetRef();
+    OverlappedPin.WorldLocation = FVector2D(750.0f, -500.0f);
+    OverlappedPin.Label = TEXT("Older marker");
+    const int32 OverlappedOlderIndex = PinWidget->LocalPins.Num() - 1;
+    FKalmalaWorldMapPersonalPin& TopmostPin = PinWidget->LocalPins.AddDefaulted_GetRef();
+    TopmostPin.WorldLocation = OverlappedPin.WorldLocation;
+    TopmostPin.Label = TEXT("Top marker");
+    const int32 OverlappedTopmostIndex = PinWidget->LocalPins.Num() - 1;
+    const FVector2D OverlapScreenPosition = UKalmalaWorldMapWidget::WorldToMapNormalized(TopmostPin.WorldLocation,
+        PinWidget->ViewModel->GetMapCentre(), PinWidget->ViewModel->GetMapExtent()) * FVector2D(1000.0f, 1000.0f);
+    TestEqual(TEXT("Overlapped visible pins select the newest topmost marker"),
+        PinWidget->FindVisiblePinAtScreenPosition(OverlapScreenPosition, FVector2D(1000.0f, 1000.0f)), OverlappedTopmostIndex);
+    TopmostPin.bVisible = false;
+    TestEqual(TEXT("Hidden topmost pins leave the next visible overlap selectable"),
+        PinWidget->FindVisiblePinAtScreenPosition(OverlapScreenPosition, FVector2D(1000.0f, 1000.0f)), OverlappedOlderIndex);
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
     Config.GeneratorRevision = 1;

@@ -113,6 +113,16 @@ FVector2D UKalmalaWorldMapWidget::WorldToMapNormalized(const FVector2D WorldPosi
     return (WorldPosition - (MapCentre - MapExtent)) / (MapExtent * 2.0f);
 }
 
+FVector2D UKalmalaWorldMapWidget::MapNormalizedToWorld(const FVector2D NormalizedPosition, const FVector2D MapCentre, const FVector2D MapExtent)
+{
+    if (!FMath::IsFinite(NormalizedPosition.X) || !FMath::IsFinite(NormalizedPosition.Y)
+        || MapExtent.X <= 0.0f || MapExtent.Y <= 0.0f)
+    {
+        return FVector2D::ZeroVector;
+    }
+    return MapCentre + (NormalizedPosition * 2.0f - FVector2D(1.0f, 1.0f)) * MapExtent;
+}
+
 FVector2D UKalmalaWorldMapWidget::GetFacingDirection(const float FacingDegrees)
 {
     const float FacingRadians = FMath::DegreesToRadians(FMath::IsFinite(FacingDegrees) ? FacingDegrees : 0.0f);
@@ -544,8 +554,7 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
 FVector2D UKalmalaWorldMapWidget::ScreenToWorld(const FVector2D& ScreenPosition, const FVector2D& MapSize) const
 {
     if (ViewModel == nullptr || MapSize.X <= 0.0f || MapSize.Y <= 0.0f) return FVector2D::ZeroVector;
-    const FVector2D Normalized = ScreenPosition / MapSize;
-    return ViewModel->GetMapCentre() + (Normalized * 2.0f - FVector2D(1.0f, 1.0f)) * ViewModel->GetMapExtent();
+    return MapNormalizedToWorld(ScreenPosition / MapSize, ViewModel->GetMapCentre(), ViewModel->GetMapExtent());
 }
 
 int32 UKalmalaWorldMapWidget::FindVisiblePinAtScreenPosition(const FVector2D& ScreenPosition, const FVector2D& MapSize) const

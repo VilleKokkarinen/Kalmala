@@ -1541,3 +1541,15 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: None. These are local widget input and presentation paths over existing local personal pins. They send no RPC, replication, client request, actor query, discovery claim, or gameplay instruction and do not alter server authority, terrain, collision, population, generated-world saves, or replicated contracts.
 
 Known limits: Keyboard/controller input is focused local map control, not an assistive screen-reader integration. Pin overlap selection and end-to-end coordinate/input-focus verification remain next; no sharing, player awareness, pings, routing, or server-side pin data exists. Next task: verify map-to-world coordinate conversion at every zoom level, pin persistence, overlap selection, input focus, and no network/gameplay side effects.
+
+### 2026-09-09 13:27 EEST - Verify accessible personal map pins
+
+Outcome: Completed the final personal-pin verification gate. Pointer placement now uses an explicit inverse map transform, with round-trip coverage at the 2,500, 18,000, and 50,000 cm zoom levels. Overlapping visible pins select deterministically by newest rendered marker, then fall through to the next visible marker when the top entry is hidden. The map remains focusable for its local keyboard/controller controls.
+
+Changed: `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp`; `docs/02-technical-architecture.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. Focused `Kalmala.UI.WorldMap.LocalPresentation` passed, including zoom-bound coordinate round trips, local keyboard focusability, deterministic overlap selection, independent in-memory pin serialization/reload, identity mismatch rejection, and existing non-colour pin-state checks (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapFinal-1eeee0d3c6144b2b8c99e35ab41237bf/automation.log`). `git diff --check` passed.
+
+Multiplayer impact: None. The inverse transform, selection ordering, focus, and tests operate only on local widget memory and the existing local pin save schema. They send no RPC, query no actor/discovery, and cannot change gameplay, terrain, collision, authority, replication, population, or generated-world persistence.
+
+Known limits: This completes personal pins but does not add opt-in player awareness, server-validated pings, shared cartography, screen-reader integration, route guidance, or late-join profiling. Next task: define an owner-controlled opt-in for visible connected-player markers with clear privacy/offline handling.

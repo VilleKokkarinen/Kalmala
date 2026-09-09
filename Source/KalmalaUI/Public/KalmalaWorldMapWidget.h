@@ -44,6 +44,8 @@ public:
     static bool IsWithinLocalRevealRadius(FVector2D WorldPosition, FVector2D OwningPawnLocation, float RevealRadius);
     /** Converts a world location to the local map's normalized presentation space. */
     static FVector2D WorldToMapNormalized(FVector2D WorldPosition, FVector2D MapCentre, FVector2D MapExtent);
+    /** Inverse local presentation conversion used for pointer/pin coordinates at every zoom. */
+    static FVector2D MapNormalizedToWorld(FVector2D NormalizedPosition, FVector2D MapCentre, FVector2D MapExtent);
     /** Local owning-pawn heading in map space; no other pawn is queried. */
     static FVector2D GetFacingDirection(float FacingDegrees);
     /** Chooses a world-aligned reference grid spacing from the current local map radius. */
