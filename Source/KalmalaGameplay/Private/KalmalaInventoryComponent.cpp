@@ -1,9 +1,67 @@
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaCharacter.h"
+#include "KalmalaHarvestNode.h"
+#include "KalmalaWorldPopulationSaveGame.h"
+#include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
+
+#if !UE_BUILD_SHIPPING
+namespace
+{
+bool VerifyHarvestGrants(AKalmalaCharacter* Character)
+{
+    if (!Character) return false;
+    auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
+    if (!Inventory) return false;
+    auto* Save = NewObject<UKalmalaWorldPopulationSaveGame>();
+    Save->InitializeForWorld(FKalmalaWorldGenerationConfig());
+    bool bPassed = true;
+    TSet<FName> Materials;
+    for (uint64 Seed = 0; Seed < 12; ++Seed)
+    {
+        FActorSpawnParameters Parameters;
+        Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        auto* Node = Character->GetWorld()->SpawnActor<AKalmalaHarvestNode>(
+            AKalmalaHarvestNode::StaticClass(), Character->GetActorLocation(), FRotator::ZeroRotator, Parameters);
+        if (!Node) return false;
+        int32 Accepted = 0;
+        Node->OnHarvested.AddLambda([&](const FString& Id) { ++Accepted; Save->MarkHarvested(Id); });
+        Node->Interact_Implementation(Character); // Uninitialized/malformed descriptors grant nothing.
+        bPassed &= Accepted == 0;
+        FKalmalaWorldPopulationSpawn Spawn;
+        Spawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
+        Spawn.SpawnSeed = Seed;
+        Spawn.Location = Character->GetActorLocation() + FVector(1000, 0, 0);
+        Node->InitializeServer(Spawn);
+        const FString Id = Node->GetPersistentSpawnId();
+        const FName Item = Node->GetHarvestItemId();
+        Materials.Add(Item);
+        const auto* Definition = GetDefault<UKalmalaItemCatalogue>()->FindItem(Item);
+        if (!Definition) { Node->Destroy(); return false; }
+        const int32 Before = Inventory->GetQuantity(Item);
+        Node->Interact_Implementation(Character); // Range rejection does not write a delta.
+        bPassed &= Accepted == 0 && !Save->IsHarvested(Id) && Inventory->GetQuantity(Item) == Before;
+        Node->SetActorLocation(Character->GetActorLocation());
+        bPassed &= Inventory->TryGrantFromServer(Item, Definition->MaxStack - Before);
+        Node->Interact_Implementation(Character); // Full stack leaves the node available.
+        bPassed &= Accepted == 0 && !Save->IsHarvested(Id) && Inventory->GetQuantity(Item) == Definition->MaxStack;
+        bPassed &= Inventory->TryConsumeFromServer(Item, 1);
+        Node->Interact_Implementation(Character);
+        Node->Interact_Implementation(Character); // Duplicate cannot grant again or rebroadcast.
+        bPassed &= Accepted == 1 && Save->IsHarvested(Id)
+            && Inventory->GetQuantity(Item) == Definition->MaxStack && Node->GetPersistentSpawnId() == Id;
+        bPassed &= Inventory->TryConsumeFromServer(Item, Definition->MaxStack - Before);
+        Node->OnHarvested.Clear();
+        Node->Destroy();
+    }
+    return bPassed && Materials.Num() == 3;
+}
+}
+#endif
 
 UKalmalaInventoryComponent::UKalmalaInventoryComponent()
 {
@@ -79,6 +137,8 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
             && TryGrantFromServer(TEXT("Stone"), 1) && TryConsumeFromServer(TEXT("Stone"), 1)
             && GetQuantity(TEXT("Wood")) == 7 && Stacks.Num() == 1;
         UE_LOG(LogTemp, Display, TEXT("Inventory server: Passed=%d Wood=%d Slots=%d"), bPassed, GetQuantity(TEXT("Wood")), Stacks.Num());
+        const bool bHarvestPassed = VerifyHarvestGrants(Cast<AKalmalaCharacter>(Pawn));
+        UE_LOG(LogTemp, Display, TEXT("Harvest inventory: Passed=%d Materials=3 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1"), bHarvestPassed);
     }
     else if (Pawn->IsLocallyControlled())
     {

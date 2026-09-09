@@ -3,6 +3,7 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaMapAwarenessComponent.h"
 #include "KalmalaCampfire.h"
+#include "KalmalaInventoryComponent.h"
 #include "KalmalaExposureResponse.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaHazardSpawn.h"
@@ -546,6 +547,8 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
         AKalmalaCampfire* Campfire = GetWorld()->SpawnActor<AKalmalaCampfire>(AKalmalaCampfire::StaticClass(), NewPlayer->GetPawn()->GetActorLocation() + FVector(120.0f, 0.0f, 0.0f), FRotator::ZeroRotator, SpawnParameters);
         if (Campfire != nullptr)
         {
+            if (auto* Pack = NewPlayer->GetPawn()->FindComponentByClass<UKalmalaInventoryComponent>()) Pack->TryGrantFromServer(TEXT("Fuel"), 1);
+            Campfire->TryRefuelFromServer(Cast<AKalmalaCharacter>(NewPlayer->GetPawn()));
             Campfire->Interact_Implementation(Cast<AKalmalaCharacter>(NewPlayer->GetPawn()));
             bExposureReplicationCampfireSpawned = Campfire->IsLit();
             UE_LOG(LogTemp, Display, TEXT("Exposure replication test server spawned lit campfire: Lit=%d FuelWetness=%.2f EffectiveWarmth=%.2f."), Campfire->IsLit(), Campfire->GetFuelWetness(), Campfire->GetEffectiveWarmth());

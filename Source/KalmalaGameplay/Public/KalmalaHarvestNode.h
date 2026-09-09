@@ -10,7 +10,7 @@ class USphereComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaHarvestNodeHarvested, const FString& /* PersistentSpawnId */);
 
-/** Server-owned, one-use generated harvest node. Rewards and persistence follow in later increments. */
+/** Server-owned one-use material grant; accepted depletion retains the stable sparse-save ID. */
 UCLASS(NotBlueprintable)
 class KALMALAGAMEPLAY_API AKalmalaHarvestNode : public AActor, public IKalmalaInteractable
 {
@@ -23,6 +23,7 @@ public:
     void InitializeDiscoveryServer(const FString& InPersistentSpawnId, const FVector& InLocation);
     static bool IsHarvestAllowed(bool bServerAuthority, bool bAlreadyHarvested, const FVector& InteractorLocation, const FVector& NodeLocation, float MaximumDistance = 250.0f);
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
+    FName GetHarvestItemId() const;
     FKalmalaHarvestNodeHarvested OnHarvested;
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
     virtual void Interact_Implementation(AKalmalaCharacter* Interactor) override;

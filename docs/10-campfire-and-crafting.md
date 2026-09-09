@@ -1,0 +1,42 @@
+# Gathered hearths and camp crafting
+
+Open **Camp crafting** with **B** or the controller **View / special-left** button. The pack heading displays the current keyboard binding. `CraftMenu` is an ordinary Unreal action mapping in `Config/DefaultInput.ini`, so projects and local input configurations can remap the entry point. The menu supports mouse buttons, Tab/button focus, Up/Down or D-pad recipe selection, Enter/A to craft, Y to place, X to refuel, RB to light, and Escape/B to close. Opening blocks movement/look; closing restores them and the previous cursor visibility. Settings closes crafting before opening, and map/crafting cannot open over another modal menu. Text, selection arrows, ingredient counts and explicit unavailable reasons convey state independently of colour. The panel scales with viewport DPI and scrolls at small resolutions.
+
+## Recipes and transactions
+
+The server-local `KalmalaRecipeCatalogue` configuration defines these original recipes. Output is one unit per batch. Fuel and timber support up to five batches per request; the UI crafts one at a time. Recipe IDs, ingredient IDs, duplicate definitions, quantities, output stack limits and batch arithmetic are validated before use; invalid catalogue configuration fails closed. Disabled recipes are locked server-side.
+
+| Recipe | Ingredients per unit | Station | Maximum batch |
+| --- | --- | --- | --- |
+| Ember bundle | 2 splitwood + 1 reed fibre | Handcrafted | 5 |
+| Lashed timber | 3 splitwood + 2 reed fibre | Handcrafted | 5 |
+| Hearth ring kit | 5 fieldstone + 3 splitwood | Handcrafted | 1 |
+| Joiner's bench kit | 3 lashed timber + 2 fieldstone | Handcrafted | 1 |
+| Woven chest kit | 2 lashed timber + 4 reed fibre | Handcrafted | 1 |
+| Timber floor kit | 2 lashed timber | Usable hearth within 250 cm | 5 |
+| Windbreak wall kit | 2 lashed timber + 2 reed fibre | Usable hearth within 250 cm | 5 |
+| Reed roof kit | 2 lashed timber + 4 reed fibre | Usable hearth within 250 cm | 5 |
+
+Hearths are the initial assembly stations; they need not be burning to assemble a kit. Workbench and storage actors, kit placement for the shelter pieces, general placement previews and construction persistence belong to the later construction tasks. These recipes produce bounded inventory kits rather than activating those later systems. Kit stack limits are 5 for hearth/workbench/storage and 10 for floor/wall/roof; fuel and timber remain bounded to 20.
+
+The replicated pawn crafting component accepts a recipe ID and integer batch through an owning-player server RPC. It finds any required nearby usable station itself; clients supply no station, ingredient costs, output ID, or reward count. It rejects missing, distant or locked stations. A new inventory exchange builds a validated scratch pack, applies all costs and output-capacity checks there, then publishes the entire array once on the game thread. Failed exchanges change nothing; a fully consumed ingredient stack can free an output slot. Requests on one player are rate-limited to one action every 0.2 server seconds. Distinct players use separate private inventories; their requests can overlap without sharing a mutable pack. Detailed stacks and request feedback remain owner-only.
+
+## Paid placement and fuel
+
+Craft a hearth kit and an ember bundle, face clear ground, then choose **Place hearth**. The server uses its pawn's position and facing to probe ground 165 cm ahead. It checks the authoritative immutable world identity, nearby generated collision, slope, water, overlap, a 250 cm range, available ingredients and a 32-hearth session limit. The client supplies no position or transform. The server allocates a deferred native hearth, atomically consumes one kit and one bundle, then initializes and finishes spawning it. Failed allocation or validation does not consume ingredients. This deliberately small placement action has no movable ghost or general construction contract yet.
+
+Each paid hearth starts unlit with 60 seconds of fuel. **Light hearth**, or the existing traced interaction, lights only a usable nearby unlit hearth with positive fuel and less than 90% fuel wetness. **Add fuel bundle** consumes exactly one inventory bundle for 60 seconds, only when that entire amount fits under the 300-second cap. Refuelling never resets wetness. Lit fires consume one fuel second per elapsed server second; at zero they extinguish and contribute no warmth. Unlit fires retain unused fuel. The default empty actor cannot light for free.
+
+Existing server weather wetting, drying, extinguishing and effective warmth rules remain in use. Server traces for `KalmalaShelterRoof` and `KalmalaShelterWindbreak` suppress direct rain and wind respectively; untagged geometry never claims protection. Natural gameplay shelter tags must still be attached only by accepted construction. Text explicitly shows LIT/EXTINGUISHED, remaining seconds, wetness and rain/wind protection. A locally generated original stone ring and the existing warm light provide world presentation.
+
+Hearths are shared within the session by default. Trusted server code may set owner-only access; crafting, lighting and refuelling enforce it. No client sharing setter or private-inventory inspection is exposed. Lighting/refuelling RPCs take no target, fuel wetness, warmth, duration or lit-state value. Terrain, sparse generated-world saves and player save schemas are unchanged. Hearths and carried materials currently last only for the session/pawn; this does not complete M2's later persisted-camp acceptance gate.
+
+## Verification
+
+Build `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` with UnrealBuildTool local-cache access, as in `07-development-setup.md`.
+
+Run the focused headless automations `Kalmala.Gameplay.Crafting`, `Kalmala.Gameplay.Inventory` and `Kalmala.Gameplay.Campfire` with the documented temporary user/log paths and memory DDC. Transaction coverage includes required recipes, invalid batches, overflow, duplicate/invalid definitions, missing ingredients, full output stacks, full slot counts, reclaimed slots and repeated attempts without duplication or partial consumption.
+
+Run `Scripts/Verify-Crafting.ps1` (or `-Rendered` for retained 1280x720 host/client menu screenshots). It waits for two server pawns before starting the launch-gated fixtures. Both players exercise paid placement against real generated collision, overlap rejection without payment, full/missing ingredients, disabled and unknown recipes, distant/locked stations, fuel capacity/exhaustion, actual roof/windbreak traces, rain extinguishing, and wet-lighting rejection. Both owning peers then send real crafting RPCs, including immediate duplicates, insufficient-resource attempts, forged recipes and extreme batches, and an insufficient-resource placement request. Each server pack and owner must end with exactly two fuel bundles and no leftover ingredients. The client must observe two dry-lit and two rain-extinguished fire snapshots matching the server state. The menu check verifies cost text, focusability and movement restoration. Fixtures allocate temporary actors and use separate temporary user directories; they add no save format or normal-play grants.
+
+Retain `Scripts/Verify-InventoryReconnect.ps1` and `Scripts/Verify-CampChoices.ps1` as regressions for private inventory and existing weather/exposure recovery. The old camp-choice/exposure fixtures now explicitly grant and consume test fuel before lighting; normal play receives no free ingredients. Dedicated-server verification still requires a server-capable engine distribution. These checks are not malformed-packet fuzzing or assistive-technology certification.

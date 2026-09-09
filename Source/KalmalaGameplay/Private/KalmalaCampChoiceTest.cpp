@@ -1,3 +1,4 @@
+#include "KalmalaInventoryComponent.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCampfire.h"
@@ -87,7 +88,12 @@ void AKalmalaGameMode::DriveCampChoiceTest()
             FActorSpawnParameters Parameters;
             Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
             AKalmalaCampfire* Fire = GetWorld()->SpawnActor<AKalmalaCampfire>(AKalmalaCampfire::StaticClass(), Character->GetActorLocation() + FVector(100, 0, 0), FRotator::ZeroRotator, Parameters);
-            if (Fire) Fire->Interact_Implementation(Character);
+            if (Fire)
+            {
+                if (auto* Pack = Character->FindComponentByClass<UKalmalaInventoryComponent>()) Pack->TryGrantFromServer(TEXT("Fuel"), 1);
+                Fire->TryRefuelFromServer(Character);
+                Fire->Interact_Implementation(Character);
+            }
             if (!Fire || !Fire->IsLit()) { CampChoiceStage = 3; UE_LOG(LogTemp, Error, TEXT("Camp choice FAILED: normal server fire interaction rejected.")); return; }
         }
         CampChoiceStage = 2;

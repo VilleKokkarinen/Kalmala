@@ -45,6 +45,7 @@ void UKalmalaWorldMapSubsystem::BindLocalInput(APlayerController* InLocalControl
 void UKalmalaWorldMapSubsystem::ToggleMap()
 {
     if (LocalController == nullptr) return;
+    if (LocalController->IsMoveInputIgnored() && (MapWidget == nullptr || !MapWidget->IsMapOpen())) return;
     if (MapWidget == nullptr)
     {
         MapWidget = CreateWidget<UKalmalaWorldMapWidget>(LocalController, UKalmalaWorldMapWidget::StaticClass());

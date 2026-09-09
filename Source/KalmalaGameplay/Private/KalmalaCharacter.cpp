@@ -1,5 +1,6 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaCraftingComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
@@ -27,6 +28,7 @@ AKalmalaCharacter::AKalmalaCharacter(const FObjectInitializer& ObjectInitializer
 {
     bReplicates = true;
     Inventory = CreateDefaultSubobject<UKalmalaInventoryComponent>(TEXT("Inventory"));
+    Crafting = CreateDefaultSubobject<UKalmalaCraftingComponent>(TEXT("Crafting"));
     SetReplicateMovement(true);
 
     bUseControllerRotationPitch = false;
@@ -446,7 +448,7 @@ void AKalmalaCharacter::MoveRight(const float Value)
 
 void AKalmalaCharacter::RequestInteract()
 {
-    if (IsLocallyControlled())
+    if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored())
     {
         ServerRequestInteract();
     }

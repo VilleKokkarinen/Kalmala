@@ -9,6 +9,7 @@
 #include "GameFramework/Pawn.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
+#include "GameFramework/InputSettings.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 
@@ -56,7 +57,10 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
     }
     const APawn* Pawn = Controller->GetPawn();
     const UKalmalaInventoryComponent* Inventory = Pawn ? Pawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
-    FString Text = TEXT("Pack\n");
+    FString CraftKey = TEXT("Unbound");
+    for (const auto& Mapping : GetDefault<UInputSettings>()->GetActionMappings())
+        if (Mapping.ActionName == TEXT("CraftMenu") && !Mapping.Key.IsGamepadKey()) { CraftKey=Mapping.Key.GetDisplayName().ToString(); break; }
+    FString Text = TEXT("Pack | Craft: ") + CraftKey + TEXT("\n");
     if (!Inventory) Text += TEXT("Waiting for player");
     else if (Inventory->GetStacks().IsEmpty()) Text += TEXT("Empty");
     else

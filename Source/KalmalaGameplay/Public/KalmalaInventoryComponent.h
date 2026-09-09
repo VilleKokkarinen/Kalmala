@@ -8,8 +8,8 @@ USTRUCT()
 struct FKalmalaInventoryStack
 {
     GENERATED_BODY()
-    UPROPERTY() FName ItemId;
-    UPROPERTY() int32 Quantity = 0;
+    UPROPERTY(EditAnywhere) FName ItemId;
+    UPROPERTY(EditAnywhere) int32 Quantity = 0;
 };
 
 /** Pawn-lifetime inventory. Only trusted server gameplay may mutate its contents. */
@@ -24,6 +24,12 @@ public:
     int32 GetQuantity(FName ItemId) const;
     bool TryGrantFromServer(FName ItemId, int32 Quantity);
     bool TryConsumeFromServer(FName ItemId, int32 Quantity);
+    /** Validate in a scratch array and publish once; no partial ingredient removal. */
+    static bool BuildExchange(const TArray<FKalmalaInventoryStack>& Before,
+        const TArray<FKalmalaInventoryStack>& Costs, FName Output, int32 OutputCount,
+        TArray<FKalmalaInventoryStack>& After, FString& Reason);
+    bool TryExchangeFromServer(const TArray<FKalmalaInventoryStack>& Costs,
+        FName Output, int32 OutputCount, FString& Reason);
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 protected:
     virtual void BeginPlay() override;
