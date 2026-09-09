@@ -42,6 +42,8 @@ public:
     static float ClampMapZoom(float RequestedZoom, float MinZoom, float MaxZoom);
     /** Pure local fog seam. Only the owning pawn position may open the reveal circle. */
     static bool IsWithinLocalRevealRadius(FVector2D WorldPosition, FVector2D OwningPawnLocation, float RevealRadius);
+    static bool CanShowCoopLocation(FVector2D WorldPosition, FVector2D OwningPawnLocation,
+        const UKalmalaWorldMapExplorationSaveGame* Exploration);
     /** Converts a world location to the local map's normalized presentation space. */
     static FVector2D WorldToMapNormalized(FVector2D WorldPosition, FVector2D MapCentre, FVector2D MapExtent);
     /** Inverse local presentation conversion used for pointer/pin coordinates at every zoom. */
@@ -110,6 +112,9 @@ private:
     void PanByKeyboardDelta(const FVector2D& ScreenDelta);
     void ZoomAtMapCentre(float WheelDelta);
     void DrawPins(const FGeometry& AllottedGeometry, const FVector2D& MapSize, int32 LayerId, FSlateWindowElementList& OutDrawElements) const;
+    void DrawCoopAwareness(const FGeometry& Geometry, FVector2D MapSize, int32 LayerId, FSlateWindowElementList& Elements) const;
+    void SendMapPing(FVector2D Location);
+    FString PingFeedback;
     static FLinearColor GetPinColour(EKalmalaWorldMapPinStyle Style);
 
     UPROPERTY(Transient)

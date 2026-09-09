@@ -1,6 +1,7 @@
 #include "KalmalaGameMode.h"
 
 #include "KalmalaCharacter.h"
+#include "KalmalaMapAwarenessComponent.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaExposureResponse.h"
 #include "KalmalaHarvestNode.h"
@@ -110,6 +111,8 @@ AKalmalaGameMode::AKalmalaGameMode()
     bUseSeamlessTravel = true;
     PrimaryActorTick.bCanEverTick = true;
     DefaultPawnClass = AKalmalaCharacter::StaticClass();
+    PlayerControllerClass = AKalmalaMapPlayerController::StaticClass();
+    PlayerStateClass = AKalmalaMapPlayerState::StaticClass();
     GameStateClass = AKalmalaWorldGenerationGameState::StaticClass();
 }
 

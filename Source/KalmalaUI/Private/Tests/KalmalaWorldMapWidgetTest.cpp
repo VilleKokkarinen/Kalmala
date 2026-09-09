@@ -15,6 +15,20 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWorldMapWidgetTest, "Kalmala.UI.WorldMa
 
 bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
 {
+    TestTrue(TEXT("Co-op symbol may show in current personal sight"),
+        UKalmalaWorldMapWidget::CanShowCoopLocation(FVector2D(100, 0), FVector2D::ZeroVector, nullptr));
+    TestFalse(TEXT("Co-op symbols cannot reveal unexplored remote terrain"),
+        UKalmalaWorldMapWidget::CanShowCoopLocation(FVector2D(20000, 0), FVector2D::ZeroVector, nullptr));
+    auto* CoopCoverage = NewObject<UKalmalaWorldMapExplorationSaveGame>();
+    FKalmalaWorldGenerationConfig CoopConfig;
+    CoopCoverage->InitializeForWorld(CoopConfig);
+    CoopCoverage->RecordReveal(FVector2D(20000, 0), 1000);
+    const int32 CoverageBefore = CoopCoverage->GetExploredCellCount();
+    TestTrue(TEXT("Co-op symbol may show on remembered personal coverage"),
+        UKalmalaWorldMapWidget::CanShowCoopLocation(FVector2D(20000, 0), FVector2D::ZeroVector, CoopCoverage));
+    TestFalse(TEXT("Remote symbol cannot add coverage"),
+        UKalmalaWorldMapWidget::CanShowCoopLocation(FVector2D(40000, 0), FVector2D::ZeroVector, CoopCoverage));
+    TestEqual(TEXT("Co-op presentation does not mutate exploration"), CoopCoverage->GetExploredCellCount(), CoverageBefore);
     TestEqual(TEXT("Expanded-map zoom clamps at its minimum"), UKalmalaWorldMapWidget::ClampMapZoom(100.0f, 2500.0f, 50000.0f), 2500.0f);
     TestEqual(TEXT("Expanded-map zoom clamps at its maximum"), UKalmalaWorldMapWidget::ClampMapZoom(100000.0f, 2500.0f, 50000.0f), 50000.0f);
     TestEqual(TEXT("Expanded-map zoom preserves valid values"), UKalmalaWorldMapWidget::ClampMapZoom(18000.0f, 2500.0f, 50000.0f), 18000.0f);

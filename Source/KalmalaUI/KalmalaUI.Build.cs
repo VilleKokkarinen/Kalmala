@@ -17,6 +17,7 @@ public class KalmalaUI : ModuleRules
             "SlateCore",
             "InputCore",
             "KalmalaCore",
+            "KalmalaGameplay",
             "KalmalaWorld"
         });
     }
