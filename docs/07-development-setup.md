@@ -45,6 +45,10 @@ After an editor build, run `Scripts/Verify-Swimming.ps1`. It starts a memory-onl
 
 After an editor build, run `Scripts/Verify-OceanTravel.ps1`. It starts a revision-4 seed-418 listen server and a conflicting-seed client. Each locally controlled pawn derives the same existing nearest emergent-island target from the server-replicated immutable identity, crosses generated ocean through ordinary predicted Character Movement, and must log both ocean entry and island arrival. The server's bounded terrain-patch refresh follows authoritative pawn positions throughout; the test rejects failed identity replacement and does not add a boat, route, island actor, client target request, replication property, or save mutation.
 
+## Item catalogue verification
+
+For the M2 material contract, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above after building the editor. It loads the real project catalogue and checks required materials, exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate configuration. This is a pure contract check; live inventory replication and harvest-grant verification follow when the inventory component exists.
+
 ## Dedicated-server build
 
 The Epic Games Launcher engine distribution does not include dedicated-server support. The `KalmalaServer` target remains in the project, but building it requires a UE 5.8 source build or another UE 5.8 distribution with server support. Do not attempt the command below with the installed Launcher engine.

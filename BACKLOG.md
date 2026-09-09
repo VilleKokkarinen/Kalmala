@@ -232,7 +232,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 **Intent:** turn the existing generated harvest nodes, provisional campfire, and weather/shelter seams into the smallest complete, server-owned camp loop. This milestone must not add new creature, elemental-grid, magic, route, or shared-cartography scope.
 
 - [ ] **Establish the authoritative item and inventory contract.**
-  - [ ] Define a small original item catalogue and server-owned stack/quantity limits for harvested wood, stone, fibre, fuel, and the minimum crafted construction supplies; keep item definitions data-driven and reject unknown client item IDs and quantities.
+  - [x] Define a small original item catalogue and server-owned stack/quantity limits for harvested wood, stone, fibre, fuel, and the minimum crafted construction supplies; keep item definitions data-driven and reject unknown client item IDs and quantities.
   - [ ] Add a server-authoritative player inventory with owner-only detailed replication and a minimal local presentation; clients submit intent only and cannot directly add, remove, reorder, or set quantities.
   - [ ] Convert accepted generated harvest interactions into server-validated inventory grants while preserving existing stable spawn IDs and sparse depletion behavior; reject out-of-range, duplicate, depleted, malformed, and full-inventory requests.
   - [ ] Verify host/client inventory agreement, reconnect behavior, stack limits, and rejection of forged harvest/item requests without exposing another player's private inventory detail.

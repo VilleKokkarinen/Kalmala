@@ -8,6 +8,18 @@
 
 ## Run log
 
+### 2026-09-09 15:55 EEST - Establish camp material catalogue
+
+Outcome: Completed the first M2 item-contract increment. Five configurable original materials now define wood, stone, fibre, fuel, and construction supplies with bounded stack quantities. Pure catalogue validation rejects unknown IDs, malformed quantities, full-stack additions, integer extremes, and invalid/duplicate configuration before future server inventory operations can consume those inputs.
+
+Changed: `Config/DefaultGame.ini`; `Source/KalmalaGameplay/Public/KalmalaItemCatalogue.h`; `Source/KalmalaGameplay/Private/KalmalaItemCatalogue.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`. Preserved the pre-existing BACKLOG heading removal and excluded it from staging.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. The first automation exposed a test-fixture TArray self-reference assertion; copying the duplicate entry before insertion repaired it. The rebuilt `Kalmala.Gameplay.Inventory.Catalogue` passed (exit 0, `Result={Success}`) at `C:/Users/Ville/AppData/Local/Temp/KalmalaItemCatalogue-d4f84901febf4656b1d8a157542abe55/automation.log`. `git diff --check` passed. Headless execution used the requested memory DDC fallback.
+
+Multiplayer impact: The server's configured catalogue defines future transaction limits; client configuration cannot grant items or change server limits. This increment exposes only pure validation, with no RPC, replicated inventory, actor mutation, harvest grant, or save-schema change. Future callers must enforce authority and inventory capacity separately.
+
+Known limits: No player inventory, recipes, grants, UI, or live peer inventory scenario exists yet. The contract is verified in headless automation only. Next task: add server-authoritative player inventory with owner-only detailed replication and minimal local presentation.
+
 ### 2026-09-09 15:48 EEST - Document integrated expanded-map contracts
 
 Outcome: Completed the final full-map integration documentation gate. The technical architecture now consolidates local tiled-map/fog/pin boundaries, keyboard/controller controls, colour-independent state cues, owner-controlled co-op awareness, and the server validation/owner-only expiry rules for pings. Setup notes now describe the privacy and ping controls and correctly list screen-reader/remapping—not controller navigation—as later accessibility work.
