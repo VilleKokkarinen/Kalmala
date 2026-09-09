@@ -1517,3 +1517,15 @@ Verification: The initial forced build exposed one UE 5.8 `FVector2D` constexpr 
 Multiplayer impact: None. Pin coordinates originate only from local pointer-to-map conversion; pin labels/styles/state are local widget memory, with no RPC, replicated field, actor query, discovery claim, terrain/collision change, save write, or server authority path.
 
 Known limits: Hidden pins require their later keyboard/controller interaction path to be restored, and pins are deliberately lost on map/widget recreation until the next identity-scoped local persistence increment. There is no overlap selection, accessibility alternative, sharing, or ping. Next task: persist pins per player and world identity while keeping them out of server gameplay instructions and discovery claims.
+
+### 2026-09-09 10:11 EEST - Persist personal map pins
+
+Outcome: Completed the identity-scoped local pin persistence increment. Cairn, Lantern, and Thread annotations now save independently in a version-1 local `SaveGame`, keyed by immutable seed/revision and local-player index. The save validates finite coordinates, bounded labels, and the finite style set, retaining at most the newest 256 pins; an identity mismatch starts a fresh personal collection. Placement, completion, visibility, and removal immediately update only this local slot.
+
+Changed: `Source/KalmalaUI/Public/KalmalaWorldMapPinsSaveGame.h`; `Source/KalmalaUI/Private/KalmalaWorldMapPinsSaveGame.cpp`; `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. Focused `Kalmala.UI.WorldMap.LocalPresentation` passed, including independent in-memory pin serialization/reload and immutable-identity mismatch rejection (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapPins-992bae741021449495aead19d4e93f94/automation.log`). `git diff --check` passed.
+
+Multiplayer impact: None. Pin data originates only from local map pointer conversion and remains in the local save slot; it sends no RPC, replication, client request, actor query, discovery claim, or gameplay instruction. No server authority, terrain, collision, population, generated-world save, or replicated contract changed.
+
+Known limits: Pins still need non-colour-only states plus keyboard/controller alternatives, overlap selection, and end-to-end input-focus/coordinate verification. There is no pin sharing, player awareness, ping, route guidance, or server-side pin data. Next task: add accessible non-colour-only pin states and keyboard/controller alternatives for every pointer interaction.

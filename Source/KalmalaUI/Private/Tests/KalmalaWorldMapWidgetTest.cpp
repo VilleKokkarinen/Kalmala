@@ -6,6 +6,7 @@
 #include "KalmalaMinimapViewModel.h"
 #include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaWorldMapExplorationSaveGame.h"
+#include "KalmalaWorldMapPinsSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 
@@ -35,7 +36,7 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     PinWidget->PendingPinLabel = TEXT("  Lantern! ridge  ");
     PinWidget->PendingPinStyle = EKalmalaWorldMapPinStyle::Lantern;
     PinWidget->CommitPinPlacement();
-    TestEqual(TEXT("Local pin placement commits one transient personal marker"), PinWidget->LocalPins.Num(), 1);
+    TestEqual(TEXT("Local pin placement commits one personal marker"), PinWidget->LocalPins.Num(), 1);
     if (!PinWidget->LocalPins.IsEmpty())
     {
         TestEqual(TEXT("Local pin placement keeps its selected finite style"), PinWidget->LocalPins[0].Style, EKalmalaWorldMapPinStyle::Lantern);
@@ -54,6 +55,21 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Expanded map raster preserves rectangular dimensions"), RectangularPixels.Num(), RectangularSamples.Num());
     TestEqual(TEXT("Expanded map has no circular alpha cutout"), RectangularPixels[0].A, uint8(255));
     Config.GeneratorRevision = 4;
+    UKalmalaWorldMapPinsSaveGame* Pins = NewObject<UKalmalaWorldMapPinsSaveGame>();
+    Pins->InitializeForWorld(Config);
+    TestTrue(TEXT("Personal pins accept bounded local presentation data"), Pins->SetPins(PinWidget->LocalPins));
+    TArray<uint8> SerializedPins;
+    TestTrue(TEXT("Personal pins serialize independently in memory"), UGameplayStatics::SaveGameToMemory(Pins, SerializedPins));
+    UKalmalaWorldMapPinsSaveGame* ReloadedPins = Cast<UKalmalaWorldMapPinsSaveGame>(UGameplayStatics::LoadGameFromMemory(SerializedPins));
+    TestNotNull(TEXT("Personal pins reload from their own save schema"), ReloadedPins);
+    if (ReloadedPins != nullptr)
+    {
+        TestTrue(TEXT("Reloaded personal pins retain immutable world identity"), ReloadedPins->MatchesWorld(Config));
+        TestEqual(TEXT("Reloaded personal pins retain label and local coordinate"), ReloadedPins->GetPins()[0].Label, FString(TEXT("Lantern ridge")));
+        FKalmalaWorldGenerationConfig MismatchedPinConfig = Config;
+        ++MismatchedPinConfig.WorldSeed;
+        TestFalse(TEXT("Personal pins reject a mismatched immutable identity"), ReloadedPins->MatchesWorld(MismatchedPinConfig));
+    }
     const TArray<FColor> Tile = UKalmalaWorldMapWidget::BuildTilePixels(Config, FIntPoint(3, -2));
     const TArray<FColor> RepeatedTile = UKalmalaWorldMapWidget::BuildTilePixels(Config, FIntPoint(3, -2));
     const TArray<FColor> AdjacentTile = UKalmalaWorldMapWidget::BuildTilePixels(Config, FIntPoint(4, -2));

@@ -8,6 +8,7 @@
 #include "KalmalaMinimapRaster.h"
 #include "KalmalaMinimapViewModel.h"
 #include "KalmalaWorldMapExplorationSaveGame.h"
+#include "KalmalaWorldMapPinsSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/Crc.h"
 #include "Rendering/DrawElements.h"
@@ -262,6 +263,12 @@ FString UKalmalaWorldMapWidget::GetExplorationSaveSlot(const FKalmalaWorldGenera
     return FString::Printf(TEXT("KalmalaPersonalMapCoverage_v1_%llu_%d_%d"), Config.WorldSeed, Config.GeneratorRevision, PlayerIndex);
 }
 
+FString UKalmalaWorldMapWidget::GetPinsSaveSlot(const FKalmalaWorldGenerationConfig& Config) const
+{
+    const int32 PlayerIndex = GetOwningPlayer() != nullptr ? GetOwningPlayer()->GetLocalPlayer()->GetControllerId() : 0;
+    return FString::Printf(TEXT("KalmalaPersonalMapPins_v1_%llu_%d_%d"), Config.WorldSeed, Config.GeneratorRevision, PlayerIndex);
+}
+
 void UKalmalaWorldMapWidget::EnsureExplorationForWorld(const FKalmalaWorldGenerationConfig& Config)
 {
     if (ExplorationSave != nullptr && ExplorationSave->MatchesWorld(Config)) return;
@@ -279,6 +286,28 @@ void UKalmalaWorldMapWidget::RecordLocalExploration(const FVector2D OwningPawnLo
     if (ExplorationSave != nullptr && ExplorationSave->RecordReveal(OwningPawnLocation, LocalRevealRadius))
     {
         UGameplayStatics::SaveGameToSlot(ExplorationSave, GetExplorationSaveSlot(TileConfig), 0);
+    }
+}
+
+void UKalmalaWorldMapWidget::EnsurePinsForWorld(const FKalmalaWorldGenerationConfig& Config)
+{
+    if (PinsSave != nullptr && PinsSave->MatchesWorld(Config)) return;
+    PinsSave = Cast<UKalmalaWorldMapPinsSaveGame>(UGameplayStatics::LoadGameFromSlot(GetPinsSaveSlot(Config), 0));
+    if (PinsSave != nullptr && PinsSave->MatchesWorld(Config))
+    {
+        LocalPins = PinsSave->GetPins();
+        return;
+    }
+    PinsSave = NewObject<UKalmalaWorldMapPinsSaveGame>(this);
+    PinsSave->InitializeForWorld(Config);
+    LocalPins.Reset();
+}
+
+void UKalmalaWorldMapWidget::PersistPins()
+{
+    if (PinsSave != nullptr && PinsSave->MatchesWorld(TileConfig) && PinsSave->SetPins(LocalPins))
+    {
+        UGameplayStatics::SaveGameToSlot(PinsSave, GetPinsSaveSlot(TileConfig), 0);
     }
 }
 
@@ -359,6 +388,7 @@ void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
     const FVector2D Centre = ViewModel->GetMapCentre();
     const FVector2D Extent = ViewModel->GetMapExtent();
     EnsureExplorationForWorld(Config);
+    EnsurePinsForWorld(Config);
     RecordLocalExploration(PawnLocation);
     UpdateFogTexture(Centre, Extent, PawnLocation, ViewModel->GetMapSampleDimensions());
     if (!bDeveloperFogVerificationLogged && bDeveloperVerificationLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
@@ -508,7 +538,7 @@ int32 UKalmalaWorldMapWidget::FindVisiblePinAtScreenPosition(const FVector2D& Sc
     const FVector2D Extent = ViewModel->GetMapExtent();
     for (int32 Index = LocalPins.Num() - 1; Index >= 0; --Index)
     {
-        const FLocalPin& Pin = LocalPins[Index];
+        const FKalmalaWorldMapPersonalPin& Pin = LocalPins[Index];
         if (!Pin.bVisible) continue;
         const FVector2D PinScreen = WorldToMapNormalized(Pin.WorldLocation, Centre, Extent) * MapSize;
         if (FVector2D::DistSquared(PinScreen, ScreenPosition) <= FMath::Square(16.0f)) return Index;
@@ -529,12 +559,14 @@ void UKalmalaWorldMapWidget::CommitPinPlacement()
 {
     const FString Label = SanitizePinLabel(PendingPinLabel);
     if (!IsValidPinLabel(Label)) return;
-    FLocalPin& Pin = LocalPins.AddDefaulted_GetRef();
+    while (LocalPins.Num() >= UKalmalaWorldMapPinsSaveGame::MaxPersonalPins) LocalPins.RemoveAt(0);
+    FKalmalaWorldMapPersonalPin& Pin = LocalPins.AddDefaulted_GetRef();
     Pin.WorldLocation = PendingPinLocation;
     Pin.Label = Label;
     Pin.Style = PendingPinStyle;
     bPinLabelEntry = false;
     PendingPinLabel.Reset();
+    PersistPins();
 }
 
 void UKalmalaWorldMapWidget::CancelPinPlacement()
@@ -560,7 +592,7 @@ void UKalmalaWorldMapWidget::DrawPins(const FGeometry& AllottedGeometry, const F
     const FVector2D Margin(44.0f, 44.0f);
     const FVector2D Centre = ViewModel->GetMapCentre();
     const FVector2D Extent = ViewModel->GetMapExtent();
-    for (const FLocalPin& Pin : LocalPins)
+    for (const FKalmalaWorldMapPersonalPin& Pin : LocalPins)
     {
         if (!Pin.bVisible) continue;
         const FVector2D Normalized = WorldToMapNormalized(Pin.WorldLocation, Centre, Extent);
@@ -605,7 +637,11 @@ FReply UKalmalaWorldMapWidget::NativeOnMouseButtonDown(const FGeometry& InGeomet
     const FVector2D MapPosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition()) - FVector2D(44.0f);
     if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
     {
-        if (const int32 PinIndex = FindVisiblePinAtScreenPosition(MapPosition, MapSize); PinIndex != INDEX_NONE) LocalPins.RemoveAt(PinIndex);
+        if (const int32 PinIndex = FindVisiblePinAtScreenPosition(MapPosition, MapSize); PinIndex != INDEX_NONE)
+        {
+            LocalPins.RemoveAt(PinIndex);
+            PersistPins();
+        }
         return FReply::Handled();
     }
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
@@ -614,6 +650,7 @@ FReply UKalmalaWorldMapWidget::NativeOnMouseButtonDown(const FGeometry& InGeomet
         {
             if (InMouseEvent.IsControlDown()) LocalPins[PinIndex].bVisible = !LocalPins[PinIndex].bVisible;
             else LocalPins[PinIndex].bComplete = !LocalPins[PinIndex].bComplete;
+            PersistPins();
             return FReply::Handled();
         }
         if (InMouseEvent.IsShiftDown()) { BeginPinPlacement(ScreenToWorld(MapPosition, MapSize)); return FReply::Handled(); }

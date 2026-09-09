@@ -4,21 +4,14 @@
 #include "Async/Future.h"
 #include "Blueprint/UserWidget.h"
 #include "KalmalaWorldGenerationConfig.h"
+#include "KalmalaWorldMapPinsSaveGame.h"
 #include "UObject/StrongObjectPtr.h"
 #include "KalmalaWorldMapWidget.generated.h"
 
 class UKalmalaMinimapViewModel;
 class UKalmalaWorldMapExplorationSaveGame;
+class UKalmalaWorldMapPinsSaveGame;
 class UTexture2D;
-
-/** Original local pin treatments; these are presentation labels, not gameplay claims. */
-UENUM()
-enum class EKalmalaWorldMapPinStyle : uint8
-{
-    Cairn,
-    Lantern,
-    Thread
-};
 
 /** Local fog treatments deliberately reserve a distinct colour for a later, opt-in shared-cartography feature. */
 enum class EKalmalaWorldMapFogTreatment : uint8
@@ -84,15 +77,6 @@ private:
         uint32 LastUsedEpoch = 0;
         uint32 PixelHash = 0;
     };
-    struct FLocalPin
-    {
-        FVector2D WorldLocation = FVector2D::ZeroVector;
-        FString Label;
-        EKalmalaWorldMapPinStyle Style = EKalmalaWorldMapPinStyle::Cairn;
-        bool bComplete = false;
-        bool bVisible = true;
-    };
-
     void RefreshTiles(const FVector2D& MapSize);
     void StartTile(const FIntPoint& TileCoordinate, const FKalmalaWorldGenerationConfig& Config);
     void UploadCompletedTiles();
@@ -101,6 +85,9 @@ private:
     void EnsureExplorationForWorld(const FKalmalaWorldGenerationConfig& Config);
     void RecordLocalExploration(FVector2D OwningPawnLocation);
     FString GetExplorationSaveSlot(const FKalmalaWorldGenerationConfig& Config) const;
+    void EnsurePinsForWorld(const FKalmalaWorldGenerationConfig& Config);
+    void PersistPins();
+    FString GetPinsSaveSlot(const FKalmalaWorldGenerationConfig& Config) const;
     void LogDeveloperTileFingerprint();
     void InvalidateOutstandingTileJobs();
     static TArray<FColor> BuildTilePixels(FKalmalaWorldGenerationConfig Config, FIntPoint TileCoordinate);
@@ -118,11 +105,13 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaMinimapViewModel> ViewModel;
     TMap<FIntPoint, FWorldMapTile> Tiles;
-    TArray<FLocalPin> LocalPins;
+    TArray<FKalmalaWorldMapPersonalPin> LocalPins;
     TStrongObjectPtr<UTexture2D> FogTexture;
     FSlateBrush FogBrush;
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaWorldMapExplorationSaveGame> ExplorationSave;
+    UPROPERTY(Transient)
+    TObjectPtr<UKalmalaWorldMapPinsSaveGame> PinsSave;
     FKalmalaWorldGenerationConfig TileConfig;
     uint32 TileEpoch = 1;
     bool bMapOpen = false;
@@ -151,5 +140,5 @@ private:
     static constexpr int32 MaxCachedTiles = 64;
     // Local coverage is versioned and persisted independently from world deltas.
     static constexpr float LocalRevealRadius = 6500.0f;
-    static constexpr int32 MaxPinLabelLength = 32;
+    static constexpr int32 MaxPinLabelLength = UKalmalaWorldMapPinsSaveGame::MaxPinLabelLength;
 };
