@@ -8,6 +8,21 @@
 
 ## Run log
 
+### 2026-09-09 22:10 EEST - Verify inventory reconnect and network contract
+
+Outcome: Completed the next M2 verification item with a two-visit client reconnect runner and compiled RPC-surface automation. Both visits to one running listen server verify owner agreement, client-local mutation rejection, read-only pack binding, and remote privacy. Each replacement pawn starts empty before the existing server fixture grants its seven-wood result.
+
+Changed: `Scripts/Verify-InventoryReconnect.ps1`; `Source/KalmalaGameplay/Private/Tests/KalmalaInventoryNetworkContractTest.cpp`; `docs/09-inventory-verification.md`; the inventory verification checkbox in `BACKLOG.md`; `PROGRESS.md`. Pre-existing harvest implementation, original inventory runner, architecture/setup edits, harvest checkbox, heading removal, and campfire wording changes remain untouched and excluded from staging.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with LOCALAPPDATA UnrealBuildTool access. Catalogue, NetworkContract, HarvestNode.AuthorityAndDepletion, and Interaction.ServerOnlyRangeValidation each reported Result={Success}, exit 0 (`C:/Users/Ville/AppData/Local/Temp/KalmalaInventoryContract-6fd1741c26cf4b99a192390b2ca7b39f/automation.log`). `Scripts/Verify-InventoryReconnect.ps1` passed with three server inventory/harvest results and two independent client owner/privacy/identity results (`C:/Users/Ville/AppData/Local/Temp/KalmalaInventoryReconnect-58247dc09b5e4b8c86b701bddadbdba7`). `git diff --check` passed.
+
+Multiplayer impact: Verification only. Compiled reflection confirms the interaction server RPC has zero payload parameters and inventory/harvest classes expose no server mutation RPC. Existing server fixtures reject unknown IDs, malformed quantities, full stacks, distant and duplicate harvest calls while preserving sparse callbacks. No runtime authority, replication or save change.
+
+Known limits: Inventory reconnect restoration is absent: replacing the pawn loses carried materials. This is documented current behavior, not completion of the later persisted-camp gate. No packet fuzzing, simultaneous physical harvest input, or rendered UI check. Verification ran against preserved pre-existing uncommitted harvest changes; this commit does not include those dependencies. Main-checkout handoff is updated directly.
+
+Next task: Replace the provisional free campfire interaction with server-owned crafting/placement consuming validated inventory ingredients and fuel; retain weather/warmth behavior. The inventory parent gate can be reconciled once the pre-existing harvest increment is handed off.
+
+
 ### 2026-09-09 16:02 EEST - Add owner-only player inventory
 
 Outcome: Completed the next M2 increment: an initially empty pawn inventory, bounded to 16 unique item stacks and server-catalogue quantities, plus a read-only local pack panel. Trusted server grants and consumption reject invalid requests without changing contents; exhausted stacks are removed. No client mutation RPC is exposed.
