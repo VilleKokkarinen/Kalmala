@@ -46,6 +46,11 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
         UKalmalaWorldMapWidget::IsWithinLocalRevealRadius(FVector2D(6400.0f, 0.0f), FVector2D::ZeroVector, 6500.0f));
     TestFalse(TEXT("Remote terrain remains outside the local reveal radius"),
         UKalmalaWorldMapWidget::IsWithinLocalRevealRadius(FVector2D(6501.0f, 0.0f), FVector2D::ZeroVector, 6500.0f));
+    const TArray<FColor> RevealEdgePixels = UKalmalaWorldMapWidget::BuildFogPixels(FVector2D(6500.0f, 0.0f), FVector2D(100.0f, 1.0f),
+        FVector2D::ZeroVector, FIntPoint(3, 1));
+    TestEqual(TEXT("Reveal edge keeps the exact radius clear"), RevealEdgePixels[1].A, uint8(0));
+    TestEqual(TEXT("Reveal edge occludes the first remote sample"), RevealEdgePixels[2],
+        UKalmalaWorldMapWidget::GetFogTreatmentColor(EKalmalaWorldMapFogTreatment::Unexplored));
     const TArray<FColor> FogPixels = UKalmalaWorldMapWidget::BuildFogPixels(FVector2D::ZeroVector, FVector2D(10000.0f, 5000.0f),
         FVector2D::ZeroVector, FIntPoint(9, 5));
     TestEqual(TEXT("Fog covers every local map sample"), FogPixels.Num(), 45);
@@ -72,6 +77,12 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     if (ReloadedExploration != nullptr)
     {
         TestTrue(TEXT("Reloaded personal coverage retains the immutable identity"), ReloadedExploration->MatchesWorld(Config));
+        const TArray<FColor> ReloadedFogPixels = UKalmalaWorldMapWidget::BuildFogPixels(FVector2D::ZeroVector, FVector2D(20000.0f, 20000.0f),
+            FVector2D(-100000.0f, 0.0f), FIntPoint(3, 3), ReloadedExploration);
+        TestEqual(TEXT("Restarted personal coverage restores only the remembered local cell"), ReloadedFogPixels[4],
+            UKalmalaWorldMapWidget::GetFogTreatmentColor(EKalmalaWorldMapFogTreatment::RememberedPersonal));
+        TestEqual(TEXT("Restarted personal coverage keeps remote terrain opaque"), ReloadedFogPixels[0],
+            UKalmalaWorldMapWidget::GetFogTreatmentColor(EKalmalaWorldMapFogTreatment::Unexplored));
         FKalmalaWorldGenerationConfig MismatchedConfig = Config;
         ++MismatchedConfig.WorldSeed;
         TestFalse(TEXT("Personal coverage rejects a mismatched immutable identity"), ReloadedExploration->MatchesWorld(MismatchedConfig));

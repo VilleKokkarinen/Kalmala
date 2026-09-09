@@ -96,8 +96,11 @@ private:
     float RefreshAccumulator = 0.0f;
     bool bDeveloperVerificationLogged = false;
     bool bDeveloperTileFingerprintLogged = false;
+    bool bDeveloperFogVerificationLogged = false;
     bool bDeveloperTileInputsUnavailableLogged = false;
     bool bRequestedVerificationScreenshot = false;
+    /** True only when this widget instance accepted a matching personal-coverage slot. */
+    bool bExplorationLoadedForWorld = false;
     float VerificationElapsed = 0.0f;
 
     static constexpr float MinZoom = 2500.0f;

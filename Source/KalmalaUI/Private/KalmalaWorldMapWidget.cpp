@@ -226,7 +226,8 @@ void UKalmalaWorldMapWidget::EnsureExplorationForWorld(const FKalmalaWorldGenera
 {
     if (ExplorationSave != nullptr && ExplorationSave->MatchesWorld(Config)) return;
     ExplorationSave = Cast<UKalmalaWorldMapExplorationSaveGame>(UGameplayStatics::LoadGameFromSlot(GetExplorationSaveSlot(Config), 0));
-    if (ExplorationSave == nullptr || !ExplorationSave->MatchesWorld(Config))
+    bExplorationLoadedForWorld = ExplorationSave != nullptr && ExplorationSave->MatchesWorld(Config);
+    if (!bExplorationLoadedForWorld)
     {
         ExplorationSave = NewObject<UKalmalaWorldMapExplorationSaveGame>(this);
         ExplorationSave->InitializeForWorld(Config);
@@ -320,6 +321,15 @@ void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
     EnsureExplorationForWorld(Config);
     RecordLocalExploration(PawnLocation);
     UpdateFogTexture(Centre, Extent, PawnLocation, ViewModel->GetMapSampleDimensions());
+    if (!bDeveloperFogVerificationLogged && bDeveloperVerificationLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
+    {
+        const FVector2D RemoteProbe = PawnLocation + FVector2D(LocalRevealRadius * 2.0f + 1.0f, 0.0f);
+        const bool bRemoteExplored = ExplorationSave != nullptr && ExplorationSave->IsExplored(RemoteProbe);
+        bDeveloperFogVerificationLogged = true;
+        UE_LOG(LogTemp, Display, TEXT("World map fog presentation: Seed=%d Revision=%d Cells=%d Loaded=%d Remote=%d."),
+            Config.WorldSeed, Config.GeneratorRevision, ExplorationSave != nullptr ? ExplorationSave->GetExploredCellCount() : 0,
+            bExplorationLoadedForWorld ? 1 : 0, bRemoteExplored ? 1 : 0);
+    }
     for (const FIntPoint& Key : BuildPrioritizedTileCoordinates(Centre, Extent))
     {
         FWorldMapTile* ExistingTile = Tiles.Find(Key);

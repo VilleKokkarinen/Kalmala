@@ -201,7 +201,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Define a bounded owning-player reveal radius driven only by that pawn's already replicated movement; unexplored areas must not disclose terrain classification, water, landmarks, population, or discoveries.
   - [x] Persist personal explored coverage under the immutable world identity and version it independently from generated-world/save data.
   - [x] Distinguish personal exploration from later shared exploration visually with original Kalmala treatment.
-  - [ ] Verify reconnect/restart persistence, identity mismatch rejection, reveal-edge continuity, and that a client cannot reveal remote terrain or another player's exploration through UI input.
+  - [x] Verify reconnect/restart persistence, identity mismatch rejection, reveal-edge continuity, and that a client cannot reveal remote terrain or another player's exploration through UI input.
 
 - [ ] **Add personal map pins and player orientation.**
   - [ ] Draw a centred, facing owning-player marker and optional local coordinate/grid aids without route guidance.
