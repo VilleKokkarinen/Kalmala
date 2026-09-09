@@ -5,6 +5,8 @@
 #include "KalmalaMinimapRaster.h"
 #include "KalmalaMinimapViewModel.h"
 #include "KalmalaWorldGenerationConfig.h"
+#include "KalmalaWorldMapExplorationSaveGame.h"
+#include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWorldMapWidgetTest, "Kalmala.UI.WorldMap.LocalPresentation",
@@ -49,6 +51,22 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Fog covers every local map sample"), FogPixels.Num(), 45);
     TestEqual(TEXT("Fog clears only the owning-pawn sample"), FogPixels[22].A, uint8(0));
     TestEqual(TEXT("Fog fully hides remote map samples"), FogPixels[0].A, uint8(255));
+    UKalmalaWorldMapExplorationSaveGame* Exploration = NewObject<UKalmalaWorldMapExplorationSaveGame>();
+    Exploration->InitializeForWorld(Config);
+    TestTrue(TEXT("Personal coverage records an owning-player reveal"), Exploration->RecordReveal(FVector2D::ZeroVector, 6500.0f));
+    TestTrue(TEXT("Personal coverage retains a previously revealed local cell"), Exploration->IsExplored(FVector2D(500.0f, 500.0f)));
+    TestFalse(TEXT("Personal coverage rejects remote unexplored cells"), Exploration->IsExplored(FVector2D(20000.0f, 0.0f)));
+    TArray<uint8> SerializedExploration;
+    TestTrue(TEXT("Personal coverage serializes independently in memory"), UGameplayStatics::SaveGameToMemory(Exploration, SerializedExploration));
+    UKalmalaWorldMapExplorationSaveGame* ReloadedExploration = Cast<UKalmalaWorldMapExplorationSaveGame>(UGameplayStatics::LoadGameFromMemory(SerializedExploration));
+    TestNotNull(TEXT("Personal coverage reloads from its own save schema"), ReloadedExploration);
+    if (ReloadedExploration != nullptr)
+    {
+        TestTrue(TEXT("Reloaded personal coverage retains the immutable identity"), ReloadedExploration->MatchesWorld(Config));
+        FKalmalaWorldGenerationConfig MismatchedConfig = Config;
+        ++MismatchedConfig.WorldSeed;
+        TestFalse(TEXT("Personal coverage rejects a mismatched immutable identity"), ReloadedExploration->MatchesWorld(MismatchedConfig));
+    }
     UKalmalaWorldMapWidget* Widget = NewObject<UKalmalaWorldMapWidget>();
     Widget->ConfigureViewportPlacement();
     const FGameViewportWidgetSlot Slot = UGameViewportSubsystem::Get()->GetWidgetSlot(Widget);

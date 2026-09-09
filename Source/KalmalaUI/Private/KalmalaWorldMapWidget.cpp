@@ -7,6 +7,8 @@
 #include "Input/Reply.h"
 #include "KalmalaMinimapRaster.h"
 #include "KalmalaMinimapViewModel.h"
+#include "KalmalaWorldMapExplorationSaveGame.h"
+#include "Kismet/GameplayStatics.h"
 #include "Misc/Crc.h"
 #include "Rendering/DrawElements.h"
 #include "Misc/CommandLine.h"
@@ -102,7 +104,7 @@ bool UKalmalaWorldMapWidget::IsWithinLocalRevealRadius(const FVector2D WorldPosi
 }
 
 TArray<FColor> UKalmalaWorldMapWidget::BuildFogPixels(const FVector2D MapCentre, const FVector2D MapExtent,
-    const FVector2D OwningPawnLocation, const FIntPoint Dimensions)
+    const FVector2D OwningPawnLocation, const FIntPoint Dimensions, const UKalmalaWorldMapExplorationSaveGame* Exploration)
 {
     TArray<FColor> Pixels;
     if (Dimensions.X <= 0 || Dimensions.Y <= 0 || MapExtent.X <= 0.0f || MapExtent.Y <= 0.0f) return Pixels;
@@ -114,7 +116,8 @@ TArray<FColor> UKalmalaWorldMapWidget::BuildFogPixels(const FVector2D MapCentre,
             Dimensions.Y > 1 ? static_cast<float>(Y) / static_cast<float>(Dimensions.Y - 1) * 2.0f - 1.0f : 0.0f);
         const FVector2D WorldPosition = MapCentre + Normalized * MapExtent;
         // Fully opaque pixels disclose neither sampled terrain nor water treatment.
-        Pixels.Add(IsWithinLocalRevealRadius(WorldPosition, OwningPawnLocation, LocalRevealRadius)
+        Pixels.Add((IsWithinLocalRevealRadius(WorldPosition, OwningPawnLocation, LocalRevealRadius)
+                || (Exploration != nullptr && Exploration->IsExplored(WorldPosition)))
             ? FColor(0, 0, 0, 0) : FColor(8, 18, 24, 255));
     }
     return Pixels;
@@ -172,7 +175,7 @@ void UKalmalaWorldMapWidget::UploadCompletedTiles()
 void UKalmalaWorldMapWidget::UpdateFogTexture(const FVector2D MapCentre, const FVector2D MapExtent,
     const FVector2D OwningPawnLocation, const FIntPoint Dimensions)
 {
-    const TArray<FColor> Pixels = BuildFogPixels(MapCentre, MapExtent, OwningPawnLocation, Dimensions);
+    const TArray<FColor> Pixels = BuildFogPixels(MapCentre, MapExtent, OwningPawnLocation, Dimensions, ExplorationSave);
     if (Pixels.Num() != Dimensions.X * Dimensions.Y) return;
     if (FogTexture != nullptr && (FogTexture->GetSizeX() != Dimensions.X || FogTexture->GetSizeY() != Dimensions.Y))
     {
@@ -192,6 +195,31 @@ void UKalmalaWorldMapWidget::UpdateFogTexture(const FVector2D MapCentre, const F
     auto* Region = new FUpdateTextureRegion2D(0, 0, 0, 0, Dimensions.X, Dimensions.Y);
     FogTexture->UpdateTextureRegions(0, 1, Region, Dimensions.X * sizeof(FColor), sizeof(FColor), Upload,
         [](uint8* Data, const FUpdateTextureRegion2D* Regions) { FMemory::Free(Data); delete Regions; });
+}
+
+FString UKalmalaWorldMapWidget::GetExplorationSaveSlot(const FKalmalaWorldGenerationConfig& Config) const
+{
+    const int32 PlayerIndex = GetOwningPlayer() != nullptr ? GetOwningPlayer()->GetLocalPlayer()->GetControllerId() : 0;
+    return FString::Printf(TEXT("KalmalaPersonalMapCoverage_v1_%llu_%d_%d"), Config.WorldSeed, Config.GeneratorRevision, PlayerIndex);
+}
+
+void UKalmalaWorldMapWidget::EnsureExplorationForWorld(const FKalmalaWorldGenerationConfig& Config)
+{
+    if (ExplorationSave != nullptr && ExplorationSave->MatchesWorld(Config)) return;
+    ExplorationSave = Cast<UKalmalaWorldMapExplorationSaveGame>(UGameplayStatics::LoadGameFromSlot(GetExplorationSaveSlot(Config), 0));
+    if (ExplorationSave == nullptr || !ExplorationSave->MatchesWorld(Config))
+    {
+        ExplorationSave = NewObject<UKalmalaWorldMapExplorationSaveGame>(this);
+        ExplorationSave->InitializeForWorld(Config);
+    }
+}
+
+void UKalmalaWorldMapWidget::RecordLocalExploration(const FVector2D OwningPawnLocation)
+{
+    if (ExplorationSave != nullptr && ExplorationSave->RecordReveal(OwningPawnLocation, LocalRevealRadius))
+    {
+        UGameplayStatics::SaveGameToSlot(ExplorationSave, GetExplorationSaveSlot(TileConfig), 0);
+    }
 }
 
 void UKalmalaWorldMapWidget::EvictUnusedTiles()
@@ -270,6 +298,8 @@ void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
     if (!(Config == TileConfig)) { TileConfig = Config; InvalidateOutstandingTileJobs(); }
     const FVector2D Centre = ViewModel->GetMapCentre();
     const FVector2D Extent = ViewModel->GetMapExtent();
+    EnsureExplorationForWorld(Config);
+    RecordLocalExploration(PawnLocation);
     UpdateFogTexture(Centre, Extent, PawnLocation, ViewModel->GetMapSampleDimensions());
     for (const FIntPoint& Key : BuildPrioritizedTileCoordinates(Centre, Extent))
     {

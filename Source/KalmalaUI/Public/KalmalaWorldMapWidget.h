@@ -8,6 +8,7 @@
 #include "KalmalaWorldMapWidget.generated.h"
 
 class UKalmalaMinimapViewModel;
+class UKalmalaWorldMapExplorationSaveGame;
 class UTexture2D;
 
 /** Large local map surface built from the same disposable seed-derived samples as the minimap. */
@@ -30,7 +31,8 @@ public:
     static float ClampMapZoom(float RequestedZoom, float MinZoom, float MaxZoom);
     /** Pure local fog seam. Only the owning pawn position may open the reveal circle. */
     static bool IsWithinLocalRevealRadius(FVector2D WorldPosition, FVector2D OwningPawnLocation, float RevealRadius);
-    static TArray<FColor> BuildFogPixels(FVector2D MapCentre, FVector2D MapExtent, FVector2D OwningPawnLocation, FIntPoint Dimensions);
+    static TArray<FColor> BuildFogPixels(FVector2D MapCentre, FVector2D MapExtent, FVector2D OwningPawnLocation, FIntPoint Dimensions,
+        const UKalmalaWorldMapExplorationSaveGame* Exploration = nullptr);
 
 protected:
     virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
@@ -57,6 +59,9 @@ private:
     void UploadCompletedTiles();
     void EvictUnusedTiles();
     void UpdateFogTexture(FVector2D MapCentre, FVector2D MapExtent, FVector2D OwningPawnLocation, FIntPoint Dimensions);
+    void EnsureExplorationForWorld(const FKalmalaWorldGenerationConfig& Config);
+    void RecordLocalExploration(FVector2D OwningPawnLocation);
+    FString GetExplorationSaveSlot(const FKalmalaWorldGenerationConfig& Config) const;
     void LogDeveloperTileFingerprint();
     void InvalidateOutstandingTileJobs();
     static TArray<FColor> BuildTilePixels(FKalmalaWorldGenerationConfig Config, FIntPoint TileCoordinate);
@@ -69,6 +74,8 @@ private:
     TMap<FIntPoint, FWorldMapTile> Tiles;
     TStrongObjectPtr<UTexture2D> FogTexture;
     FSlateBrush FogBrush;
+    UPROPERTY(Transient)
+    TObjectPtr<UKalmalaWorldMapExplorationSaveGame> ExplorationSave;
     FKalmalaWorldGenerationConfig TileConfig;
     uint32 TileEpoch = 1;
     bool bMapOpen = false;
@@ -88,6 +95,6 @@ private:
     static constexpr float TileWorldSize = 10000.0f;
     static constexpr int32 TileSamplesPerAxis = 33;
     static constexpr int32 MaxCachedTiles = 64;
-    // Presentation-only local reveal. Persistent personal coverage is a later increment.
+    // Local coverage is versioned and persisted independently from world deltas.
     static constexpr float LocalRevealRadius = 6500.0f;
 };

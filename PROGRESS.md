@@ -1457,3 +1457,15 @@ Multiplayer impact: Local UI presentation only. The reveal uses only the owning 
 Known limits: Fog coverage is current-session-only and has no memory of prior movement, identity-mismatch rejection, personal/shared visual distinction, pins, player markers, pings, controller navigation, or late-join profile. The opaque mask protects the rendered map, while the existing disposable tile cache remains local presentation data.
 
 Next task: Persist versioned personal explored coverage under immutable world identity, rejecting mismatches independently of generated-world sparse saves.
+
+### 2026-09-09 09:22 EEST - Persist personal expanded-map exploration
+
+Outcome: Completed the next Phase 9 increment. The local map now stores revealed coverage as an independent version-1 `SaveGame`, keyed by immutable seed/revision and local-player index. It records only a bounded chronological set of 500 cm explored cells (maximum 8,192); identity mismatch creates a fresh in-memory coverage set rather than reusing another world's data. The fog combines existing current-pawn reveal with this local coverage and does not retain terrain, water, actor, discovery, or gameplay data.
+
+Changed: `Source/KalmalaUI/Public/KalmalaWorldMapExplorationSaveGame.h`; `Source/KalmalaUI/Private/KalmalaWorldMapExplorationSaveGame.cpp`; `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build passed. Focused `Kalmala.UI.WorldMap.LocalPresentation` passed, including local reveal recording, remote-cell rejection, memory serialization/reload, and immutable identity mismatch rejection (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapCoverageFinal-99db8bbe-5d42-47e9-b780-2861bbfe4036/automation.log`). `git diff --check` passed.
+
+Multiplayer impact: Local presentation/personal persistence only. The map reads the owning pawn's already replicated transform and immutable identity, sends no RPC, does not query remote pawns or server-owned actors, and cannot affect authority, terrain, collision, population, discoveries, or generated-world save data.
+
+Known limits: Coverage uses intentionally coarse bounded cells and does not yet visually distinguish personal from future shared exploration. Reconnect/restart UI coverage, reveal-edge continuity, pins, player markers, controller navigation, and sharing remain subsequent work. Next task: distinguish personal exploration from later shared exploration visually with original Kalmala treatment.
