@@ -42,6 +42,19 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Local pin placement keeps its selected finite style"), PinWidget->LocalPins[0].Style, EKalmalaWorldMapPinStyle::Lantern);
         TestEqual(TEXT("Local pin placement stores only a sanitized label"), PinWidget->LocalPins[0].Label, FString(TEXT("Lantern ridge")));
         TestEqual(TEXT("Local pin placement preserves the clicked world coordinate"), PinWidget->LocalPins[0].WorldLocation, FVector2D(1250.0f, -750.0f));
+        TestEqual(TEXT("Pin accessibility text carries style and non-colour states"),
+            UKalmalaWorldMapWidget::GetPinAccessibilityLabel(PinWidget->LocalPins[0]), FString(TEXT("Lantern marker: Lantern ridge; active; shown")));
+        PinWidget->LocalPins[0].bVisible = false;
+        PinWidget->SelectNextPin();
+        TestEqual(TEXT("Keyboard selection reaches hidden pins"), PinWidget->SelectedPinIndex, 0);
+        TestTrue(TEXT("Keyboard selection restores a hidden pin"), PinWidget->ToggleSelectedPinVisibility());
+        TestTrue(TEXT("Keyboard selection toggles a pin completion state"), PinWidget->ToggleSelectedPinCompletion());
+        TestTrue(TEXT("Keyboard selection removes a pin"), PinWidget->RemoveSelectedPin());
+        TestTrue(TEXT("Keyboard removal clears the last selected pin"), PinWidget->LocalPins.IsEmpty() && PinWidget->SelectedPinIndex == INDEX_NONE);
+        PinWidget->BeginPinPlacement(FVector2D(1250.0f, -750.0f));
+        PinWidget->PendingPinLabel = TEXT("Lantern ridge");
+        PinWidget->PendingPinStyle = EKalmalaWorldMapPinStyle::Lantern;
+        PinWidget->CommitPinPlacement();
     }
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;

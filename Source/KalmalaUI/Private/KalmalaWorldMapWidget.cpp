@@ -144,6 +144,14 @@ bool UKalmalaWorldMapWidget::IsValidPinLabel(const FString& Label)
     return !Label.IsEmpty() && Label.Len() <= MaxPinLabelLength && Label == SanitizePinLabel(Label);
 }
 
+FString UKalmalaWorldMapWidget::GetPinAccessibilityLabel(const FKalmalaWorldMapPersonalPin& Pin)
+{
+    const TCHAR* StyleName = Pin.Style == EKalmalaWorldMapPinStyle::Lantern ? TEXT("Lantern")
+        : Pin.Style == EKalmalaWorldMapPinStyle::Thread ? TEXT("Thread") : TEXT("Cairn");
+    return FString::Printf(TEXT("%s marker: %s; %s; %s"), StyleName, *Pin.Label,
+        Pin.bComplete ? TEXT("complete") : TEXT("active"), Pin.bVisible ? TEXT("shown") : TEXT("hidden"));
+}
+
 FColor UKalmalaWorldMapWidget::GetFogTreatmentColor(const EKalmalaWorldMapFogTreatment Treatment)
 {
     switch (Treatment)
@@ -296,11 +304,13 @@ void UKalmalaWorldMapWidget::EnsurePinsForWorld(const FKalmalaWorldGenerationCon
     if (PinsSave != nullptr && PinsSave->MatchesWorld(Config))
     {
         LocalPins = PinsSave->GetPins();
+        if (!LocalPins.IsValidIndex(SelectedPinIndex)) SelectedPinIndex = INDEX_NONE;
         return;
     }
     PinsSave = NewObject<UKalmalaWorldMapPinsSaveGame>(this);
     PinsSave->InitializeForWorld(Config);
     LocalPins.Reset();
+    SelectedPinIndex = INDEX_NONE;
 }
 
 void UKalmalaWorldMapWidget::PersistPins()
@@ -510,10 +520,17 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
                 ESlateDrawEffect::None, FLinearColor(0.86f, 0.96f, 0.9f, 1.0f), true, 2.5f);
         }
     }
-    const FString Hint = FString::Printf(TEXT("MAP  |  %.0fm  |  Grid %.0fm  |  Drag to pan · Wheel to zoom · R to recenter · M / Esc to close"),
+    const FString Hint = FString::Printf(TEXT("MAP  |  %.0fm  |  Grid %.0fm  |  Drag/Arrows pan · Wheel/PgUp zoom · R recenter · M / Esc close"),
         MapZoom / 100.0f, ChooseGridSpacing(MapZoom) / 100.0f);
     FSlateDrawElement::MakeText(OutDrawElements, DrawLayer + 5, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(20.0f, 18.0f))), Hint,
         FCoreStyle::GetDefaultFontStyle("Regular", 16), ESlateDrawEffect::None, FLinearColor(0.85f, 0.91f, 0.87f, 1.0f));
+    if (LocalPins.IsValidIndex(SelectedPinIndex))
+    {
+        const FString SelectedHint = FString::Printf(TEXT("SELECTED: %s  |  Enter complete · H show/hide · Delete remove"),
+            *GetPinAccessibilityLabel(LocalPins[SelectedPinIndex]));
+        FSlateDrawElement::MakeText(OutDrawElements, DrawLayer + 6, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(20.0f, 42.0f))), SelectedHint,
+            FCoreStyle::GetDefaultFontStyle("Regular", 14), ESlateDrawEffect::None, FLinearColor(0.92f, 0.8f, 0.58f, 1.0f));
+    }
     if (bPinLabelEntry)
     {
         const FString Draft = PendingPinLabel.IsEmpty() ? TEXT("Name marker…") : PendingPinLabel;
@@ -564,9 +581,53 @@ void UKalmalaWorldMapWidget::CommitPinPlacement()
     Pin.WorldLocation = PendingPinLocation;
     Pin.Label = Label;
     Pin.Style = PendingPinStyle;
+    SelectedPinIndex = LocalPins.Num() - 1;
     bPinLabelEntry = false;
     PendingPinLabel.Reset();
     PersistPins();
+}
+
+void UKalmalaWorldMapWidget::SelectNextPin()
+{
+    if (LocalPins.IsEmpty()) { SelectedPinIndex = INDEX_NONE; return; }
+    SelectedPinIndex = LocalPins.IsValidIndex(SelectedPinIndex) ? (SelectedPinIndex + 1) % LocalPins.Num() : 0;
+}
+
+bool UKalmalaWorldMapWidget::ToggleSelectedPinCompletion()
+{
+    if (!LocalPins.IsValidIndex(SelectedPinIndex)) return false;
+    LocalPins[SelectedPinIndex].bComplete = !LocalPins[SelectedPinIndex].bComplete;
+    PersistPins();
+    return true;
+}
+
+bool UKalmalaWorldMapWidget::ToggleSelectedPinVisibility()
+{
+    if (!LocalPins.IsValidIndex(SelectedPinIndex)) return false;
+    LocalPins[SelectedPinIndex].bVisible = !LocalPins[SelectedPinIndex].bVisible;
+    PersistPins();
+    return true;
+}
+
+bool UKalmalaWorldMapWidget::RemoveSelectedPin()
+{
+    if (!LocalPins.IsValidIndex(SelectedPinIndex)) return false;
+    LocalPins.RemoveAt(SelectedPinIndex);
+    SelectedPinIndex = LocalPins.IsEmpty() ? INDEX_NONE : FMath::Min(SelectedPinIndex, LocalPins.Num() - 1);
+    PersistPins();
+    return true;
+}
+
+void UKalmalaWorldMapWidget::PanByKeyboardDelta(const FVector2D& ScreenDelta)
+{
+    const FVector2D MapSize = GetCachedGeometry().GetLocalSize() - FVector2D(88.0f);
+    PanByScreenDelta(ScreenDelta, MapSize);
+}
+
+void UKalmalaWorldMapWidget::ZoomAtMapCentre(const float WheelDelta)
+{
+    const FVector2D MapSize = GetCachedGeometry().GetLocalSize() - FVector2D(88.0f);
+    ZoomAtScreenPosition(WheelDelta, MapSize * 0.5f, MapSize);
 }
 
 void UKalmalaWorldMapWidget::CancelPinPlacement()
@@ -592,8 +653,9 @@ void UKalmalaWorldMapWidget::DrawPins(const FGeometry& AllottedGeometry, const F
     const FVector2D Margin(44.0f, 44.0f);
     const FVector2D Centre = ViewModel->GetMapCentre();
     const FVector2D Extent = ViewModel->GetMapExtent();
-    for (const FKalmalaWorldMapPersonalPin& Pin : LocalPins)
+    for (int32 Index = 0; Index < LocalPins.Num(); ++Index)
     {
+        const FKalmalaWorldMapPersonalPin& Pin = LocalPins[Index];
         if (!Pin.bVisible) continue;
         const FVector2D Normalized = WorldToMapNormalized(Pin.WorldLocation, Centre, Extent);
         if (Normalized.X < 0.0f || Normalized.X > 1.0f || Normalized.Y < 0.0f || Normalized.Y > 1.0f) continue;
@@ -605,7 +667,11 @@ void UKalmalaWorldMapWidget::DrawPins(const FGeometry& AllottedGeometry, const F
         FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 1, AllottedGeometry.ToPaintGeometry(), Diamond, ESlateDrawEffect::None, Colour, true, 2.0f);
         if (Pin.bComplete) FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 2, AllottedGeometry.ToPaintGeometry(),
             { Position + FVector2D(-4.0f, 0.0f), Position + FVector2D(-1.0f, 3.0f), Position + FVector2D(5.0f, -4.0f) }, ESlateDrawEffect::None, FLinearColor::White, true, 1.5f);
-        FSlateDrawElement::MakeText(OutDrawElements, LayerId + 3, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(Position + FVector2D(10.0f, -8.0f))), Pin.Label,
+        if (Index == SelectedPinIndex) FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 3,
+            AllottedGeometry.ToPaintGeometry(FVector2D(22.0f, 22.0f), FSlateLayoutTransform(Position - FVector2D(11.0f))),
+            FCoreStyle::Get().GetBrush("WhiteBrush"), ESlateDrawEffect::None, FLinearColor(1.0f, 1.0f, 1.0f, 0.2f));
+        FSlateDrawElement::MakeText(OutDrawElements, LayerId + 4, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(Position + FVector2D(10.0f, -8.0f))),
+            GetPinAccessibilityLabel(Pin),
             FCoreStyle::GetDefaultFontStyle("Regular", 12), ESlateDrawEffect::None, FLinearColor::White);
     }
 }
@@ -640,6 +706,7 @@ FReply UKalmalaWorldMapWidget::NativeOnMouseButtonDown(const FGeometry& InGeomet
         if (const int32 PinIndex = FindVisiblePinAtScreenPosition(MapPosition, MapSize); PinIndex != INDEX_NONE)
         {
             LocalPins.RemoveAt(PinIndex);
+            SelectedPinIndex = LocalPins.IsEmpty() ? INDEX_NONE : FMath::Min(PinIndex, LocalPins.Num() - 1);
             PersistPins();
         }
         return FReply::Handled();
@@ -648,6 +715,7 @@ FReply UKalmalaWorldMapWidget::NativeOnMouseButtonDown(const FGeometry& InGeomet
     {
         if (const int32 PinIndex = FindVisiblePinAtScreenPosition(MapPosition, MapSize); PinIndex != INDEX_NONE)
         {
+            SelectedPinIndex = PinIndex;
             if (InMouseEvent.IsControlDown()) LocalPins[PinIndex].bVisible = !LocalPins[PinIndex].bVisible;
             else LocalPins[PinIndex].bComplete = !LocalPins[PinIndex].bComplete;
             PersistPins();
@@ -675,14 +743,34 @@ FReply UKalmalaWorldMapWidget::NativeOnMouseMove(const FGeometry& InGeometry, co
 
 FReply UKalmalaWorldMapWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
-    if (!bPinLabelEntry) return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
     const FKey Key = InKeyEvent.GetKey();
-    if (Key == EKeys::Enter) { CommitPinPlacement(); return FReply::Handled(); }
-    if (Key == EKeys::Escape) { CancelPinPlacement(); return FReply::Handled(); }
-    if (Key == EKeys::BackSpace) { PendingPinLabel.LeftChopInline(1); return FReply::Handled(); }
-    if (Key == EKeys::One) { PendingPinStyle = EKalmalaWorldMapPinStyle::Cairn; return FReply::Handled(); }
-    if (Key == EKeys::Two) { PendingPinStyle = EKalmalaWorldMapPinStyle::Lantern; return FReply::Handled(); }
-    if (Key == EKeys::Three) { PendingPinStyle = EKalmalaWorldMapPinStyle::Thread; return FReply::Handled(); }
+    if (bPinLabelEntry)
+    {
+        if (Key == EKeys::Enter || Key == EKeys::Gamepad_FaceButton_Bottom) { CommitPinPlacement(); return FReply::Handled(); }
+        if (Key == EKeys::Escape || Key == EKeys::Gamepad_FaceButton_Right) { CancelPinPlacement(); return FReply::Handled(); }
+        if (Key == EKeys::BackSpace) { PendingPinLabel.LeftChopInline(1); return FReply::Handled(); }
+        if (Key == EKeys::One) { PendingPinStyle = EKalmalaWorldMapPinStyle::Cairn; return FReply::Handled(); }
+        if (Key == EKeys::Two) { PendingPinStyle = EKalmalaWorldMapPinStyle::Lantern; return FReply::Handled(); }
+        if (Key == EKeys::Three) { PendingPinStyle = EKalmalaWorldMapPinStyle::Thread; return FReply::Handled(); }
+        return FReply::Unhandled();
+    }
+    if (!bMapOpen) return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+    if (Key == EKeys::Tab || Key == EKeys::Gamepad_FaceButton_Left) { SelectNextPin(); return FReply::Handled(); }
+    if (Key == EKeys::P) { BeginPinPlacement(ScreenToWorld((InGeometry.GetLocalSize() - FVector2D(88.0f)) * 0.5f, InGeometry.GetLocalSize() - FVector2D(88.0f))); return FReply::Handled(); }
+    if (Key == EKeys::Enter || Key == EKeys::Gamepad_FaceButton_Bottom)
+    {
+        if (!ToggleSelectedPinCompletion()) BeginPinPlacement(ScreenToWorld((InGeometry.GetLocalSize() - FVector2D(88.0f)) * 0.5f, InGeometry.GetLocalSize() - FVector2D(88.0f)));
+        return FReply::Handled();
+    }
+    if (Key == EKeys::H || Key == EKeys::Gamepad_FaceButton_Right) { ToggleSelectedPinVisibility(); return FReply::Handled(); }
+    if (Key == EKeys::Delete || Key == EKeys::Gamepad_LeftTrigger) { RemoveSelectedPin(); return FReply::Handled(); }
+    if (Key == EKeys::R || Key == EKeys::Gamepad_FaceButton_Top) { Recenter(); return FReply::Handled(); }
+    if (Key == EKeys::Left || Key == EKeys::Gamepad_DPad_Left) { PanByKeyboardDelta(FVector2D(64.0f, 0.0f)); return FReply::Handled(); }
+    if (Key == EKeys::Right || Key == EKeys::Gamepad_DPad_Right) { PanByKeyboardDelta(FVector2D(-64.0f, 0.0f)); return FReply::Handled(); }
+    if (Key == EKeys::Up || Key == EKeys::Gamepad_DPad_Up) { PanByKeyboardDelta(FVector2D(0.0f, -64.0f)); return FReply::Handled(); }
+    if (Key == EKeys::Down || Key == EKeys::Gamepad_DPad_Down) { PanByKeyboardDelta(FVector2D(0.0f, 64.0f)); return FReply::Handled(); }
+    if (Key == EKeys::PageUp || Key == EKeys::Gamepad_RightShoulder) { ZoomAtMapCentre(1.0f); return FReply::Handled(); }
+    if (Key == EKeys::PageDown || Key == EKeys::Gamepad_LeftShoulder) { ZoomAtMapCentre(-1.0f); return FReply::Handled(); }
     return FReply::Unhandled();
 }
 

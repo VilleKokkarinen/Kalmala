@@ -207,7 +207,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Draw a centred, facing owning-player marker and optional local coordinate/grid aids without route guidance.
   - [x] Support an original finite pin palette, label entry with validation/length limits, click placement, click-to-toggle completion/visibility, and explicit removal.
   - [x] Persist pins per player and world identity; never accept client pin data as a server gameplay instruction or discovery claim.
-  - [ ] Add accessible non-colour-only pin states and keyboard/controller alternatives for every pointer interaction.
+  - [x] Add accessible non-colour-only pin states and keyboard/controller alternatives for every pointer interaction.
   - [ ] Verify map-to-world coordinate conversion at every zoom level, pin persistence, overlap selection, input focus, and no network/gameplay side effects.
 
 - [ ] **Add opt-in co-op awareness and temporary pings.**

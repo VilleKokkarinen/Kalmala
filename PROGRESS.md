@@ -1529,3 +1529,15 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: None. Pin data originates only from local map pointer conversion and remains in the local save slot; it sends no RPC, replication, client request, actor query, discovery claim, or gameplay instruction. No server authority, terrain, collision, population, generated-world save, or replicated contract changed.
 
 Known limits: Pins still need non-colour-only states plus keyboard/controller alternatives, overlap selection, and end-to-end input-focus/coordinate verification. There is no pin sharing, player awareness, ping, route guidance, or server-side pin data. Next task: add accessible non-colour-only pin states and keyboard/controller alternatives for every pointer interaction.
+
+### 2026-09-09 10:19 EEST - Add accessible personal map-pin controls
+
+Outcome: Completed the pin accessibility increment. Every visible marker now includes textual style, label, completion, and visibility state in addition to colour/shape, with a local selection outline. `Tab` reaches every personal pin—including hidden entries—while `Enter`, `H`, and `Delete` provide keyboard completion, visibility, and removal; `P` starts centred placement. Gamepad face buttons provide the same pin actions and recentering, with D-pad/shoulders supplying local pan/zoom.
+
+Changed: `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. Focused `Kalmala.UI.WorldMap.LocalPresentation` passed, including non-colour text, hidden-pin keyboard selection, keyboard visibility/completion toggle, and removal (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapAccessiblePinsStatus-f2cc31e01c6145129b4aacb25a30a35a/automation.log`). `git diff --check` passed.
+
+Multiplayer impact: None. These are local widget input and presentation paths over existing local personal pins. They send no RPC, replication, client request, actor query, discovery claim, or gameplay instruction and do not alter server authority, terrain, collision, population, generated-world saves, or replicated contracts.
+
+Known limits: Keyboard/controller input is focused local map control, not an assistive screen-reader integration. Pin overlap selection and end-to-end coordinate/input-focus verification remain next; no sharing, player awareness, pings, routing, or server-side pin data exists. Next task: verify map-to-world coordinate conversion at every zoom level, pin persistence, overlap selection, input focus, and no network/gameplay side effects.

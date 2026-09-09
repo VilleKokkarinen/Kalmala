@@ -51,6 +51,8 @@ public:
     /** Bounds a local player-entered label before it can become presentation state. */
     static FString SanitizePinLabel(FString Label);
     static bool IsValidPinLabel(const FString& Label);
+    /** Textual pin state stays distinct when colour, marker shape, or visibility is unavailable. */
+    static FString GetPinAccessibilityLabel(const FKalmalaWorldMapPersonalPin& Pin);
     /** Original map-fog palette; ReservedShared has no data source until shared cartography is authorized. */
     static FColor GetFogTreatmentColor(EKalmalaWorldMapFogTreatment Treatment);
     static TArray<FColor> BuildFogPixels(FVector2D MapCentre, FVector2D MapExtent, FVector2D OwningPawnLocation, FIntPoint Dimensions,
@@ -99,6 +101,12 @@ private:
     void BeginPinPlacement(const FVector2D& WorldLocation);
     void CommitPinPlacement();
     void CancelPinPlacement();
+    void SelectNextPin();
+    bool ToggleSelectedPinCompletion();
+    bool ToggleSelectedPinVisibility();
+    bool RemoveSelectedPin();
+    void PanByKeyboardDelta(const FVector2D& ScreenDelta);
+    void ZoomAtMapCentre(float WheelDelta);
     void DrawPins(const FGeometry& AllottedGeometry, const FVector2D& MapSize, int32 LayerId, FSlateWindowElementList& OutDrawElements) const;
     static FLinearColor GetPinColour(EKalmalaWorldMapPinStyle Style);
 
@@ -117,6 +125,7 @@ private:
     bool bMapOpen = false;
     bool bDragging = false;
     bool bPinLabelEntry = false;
+    int32 SelectedPinIndex = INDEX_NONE;
     FVector2D LastDragPosition = FVector2D::ZeroVector;
     FVector2D PendingPinLocation = FVector2D::ZeroVector;
     FString PendingPinLabel;
