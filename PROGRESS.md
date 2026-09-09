@@ -1553,3 +1553,15 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: None. The inverse transform, selection ordering, focus, and tests operate only on local widget memory and the existing local pin save schema. They send no RPC, query no actor/discovery, and cannot change gameplay, terrain, collision, authority, replication, population, or generated-world persistence.
 
 Known limits: This completes personal pins but does not add opt-in player awareness, server-validated pings, shared cartography, screen-reader integration, route guidance, or late-join profiling. Next task: define an owner-controlled opt-in for visible connected-player markers with clear privacy/offline handling.
+
+### 2026-09-09 15:03 EEST - Close completed Phase 9 map gates
+
+Outcome: Reconciled the Phase 9 roadmap handoff after the verified sub-increments and the already-committed co-op-awareness work. The local-map contract, scalable generated presentation, local fog-of-war, and personal pins/orientation parent gates are now marked complete because every scoped child requirement has a recorded passing build and focused/peer verification. Shared cartography remains unstarted and explicitly blocked by its M2 construction prerequisite; the next eligible work is the integrated full-map verification gate.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Re-reviewed the recorded successful forced editor builds and focused/peer evidence for every completed child gate, including `Kalmala.UI.WorldMap.LocalPresentation`, `Kalmala.UI.WorldMap.PerformanceBudget`, and `Scripts/Verify-WorldMapTiles.ps1`. `git diff --check` passes for this documentation-only reconciliation.
+
+Multiplayer impact: None. This changes planning state only. It introduces no code, RPC, replication, actor access, authoritative mutation, persistence contract, terrain, collision, population, discovery, or gameplay path.
+
+Known limits: Shared cartography must wait for the M2 construction and persistence prerequisites; it remains unimplemented. The next task is to run the full-map integrated build/automation and rendered host/client screenshots at the three required aspect ratios.

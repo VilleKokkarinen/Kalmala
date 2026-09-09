@@ -183,27 +183,27 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 **Intent:** add an original, nearly full-screen navigational map that expands the existing companion-minimap presentation without creating a second world simulation, exposing hidden server-owned content, or prescribing routes. It adopts familiar survival-map interactions—toggle, pan, zoom, personal pins, and intentional co-op sharing—without copying another game's UI, art, terminology, icons, or map data.
 
-- [ ] **Establish the local expanded-map contract.**
+- [x] **Establish the local expanded-map contract.**
   - [x] Bind `M` to open/close an almost full-screen local map overlay; Escape closes it before the Settings menu can open.
   - [x] Make opening the map pause local movement/look input and retain pointer/wheel input; closing restores the prior game-input state.
   - [x] Define continuous world-space pan, cursor-anchored wheel zoom, explicit zoom bounds, and a recenter-on-owning-player action.
   - [x] Keep one local map instance per local player, with no RPC, replicated UI state, world mutation, or gameplay authority change.
   - [x] Verify toggle/input priority, zoom clamping, panning bounds, player recentering, 4:3/16:9/ultrawide layout, and coexistence with the minimap and Settings menu.
 
-- [ ] **Build a scalable full-map presentation from the existing generated-world contract.**
+- [x] **Build a scalable full-map presentation from the existing generated-world contract.**
   - [x] Reuse immutable replicated world identity and local owning-pawn transform; do not sample actors, population layouts, hidden discoveries, hazards, or server-only state.
   - [x] Replace a single huge synchronous raster with bounded, cached, asynchronously generated world-space tiles and discard obsolete jobs after pan, zoom, identity, or player changes.
   - [x] Render original Kalmala terrain, ocean, inland water, and player-facing map treatment at multiple scales, preserving coastline agreement with terrain triangles.
   - [x] Establish measurable refresh/memory budgets and retain minimap responsiveness while the expanded map is open.
   - [x] Verify deterministic same-identity tiles, different-seed variation, seamless tile edges, no game-thread waits, and host/client presentation agreement.
 
-- [ ] **Add local exploration and fog-of-war without information leaks.**
+- [x] **Add local exploration and fog-of-war without information leaks.**
   - [x] Define a bounded owning-player reveal radius driven only by that pawn's already replicated movement; unexplored areas must not disclose terrain classification, water, landmarks, population, or discoveries.
   - [x] Persist personal explored coverage under the immutable world identity and version it independently from generated-world/save data.
   - [x] Distinguish personal exploration from later shared exploration visually with original Kalmala treatment.
   - [x] Verify reconnect/restart persistence, identity mismatch rejection, reveal-edge continuity, and that a client cannot reveal remote terrain or another player's exploration through UI input.
 
-- [ ] **Add personal map pins and player orientation.**
+- [x] **Add personal map pins and player orientation.**
   - [x] Draw a centred, facing owning-player marker and optional local coordinate/grid aids without route guidance.
   - [x] Support an original finite pin palette, label entry with validation/length limits, click placement, click-to-toggle completion/visibility, and explicit removal.
   - [x] Persist pins per player and world identity; never accept client pin data as a server gameplay instruction or discovery claim.
