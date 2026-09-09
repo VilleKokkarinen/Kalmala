@@ -8,6 +8,18 @@
 
 ## Run log
 
+### 2026-09-09 15:48 EEST - Document integrated expanded-map contracts
+
+Outcome: Completed the final full-map integration documentation gate. The technical architecture now consolidates local tiled-map/fog/pin boundaries, keyboard/controller controls, colour-independent state cues, owner-controlled co-op awareness, and the server validation/owner-only expiry rules for pings. Setup notes now describe the privacy and ping controls and correctly list screen-reader/remapping—not controller navigation—as later accessibility work.
+
+Changed: `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Documentation contract audit against `KalmalaWorldMapWidget`, `KalmalaMapAwarenessComponent`, `Kalmala.UI.WorldMap.LocalPresentation`, `Kalmala.UI.WorldMap.PerformanceBudget`, `Scripts/Verify-WorldMapTiles.ps1`, `Scripts/Verify-WorldMap.ps1`, `Scripts/Verify-WorldMapProfile.ps1`, and `Scripts/Verify-MapAwareness.ps1`; `git diff --check` passed.
+
+Multiplayer impact: Documentation only. The recorded contract remains: map/pin/fog inputs and persistence are local; co-op consent and pings are server-validated; ping inbox replication is owner-only; no shared exploration or pin data exists. No runtime, authority, replication, persistence, terrain, collision, discovery, population, or gameplay change.
+
+Known limits: Shared cartography is construction-gated until M2 and is absent. Screen-reader integration and input remapping remain later accessibility work. The next backlog entry is intentionally blocked by the M2 construction/persistence prerequisite; no later-milestone item is eligible until that prerequisite is available.
+
 ### 2026-09-09 15:37 EEST - Profile expanded-map open and late join
 
 Outcome: Completed the full-map profiling gate. The development-only peer runner opens, zooms, pans, and recentres the existing local map on a revision-4 host and a conflicting-seed late-joining client. Once the final local tile set is ready, each peer logs open latency, aggregate and maximum tile-worker time, aggregate and maximum local map-tick time, ready-tile count, and bounded CPU tile-cache bytes. The client profile is accepted only after its normal replicated immutable identity is received.

@@ -220,10 +220,10 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [ ] Define permissions, conflict/duplicate handling, sparse storage limits, world-identity compatibility, and a no-spoiler default before implementation.
   - [ ] Verify clients cannot forge shared exploration/pins, access another session's data, or use shared map state to materialize hidden gameplay content.
 
-- [ ] **Validate the full map as one integrated feature.**
+- [x] **Validate the full map as one integrated feature.**
   - [x] Run build plus focused automation for modal input, tiled rendering, fog, pins, and pings; include rendered host/client screenshots at three aspect ratios.
   - [x] Profile full-map open/pan/zoom memory, worker time, game-thread time, and late-join behavior before raising tile density or map range.
-  - [ ] Document all map/pin/share contracts, accessibility controls, known limits, and multiplayer authority decisions.
+  - [x] Document all map/pin/share contracts, accessibility controls, known limits, and multiplayer authority decisions.
 
 ## Later gameplay milestones
 
