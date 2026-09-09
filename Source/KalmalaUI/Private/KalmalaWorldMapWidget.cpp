@@ -103,6 +103,27 @@ bool UKalmalaWorldMapWidget::IsWithinLocalRevealRadius(const FVector2D WorldPosi
         && FVector2D::DistSquared(WorldPosition, OwningPawnLocation) <= FMath::Square(RevealRadius);
 }
 
+FVector2D UKalmalaWorldMapWidget::WorldToMapNormalized(const FVector2D WorldPosition, const FVector2D MapCentre, const FVector2D MapExtent)
+{
+    if (!FMath::IsFinite(WorldPosition.X) || !FMath::IsFinite(WorldPosition.Y) || MapExtent.X <= 0.0f || MapExtent.Y <= 0.0f)
+    {
+        return FVector2D::ZeroVector;
+    }
+    return (WorldPosition - (MapCentre - MapExtent)) / (MapExtent * 2.0f);
+}
+
+FVector2D UKalmalaWorldMapWidget::GetFacingDirection(const float FacingDegrees)
+{
+    const float FacingRadians = FMath::DegreesToRadians(FMath::IsFinite(FacingDegrees) ? FacingDegrees : 0.0f);
+    return FVector2D(FMath::Cos(FacingRadians), FMath::Sin(FacingRadians));
+}
+
+float UKalmalaWorldMapWidget::ChooseGridSpacing(const float InMapRadius)
+{
+    const float SafeRadius = FMath::Max(0.0f, InMapRadius);
+    return SafeRadius <= 7000.0f ? 2500.0f : SafeRadius <= 20000.0f ? 5000.0f : 10000.0f;
+}
+
 FColor UKalmalaWorldMapWidget::GetFogTreatmentColor(const EKalmalaWorldMapFogTreatment Treatment)
 {
     switch (Treatment)
@@ -385,6 +406,22 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
     {
         const FVector2D Centre = ViewModel->GetMapCentre();
         const FVector2D Extent = ViewModel->GetMapExtent();
+        const float GridSpacing = ChooseGridSpacing(MapZoom);
+        const FVector2D WorldMinimum = Centre - Extent;
+        const FVector2D WorldMaximum = Centre + Extent;
+        const FLinearColor GridColour(0.42f, 0.72f, 0.67f, 0.16f);
+        for (float X = FMath::FloorToFloat(WorldMinimum.X / GridSpacing) * GridSpacing; X <= WorldMaximum.X; X += GridSpacing)
+        {
+            const float NormalizedX = WorldToMapNormalized(FVector2D(X, Centre.Y), Centre, Extent).X;
+            FSlateDrawElement::MakeLines(OutDrawElements, DrawLayer + 1, MapGeometry,
+                { FVector2D(NormalizedX * MapSize.X, 0.0f), FVector2D(NormalizedX * MapSize.X, MapSize.Y) }, ESlateDrawEffect::None, GridColour, true, 1.0f);
+        }
+        for (float Y = FMath::FloorToFloat(WorldMinimum.Y / GridSpacing) * GridSpacing; Y <= WorldMaximum.Y; Y += GridSpacing)
+        {
+            const float NormalizedY = WorldToMapNormalized(FVector2D(Centre.X, Y), Centre, Extent).Y;
+            FSlateDrawElement::MakeLines(OutDrawElements, DrawLayer + 1, MapGeometry,
+                { FVector2D(0.0f, NormalizedY * MapSize.Y), FVector2D(MapSize.X, NormalizedY * MapSize.Y) }, ESlateDrawEffect::None, GridColour, true, 1.0f);
+        }
         for (const TPair<FIntPoint, FWorldMapTile>& Pair : Tiles) if (Pair.Value.Texture != nullptr)
         {
             const FVector2D WorldMin = FVector2D(Pair.Key) * TileWorldSize;
@@ -405,18 +442,29 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
             UE_LOG(LogTemp, VeryVerbose, TEXT("World map painted: Size=%.0fx%.0f Map=%.0fx%.0f Tiles=%d."), Size.X, Size.Y, MapSize.X, MapSize.Y, Tiles.Num());
         }
     }
-    FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 3, MapGeometry, FCoreStyle::Get().GetBrush("WhiteBrush"),
-        ESlateDrawEffect::None, FLinearColor(0.55f, 0.75f, 0.68f, 0.9f));
-    const FVector2D Centre = FVector2D(Margin.Left, Margin.Top) + MapSize * 0.5f;
-    TArray<FVector2D> Cross;
-    Cross.Add(Centre - FVector2D(12.0f, 0.0f)); Cross.Add(Centre + FVector2D(12.0f, 0.0f));
-    FSlateDrawElement::MakeLines(OutDrawElements, DrawLayer + 4, AllottedGeometry.ToPaintGeometry(), Cross, ESlateDrawEffect::None, FLinearColor::White, true, 2.0f);
-    Cross = { Centre - FVector2D(0.0f, 12.0f), Centre + FVector2D(0.0f, 12.0f) };
-    FSlateDrawElement::MakeLines(OutDrawElements, DrawLayer + 4, AllottedGeometry.ToPaintGeometry(), Cross, ESlateDrawEffect::None, FLinearColor::White, true, 2.0f);
-    const FString Hint = FString::Printf(TEXT("MAP  |  %.0fm  |  Drag to pan · Wheel to zoom · R to recenter · M / Esc to close"), MapZoom / 100.0f);
+    FVector2D PawnLocation;
+    FKalmalaWorldGenerationConfig PresentationConfig;
+    if (ViewModel != nullptr && ViewModel->GetPresentationInputs(PresentationConfig, PawnLocation))
+    {
+        const FVector2D NormalizedPawn = WorldToMapNormalized(PawnLocation, ViewModel->GetMapCentre(), ViewModel->GetMapExtent());
+        if (NormalizedPawn.X >= 0.0f && NormalizedPawn.X <= 1.0f && NormalizedPawn.Y >= 0.0f && NormalizedPawn.Y <= 1.0f)
+        {
+            const FVector2D MarkerCentre = FVector2D(Margin.Left, Margin.Top) + NormalizedPawn * MapSize;
+            const FVector2D Forward = GetFacingDirection(ViewModel->GetPlayerFacingDegrees());
+            const FVector2D Right(-Forward.Y, Forward.X);
+            const TArray<FVector2D> MarkerLines = { MarkerCentre + Forward * 15.0f, MarkerCentre - Forward * 9.0f + Right * 8.0f,
+                MarkerCentre - Forward * 9.0f - Right * 8.0f, MarkerCentre + Forward * 15.0f };
+            FSlateDrawElement::MakeLines(OutDrawElements, DrawLayer + 4, AllottedGeometry.ToPaintGeometry(), MarkerLines,
+                ESlateDrawEffect::None, FLinearColor(0.02f, 0.04f, 0.05f, 1.0f), true, 5.0f);
+            FSlateDrawElement::MakeLines(OutDrawElements, DrawLayer + 5, AllottedGeometry.ToPaintGeometry(), MarkerLines,
+                ESlateDrawEffect::None, FLinearColor(0.86f, 0.96f, 0.9f, 1.0f), true, 2.5f);
+        }
+    }
+    const FString Hint = FString::Printf(TEXT("MAP  |  %.0fm  |  Grid %.0fm  |  Drag to pan · Wheel to zoom · R to recenter · M / Esc to close"),
+        MapZoom / 100.0f, ChooseGridSpacing(MapZoom) / 100.0f);
     FSlateDrawElement::MakeText(OutDrawElements, DrawLayer + 5, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(20.0f, 18.0f))), Hint,
         FCoreStyle::GetDefaultFontStyle("Regular", 16), ESlateDrawEffect::None, FLinearColor(0.85f, 0.91f, 0.87f, 1.0f));
-    return DrawLayer + 5;
+    return DrawLayer + 6;
 }
 
 void UKalmalaWorldMapWidget::PanByScreenDelta(const FVector2D& ScreenDelta, const FVector2D& MapSize)

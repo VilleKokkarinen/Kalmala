@@ -17,6 +17,14 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Expanded-map zoom clamps at its minimum"), UKalmalaWorldMapWidget::ClampMapZoom(100.0f, 2500.0f, 50000.0f), 2500.0f);
     TestEqual(TEXT("Expanded-map zoom clamps at its maximum"), UKalmalaWorldMapWidget::ClampMapZoom(100000.0f, 2500.0f, 50000.0f), 50000.0f);
     TestEqual(TEXT("Expanded-map zoom preserves valid values"), UKalmalaWorldMapWidget::ClampMapZoom(18000.0f, 2500.0f, 50000.0f), 18000.0f);
+    TestEqual(TEXT("Owning player maps to the centre of a recentered map"),
+        UKalmalaWorldMapWidget::WorldToMapNormalized(FVector2D(1000.0f, -500.0f), FVector2D(1000.0f, -500.0f), FVector2D(8000.0f, 4500.0f)), FVector2D(0.5f, 0.5f));
+    TestEqual(TEXT("Map marker follows only its world-space offset"),
+        UKalmalaWorldMapWidget::WorldToMapNormalized(FVector2D(9000.0f, 4000.0f), FVector2D(1000.0f, -500.0f), FVector2D(8000.0f, 4500.0f)), FVector2D(1.0f, 1.0f));
+    TestTrue(TEXT("Owning marker faces actor yaw in map space"),
+        UKalmalaWorldMapWidget::GetFacingDirection(90.0f).Equals(FVector2D(0.0f, 1.0f), KINDA_SMALL_NUMBER));
+    TestEqual(TEXT("Expanded map uses a bounded local grid at close zoom"), UKalmalaWorldMapWidget::ChooseGridSpacing(2500.0f), 2500.0f);
+    TestEqual(TEXT("Expanded map uses a broad local grid at maximum zoom"), UKalmalaWorldMapWidget::ChooseGridSpacing(50000.0f), 10000.0f);
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
     Config.GeneratorRevision = 1;

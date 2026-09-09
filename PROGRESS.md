@@ -1493,3 +1493,15 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: Verification telemetry and local personal persistence only. Each map reads only its owning pawn's normal replicated transform and the immutable replicated identity, and loads only that local player's own coverage slot. It sends no RPC and neither accesses remote pawn coverage nor modifies authority, replication, terrain, collision, population, discoveries, or generated-world saves.
 
 Known limits: This does not add pins, orientation, controller navigation, shared coverage, pings, or late-join performance profiling. Next task: draw a centred, facing owning-player marker and optional local coordinate/grid aids without route guidance.
+
+### 2026-09-09 10:00 EEST - Add local expanded-map orientation and grid
+
+Outcome: Completed the first personal-map orientation increment. The expanded map now renders a pale, facing triangle for only the owning pawn at its actual world-to-map position, so it is centred after recentering and moves correctly when the player pans away. A subtle world-aligned reference grid selects 2,500, 5,000, or 10,000 cm spacing from the existing local zoom; it offers scale without paths, destinations, or route guidance.
+
+Changed: `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed. Focused `Kalmala.UI.WorldMap.LocalPresentation` passed with world-to-map centring/offset, facing-yaw, and close/far grid-spacing checks, plus existing map, tile, and fog coverage (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapMarkerFinal-99951987658d4a33a54b78a8d97f86ed/automation.log`). `git diff --check` passed.
+
+Multiplayer impact: None. The marker reads only the owning pawn transform and yaw already used by the local minimap view model; the grid is derived from the local map centre, zoom, and world coordinates. It sends no RPC, queries no remote pawn or actor, and changes no replicated state, terrain, collision, population, discovery, save, or authority path.
+
+Known limits: The marker has no accessibility alternative or controller focus path yet, and this increment adds no pin data, labels, placement, completion state, sharing, pings, or route guidance. Next task: support an original finite pin palette, validated label entry, click placement, click-to-toggle completion/visibility, and explicit removal.

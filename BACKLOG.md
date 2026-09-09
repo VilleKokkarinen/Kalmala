@@ -204,7 +204,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Verify reconnect/restart persistence, identity mismatch rejection, reveal-edge continuity, and that a client cannot reveal remote terrain or another player's exploration through UI input.
 
 - [ ] **Add personal map pins and player orientation.**
-  - [ ] Draw a centred, facing owning-player marker and optional local coordinate/grid aids without route guidance.
+  - [x] Draw a centred, facing owning-player marker and optional local coordinate/grid aids without route guidance.
   - [ ] Support an original finite pin palette, label entry with validation/length limits, click placement, click-to-toggle completion/visibility, and explicit removal.
   - [ ] Persist pins per player and world identity; never accept client pin data as a server gameplay instruction or discovery claim.
   - [ ] Add accessible non-colour-only pin states and keyboard/controller alternatives for every pointer interaction.
