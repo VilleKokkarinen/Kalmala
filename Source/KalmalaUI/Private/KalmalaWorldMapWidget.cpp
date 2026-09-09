@@ -106,6 +106,10 @@ void UKalmalaWorldMapWidget::InvalidateOutstandingTileJobs()
 {
     ++TileEpoch;
     if (TileEpoch == 0) ++TileEpoch;
+    // The old view can have a full pending set. Drop those local handles so
+    // a pan or zoom cannot accumulate multiple capped request sets; workers
+    // retain their epoch and their output is never uploaded into the new view.
+    Tiles.Reset();
 }
 
 void UKalmalaWorldMapWidget::StartTile(const FIntPoint& TileCoordinate, const FKalmalaWorldGenerationConfig& Config)
@@ -212,7 +216,7 @@ void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
         }
         return;
     }
-    if (!(Config == TileConfig)) { Tiles.Reset(); TileConfig = Config; InvalidateOutstandingTileJobs(); }
+    if (!(Config == TileConfig)) { TileConfig = Config; InvalidateOutstandingTileJobs(); }
     const FVector2D Centre = ViewModel->GetMapCentre();
     const FVector2D Extent = ViewModel->GetMapExtent();
     for (const FIntPoint& Key : BuildPrioritizedTileCoordinates(Centre, Extent))

@@ -1431,3 +1431,15 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: Local UI scheduling only. The subsystem invokes the same local deterministic tile sampler from immutable replicated identity and owning-pawn transform; no RPC, replication, actor query, authority, collision, population, or persistence path changes.
 
 Known limits: Cap/prioritize visible tile requests at max zoom, then rerun `Verify-WorldMapTiles.ps1` through both peer fingerprints before checking the Phase 9 verification task. Preserve all existing unstaged work and do not commit until that verification passes.
+
+### 2026-09-09 08:54 EEST - Verify bounded expanded-map peer presentation
+
+Outcome: Completed the remaining scalable expanded-map presentation gate. View/identity invalidation now drops the previous local tile handles before requesting the next centre-prioritized set, bounding both ready and pending tile entries to 64. Completed worker output remains epoch-checked and is only polled after readiness, so rapid pan/zoom cannot accumulate stale work or block the game thread.
+
+Changed: `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build passed. `Scripts/Verify-WorldMapTiles.ps1` passed with a revision-4 seed-418 host and conflicting-seed client: both emitted `Tiles=64 Fingerprint=504686947 PollOnly=1` after the client received `Seed=418 Revision=4` (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapTiles-380438531927433d9f7af0ec1d617bd7`). Existing focused tile tests cover same-identity reproduction, different-seed variation, and exact shared edges. `git diff --check` passed.
+
+Multiplayer impact: Local presentation scheduling only. Tile inputs remain the existing immutable replicated identity and owning pawn transform; clients send no RPC and cannot request tiles, mutate the world, reveal population/discoveries, affect terrain/collision, or write save data. No replicated property, server authority path, generator revision, or persistence schema changed.
+
+Known limits: The 64-tile bound is a local development presentation guardrail, not a shipping frame-time, controller-navigation, fog, pins, sharing, or late-join performance guarantee. Next task: define the bounded owning-player fog-of-war reveal contract without information leaks.
