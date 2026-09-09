@@ -11,6 +11,15 @@ class UKalmalaMinimapViewModel;
 class UKalmalaWorldMapExplorationSaveGame;
 class UTexture2D;
 
+/** Local fog treatments deliberately reserve a distinct colour for a later, opt-in shared-cartography feature. */
+enum class EKalmalaWorldMapFogTreatment : uint8
+{
+    Unexplored,
+    CurrentPersonal,
+    RememberedPersonal,
+    ReservedShared
+};
+
 /** Large local map surface built from the same disposable seed-derived samples as the minimap. */
 UCLASS()
 class KALMALAUI_API UKalmalaWorldMapWidget : public UUserWidget
@@ -31,6 +40,8 @@ public:
     static float ClampMapZoom(float RequestedZoom, float MinZoom, float MaxZoom);
     /** Pure local fog seam. Only the owning pawn position may open the reveal circle. */
     static bool IsWithinLocalRevealRadius(FVector2D WorldPosition, FVector2D OwningPawnLocation, float RevealRadius);
+    /** Original map-fog palette; ReservedShared has no data source until shared cartography is authorized. */
+    static FColor GetFogTreatmentColor(EKalmalaWorldMapFogTreatment Treatment);
     static TArray<FColor> BuildFogPixels(FVector2D MapCentre, FVector2D MapExtent, FVector2D OwningPawnLocation, FIntPoint Dimensions,
         const UKalmalaWorldMapExplorationSaveGame* Exploration = nullptr);
 

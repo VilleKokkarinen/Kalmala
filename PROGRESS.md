@@ -1469,3 +1469,15 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: Local presentation/personal persistence only. The map reads the owning pawn's already replicated transform and immutable identity, sends no RPC, does not query remote pawns or server-owned actors, and cannot affect authority, terrain, collision, population, discoveries, or generated-world save data.
 
 Known limits: Coverage uses intentionally coarse bounded cells and does not yet visually distinguish personal from future shared exploration. Reconnect/restart UI coverage, reveal-edge continuity, pins, player markers, controller navigation, and sharing remain subsequent work. Next task: distinguish personal exploration from later shared exploration visually with original Kalmala treatment.
+
+### 2026-09-09 09:33 EEST - Distinguish personal map exploration
+
+Outcome: Completed the next Phase 9 increment. Current owning-pawn sight remains fully clear, while persisted personal coverage now uses a translucent original sea-glass teal fog treatment. A contrasting warm lichen-ember palette is defined only as the reserved visual treatment for future explicitly opted-in shared cartography; this increment does not create, load, query, or render shared coverage.
+
+Changed: `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build passed. Focused `Kalmala.UI.WorldMap.LocalPresentation` passed, including translucent personal-memory colour, its distinction from the reserved shared palette, and confirmation that no shared coverage is materialized (`C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapVisual-e514d0dc49094372902f4ab23213db70/automation.log`). `git diff --check` passed.
+
+Multiplayer impact: Local presentation palette only. The map continues to read only immutable identity, its independent local personal-coverage save, and the owning pawn's normally replicated transform. It sends no RPC, reads no remote pawn, actor, discovery, population, or shared-save data, and cannot affect server authority, replication, terrain, collision, generated-world persistence, or gameplay state.
+
+Known limits: The lichen-ember shared treatment is deliberately not data-backed until the later construction-gated opt-in cartography task. Reconnect/restart persistence, reveal-edge continuity, input isolation, pins, orientation, controller navigation, sharing, and late-join profiling remain later work. Next task: verify reconnect/restart persistence, identity mismatch rejection, reveal-edge continuity, and remote-exploration isolation through UI input.

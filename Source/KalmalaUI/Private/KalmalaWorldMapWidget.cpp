@@ -103,6 +103,23 @@ bool UKalmalaWorldMapWidget::IsWithinLocalRevealRadius(const FVector2D WorldPosi
         && FVector2D::DistSquared(WorldPosition, OwningPawnLocation) <= FMath::Square(RevealRadius);
 }
 
+FColor UKalmalaWorldMapWidget::GetFogTreatmentColor(const EKalmalaWorldMapFogTreatment Treatment)
+{
+    switch (Treatment)
+    {
+    case EKalmalaWorldMapFogTreatment::CurrentPersonal:
+        return FColor(0, 0, 0, 0);
+    case EKalmalaWorldMapFogTreatment::RememberedPersonal:
+        // Sea-glass teal keeps personal memory visible without making it read as current sight.
+        return FColor(20, 78, 70, 112);
+    case EKalmalaWorldMapFogTreatment::ReservedShared:
+        // Warm lichen-ember is intentionally distinct; no shared data is rendered yet.
+        return FColor(106, 68, 32, 112);
+    default:
+        return FColor(8, 18, 24, 255);
+    }
+}
+
 TArray<FColor> UKalmalaWorldMapWidget::BuildFogPixels(const FVector2D MapCentre, const FVector2D MapExtent,
     const FVector2D OwningPawnLocation, const FIntPoint Dimensions, const UKalmalaWorldMapExplorationSaveGame* Exploration)
 {
@@ -115,10 +132,12 @@ TArray<FColor> UKalmalaWorldMapWidget::BuildFogPixels(const FVector2D MapCentre,
             Dimensions.X > 1 ? static_cast<float>(X) / static_cast<float>(Dimensions.X - 1) * 2.0f - 1.0f : 0.0f,
             Dimensions.Y > 1 ? static_cast<float>(Y) / static_cast<float>(Dimensions.Y - 1) * 2.0f - 1.0f : 0.0f);
         const FVector2D WorldPosition = MapCentre + Normalized * MapExtent;
-        // Fully opaque pixels disclose neither sampled terrain nor water treatment.
-        Pixels.Add((IsWithinLocalRevealRadius(WorldPosition, OwningPawnLocation, LocalRevealRadius)
-                || (Exploration != nullptr && Exploration->IsExplored(WorldPosition)))
-            ? FColor(0, 0, 0, 0) : FColor(8, 18, 24, 255));
+        const bool bCurrentlyVisible = IsWithinLocalRevealRadius(WorldPosition, OwningPawnLocation, LocalRevealRadius);
+        const bool bPersonallyExplored = Exploration != nullptr && Exploration->IsExplored(WorldPosition);
+        // Fully opaque pixels disclose neither sampled terrain nor water treatment. Personal
+        // memory is tinted separately from current sight; shared coverage has no source yet.
+        Pixels.Add(GetFogTreatmentColor(bCurrentlyVisible ? EKalmalaWorldMapFogTreatment::CurrentPersonal
+            : bPersonallyExplored ? EKalmalaWorldMapFogTreatment::RememberedPersonal : EKalmalaWorldMapFogTreatment::Unexplored));
     }
     return Pixels;
 }

@@ -56,6 +56,15 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Personal coverage records an owning-player reveal"), Exploration->RecordReveal(FVector2D::ZeroVector, 6500.0f));
     TestTrue(TEXT("Personal coverage retains a previously revealed local cell"), Exploration->IsExplored(FVector2D(500.0f, 500.0f)));
     TestFalse(TEXT("Personal coverage rejects remote unexplored cells"), Exploration->IsExplored(FVector2D(20000.0f, 0.0f)));
+    const TArray<FColor> RememberedFogPixels = UKalmalaWorldMapWidget::BuildFogPixels(FVector2D::ZeroVector, FVector2D(20000.0f, 20000.0f),
+        FVector2D(-100000.0f, 0.0f), FIntPoint(3, 3), Exploration);
+    TestEqual(TEXT("Personal map memory has a translucent sea-glass treatment"), RememberedFogPixels[4],
+        UKalmalaWorldMapWidget::GetFogTreatmentColor(EKalmalaWorldMapFogTreatment::RememberedPersonal));
+    TestTrue(TEXT("Reserved shared-map treatment remains visually distinct from personal memory"),
+        UKalmalaWorldMapWidget::GetFogTreatmentColor(EKalmalaWorldMapFogTreatment::RememberedPersonal)
+        != UKalmalaWorldMapWidget::GetFogTreatmentColor(EKalmalaWorldMapFogTreatment::ReservedShared));
+    TestEqual(TEXT("No shared exploration is materialized by the local map"), RememberedFogPixels[0],
+        UKalmalaWorldMapWidget::GetFogTreatmentColor(EKalmalaWorldMapFogTreatment::Unexplored));
     TArray<uint8> SerializedExploration;
     TestTrue(TEXT("Personal coverage serializes independently in memory"), UGameplayStatics::SaveGameToMemory(Exploration, SerializedExploration));
     UKalmalaWorldMapExplorationSaveGame* ReloadedExploration = Cast<UKalmalaWorldMapExplorationSaveGame>(UGameplayStatics::LoadGameFromMemory(SerializedExploration));
