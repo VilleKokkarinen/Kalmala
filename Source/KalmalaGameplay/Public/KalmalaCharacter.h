@@ -7,6 +7,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class UKalmalaPlayerModelComponent;
+class UKalmalaInventoryComponent;
 
 USTRUCT(BlueprintType)
 struct FKalmalaExposureState
@@ -49,6 +50,9 @@ protected:
     virtual void OnRep_ReplicatedMovement() override;
 
 private:
+    UPROPERTY(VisibleAnywhere, Category = "Inventory")
+    TObjectPtr<UKalmalaInventoryComponent> Inventory;
+
     void MoveForward(float Value);
     void MoveRight(float Value);
     void RequestInteract();

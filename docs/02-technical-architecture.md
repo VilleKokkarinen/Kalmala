@@ -75,6 +75,12 @@ The expanded map places a local fog texture over all generated terrain/water til
 
 The server's local configuration is the authority for future inventory transactions; a client's copy may only inform presentation. `IsValidStack` rejects unknown/empty IDs and any quantity outside 1 through the configured stack limit. `CanAddToStack` permits zero existing quantity but requires a positive addition and sufficient capacity, using subtraction after bounds checks to avoid integer overflow. A missing/duplicate/invalid catalogue fails closed, with defensive ceilings of 64 definitions and 999 units per stack. Definition lookup uses Unreal's case-insensitive `FName` identity. These pure validation functions grant no items and do not themselves establish caller authority: the subsequent inventory component must check server ownership, capacity, and transaction intent before mutation. No RPC, inventory replication, save schema, or harvest behavior is added by this contract.
 
+## M2 player inventory
+
+`UKalmalaInventoryComponent` is a replicated default subobject on each `AKalmalaCharacter`. Its private stack array uses `COND_OwnerOnly`; simulated remote pawns receive no inventory contents. Inventory starts empty and lasts only for the pawn lifetime. There is one stack per item ID, bounded by that item's server catalogue limit, and at most 16 occupied slots. Trusted server gameplay calls `TryGrantFromServer` or `TryConsumeFromServer`; both reject non-authority callers and invalid quantities before mutation. Failed operations leave contents unchanged; consumption removes an exhausted slot. There are no client add/remove/reorder/set RPCs. The existing interaction intent remains the future harvest entry point; harvest grants, crafting, persistence, and reconnect restoration are not wired yet.
+
+`UKalmalaInventorySubsystem` reads only the local controller's pawn component and displays an unfocusable, hit-test-invisible pack panel in `KalmalaUI`. It shows text names and quantities or an empty/waiting state, follows controller/pawn replacement, and never queries remote inventories or sends gameplay requests. Its client catalogue is used for names only, never transaction limits or authority.
+
 ## Module boundaries
 
 - `KalmalaCore`: tags, logging, shared data types, save interfaces.

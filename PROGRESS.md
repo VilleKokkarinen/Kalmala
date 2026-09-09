@@ -8,6 +8,18 @@
 
 ## Run log
 
+### 2026-09-09 16:02 EEST - Add owner-only player inventory
+
+Outcome: Completed the next M2 increment: an initially empty pawn inventory, bounded to 16 unique item stacks and server-catalogue quantities, plus a read-only local pack panel. Trusted server grants and consumption reject invalid requests without changing contents; exhausted stacks are removed. No client mutation RPC is exposed.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaInventoryComponent.h`; `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp`; `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Source/KalmalaUI/Public/KalmalaInventorySubsystem.h`; `Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp`; `Scripts/Verify-Inventory.ps1`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`. The pre-existing backlog heading removal is preserved outside this commit.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool cache access. `Scripts/Verify-Inventory.ps1` passed: two server grant/consume/rejection results, remote owner Wood=7 Slots=1, rejected client mutations, empty simulated-remote inventory after owner replication, authoritative identity receipt, and read-only local presentation on both peers. Logs: `C:/Users/Ville/AppData/Local/Temp/KalmalaInventory-85414b3e24124eb1a57d605a7bf3867b`. `git diff --check` passed.
+
+Multiplayer impact: Stack details replicate with `COND_OwnerOnly` on the replicated pawn component. Mutation requires actual owner actor authority, and quantities are checked against server-local catalogue data. UI reads only the local pawn component. The launch-gated non-shipping fixture grants transient test contents server-side only; normal play starts empty. No save schema, terrain, population, discovery, or harvest behavior changed.
+
+Known limits: Inventory lasts only for the pawn lifetime; reconnect/respawn restoration, harvest grants, crafting, and item transfers remain unimplemented. Headless UI verification covers data binding/focusability, not rendered layout or assistive technology. Next task: connect accepted generated harvest interactions to validated inventory grants while preserving stable spawn IDs and sparse depletion.
+
 ### 2026-09-09 15:55 EEST - Establish camp material catalogue
 
 Outcome: Completed the first M2 item-contract increment. Five configurable original materials now define wood, stone, fibre, fuel, and construction supplies with bounded stack quantities. Pure catalogue validation rejects unknown IDs, malformed quantities, full-stack additions, integer extremes, and invalid/duplicate configuration before future server inventory operations can consume those inputs.

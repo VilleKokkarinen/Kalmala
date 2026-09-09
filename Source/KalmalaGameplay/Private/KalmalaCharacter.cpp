@@ -1,4 +1,5 @@
 #include "KalmalaCharacter.h"
+#include "KalmalaInventoryComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
@@ -25,6 +26,7 @@ AKalmalaCharacter::AKalmalaCharacter(const FObjectInitializer& ObjectInitializer
     : Super(ObjectInitializer.SetDefaultSubobjectClass<UKalmalaCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
     bReplicates = true;
+    Inventory = CreateDefaultSubobject<UKalmalaInventoryComponent>(TEXT("Inventory"));
     SetReplicateMovement(true);
 
     bUseControllerRotationPitch = false;
