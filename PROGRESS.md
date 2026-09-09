@@ -1601,3 +1601,16 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: Verification-only. The rendered runner validates normal replicated world identity and existing local map behavior. The unit-test repair removes an invalid synthetic world only; server-side consent, validation, rate limiting, owner-only ping replication, and peer eligibility remain exercised by the live two-peer path. No gameplay, persistence, terrain, collision, discovery, or replication contract changed.
 
 Resolution: The unprivileged build had compiled but not deployed the repaired gameplay module. Re-running the same forced build with UnrealBuildTool local-cache access deployed it; the isolated `Kalmala.Gameplay.MapAwareness.Authority` automation then passed (`C:/Users/Ville/AppData/Local/Temp/KalmalaMapAwarenessUnit-1e83dd740de64bc79ff2e8d5ceb9c9be/automation.log`). The integrated gate is complete. Shared cartography remains construction-gated; the next eligible task is full-map late-join/open-pan-zoom profiling before changing tile density or map range.
+# 2026-09-09 15:47 EEST - Decompose missing survival-camp backlog
+
+Outcome: Expanded the earliest incomplete roadmap milestone, M2, into ordered, independently verifiable backlog work. The plan accounts for the existing generated harvest, exposure, shelter, and provisional campfire seams but identifies the missing player-facing server-owned inventory, fuelled campfire, crafting, placement validation, construction, storage, persistence, and two-player acceptance scenario. M3–M5 remain intentionally undecomposed until M2's acceptance gate passes.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Reconciled the added tasks against `docs/04-roadmap.md`, `docs/00-project-brief.md`, `docs/01-game-design.md`, and the current architecture/source contracts. `git diff --check` pending after documentation edit.
+
+Multiplayer impact: Planning only. The added tasks explicitly retain server authority for inventory, crafting, fuel, placement, storage, construction, persistence, and shelter; no runtime replication or save contract changed.
+
+Known limits: M2 remains unimplemented. The provisional campfire and generated harvest nodes are not yet a complete player-owned survival-camp loop.
+
+Next task: Implement the first M2 increment: the server-authoritative item catalogue and player inventory contract.

@@ -227,4 +227,46 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 ## Later gameplay milestones
 
-Use `docs/04-roadmap.md` as the source of truth. Add decomposed M2–M5 tasks here only after their preceding milestone acceptance criteria pass.
+### M2 — Survival camp loop
+
+**Intent:** turn the existing generated harvest nodes, provisional campfire, and weather/shelter seams into the smallest complete, server-owned camp loop. This milestone must not add new creature, elemental-grid, magic, route, or shared-cartography scope.
+
+- [ ] **Establish the authoritative item and inventory contract.**
+  - [ ] Define a small original item catalogue and server-owned stack/quantity limits for harvested wood, stone, fibre, fuel, and the minimum crafted construction supplies; keep item definitions data-driven and reject unknown client item IDs and quantities.
+  - [ ] Add a server-authoritative player inventory with owner-only detailed replication and a minimal local presentation; clients submit intent only and cannot directly add, remove, reorder, or set quantities.
+  - [ ] Convert accepted generated harvest interactions into server-validated inventory grants while preserving existing stable spawn IDs and sparse depletion behavior; reject out-of-range, duplicate, depleted, malformed, and full-inventory requests.
+  - [ ] Verify host/client inventory agreement, reconnect behavior, stack limits, and rejection of forged harvest/item requests without exposing another player's private inventory detail.
+
+- [ ] **Make the campfire a gathered, fuelled survival object.**
+  - [ ] Replace the provisional free interaction path with a server-owned crafted/placed campfire that consumes validated inventory ingredients and fuel, while retaining the existing replicated rain, wind, wet-fuel, extinguish, and warmth contract.
+  - [ ] Add bounded server-side fuel consumption, refuelling, and lighting interactions; clients never submit fuel wetness, warmth, duration, or lit state.
+  - [ ] Present clear local fuel, lit/extinguished, and weather-protection feedback using colour-independent cues.
+  - [ ] Verify two players observe matching fuel and fire state, rain extinguishes exposed fuel as designed, and an invalid or insufficient-inventory request cannot create warmth.
+
+- [ ] **Add minimal server-authoritative crafting.**
+  - [ ] Define a small data-driven recipe set for the campfire, workbench, basic storage, and the three required build pieces, with explicit ingredient costs and output limits.
+  - [ ] Add a server-validated craft request that checks the caller's inventory, any required nearby owned/usable station, recipe identity, output capacity, and atomic ingredient consumption before granting output.
+  - [ ] Add a minimal accessible crafting presentation with readable recipe costs, unavailable reasons, and remappable/local input entry points.
+  - [ ] Verify concurrent host/client crafting cannot duplicate or lose ingredients and malformed, distant, locked, or insufficient-resource requests are rejected server-side.
+
+- [ ] **Add placement preview and construction validation.**
+  - [ ] Create a local-only placement preview for camp and construction recipes with valid/invalid feedback; it must never spawn, reserve, or mutate an actor before server acceptance.
+  - [ ] Add a server placement request that reruns range, terrain, overlap, collision, support, rotation, recipe, inventory, and world-identity checks, then atomically consumes the construction item and spawns one replicated construction actor.
+  - [ ] Define stable construction IDs and a versioned, identity-scoped server save format for placed camps; reject incompatible world identity and impose bounded actor/save limits.
+  - [ ] Verify preview cannot be trusted, overlapping/floating/out-of-range placements are rejected, and a host/client sees the same accepted construction after reconnect/load.
+
+- [ ] **Deliver the required shelter and camp pieces.**
+  - [ ] Implement original floor, wall/windbreak, and roof pieces with server-owned collision and replicated placement state; only accepted roof/windbreak pieces add the existing shelter tags used by the server exposure sampler.
+  - [ ] Implement a minimal replicated workbench and basic storage with server-validated interaction and bounded persisted contents; do not expose arbitrary remote storage contents to clients.
+  - [ ] Verify roof/windbreak geometry affects only server-sampled shelter, construction collision agrees for host/client movement, and teardown/removal (if included) cannot duplicate refunded resources.
+
+- [ ] **Close M2 with a two-player persisted camp scenario.**
+  - [ ] Run a host/client scenario in which both players gather, craft, place a campfire plus floor/wall/roof, use storage/workbench, and observe matching inventory, construction, fire, shelter, and weather state.
+  - [ ] Restart/reconnect using the same world identity and verify the sparse generated-world deltas and versioned camp state restore together without duplicate actors, duplicated items, or cross-world reuse.
+  - [ ] Document the inventory, crafting, construction, campfire, shelter, storage, and persistence authority contracts, then record build and two-player verification evidence.
+
+**M2 acceptance gate:** two players can gather, craft, build, save/load a camp, and observe matching state after reconnect. Do not decompose or begin M3–M5 until this gate passes.
+
+### M3–M5 — Deferred
+
+Use `docs/04-roadmap.md` as the source of truth. Decompose M3 only after the M2 acceptance gate passes; decompose M4 only after M3 passes; decompose M5 only after M4 passes.
