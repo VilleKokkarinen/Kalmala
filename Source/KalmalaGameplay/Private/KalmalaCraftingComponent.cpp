@@ -147,7 +147,7 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
     if (!Construction) { Reason = TEXT("Could not allocate construction"); return false; }
     if (!Inventory->TryExchangeFromServer(Cost, NAME_None, 0, Reason)) { Construction->Destroy(); return false; }
-    Construction->InitializeFromServer(KitId);
+    Construction->InitializeFromServer(KitId, FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower));
     Construction->FinishSpawning(Transform);
     Reason = TEXT("Placed construction; server accepted the kit and ground");
     return true;

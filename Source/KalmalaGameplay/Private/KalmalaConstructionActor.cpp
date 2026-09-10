@@ -12,13 +12,14 @@ AKalmalaConstructionActor::AKalmalaConstructionActor()
     RootComponent = Collision;
 }
 
-void AKalmalaConstructionActor::InitializeFromServer(const FName InKit)
+void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FString& InConstructionId)
 {
-    if (HasAuthority()) ConstructionKit = InKit;
+    if (HasAuthority()) { ConstructionKit = InKit; ConstructionId = InConstructionId.Left(64); }
 }
 
 void AKalmalaConstructionActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaConstructionActor, ConstructionKit);
+    DOREPLIFETIME(AKalmalaConstructionActor, ConstructionId);
 }

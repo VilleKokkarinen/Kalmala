@@ -250,7 +250,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [ ] **Add placement preview and construction validation.**
   - [x] Create a local-only placement preview for camp and construction recipes with valid/invalid feedback; it must never spawn, reserve, or mutate an actor before server acceptance.
   - [x] Add a server placement request that reruns range, terrain, overlap, collision, support, rotation, recipe, inventory, and world-identity checks, then atomically consumes the construction item and spawns one replicated construction actor.
-  - [ ] Define stable construction IDs and a versioned, identity-scoped server save format for placed camps; reject incompatible world identity and impose bounded actor/save limits.
+  - [x] Define stable construction IDs and a versioned, identity-scoped server save format for placed camps; reject incompatible world identity and impose bounded actor/save limits.
   - [ ] Verify preview cannot be trusted, overlapping/floating/out-of-range placements are rejected, and a host/client sees the same accepted construction after reconnect/load.
 
 - [ ] **Deliver the required shelter and camp pieces.**
