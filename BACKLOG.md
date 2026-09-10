@@ -235,11 +235,11 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Convert accepted generated harvest interactions into server-validated inventory grants while preserving existing stable spawn IDs and sparse depletion behavior; reject out-of-range, duplicate, depleted, malformed, and full-inventory requests.
   - [x] Verify host/client inventory agreement, reconnect behavior, stack limits, and rejection of forged harvest/item requests without exposing another player's private inventory detail.
 
-- [ ] **Make the campfire a gathered, fuelled survival object.**
+- [x] **Make the campfire a gathered, fuelled survival object.**
   - [x] Replace the provisional free interaction path with a server-owned crafted/placed campfire that consumes validated inventory ingredients and fuel, while retaining the existing replicated rain, wind, wet-fuel, extinguish, and warmth contract.
   - [x] Add bounded server-side fuel consumption, refuelling, and lighting interactions; clients never submit fuel wetness, warmth, duration, or lit state.
   - [x] Present clear local fuel, lit/extinguished, and weather-protection feedback using colour-independent cues.
-  - [ ] Verify two players observe matching fuel and fire state, rain extinguishes exposed fuel as designed, and an invalid or insufficient-inventory request cannot create a campfire.
+  - [x] Verify two players observe matching fuel and fire state, rain extinguishes exposed fuel as designed, and an invalid or insufficient-inventory request cannot create a campfire.
 
 - [ ] **Add minimal server-authoritative crafting.**
   - [ ] Define a small data-driven recipe set for the campfire, workbench, basic storage, and the three required build pieces, with explicit ingredient costs and output limits.

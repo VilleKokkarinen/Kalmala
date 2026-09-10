@@ -1689,3 +1689,15 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: None beyond existing read-only replicated campfire presentation. The UI consumes the established replicated hearth state and owner-only action result; it adds no RPC, request payload, actor mutation, inventory visibility, weather input, terrain/collision, save, or authority change.
 
 Known limits: The panel is local UMG text rather than screen-reader certification. Hearths and carried inventory remain session/pawn-lifetime. Next task: verify two players observe matching fuel and fire state, rain extinguishes exposed fuel as designed, and invalid or insufficient-inventory requests cannot create a campfire.
+
+### 2026-09-10 09:18 EEST - Verify two-player gathered hearths
+
+Outcome: Completed the gathered, fuelled campfire verification gate. A live host/client scenario confirmed both players observe the same two paid hearths through dry-lit (`Fuel=60 Lit=1 Wet=0 Warmth=1`) and rain-extinguished (`Fuel=48 Lit=0 Wet=96 Warmth=0`) states. The server also rejected forged and extreme craft requests, insufficient-inventory hearth placement, and invalid placement without creating an unpaid hearth; both owner inventories completed with the expected conserved `Fuel=2 Slots=1` state.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. `Scripts/Verify-Crafting.ps1` passed its two-player listen-server fixture, including matching replicated fire snapshots, server validation/payment/atomicity gates, overlapping owner RPC crafting, exact final private inventories, and local menu input restoration. Logs: `C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-b9ce9609704e4afd863e025843833796`. `git diff --check` passed before commit.
+
+Multiplayer impact: Verification and backlog state only. The exercised placement, fuel, lighting, rain/wetness, warmth, validation, and inventory paths remain server-authoritative; fire presentation remains normally replicated and detailed packs remain owner-only. No client controls a hearth transform, ingredient, fuel, wetness, warmth, duration, lit state, or server mutation. No terrain, collision, generated-world save, player-persistence, or replicated contract changed.
+
+Known limits: Hearths and carried inventory remain session/pawn-lifetime, and the crafting UI is not screen-reader certified. Next task: define the small data-driven recipe set for the campfire, workbench, basic storage, and three required build pieces with explicit costs and output limits.
