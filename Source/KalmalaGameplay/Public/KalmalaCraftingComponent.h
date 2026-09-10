@@ -18,10 +18,12 @@ public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out) const override;
     UFUNCTION(Server, Reliable) void ServerCraft(FName RecipeId, int32 Batch);
     UFUNCTION(Server, Reliable) void ServerPlaceCampfire();
+    UFUNCTION(Server, Reliable) void ServerPlaceConstruction(FName KitId);
     UFUNCTION(Server, Reliable) void ServerRefuel();
     UFUNCTION(Server, Reliable) void ServerLight();
     bool CraftFromServer(FName RecipeId, int32 Batch, FString& Reason);
     bool PlaceFromServer(FString& Reason);
+    bool PlaceConstructionFromServer(FName KitId, FString& Reason);
     FString GetRecipeDescription(FName RecipeId) const;
     FString GetRecipeAvailability(FName RecipeId) const;
     FString GetNearbyFireText() const;

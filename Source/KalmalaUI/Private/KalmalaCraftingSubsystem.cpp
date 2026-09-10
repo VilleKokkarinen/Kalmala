@@ -55,9 +55,9 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Next"),RecipeActions)->OnClicked.AddDynamic(this, &ThisClass::Next);
     AddButton(TEXT("Craft one"),RecipeActions)->OnClicked.AddDynamic(this, &ThisClass::Craft);
     AddButton(TEXT("Preview selected kit"),RecipeActions)->OnClicked.AddDynamic(this, &ThisClass::Preview);
-    AddText(TEXT("\nHearth placement uses one hearth kit + one ember bundle. Face clear ground before opening this menu. Other kits await construction.\n"),16);
+    AddText(TEXT("\nPlace selected kit uses the derived ground ahead. A hearth also needs one ember bundle; every placement is rechecked by the server.\n"),16);
     auto* FireActions=WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(FireActions);
-    AddButton(TEXT("Place hearth"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Place);
+    AddButton(TEXT("Place selected kit"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Place);
     AddButton(TEXT("Add fuel bundle"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Refuel);
     AddButton(TEXT("Light hearth"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Light);
     StateText = AddText(TEXT(""), 18);
@@ -125,7 +125,15 @@ void UKalmalaCraftingWidget::Next() { const int32 N=GetDefault<UKalmalaRecipeCat
 void UKalmalaCraftingWidget::Craft() { const auto& R=GetDefault<UKalmalaRecipeCatalogue>()->Recipes; if(auto* M=Model(); M && R.IsValidIndex(Selected)) M->ServerCraft(R[Selected].RecipeId,1); }
 void UKalmalaCraftingWidget::EnablePlacementPreview() { bPlacementPreviewEnabled = true; Refresh(); }
 void UKalmalaCraftingWidget::Preview() { EnablePlacementPreview(); }
-void UKalmalaCraftingWidget::Place() { if(auto* M=Model()) M->ServerPlaceCampfire(); }
+void UKalmalaCraftingWidget::Place()
+{
+    const auto& Recipes = GetDefault<UKalmalaRecipeCatalogue>()->Recipes;
+    if (auto* M = Model(); M && Recipes.IsValidIndex(Selected))
+    {
+        const FName Kit = Recipes[Selected].Output;
+        if (Kit == TEXT("CampfireKit")) M->ServerPlaceCampfire(); else M->ServerPlaceConstruction(Kit);
+    }
+}
 void UKalmalaCraftingWidget::Refuel() { if(auto* M=Model()) M->ServerRefuel(); }
 void UKalmalaCraftingWidget::Light() { if(auto* M=Model()) M->ServerLight(); }
 void UKalmalaCraftingWidget::CloseClicked() { Close(); }

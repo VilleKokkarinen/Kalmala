@@ -1,6 +1,8 @@
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCampfire.h"
+#include "KalmalaConstructionActor.h"
+#include "KalmalaPlacementPreview.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -123,6 +125,34 @@ bool UKalmalaCraftingComponent::PlaceFromServer(FString& Reason)
     return true;
 }
 
+bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, FString& Reason)
+{
+    auto* Character = GetCharacter();
+    Reason = TEXT("Server authority required");
+    if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
+    if (KitId == TEXT("CampfireKit")) return PlaceFromServer(Reason);
+    Reason = TEXT("Unknown construction kit");
+    if (!FKalmalaPlacementPreview::IsSupportedKit(KitId)) return false;
+    const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), Character, KitId);
+    Reason = Preview.Message;
+    if (!Preview.bIsValid || FVector::DistSquared(Character->GetActorLocation(), Preview.Location) > FMath::Square(250.0f)) return false;
+    const FRotator Rotation(0.0f, Character->GetActorRotation().Yaw, 0.0f);
+    if (Rotation.ContainsNaN()) { Reason = TEXT("Invalid placement rotation"); return false; }
+    auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
+    const TArray<FKalmalaInventoryStack> Cost = {{KitId, 1}};
+    TArray<FKalmalaInventoryStack> Scratch;
+    if (!Inventory || !UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Cost, NAME_None, 0, Scratch, Reason)) return false;
+    const FTransform Transform(Rotation, Preview.Location);
+    auto* Construction = GetWorld()->SpawnActorDeferred<AKalmalaConstructionActor>(AKalmalaConstructionActor::StaticClass(), Transform, nullptr, Character,
+        ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+    if (!Construction) { Reason = TEXT("Could not allocate construction"); return false; }
+    if (!Inventory->TryExchangeFromServer(Cost, NAME_None, 0, Reason)) { Construction->Destroy(); return false; }
+    Construction->InitializeFromServer(KitId);
+    Construction->FinishSpawning(Transform);
+    Reason = TEXT("Placed construction; server accepted the kit and ground");
+    return true;
+}
+
 void UKalmalaCraftingComponent::ServerPlaceCampfire_Implementation()
 {
     if (!AcceptRequest()) return;
@@ -131,6 +161,12 @@ void UKalmalaCraftingComponent::ServerPlaceCampfire_Implementation()
     if(FParse::Param(FCommandLine::Get(),TEXT("KalmalaCraftingTest")))
         UE_LOG(LogTemp,Display,TEXT("Crafting placement RPC: Accepted=%d"),Accepted);
 #endif
+}
+
+void UKalmalaCraftingComponent::ServerPlaceConstruction_Implementation(const FName KitId)
+{
+    if (!AcceptRequest()) return;
+    FString Reason; PlaceConstructionFromServer(KitId, Reason); PublishResult(Reason);
 }
 
 void UKalmalaCraftingComponent::ServerRefuel_Implementation()

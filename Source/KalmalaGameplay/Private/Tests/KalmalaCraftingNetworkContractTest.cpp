@@ -26,6 +26,13 @@ bool FKalmalaCraftingNetworkContractTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Campfire intent is an owning-client server RPC"), Function->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
         TestEqual(TEXT("Campfire intent cannot provide a target or authoritative state"), int32(Function->NumParms), 0);
     }
+    const UFunction* Construction = CraftingClass->FindFunctionByName(TEXT("ServerPlaceConstruction"));
+    if (TestNotNull(TEXT("Construction placement intent exists"), Construction))
+    {
+        TestTrue(TEXT("Construction placement is an owning-client server RPC"), Construction->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
+        TestEqual(TEXT("Construction placement accepts only a kit identity"), int32(Construction->NumParms), 1);
+        TestNotNull(TEXT("Construction placement cannot provide a transform or state"), Construction->FindPropertyByName(TEXT("KitId")));
+    }
     return true;
 }
 #endif
