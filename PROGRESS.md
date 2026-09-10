@@ -1665,3 +1665,15 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: Placement and payment remain server-authoritative. The client request carries no transform, ingredient, fuel, wetness, warmth, duration, or lit-state values; the server derives placement and validates all costs before spawning the replicated actor. Owner-only inventory detail remains private, while the shared fire state is replicated normally. No generated-world save schema, terrain, collision, or player persistence contract changed.
 
 Known limits: This records only crafted/paid hearth placement. Bounded refuelling and lighting, accessible local feedback, and the dedicated two-player campfire acceptance item remain unchecked. Hearths and carried inventory remain session/pawn-lifetime until later persistence work. Next task: add bounded server-side fuel consumption, refuelling, and lighting interactions.
+
+### 2026-09-10 08:55 EEST - Verify bounded hearth fuel and lighting
+
+Outcome: Completed the bounded fuel and lighting increment from the existing clean crafting baseline. A paid hearth starts with 60 fuel seconds, burns only on the server while lit, extinguishes at zero or the established wetness threshold, and preserves unused fuel while unlit. A nearby usable player can add exactly one private `Ember bundle` only when the full 60-second amount fits beneath the 300-second cap; refuelling cannot reset wetness. Lighting and refuelling remain no-payload owner intents: the server finds the nearby hearth and derives every fuel, wetness, warmth, duration, access, and lit-state decision.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. `Scripts/Verify-Crafting.ps1` passed its two-player listen-server fixture, including fuel capacity/exhaustion, wet-lighting rejection, dry-lit (`Fuel=60 Lit=1 Wet=0 Warmth=1`) and rain-extinguished (`Fuel=48 Lit=0 Wet=96 Warmth=0`) replicated snapshots for both hearths, owner inventory conservation (`Fuel=2 Slots=1`), and forged/extreme request rejection. Logs: `C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-aeba5a412e6e4172a6491108118dbd28`.
+
+Multiplayer impact: Fire state is replicated for shared presentation; inventory stacks and request feedback remain owner-only. The client has no target, amount, wetness, warmth, duration, access, or state parameter for refuelling/lighting, so all validation and mutation stay server-authoritative. No generated-world save, terrain, collision, weather, or player-persistence schema changed.
+
+Known limits: Clear accessible local fuel/weather feedback and the dedicated two-player campfire acceptance check remain. Hearths and carried inventory are still session/pawn-lifetime. Next task: present clear local fuel, lit/extinguished, and weather-protection feedback using colour-independent cues.
