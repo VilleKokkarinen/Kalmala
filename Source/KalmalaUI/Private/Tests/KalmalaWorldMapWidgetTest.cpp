@@ -132,9 +132,24 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     const TArray<FColor> AdjacentTile = UKalmalaWorldMapWidget::BuildTilePixels(Config, FIntPoint(4, -2));
     TestEqual(TEXT("World-space tile has its bounded sample count"), Tile.Num(), 33 * 33);
     TestTrue(TEXT("World-space tile reproduces for the same identity"), Tile == RepeatedTile);
+    TestFalse(TEXT("Every terrain tile pixel is opaque, including corners and joins"),
+        Tile.ContainsByPredicate([](const FColor& Pixel) { return Pixel.A != 255; }));
+    // A local HUD crop must retain the exact RGB at matching world coordinates.
+    const auto LocalSamples = UKalmalaMinimapViewModel::BuildTerrainSamples(Config,
+        FVector2D(35000, -15000), 5000.0f, 33);
+    const auto LocalCrop = FKalmalaMinimapRaster::BuildPixels(LocalSamples);
+    TestEqual(TEXT("Only the HUD crop hides its square corners"), LocalCrop[0].A, uint8(0));
+    bool bSameTerrain = Tile.Num() == LocalCrop.Num();
+    for (int32 I = 0; bSameTerrain && I < Tile.Num(); ++I)
+        bSameTerrain = Tile[I].R == LocalCrop[I].R && Tile[I].G == LocalCrop[I].G && Tile[I].B == LocalCrop[I].B;
+    TestTrue(TEXT("Minimap is a circular viewport onto the same world terrain"), bSameTerrain);
     bool bSeamMatches = Tile.Num() == 33 * 33 && AdjacentTile.Num() == 33 * 33;
     for (int32 Y = 0; bSeamMatches && Y < 33; ++Y) bSeamMatches = Tile[Y * 33 + 32] == AdjacentTile[Y * 33];
     TestTrue(TEXT("Adjacent world-space tiles share their edge samples"), bSeamMatches);
+    const auto VerticalTile = UKalmalaWorldMapWidget::BuildTilePixels(Config, FIntPoint(3, -1));
+    bool bVerticalSeamMatches = Tile.Num() == 33 * 33 && VerticalTile.Num() == 33 * 33;
+    for (int32 X = 0; bVerticalSeamMatches && X < 33; ++X) bVerticalSeamMatches = Tile[32 * 33 + X] == VerticalTile[X];
+    TestTrue(TEXT("North/south tile joins retain their terrain colours"), bVerticalSeamMatches);
     Config.WorldSeed = 419;
     TestTrue(TEXT("Different identities vary tile presentation"), Tile != UKalmalaWorldMapWidget::BuildTilePixels(Config, FIntPoint(3, -2)));
     const TArray<FIntPoint> MaximumZoomTiles = UKalmalaWorldMapWidget::BuildPrioritizedTileCoordinates(FVector2D::ZeroVector, FVector2D(94000.0f, 50000.0f));
@@ -159,6 +174,12 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Personal coverage records an owning-player reveal"), Exploration->RecordReveal(FVector2D::ZeroVector, 6500.0f));
     TestTrue(TEXT("Personal coverage retains a previously revealed local cell"), Exploration->IsExplored(FVector2D(500.0f, 500.0f)));
     TestFalse(TEXT("Personal coverage rejects remote unexplored cells"), Exploration->IsExplored(FVector2D(20000.0f, 0.0f)));
+    // Several normal walking samples accumulate a continuous remembered area.
+    for (int32 Step = 1; Step <= 10; ++Step) Exploration->RecordReveal(FVector2D(Step * 1000, 0), 6500.0f);
+    bool bTravelRemembered = true;
+    for (int32 X = 0; X <= 10000; X += 500)
+        bTravelRemembered &= Exploration->IsExplored(FVector2D(X, 0));
+    TestTrue(TEXT("Walking coverage joins continuously and retains the starting area"), bTravelRemembered);
     const TArray<FColor> RememberedFogPixels = UKalmalaWorldMapWidget::BuildFogPixels(FVector2D::ZeroVector, FVector2D(20000.0f, 20000.0f),
         FVector2D(-100000.0f, 0.0f), FIntPoint(3, 3), Exploration);
     TestEqual(TEXT("Personal map memory has a translucent sea-glass treatment"), RememberedFogPixels[4],

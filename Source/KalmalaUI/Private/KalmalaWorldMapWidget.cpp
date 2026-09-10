@@ -392,6 +392,25 @@ void UKalmalaWorldMapWidget::RecordLocalExploration(const FVector2D OwningPawnLo
     }
 }
 
+void UKalmalaWorldMapWidget::TickExploration(const float DeltaTime)
+{
+    ExplorationAccumulator += DeltaTime;
+    if (ViewModel == nullptr || ExplorationAccumulator < 0.5f) return;
+    FKalmalaWorldGenerationConfig Config;
+    FVector2D PawnLocation;
+    if (!ViewModel->GetPresentationInputs(Config, PawnLocation)) return;
+    ExplorationAccumulator = 0.0f;
+    if (!(Config == TileConfig)) { TileConfig = Config; InvalidateOutstandingTileJobs(); }
+    EnsureExplorationForWorld(Config);
+    RecordLocalExploration(PawnLocation);
+    if (!bMapOpen && !bDeveloperClosedExplorationLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
+    {
+        bDeveloperClosedExplorationLogged = true;
+        UE_LOG(LogTemp, Display, TEXT("World map gameplay exploration: Closed=1 Cells=%d Tiles=%d."),
+            ExplorationSave->GetExploredCellCount(), Tiles.Num());
+    }
+}
+
 void UKalmalaWorldMapWidget::EnsurePinsForWorld(const FKalmalaWorldGenerationConfig& Config)
 {
     if (PinsSave != nullptr && PinsSave->MatchesWorld(Config)) return;
@@ -514,7 +533,6 @@ void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
     const FVector2D Extent = ViewModel->GetMapExtent();
     EnsureExplorationForWorld(Config);
     EnsurePinsForWorld(Config);
-    RecordLocalExploration(PawnLocation);
     UpdateFogTexture(Centre, Extent, PawnLocation, ViewModel->GetMapSampleDimensions());
     if (!bDeveloperFogVerificationLogged && bDeveloperVerificationLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
     {
@@ -592,6 +610,9 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
         ESlateDrawEffect::None, FLinearColor(0.008f, 0.018f, 0.025f, 0.96f));
     if (ViewModel != nullptr)
     {
+        // Edge tiles extend past the view. Clip terrain and fog together so
+        // unexplored terrain cannot leak into the surrounding controls.
+        OutDrawElements.PushClip(FSlateClippingZone(MapGeometry));
         const FVector2D Centre = ViewModel->GetMapCentre();
         const FVector2D Extent = ViewModel->GetMapExtent();
         const float GridSpacing = ChooseGridSpacing(MapZoom);
@@ -625,6 +646,7 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
         {
             FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 2, MapGeometry, &FogBrush, ESlateDrawEffect::None, FLinearColor::White);
         }
+        OutDrawElements.PopClip();
         DrawPins(AllottedGeometry, MapSize, DrawLayer + 3, OutDrawElements);
         DrawCoopAwareness(AllottedGeometry, MapSize, DrawLayer + 6, OutDrawElements);
         if (!bDeveloperPaintVerified && bDeveloperVerificationLogged && FogTexture != nullptr

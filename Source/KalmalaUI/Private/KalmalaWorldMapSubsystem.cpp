@@ -13,6 +13,15 @@ void UKalmalaWorldMapSubsystem::Tick(float DeltaTime)
     if (LocalController != FoundController) ReleaseController();
     if (FoundController == nullptr || !FoundController->IsLocalController()) return;
     LocalController = FoundController; BindLocalInput(LocalController);
+    // Create the collapsed map at possession so walking reveals coverage before
+    // the first M press. The companion minimap stays on its normal HUD layer.
+    if (MapWidget == nullptr)
+    {
+        MapWidget = CreateWidget<UKalmalaWorldMapWidget>(LocalController, UKalmalaWorldMapWidget::StaticClass());
+        if (MapWidget == nullptr) return;
+        MapWidget->InitializeForLocalPlayer(LocalController); MapWidget->ConfigureViewportPlacement(); MapWidget->AddToPlayerScreen(150);
+    }
+    MapWidget->TickExploration(DeltaTime);
     if (!bDeveloperVerificationStarted && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")) && LocalController->GetPawn() != nullptr)
     {
         bDeveloperVerificationStarted = true;
@@ -46,12 +55,7 @@ void UKalmalaWorldMapSubsystem::ToggleMap()
 {
     if (LocalController == nullptr) return;
     if (LocalController->IsMoveInputIgnored() && (MapWidget == nullptr || !MapWidget->IsMapOpen())) return;
-    if (MapWidget == nullptr)
-    {
-        MapWidget = CreateWidget<UKalmalaWorldMapWidget>(LocalController, UKalmalaWorldMapWidget::StaticClass());
-        if (MapWidget == nullptr) return;
-        MapWidget->InitializeForLocalPlayer(LocalController); MapWidget->ConfigureViewportPlacement(); MapWidget->AddToPlayerScreen(150);
-    }
+    if (MapWidget == nullptr) return;
     if (MapWidget->IsMapOpen()) MapWidget->Close(); else MapWidget->Open();
 }
 

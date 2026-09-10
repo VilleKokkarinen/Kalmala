@@ -9,6 +9,8 @@ struct FKalmalaMinimapTerrainSample;
 struct KALMALAUI_API FKalmalaMinimapRaster
 {
     static FLinearColor SampleBiomeTexture(EKalmalaBiome Biome, const FVector2D& WorldPosition);
+    /** Player-centred circular HUD crop of the shared terrain raster. */
     static TArray<FColor> BuildPixels(const TArray<FKalmalaMinimapTerrainSample>& Samples);
+    /** Opaque terrain surface, including square world-map tiles. No viewport mask. */
     static TArray<FColor> BuildPixels(const TArray<FKalmalaMinimapTerrainSample>& Samples, FIntPoint Dimensions);
 };

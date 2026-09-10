@@ -221,6 +221,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [ ] Verify clients cannot forge shared exploration/pins, access another session's data, or use shared map state to materialize hidden gameplay content.
 
 - [x] **Validate the full map as one integrated feature.**
+  - [x] Repair square tiles inheriting circular minimap clipping, clip edge tiles to the map panel, and record exploration during gameplay while the main map is closed (user-requested correction).
   - [x] Run build plus focused automation for modal input, tiled rendering, fog, pins, and pings; include rendered host/client screenshots at three aspect ratios.
   - [x] Profile full-map open/pan/zoom memory, worker time, game-thread time, and late-join behavior before raising tile density or map range.
   - [x] Document all map/pin/share contracts, accessibility controls, known limits, and multiplayer authority decisions.

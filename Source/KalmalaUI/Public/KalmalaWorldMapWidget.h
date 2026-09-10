@@ -38,6 +38,8 @@ public:
     void RunDeveloperVerification();
     /** Services local asynchronous tiles from either Slate or the owning local-player subsystem. */
     void TickTilePresentation(float DeltaTime);
+    /** Records the owning pawn's travels even while the map is collapsed. No raster work. */
+    void TickExploration(float DeltaTime);
 
     static float ClampMapZoom(float RequestedZoom, float MinZoom, float MaxZoom);
     /** Pure local fog seam. Only the owning pawn position may open the reveal circle. */
@@ -145,9 +147,11 @@ private:
     EKalmalaWorldMapPinStyle PendingPinStyle = EKalmalaWorldMapPinStyle::Cairn;
     float MapZoom = 18000.0f;
     float RefreshAccumulator = 0.0f;
+    float ExplorationAccumulator = 0.5f;
     bool bDeveloperVerificationLogged = false;
     bool bDeveloperTileFingerprintLogged = false;
     bool bDeveloperFogVerificationLogged = false;
+    bool bDeveloperClosedExplorationLogged = false;
     bool bDeveloperTileInputsUnavailableLogged = false;
     bool bDeveloperProfileLogged = false;
     bool bRequestedVerificationScreenshot = false;

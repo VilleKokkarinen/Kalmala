@@ -49,7 +49,7 @@ bool FKalmalaWorldMapPerformanceTest::RunTest(const FString& Parameters)
     }
     const double MinimapStart = FPlatformTime::Seconds();
     const TArray<FColor> MinimapPixels = FKalmalaMinimapRaster::BuildPixels(UKalmalaMinimapViewModel::BuildTerrainSamples(
-        Config, FVector2D::ZeroVector, FVector2D(10000.0f), FIntPoint(129, 129)), FIntPoint(129, 129));
+        Config, FVector2D::ZeroVector, FVector2D(10000.0f), FIntPoint(129, 129)));
     const double MinimapSeconds = FPlatformTime::Seconds() - MinimapStart;
     for (TFuture<TArray<FColor>>& Worker : TileWorkers)
     {

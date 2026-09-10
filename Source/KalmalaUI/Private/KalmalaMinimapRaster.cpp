@@ -51,7 +51,14 @@ FLinearColor FKalmalaMinimapRaster::SampleBiomeTexture(const EKalmalaBiome Biome
 TArray<FColor> FKalmalaMinimapRaster::BuildPixels(const TArray<FKalmalaMinimapTerrainSample>& Samples)
 {
     const int32 Side = FMath::RoundToInt(FMath::Sqrt(static_cast<float>(Samples.Num())));
-    return BuildPixels(Samples, FIntPoint(Side, Side));
+    TArray<FColor> Pixels = BuildPixels(Samples, FIntPoint(Side, Side));
+    // Circular clipping belongs only to the HUD viewport, never to terrain tiles.
+    for (int32 Index = 0; Index < Pixels.Num(); ++Index)
+    {
+        const float Edge = FMath::Clamp((1.0f - Samples[Index].MapPosition.Size()) * (Side - 1) * 0.5f, 0.0f, 1.0f);
+        Pixels[Index].A = FMath::RoundToInt(Edge * 255.0f);
+    }
+    return Pixels;
 }
 
 TArray<FColor> FKalmalaMinimapRaster::BuildPixels(const TArray<FKalmalaMinimapTerrainSample>& Samples, const FIntPoint Dimensions)
@@ -62,11 +69,7 @@ TArray<FColor> FKalmalaMinimapRaster::BuildPixels(const TArray<FKalmalaMinimapTe
     for (const FKalmalaMinimapTerrainSample& Sample : Samples)
     {
         FLinearColor Colour = Sample.TerrainColour;
-        // Square maps render fully; minimaps retain their circular feathered edge.
-        const float Edge = Dimensions.X == Dimensions.Y
-            ? FMath::Clamp((1.0f - Sample.MapPosition.Size()) * (Dimensions.X - 1) * 0.5f, 0.0f, 1.0f)
-            : 1.0f;
-        Colour.A = Edge;
+        Colour.A = 1.0f;
         Pixels.Add(Colour.ToFColorSRGB());
     }
     return Pixels;
