@@ -241,11 +241,11 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Present clear local fuel, lit/extinguished, and weather-protection feedback using colour-independent cues.
   - [x] Verify two players observe matching fuel and fire state, rain extinguishes exposed fuel as designed, and an invalid or insufficient-inventory request cannot create a campfire.
 
-- [ ] **Add minimal server-authoritative crafting.**
+- [x] **Add minimal server-authoritative crafting.**
   - [x] Define a small data-driven recipe set for the campfire, workbench, basic storage, and the three required build pieces, with explicit ingredient costs and output limits.
   - [x] Add a server-validated craft request that checks the caller's inventory, any required nearby owned/usable station, recipe identity, output capacity, and atomic ingredient consumption before granting output.
   - [x] Add a minimal accessible crafting presentation with readable recipe costs, unavailable reasons, and remappable/local input entry points.
-  - [ ] Verify concurrent host/client crafting cannot duplicate or lose ingredients and malformed, distant, locked, or insufficient-resource requests are rejected server-side.
+  - [x] Verify concurrent host/client crafting cannot duplicate or lose ingredients and malformed, distant, locked, or insufficient-resource requests are rejected server-side.
 
 - [ ] **Add placement preview and construction validation.**
   - [ ] Create a local-only placement preview for camp and construction recipes with valid/invalid feedback; it must never spawn, reserve, or mutate an actor before server acceptance.

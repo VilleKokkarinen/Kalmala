@@ -1734,3 +1734,14 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: Local presentation only. It reads the already owner-only crafting result/private inventory and replicated nearby-hearth state, sending no new RPC and changing no server validation, actor state, inventory visibility, terrain/collision, weather, or save contract.
 
 Known limits: This validates readable local text, focusability, modal input restoration, and remappable binding display, not assistive-technology certification. Concurrent host/client crafting acceptance remains the next unchecked crafting task.
+### 2026-09-10 09:33 EEST - Verify concurrent two-player crafting
+
+Outcome: Completed the final minimal-crafting verification gate and marked its parent complete. The live listen-server scenario exercised overlapping owner craft RPCs for host and client independently, then verified exact private final packs with two ember bundles each and no leftover ingredients. The server rejected forged recipes, extreme batches, missing ingredients, a missing/distant/locked required station, full output capacity, and invalid placement without duplicating or losing paid resources.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. `Scripts/Verify-Crafting.ps1` passed its full two-player fixture: `PASS: server validation/payment/atomicity gates; overlapping owner RPC crafting; exact final inventory; two matching dry and rain-extinguished fires; local menu input restoration.` Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-c940f4e65839456791cdeabf89c1e2a6`. `git diff --check` passed.
+
+Multiplayer impact: Verification and backlog state only. Each request remains an owning-player recipe/batch intent; the server computes the catalogue definition, required station, access/range, inventory capacity, and one atomic exchange per owner pack. Shared hearth presentation is normally replicated while detailed inventories and result feedback remain owner-only. No terrain, collision, weather, actor placement, generated-world save, or player-persistence contract changed.
+
+Known limits: This is a listen-server host/client scenario, not malformed-packet fuzzing or dedicated-server coverage. The next task is a local-only placement preview that cannot spawn, reserve, or mutate an actor before server acceptance.
