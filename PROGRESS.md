@@ -1802,6 +1802,18 @@ Multiplayer impact: Construction remains server-authoritative. Clients may submi
 
 Known limits: Generic construction remains a session-presentation placeholder with shared collision; it has no piece-specific shelter geometry, workbench behavior, storage contents, or removal/refund operation. Next task: implement original floor, wall/windbreak, and roof pieces with server-owned collision and server-sampled shelter tags.
 
+### 2026-09-10 15:05 EEST - Add server-owned shelter construction pieces
+
+Outcome: Implemented original floor, windbreak wall, and roof construction pieces. Each accepted replicated construction resolves its procedural presentation and collision footprint from the server-owned kit identity: a low 240 cm floor, an upright 240 cm windbreak, or an overhead 264 cm roof. Only accepted wall and roof identities add the existing windbreak and roof shelter tags respectively; the server exposure sampler remains the only consumer of those tags.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaConstructionActor.h`; `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaConstructionShelterPieceTest.cpp`; `docs/10-campfire-and-crafting.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -Project=E:\\dev\\Kalmala\\Kalmala.uproject -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. Focused `Kalmala.Gameplay.Construction.ShelterPieces`, `Kalmala.Gameplay.Construction.SaveContract`, and `Kalmala.World.EnvironmentalExposure.ShelterComposition` passed (`C:/Users/Ville/AppData/Local/Temp/KalmalaShelterPieces-3bfa270186554ab7b36f394c51eee7cd/automation.log`). `git diff --check` passed.
+
+Multiplayer impact: Placement, transform, stable ID, persistence, collision identity, and shelter eligibility remain server-owned. Clients receive the construction kit identity and derive matching non-authoritative presentation/collision from it; no RPC accepts a tag, geometry, transform, collision result, or shelter value.
+
+Known limits: Workbench/storage behavior, persisted storage contents, and the two-player shelter/collision acceptance scenario remain separate. Next task: implement a minimal replicated workbench and basic storage with server-validated interaction and bounded persisted contents.
+
 ### 2026-09-10 15:04 EEST - Restore a continuous world map and gameplay exploration
 
 Outcome: Completed the user-requested correction to the M map. Square world-map tiles previously inherited the circular minimap mask, leaving repeated round terrain islands and dark gaps. Tiles now retain opaque terrain at every pixel; only the companion HUD crop is circular. Both use the same generated-world RGB samples. Terrain and fog share the panel clip, eliminating the exposed tile overflow behind the controls. The local-player subsystem now creates the collapsed map before its first opening and records the owning pawn's explored coverage every 0.5 seconds during normal gameplay, including while closed. No tile/fog generation runs for the closed map.
