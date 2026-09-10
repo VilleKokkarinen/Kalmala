@@ -21,6 +21,8 @@ public:
     virtual void Tick(float DeltaSeconds) override;
     virtual void PostLogin(APlayerController* NewPlayer) override;
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+    bool CanPersistConstruction(FName KitId, const FTransform& Transform) const;
+    bool PersistConstruction(class AKalmalaConstructionActor* Construction);
 
 private:
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);
@@ -33,6 +35,7 @@ private:
     void DriveTraversalTest();
     void ReportWorldProfileIfReady();
     void RunReconnectVerification(APawn* ServerPawn);
+    void RestorePersistedConstruction();
     void LogExposureInspection(const AActor* Occupant) const;
     void LogCampConditionInspection(const AActor* Occupant) const;
     void LogBiomeFeatureInspection(const AActor* Occupant) const;
@@ -50,6 +53,7 @@ private:
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
     TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
+    TObjectPtr<class UKalmalaConstructionSaveGame> ConstructionSaveGame;
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;
     TSet<FIntPoint> ActiveTerrainPatchCoordinates;
     TMap<FIntPoint, TObjectPtr<class AKalmalaGeneratedTerrainPatch>> ActiveTerrainPatches;

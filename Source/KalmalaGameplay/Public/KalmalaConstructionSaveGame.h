@@ -24,10 +24,11 @@ public:
     static constexpr int32 MaxRecords = 128;
     void InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorld);
     bool MatchesWorld(const FKalmalaWorldGenerationConfig& InWorld) const;
+    static bool IsValidRecord(const FKalmalaConstructionSaveRecord& Record);
     bool AddRecord(const FKalmalaConstructionSaveRecord& Record);
+    bool RemoveRecord(const FString& ConstructionId);
     const TArray<FKalmalaConstructionSaveRecord>& GetRecords() const { return Records; }
 private:
-    static bool IsValidRecord(const FKalmalaConstructionSaveRecord& Record);
     UPROPERTY(SaveGame) int32 SchemaVersion = CurrentSchemaVersion;
     UPROPERTY(SaveGame) FKalmalaWorldGenerationConfig WorldConfig;
     UPROPERTY(SaveGame) TArray<FKalmalaConstructionSaveRecord> Records;

@@ -190,6 +190,10 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     const FGameViewportWidgetSlot Slot = UGameViewportSubsystem::Get()->GetWidgetSlot(Widget);
     TestEqual(TEXT("Expanded-map viewport slot stretches horizontally"), Slot.Anchors.Minimum.X, 0.0);
     TestEqual(TEXT("Expanded-map viewport slot stretches vertically"), Slot.Anchors.Maximum.Y, 1.0);
+    TestEqual(TEXT("Expanded-map stretch has no left inset"), Slot.Offsets.Left, 0.0f);
+    TestEqual(TEXT("Expanded-map stretch has no top inset"), Slot.Offsets.Top, 0.0f);
+    TestEqual(TEXT("Expanded-map stretch has no fixed-width right inset"), Slot.Offsets.Right, 0.0f);
+    TestEqual(TEXT("Expanded-map stretch has no fixed-height bottom inset"), Slot.Offsets.Bottom, 0.0f);
     UGameViewportSubsystem::Get()->RemoveWidget(Widget);
     return true;
 }

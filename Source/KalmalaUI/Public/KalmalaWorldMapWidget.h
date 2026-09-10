@@ -151,6 +151,7 @@ private:
     bool bDeveloperTileInputsUnavailableLogged = false;
     bool bDeveloperProfileLogged = false;
     bool bRequestedVerificationScreenshot = false;
+    mutable bool bDeveloperPaintVerified = false;
     /** True only when this widget instance accepted a matching personal-coverage slot. */
     bool bExplorationLoadedForWorld = false;
     float VerificationElapsed = 0.0f;

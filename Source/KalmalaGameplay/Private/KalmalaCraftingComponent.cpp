@@ -2,10 +2,12 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaConstructionActor.h"
+#include "KalmalaGameMode.h"
 #include "KalmalaPlacementPreview.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaGameMode.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
@@ -143,12 +145,21 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
     TArray<FKalmalaInventoryStack> Scratch;
     if (!Inventory || !UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Cost, NAME_None, 0, Scratch, Reason)) return false;
     const FTransform Transform(Rotation, Preview.Location);
+    auto* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
+    if (!GameMode || !GameMode->CanPersistConstruction(KitId, Transform)) { Reason = TEXT("Construction save limit reached or unavailable"); return false; }
     auto* Construction = GetWorld()->SpawnActorDeferred<AKalmalaConstructionActor>(AKalmalaConstructionActor::StaticClass(), Transform, nullptr, Character,
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
     if (!Construction) { Reason = TEXT("Could not allocate construction"); return false; }
     if (!Inventory->TryExchangeFromServer(Cost, NAME_None, 0, Reason)) { Construction->Destroy(); return false; }
     Construction->InitializeFromServer(KitId, FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower));
     Construction->FinishSpawning(Transform);
+    if (!GameMode->PersistConstruction(Construction))
+    {
+        Construction->Destroy();
+        Inventory->TryGrantFromServer(KitId, 1);
+        Reason = TEXT("Could not save construction; kit restored");
+        return false;
+    }
     Reason = TEXT("Placed construction; server accepted the kit and ground");
     return true;
 }

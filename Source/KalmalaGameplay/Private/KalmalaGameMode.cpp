@@ -3,6 +3,8 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaMapAwarenessComponent.h"
 #include "KalmalaCampfire.h"
+#include "KalmalaConstructionActor.h"
+#include "KalmalaConstructionSaveGame.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaExposureResponse.h"
 #include "KalmalaHarvestNode.h"
@@ -52,6 +54,10 @@ namespace KalmalaGameMode
         // Retain the legacy slot for old worlds; new identities must not overwrite it.
         return Config.GeneratorRevision == 1 ? TEXT("KalmalaPopulationDeltas")
             : FString::Printf(TEXT("KalmalaPopulationDeltas_%llu_%d"), Config.WorldSeed, Config.GeneratorRevision);
+    }
+    FString ConstructionSaveSlot(const FKalmalaWorldGenerationConfig& Config)
+    {
+        return FString::Printf(TEXT("KalmalaConstruction_%llu_%d"), Config.WorldSeed, Config.GeneratorRevision);
     }
 }
 
@@ -143,7 +149,12 @@ void AKalmalaGameMode::BeginPlay()
         PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
         PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
     }
-
+    ConstructionSaveGame = Cast<UKalmalaConstructionSaveGame>(UGameplayStatics::LoadGameFromSlot(KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0));
+    if (ConstructionSaveGame == nullptr || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig))
+    {
+        ConstructionSaveGame = NewObject<UKalmalaConstructionSaveGame>(this);
+        ConstructionSaveGame->InitializeForWorld(WorldGenerationConfig);
+    }
     FActorSpawnParameters SpawnParameters;
     SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
     GeneratedPlayerStart = GetWorld()->SpawnActor<APlayerStart>(
@@ -159,6 +170,7 @@ void AKalmalaGameMode::BeginPlay()
         const FVector StartLocation = GeneratedPlayerStart->GetActorLocation();
         TerrainPatchOrigin = FVector2D(StartLocation.X, StartLocation.Y);
         ActivateTerrainPatchNeighborhood(TerrainPatchOrigin);
+        RestorePersistedConstruction();
         UE_LOG(LogTemp, Display, TEXT("Server activated %d seed-derived terrain patches around the generated start."), ActiveTerrainPatchCoordinates.Num());
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
         {
@@ -178,6 +190,57 @@ void AKalmalaGameMode::BeginPlay()
     }
 
     InitialGenerationMilliseconds = (FPlatformTime::Seconds() - GenerationStartTime) * 1000.0;
+}
+
+bool AKalmalaGameMode::CanPersistConstruction(const FName KitId, const FTransform& Transform) const
+{
+    if (!HasAuthority() || ConstructionSaveGame == nullptr || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+    FKalmalaConstructionSaveRecord Candidate;
+    Candidate.ConstructionId = TEXT("pending");
+    Candidate.KitId = KitId;
+    Candidate.Transform = Transform;
+    return UKalmalaConstructionSaveGame::IsValidRecord(Candidate)
+        && ConstructionSaveGame->GetRecords().Num() < UKalmalaConstructionSaveGame::MaxRecords;
+}
+
+bool AKalmalaGameMode::PersistConstruction(AKalmalaConstructionActor* Construction)
+{
+    if (!HasAuthority() || !IsValid(Construction) || ConstructionSaveGame == nullptr || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+    FKalmalaConstructionSaveRecord Record;
+    Record.ConstructionId = Construction->GetConstructionId();
+    Record.KitId = Construction->GetConstructionKit();
+    Record.Transform = Construction->GetActorTransform();
+    if (!ConstructionSaveGame->AddRecord(Record)) return false;
+    if (!UGameplayStatics::SaveGameToSlot(ConstructionSaveGame, KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0))
+    {
+        ConstructionSaveGame->RemoveRecord(Record.ConstructionId);
+        UE_LOG(LogTemp, Error, TEXT("Construction save failed for %s."), *Record.ConstructionId);
+        return false;
+    }
+    return true;
+}
+
+void AKalmalaGameMode::RestorePersistedConstruction()
+{
+    if (!HasAuthority() || ConstructionSaveGame == nullptr || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return;
+    for (const FKalmalaConstructionSaveRecord& Record : ConstructionSaveGame->GetRecords())
+    {
+        if (!UKalmalaConstructionSaveGame::IsValidRecord(Record))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Construction restore rejected malformed record."));
+            continue;
+        }
+        auto* Construction = GetWorld()->SpawnActorDeferred<AKalmalaConstructionActor>(AKalmalaConstructionActor::StaticClass(), Record.Transform, nullptr, nullptr,
+            ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+        if (Construction == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Construction restore allocation failed for %s."), *Record.ConstructionId);
+            continue;
+        }
+        Construction->InitializeFromServer(Record.KitId, Record.ConstructionId);
+        Construction->FinishSpawning(Record.Transform);
+        UE_LOG(LogTemp, Display, TEXT("Construction restored: Id=%s Kit=%s."), *Record.ConstructionId, *Record.KitId.ToString());
+    }
 }
 
 void AKalmalaGameMode::LogExposureInspection(const AActor* Occupant) const

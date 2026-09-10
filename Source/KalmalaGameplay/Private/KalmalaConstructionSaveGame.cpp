@@ -26,3 +26,8 @@ bool UKalmalaConstructionSaveGame::AddRecord(const FKalmalaConstructionSaveRecor
     Records.Add(Record);
     return true;
 }
+
+bool UKalmalaConstructionSaveGame::RemoveRecord(const FString& ConstructionId)
+{
+    return !ConstructionId.IsEmpty() && Records.RemoveAll([&ConstructionId](const auto& Record) { return Record.ConstructionId == ConstructionId; }) == 1;
+}

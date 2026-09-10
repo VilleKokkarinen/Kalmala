@@ -12,7 +12,12 @@ bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
     auto* Save = NewObject<UKalmalaConstructionSaveGame>(); Save->InitializeForWorld(World);
     FKalmalaConstructionSaveRecord Record; Record.ConstructionId = TEXT("camp-0001"); Record.KitId = TEXT("FloorKit"); Record.Transform = FTransform(FVector(100, 200, 300));
     TestTrue(TEXT("Construction save accepts a bounded valid record"), Save->AddRecord(Record));
+    Record.Transform.SetLocation(FVector(NAN, 0, 0));
+    TestFalse(TEXT("Construction save rejects non-finite transforms"), UKalmalaConstructionSaveGame::IsValidRecord(Record));
+    Record.Transform = FTransform(FVector(100, 200, 300));
     TestFalse(TEXT("Construction save rejects duplicate stable IDs"), Save->AddRecord(Record));
+    TestTrue(TEXT("Construction save can roll back a newly added record"), Save->RemoveRecord(TEXT("camp-0001")));
+    TestTrue(TEXT("Construction save can re-add a rolled-back record"), Save->AddRecord(Record));
     for (int32 Index = 2; Index <= UKalmalaConstructionSaveGame::MaxRecords; ++Index)
     {
         Record.ConstructionId = FString::Printf(TEXT("camp-%04d"), Index);

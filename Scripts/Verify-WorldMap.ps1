@@ -37,11 +37,13 @@ for ($index = 0; $index -lt 3; $index++) {
             if ($serverText -match 'World map verification: Open=1 Input=1 ZoomMin=1 ZoomMax=1 Pan=1 Recenter=1.' -and
                 $clientText -match 'Client received world-generation identity: Seed=418 Revision=4' -and
                 $clientText -match 'World map verification: Open=1 Input=1 ZoomMin=1 ZoomMax=1 Pan=1 Recenter=1.' -and
+                $serverText -match 'World map paint verification: FullViewport=1 .*ReadyTiles=[1-9][0-9]* Fog=1' -and
+                $clientText -match 'World map paint verification: FullViewport=1 .*ReadyTiles=[1-9][0-9]* Fog=1' -and
                 (Test-Path $serverShot) -and (Test-Path $clientShot)) { break }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw "Rendered host/client world-map verification timed out at $label." }
-        Write-Output "PASS: $label host/client map input, authoritative identity, and screenshots."
+        Write-Output "PASS: $label host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots."
     }
     finally {
         foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

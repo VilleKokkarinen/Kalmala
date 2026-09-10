@@ -1,6 +1,7 @@
 #include "KalmalaWorldMapWidget.h"
 
 #include "Async/Async.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Engine/Texture2D.h"
 #include "GameFramework/PlayerController.h"
@@ -34,7 +35,9 @@ void UKalmalaWorldMapWidget::ConfigureViewportPlacement()
 {
     SetAlignmentInViewport(FVector2D::ZeroVector);
     SetPositionInViewport(FVector2D::ZeroVector, false);
-    SetDesiredSizeInViewport(FVector2D(1920.0f, 1080.0f));
+    // With stretch anchors, desired size becomes right/bottom margins. A fixed
+    // resolution here subtracts from the viewport and collapses the map.
+    SetDesiredSizeInViewport(FVector2D::ZeroVector);
     SetAnchorsInViewport(FAnchors(0.0f, 0.0f, 1.0f, 1.0f));
 }
 
@@ -98,6 +101,8 @@ void UKalmalaWorldMapWidget::RunDeveloperVerification()
     const bool bPanChangedCentre = !ViewModel->GetMapCentre().Equals(InitialCentre, 1.0f);
     Recenter();
     const bool bRecentered = ViewModel->GetMapCentre().Equals(InitialCentre, 1.0f);
+    MapZoom = 18000.0f;
+    Recenter();
     bDeveloperVerificationLogged = true;
     UE_LOG(LogTemp, Display, TEXT("World map verification: Open=%d Input=%d ZoomMin=%d ZoomMax=%d Pan=%d Recenter=%d."),
         bMapOpen ? 1 : 0, GetOwningPlayer() && GetOwningPlayer()->IsMoveInputIgnored() && GetOwningPlayer()->IsLookInputIgnored() ? 1 : 0,
@@ -537,7 +542,13 @@ void UKalmalaWorldMapWidget::TickTilePresentation(const float DeltaTime)
     int32 ViewportWidth = 0;
     int32 ViewportHeight = 0;
     if (APlayerController* Controller = GetOwningPlayer()) Controller->GetViewportSize(ViewportWidth, ViewportHeight);
-    const FVector2D MapSize = FVector2D(ViewportWidth, ViewportHeight) - FVector2D(88.0f);
+    // Paint and pointer input use Slate units, including the local player's DPI
+    // scale. Keep the generated aspect ratio in that same coordinate space.
+    const FVector2D PaintedSize = GetCachedGeometry().GetLocalSize();
+    const float ViewportScale = FMath::Max(UWidgetLayoutLibrary::GetViewportScale(this), UE_SMALL_NUMBER);
+    const FVector2D SurfaceSize = PaintedSize.X > 88.0f && PaintedSize.Y > 88.0f
+        ? PaintedSize : FVector2D(ViewportWidth, ViewportHeight) / ViewportScale;
+    const FVector2D MapSize = SurfaceSize - FVector2D(88.0f);
     if (MapSize.X <= 0.0f || MapSize.Y <= 0.0f) return;
     const float AspectRatio = MapSize.Y > 0.0f ? MapSize.X / MapSize.Y : 1.0f;
     ViewModel->SetMapAspectRatio(AspectRatio);
@@ -561,7 +572,7 @@ void UKalmalaWorldMapWidget::NativeTick(const FGeometry& MyGeometry, const float
     {
         VerificationElapsed += InDeltaTime;
         FString ScreenshotPath;
-        if (VerificationElapsed >= 3.0f && FParse::Value(FCommandLine::Get(), TEXT("KalmalaWorldMapScreenshot="), ScreenshotPath))
+        if (VerificationElapsed >= 3.0f && bDeveloperPaintVerified && FParse::Value(FCommandLine::Get(), TEXT("KalmalaWorldMapScreenshot="), ScreenshotPath))
         {
             FScreenshotRequest::RequestScreenshot(ScreenshotPath, true, false);
             bRequestedVerificationScreenshot = true;
@@ -616,9 +627,21 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
         }
         DrawPins(AllottedGeometry, MapSize, DrawLayer + 3, OutDrawElements);
         DrawCoopAwareness(AllottedGeometry, MapSize, DrawLayer + 6, OutDrawElements);
-        if (bDeveloperVerificationLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
+        if (!bDeveloperPaintVerified && bDeveloperVerificationLogged && FogTexture != nullptr
+            && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
         {
-            UE_LOG(LogTemp, VeryVerbose, TEXT("World map painted: Size=%.0fx%.0f Map=%.0fx%.0f Tiles=%d."), Size.X, Size.Y, MapSize.X, MapSize.Y, Tiles.Num());
+            const FGeometry PlayerScreen = UWidgetLayoutLibrary::GetPlayerScreenWidgetGeometry(GetOwningPlayer());
+            int32 ReadyTiles = 0;
+            for (const auto& Pair : Tiles) if (Pair.Value.Texture != nullptr) ++ReadyTiles;
+            const bool bFillsPlayerScreen = Size.X > 88.0f && Size.Y > 88.0f
+                && Size.Equals(PlayerScreen.GetLocalSize(), 1.0f)
+                && AllottedGeometry.LocalToAbsolute(FVector2D::ZeroVector).Equals(PlayerScreen.LocalToAbsolute(FVector2D::ZeroVector), 1.0f);
+            if (bFillsPlayerScreen && ReadyTiles > 0 && ReadyTiles == Tiles.Num())
+            {
+                bDeveloperPaintVerified = true;
+                UE_LOG(LogTemp, Display, TEXT("World map paint verification: FullViewport=1 Size=%.0fx%.0f Map=%.0fx%.0f ReadyTiles=%d Fog=1."),
+                    Size.X, Size.Y, MapSize.X, MapSize.Y, ReadyTiles);
+            }
         }
     }
     FVector2D PawnLocation;
