@@ -5,6 +5,7 @@ $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor
 $output = Join-Path $env:TEMP ('KalmalaConstructionRestore-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $output | Out-Null
 $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaCraftingTest -ExecCmds="t.MaxFPS 60"'
+$script:FirstPlacementIds = @()
 
 function Invoke-PeerRun([int]$Run, [bool]$ExpectRestore) {
     $serverLog = Join-Path $output "server-$Run.log"
@@ -32,17 +33,30 @@ function Invoke-PeerRun([int]$Run, [bool]$ExpectRestore) {
             $accepted = [regex]::Matches($serverText, 'Construction accepted: Id=([0-9a-f-]+) Kit=FloorKit')
             $replicated = [regex]::Matches($clientText, 'Construction replicated: Id=([0-9a-f-]+) Kit=FloorKit')
             $ready = $accepted.Count -eq 2 -and $replicated.Count -ge 2
+            $acceptedIds = @($accepted | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+            $replicatedIds = @($replicated | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+            $expectedIds = $acceptedIds
             if ($ExpectRestore) {
                 $restored = [regex]::Matches($serverText, 'Construction restored: Id=([0-9a-f-]+) Kit=FloorKit')
-                $ready = $ready -and $restored.Count -eq 2
+                $restoredIds = @($restored | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+                if ($restored.Count -eq 2 -and (@(Compare-Object $script:FirstPlacementIds $restoredIds).Count -ne 0)) {
+                    throw 'Restored construction IDs differ from the first run paid placements.'
+                }
+                $expectedIds = @($script:FirstPlacementIds + $acceptedIds | Sort-Object -Unique)
+                $ready = $ready -and $restored.Count -eq 2 -and $expectedIds.Count -eq 4
             }
+            $ready = $ready -and $acceptedIds.Count -eq 2 -and $replicatedIds.Count -eq $expectedIds.Count
+            if ($ready) { $ready = @(Compare-Object $expectedIds $replicatedIds).Count -eq 0 }
             if ($ready) { break }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if (!$ready) { throw "Run $Run construction host/client scenario timed out." }
         if ($clientText -notmatch 'Client received world-generation identity: Seed=418 Revision=4') { throw "Run $Run client identity mismatch." }
-        if ($ExpectRestore) { Write-Output 'PASS: restored two identity-scoped construction actors and replicated them to the reconnecting client.' }
-        else { Write-Output 'PASS: server accepted two validated construction placements and replicated them to the client.' }
+        if ($ExpectRestore) { Write-Output 'PASS: exact two original construction IDs restored; client received those plus two distinct newly paid placements.' }
+        else {
+            $script:FirstPlacementIds = $acceptedIds
+            Write-Output 'PASS: client received the exact two distinct server-paid construction IDs.'
+        }
     }
     finally {
         foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

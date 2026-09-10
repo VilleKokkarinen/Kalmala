@@ -10,6 +10,8 @@
 #include "EngineUtils.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "KalmalaGeneratedTerrainPatch.h"
 
 void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
 {
@@ -44,7 +46,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         const int32 WoodBefore=I->GetQuantity(TEXT("Wood"));
         Check(!CraftFromServer(TEXT("Fuel"),1,Reason) && I->GetQuantity(TEXT("Wood"))==WoodBefore,TEXT("Full output cannot consume inputs"));
         Check(CraftFromServer(TEXT("Campfire"),1,Reason),TEXT("Craft hearth kit"));
-        const FVector Original=C->GetActorLocation(); const FRotator OriginalRotation=C->GetActorRotation();
+        FVector Original=C->GetActorLocation(); const FRotator OriginalRotation=C->GetActorRotation();
         TSet<AKalmalaCampfire*> Existing;
         for(TActorIterator<AKalmalaCampfire> It(GetWorld());It;++It) Existing.Add(*It);
         bool Placed=false;
@@ -52,6 +54,37 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         {
             C->SetActorRotation(FRotator(0,Turn*45,0));
             Placed=PlaceFromServer(Reason);
+        }
+        // A restored camp can occupy every direction around the shared player start.
+        // Search bounded nearby terrain for this test's new paid camp; never remove
+        // restored actors or relax the production placement checks to make room.
+        if (!Placed)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Crafting fixture seeking clear ground: Player=%d Origin=%s Reason=%s"),
+                C->GetPlayerState()->GetPlayerId(), *Original.ToCompactString(), *Reason);
+            const FVector SearchOrigin = Original;
+            FCollisionQueryParams Query(SCENE_QUERY_STAT(CraftingFixtureGround), false, C);
+            for (int32 Site = 0; Site < 24 && !Placed; ++Site)
+            {
+                const FVector Probe = SearchOrigin + FRotator(0, (Site % 8) * 45, 0).Vector() * (600 + (Site / 8) * 600);
+                FHitResult Ground;
+                if (!GetWorld()->LineTraceSingleByChannel(Ground, Probe + FVector(0,0,1000), Probe - FVector(0,0,2000), ECC_Visibility, Query)
+                    || !Cast<AKalmalaGeneratedTerrainPatch>(Ground.GetActor())) continue;
+                C->SetActorLocation(Ground.ImpactPoint + FVector(0,0,C->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + 2));
+                for (int32 Turn = 0; Turn < 8 && !Placed; ++Turn)
+                {
+                    C->SetActorRotation(FRotator(0, Turn * 45, 0));
+                    Placed = PlaceFromServer(Reason);
+                }
+            }
+            if (Placed)
+            {
+                Original = C->GetActorLocation();
+                C->GetCharacterMovement()->StopMovementImmediately();
+                UE_LOG(LogTemp, Display, TEXT("Crafting fixture found clear ground: Player=%d Location=%s"),
+                    C->GetPlayerState()->GetPlayerId(), *Original.ToCompactString());
+            }
+            else C->SetActorLocation(SearchOrigin);
         }
         Check(Placed,TEXT("Paid placement on actual generated collision"));
         for(TActorIterator<AKalmalaCampfire> It(GetWorld());It;++It) if(!Existing.Contains(*It)) VerificationFire=*It;

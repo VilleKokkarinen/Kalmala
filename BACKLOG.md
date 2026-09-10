@@ -248,7 +248,8 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Add a minimal accessible crafting presentation with readable recipe costs, unavailable reasons, and remappable/local input entry points.
   - [x] Verify concurrent host/client crafting cannot duplicate or lose ingredients and malformed, distant, locked, or insufficient-resource requests are rejected server-side.
 
-- [ ] **Add placement preview and construction validation.**
+- [x] **Add placement preview and construction validation.**
+  - Verification 2026-09-10: repaired the restart fixture's crowded spawn-site assumption with a bounded nearby-ground search using unchanged server placement/payment checks. Forced build, five construction/crafting contracts, and exact restored-plus-new host/client construction ID agreement passed; see the latest `PROGRESS.md` handoff.
   - [x] Create a local-only placement preview for camp and construction recipes with valid/invalid feedback; it must never spawn, reserve, or mutate an actor before server acceptance.
   - [x] Add a server placement request that reruns range, terrain, overlap, collision, support, rotation, recipe, inventory, and world-identity checks, then atomically consumes the construction item and spawns one replicated construction actor.
   - [x] Define stable construction IDs and a versioned, identity-scoped server save format for placed camps; reject incompatible world identity and impose bounded actor/save limits.

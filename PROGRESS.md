@@ -1841,3 +1841,31 @@ Multiplayer impact: Shared actors replicate kit/placement identity only. Storage
 Known limits: Chest contents persist; carried inventory still resets when its pawn is replaced. This is a stationary listen-server fixture with temporary grants, not the full gather/build/weather M2 acceptance scenario, a rendered UI inspection, a crash-recovery guarantee, or dedicated-server coverage. Chests are shared when reachable and have no ownership lock, removal/refund, or material weather state. Existing wildlife/hazard relevancy warnings remain outside this increment.
 
 Next task: Verify roof/windbreak geometry affects only server-sampled shelter, host/client construction collision agrees for movement, and any included removal/refund cannot duplicate resources.
+
+### 2026-09-10 15.34.36 +03:00 - Construction gate restart verification failure
+
+Outcome: Audited the first unchecked M2 construction-placement parent (all four child checkboxes were already complete). Strengthened its persistence runner to compare exact unique construction IDs instead of accepting replication log counts. Required peer verification failed, so the parent remains unchecked and no files were committed.
+
+Changed: `Scripts/Verify-ConstructionPersistence.ps1`; `docs/10-campfire-and-crafting.md`; `BACKLOG.md`; `PROGRESS.md`. All changes are run-owned and uncommitted; the main checkout was clean at start and is the current workspace.
+
+Verification: Forced editor build with LOCALAPPDATA UnrealBuildTool access passed. Focused Construction.LocalPreview, Construction.SaveContract, and Crafting.NetworkContract all passed, test exit 0 (`C:/Users/Ville/AppData/Local/Temp/KalmalaPlacementGate-34176add19d04eebad390d0b0a94a46c/automation.log`). PowerShell parse and whitespace checks passed. `Scripts/Verify-ConstructionPersistence.ps1 -Port 17981` passed first-run exact two-ID peer agreement, but restart failed with `Crafting fixture FAILED: Paid placement on actual generated collision` at server-2.log line 1849 (`C:/Users/Ville/AppData/Local/Temp/KalmalaConstructionRestore-199f59807b74464fae1ff608146f8673`). Both original IDs restored and replicated; only one new floor was accepted before the other player's hearth-placement failure. The runner stopped its own peers.
+
+Multiplayer impact: Verification-only changes; server placement, inventory payment, replication, shelter, collision, and save schemas are unchanged. The stricter runner requires the first paid IDs to match restored IDs and the reconnecting client to receive the exact restored-plus-new set, preventing duplicate log lines from standing in for distinct construction identities.
+
+Known limits: One live verification attempt failed in the existing crafting fixture, before the stronger ID acceptance condition. This is not evidence of a save/restore failure or a diagnosed runtime collision defect. No BLOCKED label after only one attempt. Do not commit the current increment until required peer verification passes.
+
+Next task: Diagnose and repair the restart fixture's paid-hearth placement failure, rerun the required verification, and close the construction-placement parent only after passing. Shelter geometry and host/client movement-collision acceptance remain next after that gate.
+
+### 2026-09-10 15.39.38 +03:00 - Repair and close construction placement verification
+
+Outcome: Resumed the preceding failed increment and completed the construction-placement parent gate. The fixture's eight headings at the shared spawn could not place a new hearth after floors restored. It now searches at most 24 nearby terrain sites within 18 m only after those initial headings fail, retaining normal server placement and payment checks. The successful restart exercised this fallback: player 257 moved 6 m, placed its paid hearth and floor, and passed all synchronous crafting server gates. Exact original/restored/client ID comparisons prevent replication log counts from masking missing or duplicated identities.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`; `Scripts/Verify-ConstructionPersistence.ps1`; `docs/10-campfire-and-crafting.md`; `BACKLOG.md`; `PROGRESS.md`. The four pending files from the preceding turn are this same resumed increment; no unrelated changes were present. Handoff is updated directly in the main checkout.
+
+Verification: Forced KalmalaEditor Win64 Development build with LOCALAPPDATA UnrealBuildTool access passed. All five Construction/Crafting tests passed, exit 0 (`C:/Users/Ville/AppData/Local/Temp/KalmalaPlacementRepairContracts-82ef422e70cd487fbec05ceaea71394a/automation.log`). `Scripts/Verify-ConstructionPersistence.ps1 -Port 17981` passed fresh and restarted two-player runs (`C:/Users/Ville/AppData/Local/Temp/KalmalaConstructionRestore-f89d575c76aa42029edbcef648a83da2`). Both server pawns passed placement/atomic/malformed/locked/distant/fuel/rain gates on both launches. First launch replicated exactly two distinct paid floor IDs; restart restored precisely those IDs and replicated their union with two distinct newly paid floor IDs. The second launch logs seeking/found clear ground at server-2.log lines 1843-1844. PowerShell parse and git diff --check passed.
+
+Multiplayer impact: Development-only test positioning and verification changes. Restored actors are preserved; ordinary server range, terrain, water, overlap, inventory, persistence, and identity validation remains unchanged. No RPC, client authority, runtime placement, collision, save schema, or gameplay movement change.
+
+Known limits: This is a launch-gated systems fixture with temporary grants and test relocation, not a player traversal or full gather/build/weather acceptance scenario. It does not complete shelter movement-collision acceptance, dedicated-server coverage, or M2's persisted camp gate. The preceding failure was repaired on the first resumed peer attempt.
+
+Next task: Verify roof/windbreak geometry affects only server-sampled shelter, construction collision agrees for host/client movement, and any included removal/refund cannot duplicate resources.
