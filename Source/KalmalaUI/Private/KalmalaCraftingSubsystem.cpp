@@ -98,7 +98,8 @@ void UKalmalaCraftingWidget::Refresh()
     for (int32 I=0; I<Recipes.Num(); ++I) List+=FString::Printf(TEXT("%s %s\n"), I==Selected ? TEXT(">") : TEXT(" "), *Recipes[I].DisplayName);
     RecipesText->SetText(FText::FromString(List));
     DetailText->SetText(FText::FromString(M->GetRecipeDescription(Recipes[Selected].RecipeId)+TEXT("\n")+M->GetRecipeAvailability(Recipes[Selected].RecipeId)+TEXT("\n")));
-    StateText->SetText(FText::FromString(TEXT("\n")+M->GetNearbyFireText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")));
+    StateText->SetText(FText::FromString(TEXT("\nNearby hearth (replicated shared state; text does not rely on colour):\n")
+        + M->GetNearbyFireText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")));
 }
 
 FString UKalmalaCraftingWidget::GetPresentationText() const

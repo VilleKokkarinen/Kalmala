@@ -178,11 +178,13 @@ void AKalmalaCampfire::SetSharedFromServer(bool bShared)
 
 FString AKalmalaCampfire::GetStatusText() const
 {
-    return FString::Printf(TEXT("Hearth: %s | fuel %.0f/300 seconds | %s (%d%% wet)\n%s | %s | %s"),
+    // This is deliberately a complete textual state, rather than a light/colour-only
+    // indication. The crafting panel is a local read-only view of replicated hearth state.
+    return FString::Printf(TEXT("Hearth status\nState: %s\nFuel: %.0f / 300 seconds\nFuel condition: %s (%d%% wet)\nRain protection: %s\nWind protection: %s\nAccess: %s"),
         bIsLit ? TEXT("LIT") : TEXT("EXTINGUISHED"), FuelSeconds,
-        FuelWetness >= .9f ? TEXT("Too wet to light") : TEXT("Can light with fuel"), FMath::RoundToInt(FuelWetness*100),
-        bRoofProtected ? TEXT("Roof protected") : TEXT("Rain exposed"),
-        bWindProtected ? TEXT("Windbreak protected") : TEXT("Wind exposed"), bSharedUse ? TEXT("Shared") : TEXT("Owner only"));
+        FuelWetness >= .9f ? TEXT("TOO WET TO LIGHT") : TEXT("DRY ENOUGH TO LIGHT"), FMath::RoundToInt(FuelWetness*100),
+        bRoofProtected ? TEXT("ROOF PROTECTED") : TEXT("RAIN EXPOSED"),
+        bWindProtected ? TEXT("WINDBREAK PROTECTED") : TEXT("WIND EXPOSED"), bSharedUse ? TEXT("SHARED") : TEXT("OWNER ONLY"));
 }
 
 void AKalmalaCampfire::OnRep_CampfireState()

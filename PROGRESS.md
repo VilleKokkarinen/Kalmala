@@ -1677,3 +1677,15 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: Fire state is replicated for shared presentation; inventory stacks and request feedback remain owner-only. The client has no target, amount, wetness, warmth, duration, access, or state parameter for refuelling/lighting, so all validation and mutation stay server-authoritative. No generated-world save, terrain, collision, weather, or player-persistence schema changed.
 
 Known limits: Clear accessible local fuel/weather feedback and the dedicated two-player campfire acceptance check remain. Hearths and carried inventory are still session/pawn-lifetime. Next task: present clear local fuel, lit/extinguished, and weather-protection feedback using colour-independent cues.
+
+### 2026-09-10 09:13 EEST - Add accessible hearth feedback
+
+Outcome: Completed the final local hearth-feedback increment. The crafting panel now identifies its nearby-hearth view as replicated shared state and presents a colour-independent, line-by-line textual summary: State (`LIT`/`EXTINGUISHED`), Fuel seconds, Fuel condition (dry enough or too wet to light), Rain protection, Wind protection, and Access. This makes wetness, extinguishing, and roof/windbreak effects legible without relying on the fire light or colour.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `docs/10-campfire-and-crafting.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. Headless `Kalmala.Gameplay.Campfire`, `Kalmala.Gameplay.Crafting`, and `Kalmala.Gameplay.Inventory` passed all four focused automations (`C:/Users/Ville/AppData/Local/Temp/KalmalaCampfireFeedback-ef940bf3bbe14ee2a22b00a3aa5a9f99/automation.log`). `Scripts/Verify-Crafting.ps1` passed its host/client scenario, retaining the dry-lit and rain-extinguished shared snapshots and owner inventory conservation. `git diff --check` passed before the handoff update.
+
+Multiplayer impact: None beyond existing read-only replicated campfire presentation. The UI consumes the established replicated hearth state and owner-only action result; it adds no RPC, request payload, actor mutation, inventory visibility, weather input, terrain/collision, save, or authority change.
+
+Known limits: The panel is local UMG text rather than screen-reader certification. Hearths and carried inventory remain session/pawn-lifetime. Next task: verify two players observe matching fuel and fire state, rain extinguishes exposed fuel as designed, and invalid or insufficient-inventory requests cannot create a campfire.
