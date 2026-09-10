@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "KalmalaInteractable.h"
 #include "KalmalaConstructionActor.generated.h"
 
 class UBoxComponent;
@@ -9,7 +10,7 @@ class UProceduralMeshComponent;
 
 /** Server-owned replicated construction. Clients derive presentation/collision from the replicated kit only. */
 UCLASS(NotBlueprintable)
-class KALMALAGAMEPLAY_API AKalmalaConstructionActor : public AActor
+class KALMALAGAMEPLAY_API AKalmalaConstructionActor : public AActor, public IKalmalaInteractable
 {
     GENERATED_BODY()
 public:
@@ -20,6 +21,10 @@ public:
     const FString& GetConstructionId() const { return ConstructionId; }
     static bool IsShelterKit(FName KitId);
     static FVector GetCollisionExtent(FName KitId);
+    /** Advisory on clients; every mutation separately requires server authority. */
+    bool CanUse(const AKalmalaCharacter* Character) const;
+    virtual bool CanInteract_Implementation(AKalmalaCharacter* Character) const override;
+    virtual void Interact_Implementation(AKalmalaCharacter* Character) override;
 private:
     UFUNCTION() void OnRep_ConstructionState();
     void ApplyConstructionKit();

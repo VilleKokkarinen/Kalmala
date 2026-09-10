@@ -30,6 +30,12 @@ public:
         TArray<FKalmalaInventoryStack>& After, FString& Reason);
     bool TryExchangeFromServer(const TArray<FKalmalaInventoryStack>& Costs,
         FName Output, int32 OutputCount, FString& Reason);
+    static bool BuildTransfer(const TArray<FKalmalaInventoryStack>& Source,
+        const TArray<FKalmalaInventoryStack>& Destination, FName ItemId, int32 Quantity,
+        TArray<FKalmalaInventoryStack>& NextSource, TArray<FKalmalaInventoryStack>& NextDestination, FString& Reason);
+    /** Persist the scratch chest before publishing this pack; failed validation/writes mutate neither. */
+    bool TransferStorageFromServer(const TArray<FKalmalaInventoryStack>& Storage, FName ItemId, bool bDeposit,
+        TFunctionRef<bool(const TArray<FKalmalaInventoryStack>&)> Persist, FString& Reason);
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 protected:
     virtual void BeginPlay() override;

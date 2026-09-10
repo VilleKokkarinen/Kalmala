@@ -85,6 +85,12 @@ The server's local configuration is the authority for future inventory transacti
 
 Generated harvest nodes now grant one material through that inventory. The server derives Wood, Stone, or Fibre by `FCrc::StrCrc32(PersistentSpawnId) % 3` in that order, including existing discovery nodes; fuel and construction supplies remain later crafting outputs. Initialization is one-use and rejects non-harvest descriptors or non-finite locations. An interaction requires an initialized, available server node and an authoritative same-world character within 250 cm. The normal no-argument character RPC still performs the server view trace; clients cannot supply a target, item ID, or quantity. The complete catalogue/capacity-validated inventory grant precedes depletion, collision removal, and the existing sparse-save delegate. A full material stack leaves the node intact for retry; repeated accepted requests cannot grant twice. Stable IDs, generated placements, and sparse-save schemas remain unchanged. Pawn inventory is still transient, so persisted node depletion does not imply item restoration after reconnect.
 
+## M2 workbench and storage
+
+Accepted workbench/storage kits use the existing replicated construction actor and unchanged stable placement save. Visible workbenches within 250 cm satisfy camp kit assembly. Chest contents live only in a separate server-owned schema-1 save, bounded to 128 stable construction IDs with 16 unique catalogue-limited stacks each, under exact seed/revision identity. The game mode retains both construction and storage save containers through reflected transient references. Invalid existing storage saves fail closed without overwrite.
+
+The owning crafting component accepts no-target inspect/close intents and item-ID-only one-unit deposit/withdraw intents. The server chooses the chest, validates controlled-pawn range and sight line plus its registered construction record, checks both inventory results, saves the candidate contents, and only then publishes the private pack. Failed validation/writes leave live containers unchanged. Owner-only snapshots refresh or expire every 0.25 seconds and clear when the menu closes; shared construction actors carry no contents. UI uses only this component seam. Carried inventory still resets with its pawn; storage persistence does not imply player persistence. Full controls, save limits, and verification are in `10-campfire-and-crafting.md`.
+
 ## Module boundaries
 
 - `KalmalaCore`: tags, logging, shared data types, save interfaces.

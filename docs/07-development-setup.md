@@ -55,6 +55,10 @@ Run `Scripts/Verify-Inventory.ps1` after an editor build for the inventory compo
 
 The inventory runner also requires `Harvest inventory: Passed=1` for both server pawns. Its development-only fixture exercises twelve isolated initialized nodes covering Wood, Stone, and Fibre, uninitialized-node and distant rejection, full-stack rejection without depletion, successful retry after capacity is freed, duplicate rejection, and exactly one sparse-save callback per accepted grant. It restores the original seven-wood inventory before owner replication checks and destroys its temporary actors; it writes no world-save slot. Run `Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion` and `Kalmala.Gameplay.Inventory.Catalogue` with the headless flags above for the pure authority and malformed quantity gates. This does not yet exercise a client's actual harvest RPC, inventory reconnect restoration, or simultaneous competing player input.
 
+## Workbench and storage verification
+
+After the editor build, run `Kalmala.Gameplay.Storage` with the headless flags and unique temporary user/log paths above. It covers bounded storage serialization, identity mismatch, invalid stacks and quantities, transfer conservation/capacity, RPC payloads, and owner-only chest snapshots. Then run `Scripts/Verify-Storage.ps1` for paid workbench/chest placement, kit assembly, actual owner deposit/withdraw RPCs, distance/obstruction rejection, write-failure conservation, private peer snapshots, and a same-user-directory restart retaining the exact two chest IDs and contents. The runner writes only temporary user/save/log data. See `10-campfire-and-crafting.md` for controls and limits; this fixture does not close the later complete M2 camp acceptance gate.
+
 ## Dedicated-server build
 
 The Epic Games Launcher engine distribution does not include dedicated-server support. The `KalmalaServer` target remains in the project, but building it requires a UE 5.8 source build or another UE 5.8 distribution with server support. Do not attempt the command below with the installed Launcher engine.

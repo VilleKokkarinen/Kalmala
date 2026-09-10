@@ -1,5 +1,6 @@
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaStorageSaveGame.h"
 #include "GameFramework/Actor.h"
 
 bool UKalmalaInventoryComponent::BuildExchange(const TArray<FKalmalaInventoryStack>& Before,
@@ -54,5 +55,41 @@ bool UKalmalaInventoryComponent::TryExchangeFromServer(const TArray<FKalmalaInve
     if (!BuildExchange(Stacks, Costs, Output, OutputCount, Next, Reason)) return false;
     Stacks = MoveTemp(Next);
     GetOwner()->ForceNetUpdate();
+    return true;
+}
+
+bool UKalmalaInventoryComponent::BuildTransfer(const TArray<FKalmalaInventoryStack>& Source,
+    const TArray<FKalmalaInventoryStack>& Destination, FName ItemId, int32 Quantity,
+    TArray<FKalmalaInventoryStack>& NextSource, TArray<FKalmalaInventoryStack>& NextDestination, FString& Reason)
+{
+    Reason = TEXT("Invalid storage transfer");
+    const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    if (&NextSource == &NextDestination || !Catalogue->IsValidStack(ItemId, Quantity)
+        || !UKalmalaStorageSaveGame::IsValidStacks(Source) || !UKalmalaStorageSaveGame::IsValidStacks(Destination)) return false;
+    TArray<FKalmalaInventoryStack> From;
+    if (!BuildExchange(Source, {{ItemId, Quantity}}, NAME_None, 0, From, Reason)) return false;
+    auto To = Destination;
+    int32 Index = To.IndexOfByPredicate([&](const auto& Stack) { return Stack.ItemId == ItemId; });
+    if (!Catalogue->CanAddToStack(ItemId, Index == INDEX_NONE ? 0 : To[Index].Quantity, Quantity)
+        || (Index == INDEX_NONE && To.Num() >= MaxSlots))
+    { Reason = TEXT("Destination capacity reached"); return false; }
+    if (Index == INDEX_NONE) { Index = To.AddDefaulted(); To[Index].ItemId = ItemId; }
+    To[Index].Quantity += Quantity;
+    NextSource = MoveTemp(From); NextDestination = MoveTemp(To); Reason = TEXT("Ready");
+    return true;
+}
+
+bool UKalmalaInventoryComponent::TransferStorageFromServer(const TArray<FKalmalaInventoryStack>& Storage,
+    FName ItemId, bool bDeposit, TFunctionRef<bool(const TArray<FKalmalaInventoryStack>&)> Persist, FString& Reason)
+{
+    Reason = TEXT("Server authority required");
+    if (!GetOwner() || !GetOwner()->HasAuthority()) return false;
+    TArray<FKalmalaInventoryStack> NextPack, NextStorage;
+    const bool Built = bDeposit ? BuildTransfer(Stacks, Storage, ItemId, 1, NextPack, NextStorage, Reason)
+        : BuildTransfer(Storage, Stacks, ItemId, 1, NextStorage, NextPack, Reason);
+    if (!Built) return false;
+    if (!Persist(NextStorage)) { Reason = TEXT("Storage save failed; nothing transferred"); return false; }
+    Stacks = MoveTemp(NextPack); GetOwner()->ForceNetUpdate();
+    Reason = bDeposit ? TEXT("Stored one item") : TEXT("Took one item");
     return true;
 }

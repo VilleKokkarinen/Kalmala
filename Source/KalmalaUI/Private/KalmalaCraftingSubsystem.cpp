@@ -2,6 +2,7 @@
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaPlacementPreview.h"
 #include "KalmalaRecipeCatalogue.h"
+#include "KalmalaItemCatalogue.h"
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Border.h"
@@ -61,6 +62,14 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Add fuel bundle"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Refuel);
     AddButton(TEXT("Light hearth"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Light);
     StateText = AddText(TEXT(""), 18);
+    AddText(TEXT("\nWoven chest — shared nearby storage\nInspect a visible chest, choose an item, then store or take one. Contents clear when closed or out of reach."), 16);
+    StorageText = AddText(TEXT(""), 18);
+    AddButton(TEXT("Inspect nearby chest"))->OnClicked.AddDynamic(this, &ThisClass::InspectStorage);
+    auto* StorageActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(StorageActions);
+    AddButton(TEXT("Previous item"), StorageActions)->OnClicked.AddDynamic(this, &ThisClass::PreviousStorageItem);
+    AddButton(TEXT("Next item"), StorageActions)->OnClicked.AddDynamic(this, &ThisClass::NextStorageItem);
+    AddButton(TEXT("Store one"), StorageActions)->OnClicked.AddDynamic(this, &ThisClass::DepositStorage);
+    AddButton(TEXT("Take one"), StorageActions)->OnClicked.AddDynamic(this, &ThisClass::WithdrawStorage);
     auto* CloseButton=AddButton(TEXT("Close")); CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseClicked);
     CloseButton->RemoveFromParent();
     auto* Outer=WidgetTree->ConstructWidget<UVerticalBox>();
@@ -92,6 +101,7 @@ void UKalmalaCraftingWidget::Open()
 void UKalmalaCraftingWidget::Close()
 {
     if (!bOpen) return; bOpen = false; bPlacementPreviewEnabled = false; SetVisibility(ESlateVisibility::Collapsed);
+    if (auto* M = Model()) M->ServerCloseStorage();
     if (auto* PC=GetOwningPlayer()) { PC->SetIgnoreMoveInput(false); PC->SetIgnoreLookInput(false); PC->bShowMouseCursor=bPreviousCursor; PC->SetInputMode(FInputModeGameOnly()); }
 }
 
@@ -111,7 +121,22 @@ void UKalmalaCraftingWidget::Refresh()
         PreviewText = TEXT("\n") + Preview.Message + (Preview.bIsValid ? FString::Printf(TEXT(" (%.0f, %.0f)"), Preview.Location.X, Preview.Location.Y) : TEXT("")) + TEXT("\n");
     }
     StateText->SetText(FText::FromString(TEXT("\nNearby hearth (replicated shared state; text does not rely on colour):\n")
-        + M->GetNearbyFireText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")+PreviewText));
+        + M->GetNearbyFireText()+TEXT("\n")+M->GetNearbyWorkbenchText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")+PreviewText));
+    const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    SelectedStorageItem = FMath::Clamp(SelectedStorageItem, 0, FMath::Max(0, Catalogue->Items.Num()-1));
+    FString ChestText = Catalogue->Items.IsValidIndex(SelectedStorageItem)
+        ? TEXT("Selected item: ") + Catalogue->Items[SelectedStorageItem].DisplayName + TEXT("\n") : TEXT("No item catalogue\n");
+    ChestText += M->HasStorageView() ? TEXT("Inspected chest (16 stack maximum):\n") : TEXT("Chest contents unavailable; inspect nearby first.\n");
+    if (M->HasStorageView())
+    {
+        if (M->GetStorageView().IsEmpty()) ChestText += TEXT("Empty\n");
+        for (const auto& Stack : M->GetStorageView())
+        {
+            const auto* Item = Catalogue->FindItem(Stack.ItemId);
+            ChestText += FString::Printf(TEXT("%s: %d\n"), Item ? *Item->DisplayName : TEXT("Unknown item"), Stack.Quantity);
+        }
+    }
+    StorageText->SetText(FText::FromString(ChestText));
 }
 
 FString UKalmalaCraftingWidget::GetPresentationText() const
@@ -136,6 +161,29 @@ void UKalmalaCraftingWidget::Place()
 }
 void UKalmalaCraftingWidget::Refuel() { if(auto* M=Model()) M->ServerRefuel(); }
 void UKalmalaCraftingWidget::Light() { if(auto* M=Model()) M->ServerLight(); }
+void UKalmalaCraftingWidget::InspectStorage() { if (auto* M=Model()) M->ServerOpenStorage(); }
+void UKalmalaCraftingWidget::PreviousStorageItem()
+{
+    const int32 Count = GetDefault<UKalmalaItemCatalogue>()->Items.Num();
+    if (Count) SelectedStorageItem = (SelectedStorageItem + Count - 1) % Count;
+    Refresh();
+}
+void UKalmalaCraftingWidget::NextStorageItem()
+{
+    const int32 Count = GetDefault<UKalmalaItemCatalogue>()->Items.Num();
+    if (Count) SelectedStorageItem = (SelectedStorageItem + 1) % Count;
+    Refresh();
+}
+void UKalmalaCraftingWidget::DepositStorage()
+{
+    const auto& Items = GetDefault<UKalmalaItemCatalogue>()->Items;
+    if (auto* M=Model(); M && Items.IsValidIndex(SelectedStorageItem)) M->ServerDepositStorage(Items[SelectedStorageItem].ItemId);
+}
+void UKalmalaCraftingWidget::WithdrawStorage()
+{
+    const auto& Items = GetDefault<UKalmalaItemCatalogue>()->Items;
+    if (auto* M=Model(); M && Items.IsValidIndex(SelectedStorageItem)) M->ServerWithdrawStorage(Items[SelectedStorageItem].ItemId);
+}
 void UKalmalaCraftingWidget::CloseClicked() { Close(); }
 FReply UKalmalaCraftingWidget::NativeOnPreviewKeyDown(const FGeometry& G,const FKeyEvent& E)
 {

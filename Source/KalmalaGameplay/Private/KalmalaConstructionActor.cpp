@@ -1,4 +1,8 @@
 #include "KalmalaConstructionActor.h"
+#include "KalmalaCharacter.h"
+#include "KalmalaCraftingComponent.h"
+#include "KalmalaWorldGenerationGameState.h"
+#include "Engine/World.h"
 #include "Components/BoxComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "ProceduralMeshComponent.h"
@@ -32,6 +36,32 @@ AKalmalaConstructionActor::AKalmalaConstructionActor()
 void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FString& InConstructionId)
 {
     if (HasAuthority()) { ConstructionKit = InKit; ConstructionId = InConstructionId.Left(64); ApplyConstructionKit(); }
+}
+
+bool AKalmalaConstructionActor::CanUse(const AKalmalaCharacter* Character) const
+{
+    if (!IsValid(Character) || !Character->GetController() || Character->GetWorld() != GetWorld() || ConstructionId.IsEmpty()
+        || (ConstructionKit != TEXT("WorkbenchKit") && ConstructionKit != TEXT("StorageKit"))
+        || Character->GetActorLocation().ContainsNaN() || GetActorLocation().ContainsNaN()
+        || FVector::DistSquared(Character->GetActorLocation(), GetActorLocation()) > FMath::Square(250.0)) return false;
+    const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (!State || !State->GetWorldGenerationConfig().IsValid()) return false;
+    FCollisionQueryParams Query(SCENE_QUERY_STAT(ConstructionUse), false, Character);
+    FHitResult Hit;
+    return GetWorld()->LineTraceSingleByChannel(Hit, Character->GetPawnViewLocation(), GetActorLocation(), ECC_Visibility, Query)
+        && Hit.GetActor() == this;
+}
+
+bool AKalmalaConstructionActor::CanInteract_Implementation(AKalmalaCharacter* Character) const
+{
+    return HasAuthority() && IsValid(Character) && Character->HasAuthority() && CanUse(Character);
+}
+
+void AKalmalaConstructionActor::Interact_Implementation(AKalmalaCharacter* Character)
+{
+    if (!CanInteract_Implementation(Character)) return;
+    if (auto* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>())
+        Crafting->InteractWithConstructionFromServer(this);
 }
 
 bool AKalmalaConstructionActor::IsShelterKit(const FName KitId)
@@ -88,6 +118,18 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
         AddBox(Vertices, Triangles, FVector(0, 0, 54), FVector(120, 12, 110));
     else if (ConstructionKit == TEXT("RoofKit"))
         AddBox(Vertices, Triangles, FVector(0, 0, 248), FVector(132, 132, 16));
+    else if (ConstructionKit == TEXT("WorkbenchKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(0, 0, 36), FVector(54, 54, 10));
+        for (const float X : {-40.0f, 40.0f}) for (const float Y : {-40.0f, 40.0f})
+            AddBox(Vertices, Triangles, FVector(X, Y, -14), FVector(8, 8, 40));
+    }
+    else if (ConstructionKit == TEXT("StorageKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(0, 0, -10), FVector(50, 50, 44));
+        AddBox(Vertices, Triangles, FVector(0, 0, 42), FVector(54, 54, 8));
+        AddBox(Vertices, Triangles, FVector(52, 0, 25), FVector(2, 10, 12));
+    }
     else
         AddBox(Vertices, Triangles, FVector::ZeroVector, GetCollisionExtent(ConstructionKit));
     TArray<FVector> Normals; Normals.Init(FVector::UpVector, Vertices.Num());

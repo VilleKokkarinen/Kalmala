@@ -7,7 +7,6 @@
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaWorldGenerationGameState.h"
-#include "KalmalaGameMode.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
@@ -30,6 +29,8 @@ void UKalmalaCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, LastResult, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, StorageView, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, bStorageViewOpen, COND_OwnerOnly);
 }
 
 bool UKalmalaCraftingComponent::AcceptRequest()
@@ -72,7 +73,7 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     TArray<FKalmalaInventoryStack> Costs; int32 OutputCount;
     Reason = TEXT("Invalid batch quantity");
     if (!UKalmalaRecipeCatalogue::Scale(*Recipe, Batch, Costs, OutputCount)) return false;
-    if (Recipe->bRequiresCampfire && !FindNearbyFire(true)) { Reason = TEXT("Need a usable hearth within 2.5 m"); return false; }
+    if (Recipe->bRequiresCampfire && !FindNearbyFire(true) && !FindNearbyWorkbench()) { Reason = TEXT("Need a usable hearth or workbench within 2.5 m"); return false; }
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
     if (!Inventory || !Inventory->TryExchangeFromServer(Costs, Recipe->Output, OutputCount, Reason)) return false;
     Reason = FString::Printf(TEXT("Crafted %d %s"), OutputCount, *GetDefault<UKalmalaItemCatalogue>()->FindItem(Recipe->Output)->DisplayName);
@@ -200,7 +201,7 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
 {
     const auto* R = GetDefault<UKalmalaRecipeCatalogue>()->Find(Id);
     if (!R || !R->bEnabled) return TEXT("Recipe unavailable");
-    if (R->bRequiresCampfire && !FindNearbyFire(true)) return TEXT("Need a usable hearth within 2.5 m");
+    if (R->bRequiresCampfire && !FindNearbyFire(true) && !FindNearbyWorkbench()) return TEXT("Need a usable hearth or workbench within 2.5 m");
     auto* C = GetCharacter(); auto* Inv = C ? C->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (!Inv) return TEXT("Waiting for pack");
     TArray<FKalmalaInventoryStack> Next; FString Reason;
@@ -216,7 +217,7 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     for (const auto& Cost : R->Ingredients)
         Text += FString::Printf(TEXT("%d %s  "), Cost.Quantity, *GetDefault<UKalmalaItemCatalogue>()->FindItem(Cost.ItemId)->DisplayName);
     Text += FString::Printf(TEXT("\nOutput: %d (stack limit %d)"),R->OutputCount,GetDefault<UKalmalaItemCatalogue>()->FindItem(R->Output)->MaxStack);
-    return Text + (R->bRequiresCampfire ? TEXT("\nStation: nearby usable hearth") : TEXT("\nHandcrafted; no station"));
+    return Text + (R->bRequiresCampfire ? TEXT("\nStation: nearby usable hearth or workbench") : TEXT("\nHandcrafted; no station"));
 }
 
 FString UKalmalaCraftingComponent::GetNearbyFireText() const
@@ -228,7 +229,9 @@ FString UKalmalaCraftingComponent::GetNearbyFireText() const
 void UKalmalaCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTick)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTick);
+    if (GetOwner() && GetOwner()->HasAuthority() && bStorageViewOpen) RefreshStorageView();
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCraftingTest"))) RunVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaStorageTest"))) RunStorageVerification(DeltaTime);
 #endif
 }

@@ -5,6 +5,7 @@
 #include "KalmalaCampfire.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaConstructionSaveGame.h"
+#include "KalmalaStorageSaveGame.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaExposureResponse.h"
 #include "KalmalaHarvestNode.h"
@@ -155,6 +156,21 @@ void AKalmalaGameMode::BeginPlay()
         ConstructionSaveGame = NewObject<UKalmalaConstructionSaveGame>(this);
         ConstructionSaveGame->InitializeForWorld(WorldGenerationConfig);
     }
+    const FString StorageSlot = UKalmalaStorageSaveGame::MakeSlotName(WorldGenerationConfig);
+    if (UGameplayStatics::DoesSaveGameExist(StorageSlot, 0))
+    {
+        StorageSaveGame = Cast<UKalmalaStorageSaveGame>(UGameplayStatics::LoadGameFromSlot(StorageSlot, 0));
+        if (!StorageSaveGame || !StorageSaveGame->MatchesWorld(WorldGenerationConfig))
+        {
+            StorageSaveGame = nullptr;
+            UE_LOG(LogTemp, Warning, TEXT("Storage unavailable: existing save is invalid or incompatible; preserved without overwrite."));
+        }
+    }
+    else
+    {
+        StorageSaveGame = NewObject<UKalmalaStorageSaveGame>(this);
+        StorageSaveGame->InitializeForWorld(WorldGenerationConfig);
+    }
     FActorSpawnParameters SpawnParameters;
     SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
     GeneratedPlayerStart = GetWorld()->SpawnActor<APlayerStart>(
@@ -241,6 +257,33 @@ void AKalmalaGameMode::RestorePersistedConstruction()
         Construction->FinishSpawning(Record.Transform);
         UE_LOG(LogTemp, Display, TEXT("Construction restored: Id=%s Kit=%s."), *Record.ConstructionId, *Record.KitId.ToString());
     }
+}
+
+bool AKalmalaGameMode::ReadStorage(const AKalmalaConstructionActor* Construction, TArray<FKalmalaInventoryStack>& Out) const
+{
+    if (!HasAuthority() || !IsValid(Construction) || !Construction->HasAuthority() || Construction->GetWorld() != GetWorld()
+        || Construction->GetConstructionKit() != TEXT("StorageKit") || !StorageSaveGame || !ConstructionSaveGame
+        || !StorageSaveGame->MatchesWorld(WorldGenerationConfig) || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+    // Only a paid, registered construction in this immutable world can address a chest record.
+    const auto* Placed = ConstructionSaveGame->GetRecords().FindByPredicate([&](const auto& Record) {
+        return Record.ConstructionId == Construction->GetConstructionId() && Record.KitId == TEXT("StorageKit")
+            && Record.Transform.Equals(Construction->GetActorTransform());
+    });
+    if (!Placed) return false;
+    const auto* Stored = StorageSaveGame->FindRecord(Placed->ConstructionId);
+    Out = Stored ? Stored->Stacks : TArray<FKalmalaInventoryStack>();
+    return true;
+}
+
+bool AKalmalaGameMode::PersistStorage(const AKalmalaConstructionActor* Construction, const TArray<FKalmalaInventoryStack>& Stacks)
+{
+    TArray<FKalmalaInventoryStack> Before;
+    if (!ReadStorage(Construction, Before)) return false;
+    auto* Candidate = DuplicateObject<UKalmalaStorageSaveGame>(StorageSaveGame, this);
+    if (!Candidate || !Candidate->UpsertRecord(Construction->GetConstructionId(), Stacks)
+        || !UGameplayStatics::SaveGameToSlot(Candidate, UKalmalaStorageSaveGame::MakeSlotName(WorldGenerationConfig), 0)) return false;
+    StorageSaveGame = Candidate;
+    return true;
 }
 
 void AKalmalaGameMode::LogExposureInspection(const AActor* Occupant) const

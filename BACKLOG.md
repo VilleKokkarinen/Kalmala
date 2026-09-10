@@ -256,7 +256,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 - [ ] **Deliver the required shelter and camp pieces.**
   - [x] Implement original floor, wall/windbreak, and roof pieces with server-owned collision and replicated placement state; only accepted roof/windbreak pieces add the existing shelter tags used by the server exposure sampler.
-  - [ ] Implement a minimal replicated workbench and basic storage with server-validated interaction and bounded persisted contents; do not expose arbitrary remote storage contents to clients.
+  - [x] Implement a minimal replicated workbench and basic storage with server-validated interaction and bounded persisted contents; do not expose arbitrary remote storage contents to clients.
   - [ ] Verify roof/windbreak geometry affects only server-sampled shelter, construction collision agrees for host/client movement, and teardown/removal (if included) cannot duplicate refunded resources.
 
 - [ ] **Close M2 with a two-player persisted camp scenario.**
