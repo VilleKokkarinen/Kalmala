@@ -1653,3 +1653,15 @@ Multiplayer impact: Planning only. The added tasks explicitly retain server auth
 Known limits: M2 remains unimplemented. The provisional campfire and generated harvest nodes are not yet a complete player-owned survival-camp loop.
 
 Next task: Implement the first M2 increment: the server-authoritative item catalogue and player inventory contract.
+
+### 2026-09-10 08:21 EEST - Verify crafted, paid hearth placement
+
+Outcome: Completed the first gathered-campfire increment. The existing clean baseline implementation replaces the free hearth path with a server-owned placement request that derives the probe from the pawn's authoritative transform, validates generated ground, slope, water, overlap, range, session capacity, world identity, and an atomic `Hearth ring kit` plus `Ember bundle` inventory exchange before spawning a replicated hearth with 60 seconds of fuel. It retains the established server weather wetness, rain/wind extinguish, and warmth contract.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build passed with UnrealBuildTool local-cache access. `Scripts/Verify-Crafting.ps1` passed its two-player listen-server scenario: both server gates and final conservation checks passed, host/client owner checks ended with `Fuel=2 Slots=1`, and both replicated hearths reached matching dry-lit (`Fuel=60 Lit=1 Wet=0 Warmth=1`) and rain-extinguished (`Fuel=48 Lit=0 Wet=96 Warmth=0`) states. Logs: `C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-02adf80e7e8d44509580eff1c2583645`.
+
+Multiplayer impact: Placement and payment remain server-authoritative. The client request carries no transform, ingredient, fuel, wetness, warmth, duration, or lit-state values; the server derives placement and validates all costs before spawning the replicated actor. Owner-only inventory detail remains private, while the shared fire state is replicated normally. No generated-world save schema, terrain, collision, or player persistence contract changed.
+
+Known limits: This records only crafted/paid hearth placement. Bounded refuelling and lighting, accessible local feedback, and the dedicated two-player campfire acceptance item remain unchecked. Hearths and carried inventory remain session/pawn-lifetime until later persistence work. Next task: add bounded server-side fuel consumption, refuelling, and lighting interactions.
