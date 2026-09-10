@@ -1789,3 +1789,15 @@ Verification: An earlier focused run reported `Kalmala.Gameplay.Construction.Sav
 Multiplayer impact: Proposed changes retain server-only construction creation, save capacity, IDs, transforms, persistence, and restoration; the client still supplies no transform, collision/preview result, identity, cost, ID, or restore record. No runtime contract was committed.
 
 Known limits: Do not commit this increment until the shared build workspace is free and the final build plus a host/client restore scenario pass. Next task remains this unchecked construction verification item.
+
+### 2026-09-10 14:46 EEST - Verify construction persistence and peer replication
+
+Outcome: Completed the construction acceptance gate. The retained preview and RPC contracts keep local preview advisory and client placement intent limited to a kit identity; the live fixture additionally exercised the ordinary server path for two paid floor placements. On a restart with the same temporary host user directory, the exact two identity-scoped records restored before client join and the reconnecting client received both stable IDs and kit identities.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaConstructionActor.h`; `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`; `Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`; `Scripts/Verify-ConstructionPersistence.ps1`; `BACKLOG.md`; `docs/10-campfire-and-crafting.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -Project=E:\\dev\\Kalmala\\Kalmala.uproject -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. Focused `Kalmala.Gameplay.Construction.LocalPreview`, `Kalmala.Gameplay.Construction.SaveContract`, and `Kalmala.Gameplay.Crafting.NetworkContract` passed (`C:/Users/Ville/AppData/Local/Temp/KalmalaConstructionContracts-d90a633debcf4b2cacf5c3b5d6d7df3e/automation.log`). `Scripts/Verify-ConstructionPersistence.ps1 -Port 17931` passed both launches: two server accepted/rejected-path floor placements replicated on first join, then exactly two saved actors restored and replicated after restart (`C:/Users/Ville/AppData/Local/Temp/KalmalaConstructionRestore-d9475def45d14216b319fd6df92e0e32`). `git diff --check` passed.
+
+Multiplayer impact: Construction remains server-authoritative. Clients may submit only a kit identity; the server derives position/yaw, reruns world, terrain, range, support, water, overlap, collision, inventory, save-capacity, and persistence checks, then assigns and replicates the stable ID. Preview and client replication logs cannot reserve, spawn, restore, alter, or select a construction record. Save records remain server-owned, bounded, and keyed to immutable world identity.
+
+Known limits: Generic construction remains a session-presentation placeholder with shared collision; it has no piece-specific shelter geometry, workbench behavior, storage contents, or removal/refund operation. Next task: implement original floor, wall/windbreak, and roof pieces with server-owned collision and server-sampled shelter tags.

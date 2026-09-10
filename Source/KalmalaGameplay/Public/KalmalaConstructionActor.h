@@ -18,7 +18,9 @@ public:
     FName GetConstructionKit() const { return ConstructionKit; }
     const FString& GetConstructionId() const { return ConstructionId; }
 private:
+    UFUNCTION() void OnRep_ConstructionState();
     UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> Collision;
-    UPROPERTY(Replicated) FName ConstructionKit;
-    UPROPERTY(Replicated) FString ConstructionId;
+    UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FName ConstructionKit;
+    UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FString ConstructionId;
+    FString LastLoggedReplicationId;
 };

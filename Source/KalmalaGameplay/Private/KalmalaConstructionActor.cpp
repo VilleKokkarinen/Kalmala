@@ -23,3 +23,15 @@ void AKalmalaConstructionActor::GetLifetimeReplicatedProps(TArray<FLifetimePrope
     DOREPLIFETIME(AKalmalaConstructionActor, ConstructionKit);
     DOREPLIFETIME(AKalmalaConstructionActor, ConstructionId);
 }
+
+void AKalmalaConstructionActor::OnRep_ConstructionState()
+{
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCraftingTest")) && !ConstructionId.IsEmpty()
+        && ConstructionKit != NAME_None && LastLoggedReplicationId != ConstructionId)
+    {
+        LastLoggedReplicationId = ConstructionId;
+        UE_LOG(LogTemp, Display, TEXT("Construction replicated: Id=%s Kit=%s"), *ConstructionId, *ConstructionKit.ToString());
+    }
+#endif
+}

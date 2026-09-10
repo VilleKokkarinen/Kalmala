@@ -1,6 +1,7 @@
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCampfire.h"
+#include "KalmalaConstructionActor.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
@@ -70,6 +71,18 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Fire->SetActorLocation(FireOrigin);
         Check(!CraftFromServer(TEXT("Floor"),1,Reason) && !Fire->TryRefuelFromServer(C),TEXT("Distant station and refuel"));
         C->SetActorLocation(Original); C->SetActorRotation(OriginalRotation);
+        bool ConstructionPlaced = false;
+        TSet<AKalmalaConstructionActor*> ExistingConstruction;
+        for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It) ExistingConstruction.Add(*It);
+        for (int32 Turn = 0; Turn < 8 && !ConstructionPlaced; ++Turn)
+        {
+            C->SetActorRotation(FRotator(0, Turn * 45, 0));
+            ConstructionPlaced = PlaceConstructionFromServer(TEXT("FloorKit"), Reason);
+        }
+        Check(ConstructionPlaced, TEXT("Server construction placement ignores local preview and pays once"));
+        for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It) if (!ExistingConstruction.Contains(*It))
+            UE_LOG(LogTemp, Display, TEXT("Construction accepted: Id=%s Kit=%s"), *It->GetConstructionId(), *It->GetConstructionKit().ToString());
+        C->SetActorRotation(OriginalRotation);
         for(int32 N=0; N<4; ++N) Check(Fire->TryRefuelFromServer(C),TEXT("Bounded refuel"));
         const int32 FuelBefore=I->GetQuantity(TEXT("Fuel"));
         Check(!Fire->TryRefuelFromServer(C) && I->GetQuantity(TEXT("Fuel"))==FuelBefore,TEXT("Full hearth cannot consume fuel"));
