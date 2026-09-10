@@ -17,6 +17,7 @@ public:
     void Close();
     bool IsOpen() const { return bOpen; }
     FString GetPresentationText() const;
+    void EnablePlacementPreview();
 protected:
     virtual void NativeOnInitialized() override;
     virtual void NativeTick(const FGeometry& Geometry, float DeltaTime) override;
@@ -26,6 +27,7 @@ private:
     UFUNCTION() void Previous();
     UFUNCTION() void Next();
     UFUNCTION() void Craft();
+    UFUNCTION() void Preview();
     UFUNCTION() void Place();
     UFUNCTION() void Refuel();
     UFUNCTION() void Light();
@@ -37,6 +39,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StateText;
     int32 Selected = 0;
     bool bOpen = false;
+    bool bPlacementPreviewEnabled = false;
     bool bPreviousCursor = false;
 };
 

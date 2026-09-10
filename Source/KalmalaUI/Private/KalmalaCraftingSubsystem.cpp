@@ -1,5 +1,6 @@
 #include "KalmalaCraftingSubsystem.h"
 #include "KalmalaCraftingComponent.h"
+#include "KalmalaPlacementPreview.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -39,7 +40,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     FString CraftKey = TEXT("Unbound");
     for (const FInputActionKeyMapping& Mapping : GetDefault<UInputSettings>()->GetActionMappings())
         if (Mapping.ActionName == TEXT("CraftMenu") && !Mapping.Key.IsGamepadKey()) { CraftKey = Mapping.Key.GetDisplayName().ToString(); break; }
-    InstructionsText = AddText(FString::Printf(TEXT("Craft menu input: %s. Up/Down or D-pad: choose. Enter / A: craft. Escape / B: close.\nController Y: place hearth. X: add fuel. RB: light.\n"), *CraftKey), 16);
+    InstructionsText = AddText(FString::Printf(TEXT("Craft menu input: %s. Up/Down or D-pad: choose. Enter / A: craft. P: local preview. Escape / B: close.\nController Y: place hearth. X: add fuel. RB: light.\n"), *CraftKey), 16);
     RecipesText = AddText(TEXT(""), 18);
     DetailText = AddText(TEXT(""), 18);
     auto AddButton = [&](const TCHAR* Label, UHorizontalBox* Row = nullptr) {
@@ -53,6 +54,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Previous"),RecipeActions)->OnClicked.AddDynamic(this, &ThisClass::Previous);
     AddButton(TEXT("Next"),RecipeActions)->OnClicked.AddDynamic(this, &ThisClass::Next);
     AddButton(TEXT("Craft one"),RecipeActions)->OnClicked.AddDynamic(this, &ThisClass::Craft);
+    AddButton(TEXT("Preview selected kit"),RecipeActions)->OnClicked.AddDynamic(this, &ThisClass::Preview);
     AddText(TEXT("\nHearth placement uses one hearth kit + one ember bundle. Face clear ground before opening this menu. Other kits await construction.\n"),16);
     auto* FireActions=WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(FireActions);
     AddButton(TEXT("Place hearth"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Place);
@@ -89,7 +91,7 @@ void UKalmalaCraftingWidget::Open()
 
 void UKalmalaCraftingWidget::Close()
 {
-    if (!bOpen) return; bOpen = false; SetVisibility(ESlateVisibility::Collapsed);
+    if (!bOpen) return; bOpen = false; bPlacementPreviewEnabled = false; SetVisibility(ESlateVisibility::Collapsed);
     if (auto* PC=GetOwningPlayer()) { PC->SetIgnoreMoveInput(false); PC->SetIgnoreLookInput(false); PC->bShowMouseCursor=bPreviousCursor; PC->SetInputMode(FInputModeGameOnly()); }
 }
 
@@ -102,8 +104,14 @@ void UKalmalaCraftingWidget::Refresh()
     for (int32 I=0; I<Recipes.Num(); ++I) List+=FString::Printf(TEXT("%s %s\n"), I==Selected ? TEXT(">") : TEXT(" "), *Recipes[I].DisplayName);
     RecipesText->SetText(FText::FromString(List));
     DetailText->SetText(FText::FromString(M->GetRecipeDescription(Recipes[Selected].RecipeId)+TEXT("\n")+M->GetRecipeAvailability(Recipes[Selected].RecipeId)+TEXT("\n")));
+    FString PreviewText;
+    if (bPlacementPreviewEnabled)
+    {
+        const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), GetOwningPlayerPawn(), Recipes[Selected].Output);
+        PreviewText = TEXT("\n") + Preview.Message + (Preview.bIsValid ? FString::Printf(TEXT(" (%.0f, %.0f)"), Preview.Location.X, Preview.Location.Y) : TEXT("")) + TEXT("\n");
+    }
     StateText->SetText(FText::FromString(TEXT("\nNearby hearth (replicated shared state; text does not rely on colour):\n")
-        + M->GetNearbyFireText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")));
+        + M->GetNearbyFireText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")+PreviewText));
 }
 
 FString UKalmalaCraftingWidget::GetPresentationText() const
@@ -115,6 +123,8 @@ void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D) { Super::Nat
 void UKalmalaCraftingWidget::Previous() { const int32 N=GetDefault<UKalmalaRecipeCatalogue>()->Recipes.Num(); if(N) Selected=(Selected+N-1)%N; Refresh(); }
 void UKalmalaCraftingWidget::Next() { const int32 N=GetDefault<UKalmalaRecipeCatalogue>()->Recipes.Num(); if(N) Selected=(Selected+1)%N; Refresh(); }
 void UKalmalaCraftingWidget::Craft() { const auto& R=GetDefault<UKalmalaRecipeCatalogue>()->Recipes; if(auto* M=Model(); M && R.IsValidIndex(Selected)) M->ServerCraft(R[Selected].RecipeId,1); }
+void UKalmalaCraftingWidget::EnablePlacementPreview() { bPlacementPreviewEnabled = true; Refresh(); }
+void UKalmalaCraftingWidget::Preview() { EnablePlacementPreview(); }
 void UKalmalaCraftingWidget::Place() { if(auto* M=Model()) M->ServerPlaceCampfire(); }
 void UKalmalaCraftingWidget::Refuel() { if(auto* M=Model()) M->ServerRefuel(); }
 void UKalmalaCraftingWidget::Light() { if(auto* M=Model()) M->ServerLight(); }
@@ -126,6 +136,7 @@ FReply UKalmalaCraftingWidget::NativeOnPreviewKeyDown(const FGeometry& G,const F
     if(K==EKeys::Gamepad_FaceButton_Top) { if(!E.IsRepeat()) Place(); return FReply::Handled(); }
     if(K==EKeys::Gamepad_FaceButton_Left) { if(!E.IsRepeat()) Refuel(); return FReply::Handled(); }
     if(K==EKeys::Gamepad_RightShoulder) { if(!E.IsRepeat()) Light(); return FReply::Handled(); }
+    if(K==EKeys::P) { if(!E.IsRepeat()) Preview(); return FReply::Handled(); }
     // Reserve arrows for recipe selection only while the panel itself has focus;
     // focused buttons keep ordinary keyboard/controller navigation and activation.
     if (HasKeyboardFocus())
@@ -158,9 +169,11 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
         if(Widget && Widget->IsOpen())
         {
             const auto Text=Widget->GetPresentationText();
+            Widget->EnablePlacementPreview();
+            const auto PreviewText=Widget->GetPresentationText();
             const bool Passed=Text.Contains(TEXT("Craft menu input:")) && Text.Contains(TEXT("Up/Down"))
                 && Text.Contains(TEXT("Cost:")) && Text.Contains(TEXT("Output:")) && Text.Contains(TEXT("Handcrafted; no station"))
-                && Text.Contains(TEXT("Need 2 Splitwood")) && PC->IsMoveInputIgnored() && Widget->IsFocusable();
+                && Text.Contains(TEXT("Need 2 Splitwood")) && PreviewText.Contains(TEXT("Preview:")) && PC->IsMoveInputIgnored() && Widget->IsFocusable();
             Widget->Close();
             UE_LOG(LogTemp,Display,TEXT("Crafting presentation: Passed=%d Restored=%d"),Passed,!PC->IsMoveInputIgnored()); bVerified=true;
         }
