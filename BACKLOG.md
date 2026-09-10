@@ -244,7 +244,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [ ] **Add minimal server-authoritative crafting.**
   - [x] Define a small data-driven recipe set for the campfire, workbench, basic storage, and the three required build pieces, with explicit ingredient costs and output limits.
   - [x] Add a server-validated craft request that checks the caller's inventory, any required nearby owned/usable station, recipe identity, output capacity, and atomic ingredient consumption before granting output.
-  - [ ] Add a minimal accessible crafting presentation with readable recipe costs, unavailable reasons, and remappable/local input entry points.
+  - [x] Add a minimal accessible crafting presentation with readable recipe costs, unavailable reasons, and remappable/local input entry points.
   - [ ] Verify concurrent host/client crafting cannot duplicate or lose ingredients and malformed, distant, locked, or insufficient-resource requests are rejected server-side.
 
 - [ ] **Add placement preview and construction validation.**

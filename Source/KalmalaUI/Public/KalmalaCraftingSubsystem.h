@@ -32,6 +32,7 @@ private:
     UFUNCTION() void CloseClicked();
     void Refresh();
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipesText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StateText;
     int32 Selected = 0;

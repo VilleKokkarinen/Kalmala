@@ -1723,3 +1723,14 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: Crafting stays owner-intent/server-decision. Only an owning client can invoke the server RPC; it supplies recipe identity and bounded batch, while the server derives item costs, output, station/access/range, inventory capacity, and every inventory mutation. Private pack details and action feedback remain owner-only. No terrain, collision, weather, generated-world save, player-persistence, or actor-placement contract changed.
 
 Known limits: The request path is covered by focused automation, but the separate accessible crafting-presentation and concurrent host/client acceptance items remain unchecked. Next task: add a minimal accessible crafting presentation with readable costs, unavailable reasons, and remappable/local input entry points.
+### 2026-09-10 09:30 EEST - Add accessible crafting binding feedback
+
+Outcome: Completed the accessible crafting-presentation increment. The focusable local modal already presents every recipe's textual cost, output, station requirement, unavailable reason, and keyboard/controller operations; it now resolves and shows the active local `CraftMenu` keyboard binding in its own instructions, rather than hard-coding `B`. This keeps the panel aligned with remapped input while retaining button, Tab, arrow/D-pad, Enter/A, and controller action entry points.
+
+Changed: `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `docs/10-campfire-and-crafting.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. `Scripts/Verify-Crafting.ps1` completed its retained two-player listen-server scenario (`C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-46690e4ea5d0408d8d038a28ef0ed248`): both peers logged `Crafting presentation: Passed=1 Restored=1`; server craft gates and final private packs passed for both players; the client logged matching dry and rain-extinguished fires plus `Crafting owner final: Passed=1 Authority=0 Fuel=2 Slots=1`. `git diff --check` passed.
+
+Multiplayer impact: Local presentation only. It reads the already owner-only crafting result/private inventory and replicated nearby-hearth state, sending no new RPC and changing no server validation, actor state, inventory visibility, terrain/collision, weather, or save contract.
+
+Known limits: This validates readable local text, focusability, modal input restoration, and remappable binding display, not assistive-technology certification. Concurrent host/client crafting acceptance remains the next unchecked crafting task.

@@ -15,6 +15,7 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/InputSettings.h"
 #include "Styling/CoreStyle.h"
 #include "InputCoreTypes.h"
 #include "Misc/CommandLine.h"
@@ -35,7 +36,10 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         Label->SetColorAndOpacity(FSlateColor(FLinearColor::White)); Column->AddChild(Label); return Label;
     };
     AddText(TEXT("Camp crafting"), 28);
-    AddText(TEXT("Up/Down or D-pad: choose. Enter / A: craft. Escape / B: close.\nController Y: place hearth. X: add fuel. RB: light.\n"), 16);
+    FString CraftKey = TEXT("Unbound");
+    for (const FInputActionKeyMapping& Mapping : GetDefault<UInputSettings>()->GetActionMappings())
+        if (Mapping.ActionName == TEXT("CraftMenu") && !Mapping.Key.IsGamepadKey()) { CraftKey = Mapping.Key.GetDisplayName().ToString(); break; }
+    InstructionsText = AddText(FString::Printf(TEXT("Craft menu input: %s. Up/Down or D-pad: choose. Enter / A: craft. Escape / B: close.\nController Y: place hearth. X: add fuel. RB: light.\n"), *CraftKey), 16);
     RecipesText = AddText(TEXT(""), 18);
     DetailText = AddText(TEXT(""), 18);
     auto AddButton = [&](const TCHAR* Label, UHorizontalBox* Row = nullptr) {
@@ -104,7 +108,8 @@ void UKalmalaCraftingWidget::Refresh()
 
 FString UKalmalaCraftingWidget::GetPresentationText() const
 {
-    return RecipesText && DetailText && StateText ? RecipesText->GetText().ToString()+DetailText->GetText().ToString()+StateText->GetText().ToString() : FString();
+    return InstructionsText && RecipesText && DetailText && StateText
+        ? InstructionsText->GetText().ToString()+RecipesText->GetText().ToString()+DetailText->GetText().ToString()+StateText->GetText().ToString() : FString();
 }
 void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D) { Super::NativeTick(G,D); if(bOpen) Refresh(); }
 void UKalmalaCraftingWidget::Previous() { const int32 N=GetDefault<UKalmalaRecipeCatalogue>()->Recipes.Num(); if(N) Selected=(Selected+N-1)%N; Refresh(); }
@@ -153,7 +158,9 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
         if(Widget && Widget->IsOpen())
         {
             const auto Text=Widget->GetPresentationText();
-            const bool Passed=Text.Contains(TEXT("Cost:")) && Text.Contains(TEXT("Ember"),ESearchCase::IgnoreCase) && PC->IsMoveInputIgnored() && Widget->IsFocusable();
+            const bool Passed=Text.Contains(TEXT("Craft menu input:")) && Text.Contains(TEXT("Up/Down"))
+                && Text.Contains(TEXT("Cost:")) && Text.Contains(TEXT("Output:")) && Text.Contains(TEXT("Handcrafted; no station"))
+                && Text.Contains(TEXT("Need 2 Splitwood")) && PC->IsMoveInputIgnored() && Widget->IsFocusable();
             Widget->Close();
             UE_LOG(LogTemp,Display,TEXT("Crafting presentation: Passed=%d Restored=%d"),Passed,!PC->IsMoveInputIgnored()); bVerified=true;
         }
