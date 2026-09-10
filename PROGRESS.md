@@ -1701,3 +1701,14 @@ Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -F
 Multiplayer impact: Verification and backlog state only. The exercised placement, fuel, lighting, rain/wetness, warmth, validation, and inventory paths remain server-authoritative; fire presentation remains normally replicated and detailed packs remain owner-only. No client controls a hearth transform, ingredient, fuel, wetness, warmth, duration, lit state, or server mutation. No terrain, collision, generated-world save, player-persistence, or replicated contract changed.
 
 Known limits: Hearths and carried inventory remain session/pawn-lifetime, and the crafting UI is not screen-reader certified. Next task: define the small data-driven recipe set for the campfire, workbench, basic storage, and three required build pieces with explicit costs and output limits.
+### 2026-09-10 10:22 EEST - Verify data-driven camp recipe catalogue
+
+Outcome: Completed the first minimal-crafting increment. The existing configuration-owned eight-recipe catalogue is now explicitly regression-tested as the small contract: ember bundle, lashed timber, hearth ring, joiner's bench, woven chest, timber floor, windbreak wall, and reed roof. The test locks each recipe's original ingredient quantities, one-unit output, bounded batch cap, and the usable-hearth requirement for the three shelter kits.
+
+Changed: `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. Focused headless `Kalmala.Gameplay.Crafting.Transactions` passed (`C:/Users/Ville/AppData/Local/Temp/KalmalaRecipeCatalogue-6e141c38c7be49d2806df9bd7daf1fba/automation.log`), including exact configured recipe definitions, malformed batches, invalid catalogue definitions, atomic exchanges, output/slot limits, and failure-without-consumption checks.
+
+Multiplayer impact: None beyond the established configuration contract. Recipe definitions remain server-resolved; this increment adds no RPC, client-selected ingredient/output/station values, inventory replication change, world mutation, terrain/collision, or save-schema change. The next craft-request increment must keep clients to recipe/batch intent and derive inventory, station, and all transaction decisions on the server.
+
+Known limits: Recipe definitions and transactional primitives exist, but the checklist's dedicated server craft-request, accessible presentation, and concurrent two-player verification items remain separate. Next task: add the server-validated craft request with inventory, station, capacity, and atomic-consumption checks.

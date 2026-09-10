@@ -242,7 +242,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Verify two players observe matching fuel and fire state, rain extinguishes exposed fuel as designed, and an invalid or insufficient-inventory request cannot create a campfire.
 
 - [ ] **Add minimal server-authoritative crafting.**
-  - [ ] Define a small data-driven recipe set for the campfire, workbench, basic storage, and the three required build pieces, with explicit ingredient costs and output limits.
+  - [x] Define a small data-driven recipe set for the campfire, workbench, basic storage, and the three required build pieces, with explicit ingredient costs and output limits.
   - [ ] Add a server-validated craft request that checks the caller's inventory, any required nearby owned/usable station, recipe identity, output capacity, and atomic ingredient consumption before granting output.
   - [ ] Add a minimal accessible crafting presentation with readable recipe costs, unavailable reasons, and remappable/local input entry points.
   - [ ] Verify concurrent host/client crafting cannot duplicate or lose ingredients and malformed, distant, locked, or insufficient-resource requests are rejected server-side.
