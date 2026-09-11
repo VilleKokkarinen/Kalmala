@@ -1883,3 +1883,17 @@ Multiplayer impact: Both peers derive presentation from the replicated kit's col
 Known limits: GeometryAlignment is pre-existing uncommitted work and remains so. This repair does not claim live movement or complete roof placement usability, rendered acceptance, or M2 camp persistence. No unrelated changes committed.
 
 Next task: Complete this same shelter acceptance item's server geometry/exposure and actual host/client movement scenario.
+
+### 2026-09-11 09:58 EEST - Verify actual construction shelter sampling
+
+Outcome: Completed a bounded verification increment within the first unchecked M2 shelter acceptance task. Added actual-construction sampling coverage for roof/upwind wall protection, reversed wind, leaving cover, floor rejection as shelter, and pawn-sized capsule sweeps through all three solids. Overall acceptance remains unchecked for live host/client movement agreement.
+
+Changed: new `Source/KalmalaGameplay/Private/Tests/KalmalaConstructionShelterSamplingTest.cpp`; appended run notes in `BACKLOG.md`, `docs/10-campfire-and-crafting.md`, and `PROGRESS.md`. Pre-existing edits in these documents and `KalmalaConstructionShelterPieceTest.cpp` are preserved and excluded through selective index staging. Main checkout updated directly; no synchronization needed.
+
+Verification: Final forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with LOCALAPPDATA UnrealBuildTool access. GeometryAlignment, LocalPreview, SaveContract, ShelterPieces, ShelterSampling, and ShelterComposition all reported Result={Success}. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaShelterSampling-89eda48ee2404a85bf8fdf060813daa7/retry.log`. Initial new-test failure was an overly tight floating-point comparison of 0.45 + 0.35 against 0.8; explicit 0.0001 tolerance fixed it. Memory DDC fallback was used. Whitespace checks passed.
+
+Multiplayer impact: Tests/documentation only; no runtime, RPC, replication, placement, collision, inventory or save-schema change. Production exposure is sampled in server GameMode and published by the authority-checked character setter; the sampler itself is a shared geometry-query utility.
+
+Known limits: Standalone capsule sweeps do not verify host/client Character Movement or replicated exposure. Pre-existing uncommitted GeometryAlignment was exercised but excluded from this commit. No teardown/removal/refund feature is included.
+
+Next task: Continue the same unchecked shelter acceptance item with live host/client movement against replicated construction and server exposure evidence, before the later complete M2 camp scenario.

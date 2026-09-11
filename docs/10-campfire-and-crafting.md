@@ -72,3 +72,7 @@ The development-only crafting fixture first tries eight headings from the curren
 ### Shelter geometry repair 2026-09-11
 
 Floor, wall and roof procedural solids now use the collision-centred actor origin and the shared kit collision extent. This removes the obsolete -44/+54/+248 cm presentation offsets without changing placement, persisted transforms, collision, RPCs or server shelter sampling. GeometryAlignment and four related construction/shelter tests pass; live host/client movement acceptance remains pending.
+
+### Construction shelter sampling regression 2026-09-11
+
+`Kalmala.Gameplay.Construction.ShelterSampling` creates actual initialized construction actors in a transient collision world and calls the production shelter sampler. It verifies roof plus upwind wall protection, roof-only protection after wind reversal, loss of protection outside geometry, and rejection of blocking floor geometry as roof or windbreak. Pawn-sized capsule sweeps must hit each floor/wall/roof solid without starting in penetration. Run with `Kalmala.Gameplay.Construction` and `Kalmala.World.EnvironmentalExposure.ShelterComposition` using the documented headless flags after a forced editor build. This covers physics queries, not live Character Movement or network acceptance. Production exposure remains calculated by server GameMode and published through the authority-checked character setter; the sampler itself is a geometry-query utility, not an authority boundary. No removal/refund feature is included.
