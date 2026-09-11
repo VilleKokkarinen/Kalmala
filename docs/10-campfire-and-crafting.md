@@ -90,3 +90,7 @@ After the forced editor build, run `Scripts/Verify-ConstructionMovement.ps1`. It
 ### Live shelter and exposure agreement 2026-09-11
 
 The same temporary two-player fixture now surrounds each elevated floor with a replicated roof and four actual server-created windbreak actors. During ordinary `GameMode` exposure updates, the production server sampler must detect both accepted tags and report at least 0.8 shelter; the runner compares the remote owner's wetness, warmth, and travel multiplier to its owning-client replicated exposure snapshot. The pieces are never registered, paid for, or saved. This adds no client-controlled shelter value, RPC, persistence record, gameplay grant, or refund/removal path.
+
+### Persisted-camp scenario preflight 2026-09-11
+
+`Scripts/Verify-PersistedCamp.ps1` runs the retained two-player hearth/crafting, storage/workbench, and construction shelter/exposure fixtures on adjacent ports. It is a preflight harness, not the M2 acceptance scenario: its three launches intentionally retain their own user directories and do not yet prove one shared gathered camp or its combined restart state. It fails on any constituent runner failure, giving the upcoming single-session scenario one stable entry point for its existing contracts.

@@ -257,6 +257,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
     - Verification 2026-09-11: forced build, six focused construction/shelter checks, and `Verify-ConstructionMovement.ps1` passed. The live fixture confirms server-sampled roof/windbreak shelter and owning-client replicated exposure agreement. No teardown/removal/refund path is included.
 
 - [ ] **Close M2 with a two-player persisted camp scenario.**
+  - [x] Establish a retained two-player preflight harness for the existing hearth/crafting, storage/workbench, and shelter/exposure contracts; it must not substitute separate launches for the later shared gathered-camp scenario.
   - [ ] Run a host/client scenario in which both players gather, craft, place a campfire plus floor/wall/roof, use storage/workbench, and observe matching inventory, construction, fire, shelter, and weather state.
   - [ ] Restart/reconnect using the same world identity and verify the sparse generated-world deltas and versioned camp state restore together without duplicate actors, duplicated items, or cross-world reuse.
   - [ ] Document the inventory, crafting, construction, campfire, shelter, storage, and persistence authority contracts, then record build and two-player verification evidence.

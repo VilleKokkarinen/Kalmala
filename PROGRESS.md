@@ -1953,3 +1953,17 @@ Multiplayer impact: Verification-only temporary actors and telemetry. Server `Ga
 Known limits: Fixtures bypass paid placement and terrain support, and do not constitute the full M2 persisted-camp scenario or dedicated-server coverage. There is no teardown/removal/refund feature, hence no refund duplication route to verify.
 
 Next task: Start the first child of the M2 two-player persisted camp scenario: gather, craft, place a campfire plus floor/wall/roof, use storage/workbench, and observe matching state.
+
+### 2026-09-11 14:55 EEST - Add persisted-camp scenario preflight
+
+Outcome: Added the first small M2 persisted-camp increment: `Scripts/Verify-PersistedCamp.ps1` provides one retained two-player preflight entry point for existing crafting/hearth, storage/workbench, and shelter/collision/exposure contracts. It invokes the three established peer fixtures on adjacent ports and fails if any one fails. The actual single-session gathered-camp acceptance remains explicitly unchecked.
+
+Changed: `Scripts/Verify-PersistedCamp.ps1`; `BACKLOG.md`; `docs/10-campfire-and-crafting.md`; `PROGRESS.md`.
+
+Verification: PowerShell syntax parsing passed. The harness deliberately delegates runtime evidence to the established forced-build peer runners; it does not claim an integrated simulation or rerun them in this setup increment.
+
+Multiplayer impact: Verification orchestration only. No RPC, inventory, harvesting, placement, construction, weather, shelter, storage, replication, authority, or save behavior changed.
+
+Known limits: The three checks retain separate host user directories and therefore cannot establish gathered materials, combined save/load state, or one shared camp. The next increment must implement that actual host/client fixture.
+
+Next task: Implement the single-session server-authoritative host/client fixture where both players gather, craft, build hearth/floor/wall/roof, use workbench/storage, and compare matching state.
