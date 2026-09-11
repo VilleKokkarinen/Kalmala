@@ -4,7 +4,7 @@ param(
     [switch]$Rendered,
     [int]$Width = 1280,
     [int]$Height = 720,
-    [ValidateRange(1, 4)][int]$GeneratorRevision = 1
+    [ValidateRange(1, 8)][int]$GeneratorRevision = 1
 )
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'

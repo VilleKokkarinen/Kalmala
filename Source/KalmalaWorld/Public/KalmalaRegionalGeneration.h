@@ -32,7 +32,7 @@ struct KALMALAWORLD_API FKalmalaRegionalGeneration
     static TArray<FKalmalaHydrologySegment> GetHydrology(const FKalmalaWorldGenerationConfig& Config, FIntPoint GridCell);
     static void ClearHydrologyCache();
     static bool AreStreamsEnabled(const FKalmalaWorldGenerationConfig& C)
-    { return C.GeneratorRevision < 5 || C.GeneratorRevision == FKalmalaWorldGenerationConfig::StreamsDebugGeneratorRevision; }
+    { return C.GeneratorRevision < 5 || C.GeneratorRevision == 6 || C.GeneratorRevision == FKalmalaWorldGenerationConfig::StreamsDebugGeneratorRevision; }
     static float DistancePreference(uint8 Biome, double Distance);
     static uint64 Seed(const FKalmalaWorldGenerationConfig& Config, uint64 Domain, FIntPoint Cell = FIntPoint::ZeroValue);
     static double Noise(const FKalmalaWorldGenerationConfig& Config, uint64 Domain, FVector2D Position, double Frequency);

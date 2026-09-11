@@ -77,7 +77,10 @@ void AKalmalaWorldGenerationGameState::LogWorldGenerationIdentity(const TCHAR* S
         auto Mix = [&](int64 Value) { Fingerprint = (Fingerprint ^ uint64(Value)) * 1099511628211ull; };
         for (int32 Y = -4; Y <= 4; ++Y) for (int32 X = -4; X <= 4; ++X)
         {
-            const auto R = FKalmalaRegionalGeneration::Sample(WorldGenerationConfig, FVector2D(X * 25000, Y * 25000));
+            // Master-map verification spans 20 km so peers compare outer biomes
+            // as well as the protected centre. Legacy fingerprints stay intact.
+            const double Step = WorldGenerationConfig.GeneratorRevision >= 7 ? 250000.0 : 25000.0;
+            const auto R = FKalmalaRegionalGeneration::Sample(WorldGenerationConfig, FVector2D(X * Step, Y * Step));
             Mix(R.Biome); Mix(FMath::RoundToInt64(R.Height * 1000)); Mix(FMath::RoundToInt64(R.WaterLevel * 1000));
             Mix(FMath::RoundToInt64(R.RiverWeight * 100000)); Mix(FMath::RoundToInt64(R.StreamWeight * 100000));
             for (float W : R.Weights) Mix(FMath::RoundToInt64(W * 100000));

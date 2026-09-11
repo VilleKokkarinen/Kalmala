@@ -137,7 +137,7 @@ Co-op awareness is off by default and returns to private after reconnecting. Wit
 
 ## Biome feature inspection
 
-`Kalmala.World.Biomes.TerrainSelection` verifies terrain precedence, exact boundaries, lowland/upland climate distinctions, forest moisture support, legacy selection, all-seven-biome coverage, same-identity agreement, different-seed variation, and Meadow starts for revisions 1 and 2. Run it with the headless automation flags above. `Kalmala.World.BiomeExpansion.IntegratedScenario` now covers both revisions. Existing two-peer fixture scripts explicitly select server revision 1 to retain their established terrain/weather fixtures; normal game launches default to revision 2. To retain an existing world, launch with its original seed and `-GeneratorRevision=1`.
+`Kalmala.World.Biomes.TerrainSelection` verifies terrain precedence, exact boundaries, lowland/upland climate distinctions, forest moisture support, legacy selection, all-seven-biome coverage, same-identity agreement, different-seed variation, and Meadow starts for revisions 1 and 2. Run it with the headless automation flags above. `Kalmala.World.BiomeExpansion.IntegratedScenario` now covers both revisions. Existing two-peer fixture scripts explicitly select server revision 1 to retain their established terrain/weather fixtures; normal game launches default to revision 7. To retain an existing world, launch with its original seed and `-GeneratorRevision=1`.
 
 Launch a listen server with `-KalmalaBiomeFeatureInspection` and join a player to log the server-sampled biome-expansion profile, a nearby classifier-seam flag, and a stable but non-materialized discovery candidate. The switch only inspects deterministic inputs from the replicated world identity; it does not spawn, save, reveal, or route toward content, and clients cannot request it.
 
@@ -185,7 +185,7 @@ Build `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -MaxParallelActio
 
 `Kalmala.World.Regional.Integrated` measures seven-biome coverage, boundary density, connected components, tiny components, and maximum nearby height/weight change over a 4 km square for both seeds. It also verifies Flora independence, spline regeneration, GridCell continuity, shaped ocean-depth triangle planes, and nonempty matching water-patch edges. Legacy `Kalmala.World.Biomes.TerrainSelection`, water, sparse-save and minimap tests run alongside it. The older `BiomeExpansion.IntegratedScenario` remains a revision-1/2 local-scale fixture; it is not the regional test.
 
-`Verify-Minimap.ps1 -GeneratorRevision 3` enables the read-only `-KalmalaRegionalVerification` fingerprint over 81 world positions on host and client. The fingerprint includes dominant biomes, all seven weights, final terrain height, water levels, and river/stream weights. It creates no client RPC or saved inspection data. Normal launches default to revision 3; existing worlds must explicitly retain their original seed/revision.
+`Verify-Minimap.ps1 -GeneratorRevision 3` enables the read-only `-KalmalaRegionalVerification` fingerprint over 81 world positions on host and client. The fingerprint includes dominant biomes, all seven weights, final terrain height, water levels, and river/stream weights. It creates no client RPC or saved inspection data. Normal launches default to revision 7; existing worlds must explicitly retain their original seed/revision.
 
 ## Source-control rules
 
@@ -199,8 +199,26 @@ After the editor build, run `Kalmala.Gameplay.Crafting`, `Kalmala.Gameplay.Inven
 
 ## Revision-5 radial world verification
 
-New worlds default to revision 5. Restart the editor after rebuilding native modules; an explicit older `-GeneratorRevision` retains that older layout. See `08-world-generation-and-biomes.md` for the 16 km radius, biome preferences and debug controls.
+New worlds now default to revision 7; this section retains the revision-5/6 regression fixture. Restart the editor after rebuilding native modules; an explicit older `-GeneratorRevision` retains that older layout. See `08-world-generation-and-biomes.md` for the 16 km radius, biome preferences and debug controls.
 
 Run `Kalmala.World.Regional.FiniteWorld`, `Kalmala.Gameplay.Movement.WorldBoundary`, and `Kalmala.UI.WorldMap.LocalPresentation` using the headless automation flags and temporary user/log directory described above. They cover actual inner/outer biome distributions for two seeds, repeatable terrain, river-only generation and opt-in streams, finite mesh/population bounds, the production movement clamp, and whole-circle map coverage across aspect ratios. Retain `Kalmala.World.Regional.Integrated`, `Kalmala.World.Water`, and `Kalmala.UI.Minimap.GenerationPerformance` for legacy generation/shoreline/fingerprint regression.
 
-Run `Scripts/Verify-WorldMap.ps1 -GeneratorRevision 5 -Overview` for rendered host/client world-identity, map inputs, full-world fit/reveal, complete visible tile coverage and screenshots at three aspect ratios. `-SingleResolution` selects its 1024x768 case for a quick pass. The runner uses temporary user directories and a conflicting-seed/revision client. `-KalmalaEnableStreams` on the server selects the separate revision-6 debug layout unless an explicit revision was supplied.
+Run `Scripts/Verify-WorldMap.ps1 -GeneratorRevision 5 -Overview` for rendered host/client world-identity, map inputs, full-world fit/reveal, complete visible tile coverage and screenshots at three aspect ratios. `-SingleResolution` selects its 1024x768 case for a quick pass. The runner uses temporary user directories and a conflicting-seed/revision client. `-KalmalaEnableStreams` on the server selects the separate revision-8 master-map debug layout unless an explicit revision was supplied.
+
+## Master-map generation verification (revision 7)
+
+Build the editor, then run headless automation with the temporary user/log flags above and:
+`Automation RunTests Kalmala.World.Regional.MasterMap+Kalmala.World.Regional.FiniteWorld+Kalmala.World.Regional.Integrated+Kalmala.World.Water+Kalmala.UI.Minimap.GenerationPerformance`.
+Check every requested result reports Success; engine exit code alone is insufficient.
+
+The master-map test covers independent master-seed variation, repeatable game-seeded crop/rotation, atlas containment, scale preservation, master coastline agreement with terrain and Ocean identity, all-seven-biome coverage, exact distance boundaries and both sides, zero forbidden biome influence, smooth height/weight gates, dry central Meadows starts, and production/debug stream rules. Legacy finite-world, regional, water and minimap fingerprints must still pass.
+
+Run `Scripts/Verify-Minimap.ps1 -GeneratorRevision 7` for a conflicting-seed client and matching 81-position host/client terrain, biome-weight, water and hydrology fingerprints across a 20 km square (inside the playable circle). This proves replicated identity and sampler agreement across inner and outer biome distances; it does not establish a full-world human traversal playtest.
+
+The visualization commandlet accepts `-Revision=7 -Seed=418 -Size=256 -Extent=3200000 -SkipSplineOverlay -Output=<temporary-directory>`. Use `-NoZenAutoLaunch -DDC=NoZenLocalFallback -LocalDataCachePath=<temporary-DDC>` for commandlets so a restricted disk-cache fallback error does not force failure. It writes the existing field/biome/weight/height images plus:
+
+- `MasterLandWater.ppm`: full independently seeded atlas, with the selected circular crop outlined.
+- `LandWaterCrop.ppm`: rotated base crop, masked to the playable circle.
+- `Tuning.txt`: master seed, atlas scale, crop centre, rotation and distance limits.
+
+The main biome preview also masks the exterior. `-SkipSplineOverlay` skips only the costly whole-area line-overlay enumeration; each pixel still samples actual hydrology and terrain. At whole-world resolution, small lakes and channels may be subpixel. Render the same seed twice and compare every PPM hash, then render seed 419 and require crop, biome and height variation. No preview image becomes authoritative world data. Restart an open editor to load the rebuilt native generator; explicit older revisions retain their original worlds.

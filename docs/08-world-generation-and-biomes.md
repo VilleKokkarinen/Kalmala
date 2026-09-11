@@ -25,53 +25,81 @@ The server creates and saves two immutable values with every world:
 
 Changing either value creates a different base world. Existing saves must never silently reinterpret terrain or object locations after a generator revision changes.
 
-### Four continuous Perlin maps
+### Master map and environmental fields (revision 7; current default)
 
-The generator derives four independent Perlin-noise maps from the world seed. Each map uses its own deterministic sub-seed so that changing one map's tuning does not accidentally reshape the others.
+First generate a continuous Perlin **land/water master map with its own seed**, independent of the game seed. The 128 km square atlas uses the revisioned constant `FKalmalaMasterMap::MasterSeed = 0x4b616c6d616c6137`, a 3 km main wavelength and a second 1.29 km octave (75%/25% amplitudes). Positive noise is land; zero or negative noise is ocean. It contains no biome identities, authored islands, or gameplay placements.
 
-| Map | Controls | Derived uses |
-| --- | --- | --- |
-| **Elevation** | Height of the terrain | Slope, drainage, lakes, shorelines, cliffs, and mountain forms. |
-| **Humidity** | Availability of surface and ground moisture | Wet ground, lakeside conditions, marsh potential, and vegetation support. |
-| **Temperature** | Local climate tendency | Snow, frost, rainfall type, warmth pressure, and cold-weather conditions. |
-| **Flora** | Vegetation suitability and density | Meadows, forest density, ground cover, and plant population potential. |
+The game seed and generator revision select an atlas crop centre and an arbitrary rotation. The crop retains the current **16 km radius / 32 km diameter** playable circle. The centre is selected from up to 128 seeded candidates: use the first with land signal above 0.10, or the strongest candidate if none qualifies. This favours inland terrain for the start without painting land into the atlas. The entire rotated circle fits inside the master map. World zero is the crop centre; rotation preserves distance and scale. No baked map image is required.
 
-At any world position, the generator samples all four maps, normalizes the results, and classifies the biome from their combined values. Biome transitions are continuous blends, not fixed-width borders. Wind, wetness, wildlife, ruins, scroll sites, and harvest nodes are generated later; they are not additional biome maps.
+The existing four independently seeded game fields remain:
+
+| Map | Controls |
+| --- | --- |
+| **Elevation** | Inland relief from the existing Perlin noise, constrained to the master's land/water sign and tapered continuously to the coast. |
+| **Humidity** | Surface and ground moisture, wetland suitability, vegetation support. |
+| **Temperature** | Climate, snow, frost, warmth pressure, cold-biome suitability. |
+| **Flora** | Local vegetation density, undergrowth and clearings; it does not fragment broad biome identity. |
+
+Changing the game seed changes the crop, rotation and environmental fields, but not the underlying master atlas. Master tuning and its seed are fixed by the generator revision, not client-controlled settings. Changing them requires another revision; no save schema is added.
+
+### Land biome placement and origin distance
+
+On land, the existing regional Perlin signals and environmental suitability select **Shimmering Lakes, Elderwood, Mossy Mire and Freezing Tundra**. **Meadows and Thunder Mountains are the default land biomes** wherever no special biome wins. Distance is measured from game-world XY `(0, 0)`, not the player start or master-map origin.
+
+| Rule / biome | Distance from world zero |
+| --- | --- |
+| **Meadows or Ocean only** | **0–0.35 km inclusive** |
+| **Meadows** | **At most 4 km** |
+| **Shimmering Lakes** | **At least 0.35 km**, with the inclusive starter rule taking precedence |
+| **Elderwood** | **At least 0.75 km** |
+| **Mossy Mire** | **At least 2 km** |
+| **Freezing Tundra** | **At least 4 km** |
+| **Thunder Mountains** | Default elevated land outside the starter zone; default remaining land beyond 4 km |
+
+Minimum-distance weights rise smoothly over 50 m on the eligible side, never leaking into excluded radii. The lowland Meadows fallback fades into Mountains over the last 50 m before 4 km, reaching zero at 4 km. Elevation also favours the mountain fallback nearer the centre, with no mountain influence at or inside 0.35 km. A winning special biome takes precedence over the fallback, including on high terrain. Remaining land beyond 4 km is Thunder Mountains even where source relief is low. These restrictions replace the earlier Gaussian distance preferences; they are not enemy levels or travel gates.
+
+Shimmering Lakes still requires a moisture-qualified, enclosed lowland bowl. Its entire bowl/rim support must lie outside the starter radius, and its local influence fades toward master-map coasts. Rivers remain enabled and may create inland water within a land biome, including Meadows; inland water does not turn that land into Ocean. The later island overlay is disabled: islands must already exist in the master crop. The player-start resolver searches dry Meadows candidates within 320 m of zero.
+
+Terrain, collision, sea water, inland water, minimap and expanded map consume the same generator. Regional weights, biome identity and terrain remain computed functions. Only a small crop transform is memoized per worker alongside the existing bounded hydrology spline cache; no authoritative biome raster is stored or replicated. Weather, wildlife, ruins, discoveries and harvest nodes are derived later.
 
 ```text
-WorldSeed + GeneratorRevision
-  -> Perlin maps: Elevation, Humidity, Temperature, Flora
-  -> sample at world position
-  -> terrain and biome classification
-  -> seeded world content
-  -> weather, survival, and player-made changes
+MasterSeed -> continuous land/water atlas
+WorldSeed + GeneratorRevision -> crop centre and rotation -> base land/water mask
+WorldSeed + GeneratorRevision -> Elevation, Humidity, Temperature, Flora
+  -> master-constrained terrain + regional signals + distance eligibility
+  -> special land biomes; Meadows/Mountains fallback; Ocean from master water
+  -> seeded content, weather, survival and sparse player changes
 ```
 
-## Finite radial worlds (revision 5; current default)
+## Finite worlds and compatibility
 
-The 2026-09-11 user-directed generation change supersedes the earlier unlimited-world and no-distance-preference direction for **new worlds**. Revision 5 bounds playable terrain and water to a circle centred at world XY `(0, 0)` with radius **1,600,000 cm (16 km)**, or 32 km diameter. Distance is measured from that origin, not the seed-selected player start. Revisions 1–4 retain their existing generation and unlimited extent; use their original seed and `-GeneratorRevision` to reopen them. No save schema or existing save is migrated.
+New worlds default to **revision 7**. Revisions 5–8 use the existing 16 km origin-centred radius. Revisions 1–6 retain their original layouts; revisions 1–4 also retain unlimited extent. Open an existing world with its original seed and explicit `-GeneratorRevision`. No existing save is migrated or silently reinterpreted, and no saved-data schema changes.
 
-Biome selection still derives from the same four fields and irregular overlapping regional noise. A broad Gaussian preference multiplies Meadows, Elderwood, Mossy Mire and Freezing Tundra weights before normalization: preferred origin distances are 0, 4, 8 and 12 km, with a 4.8 km breadth and nonzero 0.08 floor. Toward the outer world, suitable uplands increasingly blend into Thunder Mountains foothills. Source-height peaks remain Mountains, submerged terrain remains Ocean, and Shimmering Lakes still require an enclosed basin. These are soft environmental tiers rather than mandatory biome rings, enemy levels or travel gates. Higher tier land becomes more common outward; any given direction can still contain lower tier land or water.
+**Legacy revisions 5/6 only:** Meadows, Elderwood, Mire and Tundra have Gaussian distance preferences centred at 0, 4, 8 and 12 km with 4.8 km breadth and a nonzero floor. Outer uplands gain mountain foothills. Revisions 7/8 replace these soft preferences with the master map and hard eligibility limits above.
 
-The existing large rivers remain enabled. Revision 5 omits small-stream spline generation and therefore omits their terrain carving and water. To inspect streams again, launch a **new debug world** with `-KalmalaEnableStreams` (non-shipping only, with no explicit revision), or explicitly select `-GeneratorRevision=6`. Revision 6 is the reserved radial-world debug layout with streams enabled; its identity is replicated, so peers never disagree about carving. It is a separate seeded layout/save, not a mutable client console option. Explicit `-GeneratorRevision` takes precedence over the launch flag. Older revisions retain their streams.
+Production revisions 5 and 7 retain large rivers and omit small streams. `-KalmalaEnableStreams` (non-shipping, without an explicit revision) now selects **revision 8**, the master-map debug layout with streams. Explicit revision 6 retains the old radial debug layout with streams; revisions 1–4 also retain streams. Each debug revision is a separate replicated identity/save. An explicit `-GeneratorRevision` takes precedence over the flag.
 
-Terrain and sea/inland-water triangles are clipped at the radial contour. Small straight boundary segments approximate the circle at the existing 125 cm terrain lattice; their vertices remain inside the circle and shared patch edges use the same intersections. Exterior patches are not activated. Population descriptors and discoveries outside the circle are rejected, decoration keeps a 10 m edge margin, and new hearth/construction placement requires 3 m clearance. Character Movement applies the radius minus capsule clearance after both walking and swimming updates on authority and the owning prediction path, removes outward velocity, and retains tangential/vertical movement. Clients cannot choose radius, generation rules or authoritative positions. This change adds no edge wall, new biome, world actor budget, asset or save schema.
+Terrain and water triangles retain the existing radial clipping. Exterior patches, population and discoveries are rejected; decoration keeps a 10 m edge margin and new hearth/construction placement keeps 3 m clearance. Character Movement enforces the radius minus capsule clearance on authority and owner prediction while preserving tangential/vertical movement. No edge wall, actor budget, asset or authority change is introduced.
 
 ### Full-world debug map
 
+![Seed 418 master atlas, rotated crop and final biome placement](master-map-preview.png)
+
+The retained preview shows the actual revision-7 generator. Gold outlines the selected crop in the master atlas; the second panel is the rotated land/water base and the third applies biomes. Small lakes/channels can be subpixel at this 32 km view.
+
 M opens centred on world zero, fitted with 4% margin so the entire circle is visible. The local console settings `kalmala.Map.RevealAll 1` and `kalmala.Map.FitWorldOnOpen 1` are enabled by default for current development. Set either to `0` to restore exploration fog or player-centred opening respectively. Reveal affects terrain/water presentation only: it never records exploration, reveals server population, changes co-op privacy or changes ping range. Personal exploration continues to accumulate normally. R still recentres on the player; drag and wheel remain available.
 
-Zoom-dependent power-of-two tiles cover the full view within the 64-tile budget (33x33 pixels locally, 65x65 for the overview; at most 1.04 MiB of tile pixels), with at most two new worker jobs pending at once. Overview pixels directly sample the same regional generator; fine zoom uses the existing collision-lattice terrain/water raster. Tiny water features can be subpixel at whole-world scale. The full image fills progressively without activating distant terrain actors. The minimap and expanded map mask the exterior of revision-5/6 worlds.
+Zoom-dependent power-of-two tiles cover the full view within the 64-tile budget (33x33 pixels locally, 65x65 for the overview; at most 1.04 MiB of tile pixels), with at most two new worker jobs pending at once. Overview pixels directly sample the same regional generator; fine zoom uses the existing collision-lattice terrain/water raster. Tiny water features can be subpixel at whole-world scale. The full image fills progressively without activating distant terrain actors. The minimap and expanded map mask the exterior of revision-5-and-later worlds.
 
 ## Biome palette
 
 ### Legacy terrain-based classifier (generator revision 2)
 
-Revision 2 remains available for existing worlds; new worlds now default to revision 3. Selection uses only the existing four normalized fields, in priority order: submerged terrain (`Elevation < 0.22`) is Ocean; peaks (`> 0.78`) are Thunder Mountains; cold uplands (`Elevation >= 0.55`, `Temperature < 0.35`) are Freezing Tundra. Mossy Mire requires low ground (`Elevation < 0.45`), high moisture (`Humidity > 0.72`), and temperate conditions (`Temperature >= 0.28`). Remaining wet lowlands (`Elevation < 0.55`, `Humidity > 0.63`) are Shimmering Lakes. Elderwood requires both dense growth (`Flora > 0.64`) and moisture (`Humidity >= 0.35`); remaining land is Meadows.
+Revision 2 remains available for existing worlds; new worlds now default to revision 7. Selection uses only the existing four normalized fields, in priority order: submerged terrain (`Elevation < 0.22`) is Ocean; peaks (`> 0.78`) are Thunder Mountains; cold uplands (`Elevation >= 0.55`, `Temperature < 0.35`) are Freezing Tundra. Mossy Mire requires low ground (`Elevation < 0.45`), high moisture (`Humidity > 0.72`), and temperate conditions (`Temperature >= 0.28`). Remaining wet lowlands (`Elevation < 0.55`, `Humidity > 0.63`) are Shimmering Lakes. Elderwood requires both dense growth (`Flora > 0.64`) and moisture (`Humidity >= 0.35`); remaining land is Meadows.
 
 These are original terrain-suitability rules, with no distance-from-spawn progression or extra noise map. Classification returns one dominant biome; it does not calculate slope, blend weights, or connected water basins. Existing continuous fields still drive terrain and environmental variation, and the separate lake-basin query determines visible standing water.
 
-Revision 1 retains its original classifier and field seeds. Sampled fields carry revision metadata so existing callers select the correct rules. Use `-GeneratorRevision=1` to reopen the old layout (`-Revision=1` for visualization). Revision 2 creates a different base world because revision also participates in field seeds. The serialized config default remains 1 for compatibility; new-world entry points now select revision 3. Revision-2 population saves use a seed/revision-specific slot, leaving the legacy revision-1 slot intact; no save schema is changed.
+Revision 1 retains its original classifier and field seeds. Sampled fields carry revision metadata so existing callers select the correct rules. Use `-GeneratorRevision=1` to reopen the old layout (`-Revision=1` for visualization). Revision 2 creates a different base world because revision also participates in field seeds. The serialized config default remains 1 for compatibility; new-world entry points now select revision 7. Revision-2 population saves use a seed/revision-specific slot, leaving the legacy revision-1 slot intact; no save schema is changed.
 
 Development order is not player progression. The seed decides which biomes are nearby; players decide whether and when to enter them.
 
@@ -168,7 +196,7 @@ Rivers and streams derive separate candidate sets from 18,000 cm coarse cells. N
 
 Final height blends per-biome relief, then enclosed bowls and continuous channel carving. Inland water levels are clipped against those same shaped terrain triangles and interpolated at intersections, including river grades. Sea depth continues to use the shared final collision-triangle plane. The minimap interpolates the same inland water-depth differences on the same lattice. Basin rims take precedence over channel carving to retain enclosure. This is deterministic geometric hydrology; it does not simulate water volume, catchment discharge, erosion, currents, flooding, or inland swimming physics.
 
-Revision 4 retains all revision-3 regional and hydrology rules, then adds occasional deterministic 6,500–10,000 cm-radius emergent islands from a 60,000 cm coarse lattice. Their centres, radii, summits, submerged aprons, and shore blend are derived solely from the immutable identity; no island map, actor, replicated placement, or save data exists. Revisions 1–3 remain byte-for-byte terrain-compatible. New game worlds and preview commandlets select revision 4. Serialized config defaults, revision-1/2 source sampling, terrain formulas, classifiers, and legacy save identities remain unchanged. Use the original seed and its original `-GeneratorRevision` to reopen an existing layout. Revision-3/4 population deltas use the existing identity-specific save-slot convention and unchanged schema. The server owns world identity, population, interactions, exposure, and persistence; client terrain and water are reproducible presentation/prediction inputs only.
+Revision 4 retains all revision-3 regional and hydrology rules, then adds occasional deterministic 6,500–10,000 cm-radius emergent islands from a 60,000 cm coarse lattice. Their centres, radii, summits, submerged aprons, and shore blend are derived solely from the immutable identity; no island map, actor, replicated placement, or save data exists. Revisions 1–3 remain byte-for-byte terrain-compatible. Revision 4 remains available explicitly; new game worlds and preview commandlets now select revision 7. Serialized config defaults, revision-1/2 source sampling, terrain formulas, classifiers, and legacy save identities remain unchanged. Use the original seed and its original `-GeneratorRevision` to reopen an existing layout. Revision-3/4 population deltas use the existing identity-specific save-slot convention and unchanged schema. The server owns world identity, population, interactions, exposure, and persistence; client terrain and water are reproducible presentation/prediction inputs only.
 
 `RenderWorldGenerationVisualization -Revision=3 -Seed=418 -Extent=400000 -Size=256 -Output=<directory>` writes the four fields, dominant biomes, seven weight images (enum order), overlap strength, boundary overlay, indexed river/stream splines (red/green, basins blue), shaped height, and tuning values. The 400,000 cm square is a 4 km-wide diagnostic area. `Scripts/Verify-RegionalGeneration.ps1` runs large-area coherence, Flora independence, spline rebuild, GridCell continuity, shaped collision-depth and nonempty adjacent-water-edge tests, repeated/different-seed renders, and a conflicting-seed live peer fingerprint comparison.
 
@@ -186,4 +214,4 @@ Revision 4 supplies occasional seed-derived emergent islands and generated-ocean
 
 ## Immediate next step
 
-Implement Phase 1 only: generate and inspect the four seed-derived Perlin maps. Do not add external terrain or procedural-generation plugins without approval.
+Phase 1 was the original four-field bootstrap. Current maintenance follows the master-map contract above and the ordered backlog. Do not add external terrain or procedural-generation plugins without approval.

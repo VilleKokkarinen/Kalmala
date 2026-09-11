@@ -29,4 +29,11 @@ struct FKalmalaRegionalTuning
     static constexpr double BasinSpacing = 40000.0;
     static constexpr float SeaElevation = 0.22f;
     static constexpr float MountainElevation = 0.78f;
+    // Revision 7+: hard eligibility distances from world zero, centimetres.
+    static constexpr double StarterRadius = 35000.0;
+    static constexpr double ElderwoodMinimum = 75000.0;
+    static constexpr double MireMinimum = 200000.0;
+    static constexpr double TundraMinimum = 400000.0;
+    static constexpr double MeadowsMaximum = 400000.0;
+    static constexpr double EligibilityBlend = 5000.0;
 };

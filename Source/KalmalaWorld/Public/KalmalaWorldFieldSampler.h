@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "KalmalaWorldGenerationSeeds.h"
 #include "KalmalaRegionalTuning.h"
+#include "KalmalaMasterMap.h"
 
 struct FKalmalaWorldFieldSample
 {
@@ -39,6 +40,16 @@ struct KALMALAWORLD_API FKalmalaWorldFieldSampler
             Result.Humidity = FMath::Clamp(0.5f + FKalmalaRegionalTuning::ClimateAmplitude * SampleModern(Config, EKalmalaWorldField::Humidity, Position, FKalmalaRegionalTuning::ClimateFrequency), 0.0f, 1.0f);
             Result.Temperature = FMath::Clamp(0.5f + FKalmalaRegionalTuning::ClimateAmplitude * SampleModern(Config, EKalmalaWorldField::Temperature, Position, FKalmalaRegionalTuning::ClimateFrequency), 0.0f, 1.0f);
             Result.Flora = FMath::Clamp(0.5f + 0.5f * SampleModern(Config, EKalmalaWorldField::Flora, Position, FKalmalaRegionalTuning::FloraFrequency), 0.0f, 1.0f);
+            if (Config.GeneratorRevision >= 7)
+            {
+                const double Mask = FKalmalaMasterMap::Sample(Config, Position);
+                const double Coast = FMath::Clamp(Mask / 0.12, 0.0, 1.0);
+                // Master mask alone determines sea-level sign. Existing Elevation
+                // noise supplies interior relief, joined continuously at the coast.
+                Result.Elevation = Mask > 0
+                    ? FKalmalaRegionalTuning::SeaElevation + Coast * Coast * (3 - 2 * Coast) * (0.10 + 0.65 * Result.Elevation)
+                    : FMath::Max(0.0, FKalmalaRegionalTuning::SeaElevation + Mask * 0.8);
+            }
             return Result;
         }
 

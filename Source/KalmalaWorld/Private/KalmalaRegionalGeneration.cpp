@@ -176,6 +176,8 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldFie
 {
     const FKalmalaWorldGenerationConfig C{ F.WorldSeed, F.GeneratorRevision };
     const FVector2D P = F.Position;
+    const bool bMasterMap = C.GeneratorRevision >= 7;
+    const double OriginDistance = P.Size();
     FKalmalaRegionalSample R;
     const float Source = (F.Elevation - T::SeaElevation) * 2000.0f;
     const double Land = Smooth(T::SeaElevation, 0.30, F.Elevation);
@@ -186,12 +188,33 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldFie
     R.Weights[3] = WarpedRegion(C, Warped, 3) * Smooth(0.48, 0.65, F.Humidity)
         * (1 - Smooth(0.43, 0.58, F.Elevation)) * Smooth(0.18, 0.32, F.Temperature);
     R.Weights[4] = WarpedRegion(C, Warped, 4) * (1 - Smooth(0.40, 0.60, F.Temperature)) * Smooth(0.44, 0.64, F.Elevation);
-    if (C.GeneratorRevision >= 5)
+    if (C.GeneratorRevision >= 5 && !bMasterMap)
         for (uint8 I : {uint8(0), uint8(2), uint8(3), uint8(4)}) R.Weights[I] *= DistancePreference(I, P.Size());
     float Total = R.Weights[0] + R.Weights[2] + R.Weights[3] + R.Weights[4];
     for (int32 I = 0; I < 5; ++I) R.Weights[I] = R.Weights[I] / Total * Land * (1 - Mountain);
     R.Weights[5] = Land * Mountain;
-    if (C.GeneratorRevision >= 5)
+    if (bMasterMap)
+    {
+        // Special biomes compete on land using the existing regional/climate
+        // signals. Meadows/Mountains fill the remainder; peaks cannot override
+        // a qualifying special biome or the protected starter radius.
+        R.Weights[2] = WarpedRegion(C, Warped, 2) * Smooth(0.22, 0.42, F.Humidity)
+            * Smooth(T::ElderwoodMinimum, T::ElderwoodMinimum + T::EligibilityBlend, OriginDistance);
+        R.Weights[3] = WarpedRegion(C, Warped, 3) * Smooth(0.48, 0.65, F.Humidity)
+            * (1 - Smooth(0.43, 0.58, F.Elevation)) * Smooth(0.18, 0.32, F.Temperature)
+            * Smooth(T::MireMinimum, T::MireMinimum + T::EligibilityBlend, OriginDistance);
+        R.Weights[4] = WarpedRegion(C, Warped, 4) * (1 - Smooth(0.40, 0.60, F.Temperature))
+            * Smooth(0.44, 0.64, F.Elevation)
+            * Smooth(T::TundraMinimum, T::TundraMinimum + T::EligibilityBlend, OriginDistance);
+        const double MountainFallback = FMath::Max(Mountain * Smooth(T::StarterRadius, T::StarterRadius + T::EligibilityBlend, OriginDistance),
+            Smooth(T::MeadowsMaximum - T::EligibilityBlend, T::MeadowsMaximum, OriginDistance));
+        const float Fallback = 0.20f + 0.08f * WarpedRegion(C, Warped, 0);
+        R.Weights[0] = Fallback * (1 - MountainFallback);
+        R.Weights[5] = Fallback * MountainFallback;
+        float Sum = R.Weights[0] + R.Weights[2] + R.Weights[3] + R.Weights[4] + R.Weights[5];
+        for (int32 I = 0; I < 6; ++I) R.Weights[I] = R.Weights[I] / Sum * Land;
+    }
+    if (C.GeneratorRevision >= 5 && !bMasterMap)
     {
         // High source peaks stay mountains. Lower uplands can increasingly
         // become mountain foothills toward the rim, with continuous blending.
@@ -211,7 +234,7 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldFie
     // smooth deformation of the existing ocean floor, never an actor, map, or
     // saved placement; older identities deliberately retain their terrain.
     double IslandSupport = 0.0;
-    if (C.GeneratorRevision >= 4)
+    if (C.GeneratorRevision >= 4 && !bMasterMap)
     {
         constexpr double IslandSpacing = 60000.0;
         const FIntPoint IslandCell = CellAt(P, IslandSpacing);
@@ -253,17 +276,21 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldFie
         const double Aspect = 0.65 + 0.35 * Unit(S >> 32);
         const double D = FVector2D(Delta.X, Delta.Y / Aspect).Size() / Radius;
         if (D >= 1.5) continue;
+        // Keep the entire bowl/rim beyond the starter boundary and on atlas
+        // land. Fade its influence at coast/distance edges without a height step.
+        if (bMasterMap && (Center.Size() - Radius * 1.5 <= T::StarterRadius || F.Elevation <= T::SeaElevation)) continue;
         // Reject out-of-support bowls before evaluating their fields and region.
         const auto CenterFields = FKalmalaWorldFieldSampler::Sample(C, Center);
         if (CenterFields.Elevation < 0.32f || CenterFields.Elevation > 0.58f || CenterFields.Humidity < 0.4f) continue;
         if (WarpedRegion(C, Warp(C, Center), 1) < 0.25) continue;
-        const double Support = 1 - Smooth(1.0, 1.5, D);
+        const double LakeEligibility = bMasterMap ? Land * Smooth(T::StarterRadius, T::StarterRadius + T::EligibilityBlend, OriginDistance) : 1.0;
+        const double Support = (1 - Smooth(1.0, 1.5, D)) * LakeEligibility;
         const float Level = (CenterFields.Elevation - T::SeaElevation) * 2000.0f;
         const float Bowl = Level - 120.0f + 240.0f * D * D;
         R.Height = FMath::Lerp(R.Height, Bowl, float(Support));
         R.WaterLevel = Level;
         BasinSupport = Support;
-        R.BasinWeight = 1 - Smooth(0.65, 1.0, D);
+        R.BasinWeight = (1 - Smooth(0.65, 1.0, D)) * LakeEligibility;
         for (float& W : R.Weights) W *= 1 - R.BasinWeight;
         R.Weights[1] = R.BasinWeight;
     }
@@ -294,9 +321,27 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldFie
     // Shores retain the source sea-level sign outside inland basins/courses.
     if (BasinSupport == 0 && Sum == 0) R.WaterLevel = FMath::Min(0.0f, R.Height - 1.0f);
     if (F.Elevation < T::SeaElevation && BasinSupport == 0 && IslandSupport == 0) R.Height = FMath::Min(R.Height, Source);
+    if (bMasterMap)
+    {
+        // Hydrology may create inland water but never manufacture ocean land or
+        // change the atlas coastline. Clamp continuously toward the source shore.
+        R.Height = F.Elevation <= T::SeaElevation ? FMath::Min(R.Height, Source)
+            : FMath::Max(R.Height, FMath::Min(Source, 1.0f));
+        if (F.Elevation <= T::SeaElevation) R.WaterLevel = 0;
+    }
     R.bHasWater = R.WaterLevel > R.Height;
     for (uint8 I = 1; I < 6; ++I) if (R.Weights[I] > R.Weights[R.Biome]) R.Biome = I;
-    if (F.Elevation < T::SeaElevation && IslandSupport < 0.5) R.Biome = 6;
+    if (bMasterMap)
+    {
+        if (F.Elevation <= T::SeaElevation)
+        {
+            for (float& W : R.Weights) W = 0;
+            R.Weights[6] = 1;
+            R.Biome = 6;
+        }
+        else if (OriginDistance <= T::StarterRadius) R.Biome = 0;
+    }
+    else if (F.Elevation < T::SeaElevation && IslandSupport < 0.5) R.Biome = 6;
     else if (F.Elevation > T::MountainElevation) R.Biome = 5;
     return R;
 }

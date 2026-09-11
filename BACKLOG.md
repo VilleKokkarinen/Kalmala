@@ -20,7 +20,7 @@ Do not begin until M0 acceptance criteria in `docs/04-roadmap.md` are met.
 
 ## World generation track
 
-Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` is the authoritative contract: the world is seed-generated from continuous `Elevation`, `Humidity`, `Temperature`, and `Flora` maps; do not introduce authored gameplay regions, pre-built roads or trails, or additional biome maps.
+Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` is the authoritative contract: current revision 7 samples an independently seeded master land/water map through a game-seeded crop/rotation, then combines continuous `Elevation`, `Humidity`, `Temperature`, and `Flora` with hard origin-distance eligibility and Meadows/Mountains fallback. Do not introduce authored gameplay regions, pre-built roads or trails, or stored biome maps. Older completed tasks below describe their original revisions.
 
 ### Phase 1 — Seed and map proof
 
@@ -276,3 +276,11 @@ Shelter sampling verification 2026-09-11: completed the actual-construction geom
 Construction movement verification 2026-09-11: completed the floor/windbreak live-peer increment within the open shelter acceptance task. Both owning pawns walk on replicated construction floors, stop at the expected wall boundary, and match the server-observed remote player/construction IDs and stopping position. Forced build, six focused construction/shelter tests, and Verify-ConstructionMovement.ps1 passed. Keep the acceptance checkbox unchecked for roof movement and live server-sampled exposure agreement; no removal/refund exists.
 
 Roof movement verification 2026-09-11: extended the same shelter acceptance fixture with replicated roofs and ordinary owning-player jumps. Host and remote owner become airborne, stop below the roof underside, and land on their floor; server/client remote roof IDs, ceiling and peak agree. Forced build, six focused tests, and final live peer run pass. Keep shelter acceptance unchecked for live server-sampled shelter/exposure agreement; no removal/refund feature is included.
+
+
+### User-directed master-map biome rework — 2026-09-11
+
+- [x] Replace the current new-world layout with revision 7: independent master land/water seed, game-seeded crop/rotation at the existing 16 km radius, land-only special biomes with the requested origin-distance limits, and Meadows/Mountains fallback. Keep revisions 1–6 intact and reserve revision 8 for debug streams.
+- [x] Verify master/crop reproducibility and variation, all seven biomes, exact eligibility boundaries and smooth terrain/weights, dry central starts, unchanged legacy generation/water/minimap fingerprints, matching host/client samples across 20 km, and a retained three-stage map preview. Update generation, design, architecture, roadmap, decisions and setup documentation.
+
+This explicit user request temporarily superseded autonomous M2 task selection. Next autonomous task remains the existing unchecked shared persisted-camp client stall/replication acceptance; no M2 item is closed by this generator rework.

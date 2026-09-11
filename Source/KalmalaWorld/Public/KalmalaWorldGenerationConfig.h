@@ -12,9 +12,9 @@ struct KALMALAWORLD_API FKalmalaWorldGenerationConfig
 {
     GENERATED_BODY()
 
-    static constexpr int32 CurrentGeneratorRevision = 5;
+    static constexpr int32 CurrentGeneratorRevision = 7;
     // Opt-in debug layout; replicated as identity so stream carving always agrees.
-    static constexpr int32 StreamsDebugGeneratorRevision = 6;
+    static constexpr int32 StreamsDebugGeneratorRevision = 8;
 
     /** Server-generated 64-bit base seed. */
     UPROPERTY(EditAnywhere, Category = "World Generation")
