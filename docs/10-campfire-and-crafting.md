@@ -69,6 +69,8 @@ Retain `Scripts/Verify-InventoryReconnect.ps1` and `Scripts/Verify-CampChoices.p
 
 The development-only crafting fixture first tries eight headings from the current pawn position. If restored construction leaves no valid hearth site there, it probes at most 24 nearby terrain positions within 18 m, testing eight headings at each. Each attempt still uses the ordinary server validation and payment path. This bounded test relocation neither removes restored pieces nor changes normal player movement, placement rules, or saves. Failure reports the original position and rejection reason.
 
+Known verification defect (2026-09-11): Kalmala.Gameplay.Construction.GeometryAlignment currently fails because floor/wall/roof visual centres are offset -44/+54/+248 cm from their blocking box centres. Extent-only ShelterPieces coverage did not detect this. Shelter and movement-collision acceptance remains incomplete until geometry alignment and the peer scenario pass; see PROGRESS.md for retained evidence.
+
 ### Shelter geometry repair 2026-09-11
 
 Floor, wall and roof procedural solids now use the collision-centred actor origin and the shared kit collision extent. This removes the obsolete -44/+54/+248 cm presentation offsets without changing placement, persisted transforms, collision, RPCs or server shelter sampling. GeometryAlignment and four related construction/shelter tests pass; live host/client movement acceptance remains pending.

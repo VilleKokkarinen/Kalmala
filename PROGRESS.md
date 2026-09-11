@@ -1870,6 +1870,20 @@ Known limits: This is a launch-gated systems fixture with temporary grants and t
 
 Next task: Verify roof/windbreak geometry affects only server-sampled shelter, construction collision agrees for host/client movement, and any included removal/refund cannot duplicate resources.
 
+### 2026-09-11T09:21:27.2697873+03:00 - Shelter geometry verification failure
+
+Outcome: Advanced the first unchecked M2 shelter acceptance task by adding Kalmala.Gameplay.Construction.GeometryAlignment. It spawns actual server construction actors in a transient world and compares procedural mesh bounds against blocking box bounds, with pawn/visibility channel checks. Verification exposed an existing runtime mismatch; the task remains unchecked and no commit was made.
+
+Changed: Source/KalmalaGameplay/Private/Tests/KalmalaConstructionShelterPieceTest.cpp; BACKLOG.md; PROGRESS.md; docs/10-campfire-and-crafting.md. The checkout was initially clean. An unrelated removal of the shared-cartography backlog block and trailing character edit appeared during verification and was preserved; it is not run-owned. Main checkout is the current workspace, so no synchronization is needed.
+
+Verification: Forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with LOCALAPPDATA UnrealBuildTool access. The first test fixture launch crashed due to duplicate world initialization; removed the redundant initialization and rebuilt successfully. The corrected automation completed with Result={Fail}: FloorKit visual centre Z=-44 versus collision Z=0; WallKit Z=54 versus 0; RoofKit Z=248 versus 0. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaShelterGeometry-56c1204e67c34d18ad8f8c4313f9e024/retry.log lines 1968-1974. Process exit was 0 despite the failing automation result; log status is authoritative. git diff --check passed.
+
+Multiplayer impact: Tests only; no runtime, RPC, authority, replication, placement, inventory, or save-schema changes. Actual geometry must align before host/client movement and server shelter acceptance can be claimed. Removal/refund is not included in the current feature.
+
+Known limits: No host/client movement scenario ran. One confirmed geometry failure, not three repeated attempts; no BLOCKED label. The regression remains deliberately failing and uncommitted pending runtime repair.
+
+Next task: Align shelter collision with visible geometry while preserving placement/save transforms, then rerun the build, geometry and server-shelter tests and complete host/client movement-collision verification before closing this same acceptance item.
+
 ### 2026-09-11T09:49:25.7573559+03:00 - Align shelter presentation with collision
 
 Outcome: Completed one repair increment within the first unchecked M2 shelter acceptance task. Floor/wall/roof meshes now derive their centre and extent from the existing collision contract. The parent acceptance stays unchecked until actual host/client movement verification.

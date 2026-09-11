@@ -213,12 +213,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [x] **Add opt-in co-op awareness and temporary pings.**
   - [x] Define an owner-controlled opt-in for visible connected-player markers, using only normal replicated transforms and clear privacy/offline handling.
   - [x] Add a short-lived, rate-limited map ping that the server validates and relays only to eligible session members; it must not reveal unexplored terrain or create a persistent waypoint.
-  - [x] Verify server rejection of malformed, distant, excessive, or unauthorized pings and matching expiry/order across host and clients.
-
-- [ ] **Defer shared-cartography interaction until construction and persistence prerequisites exist.**
-  - [ ] After the M2 construction system is available, design an original server-owned cartography interaction that explicitly exchanges opted-in explored coverage and selected shared pins.
-  - [ ] Define permissions, conflict/duplicate handling, sparse storage limits, world-identity compatibility, and a no-spoiler default before implementation.
-  - [ ] Verify clients cannot forge shared exploration/pins, access another session's data, or use shared map state to materialize hidden gameplay content.
+  - [x] Verify server rejection of malformed, distant, excessive, or unauthorized pings and matching expiry/order across host and clients.s
 
 - [x] **Validate the full map as one integrated feature.**
   - [x] Repair square tiles inheriting circular minimap clipping, clip edge tiles to the map panel, and record exploration during gameplay while the main map is closed (user-requested correction).
@@ -259,6 +254,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Implement original floor, wall/windbreak, and roof pieces with server-owned collision and replicated placement state; only accepted roof/windbreak pieces add the existing shelter tags used by the server exposure sampler.
   - [x] Implement a minimal replicated workbench and basic storage with server-validated interaction and bounded persisted contents; do not expose arbitrary remote storage contents to clients.
   - [ ] Verify roof/windbreak geometry affects only server-sampled shelter, construction collision agrees for host/client movement, and teardown/removal (if included) cannot duplicate refunded resources.
+    - Verification 2026-09-11: forced build passed; new GeometryAlignment regression fails on floor/wall/roof visual-versus-collision centres (-44/+54/+248 cm). Keep unchecked; repair geometry and run peer acceptance. See PROGRESS.md.
 
 - [ ] **Close M2 with a two-player persisted camp scenario.**
   - [ ] Run a host/client scenario in which both players gather, craft, place a campfire plus floor/wall/roof, use storage/workbench, and observe matching inventory, construction, fire, shelter, and weather state.
