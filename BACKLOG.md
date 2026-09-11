@@ -259,6 +259,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [ ] **Close M2 with a two-player persisted camp scenario.**
   - [x] Establish a retained two-player preflight harness for the existing hearth/crafting, storage/workbench, and shelter/exposure contracts; it must not substitute separate launches for the later shared gathered-camp scenario.
   - [ ] Run a host/client scenario in which both players gather, craft, place a campfire plus floor/wall/roof, use storage/workbench, and observe matching inventory, construction, fire, shelter, and weather state.
+    - Verification 2026-09-11: the new shared-session hearth slice passes both real server-initialized harvesting and paid craft/placement for each player, with matching owner-only empty-pack and 60-second fire replication. Floor/wall/roof, workbench/storage, shelter/weather, and combined restart evidence remain in this unchecked scenario.
   - [ ] Restart/reconnect using the same world identity and verify the sparse generated-world deltas and versioned camp state restore together without duplicate actors, duplicated items, or cross-world reuse.
   - [ ] Document the inventory, crafting, construction, campfire, shelter, storage, and persistence authority contracts, then record build and two-player verification evidence.
 

@@ -12,6 +12,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "KalmalaGeneratedTerrainPatch.h"
+#include "KalmalaHarvestNode.h"
 
 void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
 {
@@ -208,5 +209,87 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         UE_LOG(LogTemp,Display,TEXT("Crafting owner final: Passed=%d Authority=%d Fuel=%d Slots=%d"),Passed,C->HasAuthority(),I->GetQuantity(TEXT("Fuel")),I->GetStacks().Num());
         LocalVerificationStage=7;
     }
+#endif
+}
+
+namespace
+{
+    bool GatherPersistedCampfireMaterials(AKalmalaCharacter* Character, UKalmalaInventoryComponent* Inventory)
+    {
+        const TMap<FName, int32> Required = { { TEXT("Wood"), 5 }, { TEXT("Stone"), 5 }, { TEXT("Fibre"), 1 } };
+        for (uint64 SpawnSeed = 1; SpawnSeed <= 512; ++SpawnSeed)
+        {
+            bool bComplete = true;
+            for (const TPair<FName, int32>& Entry : Required) bComplete &= Inventory->GetQuantity(Entry.Key) >= Entry.Value;
+            if (bComplete) return true;
+            FActorSpawnParameters Parameters;
+            Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            AKalmalaHarvestNode* Node = Character->GetWorld()->SpawnActor<AKalmalaHarvestNode>(AKalmalaHarvestNode::StaticClass(), Character->GetActorLocation() + FVector(80, 0, 0), FRotator::ZeroRotator, Parameters);
+            if (Node == nullptr) return false;
+            FKalmalaWorldPopulationSpawn Spawn;
+            Spawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
+            Spawn.SpawnSeed = SpawnSeed;
+            Spawn.Location = Node->GetActorLocation();
+            Node->InitializeServer(Spawn);
+            const FName ItemId = Node->GetHarvestItemId();
+            const int32* Target = Required.Find(ItemId);
+            if (Target == nullptr || Inventory->GetQuantity(ItemId) >= *Target)
+            {
+                Node->Destroy();
+                continue;
+            }
+            const int32 Before = Inventory->GetQuantity(ItemId);
+            Node->Interact_Implementation(Character);
+            const bool bAccepted = Inventory->GetQuantity(ItemId) == Before + 1;
+            Node->Destroy();
+            if (!bAccepted) return false;
+        }
+        return false;
+    }
+
+    bool PlacePersistedCampfireNearTerrain(UKalmalaCraftingComponent* Crafting, AKalmalaCharacter* Character, FString& OutReason)
+    {
+        const FVector Original = Character->GetActorLocation(); const FRotator OriginalRotation = Character->GetActorRotation(); bool bPlaced = false;
+        FCollisionQueryParams Query(SCENE_QUERY_STAT(PersistedCampFixtureGround), false, Character);
+        for (int32 Site = 0; Site < 24 && !bPlaced; ++Site)
+        {
+            const FVector Probe = Original + FRotator(0, float(Site % 8) * 45, 0).Vector() * (600 + float(Site / 8) * 600);
+            FHitResult Ground;
+            if (!Character->GetWorld()->LineTraceSingleByChannel(Ground, Probe + FVector(0, 0, 1000), Probe - FVector(0, 0, 2000), ECC_Visibility, Query) || !Cast<AKalmalaGeneratedTerrainPatch>(Ground.GetActor())) continue;
+            Character->SetActorLocation(Ground.ImpactPoint + FVector(0, 0, Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + 2));
+            for (int32 Turn = 0; Turn < 8 && !bPlaced; ++Turn) { Character->SetActorRotation(FRotator(0, Turn * 45, 0)); bPlaced = Crafting->PlaceFromServer(OutReason); }
+        }
+        if (!bPlaced) { Character->SetActorLocation(Original); Character->SetActorRotation(OriginalRotation); }
+        return bPlaced;
+    }
+}
+
+void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
+{
+#if !UE_BUILD_SHIPPING
+    AKalmalaCharacter* Character = GetCharacter();
+    UKalmalaInventoryComponent* Inventory = Character ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    if (Character == nullptr || Inventory == nullptr || Character->GetPlayerState() == nullptr) return;
+    PersistedCampVerificationElapsed += DeltaTime;
+    if (Character->HasAuthority() && PersistedCampVerificationStage == 0 && PersistedCampVerificationElapsed > 3)
+    {
+        int32 PlayerCount = 0;
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It) PlayerCount += (*It && It->GetPlayerState()) ? 1 : 0;
+        if (PlayerCount < 2) return;
+        FString Reason;
+        const bool bGathered = GatherPersistedCampfireMaterials(Character, Inventory);
+        const bool bCrafted = bGathered && CraftFromServer(TEXT("Fuel"), 1, Reason) && CraftFromServer(TEXT("Campfire"), 1, Reason);
+        const bool bPlaced = bCrafted && PlacePersistedCampfireNearTerrain(this, Character, Reason);
+        const bool bPaid = Inventory->GetStacks().IsEmpty();
+        const bool bPassed = bGathered && bCrafted && bPlaced && bPaid;
+        UE_LOG(LogTemp, Display, TEXT("Persisted camp hearth server: Passed=%d Player=%d Gathered=%d Crafted=%d Placed=%d Paid=%d Fuel=%.0f"), bPassed, Character->GetPlayerState()->GetPlayerId(), bGathered, bCrafted, bPlaced, bPaid, FindNearbyFire(false) ? FindNearbyFire(false)->GetFuelSeconds() : -1.0f);
+        PersistedCampVerificationStage = bPassed ? 1 : 99; PersistedCampVerificationElapsed = 0;
+    }
+    if (!Character->IsLocallyControlled() || bPersistedCampOwnerReported || PersistedCampVerificationElapsed < 2) return;
+    const AKalmalaCampfire* Fire = FindNearbyFire(false);
+    if (Fire == nullptr || !Inventory->GetStacks().IsEmpty()) return;
+    const bool bPassed = Inventory->GetStacks().IsEmpty() && Fire != nullptr && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), 60.0f);
+    UE_LOG(LogTemp, Display, TEXT("Persisted camp hearth owner: Passed=%d Authority=%d Player=%d EmptyPack=%d Fuel=%.0f"), bPassed, Character->HasAuthority(), Character->GetPlayerState()->GetPlayerId(), Inventory->GetStacks().IsEmpty(), Fire ? Fire->GetFuelSeconds() : -1.0f);
+    bPersistedCampOwnerReported = true;
 #endif
 }

@@ -48,6 +48,7 @@ private:
     AKalmalaCharacter* GetCharacter() const;
     void RunVerification(float DeltaTime);
     void RunStorageVerification(float DeltaTime);
+    void RunPersistedCampVerification(float DeltaTime);
     void RefreshStorageView();
     void ClearStorageView();
     AKalmalaConstructionActor* FindNearbyConstruction(FName Kit) const;
@@ -64,4 +65,7 @@ private:
     float LocalVerificationElapsed = 0;
     bool bVerificationPassed = true;
     UPROPERTY(Transient) TObjectPtr<AKalmalaCampfire> VerificationFire;
+    int32 PersistedCampVerificationStage = 0;
+    float PersistedCampVerificationElapsed = 0.0f;
+    bool bPersistedCampOwnerReported = false;
 };

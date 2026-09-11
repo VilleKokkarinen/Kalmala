@@ -233,5 +233,6 @@ void UKalmalaCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCraftingTest"))) RunVerification(DeltaTime);
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaStorageTest"))) RunStorageVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaPersistedCampTest"))) RunPersistedCampVerification(DeltaTime);
 #endif
 }

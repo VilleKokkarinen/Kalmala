@@ -1967,3 +1967,17 @@ Multiplayer impact: Verification orchestration only. No RPC, inventory, harvesti
 Known limits: The three checks retain separate host user directories and therefore cannot establish gathered materials, combined save/load state, or one shared camp. The next increment must implement that actual host/client fixture.
 
 Next task: Implement the single-session server-authoritative host/client fixture where both players gather, craft, build hearth/floor/wall/roof, use workbench/storage, and compare matching state.
+
+### 2026-09-11 15:01 EEST - Verify shared gathered hearth slice
+
+Outcome: Completed the first real single-session M2 persisted-camp increment. `-KalmalaPersistedCampTest` now has each server-owned player harvest exactly the Wood, Stone, and Fibre needed from initialized deterministic harvest descriptors, craft a fuel bundle and campfire kit through the existing recipe transaction, and place a paid hearth through normal generated-terrain validation. Both owners then observe their owner-only empty inventory and nearby replicated 60-second hearth. The parent scenario remains unchecked for floor/wall/roof, workbench/storage, shelter/weather, and combined restart proof.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`; `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`; new `Scripts/Verify-PersistedCampHearth.ps1`; `BACKLOG.md`; `docs/10-campfire-and-crafting.md`; `PROGRESS.md`. `Config/DefaultInput.ini` was already modified by another owner and remains untouched and excluded.
+
+Verification: PowerShell parsing passed. Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with LOCALAPPDATA UnrealBuildTool access. `Scripts/Verify-PersistedCampHearth.ps1 -Port 18031` passed (`C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampHearth-9e8082ba8c06402f98281cef9ccf1d19`): both server players logged `Gathered=1 Crafted=1 Placed=1 Paid=1 Fuel=60`; host and remote owner logged the matching replicated empty-pack/60-second state. The initial attempt caught extra irrelevant harvested materials in the fixture; it was fixed by skipping already-satisfied material types before interaction. A prior build initially omitted a new source file because the sandboxed build could not refresh UBT's local action graph; the final forced elevated build compiled the integrated source and passed.
+
+Multiplayer impact: Development-only fixture and telemetry. Harvest reward selection, inventory mutation, recipe costs, placement ground checks, payment, fire state, and world identity remain server-authoritative. Clients receive only existing owner inventory/fire replication and submit no new RPC or gameplay values. Test nodes are temporary and do not alter sparse save data, normal population, construction save records, or schemas.
+
+Known limits: This proves only the hearth portion of one shared session. It does not yet add paid floor/wall/roof, workbench/chest actions, live shelter/weather comparison, sparse harvest persistence, or camp restart/reconnect restoration. Existing generated wildlife/hazard root-component relevancy warnings persist outside this increment.
+
+Next task: Extend the same one-session fixture with paid floor/wall/roof construction plus workbench/chest interaction and matching server/client construction, storage, shelter, and weather state.
