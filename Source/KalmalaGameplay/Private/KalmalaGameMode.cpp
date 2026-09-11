@@ -17,6 +17,7 @@
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaWorldPopulationLayout.h"
+#include "KalmalaWorldBounds.h"
 #include "KalmalaWorldPopulationMarker.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "KalmalaWeatherCycle.h"
@@ -507,6 +508,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     {
         FKalmalaBiomeDiscoveryCandidate Discovery;
         if (FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(WorldGenerationConfig, SpatialKey, Discovery)
+            && FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Discovery.Location))
             && (PopulationSaveGame == nullptr || !PopulationSaveGame->IsHarvested(Discovery.StableId)))
         {
             FActorSpawnParameters SpawnParameters;
@@ -527,6 +529,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     {
         FKalmalaBiomeDiscoveryCandidate Discovery;
         if (FKalmalaBiomeExpansionContract::TryBuildElderwoodDiscovery(WorldGenerationConfig, SpatialKey, Discovery)
+            && FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Discovery.Location))
             && (PopulationSaveGame == nullptr || !PopulationSaveGame->IsHarvested(Discovery.StableId)))
         {
             FActorSpawnParameters SpawnParameters;
@@ -547,6 +550,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     {
         FKalmalaBiomeDiscoveryCandidate Discovery;
         if (FKalmalaBiomeExpansionContract::TryBuildMossyMireDiscovery(WorldGenerationConfig, SpatialKey, Discovery)
+            && FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Discovery.Location))
             && (PopulationSaveGame == nullptr || !PopulationSaveGame->IsHarvested(Discovery.StableId)))
         {
             FActorSpawnParameters SpawnParameters;
@@ -567,6 +571,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     {
         FKalmalaBiomeDiscoveryCandidate Discovery;
         if (FKalmalaBiomeExpansionContract::TryBuildFreezingTundraDiscovery(WorldGenerationConfig, SpatialKey, Discovery)
+            && FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Discovery.Location))
             && (PopulationSaveGame == nullptr || !PopulationSaveGame->IsHarvested(Discovery.StableId)))
         {
             FActorSpawnParameters SpawnParameters;
@@ -587,6 +592,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     {
         FKalmalaBiomeDiscoveryCandidate Discovery;
         if (FKalmalaBiomeExpansionContract::TryBuildThunderMountainsDiscovery(WorldGenerationConfig, SpatialKey, Discovery)
+            && FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Discovery.Location))
             && (PopulationSaveGame == nullptr || !PopulationSaveGame->IsHarvested(Discovery.StableId)))
         {
             FActorSpawnParameters SpawnParameters;
@@ -933,6 +939,7 @@ void AKalmalaGameMode::ActivateTerrainPatch(const FIntPoint& PatchCoordinate)
     }
 
     const FVector2D PatchCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(TerrainPatchOrigin, PatchCoordinate.X, PatchCoordinate.Y);
+    if (!FKalmalaWorldBounds::IntersectsPatch(WorldGenerationConfig, PatchCenter, FKalmalaTerrainPatchLayout::PatchSize * 0.5)) return;
     AKalmalaGeneratedTerrainPatch* TerrainPatch = GetWorld()->SpawnActor<AKalmalaGeneratedTerrainPatch>(
         AKalmalaGeneratedTerrainPatch::StaticClass(), FVector(PatchCenter.X, PatchCenter.Y, 0.0f), FRotator::ZeroRotator);
     if (TerrainPatch == nullptr)

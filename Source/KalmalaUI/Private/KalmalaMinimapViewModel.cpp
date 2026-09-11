@@ -1,5 +1,6 @@
 #include "KalmalaMinimapViewModel.h"
 #include "KalmalaLakeBasin.h"
+#include "KalmalaWorldBounds.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaMinimapRaster.h"
 #include "Async/Async.h"
@@ -189,6 +190,7 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
 
             FKalmalaMinimapTerrainSample& Sample = Samples.AddDefaulted_GetRef();
             Sample.MapPosition = MapPosition;
+            if (!FKalmalaWorldBounds::Contains(WorldConfig, WorldPosition)) { Sample.TerrainColour = FLinearColor(0.003f, 0.006f, 0.009f); continue; }
             EKalmalaBiome Biome;
             if (WorldConfig.GeneratorRevision >= 3)
             {

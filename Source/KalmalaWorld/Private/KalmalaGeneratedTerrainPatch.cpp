@@ -7,6 +7,7 @@
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWaterSurfaceMesh.h"
+#include "KalmalaWorldBounds.h"
 #include "KalmalaWorldGenerationSeeds.h"
 #include "Net/UnrealNetwork.h"
 #include "ProceduralMeshComponent.h"
@@ -370,6 +371,20 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
         }
     }
 
+    if (FKalmalaWorldBounds::IsBounded(WorldGenerationConfig) && PatchCenter.Size() + HalfSurfaceSize * 2 > FKalmalaWorldBounds::Radius)
+    {
+        FKalmalaWorldBounds::ClipMesh(WorldGenerationConfig, PatchCenter, Vertices, Triangles);
+        Normals.Reset(); UVs.Reset(); VertexColors.Reset(); Tangents.Reset();
+        for (const FVector& V : Vertices)
+        {
+            const FVector2D P = PatchCenter + FVector2D(V);
+            Normals.Add(FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, P));
+            UVs.Add((FVector2D(V) + FVector2D(HalfSurfaceSize)) / (HalfSurfaceSize * 2));
+            const auto Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, P));
+            VertexColors.Add(FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeDebug")) ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome) : FLinearColor::White);
+            Tangents.Add(FProcMeshTangent(1, 0, 0));
+        }
+    }
     TerrainSurface->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
     bVisualSurfaceBuilt = true;
     if (HasAuthority())
@@ -424,6 +439,7 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowRocks()
             RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::RockEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::RockEdgeMargin),
             RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::RockEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::RockEdgeMargin));
         const FVector2D SamplePosition = PatchCenter + LocalPosition;
+        if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, SamplePosition, 1000)) continue;
         if (FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition)) != EKalmalaBiome::Meadows)
         {
             continue;
@@ -478,6 +494,7 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowTrees()
             RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::TreeEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::TreeEdgeMargin),
             RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::TreeEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::TreeEdgeMargin));
         const FVector2D SamplePosition = PatchCenter + LocalPosition;
+        if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, SamplePosition, 1000)) continue;
         const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition);
         const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(Fields);
         if (Biome != EKalmalaBiome::Meadows && Biome != EKalmalaBiome::Elderwood)

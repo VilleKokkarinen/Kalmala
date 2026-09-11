@@ -1,4 +1,5 @@
 #include "KalmalaWaterSurfaceMesh.h"
+#include "KalmalaWorldBounds.h"
 #include "KalmalaLakeBasin.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
@@ -107,5 +108,7 @@ FKalmalaWaterMesh FKalmalaWaterSurfaceMesh::BuildPatch(const FKalmalaWorldGenera
             AppendBasinTriangle(Grid[I + 1], Grid[I + Side], Grid[I + Side + 1]);
         }
     }
+    if (FKalmalaWorldBounds::IsBounded(Config) && PatchCenter.Size() + Size > FKalmalaWorldBounds::Radius)
+        FKalmalaWorldBounds::ClipMesh(Config, PatchCenter, Mesh.Vertices, Mesh.Triangles);
     return Mesh;
 }

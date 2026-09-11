@@ -4,6 +4,7 @@
 #include "KalmalaConstructionActor.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaPlacementPreview.h"
+#include "KalmalaWorldBounds.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -106,6 +107,7 @@ bool UKalmalaCraftingComponent::PlaceFromServer(FString& Reason)
     if (!Inventory || !UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Costs, NAME_None, 0, Preview, Reason)) return false;
     const FVector Forward = FRotator(0, Character->GetActorRotation().Yaw, 0).Vector();
     const FVector Probe = Character->GetActorLocation() + Forward * 165;
+    if (!FKalmalaWorldBounds::Contains(State->GetWorldGenerationConfig(), FVector2D(Probe), 300)) { Reason = TEXT("Too close to the world edge"); return false; }
     FCollisionQueryParams Query(SCENE_QUERY_STAT(CampfirePlacement), false, Character);
     FHitResult Ground;
     Reason = TEXT("Need clear, dry, gently sloping ground ahead");

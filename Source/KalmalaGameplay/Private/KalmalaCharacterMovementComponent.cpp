@@ -1,6 +1,7 @@
 #include "KalmalaCharacterMovementComponent.h"
 #include "GameFramework/Character.h"
 #include "KalmalaOceanSampler.h"
+#include "KalmalaWorldBounds.h"
 #include "KalmalaWorldGenerationGameState.h"
 
 float UKalmalaCharacterMovementComponent::GetMaxSpeed() const
@@ -36,6 +37,23 @@ void UKalmalaCharacterMovementComponent::UpdateCharacterStateBeforeMovement(cons
     else if (bHasDeepWater)
     {
         SetMovementMode(MOVE_Custom, GeneratedOceanSwimmingMode);
+    }
+}
+
+void UKalmalaCharacterMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity)
+{
+    Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
+    if (!CharacterOwner || !UpdatedComponent || CharacterOwner->GetLocalRole() == ROLE_SimulatedProxy) return;
+    const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (!State || !FKalmalaWorldBounds::IsBounded(State->GetWorldGenerationConfig())) return;
+    const FVector Location = UpdatedComponent->GetComponentLocation();
+    const FVector2D Bounded = FKalmalaWorldBounds::Constrain(State->GetWorldGenerationConfig(), FVector2D(Location),
+        CharacterOwner->GetSimpleCollisionRadius() + 2.0);
+    if (!Bounded.Equals(FVector2D(Location), 0.001))
+    {
+        UpdatedComponent->SetWorldLocation(FVector(Bounded, Location.Z), false, nullptr, ETeleportType::TeleportPhysics);
+        const FVector Outward(Bounded.GetSafeNormal(), 0);
+        Velocity -= Outward * FMath::Max(0.0, FVector::DotProduct(Velocity, Outward));
     }
 }
 

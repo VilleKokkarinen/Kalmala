@@ -1,4 +1,4 @@
-param([int]$BasePort = 17844)
+param([int]$BasePort = 17844, [int]$GeneratorRevision = 4, [switch]$Overview, [switch]$SingleResolution)
 
 $ErrorActionPreference = 'Stop'
 $project = Join-Path $PSScriptRoot '..\Kalmala.uproject'
@@ -6,7 +6,7 @@ $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor
 $output = Join-Path ([System.IO.Path]::GetTempPath()) ('KalmalaWorldMap-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $output | Out-Null
 
-for ($index = 0; $index -lt 3; $index++) {
+for ($index = 0; $index -lt $(if ($SingleResolution) { 1 } else { 3 }); $index++) {
     $resolution = @(@(1024, 768), @(1280, 720), @(2560, 1080))[$index]
     $label = "$($resolution[0])x$($resolution[1])"
     $caseOutput = Join-Path $output $label
@@ -16,10 +16,11 @@ for ($index = 0; $index -lt 3; $index++) {
     $serverShot = Join-Path $caseOutput 'host.png'
     $clientShot = Join-Path $caseOutput 'client.png'
     $common = "-game -windowed -RenderOffscreen -ForceRes -ResX=$($resolution[0]) -ResY=$($resolution[1]) -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaWorldMapVerification"
+    if ($Overview) { $common += " -KalmalaWorldOverviewVerification" }
     $server = $null
     $client = $null
     try {
-        $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$($BasePort + $index) -WorldSeed=418 -GeneratorRevision=4 $common -KalmalaWorldMapScreenshot=`"$serverShot`" -abslog=`"$serverLog`" -UserDir=`"$caseOutput\Host`""
+        $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$($BasePort + $index) -WorldSeed=418 -GeneratorRevision=$GeneratorRevision $common -KalmalaWorldMapScreenshot=`"$serverShot`" -abslog=`"$serverLog`" -UserDir=`"$caseOutput\Host`""
         $deadline = (Get-Date).AddSeconds(60)
         do {
             if ($server.HasExited) { throw "Host exited before accepting connections at $label." }
@@ -28,7 +29,7 @@ for ($index = 0; $index -lt 3; $index++) {
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw "Host readiness timed out at $label." }
         $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$($BasePort + $index) -WorldSeed=999 -GeneratorRevision=1 $common -KalmalaWorldMapScreenshot=`"$clientShot`" -abslog=`"$clientLog`" -UserDir=`"$caseOutput\Client`""
-        $deadline = (Get-Date).AddSeconds(75)
+        $deadline = (Get-Date).AddSeconds(240)
         do {
             if ($server.HasExited -or $client.HasExited) { throw "A rendered peer exited at $label." }
             $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
@@ -37,11 +38,12 @@ for ($index = 0; $index -lt 3; $index++) {
             if ($serverText -match 'World map verification: Open=1 Input=1 ZoomMin=1 ZoomMax=1 Pan=1 Recenter=1.' -and
                 $serverText -match 'World map gameplay exploration: Closed=1 Cells=[1-9][0-9]* Tiles=0' -and
                 $clientText -match 'World map gameplay exploration: Closed=1 Cells=[1-9][0-9]* Tiles=0' -and
-                $clientText -match 'Client received world-generation identity: Seed=418 Revision=4' -and
+                $clientText -match "Client received world-generation identity: Seed=418 Revision=$GeneratorRevision" -and
                 $clientText -match 'World map verification: Open=1 Input=1 ZoomMin=1 ZoomMax=1 Pan=1 Recenter=1.' -and
                 $serverText -match 'World map paint verification: FullViewport=1 .*ReadyTiles=[1-9][0-9]* Fog=1' -and
                 $clientText -match 'World map paint verification: FullViewport=1 .*ReadyTiles=[1-9][0-9]* Fog=1' -and
-                (Test-Path $serverShot) -and (Test-Path $clientShot)) { break }
+                (Test-Path $serverShot) -and (Test-Path $clientShot) -and
+                (!$Overview -or ($serverText -match 'World overview: Fits=1 Reveal=1' -and $clientText -match 'World overview: Fits=1 Reveal=1'))) { break }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw "Rendered host/client world-map verification timed out at $label." }

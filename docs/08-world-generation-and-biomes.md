@@ -47,6 +47,22 @@ WorldSeed + GeneratorRevision
   -> weather, survival, and player-made changes
 ```
 
+## Finite radial worlds (revision 5; current default)
+
+The 2026-09-11 user-directed generation change supersedes the earlier unlimited-world and no-distance-preference direction for **new worlds**. Revision 5 bounds playable terrain and water to a circle centred at world XY `(0, 0)` with radius **1,600,000 cm (16 km)**, or 32 km diameter. Distance is measured from that origin, not the seed-selected player start. Revisions 1–4 retain their existing generation and unlimited extent; use their original seed and `-GeneratorRevision` to reopen them. No save schema or existing save is migrated.
+
+Biome selection still derives from the same four fields and irregular overlapping regional noise. A broad Gaussian preference multiplies Meadows, Elderwood, Mossy Mire and Freezing Tundra weights before normalization: preferred origin distances are 0, 4, 8 and 12 km, with a 4.8 km breadth and nonzero 0.08 floor. Toward the outer world, suitable uplands increasingly blend into Thunder Mountains foothills. Source-height peaks remain Mountains, submerged terrain remains Ocean, and Shimmering Lakes still require an enclosed basin. These are soft environmental tiers rather than mandatory biome rings, enemy levels or travel gates. Higher tier land becomes more common outward; any given direction can still contain lower tier land or water.
+
+The existing large rivers remain enabled. Revision 5 omits small-stream spline generation and therefore omits their terrain carving and water. To inspect streams again, launch a **new debug world** with `-KalmalaEnableStreams` (non-shipping only, with no explicit revision), or explicitly select `-GeneratorRevision=6`. Revision 6 is the reserved radial-world debug layout with streams enabled; its identity is replicated, so peers never disagree about carving. It is a separate seeded layout/save, not a mutable client console option. Explicit `-GeneratorRevision` takes precedence over the launch flag. Older revisions retain their streams.
+
+Terrain and sea/inland-water triangles are clipped at the radial contour. Small straight boundary segments approximate the circle at the existing 125 cm terrain lattice; their vertices remain inside the circle and shared patch edges use the same intersections. Exterior patches are not activated. Population descriptors and discoveries outside the circle are rejected, decoration keeps a 10 m edge margin, and new hearth/construction placement requires 3 m clearance. Character Movement applies the radius minus capsule clearance after both walking and swimming updates on authority and the owning prediction path, removes outward velocity, and retains tangential/vertical movement. Clients cannot choose radius, generation rules or authoritative positions. This change adds no edge wall, new biome, world actor budget, asset or save schema.
+
+### Full-world debug map
+
+M opens centred on world zero, fitted with 4% margin so the entire circle is visible. The local console settings `kalmala.Map.RevealAll 1` and `kalmala.Map.FitWorldOnOpen 1` are enabled by default for current development. Set either to `0` to restore exploration fog or player-centred opening respectively. Reveal affects terrain/water presentation only: it never records exploration, reveals server population, changes co-op privacy or changes ping range. Personal exploration continues to accumulate normally. R still recentres on the player; drag and wheel remain available.
+
+Zoom-dependent power-of-two tiles cover the full view within the 64-tile budget (33x33 pixels locally, 65x65 for the overview; at most 1.04 MiB of tile pixels), with at most two new worker jobs pending at once. Overview pixels directly sample the same regional generator; fine zoom uses the existing collision-lattice terrain/water raster. Tiny water features can be subpixel at whole-world scale. The full image fills progressively without activating distant terrain actors. The minimap and expanded map mask the exterior of revision-5/6 worlds.
+
 ## Biome palette
 
 ### Legacy terrain-based classifier (generator revision 2)

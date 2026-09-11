@@ -15,6 +15,26 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWorldMapWidgetTest, "Kalmala.UI.WorldMa
 
 bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
 {
+    for (float Aspect : {0.5f, 1.0f, 1.333f, 1.778f, 2.4f, 3.0f})
+    {
+        const float Zoom = UKalmalaWorldMapWidget::FullWorldZoom(Aspect);
+        const FVector2D Extent(Zoom * Aspect, Zoom);
+        TestTrue(TEXT("Entire 16 km circle fits with margin"), Extent.X > 1600000 && Extent.Y > 1600000);
+        const float TileSize = UKalmalaWorldMapWidget::ChooseTileWorldSize(Extent);
+        for (FVector2D Centre : {FVector2D::ZeroVector, FVector2D(123456, -345678)})
+        {
+            const auto Tiles = UKalmalaWorldMapWidget::BuildPrioritizedTileCoordinates(Centre, Extent, TileSize);
+            const int32 Across = FMath::FloorToInt((Centre.X + Extent.X) / TileSize) - FMath::FloorToInt((Centre.X - Extent.X) / TileSize) + 1;
+            const int32 Down = FMath::FloorToInt((Centre.Y + Extent.Y) / TileSize) - FMath::FloorToInt((Centre.Y - Extent.Y) / TileSize) + 1;
+            TestEqual(TEXT("Overview includes every visible tile within budget"), Tiles.Num(), Across * Down);
+            TestTrue(TEXT("Overview respects 64-tile cap"), Tiles.Num() <= 64);
+        }
+    }
+    const auto DebugFog = UKalmalaWorldMapWidget::BuildFogPixels(FVector2D::ZeroVector, FVector2D(1700000), FVector2D::ZeroVector,
+        FIntPoint(5), nullptr, true, true);
+    TestEqual(TEXT("Debug overview reveals distant generated terrain"), DebugFog[13].A, uint8(0));
+    TestEqual(TEXT("Circle corners stay masked"), DebugFog[0].A, uint8(255));
+    TestEqual(TEXT("Outside rim stays masked"), DebugFog[14].A, uint8(255));
     TestTrue(TEXT("Co-op symbol may show in current personal sight"),
         UKalmalaWorldMapWidget::CanShowCoopLocation(FVector2D(100, 0), FVector2D::ZeroVector, nullptr));
     TestFalse(TEXT("Co-op symbols cannot reveal unexplored remote terrain"),

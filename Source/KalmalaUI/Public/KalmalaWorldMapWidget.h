@@ -41,6 +41,8 @@ public:
     /** Records the owning pawn's travels even while the map is collapsed. No raster work. */
     void TickExploration(float DeltaTime);
 
+    static float FullWorldZoom(float AspectRatio);
+    static float ChooseTileWorldSize(FVector2D Extent);
     static float ClampMapZoom(float RequestedZoom, float MinZoom, float MaxZoom);
     /** Pure local fog seam. Only the owning pawn position may open the reveal circle. */
     static bool IsWithinLocalRevealRadius(FVector2D WorldPosition, FVector2D OwningPawnLocation, float RevealRadius);
@@ -62,7 +64,7 @@ public:
     /** Original map-fog palette; ReservedShared has no data source until shared cartography is authorized. */
     static FColor GetFogTreatmentColor(EKalmalaWorldMapFogTreatment Treatment);
     static TArray<FColor> BuildFogPixels(FVector2D MapCentre, FVector2D MapExtent, FVector2D OwningPawnLocation, FIntPoint Dimensions,
-        const UKalmalaWorldMapExplorationSaveGame* Exploration = nullptr);
+        const UKalmalaWorldMapExplorationSaveGame* Exploration = nullptr, bool bRevealAll = false, bool bBoundedWorld = false);
 
 protected:
     virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
@@ -104,8 +106,8 @@ private:
     void LogDeveloperTileFingerprint();
     void LogDeveloperProfile();
     void InvalidateOutstandingTileJobs();
-    static TArray<FColor> BuildTilePixels(FKalmalaWorldGenerationConfig Config, FIntPoint TileCoordinate);
-    static TArray<FIntPoint> BuildPrioritizedTileCoordinates(const FVector2D& Centre, const FVector2D& Extent);
+    static TArray<FColor> BuildTilePixels(FKalmalaWorldGenerationConfig Config, FIntPoint TileCoordinate, float WorldSize = 10000.0f);
+    static TArray<FIntPoint> BuildPrioritizedTileCoordinates(const FVector2D& Centre, const FVector2D& Extent, float WorldSize = 10000.0f);
     void PanByScreenDelta(const FVector2D& ScreenDelta, const FVector2D& MapSize);
     void ZoomAtScreenPosition(float WheelDelta, const FVector2D& ScreenPosition, const FVector2D& MapSize);
     FVector2D ScreenToWorld(const FVector2D& ScreenPosition, const FVector2D& MapSize) const;
@@ -146,6 +148,8 @@ private:
     FString PendingPinLabel;
     EKalmalaWorldMapPinStyle PendingPinStyle = EKalmalaWorldMapPinStyle::Cairn;
     float MapZoom = 18000.0f;
+    float ActiveTileWorldSize = 10000.0f;
+    bool bFitWholeWorld = false;
     float RefreshAccumulator = 0.0f;
     float ExplorationAccumulator = 0.5f;
     bool bDeveloperVerificationLogged = false;
@@ -167,7 +171,7 @@ private:
     int32 DeveloperProfileGameThreadTicks = 0;
 
     static constexpr float MinZoom = 2500.0f;
-    static constexpr float MaxZoom = 50000.0f;
+    static constexpr float MaxZoom = 3500000.0f;
     static constexpr float ZoomStep = 0.18f;
     static constexpr float TileWorldSize = 10000.0f;
     static constexpr int32 TileSamplesPerAxis = 33;

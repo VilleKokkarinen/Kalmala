@@ -16,3 +16,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 | 2026-08-27 | Initial target is PC, 1–4 player solo/listen/dedicated-server co-op. | Accepted | Keeps online scope concrete and testable. |
 | 2026-08-27 | First release is a vertical slice before open-world expansion. | Accepted | Ensures an agent-built project converges on a working game. |
 | 2026-08-27 | Mythic Finnish/Kalevala influence must remain original and non-derivative. | Accepted | Establishes a strong direction while respecting source works and rights. |
+
+### 2026-09-11 — Finite radial biome progression and debug overview
+
+Accepted explicit user direction: new revision-5 worlds use a 16 km origin-centred circle and gradually prefer more demanding land biomes outward. This supersedes the earlier unlimited-extent/no-distance-bias decision for new worlds. Existing world identities remain unchanged. Keep large rivers; preserve small streams in an opt-in, replicated revision-6 debug identity. Default M to a revealed, origin-centred whole-world overview, with independent local fog/fit console settings. No platform, business model, assets, online services, enemy statistics or save schemas change.

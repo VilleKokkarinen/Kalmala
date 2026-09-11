@@ -1,4 +1,5 @@
 #include "KalmalaPlacementPreview.h"
+#include "KalmalaWorldBounds.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
@@ -31,6 +32,7 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     if (!State || !State->GetWorldGenerationConfig().IsValid()) return Result;
     const auto& Config = State->GetWorldGenerationConfig();
     const FVector2D Surface(Ground.ImpactPoint);
+    if (!FKalmalaWorldBounds::Contains(Config, Surface, 300)) { Result.Message = TEXT("Too close to the world edge"); return Result; }
     if (FKalmalaOceanSampler::Sample(Config, Surface).IsWater() || FKalmalaShimmeringLakeSampler::IsWater(Config, Surface)
         || (Config.GeneratorRevision >= 3 && FKalmalaRegionalGeneration::Sample(Config, Surface).bHasWater))
     {

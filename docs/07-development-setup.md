@@ -196,3 +196,11 @@ Build `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -MaxParallelActio
 ## Fuelled hearth and crafting verification
 
 After the editor build, run `Kalmala.Gameplay.Crafting`, `Kalmala.Gameplay.Inventory` and `Kalmala.Gameplay.Campfire` with the headless temporary-user/log flags above, then `Scripts/Verify-Crafting.ps1 -Rendered`. Rendered runs need access to Unreal's shader working directory as well as the build-tool cache. The runner requires exact inventory conservation for both players, rejection of real forged/malformed RPCs and insufficient placement, two matching dry/rain-extinguished fire states, paid placement and fuel/protection gates, local menu input restoration, and retained host/client screenshots. Also run `Scripts/Verify-InventoryReconnect.ps1` and `Scripts/Verify-CampChoices.ps1`. Full contract and test limits: `10-campfire-and-crafting.md`.
+
+## Revision-5 radial world verification
+
+New worlds default to revision 5. Restart the editor after rebuilding native modules; an explicit older `-GeneratorRevision` retains that older layout. See `08-world-generation-and-biomes.md` for the 16 km radius, biome preferences and debug controls.
+
+Run `Kalmala.World.Regional.FiniteWorld`, `Kalmala.Gameplay.Movement.WorldBoundary`, and `Kalmala.UI.WorldMap.LocalPresentation` using the headless automation flags and temporary user/log directory described above. They cover actual inner/outer biome distributions for two seeds, repeatable terrain, river-only generation and opt-in streams, finite mesh/population bounds, the production movement clamp, and whole-circle map coverage across aspect ratios. Retain `Kalmala.World.Regional.Integrated`, `Kalmala.World.Water`, and `Kalmala.UI.Minimap.GenerationPerformance` for legacy generation/shoreline/fingerprint regression.
+
+Run `Scripts/Verify-WorldMap.ps1 -GeneratorRevision 5 -Overview` for rendered host/client world-identity, map inputs, full-world fit/reveal, complete visible tile coverage and screenshots at three aspect ratios. `-SingleResolution` selects its 1024x768 case for a quick pass. The runner uses temporary user directories and a conflicting-seed/revision client. `-KalmalaEnableStreams` on the server selects the separate revision-6 debug layout unless an explicit revision was supplied.

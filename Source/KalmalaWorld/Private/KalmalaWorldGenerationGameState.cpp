@@ -21,7 +21,11 @@ void AKalmalaWorldGenerationGameState::PostInitializeComponents()
     }
 
     FParse::Value(FCommandLine::Get(), TEXT("WorldSeed="), WorldGenerationConfig.WorldSeed);
-    FParse::Value(FCommandLine::Get(), TEXT("GeneratorRevision="), WorldGenerationConfig.GeneratorRevision);
+    const bool bExplicitRevision = FParse::Value(FCommandLine::Get(), TEXT("GeneratorRevision="), WorldGenerationConfig.GeneratorRevision);
+#if !UE_BUILD_SHIPPING
+    if (!bExplicitRevision && FParse::Param(FCommandLine::Get(), TEXT("KalmalaEnableStreams")))
+        WorldGenerationConfig.GeneratorRevision = FKalmalaWorldGenerationConfig::StreamsDebugGeneratorRevision;
+#endif
 
     if (!WorldGenerationConfig.IsValid())
     {

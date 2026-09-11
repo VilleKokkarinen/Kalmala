@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KalmalaWorldBounds.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaTerrainHeightSampler.h"
@@ -77,6 +78,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
             const float XFraction = static_cast<float>(SpawnSeed & 0xFFFFu) / 65535.0f;
             const float YFraction = static_cast<float>((SpawnSeed >> 16) & 0xFFFFu) / 65535.0f;
             const FVector2D Position = SpatialKeyOrigin + FVector2D(XFraction, YFraction) * SpatialKeySize;
+            if (!FKalmalaWorldBounds::Contains(Config, Position)) continue;
             Spawns.Add({ Kind, SpatialKey, SpawnSeed, FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)) });
         }
         return Spawns;

@@ -1,5 +1,6 @@
 #include "KalmalaRegionalGeneration.h"
 #include "Misc/ScopeLock.h"
+#include "KalmalaWorldBounds.h"
 
 namespace
 {
@@ -41,7 +42,7 @@ namespace
         const FVector2D Upper = Lower + FVector2D(T::GridCell);
         const auto Min = CellAt(Lower - FVector2D(T::RiverRange + T::SplineAmplitude + 1000), T::RiverSpacing);
         const auto Max = CellAt(Upper + FVector2D(T::RiverRange + T::SplineAmplitude + 1000), T::RiverSpacing);
-        for (int32 Kind = 0; Kind < 2; ++Kind)
+        for (int32 Kind = 0; Kind < (G::AreStreamsEnabled(C) ? 2 : 1); ++Kind)
         for (int32 Y = Min.Y; Y <= Max.Y; ++Y) for (int32 X = Min.X; X <= Max.X; ++X)
         {
             const bool Stream = Kind == 1;
@@ -161,6 +162,16 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldGen
     return Sample(FKalmalaWorldFieldSampler::Sample(C, P));
 }
 
+float FKalmalaRegionalGeneration::DistancePreference(uint8 Biome, double Distance)
+{
+    // Broad overlapping preferences, never hard concentric biome bands. Lakes
+    // and Ocean remain water/terrain decisions rather than progression tiers.
+    const double D = FMath::Clamp(Distance / FKalmalaWorldBounds::Radius, 0.0, 1.0);
+    const double Preferred[] = {0.0, 0.0, 0.25, 0.50, 0.75, 1.0, 0.0};
+    if (Biome == 1 || Biome >= 6) return 1.0f;
+    return float(0.08 + 2.92 * FMath::Exp(-FMath::Square((D - Preferred[Biome]) / 0.30)));
+}
+
 FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldFieldSample& F)
 {
     const FKalmalaWorldGenerationConfig C{ F.WorldSeed, F.GeneratorRevision };
@@ -175,9 +186,20 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::Sample(const FKalmalaWorldFie
     R.Weights[3] = WarpedRegion(C, Warped, 3) * Smooth(0.48, 0.65, F.Humidity)
         * (1 - Smooth(0.43, 0.58, F.Elevation)) * Smooth(0.18, 0.32, F.Temperature);
     R.Weights[4] = WarpedRegion(C, Warped, 4) * (1 - Smooth(0.40, 0.60, F.Temperature)) * Smooth(0.44, 0.64, F.Elevation);
+    if (C.GeneratorRevision >= 5)
+        for (uint8 I : {uint8(0), uint8(2), uint8(3), uint8(4)}) R.Weights[I] *= DistancePreference(I, P.Size());
     float Total = R.Weights[0] + R.Weights[2] + R.Weights[3] + R.Weights[4];
     for (int32 I = 0; I < 5; ++I) R.Weights[I] = R.Weights[I] / Total * Land * (1 - Mountain);
     R.Weights[5] = Land * Mountain;
+    if (C.GeneratorRevision >= 5)
+    {
+        // High source peaks stay mountains. Lower uplands can increasingly
+        // become mountain foothills toward the rim, with continuous blending.
+        const float Foothills = (1 - Mountain) * Land * Smooth(0.48, 0.68, F.Elevation)
+            * Smooth(0.40, 1.0, P.Size() / FKalmalaWorldBounds::Radius);
+        for (int32 I = 0; I < 5; ++I) R.Weights[I] *= 1 - Foothills;
+        R.Weights[5] += (1 - R.Weights[5]) * Foothills;
+    }
     R.Weights[6] = 1 - Land;
     const double Detail = Noise(C, 250, P, 0.00015);
     const float Shapes[] = { float(40 * Detail), 0, float(65 * Detail), float(-60 + 15 * Detail),

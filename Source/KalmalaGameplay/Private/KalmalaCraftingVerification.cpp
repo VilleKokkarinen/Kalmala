@@ -214,10 +214,9 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
 
 namespace
 {
-    bool GatherPersistedCampfireMaterials(AKalmalaCharacter* Character, UKalmalaInventoryComponent* Inventory)
+    bool GatherPersistedCampMaterials(AKalmalaCharacter* Character, UKalmalaInventoryComponent* Inventory, const TMap<FName, int32>& Required)
     {
-        const TMap<FName, int32> Required = { { TEXT("Wood"), 5 }, { TEXT("Stone"), 5 }, { TEXT("Fibre"), 1 } };
-        for (uint64 SpawnSeed = 1; SpawnSeed <= 512; ++SpawnSeed)
+        for (uint64 SpawnSeed = 1; SpawnSeed <= 2048; ++SpawnSeed)
         {
             bool bComplete = true;
             for (const TPair<FName, int32>& Entry : Required) bComplete &= Inventory->GetQuantity(Entry.Key) >= Entry.Value;
@@ -262,6 +261,40 @@ namespace
         if (!bPlaced) { Character->SetActorLocation(Original); Character->SetActorRotation(OriginalRotation); }
         return bPlaced;
     }
+
+    bool PlacePersistedCampConstruction(UKalmalaCraftingComponent* Crafting, AKalmalaCharacter* Character, FName KitId, FString& OutReason, AKalmalaConstructionActor*& OutConstruction)
+    {
+        TSet<AKalmalaConstructionActor*> Existing;
+        for (TActorIterator<AKalmalaConstructionActor> It(Character->GetWorld()); It; ++It) Existing.Add(*It);
+        const FVector Original = Character->GetActorLocation(); const FRotator OriginalRotation = Character->GetActorRotation();
+        bool bPlaced = false;
+        for (int32 Site = 0; Site < 16 && !bPlaced; ++Site)
+        {
+            Character->SetActorLocation(Original + FRotator(0, Site * 22.5f, 0).Vector() * (Site < 8 ? 70.0f : 140.0f));
+            for (int32 Turn = 0; Turn < 16 && !bPlaced; ++Turn)
+            {
+                Character->SetActorRotation(FRotator(0, Turn * 22.5f, 0));
+                bPlaced = Crafting->PlaceConstructionFromServer(KitId, OutReason);
+            }
+        }
+        Character->SetActorLocation(Original); Character->SetActorRotation(OriginalRotation);
+        if (bPlaced) for (TActorIterator<AKalmalaConstructionActor> It(Character->GetWorld()); It; ++It)
+            if (!Existing.Contains(*It) && It->GetConstructionKit() == KitId) { OutConstruction = *It; break; }
+        return bPlaced && OutConstruction != nullptr;
+    }
+
+    bool OpenPersistedCampStorage(UKalmalaCraftingComponent* Crafting, AKalmalaCharacter* Character, AKalmalaConstructionActor* Storage)
+    {
+        const FVector Original = Character->GetActorLocation();
+        bool bOpened = false;
+        for (int32 Turn = 0; Turn < 16 && !bOpened; ++Turn)
+        {
+            Character->SetActorLocation(Storage->GetActorLocation() + FRotator(0, Turn * 22.5f, 0).Vector() * 150.0f + FVector(0, 0, 40));
+            bOpened = Crafting->OpenStorageFromServer(Storage);
+        }
+        if (!bOpened) Character->SetActorLocation(Original);
+        return bOpened;
+    }
 }
 
 void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
@@ -277,19 +310,37 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
         for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It) PlayerCount += (*It && It->GetPlayerState()) ? 1 : 0;
         if (PlayerCount < 2) return;
         FString Reason;
-        const bool bGathered = GatherPersistedCampfireMaterials(Character, Inventory);
-        const bool bCrafted = bGathered && CraftFromServer(TEXT("Fuel"), 1, Reason) && CraftFromServer(TEXT("Campfire"), 1, Reason);
-        const bool bPlaced = bCrafted && PlacePersistedCampfireNearTerrain(this, Character, Reason);
-        const bool bPaid = Inventory->GetStacks().IsEmpty();
-        const bool bPassed = bGathered && bCrafted && bPlaced && bPaid;
-        UE_LOG(LogTemp, Display, TEXT("Persisted camp hearth server: Passed=%d Player=%d Gathered=%d Crafted=%d Placed=%d Paid=%d Fuel=%.0f"), bPassed, Character->GetPlayerState()->GetPlayerId(), bGathered, bCrafted, bPlaced, bPaid, FindNearbyFire(false) ? FindNearbyFire(false)->GetFuelSeconds() : -1.0f);
+        // These are deliberately harvested from initialized nodes instead of granted: one complete
+        // personal camp needs fuel/hearth, eleven timber supplies, and the wall/roof fibre costs.
+        const TMap<FName, int32> Required = { { TEXT("Wood"), 38 }, { TEXT("Stone"), 7 }, { TEXT("Fibre"), 33 } };
+        const bool bGathered = GatherPersistedCampMaterials(Character, Inventory, Required);
+        const bool bHearthCrafted = bGathered && CraftFromServer(TEXT("Fuel"), 1, Reason) && CraftFromServer(TEXT("Campfire"), 1, Reason);
+        const bool bHearthPlaced = bHearthCrafted && PlacePersistedCampfireNearTerrain(this, Character, Reason);
+        const bool bKitsCrafted = bHearthPlaced && CraftFromServer(TEXT("Timber"), 5, Reason) && CraftFromServer(TEXT("Timber"), 5, Reason)
+            && CraftFromServer(TEXT("Timber"), 1, Reason) && CraftFromServer(TEXT("Workbench"), 1, Reason) && CraftFromServer(TEXT("Storage"), 1, Reason)
+            && CraftFromServer(TEXT("Floor"), 1, Reason) && CraftFromServer(TEXT("Wall"), 1, Reason) && CraftFromServer(TEXT("Roof"), 1, Reason);
+        AKalmalaConstructionActor *Floor = nullptr, *Wall = nullptr, *Roof = nullptr, *Workbench = nullptr, *Storage = nullptr;
+        const bool bBuilt = bKitsCrafted
+            && PlacePersistedCampConstruction(this, Character, TEXT("FloorKit"), Reason, Floor)
+            && PlacePersistedCampConstruction(this, Character, TEXT("WallKit"), Reason, Wall)
+            && PlacePersistedCampConstruction(this, Character, TEXT("RoofKit"), Reason, Roof)
+            && PlacePersistedCampConstruction(this, Character, TEXT("WorkbenchKit"), Reason, Workbench)
+            && PlacePersistedCampConstruction(this, Character, TEXT("StorageKit"), Reason, Storage);
+        const bool bStorage = bBuilt && Inventory->TryGrantFromServer(TEXT("Wood"), 1) && OpenPersistedCampStorage(this, Character, Storage)
+            && TransferStorageFromServer(TEXT("Wood"), true, Reason) && HasStorageView() && StorageView.Num() == 1 && StorageView[0].ItemId == TEXT("Wood") && StorageView[0].Quantity == 1;
+        const bool bPaid = bStorage && Inventory->GetStacks().IsEmpty();
+        const bool bPassed = bGathered && bHearthCrafted && bHearthPlaced && bKitsCrafted && bBuilt && bStorage && bPaid;
+        UE_LOG(LogTemp, Display, TEXT("Persisted camp build server: Passed=%d Player=%d Gathered=%d Hearth=%d Kits=%d Built=%d Storage=%d Paid=%d Fuel=%.0f"), bPassed, Character->GetPlayerState()->GetPlayerId(), bGathered, bHearthPlaced, bKitsCrafted, bBuilt, bStorage, bPaid, FindNearbyFire(false) ? FindNearbyFire(false)->GetFuelSeconds() : -1.0f);
         PersistedCampVerificationStage = bPassed ? 1 : 99; PersistedCampVerificationElapsed = 0;
     }
     if (!Character->IsLocallyControlled() || bPersistedCampOwnerReported || PersistedCampVerificationElapsed < 2) return;
     const AKalmalaCampfire* Fire = FindNearbyFire(false);
-    if (Fire == nullptr || !Inventory->GetStacks().IsEmpty()) return;
-    const bool bPassed = Inventory->GetStacks().IsEmpty() && Fire != nullptr && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), 60.0f);
-    UE_LOG(LogTemp, Display, TEXT("Persisted camp hearth owner: Passed=%d Authority=%d Player=%d EmptyPack=%d Fuel=%.0f"), bPassed, Character->HasAuthority(), Character->GetPlayerState()->GetPlayerId(), Inventory->GetStacks().IsEmpty(), Fire ? Fire->GetFuelSeconds() : -1.0f);
+    int32 ConstructionCount = 0;
+    for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It) if (It->GetConstructionKit() != NAME_None) ++ConstructionCount;
+    const bool bStorageVisible = HasStorageView() && StorageView.Num() == 1 && StorageView[0].ItemId == TEXT("Wood") && StorageView[0].Quantity == 1;
+    if (Fire == nullptr || !Inventory->GetStacks().IsEmpty() || ConstructionCount < 10 || !bStorageVisible) return;
+    const bool bPassed = Fire != nullptr && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), 60.0f) && ConstructionCount >= 10 && bStorageVisible;
+    UE_LOG(LogTemp, Display, TEXT("Persisted camp build owner: Passed=%d Authority=%d Player=%d EmptyPack=%d Fuel=%.0f Constructions=%d StorageWood=1"), bPassed, Character->HasAuthority(), Character->GetPlayerState()->GetPlayerId(), Inventory->GetStacks().IsEmpty(), Fire ? Fire->GetFuelSeconds() : -1.0f, ConstructionCount);
     bPersistedCampOwnerReported = true;
 #endif
 }
