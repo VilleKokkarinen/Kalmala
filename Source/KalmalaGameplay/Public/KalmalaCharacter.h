@@ -63,6 +63,11 @@ private:
     void StartSprint();
     void StopSprint();
     void VerifyPlayerControls(float DeltaSeconds);
+    void VerifyConstructionMovement(float DeltaSeconds);
+    bool bConstructionMovementSpawned = false;
+    bool bConstructionMovementFinished = false;
+    float ConstructionMovementElapsed = 0.0f;
+    float ConstructionMovementStartY = 0.0f;
     void VerifySwimming(float DeltaSeconds);
     void ConfigureSwimmingTestTarget();
     void VerifyOceanTravel(float DeltaSeconds);

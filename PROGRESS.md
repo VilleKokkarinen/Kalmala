@@ -1897,3 +1897,17 @@ Multiplayer impact: Tests/documentation only; no runtime, RPC, replication, plac
 Known limits: Standalone capsule sweeps do not verify host/client Character Movement or replicated exposure. Pre-existing uncommitted GeometryAlignment was exercised but excluded from this commit. No teardown/removal/refund feature is included.
 
 Next task: Continue the same unchecked shelter acceptance item with live host/client movement against replicated construction and server exposure evidence, before the later complete M2 camp scenario.
+
+### 2026-09-11T10:06:27.4955211+03:00 - Verify live floor and windbreak movement
+
+Outcome: Completed one bounded increment in the first unchecked M2 shelter acceptance item. Added a launch-gated host/client Character Movement scenario against actual replicated floor/windbreak construction. Both owners traverse their floor and stop at the wall; the server independently verifies the remote pawn. Parent/child acceptance remains unchecked for roof movement and live exposure agreement.
+
+Changed: new `Source/KalmalaGameplay/Private/KalmalaConstructionMovementVerification.cpp`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; new `Scripts/Verify-ConstructionMovement.ps1`; appended notes in `BACKLOG.md`, `docs/10-campfire-and-crafting.md`, and `PROGRESS.md`. Preserved four pre-existing modified files, including the GeometryAlignment regression and earlier document edits; only this run's appended notes are staged. Main checkout is the active workspace; no synchronization needed.
+
+Verification: Final forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with LOCALAPPDATA UnrealBuildTool access. All six Construction/ShelterComposition tests reported Success and TestExit status 0 (`C:/Users/Ville/AppData/Local/Temp/KalmalaMovementFinal-675217014ff54c6abeafc54f354caaa0/automation.log`). Final `Scripts/Verify-ConstructionMovement.ps1 -Port 17991` passed (`C:/Users/Ville/AppData/Local/Temp/KalmalaConstructionMovement-4070dde4ac0e46f1a1a5024ff4abc20c`): both owners travelled approximately 114 cm, remained based on their floor, and stopped at Y=43.90 cm versus expected 44 cm. Remote owner and server had exact player/floor/wall ID agreement and matching stops. Earlier peer run also passed. PowerShell parse and whitespace checks passed.
+
+Multiplayer impact: Test-only server fixture actors and initial relocation; movement proceeds through ordinary owning input and Character Movement authority/prediction. Clients receive construction kit/ID/transform through existing replication. No RPC, normal placement, inventory, collision definition, shelter calculation, world identity, or save schema changed. No removal/refund feature exists.
+
+Known limits: Elevated temporary solids isolate floor/wall collision, bypassing paid placement and terrain support. Does not verify roof contact, live exposure agreement, rendered usability, dedicated servers, or full persisted-camp acceptance. Existing generated wildlife/hazard root-component relevancy warnings remain. Pre-existing GeometryAlignment was exercised but is excluded from this commit.
+
+Next task: Continue the same shelter acceptance item with live roof contact and server-sampled shelter/exposure agreement, then close its gate before the complete M2 camp scenario.

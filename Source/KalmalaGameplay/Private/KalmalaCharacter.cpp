@@ -103,6 +103,7 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     VerifyPlayerControls(DeltaSeconds);
+    VerifyConstructionMovement(DeltaSeconds);
     VerifySwimming(DeltaSeconds);
     VerifyOceanTravel(DeltaSeconds);
 
