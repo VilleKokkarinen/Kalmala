@@ -68,6 +68,10 @@ private:
     bool bConstructionMovementFinished = false;
     float ConstructionMovementElapsed = 0.0f;
     float ConstructionMovementStartY = 0.0f;
+    bool bConstructionWallLogged = false;
+    bool bConstructionRoofJumpRequested = false;
+    bool bConstructionRoofAirborne = false;
+    float ConstructionRoofPeakZ = 0.0f;
     void VerifySwimming(float DeltaSeconds);
     void ConfigureSwimmingTestTarget();
     void VerifyOceanTravel(float DeltaSeconds);

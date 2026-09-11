@@ -27,10 +27,13 @@ try {
         if ($server.HasExited -or $client.HasExited) { throw 'A construction movement peer exited.' }
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
-        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Construction movement: Passed=0') { throw 'Construction movement verification failed; inspect logs.' }
+        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Construction (movement|roof): Passed=0') { throw 'Construction movement verification failed; inspect logs.' }
         $localPass = $serverText -match 'Construction movement: Passed=1 Authority=1 Local=1' -and $clientText -match 'Construction movement: Passed=1 Authority=0 Local=1'
         $remotePass = $serverText -match 'Construction movement: Passed=1 Authority=1 Local=0'
-        if ($localPass -and $remotePass) { break }
+        $roofPass = $serverText -match 'Construction roof: Passed=1 Authority=1 Local=1' `
+            -and $serverText -match 'Construction roof: Passed=1 Authority=1 Local=0' `
+            -and $clientText -match 'Construction roof: Passed=1 Authority=0 Local=1'
+        if ($localPass -and $remotePass -and $roofPass) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Construction movement verification timed out.' }
@@ -43,7 +46,16 @@ try {
         if ($remote.Groups[$index].Value -ne $owner.Groups[$index].Value) { throw 'Player or construction identity mismatch.' }
     }
     if ([Math]::Abs([double]$remote.Groups[4].Value - [double]$owner.Groups[4].Value) -gt 3) { throw 'Server/client stopping position mismatch.' }
-    Write-Output 'PASS: both owning pawns walk on replicated floors and stop at windbreak collision; server verifies remote movement.'
+    $roofPattern = 'Construction roof: Passed=1 Authority={0} Local={1} Player=(\d+) Roof=(\S+) Airborne=1 Landed=1 Peak=([\d.]+) Ceiling=([\d.]+)'
+    $remoteRoof = [regex]::Match($serverText, ($roofPattern -f 1, 0))
+    $ownerRoof = [regex]::Match($clientText, ($roofPattern -f 0, 1))
+    if (!$remoteRoof.Success -or !$ownerRoof.Success) { throw 'Missing roof evidence.' }
+    foreach ($index in @(1, 2, 4)) {
+        if ($remoteRoof.Groups[$index].Value -ne $ownerRoof.Groups[$index].Value) { throw 'Roof identity or ceiling mismatch.' }
+    }
+    if ($remoteRoof.Groups[1].Value -ne $remote.Groups[1].Value) { throw 'Roof and wall player mismatch.' }
+    if ([Math]::Abs([double]$remoteRoof.Groups[3].Value - [double]$ownerRoof.Groups[3].Value) -gt 10) { throw 'Server/client jump peak mismatch.' }
+    Write-Output 'PASS: both owners walk on floors, stop at windbreaks, jump beneath replicated roofs and land; server confirms remote identities and movement.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

@@ -1911,3 +1911,17 @@ Multiplayer impact: Test-only server fixture actors and initial relocation; move
 Known limits: Elevated temporary solids isolate floor/wall collision, bypassing paid placement and terrain support. Does not verify roof contact, live exposure agreement, rendered usability, dedicated servers, or full persisted-camp acceptance. Existing generated wildlife/hazard root-component relevancy warnings remain. Pre-existing GeometryAlignment was exercised but is excluded from this commit.
 
 Next task: Continue the same shelter acceptance item with live roof contact and server-sampled shelter/exposure agreement, then close its gate before the complete M2 camp scenario.
+
+### 2026-09-11T10:13:53.4713854+03:00 - Verify replicated roof jump collision
+
+Outcome: Completed a bounded roof-movement increment in the first unchecked M2 shelter acceptance item. Extended the existing live construction scenario with replicated roofs and normal owner jumps. Both owners become airborne beneath the ceiling and land on their floor; the server independently confirms the remote result. Keep the shelter acceptance parent/child unchecked for live exposure agreement.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaConstructionMovementVerification.cpp`; `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; `Scripts/Verify-ConstructionMovement.ps1`; run-owned appended notes in `BACKLOG.md`, `docs/10-campfire-and-crafting.md`, and `PROGRESS.md`. Preserved all four pre-existing modified files and excluded their earlier edits from the index. Main checkout handoff updated directly.
+
+Verification: Final forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with LOCALAPPDATA UBT access. Six Construction/ShelterComposition tests passed, TestExit 0 (`C:/Users/Ville/AppData/Local/Temp/KalmalaRoof-18bd6f1885e5440f97a4941f5e74747a/automation.log`). First live peer scenario passed. After widening jump observation to tolerate differing peer clocks, rebuilt successfully and final `Scripts/Verify-ConstructionMovement.ps1` passed (`C:/Users/Ville/AppData/Local/Temp/KalmalaConstructionMovement-4e33f04f892048d3ad55af0c35b6fbc6`): host peak 144.99 cm, remote owner/server peak 145.32 cm, ceiling limit 146 cm; all airborne/landing gates and exact remote player/roof/ceiling checks passed. Existing floor/wall gates passed. PowerShell parse and git whitespace checks passed. No failed build or test attempt.
+
+Multiplayer impact: Non-shipping, launch-gated fixture only. Server creates temporary construction; owners issue ordinary Character Movement jump input. Server and owning-client observations are compared; simulated proxies are excluded. No new RPC, gameplay authority, normal movement/collision, placement/payment, inventory, world identity, or save-schema change.
+
+Known limits: Frame-sampled peak bound demonstrates ceiling-limited movement rather than instrumenting individual physics impact callbacks. Elevated fixtures bypass paid placement and terrain support. Live shelter/exposure comparison, rendered usability, dedicated servers, and the full M2 persisted camp remain pending. No teardown/refund path exists. Pre-existing GeometryAlignment test remains uncommitted.
+
+Next task: Complete live server-sampled roof/windbreak shelter and replicated exposure agreement in this same acceptance item before closing its gate and starting the M2 persisted-camp scenario.
