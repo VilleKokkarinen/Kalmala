@@ -27,13 +27,15 @@ try {
         if ($server.HasExited -or $client.HasExited) { throw 'A construction movement peer exited.' }
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
-        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Construction (movement|roof): Passed=0') { throw 'Construction movement verification failed; inspect logs.' }
+        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Construction (movement|roof|exposure): Passed=0') { throw 'Construction movement verification failed; inspect logs.' }
         $localPass = $serverText -match 'Construction movement: Passed=1 Authority=1 Local=1' -and $clientText -match 'Construction movement: Passed=1 Authority=0 Local=1'
         $remotePass = $serverText -match 'Construction movement: Passed=1 Authority=1 Local=0'
         $roofPass = $serverText -match 'Construction roof: Passed=1 Authority=1 Local=1' `
             -and $serverText -match 'Construction roof: Passed=1 Authority=1 Local=0' `
             -and $clientText -match 'Construction roof: Passed=1 Authority=0 Local=1'
-        if ($localPass -and $remotePass -and $roofPass) { break }
+        $exposurePass = $serverText -match 'Construction exposure server: Passed=1 Player=\d+ Roof=1 Windbreak=1 Shelter=(?:0\.[89]\d|1\.00)' `
+            -and $clientText -match 'Construction exposure client: Passed=1 Player=\d+'
+        if ($localPass -and $remotePass -and $roofPass -and $exposurePass) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Construction movement verification timed out.' }
@@ -55,7 +57,13 @@ try {
     }
     if ($remoteRoof.Groups[1].Value -ne $remote.Groups[1].Value) { throw 'Roof and wall player mismatch.' }
     if ([Math]::Abs([double]$remoteRoof.Groups[3].Value - [double]$ownerRoof.Groups[3].Value) -gt 10) { throw 'Server/client jump peak mismatch.' }
-    Write-Output 'PASS: both owners walk on floors, stop at windbreaks, jump beneath replicated roofs and land; server confirms remote identities and movement.'
+    $clientExposure = [regex]::Match($clientText, 'Construction exposure client: Passed=1 Player=(\d+) Wetness=([\d.]+) Warmth=([\d.]+) Travel=([\d.]+)')
+    if (!$clientExposure.Success -or $clientExposure.Groups[1].Value -ne $remote.Groups[1].Value) { throw 'Missing owning-client exposure evidence.' }
+    $serverExposure = [regex]::Matches($serverText, 'Construction exposure server: Passed=1 Player=' + [regex]::Escape($remote.Groups[1].Value) + ' Roof=1 Windbreak=1 Shelter=([\d.]+) Wetness=([\d.]+) Warmth=([\d.]+) Travel=([\d.]+)')
+    if ($serverExposure.Count -eq 0) { throw 'Missing server shelter evidence for remote owner.' }
+    $closest = $serverExposure | Sort-Object { [Math]::Abs([double]$_.Groups[2].Value - [double]$clientExposure.Groups[2].Value) + [Math]::Abs([double]$_.Groups[3].Value - [double]$clientExposure.Groups[3].Value) } | Select-Object -First 1
+    if ([Math]::Abs([double]$closest.Groups[2].Value - [double]$clientExposure.Groups[2].Value) -gt 1.5 -or [Math]::Abs([double]$closest.Groups[3].Value - [double]$clientExposure.Groups[3].Value) -gt 1.5 -or [Math]::Abs([double]$closest.Groups[4].Value - [double]$clientExposure.Groups[4].Value) -gt 0.01) { throw 'Server/client replicated exposure mismatch.' }
+    Write-Output 'PASS: both owners walk on floors, stop at windbreaks, jump beneath replicated roofs and land; server-sampled roof/windbreak shelter and replicated exposure agree.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

@@ -250,11 +250,11 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Define stable construction IDs and a versioned, identity-scoped server save format for placed camps; reject incompatible world identity and impose bounded actor/save limits.
   - [x] Verify preview cannot be trusted, overlapping/floating/out-of-range placements are rejected, and a host/client sees the same accepted construction after reconnect/load.
 
-- [ ] **Deliver the required shelter and camp pieces.**
+- [x] **Deliver the required shelter and camp pieces.**
   - [x] Implement original floor, wall/windbreak, and roof pieces with server-owned collision and replicated placement state; only accepted roof/windbreak pieces add the existing shelter tags used by the server exposure sampler.
   - [x] Implement a minimal replicated workbench and basic storage with server-validated interaction and bounded persisted contents; do not expose arbitrary remote storage contents to clients.
-  - [ ] Verify roof/windbreak geometry affects only server-sampled shelter, construction collision agrees for host/client movement, and teardown/removal (if included) cannot duplicate refunded resources.
-    - Verification 2026-09-11: forced build passed; new GeometryAlignment regression fails on floor/wall/roof visual-versus-collision centres (-44/+54/+248 cm). Keep unchecked; repair geometry and run peer acceptance. See PROGRESS.md.
+  - [x] Verify roof/windbreak geometry affects only server-sampled shelter, construction collision agrees for host/client movement, and teardown/removal (if included) cannot duplicate refunded resources.
+    - Verification 2026-09-11: forced build, six focused construction/shelter checks, and `Verify-ConstructionMovement.ps1` passed. The live fixture confirms server-sampled roof/windbreak shelter and owning-client replicated exposure agreement. No teardown/removal/refund path is included.
 
 - [ ] **Close M2 with a two-player persisted camp scenario.**
   - [ ] Run a host/client scenario in which both players gather, craft, place a campfire plus floor/wall/roof, use storage/workbench, and observe matching inventory, construction, fire, shelter, and weather state.

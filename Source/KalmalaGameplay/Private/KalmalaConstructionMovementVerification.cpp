@@ -23,18 +23,24 @@ void AKalmalaCharacter::VerifyConstructionMovement(const float DeltaSeconds)
         const FVector Origin = GetActorLocation() + FVector(GetWorld()->GetGameState()->PlayerArray.IndexOfByKey(GetPlayerState()) * 500.0, 0, 2000);
         FActorSpawnParameters Params;
         Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        for (const FName Kit : { FName(TEXT("FloorKit")), FName(TEXT("WallKit")), FName(TEXT("RoofKit")) })
+        // Four real windbreaks make the production sampler's answer independent
+        // of the authoritative weather cycle's current wind direction.
+        for (const FName Kit : { FName(TEXT("FloorKit")), FName(TEXT("WallKit")), FName(TEXT("WallNorth")), FName(TEXT("WallEast")), FName(TEXT("WallWest")), FName(TEXT("RoofKit")) })
         {
             const FVector Offset = Kit == TEXT("FloorKit") ? FVector::ZeroVector
-                : Kit == TEXT("WallKit") ? FVector(0, 90, 122) : FVector(0, 0, 250);
-            auto* Piece = GetWorld()->SpawnActor<AKalmalaConstructionActor>(Origin + Offset, FRotator::ZeroRotator, Params);
+                : Kit == TEXT("WallKit") ? FVector(0, 90, 122)
+                : Kit == TEXT("WallNorth") ? FVector(0, -90, 122)
+                : Kit == TEXT("WallEast") ? FVector(90, 0, 122)
+                : Kit == TEXT("WallWest") ? FVector(-90, 0, 122) : FVector(0, 0, 250);
+            const FRotator Rotation = (Kit == TEXT("WallEast") || Kit == TEXT("WallWest")) ? FRotator(0, 90, 0) : FRotator::ZeroRotator;
+            auto* Piece = GetWorld()->SpawnActor<AKalmalaConstructionActor>(Origin + Offset, Rotation, Params);
             if (!Piece)
             {
                 UE_LOG(LogTemp, Error, TEXT("Construction movement: Passed=0 Spawn failed"));
                 bConstructionMovementFinished = true;
                 return;
             }
-            Piece->InitializeFromServer(Kit, Prefix + Kit.ToString());
+            Piece->InitializeFromServer(Kit.ToString().StartsWith(TEXT("Wall")) ? TEXT("WallKit") : Kit, Prefix + Kit.ToString());
             Piece->ForceNetUpdate();
         }
         SetActorLocation(Origin + FVector(0, -70, 14 + GetCapsuleComponent()->GetScaledCapsuleHalfHeight()), false, nullptr, ETeleportType::TeleportPhysics);
@@ -91,6 +97,13 @@ void AKalmalaCharacter::VerifyConstructionMovement(const float DeltaSeconds)
     UE_LOG(LogTemp, Display, TEXT("Construction roof: Passed=%d Authority=%d Local=%d Player=%d Roof=%s Airborne=%d Landed=%d Peak=%.2f Ceiling=%.2f"),
         bRoofPassed, HasAuthority(), IsLocallyControlled(), GetPlayerState()->GetPlayerId(),
         *Roof->GetConstructionId(), bConstructionRoofAirborne, bOnFloor, ConstructionRoofPeakZ, CeilingZ);
+    if (ConstructionMovementElapsed < 13) return;
+    if (IsLocallyControlled() && !HasAuthority())
+    {
+        const FKalmalaExposureState& Exposure = GetExposureState();
+        UE_LOG(LogTemp, Display, TEXT("Construction exposure client: Passed=1 Player=%d Wetness=%.2f Warmth=%.2f Travel=%.2f"),
+            GetPlayerState()->GetPlayerId(), Exposure.Wetness, Exposure.Warmth, Exposure.TravelSpeedMultiplier);
+    }
     bConstructionMovementFinished = true;
 #endif
 }

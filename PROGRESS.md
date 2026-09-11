@@ -1939,3 +1939,17 @@ Multiplayer impact: Non-shipping, launch-gated fixture only. Server creates temp
 Known limits: Frame-sampled peak bound demonstrates ceiling-limited movement rather than instrumenting individual physics impact callbacks. Elevated fixtures bypass paid placement and terrain support. Live shelter/exposure comparison, rendered usability, dedicated servers, and the full M2 persisted camp remain pending. No teardown/refund path exists. Pre-existing GeometryAlignment test remains uncommitted.
 
 Next task: Complete live server-sampled roof/windbreak shelter and replicated exposure agreement in this same acceptance item before closing its gate and starting the M2 persisted-camp scenario.
+
+### 2026-09-11 14:42 EEST - Verify live shelter exposure agreement
+
+Outcome: Closed the first unchecked M2 shelter/camp-piece acceptance item. The live construction fixture now uses a roof and four server-created windbreaks per elevated player floor, so the production shelter sampler is tested under the actual server-selected wind direction. The server requires roof plus windbreak tags and shelter at least 0.8, while the runner compares the remote owner's server exposure state with its owning client's replicated wetness, warmth, and travel multiplier.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaConstructionMovementVerification.cpp`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Scripts/Verify-ConstructionMovement.ps1`; `BACKLOG.md`; `docs/10-campfire-and-crafting.md`; `PROGRESS.md`. No pre-existing working-tree changes were present.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with LOCALAPPDATA UnrealBuildTool access. GeometryAlignment, LocalPreview, SaveContract, ShelterPieces, ShelterSampling, and ShelterComposition all passed (`C:/Users/Ville/AppData/Local/Temp/KalmalaShelterExposure-4778dfd0d58f486088f0bd382f9884ea/automation.log`). `Scripts/Verify-ConstructionMovement.ps1 -Port 17991` passed with host/client logs at `C:/Users/Ville/AppData/Local/Temp/KalmalaConstructionMovement-4ca4f3f4f26b428b92e3903d9d35a05e`: remote owner 257 had matching floor/wall/roof identities, 145.33 cm owner/server jump peak under the 146 cm ceiling, server roof/windbreak shelter 0.90, and client exposure `Wetness=0.15 Warmth=100.00 Travel=1.00` matching a server update within the runner tolerance. `git diff --check` and PowerShell parse passed.
+
+Multiplayer impact: Verification-only temporary actors and telemetry. Server `GameMode` remains the only shelter/exposure authority; clients receive the existing replicated exposure state and cannot submit geometry, tags, wind, shelter, weather, or exposure values. Normal placement, payment, collision, persistence, recipes, inventories, and RPC contracts are unchanged.
+
+Known limits: Fixtures bypass paid placement and terrain support, and do not constitute the full M2 persisted-camp scenario or dedicated-server coverage. There is no teardown/removal/refund feature, hence no refund duplication route to verify.
+
+Next task: Start the first child of the M2 two-player persisted camp scenario: gather, craft, place a campfire plus floor/wall/roof, use storage/workbench, and observe matching state.

@@ -103,6 +103,18 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
             State.TravelSpeedMultiplier = FMath::Max(0.68f, State.TravelSpeedMultiplier * 0.88f);
         }
         Character->SetExposureStateFromServer(State);
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaConstructionMovementTest")))
+        {
+            // Do not treat the normal pre-fixture open-world tick as an
+            // assertion. The movement fixture is the only subject here.
+            if (Shelter.bHasRoof && Shelter.bHasWindbreak)
+            {
+                const bool bPassed = Shelter.Shelter >= 0.8f;
+                UE_LOG(LogTemp, Display, TEXT("Construction exposure server: Passed=%d Player=%d Roof=%d Windbreak=%d Shelter=%.2f Wetness=%.2f Warmth=%.2f Travel=%.2f"),
+                bPassed, Character->GetPlayerState() ? Character->GetPlayerState()->GetPlayerId() : -1,
+                Shelter.bHasRoof, Shelter.bHasWindbreak, Shelter.Shelter, State.Wetness, State.Warmth, State.TravelSpeedMultiplier);
+            }
+        }
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")))
         {
             UE_LOG(LogTemp, Display, TEXT("Camp choice server %s: Wetness=%.2f Warmth=%.2f Travel=%.2f."), *FString::FromInt(Character->GetPlayerState()->GetPlayerId()), State.Wetness, State.Warmth, State.TravelSpeedMultiplier);
