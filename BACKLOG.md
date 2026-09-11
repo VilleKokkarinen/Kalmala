@@ -270,3 +270,5 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 ### M3–M5 — Deferred
 
 Use `docs/04-roadmap.md` as the source of truth. Decompose M3 only after the M2 acceptance gate passes; decompose M4 only after M3 passes; decompose M5 only after M4 passes.
+
+Shelter acceptance repair 2026-09-11T09:49:25.7573559+03:00: aligned floor/wall/roof presentation to existing collision centres; forced build and five focused construction/shelter tests passed. The shelter acceptance checkbox remains open pending actual host/client movement verification.

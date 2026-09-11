@@ -112,12 +112,10 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
 {
     if (!PieceMesh) return;
     TArray<FVector> Vertices; TArray<int32> Triangles;
-    if (ConstructionKit == TEXT("FloorKit"))
-        AddBox(Vertices, Triangles, FVector(0, 0, -44), FVector(120, 120, 12));
-    else if (ConstructionKit == TEXT("WallKit"))
-        AddBox(Vertices, Triangles, FVector(0, 0, 54), FVector(120, 12, 110));
-    else if (ConstructionKit == TEXT("RoofKit"))
-        AddBox(Vertices, Triangles, FVector(0, 0, 248), FVector(132, 132, 16));
+    // Placement and saved transforms already locate the collision centre.
+    // Derive the visible solid from that same footprint on both peers.
+    if (ConstructionKit == TEXT("FloorKit") || IsShelterKit(ConstructionKit))
+        AddBox(Vertices, Triangles, FVector::ZeroVector, GetCollisionExtent(ConstructionKit));
     else if (ConstructionKit == TEXT("WorkbenchKit"))
     {
         AddBox(Vertices, Triangles, FVector(0, 0, 36), FVector(54, 54, 10));

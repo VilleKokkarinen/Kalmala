@@ -1869,3 +1869,17 @@ Multiplayer impact: Development-only test positioning and verification changes. 
 Known limits: This is a launch-gated systems fixture with temporary grants and test relocation, not a player traversal or full gather/build/weather acceptance scenario. It does not complete shelter movement-collision acceptance, dedicated-server coverage, or M2's persisted camp gate. The preceding failure was repaired on the first resumed peer attempt.
 
 Next task: Verify roof/windbreak geometry affects only server-sampled shelter, construction collision agrees for host/client movement, and any included removal/refund cannot duplicate resources.
+
+### 2026-09-11T09:49:25.7573559+03:00 - Align shelter presentation with collision
+
+Outcome: Completed one repair increment within the first unchecked M2 shelter acceptance task. Floor/wall/roof meshes now derive their centre and extent from the existing collision contract. The parent acceptance stays unchecked until actual host/client movement verification.
+
+Changed: Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp; appended run-owned notes in BACKLOG.md, PROGRESS.md and docs/10-campfire-and-crafting.md. Preserved all pre-existing edits in those documents and the prior GeometryAlignment test; excluded them from staging. Main checkout is the active workspace, so no handoff synchronization is needed.
+
+Verification: Forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with LOCALAPPDATA UnrealBuildTool access. GeometryAlignment, LocalPreview, SaveContract, ShelterPieces and EnvironmentalExposure.ShelterComposition each reported Result={Success}; process exit 0. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaShelterRepair-5fb9da2a9bf64ed885a792c8b1b4ad79/automation.log. Startup engine self-test messages precede the passing requested tests; restricted disk DDC fell back to requested memory cache.
+
+Multiplayer impact: Both peers derive presentation from the replicated kit's collision footprint. Collision, authoritative placement, server shelter sampling, saved transforms/schemas, inventory and RPCs are unchanged. No removal/refund path added.
+
+Known limits: GeometryAlignment is pre-existing uncommitted work and remains so. This repair does not claim live movement or complete roof placement usability, rendered acceptance, or M2 camp persistence. No unrelated changes committed.
+
+Next task: Complete this same shelter acceptance item's server geometry/exposure and actual host/client movement scenario.
