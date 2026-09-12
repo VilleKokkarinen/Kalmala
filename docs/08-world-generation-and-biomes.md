@@ -215,3 +215,9 @@ Revision 4 supplies occasional seed-derived emergent islands and generated-ocean
 ## Immediate next step
 
 Phase 1 was the original four-field bootstrap. Current maintenance follows the master-map contract above and the ordered backlog. Do not add external terrain or procedural-generation plugins without approval.
+
+### Fast preview experiments
+
+`Scripts/Export-WorldMaps.ps1 -Watch` keeps a headless PNG exporter warm. Save `Scripts/WorldMapPreview.params` to inspect master seed/wavelength, land threshold, regional scale/warp and biome distance experiments without loading gameplay or recompiling. It exports the independent master atlas, rotated crop and exact sampled biome classification to `.cache/WorldMaps/`. See the fast PNG export section in `07-development-setup.md` for controls and validation.
+
+Preview overrides are temporary commandlet-only settings; they are not production tuning, replicated identity, or saved-world data. Defaults reproduce revision 7. The fast shared classification path skips only hydrology and terrain-height work that cannot change biome identity; enclosed lake qualification remains active. Committing a parameter experiment does not change gameplay. Adopt approved tuning through the existing generator-revision process.

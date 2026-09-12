@@ -17,6 +17,7 @@ struct KALMALAWORLD_API FKalmalaMasterMap
     static FKalmalaMasterMapCrop Crop(const FKalmalaWorldGenerationConfig& Config);
     static FVector2D ToMasterPosition(const FKalmalaMasterMapCrop& Crop, FVector2D Position);
     // Positive = land, zero/negative = ocean. Seed is independent of game identity.
-    static double SampleMaster(FVector2D Position, uint64 Seed = MasterSeed);
+    static double SampleMaster(FVector2D Position);
+    static double SampleMaster(FVector2D Position, uint64 Seed);
     static double Sample(const FKalmalaWorldGenerationConfig& Config, FVector2D Position);
 };

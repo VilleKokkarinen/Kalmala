@@ -207,6 +207,8 @@ Run `Scripts/Verify-WorldMap.ps1 -GeneratorRevision 5 -Overview` for rendered ho
 
 ## Master-map generation verification (revision 7)
 
+For routine map tuning, use the fast PNG exporter below. The older full visualization commandlet remains useful for height, water, weights and spline diagnostics.
+
 Build the editor, then run headless automation with the temporary user/log flags above and:
 `Automation RunTests Kalmala.World.Regional.MasterMap+Kalmala.World.Regional.FiniteWorld+Kalmala.World.Regional.Integrated+Kalmala.World.Water+Kalmala.UI.Minimap.GenerationPerformance`.
 Check every requested result reports Success; engine exit code alone is insufficient.
@@ -222,3 +224,64 @@ The visualization commandlet accepts `-Revision=7 -Seed=418 -Size=256 -Extent=32
 - `Tuning.txt`: master seed, atlas scale, crop centre, rotation and distance limits.
 
 The main biome preview also masks the exterior. `-SkipSplineOverlay` skips only the costly whole-area line-overlay enumeration; each pixel still samples actual hydrology and terrain. At whole-world resolution, small lakes and channels may be subpixel. Render the same seed twice and compare every PPM hash, then render seed 419 and require crop, biome and height variation. No preview image becomes authoritative world data. Restart an open editor to load the rebuilt native generator; explicit older revisions retain their original worlds.
+
+## Fast world-map PNG export
+
+Run from the repository root:
+
+```powershell
+# Export once using the compiled generator:
+./Scripts/Export-WorldMaps.ps1
+
+# Recommended for tuning: keep one headless exporter warm.
+./Scripts/Export-WorldMaps.ps1 -Watch
+
+# Only after C++ source changes, or if this commandlet is not built yet:
+./Scripts/Export-WorldMaps.ps1 -Build -Watch
+```
+
+Edit and save `Scripts/WorldMapPreview.params` while watching. Each stable edit regenerates these ordinary PNG files under the ignored `.cache/WorldMaps/` directory:
+
+| File | Contents |
+| --- | --- |
+| `MasterLandWater.png` | The full 128 km master land/water atlas, without a crop outline. |
+| `LandWaterCrop.png` | The game-seeded rotated crop at the current 16 km playable radius. |
+| `Biomes.png` | The same crop classified by the production biome rules, including lake basins and distance eligibility. |
+| `LastRender.txt` | Requested and effective parameters, crop transform, palette and timings from the last successful export. |
+
+Use `-Parameters <path>` for an alternate parameter file and `-Output <directory>` for a separate experiment. One exporter should own each output directory. Ctrl+C stops watch mode and its owned child process. Logs and headless engine cache/user data go to a unique temporary directory; the script prints its location. The script does not load a gameplay map, spawn terrain/population, run shaders, or join a session.
+
+The first export still pays headless Unreal startup time. Saving parameters in watch mode avoids that startup entirely. Measured on 2026-09-12: the default 512×512 three-PNG export took 0.326 s sampling / 0.350 s total, excluding startup; the first measured process took 30.27 s including startup while other verification processes were running. These are local measurements, not a hardware-independent guarantee. Use a smaller `Size` while iterating, then increase it for export.
+
+### Preview parameters
+
+The file uses one `Name=value` per line, with optional blank lines and full-line `#` comments. Distances are kilometres; seeds are unsigned decimal integers. Omitted settings revert to production defaults on every reload. Unknown/duplicate keys, non-finite values and out-of-range settings are rejected. Invalid edits leave previous PNGs intact and print a warning; fix and save the file to resume.
+
+| Parameter | Default | Meaning / allowed values |
+| --- | --- | --- |
+| `WorldSeed` | 418 | Game seed selecting crop, rotation and regional fields; unsigned 64-bit integer. |
+| `Revision` | 7 | 7 or 8; revision 8 retains the debug identity's regional seeds. |
+| `Size` | 512 | Square PNG dimension, 64–2048 pixels. |
+| `MasterSeed` | Production master seed | Independent atlas seed; omit to follow the compiled default. |
+| `MasterWavelengthKm` | 3 | Main land/water wavelength, 0.1–32 km. |
+| `LandThreshold` | 0 | -0.5–0.5; increasing it creates less land. |
+| `BiomeScaleKm` | 0.6 | Regional scale, 0.1–16 km; larger values make broader regions. |
+| `WarpStrengthKm` | 0.08 | Regional edge displacement, 0–2 km. |
+| `StarterRadiusKm` | 0.35 | Inclusive Meadows/Ocean-only radius. |
+| `ElderwoodMinimumKm` | 0.75 | Forest eligibility minimum. |
+| `MireMinimumKm` | 2 | Mire eligibility minimum. |
+| `TundraMinimumKm` | 4 | Tundra eligibility minimum. |
+| `MeadowsMaximumKm` | 4 | Meadows cutoff; must exceed the starter radius and be at most 16 km. |
+| `EligibilityBlendKm` | 0.05 | Smooth eligibility ramp; 0.001 km through the Meadows maximum. |
+
+The starter, Elderwood, Mire and Tundra radii must be nonnegative, ordered and at most 16 km. Lakes follow the starter exclusion. Atlas dimensions and playable radius remain fixed to the current contract. Broad land thresholds can leave little or no land; such an experiment is a visual preview, not validation of a playable spawn.
+
+These parameters are **preview-only**. They are installed only in a headless commandlet, on its sampling thread. Interactive editor/play and clients cannot install overrides. The commandlet restores defaults after each render, and changing settings invalidates the crop transform and hydrology cache. Promoting a chosen layout into gameplay still requires updating production constants under a new generator revision; the tool never alters a world save or silently changes the current generator.
+
+The fast path runs the shared regional classifier once per land pixel, including basin qualification, but omits rivers/streams and height-only work because neither changes biome identity in revisions 7/8. Thus `Biomes.png` is an exact biome-classification view at its sample positions, not a water-depth or final terrain render. Rivers can be water inside a land biome. Use the existing `RenderWorldGenerationVisualization` commandlet for hydrology and height images. Tiny features may be subpixel at whole-world scale.
+
+### Export verification
+
+After building, run `Scripts/Verify-WorldMapExport.ps1`. In one warm headless process it verifies PNG signatures, every visible fast/full biome pixel at 64×64, changed master/region tuning, restoration of default output hashes, and preservation of the last good PNGs after malformed input. It keeps its parameter edits and outputs in a temporary directory; the user's parameter file is untouched.
+
+Run `Kalmala.World.Regional` and `Kalmala.UI.Minimap.GenerationPerformance` with the headless automation flags above to retain legacy terrain/biome/minimap fingerprints and verify fast/full biome agreement over seeded world samples. Run `Scripts/Verify-Minimap.ps1 -GeneratorRevision 7` when changing shared sampling to retain host/client agreement. The exporter itself has no gameplay, RPC, replication or persistence path.

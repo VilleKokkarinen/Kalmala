@@ -1,4 +1,5 @@
 #include "KalmalaMasterMap.h"
+#include "KalmalaGenerationPreview.h"
 
 namespace
 {
@@ -11,12 +12,18 @@ namespace
     double Unit(uint64 V) { return double(V & 0xffffff) / 16777216.0; }
 }
 
+double FKalmalaMasterMap::SampleMaster(FVector2D P)
+{
+    return SampleMaster(P, FKalmalaGenerationPreview::Get().MasterSeed);
+}
+
 double FKalmalaMasterMap::SampleMaster(FVector2D P, uint64 Seed)
 {
     const uint64 Bits = Mix(Seed);
     const FVector2D Offset(Unit(Bits) * 128, Unit(Bits >> 24) * 128);
-    return 0.75 * FMath::PerlinNoise2D(P / Wavelength + Offset)
-        + 0.25 * FMath::PerlinNoise2D(P / (Wavelength * 0.43) + Offset + FVector2D(37.1, 91.7));
+    const auto& Preview = FKalmalaGenerationPreview::Get();
+    return 0.75 * FMath::PerlinNoise2D(P / Preview.MasterWavelength + Offset)
+        + 0.25 * FMath::PerlinNoise2D(P / (Preview.MasterWavelength * 0.43) + Offset + FVector2D(37.1, 91.7)) - Preview.LandThreshold;
 }
 
 FKalmalaMasterMapCrop FKalmalaMasterMap::Crop(const FKalmalaWorldGenerationConfig& C)
@@ -25,7 +32,8 @@ FKalmalaMasterMapCrop FKalmalaMasterMap::Crop(const FKalmalaWorldGenerationConfi
     static thread_local FKalmalaWorldGenerationConfig CachedIdentity;
     static thread_local FKalmalaMasterMapCrop CachedCrop;
     static thread_local bool bCached = false;
-    if (bCached && CachedIdentity == C) return CachedCrop;
+    static thread_local uint64 CachedSerial = 0;
+    if (bCached && CachedIdentity == C && CachedSerial == FKalmalaGenerationPreview::Serial()) return CachedCrop;
     const uint64 Bits = Mix(C.WorldSeed ^ (uint64(C.GeneratorRevision) << 32));
     FKalmalaMasterMapCrop Result;
     Result.Rotation = Unit(Mix(Bits)) * 2 * PI;
@@ -41,7 +49,7 @@ FKalmalaMasterMapCrop FKalmalaMasterMap::Crop(const FKalmalaWorldGenerationConfi
         if (Land > Best) { Best = Land; Result.Center = Center; }
         if (Land > 0.10) break;
     }
-    CachedIdentity = C; CachedCrop = Result; bCached = true;
+    CachedIdentity = C; CachedCrop = Result; bCached = true; CachedSerial = FKalmalaGenerationPreview::Serial();
     return Result;
 }
 

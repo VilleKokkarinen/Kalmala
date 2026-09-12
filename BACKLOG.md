@@ -284,3 +284,11 @@ Roof movement verification 2026-09-11: extended the same shelter acceptance fixt
 - [x] Verify master/crop reproducibility and variation, all seven biomes, exact eligibility boundaries and smooth terrain/weights, dry central starts, unchanged legacy generation/water/minimap fingerprints, matching host/client samples across 20 km, and a retained three-stage map preview. Update generation, design, architecture, roadmap, decisions and setup documentation.
 
 This explicit user request temporarily superseded autonomous M2 task selection. Next autonomous task remains the existing unchecked shared persisted-camp client stall/replication acceptance; no M2 item is closed by this generator rework.
+
+
+### User-directed fast world-map PNG export — 2026-09-12
+
+- [x] Add a headless three-PNG exporter using the shared master/crop/biome sampler, plus a warm parameter-file watcher for seed, atlas, biome scale/warp and distance experiments without restarting gameplay or rebuilding for parameter edits.
+- [x] Verify fast/full pixel agreement, warm tuning/cache restoration, invalid-input preservation, PNG output, legacy regression fingerprints and unchanged host/client generation; document the workflow and preview-only authority boundary.
+
+This explicit developer-tool request does not close or advance the pending M2 persisted-camp acceptance item.

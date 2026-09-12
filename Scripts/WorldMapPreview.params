@@ -1,0 +1,19 @@
+# Save this file while Export-WorldMaps.ps1 -Watch is running to refresh the PNGs.
+# Preview-only experiments: these values never change gameplay or saved worlds.
+# Distances/wavelengths are kilometres. Seeds are unsigned decimal integers.
+# Missing settings use production revision-7 defaults. Unknown/duplicate keys fail.
+WorldSeed=418
+Revision=7
+Size=512
+# MasterSeed is optional; omit it to use the production atlas seed.
+MasterWavelengthKm=3
+# Raise threshold for less land; lower it for more land. Allowed: -0.5 through 0.5.
+LandThreshold=0
+BiomeScaleKm=0.6
+WarpStrengthKm=0.08
+StarterRadiusKm=0.35
+ElderwoodMinimumKm=0.75
+MireMinimumKm=2
+TundraMinimumKm=4
+MeadowsMaximumKm=4
+EligibilityBlendKm=0.05

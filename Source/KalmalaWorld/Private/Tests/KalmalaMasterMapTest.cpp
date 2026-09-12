@@ -2,6 +2,7 @@
 #include "KalmalaMasterMap.h"
 #include "KalmalaRegionalGeneration.h"
 #include "KalmalaWorldPlayerStartResolver.h"
+#include "KalmalaGenerationPreview.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMasterMapTest, "Kalmala.World.Regional.MasterMap",
@@ -12,6 +13,11 @@ bool FKalmalaMasterMapTest::RunTest(const FString& Parameters)
     using G = FKalmalaRegionalGeneration;
     using T = FKalmalaRegionalTuning;
     const FKalmalaWorldGenerationConfig A{418, 7}, B{419, 7};
+    const auto Before = FKalmalaGenerationPreview::Get();
+    auto Forged = Before;
+    Forged.MasterSeed = 9;
+    TestFalse(TEXT("Interactive editor/game cannot install preview tuning"), FKalmalaGenerationPreview::Set(Forged));
+    TestEqual(TEXT("Rejected preview tuning preserves master seed"), FKalmalaGenerationPreview::Get().MasterSeed, Before.MasterSeed);
     const auto Crop = M::Crop(A), Repeat = M::Crop(A), Other = M::Crop(B);
     TestTrue(TEXT("Same identity repeats crop"), Crop.Center == Repeat.Center && Crop.Rotation == Repeat.Rotation);
     TestTrue(TEXT("Game seed changes crop and rotation"), Crop.Center != Other.Center && Crop.Rotation != Other.Rotation);
@@ -36,6 +42,7 @@ bool FKalmalaMasterMapTest::RunTest(const FString& Parameters)
             MaskVariation += (M::Sample(A, P) > 0) != (M::Sample(B, P) > 0);
             MasterVariation += (M::SampleMaster(Atlas, M::MasterSeed + 1) > 0) != (Mask > 0);
             const auto R = G::Sample(C, P);
+            TestEqual(TEXT("Fast biome sampler agrees with full terrain/hydrology"), G::SampleBiome(FKalmalaWorldFieldSampler::Sample(C, P)), R.Biome);
             ++Counts[R.Biome];
             TestEqual(TEXT("Production has no stream carving"), R.StreamWeight, 0.f);
             if (R.Biome == 1) TestTrue(TEXT("Lake biome requires basin support"), R.BasinWeight > 0);

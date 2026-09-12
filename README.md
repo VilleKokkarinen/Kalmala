@@ -20,3 +20,7 @@ The project is designed to be built primarily by AI agents. The documentation in
 ## Development setup
 
 The project targets the installed Unreal Engine 5.8.2 build at `C:\Program Files\Epic Games\UE_5.8`. Follow [`docs/07-development-setup.md`](docs/07-development-setup.md) to generate project files and build the editor and dedicated-server targets.
+
+## Fast world-map PNGs
+
+From the repository root, run `./Scripts/Export-WorldMaps.ps1 -Watch`. Edit and save [`Scripts/WorldMapPreview.params`](Scripts/WorldMapPreview.params) to refresh the master atlas, rotated land/water crop and biome map in `.cache/WorldMaps/`. Distances are in kilometres. The headless exporter stays warm, so parameter changes need neither a game launch nor a rebuild. Omit `-Watch` for one export; add `-Build` after changing C++ source. See [the export guide](docs/07-development-setup.md#fast-world-map-png-export) for controls and limits. Preview overrides never change gameplay or saves.
