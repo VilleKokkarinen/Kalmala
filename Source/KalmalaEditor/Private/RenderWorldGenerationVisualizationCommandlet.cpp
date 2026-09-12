@@ -63,18 +63,16 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
 
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 10323456789ull;
-    Config.GeneratorRevision = FKalmalaWorldGenerationConfig::CurrentGeneratorRevision;
     int32 ImageSize = DefaultImageSize;
     float WorldExtent = DefaultWorldExtent;
 
     FParse::Value(*Params, TEXT("Seed="), Config.WorldSeed);
-    FParse::Value(*Params, TEXT("Revision="), Config.GeneratorRevision);
     FParse::Value(*Params, TEXT("Size="), ImageSize);
     FParse::Value(*Params, TEXT("Extent="), WorldExtent);
 
     if (!Config.IsValid() || ImageSize < 16 || ImageSize > 2048 || WorldExtent <= 0.0f)
     {
-        UE_LOG(LogTemp, Error, TEXT("Invalid visualization parameters. Revision must be positive, Size must be 16-2048, and Extent must be positive."));
+        UE_LOG(LogTemp, Error, TEXT("Invalid visualization parameters. Size must be 16-2048, and Extent must be positive."));
         return 1;
     }
 
@@ -111,7 +109,7 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
                 static_cast<float>(Y) / static_cast<float>(ImageSize - 1));
             const FVector2D WorldPosition = (NormalizedPosition - FVector2D(0.5f, 0.5f)) * WorldExtent;
             const FKalmalaWorldFieldSample Sample = FKalmalaWorldFieldSampler::Sample(Config, WorldPosition);
-            if (Config.GeneratorRevision >= 7)
+
             {
                 const FVector2D AtlasPosition = (NormalizedPosition - FVector2D(0.5)) * (FKalmalaMasterMap::HalfExtent * 2);
                 const bool bLand = FKalmalaMasterMap::SampleMaster(AtlasPosition) > 0;
@@ -128,7 +126,7 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
             AddFieldPixel(TemperaturePixels, Sample.Temperature);
             AddFieldPixel(FloraPixels, Sample.Flora);
             BiomePixels.Add(GetBiomeColor(FKalmalaBiomeClassifier::Classify(Sample)));
-            if (Config.GeneratorRevision >= 3)
+
             {
                 const auto Region = FKalmalaRegionalGeneration::Sample(Sample);
                 for (int32 I = 0; I < 7; ++I) AddFieldPixel(WeightPixels[I], Region.Weights[I]);
@@ -142,7 +140,7 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
                 const bool Edge = (X > 0 && BiomeIds[Index - 1] != Region.Biome)
                     || (Y > 0 && BiomeIds[Index - ImageSize] != Region.Biome);
                 BoundaryPixels.Add(Edge ? FVisualizationPixel{255, 40, 40} : BiomePixels.Last());
-                if (Config.GeneratorRevision >= 7 && !FKalmalaWorldBounds::Contains(Config, WorldPosition))
+                if (!FKalmalaWorldBounds::Contains(Config, WorldPosition))
                 {
                     BiomePixels.Last() = BoundaryPixels.Last() = FVisualizationPixel{15, 19, 27};
                 }
@@ -157,7 +155,6 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
         WritePpm(OutputDirectory / TEXT("Flora.ppm"), ImageSize, FloraPixels) &&
         WritePpm(OutputDirectory / TEXT("BiomeClassification.ppm"), ImageSize, BiomePixels);
 
-    if (Config.GeneratorRevision >= 3)
     {
         // Overlay the actual indexed splines, so subpixel-width streams remain legible.
         const int32 First = int32(FMath::FloorToInt(-WorldExtent * 0.5 / FKalmalaRegionalTuning::GridCell));
@@ -184,16 +181,16 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
         bWroteAllImages &= WritePpm(OutputDirectory / TEXT("Hydrology.ppm"), ImageSize, HydrologyPixels);
         bWroteAllImages &= WritePpm(OutputDirectory / TEXT("ShapedHeight.ppm"), ImageSize, HeightPixels);
         bWroteAllImages &= WritePpm(OutputDirectory / TEXT("Boundaries.ppm"), ImageSize, BoundaryPixels);
-        FString Tuning = FString::Printf(TEXT("Seed=%llu Revision=%d\nBiomeScale=%.0f RegionFrequency=%.9f ElevationFrequency=%.9f ClimateFrequency=%.9f\nWarpStrength=%.0f WarpFrequency=%.9f EdgeWaveStrength=%.3f RingOverlap=%.3f\nRiverSpacing=%.0f MergeDistance=%.0f RiverRange=%.0f SplineAmplitude=%.0f SplineWavelength=%.0f SplineStep=%.0f GridCell=%.0f\n"),
-            Config.WorldSeed, Config.GeneratorRevision, FKalmalaRegionalTuning::BiomeScale, FKalmalaRegionalTuning::RegionFrequency,
+        FString Tuning = FString::Printf(TEXT("Seed=%llu\nBiomeScale=%.0f RegionFrequency=%.9f ElevationFrequency=%.9f ClimateFrequency=%.9f\nWarpStrength=%.0f WarpFrequency=%.9f EdgeWaveStrength=%.3f RingOverlap=%.3f\nRiverSpacing=%.0f MergeDistance=%.0f RiverRange=%.0f SplineAmplitude=%.0f SplineWavelength=%.0f SplineStep=%.0f GridCell=%.0f\n"),
+            Config.WorldSeed, FKalmalaRegionalTuning::BiomeScale, FKalmalaRegionalTuning::RegionFrequency,
             FKalmalaRegionalTuning::ElevationFrequency, FKalmalaRegionalTuning::ClimateFrequency,
             FKalmalaRegionalTuning::WarpStrength, FKalmalaRegionalTuning::WarpFrequency, FKalmalaRegionalTuning::EdgeWaveStrength, FKalmalaRegionalTuning::RingOverlap,
             FKalmalaRegionalTuning::RiverSpacing, FKalmalaRegionalTuning::MergeDistance, FKalmalaRegionalTuning::RiverRange, FKalmalaRegionalTuning::SplineAmplitude,
             FKalmalaRegionalTuning::SplineWavelength, FKalmalaRegionalTuning::SplineStep, FKalmalaRegionalTuning::GridCell);
-        if (Config.GeneratorRevision >= 7)
+
         {
             const auto Crop = FKalmalaMasterMap::Crop(Config);
-            Tuning += FString::Printf(TEXT("MasterSeed=%llu MasterHalfExtent=%.0f MasterWavelength=%.0f CropX=%.3f CropY=%.3f RotationRadians=%.9f WorldRadius=%.0f\nStarterRadius=35000 ElderwoodMin=75000 MireMin=200000 TundraMin=400000 MeadowsMax=400000 EligibilityBlend=5000\n"),
+            Tuning += FString::Printf(TEXT("MasterSeed=%llu MasterHalfExtent=%.0f MasterWavelength=%.0f CropX=%.3f CropY=%.3f RotationRadians=%.9f WorldRadius=%.0f\nStarterRadius=35000 ElderwoodMin=75000 LakesMin=35000 LakesMax=300000 MireMin=300000 MireMax=1600000 TundraMin=400000 MeadowsMax=400000 EligibilityBlend=5000\n"),
                 FKalmalaMasterMap::MasterSeed, FKalmalaMasterMap::HalfExtent, FKalmalaMasterMap::Wavelength,
                 Crop.Center.X, Crop.Center.Y, Crop.Rotation, FKalmalaWorldBounds::Radius);
             bWroteAllImages &= WritePpm(OutputDirectory / TEXT("MasterLandWater.ppm"), ImageSize, MasterPixels);
@@ -208,6 +205,6 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
         return 1;
     }
 
-    UE_LOG(LogTemp, Display, TEXT("Rendered world-generation previews for seed %llu revision %d to %s."), Config.WorldSeed, Config.GeneratorRevision, *OutputDirectory);
+    UE_LOG(LogTemp, Display, TEXT("Rendered world-generation previews for seed %llu to %s."), Config.WorldSeed, *OutputDirectory);
     return 0;
 }

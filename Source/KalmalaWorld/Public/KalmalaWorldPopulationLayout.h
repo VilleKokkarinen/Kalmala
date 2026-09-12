@@ -38,7 +38,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
 
     static uint64 DeriveSpatialSeed(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldPopulationKind Kind)
     {
-        uint64 Value = Config.WorldSeed ^ (static_cast<uint64>(Config.GeneratorRevision) << 32);
+        uint64 Value = Config.WorldSeed;
         Value ^= static_cast<uint64>(static_cast<uint32>(SpatialKey.X)) * 0x9E3779B185EBCA87ull;
         Value ^= static_cast<uint64>(static_cast<uint32>(SpatialKey.Y)) * 0xC2B2AE3D27D4EB4Full;
         Value ^= (static_cast<uint64>(Kind) + 1ull) * 0x165667B19E3779F9ull;

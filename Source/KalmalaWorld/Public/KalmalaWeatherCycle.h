@@ -43,7 +43,7 @@ struct KALMALAWORLD_API FKalmalaWeatherCycle
 private:
     static uint64 DeriveWeatherSeed(const FKalmalaWorldGenerationConfig& Config, const int32 WeatherCycleIndex)
     {
-        uint64 Value = Config.WorldSeed ^ (static_cast<uint64>(Config.GeneratorRevision) << 32)
+        uint64 Value = Config.WorldSeed
             ^ 0xC6A4A7935BD1E995ull ^ (0x9E3779B97F4A7C15ull * (static_cast<uint64>(WeatherCycleIndex) + 1ull));
         Value ^= Value >> 30;
         Value *= 0xBF58476D1CE4E5B9ull;

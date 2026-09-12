@@ -1,19 +1,29 @@
 # Save this file while Export-WorldMaps.ps1 -Watch is running to refresh the PNGs.
 # Preview-only experiments: these values never change gameplay or saved worlds.
 # Distances/wavelengths are kilometres. Seeds are unsigned decimal integers.
-# Missing settings use production revision-7 defaults. Unknown/duplicate keys fail.
-WorldSeed=418
-Revision=7
-Size=512
+# Missing settings use current production defaults. Unknown/duplicate keys fail.
+WorldSeed=123948
+Size=2048
 # MasterSeed is optional; omit it to use the production atlas seed.
-MasterWavelengthKm=3
+MasterWavelengthKm=2.3
 # Raise threshold for less land; lower it for more land. Allowed: -0.5 through 0.5.
-LandThreshold=0
-BiomeScaleKm=0.6
+LandThreshold=0.1
+BiomeScaleKm=1.6
 WarpStrengthKm=0.08
-StarterRadiusKm=0.35
-ElderwoodMinimumKm=0.75
-MireMinimumKm=2
-TundraMinimumKm=4
+StarterRadiusKm=0.15
+ElderwoodMinimumKm=1.2
+MireMinimumKm=6
+TundraMinimumKm=4.5
 MeadowsMaximumKm=4
 EligibilityBlendKm=0.05
+
+# Shared wetland placement; Lakes is the starter-distance counterpart of Mire.
+LakesMinimumKm=0.35
+LakesMaximumKm=6
+MireMaximumKm=16
+WetlandHumidityMinimum=0.48
+WetlandHumidityFull=0.65
+WetlandElevationFull=0.43
+WetlandElevationMaximum=0.58
+WetlandTemperatureMinimum=0.18
+WetlandTemperatureFull=0.32

@@ -117,7 +117,7 @@ bool UKalmalaCraftingComponent::PlaceFromServer(FString& Reason)
     const auto& Config = State->GetWorldGenerationConfig();
     if (FKalmalaOceanSampler::Sample(Config, FVector2D(Ground.ImpactPoint)).IsWater()
         || FKalmalaShimmeringLakeSampler::IsWater(Config, FVector2D(Ground.ImpactPoint))
-        || (Config.GeneratorRevision >= 3 && FKalmalaRegionalGeneration::Sample(Config, FVector2D(Ground.ImpactPoint)).bHasWater)) return false;
+        || (FKalmalaRegionalGeneration::Sample(Config, FVector2D(Ground.ImpactPoint)).bHasWater)) return false;
     const FVector Location = Ground.ImpactPoint + FVector(0,0,56);
     if (GetWorld()->OverlapBlockingTestByChannel(Location, FQuat::Identity, ECC_Pawn, FCollisionShape::MakeSphere(54), Query)) return false;
     // Allocation precedes payment; deferred construction has no gameplay callbacks before payment.

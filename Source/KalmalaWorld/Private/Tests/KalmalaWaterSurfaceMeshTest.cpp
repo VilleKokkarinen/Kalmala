@@ -13,6 +13,7 @@ bool FKalmalaWaterSurfaceMeshTest::RunTest(const FString& Parameters)
         FKalmalaWaterMeshVertex V;
         V.Position = FVector2D(X, Y);
         V.TerrainHeight = Height;
+        V.WaterLevel = 400.0f;
         V.Fields = { 0.35f, Humidity, 0.5f, 0.5f };
         return V;
     };
@@ -46,7 +47,6 @@ bool FKalmalaWaterSurfaceMeshTest::RunTest(const FString& Parameters)
 
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
     int32 SharedVertices = 0;
     for (int32 Y = -3; Y <= 3; ++Y)
     {

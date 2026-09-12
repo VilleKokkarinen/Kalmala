@@ -34,7 +34,7 @@ FKalmalaMasterMapCrop FKalmalaMasterMap::Crop(const FKalmalaWorldGenerationConfi
     static thread_local bool bCached = false;
     static thread_local uint64 CachedSerial = 0;
     if (bCached && CachedIdentity == C && CachedSerial == FKalmalaGenerationPreview::Serial()) return CachedCrop;
-    const uint64 Bits = Mix(C.WorldSeed ^ (uint64(C.GeneratorRevision) << 32));
+    const uint64 Bits = Mix(C.WorldSeed);
     FKalmalaMasterMapCrop Result;
     Result.Rotation = Unit(Mix(Bits)) * 2 * PI;
     double Best = -2;

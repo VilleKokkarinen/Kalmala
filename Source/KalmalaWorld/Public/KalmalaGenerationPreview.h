@@ -13,7 +13,16 @@ struct FKalmalaGenerationPreviewSettings
     double WarpStrength = FKalmalaRegionalTuning::WarpStrength;
     double StarterRadius = FKalmalaRegionalTuning::StarterRadius;
     double ElderwoodMinimum = FKalmalaRegionalTuning::ElderwoodMinimum;
+    double LakesMinimum = FKalmalaRegionalTuning::LakesMinimum;
+    double LakesMaximum = FKalmalaRegionalTuning::LakesMaximum;
     double MireMinimum = FKalmalaRegionalTuning::MireMinimum;
+    double MireMaximum = FKalmalaRegionalTuning::MireMaximum;
+    double WetlandHumidityMinimum = FKalmalaRegionalTuning::WetlandHumidityMinimum;
+    double WetlandHumidityFull = FKalmalaRegionalTuning::WetlandHumidityFull;
+    double WetlandElevationFull = FKalmalaRegionalTuning::WetlandElevationFull;
+    double WetlandElevationMaximum = FKalmalaRegionalTuning::WetlandElevationMaximum;
+    double WetlandTemperatureMinimum = FKalmalaRegionalTuning::WetlandTemperatureMinimum;
+    double WetlandTemperatureFull = FKalmalaRegionalTuning::WetlandTemperatureFull;
     double TundraMinimum = FKalmalaRegionalTuning::TundraMinimum;
     double MeadowsMaximum = FKalmalaRegionalTuning::MeadowsMaximum;
     double EligibilityBlend = FKalmalaRegionalTuning::EligibilityBlend;

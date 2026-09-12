@@ -1980,7 +1980,21 @@ Multiplayer impact: Development-only fixture and telemetry. Harvest reward selec
 
 Known limits: This proves only the hearth portion of one shared session. It does not yet add paid floor/wall/roof, workbench/chest actions, live shelter/weather comparison, sparse harvest persistence, or camp restart/reconnect restoration. Existing generated wildlife/hazard root-component relevancy warnings persist outside this increment.
 
-Next task: Extend the same one-session fixture with paid floor/wall/roof construction plus workbench/chest interaction and matching server/client construction, storage, shelter, and weather state.
+Next task: Diagnose the joining client's persisted-camp replication/tick stall, then verify matching construction, storage, shelter, and weather state.
+
+### 2026-09-11T20:11:37+03:00 - Persisted-camp construction verification failure
+
+Outcome: Advanced the first unchecked M2 shared persisted-camp scenario by updating its retained runner to require the already-integrated gathered paid hearth/floor/wall/roof/workbench/chest path and the owner chest snapshot. The forced editor build passed, and both server-owned players completed gathering, crafting, paid placement, and one-wood chest deposits. The client never emitted its required owning-player report, so the child remains unchecked and no commit was made.
+
+Changed: `Scripts/Verify-PersistedCampHearth.ps1`; `BACKLOG.md`; `docs/10-campfire-and-crafting.md`; `PROGRESS.md`. The checkout was clean before this run. Main checkout is active; no synchronization is needed.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with LOCALAPPDATA UnrealBuildTool access. The retained host/client runner failed after its full observation window. Both server logs reported `Passed=1` for player 256 and 257, including gathered paid five-piece builds and private storage deposits; the host owner reported its replicated camp. The joining client received `Seed=418 Revision=4` but stopped advancing before its owner report. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampBuild-ef9eac134306470c98fbef98cdca70b2`; runner error: `Persisted-camp shared build scenario timed out.` Existing wildlife/hazard root-component relevancy warnings also continue.
+
+Multiplayer impact: Verification-runner and documentation only. The observed server path remains authoritative for harvest rewards, recipe costs, kit payment, placement, chest target/range, and storage persistence. No RPC, normal gameplay authority, replication contract, save schema, or client-controlled value changed.
+
+Known limits: Do not claim client agreement, shelter/weather comparison, sparse harvest persistence, combined camp restart, or M2 acceptance. One failed peer attempt is recorded; this is not a repeated blocker and is not marked BLOCKED.
+
+Next task: Diagnose and repair the persisted-camp client tick/replication stall, then rerun the same shared fixture before extending it with shelter/weather and restart evidence.
 
 
 ### 2026-09-11 20:29 EEST - Rework biomes from an independent master map

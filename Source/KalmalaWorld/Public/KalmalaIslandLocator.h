@@ -9,16 +9,12 @@ struct KALMALAWORLD_API FKalmalaIslandLocator
     {
         if (!Config.IsValid()) return false;
         float BestDistance = TNumericLimits<float>::Max();
-        // Sample the same stable radial lattice used by the other developer
-        // probes, but at a finer angular resolution than the old 16-ray
-        // search. The regional terrain can create a small emergent outcrop
-        // between those broad rays; missing it made this derived lookup depend
-        // on an arbitrary probe alignment rather than the world identity.
+        // Probe the kilometre-scale master crop for coast-surrounded land.
         constexpr int32 CandidateDirections = 96;
         constexpr int32 ShoreDirections = 16;
-        constexpr float ShoreRadius = 12500.0f;
+        constexpr float ShoreRadius = 125000.0f;
         constexpr int32 RequiredWaterDirections = 9;
-        for (int32 Radius = 2500; Radius <= 150000; Radius += 1250)
+        for (int32 Radius = 10000; Radius <= 1200000; Radius += 10000)
         {
             for (int32 Direction = 0; Direction < CandidateDirections; ++Direction)
             {

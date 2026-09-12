@@ -111,7 +111,6 @@ private:
 
     FVector2D LastLocation = FVector2D::ZeroVector;
     uint64 LastSeed = 0;
-    int32 LastGeneratorRevision = 0;
     float LastRadius = 0.0f;
     FVector2D LastExtent = FVector2D::ZeroVector;
     FIntPoint LastDimensions = FIntPoint::ZeroValue;

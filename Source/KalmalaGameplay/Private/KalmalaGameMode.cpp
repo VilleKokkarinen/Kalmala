@@ -53,13 +53,11 @@ namespace KalmalaGameMode
     constexpr int32 TraversalTargetSearchStep = 250;
     FString PopulationSaveSlot(const FKalmalaWorldGenerationConfig& Config)
     {
-        // Retain the legacy slot for old worlds; new identities must not overwrite it.
-        return Config.GeneratorRevision == 1 ? TEXT("KalmalaPopulationDeltas")
-            : FString::Printf(TEXT("KalmalaPopulationDeltas_%llu_%d"), Config.WorldSeed, Config.GeneratorRevision);
+        return FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"), Config.WorldSeed);
     }
     FString ConstructionSaveSlot(const FKalmalaWorldGenerationConfig& Config)
     {
-        return FString::Printf(TEXT("KalmalaConstruction_%llu_%d"), Config.WorldSeed, Config.GeneratorRevision);
+        return FString::Printf(TEXT("KalmalaConstruction_%llu"), Config.WorldSeed);
     }
 }
 

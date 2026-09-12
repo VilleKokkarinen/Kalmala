@@ -29,13 +29,12 @@ struct KALMALAWORLD_API FKalmalaRegionalGeneration
 {
     static FKalmalaRegionalSample Sample(const FKalmalaWorldGenerationConfig& Config, FVector2D Position);
     static FKalmalaRegionalSample Sample(const FKalmalaWorldFieldSample& Fields);
-    /** Exact revision-7/8 biome identity, excluding hydrology/height-only work. */
+    /** Exact current biome identity, excluding hydrology/height-only work. */
     static uint8 SampleBiome(const FKalmalaWorldFieldSample& Fields);
     static TArray<FKalmalaHydrologySegment> GetHydrology(const FKalmalaWorldGenerationConfig& Config, FIntPoint GridCell);
     static void ClearHydrologyCache();
     static bool AreStreamsEnabled(const FKalmalaWorldGenerationConfig& C)
-    { return C.GeneratorRevision < 5 || C.GeneratorRevision == 6 || C.GeneratorRevision == FKalmalaWorldGenerationConfig::StreamsDebugGeneratorRevision; }
-    static float DistancePreference(uint8 Biome, double Distance);
+    { return false; }
     static uint64 Seed(const FKalmalaWorldGenerationConfig& Config, uint64 Domain, FIntPoint Cell = FIntPoint::ZeroValue);
     static double Noise(const FKalmalaWorldGenerationConfig& Config, uint64 Domain, FVector2D Position, double Frequency);
 private:

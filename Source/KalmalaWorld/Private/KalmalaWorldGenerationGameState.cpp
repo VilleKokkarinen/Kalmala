@@ -8,7 +8,6 @@
 AKalmalaWorldGenerationGameState::AKalmalaWorldGenerationGameState()
 {
     WorldGenerationConfig.WorldSeed = 10323456789ull;
-    WorldGenerationConfig.GeneratorRevision = FKalmalaWorldGenerationConfig::CurrentGeneratorRevision;
 }
 
 void AKalmalaWorldGenerationGameState::PostInitializeComponents()
@@ -21,18 +20,6 @@ void AKalmalaWorldGenerationGameState::PostInitializeComponents()
     }
 
     FParse::Value(FCommandLine::Get(), TEXT("WorldSeed="), WorldGenerationConfig.WorldSeed);
-    const bool bExplicitRevision = FParse::Value(FCommandLine::Get(), TEXT("GeneratorRevision="), WorldGenerationConfig.GeneratorRevision);
-#if !UE_BUILD_SHIPPING
-    if (!bExplicitRevision && FParse::Param(FCommandLine::Get(), TEXT("KalmalaEnableStreams")))
-        WorldGenerationConfig.GeneratorRevision = FKalmalaWorldGenerationConfig::StreamsDebugGeneratorRevision;
-#endif
-
-    if (!WorldGenerationConfig.IsValid())
-    {
-        UE_LOG(LogTemp, Error, TEXT("Invalid GeneratorRevision %d; falling back to revision %d."), WorldGenerationConfig.GeneratorRevision, FKalmalaWorldGenerationConfig::CurrentGeneratorRevision);
-        WorldGenerationConfig.GeneratorRevision = FKalmalaWorldGenerationConfig::CurrentGeneratorRevision;
-    }
-
     ForceNetUpdate();
     LogWorldGenerationIdentity(TEXT("Server selected"));
 }
@@ -70,21 +57,20 @@ void AKalmalaWorldGenerationGameState::GetLifetimeReplicatedProps(TArray<FLifeti
 
 void AKalmalaWorldGenerationGameState::LogWorldGenerationIdentity(const TCHAR* Source) const
 {
-    UE_LOG(LogTemp, Display, TEXT("%s world-generation identity: Seed=%llu Revision=%d."), Source, WorldGenerationConfig.WorldSeed, WorldGenerationConfig.GeneratorRevision);
-    if (WorldGenerationConfig.GeneratorRevision >= 3 && FParse::Param(FCommandLine::Get(), TEXT("KalmalaRegionalVerification")))
+    UE_LOG(LogTemp, Display, TEXT("%s world-generation identity: Seed=%llu."), Source, WorldGenerationConfig.WorldSeed);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaRegionalVerification")))
     {
         uint64 Fingerprint = 1469598103934665603ull;
         auto Mix = [&](int64 Value) { Fingerprint = (Fingerprint ^ uint64(Value)) * 1099511628211ull; };
         for (int32 Y = -4; Y <= 4; ++Y) for (int32 X = -4; X <= 4; ++X)
         {
-            // Master-map verification spans 20 km so peers compare outer biomes
-            // as well as the protected centre. Legacy fingerprints stay intact.
-            const double Step = WorldGenerationConfig.GeneratorRevision >= 7 ? 250000.0 : 25000.0;
+            // Compare outer biomes as well as the protected centre across 20 km.
+            const double Step = 250000.0;
             const auto R = FKalmalaRegionalGeneration::Sample(WorldGenerationConfig, FVector2D(X * Step, Y * Step));
             Mix(R.Biome); Mix(FMath::RoundToInt64(R.Height * 1000)); Mix(FMath::RoundToInt64(R.WaterLevel * 1000));
             Mix(FMath::RoundToInt64(R.RiverWeight * 100000)); Mix(FMath::RoundToInt64(R.StreamWeight * 100000));
             for (float W : R.Weights) Mix(FMath::RoundToInt64(W * 100000));
         }
-        UE_LOG(LogTemp, Display, TEXT("Regional verification Seed=%llu Revision=%d Fingerprint=%llu Samples=81"), WorldGenerationConfig.WorldSeed, WorldGenerationConfig.GeneratorRevision, Fingerprint);
+        UE_LOG(LogTemp, Display, TEXT("Regional verification Seed=%llu Fingerprint=%llu Samples=81"), WorldGenerationConfig.WorldSeed, Fingerprint);
     }
 }

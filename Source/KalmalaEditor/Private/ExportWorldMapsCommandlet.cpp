@@ -16,7 +16,7 @@ namespace
 {
     struct FRequest
     {
-        FKalmalaWorldGenerationConfig World{418, 7};
+        FKalmalaWorldGenerationConfig World{418};
         FKalmalaGenerationPreviewSettings Tuning;
         int32 Size = 512;
     };
@@ -36,7 +36,6 @@ namespace
             if (Seen.Contains(Key)) return false;
             Seen.Add(Key);
             if (Key == TEXT("WorldSeed")) { if (!LexTryParseString(R.World.WorldSeed, *Value) || Value.StartsWith(TEXT("-"))) return false; }
-            else if (Key == TEXT("Revision")) { if (!LexTryParseString(R.World.GeneratorRevision, *Value)) return false; }
             else if (Key == TEXT("Size")) { if (!LexTryParseString(R.Size, *Value)) return false; }
             else if (Key == TEXT("MasterSeed")) { if (!LexTryParseString(R.Tuning.MasterSeed, *Value) || Value.StartsWith(TEXT("-"))) return false; }
             else
@@ -49,6 +48,15 @@ namespace
                 else if (Key == TEXT("WarpStrengthKm")) R.Tuning.WarpStrength = Number * 100000;
                 else if (Key == TEXT("StarterRadiusKm")) R.Tuning.StarterRadius = Number * 100000;
                 else if (Key == TEXT("ElderwoodMinimumKm")) R.Tuning.ElderwoodMinimum = Number * 100000;
+                else if (Key == TEXT("LakesMinimumKm")) R.Tuning.LakesMinimum = Number * 100000;
+                else if (Key == TEXT("LakesMaximumKm")) R.Tuning.LakesMaximum = Number * 100000;
+                else if (Key == TEXT("MireMaximumKm")) R.Tuning.MireMaximum = Number * 100000;
+                else if (Key == TEXT("WetlandHumidityMinimum")) R.Tuning.WetlandHumidityMinimum = Number;
+                else if (Key == TEXT("WetlandHumidityFull")) R.Tuning.WetlandHumidityFull = Number;
+                else if (Key == TEXT("WetlandElevationFull")) R.Tuning.WetlandElevationFull = Number;
+                else if (Key == TEXT("WetlandElevationMaximum")) R.Tuning.WetlandElevationMaximum = Number;
+                else if (Key == TEXT("WetlandTemperatureMinimum")) R.Tuning.WetlandTemperatureMinimum = Number;
+                else if (Key == TEXT("WetlandTemperatureFull")) R.Tuning.WetlandTemperatureFull = Number;
                 else if (Key == TEXT("MireMinimumKm")) R.Tuning.MireMinimum = Number * 100000;
                 else if (Key == TEXT("TundraMinimumKm")) R.Tuning.TundraMinimum = Number * 100000;
                 else if (Key == TEXT("MeadowsMaximumKm")) R.Tuning.MeadowsMaximum = Number * 100000;
@@ -57,13 +65,18 @@ namespace
             }
         }
         const auto& T = R.Tuning;
-        return (R.World.GeneratorRevision == 7 || R.World.GeneratorRevision == 8) && R.Size >= 64 && R.Size <= 2048
+        auto UnitRange = [](double Min, double Max) { return Min >= 0 && Min < Max && Max <= 1; };
+        auto DistanceRange = [&](double Min, double Max) { return Min >= T.StarterRadius && Min < Max && Max <= FKalmalaWorldBounds::Radius; };
+        return R.Size >= 64 && R.Size <= 2048
             && T.MasterWavelength >= 10000 && T.MasterWavelength <= 3200000
             && T.BiomeScale >= 10000 && T.BiomeScale <= 1600000
             && FMath::Abs(T.LandThreshold) <= .5 && T.WarpStrength >= 0 && T.WarpStrength <= 200000
             && T.StarterRadius >= 0 && T.StarterRadius <= T.ElderwoodMinimum
-            && T.ElderwoodMinimum <= T.MireMinimum && T.MireMinimum <= T.TundraMinimum
-            && T.TundraMinimum <= FKalmalaWorldBounds::Radius
+            && T.ElderwoodMinimum <= T.TundraMinimum && T.TundraMinimum <= FKalmalaWorldBounds::Radius
+            && DistanceRange(T.LakesMinimum, T.LakesMaximum) && DistanceRange(T.MireMinimum, T.MireMaximum)
+            && UnitRange(T.WetlandHumidityMinimum, T.WetlandHumidityFull)
+            && UnitRange(T.WetlandElevationFull, T.WetlandElevationMaximum)
+            && UnitRange(T.WetlandTemperatureMinimum, T.WetlandTemperatureFull)
             && T.MeadowsMaximum > T.StarterRadius && T.MeadowsMaximum <= FKalmalaWorldBounds::Radius
             && T.EligibilityBlend >= 100 && T.EligibilityBlend <= T.MeadowsMaximum;
     }
@@ -83,8 +96,15 @@ namespace
         ON_SCOPE_EXIT { FKalmalaGenerationPreview::Reset(); };
         const double Start = FPlatformTime::Seconds();
         const FColor Land(131,174,76), Water(23,88,160), Exterior(15,19,27);
-        const FColor Palette[] = {Land, FColor(61,177,190), FColor(30,100,47), FColor(76,113,55),
-            FColor(213,236,238), FColor(104,98,112), Water};
+        const FColor Palette[] = {
+            Land,
+            FColor(61,177,190),
+            FColor(30,100,47),
+            FColor(113,79,55),
+            FColor(224,206,164),
+            FColor(203,202,204),
+            Water
+        };
         TArray<FColor> Master, Crop, Biomes;
         Master.SetNumUninitialized(R.Size * R.Size);
         Crop.SetNumUninitialized(R.Size * R.Size);
@@ -104,6 +124,16 @@ namespace
             // Ocean requires no region/basin evaluation. Land uses the exact
             // shared classifier; only hydrology (which cannot select a biome) is omitted.
             Biomes[I] = bLand ? Palette[FKalmalaRegionalGeneration::SampleBiome(Fields)] : Water;
+            if (bVerify && R.Tuning.LakesMinimum == R.Tuning.MireMinimum
+                && R.Tuning.LakesMaximum == R.Tuning.MireMaximum)
+            {
+                const auto Full = FKalmalaRegionalGeneration::Sample(Fields);
+                if (Full.Weights[1] != Full.Weights[3])
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Shared wetland weights differ at pixel %d,%d"), X, Y);
+                    return false;
+                }
+            }
             if (bVerify && Biomes[I] != Palette[FKalmalaRegionalGeneration::Sample(Fields).Biome])
             {
                 UE_LOG(LogTemp, Error, TEXT("Fast/full biome mismatch at pixel %d,%d"), X, Y);
@@ -114,13 +144,15 @@ namespace
         if (!WritePng(Output / TEXT("MasterLandWater.png"), R.Size, Master)
             || !WritePng(Output / TEXT("LandWaterCrop.png"), R.Size, Crop)
             || !WritePng(Output / TEXT("Biomes.png"), R.Size, Biomes)) return false;
-        FString Summary = FString::Printf(TEXT("Preview only; overrides do not change gameplay or saves.\nWorldSeed=%llu Revision=%d Size=%d\nCropX=%.3f CropY=%.3f RotationRadians=%.9f\nSamplingSeconds=%.3f TotalExportSeconds=%.3f\nPalette: Meadows=83AE4C Lakes=3DB1BE Elderwood=1E642F Mire=4C7137 Tundra=D5ECEE Mountains=686270 Ocean=1758A0\n\nRequested parameters:\n%s"),
-            R.World.WorldSeed, R.World.GeneratorRevision, R.Size, Transform.Center.X, Transform.Center.Y, Transform.Rotation,
+        FString Summary = FString::Printf(TEXT("Preview only; overrides do not change gameplay or saves.\nWorldSeed=%llu Size=%d\nCropX=%.3f CropY=%.3f RotationRadians=%.9f\nSamplingSeconds=%.3f TotalExportSeconds=%.3f\nPalette: Meadows=83AE4C Lakes=3DB1BE Elderwood=1E642F Mire=4C7137 Tundra=D5ECEE Mountains=686270 Ocean=1758A0\n\nRequested parameters:\n%s"),
+            R.World.WorldSeed, R.Size, Transform.Center.X, Transform.Center.Y, Transform.Rotation,
             SampleSeconds, FPlatformTime::Seconds() - Start, *Text);
         const auto& T = R.Tuning;
-        Summary += FString::Printf(TEXT("\nEffective tuning (cm): MasterSeed=%llu MasterWavelength=%.3f LandThreshold=%.6f BiomeScale=%.3f WarpStrength=%.3f\nStarterRadius=%.3f ElderwoodMinimum=%.3f MireMinimum=%.3f TundraMinimum=%.3f MeadowsMaximum=%.3f EligibilityBlend=%.3f\n"),
+        Summary += FString::Printf(TEXT("\nEffective tuning (cm): MasterSeed=%llu MasterWavelength=%.3f LandThreshold=%.6f BiomeScale=%.3f WarpStrength=%.3f\nStarterRadius=%.3f ElderwoodMinimum=%.3f LakesMinimum=%.3f LakesMaximum=%.3f MireMinimum=%.3f MireMaximum=%.3f TundraMinimum=%.3f MeadowsMaximum=%.3f EligibilityBlend=%.3f\n"),
             T.MasterSeed, T.MasterWavelength, T.LandThreshold, T.BiomeScale, T.WarpStrength,
-            T.StarterRadius, T.ElderwoodMinimum, T.MireMinimum, T.TundraMinimum, T.MeadowsMaximum, T.EligibilityBlend);
+            T.StarterRadius, T.ElderwoodMinimum, T.LakesMinimum, T.LakesMaximum, T.MireMinimum, T.MireMaximum, T.TundraMinimum, T.MeadowsMaximum, T.EligibilityBlend);
+        Summary += FString::Printf(TEXT("WetlandHumidityMinimum=%.6f WetlandHumidityFull=%.6f WetlandElevationFull=%.6f WetlandElevationMaximum=%.6f WetlandTemperatureMinimum=%.6f WetlandTemperatureFull=%.6f\n"),
+            T.WetlandHumidityMinimum, T.WetlandHumidityFull, T.WetlandElevationFull, T.WetlandElevationMaximum, T.WetlandTemperatureMinimum, T.WetlandTemperatureFull);
         if (!FFileHelper::SaveStringToFile(Summary, *(Output / TEXT("LastRender.txt")))) return false;
         UE_LOG(LogTemp, Display, TEXT("World PNG export complete: Seed=%llu Size=%d Sampling=%.3fs Total=%.3fs Output=%s"),
             R.World.WorldSeed, R.Size, SampleSeconds, FPlatformTime::Seconds() - Start, *Output);

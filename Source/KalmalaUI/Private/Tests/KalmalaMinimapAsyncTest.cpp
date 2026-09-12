@@ -9,7 +9,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMinimapAsyncTest, "Kalmala.UI.Minimap.A
 bool FKalmalaMinimapAsyncTest::RunTest(const FString& Parameters)
 {
     auto* Model = NewObject<UKalmalaMinimapViewModel>();
-    const FKalmalaWorldGenerationConfig Config{418, 4};
+    const FKalmalaWorldGenerationConfig Config{418};
     const FVector2D Start(1250, -750);
     double MaxRefreshMs = 0;
     auto Refresh = [&](const FKalmalaWorldGenerationConfig& Identity, FVector2D Position)
@@ -43,7 +43,7 @@ bool FKalmalaMinimapAsyncTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Obsolete zoom result is discarded"), Model->PresentationRevision, Revision);
     TestEqual(TEXT("Latest zoom is queued"), Model->PendingRadius, 2500.0f);
     Model->PendingSamples.Wait();
-    const FKalmalaWorldGenerationConfig OtherConfig{419, 4};
+    const FKalmalaWorldGenerationConfig OtherConfig{419};
     Refresh(OtherConfig, Start);
     TestFalse(TEXT("Old identity is hidden"), Model->IsReady());
     TestEqual(TEXT("Obsolete identity result is discarded"), Model->PresentationRevision, Revision);

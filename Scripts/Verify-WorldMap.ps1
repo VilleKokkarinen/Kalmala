@@ -1,4 +1,4 @@
-param([int]$BasePort = 17844, [int]$GeneratorRevision = 4, [switch]$Overview, [switch]$SingleResolution)
+param([int]$BasePort = 17844, [switch]$Overview, [switch]$SingleResolution)
 
 $ErrorActionPreference = 'Stop'
 $project = Join-Path $PSScriptRoot '..\Kalmala.uproject'
@@ -20,7 +20,7 @@ for ($index = 0; $index -lt $(if ($SingleResolution) { 1 } else { 3 }); $index++
     $server = $null
     $client = $null
     try {
-        $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$($BasePort + $index) -WorldSeed=418 -GeneratorRevision=$GeneratorRevision $common -KalmalaWorldMapScreenshot=`"$serverShot`" -abslog=`"$serverLog`" -UserDir=`"$caseOutput\Host`""
+        $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$($BasePort + $index) -WorldSeed=418 $common -KalmalaWorldMapScreenshot=`"$serverShot`" -abslog=`"$serverLog`" -UserDir=`"$caseOutput\Host`""
         $deadline = (Get-Date).AddSeconds(60)
         do {
             if ($server.HasExited) { throw "Host exited before accepting connections at $label." }
@@ -28,7 +28,7 @@ for ($index = 0; $index -lt $(if ($SingleResolution) { 1 } else { 3 }); $index++
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw "Host readiness timed out at $label." }
-        $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$($BasePort + $index) -WorldSeed=999 -GeneratorRevision=1 $common -KalmalaWorldMapScreenshot=`"$clientShot`" -abslog=`"$clientLog`" -UserDir=`"$caseOutput\Client`""
+        $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$($BasePort + $index) -WorldSeed=999 $common -KalmalaWorldMapScreenshot=`"$clientShot`" -abslog=`"$clientLog`" -UserDir=`"$caseOutput\Client`""
         $deadline = (Get-Date).AddSeconds(240)
         do {
             if ($server.HasExited -or $client.HasExited) { throw "A rendered peer exited at $label." }
@@ -38,7 +38,7 @@ for ($index = 0; $index -lt $(if ($SingleResolution) { 1 } else { 3 }); $index++
             if ($serverText -match 'World map verification: Open=1 Input=1 ZoomMin=1 ZoomMax=1 Pan=1 Recenter=1.' -and
                 $serverText -match 'World map gameplay exploration: Closed=1 Cells=[1-9][0-9]* Tiles=0' -and
                 $clientText -match 'World map gameplay exploration: Closed=1 Cells=[1-9][0-9]* Tiles=0' -and
-                $clientText -match "Client received world-generation identity: Seed=418 Revision=$GeneratorRevision" -and
+                $clientText -match "Client received world-generation identity: Seed=418" -and
                 $clientText -match 'World map verification: Open=1 Input=1 ZoomMin=1 ZoomMax=1 Pan=1 Recenter=1.' -and
                 $serverText -match 'World map paint verification: FullViewport=1 .*ReadyTiles=[1-9][0-9]* Fog=1' -and
                 $clientText -match 'World map paint verification: FullViewport=1 .*ReadyTiles=[1-9][0-9]* Fog=1' -and

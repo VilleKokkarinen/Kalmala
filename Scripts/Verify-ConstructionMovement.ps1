@@ -1,7 +1,6 @@
 param(
     [string]$Editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe',
-    [int]$Port = 17991,
-    [ValidateRange(1, 4)][int]$GeneratorRevision = 4
+    [int]$Port = 17991
 )
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
@@ -13,7 +12,7 @@ $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=$GeneratorRevision $common -abslog=`"$serverLog`" -UserDir=`"$output/Host`""
+    $server = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -abslog=`"$serverLog`" -UserDir=`"$output/Host`""
     $deadline = (Get-Date).AddSeconds(60)
     do {
         if ($server.HasExited) { throw 'Server exited during startup.' }
@@ -39,7 +38,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Construction movement verification timed out.' }
-    if ($clientText -notmatch "Client received world-generation identity: Seed=418 Revision=$GeneratorRevision") { throw 'Client world identity mismatch.' }
+    if ($clientText -notmatch "Client received world-generation identity: Seed=418") { throw 'Client world identity mismatch.' }
     $pattern = 'Construction movement: Passed=1 Authority={0} Local={1} Player=(\d+) Floor=(\S+) Wall=(\S+) Grounded=1 Travel=[\d.]+ Y=([\d.-]+)'
     $remote = [regex]::Match($serverText, ($pattern -f 1, 0))
     $owner = [regex]::Match($clientText, ($pattern -f 0, 1))

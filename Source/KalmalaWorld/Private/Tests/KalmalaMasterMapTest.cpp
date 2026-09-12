@@ -12,7 +12,7 @@ bool FKalmalaMasterMapTest::RunTest(const FString& Parameters)
     using M = FKalmalaMasterMap;
     using G = FKalmalaRegionalGeneration;
     using T = FKalmalaRegionalTuning;
-    const FKalmalaWorldGenerationConfig A{418, 7}, B{419, 7};
+    const FKalmalaWorldGenerationConfig A{418}, B{419};
     const auto Before = FKalmalaGenerationPreview::Get();
     auto Forged = Before;
     Forged.MasterSeed = 9;
@@ -21,8 +21,6 @@ bool FKalmalaMasterMapTest::RunTest(const FString& Parameters)
     const auto Crop = M::Crop(A), Repeat = M::Crop(A), Other = M::Crop(B);
     TestTrue(TEXT("Same identity repeats crop"), Crop.Center == Repeat.Center && Crop.Rotation == Repeat.Rotation);
     TestTrue(TEXT("Game seed changes crop and rotation"), Crop.Center != Other.Center && Crop.Rotation != Other.Rotation);
-    TestTrue(TEXT("New worlds select master map"), FKalmalaWorldGenerationConfig::CurrentGeneratorRevision == 7);
-    TestTrue(TEXT("Both legacy and new debug identities retain streams"), G::AreStreamsEnabled({418, 6}) && G::AreStreamsEnabled({418, 8}));
     TestFalse(TEXT("Production master maps omit streams"), G::AreStreamsEnabled(A));
     int32 MaskVariation = 0, MasterVariation = 0, Counts[7] = {};
     double MaxJump = 0;
@@ -45,13 +43,12 @@ bool FKalmalaMasterMapTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Fast biome sampler agrees with full terrain/hydrology"), G::SampleBiome(FKalmalaWorldFieldSampler::Sample(C, P)), R.Biome);
             ++Counts[R.Biome];
             TestEqual(TEXT("Production has no stream carving"), R.StreamWeight, 0.f);
-            if (R.Biome == 1) TestTrue(TEXT("Lake biome requires basin support"), R.BasinWeight > 0);
             TestEqual(TEXT("Atlas alone determines Ocean label"), R.Biome == 6, Mask <= 0);
             TestTrue(TEXT("Terrain respects atlas sea-level sign"), Mask > 0 ? R.Height > 0 : R.Height <= 0);
             TestTrue(TEXT("Meadows stop at 4 km"), R.Biome != 0 || P.Size() <= T::MeadowsMaximum);
-            TestTrue(TEXT("Lakes respect starter exclusion"), R.Biome != 1 || P.Size() > T::StarterRadius);
+            TestTrue(TEXT("Lakes respect starter exclusion"), R.Biome != 1 || (P.Size() >= T::LakesMinimum && P.Size() <= T::LakesMaximum));
             TestTrue(TEXT("Forest respects 0.75 km minimum"), R.Biome != 2 || P.Size() >= T::ElderwoodMinimum);
-            TestTrue(TEXT("Mire respects 2 km minimum"), R.Biome != 3 || P.Size() >= T::MireMinimum);
+            TestTrue(TEXT("Mire respects 2 km minimum"), R.Biome != 3 || (P.Size() >= T::MireMinimum && P.Size() <= T::MireMaximum));
             TestTrue(TEXT("Tundra respects 4 km minimum"), R.Biome != 4 || P.Size() >= T::TundraMinimum);
             float Sum = 0;
             for (float W : R.Weights) { TestTrue(TEXT("Finite bounded weights"), FMath::IsFinite(W) && W >= 0 && W <= 1); Sum += W; }
@@ -67,7 +64,7 @@ bool FKalmalaMasterMapTest::RunTest(const FString& Parameters)
         // Exact thresholds and both sides in multiple directions, including
         // synthetic peaks to prove mountain precedence cannot invade the start.
         for (double Radius : {0.0, 34999.9, 35000.0, 35000.1, 74999.9, 75000.0, 75000.1,
-            199999.9, 200000.0, 200000.1, 399999.9, 400000.0, 400000.1})
+            299999.9, 300000.0, 300000.1, 399999.9, 400000.0, 400000.1})
         for (int32 I = 0; I < 8; ++I)
         {
             const FVector2D P = FVector2D(FMath::Cos(I * PI / 4), FMath::Sin(I * PI / 4)) * Radius;
@@ -93,7 +90,7 @@ bool FKalmalaMasterMapTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Start is dry terrain"), !StartRegion.bHasWater && StartRegion.Height >= 40);
     }
     TestTrue(TEXT("Different crops change coastlines"), MaskVariation > 100);
-    const FKalmalaWorldGenerationConfig DefaultWorld{10323456789ull, 7};
+    const FKalmalaWorldGenerationConfig DefaultWorld{10323456789ull};
     const FVector2D DefaultStart(FKalmalaWorldPlayerStartResolver::ResolveStartTransform(DefaultWorld).GetLocation());
     const auto DefaultRegion = G::Sample(DefaultWorld, DefaultStart);
     TestTrue(TEXT("Normal launch has a dry central Meadows start"), DefaultStart.Size() <= T::StarterRadius

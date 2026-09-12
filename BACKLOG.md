@@ -20,11 +20,11 @@ Do not begin until M0 acceptance criteria in `docs/04-roadmap.md` are met.
 
 ## World generation track
 
-Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` is the authoritative contract: current revision 7 samples an independently seeded master land/water map through a game-seeded crop/rotation, then combines continuous `Elevation`, `Humidity`, `Temperature`, and `Flora` with hard origin-distance eligibility and Meadows/Mountains fallback. Do not introduce authored gameplay regions, pre-built roads or trails, or stored biome maps. Older completed tasks below describe their original revisions.
+Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` is authoritative: the current generator uses a separately seeded master land/water crop, continuous environmental fields and distance-gated biomes. World identity is the server-owned seed only. Lakes (0.35–3 km) and Mire (3–16 km) share all generation parameters except distance ranges. Earlier completed tasks record historical work, not compatibility requirements.
 
 ### Phase 1 â€” Seed and map proof
 
-- [x] Define the immutable server-owned `WorldSeed` and `GeneratorRevision` world-generation contract.
+- [x] Define the immutable server-owned `WorldSeed` world-generation contract.
 - [x] Implement deterministic sub-seed derivation for `Elevation`, `Humidity`, `Temperature`, and `Flora`.
 - [x] Implement continuous Perlin sampling and normalization for all four maps at a world position.
 - [x] Implement deterministic biome classification and continuous transition blending from the four sampled values.
@@ -260,6 +260,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Establish a retained two-player preflight harness for the existing hearth/crafting, storage/workbench, and shelter/exposure contracts; it must not substitute separate launches for the later shared gathered-camp scenario.
   - [ ] Run a host/client scenario in which both players gather, craft, place a campfire plus floor/wall/roof, use storage/workbench, and observe matching inventory, construction, fire, shelter, and weather state.
     - Verification 2026-09-11: the new shared-session hearth slice passes both real server-initialized harvesting and paid craft/placement for each player, with matching owner-only empty-pack and 60-second fire replication. Floor/wall/roof, workbench/storage, shelter/weather, and combined restart evidence remain in this unchecked scenario.
+    - Verification 2026-09-11: the expanded fixture passes both server-owned players through gathered paid hearth/floor/wall/roof/workbench/chest construction and a private chest deposit, but the joining client stops progressing before its replicated camp report. Retained evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampBuild-ef9eac134306470c98fbef98cdca70b2`. Keep this item unchecked; diagnose the client replication/tick stall before accepting it.
   - [ ] Restart/reconnect using the same world identity and verify the sparse generated-world deltas and versioned camp state restore together without duplicate actors, duplicated items, or cross-world reuse.
   - [ ] Document the inventory, crafting, construction, campfire, shelter, storage, and persistence authority contracts, then record build and two-player verification evidence.
 

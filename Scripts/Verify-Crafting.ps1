@@ -13,7 +13,7 @@ $clientCapture = if ($Rendered) { "-KalmalaCraftingCapture=`"$output\client.png`
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=4 $common $serverCapture -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common $serverCapture -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($server.HasExited) { throw 'Listen server exited during startup.' }
@@ -21,7 +21,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Listen server readiness timed out.' }
-    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 -GeneratorRevision=1 $common $clientCapture -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
+    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common $clientCapture -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
     $deadline = (Get-Date).AddSeconds(120)
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before verification.' }
@@ -47,7 +47,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if (!$ready) { throw 'Crafting host/client scenario timed out.' }
-    if ($clientText -notmatch 'Client received world-generation identity: Seed=418 Revision=4') { throw 'Client identity mismatch.' }
+    if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client identity mismatch.' }
     Write-Output 'PASS: server validation/payment/atomicity gates; overlapping owner RPC crafting; exact final inventory; two matching dry and rain-extinguished fires; local menu input restoration.'
 }
 finally {

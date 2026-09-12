@@ -11,7 +11,7 @@ $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=4 $common -abslog=`"$serverLog`" -UserDir=`"$output/Host`""
+    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -abslog=`"$serverLog`" -UserDir=`"$output/Host`""
     $deadline = (Get-Date).AddSeconds(60)
     do {
         if ($server.HasExited) { throw 'Server exited during startup.' }
@@ -27,7 +27,7 @@ try {
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:') { throw 'World-profile verification failed; inspect logs.' }
-        if ($serverText -match 'World profile: InitialGenerationMs=.*SaveSerialized=1 LateJoinPlayers=2\.' -and $clientText -match 'Client received world-generation identity: Seed=418 Revision=4') { break }
+        if ($serverText -match 'World profile: InitialGenerationMs=.*SaveSerialized=1 LateJoinPlayers=2\.' -and $clientText -match 'Client received world-generation identity: Seed=418') { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'World-profile verification timed out.' }

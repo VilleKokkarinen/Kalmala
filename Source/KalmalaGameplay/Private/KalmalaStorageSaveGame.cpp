@@ -58,5 +58,5 @@ bool UKalmalaStorageSaveGame::UpsertRecord(const FString& Id, const TArray<FKalm
 
 FString UKalmalaStorageSaveGame::MakeSlotName(const FKalmalaWorldGenerationConfig& Config)
 {
-    return FString::Printf(TEXT("KalmalaStorage_%llu_%d"), Config.WorldSeed, Config.GeneratorRevision);
+    return FString::Printf(TEXT("KalmalaStorage_%llu"), Config.WorldSeed);
 }

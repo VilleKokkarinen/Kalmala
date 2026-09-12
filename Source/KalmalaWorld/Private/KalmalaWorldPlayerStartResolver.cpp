@@ -11,13 +11,12 @@ FTransform FKalmalaWorldPlayerStartResolver::ResolveStartTransform(const FKalmal
     float BestScore = TNumericLimits<float>::Max();
     FVector2D BestLocation = FVector2D::ZeroVector;
 
-    const int32 CandidateCount = Config.GeneratorRevision >= 3 ? 128 : 24;
+    const int32 CandidateCount = 128;
     for (int32 CandidateIndex = 0; CandidateIndex < CandidateCount; ++CandidateIndex)
     {
         const uint64 CandidateBits = (SelectionSeed >> ((CandidateIndex % 4) * 16)) & 0xFFFFull;
         const float Angle = 2.0f * PI * FMath::Frac((static_cast<float>(CandidateBits) + CandidateIndex * 4051.0f) / 65536.0f);
-        const float Radius = Config.GeneratorRevision >= 7 ? 1500.0f + CandidateIndex * 240.0f
-            : 1500.0f + CandidateIndex * (Config.GeneratorRevision >= 3 ? 1800.0f : 650.0f);
+        const float Radius = 1500.0f + CandidateIndex * 240.0f;
         const FVector2D CandidateLocation(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius);
         const FKalmalaWorldFieldSample Sample = FKalmalaWorldFieldSampler::Sample(Config, CandidateLocation);
 
@@ -25,7 +24,6 @@ FTransform FKalmalaWorldPlayerStartResolver::ResolveStartTransform(const FKalmal
             + FMath::Abs(Sample.Humidity - 0.5f)
             + FMath::Abs(Sample.Temperature - 0.55f)
             + FMath::Abs(Sample.Flora - 0.5f);
-        if (Config.GeneratorRevision >= 3)
         {
             const auto Region = FKalmalaRegionalGeneration::Sample(Sample);
             if (Region.bHasWater || Region.Height < 40) continue;

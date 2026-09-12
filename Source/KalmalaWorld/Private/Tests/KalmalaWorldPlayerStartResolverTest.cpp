@@ -26,8 +26,6 @@ bool FKalmalaWorldPlayerStartResolverTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
-
     const FTransform FirstStart = FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config);
     const FTransform RepeatedStart = FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config);
     TestTrue(TEXT("The same identity resolves to the same player start"), FirstStart.Equals(RepeatedStart));
@@ -74,12 +72,10 @@ bool FKalmalaSurfaceWaterCoverageTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
-
     int32 SubmergedSampleCount = 0;
-    for (int32 Y = -24000; Y <= 24000; Y += 1500)
+    for (int32 Y = -480000; Y <= 480000; Y += 30000)
     {
-        for (int32 X = -24000; X <= 24000; X += 1500)
+        for (int32 X = -480000; X <= 480000; X += 30000)
         {
             if (FKalmalaTerrainHeightSampler::SampleHeight(Config, FVector2D(X, Y)) <= FKalmalaTerrainHeightSampler::SeaLevelWorldHeight)
             {
@@ -101,12 +97,10 @@ bool FKalmalaShimmeringLakeCoverageTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
-
     int32 LakeWaterSampleCount = 0;
-    for (int32 Y = -48000; Y <= 48000; Y += 500)
+    for (int32 Y = -800000; Y <= 800000; Y += 8000)
     {
-        for (int32 X = -48000; X <= 48000; X += 500)
+        for (int32 X = -800000; X <= 800000; X += 8000)
         {
             LakeWaterSampleCount += FKalmalaShimmeringLakeSampler::IsWater(Config, FVector2D(X, Y)) ? 1 : 0;
         }
@@ -125,8 +119,6 @@ bool FKalmalaWorldPopulationLayoutTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
-
     const FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(6500.0f, -5500.0f));
     TestEqual(TEXT("World positions map to a deterministic invisible spatial key"), SpatialKey, FIntPoint(1, -1));
 
@@ -169,7 +161,6 @@ bool FKalmalaWorldPopulationSaveGameTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
     UKalmalaWorldPopulationSaveGame* SaveGame = NewObject<UKalmalaWorldPopulationSaveGame>();
     SaveGame->InitializeForWorld(Config);
     const FString SpawnId = TEXT("1/1/-1/1234");
@@ -223,8 +214,6 @@ bool FKalmalaWeatherCycleTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
-
     const FKalmalaWeatherState First = FKalmalaWeatherCycle::DeriveState(Config, 0, 10.0f);
     const FKalmalaWeatherState Repeated = FKalmalaWeatherCycle::DeriveState(Config, 0, 10.0f);
     const FKalmalaWeatherState Next = FKalmalaWeatherCycle::DeriveState(Config, 1, 10.0f + First.DurationSeconds);
@@ -247,16 +236,14 @@ bool FKalmalaEnvironmentalExposureSamplerTest::RunTest(const FString& Parameters
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
-
     bool bFoundLowWetGround = false;
     bool bFoundShoreline = false;
     float HighestRidgeWind = 0.0f;
     float HighestOpenWind = 0.0f;
     float LowestCoveredWind = 1.0f;
-    for (int32 Y = -48000; Y <= 48000; Y += 400)
+    for (int32 Y = -800000; Y <= 800000; Y += 6400)
     {
-        for (int32 X = -48000; X <= 48000; X += 400)
+        for (int32 X = -800000; X <= 800000; X += 6400)
         {
             const FKalmalaEnvironmentalExposureSample Sample = FKalmalaEnvironmentalExposureSampler::Sample(Config, FVector2D(X, Y));
             bFoundLowWetGround |= Sample.bIsLowWetGround && Sample.GroundWetness >= 0.5f;
@@ -312,12 +299,11 @@ bool FKalmalaCampConditionSamplerTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
     float LowestWetness = 1.0f, HighestWetness = 0.0f, LowestCover = 1.0f, HighestCover = 0.0f;
     float NearestWater = FKalmalaCampConditionSampler::WaterSearchRadius, FarthestWater = 0.0f;
     int32 LowestResources = MAX_int32, HighestResources = 0;
-    for (int32 Y = -24000; Y <= 24000; Y += 800)
-    for (int32 X = -24000; X <= 24000; X += 800)
+    for (int32 Y = -480000; Y <= 480000; Y += 16000)
+    for (int32 X = -480000; X <= 480000; X += 16000)
     {
         const FKalmalaCampConditionSample Sample = FKalmalaCampConditionSampler::Sample(Config, FVector2D(X, Y));
         LowestWetness = FMath::Min(LowestWetness, Sample.GroundWetness); HighestWetness = FMath::Max(HighestWetness, Sample.GroundWetness);
@@ -338,7 +324,6 @@ bool FKalmalaBiomeExpansionContractTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
     const FIntPoint SpatialKey(2, -3);
     for (const EKalmalaBiome Biome : { EKalmalaBiome::Meadows, EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::Elderwood, EKalmalaBiome::MossyMire, EKalmalaBiome::FreezingTundra, EKalmalaBiome::ThunderMountains })
     {
@@ -361,11 +346,11 @@ bool FKalmalaBiomeExpansionContractTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaShimmeringLakesSliceTest, "Kalmala.World.BiomeExpansion.ShimmeringLakesSlice", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaShimmeringLakesSliceTest::RunTest(const FString& Parameters)
 {
-    const FKalmalaWorldGenerationConfig Config{ 418ull, 1 };
+    const FKalmalaWorldGenerationConfig Config{418ull};
     bool bFoundLakeEdgeDiscovery = false;
-    for (int32 Y = -6; Y <= 6 && !bFoundLakeEdgeDiscovery; ++Y)
+    for (int32 Y = -160; Y <= 160 && !bFoundLakeEdgeDiscovery; ++Y)
     {
-        for (int32 X = -6; X <= 6 && !bFoundLakeEdgeDiscovery; ++X)
+        for (int32 X = -160; X <= 160 && !bFoundLakeEdgeDiscovery; ++X)
         {
             const FIntPoint SpatialKey(X, Y);
             FKalmalaBiomeDiscoveryCandidate Discovery;
@@ -388,11 +373,11 @@ bool FKalmalaShimmeringLakesSliceTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaElderwoodSliceTest, "Kalmala.World.BiomeExpansion.ElderwoodSlice", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaElderwoodSliceTest::RunTest(const FString& Parameters)
 {
-    const FKalmalaWorldGenerationConfig Config{ 418ull, 1 };
+    const FKalmalaWorldGenerationConfig Config{418ull};
     bool bFoundClearingDiscovery = false;
-    for (int32 Y = -6; Y <= 6 && !bFoundClearingDiscovery; ++Y)
+    for (int32 Y = -160; Y <= 160 && !bFoundClearingDiscovery; ++Y)
     {
-        for (int32 X = -6; X <= 6 && !bFoundClearingDiscovery; ++X)
+        for (int32 X = -160; X <= 160 && !bFoundClearingDiscovery; ++X)
         {
             const FIntPoint SpatialKey(X, Y);
             FKalmalaBiomeDiscoveryCandidate Discovery;
@@ -417,11 +402,11 @@ bool FKalmalaElderwoodSliceTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMossyMireSliceTest, "Kalmala.World.BiomeExpansion.MossyMireSlice", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaMossyMireSliceTest::RunTest(const FString& Parameters)
 {
-    const FKalmalaWorldGenerationConfig Config{ 418ull, 1 };
+    const FKalmalaWorldGenerationConfig Config{418ull};
     bool bFoundHummockDiscovery = false;
-    for (int32 Y = -8; Y <= 8 && !bFoundHummockDiscovery; ++Y)
+    for (int32 Y = -160; Y <= 160 && !bFoundHummockDiscovery; ++Y)
     {
-        for (int32 X = -8; X <= 8 && !bFoundHummockDiscovery; ++X)
+        for (int32 X = -160; X <= 160 && !bFoundHummockDiscovery; ++X)
         {
             const FIntPoint SpatialKey(X, Y);
             FKalmalaBiomeDiscoveryCandidate Discovery;
@@ -445,11 +430,11 @@ bool FKalmalaMossyMireSliceTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaFreezingTundraSliceTest, "Kalmala.World.BiomeExpansion.FreezingTundraSlice", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaFreezingTundraSliceTest::RunTest(const FString& Parameters)
 {
-    const FKalmalaWorldGenerationConfig Config{ 418ull, 1 };
+    const FKalmalaWorldGenerationConfig Config{418ull};
     bool bFoundTundraDiscovery = false;
-    for (int32 Y = -8; Y <= 8 && !bFoundTundraDiscovery; ++Y)
+    for (int32 Y = -160; Y <= 160 && !bFoundTundraDiscovery; ++Y)
     {
-        for (int32 X = -8; X <= 8 && !bFoundTundraDiscovery; ++X)
+        for (int32 X = -160; X <= 160 && !bFoundTundraDiscovery; ++X)
         {
             const FIntPoint SpatialKey(X, Y);
             FKalmalaBiomeDiscoveryCandidate Discovery;
@@ -473,7 +458,7 @@ bool FKalmalaFreezingTundraSliceTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaThunderMountainsSliceTest, "Kalmala.World.BiomeExpansion.ThunderMountainsSlice", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaThunderMountainsSliceTest::RunTest(const FString& Parameters)
 {
-    const FKalmalaWorldGenerationConfig Config{ 418ull, 1 };
+    const FKalmalaWorldGenerationConfig Config{418ull};
     bool bFoundMountainDiscovery = false;
     for (int32 Y = -12; Y <= 12 && !bFoundMountainDiscovery; ++Y)
     {
@@ -502,13 +487,12 @@ bool FKalmalaThunderMountainsSliceTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaBiomeExpansionIntegratedScenarioTest, "Kalmala.World.BiomeExpansion.IntegratedScenario", EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaBiomeExpansionIntegratedScenarioTest::RunTest(const FString& Parameters)
 {
-    // Legacy local-scale fixtures; revision 3 has its own large-area Regional.Integrated scenario.
-    for (int32 Revision = 1; Revision <= 2; ++Revision)
+    // Sample the current world across inner and outer biome eligibility ranges.
     {
-        const FKalmalaWorldGenerationConfig HostConfig{ 418ull, Revision }, ClientConfig{ 418ull, Revision }, DifferentSeedConfig{ 419ull, Revision };
+        const FKalmalaWorldGenerationConfig HostConfig{418ull}, ClientConfig{418ull}, DifferentSeedConfig{419ull};
         const TArray<EKalmalaBiome> LandBiomes = { EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::Elderwood, EKalmalaBiome::MossyMire, EKalmalaBiome::FreezingTundra, EKalmalaBiome::ThunderMountains };
         bool bFoundClassifierSeam = false, bFoundDifferentSeedVariation = false;
-        for (int32 Y = -48000; Y <= 48000; Y += 500) for (int32 X = -48000; X <= 48000; X += 500)
+        for (int32 Y = -800000; Y <= 800000; Y += 8000) for (int32 X = -800000; X <= 800000; X += 8000)
         {
             const FVector2D Position(X, Y);
             const FKalmalaWorldFieldSample HostFields = FKalmalaWorldFieldSampler::Sample(HostConfig, Position), ClientFields = FKalmalaWorldFieldSampler::Sample(ClientConfig, Position);
@@ -532,7 +516,7 @@ bool FKalmalaBiomeExpansionIntegratedScenarioTest::RunTest(const FString& Parame
         for (const EKalmalaBiome Biome : LandBiomes)
         {
             bool bFoundDiscovery = false;
-            for (int32 Y = -6; Y <= 6 && !bFoundDiscovery; ++Y) for (int32 X = -6; X <= 6 && !bFoundDiscovery; ++X)
+            for (int32 Y = -160; Y <= 160 && !bFoundDiscovery; ++Y) for (int32 X = -160; X <= 160 && !bFoundDiscovery; ++X)
             {
                 FKalmalaBiomeDiscoveryCandidate HostDiscovery, ClientDiscovery;
                 const FIntPoint SpatialKey(X, Y);

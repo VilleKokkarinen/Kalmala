@@ -8,8 +8,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaConstructionSaveGameTest, "Kalmala.Game
 
 bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
 {
-    FKalmalaWorldGenerationConfig World; World.WorldSeed = 418; World.GeneratorRevision = 4;
-    auto* Save = NewObject<UKalmalaConstructionSaveGame>(); Save->InitializeForWorld(World);
+    FKalmalaWorldGenerationConfig World; World.WorldSeed = 418; auto* Save = NewObject<UKalmalaConstructionSaveGame>(); Save->InitializeForWorld(World);
     FKalmalaConstructionSaveRecord Record; Record.ConstructionId = TEXT("camp-0001"); Record.KitId = TEXT("FloorKit"); Record.Transform = FTransform(FVector(100, 200, 300));
     TestTrue(TEXT("Construction save accepts a bounded valid record"), Save->AddRecord(Record));
     Record.Transform.SetLocation(FVector(NAN, 0, 0));

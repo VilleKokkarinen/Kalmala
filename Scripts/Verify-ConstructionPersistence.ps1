@@ -12,7 +12,7 @@ function Invoke-PeerRun([int]$Run, [bool]$ExpectRestore) {
     $clientLog = Join-Path $output "client-$Run.log"
     $server = $null; $client = $null
     try {
-        $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=4 $common -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+        $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
         $deadline = (Get-Date).AddSeconds(90)
         do {
             if ($server.HasExited) { throw "Run $Run listen server exited during startup." }
@@ -23,7 +23,7 @@ function Invoke-PeerRun([int]$Run, [bool]$ExpectRestore) {
         $listenMatch = Select-String -LiteralPath $serverLog -Pattern 'GameNetDriver.*listening on port (\d+)' | Select-Object -Last 1
         if ($null -eq $listenMatch -or $listenMatch.Line -notmatch 'port (\d+)') { throw "Run $Run did not report its bound listen port." }
         $clientPort = [int]$Matches[1]
-        $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$clientPort -WorldSeed=999 -GeneratorRevision=1 $common -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
+        $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$clientPort -WorldSeed=999 $common -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
         $deadline = (Get-Date).AddSeconds(120)
         do {
             if ($server.HasExited -or $client.HasExited) { throw "Run $Run peer exited before verification." }
@@ -51,7 +51,7 @@ function Invoke-PeerRun([int]$Run, [bool]$ExpectRestore) {
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if (!$ready) { throw "Run $Run construction host/client scenario timed out." }
-        if ($clientText -notmatch 'Client received world-generation identity: Seed=418 Revision=4') { throw "Run $Run client identity mismatch." }
+        if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw "Run $Run client identity mismatch." }
         if ($ExpectRestore) { Write-Output 'PASS: exact two original construction IDs restored; client received those plus two distinct newly paid placements.' }
         else {
             $script:FirstPlacementIds = $acceptedIds

@@ -11,7 +11,7 @@ $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=1 $common -abslog=`"$serverLog`" -UserDir=`"$output/Host`""
+    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -abslog=`"$serverLog`" -UserDir=`"$output/Host`""
     $deadline = (Get-Date).AddSeconds(60)
     do {
         if ($server.HasExited) { throw 'Server exited during startup.' }
@@ -32,7 +32,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Swimming verification timed out.' }
-    if ($clientText -notmatch 'Client received world-generation identity: Seed=418 Revision=1') { throw 'Client world identity mismatch.' }
+    if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client world identity mismatch.' }
     Write-Output 'PASS: host and client entered the shared generated ocean using server-authoritative movement.'
 }
 finally {

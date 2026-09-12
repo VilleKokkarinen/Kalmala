@@ -34,7 +34,7 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     const FVector2D Surface(Ground.ImpactPoint);
     if (!FKalmalaWorldBounds::Contains(Config, Surface, 300)) { Result.Message = TEXT("Too close to the world edge"); return Result; }
     if (FKalmalaOceanSampler::Sample(Config, Surface).IsWater() || FKalmalaShimmeringLakeSampler::IsWater(Config, Surface)
-        || (Config.GeneratorRevision >= 3 && FKalmalaRegionalGeneration::Sample(Config, Surface).bHasWater))
+        || (FKalmalaRegionalGeneration::Sample(Config, Surface).bHasWater))
     {
         Result.Message = TEXT("Preview invalid: dry ground is required");
         return Result;

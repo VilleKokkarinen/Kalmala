@@ -25,7 +25,7 @@ try {
     Invoke-Editor 'automation' '-ExecCmds="Automation RunTests Kalmala.World.Regional+Kalmala.World.Biomes+Kalmala.World.Water+Kalmala.World.PopulationSaveGame+Kalmala.UI.Minimap.LocalPresentation" -TestExit="Automation Test Queue Empty"'
     foreach ($run in @(@('seed418-a',418), @('seed418-b',418), @('seed419',419))) {
         $directory = Join-Path $output $run[0]
-        Invoke-Editor $run[0] "-run=RenderWorldGenerationVisualization -Seed=$($run[1]) -Revision=3 -Size=256 -Extent=400000 -Output=`"$directory`""
+        Invoke-Editor $run[0] "-run=RenderWorldGenerationVisualization -Seed=$($run[1]) -Size=256 -Extent=400000 -Output=`"$directory`""
     }
     $first = Join-Path $output 'seed418-a'
     $second = Join-Path $output 'seed418-b'
@@ -38,6 +38,6 @@ try {
         if ((Get-FileHash (Join-Path $first $name)).Hash -eq (Get-FileHash (Join-Path $other $name)).Hash) { throw "No different-seed variation: $name" }
     }
     Write-Output 'PASS: all repeated field/weight/biome/overlap/hydrology/height renders match; different seeds vary.'
-    if (!$SkipPeers) { & (Join-Path $PSScriptRoot 'Verify-Minimap.ps1') -GeneratorRevision 3 }
+    if (!$SkipPeers) { & (Join-Path $PSScriptRoot 'Verify-Minimap.ps1') }
 }
 finally { Write-Output "Regional proof output: $output" }

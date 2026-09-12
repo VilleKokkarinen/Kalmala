@@ -11,7 +11,7 @@ $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=4 $common -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($server.HasExited) { throw 'Listen server exited during startup.' }
@@ -19,7 +19,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Listen server readiness timed out.' }
-    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 -GeneratorRevision=1 $common -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
+    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before verification.' }
@@ -30,7 +30,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Host/client awareness scenario timed out.' }
-    if ($clientText -notmatch 'Client received world-generation identity: Seed=418 Revision=4') { throw 'Client world identity mismatch.' }
+    if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client world identity mismatch.' }
     foreach ($result in @('Unauthorized', 'Malformed', 'Distant', 'Excessive')) {
         if ([regex]::Matches($serverText, "Map ping request: Result=$result").Count -ne 2) { throw "Expected rejection on both host and remote owner: $result" }
     }

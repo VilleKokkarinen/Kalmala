@@ -4,35 +4,24 @@
 #include "KalmalaWorldGenerationConfig.generated.h"
 
 /**
- * Immutable identity of a generated base world. The server creates and persists
- * this pair once; changing either value requires a separate world/save.
+ * Server-owned seed. Development always uses the current compiled generator.
  */
 USTRUCT()
 struct KALMALAWORLD_API FKalmalaWorldGenerationConfig
 {
     GENERATED_BODY()
 
-    static constexpr int32 CurrentGeneratorRevision = 7;
-    // Opt-in debug layout; replicated as identity so stream carving always agrees.
-    static constexpr int32 StreamsDebugGeneratorRevision = 8;
-
     /** Server-generated 64-bit base seed. */
     UPROPERTY(EditAnywhere, Category = "World Generation")
     uint64 WorldSeed = 0;
 
-    /** Version of generation rules used to interpret WorldSeed. */
-    UPROPERTY(EditAnywhere, Category = "World Generation", meta = (ClampMin = "1"))
-    // Keep the serialized default for revision-one saves; new-world entry points
-    // explicitly select CurrentGeneratorRevision.
-    int32 GeneratorRevision = 1;
-
     bool IsValid() const
     {
-        return GeneratorRevision > 0;
+        return true; // Every uint64 seed, including zero, is supported.
     }
 
     bool operator==(const FKalmalaWorldGenerationConfig& Other) const
     {
-        return WorldSeed == Other.WorldSeed && GeneratorRevision == Other.GeneratorRevision;
+        return WorldSeed == Other.WorldSeed;
     }
 };

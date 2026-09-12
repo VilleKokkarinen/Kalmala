@@ -18,9 +18,7 @@ struct KALMALAWORLD_API FKalmalaTerrainHeightSampler
 
     static float SampleHeight(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)
     {
-        if (Config.GeneratorRevision >= 3) return FKalmalaRegionalGeneration::Sample(Config, Position).Height;
-        const float Elevation = FKalmalaWorldFieldSampler::Sample(Config, Position).Elevation;
-        return SeaLevelWorldHeight + (Elevation - SeaLevelElevation) * WorldUnitsPerElevation;
+        return FKalmalaRegionalGeneration::Sample(Config, Position).Height;
     }
 
     static FVector SampleSurfaceNormal(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)

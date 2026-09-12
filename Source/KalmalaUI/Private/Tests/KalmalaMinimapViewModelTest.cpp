@@ -14,8 +14,6 @@ bool FKalmalaMinimapViewModelTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
-
     const TArray<FKalmalaMinimapTerrainSample> FirstSamples = UKalmalaMinimapViewModel::BuildTerrainSamples(Config, FVector2D(1250.0f, -750.0f), 5000.0f, 5);
     const TArray<FKalmalaMinimapTerrainSample> RepeatedSamples = UKalmalaMinimapViewModel::BuildTerrainSamples(Config, FVector2D(1250.0f, -750.0f), 5000.0f, 5);
 
@@ -87,7 +85,7 @@ bool FKalmalaMinimapViewModelTest::RunTest(const FString& Parameters)
     {
         for (int32 X = -40; X <= 40 && !bFoundOcean; ++X)
         {
-            const FVector2D Position(X * 1500.0, Y * 1500.0);
+            const FVector2D Position(X * 15000.0, Y * 15000.0);
             if (FKalmalaWorldFieldSampler::Sample(Config, Position).Elevation < 0.22f)
             {
                 const auto Ocean = UKalmalaMinimapViewModel::BuildTerrainSamples(Config, Position, 100.0f, 3);

@@ -90,7 +90,7 @@ bool UKalmalaMinimapViewModel::Refresh()
 
 bool UKalmalaMinimapViewModel::RefreshTerrain(const FKalmalaWorldGenerationConfig& Config, const FVector2D& Location)
 {
-    if (LastSeed != Config.WorldSeed || LastGeneratorRevision != Config.GeneratorRevision)
+    if (LastSeed != Config.WorldSeed)
     {
         bIsReady = false;
     }
@@ -109,13 +109,12 @@ bool UKalmalaMinimapViewModel::RefreshTerrain(const FKalmalaWorldGenerationConfi
             LastExtent = PendingExtent;
             LastDimensions = PendingDimensions;
             LastSeed = PendingConfig.WorldSeed;
-            LastGeneratorRevision = PendingConfig.GeneratorRevision;
             ++PresentationRevision;
             bIsReady = !TerrainSamples.IsEmpty();
         }
     }
     if (bIsReady && Location.Equals(LastLocation, 1.0f) && LastRadius == MapRadius && LastExtent == GetMapExtent() && LastDimensions == SampleDimensions
-        && LastSeed == Config.WorldSeed && LastGeneratorRevision == Config.GeneratorRevision)
+        && LastSeed == Config.WorldSeed)
     {
         return true;
     }
@@ -159,7 +158,6 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
     // This is not a persistent biome/height map or an authoritative world cache.
     TMap<FIntPoint, FKalmalaRegionalSample> Vertices;
     FVector2D GridOrigin = FVector2D::ZeroVector;
-    if (WorldConfig.GeneratorRevision >= 3)
     {
         static thread_local FKalmalaWorldGenerationConfig OriginConfig;
         static thread_local FVector2D Origin;
@@ -192,8 +190,7 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
             Sample.MapPosition = MapPosition;
             if (!FKalmalaWorldBounds::Contains(WorldConfig, WorldPosition)) { Sample.TerrainColour = FLinearColor(0.003f, 0.006f, 0.009f); continue; }
             EKalmalaBiome Biome;
-            if (WorldConfig.GeneratorRevision >= 3)
-            {
+                    {
                 const FVector2D Cell = (WorldPosition - GridOrigin) / FKalmalaLakeBasin::GridSpacing;
                 const FIntPoint Base(FMath::FloorToInt(Cell.X), FMath::FloorToInt(Cell.Y));
                 const double U = Cell.X - Base.X, V = Cell.Y - Base.Y;
@@ -208,13 +205,6 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
                     + (North.WaterLevel - North.Height) * B + (Opposite.WaterLevel - Opposite.Height) * D;
                 Sample.bIsWater = Sample.TerrainHeight < 0.0f || InlandDepth > 0.0;
                 Biome = static_cast<EKalmalaBiome>(FKalmalaRegionalGeneration::Sample(WorldConfig, WorldPosition).Biome);
-            }
-            else
-            {
-                const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(WorldConfig, WorldPosition);
-                Sample.TerrainHeight = Ocean.TerrainHeight;
-                Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldConfig, WorldPosition));
-                Sample.bIsWater = Ocean.IsWater() || FKalmalaLakeBasin::IsVisibleWater(WorldConfig, WorldPosition);
             }
             Sample.TerrainColour = FKalmalaMinimapRaster::SampleBiomeTexture(Sample.bIsWater ? EKalmalaBiome::Ocean : Biome, WorldPosition);
             if (Sample.bIsWater && Biome == EKalmalaBiome::ShimmeringLakes)

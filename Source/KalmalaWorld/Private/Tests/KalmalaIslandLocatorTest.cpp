@@ -8,7 +8,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaIslandLocatorTest, "Kalmala.World.Ocean
 
 bool FKalmalaIslandLocatorTest::RunTest(const FString& Parameters)
 {
-    const FKalmalaWorldGenerationConfig Config{418, 4};
+    const FKalmalaWorldGenerationConfig Config{418};
     const FVector2D Start(FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config).GetLocation());
     FVector2D Island;
     TestTrue(TEXT("Seeded terrain resolves a naturally isolated island"), FKalmalaIslandLocator::FindNearest(Config, Start, Island));

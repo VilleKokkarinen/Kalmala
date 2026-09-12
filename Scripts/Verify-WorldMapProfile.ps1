@@ -11,7 +11,7 @@ $common = '-game -windowed -RenderOffscreen -ForceRes -ResX=1280 -ResY=720 -noso
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=4 $common -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
     $deadline = (Get-Date).AddSeconds(60)
     do {
         if ($server.HasExited) { throw 'Listen server exited before accepting connections.' }
@@ -19,7 +19,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Listen-server readiness timed out.' }
-    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 -GeneratorRevision=1 $common -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
+    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A profile peer exited.' }
@@ -27,7 +27,7 @@ try {
         $clientText = if (Test-Path $clientLog) { Get-Content -Raw $clientLog } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:') { throw 'Unreal reported a profile failure.' }
         if ($serverText -match 'World map profile: OpenMs=.*WorkerTotalMs=.*GameThreadTotalMs=.*Tiles=\d+ CacheBytes=\d+.' -and
-            $clientText -match 'Client received world-generation identity: Seed=418 Revision=4' -and
+            $clientText -match 'Client received world-generation identity: Seed=418' -and
             $clientText -match 'World map profile: OpenMs=.*WorkerTotalMs=.*GameThreadTotalMs=.*Tiles=\d+ CacheBytes=\d+.') { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)

@@ -11,12 +11,11 @@ bool FKalmalaFiniteWorldTest::RunTest(const FString& Parameters)
 {
     using B = FKalmalaWorldBounds;
     using G = FKalmalaRegionalGeneration;
-    const FKalmalaWorldGenerationConfig C{418, 5}, Legacy{418, 4}, Streams{418, 6};
+    const FKalmalaWorldGenerationConfig C{418};
     TestTrue(TEXT("Origin is inside"), B::Contains(C, FVector2D::ZeroVector));
     TestTrue(TEXT("16 km radius is inclusive"), B::Contains(C, FVector2D(B::Radius, 0)));
     TestFalse(TEXT("Beyond the radius is outside"), B::Contains(C, FVector2D(B::Radius + 1, 0)));
     TestFalse(TEXT("Square corners are outside"), B::Contains(C, FVector2D(B::Radius * .8)));
-    TestTrue(TEXT("Legacy worlds remain unbounded"), B::Contains(Legacy, FVector2D(B::Radius * 2)));
     TestFalse(TEXT("Outside patches are rejected"), B::IntersectsPatch(C, FVector2D(B::Radius + 2000, 0), 1500));
     TestTrue(TEXT("Boundary patches are retained for clipping"), B::IntersectsPatch(C, FVector2D(B::Radius + 1000, 0), 1500));
     for (double Angle : {0.0, 0.5, 2.0, 3.5, 5.0})
@@ -35,23 +34,17 @@ bool FKalmalaFiniteWorldTest::RunTest(const FString& Parameters)
     for (auto Kind : {EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard})
         TestTrue(TEXT("No population beyond edge"), FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(C, FIntPoint(300, 300), Kind).IsEmpty());
     TestFalse(TEXT("Small streams disabled in current worlds"), G::AreStreamsEnabled(C));
-    TestTrue(TEXT("Debug identity restores streams"), G::AreStreamsEnabled(Streams));
-    TestTrue(TEXT("Legacy streams retained"), G::AreStreamsEnabled(Legacy));
-    int32 Rivers = 0, DebugStreams = 0;
+    int32 Rivers = 0;
     for (int32 Y = -4; Y <= 4; ++Y) for (int32 X = -4; X <= 4; ++X)
     {
         for (const auto& S : G::GetHydrology(C, FIntPoint(X, Y))) { TestFalse(TEXT("No stream segments"), S.bStream); ++Rivers; }
-        for (const auto& S : G::GetHydrology(Streams, FIntPoint(X, Y))) DebugStreams += S.bStream;
     }
     TestTrue(TEXT("Large rivers still generated"), Rivers > 0);
-    TestTrue(TEXT("Debug layout actually generates small streams"), DebugStreams > 0);
-    TestTrue(TEXT("Meadows preferred centrally"), G::DistancePreference(0, 0) > G::DistancePreference(0, B::Radius));
-    TestTrue(TEXT("Tundra preference rises outward"), G::DistancePreference(4, B::Radius * .75) > G::DistancePreference(4, 0));
     // Distribution checks use actual dominant classifications, not the weighting helper.
     for (uint64 Seed : {418ull, 419ull})
     {
         double Tier[2] = {}; int32 Land[2] = {};
-        const FKalmalaWorldGenerationConfig Config{Seed, 5};
+        const FKalmalaWorldGenerationConfig Config{Seed};
         for (int32 Ring = 0; Ring < 2; ++Ring) for (int32 N = 0; N < 192; ++N)
         {
             const double Angle = N * 2.399963229728653;

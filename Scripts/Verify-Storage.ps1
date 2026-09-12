@@ -13,7 +13,7 @@ function Invoke-StorageRun([int]$Run) {
     $restore = if ($Run -eq 2) { '-KalmalaStorageRestore' } else { '' }
     $server = $null; $client = $null
     try {
-        $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=4 $common $restore -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+        $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common $restore -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
         $deadline = (Get-Date).AddSeconds(90)
         do {
             if ($server.HasExited) { throw "Run $Run server exited during startup." }
@@ -23,7 +23,7 @@ function Invoke-StorageRun([int]$Run) {
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw "Run $Run server readiness timed out." }
-        $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$boundPort -WorldSeed=999 -GeneratorRevision=1 $common $restore -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
+        $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$boundPort -WorldSeed=999 $common $restore -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
         $deadline = (Get-Date).AddSeconds(100)
         $ready = $false
         do {
@@ -39,7 +39,7 @@ function Invoke-StorageRun([int]$Run) {
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if (!$ready) { throw "Run $Run storage RPC scenario timed out." }
-        if (!$clientText.Contains('Client received world-generation identity: Seed=418 Revision=4')) { throw 'Client identity mismatch.' }
+        if (!$clientText.Contains('Client received world-generation identity: Seed=418')) { throw 'Client identity mismatch.' }
         $ids = @([regex]::Matches($serverText, 'Storage server ready: Restore=\d Id=([0-9a-f-]+) Wood=3') | ForEach-Object { $_.Groups[1].Value } | Sort-Object)
         if ($ids.Count -ne 2 -or $ids[0] -eq $ids[1]) { throw 'Expected two distinct chest IDs.' }
         if ($Run -eq 1) { $script:originalIds = $ids }

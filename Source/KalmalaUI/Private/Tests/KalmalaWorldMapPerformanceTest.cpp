@@ -30,8 +30,6 @@ bool FKalmalaWorldMapPerformanceTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 4;
-
     const SIZE_T TilePayloadBytes = KalmalaWorldMapBudget::TileSamplesPerAxis * KalmalaWorldMapBudget::TileSamplesPerAxis * sizeof(FColor);
     const SIZE_T MaximumCachePayloadBytes = KalmalaWorldMapBudget::MaxCachedTiles * TilePayloadBytes;
     TestEqual(TEXT("Expanded-map cache has a bounded CPU pixel payload"), MaximumCachePayloadBytes, SIZE_T(278784));

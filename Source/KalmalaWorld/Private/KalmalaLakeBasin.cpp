@@ -38,33 +38,7 @@ bool FKalmalaLakeBasin::Find(const FIntPoint Start,
 bool FKalmalaLakeBasin::Contains(const FKalmalaWorldGenerationConfig& Config,
     const FVector2D Position, const FVector2D GridOrigin)
 {
-    if (Config.GeneratorRevision >= 3)
-    {
-        return FKalmalaRegionalGeneration::Sample(Config, Position).BasinWeight > 0;
-    }
-    // Cache only completed component decisions. Identity/origin are part of the
-    // key; neither query order nor which streaming patch arrives first matters.
-    static FCriticalSection Mutex;
-    FScopeLock Lock(&Mutex);
-    static FKalmalaWorldGenerationConfig CachedConfig;
-    static FVector2D CachedOrigin(TNumericLimits<double>::Max());
-    static TMap<FIntPoint, bool> Cache;
-    const FVector2D Origin(FMath::Fmod(GridOrigin.X, GridSpacing), FMath::Fmod(GridOrigin.Y, GridSpacing));
-    if (!(CachedConfig == Config) || !CachedOrigin.Equals(Origin, 0.001) || Cache.Num() > 131072)
-    { Cache.Reset(); CachedConfig = Config; CachedOrigin = Origin; }
-    const FIntPoint Key(FMath::RoundToInt((Position.X - Origin.X) / GridSpacing), FMath::RoundToInt((Position.Y - Origin.Y) / GridSpacing));
-    if (const bool* Known = Cache.Find(Key)) return *Known;
-    TArray<FIntPoint> Wet;
-    const bool Result = Find(Key, [&](FIntPoint P)
-    {
-        const FVector2D World = Origin + FVector2D(P.X, P.Y) * GridSpacing;
-        const auto Fields = FKalmalaWorldFieldSampler::Sample(Config, World);
-        return TPair<float, bool>((Fields.Elevation - FKalmalaTerrainHeightSampler::SeaLevelElevation) * FKalmalaTerrainHeightSampler::WorldUnitsPerElevation,
-            FKalmalaBiomeClassifier::Classify(Fields) == EKalmalaBiome::ShimmeringLakes);
-    }, Wet);
-    for (const FIntPoint P : Wet) Cache.Add(P, Result);
-    Cache.Add(Key, Result);
-    return Result;
+    return FKalmalaRegionalGeneration::Sample(Config, Position).BasinWeight > 0;
 }
 
 bool FKalmalaLakeBasin::IsVisibleWater(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)
@@ -81,24 +55,11 @@ bool FKalmalaLakeBasin::IsVisibleWater(const FKalmalaWorldGenerationConfig& Conf
     const bool Upper = X + Y > 1.0;
     const FIntPoint Corners[] = {Base + FIntPoint(1,0), Base + FIntPoint(0,1), Base + (Upper ? FIntPoint(1,1) : FIntPoint(0,0))};
     const double Weights[] = {Upper ? 1.0-Y : X, Upper ? 1.0-X : Y, Upper ? X+Y-1.0 : 1.0-X-Y};
-    if (Config.GeneratorRevision >= 3)
+    double Depth = 0;
+    for (int32 I = 0; I < 3; ++I)
     {
-        double Depth = 0;
-        for (int32 I = 0; I < 3; ++I)
-        {
-            const auto Region = FKalmalaRegionalGeneration::Sample(Config, Origin + FVector2D(Corners[I]) * GridSpacing);
-            Depth += (Region.WaterLevel - Region.Height) * Weights[I];
-        }
-        return Depth > 0;
+        const auto Region = FKalmalaRegionalGeneration::Sample(Config, Origin + FVector2D(Corners[I]) * GridSpacing);
+        Depth += (Region.WaterLevel - Region.Height) * Weights[I];
     }
-    float Height = 0;
-    bool Contained = false;
-    for (int32 I=0; I<3; ++I)
-    {
-        const FVector2D P = Origin + FVector2D(Corners[I].X, Corners[I].Y) * GridSpacing;
-        const float H = FKalmalaTerrainHeightSampler::SampleHeight(Config, P);
-        Height += H * Weights[I];
-        if (H < FKalmalaShimmeringLakeSampler::WaterSurfaceWorldHeight) Contained |= Contains(Config, P, Origin);
-    }
-    return Height < FKalmalaShimmeringLakeSampler::WaterSurfaceWorldHeight && Contained;
+    return Depth > 0;
 }

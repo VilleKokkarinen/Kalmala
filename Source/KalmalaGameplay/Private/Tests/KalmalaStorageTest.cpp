@@ -12,8 +12,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaStorageSaveTest, "Kalmala.Gameplay.Stor
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FKalmalaStorageSaveTest::RunTest(const FString& Parameters)
 {
-    FKalmalaWorldGenerationConfig Config; Config.WorldSeed = 418; Config.GeneratorRevision = 4;
-    auto* Save = NewObject<UKalmalaStorageSaveGame>(); Save->InitializeForWorld(Config);
+    FKalmalaWorldGenerationConfig Config; Config.WorldSeed = 418; auto* Save = NewObject<UKalmalaStorageSaveGame>(); Save->InitializeForWorld(Config);
     TestTrue(TEXT("Empty identity container is valid"), Save->MatchesWorld(Config));
     TestTrue(TEXT("Store two materials"), Save->UpsertRecord(TEXT("chest-1"), {{TEXT("Wood"),3},{TEXT("Stone"),2}}));
     for (const int32 Quantity : {0, -1, MIN_int32, MAX_int32})
@@ -37,7 +36,7 @@ bool FKalmalaStorageSaveTest::RunTest(const FString& Parameters)
         if (TestNotNull(TEXT("Stable ID survives reload"), Record)) TestEqual(TEXT("Contents survive reload"), Record->Stacks[0].Quantity, 3);
         Config.WorldSeed++;
         TestFalse(TEXT("Different seed rejected"), Loaded->MatchesWorld(Config));
-        Config.WorldSeed--; Config.GeneratorRevision++;
+        Config.WorldSeed--; Config.WorldSeed += 2;
         TestFalse(TEXT("Different generator rejected"), Loaded->MatchesWorld(Config));
     }
     return true;

@@ -16,7 +16,7 @@ struct KALMALAWORLD_API FKalmalaWorldGenerationSeeds
 {
     static uint64 DeriveFieldSeed(const FKalmalaWorldGenerationConfig& Config, const EKalmalaWorldField Field)
     {
-        uint64 Value = Config.WorldSeed ^ (static_cast<uint64>(Config.GeneratorRevision) << 32)
+        uint64 Value = Config.WorldSeed
             ^ (0x9E3779B97F4A7C15ull * (static_cast<uint64>(Field) + 1ull));
         Value ^= Value >> 30;
         Value *= 0xBF58476D1CE4E5B9ull;

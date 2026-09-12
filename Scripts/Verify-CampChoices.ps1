@@ -12,7 +12,7 @@ $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=1 $common -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+    $server = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
     $deadline = (Get-Date).AddSeconds(60)
     do {
         if ($server.HasExited) { throw 'Listen server exited before accepting connections.' }
@@ -31,7 +31,7 @@ try {
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Two-player scenario timed out.' }
     $clientText = Get-Content $clientLog -Raw
-    if ($clientText -notmatch 'Client received world-generation identity: Seed=418 Revision=1') { throw 'Client world identity did not match the server.' }
+    if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client world identity did not match the server.' }
     $weatherPattern = 'weather cycle \d+: Start=[\d.]+ Duration=[\d.]+ Precipitation=[\d.]+ WindDirection=\d+ WindStrength=[\d.]+\.'
     $weather = [regex]::Match($serverText, $weatherPattern).Value
     if (!$weather -or !$clientText.Contains($weather)) { throw 'Client weather did not match the server.' }

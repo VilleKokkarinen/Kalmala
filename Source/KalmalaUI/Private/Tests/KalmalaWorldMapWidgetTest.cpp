@@ -122,7 +122,6 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
         PinWidget->FindVisiblePinAtScreenPosition(OverlapScreenPosition, FVector2D(1000.0f, 1000.0f)), OverlappedOlderIndex);
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    Config.GeneratorRevision = 1;
     const FIntPoint Dimensions(9, 5);
     const TArray<FKalmalaMinimapTerrainSample> RectangularSamples = UKalmalaMinimapViewModel::BuildTerrainSamples(
         Config, FVector2D(1000.0f, -500.0f), FVector2D(8000.0f, 4500.0f), Dimensions);
@@ -131,7 +130,6 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     const TArray<FColor> RectangularPixels = FKalmalaMinimapRaster::BuildPixels(RectangularSamples, Dimensions);
     TestEqual(TEXT("Expanded map raster preserves rectangular dimensions"), RectangularPixels.Num(), RectangularSamples.Num());
     TestEqual(TEXT("Expanded map has no circular alpha cutout"), RectangularPixels[0].A, uint8(255));
-    Config.GeneratorRevision = 4;
     UKalmalaWorldMapPinsSaveGame* Pins = NewObject<UKalmalaWorldMapPinsSaveGame>();
     Pins->InitializeForWorld(Config);
     TestTrue(TEXT("Personal pins accept bounded local presentation data"), Pins->SetPins(PinWidget->LocalPins));

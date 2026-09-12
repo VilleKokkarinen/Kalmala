@@ -315,7 +315,7 @@ TArray<FColor> UKalmalaWorldMapWidget::BuildTilePixels(const FKalmalaWorldGenera
 {
     const int32 SamplesPerAxis = WorldSize > TileWorldSize ? 65 : TileSamplesPerAxis;
     const FVector2D Centre = (FVector2D(TileCoordinate) + FVector2D(0.5f)) * WorldSize;
-    if (WorldSize > TileWorldSize && Config.GeneratorRevision >= 3)
+    if (WorldSize > TileWorldSize)
     {
         // Overview pixels span hundreds of metres: sample the same generator
         // once per pixel instead of resolving sub-metre collision triangles.
@@ -420,13 +420,13 @@ void UKalmalaWorldMapWidget::UpdateFogTexture(const FVector2D MapCentre, const F
 FString UKalmalaWorldMapWidget::GetExplorationSaveSlot(const FKalmalaWorldGenerationConfig& Config) const
 {
     const int32 PlayerIndex = GetOwningPlayer() != nullptr ? GetOwningPlayer()->GetLocalPlayer()->GetControllerId() : 0;
-    return FString::Printf(TEXT("KalmalaPersonalMapCoverage_v1_%llu_%d_%d"), Config.WorldSeed, Config.GeneratorRevision, PlayerIndex);
+    return FString::Printf(TEXT("KalmalaPersonalMapCoverage_v1_%llu_%d"), Config.WorldSeed, PlayerIndex);
 }
 
 FString UKalmalaWorldMapWidget::GetPinsSaveSlot(const FKalmalaWorldGenerationConfig& Config) const
 {
     const int32 PlayerIndex = GetOwningPlayer() != nullptr ? GetOwningPlayer()->GetLocalPlayer()->GetControllerId() : 0;
-    return FString::Printf(TEXT("KalmalaPersonalMapPins_v1_%llu_%d_%d"), Config.WorldSeed, Config.GeneratorRevision, PlayerIndex);
+    return FString::Printf(TEXT("KalmalaPersonalMapPins_v1_%llu_%d"), Config.WorldSeed, PlayerIndex);
 }
 
 void UKalmalaWorldMapWidget::EnsureExplorationForWorld(const FKalmalaWorldGenerationConfig& Config)
@@ -547,8 +547,8 @@ void UKalmalaWorldMapWidget::LogDeveloperTileFingerprint()
         Digest = FCrc::MemCrc32(&Tile.PixelHash, sizeof(Tile.PixelHash), Digest);
     }
     bDeveloperTileFingerprintLogged = true;
-    UE_LOG(LogTemp, Display, TEXT("World map tile presentation: Seed=%d Revision=%d Tiles=%d Fingerprint=%u PollOnly=1."),
-        TileConfig.WorldSeed, TileConfig.GeneratorRevision, Coordinates.Num(), Digest);
+    UE_LOG(LogTemp, Display, TEXT("World map tile presentation: Seed=%llu Tiles=%d Fingerprint=%u PollOnly=1."),
+        TileConfig.WorldSeed, Coordinates.Num(), Digest);
 }
 
 void UKalmalaWorldMapWidget::LogDeveloperProfile()
@@ -602,8 +602,8 @@ void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
         const FVector2D RemoteProbe = PawnLocation + FVector2D(LocalRevealRadius * 2.0f + 1.0f, 0.0f);
         const bool bRemoteExplored = ExplorationSave != nullptr && ExplorationSave->IsExplored(RemoteProbe);
         bDeveloperFogVerificationLogged = true;
-        UE_LOG(LogTemp, Display, TEXT("World map fog presentation: Seed=%d Revision=%d Cells=%d Loaded=%d Remote=%d."),
-            Config.WorldSeed, Config.GeneratorRevision, ExplorationSave != nullptr ? ExplorationSave->GetExploredCellCount() : 0,
+        UE_LOG(LogTemp, Display, TEXT("World map fog presentation: Seed=%llu Cells=%d Loaded=%d Remote=%d."),
+            Config.WorldSeed, ExplorationSave != nullptr ? ExplorationSave->GetExploredCellCount() : 0,
             bExplorationLoadedForWorld ? 1 : 0, bRemoteExplored ? 1 : 0);
     }
     int32 PendingCount = 0;

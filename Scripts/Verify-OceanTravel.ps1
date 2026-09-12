@@ -11,7 +11,7 @@ $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -GeneratorRevision=4 $common -abslog=`"$serverLog`" -UserDir=`"$output/Host`""
+    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -abslog=`"$serverLog`" -UserDir=`"$output/Host`""
     $deadline = (Get-Date).AddSeconds(60)
     do {
         if ($server.HasExited) { throw 'Server exited during startup.' }
@@ -33,7 +33,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Ocean-travel verification timed out.' }
-    if ($clientText -notmatch 'Client received world-generation identity: Seed=418 Revision=4') { throw 'Client world identity mismatch.' }
+    if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client world identity mismatch.' }
     if (($serverText + $clientText) -match 'ClientAdjustPosition|movement base') { throw 'Ocean-travel verification found a terrain/movement disagreement; inspect logs.' }
     Write-Output 'PASS: host and client crossed the shared generated ocean with complete, duplicate-free terrain neighborhoods.'
 }

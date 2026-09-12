@@ -12,7 +12,18 @@ bool FKalmalaOceanSamplerTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    const FVector2D Origin(FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config).GetLocation());
+    FVector2D Origin(FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config).GetLocation());
+    // Locate a physical master-map coastline, then inspect its collision lattice.
+    bool bFoundCoast = false;
+    for (int32 Y = -80; Y <= 80 && !bFoundCoast; ++Y)
+    for (int32 X = -80; X < 80 && !bFoundCoast; ++X)
+    {
+        const FVector2D P(X * 10000.0, Y * 10000.0);
+        if ((FKalmalaTerrainHeightSampler::SampleHeight(Config, P) < 0) !=
+            (FKalmalaTerrainHeightSampler::SampleHeight(Config, P + FVector2D(10000, 0)) < 0))
+        { Origin = P + FVector2D(5000, 0); bFoundCoast = true; }
+    }
+    TestTrue(TEXT("Master crop contains a coast fixture"), bFoundCoast);
     FKalmalaWorldGenerationConfig Other = Config;
     Other.WorldSeed = 999;
     const FVector2D OtherOrigin(FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Other).GetLocation());
@@ -58,9 +69,7 @@ bool FKalmalaOceanSamplerTest::RunTest(const FString& Parameters)
     }
     TestTrue(TEXT("Fixture covers sea floor, dry land and physical coasts"), Wet > 0 && Dry > 0 && Coastal > 0);
     TestTrue(TEXT("Different seed changes terrain beneath sea"), Different > 0);
-    Config.GeneratorRevision = 0;
-    TestFalse(TEXT("Invalid world cannot supply movement water"), FKalmalaOceanSampler::Sample(Config, Origin).bIsValid);
-    Config.GeneratorRevision = 1;
+    TestTrue(TEXT("Current seeded world supplies a valid query"), FKalmalaOceanSampler::Sample(Config, Origin).bIsValid);
     TestFalse(TEXT("Nonfinite positions are rejected"), FKalmalaOceanSampler::Sample(Config,
         FVector2D(std::numeric_limits<double>::quiet_NaN(), 0)).bIsValid);
     AddInfo(FString::Printf(TEXT("Ocean fixture: wet=%d dry=%d coastal=%d different=%d"), Wet, Dry, Coastal, Different));

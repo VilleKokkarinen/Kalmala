@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 
-/** Revisioned developer tuning, in Unreal centimetres. Never client-controlled. */
+/** Current developer tuning, in Unreal centimetres. Never client-controlled. */
 struct FKalmalaRegionalTuning
 {
     static constexpr double BiomeScale = 60000.0;
@@ -29,10 +29,19 @@ struct FKalmalaRegionalTuning
     static constexpr double BasinSpacing = 40000.0;
     static constexpr float SeaElevation = 0.22f;
     static constexpr float MountainElevation = 0.78f;
-    // Revision 7+: hard eligibility distances from world zero, centimetres.
+    // Hard eligibility distances from world zero, centimetres.
     static constexpr double StarterRadius = 35000.0;
     static constexpr double ElderwoodMinimum = 75000.0;
-    static constexpr double MireMinimum = 200000.0;
+    static constexpr double LakesMinimum = 35000.0;
+    static constexpr double LakesMaximum = 300000.0;
+    static constexpr double MireMinimum = 300000.0;
+    static constexpr double MireMaximum = 1600000.0;
+    static constexpr double WetlandHumidityMinimum = 0.48;
+    static constexpr double WetlandHumidityFull = 0.65;
+    static constexpr double WetlandElevationFull = 0.43;
+    static constexpr double WetlandElevationMaximum = 0.58;
+    static constexpr double WetlandTemperatureMinimum = 0.18;
+    static constexpr double WetlandTemperatureFull = 0.32;
     static constexpr double TundraMinimum = 400000.0;
     static constexpr double MeadowsMaximum = 400000.0;
     static constexpr double EligibilityBlend = 5000.0;

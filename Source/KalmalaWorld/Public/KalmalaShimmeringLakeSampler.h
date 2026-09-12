@@ -14,13 +14,7 @@ struct KALMALAWORLD_API FKalmalaShimmeringLakeSampler
 
     static bool IsWater(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)
     {
-        if (Config.GeneratorRevision >= 3)
-        {
-            const auto Region = FKalmalaRegionalGeneration::Sample(Config, Position);
-            return Region.BasinWeight > 0 && Region.bHasWater;
-        }
-        const FKalmalaWorldFieldSample FieldSample = FKalmalaWorldFieldSampler::Sample(Config, Position);
-        return FKalmalaBiomeClassifier::Classify(FieldSample) == EKalmalaBiome::ShimmeringLakes
-            && FKalmalaTerrainHeightSampler::SampleHeight(Config, Position) <= WaterSurfaceWorldHeight;
+        const auto Region = FKalmalaRegionalGeneration::Sample(Config, Position);
+        return Region.BasinWeight > 0 && Region.bHasWater;
     }
 };

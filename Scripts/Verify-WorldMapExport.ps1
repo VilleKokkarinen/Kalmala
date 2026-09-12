@@ -5,7 +5,7 @@ $proof = Join-Path $env:TEMP ('KalmalaMapExportProof-' + [guid]::NewGuid().ToStr
 New-Item -ItemType Directory -Path $proof | Out-Null
 $inputPath = Join-Path $proof 'preview.params'
 $log = Join-Path $proof 'export.log'
-$baseline = "WorldSeed=418`nRevision=7`nSize=64`n"
+$baseline = "WorldSeed=418`nSize=64`n"
 [IO.File]::WriteAllText($inputPath, $baseline)
 $process = $null
 function Wait-Report([string]$Pattern, [int]$Count) {
@@ -36,7 +36,7 @@ try {
     Wait-Report 'Invalid world-map parameters' 1
     $invalid = Get-Hashes
     foreach ($name in $original.Keys) { if ($original[$name] -ne $invalid[$name]) { throw 'Invalid input modified output' } }
-    [IO.File]::WriteAllText($inputPath, ($baseline + "MasterSeed=42`nMasterWavelengthKm=5.5`nLandThreshold=0.1`nBiomeScaleKm=1.4`nWarpStrengthKm=0.2`n"))
+    [IO.File]::WriteAllText($inputPath, ($baseline + "MasterSeed=42`nMasterWavelengthKm=5.5`nLandThreshold=0.1`nBiomeScaleKm=1.4`nWarpStrengthKm=0.2`nLakesMinimumKm=3`nLakesMaximumKm=16`nMireMinimumKm=3`nMireMaximumKm=16`nWetlandHumidityMinimum=0.3`nWetlandHumidityFull=0.6`n"))
     Wait-Report 'World PNG export complete:' 2
     $changed = Get-Hashes
     foreach ($name in $original.Keys) { if ($original[$name] -eq $changed[$name]) { throw "No tuning variation: $name" } }
@@ -45,7 +45,7 @@ try {
     if (!$process.WaitForExit(10000) -or $process.ExitCode -ne 0) { throw 'Exporter failed to finish cleanly' }
     $restored = Get-Hashes
     foreach ($name in $original.Keys) { if ($original[$name] -ne $restored[$name]) { throw "Stale tuning/crop cache: $name" } }
-    Write-Output 'PASS: PNG signatures, exact fast/full pixels, warm reload, independent tuning variation, invalid-input preservation and restored-default hashes.'
+    Write-Output 'PASS: PNG signatures, exact fast/full pixels, shared wetland weights, warm reload, independent tuning variation, invalid-input preservation and restored-default hashes.'
     Select-String -LiteralPath $log -Pattern 'World PNG export complete:' | ForEach-Object { $_.Line }
 }
 finally {
