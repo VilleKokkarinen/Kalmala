@@ -2,28 +2,28 @@
 # Preview-only experiments: these values never change gameplay or saved worlds.
 # Distances/wavelengths are kilometres. Seeds are unsigned decimal integers.
 # Missing settings use current production defaults. Unknown/duplicate keys fail.
-WorldSeed=123948
+WorldSeed=4182
 Size=2048
 # MasterSeed is optional; omit it to use the production atlas seed.
-MasterWavelengthKm=2.3
+MasterWavelengthKm=1.55
 # Raise threshold for less land; lower it for more land. Allowed: -0.5 through 0.5.
-LandThreshold=0.1
-BiomeScaleKm=1.6
+LandThreshold=0.03
+BiomeScaleKm=8
 WarpStrengthKm=0.08
-StarterRadiusKm=0.15
-ElderwoodMinimumKm=1.2
-MireMinimumKm=6
-TundraMinimumKm=4.5
+StarterRadiusKm=0.5
+ElderwoodMinimumKm=1.25
+LakesMinimumKm=0.5
+MireMinimumKm=4.5
+TundraMinimumKm=6
 MeadowsMaximumKm=4
+LakesMaximumKm=4.5
 EligibilityBlendKm=0.05
 
 # Shared wetland placement; Lakes is the starter-distance counterpart of Mire.
-LakesMinimumKm=0.35
-LakesMaximumKm=6
-MireMaximumKm=16
-WetlandHumidityMinimum=0.48
-WetlandHumidityFull=0.65
-WetlandElevationFull=0.43
-WetlandElevationMaximum=0.58
-WetlandTemperatureMinimum=0.18
-WetlandTemperatureFull=0.32
+MireMaximumKm=14.5
+WetlandHumidityMinimum=0.25
+WetlandHumidityFull=0.3
+WetlandElevationFull=0.75
+WetlandElevationMaximum=0.8
+WetlandTemperatureMinimum=0
+WetlandTemperatureFull=0.1

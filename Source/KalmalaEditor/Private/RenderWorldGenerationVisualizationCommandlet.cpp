@@ -26,9 +26,9 @@ namespace KalmalaWorldGenerationVisualization
         case EKalmalaBiome::Ocean: return { 23, 88, 160 };
         case EKalmalaBiome::ShimmeringLakes: return { 61, 177, 190 };
         case EKalmalaBiome::Elderwood: return { 30, 100, 47 };
-        case EKalmalaBiome::MossyMire: return { 76, 113, 55 };
-        case EKalmalaBiome::FreezingTundra: return { 213, 236, 238 };
-        case EKalmalaBiome::ThunderMountains: return { 104, 98, 112 };
+        case EKalmalaBiome::MossyMire: return { 113,79,55 };
+        case EKalmalaBiome::FreezingTundra: return { 153, 153, 151 };
+        case EKalmalaBiome::ThunderMountains: return { 240, 240, 240 };
         case EKalmalaBiome::Meadows: return { 131, 174, 76 };
         default: return { 255, 0, 255 };
         }

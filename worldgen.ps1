@@ -1,1 +1,1 @@
-./Scripts/Export-WorldMaps.ps1 -Watch
+./Scripts/Export-WorldMaps.ps1 -Build

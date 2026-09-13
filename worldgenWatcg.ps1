@@ -1,0 +1,1 @@
+./Scripts/Export-WorldMaps.ps1 -Watch

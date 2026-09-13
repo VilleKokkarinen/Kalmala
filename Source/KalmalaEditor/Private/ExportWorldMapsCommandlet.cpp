@@ -101,8 +101,8 @@ namespace
             FColor(61,177,190),
             FColor(30,100,47),
             FColor(113,79,55),
-            FColor(224,206,164),
-            FColor(203,202,204),
+            FColor(153, 153, 151),
+            FColor(240, 240, 240),
             Water
         };
         TArray<FColor> Master, Crop, Biomes;
