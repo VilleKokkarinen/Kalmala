@@ -1,9 +1,11 @@
 #include "KalmalaHazardSpawn.h"
 
+#include "Components/SceneComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AKalmalaHazardSpawn::AKalmalaHazardSpawn()
 {
+    RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     bReplicates = true;
     SetReplicateMovement(false);
     SetActorEnableCollision(false);

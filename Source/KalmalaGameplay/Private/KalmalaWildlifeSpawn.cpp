@@ -1,9 +1,11 @@
 #include "KalmalaWildlifeSpawn.h"
 
+#include "Components/SceneComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AKalmalaWildlifeSpawn::AKalmalaWildlifeSpawn()
 {
+    RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     bReplicates = true;
     SetReplicateMovement(false);
     SetActorEnableCollision(false);

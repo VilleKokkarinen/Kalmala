@@ -293,3 +293,7 @@ This explicit user request temporarily superseded autonomous M2 task selection. 
 - [x] Verify fast/full pixel agreement, warm tuning/cache restoration, invalid-input preservation, PNG output, legacy regression fingerprints and unchanged host/client generation; document the workflow and preview-only authority boundary.
 
 This explicit developer-tool request does not close or advance the pending M2 persisted-camp acceptance item.
+
+Persisted-camp peer diagnostic 2026-09-13: assigned scene roots to the replicated wildlife and hazard placeholders, removing their per-frame IsNetRelevantFor warnings during the shared fixture. The forced editor build passed, but the remote peer still stops after its initial terrain presentation work and before its owner report; retain the scenario item unchecked and continue the client initialization/replication diagnosis.
+
+Persisted-camp peer repair 2026-09-13: the retained shared fixture now passes the gathered hearth/floor/wall/roof/workbench/chest and owner-storage state comparison. It identifies each paid hearth by its replicated owning controller rather than assuming a local test-placement probe changes the owning client pawn position. Shelter/weather comparison and combined restart remain required in the same unchecked scenario.

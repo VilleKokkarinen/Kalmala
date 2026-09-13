@@ -295,6 +295,16 @@ namespace
         if (!bOpened) Character->SetActorLocation(Original);
         return bOpened;
     }
+
+    const AKalmalaCampfire* FindOwnedPersistedCampfire(const UWorld* World, const AKalmalaCharacter* Character)
+    {
+        if (World == nullptr || Character == nullptr) return nullptr;
+        for (TActorIterator<AKalmalaCampfire> It(World); It; ++It)
+        {
+            if (It->GetOwner() == Character->GetController()) return *It;
+        }
+        return nullptr;
+    }
 }
 
 void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
@@ -330,14 +340,27 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
             && TransferStorageFromServer(TEXT("Wood"), true, Reason) && HasStorageView() && StorageView.Num() == 1 && StorageView[0].ItemId == TEXT("Wood") && StorageView[0].Quantity == 1;
         const bool bPaid = bStorage && Inventory->GetStacks().IsEmpty();
         const bool bPassed = bGathered && bHearthCrafted && bHearthPlaced && bKitsCrafted && bBuilt && bStorage && bPaid;
-        UE_LOG(LogTemp, Display, TEXT("Persisted camp build server: Passed=%d Player=%d Gathered=%d Hearth=%d Kits=%d Built=%d Storage=%d Paid=%d Fuel=%.0f"), bPassed, Character->GetPlayerState()->GetPlayerId(), bGathered, bHearthPlaced, bKitsCrafted, bBuilt, bStorage, bPaid, FindNearbyFire(false) ? FindNearbyFire(false)->GetFuelSeconds() : -1.0f);
+        const AKalmalaCampfire* OwnedFire = FindOwnedPersistedCampfire(GetWorld(), Character);
+        UE_LOG(LogTemp, Display, TEXT("Persisted camp build server: Passed=%d Player=%d Gathered=%d Hearth=%d Kits=%d Built=%d Storage=%d Paid=%d Fuel=%.0f"), bPassed, Character->GetPlayerState()->GetPlayerId(), bGathered, bHearthPlaced, bKitsCrafted, bBuilt, bStorage, bPaid, OwnedFire ? OwnedFire->GetFuelSeconds() : -1.0f);
         PersistedCampVerificationStage = bPassed ? 1 : 99; PersistedCampVerificationElapsed = 0;
     }
-    if (!Character->IsLocallyControlled() || bPersistedCampOwnerReported || PersistedCampVerificationElapsed < 2) return;
-    const AKalmalaCampfire* Fire = FindNearbyFire(false);
+    if (!Character->IsLocallyControlled() || bPersistedCampOwnerReported) return;
+    // Placement probes deliberately reposition the authoritative fixture pawn.
+    // Its matching client must validate the replicated owned hearth identity, not
+    // infer proximity from a client-side test teleport.
+    const AKalmalaCampfire* Fire = FindOwnedPersistedCampfire(GetWorld(), Character);
     int32 ConstructionCount = 0;
     for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It) if (It->GetConstructionKit() != NAME_None) ++ConstructionCount;
     const bool bStorageVisible = HasStorageView() && StorageView.Num() == 1 && StorageView[0].ItemId == TEXT("Wood") && StorageView[0].Quantity == 1;
+    PersistedCampClientDiagnosticElapsed += DeltaTime;
+    if (PersistedCampClientDiagnosticElapsed >= 5.0f)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Persisted camp client progress: Player=%d Fire=%d Fuel=%.0f Constructions=%d EmptyPack=%d Storage=%d Stage=%d."),
+            Character->GetPlayerState()->GetPlayerId(), Fire != nullptr, Fire ? Fire->GetFuelSeconds() : -1.0f,
+            ConstructionCount, Inventory->GetStacks().IsEmpty(), bStorageVisible, PersistedCampVerificationStage);
+        PersistedCampClientDiagnosticElapsed = 0.0f;
+    }
+    if (PersistedCampVerificationElapsed < 2) return;
     if (Fire == nullptr || !Inventory->GetStacks().IsEmpty() || ConstructionCount < 10 || !bStorageVisible) return;
     const bool bPassed = Fire != nullptr && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), 60.0f) && ConstructionCount >= 10 && bStorageVisible;
     UE_LOG(LogTemp, Display, TEXT("Persisted camp build owner: Passed=%d Authority=%d Player=%d EmptyPack=%d Fuel=%.0f Constructions=%d StorageWood=1"), bPassed, Character->HasAuthority(), Character->GetPlayerState()->GetPlayerId(), Inventory->GetStacks().IsEmpty(), Fire ? Fire->GetFuelSeconds() : -1.0f, ConstructionCount);

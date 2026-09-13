@@ -67,5 +67,6 @@ private:
     UPROPERTY(Transient) TObjectPtr<AKalmalaCampfire> VerificationFire;
     int32 PersistedCampVerificationStage = 0;
     float PersistedCampVerificationElapsed = 0.0f;
+    float PersistedCampClientDiagnosticElapsed = 0.0f;
     bool bPersistedCampOwnerReported = false;
 };

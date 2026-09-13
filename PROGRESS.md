@@ -2025,3 +2025,31 @@ Multiplayer impact: No identity, production tuning, replication, authority, RPC 
 Known limits: Initial launch still pays Unreal startup overhead; watch mode avoids it on subsequent edits. PNGs show sampled biome identity, not final water depth or terrain height; small lakes/channels may be subpixel. Atlas/playable dimensions remain fixed. Experimental settings do not update gameplay; promoting them requires the existing generator-revision process. Performance is a local measurement. One exporter should own each output directory. No new dedicated-server or rendered gameplay scenario is claimed.
 
 Next task: User can run ./Scripts/Export-WorldMaps.ps1 -Watch and tune the parameter file. Autonomous backlog work remains the unresolved M2 shared persisted-camp client stall/replication acceptance.
+
+### 2026-09-13 10:45 EEST - Reduce persisted-camp replication warning load
+
+Outcome: Diagnosed and removed one concrete source of the joining-client fixture load: replicated generated wildlife and hazard placeholder actors had no root component, causing AActor::IsNetRelevantFor warnings on every server replication pass. Both now have inert scene roots. The initial terrain replication still consumes the client''s entire observation window before its owning-player report, so the shared persisted-camp scenario remains unchecked and this run is not committed.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Private/KalmalaHazardSpawn.cpp`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. The retained full `Scripts/Verify-PersistedCampHearth.ps1 -Port 18032` peer run still timed out; it contains no root-component relevancy warnings. Both authoritative players nevertheless logged successful gathered, paid hearth/floor/wall/roof/workbench/chest and owner-storage states, while the client received server seed 418, finished its initial terrain presentation logs, and never emitted `Persisted camp build owner`. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampBuild-5f81174903ec48da81f145897b8e9330`. `git diff --check` remains required before a later commit.
+
+Multiplayer impact: Wildlife/hazard placeholders retain their existing replicated IDs and defeated state; the root is an inert non-collision attachment used only for actor relevancy. No client input, RPC, inventory, harvest, placement, construction, weather, storage, or save contract changed.
+
+Known limits: The remote-client replication/tick stall remains after warning removal; do not claim peer state agreement, shelter/weather comparison, combined sparse-delta/camp restart, or M2 acceptance. This is the second retained peer attempt against that client-report blocker.
+
+Next task: Profile the remote client''s post-terrain initialization/replication path, repair that blocker, then rerun the exact shared camp fixture before adding the remaining scenario checks.
+
+### 2026-09-13 11:00 EEST - Verify shared camp owner hearth state
+
+Outcome: Completed the next repair increment within the first unchecked M2 persisted-camp scenario. The retained fixture now identifies each paid hearth by the owning controller (the production fire ownership identity) rather than applying a client-side proximity assumption after its server-only placement probe. This closes the observed client-report gap: both owners now report a replicated 60-second fire, empty private pack, ten accepted constructions, and the one-wood private chest snapshot. Added inert roots to replicated wildlife/hazard placeholders, removing their per-frame relevancy warnings during the same scenario.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`; `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Private/KalmalaHazardSpawn.cpp`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. Final `Scripts/Verify-PersistedCampHearth.ps1 -Port 18035` passed: both players harvested initialized nodes, crafted and paid for their hearth/floor/wall/roof/workbench/chest, and each owner observed the matching replicated pack, fire, construction count, and private storage snapshot. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampBuild-9bfcb191f8e24514bf8d5d07f012ae71`.
+
+Multiplayer impact: No production RPC, save, payment, harvest, inventory, construction, fire, or weather authority changed. The fixture reads the existing replicated fire owner/controller identity and state. Generated placeholder roots are inert, non-collision components that preserve existing replicated persistent IDs and defeated-state behavior.
+
+Known limits: This shared-session pass still does not compare server-sampled shelter/weather state or prove sparse harvest plus camp save restoration after reconnect. Do not close the scenario child or M2 yet.
+
+Next task: Extend the same passing shared fixture with matching server/client shelter and weather evidence, then add the combined identity-scoped restart/reconnect proof.
