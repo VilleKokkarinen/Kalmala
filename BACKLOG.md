@@ -237,12 +237,12 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Keep surface moisture as a bounded interaction-grid material input only; it must not create an independent player stat.
   - [x] Define authoritative construction health, roof protection, campfire `Lit`/`Smouldering`/`Extinguished` states, and all tunable defaults.
 
-- [ ] **Implement player Wet.**
+- [x] **Implement player Wet.**
   - [x] Apply Wet immediately on server-confirmed water occupancy and after 10 uninterrupted seconds of rain without an accepted overhead roof; clamp reapplication to 120 seconds.
   - [x] Apply the tunable 10% movement penalty and 25% stamina-use increase through the shared status-effect path; support future debuffs without bespoke player fields.
     - [x] Apply compiled shared status modifiers to walking, sprinting, and swimming; provide the 1.25 stamina-cost calculation and verify expiry restores defaults.
     - [x] Integrate the shared cost calculation with authoritative sprint stamina consumption, then verify host/client movement agreement.
-  - [ ] Remove Wet only through expiry or a nearby lit, heat-producing campfire; clients cannot set duration, source, multipliers, or removal.
+  - [x] Remove Wet only through expiry or a nearby lit, heat-producing campfire; clients cannot set duration, source, multipliers, or removal.
 
 - [ ] **Implement roof, rain-wear, and campfire response.**
   - [ ] Make roofs rain-immune. Apply slow server-owned rain wear only to exposed floors, walls, workbenches, and storage; clamp their health at 50% and prevent wear below an accepted roof.

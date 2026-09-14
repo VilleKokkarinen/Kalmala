@@ -1,6 +1,7 @@
 #include "KalmalaPlayerStatusComponent.h"
 
 #include "Net/UnrealNetwork.h"
+#include "KalmalaCampfire.h"
 
 const FName UKalmalaPlayerStatusComponent::WetStatusId(TEXT("State.Wet"));
 
@@ -65,6 +66,19 @@ void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
     if (!GetOwner() || !GetOwner()->HasAuthority()) return;
     Advance(Statuses, DeltaSeconds);
     GetOwner()->ForceNetUpdate();
+}
+
+bool UKalmalaPlayerStatusComponent::TryRemoveWetAtCampfireFromServer(const AKalmalaCampfire* Campfire)
+{
+    const AActor* Owner = GetOwner();
+    if (!IsValid(Owner) || !Owner->HasAuthority() || !IsValid(Campfire) || !Campfire->HasAuthority()
+        || Campfire->GetWorld() != Owner->GetWorld() || !Campfire->IsLit()
+        || Owner->GetActorLocation().ContainsNaN() || Campfire->GetActorLocation().ContainsNaN()) return false;
+    const float Heat = Campfire->GetWarmthContributionAt(Owner->GetActorLocation());
+    if (!FMath::IsFinite(Heat) || Heat <= 0.0f) return false;
+    const int32 Removed = Statuses.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry) { return Entry.StatusId == WetStatusId; });
+    if (Removed > 0) GetOwner()->ForceNetUpdate();
+    return Removed > 0;
 }
 
 void UKalmalaPlayerStatusComponent::ApplyWet(TArray<FKalmalaPlayerStatusEntry>& Entries)

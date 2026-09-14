@@ -2195,3 +2195,17 @@ Multiplayer impact: Only authority advances stamina using engine movement steps 
 Known limits: Stamina is transient and starts full on a new pawn. The exhaustion gate is replicated rather than predicted; high-latency corrections at exhaustion are not yet measured. Costs cover moving grounded uncrouched sprint only; walking, swimming, jumping and crouching remain free. Legacy exposure telemetry remains transitional. The live fixture maintains Wet server-side rather than testing natural rain/water or fire removal.
 
 Next task: Remove Wet only through expiry or a nearby lit, heat-producing campfire; clients cannot set duration, source, multipliers, or removal.
+
+### 2026-09-14T14:38:48.0362405+03:00 - Remove Wet through authoritative campfire heat
+
+Outcome: Completed the next M3 child and closed Implement player Wet. The normal server environmental update now removes Wet after rain/water refresh only when an authoritative same-world lit campfire contributes finite positive heat at the pawn. Heat wins within that update; an extinguished, cold, absent or out-of-range source cannot remove Wet. Status expiry remains unchanged.
+
+Changed: Source/KalmalaGameplay/Public/KalmalaPlayerStatusComponent.h; Source/KalmalaGameplay/Private/KalmalaPlayerStatusComponent.cpp; Source/KalmalaGameplay/Private/KalmalaGameMode.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp; docs/02-technical-architecture.md; docs/07-development-setup.md; BACKLOG.md; PROGRESS.md.
+
+Verification: Forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with UnrealBuildTool local-cache access. Headless Wet, WetCampfire, WetModifiers and WetStamina all passed. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaWetCampfire-a4e47c3b1d0040bea01174d680f6e6cd/automation.log. WetCampfire uses real pawn/controller/hearth actors and checks missing/unlit/zero-heat/radius-edge/fuel-exhausted rejection, client-role rejection, successful removal, modifier restoration, idempotence, reapplication and expiry. git diff --check passed.
+
+Multiplayer impact: Both pawn and source authority plus same-world identity and server distance/heat are validated before removal. The existing replicated status array publishes the change. No RPC, client source/heat/duration payload, save schema, inventory cost or new status-specific pawn field was added.
+
+Known limits: This verifies the component seam and authority gates with real actors, not a new live host/client removal scenario. The combined M3 scenario remains unchecked. Existing IsLit/effective-warmth behavior remains until the next hearth-state task; future Smouldering must have zero heat. Legacy continuous exposure remains transitional telemetry. Shelter alone does not remove an existing Wet status.
+
+Next task: Make roofs rain-immune and apply bounded server-owned rain wear to exposed floors, walls, workbenches and storage, clamped at 50 percent health and prevented by an accepted roof.

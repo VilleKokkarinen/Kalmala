@@ -3,6 +3,8 @@
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCharacterMovementComponent.h"
+#include "KalmalaCampfire.h"
+#include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
 
@@ -102,6 +104,49 @@ bool FKalmalaWetStaminaTest::RunTest(const FString& Parameters)
     Movement->Velocity = FVector::ZeroVector;
     Movement->AdvanceStaminaFromServer(0.25f);
     TestEqual(TEXT("Stationary held sprint has no cost"), Movement->GetStamina(), 100.0f);
+    World->DestroyWorld(false);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWetCampfireTest, "Kalmala.Gameplay.Status.WetCampfire",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaWetCampfireTest::RunTest(const FString& Parameters)
+{
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    auto* Pawn = World->SpawnActor<AKalmalaCharacter>();
+    auto* Controller = World->SpawnActor<APlayerController>();
+    auto* Fire = World->SpawnActor<AKalmalaCampfire>();
+    if (!Pawn || !Controller || !Fire) { AddError(TEXT("Campfire fixture spawn failed")); World->DestroyWorld(false); return false; }
+    Controller->Possess(Pawn);
+    Fire->SetActorLocation(Pawn->GetActorLocation() + FVector(120, 0, 0));
+    auto* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    Status->ApplyWetFromServer();
+    TestFalse(TEXT("Missing source cannot remove Wet"), Status->TryRemoveWetAtCampfireFromServer(nullptr));
+    TestFalse(TEXT("Unlit nearby fire cannot remove Wet"), Status->TryRemoveWetAtCampfireFromServer(Fire));
+    Fire->InitializePaidFromServer(Pawn);
+    Fire->Interact_Implementation(Pawn);
+    TestTrue(TEXT("Fixture is lit"), Fire->IsLit());
+    TestFalse(TEXT("Lit with no effective heat cannot remove Wet"), Status->TryRemoveWetAtCampfireFromServer(Fire));
+    Fire->AdvanceFromServer(0.0f, 0.0f, 0.0f);
+    TestTrue(TEXT("Fixture produces heat"), Fire->GetEffectiveWarmth() > 0);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestFalse(TEXT("Client cannot invoke removal"), Status->TryRemoveWetAtCampfireFromServer(Fire));
+    TestTrue(TEXT("Client attempt preserves Wet"), Status->HasStatus(Status->WetStatusId));
+    Pawn->SetRole(ROLE_Authority);
+    Fire->SetActorLocation(Pawn->GetActorLocation() + FVector(600, 0, 0));
+    TestFalse(TEXT("Heat radius edge cannot remove Wet"), Status->TryRemoveWetAtCampfireFromServer(Fire));
+    Fire->SetActorLocation(Pawn->GetActorLocation() + FVector(120, 0, 0));
+    TestTrue(TEXT("Authoritative nearby heat removes Wet"), Status->TryRemoveWetAtCampfireFromServer(Fire));
+    TestFalse(TEXT("Wet entry removed"), Status->HasStatus(Status->WetStatusId));
+    TestEqual(TEXT("Movement modifier recovers"), Status->GetModifiers().Movement, 1.0f);
+    TestEqual(TEXT("Stamina cost recovers"), Status->CalculateStaminaCost(10), 10.0f);
+    TestFalse(TEXT("Repeated removal is a no-op"), Status->TryRemoveWetAtCampfireFromServer(Fire));
+    Status->ApplyWetFromServer();
+    Fire->AdvanceFromServer(60, 0, 0);
+    TestFalse(TEXT("Fuel-exhausted fire cannot remove reapplied Wet"), Status->TryRemoveWetAtCampfireFromServer(Fire));
+    Status->AdvanceFromServer(120);
+    TestFalse(TEXT("Expiry remains valid without heat"), Status->HasStatus(Status->WetStatusId));
     World->DestroyWorld(false);
     return true;
 }

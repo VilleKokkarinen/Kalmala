@@ -184,6 +184,11 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
         for (TActorIterator<AKalmalaCampfire> CampfireIterator(GetWorld()); CampfireIterator; ++CampfireIterator)
         {
             FireWarmth = FMath::Max(FireWarmth, CampfireIterator->GetWarmthContributionAt(Location));
+            // Heat wins over water/rain refresh in this server environmental step.
+            if (auto* Statuses = Character->FindComponentByClass<UKalmalaPlayerStatusComponent>())
+            {
+                Statuses->TryRemoveWetAtCampfireFromServer(*CampfireIterator);
+            }
         }
 
         FKalmalaExposureState State = Character->GetExposureState();

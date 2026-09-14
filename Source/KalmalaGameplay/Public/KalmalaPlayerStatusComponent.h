@@ -4,6 +4,8 @@
 #include "Components/ActorComponent.h"
 #include "KalmalaPlayerStatusComponent.generated.h"
 
+class AKalmalaCampfire;
+
 /** Compiled status-definition output; never supplied by a client. */
 struct FKalmalaStatusModifiers
 {
@@ -56,6 +58,8 @@ public:
     void ApplyWetFromServer();
     /** Server-only expiration tick. */
     void AdvanceFromServer(float DeltaSeconds);
+    /** Validates a same-world authoritative heat source; no client RPC. */
+    bool TryRemoveWetAtCampfireFromServer(const AKalmalaCampfire* Campfire);
 
     static void ApplyWet(TArray<FKalmalaPlayerStatusEntry>& Entries);
     static void Advance(TArray<FKalmalaPlayerStatusEntry>& Entries, float DeltaSeconds);
