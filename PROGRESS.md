@@ -2253,4 +2253,3 @@ Known limits: AGENTS.md prohibits staging or committing changes not made during 
 Next task: The existing campfire change owner must finish verification and commit, or the user must explicitly authorize adopting these eight files; then resume the first unchecked M3 task without skipping ahead.
 
 Resolution (2026-09-14T14:49:43.8862874+03:00): Final status check found that the concurrent owner committed the campfire implementation as 3454bd1 before this run's handoff commit 87a6e08. The selected checkbox is now complete and the checkout is clean. The overlap is resolved; no adoption permission is needed. This run performed no runtime verification and stops at the encountered handoff conflict. Next eligible task is the server-authority and persistence audit for construction/rain/hearth state.
-
