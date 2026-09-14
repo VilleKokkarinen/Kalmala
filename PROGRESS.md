@@ -2237,3 +2237,17 @@ Multiplayer impact: Server samples roof collision inside weather advancement and
 Known limits: Fuel wetness remains initial-lighting information and legacy telemetry; it no longer vetoes automatic dry/roofed reignition. Live replication covers Lit to Smouldering; actual roof-driven reignition is covered by actor physics tests, with the full live build/roof/Wet loop still scheduled for M3 acceptance. Older exposure-only fixtures may retain historical expectations.
 
 Next task: Audit and verify that building health, roof traces, rain exposure, fire transitions and persistence remain server-authoritative and clients only render replicated state.
+
+### 2026-09-14T14:49:04.3104371+03:00 - Campfire implementation handoff conflict
+
+Outcome: Selected the first unchecked M3 campfire smoulder/reignition child. Its implementation already exists in pre-existing uncommitted changes directly overlapping the task; stopped for a true handoff ownership conflict without adopting or modifying that work.
+
+Changed: PROGRESS.md (this entry only) and automation memory. BACKLOG.md remains unchecked; all seven pre-existing tracked modifications and the untracked KalmalaHearthStateTest.cpp are preserved.
+
+Verification: Read automation memory, backlog, handoff and relevant project/design/architecture/roadmap/decision/setup/hearth documentation. Compared campfire diff against HEAD f02d4fb: it already replaces bIsLit with replicated HearthState and adds server roof-sampled smouldering/reignition. Index was empty. No runtime implementation or Unreal verification was performed this run; existing work is not claimed as verified.
+
+Multiplayer impact: None from this run. The pending change affects replicated hearth state and server weather/roof transitions and needs its owner's verification.
+
+Known limits: AGENTS.md prohibits staging or committing changes not made during this run. Prior adoption authorization recorded in memory covered nine Wet modifier files, not these campfire changes. This is not three failed implementation attempts and the task is not marked BLOCKED. Main-checkout handoff is updated directly.
+
+Next task: The existing campfire change owner must finish verification and commit, or the user must explicitly authorize adopting these eight files; then resume the first unchecked M3 task without skipping ahead.
