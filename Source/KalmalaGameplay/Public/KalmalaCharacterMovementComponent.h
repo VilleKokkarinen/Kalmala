@@ -9,6 +9,15 @@ class KALMALAGAMEPLAY_API UKalmalaCharacterMovementComponent : public UCharacter
 {
     GENERATED_BODY()
 public:
+    UKalmalaCharacterMovementComponent();
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    float GetStamina() const { return Stamina; }
+    bool IsSprintExhausted() const { return bSprintExhausted; }
+    void AdvanceStaminaFromServer(float DeltaSeconds);
+    static constexpr float MaximumStamina = 100.0f;
+    static constexpr float SprintCostPerSecond = 10.0f;
+    static constexpr float RecoveryPerSecond = 15.0f;
+    static constexpr float SprintRecoveryThreshold = 20.0f;
     void SetSprintRequested(bool bRequested) { bSprintRequested = bRequested; }
     bool IsSprintRequested() const { return bSprintRequested; }
     virtual float GetMaxSpeed() const override;
@@ -27,6 +36,8 @@ public:
     UPROPERTY(EditDefaultsOnly, Category = "Movement", meta = (ClampMin = "1.0", ClampMax = "2.0"))
     float SprintMultiplier = 1.5f;
 private:
+    UPROPERTY(Replicated) float Stamina = MaximumStamina;
+    UPROPERTY(Replicated) bool bSprintExhausted = false;
     bool GetGeneratedOceanDepth(float& OutDepth) const;
     bool bSprintRequested = false;
 };

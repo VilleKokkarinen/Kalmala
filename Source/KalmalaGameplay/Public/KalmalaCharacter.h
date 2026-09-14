@@ -81,6 +81,7 @@ private:
     void ConfigureOceanTravelTarget();
     void AuditOceanTravelTerrain();
     bool bControlsTestEnabled = false;
+    bool bWetStaminaReport = false;
     int32 ControlsTestStage = 0;
     float ControlsTestElapsed = 0.0f;
     bool bControlsTestSprintObserved = false;

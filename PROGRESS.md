@@ -2181,3 +2181,17 @@ Multiplayer impact: None; no gameplay, RPC, status, stamina, or save changes.
 Known limits: A commit of the dependent stamina implementation would require the pre-existing prerequisite changes for a buildable checkout. AGENTS.md forbids staging or committing changes not made during this run. This is a handoff ownership conflict, not three failed implementation attempts; the task remains unchecked and is not marked BLOCKED.
 
 Next task: Have the prerequisite owner commit the existing Wet modifier increment, or obtain explicit user direction authorizing adoption of those changes; then integrate authoritative stamina consumption and verify host/client movement agreement.
+
+### 2026-09-14T14:34:44.0312836+03:00 - Complete Wet stamina integration
+
+Outcome: User explicitly authorized adopting the existing Wet modifier changes; rebuilt, passed Wet/WetModifiers, and committed them as 69a398b. Completed the next M3 stamina child: sprint now consumes a replicated server-owned 100-point pool at 10/second dry or 12.5/second Wet through the shared status cost. Recovery is 15/second; exhaustion suspends sprint until 20 points recover. Closed the movement/stamina modifier checkbox.
+
+Changed: Source/KalmalaGameplay/Public/KalmalaCharacterMovementComponent.h; Source/KalmalaGameplay/Private/KalmalaCharacterMovementComponent.cpp; Source/KalmalaGameplay/Public/KalmalaCharacter.h; Source/KalmalaGameplay/Private/KalmalaPlayerControlsTest.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp; Scripts/Verify-PlayerControls.ps1; BACKLOG.md; docs/02-technical-architecture.md; docs/07-development-setup.md; PROGRESS.md.
+
+Verification: Final forced KalmalaEditor Win64 Development build passed with UnrealBuildTool cache access. Headless Wet, WetModifiers, WetStamina and SprintSavedMoves all passed: C:/Users/Ville/AppData/Local/Temp/KalmalaWetStamina-3946d87b222548cdbbd602a0b0a22098/automation.log. Scripts/Verify-PlayerControls.ps1 -WetStamina -Port 18104 passed host/client bound sprint/jump/release, both server pawn stamina reports, owning-client replicated stamina/speed and rejected local stamina mutation: C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-cd85ce3ae6214312b2496cff4b107d87. Script parsing and git diff --check passed.
+
+Multiplayer impact: Only authority advances stamina using engine movement steps and server-resolved status cost. The existing compressed sprint intent remains the only input. Stamina/exhaustion replicate; clients cannot write stamina via an RPC or local update. No saved-data schema changes or per-debuff pawn fields.
+
+Known limits: Stamina is transient and starts full on a new pawn. The exhaustion gate is replicated rather than predicted; high-latency corrections at exhaustion are not yet measured. Costs cover moving grounded uncrouched sprint only; walking, swimming, jumping and crouching remain free. Legacy exposure telemetry remains transitional. The live fixture maintains Wet server-side rather than testing natural rain/water or fire removal.
+
+Next task: Remove Wet only through expiry or a nearby lit, heat-producing campfire; clients cannot set duration, source, multipliers, or removal.

@@ -239,9 +239,9 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 - [ ] **Implement player Wet.**
   - [x] Apply Wet immediately on server-confirmed water occupancy and after 10 uninterrupted seconds of rain without an accepted overhead roof; clamp reapplication to 120 seconds.
-  - [ ] Apply the tunable 10% movement penalty and 25% stamina-use increase through the shared status-effect path; support future debuffs without bespoke player fields.
+  - [x] Apply the tunable 10% movement penalty and 25% stamina-use increase through the shared status-effect path; support future debuffs without bespoke player fields.
     - [x] Apply compiled shared status modifiers to walking, sprinting, and swimming; provide the 1.25 stamina-cost calculation and verify expiry restores defaults.
-    - [ ] Integrate the shared cost calculation with authoritative stamina consumption (no stamina resource or consuming action exists yet), then verify host/client movement agreement.
+    - [x] Integrate the shared cost calculation with authoritative sprint stamina consumption, then verify host/client movement agreement.
   - [ ] Remove Wet only through expiry or a nearby lit, heat-producing campfire; clients cannot set duration, source, multipliers, or removal.
 
 - [ ] **Implement roof, rain-wear, and campfire response.**

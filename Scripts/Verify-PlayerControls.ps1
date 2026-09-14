@@ -1,7 +1,8 @@
 param(
     [string]$Editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe',
     [int]$Port = 17843,
-    [switch]$Rendered
+    [switch]$Rendered,
+    [switch]$WetStamina
 )
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
@@ -11,6 +12,7 @@ $serverLog = Join-Path $output 'server.log'
 $clientLog = Join-Path $output 'client.log'
 $renderer = if ($Rendered) { '-windowed -RenderOffscreen -ForceRes -ResX=1280 -ResY=720 -KalmalaMinimapVerification' } else { '-nullrhi' }
 $common = "-game $renderer -nosound -unattended -nosplash -DDC-ForceMemoryCache -KalmalaPlayerControlsTest"
+if ($WetStamina) { $common += ' -KalmalaWetStaminaTest' }
 $server = $null
 $client = $null
 try {
@@ -32,13 +34,15 @@ try {
         $localPass = $serverText -match 'Controls local result: PASS Authority=1 Parts=9 Jump=1' -and $clientText -match 'Controls local result: PASS Authority=0 Parts=9 Jump=1'
         $remotePass = $serverText -match 'Controls server sprint: Remote=1' -and $serverText -match 'Controls server jump: Remote=1' -and $serverText -match 'Controls server release: Remote=1'
         $renderPass = !$Rendered -or ((Test-Path "$output/host.png") -and (Test-Path "$output/client.png"))
-        if ($localPass -and $remotePass -and $renderPass) { break }
+        $wetPass = !$WetStamina -or ($serverText -match 'Wet stamina: Passed=1 Authority=1 Remote=0' -and $serverText -match 'Wet stamina: Passed=1 Authority=1 Remote=1' -and $clientText -match 'Wet stamina: Passed=1 Authority=0 Remote=0')
+        if ($localPass -and $remotePass -and $renderPass -and $wetPass) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Player controls verification timed out.' }
     if ($clientText -notmatch "Client received world-generation identity: Seed=418") { throw 'Client world identity mismatch.' }
     foreach ($match in [regex]::Matches($serverText, 'Controls server sprint: Remote=\d Speed=([\d.]+) Base=([\d.]+)')) {
-        if ([Math]::Abs([double]$match.Groups[1].Value - 1.5 * [double]$match.Groups[2].Value) -gt 0.2) { throw 'Server sprint did not retain the base exposure penalty.' }
+        $statusFactor = if ($WetStamina) { 0.9 } else { 1.0 }
+        if ([Math]::Abs([double]$match.Groups[1].Value - 1.5 * $statusFactor * [double]$match.Groups[2].Value) -gt 0.2) { throw 'Server sprint did not retain its status multiplier.' }
     }
     Write-Output 'PASS: host/client models, bound jump/sprint/release, landing, and server-observed remote movement.'
 }

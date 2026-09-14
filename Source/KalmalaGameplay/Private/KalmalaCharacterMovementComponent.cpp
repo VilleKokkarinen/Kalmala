@@ -5,6 +5,42 @@
 #include "KalmalaOceanSampler.h"
 #include "KalmalaWorldBounds.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "Net/UnrealNetwork.h"
+
+UKalmalaCharacterMovementComponent::UKalmalaCharacterMovementComponent()
+{
+    SetIsReplicatedByDefault(true);
+}
+
+void UKalmalaCharacterMovementComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(UKalmalaCharacterMovementComponent, Stamina);
+    DOREPLIFETIME(UKalmalaCharacterMovementComponent, bSprintExhausted);
+}
+
+void UKalmalaCharacterMovementComponent::AdvanceStaminaFromServer(const float DeltaSeconds)
+{
+    if (!CharacterOwner || !CharacterOwner->HasAuthority() || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f) return;
+    // Use the engine-validated movement step, including remote autonomous moves.
+    const float Step = FMath::Min(DeltaSeconds, 0.25f);
+    const AKalmalaCharacter* Pawn = Cast<AKalmalaCharacter>(CharacterOwner);
+    const bool bConsumes = bSprintRequested && !bSprintExhausted && IsMovingOnGround()
+        && !CharacterOwner->bIsCrouched && Velocity.SizeSquared2D() > 1.0f;
+    if (bConsumes)
+    {
+        const float BaseCost = SprintCostPerSecond * Step;
+        const float Cost = Pawn && Pawn->GetStatusComponent()
+            ? Pawn->GetStatusComponent()->CalculateStaminaCost(BaseCost) : BaseCost;
+        Stamina = FMath::Max(0.0f, Stamina - Cost);
+        if (Stamina <= 0.0f) bSprintExhausted = true;
+    }
+    else
+    {
+        Stamina = FMath::Min(MaximumStamina, Stamina + RecoveryPerSecond * Step);
+        if (Stamina >= SprintRecoveryThreshold) bSprintExhausted = false;
+    }
+}
 
 float UKalmalaCharacterMovementComponent::GetMaxSpeed() const
 {
@@ -12,7 +48,7 @@ float UKalmalaCharacterMovementComponent::GetMaxSpeed() const
     const AKalmalaCharacter* Pawn = Cast<AKalmalaCharacter>(CharacterOwner);
     const float StatusSpeed = Pawn && Pawn->GetStatusComponent() ? Pawn->GetStatusComponent()->GetModifiers().Movement : 1.0f;
     if (IsSwimmingInGeneratedOcean()) return FMath::Min(Speed, 420.0f) * StatusSpeed;
-    return (bSprintRequested && IsMovingOnGround() && CharacterOwner && !CharacterOwner->bIsCrouched
+    return (bSprintRequested && !bSprintExhausted && IsMovingOnGround() && CharacterOwner && !CharacterOwner->bIsCrouched
         ? Speed * FMath::Clamp(SprintMultiplier, 1.0f, 2.0f) : Speed) * StatusSpeed;
 }
 
@@ -47,6 +83,7 @@ void UKalmalaCharacterMovementComponent::UpdateCharacterStateBeforeMovement(cons
 void UKalmalaCharacterMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity)
 {
     Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
+    AdvanceStaminaFromServer(DeltaSeconds);
     if (!CharacterOwner || !UpdatedComponent || CharacterOwner->GetLocalRole() == ROLE_SimulatedProxy) return;
     const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (!State || !FKalmalaWorldBounds::IsBounded(State->GetWorldGenerationConfig())) return;
