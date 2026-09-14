@@ -2223,3 +2223,17 @@ Multiplayer impact: Only the server advances health from GameMode weather. The m
 Known limits: Rain wear is transient; a newly restored construction starts at 100. Health presentation and live host/client rain-wear replication remain part of the later M3 acceptance task. This increment does not implement the three-state hearth response or a repair path.
 
 Next task: Keep fuelled lit campfires lit in dry weather; make exposed rainy fires Smouldering with zero heat and automatically reignite under accepted roof protection.
+
+### 2026-09-14T14:48:59.1592077+03:00 - Implement three-state campfire rain response
+
+Outcome: Completed the campfire rain-response child. Replicated HearthState replaces the boolean with Extinguished, Lit and Smouldering. Active exposed fires smoulder at rain >=0.05 with zero heat/light while burning normal fuel; accepted roof collision or dry weather restores Lit automatically with normalized heat. Fuel exhaustion extinguishes, and unlit fuel never self-lights. Text now names SMOULDERING.
+
+Changed: Source/KalmalaGameplay/Public/KalmalaCampfire.h; Source/KalmalaGameplay/Private/KalmalaCampfire.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaHearthStateTest.cpp; Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp; Scripts/Verify-Crafting.ps1; docs/02-technical-architecture.md; docs/07-development-setup.md; docs/10-campfire-and-crafting.md; BACKLOG.md; PROGRESS.md.
+
+Verification: Final forced KalmalaEditor Win64 Development build passed with UnrealBuildTool cache access. Hearth.RainState and all four Wet-prefix tests passed: C:/Users/Ville/AppData/Local/Temp/KalmalaHearthState-a0534abb73ea4ac6ab3d9ea8b41ad0b5/automation.log. Real-actor tests cover roof collision, rain threshold, zero heat/light, fuel consumption/exhaustion, client-role rejection, malformed input, dry reignition and Wet removal after heat returns. Verify-Crafting.ps1 -Port 18105 passed host/client paid crafting, validation, exact final inventory and both replicated Lit/Smouldering hearths: C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-b8f0b45b24c44ad8b9133e89d2591459. Client reports State=2 Fuel=48 Lit=0 Wet=96 Warmth=0. Script parsing and git diff --check passed.
+
+Multiplayer impact: Server samples roof collision inside weather advancement and owns transitions, heat, lighting validation and fuel. Clients only consume the replicated enum and presentation fields; no state/roof/rain RPC exists. No save schema or construction/storage persistence changes.
+
+Known limits: Fuel wetness remains initial-lighting information and legacy telemetry; it no longer vetoes automatic dry/roofed reignition. Live replication covers Lit to Smouldering; actual roof-driven reignition is covered by actor physics tests, with the full live build/roof/Wet loop still scheduled for M3 acceptance. Older exposure-only fixtures may retain historical expectations.
+
+Next task: Audit and verify that building health, roof traces, rain exposure, fire transitions and persistence remain server-authoritative and clients only render replicated state.

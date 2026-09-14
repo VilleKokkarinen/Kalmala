@@ -10,6 +10,14 @@ class UPointLightComponent;
 class USphereComponent;
 class UProceduralMeshComponent;
 
+UENUM(BlueprintType)
+enum class EKalmalaHearthState : uint8
+{
+    Extinguished,
+    Lit,
+    Smouldering
+};
+
 /**
  * A replicated campfire whose lit state, fuel wetness, and warmth are written
  * only by the server. Paid placement and fuel consumption use private inventory.
@@ -29,7 +37,9 @@ public:
 
     static bool IsLightingAllowed(bool bServerAuthority, float FuelWetness);
     float GetWarmthContributionAt(const FVector& Location) const;
-    bool IsLit() const { return bIsLit; }
+    bool IsLit() const { return HearthState == EKalmalaHearthState::Lit; }
+    EKalmalaHearthState GetHearthState() const { return HearthState; }
+    static constexpr float RainThreshold = 0.05f;
     float GetFuelWetness() const { return FuelWetness; }
     float GetEffectiveWarmth() const { return EffectiveWarmth; }
     static constexpr float FuelSecondsPerBundle = 60.0f;
@@ -62,7 +72,7 @@ private:
     UPROPERTY(ReplicatedUsing=OnRep_CampfireState) bool bSharedUse = true;
 
     UPROPERTY(ReplicatedUsing = OnRep_CampfireState, VisibleAnywhere, Category = "Campfire")
-    bool bIsLit = false;
+    EKalmalaHearthState HearthState = EKalmalaHearthState::Extinguished;
 
     UPROPERTY(ReplicatedUsing = OnRep_CampfireState, VisibleAnywhere, Category = "Campfire", meta = (ClampMin = "0.0", ClampMax = "1.0"))
     float FuelWetness = 0.0f;

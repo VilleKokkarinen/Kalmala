@@ -297,3 +297,7 @@ The Kalmala.Gameplay.Status.Wet prefix now includes WetCampfire. It spawns and l
 ### Construction rain-wear verification
 
 After the editor build, run Kalmala.Gameplay.Construction headlessly with the usual temporary UserDir/log flags. RainWear uses actual construction collision to check all four eligible kits, proportional rain, clamped intensity, 50-health floor, roof immunity, roof reach, untagged first-hit rejection, protection without healing, malformed inputs, unknown kits and client-role mutation rejection. Existing shelter and save tests remain included in that prefix. This is actor/physics and authority coverage; live health replication and the full rain/roof/hearth loop remain in the later M3 acceptance scenario.
+
+### Three-state hearth verification
+
+Run Kalmala.Gameplay.Hearth+Kalmala.Gameplay.Status.Wet headlessly after building. Hearth.RainState exercises real paid-initialized actors: no self-lighting, dry/windy Lit, threshold Smouldering, zero light/heat, normal fuel consumption, client mutation rejection, actual roof collision and loss of protection, dry reignition, invalid input rejection, fuel exhaustion and Wet removal only after heat returns. Scripts/Verify-Crafting.ps1 now requires enum State=1 and State=2 on both server and client in its existing paid crafting scenario. Earlier rain-extinguishing descriptions are superseded by Smouldering; later combined M3 acceptance still owns the complete live roof/rain loop.

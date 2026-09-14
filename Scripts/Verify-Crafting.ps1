@@ -37,7 +37,7 @@ try {
         $ready = $ready -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Forged Batch=1 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Fuel Batch=2147483647 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting placement RPC: Accepted=0').Count -eq 2
-        foreach ($state in @('Fuel=60 Lit=1 Wet=0 Warmth=1', 'Fuel=48 Lit=0 Wet=96 Warmth=0')) {
+        foreach ($state in @('Fuel=60 Lit=1 Wet=0 Warmth=1 State=1', 'Fuel=48 Lit=0 Wet=96 Warmth=0 State=2')) {
             $serverNames = [regex]::Matches($serverText, ('Crafting fire server: Name=(\S+) ' + [regex]::Escape($state))) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
             $clientNames = [regex]::Matches($clientText, ('Crafting fire client: Name=(\S+) ' + [regex]::Escape($state))) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
             $ready = $ready -and @($serverNames).Count -eq 2 -and @($clientNames).Count -eq 2
@@ -48,7 +48,7 @@ try {
     } while ((Get-Date) -lt $deadline)
     if (!$ready) { throw 'Crafting host/client scenario timed out.' }
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client identity mismatch.' }
-    Write-Output 'PASS: server validation/payment/atomicity gates; overlapping owner RPC crafting; exact final inventory; two matching dry and rain-extinguished fires; local menu input restoration.'
+    Write-Output 'PASS: server validation/payment/atomicity gates; overlapping owner RPC crafting; exact final inventory; two matching dry and rain-smouldering fires; local menu input restoration.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

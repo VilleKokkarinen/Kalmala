@@ -81,14 +81,14 @@ bool AKalmalaCampfire::IsLightingAllowed(const bool bServerAuthority, const floa
 bool AKalmalaCampfire::CanInteract_Implementation(AKalmalaCharacter* Interactor) const
 {
     return HasAuthority() && IsValid(Interactor) && Interactor->HasAuthority() && CanUse(Interactor)
-        && !bIsLit && FuelSeconds > 0 && IsLightingAllowed(true, FuelWetness);
+        && HearthState == EKalmalaHearthState::Extinguished && FuelSeconds > 0 && IsLightingAllowed(true, FuelWetness);
 }
 
 void AKalmalaCampfire::Interact_Implementation(AKalmalaCharacter* Interactor)
 {
     if (CanInteract_Implementation(Interactor))
     {
-        bIsLit = true;
+        HearthState = EKalmalaHearthState::Lit;
         UpdateFromServerWeather(0.0f);
         ForceNetUpdate();
     }
@@ -103,7 +103,7 @@ float AKalmalaCampfire::GetWarmthContributionAt(const FVector& Location) const
 void AKalmalaCampfire::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME(AKalmalaCampfire, bIsLit);
+    DOREPLIFETIME(AKalmalaCampfire, HearthState);
     DOREPLIFETIME(AKalmalaCampfire, FuelWetness);
     DOREPLIFETIME(AKalmalaCampfire, EffectiveWarmth);
     DOREPLIFETIME(AKalmalaCampfire, FuelSeconds);
@@ -124,22 +124,29 @@ void AKalmalaCampfire::UpdateFromServerWeather(const float DeltaSeconds)
     FCollisionQueryParams Query(SCENE_QUERY_STAT(CampfireProtection), false, this);
     FHitResult Hit;
     const FVector Start = GetActorLocation() + FVector(0,0,60);
-    bRoofProtected = GetWorld()->LineTraceSingleByChannel(Hit, Start, Start + FVector(0,0,400), ECC_Visibility, Query)
-        && Hit.GetActor() && Hit.GetActor()->ActorHasTag(TEXT("KalmalaShelterRoof"));
     const FVector WindDirection = FRotator(0, Weather.WindDirectionDegrees, 0).Vector();
     bWindProtected = GetWorld()->LineTraceSingleByChannel(Hit, Start, Start - WindDirection * 400, ECC_Visibility, Query)
         && Hit.GetActor() && Hit.GetActor()->ActorHasTag(TEXT("KalmalaShelterWindbreak"));
-    AdvanceFromServer(DeltaSeconds, bRoofProtected ? 0 : Weather.PrecipitationIntensity, bWindProtected ? 0 : Weather.WindStrength);
+    AdvanceFromServer(DeltaSeconds, Weather.PrecipitationIntensity, bWindProtected ? 0 : Weather.WindStrength);
 }
 
 void AKalmalaCampfire::AdvanceFromServer(float DeltaSeconds, float Rain, float Wind)
 {
     if (!HasAuthority() || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds < 0
         || !FMath::IsFinite(Rain) || !FMath::IsFinite(Wind)) return;
-    if (bIsLit) FuelSeconds = FMath::Max(0.0f, FuelSeconds - DeltaSeconds);
-    FuelWetness = FKalmalaCampfireWeatherResponse::AdvanceFuelWetness(FuelWetness, Rain, Wind, DeltaSeconds, bIsLit);
-    bIsLit = FuelSeconds > 0 && FKalmalaCampfireWeatherResponse::ShouldRemainLit(bIsLit, FuelWetness);
-    EffectiveWarmth = FKalmalaCampfireWeatherResponse::CalculateEffectiveWarmth(bIsLit, FuelWetness, Rain, Wind);
+    if (!GetWorld() || GetActorLocation().ContainsNaN()) return;
+    FCollisionQueryParams Query(SCENE_QUERY_STAT(CampfireRainProtection), false, this);
+    FHitResult Hit;
+    const FVector Start = GetActorLocation() + FVector(0, 0, 60);
+    bRoofProtected = GetWorld()->LineTraceSingleByChannel(Hit, Start, Start + FVector(0, 0, 400), ECC_Visibility, Query)
+        && IsValid(Hit.GetActor()) && Hit.GetActor()->ActorHasTag(TEXT("KalmalaShelterRoof"));
+    const float EffectiveRain = bRoofProtected ? 0.0f : FMath::Clamp(Rain, 0.0f, 1.0f);
+    const bool bWasActive = HearthState != EKalmalaHearthState::Extinguished;
+    if (bWasActive) FuelSeconds = FMath::Max(0.0f, FuelSeconds - DeltaSeconds);
+    FuelWetness = FKalmalaCampfireWeatherResponse::AdvanceFuelWetness(FuelWetness, EffectiveRain, FMath::Clamp(Wind, 0.0f, 1.0f), DeltaSeconds, IsLit());
+    HearthState = !bWasActive || FuelSeconds <= 0.0f ? EKalmalaHearthState::Extinguished
+        : EffectiveRain >= RainThreshold ? EKalmalaHearthState::Smouldering : EKalmalaHearthState::Lit;
+    EffectiveWarmth = IsLit() ? 1.0f : 0.0f;
     ApplyReplicatedState();
     ForceNetUpdate();
 }
@@ -181,7 +188,7 @@ FString AKalmalaCampfire::GetStatusText() const
     // This is deliberately a complete textual state, rather than a light/colour-only
     // indication. The crafting panel is a local read-only view of replicated hearth state.
     return FString::Printf(TEXT("Hearth status\nState: %s\nFuel: %.0f / 300 seconds\nFuel condition: %s (%d%% wet)\nRain protection: %s\nWind protection: %s\nAccess: %s"),
-        bIsLit ? TEXT("LIT") : TEXT("EXTINGUISHED"), FuelSeconds,
+        IsLit() ? TEXT("LIT") : HearthState == EKalmalaHearthState::Smouldering ? TEXT("SMOULDERING") : TEXT("EXTINGUISHED"), FuelSeconds,
         FuelWetness >= .9f ? TEXT("TOO WET TO LIGHT") : TEXT("DRY ENOUGH TO LIGHT"), FMath::RoundToInt(FuelWetness*100),
         bRoofProtected ? TEXT("ROOF PROTECTED") : TEXT("RAIN EXPOSED"),
         bWindProtected ? TEXT("WINDBREAK PROTECTED") : TEXT("WIND EXPOSED"), bSharedUse ? TEXT("SHARED") : TEXT("OWNER ONLY"));
@@ -192,16 +199,16 @@ void AKalmalaCampfire::OnRep_CampfireState()
     ApplyReplicatedState();
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCraftingTest")))
-        UE_LOG(LogTemp, Display, TEXT("Crafting fire client: Name=%s Fuel=%.0f Lit=%d Wet=%d Warmth=%.0f"),
-            *GetName(), FuelSeconds, bIsLit, FMath::RoundToInt(FuelWetness*100), EffectiveWarmth);
+        UE_LOG(LogTemp, Display, TEXT("Crafting fire client: Name=%s Fuel=%.0f Lit=%d Wet=%d Warmth=%.0f State=%d"),
+            *GetName(), FuelSeconds, IsLit(), FMath::RoundToInt(FuelWetness*100), EffectiveWarmth, static_cast<int32>(HearthState));
 #endif
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureReplicationTest")))
     {
-        UE_LOG(LogTemp, Display, TEXT("Exposure replication test client received campfire: Lit=%d FuelWetness=%.2f EffectiveWarmth=%.2f."), bIsLit, FuelWetness, EffectiveWarmth);
+        UE_LOG(LogTemp, Display, TEXT("Exposure replication test client received campfire: Lit=%d FuelWetness=%.2f EffectiveWarmth=%.2f."), IsLit(), FuelWetness, EffectiveWarmth);
     }
 }
 
 void AKalmalaCampfire::ApplyReplicatedState()
 {
-    FireLight->SetIntensity(bIsLit ? KalmalaCampfire::LightIntensity * EffectiveWarmth : 0.0f);
+    FireLight->SetIntensity(IsLit() ? KalmalaCampfire::LightIntensity * EffectiveWarmth : 0.0f);
 }

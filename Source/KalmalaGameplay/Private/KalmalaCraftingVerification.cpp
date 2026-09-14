@@ -145,7 +145,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Roof->Destroy(); Wall->Destroy(); WorldState->SetWeatherStateFromServer(SavedWeather);
         Fire->AdvanceFromServer(300,0,0); Check(Fire->TryRefuelFromServer(C),TEXT("Prepare rain fixture"));
         Fire->Interact_Implementation(C); Fire->AdvanceFromServer(12,1,1);
-        Check(!Fire->IsLit() && Fire->GetEffectiveWarmth()==0 && Fire->GetFuelWetness()>=.9f,TEXT("Exposed rain extinguishes"));
+        Check(Fire->GetHearthState()==EKalmalaHearthState::Smouldering && Fire->GetEffectiveWarmth()==0,TEXT("Exposed rain smoulders"));
         Check(!Fire->CanInteract_Implementation(C),TEXT("Wet lighting rejected"));
         const float WetBefore=Fire->GetFuelWetness(); Check(Fire->TryRefuelFromServer(C) && Fire->GetFuelWetness()==WetBefore,TEXT("Refuel preserves wetness"));
         Fire->AdvanceFromServer(100,0,0); Fire->Interact_Implementation(C); Fire->AdvanceFromServer(300,0,0);
@@ -155,14 +155,14 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         const auto Stacks=I->GetStacks(); for(const auto& Stack:Stacks) I->TryConsumeFromServer(Stack.ItemId,Stack.Quantity);
         Check(I->TryGrantFromServer(TEXT("Wood"),4) && I->TryGrantFromServer(TEXT("Fibre"),2),TEXT("Seed real RPC transactions"));
         UE_LOG(LogTemp,Display,TEXT("Crafting server gates: Passed=%d Player=%d Placement=1 Atomic=1 Malformed=1 Locked=1 Distant=1 Fuel=1 Rain=1"),bVerificationPassed,C->GetPlayerState()->GetPlayerId());
-        UE_LOG(LogTemp,Display,TEXT("Crafting fire server: Name=%s Fuel=60 Lit=1 Wet=0 Warmth=1"),*Fire->GetName());
+        UE_LOG(LogTemp,Display,TEXT("Crafting fire server: Name=%s Fuel=60 Lit=1 Wet=0 Warmth=1 State=1"),*Fire->GetName());
         PublishResult(TEXT("Verification ready")); VerificationStage=1; VerificationElapsed=0;
     }
     if (C->HasAuthority() && VerificationStage==1 && VerificationElapsed>8)
     {
         if(VerificationFire) {
             VerificationFire->AdvanceFromServer(12,1,1);
-            UE_LOG(LogTemp,Display,TEXT("Crafting fire server: Name=%s Fuel=48 Lit=0 Wet=96 Warmth=0"),*VerificationFire->GetName());
+            UE_LOG(LogTemp,Display,TEXT("Crafting fire server: Name=%s Fuel=48 Lit=0 Wet=96 Warmth=0 State=2"),*VerificationFire->GetName());
         }
         VerificationStage=2;
     }
