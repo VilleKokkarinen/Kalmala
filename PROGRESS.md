@@ -2125,3 +2125,17 @@ Known limits: This is a non-replicated, transient material/moisture base only. I
 
 Next task: Define authoritative construction health, roof protection, campfire `Lit`/`Smouldering`/`Extinguished` states, and all tunable defaults.
 
+### 2026-09-14 10:25 EEST - Define M3 construction and hearth rain-response defaults
+
+Outcome: Completed the final interaction/status contract child. The M3 contract now sets server-owned construction health at 100 with a 50% rain-wear floor, full-rain wear at 0.10 health/second, and one shared accepted-roof trace (60 cm origin offset, 400 cm reach). It defines the exact replicated hearth state machine: Extinguished requires server lighting, Lit has positive fuel plus dry/roofed conditions and normalized heat, and a previously lit exposed rainy hearth Smoulders with zero heat until dry or roofed again. All initial Wet, rain, roof, heat, and fuel constants are recorded together.
+
+Changed: `BACKLOG.md`; `docs/02-technical-architecture.md`; `docs/10-campfire-and-crafting.md`; `PROGRESS.md`.
+
+Verification: Documentation-only increment. Re-read the current construction, campfire, weather, interaction-grid, and Wet-status seams; `git diff --check` and PowerShell parse checks passed. No Unreal build is required because no runtime source, asset, configuration, or behavior changed.
+
+Multiplayer impact: The contract keeps all health initialization/wear, accepted-roof sampling, weather input, fuel burn, hearth transitions, heat, and replication server-owned. Clients receive state only and gain no request or payload for health, roof, rain, weather, state, fuel rate, heat, or relighting. No current save schema, collision, inventory, construction payment, or RPC changes.
+
+Known limits: The legacy continuous exposure/campfire implementation remains until the following M3 implementation increments migrate it to the shared Wet status and three-state hearth contract. M3 rain wear is intentionally transient with no repair/destruction path yet.
+
+Next task: Implement player Wet immediately for server-confirmed water and after ten uninterrupted seconds of unroofed rain, using the reusable replicated status container.
+
