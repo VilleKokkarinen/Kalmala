@@ -2053,3 +2053,17 @@ Multiplayer impact: No production RPC, save, payment, harvest, inventory, constr
 Known limits: This shared-session pass still does not compare server-sampled shelter/weather state or prove sparse harvest plus camp save restoration after reconnect. Do not close the scenario child or M2 yet.
 
 Next task: Extend the same passing shared fixture with matching server/client shelter and weather evidence, then add the combined identity-scoped restart/reconnect proof.
+
+### 2026-09-14 09:14 EEST - Verify shared camp weather and exposure state
+
+Outcome: Completed the next small increment of the first unchecked M2 shared persisted-camp scenario. The existing successful gathered/paid hearth, floor, wall, roof, workbench, and chest fixture now selects a valid server-owned storm only after camp construction, seeds a server-only wet/cold baseline, and requires both local owners to report the replicated weather and changed exposure state with their existing inventory, fire, construction, and private-storage evidence. Server telemetry records the production shelter sample; clients receive only the normal replicated exposure state. The scenario child remains unchecked pending the combined identity-scoped restart/reconnect proof.
+
+Changed: Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp; Scripts/Verify-PersistedCampHearth.ps1; BACKLOG.md; docs/10-campfire-and-crafting.md; PROGRESS.md.
+
+Verification: Forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with UnrealBuildTool local-cache access. Scripts/Verify-PersistedCampHearth.ps1 -Port 18039 passed after the forced build; retained logs are C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampBuild-a034e8dd9a87497486817e7facbf48f1. Server owner: Weather=77/0.75/0/1.00 Shelter=0.15 Wetness=47.34 Warmth=37.80; joining owner: Weather=77/0.75/0/1.00 Shelter=-1.00 Wetness=46.15 Warmth=38.92; both reports retained the matching ten constructions, paid 60-second hearth, empty private pack, and one-wood chest snapshot. The first attempt asserted recovery under a storm and correctly failed; the final assertion checks the expected storm-driven state change instead. Earlier temporary peers briefly locked the module DLL and were stopped before the final build; no project data was changed by them.
+
+Multiplayer impact: Development-only fixture/telemetry and runner assertion. GameMode remains the only production writer of exposure; GameState remains the only weather writer. The fixture uses existing server-only setters and normal replication. Clients submit no new RPC or client-controlled weather, shelter, exposure, placement, item, fire, storage, or identity values. No save schema, construction persistence, gameplay contract, or world identity behavior changed.
+
+Known limits: This proves the same live session's replicated storm and exposure state, not that the freely placed pieces form a full enclosure; the existing construction shelter-geometry regression remains the geometry proof. It does not prove sparse harvest deltas and persisted construction/storage restore together, reconnect, duplicate prevention, cross-world rejection, or M2 acceptance.
+
+Next task: Extend the same scenario with a combined same-identity restart/reconnect fixture that verifies sparse harvest deltas plus versioned construction/storage restore without duplicates or cross-world reuse.

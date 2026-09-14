@@ -9,6 +9,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EngineUtils.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaEnvironmentalExposureSampler.h"
+#include "KalmalaExposureResponse.h"
+#include "KalmalaShelterSampler.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "KalmalaGeneratedTerrainPatch.h"
@@ -342,6 +345,27 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
         const bool bPassed = bGathered && bHearthCrafted && bHearthPlaced && bKitsCrafted && bBuilt && bStorage && bPaid;
         const AKalmalaCampfire* OwnedFire = FindOwnedPersistedCampfire(GetWorld(), Character);
         UE_LOG(LogTemp, Display, TEXT("Persisted camp build server: Passed=%d Player=%d Gathered=%d Hearth=%d Kits=%d Built=%d Storage=%d Paid=%d Fuel=%.0f"), bPassed, Character->GetPlayerState()->GetPlayerId(), bGathered, bHearthPlaced, bKitsCrafted, bBuilt, bStorage, bPaid, OwnedFire ? OwnedFire->GetFuelSeconds() : -1.0f);
+        if (bPassed)
+        {
+            // The fixture selects its weather and only seeds the replicated state on
+            // the server. Subsequent changes still come from the production GameMode
+            // exposure tick, which samples the accepted construction geometry.
+            AKalmalaWorldGenerationGameState* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+            check(WorldState != nullptr);
+            FKalmalaWeatherState CampWeather = WorldState->GetWeatherState();
+            CampWeather.WeatherCycleIndex = 77;
+            CampWeather.ServerStartTimeSeconds = GetWorld()->GetTimeSeconds();
+            CampWeather.DurationSeconds = 120.0f;
+            CampWeather.PrecipitationIntensity = 0.75f;
+            CampWeather.WindDirectionDegrees = 0;
+            CampWeather.WindStrength = 1.0f;
+            WorldState->SetWeatherStateFromServer(CampWeather);
+            FKalmalaExposureState InitialExposure;
+            InitialExposure.Wetness = 45.0f;
+            InitialExposure.Warmth = 40.0f;
+            InitialExposure.TravelSpeedMultiplier = FKalmalaExposureResponse::GetTravelSpeedMultiplier(InitialExposure.Warmth);
+            Character->SetExposureStateFromServer(InitialExposure);
+        }
         PersistedCampVerificationStage = bPassed ? 1 : 99; PersistedCampVerificationElapsed = 0;
     }
     if (!Character->IsLocallyControlled() || bPersistedCampOwnerReported) return;
@@ -360,10 +384,24 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
             ConstructionCount, Inventory->GetStacks().IsEmpty(), bStorageVisible, PersistedCampVerificationStage);
         PersistedCampClientDiagnosticElapsed = 0.0f;
     }
-    if (PersistedCampVerificationElapsed < 2) return;
+    if (PersistedCampVerificationElapsed < 6) return;
     if (Fire == nullptr || !Inventory->GetStacks().IsEmpty() || ConstructionCount < 10 || !bStorageVisible) return;
-    const bool bPassed = Fire != nullptr && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), 60.0f) && ConstructionCount >= 10 && bStorageVisible;
-    UE_LOG(LogTemp, Display, TEXT("Persisted camp build owner: Passed=%d Authority=%d Player=%d EmptyPack=%d Fuel=%.0f Constructions=%d StorageWood=1"), bPassed, Character->HasAuthority(), Character->GetPlayerState()->GetPlayerId(), Inventory->GetStacks().IsEmpty(), Fire ? Fire->GetFuelSeconds() : -1.0f, ConstructionCount);
+    const AKalmalaWorldGenerationGameState* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (WorldState == nullptr || WorldState->GetWeatherState().WeatherCycleIndex != 77) return;
+    const FKalmalaWeatherState& Weather = WorldState->GetWeatherState();
+    const FKalmalaExposureState& Exposure = Character->GetExposureState();
+    const bool bWeather = FMath::IsNearlyEqual(Weather.PrecipitationIntensity, 0.75f) && Weather.WindDirectionDegrees == 0 && FMath::IsNearlyEqual(Weather.WindStrength, 1.0f);
+    // In the selected storm the regular server tick must advance the seeded
+    // state, even when the freely placed pieces do not form a full enclosure.
+    const bool bExposure = Exposure.Wetness > 45.0f && Exposure.Warmth < 40.0f;
+    float Shelter = -1.0f;
+    if (Character->HasAuthority())
+    {
+        const FKalmalaEnvironmentalExposureSample Environment = FKalmalaEnvironmentalExposureSampler::Sample(WorldState->GetWorldGenerationConfig(), FVector2D(Character->GetActorLocation()));
+        Shelter = FKalmalaShelterSampler::Sample(GetWorld(), Character, Environment.NaturalCover, Weather.WindDirectionDegrees).Shelter;
+    }
+    const bool bPassed = Fire != nullptr && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), 60.0f) && ConstructionCount >= 10 && bStorageVisible && bWeather && bExposure;
+    UE_LOG(LogTemp, Display, TEXT("Persisted camp build owner: Passed=%d Authority=%d Player=%d EmptyPack=%d Fuel=%.0f Constructions=%d StorageWood=1 Weather=%d/%.2f/%d/%.2f Shelter=%.2f Wetness=%.2f Warmth=%.2f"), bPassed, Character->HasAuthority(), Character->GetPlayerState()->GetPlayerId(), Inventory->GetStacks().IsEmpty(), Fire ? Fire->GetFuelSeconds() : -1.0f, ConstructionCount, Weather.WeatherCycleIndex, Weather.PrecipitationIntensity, Weather.WindDirectionDegrees, Weather.WindStrength, Shelter, Exposure.Wetness, Exposure.Warmth);
     bPersistedCampOwnerReported = true;
 #endif
 }
