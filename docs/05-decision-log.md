@@ -22,3 +22,9 @@ Add new decisions at the top. A decision records what agents should treat as set
 ### 2026-09-11 — Finite radial biome progression and debug overview (legacy revisions 5/6)
 
 Accepted explicit user direction: new revision-5 worlds use a 16 km origin-centred circle and gradually prefer more demanding land biomes outward. This supersedes the earlier unlimited-extent/no-distance-bias decision for new worlds. Existing world identities remain unchanged. Keep large rivers; preserve small streams in an opt-in, replicated revision-6 debug identity. Default M to a revealed, origin-centred whole-world overview, with independent local fog/fit console settings. No platform, business model, assets, online services, enemy statistics or save schemas change.
+
+## M3 wetness and rain override (2026-09-14)
+
+This section supersedes earlier references to continuous player wetness, warmth-derived wetness penalties, fuel wetness extinguishing, or rain damage below. `Wet` is only a server-owned player debuff with a reusable parameter definition: default maximum duration 120 seconds, unroofed-rain trigger 10 uninterrupted seconds, movement multiplier 0.90, and stamina-use multiplier 1.25. Standing in server-confirmed water applies it immediately. Rain applies it only when the server finds no accepted roof above the pawn. Reapplication cannot exceed 120 seconds; a nearby lit campfire with nonzero authoritative heat removes it. Surface moisture remains a grid material/fire input and is never a second player wetness system.
+
+Roofs are rain-immune. Unroofed floors, walls, workbenches, and storage take slow server-owned rain wear, clamped at 50% health; an accepted overhead roof prevents that wear. A fuelled campfire is normal in dry weather. Rain without a roof makes it `Smouldering`, with zero heat; roof protection automatically returns it to `Lit`. Clients submit no wetness, duration, roof, health, weather, fire, or relight state.

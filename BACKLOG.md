@@ -230,33 +230,29 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 ### M3 — Elemental world prototype
 
-**Intent:** add a small server-owned local interaction simulation that makes rain, fire, wetness, and temperature legible without becoming a whole-world cellular simulation. It must integrate with the existing generated world, weather, campfire, and exposure contracts; clients render authoritative outcomes but do not simulate or mutate them.
+**Authoritative wetness update (2026-09-14):** Player wetness is only the server-owned `Wet` debuff. It is a reusable parameterized status effect: default maximum duration 120 seconds, rain trigger 10 uninterrupted seconds, movement multiplier 0.90, and stamina-use multiplier 1.25. Water applies it immediately; rain applies it only without an accepted roof overhead. Near a lit heat-producing campfire removes it. Surface moisture in the interaction grid is a fire/material value, not player wetness.
 
-- [x] **Define the bounded interaction-grid contract.**
-  - [x] Specify server-owned cell coordinates, activation bounds around active players/campfires, material states, temperature states, wetness states, and replication/presentation boundaries.
-  - [x] Define deterministic cell initialization from generated terrain/material context and a versioned, sparse persistence policy only for gameplay-changing deltas.
-  - [x] Document client intent validation: no client may choose a cell state, temperature, wetness, spread result, or persisted delta.
+- [ ] **Revise the M3 interaction and status contract.**
+  - [ ] Replace the legacy continuous player wetness/warmth penalty with a reusable server-owned `Wet` status definition and replicated remaining duration.
+  - [ ] Keep surface moisture as a bounded interaction-grid material input only; it must not create an independent player stat.
+  - [ ] Define authoritative construction health, roof protection, campfire `Lit`/`Smouldering`/`Extinguished` states, and all tunable defaults.
 
-- [ ] **Implement authoritative rain, wetness, and temperature updates.**
-  - [ ] Activate and update a bounded grid neighborhood on the server; deactivate safely without losing required sparse deltas.
-  - [ ] Apply server weather to exposed cells and characters, including rain-driven wetness and drying/heat from nearby lit campfires.
-  - [ ] Keep all values finite, bounded, rate-limited, and independent of client-reported transforms or environmental values.
+- [ ] **Implement player Wet.**
+  - [ ] Apply Wet immediately on server-confirmed water occupancy and after 10 uninterrupted seconds of rain without an accepted overhead roof; clamp reapplication to 120 seconds.
+  - [ ] Apply the tunable 10% movement penalty and 25% stamina-use increase through the shared status-effect path; support future debuffs without bespoke player fields.
+  - [ ] Remove Wet only through expiry or a nearby lit, heat-producing campfire; clients cannot set duration, source, multipliers, or removal.
 
-- [ ] **Implement limited fire interaction rules.**
-  - [ ] Let lit campfires heat nearby eligible cells; wet or soaked flammable cells must resist ignition.
-  - [ ] Add bounded, deterministic fire spread only among activated compatible cells; no unbounded propagation or background world simulation.
-  - [ ] Ensure rain, material, wetness, and temperature outcomes remain server-authoritative and persist only when the M3 contract requires it.
+- [ ] **Implement roof, rain-wear, and campfire response.**
+  - [ ] Make roofs rain-immune. Apply slow server-owned rain wear only to exposed floors, walls, workbenches, and storage; clamp their health at 50% and prevent wear below an accepted roof.
+  - [ ] In dry weather, fuelled lit campfires remain lit. In rain without a roof, they become Smouldering with zero heat and automatically reignite when roof-protected again.
+  - [ ] Keep all building health, roof traces, rain exposure, fire transitions, and persistence server-authoritative; clients only render replicated state.
 
-- [ ] **Add clear local feedback.**
-  - [ ] Present Wet and drying/heat state changes with colour-independent HUD/world cues for the owning player.
-  - [ ] Render nearby fire, wetness, and temperature results from replicated state without exposing inactive or hidden server-owned cells.
+- [ ] **Add clear local feedback and verify the vertical slice.**
+  - [ ] Present Wet duration, movement/stamina penalties, construction rain wear, and fire state using colour-independent player-facing cues.
+  - [ ] Verify invalid client wetness, building-health, roof, rain, or fire requests cannot alter authority or saves.
+  - [ ] Run a host/client scenario for immediate water Wet, delayed unroofed-rain Wet, roof immunity, capped rain wear, smoulder/reignite, and campfire Wet removal.
 
-- [ ] **Verify the M3 vertical slice.**
-  - [ ] Verify invalid client cell/fire/wetness requests are rejected and cannot create deltas or change server state.
-  - [ ] Run a host/client rain-to-Wet then lit-campfire recovery scenario; both peers must observe matching authoritative state and clear feedback.
-  - [ ] Run bounded-grid, determinism, persistence, and performance regressions; document authority, limits, and retained evidence.
-
-**M3 acceptance:** a player standing in rain receives **Wet**; moving to camp and standing near a lit campfire removes it, with clear client-side feedback for both transitions.
+**M3 acceptance:** water immediately applies Wet; ten seconds of unroofed rain applies Wet; Wet is capped at two minutes and applies the configured movement/stamina penalties. A roof blocks rain exposure and protects structures. Exposed structures never fall below 50% health from rain. An exposed rainy campfire smoulders without heat and reignites once roofed.
 
 ### M4–M5 — Deferred
 
