@@ -2111,3 +2111,17 @@ Known limits: This is a contract reconciliation only; the current runtime still 
 
 Next task: Implement the bounded server-owned interaction-grid surface-moisture contract without creating an independent player stat, then replace the legacy player exposure runtime with the shared Wet status path.
 
+### 2026-09-14 10:05 EEST - Add transient interaction-grid surface moisture
+
+Outcome: Completed the next M3 contract child. The server now maintains the bounded 200 cm interaction-grid neighborhood each second: 7x7 lit-hearth neighborhoods are selected before 9x9 possessed-pawn neighborhoods, duplicate keys are removed, and no more than 1,024 cells are retained. Cells derive Ground/Vegetation/Stone/ShallowWater and baseline moisture only from generated server context, accumulate rain/drying only while active, and discard transient state on deactivation. Surface moisture has no player status, RPC, replication, or save path.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaInteractionGrid.h`; `Source/KalmalaGameplay/Private/KalmalaInteractionGrid.cpp`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/Tests/KalmalaInteractionGridTest.cpp`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Final forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. Final focused `Kalmala.Gameplay.InteractionGrid.SurfaceMoisture` passed headlessly; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaInteractionGridFinal-c49b914746894c13aed73f0618967913/automation.log`. It covers negative-coordinate floor keys, deterministic centres, bounded rain/drying, malformed-state recovery, and the fixed cell cap.
+
+Multiplayer impact: `GameMode` is the only writer and sources activation from existing authoritative possessed pawns and lit hearth state. Clients cannot choose a coordinate, material, temperature, moisture, or activation; no new RPC, replication, player field, inventory, construction, campfire, weather, terrain, or save schema changed.
+
+Known limits: This is a non-replicated, transient material/moisture base only. It deliberately does not yet integrate heat, fire spread, permanent deltas, player Wet, construction rain wear, or client presentation. The legacy continuous exposure runtime remains until the next M3 player-status increment.
+
+Next task: Define authoritative construction health, roof protection, campfire `Lit`/`Smouldering`/`Extinguished` states, and all tunable defaults.
+

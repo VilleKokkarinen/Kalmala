@@ -234,7 +234,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 - [ ] **Revise the M3 interaction and status contract.**
   - [x] Replace the legacy continuous player wetness/warmth penalty with a reusable server-owned `Wet` status definition and replicated remaining duration.
-  - [ ] Keep surface moisture as a bounded interaction-grid material input only; it must not create an independent player stat.
+  - [x] Keep surface moisture as a bounded interaction-grid material input only; it must not create an independent player stat.
   - [ ] Define authoritative construction health, roof protection, campfire `Lit`/`Smouldering`/`Extinguished` states, and all tunable defaults.
 
 - [ ] **Implement player Wet.**

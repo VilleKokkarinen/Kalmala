@@ -8,6 +8,7 @@
 #include "KalmalaStorageSaveGame.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaExposureResponse.h"
+#include "KalmalaInteractionGrid.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaHazardSpawn.h"
 #include "KalmalaWildlifeSpawn.h"
@@ -47,6 +48,7 @@ namespace KalmalaGameMode
     constexpr int32 MaxActivePopulationSpatialKeys = 9;
     constexpr float TerrainPatchActivationIntervalSeconds = 1.0f;
     constexpr float ExposureUpdateIntervalSeconds = 1.0f;
+    constexpr float InteractionGridUpdateIntervalSeconds = 1.0f;
     constexpr float TraversalTestSpeed = 1800.0f;
     constexpr float TraversalTestArrivalDistance = 180.0f;
     constexpr int32 TraversalTargetSearchExtent = 12000;
@@ -58,6 +60,75 @@ namespace KalmalaGameMode
     FString ConstructionSaveSlot(const FKalmalaWorldGenerationConfig& Config)
     {
         return FString::Printf(TEXT("KalmalaConstruction_%llu"), Config.WorldSeed);
+    }
+}
+
+void AKalmalaGameMode::UpdateInteractionGrid()
+{
+    const AKalmalaWorldGenerationGameState* WorldState = GetGameState<AKalmalaWorldGenerationGameState>();
+    if (!HasAuthority() || WorldState == nullptr)
+    {
+        return;
+    }
+
+    TSet<FIntPoint> RequestedKeys;
+    TArray<FIntPoint> OrderedKeys;
+    auto AddNeighborhood = [&RequestedKeys, &OrderedKeys](const FVector& Location, const int32 Radius)
+    {
+        const FIntPoint Center = FKalmalaInteractionGrid::ToCellKey(Location);
+        for (int32 Y = Center.Y - Radius; Y <= Center.Y + Radius; ++Y)
+        {
+            for (int32 X = Center.X - Radius; X <= Center.X + Radius; ++X)
+            {
+                if (OrderedKeys.Num() >= FKalmalaInteractionGrid::MaxActiveCells) return;
+                const FIntPoint Key(X, Y);
+                if (!RequestedKeys.Contains(Key))
+                {
+                    RequestedKeys.Add(Key);
+                    OrderedKeys.Add(Key);
+                }
+            }
+        }
+    };
+
+    TArray<AKalmalaCampfire*> LitHearths;
+    for (TActorIterator<AKalmalaCampfire> Iterator(GetWorld()); Iterator; ++Iterator)
+    {
+        if (Iterator->GetEffectiveWarmth() > 0.0f)
+        {
+            LitHearths.Add(*Iterator);
+        }
+    }
+    LitHearths.Sort([](const AKalmalaCampfire& A, const AKalmalaCampfire& B) { return A.GetFName().LexicalLess(B.GetFName()); });
+    for (const AKalmalaCampfire* Hearth : LitHearths)
+    {
+        AddNeighborhood(Hearth->GetActorLocation(), FKalmalaInteractionGrid::HearthRadiusCells);
+        if (OrderedKeys.Num() >= FKalmalaInteractionGrid::MaxActiveCells) break;
+    }
+
+    TArray<APawn*> Pawns;
+    for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+    {
+        APlayerController* Controller = Iterator->Get();
+        if (Controller && Controller->GetPawn() && (!Controller->PlayerState || !Controller->PlayerState->IsOnlyASpectator())) Pawns.Add(Controller->GetPawn());
+    }
+    Pawns.Sort([](const APawn& A, const APawn& B) { return A.GetFName().LexicalLess(B.GetFName()); });
+    for (const APawn* Pawn : Pawns)
+    {
+        AddNeighborhood(Pawn->GetActorLocation(), FKalmalaInteractionGrid::PawnRadiusCells);
+        if (OrderedKeys.Num() >= FKalmalaInteractionGrid::MaxActiveCells) break;
+    }
+
+    TMap<FIntPoint, FKalmalaInteractionCellState> PreviousCells = MoveTemp(ActiveInteractionCells);
+    ActiveInteractionCells.Reset(); // Cells absent from this tick deactivate and discard their transient state.
+    const float Rain = WorldState->GetWeatherState().PrecipitationIntensity;
+    for (const FIntPoint& Key : OrderedKeys)
+    {
+        FKalmalaInteractionCellState State = PreviousCells.Contains(Key)
+            ? PreviousCells.FindChecked(Key)
+            : FKalmalaInteractionGrid::MakeBaseline(WorldGenerationConfig, Key);
+        FKalmalaInteractionGrid::AdvanceSurfaceMoisture(State, Rain, KalmalaGameMode::InteractionGridUpdateIntervalSeconds);
+        ActiveInteractionCells.Add(Key, State);
     }
 }
 
@@ -379,6 +450,12 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     {
         NextExposureUpdateTime = GetWorld()->GetTimeSeconds() + KalmalaGameMode::ExposureUpdateIntervalSeconds;
         UpdatePlayerExposure(KalmalaGameMode::ExposureUpdateIntervalSeconds);
+    }
+
+    if (GetWorld()->GetTimeSeconds() >= NextInteractionGridUpdateTime)
+    {
+        NextInteractionGridUpdateTime = GetWorld()->GetTimeSeconds() + KalmalaGameMode::InteractionGridUpdateIntervalSeconds;
+        UpdateInteractionGrid();
     }
 
     if (GetWorld()->GetTimeSeconds() < NextTerrainPatchActivationTime)

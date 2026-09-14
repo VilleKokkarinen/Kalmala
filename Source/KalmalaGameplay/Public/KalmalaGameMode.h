@@ -4,6 +4,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaInteractionGrid.h"
 #include "KalmalaGameMode.generated.h"
 
 /**
@@ -43,6 +44,7 @@ private:
     void LogCampConditionInspection(const AActor* Occupant) const;
     void LogBiomeFeatureInspection(const AActor* Occupant) const;
     void UpdatePlayerExposure(float DeltaSeconds);
+    void UpdateInteractionGrid();
     void DriveCampChoiceTest();
     float CampChoiceStartTime = -1.0f;
     int32 CampChoiceStage = 0;
@@ -69,6 +71,8 @@ private:
     TSet<FIntPoint> ActiveThunderMountainsDiscoveryKeys;
     float NextTerrainPatchActivationTime = 0.0f;
     float NextExposureUpdateTime = 0.0f;
+    float NextInteractionGridUpdateTime = 0.0f;
+    TMap<FIntPoint, FKalmalaInteractionCellState> ActiveInteractionCells;
     float WorldProfileReportTime = -1.0f;
     double InitialGenerationMilliseconds = -1.0;
     bool bTraversalTestEnabled = false;
