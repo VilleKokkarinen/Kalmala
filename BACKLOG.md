@@ -223,84 +223,41 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 ### M2 — Survival camp loop
 
-**Intent:** turn the existing generated harvest nodes, provisional campfire, and weather/shelter seams into the smallest complete, server-owned camp loop. This milestone must not add new creature, elemental-grid, magic, route, or shared-cartography scope.
+- [x] Establish server-owned inventory, harvesting, fuelled campfires, basic crafting, validated placement, and persisted construction/storage.
+- [x] Verify a two-player gathered camp restores with exact construction IDs, private storage contents, sparse harvest deltas, and no cross-world reuse.
 
-- [x] **Establish the authoritative item and inventory contract.**
-  - [x] Define a small original item catalogue and server-owned stack/quantity limits for harvested wood, stone, fibre, fuel, and the minimum crafted construction supplies; keep item definitions data-driven and reject unknown client item IDs and quantities.
-  - [x] Add a server-authoritative player inventory with owner-only detailed replication and a minimal local presentation; clients submit intent only and cannot directly add, remove, reorder, or set quantities.
-  - [x] Convert accepted generated harvest interactions into server-validated inventory grants while preserving existing stable spawn IDs and sparse depletion behavior; reject out-of-range, duplicate, depleted, malformed, and full-inventory requests.
-  - [x] Verify host/client inventory agreement, reconnect behavior, stack limits, and rejection of forged harvest/item requests without exposing another player's private inventory detail.
+**M2 acceptance:** passed. Two players can gather, craft, build, save/load a camp, and observe matching state after reconnect.
 
-- [x] **Make the campfire a gathered, fuelled survival object.**
-  - [x] Replace the provisional free interaction path with a server-owned crafted/placed campfire that consumes validated inventory ingredients and fuel, while retaining the existing replicated rain, wind, wet-fuel, extinguish, and warmth contract.
-  - [x] Add bounded server-side fuel consumption, refuelling, and lighting interactions; clients never submit fuel wetness, warmth, duration, or lit state.
-  - [x] Present clear local fuel, lit/extinguished, and weather-protection feedback using colour-independent cues.
-  - [x] Verify two players observe matching fuel and fire state, rain extinguishes exposed fuel as designed, and an invalid or insufficient-inventory request cannot create a campfire.
+### M3 — Elemental world prototype
 
-- [x] **Add minimal server-authoritative crafting.**
-  - [x] Define a small data-driven recipe set for the campfire, workbench, basic storage, and the three required build pieces, with explicit ingredient costs and output limits.
-  - [x] Add a server-validated craft request that checks the caller's inventory, any required nearby owned/usable station, recipe identity, output capacity, and atomic ingredient consumption before granting output.
-  - [x] Add a minimal accessible crafting presentation with readable recipe costs, unavailable reasons, and remappable/local input entry points.
-  - [x] Verify concurrent host/client crafting cannot duplicate or lose ingredients and malformed, distant, locked, or insufficient-resource requests are rejected server-side.
+**Intent:** add a small server-owned local interaction simulation that makes rain, fire, wetness, and temperature legible without becoming a whole-world cellular simulation. It must integrate with the existing generated world, weather, campfire, and exposure contracts; clients render authoritative outcomes but do not simulate or mutate them.
 
-- [x] **Add placement preview and construction validation.**
-  - Verification 2026-09-10: repaired the restart fixture's crowded spawn-site assumption with a bounded nearby-ground search using unchanged server placement/payment checks. Forced build, five construction/crafting contracts, and exact restored-plus-new host/client construction ID agreement passed; see the latest `PROGRESS.md` handoff.
-  - [x] Create a local-only placement preview for camp and construction recipes with valid/invalid feedback; it must never spawn, reserve, or mutate an actor before server acceptance.
-  - [x] Add a server placement request that reruns range, terrain, overlap, collision, support, rotation, recipe, inventory, and world-identity checks, then atomically consumes the construction item and spawns one replicated construction actor.
-  - [x] Define stable construction IDs and a versioned, identity-scoped server save format for placed camps; reject incompatible world identity and impose bounded actor/save limits.
-  - [x] Verify preview cannot be trusted, overlapping/floating/out-of-range placements are rejected, and a host/client sees the same accepted construction after reconnect/load.
+- [ ] **Define the bounded interaction-grid contract.**
+  - [ ] Specify server-owned cell coordinates, activation bounds around active players/campfires, material states, temperature states, wetness states, and replication/presentation boundaries.
+  - [ ] Define deterministic cell initialization from generated terrain/material context and a versioned, sparse persistence policy only for gameplay-changing deltas.
+  - [ ] Document client intent validation: no client may choose a cell state, temperature, wetness, spread result, or persisted delta.
 
-- [x] **Deliver the required shelter and camp pieces.**
-  - [x] Implement original floor, wall/windbreak, and roof pieces with server-owned collision and replicated placement state; only accepted roof/windbreak pieces add the existing shelter tags used by the server exposure sampler.
-  - [x] Implement a minimal replicated workbench and basic storage with server-validated interaction and bounded persisted contents; do not expose arbitrary remote storage contents to clients.
-  - [x] Verify roof/windbreak geometry affects only server-sampled shelter, construction collision agrees for host/client movement, and teardown/removal (if included) cannot duplicate refunded resources.
-    - Verification 2026-09-11: forced build, six focused construction/shelter checks, and `Verify-ConstructionMovement.ps1` passed. The live fixture confirms server-sampled roof/windbreak shelter and owning-client replicated exposure agreement. No teardown/removal/refund path is included.
+- [ ] **Implement authoritative rain, wetness, and temperature updates.**
+  - [ ] Activate and update a bounded grid neighborhood on the server; deactivate safely without losing required sparse deltas.
+  - [ ] Apply server weather to exposed cells and characters, including rain-driven wetness and drying/heat from nearby lit campfires.
+  - [ ] Keep all values finite, bounded, rate-limited, and independent of client-reported transforms or environmental values.
 
-- [x] **Close M2 with a two-player persisted camp scenario.**
-  - [x] Establish a retained two-player preflight harness for the existing hearth/crafting, storage/workbench, and shelter/exposure contracts; it must not substitute separate launches for the later shared gathered-camp scenario.
-  -[x] Run a host/client scenario in which both players gather, craft, place a campfire plus floor/wall/roof, use storage/workbench, and observe matching inventory, construction, fire, shelter, and weather state.
-    - Verification 2026-09-11: the new shared-session hearth slice passes both real server-initialized harvesting and paid craft/placement for each player, with matching owner-only empty-pack and 60-second fire replication. Floor/wall/roof, workbench/storage, shelter/weather, and combined restart evidence remain in this unchecked scenario.
-    - Verification 2026-09-11: the expanded fixture passes both server-owned players through gathered paid hearth/floor/wall/roof/workbench/chest construction and a private chest deposit, but the joining client stops progressing before its replicated camp report. Retained evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampBuild-ef9eac134306470c98fbef98cdca70b2`. Keep this item unchecked; diagnose the client replication/tick stall before accepting it.
-    - Verification 2026-09-14: the repaired shared fixture passes both owners' replicated camp reports and adds server-selected storm weather plus production server-sampled shelter/exposure telemetry. It still needs the combined identity-scoped restart/reconnect proof before this scenario can close.
-  -[x] Restart/reconnect using the same world identity and verify the sparse generated-world deltas and versioned camp state restore together without duplicate actors, duplicated items, or cross-world reuse.
-  -[x] Document the inventory, crafting, construction, campfire, shelter, storage, and persistence authority contracts, then record build and two-player verification evidence.
+- [ ] **Implement limited fire interaction rules.**
+  - [ ] Let lit campfires heat nearby eligible cells; wet or soaked flammable cells must resist ignition.
+  - [ ] Add bounded, deterministic fire spread only among activated compatible cells; no unbounded propagation or background world simulation.
+  - [ ] Ensure rain, material, wetness, and temperature outcomes remain server-authoritative and persist only when the M3 contract requires it.
 
-**M2 acceptance gate:** two players can gather, craft, build, save/load a camp, and observe matching state after reconnect. Do not decompose or begin M3–M5 until this gate passes.
+- [ ] **Add clear local feedback.**
+  - [ ] Present Wet and drying/heat state changes with colour-independent HUD/world cues for the owning player.
+  - [ ] Render nearby fire, wetness, and temperature results from replicated state without exposing inactive or hidden server-owned cells.
 
-### M3–M5 — Deferred
+- [ ] **Verify the M3 vertical slice.**
+  - [ ] Verify invalid client cell/fire/wetness requests are rejected and cannot create deltas or change server state.
+  - [ ] Run a host/client rain-to-Wet then lit-campfire recovery scenario; both peers must observe matching authoritative state and clear feedback.
+  - [ ] Run bounded-grid, determinism, persistence, and performance regressions; document authority, limits, and retained evidence.
 
-Use `docs/04-roadmap.md` as the source of truth. Decompose M3 only after the M2 acceptance gate passes; decompose M4 only after M3 passes; decompose M5 only after M4 passes.
+**M3 acceptance:** a player standing in rain receives **Wet**; moving to camp and standing near a lit campfire removes it, with clear client-side feedback for both transitions.
 
-Shelter acceptance repair 2026-09-11T09:49:25.7573559+03:00: aligned floor/wall/roof presentation to existing collision centres; forced build and five focused construction/shelter tests passed. The shelter acceptance checkbox remains open pending actual host/client movement verification.
+### M4–M5 — Deferred
 
-Shelter sampling verification 2026-09-11: completed the actual-construction geometry regression within the open shelter acceptance task. Roof/windbreak traces, wind reversal, leaving cover, rejection of floor geometry as shelter, and pawn capsule sweeps against floor/wall/roof pass. Forced build and all six focused construction/shelter tests pass. Live host/client movement agreement remains the next increment; keep the acceptance checkbox unchecked.
-
-Construction movement verification 2026-09-11: completed the floor/windbreak live-peer increment within the open shelter acceptance task. Both owning pawns walk on replicated construction floors, stop at the expected wall boundary, and match the server-observed remote player/construction IDs and stopping position. Forced build, six focused construction/shelter tests, and Verify-ConstructionMovement.ps1 passed. Keep the acceptance checkbox unchecked for roof movement and live server-sampled exposure agreement; no removal/refund exists.
-
-Roof movement verification 2026-09-11: extended the same shelter acceptance fixture with replicated roofs and ordinary owning-player jumps. Host and remote owner become airborne, stop below the roof underside, and land on their floor; server/client remote roof IDs, ceiling and peak agree. Forced build, six focused tests, and final live peer run pass. Keep shelter acceptance unchecked for live server-sampled shelter/exposure agreement; no removal/refund feature is included.
-
-
-### User-directed master-map biome rework — 2026-09-11
-
-- [x] Replace the current new-world layout with revision 7: independent master land/water seed, game-seeded crop/rotation at the existing 16 km radius, land-only special biomes with the requested origin-distance limits, and Meadows/Mountains fallback. Keep revisions 1–6 intact and reserve revision 8 for debug streams.
-- [x] Verify master/crop reproducibility and variation, all seven biomes, exact eligibility boundaries and smooth terrain/weights, dry central starts, unchanged legacy generation/water/minimap fingerprints, matching host/client samples across 20 km, and a retained three-stage map preview. Update generation, design, architecture, roadmap, decisions and setup documentation.
-
-This explicit user request temporarily superseded autonomous M2 task selection. Next autonomous task remains the existing unchecked shared persisted-camp client stall/replication acceptance; no M2 item is closed by this generator rework.
-
-
-### User-directed fast world-map PNG export — 2026-09-12
-
-- [x] Add a headless three-PNG exporter using the shared master/crop/biome sampler, plus a warm parameter-file watcher for seed, atlas, biome scale/warp and distance experiments without restarting gameplay or rebuilding for parameter edits.
-- [x] Verify fast/full pixel agreement, warm tuning/cache restoration, invalid-input preservation, PNG output, legacy regression fingerprints and unchanged host/client generation; document the workflow and preview-only authority boundary.
-
-This explicit developer-tool request does not close or advance the pending M2 persisted-camp acceptance item.
-
-Persisted-camp peer diagnostic 2026-09-13: assigned scene roots to the replicated wildlife and hazard placeholders, removing their per-frame IsNetRelevantFor warnings during the shared fixture. The forced editor build passed, but the remote peer still stops after its initial terrain presentation work and before its owner report; retain the scenario item unchecked and continue the client initialization/replication diagnosis.
-
-Persisted-camp peer repair 2026-09-13: the retained shared fixture now passes the gathered hearth/floor/wall/roof/workbench/chest and owner-storage state comparison. It identifies each paid hearth by its replicated owning controller rather than assuming a local test-placement probe changes the owning client pawn position. Shelter/weather comparison and combined restart remain required in the same unchecked scenario.
-
-Restart verification attempt 2026-09-14: forced editor build passed and the initial two-peer shared gathered-camp phase passed again. The new combined restart runner stopped before restart because the fixture's internal placement path emits no stable construction IDs, so it cannot compare the exact ten-ID baseline with restored server/client actors. Retained evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampRestart-b9c30f1469fd4177a6de9c26da62da08. Keep the scenario unchecked; add test-only stable-ID reports, then rerun same-identity construction/storage restore, sparse-harvest restart, and seed-419 rejection.
-
-Restart verification retry 2026-09-14: added test-only stable-ID reports and the forced editor build passed. The combined runner did not reach the fixture stage because previously launched local Unreal test processes remained active and delayed peer initialization. No restoration assertion was reached. Preserve the uncommitted restart work; rerun only after the retained test editor processes are no longer active. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampRestart-c57ad0f728cc4a4ba0bb4162c8396a88.
-
-Restart verification progress 2026-09-14: after enabling the restore-only tick, the forced build passed and the same-identity restart restored exactly ten construction actors with a readable persisted wood chest (Persisted camp restore server: Passed=1). The combined runner still exits before its restart client starts, so exact reconnecting-client agreement, sparse-harvest, and cross-world assertions remain unverified. Retained evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampRestart-57810fc29f3b4cd2a9fdf2815079f295.
+Do not decompose M4 until M3 acceptance passes, or M5 until M4 passes.
