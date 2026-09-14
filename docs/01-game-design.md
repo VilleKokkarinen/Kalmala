@@ -34,7 +34,7 @@ Magic uses no runes, and does not use combinable verses.
 
 New generated worlds use an independently seeded land/water master map, cropped and rotated by the game seed at the existing 16 km radius. The centre through 350 m contains only Meadows/Ocean. Eligible land can develop Shimmering Lakes beyond 350 m, Elderwood from 750 m, Mossy Mire from 2 km and Freezing Tundra from 4 km according to procedural environmental suitability. Meadows is limited to 4 km. Meadows and Thunder Mountains fill remaining land; beyond 4 km the fallback is Thunder Mountains. These are origin-distance placement rules, not compulsory routes or enemy levels. The full generation and compatibility contract is in `08-world-generation-and-biomes.md`.
 
-Start with a **bounded, server-owned interaction grid** around active gameplay areas. It is not a full world cellular simulation.
+M3 starts with a **bounded, server-owned interaction grid** around active gameplay areas. It is not a full world cellular simulation: only cells near a possessed player or lit hearth exist at runtime, and only authoritative nearby changes are presented to a client. Its exact coordinate, activation, persistence, and client-intent rules are in the interaction-grid contract in `02-technical-architecture.md`.
 
 | Property | Initial states | Example effect |
 | --- | --- | --- |

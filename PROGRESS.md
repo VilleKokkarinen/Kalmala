@@ -2083,3 +2083,17 @@ Last run: 2026-09-14T09:50:00+03:00
 
 Completed M2 persisted-camp acceptance and committed run-owned changes. The final retained run built KalmalaEditor successfully, then verified the shared gathered camp, exact ten stable construction IDs restored to the same-identity server and conflicting-seed reconnecting client, each owner's one-wood persisted chest view, and a real generated harvest sparse delta absent after restart. A direct seed-419 launch against the same host save directory restored no seed-418 construction. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampRestart-57810fc29f3b4cd2a9fdf2815079f295 (initial/restart/harvest/verify logs; cross-world-final.log). Development-only test telemetry/runner only; normal server authority, RPC payloads, schemas, and client-controlled state did not change. M2 is complete; do not begin M3–M5 without new backlog decomposition.
 
+### 2026-09-14 10:05 EEST - Define bounded M3 interaction-grid contract
+
+Outcome: Completed the first M3 increment by recording the bounded interaction-grid contract. The server owns 200 cm ground-aligned cell keys, deterministic terrain/material initialization, bounded 9x9 possessed-pawn and 7x7 lit-hearth activation, a 1,024-cell deterministic cap, finite clamped temperature/wetness values with explicit display bands, and sparse nearby authoritative presentation. The grid is a local simulation budget only; it cannot become a map, route, terrain authority, or background whole-world simulation.
+
+Changed: `BACKLOG.md`; `docs/01-game-design.md`; `docs/02-technical-architecture.md`; `docs/05-decision-log.md`; `PROGRESS.md`.
+
+Verification: Documentation-only increment. Reviewed the existing weather, exposure, campfire, construction, persistence, roadmap, and operating contracts; `git diff --check` and PowerShell parsing pass. No Unreal build is required because no source, asset, configuration, or runtime contract implementation changed.
+
+Multiplayer impact: The documented boundary retains server ownership of activation, initialization, weather/heat advancement, material transitions, sparse deltas, and relevancy. Clients receive nearby replicated presentation only; there is no grid RPC and no client payload may choose a coordinate, material, wetness, temperature, spread result, save delta, or identity. Existing weather, exposure, campfire, inventory, construction, generated-population, and save authority are unchanged.
+
+Known limits: M3 has no runtime grid yet. Its initial rain/heat slice will persist no transient wetness or temperature; a later permanent material transition needs an explicit versioned sparse-save implementation and verification. The exact per-cell replication type and profiling measurements remain implementation work.
+
+Next task: Implement bounded server activation/update of the interaction-grid neighborhood, with safe deactivation and no required sparse-delta loss.
+

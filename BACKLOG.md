@@ -232,10 +232,10 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 **Intent:** add a small server-owned local interaction simulation that makes rain, fire, wetness, and temperature legible without becoming a whole-world cellular simulation. It must integrate with the existing generated world, weather, campfire, and exposure contracts; clients render authoritative outcomes but do not simulate or mutate them.
 
-- [ ] **Define the bounded interaction-grid contract.**
-  - [ ] Specify server-owned cell coordinates, activation bounds around active players/campfires, material states, temperature states, wetness states, and replication/presentation boundaries.
-  - [ ] Define deterministic cell initialization from generated terrain/material context and a versioned, sparse persistence policy only for gameplay-changing deltas.
-  - [ ] Document client intent validation: no client may choose a cell state, temperature, wetness, spread result, or persisted delta.
+- [x] **Define the bounded interaction-grid contract.**
+  - [x] Specify server-owned cell coordinates, activation bounds around active players/campfires, material states, temperature states, wetness states, and replication/presentation boundaries.
+  - [x] Define deterministic cell initialization from generated terrain/material context and a versioned, sparse persistence policy only for gameplay-changing deltas.
+  - [x] Document client intent validation: no client may choose a cell state, temperature, wetness, spread result, or persisted delta.
 
 - [ ] **Implement authoritative rain, wetness, and temperature updates.**
   - [ ] Activate and update a bounded grid neighborhood on the server; deactivate safely without losing required sparse deltas.
