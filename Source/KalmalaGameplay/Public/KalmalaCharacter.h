@@ -9,6 +9,7 @@ class USpringArmComponent;
 class UKalmalaPlayerModelComponent;
 class UKalmalaInventoryComponent;
 class UKalmalaCraftingComponent;
+class UKalmalaPlayerStatusComponent;
 
 USTRUCT(BlueprintType)
 struct FKalmalaExposureState
@@ -39,6 +40,7 @@ public:
     AKalmalaCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
     const FKalmalaExposureState& GetExposureState() const { return ExposureState; }
+    const UKalmalaPlayerStatusComponent* GetStatusComponent() const { return Statuses; }
     static bool IsExposureUpdateAllowed(bool bServerAuthority);
     void SetExposureStateFromServer(const FKalmalaExposureState& NewExposureState);
 
@@ -52,6 +54,7 @@ protected:
 
 private:
     UPROPERTY(VisibleAnywhere, Category="Crafting") TObjectPtr<UKalmalaCraftingComponent> Crafting;
+    UPROPERTY(VisibleAnywhere, Category="Status") TObjectPtr<UKalmalaPlayerStatusComponent> Statuses;
     UPROPERTY(VisibleAnywhere, Category = "Inventory")
     TObjectPtr<UKalmalaInventoryComponent> Inventory;
 

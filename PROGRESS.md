@@ -2139,3 +2139,17 @@ Known limits: The legacy continuous exposure/campfire implementation remains unt
 
 Next task: Implement player Wet immediately for server-confirmed water and after ten uninterrupted seconds of unroofed rain, using the reusable replicated status container.
 
+### 2026-09-14 10:45 EEST - Add server-owned Wet triggers
+
+Outcome: Completed the first player-Wet runtime increment. Each pawn now owns a replicated `Statuses` component with a bounded `State.Wet` entry and finite remaining duration. On the one-second server exposure update, generated ocean/lake occupancy applies Wet immediately; otherwise, only precipitation at or above the documented threshold without a server-sampled accepted roof accumulates the ten-second trigger. Reapplication refreshes to, but never exceeds, 120 seconds. Clients receive the resulting status array only and have no status RPC or local mutation path.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaPlayerStatusComponent.h`; `Source/KalmalaGameplay/Private/KalmalaPlayerStatusComponent.cpp`; `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp`; `BACKLOG.md`; `docs/07-development-setup.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. Focused `Kalmala.Gameplay.Status.Wet` passed headlessly using a temporary user/cache directory: `C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerWet-a4fd15385c6d42a3ba914590dbd7b96d/automation.log`. It covers bounded creation, elapsed server time, capped refresh, malformed/duplicate rejection, expiry, and the explicit trigger constant.
+
+Multiplayer impact: `GameMode` derives water, rain, and roof eligibility from server world state and construction collision only; the replicated component has no client-to-server function. Clients cannot select a status, duration, water result, rain timer, roof, source, multiplier, expiry, or removal. Existing exposure values, movement speed, stamina, campfire behavior, saves, and construction state remain unchanged in this increment.
+
+Known limits: Wet has no movement/stamina modifier yet, and it is not removed by campfire heat until the next child. The legacy exposure model still coexists temporarily; no live host/client trigger scenario has been added yet.
+
+Next task: Apply the configured 10% movement penalty and 25% stamina-use increase through the shared status path without bespoke player fields.
+

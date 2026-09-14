@@ -8,6 +8,7 @@
 #include "KalmalaStorageSaveGame.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaExposureResponse.h"
+#include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaInteractionGrid.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaHazardSpawn.h"
@@ -17,6 +18,7 @@
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaOceanSampler.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWorldBounds.h"
 #include "KalmalaWorldPopulationMarker.h"
@@ -157,6 +159,27 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
             Environment = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(Environment, Biome);
         }
         const FKalmalaShelterSample Shelter = FKalmalaShelterSampler::Sample(GetWorld(), Character, Environment.NaturalCover, Weather.WindDirectionDegrees);
+        if (UKalmalaPlayerStatusComponent* Statuses = Character->FindComponentByClass<UKalmalaPlayerStatusComponent>())
+        {
+            Statuses->AdvanceFromServer(DeltaSeconds);
+            const bool bInWater = FKalmalaOceanSampler::Sample(WorldGenerationConfig, FVector2D(Location)).IsWater()
+                || FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, FVector2D(Location));
+            float& UnroofedRainSeconds = UnroofedRainSecondsByCharacter.FindOrAdd(Character);
+            if (bInWater)
+            {
+                Statuses->ApplyWetFromServer();
+                UnroofedRainSeconds = 0.0f;
+            }
+            else if (Weather.PrecipitationIntensity >= 0.05f && !Shelter.bHasRoof)
+            {
+                UnroofedRainSeconds = FMath::Clamp(UnroofedRainSeconds + FMath::Max(0.0f, DeltaSeconds), 0.0f, UKalmalaPlayerStatusComponent::UnroofedRainTriggerSeconds);
+                if (UnroofedRainSeconds >= UKalmalaPlayerStatusComponent::UnroofedRainTriggerSeconds) Statuses->ApplyWetFromServer();
+            }
+            else
+            {
+                UnroofedRainSeconds = 0.0f;
+            }
+        }
         float FireWarmth = 0.0f;
         for (TActorIterator<AKalmalaCampfire> CampfireIterator(GetWorld()); CampfireIterator; ++CampfireIterator)
         {

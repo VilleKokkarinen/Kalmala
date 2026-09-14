@@ -73,6 +73,7 @@ private:
     float NextExposureUpdateTime = 0.0f;
     float NextInteractionGridUpdateTime = 0.0f;
     TMap<FIntPoint, FKalmalaInteractionCellState> ActiveInteractionCells;
+    TMap<TWeakObjectPtr<class AKalmalaCharacter>, float> UnroofedRainSecondsByCharacter;
     float WorldProfileReportTime = -1.0f;
     double InitialGenerationMilliseconds = -1.0;
     bool bTraversalTestEnabled = false;
