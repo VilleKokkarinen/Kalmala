@@ -1,9 +1,9 @@
-param([int]$Port = 18031)
+param([int]$Port = 18031, [string]$OutputDirectory = '')
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
-$output = Join-Path $env:TEMP ('KalmalaPersistedCampBuild-' + [guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Path $output | Out-Null
+$output = if ($OutputDirectory) { $OutputDirectory } else { Join-Path $env:TEMP ('KalmalaPersistedCampBuild-' + [guid]::NewGuid().ToString('N')) }
+New-Item -ItemType Directory -Path $output -Force | Out-Null
 $serverLog = Join-Path $output 'server.log'; $clientLog = Join-Path $output 'client.log'
 $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaPersistedCampTest -ExecCmds="t.MaxFPS 60"'
 $server = $null; $client = $null

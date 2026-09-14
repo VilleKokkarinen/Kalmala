@@ -88,7 +88,8 @@ void AKalmalaConstructionActor::OnRep_ConstructionState()
 {
     ApplyConstructionKit();
 #if !UE_BUILD_SHIPPING
-    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCraftingTest")) && !ConstructionId.IsEmpty()
+    if ((FParse::Param(FCommandLine::Get(), TEXT("KalmalaCraftingTest"))
+        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaPersistedCampRestoreTest"))) && !ConstructionId.IsEmpty()
         && ConstructionKit != NAME_None && LastLoggedReplicationId != ConstructionId)
     {
         LastLoggedReplicationId = ConstructionId;

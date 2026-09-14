@@ -317,6 +317,34 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
     UKalmalaInventoryComponent* Inventory = Character ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (Character == nullptr || Inventory == nullptr || Character->GetPlayerState() == nullptr) return;
     PersistedCampVerificationElapsed += DeltaTime;
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaPersistedCampRestoreTest")))
+    {
+        if (Character->HasAuthority() && PersistedCampVerificationStage == 0 && PersistedCampVerificationElapsed > 3.0f)
+        {
+            AKalmalaConstructionActor* Storage = nullptr;
+            int32 ConstructionCount = 0;
+            for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It)
+            {
+                if (It->GetConstructionKit() != NAME_None) ++ConstructionCount;
+                if (Storage == nullptr && It->GetConstructionKit() == TEXT("StorageKit")) Storage = *It;
+            }
+            const bool bOpened = Storage != nullptr && OpenPersistedCampStorage(this, Character, Storage);
+            const bool bStorage = bOpened && HasStorageView() && StorageView.Num() == 1
+                && StorageView[0].ItemId == TEXT("Wood") && StorageView[0].Quantity == 1;
+            const bool bPassed = ConstructionCount == 10 && bStorage;
+            UE_LOG(LogTemp, Display, TEXT("Persisted camp restore server: Passed=%d Player=%d Constructions=%d StorageWood=%d"), bPassed, Character->GetPlayerState()->GetPlayerId(), ConstructionCount, bStorage);
+            PersistedCampVerificationStage = bPassed ? 1 : 99;
+            PersistedCampVerificationElapsed = 0.0f;
+        }
+        if (!Character->IsLocallyControlled() || bPersistedCampOwnerReported || PersistedCampVerificationElapsed < 6.0f) return;
+        int32 ConstructionCount = 0;
+        for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It) if (It->GetConstructionKit() != NAME_None) ++ConstructionCount;
+        const bool bStorage = HasStorageView() && StorageView.Num() == 1 && StorageView[0].ItemId == TEXT("Wood") && StorageView[0].Quantity == 1;
+        const bool bPassed = ConstructionCount == 10 && bStorage;
+        UE_LOG(LogTemp, Display, TEXT("Persisted camp restore owner: Passed=%d Authority=%d Player=%d Constructions=%d StorageWood=%d"), bPassed, Character->HasAuthority(), Character->GetPlayerState()->GetPlayerId(), ConstructionCount, bStorage);
+        bPersistedCampOwnerReported = true;
+        return;
+    }
     if (Character->HasAuthority() && PersistedCampVerificationStage == 0 && PersistedCampVerificationElapsed > 3)
     {
         int32 PlayerCount = 0;
@@ -345,6 +373,17 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
         const bool bPassed = bGathered && bHearthCrafted && bHearthPlaced && bKitsCrafted && bBuilt && bStorage && bPaid;
         const AKalmalaCampfire* OwnedFire = FindOwnedPersistedCampfire(GetWorld(), Character);
         UE_LOG(LogTemp, Display, TEXT("Persisted camp build server: Passed=%d Player=%d Gathered=%d Hearth=%d Kits=%d Built=%d Storage=%d Paid=%d Fuel=%.0f"), bPassed, Character->GetPlayerState()->GetPlayerId(), bGathered, bHearthPlaced, bKitsCrafted, bBuilt, bStorage, bPaid, OwnedFire ? OwnedFire->GetFuelSeconds() : -1.0f);
+        if (bBuilt)
+        {
+            // The construction actor alone owns this opaque ID.  This development
+            // evidence lets the restart runner compare restored replication without
+            // introducing an ID into any client request or save mutation.
+            for (const AKalmalaConstructionActor* Construction : { Floor, Wall, Roof, Workbench, Storage })
+            {
+                check(Construction != nullptr);
+                UE_LOG(LogTemp, Display, TEXT("Persisted camp construction: Id=%s Kit=%s Player=%d"), *Construction->GetConstructionId(), *Construction->GetConstructionKit().ToString(), Character->GetPlayerState()->GetPlayerId());
+            }
+        }
         if (bPassed)
         {
             // The fixture selects its weather and only seeds the replicated state on

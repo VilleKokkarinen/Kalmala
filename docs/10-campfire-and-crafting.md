@@ -106,3 +106,15 @@ The same fixture now exercises the server-owned gather/craft/placement paths for
 ### Shared persisted-camp weather and exposure evidence 2026-09-14
 
 The same retained host/client fixture now selects a valid 120-second server storm (cycle 77, precipitation 0.75, north wind strength 1.0) only after each player completes the ordinary gathered, crafted, paid camp. It seeds a wet/cold state only through the authority-checked character setter; the existing GameMode exposure tick then samples the production environmental and shelter inputs and publishes the resulting replicated state. Both local owners must report the storm identity, private pack/fire/construction/storage state, and their changed wetness/warmth; only the server report includes its sampled shelter scalar. Clients neither select weather nor send exposure, shelter, construction, fire, inventory, or storage values. This validates shared-session weather/exposure replication, but does not replace the existing construction shelter-geometry regression or the pending combined save/load and reconnect proof.
+
+### Shared persisted-camp restart attempt 2026-09-14
+
+The first combined restart runner keeps one host save directory and is designed to compare exact construction IDs, owner-only chest contents, real generated harvest depletion, and an incompatible seed. Its initial shared-camp phase passed after a forced editor build, but the internal placement helper currently emits no stable construction ID telemetry. The runner stops before it can claim restart acceptance. Adding development-only report evidence is required; it must not add client-supplied IDs, alter save data, or weaken the identity checks.
+
+Restart retry 2026-09-14: stable-ID test telemetry now exists, but the immediate retained peer run was environment-delayed by earlier local test editor processes before it reached its gameplay assertions. This does not count as restore evidence.
+
+Restart progress 2026-09-14: the restart-only server fixture now reports ten restored constructions and a valid one-wood persisted chest. The outer runner must still complete its reconnecting-peer and sparse-delta/cross-world phases before this is acceptance evidence.
+
+### Combined persisted-camp restart proof 2026-09-14
+
+The final retained two-player run keeps one temporary host save directory. It proves the exact ten server-generated construction IDs from the gathered shared camp restore once each and replicate to a conflicting-seed reconnecting client, while both owners obtain a one-wood owner-only chest snapshot. A real generated harvest node is then consumed through the existing server path and remains absent after the next same-identity restart. Finally, a seed-419 server using that host directory restores no seed-418 construction. The runner and telemetry are development-only; construction IDs remain server-generated, chest content remains owner-only, and clients submit no identity, transform, save, weather, exposure, harvest, or storage state.

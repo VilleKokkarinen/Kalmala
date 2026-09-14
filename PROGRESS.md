@@ -2067,3 +2067,19 @@ Multiplayer impact: Development-only fixture/telemetry and runner assertion. Gam
 Known limits: This proves the same live session's replicated storm and exposure state, not that the freely placed pieces form a full enclosure; the existing construction shelter-geometry regression remains the geometry proof. It does not prove sparse harvest deltas and persisted construction/storage restore together, reconnect, duplicate prevention, cross-world rejection, or M2 acceptance.
 
 Next task: Extend the same scenario with a combined same-identity restart/reconnect fixture that verifies sparse harvest deltas plus versioned construction/storage restore without duplicates or cross-world reuse.
+Last run: 2026-09-14T09:25:00+03:00
+
+No commit: began the remaining M2 shared-camp restart/reconnect acceptance. Added a restore-only test switch and combined runner intended to retain exact construction ID, storage, sparse generated-harvest, and cross-world evidence. Forced editor build passed. Its initial two-player gathered-camp launch passed again, but the runner stopped before restart because the internal placement fixture emits no stable IDs. Retained evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampRestart-b9c30f1469fd4177a6de9c26da62da08. This is one failed verification attempt, not a production save/authority failure and not a completed task. Preserve the four run-owned changes plus this handoff. Next: add test-only stable-ID logging, then rerun exact same-identity restore/storage, sparse harvest, and seed-419 rejection.
+
+Last run: 2026-09-14T09:30:00+03:00
+
+No commit: added development-only stable construction-ID reporting for the shared persisted-camp fixture, and the forced editor build passed. The combined restart runner was retried on a fresh port, but did not reach gameplay because prior local Unreal test processes remain active and delay peer initialization. No restore assertion was evaluated. Preserve all current run-owned work and rerun after those test processes finish or are safely closed; then validate exact IDs, storage, sparse harvest, and seed isolation. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampRestart-c57ad0f728cc4a4ba0bb4162c8396a88.
+
+Last run: 2026-09-14T09:40:00+03:00
+
+No commit: enabled the existing restore-only crafting tick, rebuilt successfully, and reran the combined persisted-camp fixture. The restarted same-identity server restored all ten stable construction actors and read its one-wood persisted chest (Passed=1), but the PowerShell runner ended before launching the reconnecting client. Therefore client ID/storage agreement, sparse harvest persistence, duplicate prevention, and seed-419 rejection are still unverified. Retained evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampRestart-57810fc29f3b4cd2a9fdf2815079f295. Preserve current run-owned files; diagnose runner control flow after Wait-Listen, then rerun.
+
+Last run: 2026-09-14T09:50:00+03:00
+
+Completed M2 persisted-camp acceptance and committed run-owned changes. The final retained run built KalmalaEditor successfully, then verified the shared gathered camp, exact ten stable construction IDs restored to the same-identity server and conflicting-seed reconnecting client, each owner's one-wood persisted chest view, and a real generated harvest sparse delta absent after restart. A direct seed-419 launch against the same host save directory restored no seed-418 construction. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampRestart-57810fc29f3b4cd2a9fdf2815079f295 (initial/restart/harvest/verify logs; cross-world-final.log). Development-only test telemetry/runner only; normal server authority, RPC payloads, schemas, and client-controlled state did not change. M2 is complete; do not begin M3–M5 without new backlog decomposition.
+
