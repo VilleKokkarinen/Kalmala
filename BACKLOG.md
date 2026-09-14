@@ -245,7 +245,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] Remove Wet only through expiry or a nearby lit, heat-producing campfire; clients cannot set duration, source, multipliers, or removal.
 
 - [ ] **Implement roof, rain-wear, and campfire response.**
-  - [ ] Make roofs rain-immune. Apply slow server-owned rain wear only to exposed floors, walls, workbenches, and storage; clamp their health at 50% and prevent wear below an accepted roof.
+  - [x] Make roofs rain-immune. Apply slow server-owned rain wear only to exposed floors, walls, workbenches, and storage; clamp their health at 50% and prevent wear below an accepted roof.
   - [ ] In dry weather, fuelled lit campfires remain lit. In rain without a roof, they become Smouldering with zero heat and automatically reignite when roof-protected again.
   - [ ] Keep all building health, roof traces, rain exposure, fire transitions, and persistence server-authoritative; clients only render replicated state.
 

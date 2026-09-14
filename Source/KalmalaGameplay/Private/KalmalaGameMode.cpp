@@ -143,6 +143,10 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
     }
 
     const FKalmalaWeatherState& Weather = WorldGenerationState->GetWeatherState();
+    for (TActorIterator<AKalmalaConstructionActor> Construction(GetWorld()); Construction; ++Construction)
+    {
+        Construction->AdvanceRainWearFromServer(DeltaSeconds, Weather.PrecipitationIntensity);
+    }
     for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
     {
         AKalmalaCharacter* Character = Iterator->Get() != nullptr ? Cast<AKalmalaCharacter>(Iterator->Get()->GetPawn()) : nullptr;

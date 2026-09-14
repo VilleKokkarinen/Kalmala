@@ -19,6 +19,12 @@ public:
     void InitializeFromServer(FName InKit, const FString& InConstructionId);
     FName GetConstructionKit() const { return ConstructionKit; }
     const FString& GetConstructionId() const { return ConstructionId; }
+    float GetHealth() const { return Health; }
+    /** Trusted server weather input; roof eligibility is sampled internally. No RPC. */
+    void AdvanceRainWearFromServer(float DeltaSeconds, float Precipitation);
+    static constexpr float MaximumHealth = 100.0f;
+    static constexpr float RainHealthFloor = 50.0f;
+    static constexpr float RainWearPerSecond = 0.10f;
     static bool IsShelterKit(FName KitId);
     static FVector GetCollisionExtent(FName KitId);
     /** Advisory on clients; every mutation separately requires server authority. */
@@ -33,5 +39,6 @@ private:
     UPROPERTY(VisibleAnywhere) TObjectPtr<UProceduralMeshComponent> PieceMesh;
     UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FName ConstructionKit;
     UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FString ConstructionId;
+    UPROPERTY(Replicated) float Health = MaximumHealth;
     FString LastLoggedReplicationId;
 };

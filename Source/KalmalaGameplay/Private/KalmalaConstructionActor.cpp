@@ -52,6 +52,28 @@ bool AKalmalaConstructionActor::CanUse(const AKalmalaCharacter* Character) const
         && Hit.GetActor() == this;
 }
 
+void AKalmalaConstructionActor::AdvanceRainWearFromServer(const float DeltaSeconds, const float Precipitation)
+{
+    if (!HasAuthority() || ConstructionId.IsEmpty() || !GetWorld() || !Collision
+        || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f
+        || !FMath::IsFinite(Precipitation) || Precipitation <= 0.0f
+        || (ConstructionKit != TEXT("FloorKit") && ConstructionKit != TEXT("WallKit")
+            && ConstructionKit != TEXT("WorkbenchKit") && ConstructionKit != TEXT("StorageKit"))) return;
+    const FVector Start = Collision->GetComponentLocation() + FVector(0, 0, 60);
+    if (Start.ContainsNaN()) return;
+    FCollisionQueryParams Query(SCENE_QUERY_STAT(ConstructionRainProtection), false, this);
+    FHitResult Hit;
+    if (GetWorld()->LineTraceSingleByChannel(Hit, Start, Start + FVector(0, 0, 400), ECC_Visibility, Query)
+        && IsValid(Hit.GetActor()) && Hit.GetActor()->ActorHasTag(TEXT("KalmalaShelterRoof"))) return;
+    const float NextHealth = FMath::Clamp(Health - RainWearPerSecond * FMath::Clamp(Precipitation, 0.0f, 1.0f) * DeltaSeconds,
+        RainHealthFloor, MaximumHealth);
+    if (NextHealth != Health)
+    {
+        Health = NextHealth;
+        ForceNetUpdate();
+    }
+}
+
 bool AKalmalaConstructionActor::CanInteract_Implementation(AKalmalaCharacter* Character) const
 {
     return HasAuthority() && IsValid(Character) && Character->HasAuthority() && CanUse(Character);
@@ -82,6 +104,7 @@ void AKalmalaConstructionActor::GetLifetimeReplicatedProps(TArray<FLifetimePrope
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaConstructionActor, ConstructionKit);
     DOREPLIFETIME(AKalmalaConstructionActor, ConstructionId);
+    DOREPLIFETIME(AKalmalaConstructionActor, Health);
 }
 
 void AKalmalaConstructionActor::OnRep_ConstructionState()

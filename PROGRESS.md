@@ -2209,3 +2209,17 @@ Multiplayer impact: Both pawn and source authority plus same-world identity and 
 Known limits: This verifies the component seam and authority gates with real actors, not a new live host/client removal scenario. The combined M3 scenario remains unchecked. Existing IsLit/effective-warmth behavior remains until the next hearth-state task; future Smouldering must have zero heat. Legacy continuous exposure remains transitional telemetry. Shelter alone does not remove an existing Wet status.
 
 Next task: Make roofs rain-immune and apply bounded server-owned rain wear to exposed floors, walls, workbenches and storage, clamped at 50 percent health and prevented by an accepted roof.
+
+### 2026-09-14T14:42:35.3018705+03:00 - Add authoritative construction rain wear
+
+Outcome: Completed the first roof/rain-response child. Initialized floors, walls, workbenches and storage now receive server-weather wear at 0.10 health/second in full rain, with replicated health starting at 100 and clamped at 50. Roofs are immune. The actor's 60 cm-up, 400 cm first-hit tagged-roof trace prevents wear without healing.
+
+Changed: Source/KalmalaGameplay/Public/KalmalaConstructionActor.h; Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp; Source/KalmalaGameplay/Private/KalmalaGameMode.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaConstructionRainWearTest.cpp; docs/02-technical-architecture.md; docs/07-development-setup.md; BACKLOG.md; PROGRESS.md.
+
+Verification: Forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with UnrealBuildTool cache access. All six Kalmala.Gameplay.Construction tests passed: GeometryAlignment, LocalPreview, RainWear, SaveContract, ShelterPieces and ShelterSampling. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaConstructionRain-8744abc126fc449885bc5b51f9278d2c/automation.log. New real-actor physics coverage includes proportional/clamped rain, all eligible kits, dry/malformed inputs, client-role rejection, floor clamping, roof immunity/reach, first untagged blocker rejection, and protection without healing. git diff --check passed.
+
+Multiplayer impact: Only the server advances health from GameMode weather. The mutation seam rejects clients and samples roof collision internally. Health replicates directly without an RPC, health request, roof input or client-supplied damage value. No saved-data schema, storage content, construction identity, collision or destruction behavior changed.
+
+Known limits: Rain wear is transient; a newly restored construction starts at 100. Health presentation and live host/client rain-wear replication remain part of the later M3 acceptance task. This increment does not implement the three-state hearth response or a repair path.
+
+Next task: Keep fuelled lit campfires lit in dry weather; make exposed rainy fires Smouldering with zero heat and automatically reignite under accepted roof protection.
