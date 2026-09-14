@@ -233,7 +233,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 **Authoritative wetness update (2026-09-14):** Player wetness is only the server-owned `Wet` debuff. It is a reusable parameterized status effect: default maximum duration 120 seconds, rain trigger 10 uninterrupted seconds, movement multiplier 0.90, and stamina-use multiplier 1.25. Water applies it immediately; rain applies it only without an accepted roof overhead. Near a lit heat-producing campfire removes it. Surface moisture in the interaction grid is a fire/material value, not player wetness.
 
 - [ ] **Revise the M3 interaction and status contract.**
-  - [ ] Replace the legacy continuous player wetness/warmth penalty with a reusable server-owned `Wet` status definition and replicated remaining duration.
+  - [x] Replace the legacy continuous player wetness/warmth penalty with a reusable server-owned `Wet` status definition and replicated remaining duration.
   - [ ] Keep surface moisture as a bounded interaction-grid material input only; it must not create an independent player stat.
   - [ ] Define authoritative construction health, roof protection, campfire `Lit`/`Smouldering`/`Extinguished` states, and all tunable defaults.
 

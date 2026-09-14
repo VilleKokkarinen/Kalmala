@@ -2097,3 +2097,17 @@ Known limits: M3 has no runtime grid yet. Its initial rain/heat slice will persi
 
 Next task: Implement bounded server activation/update of the interaction-grid neighborhood, with safe deactivation and no required sparse-delta loss.
 
+### 2026-09-14 10:20 EEST - Define replicated Wet status contract
+
+Outcome: Completed the first child of the revised M3 interaction/status contract. `Wet` now has an explicit migration boundary: it is one server-owned entry in a reusable replicated status container with a finite remaining duration, rather than continuous player wetness/warmth values or a parallel player moisture system. The status definition, not client input, supplies its movement and stamina-use modifiers; later debuffs use the same stable-ID container.
+
+Changed: `BACKLOG.md`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `PROGRESS.md`.
+
+Verification: Documentation-only increment. Re-read the M3 contract, current exposure/campfire implementation, and setup guidance; `git diff --check` and PowerShell parse checks passed. No Unreal build is required because no source, asset, configuration, or runtime behavior changed.
+
+Multiplayer impact: The contract explicitly retains server ownership of status creation, refresh, expiry, removal, and replicated remaining duration. Clients have no status, duration, source, multiplier, roof, weather, fire, construction, or save mutation path. Existing runtime exposure remains untouched until the next implementation increment replaces it.
+
+Known limits: This is a contract reconciliation only; the current runtime still has the legacy exposure fields and has not yet applied water/rain triggers, movement/stamina modifiers, or fire removal. Surface moisture and construction/fire response remain later M3 work.
+
+Next task: Implement the bounded server-owned interaction-grid surface-moisture contract without creating an independent player stat, then replace the legacy player exposure runtime with the shared Wet status path.
+
