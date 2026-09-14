@@ -2153,3 +2153,31 @@ Known limits: Wet has no movement/stamina modifier yet, and it is not removed by
 
 Next task: Apply the configured 10% movement penalty and 25% stamina-use increase through the shared status path without bespoke player fields.
 
+
+### 2026-09-14 - Apply shared Wet movement modifiers
+
+Outcome: Completed the movement and cost-calculation increment of the first unchecked M3 modifier task. Shared compiled status definitions apply 0.90 movement and 1.25 stamina-use factors without bespoke pawn fields. Walking, sprinting, and generated swimming use the status factor; legacy warmth no longer scales actual walking speed. The parent task remains open because the repository has no stamina resource or consuming action.
+
+Changed: Source/KalmalaGameplay/Public/KalmalaPlayerStatusComponent.h; Source/KalmalaGameplay/Private/KalmalaPlayerStatusComponent.cpp; Source/KalmalaGameplay/Private/KalmalaCharacterMovementComponent.cpp; Source/KalmalaGameplay/Private/KalmalaCharacter.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp; BACKLOG.md; docs/02-technical-architecture.md; docs/07-development-setup.md; PROGRESS.md.
+
+Verification: Forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with UnrealBuildTool cache access. Final headless Kalmala.Gameplay.Status.Wet and WetModifiers both passed. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaWetModifiers-6b9a5319f61d419bb0587e970c1abf18/automation.log. Two initial test-fixture crashes (duplicate world initialization and TArray self-reference during Add) were repaired before the passing run. git diff --check passed.
+
+Multiplayer impact: Server still owns status creation/refresh/expiry. Normal replicated status presence drives prediction and server movement; clients supply no multiplier, cost, status, duration, or removal RPC. No save schema changes. Compiled defaults must match across peers.
+
+Known limits: No stamina drain exists yet, so the cost helper alone does not fulfill the full 25% consumption requirement. Live host/client modifier agreement is not verified. Continuous exposure telemetry and historical exposure fixtures remain until migration cleanup; they no longer control walking speed. Campfire removal remains a later child.
+
+Next task: Integrate shared status cost with authoritative stamina consumption, then verify host/client movement agreement before closing the modifier child.
+
+### 2026-09-14T14:19:36.9943433+03:00 - Stamina prerequisite handoff conflict
+
+Outcome: Selected the first unchecked M3 stamina-consumption child, but found its required shared status-cost API and movement modifiers only in pre-existing uncommitted changes. No implementation or checkbox was changed.
+
+Changed: PROGRESS.md (this appended handoff only); automation memory. Preserved all nine pre-existing modified files and the index.
+
+Verification: Read the backlog, recent progress, automation memory, project brief, design, architecture, decision log, roadmap, and setup guidance. git diff confirms CalculateStaminaCost, GetModifiers, and the movement integration are uncommitted; HEAD is f1601c0 (Wet triggers). No build was invoked because no runtime changes were made. The preceding handoff reports passing build and focused tests, but those are not new verification from this run.
+
+Multiplayer impact: None; no gameplay, RPC, status, stamina, or save changes.
+
+Known limits: A commit of the dependent stamina implementation would require the pre-existing prerequisite changes for a buildable checkout. AGENTS.md forbids staging or committing changes not made during this run. This is a handoff ownership conflict, not three failed implementation attempts; the task remains unchecked and is not marked BLOCKED.
+
+Next task: Have the prerequisite owner commit the existing Wet modifier increment, or obtain explicit user direction authorizing adoption of those changes; then integrate authoritative stamina consumption and verify host/client movement agreement.

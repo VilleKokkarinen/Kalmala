@@ -4,6 +4,13 @@
 #include "Components/ActorComponent.h"
 #include "KalmalaPlayerStatusComponent.generated.h"
 
+/** Compiled status-definition output; never supplied by a client. */
+struct FKalmalaStatusModifiers
+{
+    float Movement = 1.0f;
+    float StaminaUse = 1.0f;
+};
+
 USTRUCT(BlueprintType)
 struct FKalmalaPlayerStatusEntry
 {
@@ -31,6 +38,13 @@ public:
     static const FName WetStatusId;
     static constexpr float WetMaximumSeconds = 120.0f;
     static constexpr float UnroofedRainTriggerSeconds = 10.0f;
+    static constexpr float WetMovementMultiplier = 0.90f;
+    static constexpr float WetStaminaUseMultiplier = 1.25f;
+
+    FKalmalaStatusModifiers GetModifiers() const { return EvaluateModifiers(Statuses); }
+    static FKalmalaStatusModifiers EvaluateModifiers(const TArray<FKalmalaPlayerStatusEntry>& Entries);
+    /** Base cost must come from an authoritative action definition, never an RPC payload. */
+    float CalculateStaminaCost(float BaseCost) const;
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

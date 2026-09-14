@@ -193,7 +193,8 @@ void AKalmalaCharacter::ApplyExposureTravelPenalty()
 {
     if (UCharacterMovementComponent* Movement = GetCharacterMovement())
     {
-        Movement->MaxWalkSpeed = BaselineMaxWalkSpeed * ExposureState.TravelSpeedMultiplier;
+        // M3 status definitions now own movement penalties. Legacy exposure is telemetry only.
+        Movement->MaxWalkSpeed = BaselineMaxWalkSpeed;
     }
 }
 

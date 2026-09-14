@@ -4,6 +4,30 @@
 
 const FName UKalmalaPlayerStatusComponent::WetStatusId(TEXT("State.Wet"));
 
+FKalmalaStatusModifiers UKalmalaPlayerStatusComponent::EvaluateModifiers(const TArray<FKalmalaPlayerStatusEntry>& Entries)
+{
+    FKalmalaStatusModifiers Result;
+    TSet<FName> Applied;
+    for (const FKalmalaPlayerStatusEntry& Entry : Entries)
+    {
+        if (!FMath::IsFinite(Entry.RemainingSeconds) || Entry.RemainingSeconds <= 0.0f || Applied.Contains(Entry.StatusId)) continue;
+        Applied.Add(Entry.StatusId);
+        // Add future compiled definitions here; entries contain no numeric modifiers.
+        if (Entry.StatusId == WetStatusId)
+        {
+            Result.Movement *= WetMovementMultiplier;
+            Result.StaminaUse *= WetStaminaUseMultiplier;
+        }
+    }
+    return Result;
+}
+
+float UKalmalaPlayerStatusComponent::CalculateStaminaCost(const float BaseCost) const
+{
+    if (!FMath::IsFinite(BaseCost) || BaseCost < 0.0f) return 0.0f;
+    return FMath::Min(static_cast<double>(BaseCost) * GetModifiers().StaminaUse, static_cast<double>(MAX_flt));
+}
+
 UKalmalaPlayerStatusComponent::UKalmalaPlayerStatusComponent()
 {
     SetIsReplicatedByDefault(true);

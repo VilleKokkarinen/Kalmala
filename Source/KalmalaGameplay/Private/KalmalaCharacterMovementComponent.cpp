@@ -1,4 +1,6 @@
 #include "KalmalaCharacterMovementComponent.h"
+#include "KalmalaCharacter.h"
+#include "KalmalaPlayerStatusComponent.h"
 #include "GameFramework/Character.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaWorldBounds.h"
@@ -7,9 +9,11 @@
 float UKalmalaCharacterMovementComponent::GetMaxSpeed() const
 {
     const float Speed = Super::GetMaxSpeed();
-    if (IsSwimmingInGeneratedOcean()) return FMath::Min(Speed, 420.0f);
-    return bSprintRequested && IsMovingOnGround() && CharacterOwner && !CharacterOwner->bIsCrouched
-        ? Speed * FMath::Clamp(SprintMultiplier, 1.0f, 2.0f) : Speed;
+    const AKalmalaCharacter* Pawn = Cast<AKalmalaCharacter>(CharacterOwner);
+    const float StatusSpeed = Pawn && Pawn->GetStatusComponent() ? Pawn->GetStatusComponent()->GetModifiers().Movement : 1.0f;
+    if (IsSwimmingInGeneratedOcean()) return FMath::Min(Speed, 420.0f) * StatusSpeed;
+    return (bSprintRequested && IsMovingOnGround() && CharacterOwner && !CharacterOwner->bIsCrouched
+        ? Speed * FMath::Clamp(SprintMultiplier, 1.0f, 2.0f) : Speed) * StatusSpeed;
 }
 
 bool UKalmalaCharacterMovementComponent::GetGeneratedOceanDepth(float& OutDepth) const
