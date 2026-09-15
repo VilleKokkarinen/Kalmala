@@ -243,3 +243,7 @@ Construction rain wear runs from server GameMode weather; its mutation seam reje
 Construction save/load is authority-guarded in GameMode with world-identity and record validation. Storage also validates the accepted construction ID/kit/transform and saves a candidate before replacing live contents. Construction schema 1 contains only ID, kit and transform. Rain health resets to 100 on restore; hearth fuel/state and Wet remain transient. This audit adds no persistence or schema change.
 
 Hearth.AuthorityContract guards the absence of server RPCs on state owners, actual lifetime replication of health/hearth/protection fields, and the unchanged construction record shape. Behavioral authority, roof collision and persistence checks remain in RainWear, RainState, Wet, Crafting.NetworkContract and Storage. The combined live M3 scenario remains a later acceptance gate.
+
+### Local Wet feedback
+
+The existing read-only pack HUD reads only its owning pawn's replicated status component. While Wet is active it shows the rounded-up remaining seconds, movement reduction and stamina-use increase from the shared Wet definition, plus a lit-campfire recovery hint. Removal or expiry replaces this with explicit `Wet: inactive` text. The panel reserves additional height for these lines and retains its wrapping/scroll behavior. It never counts down locally, changes a status, reads legacy exposure wetness, or submits a network request. Construction/fire feedback and rendered layout verification remain queued.

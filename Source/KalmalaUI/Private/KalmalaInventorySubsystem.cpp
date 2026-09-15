@@ -9,6 +9,7 @@
 #include "GameFramework/Pawn.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaPlayerStatusComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -60,7 +61,22 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
     FString CraftKey = TEXT("Unbound");
     for (const auto& Mapping : GetDefault<UInputSettings>()->GetActionMappings())
         if (Mapping.ActionName == TEXT("CraftMenu") && !Mapping.Key.IsGamepadKey()) { CraftKey=Mapping.Key.GetDisplayName().ToString(); break; }
-    FString Text = TEXT("Pack | Craft: ") + CraftKey + TEXT("\n");
+    const UKalmalaPlayerStatusComponent* Status = Pawn ? Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
+    FString Text;
+    if (Status && Status->HasStatus(UKalmalaPlayerStatusComponent::WetStatusId))
+    {
+        Text = FString::Printf(TEXT("WET | %d s remaining\nMovement -%.0f%%\nStamina use +%.0f%%\nDry off near a lit campfire.\n\n"),
+            FMath::CeilToInt(Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WetStatusId)),
+            (1.0f - UKalmalaPlayerStatusComponent::WetMovementMultiplier) * 100.0f,
+            (UKalmalaPlayerStatusComponent::WetStaminaUseMultiplier - 1.0f) * 100.0f);
+    }
+    else if (Status)
+    {
+        Text = TEXT("Wet: inactive\n\n");
+    }
+    int32 StatusLines = 0;
+    for (const TCHAR Character : Text) if (Character == TEXT('\n')) ++StatusLines;
+    Text += TEXT("Pack | Craft: ") + CraftKey + TEXT("\n");
     if (!Inventory) Text += TEXT("Waiting for player");
     else if (Inventory->GetStacks().IsEmpty()) Text += TEXT("Empty");
     else
@@ -72,7 +88,7 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
         }
     }
     Widget->SetPackText(Text);
-    Widget->SetDesiredSizeInViewport(FVector2D(280, 60 + (Inventory ? FMath::Max(1, Inventory->GetStacks().Num()) : 1) * 22));
+    Widget->SetDesiredSizeInViewport(FVector2D(280, 60 + (StatusLines + (Inventory ? FMath::Max(1, Inventory->GetStacks().Num()) : 1)) * 22));
 #if !UE_BUILD_SHIPPING
     if (!bVerified && Inventory && Inventory->GetQuantity(TEXT("Wood")) == 7
         && FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryTest")))

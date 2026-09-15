@@ -251,6 +251,8 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 - [ ] **Add clear local feedback and verify the vertical slice.**
   - [ ] Present Wet duration, movement/stamina penalties, construction rain wear, and fire state using colour-independent player-facing cues.
+    - [x] Show owning-player Wet duration and configured penalties in the read-only HUD, with an explicit inactive state.
+    - [ ] Add construction rain-wear and complete fire-state cues; verify rendered feedback.
   - [ ] Verify invalid client wetness, building-health, roof, rain, or fire requests cannot alter authority or saves.
   - [ ] Run a host/client scenario for immediate water Wet, delayed unroofed-rain Wet, roof immunity, capped rain wear, smoulder/reignite, and campfire Wet removal.
 

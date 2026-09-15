@@ -2267,3 +2267,17 @@ Multiplayer impact: No runtime behavior, RPC, replication or saved-data schema c
 Known limits: Rain health, hearth fuel/state and Wet remain transient; restored construction starts at 100 health. This run verifies compiled contracts and actor/physics authority seams, not a new live host/client session or the combined M3 scenario.
 
 Next task: Present Wet duration, movement/stamina penalties, construction rain wear, and fire state using colour-independent player-facing cues.
+
+### 2026-09-15T08:15:25+03:00 - Show local Wet duration and penalties
+
+Outcome: Completed the first small increment of M3 colour-independent feedback. The owning player's existing pack HUD now shows WET, rounded-up replicated seconds, configured movement/stamina penalties, and a lit-campfire hint. Clearing the status displays Wet: inactive. Added explicit children beneath the still-open combined feedback task.
+
+Changed: Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp; docs/02-technical-architecture.md; BACKLOG.md; PROGRESS.md.
+
+Verification: Forced KalmalaEditor Win64 Development build with UnrealBuildTool cache access passed after repairing an unsupported FString CountChar call. All four focused Wet tests passed, exit 0: C:/Users/Ville/AppData/Local/Temp/KalmalaWetFeedback-0639a96c94184cfdbe4c03c910685515/automation.log. Startup reported cache fallback and condition diagnostics; each selected test explicitly reported Success. git diff --check passed.
+
+Multiplayer impact: Presentation reads only the owning pawn's replicated status component and shared definition constants. No client countdown, mutation, RPC, authoritative state, or save-schema change.
+
+Known limits: No rendered layout or new live peer feedback check this increment. The existing wrapping/scroll panel reserves height for status text; construction rain wear and complete fire-state feedback remain unimplemented by this run. Combined M3 acceptance remains open.
+
+Next task: Add construction rain-wear and complete fire-state cues, then verify rendered feedback under the same M3 feedback child. Main checkout is the current workspace; no handoff synchronization needed.
