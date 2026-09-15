@@ -255,3 +255,7 @@ The crafting panel places nearby hearth status before recipes so state and recov
 ### Local construction rain-wear feedback
 
 The crafting panel shows the nearest initialized, visible construction within 250 cm of the owning pawn (stable construction ID breaks distance ties). A local visibility trace selects presentation only; it never determines server shelter or permission. The panel reads the existing replicated kit and health, uses the catalogue name, and states health to one decimal plus no wear, rain-worn, rain-wear floor reached, or roof immunity. A generic roof-prevention hint does not claim current roof protection; no roof-state field is replicated. Missing or obscured construction clears to an explicit none-visible message. No RPC, authority or saved-data contract changes.
+
+### Weather mutation runtime guard
+
+SetWeatherStateFromServer now rejects non-authority and invalid input at runtime instead of relying on assertions that can compile out. Weather validity also requires a finite, nonnegative server start time. Rejected calls preserve the complete previous weather interval and do not force replication. Valid server selection remains unchanged; there is still no weather mutation RPC or weather save field. This prevents client-local writes through this C++ seam, without claiming a remotely exploitable server endpoint previously existed.

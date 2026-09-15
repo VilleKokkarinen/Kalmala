@@ -36,8 +36,7 @@ bool AKalmalaWorldGenerationGameState::IsWeatherUpdateAllowed(const bool bServer
 
 void AKalmalaWorldGenerationGameState::SetWeatherStateFromServer(const FKalmalaWeatherState& InWeatherState)
 {
-    check(IsWeatherUpdateAllowed(HasAuthority()));
-    check(InWeatherState.IsValid());
+    if (!IsWeatherUpdateAllowed(HasAuthority()) || !InWeatherState.IsValid()) return;
     WeatherState = InWeatherState;
     ForceNetUpdate();
     UE_LOG(LogTemp, Display, TEXT("Server selected weather cycle %d: Start=%.2f Duration=%.2f Precipitation=%.2f WindDirection=%d WindStrength=%.2f."), WeatherState.WeatherCycleIndex, WeatherState.ServerStartTimeSeconds, WeatherState.DurationSeconds, WeatherState.PrecipitationIntensity, WeatherState.WindDirectionDegrees, WeatherState.WindStrength);

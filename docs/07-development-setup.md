@@ -309,3 +309,5 @@ After a forced editor build, run `Kalmala.Gameplay.Hearth+Kalmala.Gameplay.Const
 ### Construction feedback rendering
 
 After building, run Scripts/Verify-Crafting.ps1 -Rendered. The paid floor fixture now advances rain wear through the authoritative actor seam to the 50-health floor. Both peer captures require the local nearby-construction text to report Health: 50.0 / 100 and the rain-wear limit. Inspect host.png and client.png for readable status and recovery cues. This covers floor health replication and rendered feedback, not all construction kits, camera occlusion cases, aspect ratios or the complete natural-weather M3 scenario.
+
+Hearth.WeatherMutation spawns a GameState and verifies valid server updates, complete state preservation after a simulated-proxy call, and rejection of malformed start/rain/duration/wind values. Hearth.AuthorityContract now includes weather RPC absence and ordinary weather replication. Run the existing M3 rain authority prefix suite above. These tests are actor-role regression coverage; live invalid-client/save-isolation probes remain a separate backlog child.

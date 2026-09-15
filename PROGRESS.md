@@ -2309,3 +2309,17 @@ Multiplayer impact: Local range/visibility query selects read-only presentation 
 Known limits: Rendered proof covers a rain-worn floor at 1280x720 and smouldering hearth. Roof immunity text, intermediate health, occlusion/tie selection, other kits/aspect ratios and active Wet layout have no new rendered coverage. Roof protection is a generic hint because current construction roof status is not replicated. The combined natural-weather scenario remains open.
 
 Next task: Verify invalid client wetness, building-health, roof, rain and fire requests cannot alter authority or saves.
+
+### 2026-09-15T08:58:01.5643832+03:00 - Guard weather mutation in all configurations
+
+Outcome: Completed one concrete increment of the next M3 invalid-client authority task. Replaced assertion-only weather authority/input checks with runtime rejection; rejected calls cannot write or force replication. Added finite nonnegative start-time validation and a real GameState regression. Parent remains open for live cross-system client/save probes.
+
+Changed: Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp; Source/KalmalaWorld/Public/KalmalaWeatherState.h; Source/KalmalaGameplay/Private/Tests/KalmalaRainAuthorityTest.cpp; docs/02-technical-architecture.md; docs/07-development-setup.md; BACKLOG.md; PROGRESS.md. Main checkout began clean; no handoff synchronization needed.
+
+Verification: Forced KalmalaEditor Win64 Development build with UnrealBuildTool cache access passed. All 17 focused Hearth, Construction, Wet, Crafting.NetworkContract and Storage tests explicitly passed, exit 0. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaWeatherGuard-58c85d4944b042efb689d861c4e6ad27/automation.log. New WeatherMutation checks all six weather fields remain unchanged after client-role and eight malformed calls, followed by successful valid server selection. Startup emitted cache-fallback and pre-test condition diagnostics; selected tests all report Success. git diff --check passed.
+
+Multiplayer impact: Stronger local C++ setter guard remains active when assertions compile out. GameMode remains weather writer; no RPC, replicated layout, save schema or valid weather selection change. Weather state added to existing no-server-RPC/replication regression.
+
+Known limits: This is actor-role/headless evidence, not a Shipping binary build or live hostile-client/save-byte comparison. Existing save-contract tests pass but do not close the pending live isolation proof. No remote weather mutation RPC existed before this change.
+
+Next task: Complete live invalid-client probes for Wet, construction, roof/rain and fire, confirming authoritative state and saves remain unchanged.

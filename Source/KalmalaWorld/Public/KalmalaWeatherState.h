@@ -33,6 +33,7 @@ struct KALMALAWORLD_API FKalmalaWeatherState
     bool IsValid() const
     {
         return WeatherCycleIndex >= 0
+            && FMath::IsFinite(ServerStartTimeSeconds) && ServerStartTimeSeconds >= 0.0f
             && DurationSeconds >= 120.0f && DurationSeconds <= 240.0f
             && FMath::IsWithinInclusive(PrecipitationIntensity, 0.0f, 1.0f)
             && WindDirectionDegrees >= 0 && WindDirectionDegrees < 360 && WindDirectionDegrees % 45 == 0
