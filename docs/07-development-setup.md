@@ -301,3 +301,7 @@ After the editor build, run Kalmala.Gameplay.Construction headlessly with the us
 ### Three-state hearth verification
 
 Run Kalmala.Gameplay.Hearth+Kalmala.Gameplay.Status.Wet headlessly after building. Hearth.RainState exercises real paid-initialized actors: no self-lighting, dry/windy Lit, threshold Smouldering, zero light/heat, normal fuel consumption, client mutation rejection, actual roof collision and loss of protection, dry reignition, invalid input rejection, fuel exhaustion and Wet removal only after heat returns. Scripts/Verify-Crafting.ps1 now requires enum State=1 and State=2 on both server and client in its existing paid crafting scenario. Earlier rain-extinguishing descriptions are superseded by Smouldering; later combined M3 acceptance still owns the complete live roof/rain loop.
+
+## M3 rain authority regression
+
+After a forced editor build, run `Kalmala.Gameplay.Hearth+Kalmala.Gameplay.Construction+Kalmala.Gameplay.Status.Wet+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Storage` with the temporary user/log and headless flags above. Hearth.AuthorityContract initializes runtime replication metadata, checks no server RPC on state owners, verifies ordinary lifetime replication for health/hearth/protection fields, and guards the existing three-field construction schema. The other prefixes cover client-role mutation rejection, real roof collision, malformed weather, status effects and bounded identity-scoped save serialization. This focused audit does not replace combined live M3 acceptance.

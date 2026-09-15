@@ -235,3 +235,11 @@ Construction actors now replicate Health, initialized to 100 on a new actor. The
 ### Three-state hearth runtime
 
 The replicated HearthState enum now replaces the boolean: Extinguished (0), Lit (1), Smouldering (2). IsLit is a compatibility query for Lit only. Both active states burn one fuel-second per server second; exhaustion becomes Extinguished. Server weather advancement samples roof collision internally, so its trusted rain input cannot assert protection. Exposed rain >=0.05 selects Smouldering; dry or roof-protected conditions select Lit for an already active fire. Heat is exactly 1 for Lit and 0 otherwise, retaining the existing radial falloff. Wind and legacy fuel-wetness telemetry no longer reduce active heat or prevent automatic reignition. The existing validated initial lighting gate remains required for Extinguished, and fuel alone cannot self-light. Text presentation explicitly names SMOULDERING. There is no new client mutation path or saved-data schema.
+
+## M3 rain-response authority audit
+
+Construction rain wear runs from server GameMode weather; its mutation seam rejects clients before tracing roof collision. Hearth Tick samples weather/wind only on authority, and the shared rain transition independently rejects clients before its roof trace. Replication callbacks derive local collision, tags, meshes and light from accepted state. Local tags cannot influence the server's separate trace world. Wet modifiers may drive client movement prediction, but status mutation remains server-owned.
+
+Construction save/load is authority-guarded in GameMode with world-identity and record validation. Storage also validates the accepted construction ID/kit/transform and saves a candidate before replacing live contents. Construction schema 1 contains only ID, kit and transform. Rain health resets to 100 on restore; hearth fuel/state and Wet remain transient. This audit adds no persistence or schema change.
+
+Hearth.AuthorityContract guards the absence of server RPCs on state owners, actual lifetime replication of health/hearth/protection fields, and the unchanged construction record shape. Behavioral authority, roof collision and persistence checks remain in RainWear, RainState, Wet, Crafting.NetworkContract and Storage. The combined live M3 scenario remains a later acceptance gate.

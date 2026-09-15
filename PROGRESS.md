@@ -2253,3 +2253,17 @@ Known limits: AGENTS.md prohibits staging or committing changes not made during 
 Next task: The existing campfire change owner must finish verification and commit, or the user must explicitly authorize adopting these eight files; then resume the first unchecked M3 task without skipping ahead.
 
 Resolution (2026-09-14T14:49:43.8862874+03:00): Final status check found that the concurrent owner committed the campfire implementation as 3454bd1 before this run's handoff commit 87a6e08. The selected checkbox is now complete and the checkout is clean. The overlap is resolved; no adoption permission is needed. This run performed no runtime verification and stops at the encountered handoff conflict. Next eligible task is the server-authority and persistence audit for construction/rain/hearth state.
+
+### 2026-09-15T07:48:36.9657560+03:00 - Verify rain-response authority and persistence
+
+Outcome: Completed the first unchecked M3 authority/persistence child and closed the roof/rain/hearth parent. Added a compiled regression guarding state-owner RPC absence, actual ordinary replication registration for health/hearth/protection fields, and the unchanged construction record shape. Audited server weather/roof mutation and GameMode construction/storage persistence paths.
+
+Changed: Source/KalmalaGameplay/Private/Tests/KalmalaRainAuthorityTest.cpp; docs/02-technical-architecture.md; docs/07-development-setup.md; BACKLOG.md; PROGRESS.md. Main checkout was clean before this run; handoff updated directly at E:/dev/Kalmala.
+
+Verification: Final forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with LOCALAPPDATA UnrealBuildTool access. All 16 focused Hearth, Construction, Wet, Crafting.NetworkContract and Storage tests passed: C:/Users/Ville/AppData/Local/Temp/KalmalaRainAuthority-01838e6938384b3d83242e2db93a156a/automation.log. Repaired one initial test-fixture assertion by initializing runtime replication metadata before inspecting lifetime properties. git diff --check passed.
+
+Multiplayer impact: No runtime behavior, RPC, replication or saved-data schema changed. Server authority gates and server-world roof traces remain the mutation boundary; clients derive presentation/collision from accepted state and predict movement from replicated modifiers. Persistence writes remain server-only and identity validated.
+
+Known limits: Rain health, hearth fuel/state and Wet remain transient; restored construction starts at 100 health. This run verifies compiled contracts and actor/physics authority seams, not a new live host/client session or the combined M3 scenario.
+
+Next task: Present Wet duration, movement/stamina penalties, construction rain wear, and fire state using colour-independent player-facing cues.
