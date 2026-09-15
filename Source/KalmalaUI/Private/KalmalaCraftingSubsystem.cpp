@@ -42,6 +42,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     for (const FInputActionKeyMapping& Mapping : GetDefault<UInputSettings>()->GetActionMappings())
         if (Mapping.ActionName == TEXT("CraftMenu") && !Mapping.Key.IsGamepadKey()) { CraftKey = Mapping.Key.GetDisplayName().ToString(); break; }
     InstructionsText = AddText(FString::Printf(TEXT("Craft menu input: %s. Up/Down or D-pad: choose. Enter / A: craft. P: local preview. Escape / B: close.\nController Y: place hearth. X: add fuel. RB: light.\n"), *CraftKey), 16);
+    StateText = AddText(TEXT(""), 18);
     RecipesText = AddText(TEXT(""), 18);
     DetailText = AddText(TEXT(""), 18);
     auto AddButton = [&](const TCHAR* Label, UHorizontalBox* Row = nullptr) {
@@ -61,7 +62,6 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Place selected kit"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Place);
     AddButton(TEXT("Add fuel bundle"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Refuel);
     AddButton(TEXT("Light hearth"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Light);
-    StateText = AddText(TEXT(""), 18);
     AddText(TEXT("\nWoven chest — shared nearby storage\nInspect a visible chest, choose an item, then store or take one. Contents clear when closed or out of reach."), 16);
     StorageText = AddText(TEXT(""), 18);
     AddButton(TEXT("Inspect nearby chest"))->OnClicked.AddDynamic(this, &ThisClass::InspectStorage);

@@ -2281,3 +2281,17 @@ Multiplayer impact: Presentation reads only the owning pawn's replicated status 
 Known limits: No rendered layout or new live peer feedback check this increment. The existing wrapping/scroll panel reserves height for status text; construction rain wear and complete fire-state feedback remain unimplemented by this run. Combined M3 acceptance remains open.
 
 Next task: Add construction rain-wear and complete fire-state cues, then verify rendered feedback under the same M3 feedback child. Main checkout is the current workspace; no handoff synchronization needed.
+
+### 2026-09-15T08:47:00+03:00 - Show hearth heat and recovery cues
+
+Outcome: Completed one bounded increment of the first M3 construction/fire-feedback child. Hearth text now explains heat, Wet removal, continued smouldering fuel consumption, roof/dry reignition, and extinguished fuel/lighting prerequisites. Moved status before recipes so the recovery hint is visible on opening. Combined feedback remains unchecked with construction cues next.
+
+Changed: Source/KalmalaGameplay/Private/KalmalaCampfire.cpp; Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp; docs/02-technical-architecture.md; BACKLOG.md; PROGRESS.md. Started clean in main checkout E:/dev/Kalmala; no synchronization required.
+
+Verification: Final forced KalmalaEditor Win64 Development build passed with UnrealBuildTool cache access. Scripts/Verify-Crafting.ps1 -Rendered -Port 18107 passed both peer validation/payment/inventory/input-restoration and replicated Lit/Smouldering checks. Inspected both 1280x720 screenshots: complete smouldering heat/fuel/recovery text is visible without scrolling. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-7216ce116abf43d5b1bb204b5ac2f627. First rendered run passed but exposed a below-fold hint; repaired layout and reran successfully. git diff --check passed.
+
+Multiplayer impact: Read-only presentation of existing replicated fields; no authority, RPC, roof trace, status mutation or save-schema change.
+
+Known limits: Rendered capture covers Smouldering at 1280x720; other states and aspect ratios are not newly visually verified. Recipes and actions remain in the existing scroll panel. Construction health/rain-wear cues and full M3 combined scenario remain open.
+
+Next task: Add construction health/rain-wear cues and verify their rendered feedback before closing the parent.

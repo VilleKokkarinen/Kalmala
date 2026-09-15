@@ -187,8 +187,14 @@ FString AKalmalaCampfire::GetStatusText() const
 {
     // This is deliberately a complete textual state, rather than a light/colour-only
     // indication. The crafting panel is a local read-only view of replicated hearth state.
-    return FString::Printf(TEXT("Hearth status\nState: %s\nFuel: %.0f / 300 seconds\nFuel condition: %s (%d%% wet)\nRain protection: %s\nWind protection: %s\nAccess: %s"),
-        IsLit() ? TEXT("LIT") : HearthState == EKalmalaHearthState::Smouldering ? TEXT("SMOULDERING") : TEXT("EXTINGUISHED"), FuelSeconds,
+    const TCHAR* HeatHint = IsLit() ? TEXT("Heat: ON - stand nearby to remove Wet")
+        : HearthState == EKalmalaHearthState::Smouldering
+            ? TEXT("Heat: NONE - fuel still burns\nAdd a roof or wait for dry weather to reignite")
+            : FuelSeconds <= 0.0f ? TEXT("Heat: NONE - add fuel, then light")
+            : FuelWetness >= .9f ? TEXT("Heat: NONE - let fuel dry, then light")
+            : TEXT("Heat: NONE - ready to light");
+    return FString::Printf(TEXT("Hearth status\nState: %s\n%s\nFuel: %.0f / 300 seconds\nFuel condition: %s (%d%% wet)\nRain protection: %s\nWind protection: %s\nAccess: %s"),
+        IsLit() ? TEXT("LIT") : HearthState == EKalmalaHearthState::Smouldering ? TEXT("SMOULDERING") : TEXT("EXTINGUISHED"), HeatHint, FuelSeconds,
         FuelWetness >= .9f ? TEXT("TOO WET TO LIGHT") : TEXT("DRY ENOUGH TO LIGHT"), FMath::RoundToInt(FuelWetness*100),
         bRoofProtected ? TEXT("ROOF PROTECTED") : TEXT("RAIN EXPOSED"),
         bWindProtected ? TEXT("WINDBREAK PROTECTED") : TEXT("WIND EXPOSED"), bSharedUse ? TEXT("SHARED") : TEXT("OWNER ONLY"));

@@ -247,3 +247,7 @@ Hearth.AuthorityContract guards the absence of server RPCs on state owners, actu
 ### Local Wet feedback
 
 The existing read-only pack HUD reads only its owning pawn's replicated status component. While Wet is active it shows the rounded-up remaining seconds, movement reduction and stamina-use increase from the shared Wet definition, plus a lit-campfire recovery hint. Removal or expiry replaces this with explicit `Wet: inactive` text. The panel reserves additional height for these lines and retains its wrapping/scroll behavior. It never counts down locally, changes a status, reads legacy exposure wetness, or submits a network request. Construction/fire feedback and rendered layout verification remain queued.
+
+### Local hearth recovery feedback
+
+The crafting panel places nearby hearth status before recipes so state and recovery instructions are visible on opening. Text derived from the existing replicated hearth fields states whether heat is on, that nearby heat removes Wet, that Smouldering has no heat but still burns fuel, and that a roof or dry weather restores it. Extinguished hints distinguish empty fuel, wet fuel and readiness to light. No state, trace, RPC or persistence contract changes. Construction rain-wear feedback remains queued.

@@ -253,6 +253,8 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [ ] Present Wet duration, movement/stamina penalties, construction rain wear, and fire state using colour-independent player-facing cues.
     - [x] Show owning-player Wet duration and configured penalties in the read-only HUD, with an explicit inactive state.
     - [ ] Add construction rain-wear and complete fire-state cues; verify rendered feedback.
+      - [x] Explain hearth heat, fuel consumption and recovery in text; verify host/client smouldering feedback is visible when the crafting panel opens.
+      - [ ] Add construction health/rain-wear cues and verify rendered feedback; retain the combined feedback acceptance until covered.
   - [ ] Verify invalid client wetness, building-health, roof, rain, or fire requests cannot alter authority or saves.
   - [ ] Run a host/client scenario for immediate water Wet, delayed unroofed-rain Wet, roof immunity, capped rain wear, smoulder/reignite, and campfire Wet removal.
 
