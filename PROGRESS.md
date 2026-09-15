@@ -2323,3 +2323,17 @@ Multiplayer impact: Stronger local C++ setter guard remains active when assertio
 Known limits: This is actor-role/headless evidence, not a Shipping binary build or live hostile-client/save-byte comparison. Existing save-contract tests pass but do not close the pending live isolation proof. No remote weather mutation RPC existed before this change.
 
 Next task: Complete live invalid-client probes for Wet, construction, roof/rain and fire, confirming authoritative state and saves remain unchanged.
+
+### 2026-09-15T15:13:10+03:00 - Verify live client authority isolation
+
+Outcome: Completed the live invalid-client authority/save-isolation child. The persisted-camp host/client fixture now invokes forged server-only Wet, construction rain-wear/roof, hearth, and weather mutators on the remote replicated copies. Every call is a local no-op; the client retains its received state and has no authoritative GameMode/save owner.
+
+Changed: Scripts/Verify-PersistedCampHearth.ps1; Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp; Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h; docs/02-technical-architecture.md; docs/07-development-setup.md; BACKLOG.md; PROGRESS.md.
+
+Verification: Forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with UnrealBuildTool local-cache access. Scripts/Verify-PersistedCampHearth.ps1 -Port 18117 passed in retained isolated user directories after cold startup: C:/Users/Ville/AppData/Local/Temp/KalmalaPersistedCampAuthority-20260915. Both server paid camp builds passed and the remote client reported Passed=1 Wet=0 FloorHealth=99.8 RoofHealth=100.0 FireState=0 Fuel=60 Weather=77/0.75 SaveOwner=0; no fatal/assert/ensure or failed fixture result occurred. git diff --check passed.
+
+Multiplayer impact: This is development-only evidence. It adds no RPC, client payload, authoritative mutation, save write, replicated-field layout, or normal-play behavior. The server continues to own Weather, Wet, roof traces, rain wear, hearth state/fuel, construction IDs, and all save containers.
+
+Known limits: The direct-call probe is not malformed network-packet fuzzing or a Shipping build. It demonstrates that client object copies cannot mutate their server-only seams or gain a save owner; it does not yet exercise the complete natural water/rain/roof/smoulder/reignite/Wet-removal sequence.
+
+Next task: Run a host/client scenario for immediate water Wet, delayed unroofed-rain Wet, roof immunity, capped rain wear, smoulder/reignite, and campfire Wet removal.

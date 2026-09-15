@@ -257,7 +257,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
       - [x] Add construction health/rain-wear cues and verify rendered feedback; retain the combined feedback acceptance until covered.
   - [ ] Verify invalid client wetness, building-health, roof, rain, or fire requests cannot alter authority or saves.
     - [x] Replace assertion-only weather mutation checks with runtime authority/input rejection and verify unchanged state for client-role and malformed calls.
-    - [ ] Complete live invalid-client state probes and confirm authoritative state and saves remain unchanged across Wet, construction, roof/rain and fire.
+    - [x] Complete live invalid-client state probes and confirm authoritative state and saves remain unchanged across Wet, construction, roof/rain and fire.
   - [ ] Run a host/client scenario for immediate water Wet, delayed unroofed-rain Wet, roof immunity, capped rain wear, smoulder/reignite, and campfire Wet removal.
 
 **M3 acceptance:** water immediately applies Wet; ten seconds of unroofed rain applies Wet; Wet is capped at two minutes and applies the configured movement/stamina penalties. A roof blocks rain exposure and protects structures. Exposed structures never fall below 50% health from rain. An exposed rainy campfire smoulders without heat and reignites once roofed.

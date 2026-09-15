@@ -2,6 +2,7 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaConstructionActor.h"
+#include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
@@ -419,6 +420,50 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
     int32 ConstructionCount = 0;
     for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It) if (It->GetConstructionKit() != NAME_None) ++ConstructionCount;
     const bool bStorageVisible = HasStorageView() && StorageView.Num() == 1 && StorageView[0].ItemId == TEXT("Wood") && StorageView[0].Quantity == 1;
+    // Exercise the actual replicated client copies rather than an actor-role unit
+    // fixture. These are deliberately direct calls, not RPCs: none may write a
+    // local authoritative-looking value or reach the server save owners.
+    if (!Character->HasAuthority() && !bPersistedCampAuthorityProbeReported && PersistedCampVerificationElapsed >= 6.0f)
+    {
+        AKalmalaConstructionActor* Floor = nullptr;
+        AKalmalaConstructionActor* Roof = nullptr;
+        for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It)
+        {
+            if (It->GetConstructionKit() == TEXT("FloorKit")) Floor = *It;
+            if (It->GetConstructionKit() == TEXT("RoofKit")) Roof = *It;
+        }
+        UKalmalaPlayerStatusComponent* Statuses = Character->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+        AKalmalaWorldGenerationGameState* MutableWorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+        const float WetBefore = Statuses ? Statuses->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WetStatusId) : -1.0f;
+        const float HealthBefore = Floor ? Floor->GetHealth() : -1.0f;
+        const EKalmalaHearthState FireBefore = Fire ? Fire->GetHearthState() : EKalmalaHearthState::Extinguished;
+        const float FuelBefore = Fire ? Fire->GetFuelSeconds() : -1.0f;
+        const FKalmalaWeatherState WeatherBefore = MutableWorldState ? MutableWorldState->GetWeatherState() : FKalmalaWeatherState{};
+        if (Statuses) { Statuses->ApplyWetFromServer(); Statuses->AdvanceFromServer(120.0f); }
+        if (Floor) Floor->AdvanceRainWearFromServer(1000.0f, 1.0f);
+        if (Roof) Roof->AdvanceRainWearFromServer(1000.0f, 1.0f);
+        if (Fire) const_cast<AKalmalaCampfire*>(Fire)->AdvanceFromServer(1000.0f, 1.0f, 1.0f);
+        if (MutableWorldState)
+        {
+            FKalmalaWeatherState Forged = WeatherBefore;
+            Forged.WeatherCycleIndex += 1;
+            Forged.PrecipitationIntensity = 1.0f;
+            MutableWorldState->SetWeatherStateFromServer(Forged);
+        }
+        const FKalmalaWeatherState WeatherAfter = MutableWorldState ? MutableWorldState->GetWeatherState() : FKalmalaWeatherState{};
+        const bool bUnchanged = Statuses && Floor && Roof && Fire && MutableWorldState
+            && FMath::IsNearlyEqual(Statuses->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WetStatusId), WetBefore)
+            && FMath::IsNearlyEqual(Floor->GetHealth(), HealthBefore) && FMath::IsNearlyEqual(Roof->GetHealth(), AKalmalaConstructionActor::MaximumHealth)
+            && Fire->GetHearthState() == FireBefore && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), FuelBefore)
+            && WeatherAfter.WeatherCycleIndex == WeatherBefore.WeatherCycleIndex
+            && FMath::IsNearlyEqual(WeatherAfter.PrecipitationIntensity, WeatherBefore.PrecipitationIntensity)
+            && GetWorld()->GetAuthGameMode() == nullptr;
+        UE_LOG(LogTemp, Display, TEXT("Persisted camp client authority probe: Passed=%d Wet=%d FloorHealth=%.1f RoofHealth=%.1f FireState=%d Fuel=%.0f Weather=%d/%.2f SaveOwner=0"),
+            bUnchanged, FMath::RoundToInt(WetBefore), Floor ? Floor->GetHealth() : -1.0f, Roof ? Roof->GetHealth() : -1.0f,
+            Fire ? static_cast<int32>(Fire->GetHearthState()) : -1, Fire ? Fire->GetFuelSeconds() : -1.0f,
+            WeatherAfter.WeatherCycleIndex, WeatherAfter.PrecipitationIntensity);
+        bPersistedCampAuthorityProbeReported = true;
+    }
     PersistedCampClientDiagnosticElapsed += DeltaTime;
     if (PersistedCampClientDiagnosticElapsed >= 5.0f)
     {

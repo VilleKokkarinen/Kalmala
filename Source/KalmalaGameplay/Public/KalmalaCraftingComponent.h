@@ -70,4 +70,5 @@ private:
     float PersistedCampVerificationElapsed = 0.0f;
     float PersistedCampClientDiagnosticElapsed = 0.0f;
     bool bPersistedCampOwnerReported = false;
+    bool bPersistedCampAuthorityProbeReported = false;
 };
