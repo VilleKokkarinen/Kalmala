@@ -118,7 +118,11 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         }
         Check(ConstructionPlaced, TEXT("Server construction placement ignores local preview and pays once"));
         for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It) if (!ExistingConstruction.Contains(*It))
+        {
+            It->AdvanceRainWearFromServer(1000.0f, 1.0f);
+            Check(It->GetHealth() == AKalmalaConstructionActor::RainHealthFloor, TEXT("Construction feedback rain-wear floor"));
             UE_LOG(LogTemp, Display, TEXT("Construction accepted: Id=%s Kit=%s"), *It->GetConstructionId(), *It->GetConstructionKit().ToString());
+        }
         C->SetActorRotation(OriginalRotation);
         for(int32 N=0; N<4; ++N) Check(Fire->TryRefuelFromServer(C),TEXT("Bounded refuel"));
         const int32 FuelBefore=I->GetQuantity(TEXT("Fuel"));

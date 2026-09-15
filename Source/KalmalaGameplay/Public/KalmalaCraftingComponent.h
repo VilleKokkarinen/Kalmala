@@ -34,6 +34,7 @@ public:
     bool HasStorageView() const { return bStorageViewOpen; }
     AKalmalaConstructionActor* FindNearbyWorkbench() const;
     FString GetNearbyWorkbenchText() const;
+    FString GetNearbyConstructionText() const;
     bool CraftFromServer(FName RecipeId, int32 Batch, FString& Reason);
     bool PlaceFromServer(FString& Reason);
     bool PlaceConstructionFromServer(FName KitId, FString& Reason);

@@ -42,7 +42,7 @@ try {
             $clientNames = [regex]::Matches($clientText, ('Crafting fire client: Name=(\S+) ' + [regex]::Escape($state))) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
             $ready = $ready -and @($serverNames).Count -eq 2 -and @($clientNames).Count -eq 2
         }
-        if ($Rendered) { $ready = $ready -and (Test-Path "$output\host.png") -and (Test-Path "$output\client.png") }
+        if ($Rendered) { $ready = $ready -and (Test-Path "$output\host.png") -and (Test-Path "$output\client.png") -and $serverText.Contains('Construction feedback: Passed=1') -and $clientText.Contains('Construction feedback: Passed=1') }
         if ($ready) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)

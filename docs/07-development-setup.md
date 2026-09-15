@@ -305,3 +305,7 @@ Run Kalmala.Gameplay.Hearth+Kalmala.Gameplay.Status.Wet headlessly after buildin
 ## M3 rain authority regression
 
 After a forced editor build, run `Kalmala.Gameplay.Hearth+Kalmala.Gameplay.Construction+Kalmala.Gameplay.Status.Wet+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Storage` with the temporary user/log and headless flags above. Hearth.AuthorityContract initializes runtime replication metadata, checks no server RPC on state owners, verifies ordinary lifetime replication for health/hearth/protection fields, and guards the existing three-field construction schema. The other prefixes cover client-role mutation rejection, real roof collision, malformed weather, status effects and bounded identity-scoped save serialization. This focused audit does not replace combined live M3 acceptance.
+
+### Construction feedback rendering
+
+After building, run Scripts/Verify-Crafting.ps1 -Rendered. The paid floor fixture now advances rain wear through the authoritative actor seam to the 50-health floor. Both peer captures require the local nearby-construction text to report Health: 50.0 / 100 and the rain-wear limit. Inspect host.png and client.png for readable status and recovery cues. This covers floor health replication and rendered feedback, not all construction kits, camera occlusion cases, aspect ratios or the complete natural-weather M3 scenario.

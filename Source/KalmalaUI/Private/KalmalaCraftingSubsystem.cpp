@@ -121,7 +121,7 @@ void UKalmalaCraftingWidget::Refresh()
         PreviewText = TEXT("\n") + Preview.Message + (Preview.bIsValid ? FString::Printf(TEXT(" (%.0f, %.0f)"), Preview.Location.X, Preview.Location.Y) : TEXT("")) + TEXT("\n");
     }
     StateText->SetText(FText::FromString(TEXT("\nNearby hearth (replicated shared state; text does not rely on colour):\n")
-        + M->GetNearbyFireText()+TEXT("\n")+M->GetNearbyWorkbenchText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")+PreviewText));
+        + M->GetNearbyFireText()+TEXT("\n")+M->GetNearbyConstructionText()+TEXT("\n")+M->GetNearbyWorkbenchText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")+PreviewText));
     const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
     SelectedStorageItem = FMath::Clamp(SelectedStorageItem, 0, FMath::Max(0, Catalogue->Items.Num()-1));
     FString ChestText = Catalogue->Items.IsValidIndex(SelectedStorageItem)
@@ -242,7 +242,13 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
         {
             if(Widget && !Widget->IsOpen()) Widget->Open();
             CaptureWait+=DeltaTime;
-            if(CaptureWait>2) { FScreenshotRequest::RequestScreenshot(CapturePath,true,false); bCaptureRequested=true; }
+            if(CaptureWait>2)
+            {
+                UE_LOG(LogTemp, Display, TEXT("Construction feedback: Passed=%d"),
+                    M->GetNearbyConstructionText().Contains(TEXT("Health: 50.0 / 100"))
+                    && M->GetNearbyConstructionText().Contains(TEXT("Rain-wear limit reached")));
+                FScreenshotRequest::RequestScreenshot(CapturePath,true,false); bCaptureRequested=true;
+            }
         }
     }
 #endif

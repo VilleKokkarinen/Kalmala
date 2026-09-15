@@ -2,6 +2,7 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaGameMode.h"
+#include "KalmalaItemCatalogue.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 
@@ -26,6 +27,36 @@ AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyWorkbench() cons
 FString UKalmalaCraftingComponent::GetNearbyWorkbenchText() const
 {
     return FindNearbyWorkbench() ? TEXT("Joiner's bench: ready for floor, wall and roof assembly") : TEXT("No visible workbench within 2.5 m");
+}
+
+FString UKalmalaCraftingComponent::GetNearbyConstructionText() const
+{
+    const auto* Character = GetCharacter();
+    if (!Character || !GetWorld()) return TEXT("Construction: none visible within 2.5 m");
+    const AKalmalaConstructionActor* Closest = nullptr;
+    double Best = FMath::Square(250.0);
+    FCollisionQueryParams Query(SCENE_QUERY_STAT(ConstructionFeedback), false, Character);
+    for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It)
+    {
+        if (!IsValid(*It) || It->GetConstructionId().IsEmpty()) continue;
+        const double Distance = FVector::DistSquared(Character->GetActorLocation(), It->GetActorLocation());
+        if (!FMath::IsFinite(Distance) || Distance > Best) continue;
+        FHitResult Hit;
+        if (!GetWorld()->LineTraceSingleByChannel(Hit, Character->GetPawnViewLocation(), It->GetActorLocation(), ECC_Visibility, Query)
+            || Hit.GetActor() != *It) continue;
+        if (Distance == Best && Closest && It->GetConstructionId() >= Closest->GetConstructionId()) continue;
+        Best = Distance; Closest = *It;
+    }
+    if (!Closest) return TEXT("Construction: none visible within 2.5 m");
+    const auto* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(Closest->GetConstructionKit());
+    const bool bRoof = Closest->GetConstructionKit() == TEXT("RoofKit");
+    return FString::Printf(TEXT("Construction: %s\nHealth: %.1f / %.0f\n%s"),
+        Item ? *Item->DisplayName : TEXT("Structure"), Closest->GetHealth(), AKalmalaConstructionActor::MaximumHealth,
+        bRoof ? TEXT("Rain-immune roof") : Closest->GetHealth() <= AKalmalaConstructionActor::RainHealthFloor
+            ? TEXT("Rain-wear limit reached (50%)\nAn overhead roof prevents further rain wear")
+            : Closest->GetHealth() < AKalmalaConstructionActor::MaximumHealth
+                ? TEXT("Rain-worn - minimum health from rain: 50%\nAn overhead roof prevents further rain wear")
+                : TEXT("No rain wear - minimum health from rain: 50%\nAn overhead roof prevents rain wear"));
 }
 
 void UKalmalaCraftingComponent::ClearStorageView()

@@ -251,3 +251,7 @@ The existing read-only pack HUD reads only its owning pawn's replicated status c
 ### Local hearth recovery feedback
 
 The crafting panel places nearby hearth status before recipes so state and recovery instructions are visible on opening. Text derived from the existing replicated hearth fields states whether heat is on, that nearby heat removes Wet, that Smouldering has no heat but still burns fuel, and that a roof or dry weather restores it. Extinguished hints distinguish empty fuel, wet fuel and readiness to light. No state, trace, RPC or persistence contract changes. Construction rain-wear feedback remains queued.
+
+### Local construction rain-wear feedback
+
+The crafting panel shows the nearest initialized, visible construction within 250 cm of the owning pawn (stable construction ID breaks distance ties). A local visibility trace selects presentation only; it never determines server shelter or permission. The panel reads the existing replicated kit and health, uses the catalogue name, and states health to one decimal plus no wear, rain-worn, rain-wear floor reached, or roof immunity. A generic roof-prevention hint does not claim current roof protection; no roof-state field is replicated. Missing or obscured construction clears to an explicit none-visible message. No RPC, authority or saved-data contract changes.

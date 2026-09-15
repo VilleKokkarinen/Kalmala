@@ -2295,3 +2295,17 @@ Multiplayer impact: Read-only presentation of existing replicated fields; no aut
 Known limits: Rendered capture covers Smouldering at 1280x720; other states and aspect ratios are not newly visually verified. Recipes and actions remain in the existing scroll panel. Construction health/rain-wear cues and full M3 combined scenario remain open.
 
 Next task: Add construction health/rain-wear cues and verify their rendered feedback before closing the parent.
+
+### 2026-09-15T08:53:55.2784951+03:00 - Show construction health and rain wear
+
+Outcome: Completed the next M3 construction feedback increment and closed the colour-independent feedback child. The crafting panel shows nearest visible construction name, replicated health, rain wear or roof immunity, and a roof-prevention hint. Combined M3 authority/scenario acceptance remains open.
+
+Changed: Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h; Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp; Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp; Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp; Scripts/Verify-Crafting.ps1; docs/02-technical-architecture.md; docs/07-development-setup.md; BACKLOG.md; PROGRESS.md. Main checkout began clean and is the current workspace.
+
+Verification: Final forced KalmalaEditor Win64 Development build passed with UnrealBuildTool cache access. Verify-Crafting.ps1 -Rendered -Port 18109 passed original validation/inventory/fire/input gates plus both peers' Construction feedback: Passed=1 at replicated 50/100 health. Inspected host/client 1280x720 captures: construction name, health, wear limit and roof hint fully visible beside hearth cues. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-afeea078f67c409e8c5c6c67180c2ea5. Repaired two runner expression-continuation failures before the passing run. git diff --check passed.
+
+Multiplayer impact: Local range/visibility query selects read-only presentation from replicated construction ID, kit and health; it does not supply server targets, roof protection, damage, or save values. No production authority, RPC, replication or schema change. Test-only rain advancement uses the existing server mutation seam on a paid floor.
+
+Known limits: Rendered proof covers a rain-worn floor at 1280x720 and smouldering hearth. Roof immunity text, intermediate health, occlusion/tie selection, other kits/aspect ratios and active Wet layout have no new rendered coverage. Roof protection is a generic hint because current construction roof status is not replicated. The combined natural-weather scenario remains open.
+
+Next task: Verify invalid client wetness, building-health, roof, rain and fire requests cannot alter authority or saves.
