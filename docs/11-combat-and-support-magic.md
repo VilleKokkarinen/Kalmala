@@ -91,6 +91,68 @@ No reward or persistence is enabled by this definition-only increment. The next
 contract child must settle durable defeat/reward atomicity and retry behavior
 before combat execution can grant loot or save progression.
 
+## Stable identities and sparse progression deltas
+
+M4 extends the existing generated-population persistence seam; it must not add
+an actor-name, transform, client-generated GUID, or replicated discovery list as
+an identity source. A stable content ID is a bounded canonical ASCII token made
+only by the server from the immutable world identity, a content kind/version,
+the deterministic spatial key, the descriptor ordinal, and its server-owned
+archetype/effect definition. The canonical input is length-delimited before it
+is hashed or formatted, so different fields cannot collide through separator
+ambiguity. Runtime actor names, spawn order, net GUIDs, and client observations
+are never part of this input.
+
+| Content | Stable server-owned ID | Durable delta owner |
+| --- | --- | --- |
+| Generated creature | `Creature:<revision>:<archetype>:<spatial-key>:<ordinal>` derived with the existing population descriptor | World: defeated set |
+| Point of interest | `Poi:<revision>:<poi-definition>:<spatial-key>:<ordinal>` derived from its bounded deterministic descriptor | World: resolved/claimed set only if its definition has a world-wide transition |
+| Scroll discovery | `Scroll:<revision>:<scroll-definition>:<spatial-key>:<ordinal>` derived from its bounded deterministic descriptor or validated boss reward definition | Entitled player: discovered-scroll set and learned-effect set |
+| Support effect | Canonical allowlisted `Effect:<effect-definition>` token, never free text | Entitled player: learned-effect set |
+
+`revision` is the generator/content revision used to derive that descriptor, not
+the actor's engine class version. Future runtime code must reject an empty,
+overlong, malformed, unknown-kind, or non-canonical ID before lookup. It must
+also recompute the descriptor from the server's current immutable identity and
+require an exact ID match; possession of a syntactically valid ID is not proof
+that the content exists or is relevant to the requester.
+
+World deltas remain sparse, append-only semantic facts: a creature can be
+`Defeated` once, and a POI can record only an explicitly defined world-wide
+transition. They are keyed by the complete immutable world identity used by the
+population save contract, including `WorldSeed` and generator revision whenever
+that revision participates in descriptor generation. On load, a schema or
+identity mismatch discards the entire M4 delta container and starts an empty
+container; records from another world are never merged or replayed. The current
+population save's generated harvest/wildlife/hazard sets remain unchanged by
+this contract. A later approved schema migration may either extend that
+container or introduce a distinct versioned one, but must preserve this
+identity gate and bounded unique-record limits.
+
+Player progression is separate from world state. Each record binds the same
+immutable world identity to a server-authenticated stable player identity; a
+display name, local controller index, connection address, or client payload
+cannot select that identity. It contains only the bounded discovered-scroll and
+learned-effect sets for that player. It is owner-only when replicated for local
+feedback and is never used to enumerate undiscovered scrolls, POIs, creatures,
+or another player's learning. A reconnect may restore only that same entitled
+player's matching-world record.
+
+Every future defeat or discovery transition is one server transaction: validate
+the live descriptor, world membership, range/trace and pre-transition state;
+write the one unique delta; durably save it; then expose the defeat, reward, or
+learned entitlement. If validation or persistence fails, reveal no reward and
+leave the actor/discovery available. Retried interaction after a committed
+delta observes the existing fact and grants nothing again. A server restart
+between persistence and presentation may restore the fact but must not replay a
+reward. Future implementation must set explicit finite caps, reject overflow
+without mutation, and test save bytes before/after every rejected request.
+
+This is a contract only. It adds no save fields, slot names, serialization,
+replication, actor, RPC, reward, POI, scroll, or learned-effect runtime behavior.
+Implementing the versioned containers requires explicit approval for the saved
+data schema change and focused migration/reconnect coverage.
+
 ## Non-damaging support execution
 
 All effects require the requesting player's server-owned learned entitlement,
