@@ -177,6 +177,16 @@ validated definitions when the respective runtime increment is implemented.
 
 ## Required implementation evidence
 
+The first focused automation coverage is
+`Kalmala.Gameplay.Combat.IntentContract.RejectionDoesNotMutate`. It exercises
+the reusable `FKalmalaCombatIntentContract` server-derived validation seam with
+client-only, distant, duplicate, and malformed attack/progression attempts.
+For every rejected attempt it compares health, defeat state, reward count, and
+memory-serialized sparse world-save bytes before and after the request. This is
+contract coverage only: it does not add a combat RPC, actor, reward, or player
+progression save schema. Runtime handlers must use this seam in addition to
+their own authoritative trace, descriptor, transaction, and persistence work.
+
 Later contract coverage must test direct client-role mutation and actual owner
 RPCs, malformed enum/sequence/configuration, repeat and competing requests,
 distant/occluded/foreign-world targets, friendly-fire rejection, phase/cooldown
