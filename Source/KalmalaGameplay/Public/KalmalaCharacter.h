@@ -42,6 +42,9 @@ public:
 
     const FKalmalaExposureState& GetExposureState() const { return ExposureState; }
     const UKalmalaPlayerStatusComponent* GetStatusComponent() const { return Statuses; }
+    UKalmalaCombatComponent* GetCombatComponent() const { return Combat; }
+    float GetHealth() const { return Health; }
+    bool ApplyMirelingDamageFromServer(const AActor* Instigator, float Damage);
     static bool IsExposureUpdateAllowed(bool bServerAuthority);
     void SetExposureStateFromServer(const FKalmalaExposureState& NewExposureState);
 
@@ -98,6 +101,7 @@ private:
     FVector2D SwimmingTestTarget = FVector2D::ZeroVector;
     FVector2D SwimmingTestStart = FVector2D::ZeroVector;
     bool bOceanTravelTestEnabled = false;
+    bool bCombatPeerTestInvalidAttackSent = false;
     bool bOceanTravelTargetConfigured = false;
     bool bOceanTravelOceanEntryLogged = false;
     bool bOceanTravelArrivalLogged = false;
@@ -127,6 +131,9 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_ExposureState, VisibleAnywhere, BlueprintReadOnly, Category = "Exposure", meta = (AllowPrivateAccess = "true"))
     FKalmalaExposureState ExposureState;
+
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+    float Health = 100.0f;
 
     float BaselineMaxWalkSpeed = 0.0f;
 

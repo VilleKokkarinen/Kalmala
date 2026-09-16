@@ -249,19 +249,59 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
   - [x] In dry weather, fuelled lit campfires remain lit. In rain without a roof, they become Smouldering with zero heat and automatically reignite when roof-protected again.
   - [x] Keep all building health, roof traces, rain exposure, fire transitions, and persistence server-authoritative; clients only render replicated state.
 
-- [ ] **Add clear local feedback and verify the vertical slice.**
+- [x] **Add clear local feedback and verify the vertical slice.**
   - [x] Present Wet duration, movement/stamina penalties, construction rain wear, and fire state using colour-independent player-facing cues.
     - [x] Show owning-player Wet duration and configured penalties in the read-only HUD, with an explicit inactive state.
     - [x] Add construction rain-wear and complete fire-state cues; verify rendered feedback.
       - [x] Explain hearth heat, fuel consumption and recovery in text; verify host/client smouldering feedback is visible when the crafting panel opens.
       - [x] Add construction health/rain-wear cues and verify rendered feedback; retain the combined feedback acceptance until covered.
-  - [ ] Verify invalid client wetness, building-health, roof, rain, or fire requests cannot alter authority or saves.
+  - [x] Verify invalid client wetness, building-health, roof, rain, or fire requests cannot alter authority or saves.
     - [x] Replace assertion-only weather mutation checks with runtime authority/input rejection and verify unchanged state for client-role and malformed calls.
     - [x] Complete live invalid-client state probes and confirm authoritative state and saves remain unchanged across Wet, construction, roof/rain and fire.
-  - [ ] Run a host/client scenario for immediate water Wet, delayed unroofed-rain Wet, roof immunity, capped rain wear, smoulder/reignite, and campfire Wet removal.
+  - [x] Run a host/client scenario for immediate water Wet, delayed unroofed-rain Wet, roof immunity, capped rain wear, smoulder/reignite, and campfire Wet removal.
 
 **M3 acceptance:** water immediately applies Wet; ten seconds of unroofed rain applies Wet; Wet is capped at two minutes and applies the configured movement/stamina penalties. A roof blocks rain exposure and protects structures. Exposed structures never fall below 50% health from rain. An exposed rainy campfire smoulders without heat and reignites once roofed.
 
-### M4–M5 — Deferred
+### M4 — Combat and support magic
 
-Do not decompose M4 until M3 acceptance passes, or M5 until M4 passes.
+Start only after M3 acceptance passes. Preserve the open-world, route-free survival loop: no authored combat corridors, quests, direct-damage magic, new online services, or client-authoritative damage, rewards, discoveries, or learned effects.
+
+- [ ] Establish the server-authoritative combat and support-magic contract.
+  - [x] Define replicated combat attributes, validated damage execution, defeat state, and narrow client intent RPCs for player attacks and support-effect activation. Contract: docs/11-combat-and-support-magic.md; definition only, runtime coverage remains below.
+  - [x] Define stable server-owned IDs and sparse world deltas for creature defeats, points of interest, scroll discoveries, and per-player learned effects; preserve immutable world-identity validation. Contract: docs/11-combat-and-support-magic.md; definition only, schema/runtime work remains below.
+  - [x] Add focused contract coverage proving malformed, distant, duplicate, and client-only combat/progression requests cannot change health, defeat state, rewards, or saves.
+- [ ] Add the smallest player combat loop with readable committed attacks and server-validated targets, damage, and cooldowns.
+  - [x] Add a basic owned-pawn attack intent with server-selected wildlife trace target, committed windup/recovery, fixed validated damage, and monotonic replay/cooldown gating; no client target or damage payload.
+  - [x] Replicate player-facing combat state and colour-independent hit, defeat, and unavailable-action feedback without exposing hidden server-owned targets.
+  - [x] Verify host/client combat agreement, rejected invalid attack requests, and reconnect-safe player and world state.
+- [ ] Add deterministic server-owned wildlife population and behaviour foundations for the M4 archetypes.
+  - [x] Activate bounded, seed-derived creature descriptors with stable IDs and terrain-safe spawning; clients only receive relevant replicated actors.
+  - [x] Add server-owned idle, flee, investigate, and return behaviour primitives with deterministic budgets and no client-selected spawn or behaviour outcome.
+- [ ] Deliver the Mireling archetype as an optional camp-pressure encounter.
+  - [x] Add original replicated Mireling presentation, close-range scavenger behaviour, and validated melee damage/defeat rewards.
+  - [ ] Verify seed reproduction, bounded activation, authority rejection, defeat persistence, and host/client combat presentation.
+- [ ] Deliver the boar archetype as an optional territorial charge encounter.
+  - [ ] Add original replicated boar presentation, resting-area threat response, charge/return behaviour, and validated meat/hide rewards.
+  - [ ] Verify server-owned targeting/damage, defeat persistence, reconnect consistency, and matching host/client behaviour.
+- [ ] Deliver the deer archetype as wary herd wildlife.
+  - [ ] Add original replicated deer presentation, bounded herd/flee behaviour, and validated meat/hide rewards.
+  - [ ] Verify deterministic group activation, combat/noise flight, defeat persistence, and matching host/client behaviour.
+- [ ] Add optional deterministic open-world points of interest and scroll discoveries across suitable biomes.
+  - [ ] Derive bounded, stable point-of-interest and scroll descriptors from the existing world identity without routes, mandatory crossings, or hidden client discovery queries.
+  - [ ] Add server-validated one-time discovery rewards with colour-independent local feedback and persistence across reconnect only for the entitled player.
+  - [ ] Verify same-seed reproduction, different-seed variation, duplicate/distant request rejection, and privacy of undiscovered content.
+- [ ] Implement the scroll-learned, non-damaging support-magic foundation.
+  - [ ] Add server-owned learned-effect validation, stamina/cooldown rules, replicated active-state presentation, and persistence keyed to the entitled player and immutable world identity.
+  - [ ] Implement Mending as a validated ally heal that cannot target invalid actors or damage enemies.
+  - [ ] Implement Hearth Shield as a temporary validated protective shield with explicit expiry and replicated feedback.
+  - [ ] Implement Bear's Vigor as a temporary validated stamina/strength boost with explicit expiry and replicated feedback.
+  - [ ] Implement Deer Call as a bounded validated behaviour influence on existing nearby deer only; it must not create wildlife or bypass harvest/loot rules.
+  - [ ] Verify each effect rejects invalid client payloads, never directly damages an enemy, persists learning correctly, and agrees across host/client presentation.
+- [ ] Place one scroll discovery as a server-validated Mireling boss reward and verify it remains optional to route selection.
+- [ ] Run the M4 two-player vertical-slice scenario: freely select a route, encounter Mireling, boar, and deer, learn and use all four support effects, and return with a persisted progression reward.
+
+**M4 acceptance:** two players choose their own route through the world, learn and use every support effect, encounter all three creature archetypes, and return with a progression reward. No magic effect directly damages an enemy.
+
+### M5 — Deferred
+
+Do not decompose M5 until M4 acceptance passes.

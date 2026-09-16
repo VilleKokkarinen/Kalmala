@@ -50,6 +50,7 @@ private:
     void RunVerification(float DeltaTime);
     void RunStorageVerification(float DeltaTime);
     void RunPersistedCampVerification(float DeltaTime);
+    void RunRainVerticalSliceVerification(float DeltaTime);
     void RefreshStorageView();
     void ClearStorageView();
     AKalmalaConstructionActor* FindNearbyConstruction(FName Kit) const;
@@ -71,4 +72,6 @@ private:
     float PersistedCampClientDiagnosticElapsed = 0.0f;
     bool bPersistedCampOwnerReported = false;
     bool bPersistedCampAuthorityProbeReported = false;
+    bool bRainVerticalSliceClientReported = false;
+    float RainVerticalSliceClientObservationSeconds = 0.0f;
 };

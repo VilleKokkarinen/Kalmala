@@ -2337,3 +2337,193 @@ Multiplayer impact: This is development-only evidence. It adds no RPC, client pa
 Known limits: The direct-call probe is not malformed network-packet fuzzing or a Shipping build. It demonstrates that client object copies cannot mutate their server-only seams or gain a save owner; it does not yet exercise the complete natural water/rain/roof/smoulder/reignite/Wet-removal sequence.
 
 Next task: Run a host/client scenario for immediate water Wet, delayed unroofed-rain Wet, roof immunity, capped rain wear, smoulder/reignite, and campfire Wet removal.
+### 2026-09-15T15:40:00+03:00 - M3 live rain-slice attempt
+
+Outcome: Added an uncommitted development-only host/client `KalmalaRainVerticalSliceTest` and `Scripts/Verify-RainVerticalSlice.ps1` for the remaining M3 combined acceptance scenario. It drives production weather updates, water sampling, Wet status handling, server roof traces, construction rain wear, hearth Smouldering/Lit transitions, and replicated client-state reporting. The forced editor build passes, but the retained two-player scenario cannot begin under seed 418: its authoritative ocean/lake samplers find no water fixture in the bounded 120 km scan.
+
+Changed (uncommitted): Source/KalmalaGameplay/Public/KalmalaGameMode.h; Source/KalmalaGameplay/Private/KalmalaGameMode.cpp; Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h; Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp; Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp; Scripts/Verify-RainVerticalSlice.ps1; PROGRESS.md.
+
+Verification: Forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed after repairing conditional test logging and reducing the search to a single bounded scan. Two retained host/client attempts both reached `Rain vertical slice FAILED: seed has no bounded dry/water fixture.` The final evidence is C:/Users/Ville/AppData/Local/Temp/KalmalaRainVerticalSlice-final/server.log:1519; the conflicting-seed peer had already received Seed=418. This is two attempts at the same missing-fixture condition, so the task is still unchecked and not marked BLOCKED.
+
+Multiplayer impact: The added fixture is development-only. It creates no gameplay RPC, save format, client-supplied weather/roof/Wet/health/fire value, or persistent actor. The server remains the only writer; the remote peer only reads replicated final state.
+
+Known limits: The scenario needs a deterministic server-confirmed water fixture for seed 418 (or an explicitly approved alternative verification seed) before it can prove immediate water Wet. Do not commit these run-owned changes until that live scenario passes.
+
+Next task: Resume this same unchecked M3 host/client scenario by selecting a documented deterministic water fixture compatible with the active server world identity, then rerun the retained host/client verification.
+
+### 2026-09-15T16:00:16+03:00 - M3 rain-slice client replication follow-up
+
+Outcome: The server side of the combined Wet/rain/roof/hearth vertical slice now passes using the deterministic seed-418 coverage domain and frozen development-fixture pawns. The remote client still fails only because its verifier used non-replicated actor tags to find the fixture. Replaced those construction lookups with replicated stable IDs and the fire lookup with local proximity; this final client-lookup repair remains unbuilt and unverified.
+
+Verification: Forced KalmalaEditor Win64 Development builds passed after each scenario repair. The retained final peer run reports server Passed=1 with WaterWet=1, RainWet=1, exposed health 50.0, roofed floor/roof health 100.0, Lit state and Wet removal; client received cycle 82 then reported Passed=0. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaRainVerticalSlice-final3. Do not commit until the final lookup repair builds and the peer runner passes.
+
+Multiplayer impact: Development-only fixture changes only. Runtime authority, RPCs, replication layouts, save schema and normal gameplay remain unchanged; the client reads replication only.
+
+Next task: Build the stable-ID client lookup repair, rerun Verify-RainVerticalSlice.ps1, then close the M3 feedback/vertical-slice checkbox if it passes.
+
+### 2026-09-15T16:17:00+03:00 - Verify M3 rain vertical slice
+
+Outcome: Completed the final M3 host/client vertical slice and closed M3's feedback/authority/scenario gate. The development-only scenario uses the documented seed-418 coverage domain, stable replicated construction IDs, and local fire proximity so both peers independently observe the server-owned final state.
+
+Changed: Source/KalmalaGameplay/Public/KalmalaGameMode.h; Source/KalmalaGameplay/Private/KalmalaGameMode.cpp; Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h; Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp; Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp; Scripts/Verify-RainVerticalSlice.ps1; docs/07-development-setup.md; BACKLOG.md; PROGRESS.md.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. `Scripts/Verify-RainVerticalSlice.ps1 -Port 18122` passed using retained isolated user directories: C:/Users/Ville/AppData/Local/Temp/KalmalaRainVerticalSlice-final7. The conflicting-seed client received Seed=418. Server and client both reported Passed=1 with exposed health 50.0, roofed floor/roof health 100.0, Lit/roofed hearth, and Wet=0 after the sequence. The server additionally confirmed immediate water Wet, delayed rain Wet, capped rain wear, and smouldering/reignition. `git diff --check` passed.
+
+Multiplayer impact: Development-only verification code and documentation only. The server alone selects weather, samples water/roofs, applies Wet/rain wear, and changes hearth state; the client only reads replicated world identity, status, construction health/IDs, and hearth state. No production RPC, replicated layout, save schema, or normal-play behavior changed.
+
+Commit status: The fixture source and runner were already uncommitted when this automation began. Repository safeguards rejected adopting them into a commit; all verified M3 changes remain unstaged and preserved pending explicit user authorization.
+
+Known limits: The fixture is a controlled two-peer development scenario, not malformed-packet fuzzing, a Shipping build, accessibility certification, or a player-directed freeform usability test. It uses frozen pawns and temporary actors outside camp persistence.
+
+Next task: M3 acceptance is complete. Do not begin deferred M4-M5 work until the roadmap is decomposed into approved backlog tasks.
+
+### 2026-09-16T09:18:07.8689736+03:00 - Define M4 combat and support intent contract
+
+Outcome: Completed the first M4 contract child as a definition-only increment. Current backlog now contains M4 decomposition and M3 acceptance is recorded as passing; earlier memory saying M4 is deferred is superseded by that backlog. Defined replicated combat state, validated committed damage, one-time defeat, narrow owner intent RPCs and non-damaging support activation.
+
+Changed: docs/11-combat-and-support-magic.md; one M4 checkbox in BACKLOG.md; this PROGRESS.md entry. Existing M3 implementation, runner, setup documentation and handoff edits were preserved. Current workspace is the main checkout E:/dev/Kalmala; no synchronization needed.
+
+Verification: KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with LOCALAPPDATA UnrealBuildTool access; target up to date, zero compile actions. Log: C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt. Reviewed contract against project brief, design, architecture, decision log and existing stamina/status/defeat seams. git diff --check passed before commit.
+
+Multiplayer impact: Definition only; no runtime mutation, RPC, replication, dependency or saved-data schema change. Contract requires server targeting, timing, damage and entitlement, owner-only private details, shared stamina costs, replay/rate gates and no direct support damage.
+
+Known limits: No combat code or new runtime/peer tests added. Future persistence contract must resolve durable reward/defeat atomicity; player respawn policy remains outside this increment. Only the new contract document is committed because BACKLOG.md and PROGRESS.md contain pre-existing edits that this run must not stage or commit. Their non-overlapping current-run handoff edits remain visible in the main checkout.
+
+Next task: Define stable server-owned IDs and sparse world deltas for creature defeats, points of interest, scroll discoveries and per-player learned effects while preserving immutable world identity; do not change save schemas without explicit direction.
+
+### 2026-09-16T09:31:00+03:00 - Define M4 stable identity and sparse-delta contract
+
+Outcome: Completed the next M4 contract child as a definition-only increment. Defined canonical server-derived IDs for creatures, POIs, scrolls and allowlisted effects; separated matching-world sparse defeat/POI facts from authenticated-player discovery/learning entitlements; and required persist-before-reward, exactly-once retry behavior and fail-closed bounds.
+
+Changed: docs/11-combat-and-support-magic.md; the selected M4 checkbox in BACKLOG.md; this PROGRESS.md entry. Existing uncommitted M3 fixture, runner, setup documentation and handoff changes were preserved.
+
+Verification: Reviewed the contract against the existing `UKalmalaWorldPopulationSaveGame`, `DefeatServer` callback, population descriptors, current world-identity validation, architecture and combat contract. `git diff --check` passed. No Unreal build was needed because runtime source, configuration and serialization are untouched.
+
+Multiplayer impact: Definition only. Future IDs and deltas are server-derived and identity-scoped; private progression is server-authenticated and owner-only. No runtime authority, RPC, replication, actor relevancy, save slot or saved-data schema changed.
+
+Known limits: No persistent progression container, migration, POI/scroll/creature runtime, rewards or combat test exists yet. The current population save remains unchanged and uses its existing identity contract; an approved future schema increment must add bounded migration and reconnect evidence.
+
+Next task: Add focused contract coverage proving malformed, distant, duplicate, and client-only combat/progression requests cannot change health, defeat state, rewards, or saves.
+
+### 2026-09-16T09:30:16+03:00 - Verify M4 rejected combat and progression intents
+
+Outcome: Completed the final M4 contract-coverage child. Added the reusable server-derived `FKalmalaCombatIntentContract` validation seam and focused automation coverage for malformed, distant, duplicate, and client-only attack/progression attempts. Every rejected path leaves test health, defeat state, reward count, and memory-serialized sparse world-save bytes unchanged; a fully validated transaction is the only path that mutates those test values.
+
+Changed: Source/KalmalaGameplay/Public/KalmalaCombatIntentContract.h; Source/KalmalaGameplay/Private/Tests/KalmalaCombatIntentContractTest.cpp; docs/11-combat-and-support-magic.md; this selected M4 checkbox; this PROGRESS.md entry. Existing uncommitted M3 fixture, runner, setup documentation, and earlier handoff edits were preserved.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access after correcting the identity fixture to the current seed-only `FKalmalaWorldGenerationConfig`. Headless `Kalmala.Gameplay.Combat.IntentContract.RejectionDoesNotMutate` passed, exit 0: C:/Users/Ville/AppData/Local/Temp/KalmalaCombatIntent-bf59ef31c2b343d7ad3a390c7b4d1b23/automation.log. The test found exactly one selected test and reported `Result={Success}`. git diff --check remains required before commit.
+
+Multiplayer impact: The seam accepts only server-derived authority, ownership, world, sequence, trace/range, liveness, canonical-content, transaction, and persistence facts; it accepts no client target, ID, damage, reward, health, or save payload. It adds no RPC, replication, actor, reward, save slot, or schema change. Production combat/progression handlers do not exist yet and must adopt the seam with their own authoritative lookup and transaction work.
+
+Known limits: This is focused contract coverage, not a live owner-RPC/host-client combat scenario, real health component, actual target trace, or player-progression persistence implementation. The current population save remains seed-scoped and unchanged; the future revision-aware progression schema still requires an approved migration increment.
+
+Next task: Add the smallest player combat loop with readable committed attacks and server-validated targets, damage, and cooldowns.
+### 2026-09-16T09:39:00+03:00 - Add server-owned basic player attack
+
+Outcome: Completed the first executable M4 player-combat sub-increment. Player attack input now sends only a monotonic sequence to its owning combat component. The server selects a forward, visible wildlife target, commits a windup, rechecks it, applies fixed bounded damage, and runs recovery before accepting the next action. Wildlife health is replicated and its zero-health transition uses the existing server-only defeat/persistence callback.
+
+Changed: Config/DefaultInput.ini; Source/KalmalaGameplay/Public/KalmalaCombatComponent.h; Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp; Source/KalmalaGameplay/Public/KalmalaCharacter.h; Source/KalmalaGameplay/Private/KalmalaCharacter.cpp; Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h; Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaCombatLoopTest.cpp; docs/11-combat-and-support-magic.md; BACKLOG.md; PROGRESS.md.
+
+Verification: Forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4 passed with UnrealBuildTool local-cache access. Focused headless Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown and Kalmala.Gameplay.Combat.IntentContract.RejectionDoesNotMutate both passed. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaCombatLoop-7e82d16612ff4fd983b34db92e6d3c5f/automation.log.
+
+Multiplayer impact: The client supplies no target, damage, timing, phase, or cooldown; server trace/range/target-life validation and server clock own mutation. Replicated action phase/serial and wildlife health disclose only already relevant combat actors. Defeat still follows the existing server callback. No reward, new save schema, support effect, or player health/respawn behavior was added.
+
+Known limits: The basic target is the existing wildlife placeholder; no archetype presentation/behaviour, player health, stamina cost, live host/client attack fixture, accessibility feedback, or reconnect assertion is complete. Attack execution uses current transforms without rewind.
+
+Next task: Replicate player-facing combat state and colour-independent hit, defeat, and unavailable-action feedback without exposing hidden server-owned targets.
+
+### 2026-09-16T09:46:00+03:00 - Add accessible combat feedback
+
+Outcome: Completed the next M4 player-combat feedback child. Relevant peers receive the existing replicated action phase and serial, while the owning player alone receives a monotonic, target-free outcome category. The local pack HUD now gives explicit READY/WINDUP/RECOVERING state and text feedback for HIT, DEFEAT, and unavailable attacks.
+
+Changed: Source/KalmalaGameplay/Public/KalmalaCombatComponent.h; Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaCombatLoopTest.cpp; Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp; docs/11-combat-and-support-magic.md; BACKLOG.md; PROGRESS.md. Existing uncommitted M3 rain-slice files and handoff edits were preserved.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. Focused headless `Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown` and `Kalmala.Gameplay.Combat.IntentContract.RejectionDoesNotMutate` both passed. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaCombatFeedback-578d73142964478d8470fbd797ca43a8/automation.log. `git diff --check` passed.
+
+Multiplayer impact: Action phase/serial remain normal relevant-actor presentation. Feedback and its serial use owner-only replication and omit target identity, transform, health, or ID. The server still selects targets and writes action, damage, defeat, and feedback; rate-limited failed feedback does not create an attack, damage, reward, save, or client-authoritative state path.
+
+Known limits: No player health/defeat, combat animation/audio, live two-peer attack fixture, cooldown UI timer, target names, creature archetype behaviour, reward, or reconnect persistence is complete. The existing wildlife placeholder remains the only attack target.
+
+Next task: Verify host/client combat agreement, rejected invalid attack requests, and reconnect-safe player and world state.
+
+### 2026-09-16T10:08:44+03:00 - Verify M4 host/client combat agreement
+
+Outcome: Completed the M4 basic-combat verification gate. Added a development-only two-peer fixture that places the first deterministic server wildlife descriptor in the host's valid trace, rejects the remote owner's target-free out-of-range sequence, then records four committed host attacks and the relevant replicated defeat. The runner restarts the same host save directory and confirms that exact defeated spawn stays absent.
+
+Changed: Source/KalmalaGameplay/Public/KalmalaCharacter.h; Source/KalmalaGameplay/Private/KalmalaCharacter.cpp; Source/KalmalaGameplay/Public/KalmalaCombatComponent.h; Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp; Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h; Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp; Source/KalmalaGameplay/Public/KalmalaGameMode.h; Source/KalmalaGameplay/Private/KalmalaGameMode.cpp; Scripts/Verify-CombatPeer.ps1; docs/11-combat-and-support-magic.md; BACKLOG.md; PROGRESS.md.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access. `Scripts/Verify-CombatPeer.ps1 -Port 18127` passed in `C:/Users/Ville/AppData/Local/Temp/KalmalaCombatPeer-final4`: the conflicting-seed client received Seed=418, reported its invalid owned attack rejected plus shared action serial 4 and relevant wildlife defeat; the server reported `Passed=1 InvalidRejected=1 ActionSerial=4 Health=0.0 Defeated=1 Saved=1`. Restart evidence confirms spawn `0/-1/-6/3308806006119996599` remained absent. `git diff --check` passed.
+
+Multiplayer impact: The fixture transmits only the normal attack sequence. The server still derives target, range, timing, damage, action state, defeat and sparse save delta; the peer sees only relevant shared action/defeat state and owner-only target-free unavailable feedback. No production payload, replication layout, reward, progression save, or schema changed.
+
+Known limits: This is a controlled listen-server fixture with current-transform targeting, not latency/replay fuzzing, player-health/respawn coverage, rewards, creature behaviour, or player-progression persistence. Player action/feedback remains intentionally pawn-lifetime; only the established identity-scoped world defeat delta is restart-tested.
+
+Next task: Activate bounded, seed-derived creature descriptors with stable IDs and terrain-safe spawning; clients only receive relevant replicated actors.
+### 2026-09-16T10:30:00+03:00 - Activate terrain-safe wildlife descriptors
+
+Outcome: Completed the first M4 wildlife-foundation child. Existing server-only
+spatial-key activation now receives only bounded wildlife descriptors generated
+from dry, gentle terrain candidates; accepted candidate seeds retain their
+existing stable sparse-delta IDs. Clients still receive only normal relevant
+replicated wildlife actors, never descriptors or fallback locations.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`;
+`Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`;
+`docs/11-combat-and-support-magic.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access.
+Focused `Kalmala.World.PopulationLayout.Determinism` passed, exit 0:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaWildlifePopulation-28a33dbb327a43dcab1e21c78f71183f/automation.log`.
+
+Multiplayer impact: The server alone derives and materializes candidates. No
+client spawn/behaviour request, new RPC, replication field, save schema, or
+world-delta format was introduced. Existing normal actor distance relevancy and
+stable defeat IDs are retained.
+
+Known limits: This adds placement safety only; wildlife still uses the existing
+placeholder presentation and has no idle, flee, investigate, or return AI.
+
+Next task: Add server-owned idle, flee, investigate, and return behaviour
+primitives with deterministic budgets and no client-selected outcome.
+
+### 2026-09-16T10:52:00+03:00 - Add server-owned wildlife behaviour foundations
+
+Outcome: Added a bounded server-only wildlife cycle: validated nonlethal combat
+damage begins deterministic Flee, then Investigate, Return, and Idle. It uses
+the accepted spawn origin and stable spawn ID only; clients receive ordinary
+relevant actor movement and cannot request or select any behaviour.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`;
+`Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp`;
+`docs/11-combat-and-support-magic.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex
+-NoHotReload -Force -MaxParallelActions=4` passed with UnrealBuildTool local
+cache access. Focused `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`
+passed, exit 0: `C:/Users/Ville/AppData/Local/Temp/KalmalaWildlifeBehaviour-550a8c2691b248be83d2a7b66a0ac0b7/automation.log`.
+
+Multiplayer impact: No RPC, client behaviour input, descriptor replication,
+save schema, or reward changed. The server alone chooses transitions and
+movement; normal actor movement replication reaches relevant peers.
+
+Known limits: This is a generic primitive, not Mireling, boar, deer, noise,
+Deer Call, target selection, damage, loot, or herd behaviour.
+
+Next task: Add original replicated Mireling presentation, close-range
+scavenger behaviour, and validated melee damage/defeat rewards.
+
+### 2026-09-16T11:05:00+03:00 - Add Mireling encounter foundation
+
+Outcome: Added the first optional Mireling encounter increment: original procedural low-poly presentation, server-only close-range pursuit/melee, replicated recoverable player health, and a bounded owner-only MirelingAsh reward after a validated player defeat.
+
+Changed: Source/KalmalaGameplay/Public/KalmalaCharacter.h; Source/KalmalaGameplay/Private/KalmalaCharacter.cpp; Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h; Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp; Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp; Config/DefaultGame.ini; docs/11-combat-and-support-magic.md; BACKLOG.md; PROGRESS.md.
+
+Verification: Forced KalmalaEditor Win64 Development build command completed successfully with -WaitMutex -NoHotReload -Force -MaxParallelActions=4. Further two-peer and persistence verification remains the next child.
+
+Multiplayer impact: Server alone selects nearby targets, movement, melee timing, damage and the previously validated attacker. Health is relevant-pawn replication and reward inventory remains owner-only. No client target/damage/reward payload, save schema, or new RPC was added.
+
+Known limits: Player defeat/respawn is intentionally deferred; health clamps at one. The reward uses the existing sparse defeat transition but needs dedicated host/client, duplicate/reconnect and persistence-before-reward evidence.
+
+Next task: Verify seed reproduction, bounded activation, authority rejection, defeat persistence, and host/client combat presentation.

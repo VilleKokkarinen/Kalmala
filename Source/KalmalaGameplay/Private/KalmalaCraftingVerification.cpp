@@ -493,3 +493,45 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
     bPersistedCampOwnerReported = true;
 #endif
 }
+
+void UKalmalaCraftingComponent::RunRainVerticalSliceVerification(float DeltaTime)
+{
+#if !UE_BUILD_SHIPPING
+    AKalmalaCharacter* Character = GetCharacter();
+    if (bRainVerticalSliceClientReported || Character == nullptr || Character->HasAuthority() || !Character->IsLocallyControlled()) return;
+    const AKalmalaWorldGenerationGameState* WorldState = GetWorld() ? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
+    if (WorldState == nullptr || WorldState->GetWeatherState().WeatherCycleIndex != 82) return;
+    // Cycle 82 is the server's final observation marker. Let the ordinary
+    // replicated hearth, construction, and status updates arrive before this
+    // client-only verifier reads them.
+    RainVerticalSliceClientObservationSeconds += FMath::Max(0.0f, DeltaTime);
+    if (RainVerticalSliceClientObservationSeconds < 2.0f) return;
+    const AKalmalaCampfire* Fire = nullptr;
+    const AKalmalaConstructionActor* Exposed = nullptr;
+    const AKalmalaConstructionActor* Roofed = nullptr;
+    const AKalmalaConstructionActor* Roof = nullptr;
+    for (TActorIterator<AKalmalaCampfire> It(GetWorld()); It; ++It)
+        if (FVector::DistSquared(It->GetActorLocation(), Character->GetActorLocation()) <= FMath::Square(600.0f)) { Fire = *It; break; }
+    for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It)
+    {
+        if (It->GetConstructionId() == TEXT("RainSliceExposedFloor")) Exposed = *It;
+        if (It->GetConstructionId() == TEXT("RainSliceRoofedFloor")) Roofed = *It;
+        if (It->GetConstructionId() == TEXT("RainSliceFloorRoof")) Roof = *It;
+    }
+    const UKalmalaPlayerStatusComponent* Statuses = Character->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    const bool bPassed = Fire != nullptr && Exposed != nullptr && Roofed != nullptr && Roof != nullptr && Statuses != nullptr
+        && Fire->GetHearthState() == EKalmalaHearthState::Lit && Fire->HasRoof() && !Statuses->HasStatus(UKalmalaPlayerStatusComponent::WetStatusId)
+        && FMath::IsNearlyEqual(Exposed->GetHealth(), AKalmalaConstructionActor::RainHealthFloor)
+        && FMath::IsNearlyEqual(Roofed->GetHealth(), AKalmalaConstructionActor::MaximumHealth)
+        && FMath::IsNearlyEqual(Roof->GetHealth(), AKalmalaConstructionActor::MaximumHealth);
+    if (bPassed)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Rain vertical slice client: Passed=1 Wet=0 ExposedHealth=%.1f RoofedHealth=%.1f RoofHealth=%.1f FireState=%d Roofed=%d"), Exposed->GetHealth(), Roofed->GetHealth(), Roof->GetHealth(), static_cast<int32>(Fire->GetHearthState()), Fire->HasRoof());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Rain vertical slice client: Passed=0"));
+    }
+    bRainVerticalSliceClientReported = true;
+#endif
+}

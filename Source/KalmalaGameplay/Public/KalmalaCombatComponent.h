@@ -45,4 +45,6 @@ private:
     float PhaseEndTime = 0.0f;
     float LastUnavailableFeedbackTime = -1.0f;
     TWeakObjectPtr<AKalmalaWildlifeSpawn> PendingTarget;
+    bool bClientCombatVerificationActionLogged = false;
+    bool bClientCombatVerificationRejectionLogged = false;
 };

@@ -1,6 +1,7 @@
 #include "KalmalaGameMode.h"
 
 #include "KalmalaCharacter.h"
+#include "KalmalaCombatComponent.h"
 #include "KalmalaMapAwarenessComponent.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaConstructionActor.h"
@@ -464,6 +465,275 @@ void AKalmalaGameMode::AdvanceWeatherCycleIfNeeded()
     }
 }
 
+void AKalmalaGameMode::DriveRainVerticalSliceTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaRainVerticalSliceTest")) || RainVerticalSliceStage == 99) return;
+    const float Now = GetWorld()->GetTimeSeconds();
+    auto SetWeather = [this, Now](const int32 Cycle, const float Rain)
+    {
+        if (AKalmalaWorldGenerationGameState* State = GetGameState<AKalmalaWorldGenerationGameState>())
+        {
+            FKalmalaWeatherState Weather = State->GetWeatherState();
+            Weather.WeatherCycleIndex = Cycle;
+            Weather.ServerStartTimeSeconds = Now;
+            Weather.DurationSeconds = 120.0f;
+            Weather.PrecipitationIntensity = Rain;
+            Weather.WindDirectionDegrees = 0;
+            Weather.WindStrength = 0.0f;
+            State->SetWeatherStateFromServer(Weather);
+        }
+    };
+    auto HasWet = [](const AKalmalaCharacter* Character)
+    {
+        const UKalmalaPlayerStatusComponent* Statuses = Character ? Character->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
+        return Statuses != nullptr && Statuses->HasStatus(UKalmalaPlayerStatusComponent::WetStatusId);
+    };
+    if (RainVerticalSliceStage == 0)
+    {
+        RainVerticalSlicePlayers.Reset();
+        for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+            if (AKalmalaCharacter* Character = It->Get() ? Cast<AKalmalaCharacter>(It->Get()->GetPawn()) : nullptr)
+            {
+                RainVerticalSlicePlayers.Add(Character);
+                if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+                {
+                    Movement->StopMovementImmediately();
+                    Movement->DisableMovement();
+                }
+            }
+        if (RainVerticalSlicePlayers.Num() != 2) return;
+        // The generated start is already server-confirmed dry land. Water is
+        // deliberately located from the same broad, deterministic fixture
+        // domain used by the world coverage tests; the former 120 km local
+        // search is not guaranteed to intersect a lake or coast for seed 418.
+        FVector2D Dry = TerrainPatchOrigin;
+        FVector2D Water = FVector2D::ZeroVector;
+        bool bFoundWater = false;
+        for (int32 Y = -800000; Y <= 800000 && !bFoundWater; Y += 8000)
+        {
+            for (int32 X = -800000; X <= 800000 && !bFoundWater; X += 8000)
+            {
+                const FVector2D Candidate(X, Y);
+                const bool bWater = FKalmalaOceanSampler::Sample(WorldGenerationConfig, Candidate).IsWater()
+                    || FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Candidate);
+                if (bWater && !bFoundWater) { Water = Candidate; bFoundWater = true; }
+            }
+        }
+        if (!bFoundWater)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Rain vertical slice FAILED: seed has no bounded dry/water fixture."));
+            RainVerticalSliceStage = 99;
+            return;
+        }
+        ActivateTerrainPatchNeighborhood(Dry);
+        ActivateTerrainPatchNeighborhood(Water);
+        const FVector DryLocation(Dry.X, Dry.Y, FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Dry) + 20.0f);
+        FActorSpawnParameters Params; Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        auto SpawnPiece = [this, &Params](const FName Kit, const FString& Id, const FVector& Location, const FName Tag)
+        {
+            AKalmalaConstructionActor* Piece = GetWorld()->SpawnActor<AKalmalaConstructionActor>(AKalmalaConstructionActor::StaticClass(), Location, FRotator::ZeroRotator, Params);
+            if (Piece) { Piece->InitializeFromServer(Kit, Id); Piece->Tags.AddUnique(Tag); }
+            return Piece;
+        };
+        RainVerticalSliceExposedFloor = SpawnPiece(TEXT("FloorKit"), TEXT("RainSliceExposedFloor"), DryLocation + FVector(500, 0, 0), TEXT("KalmalaRainSliceExposedFloor"));
+        RainVerticalSliceRoofedFloor = SpawnPiece(TEXT("FloorKit"), TEXT("RainSliceRoofedFloor"), DryLocation, TEXT("KalmalaRainSliceRoofedFloor"));
+        RainVerticalSliceFloorRoof = SpawnPiece(TEXT("RoofKit"), TEXT("RainSliceFloorRoof"), DryLocation + FVector(0, 0, 280), TEXT("KalmalaRainSliceFloorRoof"));
+        RainVerticalSliceFireRoof = SpawnPiece(TEXT("RoofKit"), TEXT("RainSliceFireRoof"), DryLocation + FVector(1000, 350, 280), TEXT("KalmalaRainSliceFireRoof"));
+        RainVerticalSliceFire = GetWorld()->SpawnActor<AKalmalaCampfire>(AKalmalaCampfire::StaticClass(), DryLocation + FVector(0, 350, 0), FRotator::ZeroRotator, Params);
+        AKalmalaCharacter* FirstPlayer = RainVerticalSlicePlayers[0].Get();
+        if (!RainVerticalSliceExposedFloor.IsValid() || !RainVerticalSliceRoofedFloor.IsValid() || !RainVerticalSliceFloorRoof.IsValid() || !RainVerticalSliceFireRoof.IsValid() || !RainVerticalSliceFire.IsValid() || !FirstPlayer)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Rain vertical slice FAILED: fixture spawn failed."));
+            RainVerticalSliceStage = 99;
+            return;
+        }
+        RainVerticalSliceFire->Tags.AddUnique(TEXT("KalmalaRainSliceFire"));
+        RainVerticalSliceFire->InitializePaidFromServer(FirstPlayer);
+        FirstPlayer->SetActorLocation(RainVerticalSliceFire->GetActorLocation() + FVector(80, 0, 90));
+        RainVerticalSliceFire->Interact_Implementation(FirstPlayer);
+        SetWeather(80, 0.0f);
+        for (const TWeakObjectPtr<AKalmalaCharacter>& Player : RainVerticalSlicePlayers)
+        {
+            AKalmalaCharacter* Character = Player.Get();
+            if (!Character) continue;
+            Character->SetActorLocation(FVector(Water.X, Water.Y, FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Water) + Character->GetSimpleCollisionHalfHeight() + 10.0f));
+            UnroofedRainSecondsByCharacter.Remove(Character);
+        }
+        RainVerticalSliceStage = 1; RainVerticalSliceStageTime = Now;
+        return;
+    }
+    if (RainVerticalSliceStage == 1 && Now - RainVerticalSliceStageTime >= 2.0f)
+    {
+        bool bWaterWet = true;
+        for (const TWeakObjectPtr<AKalmalaCharacter>& Player : RainVerticalSlicePlayers) bWaterWet &= HasWet(Player.Get());
+        if (!bWaterWet) { UE_LOG(LogTemp, Error, TEXT("Rain vertical slice FAILED: water did not immediately apply Wet.")); RainVerticalSliceStage = 99; return; }
+        for (int32 Index = 0; Index < RainVerticalSlicePlayers.Num(); ++Index)
+            if (AKalmalaCharacter* Character = RainVerticalSlicePlayers[Index].Get()) { Character->SetActorLocation(RainVerticalSliceFire->GetActorLocation() + FVector(80, Index * 80, 90)); UnroofedRainSecondsByCharacter.Remove(Character); }
+        RainVerticalSliceStage = 2; RainVerticalSliceStageTime = Now;
+        return;
+    }
+    if (RainVerticalSliceStage == 2 && Now - RainVerticalSliceStageTime >= 2.0f)
+    {
+        bool bRecovered = RainVerticalSliceFire->IsLit();
+        for (const TWeakObjectPtr<AKalmalaCharacter>& Player : RainVerticalSlicePlayers) bRecovered &= !HasWet(Player.Get());
+        if (!bRecovered) { UE_LOG(LogTemp, Error, TEXT("Rain vertical slice FAILED: dry lit hearth did not remove water Wet.")); RainVerticalSliceStage = 99; return; }
+        RainVerticalSliceFireRoof->SetActorLocation(RainVerticalSliceFire->GetActorLocation() + FVector(1000, 0, 280));
+        SetWeather(81, 1.0f);
+        RainVerticalSliceExposedFloor->AdvanceRainWearFromServer(1000.0f, 1.0f);
+        RainVerticalSliceRoofedFloor->AdvanceRainWearFromServer(1000.0f, 1.0f);
+        RainVerticalSliceFloorRoof->AdvanceRainWearFromServer(1000.0f, 1.0f);
+        RainVerticalSliceStage = 3; RainVerticalSliceStageTime = Now;
+        return;
+    }
+    if (RainVerticalSliceStage == 3 && Now - RainVerticalSliceStageTime >= UKalmalaPlayerStatusComponent::UnroofedRainTriggerSeconds + 1.0f)
+    {
+        bool bRainWet = RainVerticalSliceFire->GetHearthState() == EKalmalaHearthState::Smouldering
+            && FMath::IsNearlyEqual(RainVerticalSliceExposedFloor->GetHealth(), AKalmalaConstructionActor::RainHealthFloor)
+            && FMath::IsNearlyEqual(RainVerticalSliceRoofedFloor->GetHealth(), AKalmalaConstructionActor::MaximumHealth)
+            && FMath::IsNearlyEqual(RainVerticalSliceFloorRoof->GetHealth(), AKalmalaConstructionActor::MaximumHealth);
+        for (const TWeakObjectPtr<AKalmalaCharacter>& Player : RainVerticalSlicePlayers) bRainWet &= HasWet(Player.Get());
+        if (!bRainWet) { UE_LOG(LogTemp, Error, TEXT("Rain vertical slice FAILED: delayed rain, wear floor, or smoulder state missing.")); RainVerticalSliceStage = 99; return; }
+        RainVerticalSliceFireRoof->SetActorLocation(RainVerticalSliceFire->GetActorLocation() + FVector(0, 0, 280));
+        RainVerticalSliceStage = 4; RainVerticalSliceStageTime = Now;
+        return;
+    }
+    if (RainVerticalSliceStage == 4 && Now - RainVerticalSliceStageTime >= 1.0f)
+    {
+        const bool bLit = RainVerticalSliceFire->IsLit();
+        const bool bFireRoofed = RainVerticalSliceFire->HasRoof();
+        bool bPlayersRecovered = true;
+        for (const TWeakObjectPtr<AKalmalaCharacter>& Player : RainVerticalSlicePlayers) bPlayersRecovered &= !HasWet(Player.Get());
+        const bool bPassed = bLit && bFireRoofed && bPlayersRecovered;
+        if (bPassed)
+        {
+            SetWeather(82, 1.0f);
+            UE_LOG(LogTemp, Display, TEXT("Rain vertical slice server: Passed=1 WaterWet=1 RainWet=1 ExposedHealth=%.1f RoofedHealth=%.1f RoofHealth=%.1f FireState=%d Roofed=%d WetRemoved=1"), RainVerticalSliceExposedFloor->GetHealth(), RainVerticalSliceRoofedFloor->GetHealth(), RainVerticalSliceFloorRoof->GetHealth(), static_cast<int32>(RainVerticalSliceFire->GetHearthState()), RainVerticalSliceFire->HasRoof());
+            RainVerticalSliceStage = 99;
+        }
+        else if (Now - RainVerticalSliceStageTime >= 8.0f)
+        {
+            SetWeather(82, 1.0f);
+            UE_LOG(LogTemp, Error, TEXT("Rain vertical slice server: Passed=0 Lit=%d FireRoofed=%d PlayersRecovered=%d FireState=%d"), bLit, bFireRoofed, bPlayersRecovered, static_cast<int32>(RainVerticalSliceFire->GetHearthState()));
+            RainVerticalSliceStage = 99;
+        }
+    }
+#endif
+}
+
+void AKalmalaGameMode::DriveCombatPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) || GetWorld() == nullptr)
+    {
+        return;
+    }
+
+    if (!bCombatPeerTestLogged)
+    {
+        bCombatPeerTestLogged = true;
+        UE_LOG(LogTemp, Display, TEXT("Combat verification server fixture enabled."));
+    }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    if (CombatPeerTestStage == 0)
+    {
+        TArray<AKalmalaCharacter*> Players;
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            if ((*It)->GetPlayerState() != nullptr) Players.Add(*It);
+        }
+        if (Players.Num() < 2) return;
+
+        CombatPeerTestAttacker = Players[0];
+        CombatPeerTestRemote = Players[1];
+        const FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(Players[0]->GetActorLocation()));
+        const TArray<FKalmalaWorldPopulationSpawn> Descriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        if (Descriptors.IsEmpty())
+        {
+            UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: server spatial key has no wildlife descriptor."));
+            CombatPeerTestStage = 99;
+            return;
+        }
+        const FString ExpectedSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptors[0]);
+        ActivatePopulationKey(SpatialKey);
+        for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+        {
+            if (!(*It)->IsDefeated() && (*It)->GetPersistentSpawnId() == ExpectedSpawnId) { CombatPeerTestTarget = *It; break; }
+        }
+        if (!CombatPeerTestTarget.IsValid())
+        {
+            UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: no active server wildlife target."));
+            CombatPeerTestStage = 99;
+            return;
+        }
+
+        AKalmalaCharacter* Attacker = CombatPeerTestAttacker.Get();
+        AKalmalaCharacter* Remote = CombatPeerTestRemote.Get();
+        const FVector Forward = Attacker->GetActorForwardVector().GetSafeNormal2D();
+        CombatPeerTestTarget->SetActorLocation(Attacker->GetActorLocation() + Forward * 150.0f);
+        Remote->SetActorLocation(Attacker->GetActorLocation() + FVector(0.0f, 1000.0f, 0.0f));
+        CombatPeerTestTarget->ForceNetUpdate();
+        Remote->ForceNetUpdate();
+        CombatPeerTestStage = 1;
+        CombatPeerTestStageTime = Now;
+        return;
+    }
+
+    AKalmalaCharacter* Attacker = CombatPeerTestAttacker.Get();
+    AKalmalaCharacter* Remote = CombatPeerTestRemote.Get();
+    AKalmalaWildlifeSpawn* Target = CombatPeerTestTarget.Get();
+    if (Attacker == nullptr || Remote == nullptr || Target == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: fixture actor disappeared."));
+        CombatPeerTestStage = 99;
+        return;
+    }
+    UKalmalaCombatComponent* AttackerCombat = Attacker->GetCombatComponent();
+    UKalmalaCombatComponent* RemoteCombat = Remote->GetCombatComponent();
+    if (AttackerCombat == nullptr || RemoteCombat == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: pawn combat component missing."));
+        CombatPeerTestStage = 99;
+        return;
+    }
+
+    if (CombatPeerTestStage == 1 && Now - CombatPeerTestStageTime >= 1.0f)
+    {
+        if (!FMath::IsNearlyEqual(Target->GetHealth(), 100.0f) || RemoteCombat->GetFeedback() != EKalmalaCombatFeedback::Unavailable)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: invalid remote attack mutated target or was not rejected. Health=%.1f Feedback=%d"), Target->GetHealth(), static_cast<int32>(RemoteCombat->GetFeedback()));
+            CombatPeerTestStage = 99;
+            return;
+        }
+        CombatPeerTestStage = 2;
+        CombatPeerTestStageTime = Now;
+        return;
+    }
+
+    if (CombatPeerTestStage == 2 && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Idle && CombatPeerTestSequence < 4)
+    {
+        AttackerCombat->ServerRequestAttack(++CombatPeerTestSequence);
+        CombatPeerTestStageTime = Now;
+        return;
+    }
+
+    if (CombatPeerTestStage == 2 && CombatPeerTestSequence == 4 && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Idle && Now - CombatPeerTestStageTime >= 0.1f)
+    {
+        const bool bSavedDefeat = Target->IsDefeated() && !Target->GetPersistentSpawnId().IsEmpty() && PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(Target->GetPersistentSpawnId());
+        if (AttackerCombat->GetActionSerial() == 4 && bSavedDefeat)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Combat verification server: Passed=1 InvalidRejected=1 ActionSerial=%u Health=%.1f Defeated=1 Saved=1"), AttackerCombat->GetActionSerial(), Target->GetHealth());
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Combat verification server: Passed=0 ActionSerial=%u Health=%.1f Defeated=%d Saved=%d"), AttackerCombat->GetActionSerial(), Target->GetHealth(), Target->IsDefeated(), bSavedDefeat);
+        }
+        CombatPeerTestStage = 99;
+    }
+#endif
+}
+
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -475,6 +745,8 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
 
     DriveTraversalTest();
     DriveCampChoiceTest();
+    DriveRainVerticalSliceTest();
+    DriveCombatPeerTest();
     ReportWorldProfileIfReady();
     AdvanceWeatherCycleIfNeeded();
 

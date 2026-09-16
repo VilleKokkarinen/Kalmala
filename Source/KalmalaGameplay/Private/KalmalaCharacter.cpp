@@ -84,6 +84,18 @@ void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaCharacter, ExposureState);
+    DOREPLIFETIME(AKalmalaCharacter, Health);
+}
+
+bool AKalmalaCharacter::ApplyMirelingDamageFromServer(const AActor* Instigator, const float Damage)
+{
+    if (!HasAuthority() || !IsValid(Instigator) || !Instigator->HasAuthority() || Instigator->GetWorld() != GetWorld()
+        || !FMath::IsFinite(Damage) || Damage <= 0.0f || Damage > 25.0f
+        || FVector::DistSquared(Instigator->GetActorLocation(), GetActorLocation()) > FMath::Square(180.0f)) return false;
+    // The first Mireling creates recoverable pressure; player defeat/respawn remains a later policy decision.
+    Health = FMath::Clamp(Health - Damage, 1.0f, 100.0f);
+    ForceNetUpdate();
+    return true;
 }
 
 void AKalmalaCharacter::BeginPlay()
@@ -110,6 +122,14 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
     VerifyConstructionMovement(DeltaSeconds);
     VerifySwimming(DeltaSeconds);
     VerifyOceanTravel(DeltaSeconds);
+
+    if (!bCombatPeerTestInvalidAttackSent && !HasAuthority() && IsLocallyControlled()
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) && Combat)
+    {
+        bCombatPeerTestInvalidAttackSent = true;
+        // This fixture deliberately supplies no target, damage, or timing data.
+        Combat->ServerRequestAttack(1);
+    }
 
     if (IsLocallyControlled() && Controller && Controller->IsMoveInputIgnored())
     {

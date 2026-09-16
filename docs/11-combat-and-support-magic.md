@@ -224,3 +224,73 @@ friendly fire, generic damage endpoint, client target reference, reward, new
 save data, or client-selected cooldown/timing value. The component replicates
 action phase/serial plus owner-only, target-free feedback. The local HUD shows
 the feedback with text rather than colour alone.
+
+## Basic attack peer verification
+
+After a forced editor build, run `Scripts/Verify-CombatPeer.ps1` on an unused
+port. Its development-only fixture uses the first deterministic wildlife
+descriptor for the host player's active spatial key. A conflicting-seed client
+sends one ordinary target-free attack sequence while positioned beyond range;
+the server must reject it without changing the target. The host then completes
+four normal server-validated attacks. The client must observe only the relevant
+shared action serial and wildlife defeat, while its owner-only unavailable
+feedback contains no target identity. Finally, the runner restarts the same
+host save directory and requires that exact sparse defeated-spawn record to
+keep the wildlife absent.
+
+The fixture adds no gameplay target/damage payload, reward, player progression
+record, save schema, or normal-play mutation. Player combat state is
+pawn-lifetime and begins at its replicated defaults after reconnect; the
+restart assertion covers the existing identity-scoped world defeat delta.
+
+## Wildlife population foundation
+
+The existing server-only spatial-key activation now treats wildlife descriptors
+as dry, terrain-safe candidates. For each bounded wildlife budget it considers
+at most four deterministic candidates per requested slot, retaining only
+candidates inside the immutable-world bounds that are outside ocean and lake
+water and whose generated collision normal has Z at least 0.82. The accepted
+candidate seed remains part of the existing stable sparse-delta identifier, so
+defeat persistence still suppresses precisely the same server-derived actor on
+restart. Fewer than the nominal budget is valid when no safe candidate exists.
+
+Only the server materializes accepted descriptors and owns their defeat state.
+Wildlife uses ordinary distance relevancy; a client receives an actor only once
+it is relevant, never a population descriptor or a client-selected fallback.
+This establishes placement constraints only—archetype appearance and behaviour
+remain subsequent increments.
+
+## Wildlife behaviour foundation
+
+Each relevant wildlife actor runs a small server-only, bounded behaviour cycle.
+It starts `Idle` at its accepted descriptor origin. Validated nonlethal server
+combat damage alone starts a 1.5-second `Flee` toward a deterministic,
+spawn-ID-derived point no farther than 300 cm from that origin. It then spends
+at most one second `Investigating` a second deterministic point within 120 cm,
+and `Returns` to origin for at most two seconds before settling at `Idle`.
+Movement is server-ticked in steps no larger than 0.10 seconds at 220 cm/s and
+uses ordinary actor movement replication; no behaviour enum, destination,
+descriptor, client command, or client-selected outcome is replicated.
+
+Only the ordered `Idle → Flee → Investigate → Return → Idle` transitions are
+accepted, and defeated actors cannot enter the cycle. This is intentionally a
+shared primitive, not an archetype policy: Mireling, boar, deer, noise, Deer
+Call, targets, rewards, damage, and herd decisions remain later work. The
+focused `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle` automation proves
+client and defeated paths are rejected and that the server cannot skip the
+bounded transition order.
+
+## Mireling encounter increment
+
+The first generated wildlife presentation is an original low-poly Mireling
+silhouette assembled from procedural lichen, root and crown forms, with ordinary
+actor movement replication. On the server only, an idle Mireling closes toward
+the nearest living player within 500 cm and can apply fixed 10-point melee at
+most once per second inside 180 cm. The receiving pawn rejects non-authority,
+wrong-world, non-finite, excessive and out-of-range calls; this increment clamps
+at one health because player defeat/respawn is still undefined. A validated
+player melee hit records that player as the eligible attacker; the one-time
+existing defeated transition then grants a bounded `MirelingAsh` stack through
+the owner-only inventory. Clients supply no target, damage, cooldown, health or
+reward input. Full persistence-before-reward and host/client encounter evidence
+remain the next verification child.

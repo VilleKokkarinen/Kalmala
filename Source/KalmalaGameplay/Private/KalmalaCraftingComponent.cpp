@@ -237,5 +237,6 @@ void UKalmalaCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickTy
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaStorageTest"))) RunStorageVerification(DeltaTime);
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaPersistedCampTest"))
         || FParse::Param(FCommandLine::Get(), TEXT("KalmalaPersistedCampRestoreTest"))) RunPersistedCampVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaRainVerticalSliceTest"))) RunRainVerticalSliceVerification(DeltaTime);
 #endif
 }

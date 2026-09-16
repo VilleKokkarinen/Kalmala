@@ -1,7 +1,10 @@
 #include "KalmalaCombatComponent.h"
+#include "KalmalaCharacter.h"
 #include "KalmalaCombatIntentContract.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "GameFramework/Pawn.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
 
 UKalmalaCombatComponent::UKalmalaCombatComponent() { PrimaryComponentTick.bCanEverTick = true; SetIsReplicatedByDefault(true); }
@@ -25,13 +28,27 @@ void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 Re
 void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) && GetOwner() != nullptr && !GetOwner()->HasAuthority())
+    {
+        const APawn* OwnerPawn = Cast<APawn>(GetOwner());
+        if (!bClientCombatVerificationActionLogged && ActionSerial >= 4)
+        {
+            bClientCombatVerificationActionLogged = true;
+            UE_LOG(LogTemp, Display, TEXT("Combat verification client observed shared action serial=%u."), ActionSerial);
+        }
+        if (!bClientCombatVerificationRejectionLogged && OwnerPawn != nullptr && OwnerPawn->IsLocallyControlled() && FeedbackSerial > 0 && Feedback == EKalmalaCombatFeedback::Unavailable)
+        {
+            bClientCombatVerificationRejectionLogged = true;
+            UE_LOG(LogTemp, Display, TEXT("Combat verification client rejected invalid owned attack without target data."));
+        }
+    }
     if (!GetOwner()->HasAuthority() || ActionPhase == EKalmalaCombatActionPhase::Idle || GetWorld() == nullptr || GetWorld()->GetTimeSeconds() < PhaseEndTime) return;
     if (ActionPhase == EKalmalaCombatActionPhase::Windup)
     {
         if (AKalmalaWildlifeSpawn* Target = PendingTarget.Get(); IsServerTargetValid(Target))
         {
             const bool bDefeated = Target->GetHealth() <= AttackDamage;
-            if (Target->ApplyCombatDamageFromServer(AttackDamage)) PublishFeedbackFromServer(bDefeated ? EKalmalaCombatFeedback::Defeat : EKalmalaCombatFeedback::Hit);
+            if (Target->ApplyCombatDamageFromServer(AttackDamage, Cast<AKalmalaCharacter>(GetOwner()))) PublishFeedbackFromServer(bDefeated ? EKalmalaCombatFeedback::Defeat : EKalmalaCombatFeedback::Hit);
         }
         else PublishFeedbackFromServer(EKalmalaCombatFeedback::Unavailable);
         BeginRecovery();
