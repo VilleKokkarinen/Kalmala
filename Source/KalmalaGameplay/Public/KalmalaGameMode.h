@@ -27,6 +27,7 @@ public:
     bool PersistConstruction(class AKalmalaConstructionActor* Construction);
     bool ReadStorage(const class AKalmalaConstructionActor* Construction, TArray<FKalmalaInventoryStack>& Out) const;
     bool PersistStorage(const class AKalmalaConstructionActor* Construction, const TArray<FKalmalaInventoryStack>& Stacks);
+    bool ClaimDiscovery(class AKalmalaCharacter* Interactor, const struct FKalmalaWorldDiscoveryDescriptor& Descriptor);
 
 private:
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);
@@ -35,6 +36,8 @@ private:
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
     void RecordDefeatedSpawn(const FString& PersistentSpawnId);
+    class UKalmalaPlayerDiscoverySaveGame* GetPlayerDiscoverySave(class AKalmalaCharacter* Interactor, FString& OutIdentity);
+    bool IsCurrentDiscoveryDescriptor(const struct FKalmalaWorldDiscoveryDescriptor& Descriptor) const;
     void ConfigureTraversalTest();
     void DriveTraversalTest();
     void ReportWorldProfileIfReady();
@@ -77,6 +80,7 @@ private:
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
     TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
+    TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGame>> PlayerDiscoverySaves;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGame> ConstructionSaveGame;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaStorageSaveGame> StorageSaveGame;
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;

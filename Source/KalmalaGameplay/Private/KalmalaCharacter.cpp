@@ -2,6 +2,7 @@
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaCombatComponent.h"
+#include "KalmalaDiscoveryProgressComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
@@ -32,6 +33,7 @@ AKalmalaCharacter::AKalmalaCharacter(const FObjectInitializer& ObjectInitializer
     Inventory = CreateDefaultSubobject<UKalmalaInventoryComponent>(TEXT("Inventory"));
     Crafting = CreateDefaultSubobject<UKalmalaCraftingComponent>(TEXT("Crafting"));
     Combat = CreateDefaultSubobject<UKalmalaCombatComponent>(TEXT("Combat"));
+    DiscoveryProgress = CreateDefaultSubobject<UKalmalaDiscoveryProgressComponent>(TEXT("DiscoveryProgress"));
     Statuses = CreateDefaultSubobject<UKalmalaPlayerStatusComponent>(TEXT("Statuses"));
     SetReplicateMovement(true);
 

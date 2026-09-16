@@ -11,6 +11,7 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaCombatComponent.h"
+#include "KalmalaDiscoveryProgressComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -64,6 +65,7 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
         if (Mapping.ActionName == TEXT("CraftMenu") && !Mapping.Key.IsGamepadKey()) { CraftKey=Mapping.Key.GetDisplayName().ToString(); break; }
     const UKalmalaPlayerStatusComponent* Status = Pawn ? Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
     const UKalmalaCombatComponent* Combat = Pawn ? Pawn->FindComponentByClass<UKalmalaCombatComponent>() : nullptr;
+    const UKalmalaDiscoveryProgressComponent* Discovery = Pawn ? Pawn->FindComponentByClass<UKalmalaDiscoveryProgressComponent>() : nullptr;
     FString Text;
     if (Status && Status->HasStatus(UKalmalaPlayerStatusComponent::WetStatusId))
     {
@@ -87,6 +89,20 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
         case EKalmalaCombatFeedback::Unavailable: Text += TEXT("Attack unavailable: move closer or wait.\n"); break;
         default: Text += TEXT("Attack result: none\n"); break;
         }
+        Text += TEXT("\n");
+    }
+    if (Discovery && Discovery->GetFeedbackSerial() > 0)
+    {
+        // Explicit text keeps discovery acknowledgement accessible without relying on marker colour.
+        switch (Discovery->GetFeedback())
+        {
+        case EKalmalaDiscoveryFeedback::LandmarkFound: Text += TEXT("Discovery: landmark found\n"); break;
+        case EKalmalaDiscoveryFeedback::ScrollFound: Text += TEXT("Discovery: scroll found\n"); break;
+        case EKalmalaDiscoveryFeedback::AlreadyFound: Text += TEXT("Discovery: already found\n"); break;
+        case EKalmalaDiscoveryFeedback::Unavailable: Text += TEXT("Discovery: unavailable\n"); break;
+        default: break;
+        }
+        if (!Discovery->GetFeedbackLabel().IsEmpty()) Text += Discovery->GetFeedbackLabel() + TEXT("\n");
         Text += TEXT("\n");
     }
     int32 StatusLines = 0;

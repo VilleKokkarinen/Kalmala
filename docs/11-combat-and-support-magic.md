@@ -385,3 +385,24 @@ candidate and exact ID before any later materialization or entitlement check;
 clients cannot enumerate, request, or infer undiscovered descriptors. This
 foundation deliberately leaves one-time rewards, player progression persistence,
 and active support effects to later increments.
+
+## Discovery reward and entitlement increment
+
+The server materializes only descriptors in an already active population key as
+ordinary relevant interaction actors. The normal owner-pawn interaction trace
+still carries no discovery ID, target, definition, position, reward, or player
+identity. On interaction the authoritative game mode recomputes the descriptor
+from the immutable world identity, checks exact canonical ID/location, range,
+world membership, and a server-authenticated `UniqueNetId` before it considers
+a claim. A malformed, distant, duplicate, foreign-world, or unauthenticated
+claim changes nothing.
+
+Each authenticated player has a bounded, versioned save record containing only
+the matching world identity, authenticated identity, and canonical discovered
+IDs. It is saved before owner-only acknowledgement. The slot uses a CRC of the
+authenticated identity rather than the raw ID; the raw identity remains inside
+the save identity check. A reconnect loads only that same matching record. No
+player record is replicated as a catalogue. The owning pawn receives an
+owner-only feedback serial with explicit text: landmark/scroll found, already
+found, or unavailable. Scroll discovery records the entitled discovery only;
+learning and activating its support effect remain the next increment.

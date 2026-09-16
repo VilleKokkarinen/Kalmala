@@ -11,6 +11,7 @@ class UKalmalaInventoryComponent;
 class UKalmalaCraftingComponent;
 class UKalmalaPlayerStatusComponent;
 class UKalmalaCombatComponent;
+class UKalmalaDiscoveryProgressComponent;
 
 USTRUCT(BlueprintType)
 struct FKalmalaExposureState
@@ -43,6 +44,7 @@ public:
     const FKalmalaExposureState& GetExposureState() const { return ExposureState; }
     const UKalmalaPlayerStatusComponent* GetStatusComponent() const { return Statuses; }
     UKalmalaCombatComponent* GetCombatComponent() const { return Combat; }
+    UKalmalaDiscoveryProgressComponent* GetDiscoveryProgressComponent() const { return DiscoveryProgress; }
     UKalmalaInventoryComponent* GetInventoryComponent() const { return Inventory; }
     float GetHealth() const { return Health; }
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
@@ -60,6 +62,7 @@ protected:
 private:
     UPROPERTY(VisibleAnywhere, Category="Crafting") TObjectPtr<UKalmalaCraftingComponent> Crafting;
     UPROPERTY(VisibleAnywhere, Category="Combat") TObjectPtr<UKalmalaCombatComponent> Combat;
+    UPROPERTY(VisibleAnywhere, Category="Discovery") TObjectPtr<UKalmalaDiscoveryProgressComponent> DiscoveryProgress;
     UPROPERTY(VisibleAnywhere, Category="Status") TObjectPtr<UKalmalaPlayerStatusComponent> Statuses;
     UPROPERTY(VisibleAnywhere, Category = "Inventory")
     TObjectPtr<UKalmalaInventoryComponent> Inventory;

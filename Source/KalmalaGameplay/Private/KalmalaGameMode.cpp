@@ -5,6 +5,9 @@
 
 #include "KalmalaCharacter.h"
 #include "KalmalaCombatComponent.h"
+#include "KalmalaDiscoveryActor.h"
+#include "KalmalaDiscoveryProgressComponent.h"
+#include "KalmalaPlayerDiscoverySaveGame.h"
 #include "KalmalaMapAwarenessComponent.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaConstructionActor.h"
@@ -46,6 +49,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "Misc/Crc.h"
 
 namespace KalmalaGameMode
 {
@@ -66,6 +70,10 @@ namespace KalmalaGameMode
     FString ConstructionSaveSlot(const FKalmalaWorldGenerationConfig& Config)
     {
         return FString::Printf(TEXT("KalmalaConstruction_%llu"), Config.WorldSeed);
+    }
+    FString PlayerDiscoverySaveSlot(const FKalmalaWorldGenerationConfig& Config, const FString& PlayerIdentity)
+    {
+        return FString::Printf(TEXT("KalmalaPlayerDiscoveries_%llu_%08x"), Config.WorldSeed, FCrc::StrCrc32(*PlayerIdentity));
     }
 }
 
@@ -994,6 +1002,23 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
         }
     }
 
+    // Discovery descriptors are server-derived. Actors are only materialized in
+    // an already active key; no client receives descriptor candidates or can
+    // choose a definition, position, or reward.
+    for (const EKalmalaWorldDiscoveryKind Kind : { EKalmalaWorldDiscoveryKind::PointOfInterest, EKalmalaWorldDiscoveryKind::Scroll })
+    {
+        for (const FKalmalaWorldDiscoveryDescriptor& Descriptor : FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(WorldGenerationConfig, SpatialKey, Kind))
+        {
+            FActorSpawnParameters Parameters;
+            Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+            if (AKalmalaDiscoveryActor* Discovery = GetWorld()->SpawnActor<AKalmalaDiscoveryActor>(AKalmalaDiscoveryActor::StaticClass(), Descriptor.Location, FRotator::ZeroRotator, Parameters))
+            {
+                Discovery->InitializeServer(Descriptor);
+                ++SpawnedMarkerCount;
+            }
+        }
+    }
+
     if (KeyBiome == EKalmalaBiome::ShimmeringLakes && !ActiveShimmeringLakeDiscoveryKeys.Contains(SpatialKey))
     {
         FKalmalaBiomeDiscoveryCandidate Discovery;
@@ -1119,6 +1144,66 @@ void AKalmalaGameMode::RecordDefeatedSpawn(const FString& PersistentSpawnId)
         PopulationSaveGame->MarkDefeated(PersistentSpawnId);
         UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
     }
+}
+
+UKalmalaPlayerDiscoverySaveGame* AKalmalaGameMode::GetPlayerDiscoverySave(AKalmalaCharacter* Interactor, FString& OutIdentity)
+{
+    OutIdentity.Reset();
+    if (!HasAuthority() || Interactor == nullptr || Interactor->GetWorld() != GetWorld() || Interactor->GetPlayerState() == nullptr) return nullptr;
+    const FUniqueNetIdRepl UniqueId = Interactor->GetPlayerState()->GetUniqueId();
+    if (!UniqueId.IsValid()) return nullptr;
+    const TSharedPtr<const FUniqueNetId> AuthenticatedId = UniqueId.GetUniqueNetId();
+    if (!AuthenticatedId.IsValid()) return nullptr;
+    OutIdentity = AuthenticatedId->GetType().ToString() + TEXT(":") + AuthenticatedId->ToString();
+    if (OutIdentity.IsEmpty() || OutIdentity.Len() > 128) return nullptr;
+    if (TObjectPtr<UKalmalaPlayerDiscoverySaveGame>* Existing = PlayerDiscoverySaves.Find(OutIdentity)) return *Existing;
+    const FString Slot = KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, OutIdentity);
+    UKalmalaPlayerDiscoverySaveGame* Save = Cast<UKalmalaPlayerDiscoverySaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
+    if (Save == nullptr || !Save->Matches(WorldGenerationConfig, OutIdentity))
+    {
+        Save = NewObject<UKalmalaPlayerDiscoverySaveGame>(this);
+        Save->InitializeForPlayer(WorldGenerationConfig, OutIdentity);
+    }
+    PlayerDiscoverySaves.Add(OutIdentity, Save);
+    return Save;
+}
+
+bool AKalmalaGameMode::IsCurrentDiscoveryDescriptor(const FKalmalaWorldDiscoveryDescriptor& Descriptor) const
+{
+    if (Descriptor.DefinitionId.IsEmpty() || Descriptor.Ordinal < 0 || Descriptor.Ordinal >= 8 || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Descriptor.Location))) return false;
+    const TArray<FKalmalaWorldDiscoveryDescriptor> Expected = FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(WorldGenerationConfig, Descriptor.SpatialKey, Descriptor.Kind);
+    return Expected.ContainsByPredicate([&Descriptor](const FKalmalaWorldDiscoveryDescriptor& Candidate)
+    { return FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Candidate) == FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Descriptor) && Candidate.Location.Equals(Descriptor.Location, 1.0f); });
+}
+
+bool AKalmalaGameMode::ClaimDiscovery(AKalmalaCharacter* Interactor, const FKalmalaWorldDiscoveryDescriptor& Descriptor)
+{
+    if (!HasAuthority() || Interactor == nullptr || !Interactor->HasAuthority() || !IsCurrentDiscoveryDescriptor(Descriptor)
+        || FVector::DistSquared(Interactor->GetActorLocation(), Descriptor.Location) > FMath::Square(250.0f)) return false;
+    UKalmalaDiscoveryProgressComponent* Feedback = Interactor->GetDiscoveryProgressComponent();
+    FString Identity;
+    UKalmalaPlayerDiscoverySaveGame* Save = GetPlayerDiscoverySave(Interactor, Identity);
+    if (Save == nullptr || Feedback == nullptr) return false;
+    const FString Id = FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Descriptor);
+    if (Save->HasDiscovery(Id))
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::AlreadyFound, TEXT("Already discovered"));
+        return false;
+    }
+    if (!Save->AddDiscovery(Id))
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery unavailable"));
+        return false;
+    }
+    if (!UGameplayStatics::SaveGameToSlot(Save, KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, Identity), 0))
+    {
+        Save->RemoveDiscovery(Id);
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery unavailable"));
+        return false;
+    }
+    Feedback->PublishFeedbackFromServer(Descriptor.Kind == EKalmalaWorldDiscoveryKind::Scroll ? EKalmalaDiscoveryFeedback::ScrollFound : EKalmalaDiscoveryFeedback::LandmarkFound,
+        Descriptor.Kind == EKalmalaWorldDiscoveryKind::Scroll ? FString::Printf(TEXT("Scroll found: %s"), *Descriptor.DefinitionId) : TEXT("Landmark discovered"));
+    return true;
 }
 
 void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)

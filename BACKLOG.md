@@ -288,7 +288,7 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Verify deterministic group activation, combat/noise flight, defeat persistence, and matching host/client behaviour.
 - [ ] Add optional deterministic open-world points of interest and scroll discoveries across suitable biomes.
   - [x] Derive bounded, stable point-of-interest and scroll descriptors from the existing world identity without routes, mandatory crossings, or hidden client discovery queries.
-  - [ ] Add server-validated one-time discovery rewards with colour-independent local feedback and persistence across reconnect only for the entitled player.
+  - [x] Add server-validated one-time discovery rewards with colour-independent local feedback and persistence across reconnect only for the entitled player.
   - [ ] Verify same-seed reproduction, different-seed variation, duplicate/distant request rejection, and privacy of undiscovered content.
 - [ ] Implement the scroll-learned, non-damaging support-magic foundation.
   - [ ] Add server-owned learned-effect validation, stamina/cooldown rules, replicated active-state presentation, and persistence keyed to the entitled player and immutable world identity.

@@ -157,6 +157,17 @@ Co-op awareness is off by default and returns to private after reconnecting. Wit
 
 Launch a listen server with `-KalmalaBiomeFeatureInspection` and join a player to log the server-sampled biome-expansion profile, a nearby classifier-seam flag, and a stable but non-materialized discovery candidate. The switch only inspects deterministic inputs from the replicated world identity; it does not spawn, save, reveal, or route toward content, and clients cannot request it.
 
+## Discovery progression verification
+
+After an editor build, run `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`
+headlessly with the standard isolated `-UserDir`, `-abslog`,
+`-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"` flags.
+It checks an identity-scoped discovery record serializes and restores for the
+same player/world, rejects another player, rejects a different world seed, and
+cannot record the same canonical discovery twice. This focused test does not
+replace the later two-peer privacy, range, duplicate-request, or descriptor
+variation scenario.
+
 ## Shimmering Lakes slice verification
 
 After an editor build, run the focused `Kalmala.World.BiomeExpansion.ShimmeringLakesSlice` headless automation with `-DDC-ForceMemoryCache`. It searches deterministic spatial keys for a dry Shimmering Lakes discovery location, verifies adjacent seed-derived water and the wet-shore exposure tradeoff, and confirms that the stable discovery ID reproduces. Runtime activation remains server-only: it creates at most one normal validated harvest discovery per active lake key and requires neither water physics nor a boat.

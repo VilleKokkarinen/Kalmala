@@ -12,6 +12,8 @@ public class KalmalaGameplay : ModuleRules
             "CoreUObject",
             "Engine",
             "NetCore",
+            "OnlineSubsystem",
+            "OnlineSubsystemUtils",
             "EnhancedInput",
             "GameplayAbilities",
             "GameplayTags",

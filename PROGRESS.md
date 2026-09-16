@@ -2791,3 +2791,42 @@ not yet exist.
 Next task: Add server-validated one-time discovery rewards with
 colour-independent local feedback and reconnect persistence only for the
 entitled player.
+
+### 2026-09-16T17:13:45+03:00 - Add server-validated discovery rewards
+
+Outcome: Completed the second optional-discovery child. Active server population
+keys now materialize only their server-derived optional descriptors as ordinary
+relevant interactables. The normal owner-pawn interaction trace carries no
+discovery payload. `GameMode` recomputes the exact descriptor, validates world,
+range, and authenticated player identity, then persists the canonical discovery
+before issuing owner-only text feedback. A failed save rolls the in-memory fact
+back; duplicate claims provide no second reward. Scrolls now record discovery
+only—learning/activation remains the next magic increment.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaDiscoveryActor.h`,
+`KalmalaDiscoveryProgressComponent.h`, `KalmalaPlayerDiscoverySaveGame.h`, their
+private implementations and focused automation test; `KalmalaGameMode`, player
+component setup, UI inventory feedback, gameplay module dependencies,
+`docs/11-combat-and-support-magic.md`, `docs/07-development-setup.md`,
+`BACKLOG.md`, and this handoff. No generated directories were changed.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed. Headless
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence` passed with exit code 0;
+evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaDiscoveryProgress-final-4eb643ff-d921-4b63-9ea3-906f4ab02175/automation.log`.
+`git diff --check` passed.
+
+Multiplayer impact: Client requests still contain only the existing interaction
+intent. The server derives and rechecks every descriptor and range, accepts only
+the PlayerState's authenticated `UniqueNetId`, and replicates feedback only to
+the entitled owner. Player saves are bound to that identity and full immutable
+world config; no discovery catalogue, remote player progression, reward,
+descriptor query, or support-effect entitlement is replicated.
+
+Known limits: The marker is generic and relevant only through normal actor
+relevancy; the next child must verify peer privacy, same/different-seed behavior,
+and malicious duplicate/distant interactions. No scroll has yet granted a
+learned support effect.
+
+Next task: Verify same-seed reproduction, different-seed variation,
+duplicate/distant request rejection, and privacy of undiscovered content.
