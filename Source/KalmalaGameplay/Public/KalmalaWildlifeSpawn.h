@@ -58,6 +58,7 @@ private:
     FVector GetDeterministicOffset(float Distance) const;
     void UpdateMirelingScavenge(float DeltaSeconds);
     void UpdateBoarTerritory(float DeltaSeconds);
+    void AlertNearbyDeerFromServer();
     void BuildArchetypePresentation();
     void GrantDefeatReward();
 

@@ -76,6 +76,12 @@ bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const float Damage, AKal
     else
     {
         BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f, SpawnOrigin + GetDeterministicOffset(300.0f));
+        if (Archetype == EKalmalaWildlifeArchetype::Deer)
+        {
+            // A successful server combat execution is the only initial noise source. Nearby deer
+            // derive their own bounded flight destinations; no client can select a herd or destination.
+            AlertNearbyDeerFromServer();
+        }
     }
     ForceNetUpdate();
     return true;
@@ -84,7 +90,9 @@ bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const float Damage, AKal
 EKalmalaWildlifeArchetype AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(const uint64 SpawnSeed)
 {
     // A stable server descriptor seed selects the archetype; it never depends on actor order or a client observation.
-    return SpawnSeed % 3ull == 0ull ? EKalmalaWildlifeArchetype::Boar : EKalmalaWildlifeArchetype::Mireling;
+    if (SpawnSeed % 3ull == 0ull) return EKalmalaWildlifeArchetype::Boar;
+    if (SpawnSeed % 5ull == 1ull) return EKalmalaWildlifeArchetype::Deer;
+    return EKalmalaWildlifeArchetype::Mireling;
 }
 
 bool AKalmalaWildlifeSpawn::IsBoarChargeAllowed(const bool bServerAuthority, const bool bAlreadyDefeated, const bool bAtRest, const float DistanceToRestingArea)
@@ -203,6 +211,17 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         AddTetra(FVector(128,-22,1), FVector(34,7,8), FLinearColor(0.82f,0.75f,0.54f));
         AddTetra(FVector(128,22,1), FVector(34,7,8), FLinearColor(0.82f,0.75f,0.54f));
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::Deer)
+    {
+        AddTetra(FVector(0,0,4), FVector(92,38,52), FLinearColor(0.42f,0.25f,0.12f));
+        AddTetra(FVector(88,0,42), FVector(35,26,62), FLinearColor(0.50f,0.31f,0.16f));
+        AddTetra(FVector(-48,-24,-58), FVector(11,11,72), FLinearColor(0.25f,0.15f,0.08f));
+        AddTetra(FVector(-48,24,-58), FVector(11,11,72), FLinearColor(0.25f,0.15f,0.08f));
+        AddTetra(FVector(42,-24,-58), FVector(11,11,72), FLinearColor(0.25f,0.15f,0.08f));
+        AddTetra(FVector(42,24,-58), FVector(11,11,72), FLinearColor(0.25f,0.15f,0.08f));
+        AddTetra(FVector(112,-18,88), FVector(24,4,42), FLinearColor(0.75f,0.65f,0.42f));
+        AddTetra(FVector(112,18,88), FVector(24,4,42), FLinearColor(0.75f,0.65f,0.42f));
+    }
     else
     {
         AddTetra(FVector(0,0,15), FVector(52,38,115), FLinearColor(0.12f,0.20f,0.15f));
@@ -211,6 +230,19 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         AddTetra(FVector(0,0,122), FVector(48,30,55), FLinearColor(0.38f,0.55f,0.28f));
     }
     MirelingMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV, Colors, {}, false);
+}
+
+void AKalmalaWildlifeSpawn::AlertNearbyDeerFromServer()
+{
+    if (!HasAuthority() || bDefeated) return;
+    for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+    {
+        AKalmalaWildlifeSpawn* Deer = *It;
+        if (!IsValid(Deer) || Deer->bDefeated || Deer->Archetype != EKalmalaWildlifeArchetype::Deer
+            || Deer->Behaviour != EKalmalaWildlifeBehaviour::Idle
+            || FVector::DistSquared2D(Deer->GetActorLocation(), GetActorLocation()) > FMath::Square(800.0f)) continue;
+        Deer->BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f, Deer->SpawnOrigin + Deer->GetDeterministicOffset(300.0f));
+    }
 }
 
 void AKalmalaWildlifeSpawn::BeginServerBehaviour(const EKalmalaWildlifeBehaviour NextBehaviour, const float DurationSeconds, const FVector& Destination)
@@ -312,5 +344,10 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
     {
         Inventory->TryGrantFromServer(TEXT("BoarMeat"), 1);
         Inventory->TryGrantFromServer(TEXT("BoarHide"), 1);
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::Deer)
+    {
+        Inventory->TryGrantFromServer(TEXT("DeerMeat"), 1);
+        Inventory->TryGrantFromServer(TEXT("DeerHide"), 1);
     }
 }

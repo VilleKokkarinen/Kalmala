@@ -284,7 +284,7 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Add original replicated boar presentation, resting-area threat response, charge/return behaviour, and validated meat/hide rewards.
 - [x] Verify server-owned targeting/damage, defeat persistence, reconnect consistency, and matching host/client behaviour.
 - [ ] Deliver the deer archetype as wary herd wildlife.
-  - [ ] Add original replicated deer presentation, bounded herd/flee behaviour, and validated meat/hide rewards.
+  - [x] Add original replicated deer presentation, bounded herd/flee behaviour, and validated meat/hide rewards.
   - [ ] Verify deterministic group activation, combat/noise flight, defeat persistence, and matching host/client behaviour.
 - [ ] Add optional deterministic open-world points of interest and scroll discoveries across suitable biomes.
   - [ ] Derive bounded, stable point-of-interest and scroll descriptors from the existing world identity without routes, mandatory crossings, or hidden client discovery queries.

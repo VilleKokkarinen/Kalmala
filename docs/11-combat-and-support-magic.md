@@ -340,3 +340,21 @@ one `BoarHide`; the remote inventory remains empty. A fresh listen server uses
 the same server-derived bounded boar selector to confirm that exact defeated
 spawn remains absent. No client provides a descriptor, persistent ID, target,
 damage, reward, or save value.
+
+## Deer wary-herd increment
+
+The server selects Deer from the existing stable wildlife descriptor seed only
+after the established Boar branch, preserving descriptor identity and sparse
+defeat compatibility. Deer have an original low-poly body, legs, head, and antler
+silhouette assembled from project procedural geometry; relevant peers receive
+only the normal replicated actor, movement, and bounded archetype presentation.
+
+A validated nonlethal server combat hit starts the target Deer's existing bounded
+flee cycle and alerts only idle, living Deer within 800 cm. Each alerted Deer
+derives its own stable spawn-ID-based destination and runs the existing
+`Flee -> Investigate -> Return -> Idle` budget. This is the initial combat-noise
+response; no client can choose a herd, noise source, flight destination, damage,
+or reward. At the established sparse defeat transition, the validated attacker
+receives owner-only catalogue-validated `DeerMeat` and `DeerHide`; no loot RPC,
+save schema, or descriptor replication is added. Dedicated deterministic-group,
+peer, and restart verification remains the next child.

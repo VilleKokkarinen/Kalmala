@@ -2681,3 +2681,37 @@ defeat persistence and reward publication remains outside this increment.
 
 Next task: Add original replicated deer presentation, bounded herd/flee
 behaviour, and validated meat/hide rewards.
+
+### 2026-09-16T16:35:54+03:00 - Add deer wary-herd encounter foundation
+
+Outcome: Completed the first deer child. Stable server wildlife descriptors now
+select a Deer after the existing Boar branch, with an original procedural
+low-poly silhouette. A validated server combat hit begins the target's bounded
+flight and alerts only nearby idle Deer to their own deterministic flight paths.
+The existing sparse defeat path grants owner-only DeerMeat and DeerHide.
+
+Changed: `Config/DefaultGame.ini`;
+`Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`;
+`Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp`;
+`docs/11-combat-and-support-magic.md`; `BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access.
+Focused headless `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle` passed
+(one test, `Result={Success}`), with evidence at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaDeerFoundation-ff92a200e7244cfb8ad1668baeadae84/automation.log`.
+`git diff --check` passed.
+
+Multiplayer impact: The server alone derives archetype, handles validated combat
+noise, selects the bounded nearby herd, chooses all flight paths, applies defeat,
+and grants rewards. Clients receive normal relevant actor movement/archetype and
+owner-only inventory only. No client-selected target, noise, herd, destination,
+damage, reward, descriptor, RPC, or save schema was added.
+
+Known limits: This focused automation does not yet prove deterministic group
+activation, two-peer combat/noise flight, defeat persistence, or reconnect
+presentation. Deer Call remains a later support-magic effect.
+
+Next task: Verify deterministic group activation, combat/noise flight, defeat
+persistence, and matching host/client deer behaviour.
