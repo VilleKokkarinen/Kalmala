@@ -630,13 +630,14 @@ void AKalmalaGameMode::DriveCombatPeerTest()
     const bool bCombatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest"));
     const bool bMirelingPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"));
     const bool bBoarPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"));
-    if ((!bCombatPeerTest && !bMirelingPeerTest && !bBoarPeerTest) || GetWorld() == nullptr)
+    const bool bDeerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"));
+    if ((!bCombatPeerTest && !bMirelingPeerTest && !bBoarPeerTest && !bDeerPeerTest) || GetWorld() == nullptr)
     {
         return;
     }
 
-    const TCHAR* VerificationName = bBoarPeerTest ? TEXT("Boar") : (bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"));
-    const EKalmalaWildlifeArchetype ExpectedArchetype = bBoarPeerTest ? EKalmalaWildlifeArchetype::Boar : EKalmalaWildlifeArchetype::Mireling;
+    const TCHAR* VerificationName = bBoarPeerTest ? TEXT("Boar") : (bDeerPeerTest ? TEXT("Deer") : (bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat")));
+    const EKalmalaWildlifeArchetype ExpectedArchetype = bBoarPeerTest ? EKalmalaWildlifeArchetype::Boar : (bDeerPeerTest ? EKalmalaWildlifeArchetype::Deer : EKalmalaWildlifeArchetype::Mireling);
 
     if (!bCombatPeerTestLogged)
     {
@@ -662,13 +663,13 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         CombatPeerTestRemote = RemotePlayer;
         FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(LocalServerPlayer->GetActorLocation()));
         TArray<FKalmalaWorldPopulationSpawn> Descriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
-        if (bBoarPeerTest && !Descriptors.ContainsByPredicate([ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Descriptor.SpawnSeed) == ExpectedArchetype; }))
+        if ((bBoarPeerTest || bDeerPeerTest) && !Descriptors.ContainsByPredicate([ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Descriptor.SpawnSeed) == ExpectedArchetype; }))
         {
             // Stay within the normal bounded activation neighborhood while selecting
             // a deterministic boar descriptor rather than depending on actor order.
             const FIntPoint BaseKey = SpatialKey;
-            bool bFoundBoarDescriptor = false;
-            for (int32 OffsetY = -1; OffsetY <= 1 && !bFoundBoarDescriptor; ++OffsetY)
+            bool bFoundArchetypeDescriptor = false;
+            for (int32 OffsetY = -1; OffsetY <= 1 && !bFoundArchetypeDescriptor; ++OffsetY)
             {
                 for (int32 OffsetX = -1; OffsetX <= 1; ++OffsetX)
                 {
@@ -678,7 +679,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                     {
                         SpatialKey = CandidateKey;
                         Descriptors = CandidateDescriptors;
-                        bFoundBoarDescriptor = true;
+                        bFoundArchetypeDescriptor = true;
                         break;
                     }
                 }
@@ -708,8 +709,32 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         {
             if (Descriptors.ContainsByPredicate([&](const FKalmalaWorldPopulationSpawn& Descriptor) { return FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor) == (*It)->GetPersistentSpawnId(); })) ++ActiveInKey;
             if (!CombatPeerTestTarget.IsValid() && !(*It)->IsDefeated() && (*It)->GetPersistentSpawnId() == ExpectedSpawnId) { CombatPeerTestTarget = *It; }
+            if (bDeerPeerTest && !CombatPeerTestHerdMate.IsValid() && !(*It)->IsDefeated() && (*It)->GetArchetype() == EKalmalaWildlifeArchetype::Deer && (*It)->GetPersistentSpawnId() != ExpectedSpawnId) { CombatPeerTestHerdMate = *It; }
         }
-        if (!bSeedReproduced || ActiveInKey > Descriptors.Num() || !CombatPeerTestTarget.IsValid())
+        if (bDeerPeerTest && !CombatPeerTestHerdMate.IsValid())
+        {
+            // A herd mate must also come from a normal descriptor. Search only the same
+            // bounded 3x3 activation neighborhood, then materialize its existing key.
+            for (int32 OffsetY = -1; OffsetY <= 1 && !CombatPeerTestHerdMate.IsValid(); ++OffsetY)
+            {
+                for (int32 OffsetX = -1; OffsetX <= 1 && !CombatPeerTestHerdMate.IsValid(); ++OffsetX)
+                {
+                    const FIntPoint HerdKey = SpatialKey + FIntPoint(OffsetX, OffsetY);
+                    const TArray<FKalmalaWorldPopulationSpawn> HerdDescriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, HerdKey, EKalmalaWorldPopulationKind::Wildlife);
+                    if (!HerdDescriptors.ContainsByPredicate([](const FKalmalaWorldPopulationSpawn& Descriptor) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Descriptor.SpawnSeed) == EKalmalaWildlifeArchetype::Deer; })) continue;
+                    ActivatePopulationKey(HerdKey);
+                    for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+                    {
+                        if (!(*It)->IsDefeated() && (*It)->GetArchetype() == EKalmalaWildlifeArchetype::Deer && (*It)->GetPersistentSpawnId() != ExpectedSpawnId)
+                        {
+                            CombatPeerTestHerdMate = *It;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (!bSeedReproduced || ActiveInKey > Descriptors.Num() || !CombatPeerTestTarget.IsValid() || (bDeerPeerTest && !CombatPeerTestHerdMate.IsValid()))
         {
             UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: seed reproduction=%d active=%d descriptors=%d target=%d."), VerificationName, bSeedReproduced, ActiveInKey, Descriptors.Num(), CombatPeerTestTarget.IsValid());
             CombatPeerTestStage = 99;
@@ -723,6 +748,13 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         // policy must choose a nearby pawn, rather than a fixture bypassing it.
         Attacker->SetActorLocation(CombatPeerTestTarget->GetActorLocation() - Forward * 150.0f, false);
         Remote->SetActorLocation(CombatPeerTestTarget->GetActorLocation() + FVector(0.0f, 1000.0f, 0.0f), false);
+        if (bDeerPeerTest)
+        {
+            // The companion remains a normal generated deer. This controlled positioning only
+            // puts it within the production 800 cm server noise radius for the herd assertion.
+            CombatPeerTestHerdMate->SetActorLocation(CombatPeerTestTarget->GetActorLocation() + FVector(0.0f, 600.0f, 0.0f), false);
+            CombatPeerTestHerdMate->ForceNetUpdate();
+        }
         Attacker->ForceNetUpdate();
         Remote->ForceNetUpdate();
         CombatPeerTestStage = 1;
@@ -780,6 +812,12 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         Target->ForceNetUpdate();
     }
 
+    if (bDeerPeerTest && CombatPeerTestSequence > 0 && CombatPeerTestHerdMate.IsValid()
+        && CombatPeerTestHerdMate->GetBehaviour() != EKalmalaWildlifeBehaviour::Idle)
+    {
+        bCombatPeerTestHerdAlertObserved = true;
+    }
+
     if (CombatPeerTestStage == 2 && CombatPeerTestSequence == 4 && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Idle && Now - CombatPeerTestStageTime >= 0.1f)
     {
         const bool bSavedDefeat = Target->IsDefeated() && !Target->GetPersistentSpawnId().IsEmpty() && PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(Target->GetPersistentSpawnId());
@@ -789,10 +827,14 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         const int32 Hide = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("BoarHide")) : 0;
         const int32 RemoteMeat = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("BoarMeat")) : 0;
         const int32 RemoteHide = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("BoarHide")) : 0;
-        const bool bRewardValid = bMirelingPeerTest ? (Ash == 1 && RemoteAsh == 0) : (!bBoarPeerTest || (Meat == 1 && Hide == 1 && RemoteMeat == 0 && RemoteHide == 0));
-        if (AttackerCombat->GetActionSerial() == 4 && bSavedDefeat && bRewardValid)
+        const int32 DeerMeat = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("DeerMeat")) : 0;
+        const int32 DeerHide = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("DeerHide")) : 0;
+        const int32 RemoteDeerMeat = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("DeerMeat")) : 0;
+        const int32 RemoteDeerHide = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("DeerHide")) : 0;
+        const bool bRewardValid = bMirelingPeerTest ? (Ash == 1 && RemoteAsh == 0) : (bBoarPeerTest ? (Meat == 1 && Hide == 1 && RemoteMeat == 0 && RemoteHide == 0) : (!bDeerPeerTest || (DeerMeat == 1 && DeerHide == 1 && RemoteDeerMeat == 0 && RemoteDeerHide == 0)));
+        if (AttackerCombat->GetActionSerial() == 4 && bSavedDefeat && bRewardValid && (!bDeerPeerTest || bCombatPeerTestHerdAlertObserved))
         {
-            UE_LOG(LogTemp, Display, TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 Ash=%d RemoteAsh=%d Meat=%d Hide=%d RemoteMeat=%d RemoteHide=%d"), VerificationName, AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), Ash, RemoteAsh, Meat, Hide, RemoteMeat, RemoteHide);
+            UE_LOG(LogTemp, Display, TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 HerdAlert=%d InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 Ash=%d RemoteAsh=%d Meat=%d Hide=%d RemoteMeat=%d RemoteHide=%d DeerMeat=%d DeerHide=%d RemoteDeerMeat=%d RemoteDeerHide=%d"), VerificationName, bCombatPeerTestHerdAlertObserved, AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), Ash, RemoteAsh, Meat, Hide, RemoteMeat, RemoteHide, DeerMeat, DeerHide, RemoteDeerMeat, RemoteDeerHide);
         }
         else
         {
@@ -1204,24 +1246,26 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
 
     FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(ServerPawn->GetActorLocation()));
     const bool bWildlifeBoarVerify = ReconnectVerificationMode.Equals(TEXT("WildlifeBoarVerify"), ESearchCase::IgnoreCase);
-    if (ReconnectVerificationMode.Equals(TEXT("WildlifeDefeat"), ESearchCase::IgnoreCase) || ReconnectVerificationMode.Equals(TEXT("WildlifeVerify"), ESearchCase::IgnoreCase) || bWildlifeBoarVerify)
+    const bool bWildlifeDeerVerify = ReconnectVerificationMode.Equals(TEXT("WildlifeDeerVerify"), ESearchCase::IgnoreCase);
+    const EKalmalaWildlifeArchetype VerifyArchetype = bWildlifeDeerVerify ? EKalmalaWildlifeArchetype::Deer : EKalmalaWildlifeArchetype::Boar;
+    if (ReconnectVerificationMode.Equals(TEXT("WildlifeDefeat"), ESearchCase::IgnoreCase) || ReconnectVerificationMode.Equals(TEXT("WildlifeVerify"), ESearchCase::IgnoreCase) || bWildlifeBoarVerify || bWildlifeDeerVerify)
     {
         TArray<FKalmalaWorldPopulationSpawn> WildlifeSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
-        if (bWildlifeBoarVerify && !WildlifeSpawns.ContainsByPredicate([](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == EKalmalaWildlifeArchetype::Boar; }))
+        if ((bWildlifeBoarVerify || bWildlifeDeerVerify) && !WildlifeSpawns.ContainsByPredicate([VerifyArchetype](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == VerifyArchetype; }))
         {
             const FIntPoint BaseKey = SpatialKey;
-            bool bFoundBoar = false;
-            for (int32 OffsetY = -1; OffsetY <= 1 && !bFoundBoar; ++OffsetY)
+            bool bFoundArchetype = false;
+            for (int32 OffsetY = -1; OffsetY <= 1 && !bFoundArchetype; ++OffsetY)
             {
                 for (int32 OffsetX = -1; OffsetX <= 1; ++OffsetX)
                 {
                     const FIntPoint CandidateKey = BaseKey + FIntPoint(OffsetX, OffsetY);
                     const TArray<FKalmalaWorldPopulationSpawn> CandidateSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
-                    if (CandidateSpawns.ContainsByPredicate([](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == EKalmalaWildlifeArchetype::Boar; }))
+                    if (CandidateSpawns.ContainsByPredicate([VerifyArchetype](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == VerifyArchetype; }))
                     {
                         SpatialKey = CandidateKey;
                         WildlifeSpawns = CandidateSpawns;
-                        bFoundBoar = true;
+                        bFoundArchetype = true;
                         break;
                     }
                 }
@@ -1234,7 +1278,7 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
             return;
         }
 
-        const FKalmalaWorldPopulationSpawn* ExpectedSpawn = bWildlifeBoarVerify ? WildlifeSpawns.FindByPredicate([](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == EKalmalaWildlifeArchetype::Boar; }) : &WildlifeSpawns[0];
+        const FKalmalaWorldPopulationSpawn* ExpectedSpawn = (bWildlifeBoarVerify || bWildlifeDeerVerify) ? WildlifeSpawns.FindByPredicate([VerifyArchetype](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == VerifyArchetype; }) : &WildlifeSpawns[0];
         if (ExpectedSpawn == nullptr)
         {
             UE_LOG(LogTemp, Error, TEXT("Reconnect verification found no server-derived boar spawn for its bounded spatial neighborhood."));

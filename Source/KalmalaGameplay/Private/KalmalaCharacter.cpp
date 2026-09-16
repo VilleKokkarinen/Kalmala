@@ -90,9 +90,9 @@ void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void AKalmalaCharacter::OnRep_Health()
 {
 #if !UE_BUILD_SHIPPING
-    if (!HasAuthority() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))))
+    if (!HasAuthority() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"))))
     {
-        UE_LOG(LogTemp, Display, TEXT("%s verification client observed replicated player health=%.1f."), FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar") : TEXT("Mireling"), Health);
+        UE_LOG(LogTemp, Display, TEXT("%s verification client observed replicated player health=%.1f."), FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar") : (FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) ? TEXT("Deer") : TEXT("Mireling")), Health);
     }
 #endif
 }
@@ -134,7 +134,7 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
     VerifyOceanTravel(DeltaSeconds);
 
     if (!bCombatPeerTestInvalidAttackSent && !HasAuthority() && IsLocallyControlled()
-        && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))) && Combat)
+        && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"))) && Combat)
     {
         bCombatPeerTestInvalidAttackSent = true;
         // This fixture deliberately supplies no target, damage, or timing data.

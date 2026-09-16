@@ -356,5 +356,12 @@ derives its own stable spawn-ID-based destination and runs the existing
 response; no client can choose a herd, noise source, flight destination, damage,
 or reward. At the established sparse defeat transition, the validated attacker
 receives owner-only catalogue-validated `DeerMeat` and `DeerHide`; no loot RPC,
-save schema, or descriptor replication is added. Dedicated deterministic-group,
-peer, and restart verification remains the next child.
+save schema, or descriptor replication is added. `Scripts/Verify-DeerPeer.ps1`
+provides the dedicated two-peer/restart coverage. It derives both the target and
+companion from bounded server descriptor keys, positions only the normal
+generated companion inside the existing 800 cm server noise radius, confirms
+its non-idle flight after the first validated hit, rejects the remote target-free
+request, proves the peer's normal replicated action/defeat presentation, and
+restarts the host save to confirm the same server-derived target stays absent.
+The companion, noise, flight state, target, damage, rewards, and persistence
+decision all remain server-owned.

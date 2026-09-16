@@ -68,6 +68,8 @@ private:
     TWeakObjectPtr<class AKalmalaCharacter> CombatPeerTestAttacker;
     TWeakObjectPtr<class AKalmalaCharacter> CombatPeerTestRemote;
     TWeakObjectPtr<class AKalmalaWildlifeSpawn> CombatPeerTestTarget;
+    TWeakObjectPtr<class AKalmalaWildlifeSpawn> CombatPeerTestHerdMate;
+    bool bCombatPeerTestHerdAlertObserved = false;
     void InitializeWeatherCycle();
     void AdvanceWeatherCycleIfNeeded();
     void PlacePawnAtGeneratedStart(class APlayerController* PlayerController);

@@ -31,9 +31,10 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
     const bool bCombatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest"));
     const bool bMirelingPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"));
     const bool bBoarPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"));
-    if ((bCombatPeerTest || bMirelingPeerTest || bBoarPeerTest) && GetOwner() != nullptr && !GetOwner()->HasAuthority())
+    const bool bDeerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"));
+    if ((bCombatPeerTest || bMirelingPeerTest || bBoarPeerTest || bDeerPeerTest) && GetOwner() != nullptr && !GetOwner()->HasAuthority())
     {
-        const TCHAR* VerificationName = bBoarPeerTest ? TEXT("Boar") : (bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"));
+        const TCHAR* VerificationName = bBoarPeerTest ? TEXT("Boar") : (bDeerPeerTest ? TEXT("Deer") : (bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat")));
         const APawn* OwnerPawn = Cast<APawn>(GetOwner());
         if (!bClientCombatVerificationActionLogged && ActionSerial >= 4)
         {

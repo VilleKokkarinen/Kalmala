@@ -77,6 +77,22 @@ For the developer-only two-player traversal verification, launch a listen server
 
 Run the prototype map twice as a listen server with `-KalmalaReconnectVerification=Harvest` and then `-KalmalaReconnectVerification=Verify`. The first process activates a deterministic harvest node, uses the normal server interaction path to harvest it, saves its sparse delta, and exits. The restarted server uses the same immutable world identity and succeeds only when that node is suppressed. `WildlifeDefeat` and `WildlifeVerify` run the equivalent server-only path for one deterministic wildlife spawn. This developer-only switch is server-local and accepts no client-supplied node identifier or outcome.
 
+## Deer peer and restart regression
+
+After an editor build, run `Scripts/Verify-DeerPeer.ps1`. It starts a seed-418
+listen server and conflicting-seed client (999) with isolated temporary user
+directories. The server derives a bounded Deer descriptor and a second existing
+Deer descriptor from its 3x3 population neighborhood, positions that normal
+generated companion within the production herd-noise radius, and uses only the
+ordinary target-free attack sequence. The runner requires deterministic
+descriptor reproduction, combat-triggered herd alert, four validated attacks,
+sparse defeat persistence, and owner-only DeerMeat/DeerHide. The remote peer
+must see the server world identity, rejected target-free intent, shared action
+state, and relevant defeat. A same-host-user-directory `WildlifeDeerVerify`
+restart proves the identical server-derived Deer remains suppressed. The fixture
+adds no client-selected herd, noise, target, damage, reward, ID, RPC,
+replication property, or save schema.
+
 ## Exposure inspection
 
 Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 68–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.

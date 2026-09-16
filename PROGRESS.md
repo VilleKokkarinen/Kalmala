@@ -2715,3 +2715,45 @@ presentation. Deer Call remains a later support-magic effect.
 
 Next task: Verify deterministic group activation, combat/noise flight, defeat
 persistence, and matching host/client deer behaviour.
+
+### 2026-09-16T16:49:00+03:00 - Verify deer herd encounter across two peers
+
+Outcome: Completed the deer verification child. The development-only two-peer
+fixture derives both the target and an existing herd mate from bounded server
+population descriptors, moves only the normal generated herd mate into the
+production noise radius, and confirms its server-owned non-idle flight after a
+validated combat hit. It rejects the remote target-free attack, proves normal
+replicated action/defeat presentation, validates owner-only DeerMeat/DeerHide,
+and preserves the sparse defeat through a same-save restart.
+
+Changed: `Scripts/Verify-DeerPeer.ps1`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`;
+`KalmalaCharacter.cpp`; `KalmalaCombatComponent.cpp`; `KalmalaWildlifeSpawn.cpp`;
+`KalmalaWildlifeSpawn.h`; `docs/07-development-setup.md`;
+`docs/11-combat-and-support-magic.md`; `BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed. `Scripts/Verify-DeerPeer.ps1 -Port
+18142` passed with isolated evidence at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaDeerPeerFinal-3eb5c29674e84d229724540e4fad3bf9`.
+The server reported `SeedReproduced=1`, `BoundedActivation=1`, `HerdAlert=1`,
+`InvalidRejected=1`, `ActionSerial=4`, `Health=0.0`, `Defeated=1`, `Saved=1`,
+and owner-only `DeerMeat=1 DeerHide=1`; the conflicting-seed client received
+Seed=418 and observed rejected target-free intent, action serial 4, and the
+relevant defeat. Restart evidence kept spawn `0/0/-6/8285917988516812186`
+absent. `git diff --check` passed.
+
+Multiplayer impact: The server alone derives both bounded descriptors, chooses
+the companion, handles combat noise and flight, validates the ordinary attack,
+records defeat, grants rewards, and resolves the restart assertion. Clients
+send only the established target-free sequence and receive normal relevant
+movement/combat/defeat presentation plus owner-only inventory. No client target,
+damage, herd, noise, destination, ID, reward, descriptor, RPC, replication
+layout, or save schema was added.
+
+Known limits: This is a bounded deterministic listen-server fixture, not a
+latency/replay or freeform herd-usability test. Deer Call and crash-atomic
+recovery between defeat persistence and reward publication remain later work.
+
+Next task: Derive bounded, stable point-of-interest and scroll descriptors from
+the existing world identity without routes, mandatory crossings, or hidden
+client discovery queries.
