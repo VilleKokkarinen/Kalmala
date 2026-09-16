@@ -624,7 +624,9 @@ void AKalmalaGameMode::DriveRainVerticalSliceTest()
 void AKalmalaGameMode::DriveCombatPeerTest()
 {
 #if !UE_BUILD_SHIPPING
-    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) || GetWorld() == nullptr)
+    const bool bCombatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest"));
+    const bool bMirelingPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"));
+    if ((!bCombatPeerTest && !bMirelingPeerTest) || GetWorld() == nullptr)
     {
         return;
     }
@@ -632,7 +634,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
     if (!bCombatPeerTestLogged)
     {
         bCombatPeerTestLogged = true;
-        UE_LOG(LogTemp, Display, TEXT("Combat verification server fixture enabled."));
+        UE_LOG(LogTemp, Display, TEXT("%s verification server fixture enabled."), bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"));
     }
 
     const float Now = GetWorld()->GetTimeSeconds();
@@ -649,6 +651,13 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         CombatPeerTestRemote = Players[1];
         const FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(Players[0]->GetActorLocation()));
         const TArray<FKalmalaWorldPopulationSpawn> Descriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        const TArray<FKalmalaWorldPopulationSpawn> ReproducedDescriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        const int32 Budget = FKalmalaWorldPopulationLayout::GetSpawnBudget(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        bool bSeedReproduced = Descriptors.Num() == ReproducedDescriptors.Num() && Descriptors.Num() <= Budget;
+        for (int32 Index = 0; bSeedReproduced && Index < Descriptors.Num(); ++Index)
+        {
+            bSeedReproduced &= FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptors[Index]) == FKalmalaWorldPopulationLayout::GetPersistentSpawnId(ReproducedDescriptors[Index]);
+        }
         if (Descriptors.IsEmpty())
         {
             UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: server spatial key has no wildlife descriptor."));
@@ -657,13 +666,15 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         }
         const FString ExpectedSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptors[0]);
         ActivatePopulationKey(SpatialKey);
+        int32 ActiveInKey = 0;
         for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
         {
-            if (!(*It)->IsDefeated() && (*It)->GetPersistentSpawnId() == ExpectedSpawnId) { CombatPeerTestTarget = *It; break; }
+            if (Descriptors.ContainsByPredicate([&](const FKalmalaWorldPopulationSpawn& Descriptor) { return FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor) == (*It)->GetPersistentSpawnId(); })) ++ActiveInKey;
+            if (!CombatPeerTestTarget.IsValid() && !(*It)->IsDefeated() && (*It)->GetPersistentSpawnId() == ExpectedSpawnId) { CombatPeerTestTarget = *It; }
         }
-        if (!CombatPeerTestTarget.IsValid())
+        if (!bSeedReproduced || ActiveInKey > Descriptors.Num() || !CombatPeerTestTarget.IsValid())
         {
-            UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: no active server wildlife target."));
+            UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: seed reproduction=%d active=%d descriptors=%d target=%d."), bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"), bSeedReproduced, ActiveInKey, Descriptors.Num(), CombatPeerTestTarget.IsValid());
             CombatPeerTestStage = 99;
             return;
         }
@@ -698,9 +709,11 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         return;
     }
 
-    if (CombatPeerTestStage == 1 && Now - CombatPeerTestStageTime >= 1.0f)
+    // Give the bounded server-only scavenger loop enough wall time to commit
+    // one melee hit before asserting replicated pressure.
+    if (CombatPeerTestStage == 1 && Now - CombatPeerTestStageTime >= 2.5f)
     {
-        if (!FMath::IsNearlyEqual(Target->GetHealth(), 100.0f) || RemoteCombat->GetFeedback() != EKalmalaCombatFeedback::Unavailable)
+        if (!FMath::IsNearlyEqual(Target->GetHealth(), 100.0f) || RemoteCombat->GetFeedback() != EKalmalaCombatFeedback::Unavailable || (bMirelingPeerTest && Attacker->GetHealth() >= 100.0f))
         {
             UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: invalid remote attack mutated target or was not rejected. Health=%.1f Feedback=%d"), Target->GetHealth(), static_cast<int32>(RemoteCombat->GetFeedback()));
             CombatPeerTestStage = 99;
@@ -713,6 +726,8 @@ void AKalmalaGameMode::DriveCombatPeerTest()
 
     if (CombatPeerTestStage == 2 && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Idle && CombatPeerTestSequence < 4)
     {
+        Target->SetActorLocation(Attacker->GetActorLocation() + Attacker->GetActorForwardVector().GetSafeNormal2D() * 150.0f);
+        Target->ForceNetUpdate();
         AttackerCombat->ServerRequestAttack(++CombatPeerTestSequence);
         CombatPeerTestStageTime = Now;
         return;
@@ -721,9 +736,11 @@ void AKalmalaGameMode::DriveCombatPeerTest()
     if (CombatPeerTestStage == 2 && CombatPeerTestSequence == 4 && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Idle && Now - CombatPeerTestStageTime >= 0.1f)
     {
         const bool bSavedDefeat = Target->IsDefeated() && !Target->GetPersistentSpawnId().IsEmpty() && PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(Target->GetPersistentSpawnId());
-        if (AttackerCombat->GetActionSerial() == 4 && bSavedDefeat)
+        const int32 Ash = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("MirelingAsh")) : 0;
+        const int32 RemoteAsh = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("MirelingAsh")) : 0;
+        if (AttackerCombat->GetActionSerial() == 4 && bSavedDefeat && (!bMirelingPeerTest || (Ash == 1 && RemoteAsh == 0)))
         {
-            UE_LOG(LogTemp, Display, TEXT("Combat verification server: Passed=1 InvalidRejected=1 ActionSerial=%u Health=%.1f Defeated=1 Saved=1"), AttackerCombat->GetActionSerial(), Target->GetHealth());
+            UE_LOG(LogTemp, Display, TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 Ash=%d RemoteAsh=%d"), bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"), AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), Ash, RemoteAsh);
         }
         else
         {

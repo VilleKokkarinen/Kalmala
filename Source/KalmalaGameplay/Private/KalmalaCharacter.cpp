@@ -87,11 +87,21 @@ void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME(AKalmalaCharacter, Health);
 }
 
-bool AKalmalaCharacter::ApplyMirelingDamageFromServer(const AActor* Instigator, const float Damage)
+void AKalmalaCharacter::OnRep_Health()
 {
-    if (!HasAuthority() || !IsValid(Instigator) || !Instigator->HasAuthority() || Instigator->GetWorld() != GetWorld()
+#if !UE_BUILD_SHIPPING
+    if (!HasAuthority() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")))
+    {
+        UE_LOG(LogTemp, Display, TEXT("Mireling verification client observed replicated player health=%.1f."), Health);
+    }
+#endif
+}
+
+bool AKalmalaCharacter::ApplyMirelingDamageFromServer(const AActor* SourceActor, const float Damage)
+{
+    if (!HasAuthority() || !IsValid(SourceActor) || !SourceActor->HasAuthority() || SourceActor->GetWorld() != GetWorld()
         || !FMath::IsFinite(Damage) || Damage <= 0.0f || Damage > 25.0f
-        || FVector::DistSquared(Instigator->GetActorLocation(), GetActorLocation()) > FMath::Square(180.0f)) return false;
+        || FVector::DistSquared(SourceActor->GetActorLocation(), GetActorLocation()) > FMath::Square(180.0f)) return false;
     // The first Mireling creates recoverable pressure; player defeat/respawn remains a later policy decision.
     Health = FMath::Clamp(Health - Damage, 1.0f, 100.0f);
     ForceNetUpdate();
@@ -124,7 +134,7 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
     VerifyOceanTravel(DeltaSeconds);
 
     if (!bCombatPeerTestInvalidAttackSent && !HasAuthority() && IsLocallyControlled()
-        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) && Combat)
+        && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"))) && Combat)
     {
         bCombatPeerTestInvalidAttackSent = true;
         // This fixture deliberately supplies no target, damage, or timing data.

@@ -279,7 +279,7 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Add server-owned idle, flee, investigate, and return behaviour primitives with deterministic budgets and no client-selected spawn or behaviour outcome.
 - [ ] Deliver the Mireling archetype as an optional camp-pressure encounter.
   - [x] Add original replicated Mireling presentation, close-range scavenger behaviour, and validated melee damage/defeat rewards.
-  - [ ] Verify seed reproduction, bounded activation, authority rejection, defeat persistence, and host/client combat presentation.
+  - [x] Verify seed reproduction, bounded activation, authority rejection, defeat persistence, and host/client combat presentation.
 - [ ] Deliver the boar archetype as an optional territorial charge encounter.
   - [ ] Add original replicated boar presentation, resting-area threat response, charge/return behaviour, and validated meat/hide rewards.
   - [ ] Verify server-owned targeting/damage, defeat persistence, reconnect consistency, and matching host/client behaviour.

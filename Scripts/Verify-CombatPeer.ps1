@@ -18,7 +18,7 @@ try {
         if ($server.HasExited -or $client.HasExited) { throw 'A combat peer exited before verification.' }
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }; $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Combat verification FAILED:|Combat verification server: Passed=0') { throw 'Combat peer verification failed; inspect retained logs.' }
-        $ready = $serverText -match 'Combat verification server: Passed=1 InvalidRejected=1 ActionSerial=4 Health=0\.0 Defeated=1 Saved=1'
+        $ready = $serverText -match 'Combat verification server: Passed=1 .*InvalidRejected=1 ActionSerial=4 Health=0\.0 .*Defeated=1 Saved=1'
         $ready = $ready -and $clientText -match 'Combat verification client rejected invalid owned attack without target data\.'
         $ready = $ready -and $clientText -match 'Combat verification client observed shared action serial=4\.'
         $ready = $ready -and $clientText -match 'Combat verification client observed relevant wildlife defeat\.'

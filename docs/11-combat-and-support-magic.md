@@ -293,4 +293,12 @@ player melee hit records that player as the eligible attacker; the one-time
 existing defeated transition then grants a bounded `MirelingAsh` stack through
 the owner-only inventory. Clients supply no target, damage, cooldown, health or
 reward input. Full persistence-before-reward and host/client encounter evidence
-remain the next verification child.
+is now covered by `Scripts/Verify-MirelingPeer.ps1`. The development-only
+two-peer fixture repeats the server seed descriptor build, bounds active actors
+to that descriptor set, places the Mireling through its ordinary relevant-actor
+path, and proves the remote owner's target-free request cannot change its
+health. It records server-owned melee as relevant replicated player health,
+shared action/defeat presentation, one owner-only `MirelingAsh` reward, and the
+existing sparse defeated delta after a listen-server restart. The fixture uses
+the conflicting client seed 999 against server seed 418 and does not add a
+normal-play RPC, descriptor replication, reward payload, or save schema.

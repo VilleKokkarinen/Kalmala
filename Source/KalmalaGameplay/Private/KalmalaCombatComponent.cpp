@@ -28,18 +28,20 @@ void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 Re
 void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) && GetOwner() != nullptr && !GetOwner()->HasAuthority())
+    const bool bCombatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest"));
+    const bool bMirelingPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"));
+    if ((bCombatPeerTest || bMirelingPeerTest) && GetOwner() != nullptr && !GetOwner()->HasAuthority())
     {
         const APawn* OwnerPawn = Cast<APawn>(GetOwner());
         if (!bClientCombatVerificationActionLogged && ActionSerial >= 4)
         {
             bClientCombatVerificationActionLogged = true;
-            UE_LOG(LogTemp, Display, TEXT("Combat verification client observed shared action serial=%u."), ActionSerial);
+            UE_LOG(LogTemp, Display, TEXT("%s verification client observed shared action serial=%u."), bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"), ActionSerial);
         }
         if (!bClientCombatVerificationRejectionLogged && OwnerPawn != nullptr && OwnerPawn->IsLocallyControlled() && FeedbackSerial > 0 && Feedback == EKalmalaCombatFeedback::Unavailable)
         {
             bClientCombatVerificationRejectionLogged = true;
-            UE_LOG(LogTemp, Display, TEXT("Combat verification client rejected invalid owned attack without target data."));
+            UE_LOG(LogTemp, Display, TEXT("%s verification client rejected invalid owned attack without target data."), bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"));
         }
     }
     if (!GetOwner()->HasAuthority() || ActionPhase == EKalmalaCombatActionPhase::Idle || GetWorld() == nullptr || GetWorld()->GetTimeSeconds() < PhaseEndTime) return;

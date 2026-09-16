@@ -201,10 +201,10 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 void AKalmalaWildlifeSpawn::OnRep_Defeated()
 {
     ApplyDefeatedState();
-    if (bDefeated && !bClientCombatVerificationDefeatLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")))
+    if (bDefeated && !bClientCombatVerificationDefeatLogged && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"))))
     {
         bClientCombatVerificationDefeatLogged = true;
-        UE_LOG(LogTemp, Display, TEXT("Combat verification client observed relevant wildlife defeat."));
+        UE_LOG(LogTemp, Display, TEXT("%s verification client observed relevant wildlife defeat."), FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) ? TEXT("Mireling") : TEXT("Combat"));
     }
 }
 

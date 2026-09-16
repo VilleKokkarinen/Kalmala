@@ -43,8 +43,9 @@ public:
     const FKalmalaExposureState& GetExposureState() const { return ExposureState; }
     const UKalmalaPlayerStatusComponent* GetStatusComponent() const { return Statuses; }
     UKalmalaCombatComponent* GetCombatComponent() const { return Combat; }
+    UKalmalaInventoryComponent* GetInventoryComponent() const { return Inventory; }
     float GetHealth() const { return Health; }
-    bool ApplyMirelingDamageFromServer(const AActor* Instigator, float Damage);
+    bool ApplyMirelingDamageFromServer(const AActor* SourceActor, float Damage);
     static bool IsExposureUpdateAllowed(bool bServerAuthority);
     void SetExposureStateFromServer(const FKalmalaExposureState& NewExposureState);
 
@@ -117,6 +118,9 @@ private:
     UFUNCTION()
     void OnRep_ExposureState();
 
+    UFUNCTION()
+    void OnRep_Health();
+
     UFUNCTION(Server, Reliable)
     void ServerRequestInteract();
 
@@ -132,7 +136,7 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_ExposureState, VisibleAnywhere, BlueprintReadOnly, Category = "Exposure", meta = (AllowPrivateAccess = "true"))
     FKalmalaExposureState ExposureState;
 
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
     float Health = 100.0f;
 
     float BaselineMaxWalkSpeed = 0.0f;

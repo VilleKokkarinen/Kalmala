@@ -2527,3 +2527,43 @@ Multiplayer impact: Server alone selects nearby targets, movement, melee timing,
 Known limits: Player defeat/respawn is intentionally deferred; health clamps at one. The reward uses the existing sparse defeat transition but needs dedicated host/client, duplicate/reconnect and persistence-before-reward evidence.
 
 Next task: Verify seed reproduction, bounded activation, authority rejection, defeat persistence, and host/client combat presentation.
+### 2026-09-16T11:24:31+03:00 - Verify Mireling encounter across two peers
+
+Outcome: Completed the Mireling verification child. The development-only
+two-peer fixture reproduces the seed-derived wildlife descriptors, bounds
+activation to that set, puts the normal replicated Mireling in encounter range,
+and verifies server-selected melee pressure, rejected target-free client
+attack, shared action/defeat presentation, owner-only Ash, and restart-safe
+defeat persistence.
+
+Changed: `Scripts/Verify-MirelingPeer.ps1`; combat fixture telemetry in
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+`KalmalaCharacter.cpp`, `KalmalaCombatComponent.cpp`, and
+`KalmalaWildlifeSpawn.cpp`; the character combat header; `docs/11-combat-and-support-magic.md`;
+`BACKLOG.md`; this handoff. Corrected the pre-existing `Instigator` parameter
+name that the current strict compiler rejects for shadowing `AActor::Instigator`.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed. `Scripts/Verify-MirelingPeer.ps1 -Port
+18128` passed with isolated user directories:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingPeer-d6eb83eb353a4393b6a9ee581e42b168`.
+The server reported SeedReproduced=1, BoundedActivation=1, InvalidRejected=1,
+ActionSerial=4, Health=0.0, PlayerHealth=50.0, Defeated=1, Saved=1, Ash=1,
+RemoteAsh=0. The conflicting-seed client received Seed=418 and observed
+replicated player health, action serial 4, and relevant Mireling defeat. The
+restart kept spawn `0/-1/-6/3308806006119996599` absent. `git diff --check`
+passed.
+
+Multiplayer impact: Server-only descriptor generation, activation bound,
+targeting, melee, health mutation, defeat transition, persistence and reward
+grant remain authoritative. The client sends only its existing target-free
+sequence; it observes relevant health/action/defeat and owner-only feedback.
+No client-selected target, damage, reward, descriptor, save payload, new RPC,
+replication schema, or saved-data schema was added.
+
+Known limits: The fixed fixture is a controlled listen-server case, not a
+latency/replay fuzz test, player defeat/respawn policy, freeform encounter
+usability study, or a persistence-before-reward crash-atomicity proof.
+
+Next task: Add original replicated boar presentation, resting-area threat
+response, charge/return behaviour, and validated meat/hide rewards.
