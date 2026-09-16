@@ -196,3 +196,23 @@ effects, rewards and save bytes before and after rejection. Live host/client
 verification must include late join and reconnect without redistributing rewards
 or disclosing other players' learned effects. Passing a build alone does not
 prove any of these future behaviors.
+
+## Basic attack runtime increment
+
+The first executable combat increment attaches `UKalmalaCombatComponent` to
+each player pawn. Left mouse / controller right shoulder sends only
+`ServerRequestAttack(uint32 RequestSequence)`. On the server, a request must
+advance the owned pawn's session sequence and find an alive
+`AKalmalaWildlifeSpawn` through the pawn's forward visibility trace within 220
+cm. The server alone records a replicated action serial, enters an 0.18-second
+windup, rechecks the selected target at execution, applies the fixed 25 damage,
+then holds a 0.42-second recovery before another request can be accepted.
+
+Wildlife now owns replicated 100-point health and accepts only finite, positive,
+server-local combat damage capped at 100 per execution. Zero health joins its
+existing `DefeatServer` callback, so the established authoritative population
+defeat persistence path remains the only defeat transition. There is no player
+friendly fire, generic damage endpoint, client target reference, reward, new
+save data, or client-selected cooldown/timing value. The component replicates
+only action phase and serial; colour-independent player feedback is the next
+backlog child.

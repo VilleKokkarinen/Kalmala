@@ -10,6 +10,7 @@ class UKalmalaPlayerModelComponent;
 class UKalmalaInventoryComponent;
 class UKalmalaCraftingComponent;
 class UKalmalaPlayerStatusComponent;
+class UKalmalaCombatComponent;
 
 USTRUCT(BlueprintType)
 struct FKalmalaExposureState
@@ -54,6 +55,7 @@ protected:
 
 private:
     UPROPERTY(VisibleAnywhere, Category="Crafting") TObjectPtr<UKalmalaCraftingComponent> Crafting;
+    UPROPERTY(VisibleAnywhere, Category="Combat") TObjectPtr<UKalmalaCombatComponent> Combat;
     UPROPERTY(VisibleAnywhere, Category="Status") TObjectPtr<UKalmalaPlayerStatusComponent> Statuses;
     UPROPERTY(VisibleAnywhere, Category = "Inventory")
     TObjectPtr<UKalmalaInventoryComponent> Inventory;
@@ -61,6 +63,7 @@ private:
     void MoveForward(float Value);
     void MoveRight(float Value);
     void RequestInteract();
+    void RequestAttack();
     void ConfigureTraversalTestTarget();
     void ApplyExposureTravelPenalty();
     void StartSprint();

@@ -23,6 +23,9 @@ public:
     void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn);
     static bool IsDefeatAllowed(bool bServerAuthority, bool bAlreadyDefeated);
     bool DefeatServer();
+    bool ApplyCombatDamageFromServer(float Damage);
+    bool IsDefeated() const { return bDefeated; }
+    float GetHealth() const { return Health; }
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
     FKalmalaWildlifeSpawnDefeated OnDefeated;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -32,6 +35,9 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_Defeated)
     bool bDefeated = false;
+
+    UPROPERTY(Replicated)
+    float Health = 100.0f;
 
     UPROPERTY(Replicated)
     FString PersistentSpawnId;

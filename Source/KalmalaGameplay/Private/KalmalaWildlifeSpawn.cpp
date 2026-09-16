@@ -1,14 +1,18 @@
 #include "KalmalaWildlifeSpawn.h"
 
-#include "Components/SceneComponent.h"
+#include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AKalmalaWildlifeSpawn::AKalmalaWildlifeSpawn()
 {
-    RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+    USphereComponent* Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
+    Collision->InitSphereRadius(70.0f);
+    Collision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    Collision->SetCollisionResponseToAllChannels(ECR_Ignore);
+    Collision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+    RootComponent = Collision;
     bReplicates = true;
     SetReplicateMovement(false);
-    SetActorEnableCollision(false);
 }
 
 void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn)
@@ -39,10 +43,20 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
     return true;
 }
 
+bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const float Damage)
+{
+    if (!HasAuthority() || bDefeated || !FMath::IsFinite(Damage) || Damage <= 0.0f || Damage > 100.0f) return false;
+    Health = FMath::Clamp(Health - Damage, 0.0f, 100.0f);
+    if (Health <= 0.0f) return DefeatServer();
+    ForceNetUpdate();
+    return true;
+}
+
 void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, bDefeated);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, Health);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PersistentSpawnId);
 }
 

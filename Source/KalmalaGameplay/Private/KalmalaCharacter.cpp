@@ -1,6 +1,7 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaCraftingComponent.h"
+#include "KalmalaCombatComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
@@ -30,6 +31,7 @@ AKalmalaCharacter::AKalmalaCharacter(const FObjectInitializer& ObjectInitializer
     bReplicates = true;
     Inventory = CreateDefaultSubobject<UKalmalaInventoryComponent>(TEXT("Inventory"));
     Crafting = CreateDefaultSubobject<UKalmalaCraftingComponent>(TEXT("Crafting"));
+    Combat = CreateDefaultSubobject<UKalmalaCombatComponent>(TEXT("Combat"));
     Statuses = CreateDefaultSubobject<UKalmalaPlayerStatusComponent>(TEXT("Statuses"));
     SetReplicateMovement(true);
 
@@ -219,6 +221,7 @@ void AKalmalaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAxis(TEXT("Turn"), this, &APawn::AddControllerYawInput);
     PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
     PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AKalmalaCharacter::RequestInteract);
+    PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AKalmalaCharacter::RequestAttack);
     PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
     PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
     PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &AKalmalaCharacter::StartSprint);
@@ -455,6 +458,15 @@ void AKalmalaCharacter::RequestInteract()
     if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored())
     {
         ServerRequestInteract();
+    }
+}
+
+void AKalmalaCharacter::RequestAttack()
+{
+    static uint32 LocalAttackSequence = 0;
+    if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored() && Combat)
+    {
+        Combat->ServerRequestAttack(++LocalAttackSequence);
     }
 }
 
