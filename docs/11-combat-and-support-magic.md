@@ -33,6 +33,14 @@ replaying damage or granting rewards. Do not expand actor relevancy to disclose
 hidden targets. UI displays text/symbol cues for hit, defeat, and unavailable
 actions; colour alone is insufficient.
 
+The initial attack loop replicates action phase and action serial to relevant
+peers for readable presentation. Its result feedback is an owner-only,
+monotonic serial plus one of `Hit`, `Defeat`, or `Unavailable`; it contains no
+actor name, location, health, or target ID. The local pack HUD renders explicit
+text for WINDUP, RECOVERING, READY, and the latest result. Rejected requests
+are feedback-rate-limited, so invalid input cannot create replicated feedback
+spam.
+
 ## Narrow client intent
 
 Route reliable server RPCs through the requesting player's owned pawn/component.
@@ -214,5 +222,5 @@ existing `DefeatServer` callback, so the established authoritative population
 defeat persistence path remains the only defeat transition. There is no player
 friendly fire, generic damage endpoint, client target reference, reward, new
 save data, or client-selected cooldown/timing value. The component replicates
-only action phase and serial; colour-independent player feedback is the next
-backlog child.
+action phase/serial plus owner-only, target-free feedback. The local HUD shows
+the feedback with text rather than colour alone.

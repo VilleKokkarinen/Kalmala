@@ -15,6 +15,8 @@ bool FKalmalaCombatLoopTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Server cannot accept a missing target"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, true, 4, true, false));
     TestTrue(TEXT("Validated server intent begins one committed action"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, true, 5, true, true));
     TestFalse(TEXT("Clients cannot apply wildlife combat damage"), AKalmalaWildlifeSpawn::IsDefeatAllowed(false, false));
+    TestNotEqual(TEXT("Hit feedback is distinguishable from defeat"), uint8(EKalmalaCombatFeedback::Hit), uint8(EKalmalaCombatFeedback::Defeat));
+    TestNotEqual(TEXT("Unavailable feedback is distinguishable from hit"), uint8(EKalmalaCombatFeedback::Unavailable), uint8(EKalmalaCombatFeedback::Hit));
     return true;
 }
 #endif

@@ -10,6 +10,7 @@
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaPlayerStatusComponent.h"
+#include "KalmalaCombatComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -62,6 +63,7 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
     for (const auto& Mapping : GetDefault<UInputSettings>()->GetActionMappings())
         if (Mapping.ActionName == TEXT("CraftMenu") && !Mapping.Key.IsGamepadKey()) { CraftKey=Mapping.Key.GetDisplayName().ToString(); break; }
     const UKalmalaPlayerStatusComponent* Status = Pawn ? Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
+    const UKalmalaCombatComponent* Combat = Pawn ? Pawn->FindComponentByClass<UKalmalaCombatComponent>() : nullptr;
     FString Text;
     if (Status && Status->HasStatus(UKalmalaPlayerStatusComponent::WetStatusId))
     {
@@ -73,6 +75,19 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
     else if (Status)
     {
         Text = TEXT("Wet: inactive\n\n");
+    }
+    if (Combat)
+    {
+        const TCHAR* Phase = Combat->GetActionPhase() == EKalmalaCombatActionPhase::Windup ? TEXT("WINDUP") : Combat->GetActionPhase() == EKalmalaCombatActionPhase::Recovery ? TEXT("RECOVERING") : TEXT("READY");
+        Text += FString::Printf(TEXT("Combat: %s\n"), Phase);
+        switch (Combat->GetFeedback())
+        {
+        case EKalmalaCombatFeedback::Hit: Text += TEXT("Attack result: HIT confirmed\n"); break;
+        case EKalmalaCombatFeedback::Defeat: Text += TEXT("Attack result: DEFEAT confirmed\n"); break;
+        case EKalmalaCombatFeedback::Unavailable: Text += TEXT("Attack unavailable: move closer or wait.\n"); break;
+        default: Text += TEXT("Attack result: none\n"); break;
+        }
+        Text += TEXT("\n");
     }
     int32 StatusLines = 0;
     for (const TCHAR Character : Text) if (Character == TEXT('\n')) ++StatusLines;
