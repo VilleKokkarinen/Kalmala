@@ -5,6 +5,14 @@
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWildlifeSpawn.generated.h"
 
+enum class EKalmalaWildlifeBehaviour : uint8
+{
+    Idle,
+    Flee,
+    Investigate,
+    Return
+};
+
 DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaWildlifeSpawnDefeated, const FString& /* PersistentSpawnId */);
 
 /**
@@ -27,11 +35,16 @@ public:
     bool IsDefeated() const { return bDefeated; }
     float GetHealth() const { return Health; }
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
+    static bool IsBehaviourTransitionAllowed(bool bServerAuthority, bool bAlreadyDefeated, EKalmalaWildlifeBehaviour From, EKalmalaWildlifeBehaviour To);
     FKalmalaWildlifeSpawnDefeated OnDefeated;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    virtual void Tick(float DeltaSeconds) override;
 
 private:
     void ApplyDefeatedState();
+    void BeginServerBehaviour(EKalmalaWildlifeBehaviour NextBehaviour, float DurationSeconds, const FVector& Destination);
+    void AdvanceServerBehaviour(float DeltaSeconds);
+    FVector GetDeterministicOffset(float Distance) const;
 
     UPROPERTY(ReplicatedUsing = OnRep_Defeated)
     bool bDefeated = false;
@@ -44,4 +57,9 @@ private:
 
     UFUNCTION()
     void OnRep_Defeated();
+    FVector SpawnOrigin = FVector::ZeroVector;
+    FVector BehaviourDestination = FVector::ZeroVector;
+    float BehaviourSecondsRemaining = 0.0f;
+    EKalmalaWildlifeBehaviour Behaviour = EKalmalaWildlifeBehaviour::Idle;
+
 };
