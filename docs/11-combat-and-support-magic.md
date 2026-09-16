@@ -365,3 +365,23 @@ request, proves the peer's normal replicated action/defeat presentation, and
 restarts the host save to confirm the same server-derived target stays absent.
 The companion, noise, flight state, target, damage, rewards, and persistence
 decision all remain server-owned.
+
+## Optional discovery descriptor foundation
+
+`FKalmalaWorldPopulationLayout` now derives at most one `PointOfInterest` and
+one `Scroll` descriptor for an invisible 6 km spatial key. Each kind has its
+own server-only world-seed domain and considers no more than eight deterministic
+candidates. A candidate must remain inside the finite world, dry, gently
+traversable, and in a suitable biome (including optional Meadow stones); it has no actor, marker, map
+pin, route, reward, save record, RPC, or replication. POIs select an original
+biome-local definition such as `root-hollow` or `storm-overlook`; scrolls select
+only the allowlisted future effect definitions `mending`, `hearth-shield`,
+`bears-vigor`, or `deer-call`.
+
+The canonical descriptor ID is `Poi:1:<definition>:<x,y>:<ordinal>` or
+`Scroll:1:<definition>:<x,y>:<ordinal>`, with the matching immutable world
+identity remaining the enclosing server save key. The server must recompute the
+candidate and exact ID before any later materialization or entitlement check;
+clients cannot enumerate, request, or infer undiscovered descriptors. This
+foundation deliberately leaves one-time rewards, player progression persistence,
+and active support effects to later increments.

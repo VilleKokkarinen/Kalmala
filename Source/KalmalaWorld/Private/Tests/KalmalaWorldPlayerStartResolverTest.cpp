@@ -156,6 +156,44 @@ bool FKalmalaWorldPopulationLayoutTest::RunTest(const FString& Parameters)
         TEXT("A different world seed changes the spatial seed"),
         FKalmalaWorldPopulationLayout::DeriveSpatialSeed(Config, SpatialKey, EKalmalaWorldPopulationKind::Wildlife),
         FKalmalaWorldPopulationLayout::DeriveSpatialSeed(DifferentConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife));
+
+    int32 DiscoveryCount = 0;
+    int32 DifferentSeedDiscoveryCount = 0;
+    bool bDifferentSeedChangedDiscovery = false;
+    for (int32 KeyY = -2; KeyY <= 2; ++KeyY)
+    {
+        for (int32 KeyX = -2; KeyX <= 2; ++KeyX)
+        {
+            const FIntPoint DiscoveryKey(KeyX, KeyY);
+            for (const EKalmalaWorldDiscoveryKind DiscoveryKind : { EKalmalaWorldDiscoveryKind::PointOfInterest, EKalmalaWorldDiscoveryKind::Scroll })
+            {
+                const TArray<FKalmalaWorldDiscoveryDescriptor> FirstDescriptors = FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(Config, DiscoveryKey, DiscoveryKind);
+                const TArray<FKalmalaWorldDiscoveryDescriptor> RepeatedDescriptors = FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(Config, DiscoveryKey, DiscoveryKind);
+                const TArray<FKalmalaWorldDiscoveryDescriptor> DifferentDescriptors = FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(DifferentConfig, DiscoveryKey, DiscoveryKind);
+                TestTrue(TEXT("Optional discovery descriptors remain bounded to one per kind and spatial key"), FirstDescriptors.Num() <= 1);
+                TestEqual(TEXT("The same world identity reproduces discovery descriptor counts"), FirstDescriptors.Num(), RepeatedDescriptors.Num());
+                DiscoveryCount += FirstDescriptors.Num();
+                DifferentSeedDiscoveryCount += DifferentDescriptors.Num();
+                for (int32 DescriptorIndex = 0; DescriptorIndex < FirstDescriptors.Num(); ++DescriptorIndex)
+                {
+                    const FKalmalaWorldDiscoveryDescriptor& FirstDescriptor = FirstDescriptors[DescriptorIndex];
+                    const FKalmalaWorldDiscoveryDescriptor& RepeatedDescriptor = RepeatedDescriptors[DescriptorIndex];
+                    TestEqual(TEXT("The same world identity reproduces discovery seeds"), FirstDescriptor.DescriptorSeed, RepeatedDescriptor.DescriptorSeed);
+                    TestEqual(TEXT("The same world identity reproduces canonical discovery IDs"), FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(FirstDescriptor), FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(RepeatedDescriptor));
+                    TestTrue(TEXT("Discovery descriptors remain in their invisible spatial key"), FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(FirstDescriptor.Location)) == DiscoveryKey);
+                    const FVector2D DiscoveryPosition(FirstDescriptor.Location);
+                    TestFalse(TEXT("Discovery descriptors do not select ocean water"), FKalmalaOceanSampler::Sample(Config, DiscoveryPosition).IsWater());
+                    TestFalse(TEXT("Discovery descriptors do not select lake water"), FKalmalaShimmeringLakeSampler::IsWater(Config, DiscoveryPosition));
+                    TestTrue(TEXT("Discovery descriptors remain on gently traversable terrain"), FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, DiscoveryPosition).Z >= 0.88f);
+                    bDifferentSeedChangedDiscovery |= !DifferentDescriptors.IsEmpty()
+                        && (FirstDescriptor.DescriptorSeed != DifferentDescriptors[0].DescriptorSeed
+                            || !FirstDescriptor.Location.Equals(DifferentDescriptors[0].Location));
+                }
+            }
+        }
+    }
+    TestTrue(TEXT("The sampled population neighborhood includes optional POI or scroll descriptors"), DiscoveryCount > 0);
+    TestTrue(TEXT("A different world seed has independently derived optional discovery candidates"), DifferentSeedDiscoveryCount > 0 && bDifferentSeedChangedDiscovery);
     return true;
 }
 

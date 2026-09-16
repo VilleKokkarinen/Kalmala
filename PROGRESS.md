@@ -2757,3 +2757,37 @@ recovery between defeat persistence and reward publication remain later work.
 Next task: Derive bounded, stable point-of-interest and scroll descriptors from
 the existing world identity without routes, mandatory crossings, or hidden
 client discovery queries.
+
+### 2026-09-16T17:00:00+03:00 - Add optional discovery descriptor foundation
+
+Outcome: Completed the first optional-discovery child. The server-only world
+population layout now derives at most one optional point of interest and one
+scroll descriptor per invisible spatial key. Each uses an independent seed
+domain, an eight-candidate fixed bound, dry/gentle finite-world terrain checks,
+biome-appropriate original definitions, and canonical stable POI/scroll IDs.
+No descriptor is materialized, replicated, queried by clients, shown on a map,
+or treated as a route, crossing, reward, or save record.
+
+Changed: `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`;
+`Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`;
+`docs/11-combat-and-support-magic.md`; `BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access.
+Focused headless `Kalmala.World.PopulationLayout.Determinism` passed, including
+same-seed reproduction, different-seed variation, bounded count, spatial-key,
+dry-water, and terrain-slope assertions. Evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaDiscoveryDescriptors-final-4368c1c6c2d343ce8da90fd0e64c8a62/automation.log`.
+
+Multiplayer impact: Only deterministic server-side descriptor inputs changed.
+No actor, RPC, client request, replication property, marker, map pin, reward,
+save schema, or persistence path was added; later server materialization must
+recompute exact descriptors and preserve undiscovered-content privacy.
+
+Known limits: Definitions are descriptor labels only. One-time discovery,
+owner-only feedback/progression persistence, and support-effect activation do
+not yet exist.
+
+Next task: Add server-validated one-time discovery rewards with
+colour-independent local feedback and reconnect persistence only for the
+entitled player.
