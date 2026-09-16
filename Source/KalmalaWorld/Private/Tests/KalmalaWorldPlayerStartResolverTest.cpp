@@ -129,13 +129,20 @@ bool FKalmalaWorldPopulationLayoutTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Every population budget is non-negative"), FKalmalaWorldPopulationLayout::GetSpawnBudget(Config, SpatialKey, Kind) >= 0);
         const TArray<FKalmalaWorldPopulationSpawn> FirstSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
         const TArray<FKalmalaWorldPopulationSpawn> RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
-        TestEqual(TEXT("Each spatial key produces its bounded spawn budget"), FirstSpawns.Num(), FKalmalaWorldPopulationLayout::GetSpawnBudget(Config, SpatialKey, Kind));
+        TestTrue(TEXT("Each spatial key produces no more than its bounded spawn budget"), FirstSpawns.Num() <= FKalmalaWorldPopulationLayout::GetSpawnBudget(Config, SpatialKey, Kind));
         TestEqual(TEXT("Repeated spatial layouts produce the same number of spawn descriptors"), FirstSpawns.Num(), RepeatedSpawns.Num());
         for (int32 SpawnIndex = 0; SpawnIndex < FirstSpawns.Num(); ++SpawnIndex)
         {
             TestEqual(TEXT("Repeated spatial layouts preserve spawn seeds"), FirstSpawns[SpawnIndex].SpawnSeed, RepeatedSpawns[SpawnIndex].SpawnSeed);
             TestEqual(TEXT("Repeated spatial layouts preserve sparse-delta identifiers"), FKalmalaWorldPopulationLayout::GetPersistentSpawnId(FirstSpawns[SpawnIndex]), FKalmalaWorldPopulationLayout::GetPersistentSpawnId(RepeatedSpawns[SpawnIndex]));
             TestTrue(TEXT("Spawn descriptors remain within their invisible spatial key"), FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(FirstSpawns[SpawnIndex].Location)) == SpatialKey);
+            if (Kind == EKalmalaWorldPopulationKind::Wildlife)
+            {
+                const FVector2D Position(FirstSpawns[SpawnIndex].Location);
+                TestFalse(TEXT("Wildlife descriptors do not select ocean water"), FKalmalaOceanSampler::Sample(Config, Position).IsWater());
+                TestFalse(TEXT("Wildlife descriptors do not select lake water"), FKalmalaShimmeringLakeSampler::IsWater(Config, Position));
+                TestTrue(TEXT("Wildlife descriptors remain on gently traversable terrain"), FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.82f);
+            }
         }
     }
 

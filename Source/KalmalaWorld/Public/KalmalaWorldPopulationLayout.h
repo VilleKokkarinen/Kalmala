@@ -5,6 +5,8 @@
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaTerrainHeightSampler.h"
+#include "KalmalaOceanSampler.h"
+#include "KalmalaShimmeringLakeSampler.h"
 
 /**
  * Server-only deterministic population inputs. Spatial keys are invisible
@@ -72,13 +74,19 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         const int32 Budget = GetSpawnBudget(Config, SpatialKey, Kind);
         Spawns.Reserve(Budget);
         const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySize;
-        for (int32 SpawnIndex = 0; SpawnIndex < Budget; ++SpawnIndex)
+        // Wildlife candidates deliberately have a small, fixed retry budget.  The
+        // server derives all candidates, rejects water and unsafe slopes, and
+        // keeps the candidate seed in the sparse-delta ID.  Clients never choose
+        // a fallback location or receive descriptors for actors outside relevancy.
+        const int32 CandidateBudget = Kind == EKalmalaWorldPopulationKind::Wildlife ? Budget * 4 : Budget;
+        for (int32 SpawnIndex = 0; SpawnIndex < CandidateBudget && Spawns.Num() < Budget; ++SpawnIndex)
         {
             const uint64 SpawnSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
             const float XFraction = static_cast<float>(SpawnSeed & 0xFFFFu) / 65535.0f;
             const float YFraction = static_cast<float>((SpawnSeed >> 16) & 0xFFFFu) / 65535.0f;
             const FVector2D Position = SpatialKeyOrigin + FVector2D(XFraction, YFraction) * SpatialKeySize;
             if (!FKalmalaWorldBounds::Contains(Config, Position)) continue;
+            if (Kind == EKalmalaWorldPopulationKind::Wildlife && !IsTerrainSafeWildlifeLocation(Config, Position)) continue;
             Spawns.Add({ Kind, SpatialKey, SpawnSeed, FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)) });
         }
         return Spawns;
@@ -91,6 +99,16 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
     }
 
 private:
+    static bool IsTerrainSafeWildlifeLocation(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)
+    {
+        // Wildlife remains on dry, gently traversable generated terrain.  Both
+        // water samplers and the collision-height normal are deterministic
+        // functions of the immutable world identity.
+        return !FKalmalaOceanSampler::Sample(Config, Position).IsWater()
+            && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position)
+            && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.82f;
+    }
+
     static uint64 Mix(uint64 Value)
     {
         Value ^= Value >> 30;
