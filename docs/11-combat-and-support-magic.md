@@ -302,3 +302,30 @@ shared action/defeat presentation, one owner-only `MirelingAsh` reward, and the
 existing sparse defeated delta after a listen-server restart. The fixture uses
 the conflicting client seed 999 against server seed 418 and does not add a
 normal-play RPC, descriptor replication, reward payload, or save schema.
+
+## Boar territorial encounter increment
+
+The server derives a boar from the existing stable wildlife descriptor seed
+(`SpawnSeed % 3 == 0`); this preserves the descriptor's sparse-delta ID and
+does not send archetype selection input from a client. Relevant peers receive
+only the normal replicated wildlife actor and its bounded replicated archetype
+for presentation. Boars use an original low-poly brown body, head, legs and
+tusks assembled from project procedural geometry.
+
+While resting at their generated origin, a living server-authoritative pawn
+within 500 cm is a valid territorial threat. A nonlethal validated player hit
+also begins a charge. For at most 1.25 seconds, the server alone follows that
+validated target at 520 cm/s, applies at most one 15-point melee hit every
+1.25 seconds inside 180 cm through the pawn's shared wildlife-damage gate, and
+then returns to its origin at 260 cm/s. Clients cannot name a boar, target,
+resting area, charge destination, damage, timing, health, or reward.
+
+At the one existing server defeat transition, the established sparse world
+defeat callback runs before owner-only inventory presentation. A valid boar
+attacker can receive one catalogue-validated `BoarMeat` and one `BoarHide`;
+inventory authority, stack ceilings and owner-only replication remain the
+existing inventory contract. This increment neither changes the population
+save schema nor introduces a loot RPC. The focused
+`Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle` automation now covers
+deterministic boar selection and charge rejection for client, defeated and
+distant paths; live peer/reconnect evidence is the next backlog child.

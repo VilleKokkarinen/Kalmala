@@ -15,6 +15,14 @@ enum class EKalmalaWildlifeBehaviour : uint8
     Return
 };
 
+UENUM()
+enum class EKalmalaWildlifeArchetype : uint8
+{
+    Mireling,
+    Boar,
+    Deer
+};
+
 /**
  * Minimal replicated, server-owned generated wildlife placeholder. It has no
  * combat or AI yet; it establishes the authority and persistence seam those
@@ -34,7 +42,10 @@ public:
     bool ApplyCombatDamageFromServer(float Damage, class AKalmalaCharacter* Attacker = nullptr);
     bool IsDefeated() const { return bDefeated; }
     float GetHealth() const { return Health; }
+    EKalmalaWildlifeArchetype GetArchetype() const { return Archetype; }
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
+    static EKalmalaWildlifeArchetype GetArchetypeForSpawnSeed(uint64 SpawnSeed);
+    static bool IsBoarChargeAllowed(bool bServerAuthority, bool bAlreadyDefeated, bool bAtRest, float DistanceToRestingArea);
     static bool IsBehaviourTransitionAllowed(bool bServerAuthority, bool bAlreadyDefeated, EKalmalaWildlifeBehaviour From, EKalmalaWildlifeBehaviour To);
     FKalmalaWildlifeSpawnDefeated OnDefeated;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -46,7 +57,9 @@ private:
     void AdvanceServerBehaviour(float DeltaSeconds);
     FVector GetDeterministicOffset(float Distance) const;
     void UpdateMirelingScavenge(float DeltaSeconds);
-    void BuildMirelingPresentation();
+    void UpdateBoarTerritory(float DeltaSeconds);
+    void BuildArchetypePresentation();
+    void GrantDefeatReward();
 
     UPROPERTY(ReplicatedUsing = OnRep_Defeated)
     bool bDefeated = false;
@@ -57,15 +70,24 @@ private:
     UPROPERTY(Replicated)
     FString PersistentSpawnId;
 
+    UPROPERTY(ReplicatedUsing = OnRep_Archetype)
+    EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;
+
     UFUNCTION()
     void OnRep_Defeated();
+
+    UFUNCTION()
+    void OnRep_Archetype();
 
     FVector SpawnOrigin = FVector::ZeroVector;
     FVector BehaviourDestination = FVector::ZeroVector;
     float BehaviourSecondsRemaining = 0.0f;
     EKalmalaWildlifeBehaviour Behaviour = EKalmalaWildlifeBehaviour::Idle;
     TWeakObjectPtr<class AKalmalaCharacter> LastValidatedAttacker;
+    TWeakObjectPtr<class AKalmalaCharacter> BoarChargeTarget;
     float MirelingMeleeCooldown = 0.0f;
+    float BoarChargeSecondsRemaining = 0.0f;
+    float BoarMeleeCooldown = 0.0f;
     UPROPERTY()
     TObjectPtr<class UProceduralMeshComponent> MirelingMesh;
     bool bClientCombatVerificationDefeatLogged = false;

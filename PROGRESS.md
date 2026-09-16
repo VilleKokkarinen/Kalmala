@@ -2567,3 +2567,40 @@ usability study, or a persistence-before-reward crash-atomicity proof.
 
 Next task: Add original replicated boar presentation, resting-area threat
 response, charge/return behaviour, and validated meat/hide rewards.
+
+### 2026-09-16T11:33:05+03:00 - Add boar territorial encounter foundation
+
+Outcome: Completed the first boar child. Stable server descriptor seeds now
+select bounded boar actors without changing their persistent spawn IDs; each
+boar has original replicated low-poly presentation, server-owned resting-area
+threat response, charge/return movement, bounded melee, and owner-only
+catalogue-validated meat/hide grants on its existing defeat path.
+
+Changed: `Config/DefaultGame.ini`;
+`Source/KalmalaGameplay/Public/KalmalaCharacter.h`;
+`Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`;
+`Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`;
+`Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp`;
+`docs/11-combat-and-support-magic.md`; `BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex
+-NoHotReload -Force -MaxParallelActions=4` passed with local UnrealBuildTool
+access. Focused headless `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`
+passed (one test, `Result={Success}`), with evidence at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaBoarFinal-873d232b953942d1b74b3da4e1a2445f/automation.log`.
+`git diff --check` passed.
+
+Multiplayer impact: Archetype selection, proximity validation, target choice,
+charge, return, melee damage, defeat and reward grants are server-owned.
+Relevant peers receive only the actor's normal movement and bounded archetype
+presentation; inventory remains owner-only. No client target/damage/reward
+payload, new RPC, descriptor replication, save slot, or save schema was added.
+
+Known limits: This is focused unit automation, not a two-peer boar encounter
+or reconnect fixture. Reward publication follows the existing sparse defeat
+callback but does not yet prove crash-atomic persistence/reward recovery.
+Deer remains the next separate archetype increment.
+
+Next task: Verify server-owned boar targeting/damage, defeat persistence,
+reconnect consistency, and matching host/client behaviour.

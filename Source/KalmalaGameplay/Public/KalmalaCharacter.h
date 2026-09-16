@@ -45,7 +45,7 @@ public:
     UKalmalaCombatComponent* GetCombatComponent() const { return Combat; }
     UKalmalaInventoryComponent* GetInventoryComponent() const { return Inventory; }
     float GetHealth() const { return Health; }
-    bool ApplyMirelingDamageFromServer(const AActor* SourceActor, float Damage);
+    bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
     static bool IsExposureUpdateAllowed(bool bServerAuthority);
     void SetExposureStateFromServer(const FKalmalaExposureState& NewExposureState);
 

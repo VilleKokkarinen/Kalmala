@@ -22,7 +22,7 @@ AKalmalaWildlifeSpawn::AKalmalaWildlifeSpawn()
     MirelingMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("MirelingMesh"));
     MirelingMesh->SetupAttachment(RootComponent);
     MirelingMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    BuildMirelingPresentation();
+    BuildArchetypePresentation();
     bReplicates = true;
     SetReplicateMovement(true);
 }
@@ -35,6 +35,8 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         SpawnOrigin = Spawn.Location;
         BehaviourDestination = SpawnOrigin;
         PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+        Archetype = GetArchetypeForSpawnSeed(Spawn.SpawnSeed);
+        BuildArchetypePresentation();
     }
 }
 
@@ -51,8 +53,9 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
     }
 
     bDefeated = true;
-    ApplyDefeatedState();
+    // The population owner records the sparse server delta before this actor exposes any owner-only reward.
     OnDefeated.Broadcast(PersistentSpawnId);
+    ApplyDefeatedState();
     ForceNetUpdate();
     return true;
 }
@@ -65,9 +68,29 @@ bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const float Damage, AKal
     if (Attacker != nullptr) LastValidatedAttacker = Attacker;
     Health = FMath::Clamp(Health - Damage, 0.0f, 100.0f);
     if (Health <= 0.0f) return DefeatServer();
-    BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f, SpawnOrigin + GetDeterministicOffset(300.0f));
+    if (Archetype == EKalmalaWildlifeArchetype::Boar && Attacker != nullptr)
+    {
+        BoarChargeTarget = Attacker;
+        BoarChargeSecondsRemaining = 1.25f;
+    }
+    else
+    {
+        BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f, SpawnOrigin + GetDeterministicOffset(300.0f));
+    }
     ForceNetUpdate();
     return true;
+}
+
+EKalmalaWildlifeArchetype AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(const uint64 SpawnSeed)
+{
+    // A stable server descriptor seed selects the archetype; it never depends on actor order or a client observation.
+    return SpawnSeed % 3ull == 0ull ? EKalmalaWildlifeArchetype::Boar : EKalmalaWildlifeArchetype::Mireling;
+}
+
+bool AKalmalaWildlifeSpawn::IsBoarChargeAllowed(const bool bServerAuthority, const bool bAlreadyDefeated, const bool bAtRest, const float DistanceToRestingArea)
+{
+    return bServerAuthority && !bAlreadyDefeated && bAtRest && FMath::IsFinite(DistanceToRestingArea)
+        && DistanceToRestingArea >= 0.0f && DistanceToRestingArea <= 500.0f;
 }
 
 bool AKalmalaWildlifeSpawn::IsBehaviourTransitionAllowed(const bool bServerAuthority, const bool bAlreadyDefeated, const EKalmalaWildlifeBehaviour From, const EKalmalaWildlifeBehaviour To)
@@ -89,7 +112,8 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
     if (HasAuthority() && !bDefeated)
     {
         AdvanceServerBehaviour(DeltaSeconds);
-        UpdateMirelingScavenge(DeltaSeconds);
+        if (Archetype == EKalmalaWildlifeArchetype::Mireling) UpdateMirelingScavenge(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::Boar) UpdateBoarTerritory(DeltaSeconds);
     }
 }
 
@@ -110,12 +134,53 @@ void AKalmalaWildlifeSpawn::UpdateMirelingScavenge(const float DeltaSeconds)
         const FVector Direction = (Nearest->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
         SetActorLocation(GetActorLocation() + Direction * FMath::Min(170.0f * FMath::Clamp(DeltaSeconds, 0.0f, 0.10f), FMath::Sqrt(BestDistanceSquared) - 145.0f), true);
     }
-    else if (MirelingMeleeCooldown <= 0.0f && BestDistanceSquared <= FMath::Square(180.0f) && Nearest->ApplyMirelingDamageFromServer(this, 10.0f)) MirelingMeleeCooldown = 1.0f;
+    else if (MirelingMeleeCooldown <= 0.0f && BestDistanceSquared <= FMath::Square(180.0f) && Nearest->ApplyWildlifeDamageFromServer(this, 10.0f)) MirelingMeleeCooldown = 1.0f;
 }
 
-void AKalmalaWildlifeSpawn::BuildMirelingPresentation()
+void AKalmalaWildlifeSpawn::UpdateBoarTerritory(const float DeltaSeconds)
 {
-    // An original low-poly silhouette: lichen body, two root-like legs, and a crown.
+    const float StepSeconds = FMath::Clamp(DeltaSeconds, 0.0f, 0.10f);
+    BoarMeleeCooldown = FMath::Max(0.0f, BoarMeleeCooldown - StepSeconds);
+    AKalmalaCharacter* Target = BoarChargeTarget.Get();
+    if (Target == nullptr && Behaviour == EKalmalaWildlifeBehaviour::Idle)
+    {
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            const float RestDistance = FVector::Dist2D(Candidate->GetActorLocation(), SpawnOrigin);
+            if (IsValid(Candidate) && Candidate->HasAuthority() && Candidate->GetHealth() > 1.0f
+                && IsBoarChargeAllowed(true, false, true, RestDistance))
+            {
+                Target = Candidate;
+                BoarChargeTarget = Candidate;
+                BoarChargeSecondsRemaining = 1.25f;
+                break;
+            }
+        }
+    }
+
+    if (Target != nullptr && Target->HasAuthority() && Target->GetHealth() > 1.0f && BoarChargeSecondsRemaining > 0.0f)
+    {
+        const FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+        const float Distance = ToTarget.Size2D();
+        if (Distance > 145.0f) SetActorLocation(GetActorLocation() + ToTarget.GetSafeNormal2D() * FMath::Min(520.0f * StepSeconds, Distance - 145.0f), true);
+        if (Distance <= 180.0f && BoarMeleeCooldown <= 0.0f && Target->ApplyWildlifeDamageFromServer(this, 15.0f)) BoarMeleeCooldown = 1.25f;
+        BoarChargeSecondsRemaining -= StepSeconds;
+        return;
+    }
+
+    BoarChargeTarget.Reset();
+    BoarChargeSecondsRemaining = 0.0f;
+    if (Behaviour == EKalmalaWildlifeBehaviour::Idle && FVector::DistSquared2D(GetActorLocation(), SpawnOrigin) > FMath::Square(15.0f))
+    {
+        SetActorLocation(FMath::VInterpConstantTo(GetActorLocation(), SpawnOrigin, StepSeconds, 260.0f), true);
+    }
+}
+
+void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
+{
+    MirelingMesh->ClearAllMeshSections();
+    // Original low-poly silhouettes use only project procedural geometry and vertex colour.
     TArray<FVector> Vertices; TArray<int32> Triangles; TArray<FVector> Normals; TArray<FVector2D> UV; TArray<FLinearColor> Colors;
     const auto AddTetra = [&Vertices, &Triangles, &Normals, &UV, &Colors](const FVector Centre, const FVector Extent, const FLinearColor Colour)
     {
@@ -127,10 +192,24 @@ void AKalmalaWildlifeSpawn::BuildMirelingPresentation()
             for (int32 Vertex = 0; Vertex < 3; ++Vertex) { Triangles.Add(Vertices.Num()); Vertices.Add(Points[Faces[Face + Vertex]]); Normals.Add(Normal); UV.Add(FVector2D::ZeroVector); Colors.Add(Colour); }
         }
     };
-    AddTetra(FVector(0,0,15), FVector(52,38,115), FLinearColor(0.12f,0.20f,0.15f));
-    AddTetra(FVector(-26,0,-45), FVector(14,14,75), FLinearColor(0.18f,0.16f,0.12f));
-    AddTetra(FVector(26,0,-45), FVector(14,14,75), FLinearColor(0.18f,0.16f,0.12f));
-    AddTetra(FVector(0,0,122), FVector(48,30,55), FLinearColor(0.38f,0.55f,0.28f));
+    if (Archetype == EKalmalaWildlifeArchetype::Boar)
+    {
+        AddTetra(FVector(0,0,0), FVector(95,52,58), FLinearColor(0.20f,0.11f,0.06f));
+        AddTetra(FVector(85,0,12), FVector(48,38,42), FLinearColor(0.27f,0.15f,0.08f));
+        AddTetra(FVector(-45,-32,-52), FVector(18,18,58), FLinearColor(0.10f,0.06f,0.04f));
+        AddTetra(FVector(-45,32,-52), FVector(18,18,58), FLinearColor(0.10f,0.06f,0.04f));
+        AddTetra(FVector(45,-32,-52), FVector(18,18,58), FLinearColor(0.10f,0.06f,0.04f));
+        AddTetra(FVector(45,32,-52), FVector(18,18,58), FLinearColor(0.10f,0.06f,0.04f));
+        AddTetra(FVector(128,-22,1), FVector(34,7,8), FLinearColor(0.82f,0.75f,0.54f));
+        AddTetra(FVector(128,22,1), FVector(34,7,8), FLinearColor(0.82f,0.75f,0.54f));
+    }
+    else
+    {
+        AddTetra(FVector(0,0,15), FVector(52,38,115), FLinearColor(0.12f,0.20f,0.15f));
+        AddTetra(FVector(-26,0,-45), FVector(14,14,75), FLinearColor(0.18f,0.16f,0.12f));
+        AddTetra(FVector(26,0,-45), FVector(14,14,75), FLinearColor(0.18f,0.16f,0.12f));
+        AddTetra(FVector(0,0,122), FVector(48,30,55), FLinearColor(0.38f,0.55f,0.28f));
+    }
     MirelingMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV, Colors, {}, false);
 }
 
@@ -196,6 +275,12 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AKalmalaWildlifeSpawn, bDefeated);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, Health);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PersistentSpawnId);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, Archetype);
+}
+
+void AKalmalaWildlifeSpawn::OnRep_Archetype()
+{
+    BuildArchetypePresentation();
 }
 
 void AKalmalaWildlifeSpawn::OnRep_Defeated()
@@ -213,9 +298,19 @@ void AKalmalaWildlifeSpawn::ApplyDefeatedState()
     SetActorHiddenInGame(bDefeated);
     if (bDefeated)
     {
-        if (AKalmalaCharacter* Attacker = LastValidatedAttacker.Get())
-        {
-            if (UKalmalaInventoryComponent* Inventory = Attacker->FindComponentByClass<UKalmalaInventoryComponent>()) Inventory->TryGrantFromServer(TEXT("MirelingAsh"), 1);
-        }
+        GrantDefeatReward();
+    }
+}
+
+void AKalmalaWildlifeSpawn::GrantDefeatReward()
+{
+    AKalmalaCharacter* Attacker = LastValidatedAttacker.Get();
+    UKalmalaInventoryComponent* Inventory = Attacker ? Attacker->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    if (Inventory == nullptr || !Inventory->GetOwner() || !Inventory->GetOwner()->HasAuthority()) return;
+    if (Archetype == EKalmalaWildlifeArchetype::Mireling) Inventory->TryGrantFromServer(TEXT("MirelingAsh"), 1);
+    else if (Archetype == EKalmalaWildlifeArchetype::Boar)
+    {
+        Inventory->TryGrantFromServer(TEXT("BoarMeat"), 1);
+        Inventory->TryGrantFromServer(TEXT("BoarHide"), 1);
     }
 }

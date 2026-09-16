@@ -97,7 +97,7 @@ void AKalmalaCharacter::OnRep_Health()
 #endif
 }
 
-bool AKalmalaCharacter::ApplyMirelingDamageFromServer(const AActor* SourceActor, const float Damage)
+bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor, const float Damage)
 {
     if (!HasAuthority() || !IsValid(SourceActor) || !SourceActor->HasAuthority() || SourceActor->GetWorld() != GetWorld()
         || !FMath::IsFinite(Damage) || Damage <= 0.0f || Damage > 25.0f
