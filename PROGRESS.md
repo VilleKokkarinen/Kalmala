@@ -2604,3 +2604,80 @@ Deer remains the next separate archetype increment.
 
 Next task: Verify server-owned boar targeting/damage, defeat persistence,
 reconnect consistency, and matching host/client behaviour.
+
+### 2026-09-16T15:49:00+03:00 - Boar peer verification blocked
+
+Outcome: Blocked after repeated isolated two-peer runs. Added a development-only
+boar peer runner and generalized the existing combat fixture so it selects a
+stable boar descriptor from the bounded activation neighborhood, keeps the
+boar at its generated resting area, and observes normal replicated state. The
+final run proves the boar's server-owned territorial charge and client-visible
+health pressure, plus rejection of the remote player's target-free attack.
+However, the server's four committed owner attacks advance the action serial
+but leave the boar at 100.0 health, so defeat, owner-only meat/hide, and restart
+persistence cannot be claimed.
+
+Changed (uncommitted): `Scripts/Verify-BoarPeer.ps1`;
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`;
+`KalmalaCharacter.cpp`; `KalmalaCombatComponent.cpp`; and
+`KalmalaWildlifeSpawn.cpp`; `BACKLOG.md`; this handoff. These implementation
+and verification changes remain uncommitted because the required peer scenario
+failed.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed after each fixture adjustment. Final
+`Scripts/Verify-BoarPeer.ps1 -Port 18133` failed its bounded scenario: the
+remote client received seed 418, its target-free attack logged as rejected,
+and observed replicated player health 85.0, 70.0, and 55.0 from boar melee.
+The server then reported `ActionSerial=4 Health=100.0 Defeated=0 Saved=0`.
+Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaBoarPeerRun-4cda1c61d3e24bfa9f67a018833995b7/evidence`.
+
+Multiplayer impact: The observed boar pressure remains server-owned and the
+remote client sends only its normal sequence with no target or damage payload.
+The failed player-damage path prevents any defeat delta, reward, or save claim;
+no schema or normal-play RPC was added.
+
+Known limits: Diagnose why a server-accepted basic attack has no wildlife-health
+effect once the territorial boar charge is active, then rerun the same peer and
+restart proof. Do not commit the current changes until that scenario passes.
+
+Next task: Resolve the blocked boar peer damage verification before later M4 work.
+
+### 2026-09-16T16:05:00+03:00 - Verify boar encounter across two peers
+
+Outcome: Completed the blocked boar verification child. The development-only
+two-peer fixture now identifies the listen-server pawn deterministically,
+derives a bounded stable boar selector from server generation inputs, separates
+the real territorial-charge proof from the normal player-combat trace proof,
+and restarts with the same server-derived boar selector. It verifies charge
+damage, rejected remote target-free intent, four committed server attacks,
+defeat, sparse persistence, owner-only meat/hide, and matching peer state.
+
+Changed: `Scripts/Verify-BoarPeer.ps1`;
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`;
+`KalmalaCharacter.cpp`; `KalmalaCombatComponent.cpp`; and
+`KalmalaWildlifeSpawn.cpp`; `docs/07-development-setup.md`;
+`docs/11-combat-and-support-magic.md`; `BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed. `Scripts/Verify-BoarPeer.ps1 -Port
+18138` passed with isolated peer and restart evidence at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaBoarPeerRun-0508a743558740c4aaed1a96c01af924/evidence`.
+The server recorded four applied attacks at 149.7 cm (health 75, 50, 25, 0),
+then `Defeated=1 Saved=1 Meat=1 Hide=1 RemoteMeat=0 RemoteHide=0`; the
+conflicting-seed client observed replicated health, action serial 4, and defeat.
+The restart kept the same server-derived boar absent. `git diff --check` passed.
+
+Multiplayer impact: The server alone derives the boar, selects its charge
+target, applies melee and combat damage, records defeat, grants rewards, and
+chooses the restart assertion. The client sends only the existing sequence;
+normal replication supplies relevant combat state while inventory remains
+owner-only. No client target, damage, ID, reward, save payload, RPC, or schema
+was added.
+
+Known limits: This is a bounded deterministic two-peer fixture, not a latency
+or freeform encounter usability study. Crash-atomic recovery between sparse
+defeat persistence and reward publication remains outside this increment.
+
+Next task: Add original replicated deer presentation, bounded herd/flee
+behaviour, and validated meat/hide rewards.

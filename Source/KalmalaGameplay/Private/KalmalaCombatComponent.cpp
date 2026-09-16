@@ -30,18 +30,20 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
     const bool bCombatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest"));
     const bool bMirelingPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"));
-    if ((bCombatPeerTest || bMirelingPeerTest) && GetOwner() != nullptr && !GetOwner()->HasAuthority())
+    const bool bBoarPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"));
+    if ((bCombatPeerTest || bMirelingPeerTest || bBoarPeerTest) && GetOwner() != nullptr && !GetOwner()->HasAuthority())
     {
+        const TCHAR* VerificationName = bBoarPeerTest ? TEXT("Boar") : (bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"));
         const APawn* OwnerPawn = Cast<APawn>(GetOwner());
         if (!bClientCombatVerificationActionLogged && ActionSerial >= 4)
         {
             bClientCombatVerificationActionLogged = true;
-            UE_LOG(LogTemp, Display, TEXT("%s verification client observed shared action serial=%u."), bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"), ActionSerial);
+            UE_LOG(LogTemp, Display, TEXT("%s verification client observed shared action serial=%u."), VerificationName, ActionSerial);
         }
         if (!bClientCombatVerificationRejectionLogged && OwnerPawn != nullptr && OwnerPawn->IsLocallyControlled() && FeedbackSerial > 0 && Feedback == EKalmalaCombatFeedback::Unavailable)
         {
             bClientCombatVerificationRejectionLogged = true;
-            UE_LOG(LogTemp, Display, TEXT("%s verification client rejected invalid owned attack without target data."), bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"));
+            UE_LOG(LogTemp, Display, TEXT("%s verification client rejected invalid owned attack without target data."), VerificationName);
         }
     }
     if (!GetOwner()->HasAuthority() || ActionPhase == EKalmalaCombatActionPhase::Idle || GetWorld() == nullptr || GetWorld()->GetTimeSeconds() < PhaseEndTime) return;
@@ -50,9 +52,27 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
         if (AKalmalaWildlifeSpawn* Target = PendingTarget.Get(); IsServerTargetValid(Target))
         {
             const bool bDefeated = Target->GetHealth() <= AttackDamage;
-            if (Target->ApplyCombatDamageFromServer(AttackDamage, Cast<AKalmalaCharacter>(GetOwner()))) PublishFeedbackFromServer(bDefeated ? EKalmalaCombatFeedback::Defeat : EKalmalaCombatFeedback::Hit);
+            const bool bApplied = Target->ApplyCombatDamageFromServer(AttackDamage, Cast<AKalmalaCharacter>(GetOwner()));
+#if !UE_BUILD_SHIPPING
+            if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")))
+            {
+                UE_LOG(LogTemp, Display, TEXT("Boar verification attack execution: Applied=%d Distance=%.1f Health=%.1f."), bApplied, FVector::Dist(Cast<APawn>(GetOwner())->GetActorLocation(), Target->GetActorLocation()), Target->GetHealth());
+            }
+#endif
+            if (bApplied) PublishFeedbackFromServer(bDefeated ? EKalmalaCombatFeedback::Defeat : EKalmalaCombatFeedback::Hit);
         }
-        else PublishFeedbackFromServer(EKalmalaCombatFeedback::Unavailable);
+        else
+        {
+#if !UE_BUILD_SHIPPING
+            if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")))
+            {
+                const AKalmalaWildlifeSpawn* Pending = PendingTarget.Get();
+                const APawn* OwnerPawn = Cast<APawn>(GetOwner());
+                UE_LOG(LogTemp, Display, TEXT("Boar verification attack execution: target valid=%d distance=%.1f."), Pending != nullptr, Pending != nullptr && OwnerPawn != nullptr ? FVector::Dist(OwnerPawn->GetActorLocation(), Pending->GetActorLocation()) : -1.0f);
+            }
+#endif
+            PublishFeedbackFromServer(EKalmalaCombatFeedback::Unavailable);
+        }
         BeginRecovery();
         return;
     }

@@ -1,5 +1,8 @@
 #include "KalmalaGameMode.h"
 
+#include "GameFramework/Controller.h"
+#include "GameFramework/PlayerController.h"
+
 #include "KalmalaCharacter.h"
 #include "KalmalaCombatComponent.h"
 #include "KalmalaMapAwarenessComponent.h"
@@ -626,31 +629,61 @@ void AKalmalaGameMode::DriveCombatPeerTest()
 #if !UE_BUILD_SHIPPING
     const bool bCombatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest"));
     const bool bMirelingPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"));
-    if ((!bCombatPeerTest && !bMirelingPeerTest) || GetWorld() == nullptr)
+    const bool bBoarPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"));
+    if ((!bCombatPeerTest && !bMirelingPeerTest && !bBoarPeerTest) || GetWorld() == nullptr)
     {
         return;
     }
 
+    const TCHAR* VerificationName = bBoarPeerTest ? TEXT("Boar") : (bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"));
+    const EKalmalaWildlifeArchetype ExpectedArchetype = bBoarPeerTest ? EKalmalaWildlifeArchetype::Boar : EKalmalaWildlifeArchetype::Mireling;
+
     if (!bCombatPeerTestLogged)
     {
         bCombatPeerTestLogged = true;
-        UE_LOG(LogTemp, Display, TEXT("%s verification server fixture enabled."), bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"));
+        UE_LOG(LogTemp, Display, TEXT("%s verification server fixture enabled."), VerificationName);
     }
 
     const float Now = GetWorld()->GetTimeSeconds();
     if (CombatPeerTestStage == 0)
     {
-        TArray<AKalmalaCharacter*> Players;
+        APlayerController* LocalController = GetWorld()->GetFirstPlayerController();
+        AKalmalaCharacter* LocalServerPlayer = LocalController ? Cast<AKalmalaCharacter>(LocalController->GetPawn()) : nullptr;
+        AKalmalaCharacter* RemotePlayer = nullptr;
         for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
         {
-            if ((*It)->GetPlayerState() != nullptr) Players.Add(*It);
+            AKalmalaCharacter* Candidate = *It;
+            if (Candidate->GetPlayerState() == nullptr || Candidate == LocalServerPlayer) continue;
+            if (RemotePlayer == nullptr) RemotePlayer = Candidate;
         }
-        if (Players.Num() < 2) return;
+        if (LocalServerPlayer == nullptr || RemotePlayer == nullptr) return;
 
-        CombatPeerTestAttacker = Players[0];
-        CombatPeerTestRemote = Players[1];
-        const FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(Players[0]->GetActorLocation()));
-        const TArray<FKalmalaWorldPopulationSpawn> Descriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        CombatPeerTestAttacker = LocalServerPlayer;
+        CombatPeerTestRemote = RemotePlayer;
+        FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(LocalServerPlayer->GetActorLocation()));
+        TArray<FKalmalaWorldPopulationSpawn> Descriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        if (bBoarPeerTest && !Descriptors.ContainsByPredicate([ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Descriptor.SpawnSeed) == ExpectedArchetype; }))
+        {
+            // Stay within the normal bounded activation neighborhood while selecting
+            // a deterministic boar descriptor rather than depending on actor order.
+            const FIntPoint BaseKey = SpatialKey;
+            bool bFoundBoarDescriptor = false;
+            for (int32 OffsetY = -1; OffsetY <= 1 && !bFoundBoarDescriptor; ++OffsetY)
+            {
+                for (int32 OffsetX = -1; OffsetX <= 1; ++OffsetX)
+                {
+                    const FIntPoint CandidateKey = BaseKey + FIntPoint(OffsetX, OffsetY);
+                    const TArray<FKalmalaWorldPopulationSpawn> CandidateDescriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                    if (CandidateDescriptors.ContainsByPredicate([ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Descriptor.SpawnSeed) == ExpectedArchetype; }))
+                    {
+                        SpatialKey = CandidateKey;
+                        Descriptors = CandidateDescriptors;
+                        bFoundBoarDescriptor = true;
+                        break;
+                    }
+                }
+            }
+        }
         const TArray<FKalmalaWorldPopulationSpawn> ReproducedDescriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
         const int32 Budget = FKalmalaWorldPopulationLayout::GetSpawnBudget(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
         bool bSeedReproduced = Descriptors.Num() == ReproducedDescriptors.Num() && Descriptors.Num() <= Budget;
@@ -658,13 +691,17 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         {
             bSeedReproduced &= FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptors[Index]) == FKalmalaWorldPopulationLayout::GetPersistentSpawnId(ReproducedDescriptors[Index]);
         }
-        if (Descriptors.IsEmpty())
+        const FKalmalaWorldPopulationSpawn* ExpectedDescriptor = Descriptors.FindByPredicate([ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor)
         {
-            UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: server spatial key has no wildlife descriptor."));
+            return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Descriptor.SpawnSeed) == ExpectedArchetype;
+        });
+        if (ExpectedDescriptor == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: server spatial key has no matching wildlife descriptor."), VerificationName);
             CombatPeerTestStage = 99;
             return;
         }
-        const FString ExpectedSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptors[0]);
+        const FString ExpectedSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(*ExpectedDescriptor);
         ActivatePopulationKey(SpatialKey);
         int32 ActiveInKey = 0;
         for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
@@ -674,7 +711,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         }
         if (!bSeedReproduced || ActiveInKey > Descriptors.Num() || !CombatPeerTestTarget.IsValid())
         {
-            UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: seed reproduction=%d active=%d descriptors=%d target=%d."), bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"), bSeedReproduced, ActiveInKey, Descriptors.Num(), CombatPeerTestTarget.IsValid());
+            UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: seed reproduction=%d active=%d descriptors=%d target=%d."), VerificationName, bSeedReproduced, ActiveInKey, Descriptors.Num(), CombatPeerTestTarget.IsValid());
             CombatPeerTestStage = 99;
             return;
         }
@@ -682,9 +719,11 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         AKalmalaCharacter* Attacker = CombatPeerTestAttacker.Get();
         AKalmalaCharacter* Remote = CombatPeerTestRemote.Get();
         const FVector Forward = Attacker->GetActorForwardVector().GetSafeNormal2D();
-        CombatPeerTestTarget->SetActorLocation(Attacker->GetActorLocation() + Forward * 150.0f);
-        Remote->SetActorLocation(Attacker->GetActorLocation() + FVector(0.0f, 1000.0f, 0.0f));
-        CombatPeerTestTarget->ForceNetUpdate();
+        // Keep the boar at its generated rest origin: its normal territorial
+        // policy must choose a nearby pawn, rather than a fixture bypassing it.
+        Attacker->SetActorLocation(CombatPeerTestTarget->GetActorLocation() - Forward * 150.0f, false);
+        Remote->SetActorLocation(CombatPeerTestTarget->GetActorLocation() + FVector(0.0f, 1000.0f, 0.0f), false);
+        Attacker->ForceNetUpdate();
         Remote->ForceNetUpdate();
         CombatPeerTestStage = 1;
         CombatPeerTestStageTime = Now;
@@ -701,21 +740,20 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         return;
     }
     UKalmalaCombatComponent* AttackerCombat = Attacker->GetCombatComponent();
-    UKalmalaCombatComponent* RemoteCombat = Remote->GetCombatComponent();
-    if (AttackerCombat == nullptr || RemoteCombat == nullptr)
+    if (AttackerCombat == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: pawn combat component missing."));
+        UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: server attacker combat component missing."));
         CombatPeerTestStage = 99;
         return;
     }
 
-    // Give the bounded server-only scavenger loop enough wall time to commit
+    // Give the bounded server-only encounter loop enough wall time to commit
     // one melee hit before asserting replicated pressure.
     if (CombatPeerTestStage == 1 && Now - CombatPeerTestStageTime >= 2.5f)
     {
-        if (!FMath::IsNearlyEqual(Target->GetHealth(), 100.0f) || RemoteCombat->GetFeedback() != EKalmalaCombatFeedback::Unavailable || (bMirelingPeerTest && Attacker->GetHealth() >= 100.0f))
+        if (!FMath::IsNearlyEqual(Target->GetHealth(), 100.0f) || ((bMirelingPeerTest || bBoarPeerTest) && Attacker->GetHealth() >= 100.0f))
         {
-            UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: invalid remote attack mutated target or was not rejected. Health=%.1f Feedback=%d"), Target->GetHealth(), static_cast<int32>(RemoteCombat->GetFeedback()));
+            UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: remote target-free attack mutated the target or the server-owned encounter did not apply pressure. Health=%.1f PlayerHealth=%.1f"), Target->GetHealth(), Attacker->GetHealth());
             CombatPeerTestStage = 99;
             return;
         }
@@ -733,14 +771,28 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         return;
     }
 
+    // The charge proof above already exercises real territorial movement. Keep
+    // the target in the ordinary 220 cm combat trace for the separate player
+    // attack contract, so a moving encounter cannot race its windup recheck.
+    if (CombatPeerTestStage == 2 && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Windup)
+    {
+        Target->SetActorLocation(Attacker->GetActorLocation() + Attacker->GetActorForwardVector().GetSafeNormal2D() * 150.0f, false);
+        Target->ForceNetUpdate();
+    }
+
     if (CombatPeerTestStage == 2 && CombatPeerTestSequence == 4 && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Idle && Now - CombatPeerTestStageTime >= 0.1f)
     {
         const bool bSavedDefeat = Target->IsDefeated() && !Target->GetPersistentSpawnId().IsEmpty() && PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(Target->GetPersistentSpawnId());
         const int32 Ash = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("MirelingAsh")) : 0;
         const int32 RemoteAsh = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("MirelingAsh")) : 0;
-        if (AttackerCombat->GetActionSerial() == 4 && bSavedDefeat && (!bMirelingPeerTest || (Ash == 1 && RemoteAsh == 0)))
+        const int32 Meat = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("BoarMeat")) : 0;
+        const int32 Hide = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("BoarHide")) : 0;
+        const int32 RemoteMeat = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("BoarMeat")) : 0;
+        const int32 RemoteHide = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("BoarHide")) : 0;
+        const bool bRewardValid = bMirelingPeerTest ? (Ash == 1 && RemoteAsh == 0) : (!bBoarPeerTest || (Meat == 1 && Hide == 1 && RemoteMeat == 0 && RemoteHide == 0));
+        if (AttackerCombat->GetActionSerial() == 4 && bSavedDefeat && bRewardValid)
         {
-            UE_LOG(LogTemp, Display, TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 Ash=%d RemoteAsh=%d"), bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat"), AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), Ash, RemoteAsh);
+            UE_LOG(LogTemp, Display, TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 Ash=%d RemoteAsh=%d Meat=%d Hide=%d RemoteMeat=%d RemoteHide=%d"), VerificationName, AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), Ash, RemoteAsh, Meat, Hide, RemoteMeat, RemoteHide);
         }
         else
         {
@@ -1150,10 +1202,31 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
         return;
     }
 
-    const FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(ServerPawn->GetActorLocation()));
-    if (ReconnectVerificationMode.Equals(TEXT("WildlifeDefeat"), ESearchCase::IgnoreCase) || ReconnectVerificationMode.Equals(TEXT("WildlifeVerify"), ESearchCase::IgnoreCase))
+    FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(ServerPawn->GetActorLocation()));
+    const bool bWildlifeBoarVerify = ReconnectVerificationMode.Equals(TEXT("WildlifeBoarVerify"), ESearchCase::IgnoreCase);
+    if (ReconnectVerificationMode.Equals(TEXT("WildlifeDefeat"), ESearchCase::IgnoreCase) || ReconnectVerificationMode.Equals(TEXT("WildlifeVerify"), ESearchCase::IgnoreCase) || bWildlifeBoarVerify)
     {
-        const TArray<FKalmalaWorldPopulationSpawn> WildlifeSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        TArray<FKalmalaWorldPopulationSpawn> WildlifeSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        if (bWildlifeBoarVerify && !WildlifeSpawns.ContainsByPredicate([](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == EKalmalaWildlifeArchetype::Boar; }))
+        {
+            const FIntPoint BaseKey = SpatialKey;
+            bool bFoundBoar = false;
+            for (int32 OffsetY = -1; OffsetY <= 1 && !bFoundBoar; ++OffsetY)
+            {
+                for (int32 OffsetX = -1; OffsetX <= 1; ++OffsetX)
+                {
+                    const FIntPoint CandidateKey = BaseKey + FIntPoint(OffsetX, OffsetY);
+                    const TArray<FKalmalaWorldPopulationSpawn> CandidateSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                    if (CandidateSpawns.ContainsByPredicate([](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == EKalmalaWildlifeArchetype::Boar; }))
+                    {
+                        SpatialKey = CandidateKey;
+                        WildlifeSpawns = CandidateSpawns;
+                        bFoundBoar = true;
+                        break;
+                    }
+                }
+            }
+        }
         if (WildlifeSpawns.IsEmpty())
         {
             UE_LOG(LogTemp, Error, TEXT("Reconnect verification found no generated wildlife spawn for its server spatial key."));
@@ -1161,7 +1234,14 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
             return;
         }
 
-        const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(WildlifeSpawns[0]);
+        const FKalmalaWorldPopulationSpawn* ExpectedSpawn = bWildlifeBoarVerify ? WildlifeSpawns.FindByPredicate([](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == EKalmalaWildlifeArchetype::Boar; }) : &WildlifeSpawns[0];
+        if (ExpectedSpawn == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Reconnect verification found no server-derived boar spawn for its bounded spatial neighborhood."));
+            FPlatformMisc::RequestExit(false);
+            return;
+        }
+        const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(*ExpectedSpawn);
         ActivatePopulationKey(SpatialKey);
         if (ReconnectVerificationMode.Equals(TEXT("WildlifeDefeat"), ESearchCase::IgnoreCase))
         {

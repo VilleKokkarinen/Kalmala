@@ -282,7 +282,7 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Verify seed reproduction, bounded activation, authority rejection, defeat persistence, and host/client combat presentation.
 - [ ] Deliver the boar archetype as an optional territorial charge encounter.
   - [x] Add original replicated boar presentation, resting-area threat response, charge/return behaviour, and validated meat/hide rewards.
-  - [ ] Verify server-owned targeting/damage, defeat persistence, reconnect consistency, and matching host/client behaviour.
+- [x] Verify server-owned targeting/damage, defeat persistence, reconnect consistency, and matching host/client behaviour.
 - [ ] Deliver the deer archetype as wary herd wildlife.
   - [ ] Add original replicated deer presentation, bounded herd/flee behaviour, and validated meat/hide rewards.
   - [ ] Verify deterministic group activation, combat/noise flight, defeat persistence, and matching host/client behaviour.

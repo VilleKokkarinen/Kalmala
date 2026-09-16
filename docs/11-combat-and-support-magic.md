@@ -328,4 +328,15 @@ existing inventory contract. This increment neither changes the population
 save schema nor introduces a loot RPC. The focused
 `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle` automation now covers
 deterministic boar selection and charge rejection for client, defeated and
-distant paths; live peer/reconnect evidence is the next backlog child.
+distant paths. `Scripts/Verify-BoarPeer.ps1` adds the bounded two-peer proof:
+the listen server derives a stable nearby boar descriptor, demonstrates its
+ordinary resting-area charge and melee against the host, then holds that same
+already-relevant actor in the normal 220 cm player-combat trace during each
+separate windup/recheck. The remote peer sends only its existing target-free
+sequence and observes its rejection plus relevant action, player-health, and
+defeat replication. Four server-committed attacks must record the existing
+sparse defeat before the authoritative attacker receives one `BoarMeat` and
+one `BoarHide`; the remote inventory remains empty. A fresh listen server uses
+the same server-derived bounded boar selector to confirm that exact defeated
+spawn remains absent. No client provides a descriptor, persistent ID, target,
+damage, reward, or save value.

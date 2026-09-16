@@ -171,6 +171,10 @@ Restart the editor after building the native modules, then play `L_Prototype`. T
 
 After an editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered`. It launches a hidden listen server and client, exercises the bound jump/sprint/release delegates through normal movement prediction, and checks server-observed remote sprint, upward jump, release, landing, matching world identity, and nine collision-free model parts. It retains host/client screenshots and logs in its printed temporary directory and stops its own processes. Physical keyboard input is not simulated by this test. Run the focused `Kalmala.Gameplay.Movement.SprintSavedMoves` headless automation to verify compressed flags, release, move-combination boundaries, and saved-move clearing.
 
+## Boar encounter verification
+
+After an editor build, run `Scripts/Verify-BoarPeer.ps1 -Port <unused-port>`. It starts a seed-418 listen server and a conflicting-seed client with separate temporary user directories. The fixture derives a bounded stable boar descriptor entirely on the server, verifies its normal territorial charge damages the host, rejects the remote player's normal target-free attack sequence, then exercises four server-selected player-combat windups in the ordinary trace range. It requires relevant host/client action, health, and defeat replication, owner-only `BoarMeat`/`BoarHide`, and an identity-matched restart where the same server-derived boar remains absent. It adds no gameplay RPC, client target/damage/reward payload, descriptor replication, or save-schema change.
+
 ## Regional generation verification (Phase 7)
 
 ### Generation performance regression
