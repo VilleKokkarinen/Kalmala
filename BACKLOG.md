@@ -296,7 +296,8 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Implement Hearth Shield as a temporary validated protective shield with explicit expiry and replicated feedback.
   - [x] Implement Bear's Vigor as a temporary validated stamina/strength boost with explicit expiry and replicated feedback.
   - [x] Implement Deer Call as a bounded validated behaviour influence on existing nearby deer only; it must not create wildlife or bypass harvest/loot rules.
-  - [ ] Verify each effect rejects invalid client payloads, never directly damages an enemy, persists learning correctly, and agrees across host/client presentation.
+  - [x] Verify each effect rejects invalid client payloads, never directly damages an enemy, persists learning correctly, and agrees across host/client presentation.
+    - [x] Focused regression covers all allowlisted effects, malformed/client/replay gates, reconnect learning persistence, and non-damaging execution; rendered live-peer casts remain in the M4 vertical slice.
 - [ ] Place one scroll discovery as a server-validated Mireling boss reward and verify it remains optional to route selection.
 - [ ] Run the M4 two-player vertical-slice scenario: freely select a route, encounter Mireling, boar, and deer, learn and use all four support effects, and return with a persisted progression reward.
 

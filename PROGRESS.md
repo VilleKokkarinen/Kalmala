@@ -3071,3 +3071,42 @@ verification.
 Next task: Verify each support effect rejects invalid client payloads, never
 directly damages an enemy, persists learning correctly, and agrees across
 host/client presentation.
+
+### 2026-09-17T10:48:00+03:00 - Verify support-magic authority and persistence
+
+Outcome: Completed the support-magic verification child. The activation path
+now explicitly rejects unknown enum values before any entitlement, stamina, or
+presentation work. Focused coverage enumerates all four allowlisted effects,
+confirms each is non-damaging, rejects client-role and replay/zero-sequence
+activation gates, preserves duplicate-learning rejection, and verifies every
+learned token survives matching-world reconnect serialization. Active-effect
+properties remain ordinary replicated presentation state; no direct-damage
+support path was added.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h`;
+`Source/KalmalaGameplay/Private/KalmalaSupportMagicComponent.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp`;
+`docs/07-development-setup.md`; `docs/11-combat-and-support-magic.md`;
+`BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access
+and `Result: Succeeded`. Headless
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence` passed with
+`Result={Success}` in isolated evidence at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaSupportVerification-4cb1704e-cbd5-4da3-9c95-0d9e1d86a7eb/automation.log`.
+`git diff --check` passed.
+
+Multiplayer impact: The server rejects malformed effect enums before mutation,
+and the existing activation RPC still accepts only an effect enum plus
+monotonic sequence. Learned entitlements remain owner-only; active effect,
+expiry, shield, and Vigor presentation continue through the existing relevant
+replication properties. Support effects never call direct enemy damage.
+
+Known limits: This is focused authority/save/replication-contract coverage,
+not a rendered live two-peer cast or latency/replay fuzz test. A live host,
+late-join, and reconnect presentation scenario remains part of the M4 vertical
+slice.
+
+Next task: Place one scroll discovery as a server-validated Mireling boss
+reward and verify it remains optional to route selection.

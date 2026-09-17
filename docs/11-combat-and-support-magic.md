@@ -240,6 +240,12 @@ contract coverage only: it does not add a combat RPC, actor, reward, or player
 progression save schema. Runtime handlers must use this seam in addition to
 their own authoritative trace, descriptor, transaction, and persistence work.
 
+The support-magic regression covers every allowlisted effect's malformed enum,
+client-role, replay/zero-sequence, learned-token reconnect, and non-damaging
+gates. Active-effect fields remain ordinary relevant-peer replication state and
+are audited by the replication contract; a rendered live-peer cast remains part
+of the later M4 vertical slice.
+
 Later contract coverage must test direct client-role mutation and actual owner
 RPCs, malformed enum/sequence/configuration, repeat and competing requests,
 distant/occluded/foreign-world targets, friendly-fire rejection, phase/cooldown

@@ -13,8 +13,12 @@ FString UKalmalaSupportMagicComponent::CanonicalId(const EKalmalaSupportEffect E
 }
 EKalmalaSupportEffect UKalmalaSupportMagicComponent::FromScrollDefinition(const FString& Definition)
 { if (Definition == TEXT("mending")) return EKalmalaSupportEffect::Mending; if (Definition == TEXT("hearth-shield")) return EKalmalaSupportEffect::HearthShield; if (Definition == TEXT("bears-vigor")) return EKalmalaSupportEffect::BearsVigor; if (Definition == TEXT("deer-call")) return EKalmalaSupportEffect::DeerCall; return EKalmalaSupportEffect::None; }
+bool UKalmalaSupportMagicComponent::IsKnownEffect(const EKalmalaSupportEffect Effect)
+{ return Effect >= EKalmalaSupportEffect::Mending && Effect <= EKalmalaSupportEffect::DeerCall; }
+bool UKalmalaSupportMagicComponent::IsNonDamagingEffect(const EKalmalaSupportEffect Effect)
+{ return IsKnownEffect(Effect); }
 bool UKalmalaSupportMagicComponent::LearnEffectFromServer(const EKalmalaSupportEffect Effect)
-{ if (!GetOwner() || !GetOwner()->HasAuthority() || CanonicalId(Effect).IsEmpty()) return false; LearnedMask |= static_cast<uint8>(1u << static_cast<uint8>(Effect)); GetOwner()->ForceNetUpdate(); return true; }
+{ if (!GetOwner() || !GetOwner()->HasAuthority() || !IsKnownEffect(Effect)) return false; LearnedMask |= static_cast<uint8>(1u << static_cast<uint8>(Effect)); GetOwner()->ForceNetUpdate(); return true; }
 bool UKalmalaSupportMagicComponent::HasLearnedEffect(const EKalmalaSupportEffect Effect) const
 { return !CanonicalId(Effect).IsEmpty() && (LearnedMask & static_cast<uint8>(1u << static_cast<uint8>(Effect))) != 0; }
 bool UKalmalaSupportMagicComponent::IsActivationAllowed(const bool bAuthority, const bool bLearned, const bool bNewSequence, const bool bCooldownExpired, const bool bHasStamina)
@@ -97,6 +101,7 @@ bool UKalmalaSupportMagicComponent::InfluenceNearbyDeerFromServer(APawn* Caster)
 void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implementation(const EKalmalaSupportEffect Effect, const uint32 RequestSequence)
 {
     APawn* Pawn = Cast<APawn>(GetOwner()); const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
+    if (!IsKnownEffect(Effect)) return;
     UKalmalaCharacterMovementComponent* Movement = Pawn ? Cast<UKalmalaCharacterMovementComponent>(Pawn->GetMovementComponent()) : nullptr;
     const bool bBaseActivationAllowed = IsActivationAllowed(Pawn && Pawn->HasAuthority(), HasLearnedEffect(Effect), RequestSequence != 0 && RequestSequence > LastRequestSequence, Now >= CooldownExpiry, Movement != nullptr && Movement->GetStamina() >= ActivationCost);
     const bool bShieldAlreadyActive = HearthShieldExpiry > Now && HearthShieldStrength > 0.0f;

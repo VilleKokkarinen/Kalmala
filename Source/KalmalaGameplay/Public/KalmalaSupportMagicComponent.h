@@ -28,6 +28,8 @@ public:
     float AbsorbHearthShieldDamageFromServer(float IncomingDamage);
     static FString CanonicalId(EKalmalaSupportEffect Effect);
     static EKalmalaSupportEffect FromScrollDefinition(const FString& Definition);
+    static bool IsKnownEffect(EKalmalaSupportEffect Effect);
+    static bool IsNonDamagingEffect(EKalmalaSupportEffect Effect);
     static bool IsActivationAllowed(bool bAuthority, bool bLearned, bool bNewSequence, bool bCooldownExpired, bool bHasStamina);
     static bool IsHearthShieldActivationAllowed(bool bBaseActivationAllowed, bool bShieldAlreadyActive);
     static bool IsBearsVigorActivationAllowed(bool bBaseActivationAllowed, bool bVigorAlreadyActive);

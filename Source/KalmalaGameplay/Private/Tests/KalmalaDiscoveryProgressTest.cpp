@@ -22,7 +22,20 @@ bool FKalmalaDiscoveryProgressTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Scroll definition maps only to an allowlisted canonical effect"), Effect, FString(TEXT("Effect:mending")));
     TestTrue(TEXT("Entitled player learns the effect once"), Save->AddLearnedEffect(Effect));
     TestFalse(TEXT("Unknown effect fails closed"), Save->AddLearnedEffect(TEXT("Effect:unknown")));
+    const TArray<EKalmalaSupportEffect> Effects = { EKalmalaSupportEffect::Mending, EKalmalaSupportEffect::HearthShield, EKalmalaSupportEffect::BearsVigor, EKalmalaSupportEffect::DeerCall };
+    for (const EKalmalaSupportEffect SupportEffect : Effects)
+    {
+        const FString Canonical = UKalmalaSupportMagicComponent::CanonicalId(SupportEffect);
+        TestTrue(TEXT("Every support effect is allowlisted"), UKalmalaSupportMagicComponent::IsKnownEffect(SupportEffect) && !Canonical.IsEmpty());
+        TestTrue(TEXT("Every support effect is non-damaging"), UKalmalaSupportMagicComponent::IsNonDamagingEffect(SupportEffect));
+        Save->AddLearnedEffect(Canonical);
+        TestTrue(TEXT("Every allowlisted effect persists as an entitled learned token"), Save->HasLearnedEffect(Canonical));
+    }
+    TestFalse(TEXT("Malformed support effect is rejected"), UKalmalaSupportMagicComponent::IsKnownEffect(static_cast<EKalmalaSupportEffect>(255)));
+    TestFalse(TEXT("Malformed support effect cannot be treated as non-damaging gameplay"), UKalmalaSupportMagicComponent::IsNonDamagingEffect(static_cast<EKalmalaSupportEffect>(255)));
     TestTrue(TEXT("Activation requires authority, entitlement, sequence, cooldown, and stamina"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, true, true, true));
+    TestFalse(TEXT("Client-role activation is rejected"), UKalmalaSupportMagicComponent::IsActivationAllowed(false, true, true, true, true));
+    TestFalse(TEXT("Replay or zero-sequence activation is rejected"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, false, true, true));
     TestFalse(TEXT("Activation cannot bypass stamina"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, true, true, false));
     TestTrue(TEXT("Hearth Shield needs the same server activation gates and rejects an active refresh"), UKalmalaSupportMagicComponent::IsHearthShieldActivationAllowed(true, false));
     TestFalse(TEXT("Hearth Shield cannot refresh while its server-owned protection is active"), UKalmalaSupportMagicComponent::IsHearthShieldActivationAllowed(true, true));
@@ -45,7 +58,12 @@ bool FKalmalaDiscoveryProgressTest::RunTest(const FString& Parameters)
     auto* Reloaded = Cast<UKalmalaPlayerDiscoverySaveGame>(UGameplayStatics::LoadGameFromMemory(Bytes));
     if (TestNotNull(TEXT("Reloaded player discovery is typed"), Reloaded))
     {
-        TestTrue(TEXT("Matching reconnect retains exact discovery and learned effect"), Reloaded->Matches(World, Entitled) && Reloaded->HasDiscovery(Scroll) && Reloaded->HasLearnedEffect(Effect));
+        bool bAllEffectsPersisted = true;
+        for (const EKalmalaSupportEffect SupportEffect : Effects)
+        {
+            bAllEffectsPersisted = bAllEffectsPersisted && Reloaded->HasLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(SupportEffect));
+        }
+        TestTrue(TEXT("Matching reconnect retains exact discovery and every learned effect"), Reloaded->Matches(World, Entitled) && Reloaded->HasDiscovery(Scroll) && bAllEffectsPersisted);
         World.WorldSeed = 419;
         TestFalse(TEXT("A different immutable world cannot reuse discovery"), Reloaded->Matches(World, Entitled));
     }

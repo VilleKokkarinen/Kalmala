@@ -115,6 +115,12 @@ mapping, entitled-player learned-effect persistence through memory
 serialization, immutable-world identity rejection, and the authority,
 entitlement, sequence, cooldown, and stamina gates. Runtime activation accepts
 only the enum/sequence intent. It also covers the Deer Call empty-set gate.
+The regression also checks all four allowlisted effects against malformed
+effect values, client-role activation, and replay/zero-sequence input; verifies
+every learned token survives matching-world reconnect serialization; and audits
+that every support effect is non-damaging. Active-effect fields remain ordinary
+replicated presentation state; a rendered live-peer cast remains part of the
+later M4 vertical slice.
 Live Deer Call activation must remain server-owned: it may influence at most
 three existing idle Deer within 900 cm, must reject before stamina payment when
 none are eligible, and must not create wildlife or alter damage, harvest, loot,
