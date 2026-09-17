@@ -137,6 +137,21 @@ does not create a route, reveal a discovery catalogue, or accept client
 location/target/effect input. A rendered live two-peer boss-reward scenario
 remains part of the M4 vertical slice.
 
+## M4 vertical-slice harness
+
+After an editor build, run `Scripts/Verify-M4VerticalSlice.ps1`. The harness
+executes the existing isolated two-peer Mireling, boar, and deer scenarios on
+separate ports, retaining each server/client/restart log under one evidence
+directory, then runs `Kalmala.Gameplay.Discovery.PlayerScopedPersistence` for
+all four learned support effects. This establishes the route-free creature,
+owner-only reward, defeat-persistence, non-damaging support, and matching-world
+learning-persistence baseline without adding a route, client-selected target,
+reward, or save input. The Mireling fixture disables movement on its
+server-controlled attacker after placement so gravity cannot invalidate the
+production three-dimensional melee-range proof. A single rendered live run with four support casts,
+late-join/reconnect presentation, and a persisted return state remains the
+final M4 acceptance step.
+
 ## Exposure inspection
 
 Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 68–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.
@@ -178,6 +193,64 @@ After building, run `Scripts/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 10
 ## Local settings menu
 
 Press Escape during normal play to open the local Settings menu; press Escape again to close it and restore game input. The menu's main screen provides Options and Quit. Options contains Video, Audio, Controls, and Settings tabs; Video immediately applies and saves resolution, V-Sync, window mode, and render-distance quality through Unreal `GameUserSettings`. Run `Kalmala.UI.Settings.LocalPresentation` after an editor build for the render-distance bounds seam. This is local presentation/preferences only: no setting, menu action, or quit request is sent to the server.
+
+## M5 onboarding contract check
+
+`Scripts/Verify-OnboardingContract.ps1` is a no-build check for the optional
+local tutorial specification in `docs/13-onboarding-and-tutorial.md`. It
+requires the ten route-free prompt beats, normal keyboard/controller labels,
+colour-independent text/icon guidance, visible-context triggers, server
+authority boundaries, hidden-content privacy rules, and protection of prompt
+history from the gameplay save schema. It does not launch Unreal or claim that
+the runtime presenter, input routing, or packaged two-player prompt flow has
+been implemented.
+
+## M5 settings and accessibility contract check
+
+`Scripts/Verify-SettingsAccessibilityContract.ps1` is a no-build check for
+`docs/14-settings-and-accessibility.md`. It validates the existing Video,
+Audio, Controls, and Settings groups, text-scale and contrast requirements,
+keyboard/controller focus access, non-colour feedback, reversible local
+storage, no-RPC boundaries, and the limit that runtime menu/persistence
+verification remains pending. It does not launch Unreal or claim that the
+placeholder tabs have become functional.
+
+## M5 presentation ownership check
+
+`Scripts/Verify-PresentationOwnership.ps1` is a no-build audit for
+`docs/15-presentation-ownership.md`. It confirms the seven project-owned world
+materials, the procedural player/wildlife/environment/hearth sources, the local
+UI texture/feedback sources, and the absence of known engine-basic-shape,
+Starter Content, Marketplace, or third-party asset paths. It does not prove
+material loading, visual readability, audio, animation, packaging, or
+host/client screenshots; those still require the relevant Unreal verification.
+
+## M5 audio cue contract check
+
+`Scripts/Verify-AudioCueContract.ps1` is a no-build check for
+`docs/16-audio-cue-contract.md`. It requires the eight original cue groups,
+readable text/shape fallbacks, local mix scope, project-owned asset rule,
+server-authority/privacy boundaries, silence fallback, and no new RPC/save
+field. It does not create or play sound assets, test mixing/spatialization, or
+claim packaged two-player audio verification.
+
+## M5 local input contract check
+
+`Scripts/Verify-LocalInputContract.ps1` is a no-build check for the current
+keyboard/mouse and controller baseline in `Config/DefaultInput.ini`, as
+documented in `docs/14-settings-and-accessibility.md`. It validates the
+movement/look/map axes and Interact, Attack, Jump, Sprint, SettingsMenu,
+WorldMap, WorldMapRecenter, and CraftMenu action bindings. It does not add
+runtime remapping or launch Unreal; local control changes and focus behavior
+remain part of the later settings implementation.
+
+## M5 documentation contract suite
+
+Run `Scripts/Verify-M5DocumentationContracts.ps1` to execute the onboarding,
+settings/accessibility, presentation ownership, audio-cue, and local-input
+checks together. This is a no-build consistency gate for the current M5
+contracts; it does not replace Unreal runtime, rendered, packaged, or
+two-player verification.
 
 ## Expanded world map
 
@@ -238,7 +311,7 @@ After an editor build, run `Scripts/Verify-BiomeExpansion.ps1`. It runs `Kalmala
 
 ## Basic player controls
 
-Restart the editor after building the native modules, then play `L_Prototype`. The third-person character has a simple segmented humanoid model with walking and airborne poses. Press Space to jump once; hold either Shift key to sprint at 1.5 times the current walking speed. Releasing Shift restores walking speed, including the existing exposure penalty. Sprint has no stamina cost in this prototype.
+Restart the editor after building the native modules, then play `L_Prototype`. The third-person character uses the original faceted wanderer silhouette with a tapered mantle, hood, face guard, and walking/airborne poses. Press Space to jump once; hold either Shift key to sprint at 1.5 times the current walking speed. Releasing Shift restores walking speed, including the existing exposure penalty. Sprint has no stamina cost in this prototype.
 
 After an editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered`. It launches a hidden listen server and client, exercises the bound jump/sprint/release delegates through normal movement prediction, and checks server-observed remote sprint, upward jump, release, landing, matching world identity, and nine collision-free model parts. It retains host/client screenshots and logs in its printed temporary directory and stops its own processes. Physical keyboard input is not simulated by this test. Run the focused `Kalmala.Gameplay.Movement.SprintSavedMoves` headless automation to verify compressed flags, release, move-combination boundaries, and saved-move clearing.
 

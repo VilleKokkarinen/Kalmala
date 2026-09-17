@@ -756,6 +756,15 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         // Keep the boar at its generated rest origin: its normal territorial
         // policy must choose a nearby pawn, rather than a fixture bypassing it.
         Attacker->SetActorLocation(CombatPeerTestTarget->GetActorLocation() - Forward * 150.0f, false);
+        if (bMirelingPeerTest)
+        {
+            // Keep the listen-server pawn on the generated fixture surface while the encounter
+            // proves production 3D melee range; this avoids gravity moving it away between ticks.
+            Attacker->GetCharacterMovement()->StopMovementImmediately();
+            Attacker->GetCharacterMovement()->DisableMovement();
+            CombatPeerTestTarget->SetActorTickEnabled(true);
+            CombatPeerTestTarget->SetActorTickInterval(0.0f);
+        }
         Remote->SetActorLocation(CombatPeerTestTarget->GetActorLocation() + FVector(0.0f, 1000.0f, 0.0f), false);
         if (bDeerPeerTest)
         {
@@ -766,6 +775,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         }
         Attacker->ForceNetUpdate();
         Remote->ForceNetUpdate();
+        UE_LOG(LogTemp, Display, TEXT("%s fixture arranged: Target=%s TargetLocation=%s Attacker=%s AttackerLocation=%s Remote=%s RemoteLocation=%s"), VerificationName, *CombatPeerTestTarget->GetName(), *CombatPeerTestTarget->GetActorLocation().ToCompactString(), *Attacker->GetName(), *Attacker->GetActorLocation().ToCompactString(), *Remote->GetName(), *Remote->GetActorLocation().ToCompactString());
         CombatPeerTestStage = 1;
         CombatPeerTestStageTime = Now;
         return;
@@ -788,12 +798,21 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         return;
     }
 
-    // Give the bounded server-only encounter loop enough wall time to commit
-    // one melee hit before asserting replicated pressure.
+    // Give the bounded server-only encounter loop enough simulated time to
+    // commit one melee hit before asserting replicated pressure. Headless
+    // editor startup can leave the first few ticks below real-time speed, so
+    // retain a bounded grace window instead of treating that startup delay as
+    // a gameplay failure.
     if (CombatPeerTestStage == 1 && Now - CombatPeerTestStageTime >= 2.5f)
     {
-        if (!FMath::IsNearlyEqual(Target->GetHealth(), 100.0f) || ((bMirelingPeerTest || bBoarPeerTest) && Attacker->GetHealth() >= 100.0f))
+        const bool bTargetMutated = !FMath::IsNearlyEqual(Target->GetHealth(), 100.0f);
+        const bool bEncounterAppliedPressure = Attacker->GetHealth() < 100.0f;
+        if (bTargetMutated || ((bMirelingPeerTest || bBoarPeerTest) && !bEncounterAppliedPressure))
         {
+            if (Now - CombatPeerTestStageTime < 8.0f)
+            {
+                return;
+            }
             UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: remote target-free attack mutated the target or the server-owned encounter did not apply pressure. Health=%.1f PlayerHealth=%.1f"), Target->GetHealth(), Attacker->GetHealth());
             CombatPeerTestStage = 99;
             return;

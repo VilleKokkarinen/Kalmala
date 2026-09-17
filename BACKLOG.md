@@ -299,10 +299,48 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Verify each effect rejects invalid client payloads, never directly damages an enemy, persists learning correctly, and agrees across host/client presentation.
     - [x] Focused regression covers all allowlisted effects, malformed/client/replay gates, reconnect learning persistence, and non-damaging execution; rendered live-peer casts remain in the M4 vertical slice.
 - [x] Place one scroll discovery as a server-validated Mireling boss reward and verify it remains optional to route selection.
-- [ ] Run the M4 two-player vertical-slice scenario: freely select a route, encounter Mireling, boar, and deer, learn and use all four support effects, and return with a persisted progression reward.
+- [BLOCKED] Run the M4 two-player vertical-slice scenario: freely select a route, encounter Mireling, boar, and deer, learn and use all four support effects, and return with a persisted progression reward.
+  - [ ] **BLOCKED** Add the route-free M4 peer harness covering all three creature fixtures, owner-only rewards, defeat persistence, and the focused all-effects support regression. Exact blocker: `Verify-MirelingPeer.ps1` still fails after the rebuilt module was verified current; the fresh run at `C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingPeer-4232274be27646b5b76ca6517aaa9985` reaches the current fixture-arrangement log, then `Combat verification FAILED` with `Health=100.0 PlayerHealth=100.0`, without an encounter melee-attempt line, action serial, reward, defeat, or reconnect state. The current DLL contains the encounter log string and was linked after the source edits, so the remaining issue is runtime entry/fixture state rather than proven stale-module loading.
 
 **M4 acceptance:** two players choose their own route through the world, learn and use every support effect, encounter all three creature archetypes, and return with a progression reward. No magic effect directly damages an enemy.
 
-### M5 — Deferred
+### M5 — Vertical-slice finish
 
-Do not decompose M5 until M4 acceptance passes.
+Implementation remains gated until M4 acceptance passes. This milestone is
+decomposed now by explicit user direction so its release work is ordered and
+independently verifiable; do not start an M5 implementation while M4 remains
+incomplete.
+
+- [x] Establish the shippable vertical-slice baseline and tool-free loop.
+  - [x] Document the 20–30 minute solo/listen-server co-op walkthrough using only normal player actions and the existing route-free world. See `docs/12-vertical-slice-runbook.md`.
+  - [x] Define the fresh-player start, camp preparation, optional wilderness travel, creature/discovery/support choices, and return-state evidence required by M5 acceptance. See the acceptance matrix in `docs/12-vertical-slice-runbook.md`.
+- [x] Keep the current M5 documentation and presentation contracts runnable as one no-build suite. See `Scripts/Verify-M5DocumentationContracts.ps1`.
+- [ ] Complete the original visual and audio presentation pass.
+  - [x] Inventory the remaining presentation seams and add a no-build project-ownership audit. See `docs/15-presentation-ownership.md` and `Scripts/Verify-PresentationOwnership.ps1`.
+  - [ ] Replace remaining prototype presentation with original project-owned player, creature, environment, UI, and feedback assets without changing gameplay contracts.
+  - [x] Define original ambient, weather, interaction, combat, discovery, and support-effect cue groups with readable non-audio equivalents and a no-build contract check. See `docs/16-audio-cue-contract.md` and `Scripts/Verify-AudioCueContract.ps1`.
+  - [ ] Add original ambient, weather, interaction, combat, discovery, and support-effect audio cues with readable non-audio state equivalents.
+- [ ] Add optional onboarding and tutorial beats.
+  - [x] Define the route-free local prompt beats, visibility triggers, accessibility cues, and authority boundaries. See `docs/13-onboarding-and-tutorial.md`.
+  - [x] Add a no-build contract check for the tutorial specification and document its limits. See `Scripts/Verify-OnboardingContract.ps1`.
+  - [ ] Teach movement, gathering, shelter, weather, optional combat, discoveries, and support magic through route-free local prompts.
+  - [ ] Verify tutorial prompts never require a fixed route, authored corridor, mandatory camp, quest chain, or developer command.
+- [ ] Complete local settings and accessibility coverage.
+  - [x] Define local option groups, keyboard/controller access, text scale, contrast, non-colour feedback, persistence, and authority boundaries. See `docs/14-settings-and-accessibility.md`.
+  - [x] Add a no-build contract check for the local settings/accessibility specification and document its limits. See `Scripts/Verify-SettingsAccessibilityContract.ps1`.
+  - [x] Validate the existing keyboard/controller input baseline used by the future Controls tab without changing runtime bindings. See `Scripts/Verify-LocalInputContract.ps1`.
+  - [ ] Add local audio, control/remapping, text-scale, contrast, and non-colour feedback options to the existing settings shell.
+  - [ ] Verify options persist locally, remain usable with keyboard/controller input, and never mutate server gameplay or replicated state.
+- [ ] Run the performance and startup pass.
+  - [ ] Profile packaged startup, generated-world traversal, population activation, weather/camp updates, replication, and map/minimap workers on the supported Windows target.
+  - [ ] Fix regressions within existing bounded actor, memory, worker, and raster budgets without increasing world, population, or online-service scope.
+- [ ] Tune the survival, combat, creature, and support loop.
+  - [ ] Tune costs, cooldowns, durations, stamina/wetness penalties, creature pressure, rewards, and recovery so preparation creates choices without hard travel gates.
+  - [ ] Re-run authority, persistence, reconnect, and host/client checks after tuning; clients still provide intent only.
+- [ ] Complete release regression and packaging verification.
+  - [ ] Run the relevant automated, rendered host/client, reconnect, and current-generator regression suites and record retained evidence.
+  - [ ] Produce and smoke-launch a Windows Development package from the accepted revision without changing saved-data schemas or CI/release configuration.
+  - [ ] Attempt the dedicated-server playtest only with a server-capable UE 5.8 build; otherwise retain the documented Launcher-engine blocker.
+- [ ] Run the final M5 acceptance without developer tools.
+  - [ ] Verify a fresh player can complete the documented 20–30 minute co-op loop in the packaged build with optional routes, matching peer state, and no hidden developer dependency.
+  - [ ] Record remaining limitations, supported session modes, and the handoff for post-slice work.

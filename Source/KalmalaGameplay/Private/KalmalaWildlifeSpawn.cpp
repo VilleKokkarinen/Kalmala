@@ -154,7 +154,8 @@ void AKalmalaWildlifeSpawn::UpdateMirelingScavenge(const float DeltaSeconds)
     for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
     {
         AKalmalaCharacter* Candidate = *It;
-        if (!IsValid(Candidate) || !Candidate->HasAuthority() || Candidate->GetHealth() <= 1.0f) continue;
+        if (!IsValid(Candidate) || !Candidate->HasAuthority()) continue;
+        if (Candidate->GetHealth() <= 1.0f) continue;
         const float DistanceSquared = FVector::DistSquared(Candidate->GetActorLocation(), GetActorLocation());
         if (DistanceSquared < BestDistanceSquared) { Nearest = Candidate; BestDistanceSquared = DistanceSquared; }
     }
@@ -164,7 +165,12 @@ void AKalmalaWildlifeSpawn::UpdateMirelingScavenge(const float DeltaSeconds)
         const FVector Direction = (Nearest->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
         SetActorLocation(GetActorLocation() + Direction * FMath::Min(170.0f * FMath::Clamp(DeltaSeconds, 0.0f, 0.10f), FMath::Sqrt(BestDistanceSquared) - 145.0f), true);
     }
-    else if (MirelingMeleeCooldown <= 0.0f && BestDistanceSquared <= FMath::Square(180.0f) && Nearest->ApplyWildlifeDamageFromServer(this, 10.0f)) MirelingMeleeCooldown = 1.0f;
+    else if (MirelingMeleeCooldown <= 0.0f && BestDistanceSquared <= FMath::Square(180.0f))
+    {
+        const bool bApplied = Nearest->ApplyWildlifeDamageFromServer(this, 10.0f);
+        UE_LOG(LogTemp, Display, TEXT("Mireling encounter attempt: Applied=%d Authority=%d SourceAuthority=%d Distance=%.1f Health=%.1f"), bApplied, Nearest->HasAuthority(), HasAuthority(), FMath::Sqrt(BestDistanceSquared), Nearest->GetHealth());
+        if (bApplied) MirelingMeleeCooldown = 1.0f;
+    }
 }
 
 void AKalmalaWildlifeSpawn::UpdateBoarTerritory(const float DeltaSeconds)

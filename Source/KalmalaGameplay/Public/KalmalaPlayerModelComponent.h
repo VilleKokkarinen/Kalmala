@@ -6,7 +6,7 @@
 class UProceduralMeshComponent;
 class UMaterialInterface;
 
-/** Original segmented prototype humanoid; local cosmetics only. */
+/** Original faceted wanderer silhouette; local cosmetics only. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaPlayerModelComponent : public USceneComponent
 {
@@ -17,7 +17,7 @@ public:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* TickFunction) override;
     int32 GetPartCount() const { return Parts.Num(); }
 private:
-    UProceduralMeshComponent* AddPart(FName Name, FVector Pivot, FVector Centre, FVector HalfSize, UMaterialInterface* Material);
+    UProceduralMeshComponent* AddPart(FName Name, FVector Pivot, FVector Centre, FVector HalfSize, UMaterialInterface* Material, bool bTapered = false);
     UPROPERTY(Transient)
     TArray<TObjectPtr<UProceduralMeshComponent>> Parts;
     UPROPERTY(Transient)

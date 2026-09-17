@@ -3153,3 +3153,533 @@ slice.
 
 Next task: Place one scroll discovery as a server-validated Mireling boss
 reward and verify it remains optional to route selection.
+
+### 2026-09-17T11:18:00+03:00 - Add M4 vertical-slice harness baseline
+
+Outcome: Added `Scripts/Verify-M4VerticalSlice.ps1`, a bounded development-only
+harness that runs the existing isolated two-peer Mireling, boar, and deer
+scenarios on separate ports, retains their logs under one evidence directory,
+and then runs the focused all-effects support-magic persistence/non-damage
+regression. The harness gives M4 one repeatable route-free creature and
+progression baseline while leaving the final parent acceptance open for a
+single rendered live run with four support casts and return-state presentation.
+
+Changed: `Scripts/Verify-M4VerticalSlice.ps1`; `docs/07-development-setup.md`;
+`BACKLOG.md`; this handoff.
+
+Verification: Pending in this handoff; run the new harness after the current
+editor build. No runtime source or saved-data schema changed.
+
+Multiplayer impact: The harness composes existing server-authoritative fixtures
+only. Clients still provide no target, route, damage, reward, discovery, or
+learned-effect payload; isolated host/client/restart logs remain separate.
+
+Known limits: This increment does not yet drive all four support activations in
+one live rendered session, verify late-join/reconnect presentation, or prove a
+single freely chosen route returning with the persisted reward.
+
+Next task: Run the new M4 harness, then add the smallest live two-peer support
+cast/return-state fixture needed to close the parent M4 acceptance.
+
+### 2026-09-17T11:20:00+03:00 - Blocked M4 harness verification
+
+Outcome: The new harness could not complete because the existing Mireling
+two-peer fixture timed out before its success line. The corrected harness
+invocation was attempted twice, and `Verify-MirelingPeer.ps1` was run directly
+as a third attempt; all three stopped at the same timeout. The retained server
+logs reached `Mireling verification server fixture enabled` but never emitted
+the required action serial, defeat, reward, or reconnect-success state.
+
+Changed: `BACKLOG.md`; this handoff. The harness, setup documentation, and
+verification baseline remain in the working tree for the next run; no runtime
+source, generated directory, or saved-data schema changed.
+
+Verification: **BLOCKED**. `Scripts/Verify-M4VerticalSlice.ps1 -Port 18160`
+timed out in evidence directories
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-cecc48b8ccf94fc9bde35752ae416a39`
+and
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-88a3ab4a619c40468dffd1788dee128c`.
+The direct third attempt timed out in
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingThird-c49f1713ad2840eead880b45c1473727`.
+No commit was created because required verification failed.
+
+Multiplayer impact: No gameplay or network contract changed. The intended
+harness still composes server-authoritative fixtures with no client-selected
+target, route, damage, reward, discovery, or learned-effect payload.
+
+Known limits: The M4 parent acceptance remains open. The Mireling fixture must
+first be repaired or its environment blocker resolved before the composed
+harness can verify boar, deer, support casts, and persisted return state.
+
+Next task: Inspect the retained Mireling server/client logs and repair the
+pre-existing Mireling peer timeout, then rerun the M4 harness.
+### 2026-09-17T11:30:00+03:00 - M4 vertical-slice verification blocked
+
+Outcome: The required editor build passed, but the new bounded M4 harness could
+not complete because the first existing Mireling peer fixture failed its
+server-owned encounter-pressure precondition and then timed out waiting for
+the success signature. The server logged `Combat verification FAILED:
+remote target-free attack mutated the target or the server-owned encounter did
+not apply pressure. Health=100.0 PlayerHealth=100.0` after the fixture's
+2.5-second pressure window. The same failure reproduced on two fresh isolated
+ports, so this is a deterministic blocker rather than a transient harness
+startup issue.
+
+Evidence: the harness run retained logs at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-c1e26c98164046469c57fa2b080edf3b/`
+and the three Mireling attempts retained logs at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingRetry-2133d9bdacc942108e96c8e63ff9b3f4/`
+and
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingRetry3-d916586986a64c8badd4113ff9387c0a/`.
+The forced `KalmalaEditor Win64 Development` build completed with `Result:
+Succeeded`; no source or generated project files were changed during this run.
+
+Multiplayer impact: The blocker is in the development-only peer fixture's
+server encounter-pressure assertion; no runtime authority or replication
+contract was changed. The client still supplies only the existing target-free
+attack intent in this fixture.
+
+Known limits: The M4 harness did not reach boar, deer, support-effect, or
+return-state checks, and the M4 acceptance remains open. No commit was made.
+
+Next task: Repair the deterministic Mireling peer fixture/encounter-pressure
+setup, rerun the isolated Mireling verification, then rerun the full M4
+harness before attempting the parent acceptance again.
+### 2026-09-17T11:38:43+03:00 - M4 Mireling blocker persists after repair attempts
+
+Outcome: **BLOCKED**. The forced editor rebuild passed, and the Mireling
+fixture was retried on four fresh ports after adding a bounded eight-second
+pressure grace window. Every retry still timed out: the server placed the
+authoritative Mireling and attacker within 0.1 cm, both remained idle/healthy,
+and no server-owned encounter melee attempt occurred before the bounded
+failure. The temporary diagnostics were removed; the grace-window edit remains
+uncommitted for the next run to inspect.
+
+Changed: `BACKLOG.md`; this handoff; the uncommitted development-only grace
+window in `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`. No saved-data,
+shipping gameplay, replication contract, or generated directory changed.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-MaxParallelActions=4` passed with UnrealBuildTool cache access and
+`Result: Succeeded`. `Scripts/Verify-MirelingPeer.ps1` failed on ports 18170,
+18171, 18172, and 18173; latest retained evidence is
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingPeer-0d48bd70983e41cbba0c018ca231cf23`.
+No commit was created because the required M4 verification failed.
+
+Multiplayer impact: No runtime network authority or client payload changed;
+the unresolved failure is confined to the development-only fixture's
+server-owned encounter-pressure precondition.
+
+Known limits: The composed M4 harness still has not reached boar, deer,
+support casts, or persisted return-state checks. The Mireling fixture needs a
+focused tick/authority investigation before the harness can be rerun.
+
+Next task: Investigate why `AKalmalaWildlifeSpawn::UpdateMirelingScavenge`
+does not enter its server melee path despite co-location, then rerun the
+isolated Mireling fixture and the full M4 harness.
+
+### 2026-09-17T11:50:00+03:00 - Mireling fixture repair remains blocked
+
+Outcome: **BLOCKED**. I rebuilt the editor successfully and made/reverted
+three focused development-only repair experiments: explicit wildlife tick
+enablement, a direct call to the existing server wildlife-damage gate, and a
+diagnostic authority/distance log. Four fresh isolated peer runs still timed
+out at the same pressure assertion; the selected server Mireling remained
+idle and healthy at approximately 0 cm from the attacker, with no usable
+pressure evidence. The temporary experiments were removed; the prior
+uncommitted grace-window change remains preserved.
+
+Changed: this handoff only for this run. No saved-data, shipping gameplay,
+replication contract, or generated directory changed. No commit was created.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` reported `Result: Succeeded`. Fresh fixture
+evidence is retained at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingRepair-9aa917b28429429fb912d9df9617a6b9`,
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingRepair2-4f470e2c1feb4020809419e9e0459e60`,
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingRepair3-91557aac59d14a9abc017fe685bbf673`,
+and `C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingRepair4-35a3198fe5e948dd94ec85ad6437b761`.
+`git diff --check` passed.
+
+Multiplayer impact: no runtime authority or client payload changed; the
+blocker remains confined to the development-only fixture's server encounter
+pressure precondition.
+
+Known limits: the M4 harness still has not reached boar, deer, support casts,
+or persisted return-state checks. The launched editor appears not to reflect
+the latest fixture diagnostic despite successful UBT output, so stale-module
+loading must be resolved before changing gameplay logic.
+
+Next task: verify the launched editor/module timestamp and process lifetime,
+then isolate why the Mireling fixture binary is stale before rerunning the
+Mireling peer and full M4 harness.
+### 2026-09-17T13:06:22+03:00 - Mireling module freshness ruled out; fixture remains blocked
+
+Outcome: **BLOCKED**. The stale-module handoff was isolated. The latest UBT
+record rebuilt the changed Mireling/GameMode units and linked
+`UnrealEditor-KalmalaGameplay.dll`; the current DLL contains the source's
+`Mireling encounter attempt` format string. A fresh `Verify-MirelingPeer.ps1`
+run still reached the current `Mireling fixture arranged` line, but never
+entered the Mireling tick/melee branch and failed the bounded pressure check
+with `Health=100.0 PlayerHealth=100.0`. No further speculative runtime repair
+was made.
+
+Changed: `BACKLOG.md`; this handoff only. Existing working-tree edits in the
+three peer scripts, GameMode, WildlifeSpawn, setup documentation, and the M4
+harness were preserved; no generated directory or saved-data schema changed.
+
+Verification: the forced editor build recorded `Result: Succeeded` in
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`; the fresh peer run
+failed with evidence at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingPeer-4232274be27646b5b76ca6517aaa9985`.
+The server log includes fixture arrangement at 09:23:34 UTC and the pressure
+failure at 09:23:41 UTC, while the current binary inspection confirms the
+encounter log string is present. `git diff --check` passed after this
+documentation-only update.
+
+Multiplayer impact: no runtime authority, replication, client payload, reward,
+or save contract changed. The failure remains in the development-only
+server-owned Mireling peer fixture.
+
+Known limits: the M4 harness still has not reached boar, deer, support casts,
+or persisted return-state checks. The remaining fault is not explained by a
+stale editor module; `UpdateMirelingScavenge` still requires a focused runtime
+entry/actor-state diagnosis before changing gameplay logic.
+
+Next task: inspect the live loaded module/actor tick state or repair the
+development-only Mireling fixture, then rerun the isolated peer and full M4
+harness after a passing pressure check.
+
+### 2026-09-17T14:00:00+03:00 — Decompose M5 backlog by explicit user direction
+
+Outcome: Added an ordered M5 vertical-slice-finish backlog while preserving the
+existing M4 gate and Mireling blocker. The new M5 plan covers the tool-free
+20–30 minute loop, original presentation, optional onboarding, local settings
+and accessibility, performance, balance, regression/packaging, dedicated-server
+availability, and final packaged acceptance. M5 implementation remains gated
+until M4 acceptance passes.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`. No gameplay, network, persistence,
+generated, CI, release, or saved-data files changed.
+
+Verification: `git diff --check` passed. No Unreal build or packaged run was
+required for this backlog-only increment; the prior M4 Unreal verification
+blocker remains documented above.
+
+Multiplayer impact: None. This increment adds planning text only. The M5
+entries preserve server authority, owner-only progression, route-free travel,
+and the existing dedicated-server setup constraint.
+
+Known limits: M4 remains the earliest incomplete milestone and its Mireling
+peer fixture is still blocked. No M5 implementation or acceptance evidence is
+claimed, and no new product, platform, business-model, asset-license, or
+online-service decision was made.
+
+Next task: Restore UnrealBuildTool access, repair the development-only Mireling
+fixture, and rerun the isolated Mireling peer before the M4 harness.
+
+### 2026-09-17T14:20:00+03:00 — Add M5 tool-free vertical-slice runbook
+
+Outcome: Completed the first M5 backlog child by adding a durable 20–30-minute
+fresh-player listen-server walkthrough and evidence charter. The runbook covers
+normal movement, player-chosen camp preparation, route-free travel, optional
+encounter/discovery/support choices, return/reconnect expectations, and the
+owner-only/relevant-peer acceptance boundaries. It explicitly defers the
+Mireling and full M4 prerequisite rather than claiming unavailable runtime
+coverage.
+
+Changed: `docs/12-vertical-slice-runbook.md`; `docs/README.md`; `BACKLOG.md`;
+`PROGRESS.md`. No gameplay, network, persistence, generated, CI, release, or
+saved-data files changed.
+
+Verification: `git diff --check` passed. This documentation-only increment did
+not require an Unreal build or packaged run; M4's existing Unreal verification
+blocker remains unchanged.
+
+Multiplayer impact: None at runtime. The runbook preserves server ownership of
+world identity, terrain, population, targeting, damage, weather, exposure,
+construction, inventory, discoveries, learned effects, rewards, and sparse
+saves. Local maps, settings, and prompts remain presentation-only.
+
+Known limits: M4 is still the earliest incomplete milestone and its Mireling
+peer fixture remains blocked. The runbook is not live acceptance evidence, and
+the remaining M5 baseline child is to define the fresh-player start,
+camp/travel/choice evidence, and return-state checklist explicitly.
+
+Next task: Add the M5 fresh-player acceptance checklist and evidence matrix,
+or, if returning to the earlier gated milestone, restore UnrealBuildTool access
+and repair the Mireling fixture first.
+
+### 2026-09-17T14:35:00+03:00 — Define M5 fresh-player evidence matrix
+
+Outcome: Completed the next M5 baseline child by adding an explicit acceptance
+matrix for fresh start, player-chosen camp preparation, optional travel,
+creature/discovery/support choices, return, and reconnect. Each phase now has a
+normal player action, observable evidence, and authority/privacy pass condition.
+The matrix keeps the M4 creature/effect rows gated until M4 is complete and
+does not introduce a route, developer dependency, or hidden-content query.
+
+Changed: `docs/12-vertical-slice-runbook.md`; `BACKLOG.md`; `PROGRESS.md`.
+No gameplay, network, persistence, generated, CI, release, or saved-data files
+changed.
+
+Verification: `git diff --check` passed. This documentation-only increment did
+not require an Unreal build or packaged run; the existing M4 Mireling
+verification blocker remains unchanged.
+
+Multiplayer impact: None at runtime. The matrix preserves server authority for
+world identity, terrain, interactions, population, combat, exposure,
+construction, inventory, discoveries, learned effects, rewards, and sparse
+saves. Local maps/settings remain presentation-only and private progression is
+not exposed to the other player.
+
+Known limits: M5's parent baseline remains incomplete until its two children are
+combined and the M4 prerequisite passes. No live two-player, packaged, or
+reconnect acceptance evidence is claimed.
+
+Next task: Continue the explicitly requested M5 work with the original visual
+and audio presentation pass, or return to M4 and repair the blocked Mireling
+peer fixture when UnrealBuildTool verification is available.
+
+### 2026-09-17T13:58:36+03:00 — Define M5 route-free onboarding prompt contract
+
+Outcome: Completed a documentation-only M5 increment defining ten optional,
+local onboarding beats for arrival, interaction, gathering, camp preparation,
+weather, exploration, optional encounters, discoveries, support magic, and
+return. Each beat now has a visible-context trigger, player-facing text,
+route-free wording, colour-independent presentation requirements, and an
+authority/privacy boundary. The runtime prompt presenter remains a separate
+implementation task.
+
+Changed: `docs/13-onboarding-and-tutorial.md`; `docs/README.md`; `BACKLOG.md`;
+`PROGRESS.md`. No gameplay, network, persistence, generated, CI, release, or
+saved-data files changed.
+
+Verification: `git diff --check` passed. A focused documentation check passed
+with all four contract sections and all ten route-free beat rows present. No
+Unreal build, editor run, or packaged run was required for this increment.
+
+Multiplayer impact: None at runtime. The contract keeps prompts local and
+dismissible; the server remains authoritative for world identity, terrain,
+population, interactions, weather, exposure, construction, inventory, combat,
+discoveries, learned effects, rewards, and saves. Prompts send no RPC and
+expose no hidden or owner-private state.
+
+Known limits: The prompt presenter and runtime two-player verification are not
+implemented. The earlier faceted player-presentation change remains
+unverified because UnrealBuildTool access is still unavailable, and its
+backlog checkbox remains open. M4 acceptance and the final M5 gate remain
+incomplete.
+
+Next task: When UnrealBuildTool access is restored, verify the pending faceted
+player presentation increment, then implement the local prompt presenter from
+`docs/13-onboarding-and-tutorial.md` without adding a server contract.
+
+### 2026-09-17T14:02:38+03:00 — Add no-build M5 onboarding contract verification
+
+Outcome: Completed the next build-independent M5 onboarding increment by adding
+`Scripts/Verify-OnboardingContract.ps1`. The check validates the four tutorial
+contract sections, exactly ten route-free beat rows, keyboard/controller labels,
+colour-independent cues, visible-context and server-authority boundaries,
+hidden-content privacy language, and exclusion of prompt history from the
+gameplay save schema. The setup guide and onboarding contract now document the
+command and its non-runtime limits.
+
+Changed: `Scripts/Verify-OnboardingContract.ps1`;
+`docs/13-onboarding-and-tutorial.md`; `docs/07-development-setup.md`;
+`docs/README.md`; `BACKLOG.md`; `PROGRESS.md`. No gameplay, network,
+persistence, generated, CI, release, or saved-data files changed.
+
+Verification: `Scripts/Verify-OnboardingContract.ps1` passed with all ten
+route-free beats and required contract sections. `git diff --check` passed. No
+Unreal build, editor run, or packaged run was required for this documentation
+and static-check increment.
+
+Multiplayer impact: None at runtime. The checker enforces that tutorial prompts
+remain local presentation, send no RPC, do not reveal hidden or owner-private
+state, and cannot mutate server-owned world, interaction, weather, survival,
+combat, discovery, reward, or save state.
+
+Known limits: The runtime prompt presenter, input routing, and two-player
+packaged prompt evidence are not implemented. The earlier faceted player
+presentation change remains unverified because UnrealBuildTool access is still
+unavailable. The scoped commit is still blocked by `.git/index.lock` write
+permission and Codex usage-limit escalation; pre-existing changes remain
+untouched.
+
+Next task: When UnrealBuildTool access is restored, verify the pending faceted
+player presentation increment; otherwise continue the next build-independent
+M5 contract increment without claiming runtime onboarding coverage.
+
+### 2026-09-17T14:05:18+03:00 — Add no-build M5 settings/accessibility contract
+
+Outcome: Completed the next build-independent M5 increment by defining the
+existing settings shell's local Video, Audio, Controls, and Settings option
+groups plus text-scale, contrast, focus, keyboard/controller, mute/restore,
+non-colour feedback, and reversible local-change requirements. Added
+`Scripts/Verify-SettingsAccessibilityContract.ps1` to enforce the documented
+option, accessibility, local-storage, no-RPC, and server-authority boundaries.
+
+Changed: `docs/14-settings-and-accessibility.md`;
+`Scripts/Verify-SettingsAccessibilityContract.ps1`; `docs/07-development-setup.md`;
+`docs/README.md`; `BACKLOG.md`; `PROGRESS.md`. No gameplay, network,
+persistence, generated, CI, release, or saved-data files changed.
+
+Verification: `Scripts/Verify-SettingsAccessibilityContract.ps1` passed.
+`git diff --check` passed. No Unreal build, editor run, or packaged run was
+required for this contract and static-check increment.
+
+Multiplayer impact: None at runtime. The contract keeps settings local and
+non-authoritative; changing them sends no RPC, cannot alter gameplay or saves,
+and cannot select targets, damage, quantities, transforms, rewards, statuses,
+weather, or effect execution. Existing server-owned replicated outcomes remain
+the only gameplay state presented to peers.
+
+Known limits: Runtime settings controls, persistence, focus routing, rendered
+contrast/text-scale checks, and packaged two-player observation are not
+implemented. The faceted player presentation and runtime onboarding changes
+remain unverified because UnrealBuildTool access is unavailable. The scoped
+commit remains blocked by `.git/index.lock` permissions and Codex usage-limit
+escalation; pre-existing changes remain untouched.
+
+Next task: When UnrealBuildTool access is restored, verify the pending faceted
+player presentation increment; otherwise continue the next build-independent
+M5 contract increment without claiming runtime settings coverage.
+
+### 2026-09-17T14:35:16+03:00 — Add aggregate M5 no-build contract suite
+
+Outcome: Completed the next build-independent M5 increment by adding
+`Scripts/Verify-M5DocumentationContracts.ps1`, which runs the onboarding,
+settings/accessibility, presentation ownership, audio-cue, and local-input
+contract checks together. The wrapper preserves each focused check's failure
+and reports one deterministic no-build gate for the current M5 documentation
+surface.
+
+Changed: `Scripts/Verify-M5DocumentationContracts.ps1`; `docs/07-development-setup.md`;
+`docs/README.md`; `BACKLOG.md`; `PROGRESS.md`. No gameplay, network,
+persistence, generated, CI, release, or saved-data files changed.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` passed all 5 child
+checks: onboarding, settings/accessibility, presentation ownership, audio cue,
+and local input. `git diff --check` passed. No Unreal build, editor run, or
+packaged run was required for this documentation-suite increment.
+
+Multiplayer impact: None at runtime. The suite only checks local presentation
+contracts and their explicit server-authority, privacy, no-RPC, no-save, and
+non-colour fallback boundaries; it adds no gameplay or network payload.
+
+Known limits: The suite cannot prove runtime prompt/settings presenters, sound
+assets or mixing, visual/material loading, animation, packaging, or host/client
+behavior. The pending faceted player change remains unverified because
+UnrealBuildTool access is unavailable. The scoped commit remains blocked by
+`.git/index.lock` permissions and Codex usage-limit escalation; pre-existing
+changes remain untouched.
+
+Next task: When UnrealBuildTool access is restored, verify the pending faceted
+player presentation increment; otherwise continue the next build-independent
+M5 contract increment without claiming runtime presentation coverage.
+
+### 2026-09-17T14:08:51+03:00 — Add no-build M5 presentation ownership audit
+
+Outcome: Completed the next build-independent M5 presentation increment by
+recording the ownership ledger for player, wildlife, environment, hearth, UI,
+and feedback seams. Added `Scripts/Verify-PresentationOwnership.ps1` to check
+the seven committed project-owned world materials, seven procedural/UI source
+anchors, the presentation-only authority boundary, and the absence of known
+engine-basic-shape, Starter Content, Marketplace, Quixel, or third-party asset
+paths.
+
+Changed: `docs/15-presentation-ownership.md`;
+`Scripts/Verify-PresentationOwnership.ps1`; `docs/07-development-setup.md`;
+`docs/README.md`; `BACKLOG.md`; `PROGRESS.md`. No gameplay, network,
+persistence, generated, CI, release, or saved-data files changed.
+
+Verification: `Scripts/Verify-PresentationOwnership.ps1` passed with 7 assets
+and 7 source seams. `git diff --check` passed. No Unreal build, editor run, or
+packaged run was required for this ownership and static-audit increment.
+
+Multiplayer impact: None at runtime. The audit enforces presentation-only
+geometry/UI/feedback, server-owned replicated gameplay results, no client
+authority, no hidden-content disclosure, no new persistence, and no new
+network payload.
+
+Known limits: The visual/audio replacement pass, material loading, visual
+readability, animation, audio mixing, runtime settings/tutorial presenters,
+packaging, and host/client screenshots remain unverified. The pending faceted
+player change still requires UnrealBuildTool access. The scoped commit remains
+blocked by `.git/index.lock` permissions and Codex usage-limit escalation;
+pre-existing changes remain untouched.
+
+Next task: When UnrealBuildTool access is restored, verify the pending faceted
+player presentation increment; otherwise continue the next build-independent
+M5 presentation/acceptance contract without claiming runtime visual coverage.
+
+### 2026-09-17T14:30:31+03:00 — Add no-build M5 audio cue contract
+
+Outcome: Completed the next build-independent M5 presentation increment by
+defining eight original audio cue groups for ambient wilderness, movement,
+weather/exposure, interaction/gathering, combat, discovery, support magic, and
+camp/storage. Each cue now has a readable non-audio equivalent and explicit
+visible-context, project-ownership, local-mix, silence-fallback, and
+server-authority/privacy limits. Added `Scripts/Verify-AudioCueContract.ps1`
+to validate the contract.
+
+Changed: `docs/16-audio-cue-contract.md`;
+`Scripts/Verify-AudioCueContract.ps1`; `docs/07-development-setup.md`;
+`docs/README.md`; `BACKLOG.md`; `PROGRESS.md`. No gameplay, network,
+persistence, generated, CI, release, or saved-data files changed.
+
+Verification: `Scripts/Verify-AudioCueContract.ps1` passed with all eight cue
+groups and required authority/fallback boundaries. `git diff --check` passed.
+No Unreal build, editor run, or packaged run was required for this contract and
+static-check increment.
+
+Multiplayer impact: None at runtime. Audio remains local presentation driven
+only by normal visible or relevant replicated context; it sends no request,
+selects no target, applies no damage, grants no reward, reveals no private
+state, and adds no replication or save field.
+
+Known limits: No sound assets, mix, spatialization, silence fallback runtime,
+packaged playback, or two-player cue-privacy evidence was implemented. The
+faceted player presentation, tutorial presenter, and settings runtime remain
+unverified because UnrealBuildTool access is unavailable. The scoped commit
+remains blocked by `.git/index.lock` permissions and Codex usage-limit
+escalation; pre-existing changes remain untouched.
+
+Next task: When UnrealBuildTool access is restored, verify the pending faceted
+player presentation increment; otherwise continue the next build-independent
+M5 contract increment without claiming runtime audio coverage.
+
+### 2026-09-17T14:32:41+03:00 — Validate M5 local input baseline without Unreal
+
+Outcome: Completed the next build-independent M5 settings increment by
+documenting the current `Config/DefaultInput.ini` keyboard/mouse and
+controller baseline for movement, look, map, interaction, attack, jump,
+sprint, settings, and crafting. Added `Scripts/Verify-LocalInputContract.ps1`
+to validate five axes, eight action groups, and the Enhanced Input component
+baseline without changing any runtime binding.
+
+Changed: `docs/14-settings-and-accessibility.md`;
+`Scripts/Verify-LocalInputContract.ps1`; `docs/07-development-setup.md`;
+`docs/README.md`; `BACKLOG.md`; `PROGRESS.md`. No gameplay, network,
+persistence, generated, CI, release, or saved-data files changed.
+
+Verification: `Scripts/Verify-LocalInputContract.ps1` passed with 5 axes and 8
+actions. `git diff --check` passed. No Unreal build, editor run, or packaged run
+was required for this configuration/documentation increment.
+
+Multiplayer impact: None at runtime. This preserves the existing normal input
+intent surface; remapping remains local presentation and cannot add target,
+damage, quantity, transform, reward, status, weather, effect, replication, or
+save payloads.
+
+Known limits: Runtime remapping, focus routing, controller behavior, text-scale,
+contrast, audio, packaged playback, and two-player settings observation remain
+unimplemented or unverified. The faceted player presentation, tutorial
+presenter, and audio runtime remain blocked on UnrealBuildTool access. The
+scoped commit remains blocked by `.git/index.lock` permissions and Codex
+usage-limit escalation; pre-existing changes remain untouched.
+
+Next task: When UnrealBuildTool access is restored, verify the pending faceted
+player presentation increment; otherwise continue the next build-independent
+M5 contract increment without claiming runtime settings coverage.
