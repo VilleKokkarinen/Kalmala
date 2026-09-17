@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "KalmalaWorldGenerationConfig.h"
+#include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaInteractionGrid.h"
 #include "KalmalaGameMode.generated.h"
@@ -51,6 +52,7 @@ private:
     void DriveCampChoiceTest();
     void DriveRainVerticalSliceTest();
     void DriveCombatPeerTest();
+    void DriveDiscoveryPeerTest();
     float CampChoiceStartTime = -1.0f;
     int32 CampChoiceStage = 0;
     TArray<TWeakObjectPtr<class AKalmalaCharacter>> CampChoicePlayers;
@@ -73,6 +75,13 @@ private:
     TWeakObjectPtr<class AKalmalaWildlifeSpawn> CombatPeerTestTarget;
     TWeakObjectPtr<class AKalmalaWildlifeSpawn> CombatPeerTestHerdMate;
     bool bCombatPeerTestHerdAlertObserved = false;
+    int32 DiscoveryPeerTestStage = 0;
+    float DiscoveryPeerTestStageTime = 0.0f;
+    bool bDiscoveryPeerTestLogged = false;
+    FKalmalaWorldDiscoveryDescriptor DiscoveryPeerTestDescriptor;
+    TWeakObjectPtr<class AKalmalaCharacter> DiscoveryPeerTestEntitled;
+    TWeakObjectPtr<class AKalmalaCharacter> DiscoveryPeerTestRemote;
+    TWeakObjectPtr<class AKalmalaDiscoveryActor> DiscoveryPeerTestActor;
     void InitializeWeatherCycle();
     void AdvanceWeatherCycleIfNeeded();
     void PlacePawnAtGeneratedStart(class APlayerController* PlayerController);

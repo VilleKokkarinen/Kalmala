@@ -289,7 +289,7 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
 - [ ] Add optional deterministic open-world points of interest and scroll discoveries across suitable biomes.
   - [x] Derive bounded, stable point-of-interest and scroll descriptors from the existing world identity without routes, mandatory crossings, or hidden client discovery queries.
   - [x] Add server-validated one-time discovery rewards with colour-independent local feedback and persistence across reconnect only for the entitled player.
-  - [ ] Verify same-seed reproduction, different-seed variation, duplicate/distant request rejection, and privacy of undiscovered content.
+  - [x] Verify same-seed reproduction, different-seed variation, duplicate/distant request rejection, and privacy of undiscovered content.
 - [ ] Implement the scroll-learned, non-damaging support-magic foundation.
   - [ ] Add server-owned learned-effect validation, stamina/cooldown rules, replicated active-state presentation, and persistence keyed to the entitled player and immutable world identity.
   - [ ] Implement Mending as a validated ally heal that cannot target invalid actors or damage enemies.

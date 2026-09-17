@@ -119,6 +119,10 @@ void AKalmalaCharacter::BeginPlay()
     bControlsTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaPlayerControlsTest"));
     bSwimmingTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaSwimmingTest"));
     bOceanTravelTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanTravelTest"));
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) && GetWorld() != nullptr)
+    {
+        DiscoveryPeerTestStartTime = GetWorld()->GetTimeSeconds();
+    }
     if (bOceanTravelTestEnabled)
     {
         // The fixture compares terrain streaming and movement agreement, not
@@ -142,6 +146,24 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
         // This fixture deliberately supplies no target, damage, or timing data.
         Combat->ServerRequestAttack(1);
     }
+
+#if !UE_BUILD_SHIPPING
+    if (!bDiscoveryPeerPrivacyLogged && !HasAuthority() && IsLocallyControlled()
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest"))
+        && DiscoveryPeerTestStartTime >= 0.0f && GetWorld()->GetTimeSeconds() - DiscoveryPeerTestStartTime >= 4.0f)
+    {
+        bDiscoveryPeerPrivacyLogged = true;
+        const UKalmalaDiscoveryProgressComponent* Progress = GetDiscoveryProgressComponent();
+        if (Progress != nullptr && Progress->GetFeedback() == EKalmalaDiscoveryFeedback::None && Progress->GetFeedbackSerial() == 0 && Progress->GetFeedbackLabel().IsEmpty())
+        {
+            UE_LOG(LogTemp, Display, TEXT("Discovery verification client retained no undiscovered remote progress feedback."));
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Discovery verification client received undiscovered remote progress feedback."));
+        }
+    }
+#endif
 
     if (IsLocallyControlled() && Controller && Controller->IsMoveInputIgnored())
     {

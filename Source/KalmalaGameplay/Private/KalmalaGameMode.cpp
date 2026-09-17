@@ -853,6 +853,109 @@ void AKalmalaGameMode::DriveCombatPeerTest()
 #endif
 }
 
+void AKalmalaGameMode::DriveDiscoveryPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) || GetWorld() == nullptr) return;
+    if (!bDiscoveryPeerTestLogged)
+    {
+        bDiscoveryPeerTestLogged = true;
+        UE_LOG(LogTemp, Display, TEXT("Discovery verification server fixture enabled."));
+    }
+    const float Now = GetWorld()->GetTimeSeconds();
+    if (DiscoveryPeerTestStage == 0)
+    {
+        APlayerController* LocalController = GetWorld()->GetFirstPlayerController();
+        AKalmalaCharacter* Entitled = LocalController ? Cast<AKalmalaCharacter>(LocalController->GetPawn()) : nullptr;
+        AKalmalaCharacter* Remote = nullptr;
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            if (*It != Entitled && (*It)->GetPlayerState() != nullptr) { Remote = *It; break; }
+        }
+        if (Entitled == nullptr || Remote == nullptr) return;
+        const FIntPoint Centre = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(Entitled->GetActorLocation()));
+        bool bFound = false;
+        for (int32 Y = -3; Y <= 3 && !bFound; ++Y) for (int32 X = -3; X <= 3 && !bFound; ++X)
+        {
+            const FIntPoint Key = Centre + FIntPoint(X, Y);
+            for (const EKalmalaWorldDiscoveryKind Kind : { EKalmalaWorldDiscoveryKind::PointOfInterest, EKalmalaWorldDiscoveryKind::Scroll })
+            {
+                const TArray<FKalmalaWorldDiscoveryDescriptor> First = FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(WorldGenerationConfig, Key, Kind);
+                const TArray<FKalmalaWorldDiscoveryDescriptor> Repeat = FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(WorldGenerationConfig, Key, Kind);
+                if (First.IsEmpty()) continue;
+                FKalmalaWorldGenerationConfig DifferentWorld = WorldGenerationConfig; ++DifferentWorld.WorldSeed;
+                const TArray<FKalmalaWorldDiscoveryDescriptor> Different = FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(DifferentWorld, Key, Kind);
+                const FString Id = FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(First[0]);
+                const bool bSameSeed = Repeat.ContainsByPredicate([&Id](const FKalmalaWorldDiscoveryDescriptor& Candidate) { return FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Candidate) == Id; });
+                const bool bDifferentSeed = !Different.ContainsByPredicate([&Id](const FKalmalaWorldDiscoveryDescriptor& Candidate) { return FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Candidate) == Id; });
+                if (!bSameSeed || !bDifferentSeed) continue;
+                DiscoveryPeerTestDescriptor = First[0];
+                ActivatePopulationKey(Key);
+                bFound = true;
+                break;
+            }
+        }
+        if (!bFound)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Discovery verification FAILED: no same-seed/different-seed descriptor in bounded search."));
+            DiscoveryPeerTestStage = 99;
+            return;
+        }
+        DiscoveryPeerTestEntitled = Entitled;
+        DiscoveryPeerTestRemote = Remote;
+        DiscoveryPeerTestStage = 1;
+        return;
+    }
+    AKalmalaCharacter* Entitled = DiscoveryPeerTestEntitled.Get();
+    AKalmalaCharacter* Remote = DiscoveryPeerTestRemote.Get();
+    if (Entitled == nullptr || Remote == nullptr) { UE_LOG(LogTemp, Error, TEXT("Discovery verification FAILED: player disappeared.")); DiscoveryPeerTestStage = 99; return; }
+    if (DiscoveryPeerTestStage == 1)
+    {
+        const FString Id = FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(DiscoveryPeerTestDescriptor);
+        for (TActorIterator<AKalmalaDiscoveryActor> It(GetWorld()); It; ++It)
+        {
+            if (FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId((*It)->GetDescriptor()) == Id) { DiscoveryPeerTestActor = *It; break; }
+        }
+        AKalmalaDiscoveryActor* Actor = DiscoveryPeerTestActor.Get();
+        if (Actor == nullptr) return;
+        Entitled->SetActorLocation(Actor->GetActorLocation() - FVector(125.0f, 0.0f, 0.0f), false);
+        Remote->SetActorLocation(Actor->GetActorLocation() + FVector(1000.0f, 0.0f, 0.0f), false);
+        Entitled->ForceNetUpdate(); Remote->ForceNetUpdate();
+        DiscoveryPeerTestStage = 2; DiscoveryPeerTestStageTime = Now;
+        return;
+    }
+    AKalmalaDiscoveryActor* Actor = DiscoveryPeerTestActor.Get();
+    if (Actor == nullptr) { UE_LOG(LogTemp, Error, TEXT("Discovery verification FAILED: descriptor actor disappeared.")); DiscoveryPeerTestStage = 99; return; }
+    UKalmalaDiscoveryProgressComponent* EntitledFeedback = Entitled->GetDiscoveryProgressComponent();
+    UKalmalaDiscoveryProgressComponent* RemoteFeedback = Remote->GetDiscoveryProgressComponent();
+    if (EntitledFeedback == nullptr || RemoteFeedback == nullptr) { UE_LOG(LogTemp, Error, TEXT("Discovery verification FAILED: progress component missing.")); DiscoveryPeerTestStage = 99; return; }
+    if (DiscoveryPeerTestStage == 2 && Now - DiscoveryPeerTestStageTime >= 0.25f)
+    {
+        const bool bDistantRejected = !Actor->CanInteract_Implementation(Remote) && !ClaimDiscovery(Remote, DiscoveryPeerTestDescriptor)
+            && RemoteFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::None && RemoteFeedback->GetFeedbackSerial() == 0;
+        Actor->Interact_Implementation(Entitled);
+        if (!bDistantRejected || EntitledFeedback->GetFeedbackSerial() != 1 || RemoteFeedback->GetFeedbackSerial() != 0)
+        { UE_LOG(LogTemp, Error, TEXT("Discovery verification FAILED: distant rejection or owner claim failed.")); DiscoveryPeerTestStage = 99; return; }
+        DiscoveryPeerTestStage = 3; DiscoveryPeerTestStageTime = Now; return;
+    }
+    if (DiscoveryPeerTestStage == 3 && Now - DiscoveryPeerTestStageTime >= 0.25f)
+    {
+        Actor->Interact_Implementation(Entitled);
+        const bool bPassed = EntitledFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::AlreadyFound && EntitledFeedback->GetFeedbackSerial() == 2
+            && RemoteFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::None && RemoteFeedback->GetFeedbackSerial() == 0;
+        if (bPassed)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Discovery verification server: Passed=1 SeedReproduced=1 DifferentSeed=1 DistantRejected=1 DuplicateRejected=1 OwnerFeedbackSerial=%u RemoteFeedbackSerial=%u"), EntitledFeedback->GetFeedbackSerial(), RemoteFeedback->GetFeedbackSerial());
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Discovery verification server: Passed=0 OwnerFeedbackSerial=%u RemoteFeedbackSerial=%u"), EntitledFeedback->GetFeedbackSerial(), RemoteFeedback->GetFeedbackSerial());
+        }
+        DiscoveryPeerTestStage = 99;
+    }
+#endif
+}
+
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -866,6 +969,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveCampChoiceTest();
     DriveRainVerticalSliceTest();
     DriveCombatPeerTest();
+    DriveDiscoveryPeerTest();
     ReportWorldProfileIfReady();
     AdvanceWeatherCycleIfNeeded();
 
@@ -1212,7 +1316,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 
     PlacePawnAtGeneratedStart(NewPlayer);
 
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest"))) || NewPlayer == nullptr)
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest"))) || NewPlayer == nullptr)
     {
         return;
     }

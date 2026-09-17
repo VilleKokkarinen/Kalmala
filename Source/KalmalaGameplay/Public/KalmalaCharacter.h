@@ -106,6 +106,8 @@ private:
     FVector2D SwimmingTestStart = FVector2D::ZeroVector;
     bool bOceanTravelTestEnabled = false;
     bool bCombatPeerTestInvalidAttackSent = false;
+    bool bDiscoveryPeerPrivacyLogged = false;
+    float DiscoveryPeerTestStartTime = -1.0f;
     bool bOceanTravelTargetConfigured = false;
     bool bOceanTravelOceanEntryLogged = false;
     bool bOceanTravelArrivalLogged = false;

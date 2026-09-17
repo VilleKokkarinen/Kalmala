@@ -93,6 +93,20 @@ restart proves the identical server-derived Deer remains suppressed. The fixture
 adds no client-selected herd, noise, target, damage, reward, ID, RPC,
 replication property, or save schema.
 
+## Discovery peer privacy regression
+
+After an editor build, run `Scripts/Verify-DiscoveryPeer.ps1`. It starts a
+seed-418 listen server and a conflicting-seed client (999) with isolated
+temporary user directories. The server derives the same bounded descriptor
+twice, confirms a different seed does not retain its canonical ID, materializes
+only that normal server descriptor, and uses the existing payload-free
+interaction path. The scenario rejects a distant remote claimant, records one
+entitled-player acknowledgement, and rejects the duplicate without creating a
+second discovery. The client must receive the server identity while retaining
+no owner-only feedback for the other player's undiscovered content. This
+development-only fixture sends no descriptor, target, reward, identity, or
+progression payload from client to server and does not expose a discovery list.
+
 ## Exposure inspection
 
 Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 68–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.

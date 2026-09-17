@@ -2830,3 +2830,41 @@ learned support effect.
 
 Next task: Verify same-seed reproduction, different-seed variation,
 duplicate/distant request rejection, and privacy of undiscovered content.
+
+### 2026-09-17T09:52:00+03:00 - Verify discovery privacy across two peers
+
+Outcome: Completed the optional-discovery verification child. The new
+development-only two-peer fixture derives a normal bounded descriptor twice
+from the server identity, proves the canonical ID varies for a different seed,
+and materializes only that descriptor through the existing server path. It
+rejects the distant remote claimant, accepts exactly one entitled-player claim,
+rejects the duplicate, and proves the remote peer receives neither feedback
+serial nor label for undiscovered content.
+
+Changed: `Scripts/Verify-DiscoveryPeer.ps1`;
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`;
+`KalmalaCharacter.cpp`; `KalmalaGameMode.h`; `KalmalaCharacter.h`;
+`docs/07-development-setup.md`; `BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed with local UnrealBuildTool cache access.
+`Scripts/Verify-DiscoveryPeer.ps1 -Port 18144` passed with isolated evidence at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaDiscoveryPeer-8c60f3ec498a4eb1aaff19cc737d35c1`.
+The server logged `SeedReproduced=1 DifferentSeed=1 DistantRejected=1
+DuplicateRejected=1 OwnerFeedbackSerial=2 RemoteFeedbackSerial=0`; the
+conflicting-seed client received Seed=418 and retained no undiscovered remote
+progress feedback. `git diff --check` passed.
+
+Multiplayer impact: The client has no discovery, descriptor, target, location,
+reward, identity, or progression payload. The server recomputes the descriptor,
+validates normal range, binds progress to the authenticated identity, and sends
+feedback through owner-only replication. The fixture adds no runtime gameplay
+contract, replicated discovery catalogue, saved-data schema, or client query.
+
+Known limits: This is a bounded deterministic listen-server privacy regression,
+not a latency/replay fuzz test or a rendering/usability study. Scroll learning
+and support-effect entitlement remain unimplemented.
+
+Next task: Add server-owned learned-effect validation, stamina/cooldown rules,
+replicated active-state presentation, and persistence keyed to the entitled
+player and immutable world identity.
