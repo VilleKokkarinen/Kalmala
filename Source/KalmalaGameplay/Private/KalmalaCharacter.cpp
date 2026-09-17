@@ -112,6 +112,24 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
     return true;
 }
 
+bool AKalmalaCharacter::IsMendingReceiveAllowed(const bool bServerAuthority, const bool bValidAlly, const bool bSameWorld,
+    const bool bInRange, const bool bLiving, const bool bNeedsHealing, const float HealAmount)
+{
+    return bServerAuthority && bValidAlly && bSameWorld && bInRange && bLiving && bNeedsHealing
+        && FMath::IsFinite(HealAmount) && HealAmount > 0.0f && HealAmount <= 30.0f;
+}
+
+bool AKalmalaCharacter::ReceiveMendingFromServer(const AKalmalaCharacter* SourceCharacter, const float HealAmount)
+{
+    const bool bValidAlly = IsValid(SourceCharacter) && SourceCharacter != this;
+    const bool bSameWorld = bValidAlly && SourceCharacter->GetWorld() == GetWorld();
+    const bool bInRange = bSameWorld && FVector::DistSquared(SourceCharacter->GetActorLocation(), GetActorLocation()) <= FMath::Square(350.0f);
+    if (!IsMendingReceiveAllowed(HasAuthority(), bValidAlly, bSameWorld, bInRange, Health > 1.0f, Health < 100.0f, HealAmount)) return false;
+    Health = FMath::Min(100.0f, Health + HealAmount);
+    ForceNetUpdate();
+    return true;
+}
+
 void AKalmalaCharacter::BeginPlay()
 {
     Super::BeginPlay();

@@ -28,6 +28,9 @@ private:
     static constexpr float ActivationCost = 20.0f;
     static constexpr float CooldownSeconds = 4.0f;
     static constexpr float PresentationSeconds = 2.0f;
+    static constexpr float MendingRange = 350.0f;
+    static constexpr float MendingHealAmount = 30.0f;
+    class AKalmalaCharacter* ResolveMendingTargetFromServer(class APawn* Caster) const;
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") uint8 LearnedMask = 0;
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") EKalmalaSupportEffect ActiveEffect = EKalmalaSupportEffect::None;
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") float ActiveEffectExpiry = 0.0f;

@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaPlayerDiscoverySaveGame.h"
+#include "KalmalaCharacter.h"
 #include "KalmalaSupportMagicComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
@@ -23,6 +24,13 @@ bool FKalmalaDiscoveryProgressTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Unknown effect fails closed"), Save->AddLearnedEffect(TEXT("Effect:unknown")));
     TestTrue(TEXT("Activation requires authority, entitlement, sequence, cooldown, and stamina"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, true, true, true));
     TestFalse(TEXT("Activation cannot bypass stamina"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, true, true, false));
+    TestTrue(TEXT("Mending accepts only a finite damaged living allied pawn in range on the server"), AKalmalaCharacter::IsMendingReceiveAllowed(true, true, true, true, true, true, 30.0f));
+    TestFalse(TEXT("Mending rejects a non-allied target"), AKalmalaCharacter::IsMendingReceiveAllowed(true, false, true, true, true, true, 30.0f));
+    TestFalse(TEXT("Mending rejects a dead, full-health, distant, or excessive target state"),
+        AKalmalaCharacter::IsMendingReceiveAllowed(true, true, true, false, true, true, 30.0f)
+        || AKalmalaCharacter::IsMendingReceiveAllowed(true, true, true, true, false, true, 30.0f)
+        || AKalmalaCharacter::IsMendingReceiveAllowed(true, true, true, true, true, false, 30.0f)
+        || AKalmalaCharacter::IsMendingReceiveAllowed(true, true, true, true, true, true, 31.0f));
     TArray<uint8> Bytes; TestTrue(TEXT("Player discovery serializes before acknowledgement"), UGameplayStatics::SaveGameToMemory(Save, Bytes));
     auto* Reloaded = Cast<UKalmalaPlayerDiscoverySaveGame>(UGameplayStatics::LoadGameFromMemory(Bytes));
     if (TestNotNull(TEXT("Reloaded player discovery is typed"), Reloaded))

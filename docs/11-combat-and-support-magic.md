@@ -188,6 +188,10 @@ replicated presentation and has no combat or world mutation.
 | Bear's Vigor | Caster; temporary bounded stamina/strength modifiers; reject refresh while active; do not refill stamina on activation or expiry |
 | Deer Call | Bounded nearby living deer selected by server; behavior influence only; no spawn, teleport, damage, harvest, or loot |
 
+### Mending runtime increment
+
+Mending now resolves exactly one other `AKalmalaCharacter` from the caster's server-owned forward Pawn trace (350 cm), then performs a separate server visibility trace to that pawn. It cannot name a target in the activation RPC and cannot select wildlife or another non-player actor. The target must be in the same world, alive (health above 1), damaged, and within 350 cm. After that validation, the server consumes the existing 20 stamina, applies a finite 30-point heal clamped to 100, and starts the existing cooldown/presentation transaction. A full-health, dead, distant, occluded, foreign-world, self, non-character, or invalid target leaves health, stamina, cooldown, active state, and request sequence unchanged. Mending has no damage call and does not revive.
+
 Bear's Vigor may modify a later validated weapon attack, but activation never
 inflicts damage. Modifier removal must restore the baseline and clamp current
 stamina if a temporary maximum decreases, without duplicating stamina ownership.

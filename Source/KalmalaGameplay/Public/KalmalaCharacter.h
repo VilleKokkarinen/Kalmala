@@ -50,6 +50,8 @@ public:
     UKalmalaSupportMagicComponent* GetSupportMagicComponent() const { return SupportMagic; }
     float GetHealth() const { return Health; }
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
+    bool ReceiveMendingFromServer(const AKalmalaCharacter* SourceCharacter, float HealAmount);
+    static bool IsMendingReceiveAllowed(bool bServerAuthority, bool bValidAlly, bool bSameWorld, bool bInRange, bool bLiving, bool bNeedsHealing, float HealAmount);
     static bool IsExposureUpdateAllowed(bool bServerAuthority);
     void SetExposureStateFromServer(const FKalmalaExposureState& NewExposureState);
 

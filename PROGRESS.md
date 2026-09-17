@@ -2908,3 +2908,44 @@ latency/replay fuzz coverage or a full reconnect live-peer fixture.
 
 Next task: Implement Mending as a validated ally heal that cannot target invalid
 actors or damage enemies.
+
+### 2026-09-17T10:22:43+03:00 - Implement server-validated Mending
+
+Outcome: Completed the Mending child. A learned Mending activation now resolves
+one other player character exclusively through the caster's server-owned forward
+Pawn trace and an unobstructed server visibility trace. The target must be a
+living, damaged same-world ally within 350 cm. The server validates that result
+before consuming the existing stamina cost, applies a finite 30-point heal
+clamped to maximum health, and then publishes the existing active presentation.
+Invalid, self, full-health, distant, occluded, non-character, or wildlife
+targets mutate no health, stamina, cooldown, sequence, or active state.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaCharacter.h`;
+`Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`;
+`Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h`;
+`Source/KalmalaGameplay/Private/KalmalaSupportMagicComponent.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp`;
+`docs/11-combat-and-support-magic.md`; `BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` completed with UnrealBuildTool `Result:
+Succeeded` using local cache access. Headless
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence` passed, including the new
+finite/living/damaged/ally/range Mending gates (`Result={Success}`); evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMending-4958bd2b9e374dbca30df35b451c3cfa/automation.log`.
+`git diff --check` passed.
+
+Multiplayer impact: The activation RPC remains enum plus monotonic sequence
+only. The server selects the ally with authoritative location/orientation and
+line-of-sight queries, validates health and range, spends authoritative stamina,
+and replicates normal health/active presentation. Mending has no enemy target,
+damage call, client target/amount/range/cost payload, reward, save change, or
+new replication layout.
+
+Known limits: Focused automation covers the gate contract, not a rendered or
+two-peer live Mending cast. Hearth Shield, Bear's Vigor, and Deer Call remain
+separate effects; Mending-learning persistence is the existing tested player
+progress record.
+
+Next task: Implement Hearth Shield as a temporary validated protective shield
+with explicit expiry and replicated feedback.
