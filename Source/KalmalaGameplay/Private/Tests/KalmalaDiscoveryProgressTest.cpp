@@ -24,6 +24,10 @@ bool FKalmalaDiscoveryProgressTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Unknown effect fails closed"), Save->AddLearnedEffect(TEXT("Effect:unknown")));
     TestTrue(TEXT("Activation requires authority, entitlement, sequence, cooldown, and stamina"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, true, true, true));
     TestFalse(TEXT("Activation cannot bypass stamina"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, true, true, false));
+    TestTrue(TEXT("Hearth Shield needs the same server activation gates and rejects an active refresh"), UKalmalaSupportMagicComponent::IsHearthShieldActivationAllowed(true, false));
+    TestFalse(TEXT("Hearth Shield cannot refresh while its server-owned protection is active"), UKalmalaSupportMagicComponent::IsHearthShieldActivationAllowed(true, true));
+    TestEqual(TEXT("Hearth Shield absorbs only its bounded remaining strength"), UKalmalaSupportMagicComponent::CalculateHearthShieldAbsorption(true, true, 25.0f, 10.0f), 10.0f);
+    TestEqual(TEXT("Expired or non-authoritative Hearth Shield absorbs no damage"), UKalmalaSupportMagicComponent::CalculateHearthShieldAbsorption(false, true, 25.0f, 40.0f), 0.0f);
     TestTrue(TEXT("Mending accepts only a finite damaged living allied pawn in range on the server"), AKalmalaCharacter::IsMendingReceiveAllowed(true, true, true, true, true, true, 30.0f));
     TestFalse(TEXT("Mending rejects a non-allied target"), AKalmalaCharacter::IsMendingReceiveAllowed(true, false, true, true, true, true, 30.0f));
     TestFalse(TEXT("Mending rejects a dead, full-health, distant, or excessive target state"),

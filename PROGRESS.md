@@ -2949,3 +2949,42 @@ progress record.
 
 Next task: Implement Hearth Shield as a temporary validated protective shield
 with explicit expiry and replicated feedback.
+### 2026-09-17T10:31:00+03:00 - Implement server-validated Hearth Shield
+
+Outcome: Completed the Hearth Shield child. A learned Hearth Shield now creates
+40 points of server-owned protection for eight seconds after the existing
+entitlement, monotonic sequence, cooldown, and authoritative stamina gates
+succeed. Remaining protection and finite expiry replicate to relevant peers;
+the existing server wildlife-damage gate absorbs only the bounded remaining
+amount. Refresh requests while protection is active leave stamina, cooldown,
+sequence, and active state unchanged. Expiry and full depletion clear the
+protection and active feedback. No support request names a target or supplies
+damage, strength, duration, expiry, or absorption result.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h`;
+`Source/KalmalaGameplay/Private/KalmalaSupportMagicComponent.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp`;
+`docs/11-combat-and-support-magic.md`; `BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed with `Result: Succeeded`. Headless
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence` passed, including the
+Hearth Shield activation, refresh, bounded absorption, and authority rejection
+checks (`Result={Success}`). Evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaHearthShield-685e7243-754b-4f28-8fb0-b3da35b1732e/automation.log`.
+`git diff --check` passed.
+
+Multiplayer impact: The server alone creates, consumes, expires, and replicates
+Hearth Shield. Existing server-authorized wildlife damage is the only path that
+can request absorption; clients continue sending only the existing enum and
+monotonic sequence. Learned entitlement remains owner-only while relevant peers
+receive bounded shield feedback. No client target, damage, magnitude, duration,
+expiry, reward, or saved-data input was added.
+
+Known limits: Focused automation verifies the transaction and absorption
+contract, not a live two-peer shield cast or rendered effect. Bear's Vigor and
+Deer Call remain separate runtime increments.
+
+Next task: Implement Bear's Vigor as a temporary validated stamina/strength
+boost with explicit expiry and replicated feedback.

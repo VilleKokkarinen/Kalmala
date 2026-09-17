@@ -107,7 +107,8 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
         || !FMath::IsFinite(Damage) || Damage <= 0.0f || Damage > 25.0f
         || FVector::DistSquared(SourceActor->GetActorLocation(), GetActorLocation()) > FMath::Square(180.0f)) return false;
     // The first Mireling creates recoverable pressure; player defeat/respawn remains a later policy decision.
-    Health = FMath::Clamp(Health - Damage, 1.0f, 100.0f);
+    const float Absorbed = SupportMagic ? SupportMagic->AbsorbHearthShieldDamageFromServer(Damage) : 0.0f;
+    Health = FMath::Clamp(Health - FMath::Max(0.0f, Damage - Absorbed), 1.0f, 100.0f);
     ForceNetUpdate();
     return true;
 }

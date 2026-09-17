@@ -17,6 +17,35 @@ bool UKalmalaSupportMagicComponent::HasLearnedEffect(const EKalmalaSupportEffect
 { return !CanonicalId(Effect).IsEmpty() && (LearnedMask & static_cast<uint8>(1u << static_cast<uint8>(Effect))) != 0; }
 bool UKalmalaSupportMagicComponent::IsActivationAllowed(const bool bAuthority, const bool bLearned, const bool bNewSequence, const bool bCooldownExpired, const bool bHasStamina)
 { return bAuthority && bLearned && bNewSequence && bCooldownExpired && bHasStamina; }
+bool UKalmalaSupportMagicComponent::IsHearthShieldActivationAllowed(const bool bBaseActivationAllowed, const bool bShieldAlreadyActive)
+{ return bBaseActivationAllowed && !bShieldAlreadyActive; }
+float UKalmalaSupportMagicComponent::CalculateHearthShieldAbsorption(const bool bServerAuthority, const bool bShieldActive,
+    const float IncomingDamage, const float RemainingStrength)
+{
+    if (!bServerAuthority || !bShieldActive || !FMath::IsFinite(IncomingDamage) || !FMath::IsFinite(RemainingStrength)
+        || IncomingDamage <= 0.0f || RemainingStrength <= 0.0f) return 0.0f;
+    return FMath::Min(IncomingDamage, RemainingStrength);
+}
+
+float UKalmalaSupportMagicComponent::AbsorbHearthShieldDamageFromServer(const float IncomingDamage)
+{
+    const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
+    const bool bShieldActive = GetOwner() && GetOwner()->HasAuthority() && HearthShieldExpiry > Now && HearthShieldStrength > 0.0f;
+    const float Absorbed = CalculateHearthShieldAbsorption(GetOwner() && GetOwner()->HasAuthority(), bShieldActive, IncomingDamage, HearthShieldStrength);
+    if (Absorbed <= 0.0f) return 0.0f;
+    HearthShieldStrength = FMath::Max(0.0f, HearthShieldStrength - Absorbed);
+    if (HearthShieldStrength <= 0.0f)
+    {
+        HearthShieldExpiry = 0.0f;
+        if (ActiveEffect == EKalmalaSupportEffect::HearthShield)
+        {
+            ActiveEffect = EKalmalaSupportEffect::None;
+            ActiveEffectExpiry = 0.0f;
+        }
+    }
+    GetOwner()->ForceNetUpdate();
+    return Absorbed;
+}
 
 AKalmalaCharacter* UKalmalaSupportMagicComponent::ResolveMendingTargetFromServer(APawn* Caster) const
 {
@@ -40,15 +69,41 @@ void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implement
 {
     APawn* Pawn = Cast<APawn>(GetOwner()); const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
     UKalmalaCharacterMovementComponent* Movement = Pawn ? Cast<UKalmalaCharacterMovementComponent>(Pawn->GetMovementComponent()) : nullptr;
-    if (!IsActivationAllowed(Pawn && Pawn->HasAuthority(), HasLearnedEffect(Effect), RequestSequence != 0 && RequestSequence > LastRequestSequence, Now >= CooldownExpiry, Movement != nullptr && Movement->GetStamina() >= ActivationCost)) return;
+    const bool bBaseActivationAllowed = IsActivationAllowed(Pawn && Pawn->HasAuthority(), HasLearnedEffect(Effect), RequestSequence != 0 && RequestSequence > LastRequestSequence, Now >= CooldownExpiry, Movement != nullptr && Movement->GetStamina() >= ActivationCost);
+    const bool bShieldAlreadyActive = HearthShieldExpiry > Now && HearthShieldStrength > 0.0f;
+    if (Effect == EKalmalaSupportEffect::HearthShield
+        ? !IsHearthShieldActivationAllowed(bBaseActivationAllowed, bShieldAlreadyActive) : !bBaseActivationAllowed) return;
     // Mending has no client target payload: the server forward trace finds one eligible allied pawn before the transaction charges stamina.
     AKalmalaCharacter* MendingTarget = Effect == EKalmalaSupportEffect::Mending ? ResolveMendingTargetFromServer(Pawn) : nullptr;
     if (Effect == EKalmalaSupportEffect::Mending && MendingTarget == nullptr) return;
     if (!Movement->TryConsumeStaminaFromServer(ActivationCost)) return;
     if (MendingTarget != nullptr && !MendingTarget->ReceiveMendingFromServer(CastChecked<AKalmalaCharacter>(Pawn), MendingHealAmount)) return;
-    LastRequestSequence = RequestSequence; CooldownExpiry = Now + CooldownSeconds; ActiveEffect = Effect; ActiveEffectExpiry = Now + PresentationSeconds; GetOwner()->ForceNetUpdate();
+    LastRequestSequence = RequestSequence; CooldownExpiry = Now + CooldownSeconds; ActiveEffect = Effect;
+    if (Effect == EKalmalaSupportEffect::HearthShield)
+    {
+        HearthShieldStrength = HearthShieldAbsorption;
+        HearthShieldExpiry = Now + HearthShieldDuration;
+        ActiveEffectExpiry = HearthShieldExpiry;
+    }
+    else ActiveEffectExpiry = Now + PresentationSeconds;
+    GetOwner()->ForceNetUpdate();
 }
 void UKalmalaSupportMagicComponent::TickComponent(const float DeltaTime, const ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{ Super::TickComponent(DeltaTime, TickType, ThisTickFunction); if (GetOwner() && GetOwner()->HasAuthority() && ActiveEffect != EKalmalaSupportEffect::None && GetWorld() && GetWorld()->GetTimeSeconds() >= ActiveEffectExpiry) { ActiveEffect = EKalmalaSupportEffect::None; ActiveEffectExpiry = 0.0f; GetOwner()->ForceNetUpdate(); } }
+{
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    if (!GetOwner() || !GetOwner()->HasAuthority() || !GetWorld()) return;
+    const float Now = GetWorld()->GetTimeSeconds();
+    if (HearthShieldExpiry > 0.0f && Now >= HearthShieldExpiry)
+    {
+        HearthShieldStrength = 0.0f;
+        HearthShieldExpiry = 0.0f;
+    }
+    if (ActiveEffect != EKalmalaSupportEffect::None && Now >= ActiveEffectExpiry)
+    {
+        ActiveEffect = EKalmalaSupportEffect::None;
+        ActiveEffectExpiry = 0.0f;
+        GetOwner()->ForceNetUpdate();
+    }
+}
 void UKalmalaSupportMagicComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{ Super::GetLifetimeReplicatedProps(OutLifetimeProps); DOREPLIFETIME_CONDITION(UKalmalaSupportMagicComponent, LearnedMask, COND_OwnerOnly); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffect); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffectExpiry); }
+{ Super::GetLifetimeReplicatedProps(OutLifetimeProps); DOREPLIFETIME_CONDITION(UKalmalaSupportMagicComponent, LearnedMask, COND_OwnerOnly); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffect); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffectExpiry); DOREPLIFETIME(UKalmalaSupportMagicComponent, HearthShieldStrength); DOREPLIFETIME(UKalmalaSupportMagicComponent, HearthShieldExpiry); }
