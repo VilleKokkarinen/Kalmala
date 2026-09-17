@@ -87,6 +87,20 @@ bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const float Damage, AKal
     return true;
 }
 
+bool AKalmalaWildlifeSpawn::ApplyDeerCallFromServer(const FVector& SourceLocation)
+{
+    if (!HasAuthority() || bDefeated || Archetype != EKalmalaWildlifeArchetype::Deer
+        || Behaviour != EKalmalaWildlifeBehaviour::Idle || !FMath::IsFinite(SourceLocation.X)
+        || !FMath::IsFinite(SourceLocation.Y) || !FMath::IsFinite(SourceLocation.Z)) return false;
+
+    const FVector AwayFromSource = (GetActorLocation() - SourceLocation).GetSafeNormal2D();
+    const FVector Direction = AwayFromSource.IsNearlyZero() ? GetDeterministicOffset(1.0f).GetSafeNormal2D() : AwayFromSource;
+    BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f,
+        GetActorLocation() + Direction * 260.0f);
+    ForceNetUpdate();
+    return Behaviour == EKalmalaWildlifeBehaviour::Flee;
+}
+
 EKalmalaWildlifeArchetype AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(const uint64 SpawnSeed)
 {
     // A stable server descriptor seed selects the archetype; it never depends on actor order or a client observation.

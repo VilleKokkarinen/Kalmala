@@ -211,9 +211,22 @@ peers receive the active kind, finite expiry, and bounded strength presentation;
 the authoritative stamina cap remains normal movement state. Clients supply no
 target, maximum, multiplier, duration, expiry, damage, or combat result.
 
-Deer Call must use a bounded actor query and behavior budget; an empty eligible
-set rejects activation before payment. Specific balance numbers belong in shared
-validated definitions when the respective runtime increment is implemented.
+Deer Call uses a server-only query for existing, living, idle Deer within 900 cm
+of the caster and a maximum three-actor behavior budget. Each selected Deer
+receives a bounded 1.5-second flee leg away from the caster. An empty eligible
+set rejects activation before payment. The effect never spawns, teleports,
+damages, harvests, defeats, or grants loot, and no target or destination is
+provided by the client.
+
+### Deer Call runtime increment
+
+After the shared server-owned entitlement, monotonic sequence, cooldown, and
+authoritative stamina checks succeed, the server selects at most three existing
+living idle Deer within 900 cm and applies a deterministic bounded flee
+influence away from the caster. Selection and behavior mutation are server-only;
+the activation RPC remains enum plus sequence. A defeated, non-Deer, moving,
+distant, or absent actor is ineligible. The effect has no spawn, teleport,
+damage, harvest, defeat, reward, or persistence path.
 
 ## Required implementation evidence
 

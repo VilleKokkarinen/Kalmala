@@ -32,6 +32,8 @@ bool FKalmalaDiscoveryProgressTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Bear's Vigor cannot refresh while its temporary modifiers are active"), UKalmalaSupportMagicComponent::IsBearsVigorActivationAllowed(true, true));
     TestEqual(TEXT("Bear's Vigor applies only its bounded server strength modifier"), UKalmalaSupportMagicComponent::CalculateBearsVigorDamage(true, true, 25.0f, 1.4f), 35.0f);
     TestEqual(TEXT("Inactive or malformed Bear's Vigor cannot increase combat damage"), UKalmalaSupportMagicComponent::CalculateBearsVigorDamage(true, false, 25.0f, 1.4f), 25.0f);
+    TestTrue(TEXT("Deer Call requires the shared gates and an eligible server-selected deer"), UKalmalaSupportMagicComponent::IsDeerCallActivationAllowed(true, true));
+    TestFalse(TEXT("Deer Call rejects an empty eligible set before payment"), UKalmalaSupportMagicComponent::IsDeerCallActivationAllowed(true, false));
     TestTrue(TEXT("Mending accepts only a finite damaged living allied pawn in range on the server"), AKalmalaCharacter::IsMendingReceiveAllowed(true, true, true, true, true, true, 30.0f));
     TestFalse(TEXT("Mending rejects a non-allied target"), AKalmalaCharacter::IsMendingReceiveAllowed(true, false, true, true, true, true, 30.0f));
     TestFalse(TEXT("Mending rejects a dead, full-health, distant, or excessive target state"),

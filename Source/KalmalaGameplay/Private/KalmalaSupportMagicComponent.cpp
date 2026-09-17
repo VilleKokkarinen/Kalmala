@@ -1,7 +1,9 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCharacterMovementComponent.h"
+#include "KalmalaWildlifeSpawn.h"
 #include "GameFramework/Pawn.h"
+#include "EngineUtils.h"
 #include "Net/UnrealNetwork.h"
 
 UKalmalaSupportMagicComponent::UKalmalaSupportMagicComponent() { PrimaryComponentTick.bCanEverTick = true; SetIsReplicatedByDefault(true); }
@@ -21,6 +23,8 @@ bool UKalmalaSupportMagicComponent::IsHearthShieldActivationAllowed(const bool b
 { return bBaseActivationAllowed && !bShieldAlreadyActive; }
 bool UKalmalaSupportMagicComponent::IsBearsVigorActivationAllowed(const bool bBaseActivationAllowed, const bool bVigorAlreadyActive)
 { return bBaseActivationAllowed && !bVigorAlreadyActive; }
+bool UKalmalaSupportMagicComponent::IsDeerCallActivationAllowed(const bool bBaseActivationAllowed, const bool bHasEligibleDeer)
+{ return bBaseActivationAllowed && bHasEligibleDeer; }
 float UKalmalaSupportMagicComponent::CalculateHearthShieldAbsorption(const bool bServerAuthority, const bool bShieldActive,
     const float IncomingDamage, const float RemainingStrength)
 {
@@ -74,6 +78,22 @@ AKalmalaCharacter* UKalmalaSupportMagicComponent::ResolveMendingTargetFromServer
     return AKalmalaCharacter::IsMendingReceiveAllowed(true, true, Source->GetWorld() == Target->GetWorld(), bInRange,
         Target->GetHealth() > 1.0f, Target->GetHealth() < 100.0f, MendingHealAmount) ? Target : nullptr;
 }
+bool UKalmalaSupportMagicComponent::InfluenceNearbyDeerFromServer(APawn* Caster) const
+{
+    if (!Caster || !Caster->HasAuthority() || !GetWorld()) return false;
+    constexpr float DeerCallRange = 900.0f;
+    constexpr int32 DeerCallBudget = 3;
+    int32 Influenced = 0;
+    for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It && Influenced < DeerCallBudget; ++It)
+    {
+        AKalmalaWildlifeSpawn* Deer = *It;
+        if (!IsValid(Deer) || Deer->GetArchetype() != EKalmalaWildlifeArchetype::Deer
+            || Deer->IsDefeated() || Deer->GetBehaviour() != EKalmalaWildlifeBehaviour::Idle
+            || FVector::DistSquared2D(Deer->GetActorLocation(), Caster->GetActorLocation()) > FMath::Square(DeerCallRange)) continue;
+        if (Deer->ApplyDeerCallFromServer(Caster->GetActorLocation())) ++Influenced;
+    }
+    return Influenced > 0;
+}
 void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implementation(const EKalmalaSupportEffect Effect, const uint32 RequestSequence)
 {
     APawn* Pawn = Cast<APawn>(GetOwner()); const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
@@ -87,6 +107,7 @@ void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implement
     // Mending has no client target payload: the server forward trace finds one eligible allied pawn before the transaction charges stamina.
     AKalmalaCharacter* MendingTarget = Effect == EKalmalaSupportEffect::Mending ? ResolveMendingTargetFromServer(Pawn) : nullptr;
     if (Effect == EKalmalaSupportEffect::Mending && MendingTarget == nullptr) return;
+    if (Effect == EKalmalaSupportEffect::DeerCall && !InfluenceNearbyDeerFromServer(Pawn)) return;
     if (!Movement->TryConsumeStaminaFromServer(ActivationCost)) return;
     if (MendingTarget != nullptr && !MendingTarget->ReceiveMendingFromServer(CastChecked<AKalmalaCharacter>(Pawn), MendingHealAmount)) return;
     LastRequestSequence = RequestSequence; CooldownExpiry = Now + CooldownSeconds; ActiveEffect = Effect;

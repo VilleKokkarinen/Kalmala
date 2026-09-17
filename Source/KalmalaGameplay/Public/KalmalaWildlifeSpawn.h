@@ -40,6 +40,7 @@ public:
     static bool IsDefeatAllowed(bool bServerAuthority, bool bAlreadyDefeated);
     bool DefeatServer();
     bool ApplyCombatDamageFromServer(float Damage, class AKalmalaCharacter* Attacker = nullptr);
+    bool ApplyDeerCallFromServer(const FVector& SourceLocation);
     bool IsDefeated() const { return bDefeated; }
     float GetHealth() const { return Health; }
     EKalmalaWildlifeArchetype GetArchetype() const { return Archetype; }

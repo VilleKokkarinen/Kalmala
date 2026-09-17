@@ -295,7 +295,7 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Implement Mending as a validated ally heal that cannot target invalid actors or damage enemies.
   - [x] Implement Hearth Shield as a temporary validated protective shield with explicit expiry and replicated feedback.
   - [x] Implement Bear's Vigor as a temporary validated stamina/strength boost with explicit expiry and replicated feedback.
-  - [ ] Implement Deer Call as a bounded validated behaviour influence on existing nearby deer only; it must not create wildlife or bypass harvest/loot rules.
+  - [x] Implement Deer Call as a bounded validated behaviour influence on existing nearby deer only; it must not create wildlife or bypass harvest/loot rules.
   - [ ] Verify each effect rejects invalid client payloads, never directly damages an enemy, persists learning correctly, and agrees across host/client presentation.
 - [ ] Place one scroll discovery as a server-validated Mireling boss reward and verify it remains optional to route selection.
 - [ ] Run the M4 two-player vertical-slice scenario: freely select a route, encounter Mireling, boar, and deer, learn and use all four support effects, and return with a persisted progression reward.

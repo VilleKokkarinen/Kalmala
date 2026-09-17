@@ -31,6 +31,7 @@ public:
     static bool IsActivationAllowed(bool bAuthority, bool bLearned, bool bNewSequence, bool bCooldownExpired, bool bHasStamina);
     static bool IsHearthShieldActivationAllowed(bool bBaseActivationAllowed, bool bShieldAlreadyActive);
     static bool IsBearsVigorActivationAllowed(bool bBaseActivationAllowed, bool bVigorAlreadyActive);
+    static bool IsDeerCallActivationAllowed(bool bBaseActivationAllowed, bool bHasEligibleDeer);
     static float CalculateHearthShieldAbsorption(bool bServerAuthority, bool bShieldActive, float IncomingDamage, float RemainingStrength);
     static float CalculateBearsVigorDamage(bool bServerAuthority, bool bVigorActive, float BaseDamage, float StrengthMultiplier);
 private:
@@ -44,6 +45,7 @@ private:
     static constexpr float BearsVigorDuration = 8.0f;
     static constexpr float BearsVigorStrength = 1.4f;
     class AKalmalaCharacter* ResolveMendingTargetFromServer(class APawn* Caster) const;
+    bool InfluenceNearbyDeerFromServer(class APawn* Caster) const;
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") uint8 LearnedMask = 0;
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") EKalmalaSupportEffect ActiveEffect = EKalmalaSupportEffect::None;
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") float ActiveEffectExpiry = 0.0f;

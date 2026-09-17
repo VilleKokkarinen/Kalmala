@@ -114,7 +114,11 @@ with the normal headless automation flags. It verifies canonical scroll-to-effec
 mapping, entitled-player learned-effect persistence through memory
 serialization, immutable-world identity rejection, and the authority,
 entitlement, sequence, cooldown, and stamina gates. Runtime activation accepts
-only the enum/sequence intent and does not yet apply an individual effect.
+only the enum/sequence intent. It also covers the Deer Call empty-set gate.
+Live Deer Call activation must remain server-owned: it may influence at most
+three existing idle Deer within 900 cm, must reject before stamina payment when
+none are eligible, and must not create wildlife or alter damage, harvest, loot,
+or saved progression.
 
 ## Exposure inspection
 

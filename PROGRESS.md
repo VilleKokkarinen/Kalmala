@@ -3029,3 +3029,45 @@ Deer Call remains the next support effect.
 Next task: Implement Deer Call as a bounded validated behaviour influence on
 existing nearby deer only; it must not create wildlife or bypass harvest/loot
 rules.
+
+### 2026-09-17T10:40:00+03:00 - Implement server-validated Deer Call
+
+Outcome: Completed the Deer Call runtime increment. A learned Deer Call now
+requires the existing server entitlement, monotonic sequence, cooldown, and
+authoritative stamina gates, then selects at most three existing living idle
+Deer within 900 cm of the caster. Each selected Deer receives a bounded
+server-chosen 1.5-second flee leg away from the caster. Empty eligible sets are
+rejected before payment. The effect creates no wildlife and has no damage,
+teleport, harvest, defeat, loot, or save path.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`;
+`Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`;
+`Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h`;
+`Source/KalmalaGameplay/Private/KalmalaSupportMagicComponent.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp`;
+`docs/07-development-setup.md`; `docs/11-combat-and-support-magic.md`;
+`BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed with UnrealBuildTool local-cache access
+and `Result: Succeeded`. Headless
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence` passed with
+`Result={Success}` in isolated evidence at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaDeerCall-9a5f2121-e62a-4751-a0e0-8eb16c547e6c/automation.log`.
+`git diff --check` passed.
+
+Multiplayer impact: The server alone selects eligible Deer, bounds the actor
+budget, chooses the flee destination, and applies behavior. Clients send only
+the established effect enum and monotonic sequence and receive ordinary
+relevant actor movement. No client target, destination, spawn, damage, harvest,
+loot, reward, or save input was added.
+
+Known limits: Focused automation covers the empty-set activation gate, not a
+rendered two-peer Deer Call cast or latency/replay fuzzing. The runtime query
+and behavior influence are implemented, but a dedicated live peer fixture for
+the three-Deer budget remains part of the later per-effect host/client
+verification.
+
+Next task: Verify each support effect rejects invalid client payloads, never
+directly damages an enemy, persists learning correctly, and agrees across
+host/client presentation.
