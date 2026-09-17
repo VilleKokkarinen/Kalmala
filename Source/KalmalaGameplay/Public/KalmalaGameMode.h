@@ -29,6 +29,10 @@ public:
     bool ReadStorage(const class AKalmalaConstructionActor* Construction, TArray<FKalmalaInventoryStack>& Out) const;
     bool PersistStorage(const class AKalmalaConstructionActor* Construction, const TArray<FKalmalaInventoryStack>& Stacks);
     bool ClaimDiscovery(class AKalmalaCharacter* Interactor, const struct FKalmalaWorldDiscoveryDescriptor& Descriptor);
+    bool ClaimMirelingBossScroll(class AKalmalaCharacter* Attacker, const FString& PersistentSpawnId);
+    static bool IsMirelingBossRewardId(const FString& PersistentSpawnId);
+    static FString GetMirelingBossScrollDefinition(uint64 WorldSeed);
+    static FString GetMirelingBossScrollId(uint64 WorldSeed);
 
 private:
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);

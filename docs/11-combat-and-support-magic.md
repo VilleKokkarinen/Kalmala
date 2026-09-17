@@ -455,5 +455,25 @@ authenticated identity rather than the raw ID; the raw identity remains inside
 the save identity check. A reconnect loads only that same matching record. No
 player record is replicated as a catalogue. The owning pawn receives an
 owner-only feedback serial with explicit text: landmark/scroll found, already
-found, or unavailable. Scroll discovery records the entitled discovery only;
-learning and activating its support effect remain the next increment.
+found, or unavailable. Scroll discovery records the entitled discovery and
+allowlisted learned effect; the optional Mireling boss reward uses the same
+player-scoped save and feedback seam without adding a route, target, or client
+reward payload.
+
+## Mireling boss scroll reward
+
+The server designates a bounded subset of generated Mirelings as boss-reward
+candidates from their stable population ID (`CRC32 % 5 == 0`). Defeating one
+through the existing validated combat path can award the one world-derived
+scroll ID `Scroll:1:<effect>:mireling-boss`, where the allowlisted effect is
+selected only from the immutable world seed. The server confirms that the ID
+belongs to an actually defeated Mireling in the current world before loading
+the authenticated attacker's player save.
+
+The player save adds the canonical discovery and learned-effect token, saves
+successfully before support-state replication or owner-only feedback, and
+rolls back both facts on save failure. A repeated claim is rejected without a
+second entitlement. Ordinary Mireling Ash remains the existing inventory
+reward. The boss designation and reward ID contain no route, transform,
+client-selected target, or client-supplied reward value; route choice only
+determines whether the player happens to encounter the optional candidate.

@@ -126,6 +126,17 @@ three existing idle Deer within 900 cm, must reject before stamina payment when
 none are eligible, and must not create wildlife or alter damage, harvest, loot,
 or saved progression.
 
+## Mireling boss scroll verification
+
+The focused discovery regression also checks the bounded stable-ID gate and
+world-seed-only optional boss scroll identity. Runtime defeat uses the
+existing server Mireling callback: it validates the defeated actor and
+authenticated attacker, persists the one canonical scroll plus learned effect
+before owner-only feedback, and gives no reward to remote peers. The reward
+does not create a route, reveal a discovery catalogue, or accept client
+location/target/effect input. A rendered live two-peer boss-reward scenario
+remains part of the M4 vertical slice.
+
 ## Exposure inspection
 
 Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 68–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.

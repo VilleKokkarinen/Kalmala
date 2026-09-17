@@ -41,6 +41,7 @@ public:
     bool DefeatServer();
     bool ApplyCombatDamageFromServer(float Damage, class AKalmalaCharacter* Attacker = nullptr);
     bool ApplyDeerCallFromServer(const FVector& SourceLocation);
+    bool IsMirelingBossRewardCandidate() const;
     bool IsDefeated() const { return bDefeated; }
     float GetHealth() const { return Health; }
     EKalmalaWildlifeArchetype GetArchetype() const { return Archetype; }

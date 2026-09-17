@@ -8,6 +8,49 @@
 
 ## Run log
 
+### 2026-09-17 11:03 EEST - Add Mireling boss scroll reward
+
+Outcome: Completed the optional Mireling boss-reward child. The server now
+designates bounded stable-ID Mirelings as reward candidates, validates that the
+defeated actor and authenticated attacker are from the current world, and
+awards one world-seed-selected allowlisted scroll entitlement through the
+existing player discovery save. The canonical discovery and learned-effect
+facts persist before owner-only support-state replication and feedback; save
+failure rolls both facts back, and duplicate claims do not reward twice.
+Ordinary Mireling Ash remains unchanged, and no route or client reward payload
+was added.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaGameMode.h`;
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`;
+`Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`;
+`Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp`;
+`docs/07-development-setup.md`; `docs/11-combat-and-support-magic.md`;
+`BACKLOG.md`; and this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed with local `%LOCALAPPDATA%\UnrealBuildTool`
+access and `Result: Succeeded`. Headless
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence` passed with
+`Result={Success}`; evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingBossVerification-c86036ed77914dc28d2dd3f1fcc2f136/automation.log`.
+`git diff --check` passed.
+
+Multiplayer impact: Boss selection, defeated-actor validation, player identity,
+save mutation, learned-effect hydration, and reward ordering remain
+server-authoritative. The existing inventory and discovery feedback stay
+owner-only; clients provide no actor ID, target, route, effect, location,
+reward, or save payload. No save schema changed.
+
+Known limits: The focused regression covers stable identity, optional route-free
+reward identity, and persistence primitives, not a rendered live two-peer boss
+defeat, late join, or latency/replay fuzz test. The reward candidate is a
+deterministic subset rather than a bespoke authored boss actor.
+
+Next task: Run the M4 two-player vertical-slice scenario covering free route
+choice, Mireling/boar/deer encounters, all four support effects, and persisted
+progression.
+
 ### 2026-09-09 22:10 EEST - Verify inventory reconnect and network contract
 
 Outcome: Completed the next M2 verification item with a two-visit client reconnect runner and compiled RPC-surface automation. Both visits to one running listen server verify owner agreement, client-local mutation rejection, read-only pack binding, and remote privacy. Each replacement pawn starts empty before the existing server fixture grants its seven-wood result.

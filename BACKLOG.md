@@ -298,7 +298,7 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Implement Deer Call as a bounded validated behaviour influence on existing nearby deer only; it must not create wildlife or bypass harvest/loot rules.
   - [x] Verify each effect rejects invalid client payloads, never directly damages an enemy, persists learning correctly, and agrees across host/client presentation.
     - [x] Focused regression covers all allowlisted effects, malformed/client/replay gates, reconnect learning persistence, and non-damaging execution; rendered live-peer casts remain in the M4 vertical slice.
-- [ ] Place one scroll discovery as a server-validated Mireling boss reward and verify it remains optional to route selection.
+- [x] Place one scroll discovery as a server-validated Mireling boss reward and verify it remains optional to route selection.
 - [ ] Run the M4 two-player vertical-slice scenario: freely select a route, encounter Mireling, boar, and deer, learn and use all four support effects, and return with a persisted progression reward.
 
 **M4 acceptance:** two players choose their own route through the world, learn and use every support effect, encounter all three creature archetypes, and return with a progression reward. No magic effect directly damages an enemy.

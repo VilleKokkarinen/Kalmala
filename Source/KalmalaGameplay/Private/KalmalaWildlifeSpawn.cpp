@@ -2,6 +2,7 @@
 
 #include "Components/SphereComponent.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaGameMode.h"
 #include "KalmalaInventoryComponent.h"
 #include "EngineUtils.h"
 #include "ProceduralMeshComponent.h"
@@ -99,6 +100,13 @@ bool AKalmalaWildlifeSpawn::ApplyDeerCallFromServer(const FVector& SourceLocatio
         GetActorLocation() + Direction * 260.0f);
     ForceNetUpdate();
     return Behaviour == EKalmalaWildlifeBehaviour::Flee;
+}
+
+bool AKalmalaWildlifeSpawn::IsMirelingBossRewardCandidate() const
+{
+    return Archetype == EKalmalaWildlifeArchetype::Mireling
+        && !PersistentSpawnId.IsEmpty()
+        && FCrc::StrCrc32(*PersistentSpawnId) % 5u == 0u;
 }
 
 EKalmalaWildlifeArchetype AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(const uint64 SpawnSeed)
@@ -363,5 +371,13 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
     {
         Inventory->TryGrantFromServer(TEXT("DeerMeat"), 1);
         Inventory->TryGrantFromServer(TEXT("DeerHide"), 1);
+    }
+
+    if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())
+    {
+        if (AKalmalaGameMode* Mode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>())
+        {
+            Mode->ClaimMirelingBossScroll(Attacker, PersistentSpawnId);
+        }
     }
 }

@@ -2,6 +2,7 @@
 #include "KalmalaPlayerDiscoverySaveGame.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaSupportMagicComponent.h"
+#include "KalmalaGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 
@@ -47,6 +48,18 @@ bool FKalmalaDiscoveryProgressTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Inactive or malformed Bear's Vigor cannot increase combat damage"), UKalmalaSupportMagicComponent::CalculateBearsVigorDamage(true, false, 25.0f, 1.4f), 25.0f);
     TestTrue(TEXT("Deer Call requires the shared gates and an eligible server-selected deer"), UKalmalaSupportMagicComponent::IsDeerCallActivationAllowed(true, true));
     TestFalse(TEXT("Deer Call rejects an empty eligible set before payment"), UKalmalaSupportMagicComponent::IsDeerCallActivationAllowed(true, false));
+    FString BossCandidate;
+    for (uint64 CandidateSeed = 1; CandidateSeed < 128 && BossCandidate.IsEmpty(); ++CandidateSeed)
+    {
+        const FString Candidate = FString::Printf(TEXT("0/0/0/%llu"), CandidateSeed);
+        if (AKalmalaGameMode::IsMirelingBossRewardId(Candidate)) BossCandidate = Candidate;
+    }
+    TestTrue(TEXT("Mireling boss designation is a bounded server-derived stable ID gate"), !BossCandidate.IsEmpty());
+    TestFalse(TEXT("Malformed Mireling boss IDs are rejected"), AKalmalaGameMode::IsMirelingBossRewardId(TEXT("mireling-boss")));
+    const FString BossScroll = AKalmalaGameMode::GetMirelingBossScrollId(World.WorldSeed);
+    const FString BossDefinition = AKalmalaGameMode::GetMirelingBossScrollDefinition(World.WorldSeed);
+    TestTrue(TEXT("Mireling boss scroll is one optional world-derived allowlisted entitlement"), BossScroll == FString::Printf(TEXT("Scroll:1:%s:mireling-boss"), *BossDefinition));
+    TestTrue(TEXT("Mireling boss scroll does not encode a route or client location"), !BossScroll.Contains(TEXT("/")) && BossScroll.Contains(TEXT("mireling-boss")));
     TestTrue(TEXT("Mending accepts only a finite damaged living allied pawn in range on the server"), AKalmalaCharacter::IsMendingReceiveAllowed(true, true, true, true, true, true, 30.0f));
     TestFalse(TEXT("Mending rejects a non-allied target"), AKalmalaCharacter::IsMendingReceiveAllowed(true, false, true, true, true, true, 30.0f));
     TestFalse(TEXT("Mending rejects a dead, full-health, distant, or excessive target state"),
