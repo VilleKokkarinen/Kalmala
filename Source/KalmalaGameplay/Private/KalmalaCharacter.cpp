@@ -3,6 +3,7 @@
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaCombatComponent.h"
 #include "KalmalaDiscoveryProgressComponent.h"
+#include "KalmalaSupportMagicComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
@@ -34,6 +35,7 @@ AKalmalaCharacter::AKalmalaCharacter(const FObjectInitializer& ObjectInitializer
     Crafting = CreateDefaultSubobject<UKalmalaCraftingComponent>(TEXT("Crafting"));
     Combat = CreateDefaultSubobject<UKalmalaCombatComponent>(TEXT("Combat"));
     DiscoveryProgress = CreateDefaultSubobject<UKalmalaDiscoveryProgressComponent>(TEXT("DiscoveryProgress"));
+    SupportMagic = CreateDefaultSubobject<UKalmalaSupportMagicComponent>(TEXT("SupportMagic"));
     Statuses = CreateDefaultSubobject<UKalmalaPlayerStatusComponent>(TEXT("Statuses"));
     SetReplicateMovement(true);
 

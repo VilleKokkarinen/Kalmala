@@ -18,9 +18,13 @@ public:
     bool HasDiscovery(const FString& Id) const;
     bool AddDiscovery(const FString& Id);
     void RemoveDiscovery(const FString& Id);
+    bool HasLearnedEffect(const FString& Id) const;
+    bool AddLearnedEffect(const FString& Id);
+    void RemoveLearnedEffect(const FString& Id);
 private:
     UPROPERTY(SaveGame) int32 SchemaVersion = Schema;
     UPROPERTY(SaveGame) FKalmalaWorldGenerationConfig WorldConfig;
     UPROPERTY(SaveGame) FString PlayerIdentity;
     UPROPERTY(SaveGame) TSet<FString> DiscoveryIds;
+    UPROPERTY(SaveGame) TSet<FString> LearnedEffectIds;
 };

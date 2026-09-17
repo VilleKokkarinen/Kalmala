@@ -7,6 +7,7 @@
 #include "KalmalaCombatComponent.h"
 #include "KalmalaDiscoveryActor.h"
 #include "KalmalaDiscoveryProgressComponent.h"
+#include "KalmalaSupportMagicComponent.h"
 #include "KalmalaPlayerDiscoverySaveGame.h"
 #include "KalmalaMapAwarenessComponent.h"
 #include "KalmalaCampfire.h"
@@ -1269,6 +1270,13 @@ UKalmalaPlayerDiscoverySaveGame* AKalmalaGameMode::GetPlayerDiscoverySave(AKalma
         Save->InitializeForPlayer(WorldGenerationConfig, OutIdentity);
     }
     PlayerDiscoverySaves.Add(OutIdentity, Save);
+    if (UKalmalaSupportMagicComponent* Support = Interactor->GetSupportMagicComponent())
+    {
+        for (const EKalmalaSupportEffect Effect : { EKalmalaSupportEffect::Mending, EKalmalaSupportEffect::HearthShield, EKalmalaSupportEffect::BearsVigor, EKalmalaSupportEffect::DeerCall })
+        {
+            if (Save->HasLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(Effect))) Support->LearnEffectFromServer(Effect);
+        }
+    }
     return Save;
 }
 
@@ -1299,12 +1307,19 @@ bool AKalmalaGameMode::ClaimDiscovery(AKalmalaCharacter* Interactor, const FKalm
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery unavailable"));
         return false;
     }
+    const EKalmalaSupportEffect Effect = Descriptor.Kind == EKalmalaWorldDiscoveryKind::Scroll ? UKalmalaSupportMagicComponent::FromScrollDefinition(Descriptor.DefinitionId) : EKalmalaSupportEffect::None;
+    if (Effect != EKalmalaSupportEffect::None && !Save->AddLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(Effect)))
+    {
+        Save->RemoveDiscovery(Id); Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery unavailable")); return false;
+    }
     if (!UGameplayStatics::SaveGameToSlot(Save, KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, Identity), 0))
     {
         Save->RemoveDiscovery(Id);
+        if (Effect != EKalmalaSupportEffect::None) Save->RemoveLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(Effect));
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery unavailable"));
         return false;
     }
+    if (Effect != EKalmalaSupportEffect::None) Interactor->GetSupportMagicComponent()->LearnEffectFromServer(Effect);
     Feedback->PublishFeedbackFromServer(Descriptor.Kind == EKalmalaWorldDiscoveryKind::Scroll ? EKalmalaDiscoveryFeedback::ScrollFound : EKalmalaDiscoveryFeedback::LandmarkFound,
         Descriptor.Kind == EKalmalaWorldDiscoveryKind::Scroll ? FString::Printf(TEXT("Scroll found: %s"), *Descriptor.DefinitionId) : TEXT("Landmark discovered"));
     return true;
@@ -1315,6 +1330,12 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     Super::PostLogin(NewPlayer);
 
     PlacePawnAtGeneratedStart(NewPlayer);
+
+    if (NewPlayer != nullptr && NewPlayer->GetPawn() != nullptr)
+    {
+        FString IgnoredIdentity;
+        GetPlayerDiscoverySave(Cast<AKalmalaCharacter>(NewPlayer->GetPawn()), IgnoredIdentity);
+    }
 
     if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest"))) || NewPlayer == nullptr)
     {

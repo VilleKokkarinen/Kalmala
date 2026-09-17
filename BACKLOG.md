@@ -291,7 +291,7 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Add server-validated one-time discovery rewards with colour-independent local feedback and persistence across reconnect only for the entitled player.
   - [x] Verify same-seed reproduction, different-seed variation, duplicate/distant request rejection, and privacy of undiscovered content.
 - [ ] Implement the scroll-learned, non-damaging support-magic foundation.
-  - [ ] Add server-owned learned-effect validation, stamina/cooldown rules, replicated active-state presentation, and persistence keyed to the entitled player and immutable world identity.
+  - [x] Add server-owned learned-effect validation, stamina/cooldown rules, replicated active-state presentation, and persistence keyed to the entitled player and immutable world identity.
   - [ ] Implement Mending as a validated ally heal that cannot target invalid actors or damage enemies.
   - [ ] Implement Hearth Shield as a temporary validated protective shield with explicit expiry and replicated feedback.
   - [ ] Implement Bear's Vigor as a temporary validated stamina/strength boost with explicit expiry and replicated feedback.

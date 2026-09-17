@@ -2868,3 +2868,43 @@ and support-effect entitlement remain unimplemented.
 Next task: Add server-owned learned-effect validation, stamina/cooldown rules,
 replicated active-state presentation, and persistence keyed to the entitled
 player and immutable world identity.
+### 2026-09-17T10:18:00+03:00 - Add scroll-learned support-magic foundation
+
+Outcome: Completed the first support-magic child. A server-confirmed scroll now
+atomically persists its canonical allowlisted learned-effect token beside the
+existing entitled-player discovery fact, keyed by the authenticated identity and
+immutable world identity. The new server-owned component replicates the learned
+mask owner-only and a short active-effect/expiry presentation state to relevant
+peers. Its narrow activation RPC accepts only an enum and monotonic sequence;
+the server checks entitlement, cooldown, and authoritative stamina before one
+cost is charged. It applies no effect result, damage, target, duration, or
+magnitude until the four separate effect increments.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h` and
+its implementation; character component setup; authoritative stamina spending;
+player discovery save and claim/reconnect hydration; focused discovery
+automation; `docs/07-development-setup.md`; `docs/11-combat-and-support-magic.md`;
+`BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed with local UnrealBuildTool cache access.
+Headless `Kalmala.Gameplay.Discovery.PlayerScopedPersistence` passed, including
+canonical mapping, one-time learning, memory serialization, matching-world
+reconnect, and foundation gates. Evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaSupportFoundation-bc0ee52f-a804-4ecc-890a-d145dd61175b/automation.log`.
+`git diff --check` passed.
+
+Multiplayer impact: Scroll effects are selected solely from server-derived
+descriptor definitions and saved only for the authenticated entitled player.
+Activation receives no target, damage, ID, cost, duration, or magnitude from
+the client; server stamina/cooldown/sequence gates decide the transaction.
+Learned entitlements remain owner-only, while only visibly relevant active
+presentation is replicated. No support effect calls a damage path.
+
+Known limits: The generic active state is presentation-only; Mending, Hearth
+Shield, Bear's Vigor, and Deer Call each still need their own validated server
+result, feedback, expiry and host/client tests. This does not provide
+latency/replay fuzz coverage or a full reconnect live-peer fixture.
+
+Next task: Implement Mending as a validated ally heal that cannot target invalid
+actors or damage enemies.

@@ -42,6 +42,12 @@ void UKalmalaCharacterMovementComponent::AdvanceStaminaFromServer(const float De
     }
 }
 
+bool UKalmalaCharacterMovementComponent::TryConsumeStaminaFromServer(const float Cost)
+{
+    if (!CharacterOwner || !CharacterOwner->HasAuthority() || !FMath::IsFinite(Cost) || Cost <= 0.0f || Cost > MaximumStamina || Stamina < Cost) return false;
+    Stamina -= Cost; if (Stamina <= 0.0f) bSprintExhausted = true; CharacterOwner->ForceNetUpdate(); return true;
+}
+
 float UKalmalaCharacterMovementComponent::GetMaxSpeed() const
 {
     const float Speed = Super::GetMaxSpeed();

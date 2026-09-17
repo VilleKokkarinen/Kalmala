@@ -12,6 +12,7 @@ class UKalmalaCraftingComponent;
 class UKalmalaPlayerStatusComponent;
 class UKalmalaCombatComponent;
 class UKalmalaDiscoveryProgressComponent;
+class UKalmalaSupportMagicComponent;
 
 USTRUCT(BlueprintType)
 struct FKalmalaExposureState
@@ -46,6 +47,7 @@ public:
     UKalmalaCombatComponent* GetCombatComponent() const { return Combat; }
     UKalmalaDiscoveryProgressComponent* GetDiscoveryProgressComponent() const { return DiscoveryProgress; }
     UKalmalaInventoryComponent* GetInventoryComponent() const { return Inventory; }
+    UKalmalaSupportMagicComponent* GetSupportMagicComponent() const { return SupportMagic; }
     float GetHealth() const { return Health; }
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
     static bool IsExposureUpdateAllowed(bool bServerAuthority);
@@ -63,6 +65,7 @@ private:
     UPROPERTY(VisibleAnywhere, Category="Crafting") TObjectPtr<UKalmalaCraftingComponent> Crafting;
     UPROPERTY(VisibleAnywhere, Category="Combat") TObjectPtr<UKalmalaCombatComponent> Combat;
     UPROPERTY(VisibleAnywhere, Category="Discovery") TObjectPtr<UKalmalaDiscoveryProgressComponent> DiscoveryProgress;
+    UPROPERTY(VisibleAnywhere, Category="Support") TObjectPtr<UKalmalaSupportMagicComponent> SupportMagic;
     UPROPERTY(VisibleAnywhere, Category="Status") TObjectPtr<UKalmalaPlayerStatusComponent> Statuses;
     UPROPERTY(VisibleAnywhere, Category = "Inventory")
     TObjectPtr<UKalmalaInventoryComponent> Inventory;

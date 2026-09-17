@@ -169,6 +169,18 @@ before charging once; start cooldown and apply the effect as one server operatio
 Definitions supply bounded range, cost, duration and magnitude. Unknown effects
 fail closed. No support execution calls the damage path.
 
+The foundation records only canonical allowlisted `Effect:<definition>` tokens in
+the existing authenticated-player, immutable-world discovery save. On scroll
+claim, the server commits both the discovery and learned token before the
+owner-only acknowledgement; a failed save rolls both back. The owner receives a
+bounded learned-effect bitmask, while active-effect kind and finite expiry are
+relevant-actor presentation only. `ServerRequestActivateSupportEffect` accepts
+only an enum and monotonic sequence, checks the server-owned entitlement,
+stamina and cooldown before one cost is charged, and never accepts a client
+target, damage, duration, magnitude, or effect ID. Until the individual effect
+increments provide their validated result, the short active state is purely
+replicated presentation and has no combat or world mutation.
+
 | Effect | Server-selected target and result |
 | --- | --- |
 | Mending | Living allied pawn in range and line of sight; positive heal clamped to maximum health; reject full health; no revive |

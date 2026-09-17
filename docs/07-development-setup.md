@@ -107,6 +107,15 @@ no owner-only feedback for the other player's undiscovered content. This
 development-only fixture sends no descriptor, target, reward, identity, or
 progression payload from client to server and does not expose a discovery list.
 
+## Support-magic foundation regression
+
+After an editor build, run `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`
+with the normal headless automation flags. It verifies canonical scroll-to-effect
+mapping, entitled-player learned-effect persistence through memory
+serialization, immutable-world identity rejection, and the authority,
+entitlement, sequence, cooldown, and stamina gates. Runtime activation accepts
+only the enum/sequence intent and does not yet apply an individual effect.
+
 ## Exposure inspection
 
 Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 68–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.
