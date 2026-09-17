@@ -1,5 +1,6 @@
 #include "KalmalaCombatComponent.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaSupportMagicComponent.h"
 #include "KalmalaCombatIntentContract.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "GameFramework/Pawn.h"
@@ -52,8 +53,13 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
     {
         if (AKalmalaWildlifeSpawn* Target = PendingTarget.Get(); IsServerTargetValid(Target))
         {
-            const bool bDefeated = Target->GetHealth() <= AttackDamage;
-            const bool bApplied = Target->ApplyCombatDamageFromServer(AttackDamage, Cast<AKalmalaCharacter>(GetOwner()));
+            const AKalmalaCharacter* OwnerCharacter = Cast<AKalmalaCharacter>(GetOwner());
+            const auto* Support = OwnerCharacter ? OwnerCharacter->GetSupportMagicComponent() : nullptr;
+            const float Now = GetWorld()->GetTimeSeconds();
+            const float Damage = UKalmalaSupportMagicComponent::CalculateBearsVigorDamage(true,
+                Support && Support->GetBearsVigorExpiry() > Now, AttackDamage, Support ? Support->GetBearsVigorStrengthMultiplier() : 1.0f);
+            const bool bDefeated = Target->GetHealth() <= Damage;
+            const bool bApplied = Target->ApplyCombatDamageFromServer(Damage, Cast<AKalmalaCharacter>(GetOwner()));
 #if !UE_BUILD_SHIPPING
             if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")))
             {

@@ -12,9 +12,11 @@ public:
     UKalmalaCharacterMovementComponent();
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     float GetStamina() const { return Stamina; }
+    float GetMaximumStamina() const { return CurrentMaximumStamina; }
     bool IsSprintExhausted() const { return bSprintExhausted; }
     void AdvanceStaminaFromServer(float DeltaSeconds);
     bool TryConsumeStaminaFromServer(float Cost);
+    bool SetBearsVigorFromServer(bool bEnabled);
     static constexpr float MaximumStamina = 100.0f;
     static constexpr float SprintCostPerSecond = 10.0f;
     static constexpr float RecoveryPerSecond = 15.0f;
@@ -38,6 +40,7 @@ public:
     float SprintMultiplier = 1.5f;
 private:
     UPROPERTY(Replicated) float Stamina = MaximumStamina;
+    UPROPERTY(Replicated) float CurrentMaximumStamina = MaximumStamina;
     UPROPERTY(Replicated) bool bSprintExhausted = false;
     bool GetGeneratedOceanDepth(float& OutDepth) const;
     bool bSprintRequested = false;

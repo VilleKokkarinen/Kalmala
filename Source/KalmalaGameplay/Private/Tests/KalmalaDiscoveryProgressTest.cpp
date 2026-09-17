@@ -28,6 +28,10 @@ bool FKalmalaDiscoveryProgressTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Hearth Shield cannot refresh while its server-owned protection is active"), UKalmalaSupportMagicComponent::IsHearthShieldActivationAllowed(true, true));
     TestEqual(TEXT("Hearth Shield absorbs only its bounded remaining strength"), UKalmalaSupportMagicComponent::CalculateHearthShieldAbsorption(true, true, 25.0f, 10.0f), 10.0f);
     TestEqual(TEXT("Expired or non-authoritative Hearth Shield absorbs no damage"), UKalmalaSupportMagicComponent::CalculateHearthShieldAbsorption(false, true, 25.0f, 40.0f), 0.0f);
+    TestTrue(TEXT("Bear's Vigor needs the shared activation gates and rejects an active refresh"), UKalmalaSupportMagicComponent::IsBearsVigorActivationAllowed(true, false));
+    TestFalse(TEXT("Bear's Vigor cannot refresh while its temporary modifiers are active"), UKalmalaSupportMagicComponent::IsBearsVigorActivationAllowed(true, true));
+    TestEqual(TEXT("Bear's Vigor applies only its bounded server strength modifier"), UKalmalaSupportMagicComponent::CalculateBearsVigorDamage(true, true, 25.0f, 1.4f), 35.0f);
+    TestEqual(TEXT("Inactive or malformed Bear's Vigor cannot increase combat damage"), UKalmalaSupportMagicComponent::CalculateBearsVigorDamage(true, false, 25.0f, 1.4f), 25.0f);
     TestTrue(TEXT("Mending accepts only a finite damaged living allied pawn in range on the server"), AKalmalaCharacter::IsMendingReceiveAllowed(true, true, true, true, true, true, 30.0f));
     TestFalse(TEXT("Mending rejects a non-allied target"), AKalmalaCharacter::IsMendingReceiveAllowed(true, false, true, true, true, true, 30.0f));
     TestFalse(TEXT("Mending rejects a dead, full-health, distant, or excessive target state"),

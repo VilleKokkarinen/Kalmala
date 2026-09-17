@@ -19,12 +19,21 @@ bool UKalmalaSupportMagicComponent::IsActivationAllowed(const bool bAuthority, c
 { return bAuthority && bLearned && bNewSequence && bCooldownExpired && bHasStamina; }
 bool UKalmalaSupportMagicComponent::IsHearthShieldActivationAllowed(const bool bBaseActivationAllowed, const bool bShieldAlreadyActive)
 { return bBaseActivationAllowed && !bShieldAlreadyActive; }
+bool UKalmalaSupportMagicComponent::IsBearsVigorActivationAllowed(const bool bBaseActivationAllowed, const bool bVigorAlreadyActive)
+{ return bBaseActivationAllowed && !bVigorAlreadyActive; }
 float UKalmalaSupportMagicComponent::CalculateHearthShieldAbsorption(const bool bServerAuthority, const bool bShieldActive,
     const float IncomingDamage, const float RemainingStrength)
 {
     if (!bServerAuthority || !bShieldActive || !FMath::IsFinite(IncomingDamage) || !FMath::IsFinite(RemainingStrength)
         || IncomingDamage <= 0.0f || RemainingStrength <= 0.0f) return 0.0f;
     return FMath::Min(IncomingDamage, RemainingStrength);
+}
+float UKalmalaSupportMagicComponent::CalculateBearsVigorDamage(const bool bServerAuthority, const bool bVigorActive,
+    const float BaseDamage, const float StrengthMultiplier)
+{
+    if (!bServerAuthority || !bVigorActive || !FMath::IsFinite(BaseDamage) || !FMath::IsFinite(StrengthMultiplier)
+        || BaseDamage <= 0.0f || BaseDamage > 25.0f || StrengthMultiplier < 1.0f || StrengthMultiplier > BearsVigorStrength) return BaseDamage;
+    return FMath::Min(35.0f, BaseDamage * StrengthMultiplier);
 }
 
 float UKalmalaSupportMagicComponent::AbsorbHearthShieldDamageFromServer(const float IncomingDamage)
@@ -71,8 +80,10 @@ void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implement
     UKalmalaCharacterMovementComponent* Movement = Pawn ? Cast<UKalmalaCharacterMovementComponent>(Pawn->GetMovementComponent()) : nullptr;
     const bool bBaseActivationAllowed = IsActivationAllowed(Pawn && Pawn->HasAuthority(), HasLearnedEffect(Effect), RequestSequence != 0 && RequestSequence > LastRequestSequence, Now >= CooldownExpiry, Movement != nullptr && Movement->GetStamina() >= ActivationCost);
     const bool bShieldAlreadyActive = HearthShieldExpiry > Now && HearthShieldStrength > 0.0f;
-    if (Effect == EKalmalaSupportEffect::HearthShield
-        ? !IsHearthShieldActivationAllowed(bBaseActivationAllowed, bShieldAlreadyActive) : !bBaseActivationAllowed) return;
+    const bool bVigorAlreadyActive = BearsVigorExpiry > Now && BearsVigorStrengthMultiplier > 1.0f;
+    const bool bEffectActivationAllowed = Effect == EKalmalaSupportEffect::HearthShield ? IsHearthShieldActivationAllowed(bBaseActivationAllowed, bShieldAlreadyActive)
+        : Effect == EKalmalaSupportEffect::BearsVigor ? IsBearsVigorActivationAllowed(bBaseActivationAllowed, bVigorAlreadyActive) : bBaseActivationAllowed;
+    if (!bEffectActivationAllowed) return;
     // Mending has no client target payload: the server forward trace finds one eligible allied pawn before the transaction charges stamina.
     AKalmalaCharacter* MendingTarget = Effect == EKalmalaSupportEffect::Mending ? ResolveMendingTargetFromServer(Pawn) : nullptr;
     if (Effect == EKalmalaSupportEffect::Mending && MendingTarget == nullptr) return;
@@ -84,6 +95,13 @@ void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implement
         HearthShieldStrength = HearthShieldAbsorption;
         HearthShieldExpiry = Now + HearthShieldDuration;
         ActiveEffectExpiry = HearthShieldExpiry;
+    }
+    else if (Effect == EKalmalaSupportEffect::BearsVigor)
+    {
+        BearsVigorStrengthMultiplier = BearsVigorStrength;
+        BearsVigorExpiry = Now + BearsVigorDuration;
+        if (!Movement->SetBearsVigorFromServer(true)) return;
+        ActiveEffectExpiry = BearsVigorExpiry;
     }
     else ActiveEffectExpiry = Now + PresentationSeconds;
     GetOwner()->ForceNetUpdate();
@@ -98,6 +116,15 @@ void UKalmalaSupportMagicComponent::TickComponent(const float DeltaTime, const E
         HearthShieldStrength = 0.0f;
         HearthShieldExpiry = 0.0f;
     }
+    if (BearsVigorExpiry > 0.0f && Now >= BearsVigorExpiry)
+    {
+        if (APawn* Pawn = Cast<APawn>(GetOwner()))
+        {
+            if (UKalmalaCharacterMovementComponent* Movement = Cast<UKalmalaCharacterMovementComponent>(Pawn->GetMovementComponent())) Movement->SetBearsVigorFromServer(false);
+        }
+        BearsVigorStrengthMultiplier = 1.0f;
+        BearsVigorExpiry = 0.0f;
+    }
     if (ActiveEffect != EKalmalaSupportEffect::None && Now >= ActiveEffectExpiry)
     {
         ActiveEffect = EKalmalaSupportEffect::None;
@@ -106,4 +133,4 @@ void UKalmalaSupportMagicComponent::TickComponent(const float DeltaTime, const E
     }
 }
 void UKalmalaSupportMagicComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{ Super::GetLifetimeReplicatedProps(OutLifetimeProps); DOREPLIFETIME_CONDITION(UKalmalaSupportMagicComponent, LearnedMask, COND_OwnerOnly); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffect); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffectExpiry); DOREPLIFETIME(UKalmalaSupportMagicComponent, HearthShieldStrength); DOREPLIFETIME(UKalmalaSupportMagicComponent, HearthShieldExpiry); }
+{ Super::GetLifetimeReplicatedProps(OutLifetimeProps); DOREPLIFETIME_CONDITION(UKalmalaSupportMagicComponent, LearnedMask, COND_OwnerOnly); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffect); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffectExpiry); DOREPLIFETIME(UKalmalaSupportMagicComponent, HearthShieldStrength); DOREPLIFETIME(UKalmalaSupportMagicComponent, HearthShieldExpiry); DOREPLIFETIME(UKalmalaSupportMagicComponent, BearsVigorExpiry); DOREPLIFETIME(UKalmalaSupportMagicComponent, BearsVigorStrengthMultiplier); }

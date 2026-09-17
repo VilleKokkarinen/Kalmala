@@ -2988,3 +2988,44 @@ Deer Call remain separate runtime increments.
 
 Next task: Implement Bear's Vigor as a temporary validated stamina/strength
 boost with explicit expiry and replicated feedback.
+
+### 2026-09-17T10:34:20+03:00 - Implement server-validated Bear's Vigor
+
+Outcome: Completed the Bear's Vigor child. A learned Vigor activation now uses
+the existing server entitlement, sequence, cooldown, and stamina transaction to
+apply an eight-second 140-point authoritative stamina cap and a bounded 1.4
+server combat-strength multiplier. It never refills stamina. On expiry, the
+movement component restores the 100-point baseline and clamps only excess
+stamina. Active Vigor cannot refresh, and its relevant active state, expiry,
+and strength presentation replicate normally.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaCharacterMovementComponent.h`;
+`Source/KalmalaGameplay/Private/KalmalaCharacterMovementComponent.cpp`;
+`Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h`;
+`Source/KalmalaGameplay/Private/KalmalaSupportMagicComponent.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp`;
+`docs/11-combat-and-support-magic.md`; `BACKLOG.md`; this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed with UnrealBuildTool `Result: Succeeded`.
+Headless `Kalmala.Gameplay.Discovery.PlayerScopedPersistence` passed, including
+Vigor activation/refresh and bounded-strength gates (`Result={Success}`).
+Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaBearsVigorFinal-7cf9ff2b48504cee9f204af3df082c0b/automation.log`.
+`git diff --check` passed.
+
+Multiplayer impact: The activation RPC remains only an effect enum and monotonic
+sequence. The server alone sets/restores the stamina cap, clamps stamina,
+selects the temporary strength multiplier, and applies it only in the existing
+server combat execution. Relevant peers receive active Vigor presentation;
+clients never send a target, maximum, multiplier, damage, duration, expiry, or
+combat result. No reward, discovery, save schema, or direct-damage magic path
+was added.
+
+Known limits: This focused automation covers the bounded transaction and
+modifier gates, not a rendered/two-peer Vigor cast or a latency/replay study.
+Deer Call remains the next support effect.
+
+Next task: Implement Deer Call as a bounded validated behaviour influence on
+existing nearby deer only; it must not create wildlife or bypass harvest/loot
+rules.

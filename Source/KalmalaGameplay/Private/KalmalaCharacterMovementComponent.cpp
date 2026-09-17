@@ -16,6 +16,7 @@ void UKalmalaCharacterMovementComponent::GetLifetimeReplicatedProps(TArray<FLife
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(UKalmalaCharacterMovementComponent, Stamina);
+    DOREPLIFETIME(UKalmalaCharacterMovementComponent, CurrentMaximumStamina);
     DOREPLIFETIME(UKalmalaCharacterMovementComponent, bSprintExhausted);
 }
 
@@ -37,7 +38,7 @@ void UKalmalaCharacterMovementComponent::AdvanceStaminaFromServer(const float De
     }
     else
     {
-        Stamina = FMath::Min(MaximumStamina, Stamina + RecoveryPerSecond * Step);
+        Stamina = FMath::Min(CurrentMaximumStamina, Stamina + RecoveryPerSecond * Step);
         if (Stamina >= SprintRecoveryThreshold) bSprintExhausted = false;
     }
 }
@@ -46,6 +47,21 @@ bool UKalmalaCharacterMovementComponent::TryConsumeStaminaFromServer(const float
 {
     if (!CharacterOwner || !CharacterOwner->HasAuthority() || !FMath::IsFinite(Cost) || Cost <= 0.0f || Cost > MaximumStamina || Stamina < Cost) return false;
     Stamina -= Cost; if (Stamina <= 0.0f) bSprintExhausted = true; CharacterOwner->ForceNetUpdate(); return true;
+}
+
+bool UKalmalaCharacterMovementComponent::SetBearsVigorFromServer(const bool bEnabled)
+{
+    if (!CharacterOwner || !CharacterOwner->HasAuthority()) return false;
+    const float NewMaximum = bEnabled ? MaximumStamina + 40.0f : MaximumStamina;
+    if (!FMath::IsFinite(NewMaximum) || NewMaximum < MaximumStamina || NewMaximum > MaximumStamina + 40.0f) return false;
+    if (FMath::IsNearlyEqual(CurrentMaximumStamina, NewMaximum)) return true;
+    CurrentMaximumStamina = NewMaximum;
+    // Vigor never refills stamina. Its removal only clamps the existing authoritative value.
+    Stamina = FMath::Clamp(Stamina, 0.0f, CurrentMaximumStamina);
+    if (Stamina <= 0.0f) bSprintExhausted = true;
+    else if (Stamina >= SprintRecoveryThreshold) bSprintExhausted = false;
+    CharacterOwner->ForceNetUpdate();
+    return true;
 }
 
 float UKalmalaCharacterMovementComponent::GetMaxSpeed() const
