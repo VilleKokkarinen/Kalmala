@@ -7,6 +7,13 @@
 class UButton;
 class UTextBlock;
 
+enum class EKalmalaAudioCategory : uint8
+{
+    Ambient,
+    Music,
+    InteractionCombat
+};
+
 /**
  * Local-only pause and options presentation. Video settings are applied through
  * UGameUserSettings; this widget never changes replicated gameplay state.
@@ -28,6 +35,9 @@ public:
     static void SetMasterVolume(float Volume);
     static void ToggleAudioMute();
     static void ApplySavedMasterVolume();
+    static float ClampAudioCategoryVolume(float Volume);
+    static float GetAudioCategoryVolume(EKalmalaAudioCategory Category);
+    static void SetAudioCategoryVolume(EKalmalaAudioCategory Category, float Volume);
 
 protected:
     virtual void NativeConstruct() override;
@@ -41,6 +51,7 @@ private:
     void ApplyVideoSettings();
     void UpdateVideoLabels();
     void UpdateAudioLabels();
+    void CycleAudioCategory(EKalmalaAudioCategory Category);
     UButton* AddButton(class UVerticalBox* Parent, const FText& Label, FName Name);
     UTextBlock* AddLabel(class UVerticalBox* Parent, const FText& Label, float FontSize = 20.0f);
 
@@ -68,6 +79,12 @@ private:
     void HandleMasterVolumeClicked();
     UFUNCTION()
     void HandleAudioMuteClicked();
+    UFUNCTION()
+    void HandleAmbientVolumeClicked();
+    UFUNCTION()
+    void HandleMusicVolumeClicked();
+    UFUNCTION()
+    void HandleInteractionCombatVolumeClicked();
 
     UPROPERTY(Transient)
     TObjectPtr<class UVerticalBox> ContentBox;
@@ -83,6 +100,12 @@ private:
     TObjectPtr<UTextBlock> MasterVolumeLabel;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> AudioMuteLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> AmbientVolumeLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> MusicVolumeLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> InteractionCombatVolumeLabel;
 
     TArray<FIntPoint> ResolutionChoices;
     int32 ResolutionChoiceIndex = 0;

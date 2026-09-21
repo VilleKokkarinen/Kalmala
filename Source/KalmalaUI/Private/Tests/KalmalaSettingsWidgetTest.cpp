@@ -19,6 +19,30 @@ bool FKalmalaSettingsWidgetTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Master volume clamps above full volume"), UKalmalaSettingsWidget::ClampMasterVolume(1.25f), 1.0f);
     TestEqual(TEXT("Non-finite master volume falls back to full volume"), UKalmalaSettingsWidget::ClampMasterVolume(std::numeric_limits<float>::quiet_NaN()), 1.0f);
 
+    TestEqual(TEXT("Audio category volume clamps below silence"), UKalmalaSettingsWidget::ClampAudioCategoryVolume(-0.25f), 0.0f);
+    TestEqual(TEXT("Audio category volume preserves an in-range level"), UKalmalaSettingsWidget::ClampAudioCategoryVolume(0.5f), 0.5f);
+    TestEqual(TEXT("Audio category volume clamps above full volume"), UKalmalaSettingsWidget::ClampAudioCategoryVolume(1.25f), 1.0f);
+    TestEqual(TEXT("Non-finite audio category volume falls back to full volume"),
+        UKalmalaSettingsWidget::ClampAudioCategoryVolume(std::numeric_limits<float>::quiet_NaN()), 1.0f);
+
+    const float OriginalAmbientVolume = UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::Ambient);
+    const float OriginalMusicVolume = UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::Music);
+    const float OriginalInteractionCombatVolume = UKalmalaSettingsWidget::GetAudioCategoryVolume(
+        EKalmalaAudioCategory::InteractionCombat);
+    UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::Ambient, 0.25f);
+    UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::Music, 0.5f);
+    UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat, 0.75f);
+    TestEqual(TEXT("Ambient level persists to local settings"),
+        UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::Ambient), 0.25f);
+    TestEqual(TEXT("Music level persists to local settings"),
+        UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::Music), 0.5f);
+    TestEqual(TEXT("Interaction/combat level persists to local settings"),
+        UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat), 0.75f);
+    UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::Ambient, OriginalAmbientVolume);
+    UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::Music, OriginalMusicVolume);
+    UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat,
+        OriginalInteractionCombatVolume);
+
     const float OriginalRuntimeVolume = FApp::GetVolumeMultiplier();
     const float OriginalStoredVolume = UKalmalaSettingsWidget::GetStoredMasterVolume();
     UKalmalaSettingsWidget::SetMasterVolume(0.5f);

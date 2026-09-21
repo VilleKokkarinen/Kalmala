@@ -31,6 +31,10 @@ $requiredTerms = @{
     'Audio option group' = 'Audio'
     'Local master volume' = 'master-volume cycle in\s+25% steps'
     'Mute and restore' = 'mute/restore button'
+    'Ambient/music/feedback category levels' = '(?s)Ambient, music, and interaction/combat feedback each have.*0%, 25%, 50%, 75%, and 100%'
+    'Ambient loop mix' = '(?s)ambient value scales the local.*wind, rain, water, fire, and biome loops'
+    'Interaction/combat cue mix' = '(?s)interaction/combat value.*scales owner-local.*one-shots'
+    'Current music playback limit' = 'there is no music track in the current runtime'
     'Local audio configuration' = 'local `GameUserSettings` config'
     'Local primary output' = 'primary output-volume multiplier'
     'Controls option group' = 'Controls'
@@ -57,7 +61,7 @@ if ($text -notmatch 'Escape') {
 if ($text -notmatch 'Cancel.*apply.*reset|apply.*reset.*actions') {
     throw 'Settings/accessibility contract does not define reversible local changes'
 }
-if ($text -notmatch '(?s)Runtime UI for the other option groups and the full\s+settings-persistence\s+verification remain queued') {
+if ($text -notmatch '(?s)Control remapping, text scale, contrast,\s+colour-independent feedback, controller operation, and the full settings-\s+persistence verification remain queued') {
     throw 'Settings/accessibility contract does not state its runtime verification limit'
 }
 

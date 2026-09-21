@@ -30,11 +30,16 @@ they must stay bounded, reversible, and compatible with the current input
 bindings. This increment makes no platform, visual-identity, or audio-content
 decision.
 
-The first runtime Audio-tab increment provides a local master-volume cycle in
-25% steps and a mute/restore button. The current value and control labels are
-textual. Master and restore levels use the local `GameUserSettings` config and
-the engine's primary output-volume multiplier. Ambient, music, and interaction/
-combat category levels remain to be implemented.
+The Audio tab provides a local master-volume cycle in 25% steps and a
+mute/restore button. Ambient, music, and interaction/combat feedback each have
+a focusable category button that cycles through 0%, 25%, 50%, 75%, and 100%.
+Every button reports its current level or action in text. These values save in
+the local `GameUserSettings` config. The master value applies through the
+engine's primary output-volume multiplier; the ambient value scales the local
+wind, rain, water, fire, and biome loops, and the interaction/combat value
+scales owner-local movement, status, crafting/gathering, discovery, combat, and
+support one-shots. The music value is ready for a future music playback path;
+there is no music track in the current runtime.
 
 ## Existing input baseline
 
@@ -101,6 +106,9 @@ equivalent for colour-independent use.
 The master audio preference is applied independently by each running game
 process. In a listen-server session it affects that process's local output; it
 does not change audio or state on a connected remote client.
+The category values are local configuration too. Ambient and one-shot
+presenters read them from the current process and apply them only to its local
+player components or cue submissions; a connected peer has separate settings.
 
 ## Acceptance and limits
 
@@ -115,7 +123,8 @@ viewport sizes.
 without Unreal. It proves the documented option groups and boundaries are
 present, not that the runtime menu or packaged accessibility flow is complete.
 The focused `Kalmala.UI.Settings.LocalPresentation` automation checks
-master-volume bounds, local config round-trip, immediate mute, and restore to
-the prior level. It does not render the controls or establish audible quality.
-Runtime UI for the other option groups and the full settings-persistence
-verification remain queued.
+master-volume bounds, local config round-trip, immediate mute and restore, and
+category-level bounds and config round-trips. It does not render the controls
+or establish audible quality. Control remapping, text scale, contrast,
+colour-independent feedback, controller operation, and the full settings-
+persistence verification remain queued.

@@ -25,6 +25,17 @@ namespace
     constexpr TCHAR RestoreVolumeKey[] = TEXT("LocalRestoreVolume");
     constexpr float DefaultMasterVolume = 1.0f;
 
+    const TCHAR* GetAudioCategoryKey(const EKalmalaAudioCategory Category)
+    {
+        switch (Category)
+        {
+        case EKalmalaAudioCategory::Ambient: return TEXT("LocalAmbientVolume");
+        case EKalmalaAudioCategory::Music: return TEXT("LocalMusicVolume");
+        case EKalmalaAudioCategory::InteractionCombat: return TEXT("LocalInteractionCombatVolume");
+        default: return nullptr;
+        }
+    }
+
     float ReadStoredVolume(const TCHAR* Key, const float DefaultValue)
     {
         float Value = DefaultValue;
@@ -143,6 +154,29 @@ void UKalmalaSettingsWidget::ApplySavedMasterVolume()
     FApp::SetVolumeMultiplier(GetStoredMasterVolume());
 }
 
+float UKalmalaSettingsWidget::ClampAudioCategoryVolume(const float Volume)
+{
+    return FMath::IsFinite(Volume) ? FMath::Clamp(Volume, 0.0f, 1.0f) : DefaultMasterVolume;
+}
+
+float UKalmalaSettingsWidget::GetAudioCategoryVolume(const EKalmalaAudioCategory Category)
+{
+    const TCHAR* Key = GetAudioCategoryKey(Category);
+    return Key != nullptr ? ReadStoredVolume(Key, DefaultMasterVolume) : DefaultMasterVolume;
+}
+
+void UKalmalaSettingsWidget::SetAudioCategoryVolume(const EKalmalaAudioCategory Category, const float Volume)
+{
+    const TCHAR* Key = GetAudioCategoryKey(Category);
+    if (Key == nullptr || GConfig == nullptr)
+    {
+        return;
+    }
+
+    GConfig->SetFloat(AudioSettingsSection, Key, ClampAudioCategoryVolume(Volume), GGameUserSettingsIni);
+    GConfig->Flush(false, GGameUserSettingsIni);
+}
+
 UTextBlock* UKalmalaSettingsWidget::AddLabel(UVerticalBox* Parent, const FText& Label, const float FontSize)
 {
     UTextBlock* Text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
@@ -233,7 +267,16 @@ void UKalmalaSettingsWidget::ShowAudioTab()
     UButton* Mute = AddButton(ContentBox, FText::GetEmpty(), TEXT("AudioMuteButton"));
     Mute->OnClicked.AddDynamic(this, &ThisClass::HandleAudioMuteClicked);
     AudioMuteLabel = Cast<UTextBlock>(Mute->GetContent());
-    AddLabel(ContentBox, FText::FromString(TEXT("Saved locally. Master volume affects all game sounds.")), 15.0f);
+    UButton* Ambient = AddButton(ContentBox, FText::GetEmpty(), TEXT("AmbientVolumeButton"));
+    Ambient->OnClicked.AddDynamic(this, &ThisClass::HandleAmbientVolumeClicked);
+    AmbientVolumeLabel = Cast<UTextBlock>(Ambient->GetContent());
+    UButton* Music = AddButton(ContentBox, FText::GetEmpty(), TEXT("MusicVolumeButton"));
+    Music->OnClicked.AddDynamic(this, &ThisClass::HandleMusicVolumeClicked);
+    MusicVolumeLabel = Cast<UTextBlock>(Music->GetContent());
+    UButton* InteractionCombat = AddButton(ContentBox, FText::GetEmpty(), TEXT("InteractionCombatVolumeButton"));
+    InteractionCombat->OnClicked.AddDynamic(this, &ThisClass::HandleInteractionCombatVolumeClicked);
+    InteractionCombatVolumeLabel = Cast<UTextBlock>(InteractionCombat->GetContent());
+    AddLabel(ContentBox, FText::FromString(TEXT("Saved locally. Music volume is ready for future music playback.")), 15.0f);
     UpdateAudioLabels();
     MasterVolume->SetUserFocus(GetOwningPlayer());
 }
@@ -269,6 +312,21 @@ void UKalmalaSettingsWidget::UpdateAudioLabels()
     {
         AudioMuteLabel->SetText(FText::FromString(IsAudioMuted() ? TEXT("Restore audio") : TEXT("Mute audio")));
     }
+
+    const auto UpdateCategoryLabel = [](UTextBlock* Label, const TCHAR* CategoryLabel,
+        const EKalmalaAudioCategory Category)
+    {
+        if (Label != nullptr)
+        {
+            const int32 CategoryPercent = FMath::RoundToInt(GetAudioCategoryVolume(Category) * 100.0f);
+            Label->SetText(FText::FromString(FString::Printf(
+                TEXT("%s Volume: %d%% (Activate to change)"), CategoryLabel, CategoryPercent)));
+        }
+    };
+    UpdateCategoryLabel(AmbientVolumeLabel, TEXT("Ambient"), EKalmalaAudioCategory::Ambient);
+    UpdateCategoryLabel(MusicVolumeLabel, TEXT("Music"), EKalmalaAudioCategory::Music);
+    UpdateCategoryLabel(InteractionCombatVolumeLabel, TEXT("Interaction/Combat Feedback"),
+        EKalmalaAudioCategory::InteractionCombat);
 }
 
 void UKalmalaSettingsWidget::ApplyVideoSettings() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->ApplySettings(false); Settings->SaveSettings(); UpdateVideoLabels(); } }
@@ -294,4 +352,27 @@ void UKalmalaSettingsWidget::HandleAudioMuteClicked()
 {
     ToggleAudioMute();
     UpdateAudioLabels();
+}
+
+void UKalmalaSettingsWidget::CycleAudioCategory(const EKalmalaAudioCategory Category)
+{
+    const int32 CurrentStep = FMath::RoundToInt(GetAudioCategoryVolume(Category) * 4.0f);
+    const int32 NextStep = (CurrentStep + 1) % 5;
+    SetAudioCategoryVolume(Category, static_cast<float>(NextStep) * 0.25f);
+    UpdateAudioLabels();
+}
+
+void UKalmalaSettingsWidget::HandleAmbientVolumeClicked()
+{
+    CycleAudioCategory(EKalmalaAudioCategory::Ambient);
+}
+
+void UKalmalaSettingsWidget::HandleMusicVolumeClicked()
+{
+    CycleAudioCategory(EKalmalaAudioCategory::Music);
+}
+
+void UKalmalaSettingsWidget::HandleInteractionCombatVolumeClicked()
+{
+    CycleAudioCategory(EKalmalaAudioCategory::InteractionCombat);
 }

@@ -18,6 +18,7 @@
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaWorldFieldSampler.h"
+#include "KalmalaSettingsWidget.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -180,6 +181,10 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         return;
     }
 
+    AmbientCategoryVolumeMultiplier = UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::Ambient);
+    InteractionCombatCategoryVolumeMultiplier = UKalmalaSettingsWidget::GetAudioCategoryVolume(
+        EKalmalaAudioCategory::InteractionCombat);
+
     if (AmbientAudio == nullptr && WindBed == nullptr)
     {
         WindBed = LoadObject<USoundWave>(nullptr, WindBedAssetPath);
@@ -314,13 +319,13 @@ void UKalmalaAmbientAudioSubsystem::UpdateLocalMovementCues(const float DeltaTim
         FootfallDistanceAccumulated = 0.0f;
     }
 
-    auto SubmitCue = [World, Character](USoundWave* Cue, const TCHAR* EventName, const TCHAR* AssetName,
+    auto SubmitCue = [this, World, Character](USoundWave* Cue, const TCHAR* EventName, const TCHAR* AssetName,
         const float Volume, const float Pitch)
     {
         const bool bCueSubmitted = World != nullptr && IsValid(Cue);
         if (bCueSubmitted)
         {
-            UGameplayStatics::PlaySound2D(World, Cue, Volume, Pitch);
+            UGameplayStatics::PlaySound2D(World, Cue, Volume * InteractionCombatCategoryVolumeMultiplier, Pitch);
         }
 #if !UE_BUILD_SHIPPING
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMovementAudioTest")))
@@ -343,7 +348,7 @@ void UKalmalaAmbientAudioSubsystem::UpdateLocalMovementCues(const float DeltaTim
         const bool bCueSubmitted = World != nullptr && IsValid(Cue);
         if (bCueSubmitted)
         {
-            UGameplayStatics::PlaySound2D(World, Cue, Volume);
+            UGameplayStatics::PlaySound2D(World, Cue, Volume * InteractionCombatCategoryVolumeMultiplier);
         }
 #if !UE_BUILD_SHIPPING
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanTraversalAudioTest")))
@@ -391,7 +396,7 @@ void UKalmalaAmbientAudioSubsystem::UpdateWindAmbience(const float DeltaTime, co
     if (IsValid(AmbientAudio.Get()))
     {
         CurrentWindVolume = FMath::FInterpTo(CurrentWindVolume, TargetWindVolume, DeltaTime, WindFadeSpeed);
-        AmbientAudio->SetVolumeMultiplier(CurrentWindVolume);
+        AmbientAudio->SetVolumeMultiplier(CurrentWindVolume * AmbientCategoryVolumeMultiplier);
     }
 }
 
@@ -425,7 +430,7 @@ void UKalmalaAmbientAudioSubsystem::UpdateRainAmbience(const float DeltaTime, UW
     if (IsValid(RainAmbientAudio.Get()))
     {
         CurrentRainVolume = FMath::FInterpTo(CurrentRainVolume, TargetRainVolume, DeltaTime, RainFadeSpeed);
-        RainAmbientAudio->SetVolumeMultiplier(CurrentRainVolume);
+        RainAmbientAudio->SetVolumeMultiplier(CurrentRainVolume * AmbientCategoryVolumeMultiplier);
         if (TargetRainVolume <= 0.0f && CurrentRainVolume <= 0.003f)
         {
             RainAmbientAudio->Stop();
@@ -468,7 +473,8 @@ void UKalmalaAmbientAudioSubsystem::UpdateWetStatusCue(UWorld* World, APlayerCon
     const bool bCueSubmitted = World != nullptr && WetStatusCue != nullptr;
     if (bCueSubmitted)
     {
-        UGameplayStatics::PlaySound2D(World, WetStatusCue, WetStatusCueVolume, 1.0f, 0.0f, nullptr, nullptr, false);
+        UGameplayStatics::PlaySound2D(World, WetStatusCue,
+            WetStatusCueVolume * InteractionCombatCategoryVolumeMultiplier, 1.0f, 0.0f, nullptr, nullptr, false);
     }
 
 #if !UE_BUILD_SHIPPING
@@ -527,7 +533,8 @@ void UKalmalaAmbientAudioSubsystem::UpdateSupportEffectCues(UWorld* World, APlay
             const bool bSubmitted = World != nullptr && Cue != nullptr;
             if (bSubmitted)
             {
-                UGameplayStatics::PlaySound2D(World, Cue, SupportEffectExpiryCueVolume,
+                UGameplayStatics::PlaySound2D(World, Cue,
+                    SupportEffectExpiryCueVolume * InteractionCombatCategoryVolumeMultiplier,
                     1.0f, 0.0f, nullptr, nullptr, false);
             }
 #if !UE_BUILD_SHIPPING
@@ -615,7 +622,8 @@ void UKalmalaAmbientAudioSubsystem::UpdateSupportEffectCues(UWorld* World, APlay
         bCueSubmitted = World != nullptr && Cue != nullptr;
         if (bCueSubmitted)
         {
-            UGameplayStatics::PlaySound2D(World, Cue, SupportEffectCueVolume,
+            UGameplayStatics::PlaySound2D(World, Cue,
+                SupportEffectCueVolume * InteractionCombatCategoryVolumeMultiplier,
                 1.0f, 0.0f, nullptr, nullptr, false);
         }
     }
@@ -673,7 +681,8 @@ void UKalmalaAmbientAudioSubsystem::UpdateCombatResultCue(UWorld* World, APlayer
         bCueSubmitted = World != nullptr && CombatResultCue != nullptr;
         if (bCueSubmitted)
         {
-            UGameplayStatics::PlaySound2D(World, CombatResultCue, CombatResultCueVolume,
+            UGameplayStatics::PlaySound2D(World, CombatResultCue,
+                CombatResultCueVolume * InteractionCombatCategoryVolumeMultiplier,
                 1.0f, 0.0f, nullptr, nullptr, false);
         }
     }
@@ -735,7 +744,8 @@ void UKalmalaAmbientAudioSubsystem::UpdateDiscoveryAcknowledgementCue(UWorld* Wo
         if (bCueSubmitted)
         {
             UGameplayStatics::PlaySound2D(World, DiscoveryAcknowledgedCue.Get(),
-                DiscoveryAcknowledgedCueVolume, 1.0f, 0.0f, nullptr, nullptr, false);
+                DiscoveryAcknowledgedCueVolume * InteractionCombatCategoryVolumeMultiplier,
+                1.0f, 0.0f, nullptr, nullptr, false);
         }
     }
 
@@ -806,7 +816,8 @@ void UKalmalaAmbientAudioSubsystem::UpdateInteractionResultCue(UWorld* World, AP
         if (bCueSubmitted)
         {
             UGameplayStatics::PlaySound2D(World, Cue,
-                bAccepted ? InteractionAcceptedCueVolume : InteractionRejectedCueVolume,
+                (bAccepted ? InteractionAcceptedCueVolume : InteractionRejectedCueVolume)
+                    * InteractionCombatCategoryVolumeMultiplier,
                 1.0f, 0.0f, nullptr, nullptr, false);
             InteractionCueCooldownRemaining = InteractionCueMinimumInterval;
         }
@@ -891,7 +902,8 @@ void UKalmalaAmbientAudioSubsystem::UpdateGatheringResultCue(UWorld* World, APla
         bCueSubmitted = World != nullptr && InteractionAcceptedCue != nullptr;
         if (bCueSubmitted)
         {
-            UGameplayStatics::PlaySound2D(World, InteractionAcceptedCue.Get(), InteractionAcceptedCueVolume,
+            UGameplayStatics::PlaySound2D(World, InteractionAcceptedCue.Get(),
+                InteractionAcceptedCueVolume * InteractionCombatCategoryVolumeMultiplier,
                 1.0f, 0.0f, nullptr, nullptr, false);
             InteractionCueCooldownRemaining = InteractionCueMinimumInterval;
         }
@@ -1006,7 +1018,7 @@ void UKalmalaAmbientAudioSubsystem::UpdateWaterAmbience(const float DeltaTime, U
     if (IsValid(WaterAmbientAudio.Get()))
     {
         CurrentWaterVolume = FMath::FInterpTo(CurrentWaterVolume, TargetWaterVolume, DeltaTime, WaterFadeSpeed);
-        WaterAmbientAudio->SetVolumeMultiplier(CurrentWaterVolume);
+        WaterAmbientAudio->SetVolumeMultiplier(CurrentWaterVolume * AmbientCategoryVolumeMultiplier);
         if (TargetWaterVolume <= 0.0f && CurrentWaterVolume <= 0.003f)
         {
             WaterAmbientAudio->Stop();
@@ -1116,7 +1128,7 @@ void UKalmalaAmbientAudioSubsystem::UpdateFireAmbience(const float DeltaTime, UW
     if (IsValid(FireAmbientAudio.Get()))
     {
         CurrentFireVolume = FMath::FInterpTo(CurrentFireVolume, TargetFireVolume, DeltaTime, FireFadeSpeed);
-        FireAmbientAudio->SetVolumeMultiplier(CurrentFireVolume);
+        FireAmbientAudio->SetVolumeMultiplier(CurrentFireVolume * AmbientCategoryVolumeMultiplier);
         if (TargetFireVolume <= 0.0f && CurrentFireVolume <= 0.003f)
         {
             FireAmbientAudio->Stop();
@@ -1190,7 +1202,7 @@ void UKalmalaAmbientAudioSubsystem::UpdateBiomeAmbience(const float DeltaTime, U
     {
         CurrentBiomeVolume = FMath::FInterpTo(CurrentBiomeVolume, TargetBiomeVolume, DeltaTime, BiomeFadeSpeed);
         CurrentBiomePitch = FMath::FInterpTo(CurrentBiomePitch, TargetBiomePitch, DeltaTime, BiomeFadeSpeed);
-        BiomeAmbientAudio->SetVolumeMultiplier(CurrentBiomeVolume);
+        BiomeAmbientAudio->SetVolumeMultiplier(CurrentBiomeVolume * AmbientCategoryVolumeMultiplier);
         BiomeAmbientAudio->SetPitchMultiplier(CurrentBiomePitch);
         if (TargetBiomeVolume <= 0.0f && CurrentBiomeVolume <= 0.003f)
         {

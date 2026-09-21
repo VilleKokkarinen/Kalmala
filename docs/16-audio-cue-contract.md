@@ -33,6 +33,13 @@ Audio settings contract for master/music/ambient/interaction-combat levels and
 mute/restore. A muted or unavailable device must still expose all state through
 the text/shape equivalents above.
 
+Every local ambient component multiplies its live bed level by the saved
+Ambient category value. Owner-local movement, Wet, interaction/gathering,
+discovery, combat, and support one-shots multiply their submitted cue level by
+the saved Interaction/Combat Feedback value. Master volume continues to apply
+to the whole game process. Music volume is saved and shown in the Audio tab,
+but no music playback path or track currently exists.
+
 The runtime ambient layer includes loop-seamed, project-generated beds at
 `/Game/Kalmala/Audio/WindBed`, `/Game/Kalmala/Audio/WaterBed`,
 `/Game/Kalmala/Audio/FireBed`, `/Game/Kalmala/Audio/BiomeBed`, and

@@ -52,6 +52,9 @@ $requiredTerms = @{
     'project-owned audio rule' = 'project-owned'
     'non-audio accessibility fallback' = 'non-audio equivalent|text/shape equivalent'
     'local audio settings' = 'Audio settings contract|master/music/ambient/interaction-combat'
+    'ambient category mix' = '(?s)Every local ambient component.*Ambient category value'
+    'interaction/combat cue mix' = '(?s)Owner-local movement.*Interaction/Combat Feedback value'
+    'music playback limit' = '(?s)Music volume is saved.*no music playback path or track currently exists'
     'server authority' = 'server remains authoritative'
     'hidden-content privacy' = 'hidden.*population|undiscovered IDs|private state'
     'no RPC boundary' = 'no request payload|without adding an RPC'
@@ -83,4 +86,4 @@ if ($text -notmatch 'does not create sound assets|does not.*launch Unreal') {
     throw 'Audio cue contract does not state its no-build limitation'
 }
 
-Write-Output "PASS: audio cue contract has $($cueRows.Count) cue groups, non-audio fallbacks, project ownership, and multiplayer boundaries."
+Write-Output "PASS: audio cue contract has $($cueRows.Count) cue groups, local category mix controls, non-audio fallbacks, project ownership, and multiplayer boundaries."

@@ -128,6 +128,8 @@ private:
 
     float CurrentWindVolume = 0.0f;
     float TargetWindVolume = 0.0f;
+    float AmbientCategoryVolumeMultiplier = 1.0f;
+    float InteractionCombatCategoryVolumeMultiplier = 1.0f;
     float WaterProbeTimeRemaining = 0.0f;
     float CurrentWaterVolume = 0.0f;
     float TargetWaterVolume = 0.0f;
