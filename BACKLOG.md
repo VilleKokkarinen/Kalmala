@@ -280,8 +280,11 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
 - [ ] Deliver the Mireling archetype as an optional camp-pressure encounter.
   - [x] Add original replicated Mireling presentation, close-range scavenger behaviour, and validated melee damage/defeat rewards.
   - [x] Verify seed reproduction, bounded activation, authority rejection, defeat persistence, and host/client combat presentation.
-- [ ] Deliver the boar archetype as an optional territorial charge encounter.
+- [x] Deliver the boar archetype as an optional territorial charge encounter.
   - [x] Add original replicated boar presentation, resting-area threat response, charge/return behaviour, and validated meat/hide rewards.
+  - [x] Verify seed reproduction, server-owned charge, invalid target-free client attack rejection, relevant replication, owner-only rewards, and defeat persistence across restart.
+    - Passed 2026-09-21: `Scripts/Verify-BoarPeer.ps1 -Port 18254`; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaBoarPeer-97c1d19a2f1c4cacaafddc1f92fbfabe`.
+    - Passed `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaBoarBehavior-confirm-a452224ad0ed40d18714939c7e1e3e7c/wildlife-cycle.log`.
 - [x] Verify server-owned targeting/damage, defeat persistence, reconnect consistency, and matching host/client behaviour.
 - [ ] Deliver the deer archetype as wary herd wildlife.
   - [x] Add original replicated deer presentation, bounded herd/flee behaviour, and validated meat/hide rewards.

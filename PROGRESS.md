@@ -3792,3 +3792,17 @@ Multiplayer impact: No runtime authority changed. The server still selects targe
 Known limits: The automated peer-harness child is complete, but the full M4 acceptance remains blocked. No rendered test demonstrated free route choice, four actual support casts, late-join/reconnect presentation, or a persisted return state. The available computer-use surface returned no native apps and documents that native computer APIs are disabled.
 
 Next task: Run the rendered two-player M4 acceptance once native app control is available; record route choice, four support casts, reconnect, and persisted return evidence.
+
+### 2026-09-21T10.28.36+03:00 — Verify M4 boar territorial-charge archetype
+
+Outcome: Closed the next unchecked M4 parent after fresh seed-418 peer evidence. The server derived the bounded stable boar, its territorial charge damaged the host, and the remote peer attack carrying only the existing target-free sequence was rejected. Four server-committed attacks defeated the boar; the client observed relevant action, player-health, and defeat replication. The eligible owner received one BoarMeat and one BoarHide while the remote inventory stayed empty. A same-world listen-server restart kept the exact defeated boar absent.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`. No runtime, replication, RPC, persistence, save-schema, asset, or generated source changed. Pre-existing staged Mireling backlog change and existing PROGRESS/script edits remain preserved.
+
+Verification: Forced `KalmalaEditor Win64 Development` build with `-NoHotReload -MaxParallelActions=4` returned `Result: Succeeded`; log: `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`. `Scripts/Verify-BoarPeer.ps1 -Port 18254` passed; peer/restart evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaBoarPeer-97c1d19a2f1c4cacaafddc1f92fbfabe`. `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle` passed with `Result={Success}`; log: `C:/Users/Ville/AppData/Local/Temp/KalmalaBoarBehavior-confirm-a452224ad0ed40d18714939c7e1e3e7c/wildlife-cycle.log`.
+
+Multiplayer impact: None at runtime. The peer check confirms server-owned target selection, charge damage, combat/defeat outcomes, owner-only rewards, relevant replication, and world-scoped persistence; the client supplies no target or damage payload.
+
+Known limits: The null-RHI peer scenario does not prove rendered presentation. The M4 two-player acceptance remains blocked pending rendered route choice, four actual support casts, late-join/reconnect presentation, and persisted return evidence.
+
+Next task: Verify and close the Deer wary-herd archetype parent with its focused peer/restart scenario.
