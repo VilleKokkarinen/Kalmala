@@ -207,6 +207,16 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
                 Statuses->TryRemoveWetAtCampfireFromServer(*CampfireIterator);
             }
         }
+#if !UE_BUILD_SHIPPING
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest")))
+        {
+            // Keep the server-owned Wet entry observable alongside the lit test hearth.
+            if (UKalmalaPlayerStatusComponent* Statuses = Character->FindComponentByClass<UKalmalaPlayerStatusComponent>())
+            {
+                Statuses->ApplyWetFromServer();
+            }
+        }
+#endif
 
         FKalmalaExposureState State = Character->GetExposureState();
         State.Wetness = FKalmalaExposureResponse::AdvanceWetness(State.Wetness, Weather.PrecipitationIntensity, Environment.GroundWetness, Environment.WindExposure * Weather.WindStrength, Shelter.Shelter, FireWarmth, DeltaSeconds);
@@ -271,6 +281,22 @@ void AKalmalaGameMode::BeginPlay()
 
     WorldGenerationConfig = WorldGenerationState->GetWorldGenerationConfig();
     InitializeWeatherCycle();
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest")))
+    {
+        FKalmalaWeatherState VerificationWeather;
+        VerificationWeather.WeatherCycleIndex = 0;
+        VerificationWeather.ServerStartTimeSeconds = GetWorld()->GetTimeSeconds();
+        VerificationWeather.DurationSeconds = 180.0f;
+        VerificationWeather.PrecipitationIntensity = 0.04f;
+        VerificationWeather.WindDirectionDegrees = 45;
+        VerificationWeather.WindStrength = 0.80f;
+        if (AKalmalaWorldGenerationGameState* MutableWorldGenerationState = GetGameState<AKalmalaWorldGenerationGameState>())
+        {
+            MutableWorldGenerationState->SetWeatherStateFromServer(VerificationWeather);
+        }
+    }
+#endif
     PopulationSaveGame = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromSlot(KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0));
     if (PopulationSaveGame == nullptr || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
     {
@@ -1462,6 +1488,12 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
                 Campfire->AdvanceFromServer(0.0f, 0.0f, 0.0f);
                 UE_LOG(LogTemp, Display, TEXT("Ambient audio verification server spawned lit hearth: Lit=%d"),
                     Campfire->IsLit() ? 1 : 0);
+            }
+            if (UKalmalaPlayerStatusComponent* Statuses = Character->FindComponentByClass<UKalmalaPlayerStatusComponent>())
+            {
+                Statuses->ApplyWetFromServer();
+                UE_LOG(LogTemp, Display, TEXT("Ambient audio verification server applied Wet status: Wet=%d"),
+                    Statuses->HasStatus(UKalmalaPlayerStatusComponent::WetStatusId) ? 1 : 0);
             }
         }
     }

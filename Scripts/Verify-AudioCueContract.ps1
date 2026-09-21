@@ -57,6 +57,8 @@ $requiredTerms = @{
     'no RPC boundary' = 'no request payload|without adding an RPC'
     'no save boundary' = 'no save field|gameplay save schemas'
     'silence fallback' = 'muted or unavailable device'
+    'accepted replicated weather cue' = 'FKalmalaWeatherState::WindStrength|accepted replicated.*precipitation'
+    'owner-scoped Wet status cue' = 'State\.Wet|WetStatusCue'
 }
 foreach ($term in $requiredTerms.GetEnumerator()) {
     if ($text -notmatch $term.Value) {

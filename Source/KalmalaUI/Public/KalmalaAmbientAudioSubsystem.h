@@ -9,6 +9,7 @@ class UAudioComponent;
 class USoundWave;
 class APlayerController;
 struct FKalmalaWorldGenerationConfig;
+struct FKalmalaWeatherState;
 
 /** Starts a quiet, project-owned wilderness bed for this local player only. */
 UCLASS()
@@ -25,6 +26,9 @@ public:
 
 private:
     void StopAmbientAudio();
+    void UpdateWindAmbience(float DeltaTime, const FKalmalaWeatherState& Weather);
+    void UpdateRainAmbience(float DeltaTime, UWorld* World, const FKalmalaWeatherState& Weather);
+    void UpdateWetStatusCue(UWorld* World, APlayerController* Controller);
     float SampleVisibleWaterStrength(UWorld* World, APlayerController* Controller,
         const FKalmalaWorldGenerationConfig& Config) const;
     void UpdateWaterAmbience(float DeltaTime, UWorld* World, APlayerController* Controller,
@@ -47,6 +51,9 @@ private:
     TObjectPtr<UAudioComponent> BiomeAmbientAudio;
 
     UPROPERTY(Transient)
+    TObjectPtr<UAudioComponent> RainAmbientAudio;
+
+    UPROPERTY(Transient)
     TObjectPtr<USoundWave> WindBed;
 
     UPROPERTY(Transient)
@@ -58,6 +65,14 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<USoundWave> BiomeBed;
 
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> RainBed;
+
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> WetStatusCue;
+
+    float CurrentWindVolume = 0.0f;
+    float TargetWindVolume = 0.0f;
     float WaterProbeTimeRemaining = 0.0f;
     float CurrentWaterVolume = 0.0f;
     float TargetWaterVolume = 0.0f;
@@ -69,7 +84,12 @@ private:
     float TargetBiomeVolume = 0.0f;
     float CurrentBiomePitch = 1.0f;
     float TargetBiomePitch = 1.0f;
+    float CurrentRainVolume = 0.0f;
+    float TargetRainVolume = 0.0f;
     bool bVerificationLogged = false;
+    bool bWeatherVerificationLogged = false;
+    bool bWetStatusInitialized = false;
+    bool bLastWetStatus = false;
     bool bWaterVerificationLogged = false;
     bool bFireVerificationLogged = false;
     bool bLastFireVisible = false;

@@ -35,10 +35,19 @@ the text/shape equivalents above.
 
 The runtime ambient layer includes loop-seamed, project-generated beds at
 `/Game/Kalmala/Audio/WindBed`, `/Game/Kalmala/Audio/WaterBed`,
-`/Game/Kalmala/Audio/FireBed`, and `/Game/Kalmala/Audio/BiomeBed`.
+`/Game/Kalmala/Audio/FireBed`, `/Game/Kalmala/Audio/BiomeBed`, and
+`/Game/Kalmala/Audio/RainBed`, plus the one-shot
+`/Game/Kalmala/Audio/WetStatusCue`.
 `UKalmalaAmbientAudioSubsystem` starts wind only
 for a local player whose normal generated-world state and pawn are ready. It
-samples a bounded set of points around that pawn from the existing immutable
+smoothly adjusts the wind bed from accepted replicated
+`FKalmalaWeatherState::WindStrength`. Rain starts only when accepted replicated
+precipitation reaches `0.01`, follows its intensity with a quiet local fade,
+and stops when rain ends. WetStatusCue plays only when the owning pawn's
+replicated server-owned `State.Wet` entry first appears (or is already present
+when local play starts); it does not infer the cause or change the status.
+Neither cue reads another pawn's private status or sends a request.
+It samples a bounded set of points around that pawn from the existing immutable
 world identity, accepts only the existing sea surface or visible inland-lake
 surface, and requires an unobstructed visibility trace from the local view
 before water can be heard. The water loop probes every 0.75 seconds, fades by
@@ -50,23 +59,30 @@ non-spatial bed fades with distance, reaches full volume by 275 cm, and caps at
 locally available immutable seed and existing four-field classifier every
 0.75 seconds. One quiet bed uses a small biome-specific pitch/level profile
 with smoothed transitions; it does not scan ahead, reveal landmarks, or imply a
-route. All four local loops stop when local play ends; no hidden population,
+route. All five local loops stop when local play ends; no hidden population,
 discovery, or remote-biome query is used.
 
 `Scripts/Generate-WildernessWind.ps1`, `Scripts/Generate-WaterAmbience.ps1`,
-`Scripts/Generate-FireAmbience.ps1`, and `Scripts/Generate-BiomeAmbience.ps1`
-recreate the original loop-seamed mono sources under
-`Content/Kalmala/Audio/Source`. Import all four to
+`Scripts/Generate-FireAmbience.ps1`, `Scripts/Generate-BiomeAmbience.ps1`, and
+`Scripts/Generate-WeatherExposureAudio.ps1` recreate the original mono sources
+under `Content/Kalmala/Audio/Source`; the rain bed is seam-crossfaded and the
+WetStatusCue is a short one-shot. Import all six to
 `/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
 `Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`, and
-the forced editor build. The first verifier checks source format, imported
+the forced editor build. Pass `-WeatherExposureOnly` to the peer runner when
+focusing on the weather and Wet cues; its default mode also requires visible
+water activation. The first verifier checks source format, imported
 assets, local-player ownership, context gates, and teardown. The peer runner
 confirms independent host/client probes for visible water and hearth context
-plus each local player's current sampled biome; its development-only listen-
-server fixture creates a server-lit hearth near each joining player. Existing
-Wet, warmth, shelter, hearth, and recovery text remains the readable fallback.
-These checks do not establish audible quality, hardware mixing, or packaged
-playback, and do not complete weather or event cues or audio options.
+plus each local player's current sampled biome and accepted rainy weather/Wet
+state. Its development-only listen-server fixture selects a light rainy/windy
+interval below the hearth smoulder threshold, applies Wet on the server, and
+creates a visible server-lit hearth. A test-only server exposure hook keeps
+Wet observable while it checks the status cue alongside the hearth bed.
+Existing Wet duration, shelter, warmth, hearth, and recovery text remains the
+readable fallback. These checks do not establish
+audible quality, hardware mixing, or packaged playback, and do not complete
+other event cues or audio options.
 
 Keep cues short, bounded, and non-blocking. Ambient layers may be local and
 spatial, but they must not stream a second world simulation or reveal a server

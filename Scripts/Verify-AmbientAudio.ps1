@@ -8,10 +8,14 @@ $fireWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\FireBed.wav
 $fireAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\FireBed.uasset'
 $biomeWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\BiomeBed.wav'
 $biomeAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\BiomeBed.uasset'
+$rainWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\RainBed.wav'
+$rainAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\RainBed.uasset'
+$wetCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\WetStatusCue.wav'
+$wetCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\WetStatusCue.uasset'
 $sourcePath = Join-Path $projectRoot 'Source\KalmalaUI\Private\KalmalaAmbientAudioSubsystem.cpp'
 $headerPath = Join-Path $projectRoot 'Source\KalmalaUI\Public\KalmalaAmbientAudioSubsystem.h'
 
-foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $sourcePath, $headerPath)) {
+foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $sourcePath, $headerPath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "Ambient audio deliverable is missing: $path"
     }
@@ -69,6 +73,32 @@ if ($biomeChannels -ne 1 -or $biomeSampleRate -ne 22050 -or $biomeBitsPerSample 
     throw "Unexpected BiomeBed format: channels=$biomeChannels rate=$biomeSampleRate bits=$biomeBitsPerSample bytes=$biomeDataLength"
 }
 
+$rainBytes = [System.IO.File]::ReadAllBytes($rainWavePath)
+if ($rainBytes.Length -lt 44 -or [System.Text.Encoding]::ASCII.GetString($rainBytes, 0, 4) -ne 'RIFF' -or
+    [System.Text.Encoding]::ASCII.GetString($rainBytes, 8, 4) -ne 'WAVE') {
+    throw 'RainBed.wav is not a valid RIFF/WAVE file.'
+}
+$rainChannels = [BitConverter]::ToInt16($rainBytes, 22)
+$rainSampleRate = [BitConverter]::ToInt32($rainBytes, 24)
+$rainBitsPerSample = [BitConverter]::ToInt16($rainBytes, 34)
+$rainDataLength = [BitConverter]::ToInt32($rainBytes, 40)
+if ($rainChannels -ne 1 -or $rainSampleRate -ne 22050 -or $rainBitsPerSample -ne 16 -or $rainDataLength -ne 352800) {
+    throw "Unexpected RainBed format: channels=$rainChannels rate=$rainSampleRate bits=$rainBitsPerSample bytes=$rainDataLength"
+}
+
+$wetCueBytes = [System.IO.File]::ReadAllBytes($wetCueWavePath)
+if ($wetCueBytes.Length -lt 44 -or [System.Text.Encoding]::ASCII.GetString($wetCueBytes, 0, 4) -ne 'RIFF' -or
+    [System.Text.Encoding]::ASCII.GetString($wetCueBytes, 8, 4) -ne 'WAVE') {
+    throw 'WetStatusCue.wav is not a valid RIFF/WAVE file.'
+}
+$wetCueChannels = [BitConverter]::ToInt16($wetCueBytes, 22)
+$wetCueSampleRate = [BitConverter]::ToInt32($wetCueBytes, 24)
+$wetCueBitsPerSample = [BitConverter]::ToInt16($wetCueBytes, 34)
+$wetCueDataLength = [BitConverter]::ToInt32($wetCueBytes, 40)
+if ($wetCueChannels -ne 1 -or $wetCueSampleRate -ne 22050 -or $wetCueBitsPerSample -ne 16 -or $wetCueDataLength -ne 35280) {
+    throw "Unexpected WetStatusCue format: channels=$wetCueChannels rate=$wetCueSampleRate bits=$wetCueBitsPerSample bytes=$wetCueDataLength"
+}
+
 $source = Get-Content -LiteralPath $sourcePath -Raw
 $header = Get-Content -LiteralPath $headerPath -Raw
 foreach ($required in @(
@@ -76,6 +106,8 @@ foreach ($required in @(
     '/Game/Kalmala/Audio/WaterBed.WaterBed',
     '/Game/Kalmala/Audio/FireBed.FireBed',
     '/Game/Kalmala/Audio/BiomeBed.BiomeBed',
+    '/Game/Kalmala/Audio/RainBed.RainBed',
+    '/Game/Kalmala/Audio/WetStatusCue.WetStatusCue',
     'IsLocalController()',
     'GetLocalPlayer()',
     'bLooping = true',
@@ -96,6 +128,13 @@ foreach ($required in @(
     'FKalmalaBiomeClassifier::Classify',
     'BiomeProbeInterval',
     'BiomeBed->bLooping = true',
+    'Weather.WindStrength',
+    'Weather.PrecipitationIntensity',
+    'RainMinimumIntensity',
+    'RainBed->bLooping = true',
+    'GetWeatherState()',
+    'WetStatusId',
+    'PlaySound2D',
     'SetPitchMultiplier',
     'EKalmalaBiome::Meadows',
     'EKalmalaBiome::ShimmeringLakes',
@@ -109,9 +148,9 @@ foreach ($required in @(
         throw "Ambient audio runtime source is missing required contract: $required"
     }
 }
-if ($header -notmatch 'ULocalPlayerSubsystem' -or $header -notmatch 'SampleVisibleFireStrength' -or
+if ($header -notmatch 'ULocalPlayerSubsystem' -or $header -notmatch 'SampleVisibleFireStrength' -or $header -notmatch 'UpdateWetStatusCue' -or
     $header -match 'UPROPERTY\s*\(\s*Replicated' -or $source -match 'ServerRPC|SaveGame|DOREPLIFETIME') {
     throw 'Ambient audio must stay local and must not add network or gameplay persistence state.'
 }
 
-Write-Output 'PASS: original wind, water, fire, and biome sources are 8 seconds of mono 22.05 kHz PCM; loops stay local, water/fire require visible context, biome pitch/level follows the local sampled biome, hearth audio requires a replicated lit actor, and components stop on teardown.'
+Write-Output 'PASS: original wind, water, fire, biome, and rain beds are 8-second mono PCM; the Wet status cue is 0.8 seconds. Weather mix and Wet feedback read accepted state locally, water/fire require visible context, and components stop on teardown.'

@@ -5,6 +5,8 @@
 #include "Engine/World.h"
 #include "Engine/LocalPlayer.h"
 #include "KalmalaCampfire.h"
+#include "KalmalaCharacter.h"
+#include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaLakeBasin.h"
 #include "KalmalaOceanSampler.h"
@@ -24,7 +26,15 @@ constexpr TCHAR WindBedAssetPath[] = TEXT("/Game/Kalmala/Audio/WindBed.WindBed")
 constexpr TCHAR WaterBedAssetPath[] = TEXT("/Game/Kalmala/Audio/WaterBed.WaterBed");
 constexpr TCHAR FireBedAssetPath[] = TEXT("/Game/Kalmala/Audio/FireBed.FireBed");
 constexpr TCHAR BiomeBedAssetPath[] = TEXT("/Game/Kalmala/Audio/BiomeBed.BiomeBed");
-constexpr float AmbientVolume = 0.12f;
+constexpr TCHAR RainBedAssetPath[] = TEXT("/Game/Kalmala/Audio/RainBed.RainBed");
+constexpr TCHAR WetStatusCueAssetPath[] = TEXT("/Game/Kalmala/Audio/WetStatusCue.WetStatusCue");
+constexpr float QuietWindVolume = 0.025f;
+constexpr float StrongWindVolume = 0.10f;
+constexpr float WindFadeSpeed = 1.4f;
+constexpr float RainMinimumIntensity = 0.01f;
+constexpr float RainMaximumVolume = 0.065f;
+constexpr float RainFadeSpeed = 1.8f;
+constexpr float WetStatusCueVolume = 0.16f;
 constexpr float WaterMaximumVolume = 0.07f;
 constexpr float WaterMaximumDistance = 1600.0f;
 constexpr float WaterFullVolumeDistance = 300.0f;
@@ -90,23 +100,27 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
     if ((AmbientAudio != nullptr && (!IsValid(AmbientAudio.Get()) || AmbientAudio->GetWorld() != World))
         || (WaterAmbientAudio != nullptr && (!IsValid(WaterAmbientAudio.Get()) || WaterAmbientAudio->GetWorld() != World))
         || (FireAmbientAudio != nullptr && (!IsValid(FireAmbientAudio.Get()) || FireAmbientAudio->GetWorld() != World))
-        || (BiomeAmbientAudio != nullptr && (!IsValid(BiomeAmbientAudio.Get()) || BiomeAmbientAudio->GetWorld() != World)))
+        || (BiomeAmbientAudio != nullptr && (!IsValid(BiomeAmbientAudio.Get()) || BiomeAmbientAudio->GetWorld() != World))
+        || (RainAmbientAudio != nullptr && (!IsValid(RainAmbientAudio.Get()) || RainAmbientAudio->GetWorld() != World)))
     {
         StopAmbientAudio();
         WindBed = nullptr;
         WaterBed = nullptr;
         FireBed = nullptr;
         BiomeBed = nullptr;
+        RainBed = nullptr;
+        WetStatusCue = nullptr;
         WaterProbeTimeRemaining = 0.0f;
         FireProbeTimeRemaining = 0.0f;
         BiomeProbeTimeRemaining = 0.0f;
     }
 
+    const AKalmalaWorldGenerationGameState* GameState = Cast<AKalmalaWorldGenerationGameState>(World->GetGameState());
     APlayerController* Controller = LocalPlayer->GetPlayerController(World);
     const bool bInNormalLocalPlay = Controller != nullptr
         && Controller->IsLocalController()
         && Controller->GetPawn() != nullptr
-        && Cast<AKalmalaWorldGenerationGameState>(World->GetGameState()) != nullptr;
+        && GameState != nullptr;
     if (!bInNormalLocalPlay)
     {
         StopAmbientAudio();
@@ -120,7 +134,7 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
     if (AmbientAudio == nullptr && WindBed != nullptr)
     {
         WindBed->bLooping = true;
-        AmbientAudio = UGameplayStatics::CreateSound2D(World, WindBed, AmbientVolume, 1.0f, 0.0f, nullptr, false, false);
+        AmbientAudio = UGameplayStatics::CreateSound2D(World, WindBed, 0.0f, 1.0f, 0.0f, nullptr, false, false);
         if (AmbientAudio != nullptr)
         {
             AmbientAudio->Play();
@@ -134,13 +148,115 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         }
     }
 
-    const AKalmalaWorldGenerationGameState* GameState = Cast<AKalmalaWorldGenerationGameState>(World->GetGameState());
     if (GameState != nullptr)
     {
+        const FKalmalaWeatherState& Weather = GameState->GetWeatherState();
+        UpdateWindAmbience(DeltaTime, Weather);
+        UpdateRainAmbience(DeltaTime, World, Weather);
+        UpdateWetStatusCue(World, Controller);
         UpdateWaterAmbience(DeltaTime, World, Controller, GameState->GetWorldGenerationConfig());
         UpdateFireAmbience(DeltaTime, World, Controller);
         UpdateBiomeAmbience(DeltaTime, World, Controller, GameState->GetWorldGenerationConfig());
     }
+}
+
+void UKalmalaAmbientAudioSubsystem::UpdateWindAmbience(const float DeltaTime, const FKalmalaWeatherState& Weather)
+{
+    const float WindStrength = FMath::IsFinite(Weather.WindStrength)
+        ? FMath::Clamp(Weather.WindStrength, 0.0f, 1.0f)
+        : 0.0f;
+    TargetWindVolume = FMath::Lerp(QuietWindVolume, StrongWindVolume, WindStrength);
+    if (IsValid(AmbientAudio.Get()))
+    {
+        CurrentWindVolume = FMath::FInterpTo(CurrentWindVolume, TargetWindVolume, DeltaTime, WindFadeSpeed);
+        AmbientAudio->SetVolumeMultiplier(CurrentWindVolume);
+    }
+}
+
+void UKalmalaAmbientAudioSubsystem::UpdateRainAmbience(const float DeltaTime, UWorld* World,
+    const FKalmalaWeatherState& Weather)
+{
+    const float WindStrength = FMath::IsFinite(Weather.WindStrength)
+        ? FMath::Clamp(Weather.WindStrength, 0.0f, 1.0f)
+        : 0.0f;
+    const float Precipitation = FMath::IsFinite(Weather.PrecipitationIntensity)
+        ? FMath::Clamp(Weather.PrecipitationIntensity, 0.0f, 1.0f)
+        : 0.0f;
+    TargetRainVolume = Precipitation >= RainMinimumIntensity
+        ? RainMaximumVolume * FMath::Lerp(0.20f, 1.0f, Precipitation)
+        : 0.0f;
+
+    if (TargetRainVolume > 0.0f && RainBed == nullptr)
+    {
+        RainBed = LoadObject<USoundWave>(nullptr, RainBedAssetPath);
+    }
+    if (TargetRainVolume > 0.0f && RainAmbientAudio == nullptr && RainBed != nullptr)
+    {
+        RainBed->bLooping = true;
+        RainAmbientAudio = UGameplayStatics::CreateSound2D(World, RainBed, 0.0f, 1.0f, 0.0f, nullptr, false, false);
+        if (RainAmbientAudio != nullptr)
+        {
+            RainAmbientAudio->Play();
+        }
+    }
+
+    if (IsValid(RainAmbientAudio.Get()))
+    {
+        CurrentRainVolume = FMath::FInterpTo(CurrentRainVolume, TargetRainVolume, DeltaTime, RainFadeSpeed);
+        RainAmbientAudio->SetVolumeMultiplier(CurrentRainVolume);
+        if (TargetRainVolume <= 0.0f && CurrentRainVolume <= 0.003f)
+        {
+            RainAmbientAudio->Stop();
+            RainAmbientAudio->DestroyComponent();
+            RainAmbientAudio = nullptr;
+            CurrentRainVolume = 0.0f;
+        }
+    }
+
+#if !UE_BUILD_SHIPPING
+    if (!bWeatherVerificationLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest")))
+    {
+        bWeatherVerificationLogged = true;
+        UE_LOG(LogTemp, Display,
+            TEXT("Ambient audio weather context: Local=1 Precipitation=%.2f WindStrength=%.2f RainComponentCreated=%d Asset=%s"),
+            Precipitation, WindStrength,
+            IsValid(RainAmbientAudio.Get()) ? 1 : 0,
+            IsValid(RainAmbientAudio.Get()) ? TEXT("RainBed") : TEXT("None"));
+    }
+#endif
+}
+
+void UKalmalaAmbientAudioSubsystem::UpdateWetStatusCue(UWorld* World, APlayerController* Controller)
+{
+    const AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+    const UKalmalaPlayerStatusComponent* Statuses = Character != nullptr ? Character->GetStatusComponent() : nullptr;
+    const bool bWetStatusActive = Statuses != nullptr && Statuses->HasStatus(UKalmalaPlayerStatusComponent::WetStatusId);
+    const bool bPlayCue = bWetStatusActive && (!bWetStatusInitialized || !bLastWetStatus);
+    bWetStatusInitialized = true;
+    bLastWetStatus = bWetStatusActive;
+    if (!bPlayCue)
+    {
+        return;
+    }
+
+    if (WetStatusCue == nullptr)
+    {
+        WetStatusCue = LoadObject<USoundWave>(nullptr, WetStatusCueAssetPath);
+    }
+    const bool bCueSubmitted = World != nullptr && WetStatusCue != nullptr;
+    if (bCueSubmitted)
+    {
+        UGameplayStatics::PlaySound2D(World, WetStatusCue, WetStatusCueVolume, 1.0f, 0.0f, nullptr, nullptr, false);
+    }
+
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest")))
+    {
+        UE_LOG(LogTemp, Display,
+            TEXT("Ambient audio exposure context: Local=1 Wet=%d CueSubmitted=%d Asset=%s"),
+            bWetStatusActive ? 1 : 0, bCueSubmitted ? 1 : 0, bCueSubmitted ? TEXT("WetStatusCue") : TEXT("None"));
+    }
+#endif
 }
 
 float UKalmalaAmbientAudioSubsystem::SampleVisibleWaterStrength(UWorld* World, APlayerController* Controller,
@@ -462,6 +578,8 @@ void UKalmalaAmbientAudioSubsystem::StopAmbientAudio()
         AmbientAudio->DestroyComponent();
     }
     AmbientAudio = nullptr;
+    CurrentWindVolume = 0.0f;
+    TargetWindVolume = 0.0f;
 
     if (IsValid(WaterAmbientAudio.Get()))
     {
@@ -503,6 +621,21 @@ void UKalmalaAmbientAudioSubsystem::StopAmbientAudio()
     TargetBiomePitch = 1.0f;
     BiomeProbeTimeRemaining = 0.0f;
     bBiomeVerificationLogged = false;
+
+    if (IsValid(RainAmbientAudio.Get()))
+    {
+        if (RainAmbientAudio->IsPlaying())
+        {
+            RainAmbientAudio->Stop();
+        }
+        RainAmbientAudio->DestroyComponent();
+    }
+    RainAmbientAudio = nullptr;
+    CurrentRainVolume = 0.0f;
+    TargetRainVolume = 0.0f;
+    bWeatherVerificationLogged = false;
+    bWetStatusInitialized = false;
+    bLastWetStatus = false;
 }
 
 void UKalmalaAmbientAudioSubsystem::Deinitialize()
@@ -512,5 +645,7 @@ void UKalmalaAmbientAudioSubsystem::Deinitialize()
     WaterBed = nullptr;
     FireBed = nullptr;
     BiomeBed = nullptr;
+    RainBed = nullptr;
+    WetStatusCue = nullptr;
     Super::Deinitialize();
 }
