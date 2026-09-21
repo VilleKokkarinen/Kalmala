@@ -7,6 +7,7 @@
 #include "KalmalaCampfire.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaPlayerStatusComponent.h"
+#include "KalmalaSupportMagicComponent.h"
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaLakeBasin.h"
 #include "KalmalaOceanSampler.h"
@@ -28,6 +29,7 @@ constexpr TCHAR FireBedAssetPath[] = TEXT("/Game/Kalmala/Audio/FireBed.FireBed")
 constexpr TCHAR BiomeBedAssetPath[] = TEXT("/Game/Kalmala/Audio/BiomeBed.BiomeBed");
 constexpr TCHAR RainBedAssetPath[] = TEXT("/Game/Kalmala/Audio/RainBed.RainBed");
 constexpr TCHAR WetStatusCueAssetPath[] = TEXT("/Game/Kalmala/Audio/WetStatusCue.WetStatusCue");
+constexpr TCHAR SupportAcceptedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/SupportAcceptedCue.SupportAcceptedCue");
 constexpr float QuietWindVolume = 0.025f;
 constexpr float StrongWindVolume = 0.10f;
 constexpr float WindFadeSpeed = 1.4f;
@@ -35,6 +37,7 @@ constexpr float RainMinimumIntensity = 0.01f;
 constexpr float RainMaximumVolume = 0.065f;
 constexpr float RainFadeSpeed = 1.8f;
 constexpr float WetStatusCueVolume = 0.16f;
+constexpr float SupportAcceptedCueVolume = 0.14f;
 constexpr float WaterMaximumVolume = 0.07f;
 constexpr float WaterMaximumDistance = 1600.0f;
 constexpr float WaterFullVolumeDistance = 300.0f;
@@ -110,6 +113,7 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         BiomeBed = nullptr;
         RainBed = nullptr;
         WetStatusCue = nullptr;
+        SupportAcceptedCue = nullptr;
         WaterProbeTimeRemaining = 0.0f;
         FireProbeTimeRemaining = 0.0f;
         BiomeProbeTimeRemaining = 0.0f;
@@ -154,6 +158,7 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         UpdateWindAmbience(DeltaTime, Weather);
         UpdateRainAmbience(DeltaTime, World, Weather);
         UpdateWetStatusCue(World, Controller);
+        UpdateSupportAcceptedCue(World, Controller);
         UpdateWaterAmbience(DeltaTime, World, Controller, GameState->GetWorldGenerationConfig());
         UpdateFireAmbience(DeltaTime, World, Controller);
         UpdateBiomeAmbience(DeltaTime, World, Controller, GameState->GetWorldGenerationConfig());
@@ -255,6 +260,61 @@ void UKalmalaAmbientAudioSubsystem::UpdateWetStatusCue(UWorld* World, APlayerCon
         UE_LOG(LogTemp, Display,
             TEXT("Ambient audio exposure context: Local=1 Wet=%d CueSubmitted=%d Asset=%s"),
             bWetStatusActive ? 1 : 0, bCueSubmitted ? 1 : 0, bCueSubmitted ? TEXT("WetStatusCue") : TEXT("None"));
+    }
+#endif
+}
+
+void UKalmalaAmbientAudioSubsystem::UpdateSupportAcceptedCue(UWorld* World, APlayerController* Controller)
+{
+    AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+    if (Character == nullptr)
+    {
+        SupportFeedbackPawn = nullptr;
+        LastSupportFeedbackSerial = 0;
+        return;
+    }
+
+    if (SupportFeedbackPawn.Get() != Character)
+    {
+        SupportFeedbackPawn = Character;
+        LastSupportFeedbackSerial = 0;
+    }
+
+    const UKalmalaSupportMagicComponent* Support = Character->GetSupportMagicComponent();
+    if (Support == nullptr)
+    {
+        return;
+    }
+
+    const uint32 FeedbackSerial = Support->GetFeedbackSerial();
+    if (FeedbackSerial == 0 || FeedbackSerial == LastSupportFeedbackSerial)
+    {
+        return;
+    }
+    LastSupportFeedbackSerial = FeedbackSerial;
+
+    const bool bAccepted = Support->GetFeedback() == EKalmalaSupportFeedback::Accepted;
+    bool bCueSubmitted = false;
+    if (bAccepted)
+    {
+        if (SupportAcceptedCue == nullptr)
+        {
+            SupportAcceptedCue = LoadObject<USoundWave>(nullptr, SupportAcceptedCueAssetPath);
+        }
+        bCueSubmitted = World != nullptr && SupportAcceptedCue != nullptr;
+        if (bCueSubmitted)
+        {
+            UGameplayStatics::PlaySound2D(World, SupportAcceptedCue, SupportAcceptedCueVolume,
+                1.0f, 0.0f, nullptr, nullptr, false);
+        }
+    }
+
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest")) && bAccepted)
+    {
+        UE_LOG(LogTemp, Display,
+            TEXT("Ambient audio support context: Local=1 Feedback=Accepted Serial=%u CueSubmitted=%d Asset=%s"),
+            FeedbackSerial, bCueSubmitted ? 1 : 0, bCueSubmitted ? TEXT("SupportAcceptedCue") : TEXT("None"));
     }
 #endif
 }
@@ -636,6 +696,8 @@ void UKalmalaAmbientAudioSubsystem::StopAmbientAudio()
     bWeatherVerificationLogged = false;
     bWetStatusInitialized = false;
     bLastWetStatus = false;
+    SupportFeedbackPawn = nullptr;
+    LastSupportFeedbackSerial = 0;
 }
 
 void UKalmalaAmbientAudioSubsystem::Deinitialize()
@@ -647,5 +709,6 @@ void UKalmalaAmbientAudioSubsystem::Deinitialize()
     BiomeBed = nullptr;
     RainBed = nullptr;
     WetStatusCue = nullptr;
+    SupportAcceptedCue = nullptr;
     Super::Deinitialize();
 }

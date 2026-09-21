@@ -12,10 +12,13 @@ $rainWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\RainBed.wav
 $rainAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\RainBed.uasset'
 $wetCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\WetStatusCue.wav'
 $wetCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\WetStatusCue.uasset'
+$supportCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\SupportAcceptedCue.wav'
+$supportCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\SupportAcceptedCue.uasset'
 $sourcePath = Join-Path $projectRoot 'Source\KalmalaUI\Private\KalmalaAmbientAudioSubsystem.cpp'
 $headerPath = Join-Path $projectRoot 'Source\KalmalaUI\Public\KalmalaAmbientAudioSubsystem.h'
+$supportSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaSupportMagicComponent.cpp'
 
-foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $sourcePath, $headerPath)) {
+foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $supportCueWavePath, $supportCueAssetPath, $sourcePath, $headerPath, $supportSourcePath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "Ambient audio deliverable is missing: $path"
     }
@@ -99,8 +102,22 @@ if ($wetCueChannels -ne 1 -or $wetCueSampleRate -ne 22050 -or $wetCueBitsPerSamp
     throw "Unexpected WetStatusCue format: channels=$wetCueChannels rate=$wetCueSampleRate bits=$wetCueBitsPerSample bytes=$wetCueDataLength"
 }
 
+$supportCueBytes = [System.IO.File]::ReadAllBytes($supportCueWavePath)
+if ($supportCueBytes.Length -lt 44 -or [System.Text.Encoding]::ASCII.GetString($supportCueBytes, 0, 4) -ne 'RIFF' -or
+    [System.Text.Encoding]::ASCII.GetString($supportCueBytes, 8, 4) -ne 'WAVE') {
+    throw 'SupportAcceptedCue.wav is not a valid RIFF/WAVE file.'
+}
+$supportCueChannels = [BitConverter]::ToInt16($supportCueBytes, 22)
+$supportCueSampleRate = [BitConverter]::ToInt32($supportCueBytes, 24)
+$supportCueBitsPerSample = [BitConverter]::ToInt16($supportCueBytes, 34)
+$supportCueDataLength = [BitConverter]::ToInt32($supportCueBytes, 40)
+if ($supportCueChannels -ne 1 -or $supportCueSampleRate -ne 22050 -or $supportCueBitsPerSample -ne 16 -or $supportCueDataLength -ne 35280) {
+    throw "Unexpected SupportAcceptedCue format: channels=$supportCueChannels rate=$supportCueSampleRate bits=$supportCueBitsPerSample bytes=$supportCueDataLength"
+}
+
 $source = Get-Content -LiteralPath $sourcePath -Raw
 $header = Get-Content -LiteralPath $headerPath -Raw
+$supportSource = Get-Content -LiteralPath $supportSourcePath -Raw
 foreach ($required in @(
     '/Game/Kalmala/Audio/WindBed.WindBed',
     '/Game/Kalmala/Audio/WaterBed.WaterBed',
@@ -108,6 +125,7 @@ foreach ($required in @(
     '/Game/Kalmala/Audio/BiomeBed.BiomeBed',
     '/Game/Kalmala/Audio/RainBed.RainBed',
     '/Game/Kalmala/Audio/WetStatusCue.WetStatusCue',
+    '/Game/Kalmala/Audio/SupportAcceptedCue.SupportAcceptedCue',
     'IsLocalController()',
     'GetLocalPlayer()',
     'bLooping = true',
@@ -133,6 +151,9 @@ foreach ($required in @(
     'RainMinimumIntensity',
     'RainBed->bLooping = true',
     'GetWeatherState()',
+    'UpdateSupportAcceptedCue',
+    'GetFeedbackSerial()',
+    'EKalmalaSupportFeedback::Accepted',
     'WetStatusId',
     'PlaySound2D',
     'SetPitchMultiplier',
@@ -149,8 +170,11 @@ foreach ($required in @(
     }
 }
 if ($header -notmatch 'ULocalPlayerSubsystem' -or $header -notmatch 'SampleVisibleFireStrength' -or $header -notmatch 'UpdateWetStatusCue' -or
-    $header -match 'UPROPERTY\s*\(\s*Replicated' -or $source -match 'ServerRPC|SaveGame|DOREPLIFETIME') {
+    $header -notmatch 'UpdateSupportAcceptedCue' -or $header -match 'UPROPERTY\s*\(\s*Replicated' -or
+    $source -match 'ServerRPC|SaveGame|DOREPLIFETIME' -or
+    $supportSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaSupportMagicComponent, Feedback, COND_OwnerOnly\)' -or
+    $supportSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaSupportMagicComponent, FeedbackSerial, COND_OwnerOnly\)') {
     throw 'Ambient audio must stay local and must not add network or gameplay persistence state.'
 }
 
-Write-Output 'PASS: original wind, water, fire, biome, and rain beds are 8-second mono PCM; the Wet status cue is 0.8 seconds. Weather mix and Wet feedback read accepted state locally, water/fire require visible context, and components stop on teardown.'
+Write-Output 'PASS: original wind, water, fire, biome, and rain beds are 8-second mono PCM; WetStatusCue and SupportAcceptedCue are 0.8 seconds. Accepted owner-only support feedback triggers a local cue; weather, water, and hearth ambience use accepted visible context and local teardown.'

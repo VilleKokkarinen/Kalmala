@@ -47,6 +47,10 @@ try {
         $clientWeatherActive = $clientText -match 'Ambient audio weather context: Local=1 Precipitation=0\.04 WindStrength=0\.80 RainComponentCreated=1 Asset=RainBed'
         $serverWetCueActive = $serverText -match 'Ambient audio exposure context: Local=1 Wet=1 CueSubmitted=1 Asset=WetStatusCue'
         $clientWetCueActive = $clientText -match 'Ambient audio exposure context: Local=1 Wet=1 CueSubmitted=1 Asset=WetStatusCue'
+        $serverSupportAcceptedCount = [regex]::Matches($serverText, 'Ambient audio verification server support result: Learned=1 Accepted=1 Serial=1').Count
+        $serverSupportAccepted = $serverSupportAcceptedCount -ge 2
+        $serverSupportCueActive = $serverText -match 'Ambient audio support context: Local=1 Feedback=Accepted Serial=1 CueSubmitted=1 Asset=SupportAcceptedCue'
+        $clientSupportCueActive = $clientText -match 'Ambient audio support context: Local=1 Feedback=Accepted Serial=1 CueSubmitted=1 Asset=SupportAcceptedCue'
         $testHearthSpawned = $serverText -match 'Ambient audio verification server spawned lit hearth: Lit=1'
         $wetStatusApplied = $serverText -match 'Ambient audio verification server applied Wet status: Wet=1'
         $clientJoined = $clientText -match 'Client received world-generation identity: Seed=418'
@@ -58,20 +62,22 @@ try {
             -and $serverFireProbed -and $clientFireProbed -and $testHearthSpawned -and $fireActive `
             -and $serverBiomeActive -and $clientBiomeActive `
             -and $serverWeatherActive -and $clientWeatherActive -and $wetStatusApplied `
-            -and $serverWetCueActive -and $clientWetCueActive -and $clientJoined
+            -and $serverWetCueActive -and $clientWetCueActive `
+            -and $serverSupportAccepted `
+            -and $serverSupportCueActive -and $clientSupportCueActive -and $clientJoined
         if ($scenarioReady) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) {
-        if ($WeatherExposureOnly) { throw 'Local wind, fire, sampled-biome, replicated rainy weather, RainBed, WetStatusCue, or connected client identity was not observed before timeout.' }
-        throw 'Local wind, visible water/fire, sampled-biome, replicated rainy weather, RainBed, WetStatusCue, or connected client identity was not observed before timeout.'
+        if ($WeatherExposureOnly) { throw 'Local wind, fire, sampled-biome, replicated rainy weather, RainBed, WetStatusCue, accepted support feedback cue, or connected client identity was not observed before timeout.' }
+        throw 'Local wind, visible water/fire, sampled-biome, replicated rainy weather, RainBed, WetStatusCue, accepted support feedback cue, or connected client identity was not observed before timeout.'
     }
 
     if ($WeatherExposureOnly) {
-        Write-Output 'PASS: host and client created local wind, rain, fire, and biome ambience plus WetStatusCue from their own accepted replicated weather/status; audio stayed local.'
+        Write-Output 'PASS: host and client created local wind, rain, fire, and biome ambience plus WetStatusCue and SupportAcceptedCue from owner-local accepted replicated feedback; audio stayed local.'
     }
     else {
-        Write-Output 'PASS: host and client created local ambience from visible water/hearth context, sampled biome, accepted rainy weather and Wet status; all cues stayed local without audio replication or gameplay requests.'
+        Write-Output 'PASS: host and client created local ambience from visible water/hearth context, sampled biome, accepted rainy weather/status, and owner-local accepted support feedback; all cues stayed local without audio replication.'
     }
 }
 finally {

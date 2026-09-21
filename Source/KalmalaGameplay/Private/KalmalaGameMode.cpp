@@ -1495,6 +1495,18 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
                 UE_LOG(LogTemp, Display, TEXT("Ambient audio verification server applied Wet status: Wet=%d"),
                     Statuses->HasStatus(UKalmalaPlayerStatusComponent::WetStatusId) ? 1 : 0);
             }
+            if (UKalmalaSupportMagicComponent* Support = Character->GetSupportMagicComponent())
+            {
+                const bool bLearned = Support->LearnEffectFromServer(EKalmalaSupportEffect::HearthShield);
+                if (bLearned)
+                {
+                    Support->ServerRequestActivateSupportEffect(EKalmalaSupportEffect::HearthShield, 1);
+                }
+                UE_LOG(LogTemp, Display,
+                    TEXT("Ambient audio verification server support result: Learned=%d Accepted=%d Serial=%u"),
+                    bLearned ? 1 : 0, Support->GetFeedback() == EKalmalaSupportFeedback::Accepted ? 1 : 0,
+                    Support->GetFeedbackSerial());
+            }
         }
     }
 

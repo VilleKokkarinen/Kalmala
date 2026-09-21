@@ -37,7 +37,8 @@ The runtime ambient layer includes loop-seamed, project-generated beds at
 `/Game/Kalmala/Audio/WindBed`, `/Game/Kalmala/Audio/WaterBed`,
 `/Game/Kalmala/Audio/FireBed`, `/Game/Kalmala/Audio/BiomeBed`, and
 `/Game/Kalmala/Audio/RainBed`, plus the one-shot
-`/Game/Kalmala/Audio/WetStatusCue`.
+`/Game/Kalmala/Audio/WetStatusCue` and
+`/Game/Kalmala/Audio/SupportAcceptedCue`.
 `UKalmalaAmbientAudioSubsystem` starts wind only
 for a local player whose normal generated-world state and pawn are ready. It
 smoothly adjusts the wind bed from accepted replicated
@@ -47,6 +48,12 @@ and stops when rain ends. WetStatusCue plays only when the owning pawn's
 replicated server-owned `State.Wet` entry first appears (or is already present
 when local play starts); it does not infer the cause or change the status.
 Neither cue reads another pawn's private status or sends a request.
+SupportAcceptedCue plays once when the owning pawn's existing owner-only
+support `FeedbackSerial` advances with `EKalmalaSupportFeedback::Accepted`.
+It reports the server-confirmed activation generically and does not infer an
+effect from client input or effect state. Existing learned-effect, cooldown,
+stamina, and active-state text remains the readable result; unavailable
+feedback does not play this acceptance cue.
 It samples a bounded set of points around that pawn from the existing immutable
 world identity, accepts only the existing sea surface or visible inland-lake
 surface, and requires an unobstructed visibility trace from the local view
@@ -63,10 +70,11 @@ route. All five local loops stop when local play ends; no hidden population,
 discovery, or remote-biome query is used.
 
 `Scripts/Generate-WildernessWind.ps1`, `Scripts/Generate-WaterAmbience.ps1`,
-`Scripts/Generate-FireAmbience.ps1`, `Scripts/Generate-BiomeAmbience.ps1`, and
-`Scripts/Generate-WeatherExposureAudio.ps1` recreate the original mono sources
+`Scripts/Generate-FireAmbience.ps1`, `Scripts/Generate-BiomeAmbience.ps1`,
+`Scripts/Generate-WeatherExposureAudio.ps1`, and
+`Scripts/Generate-SupportFeedbackAudio.ps1` recreate the original mono sources
 under `Content/Kalmala/Audio/Source`; the rain bed is seam-crossfaded and the
-WetStatusCue is a short one-shot. Import all six to
+WetStatusCue and SupportAcceptedCue are short one-shots. Import all seven to
 `/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
 `Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`, and
 the forced editor build. Pass `-WeatherExposureOnly` to the peer runner when

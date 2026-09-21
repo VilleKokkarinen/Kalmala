@@ -59,6 +59,7 @@ $requiredTerms = @{
     'silence fallback' = 'muted or unavailable device'
     'accepted replicated weather cue' = 'FKalmalaWeatherState::WindStrength|accepted replicated.*precipitation'
     'owner-scoped Wet status cue' = 'State\.Wet|WetStatusCue'
+    'owner-only accepted support cue' = '(?s)owner-only.*support.*FeedbackSerial.*Accepted|FeedbackSerial.*Accepted.*owner-only'
 }
 foreach ($term in $requiredTerms.GetEnumerator()) {
     if ($text -notmatch $term.Value) {

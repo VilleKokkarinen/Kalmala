@@ -8,6 +8,7 @@
 class UAudioComponent;
 class USoundWave;
 class APlayerController;
+class APawn;
 struct FKalmalaWorldGenerationConfig;
 struct FKalmalaWeatherState;
 
@@ -29,6 +30,7 @@ private:
     void UpdateWindAmbience(float DeltaTime, const FKalmalaWeatherState& Weather);
     void UpdateRainAmbience(float DeltaTime, UWorld* World, const FKalmalaWeatherState& Weather);
     void UpdateWetStatusCue(UWorld* World, APlayerController* Controller);
+    void UpdateSupportAcceptedCue(UWorld* World, APlayerController* Controller);
     float SampleVisibleWaterStrength(UWorld* World, APlayerController* Controller,
         const FKalmalaWorldGenerationConfig& Config) const;
     void UpdateWaterAmbience(float DeltaTime, UWorld* World, APlayerController* Controller,
@@ -71,6 +73,9 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<USoundWave> WetStatusCue;
 
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> SupportAcceptedCue;
+
     float CurrentWindVolume = 0.0f;
     float TargetWindVolume = 0.0f;
     float WaterProbeTimeRemaining = 0.0f;
@@ -86,6 +91,8 @@ private:
     float TargetBiomePitch = 1.0f;
     float CurrentRainVolume = 0.0f;
     float TargetRainVolume = 0.0f;
+    TWeakObjectPtr<APawn> SupportFeedbackPawn;
+    uint32 LastSupportFeedbackSerial = 0;
     bool bVerificationLogged = false;
     bool bWeatherVerificationLogged = false;
     bool bWetStatusInitialized = false;
