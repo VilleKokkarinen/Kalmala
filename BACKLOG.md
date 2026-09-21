@@ -277,7 +277,7 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
 - [x] Add deterministic server-owned wildlife population and behaviour foundations for the M4 archetypes.
   - [x] Activate bounded, seed-derived creature descriptors with stable IDs and terrain-safe spawning; clients only receive relevant replicated actors.
   - [x] Add server-owned idle, flee, investigate, and return behaviour primitives with deterministic budgets and no client-selected spawn or behaviour outcome.
-- [ ] Deliver the Mireling archetype as an optional camp-pressure encounter.
+- [x] Deliver the Mireling archetype as an optional camp-pressure encounter.
   - [x] Add original replicated Mireling presentation, close-range scavenger behaviour, and validated melee damage/defeat rewards.
   - [x] Verify seed reproduction, bounded activation, authority rejection, defeat persistence, and host/client combat presentation.
 - [x] Deliver the boar archetype as an optional territorial charge encounter.
