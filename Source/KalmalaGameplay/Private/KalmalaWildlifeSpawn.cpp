@@ -251,14 +251,43 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
     };
     if (Archetype == EKalmalaWildlifeArchetype::Boar)
     {
-        AddTetra(FVector(0,0,0), FVector(95,52,58), FLinearColor(0.20f,0.11f,0.06f));
-        AddTetra(FVector(85,0,12), FVector(48,38,42), FLinearColor(0.27f,0.15f,0.08f));
-        AddTetra(FVector(-45,-32,-52), FVector(18,18,58), FLinearColor(0.10f,0.06f,0.04f));
-        AddTetra(FVector(-45,32,-52), FVector(18,18,58), FLinearColor(0.10f,0.06f,0.04f));
-        AddTetra(FVector(45,-32,-52), FVector(18,18,58), FLinearColor(0.10f,0.06f,0.04f));
-        AddTetra(FVector(45,32,-52), FVector(18,18,58), FLinearColor(0.10f,0.06f,0.04f));
-        AddTetra(FVector(128,-22,1), FVector(34,7,8), FLinearColor(0.82f,0.75f,0.54f));
-        AddTetra(FVector(128,22,1), FVector(34,7,8), FLinearColor(0.82f,0.75f,0.54f));
+        const FLinearColor BoarHide(0.20f, 0.11f, 0.065f);
+        const FLinearColor BoarShoulder(0.27f, 0.15f, 0.08f);
+        const FLinearColor Bristle(0.12f, 0.075f, 0.045f);
+        const FLinearColor Muzzle(0.34f, 0.21f, 0.13f);
+        const FLinearColor Tusk(0.82f, 0.75f, 0.57f);
+        const FLinearColor Eye(0.055f, 0.035f, 0.02f);
+
+        // A low, wedge-backed mass gives the boar a distinct profile from the taller deer.
+        AddTetraPoints(FVector(-108,-42,-2), FVector(-108,42,-2), FVector(48,0,8), FVector(-34,0,68), BoarHide);
+        AddTetraPoints(FVector(-72,-43,0), FVector(-72,43,0), FVector(40,0,13), FVector(-27,0,79), BoarShoulder);
+        AddTetraPoints(FVector(17,-31,12), FVector(17,31,12), FVector(96,0,6), FVector(54,0,53), BoarHide);
+        AddTetraPoints(FVector(87,-20,10), FVector(87,20,10), FVector(145,0,1), FVector(104,0,31), Muzzle);
+
+        // Four compact legs keep the belly close to the ground without extending below the old mesh.
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            for (const float LegX : {-64.0f, 37.0f})
+            {
+                const float LegY = Side * 35.0f;
+                AddTetraPoints(FVector(LegX - 12.0f, LegY - 9.0f, -52.0f),
+                    FVector(LegX - 12.0f, LegY + 9.0f, -52.0f),
+                    FVector(LegX + 5.0f, LegY, -5.0f), FVector(LegX + 20.0f, LegY, -2.0f), Bristle);
+            }
+
+            // Short ears, side-set eyes, and upward ivory tusks make the head readable in profile.
+            AddTetraPoints(FVector(25, Side * 19.0f, 42), FVector(25, Side * 35.0f, 42),
+                FVector(12, Side * 31.0f, 68), FVector(43, Side * 29.0f, 50), Bristle);
+            AddTetraPoints(FVector(64, Side * 23.0f, 19), FVector(74, Side * 22.0f, 20),
+                FVector(69, Side * 30.0f, 27), FVector(72, Side * 25.0f, 31), Eye);
+            AddTetraPoints(FVector(78, Side * 19.0f, 3), FVector(91, Side * 23.0f, 3),
+                FVector(103, Side * 17.0f, 28), FVector(109, Side * 23.0f, 6), Tusk);
+        }
+
+        // A small broken ridge of coarse bristles emphasizes the shoulder without changing the actor scale.
+        AddTetraPoints(FVector(-78,-7,52), FVector(-78,7,52), FVector(-60,0,78), FVector(-48,0,49), Bristle);
+        AddTetraPoints(FVector(-46,-7,64), FVector(-46,7,64), FVector(-28,0,86), FVector(-16,0,59), Bristle);
+        AddTetraPoints(FVector(-13,-7,60), FVector(-13,7,60), FVector(4,0,78), FVector(16,0,54), Bristle);
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Deer)
     {
