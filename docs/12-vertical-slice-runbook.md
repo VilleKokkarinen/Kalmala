@@ -73,8 +73,14 @@ support effects: Mending, Hearth Shield, Bear's Vigor, and Deer Call. No effect
 may deal direct damage or replace ordinary preparation and combat.
 
 Use normal player intent only: basic attack is **Left Mouse Button** (or the
-controller right shoulder), support activation uses the existing learned-effect
-UI, and Deer Call can influence only existing nearby deer. Targets, damage,
+controller right shoulder), and support activation uses the player-facing
+learned-effect panel. Keyboard **1–4** or the matching per-effect controller
+D-pad direction selects an effect; **Q** or the controller top face button
+requests activation. That local UI may send only the selected allowlisted
+effect and a monotonic request sequence; it must not expose private learned
+effects, discovery acknowledgement, wildlife targets, damage, rewards, or
+server-selected outcomes. Deer Call can influence only existing nearby deer.
+Targets, damage,
 durations, rewards, discovery IDs, and behaviour outcomes remain server-selected.
 
 The other player must receive only relevant replicated presentation. Learned

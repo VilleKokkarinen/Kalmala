@@ -11,8 +11,10 @@ function Invoke-PeerScenario([string]$Name, [string]$Script, [int]$ScenarioPort)
     $scenarioOutput = Join-Path $output $Name
     New-Item -ItemType Directory -Path $scenarioOutput -Force | Out-Null
     Write-Output "Running M4 $Name peer scenario on port $ScenarioPort."
+    # The child is a PowerShell script, so failures propagate as terminating
+    # errors. $LASTEXITCODE is only meaningful for native executables and may
+    # be null or stale after a successful script invocation.
     & (Join-Path $PSScriptRoot $Script) -Port $ScenarioPort -OutputDirectory $scenarioOutput
-    if ($LASTEXITCODE -ne 0) { throw "M4 $Name peer scenario exited with code $LASTEXITCODE." }
 }
 
 function Invoke-SupportRegression {

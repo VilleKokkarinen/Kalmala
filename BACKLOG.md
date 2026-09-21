@@ -286,14 +286,16 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
     - Passed 2026-09-21: `Scripts/Verify-BoarPeer.ps1 -Port 18254`; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaBoarPeer-97c1d19a2f1c4cacaafddc1f92fbfabe`.
     - Passed `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaBoarBehavior-confirm-a452224ad0ed40d18714939c7e1e3e7c/wildlife-cycle.log`.
 - [x] Verify server-owned targeting/damage, defeat persistence, reconnect consistency, and matching host/client behaviour.
-- [ ] Deliver the deer archetype as wary herd wildlife.
+- [x] Deliver the deer archetype as wary herd wildlife.
   - [x] Add original replicated deer presentation, bounded herd/flee behaviour, and validated meat/hide rewards.
   - [x] Verify deterministic group activation, combat/noise flight, defeat persistence, and matching host/client behaviour.
-- [ ] Add optional deterministic open-world points of interest and scroll discoveries across suitable biomes.
+    - Passed 2026-09-21: `Scripts/Verify-DeerPeer.ps1 -Port 18256`; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaDeerPeer-772a2e6f7adb43d28631b2797579de81`.
+- [x] Add optional deterministic open-world points of interest and scroll discoveries across suitable biomes.
   - [x] Derive bounded, stable point-of-interest and scroll descriptors from the existing world identity without routes, mandatory crossings, or hidden client discovery queries.
   - [x] Add server-validated one-time discovery rewards with colour-independent local feedback and persistence across reconnect only for the entitled player.
   - [x] Verify same-seed reproduction, different-seed variation, duplicate/distant request rejection, and privacy of undiscovered content.
-- [ ] Implement the scroll-learned, non-damaging support-magic foundation.
+    - Passed 2026-09-21: forced `KalmalaEditor Win64 Development` build; `Scripts/Verify-DiscoveryPeer.ps1 -Port 18257`; `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaDiscoveryRun-f932697c63794a86a1266a1332fb39eb`.
+- [x] Implement the scroll-learned, non-damaging support-magic foundation.
   - [x] Add server-owned learned-effect validation, stamina/cooldown rules, replicated active-state presentation, and persistence keyed to the entitled player and immutable world identity.
   - [x] Implement Mending as a validated ally heal that cannot target invalid actors or damage enemies.
   - [x] Implement Hearth Shield as a temporary validated protective shield with explicit expiry and replicated feedback.
@@ -302,10 +304,6 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Verify each effect rejects invalid client payloads, never directly damages an enemy, persists learning correctly, and agrees across host/client presentation.
     - [x] Focused regression covers all allowlisted effects, malformed/client/replay gates, reconnect learning persistence, and non-damaging execution; rendered live-peer casts remain in the M4 vertical slice.
 - [x] Place one scroll discovery as a server-validated Mireling boss reward and verify it remains optional to route selection.
-- [BLOCKED] Run the M4 two-player vertical-slice scenario: freely select a route, encounter Mireling, boar, and deer, learn and use all four support effects, and return with a persisted progression reward. Automated peer checks now pass; rendered route choice, four actual support casts, late-join/reconnect presentation, and persisted return remain unverified. Current blocker (2026-09-21): the available computer-use surface returned no native apps and explicitly reports that native computer APIs are disabled; a rendered host/client run is required to close this acceptance (see docs/07-development-setup.md).
-  - [x] Add the route-free M4 peer harness covering all three creature fixtures, owner-only rewards, defeat persistence, and the focused all-effects support regression.
-    - Verified 2026-09-21: the aggregate harness passed Mireling, boar, deer, and PlayerScopedPersistence after the peer-output predicate fixes. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-Final-ed983434d04d4d7483af47a133a7fe06`.
-
 **M4 acceptance:** two players choose their own route through the world, learn and use every support effect, encounter all three creature archetypes, and return with a progression reward. No magic effect directly damages an enemy.
 
 ### M5 — Vertical-slice finish

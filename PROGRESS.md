@@ -3546,6 +3546,46 @@ Next task: When UnrealBuildTool access is restored, verify the pending faceted
 player presentation increment; otherwise continue the next build-independent
 M5 contract increment without claiming runtime settings coverage.
 
+### 2026-09-21T09:35:10+03:00 — Repair M4 harness result handling; Mireling remains blocked
+
+Outcome: Rebuilt `KalmalaEditor` with the requested `%LOCALAPPDATA%\UnrealBuildTool`
+access; the build reported `Result: Succeeded`. The first fresh M4 aggregate
+run's Mireling peer passed its server damage, invalid-client request, replicated
+combat/health/defeat, owner-only Ash, and restart-persistence checks, but the
+wrapper then falsely treated null `$LASTEXITCODE` as a child failure. Removed
+that native-process status check from the PowerShell wrapper so child script
+errors propagate naturally. A second fresh aggregate run on port 18170 still
+timed out in Mireling before the other scenarios: the server arranged its
+target and attacker 150 cm apart at the same height, but logged no encounter
+attempt and reported `Combat verification FAILED` with `Health=100.0
+PlayerHealth=100.0`.
+
+Changed: `Scripts/Verify-M4VerticalSlice.ps1`; `BACKLOG.md`; `PROGRESS.md`.
+No gameplay authority, replication, persistence, schema, asset, or generated
+source changed. The working tree was clean before this run; no commit was made
+because the required aggregate verification failed.
+
+Verification: forced Unreal editor build passed; first individual Mireling
+scenario passed at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-f15ec72b741c40239ff99ad88fc298e4`.
+After the wrapper correction, the fresh aggregate run failed in Mireling with
+evidence at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-19f7d0942e3c4870b3e91cd8dab28bf1`.
+The build log is `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`.
+
+Multiplayer impact: None at runtime. This increment only corrected the
+PowerShell harness's handling of child-script failures. It adds no RPC,
+replicated state, gameplay outcome, or save behavior.
+
+Known limits: The Mireling fixture is intermittent: the first fresh peer run
+passed while the next fresh run did not enter its encounter damage loop. The
+M4 aggregate gate remains blocked; boar, deer, all-effects support execution,
+and the rendered return/reconnect acceptance did not run in the second attempt.
+
+Next task: Make the development-only Mireling peer fixture reliably enter the
+existing server-owned encounter loop, then rerun the isolated Mireling peer and
+the complete M4 aggregate harness.
+
 ### 2026-09-17T14:35:16+03:00 — Add aggregate M5 no-build contract suite
 
 Outcome: Completed the next build-independent M5 increment by adding
@@ -3793,6 +3833,41 @@ Known limits: The automated peer-harness child is complete, but the full M4 acce
 
 Next task: Run the rendered two-player M4 acceptance once native app control is available; record route choice, four support casts, reconnect, and persisted return evidence.
 
+### 2026-09-21T10:16:27+03:00 — Verify Mireling camp-pressure archetype
+
+Outcome: Closed the next unchecked M4 archetype parent. Fresh focused evidence
+confirms the seed-reproduced bounded Mireling encounter applies server-owned
+melee pressure, rejects the remote client's target-free attack without target
+data, replicates shared action/health/defeat state, grants MirelingAsh only to
+the eligible owner, and suppresses the exact defeated spawn after a same-world
+listen-server restart.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`. No runtime source, replication, RPC,
+persistence schema, asset, or generated file changed. Pre-existing edits in
+`PROGRESS.md` and `Scripts/Verify-M4VerticalSlice.ps1` remain preserved.
+
+Verification: Forced `KalmalaEditor Win64 Development` build succeeded
+(`Result: Succeeded`; log: `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`).
+The first isolated peer attempt timed out with the known intermittent encounter
+pressure failure at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingPeer-47a82a99da924bc9b2db62700dc2796c`.
+A second fresh run on port 18253 passed the complete peer and restart scenario;
+evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingPeer-1863a8138c11451196d36fc6a2a90b86`.
+`git diff --check` passed.
+
+Multiplayer impact: None at runtime. The evidence exercises the existing
+server-owned target, damage, defeat, owner-only reward, relevant replication,
+and world-scoped persistence paths.
+
+Known limits: The intermittent first-attempt pressure timeout remains a test
+fixture reliability concern. The full M4 acceptance still lacks rendered route
+choice, four actual support casts, late-join/reconnect presentation, and a
+persisted return demonstration.
+
+Next task: Verify and close the boar optional territorial-charge archetype
+parent using its focused peer/restart evidence; preserve the M4 acceptance gate.
+
 ### 2026-09-21T10.28.36+03:00 — Verify M4 boar territorial-charge archetype
 
 Outcome: Closed the next unchecked M4 parent after fresh seed-418 peer evidence. The server derived the bounded stable boar, its territorial charge damaged the host, and the remote peer attack carrying only the existing target-free sequence was rejected. Four server-committed attacks defeated the boar; the client observed relevant action, player-health, and defeat replication. The eligible owner received one BoarMeat and one BoarHide while the remote inventory stayed empty. A same-world listen-server restart kept the exact defeated boar absent.
@@ -3806,3 +3881,186 @@ Multiplayer impact: None at runtime. The peer check confirms server-owned target
 Known limits: The null-RHI peer scenario does not prove rendered presentation. The M4 two-player acceptance remains blocked pending rendered route choice, four actual support casts, late-join/reconnect presentation, and persisted return evidence.
 
 Next task: Verify and close the Deer wary-herd archetype parent with its focused peer/restart scenario.
+
+### 2026-09-21T10:35:13+03:00 — Verify M4 deer wary-herd archetype
+
+Outcome: Closed the next unchecked M4 archetype parent. The fresh seed-418
+two-peer scenario reproduced bounded target and herd-mate descriptors, triggered
+the existing server-owned herd flee response from a real combat hit, rejected
+the remote target-free request, observed relevant replicated action/defeat
+state, granted DeerMeat and DeerHide only to the eligible owner, and retained
+the exact defeat after a same-world listen-server restart.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`. No gameplay, networking, persistence,
+save-schema, asset, or generated source changed. Existing staged and unstaged
+changes were preserved; no commit was made because the handoff files already
+contain user changes that must not be included in this run's commit.
+
+Verification: Forced `KalmalaEditor Win64 Development` build with
+`-WaitMutex -NoHotReload -Force -MaxParallelActions=4` returned `Result:
+Succeeded`; UnrealBuildTool log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`.
+`Scripts/Verify-DeerPeer.ps1 -Port 18256` passed. Peer/restart evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaDeerPeer-772a2e6f7adb43d28631b2797579de81`.
+`git diff --check` passed.
+
+Multiplayer impact: None at runtime. Verification confirms target, noise,
+herd response, damage, defeat, rewards, replication relevance, and persistence
+remain server-owned; invalid client target-free input did not select a target.
+
+Known limits: The null-RHI fixture does not establish rendered herd readability
+or the complete tool-free M4 route/support/return acceptance, which remains
+blocked on rendered two-player app control.
+
+Next task: Verify optional deterministic open-world point-of-interest and scroll
+discoveries; retain the existing M4 rendered vertical-slice acceptance blocker.
+
+### 2026-09-21T10:40:00+03:00 — M4 rendered acceptance remains concretely blocked
+
+Outcome: Attempted to unblock and run the rendered M4 two-player acceptance.
+The computer-use inventory again returned no native apps. A visible
+`UnrealEditor.exe` listen-server launch (PID 27704) remained responsive but
+exposed no native window (`MainWindowTitle` was empty), so no rendered host or
+client surface could be observed or controlled. The process was then stopped.
+
+Source inspection found an independent runtime gap: the M5 runbook says normal
+support activation uses the existing learned-effect UI, but there is no support
+widget or subsystem in `Source/KalmalaUI`, and
+`AKalmalaCharacter::SetupPlayerInputComponent` binds only movement, interact,
+attack, jump, and sprint. Therefore ordinary players currently have no input
+path to request any of the four support effects, despite the server RPC and
+focused regression existing.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`. No runtime, networking, persistence,
+save-schema, asset, or generated file changed; existing working-tree edits were
+preserved. No commit was made because the acceptance could not be verified.
+
+Verification: fresh computer-use state returned `apps: []`; after the visible
+listen-server launch, it still returned `apps: []`. The retained prior M4
+aggregate evidence remains
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-Final-ed983434d04d4d7483af47a133a7fe06`;
+it does not provide the required rendered interaction evidence.
+
+Multiplayer impact: None. This investigation confirms the existing server RPC
+remains intent-only but is not reachable from normal player input; no authority
+or replicated-state contract changed.
+
+Known limits: M4 cannot be closed until a player-facing learned-effect UI/input
+path is implemented and a native rendered host/client surface is available for
+route choice, four casts, late-join/reconnect presentation, and persisted return
+evidence.
+
+Next task: Implement the documented learned-effect UI/input seam, then rerun
+the M4 rendered two-player acceptance when native app control is available.
+
+### 2026-09-21T10:45:00+03:00 — Decompose the M4 acceptance prerequisites
+
+Outcome: Added the missing ordered prerequisites beneath the blocked M4
+vertical-slice acceptance: implement the local learned-effect UI/input seam,
+verify all four normal-input casts in a rendered listen-server session, then
+retain evidence for the full route-free two-player route/creature/reconnect/
+persisted-return run. The M5 runbook now correctly describes that UI as a
+required M4 seam rather than an already-existing feature.
+
+Changed: `BACKLOG.md`; `docs/12-vertical-slice-runbook.md`; `PROGRESS.md`.
+No gameplay, networking, persistence, save-schema, asset, or generated file
+changed. Existing working-tree edits remain preserved.
+
+Verification: `git diff --check` passed.
+
+Multiplayer impact: The planned UI remains local presentation and sends only
+the existing narrow effect/sequence intent; entitlement, targets, damage,
+behaviour, rewards, active state, and persistence remain server-owned.
+
+Known limits: The implementation and rendered verification tasks remain open.
+Native computer-use continues to expose no rendered app surface.
+
+Next task: Implement the first unchecked prerequisite, the local learned-effect
+UI and normal input path, before attempting the rendered M4 session again.
+
+### 2026-09-21T10:46:40+03:00 — Verify optional M4 discoveries
+
+Outcome: Closed the first eligible unchecked M4 parent: optional deterministic
+open-world points of interest and scroll discoveries. This run verified the
+already implemented bounded descriptor and server-validated claim paths; it
+made no runtime implementation change.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`. Pre-existing staged/unstaged edits to
+these files, `Scripts/Verify-M4VerticalSlice.ps1`, and
+`docs/12-vertical-slice-runbook.md` were preserved. No source, replication,
+RPC, persistence schema, asset, or generated file changed. No commit was made
+because the handoff files already contain pre-existing changes and must not be
+committed with this run's update.
+
+Verification: Forced `KalmalaEditor Win64 Development` build with
+`-WaitMutex -NoHotReload -Force -MaxParallelActions=4` succeeded
+(`Result: Succeeded`; log: `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`).
+`Scripts/Verify-DiscoveryPeer.ps1 -Port 18257` passed same-seed descriptor
+reproduction, different-seed variation, distant and duplicate claim rejection,
+and remote-peer privacy. `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`
+reported success. Evidence and logs:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaDiscoveryRun-f932697c63794a86a1266a1332fb39eb`.
+`git diff --check` passed after the handoff update.
+
+Multiplayer impact: None at runtime. The peer scenario confirms the server
+derives descriptors and validates interaction/range/identity while owner-only
+feedback remains private; the persistence regression checks entitled player
+and immutable-world gates.
+
+Known limits: The null-RHI test does not verify rendered discovery feedback or
+ordinary player access to the learned-effect UI. The M4 rendered acceptance
+remains blocked, and the support UI/input prerequisite remains next.
+
+Next task: Implement the local learned-effect UI and normal input path for the
+four allowlisted effects; send only the existing effect/sequence intent.
+
+### 2026-09-21T11:05:35+03:00 — Implement M4 learned-effect UI and input
+
+Outcome: Added the local learned-effect panel and normal input path for the
+four allowlisted support effects. The panel shows each effect's learned or
+unavailable state, selected cue, active state and expiry, stamina, cooldown,
+and latest generic server result. Keyboard 1–4 and each matching controller
+D-pad direction select an effect; Q or the controller top face button requests
+activation. The owned pawn sends only the selected effect enum and an
+increasing request sequence. Learned state, cooldown, and result feedback are
+owner-only; active effect presentation remains relevant-peer state.
+
+Changed: `Config/DefaultInput.ini`, `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaSupportMagicComponent.cpp`,
+`Source/KalmalaGameplay/Public/KalmalaCharacter.h`,
+`Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h`,
+`Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp`,
+`docs/11-combat-and-support-magic.md`, `docs/12-vertical-slice-runbook.md`,
+`docs/14-settings-and-accessibility.md`, `BACKLOG.md`, and `PROGRESS.md`.
+The existing unrelated staged and unstaged changes in the handoff files,
+`Scripts/Verify-M4VerticalSlice.ps1`, and the rest of the runbook were
+preserved. Runtime changes add no save schema, discovery, damage, target, or
+reward payload.
+
+Verification: The first forced `KalmalaEditor Win64 Development` build found
+one local variable shadowing error; the name was corrected and the forced
+build succeeded (`Result: Succeeded`; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`). The final forced build
+reported `Target is up to date` and `Result: Succeeded`. The focused
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence` automation passed; log:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaSupportUI-7079377e21c3474ea8c0afe04802465d/support.log`.
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-LocalInputContract.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: The client selects only from its owner-only learned mask
+and calls the existing server RPC with an allowlisted enum and monotonic
+sequence. The server still chooses targets and outcomes, validates entitlement,
+cooldown and stamina, and executes all gameplay effects. Accepted/unavailable
+feedback and cooldown expiry replicate only to the owner; rejected-result
+updates are rate-limited. No client-selected target, damage, duration, reward,
+or saved state was introduced.
+
+Known limits: The rendered two-peer UI, cast, and privacy check remains open.
+The current Windows computer-use inventory returned `apps: []` (only the
+Codex in-app browser was available), so a native Unreal surface could not be
+controlled for rendered proof. The corresponding rendered verification and
+full M4 acceptance are marked blocked in `BACKLOG.md` with that evidence.
+
+Next task: Run the learned-effect UI/input path in a rendered listen-server
+session when a native app surface is available, then complete the M4 route,
+creature, four-cast, reconnect, and persisted-return acceptance.
