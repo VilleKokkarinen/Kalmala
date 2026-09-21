@@ -218,6 +218,27 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
     MirelingMesh->ClearAllMeshSections();
     // Original low-poly silhouettes use only project procedural geometry and vertex colour.
     TArray<FVector> Vertices; TArray<int32> Triangles; TArray<FVector> Normals; TArray<FVector2D> UV; TArray<FLinearColor> Colors;
+    const auto AddTetraPoints = [&Vertices, &Triangles, &Normals, &UV, &Colors](const FVector& Point0, const FVector& Point1, const FVector& Point2, const FVector& Point3, const FLinearColor Colour)
+    {
+        const FVector Points[] = { Point0, Point1, Point2, Point3 };
+        const FVector Centroid = (Point0 + Point1 + Point2 + Point3) * 0.25f;
+        const int32 Faces[] = { 0,2,1, 0,1,3, 1,2,3, 2,0,3 };
+        for (int32 Face = 0; Face < UE_ARRAY_COUNT(Faces); Face += 3)
+        {
+            int32 A = Faces[Face];
+            int32 B = Faces[Face + 1];
+            int32 C = Faces[Face + 2];
+            FVector Normal = FVector::CrossProduct(Points[B] - Points[A], Points[C] - Points[A]).GetSafeNormal();
+            const FVector FaceCentre = (Points[A] + Points[B] + Points[C]) / 3.0f;
+            if (FVector::DotProduct(Normal, FaceCentre - Centroid) < 0.0f)
+            {
+                Swap(B, C);
+                Normal *= -1.0f;
+            }
+            const int32 OutwardFace[] = { A, B, C };
+            for (const int32 Vertex : OutwardFace) { Triangles.Add(Vertices.Num()); Vertices.Add(Points[Vertex]); Normals.Add(Normal); UV.Add(FVector2D::ZeroVector); Colors.Add(Colour); }
+        }
+    };
     const auto AddTetra = [&Vertices, &Triangles, &Normals, &UV, &Colors](const FVector Centre, const FVector Extent, const FLinearColor Colour)
     {
         const FVector Points[] = { Centre + FVector(-Extent.X,-Extent.Y,0), Centre + FVector(Extent.X,-Extent.Y,0), Centre + FVector(0,Extent.Y,0), Centre + FVector(0,0,Extent.Z) };
@@ -252,10 +273,35 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
     }
     else
     {
-        AddTetra(FVector(0,0,15), FVector(52,38,115), FLinearColor(0.12f,0.20f,0.15f));
-        AddTetra(FVector(-26,0,-45), FVector(14,14,75), FLinearColor(0.18f,0.16f,0.12f));
-        AddTetra(FVector(26,0,-45), FVector(14,14,75), FLinearColor(0.18f,0.16f,0.12f));
-        AddTetra(FVector(0,0,122), FVector(48,30,55), FLinearColor(0.38f,0.55f,0.28f));
+        // Camp-pressure readability: a low forward hunch, long reaching arms, and a split crown give the scavenger a distinctive silhouette at a distance.
+        const FLinearColor RootShadow(0.10f, 0.14f, 0.11f);
+        const FLinearColor PeatBark(0.20f, 0.17f, 0.12f);
+        const FLinearColor Lichen(0.34f, 0.49f, 0.25f);
+        const FLinearColor WarmEye(0.72f, 0.42f, 0.17f);
+
+        AddTetra(FVector(-7,0,0), FVector(54,44,104), RootShadow);
+        AddTetra(FVector(27,0,5), FVector(42,37,78), PeatBark);
+        AddTetra(FVector(48,0,70), FVector(28,28,46), RootShadow);
+        AddTetra(FVector(61,0,98), FVector(43,35,52), Lichen);
+
+        AddTetra(FVector(36,-21,132), FVector(16,12,48), PeatBark);
+        AddTetra(FVector(36,21,132), FVector(16,12,48), PeatBark);
+        AddTetra(FVector(35,0,133), FVector(15,14,42), Lichen);
+        AddTetra(FVector(86,-13,122), FVector(6,5,7), WarmEye);
+        AddTetra(FVector(86,13,122), FVector(6,5,7), WarmEye);
+
+        AddTetraPoints(FVector(16,-33,62), FVector(43,-51,54), FVector(54,-35,43), FVector(88,-69,5), PeatBark);
+        AddTetraPoints(FVector(16,33,62), FVector(54,35,43), FVector(43,51,54), FVector(88,69,5), PeatBark);
+        AddTetra(FVector(98,-68,0), FVector(17,13,20), RootShadow);
+        AddTetra(FVector(98,68,0), FVector(17,13,20), RootShadow);
+
+        AddTetra(FVector(-39,-22,0), FVector(21,17,72), RootShadow);
+        AddTetra(FVector(-39,22,0), FVector(21,17,72), RootShadow);
+        AddTetra(FVector(-4,-22,0), FVector(20,14,17), PeatBark);
+        AddTetra(FVector(-4,22,0), FVector(20,14,17), PeatBark);
+
+        AddTetra(FVector(15,-39,30), FVector(13,9,30), Lichen);
+        AddTetra(FVector(15,39,30), FVector(13,9,30), Lichen);
     }
     MirelingMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV, Colors, {}, false);
 }
