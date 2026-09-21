@@ -3778,3 +3778,17 @@ remains blocked by the intermittent Mireling fixture recorded above.
 Next task: Verify and close the Mireling optional camp-pressure archetype
 parent using its focused peer/restart evidence; preserve the blocked aggregate
 M4 acceptance gate.
+
+### 2026-09-21T10:08:36+03:00 — Repair and pass the M4 peer harness
+
+Outcome: Fixed two verifier mismatches exposed by a fresh M4 aggregate run. The boar success line includes `HerdAlert=0`, so its success predicate now allows that field. The GameMode selects a remote pawn by actor iteration order, so the invalid-request owner feedback check now searches both client logs for each creature fixture. Reran the complete M4 aggregate successfully.
+
+Changed: `Scripts/Verify-BoarPeer.ps1`; `Scripts/Verify-MirelingPeer.ps1`; `Scripts/Verify-DeerPeer.ps1`; `BACKLOG.md`; `PROGRESS.md`. No gameplay, RPC, replication, persistence, save schema, or asset code changed. The pre-existing `Scripts/Verify-M4VerticalSlice.ps1` wrapper edit remains unstaged.
+
+Verification: `KalmalaEditor Win64 Development` build returned `Result: Succeeded` (target up to date); build log: `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`. Isolated boar peer passed, including owner-only meat/hide and restart suppression; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaBoarPeerFix-edd5c84792a6406c8d8c21d6dda3be36`. The full `Scripts/Verify-M4VerticalSlice.ps1 -Port 18185` run passed all three creature peers and the support persistence/non-damage regression; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-Final-ed983434d04d4d7483af47a133a7fe06`. `git diff --check` passed.
+
+Multiplayer impact: No runtime authority changed. The server still selects targets, applies combat outcomes, records defeats, grants owner-only rewards, and persists identity-matched state. The scripts now account for which remote client owns its rejected request feedback.
+
+Known limits: The automated peer-harness child is complete, but the full M4 acceptance remains blocked. No rendered test demonstrated free route choice, four actual support casts, late-join/reconnect presentation, or a persisted return state. The available computer-use surface returned no native apps and documents that native computer APIs are disabled.
+
+Next task: Run the rendered two-player M4 acceptance once native app control is available; record route choice, four support casts, reconnect, and persisted return evidence.

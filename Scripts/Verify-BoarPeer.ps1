@@ -20,8 +20,8 @@ try {
         if ($server.HasExited -or $client.HasExited -or $remoteClient.HasExited) { throw 'A Boar peer exited before verification.' }
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }; $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }; $remoteClientText = if (Test-Path $remoteClientLog) { Get-Content $remoteClientLog -Raw } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Boar verification FAILED:|Boar verification server: Passed=0') { throw 'Boar peer verification failed; inspect retained logs.' }
-        $ready = $serverText -match 'Boar verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=4 Health=0\.0 PlayerHealth=[0-9]+\.0 Defeated=1 Saved=1 Ash=0 RemoteAsh=0 Meat=1 Hide=1 RemoteMeat=0 RemoteHide=0'
-        $ready = $ready -and $clientText -match 'Boar verification client rejected invalid owned attack without target data\.'
+        $ready = $serverText -match 'Boar verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 (?:HerdAlert=0 )?InvalidRejected=1 ActionSerial=4 Health=0\.0 PlayerHealth=[0-9]+\.0 Defeated=1 Saved=1 Ash=0 RemoteAsh=0 Meat=1 Hide=1 RemoteMeat=0 RemoteHide=0'
+        $ready = $ready -and (($clientText + $remoteClientText) -match 'Boar verification client rejected invalid owned attack without target data\.')
         $ready = $ready -and $clientText -match 'Boar verification client observed shared action serial=4\.'
         $ready = $ready -and $clientText -match 'Boar verification client observed relevant wildlife defeat\.'
         $ready = $ready -and $clientText -match 'Boar verification client observed replicated player health=[0-9]+\.0\.'
