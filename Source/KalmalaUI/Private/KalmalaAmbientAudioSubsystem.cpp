@@ -48,6 +48,8 @@ constexpr TCHAR InteractionRejectedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/In
 constexpr TCHAR MovementFootfallCueAssetPath[] = TEXT("/Game/Kalmala/Audio/MovementFootfallCue.MovementFootfallCue");
 constexpr TCHAR MovementJumpCueAssetPath[] = TEXT("/Game/Kalmala/Audio/MovementJumpCue.MovementJumpCue");
 constexpr TCHAR MovementLandingCueAssetPath[] = TEXT("/Game/Kalmala/Audio/MovementLandingCue.MovementLandingCue");
+constexpr TCHAR GeneratedOceanEntryCueAssetPath[] = TEXT("/Game/Kalmala/Audio/GeneratedOceanEntryCue.GeneratedOceanEntryCue");
+constexpr TCHAR GeneratedOceanExitCueAssetPath[] = TEXT("/Game/Kalmala/Audio/GeneratedOceanExitCue.GeneratedOceanExitCue");
 constexpr float QuietWindVolume = 0.025f;
 constexpr float StrongWindVolume = 0.10f;
 constexpr float WindFadeSpeed = 1.4f;
@@ -65,6 +67,8 @@ constexpr float InteractionCueMinimumInterval = 0.35f;
 constexpr float MovementFootfallCueVolume = 0.075f;
 constexpr float MovementJumpCueVolume = 0.095f;
 constexpr float MovementLandingCueVolume = 0.11f;
+constexpr float GeneratedOceanEntryCueVolume = 0.10f;
+constexpr float GeneratedOceanExitCueVolume = 0.09f;
 constexpr float MovementMinimumStepSpeed = 130.0f;
 constexpr float MovementFootfallMinimumInterval = 0.22f;
 constexpr float WaterMaximumVolume = 0.07f;
@@ -157,6 +161,8 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         MovementFootfallCue = nullptr;
         MovementJumpCue = nullptr;
         MovementLandingCue = nullptr;
+        GeneratedOceanEntryCue = nullptr;
+        GeneratedOceanExitCue = nullptr;
         WaterProbeTimeRemaining = 0.0f;
         FireProbeTimeRemaining = 0.0f;
         BiomeProbeTimeRemaining = 0.0f;
@@ -226,6 +232,9 @@ void UKalmalaAmbientAudioSubsystem::UpdateLocalMovementCues(const float DeltaTim
     {
         TraversalPawn = nullptr;
         bMovementStateInitialized = false;
+        bMovementWasGeneratedOceanSwimming = false;
+        GeneratedOceanAudioTestStartTime = 0.0f;
+        bGeneratedOceanAudioTestClockInitialized = false;
         FootfallDistanceAccumulated = 0.0f;
         FootfallCueCooldownRemaining = 0.0f;
         return;
@@ -237,6 +246,9 @@ void UKalmalaAmbientAudioSubsystem::UpdateLocalMovementCues(const float DeltaTim
         bMovementStateInitialized = false;
         FootfallDistanceAccumulated = 0.0f;
         FootfallCueCooldownRemaining = 0.0f;
+        bMovementWasGeneratedOceanSwimming = false;
+        GeneratedOceanAudioTestStartTime = 0.0f;
+        bGeneratedOceanAudioTestClockInitialized = false;
     }
 
     if (MovementFootfallCue == nullptr)
@@ -251,16 +263,40 @@ void UKalmalaAmbientAudioSubsystem::UpdateLocalMovementCues(const float DeltaTim
     {
         MovementLandingCue = LoadObject<USoundWave>(nullptr, MovementLandingCueAssetPath);
     }
+    if (GeneratedOceanEntryCue == nullptr)
+    {
+        GeneratedOceanEntryCue = LoadObject<USoundWave>(nullptr, GeneratedOceanEntryCueAssetPath);
+    }
+    if (GeneratedOceanExitCue == nullptr)
+    {
+        GeneratedOceanExitCue = LoadObject<USoundWave>(nullptr, GeneratedOceanExitCueAssetPath);
+    }
 
     const FVector CurrentLocation = Character->GetActorLocation();
     const FVector CurrentVelocity = Movement->Velocity;
     const bool bGrounded = Movement->IsMovingOnGround();
     const bool bFalling = Movement->IsFalling();
+    bool bGeneratedOceanSwimming = Movement->IsSwimmingInGeneratedOcean();
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanTraversalAudioTest")))
+    {
+        if (!bGeneratedOceanAudioTestClockInitialized)
+        {
+            GeneratedOceanAudioTestStartTime = World->GetTimeSeconds();
+            bGeneratedOceanAudioTestClockInitialized = true;
+        }
+        const float TestElapsed = World->GetTimeSeconds() - GeneratedOceanAudioTestStartTime;
+        // Feed one local-only transition pair through the normal cue gate even
+        // when the fixture's fixed spawn has no nearby ocean coastline.
+        bGeneratedOceanSwimming = TestElapsed >= 1.0f && TestElapsed < 4.0f;
+    }
+#endif
     if (!bMovementStateInitialized)
     {
         LastMovementLocation = CurrentLocation;
         bMovementWasGrounded = bGrounded;
         bMovementWasFalling = bFalling;
+        bMovementWasGeneratedOceanSwimming = bGeneratedOceanSwimming;
         bMovementStateInitialized = true;
         return;
     }
@@ -297,6 +333,29 @@ void UKalmalaAmbientAudioSubsystem::UpdateLocalMovementCues(const float DeltaTim
 #endif
     };
 
+    if (bMovementWasGeneratedOceanSwimming != bGeneratedOceanSwimming)
+    {
+        const bool bEnteredOcean = bGeneratedOceanSwimming;
+        USoundWave* Cue = bEnteredOcean ? GeneratedOceanEntryCue.Get() : GeneratedOceanExitCue.Get();
+        const TCHAR* EventName = bEnteredOcean ? TEXT("Entry") : TEXT("Exit");
+        const TCHAR* AssetName = bEnteredOcean ? TEXT("GeneratedOceanEntryCue") : TEXT("GeneratedOceanExitCue");
+        const float Volume = bEnteredOcean ? GeneratedOceanEntryCueVolume : GeneratedOceanExitCueVolume;
+        const bool bCueSubmitted = World != nullptr && IsValid(Cue);
+        if (bCueSubmitted)
+        {
+            UGameplayStatics::PlaySound2D(World, Cue, Volume);
+        }
+#if !UE_BUILD_SHIPPING
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanTraversalAudioTest")))
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("Ocean traversal audio local: PawnAuthority=%d Event=%s CueSubmitted=%d Asset=%s"),
+                Character->HasAuthority() ? 1 : 0, EventName, bCueSubmitted ? 1 : 0,
+                bCueSubmitted ? AssetName : TEXT("None"));
+        }
+#endif
+    }
+
     if (bMovementWasGrounded && bFalling && CurrentVelocity.Z >= 120.0f)
     {
         SubmitCue(MovementJumpCue, TEXT("Jump"), TEXT("MovementJumpCue"), MovementJumpCueVolume, 1.0f);
@@ -320,6 +379,7 @@ void UKalmalaAmbientAudioSubsystem::UpdateLocalMovementCues(const float DeltaTim
     LastMovementLocation = CurrentLocation;
     bMovementWasGrounded = bGrounded;
     bMovementWasFalling = bFalling;
+    bMovementWasGeneratedOceanSwimming = bGeneratedOceanSwimming;
 }
 
 void UKalmalaAmbientAudioSubsystem::UpdateWindAmbience(const float DeltaTime, const FKalmalaWeatherState& Weather)
@@ -1231,6 +1291,9 @@ void UKalmalaAmbientAudioSubsystem::StopAmbientAudio()
     bMovementStateInitialized = false;
     bMovementWasGrounded = false;
     bMovementWasFalling = false;
+    bMovementWasGeneratedOceanSwimming = false;
+    GeneratedOceanAudioTestStartTime = 0.0f;
+    bGeneratedOceanAudioTestClockInitialized = false;
     SupportFeedbackPawn = nullptr;
     LastSupportFeedbackSerial = 0;
     DiscoveryFeedbackPawn = nullptr;
@@ -1255,6 +1318,8 @@ void UKalmalaAmbientAudioSubsystem::Deinitialize()
     MovementFootfallCue = nullptr;
     MovementJumpCue = nullptr;
     MovementLandingCue = nullptr;
+    GeneratedOceanEntryCue = nullptr;
+    GeneratedOceanExitCue = nullptr;
     SupportAcceptedCue = nullptr;
     CombatResultCue = nullptr;
     DiscoveryAcknowledgedCue = nullptr;

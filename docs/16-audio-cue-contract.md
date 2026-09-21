@@ -50,7 +50,9 @@ The runtime ambient layer includes loop-seamed, project-generated beds at
 `/Game/Kalmala/Audio/InteractionRejectedCue`,
 `/Game/Kalmala/Audio/MovementFootfallCue`,
 `/Game/Kalmala/Audio/MovementJumpCue`, and
-`/Game/Kalmala/Audio/MovementLandingCue`.
+`/Game/Kalmala/Audio/MovementLandingCue`,
+`/Game/Kalmala/Audio/GeneratedOceanEntryCue`, and
+`/Game/Kalmala/Audio/GeneratedOceanExitCue`.
 `UKalmalaAmbientAudioSubsystem` starts wind only
 for a local player whose normal generated-world state and pawn are ready. It
 smoothly adjusts the wind bed from accepted replicated
@@ -88,6 +90,12 @@ The subsystem samples only the local controller's own character and its local
 movement component; it does not inspect remote pawns, claim server movement
 acceptance, or trigger an RPC. Existing pose, HUD, and bound input labels
 remain the readable movement state.
+GeneratedOceanEntryCue and GeneratedOceanExitCue each play once when that same
+local movement component's `IsSwimmingInGeneratedOcean()` state transitions
+into or out of its generated-ocean custom movement mode. Initial state sampling
+and pawn replacement establish a new baseline without a false entry/exit cue.
+Water, Wet duration, exposure, and
+server-authoritative movement remain readable and unchanged.
 InteractionAcceptedCue plays for a new accepted owner-only crafting result or
 when an existing owner-only inventory stack increases after server validation;
 the first inventory snapshot only establishes a local baseline. A rejected
@@ -123,17 +131,19 @@ discovery, or remote-biome query is used.
 `Scripts/Generate-InteractionFeedbackAudio.ps1`,
 `Scripts/Generate-DiscoveryAcknowledgementAudio.ps1`,
 `Scripts/Generate-SupportEffectAudio.ps1`, and
-`Scripts/Generate-MovementTraversalAudio.ps1` recreate the original mono sources
+`Scripts/Generate-MovementTraversalAudio.ps1` and
+`Scripts/Generate-WaterTraversalAudio.ps1` recreate the original mono sources
 under `Content/Kalmala/Audio/Source`; the rain bed is seam-crossfaded
 and the WetStatusCue, SupportAcceptedCue, six effect-specific support cues,
 CombatResultCue,
 DiscoveryAcknowledgedCue, interaction cues, MovementFootfallCue,
-MovementJumpCue, and MovementLandingCue are short one-shots. Import all twenty
-assets to
+MovementJumpCue, MovementLandingCue, GeneratedOceanEntryCue, and
+GeneratedOceanExitCue are short one-shots. Import all twenty-two assets to
 `/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
 `Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`,
 `Scripts/Verify-CombatPeer.ps1`, `Scripts/Verify-DiscoveryPeer.ps1`,
-`Scripts/Verify-PlayerControls.ps1 -MovementAudio`, and the forced editor build.
+`Scripts/Verify-PlayerControls.ps1 -MovementAudio`,
+`Scripts/Verify-PlayerControls.ps1 -OceanTraversalAudio`, and the forced editor build.
 Pass
 `-WeatherExposureOnly` to the peer runner when
 focusing on the weather and Wet cues; its default mode also requires visible
@@ -174,12 +184,18 @@ field.
 `Scripts/Verify-AudioCueContract.ps1` checks all eight cue rows, the
 non-audio/accessibility requirement, project-owned asset rule, local mix scope,
 server authority/privacy boundary, the owner-only combat/support feedback
-sources, owner-only discovery cue gating, and the absence of a new RPC or save
-field.
+sources, owner-only discovery cue gating, generated-ocean movement transitions,
+and the absence of a new RPC or save field. `Verify-PlayerControls.ps1
+-OceanTraversalAudio` confirms both local peers submit one entry and one exit
+cue through the local movement-state transition path. Its development-only
+flag injects a three-second local sample sequence because the fixed seed-418
+spawn has no deep water in the fixture's short search area; it does not change
+the character movement mode or network state. Normal play reads the actual
+`IsSwimmingInGeneratedOcean()` mode.
 It does not create sound assets, prove mixing, test spatialization, or launch
 Unreal. The ambient-audio, combat, and discovery peer checks do not prove audible
-playback, device mixing, spatialization, or packaged playback. Movement and
-traversal cues and the broader original presentation pass remain in M5.
+playback, device mixing, spatialization, or packaged playback. The broader
+original presentation pass remains in M5.
 
 ## Multiplayer and persistence boundary
 

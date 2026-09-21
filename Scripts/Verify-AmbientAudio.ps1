@@ -28,6 +28,10 @@ $movementJumpCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\
 $movementJumpCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\MovementJumpCue.uasset'
 $movementLandingCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\MovementLandingCue.wav'
 $movementLandingCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\MovementLandingCue.uasset'
+$generatedOceanEntryCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\GeneratedOceanEntryCue.wav'
+$generatedOceanEntryCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\GeneratedOceanEntryCue.uasset'
+$generatedOceanExitCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\GeneratedOceanExitCue.wav'
+$generatedOceanExitCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\GeneratedOceanExitCue.uasset'
 $supportEffectCues = @(
     @{ Name = 'SupportMendingCue'; WavePath = (Join-Path $projectRoot 'Content\Kalmala\Audio\Source\SupportMendingCue.wav'); AssetPath = (Join-Path $projectRoot 'Content\Kalmala\Audio\SupportMendingCue.uasset') },
     @{ Name = 'SupportHearthShieldCue'; WavePath = (Join-Path $projectRoot 'Content\Kalmala\Audio\Source\SupportHearthShieldCue.wav'); AssetPath = (Join-Path $projectRoot 'Content\Kalmala\Audio\SupportHearthShieldCue.uasset') },
@@ -44,7 +48,7 @@ $discoverySourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\Ka
 $craftingSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaCraftingComponent.cpp'
 $inventorySourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaInventoryComponent.cpp'
 
-foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $supportCueWavePath, $supportCueAssetPath, $combatCueWavePath, $combatCueAssetPath, $discoveryCueWavePath, $discoveryCueAssetPath, $interactionAcceptedCueWavePath, $interactionAcceptedCueAssetPath, $interactionRejectedCueWavePath, $interactionRejectedCueAssetPath, $movementFootfallCueWavePath, $movementFootfallCueAssetPath, $movementJumpCueWavePath, $movementJumpCueAssetPath, $movementLandingCueWavePath, $movementLandingCueAssetPath, $sourcePath, $headerPath, $supportSourcePath, $combatSourcePath, $discoverySourcePath, $craftingSourcePath, $inventorySourcePath)) {
+foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $supportCueWavePath, $supportCueAssetPath, $combatCueWavePath, $combatCueAssetPath, $discoveryCueWavePath, $discoveryCueAssetPath, $interactionAcceptedCueWavePath, $interactionAcceptedCueAssetPath, $interactionRejectedCueWavePath, $interactionRejectedCueAssetPath, $movementFootfallCueWavePath, $movementFootfallCueAssetPath, $movementJumpCueWavePath, $movementJumpCueAssetPath, $movementLandingCueWavePath, $movementLandingCueAssetPath, $generatedOceanEntryCueWavePath, $generatedOceanEntryCueAssetPath, $generatedOceanExitCueWavePath, $generatedOceanExitCueAssetPath, $sourcePath, $headerPath, $supportSourcePath, $combatSourcePath, $discoverySourcePath, $craftingSourcePath, $inventorySourcePath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "Ambient audio deliverable is missing: $path"
     }
@@ -195,7 +199,9 @@ foreach ($cue in @(
 foreach ($cue in @(
     @{ Name = 'MovementFootfallCue'; Path = $movementFootfallCueWavePath; DataLength = 5292 },
     @{ Name = 'MovementJumpCue'; Path = $movementJumpCueWavePath; DataLength = 7938 },
-    @{ Name = 'MovementLandingCue'; Path = $movementLandingCueWavePath; DataLength = 7056 }
+    @{ Name = 'MovementLandingCue'; Path = $movementLandingCueWavePath; DataLength = 7056 },
+    @{ Name = 'GeneratedOceanEntryCue'; Path = $generatedOceanEntryCueWavePath; DataLength = 10584 },
+    @{ Name = 'GeneratedOceanExitCue'; Path = $generatedOceanExitCueWavePath; DataLength = 11466 }
 )) {
     [byte[]]$cueBytes = [System.IO.File]::ReadAllBytes($cue.Path)
     if ($cueBytes.Length -lt 44 -or [System.Text.Encoding]::ASCII.GetString($cueBytes, 0, 4) -ne 'RIFF' -or
@@ -254,6 +260,8 @@ foreach ($required in @(
     '/Game/Kalmala/Audio/MovementFootfallCue.MovementFootfallCue',
     '/Game/Kalmala/Audio/MovementJumpCue.MovementJumpCue',
     '/Game/Kalmala/Audio/MovementLandingCue.MovementLandingCue',
+    '/Game/Kalmala/Audio/GeneratedOceanEntryCue.GeneratedOceanEntryCue',
+    '/Game/Kalmala/Audio/GeneratedOceanExitCue.GeneratedOceanExitCue',
     'IsLocalController()',
     'GetLocalPlayer()',
     'bLooping = true',
@@ -318,6 +326,11 @@ foreach ($required in @(
     'FootfallDistanceAccumulated',
     'Movement->IsMovingOnGround()',
     'Movement->IsFalling()',
+    'Movement->IsSwimmingInGeneratedOcean()',
+    'bMovementWasGeneratedOceanSwimming',
+    'GeneratedOceanAudioTestStartTime',
+    'bGeneratedOceanAudioTestClockInitialized',
+    'KalmalaOceanTraversalAudioTest',
     'Controller->IsLocalController()',
     'Character->IsLocallyControlled()',
     'KalmalaMovementAudioTest',

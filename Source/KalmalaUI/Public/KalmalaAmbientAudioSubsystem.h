@@ -120,6 +120,12 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<USoundWave> MovementLandingCue;
 
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> GeneratedOceanEntryCue;
+
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> GeneratedOceanExitCue;
+
     float CurrentWindVolume = 0.0f;
     float TargetWindVolume = 0.0f;
     float WaterProbeTimeRemaining = 0.0f;
@@ -142,6 +148,9 @@ private:
     bool bMovementStateInitialized = false;
     bool bMovementWasGrounded = false;
     bool bMovementWasFalling = false;
+    bool bMovementWasGeneratedOceanSwimming = false;
+    float GeneratedOceanAudioTestStartTime = 0.0f;
+    bool bGeneratedOceanAudioTestClockInitialized = false;
     TWeakObjectPtr<APawn> SupportFeedbackPawn;
     uint32 LastSupportFeedbackSerial = 0;
     bool bSupportEffectStateInitialized = false;

@@ -65,6 +65,7 @@ $requiredTerms = @{
     'effect-specific support activation and server-state expiry cues' = '(?s)SupportMendingCue.*SupportHearthShieldCue.*SupportBearsVigorCue.*SupportDeerCallCue.*SupportHearthShieldExpiryCue.*SupportBearsVigorExpiryCue'
     'owner-only combat result cue' = '(?s)owner-only.*combat.*FeedbackSerial.*EKalmalaCombatFeedback::Hit.*Defeat|FeedbackSerial.*EKalmalaCombatFeedback::Hit.*Defeat.*owner-only'
     'owner-only accepted discovery cue' = '(?s)owner-only.*LandmarkFound.*ScrollFound.*DiscoveryAcknowledgedCue|DiscoveryAcknowledgedCue.*LandmarkFound.*ScrollFound.*owner-only'
+    'owner-local generated-ocean entry/exit cues' = '(?s)GeneratedOceanEntryCue.*GeneratedOceanExitCue.*IsSwimmingInGeneratedOcean'
 }
 foreach ($term in $requiredTerms.GetEnumerator()) {
     if ($text -notmatch $term.Value) {

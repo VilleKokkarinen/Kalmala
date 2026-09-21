@@ -3,7 +3,8 @@ param(
     [int]$Port = 17843,
     [switch]$Rendered,
     [switch]$WetStamina,
-    [switch]$MovementAudio
+    [switch]$MovementAudio,
+    [switch]$OceanTraversalAudio
 )
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
@@ -15,6 +16,7 @@ $renderer = if ($Rendered) { '-windowed -RenderOffscreen -ForceRes -ResX=1280 -R
 $common = "-game $renderer -nosound -unattended -nosplash -DDC-ForceMemoryCache -KalmalaPlayerControlsTest"
 if ($WetStamina) { $common += ' -KalmalaWetStaminaTest' }
 if ($MovementAudio) { $common += ' -KalmalaMovementAudioTest' }
+if ($OceanTraversalAudio) { $common += ' -KalmalaOceanTraversalAudioTest' }
 $server = $null
 $client = $null
 try {
@@ -45,7 +47,14 @@ try {
             $clientText -match 'Movement audio local: PawnAuthority=0 Event=Jump CueSubmitted=1 Asset=MovementJumpCue' -and
             $clientText -match 'Movement audio local: PawnAuthority=0 Event=Landing CueSubmitted=1 Asset=MovementLandingCue'
         )
-        if ($localPass -and $remotePass -and $renderPass -and $wetPass -and $movementAudioPass) { break }
+        $oceanTraversalAudioPass = !$OceanTraversalAudio -or (
+            [regex]::Matches($serverText, 'Ocean traversal audio local: PawnAuthority=1 Event=Entry CueSubmitted=1 Asset=GeneratedOceanEntryCue').Count -eq 1 -and
+            [regex]::Matches($serverText, 'Ocean traversal audio local: PawnAuthority=1 Event=Exit CueSubmitted=1 Asset=GeneratedOceanExitCue').Count -eq 1 -and
+            [regex]::Matches($clientText, 'Ocean traversal audio local: PawnAuthority=0 Event=Entry CueSubmitted=1 Asset=GeneratedOceanEntryCue').Count -eq 1 -and
+            [regex]::Matches($clientText, 'Ocean traversal audio local: PawnAuthority=0 Event=Exit CueSubmitted=1 Asset=GeneratedOceanExitCue').Count -eq 1
+        )
+        if (($serverText + $clientText) -match 'Ocean traversal audio local:.*CueSubmitted=0') { throw 'A generated-ocean traversal cue asset did not load; inspect logs.' }
+        if ($localPass -and $remotePass -and $renderPass -and $wetPass -and $movementAudioPass -and $oceanTraversalAudioPass) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Player controls/movement audio verification timed out.' }
@@ -56,6 +65,9 @@ try {
     }
     if ($MovementAudio) {
         Write-Output 'PASS: host/client models and controls plus owner-local footfall, jump, and landing cues; remote movement remains server-observed.'
+    }
+    elseif ($OceanTraversalAudio) {
+        Write-Output 'PASS: host and client each submitted exactly one owner-local generated-ocean entry and exit cue.'
     }
     else {
         Write-Output 'PASS: host/client models, bound jump/sprint/release, landing, and server-observed remote movement.'
