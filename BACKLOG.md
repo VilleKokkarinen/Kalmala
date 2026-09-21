@@ -270,7 +270,7 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Define replicated combat attributes, validated damage execution, defeat state, and narrow client intent RPCs for player attacks and support-effect activation. Contract: docs/11-combat-and-support-magic.md; definition only, runtime coverage remains below.
   - [x] Define stable server-owned IDs and sparse world deltas for creature defeats, points of interest, scroll discoveries, and per-player learned effects; preserve immutable world-identity validation. Contract: docs/11-combat-and-support-magic.md; definition only, schema/runtime work remains below.
   - [x] Add focused contract coverage proving malformed, distant, duplicate, and client-only combat/progression requests cannot change health, defeat state, rewards, or saves.
-- [ ] Add the smallest player combat loop with readable committed attacks and server-validated targets, damage, and cooldowns.
+- [x] Add the smallest player combat loop with readable committed attacks and server-validated targets, damage, and cooldowns.
   - [x] Add a basic owned-pawn attack intent with server-selected wildlife trace target, committed windup/recovery, fixed validated damage, and monotonic replay/cooldown gating; no client target or damage payload.
   - [x] Replicate player-facing combat state and colour-independent hit, defeat, and unavailable-action feedback without exposing hidden server-owned targets.
   - [x] Verify host/client combat agreement, rejected invalid attack requests, and reconnect-safe player and world state.

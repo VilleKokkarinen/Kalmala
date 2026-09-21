@@ -3717,3 +3717,32 @@ rendered effect, boar, deer, or return/reconnect acceptance.
 Next task: Verify the next unchecked M4 parent, the basic player combat loop,
 with its focused peer scenario and record the parent only after that evidence
 passes.
+
+### 2026-09-21T06:51:08Z — Verify M4 basic player combat loop
+
+Outcome: Completed the first unchecked M4 parent by confirming the existing
+server-authoritative attack implementation and its live two-peer/reconnect
+scenario. The out-of-range target-free client intent was rejected without
+mutation; four committed server attacks defeated the selected wildlife, the
+client observed only relevant replicated action/defeat state, and the exact
+defeated spawn remained absent after the same-world listen-server restart.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`. No gameplay, networking, persistence,
+save schema, asset, or generated source changed.
+
+Verification: Forced `KalmalaEditor Win64 Development` build succeeded
+(`Target is up to date`; `Result: Succeeded`); log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`. `Scripts/Verify-CombatPeer.ps1` with `-Port 18241` passed. Peer and restart logs:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaCombatPeer-2b2792a60099487e827152913ed3b0a7`.
+
+Multiplayer impact: None at runtime. The peer check confirms server-selected
+wildlife targeting, fixed server damage and cooldown sequencing, rejected
+client intent, relevant replicated combat/defeat state, and identity-scoped
+world defeat persistence after restart.
+
+Known limits: This headless null-RHI scenario does not establish rendered
+presentation or tool-free packaged two-player acceptance. Existing player
+combat state remains pawn-lifetime and resets to defaults after reconnect.
+
+Next task: Verify the deterministic server-owned wildlife population and
+behaviour foundation, the next unchecked M4 parent.
