@@ -1,4 +1,6 @@
 #include "KalmalaGameMode.h"
+#include "Camera/CameraActor.h"
+#include "UnrealClient.h"
 
 #include "GameFramework/Controller.h"
 #include "GameFramework/PlayerController.h"
@@ -800,6 +802,29 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             // puts it within the production 800 cm server noise radius for the herd assertion.
             CombatPeerTestHerdMate->SetActorLocation(CombatPeerTestTarget->GetActorLocation() + FVector(0.0f, 600.0f, 0.0f), false);
             CombatPeerTestHerdMate->ForceNetUpdate();
+
+#if !UE_BUILD_SHIPPING
+            FString DeerScreenshotPath;
+            if (FParse::Value(FCommandLine::Get(), TEXT("KalmalaDeerScreenshot="), DeerScreenshotPath))
+            {
+                if (LocalController != nullptr)
+                {
+                    const FVector DeerViewPoint = CombatPeerTestTarget->GetActorLocation() + FVector(0.0f, 0.0f, 75.0f);
+                    const FVector ViewSide = FVector::CrossProduct(Attacker->GetActorForwardVector().GetSafeNormal2D(), FVector::UpVector).GetSafeNormal();
+                    const FVector CameraLocation = DeerViewPoint + ViewSide * 350.0f + FVector(0.0f, 0.0f, 90.0f);
+                    FActorSpawnParameters CameraSpawnParameters;
+                    CameraSpawnParameters.ObjectFlags |= RF_Transient;
+                    CameraSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+                    if (ACameraActor* ScreenshotCamera = GetWorld()->SpawnActor<ACameraActor>(
+                        ACameraActor::StaticClass(), CameraLocation, (DeerViewPoint - CameraLocation).Rotation(), CameraSpawnParameters))
+                    {
+                        LocalController->SetViewTarget(ScreenshotCamera);
+                    }
+                }
+                FScreenshotRequest::RequestScreenshot(DeerScreenshotPath, true, false);
+                UE_LOG(LogTemp, Display, TEXT("Deer presentation capture requested after bounded target and herd positioning: %s"), *DeerScreenshotPath);
+            }
+#endif
         }
         Attacker->ForceNetUpdate();
         Remote->ForceNetUpdate();
