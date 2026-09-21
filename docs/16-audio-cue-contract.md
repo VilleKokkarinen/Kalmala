@@ -70,6 +70,10 @@ Inventory decreases do not cue. Crafting result text, an accepted-result bit,
 and a monotonic serial replicate to that pawn's owner only; the server writes
 all three, and a small local cooldown coalesces adjacent interaction/gathering
 changes. Neither cue includes an item ID, quantity, target, or request data.
+Only owner-only `LandmarkFound` or `ScrollFound` feedback plays the original
+`DiscoveryAcknowledgedCue`, once per new server-confirmed feedback serial.
+Duplicate or unavailable results remain readable text and do not cue; the audio
+carries no discovery ID, reward, or hidden-content hint.
 It samples a bounded set of points around that pawn from the existing immutable
 world identity, accepts only the existing sea surface or visible inland-lake
 surface, and requires an unobstructed visibility trace from the local view
@@ -88,15 +92,18 @@ discovery, or remote-biome query is used.
 `Scripts/Generate-WildernessWind.ps1`, `Scripts/Generate-WaterAmbience.ps1`,
 `Scripts/Generate-FireAmbience.ps1`, `Scripts/Generate-BiomeAmbience.ps1`,
 `Scripts/Generate-WeatherExposureAudio.ps1`,
-`Scripts/Generate-SupportFeedbackAudio.ps1`, and
-`Scripts/Generate-CombatResultAudio.ps1` and
-`Scripts/Generate-InteractionFeedbackAudio.ps1` recreate the original mono sources
-under `Content/Kalmala/Audio/Source`; the rain bed is seam-crossfaded and the
-WetStatusCue, SupportAcceptedCue, CombatResultCue, and interaction cues are
-short one-shots. Import all ten assets to
+`Scripts/Generate-SupportFeedbackAudio.ps1`,
+`Scripts/Generate-CombatResultAudio.ps1`,
+`Scripts/Generate-InteractionFeedbackAudio.ps1`, and
+`Scripts/Generate-DiscoveryAcknowledgementAudio.ps1` recreate the original mono
+sources under `Content/Kalmala/Audio/Source`; the rain bed is seam-crossfaded
+and the WetStatusCue, SupportAcceptedCue, CombatResultCue,
+DiscoveryAcknowledgedCue, and interaction cues are short one-shots. Import all
+eleven assets to
 `/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
 `Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`,
-`Scripts/Verify-CombatPeer.ps1`, and the forced editor build. Pass
+`Scripts/Verify-CombatPeer.ps1`, `Scripts/Verify-DiscoveryPeer.ps1`, and the
+forced editor build. Pass
 `-WeatherExposureOnly` to the peer runner when
 focusing on the weather and Wet cues; its default mode also requires visible
 water activation. The first verifier checks source format, imported
@@ -106,6 +113,9 @@ plus each local player's current sampled biome and accepted rainy weather/Wet
 state and the support acceptance cue. `Verify-CombatPeer.ps1` confirms that
 owner-local Hit and Defeat feedback submit CombatResultCue, Unavailable remains
 text-only, and the other peer receives no private combat result cue. The
+discovery peer fixture confirms that only the entitled local owner submits the
+acknowledgment for a new landmark/scroll result; duplicate, unavailable, and
+remote undiscovered feedback remain text-only. The
 ambient peer fixture also verifies owner-local accepted crafting, accepted
 gathering, and rejected crafting cues for both host and client. Its gathering
 node is transient and invokes the ordinary server harvest path; it does not
@@ -132,11 +142,12 @@ field.
 `Scripts/Verify-AudioCueContract.ps1` checks all eight cue rows, the
 non-audio/accessibility requirement, project-owned asset rule, local mix scope,
 server authority/privacy boundary, the owner-only combat/support feedback
-sources, and the absence of a new RPC or save field.
+sources, owner-only discovery cue gating, and the absence of a new RPC or save
+field.
 It does not create sound assets, prove mixing, test spatialization, or launch
-Unreal. The ambient-audio and combat peer checks do not prove audible playback,
-device mixing, spatialization, or packaged playback. Discovery acknowledgement,
-movement, and further combat/support cues remain in the M5 pass.
+Unreal. The ambient-audio, combat, and discovery peer checks do not prove audible
+playback, device mixing, spatialization, or packaged playback. Movement and
+further combat/support cues remain in the M5 pass.
 
 ## Multiplayer and persistence boundary
 

@@ -63,6 +63,7 @@ $requiredTerms = @{
     'distinct rejected interaction cue' = 'distinct.*InteractionRejectedCue|InteractionRejectedCue.*rejected'
     'owner-only accepted support cue' = '(?s)owner-only.*support.*FeedbackSerial.*Accepted|FeedbackSerial.*Accepted.*owner-only'
     'owner-only combat result cue' = '(?s)owner-only.*combat.*FeedbackSerial.*EKalmalaCombatFeedback::Hit.*Defeat|FeedbackSerial.*EKalmalaCombatFeedback::Hit.*Defeat.*owner-only'
+    'owner-only accepted discovery cue' = '(?s)owner-only.*LandmarkFound.*ScrollFound.*DiscoveryAcknowledgedCue|DiscoveryAcknowledgedCue.*LandmarkFound.*ScrollFound.*owner-only'
 }
 foreach ($term in $requiredTerms.GetEnumerator()) {
     if ($text -notmatch $term.Value) {

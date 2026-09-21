@@ -12,7 +12,7 @@ class APawn;
 struct FKalmalaWorldGenerationConfig;
 struct FKalmalaWeatherState;
 
-/** Starts a quiet, project-owned wilderness bed for this local player only. */
+/** Plays project-owned ambience and accepted-result cues for this local player only. */
 UCLASS()
 class KALMALAUI_API UKalmalaAmbientAudioSubsystem : public ULocalPlayerSubsystem, public FTickableGameObject
 {
@@ -32,6 +32,7 @@ private:
     void UpdateWetStatusCue(UWorld* World, APlayerController* Controller);
     void UpdateSupportAcceptedCue(UWorld* World, APlayerController* Controller);
     void UpdateCombatResultCue(UWorld* World, APlayerController* Controller);
+    void UpdateDiscoveryAcknowledgementCue(UWorld* World, APlayerController* Controller);
     void UpdateInteractionResultCue(UWorld* World, APlayerController* Controller);
     void UpdateGatheringResultCue(UWorld* World, APlayerController* Controller);
     float SampleVisibleWaterStrength(UWorld* World, APlayerController* Controller,
@@ -83,6 +84,9 @@ private:
     TObjectPtr<USoundWave> CombatResultCue;
 
     UPROPERTY(Transient)
+    TObjectPtr<USoundWave> DiscoveryAcknowledgedCue;
+
+    UPROPERTY(Transient)
     TObjectPtr<USoundWave> InteractionAcceptedCue;
 
     UPROPERTY(Transient)
@@ -107,6 +111,8 @@ private:
     uint32 LastSupportFeedbackSerial = 0;
     TWeakObjectPtr<APawn> CombatFeedbackPawn;
     uint32 LastCombatFeedbackSerial = 0;
+    TWeakObjectPtr<APawn> DiscoveryFeedbackPawn;
+    uint32 LastDiscoveryFeedbackSerial = 0;
     TWeakObjectPtr<APawn> InteractionFeedbackPawn;
     uint32 LastInteractionFeedbackSerial = 0;
     TWeakObjectPtr<APawn> GatheringFeedbackPawn;

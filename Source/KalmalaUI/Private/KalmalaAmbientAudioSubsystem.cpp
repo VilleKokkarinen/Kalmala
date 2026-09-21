@@ -8,6 +8,7 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaCombatComponent.h"
 #include "KalmalaCraftingComponent.h"
+#include "KalmalaDiscoveryProgressComponent.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaSupportMagicComponent.h"
@@ -34,6 +35,7 @@ constexpr TCHAR RainBedAssetPath[] = TEXT("/Game/Kalmala/Audio/RainBed.RainBed")
 constexpr TCHAR WetStatusCueAssetPath[] = TEXT("/Game/Kalmala/Audio/WetStatusCue.WetStatusCue");
 constexpr TCHAR SupportAcceptedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/SupportAcceptedCue.SupportAcceptedCue");
 constexpr TCHAR CombatResultCueAssetPath[] = TEXT("/Game/Kalmala/Audio/CombatResultCue.CombatResultCue");
+constexpr TCHAR DiscoveryAcknowledgedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/DiscoveryAcknowledgedCue.DiscoveryAcknowledgedCue");
 constexpr TCHAR InteractionAcceptedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/InteractionAcceptedCue.InteractionAcceptedCue");
 constexpr TCHAR InteractionRejectedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/InteractionRejectedCue.InteractionRejectedCue");
 constexpr float QuietWindVolume = 0.025f;
@@ -45,6 +47,7 @@ constexpr float RainFadeSpeed = 1.8f;
 constexpr float WetStatusCueVolume = 0.16f;
 constexpr float SupportAcceptedCueVolume = 0.14f;
 constexpr float CombatResultCueVolume = 0.16f;
+constexpr float DiscoveryAcknowledgedCueVolume = 0.14f;
 constexpr float InteractionAcceptedCueVolume = 0.14f;
 constexpr float InteractionRejectedCueVolume = 0.12f;
 constexpr float InteractionCueMinimumInterval = 0.35f;
@@ -126,6 +129,7 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         WetStatusCue = nullptr;
         SupportAcceptedCue = nullptr;
         CombatResultCue = nullptr;
+        DiscoveryAcknowledgedCue = nullptr;
         InteractionAcceptedCue = nullptr;
         InteractionRejectedCue = nullptr;
         WaterProbeTimeRemaining = 0.0f;
@@ -174,6 +178,7 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         UpdateWetStatusCue(World, Controller);
         UpdateSupportAcceptedCue(World, Controller);
         UpdateCombatResultCue(World, Controller);
+        UpdateDiscoveryAcknowledgementCue(World, Controller);
         UpdateInteractionResultCue(World, Controller);
         UpdateGatheringResultCue(World, Controller);
         UpdateWaterAmbience(DeltaTime, World, Controller, GameState->GetWorldGenerationConfig());
@@ -393,6 +398,68 @@ void UKalmalaAmbientAudioSubsystem::UpdateCombatResultCue(UWorld* World, APlayer
             TEXT("Ambient audio combat context: Local=1 Feedback=%s Serial=%u CueSubmitted=%d Asset=%s"),
             FeedbackName, FeedbackSerial, bCueSubmitted ? 1 : 0,
             bCueSubmitted ? TEXT("CombatResultCue") : TEXT("None"));
+    }
+#endif
+}
+
+void UKalmalaAmbientAudioSubsystem::UpdateDiscoveryAcknowledgementCue(UWorld* World, APlayerController* Controller)
+{
+    AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+    if (Character == nullptr)
+    {
+        DiscoveryFeedbackPawn = nullptr;
+        LastDiscoveryFeedbackSerial = 0;
+        return;
+    }
+
+    if (DiscoveryFeedbackPawn.Get() != Character)
+    {
+        DiscoveryFeedbackPawn = Character;
+        LastDiscoveryFeedbackSerial = 0;
+    }
+
+    const UKalmalaDiscoveryProgressComponent* Discovery = Character->GetDiscoveryProgressComponent();
+    if (Discovery == nullptr)
+    {
+        return;
+    }
+
+    const uint32 FeedbackSerial = Discovery->GetFeedbackSerial();
+    if (FeedbackSerial == 0 || FeedbackSerial == LastDiscoveryFeedbackSerial)
+    {
+        return;
+    }
+    LastDiscoveryFeedbackSerial = FeedbackSerial;
+
+    const EKalmalaDiscoveryFeedback Feedback = Discovery->GetFeedback();
+    const bool bAcceptedDiscovery = Feedback == EKalmalaDiscoveryFeedback::LandmarkFound
+        || Feedback == EKalmalaDiscoveryFeedback::ScrollFound;
+    bool bCueSubmitted = false;
+    if (bAcceptedDiscovery)
+    {
+        if (DiscoveryAcknowledgedCue == nullptr)
+        {
+            DiscoveryAcknowledgedCue = LoadObject<USoundWave>(nullptr, DiscoveryAcknowledgedCueAssetPath);
+        }
+        bCueSubmitted = World != nullptr && IsValid(DiscoveryAcknowledgedCue.Get());
+        if (bCueSubmitted)
+        {
+            UGameplayStatics::PlaySound2D(World, DiscoveryAcknowledgedCue.Get(),
+                DiscoveryAcknowledgedCueVolume, 1.0f, 0.0f, nullptr, nullptr, false);
+        }
+    }
+
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")))
+    {
+        const TCHAR* FeedbackName = Feedback == EKalmalaDiscoveryFeedback::LandmarkFound ? TEXT("LandmarkFound")
+            : Feedback == EKalmalaDiscoveryFeedback::ScrollFound ? TEXT("ScrollFound")
+            : Feedback == EKalmalaDiscoveryFeedback::AlreadyFound ? TEXT("AlreadyFound")
+            : Feedback == EKalmalaDiscoveryFeedback::Unavailable ? TEXT("Unavailable") : TEXT("None");
+        UE_LOG(LogTemp, Display,
+            TEXT("Ambient audio discovery result: Local=1 Feedback=%s Serial=%u CueSubmitted=%d Asset=%s"),
+            FeedbackName,
+            FeedbackSerial, bCueSubmitted ? 1 : 0, bCueSubmitted ? TEXT("DiscoveryAcknowledgedCue") : TEXT("None"));
     }
 #endif
 }
@@ -929,6 +996,8 @@ void UKalmalaAmbientAudioSubsystem::StopAmbientAudio()
     bLastWetStatus = false;
     SupportFeedbackPawn = nullptr;
     LastSupportFeedbackSerial = 0;
+    DiscoveryFeedbackPawn = nullptr;
+    LastDiscoveryFeedbackSerial = 0;
     InteractionFeedbackPawn = nullptr;
     LastInteractionFeedbackSerial = 0;
     GatheringFeedbackPawn = nullptr;
@@ -948,6 +1017,7 @@ void UKalmalaAmbientAudioSubsystem::Deinitialize()
     WetStatusCue = nullptr;
     SupportAcceptedCue = nullptr;
     CombatResultCue = nullptr;
+    DiscoveryAcknowledgedCue = nullptr;
     InteractionAcceptedCue = nullptr;
     InteractionRejectedCue = nullptr;
     Super::Deinitialize();

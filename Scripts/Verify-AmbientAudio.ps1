@@ -16,6 +16,8 @@ $supportCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\Suppo
 $supportCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\SupportAcceptedCue.uasset'
 $combatCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\CombatResultCue.wav'
 $combatCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\CombatResultCue.uasset'
+$discoveryCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\DiscoveryAcknowledgedCue.wav'
+$discoveryCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\DiscoveryAcknowledgedCue.uasset'
 $interactionAcceptedCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\InteractionAcceptedCue.wav'
 $interactionAcceptedCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\InteractionAcceptedCue.uasset'
 $interactionRejectedCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\InteractionRejectedCue.wav'
@@ -24,10 +26,11 @@ $sourcePath = Join-Path $projectRoot 'Source\KalmalaUI\Private\KalmalaAmbientAud
 $headerPath = Join-Path $projectRoot 'Source\KalmalaUI\Public\KalmalaAmbientAudioSubsystem.h'
 $supportSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaSupportMagicComponent.cpp'
 $combatSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaCombatComponent.cpp'
+$discoverySourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaDiscoveryProgressComponent.cpp'
 $craftingSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaCraftingComponent.cpp'
 $inventorySourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaInventoryComponent.cpp'
 
-foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $supportCueWavePath, $supportCueAssetPath, $combatCueWavePath, $combatCueAssetPath, $interactionAcceptedCueWavePath, $interactionAcceptedCueAssetPath, $interactionRejectedCueWavePath, $interactionRejectedCueAssetPath, $sourcePath, $headerPath, $supportSourcePath, $combatSourcePath, $craftingSourcePath, $inventorySourcePath)) {
+foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $supportCueWavePath, $supportCueAssetPath, $combatCueWavePath, $combatCueAssetPath, $discoveryCueWavePath, $discoveryCueAssetPath, $interactionAcceptedCueWavePath, $interactionAcceptedCueAssetPath, $interactionRejectedCueWavePath, $interactionRejectedCueAssetPath, $sourcePath, $headerPath, $supportSourcePath, $combatSourcePath, $discoverySourcePath, $craftingSourcePath, $inventorySourcePath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "Ambient audio deliverable is missing: $path"
     }
@@ -137,6 +140,19 @@ if ($combatCueChannels -ne 1 -or $combatCueSampleRate -ne 22050 -or $combatCueBi
     throw "Unexpected CombatResultCue format: channels=$combatCueChannels rate=$combatCueSampleRate bits=$combatCueBitsPerSample bytes=$combatCueDataLength"
 }
 
+[byte[]]$discoveryCueBytes = [System.IO.File]::ReadAllBytes($discoveryCueWavePath)
+if ($discoveryCueBytes.Length -lt 44 -or [System.Text.Encoding]::ASCII.GetString($discoveryCueBytes, 0, 4) -ne 'RIFF' -or
+    [System.Text.Encoding]::ASCII.GetString($discoveryCueBytes, 8, 4) -ne 'WAVE') {
+    throw 'DiscoveryAcknowledgedCue.wav is not a valid RIFF/WAVE file.'
+}
+$discoveryCueChannels = [BitConverter]::ToInt16($discoveryCueBytes, 22)
+$discoveryCueSampleRate = [BitConverter]::ToInt32($discoveryCueBytes, 24)
+$discoveryCueBitsPerSample = [BitConverter]::ToInt16($discoveryCueBytes, 34)
+$discoveryCueDataLength = [BitConverter]::ToInt32($discoveryCueBytes, 40)
+if ($discoveryCueChannels -ne 1 -or $discoveryCueSampleRate -ne 22050 -or $discoveryCueBitsPerSample -ne 16 -or $discoveryCueDataLength -ne 22050) {
+    throw "Unexpected DiscoveryAcknowledgedCue format: channels=$discoveryCueChannels rate=$discoveryCueSampleRate bits=$discoveryCueBitsPerSample bytes=$discoveryCueDataLength"
+}
+
 foreach ($cue in @(
     @{ Name = 'InteractionAcceptedCue'; Path = $interactionAcceptedCueWavePath },
     @{ Name = 'InteractionRejectedCue'; Path = $interactionRejectedCueWavePath }
@@ -159,6 +175,7 @@ $source = Get-Content -LiteralPath $sourcePath -Raw
 $header = Get-Content -LiteralPath $headerPath -Raw
 $supportSource = Get-Content -LiteralPath $supportSourcePath -Raw
 $combatSource = Get-Content -LiteralPath $combatSourcePath -Raw
+$discoverySource = Get-Content -LiteralPath $discoverySourcePath -Raw
 $craftingSource = Get-Content -LiteralPath $craftingSourcePath -Raw
 $inventorySource = Get-Content -LiteralPath $inventorySourcePath -Raw
 foreach ($required in @(
@@ -170,6 +187,7 @@ foreach ($required in @(
     '/Game/Kalmala/Audio/WetStatusCue.WetStatusCue',
     '/Game/Kalmala/Audio/SupportAcceptedCue.SupportAcceptedCue',
     '/Game/Kalmala/Audio/CombatResultCue.CombatResultCue',
+    '/Game/Kalmala/Audio/DiscoveryAcknowledgedCue.DiscoveryAcknowledgedCue',
     '/Game/Kalmala/Audio/InteractionAcceptedCue.InteractionAcceptedCue',
     '/Game/Kalmala/Audio/InteractionRejectedCue.InteractionRejectedCue',
     'IsLocalController()',
@@ -204,6 +222,10 @@ foreach ($required in @(
     'GetCombatComponent()',
     'EKalmalaCombatFeedback::Hit',
     'EKalmalaCombatFeedback::Defeat',
+    'UpdateDiscoveryAcknowledgementCue',
+    'GetDiscoveryProgressComponent()',
+    'EKalmalaDiscoveryFeedback::LandmarkFound',
+    'EKalmalaDiscoveryFeedback::ScrollFound',
     'WetStatusId',
     'PlaySound2D',
     'SetPitchMultiplier',
@@ -234,6 +256,8 @@ if ($header -notmatch 'ULocalPlayerSubsystem' -or $header -notmatch 'SampleVisib
     $header -notmatch 'UpdateCombatResultCue' -or
     $combatSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaCombatComponent, Feedback, COND_OwnerOnly\)' -or
     $combatSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaCombatComponent, FeedbackSerial, COND_OwnerOnly\)' -or
+    $discoverySource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaDiscoveryProgressComponent, Feedback, COND_OwnerOnly\)' -or
+    $discoverySource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaDiscoveryProgressComponent, FeedbackSerial, COND_OwnerOnly\)' -or
     $craftingSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaCraftingComponent, LastResult, COND_OwnerOnly\)' -or
     $craftingSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaCraftingComponent, ResultSerial, COND_OwnerOnly\)' -or
     $craftingSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaCraftingComponent, bLastResultAccepted, COND_OwnerOnly\)' -or
@@ -241,4 +265,4 @@ if ($header -notmatch 'ULocalPlayerSubsystem' -or $header -notmatch 'SampleVisib
     throw 'Ambient audio must stay local and must not add network or gameplay persistence state.'
 }
 
-Write-Output 'PASS: original wind, water, fire, biome, and rain beds are 8-second mono PCM; WetStatusCue and SupportAcceptedCue are 0.8 seconds, and combat/interaction cues are 0.4 seconds. Local crafting results and owner-only inventory increases trigger accepted/rejected interaction cues.'
+Write-Output 'PASS: original wind, water, fire, biome, and rain beds are 8-second mono PCM; WetStatusCue and SupportAcceptedCue are 0.8 seconds, discovery is 0.5 seconds, and combat/interaction cues are 0.4 seconds. Accepted owner-only landmark/scroll feedback triggers the local discovery acknowledgment.'
