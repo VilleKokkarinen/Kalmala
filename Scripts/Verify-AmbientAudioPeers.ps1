@@ -32,13 +32,19 @@ try {
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:') { throw 'Ambient-audio host/client verification failed; inspect the retained logs.' }
         $serverStarted = $serverText -match 'Ambient audio runtime: ComponentCreated=1 Local=1 Asset=WindBed Looping=1'
         $clientStarted = $clientText -match 'Ambient audio runtime: ComponentCreated=1 Local=1 Asset=WindBed Looping=1'
+        $serverWaterProbed = $serverText -match 'Ambient audio water context: Probed=1 Local=1 Visible=[01] ComponentCreated=[01] Asset=(WaterBed|None)'
+        $clientWaterProbed = $clientText -match 'Ambient audio water context: Probed=1 Local=1 Visible=[01] ComponentCreated=[01] Asset=(WaterBed|None)'
+        $serverWaterActive = $serverText -match 'Ambient audio water context: Probed=1 Local=1 Visible=1 ComponentCreated=1 Asset=WaterBed'
+        $clientWaterActive = $clientText -match 'Ambient audio water context: Probed=1 Local=1 Visible=1 ComponentCreated=1 Asset=WaterBed'
         $clientJoined = $clientText -match 'Client received world-generation identity: Seed=418'
-        if ($serverStarted -and $clientStarted -and $clientJoined) { break }
+        $waterActive = $serverWaterActive -or $clientWaterActive
+        $scenarioReady = $serverStarted -and $clientStarted -and $serverWaterProbed -and $clientWaterProbed -and $waterActive -and $clientJoined
+        if ($scenarioReady) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
-    if ((Get-Date) -ge $deadline) { throw 'Both local ambient components and the connected client identity were not observed before timeout.' }
+    if ((Get-Date) -ge $deadline) { throw 'Both local wind components, both water-context probes, at least one visible-water loop, and the connected client identity were not observed before timeout.' }
 
-    Write-Output 'PASS: host and connected client each created one local looping ambient component; no gameplay request or replicated audio state was added.'
+    Write-Output 'PASS: host and client created local wind audio and probed independently; a peer near visible water created the local WaterBed loop, with no gameplay request or replicated audio state.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

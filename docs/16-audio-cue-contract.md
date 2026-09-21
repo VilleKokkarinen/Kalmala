@@ -33,18 +33,30 @@ Audio settings contract for master/music/ambient/interaction-combat levels and
 mute/restore. A muted or unavailable device must still expose all state through
 the text/shape equivalents above.
 
-The first runtime increment is a loop-seamed, project-generated wind bed at
-`/Game/Kalmala/Audio/WindBed`. `UKalmalaAmbientAudioSubsystem` starts it quietly
-only for a local player whose normal generated-world state and pawn are ready,
-and stops it when local play ends. The generator is
-`Scripts/Generate-WildernessWind.ps1`; `Scripts/Verify-AmbientAudio.ps1` checks
-the source wave format, imported asset, and local-only playback contract.
-`Scripts/Verify-AmbientAudioPeers.ps1` confirms that a listen-server host and
-connected client each create their own local loop component in normal play.
-The existing Wet, warmth, shelter, hearth, and recovery text remains the
-readable fallback. These checks do not establish audible quality, hardware
-mixing, or packaged playback, and do not complete water/fire/biome ambience,
-weather or event cues, or audio options.
+The first runtime increment includes a loop-seamed, project-generated wind bed
+at `/Game/Kalmala/Audio/WindBed` and a water bed at
+`/Game/Kalmala/Audio/WaterBed`. `UKalmalaAmbientAudioSubsystem` starts wind only
+for a local player whose normal generated-world state and pawn are ready. It
+samples a bounded set of points around that pawn from the existing immutable
+world identity, accepts only the existing sea surface or visible inland-lake
+surface, and requires an unobstructed visibility trace from the local view
+before water can be heard. The water loop probes every 0.75 seconds, fades by
+distance within 1,600 cm, and uses a maximum volume of 0.07. Both local loops
+stop when local play ends; no hidden actor or discovery query is used.
+
+`Scripts/Generate-WildernessWind.ps1` and
+`Scripts/Generate-WaterAmbience.ps1` recreate the original loop-seamed mono
+sources under `Content/Kalmala/Audio/Source`. Import both to
+`/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
+`Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`, and
+the forced editor build. The first verifier checks each source format,
+imported asset, local-player ownership, water visibility/proximity gates, and
+teardown. The peer runner confirms that host and client independently probe
+local water context while creating their own wind component. Existing Wet,
+warmth, shelter, hearth, and recovery text remains the readable fallback.
+These checks do not establish audible quality, hardware mixing, or packaged
+playback, and do not complete fire/biome ambience, weather or event cues, or
+audio options.
 
 Keep cues short, bounded, and non-blocking. Ambient layers may be local and
 spatial, but they must not stream a second world simulation or reveal a server
