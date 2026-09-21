@@ -6,10 +6,12 @@ $waterWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\WaterBed.w
 $waterAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\WaterBed.uasset'
 $fireWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\FireBed.wav'
 $fireAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\FireBed.uasset'
+$biomeWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\BiomeBed.wav'
+$biomeAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\BiomeBed.uasset'
 $sourcePath = Join-Path $projectRoot 'Source\KalmalaUI\Private\KalmalaAmbientAudioSubsystem.cpp'
 $headerPath = Join-Path $projectRoot 'Source\KalmalaUI\Public\KalmalaAmbientAudioSubsystem.h'
 
-foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $sourcePath, $headerPath)) {
+foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $sourcePath, $headerPath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "Ambient audio deliverable is missing: $path"
     }
@@ -54,12 +56,26 @@ if ($fireChannels -ne 1 -or $fireSampleRate -ne 22050 -or $fireBitsPerSample -ne
     throw "Unexpected FireBed format: channels=$fireChannels rate=$fireSampleRate bits=$fireBitsPerSample bytes=$fireDataLength"
 }
 
+$biomeBytes = [System.IO.File]::ReadAllBytes($biomeWavePath)
+if ($biomeBytes.Length -lt 44 -or [System.Text.Encoding]::ASCII.GetString($biomeBytes, 0, 4) -ne 'RIFF' -or
+    [System.Text.Encoding]::ASCII.GetString($biomeBytes, 8, 4) -ne 'WAVE') {
+    throw 'BiomeBed.wav is not a valid RIFF/WAVE file.'
+}
+$biomeChannels = [BitConverter]::ToInt16($biomeBytes, 22)
+$biomeSampleRate = [BitConverter]::ToInt32($biomeBytes, 24)
+$biomeBitsPerSample = [BitConverter]::ToInt16($biomeBytes, 34)
+$biomeDataLength = [BitConverter]::ToInt32($biomeBytes, 40)
+if ($biomeChannels -ne 1 -or $biomeSampleRate -ne 22050 -or $biomeBitsPerSample -ne 16 -or $biomeDataLength -ne 352800) {
+    throw "Unexpected BiomeBed format: channels=$biomeChannels rate=$biomeSampleRate bits=$biomeBitsPerSample bytes=$biomeDataLength"
+}
+
 $source = Get-Content -LiteralPath $sourcePath -Raw
 $header = Get-Content -LiteralPath $headerPath -Raw
 foreach ($required in @(
     '/Game/Kalmala/Audio/WindBed.WindBed',
     '/Game/Kalmala/Audio/WaterBed.WaterBed',
     '/Game/Kalmala/Audio/FireBed.FireBed',
+    '/Game/Kalmala/Audio/BiomeBed.BiomeBed',
     'IsLocalController()',
     'GetLocalPlayer()',
     'bLooping = true',
@@ -75,7 +91,19 @@ foreach ($required in @(
     'Hearth->IsLit()',
     'FireMaximumDistance',
     'FireProbeInterval',
-    'FireBed->bLooping = true'
+    'FireBed->bLooping = true',
+    'FKalmalaWorldFieldSampler::Sample',
+    'FKalmalaBiomeClassifier::Classify',
+    'BiomeProbeInterval',
+    'BiomeBed->bLooping = true',
+    'SetPitchMultiplier',
+    'EKalmalaBiome::Meadows',
+    'EKalmalaBiome::ShimmeringLakes',
+    'EKalmalaBiome::Elderwood',
+    'EKalmalaBiome::MossyMire',
+    'EKalmalaBiome::FreezingTundra',
+    'EKalmalaBiome::ThunderMountains',
+    'EKalmalaBiome::Ocean'
 )) {
     if ($source -notmatch [regex]::Escape($required)) {
         throw "Ambient audio runtime source is missing required contract: $required"
@@ -86,4 +114,4 @@ if ($header -notmatch 'ULocalPlayerSubsystem' -or $header -notmatch 'SampleVisib
     throw 'Ambient audio must stay local and must not add network or gameplay persistence state.'
 }
 
-Write-Output 'PASS: original wind, water, and fire sources are 8 seconds of mono 22.05 kHz PCM; ambient loops stay local, water and fire require nearby visible context, hearth audio requires a replicated lit actor, and components stop on teardown.'
+Write-Output 'PASS: original wind, water, fire, and biome sources are 8 seconds of mono 22.05 kHz PCM; loops stay local, water/fire require visible context, biome pitch/level follows the local sampled biome, hearth audio requires a replicated lit actor, and components stop on teardown.'

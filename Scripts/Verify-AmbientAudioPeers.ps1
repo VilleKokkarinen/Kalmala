@@ -40,18 +40,21 @@ try {
         $clientFireProbed = $clientText -match 'Ambient audio fire context: Probed=1 Local=1 Visible=[01] ComponentCreated=[01] Asset=(FireBed|None)'
         $serverFireActive = $serverText -match 'Ambient audio fire context: Probed=1 Local=1 Visible=1 ComponentCreated=1 Asset=FireBed'
         $clientFireActive = $clientText -match 'Ambient audio fire context: Probed=1 Local=1 Visible=1 ComponentCreated=1 Asset=FireBed'
+        $serverBiomeActive = $serverText -match 'Ambient audio biome context: Probed=1 Local=1 Biome=[A-Za-z]+ ComponentCreated=1 Asset=BiomeBed Pitch=[0-9]+\.[0-9]+'
+        $clientBiomeActive = $clientText -match 'Ambient audio biome context: Probed=1 Local=1 Biome=[A-Za-z]+ ComponentCreated=1 Asset=BiomeBed Pitch=[0-9]+\.[0-9]+'
         $testHearthSpawned = $serverText -match 'Ambient audio verification server spawned lit hearth: Lit=1'
         $clientJoined = $clientText -match 'Client received world-generation identity: Seed=418'
         $waterActive = $serverWaterActive -or $clientWaterActive
         $fireActive = $serverFireActive -and $clientFireActive
         $scenarioReady = $serverStarted -and $clientStarted -and $serverWaterProbed -and $clientWaterProbed -and $waterActive `
-            -and $serverFireProbed -and $clientFireProbed -and $testHearthSpawned -and $fireActive -and $clientJoined
+            -and $serverFireProbed -and $clientFireProbed -and $testHearthSpawned -and $fireActive `
+            -and $serverBiomeActive -and $clientBiomeActive -and $clientJoined
         if ($scenarioReady) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
-    if ((Get-Date) -ge $deadline) { throw 'Both wind components, both water probes, a visible-water loop, both local fire probes, host and client visible lit-hearth FireBed loops, and the connected client identity were not observed before timeout.' }
+    if ((Get-Date) -ge $deadline) { throw 'Both wind components, both water probes, visible-water activation, host/client visible lit-hearth FireBed loops, host/client sampled-biome BiomeBed loops, and the connected client identity were not observed before timeout.' }
 
-    Write-Output 'PASS: host and client created local wind audio, probed context independently, and activated FireBed at their visible lit hearths; visible water also activated locally without audio replication or gameplay requests.'
+    Write-Output 'PASS: host and client created local wind, sampled their own biome and activated BiomeBed; visible water and hearth beds also activated locally without audio replication or gameplay requests.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

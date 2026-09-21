@@ -31,6 +31,8 @@ private:
         const FKalmalaWorldGenerationConfig& Config);
     float SampleVisibleFireStrength(UWorld* World, APlayerController* Controller) const;
     void UpdateFireAmbience(float DeltaTime, UWorld* World, APlayerController* Controller);
+    void UpdateBiomeAmbience(float DeltaTime, UWorld* World, APlayerController* Controller,
+        const FKalmalaWorldGenerationConfig& Config);
 
     UPROPERTY(Transient)
     TObjectPtr<UAudioComponent> AmbientAudio;
@@ -42,6 +44,9 @@ private:
     TObjectPtr<UAudioComponent> FireAmbientAudio;
 
     UPROPERTY(Transient)
+    TObjectPtr<UAudioComponent> BiomeAmbientAudio;
+
+    UPROPERTY(Transient)
     TObjectPtr<USoundWave> WindBed;
 
     UPROPERTY(Transient)
@@ -50,14 +55,23 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<USoundWave> FireBed;
 
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> BiomeBed;
+
     float WaterProbeTimeRemaining = 0.0f;
     float CurrentWaterVolume = 0.0f;
     float TargetWaterVolume = 0.0f;
     float FireProbeTimeRemaining = 0.0f;
     float CurrentFireVolume = 0.0f;
     float TargetFireVolume = 0.0f;
+    float BiomeProbeTimeRemaining = 0.0f;
+    float CurrentBiomeVolume = 0.0f;
+    float TargetBiomeVolume = 0.0f;
+    float CurrentBiomePitch = 1.0f;
+    float TargetBiomePitch = 1.0f;
     bool bVerificationLogged = false;
     bool bWaterVerificationLogged = false;
     bool bFireVerificationLogged = false;
     bool bLastFireVisible = false;
+    bool bBiomeVerificationLogged = false;
 };

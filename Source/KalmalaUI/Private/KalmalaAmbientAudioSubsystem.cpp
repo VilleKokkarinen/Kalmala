@@ -5,9 +5,11 @@
 #include "Engine/World.h"
 #include "Engine/LocalPlayer.h"
 #include "KalmalaCampfire.h"
+#include "KalmalaBiomeClassifier.h"
 #include "KalmalaLakeBasin.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaWorldFieldSampler.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -21,6 +23,7 @@ namespace
 constexpr TCHAR WindBedAssetPath[] = TEXT("/Game/Kalmala/Audio/WindBed.WindBed");
 constexpr TCHAR WaterBedAssetPath[] = TEXT("/Game/Kalmala/Audio/WaterBed.WaterBed");
 constexpr TCHAR FireBedAssetPath[] = TEXT("/Game/Kalmala/Audio/FireBed.FireBed");
+constexpr TCHAR BiomeBedAssetPath[] = TEXT("/Game/Kalmala/Audio/BiomeBed.BiomeBed");
 constexpr float AmbientVolume = 0.12f;
 constexpr float WaterMaximumVolume = 0.07f;
 constexpr float WaterMaximumDistance = 1600.0f;
@@ -32,6 +35,46 @@ constexpr float FireMaximumDistance = 1400.0f;
 constexpr float FireFullVolumeDistance = 275.0f;
 constexpr float FireProbeInterval = 0.75f;
 constexpr float FireFadeSpeed = 2.5f;
+constexpr float BiomeProbeInterval = 0.75f;
+constexpr float BiomeFadeSpeed = 1.6f;
+
+struct FBiomeAmbienceProfile
+{
+    float Volume = 0.0f;
+    float Pitch = 1.0f;
+};
+
+const TCHAR* GetBiomeName(const EKalmalaBiome Biome)
+{
+    switch (Biome)
+    {
+    case EKalmalaBiome::Meadows: return TEXT("Meadows");
+    case EKalmalaBiome::ShimmeringLakes: return TEXT("ShimmeringLakes");
+    case EKalmalaBiome::Elderwood: return TEXT("Elderwood");
+    case EKalmalaBiome::MossyMire: return TEXT("MossyMire");
+    case EKalmalaBiome::FreezingTundra: return TEXT("FreezingTundra");
+    case EKalmalaBiome::ThunderMountains: return TEXT("ThunderMountains");
+    case EKalmalaBiome::Ocean: return TEXT("Ocean");
+    default: return TEXT("Unknown");
+    }
+}
+
+FBiomeAmbienceProfile GetBiomeAmbienceProfile(const EKalmalaBiome Biome)
+{
+    // One quiet original texture changes gently with the sampled local biome;
+    // the existing water/fire beds retain their more specific context cues.
+    switch (Biome)
+    {
+    case EKalmalaBiome::Meadows: return {0.030f, 1.00f};
+    case EKalmalaBiome::ShimmeringLakes: return {0.025f, 1.04f};
+    case EKalmalaBiome::Elderwood: return {0.036f, 1.10f};
+    case EKalmalaBiome::MossyMire: return {0.030f, 0.94f};
+    case EKalmalaBiome::FreezingTundra: return {0.022f, 0.86f};
+    case EKalmalaBiome::ThunderMountains: return {0.027f, 0.91f};
+    case EKalmalaBiome::Ocean: return {0.020f, 0.97f};
+    default: return {};
+    }
+}
 }
 
 void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
@@ -46,14 +89,17 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
 
     if ((AmbientAudio != nullptr && (!IsValid(AmbientAudio.Get()) || AmbientAudio->GetWorld() != World))
         || (WaterAmbientAudio != nullptr && (!IsValid(WaterAmbientAudio.Get()) || WaterAmbientAudio->GetWorld() != World))
-        || (FireAmbientAudio != nullptr && (!IsValid(FireAmbientAudio.Get()) || FireAmbientAudio->GetWorld() != World)))
+        || (FireAmbientAudio != nullptr && (!IsValid(FireAmbientAudio.Get()) || FireAmbientAudio->GetWorld() != World))
+        || (BiomeAmbientAudio != nullptr && (!IsValid(BiomeAmbientAudio.Get()) || BiomeAmbientAudio->GetWorld() != World)))
     {
         StopAmbientAudio();
         WindBed = nullptr;
         WaterBed = nullptr;
         FireBed = nullptr;
+        BiomeBed = nullptr;
         WaterProbeTimeRemaining = 0.0f;
         FireProbeTimeRemaining = 0.0f;
+        BiomeProbeTimeRemaining = 0.0f;
     }
 
     APlayerController* Controller = LocalPlayer->GetPlayerController(World);
@@ -93,6 +139,7 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
     {
         UpdateWaterAmbience(DeltaTime, World, Controller, GameState->GetWorldGenerationConfig());
         UpdateFireAmbience(DeltaTime, World, Controller);
+        UpdateBiomeAmbience(DeltaTime, World, Controller, GameState->GetWorldGenerationConfig());
     }
 }
 
@@ -332,6 +379,78 @@ void UKalmalaAmbientAudioSubsystem::UpdateFireAmbience(const float DeltaTime, UW
 #endif
 }
 
+void UKalmalaAmbientAudioSubsystem::UpdateBiomeAmbience(const float DeltaTime, UWorld* World,
+    APlayerController* Controller, const FKalmalaWorldGenerationConfig& Config)
+{
+    BiomeProbeTimeRemaining -= DeltaTime;
+    bool bProbedThisFrame = false;
+    EKalmalaBiome SampledBiome = EKalmalaBiome::Meadows;
+    if (BiomeProbeTimeRemaining <= 0.0f)
+    {
+        APawn* Pawn = Controller != nullptr ? Controller->GetPawn() : nullptr;
+        if (Pawn != nullptr && !Pawn->GetActorLocation().ContainsNaN())
+        {
+            const FVector PawnLocation = Pawn->GetActorLocation();
+            const FKalmalaWorldFieldSample Field = FKalmalaWorldFieldSampler::Sample(
+                Config, FVector2D(PawnLocation.X, PawnLocation.Y));
+            SampledBiome = FKalmalaBiomeClassifier::Classify(Field);
+            const FBiomeAmbienceProfile Profile = GetBiomeAmbienceProfile(SampledBiome);
+            TargetBiomeVolume = Profile.Volume;
+            TargetBiomePitch = Profile.Pitch;
+        }
+        else
+        {
+            TargetBiomeVolume = 0.0f;
+            TargetBiomePitch = 1.0f;
+        }
+        BiomeProbeTimeRemaining = BiomeProbeInterval;
+        bProbedThisFrame = true;
+    }
+
+    if (bProbedThisFrame && TargetBiomeVolume > 0.0f && BiomeBed == nullptr)
+    {
+        BiomeBed = LoadObject<USoundWave>(nullptr, BiomeBedAssetPath);
+    }
+    if (TargetBiomeVolume > 0.0f && BiomeAmbientAudio == nullptr && BiomeBed != nullptr)
+    {
+        BiomeBed->bLooping = true;
+        BiomeAmbientAudio = UGameplayStatics::CreateSound2D(World, BiomeBed, 0.0f, CurrentBiomePitch,
+            0.0f, nullptr, false, false);
+        if (BiomeAmbientAudio != nullptr)
+        {
+            BiomeAmbientAudio->Play();
+        }
+    }
+
+    if (IsValid(BiomeAmbientAudio.Get()))
+    {
+        CurrentBiomeVolume = FMath::FInterpTo(CurrentBiomeVolume, TargetBiomeVolume, DeltaTime, BiomeFadeSpeed);
+        CurrentBiomePitch = FMath::FInterpTo(CurrentBiomePitch, TargetBiomePitch, DeltaTime, BiomeFadeSpeed);
+        BiomeAmbientAudio->SetVolumeMultiplier(CurrentBiomeVolume);
+        BiomeAmbientAudio->SetPitchMultiplier(CurrentBiomePitch);
+        if (TargetBiomeVolume <= 0.0f && CurrentBiomeVolume <= 0.003f)
+        {
+            BiomeAmbientAudio->Stop();
+            BiomeAmbientAudio->DestroyComponent();
+            BiomeAmbientAudio = nullptr;
+            CurrentBiomeVolume = 0.0f;
+            CurrentBiomePitch = 1.0f;
+        }
+    }
+
+#if !UE_BUILD_SHIPPING
+    if (!bBiomeVerificationLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest"))
+        && bProbedThisFrame)
+    {
+        bBiomeVerificationLogged = true;
+        UE_LOG(LogTemp, Display,
+            TEXT("Ambient audio biome context: Probed=1 Local=1 Biome=%s ComponentCreated=%d Asset=%s Pitch=%.2f"),
+            GetBiomeName(SampledBiome), IsValid(BiomeAmbientAudio.Get()) ? 1 : 0,
+            IsValid(BiomeAmbientAudio.Get()) ? TEXT("BiomeBed") : TEXT("None"), TargetBiomePitch);
+    }
+#endif
+}
+
 void UKalmalaAmbientAudioSubsystem::StopAmbientAudio()
 {
     if (IsValid(AmbientAudio.Get()))
@@ -368,6 +487,22 @@ void UKalmalaAmbientAudioSubsystem::StopAmbientAudio()
     CurrentFireVolume = 0.0f;
     TargetFireVolume = 0.0f;
     FireProbeTimeRemaining = 0.0f;
+
+    if (IsValid(BiomeAmbientAudio.Get()))
+    {
+        if (BiomeAmbientAudio->IsPlaying())
+        {
+            BiomeAmbientAudio->Stop();
+        }
+        BiomeAmbientAudio->DestroyComponent();
+    }
+    BiomeAmbientAudio = nullptr;
+    CurrentBiomeVolume = 0.0f;
+    TargetBiomeVolume = 0.0f;
+    CurrentBiomePitch = 1.0f;
+    TargetBiomePitch = 1.0f;
+    BiomeProbeTimeRemaining = 0.0f;
+    bBiomeVerificationLogged = false;
 }
 
 void UKalmalaAmbientAudioSubsystem::Deinitialize()
@@ -376,5 +511,6 @@ void UKalmalaAmbientAudioSubsystem::Deinitialize()
     WindBed = nullptr;
     WaterBed = nullptr;
     FireBed = nullptr;
+    BiomeBed = nullptr;
     Super::Deinitialize();
 }

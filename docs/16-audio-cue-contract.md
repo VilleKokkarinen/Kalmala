@@ -34,8 +34,9 @@ mute/restore. A muted or unavailable device must still expose all state through
 the text/shape equivalents above.
 
 The runtime ambient layer includes loop-seamed, project-generated beds at
-`/Game/Kalmala/Audio/WindBed`, `/Game/Kalmala/Audio/WaterBed`, and
-`/Game/Kalmala/Audio/FireBed`. `UKalmalaAmbientAudioSubsystem` starts wind only
+`/Game/Kalmala/Audio/WindBed`, `/Game/Kalmala/Audio/WaterBed`,
+`/Game/Kalmala/Audio/FireBed`, and `/Game/Kalmala/Audio/BiomeBed`.
+`UKalmalaAmbientAudioSubsystem` starts wind only
 for a local player whose normal generated-world state and pawn are ready. It
 samples a bounded set of points around that pawn from the existing immutable
 world identity, accepts only the existing sea surface or visible inland-lake
@@ -45,22 +46,27 @@ distance within 1,600 cm, and uses a maximum volume of 0.07. Fire probes locally
 replicated campfire actors every 0.75 seconds and accepts only a lit hearth
 within 1,400 cm with an unobstructed trace from the owning player's view. Its
 non-spatial bed fades with distance, reaches full volume by 275 cm, and caps at
-0.075. All three local loops stop when local play ends; no hidden population,
-discovery, or route query is used.
+0.075. Biome ambience samples only the owning pawn's current XY from the
+locally available immutable seed and existing four-field classifier every
+0.75 seconds. One quiet bed uses a small biome-specific pitch/level profile
+with smoothed transitions; it does not scan ahead, reveal landmarks, or imply a
+route. All four local loops stop when local play ends; no hidden population,
+discovery, or remote-biome query is used.
 
 `Scripts/Generate-WildernessWind.ps1`, `Scripts/Generate-WaterAmbience.ps1`,
-and `Scripts/Generate-FireAmbience.ps1` recreate the original loop-seamed mono
-sources under `Content/Kalmala/Audio/Source`. Import all three to
+`Scripts/Generate-FireAmbience.ps1`, and `Scripts/Generate-BiomeAmbience.ps1`
+recreate the original loop-seamed mono sources under
+`Content/Kalmala/Audio/Source`. Import all four to
 `/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
 `Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`, and
 the forced editor build. The first verifier checks source format, imported
 assets, local-player ownership, context gates, and teardown. The peer runner
-confirms independent host/client probes for visible water and hearth context;
-its development-only listen-server fixture creates a server-lit hearth near
-each joining player. Existing Wet, warmth, shelter, hearth, and recovery text
-remains the readable fallback. These checks do not establish audible quality,
-hardware mixing, or packaged playback, and do not complete biome ambience,
-weather or event cues, or audio options.
+confirms independent host/client probes for visible water and hearth context
+plus each local player's current sampled biome; its development-only listen-
+server fixture creates a server-lit hearth near each joining player. Existing
+Wet, warmth, shelter, hearth, and recovery text remains the readable fallback.
+These checks do not establish audible quality, hardware mixing, or packaged
+playback, and do not complete weather or event cues or audio options.
 
 Keep cues short, bounded, and non-blocking. Ambient layers may be local and
 spatial, but they must not stream a second world simulation or reveal a server
