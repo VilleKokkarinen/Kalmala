@@ -1428,7 +1428,12 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
         GetPlayerDiscoverySave(Cast<AKalmalaCharacter>(NewPlayer->GetPawn()), IgnoredIdentity);
     }
 
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest"))) || NewPlayer == nullptr)
+#if !UE_BUILD_SHIPPING
+    const bool bAmbientAudioTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest"));
+#else
+    const bool bAmbientAudioTest = false;
+#endif
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) && !bAmbientAudioTest) || NewPlayer == nullptr)
     {
         return;
     }
@@ -1438,6 +1443,27 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     if (NewPlayer->GetPawn() == nullptr)
     {
         RestartPlayer(NewPlayer);
+    }
+
+    if (bAmbientAudioTest && NewPlayer->GetPawn() != nullptr)
+    {
+        if (AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(NewPlayer->GetPawn()))
+        {
+            const FVector Forward = FRotator(0.0f, Character->GetActorRotation().Yaw, 0.0f).Vector();
+            const FVector HearthLocation = Character->GetActorLocation() + Forward * 170.0f - FVector(0.0f, 0.0f, 38.0f);
+            FActorSpawnParameters SpawnParameters;
+            SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            AKalmalaCampfire* Campfire = GetWorld()->SpawnActor<AKalmalaCampfire>(
+                AKalmalaCampfire::StaticClass(), HearthLocation, FRotator::ZeroRotator, SpawnParameters);
+            if (Campfire != nullptr)
+            {
+                Campfire->InitializePaidFromServer(Character);
+                Campfire->Interact_Implementation(Character);
+                Campfire->AdvanceFromServer(0.0f, 0.0f, 0.0f);
+                UE_LOG(LogTemp, Display, TEXT("Ambient audio verification server spawned lit hearth: Lit=%d"),
+                    Campfire->IsLit() ? 1 : 0);
+            }
+        }
     }
 
     if (bExposureInspectionEnabled)

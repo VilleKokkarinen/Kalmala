@@ -234,6 +234,19 @@ server-authority/privacy boundaries, silence fallback, and no new RPC/save
 field. It does not create or play sound assets, test mixing/spatialization, or
 claim packaged two-player audio verification.
 
+For the local ambience increment, `Scripts/Generate-WildernessWind.ps1`,
+`Scripts/Generate-WaterAmbience.ps1`, and `Scripts/Generate-FireAmbience.ps1`
+recreate original loop-seamed mono sources at
+`Content/Kalmala/Audio/Source/WindBed.wav`, `WaterBed.wav`, and `FireBed.wav`.
+Import all three to `/Game/Kalmala/Audio` with Unreal's `ImportAssets`
+commandlet, then run `Scripts/Verify-AmbientAudio.ps1`,
+`Scripts/Verify-AmbientAudioPeers.ps1`, and the forced editor build. The first
+verifier checks source format, imported assets, local-player-only subsystem
+contract, and water/hearth context gates; the peer runner checks independent
+host/client sampling, wind component creation, visible-water ambience, and a
+visible server-lit test hearth. These checks do not claim audible device mix or
+packaged verification.
+
 ## M5 local input contract check
 
 `Scripts/Verify-LocalInputContract.ps1` is a no-build check for the current

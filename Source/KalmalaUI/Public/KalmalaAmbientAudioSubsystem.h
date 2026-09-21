@@ -29,6 +29,8 @@ private:
         const FKalmalaWorldGenerationConfig& Config) const;
     void UpdateWaterAmbience(float DeltaTime, UWorld* World, APlayerController* Controller,
         const FKalmalaWorldGenerationConfig& Config);
+    float SampleVisibleFireStrength(UWorld* World, APlayerController* Controller) const;
+    void UpdateFireAmbience(float DeltaTime, UWorld* World, APlayerController* Controller);
 
     UPROPERTY(Transient)
     TObjectPtr<UAudioComponent> AmbientAudio;
@@ -37,14 +39,25 @@ private:
     TObjectPtr<UAudioComponent> WaterAmbientAudio;
 
     UPROPERTY(Transient)
+    TObjectPtr<UAudioComponent> FireAmbientAudio;
+
+    UPROPERTY(Transient)
     TObjectPtr<USoundWave> WindBed;
 
     UPROPERTY(Transient)
     TObjectPtr<USoundWave> WaterBed;
 
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> FireBed;
+
     float WaterProbeTimeRemaining = 0.0f;
     float CurrentWaterVolume = 0.0f;
     float TargetWaterVolume = 0.0f;
+    float FireProbeTimeRemaining = 0.0f;
+    float CurrentFireVolume = 0.0f;
+    float TargetFireVolume = 0.0f;
     bool bVerificationLogged = false;
     bool bWaterVerificationLogged = false;
+    bool bFireVerificationLogged = false;
+    bool bLastFireVisible = false;
 };

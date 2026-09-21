@@ -1,8 +1,10 @@
 #include "KalmalaAmbientAudioSubsystem.h"
 
 #include "Components/AudioComponent.h"
+#include "EngineUtils.h"
 #include "Engine/World.h"
 #include "Engine/LocalPlayer.h"
+#include "KalmalaCampfire.h"
 #include "KalmalaLakeBasin.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
@@ -18,12 +20,18 @@ namespace
 {
 constexpr TCHAR WindBedAssetPath[] = TEXT("/Game/Kalmala/Audio/WindBed.WindBed");
 constexpr TCHAR WaterBedAssetPath[] = TEXT("/Game/Kalmala/Audio/WaterBed.WaterBed");
+constexpr TCHAR FireBedAssetPath[] = TEXT("/Game/Kalmala/Audio/FireBed.FireBed");
 constexpr float AmbientVolume = 0.12f;
 constexpr float WaterMaximumVolume = 0.07f;
 constexpr float WaterMaximumDistance = 1600.0f;
 constexpr float WaterFullVolumeDistance = 300.0f;
 constexpr float WaterProbeInterval = 0.75f;
 constexpr float WaterFadeSpeed = 2.5f;
+constexpr float FireMaximumVolume = 0.075f;
+constexpr float FireMaximumDistance = 1400.0f;
+constexpr float FireFullVolumeDistance = 275.0f;
+constexpr float FireProbeInterval = 0.75f;
+constexpr float FireFadeSpeed = 2.5f;
 }
 
 void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
@@ -37,12 +45,15 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
     }
 
     if ((AmbientAudio != nullptr && (!IsValid(AmbientAudio.Get()) || AmbientAudio->GetWorld() != World))
-        || (WaterAmbientAudio != nullptr && (!IsValid(WaterAmbientAudio.Get()) || WaterAmbientAudio->GetWorld() != World)))
+        || (WaterAmbientAudio != nullptr && (!IsValid(WaterAmbientAudio.Get()) || WaterAmbientAudio->GetWorld() != World))
+        || (FireAmbientAudio != nullptr && (!IsValid(FireAmbientAudio.Get()) || FireAmbientAudio->GetWorld() != World)))
     {
         StopAmbientAudio();
         WindBed = nullptr;
         WaterBed = nullptr;
+        FireBed = nullptr;
         WaterProbeTimeRemaining = 0.0f;
+        FireProbeTimeRemaining = 0.0f;
     }
 
     APlayerController* Controller = LocalPlayer->GetPlayerController(World);
@@ -81,6 +92,7 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
     if (GameState != nullptr)
     {
         UpdateWaterAmbience(DeltaTime, World, Controller, GameState->GetWorldGenerationConfig());
+        UpdateFireAmbience(DeltaTime, World, Controller);
     }
 }
 
@@ -206,6 +218,120 @@ void UKalmalaAmbientAudioSubsystem::UpdateWaterAmbience(const float DeltaTime, U
 #endif
 }
 
+float UKalmalaAmbientAudioSubsystem::SampleVisibleFireStrength(UWorld* World, APlayerController* Controller) const
+{
+    if (World == nullptr || Controller == nullptr || Controller->GetPawn() == nullptr)
+    {
+        return 0.0f;
+    }
+
+    APawn* Pawn = Controller->GetPawn();
+    FVector ViewOrigin;
+    FRotator ViewRotation;
+    Controller->GetPlayerViewPoint(ViewOrigin, ViewRotation);
+    const FVector ListenerPosition = Pawn->GetActorLocation();
+    float BestDistanceSquared = FMath::Square(FireMaximumDistance);
+
+    FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(KalmalaAmbientFireVisibility), true, Pawn);
+    TraceParams.AddIgnoredActor(Pawn);
+    for (TActorIterator<AKalmalaCampfire> Iterator(World); Iterator; ++Iterator)
+    {
+        const AKalmalaCampfire* Hearth = *Iterator;
+        if (!IsValid(Hearth) || !Hearth->GetIsReplicated())
+        {
+            continue;
+        }
+        if (!Hearth->IsLit() || Hearth->GetActorLocation().ContainsNaN())
+        {
+            continue;
+        }
+
+        const float DistanceSquared = FVector::DistSquared(ListenerPosition, Hearth->GetActorLocation());
+        if (DistanceSquared > BestDistanceSquared)
+        {
+            continue;
+        }
+
+        // Aim into the collision sphere around the visible stone ring. A trace hit on
+        // the hearth itself is clear; any intervening actor or terrain hides it.
+        const FVector HearthFocus = Hearth->GetActorLocation() + FVector(0.0f, 0.0f, 20.0f);
+        FHitResult VisibilityHit;
+        if (World->LineTraceSingleByChannel(VisibilityHit, ViewOrigin, HearthFocus, ECC_Visibility, TraceParams)
+            && VisibilityHit.GetActor() != Hearth)
+        {
+            continue;
+        }
+
+        BestDistanceSquared = DistanceSquared;
+    }
+
+    if (BestDistanceSquared >= FMath::Square(FireMaximumDistance))
+    {
+        return 0.0f;
+    }
+
+    const float Distance = FMath::Sqrt(BestDistanceSquared);
+    const float Proximity = FMath::Clamp(
+        (FireMaximumDistance - Distance) / (FireMaximumDistance - FireFullVolumeDistance), 0.0f, 1.0f);
+    return FireMaximumVolume * Proximity;
+}
+
+void UKalmalaAmbientAudioSubsystem::UpdateFireAmbience(const float DeltaTime, UWorld* World,
+    APlayerController* Controller)
+{
+    FireProbeTimeRemaining -= DeltaTime;
+    bool bProbedThisFrame = false;
+    if (FireProbeTimeRemaining <= 0.0f)
+    {
+        TargetFireVolume = SampleVisibleFireStrength(World, Controller);
+        FireProbeTimeRemaining = FireProbeInterval;
+        bProbedThisFrame = true;
+    }
+
+    if (bProbedThisFrame && TargetFireVolume > 0.0f && FireBed == nullptr)
+    {
+        FireBed = LoadObject<USoundWave>(nullptr, FireBedAssetPath);
+    }
+    if (TargetFireVolume > 0.0f && FireAmbientAudio == nullptr && FireBed != nullptr)
+    {
+        FireBed->bLooping = true;
+        FireAmbientAudio = UGameplayStatics::CreateSound2D(World, FireBed, 0.0f, 1.0f, 0.0f, nullptr, false, false);
+        if (FireAmbientAudio != nullptr)
+        {
+            FireAmbientAudio->Play();
+        }
+    }
+
+    if (IsValid(FireAmbientAudio.Get()))
+    {
+        CurrentFireVolume = FMath::FInterpTo(CurrentFireVolume, TargetFireVolume, DeltaTime, FireFadeSpeed);
+        FireAmbientAudio->SetVolumeMultiplier(CurrentFireVolume);
+        if (TargetFireVolume <= 0.0f && CurrentFireVolume <= 0.003f)
+        {
+            FireAmbientAudio->Stop();
+            FireAmbientAudio->DestroyComponent();
+            FireAmbientAudio = nullptr;
+            CurrentFireVolume = 0.0f;
+        }
+    }
+
+#if !UE_BUILD_SHIPPING
+    if (bProbedThisFrame && FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest")))
+    {
+        const bool bVisible = TargetFireVolume > 0.0f;
+        if (!bFireVerificationLogged || bVisible != bLastFireVisible)
+        {
+            bFireVerificationLogged = true;
+            bLastFireVisible = bVisible;
+            UE_LOG(LogTemp, Display,
+                TEXT("Ambient audio fire context: Probed=1 Local=1 Visible=%d ComponentCreated=%d Asset=%s"),
+                bVisible ? 1 : 0, IsValid(FireAmbientAudio.Get()) ? 1 : 0,
+                IsValid(FireAmbientAudio.Get()) ? TEXT("FireBed") : TEXT("None"));
+        }
+    }
+#endif
+}
+
 void UKalmalaAmbientAudioSubsystem::StopAmbientAudio()
 {
     if (IsValid(AmbientAudio.Get()))
@@ -229,6 +355,19 @@ void UKalmalaAmbientAudioSubsystem::StopAmbientAudio()
     WaterAmbientAudio = nullptr;
     CurrentWaterVolume = 0.0f;
     TargetWaterVolume = 0.0f;
+
+    if (IsValid(FireAmbientAudio.Get()))
+    {
+        if (FireAmbientAudio->IsPlaying())
+        {
+            FireAmbientAudio->Stop();
+        }
+        FireAmbientAudio->DestroyComponent();
+    }
+    FireAmbientAudio = nullptr;
+    CurrentFireVolume = 0.0f;
+    TargetFireVolume = 0.0f;
+    FireProbeTimeRemaining = 0.0f;
 }
 
 void UKalmalaAmbientAudioSubsystem::Deinitialize()
@@ -236,5 +375,6 @@ void UKalmalaAmbientAudioSubsystem::Deinitialize()
     StopAmbientAudio();
     WindBed = nullptr;
     WaterBed = nullptr;
+    FireBed = nullptr;
     Super::Deinitialize();
 }
