@@ -59,6 +59,8 @@ $requiredTerms = @{
     'silence fallback' = 'muted or unavailable device'
     'accepted replicated weather cue' = 'FKalmalaWeatherState::WindStrength|accepted replicated.*precipitation'
     'owner-scoped Wet status cue' = 'State\.Wet|WetStatusCue'
+    'owner-only accepted interaction/gathering cue' = '(?s)owner-only crafting result.*owner-only inventory stack increases|owner-only inventory stack increases.*owner-only crafting result'
+    'distinct rejected interaction cue' = 'distinct.*InteractionRejectedCue|InteractionRejectedCue.*rejected'
     'owner-only accepted support cue' = '(?s)owner-only.*support.*FeedbackSerial.*Accepted|FeedbackSerial.*Accepted.*owner-only'
     'owner-only combat result cue' = '(?s)owner-only.*combat.*FeedbackSerial.*EKalmalaCombatFeedback::Hit.*Defeat|FeedbackSerial.*EKalmalaCombatFeedback::Hit.*Defeat.*owner-only'
 }

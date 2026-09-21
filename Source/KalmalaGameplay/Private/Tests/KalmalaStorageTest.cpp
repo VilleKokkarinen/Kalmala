@@ -87,12 +87,14 @@ bool FKalmalaStorageNetworkTest::RunTest(const FString& Parameters)
         if (Transfer) TestNotNull(TEXT("Transfer supplies only item identity"), Function->FindPropertyByName(TEXT("ItemId")));
     }
     TArray<FLifetimeProperty> Props; GetDefault<UKalmalaCraftingComponent>()->GetLifetimeReplicatedProps(Props);
-    for (const FName Name : {FName(TEXT("StorageView")),FName(TEXT("bStorageViewOpen"))})
+    for (const FName Name : {FName(TEXT("StorageView")), FName(TEXT("bStorageViewOpen")),
+        FName(TEXT("LastResult")), FName(TEXT("ResultSerial")), FName(TEXT("bLastResultAccepted"))})
     {
         const auto* Property = Class->FindPropertyByName(Name);
-        if (!TestNotNull(TEXT("Storage snapshot property exists"),Property)) continue;
+        if (!TestNotNull(TEXT("Owner-only result or storage property exists"), Property)) continue;
         const auto* Rep = Props.FindByPredicate([&](const auto& P) { return P.RepIndex == Property->RepIndex; });
-        if (TestNotNull(TEXT("Snapshot replicated"),Rep)) TestEqual(TEXT("Only owner receives snapshot"),int32(Rep->Condition),int32(COND_OwnerOnly));
+        if (TestNotNull(TEXT("Owner-only result or storage property replicates"), Rep))
+            TestEqual(TEXT("Only owner receives result or storage details"), int32(Rep->Condition), int32(COND_OwnerOnly));
     }
     TestNull(TEXT("Shared construction actor carries no replicated contents"), AKalmalaConstructionActor::StaticClass()->FindPropertyByName(TEXT("StorageView")));
     return true;

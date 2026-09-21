@@ -32,6 +32,8 @@ public:
     bool TransferStorageFromServer(FName ItemId, bool bDeposit, FString& Reason);
     const TArray<FKalmalaInventoryStack>& GetStorageView() const { return StorageView; }
     bool HasStorageView() const { return bStorageViewOpen; }
+    uint32 GetResultSerial() const { return ResultSerial; }
+    bool WasLastResultAccepted() const { return bLastResultAccepted; }
     AKalmalaConstructionActor* FindNearbyWorkbench() const;
     FString GetNearbyWorkbenchText() const;
     FString GetNearbyConstructionText() const;
@@ -45,7 +47,7 @@ public:
     AKalmalaCampfire* FindNearbyFire(bool bRequireUsable) const;
 private:
     bool AcceptRequest();
-    void PublishResult(const FString& Result);
+    void PublishResult(const FString& Result, bool bAccepted);
     AKalmalaCharacter* GetCharacter() const;
     void RunVerification(float DeltaTime);
     void RunStorageVerification(float DeltaTime);
@@ -61,6 +63,8 @@ private:
     float StorageVerificationElapsed = 0;
     double NextRequestTime = 0;
     UPROPERTY(Replicated) FString LastResult;
+    UPROPERTY(Replicated) uint32 ResultSerial = 0;
+    UPROPERTY(Replicated) bool bLastResultAccepted = false;
     int32 VerificationStage = 0;
     float VerificationElapsed = 0;
     int32 LocalVerificationStage = 0;

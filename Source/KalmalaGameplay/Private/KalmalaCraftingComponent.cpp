@@ -30,6 +30,8 @@ void UKalmalaCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, LastResult, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, ResultSerial, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, bLastResultAccepted, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, StorageView, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, bStorageViewOpen, COND_OwnerOnly);
 }
@@ -39,14 +41,20 @@ bool UKalmalaCraftingComponent::AcceptRequest()
     auto* Character = GetCharacter();
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
     const double Now = GetWorld()->GetTimeSeconds();
-    if (Now < NextRequestTime) { PublishResult(TEXT("Please wait before the next action")); return false; }
+    if (Now < NextRequestTime) { PublishResult(TEXT("Please wait before the next action"), false); return false; }
     NextRequestTime = Now + .2;
     return true;
 }
 
-void UKalmalaCraftingComponent::PublishResult(const FString& Result)
+void UKalmalaCraftingComponent::PublishResult(const FString& Result, const bool bAccepted)
 {
-    if (GetOwner() && GetOwner()->HasAuthority()) { LastResult = Result.Left(160); GetOwner()->ForceNetUpdate(); }
+    if (GetOwner() && GetOwner()->HasAuthority())
+    {
+        LastResult = Result.Left(160);
+        bLastResultAccepted = bAccepted;
+        ResultSerial = ResultSerial == TNumericLimits<uint32>::Max() ? 1 : ResultSerial + 1;
+        GetOwner()->ForceNetUpdate();
+    }
 }
 
 AKalmalaCampfire* UKalmalaCraftingComponent::FindNearbyFire(bool bRequireUsable) const
@@ -84,7 +92,7 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
 void UKalmalaCraftingComponent::ServerCraft_Implementation(FName RecipeId, int32 Batch)
 {
     if (!AcceptRequest()) return;
-    FString Reason; const bool Accepted=CraftFromServer(RecipeId, Batch, Reason); PublishResult(Reason);
+    FString Reason; const bool Accepted=CraftFromServer(RecipeId, Batch, Reason); PublishResult(Reason, Accepted);
 #if !UE_BUILD_SHIPPING
     if(FParse::Param(FCommandLine::Get(),TEXT("KalmalaCraftingTest")))
         UE_LOG(LogTemp,Display,TEXT("Crafting RPC: Recipe=%s Batch=%d Accepted=%d"),*RecipeId.ToString(),Batch,Accepted);
@@ -170,7 +178,7 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
 void UKalmalaCraftingComponent::ServerPlaceCampfire_Implementation()
 {
     if (!AcceptRequest()) return;
-    FString Reason; const bool Accepted=PlaceFromServer(Reason); PublishResult(Reason);
+    FString Reason; const bool Accepted=PlaceFromServer(Reason); PublishResult(Reason, Accepted);
 #if !UE_BUILD_SHIPPING
     if(FParse::Param(FCommandLine::Get(),TEXT("KalmalaCraftingTest")))
         UE_LOG(LogTemp,Display,TEXT("Crafting placement RPC: Accepted=%d"),Accepted);
@@ -180,23 +188,25 @@ void UKalmalaCraftingComponent::ServerPlaceCampfire_Implementation()
 void UKalmalaCraftingComponent::ServerPlaceConstruction_Implementation(const FName KitId)
 {
     if (!AcceptRequest()) return;
-    FString Reason; PlaceConstructionFromServer(KitId, Reason); PublishResult(Reason);
+    FString Reason; const bool Accepted = PlaceConstructionFromServer(KitId, Reason); PublishResult(Reason, Accepted);
 }
 
 void UKalmalaCraftingComponent::ServerRefuel_Implementation()
 {
     if (!AcceptRequest()) return;
     auto* Fire = FindNearbyFire(true);
-    PublishResult(Fire && Fire->TryRefuelFromServer(GetCharacter()) ? TEXT("Added one ember bundle (60 seconds)")
-        : TEXT("Need a usable nearby hearth, one fuel bundle and 60 seconds of free capacity"));
+    const bool bAccepted = Fire != nullptr && Fire->TryRefuelFromServer(GetCharacter());
+    PublishResult(bAccepted ? TEXT("Added one ember bundle (60 seconds)")
+        : TEXT("Need a usable nearby hearth, one fuel bundle and 60 seconds of free capacity"), bAccepted);
 }
 
 void UKalmalaCraftingComponent::ServerLight_Implementation()
 {
     if (!AcceptRequest()) return;
     auto* Fire = FindNearbyFire(true);
-    if (Fire && Fire->CanInteract_Implementation(GetCharacter())) { Fire->Interact_Implementation(GetCharacter()); PublishResult(TEXT("Hearth lit")); }
-    else PublishResult(TEXT("Need a usable nearby unlit hearth with dry fuel"));
+    const bool bAccepted = Fire && Fire->CanInteract_Implementation(GetCharacter());
+    if (bAccepted) Fire->Interact_Implementation(GetCharacter());
+    PublishResult(bAccepted ? TEXT("Hearth lit") : TEXT("Need a usable nearby unlit hearth with dry fuel"), bAccepted);
 }
 
 FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const

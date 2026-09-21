@@ -90,7 +90,7 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
         Check(!Pack->TransferStorageFromServer(StorageView, TEXT("Wood"), true, [](const auto&) { return false; }, Reason)
             && Pack->GetQuantity(TEXT("Wood")) == 1 && Quantity(StorageView) == 3, TEXT("Failed persistence leaves pack and chest unchanged"));
         UE_LOG(LogTemp, Display, TEXT("Storage server ready: Restore=%d Id=%s Wood=%d"), Restore, *Chest->GetConstructionId(), Quantity(StorageView));
-        PublishResult(TEXT("Storage fixture ready")); StorageVerificationStage = 1; StorageVerificationElapsed = 0;
+        PublishResult(TEXT("Storage fixture ready"), true); StorageVerificationStage = 1; StorageVerificationElapsed = 0;
     }
     if (C->HasAuthority() && StorageVerificationStage == 1 && StorageVerificationElapsed > 14)
     {

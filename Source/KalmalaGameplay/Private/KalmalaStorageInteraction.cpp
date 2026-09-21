@@ -92,8 +92,11 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
 {
     if (!AcceptRequest() || !IsValid(Construction) || !Construction->CanInteract_Implementation(GetCharacter())) return;
     if (Construction->GetConstructionKit() == TEXT("StorageKit"))
-        PublishResult(OpenStorageFromServer(Construction) ? TEXT("Chest inspected; use Camp crafting to transfer items") : TEXT("Storage unavailable"));
-    else PublishResult(TEXT("Joiner's bench ready; use Camp crafting to assemble floor, wall and roof kits"));
+    {
+        const bool bAccepted = OpenStorageFromServer(Construction);
+        PublishResult(bAccepted ? TEXT("Chest inspected; use Camp crafting to transfer items") : TEXT("Storage unavailable"), bAccepted);
+    }
+    else PublishResult(TEXT("Joiner's bench ready; use Camp crafting to assemble floor, wall and roof kits"), true);
 }
 
 bool UKalmalaCraftingComponent::TransferStorageFromServer(FName ItemId, bool bDeposit, FString& Reason)
@@ -116,17 +119,17 @@ bool UKalmalaCraftingComponent::TransferStorageFromServer(FName ItemId, bool bDe
 void UKalmalaCraftingComponent::ServerOpenStorage_Implementation()
 {
     if (!AcceptRequest()) return;
-    PublishResult(OpenStorageFromServer(FindNearbyConstruction(TEXT("StorageKit")))
-        ? TEXT("Nearby chest inspected") : TEXT("Need a saved, visible chest within 2.5 m"));
+    const bool bAccepted = OpenStorageFromServer(FindNearbyConstruction(TEXT("StorageKit")));
+    PublishResult(bAccepted ? TEXT("Nearby chest inspected") : TEXT("Need a saved, visible chest within 2.5 m"), bAccepted);
 }
 void UKalmalaCraftingComponent::ServerCloseStorage_Implementation() { ClearStorageView(); }
 void UKalmalaCraftingComponent::ServerDepositStorage_Implementation(FName ItemId)
 {
     if (!AcceptRequest()) return;
-    FString Reason; TransferStorageFromServer(ItemId, true, Reason); PublishResult(Reason);
+    FString Reason; const bool bAccepted = TransferStorageFromServer(ItemId, true, Reason); PublishResult(Reason, bAccepted);
 }
 void UKalmalaCraftingComponent::ServerWithdrawStorage_Implementation(FName ItemId)
 {
     if (!AcceptRequest()) return;
-    FString Reason; TransferStorageFromServer(ItemId, false, Reason); PublishResult(Reason);
+    FString Reason; const bool bAccepted = TransferStorageFromServer(ItemId, false, Reason); PublishResult(Reason, bAccepted);
 }

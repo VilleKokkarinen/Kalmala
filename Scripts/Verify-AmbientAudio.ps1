@@ -16,12 +16,18 @@ $supportCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\Suppo
 $supportCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\SupportAcceptedCue.uasset'
 $combatCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\CombatResultCue.wav'
 $combatCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\CombatResultCue.uasset'
+$interactionAcceptedCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\InteractionAcceptedCue.wav'
+$interactionAcceptedCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\InteractionAcceptedCue.uasset'
+$interactionRejectedCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\InteractionRejectedCue.wav'
+$interactionRejectedCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\InteractionRejectedCue.uasset'
 $sourcePath = Join-Path $projectRoot 'Source\KalmalaUI\Private\KalmalaAmbientAudioSubsystem.cpp'
 $headerPath = Join-Path $projectRoot 'Source\KalmalaUI\Public\KalmalaAmbientAudioSubsystem.h'
 $supportSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaSupportMagicComponent.cpp'
 $combatSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaCombatComponent.cpp'
+$craftingSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaCraftingComponent.cpp'
+$inventorySourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaInventoryComponent.cpp'
 
-foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $supportCueWavePath, $supportCueAssetPath, $combatCueWavePath, $combatCueAssetPath, $sourcePath, $headerPath, $supportSourcePath, $combatSourcePath)) {
+foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $supportCueWavePath, $supportCueAssetPath, $combatCueWavePath, $combatCueAssetPath, $interactionAcceptedCueWavePath, $interactionAcceptedCueAssetPath, $interactionRejectedCueWavePath, $interactionRejectedCueAssetPath, $sourcePath, $headerPath, $supportSourcePath, $combatSourcePath, $craftingSourcePath, $inventorySourcePath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "Ambient audio deliverable is missing: $path"
     }
@@ -131,10 +137,30 @@ if ($combatCueChannels -ne 1 -or $combatCueSampleRate -ne 22050 -or $combatCueBi
     throw "Unexpected CombatResultCue format: channels=$combatCueChannels rate=$combatCueSampleRate bits=$combatCueBitsPerSample bytes=$combatCueDataLength"
 }
 
+foreach ($cue in @(
+    @{ Name = 'InteractionAcceptedCue'; Path = $interactionAcceptedCueWavePath },
+    @{ Name = 'InteractionRejectedCue'; Path = $interactionRejectedCueWavePath }
+)) {
+    [byte[]]$cueBytes = [System.IO.File]::ReadAllBytes($cue.Path)
+    if ($cueBytes.Length -lt 44 -or [System.Text.Encoding]::ASCII.GetString($cueBytes, 0, 4) -ne 'RIFF' -or
+        [System.Text.Encoding]::ASCII.GetString($cueBytes, 8, 4) -ne 'WAVE') {
+        throw "$($cue.Name).wav is not a valid RIFF/WAVE file."
+    }
+    $cueChannels = [BitConverter]::ToInt16($cueBytes, 22)
+    $cueSampleRate = [BitConverter]::ToInt32($cueBytes, 24)
+    $cueBitsPerSample = [BitConverter]::ToInt16($cueBytes, 34)
+    $cueDataLength = [BitConverter]::ToInt32($cueBytes, 40)
+    if ($cueChannels -ne 1 -or $cueSampleRate -ne 22050 -or $cueBitsPerSample -ne 16 -or $cueDataLength -ne 17640) {
+        throw "Unexpected $($cue.Name) format: channels=$cueChannels rate=$cueSampleRate bits=$cueBitsPerSample bytes=$cueDataLength"
+    }
+}
+
 $source = Get-Content -LiteralPath $sourcePath -Raw
 $header = Get-Content -LiteralPath $headerPath -Raw
 $supportSource = Get-Content -LiteralPath $supportSourcePath -Raw
 $combatSource = Get-Content -LiteralPath $combatSourcePath -Raw
+$craftingSource = Get-Content -LiteralPath $craftingSourcePath -Raw
+$inventorySource = Get-Content -LiteralPath $inventorySourcePath -Raw
 foreach ($required in @(
     '/Game/Kalmala/Audio/WindBed.WindBed',
     '/Game/Kalmala/Audio/WaterBed.WaterBed',
@@ -144,6 +170,8 @@ foreach ($required in @(
     '/Game/Kalmala/Audio/WetStatusCue.WetStatusCue',
     '/Game/Kalmala/Audio/SupportAcceptedCue.SupportAcceptedCue',
     '/Game/Kalmala/Audio/CombatResultCue.CombatResultCue',
+    '/Game/Kalmala/Audio/InteractionAcceptedCue.InteractionAcceptedCue',
+    '/Game/Kalmala/Audio/InteractionRejectedCue.InteractionRejectedCue',
     'IsLocalController()',
     'GetLocalPlayer()',
     'bLooping = true',
@@ -185,7 +213,14 @@ foreach ($required in @(
     'EKalmalaBiome::MossyMire',
     'EKalmalaBiome::FreezingTundra',
     'EKalmalaBiome::ThunderMountains',
-    'EKalmalaBiome::Ocean'
+    'EKalmalaBiome::Ocean',
+    'UpdateInteractionResultCue',
+    'UpdateGatheringResultCue',
+    'GetResultSerial()',
+    'WasLastResultAccepted()',
+    'LastGatheringQuantities',
+    'InteractionCueMinimumInterval',
+    'InventoryIncrease=1'
 )) {
     if ($source -notmatch [regex]::Escape($required)) {
         throw "Ambient audio runtime source is missing required contract: $required"
@@ -198,8 +233,12 @@ if ($header -notmatch 'ULocalPlayerSubsystem' -or $header -notmatch 'SampleVisib
     $supportSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaSupportMagicComponent, FeedbackSerial, COND_OwnerOnly\)' -or
     $header -notmatch 'UpdateCombatResultCue' -or
     $combatSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaCombatComponent, Feedback, COND_OwnerOnly\)' -or
-    $combatSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaCombatComponent, FeedbackSerial, COND_OwnerOnly\)') {
+    $combatSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaCombatComponent, FeedbackSerial, COND_OwnerOnly\)' -or
+    $craftingSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaCraftingComponent, LastResult, COND_OwnerOnly\)' -or
+    $craftingSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaCraftingComponent, ResultSerial, COND_OwnerOnly\)' -or
+    $craftingSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaCraftingComponent, bLastResultAccepted, COND_OwnerOnly\)' -or
+    $inventorySource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaInventoryComponent, Stacks, COND_OwnerOnly\)') {
     throw 'Ambient audio must stay local and must not add network or gameplay persistence state.'
 }
 
-Write-Output 'PASS: original wind, water, fire, biome, and rain beds are 8-second mono PCM; WetStatusCue and SupportAcceptedCue are 0.8 seconds and CombatResultCue is 0.4 seconds. Accepted owner-only support and combat feedback trigger local cues; unavailable combat feedback stays readable without a confirmation cue.'
+Write-Output 'PASS: original wind, water, fire, biome, and rain beds are 8-second mono PCM; WetStatusCue and SupportAcceptedCue are 0.8 seconds, and combat/interaction cues are 0.4 seconds. Local crafting results and owner-only inventory increases trigger accepted/rejected interaction cues.'

@@ -15,6 +15,7 @@
 #include "KalmalaConstructionSaveGame.h"
 #include "KalmalaStorageSaveGame.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaCraftingComponent.h"
 #include "KalmalaExposureResponse.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaInteractionGrid.h"
@@ -40,6 +41,7 @@
 #include "KalmalaTerrainHeightSampler.h"
 
 #include "Engine/World.h"
+#include "TimerManager.h"
 #include "EngineUtils.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -1507,6 +1509,77 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
                     bLearned ? 1 : 0, Support->GetFeedback() == EKalmalaSupportFeedback::Accepted ? 1 : 0,
                     Support->GetFeedbackSerial());
             }
+
+            const TWeakObjectPtr<AKalmalaCharacter> WeakCharacter(Character);
+            FTimerHandle AcceptedInteractionTimer;
+            GetWorldTimerManager().SetTimer(AcceptedInteractionTimer,
+                FTimerDelegate::CreateWeakLambda(this, [WeakCharacter]()
+                {
+                    AKalmalaCharacter* TestCharacter = WeakCharacter.Get();
+                    if (TestCharacter == nullptr) return;
+                    UKalmalaInventoryComponent* Inventory = TestCharacter->FindComponentByClass<UKalmalaInventoryComponent>();
+                    UKalmalaCraftingComponent* Crafting = TestCharacter->FindComponentByClass<UKalmalaCraftingComponent>();
+                    if (Inventory == nullptr || Crafting == nullptr) return;
+                    const bool bIngredientsGranted = Inventory->TryGrantFromServer(TEXT("Wood"), 2)
+                        && Inventory->TryGrantFromServer(TEXT("Fibre"), 1);
+                    const uint32 PreviousSerial = Crafting->GetResultSerial();
+                    if (bIngredientsGranted)
+                    {
+                        Crafting->ServerCraft_Implementation(TEXT("Fuel"), 1);
+                    }
+                    const bool bAccepted = bIngredientsGranted && Crafting->GetResultSerial() != PreviousSerial
+                        && Crafting->WasLastResultAccepted() && Inventory->GetQuantity(TEXT("Fuel")) == 1;
+                    UE_LOG(LogTemp, Display,
+                        TEXT("Ambient audio verification server crafted fuel: Accepted=%d ResultSerial=%u"),
+                        bAccepted ? 1 : 0, Crafting->GetResultSerial());
+                }), 2.0f, false);
+
+            FTimerHandle GatheringInteractionTimer;
+            GetWorldTimerManager().SetTimer(GatheringInteractionTimer,
+                FTimerDelegate::CreateWeakLambda(this, [WeakCharacter]()
+                {
+                    AKalmalaCharacter* TestCharacter = WeakCharacter.Get();
+                    if (TestCharacter == nullptr) return;
+                    UKalmalaInventoryComponent* Inventory = TestCharacter->FindComponentByClass<UKalmalaInventoryComponent>();
+                    if (Inventory == nullptr) return;
+                    FKalmalaWorldPopulationSpawn Spawn;
+                    Spawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
+                    Spawn.SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(TestCharacter->GetActorLocation()));
+                    Spawn.SpawnSeed = TestCharacter->GetUniqueID();
+                    Spawn.Location = TestCharacter->GetActorLocation() + FVector(0.0f, 0.0f, 20.0f);
+                    FActorSpawnParameters SpawnParameters;
+                    SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+                    AKalmalaHarvestNode* Node = TestCharacter->GetWorld()->SpawnActor<AKalmalaHarvestNode>(
+                        AKalmalaHarvestNode::StaticClass(), Spawn.Location, FRotator::ZeroRotator, SpawnParameters);
+                    if (Node == nullptr) return;
+                    Node->InitializeServer(Spawn);
+                    const FName ItemId = Node->GetHarvestItemId();
+                    const int32 Before = Inventory->GetQuantity(ItemId);
+                    Node->Interact_Implementation(TestCharacter);
+                    const bool bAccepted = Inventory->GetQuantity(ItemId) == Before + 1;
+                    Node->Interact_Implementation(TestCharacter);
+                    const bool bDuplicateRejected = Inventory->GetQuantity(ItemId) == Before + 1;
+                    UE_LOG(LogTemp, Display,
+                        TEXT("Ambient audio verification server gathered: Accepted=%d DuplicateRejected=%d"),
+                        bAccepted ? 1 : 0, bDuplicateRejected ? 1 : 0);
+                    Node->Destroy();
+                }), 3.0f, false);
+
+            FTimerHandle RejectedInteractionTimer;
+            GetWorldTimerManager().SetTimer(RejectedInteractionTimer,
+                FTimerDelegate::CreateWeakLambda(this, [WeakCharacter]()
+                {
+                    AKalmalaCharacter* TestCharacter = WeakCharacter.Get();
+                    if (TestCharacter == nullptr) return;
+                    UKalmalaCraftingComponent* Crafting = TestCharacter->FindComponentByClass<UKalmalaCraftingComponent>();
+                    if (Crafting == nullptr) return;
+                    const uint32 PreviousSerial = Crafting->GetResultSerial();
+                    Crafting->ServerCraft_Implementation(TEXT("UnknownAudioTestRecipe"), 1);
+                    UE_LOG(LogTemp, Display,
+                        TEXT("Ambient audio verification server rejected craft: Rejected=%d ResultSerial=%u"),
+                        Crafting->GetResultSerial() != PreviousSerial && !Crafting->WasLastResultAccepted() ? 1 : 0,
+                        Crafting->GetResultSerial());
+                }), 4.0f, false);
         }
     }
 

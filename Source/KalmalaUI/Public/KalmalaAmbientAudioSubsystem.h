@@ -32,6 +32,8 @@ private:
     void UpdateWetStatusCue(UWorld* World, APlayerController* Controller);
     void UpdateSupportAcceptedCue(UWorld* World, APlayerController* Controller);
     void UpdateCombatResultCue(UWorld* World, APlayerController* Controller);
+    void UpdateInteractionResultCue(UWorld* World, APlayerController* Controller);
+    void UpdateGatheringResultCue(UWorld* World, APlayerController* Controller);
     float SampleVisibleWaterStrength(UWorld* World, APlayerController* Controller,
         const FKalmalaWorldGenerationConfig& Config) const;
     void UpdateWaterAmbience(float DeltaTime, UWorld* World, APlayerController* Controller,
@@ -80,6 +82,12 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<USoundWave> CombatResultCue;
 
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> InteractionAcceptedCue;
+
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> InteractionRejectedCue;
+
     float CurrentWindVolume = 0.0f;
     float TargetWindVolume = 0.0f;
     float WaterProbeTimeRemaining = 0.0f;
@@ -99,6 +107,12 @@ private:
     uint32 LastSupportFeedbackSerial = 0;
     TWeakObjectPtr<APawn> CombatFeedbackPawn;
     uint32 LastCombatFeedbackSerial = 0;
+    TWeakObjectPtr<APawn> InteractionFeedbackPawn;
+    uint32 LastInteractionFeedbackSerial = 0;
+    TWeakObjectPtr<APawn> GatheringFeedbackPawn;
+    TMap<FName, int32> LastGatheringQuantities;
+    float InteractionCueCooldownRemaining = 0.0f;
+    bool bGatheringInventoryInitialized = false;
     bool bVerificationLogged = false;
     bool bWeatherVerificationLogged = false;
     bool bWetStatusInitialized = false;

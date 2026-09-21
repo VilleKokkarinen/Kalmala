@@ -7,6 +7,8 @@
 #include "KalmalaCampfire.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCombatComponent.h"
+#include "KalmalaCraftingComponent.h"
+#include "KalmalaInventoryComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaBiomeClassifier.h"
@@ -32,6 +34,8 @@ constexpr TCHAR RainBedAssetPath[] = TEXT("/Game/Kalmala/Audio/RainBed.RainBed")
 constexpr TCHAR WetStatusCueAssetPath[] = TEXT("/Game/Kalmala/Audio/WetStatusCue.WetStatusCue");
 constexpr TCHAR SupportAcceptedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/SupportAcceptedCue.SupportAcceptedCue");
 constexpr TCHAR CombatResultCueAssetPath[] = TEXT("/Game/Kalmala/Audio/CombatResultCue.CombatResultCue");
+constexpr TCHAR InteractionAcceptedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/InteractionAcceptedCue.InteractionAcceptedCue");
+constexpr TCHAR InteractionRejectedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/InteractionRejectedCue.InteractionRejectedCue");
 constexpr float QuietWindVolume = 0.025f;
 constexpr float StrongWindVolume = 0.10f;
 constexpr float WindFadeSpeed = 1.4f;
@@ -41,6 +45,9 @@ constexpr float RainFadeSpeed = 1.8f;
 constexpr float WetStatusCueVolume = 0.16f;
 constexpr float SupportAcceptedCueVolume = 0.14f;
 constexpr float CombatResultCueVolume = 0.16f;
+constexpr float InteractionAcceptedCueVolume = 0.14f;
+constexpr float InteractionRejectedCueVolume = 0.12f;
+constexpr float InteractionCueMinimumInterval = 0.35f;
 constexpr float WaterMaximumVolume = 0.07f;
 constexpr float WaterMaximumDistance = 1600.0f;
 constexpr float WaterFullVolumeDistance = 300.0f;
@@ -97,6 +104,7 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
 {
     UWorld* World = GetWorld();
     ULocalPlayer* LocalPlayer = GetLocalPlayer();
+    InteractionCueCooldownRemaining = FMath::Max(0.0f, InteractionCueCooldownRemaining - DeltaTime);
     if (World == nullptr || !World->IsGameWorld() || LocalPlayer == nullptr)
     {
         StopAmbientAudio();
@@ -118,6 +126,8 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         WetStatusCue = nullptr;
         SupportAcceptedCue = nullptr;
         CombatResultCue = nullptr;
+        InteractionAcceptedCue = nullptr;
+        InteractionRejectedCue = nullptr;
         WaterProbeTimeRemaining = 0.0f;
         FireProbeTimeRemaining = 0.0f;
         BiomeProbeTimeRemaining = 0.0f;
@@ -164,6 +174,8 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         UpdateWetStatusCue(World, Controller);
         UpdateSupportAcceptedCue(World, Controller);
         UpdateCombatResultCue(World, Controller);
+        UpdateInteractionResultCue(World, Controller);
+        UpdateGatheringResultCue(World, Controller);
         UpdateWaterAmbience(DeltaTime, World, Controller, GameState->GetWorldGenerationConfig());
         UpdateFireAmbience(DeltaTime, World, Controller);
         UpdateBiomeAmbience(DeltaTime, World, Controller, GameState->GetWorldGenerationConfig());
@@ -381,6 +393,159 @@ void UKalmalaAmbientAudioSubsystem::UpdateCombatResultCue(UWorld* World, APlayer
             TEXT("Ambient audio combat context: Local=1 Feedback=%s Serial=%u CueSubmitted=%d Asset=%s"),
             FeedbackName, FeedbackSerial, bCueSubmitted ? 1 : 0,
             bCueSubmitted ? TEXT("CombatResultCue") : TEXT("None"));
+    }
+#endif
+}
+
+void UKalmalaAmbientAudioSubsystem::UpdateInteractionResultCue(UWorld* World, APlayerController* Controller)
+{
+    AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+    if (Character == nullptr)
+    {
+        InteractionFeedbackPawn = nullptr;
+        LastInteractionFeedbackSerial = 0;
+        return;
+    }
+
+    if (InteractionFeedbackPawn.Get() != Character)
+    {
+        InteractionFeedbackPawn = Character;
+        LastInteractionFeedbackSerial = 0;
+    }
+
+    const UKalmalaCraftingComponent* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
+    if (Crafting == nullptr)
+    {
+        return;
+    }
+
+    const uint32 ResultSerial = Crafting->GetResultSerial();
+    if (ResultSerial == 0 || ResultSerial == LastInteractionFeedbackSerial)
+    {
+        return;
+    }
+    LastInteractionFeedbackSerial = ResultSerial;
+
+    const bool bAccepted = Crafting->WasLastResultAccepted();
+    USoundWave* Cue = bAccepted ? InteractionAcceptedCue.Get() : InteractionRejectedCue.Get();
+    const TCHAR* AssetName = bAccepted ? TEXT("InteractionAcceptedCue") : TEXT("InteractionRejectedCue");
+    bool bCueSubmitted = false;
+    if (InteractionCueCooldownRemaining <= 0.0f)
+    {
+        if (Cue == nullptr)
+        {
+            if (bAccepted)
+            {
+                InteractionAcceptedCue = LoadObject<USoundWave>(nullptr, InteractionAcceptedCueAssetPath);
+                Cue = InteractionAcceptedCue;
+            }
+            else
+            {
+                InteractionRejectedCue = LoadObject<USoundWave>(nullptr, InteractionRejectedCueAssetPath);
+                Cue = InteractionRejectedCue;
+            }
+        }
+        bCueSubmitted = World != nullptr && IsValid(Cue);
+        if (bCueSubmitted)
+        {
+            UGameplayStatics::PlaySound2D(World, Cue,
+                bAccepted ? InteractionAcceptedCueVolume : InteractionRejectedCueVolume,
+                1.0f, 0.0f, nullptr, nullptr, false);
+            InteractionCueCooldownRemaining = InteractionCueMinimumInterval;
+        }
+    }
+
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest")))
+    {
+        UE_LOG(LogTemp, Display,
+            TEXT("Ambient audio interaction result: Local=1 Feedback=%s Serial=%u CueSubmitted=%d Asset=%s"),
+            bAccepted ? TEXT("Accepted") : TEXT("Unavailable"), ResultSerial, bCueSubmitted ? 1 : 0,
+            bCueSubmitted ? AssetName : TEXT("None"));
+    }
+#endif
+}
+
+void UKalmalaAmbientAudioSubsystem::UpdateGatheringResultCue(UWorld* World, APlayerController* Controller)
+{
+    AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+    if (Character == nullptr)
+    {
+        GatheringFeedbackPawn = nullptr;
+        LastGatheringQuantities.Reset();
+        bGatheringInventoryInitialized = false;
+        return;
+    }
+
+    if (GatheringFeedbackPawn.Get() != Character)
+    {
+        GatheringFeedbackPawn = Character;
+        LastGatheringQuantities.Reset();
+        bGatheringInventoryInitialized = false;
+    }
+
+    const UKalmalaInventoryComponent* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
+    if (Inventory == nullptr)
+    {
+        LastGatheringQuantities.Reset();
+        bGatheringInventoryInitialized = false;
+        return;
+    }
+
+    TMap<FName, int32> CurrentQuantities;
+    for (const FKalmalaInventoryStack& Stack : Inventory->GetStacks())
+    {
+        if (!Stack.ItemId.IsNone() && Stack.Quantity > 0)
+        {
+            CurrentQuantities.Add(Stack.ItemId, Stack.Quantity);
+        }
+    }
+
+    if (!bGatheringInventoryInitialized)
+    {
+        LastGatheringQuantities = MoveTemp(CurrentQuantities);
+        bGatheringInventoryInitialized = true;
+        return;
+    }
+
+    bool bInventoryIncreased = false;
+    for (const TPair<FName, int32>& Current : CurrentQuantities)
+    {
+        const int32 PreviousQuantity = LastGatheringQuantities.FindRef(Current.Key);
+        if (Current.Value > PreviousQuantity)
+        {
+            bInventoryIncreased = true;
+            break;
+        }
+    }
+    LastGatheringQuantities = MoveTemp(CurrentQuantities);
+    if (!bInventoryIncreased)
+    {
+        return;
+    }
+
+    bool bCueSubmitted = false;
+    if (InteractionCueCooldownRemaining <= 0.0f)
+    {
+        if (InteractionAcceptedCue == nullptr)
+        {
+            InteractionAcceptedCue = LoadObject<USoundWave>(nullptr, InteractionAcceptedCueAssetPath);
+        }
+        bCueSubmitted = World != nullptr && InteractionAcceptedCue != nullptr;
+        if (bCueSubmitted)
+        {
+            UGameplayStatics::PlaySound2D(World, InteractionAcceptedCue.Get(), InteractionAcceptedCueVolume,
+                1.0f, 0.0f, nullptr, nullptr, false);
+            InteractionCueCooldownRemaining = InteractionCueMinimumInterval;
+        }
+    }
+
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest")))
+    {
+        UE_LOG(LogTemp, Display,
+            TEXT("Ambient audio gathering result: Local=1 InventoryIncrease=1 CueSubmitted=%d Asset=%s"),
+            bCueSubmitted ? 1 : 0, bCueSubmitted ? TEXT("InteractionAcceptedCue") : TEXT("None"));
     }
 #endif
 }
@@ -764,6 +929,12 @@ void UKalmalaAmbientAudioSubsystem::StopAmbientAudio()
     bLastWetStatus = false;
     SupportFeedbackPawn = nullptr;
     LastSupportFeedbackSerial = 0;
+    InteractionFeedbackPawn = nullptr;
+    LastInteractionFeedbackSerial = 0;
+    GatheringFeedbackPawn = nullptr;
+    LastGatheringQuantities.Reset();
+    bGatheringInventoryInitialized = false;
+    InteractionCueCooldownRemaining = 0.0f;
 }
 
 void UKalmalaAmbientAudioSubsystem::Deinitialize()
@@ -777,5 +948,7 @@ void UKalmalaAmbientAudioSubsystem::Deinitialize()
     WetStatusCue = nullptr;
     SupportAcceptedCue = nullptr;
     CombatResultCue = nullptr;
+    InteractionAcceptedCue = nullptr;
+    InteractionRejectedCue = nullptr;
     Super::Deinitialize();
 }

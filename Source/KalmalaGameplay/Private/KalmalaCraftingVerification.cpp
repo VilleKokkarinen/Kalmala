@@ -161,7 +161,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Check(I->TryGrantFromServer(TEXT("Wood"),4) && I->TryGrantFromServer(TEXT("Fibre"),2),TEXT("Seed real RPC transactions"));
         UE_LOG(LogTemp,Display,TEXT("Crafting server gates: Passed=%d Player=%d Placement=1 Atomic=1 Malformed=1 Locked=1 Distant=1 Fuel=1 Rain=1"),bVerificationPassed,C->GetPlayerState()->GetPlayerId());
         UE_LOG(LogTemp,Display,TEXT("Crafting fire server: Name=%s Fuel=60 Lit=1 Wet=0 Warmth=1 State=1"),*Fire->GetName());
-        PublishResult(TEXT("Verification ready")); VerificationStage=1; VerificationElapsed=0;
+        PublishResult(TEXT("Verification ready"), true); VerificationStage=1; VerificationElapsed=0;
     }
     if (C->HasAuthority() && VerificationStage==1 && VerificationElapsed>8)
     {

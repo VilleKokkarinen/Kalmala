@@ -39,7 +39,9 @@ The runtime ambient layer includes loop-seamed, project-generated beds at
 `/Game/Kalmala/Audio/RainBed`, plus the one-shot
 `/Game/Kalmala/Audio/WetStatusCue` and
 `/Game/Kalmala/Audio/SupportAcceptedCue` and
-`/Game/Kalmala/Audio/CombatResultCue`.
+`/Game/Kalmala/Audio/CombatResultCue`,
+`/Game/Kalmala/Audio/InteractionAcceptedCue`, and
+`/Game/Kalmala/Audio/InteractionRejectedCue`.
 `UKalmalaAmbientAudioSubsystem` starts wind only
 for a local player whose normal generated-world state and pawn are ready. It
 smoothly adjusts the wind bed from accepted replicated
@@ -60,6 +62,14 @@ CombatResultCue plays once when the owning pawn's existing owner-only combat
 Unavailable results remain readable through the existing text and do not use
 the confirmation cue. Playback carries no target identity and never infers a
 hit, defeat, or damage from a client request or remote actor.
+InteractionAcceptedCue plays for a new accepted owner-only crafting result or
+when an existing owner-only inventory stack increases after server validation;
+the first inventory snapshot only establishes a local baseline. A rejected
+owner-only crafting result uses the distinct, quieter InteractionRejectedCue.
+Inventory decreases do not cue. Crafting result text, an accepted-result bit,
+and a monotonic serial replicate to that pawn's owner only; the server writes
+all three, and a small local cooldown coalesces adjacent interaction/gathering
+changes. Neither cue includes an item ID, quantity, target, or request data.
 It samples a bounded set of points around that pawn from the existing immutable
 world identity, accepts only the existing sea surface or visible inland-lake
 surface, and requires an unobstructed visibility trace from the local view
@@ -79,9 +89,11 @@ discovery, or remote-biome query is used.
 `Scripts/Generate-FireAmbience.ps1`, `Scripts/Generate-BiomeAmbience.ps1`,
 `Scripts/Generate-WeatherExposureAudio.ps1`,
 `Scripts/Generate-SupportFeedbackAudio.ps1`, and
-`Scripts/Generate-CombatResultAudio.ps1` recreate the original mono sources
+`Scripts/Generate-CombatResultAudio.ps1` and
+`Scripts/Generate-InteractionFeedbackAudio.ps1` recreate the original mono sources
 under `Content/Kalmala/Audio/Source`; the rain bed is seam-crossfaded and the
-WetStatusCue, SupportAcceptedCue, and CombatResultCue are short one-shots. Import all eight to
+WetStatusCue, SupportAcceptedCue, CombatResultCue, and interaction cues are
+short one-shots. Import all ten assets to
 `/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
 `Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`,
 `Scripts/Verify-CombatPeer.ps1`, and the forced editor build. Pass
@@ -94,6 +106,11 @@ plus each local player's current sampled biome and accepted rainy weather/Wet
 state and the support acceptance cue. `Verify-CombatPeer.ps1` confirms that
 owner-local Hit and Defeat feedback submit CombatResultCue, Unavailable remains
 text-only, and the other peer receives no private combat result cue. The
+ambient peer fixture also verifies owner-local accepted crafting, accepted
+gathering, and rejected crafting cues for both host and client. Its gathering
+node is transient and invokes the ordinary server harvest path; it does not
+write a world save. The no-build audit checks that the crafting result text,
+serial, and outcome and the inventory stacks remain owner-only. The
 development-only listen-server fixture selects a light rainy/windy
 interval below the hearth smoulder threshold, applies Wet on the server, and
 creates a visible server-lit hearth. A test-only server exposure hook keeps
@@ -118,8 +135,8 @@ server authority/privacy boundary, the owner-only combat/support feedback
 sources, and the absence of a new RPC or save field.
 It does not create sound assets, prove mixing, test spatialization, or launch
 Unreal. The ambient-audio and combat peer checks do not prove audible playback,
-device mixing, spatialization, or packaged playback. Interaction/gathering and
-discovery cues, plus further combat and support cues, remain in the M5 pass.
+device mixing, spatialization, or packaged playback. Discovery acknowledgement,
+movement, and further combat/support cues remain in the M5 pass.
 
 ## Multiplayer and persistence boundary
 

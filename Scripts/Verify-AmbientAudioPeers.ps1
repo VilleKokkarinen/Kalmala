@@ -51,6 +51,16 @@ try {
         $serverSupportAccepted = $serverSupportAcceptedCount -ge 2
         $serverSupportCueActive = $serverText -match 'Ambient audio support context: Local=1 Feedback=Accepted Serial=1 CueSubmitted=1 Asset=SupportAcceptedCue'
         $clientSupportCueActive = $clientText -match 'Ambient audio support context: Local=1 Feedback=Accepted Serial=1 CueSubmitted=1 Asset=SupportAcceptedCue'
+        $serverInteractionAccepted = $serverText -match 'Ambient audio interaction result: Local=1 Feedback=Accepted Serial=1 CueSubmitted=1 Asset=InteractionAcceptedCue'
+        $clientInteractionAccepted = $clientText -match 'Ambient audio interaction result: Local=1 Feedback=Accepted Serial=1 CueSubmitted=1 Asset=InteractionAcceptedCue'
+        $serverGatheringAccepted = $serverText -match 'Ambient audio gathering result: Local=1 InventoryIncrease=1 CueSubmitted=1 Asset=InteractionAcceptedCue'
+        $clientGatheringAccepted = $clientText -match 'Ambient audio gathering result: Local=1 InventoryIncrease=1 CueSubmitted=1 Asset=InteractionAcceptedCue'
+        $serverInteractionRejected = $serverText -match 'Ambient audio interaction result: Local=1 Feedback=Unavailable Serial=2 CueSubmitted=1 Asset=InteractionRejectedCue'
+        $clientInteractionRejected = $clientText -match 'Ambient audio interaction result: Local=1 Feedback=Unavailable Serial=2 CueSubmitted=1 Asset=InteractionRejectedCue'
+        $testCraftAcceptedCount = [regex]::Matches($serverText, 'Ambient audio verification server crafted fuel: Accepted=1 ResultSerial=1').Count
+        $testGatherAcceptedCount = [regex]::Matches($serverText, 'Ambient audio verification server gathered: Accepted=1 DuplicateRejected=1').Count
+        $testCraftRejectedCount = [regex]::Matches($serverText, 'Ambient audio verification server rejected craft: Rejected=1 ResultSerial=2').Count
+        $interactionFixturePassed = $testCraftAcceptedCount -ge 2 -and $testGatherAcceptedCount -ge 2 -and $testCraftRejectedCount -ge 2
         $testHearthSpawned = $serverText -match 'Ambient audio verification server spawned lit hearth: Lit=1'
         $wetStatusApplied = $serverText -match 'Ambient audio verification server applied Wet status: Wet=1'
         $clientJoined = $clientText -match 'Client received world-generation identity: Seed=418'
@@ -64,20 +74,24 @@ try {
             -and $serverWeatherActive -and $clientWeatherActive -and $wetStatusApplied `
             -and $serverWetCueActive -and $clientWetCueActive `
             -and $serverSupportAccepted `
-            -and $serverSupportCueActive -and $clientSupportCueActive -and $clientJoined
+            -and $serverSupportCueActive -and $clientSupportCueActive `
+            -and $interactionFixturePassed `
+            -and $serverInteractionAccepted -and $clientInteractionAccepted `
+            -and $serverGatheringAccepted -and $clientGatheringAccepted `
+            -and $serverInteractionRejected -and $clientInteractionRejected -and $clientJoined
         if ($scenarioReady) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) {
-        if ($WeatherExposureOnly) { throw 'Local wind, fire, sampled-biome, replicated rainy weather, RainBed, WetStatusCue, accepted support feedback cue, or connected client identity was not observed before timeout.' }
-        throw 'Local wind, visible water/fire, sampled-biome, replicated rainy weather, RainBed, WetStatusCue, accepted support feedback cue, or connected client identity was not observed before timeout.'
+        if ($WeatherExposureOnly) { throw 'Local wind/fire/biome/weather cues, Wet/support/interaction/gathering feedback, or connected client identity was not observed before timeout.' }
+        throw 'Local wind, visible water/fire, sampled-biome/weather cues, Wet/support/interaction/gathering feedback, or connected client identity was not observed before timeout.'
     }
 
     if ($WeatherExposureOnly) {
-        Write-Output 'PASS: host and client created local wind, rain, fire, and biome ambience plus WetStatusCue and SupportAcceptedCue from owner-local accepted replicated feedback; audio stayed local.'
+        Write-Output 'PASS: host and client created local ambient cues and owner-local Wet, support, accepted crafting, gathered-item, and rejected crafting cues; audio stayed local.'
     }
     else {
-        Write-Output 'PASS: host and client created local ambience from visible water/hearth context, sampled biome, accepted rainy weather/status, and owner-local accepted support feedback; all cues stayed local without audio replication.'
+        Write-Output 'PASS: host and client created local ambience from visible water/hearth context, sampled biome, weather, and owner-local interaction/gathering results; all cues stayed local without audio replication.'
     }
 }
 finally {
