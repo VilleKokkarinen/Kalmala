@@ -38,7 +38,8 @@ The runtime ambient layer includes loop-seamed, project-generated beds at
 `/Game/Kalmala/Audio/FireBed`, `/Game/Kalmala/Audio/BiomeBed`, and
 `/Game/Kalmala/Audio/RainBed`, plus the one-shot
 `/Game/Kalmala/Audio/WetStatusCue` and
-`/Game/Kalmala/Audio/SupportAcceptedCue`.
+`/Game/Kalmala/Audio/SupportAcceptedCue` and
+`/Game/Kalmala/Audio/CombatResultCue`.
 `UKalmalaAmbientAudioSubsystem` starts wind only
 for a local player whose normal generated-world state and pawn are ready. It
 smoothly adjusts the wind bed from accepted replicated
@@ -54,6 +55,11 @@ It reports the server-confirmed activation generically and does not infer an
 effect from client input or effect state. Existing learned-effect, cooldown,
 stamina, and active-state text remains the readable result; unavailable
 feedback does not play this acceptance cue.
+CombatResultCue plays once when the owning pawn's existing owner-only combat
+`FeedbackSerial` advances with `EKalmalaCombatFeedback::Hit` or `Defeat`.
+Unavailable results remain readable through the existing text and do not use
+the confirmation cue. Playback carries no target identity and never infers a
+hit, defeat, or damage from a client request or remote actor.
 It samples a bounded set of points around that pawn from the existing immutable
 world identity, accepts only the existing sea surface or visible inland-lake
 surface, and requires an unobstructed visibility trace from the local view
@@ -71,19 +77,24 @@ discovery, or remote-biome query is used.
 
 `Scripts/Generate-WildernessWind.ps1`, `Scripts/Generate-WaterAmbience.ps1`,
 `Scripts/Generate-FireAmbience.ps1`, `Scripts/Generate-BiomeAmbience.ps1`,
-`Scripts/Generate-WeatherExposureAudio.ps1`, and
-`Scripts/Generate-SupportFeedbackAudio.ps1` recreate the original mono sources
+`Scripts/Generate-WeatherExposureAudio.ps1`,
+`Scripts/Generate-SupportFeedbackAudio.ps1`, and
+`Scripts/Generate-CombatResultAudio.ps1` recreate the original mono sources
 under `Content/Kalmala/Audio/Source`; the rain bed is seam-crossfaded and the
-WetStatusCue and SupportAcceptedCue are short one-shots. Import all seven to
+WetStatusCue, SupportAcceptedCue, and CombatResultCue are short one-shots. Import all eight to
 `/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
-`Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`, and
-the forced editor build. Pass `-WeatherExposureOnly` to the peer runner when
+`Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`,
+`Scripts/Verify-CombatPeer.ps1`, and the forced editor build. Pass
+`-WeatherExposureOnly` to the peer runner when
 focusing on the weather and Wet cues; its default mode also requires visible
 water activation. The first verifier checks source format, imported
 assets, local-player ownership, context gates, and teardown. The peer runner
 confirms independent host/client probes for visible water and hearth context
 plus each local player's current sampled biome and accepted rainy weather/Wet
-state. Its development-only listen-server fixture selects a light rainy/windy
+state and the support acceptance cue. `Verify-CombatPeer.ps1` confirms that
+owner-local Hit and Defeat feedback submit CombatResultCue, Unavailable remains
+text-only, and the other peer receives no private combat result cue. The
+development-only listen-server fixture selects a light rainy/windy
 interval below the hearth smoulder threshold, applies Wet on the server, and
 creates a visible server-lit hearth. A test-only server exposure hook keeps
 Wet observable while it checks the status cue alongside the hearth bed.
@@ -103,11 +114,12 @@ field.
 
 `Scripts/Verify-AudioCueContract.ps1` checks all eight cue rows, the
 non-audio/accessibility requirement, project-owned asset rule, local mix scope,
-server authority/privacy boundary, and the absence of a new RPC or save field.
+server authority/privacy boundary, the owner-only combat/support feedback
+sources, and the absence of a new RPC or save field.
 It does not create sound assets, prove mixing, test spatialization, or launch
-Unreal. The wind-bed verifier also does not prove audible playback, packaged
-mixing, spatialization, or the remaining cue groups; those remain queued for
-the Unreal-verified M5 presentation pass.
+Unreal. The ambient-audio and combat peer checks do not prove audible playback,
+device mixing, spatialization, or packaged playback. Interaction/gathering and
+discovery cues, plus further combat and support cues, remain in the M5 pass.
 
 ## Multiplayer and persistence boundary
 

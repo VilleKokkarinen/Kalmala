@@ -22,6 +22,11 @@ try {
         $ready = $ready -and $clientText -match 'Combat verification client rejected invalid owned attack without target data\.'
         $ready = $ready -and $clientText -match 'Combat verification client observed shared action serial=4\.'
         $ready = $ready -and $clientText -match 'Combat verification client observed relevant wildlife defeat\.'
+        $serverHitCue = $serverText -match 'Ambient audio combat context: Local=1 Feedback=Hit Serial=[1-9][0-9]* CueSubmitted=1 Asset=CombatResultCue'
+        $serverDefeatCue = $serverText -match 'Ambient audio combat context: Local=1 Feedback=Defeat Serial=[1-9][0-9]* CueSubmitted=1 Asset=CombatResultCue'
+        $clientUnavailableWithoutCue = $clientText -match 'Ambient audio combat context: Local=1 Feedback=Unavailable Serial=[1-9][0-9]* CueSubmitted=0 Asset=None'
+        $clientNoRemoteCombatCue = $clientText -notmatch 'Ambient audio combat context: Local=1 Feedback=(Hit|Defeat) Serial=[1-9][0-9]* CueSubmitted=1 Asset=CombatResultCue'
+        $ready = $ready -and $serverHitCue -and $serverDefeatCue -and $clientUnavailableWithoutCue -and $clientNoRemoteCombatCue
         if ($ready) { break }; Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if (!$ready) { throw 'Combat peer scenario timed out.' }
@@ -32,6 +37,6 @@ try {
     if (!$restart.WaitForExit(120000)) { Stop-Process -Id $restart.Id; throw 'Combat world-state restart timed out.' }
     $restartText = Get-Content $restartLog -Raw
     if ($restartText -notmatch 'Reconnect verification passed: defeated generated wildlife spawn .* remained absent after listen-server restart\.') { throw 'Combat world defeat did not survive restart.' }
-    Write-Output 'PASS: conflicting-seed client observed server combat state and a relevant defeat; its target-free invalid attack was rejected, and the exact defeated wildlife remained absent after restart.'
+    Write-Output 'PASS: owner-local hit and defeat cues followed server-confirmed combat feedback; unavailable remained text-only and remote combat feedback stayed private. The conflicting-seed client observed the relevant defeat, its target-free invalid attack was rejected, and defeated wildlife remained absent after restart.'
 }
 finally { foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }; Write-Output "Peer logs: $output" }

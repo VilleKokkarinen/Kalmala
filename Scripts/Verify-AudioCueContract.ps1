@@ -60,6 +60,7 @@ $requiredTerms = @{
     'accepted replicated weather cue' = 'FKalmalaWeatherState::WindStrength|accepted replicated.*precipitation'
     'owner-scoped Wet status cue' = 'State\.Wet|WetStatusCue'
     'owner-only accepted support cue' = '(?s)owner-only.*support.*FeedbackSerial.*Accepted|FeedbackSerial.*Accepted.*owner-only'
+    'owner-only combat result cue' = '(?s)owner-only.*combat.*FeedbackSerial.*EKalmalaCombatFeedback::Hit.*Defeat|FeedbackSerial.*EKalmalaCombatFeedback::Hit.*Defeat.*owner-only'
 }
 foreach ($term in $requiredTerms.GetEnumerator()) {
     if ($text -notmatch $term.Value) {
