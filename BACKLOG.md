@@ -266,7 +266,7 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 
 Start only after M3 acceptance passes. Preserve the open-world, route-free survival loop: no authored combat corridors, quests, direct-damage magic, new online services, or client-authoritative damage, rewards, discoveries, or learned effects.
 
-- [ ] Establish the server-authoritative combat and support-magic contract.
+- [x] Establish the server-authoritative combat and support-magic contract.
   - [x] Define replicated combat attributes, validated damage execution, defeat state, and narrow client intent RPCs for player attacks and support-effect activation. Contract: docs/11-combat-and-support-magic.md; definition only, runtime coverage remains below.
   - [x] Define stable server-owned IDs and sparse world deltas for creature defeats, points of interest, scroll discoveries, and per-player learned effects; preserve immutable world-identity validation. Contract: docs/11-combat-and-support-magic.md; definition only, schema/runtime work remains below.
   - [x] Add focused contract coverage proving malformed, distant, duplicate, and client-only combat/progression requests cannot change health, defeat state, rewards, or saves.

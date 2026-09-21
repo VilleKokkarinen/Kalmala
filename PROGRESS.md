@@ -3683,3 +3683,37 @@ usage-limit escalation; pre-existing changes remain untouched.
 Next task: When UnrealBuildTool access is restored, verify the pending faceted
 player presentation increment; otherwise continue the next build-independent
 M5 contract increment without claiming runtime settings coverage.
+
+### 2026-09-21T09:40:37+03:00 — Close the M4 combat authority contract
+
+Outcome: Completed the M4 server-authoritative combat and support-magic
+contract parent after verifying its three checked child deliverables against
+the contract document and focused runtime regressions. This records no new
+gameplay behavior; the existing contracts require server-selected targets,
+validated committed actions, stable server-owned progression IDs, and
+no-mutation rejection for malformed, distant, duplicate, and client-only
+requests.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`. No gameplay, replication, RPC,
+persistence, save schema, asset, or generated source changed.
+
+Verification: The documented `KalmalaEditor Win64 Development` build returned
+`Result: Succeeded` (target up to date); log: `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`.
+Headless automation passed both
+`Kalmala.Gameplay.Combat.IntentContract.RejectionDoesNotMutate` and
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence` with `Result={Success}`;
+evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaCombatSupportContract-67758f680cd346d1bb05f7c9a2ff86ad/contract.log`.
+The editor used its memory DDC fallback after the sandbox could not read the
+shared local DDC; both selected tests completed successfully.
+
+Multiplayer impact: None at runtime. The focused checks preserve server
+authority for combat/progression decisions and confirm rejected intents leave
+health, defeat, rewards, and sparse save bytes unchanged.
+
+Known limits: M4's route-free two-player acceptance remains blocked by the
+intermittent Mireling fixture recorded above; this run did not claim live peer,
+rendered effect, boar, deer, or return/reconnect acceptance.
+
+Next task: Verify the next unchecked M4 parent, the basic player combat loop,
+with its focused peer scenario and record the parent only after that evidence
+passes.
