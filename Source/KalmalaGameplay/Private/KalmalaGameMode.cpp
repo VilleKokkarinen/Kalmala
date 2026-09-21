@@ -1511,6 +1511,24 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
             }
 
             const TWeakObjectPtr<AKalmalaCharacter> WeakCharacter(Character);
+            FTimerHandle SupportExpiryAudioTimer;
+            GetWorldTimerManager().SetTimer(SupportExpiryAudioTimer,
+                FTimerDelegate::CreateWeakLambda(this, [WeakCharacter]()
+                {
+                    AKalmalaCharacter* TestCharacter = WeakCharacter.Get();
+                    if (TestCharacter == nullptr) return;
+                    UKalmalaSupportMagicComponent* Support = TestCharacter->GetSupportMagicComponent();
+                    if (Support == nullptr) return;
+                    const bool bLearned = Support->LearnEffectFromServer(EKalmalaSupportEffect::BearsVigor);
+                    if (bLearned)
+                    {
+                        Support->ServerRequestActivateSupportEffect(EKalmalaSupportEffect::BearsVigor, 2);
+                    }
+                    UE_LOG(LogTemp, Display,
+                        TEXT("Ambient audio verification server support result: Learned=%d Accepted=%d Serial=%u Effect=BearsVigor"),
+                        bLearned ? 1 : 0, Support->GetFeedback() == EKalmalaSupportFeedback::Accepted ? 1 : 0,
+                        Support->GetFeedbackSerial());
+                }), 4.5f, false);
             FTimerHandle AcceptedInteractionTimer;
             GetWorldTimerManager().SetTimer(AcceptedInteractionTimer,
                 FTimerDelegate::CreateWeakLambda(this, [WeakCharacter]()

@@ -22,6 +22,14 @@ $interactionAcceptedCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\
 $interactionAcceptedCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\InteractionAcceptedCue.uasset'
 $interactionRejectedCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\InteractionRejectedCue.wav'
 $interactionRejectedCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\InteractionRejectedCue.uasset'
+$supportEffectCues = @(
+    @{ Name = 'SupportMendingCue'; WavePath = (Join-Path $projectRoot 'Content\Kalmala\Audio\Source\SupportMendingCue.wav'); AssetPath = (Join-Path $projectRoot 'Content\Kalmala\Audio\SupportMendingCue.uasset') },
+    @{ Name = 'SupportHearthShieldCue'; WavePath = (Join-Path $projectRoot 'Content\Kalmala\Audio\Source\SupportHearthShieldCue.wav'); AssetPath = (Join-Path $projectRoot 'Content\Kalmala\Audio\SupportHearthShieldCue.uasset') },
+    @{ Name = 'SupportBearsVigorCue'; WavePath = (Join-Path $projectRoot 'Content\Kalmala\Audio\Source\SupportBearsVigorCue.wav'); AssetPath = (Join-Path $projectRoot 'Content\Kalmala\Audio\SupportBearsVigorCue.uasset') },
+    @{ Name = 'SupportDeerCallCue'; WavePath = (Join-Path $projectRoot 'Content\Kalmala\Audio\Source\SupportDeerCallCue.wav'); AssetPath = (Join-Path $projectRoot 'Content\Kalmala\Audio\SupportDeerCallCue.uasset') },
+    @{ Name = 'SupportHearthShieldExpiryCue'; WavePath = (Join-Path $projectRoot 'Content\Kalmala\Audio\Source\SupportHearthShieldExpiryCue.wav'); AssetPath = (Join-Path $projectRoot 'Content\Kalmala\Audio\SupportHearthShieldExpiryCue.uasset') },
+    @{ Name = 'SupportBearsVigorExpiryCue'; WavePath = (Join-Path $projectRoot 'Content\Kalmala\Audio\Source\SupportBearsVigorExpiryCue.wav'); AssetPath = (Join-Path $projectRoot 'Content\Kalmala\Audio\SupportBearsVigorExpiryCue.uasset') }
+)
 $sourcePath = Join-Path $projectRoot 'Source\KalmalaUI\Private\KalmalaAmbientAudioSubsystem.cpp'
 $headerPath = Join-Path $projectRoot 'Source\KalmalaUI\Public\KalmalaAmbientAudioSubsystem.h'
 $supportSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaSupportMagicComponent.cpp'
@@ -33,6 +41,13 @@ $inventorySourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\Ka
 foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $supportCueWavePath, $supportCueAssetPath, $combatCueWavePath, $combatCueAssetPath, $discoveryCueWavePath, $discoveryCueAssetPath, $interactionAcceptedCueWavePath, $interactionAcceptedCueAssetPath, $interactionRejectedCueWavePath, $interactionRejectedCueAssetPath, $sourcePath, $headerPath, $supportSourcePath, $combatSourcePath, $discoverySourcePath, $craftingSourcePath, $inventorySourcePath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "Ambient audio deliverable is missing: $path"
+    }
+}
+foreach ($cue in $supportEffectCues) {
+    foreach ($path in @($cue.WavePath, $cue.AssetPath)) {
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw "Support effect audio deliverable is missing: $path"
+        }
     }
 }
 
@@ -171,6 +186,21 @@ foreach ($cue in @(
     }
 }
 
+foreach ($cue in $supportEffectCues) {
+    [byte[]]$cueBytes = [System.IO.File]::ReadAllBytes($cue.WavePath)
+    if ($cueBytes.Length -lt 44 -or [System.Text.Encoding]::ASCII.GetString($cueBytes, 0, 4) -ne 'RIFF' -or
+        [System.Text.Encoding]::ASCII.GetString($cueBytes, 8, 4) -ne 'WAVE') {
+        throw "$($cue.Name).wav is not a valid RIFF/WAVE file."
+    }
+    $cueChannels = [BitConverter]::ToInt16($cueBytes, 22)
+    $cueSampleRate = [BitConverter]::ToInt32($cueBytes, 24)
+    $cueBitsPerSample = [BitConverter]::ToInt16($cueBytes, 34)
+    $cueDataLength = [BitConverter]::ToInt32($cueBytes, 40)
+    if ($cueChannels -ne 1 -or $cueSampleRate -ne 22050 -or $cueBitsPerSample -ne 16 -or $cueDataLength -ne 18522) {
+        throw "Unexpected $($cue.Name) format: channels=$cueChannels rate=$cueSampleRate bits=$cueBitsPerSample bytes=$cueDataLength"
+    }
+}
+
 $source = Get-Content -LiteralPath $sourcePath -Raw
 $header = Get-Content -LiteralPath $headerPath -Raw
 $supportSource = Get-Content -LiteralPath $supportSourcePath -Raw
@@ -186,6 +216,12 @@ foreach ($required in @(
     '/Game/Kalmala/Audio/RainBed.RainBed',
     '/Game/Kalmala/Audio/WetStatusCue.WetStatusCue',
     '/Game/Kalmala/Audio/SupportAcceptedCue.SupportAcceptedCue',
+    '/Game/Kalmala/Audio/SupportMendingCue.SupportMendingCue',
+    '/Game/Kalmala/Audio/SupportHearthShieldCue.SupportHearthShieldCue',
+    '/Game/Kalmala/Audio/SupportBearsVigorCue.SupportBearsVigorCue',
+    '/Game/Kalmala/Audio/SupportDeerCallCue.SupportDeerCallCue',
+    '/Game/Kalmala/Audio/SupportHearthShieldExpiryCue.SupportHearthShieldExpiryCue',
+    '/Game/Kalmala/Audio/SupportBearsVigorExpiryCue.SupportBearsVigorExpiryCue',
     '/Game/Kalmala/Audio/CombatResultCue.CombatResultCue',
     '/Game/Kalmala/Audio/DiscoveryAcknowledgedCue.DiscoveryAcknowledgedCue',
     '/Game/Kalmala/Audio/InteractionAcceptedCue.InteractionAcceptedCue',
@@ -215,9 +251,20 @@ foreach ($required in @(
     'RainMinimumIntensity',
     'RainBed->bLooping = true',
     'GetWeatherState()',
-    'UpdateSupportAcceptedCue',
+    'UpdateSupportEffectCues',
     'GetFeedbackSerial()',
     'EKalmalaSupportFeedback::Accepted',
+    'EKalmalaSupportEffect::Mending',
+    'EKalmalaSupportEffect::HearthShield',
+    'EKalmalaSupportEffect::BearsVigor',
+    'EKalmalaSupportEffect::DeerCall',
+    'GetActiveEffect()',
+    'GetHearthShieldExpiry()',
+    'GetHearthShieldStrength()',
+    'GetBearsVigorExpiry()',
+    'GetBearsVigorStrengthMultiplier()',
+    'SupportHearthShieldExpiryCue',
+    'SupportBearsVigorExpiryCue',
     'UpdateCombatResultCue',
     'GetCombatComponent()',
     'EKalmalaCombatFeedback::Hit',
@@ -249,7 +296,7 @@ foreach ($required in @(
     }
 }
 if ($header -notmatch 'ULocalPlayerSubsystem' -or $header -notmatch 'SampleVisibleFireStrength' -or $header -notmatch 'UpdateWetStatusCue' -or
-    $header -notmatch 'UpdateSupportAcceptedCue' -or $header -match 'UPROPERTY\s*\(\s*Replicated' -or
+    $header -notmatch 'UpdateSupportEffectCues' -or $header -match 'UPROPERTY\s*\(\s*Replicated' -or
     $source -match 'ServerRPC|SaveGame|DOREPLIFETIME' -or
     $supportSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaSupportMagicComponent, Feedback, COND_OwnerOnly\)' -or
     $supportSource -notmatch 'DOREPLIFETIME_CONDITION\(UKalmalaSupportMagicComponent, FeedbackSerial, COND_OwnerOnly\)' -or
@@ -265,4 +312,4 @@ if ($header -notmatch 'ULocalPlayerSubsystem' -or $header -notmatch 'SampleVisib
     throw 'Ambient audio must stay local and must not add network or gameplay persistence state.'
 }
 
-Write-Output 'PASS: original wind, water, fire, biome, and rain beds are 8-second mono PCM; WetStatusCue and SupportAcceptedCue are 0.8 seconds, discovery is 0.5 seconds, and combat/interaction cues are 0.4 seconds. Accepted owner-only landmark/scroll feedback triggers the local discovery acknowledgment.'
+Write-Output 'PASS: original ambient beds and owner-local weather, interaction, combat, discovery, and effect-specific support cues have the expected mono PCM format and retain local ownership.'

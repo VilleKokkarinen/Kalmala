@@ -38,7 +38,13 @@ The runtime ambient layer includes loop-seamed, project-generated beds at
 `/Game/Kalmala/Audio/FireBed`, `/Game/Kalmala/Audio/BiomeBed`, and
 `/Game/Kalmala/Audio/RainBed`, plus the one-shot
 `/Game/Kalmala/Audio/WetStatusCue` and
-`/Game/Kalmala/Audio/SupportAcceptedCue` and
+`/Game/Kalmala/Audio/SupportAcceptedCue`,
+`/Game/Kalmala/Audio/SupportMendingCue`,
+`/Game/Kalmala/Audio/SupportHearthShieldCue`,
+`/Game/Kalmala/Audio/SupportBearsVigorCue`,
+`/Game/Kalmala/Audio/SupportDeerCallCue`,
+`/Game/Kalmala/Audio/SupportHearthShieldExpiryCue`, and
+`/Game/Kalmala/Audio/SupportBearsVigorExpiryCue` and
 `/Game/Kalmala/Audio/CombatResultCue`,
 `/Game/Kalmala/Audio/InteractionAcceptedCue`, and
 `/Game/Kalmala/Audio/InteractionRejectedCue`.
@@ -51,12 +57,20 @@ and stops when rain ends. WetStatusCue plays only when the owning pawn's
 replicated server-owned `State.Wet` entry first appears (or is already present
 when local play starts); it does not infer the cause or change the status.
 Neither cue reads another pawn's private status or sends a request.
-SupportAcceptedCue plays once when the owning pawn's existing owner-only
-support `FeedbackSerial` advances with `EKalmalaSupportFeedback::Accepted`.
-It reports the server-confirmed activation generically and does not infer an
-effect from client input or effect state. Existing learned-effect, cooldown,
+An effect-specific support activation cue plays once when the owning pawn's
+existing owner-only support `FeedbackSerial` advances with
+`EKalmalaSupportFeedback::Accepted`; the component's existing active effect
+selects Mending, Hearth Shield, Bear's Vigor, or Deer Call. The cue does not
+infer an effect from client input. A generic `SupportAcceptedCue` remains a
+fallback if a specific cue cannot load. Existing learned-effect, cooldown,
 stamina, and active-state text remains the readable result; unavailable
-feedback does not play this acceptance cue.
+feedback does not play an acceptance cue.
+Hearth Shield and Bear's Vigor each play a quieter effect-specific expiry cue
+only when the owning pawn's existing replicated absorption/strength and expiry
+state transitions to inactive. A shield depleted by damage uses the same end
+cue. Mending and Deer Call are immediate effects without a timed gameplay
+state, so they use activation cues only. No local timer guesses when an effect
+ends.
 CombatResultCue plays once when the owning pawn's existing owner-only combat
 `FeedbackSerial` advances with `EKalmalaCombatFeedback::Hit` or `Defeat`.
 Unavailable results remain readable through the existing text and do not use
@@ -95,11 +109,13 @@ discovery, or remote-biome query is used.
 `Scripts/Generate-SupportFeedbackAudio.ps1`,
 `Scripts/Generate-CombatResultAudio.ps1`,
 `Scripts/Generate-InteractionFeedbackAudio.ps1`, and
-`Scripts/Generate-DiscoveryAcknowledgementAudio.ps1` recreate the original mono
-sources under `Content/Kalmala/Audio/Source`; the rain bed is seam-crossfaded
-and the WetStatusCue, SupportAcceptedCue, CombatResultCue,
+`Scripts/Generate-DiscoveryAcknowledgementAudio.ps1` and
+`Scripts/Generate-SupportEffectAudio.ps1` recreate the original mono sources
+under `Content/Kalmala/Audio/Source`; the rain bed is seam-crossfaded
+and the WetStatusCue, SupportAcceptedCue, six effect-specific support cues,
+CombatResultCue,
 DiscoveryAcknowledgedCue, and interaction cues are short one-shots. Import all
-eleven assets to
+seventeen assets to
 `/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
 `Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`,
 `Scripts/Verify-CombatPeer.ps1`, `Scripts/Verify-DiscoveryPeer.ps1`, and the
@@ -109,8 +125,9 @@ focusing on the weather and Wet cues; its default mode also requires visible
 water activation. The first verifier checks source format, imported
 assets, local-player ownership, context gates, and teardown. The peer runner
 confirms independent host/client probes for visible water and hearth context
-plus each local player's current sampled biome and accepted rainy weather/Wet
-state and the support acceptance cue. `Verify-CombatPeer.ps1` confirms that
+plus each local player's current sampled biome, accepted rainy weather/Wet
+state, and effect-specific Hearth Shield/Bear's Vigor activation and expiry
+cues. `Verify-CombatPeer.ps1` confirms that
 owner-local Hit and Defeat feedback submit CombatResultCue, Unavailable remains
 text-only, and the other peer receives no private combat result cue. The
 discovery peer fixture confirms that only the entitled local owner submits the
@@ -125,7 +142,7 @@ development-only listen-server fixture selects a light rainy/windy
 interval below the hearth smoulder threshold, applies Wet on the server, and
 creates a visible server-lit hearth. A test-only server exposure hook keeps
 Wet observable while it checks the status cue alongside the hearth bed.
-Existing Wet duration, shelter, warmth, hearth, and recovery text remains the
+Existing Wet duration, shelter, warmth, hearth, recovery, and support result text remains the
 readable fallback. These checks do not establish
 audible quality, hardware mixing, or packaged playback, and do not complete
 other event cues or audio options.
@@ -147,7 +164,7 @@ field.
 It does not create sound assets, prove mixing, test spatialization, or launch
 Unreal. The ambient-audio, combat, and discovery peer checks do not prove audible
 playback, device mixing, spatialization, or packaged playback. Movement and
-further combat/support cues remain in the M5 pass.
+traversal cues and the broader original presentation pass remain in M5.
 
 ## Multiplayer and persistence boundary
 

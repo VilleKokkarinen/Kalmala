@@ -49,8 +49,15 @@ try {
         $clientWetCueActive = $clientText -match 'Ambient audio exposure context: Local=1 Wet=1 CueSubmitted=1 Asset=WetStatusCue'
         $serverSupportAcceptedCount = [regex]::Matches($serverText, 'Ambient audio verification server support result: Learned=1 Accepted=1 Serial=1').Count
         $serverSupportAccepted = $serverSupportAcceptedCount -ge 2
-        $serverSupportCueActive = $serverText -match 'Ambient audio support context: Local=1 Feedback=Accepted Serial=1 CueSubmitted=1 Asset=SupportAcceptedCue'
-        $clientSupportCueActive = $clientText -match 'Ambient audio support context: Local=1 Feedback=Accepted Serial=1 CueSubmitted=1 Asset=SupportAcceptedCue'
+        $serverSupportVigorAccepted = $serverText -match 'Ambient audio verification server support result: Learned=1 Accepted=1 Serial=2 Effect=BearsVigor'
+        $serverSupportShieldCueActive = $serverText -match 'Ambient audio support activation: Local=1 Feedback=Accepted Serial=1 Effect=HearthShield CueSubmitted=1 Asset=SupportHearthShieldCue'
+        $clientSupportShieldCueActive = $clientText -match 'Ambient audio support activation: Local=1 Feedback=Accepted Serial=1 Effect=HearthShield CueSubmitted=1 Asset=SupportHearthShieldCue'
+        $serverSupportVigorCueActive = $serverText -match 'Ambient audio support activation: Local=1 Feedback=Accepted Serial=2 Effect=BearsVigor CueSubmitted=1 Asset=SupportBearsVigorCue'
+        $clientSupportVigorCueActive = $clientText -match 'Ambient audio support activation: Local=1 Feedback=Accepted Serial=2 Effect=BearsVigor CueSubmitted=1 Asset=SupportBearsVigorCue'
+        $serverSupportShieldExpiry = $serverText -match 'Ambient audio support expiry: Local=1 CueSubmitted=1 Asset=SupportHearthShieldExpiryCue'
+        $clientSupportShieldExpiry = $clientText -match 'Ambient audio support expiry: Local=1 CueSubmitted=1 Asset=SupportHearthShieldExpiryCue'
+        $serverSupportVigorExpiry = $serverText -match 'Ambient audio support expiry: Local=1 CueSubmitted=1 Asset=SupportBearsVigorExpiryCue'
+        $clientSupportVigorExpiry = $clientText -match 'Ambient audio support expiry: Local=1 CueSubmitted=1 Asset=SupportBearsVigorExpiryCue'
         $serverInteractionAccepted = $serverText -match 'Ambient audio interaction result: Local=1 Feedback=Accepted Serial=1 CueSubmitted=1 Asset=InteractionAcceptedCue'
         $clientInteractionAccepted = $clientText -match 'Ambient audio interaction result: Local=1 Feedback=Accepted Serial=1 CueSubmitted=1 Asset=InteractionAcceptedCue'
         $serverGatheringAccepted = $serverText -match 'Ambient audio gathering result: Local=1 InventoryIncrease=1 CueSubmitted=1 Asset=InteractionAcceptedCue'
@@ -74,7 +81,11 @@ try {
             -and $serverWeatherActive -and $clientWeatherActive -and $wetStatusApplied `
             -and $serverWetCueActive -and $clientWetCueActive `
             -and $serverSupportAccepted `
-            -and $serverSupportCueActive -and $clientSupportCueActive `
+            -and $serverSupportVigorAccepted `
+            -and $serverSupportShieldCueActive -and $clientSupportShieldCueActive `
+            -and $serverSupportVigorCueActive -and $clientSupportVigorCueActive `
+            -and $serverSupportShieldExpiry -and $clientSupportShieldExpiry `
+            -and $serverSupportVigorExpiry -and $clientSupportVigorExpiry `
             -and $interactionFixturePassed `
             -and $serverInteractionAccepted -and $clientInteractionAccepted `
             -and $serverGatheringAccepted -and $clientGatheringAccepted `
@@ -83,12 +94,12 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) {
-        if ($WeatherExposureOnly) { throw 'Local wind/fire/biome/weather cues, Wet/support/interaction/gathering feedback, or connected client identity was not observed before timeout.' }
-        throw 'Local wind, visible water/fire, sampled-biome/weather cues, Wet/support/interaction/gathering feedback, or connected client identity was not observed before timeout.'
+        if ($WeatherExposureOnly) { throw 'Local wind/fire/biome/weather cues, Wet/support activation/expiry/interaction/gathering feedback, or connected client identity was not observed before timeout.' }
+        throw 'Local wind, visible water/fire, sampled-biome/weather cues, Wet/support activation/expiry/interaction/gathering feedback, or connected client identity was not observed before timeout.'
     }
 
     if ($WeatherExposureOnly) {
-        Write-Output 'PASS: host and client created local ambient cues and owner-local Wet, support, accepted crafting, gathered-item, and rejected crafting cues; audio stayed local.'
+        Write-Output 'PASS: host and client created local ambient cues and owner-local Wet, effect-specific support activation/expiry, accepted crafting, gathered-item, and rejected crafting cues; audio stayed local.'
     }
     else {
         Write-Output 'PASS: host and client created local ambience from visible water/hearth context, sampled biome, weather, and owner-local interaction/gathering results; all cues stayed local without audio replication.'

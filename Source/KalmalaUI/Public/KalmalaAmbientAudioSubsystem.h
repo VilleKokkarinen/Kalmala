@@ -30,7 +30,7 @@ private:
     void UpdateWindAmbience(float DeltaTime, const FKalmalaWeatherState& Weather);
     void UpdateRainAmbience(float DeltaTime, UWorld* World, const FKalmalaWeatherState& Weather);
     void UpdateWetStatusCue(UWorld* World, APlayerController* Controller);
-    void UpdateSupportAcceptedCue(UWorld* World, APlayerController* Controller);
+    void UpdateSupportEffectCues(UWorld* World, APlayerController* Controller);
     void UpdateCombatResultCue(UWorld* World, APlayerController* Controller);
     void UpdateDiscoveryAcknowledgementCue(UWorld* World, APlayerController* Controller);
     void UpdateInteractionResultCue(UWorld* World, APlayerController* Controller);
@@ -81,6 +81,24 @@ private:
     TObjectPtr<USoundWave> SupportAcceptedCue;
 
     UPROPERTY(Transient)
+    TObjectPtr<USoundWave> SupportMendingCue;
+
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> SupportHearthShieldCue;
+
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> SupportBearsVigorCue;
+
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> SupportDeerCallCue;
+
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> SupportHearthShieldExpiryCue;
+
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> SupportBearsVigorExpiryCue;
+
+    UPROPERTY(Transient)
     TObjectPtr<USoundWave> CombatResultCue;
 
     UPROPERTY(Transient)
@@ -109,6 +127,9 @@ private:
     float TargetRainVolume = 0.0f;
     TWeakObjectPtr<APawn> SupportFeedbackPawn;
     uint32 LastSupportFeedbackSerial = 0;
+    bool bSupportEffectStateInitialized = false;
+    bool bLastHearthShieldActive = false;
+    bool bLastBearsVigorActive = false;
     TWeakObjectPtr<APawn> CombatFeedbackPawn;
     uint32 LastCombatFeedbackSerial = 0;
     TWeakObjectPtr<APawn> DiscoveryFeedbackPawn;

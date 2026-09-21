@@ -34,6 +34,12 @@ constexpr TCHAR BiomeBedAssetPath[] = TEXT("/Game/Kalmala/Audio/BiomeBed.BiomeBe
 constexpr TCHAR RainBedAssetPath[] = TEXT("/Game/Kalmala/Audio/RainBed.RainBed");
 constexpr TCHAR WetStatusCueAssetPath[] = TEXT("/Game/Kalmala/Audio/WetStatusCue.WetStatusCue");
 constexpr TCHAR SupportAcceptedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/SupportAcceptedCue.SupportAcceptedCue");
+constexpr TCHAR SupportMendingCueAssetPath[] = TEXT("/Game/Kalmala/Audio/SupportMendingCue.SupportMendingCue");
+constexpr TCHAR SupportHearthShieldCueAssetPath[] = TEXT("/Game/Kalmala/Audio/SupportHearthShieldCue.SupportHearthShieldCue");
+constexpr TCHAR SupportBearsVigorCueAssetPath[] = TEXT("/Game/Kalmala/Audio/SupportBearsVigorCue.SupportBearsVigorCue");
+constexpr TCHAR SupportDeerCallCueAssetPath[] = TEXT("/Game/Kalmala/Audio/SupportDeerCallCue.SupportDeerCallCue");
+constexpr TCHAR SupportHearthShieldExpiryCueAssetPath[] = TEXT("/Game/Kalmala/Audio/SupportHearthShieldExpiryCue.SupportHearthShieldExpiryCue");
+constexpr TCHAR SupportBearsVigorExpiryCueAssetPath[] = TEXT("/Game/Kalmala/Audio/SupportBearsVigorExpiryCue.SupportBearsVigorExpiryCue");
 constexpr TCHAR CombatResultCueAssetPath[] = TEXT("/Game/Kalmala/Audio/CombatResultCue.CombatResultCue");
 constexpr TCHAR DiscoveryAcknowledgedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/DiscoveryAcknowledgedCue.DiscoveryAcknowledgedCue");
 constexpr TCHAR InteractionAcceptedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/InteractionAcceptedCue.InteractionAcceptedCue");
@@ -45,7 +51,8 @@ constexpr float RainMinimumIntensity = 0.01f;
 constexpr float RainMaximumVolume = 0.065f;
 constexpr float RainFadeSpeed = 1.8f;
 constexpr float WetStatusCueVolume = 0.16f;
-constexpr float SupportAcceptedCueVolume = 0.14f;
+constexpr float SupportEffectCueVolume = 0.14f;
+constexpr float SupportEffectExpiryCueVolume = 0.10f;
 constexpr float CombatResultCueVolume = 0.16f;
 constexpr float DiscoveryAcknowledgedCueVolume = 0.14f;
 constexpr float InteractionAcceptedCueVolume = 0.14f;
@@ -128,6 +135,12 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         RainBed = nullptr;
         WetStatusCue = nullptr;
         SupportAcceptedCue = nullptr;
+        SupportMendingCue = nullptr;
+        SupportHearthShieldCue = nullptr;
+        SupportBearsVigorCue = nullptr;
+        SupportDeerCallCue = nullptr;
+        SupportHearthShieldExpiryCue = nullptr;
+        SupportBearsVigorExpiryCue = nullptr;
         CombatResultCue = nullptr;
         DiscoveryAcknowledgedCue = nullptr;
         InteractionAcceptedCue = nullptr;
@@ -176,7 +189,7 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         UpdateWindAmbience(DeltaTime, Weather);
         UpdateRainAmbience(DeltaTime, World, Weather);
         UpdateWetStatusCue(World, Controller);
-        UpdateSupportAcceptedCue(World, Controller);
+        UpdateSupportEffectCues(World, Controller);
         UpdateCombatResultCue(World, Controller);
         UpdateDiscoveryAcknowledgementCue(World, Controller);
         UpdateInteractionResultCue(World, Controller);
@@ -286,13 +299,14 @@ void UKalmalaAmbientAudioSubsystem::UpdateWetStatusCue(UWorld* World, APlayerCon
 #endif
 }
 
-void UKalmalaAmbientAudioSubsystem::UpdateSupportAcceptedCue(UWorld* World, APlayerController* Controller)
+void UKalmalaAmbientAudioSubsystem::UpdateSupportEffectCues(UWorld* World, APlayerController* Controller)
 {
     AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
     if (Character == nullptr)
     {
         SupportFeedbackPawn = nullptr;
         LastSupportFeedbackSerial = 0;
+        bSupportEffectStateInitialized = false;
         return;
     }
 
@@ -300,12 +314,62 @@ void UKalmalaAmbientAudioSubsystem::UpdateSupportAcceptedCue(UWorld* World, APla
     {
         SupportFeedbackPawn = Character;
         LastSupportFeedbackSerial = 0;
+        bSupportEffectStateInitialized = false;
     }
 
     const UKalmalaSupportMagicComponent* Support = Character->GetSupportMagicComponent();
     if (Support == nullptr)
     {
         return;
+    }
+
+    const bool bHearthShieldActive = Support->GetHearthShieldExpiry() > 0.0f
+        && Support->GetHearthShieldStrength() > 0.0f;
+    const bool bBearsVigorActive = Support->GetBearsVigorExpiry() > 0.0f
+        && Support->GetBearsVigorStrengthMultiplier() > 1.0f;
+    if (!bSupportEffectStateInitialized)
+    {
+        bLastHearthShieldActive = bHearthShieldActive;
+        bLastBearsVigorActive = bBearsVigorActive;
+        bSupportEffectStateInitialized = true;
+    }
+    else
+    {
+        const auto SubmitExpiryCue = [this, World](TObjectPtr<USoundWave>& Cue,
+            const TCHAR* AssetPath, const TCHAR* AssetName)
+        {
+            if (Cue == nullptr)
+            {
+                Cue = LoadObject<USoundWave>(nullptr, AssetPath);
+            }
+            const bool bSubmitted = World != nullptr && Cue != nullptr;
+            if (bSubmitted)
+            {
+                UGameplayStatics::PlaySound2D(World, Cue, SupportEffectExpiryCueVolume,
+                    1.0f, 0.0f, nullptr, nullptr, false);
+            }
+#if !UE_BUILD_SHIPPING
+            if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest")))
+            {
+                UE_LOG(LogTemp, Display,
+                    TEXT("Ambient audio support expiry: Local=1 CueSubmitted=%d Asset=%s"),
+                    bSubmitted ? 1 : 0, bSubmitted ? AssetName : TEXT("None"));
+            }
+#endif
+        };
+
+        if (bLastHearthShieldActive && !bHearthShieldActive)
+        {
+            SubmitExpiryCue(SupportHearthShieldExpiryCue, SupportHearthShieldExpiryCueAssetPath,
+                TEXT("SupportHearthShieldExpiryCue"));
+        }
+        if (bLastBearsVigorActive && !bBearsVigorActive)
+        {
+            SubmitExpiryCue(SupportBearsVigorExpiryCue, SupportBearsVigorExpiryCueAssetPath,
+                TEXT("SupportBearsVigorExpiryCue"));
+        }
+        bLastHearthShieldActive = bHearthShieldActive;
+        bLastBearsVigorActive = bBearsVigorActive;
     }
 
     const uint32 FeedbackSerial = Support->GetFeedbackSerial();
@@ -317,16 +381,59 @@ void UKalmalaAmbientAudioSubsystem::UpdateSupportAcceptedCue(UWorld* World, APla
 
     const bool bAccepted = Support->GetFeedback() == EKalmalaSupportFeedback::Accepted;
     bool bCueSubmitted = false;
+    const TCHAR* EffectName = TEXT("None");
+    const TCHAR* AssetName = TEXT("None");
     if (bAccepted)
     {
-        if (SupportAcceptedCue == nullptr)
+        USoundWave* Cue = nullptr;
+        const TCHAR* AssetPath = SupportAcceptedCueAssetPath;
+        switch (Support->GetActiveEffect())
         {
-            SupportAcceptedCue = LoadObject<USoundWave>(nullptr, SupportAcceptedCueAssetPath);
+        case EKalmalaSupportEffect::Mending:
+            AssetPath = SupportMendingCueAssetPath;
+            if (SupportMendingCue == nullptr) SupportMendingCue = LoadObject<USoundWave>(nullptr, AssetPath);
+            Cue = SupportMendingCue;
+            EffectName = TEXT("Mending");
+            AssetName = TEXT("SupportMendingCue");
+            break;
+        case EKalmalaSupportEffect::HearthShield:
+            AssetPath = SupportHearthShieldCueAssetPath;
+            if (SupportHearthShieldCue == nullptr) SupportHearthShieldCue = LoadObject<USoundWave>(nullptr, AssetPath);
+            Cue = SupportHearthShieldCue;
+            EffectName = TEXT("HearthShield");
+            AssetName = TEXT("SupportHearthShieldCue");
+            break;
+        case EKalmalaSupportEffect::BearsVigor:
+            AssetPath = SupportBearsVigorCueAssetPath;
+            if (SupportBearsVigorCue == nullptr) SupportBearsVigorCue = LoadObject<USoundWave>(nullptr, AssetPath);
+            Cue = SupportBearsVigorCue;
+            EffectName = TEXT("BearsVigor");
+            AssetName = TEXT("SupportBearsVigorCue");
+            break;
+        case EKalmalaSupportEffect::DeerCall:
+            AssetPath = SupportDeerCallCueAssetPath;
+            if (SupportDeerCallCue == nullptr) SupportDeerCallCue = LoadObject<USoundWave>(nullptr, AssetPath);
+            Cue = SupportDeerCallCue;
+            EffectName = TEXT("DeerCall");
+            AssetName = TEXT("SupportDeerCallCue");
+            break;
+        default:
+            break;
         }
-        bCueSubmitted = World != nullptr && SupportAcceptedCue != nullptr;
+
+        if (Cue == nullptr)
+        {
+            if (SupportAcceptedCue == nullptr)
+            {
+                SupportAcceptedCue = LoadObject<USoundWave>(nullptr, SupportAcceptedCueAssetPath);
+            }
+            Cue = SupportAcceptedCue;
+            AssetName = TEXT("SupportAcceptedCue");
+        }
+        bCueSubmitted = World != nullptr && Cue != nullptr;
         if (bCueSubmitted)
         {
-            UGameplayStatics::PlaySound2D(World, SupportAcceptedCue, SupportAcceptedCueVolume,
+            UGameplayStatics::PlaySound2D(World, Cue, SupportEffectCueVolume,
                 1.0f, 0.0f, nullptr, nullptr, false);
         }
     }
@@ -335,8 +442,9 @@ void UKalmalaAmbientAudioSubsystem::UpdateSupportAcceptedCue(UWorld* World, APla
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest")) && bAccepted)
     {
         UE_LOG(LogTemp, Display,
-            TEXT("Ambient audio support context: Local=1 Feedback=Accepted Serial=%u CueSubmitted=%d Asset=%s"),
-            FeedbackSerial, bCueSubmitted ? 1 : 0, bCueSubmitted ? TEXT("SupportAcceptedCue") : TEXT("None"));
+            TEXT("Ambient audio support activation: Local=1 Feedback=Accepted Serial=%u Effect=%s CueSubmitted=%d Asset=%s"),
+            FeedbackSerial, EffectName,
+            bCueSubmitted ? 1 : 0, bCueSubmitted ? AssetName : TEXT("None"));
     }
 #endif
 }
