@@ -61,12 +61,25 @@ the following without developer commands or fixed fixture coordinates:
 6. A two-player observation shows no prompt-driven replication, reward leak,
    client-selected outcome, or private discovery/learned-effect disclosure.
 
-Run `Scripts/Verify-OnboardingContract.ps1` for the no-build contract check;
-it validates the required sections, all ten beat rows, accessibility cues,
-route-free language, authority boundaries, and local-persistence limit. Keep
-`git diff --check` as the whitespace check. Runtime prompt presentation, input
-routing, and packaged two-player evidence remain a later
-implementation/verification step when Unreal build access is available.
+The runtime presenter is a `ULocalPlayerSubsystem`. It shows one short prompt
+at a time after possession, from a local visible-focus trace, the local map
+position relative to the initial pawn position, the existing crafting shell,
+or the owning pawn's readable replicated Wet and learned-effect state. Visible
+harvest nodes, discoveries, wildlife, usable actors, and campfires are tested
+only after the local view trace hits them. The trace never enumerates active or
+hidden world content. Prompt history lasts for the local-player session only;
+it is not written to gameplay or local save data. Each card shows readable text,
+a high-contrast compass shape, and the current keyboard/controller labels.
+F1 / the controller's B button dismisses the current card; F2 / right-stick
+click revisits the last card. Both bindings observe input without consuming
+movement or interaction. Prompts expire after 18 seconds or disappear when
+their context ends.
+
+`Scripts/Verify-OnboardingContract.ps1` validates the specification; it is not
+a runtime presentation test. `Scripts/Verify-LocalInputContract.ps1` checks the
+actual keyboard/controller movement, interaction, and prompt bindings. The
+fresh-player context walkthrough, route-free trigger/privacy review, and
+packaged two-player evidence remain part of the acceptance work.
 
 ## Authority, privacy, and persistence
 
@@ -78,6 +91,6 @@ actors and values it could already observe during normal play. No prompt sends
 a new RPC or carries an item ID, target, quantity, damage, transform, reward,
 weather, status, or effect payload.
 
-First-run dismissal and prompt history may be stored in the existing local
-settings path when the runtime presenter is implemented. They must never be
-included in the gameplay save schema or replicated to another player.
+Prompt dismissal and history are session-local. A future local settings option
+may persist a prompt preference; it must never be included in the gameplay save schema
+or replicated to another player.

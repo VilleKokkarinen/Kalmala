@@ -61,6 +61,7 @@ public:
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UKalmalaCraftingSubsystem, STATGROUP_Tickables); }
     virtual bool IsTickable() const override { return !IsTemplate(); }
     bool CloseIfOpen();
+    bool IsOpen() const { return Widget != nullptr && Widget->IsOpen(); }
 private:
     void Toggle();
     void Release();

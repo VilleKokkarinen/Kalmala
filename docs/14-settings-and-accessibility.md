@@ -38,14 +38,14 @@ remapping is added:
 
 | Action or axis | Keyboard/mouse baseline | Controller baseline |
 | --- | --- | --- |
-| MoveForward | W/S and Up/Down | Existing movement axis extension |
-| MoveRight | A/D and Left/Right | Existing movement axis extension |
+| MoveForward | W/S and Up/Down | Left stick Y |
+| MoveRight | A/D and Left/Right | Left stick X |
 | Turn / LookUp | Mouse X / Mouse Y | Right stick X / Right stick Y |
 | MinimapZoom | Mouse wheel | — |
 | Interact | E | Face button bottom |
 | Attack | Left mouse button | Right shoulder |
-| Jump | Space | — |
-| Sprint | Left Shift / Right Shift | — |
+| Jump | Space | Face button left |
+| Sprint | Left Shift / Right Shift | Left stick click |
 | SettingsMenu | Escape / O | — |
 | WorldMap / WorldMapRecenter | M / R | — |
 | CraftMenu | B | Special left |

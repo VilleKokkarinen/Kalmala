@@ -15,8 +15,8 @@ if (-not (Test-Path -LiteralPath $InputFile -PathType Leaf)) {
 
 $text = Get-Content -LiteralPath $InputFile -Raw
 $requiredMappings = @{
-    MoveForward = @('W', 'S', 'Up', 'Down')
-    MoveRight = @('D', 'A', 'Right', 'Left')
+    MoveForward = @('W', 'S', 'Gamepad_LeftY', 'Up', 'Down')
+    MoveRight = @('D', 'A', 'Gamepad_LeftX', 'Right', 'Left')
     Turn = @('MouseX', 'Gamepad_RightX')
     LookUp = @('MouseY', 'Gamepad_RightY')
     MinimapZoom = @('MouseWheelAxis')
@@ -24,8 +24,10 @@ $requiredMappings = @{
 $requiredActions = @{
     Interact = @('E', 'Gamepad_FaceButton_Bottom')
     Attack = @('LeftMouseButton', 'Gamepad_RightShoulder')
-    Jump = @('SpaceBar')
-    Sprint = @('LeftShift', 'RightShift')
+    Jump = @('SpaceBar', 'Gamepad_FaceButton_Left')
+    Sprint = @('LeftShift', 'RightShift', 'Gamepad_LeftThumbstick')
+    TutorialPromptDismiss = @('F1', 'Gamepad_FaceButton_Right')
+    TutorialPromptRevisit = @('F2', 'Gamepad_RightThumbstick')
     SettingsMenu = @('Escape', 'O')
     WorldMap = @('M')
     WorldMapRecenter = @('R')
