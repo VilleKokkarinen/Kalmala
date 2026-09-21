@@ -98,6 +98,25 @@ bool UKalmalaSupportMagicComponent::InfluenceNearbyDeerFromServer(APawn* Caster)
     }
     return Influenced > 0;
 }
+
+void UKalmalaSupportMagicComponent::SetFeedbackFromServer(const EKalmalaSupportFeedback NewFeedback, const float ServerNow)
+{
+    if (!GetOwner() || !GetOwner()->HasAuthority() || !FMath::IsFinite(ServerNow)
+        || NewFeedback == EKalmalaSupportFeedback::None) return;
+    if (NewFeedback == EKalmalaSupportFeedback::Unavailable)
+    {
+        if (ServerNow < NextUnavailableFeedbackTime) return;
+        NextUnavailableFeedbackTime = ServerNow + 0.5f;
+    }
+    else
+    {
+        NextUnavailableFeedbackTime = 0.0f;
+    }
+    Feedback = NewFeedback;
+    FeedbackSerial = FeedbackSerial == TNumericLimits<uint32>::Max() ? 1 : FeedbackSerial + 1;
+    GetOwner()->ForceNetUpdate();
+}
+
 void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implementation(const EKalmalaSupportEffect Effect, const uint32 RequestSequence)
 {
     APawn* Pawn = Cast<APawn>(GetOwner()); const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
@@ -108,13 +127,13 @@ void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implement
     const bool bVigorAlreadyActive = BearsVigorExpiry > Now && BearsVigorStrengthMultiplier > 1.0f;
     const bool bEffectActivationAllowed = Effect == EKalmalaSupportEffect::HearthShield ? IsHearthShieldActivationAllowed(bBaseActivationAllowed, bShieldAlreadyActive)
         : Effect == EKalmalaSupportEffect::BearsVigor ? IsBearsVigorActivationAllowed(bBaseActivationAllowed, bVigorAlreadyActive) : bBaseActivationAllowed;
-    if (!bEffectActivationAllowed) return;
+    if (!bEffectActivationAllowed) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
     // Mending has no client target payload: the server forward trace finds one eligible allied pawn before the transaction charges stamina.
     AKalmalaCharacter* MendingTarget = Effect == EKalmalaSupportEffect::Mending ? ResolveMendingTargetFromServer(Pawn) : nullptr;
-    if (Effect == EKalmalaSupportEffect::Mending && MendingTarget == nullptr) return;
-    if (Effect == EKalmalaSupportEffect::DeerCall && !InfluenceNearbyDeerFromServer(Pawn)) return;
-    if (!Movement->TryConsumeStaminaFromServer(ActivationCost)) return;
-    if (MendingTarget != nullptr && !MendingTarget->ReceiveMendingFromServer(CastChecked<AKalmalaCharacter>(Pawn), MendingHealAmount)) return;
+    if (Effect == EKalmalaSupportEffect::Mending && MendingTarget == nullptr) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
+    if (Effect == EKalmalaSupportEffect::DeerCall && !InfluenceNearbyDeerFromServer(Pawn)) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
+    if (!Movement->TryConsumeStaminaFromServer(ActivationCost)) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
+    if (MendingTarget != nullptr && !MendingTarget->ReceiveMendingFromServer(CastChecked<AKalmalaCharacter>(Pawn), MendingHealAmount)) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
     LastRequestSequence = RequestSequence; CooldownExpiry = Now + CooldownSeconds; ActiveEffect = Effect;
     if (Effect == EKalmalaSupportEffect::HearthShield)
     {
@@ -130,6 +149,7 @@ void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implement
         ActiveEffectExpiry = BearsVigorExpiry;
     }
     else ActiveEffectExpiry = Now + PresentationSeconds;
+    SetFeedbackFromServer(EKalmalaSupportFeedback::Accepted, Now);
     GetOwner()->ForceNetUpdate();
 }
 void UKalmalaSupportMagicComponent::TickComponent(const float DeltaTime, const ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -159,4 +179,4 @@ void UKalmalaSupportMagicComponent::TickComponent(const float DeltaTime, const E
     }
 }
 void UKalmalaSupportMagicComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{ Super::GetLifetimeReplicatedProps(OutLifetimeProps); DOREPLIFETIME_CONDITION(UKalmalaSupportMagicComponent, LearnedMask, COND_OwnerOnly); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffect); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffectExpiry); DOREPLIFETIME(UKalmalaSupportMagicComponent, HearthShieldStrength); DOREPLIFETIME(UKalmalaSupportMagicComponent, HearthShieldExpiry); DOREPLIFETIME(UKalmalaSupportMagicComponent, BearsVigorExpiry); DOREPLIFETIME(UKalmalaSupportMagicComponent, BearsVigorStrengthMultiplier); }
+{ Super::GetLifetimeReplicatedProps(OutLifetimeProps); DOREPLIFETIME_CONDITION(UKalmalaSupportMagicComponent, LearnedMask, COND_OwnerOnly); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffect); DOREPLIFETIME(UKalmalaSupportMagicComponent, ActiveEffectExpiry); DOREPLIFETIME(UKalmalaSupportMagicComponent, HearthShieldStrength); DOREPLIFETIME(UKalmalaSupportMagicComponent, HearthShieldExpiry); DOREPLIFETIME(UKalmalaSupportMagicComponent, BearsVigorExpiry); DOREPLIFETIME(UKalmalaSupportMagicComponent, BearsVigorStrengthMultiplier); DOREPLIFETIME_CONDITION(UKalmalaSupportMagicComponent, CooldownExpiry, COND_OwnerOnly); DOREPLIFETIME_CONDITION(UKalmalaSupportMagicComponent, Feedback, COND_OwnerOnly); DOREPLIFETIME_CONDITION(UKalmalaSupportMagicComponent, FeedbackSerial, COND_OwnerOnly); }

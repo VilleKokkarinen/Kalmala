@@ -13,6 +13,7 @@ class UKalmalaPlayerStatusComponent;
 class UKalmalaCombatComponent;
 class UKalmalaDiscoveryProgressComponent;
 class UKalmalaSupportMagicComponent;
+enum class EKalmalaSupportEffect : uint8;
 
 USTRUCT(BlueprintType)
 struct FKalmalaExposureState
@@ -48,6 +49,7 @@ public:
     UKalmalaDiscoveryProgressComponent* GetDiscoveryProgressComponent() const { return DiscoveryProgress; }
     UKalmalaInventoryComponent* GetInventoryComponent() const { return Inventory; }
     UKalmalaSupportMagicComponent* GetSupportMagicComponent() const { return SupportMagic; }
+    EKalmalaSupportEffect GetSelectedSupportEffect() const;
     float GetHealth() const { return Health; }
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
     bool ReceiveMendingFromServer(const AKalmalaCharacter* SourceCharacter, float HealAmount);
@@ -76,6 +78,12 @@ private:
     void MoveRight(float Value);
     void RequestInteract();
     void RequestAttack();
+    void SelectMending();
+    void SelectHearthShield();
+    void SelectBearsVigor();
+    void SelectDeerCall();
+    void SelectSupportEffect(EKalmalaSupportEffect Effect);
+    void ActivateSelectedSupportEffect();
     void ConfigureTraversalTestTarget();
     void ApplyExposureTravelPenalty();
     void StartSprint();
@@ -111,6 +119,8 @@ private:
     FVector2D SwimmingTestStart = FVector2D::ZeroVector;
     bool bOceanTravelTestEnabled = false;
     bool bCombatPeerTestInvalidAttackSent = false;
+    uint8 SelectedSupportEffectValue = 0;
+    uint32 LocalSupportRequestSequence = 0;
     bool bDiscoveryPeerPrivacyLogged = false;
     float DiscoveryPeerTestStartTime = -1.0f;
     bool bOceanTravelTargetConfigured = false;

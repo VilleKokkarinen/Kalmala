@@ -301,6 +301,11 @@ void AKalmalaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
     PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &AKalmalaCharacter::StartSprint);
     PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &AKalmalaCharacter::StopSprint);
+    PlayerInputComponent->BindAction(TEXT("SupportSelectMending"), IE_Pressed, this, &AKalmalaCharacter::SelectMending);
+    PlayerInputComponent->BindAction(TEXT("SupportSelectHearthShield"), IE_Pressed, this, &AKalmalaCharacter::SelectHearthShield);
+    PlayerInputComponent->BindAction(TEXT("SupportSelectBearsVigor"), IE_Pressed, this, &AKalmalaCharacter::SelectBearsVigor);
+    PlayerInputComponent->BindAction(TEXT("SupportSelectDeerCall"), IE_Pressed, this, &AKalmalaCharacter::SelectDeerCall);
+    PlayerInputComponent->BindAction(TEXT("SupportActivate"), IE_Pressed, this, &AKalmalaCharacter::ActivateSelectedSupportEffect);
 }
 
 void AKalmalaCharacter::ConfigureSwimmingTestTarget()
@@ -543,6 +548,32 @@ void AKalmalaCharacter::RequestAttack()
     {
         Combat->ServerRequestAttack(++LocalAttackSequence);
     }
+}
+
+EKalmalaSupportEffect AKalmalaCharacter::GetSelectedSupportEffect() const
+{
+    return static_cast<EKalmalaSupportEffect>(SelectedSupportEffectValue);
+}
+
+void AKalmalaCharacter::SelectMending() { SelectSupportEffect(EKalmalaSupportEffect::Mending); }
+void AKalmalaCharacter::SelectHearthShield() { SelectSupportEffect(EKalmalaSupportEffect::HearthShield); }
+void AKalmalaCharacter::SelectBearsVigor() { SelectSupportEffect(EKalmalaSupportEffect::BearsVigor); }
+void AKalmalaCharacter::SelectDeerCall() { SelectSupportEffect(EKalmalaSupportEffect::DeerCall); }
+
+void AKalmalaCharacter::SelectSupportEffect(const EKalmalaSupportEffect Effect)
+{
+    if (!IsLocallyControlled() || !Controller || Controller->IsMoveInputIgnored() || !SupportMagic
+        || !UKalmalaSupportMagicComponent::IsKnownEffect(Effect) || !SupportMagic->HasLearnedEffect(Effect)) return;
+    SelectedSupportEffectValue = static_cast<uint8>(Effect);
+}
+
+void AKalmalaCharacter::ActivateSelectedSupportEffect()
+{
+    const EKalmalaSupportEffect Effect = GetSelectedSupportEffect();
+    if (!IsLocallyControlled() || !Controller || Controller->IsMoveInputIgnored() || !SupportMagic
+        || !UKalmalaSupportMagicComponent::IsKnownEffect(Effect) || !SupportMagic->HasLearnedEffect(Effect)
+        || LocalSupportRequestSequence == TNumericLimits<uint32>::Max()) return;
+    SupportMagic->ServerRequestActivateSupportEffect(Effect, ++LocalSupportRequestSequence);
 }
 
 void AKalmalaCharacter::ServerRequestInteract_Implementation()

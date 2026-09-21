@@ -49,6 +49,8 @@ remapping is added:
 | SettingsMenu | Escape / O | — |
 | WorldMap / WorldMapRecenter | M / R | — |
 | CraftMenu | B | Special left |
+| Support selection | 1–4 | D-pad directions |
+| Support activation | Q | Face button top |
 
 The baseline check proves that these existing names and inputs are present; it
 does not make them remappable. A runtime remapping presenter must display the

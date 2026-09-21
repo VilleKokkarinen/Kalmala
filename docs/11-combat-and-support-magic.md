@@ -181,6 +181,17 @@ target, damage, duration, magnitude, or effect ID. Until the individual effect
 increments provide their validated result, the short active state is purely
 replicated presentation and has no combat or world mutation.
 
+The local learned-effect panel reads the owner-only learned mask, the owning
+pawn's replicated stamina, owner-only cooldown expiry and result, and the
+relevant active-effect presentation. Keyboard 1–4 or controller D-pad selects
+Mending, Hearth Shield, Bear's Vigor, or Deer Call; Q or the controller top
+face button requests activation. The owned pawn sends only the selected
+allowlisted enum and its monotonically increasing session sequence. Server
+acceptance or generic unavailability feedback and cooldown expiry replicate to
+the owner only; rejected-result updates are rate-limited. Other peers do not
+receive learned-effect or private discovery acknowledgement state. Each effect
+row names its matching controller D-pad direction and keyboard key.
+
 | Effect | Server-selected target and result |
 | --- | --- |
 | Mending | Living allied pawn in range and line of sight; positive heal clamped to maximum health; reject full health; no revive |
