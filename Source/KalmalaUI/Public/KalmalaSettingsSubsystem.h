@@ -16,6 +16,7 @@ class KALMALAUI_API UKalmalaSettingsSubsystem : public ULocalPlayerSubsystem, pu
     GENERATED_BODY()
 
 public:
+    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     virtual void Tick(float DeltaTime) override;
     virtual void Deinitialize() override;
     virtual UWorld* GetTickableGameObjectWorld() const override { return GetWorld(); }

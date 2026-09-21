@@ -22,6 +22,12 @@ public:
     bool IsMenuOpen() const { return bMenuOpen; }
 
     static int32 ClampViewDistanceQuality(int32 Quality);
+    static float ClampMasterVolume(float Volume);
+    static float GetStoredMasterVolume();
+    static bool IsAudioMuted();
+    static void SetMasterVolume(float Volume);
+    static void ToggleAudioMute();
+    static void ApplySavedMasterVolume();
 
 protected:
     virtual void NativeConstruct() override;
@@ -30,9 +36,11 @@ private:
     void ShowMainMenu();
     void ShowOptionsMenu();
     void ShowVideoTab();
+    void ShowAudioTab();
     void ShowPlaceholderTab(const FText& Title, const FText& Description);
     void ApplyVideoSettings();
     void UpdateVideoLabels();
+    void UpdateAudioLabels();
     UButton* AddButton(class UVerticalBox* Parent, const FText& Label, FName Name);
     UTextBlock* AddLabel(class UVerticalBox* Parent, const FText& Label, float FontSize = 20.0f);
 
@@ -56,6 +64,10 @@ private:
     void HandleWindowModeClicked();
     UFUNCTION()
     void HandleViewDistanceClicked();
+    UFUNCTION()
+    void HandleMasterVolumeClicked();
+    UFUNCTION()
+    void HandleAudioMuteClicked();
 
     UPROPERTY(Transient)
     TObjectPtr<class UVerticalBox> ContentBox;
@@ -67,6 +79,10 @@ private:
     TObjectPtr<UTextBlock> WindowModeLabel;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> ViewDistanceLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> MasterVolumeLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> AudioMuteLabel;
 
     TArray<FIntPoint> ResolutionChoices;
     int32 ResolutionChoiceIndex = 0;

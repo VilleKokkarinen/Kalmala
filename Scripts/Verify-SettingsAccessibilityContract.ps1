@@ -29,6 +29,10 @@ foreach ($section in $requiredSections) {
 $requiredTerms = @{
     'Video option group' = 'Video'
     'Audio option group' = 'Audio'
+    'Local master volume' = 'master-volume cycle in\s+25% steps'
+    'Mute and restore' = 'mute/restore button'
+    'Local audio configuration' = 'local `GameUserSettings` config'
+    'Local primary output' = 'primary output-volume multiplier'
     'Controls option group' = 'Controls'
     'Text scale option' = 'text scale'
     'Contrast option' = 'contrast'
@@ -53,7 +57,7 @@ if ($text -notmatch 'Escape') {
 if ($text -notmatch 'Cancel.*apply.*reset|apply.*reset.*actions') {
     throw 'Settings/accessibility contract does not define reversible local changes'
 }
-if ($text -notmatch 'Runtime UI.*persistence verification remain queued') {
+if ($text -notmatch '(?s)Runtime UI for the other option groups and the full\s+settings-persistence\s+verification remain queued') {
     throw 'Settings/accessibility contract does not state its runtime verification limit'
 }
 

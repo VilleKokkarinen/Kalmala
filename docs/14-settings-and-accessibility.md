@@ -30,6 +30,12 @@ they must stay bounded, reversible, and compatible with the current input
 bindings. This increment makes no platform, visual-identity, or audio-content
 decision.
 
+The first runtime Audio-tab increment provides a local master-volume cycle in
+25% steps and a mute/restore button. The current value and control labels are
+textual. Master and restore levels use the local `GameUserSettings` config and
+the engine's primary output-volume multiplier. Ambient, music, and interaction/
+combat category levels remain to be implemented.
+
 ## Existing input baseline
 
 The current normal-player baseline in `Config/DefaultInput.ini` is the source
@@ -70,6 +76,8 @@ and send the same existing intent rather than a new gameplay payload.
 - Audio controls must have text equivalents for their current value and a
   mute/restore path. Silence must not remove the only indication of damage,
   Wet, hearth, construction, discovery, or support state.
+- The master-volume and mute/restore controls remain focusable buttons, expose
+  their current value and action in text, and retain the menu's Escape return.
 - Cancel, apply, and reset actions must communicate whether a local change was
   retained. Invalid or out-of-range input falls back to the last valid local
   value and never reaches gameplay code.
@@ -90,6 +98,10 @@ reward, status, weather value, or effect execution. Local UI must render the
 authoritative replicated result where one exists and retain a text/shape
 equivalent for colour-independent use.
 
+The master audio preference is applied independently by each running game
+process. In a listen-server session it affects that process's local output; it
+does not change audio or state on a connected remote client.
+
 ## Acceptance and limits
 
 The runtime implementation is acceptable when a fresh local profile can open,
@@ -102,5 +114,8 @@ viewport sizes.
 `Scripts/Verify-SettingsAccessibilityContract.ps1` checks this contract
 without Unreal. It proves the documented option groups and boundaries are
 present, not that the runtime menu or packaged accessibility flow is complete.
-Runtime UI and persistence verification remain queued for when Unreal build
-access is available.
+The focused `Kalmala.UI.Settings.LocalPresentation` automation checks
+master-volume bounds, local config round-trip, immediate mute, and restore to
+the prior level. It does not render the controls or establish audible quality.
+Runtime UI for the other option groups and the full settings-persistence
+verification remain queued.

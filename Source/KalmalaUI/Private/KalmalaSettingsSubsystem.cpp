@@ -7,6 +7,12 @@
 #include "KalmalaCraftingSubsystem.h"
 #include "Engine/LocalPlayer.h"
 
+void UKalmalaSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+    Super::Initialize(Collection);
+    UKalmalaSettingsWidget::ApplySavedMasterVolume();
+}
+
 void UKalmalaSettingsSubsystem::Tick(float DeltaTime)
 {
     if (GetLocalPlayer() == nullptr || GetWorld() == nullptr || !GetWorld()->IsGameWorld()) return;

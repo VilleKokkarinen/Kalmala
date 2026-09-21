@@ -12,12 +12,28 @@
 #include "Components/VerticalBoxSlot.h"
 #include "GameFramework/GameUserSettings.h"
 #include "GameFramework/PlayerController.h"
+#include "Misc/App.h"
+#include "Misc/ConfigCacheIni.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 namespace
 {
     constexpr FLinearColor BackgroundColour(0.015f, 0.025f, 0.035f, 0.94f);
     constexpr FLinearColor PanelColour(0.055f, 0.08f, 0.10f, 0.98f);
+    constexpr TCHAR AudioSettingsSection[] = TEXT("/Script/KalmalaUI.KalmalaSettingsWidget");
+    constexpr TCHAR MasterVolumeKey[] = TEXT("LocalMasterVolume");
+    constexpr TCHAR RestoreVolumeKey[] = TEXT("LocalRestoreVolume");
+    constexpr float DefaultMasterVolume = 1.0f;
+
+    float ReadStoredVolume(const TCHAR* Key, const float DefaultValue)
+    {
+        float Value = DefaultValue;
+        if (GConfig != nullptr)
+        {
+            GConfig->GetFloat(AudioSettingsSection, Key, Value, GGameUserSettingsIni);
+        }
+        return FMath::IsFinite(Value) ? FMath::Clamp(Value, 0.0f, 1.0f) : DefaultValue;
+    }
 }
 
 void UKalmalaSettingsWidget::NativeConstruct()
@@ -78,6 +94,53 @@ void UKalmalaSettingsWidget::Close()
 int32 UKalmalaSettingsWidget::ClampViewDistanceQuality(const int32 Quality)
 {
     return FMath::Clamp(Quality, 0, 3);
+}
+
+float UKalmalaSettingsWidget::ClampMasterVolume(const float Volume)
+{
+    return FMath::IsFinite(Volume) ? FMath::Clamp(Volume, 0.0f, 1.0f) : DefaultMasterVolume;
+}
+
+float UKalmalaSettingsWidget::GetStoredMasterVolume()
+{
+    return ReadStoredVolume(MasterVolumeKey, DefaultMasterVolume);
+}
+
+bool UKalmalaSettingsWidget::IsAudioMuted()
+{
+    return GetStoredMasterVolume() <= 0.0f;
+}
+
+void UKalmalaSettingsWidget::SetMasterVolume(const float Volume)
+{
+    const float ClampedVolume = ClampMasterVolume(Volume);
+    if (GConfig != nullptr)
+    {
+        const float ExistingVolume = GetStoredMasterVolume();
+        const float RestoreVolume = ClampedVolume > 0.0f ? ClampedVolume
+            : (ExistingVolume > 0.0f ? ExistingVolume : ReadStoredVolume(RestoreVolumeKey, DefaultMasterVolume));
+        GConfig->SetFloat(AudioSettingsSection, MasterVolumeKey, ClampedVolume, GGameUserSettingsIni);
+        GConfig->SetFloat(AudioSettingsSection, RestoreVolumeKey, RestoreVolume, GGameUserSettingsIni);
+        GConfig->Flush(false, GGameUserSettingsIni);
+    }
+    FApp::SetVolumeMultiplier(ClampedVolume);
+}
+
+void UKalmalaSettingsWidget::ToggleAudioMute()
+{
+    if (IsAudioMuted())
+    {
+        const float RestoreVolume = ReadStoredVolume(RestoreVolumeKey, DefaultMasterVolume);
+        SetMasterVolume(RestoreVolume > 0.0f ? RestoreVolume : DefaultMasterVolume);
+        return;
+    }
+
+    SetMasterVolume(0.0f);
+}
+
+void UKalmalaSettingsWidget::ApplySavedMasterVolume()
+{
+    FApp::SetVolumeMultiplier(GetStoredMasterVolume());
 }
 
 UTextBlock* UKalmalaSettingsWidget::AddLabel(UVerticalBox* Parent, const FText& Label, const float FontSize)
@@ -160,6 +223,21 @@ void UKalmalaSettingsWidget::ShowVideoTab()
     UpdateVideoLabels();
 }
 
+void UKalmalaSettingsWidget::ShowAudioTab()
+{
+    while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
+    AddLabel(ContentBox, FText::FromString(TEXT("Audio")), 24.0f);
+    UButton* MasterVolume = AddButton(ContentBox, FText::GetEmpty(), TEXT("MasterVolumeButton"));
+    MasterVolume->OnClicked.AddDynamic(this, &ThisClass::HandleMasterVolumeClicked);
+    MasterVolumeLabel = Cast<UTextBlock>(MasterVolume->GetContent());
+    UButton* Mute = AddButton(ContentBox, FText::GetEmpty(), TEXT("AudioMuteButton"));
+    Mute->OnClicked.AddDynamic(this, &ThisClass::HandleAudioMuteClicked);
+    AudioMuteLabel = Cast<UTextBlock>(Mute->GetContent());
+    AddLabel(ContentBox, FText::FromString(TEXT("Saved locally. Master volume affects all game sounds.")), 15.0f);
+    UpdateAudioLabels();
+    MasterVolume->SetUserFocus(GetOwningPlayer());
+}
+
 void UKalmalaSettingsWidget::ShowPlaceholderTab(const FText& Title, const FText& Description)
 {
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
@@ -179,14 +257,41 @@ void UKalmalaSettingsWidget::UpdateVideoLabels()
     if (ViewDistanceLabel) ViewDistanceLabel->SetText(FText::FromString(FString::Printf(TEXT("Render Distance: %d / 3"), ClampViewDistanceQuality(Settings->ScalabilityQuality.ViewDistanceQuality))));
 }
 
+void UKalmalaSettingsWidget::UpdateAudioLabels()
+{
+    const int32 Percent = FMath::RoundToInt(GetStoredMasterVolume() * 100.0f);
+    if (MasterVolumeLabel != nullptr)
+    {
+        MasterVolumeLabel->SetText(FText::FromString(FString::Printf(
+            TEXT("Master Volume: %d%% (Activate to change)"), Percent)));
+    }
+    if (AudioMuteLabel != nullptr)
+    {
+        AudioMuteLabel->SetText(FText::FromString(IsAudioMuted() ? TEXT("Restore audio") : TEXT("Mute audio")));
+    }
+}
+
 void UKalmalaSettingsWidget::ApplyVideoSettings() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->ApplySettings(false); Settings->SaveSettings(); UpdateVideoLabels(); } }
 void UKalmalaSettingsWidget::HandleOptionsClicked() { ShowOptionsMenu(); }
 void UKalmalaSettingsWidget::HandleQuitClicked() { UKismetSystemLibrary::QuitGame(this, GetOwningPlayer(), EQuitPreference::Quit, false); }
 void UKalmalaSettingsWidget::HandleVideoClicked() { ShowVideoTab(); }
-void UKalmalaSettingsWidget::HandleAudioClicked() { ShowPlaceholderTab(FText::FromString(TEXT("Audio")), FText::FromString(TEXT("Audio controls will be available here."))); }
+void UKalmalaSettingsWidget::HandleAudioClicked() { ShowAudioTab(); }
 void UKalmalaSettingsWidget::HandleControlsClicked() { ShowPlaceholderTab(FText::FromString(TEXT("Controls")), FText::FromString(TEXT("Control remapping will be available here."))); }
 void UKalmalaSettingsWidget::HandleSettingsClicked() { ShowPlaceholderTab(FText::FromString(TEXT("Settings")), FText::FromString(TEXT("Gameplay and accessibility settings will be available here."))); }
 void UKalmalaSettingsWidget::HandleResolutionClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { ResolutionChoiceIndex = (ResolutionChoiceIndex + 1) % ResolutionChoices.Num(); Settings->SetScreenResolution(ResolutionChoices[ResolutionChoiceIndex]); ApplyVideoSettings(); } }
 void UKalmalaSettingsWidget::HandleVSyncClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->SetVSyncEnabled(!Settings->IsVSyncEnabled()); ApplyVideoSettings(); } }
 void UKalmalaSettingsWidget::HandleWindowModeClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { const EWindowMode::Type Mode = Settings->GetFullscreenMode(); Settings->SetFullscreenMode(Mode == EWindowMode::Fullscreen ? EWindowMode::Windowed : Mode == EWindowMode::Windowed ? EWindowMode::WindowedFullscreen : EWindowMode::Fullscreen); ApplyVideoSettings(); } }
 void UKalmalaSettingsWidget::HandleViewDistanceClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->ScalabilityQuality.ViewDistanceQuality = (ClampViewDistanceQuality(Settings->ScalabilityQuality.ViewDistanceQuality) + 1) % 4; ApplyVideoSettings(); } }
+void UKalmalaSettingsWidget::HandleMasterVolumeClicked()
+{
+    const int32 CurrentStep = FMath::RoundToInt(GetStoredMasterVolume() * 4.0f);
+    const int32 NextStep = (CurrentStep % 4) + 1;
+    SetMasterVolume(static_cast<float>(NextStep) * 0.25f);
+    UpdateAudioLabels();
+}
+
+void UKalmalaSettingsWidget::HandleAudioMuteClicked()
+{
+    ToggleAudioMute();
+    UpdateAudioLabels();
+}
