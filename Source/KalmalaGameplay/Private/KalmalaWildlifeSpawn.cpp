@@ -291,14 +291,58 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Deer)
     {
-        AddTetra(FVector(0,0,4), FVector(92,38,52), FLinearColor(0.42f,0.25f,0.12f));
-        AddTetra(FVector(88,0,42), FVector(35,26,62), FLinearColor(0.50f,0.31f,0.16f));
-        AddTetra(FVector(-48,-24,-58), FVector(11,11,72), FLinearColor(0.25f,0.15f,0.08f));
-        AddTetra(FVector(-48,24,-58), FVector(11,11,72), FLinearColor(0.25f,0.15f,0.08f));
-        AddTetra(FVector(42,-24,-58), FVector(11,11,72), FLinearColor(0.25f,0.15f,0.08f));
-        AddTetra(FVector(42,24,-58), FVector(11,11,72), FLinearColor(0.25f,0.15f,0.08f));
-        AddTetra(FVector(112,-18,88), FVector(24,4,42), FLinearColor(0.75f,0.65f,0.42f));
-        AddTetra(FVector(112,18,88), FVector(24,4,42), FLinearColor(0.75f,0.65f,0.42f));
+        const FLinearColor DeerHide(0.43f, 0.27f, 0.14f);
+        const FLinearColor DeerShoulder(0.51f, 0.33f, 0.18f);
+        const FLinearColor DeerLeg(0.25f, 0.16f, 0.09f);
+        const FLinearColor DeerHoof(0.12f, 0.085f, 0.055f);
+        const FLinearColor RumpMark(0.68f, 0.52f, 0.32f);
+        const FLinearColor Muzzle(0.60f, 0.39f, 0.23f);
+        const FLinearColor Antler(0.73f, 0.60f, 0.39f);
+        const FLinearColor Eye(0.07f, 0.045f, 0.025f);
+
+        // A narrow raised shoulder and long legs give the wary herd animal a light, alert outline.
+        AddTetraPoints(FVector(-104,-24,9), FVector(-104,24,9), FVector(5,-22,27), FVector(-49,0,72), DeerHide);
+        AddTetraPoints(FVector(-55,-25,13), FVector(-55,25,13), FVector(52,-16,35), FVector(12,0,78), DeerShoulder);
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            AddTetraPoints(FVector(-99,Side * 22.0f,29), FVector(-85,Side * 24.0f,28),
+                FVector(-72,Side * 20.0f,48), FVector(-83,Side * 16.0f,57), RumpMark);
+        }
+
+        // The narrow neck reaches forward from the shoulder into a raised head and tapered muzzle.
+        AddTetraPoints(FVector(26,-18,39), FVector(26,18,39), FVector(77,-10,84), FVector(59,0,108), DeerShoulder);
+        AddTetraPoints(FVector(69,-12,91), FVector(69,12,91), FVector(115,0,87), FVector(99,0,119), DeerHide);
+        AddTetraPoints(FVector(101,-7,88), FVector(101,7,88), FVector(137,0,81), FVector(123,0,98), Muzzle);
+
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            // Side-set eyes and pointed ears make the forward-facing head legible at a distance.
+            AddTetraPoints(FVector(100,Side * 10.0f,99), FVector(108,Side * 10.0f,98),
+                FVector(109,Side * 16.0f,101), FVector(105,Side * 12.0f,104), Eye);
+            AddTetraPoints(FVector(79,Side * 10.0f,105), FVector(72,Side * 16.0f,103),
+                FVector(52,Side * 29.0f,121), FVector(81,Side * 27.0f,117), DeerShoulder);
+
+            // Four separated leg lines and small dark hooves keep the body visibly off the ground.
+            const auto AddLongLeg = [&AddTetraPoints, &DeerLeg, &DeerHoof](const float HipX, const float KneeX, const float LegSide)
+            {
+                AddTetraPoints(FVector(HipX - 8.0f, LegSide * 19.0f, 32), FVector(HipX + 8.0f, LegSide * 23.0f, 29),
+                    FVector(KneeX + 7.0f, LegSide * 17.0f, -7), FVector(KneeX - 6.0f, LegSide * 20.0f, -19), DeerLeg);
+                AddTetraPoints(FVector(KneeX - 6.0f, LegSide * 17.0f, -16), FVector(KneeX + 7.0f, LegSide * 19.0f, -17),
+                    FVector(KneeX + 5.0f, LegSide * 15.0f, -45), FVector(KneeX - 5.0f, LegSide * 17.0f, -54), DeerLeg);
+                AddTetraPoints(FVector(KneeX - 8.0f, LegSide * 12.0f, -51), FVector(KneeX + 8.0f, LegSide * 12.0f, -51),
+                    FVector(KneeX + 12.0f, LegSide * 11.0f, -58), FVector(KneeX - 12.0f, LegSide * 11.0f, -58), DeerHoof);
+            };
+            AddLongLeg(-61.0f, -70.0f, Side);
+            AddLongLeg(36.0f, 43.0f, Side);
+
+            // Keep the paired antlers, with a forked backward tine on each warm ivory beam.
+            AddTetraPoints(FVector(83,Side * 8.0f,110), FVector(90,Side * 11.0f,112),
+                FVector(87,Side * 27.0f,127), FVector(77,Side * 33.0f,139), Antler);
+            AddTetraPoints(FVector(86,Side * 24.0f,126), FVector(92,Side * 28.0f,129),
+                FVector(101,Side * 34.0f,139), FVector(97,Side * 38.0f,144), Antler);
+            AddTetraPoints(FVector(80,Side * 29.0f,132), FVector(86,Side * 33.0f,135),
+                FVector(67,Side * 41.0f,140), FVector(59,Side * 44.0f,145), Antler);
+        }
     }
     else
     {
