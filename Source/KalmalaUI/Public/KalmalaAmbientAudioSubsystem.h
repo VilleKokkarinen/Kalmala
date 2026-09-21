@@ -30,6 +30,7 @@ private:
     void UpdateWindAmbience(float DeltaTime, const FKalmalaWeatherState& Weather);
     void UpdateRainAmbience(float DeltaTime, UWorld* World, const FKalmalaWeatherState& Weather);
     void UpdateWetStatusCue(UWorld* World, APlayerController* Controller);
+    void UpdateLocalMovementCues(float DeltaTime, UWorld* World, APlayerController* Controller);
     void UpdateSupportEffectCues(UWorld* World, APlayerController* Controller);
     void UpdateCombatResultCue(UWorld* World, APlayerController* Controller);
     void UpdateDiscoveryAcknowledgementCue(UWorld* World, APlayerController* Controller);
@@ -110,6 +111,15 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<USoundWave> InteractionRejectedCue;
 
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> MovementFootfallCue;
+
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> MovementJumpCue;
+
+    UPROPERTY(Transient)
+    TObjectPtr<USoundWave> MovementLandingCue;
+
     float CurrentWindVolume = 0.0f;
     float TargetWindVolume = 0.0f;
     float WaterProbeTimeRemaining = 0.0f;
@@ -125,6 +135,13 @@ private:
     float TargetBiomePitch = 1.0f;
     float CurrentRainVolume = 0.0f;
     float TargetRainVolume = 0.0f;
+    TWeakObjectPtr<APawn> TraversalPawn;
+    FVector LastMovementLocation = FVector::ZeroVector;
+    float FootfallDistanceAccumulated = 0.0f;
+    float FootfallCueCooldownRemaining = 0.0f;
+    bool bMovementStateInitialized = false;
+    bool bMovementWasGrounded = false;
+    bool bMovementWasFalling = false;
     TWeakObjectPtr<APawn> SupportFeedbackPawn;
     uint32 LastSupportFeedbackSerial = 0;
     bool bSupportEffectStateInitialized = false;

@@ -10,7 +10,7 @@ non-audio equivalent so silence never hides authoritative state.
 | Cue group | Normal trigger | Audio intent | Required non-audio equivalent | Authority/privacy boundary |
 | --- | --- | --- | --- | --- |
 | Ambient wilderness | Local player is in normal play | Quiet wind, water, fire, and biome atmosphere establish place without a fixed route | Terrain, weather, hearth, and exposure text/shape cues remain readable | Only local visible context; no hidden population, discovery, or route hint |
-| Movement and traversal | Local movement, jump, sprint, landing, or water entry is already visible | Sparse original footfall, cloth, landing, and movement-state cues reinforce action | Existing movement pose, HUD state, and bound input labels remain sufficient | Local cosmetic response; no movement result, speed, stamina, or terrain authority is authored by audio |
+| Movement and traversal | Local movement, jump, sprint, landing, or water entry is already visible | Sparse original footfall, jump, landing, and movement-state cues reinforce action | Existing movement pose, HUD state, and bound input labels remain sufficient | Local cosmetic response; no movement result, speed, stamina, or terrain authority is authored by audio |
 | Weather and exposure | Existing replicated weather/Wet presentation changes | Rain, wind, and shelter contrast communicates changing conditions | Wet duration, shelter, warmth, hearth, and recovery text/shape cues remain visible | Server owns weather/exposure/Wet; audio reads accepted replicated state only |
 | Interaction and gathering | A normal interaction receives an accepted or rejected result | Short, distinct confirmation or rejection cue avoids ambiguous input | Existing interaction text and inventory result identify accepted, rejected, or unavailable state | Server validates actor, range, payment, item, quantity, and outcome; audio carries no request payload |
 | Combat | Replicated committed action or feedback changes for the owning player/relevant actor | Windup, recovery, hit, defeat, and unavailable cues clarify timing and outcome | Combat phase and colour-independent HIT/DEFEAT/UNAVAILABLE text remain authoritative presentation | Server selects target, damage, cooldown, and defeat; clients never infer or author them from sound |
@@ -47,7 +47,10 @@ The runtime ambient layer includes loop-seamed, project-generated beds at
 `/Game/Kalmala/Audio/SupportBearsVigorExpiryCue` and
 `/Game/Kalmala/Audio/CombatResultCue`,
 `/Game/Kalmala/Audio/InteractionAcceptedCue`, and
-`/Game/Kalmala/Audio/InteractionRejectedCue`.
+`/Game/Kalmala/Audio/InteractionRejectedCue`,
+`/Game/Kalmala/Audio/MovementFootfallCue`,
+`/Game/Kalmala/Audio/MovementJumpCue`, and
+`/Game/Kalmala/Audio/MovementLandingCue`.
 `UKalmalaAmbientAudioSubsystem` starts wind only
 for a local player whose normal generated-world state and pawn are ready. It
 smoothly adjusts the wind bed from accepted replicated
@@ -76,6 +79,15 @@ CombatResultCue plays once when the owning pawn's existing owner-only combat
 Unavailable results remain readable through the existing text and do not use
 the confirmation cue. Playback carries no target identity and never infers a
 hit, defeat, or damage from a client request or remote actor.
+MovementFootfallCue is submitted at a quiet, distance-based stride while the
+owning local pawn is grounded and moving; cadence and pitch follow sampled
+local speed, including actual sprint pace. MovementJumpCue plays only when that
+pawn transitions from ground movement into an upward falling state, and
+MovementLandingCue plays when its sampled state returns from falling to ground.
+The subsystem samples only the local controller's own character and its local
+movement component; it does not inspect remote pawns, claim server movement
+acceptance, or trigger an RPC. Existing pose, HUD, and bound input labels
+remain the readable movement state.
 InteractionAcceptedCue plays for a new accepted owner-only crafting result or
 when an existing owner-only inventory stack increases after server validation;
 the first inventory snapshot only establishes a local baseline. A rejected
@@ -108,18 +120,21 @@ discovery, or remote-biome query is used.
 `Scripts/Generate-WeatherExposureAudio.ps1`,
 `Scripts/Generate-SupportFeedbackAudio.ps1`,
 `Scripts/Generate-CombatResultAudio.ps1`,
-`Scripts/Generate-InteractionFeedbackAudio.ps1`, and
-`Scripts/Generate-DiscoveryAcknowledgementAudio.ps1` and
-`Scripts/Generate-SupportEffectAudio.ps1` recreate the original mono sources
+`Scripts/Generate-InteractionFeedbackAudio.ps1`,
+`Scripts/Generate-DiscoveryAcknowledgementAudio.ps1`,
+`Scripts/Generate-SupportEffectAudio.ps1`, and
+`Scripts/Generate-MovementTraversalAudio.ps1` recreate the original mono sources
 under `Content/Kalmala/Audio/Source`; the rain bed is seam-crossfaded
 and the WetStatusCue, SupportAcceptedCue, six effect-specific support cues,
 CombatResultCue,
-DiscoveryAcknowledgedCue, and interaction cues are short one-shots. Import all
-seventeen assets to
+DiscoveryAcknowledgedCue, interaction cues, MovementFootfallCue,
+MovementJumpCue, and MovementLandingCue are short one-shots. Import all twenty
+assets to
 `/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
 `Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`,
-`Scripts/Verify-CombatPeer.ps1`, `Scripts/Verify-DiscoveryPeer.ps1`, and the
-forced editor build. Pass
+`Scripts/Verify-CombatPeer.ps1`, `Scripts/Verify-DiscoveryPeer.ps1`,
+`Scripts/Verify-PlayerControls.ps1 -MovementAudio`, and the forced editor build.
+Pass
 `-WeatherExposureOnly` to the peer runner when
 focusing on the weather and Wet cues; its default mode also requires visible
 water activation. The first verifier checks source format, imported

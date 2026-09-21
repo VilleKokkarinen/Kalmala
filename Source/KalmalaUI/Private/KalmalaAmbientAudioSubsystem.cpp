@@ -6,6 +6,7 @@
 #include "Engine/LocalPlayer.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaCharacterMovementComponent.h"
 #include "KalmalaCombatComponent.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaDiscoveryProgressComponent.h"
@@ -44,6 +45,9 @@ constexpr TCHAR CombatResultCueAssetPath[] = TEXT("/Game/Kalmala/Audio/CombatRes
 constexpr TCHAR DiscoveryAcknowledgedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/DiscoveryAcknowledgedCue.DiscoveryAcknowledgedCue");
 constexpr TCHAR InteractionAcceptedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/InteractionAcceptedCue.InteractionAcceptedCue");
 constexpr TCHAR InteractionRejectedCueAssetPath[] = TEXT("/Game/Kalmala/Audio/InteractionRejectedCue.InteractionRejectedCue");
+constexpr TCHAR MovementFootfallCueAssetPath[] = TEXT("/Game/Kalmala/Audio/MovementFootfallCue.MovementFootfallCue");
+constexpr TCHAR MovementJumpCueAssetPath[] = TEXT("/Game/Kalmala/Audio/MovementJumpCue.MovementJumpCue");
+constexpr TCHAR MovementLandingCueAssetPath[] = TEXT("/Game/Kalmala/Audio/MovementLandingCue.MovementLandingCue");
 constexpr float QuietWindVolume = 0.025f;
 constexpr float StrongWindVolume = 0.10f;
 constexpr float WindFadeSpeed = 1.4f;
@@ -58,6 +62,11 @@ constexpr float DiscoveryAcknowledgedCueVolume = 0.14f;
 constexpr float InteractionAcceptedCueVolume = 0.14f;
 constexpr float InteractionRejectedCueVolume = 0.12f;
 constexpr float InteractionCueMinimumInterval = 0.35f;
+constexpr float MovementFootfallCueVolume = 0.075f;
+constexpr float MovementJumpCueVolume = 0.095f;
+constexpr float MovementLandingCueVolume = 0.11f;
+constexpr float MovementMinimumStepSpeed = 130.0f;
+constexpr float MovementFootfallMinimumInterval = 0.22f;
 constexpr float WaterMaximumVolume = 0.07f;
 constexpr float WaterMaximumDistance = 1600.0f;
 constexpr float WaterFullVolumeDistance = 300.0f;
@@ -145,6 +154,9 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         DiscoveryAcknowledgedCue = nullptr;
         InteractionAcceptedCue = nullptr;
         InteractionRejectedCue = nullptr;
+        MovementFootfallCue = nullptr;
+        MovementJumpCue = nullptr;
+        MovementLandingCue = nullptr;
         WaterProbeTimeRemaining = 0.0f;
         FireProbeTimeRemaining = 0.0f;
         BiomeProbeTimeRemaining = 0.0f;
@@ -186,6 +198,7 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
     if (GameState != nullptr)
     {
         const FKalmalaWeatherState& Weather = GameState->GetWeatherState();
+        UpdateLocalMovementCues(DeltaTime, World, Controller);
         UpdateWindAmbience(DeltaTime, Weather);
         UpdateRainAmbience(DeltaTime, World, Weather);
         UpdateWetStatusCue(World, Controller);
@@ -198,6 +211,115 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
         UpdateFireAmbience(DeltaTime, World, Controller);
         UpdateBiomeAmbience(DeltaTime, World, Controller, GameState->GetWorldGenerationConfig());
     }
+}
+
+void UKalmalaAmbientAudioSubsystem::UpdateLocalMovementCues(const float DeltaTime, UWorld* World,
+    APlayerController* Controller)
+{
+    AKalmalaCharacter* Character = Controller != nullptr && Controller->IsLocalController()
+        ? Cast<AKalmalaCharacter>(Controller->GetPawn())
+        : nullptr;
+    UKalmalaCharacterMovementComponent* Movement = Character != nullptr
+        ? Cast<UKalmalaCharacterMovementComponent>(Character->GetMovementComponent())
+        : nullptr;
+    if (World == nullptr || Character == nullptr || Movement == nullptr || !Character->IsLocallyControlled())
+    {
+        TraversalPawn = nullptr;
+        bMovementStateInitialized = false;
+        FootfallDistanceAccumulated = 0.0f;
+        FootfallCueCooldownRemaining = 0.0f;
+        return;
+    }
+
+    if (TraversalPawn.Get() != Character)
+    {
+        TraversalPawn = Character;
+        bMovementStateInitialized = false;
+        FootfallDistanceAccumulated = 0.0f;
+        FootfallCueCooldownRemaining = 0.0f;
+    }
+
+    if (MovementFootfallCue == nullptr)
+    {
+        MovementFootfallCue = LoadObject<USoundWave>(nullptr, MovementFootfallCueAssetPath);
+    }
+    if (MovementJumpCue == nullptr)
+    {
+        MovementJumpCue = LoadObject<USoundWave>(nullptr, MovementJumpCueAssetPath);
+    }
+    if (MovementLandingCue == nullptr)
+    {
+        MovementLandingCue = LoadObject<USoundWave>(nullptr, MovementLandingCueAssetPath);
+    }
+
+    const FVector CurrentLocation = Character->GetActorLocation();
+    const FVector CurrentVelocity = Movement->Velocity;
+    const bool bGrounded = Movement->IsMovingOnGround();
+    const bool bFalling = Movement->IsFalling();
+    if (!bMovementStateInitialized)
+    {
+        LastMovementLocation = CurrentLocation;
+        bMovementWasGrounded = bGrounded;
+        bMovementWasFalling = bFalling;
+        bMovementStateInitialized = true;
+        return;
+    }
+
+    const float SafeDeltaTime = FMath::Max(0.0f, DeltaTime);
+    FootfallCueCooldownRemaining = FMath::Max(0.0f, FootfallCueCooldownRemaining - SafeDeltaTime);
+    FVector PlanarDelta = CurrentLocation - LastMovementLocation;
+    PlanarDelta.Z = 0.0f;
+    if (bGrounded && CurrentVelocity.Size2D() >= MovementMinimumStepSpeed)
+    {
+        FootfallDistanceAccumulated += PlanarDelta.Size();
+    }
+    else if (!bGrounded)
+    {
+        FootfallDistanceAccumulated = 0.0f;
+    }
+
+    auto SubmitCue = [World, Character](USoundWave* Cue, const TCHAR* EventName, const TCHAR* AssetName,
+        const float Volume, const float Pitch)
+    {
+        const bool bCueSubmitted = World != nullptr && IsValid(Cue);
+        if (bCueSubmitted)
+        {
+            UGameplayStatics::PlaySound2D(World, Cue, Volume, Pitch);
+        }
+#if !UE_BUILD_SHIPPING
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMovementAudioTest")))
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("Movement audio local: PawnAuthority=%d Event=%s CueSubmitted=%d Asset=%s"),
+                Character->HasAuthority() ? 1 : 0, EventName, bCueSubmitted ? 1 : 0,
+                bCueSubmitted ? AssetName : TEXT("None"));
+        }
+#endif
+    };
+
+    if (bMovementWasGrounded && bFalling && CurrentVelocity.Z >= 120.0f)
+    {
+        SubmitCue(MovementJumpCue, TEXT("Jump"), TEXT("MovementJumpCue"), MovementJumpCueVolume, 1.0f);
+    }
+    else if (bMovementWasFalling && bGrounded)
+    {
+        SubmitCue(MovementLandingCue, TEXT("Landing"), TEXT("MovementLandingCue"), MovementLandingCueVolume, 1.0f);
+    }
+
+    const float SpeedAlpha = FMath::Clamp((CurrentVelocity.Size2D() - MovementMinimumStepSpeed) / 470.0f, 0.0f, 1.0f);
+    const float StepDistance = FMath::Lerp(170.0f, 118.0f, SpeedAlpha);
+    if (bGrounded && CurrentVelocity.Size2D() >= MovementMinimumStepSpeed
+        && FootfallCueCooldownRemaining <= 0.0f && FootfallDistanceAccumulated >= StepDistance)
+    {
+        FootfallDistanceAccumulated = FMath::Fmod(FootfallDistanceAccumulated, StepDistance);
+        FootfallCueCooldownRemaining = MovementFootfallMinimumInterval;
+        SubmitCue(MovementFootfallCue, TEXT("Footfall"), TEXT("MovementFootfallCue"),
+            MovementFootfallCueVolume, FMath::Lerp(0.90f, 1.10f, SpeedAlpha));
+    }
+
+    LastMovementLocation = CurrentLocation;
+    bMovementWasGrounded = bGrounded;
+    bMovementWasFalling = bFalling;
 }
 
 void UKalmalaAmbientAudioSubsystem::UpdateWindAmbience(const float DeltaTime, const FKalmalaWeatherState& Weather)
@@ -1102,6 +1224,13 @@ void UKalmalaAmbientAudioSubsystem::StopAmbientAudio()
     bWeatherVerificationLogged = false;
     bWetStatusInitialized = false;
     bLastWetStatus = false;
+    TraversalPawn = nullptr;
+    LastMovementLocation = FVector::ZeroVector;
+    FootfallDistanceAccumulated = 0.0f;
+    FootfallCueCooldownRemaining = 0.0f;
+    bMovementStateInitialized = false;
+    bMovementWasGrounded = false;
+    bMovementWasFalling = false;
     SupportFeedbackPawn = nullptr;
     LastSupportFeedbackSerial = 0;
     DiscoveryFeedbackPawn = nullptr;
@@ -1123,6 +1252,9 @@ void UKalmalaAmbientAudioSubsystem::Deinitialize()
     BiomeBed = nullptr;
     RainBed = nullptr;
     WetStatusCue = nullptr;
+    MovementFootfallCue = nullptr;
+    MovementJumpCue = nullptr;
+    MovementLandingCue = nullptr;
     SupportAcceptedCue = nullptr;
     CombatResultCue = nullptr;
     DiscoveryAcknowledgedCue = nullptr;

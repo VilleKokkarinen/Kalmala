@@ -22,6 +22,12 @@ $interactionAcceptedCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\
 $interactionAcceptedCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\InteractionAcceptedCue.uasset'
 $interactionRejectedCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\InteractionRejectedCue.wav'
 $interactionRejectedCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\InteractionRejectedCue.uasset'
+$movementFootfallCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\MovementFootfallCue.wav'
+$movementFootfallCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\MovementFootfallCue.uasset'
+$movementJumpCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\MovementJumpCue.wav'
+$movementJumpCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\MovementJumpCue.uasset'
+$movementLandingCueWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\MovementLandingCue.wav'
+$movementLandingCueAssetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\MovementLandingCue.uasset'
 $supportEffectCues = @(
     @{ Name = 'SupportMendingCue'; WavePath = (Join-Path $projectRoot 'Content\Kalmala\Audio\Source\SupportMendingCue.wav'); AssetPath = (Join-Path $projectRoot 'Content\Kalmala\Audio\SupportMendingCue.uasset') },
     @{ Name = 'SupportHearthShieldCue'; WavePath = (Join-Path $projectRoot 'Content\Kalmala\Audio\Source\SupportHearthShieldCue.wav'); AssetPath = (Join-Path $projectRoot 'Content\Kalmala\Audio\SupportHearthShieldCue.uasset') },
@@ -38,7 +44,7 @@ $discoverySourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\Ka
 $craftingSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaCraftingComponent.cpp'
 $inventorySourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaInventoryComponent.cpp'
 
-foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $supportCueWavePath, $supportCueAssetPath, $combatCueWavePath, $combatCueAssetPath, $discoveryCueWavePath, $discoveryCueAssetPath, $interactionAcceptedCueWavePath, $interactionAcceptedCueAssetPath, $interactionRejectedCueWavePath, $interactionRejectedCueAssetPath, $sourcePath, $headerPath, $supportSourcePath, $combatSourcePath, $discoverySourcePath, $craftingSourcePath, $inventorySourcePath)) {
+foreach ($path in @($wavePath, $assetPath, $waterWavePath, $waterAssetPath, $fireWavePath, $fireAssetPath, $biomeWavePath, $biomeAssetPath, $rainWavePath, $rainAssetPath, $wetCueWavePath, $wetCueAssetPath, $supportCueWavePath, $supportCueAssetPath, $combatCueWavePath, $combatCueAssetPath, $discoveryCueWavePath, $discoveryCueAssetPath, $interactionAcceptedCueWavePath, $interactionAcceptedCueAssetPath, $interactionRejectedCueWavePath, $interactionRejectedCueAssetPath, $movementFootfallCueWavePath, $movementFootfallCueAssetPath, $movementJumpCueWavePath, $movementJumpCueAssetPath, $movementLandingCueWavePath, $movementLandingCueAssetPath, $sourcePath, $headerPath, $supportSourcePath, $combatSourcePath, $discoverySourcePath, $craftingSourcePath, $inventorySourcePath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "Ambient audio deliverable is missing: $path"
     }
@@ -186,6 +192,25 @@ foreach ($cue in @(
     }
 }
 
+foreach ($cue in @(
+    @{ Name = 'MovementFootfallCue'; Path = $movementFootfallCueWavePath; DataLength = 5292 },
+    @{ Name = 'MovementJumpCue'; Path = $movementJumpCueWavePath; DataLength = 7938 },
+    @{ Name = 'MovementLandingCue'; Path = $movementLandingCueWavePath; DataLength = 7056 }
+)) {
+    [byte[]]$cueBytes = [System.IO.File]::ReadAllBytes($cue.Path)
+    if ($cueBytes.Length -lt 44 -or [System.Text.Encoding]::ASCII.GetString($cueBytes, 0, 4) -ne 'RIFF' -or
+        [System.Text.Encoding]::ASCII.GetString($cueBytes, 8, 4) -ne 'WAVE') {
+        throw "$($cue.Name).wav is not a valid RIFF/WAVE file."
+    }
+    $cueChannels = [BitConverter]::ToInt16($cueBytes, 22)
+    $cueSampleRate = [BitConverter]::ToInt32($cueBytes, 24)
+    $cueBitsPerSample = [BitConverter]::ToInt16($cueBytes, 34)
+    $cueDataLength = [BitConverter]::ToInt32($cueBytes, 40)
+    if ($cueChannels -ne 1 -or $cueSampleRate -ne 22050 -or $cueBitsPerSample -ne 16 -or $cueDataLength -ne $cue.DataLength) {
+        throw "Unexpected $($cue.Name) format: channels=$cueChannels rate=$cueSampleRate bits=$cueBitsPerSample bytes=$cueDataLength"
+    }
+}
+
 foreach ($cue in $supportEffectCues) {
     [byte[]]$cueBytes = [System.IO.File]::ReadAllBytes($cue.WavePath)
     if ($cueBytes.Length -lt 44 -or [System.Text.Encoding]::ASCII.GetString($cueBytes, 0, 4) -ne 'RIFF' -or
@@ -226,6 +251,9 @@ foreach ($required in @(
     '/Game/Kalmala/Audio/DiscoveryAcknowledgedCue.DiscoveryAcknowledgedCue',
     '/Game/Kalmala/Audio/InteractionAcceptedCue.InteractionAcceptedCue',
     '/Game/Kalmala/Audio/InteractionRejectedCue.InteractionRejectedCue',
+    '/Game/Kalmala/Audio/MovementFootfallCue.MovementFootfallCue',
+    '/Game/Kalmala/Audio/MovementJumpCue.MovementJumpCue',
+    '/Game/Kalmala/Audio/MovementLandingCue.MovementLandingCue',
     'IsLocalController()',
     'GetLocalPlayer()',
     'bLooping = true',
@@ -285,6 +313,15 @@ foreach ($required in @(
     'EKalmalaBiome::Ocean',
     'UpdateInteractionResultCue',
     'UpdateGatheringResultCue',
+    'UpdateLocalMovementCues',
+    'MovementMinimumStepSpeed',
+    'FootfallDistanceAccumulated',
+    'Movement->IsMovingOnGround()',
+    'Movement->IsFalling()',
+    'Controller->IsLocalController()',
+    'Character->IsLocallyControlled()',
+    'KalmalaMovementAudioTest',
+    'PawnAuthority=%d Event=%s CueSubmitted=%d',
     'GetResultSerial()',
     'WasLastResultAccepted()',
     'LastGatheringQuantities',
@@ -312,4 +349,4 @@ if ($header -notmatch 'ULocalPlayerSubsystem' -or $header -notmatch 'SampleVisib
     throw 'Ambient audio must stay local and must not add network or gameplay persistence state.'
 }
 
-Write-Output 'PASS: original ambient beds and owner-local weather, interaction, combat, discovery, and effect-specific support cues have the expected mono PCM format and retain local ownership.'
+Write-Output 'PASS: original ambience and owner-local weather, movement, interaction, combat, discovery, and support cues have the expected mono PCM format and retain local ownership.'
