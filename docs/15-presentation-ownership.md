@@ -12,7 +12,7 @@ feedback, but it cannot become a gameplay source.
 
 | Presentation seam | Project-owned source | Current contract | Runtime status |
 | --- | --- | --- | --- |
-| Player | `UKalmalaPlayerModelComponent` procedural mesh and the generated bark/terrain/rock materials | Nine local, collision-free cosmetic parts; shape and pose never author gameplay | Faceted mantle/hood increment is pending Unreal verification |
+| Player | `UKalmalaPlayerModelComponent` procedural mesh and the generated bark/terrain/rock materials | Nine local, collision-free cosmetic parts; shape and pose never author gameplay | Faceted mantle/hood presentation verified in the rendered offscreen host/client controls fixture |
 | Wildlife | `AKalmalaWildlifeSpawn::BuildArchetypePresentation` procedural low-poly geometry and vertex colours | Server-owned replicated actor state; mesh is presentation only and has no collision | Existing Mireling, boar, and deer presentation remains in place |
 | Environment | `AKalmalaGeneratedTerrainPatch`, campfire, and construction procedural meshes using generated materials | Terrain collision and shelter collision remain the gameplay authority; decorative meshes do not add routes or hidden content | Existing generated terrain, water, rock, tree, hearth, and kit sources are audited here |
 | UI | `KalmalaUI` C++ widgets and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | Minimap/map and text HUD are project-owned; settings Audio/Controls/Settings tabs remain placeholders |

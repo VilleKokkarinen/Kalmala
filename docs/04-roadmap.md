@@ -30,7 +30,10 @@ Build the bounded interaction grid, fire/wetness/temperature rules, and client v
 
 Add combat attributes, damage execution, the Mireling, boar, and deer creature archetypes, open-world points of interest, and scroll-learned support magic. Implement Mending, Hearth Shield, Bear's Vigor, and Deer Call; place scroll discoveries across the biome and make one a boss reward.
 
-**Accept:** two players choose their own route through the world, learn and use every support effect, encounter all three creature archetypes, and return with a progression reward. No magic effect directly damages an enemy.
+**Accept:** focused server-authority, persistence, and peer regressions cover the
+three creature archetypes, optional discoveries, and all four support effects.
+No magic effect directly damages an enemy. A rendered two-player acceptance
+scenario is not required by the revised roadmap scope.
 
 ## M5 — Vertical-slice finish
 

@@ -304,14 +304,15 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Verify each effect rejects invalid client payloads, never directly damages an enemy, persists learning correctly, and agrees across host/client presentation.
     - [x] Focused regression covers all allowlisted effects, malformed/client/replay gates, reconnect learning persistence, and non-damaging execution; rendered live-peer casts remain in the M4 vertical slice.
 - [x] Place one scroll discovery as a server-validated Mireling boss reward and verify it remains optional to route selection.
-**M4 acceptance:** two players choose their own route through the world, learn and use every support effect, encounter all three creature archetypes, and return with a progression reward. No magic effect directly damages an enemy.
+**M4 acceptance:** complete under the revised scope. Focused authority, persistence,
+and peer regressions cover the three archetypes, optional discoveries, and all four
+non-damaging support effects. A rendered two-player acceptance scenario is no
+longer a roadmap requirement.
 
 ### M5 — Vertical-slice finish
 
-Implementation remains gated until M4 acceptance passes. This milestone is
-decomposed now by explicit user direction so its release work is ordered and
-independently verifiable; do not start an M5 implementation while M4 remains
-incomplete.
+This milestone is decomposed so its release work is ordered and independently
+verifiable. M4 is complete under its revised focused-regression acceptance.
 
 - [x] Establish the shippable vertical-slice baseline and tool-free loop.
   - [x] Document the 20–30 minute solo/listen-server co-op walkthrough using only normal player actions and the existing route-free world. See `docs/12-vertical-slice-runbook.md`.
@@ -320,6 +321,7 @@ incomplete.
 - [ ] Complete the original visual and audio presentation pass.
   - [x] Inventory the remaining presentation seams and add a no-build project-ownership audit. See `docs/15-presentation-ownership.md` and `Scripts/Verify-PresentationOwnership.ps1`.
   - [ ] Replace remaining prototype presentation with original project-owned player, creature, environment, UI, and feedback assets without changing gameplay contracts.
+    - [x] Verify the existing original faceted player model through a rendered offscreen host/client controls fixture.
   - [x] Define original ambient, weather, interaction, combat, discovery, and support-effect cue groups with readable non-audio equivalents and a no-build contract check. See `docs/16-audio-cue-contract.md` and `Scripts/Verify-AudioCueContract.ps1`.
   - [ ] Add original ambient, weather, interaction, combat, discovery, and support-effect audio cues with readable non-audio state equivalents.
 - [ ] Add optional onboarding and tutorial beats.

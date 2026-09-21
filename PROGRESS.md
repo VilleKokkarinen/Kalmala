@@ -4064,3 +4064,34 @@ full M4 acceptance are marked blocked in `BACKLOG.md` with that evidence.
 Next task: Run the learned-effect UI/input path in a rendered listen-server
 session when a native app surface is available, then complete the M4 route,
 creature, four-cast, reconnect, and persisted-return acceptance.
+
+### 2026-09-21T11:31:00+03:00 — Revise M4 scope and verify original player presentation
+
+Outcome: Removed the rendered two-player M4 acceptance gate by explicit user
+direction, leaving M4 complete under its existing focused authority,
+persistence, and peer regressions. Began M5 with one bounded presentation
+increment: verified the existing original faceted, nine-part player silhouette
+in the rendered offscreen host/client controls fixture.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`; `docs/04-roadmap.md`;
+`docs/12-vertical-slice-runbook.md`; `docs/15-presentation-ownership.md`.
+No gameplay, replication, RPC, persistence, save-schema, asset, or generated
+source changed.
+
+Verification: Forced `KalmalaEditor Win64 Development` build with
+`-WaitMutex -NoHotReload -Force -MaxParallelActions=4` succeeded (`Result:
+Succeeded`; log: `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`).
+`Scripts/Verify-PlayerControls.ps1 -Rendered -Port 18258` passed host/client
+original-model, jump, sprint, release, landing, and server-observed remote
+movement checks. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-77852b35a176467a8545377e5a474eef`.
+
+Multiplayer impact: None. The player model remains local, collision-free
+presentation; Character Movement and all gameplay authority remain unchanged.
+
+Known limits: The broader M5 presentation replacement task remains open for
+creature, environment, UI, and feedback assets. Audio, onboarding, settings,
+performance, tuning, packaging, and the final tool-free M5 session remain
+subsequent increments.
+
+Next task: Replace the next bounded remaining prototype-presentation seam with
+an original project-owned source, retaining the same gameplay contracts.

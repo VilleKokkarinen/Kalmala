@@ -5,9 +5,9 @@ This runbook defines the first M5 baseline: a fresh-player, tool-free
 charter, not a prescribed route or quest. The server's generated identity and
 the players' choices determine where the session goes.
 
-M5 implementation and acceptance remain gated on M4. In particular, this
-document does not claim that the Mireling peer blocker, the complete three-
-creature scenario, or the four-effect live presentation has passed.
+M4 is complete under its revised focused-regression acceptance. This runbook
+defines the later M5 tool-free session; it does not reintroduce a rendered
+two-player M4 acceptance gate.
 
 ## Session rules
 
@@ -67,7 +67,7 @@ or a recommended destination.
 ### 15–24 minutes — Optional encounter and discovery choices
 
 The players engage with whatever optional generated content they choose. The
-M4-complete version of this run must cover the Mireling, boar, and deer
+M5-complete version of this run should cover the Mireling, boar, and deer
 archetypes, a server-validated discovery or scroll reward, and all four learned
 support effects: Mending, Hearth Shield, Bear's Vigor, and Deer Call. No effect
 may deal direct damage or replace ordinary preparation and combat.
@@ -94,7 +94,7 @@ the hearth, store gathered materials, or stop after an optional discovery.
 Their final state should show that recovery and preparation are viable choices,
 not a mandatory travel gate.
 
-For the M4-complete/M5 acceptance run, reconnect the entitled player through
+For the M5 acceptance run, reconnect the entitled player through
 the normal session flow and confirm that the matching-world progression reward
 and the relevant sparse defeat/discovery state remain available exactly once.
 The remote player must not receive the entitled player's private reward or
@@ -111,13 +111,12 @@ not turn any row into a mandatory route or a hidden server query.
 | Start | Host creates a session; a second player joins | Fresh spawn, movement/look/jump/sprint, server identity, matching terrain and relevant player presentation | The host owns world identity; the client accepts the replicated identity and sends no world-selection data |
 | Camp | Players choose a nearby site and gather/craft/place what they can afford | At least one gathered resource, paid hearth or construction result, readable inventory, hearth, shelter, Wet/warmth, and construction state | Server validates interaction, recipe, payment, placement, fire, and exposure; failed actions do not consume resources |
 | Travel | Players choose a heading and whether to split up, gather, map-check, or return | A self-selected position or direction plus one environmental/resource tradeoff; local map/minimap remains an orientation aid | No road, corridor, fixed coordinate, recommended destination, hidden population, or private pin is revealed |
-| Optional content | Players choose whether and where to engage with wildlife or a discovery | Readable combat/discovery/support feedback; once M4 is complete, all three creatures and four support effects are covered without direct-damage magic | Server selects targets, damage, behaviour, rewards, and learned effects; owner-only data stays private and relevant actors replicate normally |
+| Optional content | Players choose whether and where to engage with wildlife or a discovery | Readable combat/discovery/support feedback; the M5 acceptance covers all three creatures and four support effects without direct-damage magic | Server selects targets, damage, behaviour, rewards, and learned effects; owner-only data stays private and relevant actors replicate normally |
 | Return | Players decide when to shelter, use the hearth, store materials, or stop | Camp/recovery state is visible and the players can return without a hard travel gate | Hearth, inventory, construction, exposure, and reward state remain server-owned; recovery does not require a prescribed site |
 | Reconnect | Entitled player reconnects normally to the matching world | The accepted reward/defeat/discovery state is present exactly once and the remote player still lacks private acknowledgement | Matching immutable identity restores only the entitled player/world delta; duplicate claims and cross-world state are rejected |
 
-The first M5 baseline run records every applicable row. Rows marked “once M4
-is complete” remain prerequisites for the final M5 acceptance, not evidence that
-the current blocked M4 scenario has passed.
+The first M5 baseline run records every applicable row. Optional-content rows
+remain part of final M5 evidence; they do not create a separate M4 gate.
 
 ## Acceptance evidence
 
@@ -128,16 +127,14 @@ The observer records player-visible evidence for one run:
 - freely chosen camp, paid construction, hearth state, shelter/weather cues,
   and readable inventory feedback;
 - a self-selected travel choice with gathering or discovery feedback;
-- optional encounter/support choices, including the M4 creature/effect set
-  when M4 is complete;
+- optional encounter/support choices, including the M5 creature/effect set;
 - owner-only rewards and learned effects, relevant-peer combat/exposure state,
   and no hidden-content leak;
 - return, reconnect, and matching-world persistence without duplicate reward;
 - completion within 20–30 minutes, with no prescribed route or mandatory site.
 
 Developer logs and focused automation may diagnose failures, but they cannot be
-the sole proof of the final M5 acceptance. A failed or unavailable M4
-precondition is recorded as a blocker rather than bypassed with a fixture.
+the sole proof of the final M5 acceptance.
 
 ## Authority and persistence boundary
 
