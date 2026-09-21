@@ -274,7 +274,7 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
   - [x] Add a basic owned-pawn attack intent with server-selected wildlife trace target, committed windup/recovery, fixed validated damage, and monotonic replay/cooldown gating; no client target or damage payload.
   - [x] Replicate player-facing combat state and colour-independent hit, defeat, and unavailable-action feedback without exposing hidden server-owned targets.
   - [x] Verify host/client combat agreement, rejected invalid attack requests, and reconnect-safe player and world state.
-- [ ] Add deterministic server-owned wildlife population and behaviour foundations for the M4 archetypes.
+- [x] Add deterministic server-owned wildlife population and behaviour foundations for the M4 archetypes.
   - [x] Activate bounded, seed-derived creature descriptors with stable IDs and terrain-safe spawning; clients only receive relevant replicated actors.
   - [x] Add server-owned idle, flee, investigate, and return behaviour primitives with deterministic budgets and no client-selected spawn or behaviour outcome.
 - [ ] Deliver the Mireling archetype as an optional camp-pressure encounter.

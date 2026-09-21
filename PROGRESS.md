@@ -3746,3 +3746,35 @@ combat state remains pawn-lifetime and resets to defaults after reconnect.
 
 Next task: Verify the deterministic server-owned wildlife population and
 behaviour foundation, the next unchecked M4 parent.
+
+### 2026-09-21T10:03:39+03:00 — Verify M4 wildlife population and behaviour foundation
+
+Outcome: Closed the next unchecked M4 parent after confirming deterministic,
+bounded, terrain-safe wildlife descriptors retain stable sparse-delta IDs and
+that the shared behaviour cycle rejects client/defeated transitions and
+preserves its server-owned order.
+
+Changed: `BACKLOG.md`; `PROGRESS.md`. No gameplay, networking, persistence,
+save schema, asset, or generated source changed.
+
+Verification: Forced `KalmalaEditor Win64 Development` build succeeded with
+`-NoHotReload -MaxParallelActions=4`; UnrealBuildTool log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`. Headless focused
+automations `Kalmala.World.PopulationLayout.Determinism` and
+`Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle` both reported
+`Result={Success}` (2 tests performed); evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaWildlifeFoundation-9b38ab599730496aa078b3b2001e90a1/wildlife-foundation.log`.
+
+Multiplayer impact: None at runtime. The regressions confirm deterministic
+server-derived population seeds, bounded spawn budgets, water/slope filtering,
+stable persistence IDs, and rejection of client-selected or defeated-actor
+behaviour changes. Wildlife materialization and ordinary movement relevancy
+remain server-owned.
+
+Known limits: Headless automation does not prove rendered wildlife movement or
+the full route-free three-archetype M4 session. The separate M4 aggregate gate
+remains blocked by the intermittent Mireling fixture recorded above.
+
+Next task: Verify and close the Mireling optional camp-pressure archetype
+parent using its focused peer/restart evidence; preserve the blocked aggregate
+M4 acceptance gate.
