@@ -33,6 +33,19 @@ Audio settings contract for master/music/ambient/interaction-combat levels and
 mute/restore. A muted or unavailable device must still expose all state through
 the text/shape equivalents above.
 
+The first runtime increment is a loop-seamed, project-generated wind bed at
+`/Game/Kalmala/Audio/WindBed`. `UKalmalaAmbientAudioSubsystem` starts it quietly
+only for a local player whose normal generated-world state and pawn are ready,
+and stops it when local play ends. The generator is
+`Scripts/Generate-WildernessWind.ps1`; `Scripts/Verify-AmbientAudio.ps1` checks
+the source wave format, imported asset, and local-only playback contract.
+`Scripts/Verify-AmbientAudioPeers.ps1` confirms that a listen-server host and
+connected client each create their own local loop component in normal play.
+The existing Wet, warmth, shelter, hearth, and recovery text remains the
+readable fallback. These checks do not establish audible quality, hardware
+mixing, or packaged playback, and do not complete water/fire/biome ambience,
+weather or event cues, or audio options.
+
 Keep cues short, bounded, and non-blocking. Ambient layers may be local and
 spatial, but they must not stream a second world simulation or reveal a server
 actor outside ordinary relevant replication. Combat, discovery, support, hearth,
@@ -46,8 +59,9 @@ field.
 non-audio/accessibility requirement, project-owned asset rule, local mix scope,
 server authority/privacy boundary, and the absence of a new RPC or save field.
 It does not create sound assets, prove mixing, test spatialization, or launch
-Unreal. Runtime audio, silence fallback, packaged playback, and two-player
-cue privacy remain queued for the Unreal-verified M5 presentation pass.
+Unreal. The wind-bed verifier also does not prove audible playback, packaged
+mixing, spatialization, or the remaining cue groups; those remain queued for
+the Unreal-verified M5 presentation pass.
 
 ## Multiplayer and persistence boundary
 
