@@ -1,10 +1,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/Button.h"
 #include "Blueprint/UserWidget.h"
 #include "KalmalaSettingsWidget.generated.h"
 
-class UButton;
 class UTextBlock;
 
 enum class EKalmalaAudioCategory : uint8
@@ -12,6 +12,32 @@ enum class EKalmalaAudioCategory : uint8
     Ambient,
     Music,
     InteractionCombat
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FKalmalaControlBindingClicked, FName, ControlName, bool, bGamepad);
+
+UCLASS()
+class KALMALAUI_API UKalmalaControlButton : public UButton
+{
+    GENERATED_BODY()
+
+public:
+    UKalmalaControlButton(const FObjectInitializer& ObjectInitializer);
+
+    void Configure(FName InControlName, bool bInGamepad);
+    void SetDisplayText(const FText& Text);
+    FName GetControlName() const { return ControlName; }
+    bool IsGamepadBinding() const { return bGamepad; }
+
+    UPROPERTY(BlueprintAssignable)
+    FKalmalaControlBindingClicked OnControlBindingClicked;
+
+private:
+    UFUNCTION()
+    void HandleButtonClicked();
+
+    FName ControlName;
+    bool bGamepad = false;
 };
 
 /**
@@ -38,6 +64,14 @@ public:
     static float ClampAudioCategoryVolume(float Volume);
     static float GetAudioCategoryVolume(EKalmalaAudioCategory Category);
     static void SetAudioCategoryVolume(EKalmalaAudioCategory Category, float Volume);
+    static int32 GetRemappableControlCount();
+    static FName GetRemappableControlName(int32 Index);
+    static FText GetRemappableControlLabel(FName ControlName);
+    static FText GetLocalInputBindingLabel(FName ControlName, bool bGamepad);
+    static bool SetLocalInputBinding(FName ControlName, bool bGamepad, const FKey& Key);
+    static void CycleLocalInputBinding(class APlayerController* Controller, FName ControlName, bool bGamepad);
+    static void ApplySavedInputBindings(class APlayerController* Controller);
+    static void RestoreDefaultInputBindings(class APlayerController* Controller);
 
 protected:
     virtual void NativeConstruct() override;
@@ -47,10 +81,12 @@ private:
     void ShowOptionsMenu();
     void ShowVideoTab();
     void ShowAudioTab();
+    void ShowControlsTab();
     void ShowPlaceholderTab(const FText& Title, const FText& Description);
     void ApplyVideoSettings();
     void UpdateVideoLabels();
     void UpdateAudioLabels();
+    void UpdateControlsLabels();
     void CycleAudioCategory(EKalmalaAudioCategory Category);
     UButton* AddButton(class UVerticalBox* Parent, const FText& Label, FName Name);
     UTextBlock* AddLabel(class UVerticalBox* Parent, const FText& Label, float FontSize = 20.0f);
@@ -85,6 +121,10 @@ private:
     void HandleMusicVolumeClicked();
     UFUNCTION()
     void HandleInteractionCombatVolumeClicked();
+    UFUNCTION()
+    void HandleControlBindingClicked(FName ControlName, bool bGamepad);
+    UFUNCTION()
+    void HandleRestoreControlsClicked();
 
     UPROPERTY(Transient)
     TObjectPtr<class UVerticalBox> ContentBox;
@@ -106,6 +146,9 @@ private:
     TObjectPtr<UTextBlock> MusicVolumeLabel;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> InteractionCombatVolumeLabel;
+
+    UPROPERTY(Transient)
+    TArray<TObjectPtr<UKalmalaControlButton>> ControlButtons;
 
     TArray<FIntPoint> ResolutionChoices;
     int32 ResolutionChoiceIndex = 0;

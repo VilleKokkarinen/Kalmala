@@ -38,6 +38,11 @@ $requiredTerms = @{
     'Local audio configuration' = 'local `GameUserSettings` config'
     'Local primary output' = 'primary output-volume multiplier'
     'Controls option group' = 'Controls'
+    'Control remapping' = 'bounded keyboard/controller choices|bounded local remapping'
+    'Control restore defaults' = 'restore.?defaults|Restore default controls'
+    'Control local input ownership' = 'owning local\s+`UPlayerInput`|owning `UPlayerInput`'
+    'Control config persistence' = 'stores only allowlisted local choices|local overrides'
+    'Control baseline preservation' = 'DefaultInput\.ini.*never rewritten|DefaultInput\.ini.*unchanged'
     'Text scale option' = 'text scale'
     'Contrast option' = 'contrast'
     'Non-colour feedback' = 'colour-independent feedback'
@@ -61,8 +66,8 @@ if ($text -notmatch 'Escape') {
 if ($text -notmatch 'Cancel.*apply.*reset|apply.*reset.*actions') {
     throw 'Settings/accessibility contract does not define reversible local changes'
 }
-if ($text -notmatch '(?s)Control remapping, text scale, contrast,\s+colour-independent feedback, controller operation, and the full settings-\s+persistence verification remain queued') {
-    throw 'Settings/accessibility contract does not state its runtime verification limit'
+if ($text -notmatch '(?s)Text scale,\s+contrast, colour-independent feedback, and the full rendered settings-\s+persistence verification remain queued') {
+    throw 'Settings/accessibility contract does not state its remaining runtime verification limit'
 }
 
 Write-Output 'PASS: settings/accessibility contract covers option groups, input access, non-colour feedback, local persistence, and server authority.'

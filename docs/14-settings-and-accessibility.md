@@ -19,8 +19,10 @@ to implement:
   and must not be required to understand gameplay state.
 - **Controls:** local keyboard/controller bindings for the existing movement,
   look, jump, sprint, interact, attack, map, recenter, settings, and craft
-  actions. The presenter must expose the actual bound label and a restore
-  defaults action without changing what the server validates.
+  actions. The Controls tab now exposes bounded keyboard/controller choices,
+  shows each current label, applies a change to only the owning local
+  `UPlayerInput`, and provides a restore-defaults action without changing what
+  the server validates.
 - **Settings:** local text scale and contrast choices, together with the
   colour-independent feedback preference used by Wet, hearth, construction,
   combat, discovery, and support presentation.
@@ -40,6 +42,15 @@ wind, rain, water, fire, and biome loops, and the interaction/combat value
 scales owner-local movement, status, crafting/gathering, discovery, combat, and
 support one-shots. The music value is ready for a future music playback path;
 there is no music track in the current runtime.
+
+The Controls tab stores only allowlisted local choices in the existing
+`GameUserSettings` configuration. Movement axes retain positive/negative pairs
+when a keyboard layout is changed; action and look bindings replace only the
+selected keyboard or controller device family. Applying or restoring a choice
+rebuilds the local player's input map immediately, and a fresh controller
+instance rehydrates the same local choices. The project baseline in
+`Config/DefaultInput.ini` is never rewritten. Escape remains available for the
+modal close path even when the alternate Settings action key is changed.
 
 ## Existing input baseline
 
@@ -115,16 +126,18 @@ player components or cue submissions; a connected peer has separate settings.
 The runtime implementation is acceptable when a fresh local profile can open,
 navigate, change, cancel, apply, reset, and persist each option group with
 keyboard and controller input, while a second player observes no replicated
-settings state. The rendered check must cover text scale, contrast, focus,
-non-colour feedback, mute/restore, and the Escape modal flow at the supported
-viewport sizes.
+settings state. The Controls increment covers bounded local remapping and
+restore defaults; the rendered check must still cover text scale, contrast,
+focus, non-colour feedback, mute/restore, and the Escape modal flow at the
+supported viewport sizes.
 
 `Scripts/Verify-SettingsAccessibilityContract.ps1` checks this contract
 without Unreal. It proves the documented option groups and boundaries are
 present, not that the runtime menu or packaged accessibility flow is complete.
 The focused `Kalmala.UI.Settings.LocalPresentation` automation checks
-master-volume bounds, local config round-trip, immediate mute and restore, and
-category-level bounds and config round-trips. It does not render the controls
-or establish audible quality. Control remapping, text scale, contrast,
-colour-independent feedback, controller operation, and the full settings-
+master-volume bounds, local config round-trip, immediate mute and restore,
+category-level bounds and config round-trips, bounded control labels, local
+control persistence, and restore defaults. It does not render the Controls tab,
+simulate physical controller input, or establish audible quality. Text scale,
+contrast, colour-independent feedback, and the full rendered settings-
 persistence verification remain queued.

@@ -52,6 +52,7 @@ void UKalmalaSettingsSubsystem::BindLocalInput(APlayerController* InLocalControl
     FInputActionBinding& Binding = InLocalController->InputComponent->BindAction(TEXT("SettingsMenu"), IE_Pressed, this, &ThisClass::HandleSettingsMenu);
     Binding.bConsumeInput = true;
     BoundInputComponent = InLocalController->InputComponent;
+    UKalmalaSettingsWidget::ApplySavedInputBindings(InLocalController);
 }
 
 void UKalmalaSettingsSubsystem::HandleSettingsMenu()

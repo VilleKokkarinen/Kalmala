@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaSettingsWidget.h"
+#include "InputCoreTypes.h"
 #include "Misc/App.h"
 #include "Misc/AutomationTest.h"
 #include <limits>
@@ -42,6 +43,22 @@ bool FKalmalaSettingsWidgetTest::RunTest(const FString& Parameters)
     UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::Music, OriginalMusicVolume);
     UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat,
         OriginalInteractionCombatVolume);
+
+    TestTrue(TEXT("Controls expose the existing movement, look, and action intents"),
+        UKalmalaSettingsWidget::GetRemappableControlCount() >= 10);
+    TestEqual(TEXT("Controls keep the movement-forward intent first"),
+        UKalmalaSettingsWidget::GetRemappableControlName(0), FName(TEXT("MoveForward")));
+    TestEqual(TEXT("Controls show the keyboard baseline for Interact"),
+        UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), false).ToString(), FString(TEXT("E")));
+    TestTrue(TEXT("Controls reject keys outside the bounded local choices"),
+        !UKalmalaSettingsWidget::SetLocalInputBinding(TEXT("Interact"), false, EKeys::F1));
+    TestTrue(TEXT("Controls persist a bounded local keyboard choice"),
+        UKalmalaSettingsWidget::SetLocalInputBinding(TEXT("Interact"), false, EKeys::F));
+    TestEqual(TEXT("Controls immediately report the local keyboard choice"),
+        UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), false).ToString(), FString(TEXT("F")));
+    UKalmalaSettingsWidget::RestoreDefaultInputBindings(nullptr);
+    TestEqual(TEXT("Restore defaults returns the documented keyboard binding"),
+        UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), false).ToString(), FString(TEXT("E")));
 
     const float OriginalRuntimeVolume = FApp::GetVolumeMultiplier();
     const float OriginalStoredVolume = UKalmalaSettingsWidget::GetStoredMasterVolume();

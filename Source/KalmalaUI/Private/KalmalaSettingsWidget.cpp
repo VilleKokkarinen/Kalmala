@@ -7,11 +7,15 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
+#include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "GameFramework/GameUserSettings.h"
+#include "GameFramework/InputSettings.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerInput.h"
+#include "InputCoreTypes.h"
 #include "Misc/App.h"
 #include "Misc/ConfigCacheIni.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -24,6 +28,245 @@ namespace
     constexpr TCHAR MasterVolumeKey[] = TEXT("LocalMasterVolume");
     constexpr TCHAR RestoreVolumeKey[] = TEXT("LocalRestoreVolume");
     constexpr float DefaultMasterVolume = 1.0f;
+
+    enum class ELocalInputMappingKind : uint8
+    {
+        Action,
+        Axis,
+        AxisPair
+    };
+
+    struct FLocalInputAxisPair
+    {
+        FKey Positive;
+        FKey Negative;
+    };
+
+    struct FLocalInputDefinition
+    {
+        FName Name;
+        const TCHAR* Label = TEXT("");
+        ELocalInputMappingKind Kind = ELocalInputMappingKind::Action;
+        TArray<FKey> KeyboardKeys;
+        TArray<FKey> GamepadKeys;
+        TArray<FLocalInputAxisPair> KeyboardPairs;
+    };
+
+    FLocalInputDefinition MakeSingleInput(const FName Name, const TCHAR* Label,
+        const ELocalInputMappingKind Kind, const TArray<FKey>& KeyboardKeys,
+        const TArray<FKey>& GamepadKeys)
+    {
+        FLocalInputDefinition Definition;
+        Definition.Name = Name;
+        Definition.Label = Label;
+        Definition.Kind = Kind;
+        Definition.KeyboardKeys = KeyboardKeys;
+        Definition.GamepadKeys = GamepadKeys;
+        return Definition;
+    }
+
+    FLocalInputDefinition MakeAxisPairInput(const FName Name, const TCHAR* Label,
+        const TArray<FLocalInputAxisPair>& KeyboardPairs, const TArray<FKey>& GamepadKeys)
+    {
+        FLocalInputDefinition Definition;
+        Definition.Name = Name;
+        Definition.Label = Label;
+        Definition.Kind = ELocalInputMappingKind::AxisPair;
+        Definition.KeyboardPairs = KeyboardPairs;
+        Definition.GamepadKeys = GamepadKeys;
+        return Definition;
+    }
+
+    const TArray<FLocalInputDefinition>& GetLocalInputDefinitions()
+    {
+        static const TArray<FLocalInputDefinition> Definitions = []
+        {
+            TArray<FLocalInputDefinition> Result;
+            Result.Add(MakeAxisPairInput(TEXT("MoveForward"), TEXT("Move forward / back"),
+                { { EKeys::W, EKeys::S }, { EKeys::Up, EKeys::Down }, { EKeys::I, EKeys::K } },
+                { EKeys::Gamepad_LeftY }));
+            Result.Add(MakeAxisPairInput(TEXT("MoveRight"), TEXT("Move right / left"),
+                { { EKeys::D, EKeys::A }, { EKeys::Right, EKeys::Left }, { EKeys::L, EKeys::J } },
+                { EKeys::Gamepad_LeftX }));
+            Result.Add(MakeSingleInput(TEXT("Turn"), TEXT("Look right / left"), ELocalInputMappingKind::Axis,
+                { EKeys::MouseX }, { EKeys::Gamepad_RightX }));
+            Result.Add(MakeSingleInput(TEXT("LookUp"), TEXT("Look up / down"), ELocalInputMappingKind::Axis,
+                { EKeys::MouseY }, { EKeys::Gamepad_RightY }));
+            Result.Add(MakeSingleInput(TEXT("Interact"), TEXT("Interact"), ELocalInputMappingKind::Action,
+                { EKeys::E, EKeys::F }, { EKeys::Gamepad_FaceButton_Bottom, EKeys::Gamepad_FaceButton_Right }));
+            Result.Add(MakeSingleInput(TEXT("Attack"), TEXT("Attack"), ELocalInputMappingKind::Action,
+                { EKeys::LeftMouseButton, EKeys::RightMouseButton },
+                { EKeys::Gamepad_RightShoulder, EKeys::Gamepad_RightTrigger }));
+            Result.Add(MakeSingleInput(TEXT("Jump"), TEXT("Jump"), ELocalInputMappingKind::Action,
+                { EKeys::SpaceBar, EKeys::C }, { EKeys::Gamepad_FaceButton_Left, EKeys::Gamepad_FaceButton_Bottom }));
+            Result.Add(MakeSingleInput(TEXT("Sprint"), TEXT("Sprint"), ELocalInputMappingKind::Action,
+                { EKeys::LeftShift, EKeys::RightShift },
+                { EKeys::Gamepad_LeftThumbstick, EKeys::Gamepad_RightThumbstick }));
+            Result.Add(MakeSingleInput(TEXT("SettingsMenu"), TEXT("Settings menu"), ELocalInputMappingKind::Action,
+                { EKeys::Escape, EKeys::O }, {}));
+            Result.Add(MakeSingleInput(TEXT("WorldMap"), TEXT("World map"), ELocalInputMappingKind::Action,
+                { EKeys::M, EKeys::N }, { EKeys::Gamepad_Special_Right }));
+            Result.Add(MakeSingleInput(TEXT("WorldMapRecenter"), TEXT("Recenter map"), ELocalInputMappingKind::Action,
+                { EKeys::R, EKeys::T }, {}));
+            Result.Add(MakeSingleInput(TEXT("CraftMenu"), TEXT("Crafting menu"), ELocalInputMappingKind::Action,
+                { EKeys::B, EKeys::C }, { EKeys::Gamepad_Special_Left, EKeys::Gamepad_Special_Right }));
+            Result.Add(MakeSingleInput(TEXT("SupportActivate"), TEXT("Activate support effect"), ELocalInputMappingKind::Action,
+                { EKeys::Q, EKeys::E }, { EKeys::Gamepad_FaceButton_Top, EKeys::Gamepad_FaceButton_Bottom }));
+            return Result;
+        }();
+        return Definitions;
+    }
+
+    const FLocalInputDefinition* FindLocalInputDefinition(const FName ControlName)
+    {
+        return GetLocalInputDefinitions().FindByPredicate([ControlName](const FLocalInputDefinition& Definition)
+        {
+            return Definition.Name == ControlName;
+        });
+    }
+
+    FString GetLocalInputConfigKey(const FName ControlName, const bool bGamepad)
+    {
+        return FString::Printf(TEXT("LocalInput_%s_%s"), *ControlName.ToString(),
+            bGamepad ? TEXT("Controller") : TEXT("Keyboard"));
+    }
+
+    FString GetLocalInputPairKey(const FName ControlName, const bool bGamepad, const bool bPositive)
+    {
+        return GetLocalInputConfigKey(ControlName, bGamepad) + (bPositive ? TEXT("_Positive") : TEXT("_Negative"));
+    }
+
+    bool ReadConfigString(const FString& Key, FString& OutValue)
+    {
+        return GConfig != nullptr && GConfig->GetString(AudioSettingsSection, *Key, OutValue, GGameUserSettingsIni)
+            && !OutValue.IsEmpty();
+    }
+
+    FKey ReadStoredKey(const FString& Key)
+    {
+        FString Value;
+        return ReadConfigString(Key, Value) ? FKey(FName(*Value)) : EKeys::Invalid;
+    }
+
+    bool IsCandidateKey(const TArray<FKey>& Candidates, const FKey& Key)
+    {
+        return Key.IsValid() && Candidates.Contains(Key);
+    }
+
+    bool IsCandidatePair(const FLocalInputDefinition& Definition, const FLocalInputAxisPair& Pair)
+    {
+        return Definition.KeyboardPairs.ContainsByPredicate([Pair](const FLocalInputAxisPair& Candidate)
+        {
+            return Candidate.Positive == Pair.Positive && Candidate.Negative == Pair.Negative;
+        });
+    }
+
+    FString GetKeyDisplayLabel(const FKey& Key)
+    {
+        if (!Key.IsValid()) return TEXT("Not bound");
+        const FString DisplayName = Key.GetDisplayName().ToString();
+        return DisplayName.IsEmpty() ? Key.GetFName().ToString() : DisplayName;
+    }
+
+    FKey GetDefaultSingleKey(const FLocalInputDefinition& Definition, const bool bGamepad)
+    {
+        const UInputSettings* Settings = GetDefault<UInputSettings>();
+        if (Settings == nullptr) return EKeys::Invalid;
+
+        if (Definition.Kind == ELocalInputMappingKind::Action)
+        {
+            TArray<FInputActionKeyMapping> Mappings;
+            Settings->GetActionMappingByName(Definition.Name, Mappings);
+            for (const FInputActionKeyMapping& Mapping : Mappings)
+            {
+                if (Mapping.Key.IsGamepadKey() == bGamepad) return Mapping.Key;
+            }
+        }
+        else
+        {
+            TArray<FInputAxisKeyMapping> Mappings;
+            Settings->GetAxisMappingByName(Definition.Name, Mappings);
+            for (const FInputAxisKeyMapping& Mapping : Mappings)
+            {
+                if (Mapping.Key.IsGamepadKey() == bGamepad) return Mapping.Key;
+            }
+        }
+        return EKeys::Invalid;
+    }
+
+    float GetDefaultAxisScale(const FLocalInputDefinition& Definition, const FKey& Key)
+    {
+        const UInputSettings* Settings = GetDefault<UInputSettings>();
+        if (Settings != nullptr)
+        {
+            TArray<FInputAxisKeyMapping> Mappings;
+            Settings->GetAxisMappingByName(Definition.Name, Mappings);
+            for (const FInputAxisKeyMapping& Mapping : Mappings)
+            {
+                if (Mapping.Key == Key) return Mapping.Scale;
+            }
+        }
+        return 1.0f;
+    }
+
+    int32 GetDefaultPairIndex(const FLocalInputDefinition& Definition)
+    {
+        const UInputSettings* Settings = GetDefault<UInputSettings>();
+        if (Settings != nullptr)
+        {
+            TArray<FInputAxisKeyMapping> Mappings;
+            Settings->GetAxisMappingByName(Definition.Name, Mappings);
+            for (int32 Index = 0; Index < Definition.KeyboardPairs.Num(); ++Index)
+            {
+                const FLocalInputAxisPair& Pair = Definition.KeyboardPairs[Index];
+                bool bFoundPositive = false;
+                bool bFoundNegative = false;
+                for (const FInputAxisKeyMapping& Mapping : Mappings)
+                {
+                    bFoundPositive |= Mapping.Key == Pair.Positive && Mapping.Scale > 0.0f;
+                    bFoundNegative |= Mapping.Key == Pair.Negative && Mapping.Scale < 0.0f;
+                }
+                if (bFoundPositive && bFoundNegative) return Index;
+            }
+        }
+        return 0;
+    }
+
+    bool ReadStoredPair(const FLocalInputDefinition& Definition, FLocalInputAxisPair& OutPair)
+    {
+        OutPair.Positive = ReadStoredKey(GetLocalInputPairKey(Definition.Name, false, true));
+        OutPair.Negative = ReadStoredKey(GetLocalInputPairKey(Definition.Name, false, false));
+        return IsCandidatePair(Definition, OutPair);
+    }
+
+    bool HasStoredInputOverride(const FLocalInputDefinition& Definition, const bool bGamepad)
+    {
+        if (Definition.Kind == ELocalInputMappingKind::AxisPair && !bGamepad)
+        {
+            FLocalInputAxisPair Pair;
+            return ReadStoredPair(Definition, Pair);
+        }
+        const FKey StoredKey = ReadStoredKey(GetLocalInputConfigKey(Definition.Name, bGamepad));
+        return IsCandidateKey(bGamepad ? Definition.GamepadKeys : Definition.KeyboardKeys, StoredKey);
+    }
+
+    void RemoveActionDeviceMappings(UPlayerInput* PlayerInput, const FName ActionName, const bool bGamepad)
+    {
+        if (PlayerInput == nullptr) return;
+        PlayerInput->ActionMappings.RemoveAll([ActionName, bGamepad](const FInputActionKeyMapping& Mapping)
+        {
+            return Mapping.ActionName == ActionName && Mapping.Key.IsGamepadKey() == bGamepad;
+        });
+    }
+
+    void RemoveAxisDeviceMappings(UPlayerInput* PlayerInput, const FName AxisName, const bool bGamepad)
+    {
+        if (PlayerInput == nullptr) return;
+        PlayerInput->AxisMappings.RemoveAll([AxisName, bGamepad](const FInputAxisKeyMapping& Mapping)
+        {
+            return Mapping.AxisName == AxisName && Mapping.Key.IsGamepadKey() == bGamepad;
+        });
+    }
 
     const TCHAR* GetAudioCategoryKey(const EKalmalaAudioCategory Category)
     {
@@ -45,6 +288,28 @@ namespace
         }
         return FMath::IsFinite(Value) ? FMath::Clamp(Value, 0.0f, 1.0f) : DefaultValue;
     }
+}
+
+UKalmalaControlButton::UKalmalaControlButton(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer)
+{
+    OnClicked.AddDynamic(this, &UKalmalaControlButton::HandleButtonClicked);
+}
+
+void UKalmalaControlButton::Configure(const FName InControlName, const bool bInGamepad)
+{
+    ControlName = InControlName;
+    bGamepad = bInGamepad;
+}
+
+void UKalmalaControlButton::SetDisplayText(const FText& Text)
+{
+    if (UTextBlock* Label = Cast<UTextBlock>(GetContent())) Label->SetText(Text);
+}
+
+void UKalmalaControlButton::HandleButtonClicked()
+{
+    OnControlBindingClicked.Broadcast(ControlName, bGamepad);
 }
 
 void UKalmalaSettingsWidget::NativeConstruct()
@@ -177,6 +442,176 @@ void UKalmalaSettingsWidget::SetAudioCategoryVolume(const EKalmalaAudioCategory 
     GConfig->Flush(false, GGameUserSettingsIni);
 }
 
+int32 UKalmalaSettingsWidget::GetRemappableControlCount()
+{
+    return GetLocalInputDefinitions().Num();
+}
+
+FName UKalmalaSettingsWidget::GetRemappableControlName(const int32 Index)
+{
+    const TArray<FLocalInputDefinition>& Definitions = GetLocalInputDefinitions();
+    return Definitions.IsValidIndex(Index) ? Definitions[Index].Name : NAME_None;
+}
+
+FText UKalmalaSettingsWidget::GetRemappableControlLabel(const FName ControlName)
+{
+    const FLocalInputDefinition* Definition = FindLocalInputDefinition(ControlName);
+    return Definition != nullptr ? FText::FromString(Definition->Label) : FText::FromString(TEXT("Unknown control"));
+}
+
+FText UKalmalaSettingsWidget::GetLocalInputBindingLabel(const FName ControlName, const bool bGamepad)
+{
+    const FLocalInputDefinition* Definition = FindLocalInputDefinition(ControlName);
+    if (Definition == nullptr) return FText::FromString(TEXT("Not bound"));
+
+    if (Definition->Kind == ELocalInputMappingKind::AxisPair && !bGamepad)
+    {
+        FLocalInputAxisPair Pair;
+        if (!ReadStoredPair(*Definition, Pair))
+        {
+            const int32 DefaultIndex = GetDefaultPairIndex(*Definition);
+            if (Definition->KeyboardPairs.IsValidIndex(DefaultIndex)) Pair = Definition->KeyboardPairs[DefaultIndex];
+        }
+        if (IsCandidatePair(*Definition, Pair))
+        {
+            return FText::FromString(FString::Printf(TEXT("%s / %s"),
+                *GetKeyDisplayLabel(Pair.Positive), *GetKeyDisplayLabel(Pair.Negative)));
+        }
+        return FText::FromString(TEXT("Not bound"));
+    }
+
+    const TArray<FKey>& Candidates = bGamepad ? Definition->GamepadKeys : Definition->KeyboardKeys;
+    FKey Key = ReadStoredKey(GetLocalInputConfigKey(ControlName, bGamepad));
+    if (!IsCandidateKey(Candidates, Key)) Key = GetDefaultSingleKey(*Definition, bGamepad);
+    if (!IsCandidateKey(Candidates, Key) && Candidates.Num() > 0) Key = Candidates[0];
+    return FText::FromString(GetKeyDisplayLabel(Key));
+}
+
+bool UKalmalaSettingsWidget::SetLocalInputBinding(const FName ControlName, const bool bGamepad, const FKey& Key)
+{
+    const FLocalInputDefinition* Definition = FindLocalInputDefinition(ControlName);
+    if (Definition == nullptr || Definition->Kind == ELocalInputMappingKind::AxisPair || GConfig == nullptr) return false;
+    const TArray<FKey>& Candidates = bGamepad ? Definition->GamepadKeys : Definition->KeyboardKeys;
+    if (!IsCandidateKey(Candidates, Key)) return false;
+
+    GConfig->SetString(AudioSettingsSection, *GetLocalInputConfigKey(ControlName, bGamepad),
+        *Key.GetFName().ToString(), GGameUserSettingsIni);
+    GConfig->Flush(false, GGameUserSettingsIni);
+    return true;
+}
+
+void UKalmalaSettingsWidget::CycleLocalInputBinding(APlayerController* Controller, const FName ControlName,
+    const bool bGamepad)
+{
+    const FLocalInputDefinition* Definition = FindLocalInputDefinition(ControlName);
+    if (Definition == nullptr || GConfig == nullptr) return;
+
+    if (Definition->Kind == ELocalInputMappingKind::AxisPair && !bGamepad)
+    {
+        if (Definition->KeyboardPairs.Num() < 2) return;
+        FLocalInputAxisPair CurrentPair;
+        int32 CurrentIndex = GetDefaultPairIndex(*Definition);
+        if (ReadStoredPair(*Definition, CurrentPair))
+        {
+            CurrentIndex = Definition->KeyboardPairs.IndexOfByPredicate([CurrentPair](const FLocalInputAxisPair& Pair)
+            {
+                return Pair.Positive == CurrentPair.Positive && Pair.Negative == CurrentPair.Negative;
+            });
+            if (CurrentIndex == INDEX_NONE) CurrentIndex = 0;
+        }
+        const FLocalInputAxisPair& NextPair = Definition->KeyboardPairs[(CurrentIndex + 1) % Definition->KeyboardPairs.Num()];
+        GConfig->SetString(AudioSettingsSection, *GetLocalInputPairKey(ControlName, false, true),
+            *NextPair.Positive.GetFName().ToString(), GGameUserSettingsIni);
+        GConfig->SetString(AudioSettingsSection, *GetLocalInputPairKey(ControlName, false, false),
+            *NextPair.Negative.GetFName().ToString(), GGameUserSettingsIni);
+        GConfig->Flush(false, GGameUserSettingsIni);
+        ApplySavedInputBindings(Controller);
+        return;
+    }
+
+    const TArray<FKey>& Candidates = bGamepad ? Definition->GamepadKeys : Definition->KeyboardKeys;
+    if (Candidates.Num() < 2) return;
+    FKey CurrentKey = ReadStoredKey(GetLocalInputConfigKey(ControlName, bGamepad));
+    if (!IsCandidateKey(Candidates, CurrentKey)) CurrentKey = GetDefaultSingleKey(*Definition, bGamepad);
+    int32 CurrentIndex = Candidates.IndexOfByKey(CurrentKey);
+    if (CurrentIndex == INDEX_NONE) CurrentIndex = 0;
+    SetLocalInputBinding(ControlName, bGamepad, Candidates[(CurrentIndex + 1) % Candidates.Num()]);
+    ApplySavedInputBindings(Controller);
+}
+
+void UKalmalaSettingsWidget::ApplySavedInputBindings(APlayerController* Controller)
+{
+    if (Controller == nullptr || !Controller->IsLocalController() || Controller->PlayerInput == nullptr) return;
+
+    UPlayerInput* PlayerInput = Controller->PlayerInput;
+    PlayerInput->ForceRebuildingKeyMaps(true);
+    for (const FLocalInputDefinition& Definition : GetLocalInputDefinitions())
+    {
+        if (Definition.Kind == ELocalInputMappingKind::AxisPair)
+        {
+            FLocalInputAxisPair Pair;
+            if (ReadStoredPair(Definition, Pair))
+            {
+                RemoveAxisDeviceMappings(PlayerInput, Definition.Name, false);
+                PlayerInput->AxisMappings.Add(FInputAxisKeyMapping(Definition.Name, Pair.Positive, 1.0f));
+                PlayerInput->AxisMappings.Add(FInputAxisKeyMapping(Definition.Name, Pair.Negative, -1.0f));
+            }
+        }
+
+        if (!HasStoredInputOverride(Definition, true) && !HasStoredInputOverride(Definition, false)) continue;
+        if (Definition.Kind == ELocalInputMappingKind::Action)
+        {
+            for (const bool bGamepad : { false, true })
+            {
+                if (!HasStoredInputOverride(Definition, bGamepad)) continue;
+                const FKey Key = ReadStoredKey(GetLocalInputConfigKey(Definition.Name, bGamepad));
+                RemoveActionDeviceMappings(PlayerInput, Definition.Name, bGamepad);
+                PlayerInput->ActionMappings.Add(FInputActionKeyMapping(Definition.Name, Key));
+                if (!bGamepad && Definition.Name == TEXT("SettingsMenu"))
+                {
+                    // Keep the modal safety path available even after remapping the alternate key.
+                    PlayerInput->ActionMappings.Add(FInputActionKeyMapping(Definition.Name, EKeys::Escape));
+                }
+            }
+        }
+        else if (Definition.Kind == ELocalInputMappingKind::Axis)
+        {
+            for (const bool bGamepad : { false, true })
+            {
+                if (!HasStoredInputOverride(Definition, bGamepad)) continue;
+                const FKey Key = ReadStoredKey(GetLocalInputConfigKey(Definition.Name, bGamepad));
+                RemoveAxisDeviceMappings(PlayerInput, Definition.Name, bGamepad);
+                PlayerInput->AxisMappings.Add(FInputAxisKeyMapping(Definition.Name, Key,
+                    GetDefaultAxisScale(Definition, Key)));
+            }
+        }
+        else if (HasStoredInputOverride(Definition, true))
+        {
+            const FKey Key = ReadStoredKey(GetLocalInputConfigKey(Definition.Name, true));
+            RemoveAxisDeviceMappings(PlayerInput, Definition.Name, true);
+            PlayerInput->AxisMappings.Add(FInputAxisKeyMapping(Definition.Name, Key,
+                GetDefaultAxisScale(Definition, Key)));
+        }
+    }
+    PlayerInput->ForceRebuildingKeyMaps(false);
+}
+
+void UKalmalaSettingsWidget::RestoreDefaultInputBindings(APlayerController* Controller)
+{
+    if (GConfig != nullptr)
+    {
+        for (const FLocalInputDefinition& Definition : GetLocalInputDefinitions())
+        {
+            GConfig->RemoveKey(AudioSettingsSection, *GetLocalInputConfigKey(Definition.Name, false), GGameUserSettingsIni);
+            GConfig->RemoveKey(AudioSettingsSection, *GetLocalInputConfigKey(Definition.Name, true), GGameUserSettingsIni);
+            GConfig->RemoveKey(AudioSettingsSection, *GetLocalInputPairKey(Definition.Name, false, true), GGameUserSettingsIni);
+            GConfig->RemoveKey(AudioSettingsSection, *GetLocalInputPairKey(Definition.Name, false, false), GGameUserSettingsIni);
+        }
+        GConfig->Flush(false, GGameUserSettingsIni);
+    }
+    ApplySavedInputBindings(Controller);
+}
+
 UTextBlock* UKalmalaSettingsWidget::AddLabel(UVerticalBox* Parent, const FText& Label, const float FontSize)
 {
     UTextBlock* Text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
@@ -281,6 +716,65 @@ void UKalmalaSettingsWidget::ShowAudioTab()
     MasterVolume->SetUserFocus(GetOwningPlayer());
 }
 
+void UKalmalaSettingsWidget::ShowControlsTab()
+{
+    while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
+    ControlButtons.Reset();
+    AddLabel(ContentBox, FText::FromString(TEXT("Controls")), 24.0f);
+    UButton* Restore = AddButton(ContentBox, FText::FromString(TEXT("Restore default controls")), TEXT("RestoreControlsButton"));
+    Restore->OnClicked.AddDynamic(this, &ThisClass::HandleRestoreControlsClicked);
+    AddLabel(ContentBox, FText::FromString(TEXT("Activate a keyboard or controller row to cycle its local binding.")), 15.0f);
+
+    UScrollBox* Scroll = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("ControlsScroll"));
+    UVerticalBox* Rows = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("ControlRows"));
+    Scroll->AddChild(Rows);
+    ContentBox->AddChildToVerticalBox(Scroll);
+
+    for (int32 Index = 0; Index < GetRemappableControlCount(); ++Index)
+    {
+        const FName ControlName = GetRemappableControlName(Index);
+        UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+        UTextBlock* Label = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+        Label->SetText(GetRemappableControlLabel(ControlName));
+        Label->SetColorAndOpacity(FSlateColor(FLinearColor(0.86f, 0.92f, 0.90f)));
+        FSlateFontInfo Font = Label->GetFont();
+        Font.Size = 16;
+        Label->SetFont(Font);
+        UHorizontalBoxSlot* LabelSlot = Row->AddChildToHorizontalBox(Label);
+        LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        LabelSlot->SetPadding(FMargin(4.0f, 3.0f));
+
+        const auto AddControlButton = [this, Row, ControlName](const bool bGamepad)
+        {
+            UKalmalaControlButton* Button = WidgetTree->ConstructWidget<UKalmalaControlButton>(
+                UKalmalaControlButton::StaticClass());
+            Button->Configure(ControlName, bGamepad);
+            Button->SetDisplayText(FText::GetEmpty());
+            Button->OnControlBindingClicked.AddDynamic(this, &ThisClass::HandleControlBindingClicked);
+            UHorizontalBoxSlot* ButtonSlot = Row->AddChildToHorizontalBox(Button);
+            ButtonSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+            ButtonSlot->SetPadding(FMargin(3.0f, 2.0f));
+            ControlButtons.Add(Button);
+        };
+        AddControlButton(false);
+        AddControlButton(true);
+        Rows->AddChildToVerticalBox(Row);
+    }
+    UpdateControlsLabels();
+    if (ControlButtons.Num() > 0) ControlButtons[0]->SetUserFocus(GetOwningPlayer());
+}
+
+void UKalmalaSettingsWidget::UpdateControlsLabels()
+{
+    for (UKalmalaControlButton* Button : ControlButtons)
+    {
+        if (Button == nullptr) continue;
+        const TCHAR* DeviceLabel = Button->IsGamepadBinding() ? TEXT("Controller") : TEXT("Keyboard");
+        Button->SetDisplayText(FText::FromString(FString::Printf(TEXT("%s: %s"), DeviceLabel,
+            *GetLocalInputBindingLabel(Button->GetControlName(), Button->IsGamepadBinding()).ToString())));
+    }
+}
+
 void UKalmalaSettingsWidget::ShowPlaceholderTab(const FText& Title, const FText& Description)
 {
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
@@ -334,7 +828,7 @@ void UKalmalaSettingsWidget::HandleOptionsClicked() { ShowOptionsMenu(); }
 void UKalmalaSettingsWidget::HandleQuitClicked() { UKismetSystemLibrary::QuitGame(this, GetOwningPlayer(), EQuitPreference::Quit, false); }
 void UKalmalaSettingsWidget::HandleVideoClicked() { ShowVideoTab(); }
 void UKalmalaSettingsWidget::HandleAudioClicked() { ShowAudioTab(); }
-void UKalmalaSettingsWidget::HandleControlsClicked() { ShowPlaceholderTab(FText::FromString(TEXT("Controls")), FText::FromString(TEXT("Control remapping will be available here."))); }
+void UKalmalaSettingsWidget::HandleControlsClicked() { ShowControlsTab(); }
 void UKalmalaSettingsWidget::HandleSettingsClicked() { ShowPlaceholderTab(FText::FromString(TEXT("Settings")), FText::FromString(TEXT("Gameplay and accessibility settings will be available here."))); }
 void UKalmalaSettingsWidget::HandleResolutionClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { ResolutionChoiceIndex = (ResolutionChoiceIndex + 1) % ResolutionChoices.Num(); Settings->SetScreenResolution(ResolutionChoices[ResolutionChoiceIndex]); ApplyVideoSettings(); } }
 void UKalmalaSettingsWidget::HandleVSyncClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->SetVSyncEnabled(!Settings->IsVSyncEnabled()); ApplyVideoSettings(); } }
@@ -375,4 +869,16 @@ void UKalmalaSettingsWidget::HandleMusicVolumeClicked()
 void UKalmalaSettingsWidget::HandleInteractionCombatVolumeClicked()
 {
     CycleAudioCategory(EKalmalaAudioCategory::InteractionCombat);
+}
+
+void UKalmalaSettingsWidget::HandleControlBindingClicked(const FName ControlName, const bool bGamepad)
+{
+    CycleLocalInputBinding(GetOwningPlayer(), ControlName, bGamepad);
+    UpdateControlsLabels();
+}
+
+void UKalmalaSettingsWidget::HandleRestoreControlsClicked()
+{
+    RestoreDefaultInputBindings(GetOwningPlayer());
+    UpdateControlsLabels();
 }
