@@ -46,11 +46,13 @@ public:
     static constexpr float ActivationCost = 18.0f;
     // Shared server-owned cooldown keeps repeated support use deliberate without changing effect durations.
     static constexpr float CooldownSeconds = 5.0f;
+    // Hearth Shield remains a short, finite protection window for optional encounters.
+    static constexpr float HearthShieldDurationSeconds = 10.0f;
 private:
     static constexpr float PresentationSeconds = 2.0f;
     static constexpr float MendingRange = 350.0f;
     static constexpr float MendingHealAmount = 30.0f;
-    static constexpr float HearthShieldDuration = 8.0f;
+    static constexpr float HearthShieldDuration = HearthShieldDurationSeconds;
     static constexpr float HearthShieldAbsorption = 40.0f;
     static constexpr float BearsVigorDuration = 8.0f;
     static constexpr float BearsVigorStrength = 1.4f;
