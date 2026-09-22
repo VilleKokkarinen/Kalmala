@@ -6,6 +6,24 @@
 - **Project:** `E:\dev\Kalmala\Kalmala.uproject`.
 - **IDE:** Visual Studio 2026 with the Game development with C++ workload, MSVC tools, and a Windows SDK.
 
+### M7 persistence gate
+
+The first M7 save contract is isolated in
+`UKalmalaM7PersistenceSaveGame`. It is schema 1, matches an exact world seed
+and generator revision 7 plus explicit world/player scope, and accepts at most
+256 server-selected sparse resource, creature, or discovery identities. Schema
+0 requires an explicit migration review; future schemas, invalid identities,
+duplicate IDs, over-cap entries, and path-like IDs fail closed. This contract
+does not extend existing save schemas or add progression, tool, food, or loot
+state. The focused round-trip/rejection test is
+`Kalmala.World.M7.PersistenceContract`.
+
+After the editor build, run it with the documented temporary-user pattern:
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7PersistenceUser' -abslog='C:\temp\KalmalaM7Persistence.log' -ExecCmds="Automation RunTests Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
+```
+
 ## First build
 
 Open PowerShell and run:

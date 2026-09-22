@@ -195,10 +195,17 @@ food effects, food inventory, biome resource depletion, defeated creature
 states, opened chests, claimed treasures, shipwreck loot, or boss rewards that
 must survive reconnect or restart require a versioned save contract,
 identity/world matching, migration policy, and focused round-trip/rejection
-tests before implementation. Prefer the existing sparse population-delta
-pattern for generated resource, creature, and discovery identity. Until the
-contract is approved, development fixtures may use transient server-owned state
-but must not silently extend the existing saved-data schemas.
+tests before implementation. The approved first gate is the independent
+`UKalmalaM7PersistenceSaveGame` schema 1 contract: it records the immutable
+world seed, current generator revision 7, explicit world/player scope, and at
+most 256 server-selected sparse resource, creature, or discovery identities.
+Current schema 1 loads only with an exact valid identity match; unversioned
+schema 0 requires an explicit migration, and future schemas are rejected.
+Malformed, duplicate, over-cap, or path-like sparse IDs fail without mutation.
+The gate is currently exercised through memory serialization only and does not
+extend the existing population, construction, storage, discovery, or local UI
+save schemas. Until later contracts are approved, development fixtures may use
+transient server-owned state but must not silently extend those schemas.
 
 **M7 multiplayer boundary:** the server owns skill awards, resource identity,
 creature behaviour and defeat, tool validation, durability, repair outcomes,

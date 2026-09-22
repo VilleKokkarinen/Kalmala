@@ -8,6 +8,50 @@
 
 ## Run log
 
+### 2026-09-22T14:19:46Z — Establish M7 persistence gate
+
+Outcome: Completed the first eligible M7 task by establishing an independent,
+versioned persistence and migration gate before adding progression, tool, food,
+depletion, or rare-loot state. `UKalmalaM7PersistenceSaveGame` is schema 1 and
+matches exact world seed, generator revision 7, and explicit world/player
+scope. It accepts only bounded server-selected resource, creature, and
+discovery sparse identities; schema 0 requires an explicit migration and future
+schemas fail closed.
+
+Changed: Added
+`Source/KalmalaWorld/Public/KalmalaM7PersistenceContract.h`,
+`Source/KalmalaWorld/Private/KalmalaM7PersistenceContract.cpp`, and
+`Source/KalmalaWorld/Private/Tests/KalmalaM7PersistenceContractTest.cpp`.
+Updated `docs/04-roadmap.md`, `docs/05-decision-log.md`,
+`docs/07-development-setup.md`, `BACKLOG.md`, and this handoff. Existing
+population, construction, storage, discovery, and local UI save schemas were
+not modified.
+
+Verification: The isolated UE5.8 `KalmalaEditor Win64 Development` build
+passed all 155 actions with `%LOCALAPPDATA%\\UnrealBuildTool` access; the
+post-validation incremental build passed all 4 actions. The focused
+`Kalmala.World.M7.PersistenceContract` automation passed with editor exit code
+0 at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7GateTest-847928d566ab4a93b157ae85d454644c/M7Persistence.log`,
+including migration decisions, identity mismatch, malformed/duplicate sparse
+rejection, and memory round-trip. `Scripts/Verify-M5DocumentationContracts.ps1`
+and `git diff --check` passed.
+
+Multiplayer impact: No gameplay RPC, replicated property, client intent,
+target, damage, reward, authority, or existing persistence path changed. The
+new container is a server-owned contract; future player detail remains scoped
+to the matching owner identity and generated facts remain stable-ID deltas.
+
+Known limits: The gate is not yet integrated into GameMode or existing save
+slots, does not migrate schema 0 data automatically, and does not persist
+skills, recipes, tools, food, inventory, hazards, or rare loot. It does not
+claim packaged persistence, dedicated-server support, physical input, audio,
+or the deferred native co-op acceptance.
+
+Next task: Add server-owned skill progression, beginning with the small
+allowlisted gathering, woodcutting, mining, crafting, cooking, and survival
+skill contract and bounded server-awarded experience.
+
 ### 2026-09-22T15:47:58+03:00 — Retain dedicated-server Launcher blocker
 
 Outcome: Completed the first eligible M5 release-regression child by checking

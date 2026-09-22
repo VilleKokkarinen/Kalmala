@@ -447,9 +447,10 @@ extending saved-data schemas, online services, platform scope, or the current
 PC solo/listen-server co-op boundary. The roadmap contract is in
 `docs/04-roadmap.md`.
 
-- [ ] Establish the versioned M7 persistence and migration gate before adding persistent progression, food, tool, depletion, or rare-loot state.
-  - [ ] Define identity/world matching, migration policy, sparse generated-content deltas, and round-trip/rejection tests for any state that must survive reconnect or restart.
-  - [ ] Keep development fixtures transient and server-owned until the save contract is approved; do not silently extend existing save schemas.
+- [x] Establish the versioned M7 persistence and migration gate before adding persistent progression, food, tool, depletion, or rare-loot state.
+  - [x] Define identity/world matching, migration policy, sparse generated-content deltas, and round-trip/rejection tests for any state that must survive reconnect or restart.
+  - [x] Keep development fixtures transient and server-owned until the save contract is approved; do not silently extend existing save schemas.
+    - Passed 2026-09-22: independent `UKalmalaM7PersistenceSaveGame` schema 1 contract covers exact seed/revision/scope matching, explicit schema-0 migration versus future-schema rejection, bounded server-selected resource/creature/discovery deltas, duplicate/invalid/path-like rejection, and memory round-trip. Existing save schemas remain unchanged.
 - [ ] Add server-owned skill progression.
   - [ ] Define a small allowlisted set of original gathering, woodcutting, mining, crafting, cooking, and survival skills with bounded server-awarded experience, levels, and unlocks.
   - [ ] Replicate detailed progression only to the owning player and relevant presentation state to other peers; reject client-authored experience, level, unlock, multiplier, and reward values.
