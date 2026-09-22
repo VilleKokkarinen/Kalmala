@@ -215,6 +215,14 @@ and rewards. Clients receive only the state needed for their own controls and
 presentation or ordinary relevant world feedback; private inventory,
 progression, and detailed loot remain owner-scoped.
 
+The first M7 progression increment defines a transient, server-owned ledger for
+Gathering, Woodcutting, Mining, Crafting, Cooking, and Survival. An accepted
+server action may award at most 25 experience, total experience is capped at
+1,000 across levels 1-10, and unlock tiers are derived at levels 2, 5, and 10.
+The ledger has no client RPC, persistence integration, or peer replication yet;
+those boundaries remain in the next progression child and the approved M7 save
+gate.
+
 **M7 accept:** the integrated biome gathering, creature, crafting, repair,
 food-processing, progression, hazard, and HUD loop is playable without
 developer commands; all outcomes remain authoritative and recoverable; rare

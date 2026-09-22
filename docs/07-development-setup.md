@@ -24,6 +24,21 @@ After the editor build, run it with the documented temporary-user pattern:
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7PersistenceUser' -abslog='C:\temp\KalmalaM7Persistence.log' -ExecCmds="Automation RunTests Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
+### M7 skill progression contract
+
+`FKalmalaSkillProgressionLedger` currently provides a transient server-owned
+contract for the six allowlisted skills: Gathering, Woodcutting, Mining,
+Crafting, Cooking, and Survival. Only an accepted server action may award up
+to 25 experience; total experience is capped at 1,000, levels are derived from
+100-experience bands, and unlock tiers derive at levels 2, 5, and 10. The
+contract deliberately adds no client RPC, save field, or replicated detail yet.
+
+After the editor build, run the focused authority and derivation test:
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7SkillUser' -abslog='C:\temp\KalmalaM7Skill.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Progression.SkillContract; Quit" -TestExit="Automation Test Queue Empty"
+```
+
 ## First build
 
 Open PowerShell and run:

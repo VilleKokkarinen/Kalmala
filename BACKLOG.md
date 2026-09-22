@@ -452,7 +452,8 @@ PC solo/listen-server co-op boundary. The roadmap contract is in
   - [x] Keep development fixtures transient and server-owned until the save contract is approved; do not silently extend existing save schemas.
     - Passed 2026-09-22: independent `UKalmalaM7PersistenceSaveGame` schema 1 contract covers exact seed/revision/scope matching, explicit schema-0 migration versus future-schema rejection, bounded server-selected resource/creature/discovery deltas, duplicate/invalid/path-like rejection, and memory round-trip. Existing save schemas remain unchanged.
 - [ ] Add server-owned skill progression.
-  - [ ] Define a small allowlisted set of original gathering, woodcutting, mining, crafting, cooking, and survival skills with bounded server-awarded experience, levels, and unlocks.
+  - [x] Define a small allowlisted set of original gathering, woodcutting, mining, crafting, cooking, and survival skills with bounded server-awarded experience, levels, and unlocks.
+    - Passed 2026-09-22: transient server-owned ledger defines six allowlisted skills, caps awards at 25 experience per accepted server action and total experience at 1,000, derives levels 1-10 and unlock tiers at levels 2, 5, and 10, and rejects client-role, rejected-action, malformed, and over-bound awards without mutation.
   - [ ] Replicate detailed progression only to the owning player and relevant presentation state to other peers; reject client-authored experience, level, unlock, multiplier, and reward values.
 - [ ] Establish biome-specific material and creature identity.
   - [ ] Add one reliable gathering source, one creature niche, and one rarer discovery source per first-wave biome using stable server-selected catalogue and spatial/encounter identities.

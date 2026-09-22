@@ -8,6 +8,53 @@
 
 ## Run log
 
+### 2026-09-22T14:35:09Z — Add bounded server-owned skill contract
+
+Outcome: Completed the first unchecked M7 skill-progression child. The new
+transient ledger allowlists Gathering, Woodcutting, Mining, Crafting, Cooking,
+and Survival; accepts experience only for an authoritative accepted server
+action; caps each award at 25 and total experience at 1,000; derives levels
+1-10; and derives unlock tiers at levels 2, 5, and 10.
+
+Changed: Added
+`Source/KalmalaGameplay/Public/KalmalaSkillProgressionContract.h`,
+`Source/KalmalaGameplay/Private/KalmalaSkillProgressionContract.cpp`, and
+`Source/KalmalaGameplay/Private/Tests/KalmalaSkillProgressionContractTest.cpp`.
+Updated `BACKLOG.md`, `docs/04-roadmap.md`, `docs/05-decision-log.md`,
+`docs/07-development-setup.md`, and this handoff. Existing save schemas,
+character components, inventory, crafting, and UI replication were not
+modified.
+
+Verification: An isolated UE5.8 `KalmalaEditor Win64 Development` build passed
+all 157 actions with `Result: Succeeded`, using
+`%LOCALAPPDATA%\\UnrealBuildTool` and the disposable project copy
+`C:/Users/Ville/AppData/Local/Temp/KalmalaSkillBuild-e849d3fc6bc141c19d195a5a0b0a10dc`.
+Focused `Kalmala.Gameplay.Progression.SkillContract` completed with
+`Result={Success}` and editor exit code 0 at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7SkillTest-065afbf89a54436cb98ff70accf85c74/SkillProgression.log`.
+`Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts and
+`git diff --check` passed.
+
+The final combined `Kalmala.World.M7.PersistenceContract+Kalmala.Gameplay.Progression.SkillContract`
+run also completed both tests with `Result={Success}` and exit code 0 at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7CombinedTest-0a11fbeb6fbf4ec1b1c290764602a8b7/M7Combined.log`.
+
+Multiplayer impact: The ledger is server-owned and has no client RPC,
+replicated property, peer presentation, save field, or persistence integration
+yet. Non-authoritative, rejected-action, malformed, zero, and over-bound award
+requests leave progression unchanged; clients cannot author experience,
+levels, unlocks, multipliers, or rewards through this contract.
+
+Known limits: Runtime gathering/crafting action wiring, owning-player detail
+replication, relevant-peer presentation, M7 save integration, recipe unlock
+consumers, and rendered progression UI remain open. This increment does not
+claim packaged persistence, physical input, audio, long-session balance,
+dedicated-server support, or the deferred native co-op acceptance.
+
+Next task: Replicate detailed progression only to the owning player and the
+relevant presentation state to other peers, while rejecting client-authored
+experience, level, unlock, multiplier, and reward values.
+
 ### 2026-09-22T14:19:46Z — Establish M7 persistence gate
 
 Outcome: Completed the first eligible M7 task by establishing an independent,
