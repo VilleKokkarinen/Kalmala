@@ -340,7 +340,8 @@ verifiable. M4 is complete under its revised focused-regression acceptance.
   - [ ] Fix regressions within existing bounded actor, memory, worker, and raster budgets without increasing world, population, or online-service scope.
 - [ ] Tune the survival, combat, creature, and support loop.
   - [ ] Tune costs, cooldowns, durations, stamina/wetness penalties, creature pressure, rewards, and recovery so preparation creates choices without hard travel gates.
-  - [ ] Re-run authority, persistence, reconnect, and host/client checks after tuning; clients still provide intent only.
+  - [x] Re-run authority, persistence, reconnect, and host/client checks after tuning; clients still provide intent only.
+    - Passed 2026-09-22: rebuilt `KalmalaEditor Win64 Development`; `Scripts/Verify-M4VerticalSlice.ps1 -Port 18485`, `Scripts/Verify-PlayerControls.ps1 -WetStamina -Port 18488`, `Scripts/Verify-CampChoices.ps1 -Port 18489`, `Scripts/Verify-CombatPeer.ps1 -Port 18490`, and `Scripts/Verify-DiscoveryPeer.ps1 -Port 18491`; and the focused status/combat/discovery automation. Authority, owner privacy, relevant-peer replication, matching-world persistence, reconnect defeat/discovery state, Wet recovery, and client intent-only rejection all passed.
 - [ ] Complete release regression and packaging verification.
   - [ ] Run the relevant automated, rendered host/client, reconnect, and current-generator regression suites and record retained evidence.
   - [ ] Produce and smoke-launch a Windows Development package from the accepted revision without changing saved-data schemas or CI/release configuration.

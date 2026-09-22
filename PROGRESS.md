@@ -4095,3 +4095,70 @@ subsequent increments.
 
 Next task: Replace the next bounded remaining prototype-presentation seam with
 an original project-owned source, retaining the same gameplay contracts.
+
+### 2026-09-22T11:45:08+03:00 — Re-run post-tuning authority and peer regressions
+
+Outcome: Completed the first eligible M5 balance-loop regression child. The
+survival, support, and combat tuning remains green under the documented
+authority, persistence, reconnect, and host/client checks; no runtime fix was
+required and no later release or final-acceptance scope was started.
+
+Changed: Marked the post-tuning regression child complete in `BACKLOG.md` and
+appended this handoff only. No gameplay, network, replication, persistence,
+save-schema, asset, or contract implementation changed. Existing presentation,
+inventory, verifier, setup, backlog, and prior handoff edits remain preserved.
+
+Verification: The rebuilt UE5.8 `KalmalaEditor Win64 Development` target
+succeeded in 8 actions with `%LOCALAPPDATA%\\UnrealBuildTool` access and
+`Result: Succeeded`. `Scripts/Verify-M4VerticalSlice.ps1 -Port 18485`
+passed Mireling, boar, and deer server-owned encounters, target-free client
+rejection, relevant action/health/defeat replication, owner-only rewards,
+same-world defeat persistence after restart, all four support-effect
+authority/non-damage gates, and matching-world learned-effect persistence;
+evidence is under
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-85d0f97b03ef41b79db95d81f23bcbbd`.
+`Scripts/Verify-PlayerControls.ps1 -WetStamina -Port 18488` passed the
+server/remote Wet movement and stamina checks at 0.92 speed, 11.50 sprint
+cost, and rejected client stamina mutation; evidence is under
+`C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-427623194bd9426791c86e477d3f191a`.
+`Scripts/Verify-CampChoices.ps1 -Port 18489` passed two freely chosen camp
+sites, 31 matching exposure snapshots per pawn, and normal fire recovery;
+evidence is under
+`C:/Users/Ville/AppData/Local/Temp/KalmalaCampChoices-a29a7bec0ee94f05a4823f0d18486c84`.
+`Scripts/Verify-CombatPeer.ps1 -Port 18490` passed owner-local combat
+feedback, target-free client rejection, relevant defeat replication, private
+unavailable feedback, owner-only reward state, and same-world defeat absence
+after restart; evidence is under
+`C:/Users/Ville/AppData/Local/Temp/KalmalaCombatPeer-3e65565d14034196b7acb078de138f46`.
+`Scripts/Verify-DiscoveryPeer.ps1 -Port 18491` passed same-seed reproduction,
+different-seed variation, distant/duplicate rejection, entitled-owner cue,
+and remote privacy; evidence is under
+`C:/Users/Ville/AppData/Local/Temp/KalmalaDiscoveryPeer-08bb196ce97f4e249eaf5d881fc6cdf4`.
+The focused headless automation found and passed all 7 requested tests:
+`Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown`,
+`Kalmala.Gameplay.Combat.IntentContract.RejectionDoesNotMutate`,
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence`,
+`Kalmala.Gameplay.Status.Wet`, `WetCampfire`, `WetModifiers`, and `WetStamina`;
+log: `C:/Users/Ville/AppData/Local/Temp/KalmalaPostTuningAutomation-2fe362ac7eaf4de78acff192ea4c37a9.log`.
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: None. The checks confirmed that clients still provide
+normal movement or narrow enum/sequence/attack intent only. The server owns
+Wet state and costs, support cooldown/stamina/effects, combat target/damage/
+recovery/defeat, wildlife behaviour, discovery identity/reward/persistence,
+and reconnect state; owner-only rewards and acknowledgements stay private while
+relevant action, health, exposure, and defeat presentation replicates normally.
+No RPC, replicated property, gameplay/save field, persistence schema,
+population budget, reward path, or authority rule changed.
+
+Known limits: These are local Windows Development, null-RHI/no-sound,
+development-fixture checks. They do not establish audible quality, physical
+controller input, packaged persistence, long-session balance, shipping GPU
+performance, or the final tool-free 20–30 minute co-op acceptance. The parent
+survival/combat/creature/support tuning leaf still has additional balance work.
+
+Next task: Continue the first open survival/combat/creature/support balance
+leaf with one bounded cost, cooldown, duration, pressure, reward, or recovery
+tuning increment, then repeat only the required regressions if that change
+affects their contracts.
