@@ -54,16 +54,22 @@ replication seam:
 creature-niche ID, and optional rare-discovery-source ID for each of the six
 first-wave land biomes. The server derives the matching gathering or niche ID
 when it builds a population descriptor and replicates the selected identity
-on the relevant harvest or wildlife actor. Existing spatial/seed persistent
-IDs, depletion rules, archetype combat behaviour, inventory rewards, and save
-schemas remain unchanged. Point-of-interest descriptors use the optional rare
-source ID; clients do not submit or enumerate these identities.
+on the relevant harvest or wildlife actor. Wildlife then derives a bounded
+ecological profile from that replicated niche: flee pressure remains between
+180 cm and 300 cm and a sparse original vertex-colour accent helps nearby peers
+read habitat identity. Existing spatial/seed persistent IDs, depletion rules,
+archetype combat behaviour, inventory rewards, and save schemas remain
+unchanged. Point-of-interest descriptors use the optional rare source ID;
+clients do not submit or enumerate these identities.
 
 After the editor build, run the focused deterministic catalogue check:
 
 ```powershell
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7BiomeContentUser' -abslog='C:\temp\KalmalaM7BiomeContent.log' -ExecCmds="Automation RunTests Kalmala.World.M7.BiomeContentContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
+
+The wildlife authority regression covers the six niche profiles and their
+bounded flee responses through `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`.
 
 ## First build
 

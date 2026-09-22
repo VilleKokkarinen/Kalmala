@@ -8,6 +8,55 @@
 
 ## Run log
 
+### 2026-09-22T16:43:07Z — Add biome niche ecology guardrails
+
+Outcome: Completed one bounded M7 biome-identity increment. Each of the six
+first-wave server-selected creature-niche IDs now derives an ecological
+profile: open grazer, shore forager, canopy browser, hummock scavenger, wind
+grazer, or ridge forager. The profile selects a deterministic server-only flee
+distance between 180 cm and 300 cm for combat noise, Deer Call, and herd alert
+responses, while a sparse original vertex-colour accent makes the niche
+readable on relevant peers. Unknown IDs fail closed to a bounded generalist.
+Rare point-of-interest sources and the existing bounded Mireling boss scroll
+remain optional, route-free, and non-gating.
+
+Changed: Updated `AKalmalaWildlifeSpawn` with the niche profile mapping,
+bounded response selection, client rebuild on replicated niche identity, and
+procedural presentation accents. Added the explicit optional rare-source
+contract and focused assertions in the biome-content and wildlife automation
+tests. Updated the M7 roadmap, decision log, development setup, and combat /
+support contract. Existing archetype selection, health, damage, rewards,
+sparse defeat IDs, save schemas, and discovery claim authority remain intact.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development` build passed all
+14 actions with `%LOCALAPPDATA%\\UnrealBuildTool` access and recorded
+`Result: Succeeded`. The focused editor run passed all four tests with
+`Result={Success}`: `Kalmala.World.M7.BiomeContentContract`,
+`Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`,
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence`, and
+`Kalmala.World.BiomeExpansion.SharedContract`; evidence is at
+`C:/temp/KalmalaM7Ecology.log`. The first combined M4 harness attempt timed
+out before a Mireling melee attempt; an independent retry then passed, as did
+`Verify-BoarPeer.ps1 -Port 18642` and `Verify-DeerPeer.ps1 -Port 18643`.
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: Niche IDs, flee distances, behaviour transitions,
+destinations, damage, rewards, and optional discovery decisions remain
+server-owned. Relevant peers receive only the existing niche identity and
+ordinary movement/presentation; clients have no setter or mutation path for
+the profile, AI, target, timing, reward, route, or saved state.
+
+Known limits: Gathering-source material rewards, tool lifecycle, discovery
+presentation, rare caches/treasures/shipwreck content, M7 persistence
+integration, and the integrated fresh-player loop remain later tasks. The
+documented dedicated-server and native packaged-surface limitations remain
+unchanged.
+
+Next task: Materialize the first-wave reliable gathering sources, creature
+outcomes, and optional rare-discovery outcomes behind the existing server
+catalogue before starting tool lifecycle work.
+
 ### 2026-09-22T16:07:20Z — Add first-wave biome content identities
 
 Outcome: Completed one bounded M7 biome-identity increment. Added the

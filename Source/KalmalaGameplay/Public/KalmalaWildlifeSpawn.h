@@ -24,6 +24,21 @@ enum class EKalmalaWildlifeArchetype : uint8
 };
 
 /**
+ * Local presentation and movement profile derived from the server-selected
+ * biome niche. It is never client-authored or replicated as a second identity.
+ */
+enum class EKalmalaWildlifeEcology : uint8
+{
+    Generalist,
+    OpenGrazer,
+    ShoreForager,
+    CanopyBrowser,
+    HummockScavenger,
+    WindGrazer,
+    RidgeForager
+};
+
+/**
  * Minimal replicated, server-owned generated wildlife placeholder. It has no
  * combat or AI yet; it establishes the authority and persistence seam those
  * systems must use when they can defeat the spawn.
@@ -48,6 +63,8 @@ public:
     FName GetCreatureNicheId() const { return CreatureNicheId; }
     EKalmalaWildlifeBehaviour GetBehaviour() const { return Behaviour; }
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
+    static EKalmalaWildlifeEcology GetEcologyForNiche(FName CreatureNicheId);
+    static float GetEcologicalFleeDistance(FName CreatureNicheId);
     // Server-owned repeat-hit interval keeps optional Mireling pressure readable.
     static constexpr float MirelingMeleeCooldownSeconds = 1.25f;
     static EKalmalaWildlifeArchetype GetArchetypeForSpawnSeed(uint64 SpawnSeed);
@@ -81,7 +98,7 @@ private:
     EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;
 
     /** Server-selected ecological niche; archetype combat behaviour remains separately bounded. */
-    UPROPERTY(Replicated)
+    UPROPERTY(ReplicatedUsing = OnRep_CreatureNicheId)
     FName CreatureNicheId = NAME_None;
 
     UFUNCTION()
@@ -89,6 +106,9 @@ private:
 
     UFUNCTION()
     void OnRep_Archetype();
+
+    UFUNCTION()
+    void OnRep_CreatureNicheId();
 
     FVector SpawnOrigin = FVector::ZeroVector;
     FVector BehaviourDestination = FVector::ZeroVector;

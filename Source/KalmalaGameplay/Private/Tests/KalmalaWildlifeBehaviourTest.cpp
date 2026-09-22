@@ -17,6 +17,25 @@ bool FKalmalaWildlifeBehaviourTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Archetype selection stays deterministic for one descriptor seed"), uint8(AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(6)), uint8(EKalmalaWildlifeArchetype::Boar));
     TestEqual(TEXT("Existing Mireling descriptor seed stays a Mireling"), uint8(AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(3308806006119996599ull)), uint8(EKalmalaWildlifeArchetype::Mireling));
     TestEqual(TEXT("A non-boar descriptor deterministically selects deer"), uint8(AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(1)), uint8(EKalmalaWildlifeArchetype::Deer));
+    const TArray<TPair<FName, EKalmalaWildlifeEcology>> NicheProfiles =
+    {
+        { TEXT("meadows-open-grazer"), EKalmalaWildlifeEcology::OpenGrazer },
+        { TEXT("lakes-shore-forager"), EKalmalaWildlifeEcology::ShoreForager },
+        { TEXT("elderwood-canopy-browser"), EKalmalaWildlifeEcology::CanopyBrowser },
+        { TEXT("mire-hummock-scavenger"), EKalmalaWildlifeEcology::HummockScavenger },
+        { TEXT("tundra-wind-grazer"), EKalmalaWildlifeEcology::WindGrazer },
+        { TEXT("mountains-ridge-forager"), EKalmalaWildlifeEcology::RidgeForager }
+    };
+    for (const TPair<FName, EKalmalaWildlifeEcology>& Profile : NicheProfiles)
+    {
+        TestEqual(TEXT("Each first-wave niche selects a stable ecological profile"),
+            AKalmalaWildlifeSpawn::GetEcologyForNiche(Profile.Key), Profile.Value);
+        TestTrue(TEXT("Each niche keeps flee pressure inside the existing bounded wildlife budget"),
+            AKalmalaWildlifeSpawn::GetEcologicalFleeDistance(Profile.Key) >= 180.0f
+            && AKalmalaWildlifeSpawn::GetEcologicalFleeDistance(Profile.Key) <= 300.0f);
+    }
+    TestEqual(TEXT("Unknown niche input fails closed to a bounded generalist profile"),
+        AKalmalaWildlifeSpawn::GetEcologyForNiche(NAME_None), EKalmalaWildlifeEcology::Generalist);
     TestEqual(TEXT("Mireling pressure uses the tuned server melee interval"), AKalmalaWildlifeSpawn::MirelingMeleeCooldownSeconds, 1.25f);
     TestFalse(TEXT("A client cannot begin a territorial charge"), AKalmalaWildlifeSpawn::IsBoarChargeAllowed(false, false, true, 100.0f));
     TestFalse(TEXT("A defeated boar cannot begin a territorial charge"), AKalmalaWildlifeSpawn::IsBoarChargeAllowed(true, true, true, 100.0f));

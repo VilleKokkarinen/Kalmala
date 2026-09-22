@@ -30,6 +30,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     {
         const FKalmalaBiomeContentDefinition Definition = FKalmalaBiomeContentContract::GetDefinition(Biome);
         TestTrue(TEXT("Every first-wave biome has a bounded valid content definition"), FKalmalaBiomeContentContract::IsValidFirstWaveDefinition(Definition));
+        TestTrue(TEXT("Every first-wave rare source remains explicitly optional"), FKalmalaBiomeContentContract::IsOptionalRareDiscoverySource(Biome));
         TestEqual(TEXT("Gathering source lookup is stable"), Definition.GatheringSourceId, FKalmalaBiomeContentContract::GetServerContentId(Biome, EKalmalaBiomeContentKind::GatheringSource));
         TestEqual(TEXT("Creature niche lookup is stable"), Definition.CreatureNicheId, FKalmalaBiomeContentContract::GetServerContentId(Biome, EKalmalaBiomeContentKind::CreatureNiche));
         TestEqual(TEXT("Rare discovery lookup is stable"), Definition.RareDiscoverySourceId, FKalmalaBiomeContentContract::GetServerContentId(Biome, EKalmalaBiomeContentKind::RareDiscovery));
@@ -43,6 +44,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
 
     const FKalmalaBiomeContentDefinition Ocean = FKalmalaBiomeContentContract::GetDefinition(EKalmalaBiome::Ocean);
     TestFalse(TEXT("Ocean does not receive land-biome content identities"), FKalmalaBiomeContentContract::IsValidFirstWaveDefinition(Ocean));
+    TestFalse(TEXT("Ocean cannot become an optional land rare source"), FKalmalaBiomeContentContract::IsOptionalRareDiscoverySource(EKalmalaBiome::Ocean));
     TestTrue(TEXT("Rare discoveries are explicitly optional"), Ocean.RareDiscoverySourceId.IsNone() && !Ocean.bRareDiscoveryOptional);
 
     FKalmalaWorldGenerationConfig Config;

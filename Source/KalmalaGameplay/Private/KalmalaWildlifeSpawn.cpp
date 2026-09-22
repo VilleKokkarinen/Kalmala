@@ -11,6 +11,34 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 
+namespace
+{
+    FLinearColor BlendEcologyAccent(const FLinearColor Base, const FLinearColor Accent)
+    {
+        constexpr float Weight = 0.24f;
+        return FLinearColor(
+            FMath::Lerp(Base.R, Accent.R, Weight),
+            FMath::Lerp(Base.G, Accent.G, Weight),
+            FMath::Lerp(Base.B, Accent.B, Weight),
+            Base.A);
+    }
+
+    FLinearColor GetEcologyAccent(const EKalmalaWildlifeEcology Ecology)
+    {
+        switch (Ecology)
+        {
+        case EKalmalaWildlifeEcology::OpenGrazer: return FLinearColor(0.66f, 0.78f, 0.38f);
+        case EKalmalaWildlifeEcology::ShoreForager: return FLinearColor(0.30f, 0.70f, 0.72f);
+        case EKalmalaWildlifeEcology::CanopyBrowser: return FLinearColor(0.30f, 0.55f, 0.30f);
+        case EKalmalaWildlifeEcology::HummockScavenger: return FLinearColor(0.52f, 0.38f, 0.22f);
+        case EKalmalaWildlifeEcology::WindGrazer: return FLinearColor(0.70f, 0.76f, 0.86f);
+        case EKalmalaWildlifeEcology::RidgeForager: return FLinearColor(0.52f, 0.58f, 0.66f);
+        case EKalmalaWildlifeEcology::Generalist:
+        default: return FLinearColor(0.45f, 0.45f, 0.45f);
+        }
+    }
+}
+
 AKalmalaWildlifeSpawn::AKalmalaWildlifeSpawn()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -77,7 +105,7 @@ bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const float Damage, AKal
     }
     else
     {
-        BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f, SpawnOrigin + GetDeterministicOffset(300.0f));
+        BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f, SpawnOrigin + GetDeterministicOffset(GetEcologicalFleeDistance(CreatureNicheId)));
         if (Archetype == EKalmalaWildlifeArchetype::Deer)
         {
             // A successful server combat execution is the only initial noise source. Nearby deer
@@ -98,7 +126,7 @@ bool AKalmalaWildlifeSpawn::ApplyDeerCallFromServer(const FVector& SourceLocatio
     const FVector AwayFromSource = (GetActorLocation() - SourceLocation).GetSafeNormal2D();
     const FVector Direction = AwayFromSource.IsNearlyZero() ? GetDeterministicOffset(1.0f).GetSafeNormal2D() : AwayFromSource;
     BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f,
-        GetActorLocation() + Direction * 260.0f);
+        GetActorLocation() + Direction * GetEcologicalFleeDistance(CreatureNicheId));
     ForceNetUpdate();
     return Behaviour == EKalmalaWildlifeBehaviour::Flee;
 }
@@ -108,6 +136,32 @@ bool AKalmalaWildlifeSpawn::IsMirelingBossRewardCandidate() const
     return Archetype == EKalmalaWildlifeArchetype::Mireling
         && !PersistentSpawnId.IsEmpty()
         && FCrc::StrCrc32(*PersistentSpawnId) % 5u == 0u;
+}
+
+EKalmalaWildlifeEcology AKalmalaWildlifeSpawn::GetEcologyForNiche(const FName NicheId)
+{
+    if (NicheId == TEXT("meadows-open-grazer")) return EKalmalaWildlifeEcology::OpenGrazer;
+    if (NicheId == TEXT("lakes-shore-forager")) return EKalmalaWildlifeEcology::ShoreForager;
+    if (NicheId == TEXT("elderwood-canopy-browser")) return EKalmalaWildlifeEcology::CanopyBrowser;
+    if (NicheId == TEXT("mire-hummock-scavenger")) return EKalmalaWildlifeEcology::HummockScavenger;
+    if (NicheId == TEXT("tundra-wind-grazer")) return EKalmalaWildlifeEcology::WindGrazer;
+    if (NicheId == TEXT("mountains-ridge-forager")) return EKalmalaWildlifeEcology::RidgeForager;
+    return EKalmalaWildlifeEcology::Generalist;
+}
+
+float AKalmalaWildlifeSpawn::GetEcologicalFleeDistance(const FName NicheId)
+{
+    switch (GetEcologyForNiche(NicheId))
+    {
+    case EKalmalaWildlifeEcology::OpenGrazer: return 300.0f;
+    case EKalmalaWildlifeEcology::ShoreForager: return 240.0f;
+    case EKalmalaWildlifeEcology::CanopyBrowser: return 210.0f;
+    case EKalmalaWildlifeEcology::HummockScavenger: return 180.0f;
+    case EKalmalaWildlifeEcology::WindGrazer: return 300.0f;
+    case EKalmalaWildlifeEcology::RidgeForager: return 260.0f;
+    case EKalmalaWildlifeEcology::Generalist:
+    default: return 220.0f;
+    }
 }
 
 EKalmalaWildlifeArchetype AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(const uint64 SpawnSeed)
@@ -377,6 +431,17 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         AddTetra(FVector(15,-39,30), FVector(13,9,30), Lichen);
         AddTetra(FVector(15,39,30), FVector(13,9,30), Lichen);
     }
+
+    // Preserve each original silhouette while tinting a sparse set of faces with
+    // the server-selected niche, so nearby peers can read habitat identity without
+    // receiving a second client-authored gameplay state.
+    const FLinearColor EcologyAccent = GetEcologyAccent(GetEcologyForNiche(CreatureNicheId));
+    for (int32 VertexIndex = 0; VertexIndex + 2 < Colors.Num(); VertexIndex += 3 * 5)
+    {
+        Colors[VertexIndex] = BlendEcologyAccent(Colors[VertexIndex], EcologyAccent);
+        Colors[VertexIndex + 1] = BlendEcologyAccent(Colors[VertexIndex + 1], EcologyAccent);
+        Colors[VertexIndex + 2] = BlendEcologyAccent(Colors[VertexIndex + 2], EcologyAccent);
+    }
     MirelingMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV, Colors, {}, false);
 }
 
@@ -389,7 +454,8 @@ void AKalmalaWildlifeSpawn::AlertNearbyDeerFromServer()
         if (!IsValid(Deer) || Deer->bDefeated || Deer->Archetype != EKalmalaWildlifeArchetype::Deer
             || Deer->Behaviour != EKalmalaWildlifeBehaviour::Idle
             || FVector::DistSquared2D(Deer->GetActorLocation(), GetActorLocation()) > FMath::Square(800.0f)) continue;
-        Deer->BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f, Deer->SpawnOrigin + Deer->GetDeterministicOffset(300.0f));
+        Deer->BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f,
+            Deer->SpawnOrigin + Deer->GetDeterministicOffset(GetEcologicalFleeDistance(Deer->CreatureNicheId)));
     }
 }
 
@@ -460,6 +526,11 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 }
 
 void AKalmalaWildlifeSpawn::OnRep_Archetype()
+{
+    BuildArchetypePresentation();
+}
+
+void AKalmalaWildlifeSpawn::OnRep_CreatureNicheId()
 {
     BuildArchetypePresentation();
 }

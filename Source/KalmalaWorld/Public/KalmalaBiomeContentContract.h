@@ -74,4 +74,10 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
             && !Definition.RareDiscoverySourceId.IsNone()
             && Definition.bRareDiscoveryOptional;
     }
+
+    static bool IsOptionalRareDiscoverySource(const EKalmalaBiome Biome)
+    {
+        const FKalmalaBiomeContentDefinition Definition = GetDefinition(Biome);
+        return IsValidFirstWaveDefinition(Definition) && Definition.bRareDiscoveryOptional;
+    }
 };

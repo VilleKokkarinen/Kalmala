@@ -133,8 +133,12 @@ M7 has nine ordered goals:
    only the matching server-selected ID; their existing spatial/seed sparse
    identities remain unchanged. Ocean receives no land-content entry, and the
    existing point-of-interest descriptor uses the optional rare-source ID.
-   Tool validation, material rewards, creature-specific outcomes, and discovery
-   presentation remain later M7 work.
+   Each niche now also selects a bounded server-owned flee response and sparse
+   original presentation accent from that ID; the existing archetype, damage,
+   reward, and sparse identity paths remain unchanged. Tool validation,
+   material rewards, creature-specific loot, and discovery presentation remain
+   later M7 work. Rare sources and boss scrolls remain optional discoveries:
+   they create no route, mandatory gate, or client-selected location.
 3. **Complete tool-based gathering and tool lifecycle.** Turn suitable
    generated trees, rocks, ore patches, and harvest resources into original
    server-validated woodcutting, mining, and gathering interactions. Tools have

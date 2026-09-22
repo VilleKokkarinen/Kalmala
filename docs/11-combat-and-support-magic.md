@@ -435,6 +435,23 @@ restarts the host save to confirm the same server-derived target stays absent.
 The companion, noise, flight state, target, damage, rewards, and persistence
 decision all remain server-owned.
 
+## M7 ecological niche readability increment
+
+The first-wave server-selected creature-niche ID now derives one bounded
+ecological profile on each wildlife actor: open grazer, shore forager, canopy
+browser, hummock scavenger, wind grazer, or ridge forager. A validated combat
+noise or Deer Call still starts the existing server-only flee cycle, but the
+profile selects a deterministic flee distance from 180 cm to 300 cm. The
+existing archetype selector, health, damage, rewards, sparse defeat identity,
+and 1.5-second flee duration remain unchanged. Relevant peers receive the
+existing niche ID and a sparse original procedural vertex-colour accent; they
+do not receive or author AI decisions, destinations, damage, or timing.
+
+Point-of-interest rare sources and the bounded Mireling boss scroll remain
+optional discoveries. They are materialized only from server-derived
+descriptors or a defeated server-selected candidate, carry no route or client
+location, and do not gate traversal, camp, combat, or support progression.
+
 ## Optional discovery descriptor foundation
 
 `FKalmalaWorldPopulationLayout` now derives at most one `PointOfInterest` and
