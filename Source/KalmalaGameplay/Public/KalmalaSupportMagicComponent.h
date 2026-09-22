@@ -44,8 +44,9 @@ public:
     static float CalculateBearsVigorDamage(bool bServerAuthority, bool bVigorActive, float BaseDamage, float StrengthMultiplier);
     // Shared base cost used by every learned effect before server-owned status modifiers.
     static constexpr float ActivationCost = 18.0f;
+    // Shared server-owned cooldown keeps repeated support use deliberate without changing effect durations.
+    static constexpr float CooldownSeconds = 5.0f;
 private:
-    static constexpr float CooldownSeconds = 4.0f;
     static constexpr float PresentationSeconds = 2.0f;
     static constexpr float MendingRange = 350.0f;
     static constexpr float MendingHealAmount = 30.0f;

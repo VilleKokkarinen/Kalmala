@@ -166,8 +166,10 @@ data schema change and focused migration/reconnect coverage.
 All effects require the requesting player's server-owned learned entitlement,
 valid target, enough shared stamina, and an expired server cooldown. Validate
 before charging once; start cooldown and apply the effect as one server operation.
-Definitions supply bounded range, cost, duration and magnitude. Unknown effects
-fail closed. No support execution calls the damage path.
+Definitions supply bounded range, cost, duration and magnitude. The shared
+server-owned support cooldown is five seconds for every effect; it changes only
+the next-activation eligibility and is never supplied by the client. Unknown
+effects fail closed. No support execution calls the damage path.
 
 The foundation records only canonical allowlisted `Effect:<definition>` tokens in
 the existing authenticated-player, immutable-world discovery save. On scroll
@@ -201,7 +203,7 @@ row names its matching controller D-pad direction and keyboard key.
 
 ### Mending runtime increment
 
-Mending now resolves exactly one other `AKalmalaCharacter` from the caster's server-owned forward Pawn trace (350 cm), then performs a separate server visibility trace to that pawn. It cannot name a target in the activation RPC and cannot select wildlife or another non-player actor. The target must be in the same world, alive (health above 1), damaged, and within 350 cm. After that validation, the server consumes the shared 18-stamina base activation cost, adjusted by the authoritative status definition (20.7 while Wet), applies a finite 30-point heal clamped to 100, and starts the existing cooldown/presentation transaction. A full-health, dead, distant, occluded, foreign-world, self, non-character, or invalid target leaves health, stamina, cooldown, active state, and request sequence unchanged. Mending has no damage call and does not revive.
+Mending now resolves exactly one other `AKalmalaCharacter` from the caster's server-owned forward Pawn trace (350 cm), then performs a separate server visibility trace to that pawn. It cannot name a target in the activation RPC and cannot select wildlife or another non-player actor. The target must be in the same world, alive (health above 1), damaged, and within 350 cm. After that validation, the server consumes the shared 18-stamina base activation cost, adjusted by the authoritative status definition (20.7 while Wet), applies a finite 30-point heal clamped to 100, and starts the existing five-second cooldown/presentation transaction. A full-health, dead, distant, occluded, foreign-world, self, non-character, or invalid target leaves health, stamina, cooldown, active state, and request sequence unchanged. Mending has no damage call and does not revive.
 
 ### Hearth Shield runtime increment
 
