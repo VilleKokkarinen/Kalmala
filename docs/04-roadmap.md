@@ -43,102 +43,50 @@ Add original art/audio pass, tutorial beats, settings/accessibility, performance
 
 **Accept:** a new player can complete the documented 20–30 minute co-op loop without developer tools.
 
-## Next roadmap goals
+## M6 — Production hardening and supported-session validation
 
-These goals are ordered after the current M5 acceptance. They are planning
-targets, not approval to change the platform, business model, online-service
-commitment, visual identity, saved-data schemas, or vertical-slice scope.
-Do not begin a later goal until the preceding goal has passed its exit gate.
+Start only after M5's vertical-slice acceptance passes. Turn the accepted M5
+loop into a reliable release candidate without adding new gameplay content,
+changing saved-data schemas, expanding online services, or changing the
+current PC solo/listen-server co-op scope.
 
-### Goal 1 — Close the vertical slice
+M6 has four ordered goals:
 
-Finish the remaining M5 work in the order recorded by `BACKLOG.md`:
+1. **Close acceptance findings.** Fix issues found during the final fresh-player
+   20–30 minute packaged co-op run. Convert each finding into a focused
+   regression or an explicit documented non-goal. Prioritize crash and hang
+   triage, reconnect and late-join reliability, save-identity safety, input,
+   accessibility, and readable non-audio feedback.
+2. **Re-run the complete release suite.** From clean temporary user
+   directories, run the automated, rendered, current-generator, authority,
+   persistence, reconnect, and performance checks twice. Preserve the logs,
+   screenshots, package metadata, and known-limit record.
+3. **Validate the Windows Development package.** Produce the accepted package,
+   smoke-launch it, and verify that a fresh player can complete the documented
+   loop using normal player actions only. Keep actor, memory, worker, raster,
+   startup, replication, and save budgets within their recorded limits.
+4. **Attempt dedicated-server validation only when unblocked.** If a
+   server-capable UE 5.8 source build or distribution becomes available,
+   compile the retained `KalmalaServer` target and run a bounded two-to-four-
+   player playtest covering join, movement, interaction, weather and camp
+   recovery, creatures, support effects, late join, reconnect, and sparse
+   persistence. If the installed Launcher engine remains the only available
+   distribution, retain the documented blocker and do not invent a replacement
+   service.
 
-1. Complete the bounded survival, combat, creature, and support balance pass.
-   Each increment must preserve server-selected outcomes, intent-only client
-   requests, recoverable preparation choices, and the existing save and
-   replication contracts.
-2. Re-run the affected authority, persistence, reconnect, and host/client
-   regressions after each balance change; keep the retained evidence and
-   update the handoff limits.
-3. Run release regression and packaging verification, including the current
-   generator, rendered checks where available, Windows Development package
-   smoke launch, and the documented dedicated-server attempt only if a
-   server-capable UE 5.8 build exists.
-4. Run the final M5 acceptance with a fresh player through the documented
-   20–30 minute co-op loop using normal packaged-player actions only.
+**M6 multiplayer boundary:** the server continues to own world generation,
+combat, support, discovery, rewards, persistence, and all accepted outcomes.
+Clients provide intent only, and the hardening work must not add client-
+selected targets, damage, timing, rewards, hidden-content queries, or save
+values.
 
-**Exit gate:** the packaged loop is repeatable without developer tools, peers
-observe matching relevant state, optional routes remain optional, reconnect
-and persistence evidence is retained, and all remaining limitations are
-explicitly recorded. The Launcher-engine dedicated-server limitation remains
-an honest blocker when no server-capable engine is installed.
-
-### Goal 2 — Stabilize the accepted slice
-
-After Goal 1 passes, convert every final-acceptance finding into a small,
-replayable regression or a documented non-goal. Prioritize crash and hang
-triage, reconnect and late-join reliability, save-identity safety, input and
-accessibility regressions, and the existing actor, memory, worker, raster,
-startup, and package budgets. Keep the generated world, population density,
-save schemas, and online-service scope bounded while fixing defects.
-
-**Exit gate:** the supported Windows Development package passes the complete
-automated regression set twice from clean temporary user directories, the
-documented performance budgets remain green, and no known defect can mutate
-server-owned gameplay through client presentation or input paths.
-
-### Goal 3 — Validate dedicated-server deployment when unblocked
-
-Treat dedicated hosting as a conditional infrastructure goal, not a reason to
-change the current product scope. When a server-capable UE 5.8 source build or
-distribution is available, compile the retained `KalmalaServer` target and
-run a bounded two-to-four-player playtest covering join, movement, interaction,
-weather and camp recovery, creature encounters, support effects, late join,
-reconnect, and sparse persistence. If the installed Launcher engine remains
-the only available distribution, retain the documented blocker and continue
-to support editor/listen-server development without inventing a replacement
-service.
-
-**Exit gate:** the dedicated server owns world, combat, support, discovery,
-reward, and save decisions; clients provide intent only; late join and
-reconnect preserve the same world identity; and the session remains inside
-the accepted actor, memory, replication, and save budgets.
-
-### Goal 4 — Expand the player-directed generated wilderness
-
-Only after the vertical slice is accepted and stabilized, select one original
-post-slice content slice from the existing generated-world direction. A slice
-may deepen a biome, add an optional landmark or discovery, improve a wildlife
-behavior loop, or extend ocean/island travel, but it must reuse the immutable
-world identity and existing population, exposure, discovery, persistence, and
-map contracts. It must not add authored routes, mandatory crossings, combat
-tier zones, hidden-content queries, or client-selected rewards.
-
-Deliver one integrated increment at a time: deterministic generation,
-server-owned activation and persistence, local presentation, accessible
-feedback, host/client agreement, and a measured performance budget. Prefer
-environmental and preparation choices over linear enemy scaling, and require a
-viable lower-risk approach wherever a new region or feature adds pressure.
-
-**Exit gate:** the new slice reproduces for the same seed, varies meaningfully
-for a different seed, blends continuously with existing terrain and biomes,
-preserves co-op privacy and authority, survives reconnect/restart where its
-contract requires it, and leaves the accepted 20–30 minute loop playable.
-
-### Goal 5 — Revisit broader production commitments
-
-Before starting work that changes the supported platform, business model,
-online services, persistent-data schema, or post-slice product shape, record an
-explicit decision covering the target platforms and session model, hosting or
-service requirements, save migration policy, and the next content priority.
-Until that decision exists, keep production work inside the current PC
-solo/listen-server co-op scope, use original project-owned presentation, and
-preserve the current server-authority and sparse-save contracts.
-
-**Exit gate:** the decision is accepted by the project owner and reflected in
-the relevant design, architecture, setup, and backlog documents before any
-implementation begins.
+**M6 accept:** the supported Windows Development package passes the complete
+release suite twice from clean temporary user directories; a fresh player can
+complete the 20–30 minute co-op loop without developer tools; relevant peer
+state, reconnect, and persistence remain correct; documented performance
+budgets remain green; and the only remaining limitations are explicitly
+recorded. Dedicated-server acceptance is conditional on the documented UE5.8
+engine capability.
 
 ### World-generation Phase 5 — Companion minimap delivery plan
 
