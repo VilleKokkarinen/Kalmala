@@ -25,6 +25,33 @@ The first editor launch must create the prototype map at `/Game/Kalmala/Maps/Pro
 
 The existing `L_Prototype` is now the configured editor startup and game default map. It contains the M1 fixtures and tagged sun/sky lighting, with no template floor or landscape underneath the generated terrain. `Scripts/Setup-PrototypeEnvironment.py` reproducibly adds that lighting through Unreal's Python commandlet and saves only this map. Run it while other editor/test processes are closed to avoid a map file lock. Press Play in `L_Prototype`; an already-open `/Engine/Maps/Templates/OpenWorld` has its own landscape that intersects the generated world and can show checkerboard patches in depressions. Restart the editor to use the configured startup map, or open `L_Prototype` explicitly before Play.
 
+### M5 performance/startup baseline
+
+The 2026-09-22 supported-Windows profile passed without a bounded actor,
+memory, worker, or raster regression. The forced `KalmalaEditor Win64
+Development` build succeeded with UnrealBuildTool access to
+`%LOCALAPPDATA%\UnrealBuildTool`; a temporary Windows Development package
+cooked, staged, and archived successfully. The archived packaged listen server
+reached network readiness in 12,025.8 ms. This is a local Development/null-RHI
+startup baseline, not a shipping frame-time target.
+
+`Scripts/Verify-WorldProfile.ps1` recorded 179.99 ms initial generation,
+1,760.48 MiB used physical memory, 46 actors, 28 replicated actors, 9 terrain
+patches, 1 active population key, and 2,215 serialized save bytes before the
+two-peer late-join check. `Scripts/Verify-PlayerControls.ps1` passed normal
+generated-world movement and replicated remote movement. `Scripts/Verify-CampChoices.ps1`
+passed two freely chosen camp sites with 31 matched server exposure snapshots
+per pawn and normal fire recovery. `Scripts/Verify-WorldMapProfile.ps1`
+recorded host/client map profiles; the client measured 826.540 ms open,
+760.878 ms total worker time, 203.300 ms maximum worker time, 16.343 ms total
+game-thread time, 12 ready tiles, and 202,800 cached CPU bytes. The focused
+minimap/map automations passed, including 18.635 ms per tile, 48.963 ms for
+the four-tile minimap case, and the 278,784-byte cache ceiling.
+
+These profiles remain diagnostic evidence only. They do not establish audible
+quality, hardware/controller input, packaged persistence, long-session memory
+growth, shipping GPU frame time, or the final tool-free co-op acceptance.
+
 ## Bounded generated-world profile
 
 After an editor build, run `Scripts/Verify-WorldProfile.ps1`. It starts a revision-4 seed-418 listen server, then joins a conflicting-seed client and waits for the existing replicated immutable identity. The server logs initial generated-world setup time, process physical-memory snapshot, total and replicated actor counts, active terrain patches/population keys, and sparse population-save bytes serialized to memory. It does not mutate the save, change the 25-patch budget, adjust density, or accept client-selected world data. The runner succeeds only after the late-joining client reports `Seed=418` and the server reports two players plus successful save serialization.
@@ -126,6 +153,19 @@ three existing idle Deer within 900 cm, must reject before stamina payment when
 none are eligible, and must not create wildlife or alter damage, harvest, loot,
 or saved progression.
 
+The M5 balance pass uses an 18-stamina base for every support activation. The
+server runs that base through `UKalmalaPlayerStatusComponent` before checking
+or charging stamina, so an active Wet status costs 20.7; the client supplies
+neither value. The focused status and discovery automations cover the shared
+cost calculation and tuned base constant. Every support effect also uses a
+five-second server-owned cooldown after a successful activation; the client
+supplies neither cost nor timing. Hearth Shield now keeps its bounded 40-point
+absorption for ten seconds; the focused discovery regression covers that
+server-owned duration constant. Bear's Vigor now keeps its existing 1.4x
+strength and 140-point stamina cap for ten seconds; the same focused discovery
+regression covers its server-owned duration constant. Live support authority
+and reconnect checks remain in the M4 harness.
+
 ## Mireling boss scroll verification
 
 The focused discovery regression also checks the bounded stable-ID gate and
@@ -154,7 +194,7 @@ final M4 acceptance step.
 
 ## Exposure inspection
 
-Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 68–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.
+Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 69–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.
 
 ## Exposure replication smoke test
 
@@ -194,6 +234,87 @@ After building, run `Scripts/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 10
 
 Press Escape during normal play to open the local Settings menu; press Escape again to close it and restore game input. The menu's main screen provides Options and Quit. Options contains Video, Audio, Controls, and Settings tabs; Video immediately applies and saves resolution, V-Sync, window mode, and render-distance quality through Unreal `GameUserSettings`. Run `Kalmala.UI.Settings.LocalPresentation` after an editor build for the render-distance bounds seam. This is local presentation/preferences only: no setting, menu action, or quit request is sent to the server.
 
+The Audio tab now cycles local master volume in 25% steps and provides
+mute/restore, with text showing the current level and action. It saves these
+preferences in the local `GameUserSettings` config and applies the engine's
+primary output-volume multiplier at local-player initialization. The focused
+`Kalmala.UI.Settings.LocalPresentation` automation checks bounds, config
+persistence, mute, and restore; run it after an editor build with the standard
+temporary `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and
+`-TestExit="Automation Test Queue Empty"` flags. Audio-category levels and input
+remapping, text scale, contrast, and the local colour-independent feedback
+mode are implemented; full rendered settings coverage remains the accessibility
+follow-up surface.
+
+### Local audio category controls
+
+Since the master-only increment above, the Audio tab now includes focusable
+Ambient, Music, and Interaction/Combat Feedback buttons. Each displays its
+current value and cycles through 0%, 25%, 50%, 75%, and 100%; values save in the local
+`GameUserSettings` config. Ambient scales the local wind, rain, water, fire,
+and biome loops, while Interaction/Combat Feedback scales owner-local
+movement, status, crafting/gathering, discovery, combat, and support cues. The
+Music value is retained for a future music path; no music track currently
+plays. These settings remain process-local and do not change gameplay state.
+
+Run `Kalmala.UI.Settings.LocalPresentation` after an editor build to check
+category bounds and local config round-trips alongside master mute/restore.
+`Scripts/Verify-SettingsAccessibilityContract.ps1` and
+`Scripts/Verify-AudioCueContract.ps1` check the written option and mix
+contracts without launching Unreal. These checks do not render the Audio tab,
+simulate physical controller input, or establish audible quality/device mix.
+
+### Local Controls tab
+
+The Controls tab exposes the existing movement, look, interact, attack, jump,
+sprint, settings, map, recenter, craft, and support-activation intents. Each
+row shows the current keyboard and controller label and cycles through a small
+allowlisted set of alternatives; movement rows retain positive/negative axis
+pairs. Restore default controls clears only the local overrides. The runtime
+applies overrides to the owning `UPlayerInput` and stores them in the local
+`GameUserSettings` configuration, so `Config/DefaultInput.ini` and server
+validation remain unchanged. Escape remains an always-available modal close
+path even if the alternate Settings key is changed. The settings automation
+checks bounded labels, local persistence, rejection of an out-of-set key, and
+restore defaults.
+
+### Local Settings tab
+
+The Settings tab cycles local text scale through 100%, 125%, and 150%, and
+cycles between Standard and High contrast. Changes rebuild the current modal
+immediately, use auto-wrapped text, and retain a larger bounded panel so the
+Controls list remains scrollable at the largest scale. Contrast updates the
+modal backdrop, panel, button surfaces, text, and focusable state controls as
+one local palette; every value remains visible as text. Values persist in the
+local `GameUserSettings` configuration and send no RPC or gameplay request.
+The `Kalmala.UI.Settings.LocalPresentation` automation checks bounded choices
+and config round-trips.
+
+The same tab provides a local colour-independent feedback choice between
+`Text only` and `Text + markers`. Marker mode adds bracketed text markers for
+Wet, nearby hearth, construction, combat, discovery, and support state in an
+owner-only overlay. It reads the existing local pawn components and accepted
+replicated results, follows the local contrast palette, and sends no request.
+`Kalmala.UI.Settings.LocalPresentation` checks its bounded mode and config
+round-trip. The focused automation remains a null-RHI contract check; use the
+rendered peer probe below for the live modal.
+
+### Rendered settings and accessibility regression
+
+After an editor build, run `Scripts/Verify-SettingsAccessibility.ps1`. It
+starts an isolated seed-418 listen server and conflicting-seed client, opens
+the live Audio, Controls, and Settings tabs, and captures each at 1280x720.
+The development-only probe writes bounded local audio, text, contrast,
+colour-independent feedback, and keyboard/controller remapping values to each
+peer's `GameUserSettings.ini`, applies those mappings to only the owning
+`UPlayerInput`, verifies focus ownership and the Escape mapping, then closes
+the modal. It compares pawn health, transform, and the replicated server world
+identity before and after the local changes. The printed temporary directory
+retains host/client logs and six PNG captures. This verifies local config and
+authority boundaries, not physical controller hardware, audible quality,
+packaged persistence, pixel-level modal readability in the current offscreen
+Slate compositor, or other viewport sizes.
+
 ## M5 onboarding contract check
 
 `Scripts/Verify-OnboardingContract.ps1` is a no-build check for the optional
@@ -210,20 +331,42 @@ been implemented.
 `Scripts/Verify-SettingsAccessibilityContract.ps1` is a no-build check for
 `docs/14-settings-and-accessibility.md`. It validates the existing Video,
 Audio, Controls, and Settings groups, text-scale and contrast requirements,
-keyboard/controller focus access, non-colour feedback, reversible local
-storage, no-RPC boundaries, and the limit that runtime menu/persistence
-verification remains pending. It does not launch Unreal or claim that the
-placeholder tabs have become functional.
+bounded control remapping and restore defaults, keyboard/controller focus
+access, text-scale and contrast requirements, the bounded colour-independent
+feedback mode and owner-only markers, reversible local storage, no-RPC
+boundaries, and the remaining runtime verification limits. It does not launch
+Unreal or claim that the full option set is functional.
 
 ## M5 presentation ownership check
 
 `Scripts/Verify-PresentationOwnership.ps1` is a no-build audit for
 `docs/15-presentation-ownership.md`. It confirms the seven project-owned world
 materials, the procedural player/wildlife/environment/hearth sources, the local
-UI texture/feedback sources, and the absence of known engine-basic-shape,
-Starter Content, Marketplace, or third-party asset paths. It does not prove
-material loading, visual readability, audio, animation, packaging, or
-host/client screenshots; those still require the relevant Unreal verification.
+UI texture/feedback sources, the four code-drawn support-effect glyphs, and the
+absence of known engine-basic-shape, Starter Content, Marketplace, or third-
+party asset paths. It does not prove material loading, visual readability,
+audio, animation, packaging, or host/client screenshots; those still require
+the relevant Unreal verification.
+
+After an editor build, run `Scripts/Verify-DeerPeer.ps1 -Rendered` for a
+positioned host capture of the original deer silhouette plus the bounded
+host/client combat, reward-privacy, and defeat-persistence checks. The
+development-only capture camera is requested by the server fixture after it
+positions the existing target and herd mate; normal gameplay camera and
+authority are unchanged. Use `-Project <path-to-uproject>` to run an isolated
+build copy. The capture reviews one 1280×720 lighting/view direction and does
+not establish readability at other distances or during other lighting.
+
+## M5 rendered Mireling silhouette review
+
+Run `Scripts/Verify-MirelingPeer.ps1 -Rendered` after an editor build to capture
+the original Mireling in a bounded listen-host/client encounter. The transient
+host camera is positioned after the fixture arranges the generated actor; the
+runner also checks server combat, rejected client target-free attacks,
+owner-only reward, and defeat persistence after a same-world restart. Use
+`-Project <path-to-uproject>` for an isolated build copy. The 1280×720 capture
+shows the low hunch, reaching arms, and split crown in close view; the dark body
+planes merge somewhat, and other distances and lighting remain unreviewed.
 
 ## M5 audio cue contract check
 
@@ -234,18 +377,63 @@ server-authority/privacy boundaries, silence fallback, and no new RPC/save
 field. It does not create or play sound assets, test mixing/spatialization, or
 claim packaged two-player audio verification.
 
-For the local ambience increment, `Scripts/Generate-WildernessWind.ps1`,
-`Scripts/Generate-WaterAmbience.ps1`, and `Scripts/Generate-FireAmbience.ps1`
-recreate original loop-seamed mono sources at
-`Content/Kalmala/Audio/Source/WindBed.wav`, `WaterBed.wav`, and `FireBed.wav`.
-Import all three to `/Game/Kalmala/Audio` with Unreal's `ImportAssets`
-commandlet, then run `Scripts/Verify-AmbientAudio.ps1`,
-`Scripts/Verify-AmbientAudioPeers.ps1`, and the forced editor build. The first
+For local ambience, `Scripts/Generate-WildernessWind.ps1`,
+`Scripts/Generate-WaterAmbience.ps1`, `Scripts/Generate-FireAmbience.ps1`,
+`Scripts/Generate-BiomeAmbience.ps1`, and
+`Scripts/Generate-WeatherExposureAudio.ps1`,
+`Scripts/Generate-SupportFeedbackAudio.ps1`,
+`Scripts/Generate-CombatResultAudio.ps1`, and
+`Scripts/Generate-InteractionFeedbackAudio.ps1`,
+`Scripts/Generate-DiscoveryAcknowledgementAudio.ps1`,
+`Scripts/Generate-SupportEffectAudio.ps1`,
+`Scripts/Generate-MovementTraversalAudio.ps1`, and
+`Scripts/Generate-WaterTraversalAudio.ps1` recreate original mono sources
+under `Content/Kalmala/Audio/Source`, including the loop-seamed `RainBed.wav`
+and the one-shot `WetStatusCue.wav`, `SupportAcceptedCue.wav`,
+four support activation cues, two timed-effect expiry cues,
+`CombatResultCue.wav`, `InteractionAcceptedCue.wav`,
+`InteractionRejectedCue.wav`, `DiscoveryAcknowledgedCue.wav`,
+`MovementFootfallCue.wav`, `MovementJumpCue.wav`, `MovementLandingCue.wav`,
+`GeneratedOceanEntryCue.wav`, and `GeneratedOceanExitCue.wav`. Import the
+twenty-two audio assets to
+`/Game/Kalmala/Audio` with Unreal's
+`ImportAssets` commandlet, then run `Scripts/Verify-AmbientAudio.ps1`,
+`Scripts/Verify-AmbientAudioPeers.ps1`, `Scripts/Verify-CombatPeer.ps1`,
+`Scripts/Verify-DiscoveryPeer.ps1`, `Scripts/Verify-PlayerControls.ps1
+-MovementAudio -OceanTraversalAudio`, and the forced editor build. This
+development-only audio mode injects one local sample transition pair and
+requires each host/client owner to submit one entry and one exit cue; it never
+sets a movement mode or sends audio over the network. Pass
+`-WeatherExposureOnly` to the peer runner for a focused weather/Wet cue check;
+the default mode still requires visible-water activation. The first
 verifier checks source format, imported assets, local-player-only subsystem
-contract, and water/hearth context gates; the peer runner checks independent
-host/client sampling, wind component creation, visible-water ambience, and a
-visible server-lit test hearth. These checks do not claim audible device mix or
-packaged verification.
+contract, water/hearth visibility gates, local biome sampling, replicated
+precipitation and wind, the owner's replicated Wet status, local support,
+combat, discovery, and movement cues, generated-ocean entry/exit transitions,
+owner-only crafting result cues, and accepted
+owner-only inventory increases. The peer runner checks
+independent host/client sampling, local loop creation, visible water and
+server-lit hearth context, each peer's sampled-biome bed, and weather/exposure
+cues, plus accepted Hearth Shield and Bear's Vigor activation and expiry cues,
+an accepted Fuel craft, an actual transient harvest, and a rejected recipe
+result for each pawn. Crafting text,
+result serial/outcome and detailed inventory remain owner-only. The combat peer runner separately confirms that
+only the locally owning pawn hears the confirmed Hit/Defeat cue; Unavailable
+remains text-only. The discovery peer runner confirms only the entitled local
+owner submits the landmark/scroll acknowledgment cue; duplicate, unavailable,
+and remote undiscovered results remain text-only. The support grant/cast and weather changes exist only under
+`-KalmalaAmbientAudioTest`. Test weather is light enough to keep the
+test hearth lit, and a test-only server hook preserves Wet during the status-cue
+check. The test support casts still use the server component and wait for its
+existing timed states to end. These checks do not claim audible device mix or packaged
+verification.
+
+`Scripts/Verify-PlayerControls.ps1 -MovementAudio` drives the existing local
+walk/sprint/jump/landing fixture on a listen host and connected client. It
+requires each owning player to submit its own distance-paced footfall, upward
+jump, and landing cues while retaining the existing rendered model and bound
+input checks. It does not establish audible quality, hardware mixing, or
+packaged playback.
 
 ## M5 local input contract check
 
@@ -441,9 +629,9 @@ After building, run `Scripts/Verify-WorldMapExport.ps1`. In one warm headless pr
 Run `Kalmala.World.Regional`, `Kalmala.UI.Minimap.GenerationPerformance`, `Scripts/Verify-WorldMapExport.ps1` and `Scripts/Verify-Minimap.ps1` after shared sampling changes. The exporter has no gameplay authority or persistence path.
 ## M3 wetness and rain override (2026-09-14)
 
-`Kalmala.Gameplay.Status.WetModifiers` adds a spawned-pawn regression for 0.90 walking/sprint/swim speed, duplicate-status non-stacking, expiry recovery, and 1.25 stamina-cost calculation. It is included by the `Kalmala.Gameplay.Status.Wet` prefix. This test does not prove live network agreement or stamina drain; there is no stamina consumer yet. Legacy exposure speed assertions are historical and no longer represent the M3 movement contract.
+`Kalmala.Gameplay.Status.WetModifiers` adds a spawned-pawn regression for the tuned 0.92 walking/sprint/swim speed, duplicate-status non-stacking, expiry recovery, and 1.15 stamina-cost calculation. It is included by the `Kalmala.Gameplay.Status.Wet` prefix. The M5 balance pass keeps the 120-second duration, 10-second rain trigger, and campfire recovery unchanged while reducing the travel/stamina tax. This test does not prove live network agreement or stamina drain; there is no stamina consumer yet. Legacy exposure speed assertions are historical and no longer represent the M3 movement contract.
 
-This section supersedes earlier references to continuous player wetness, warmth-derived wetness penalties, fuel wetness extinguishing, or rain damage below. `Wet` is only a server-owned player debuff with a reusable parameter definition: default maximum duration 120 seconds, unroofed-rain trigger 10 uninterrupted seconds, movement multiplier 0.90, and stamina-use multiplier 1.25. Standing in server-confirmed water applies it immediately. Rain applies it only when the server finds no accepted roof above the pawn. Reapplication cannot exceed 120 seconds; a nearby lit campfire with nonzero authoritative heat removes it. Surface moisture remains a grid material/fire input and is never a second player wetness system. The player-facing result is a replicated status-container entry with a finite remaining duration; it has no client mutation path.
+This section supersedes earlier references to continuous player wetness, warmth-derived wetness penalties, fuel wetness extinguishing, or rain damage below. `Wet` is only a server-owned player debuff with a reusable parameter definition: default maximum duration 120 seconds, unroofed-rain trigger 10 uninterrupted seconds, movement multiplier 0.92, and stamina-use multiplier 1.15. Standing in server-confirmed water applies it immediately. Rain applies it only when the server finds no accepted roof above the pawn. Reapplication cannot exceed 120 seconds; a nearby lit campfire with nonzero authoritative heat removes it. Surface moisture remains a grid material/fire input and is never a second player wetness system. The player-facing result is a replicated status-container entry with a finite remaining duration; it has no client mutation path.
 
 Roofs are rain-immune. Unroofed floors, walls, workbenches, and storage take slow server-owned rain wear, clamped at 50% health; an accepted overhead roof prevents that wear. A fuelled campfire is normal in dry weather. Rain without a roof makes it `Smouldering`, with zero heat; roof protection automatically returns it to `Lit`. Clients submit no wetness, duration, roof, health, weather, fire, or relight state.
 
@@ -451,7 +639,7 @@ After an editor build, run `Kalmala.Gameplay.InteractionGrid.SurfaceMoisture+Kal
 
 ### M3 Wet stamina verification
 
-The sprint stamina implementation supersedes earlier statements that sprint has no stamina cost. Run the headless prefix Kalmala.Gameplay.Status.Wet plus Kalmala.Gameplay.Movement.SprintSavedMoves after building. WetStamina checks actual dry/Wet consumption, zero/max clamping, exhaustion gating, recovery hysteresis, stationary intent, and malformed elapsed time. Run Scripts/Verify-PlayerControls.ps1 -WetStamina on an unused port for normal bound sprint/jump/release in a listen-server session with a conflicting-seed client. The server fixture maintains Wet; both server pawns and the remote owner must report stamina below 99 and matching 0.90-adjusted sprint speed. The remote owner also attempts the local stamina update and must observe no mutation. This fixture does not test natural rain/water triggers, expiry, or latency at exhaustion. The original controls scenario remains available without the switch.
+The sprint stamina implementation supersedes earlier statements that sprint has no stamina cost. Run the headless prefix Kalmala.Gameplay.Status.Wet plus Kalmala.Gameplay.Movement.SprintSavedMoves after building. WetStamina checks actual dry/Wet consumption, zero/max clamping, exhaustion gating, recovery hysteresis, stationary intent, and malformed elapsed time. Run Scripts/Verify-PlayerControls.ps1 -WetStamina on an unused port for normal bound sprint/jump/release in a listen-server session with a conflicting-seed client. The server fixture maintains Wet; both server pawns and the remote owner must report stamina below 99 and matching 0.92-adjusted sprint speed. The remote owner also attempts the local stamina update and must observe no mutation. This fixture does not test natural rain/water triggers, expiry, or latency at exhaustion. The original controls scenario remains available without the switch.
 
 The Kalmala.Gameplay.Status.Wet prefix now includes WetCampfire. It spawns and lights an actual paid-initialized hearth and checks missing/unlit/zero-heat/radius-edge/exhausted-source rejection, client-role rejection without mutation, successful nearby heat removal, default movement/stamina restoration, idempotence, reapplication, and ordinary expiry. It exercises the server component seam with real actors; live replication of campfire removal and the combined rain/roof/smoulder scenario remain part of the later M3 acceptance task.
 
@@ -471,7 +659,12 @@ After a forced editor build, run `Kalmala.Gameplay.Hearth+Kalmala.Gameplay.Const
 
 After building, run Scripts/Verify-Crafting.ps1 -Rendered. The paid floor fixture now advances rain wear through the authoritative actor seam to the 50-health floor. Both peer captures require the local nearby-construction text to report Health: 50.0 / 100 and the rain-wear limit. Inspect host.png and client.png for readable status and recovery cues. This covers floor health replication and rendered feedback, not all construction kits, camera occlusion cases, aspect ratios or the complete natural-weather M3 scenario.
 
-Hearth.WeatherMutation spawns a GameState and verifies valid server updates, complete state preservation after a simulated-proxy call, and rejection of malformed start/rain/duration/wind values. Hearth.AuthorityContract now includes weather RPC absence and ordinary weather replication. Run the existing M3 rain authority prefix suite above. `Scripts/Verify-PersistedCampHearth.ps1` additionally runs the actual remote-client isolation probe after the shared paid camp stabilizes: forged direct Wet, construction/roof, hearth, and weather mutation calls must preserve every replicated value and report no authoritative save owner. It sends no RPC and writes only its temporary user directory. These checks do not replace the remaining natural-weather combined acceptance scenario.
+
+## Local tutorial prompt smoke test
+
+Run `Scripts/Verify-TutorialRouteFree.ps1` for a no-build source audit of the normal local-player prompt presenter. It checks that arrival does not depend on other progress, contextual prompts use only local visibility or already-readable state, exploration follows movement from the player's initial position without choosing a heading, a visible camp is optional, and no tutorial command-line gate, quest flow, hidden-actor scan, RPC, or gameplay save path exists.
+
+After a forced editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered -Port <unused-port>` from the same isolated project copy. Its fresh-pawn host/client path captures the arrival card while the existing fixture verifies local jump/sprint input and server-observed remote movement. The fixture uses a development-only movement-test flag, but the tutorial presenter has no opt-in flag and shows the arrival card without one. Inspect both 1280×720 captures for the text, bound controls, and compass shape. These checks do not render every contextual beat, simulate physical controller input, or replace the final packaged 20–30 minute no-developer-tools acceptance in `docs/12-vertical-slice-runbook.md`.
 
 ### M3 rain vertical-slice verification
 

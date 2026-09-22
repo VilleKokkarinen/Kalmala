@@ -97,79 +97,115 @@ comparison target is the survival-game category, not a source of names, art,
 lore, recipes, balance, or copied interface design; all Kalmala content remains
 original and route-free.
 
-M7 has six ordered goals:
+M7 has nine ordered goals:
 
 1. **Add server-owned skill progression.** Define a small allowlisted set of
-   original skills for gathering, woodcutting, mining, crafting, and survival.
-   Award bounded experience only from accepted server actions, derive levels
-   and unlocks on the server, and replicate only the owning player's detailed
-   progression plus the presentation state relevant to other peers. Clients
-   cannot submit experience, level, unlock, multiplier, or reward values.
-2. **Add optional food and nutrition choices.** Add original edible items and
-   recipes that can be gathered, prepared, and consumed through the existing
-   inventory/crafting transactions. Eating grants finite, readable stat
-   modifiers such as stamina capacity, recovery, movement comfort, or exposure
-   resilience. Effects must stack, replace, expire, and reject invalid or
-   duplicate consumption through server-owned rules. Food should create
+   original skills for gathering, woodcutting, mining, crafting, cooking, and
+   survival. Award bounded experience only from accepted server actions, derive
+   levels and unlocks on the server, and replicate only the owning player's
+   detailed progression plus the presentation state relevant to other peers.
+   Clients cannot submit experience, level, unlock, multiplier, or reward
+   values.
+2. **Establish biome-specific material and creature identity.** Give each
+   completed biome a bounded original material family and a creature niche.
+   Materials may come from biome trees, ore patches, harvest plants, creature
+   drops, elite or boss rewards, loot chests, hidden treasures, or shipwreck
+   discoveries, but every source must be a server-selected catalogue entry with
+   a stable spatial or encounter identity. Start with a small authored set:
+   one reliable gathering source, one creature, and one rarer discovery source
+   per first-wave biome rather than an unbounded loot table. Creatures must add
+   readable behaviour or ecological pressure, not only act as resource bags;
+   bosses and rare caches remain optional discoveries and never become a
+   designed route, mandatory gate, or copied fantasy reference.
+3. **Complete tool-based gathering and tool lifecycle.** Turn suitable
+   generated trees, rocks, ore patches, and harvest resources into original
+   server-validated woodcutting, mining, and gathering interactions. Tools have
+   bounded server-owned durability; accepted work spends durability, zero
+   condition blocks the action, and repair at an accepted repair station or
+   workbench consumes validated repair materials. The server selects the
+   resource from the authoritative trace and range, validates tool, durability,
+   skill, and node state, applies bounded health or use state, awards
+   catalogue-validated materials, and persists only the necessary sparse
+   depletion facts. Clients provide intent and tool/action selection only; they
+   cannot choose a node, yield, damage, durability, repair result, or reward.
+4. **Add optional food, preparation, and nutrition choices.** Add original
+   edible items and recipes that can be gathered, prepared, and consumed through
+   the existing inventory/crafting transactions. Add a first camp-processing
+   set such as a cooking rack over a fire, a heat-safe kettle or cauldron
+   analogue, and a drying or smoking frame; each station must have explicit
+   fuel, heat, access, batch, and failure rules. Eating grants finite, readable
+   stat modifiers such as stamina capacity, recovery, movement comfort, or
+   exposure resilience. Effects must stack, replace, expire, and reject invalid
+   or duplicate consumption through server-owned rules. Food should create
    preparation choices without making starvation or a mandatory food route a
    hard travel gate in the first M7 slice.
-3. **Complete tool-based material gathering.** Turn suitable generated trees,
-   rocks, and harvest resources into original server-validated woodcutting,
-   mining, and gathering interactions. The server selects the resource from
-   the authoritative trace and range, validates the tool and skill requirement,
-   applies bounded node health or use state, awards catalogue-validated
-   materials, and persists only the necessary sparse depletion facts. Clients
-   provide intent and tool/action selection only; they cannot choose a node,
-   yield, damage, durability, or reward.
-4. **Broaden the crafting progression.** Extend the existing recipe catalogue
-   with a small first tier of tools, gathering implements, food preparation,
-   storage/camp improvements, and skill-gated recipes. Reuse atomic inventory
-   exchanges, station validation, stack ceilings, batch limits, and owner-only
-   result feedback. Each recipe must have explicit ingredient, station,
-   unlock, failure, and accessibility text rather than relying on colour.
-5. **Build the survival HUD and GUI pass.** Add a persistent local status strip
-   with an original icon, name, readable remaining timer, and non-colour state
-   for `Wet` and the new food/stat effects. Extend the inventory and crafting
+5. **Broaden the crafting and camp progression.** Extend the existing recipe
+   catalogue with a small first tier of tools, gathering implements, repair
+   materials, cooking and preservation recipes, storage/camp improvements, and
+   skill-gated recipes. Reuse atomic inventory exchanges, station validation,
+   stack ceilings, batch limits, and owner-only result feedback. Each recipe
+   must have explicit ingredient, station, unlock, failure, repair, and
+   accessibility text rather than relying on colour. Processing stations must
+   be useful preparation choices, not parallel inventory or fire authorities.
+6. **Add biome-specific hazards and active-weather pressure.** Extend the
+   server-owned environmental presentation and exposure rules with readable
+   fog, rain, storms, heat, cold, and a clearly marked highly-active-weather
+   state. Hazards may alter visibility, wetness, warmth, stamina recovery,
+   movement comfort, fire safety, or creature pressure, but must remain bounded,
+   reversible, and counterable by shelter, fire, food, tools, or timing rather
+   than becoming biome damage walls or mandatory travel gates. The server
+   selects weather and hazard intensity from the authoritative world state;
+   clients never submit weather, exposure, hazard, or mitigation outcomes.
+7. **Build the survival HUD and GUI pass.** Add a persistent local status strip
+   with an original icon or shape marker, name, category, readable remaining
+   timer, intensity or stack count, source, and recovery hint for `Wet`, food
+   modifiers, exposure hazards, and other active effects. Add a compact weather
+   activity indicator that distinguishes calm, active, and highly active states
+   without colour alone. Extend inventory, crafting, station, and equipment
    views with food details, active modifiers, skill progress, tool condition,
-   recipe unlock state, ingredient counts, and clear unavailable reasons.
-   Status timers must read replicated server state rather than count down
-   independently, and local UI changes must not mutate gameplay or send new
-   client-authored outcomes. Keyboard/controller focus, text scale, contrast,
-   and text-plus-marker feedback remain required.
-6. **Verify one integrated content loop.** A fresh player should be able to
-   gather a first material, craft or obtain a tool, cut wood or mine stone,
-   prepare food, choose a temporary benefit, and return to camp while weather,
-   creature pressure, inventory, and status feedback remain understandable.
-   Verify same-seed host/client resource agreement, rejected client mutations,
-   owner-only progression and inventory privacy, relevant status presentation,
-   reconnect behavior, and bounded actor, memory, replication, and save costs.
+   repair cost, recipe unlock state, ingredient counts, station requirements,
+   creature/material provenance, and clear unavailable reasons. Status timers
+   must read replicated server state rather than count down independently, and
+   local UI changes must not mutate gameplay or send new client-authored
+   outcomes. Keyboard/controller focus, text scale, contrast, and
+   text-plus-marker feedback remain required.
+8. **Verify biome discovery and recovery choices.** A fresh player should be
+   able to gather a first material, craft or obtain a tool, cut wood or mine
+   ore, repair the tool, prepare food at camp, choose a temporary benefit,
+   recognize an active-weather hazard, and return with a creature or hidden
+   discovery while weather, inventory, and status feedback remain
+   understandable. Verify same-seed host/client resource and creature
+   agreement, rejected client mutations, owner-only progression and inventory
+   privacy, rare-loot visibility rules, status presentation, reconnect
+   behavior, and bounded actor, memory, replication, and save costs.
+9. **Retain the M6 release-candidate loop.** Re-run the supported-session
+   acceptance after the content pass; the new systems must not regress the
+   existing traversal, camp, combat, support, weather, construction, storage,
+   persistence, or minimap contracts.
 
 **M7 persistence gate:** skill experience, learned recipes, tool condition,
-food effects, or food inventory that must survive reconnect or restart require a
-versioned save contract, identity/world matching, migration policy, and focused
-round-trip/rejection tests before implementation. Until that contract is
-approved, development fixtures may use transient server-owned state but must
-not silently extend the existing saved-data schemas.
+food effects, food inventory, biome resource depletion, defeated creature
+states, opened chests, claimed treasures, shipwreck loot, or boss rewards that
+must survive reconnect or restart require a versioned save contract,
+identity/world matching, migration policy, and focused round-trip/rejection
+tests before implementation. Prefer the existing sparse population-delta
+pattern for generated resource, creature, and discovery identity. Until the
+contract is approved, development fixtures may use transient server-owned state
+but must not silently extend the existing saved-data schemas.
 
 **M7 multiplayer boundary:** the server owns skill awards, resource identity,
-tool validation, node depletion, recipe unlocks, ingredient costs, food effects,
-stat changes, timers, and rewards. Clients receive only the state needed for
-their own controls and presentation or ordinary relevant world feedback.
+creature behaviour and defeat, tool validation, durability, repair outcomes,
+node depletion, recipe unlocks, station processing, ingredient costs, food
+effects, stat changes, weather and hazard intensity, timers, loot selection,
+and rewards. Clients receive only the state needed for their own controls and
+presentation or ordinary relevant world feedback; private inventory,
+progression, and detailed loot remain owner-scoped.
 
-**M7 accept:** the integrated gathering, crafting, food, progression, and HUD
-loop is playable without developer commands; all outcomes remain authoritative
-and recoverable; status icons and timers are readable without colour; matching
-peers observe the permitted state; rejected requests leave inventory, skills,
-resources, effects, and saves unchanged; and the M6 release-candidate loop
+**M7 accept:** the integrated biome gathering, creature, crafting, repair,
+food-processing, progression, hazard, and HUD loop is playable without
+developer commands; all outcomes remain authoritative and recoverable; rare
+discoveries are optional and original; status icons, timers, intensity, and
+recovery guidance are readable without colour; matching peers observe the
+permitted state; rejected requests leave inventory, skills, tools, resources,
+effects, hazards, loot, and saves unchanged; and the M6 release-candidate loop
 remains playable.
-
-### World-generation Phase 5 — Companion minimap delivery plan
-
-Deliver this UI feature as Phase 5 of the world-generation track, before biome expansion. It is a navigation aid, not a separate world simulation or a source of hidden gameplay information.
-
-1. Add a `KalmalaUI` minimap view model that converts the locally available generated-world presentation and the owning player's replicated transform into map-space data. It must not query world actors directly or expose undiscovered server-owned population, loot, hazards, or other players beyond the normal game presentation contract.
-2. Add a circular minimap widget anchored to the top-right HUD. Clip all terrain, water, and markers to the circle; keep the owning-player marker visible at the centre and rotate it to communicate facing direction.
-3. Render a lightweight local representation of terrain, water, and known player-facing landmarks. Reuse the replicated world identity and deterministic terrain/biome sampling where appropriate; do not add a second biome map or replicate minimap textures.
-4. Bind mouse-wheel input to the minimap zoom only while no modal UI owns the input. Expose tunable `MinZoom` and `MaxZoom` limits, clamp every wheel update to that range, and retain the selected local zoom for the active session.
-5. Verify at multiple aspect ratios and UI scales that the circular mask remains top-right, the player marker remains legible, zooming clamps at both limits, and opening/closing other UI cannot trap movement or mouse-wheel input.
-6. Run a host/client test confirming both players see a minimap derived from the same world identity while each sees only their own player-centred view; minimap interaction must neither mutate nor reveal server-authoritative gameplay state.

@@ -43,7 +43,7 @@ $sourceContracts = @(
     @{ Label = 'environment'; Path = 'Source\KalmalaWorld\Private\KalmalaGeneratedTerrainPatch.cpp'; Patterns = @('AppendLowPolyRock', 'M_GeneratedTerrain', 'M_GeneratedWater', 'M_GeneratedCanopy') },
     @{ Label = 'hearth'; Path = 'Source\KalmalaGameplay\Private\KalmalaCampfire.cpp'; Patterns = @('Original low polygon stone ring', 'M_GeneratedRock', 'CreateMeshSection_LinearColor') },
     @{ Label = 'ui'; Path = 'Source\KalmalaUI\Private\KalmalaMinimapWidget.cpp'; Patterns = @('CreateTransient', 'UpdateTextureRegions') },
-    @{ Label = 'feedback-status'; Path = 'Source\KalmalaUI\Private\KalmalaInventorySubsystem.cpp'; Patterns = @('Attack result:', 'Discovery:', 'Wet: inactive') },
+    @{ Label = 'feedback-status'; Path = 'Source\KalmalaUI\Private\KalmalaInventorySubsystem.cpp'; Patterns = @('Attack result:', 'Discovery:', 'Wet: inactive', 'UKalmalaSupportGlyphWidget', 'SupportGlyphRow', 'SetSupportGlyphState', 'EKalmalaSupportGlyph::DeerCall', 'HasLearnedEffect', 'GetSelectedSupportEffect') },
     @{ Label = 'feedback-crafting'; Path = 'Source\KalmalaUI\Private\KalmalaCraftingSubsystem.cpp'; Patterns = @('text does not rely on colour', 'Construction feedback: Passed=') }
 )
 $forbiddenPatterns = @('BasicShape', '/Engine/BasicShapes', 'StarterContent', 'Marketplace', 'Quixel', 'ThirdParty')

@@ -130,6 +130,61 @@ Next task: Produce and smoke-launch the Windows Development package from the
 accepted revision, then attempt the dedicated-server playtest only if the
 installed UE5.8 build is server-capable.
 
+### 2026-09-22 14:14 EEST — Block current-generator release regression
+
+Outcome: Blocked the first eligible M5 release-regression child after three
+repaired attempts exposed the same current-generator ocean-travel fixture
+failure. The current revision-7 regional proof, focused ocean-depth test, and
+isolated-island locator are green, but the two-peer ocean route cannot find a
+150 cm deep-ocean waypoint from the seed-418 generated start even after the
+development-only search was widened from 300 m to 600 m and then 1.2 km. Per
+the autonomous protocol, the remaining release suite was not started after
+the third repeated blocker.
+
+Changed: `Source/KalmalaWorld/Private/Tests/KalmalaOceanSamplerTest.cpp` now
+passes the explicit coastline fixture origin through all triangle/depth
+assertions, correcting the stale default-origin assumption exposed by the
+current master-map crop. `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`
+widens only the non-shipping ocean-travel test's deep-water waypoint search;
+`docs/07-development-setup.md` now describes the current-generator fixture.
+`BACKLOG.md` marks the release-regression child blocked. These current-run
+changes are unstaged because the required release verification is incomplete.
+
+Verification: The disposable current-source build and three incremental
+rebuilds succeeded with `%LOCALAPPDATA%\\UnrealBuildTool` access; the latest
+build log is `C:/Users/Ville/AppData/Local/Temp/KR3021/build-after-ocean-waypoint-widening.log`.
+Focused `Kalmala.World.Water.OceanDepth` passed at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaOceanDepthFix-8d78f617975e4b4e845127265138816f/automation.log`.
+`Kalmala.World.Ocean.IslandLocator` passed at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaIslandLocatorCurrent-4f8afaf03a534185898d251fb0de55a7/automation.log`.
+The full `Scripts/Verify-RegionalGeneration.ps1` passed current-generator
+automation, repeated seed-418 renders, seed-419 variation, and host/client
+identity agreement with fingerprint `7644800015248745432` at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaRegionalProof-2211884a44bc4f6589bb15b036f8be73`.
+`Scripts/Verify-OceanTravel.ps1 -Port 18510` failed three times on the same
+`Ocean travel test could not find a deep-ocean waypoint toward the seeded island`
+condition at the three retained directories recorded in `BACKLOG.md`.
+No rendered host/client, reconnect, packaged, or final no-developer-tools
+acceptance claim is made. `git diff --check` remains required before any later
+commit.
+
+Multiplayer impact: The passing changes are test-fixture corrections only.
+World identity, server-selected terrain, island lookup, movement authority,
+patch recycling, RPCs, replicated properties, persistence, and save schemas
+are unchanged. Clients still provide intent only; the blocked route fixture
+does not add a client target, depth, waypoint, or outcome input.
+
+Known limits: The release-regression child remains blocked; rendered
+host/client presentation, reconnect/persistence, packaging, and dedicated-
+server conditional checks were not run after the blocker. The current
+generator's isolated island and depth contracts pass, but the live route's
+deep-water reachability from the generated start needs a deterministic
+generator/fixture decision rather than a further blind radius increase.
+
+Next task: Resolve the current-generator seed-418 ocean waypoint/reachability
+contract, then rerun the full release regression suite before packaging or
+final M5 acceptance.
+
 ### 2026-09-17 11:03 EEST - Add Mireling boss scroll reward
 
 Outcome: Completed the optional Mireling boss-reward child. The server now
@@ -4218,6 +4273,1509 @@ subsequent increments.
 Next task: Replace the next bounded remaining prototype-presentation seam with
 an original project-owned source, retaining the same gameplay contracts.
 
+### 2026-09-21T11:54:34+03:00 — Verify support-effect vector glyphs
+
+Outcome: Closed the first eligible unchecked M5 subtask by verifying the
+pre-existing local HUD implementation of four original Slate-drawn glyphs for
+Mending, Hearth Shield, Bear's Vigor, and Deer Call. Glyph cards reflect the
+owner's learned/selected state, while the HUD retains effect text, availability
+status, and keyboard/controller input labels.
+
+Changed: `BACKLOG.md` and `PROGRESS.md` handoff updates. The glyph source,
+ownership-audit anchors, and related setup/ownership documentation were already
+modified before this run and were preserved. No gameplay, network, persistence,
+save-schema, or asset contract changed.
+
+Verification: Forced `KalmalaEditor Win64 Development` build succeeded
+(`Result: Succeeded`; target up to date); UnrealBuildTool log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`.
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-LocalInputContract.ps1`, and
+`Scripts/Verify-M5DocumentationContracts.ps1` passed; `git diff --check`
+passed.
+
+Multiplayer impact: None. Glyphs are local presentation driven by the
+owner-only learned state and local selection; they send no requests and do not
+change server authority, replication, or saves.
+
+Known limits: No rendered UI inspection was performed in this run. The
+pre-existing ownership document keeps rendered glyph inspection in the broader
+M5 presentation pass; current checks verify source ownership, input/text
+contracts, and compilation only.
+
+Next task: Add original ambient, weather, interaction, combat, discovery, and
+support-effect audio cues while retaining readable non-audio equivalents.
+
+### 2026-09-21T12:00:28+03:00 — Render support-effect glyphs (verification supplement)
+
+Outcome: Added four original local vector glyphs to the learned-effect HUD:
+Mending, Hearth Shield, Bear's Vigor, and Deer Call. Learned/selected visual
+state follows the existing owner-side entitlement and selection; full effect
+names, learned/unavailable text, and keyboard/controller labels remain visible.
+The broader M5 presentation parent remains open.
+
+Changed: `Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp`,
+`Source/KalmalaUI/Public/KalmalaInventorySubsystem.h`,
+`Scripts/Verify-PresentationOwnership.ps1`, `docs/07-development-setup.md`,
+`docs/15-presentation-ownership.md`, `BACKLOG.md`, and this handoff. A separate
+concurrent 11:54 handoff entry for the same subtask was preserved unchanged;
+this supplement records the final rendered evidence and correct next item.
+
+Verification: Forced `KalmalaEditor Win64 Development` build succeeded
+(`Result: Succeeded`; log: `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`).
+`Scripts/Verify-PlayerControls.ps1 -Rendered -Port 18260` passed host/client
+model, normal jump/sprint/release, remote movement, and screenshot capture; host
+and client captures are in
+`C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-f77aeafc253c44fdb3f125aced7f4e1d`.
+The rendered pass caught and the run repaired an aliased `TArray` append in
+closed glyph paths. `Scripts/Verify-Inventory.ps1 -Port 18261` passed owner-only
+inventory/read-only UI checks. Presentation ownership, local input, all five
+M5 documentation contracts, and `git diff --check` passed.
+
+Multiplayer impact: None. Glyphs are local presentation only; they read the
+existing local selection and owner-only learned state and add no RPC,
+replicated field, gameplay effect, or save data.
+
+Known limits: The rendered fixture shows the four unavailable-state glyphs;
+learned-state transitions, selection changes during normal play, and four live
+casts were not exercised. The current capture also includes developer screen
+messages. Other M5 creature/environment presentation and audio work remains.
+
+Next task: Refine the original collision-free Mireling silhouette for clearer
+camp-pressure readability while preserving its existing replicated behavior.
+
+### 2026-09-21T12:29:20+03:00 — Refine Mireling camp-pressure silhouette
+
+Outcome: Replaced the Mireling's four-piece upright placeholder with original
+collision-free low-poly geometry: a forward-hunched lichen body, long reaching
+root arms, a split crown, ground-contacting root legs and hands, and restrained
+warm eye accents. The geometry stays above the generated terrain plane. The
+The boar and deer branches are unchanged. The player-facing visual now reads
+more clearly as a camp-scavenging pressure creature while retaining its existing
+archetype identity.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+`docs/15-presentation-ownership.md`, `BACKLOG.md`, and `PROGRESS.md`. Pre-existing
+support-glyph and handoff edits were preserved. No AI, target selection, damage,
+collision, replication, reward, persistence, save-schema, or generated asset
+contract changed.
+
+Verification: The first isolated build attempt stopped before compilation
+because the temporary copy's plugin paths exceeded Windows' 260-character
+limit. The shorter-path isolated `KalmalaEditor Win64 Development` build
+succeeded (`Result: Succeeded`; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`). The first peer run hit
+the known intermittent pressure-fixture timeout (`Health=100.0 PlayerHealth=100.0`)
+at `C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingPeer-de6c4145167640f2bf709fe741e29737`;
+a fresh run passed, after which source inspection moved the silhouette's lower
+vertices above the terrain plane. The final isolated rebuild succeeded in four
+actions. `Scripts/Verify-MirelingPeer.ps1 -Port 18303` then passed combat
+authority, rejected target-free remote input, relevant replication, owner-only
+reward, and same-world defeat persistence. Evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingPeer-cafbb847914b4da4b99a14a6302442be`.
+`Scripts/Verify-PresentationOwnership.ps1` and `git diff --check` passed.
+
+Multiplayer impact: None at runtime. Each peer builds the cosmetic mesh from
+the existing replicated archetype. The mesh remains collision-free; the server
+still owns wildlife behaviour, pressure, combat, defeat, rewards, and sparse
+persistence. No RPC or replicated field was added.
+
+Known limits: The peer scenario uses `-nullrhi`, so it verifies gameplay
+contracts rather than rendered silhouette readability; no dedicated visual
+capture or performance profile was run. The visual/audio parent remains open.
+
+Next task: Add original ambient, weather, interaction, combat, discovery, and
+support-effect audio cues while retaining readable non-audio equivalents.
+
+### 2026-09-21T12:41:05+03:00 — Refine boar presentation silhouette
+
+Outcome: Replaced the boar's generic tetra arrangement with an original low,
+wedge-backed body, a broken bristle ridge, compact legs, tapered muzzle, short
+ears, side-set eyes, and paired upward tusks. Deer and Mireling presentations
+remain unchanged. The silhouette is generated from project-owned procedural
+geometry and vertex colours.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+`docs/15-presentation-ownership.md`, `BACKLOG.md`, and this handoff. Existing
+uncommitted glyph, Mireling, and handoff changes were preserved. No gameplay,
+collision, replication, AI, damage, reward, persistence, save-schema, or asset
+contract changed.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` succeeded with the requested
+`%LOCALAPPDATA%\UnrealBuildTool` access (`Result: Succeeded`; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`).
+`Scripts/Verify-BoarPeer.ps1 -Port 18304` passed seed reproduction, bounded
+activation, server-side charge/damage, target-free invalid-client rejection,
+replicated combat/health/defeat, owner-only meat/hide, and same-world restart
+persistence. Evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaBoarPeer-de6cf289cb5842b4bc0fa108e39d2929`.
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: None to authority or replicated state. Existing server-owned
+wildlife selection, behavior, combat, defeat, rewards, and sparse persistence
+are unchanged; peers build only the collision-free cosmetic mesh from the
+already replicated archetype.
+
+Known limits: Rendered boar readability and performance profiling were not
+covered yet. The existing boar peer fixture uses `-nullrhi` and verifies
+gameplay authority/persistence, not rendered geometry.
+
+Next task: Refine the original deer silhouette into a lighter, long-legged,
+alert profile while preserving its replicated gameplay behavior.
+
+### 2026-09-21T12:51:31+03:00 — Refine alert deer presentation silhouette
+
+Outcome: Replaced the deer’s broad generic tetra arrangement with a lighter,
+long-backed profile, raised narrow neck and head, four long tapered legs with
+dark hooves, and paired forked antlers. The geometry remains an original local
+cosmetic mesh in the existing wildlife presentation function.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+`docs/15-presentation-ownership.md`, `BACKLOG.md`, and this handoff. Existing
+uncommitted support-glyph, Mireling, boar, script, documentation, and handoff
+changes were preserved. Only the source file was clean before this run; the
+mixed handoff/documentation files remain unstaged to avoid including prior edits.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` succeeded (`Result: Succeeded`; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`).
+`Scripts/Verify-DeerPeer.ps1 -Port 18305` passed seed-reproduced bounded
+activation, herd alert from server combat, invalid-client rejection,
+replicated defeat, owner-only DeerMeat/DeerHide, and same-world restart
+persistence. Evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaDeerPeer-003c5a08c41e4699ae6a636adced6e75`.
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: None. Peers still build only the collision-free cosmetic
+mesh from the existing replicated archetype; server-owned herd behaviour,
+combat, defeat, rewards, and persistence are unchanged. No RPC, replicated
+field, or save data was added.
+
+Known limits: `Verify-DeerPeer.ps1` uses `-nullrhi`, so it confirms existing
+gameplay contracts rather than rendered antler/limb readability. No rendered
+capture or performance profile was run.
+
+Next task: Add original ambient, weather, interaction, combat, discovery, and
+support-effect audio cues with readable non-audio state equivalents.
+
+### 2026-09-21T13:17:01+03:00 — Add local wilderness wind ambience
+
+Outcome: Added one bounded M5 audio increment: an original, loop-seamed,
+8-second wind bed stored as a project-owned WAV source and imported Unreal sound
+asset. A new `ULocalPlayerSubsystem` starts it at a conservative level only
+after that local player has a pawn in the generated-world game state, and stops
+it when local play ends. Existing Wet, warmth, shelter, hearth, and recovery
+text remains readable. The broader audio cue task remains open.
+
+Changed: `Content/Kalmala/Audio/Source/WindBed.wav`;
+`Content/Kalmala/Audio/WindBed.uasset`;
+`Scripts/Generate-WildernessWind.ps1`;
+`Scripts/Verify-AmbientAudio.ps1`;
+`Scripts/Verify-AmbientAudioPeers.ps1`;
+`Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaAmbientAudioSubsystem.h`;
+`docs/07-development-setup.md`; `docs/15-presentation-ownership.md`;
+`docs/16-audio-cue-contract.md`; `BACKLOG.md`; and this handoff. Existing
+support-UI and handoff edits were preserved. The mixed handoff/setup/ownership
+files remain unstaged; only clean current-run implementation, asset, script,
+and audio-contract files are eligible for commit.
+
+Verification: Unreal `ImportAssets` completed successfully and produced the
+8-second mono 22.05 kHz asset. The first forced build caught a nonexistent
+UE 5.8 `SOUNDGROUP_Ambient` enum; it was removed, and the subsequent forced
+`KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force
+-MaxParallelActions=4` build passed with `%LOCALAPPDATA%\UnrealBuildTool`
+access (`Result: Succeeded`; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`).
+`Scripts/Verify-AmbientAudio.ps1`,
+`Scripts/Verify-AmbientAudioPeers.ps1 -Port 18307`,
+`Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed.
+The host/client evidence is retained at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaAmbientAudioPeers-c7971ead472b4378a9bae8683881ff31`;
+both local players created a looping component and the client received the
+server world identity.
+
+Multiplayer impact: Presentation only. Each peer's local-player subsystem
+plays its own non-spatial wind bed; no audio cue state, RPC, gameplay
+replication, target, reward, or save field was added. The authoritative world
+state is read only to gate startup until normal generated-world play is ready.
+
+Known limits: The null-RHI peer run verifies local component creation, not
+perceived sound quality, hardware mixing, mute/category controls, or packaged
+playback. Water/fire/biome ambience and weather, interaction, combat, discovery,
+and support-effect cues remain open; all retain text/shape feedback.
+
+Next task: Add local water, fire, and biome ambience layers without revealing
+hidden content or implying a route.
+
+### 2026-09-21T13:36:09+03:00 — Add local visible-water ambience
+
+Outcome: Added an original, loop-seamed 8-second WaterBed and a local-player-only
+water layer. Every 0.75 seconds, each local player samples a bounded set of
+nearby points from the existing immutable world identity. The loop activates
+only for sea or visible inland-lake surface water with a clear visibility trace
+from that player's view, fades by distance within 1,600 cm, and caps at 0.07
+volume. Existing weather, Wet, warmth, shelter, hearth, and recovery text stays
+readable. The broader water/fire/biome ambience item remains open.
+
+Changed: Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp,
+Source/KalmalaUI/Public/KalmalaAmbientAudioSubsystem.h,
+Content/Kalmala/Audio/Source/WaterBed.wav,
+Content/Kalmala/Audio/WaterBed.uasset, Scripts/Generate-WaterAmbience.ps1,
+Scripts/Verify-AmbientAudio.ps1, Scripts/Verify-AmbientAudioPeers.ps1,
+docs/16-audio-cue-contract.md, plus handoff updates in BACKLOG.md,
+PROGRESS.md, docs/07-development-setup.md, and
+docs/15-presentation-ownership.md. Pre-existing support-glyph source,
+audit, and handoff changes were preserved. Mixed handoff/setup/ownership files
+were not staged.
+
+Verification: The Unreal ImportAssets command produced WaterBed.uasset and
+logged an 8-second mono asset, although the command exited 1 after sandbox
+access errors for per-user editor settings/Zen and unavailable revision
+control. The subsequent host/client run loaded and compressed WaterBed. The
+first forced editor build caught a missing UE 5.8 volume-getter API; after
+switching to a local tracked fade value, the forced
+KalmalaEditor Win64 Development build succeeded (Result: Succeeded; log:
+C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt).
+Scripts/Verify-AmbientAudio.ps1,
+Scripts/Verify-AmbientAudioPeers.ps1 -Port 18309,
+Scripts/Verify-AudioCueContract.ps1,
+Scripts/Verify-M5DocumentationContracts.ps1,
+Scripts/Verify-PresentationOwnership.ps1, and git diff --check passed.
+The peer evidence is
+C:/Users/Ville/AppData/Local/Temp/KalmalaAmbientAudioPeers-952ff8bc0b9c436c99721c7f51d1c867;
+the client activated WaterBed at visible water, while the host correctly found
+no nearby water. The peer uses null RHI and has no audible output.
+
+Multiplayer impact: Presentation only. Each peer uses its own local player,
+pawn/view, and the server-replicated immutable world seed to derive nearby
+water. No RPC, replicated audio state, gameplay mutation, reward, or save field
+was added.
+
+Known limits: The peer fixture verifies local loop component creation and
+water-context gating, not perceived sound, hardware mixing, audio settings, or
+packaged playback. Fire and biome ambience remain open; text/shape state remains
+the fallback.
+
+Next task: Add a quiet local fire bed only for a nearby visible, lit hearth,
+retaining readable hearth state.
+
+### 2026-09-21T14:12:12+03:00 — Add nearby visible-hearth ambience
+
+Outcome: Added an original loop-seamed 8-second mono FireBed. Each local-player
+audio subsystem probes replicated campfire actors every 0.75 seconds and plays
+the bed only when a hearth is lit, within 1,400 cm, and unobstructed from that
+player's view. Volume fades by distance, reaches its cap of 0.075 within 275 cm,
+and stops when the context is no longer visible or local play ends. Hearth
+status text remains the readable state source. The combined water/fire/biome
+ambience parent remains open.
+
+Changed: `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaAmbientAudioSubsystem.h`;
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` (development-only
+listen-server fixture); `Content/Kalmala/Audio/Source/FireBed.wav`;
+`Content/Kalmala/Audio/FireBed.uasset`; `Scripts/Generate-FireAmbience.ps1`;
+`Scripts/Verify-AmbientAudio.ps1`; `Scripts/Verify-AmbientAudioPeers.ps1`;
+`docs/07-development-setup.md`; `docs/15-presentation-ownership.md`;
+`docs/16-audio-cue-contract.md`; `BACKLOG.md`; and this handoff. Existing
+support-glyph edits remain preserved.
+
+Verification: Unreal imported FireBed through `ImportAssets` with exit code 0
+and no import errors. Forced `KalmalaEditor Win64 Development` build passed
+(`Result: Succeeded`, 151 actions; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`). The final incremental
+rebuild also passed (`Result: Succeeded`, four actions). The final
+`Scripts/Verify-AmbientAudioPeers.ps1 -Port 18317` run passed with both host
+and client activating FireBed beside their visible server-lit test hearths;
+evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaAmbientAudioPeers-8af3b73b8bb6470c9f75c9ee28c350f0`.
+`Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: Presentation only. Each local player samples its own view
+and locally available replicated hearth actors; the server remains authoritative
+for lighting, fuel, weather, and persistence. The fixture spawns test hearths
+only under `-KalmalaAmbientAudioTest`. No audio replication, gameplay RPC,
+normal-play resource grant, or save field was added.
+
+Known limits: Null-RHI evidence verifies gating and local component creation,
+not perceived sound, device mixing, audio controls, or packaged playback.
+
+Next task: Add local biome ambience from the owning player's sampled, locally
+visible biome without implying a route.
+
+### 2026-09-21T14:33:22+03:00 — Add sampled local-biome ambience
+
+Outcome: Added an original, loop-seamed 8-second mono BiomeBed and one quiet
+local-player loop whose level and pitch profile follow the biome sampled at the
+owning pawn's current XY. The subsystem uses the existing world-seed field
+sampler and biome classifier every 0.75 seconds, smooths profile transitions,
+and stops the component when local play ends. It does not scan ahead or imply a
+route; existing readable gameplay state remains unchanged.
+
+Changed: `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaAmbientAudioSubsystem.h`;
+`Content/Kalmala/Audio/Source/BiomeBed.wav`;
+`Content/Kalmala/Audio/BiomeBed.uasset`;
+`Scripts/Generate-BiomeAmbience.ps1`; `Scripts/Verify-AmbientAudio.ps1`;
+`Scripts/Verify-AmbientAudioPeers.ps1`; `docs/07-development-setup.md`;
+`docs/15-presentation-ownership.md`; `docs/16-audio-cue-contract.md`;
+`BACKLOG.md`; and this handoff. Existing support-glyph, wildlife-presentation,
+ownership-audit, and handoff changes remain preserved.
+
+Verification: Unreal imported and saved BiomeBed as an 8-second mono SoundWave
+and compressed it successfully. `ImportAssets` returned exit 1 because it could
+not connect to revision control; it did write
+`Content/Kalmala/Audio/BiomeBed.uasset`, which both peer processes subsequently
+loaded. Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force
+-MaxParallelActions=4` passed (`Result: Succeeded`, eight actions; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`). The ambient audio
+verifier, M5 documentation suite, audio-cue contract, presentation ownership
+audit, `Scripts/Verify-AmbientAudioPeers.ps1 -Port 18321`, and `git diff
+--check` passed. Host and client both logged `Biome=Meadows`, local component
+creation, and the expected pitch; evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaAmbientAudioPeers-c3678f7d8fd24548ad838af99b04a6d7`.
+
+Multiplayer impact: Presentation only. Each peer samples its own current pawn
+position using the server-replicated immutable seed and existing deterministic
+classifier. The server remains authoritative for world identity and gameplay;
+no audio replication, RPC, gameplay mutation, or save field was added.
+
+Known limits: The null-RHI host/client fixture verifies seed agreement, local
+biome sampling, and component creation, not perceived sound, hardware mixing,
+or packaged playback. Runtime profile activation was verified in Meadows only;
+other biome pitch/level profiles were checked through source coverage, not a
+travel scenario.
+
+Next task: Add local weather/exposure cues from accepted replicated state while
+retaining Wet, warmth, shelter, hearth, and recovery text.
+
+### 2026-09-21T15:18:12+03:00 — Add local weather and exposure cues
+
+Outcome: Added an original loop-seamed 8-second RainBed that follows accepted replicated precipitation, smoothly varied each local WindBed from replicated wind strength, and added a short WetStatusCue when the owning pawn's server-owned `State.Wet` entry first appears. Existing Wet duration, shelter, warmth, hearth, and recovery text remains the readable state source.
+
+Changed: `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp`; `Source/KalmalaUI/Public/KalmalaAmbientAudioSubsystem.h`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` (development-only weather/Wet fixture); `Content/Kalmala/Audio/Source/RainBed.wav`; `Content/Kalmala/Audio/RainBed.uasset`; `Content/Kalmala/Audio/Source/WetStatusCue.wav`; `Content/Kalmala/Audio/WetStatusCue.uasset`; `Scripts/Generate-WeatherExposureAudio.ps1`; `Scripts/Verify-AmbientAudio.ps1`; `Scripts/Verify-AmbientAudioPeers.ps1`; `Scripts/Verify-AudioCueContract.ps1`; `docs/07-development-setup.md`; `docs/16-audio-cue-contract.md`; `BACKLOG.md`; and this handoff. Existing support-glyph, ownership-audit, and mixed handoff edits remain unstaged and preserved.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` passed from the short-path disposable project copy with `%LOCALAPPDATA%\UnrealBuildTool` access (final four-action rebuild succeeded). `Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AudioCueContract.ps1`, `Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed. `Scripts/Verify-AmbientAudioPeers.ps1 -WeatherExposureOnly -Port 18327` passed with host and client each reporting RainBed and WetStatusCue submissions from accepted state; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaAmbientAudioPeers-55bd624607714bceaa6565bc846817f0`. `ImportAssets` returned exit 1 after writing each new package because per-user EditorSettings/Zen access was denied; both packages loaded and compressed in the peer fixture. The default full peer mode timed out because neither initial water probe found visible water; the focused weather/exposure mode passed and skips only that unrelated water-activation requirement.
+
+Multiplayer impact: Audio remains local presentation. Each player reads replicated GameState weather and only its own pawn's replicated Wet status. The server remains authoritative; all test weather/status setup is behind `-KalmalaAmbientAudioTest`. No audio replication, RPC, gameplay mutation, or save field was added.
+
+Known limits: Null-RHI evidence confirms local audio asset loading and cue submission, not audible quality, device mixing, settings, or packaged playback. Weather cues do not change shelter/Wet rules.
+
+Next task: Add local interaction/gathering, combat, discovery, and support-effect cues from accepted feedback while retaining readable result text and current privacy boundaries.
+
+### 2026-09-21T15:36:33+03:00 — Add accepted support audio cue
+
+Outcome: Added an original 0.8-second SupportAcceptedCue, played once by each
+local-player audio subsystem when its owning pawn's existing owner-only support
+feedback serial advances with an accepted result. The cue acknowledges a
+server-confirmed cast generically; learned-effect, cooldown, stamina, and
+active-state text remains readable. The combined interaction/combat/discovery/
+support audio task remains open.
+
+Changed: `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaAmbientAudioSubsystem.h`;
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` (test-only accepted-cast
+fixture); `Content/Kalmala/Audio/Source/SupportAcceptedCue.wav`;
+`Content/Kalmala/Audio/SupportAcceptedCue.uasset`;
+`Scripts/Generate-SupportFeedbackAudio.ps1`;
+`Scripts/Verify-AmbientAudio.ps1`; `Scripts/Verify-AmbientAudioPeers.ps1`;
+`Scripts/Verify-AudioCueContract.ps1`; `docs/16-audio-cue-contract.md`; plus
+handoff/setup/ownership updates in `BACKLOG.md`, `PROGRESS.md`,
+`docs/07-development-setup.md`, and `docs/15-presentation-ownership.md`.
+Those four handoff/setup/ownership files already contained unrelated working
+changes and remain unstaged.
+
+Verification: `ImportAssets` wrote and compressed SupportAcceptedCue as a
+one-channel, 0.80-second SoundWave from the 22,050 Hz mono PCM source, but
+returned exit code 1 because this profile denied access to shared
+EditorSettings/Zen/cache paths. The resulting asset exists and loaded in both
+peers. Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force
+-MaxParallelActions=4` succeeded in 9 actions with
+`%LOCALAPPDATA%\UnrealBuildTool` access (log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`).
+`Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check` passed.
+`Scripts/Verify-AmbientAudioPeers.ps1 -WeatherExposureOnly -Port 18331` passed
+for host and client local support-cue submission alongside the existing
+weather, Wet, hearth, biome, and wind checks. Evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaAmbientAudioPeers-756c6639360940f1975ba81274a9ef15`.
+The first peer attempt timed out on a harness assertion that looked for a
+server-only fixture message in the client log; that assertion was corrected
+and the rerun passed.
+
+Multiplayer impact: Presentation only during normal play. The audio subsystem
+reads each owning pawn's existing owner-only accepted support result; the
+server retains all entitlement, stamina, effect, and duration authority. The
+test fixture learns/activates Hearth Shield only under
+`-KalmalaAmbientAudioTest`. No audio replication, gameplay RPC, normal-play
+gameplay mutation, or save field was added.
+
+Known limits: Null-RHI confirms asset loading, feedback gating, and local cue
+submission, not audible quality, device mixing, audio options, or packaged
+playback. This increment covers one generic accepted support cue; gathering,
+combat, discovery, rejection, and effect-specific cues remain open.
+
+Next task: Add a local combat result cue from the owning pawn's existing
+server-confirmed combat feedback serial; retain readable HIT/DEFEAT/UNAVAILABLE
+text.
+
+### 2026-09-21T16:03:33+03:00 — Add local combat result cue
+
+Outcome: Added the original 0.4-second mono CombatResultCue. The local-player
+audio subsystem submits it once when the owning pawn's existing owner-only
+combat FeedbackSerial advances with Hit or Defeat. Unavailable remains
+text-only, and the existing HIT/DEFEAT/UNAVAILABLE result strings are intact.
+
+Changed: `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaAmbientAudioSubsystem.h`;
+`Content/Kalmala/Audio/Source/CombatResultCue.wav`;
+`Content/Kalmala/Audio/CombatResultCue.uasset`;
+`Scripts/Generate-CombatResultAudio.ps1`; `Scripts/Verify-AmbientAudio.ps1`;
+`Scripts/Verify-AudioCueContract.ps1`; `Scripts/Verify-CombatPeer.ps1`;
+`docs/16-audio-cue-contract.md`; plus setup and handoff updates in
+`docs/07-development-setup.md`, `BACKLOG.md`, and this entry. Existing
+support-glyph, ownership-audit, and mixed handoff changes remain preserved.
+The nine clean implementation/asset/verifier/contract files were committed as
+`1e0e03a`. `BACKLOG.md`, `PROGRESS.md`, and `docs/07-development-setup.md` also
+contain pre-existing changes, so their current-run handoff/setup updates remain
+unstaged. This is the main checkout; no worktree synchronization was needed.
+
+Verification: `Scripts/Verify-AmbientAudio.ps1`,
+`Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, `Scripts/Verify-CombatPeer.ps1
+-Port 18427`, and `git diff --check` passed. The peer evidence is
+`C:/Users/Ville/AppData/Local/Temp/KalmalaCombatPeer-657fe3e7277f452c872a2df4b37145fd`:
+the listen-host owner submitted CombatResultCue for Hit serials 1–3 and Defeat
+serial 4; the client received only its own Unavailable feedback with no cue and
+no remote result cue. The conflicting-seed rejection and defeated-world
+restart checks also passed. Forced `KalmalaEditor Win64 Development
+-WaitMutex -NoHotReload -Force -MaxParallelActions=4` succeeded in 151 actions
+from a disposable project copy, with the UBT log at
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`.
+
+`ImportAssets` wrote and compressed the 0.4-second SoundWave, but returned 1
+after per-user EditorSettings/Zen/DDC path errors. Its initial startup selected
+`E:/dev/Kalmala/Saved/Logs/AutoSDKInfo.txt` for UBT platform validation; that
+protected generated path was accessed unintentionally and left untouched after
+the import. Build and peer verification ran from the disposable copy, avoiding
+further generated writes in the main project.
+
+Multiplayer impact: Presentation only. The server continues to choose target,
+damage, cooldown, and defeat. Local audio reads only the owning pawn's existing
+server-generated, owner-only combat enum/serial. No audio replication,
+gameplay RPC, target identity, normal-play gameplay mutation, or save field was
+added.
+
+Known limits: Null-RHI confirms asset load, local cue submission, result
+gating, and privacy, not audible quality, device mixing, or packaged playback.
+The accepted Hit/Defeat cue was exercised for the listen-host owner; accepted
+result playback for a client owner remains unverified.
+
+Next task: Add local interaction/gathering result cues from accepted feedback
+while keeping the readable interaction and inventory results.
+
+### 2026-09-21T17:32:59+03:00 — Add interaction and gathering result cues
+
+Outcome: Added original 0.4-second mono accepted and rejected interaction cues.
+The local-player audio subsystem plays accepted crafting results and owner-only
+inventory increases, and plays the distinct rejection cue for rejected
+crafting results. Readable crafting, storage, and inventory text remains.
+
+Changed: `Scripts/Generate-InteractionFeedbackAudio.ps1`,
+`Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`,
+`Scripts/Verify-AudioCueContract.ps1`; the two original WAV sources and their
+imported SoundWave assets; `KalmalaCraftingComponent`, `KalmalaGameMode`,
+`KalmalaStorageInteraction`, crafting/storage verification helpers,
+`KalmalaStorageTest`, and `KalmalaAmbientAudioSubsystem`; and
+`docs/16-audio-cue-contract.md`. Handoff/setup updates were also made in
+`BACKLOG.md`, `PROGRESS.md`, `docs/07-development-setup.md`, and
+`docs/15-presentation-ownership.md`. Commit `5337288` contains the 18 clean
+implementation, verifier, asset, and contract files. Those four handoff/setup
+files had pre-existing changes and remain unstaged; unrelated pre-existing
+edits in `Scripts/Verify-PresentationOwnership.ps1` and the UI inventory
+subsystem remain untouched.
+
+Verification: The forced `KalmalaEditor Win64 Development -WaitMutex
+-NoHotReload -Force -MaxParallelActions=4` build succeeded from a disposable
+project copy with `%LOCALAPPDATA%\UnrealBuildTool` access. After the fixed
+sources compiled in nine actions, the final forced invocation reported the
+target up to date. `Scripts/Verify-AmbientAudio.ps1`,
+`Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check` passed.
+`Kalmala.Gameplay.Storage.NetworkContract` passed. The peer run
+`Scripts/Verify-AmbientAudioPeers.ps1 -WeatherExposureOnly -Port 18348` passed
+for host and client; each submitted accepted crafting, gathered-item, and
+rejected-crafting cues. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaAmbientAudioPeers-17ed03177f9341719e58b1ec24dc19a3`.
+`ImportAssets` returned exit code 1 after installed DDC/Zen/EditorSettings
+access errors, but saved and compressed both assets, which loaded in the peer
+run. The forced-build log is `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`.
+
+Multiplayer impact: The server still validates crafting, gathering, and
+storage outcomes. Crafting result text, result serial, and accepted state are
+owner-only; inventory stacks remain owner-only. Audio reads only the local
+owning pawn's feedback and inventory increases. The duplicate-harvest check
+confirmed server rejection. No audio replication, gameplay RPC, or saved-data
+schema change was introduced; temporary grants and harvest fixtures run only
+with `-KalmalaAmbientAudioTest`.
+
+Known limits: Null-RHI verifies asset load, owner gating, and local cue
+submission, not audible quality, device mixing, or packaged playback. Discovery
+acknowledgement and effect-specific support cues remain open.
+
+Next task: Add a local discovery acknowledgement cue from existing owner-only,
+server-confirmed landmark/scroll feedback; preserve readable discovery result
+text.
+
+### 2026-09-21T18:08:33+03:00 — Add discovery acknowledgement cue
+
+Outcome: Added the original 0.5-second mono DiscoveryAcknowledgedCue and local
+playback when the owning player's server-confirmed feedback serial advances to
+LandmarkFound or ScrollFound. Duplicate and unavailable feedback remains text;
+the readable owner-only discovery result is unchanged.
+
+Changed: `Scripts/Generate-DiscoveryAcknowledgementAudio.ps1`, the new source
+WAV and imported SoundWave asset, `Scripts/Verify-AmbientAudio.ps1`,
+`Scripts/Verify-AudioCueContract.ps1`, and `Scripts/Verify-DiscoveryPeer.ps1`;
+`KalmalaAmbientAudioSubsystem` now reads the local pawn's discovery component
+and submits the cue for accepted feedback only. The audio contract is updated in
+`docs/16-audio-cue-contract.md`. The `BACKLOG.md`, `PROGRESS.md`, and
+`docs/07-development-setup.md` handoff/setup edits remain unstaged because those
+files contained pre-existing changes before this run.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` passed in 151 actions from the disposable project
+copy `C:/Users/Ville/AppData/Local/Temp/ka-1f225`, with UBT access to
+`%LOCALAPPDATA%\UnrealBuildTool`; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaDiscoveryAudio-Build.log`.
+`Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, `Scripts/Verify-DiscoveryPeer.ps1`,
+and `git diff --check` passed. Peer evidence:
+`C:/Users/Ville/AppData/Local/Temp/ka-1f225/DiscoveryPeerEvidence-AfterImport`.
+The host submitted the serial-1 LandmarkFound cue and serial-2 AlreadyFound
+submitted none; the client received no owner-only feedback or cue. ImportAssets
+returned 1 after logging an empty destination-path error, but saved the asset,
+which the static verifier and both peers loaded.
+
+Multiplayer impact: The server still validates and saves discovery progress and
+publishes the existing owner-only feedback. Audio reads only the owning pawn's
+replicated feedback serial. No RPC, replicated audio state, save field, or
+authority behavior changed.
+
+Known limits: Null-RHI verifies asset loading, cue submission, duplicate
+gating, and peer privacy, not audible quality, hardware mix, or packaged
+playback. The peer fixture did not produce an Unavailable result; its no-cue
+branch is covered by the explicit LandmarkFound/ScrollFound code gate.
+
+Next task: Add effect-specific support activation and expiry cues from existing
+accepted effect state while preserving readable support result text.
+
+### 2026-09-21T18:55:30+03:00 — Add effect-specific support activation and expiry cues
+
+Outcome: Added six original 0.42-second mono support SoundWaves: effect-specific
+activation cues for Mending, Hearth Shield, Bear's Vigor, and Deer Call, plus
+expiry cues for the timed Hearth Shield and Bear's Vigor states. Local playback
+uses the owning pawn's existing owner-only accepted feedback serial and active
+effect; expiry playback follows that pawn's replicated server-owned absorption
+or strength state transitioning to inactive. The generic SupportAcceptedCue is
+retained as a load-failure fallback, and readable support result text remains.
+
+Changed: `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp` and its
+header; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` for the
+development-only sequential Shield/Vigor cast fixture; six WAV sources and six
+imported SoundWave assets under `Content/Kalmala/Audio`; the support effect
+generator and ambient/audio-cue/peer verifiers; `docs/16-audio-cue-contract.md`;
+and handoff/setup updates in `BACKLOG.md`, `PROGRESS.md`, and
+`docs/07-development-setup.md`. Clean implementation, assets, verifiers, and
+audio contract were committed as `8f472e9 Add effect-specific support audio
+cues`. Handoff/setup files already contained unrelated working changes and
+remain unstaged; other pre-existing presentation-ownership and inventory edits
+remain untouched. This is the main checkout, so no worktree synchronization
+was needed.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` succeeded in 151 actions from the disposable
+project copy `C:/Users/Ville/AppData/Local/Temp/KalmalaSupportAudio-83993a14bd024b9d94d1df314a254e8c`;
+UBT log: `C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaSupportEffectAudio-Build.log`.
+`Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-AmbientAudioPeers.ps1 -WeatherExposureOnly -Port 18460`, and
+`git diff --check` passed. Peer evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaAmbientAudioPeers-3686af91814b4571b0dc81e5db3d8fc2`;
+host and client submitted Shield and Vigor activation cues and both expiry
+cues. Unreal's `ImportAssets` returned 1 after saving all six root packages,
+because the installed DDC/Zen/EditorSettings paths were not writable; the peer
+run loaded and used the timed-effect assets.
+
+Multiplayer impact: Audio remains local presentation. Each local-player
+subsystem reads only its own pawn's owner-only accepted feedback and its
+existing replicated Shield/Vigor state. The server still owns effect
+validation, targets, durations, and state. Test casts run only under
+`-KalmalaAmbientAudioTest`; no audio replication, gameplay RPC, save field, or
+normal-play mutation was added.
+
+Known limits: Null-RHI verifies asset load, cue submission, and local ownership,
+not audible quality, device mixing, or packaged playback. Mending and Deer Call
+activation mappings/assets passed static/import checks but were not cast in the
+peer fixture. The importer exited nonzero despite saving/loading the packages.
+
+Next task: Add local movement and traversal cues from the owning player's
+current movement state while retaining readable pose, HUD, and input feedback.
+
+### 2026-09-21T19:27:02+03:00 — Add owner-local movement cues
+
+Outcome: Added three original mono one-shots for distance-paced footfalls,
+upward jump transitions, and landings. Footfall cadence and pitch follow the
+owning pawn's sampled local speed, while jump and landing cues follow its
+grounded/falling movement state. Existing pose, HUD, and bound input feedback
+remain the readable movement state.
+
+Changed: `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp` and
+`Source/KalmalaUI/Public/KalmalaAmbientAudioSubsystem.h`;
+`Scripts/Generate-MovementTraversalAudio.ps1`;
+`Scripts/Verify-AmbientAudio.ps1` and `Scripts/Verify-PlayerControls.ps1`;
+the three original WAV sources and three imported SoundWave assets under
+`Content/Kalmala/Audio`; and `docs/16-audio-cue-contract.md`. Handoff/setup
+updates were added to `BACKLOG.md`, `PROGRESS.md`, and
+`docs/07-development-setup.md`. Those three files already had unrelated
+working-tree edits and remain unstaged. The 12 clean source, asset, verifier,
+and audio-contract files were committed as `c992ee2`. Other pre-existing
+presentation-ownership and inventory edits remain untouched. This is the main
+checkout; worktree synchronization was not needed.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` succeeded in 151 actions from the short-path
+disposable project copy `C:/Users/Ville/AppData/Local/Temp/kma-475f23`; UBT
+used `%LOCALAPPDATA%\UnrealBuildTool` and wrote its log to
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`. The first, longer temp
+path failed before compilation because plugin response-file paths exceeded
+Windows' 260-character limit; the short-path build passed. `ImportAssets`
+returned 0 for all three cue packages in the disposable project, and their
+loaded copies were transferred into the workspace. `Scripts/Verify-AmbientAudio.ps1`,
+`Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PlayerControls.ps1 -Rendered -MovementAudio -Port 18473`, and
+`git diff --check` passed. The peer evidence is
+`C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-ae2794bd42974571b6573ecdd4043259`;
+the host and client each submitted footfall, jump, and landing cues while the
+existing rendered model, controls, and server-observed remote movement checks
+passed.
+
+Multiplayer impact: Audio is local presentation. Each local-player subsystem
+reads only its owning controller, locally controlled character, and that
+character's current movement component. Server movement authority is
+unchanged; no audio replication, gameplay RPC, server mutation, or saved-data
+schema change was added.
+
+Known limits: The fixture uses null-RHI/`-nosound`, proving asset loading,
+ownership, and cue submission rather than audible quality, device mixing, or
+packaged playback. Water-entry and exit cues remain open.
+
+Next task: Add local water-entry and exit cues from the owning player's
+generated-ocean movement mode while retaining readable water and exposure
+state.
+
+### 2026-09-21T20:25:21+03:00 — Add local generated-ocean traversal cues
+
+Outcome: Added two original owner-local one-shot cues for entering and leaving
+generated-ocean swimming. Normal play triggers them from the owning pawn's
+actual generated-ocean movement mode. Existing readable water and exposure
+state remains unchanged.
+
+Changed: Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp and
+Source/KalmalaUI/Public/KalmalaAmbientAudioSubsystem.h;
+Scripts/Generate-WaterTraversalAudio.ps1, Scripts/Verify-AmbientAudio.ps1,
+Scripts/Verify-AudioCueContract.ps1, and Scripts/Verify-PlayerControls.ps1; two
+WAV sources and two imported SoundWave assets under Content/Kalmala/Audio; and
+docs/16-audio-cue-contract.md. Handoff/setup/presentation notes were updated
+in BACKLOG.md, PROGRESS.md, docs/07-development-setup.md, and
+docs/15-presentation-ownership.md; these files already had working-tree
+changes before this run and remain unstaged. Other pre-existing inventory and
+presentation verifier edits remain untouched. This is the main checkout.
+
+Verification: Forced KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4 succeeded in 5 actions from a disposable project
+copy with %LOCALAPPDATA%\UnrealBuildTool access. Scripts/Verify-PlayerControls.ps1
+-MovementAudio -OceanTraversalAudio -Port 18494 passed host/client owner-local
+entry and exit cue submission alongside movement audio and remote movement
+checks. Evidence: C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-b197ef5ca5f14b169a4c9697b119e8b2.
+Scripts/Verify-AmbientAudio.ps1, Scripts/Verify-AudioCueContract.ps1,
+Scripts/Verify-M5DocumentationContracts.ps1,
+Scripts/Verify-PresentationOwnership.ps1, and git diff --check passed. The
+real-ocean route fixture could not find deep water within its fixed nearby
+search, so traversal events were driven by the documented development-only
+local signal for this peer run.
+
+Multiplayer impact: Normal play samples only the locally controlled pawn's
+actual IsSwimmingInGeneratedOcean() state and submits cues locally. Server
+movement authority is unchanged; no audio replication, gameplay RPC, server
+mutation, or saved-data schema change was added.
+
+Known limits: Null-RHI/no-sound verifies asset loading and local submission,
+not audible quality, device mixing, or packaged playback. The test signal
+exercises the same cue transition gate but does not demonstrate an actual
+ocean crossing. The failed route searches used fixed seeds and bounded fixture
+ranges; no gameplay routing or movement behavior changed.
+
+Next task: Continue the first open M5 presentation item: replace remaining
+prototype presentation with original project-owned player, creature,
+environment, UI, and feedback assets without changing gameplay contracts.
+
+### 2026-09-21T17:51:27Z — Rendered deer silhouette review
+
+Outcome: Extended the bounded deer peer verifier with a rendered mode and a
+server-fixture capture taken only after the existing target and herd mate are
+positioned. The capture camera is a transient development-only view centered
+on the deer. Visual review at 1280×720 distinguishes the long-legged profile
+and antlers; the dark vertex colour has low contrast against this scene.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+`Scripts/Verify-DeerPeer.ps1`, `docs/07-development-setup.md`,
+`docs/15-presentation-ownership.md`, `BACKLOG.md`, and this handoff. Existing
+inventory/support-glyph, presentation-audit, and handoff edits were preserved.
+The main checkout was used, so no worktree synchronization was needed.
+
+Verification: Forced `KalmalaEditor Win64 Development` build succeeded in the
+isolated short-path project copy `C:/Users/Ville/AppData/Local/Temp/kma-viz-73dacd`
+(151 actions) with `%LOCALAPPDATA%\UnrealBuildTool` access; the follow-up
+camera rebuild passed in 4 actions. `Scripts/Verify-DeerPeer.ps1 -Rendered
+-Port 18440 -Project <isolated project>` passed host/client bounded activation,
+herd alert, invalid-client rejection, replicated defeat, owner-only rewards,
+world identity, and same-world defeat persistence. The reviewed host capture is
+`C:/Users/Ville/AppData/Local/Temp/KalmalaDeerPeer-c785817fcad44243b3cee3a8408c85c8/deer-host.png`.
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed.
+The first render attempt exposed the default shader working directory outside
+writable temp; the verifier now sends each peer's shader output to a unique
+run-local temp folder.
+
+Multiplayer impact: The optional non-shipping screenshot switch changes only
+the listen-host's test view and captures already-positioned actors. Gameplay
+authority, actor state, RPCs, persistence, and client presentation are
+unchanged.
+
+Known limits: This is one static 1280×720 side view and does not establish
+contrast across lighting, biomes, distance, animation, or packaged play. The
+captured dark vertex colour merits follow-up before closing the larger visual
+pass.
+
+Next task: Inspect the original Mireling silhouette in a rendered, bounded
+host/client encounter.
+
+### 2026-09-21T21:23:26+03:00 — Rendered Mireling silhouette review
+
+Outcome: Extended the existing bounded Mireling peer fixture with an optional
+rendered host capture after the generated target is positioned. The reviewed
+1280×720 image shows a distinct low hunch, reaching arms, and split crown in
+close view; dark body planes merge somewhat against the scene. The M5 creature
+presentation review is complete.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` and
+`Scripts/Verify-MirelingPeer.ps1` add the development-only capture camera,
+shader working directories, rendered mode, and isolated-project option.
+`docs/07-development-setup.md` and `docs/15-presentation-ownership.md` record
+the command and visual limits. The Mireling review checklist and completed
+visual/audio presentation pass are recorded in `BACKLOG.md`. The clean source
+and verifier changes were committed as `ea01258`. Handoff files already
+contained pre-run edits; no unrelated presentation-audit or inventory changes
+were included.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-Force -MaxParallelActions=4` succeeded in 151 actions from
+`C:/Users/Ville/AppData/Local/Temp/kmire1`, with build log
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaMirelingRenderedBuild.log`.
+`Scripts/Verify-MirelingPeer.ps1 -Rendered -Port 18463 -Project <isolated
+project>` passed host/client combat, invalid-client rejection, owner-only reward,
+matching world identity, defeat persistence after restart, and produced
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingPeer-a15eaa6d38eb4e47a427cbdf70505216/mireling-host.png`.
+The first rendered attempt timed out before encounter pressure; the retry passed.
+The null-RHI Mireling peer scenario passed on port 18462. PowerShell parsing,
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: The screenshot uses a transient listen-host camera only
+when the non-shipping fixture flag and capture path are supplied. Existing
+server combat, replication, reward privacy, client view, actor collision, and
+persistence behavior are unchanged. No RPC or save-schema change was added.
+
+Known limits: This is one close 1280×720 view under one lighting setup. Dark
+body planes merge somewhat; readability at other distances, lighting, and in a
+packaged build remains unverified.
+
+Next task: Teach movement, gathering, shelter, weather, optional combat,
+discoveries, and support magic through route-free local prompts.
+
+### 2026-09-21T22:00:32+03:00 — Add local route-free tutorial prompts
+
+Outcome: Added a per-local-player optional prompt presenter for arrival,
+visible interaction/gathering/discovery/wildlife/camp focus, crafting UI, local
+exploration distance, attack intent, replicated Wet, and already-learned support
+effects. Cards show concise text and a high-contrast compass mark; current
+keyboard/controller labels offer non-consuming dismiss and revisit inputs.
+Prompt history is limited to the local-player session.
+
+Changed: Added `KalmalaTutorialSubsystem` and its prompt widget; exposed existing
+crafting-menu open state; mapped left-stick movement, controller jump/sprint,
+and dismiss/revisit actions; updated the input contract plus the onboarding and
+settings contracts. Updated `BACKLOG.md`, `PROGRESS.md`, `docs/07-development-setup.md`,
+and `docs/15-presentation-ownership.md`. The seven clean source/config/input/
+contract files were committed as `16e656b Add local route-free tutorial
+prompts`. Handoff/setup/presentation files already contained pre-run edits and
+remain unstaged; pre-existing inventory and presentation-audit edits remain
+untouched. This is the main checkout, so no worktree synchronization was
+needed.
+
+Verification: Final forced `KalmalaEditor Win64 Development -WaitMutex
+-NoHotReload -Force -MaxParallelActions=4` build passed in five actions from
+`C:/Users/Ville/AppData/Local/Temp/kmtut1`, using
+`%LOCALAPPDATA%\UnrealBuildTool`; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaTutorial-Build.log`.
+`Scripts/Verify-PlayerControls.ps1 -Rendered -Port 18499` passed host/client
+movement, jump, sprint, landing, and server-observed remote-movement checks;
+both 1280×720 captures showed the arrival card. Evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-024069b25438437faa7234106fcd19a5`.
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-LocalInputContract.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: Each `ULocalPlayerSubsystem` reads only its player's
+controller/view, nearby visible replicated actors, own pawn state, and existing
+crafting UI. The server still owns interactions, weather, learned effects,
+combat outcomes, and rewards. Prompts create no gameplay RPC, replicated
+property, gameplay mutation, or save-schema field.
+
+Known limits: Rendered evidence covers the arrival card and existing movement
+fixture only. Other contextual triggers, dismiss/revisit key presses, physical
+controller input, alternate viewport scales, and packaged play remain
+unverified. The route/corridor/camp/quest/developer-command acceptance is still
+open.
+
+Next task: Verify the route-free prompt triggers do not require a fixed route,
+authored corridor, mandatory camp, quest chain, or developer command.
+
+### 2026-09-21T22:21:14+03:00 — Verify route-free tutorial prompts
+
+Outcome: Completed the route-free tutorial/privacy acceptance leaf and closed
+the M5 optional onboarding and tutorial parent. Added a no-build runtime-source
+audit confirming that arrival is offered on local possession, contextual beats
+use local visible focus or already-readable state, exploration follows the
+player's own movement without choosing a direction, and camp guidance is
+optional. No tutorial-specific launch flag, quest flow, authored route,
+hidden-content scan, RPC, or gameplay-save path is present.
+
+Changed: Added `Scripts/Verify-TutorialRouteFree.ps1`; updated its usage and
+limits in `docs/07-development-setup.md`; checked the tutorial acceptance and
+M5 parent in `BACKLOG.md`; and appended this handoff. Existing unrelated source,
+presentation, and handoff edits remain preserved and unstaged.
+
+Verification: Forced isolated `KalmalaEditor Win64 Development -WaitMutex
+-NoHotReload -Force -MaxParallelActions=4` build passed in 152 actions
+(`Result: Succeeded`) from `C:/Users/Ville/AppData/Local/Temp/krf-4c11d21d/p`;
+UnrealBuildTool used `%LOCALAPPDATA%\UnrealBuildTool\Log.txt`.
+`Scripts/Verify-TutorialRouteFree.ps1`,
+`Scripts/Verify-OnboardingContract.ps1`,
+`Scripts/Verify-LocalInputContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed.
+`Scripts/Verify-PlayerControls.ps1 -Rendered -Port 18499` passed; both host and
+client 1280×720 captures show the arrival card. Evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-d69be416eb104251ade5816cf9a62372`.
+
+Multiplayer impact: Verification only. The presenter remains local to each
+player and reads that player's pawn/view plus existing replicated status and
+learned-effect state. Server authority, RPCs, replicated fields, and save
+schemas are unchanged.
+
+Known limits: The rendered control fixture uses a development-only movement
+test flag, though the tutorial presenter itself has no enable flag. The audit
+does not render every contextual beat or simulate physical controller input;
+the final packaged 20–30 minute co-op acceptance without developer tools
+remains open.
+
+Next task: Add local audio, control/remapping, text-scale, contrast, and
+non-colour feedback options to the existing settings shell.
+
+### 2026-09-21T19:45:03Z — Add local master audio controls
+
+Outcome: The Audio tab now cycles the local master output level in 25% steps
+and provides mute/restore. Both buttons display the current level or action in
+text; changes save in the local `GameUserSettings` config and apply during
+local-player settings-subsystem initialization.
+
+Changed: `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp` and its header,
+`Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp` and its header, the
+focused `KalmalaSettingsWidgetTest.cpp`, the settings/accessibility contract
+and its verifier, and the settings-menu usage notes in `docs/07-development-setup.md`.
+The focused source, test, contract, and verifier files were committed as
+`5278245 Add local master audio controls`. `BACKLOG.md`, `PROGRESS.md`, and
+`docs/07-development-setup.md` already contained unrelated working edits when
+the run began; their current-run handoff/setup additions remain unstaged, and
+all unrelated presentation/inventory edits remain untouched.
+
+Verification: The first forced build exposed unsupported UE 5.8 button-focus
+and numeric-limit APIs; both were corrected. The final incremental
+`KalmalaEditor Win64 Development` build succeeded in five actions from
+`C:/Users/Ville/AppData/Local/Temp/kmsa1/p` with
+`%LOCALAPPDATA%\UnrealBuildTool` access. The focused
+`Kalmala.UI.Settings.LocalPresentation` automation passed volume clamping,
+local config round-trip, immediate mute, and restore checks using an isolated
+`-UserDir`; log: `C:/Users/Ville/AppData/Local/Temp/kmsa1/settings.log`.
+`Scripts/Verify-SettingsAccessibilityContract.ps1`,
+`Scripts/Verify-LocalInputContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: The preference affects the local process output volume
+only. No gameplay authority, RPC, replicated property, gameplay save, or
+progression/world save schema changed.
+
+Known limits: Master volume is the only audio option implemented; ambience and
+interaction/combat levels, control remapping, text scale, contrast, and
+colour-independent feedback remain open. The automation does not render the
+Audio tab, simulate controller input, test audible mixing, or verify packaged
+startup. The primary output multiplier is process-wide, so split-screen local
+players would share it.
+
+Next task: Add separate local ambience and interaction/combat audio levels
+while retaining readable state feedback.
+
+### 2026-09-21T19:50:28Z — Trim completed-task detail from backlog
+
+Outcome: Removed redundant per-task verification, evidence paths, presentation
+reviews, multiplayer notes, and limits from completed backlog entries. Task
+checkboxes and open-task descriptions remain; run details stay in this log.
+
+Changed: `BACKLOG.md` and this handoff in `PROGRESS.md`.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` passed all five
+no-build documentation checks. `git diff --check -- BACKLOG.md` passed.
+
+Multiplayer impact: Documentation cleanup only; gameplay, network authority,
+replication, and persistence are unchanged.
+
+Known limits: Completed per-run verification and limits remain in `PROGRESS.md`
+and relevant contract documents. This cleanup did not re-evaluate those runs.
+
+Next task: Add local ambient, music, and interaction/combat feedback category
+levels while preserving readable state text.
+
+### 2026-09-21T23:10:00+03:00 — Add local audio category controls
+
+Outcome: Added focusable Audio-tab buttons for Ambient, Music, and
+Interaction/Combat Feedback. Each cycles 0%, 25%, 50%, 75%, and 100% and
+shows its saved value in text. Ambient scales the local wind, rain, water,
+fire, and biome beds; the feedback category scales all existing local
+movement, Wet, crafting/gathering, discovery, combat, and support one-shots.
+Music volume is stored and displayed for future playback; the runtime has no
+music track yet.
+
+Changed: Updated `KalmalaSettingsWidget` and the per-local-player
+`KalmalaAmbientAudioSubsystem`, and extended the focused settings automation
+for category bounds and local config round-trips. Updated the settings and
+audio contracts and their no-build verifiers. Commit `3fcddc5` contains the
+nine clean implementation, test, verifier, and contract files. Checked the
+category leaf in `BACKLOG.md` and appended this handoff. `BACKLOG.md`,
+`PROGRESS.md`, and `docs/07-development-setup.md` already had unrelated edits;
+their current-run handoff updates remain unstaged. Pre-existing inventory and
+presentation changes remain untouched. This is the main checkout; no worktree
+synchronization was needed.
+
+Verification: Forced isolated `KalmalaEditor Win64 Development` build first
+found a UE C4458 shadowing diagnostic in the new label lambda. Renamed that
+parameter; the final incremental build passed in 4 actions. UBT used
+`%LOCALAPPDATA%\UnrealBuildTool\KalmalaAudioCategoriesBuild.log`. The focused
+`Kalmala.UI.Settings.LocalPresentation` automation passed category bounds,
+local config round-trips, master mute, and restore in an isolated `-UserDir`;
+log: `C:/Users/Ville/AppData/Local/Temp/kac2/settings.log`.
+`Scripts/Verify-AmbientAudio.ps1`,
+`Scripts/Verify-SettingsAccessibilityContract.ps1`,
+`Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: Audio settings and gain application remain local. Ambient
+gain is read by each local-player audio subsystem; feedback gain is applied to
+local cue submissions. The server continues to own every gameplay outcome.
+No RPC, replicated property, gameplay mutation, or save-schema change was
+added; connected peers use their own process settings.
+
+Known limits: Music has no runtime playback path yet. The null-RHI automation
+proves settings persistence and cue setup, not audible quality or hardware
+mixing. The Audio tab was not rendered and physical controller input was not
+simulated; same-process local players share the process configuration.
+
+Next task: Add local keyboard/controller control remapping and restore
+defaults.
+
+### 2026-09-22T08:13:10+03:00 — Add local keyboard/controller remapping
+
+Outcome: Replaced the Controls-tab placeholder with bounded local keyboard and
+controller remapping rows for movement, look, jump, sprint, interaction,
+attack, map, recenter, settings, and crafting. Rows show the current display
+labels, cycle only through allowlisted choices, and provide a Restore Defaults
+button. The settings action always retains Escape as a local modal escape path.
+
+Changed: Updated `KalmalaSettingsWidget`, its local settings subsystem binding,
+and focused settings automation. Overrides are stored in the existing local
+`GGameUserSettingsIni` section and applied to the local `UPlayerInput` only.
+Updated the settings contract verifier and settings/accessibility documentation;
+the current-run additions to already-dirty `docs/07-development-setup.md`
+remain unstaged. Checked this leaf in `BACKLOG.md` and appended this handoff.
+Pre-existing inventory, presentation, backlog, progress, and setup edits were
+preserved.
+
+Verification: `Scripts/Verify-SettingsAccessibilityContract.ps1`,
+`Scripts/Verify-LocalInputContract.ps1`, `Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed.
+The isolated forced UE5.8 editor build passed after the final Escape-preservation
+change (`Result: Succeeded`, 4 actions); the focused
+`Kalmala.UI.Settings.LocalPresentation` automation then passed in null-RHI with
+an isolated local data directory.
+
+Multiplayer impact: Remapping and restore defaults are local presentation/input
+configuration only. They mutate no replicated state, send no RPC, change no
+gameplay authority, and do not alter a save schema; the server still validates
+gameplay requests and outcomes.
+
+Known limits: Physical keyboard/controller input and the rendered Controls tab
+were not exercised in automation. Axis choices are intentionally bounded, and
+text scale, contrast, colour-independent feedback, and full rendered settings
+coverage remain open.
+
+Next task: Add local text scale and contrast choices with readable modal layout.
+
+### 2026-09-22T05:33:57Z — Add local text scale and contrast choices
+
+Outcome: Replaced the Settings-tab placeholder with bounded local text-scale
+choices at 100%, 125%, and 150%, plus Standard and High contrast. Changes save
+in the existing local `GGameUserSettingsIni` section and rebuild the modal
+immediately. The modal now uses scaled, auto-wrapped text, a larger bounded
+panel, scrollable Controls content, readable value labels, and a contrast
+palette covering the backdrop, panel, buttons, text, and focusable controls.
+
+Changed: Updated `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`,
+`Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, and
+`Source/KalmalaUI/Private/Tests/KalmalaSettingsWidgetTest.cpp`; updated
+`docs/14-settings-and-accessibility.md`,
+`Scripts/Verify-SettingsAccessibilityContract.ps1`,
+`docs/07-development-setup.md`, `BACKLOG.md`, and this handoff. Existing
+inventory, presentation, setup, backlog, and handoff edits were preserved; no
+generated project directories were modified.
+
+Verification: The initial isolated `KalmalaEditor Win64 Development` build
+exposed one UE5.8 API mismatch (`UButton::SetIsFocusable`); removing that call
+was the only repair. The final forced build succeeded in four actions from
+`C:/Users/Ville/AppData/Local/Temp/ksc-09d0a1c2` with
+`%LOCALAPPDATA%\\UnrealBuildTool` access and `Result: Succeeded` in
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`. The focused
+`Kalmala.UI.Settings.LocalPresentation` automation passed through
+`UnrealEditor-Cmd.exe` with an isolated user directory; log:
+`C:/Users/Ville/AppData/Local/Temp/kst-user-108abe20/settings.log`.
+`Scripts/Verify-SettingsAccessibilityContract.ps1`,
+`Scripts/Verify-LocalInputContract.ps1`,
+`Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: Text scale and contrast are local presentation
+preferences. They write only local configuration, send no RPC, add no
+replicated property or gameplay/save field, and cannot change server-owned
+world, interaction, weather, inventory, combat, discovery, support, reward,
+or persistence state.
+
+Known limits: The modal was not inspected in a rendered viewport and physical
+keyboard/controller navigation was not simulated. Gameplay HUD colour-palette
+application and the colour-independent feedback preference remain open; the
+current option still retains explicit text state equivalents.
+
+Next task: Add local colour-independent feedback preferences for current
+gameplay state.
+
+### 2026-09-22T08:48:03+03:00 — Add local colour-independent feedback preferences
+
+Outcome: Completed the first eligible M5 settings leaf. The Settings tab now
+stores a bounded local `Text only` / `Text + markers` preference in the
+existing `GGameUserSettingsIni` section. Marker mode creates a local,
+owner-only clarity overlay with explicit text markers for Wet, nearby hearth,
+construction, combat, discovery, and support state, while the existing text
+presentation remains available in either mode. High contrast is applied to the
+new overlay's local surfaces and text.
+
+Changed: Updated `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`,
+`Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, and the focused
+`KalmalaSettingsWidgetTest.cpp`; added
+`Source/KalmalaUI/Public/KalmalaAccessibilityFeedbackSubsystem.h` and
+`Source/KalmalaUI/Private/KalmalaAccessibilityFeedbackSubsystem.cpp`; updated
+`Scripts/Verify-SettingsAccessibilityContract.ps1`,
+`docs/07-development-setup.md`, `docs/14-settings-and-accessibility.md`,
+`docs/15-presentation-ownership.md`, `BACKLOG.md`, and this handoff.
+Pre-existing inventory/support-glyph, presentation-audit, and mixed handoff
+edits remain unstaged and untouched.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex
+-NoHotReload -Force -MaxParallelActions=4` passed in 18 actions with
+`%LOCALAPPDATA%\UnrealBuildTool\Log.txt` recording `Result: Succeeded`.
+The focused `Kalmala.UI.Settings.LocalPresentation` automation passed in
+null-RHI with an isolated user directory; log:
+`C:/Users/Ville/AppData/Local/Temp/kalmala-feedback-2f2a7700d3124625b6480603ee186dc2/settings.log`.
+`Scripts/Verify-SettingsAccessibilityContract.ps1`,
+`Scripts/Verify-LocalInputContract.ps1`,
+`Scripts/Verify-AudioCueContract.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed.
+The one accidental literal temporary workspace folder from the first test
+invocation was verified as generated `Intermediate`/`Saved` output and
+removed; no generated project directory remains from it.
+
+Multiplayer impact: The preference and overlay are local presentation only.
+The overlay reads the owning player's existing pawn components and accepted
+replicated results; it sends no RPC, adds no replicated property, changes no
+gameplay authority, and writes no gameplay or progression save data. The
+server continues to own Wet, hearth, construction, combat, discovery, and
+support outcomes.
+
+Known limits: The Settings tab and marker overlay were not inspected in a
+rendered viewport, physical keyboard/controller navigation was not simulated,
+and packaged persistence plus the final full settings acceptance remain open.
+The overlay is opt-in through the local Text + markers choice; existing
+readable text remains the baseline when it is off.
+
+Next task: Verify options persist locally, remain usable with keyboard and
+controller input, and never mutate server gameplay or replicated state.
+
+### 2026-09-22T09:35:14+03:00 — Verify local settings accessibility
+
+Outcome: Completed the first eligible M5 settings verification leaf. Added a
+development-only two-peer probe that opens the live Audio, Controls, and
+Settings tabs, checks local option round-trips and GameUserSettings persistence,
+applies bounded keyboard/controller remaps only to each owning UPlayerInput,
+checks modal focus targets, move/look input ownership, Escape recovery, and
+confirms stable pawn health/transform plus the replicated server world seed.
+The probe retains six 1280x720 PNG captures for manual review.
+
+Changed: Updated `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`,
+`Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`,
+`Source/KalmalaUI/Public/KalmalaSettingsSubsystem.h`,
+`Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`, added
+`Scripts/Verify-SettingsAccessibility.ps1`, and updated
+`Scripts/Verify-SettingsAccessibilityContract.ps1`,
+`docs/14-settings-and-accessibility.md`, `docs/07-development-setup.md`,
+`BACKLOG.md`, and this handoff. Existing inventory, presentation, setup,
+backlog, and handoff edits were preserved; no generated project directories
+were modified.
+
+Verification: Forced `KalmalaEditor Win64 Development -WaitMutex
+-NoHotReload -Force -MaxParallelActions=4` passed with
+`%LOCALAPPDATA%\UnrealBuildTool\Log.txt` recording `Result: Succeeded`.
+`Kalmala.UI.Settings.LocalPresentation` passed in null-RHI with an isolated
+user directory. `Scripts/Verify-SettingsAccessibility.ps1 -Port 18473`
+passed the isolated host/client run; evidence is retained at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaSettingsAccessibility-765367dcf8ab4281add7baeddacb0a73`.
+The settings, local-input, audio-cue, presentation-ownership, and M5
+documentation contracts plus `git diff --check` passed.
+
+Multiplayer impact: None. All tested preferences and remaps remain local;
+the probe adds no RPC, replicated property, gameplay/save field, or server
+mutation. The server remains authoritative for world identity and gameplay
+state, and both peers retained their expected authority roles.
+
+Known limits: Physical controller hardware, audible quality, packaged
+persistence, and other viewport sizes were not tested. Offscreen PNG files
+were produced and retained, but the current Slate compositor does not
+reliably include this modal surface in those captures, so pixel-level modal
+readability remains a manual follow-up rather than an automated claim.
+
+Next task: Run the performance and startup pass, beginning with packaged
+startup, generated-world traversal, population activation, weather/camp
+updates, replication, and map/minimap worker profiling.
+
+### 2026-09-22T10:00:51+03:00 — Profile packaged startup and M5 runtime budgets
+
+Outcome: Completed the first eligible M5 performance/startup child. Forced the
+UE5.8 `KalmalaEditor Win64 Development` build with
+`%LOCALAPPDATA%\\UnrealBuildTool` access; the build succeeded in four actions.
+A temporary Windows Development package cooked, staged, and archived
+successfully. The archived packaged listen server reached network readiness in
+12,025.8 ms with the normal generated startup map. A first package probe
+waited for the two-player world-profile hook without a client and timed out;
+the retained log proves the package had already bound its port and built its
+terrain, and the corrected host-only probe passed.
+
+Changed: Updated `BACKLOG.md`, `docs/07-development-setup.md`, and this
+handoff only. The setup note records the measured baseline and its diagnostic
+limits. No gameplay, network, persistence, save-schema, packaging, CI, or
+release configuration changed; the temporary package and runtime logs remain
+outside the repository.
+
+Verification: `Scripts/Verify-WorldProfile.ps1 -Port 18474` passed with
+`InitialGenerationMs=179.99`, `UsedPhysicalMB=1760.48`, `Actors=46`,
+`ReplicatedActors=28`, `TerrainPatches=9`, `PopulationKeys=1`,
+`SaveBytes=2215`, `SaveSerialized=1`, and `LateJoinPlayers=2`.
+`Scripts/Verify-PlayerControls.ps1 -Port 18478` passed generated-world
+movement, jump/sprint/release/landing, and server-observed remote movement.
+`Scripts/Verify-CampChoices.ps1 -Port 18479` passed two freely selected camp
+sites, normal server fire recovery, matching client weather, and 31 matched
+server exposure snapshots per pawn. `Scripts/Verify-WorldMapProfile.ps1
+-Port 18475` passed host/client map work; the client recorded
+`OpenMs=826.540`, `WorkerTotalMs=760.878`, `WorkerMaxMs=203.300`,
+`GameThreadTotalMs=16.343`, `Tiles=12`, and `CacheBytes=202800`.
+The focused `Kalmala.UI.Minimap.GenerationPerformance`,
+`Kalmala.UI.Minimap.LocalPresentation`, `Kalmala.UI.WorldMap.LocalPresentation`,
+and `Kalmala.UI.WorldMap.PerformanceBudget` automations passed; the budget
+reported 18.635 ms per tile, 48.963 ms for the four-tile minimap case, and
+278,784 cached CPU bytes. `git diff --check` passed after the handoff update.
+
+Multiplayer impact: None. This increment only measured existing server-owned
+world generation, population activation, weather/exposure/camp recovery,
+replication, and local map workers. Clients continued to provide movement and
+other existing intent only; no RPC, replicated property, actor budget, save
+field, or gameplay authority rule changed.
+
+Known limits: The packaged startup value is a local Windows Development,
+null-RHI, no-sound listen-server baseline, not a shipping GPU frame-time or
+hardware-independent target. The pass does not establish long-session memory
+growth, audible quality, physical controller input, packaged persistence,
+full traversal distance, or the final tool-free 20–30 minute co-op acceptance.
+No bounded actor, memory, worker, or raster regression was exposed, so no
+runtime fix was required. The existing handoff files and presentation/
+inventory edits were already dirty; they remain unstaged and preserved, and no
+commit was made to avoid including those pre-existing changes.
+
+Next task: Fix any regressions within the existing bounded actor, memory,
+worker, and raster budgets without expanding world, population, or
+online-service scope; if the next profile remains green, record that no fix is
+required before tuning the survival/combat/support loop.
+
+### 2026-09-22T10:10:37+03:00 — Recheck bounded M5 performance budgets
+
+Outcome: Completed the first eligible M5 performance regression child. The
+forced UE5.8 `KalmalaEditor Win64 Development` build succeeded with
+`%LOCALAPPDATA%\\UnrealBuildTool` access. Fresh host/client profiles remained
+inside the existing bounded actor, memory, worker, raster, and save envelopes,
+so no runtime regression fix was required and no later scope was started.
+
+Changed: Updated `BACKLOG.md` and this handoff only. No gameplay, network,
+replication, persistence, save-schema, world-population, worker, or raster
+implementation changed; temporary profile logs remain outside the repository.
+
+Verification: `Scripts/Verify-WorldProfile.ps1 -Port 18480` passed with
+`InitialGenerationMs=177.77`, `UsedPhysicalMB=1752.78`, `Actors=46`,
+`ReplicatedActors=28`, `TerrainPatches=9`, `PopulationKeys=1`,
+`SaveBytes=2215`, `SaveSerialized=1`, and `LateJoinPlayers=2`; evidence is
+retained at `C:/Users/Ville/AppData/Local/Temp/KalmalaWorldProfile-17f7fbda24ed488f9485505da7b06f82`.
+`Scripts/Verify-WorldMapProfile.ps1 -Port 18481` passed; the client recorded
+`OpenMs=216.284`, `WorkerTotalMs=391.170`, `WorkerMaxMs=204.767`,
+`GameThreadTotalMs=4.453`, `Tiles=12`, and `CacheBytes=33800`, with evidence
+at `C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapProfile-51a48c41e47f43518de84fefa76c821b`.
+The focused `Kalmala.UI.Minimap.GenerationPerformance`,
+`Kalmala.UI.Minimap.LocalPresentation`, `Kalmala.UI.WorldMap.LocalPresentation`,
+and `Kalmala.UI.WorldMap.PerformanceBudget` automations passed; the budget
+reported 19.277 ms per tile, 50.374 ms for the four-tile minimap case, and
+278,784 cached CPU bytes. The automated runs completed with exit code 0.
+
+Multiplayer impact: None. This was a verification-only increment over existing
+server-owned generation, population, exposure, replication, and local map
+presentation. Clients continued to provide normal intent only; no RPC,
+replicated property, actor budget, save field, or authority rule changed.
+
+Known limits: This recheck is a local Windows Development/null-RHI/no-sound
+baseline. It does not establish shipping GPU frame time, long-session memory
+growth, hardware/controller input, audible quality, packaged persistence, or
+the final tool-free co-op acceptance. Existing pre-run handoff, setup,
+presentation, and inventory edits remain preserved and unstaged.
+
+Next task: Tune survival, combat, creature, and support costs, cooldowns,
+durations, stamina/wetness penalties, pressure, rewards, and recovery without
+introducing hard travel gates, then rerun the authority/persistence/reconnect
+checks.
+
+### 2026-09-22T07:27:57Z — Tune Wet exposure penalties
+
+Outcome: Completed one bounded M5 balance increment under the first open
+survival/combat/creature/support tuning leaf. Wet now applies a 0.92 movement
+multiplier and a 1.15 stamina-use multiplier instead of 0.90 and 1.25. The
+120-second status duration, 10-second unroofed-rain trigger, server-only
+application, campfire removal, and expiry recovery remain unchanged, so
+exposure still creates pressure without becoming a hard travel gate.
+
+Changed: Updated `Source/KalmalaGameplay/Public/KalmalaPlayerStatusComponent.h`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaPlayerControlsTest.cpp`, and
+`Scripts/Verify-PlayerControls.ps1`; synchronized the contract text in
+`docs/01-game-design.md`, `docs/02-technical-architecture.md`,
+`docs/05-decision-log.md`, `docs/07-development-setup.md`, and
+`docs/10-campfire-and-crafting.md`; and recorded the completed backlog child.
+The pre-existing presentation, inventory, handoff, and setup edits remain
+preserved; `BACKLOG.md`, `PROGRESS.md`, and the already-dirty
+`docs/07-development-setup.md` remain unstaged for that reason.
+
+Verification: The forced `KalmalaEditor Win64 Development` build succeeded in
+11 actions with `%LOCALAPPDATA%\\UnrealBuildTool` access and
+`Result: Succeeded` in `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`.
+The focused `Kalmala.Gameplay.Status.Wet+Kalmala.Gameplay.Movement.SprintSavedMoves`
+automation passed all five tests; evidence is retained at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaWetBalance-00aed03d3c124d42b09c56584008c21b/status.log`.
+`Scripts/Verify-PlayerControls.ps1 -WetStamina -Port 18482` passed with both
+server pawns and the remote owner reporting 0.92-adjusted movement,
+11.50-point sprint cost, and rejected client stamina mutation; evidence is at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-58cbf54f1cd64fff830f451371b04717`.
+`Scripts/Verify-CampChoices.ps1 -Port 18483` passed two freely selected camp
+sites, 31 matching exposure snapshots per pawn, normal fire recovery, and
+matching peer state; evidence is at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaCampChoices-d8651d8b65b94acaa23250d87760c952`.
+`Scripts/Verify-M5DocumentationContracts.ps1` and `git diff --check` passed.
+
+Multiplayer impact: The compiled Wet values are shared by server and
+prediction paths. Clients still submit only normal movement intent; they
+cannot author status, duration, multiplier, stamina, shelter, weather, or
+recovery state. No RPC, replicated property, save field, persistence schema,
+population budget, or reward path changed.
+
+Known limits: This increment verifies null-RHI host/client behavior and local
+camp recovery, not audible quality, physical input, packaged persistence,
+long-session balance, or the final tool-free 20–30 minute acceptance. Combat,
+creature, support costs/cooldowns/durations, pressure, rewards, and the full
+post-tuning authority/persistence/reconnect suite remain open.
+
+Next task: Continue the same balance leaf with the next bounded support/combat
+cost, cooldown, or duration tuning increment, then complete the required
+authority, persistence, reconnect, and host/client rerun.
+
+### 2026-09-22T10:41:59+03:00 — Close the verified M5 performance/startup pass
+
+Outcome: Closed the first remaining unchecked M5 aggregate item. Its ordered
+startup/profile and bounded-regression children were already complete and have
+fresh retained evidence from the preceding runs, so no additional gameplay
+implementation was started.
+
+Changed: Marked the performance/startup parent complete in `BACKLOG.md` and
+appended this handoff. Existing working-tree edits in the handoff, setup,
+presentation, inventory, and verifier files remain preserved.
+
+Verification: Relied on the retained successful UE5.8 editor build, packaged
+startup, world/profile, host/client traversal, camp/weather, map/minimap, and
+budget evidence recorded immediately above in `PROGRESS.md` and `BACKLOG.md`.
+`Scripts/Verify-M5DocumentationContracts.ps1` and `git diff --check` passed
+for the current handoff state.
+
+Multiplayer impact: None. This is a bookkeeping closure over already verified
+server-owned generation, population, exposure, replication, and local map
+workers; no RPC, replicated property, save field, or authority rule changed.
+
+Known limits: The retained performance evidence remains a local Windows
+Development/null-RHI/no-sound baseline and does not establish shipping GPU
+frame time, long-session memory growth, hardware input, audible quality,
+packaged persistence, or the final tool-free co-op acceptance.
+
+Next task: Continue the first open survival/combat/creature/support balance
+leaf with one bounded cost, cooldown, duration, pressure, reward, or recovery
+tuning increment, then rerun the required authority, persistence, reconnect,
+and host/client checks.
+
+### 2026-09-22T11:01:38+03:00 — Tune shared support activation cost
+
+Outcome: Completed one bounded M5 balance increment under the first open
+survival/combat/creature/support tuning leaf. All learned support effects now
+use an 18-stamina server-owned base activation cost. The server passes that
+base through the existing `UKalmalaPlayerStatusComponent` cost path before
+checking or charging stamina, so an active Wet status costs 20.7. Support
+cooldowns, effect durations, targets, rewards, recovery, and non-damaging
+execution remain unchanged.
+
+Changed: Updated
+`Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h`,
+`Source/KalmalaGameplay/Private/KalmalaSupportMagicComponent.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp`, and
+`Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp`; synchronized
+the support contract in `docs/11-combat-and-support-magic.md`, the settled
+balance decision in `docs/05-decision-log.md`, and the support verification note
+in `docs/07-development-setup.md`; and recorded the completed balance child in
+`BACKLOG.md`. Existing presentation, inventory, verifier, setup, backlog, and
+handoff edits remain preserved and unstaged where they predated this run.
+
+Verification: The forced direct UE5.8 `KalmalaEditor Win64 Development`
+UnrealBuildTool run succeeded in 11 actions with `%LOCALAPPDATA%\\UnrealBuildTool`
+access and `Result: Succeeded`. The focused
+`Kalmala.Gameplay.Status.Wet+Kalmala.Gameplay.Discovery.PlayerScopedPersistence`
+automation passed with evidence at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaSupportBalanceFinal-e3c2c71e9a7b4ec88f1536b86901b379`.
+`Scripts/Verify-M5DocumentationContracts.ps1` passed all five no-build checks,
+and `git diff --check` passed.
+
+Multiplayer impact: The support RPC remains enum plus monotonic sequence only.
+The server derives the effective stamina cost from the authoritative pawn
+status, while clients cannot submit cost, multiplier, stamina, cooldown,
+duration, target, damage, reward, or recovery values. No RPC, replicated
+property, gameplay/save field, persistence schema, population budget, or reward
+path changed.
+
+Known limits: This increment does not yet run the broader post-tuning
+authority, persistence, reconnect, and live host/client support-cast suite.
+The focused run is null-RHI and does not establish physical controller input,
+audible quality, packaged persistence, long-session balance, or the final
+tool-free co-op acceptance. The support base-cost change is ready for the
+existing M4 and later post-tuning regressions.
+
+Next task: Tune the committed player-combat recovery window while preserving
+server-selected targets, fixed damage, replay gates, and relevant-peer action
+presentation; then complete the required post-tuning authority, persistence,
+reconnect, and host/client rerun.
+
+### 2026-09-22T11:31:00+03:00 — Tune player-combat recovery window
+
+Outcome: Completed the first eligible M5 balance child. The server-owned basic
+player attack now holds a 0.36-second recovery window after its existing
+0.18-second windup, reduced from 0.42 seconds so optional wildlife encounters
+remain committed and readable without feeling unnecessarily stop-start. The
+server still selects the target, rechecks it at execution, applies fixed
+validated damage, gates requests by monotonic sequence and action phase, and
+replicates the same action presentation to relevant peers.
+
+Changed: Updated
+`Source/KalmalaGameplay/Public/KalmalaCombatComponent.h` and
+`Source/KalmalaGameplay/Private/Tests/KalmalaCombatLoopTest.cpp`; synchronized
+the runtime contract in `docs/11-combat-and-support-magic.md`, recorded the
+settled balance decision in `docs/05-decision-log.md`, and marked the completed
+child in `BACKLOG.md`. `PROGRESS.md` and the pre-existing presentation,
+inventory, verifier, setup, and handoff edits remain preserved and unstaged;
+the unrelated dirty files were not modified.
+
+Verification: The isolated UE5.8 `KalmalaEditor Win64 Development` build
+succeeded in 153 actions with `%LOCALAPPDATA%\\UnrealBuildTool` access and
+`Result: Succeeded`. Focused
+`Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown` and
+`Kalmala.Gameplay.Combat.IntentContract.RejectionDoesNotMutate` automations
+passed; the new regression asserts the positive 0.36-second recovery constant.
+`Scripts/Verify-CombatPeer.ps1 -Port 18484` passed with evidence at
+`C:/Users/Ville/AppData/Local/Temp/KCR/CombatPeerEvidence`; it confirmed four
+server-validated attacks, private unavailable feedback, relevant defeat
+replication, owner-local combat cues, and same-world defeat persistence after
+restart. `Scripts/Verify-M5DocumentationContracts.ps1` passed all five no-build
+checks, and `git diff --check` passed.
+
+Multiplayer impact: Recovery remains server-time state on the owning pawn. The
+client still sends only the monotonic attack sequence; it cannot choose target,
+damage, timing, phase, cooldown, reward, or persistence. No RPC signature,
+replicated property, save field, persistence schema, authority rule, creature
+pressure path, or reward path changed.
+
+Known limits: This is a focused null-RHI/no-sound and two-peer development
+fixture check, not an audible-quality, physical-controller, packaged-build,
+long-session balance, or final tool-free co-op acceptance. The broader
+post-tuning authority, support-cast, persistence, reconnect, and host/client
+suite remains open.
+
+Next task: Re-run the authority, persistence, reconnect, and host/client checks
+after the survival/combat/support tuning; clients must continue to provide
+intent only.
+
 ### 2026-09-22T11:45:08+03:00 — Re-run post-tuning authority and peer regressions
 
 Outcome: Completed the first eligible M5 balance-loop regression child. The
@@ -4285,6 +5843,155 @@ leaf with one bounded cost, cooldown, duration, pressure, reward, or recovery
 tuning increment, then repeat only the required regressions if that change
 affects their contracts.
 
+### 2026-09-22T12:00:00+03:00 — Tune shared support cooldown
+
+Outcome: Completed one bounded M5 balance increment under the first open
+survival/combat/creature/support tuning leaf. Every learned support effect now
+uses a five-second server-owned cooldown after a successful activation, up from
+four seconds. The existing 18-stamina dry base and Wet-adjusted cost remain
+unchanged, as do effect durations, server-selected targets, rewards, recovery,
+non-damaging execution, owner privacy, and the enum/sequence-only RPC.
+
+Changed: Updated
+`Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h` and its focused
+`Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp`;
+synchronized `docs/11-combat-and-support-magic.md`,
+`docs/05-decision-log.md`, `docs/07-development-setup.md`, and the tuning
+child in `BACKLOG.md`. Existing presentation, inventory, verifier, setup,
+backlog, and handoff edits were preserved; no generated project directories
+were modified.
+
+Verification: The forced UE5.8 `KalmalaEditor Win64 Development` build passed
+in 10 actions with `%LOCALAPPDATA%\\UnrealBuildTool` access and `Result:
+Succeeded`. Focused headless automation passed
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence` plus the `Wet`,
+`WetCampfire`, `WetModifiers`, and `WetStamina` tests; evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaSupportCooldown-20260922/support-cooldown.log`.
+`Scripts/Verify-M4VerticalSlice.ps1 -Port 18492` passed Mireling, boar, and
+deer server-owned encounters, target-free client rejection, relevant
+action/health/defeat replication, owner-only rewards, same-world defeat
+persistence, all four support-effect authority/non-damage gates, and
+matching-world learned-effect persistence; evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-436517aaa0364619a8bf6b196d9d5a8a`.
+The M5 documentation, presentation-ownership, and `git diff --check` gates
+passed.
+
+Multiplayer impact: The cooldown is evaluated from server world time after
+the authoritative stamina/target/eligibility transaction. Clients still send
+only the allowlisted support enum and monotonic sequence; they cannot author
+cooldown, cost, duration, target, damage, reward, or recovery values. Owner-only
+feedback/cooldown and relevant active presentation retain their existing
+replication boundaries. No RPC signature, replicated property, gameplay/save
+field, persistence schema, population budget, or reward path changed.
+
+Known limits: This is a local Windows Development, null-RHI/no-sound,
+development-fixture balance check. It does not establish audible quality,
+physical controller input, packaged persistence, long-session balance, or the
+final tool-free 20–30 minute co-op acceptance. Support cooldown usability was
+checked through the existing authority/persistence suite, not a rendered
+timing presentation.
+
+Next task: Continue the first open balance leaf with one bounded timed-support
+duration or creature-pressure tuning increment, then rerun only the affected
+authority and peer regressions.
+
+### 2026-09-22T12:28:35+03:00 — Tune Hearth Shield protection window
+
+Outcome: Completed one bounded M5 balance increment under the first open
+survival/combat/creature/support tuning leaf. Hearth Shield now keeps its
+server-owned 40-point absorption for ten seconds, increased from eight
+seconds, so an optional defensive choice covers a committed wildlife exchange
+without becoming persistent protection. The five-second cooldown, 18-stamina
+base cost, expiry clearing, caster-only target, and non-damaging execution are
+unchanged.
+
+Changed: Updated
+`Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h` and its focused
+`Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp`;
+synchronized `docs/11-combat-and-support-magic.md`, `docs/05-decision-log.md`,
+`docs/07-development-setup.md`, and the tuning child in `BACKLOG.md`. Existing
+presentation, inventory, verifier, setup, backlog, and prior handoff edits
+remain preserved and unstaged where they predated this run.
+
+Verification: The forced UE5.8 `KalmalaEditor Win64 Development` UnrealBuildTool
+log recorded 10 successful actions and `Result: Succeeded` with
+`%LOCALAPPDATA%\\UnrealBuildTool` access. The first M4 peer attempt had a
+transient Mireling fixture timeout; a fresh retry passed
+`Scripts/Verify-M4VerticalSlice.ps1 -Port 18494`, covering Mireling, boar,
+deer, owner-only rewards, defeat persistence, all four support-effect
+authority/non-damage gates, and matching-world learning persistence. Evidence:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-ba4c4c5b0c514804bb432da697b0aeee`.
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: The duration remains a server-owned expiry used by the
+existing replicated active-effect and shield presentation. Clients still send
+only the allowlisted support enum and monotonic sequence; they cannot author
+duration, expiry, cost, cooldown, target, damage, reward, or recovery. No RPC
+signature, replicated property, gameplay/save field, persistence schema,
+population budget, reward path, or authority rule changed.
+
+Known limits: This is a local Windows Development, null-RHI/no-sound,
+development-fixture balance check. It does not establish audible quality,
+physical controller input, packaged persistence, long-session balance, or the
+final tool-free 20–30 minute co-op acceptance. The initial focused automation
+launch did not register its command due argument marshalling, but the same
+focused support regression passed inside the documented M4 harness.
+
+Next task: Continue the first open balance leaf with one bounded creature-
+pressure, timed-support, reward, or recovery tuning increment, then rerun only
+the affected authority and peer regressions.
+
+### 2026-09-22T12:40:26+03:00 — Tune Bear's Vigor duration
+
+Outcome: Completed one bounded M5 balance increment under the first open
+survival/combat/creature/support tuning leaf. Bear's Vigor now keeps its
+server-owned 1.4x strength multiplier and 140-point stamina cap for ten
+seconds, increased from eight seconds, so an optional preparation choice can
+cover a committed wildlife exchange without becoming persistent support. The
+five-second cooldown, no-refill activation and expiry behavior, caster-only
+target, non-damaging execution, and active-state presentation remain unchanged.
+
+Changed: Updated
+`Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h` and its focused
+`Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp`;
+synchronized the runtime contract in `docs/11-combat-and-support-magic.md`,
+the accepted balance decision in `docs/05-decision-log.md`, the support
+verification note in `docs/07-development-setup.md`, and the completed balance
+child in `BACKLOG.md`. Existing presentation, inventory, setup, backlog, and
+handoff edits remain preserved where they predated this run.
+
+Verification: The forced UE5.8 `KalmalaEditor Win64 Development` build
+completed 10 actions with `Result: Succeeded` in
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt` and used the requested
+`%LOCALAPPDATA%\UnrealBuildTool` path. `Scripts/Verify-M4VerticalSlice.ps1
+-Port 18495` passed the Mireling, boar, and deer server-owned encounters,
+target-free client rejection, relevant action/health/defeat replication,
+owner-only rewards, same-world defeat persistence, all four support-effect
+authority/non-damage gates, and matching-world learned-effect persistence;
+evidence is under
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-dd1ae5ede2e24d369a12138acb990f38`.
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: The ten-second duration is selected and expired only by
+the authoritative support component. Clients still send only the allowlisted
+support enum and monotonic sequence; they cannot author duration, expiry,
+strength, stamina cap, cost, cooldown, target, damage, reward, or recovery.
+No RPC signature, replicated property, gameplay/save field, persistence schema,
+population budget, reward path, or authority rule changed.
+
+Known limits: This remains a local Windows Development, null-RHI/no-sound,
+development-fixture balance check. It does not establish audible quality,
+physical controller input, packaged persistence, long-session balance, shipping
+GPU performance, or the final tool-free 20–30 minute co-op acceptance. The
+parent survival/combat/creature/support tuning leaf still has additional
+bounded balance work.
+
+Next task: Continue the first open balance leaf with one bounded creature-
+pressure, timed-support, reward, or recovery tuning increment, then rerun only
+the affected authority and peer regressions.
+
 ### 2026-09-22T13:00:00+03:00 — Tune Mireling melee pressure
 
 Outcome: Completed one bounded M5 balance increment under the first open
@@ -4338,6 +6045,129 @@ Next task: Continue the first open balance leaf with one bounded cost,
 cooldown, duration, pressure, reward, or recovery increment, then rerun only
 the affected authority and peer regressions.
 
+### 2026-09-22T13:05:38+03:00 — Plan next roadmap goals
+
+Outcome: Documented the ordered goals after the current M5 vertical-slice
+acceptance: close the packaged slice, stabilize the accepted build, validate
+dedicated-server deployment only when a server-capable UE 5.8 build exists,
+expand the player-directed generated wilderness one integrated slice at a time,
+and require an explicit product decision before broader platform, service, or
+saved-data commitments.
+
+Changed: Updated `docs/04-roadmap.md` only for the roadmap plan. No gameplay,
+network, persistence, save-schema, asset, or backlog implementation changed.
+Existing balance and handoff edits in the workspace were preserved.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` and
+`git diff --check` passed. The roadmap update was committed as `0a329cd`
+(`Document next roadmap goals`).
+
+Multiplayer impact: Planning only. The documented goals retain server-owned
+world, combat, support, discovery, reward, and persistence decisions, intent-
+only client requests, sparse saves, and the current PC solo/listen-server
+co-op scope until an explicit product decision changes them.
+
+Known limits: This does not close any M5 acceptance item or authorize a new
+platform, online service, saved-data schema, or post-slice content scope.
+
+Next task: Finish the remaining M5 balance and release-acceptance sequence
+before starting post-slice stabilization or content expansion.
+
+### 2026-09-22T13:08:48+03:00 — Replace post-M5 goals with M6
+
+Outcome: Replaced the temporary post-M5 goals section in the roadmap with a
+formal M6 milestone for production hardening and supported-session validation.
+M6 now sequences acceptance-finding fixes, complete release regression,
+Windows Development package validation, and conditional dedicated-server
+validation without adding gameplay, service, platform, or save-schema scope.
+
+Changed: Updated `docs/04-roadmap.md` only for the M6 roadmap milestone.
+Existing balance, UI, setup, contract, and handoff edits remain preserved.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` and
+`git diff --check` passed. The roadmap change was committed as `be304e3`
+(`Add M6 roadmap milestone`); no runtime, network, persistence, or asset
+implementation changed.
+
+Multiplayer impact: Planning only. M6 retains server-owned world, combat,
+support, discovery, rewards, persistence, and accepted outcomes; clients remain
+intent-only, with no new target, damage, timing, reward, hidden-content, or
+save-value inputs.
+
+Known limits: M6 is gated on completion of M5's packaged acceptance. The
+dedicated-server portion remains conditional on a server-capable UE5.8 build.
+
+Next task: Finish M5 release regression and final no-developer-tools
+acceptance before starting M6 hardening work.
+
+### 2026-09-22T13:17:59+03:00 — Define M7 survival content update
+
+Outcome: Defined M7 as a post-M6 content update that fills the remaining
+survival fundamentals: server-owned skill progression, optional food and
+timed stat benefits, tool-based woodcutting/mining/gathering, broader recipe
+depth, and readable status/inventory/crafting UI with original icons and
+timers.
+
+Changed: Added the formal M7 milestone to `docs/04-roadmap.md`. It reuses the
+existing inventory, harvest, crafting, construction, status, and HUD seams;
+requires an explicit versioned save contract before persistent progression or
+food state; and preserves the existing server-authority and PC
+solo/listen-server scope. The pre-existing minimap-plan deletion in the
+working tree remains untouched and unstaged.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` and
+`git diff --check` passed. The M7 roadmap addition is committed as `51fc868`
+(`Define M7 content update`). No gameplay, network, persistence, or asset
+implementation changed.
+
+Multiplayer impact: Planning only. M7 keeps skill awards, resource identity,
+tool validation, node depletion, recipe unlocks, food effects, stat changes,
+timers, and rewards server-owned; clients remain intent-only and receive only
+permitted presentation state.
+
+Known limits: This defines scope but does not implement skills, food, tools,
+new resource nodes, recipe tiers, or status icons/timers. Persistent M7 state
+remains gated on an approved save-schema and migration contract.
+
+Next task: Finish M5 release acceptance, then begin M6 hardening before
+implementing the first M7 content slice.
+
+### 2026-09-22T13:30:29+03:00 — Expand M7 biome content and status presentation
+
+Outcome: Expanded the M7 roadmap into nine ordered content goals covering
+biome-specific materials and creature niches, rare sources such as elite or
+boss rewards, loot chests, hidden treasures, and shipwrecks, server-owned tool
+durability and repair stations, food-processing camp stations, biome/weather
+hazards, active-weather readability, and a richer status presentation.
+
+Changed: Updated `docs/04-roadmap.md` only for the M7 plan. The roadmap now
+requires a bounded first-wave content set, original source identities, cooking
+rack/kettle-or-cauldron/drying station categories, reversible fog/rain/storm/
+heat/cold pressure, status icons plus timers/intensity/source/recovery cues,
+and a post-content M6 regression pass. It also extends the persistence gate to
+resource depletion, creature defeat, opened caches, treasures, shipwreck loot,
+and boss rewards. Existing working-tree edits, including the pre-existing
+minimap-plan deletion, remain preserved and unstaged.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` and
+`git diff --check` passed. This was a roadmap-only change; no Unreal build was
+needed and no gameplay, network, persistence, save-schema, or asset files were
+implemented.
+
+Multiplayer impact: Planning only. M7 continues to keep skills, material and
+creature identity, tool condition, repair, station processing, food effects,
+weather/hazard intensity, timers, loot selection, and rewards server-owned;
+clients remain intent-only and private inventory/progression/loot stay
+owner-scoped.
+
+Known limits: The content is scoped but not implemented. Persistent M7 state
+still requires an approved versioned save and migration contract, and boss,
+treasure, shipwreck, and hazard breadth must remain bounded during the first
+slice.
+
+Next task: Finish M5 release acceptance, then begin M6 hardening before
+implementing the first M7 content slice.
+
 ### 2026-09-22T13:35:54+03:00 — Close M5 balance loop
 
 Outcome: Closed the first remaining M5 balance aggregate after its bounded
@@ -4369,3 +6199,48 @@ validation remain open or conditional on the documented UE5.8 engine blocker.
 
 Next task: Complete M5 release regression and packaging verification before
 starting the final no-developer-tools acceptance or M6 hardening work.
+
+### 2026-09-22T16:10:14+03:00 — Block final packaged M5 acceptance on native play surface
+
+Outcome: The first eligible M5 final-acceptance child remains blocked after
+three concrete packaged-launch attempts. The archived accepted Windows
+Development package was started once by default, once with an explicit
+windowed 1280x720 presentation, and once through the normal listen-session
+URL `/Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=18600`; no
+developer verification flags or scripted gameplay inputs were used. Each
+process stayed alive but exposed `MainWindowHandle=0` in Windows session 8.
+The computer-use inventory remained `apps=[]` with only the Codex in-app
+browser, so normal player input, a joining peer, player-visible evidence,
+and the 20–30 minute acceptance loop could not be performed.
+
+Changed: Updated the final M5 acceptance child in `BACKLOG.md` to record the
+exact three-attempt blocker. No runtime, asset, network, persistence,
+save-schema, package, or release-configuration files changed. The launched
+package processes were stopped after the attempts; unrelated pre-existing
+working-tree edits remain untouched.
+
+Verification: The packaged executable was the retained accepted artifact at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaRelease-511dae00c4734478a302d99ded81dc60/Archive/Windows/Kalmala.exe`.
+Default, explicit-windowed, and normal-listen launches all remained alive
+without a window handle. `cua.getState()` returned no native apps on all
+three observations. No developer fixture, editor play session, console
+command, teleport, or scripted acceptance input was substituted. Required
+acceptance verification therefore failed at the environment/native-surface
+boundary, and no commit was made.
+
+Multiplayer impact: None. No gameplay or authority code changed. The
+documented server-owned world identity, terrain, exposure, inventory,
+construction, wildlife, discoveries, support effects, rewards, persistence,
+and intent-only client boundary remain unchanged; peer agreement and privacy
+could not be observed in the missing native surface.
+
+Known limits: The final tool-free 20–30 minute packaged co-op run, rendered
+player-visible evidence, normal join flow, reconnect observation, packaged
+persistence observation, physical input, audible quality, long-session
+balance, shipping GPU performance, and dedicated-server validation remain
+open or conditional on the documented Launcher-engine blocker. This is the
+third consecutive native-surface attempt for this child; the run stops here.
+
+Next task: Provide a usable native Windows game surface/session for the
+packaged build, then rerun the blocked final M5 acceptance from a fresh local
+user directory without developer tools.

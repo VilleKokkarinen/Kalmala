@@ -96,7 +96,6 @@ Start this track only after M1 passes. `docs/08-world-generation-and-biomes.md` 
 - [x] Verify host/client agreement and meaningful choices.
   - [x] Verify host and client observe matching weather, exposure, shelter, fire, and recovery state, and that clients cannot alter any authoritative value.
 - [x] Run a two-player scenario showing freely chosen camp locations with different weather preparation tradeoffs and no built or guided path.
-  - Verified automated low/high-cover camp fixtures and cold-weather fire recovery with matching host/client state; human choice usability, construction, and rain preparation remain outside this scenario.
 
 ### Phase 5 — Companion minimap
 
@@ -283,18 +282,14 @@ Start only after M3 acceptance passes. Preserve the open-world, route-free survi
 - [x] Deliver the boar archetype as an optional territorial charge encounter.
   - [x] Add original replicated boar presentation, resting-area threat response, charge/return behaviour, and validated meat/hide rewards.
   - [x] Verify seed reproduction, server-owned charge, invalid target-free client attack rejection, relevant replication, owner-only rewards, and defeat persistence across restart.
-    - Passed 2026-09-21: `Scripts/Verify-BoarPeer.ps1 -Port 18254`; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaBoarPeer-97c1d19a2f1c4cacaafddc1f92fbfabe`.
-    - Passed `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaBoarBehavior-confirm-a452224ad0ed40d18714939c7e1e3e7c/wildlife-cycle.log`.
 - [x] Verify server-owned targeting/damage, defeat persistence, reconnect consistency, and matching host/client behaviour.
 - [x] Deliver the deer archetype as wary herd wildlife.
   - [x] Add original replicated deer presentation, bounded herd/flee behaviour, and validated meat/hide rewards.
   - [x] Verify deterministic group activation, combat/noise flight, defeat persistence, and matching host/client behaviour.
-    - Passed 2026-09-21: `Scripts/Verify-DeerPeer.ps1 -Port 18256`; evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaDeerPeer-772a2e6f7adb43d28631b2797579de81`.
 - [x] Add optional deterministic open-world points of interest and scroll discoveries across suitable biomes.
   - [x] Derive bounded, stable point-of-interest and scroll descriptors from the existing world identity without routes, mandatory crossings, or hidden client discovery queries.
   - [x] Add server-validated one-time discovery rewards with colour-independent local feedback and persistence across reconnect only for the entitled player.
   - [x] Verify same-seed reproduction, different-seed variation, duplicate/distant request rejection, and privacy of undiscovered content.
-    - Passed 2026-09-21: forced `KalmalaEditor Win64 Development` build; `Scripts/Verify-DiscoveryPeer.ps1 -Port 18257`; `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaDiscoveryRun-f932697c63794a86a1266a1332fb39eb`.
 - [x] Implement the scroll-learned, non-damaging support-magic foundation.
   - [x] Add server-owned learned-effect validation, stamina/cooldown rules, replicated active-state presentation, and persistence keyed to the entitled player and immutable world identity.
   - [x] Implement Mending as a validated ally heal that cannot target invalid actors or damage enemies.
@@ -318,28 +313,68 @@ verifiable. M4 is complete under its revised focused-regression acceptance.
   - [x] Document the 20–30 minute solo/listen-server co-op walkthrough using only normal player actions and the existing route-free world. See `docs/12-vertical-slice-runbook.md`.
   - [x] Define the fresh-player start, camp preparation, optional wilderness travel, creature/discovery/support choices, and return-state evidence required by M5 acceptance. See the acceptance matrix in `docs/12-vertical-slice-runbook.md`.
 - [x] Keep the current M5 documentation and presentation contracts runnable as one no-build suite. See `Scripts/Verify-M5DocumentationContracts.ps1`.
-- [ ] Complete the original visual and audio presentation pass.
+- [x] Complete the original visual and audio presentation pass.
   - [x] Inventory the remaining presentation seams and add a no-build project-ownership audit. See `docs/15-presentation-ownership.md` and `Scripts/Verify-PresentationOwnership.ps1`.
-  - [ ] Replace remaining prototype presentation with original project-owned player, creature, environment, UI, and feedback assets without changing gameplay contracts.
+  - [x] Replace remaining prototype presentation with original project-owned player, creature, environment, UI, and feedback assets without changing gameplay contracts.
     - [x] Verify the existing original faceted player model through a rendered offscreen host/client controls fixture.
+    - [x] Add original project-owned vector glyphs for all four support effects to the local HUD; retain explicit text and input labels.
+    - [x] Refine the original collision-free Mireling silhouette for clearer camp-pressure readability without changing its replicated gameplay behavior.
+    - [x] Replace the boar's generic tetra silhouette with an original low, bristled profile, tapered muzzle, and paired tusks while preserving its replicated gameplay behavior.
+    - [x] Refine the original deer silhouette into a lighter, long-legged, alert profile while retaining its existing antler identity and replicated gameplay behavior.
+      - [x] Review the refined deer in a rendered, close host view after the bounded peer fixture positions the target and companion.
+      - [x] Inspect the original Mireling silhouette in a rendered, bounded host/client encounter before closing the creature presentation pass.
   - [x] Define original ambient, weather, interaction, combat, discovery, and support-effect cue groups with readable non-audio equivalents and a no-build contract check. See `docs/16-audio-cue-contract.md` and `Scripts/Verify-AudioCueContract.ps1`.
-  - [ ] Add original ambient, weather, interaction, combat, discovery, and support-effect audio cues with readable non-audio state equivalents.
-- [ ] Add optional onboarding and tutorial beats.
+  - [x] Add original ambient, weather, movement, interaction, combat, discovery, and support-effect audio cues with readable non-audio state equivalents.
+    - [x] Add a quiet, project-owned wind ambience bed for each local player in normal generated-world play; preserve the existing readable weather/exposure state.
+    - [x] Add local water, fire, and biome ambience layers without revealing hidden content or implying a route.
+      - [x] Add an original local water bed only near line-of-sight sea or visible lake water; preserve readable state text and avoid gameplay/network state.
+      - [x] Add a quiet local fire bed only for a nearby visible, lit hearth; retain readable hearth state.
+      - [x] Add local biome ambience from the owning player's sampled, locally visible biome without implying a route.
+    - [x] Add local weather/exposure cues from accepted replicated state while retaining Wet, warmth, shelter, hearth, and recovery text.
+    - [x] Add one quiet owner-local support acceptance cue from the existing server-confirmed feedback serial; keep readable support result text.
+    - [x] Add local interaction/gathering, combat, discovery, and support-effect cues from their existing accepted feedback; retain readable result text and current privacy boundaries.
+      - [x] Add a local combat result cue from the owning pawn's existing server-confirmed combat feedback serial; retain readable HIT/DEFEAT/UNAVAILABLE text.
+      - [x] Add local interaction/gathering result cues from their existing accepted feedback; preserve readable interaction and inventory result text.
+      - [x] Add a local discovery acknowledgement cue from existing owner-only, server-confirmed landmark/scroll feedback; preserve readable discovery result text.
+      - [x] Add effect-specific support activation and expiry cues from existing accepted effect state; preserve readable support result text.
+    - [x] Add local movement and traversal cues from the owning player's current movement state; retain readable pose, HUD, and input feedback.
+      - [x] Add quiet owner-local footfall, jump, and landing cues from sampled movement state; retain readable pose, HUD, and input feedback.
+      - [x] Add local water-entry and exit cues from the owning player's generated-ocean movement mode; retain readable water and exposure state.
+- [x] Add optional onboarding and tutorial beats.
   - [x] Define the route-free local prompt beats, visibility triggers, accessibility cues, and authority boundaries. See `docs/13-onboarding-and-tutorial.md`.
   - [x] Add a no-build contract check for the tutorial specification and document its limits. See `Scripts/Verify-OnboardingContract.ps1`.
-  - [ ] Teach movement, gathering, shelter, weather, optional combat, discoveries, and support magic through route-free local prompts.
-  - [ ] Verify tutorial prompts never require a fixed route, authored corridor, mandatory camp, quest chain, or developer command.
-- [ ] Complete local settings and accessibility coverage.
+  - [x] Teach movement, gathering, shelter, weather, optional combat, discoveries, and support magic through route-free local prompts.
+  - [x] Verify tutorial prompts never require a fixed route, authored corridor, mandatory camp, quest chain, or developer command.
+- [x] Complete local settings and accessibility coverage.
   - [x] Define local option groups, keyboard/controller access, text scale, contrast, non-colour feedback, persistence, and authority boundaries. See `docs/14-settings-and-accessibility.md`.
   - [x] Add a no-build contract check for the local settings/accessibility specification and document its limits. See `Scripts/Verify-SettingsAccessibilityContract.ps1`.
   - [x] Validate the existing keyboard/controller input baseline used by the future Controls tab without changing runtime bindings. See `Scripts/Verify-LocalInputContract.ps1`.
-  - [ ] Add local audio, control/remapping, text-scale, contrast, and non-colour feedback options to the existing settings shell.
-  - [ ] Verify options persist locally, remain usable with keyboard/controller input, and never mutate server gameplay or replicated state.
-- [ ] Run the performance and startup pass.
-  - [ ] Profile packaged startup, generated-world traversal, population activation, weather/camp updates, replication, and map/minimap workers on the supported Windows target.
-  - [ ] Fix regressions within existing bounded actor, memory, worker, and raster budgets without increasing world, population, or online-service scope.
+  - [x] Add local audio, control/remapping, text-scale, contrast, and non-colour feedback options to the existing settings shell.
+    - [x] Add persisted local master-volume steps and reversible mute/restore controls with visible text values.
+    - [x] Add local ambient, music, and interaction/combat feedback category levels while preserving readable state text.
+    - [x] Add local keyboard/controller control remapping and restore defaults.
+    - [x] Add local text scale and contrast choices with readable modal layout.
+    - [x] Add local colour-independent feedback preferences for current gameplay state.
+  - [x] Verify options persist locally, remain usable with keyboard/controller input, and never mutate server gameplay or replicated state.
+- [x] Run the performance and startup pass.
+  - [x] Profile packaged startup, generated-world traversal, population activation, weather/camp updates, replication, and map/minimap workers on the supported Windows target.
+    - Passed 2026-09-22: forced UE5.8 editor build; archived Windows Development package; packaged listen readiness 12,025.8 ms; `Scripts/Verify-WorldProfile.ps1 -Port 18474`; `Scripts/Verify-PlayerControls.ps1 -Port 18478`; `Scripts/Verify-CampChoices.ps1 -Port 18479`; `Scripts/Verify-WorldMapProfile.ps1 -Port 18475`; and focused minimap/map performance automations. Evidence retained under `C:/Users/Ville/AppData/Local/Temp/KalmalaPackagedStartup-ee433834eb0448b69850c424e32f1fce`, `C:/Users/Ville/AppData/Local/Temp/KalmalaWorldProfile-02e679698cd140d7b9f9a42d7c00788b`, `C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-ae5a594d4b784b61a0f036c2bc7806a9`, `C:/Users/Ville/AppData/Local/Temp/KalmalaCampChoices-c5df507da1774d838485d4f21e3738f2`, `C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapProfile-19bcb9b22fab47fe8ba1b39c04abf9ef`, and `C:/Users/Ville/AppData/Local/Temp/KalmalaPerfAutomation-41b3a434bee14073bce8862f9d476108`.
+  - [x] Fix regressions within existing bounded actor, memory, worker, and raster budgets without increasing world, population, or online-service scope.
+    - Passed 2026-09-22: forced UE5.8 editor build; fresh `Scripts/Verify-WorldProfile.ps1 -Port 18480` and `Scripts/Verify-WorldMapProfile.ps1 -Port 18481`; focused minimap/map generation, presentation, and budget automations. No actor, memory, worker, raster, authority, or save regression was exposed, so no runtime fix was required.
 - [x] Tune the survival, combat, creature, and support loop.
   - [x] Tune costs, cooldowns, durations, stamina/wetness penalties, creature pressure, rewards, and recovery so preparation creates choices without hard travel gates.
+    - [x] Tune the server-owned Wet movement and sprint-stamina penalties to 0.92x and 1.15x while retaining the 120-second duration, 10-second rain trigger, and campfire recovery.
+      - Passed 2026-09-22: forced editor build; focused Wet/status automation; `Scripts/Verify-PlayerControls.ps1 -WetStamina -Port 18482`; `Scripts/Verify-CampChoices.ps1 -Port 18483`; and the M5 documentation suite. Both peers retained server-owned state and the Wet penalty remained recoverable through normal fire/shelter choices.
+    - [x] Tune the shared support activation cost to an 18-stamina dry base, applying the existing authoritative Wet multiplier so Wet costs 20.7 without changing cooldowns, durations, targets, rewards, or recovery rules.
+      - Passed 2026-09-22: direct UE5.8 `KalmalaEditor Win64 Development` UnrealBuildTool run succeeded in 11 actions with `%LOCALAPPDATA%\UnrealBuildTool` access; `Kalmala.Gameplay.Status.Wet+Kalmala.Gameplay.Discovery.PlayerScopedPersistence` passed; all five M5 documentation contracts and `git diff --check` passed.
+    - [x] Tune the committed player-combat recovery window from 0.42 to 0.36 seconds while preserving server-selected targets, fixed damage, replay gates, and relevant-peer action presentation.
+      - Passed 2026-09-22: isolated UE5.8 `KalmalaEditor Win64 Development` build succeeded in 153 actions with `%LOCALAPPDATA%\\UnrealBuildTool` access; focused combat authority/rejection automations passed; `Scripts/Verify-CombatPeer.ps1 -Port 18484` passed the owner-only feedback, relevant defeat, and restart-persistence checks; all five M5 documentation contracts and `git diff --check` passed.
+    - [x] Tune the shared support activation cooldown from 4.0 to 5.0 seconds while preserving the 18-stamina base, effect durations, server-selected targets, rewards, and non-damaging execution.
+      - Passed 2026-09-22: forced UE5.8 `KalmalaEditor Win64 Development` build succeeded in 10 actions with `%LOCALAPPDATA%\\UnrealBuildTool` access; focused Wet/support persistence tests passed; `Scripts/Verify-M4VerticalSlice.ps1 -Port 18492` passed Mireling, boar, deer, support authority/non-damage, owner-only rewards, and matching-world persistence; documentation and diff checks passed.
+    - [x] Tune Hearth Shield's server-owned protection window from 8.0 to 10.0 seconds while preserving its 40-point absorption, five-second cooldown, 18-stamina base, expiry clearing, and non-damaging execution.
+      - Passed 2026-09-22: forced UE5.8 `KalmalaEditor Win64 Development` build; focused `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`; `Scripts/Verify-M4VerticalSlice.ps1`; all five M5 documentation contracts; and `git diff --check` passed.
+    - [x] Tune Bear's Vigor's server-owned support window from 8.0 to 10.0 seconds while preserving its 1.4x strength, 140-point stamina cap, five-second cooldown, no-refill/expiry behavior, and non-damaging execution.
+      - Passed 2026-09-22: forced UE5.8 `KalmalaEditor Win64 Development` build recorded `Result: Succeeded` in `%LOCALAPPDATA%\UnrealBuildTool\Log.txt`; `Scripts/Verify-M4VerticalSlice.ps1 -Port 18495` passed the Mireling, boar, deer, support authority/non-damage, owner-only reward, defeat-persistence, and matching-world learning checks; the five M5 documentation contracts, presentation ownership audit, and `git diff --check` passed. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-dd1ae5ede2e24d369a12138acb990f38`.
     - [x] Tune the server-owned Mireling melee repeat interval from 1.0 to 1.25 seconds while preserving its 10-point damage, 180 cm range, target selection, defeat, and reward rules.
       - Passed 2026-09-22: forced UE5.8 `KalmalaEditor Win64 Development` build recorded `Result: Succeeded` in `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`; focused `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle` passed with the exact 1.25-second assertion; a fresh `Scripts/Verify-MirelingPeer.ps1 -Port 18497` passed server pressure, target-free client rejection, relevant replication, owner-only reward, and restart persistence; `Scripts/Verify-M4VerticalSlice.ps1 -Port 18498` passed all three creature peers, support authority/non-damage, and matching-world learning persistence. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingBalance-830c89d64a704e0f8b99fa1211a062e9/wildlife.log` and `C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-ca83ce4e5b3a42df87bf3aafb319b000`.
   - [x] Re-run authority, persistence, reconnect, and host/client checks after tuning; clients still provide intent only.
@@ -353,5 +388,5 @@ verifiable. M4 is complete under its revised focused-regression acceptance.
   - [x] Attempt the dedicated-server playtest only with a server-capable UE 5.8 build; otherwise retain the documented Launcher-engine blocker.
     - Checked 2026-09-22: only `C:\Program Files\Epic Games\UE_5.8` is installed; `Engine\Build\InstalledBuild.txt` is present, no alternate UE 5.8 installation or `UnrealServer.exe` is available, and `docs/07-development-setup.md` plus the accepted decision log state that this Launcher distribution does not support dedicated-server targets. The retained `KalmalaServer` target was not invoked.
 - [ ] Run the final M5 acceptance without developer tools.
-  - [ ] Verify a fresh player can complete the documented 20–30 minute co-op loop in the packaged build with optional routes, matching peer state, and no hidden developer dependency.
+  - [ ] Verify a fresh player can complete the documented 20–30 minute co-op loop in the packaged build with optional routes, matching peer state, and no hidden developer dependency. **BLOCKED 2026-09-22:** three packaged-launch attempts could not surface a native game window for normal input. The archived `Kalmala.exe` remained alive with `MainWindowHandle=0` in Windows session 8 after (1) a default launch, (2) `-windowed -ResX=1280 -ResY=720`, and (3) the normal `/Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=18600 -windowed -ResX=1280 -ResY=720` listen launch; each `cua.getState()` returned `apps=[]` with only the Codex in-app browser. No player-visible evidence or two-player acceptance was claimed.
   - [ ] Record remaining limitations, supported session modes, and the handoff for post-slice work.
