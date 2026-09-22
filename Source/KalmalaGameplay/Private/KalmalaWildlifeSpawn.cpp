@@ -169,7 +169,7 @@ void AKalmalaWildlifeSpawn::UpdateMirelingScavenge(const float DeltaSeconds)
     {
         const bool bApplied = Nearest->ApplyWildlifeDamageFromServer(this, 10.0f);
         UE_LOG(LogTemp, Display, TEXT("Mireling encounter attempt: Applied=%d Authority=%d SourceAuthority=%d Distance=%.1f Health=%.1f"), bApplied, Nearest->HasAuthority(), HasAuthority(), FMath::Sqrt(BestDistanceSquared), Nearest->GetHealth());
-        if (bApplied) MirelingMeleeCooldown = 1.0f;
+        if (bApplied) MirelingMeleeCooldown = MirelingMeleeCooldownSeconds;
     }
 }
 

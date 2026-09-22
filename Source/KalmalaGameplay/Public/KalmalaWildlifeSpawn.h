@@ -47,6 +47,8 @@ public:
     EKalmalaWildlifeArchetype GetArchetype() const { return Archetype; }
     EKalmalaWildlifeBehaviour GetBehaviour() const { return Behaviour; }
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
+    // Server-owned repeat-hit interval keeps optional Mireling pressure readable.
+    static constexpr float MirelingMeleeCooldownSeconds = 1.25f;
     static EKalmalaWildlifeArchetype GetArchetypeForSpawnSeed(uint64 SpawnSeed);
     static bool IsBoarChargeAllowed(bool bServerAuthority, bool bAlreadyDefeated, bool bAtRest, float DistanceToRestingArea);
     static bool IsBehaviourTransitionAllowed(bool bServerAuthority, bool bAlreadyDefeated, EKalmalaWildlifeBehaviour From, EKalmalaWildlifeBehaviour To);

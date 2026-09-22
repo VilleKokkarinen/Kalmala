@@ -355,7 +355,7 @@ The first generated wildlife presentation is an original low-poly Mireling
 silhouette assembled from procedural lichen, root and crown forms, with ordinary
 actor movement replication. On the server only, an idle Mireling closes toward
 the nearest living player within 500 cm and can apply fixed 10-point melee at
-most once per second inside 180 cm. The receiving pawn rejects non-authority,
+most once every 1.25 seconds inside 180 cm. The receiving pawn rejects non-authority,
 wrong-world, non-finite, excessive and out-of-range calls; this increment clamps
 at one health because player defeat/respawn is still undefined. A validated
 player melee hit records that player as the eligible attacker; the one-time

@@ -4162,3 +4162,56 @@ Next task: Continue the first open survival/combat/creature/support balance
 leaf with one bounded cost, cooldown, duration, pressure, reward, or recovery
 tuning increment, then repeat only the required regressions if that change
 affects their contracts.
+
+### 2026-09-22T13:00:00+03:00 — Tune Mireling melee pressure
+
+Outcome: Completed one bounded M5 balance increment under the first open
+survival/combat/creature/support tuning leaf. Mirelings now wait 1.25 seconds
+between successful server-owned 10-point melee hits, increased from one second,
+so an optional camp-pressure encounter gives players a clearer recovery beat
+without removing danger. The existing 500 cm acquisition, 180 cm strike range,
+server-selected target, health/defeat flow, Mireling Ash reward, relevant
+replication, and sparse defeat persistence remain unchanged.
+
+Changed: Updated
+`Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h` and
+`Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`, plus the focused
+`Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp` exact
+constant assertion. Synchronized `docs/11-combat-and-support-magic.md`,
+`docs/05-decision-log.md`, and added the completed balance child to
+`BACKLOG.md`. The pre-existing presentation, inventory, verifier, setup, and
+handoff edits remain preserved.
+
+Verification: The forced UE5.8 `KalmalaEditor Win64 Development` build
+recorded `Result: Succeeded` in
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt` after 10 actions and
+used the requested `%LOCALAPPDATA%\UnrealBuildTool` path. The focused
+`Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle` automation passed with
+the exact 1.25-second assertion; evidence is retained at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingBalance-830c89d64a704e0f8b99fa1211a062e9/wildlife.log`.
+The first full-harness Mireling attempt had a transient fixture timeout with
+no melee attempt; a fresh `Scripts/Verify-MirelingPeer.ps1 -Port 18497`
+passed. Then `Scripts/Verify-M4VerticalSlice.ps1 -Port 18498` passed the
+Mireling, boar, and deer authority/reward/defeat-persistence scenarios, all
+four support-effect authority/non-damage gates, and matching-world learning
+persistence; evidence is under
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-ca83ce4e5b3a42df87bf3aafb319b000`.
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: The interval is evaluated only by the authoritative
+Mireling actor after the existing server-validated damage call. Clients still
+cannot select the creature, target, damage, timing, reward, or defeat state;
+no RPC, replicated property, save field, persistence schema, or authority rule
+changed.
+
+Known limits: This is a local Windows Development, null-RHI/no-sound,
+development-fixture balance check. It does not establish audible quality,
+physical input, packaged persistence, long-session balance, shipping GPU
+performance, or final tool-free co-op acceptance. The parent
+survival/combat/creature/support tuning leaf still has additional bounded
+balance work.
+
+Next task: Continue the first open balance leaf with one bounded cost,
+cooldown, duration, pressure, reward, or recovery increment, then rerun only
+the affected authority and peer regressions.
