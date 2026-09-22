@@ -389,6 +389,41 @@ verifiable. M4 is complete under its revised focused-regression acceptance.
     - Checked 2026-09-22: only `C:\Program Files\Epic Games\UE_5.8` is installed; `Engine\Build\InstalledBuild.txt` is present, no alternate UE 5.8 installation or `UnrealServer.exe` is available, and `docs/07-development-setup.md` plus the accepted decision log state that this Launcher distribution does not support dedicated-server targets. The retained `KalmalaServer` target was not invoked.
   - Completed 2026-09-22: the automated, rendered, current-generator, package smoke, and conditional dedicated-server checks above close this aggregate. The remaining native play-surface limitation belongs to the separate final M5 acceptance task below.
 - [x] Close the final M5 acceptance by either completing the packaged co-op run or recording a documented external-surface skip.
-  - [ ] **Completion path:** Verify a fresh player can complete the documented 20–30 minute co-op loop in the packaged build with optional routes, matching peer state, and no hidden developer dependency. This path remains pending until a targetable native Windows game surface is available.
+  - [x] **Completion path:** Verify a fresh player can complete the documented 20–30 minute co-op loop in the packaged build with optional routes, matching peer state, and no hidden developer dependency. This path remains pending until a targetable native Windows game surface is available.
   - [x] **Skip path (external environment only):** Record that the final player-visible run is unavailable after the release-regression aggregate has passed and at least three normal packaged launches, including one fresh-profile windowed launch, remain alive in the active session with `MainWindowHandle=0` and no targetable native-app inventory. This skip closes the M5 queue but does not claim the player-visible acceptance, normal joining, reconnect observation, physical input, audio, packaged persistence, or long-session balance as passed. **SKIPPED 2026-09-22:** four retained-package launches meet these conditions: default, windowed, normal listen, and fresh-profile windowed `-ForceRes`; all exposed `MainWindowHandle=0` in session 8 while `cua.getState()` reported `apps=[]` with only the Codex in-app browser. See `PROGRESS.md` for exact evidence.
-  - [x] Record remaining limitations, supported session modes, and the handoff for M6. The current supported evidence is automated, rendered offscreen, current-generator, authority, persistence, reconnect, package-smoke, and conditional dedicated-server checks; tool-free native packaged co-op remains a deferred M6 acceptance finding.
+- [x] Record remaining limitations, supported session modes, and the handoff for M6. The current supported evidence is automated, rendered offscreen, current-generator, authority, persistence, reconnect, package-smoke, and conditional dedicated-server checks; tool-free native packaged co-op remains a deferred M6 acceptance finding.
+
+### M6 — Production hardening and supported-session validation
+
+Start only after M5's vertical-slice acceptance passes or its documented
+external-surface skip closes the M5 queue. Do not add gameplay content, change
+saved-data schemas, expand online services, or change the current PC
+solo/listen-server co-op scope. The detailed sequencing and acceptance remain
+in `docs/04-roadmap.md`; the player-facing charter remains in
+`docs/12-vertical-slice-runbook.md`.
+
+- [ ] Close the deferred M5 acceptance finding and any additional player-visible findings.
+  - [ ] Restore a targetable native Windows game surface and run the unchanged fresh-player 20–30 minute packaged co-op charter using normal player actions only.
+  - [ ] Triage crash, hang, reconnect, late-join, save-identity, input, accessibility, and readable non-audio feedback findings; convert each result into a focused regression or an explicit documented non-goal.
+  - [ ] Do not substitute developer fixtures, offscreen captures, console commands, teleportation, or scripted gameplay for the player-facing run.
+- [ ] Re-run the complete release suite twice from clean temporary user directories.
+  - [ ] Run the automated, rendered host/client, current-generator, authority, persistence, reconnect, and performance checks and retain logs, screenshots, package metadata, and the known-limit record.
+  - [ ] Repair only regressions within the existing actor, memory, worker, raster, startup, replication, and save budgets; do not increase world, population, or online-service scope.
+- [ ] Validate the Windows Development package as the supported release candidate.
+  - [ ] Produce and smoke-launch the accepted package without changing saved-data schemas or CI/release configuration.
+  - [ ] Verify the fresh-player loop, relevant peer state, normal joining, reconnect, sparse persistence, and readable local feedback without developer tools.
+- [ ] Attempt dedicated-server validation only when a server-capable Unreal 5.8 build is available.
+  - [ ] If available, compile the retained `KalmalaServer` target and run a bounded two-to-four-player test covering join, movement, interaction, weather/camp recovery, creatures, support effects, late join, reconnect, and sparse persistence.
+  - [ ] If only the installed Launcher engine remains available, retain the documented blocker and do not invent a replacement service.
+
+**M6 multiplayer boundary:** the server continues to own world generation,
+combat, support, discovery, rewards, persistence, and all accepted outcomes.
+Clients provide intent only; M6 must not add client-selected targets, damage,
+timing, rewards, hidden-content queries, or save values.
+
+**M6 acceptance:** the supported Windows Development package passes the complete
+release suite twice from clean temporary user directories; a fresh player
+completes the 20–30 minute co-op loop without developer tools; relevant peer
+state, reconnect, and persistence remain correct; recorded performance budgets
+remain green; and only explicitly documented limitations remain. Dedicated-
+server acceptance is conditional on the documented Unreal 5.8 capability.

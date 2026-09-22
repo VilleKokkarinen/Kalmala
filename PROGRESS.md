@@ -6351,3 +6351,34 @@ server-capable UE5.8 build.
 Next task: Begin M6 by restoring a targetable native Windows game surface and
 running the unchanged final packaged co-op charter before closing its deferred
 acceptance finding.
+
+### 2026-09-22T16:50:00+03:00 — Add M6 hardening backlog
+
+Outcome: Added the formal M6 production-hardening and supported-session
+validation queue after the M5 external-surface skip. The backlog now orders
+the deferred player-facing acceptance, two-pass release regression, Windows
+Development package validation, and conditional dedicated-server validation.
+
+Changed: Updated `BACKLOG.md` only for the M6 task breakdown and acceptance
+criteria, then appended this handoff to `PROGRESS.md`. No runtime, asset,
+network, persistence, save-schema, package, release-configuration, or gameplay
+contract changed; no additional documentation contract was required because
+the roadmap and vertical-slice runbook already define M6.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` and `git diff
+--check` passed. No Unreal build was needed because this increment changes
+documentation only.
+
+Multiplayer impact: Documentation and sequencing only. M6 retains server-owned
+world generation, combat, support, discovery, rewards, persistence, and
+accepted outcomes; clients remain intent-only and cannot author targets,
+damage, timing, rewards, hidden-content queries, or save values.
+
+Known limits: The first M6 item remains blocked until the active environment
+exposes a targetable native Windows game surface. The player-visible packaged
+co-op loop, physical input, audible quality, packaged persistence observation,
+long-session balance, and dedicated-server acceptance remain deferred or
+conditional on the existing documented engine blocker.
+
+Next task: Restore a targetable native Windows game surface, then run the
+unchanged fresh-player packaged co-op charter as M6's first acceptance finding.
