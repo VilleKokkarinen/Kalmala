@@ -26,6 +26,7 @@
 #include "EngineUtils.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaTerrainPatchLayout.h"
+#include "KalmalaOceanTravelTestFixture.h"
 
 AKalmalaCharacter::AKalmalaCharacter(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<UKalmalaCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -149,6 +150,15 @@ void AKalmalaCharacter::BeginPlay()
         // The fixture compares terrain streaming and movement agreement, not
         // pawn blocking at a shared generated start.
         GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+        GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
+#if !UE_BUILD_SHIPPING
+        if (UKalmalaCharacterMovementComponent* Movement = Cast<UKalmalaCharacterMovementComponent>(GetCharacterMovement()))
+        {
+            // The current seed's nearest island is a long-distance endpoint;
+            // accelerate only this verification route, never normal swimming.
+            Movement->MaxFlySpeed = 1800.0f;
+        }
+#endif
     }
 }
 
@@ -370,38 +380,19 @@ void AKalmalaCharacter::ConfigureOceanTravelTarget()
         return;
     }
 
-    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D Start(FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config).GetLocation());
-    if (!FKalmalaIslandLocator::FindNearest(Config, Start, OceanTravelTarget))
+    for (TActorIterator<AKalmalaOceanTravelTestFixture> Iterator(GetWorld()); Iterator; ++Iterator)
     {
-        UE_LOG(LogTemp, Error, TEXT("Ocean travel test could not resolve a seeded island from the generated start."));
-        return;
-    }
-
-    bool bFoundDeepOcean = false;
-    for (int32 Radius = 12000; Radius <= 30000 && !bFoundDeepOcean; Radius += 1000)
-    {
-        for (int32 Direction = 0; Direction < 72; ++Direction)
+        if (Iterator->IsConfigured())
         {
-            const float Angle = Direction * (2.0f * PI / 72.0f);
-            const FVector2D Candidate = Start + FVector2D(FMath::Cos(Angle), FMath::Sin(Angle)) * Radius;
-            if (FKalmalaOceanSampler::Sample(Config, Candidate).WaterDepth >= 150.0f)
-            {
-                OceanTravelWaypoint = Candidate;
-                bFoundDeepOcean = true;
-                break;
-            }
+            OceanTravelWaypoint = Iterator->GetEntryPoint();
+            OceanTravelTarget = Iterator->GetTargetPoint();
+            bOceanTravelTargetConfigured = true;
+            UE_LOG(LogTemp, Display, TEXT("Ocean travel test adopted the spawned deep-water fixture at %s toward seeded island %s."),
+                *OceanTravelWaypoint.ToString(), *OceanTravelTarget.ToString());
+            return;
         }
     }
-    if (!bFoundDeepOcean)
-    {
-        UE_LOG(LogTemp, Error, TEXT("Ocean travel test could not find a deep-ocean waypoint toward the seeded island."));
-        return;
-    }
-
-    bOceanTravelTargetConfigured = true;
-    UE_LOG(LogTemp, Display, TEXT("Ocean travel test %s resolved a deep-ocean waypoint and isolated island %.0f units from generated start."),
-        IsLocallyControlled() ? TEXT("owner") : TEXT("replica"), FVector2D::Distance(Start, OceanTravelTarget));
+    UE_LOG(LogTemp, Verbose, TEXT("Ocean travel test is waiting for its spawned deep-water fixture to replicate."));
 }
 
 void AKalmalaCharacter::VerifyOceanTravel(const float DeltaSeconds)

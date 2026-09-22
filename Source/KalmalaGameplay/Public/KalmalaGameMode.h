@@ -89,9 +89,11 @@ private:
     void InitializeWeatherCycle();
     void AdvanceWeatherCycleIfNeeded();
     void PlacePawnAtGeneratedStart(class APlayerController* PlayerController);
+    void SpawnOceanTravelTestFixture();
 
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
+    UPROPERTY(Transient) TObjectPtr<class AKalmalaOceanTravelTestFixture> OceanTravelTestFixture;
     TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
     TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGame>> PlayerDiscoverySaves;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGame> ConstructionSaveGame;

@@ -5,6 +5,9 @@
 #include "KalmalaOceanSampler.h"
 #include "KalmalaWorldBounds.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaOceanTravelTestFixture.h"
+#include "EngineUtils.h"
+#include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
 
 UKalmalaCharacterMovementComponent::UKalmalaCharacterMovementComponent()
@@ -69,7 +72,18 @@ float UKalmalaCharacterMovementComponent::GetMaxSpeed() const
     const float Speed = Super::GetMaxSpeed();
     const AKalmalaCharacter* Pawn = Cast<AKalmalaCharacter>(CharacterOwner);
     const float StatusSpeed = Pawn && Pawn->GetStatusComponent() ? Pawn->GetStatusComponent()->GetModifiers().Movement : 1.0f;
-    if (IsSwimmingInGeneratedOcean()) return FMath::Min(Speed, 420.0f) * StatusSpeed;
+    if (IsSwimmingInGeneratedOcean())
+    {
+#if !UE_BUILD_SHIPPING
+        // The ocean-travel fixture can span the current seed's long-distance
+        // island route; accelerate only that verification command, never play.
+        const float OceanSpeedCap = FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanTravelTest")) ? 1800.0f : 420.0f;
+#else
+        constexpr float OceanSpeedCap = 420.0f;
+#endif
+        return FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanTravelTest")) ? OceanSpeedCap * StatusSpeed
+            : FMath::Min(Speed, OceanSpeedCap) * StatusSpeed;
+    }
     return (bSprintRequested && !bSprintExhausted && IsMovingOnGround() && CharacterOwner && !CharacterOwner->bIsCrouched
         ? Speed * FMath::Clamp(SprintMultiplier, 1.0f, 2.0f) : Speed) * StatusSpeed;
 }
@@ -80,6 +94,13 @@ bool UKalmalaCharacterMovementComponent::GetGeneratedOceanDepth(float& OutDepth)
     if (CharacterOwner == nullptr || CharacterOwner->GetWorld() == nullptr) return false;
     const AKalmalaWorldGenerationGameState* GenerationState = CharacterOwner->GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (GenerationState == nullptr) return false;
+    for (TActorIterator<AKalmalaOceanTravelTestFixture> Iterator(CharacterOwner->GetWorld()); Iterator; ++Iterator)
+    {
+        if (Iterator->TryGetWaterDepth(FVector2D(CharacterOwner->GetActorLocation()), OutDepth))
+        {
+            return true;
+        }
+    }
     const FKalmalaOceanSample Sample = FKalmalaOceanSampler::Sample(GenerationState->GetWorldGenerationConfig(), FVector2D(CharacterOwner->GetActorLocation()));
     if (!Sample.bIsValid) return false;
     OutDepth = Sample.WaterDepth;

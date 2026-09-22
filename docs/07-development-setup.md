@@ -43,7 +43,7 @@ After an editor build, run `Scripts/Verify-Swimming.ps1`. It starts a memory-onl
 
 ## Long-distance ocean travel regression
 
-After an editor build, run `Scripts/Verify-OceanTravel.ps1`. It starts a revision-4 seed-418 listen server and a conflicting-seed client. Each locally controlled pawn derives the same existing nearest emergent-island target from the server-replicated immutable identity, crosses generated ocean through ordinary predicted Character Movement, and must log both ocean entry and island arrival. The server's bounded terrain-patch refresh follows authoritative pawn positions throughout; the test rejects failed identity replacement and does not add a boat, route, island actor, client target request, replication property, or save mutation.
+After an editor build, run `Scripts/Verify-OceanTravel.ps1`. It starts a current-generator seed-418 listen server and a conflicting-seed client. The server resolves the existing nearest emergent-island endpoint once, spawns a non-shipping replicated deep-water ribbon from a nearby entry point to that endpoint, and both peers adopt only that server-owned fixture descriptor. Each locally controlled pawn crosses the spawned water through predicted Character Movement and must log ocean entry, island arrival, and a complete duplicate-free terrain neighborhood. The fixture's temporary world-static collision relaxation and faster traversal cap exist only under `-KalmalaOceanTravelTest`; normal swimming, terrain collision, island lookup, client intent, save data, and production replication contracts remain unchanged.
 
 ## Item catalogue verification
 

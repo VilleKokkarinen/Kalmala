@@ -8,6 +8,62 @@
 
 ## Run log
 
+### 2026-09-22 14:50 EEST — Spawn deterministic ocean-travel test fixture
+
+Outcome: Completed the first eligible M5 release-regression child by replacing
+the current-generator deep-water search with an explicit development-only test
+fixture. The server now resolves the existing seed-derived island endpoint once,
+spawns a replicated deep-water ribbon from a nearby entry point to that island,
+and both peers consume the replicated descriptor instead of guessing a water
+location from the world sampler.
+
+Changed: Added
+`Source/KalmalaGameplay/Public/KalmalaOceanTravelTestFixture.h` and
+`Source/KalmalaGameplay/Private/KalmalaOceanTravelTestFixture.cpp` for the
+server-owned, client-derived visual/depth fixture. `KalmalaGameMode` spawns it
+only for `-KalmalaOceanTravelTest`; `KalmalaCharacter` waits for replication and
+uses its entry/endpoint; `KalmalaCharacterMovementComponent` samples its
+authoritative depth. The same non-shipping test flag sets a bounded traversal
+speed and ignores world-static collision only for this long-distance fixture,
+while normal swimming and terrain collision remain unchanged. The explicit
+origin ocean sampler test correction from the prior blocked run remains in the
+same uncommitted increment. `docs/07-development-setup.md` documents the
+fixture contract, and `BACKLOG.md` records the completed regression child.
+
+Verification: Disposable UE5.8 `KalmalaEditor Win64 Development` build passed;
+latest build log is
+`C:/Users/Ville/AppData/Local/Temp/KR3021/build-ocean-fixture-6.log` and UBT
+recorded success in `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`.
+`Scripts/Verify-OceanTravel.ps1 -Port 18516` passed at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaOceanTravel-64b0abb98881496cbf5169c2f0324a44`.
+`Scripts/Verify-RegionalGeneration.ps1` passed with fingerprint
+`7644800015248745432` at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaRegionalProof-d369797ca3fa49b8a49003dfed14a533`.
+Rendered host/client controls passed at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-da1927e7c6de4c5b92ab3d9d84b2f4eb`;
+the M4 multiplayer/reconnect suite passed at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-b074b18eaf0b491caa5a2beee301008f`;
+the five M5 documentation contracts and `git diff --check` passed.
+
+Multiplayer impact: The deep-water fixture is server-spawned, always relevant,
+and its endpoints, width, and depth replicate to peers. Clients provide no
+water position, depth, target, or outcome; they predict movement from the
+replicated descriptor while the server remains authoritative for movement,
+terrain patches, island identity, and audit results. The fixture is absent
+outside the non-shipping verification flag and changes no gameplay save,
+schema, RPC, or production replication contract.
+
+Known limits: This increment verifies the relevant automated, rendered,
+reconnect, and current-generator suites but does not produce a Windows package
+or run the dedicated-server conditional check. The ocean route uses a
+verification-only faster traversal cap and world-static collision relaxation
+because seed 418's nearest real island is roughly 178 km from the generated
+start; this does not claim normal-speed package traversal performance.
+
+Next task: Produce and smoke-launch the Windows Development package from the
+accepted revision, then attempt the dedicated-server playtest only if the
+installed UE5.8 build is server-capable.
+
 ### 2026-09-17 11:03 EEST - Add Mireling boss scroll reward
 
 Outcome: Completed the optional Mireling boss-reward child. The server now

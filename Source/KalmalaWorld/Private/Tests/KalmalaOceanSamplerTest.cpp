@@ -41,10 +41,10 @@ bool FKalmalaOceanSamplerTest::RunTest(const FString& Parameters)
                 V[2].Position = Base + (Upper ? FVector2D(125, 125) : FVector2D::ZeroVector);
                 for (auto& Vertex : V) Vertex.TerrainHeight = FKalmalaTerrainHeightSampler::SampleHeight(Config, Vertex.Position);
                 const FVector2D Centre = (V[0].Position + V[1].Position + V[2].Position) / 3.0;
-                const auto Sample = FKalmalaOceanSampler::Sample(Config, Centre);
+                const auto Sample = FKalmalaOceanSampler::Sample(Config, Centre, Origin);
                 const float Expected = (V[0].TerrainHeight + V[1].TerrainHeight + V[2].TerrainHeight) / 3.0f;
                 TestEqual(TEXT("Depth uses collision triangle plane, including negative coordinates and both diagonals"), Sample.TerrainHeight, Expected, 0.001f);
-                TestEqual(TEXT("Repeated peer identity reproduces depth"), Sample.WaterDepth, FKalmalaOceanSampler::Sample(Config, Centre).WaterDepth);
+                TestEqual(TEXT("Repeated peer identity reproduces depth"), Sample.WaterDepth, FKalmalaOceanSampler::Sample(Config, Centre, Origin).WaterDepth);
                 TestEqual(TEXT("Adjacent patch origins share the same sea query"), Sample.TerrainHeight,
                     FKalmalaOceanSampler::Sample(Config, Centre, Origin + FVector2D(3000, -3000)).TerrainHeight, 0.001f);
                 Sample.IsWater() ? ++Wet : ++Dry;
@@ -59,7 +59,7 @@ bool FKalmalaOceanSamplerTest::RunTest(const FString& Parameters)
                     TestFalse(TEXT("Mixed coastal triangle renders water"), Mesh.Vertices.IsEmpty());
                     for (const FVector& Point : Mesh.Vertices)
                     {
-                        const auto Edge = FKalmalaOceanSampler::Sample(Config, FVector2D(Point));
+                        const auto Edge = FKalmalaOceanSampler::Sample(Config, FVector2D(Point), Origin);
                         TestTrue(TEXT("Clipped sea vertices never cover dry terrain"), Edge.TerrainHeight <= 0.001f);
                         TestEqual(TEXT("Rendered sea depth agrees with query"), Edge.WaterDepth, FMath::Max(0.0f, -Edge.TerrainHeight), 0.001f);
                     }
@@ -69,7 +69,7 @@ bool FKalmalaOceanSamplerTest::RunTest(const FString& Parameters)
     }
     TestTrue(TEXT("Fixture covers sea floor, dry land and physical coasts"), Wet > 0 && Dry > 0 && Coastal > 0);
     TestTrue(TEXT("Different seed changes terrain beneath sea"), Different > 0);
-    TestTrue(TEXT("Current seeded world supplies a valid query"), FKalmalaOceanSampler::Sample(Config, Origin).bIsValid);
+    TestTrue(TEXT("Current seeded world supplies a valid query"), FKalmalaOceanSampler::Sample(Config, Origin, Origin).bIsValid);
     TestFalse(TEXT("Nonfinite positions are rejected"), FKalmalaOceanSampler::Sample(Config,
         FVector2D(std::numeric_limits<double>::quiet_NaN(), 0)).bIsValid);
     AddInfo(FString::Printf(TEXT("Ocean fixture: wet=%d dry=%d coastal=%d different=%d"), Wet, Dry, Coastal, Different));

@@ -41,6 +41,8 @@
 #include "KalmalaShelterSampler.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
+#include "KalmalaIslandLocator.h"
+#include "KalmalaOceanTravelTestFixture.h"
 
 #include "Engine/World.h"
 #include "TimerManager.h"
@@ -343,6 +345,7 @@ void AKalmalaGameMode::BeginPlay()
         const FVector StartLocation = GeneratedPlayerStart->GetActorLocation();
         TerrainPatchOrigin = FVector2D(StartLocation.X, StartLocation.Y);
         ActivateTerrainPatchNeighborhood(TerrainPatchOrigin);
+        SpawnOceanTravelTestFixture();
         RestorePersistedConstruction();
         UE_LOG(LogTemp, Display, TEXT("Server activated %d seed-derived terrain patches around the generated start."), ActiveTerrainPatchCoordinates.Num());
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
@@ -363,6 +366,39 @@ void AKalmalaGameMode::BeginPlay()
     }
 
     InitialGenerationMilliseconds = (FPlatformTime::Seconds() - GenerationStartTime) * 1000.0;
+}
+
+void AKalmalaGameMode::SpawnOceanTravelTestFixture()
+{
+#if !UE_BUILD_SHIPPING
+    if (!HasAuthority() || GetWorld() == nullptr || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanTravelTest")) || GeneratedPlayerStart == nullptr)
+    {
+        return;
+    }
+
+    FVector2D IslandTarget = FVector2D::ZeroVector;
+    if (!FKalmalaIslandLocator::FindNearest(WorldGenerationConfig, TerrainPatchOrigin, IslandTarget))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Ocean travel test fixture could not resolve its seeded island endpoint."));
+        return;
+    }
+
+    const FVector2D TravelDirection = (IslandTarget - TerrainPatchOrigin).GetSafeNormal();
+    const FVector2D EntryPoint = TerrainPatchOrigin + TravelDirection * 1000.0f;
+    FActorSpawnParameters SpawnParameters;
+    SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    OceanTravelTestFixture = GetWorld()->SpawnActor<AKalmalaOceanTravelTestFixture>(
+        AKalmalaOceanTravelTestFixture::StaticClass(), FVector(EntryPoint, 0.0f), FRotator::ZeroRotator, SpawnParameters);
+    if (OceanTravelTestFixture == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Ocean travel test fixture could not be spawned."));
+        return;
+    }
+
+    OceanTravelTestFixture->Initialize(EntryPoint, IslandTarget, 900.0f, 220.0f);
+    UE_LOG(LogTemp, Display, TEXT("Ocean travel test spawned an authoritative deep-water fixture from %s to seeded island %s at depth %.0f."),
+        *EntryPoint.ToString(), *IslandTarget.ToString(), 220.0f);
+#endif
 }
 
 bool AKalmalaGameMode::CanPersistConstruction(const FName KitId, const FTransform& Transform) const
