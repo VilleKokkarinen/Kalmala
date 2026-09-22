@@ -88,6 +88,81 @@ budgets remain green; and the only remaining limitations are explicitly
 recorded. Dedicated-server acceptance is conditional on the documented UE5.8
 engine capability.
 
+## M7 — Content update: survival progression and readable gameplay UI
+
+Start only after M6's release-candidate gates pass. Use the existing inventory,
+harvest-node, camp-crafting, construction, status, and local HUD foundations to
+add the survival fundamentals still missing from the vertical slice. The
+comparison target is the survival-game category, not a source of names, art,
+lore, recipes, balance, or copied interface design; all Kalmala content remains
+original and route-free.
+
+M7 has six ordered goals:
+
+1. **Add server-owned skill progression.** Define a small allowlisted set of
+   original skills for gathering, woodcutting, mining, crafting, and survival.
+   Award bounded experience only from accepted server actions, derive levels
+   and unlocks on the server, and replicate only the owning player's detailed
+   progression plus the presentation state relevant to other peers. Clients
+   cannot submit experience, level, unlock, multiplier, or reward values.
+2. **Add optional food and nutrition choices.** Add original edible items and
+   recipes that can be gathered, prepared, and consumed through the existing
+   inventory/crafting transactions. Eating grants finite, readable stat
+   modifiers such as stamina capacity, recovery, movement comfort, or exposure
+   resilience. Effects must stack, replace, expire, and reject invalid or
+   duplicate consumption through server-owned rules. Food should create
+   preparation choices without making starvation or a mandatory food route a
+   hard travel gate in the first M7 slice.
+3. **Complete tool-based material gathering.** Turn suitable generated trees,
+   rocks, and harvest resources into original server-validated woodcutting,
+   mining, and gathering interactions. The server selects the resource from
+   the authoritative trace and range, validates the tool and skill requirement,
+   applies bounded node health or use state, awards catalogue-validated
+   materials, and persists only the necessary sparse depletion facts. Clients
+   provide intent and tool/action selection only; they cannot choose a node,
+   yield, damage, durability, or reward.
+4. **Broaden the crafting progression.** Extend the existing recipe catalogue
+   with a small first tier of tools, gathering implements, food preparation,
+   storage/camp improvements, and skill-gated recipes. Reuse atomic inventory
+   exchanges, station validation, stack ceilings, batch limits, and owner-only
+   result feedback. Each recipe must have explicit ingredient, station,
+   unlock, failure, and accessibility text rather than relying on colour.
+5. **Build the survival HUD and GUI pass.** Add a persistent local status strip
+   with an original icon, name, readable remaining timer, and non-colour state
+   for `Wet` and the new food/stat effects. Extend the inventory and crafting
+   views with food details, active modifiers, skill progress, tool condition,
+   recipe unlock state, ingredient counts, and clear unavailable reasons.
+   Status timers must read replicated server state rather than count down
+   independently, and local UI changes must not mutate gameplay or send new
+   client-authored outcomes. Keyboard/controller focus, text scale, contrast,
+   and text-plus-marker feedback remain required.
+6. **Verify one integrated content loop.** A fresh player should be able to
+   gather a first material, craft or obtain a tool, cut wood or mine stone,
+   prepare food, choose a temporary benefit, and return to camp while weather,
+   creature pressure, inventory, and status feedback remain understandable.
+   Verify same-seed host/client resource agreement, rejected client mutations,
+   owner-only progression and inventory privacy, relevant status presentation,
+   reconnect behavior, and bounded actor, memory, replication, and save costs.
+
+**M7 persistence gate:** skill experience, learned recipes, tool condition,
+food effects, or food inventory that must survive reconnect or restart require a
+versioned save contract, identity/world matching, migration policy, and focused
+round-trip/rejection tests before implementation. Until that contract is
+approved, development fixtures may use transient server-owned state but must
+not silently extend the existing saved-data schemas.
+
+**M7 multiplayer boundary:** the server owns skill awards, resource identity,
+tool validation, node depletion, recipe unlocks, ingredient costs, food effects,
+stat changes, timers, and rewards. Clients receive only the state needed for
+their own controls and presentation or ordinary relevant world feedback.
+
+**M7 accept:** the integrated gathering, crafting, food, progression, and HUD
+loop is playable without developer commands; all outcomes remain authoritative
+and recoverable; status icons and timers are readable without colour; matching
+peers observe the permitted state; rejected requests leave inventory, skills,
+resources, effects, and saves unchanged; and the M6 release-candidate loop
+remains playable.
+
 ### World-generation Phase 5 — Companion minimap delivery plan
 
 Deliver this UI feature as Phase 5 of the world-generation track, before biome expansion. It is a navigation aid, not a separate world simulation or a source of hidden gameplay information.
