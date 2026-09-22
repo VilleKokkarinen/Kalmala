@@ -6244,3 +6244,35 @@ third consecutive native-surface attempt for this child; the run stops here.
 Next task: Provide a usable native Windows game surface/session for the
 packaged build, then rerun the blocked final M5 acceptance from a fresh local
 user directory without developer tools.
+
+### 2026-09-22T16:19:09+03:00 — Close M5 release-regression aggregate
+
+Outcome: Closed the completed M5 release-regression and packaging aggregate.
+The retained evidence covers the current-generator, automated, rendered
+host/client, reconnect, Windows Development package smoke, and conditional
+dedicated-server checks. The final no-developer-tools acceptance remains a
+separate blocked task because it needs a usable native game window.
+
+Changed: Marked the release-regression aggregate complete in `BACKLOG.md` and
+recorded this handoff in `PROGRESS.md`. No runtime, asset, network,
+persistence, save-schema, package, or release-configuration files changed.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` and `git diff
+--check` passed. No Unreal build was needed because this increment only closes
+an already verified documentation aggregate; the required UE5.8 build and
+package evidence remain on the completed child entries.
+
+Multiplayer impact: Documentation closure only. The accepted server-owned
+world, combat, support, discovery, reward, persistence, and intent-only client
+boundaries are unchanged; no RPC, replicated property, authority rule, save
+field, or client-authored outcome was added.
+
+Known limits: The final tool-free 20–30 minute packaged co-op loop,
+player-visible evidence, normal join/reconnect observation, packaged
+persistence, physical input, audible quality, long-session balance, shipping
+GPU performance, and dedicated-server validation remain open or conditional on
+the documented native-surface and Launcher-engine blockers.
+
+Next task: Provide a usable native Windows game surface/session, then rerun the
+blocked final M5 acceptance from a fresh local user directory without
+developer tools.
