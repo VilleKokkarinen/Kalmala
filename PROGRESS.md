@@ -8,6 +8,40 @@
 
 ## Run log
 
+### 2026-09-22T15:31:46+03:00 — Package and smoke-launch accepted Windows build
+
+Outcome: Completed the first eligible M5 release-regression packaging child.
+The accepted HEAD revision `9cd3662` was extracted into an isolated temporary
+checkout, then cooked, staged, archived, and smoke-launched as a Windows
+Development package. The main checkout's pre-existing edits and generated
+folders were not touched.
+
+Changed: `BACKLOG.md` and this handoff only. No runtime, asset, network,
+persistence, save-schema, CI, or release-configuration files changed.
+
+Verification: Unreal `RunUAT.bat BuildCookRun` completed with `BUILD
+SUCCESSFUL` and exit code 0 after building `KalmalaEditor` and `Kalmala` for
+Win64 Development, using `%LOCALAPPDATA%\\UnrealBuildTool`. The archived
+`Kalmala.exe` at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaRelease-511dae00c4734478a302d99ded81dc60/Archive/Windows/Kalmala.exe`
+remained alive for a hidden 10-second `-nullrhi -nosound -unattended`
+smoke launch with no immediate crash; it was then stopped for cleanup.
+
+Multiplayer impact: Packaging and startup verification only. The package was
+built from the accepted server-authoritative revision; no RPC, replicated
+property, client intent, target, damage, reward, persistence, or save contract
+changed. The smoke launch did not claim a multiplayer gameplay session.
+
+Known limits: This increment verifies package production and short startup
+stability only. It does not establish packaged gameplay, packaged persistence,
+physical input, audible quality, the final tool-free 20–30 minute co-op loop,
+or dedicated-server support. The dedicated-server check remains conditional
+on a server-capable UE5.8 distribution.
+
+Next task: Attempt the dedicated-server playtest only after checking whether a
+server-capable UE5.8 build is available; otherwise retain the documented
+Epic Games Launcher engine blocker.
+
 ### 2026-09-22 14:50 EEST — Spawn deterministic ocean-travel test fixture
 
 Outcome: Completed the first eligible M5 release-regression child by replacing
