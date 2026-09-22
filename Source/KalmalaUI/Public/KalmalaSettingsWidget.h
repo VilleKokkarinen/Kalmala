@@ -53,6 +53,13 @@ public:
     void Open(APlayerController* InOwningPlayer);
     void Close();
     bool IsMenuOpen() const { return bMenuOpen; }
+#if !UE_BUILD_SHIPPING
+    /** Opens a requested local tab for the development-only settings acceptance probe. */
+    void OpenForVerification(APlayerController* InOwningPlayer, int32 TabIndex);
+    void SetVerificationTab(int32 TabIndex);
+    bool HasFocusableContentForVerification() const;
+    bool HasFocusableControlsForVerification() const;
+#endif
 
     static int32 ClampViewDistanceQuality(int32 Quality);
     static float ClampMasterVolume(float Volume);

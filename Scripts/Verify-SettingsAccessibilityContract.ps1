@@ -73,8 +73,8 @@ if ($text -notmatch 'Escape') {
 if ($text -notmatch 'Cancel.*apply.*reset|apply.*reset.*actions') {
     throw 'Settings/accessibility contract does not define reversible local changes'
 }
-if ($text -notmatch 'Full rendered\s+settings-persistence verification remains open') {
-    throw 'Settings/accessibility contract does not state its remaining runtime verification limit'
+if ($text -notmatch 'Verify-SettingsAccessibility\.ps1' -or $text -notmatch 'physical\s+controller\s+hardware') {
+    throw 'Settings/accessibility contract does not state the rendered probe and its remaining runtime limits'
 }
 
 $feedbackSource = Join-Path $projectRoot 'Source\KalmalaUI\Private\KalmalaAccessibilityFeedbackSubsystem.cpp'

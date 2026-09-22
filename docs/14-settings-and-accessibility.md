@@ -143,23 +143,32 @@ results; it creates no request, target, reward, or hidden-content indication.
 
 ## Acceptance and limits
 
-The runtime implementation is acceptable when a fresh local profile can open,
+The runtime implementation is accepted when a fresh local profile can open,
 navigate, change, cancel, apply, reset, and persist each option group with
-keyboard and controller input, while a second player observes no replicated
-settings state. The Controls increment covers bounded local remapping and
-restore defaults; the rendered check must still cover text scale, contrast,
-focus, non-colour feedback, mute/restore, and the Escape modal flow at the
-supported viewport sizes.
+keyboard and controller bindings, while a second player observes no
+replicated settings state. `Scripts/Verify-SettingsAccessibility.ps1` runs
+isolated host/client profiles, opens the live Audio, Controls, and Settings
+tabs, checks focusable targets, modal input ownership, and Escape recovery, persists every local option,
+and compares the pawn health, transform, and server-selected world identity
+before and after the probe. It also retains 1280x720 host/client PNG captures
+for the three tabs. The offscreen runner checks capture production and the
+live widget state; pixel-level modal readability in those captures remains a
+manual follow-up because the current offscreen Slate compositor does not
+reliably include this modal surface.
 
 `Scripts/Verify-SettingsAccessibilityContract.ps1` checks this contract
-without Unreal. It proves the documented option groups and boundaries are
-present, not that the runtime menu or packaged accessibility flow is complete.
+without Unreal. The focused `Kalmala.UI.Settings.LocalPresentation` automation
+and the rendered peer probe cover local round-trips, bounded input mappings,
+focusable controls, and the authority boundary. They do not simulate physical
+controller hardware, establish audible quality, prove packaged persistence,
+assert pixel-level modal readability in offscreen captures, or replace the
+final full settings acceptance.
 The focused `Kalmala.UI.Settings.LocalPresentation` automation checks
 master-volume bounds, local config round-trip, immediate mute and restore,
 category-level bounds and config round-trips, bounded control labels, local
 control persistence and restore defaults, and text-scale/contrast bounds and
 round-trips plus the colour-independent feedback mode bounds and local
-round-trip. It does not render the Settings or Controls tabs or the marker
-overlay, simulate physical controller input, establish audible quality, or
-prove that the larger modal fits every supported viewport. Full rendered
-settings-persistence verification remains open.
+round-trip. The rendered peer probe covers the live Audio, Controls, and
+Settings tabs at 1280x720 and the local gameplay-state boundary; physical
+controller hardware, audible quality, packaged persistence, and other viewport
+sizes remain outside this increment.

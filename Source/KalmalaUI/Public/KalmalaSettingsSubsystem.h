@@ -27,10 +27,25 @@ private:
     void BindLocalInput(APlayerController* InLocalController);
     void ReleaseController();
     void HandleSettingsMenu();
+#if !UE_BUILD_SHIPPING
+    void RunDeveloperSettingsVerification(float DeltaTime);
+#endif
 
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaSettingsWidget> SettingsWidget;
     UPROPERTY(Transient)
     TObjectPtr<APlayerController> LocalController;
     TWeakObjectPtr<UInputComponent> BoundInputComponent;
+#if !UE_BUILD_SHIPPING
+    bool bDeveloperSettingsVerificationStarted = false;
+    bool bDeveloperSettingsVerificationCompleted = false;
+    float DeveloperSettingsVerificationElapsed = 0.0f;
+    int32 DeveloperSettingsVerificationStage = 0;
+    bool bDeveloperScreenshotPending = false;
+    int32 DeveloperSettingsScreenshotTab = -1;
+    bool bDeveloperGameplayBaselineCaptured = false;
+    FVector DeveloperSettingsInitialLocation = FVector::ZeroVector;
+    float DeveloperSettingsInitialHealth = 100.0f;
+    uint64 DeveloperSettingsInitialWorldSeed = 0;
+#endif
 };

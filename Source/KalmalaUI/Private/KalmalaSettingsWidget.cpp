@@ -415,6 +415,44 @@ void UKalmalaSettingsWidget::Open(APlayerController* InOwningPlayer)
     InOwningPlayer->SetIgnoreLookInput(true);
 }
 
+#if !UE_BUILD_SHIPPING
+void UKalmalaSettingsWidget::OpenForVerification(APlayerController* InOwningPlayer, const int32 TabIndex)
+{
+    Open(InOwningPlayer);
+    ShowOptionsMenu();
+    SetVerificationTab(TabIndex);
+}
+
+void UKalmalaSettingsWidget::SetVerificationTab(const int32 TabIndex)
+{
+    switch (FMath::Clamp(TabIndex, 0, 2))
+    {
+    case 0: ShowAudioTab(); break;
+    case 1: ShowControlsTab(); break;
+    default: ShowSettingsTab(); break;
+    }
+}
+
+bool UKalmalaSettingsWidget::HasFocusableContentForVerification() const
+{
+    if (WidgetTree == nullptr) return false;
+    bool bHasFocusableButton = false;
+    WidgetTree->ForEachWidget([&bHasFocusableButton](UWidget* Widget)
+    {
+        if (const UButton* Button = Cast<UButton>(Widget)) bHasFocusableButton |= Button->GetIsFocusable();
+    });
+    return bHasFocusableButton;
+}
+
+bool UKalmalaSettingsWidget::HasFocusableControlsForVerification() const
+{
+    return ControlButtons.Num() > 0 && ControlButtons.ContainsByPredicate([](const UKalmalaControlButton* Button)
+    {
+        return Button == nullptr || !Button->GetIsFocusable();
+    }) == false;
+}
+#endif
+
 void UKalmalaSettingsWidget::Close()
 {
     if (!bMenuOpen) return;
@@ -921,7 +959,11 @@ void UKalmalaSettingsWidget::ShowControlsTab()
         Rows->AddChildToVerticalBox(Row);
     }
     UpdateControlsLabels();
-    if (ControlButtons.Num() > 0) ControlButtons[0]->SetUserFocus(GetOwningPlayer());
+    if (ControlButtons.Num() > 0)
+    {
+        ControlButtons[0]->SetUserFocus(GetOwningPlayer());
+        ControlButtons[0]->SetKeyboardFocus();
+    }
 }
 
 void UKalmalaSettingsWidget::UpdateControlsLabels()
@@ -958,6 +1000,7 @@ void UKalmalaSettingsWidget::ShowSettingsTab()
         15.0f)->SetJustification(ETextJustify::Center);
     UpdateSettingsLabels();
     TextScale->SetUserFocus(GetOwningPlayer());
+    TextScale->SetKeyboardFocus();
 }
 
 void UKalmalaSettingsWidget::ShowPlaceholderTab(const FText& Title, const FText& Description)
