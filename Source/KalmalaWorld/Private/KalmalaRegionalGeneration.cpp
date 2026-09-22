@@ -12,7 +12,7 @@ namespace
         const double V = FMath::Clamp((X - A) / (B - A), 0.0, 1.0);
         return V * V * (3.0 - 2.0 * V);
     }
-    double Unit(uint64 Bits) { return double(Bits & 0xffffff) / 16777216.0; }
+    double RegionalUnit(uint64 Bits) { return double(Bits & 0xffffff) / 16777216.0; }
     FIntPoint CellAt(FVector2D P, double Size) { return { int32(FMath::FloorToInt(P.X / Size)), int32(FMath::FloorToInt(P.Y / Size)) }; }
     float SourceHeight(const FKalmalaWorldGenerationConfig& C, FVector2D P)
     {
@@ -22,7 +22,7 @@ namespace
     FNode Candidate(const FKalmalaWorldGenerationConfig& C, FIntPoint Cell, bool Stream)
     {
         const uint64 Id = G::Seed(C, Stream ? 301 : 300, Cell);
-        const FVector2D P = (FVector2D(Cell) + FVector2D(0.1 + 0.8 * Unit(Id), 0.1 + 0.8 * Unit(Id >> 24))) * T::RiverSpacing;
+        const FVector2D P = (FVector2D(Cell) + FVector2D(0.1 + 0.8 * RegionalUnit(Id), 0.1 + 0.8 * RegionalUnit(Id >> 24))) * T::RiverSpacing;
         return { P, Id, SourceHeight(C, P) };
     }
     bool Retained(const FKalmalaWorldGenerationConfig& C, FIntPoint Cell, bool Stream)
@@ -67,9 +67,9 @@ namespace
             const double Length = Delta.Size();
             const FVector2D Side(-Delta.Y / Length, Delta.X / Length);
             const int32 Count = FMath::CeilToInt(Length / T::SplineStep);
-            const double Phase = Unit(A.Id >> 12) * 2 * PI;
-            const double Amplitude = T::SplineAmplitude * (Stream ? 0.35 : 1.0) * (0.5 + Unit(A.Id));
-            const double Wavelength = T::SplineWavelength * (0.75 + Unit(B.Id));
+            const double Phase = RegionalUnit(A.Id >> 12) * 2 * PI;
+            const double Amplitude = T::SplineAmplitude * (Stream ? 0.35 : 1.0) * (0.5 + RegionalUnit(A.Id));
+            const double Wavelength = T::SplineWavelength * (0.75 + RegionalUnit(B.Id));
             auto Point = [&](double U)
             {
                 const double Wave = FMath::Sin(PI * U) * FMath::Sin(U * Length * 2 * PI / Wavelength + Phase);
@@ -103,7 +103,7 @@ namespace
         const auto& Preview = FKalmalaGenerationPreview::Get();
         const uint64 Domain = 100 + Biome * 8;
         const uint64 Bits = G::Seed(C, Domain);
-        const FVector2D Offset(Unit(Bits) * Preview.BiomeScale, Unit(Bits >> 24) * Preview.BiomeScale);
+        const FVector2D Offset(RegionalUnit(Bits) * Preview.BiomeScale, RegionalUnit(Bits >> 24) * Preview.BiomeScale);
         P += Offset;
         const auto Base = CellAt(P, Preview.BiomeScale);
         const double Motion = G::Noise(C, Domain + 1, P, (1.0 / Preview.BiomeScale));
@@ -112,19 +112,19 @@ namespace
         {
             const FIntPoint Cell = Base + FIntPoint(X, Y);
             const uint64 CellSeed = G::Seed(C, Domain, Cell);
-            const FVector2D Center = (FVector2D(Cell) + FVector2D(0.25 + 0.5 * Unit(CellSeed), 0.25 + 0.5 * Unit(CellSeed >> 24))) * Preview.BiomeScale;
+            const FVector2D Center = (FVector2D(Cell) + FVector2D(0.25 + 0.5 * RegionalUnit(CellSeed), 0.25 + 0.5 * RegionalUnit(CellSeed >> 24))) * Preview.BiomeScale;
             const FVector2D D = (P - Center) / Preview.BiomeScale;
             const double Radius = D.Size();
             // Both layers are exactly zero beyond this conservative edge bound.
             const double MaxEdge = FMath::Abs(T::EdgeWaveStrength) + 0.12 * FMath::Abs(Motion);
             if (Radius >= FMath::Max(0.43 + T::RingOverlap, 0.62) + MaxEdge) continue;
             const double Angle = FMath::Atan2(D.Y, D.X);
-            const double Edge = (T::EdgeWaveStrength * FMath::Sin(3 * Angle + Unit(CellSeed) * 2 * PI) + 0.12 * Motion) * Smooth(0.0, 0.15, Radius);
+            const double Edge = (T::EdgeWaveStrength * FMath::Sin(3 * Angle + RegionalUnit(CellSeed) * 2 * PI) + 0.12 * Motion) * Smooth(0.0, 0.15, Radius);
             // Two overlapping concentric layers, with independently disturbed inner/outer edges.
             const double Core = 1.0 - Smooth(0.16 + Edge, 0.43 + Edge + T::RingOverlap, Radius);
             const double Ring = Smooth(0.20 - Edge, 0.35 - Edge, Radius)
                 * (1.0 - Smooth(0.46 + Edge, 0.62 + Edge, Radius));
-            Weight = FMath::Max(Weight, (0.45 + 0.55 * Unit(CellSeed >> 16)) * FMath::Clamp(Core + 0.5 * Ring, 0.0, 1.0));
+            Weight = FMath::Max(Weight, (0.45 + 0.55 * RegionalUnit(CellSeed >> 16)) * FMath::Clamp(Core + 0.5 * Ring, 0.0, 1.0));
         }
         return Weight;
     }
@@ -142,7 +142,7 @@ uint64 FKalmalaRegionalGeneration::Seed(const FKalmalaWorldGenerationConfig& C, 
 double FKalmalaRegionalGeneration::Noise(const FKalmalaWorldGenerationConfig& C, uint64 Domain, FVector2D P, double Frequency)
 {
     const uint64 S = Seed(C, Domain);
-    return FMath::PerlinNoise2D(P * Frequency + FVector2D(Unit(S) * 128, Unit(S >> 24) * 128));
+    return FMath::PerlinNoise2D(P * Frequency + FVector2D(RegionalUnit(S) * 128, RegionalUnit(S >> 24) * 128));
 }
 
 TArray<FKalmalaHydrologySegment> FKalmalaRegionalGeneration::GetHydrology(const FKalmalaWorldGenerationConfig& C, FIntPoint Cell)
@@ -229,10 +229,10 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
     {
         const auto Cell = BasinCell + FIntPoint(X, Y);
         const uint64 S = Seed(C, 400, Cell);
-        const FVector2D Center = (FVector2D(Cell) + FVector2D(0.35 + Unit(S) * 0.3, 0.35 + Unit(S >> 24) * 0.3)) * T::BasinSpacing;
-        const double Radius = 4000 + 4500 * Unit(S >> 12);
+        const FVector2D Center = (FVector2D(Cell) + FVector2D(0.35 + RegionalUnit(S) * 0.3, 0.35 + RegionalUnit(S >> 24) * 0.3)) * T::BasinSpacing;
+        const double Radius = 4000 + 4500 * RegionalUnit(S >> 12);
         const FVector2D Delta = P - Center;
-        const double Aspect = 0.65 + 0.35 * Unit(S >> 32);
+        const double Aspect = 0.65 + 0.35 * RegionalUnit(S >> 32);
         const double D = FVector2D(Delta.X, Delta.Y / Aspect).Size() / Radius;
         if (D >= 1.5) continue;
         // Keep the entire bowl/rim beyond the starter boundary and on atlas

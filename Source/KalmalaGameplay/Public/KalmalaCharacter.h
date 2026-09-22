@@ -13,6 +13,7 @@ class UKalmalaPlayerStatusComponent;
 class UKalmalaCombatComponent;
 class UKalmalaDiscoveryProgressComponent;
 class UKalmalaSupportMagicComponent;
+class UKalmalaSkillProgressionComponent;
 enum class EKalmalaSupportEffect : uint8;
 
 USTRUCT(BlueprintType)
@@ -49,6 +50,7 @@ public:
     UKalmalaDiscoveryProgressComponent* GetDiscoveryProgressComponent() const { return DiscoveryProgress; }
     UKalmalaInventoryComponent* GetInventoryComponent() const { return Inventory; }
     UKalmalaSupportMagicComponent* GetSupportMagicComponent() const { return SupportMagic; }
+    UKalmalaSkillProgressionComponent* GetSkillProgressionComponent() const { return SkillProgression; }
     EKalmalaSupportEffect GetSelectedSupportEffect() const;
     float GetHealth() const { return Health; }
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
@@ -70,6 +72,7 @@ private:
     UPROPERTY(VisibleAnywhere, Category="Combat") TObjectPtr<UKalmalaCombatComponent> Combat;
     UPROPERTY(VisibleAnywhere, Category="Discovery") TObjectPtr<UKalmalaDiscoveryProgressComponent> DiscoveryProgress;
     UPROPERTY(VisibleAnywhere, Category="Support") TObjectPtr<UKalmalaSupportMagicComponent> SupportMagic;
+    UPROPERTY(VisibleAnywhere, Category="Progression") TObjectPtr<UKalmalaSkillProgressionComponent> SkillProgression;
     UPROPERTY(VisibleAnywhere, Category="Status") TObjectPtr<UKalmalaPlayerStatusComponent> Statuses;
     UPROPERTY(VisibleAnywhere, Category = "Inventory")
     TObjectPtr<UKalmalaInventoryComponent> Inventory;

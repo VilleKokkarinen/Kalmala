@@ -37,7 +37,7 @@ FString FindInputKeyLabel(const FName ActionName, const bool bGamepad)
     return TEXT("Unbound");
 }
 
-const TCHAR* SupportEffectName(const EKalmalaSupportEffect Effect)
+const TCHAR* InventorySupportEffectName(const EKalmalaSupportEffect Effect)
 {
     switch (Effect)
     {
@@ -321,12 +321,12 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
             const bool bSelected = Character->GetSelectedSupportEffect() == Effect;
             Widget->SetSupportGlyphState(Index, static_cast<EKalmalaSupportGlyph>(Index), bLearned, bSelected);
             const TCHAR* Marker = Character->GetSelectedSupportEffect() == Effect ? TEXT(">") : TEXT(" ");
-            Text += FString::Printf(TEXT("%s [K:%s | Pad:%s] %s — %s\n"), Marker, *Keys[Index], *GamepadKeys[Index], SupportEffectName(Effect), bLearned ? TEXT("LEARNED") : TEXT("UNAVAILABLE"));
+            Text += FString::Printf(TEXT("%s [K:%s | Pad:%s] %s — %s\n"), Marker, *Keys[Index], *GamepadKeys[Index], InventorySupportEffectName(Effect), bLearned ? TEXT("LEARNED") : TEXT("UNAVAILABLE"));
         }
         const float CooldownRemaining = FMath::Max(0.0f, Support->GetCooldownExpiry() - ServerNow);
         Text += FString::Printf(TEXT("Stamina: %.0f / %.0f | Cooldown: %s\n"), Movement->GetStamina(), Movement->GetMaximumStamina(), CooldownRemaining > 0.0f ? *FString::Printf(TEXT("%.1f s"), CooldownRemaining) : TEXT("READY"));
         if (Support->GetActiveEffect() != EKalmalaSupportEffect::None && Support->GetActiveEffectExpiry() > ServerNow)
-            Text += FString::Printf(TEXT("Active: %s | Expiry: %.1f s\n"), SupportEffectName(Support->GetActiveEffect()), Support->GetActiveEffectExpiry() - ServerNow);
+            Text += FString::Printf(TEXT("Active: %s | Expiry: %.1f s\n"), InventorySupportEffectName(Support->GetActiveEffect()), Support->GetActiveEffectExpiry() - ServerNow);
         else
             Text += TEXT("Active: none\n");
         if (Support->GetFeedbackSerial() == 0) Text += TEXT("Server result: none yet\n\n");

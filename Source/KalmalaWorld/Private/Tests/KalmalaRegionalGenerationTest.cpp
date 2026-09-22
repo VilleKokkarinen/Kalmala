@@ -73,8 +73,8 @@ bool FKalmalaRegionalGenerationTest::RunTest(const FString& Parameters)
             for (int32 Q = 0; Q < Queue.Num(); ++Q)
             {
                 const int32 Index = Queue[Q], X = Index % Side, Y = Index / Side;
-                const int32 Neighbours[] = { X > 0 ? Index - 1 : -1, X + 1 < Side ? Index + 1 : -1, Y > 0 ? Index - Side : -1, Y + 1 < Side ? Index + Side : -1 };
-                for (int32 N : Neighbours) if (N >= 0 && !Visited[N] && Biomes[N] == Biomes[Start]) { Visited[N] = true; Queue.Add(N); }
+                const int32 LocalNeighbours[] = { X > 0 ? Index - 1 : -1, X + 1 < Side ? Index + 1 : -1, Y > 0 ? Index - Side : -1, Y + 1 < Side ? Index + Side : -1 };
+                for (int32 N : LocalNeighbours) if (N >= 0 && !Visited[N] && Biomes[N] == Biomes[Start]) { Visited[N] = true; Queue.Add(N); }
             }
             Areas.Add(Queue.Num());
             Small += Queue.Num() <= 2;

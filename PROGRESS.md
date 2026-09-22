@@ -8,6 +8,65 @@
 
 ## Run log
 
+### 2026-09-22T15:10:30Z — Add owner-only M7 skill replication
+
+Outcome: Completed the first eligible M7 progression replication child and
+closed the server-owned skill progression aggregate. Added
+`UKalmalaSkillProgressionComponent` to the replicated player character. The
+server initializes the existing six-skill ledger and can publish experience,
+derived levels, and derived unlocks only after an accepted server action.
+Detailed progression replicates with `COND_OwnerOnly`; relevant peers receive
+only a coarse highest-level/unlock presentation badge with no per-skill
+identity, experience, multiplier, or reward field. There is no client RPC or
+client setter for progression outcomes.
+
+Changed: Added
+`Source/KalmalaGameplay/Public/KalmalaSkillProgressionComponent.h`,
+`Source/KalmalaGameplay/Private/KalmalaSkillProgressionComponent.cpp`, and
+`Source/KalmalaGameplay/Private/Tests/KalmalaSkillProgressionReplicationTest.cpp`.
+Updated `Source/KalmalaGameplay/Public/KalmalaCharacter.h` and
+`Source/KalmalaGameplay/Private/KalmalaCharacter.cpp` to attach the component.
+Updated `BACKLOG.md`, `docs/04-roadmap.md`, `docs/05-decision-log.md`,
+`docs/07-development-setup.md`, and this handoff. Three pre-existing
+unity-build helper-name collisions were disambiguated in
+`Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+`Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`, and
+`Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp`; behavior is
+unchanged and these edits only make the documented project build reproducible.
+
+Verification: The direct UE5.8 `KalmalaEditor Win64 Development` build passed
+all 155 actions with `Result: Succeeded` and `%LOCALAPPDATA%\\UnrealBuildTool`
+access. The standard unity attempt first exposed the unrelated helper-name
+collisions; the corrected build compiled and linked the new Gameplay component
+and test. Focused `Kalmala.Gameplay.Progression.ReplicationContract` passed
+with `Result={Success}` at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7SkillReplicationFinal-5bb865086faa43b182edc35d388bf3dd/ProgressionReplication.log`.
+The combined
+`Kalmala.World.M7.PersistenceContract+Kalmala.Gameplay.Progression.ReplicationContract+Kalmala.Gameplay.Progression.SkillContract`
+run found three tests and each completed with `Result={Success}` at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7ProgressionCombined-cf9216efdfb847f997ee4b513b691ca0/M7ProgressionCombined.log`.
+`Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts and
+`git diff --check` passed.
+
+Multiplayer impact: The server remains the only progression authority. The
+owner receives detailed experience, level, and unlock state; other relevant
+peers receive only the derived presentation badge. No RPC, save schema,
+client-authored multiplier/reward, inventory transaction, or persistence path
+was added. Invalid or client-role awards remain rejected by the existing
+server-owned ledger contract.
+
+Known limits: No gathering/crafting action consumes this ledger yet; M7 save
+integration, skill-gated recipes, rendered progression UI, and a live two-peer
+replication fixture remain open. The component test proves the view derivation
+and authority seam, not packaged persistence, physical input, audio,
+long-session balance, dedicated-server support, or the deferred native co-op
+acceptance. The helper-name edits are build-only disambiguations with no
+gameplay effect.
+
+Next task: Establish biome-specific material and creature identity, beginning
+with one reliable server-selected gathering source, one creature niche, and
+one optional rarer discovery source per first-wave biome.
+
 ### 2026-09-22T14:35:09Z — Add bounded server-owned skill contract
 
 Outcome: Completed the first unchecked M7 skill-progression child. The new

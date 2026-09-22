@@ -451,10 +451,11 @@ PC solo/listen-server co-op boundary. The roadmap contract is in
   - [x] Define identity/world matching, migration policy, sparse generated-content deltas, and round-trip/rejection tests for any state that must survive reconnect or restart.
   - [x] Keep development fixtures transient and server-owned until the save contract is approved; do not silently extend existing save schemas.
     - Passed 2026-09-22: independent `UKalmalaM7PersistenceSaveGame` schema 1 contract covers exact seed/revision/scope matching, explicit schema-0 migration versus future-schema rejection, bounded server-selected resource/creature/discovery deltas, duplicate/invalid/path-like rejection, and memory round-trip. Existing save schemas remain unchanged.
-- [ ] Add server-owned skill progression.
+- [x] Add server-owned skill progression.
   - [x] Define a small allowlisted set of original gathering, woodcutting, mining, crafting, cooking, and survival skills with bounded server-awarded experience, levels, and unlocks.
     - Passed 2026-09-22: transient server-owned ledger defines six allowlisted skills, caps awards at 25 experience per accepted server action and total experience at 1,000, derives levels 1-10 and unlock tiers at levels 2, 5, and 10, and rejects client-role, rejected-action, malformed, and over-bound awards without mutation.
-  - [ ] Replicate detailed progression only to the owning player and relevant presentation state to other peers; reject client-authored experience, level, unlock, multiplier, and reward values.
+  - [x] Replicate detailed progression only to the owning player and relevant presentation state to other peers; reject client-authored experience, level, unlock, multiplier, and reward values.
+    - Passed 2026-09-22: `UKalmalaSkillProgressionComponent` is attached to the replicated player character. Its server-initialized detailed six-skill ledger replicates with `COND_OwnerOnly`; relevant peers receive only a derived highest-level/unlock badge with no per-skill identity, experience, multiplier, or reward field. The component exposes no client RPC or client setter, and its only mutation path requires an accepted server action and the existing bounded award contract. Focused and combined M7 automation passed after the UE5.8 build.
 - [ ] Establish biome-specific material and creature identity.
   - [ ] Add one reliable gathering source, one creature niche, and one rarer discovery source per first-wave biome using stable server-selected catalogue and spatial/encounter identities.
   - [ ] Keep creatures ecologically readable, and keep bosses, elite rewards, rare caches, treasures, and shipwreck discoveries optional rather than routes or mandatory gates.

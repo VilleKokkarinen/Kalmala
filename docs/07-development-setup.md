@@ -26,17 +26,26 @@ After the editor build, run it with the documented temporary-user pattern:
 
 ### M7 skill progression contract
 
-`FKalmalaSkillProgressionLedger` currently provides a transient server-owned
-contract for the six allowlisted skills: Gathering, Woodcutting, Mining,
-Crafting, Cooking, and Survival. Only an accepted server action may award up
-to 25 experience; total experience is capped at 1,000, levels are derived from
-100-experience bands, and unlock tiers derive at levels 2, 5, and 10. The
-contract deliberately adds no client RPC, save field, or replicated detail yet.
+`FKalmalaSkillProgressionLedger` provides a transient server-owned contract for
+the six allowlisted skills: Gathering, Woodcutting, Mining, Crafting, Cooking,
+and Survival. Only an accepted server action may award up to 25 experience;
+total experience is capped at 1,000, levels are derived from 100-experience
+bands, and unlock tiers derive at levels 2, 5, and 10. The attached
+`UKalmalaSkillProgressionComponent` replicates detailed state only to the owning
+player and a derived highest-level/unlock badge to relevant peers. It has no
+client RPC or setter for progression outcomes, and it does not add save fields.
 
 After the editor build, run the focused authority and derivation test:
 
 ```powershell
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7SkillUser' -abslog='C:\temp\KalmalaM7Skill.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Progression.SkillContract; Quit" -TestExit="Automation Test Queue Empty"
+```
+
+Run the owner/privacy and original ledger checks together when changing the
+replication seam:
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7CombinedUser' -abslog='C:\temp\KalmalaM7Combined.log' -ExecCmds="Automation RunTests Kalmala.World.M7.PersistenceContract+Kalmala.Gameplay.Progression.ReplicationContract+Kalmala.Gameplay.Progression.SkillContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ## First build
