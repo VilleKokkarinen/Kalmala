@@ -201,16 +201,17 @@ row names its matching controller D-pad direction and keyboard key.
 
 ### Mending runtime increment
 
-Mending now resolves exactly one other `AKalmalaCharacter` from the caster's server-owned forward Pawn trace (350 cm), then performs a separate server visibility trace to that pawn. It cannot name a target in the activation RPC and cannot select wildlife or another non-player actor. The target must be in the same world, alive (health above 1), damaged, and within 350 cm. After that validation, the server consumes the existing 20 stamina, applies a finite 30-point heal clamped to 100, and starts the existing cooldown/presentation transaction. A full-health, dead, distant, occluded, foreign-world, self, non-character, or invalid target leaves health, stamina, cooldown, active state, and request sequence unchanged. Mending has no damage call and does not revive.
+Mending now resolves exactly one other `AKalmalaCharacter` from the caster's server-owned forward Pawn trace (350 cm), then performs a separate server visibility trace to that pawn. It cannot name a target in the activation RPC and cannot select wildlife or another non-player actor. The target must be in the same world, alive (health above 1), damaged, and within 350 cm. After that validation, the server consumes the shared 18-stamina base activation cost, adjusted by the authoritative status definition (20.7 while Wet), applies a finite 30-point heal clamped to 100, and starts the existing cooldown/presentation transaction. A full-health, dead, distant, occluded, foreign-world, self, non-character, or invalid target leaves health, stamina, cooldown, active state, and request sequence unchanged. Mending has no damage call and does not revive.
 
 ### Hearth Shield runtime increment
 
-Hearth Shield targets only its caster. Once the existing server-owned entitlement, sequence, cooldown, and stamina transaction succeeds, the server creates 40 points of protection for eight seconds and replicates its remaining strength and finite expiry to relevant peers alongside the active-effect presentation. A second Hearth Shield request is rejected while positive protection remains before its expiry, without charging stamina or advancing the request sequence. The existing server wildlife-damage gate alone asks the caster's component to absorb the smaller of its validated damage and the remaining shield; clients cannot supply damage, strength, duration, expiry, or an absorption result. Expiry clears any unused protection before later damage can use it. Hearth Shield never damages an enemy and introduces no reward, save, or targeting payload.
+Hearth Shield targets only its caster. Once the existing server-owned entitlement, sequence, cooldown, and shared 18-stamina base activation transaction succeeds (20.7 while Wet), the server creates 40 points of protection for eight seconds and replicates its remaining strength and finite expiry to relevant peers alongside the active-effect presentation. A second Hearth Shield request is rejected while positive protection remains before its expiry, without charging stamina or advancing the request sequence. The existing server wildlife-damage gate alone asks the caster's component to absorb the smaller of its validated damage and the remaining shield; clients cannot supply damage, strength, duration, expiry, or an absorption result. Expiry clears any unused protection before later damage can use it. Hearth Shield never damages an enemy and introduces no reward, save, or targeting payload.
 
 ### Bear's Vigor runtime increment
 
 Bear's Vigor targets only its caster. After the shared server-owned entitlement,
-sequence, cooldown, and 20-stamina transaction succeeds, it raises the existing
+sequence, cooldown, and shared 18-stamina base transaction succeeds (20.7 while
+Wet), it raises the existing
 authoritative stamina cap from 100 to 140 and supplies a 1.4 strength multiplier
 for eight seconds. It never refills stamina on activation, and expiry restores
 the 100 cap while clamping only any excess current stamina. A second request

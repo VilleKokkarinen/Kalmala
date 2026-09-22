@@ -4,6 +4,7 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaCharacterMovementComponent.h"
 #include "KalmalaCampfire.h"
+#include "KalmalaSupportMagicComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
@@ -54,6 +55,7 @@ bool FKalmalaPlayerWetModifiersTest::RunTest(const FString& Parameters)
     Movement->SetMovementMode(MOVE_Custom, UKalmalaCharacterMovementComponent::GeneratedOceanSwimmingMode);
     TestTrue(TEXT("Swimming applies tuned Wet after its speed cap"), FMath::IsNearlyEqual(Movement->GetMaxSpeed(), FMath::Min(DrySpeed, 420.0f) * UKalmalaPlayerStatusComponent::WetMovementMultiplier));
     TestEqual(TEXT("Authoritative base stamina cost gains the tuned 15 percent"), Status->CalculateStaminaCost(20.0f), 23.0f);
+    TestEqual(TEXT("Wet applies its shared multiplier to the tuned support base cost"), Status->CalculateStaminaCost(UKalmalaSupportMagicComponent::ActivationCost), 20.7f);
     TestEqual(TEXT("Invalid cost cannot become a credit"), Status->CalculateStaminaCost(-20.0f), 0.0f);
     TArray<FKalmalaPlayerStatusEntry> Entries = Status->GetStatuses();
     const FKalmalaPlayerStatusEntry Duplicate = Entries[0];

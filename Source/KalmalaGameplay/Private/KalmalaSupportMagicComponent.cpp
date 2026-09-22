@@ -1,6 +1,7 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCharacterMovementComponent.h"
+#include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "GameFramework/Pawn.h"
 #include "EngineUtils.h"
@@ -122,7 +123,10 @@ void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implement
     APawn* Pawn = Cast<APawn>(GetOwner()); const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
     if (!IsKnownEffect(Effect)) return;
     UKalmalaCharacterMovementComponent* Movement = Pawn ? Cast<UKalmalaCharacterMovementComponent>(Pawn->GetMovementComponent()) : nullptr;
-    const bool bBaseActivationAllowed = IsActivationAllowed(Pawn && Pawn->HasAuthority(), HasLearnedEffect(Effect), RequestSequence != 0 && RequestSequence > LastRequestSequence, Now >= CooldownExpiry, Movement != nullptr && Movement->GetStamina() >= ActivationCost);
+    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Pawn);
+    const UKalmalaPlayerStatusComponent* Status = Character ? Character->GetStatusComponent() : nullptr;
+    const float EffectiveActivationCost = Status ? Status->CalculateStaminaCost(ActivationCost) : ActivationCost;
+    const bool bBaseActivationAllowed = IsActivationAllowed(Pawn && Pawn->HasAuthority(), HasLearnedEffect(Effect), RequestSequence != 0 && RequestSequence > LastRequestSequence, Now >= CooldownExpiry, Movement != nullptr && FMath::IsFinite(EffectiveActivationCost) && EffectiveActivationCost > 0.0f && Movement->GetStamina() >= EffectiveActivationCost);
     const bool bShieldAlreadyActive = HearthShieldExpiry > Now && HearthShieldStrength > 0.0f;
     const bool bVigorAlreadyActive = BearsVigorExpiry > Now && BearsVigorStrengthMultiplier > 1.0f;
     const bool bEffectActivationAllowed = Effect == EKalmalaSupportEffect::HearthShield ? IsHearthShieldActivationAllowed(bBaseActivationAllowed, bShieldAlreadyActive)
@@ -132,7 +136,7 @@ void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implement
     AKalmalaCharacter* MendingTarget = Effect == EKalmalaSupportEffect::Mending ? ResolveMendingTargetFromServer(Pawn) : nullptr;
     if (Effect == EKalmalaSupportEffect::Mending && MendingTarget == nullptr) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
     if (Effect == EKalmalaSupportEffect::DeerCall && !InfluenceNearbyDeerFromServer(Pawn)) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
-    if (!Movement->TryConsumeStaminaFromServer(ActivationCost)) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
+    if (!Movement->TryConsumeStaminaFromServer(EffectiveActivationCost)) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
     if (MendingTarget != nullptr && !MendingTarget->ReceiveMendingFromServer(CastChecked<AKalmalaCharacter>(Pawn), MendingHealAmount)) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
     LastRequestSequence = RequestSequence; CooldownExpiry = Now + CooldownSeconds; ActiveEffect = Effect;
     if (Effect == EKalmalaSupportEffect::HearthShield)

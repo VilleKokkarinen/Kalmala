@@ -34,6 +34,7 @@ bool FKalmalaDiscoveryProgressTest::RunTest(const FString& Parameters)
     }
     TestFalse(TEXT("Malformed support effect is rejected"), UKalmalaSupportMagicComponent::IsKnownEffect(static_cast<EKalmalaSupportEffect>(255)));
     TestFalse(TEXT("Malformed support effect cannot be treated as non-damaging gameplay"), UKalmalaSupportMagicComponent::IsNonDamagingEffect(static_cast<EKalmalaSupportEffect>(255)));
+    TestEqual(TEXT("Support effects use the tuned shared base stamina cost"), UKalmalaSupportMagicComponent::ActivationCost, 18.0f);
     TestTrue(TEXT("Activation requires authority, entitlement, sequence, cooldown, and stamina"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, true, true, true));
     TestFalse(TEXT("Client-role activation is rejected"), UKalmalaSupportMagicComponent::IsActivationAllowed(false, true, true, true, true));
     TestFalse(TEXT("Replay or zero-sequence activation is rejected"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, false, true, true));

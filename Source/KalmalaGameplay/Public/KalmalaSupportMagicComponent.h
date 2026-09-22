@@ -42,8 +42,9 @@ public:
     static bool IsDeerCallActivationAllowed(bool bBaseActivationAllowed, bool bHasEligibleDeer);
     static float CalculateHearthShieldAbsorption(bool bServerAuthority, bool bShieldActive, float IncomingDamage, float RemainingStrength);
     static float CalculateBearsVigorDamage(bool bServerAuthority, bool bVigorActive, float BaseDamage, float StrengthMultiplier);
+    // Shared base cost used by every learned effect before server-owned status modifiers.
+    static constexpr float ActivationCost = 18.0f;
 private:
-    static constexpr float ActivationCost = 20.0f;
     static constexpr float CooldownSeconds = 4.0f;
     static constexpr float PresentationSeconds = 2.0f;
     static constexpr float MendingRange = 350.0f;
