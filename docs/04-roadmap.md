@@ -41,22 +41,29 @@ The world-generation track places **Phase 7 — Coherent biome generation and hy
 
 Add original art/audio pass, tutorial beats, settings/accessibility, performance pass, balance, regression tests, packaging, and a dedicated-server playtest.
 
-**Accept:** a new player can complete the documented 20–30 minute co-op loop without developer tools.
+**Accept:** a new player can complete the documented 20–30 minute co-op loop
+without developer tools. If the active validation environment cannot expose a
+targetable native Windows game surface after the documented retry threshold,
+the M5 queue may instead close through the explicit external-surface skip in
+`BACKLOG.md`. A skip is not player-visible acceptance: it defers normal
+packaged co-op, input, audio, reconnect, and persistence observation to M6.
 
 ## M6 — Production hardening and supported-session validation
 
-Start only after M5's vertical-slice acceptance passes. Turn the accepted M5
-loop into a reliable release candidate without adding new gameplay content,
-changing saved-data schemas, expanding online services, or changing the
-current PC solo/listen-server co-op scope.
+Start only after M5's vertical-slice acceptance passes or its documented
+external-surface skip closes the M5 queue. Turn the accepted M5 loop and any
+explicitly deferred player-visible checks into a reliable release candidate
+without adding new gameplay content, changing saved-data schemas, expanding
+online services, or changing the current PC solo/listen-server co-op scope.
 
 M6 has four ordered goals:
 
 1. **Close acceptance findings.** Fix issues found during the final fresh-player
-   20–30 minute packaged co-op run. Convert each finding into a focused
-   regression or an explicit documented non-goal. Prioritize crash and hang
-   triage, reconnect and late-join reliability, save-identity safety, input,
-   accessibility, and readable non-audio feedback.
+   20–30 minute packaged co-op run, or first restore that run when M5 used the
+   external-surface skip. Convert each finding into a focused regression or an
+   explicit documented non-goal. Prioritize crash and hang triage, reconnect
+   and late-join reliability, save-identity safety, input, accessibility, and
+   readable non-audio feedback.
 2. **Re-run the complete release suite.** From clean temporary user
    directories, run the automated, rendered, current-generator, authority,
    persistence, reconnect, and performance checks twice. Preserve the logs,

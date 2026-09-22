@@ -6276,3 +6276,78 @@ the documented native-surface and Launcher-engine blockers.
 Next task: Provide a usable native Windows game surface/session, then rerun the
 blocked final M5 acceptance from a fresh local user directory without
 developer tools.
+
+### 2026-09-22T16:45:00+03:00 — Recheck M5 native play-surface blocker
+
+Outcome: The attempted native-surface repair did not restore a usable game
+window. A fourth normal launch of the retained packaged Windows Development
+build from a new local user directory ran in the active console session, but
+reported `MainWindowHandle=0` after ten seconds. The computer-use inventory
+again returned `apps=[]`, with only the Codex in-app browser. This confirms the
+block is outside the package launch arguments and per-user saved state; there
+is no targetable native player surface for normal input, peer joining, or
+player-visible M5 evidence. The diagnostic process was stopped cleanly.
+
+Changed: Updated `BACKLOG.md` and this handoff only to retain the fresh-profile
+confirmation. No runtime, asset, network, persistence, save-schema, package,
+or release-configuration files changed. The temporary user directory is left
+intact for external environment diagnosis.
+
+Verification: The retained package at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaRelease-511dae00c4734478a302d99ded81dc60/Archive/Windows/Kalmala.exe`
+was launched normally with `-windowed -ResX=1280 -ResY=720 -ForceRes` and a
+fresh `-UserDir`. Process 54488 remained in session 8 with no main window;
+`cua.getState()` reported no native apps. No developer flags, fixture inputs,
+editor session, console commands, teleportation, or scripted gameplay were
+used. The package process was then stopped. Required player-visible acceptance
+verification remains unavailable at the native-surface boundary.
+
+Multiplayer impact: None. No gameplay or authority code changed. The existing
+server-owned world, terrain, weather, exposure, inventory, construction,
+combat, discoveries, rewards, and sparse persistence contracts remain
+unchanged; host/client presentation and normal joining cannot be observed
+without a native player surface.
+
+Known limits: The final tool-free 20–30 minute packaged co-op run,
+player-visible evidence, normal join/reconnect observation, packaged
+persistence observation, physical input, audible quality, long-session
+balance, shipping GPU performance, and dedicated-server validation remain open
+or conditional on the documented native-surface and Launcher-engine blockers.
+
+Next task: Restore a targetable native Windows application surface for this
+active console session, then rerun the blocked final M5 acceptance from a
+fresh local user directory without developer tools.
+
+### 2026-09-22T16:50:00+03:00 — Close M5 native-surface task by external skip
+
+Outcome: Per user direction, converted the blocked final M5 acceptance into
+two explicit closure paths. The normal packaged, tool-free co-op run remains
+the completion path. The already-satisfied external-native-surface skip closes
+the M5 execution queue without claiming that the player-visible run passed;
+the missing run is now M6's first acceptance finding.
+
+Changed: Updated `BACKLOG.md`, `docs/04-roadmap.md`,
+`docs/12-vertical-slice-runbook.md`, `docs/05-decision-log.md`, and this
+handoff. No runtime, asset, network, persistence, save-schema, package, or
+release-configuration files changed.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` and `git diff
+--check` passed after the documentation-only change. The skip is grounded in
+the retained release-regression/package evidence and four normal retained
+package launches recorded above; all had `MainWindowHandle=0` and no targetable
+native-app inventory. No build was required because no code or content changed.
+
+Multiplayer impact: Documentation and sequencing only. Existing server-owned
+world, combat, weather, exposure, inventory, construction, discovery, reward,
+and persistence contracts remain unchanged. The skipped player-visible run is
+not evidence of host/client agreement, normal join/reconnect, or privacy.
+
+Known limits: M5 is queue-complete through the external-environment skip, not
+player-visible acceptance. Tool-free native packaged co-op, physical input,
+audible quality, packaged persistence observation, and long-session balance
+remain deferred to M6; dedicated-server validation remains conditional on a
+server-capable UE5.8 build.
+
+Next task: Begin M6 by restoring a targetable native Windows game surface and
+running the unchanged final packaged co-op charter before closing its deferred
+acceptance finding.

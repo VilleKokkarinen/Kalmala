@@ -136,6 +136,30 @@ The observer records player-visible evidence for one run:
 Developer logs and focused automation may diagnose failures, but they cannot be
 the sole proof of the final M5 acceptance.
 
+## External native-surface skip
+
+The packaged co-op run is the preferred M5 closure. It may be skipped only
+when the active validation environment cannot expose a targetable native
+Windows application surface, not because gameplay coverage is inconvenient or
+because an automated fixture is available. The skip requires all of the
+following:
+
+- the M5 release-regression and package-smoke aggregate has passed;
+- at least three normal packaged launches have remained alive in the active
+  user session with `MainWindowHandle=0`, including a fresh-profile windowed
+  launch;
+- the available computer-use inventory has no targetable native game window;
+- every attempt, launch mode, process/session observation, and cleanup result
+  is retained in `BACKLOG.md` and `PROGRESS.md`.
+
+Marking this skip closes the M5 execution queue only. It must explicitly state
+that it does not pass the player-visible 20–30-minute co-op loop, normal peer
+joining or reconnect, physical input, audible quality, packaged persistence,
+or long-session balance. M6 must restore a native surface and run this
+unchanged player-facing charter before treating any of those deferred checks as
+accepted. No developer fixture, offscreen capture, console command, or
+scripted gameplay may substitute for the skipped run.
+
 ## Authority and persistence boundary
 
 This runbook changes no runtime contract. The server owns world identity,
