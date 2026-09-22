@@ -23,6 +23,7 @@ struct KALMALAWORLD_API FKalmalaBiomeContentDefinition
     FName GatheringPresentationId = NAME_None;
     FName CreatureNicheId = NAME_None;
     FName RareDiscoverySourceId = NAME_None;
+    FName RareDiscoveryPresentationId = NAME_None;
     bool bRareDiscoveryOptional = false;
 };
 
@@ -38,20 +39,20 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
         switch (Biome)
         {
         case EKalmalaBiome::Meadows:
-            return { Biome, TEXT("meadows-birch-bark"), TEXT("birch-bark-bundle"), TEXT("meadows-open-grazer"), TEXT("meadows-hidden-stone"), true };
+            return { Biome, TEXT("meadows-birch-bark"), TEXT("birch-bark-bundle"), TEXT("meadows-open-grazer"), TEXT("meadows-hidden-stone"), TEXT("stone-hollow-marker"), true };
         case EKalmalaBiome::ShimmeringLakes:
-            return { Biome, TEXT("lakes-reed-cluster"), TEXT("reed-cluster"), TEXT("lakes-shore-forager"), TEXT("lakes-island-cache"), true };
+            return { Biome, TEXT("lakes-reed-cluster"), TEXT("reed-cluster"), TEXT("lakes-shore-forager"), TEXT("lakes-island-cache"), TEXT("island-cache-marker"), true };
         case EKalmalaBiome::Elderwood:
-            return { Biome, TEXT("elderwood-resinwood"), TEXT("resinwood-bundle"), TEXT("elderwood-canopy-browser"), TEXT("elderwood-root-hollow"), true };
+            return { Biome, TEXT("elderwood-resinwood"), TEXT("resinwood-bundle"), TEXT("elderwood-canopy-browser"), TEXT("elderwood-root-hollow"), TEXT("root-hollow-marker"), true };
         case EKalmalaBiome::MossyMire:
-            return { Biome, TEXT("mire-bog-iron"), TEXT("bog-iron-vein"), TEXT("mire-hummock-scavenger"), TEXT("mire-sunken-cache"), true };
+            return { Biome, TEXT("mire-bog-iron"), TEXT("bog-iron-vein"), TEXT("mire-hummock-scavenger"), TEXT("mire-sunken-cache"), TEXT("sunken-cache-marker"), true };
         case EKalmalaBiome::FreezingTundra:
-            return { Biome, TEXT("tundra-frostmoss"), TEXT("frostmoss-clump"), TEXT("tundra-wind-grazer"), TEXT("tundra-ice-spring"), true };
+            return { Biome, TEXT("tundra-frostmoss"), TEXT("frostmoss-clump"), TEXT("tundra-wind-grazer"), TEXT("tundra-ice-spring"), TEXT("ice-spring-marker"), true };
         case EKalmalaBiome::ThunderMountains:
-            return { Biome, TEXT("mountains-slate-vein"), TEXT("slate-vein"), TEXT("mountains-ridge-forager"), TEXT("mountains-storm-overlook"), true };
+            return { Biome, TEXT("mountains-slate-vein"), TEXT("slate-vein"), TEXT("mountains-ridge-forager"), TEXT("mountains-storm-overlook"), TEXT("storm-overlook-marker"), true };
         case EKalmalaBiome::Ocean:
         default:
-            return { Biome, NAME_None, NAME_None, NAME_None, NAME_None, false };
+            return { Biome, NAME_None, NAME_None, NAME_None, NAME_None, NAME_None, false };
         }
     }
 
@@ -74,6 +75,7 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
             && !Definition.GatheringPresentationId.IsNone()
             && !Definition.CreatureNicheId.IsNone()
             && !Definition.RareDiscoverySourceId.IsNone()
+            && !Definition.RareDiscoveryPresentationId.IsNone()
             && Definition.bRareDiscoveryOptional;
     }
 
@@ -100,6 +102,31 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
     static bool IsValidGatheringSourceId(const FName GatheringSourceId)
     {
         return !GetGatheringPresentationId(GatheringSourceId).IsNone();
+    }
+
+    static FName GetRareDiscoveryPresentationId(const FName RareDiscoverySourceId)
+    {
+        if (RareDiscoverySourceId.IsNone()) return NAME_None;
+        for (const EKalmalaBiome Biome : {
+            EKalmalaBiome::Meadows,
+            EKalmalaBiome::ShimmeringLakes,
+            EKalmalaBiome::Elderwood,
+            EKalmalaBiome::MossyMire,
+            EKalmalaBiome::FreezingTundra,
+            EKalmalaBiome::ThunderMountains })
+        {
+            const FKalmalaBiomeContentDefinition Definition = GetDefinition(Biome);
+            if (Definition.RareDiscoverySourceId == RareDiscoverySourceId)
+            {
+                return Definition.RareDiscoveryPresentationId;
+            }
+        }
+        return NAME_None;
+    }
+
+    static bool IsValidRareDiscoverySourceId(const FName RareDiscoverySourceId)
+    {
+        return !GetRareDiscoveryPresentationId(RareDiscoverySourceId).IsNone();
     }
 
     static bool IsOptionalRareDiscoverySource(const EKalmalaBiome Biome)

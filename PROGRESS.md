@@ -6717,3 +6717,218 @@ dedicated-server validation with the installed Launcher engine.
 
 Next task: Establish the M7 versioned persistence and migration gate before
 implementing persistent progression, food, tools, depletion, or rare loot.
+
+### 2026-09-22T20:17:45+03:00 — Materialize optional rare-discovery presentations (blocked)
+
+Outcome: Implemented the first-wave rare-discovery presentation increment but
+could not close it because the required UE5.8 editor build stalled before
+compilation three consecutive times. The six catalogue rare sources now map to
+distinct original presentation identities, and point-of-interest discovery
+actors validate the server-selected rare source and replicate only that
+identity to build a small collision-free procedural marker. Discovery claims,
+scroll rewards, descriptor identities, and persistence remain unchanged.
+
+Changed: Updated `Source/KalmalaWorld/Public/KalmalaBiomeContentContract.h`,
+`Source/KalmalaWorld/Private/Tests/KalmalaBiomeContentContractTest.cpp`,
+`Source/KalmalaGameplay/Public/KalmalaDiscoveryActor.h`, and
+`Source/KalmalaGameplay/Private/KalmalaDiscoveryActor.cpp`. Updated the M7
+roadmap, decision log, development setup, backlog, and this handoff. No save
+schema, reward, claim, inventory, or generated-content persistence field was
+added.
+
+Verification: Three direct `KalmalaEditor Win64 Development` attempts were
+made with `%LOCALAPPDATA%\\UnrealBuildTool` available: `-WaitMutex` at
+20:09:55, the same command at 20:14:28, and a `-Verbose` no-wait diagnostic at
+20:15:38. Each left a responsive UnrealBuildTool `dotnet` process with no
+`cl.exe`/`link.exe` child and no `%LOCALAPPDATA%/UnrealBuildTool/Log.txt`
+timestamp or length change; only those current-run build processes were
+stopped. Focused editor automation could not run without a verified build.
+The backlog item is marked `BLOCKED`; no commit was made. A static diff check
+and documentation contract check remain to be run after this handoff edit.
+
+Multiplayer impact: Server authority is preserved. The server validates the
+rare source against the catalogue, retains the canonical descriptor for
+interaction and claiming, and replicates only the selected source identity on
+the already materialized relevant discovery actor. Clients cannot submit
+source IDs, locations, definitions, claims, rewards, or routes. No RPC,
+save-schema, reward, or persistence behavior changed.
+
+Known limits: The new procedural markers and focused
+`Kalmala.World.M7.BiomeContentContract` automation have not been build- or
+runtime-verified because of the UnrealBuildTool stall. The rare discovery
+presentation remains blocked, and all tool lifecycle work stays queued behind
+this earliest eligible item.
+
+Next task: Restore a functioning UE5.8 UnrealBuildTool invocation, rerun the
+editor build and focused biome-content automation, then close this rare-
+discovery presentation item only after verification passes.
+
+### 2026-09-22T20:55:47+03:00 — Define M7 tool gathering contract (blocked)
+
+Outcome: Added one bounded first-wave tool-lifecycle contract for the earliest
+unblocked M7 work. The server maps each valid first-wave gathering source to a
+fixed Gathering, Woodcutting, or Mining action, required transient tool,
+server-owned skill, and one existing catalogue reward. The contract validates
+server authority, trace hit, same-world membership, node availability, finite
+range, client-selected tool/action matching, server skill state, and bounded
+positive durability; an accepted use spends one point and returns only the
+server-selected reward identity and quantity. Rejected uses clear reward
+outputs and leave durability unchanged.
+
+Changed: Added `Source/KalmalaGameplay/Public/KalmalaToolLifecycleContract.h`,
+`Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaToolLifecycleContractTest.cpp`,
+and `docs/17-m7-tools-and-gathering.md`. Added the focused setup contract and
+recorded the blocked nested backlog item. A small static repair also requires
+the transient tool state identity to match the selected tool before use.
+Pre-existing rare-discovery presentation changes remain untouched.
+
+Verification: Three forced UE5.8 `KalmalaEditor Win64 Development` attempts
+were made with `%LOCALAPPDATA%\\UnrealBuildTool` available: `-WaitMutex`
+at 20:44:35, a `-WaitMutex` retry with two parallel actions at 20:49:26, and a
+`-Verbose` no-wait diagnostic at 20:52:16. Every attempt remained at the
+UnrealBuildTool `dotnet` stage for roughly 90 seconds, spawned no `cl.exe` or
+`link.exe` child, and left `%LOCALAPPDATA%/UnrealBuildTool/Log.txt` unchanged
+at 7,549 bytes with a 19:55:50 timestamp. Only the current-run sessions were
+stopped. The focused `Kalmala.Gameplay.Tools.LifecycleContract` automation
+could not run without a verified build. No commit was made because required
+verification failed. `git diff --check` remains the only safe post-blocker
+check to run.
+
+Multiplayer impact: The increment adds no RPC, actor, replicated property,
+inventory item, node mutation, repair path, reward persistence, or save field.
+The server-selection tuple and all trace/range/node facts are server-derived;
+the future client intent surface can select only an allowlisted tool/action.
+Catalogue validation, skill state, durability, reward identity, and quantity
+remain server-owned. No client can submit a node, yield, damage, condition,
+reward, trace, or outcome.
+
+Known limits: This contract is not build- or runtime-verified because of the
+repeated UnrealBuildTool stall. Live harvest interaction wiring, atomic
+inventory/durability/node mutation, tool inventory presentation, repair,
+persistence, and host/client gathering evidence remain open. The earlier
+rare-discovery presentation item remains separately blocked.
+
+Next task: Restore a functioning UE5.8 UnrealBuildTool invocation, then run
+the focused tool contract automation before wiring the validated selection into
+the existing server interaction and harvest-node transaction.
+
+### 2026-09-22T21:07:55+03:00 — Verify optional rare-discovery presentations
+
+Outcome: Closed the first-wave optional rare-discovery presentation leaf and
+its biome-identity parent. The already implemented six source-specific
+procedural point-of-interest markers now have verified editor-build and
+focused automation evidence. Existing descriptor, claim, scroll reward,
+persistence, and route-free behavior remain unchanged.
+
+Changed: Updated `BACKLOG.md` and appended this handoff only. The source,
+test, and contract documentation changes were pre-existing work from the
+blocked increment and were preserved without alteration in this run. No save
+schema, reward, claim, inventory, generated-content persistence field, or
+runtime authority path changed.
+
+Verification: The forced UE5.8 `KalmalaEditor Win64 Development` build ran
+with `%LOCALAPPDATA%\\UnrealBuildTool` access, compiled all 14 actions, and
+reported `Result: Succeeded`. The corrected temporary-user launch of
+`Kalmala.World.M7.BiomeContentContract` completed with
+`Test Completed. Result={Success}` and exit code 0. The initial launch that
+passed a literal `$userDir` was discarded as harness evidence; the corrected
+rerun produced the focused log at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7BiomeContent-6875549d7451476e8a5ba3943e2ef5e9/BiomeContent.log`.
+
+Multiplayer impact: Server authority is unchanged. The server validates and
+selects the rare source, keeps the canonical descriptor for interaction and
+claiming, and replicates only the selected presentation identity on the
+relevant discovery actor. Clients cannot submit source IDs, definitions,
+locations, claims, rewards, or routes.
+
+Known limits: This run verifies the build and deterministic contract only; a
+live rendered host/client rare-discovery observation, packaged playback, and
+long-session presentation remain open. The next M7 tool-lifecycle contract
+is still blocked pending its focused automation after a functioning build;
+live harvest wiring, atomic inventory/durability/node mutation, repair,
+persistence, and host/client gathering evidence remain future work.
+
+Next task: Restore the first-wave tool contract handoff by running the focused
+`Kalmala.Gameplay.Tools.LifecycleContract` automation, then wire its validated
+selection into the existing server interaction and harvest-node transaction.
+
+### 2026-09-22T21:32:27+03:00 — Recheck M7 tool lifecycle verification (blocked)
+
+Outcome: Re-attempted the first eligible M7 tool-lifecycle contract
+verification after the rare-discovery build was restored. The existing bounded
+contract remains present and unchanged; no harvest wiring, inventory mutation,
+tool item, repair path, reward persistence, or save field was added in this
+run.
+
+Changed: Updated `BACKLOG.md` and appended this handoff only. The pre-existing
+tool contract, focused automation, setup contract, and rare-discovery changes
+were preserved without alteration.
+
+Verification: Three direct UE5.8 `KalmalaEditor Win64 Development` attempts
+were made with `%LOCALAPPDATA%\\UnrealBuildTool` available: `-WaitMutex` at
+21:26:32, a second `-WaitMutex` attempt at 21:29:27, and a `-Verbose` attempt
+at 21:30:47. The first was observed for 90 seconds and the latter two for at
+least 60 seconds; each remained before compilation with only the responsive
+current-run UnrealBuildTool `dotnet` host, no `cl.exe` or `link.exe` child, and
+no change to `%LOCALAPPDATA%/UnrealBuildTool/Log.txt` (12,960 bytes,
+21:06:10). Only current-run sessions were stopped. The focused
+`Kalmala.Gameplay.Tools.LifecycleContract` automation could not run without a
+verified build. `Scripts/Verify-M5DocumentationContracts.ps1` passed all five
+contracts, and `git diff --check` passed with only existing line-ending
+advisories. No commit was made because required verification failed.
+
+Multiplayer impact: None beyond the already present server-only contract.
+Its source selection, authority/trace/range/world/node gates, skill and tool
+matching, durability spend, and catalogue reward remain server-owned; clients
+cannot author a node, yield, durability, reward, or outcome. No RPC,
+replicated property, inventory mutation, persistence, or save-schema change
+occurred in this run.
+
+Known limits: The focused tool contract is still not build- or runtime-
+verified. Live interaction wiring, atomic inventory/durability/node mutation,
+repair, persistence, tool presentation, and host/client gathering evidence
+remain open. The three-attempt UnrealBuildTool stall is the concrete blocker.
+
+Next task: Restore a functioning UE5.8 UnrealBuildTool invocation, run the
+focused `Kalmala.Gameplay.Tools.LifecycleContract` automation, and only then
+wire the validated selection into the existing server interaction and
+harvest-node transaction.
+
+### 2026-09-22T21:47:59+03:00 — Verify M7 tool lifecycle contract
+
+Outcome: Closed the bounded first-wave tool/action contract definition. The
+focused automation now checks the server-derived source mappings and fail-
+closed gates without implying that live gathering is wired into gameplay.
+
+Changed: Expanded `KalmalaToolLifecycleContractTest.cpp` to set durability to
+zero for the depleted-tool case and to verify trace, world, node, range,
+tool/action/skill, invalid reward, and durability bounds. Every rejection now
+also checks that condition remains unchanged and reward output is cleared.
+Updated `BACKLOG.md` to close this contract leaf, retain its resolved build
+stall history, and list server interaction/harvest transaction wiring as the
+next task. No gameplay contract, RPC, asset, persistence, or save-schema code
+changed. This checkout already contained unrelated and task-related changes;
+no files were staged or committed.
+
+Verification: Forced `KalmalaEditor Win64 Development` build passed with
+`-WaitMutex -NoHotReload -Force -MaxParallelActions=4` and access to
+`%LOCALAPPDATA%\\UnrealBuildTool`. The focused
+`Kalmala.Gameplay.Tools.LifecycleContract` automation passed in
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7Tools-c7db392c691149a584ff606f9477a2e7/LifecycleContract.log`.
+The first test run exposed that the old fixture still had one durability;
+the test was corrected, rebuilt, and rerun successfully.
+
+Multiplayer impact: Test and handoff changes only. Selection, source identity,
+skill requirements, durability use, and material reward remain server-owned;
+clients still cannot submit source IDs, results, reward quantities, or
+depletion state. No RPC, replication, or persistence path changed.
+
+Known limits: This verifies contract rules only. The server interaction and
+harvest-node transaction are not wired; atomic inventory/durability/depletion,
+repair, persistence, player-facing tool state, and host/client gathering
+remain open.
+
+Next task: Wire the verified selection into the existing server interaction
+and harvest-node transaction, with atomic inventory, durability, node
+depletion, and catalogue reward changes.

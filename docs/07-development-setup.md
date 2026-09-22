@@ -57,6 +57,10 @@ when it builds a population descriptor and replicates the selected identity
 on the relevant harvest or wildlife actor. A valid gathering source builds an
 original collision-free procedural presentation from that replicated ID on
 both peers; it does not change the existing reward, depletion, or save path.
+Each valid point-of-interest rare source also maps to a distinct original
+collision-free procedural presentation. The source identity is replicated only
+with the already materialized relevant discovery actor; clients do not receive
+candidate lists or author definitions, positions, claims, rewards, or routes.
 Wildlife then derives a bounded
 ecological profile from that replicated niche: flee pressure remains between
 180 cm and 300 cm and a sparse original vertex-colour accent helps nearby peers
