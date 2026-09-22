@@ -20,6 +20,7 @@ struct KALMALAWORLD_API FKalmalaBiomeContentDefinition
 {
     EKalmalaBiome Biome = EKalmalaBiome::Ocean;
     FName GatheringSourceId = NAME_None;
+    FName GatheringPresentationId = NAME_None;
     FName CreatureNicheId = NAME_None;
     FName RareDiscoverySourceId = NAME_None;
     bool bRareDiscoveryOptional = false;
@@ -37,20 +38,20 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
         switch (Biome)
         {
         case EKalmalaBiome::Meadows:
-            return { Biome, TEXT("meadows-birch-bark"), TEXT("meadows-open-grazer"), TEXT("meadows-hidden-stone"), true };
+            return { Biome, TEXT("meadows-birch-bark"), TEXT("birch-bark-bundle"), TEXT("meadows-open-grazer"), TEXT("meadows-hidden-stone"), true };
         case EKalmalaBiome::ShimmeringLakes:
-            return { Biome, TEXT("lakes-reed-cluster"), TEXT("lakes-shore-forager"), TEXT("lakes-island-cache"), true };
+            return { Biome, TEXT("lakes-reed-cluster"), TEXT("reed-cluster"), TEXT("lakes-shore-forager"), TEXT("lakes-island-cache"), true };
         case EKalmalaBiome::Elderwood:
-            return { Biome, TEXT("elderwood-resinwood"), TEXT("elderwood-canopy-browser"), TEXT("elderwood-root-hollow"), true };
+            return { Biome, TEXT("elderwood-resinwood"), TEXT("resinwood-bundle"), TEXT("elderwood-canopy-browser"), TEXT("elderwood-root-hollow"), true };
         case EKalmalaBiome::MossyMire:
-            return { Biome, TEXT("mire-bog-iron"), TEXT("mire-hummock-scavenger"), TEXT("mire-sunken-cache"), true };
+            return { Biome, TEXT("mire-bog-iron"), TEXT("bog-iron-vein"), TEXT("mire-hummock-scavenger"), TEXT("mire-sunken-cache"), true };
         case EKalmalaBiome::FreezingTundra:
-            return { Biome, TEXT("tundra-frostmoss"), TEXT("tundra-wind-grazer"), TEXT("tundra-ice-spring"), true };
+            return { Biome, TEXT("tundra-frostmoss"), TEXT("frostmoss-clump"), TEXT("tundra-wind-grazer"), TEXT("tundra-ice-spring"), true };
         case EKalmalaBiome::ThunderMountains:
-            return { Biome, TEXT("mountains-slate-vein"), TEXT("mountains-ridge-forager"), TEXT("mountains-storm-overlook"), true };
+            return { Biome, TEXT("mountains-slate-vein"), TEXT("slate-vein"), TEXT("mountains-ridge-forager"), TEXT("mountains-storm-overlook"), true };
         case EKalmalaBiome::Ocean:
         default:
-            return { Biome, NAME_None, NAME_None, NAME_None, false };
+            return { Biome, NAME_None, NAME_None, NAME_None, NAME_None, false };
         }
     }
 
@@ -70,9 +71,35 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
     {
         return IsFirstWaveBiome(Definition.Biome)
             && !Definition.GatheringSourceId.IsNone()
+            && !Definition.GatheringPresentationId.IsNone()
             && !Definition.CreatureNicheId.IsNone()
             && !Definition.RareDiscoverySourceId.IsNone()
             && Definition.bRareDiscoveryOptional;
+    }
+
+    static FName GetGatheringPresentationId(const FName GatheringSourceId)
+    {
+        if (GatheringSourceId.IsNone()) return NAME_None;
+        for (const EKalmalaBiome Biome : {
+            EKalmalaBiome::Meadows,
+            EKalmalaBiome::ShimmeringLakes,
+            EKalmalaBiome::Elderwood,
+            EKalmalaBiome::MossyMire,
+            EKalmalaBiome::FreezingTundra,
+            EKalmalaBiome::ThunderMountains })
+        {
+            const FKalmalaBiomeContentDefinition Definition = GetDefinition(Biome);
+            if (Definition.GatheringSourceId == GatheringSourceId)
+            {
+                return Definition.GatheringPresentationId;
+            }
+        }
+        return NAME_None;
+    }
+
+    static bool IsValidGatheringSourceId(const FName GatheringSourceId)
+    {
+        return !GetGatheringPresentationId(GatheringSourceId).IsNone();
     }
 
     static bool IsOptionalRareDiscoverySource(const EKalmalaBiome Biome)

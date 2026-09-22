@@ -452,6 +452,15 @@ optional discoveries. They are materialized only from server-derived
 descriptors or a defeated server-selected candidate, carry no route or client
 location, and do not gate traversal, camp, combat, or support progression.
 
+The first-wave gathering-source increment materializes each valid catalogue
+source as an original collision-free procedural presentation on its existing
+server-owned harvest actor. The source ID is derived from the immutable world
+identity and descriptor biome, then replicated only with the relevant actor so
+each peer can build the same local presentation. It does not accept a client
+source, tool, reward, damage, quantity, depletion, or save value; the existing
+server grant and sparse harvested-spawn path remain unchanged until the M7 tool
+lifecycle contract.
+
 ## Optional discovery descriptor foundation
 
 `FKalmalaWorldPopulationLayout` now derives at most one `PointOfInterest` and

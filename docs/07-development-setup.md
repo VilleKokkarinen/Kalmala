@@ -54,7 +54,10 @@ replication seam:
 creature-niche ID, and optional rare-discovery-source ID for each of the six
 first-wave land biomes. The server derives the matching gathering or niche ID
 when it builds a population descriptor and replicates the selected identity
-on the relevant harvest or wildlife actor. Wildlife then derives a bounded
+on the relevant harvest or wildlife actor. A valid gathering source builds an
+original collision-free procedural presentation from that replicated ID on
+both peers; it does not change the existing reward, depletion, or save path.
+Wildlife then derives a bounded
 ecological profile from that replicated niche: flee pressure remains between
 180 cm and 300 cm and a sparse original vertex-colour accent helps nearby peers
 read habitat identity. Existing spatial/seed persistent IDs, depletion rules,

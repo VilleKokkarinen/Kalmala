@@ -7,6 +7,8 @@
 #include "KalmalaHarvestNode.generated.h"
 
 class USphereComponent;
+class UMaterialInterface;
+class UProceduralMeshComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaHarvestNodeHarvested, const FString& /* PersistentSpawnId */);
 
@@ -24,6 +26,7 @@ public:
     static bool IsHarvestAllowed(bool bServerAuthority, bool bAlreadyHarvested, const FVector& InteractorLocation, const FVector& NodeLocation, float MaximumDistance = 250.0f);
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
     FName GetGatheringSourceId() const { return GatheringSourceId; }
+    FName GetGatheringPresentationId() const;
     FName GetHarvestItemId() const;
     FKalmalaHarvestNodeHarvested OnHarvested;
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
@@ -31,6 +34,7 @@ public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
+    void BuildSourcePresentation();
     void ApplyHarvestedState();
 
     UPROPERTY(VisibleAnywhere, Category = "Harvest")
@@ -43,9 +47,21 @@ private:
     FString PersistentSpawnId;
 
     /** Relevant peers may present the server-selected biome source; reward selection remains server-side. */
-    UPROPERTY(Replicated, VisibleAnywhere, Category = "Harvest")
+    UPROPERTY(ReplicatedUsing = OnRep_GatheringSourceId, VisibleAnywhere, Category = "Harvest")
     FName GatheringSourceId = NAME_None;
+
+    UPROPERTY(VisibleAnywhere, Category = "Harvest")
+    TObjectPtr<UProceduralMeshComponent> SourceMesh;
+
+    UPROPERTY(Transient)
+    TObjectPtr<UMaterialInterface> BarkMaterial;
+
+    UPROPERTY(Transient)
+    TObjectPtr<UMaterialInterface> RockMaterial;
 
     UFUNCTION()
     void OnRep_Harvested();
+
+    UFUNCTION()
+    void OnRep_GatheringSourceId();
 };

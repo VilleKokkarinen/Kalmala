@@ -133,6 +133,11 @@ M7 has nine ordered goals:
    only the matching server-selected ID; their existing spatial/seed sparse
    identities remain unchanged. Ocean receives no land-content entry, and the
    existing point-of-interest descriptor uses the optional rare-source ID.
+   Valid gathering sources now materialize an original, collision-free
+   procedural harvest presentation on the relevant server-owned actor. The
+   presentation is selected from the replicated source ID on every peer; it
+   does not add a tool, reward, depletion, or save field, and the existing
+   legacy reward path remains unchanged until the tool lifecycle slice.
    Each niche now also selects a bounded server-owned flee response and sparse
    original presentation accent from that ID; the existing archetype, damage,
    reward, and sparse identity paths remain unchanged. Tool validation,

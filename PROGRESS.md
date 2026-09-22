@@ -8,6 +8,60 @@
 
 ## Run log
 
+### 2026-09-22T16:57:58Z — Materialize first-wave gathering sources
+
+Outcome: Completed one bounded M7 biome-identity increment. Each valid
+first-wave gathering-source ID now materializes an original procedural,
+collision-free presentation on its server-owned harvest actor: bark bundles,
+reed/frostmoss clusters, or iron/slate veins. The server catalogue supplies a
+separate presentation identity for Meadows, Shimmering Lakes, Elderwood,
+Mossy Mire, Freezing Tundra, and Thunder Mountains. Replicated peers rebuild
+the same presentation from the server-selected source ID; discovery nodes stay
+presentation-free. Invalid non-empty source IDs fail closed during server
+initialization.
+
+Changed: Updated
+`Source/KalmalaWorld/Public/KalmalaBiomeContentContract.h` and its focused
+`Source/KalmalaWorld/Private/Tests/KalmalaBiomeContentContractTest.cpp`.
+Updated `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h` and
+`Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp` with the replicated
+source-presentation seam, original procedural mesh, material selection, and
+invalid-source guard. Synchronized `BACKLOG.md`, `docs/04-roadmap.md`,
+`docs/05-decision-log.md`, `docs/07-development-setup.md`, and
+`docs/11-combat-and-support-magic.md`.
+
+Verification: The first forced UE5.8 editor build exposed only the new include
+path error (`ConstructorHelpers.h`); changing it to
+`UObject/ConstructorHelpers.h` repaired that compile failure. The final forced
+`KalmalaEditor Win64 Development` build passed in 5 actions with
+`Result: Succeeded`, using `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`.
+The isolated headless run passed `Kalmala.World.M7.BiomeContentContract`,
+`Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion`, and
+`Kalmala.Gameplay.Inventory.Catalogue`; evidence is retained at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaGatheringSource-20260922-1956/GatheringSource.log`.
+The live `Scripts/Verify-Inventory.ps1 -Port 18652` host/client fixture passed;
+evidence is under
+`C:/Users/Ville/AppData/Local/Temp/KalmalaInventory-fa45a2a56eec4ac380eb84fc7362b769`.
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: The server still selects the source ID from the immutable
+world identity and deterministic population descriptor. Relevant peers receive
+only that existing source identity and build local collision-free presentation;
+clients cannot submit or mutate source IDs, nodes, tools, rewards, quantities,
+depletion, damage, or save state. The existing legacy reward and sparse
+harvested-spawn paths are unchanged.
+
+Known limits: This increment does not add tool traces, durability, skill
+awards, source-specific material rewards, creature-specific loot, rare-
+discovery rewards/presentation, or M7 persistence integration. The procedural
+mesh uses existing project-owned bark/rock materials and was verified in
+null-RHI host/client fixtures, not by player-visible packaged inspection.
+
+Next task: Continue the first open M7 biome-identity child with one bounded
+server-owned creature outcome or optional rare-discovery materialization before
+starting the separate tool lifecycle task.
+
 ### 2026-09-22T16:43:07Z — Add biome niche ecology guardrails
 
 Outcome: Completed one bounded M7 biome-identity increment. Each of the six

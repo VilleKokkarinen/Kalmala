@@ -459,6 +459,7 @@ PC solo/listen-server co-op boundary. The roadmap contract is in
 - [ ] Establish biome-specific material and creature identity.
   - [ ] Add one reliable gathering source, one creature niche, and one rarer discovery source per first-wave biome using stable server-selected catalogue and spatial/encounter identities.
     - [x] Establish the bounded first-wave catalogue and carry its server-selected gathering, creature-niche, and optional rare-discovery IDs on deterministic descriptors; existing spatial/seed identities remain unchanged. Passed 2026-09-22 with focused `Kalmala.World.M7.BiomeContentContract` evidence after the UE5.8 build.
+    - [x] Materialize each valid first-wave gathering source as an original procedural, collision-free harvest presentation while retaining the existing server-selected source ID, sparse identity, and legacy reward path. Passed 2026-09-22 with focused biome-content and harvest-authority evidence after the UE5.8 build.
   - [x] Keep creatures ecologically readable, and keep bosses, elite rewards, rare caches, treasures, and shipwreck discoveries optional rather than routes or mandatory gates.
     - Passed 2026-09-22: each first-wave niche now selects a server-owned bounded flee profile (180–300 cm) and sparse original presentation accent; rare point-of-interest sources and the Mireling boss scroll remain server-derived, route-free, and non-gating. Focused authority/discovery tests and independent Mireling, boar, and deer peer regressions passed.
 - [ ] Complete tool-based gathering and tool lifecycle.
