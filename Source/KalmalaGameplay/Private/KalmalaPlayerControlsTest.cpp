@@ -20,7 +20,7 @@ void AKalmalaCharacter::VerifyPlayerControls(const float DeltaSeconds)
         const float Before = Movement->GetStamina();
         if (!HasAuthority()) Movement->AdvanceStaminaFromServer(0.25f);
         const bool bRejected = HasAuthority() || Before == Movement->GetStamina();
-        const bool bPassed = bRejected && FMath::IsNearlyEqual(Movement->GetMaxSpeed(), Movement->MaxWalkSpeed * 1.5f * 0.9f);
+        const bool bPassed = bRejected && FMath::IsNearlyEqual(Movement->GetMaxSpeed(), Movement->MaxWalkSpeed * 1.5f * UKalmalaPlayerStatusComponent::WetMovementMultiplier);
         UE_LOG(LogTemp, Display, TEXT("Wet stamina: Passed=%d Authority=%d Remote=%d Stamina=%.2f Speed=%.2f Cost=%.2f ClientMutationRejected=%d"),
             bPassed, HasAuthority(), !IsLocallyControlled(), Before, Movement->GetMaxSpeed(), Statuses->CalculateStaminaCost(10.0f), bRejected);
         bWetStaminaReport = true;

@@ -40,8 +40,10 @@ public:
     static const FName WetStatusId;
     static constexpr float WetMaximumSeconds = 120.0f;
     static constexpr float UnroofedRainTriggerSeconds = 10.0f;
-    static constexpr float WetMovementMultiplier = 0.90f;
-    static constexpr float WetStaminaUseMultiplier = 1.25f;
+    // Wet remains a meaningful exposure pressure, but its movement and sprint
+    // costs leave room for a player to recover or choose a short detour.
+    static constexpr float WetMovementMultiplier = 0.92f;
+    static constexpr float WetStaminaUseMultiplier = 1.15f;
 
     FKalmalaStatusModifiers GetModifiers() const { return EvaluateModifiers(Statuses); }
     static FKalmalaStatusModifiers EvaluateModifiers(const TArray<FKalmalaPlayerStatusEntry>& Entries);

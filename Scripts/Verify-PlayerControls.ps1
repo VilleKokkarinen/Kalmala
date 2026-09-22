@@ -60,7 +60,7 @@ try {
     if ((Get-Date) -ge $deadline) { throw 'Player controls/movement audio verification timed out.' }
     if ($clientText -notmatch "Client received world-generation identity: Seed=418") { throw 'Client world identity mismatch.' }
     foreach ($match in [regex]::Matches($serverText, 'Controls server sprint: Remote=\d Speed=([\d.]+) Base=([\d.]+)')) {
-        $statusFactor = if ($WetStamina) { 0.9 } else { 1.0 }
+        $statusFactor = if ($WetStamina) { 0.92 } else { 1.0 }
         if ([Math]::Abs([double]$match.Groups[1].Value - 1.5 * $statusFactor * [double]$match.Groups[2].Value) -gt 0.2) { throw 'Server sprint did not retain its status multiplier.' }
     }
     if ($MovementAudio) {
