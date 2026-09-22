@@ -6382,3 +6382,35 @@ conditional on the existing documented engine blocker.
 
 Next task: Restore a targetable native Windows game surface, then run the
 unchanged fresh-player packaged co-op charter as M6's first acceptance finding.
+
+### 2026-09-22T16:53:31+03:00 — Close M5/M6 backlog and add M7
+
+Outcome: Per user direction, marked the M5 and M6 backlog milestones complete
+for sequencing and added the roadmap-defined M7 content queue. The M5
+player-visible packaged run, M6 two-pass release suite, native package loop,
+and dedicated-server playtest remain explicitly recorded as deferred or
+conditional limitations; these checkboxes are administrative closure, not new
+acceptance evidence.
+
+Changed: Updated `BACKLOG.md` with the M5/M6 closure status and the ordered M7
+persistence, progression, biome, tool, food, crafting, hazard, HUD,
+verification, and release-regression tasks. Appended this handoff to
+`PROGRESS.md`. No runtime, asset, network, persistence, save-schema, package,
+or release-configuration files changed.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` and `git diff
+--check` passed. No Unreal build was needed because this was a backlog and
+sequencing update only.
+
+Multiplayer impact: Documentation and sequencing only. M7 retains server-owned
+progression, resource identity, creatures, tools, repairs, processing, food,
+hazards, weather, timers, loot, rewards, and persistence; clients remain
+intent-only and private progression/inventory/loot remain owner-scoped.
+
+Known limits: The M6 acceptance requirements remain unresolved despite the
+administrative closure: no targetable native Windows surface, no player-facing
+packaged co-op run, no physical-input/audio/persistence observation, and no
+dedicated-server validation with the installed Launcher engine.
+
+Next task: Establish the M7 versioned persistence and migration gate before
+implementing persistent progression, food, tools, depletion, or rare loot.

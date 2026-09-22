@@ -304,10 +304,14 @@ and peer regressions cover the three archetypes, optional discoveries, and all f
 non-damaging support effects. A rendered two-player acceptance scenario is no
 longer a roadmap requirement.
 
-### M5 — Vertical-slice finish
+### M5 — Vertical-slice finish (complete)
 
 This milestone is decomposed so its release work is ordered and independently
 verifiable. M4 is complete under its revised focused-regression acceptance.
+
+**M5 status:** complete for backlog sequencing through the documented external-
+surface skip. The player-visible packaged co-op completion path remains an
+explicit limitation and is not represented as passed.
 
 - [x] Establish the shippable vertical-slice baseline and tool-free loop.
   - [x] Document the 20–30 minute solo/listen-server co-op walkthrough using only normal player actions and the existing route-free world. See `docs/12-vertical-slice-runbook.md`.
@@ -393,7 +397,7 @@ verifiable. M4 is complete under its revised focused-regression acceptance.
   - [x] **Skip path (external environment only):** Record that the final player-visible run is unavailable after the release-regression aggregate has passed and at least three normal packaged launches, including one fresh-profile windowed launch, remain alive in the active session with `MainWindowHandle=0` and no targetable native-app inventory. This skip closes the M5 queue but does not claim the player-visible acceptance, normal joining, reconnect observation, physical input, audio, packaged persistence, or long-session balance as passed. **SKIPPED 2026-09-22:** four retained-package launches meet these conditions: default, windowed, normal listen, and fresh-profile windowed `-ForceRes`; all exposed `MainWindowHandle=0` in session 8 while `cua.getState()` reported `apps=[]` with only the Codex in-app browser. See `PROGRESS.md` for exact evidence.
 - [x] Record remaining limitations, supported session modes, and the handoff for M6. The current supported evidence is automated, rendered offscreen, current-generator, authority, persistence, reconnect, package-smoke, and conditional dedicated-server checks; tool-free native packaged co-op remains a deferred M6 acceptance finding.
 
-### M6 — Production hardening and supported-session validation
+### M6 — Production hardening and supported-session validation (complete)
 
 Start only after M5's vertical-slice acceptance passes or its documented
 external-surface skip closes the M5 queue. Do not add gameplay content, change
@@ -402,19 +406,25 @@ solo/listen-server co-op scope. The detailed sequencing and acceptance remain
 in `docs/04-roadmap.md`; the player-facing charter remains in
 `docs/12-vertical-slice-runbook.md`.
 
-- [ ] Close the deferred M5 acceptance finding and any additional player-visible findings.
-  - [ ] Restore a targetable native Windows game surface and run the unchanged fresh-player 20–30 minute packaged co-op charter using normal player actions only.
-  - [ ] Triage crash, hang, reconnect, late-join, save-identity, input, accessibility, and readable non-audio feedback findings; convert each result into a focused regression or an explicit documented non-goal.
-  - [ ] Do not substitute developer fixtures, offscreen captures, console commands, teleportation, or scripted gameplay for the player-facing run.
-- [ ] Re-run the complete release suite twice from clean temporary user directories.
-  - [ ] Run the automated, rendered host/client, current-generator, authority, persistence, reconnect, and performance checks and retain logs, screenshots, package metadata, and the known-limit record.
-  - [ ] Repair only regressions within the existing actor, memory, worker, raster, startup, replication, and save budgets; do not increase world, population, or online-service scope.
-- [ ] Validate the Windows Development package as the supported release candidate.
-  - [ ] Produce and smoke-launch the accepted package without changing saved-data schemas or CI/release configuration.
-  - [ ] Verify the fresh-player loop, relevant peer state, normal joining, reconnect, sparse persistence, and readable local feedback without developer tools.
-- [ ] Attempt dedicated-server validation only when a server-capable Unreal 5.8 build is available.
-  - [ ] If available, compile the retained `KalmalaServer` target and run a bounded two-to-four-player test covering join, movement, interaction, weather/camp recovery, creatures, support effects, late join, reconnect, and sparse persistence.
-  - [ ] If only the installed Launcher engine remains available, retain the documented blocker and do not invent a replacement service.
+**M6 status:** closed for backlog sequencing by explicit user direction on
+2026-09-22. This administrative closure does not claim that the native-surface
+co-op run, two-pass release suite, package player loop, or dedicated-server
+validation passed; those remain documented limitations and release-candidate
+gates.
+
+- [x] Close the deferred M5 acceptance finding and any additional player-visible findings. **Administrative closure; player-visible evidence remains deferred.**
+  - [x] Restore a targetable native Windows game surface and run the unchanged fresh-player 20–30 minute packaged co-op charter using normal player actions only. **Deferred; no targetable native surface was available.**
+  - [x] Triage crash, hang, reconnect, late-join, save-identity, input, accessibility, and readable non-audio feedback findings; convert each result into a focused regression or an explicit documented non-goal. **Deferred with the player-facing run.**
+  - [x] Do not substitute developer fixtures, offscreen captures, console commands, teleportation, or scripted gameplay for the player-facing run. **Constraint retained.**
+- [x] Re-run the complete release suite twice from clean temporary user directories. **Administrative closure; retained evidence does not claim two complete passes.**
+  - [x] Run the automated, rendered host/client, current-generator, authority, persistence, reconnect, and performance checks and retain logs, screenshots, package metadata, and the known-limit record. **Existing retained evidence covers the documented subsets.**
+  - [x] Repair only regressions within the existing actor, memory, worker, raster, startup, replication, and save budgets; do not increase world, population, or online-service scope. **Scope constraint retained; no new runtime repair in this closure.**
+- [x] Validate the Windows Development package as the supported release candidate. **Administrative closure; player-facing acceptance remains deferred.**
+  - [x] Produce and smoke-launch the accepted package without changing saved-data schemas or CI/release configuration. **Package smoke passed; native player surface remained unavailable.**
+  - [x] Verify the fresh-player loop, relevant peer state, normal joining, reconnect, sparse persistence, and readable local feedback without developer tools. **Deferred to a usable native surface.**
+- [x] Attempt dedicated-server validation only when a server-capable Unreal 5.8 build is available. **Conditional closure.**
+  - [x] If available, compile the retained `KalmalaServer` target and run a bounded two-to-four-player test covering join, movement, interaction, weather/camp recovery, creatures, support effects, late join, reconnect, and sparse persistence. **Not attempted because no server-capable build is installed.**
+  - [x] If only the installed Launcher engine remains available, retain the documented blocker and do not invent a replacement service. **Documented blocker retained.**
 
 **M6 multiplayer boundary:** the server continues to own world generation,
 combat, support, discovery, rewards, persistence, and all accepted outcomes.
@@ -427,3 +437,59 @@ completes the 20–30 minute co-op loop without developer tools; relevant peer
 state, reconnect, and persistence remain correct; recorded performance budgets
 remain green; and only explicitly documented limitations remain. Dedicated-
 server acceptance is conditional on the documented Unreal 5.8 capability.
+
+### M7 — Content update: survival progression and readable gameplay UI
+
+Start only after the M6 release-candidate gates are explicitly reviewed. Use the
+existing inventory, harvest-node, camp-crafting, construction, status, and local
+HUD foundations. Add original, route-free survival content without silently
+extending saved-data schemas, online services, platform scope, or the current
+PC solo/listen-server co-op boundary. The roadmap contract is in
+`docs/04-roadmap.md`.
+
+- [ ] Establish the versioned M7 persistence and migration gate before adding persistent progression, food, tool, depletion, or rare-loot state.
+  - [ ] Define identity/world matching, migration policy, sparse generated-content deltas, and round-trip/rejection tests for any state that must survive reconnect or restart.
+  - [ ] Keep development fixtures transient and server-owned until the save contract is approved; do not silently extend existing save schemas.
+- [ ] Add server-owned skill progression.
+  - [ ] Define a small allowlisted set of original gathering, woodcutting, mining, crafting, cooking, and survival skills with bounded server-awarded experience, levels, and unlocks.
+  - [ ] Replicate detailed progression only to the owning player and relevant presentation state to other peers; reject client-authored experience, level, unlock, multiplier, and reward values.
+- [ ] Establish biome-specific material and creature identity.
+  - [ ] Add one reliable gathering source, one creature niche, and one rarer discovery source per first-wave biome using stable server-selected catalogue and spatial/encounter identities.
+  - [ ] Keep creatures ecologically readable, and keep bosses, elite rewards, rare caches, treasures, and shipwreck discoveries optional rather than routes or mandatory gates.
+- [ ] Complete tool-based gathering and tool lifecycle.
+  - [ ] Validate authoritative traces, range, tool/action selection, skill, node state, bounded durability, zero-condition rejection, and catalogue-validated material rewards on the server.
+  - [ ] Add accepted repair at a validated station or workbench with repair-material costs; persist only approved sparse depletion facts and never accept client-selected nodes, yield, damage, durability, repair result, or reward.
+- [ ] Add optional food, preparation, and nutrition choices.
+  - [ ] Add original edible items and recipes through existing inventory/crafting transactions, with a first camp-processing set covering a cooking rack, heat-safe kettle or cauldron analogue, and drying or smoking frame.
+  - [ ] Define explicit fuel, heat, access, batch, failure, stacking, replacement, expiry, and duplicate-consumption rules for finite readable stat benefits without making food a hard travel gate.
+- [ ] Broaden crafting and camp progression.
+  - [ ] Add a bounded first tier of tools, gathering implements, repair materials, cooking/preservation recipes, storage/camp improvements, and skill-gated recipes through atomic inventory exchanges and station validation.
+  - [ ] Provide ingredient, station, unlock, failure, repair, batch, stack, and accessibility text; processing stations must not become parallel inventory or fire authorities.
+- [ ] Add biome-specific hazards and active-weather pressure.
+  - [ ] Extend server-owned exposure with bounded, reversible, counterable fog, rain, storms, heat, cold, and clearly marked highly-active-weather states.
+  - [ ] Let authoritative hazard intensity affect only approved visibility, wetness, warmth, stamina recovery, movement comfort, fire safety, or creature-pressure outcomes; clients cannot submit weather, exposure, hazard, or mitigation results.
+- [ ] Build the survival HUD and GUI pass.
+  - [ ] Add local status presentation with original icon/shape markers, names, categories, replicated timers, intensity or stacks, source, and recovery guidance for Wet, food, hazards, and other active effects, plus a colour-independent calm/active/highly-active weather indicator.
+  - [ ] Extend inventory, crafting, station, and equipment views with food details, active modifiers, skills, tool condition, repair cost, unlock state, ingredients, station requirements, provenance, and unavailable reasons while preserving keyboard/controller focus, text scale, contrast, and text-plus-marker feedback.
+- [ ] Verify biome discovery and recovery choices.
+  - [ ] Verify a fresh player can gather, craft or obtain a tool, gather wood or ore, repair, prepare food, choose a temporary benefit, recognize active weather, and return with an optional creature or hidden discovery.
+  - [ ] Verify same-seed host/client resources and creatures, rejected client mutations, owner-only progression/inventory privacy, rare-loot visibility, status presentation, reconnect behavior, and bounded actor, memory, replication, and save costs.
+- [ ] Retain the M6 release-candidate loop after the content pass.
+  - [ ] Re-run traversal, camp, combat, support, weather, construction, storage, persistence, minimap, packaged, and supported-session acceptance without regression.
+
+**M7 multiplayer boundary:** the server owns skill awards, resource identity,
+creature behavior and defeat, tool validation, durability, repair outcomes, node
+depletion, recipe unlocks, station processing, ingredient costs, food effects,
+stat changes, weather/hazard intensity, timers, loot selection, and rewards.
+Clients receive only the state needed for their controls, local presentation,
+or ordinary relevant-world feedback; private inventory, progression, and
+detailed loot remain owner-scoped.
+
+**M7 acceptance:** the integrated biome gathering, creature, crafting, repair,
+food-processing, progression, hazard, and HUD loop is playable without
+developer commands; all outcomes are authoritative and recoverable; rare
+discoveries remain optional and original; status icons, timers, intensity, and
+recovery guidance are readable without colour; matching peers observe permitted
+state; rejected requests leave inventory, skills, tools, resources, effects,
+hazards, loot, and saves unchanged; and the M6 release-candidate loop remains
+playable.
