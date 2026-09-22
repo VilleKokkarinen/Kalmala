@@ -215,7 +215,7 @@ Bear's Vigor targets only its caster. After the shared server-owned entitlement,
 sequence, cooldown, and shared 18-stamina base transaction succeeds (20.7 while
 Wet), it raises the existing
 authoritative stamina cap from 100 to 140 and supplies a 1.4 strength multiplier
-for eight seconds. It never refills stamina on activation, and expiry restores
+for ten seconds. It never refills stamina on activation, and expiry restores
 the 100 cap while clamping only any excess current stamina. A second request
 while the finite modifier is active changes no stamina, cooldown, sequence, or
 presentation state. The existing server combat execution may apply the bounded
