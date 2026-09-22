@@ -29,9 +29,11 @@ namespace
     constexpr TCHAR RestoreVolumeKey[] = TEXT("LocalRestoreVolume");
     constexpr TCHAR TextScaleKey[] = TEXT("LocalTextScalePercent");
     constexpr TCHAR ContrastModeKey[] = TEXT("LocalContrastMode");
+    constexpr TCHAR FeedbackModeKey[] = TEXT("LocalFeedbackMode");
     constexpr float DefaultMasterVolume = 1.0f;
     constexpr int32 DefaultTextScalePercent = 100;
     constexpr int32 DefaultContrastMode = 0;
+    constexpr int32 DefaultFeedbackMode = 0;
 
     struct FSettingsPalette
     {
@@ -565,6 +567,28 @@ void UKalmalaSettingsWidget::SetContrastMode(const int32 Mode)
     GConfig->Flush(false, GGameUserSettingsIni);
 }
 
+int32 UKalmalaSettingsWidget::ClampFeedbackMode(const int32 Mode)
+{
+    return FMath::Clamp(Mode, 0, 1);
+}
+
+int32 UKalmalaSettingsWidget::GetFeedbackMode()
+{
+    int32 Value = DefaultFeedbackMode;
+    if (GConfig != nullptr)
+    {
+        GConfig->GetInt(AudioSettingsSection, FeedbackModeKey, Value, GGameUserSettingsIni);
+    }
+    return ClampFeedbackMode(Value);
+}
+
+void UKalmalaSettingsWidget::SetFeedbackMode(const int32 Mode)
+{
+    if (GConfig == nullptr) return;
+    GConfig->SetInt(AudioSettingsSection, FeedbackModeKey, ClampFeedbackMode(Mode), GGameUserSettingsIni);
+    GConfig->Flush(false, GGameUserSettingsIni);
+}
+
 int32 UKalmalaSettingsWidget::GetRemappableControlCount()
 {
     return GetLocalInputDefinitions().Num();
@@ -925,6 +949,10 @@ void UKalmalaSettingsWidget::ShowSettingsTab()
     Contrast->OnClicked.AddDynamic(this, &ThisClass::HandleContrastClicked);
     ContrastLabel = Cast<UTextBlock>(Contrast->GetContent());
 
+    UButton* Feedback = AddButton(ContentBox, FText::GetEmpty(), TEXT("FeedbackButton"));
+    Feedback->OnClicked.AddDynamic(this, &ThisClass::HandleFeedbackClicked);
+    FeedbackLabel = Cast<UTextBlock>(Feedback->GetContent());
+
     AddLabel(ContentBox,
         FText::FromString(TEXT("Changes apply immediately to this local menu and are saved on this device.")),
         15.0f)->SetJustification(ETextJustify::Center);
@@ -992,6 +1020,12 @@ void UKalmalaSettingsWidget::UpdateSettingsLabels()
         ContrastLabel->SetText(FText::FromString(FString::Printf(
             TEXT("Contrast: %s (Activate to change)"),
             GetContrastMode() == 0 ? TEXT("Standard") : TEXT("High"))));
+    }
+    if (FeedbackLabel != nullptr)
+    {
+        FeedbackLabel->SetText(FText::FromString(FString::Printf(
+            TEXT("Colour-independent feedback: %s (Activate to change)"),
+            GetFeedbackMode() == 0 ? TEXT("Text only") : TEXT("Text + markers"))));
     }
 }
 
@@ -1066,5 +1100,11 @@ void UKalmalaSettingsWidget::HandleTextScaleClicked()
 void UKalmalaSettingsWidget::HandleContrastClicked()
 {
     SetContrastMode(GetContrastMode() == 0 ? 1 : 0);
+    ShowSettingsTab();
+}
+
+void UKalmalaSettingsWidget::HandleFeedbackClicked()
+{
+    SetFeedbackMode(GetFeedbackMode() == 0 ? 1 : 0);
     ShowSettingsTab();
 }

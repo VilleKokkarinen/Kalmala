@@ -70,6 +70,9 @@ public:
     static int32 ClampContrastMode(int32 Mode);
     static int32 GetContrastMode();
     static void SetContrastMode(int32 Mode);
+    static int32 ClampFeedbackMode(int32 Mode);
+    static int32 GetFeedbackMode();
+    static void SetFeedbackMode(int32 Mode);
     static int32 GetRemappableControlCount();
     static FName GetRemappableControlName(int32 Index);
     static FText GetRemappableControlLabel(FName ControlName);
@@ -138,6 +141,8 @@ private:
     void HandleTextScaleClicked();
     UFUNCTION()
     void HandleContrastClicked();
+    UFUNCTION()
+    void HandleFeedbackClicked();
 
     UPROPERTY(Transient)
     TObjectPtr<class UVerticalBox> ContentBox;
@@ -163,6 +168,8 @@ private:
     TObjectPtr<UTextBlock> TextScaleLabel;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> ContrastLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> FeedbackLabel;
 
     UPROPERTY(Transient)
     TObjectPtr<class UBorder> BackdropBorder;

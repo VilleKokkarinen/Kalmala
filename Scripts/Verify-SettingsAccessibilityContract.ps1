@@ -50,6 +50,9 @@ $requiredTerms = @{
     'Readable modal scaling' = 'auto-wrapped labels and buttons.*larger bounded panel'
     'Contrast palette' = 'backdrop, panel, button surfaces, text, and focusable state controls'
     'Non-colour feedback' = 'colour-independent feedback'
+    'Feedback choices' = 'Text only.*Text \+ markers'
+    'Feedback state coverage' = '(?s)Wet, hearth, construction,.*combat, discovery, and support'
+    'Owner-only feedback overlay' = 'owner-only overlay'
     'Keyboard/controller access' = 'keyboard.*controller|controller.*keyboard'
     'Focus navigation' = 'visible focus|stable tab/order navigation'
     'Text audio equivalent' = 'text equivalents.*current value|readable text confirmation'
@@ -70,8 +73,30 @@ if ($text -notmatch 'Escape') {
 if ($text -notmatch 'Cancel.*apply.*reset|apply.*reset.*actions') {
     throw 'Settings/accessibility contract does not define reversible local changes'
 }
-if ($text -notmatch '(?s)Colour-independent feedback preferences and the full\s+rendered settings-persistence verification remain queued') {
+if ($text -notmatch 'Full rendered\s+settings-persistence verification remains open') {
     throw 'Settings/accessibility contract does not state its remaining runtime verification limit'
+}
+
+$feedbackSource = Join-Path $projectRoot 'Source\KalmalaUI\Private\KalmalaAccessibilityFeedbackSubsystem.cpp'
+if (-not (Test-Path -LiteralPath $feedbackSource -PathType Leaf)) {
+    throw "Accessibility feedback source was not found: $feedbackSource"
+}
+$feedbackSourceText = Get-Content -LiteralPath $feedbackSource -Raw
+foreach ($anchor in @(
+    'UKalmalaAccessibilityFeedbackSubsystem',
+    'GetFeedbackMode',
+    'COLOUR-INDEPENDENT FEEDBACK',
+    'MarkerLine(TEXT("WET")',
+    'MarkerLine(TEXT("HEARTH")',
+    'MarkerLine(TEXT("CONSTRUCTION")',
+    'MarkerLine(TEXT("COMBAT")',
+    'MarkerLine(TEXT("DISCOVERY")',
+    'MarkerLine(TEXT("SUPPORT")',
+    'IsLocalController'
+)) {
+    if ($feedbackSourceText -notmatch [regex]::Escape($anchor)) {
+        throw "Accessibility feedback source is missing anchor: $anchor"
+    }
 }
 
 Write-Output 'PASS: settings/accessibility contract covers option groups, input access, non-colour feedback, local persistence, and server authority.'

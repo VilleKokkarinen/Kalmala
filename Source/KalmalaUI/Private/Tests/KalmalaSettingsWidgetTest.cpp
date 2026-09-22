@@ -68,6 +68,18 @@ bool FKalmalaSettingsWidgetTest::RunTest(const FString& Parameters)
         UKalmalaSettingsWidget::GetContrastMode(), 1);
     UKalmalaSettingsWidget::SetContrastMode(OriginalContrastMode);
 
+    TestEqual(TEXT("Colour-independent feedback clamps below text-only mode"),
+        UKalmalaSettingsWidget::ClampFeedbackMode(-1), 0);
+    TestEqual(TEXT("Colour-independent feedback accepts text-plus-markers mode"),
+        UKalmalaSettingsWidget::ClampFeedbackMode(1), 1);
+    TestEqual(TEXT("Colour-independent feedback clamps unknown values to marker mode"),
+        UKalmalaSettingsWidget::ClampFeedbackMode(4), 1);
+    const int32 OriginalFeedbackMode = UKalmalaSettingsWidget::GetFeedbackMode();
+    UKalmalaSettingsWidget::SetFeedbackMode(1);
+    TestEqual(TEXT("Colour-independent feedback persists in local settings"),
+        UKalmalaSettingsWidget::GetFeedbackMode(), 1);
+    UKalmalaSettingsWidget::SetFeedbackMode(OriginalFeedbackMode);
+
     TestTrue(TEXT("Controls expose the existing movement, look, and action intents"),
         UKalmalaSettingsWidget::GetRemappableControlCount() >= 10);
     TestEqual(TEXT("Controls keep the movement-forward intent first"),

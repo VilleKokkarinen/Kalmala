@@ -61,6 +61,14 @@ while every state continues to expose an explicit text value. Both choices
 persist in the existing local `GameUserSettings` configuration and affect no
 gameplay widget, replicated property, or server request.
 
+The Settings tab also provides a local colour-independent feedback choice:
+**Text only** keeps the existing readable state lines, while **Text + markers**
+adds explicit bracketed state markers for Wet, hearth, construction, combat,
+discovery, and support status in a local owner-only overlay. The marker mode
+uses text rather than colour as the distinction, follows the local contrast
+palette, and updates as the existing accepted gameplay state changes. It is
+stored beside the other local settings and never becomes a gameplay signal.
+
 ## Existing input baseline
 
 The current normal-player baseline in `Config/DefaultInput.ini` is the source
@@ -129,6 +137,9 @@ does not change audio or state on a connected remote client.
 The category values are local configuration too. Ambient and one-shot
 presenters read them from the current process and apply them only to its local
 player components or cue submissions; a connected peer has separate settings.
+The colour-independent feedback mode is likewise local to each player process.
+Its overlay reads only that owner's existing pawn components and replicated
+results; it creates no request, target, reward, or hidden-content indication.
 
 ## Acceptance and limits
 
@@ -147,7 +158,8 @@ The focused `Kalmala.UI.Settings.LocalPresentation` automation checks
 master-volume bounds, local config round-trip, immediate mute and restore,
 category-level bounds and config round-trips, bounded control labels, local
 control persistence and restore defaults, and text-scale/contrast bounds and
-round-trips. It does not render the Settings or Controls tabs, simulate physical
-controller input, establish audible quality, or prove that the larger modal fits
-every supported viewport. Colour-independent feedback preferences and the full
-rendered settings-persistence verification remain queued.
+round-trips plus the colour-independent feedback mode bounds and local
+round-trip. It does not render the Settings or Controls tabs or the marker
+overlay, simulate physical controller input, establish audible quality, or
+prove that the larger modal fits every supported viewport. Full rendered
+settings-persistence verification remains open.
