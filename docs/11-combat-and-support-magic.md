@@ -277,7 +277,11 @@ advance the owned pawn's session sequence and find an alive
 `AKalmalaWildlifeSpawn` through the pawn's forward visibility trace within 220
 cm. The server alone records a replicated action serial, enters an 0.18-second
 windup, rechecks the selected target at execution, applies the fixed 25 damage,
-then holds a 0.42-second recovery before another request can be accepted.
+then holds a 0.36-second recovery before another request can be accepted. The
+shorter recovery keeps a committed attack readable while making repeated
+optional wildlife encounters less stop-start; it remains a positive server-time
+busy window and does not alter target selection, damage, replay gates, or
+relevant-peer action presentation.
 
 Wildlife now owns replicated 100-point health and accepts only finite, positive,
 server-local combat damage capped at 100 per execution. Zero health joins its

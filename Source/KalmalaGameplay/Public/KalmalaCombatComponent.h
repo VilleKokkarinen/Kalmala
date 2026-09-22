@@ -27,6 +27,7 @@ public:
     uint32 GetActionSerial() const { return ActionSerial; }
     EKalmalaCombatFeedback GetFeedback() const { return Feedback; }
     uint32 GetFeedbackSerial() const { return FeedbackSerial; }
+    static constexpr float GetRecoverySeconds() { return RecoverySeconds; }
     static bool IsAttackRequestAllowed(bool bAuthority, bool bNewSequence, uint32 Sequence, bool bActionIdle, bool bTargetValid);
 private:
     AKalmalaWildlifeSpawn* FindServerTarget() const;
@@ -36,7 +37,7 @@ private:
     static constexpr float AttackRange = 220.0f;
     static constexpr float AttackDamage = 25.0f;
     static constexpr float WindupSeconds = 0.18f;
-    static constexpr float RecoverySeconds = 0.42f;
+    static constexpr float RecoverySeconds = 0.36f;
     UPROPERTY(Replicated) EKalmalaCombatActionPhase ActionPhase = EKalmalaCombatActionPhase::Idle;
     UPROPERTY(Replicated) uint32 ActionSerial = 0;
     UPROPERTY(Replicated) EKalmalaCombatFeedback Feedback = EKalmalaCombatFeedback::None;
