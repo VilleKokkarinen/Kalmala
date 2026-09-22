@@ -4215,3 +4215,35 @@ balance work.
 Next task: Continue the first open balance leaf with one bounded cost,
 cooldown, duration, pressure, reward, or recovery increment, then rerun only
 the affected authority and peer regressions.
+
+### 2026-09-22T13:35:54+03:00 — Close M5 balance loop
+
+Outcome: Closed the first remaining M5 balance aggregate after its bounded
+children were completed. The accepted loop now records Wet movement and
+stamina pressure, support cost and cooldown, player attack recovery, timed
+Hearth Shield and Bear's Vigor support, Mireling melee pressure, and the
+post-tuning authority, persistence, reconnect, and host/client regression
+suite. Preparation remains a choice without a hard travel gate.
+
+Changed: Updated the two aggregate tuning checkboxes in `BACKLOG.md` and
+appended this handoff. No runtime, asset, network, persistence, save-schema,
+or roadmap files changed.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` passed as the
+no-build M5 contract gate, and `git diff --check` passed. The required UE5.8
+build and focused peer evidence are retained on the completed child entries;
+this aggregate closure introduced no code requiring a rebuild.
+
+Multiplayer impact: Documentation closure only. The accepted balance values
+remain server-owned; clients still provide intent only and cannot author
+targets, damage, timing, costs, durations, rewards, recovery, or save values.
+No RPC, replicated property, authority rule, population budget, or persistence
+schema changed.
+
+Known limits: The final tool-free 20–30 minute packaged co-op acceptance,
+complete release regression, packaged persistence, physical input, audible
+quality, long-session balance, shipping GPU performance, and dedicated-server
+validation remain open or conditional on the documented UE5.8 engine blocker.
+
+Next task: Complete M5 release regression and packaging verification before
+starting the final no-developer-tools acceptance or M6 hardening work.

@@ -338,8 +338,8 @@ verifiable. M4 is complete under its revised focused-regression acceptance.
 - [ ] Run the performance and startup pass.
   - [ ] Profile packaged startup, generated-world traversal, population activation, weather/camp updates, replication, and map/minimap workers on the supported Windows target.
   - [ ] Fix regressions within existing bounded actor, memory, worker, and raster budgets without increasing world, population, or online-service scope.
-- [ ] Tune the survival, combat, creature, and support loop.
-  - [ ] Tune costs, cooldowns, durations, stamina/wetness penalties, creature pressure, rewards, and recovery so preparation creates choices without hard travel gates.
+- [x] Tune the survival, combat, creature, and support loop.
+  - [x] Tune costs, cooldowns, durations, stamina/wetness penalties, creature pressure, rewards, and recovery so preparation creates choices without hard travel gates.
     - [x] Tune the server-owned Mireling melee repeat interval from 1.0 to 1.25 seconds while preserving its 10-point damage, 180 cm range, target selection, defeat, and reward rules.
       - Passed 2026-09-22: forced UE5.8 `KalmalaEditor Win64 Development` build recorded `Result: Succeeded` in `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`; focused `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle` passed with the exact 1.25-second assertion; a fresh `Scripts/Verify-MirelingPeer.ps1 -Port 18497` passed server pressure, target-free client rejection, relevant replication, owner-only reward, and restart persistence; `Scripts/Verify-M4VerticalSlice.ps1 -Port 18498` passed all three creature peers, support authority/non-damage, and matching-world learning persistence. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingBalance-830c89d64a704e0f8b99fa1211a062e9/wildlife.log` and `C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-ca83ce4e5b3a42df87bf3aafb319b000`.
   - [x] Re-run authority, persistence, reconnect, and host/client checks after tuning; clients still provide intent only.
