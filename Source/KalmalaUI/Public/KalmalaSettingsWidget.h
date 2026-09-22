@@ -64,6 +64,12 @@ public:
     static float ClampAudioCategoryVolume(float Volume);
     static float GetAudioCategoryVolume(EKalmalaAudioCategory Category);
     static void SetAudioCategoryVolume(EKalmalaAudioCategory Category, float Volume);
+    static int32 ClampTextScale(int32 Percent);
+    static int32 GetTextScalePercent();
+    static void SetTextScalePercent(int32 Percent);
+    static int32 ClampContrastMode(int32 Mode);
+    static int32 GetContrastMode();
+    static void SetContrastMode(int32 Mode);
     static int32 GetRemappableControlCount();
     static FName GetRemappableControlName(int32 Index);
     static FText GetRemappableControlLabel(FName ControlName);
@@ -82,12 +88,15 @@ private:
     void ShowVideoTab();
     void ShowAudioTab();
     void ShowControlsTab();
+    void ShowSettingsTab();
     void ShowPlaceholderTab(const FText& Title, const FText& Description);
     void ApplyVideoSettings();
     void UpdateVideoLabels();
     void UpdateAudioLabels();
+    void UpdateSettingsLabels();
     void UpdateControlsLabels();
     void CycleAudioCategory(EKalmalaAudioCategory Category);
+    void ApplyModalPalette();
     UButton* AddButton(class UVerticalBox* Parent, const FText& Label, FName Name);
     UTextBlock* AddLabel(class UVerticalBox* Parent, const FText& Label, float FontSize = 20.0f);
 
@@ -125,6 +134,10 @@ private:
     void HandleControlBindingClicked(FName ControlName, bool bGamepad);
     UFUNCTION()
     void HandleRestoreControlsClicked();
+    UFUNCTION()
+    void HandleTextScaleClicked();
+    UFUNCTION()
+    void HandleContrastClicked();
 
     UPROPERTY(Transient)
     TObjectPtr<class UVerticalBox> ContentBox;
@@ -146,6 +159,15 @@ private:
     TObjectPtr<UTextBlock> MusicVolumeLabel;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> InteractionCombatVolumeLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> TextScaleLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> ContrastLabel;
+
+    UPROPERTY(Transient)
+    TObjectPtr<class UBorder> BackdropBorder;
+    UPROPERTY(Transient)
+    TObjectPtr<class UBorder> PanelBorder;
 
     UPROPERTY(Transient)
     TArray<TObjectPtr<UKalmalaControlButton>> ControlButtons;

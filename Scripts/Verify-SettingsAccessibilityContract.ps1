@@ -44,7 +44,11 @@ $requiredTerms = @{
     'Control config persistence' = 'stores only allowlisted local choices|local overrides'
     'Control baseline preservation' = 'DefaultInput\.ini.*never rewritten|DefaultInput\.ini.*unchanged'
     'Text scale option' = 'text scale'
+    'Text-scale choices' = '100%, 125%, and 150%'
     'Contrast option' = 'contrast'
+    'Contrast choices' = 'Standard or High contrast'
+    'Readable modal scaling' = 'auto-wrapped labels and buttons.*larger bounded panel'
+    'Contrast palette' = 'backdrop, panel, button surfaces, text, and focusable state controls'
     'Non-colour feedback' = 'colour-independent feedback'
     'Keyboard/controller access' = 'keyboard.*controller|controller.*keyboard'
     'Focus navigation' = 'visible focus|stable tab/order navigation'
@@ -66,7 +70,7 @@ if ($text -notmatch 'Escape') {
 if ($text -notmatch 'Cancel.*apply.*reset|apply.*reset.*actions') {
     throw 'Settings/accessibility contract does not define reversible local changes'
 }
-if ($text -notmatch '(?s)Text scale,\s+contrast, colour-independent feedback, and the full rendered settings-\s+persistence verification remain queued') {
+if ($text -notmatch '(?s)Colour-independent feedback preferences and the full\s+rendered settings-persistence verification remain queued') {
     throw 'Settings/accessibility contract does not state its remaining runtime verification limit'
 }
 

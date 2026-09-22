@@ -52,6 +52,15 @@ instance rehydrates the same local choices. The project baseline in
 `Config/DefaultInput.ini` is never rewritten. Escape remains available for the
 modal close path even when the alternate Settings action key is changed.
 
+The Settings tab now provides local text-scale choices of 100%, 125%, and 150%
+and Standard or High contrast. Text choices immediately rebuild the modal with
+scaled, auto-wrapped labels and buttons inside its larger bounded panel;
+Controls remains scrollable at the largest size. Contrast updates the local
+backdrop, panel, button surfaces, text, and focusable state controls together,
+while every state continues to expose an explicit text value. Both choices
+persist in the existing local `GameUserSettings` configuration and affect no
+gameplay widget, replicated property, or server request.
+
 ## Existing input baseline
 
 The current normal-player baseline in `Config/DefaultInput.ini` is the source
@@ -137,7 +146,8 @@ present, not that the runtime menu or packaged accessibility flow is complete.
 The focused `Kalmala.UI.Settings.LocalPresentation` automation checks
 master-volume bounds, local config round-trip, immediate mute and restore,
 category-level bounds and config round-trips, bounded control labels, local
-control persistence, and restore defaults. It does not render the Controls tab,
-simulate physical controller input, or establish audible quality. Text scale,
-contrast, colour-independent feedback, and the full rendered settings-
-persistence verification remain queued.
+control persistence and restore defaults, and text-scale/contrast bounds and
+round-trips. It does not render the Settings or Controls tabs, simulate physical
+controller input, establish audible quality, or prove that the larger modal fits
+every supported viewport. Colour-independent feedback preferences and the full
+rendered settings-persistence verification remain queued.

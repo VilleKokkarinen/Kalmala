@@ -44,6 +44,30 @@ bool FKalmalaSettingsWidgetTest::RunTest(const FString& Parameters)
     UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat,
         OriginalInteractionCombatVolume);
 
+    TestEqual(TEXT("Text scale clamps to the smallest supported choice"),
+        UKalmalaSettingsWidget::ClampTextScale(80), 100);
+    TestEqual(TEXT("Text scale keeps the middle supported choice"),
+        UKalmalaSettingsWidget::ClampTextScale(125), 125);
+    TestEqual(TEXT("Text scale clamps to the largest supported choice"),
+        UKalmalaSettingsWidget::ClampTextScale(200), 150);
+    const int32 OriginalTextScale = UKalmalaSettingsWidget::GetTextScalePercent();
+    UKalmalaSettingsWidget::SetTextScalePercent(125);
+    TestEqual(TEXT("Text scale persists in local settings"),
+        UKalmalaSettingsWidget::GetTextScalePercent(), 125);
+    UKalmalaSettingsWidget::SetTextScalePercent(OriginalTextScale);
+
+    TestEqual(TEXT("Contrast mode clamps below standard"),
+        UKalmalaSettingsWidget::ClampContrastMode(-1), 0);
+    TestEqual(TEXT("Contrast mode accepts high contrast"),
+        UKalmalaSettingsWidget::ClampContrastMode(1), 1);
+    TestEqual(TEXT("Contrast mode clamps unknown values to high contrast"),
+        UKalmalaSettingsWidget::ClampContrastMode(4), 1);
+    const int32 OriginalContrastMode = UKalmalaSettingsWidget::GetContrastMode();
+    UKalmalaSettingsWidget::SetContrastMode(1);
+    TestEqual(TEXT("Contrast mode persists in local settings"),
+        UKalmalaSettingsWidget::GetContrastMode(), 1);
+    UKalmalaSettingsWidget::SetContrastMode(OriginalContrastMode);
+
     TestTrue(TEXT("Controls expose the existing movement, look, and action intents"),
         UKalmalaSettingsWidget::GetRemappableControlCount() >= 10);
     TestEqual(TEXT("Controls keep the movement-forward intent first"),

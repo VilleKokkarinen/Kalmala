@@ -27,7 +27,55 @@ namespace
     constexpr TCHAR AudioSettingsSection[] = TEXT("/Script/KalmalaUI.KalmalaSettingsWidget");
     constexpr TCHAR MasterVolumeKey[] = TEXT("LocalMasterVolume");
     constexpr TCHAR RestoreVolumeKey[] = TEXT("LocalRestoreVolume");
+    constexpr TCHAR TextScaleKey[] = TEXT("LocalTextScalePercent");
+    constexpr TCHAR ContrastModeKey[] = TEXT("LocalContrastMode");
     constexpr float DefaultMasterVolume = 1.0f;
+    constexpr int32 DefaultTextScalePercent = 100;
+    constexpr int32 DefaultContrastMode = 0;
+
+    struct FSettingsPalette
+    {
+        FLinearColor Background;
+        FLinearColor Panel;
+        FLinearColor Text;
+        FLinearColor ButtonBackground;
+        FLinearColor ButtonText;
+    };
+
+    FSettingsPalette GetSettingsPalette()
+    {
+        if (UKalmalaSettingsWidget::GetContrastMode() != 0)
+        {
+            return {
+                FLinearColor(0.0f, 0.0f, 0.0f, 0.98f),
+                FLinearColor(0.035f, 0.035f, 0.035f, 1.0f),
+                FLinearColor::White,
+                FLinearColor(0.18f, 0.18f, 0.18f, 1.0f),
+                FLinearColor::White
+            };
+        }
+
+        return {
+            BackgroundColour,
+            PanelColour,
+            FLinearColor(0.86f, 0.92f, 0.90f, 1.0f),
+            FLinearColor(0.11f, 0.16f, 0.19f, 1.0f),
+            FLinearColor(0.98f, 1.0f, 0.96f, 1.0f)
+        };
+    }
+
+    float ScaleFontSize(const float BaseSize)
+    {
+        return BaseSize * (static_cast<float>(UKalmalaSettingsWidget::GetTextScalePercent()) / 100.0f);
+    }
+
+    void ApplyButtonPalette(UButton* Button)
+    {
+        if (Button == nullptr) return;
+        const FSettingsPalette Palette = GetSettingsPalette();
+        Button->SetBackgroundColor(Palette.ButtonBackground);
+        Button->SetColorAndOpacity(Palette.ButtonText);
+    }
 
     enum class ELocalInputMappingKind : uint8
     {
@@ -304,7 +352,18 @@ void UKalmalaControlButton::Configure(const FName InControlName, const bool bInG
 
 void UKalmalaControlButton::SetDisplayText(const FText& Text)
 {
-    if (UTextBlock* Label = Cast<UTextBlock>(GetContent())) Label->SetText(Text);
+    UTextBlock* Label = Cast<UTextBlock>(GetContent());
+    if (Label == nullptr)
+    {
+        Label = NewObject<UTextBlock>(this);
+        SetContent(Label);
+    }
+    Label->SetText(Text);
+    Label->SetColorAndOpacity(FSlateColor(GetSettingsPalette().ButtonText));
+    Label->SetAutoWrapText(true);
+    FSlateFontInfo Font = Label->GetFont();
+    Font.Size = ScaleFontSize(16.0f);
+    Label->SetFont(Font);
 }
 
 void UKalmalaControlButton::HandleButtonClicked()
@@ -320,21 +379,22 @@ void UKalmalaSettingsWidget::NativeConstruct()
     UCanvasPanel* Canvas = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("SettingsCanvas"));
     WidgetTree->RootWidget = Canvas;
     UBorder* Backdrop = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("SettingsBackdrop"));
-    Backdrop->SetBrushColor(BackgroundColour);
+    BackdropBorder = Backdrop;
     UCanvasPanelSlot* BackdropSlot = Canvas->AddChildToCanvas(Backdrop);
     BackdropSlot->SetAnchors(FAnchors(0.0f, 0.0f, 1.0f, 1.0f));
     BackdropSlot->SetOffsets(FMargin(0.0f));
 
     UBorder* Panel = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("SettingsPanel"));
-    Panel->SetBrushColor(PanelColour);
+    PanelBorder = Panel;
     Panel->SetPadding(FMargin(40.0f));
     UCanvasPanelSlot* PanelSlot = Canvas->AddChildToCanvas(Panel);
     PanelSlot->SetAnchors(FAnchors(0.5f, 0.5f));
     PanelSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-    PanelSlot->SetSize(FVector2D(620.0f, 580.0f));
+    PanelSlot->SetSize(FVector2D(760.0f, 660.0f));
 
     ContentBox = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("SettingsContent"));
     Panel->SetContent(ContentBox);
+    ApplyModalPalette();
     SetVisibility(ESlateVisibility::Collapsed);
 }
 
@@ -365,6 +425,13 @@ void UKalmalaSettingsWidget::Close()
         Controller->SetIgnoreMoveInput(false);
         Controller->SetIgnoreLookInput(false);
     }
+}
+
+void UKalmalaSettingsWidget::ApplyModalPalette()
+{
+    const FSettingsPalette Palette = GetSettingsPalette();
+    if (BackdropBorder != nullptr) BackdropBorder->SetBrushColor(Palette.Background);
+    if (PanelBorder != nullptr) PanelBorder->SetBrushColor(Palette.Panel);
 }
 
 int32 UKalmalaSettingsWidget::ClampViewDistanceQuality(const int32 Quality)
@@ -439,6 +506,62 @@ void UKalmalaSettingsWidget::SetAudioCategoryVolume(const EKalmalaAudioCategory 
     }
 
     GConfig->SetFloat(AudioSettingsSection, Key, ClampAudioCategoryVolume(Volume), GGameUserSettingsIni);
+    GConfig->Flush(false, GGameUserSettingsIni);
+}
+
+int32 UKalmalaSettingsWidget::ClampTextScale(const int32 Percent)
+{
+    constexpr int32 Choices[] = { 100, 125, 150 };
+    int32 ClosestChoice = Choices[0];
+    int32 ClosestDistance = FMath::Abs(Percent - ClosestChoice);
+    for (const int32 Choice : Choices)
+    {
+        const int32 Distance = FMath::Abs(Percent - Choice);
+        if (Distance < ClosestDistance)
+        {
+            ClosestChoice = Choice;
+            ClosestDistance = Distance;
+        }
+    }
+    return ClosestChoice;
+}
+
+int32 UKalmalaSettingsWidget::GetTextScalePercent()
+{
+    int32 Value = DefaultTextScalePercent;
+    if (GConfig != nullptr)
+    {
+        GConfig->GetInt(AudioSettingsSection, TextScaleKey, Value, GGameUserSettingsIni);
+    }
+    return ClampTextScale(Value);
+}
+
+void UKalmalaSettingsWidget::SetTextScalePercent(const int32 Percent)
+{
+    if (GConfig == nullptr) return;
+    GConfig->SetInt(AudioSettingsSection, TextScaleKey, ClampTextScale(Percent), GGameUserSettingsIni);
+    GConfig->Flush(false, GGameUserSettingsIni);
+}
+
+int32 UKalmalaSettingsWidget::ClampContrastMode(const int32 Mode)
+{
+    return FMath::Clamp(Mode, 0, 1);
+}
+
+int32 UKalmalaSettingsWidget::GetContrastMode()
+{
+    int32 Value = DefaultContrastMode;
+    if (GConfig != nullptr)
+    {
+        GConfig->GetInt(AudioSettingsSection, ContrastModeKey, Value, GGameUserSettingsIni);
+    }
+    return ClampContrastMode(Value);
+}
+
+void UKalmalaSettingsWidget::SetContrastMode(const int32 Mode)
+{
+    if (GConfig == nullptr) return;
+    GConfig->SetInt(AudioSettingsSection, ContrastModeKey, ClampContrastMode(Mode), GGameUserSettingsIni);
     GConfig->Flush(false, GGameUserSettingsIni);
 }
 
@@ -616,9 +739,10 @@ UTextBlock* UKalmalaSettingsWidget::AddLabel(UVerticalBox* Parent, const FText& 
 {
     UTextBlock* Text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
     Text->SetText(Label);
-    Text->SetColorAndOpacity(FSlateColor(FLinearColor(0.86f, 0.92f, 0.90f)));
+    Text->SetColorAndOpacity(FSlateColor(GetSettingsPalette().Text));
+    Text->SetAutoWrapText(true);
     FSlateFontInfo Font = Text->GetFont();
-    Font.Size = FontSize;
+    Font.Size = ScaleFontSize(FontSize);
     Text->SetFont(Font);
     UVerticalBoxSlot* BoxSlot = Parent->AddChildToVerticalBox(Text);
     BoxSlot->SetPadding(FMargin(4.0f, 8.0f));
@@ -628,11 +752,14 @@ UTextBlock* UKalmalaSettingsWidget::AddLabel(UVerticalBox* Parent, const FText& 
 UButton* UKalmalaSettingsWidget::AddButton(UVerticalBox* Parent, const FText& Label, const FName Name)
 {
     UButton* Button = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), Name);
+    ApplyButtonPalette(Button);
     UTextBlock* Text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
     Text->SetText(Label);
+    Text->SetColorAndOpacity(FSlateColor(GetSettingsPalette().ButtonText));
+    Text->SetAutoWrapText(true);
     Text->SetJustification(ETextJustify::Center);
     FSlateFontInfo Font = Text->GetFont();
-    Font.Size = 21;
+    Font.Size = ScaleFontSize(21.0f);
     Text->SetFont(Font);
     Button->SetContent(Text);
     UVerticalBoxSlot* BoxSlot = Parent->AddChildToVerticalBox(Button);
@@ -661,8 +788,15 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
     const auto AddTab = [this, Tabs](const FText& Label, FName Name, FScriptDelegate Delegate)
     {
         UButton* Tab = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), Name);
+        ApplyButtonPalette(Tab);
         UTextBlock* Text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
-        Text->SetText(Label); Text->SetJustification(ETextJustify::Center); Tab->SetContent(Text);
+        Text->SetText(Label);
+        Text->SetColorAndOpacity(FSlateColor(GetSettingsPalette().ButtonText));
+        Text->SetJustification(ETextJustify::Center);
+        FSlateFontInfo Font = Text->GetFont();
+        Font.Size = ScaleFontSize(18.0f);
+        Text->SetFont(Font);
+        Tab->SetContent(Text);
         Tab->OnClicked.Add(Delegate);
         UHorizontalBoxSlot* Slot = Tabs->AddChildToHorizontalBox(Tab); Slot->SetSize(FSlateChildSize(ESlateSizeRule::Fill)); Slot->SetPadding(FMargin(3.0f));
     };
@@ -736,9 +870,10 @@ void UKalmalaSettingsWidget::ShowControlsTab()
         UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
         UTextBlock* Label = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
         Label->SetText(GetRemappableControlLabel(ControlName));
-        Label->SetColorAndOpacity(FSlateColor(FLinearColor(0.86f, 0.92f, 0.90f)));
+        Label->SetColorAndOpacity(FSlateColor(GetSettingsPalette().Text));
+        Label->SetAutoWrapText(true);
         FSlateFontInfo Font = Label->GetFont();
-        Font.Size = 16;
+        Font.Size = ScaleFontSize(16.0f);
         Label->SetFont(Font);
         UHorizontalBoxSlot* LabelSlot = Row->AddChildToHorizontalBox(Label);
         LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
@@ -748,6 +883,7 @@ void UKalmalaSettingsWidget::ShowControlsTab()
         {
             UKalmalaControlButton* Button = WidgetTree->ConstructWidget<UKalmalaControlButton>(
                 UKalmalaControlButton::StaticClass());
+            ApplyButtonPalette(Button);
             Button->Configure(ControlName, bGamepad);
             Button->SetDisplayText(FText::GetEmpty());
             Button->OnControlBindingClicked.AddDynamic(this, &ThisClass::HandleControlBindingClicked);
@@ -773,6 +909,27 @@ void UKalmalaSettingsWidget::UpdateControlsLabels()
         Button->SetDisplayText(FText::FromString(FString::Printf(TEXT("%s: %s"), DeviceLabel,
             *GetLocalInputBindingLabel(Button->GetControlName(), Button->IsGamepadBinding()).ToString())));
     }
+}
+
+void UKalmalaSettingsWidget::ShowSettingsTab()
+{
+    while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
+    ApplyModalPalette();
+    AddLabel(ContentBox, FText::FromString(TEXT("Settings")), 24.0f);
+
+    UButton* TextScale = AddButton(ContentBox, FText::GetEmpty(), TEXT("TextScaleButton"));
+    TextScale->OnClicked.AddDynamic(this, &ThisClass::HandleTextScaleClicked);
+    TextScaleLabel = Cast<UTextBlock>(TextScale->GetContent());
+
+    UButton* Contrast = AddButton(ContentBox, FText::GetEmpty(), TEXT("ContrastButton"));
+    Contrast->OnClicked.AddDynamic(this, &ThisClass::HandleContrastClicked);
+    ContrastLabel = Cast<UTextBlock>(Contrast->GetContent());
+
+    AddLabel(ContentBox,
+        FText::FromString(TEXT("Changes apply immediately to this local menu and are saved on this device.")),
+        15.0f)->SetJustification(ETextJustify::Center);
+    UpdateSettingsLabels();
+    TextScale->SetUserFocus(GetOwningPlayer());
 }
 
 void UKalmalaSettingsWidget::ShowPlaceholderTab(const FText& Title, const FText& Description)
@@ -823,13 +980,28 @@ void UKalmalaSettingsWidget::UpdateAudioLabels()
         EKalmalaAudioCategory::InteractionCombat);
 }
 
+void UKalmalaSettingsWidget::UpdateSettingsLabels()
+{
+    if (TextScaleLabel != nullptr)
+    {
+        TextScaleLabel->SetText(FText::FromString(FString::Printf(
+            TEXT("Text Scale: %d%% (Activate to change)"), GetTextScalePercent())));
+    }
+    if (ContrastLabel != nullptr)
+    {
+        ContrastLabel->SetText(FText::FromString(FString::Printf(
+            TEXT("Contrast: %s (Activate to change)"),
+            GetContrastMode() == 0 ? TEXT("Standard") : TEXT("High"))));
+    }
+}
+
 void UKalmalaSettingsWidget::ApplyVideoSettings() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->ApplySettings(false); Settings->SaveSettings(); UpdateVideoLabels(); } }
 void UKalmalaSettingsWidget::HandleOptionsClicked() { ShowOptionsMenu(); }
 void UKalmalaSettingsWidget::HandleQuitClicked() { UKismetSystemLibrary::QuitGame(this, GetOwningPlayer(), EQuitPreference::Quit, false); }
 void UKalmalaSettingsWidget::HandleVideoClicked() { ShowVideoTab(); }
 void UKalmalaSettingsWidget::HandleAudioClicked() { ShowAudioTab(); }
 void UKalmalaSettingsWidget::HandleControlsClicked() { ShowControlsTab(); }
-void UKalmalaSettingsWidget::HandleSettingsClicked() { ShowPlaceholderTab(FText::FromString(TEXT("Settings")), FText::FromString(TEXT("Gameplay and accessibility settings will be available here."))); }
+void UKalmalaSettingsWidget::HandleSettingsClicked() { ShowSettingsTab(); }
 void UKalmalaSettingsWidget::HandleResolutionClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { ResolutionChoiceIndex = (ResolutionChoiceIndex + 1) % ResolutionChoices.Num(); Settings->SetScreenResolution(ResolutionChoices[ResolutionChoiceIndex]); ApplyVideoSettings(); } }
 void UKalmalaSettingsWidget::HandleVSyncClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->SetVSyncEnabled(!Settings->IsVSyncEnabled()); ApplyVideoSettings(); } }
 void UKalmalaSettingsWidget::HandleWindowModeClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { const EWindowMode::Type Mode = Settings->GetFullscreenMode(); Settings->SetFullscreenMode(Mode == EWindowMode::Fullscreen ? EWindowMode::Windowed : Mode == EWindowMode::Windowed ? EWindowMode::WindowedFullscreen : EWindowMode::Fullscreen); ApplyVideoSettings(); } }
@@ -881,4 +1053,18 @@ void UKalmalaSettingsWidget::HandleRestoreControlsClicked()
 {
     RestoreDefaultInputBindings(GetOwningPlayer());
     UpdateControlsLabels();
+}
+
+void UKalmalaSettingsWidget::HandleTextScaleClicked()
+{
+    const int32 Current = GetTextScalePercent();
+    const int32 Next = Current == 100 ? 125 : Current == 125 ? 150 : 100;
+    SetTextScalePercent(Next);
+    ShowSettingsTab();
+}
+
+void UKalmalaSettingsWidget::HandleContrastClicked()
+{
+    SetContrastMode(GetContrastMode() == 0 ? 1 : 0);
+    ShowSettingsTab();
 }
