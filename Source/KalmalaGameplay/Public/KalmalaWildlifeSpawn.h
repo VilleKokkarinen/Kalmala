@@ -45,6 +45,7 @@ public:
     bool IsDefeated() const { return bDefeated; }
     float GetHealth() const { return Health; }
     EKalmalaWildlifeArchetype GetArchetype() const { return Archetype; }
+    FName GetCreatureNicheId() const { return CreatureNicheId; }
     EKalmalaWildlifeBehaviour GetBehaviour() const { return Behaviour; }
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
     // Server-owned repeat-hit interval keeps optional Mireling pressure readable.
@@ -78,6 +79,10 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_Archetype)
     EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;
+
+    /** Server-selected ecological niche; archetype combat behaviour remains separately bounded. */
+    UPROPERTY(Replicated)
+    FName CreatureNicheId = NAME_None;
 
     UFUNCTION()
     void OnRep_Defeated();

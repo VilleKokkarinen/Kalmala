@@ -124,6 +124,17 @@ M7 has nine ordered goals:
    readable behaviour or ecological pressure, not only act as resource bags;
    bosses and rare caches remain optional discoveries and never become a
    designed route, mandatory gate, or copied fantasy reference.
+
+   The first identity slice uses the server-owned
+   `FKalmalaBiomeContentContract` catalogue for Meadows, Shimmering Lakes,
+   Elderwood, Mossy Mire, Freezing Tundra, and Thunder Mountains. Each entry
+   has one stable gathering-source ID, one creature-niche ID, and one optional
+   rare-discovery-source ID. Generated harvest and wildlife descriptors carry
+   only the matching server-selected ID; their existing spatial/seed sparse
+   identities remain unchanged. Ocean receives no land-content entry, and the
+   existing point-of-interest descriptor uses the optional rare-source ID.
+   Tool validation, material rewards, creature-specific outcomes, and discovery
+   presentation remain later M7 work.
 3. **Complete tool-based gathering and tool lifecycle.** Turn suitable
    generated trees, rocks, ore patches, and harvest resources into original
    server-validated woodcutting, mining, and gathering interactions. Tools have

@@ -36,6 +36,7 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         SpawnOrigin = Spawn.Location;
         BehaviourDestination = SpawnOrigin;
         PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+        CreatureNicheId = Spawn.ContentId;
         Archetype = GetArchetypeForSpawnSeed(Spawn.SpawnSeed);
         BuildArchetypePresentation();
     }
@@ -455,6 +456,7 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AKalmalaWildlifeSpawn, Health);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PersistentSpawnId);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, Archetype);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, CreatureNicheId);
 }
 
 void AKalmalaWildlifeSpawn::OnRep_Archetype()

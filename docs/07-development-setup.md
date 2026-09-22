@@ -48,6 +48,23 @@ replication seam:
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7CombinedUser' -abslog='C:\temp\KalmalaM7Combined.log' -ExecCmds="Automation RunTests Kalmala.World.M7.PersistenceContract+Kalmala.Gameplay.Progression.ReplicationContract+Kalmala.Gameplay.Progression.SkillContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
+### M7 first-wave biome content identity
+
+`FKalmalaBiomeContentContract` defines one original gathering-source ID,
+creature-niche ID, and optional rare-discovery-source ID for each of the six
+first-wave land biomes. The server derives the matching gathering or niche ID
+when it builds a population descriptor and replicates the selected identity
+on the relevant harvest or wildlife actor. Existing spatial/seed persistent
+IDs, depletion rules, archetype combat behaviour, inventory rewards, and save
+schemas remain unchanged. Point-of-interest descriptors use the optional rare
+source ID; clients do not submit or enumerate these identities.
+
+After the editor build, run the focused deterministic catalogue check:
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7BiomeContentUser' -abslog='C:\temp\KalmalaM7BiomeContent.log' -ExecCmds="Automation RunTests Kalmala.World.M7.BiomeContentContract; Quit" -TestExit="Automation Test Queue Empty"
+```
+
 ## First build
 
 Open PowerShell and run:

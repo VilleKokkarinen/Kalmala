@@ -8,6 +8,56 @@
 
 ## Run log
 
+### 2026-09-22T16:07:20Z — Add first-wave biome content identities
+
+Outcome: Completed one bounded M7 biome-identity increment. Added the
+server-owned `FKalmalaBiomeContentContract` catalogue with one stable
+gathering-source ID, creature-niche ID, and optional rare-discovery-source ID
+for Meadows, Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, and
+Thunder Mountains. Generated harvest and wildlife descriptors now carry the
+matching derived identity, and existing point-of-interest descriptors use the
+optional rare-source identity. Ocean receives no land-biome entry.
+
+Changed: Added
+`Source/KalmalaWorld/Public/KalmalaBiomeContentContract.h` and
+`Source/KalmalaWorld/Private/Tests/KalmalaBiomeContentContractTest.cpp`.
+Updated `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h` with the
+server-selected descriptor identity, `Source/KalmalaGameplay/Public/`
+`KalmalaHarvestNode.h` and `KalmalaWildlifeSpawn.h` plus their implementations
+to retain and replicate the relevant source/niche identity, and updated the
+M7 backlog, roadmap, decision, setup, and discovery contract documentation.
+Existing spatial/seed persistent IDs, harvest item rewards, creature
+archetype selection, defeat behavior, save schemas, and discovery claim rules
+remain unchanged.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development` builds passed
+with `%LOCALAPPDATA%\\UnrealBuildTool` access: the initial 20-action build and
+the final four-action incremental build both recorded `Result: Succeeded`.
+The final combined editor automation passed all four tests with
+`Result={Success}`: `Kalmala.World.M7.BiomeContentContract`,
+`Kalmala.World.BiomeExpansion.SharedContract`,
+`Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`, and
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence`. Evidence is at
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7BiomeContent-20260922-Final/BiomeContent.log`.
+`Scripts/Verify-M5DocumentationContracts.ps1` and `git diff --check` passed.
+
+Multiplayer impact: The server derives all catalogue IDs from the immutable
+world seed, sampled biome, and server population descriptor. Relevant harvest
+and wildlife actors replicate only the selected source/niche identity; clients
+have no mutation RPC or setter and cannot choose a node, target, reward,
+position, or discovery. Existing sparse IDs and authority boundaries remain
+the same.
+
+Known limits: This is the catalogue and descriptor seam only. It does not yet
+add tool traces, durability, material reward transactions, creature-specific
+niche behavior, rare-discovery rewards or presentation, M7 persistence
+integration, or the integrated fresh-player acceptance. The M7
+biome-identity task remains open.
+
+Next task: Continue the same M7 biome-identity child by materializing the
+catalogued gathering source, creature niche behavior, and optional rare
+discovery outcomes before starting tool lifecycle work.
+
 ### 2026-09-22T15:10:30Z — Add owner-only M7 skill replication
 
 Outcome: Completed the first eligible M7 progression replication child and

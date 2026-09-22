@@ -443,7 +443,8 @@ own server-only world-seed domain and considers no more than eight deterministic
 candidates. A candidate must remain inside the finite world, dry, gently
 traversable, and in a suitable biome (including optional Meadow stones); it has no actor, marker, map
 pin, route, reward, save record, RPC, or replication. POIs select an original
-biome-local definition such as `root-hollow` or `storm-overlook`; scrolls select
+biome-local definition such as `elderwood-root-hollow` or
+`mountains-storm-overlook`; scrolls select
 only the allowlisted future effect definitions `mending`, `hearth-shield`,
 `bears-vigor`, or `deer-call`.
 

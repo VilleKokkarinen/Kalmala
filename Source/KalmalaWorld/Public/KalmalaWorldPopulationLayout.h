@@ -8,6 +8,7 @@
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaBiomeContentContract.h"
 
 /**
  * Server-only deterministic population inputs. Spatial keys are invisible
@@ -37,6 +38,8 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationSpawn
     FIntPoint SpatialKey = FIntPoint::ZeroValue;
     uint64 SpawnSeed = 0;
     FVector Location = FVector::ZeroVector;
+    /** Server-selected biome material or creature-niche identity. */
+    FName ContentId = NAME_None;
 };
 
 struct KALMALAWORLD_API FKalmalaWorldDiscoveryDescriptor
@@ -109,7 +112,14 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
             const FVector2D Position = SpatialKeyOrigin + FVector2D(XFraction, YFraction) * SpatialKeySize;
             if (!FKalmalaWorldBounds::Contains(Config, Position)) continue;
             if (Kind == EKalmalaWorldPopulationKind::Wildlife && !IsTerrainSafeWildlifeLocation(Config, Position)) continue;
-            Spawns.Add({ Kind, SpatialKey, SpawnSeed, FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)) });
+            const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position));
+            const EKalmalaBiomeContentKind ContentKind = Kind == EKalmalaWorldPopulationKind::Wildlife
+                ? EKalmalaBiomeContentKind::CreatureNiche
+                : EKalmalaBiomeContentKind::GatheringSource;
+            const FName ContentId = Kind == EKalmalaWorldPopulationKind::Hazard
+                ? NAME_None
+                : FKalmalaBiomeContentContract::GetServerContentId(Biome, ContentKind);
+            Spawns.Add({ Kind, SpatialKey, SpawnSeed, FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)), ContentId });
         }
         return Spawns;
     }
@@ -176,16 +186,8 @@ private:
     {
         if (Kind == EKalmalaWorldDiscoveryKind::PointOfInterest)
         {
-            switch (Biome)
-            {
-            case EKalmalaBiome::Meadows: return TEXT("meadow-stone");
-            case EKalmalaBiome::ShimmeringLakes: return TEXT("lake-stone");
-            case EKalmalaBiome::Elderwood: return TEXT("root-hollow");
-            case EKalmalaBiome::MossyMire: return TEXT("mire-stone");
-            case EKalmalaBiome::FreezingTundra: return TEXT("ice-spring");
-            case EKalmalaBiome::ThunderMountains: return TEXT("storm-overlook");
-            default: return FString();
-            }
+            const FName RareDiscoveryId = FKalmalaBiomeContentContract::GetServerContentId(Biome, EKalmalaBiomeContentKind::RareDiscovery);
+            return RareDiscoveryId.IsNone() ? FString() : RareDiscoveryId.ToString();
         }
 
         switch (Biome)

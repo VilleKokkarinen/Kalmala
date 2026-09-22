@@ -23,6 +23,7 @@ public:
     void InitializeDiscoveryServer(const FString& InPersistentSpawnId, const FVector& InLocation);
     static bool IsHarvestAllowed(bool bServerAuthority, bool bAlreadyHarvested, const FVector& InteractorLocation, const FVector& NodeLocation, float MaximumDistance = 250.0f);
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
+    FName GetGatheringSourceId() const { return GatheringSourceId; }
     FName GetHarvestItemId() const;
     FKalmalaHarvestNodeHarvested OnHarvested;
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
@@ -40,6 +41,10 @@ private:
 
     UPROPERTY(Replicated, VisibleAnywhere, Category = "Harvest")
     FString PersistentSpawnId;
+
+    /** Relevant peers may present the server-selected biome source; reward selection remains server-side. */
+    UPROPERTY(Replicated, VisibleAnywhere, Category = "Harvest")
+    FName GatheringSourceId = NAME_None;
 
     UFUNCTION()
     void OnRep_Harvested();
