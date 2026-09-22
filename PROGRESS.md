@@ -8,6 +8,38 @@
 
 ## Run log
 
+### 2026-09-22T15:47:58+03:00 — Retain dedicated-server Launcher blocker
+
+Outcome: Completed the first eligible M5 release-regression child by checking
+whether a server-capable UE 5.8 installation is available. Only the installed
+Epic Games Launcher engine at `C:\Program Files\Epic Games\UE_5.8` exists; its
+`Engine\Build\InstalledBuild.txt` identifies the installed distribution, no
+alternate UE 5.8 root or `UnrealServer.exe` is available, and the retained
+`KalmalaServer` target remains conditional on a source or server-capable
+distribution. Per `docs/07-development-setup.md`, the server build command
+was not attempted against the Launcher engine.
+
+Changed: Updated `BACKLOG.md` and this handoff only. No runtime, asset,
+network, persistence, save-schema, CI, or release-configuration files changed.
+
+Verification: The read-only engine availability check found the documented
+Launcher marker and no alternate server-capable installation; the retained
+server target exists in `Source/KalmalaServer.Target.cs`. The conditional
+dedicated-server playtest was correctly not run. `Scripts/Verify-M5DocumentationContracts.ps1`
+and `git diff --check` passed.
+
+Multiplayer impact: No gameplay or networking code changed. Dedicated-server
+validation remains deferred; the existing solo/listen-server scope and
+server-authority boundary are unchanged.
+
+Known limits: This does not establish a dedicated-server build or playtest,
+packaged persistence, physical input, audible quality, or the final tool-free
+20–30 minute co-op acceptance. A UE 5.8 source build or another server-capable
+UE 5.8 distribution is still required for dedicated-server validation.
+
+Next task: Close the now-complete M5 release-regression aggregate, then run the
+final packaged 20–30 minute acceptance without developer tools.
+
 ### 2026-09-22T15:31:46+03:00 — Package and smoke-launch accepted Windows build
 
 Outcome: Completed the first eligible M5 release-regression packaging child.
