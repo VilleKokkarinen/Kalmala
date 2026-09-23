@@ -32,14 +32,14 @@ try {
     if ((Get-Date) -ge $deadline) { throw 'Two-player scenario timed out.' }
     $clientText = Get-Content $clientLog -Raw
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client world identity did not match the server.' }
-    $weatherPattern = 'weather cycle \d+: Start=[\d.]+ Duration=[\d.]+ Precipitation=[\d.]+ WindDirection=\d+ WindStrength=[\d.]+\.'
+    $weatherPattern = 'weather cycle \d+: Start=[\d.]+ Duration=[\d.]+ Precipitation=[\d.]+ Fog=[\d.]+ Storm=[\d.]+ WindDirection=\d+ WindStrength=[\d.]+ Activity=\d+\.'
     $weather = [regex]::Match($serverText, $weatherPattern).Value
     if (!$weather -or !$clientText.Contains($weather)) { throw 'Client weather did not match the server.' }
     $sites = [regex]::Matches($serverText, 'Camp choice site \d pawn=(\S+)')
     if ($sites.Count -ne 2) { throw 'Expected exactly two camp occupants.' }
     foreach ($site in $sites) {
         $pawn = $site.Groups[1].Value
-        $pattern = 'Camp choice client ' + [regex]::Escape($pawn) + ': Wetness=[\d.]+ Warmth=[\d.]+ Travel=[\d.]+\.'
+        $pattern = 'Camp choice client ' + [regex]::Escape($pawn) + ': Wetness=[\d.]+ Warmth=[\d.]+ Heat=[\d.]+ Cold=[\d.]+ Travel=[\d.]+\.'
         $matches = @([regex]::Matches($clientText, $pattern) | Where-Object { $serverText.Contains($_.Value.Replace('Camp choice client ', 'Camp choice server ')) })
         if ($matches.Count -lt 10) { throw "Insufficient matching replicated samples for $pawn." }
         Write-Output "$pawn matched $($matches.Count) server exposure snapshots."

@@ -227,6 +227,8 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
         FKalmalaExposureState State = Character->GetExposureState();
         State.Wetness = FKalmalaExposureResponse::AdvanceWetness(State.Wetness, Weather.PrecipitationIntensity, Environment.GroundWetness, Environment.WindExposure * Weather.WindStrength, Shelter.Shelter, FireWarmth, DeltaSeconds);
         State.Warmth = FKalmalaExposureResponse::AdvanceWarmth(State.Warmth, Environment.AmbientTemperature, State.Wetness, Environment.WindExposure * Weather.WindStrength, Shelter.Shelter, FireWarmth, DeltaSeconds);
+        State.HeatIntensity = FKalmalaExposureResponse::GetHeatIntensity(Environment.AmbientTemperature);
+        State.ColdIntensity = FKalmalaExposureResponse::GetColdIntensity(Environment.AmbientTemperature);
         State.TravelSpeedMultiplier = FKalmalaExposureResponse::GetTravelSpeedMultiplier(State.Warmth);
         // Saturated Mire ground stays traversable, but server-owned footing drag makes dry hummocks and raised shelter meaningful.
         if (Biome == EKalmalaBiome::MossyMire)
@@ -248,11 +250,11 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
         }
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")))
         {
-            UE_LOG(LogTemp, Display, TEXT("Camp choice server %s: Wetness=%.2f Warmth=%.2f Travel=%.2f."), *FString::FromInt(Character->GetPlayerState()->GetPlayerId()), State.Wetness, State.Warmth, State.TravelSpeedMultiplier);
+            UE_LOG(LogTemp, Display, TEXT("Camp choice server %s: Wetness=%.2f Warmth=%.2f Heat=%.2f Cold=%.2f Travel=%.2f."), *FString::FromInt(Character->GetPlayerState()->GetPlayerId()), State.Wetness, State.Warmth, State.HeatIntensity, State.ColdIntensity, State.TravelSpeedMultiplier);
         }
         if (bExposureReplicationTestEnabled)
         {
-            UE_LOG(LogTemp, Display, TEXT("Exposure replication test server state for %s: Weather=%d/%.2f/%d/%.2f Shelter=%.2f FireWarmth=%.2f Wetness=%.2f Warmth=%.2f TravelMultiplier=%.2f."), *Character->GetName(), Weather.WeatherCycleIndex, Weather.PrecipitationIntensity, Weather.WindDirectionDegrees, Weather.WindStrength, Shelter.Shelter, FireWarmth, State.Wetness, State.Warmth, State.TravelSpeedMultiplier);
+            UE_LOG(LogTemp, Display, TEXT("Exposure replication test server state for %s: Weather=%d/%.2f/%d/%.2f Shelter=%.2f FireWarmth=%.2f Wetness=%.2f Warmth=%.2f Heat=%.2f Cold=%.2f TravelMultiplier=%.2f."), *Character->GetName(), Weather.WeatherCycleIndex, Weather.PrecipitationIntensity, Weather.WindDirectionDegrees, Weather.WindStrength, Shelter.Shelter, FireWarmth, State.Wetness, State.Warmth, State.HeatIntensity, State.ColdIntensity, State.TravelSpeedMultiplier);
         }
     }
 }

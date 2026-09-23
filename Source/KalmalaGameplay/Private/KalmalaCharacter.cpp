@@ -84,6 +84,8 @@ void AKalmalaCharacter::SetExposureStateFromServer(const FKalmalaExposureState& 
 
     ExposureState.Wetness = FMath::Clamp(NewExposureState.Wetness, 0.0f, 100.0f);
     ExposureState.Warmth = FMath::Clamp(NewExposureState.Warmth, 0.0f, 100.0f);
+    ExposureState.HeatIntensity = FMath::IsFinite(NewExposureState.HeatIntensity) ? FMath::Clamp(NewExposureState.HeatIntensity, 0.0f, 1.0f) : 0.0f;
+    ExposureState.ColdIntensity = FMath::IsFinite(NewExposureState.ColdIntensity) ? FMath::Clamp(NewExposureState.ColdIntensity, 0.0f, 1.0f) : 0.0f;
     ExposureState.TravelSpeedMultiplier = FMath::Clamp(NewExposureState.TravelSpeedMultiplier, 0.68f, 1.0f);
     ApplyExposureTravelPenalty();
     ForceNetUpdate();
@@ -283,11 +285,11 @@ void AKalmalaCharacter::OnRep_ExposureState()
     ApplyExposureTravelPenalty();
     if (GetPlayerState() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")))
     {
-        UE_LOG(LogTemp, Display, TEXT("Camp choice client %s: Wetness=%.2f Warmth=%.2f Travel=%.2f."), *FString::FromInt(GetPlayerState()->GetPlayerId()), ExposureState.Wetness, ExposureState.Warmth, ExposureState.TravelSpeedMultiplier);
+        UE_LOG(LogTemp, Display, TEXT("Camp choice client %s: Wetness=%.2f Warmth=%.2f Heat=%.2f Cold=%.2f Travel=%.2f."), *FString::FromInt(GetPlayerState()->GetPlayerId()), ExposureState.Wetness, ExposureState.Warmth, ExposureState.HeatIntensity, ExposureState.ColdIntensity, ExposureState.TravelSpeedMultiplier);
     }
     if (bExposureReplicationTelemetryEnabled)
     {
-        UE_LOG(LogTemp, Display, TEXT("Exposure replication test client received state: Wetness=%.2f Warmth=%.2f TravelMultiplier=%.2f."), ExposureState.Wetness, ExposureState.Warmth, ExposureState.TravelSpeedMultiplier);
+        UE_LOG(LogTemp, Display, TEXT("Exposure replication test client received state: Wetness=%.2f Warmth=%.2f Heat=%.2f Cold=%.2f TravelMultiplier=%.2f."), ExposureState.Wetness, ExposureState.Warmth, ExposureState.HeatIntensity, ExposureState.ColdIntensity, ExposureState.TravelSpeedMultiplier);
     }
 }
 

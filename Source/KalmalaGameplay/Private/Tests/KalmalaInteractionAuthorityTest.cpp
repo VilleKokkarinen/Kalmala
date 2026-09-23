@@ -87,6 +87,12 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FKalmalaExposureConsequenceTest::RunTest(const FString& Parameters)
 {
+    TestEqual(TEXT("Hot ambient input maps to bounded heat intensity"), FKalmalaExposureResponse::GetHeatIntensity(20.0f), 1.0f);
+    TestEqual(TEXT("Cold ambient input maps to no heat intensity"), FKalmalaExposureResponse::GetHeatIntensity(-20.0f), 0.0f);
+    TestEqual(TEXT("Cold ambient input maps to bounded cold intensity"), FKalmalaExposureResponse::GetColdIntensity(-20.0f), 1.0f);
+    TestEqual(TEXT("Warm ambient input maps to no cold intensity"), FKalmalaExposureResponse::GetColdIntensity(20.0f), 0.0f);
+    TestEqual(TEXT("Non-finite climate values fail closed"), FKalmalaExposureResponse::GetColdIntensity(NAN), 0.0f);
+
     const float ExposedWetness = FKalmalaExposureResponse::AdvanceWetness(0.0f, 1.0f, 0.8f, 1.0f, 0.0f, 0.0f, 120.0f);
     const float ExposedWarmth = FKalmalaExposureResponse::AdvanceWarmth(100.0f, -12.0f, ExposedWetness, 1.0f, 0.0f, 0.0f, 120.0f);
     const float ExposedSpeed = FKalmalaExposureResponse::GetTravelSpeedMultiplier(ExposedWarmth);

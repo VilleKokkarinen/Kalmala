@@ -70,14 +70,18 @@ bool FKalmalaWeatherMutationTest::RunTest(const FString& Parameters)
     Accepted.WindDirectionDegrees = 90;
     Accepted.WindStrength = 0.5f;
     State->SetWeatherStateFromServer(Accepted);
+    TestEqual(TEXT("The server derives the activity tier from accepted weather"), State->GetWeatherState().ActivityLevel, EKalmalaWeatherActivityLevel::Active);
+    TestEqual(TEXT("Storm pressure derives from accepted rain and wind"), State->GetWeatherState().GetStormIntensity(), 0.25f);
     auto CheckUnchanged = [&]() {
         const auto& Actual = State->GetWeatherState();
         TestEqual(TEXT("Cycle preserved"), Actual.WeatherCycleIndex, Accepted.WeatherCycleIndex);
         TestEqual(TEXT("Start preserved"), Actual.ServerStartTimeSeconds, Accepted.ServerStartTimeSeconds);
         TestEqual(TEXT("Duration preserved"), Actual.DurationSeconds, Accepted.DurationSeconds);
         TestEqual(TEXT("Rain preserved"), Actual.PrecipitationIntensity, Accepted.PrecipitationIntensity);
+        TestEqual(TEXT("Fog preserved"), Actual.FogIntensity, Accepted.FogIntensity);
         TestEqual(TEXT("Wind direction preserved"), Actual.WindDirectionDegrees, Accepted.WindDirectionDegrees);
         TestEqual(TEXT("Wind strength preserved"), Actual.WindStrength, Accepted.WindStrength);
+        TestEqual(TEXT("Activity remains derived from replicated intensities"), Actual.ActivityLevel, FKalmalaWeatherState::DeriveActivityLevel(Actual.FogIntensity, Actual.PrecipitationIntensity, Actual.WindStrength));
     };
     CheckUnchanged();
     State->SetRole(ROLE_SimulatedProxy);
@@ -86,7 +90,7 @@ bool FKalmalaWeatherMutationTest::RunTest(const FString& Parameters)
     State->SetWeatherStateFromServer(Forged);
     CheckUnchanged();
     State->SetRole(ROLE_Authority);
-    for (int32 Case = 0; Case < 8; ++Case)
+    for (int32 Case = 0; Case < 10; ++Case)
     {
         Forged = Accepted;
         switch (Case)
@@ -99,6 +103,8 @@ bool FKalmalaWeatherMutationTest::RunTest(const FString& Parameters)
         case 5: Forged.DurationSeconds = 0.0f; break;
         case 6: Forged.WindDirectionDegrees = 1; break;
         case 7: Forged.WindStrength = -1.0f; break;
+        case 8: Forged.FogIntensity = NAN; break;
+        case 9: Forged.FogIntensity = 1.1f; break;
         }
         TestFalse(TEXT("Malformed weather fails validation"), Forged.IsValid());
         State->SetWeatherStateFromServer(Forged);

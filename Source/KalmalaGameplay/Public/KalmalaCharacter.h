@@ -28,6 +28,12 @@ struct FKalmalaExposureState
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Exposure")
     float Warmth = 100.0f;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Exposure", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+    float HeatIntensity = 0.0f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Exposure", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+    float ColdIntensity = 0.0f;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Exposure")
     float TravelSpeedMultiplier = 1.0f;
 };

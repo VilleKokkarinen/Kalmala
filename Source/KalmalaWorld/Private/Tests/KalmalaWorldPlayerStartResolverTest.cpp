@@ -265,8 +265,37 @@ bool FKalmalaWeatherCycleTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("A weather interval is within the replicated contract bounds"), First.IsValid());
     TestEqual(TEXT("The same immutable identity and cycle index repeat duration"), First.DurationSeconds, Repeated.DurationSeconds);
     TestEqual(TEXT("The same immutable identity and cycle index repeat precipitation"), First.PrecipitationIntensity, Repeated.PrecipitationIntensity);
+    TestEqual(TEXT("The same immutable identity and cycle index repeat fog"), First.FogIntensity, Repeated.FogIntensity);
     TestEqual(TEXT("The same immutable identity and cycle index repeat wind direction"), First.WindDirectionDegrees, Repeated.WindDirectionDegrees);
     TestEqual(TEXT("The same immutable identity and cycle index repeat wind strength"), First.WindStrength, Repeated.WindStrength);
+    TestEqual(TEXT("The same immutable identity and cycle index repeat activity tier"), First.ActivityLevel, Repeated.ActivityLevel);
+    TestTrue(TEXT("Storm intensity remains in normalized bounds"), FMath::IsWithinInclusive(First.GetStormIntensity(), 0.0f, 1.0f));
+
+    TestEqual(TEXT("Quiet weather is marked calm"), FKalmalaWeatherState::DeriveActivityLevel(0.1f, 0.0f, 0.2f), EKalmalaWeatherActivityLevel::Calm);
+    TestEqual(TEXT("Ordinary rain is marked active"), FKalmalaWeatherState::DeriveActivityLevel(0.0f, 0.30f, 0.40f), EKalmalaWeatherActivityLevel::Active);
+    TestEqual(TEXT("Dense fog is marked highly active"), FKalmalaWeatherState::DeriveActivityLevel(0.85f, 0.0f, 0.2f), EKalmalaWeatherActivityLevel::HighlyActive);
+    TestEqual(TEXT("Heavy rain and wind are marked highly active"), FKalmalaWeatherState::DeriveActivityLevel(0.0f, 0.90f, 0.80f), EKalmalaWeatherActivityLevel::HighlyActive);
+
+    bool bFoundSeededFogInterval = false;
+    for (int32 Cycle = 0; Cycle < 64; ++Cycle)
+    {
+        const FKalmalaWeatherState Scheduled = FKalmalaWeatherCycle::DeriveState(Config, Cycle, 0.0f);
+        bFoundSeededFogInterval |= Scheduled.FogIntensity >= 0.25f;
+        TestTrue(TEXT("Every derived weather hazard stays in bounds"), Scheduled.IsValid() && FMath::IsWithinInclusive(Scheduled.StormIntensity, 0.0f, 1.0f));
+    }
+    TestTrue(TEXT("The seeded schedule contains a readable fog interval"), bFoundSeededFogInterval);
+
+    FKalmalaWeatherState InvalidWeather = First;
+    InvalidWeather.FogIntensity = 1.1f;
+    TestFalse(TEXT("Out-of-range fog cannot enter the replicated weather contract"), InvalidWeather.IsValid());
+    InvalidWeather = First;
+    InvalidWeather.StormIntensity = 1.0f;
+    TestFalse(TEXT("A forged storm result cannot disagree with rain and wind"), InvalidWeather.IsValid());
+    InvalidWeather = First;
+    InvalidWeather.FogIntensity = 0.85f;
+    InvalidWeather.RefreshActivityLevel();
+    InvalidWeather.ActivityLevel = EKalmalaWeatherActivityLevel::Calm;
+    TestFalse(TEXT("A stale activity tier fails the weather contract"), InvalidWeather.IsValid());
     TestEqual(TEXT("The next interval increments its immutable cycle index"), Next.WeatherCycleIndex, 1);
     TestEqual(TEXT("The next interval starts where the previous one ended"), Next.ServerStartTimeSeconds, First.ServerStartTimeSeconds + First.DurationSeconds);
     return true;

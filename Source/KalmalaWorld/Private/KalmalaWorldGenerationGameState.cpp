@@ -36,15 +36,18 @@ bool AKalmalaWorldGenerationGameState::IsWeatherUpdateAllowed(const bool bServer
 
 void AKalmalaWorldGenerationGameState::SetWeatherStateFromServer(const FKalmalaWeatherState& InWeatherState)
 {
-    if (!IsWeatherUpdateAllowed(HasAuthority()) || !InWeatherState.IsValid()) return;
-    WeatherState = InWeatherState;
+    if (!IsWeatherUpdateAllowed(HasAuthority())) return;
+    FKalmalaWeatherState AcceptedWeather = InWeatherState;
+    AcceptedWeather.RefreshActivityLevel();
+    if (!AcceptedWeather.IsValid()) return;
+    WeatherState = AcceptedWeather;
     ForceNetUpdate();
-    UE_LOG(LogTemp, Display, TEXT("Server selected weather cycle %d: Start=%.2f Duration=%.2f Precipitation=%.2f WindDirection=%d WindStrength=%.2f."), WeatherState.WeatherCycleIndex, WeatherState.ServerStartTimeSeconds, WeatherState.DurationSeconds, WeatherState.PrecipitationIntensity, WeatherState.WindDirectionDegrees, WeatherState.WindStrength);
+    UE_LOG(LogTemp, Display, TEXT("Server selected weather cycle %d: Start=%.2f Duration=%.2f Precipitation=%.2f Fog=%.2f Storm=%.2f WindDirection=%d WindStrength=%.2f Activity=%d."), WeatherState.WeatherCycleIndex, WeatherState.ServerStartTimeSeconds, WeatherState.DurationSeconds, WeatherState.PrecipitationIntensity, WeatherState.FogIntensity, WeatherState.GetStormIntensity(), WeatherState.WindDirectionDegrees, WeatherState.WindStrength, static_cast<uint8>(WeatherState.ActivityLevel));
 }
 
 void AKalmalaWorldGenerationGameState::OnRep_WeatherState()
 {
-    UE_LOG(LogTemp, Display, TEXT("Client received weather cycle %d: Start=%.2f Duration=%.2f Precipitation=%.2f WindDirection=%d WindStrength=%.2f."), WeatherState.WeatherCycleIndex, WeatherState.ServerStartTimeSeconds, WeatherState.DurationSeconds, WeatherState.PrecipitationIntensity, WeatherState.WindDirectionDegrees, WeatherState.WindStrength);
+    UE_LOG(LogTemp, Display, TEXT("Client received weather cycle %d: Start=%.2f Duration=%.2f Precipitation=%.2f Fog=%.2f Storm=%.2f WindDirection=%d WindStrength=%.2f Activity=%d."), WeatherState.WeatherCycleIndex, WeatherState.ServerStartTimeSeconds, WeatherState.DurationSeconds, WeatherState.PrecipitationIntensity, WeatherState.FogIntensity, WeatherState.GetStormIntensity(), WeatherState.WindDirectionDegrees, WeatherState.WindStrength, static_cast<uint8>(WeatherState.ActivityLevel));
 }
 
 void AKalmalaWorldGenerationGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

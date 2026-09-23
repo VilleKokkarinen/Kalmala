@@ -5,6 +5,20 @@
 /** Server-only math for the recoverable exposure consequence. */
 struct KALMALAGAMEPLAY_API FKalmalaExposureResponse
 {
+    static float GetHeatIntensity(const float AmbientTemperatureCelsius)
+    {
+        return FMath::IsFinite(AmbientTemperatureCelsius)
+            ? FMath::Clamp(AmbientTemperatureCelsius / 20.0f, 0.0f, 1.0f)
+            : 0.0f;
+    }
+
+    static float GetColdIntensity(const float AmbientTemperatureCelsius)
+    {
+        return FMath::IsFinite(AmbientTemperatureCelsius)
+            ? FMath::Clamp(-AmbientTemperatureCelsius / 20.0f, 0.0f, 1.0f)
+            : 0.0f;
+    }
+
     static float AdvanceWetness(const float CurrentWetness, const float Precipitation, const float GroundWetness, const float WindExposure, const float Shelter, const float FireWarmth, const float DeltaSeconds)
     {
         const float SoakingRate = FMath::Clamp(Precipitation, 0.0f, 1.0f) * (0.52f + FMath::Clamp(WindExposure, 0.0f, 1.0f) * 0.28f)

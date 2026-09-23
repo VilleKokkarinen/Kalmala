@@ -26,17 +26,23 @@ struct KALMALAWORLD_API FKalmalaWeatherCycle
         {
             State.PrecipitationIntensity = 0.0f;
             State.WindStrength = RandomStream.FRandRange(0.05f, 0.35f);
+            State.FogIntensity = RandomStream.FRand() < 0.30f
+                ? RandomStream.FRandRange(0.35f, 0.85f)
+                : RandomStream.FRandRange(0.0f, 0.12f);
         }
         else if (Outcome < 0.75f)
         {
             State.PrecipitationIntensity = RandomStream.FRandRange(0.15f, 0.55f);
             State.WindStrength = RandomStream.FRandRange(0.15f, 0.60f);
+            State.FogIntensity = RandomStream.FRandRange(0.0f, 0.40f);
         }
         else
         {
             State.PrecipitationIntensity = RandomStream.FRandRange(0.60f, 1.0f);
             State.WindStrength = RandomStream.FRandRange(0.40f, 1.0f);
+            State.FogIntensity = RandomStream.FRandRange(0.0f, 0.28f);
         }
+        State.RefreshActivityLevel();
         return State;
     }
 
