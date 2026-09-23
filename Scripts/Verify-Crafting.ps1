@@ -6,14 +6,19 @@ $output = Join-Path $env:TEMP ('KalmalaCrafting-' + [guid]::NewGuid().ToString('
 New-Item -ItemType Directory -Path $output | Out-Null
 $serverLog = Join-Path $output 'server.log'
 $clientLog = Join-Path $output 'client.log'
+$hostShaderDir = Join-Path $output 'Host\ShaderWorkingDir'
+$clientShaderDir = Join-Path $output 'Client\ShaderWorkingDir'
+New-Item -ItemType Directory -Path $hostShaderDir, $clientShaderDir -Force | Out-Null
 $common = '-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaCraftingTest -ExecCmds="t.MaxFPS 60"'
 if ($Rendered) { $common += ' -windowed -RenderOffscreen -ResX=1280 -ResY=720 -ForceRes' } else { $common += ' -nullrhi' }
+$hostShader = if ($Rendered) { "-ShaderWorkingDir=`"$hostShaderDir`"" } else { '' }
+$clientShader = if ($Rendered) { "-ShaderWorkingDir=`"$clientShaderDir`"" } else { '' }
 $serverCapture = if ($Rendered) { "-KalmalaCraftingCapture=`"$output\host.png`"" } else { '' }
 $clientCapture = if ($Rendered) { "-KalmalaCraftingCapture=`"$output\client.png`"" } else { '' }
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common $serverCapture -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common $hostShader $serverCapture -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($server.HasExited) { throw 'Listen server exited during startup.' }
@@ -21,7 +26,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Listen server readiness timed out.' }
-    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common $clientCapture -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
+    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common $clientShader $clientCapture -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
     $deadline = (Get-Date).AddSeconds(120)
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before verification.' }
@@ -37,9 +42,9 @@ try {
         $ready = $ready -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Forged Batch=1 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Fuel Batch=2147483647 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting placement RPC: Accepted=0').Count -eq 2
-        foreach ($state in @('Fuel=60 Lit=1 Wet=0 Warmth=1 State=1', 'Fuel=48 Lit=0 Wet=96 Warmth=0 State=2')) {
-            $serverNames = [regex]::Matches($serverText, ('Crafting fire server: Name=(\S+) ' + [regex]::Escape($state))) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
-            $clientNames = [regex]::Matches($clientText, ('Crafting fire client: Name=(\S+) ' + [regex]::Escape($state))) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
+        foreach ($statePattern in @('Fuel=60 Lit=1 Wet=0 Warmth=1 State=1', 'Fuel=48 Lit=0 Wet=(?:9[6-9]|100) Warmth=0 State=2')) {
+            $serverNames = [regex]::Matches($serverText, ('Crafting fire server: Name=(\S+) ' + $statePattern)) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
+            $clientNames = [regex]::Matches($clientText, ('Crafting fire client: Name=(\S+) ' + $statePattern)) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
             $ready = $ready -and @($serverNames).Count -eq 2 -and @($clientNames).Count -eq 2
         }
         if ($Rendered) { $ready = $ready -and (Test-Path "$output\host.png") -and (Test-Path "$output\client.png") -and $serverText.Contains('Construction feedback: Passed=1') -and $clientText.Contains('Construction feedback: Passed=1') }

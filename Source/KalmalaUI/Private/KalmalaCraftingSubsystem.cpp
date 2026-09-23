@@ -35,7 +35,9 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
         Label->SetText(FText::FromString(Text)); Label->SetAutoWrapText(true);
         Label->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), Size));
-        Label->SetColorAndOpacity(FSlateColor(FLinearColor::White)); Column->AddChild(Label); return Label;
+        Label->SetColorAndOpacity(FSlateColor(FLinearColor::White));
+        WrappedTextBlocks.Add(Label);
+        Column->AddChild(Label); return Label;
     };
     AddText(TEXT("Camp crafting"), 28);
     FString CraftKey = TEXT("Unbound");
@@ -92,7 +94,13 @@ void UKalmalaCraftingWidget::Open()
     bOpen = true; bPreviousCursor = PC->bShowMouseCursor;
     int32 X, Y; PC->GetViewportSize(X,Y);
     const float Scale = FMath::Max(.1f, UWidgetLayoutLibrary::GetViewportScale(this));
-    SetDesiredSizeInViewport(FVector2D(FMath::Min(840.0f,X/Scale-32),FMath::Min(980.0f,Y/Scale-32)));
+    const float PanelWidth = FMath::Min(840.0f, X / Scale - 32.0f);
+    SetDesiredSizeInViewport(FVector2D(PanelWidth, FMath::Min(980.0f, Y / Scale - 32.0f)));
+    const float TextWrapWidth = FMath::Max(240.0f, PanelWidth - 64.0f);
+    for (UTextBlock* Label : WrappedTextBlocks)
+    {
+        if (Label) Label->SetWrapTextAt(TextWrapWidth);
+    }
     SetAlignmentInViewport(FVector2D(.5,.5)); SetPositionInViewport(FVector2D(X*.5f,Y*.5f), true);
     SetVisibility(ESlateVisibility::Visible); Refresh();
     PC->SetIgnoreMoveInput(true); PC->SetIgnoreLookInput(true); PC->bShowMouseCursor = true;
@@ -242,7 +250,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
     if(bVerified && !bCaptureRequested && PC->GetPawn() && FParse::Value(FCommandLine::Get(),TEXT("KalmalaCraftingCapture="),CapturePath))
     {
         auto* M=PC->GetPawn()->FindComponentByClass<UKalmalaCraftingComponent>();
-        if(M && M->GetNearbyFireText().Contains(TEXT("96% wet")))
+        if(M && M->GetNearbyFireText().Contains(TEXT("State: SMOULDERING")))
         {
             if(Widget && !Widget->IsOpen()) Widget->Open();
             CaptureWait+=DeltaTime;

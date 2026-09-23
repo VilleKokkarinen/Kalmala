@@ -45,6 +45,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StateText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     int32 Selected = 0;
     int32 SelectedStorageItem = 0;
     bool bOpen = false;
