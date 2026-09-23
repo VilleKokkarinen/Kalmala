@@ -51,7 +51,7 @@ void UKalmalaSurvivalStatusWidget::NativeOnInitialized()
     Background = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("SurvivalStatusBackground"));
     Background->SetPadding(FMargin(12.0f, 9.0f));
     ContentWidth = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("SurvivalStatusWidth"));
-    ContentWidth->SetWidthOverride(620.0f);
+    ContentWidth->SetWidthOverride(StatusPanelContentWidth);
 
     UVerticalBox* Content = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("SurvivalStatusContent"));
     HeadingText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("SurvivalStatusHeading"));
@@ -68,7 +68,7 @@ void UKalmalaSurvivalStatusWidget::NativeOnInitialized()
 
 void UKalmalaSurvivalStatusWidget::ConfigureViewportPlacement()
 {
-    // Bottom-left keeps the persistent status list clear of the top-right minimap and weather badge.
+    // Keep the wrapped status column left of the centered arrival card and below the minimap/weather badge.
     // Set anchors last because UE 5.8 viewport setters reset the current anchor.
     SetPositionInViewport(FVector2D(24.0f, -24.0f), false);
     SetAlignmentInViewport(FVector2D(0.0f, 1.0f));

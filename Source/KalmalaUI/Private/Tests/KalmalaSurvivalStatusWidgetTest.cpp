@@ -80,6 +80,8 @@ bool FKalmalaSurvivalStatusWidgetTest::RunTest(const FString& Parameters)
     UKalmalaSurvivalStatusWidget* Widget = NewObject<UKalmalaSurvivalStatusWidget>();
     Widget->ConfigureViewportPlacement();
     const FGameViewportWidgetSlot Slot = UGameViewportSubsystem::Get()->GetWidgetSlot(Widget);
+    TestTrue(TEXT("Status column and its padding stay left of the centered 1280x720 arrival card"),
+        24.0f + UKalmalaSurvivalStatusWidget::StatusPanelContentWidth + 24.0f <= 480.0f);
     TestTrue(TEXT("Status stays anchored to the local viewport's lower-left"), Slot.Anchors == FAnchors(0.0f, 1.0f));
     TestEqual(TEXT("Status panel is inset from the left edge"), Slot.Offsets.Left, 24.0f);
     TestEqual(TEXT("Status panel is inset from the bottom edge"), Slot.Offsets.Top, -24.0f);

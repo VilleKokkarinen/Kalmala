@@ -34,6 +34,8 @@ class KALMALAUI_API UKalmalaSurvivalStatusWidget : public UUserWidget
     GENERATED_BODY()
 
 public:
+    static constexpr float StatusPanelContentWidth = 400.0f;
+
     void ConfigureViewportPlacement();
     void SetSnapshot(const FKalmalaSurvivalStatusSnapshot& Snapshot, int32 TextScalePercent, int32 ContrastMode);
 
