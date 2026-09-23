@@ -138,7 +138,19 @@ growth, shipping GPU frame time, or the final tool-free co-op acceptance.
 
 ## Bounded generated-world profile
 
-After an editor build, run `Scripts/Verify-WorldProfile.ps1`. It starts a revision-4 seed-418 listen server, then joins a conflicting-seed client and waits for the existing replicated immutable identity. The server logs initial generated-world setup time, process physical-memory snapshot, total and replicated actor counts, active terrain patches/population keys, and sparse population-save bytes serialized to memory. It does not mutate the save, change the 25-patch budget, adjust density, or accept client-selected world data. The runner succeeds only after the late-joining client reports `Seed=418` and the server reports two players plus successful save serialization.
+After an editor build, run `Scripts/Verify-WorldProfile.ps1`. It starts a seed-418 listen server using the current generator revision, then joins a conflicting-seed client and waits for the existing replicated immutable identity. The server logs initial generated-world setup time, process physical-memory snapshot, total and replicated actor counts, active terrain patches/population keys, and sparse population-save bytes serialized to memory. It does not mutate the save, change the 25-patch budget, adjust density, or accept client-selected world data. The runner succeeds only after the late-joining client reports `Seed=418` and the server reports two players plus successful save serialization.
+
+The 2026-09-23 M7 seed-418 profile measured 103.13 ms initial generation,
+1,776.77 MB used physical memory, 47 actors, 29 replicated actors, 9 terrain
+patches, 1 active population key, and 2,215 serialized population-save bytes;
+the conflicting-seed client joined with the server identity and save
+serialization succeeded. Compared with the recorded revision-4 sample, this is
+one additional total/replicated actor and 16.29 MB more process memory, with
+generation time lower by 76.86 ms and the patch, population-key, and save-byte
+counts unchanged. These are single-run development measurements, not a
+long-session memory-growth result or a shipping memory limit. The existing
+25-patch world budget remains in force, and the independent M7 save contract
+rejects more than 256 sparse identities.
 
 ## Water surface regression check
 
