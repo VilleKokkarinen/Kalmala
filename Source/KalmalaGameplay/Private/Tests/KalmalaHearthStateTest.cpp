@@ -47,8 +47,10 @@ bool FKalmalaHearthStateTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Client cannot reignite"), Fire->GetHearthState() == EKalmalaHearthState::Smouldering);
     Fire->SetRole(ROLE_Authority);
     Roof->SetActorLocation(Fire->GetActorLocation() + FVector(0, 0, 300));
-    Fire->AdvanceFromServer(0, 1, 1);
+    const float FuelWetnessBeforeRoofedStorm = Fire->GetFuelWetness();
+    Fire->AdvanceFromServer(1, 1, 1);
     TestTrue(TEXT("Actual roof restores Lit in rain"), Fire->HasRoof() && Fire->IsLit());
+    TestTrue(TEXT("Actual roof prevents highly active storm fuel wetting"), Fire->GetFuelWetness() <= FuelWetnessBeforeRoofedStorm);
     TestTrue(TEXT("Restored heat removes Wet"), Status->TryRemoveWetAtCampfireFromServer(Fire));
     Roof->SetActorLocation(Fire->GetActorLocation() + FVector(1000, 0, 300));
     Fire->AdvanceFromServer(0, 1, 0);
@@ -57,7 +59,7 @@ bool FKalmalaHearthStateTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Dry threshold automatically reignites"), Fire->IsLit());
     Fire->AdvanceFromServer(NAN, 1, 0);
     Fire->AdvanceFromServer(10, NAN, 0);
-    TestEqual(TEXT("Malformed weather steps preserve fuel"), Fire->GetFuelSeconds(), 48.0f);
+    TestEqual(TEXT("Malformed weather steps preserve fuel"), Fire->GetFuelSeconds(), 47.0f);
     Fire->AdvanceFromServer(48, 1, 0);
     TestTrue(TEXT("Fuel exhaustion extinguishes"), Fire->GetHearthState() == EKalmalaHearthState::Extinguished);
     TestEqual(TEXT("Exhaustion has no heat"), Fire->GetEffectiveWarmth(), 0.0f);

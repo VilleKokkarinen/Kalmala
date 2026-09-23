@@ -20,6 +20,8 @@ struct KALMALAWORLD_API FKalmalaWeatherState
 {
     GENERATED_BODY()
 
+    static constexpr float HighlyActiveStormThreshold = 0.65f;
+
     UPROPERTY(VisibleAnywhere, Category = "Weather")
     int32 WeatherCycleIndex = 0;
 
@@ -62,7 +64,7 @@ struct KALMALAWORLD_API FKalmalaWeatherState
         const float Fog = FMath::Clamp(InFogIntensity, 0.0f, 1.0f);
         const float Precipitation = FMath::Clamp(InPrecipitationIntensity, 0.0f, 1.0f);
         const float Wind = FMath::Clamp(InWindStrength, 0.0f, 1.0f);
-        if (Fog >= 0.80f || Precipitation * Wind >= 0.65f)
+        if (Fog >= 0.80f || Precipitation * Wind >= HighlyActiveStormThreshold)
         {
             return EKalmalaWeatherActivityLevel::HighlyActive;
         }
