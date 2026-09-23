@@ -7,6 +7,13 @@ struct KALMALAGAMEPLAY_API FKalmalaExposureResponse
 {
     static constexpr float ColdStaminaRecoveryWarmthThreshold = 40.0f;
     static constexpr float ColdStaminaRecoveryMinimumMultiplier = 0.80f;
+    static constexpr float HighlyActiveRainWetnessTriggerMultiplier = 0.75f;
+
+    static float GetUnroofedRainTriggerSeconds(const float NormalTriggerSeconds, const bool bHighlyActiveWeather)
+    {
+        const float SafeNormalTriggerSeconds = FMath::Max(0.0f, NormalTriggerSeconds);
+        return SafeNormalTriggerSeconds * (bHighlyActiveWeather ? HighlyActiveRainWetnessTriggerMultiplier : 1.0f);
+    }
 
     static float GetHeatIntensity(const float AmbientTemperatureCelsius)
     {

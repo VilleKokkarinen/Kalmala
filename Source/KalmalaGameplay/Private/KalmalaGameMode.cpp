@@ -195,8 +195,11 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
             }
             else if (Weather.PrecipitationIntensity >= 0.05f && !Shelter.bHasRoof)
             {
+                const bool bHighlyActiveWeather = Weather.ActivityLevel == EKalmalaWeatherActivityLevel::HighlyActive;
+                const float WetTriggerSeconds = FKalmalaExposureResponse::GetUnroofedRainTriggerSeconds(
+                    UKalmalaPlayerStatusComponent::UnroofedRainTriggerSeconds, bHighlyActiveWeather);
                 UnroofedRainSeconds = FMath::Clamp(UnroofedRainSeconds + FMath::Max(0.0f, DeltaSeconds), 0.0f, UKalmalaPlayerStatusComponent::UnroofedRainTriggerSeconds);
-                if (UnroofedRainSeconds >= UKalmalaPlayerStatusComponent::UnroofedRainTriggerSeconds) Statuses->ApplyWetFromServer();
+                if (UnroofedRainSeconds >= WetTriggerSeconds) Statuses->ApplyWetFromServer();
             }
             else
             {
@@ -560,7 +563,7 @@ void AKalmalaGameMode::DriveRainVerticalSliceTest()
             Weather.DurationSeconds = 120.0f;
             Weather.PrecipitationIntensity = Rain;
             Weather.WindDirectionDegrees = 0;
-            Weather.WindStrength = 0.0f;
+            Weather.WindStrength = Rain >= 0.65f ? 1.0f : 0.0f;
             State->SetWeatherStateFromServer(Weather);
         }
     };
@@ -666,7 +669,16 @@ void AKalmalaGameMode::DriveRainVerticalSliceTest()
         RainVerticalSliceStage = 3; RainVerticalSliceStageTime = Now;
         return;
     }
-    if (RainVerticalSliceStage == 3 && Now - RainVerticalSliceStageTime >= UKalmalaPlayerStatusComponent::UnroofedRainTriggerSeconds + 1.0f)
+    const AKalmalaWorldGenerationGameState* RainWeatherState = GetGameState<AKalmalaWorldGenerationGameState>();
+    if (RainVerticalSliceStage == 3 && (!RainWeatherState || RainWeatherState->GetWeatherState().ActivityLevel != EKalmalaWeatherActivityLevel::HighlyActive))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Rain vertical slice FAILED: stage did not establish Highly Active weather."));
+        RainVerticalSliceStage = 99;
+        return;
+    }
+    const float HighlyActiveRainTriggerSeconds = FKalmalaExposureResponse::GetUnroofedRainTriggerSeconds(
+        UKalmalaPlayerStatusComponent::UnroofedRainTriggerSeconds, true);
+    if (RainVerticalSliceStage == 3 && Now - RainVerticalSliceStageTime >= HighlyActiveRainTriggerSeconds + 1.0f)
     {
         bool bRainWet = RainVerticalSliceFire->GetHearthState() == EKalmalaHearthState::Smouldering
             && FMath::IsNearlyEqual(RainVerticalSliceExposedFloor->GetHealth(), AKalmalaConstructionActor::RainHealthFloor)

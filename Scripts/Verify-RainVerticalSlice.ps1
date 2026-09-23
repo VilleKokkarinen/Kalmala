@@ -27,6 +27,6 @@ try {
     } while ((Get-Date) -lt $deadline)
     if (!$ready) { throw 'Rain vertical-slice scenario timed out.' }
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client identity mismatch.' }
-    Write-Output 'PASS: host and conflicting-seed client observed the server-owned water/rain Wet loop, roof protection, capped rain wear, smoulder/reignite, and heat recovery.'
+    Write-Output 'PASS: host and conflicting-seed client observed water Wet, the 7.5-second Highly Active rain trigger, roof protection, capped rain wear, smoulder/reignite, and lit-fire recovery.'
 }
 finally { foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }; Write-Output "Scenario logs: $output" }
