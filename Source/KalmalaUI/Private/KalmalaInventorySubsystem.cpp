@@ -21,6 +21,7 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCharacterMovementComponent.h"
+#include "KalmalaSettingsWidget.h"
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/GameStateBase.h"
 #include "Misc/CommandLine.h"
@@ -155,9 +156,9 @@ void UKalmalaInventoryWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
     SetIsFocusable(false);
-    UBorder* Border = WidgetTree->ConstructWidget<UBorder>();
-    Border->SetBrushColor(FLinearColor(0.025f, 0.035f, 0.04f, 0.9f));
-    Border->SetPadding(FMargin(12));
+    Background = WidgetTree->ConstructWidget<UBorder>();
+    Background->SetBrushColor(FLinearColor(0.025f, 0.035f, 0.04f, 0.9f));
+    Background->SetPadding(FMargin(12));
     UVerticalBox* Content = WidgetTree->ConstructWidget<UVerticalBox>();
     SupportGlyphRow = WidgetTree->ConstructWidget<UHorizontalBox>();
     const EKalmalaSupportGlyph GlyphKinds[] = { EKalmalaSupportGlyph::Mending, EKalmalaSupportGlyph::HearthShield,
@@ -197,14 +198,55 @@ void UKalmalaInventoryWidget::NativeOnInitialized()
     Scroll->AddChild(PackText);
     Content->AddChildToVerticalBox(SupportGlyphRow)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
     Content->AddChildToVerticalBox(Scroll);
-    Border->SetContent(Content);
-    WidgetTree->RootWidget = Border;
+    Background->SetContent(Content);
+    WidgetTree->RootWidget = Background;
     SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
 void UKalmalaInventoryWidget::SetPackText(const FString& Text)
 {
     if (PackText && PackText->GetText().ToString() != Text) PackText->SetText(FText::FromString(Text));
+}
+
+void UKalmalaInventoryWidget::SetPackTextAccessibility(const int32 TextScalePercent, const int32 ContrastMode)
+{
+    const int32 BoundedTextScale = UKalmalaSettingsWidget::ClampTextScale(TextScalePercent);
+    const int32 BoundedContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode);
+    if (LastTextScalePercent == BoundedTextScale && LastContrastMode == BoundedContrast) return;
+
+    const bool bHighContrast = BoundedContrast != 0;
+    if (Background)
+    {
+        Background->SetBrushColor(bHighContrast
+            ? FLinearColor(0.0f, 0.0f, 0.0f, 0.98f)
+            : FLinearColor(0.025f, 0.035f, 0.04f, 0.9f));
+    }
+    if (PackText)
+    {
+        PackText->SetColorAndOpacity(FSlateColor(bHighContrast ? FLinearColor::White : FLinearColor(0.93f, 0.96f, 0.94f, 1.0f)));
+        PackText->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), FMath::RoundToInt(14.0f * BoundedTextScale / 100.0f)));
+    }
+    LastTextScalePercent = BoundedTextScale;
+    LastContrastMode = BoundedContrast;
+}
+
+FString UKalmalaInventoryWidget::BuildPreparedFoodDetails(const bool bHasPreparedFood, const float MealSecondsRemaining)
+{
+    if (!bHasPreparedFood) return FString();
+
+    const int32 BenefitPercent = FMath::RoundToInt((1.0f - UKalmalaPlayerStatusComponent::SteadyMealStaminaUseMultiplier) * 100.0f);
+    FString Details = FString::Printf(
+        TEXT("◇ PREPARED FOOD · One serving grants Steady Meal: stamina cost −%d%% for %.0f s. Meal effects do not stack or replace."),
+        BenefitPercent, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+
+    if (FMath::IsFinite(MealSecondsRemaining) && MealSecondsRemaining > 0.0f)
+    {
+        const int32 RemainingSeconds = FMath::CeilToInt(FMath::Clamp(MealSecondsRemaining,
+            0.0f, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds));
+        Details += FString::Printf(TEXT("\n◆ ACTIVE MEAL · stamina cost −%d%% · %d s remaining · wait for expiry before another meal."),
+            BenefitPercent, RemainingSeconds);
+    }
+    return Details;
 }
 
 void UKalmalaInventoryWidget::SetSupportGlyphState(const int32 Index, const EKalmalaSupportGlyph Glyph, const bool bLearned, const bool bSelected)
@@ -336,9 +378,8 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
     {
         Widget->SetSupportGlyphsVisible(false);
     }
-    int32 StatusLines = 0;
-    for (const TCHAR CurrentChar : Text) if (CurrentChar == TEXT('\n')) ++StatusLines;
     Text += TEXT("Pack | Craft: ") + CraftKey + TEXT("\n");
+    bool bHasPreparedFood = false;
     if (!Inventory) Text += TEXT("Waiting for player");
     else if (Inventory->GetStacks().IsEmpty()) Text += TEXT("Empty");
     else
@@ -347,11 +388,22 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
         {
             const auto* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(Stack.ItemId);
             Text += FString::Printf(TEXT("%s: %d\n"), Item ? *Item->DisplayName : *Stack.ItemId.ToString(), Stack.Quantity);
+            bHasPreparedFood |= Stack.Quantity > 0 && UKalmalaPlayerStatusComponent::IsKnownFoodItem(Stack.ItemId);
         }
     }
+    if (bHasPreparedFood)
+    {
+        const float MealRemaining = Status
+            ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId) : 0.0f;
+        Text += UKalmalaInventoryWidget::BuildPreparedFoodDetails(true, MealRemaining);
+    }
     Widget->SetPackText(Text);
+    const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
+    Widget->SetPackTextAccessibility(TextScalePercent, UKalmalaSettingsWidget::GetContrastMode());
+    int32 TextLineCount = 1;
+    for (const TCHAR CurrentChar : Text) if (CurrentChar == TEXT('\n')) ++TextLineCount;
     Widget->SetDesiredSizeInViewport(FVector2D(340, 60 + (Support && Character && Movement ? 68 : 0)
-        + (StatusLines + (Inventory ? FMath::Max(1, Inventory->GetStacks().Num()) : 1)) * 22));
+        + FMath::RoundToInt(TextLineCount * 22.0f * TextScalePercent / 100.0f)));
 #if !UE_BUILD_SHIPPING
     if (!bVerified && Inventory && Inventory->GetQuantity(TEXT("Wood")) == 7
         && FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryTest")))

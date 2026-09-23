@@ -38,16 +38,21 @@ class KALMALAUI_API UKalmalaInventoryWidget : public UUserWidget
     GENERATED_BODY()
 public:
     void SetPackText(const FString& Text);
+    void SetPackTextAccessibility(int32 TextScalePercent, int32 ContrastMode);
+    static FString BuildPreparedFoodDetails(bool bHasPreparedFood, float MealSecondsRemaining);
     void SetSupportGlyphState(int32 Index, EKalmalaSupportGlyph Glyph, bool bLearned, bool bSelected);
     void SetSupportGlyphsVisible(bool bVisible);
 protected:
     virtual void NativeOnInitialized() override;
 private:
+    UPROPERTY(Transient) TObjectPtr<UBorder> Background;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> PackText;
     UPROPERTY(Transient) TObjectPtr<UHorizontalBox> SupportGlyphRow;
     UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> SupportGlyphCards;
     UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaSupportGlyphWidget>> SupportGlyphs;
     TArray<uint8> SupportGlyphVisualStates;
+    int32 LastTextScalePercent = INDEX_NONE;
+    int32 LastContrastMode = INDEX_NONE;
 };
 
 /** Read-only local inventory presentation, with no input bindings or network requests. */

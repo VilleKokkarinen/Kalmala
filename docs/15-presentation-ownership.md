@@ -15,7 +15,7 @@ feedback, but it cannot become a gameplay source.
 | Player | `UKalmalaPlayerModelComponent` procedural mesh and the generated bark/terrain/rock materials | Nine local, collision-free cosmetic parts; shape and pose never author gameplay | Faceted mantle/hood presentation verified in the rendered offscreen host/client controls fixture |
 | Wildlife | `AKalmalaWildlifeSpawn::BuildArchetypePresentation` procedural low-poly geometry and vertex colours | Server-owned replicated actor state; mesh is presentation only and has no collision | Mireling's low forward hunch, reaching arms, and split crown read as a distinct close-view silhouette in the rendered host fixture; dark body planes merge somewhat. Boar has a low wedge-backed profile, broken bristle ridge, tapered muzzle, and paired tusks; deer has a lighter, long-legged alert profile with paired forked antlers |
 | Environment | `AKalmalaGeneratedTerrainPatch`, campfire, and construction procedural meshes using generated materials | Terrain collision and shelter collision remain the gameplay authority; decorative meshes do not add routes or hidden content | Existing generated terrain, water, rock, tree, hearth, and kit sources are audited here |
-| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the owner HUD retains original support glyphs; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; settings Audio/Controls/Settings tabs expose local options |
+| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the inventory HUD explains prepared-food effects and the active meal timer from that same owner's pack/status; the owner HUD retains original support glyphs; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; settings Audio/Controls/Settings tabs expose local options |
 | Feedback | Text and shape/icon treatments in the inventory, crafting, combat, discovery, and settings widgets | Readable without colour or audio; feedback reports accepted replicated results rather than client claims | Support glyphs reflect only the owner's learned/selected state and retain explicit text names/status; the optional owner-only Text + markers overlay adds bracketed Wet, hearth, construction, combat, discovery, and support markers |
 
 The ledger is an ownership and scope check, not a claim that the complete M5
@@ -27,6 +27,20 @@ mapping and viewport slot passed focused UI automation; rendered viewport
 readability remains unreviewed. The survival strip's data mapping and lower-left
 viewport slot pass focused UI automation, but rendered host/client layout,
 multi-row clipping, and scaled-font legibility remain unreviewed.
+
+## Owner-local prepared-food inventory detail
+
+When the owning player's private pack contains roasted field meat, Hearth
+Broth, or smoked field meat, the read-only inventory HUD explains that one
+serving grants Steady Meal, reducing stamina cost by 10% for 120 seconds. If
+the same pawn's existing replicated status contains an active meal, the panel
+shows its remaining server-published time and the wait-for-expiry rule. The
+display adds no input, RPC, gameplay mutation, or persistence; shape markers
+and explicit text remain visible with the owner's configured text scale and
+contrast. `Kalmala.UI.Inventory.PreparedFoodDetails` checks the bounded benefit,
+active timer formatting, and fail-closed invalid timer behavior. The
+host/client inventory reconnect fixture continues to verify owner-only pack
+visibility; rendered multi-row layout and scaled-font appearance remain open.
 
 ## Allowed and forbidden sources
 
