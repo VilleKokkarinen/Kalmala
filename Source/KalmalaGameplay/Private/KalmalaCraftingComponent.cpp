@@ -11,6 +11,7 @@
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaPlayerStatusComponent.h"
 #include "EngineUtils.h"
 #include "GameFramework/Controller.h"
 #include "Net/UnrealNetwork.h"
@@ -71,6 +72,27 @@ AKalmalaCampfire* UKalmalaCraftingComponent::FindNearbyFire(bool bRequireUsable)
     return Closest;
 }
 
+AKalmalaCampfire* UKalmalaCraftingComponent::FindNearbyLitFire() const
+{
+    const auto* Character = GetCharacter();
+    if (!Character || !GetWorld()) return nullptr;
+    AKalmalaCampfire* Closest = nullptr;
+    double Best = FMath::Square(250.0);
+    for (TActorIterator<AKalmalaCampfire> It(GetWorld()); It; ++It)
+    {
+        const AKalmalaCampfire* Fire = *It;
+        if (!IsValid(Fire) || !Fire->CanUse(Character) || !Fire->IsLit()
+            || !FMath::IsFinite(Fire->GetEffectiveWarmth()) || Fire->GetEffectiveWarmth() <= 0.0f) continue;
+        const double Distance = FVector::DistSquared(Character->GetActorLocation(), Fire->GetActorLocation());
+        if (FMath::IsFinite(Distance) && Distance <= Best)
+        {
+            Best = Distance;
+            Closest = *It;
+        }
+    }
+    return Closest;
+}
+
 bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FString& Reason)
 {
     auto* Character = GetCharacter();
@@ -82,6 +104,11 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     TArray<FKalmalaInventoryStack> Costs; int32 OutputCount;
     Reason = TEXT("Invalid batch quantity");
     if (!UKalmalaRecipeCatalogue::Scale(*Recipe, Batch, Costs, OutputCount)) return false;
+    if (Recipe->bRequiresLitCampfire && !FindNearbyLitFire())
+    {
+        Reason = TEXT("Need a usable lit hearth with heat within 2.5 m");
+        return false;
+    }
     if (Recipe->bRequiresCampfire && !FindNearbyFire(true) && !FindNearbyWorkbench()) { Reason = TEXT("Need a usable hearth or workbench within 2.5 m"); return false; }
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
     if (!Inventory || !Inventory->TryExchangeFromServer(Costs, Recipe->Output, OutputCount, Reason)) return false;
@@ -213,6 +240,7 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
 {
     const auto* R = GetDefault<UKalmalaRecipeCatalogue>()->Find(Id);
     if (!R || !R->bEnabled) return TEXT("Recipe unavailable");
+    if (R->bRequiresLitCampfire && !FindNearbyLitFire()) return TEXT("Need a usable lit hearth with heat within 2.5 m");
     if (R->bRequiresCampfire && !FindNearbyFire(true) && !FindNearbyWorkbench()) return TEXT("Need a usable hearth or workbench within 2.5 m");
     auto* C = GetCharacter(); auto* Inv = C ? C->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (!Inv) return TEXT("Waiting for pack");
@@ -229,7 +257,26 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     for (const auto& Cost : R->Ingredients)
         Text += FString::Printf(TEXT("%d %s  "), Cost.Quantity, *GetDefault<UKalmalaItemCatalogue>()->FindItem(Cost.ItemId)->DisplayName);
     Text += FString::Printf(TEXT("\nOutput: %d (stack limit %d)"),R->OutputCount,GetDefault<UKalmalaItemCatalogue>()->FindItem(R->Output)->MaxStack);
+    if (R->bRequiresLitCampfire) return Text + TEXT("\nStation: usable lit hearth with heat within 2.5 m");
     return Text + (R->bRequiresCampfire ? TEXT("\nStation: nearby usable hearth or workbench") : TEXT("\nHandcrafted; no station"));
+}
+
+FString UKalmalaCraftingComponent::GetFoodText() const
+{
+    const auto* Character = GetCharacter();
+    const auto* Inventory = Character ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    const auto* Status = Character ? Character->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
+    const int32 Count = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::RoastedFieldMeatItemId) : 0;
+    const float Remaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId) : 0.0f;
+    if (Remaining > 0.0f)
+    {
+        return FString::Printf(TEXT("Steady meal: %.0f seconds remaining; stamina use is 10%% lower. Additional meals cannot stack or replace it."), Remaining);
+    }
+    if (Count > 0)
+    {
+        return FString::Printf(TEXT("Roasted field meat: %d available. Eat one for 120 seconds of 10%% lower stamina use."), Count);
+    }
+    return TEXT("Roasted field meat: none. Roast boar or deer meat at a nearby usable lit hearth.");
 }
 
 FString UKalmalaCraftingComponent::GetNearbyFireText() const
@@ -249,4 +296,48 @@ void UKalmalaCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickTy
         || FParse::Param(FCommandLine::Get(), TEXT("KalmalaPersistedCampRestoreTest"))) RunPersistedCampVerification(DeltaTime);
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaRainVerticalSliceTest"))) RunRainVerticalSliceVerification(DeltaTime);
 #endif
+}
+
+bool UKalmalaCraftingComponent::ConsumeFoodFromServer(const FName FoodItemId, FString& Reason)
+{
+    auto* Character = GetCharacter();
+    Reason = TEXT("Server authority required");
+    if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
+    auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
+    auto* Status = Character->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    Reason = TEXT("Unknown or unavailable food");
+    if (!Inventory || !Status || !Status->CanApplyFoodFromServer(FoodItemId))
+    {
+        if (UKalmalaPlayerStatusComponent::IsKnownFoodItem(FoodItemId) && Status && Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId))
+            Reason = TEXT("A steady meal is already active; wait for it to expire");
+        return false;
+    }
+
+    const TArray<FKalmalaInventoryStack>& Before = Inventory->GetStacks();
+    TArray<FKalmalaInventoryStack> Candidate;
+    if (!UKalmalaInventoryComponent::BuildExchange(Before, {{FoodItemId, 1}}, NAME_None, 0, Candidate, Reason)) return false;
+    if (!Inventory->TryCommitStacksFromServer(Before, Candidate))
+    {
+        Reason = TEXT("Pack changed; food was not consumed");
+        return false;
+    }
+    if (!Status->ApplyFoodFromServer(FoodItemId))
+    {
+        Inventory->TryCommitStacksFromServer(Candidate, Before);
+        Reason = TEXT("Meal changed; food was restored");
+        return false;
+    }
+
+    const auto* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(FoodItemId);
+    Reason = FString::Printf(TEXT("Ate %s; stamina use is 10%% lower for %.0f seconds"),
+        Item ? *Item->DisplayName : TEXT("prepared food"), UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    return true;
+}
+
+void UKalmalaCraftingComponent::ServerConsumeFood_Implementation(const FName FoodItemId)
+{
+    if (!AcceptRequest()) return;
+    FString Reason;
+    const bool bAccepted = ConsumeFoodFromServer(FoodItemId, Reason);
+    PublishResult(Reason, bAccepted);
 }

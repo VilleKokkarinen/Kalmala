@@ -153,4 +153,45 @@ bool FKalmalaWetCampfireTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaSteadyMealStatusTest, "Kalmala.Gameplay.Status.SteadyMeal",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
+{
+    TArray<FKalmalaPlayerStatusEntry> Entries;
+    TestFalse(TEXT("Unknown items cannot create food effects"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("Wood")));
+    TestTrue(TEXT("Roasted field meat creates a meal effect"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("RoastedFieldMeat")));
+    TestEqual(TEXT("Meal has one server-defined finite entry"), Entries.Num(), 1);
+    TestEqual(TEXT("Meal uses the fixed server duration"), Entries[0].RemainingSeconds, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    TestEqual(TEXT("Meal reduces stamina use without changing movement speed"),
+        UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).StaminaUse,
+        UKalmalaPlayerStatusComponent::SteadyMealStaminaUseMultiplier);
+    TestEqual(TEXT("Meal does not add a movement-speed bonus"), UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).Movement, 1.0f);
+    TestFalse(TEXT("A second meal cannot stack or replace the active one"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("RoastedFieldMeat")));
+    TestEqual(TEXT("Rejected meal preserves its timer"), Entries[0].RemainingSeconds, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+
+    UKalmalaPlayerStatusComponent::Advance(Entries, 30.0f);
+    TestEqual(TEXT("Meal duration advances with server status time"), Entries[0].RemainingSeconds, 90.0f);
+    UKalmalaPlayerStatusComponent::Advance(Entries, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    TestTrue(TEXT("Expired meal is removed"), Entries.IsEmpty());
+    TestEqual(TEXT("Expired meal restores stamina costs"), UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).StaminaUse, 1.0f);
+
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    AKalmalaCharacter* Pawn = World ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
+    if (!TestNotNull(TEXT("Authority status fixture spawned"), Pawn))
+    {
+        if (World) World->DestroyWorld(false);
+        return false;
+    }
+    auto* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    TestTrue(TEXT("Server owner may apply a known meal"), Status && Status->ApplyFoodFromServer(TEXT("RoastedFieldMeat")));
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestFalse(TEXT("Owning client cannot author a meal effect"), Status && Status->ApplyFoodFromServer(TEXT("RoastedFieldMeat")));
+    TestEqual(TEXT("Rejected client application retains the server timer"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
+        UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    World->DestroyWorld(false);
+    return true;
+}
+
 #endif

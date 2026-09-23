@@ -753,3 +753,15 @@ After a forced editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered -P
 ### M3 rain vertical-slice verification
 
 After a forced editor build, run `Scripts/Verify-RainVerticalSlice.ps1` on an unused port. Its development-only listen-server fixture activates the deterministic seed-418 coverage domain, locates water using the authoritative ocean/lake samplers, and freezes two ordinary peer pawns while it drives the production weather, status, roof-trace, rain-wear, and hearth update paths. The client joins with seed 999 and must receive seed 418. The server then requires immediate water Wet, heat-based removal, delayed unroofed-rain Wet, an exposed floor at the 50-health cap, rain-immune roofed floor and roof, a Smouldering fire, and roof-driven Lit recovery; the remote owner independently reads the replicated final construction IDs, hearth state, roof state, and no-Wet status. The fixture adds no gameplay RPC, save record, client-supplied mutation, or normal-play grant, and uses separate temporary user directories.
+
+### M7 first food transaction
+
+Roasted field meat is cooked from existing server-selected boar or deer rewards at a same-world hearth the player may use within 250 cm. Cooking needs Lit state and finite positive heat; a workbench, extinguished fire, or rain-smouldering fire is not a substitute. The server applies the catalogue batch limit and the existing atomic inventory exchange. No extra fuel debit is charged beyond the fire's normal burn.
+
+The owner food request carries only the food item ID. The server checks its allowlist, private inventory, and the one-meal slot before consuming one item and publishing a 120-second server status that multiplies stamina use by 0.90. An active meal cannot be stacked, refreshed, or replaced. Food and the effect remain transient; no save schema changed. This initial recipe uses the hearth directly; cooking rack, kettle, and drying/smoking stations remain open.
+
+After the forced editor build, run the focused food, status, inventory recipe, and RPC contracts:
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CampfireProcessing+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract; Quit" -TestExit="Automation Test Queue Empty"
+```

@@ -16,8 +16,20 @@ The server-local `KalmalaRecipeCatalogue` configuration defines these original r
 | Timber floor kit | 2 lashed timber | Usable hearth or visible workbench within 250 cm | 5 |
 | Windbreak wall kit | 2 lashed timber + 2 reed fibre | Usable hearth or visible workbench within 250 cm | 5 |
 | Reed roof kit | 2 lashed timber + 4 reed fibre | Usable hearth or visible workbench within 250 cm | 5 |
+| Roast boar field meat | 1 boar field meat | Usable lit hearth with positive heat within 250 cm | 5 |
+| Roast deer field meat | 1 deer field meat | Usable lit hearth with positive heat within 250 cm | 5 |
 
 Hearths and accepted workbenches are assembly stations; hearths need not be burning. The existing recipe configuration flag `bRequiresCampfire` now means a nearby usable camp assembly station, preserving recipe data while allowing visible workbenches to assemble floor, wall, and roof kits. Kit stack limits are 5 for hearth/workbench/storage and 10 for floor/wall/roof; fuel and timber remain bounded to 20.
+
+### First cooked food and consumption contract
+
+The initial prepared food is original Roasted field meat. The existing server-selected boar and deer drops feed two catalogue recipes, each producing one cooked piece per input and allowing at most five pieces per request. These recipes use a separate `bRequiresLitCampfire` flag; they reject a recipe that also requests the generic assembly-station flag. The server selects a same-world hearth that the owning player may use, within 250 cm, in `Lit` state with finite positive heat. A workbench, empty fire, or rain-smouldering fire does not qualify. The active hearth continues its existing one-fuel-second-per-second burn; a batch adds no second fuel charge or hidden processing timer.
+
+Cooking uses the ordinary inventory scratch exchange. Missing heat, ingredients, valid recipe, or output capacity leaves all ingredients unchanged. The batch limit is five, output stack limit is 20, and roasted meat does not spoil in this first slice. The food button sends only `RoastedFieldMeat`; the server validates the allowlisted identity, the owning pawn, its private pack, and the available meal slot before committing exactly one item.
+
+Roasted field meat grants `State.Food.SteadyMeal` for 120 seconds of server status time and reduces server-derived stamina costs to 90% (including sprint and support activation costs). One meal slot is active at a time: effects do not stack, refresh, or replace one another. A further meal request fails without consuming food until the current effect expires. The crafting panel states the available count, active timer, benefit, and wait rule in text. Food inventory and the meal effect remain transient; no existing save schema changes, no hunger drain is added, and food is not required for travel.
+
+This first slice roasts directly at an existing hearth. The planned cooking rack, heat-safe kettle or cauldron analogue, and drying or smoking frame remain open M7 processing-station work.
 
 ## Local placement preview
 

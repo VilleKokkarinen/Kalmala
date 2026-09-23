@@ -4,6 +4,8 @@
 #include "KalmalaCampfire.h"
 
 const FName UKalmalaPlayerStatusComponent::WetStatusId(TEXT("State.Wet"));
+const FName UKalmalaPlayerStatusComponent::SteadyMealStatusId(TEXT("State.Food.SteadyMeal"));
+const FName UKalmalaPlayerStatusComponent::RoastedFieldMeatItemId(TEXT("RoastedFieldMeat"));
 
 FKalmalaStatusModifiers UKalmalaPlayerStatusComponent::EvaluateModifiers(const TArray<FKalmalaPlayerStatusEntry>& Entries)
 {
@@ -18,6 +20,10 @@ FKalmalaStatusModifiers UKalmalaPlayerStatusComponent::EvaluateModifiers(const T
         {
             Result.Movement *= WetMovementMultiplier;
             Result.StaminaUse *= WetStaminaUseMultiplier;
+        }
+        else if (Entry.StatusId == SteadyMealStatusId)
+        {
+            Result.StaminaUse *= SteadyMealStaminaUseMultiplier;
         }
     }
     return Result;
@@ -51,7 +57,40 @@ float UKalmalaPlayerStatusComponent::GetRemainingSeconds(const FName StatusId) c
     {
         return Candidate.StatusId == StatusId && FMath::IsFinite(Candidate.RemainingSeconds) && Candidate.RemainingSeconds > 0.0f;
     });
-    return Entry ? FMath::Clamp(Entry->RemainingSeconds, 0.0f, WetMaximumSeconds) : 0.0f;
+    const float Maximum = StatusId == SteadyMealStatusId ? SteadyMealMaximumSeconds : WetMaximumSeconds;
+    return Entry ? FMath::Clamp(Entry->RemainingSeconds, 0.0f, Maximum) : 0.0f;
+}
+
+bool UKalmalaPlayerStatusComponent::IsKnownFoodItem(const FName ItemId)
+{
+    return ItemId == RoastedFieldMeatItemId;
+}
+
+bool UKalmalaPlayerStatusComponent::ApplyFood(TArray<FKalmalaPlayerStatusEntry>& Entries, const FName ItemId)
+{
+    if (!IsKnownFoodItem(ItemId)
+        || Entries.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == SteadyMealStatusId && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f; }))
+        return false;
+
+    Advance(Entries, 0.0f);
+    FKalmalaPlayerStatusEntry& Meal = Entries.AddDefaulted_GetRef();
+    Meal.StatusId = SteadyMealStatusId;
+    Meal.RemainingSeconds = SteadyMealMaximumSeconds;
+    return true;
+}
+
+bool UKalmalaPlayerStatusComponent::CanApplyFoodFromServer(const FName ItemId) const
+{
+    const AActor* Owner = GetOwner();
+    return IsValid(Owner) && Owner->HasAuthority() && IsKnownFoodItem(ItemId) && !HasStatus(SteadyMealStatusId);
+}
+
+bool UKalmalaPlayerStatusComponent::ApplyFoodFromServer(const FName ItemId)
+{
+    if (!CanApplyFoodFromServer(ItemId) || !ApplyFood(Statuses, ItemId)) return false;
+    GetOwner()->ForceNetUpdate();
+    return true;
 }
 
 void UKalmalaPlayerStatusComponent::ApplyWetFromServer()
@@ -96,19 +135,23 @@ void UKalmalaPlayerStatusComponent::ApplyWet(TArray<FKalmalaPlayerStatusEntry>& 
 void UKalmalaPlayerStatusComponent::Advance(TArray<FKalmalaPlayerStatusEntry>& Entries, const float DeltaSeconds)
 {
     const float SafeDelta = FMath::Max(0.0f, FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f);
-    bool bSawWet = false;
+    TSet<FName> Seen;
     for (int32 Index = Entries.Num() - 1; Index >= 0; --Index)
     {
         FKalmalaPlayerStatusEntry& Entry = Entries[Index];
-        if (Entry.StatusId.IsNone() || !FMath::IsFinite(Entry.RemainingSeconds) || (Entry.StatusId == WetStatusId && bSawWet))
+        if (Entry.StatusId.IsNone() || !FMath::IsFinite(Entry.RemainingSeconds) || Seen.Contains(Entry.StatusId))
         {
             Entries.RemoveAt(Index);
             continue;
         }
+        Seen.Add(Entry.StatusId);
         if (Entry.StatusId == WetStatusId)
         {
-            bSawWet = true;
             Entry.RemainingSeconds = FMath::Clamp(Entry.RemainingSeconds - SafeDelta, 0.0f, WetMaximumSeconds);
+        }
+        else if (Entry.StatusId == SteadyMealStatusId)
+        {
+            Entry.RemainingSeconds = FMath::Clamp(Entry.RemainingSeconds - SafeDelta, 0.0f, SteadyMealMaximumSeconds);
         }
         else
         {

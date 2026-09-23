@@ -11,16 +11,18 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Configured recipes validate"),Recipes->IsValidCatalogue());
     for(const FName Id:{FName(TEXT("Campfire")),FName(TEXT("Workbench")),FName(TEXT("Storage")),FName(TEXT("Floor")),FName(TEXT("Wall")),FName(TEXT("Roof"))})
         TestNotNull(TEXT("Required recipe exists"),Recipes->Find(Id));
-    struct FExpectedRecipe { FName Id; FName Output; int32 MaxBatch; bool bRequiresHearth; TArray<FKalmalaInventoryStack> Costs; };
+    struct FExpectedRecipe { FName Id; FName Output; int32 MaxBatch; bool bRequiresHearth; bool bRequiresLitHearth; TArray<FKalmalaInventoryStack> Costs; };
     const TArray<FExpectedRecipe> Expected = {
-        {TEXT("Fuel"), TEXT("Fuel"), 5, false, {{TEXT("Wood"),2},{TEXT("Fibre"),1}}},
-        {TEXT("Timber"), TEXT("ConstructionSupply"), 5, false, {{TEXT("Wood"),3},{TEXT("Fibre"),2}}},
-        {TEXT("Campfire"), TEXT("CampfireKit"), 1, false, {{TEXT("Stone"),5},{TEXT("Wood"),3}}},
-        {TEXT("Workbench"), TEXT("WorkbenchKit"), 1, false, {{TEXT("ConstructionSupply"),3},{TEXT("Stone"),2}}},
-        {TEXT("Storage"), TEXT("StorageKit"), 1, false, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),4}}},
-        {TEXT("Floor"), TEXT("FloorKit"), 5, true, {{TEXT("ConstructionSupply"),2}}},
-        {TEXT("Wall"), TEXT("WallKit"), 5, true, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),2}}},
-        {TEXT("Roof"), TEXT("RoofKit"), 5, true, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),4}}}
+        {TEXT("Fuel"), TEXT("Fuel"), 5, false, false, {{TEXT("Wood"),2},{TEXT("Fibre"),1}}},
+        {TEXT("Timber"), TEXT("ConstructionSupply"), 5, false, false, {{TEXT("Wood"),3},{TEXT("Fibre"),2}}},
+        {TEXT("Campfire"), TEXT("CampfireKit"), 1, false, false, {{TEXT("Stone"),5},{TEXT("Wood"),3}}},
+        {TEXT("Workbench"), TEXT("WorkbenchKit"), 1, false, false, {{TEXT("ConstructionSupply"),3},{TEXT("Stone"),2}}},
+        {TEXT("Storage"), TEXT("StorageKit"), 1, false, false, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),4}}},
+        {TEXT("Floor"), TEXT("FloorKit"), 5, true, false, {{TEXT("ConstructionSupply"),2}}},
+        {TEXT("Wall"), TEXT("WallKit"), 5, true, false, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),2}}},
+        {TEXT("Roof"), TEXT("RoofKit"), 5, true, false, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),4}}},
+        {TEXT("RoastBoarMeat"), TEXT("RoastedFieldMeat"), 5, false, true, {{TEXT("BoarMeat"),1}}},
+        {TEXT("RoastDeerMeat"), TEXT("RoastedFieldMeat"), 5, false, true, {{TEXT("DeerMeat"),1}}}
     };
     TestEqual(TEXT("Recipe catalogue stays deliberately small"), Recipes->Recipes.Num(), Expected.Num());
     for (const FExpectedRecipe& Definition : Expected)
@@ -31,6 +33,7 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Recipe output matches contract"), Recipe->Output, Definition.Output);
         TestEqual(TEXT("Recipe batch cap matches contract"), Recipe->MaxBatch, Definition.MaxBatch);
         TestEqual(TEXT("Recipe hearth requirement matches contract"), Recipe->bRequiresCampfire, Definition.bRequiresHearth);
+        TestEqual(TEXT("Recipe lit-hearth requirement matches contract"), Recipe->bRequiresLitCampfire, Definition.bRequiresLitHearth);
         TestEqual(TEXT("Recipe ingredient count matches contract"), Recipe->Ingredients.Num(), Definition.Costs.Num());
         for (int32 Index = 0; Index < Definition.Costs.Num() && Recipe->Ingredients.IsValidIndex(Index); ++Index)
         {

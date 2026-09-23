@@ -31,7 +31,8 @@ bool UKalmalaRecipeCatalogue::IsValidCatalogue() const
     {
         TArray<FKalmalaInventoryStack> Costs; int32 Count;
         if (Recipe.RecipeId.IsNone() || Seen.Contains(Recipe.RecipeId) || Recipe.DisplayName.TrimStartAndEnd().IsEmpty()
-            || Recipe.DisplayName.Len() > 64 || !Scale(Recipe, Recipe.MaxBatch, Costs, Count)) return false;
+            || Recipe.DisplayName.Len() > 64 || (Recipe.bRequiresCampfire && Recipe.bRequiresLitCampfire)
+            || !Scale(Recipe, Recipe.MaxBatch, Costs, Count)) return false;
         Seen.Add(Recipe.RecipeId);
     }
     return true;

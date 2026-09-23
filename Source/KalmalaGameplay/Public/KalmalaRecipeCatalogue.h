@@ -14,6 +14,7 @@ struct KALMALAGAMEPLAY_API FKalmalaRecipe
     UPROPERTY(EditAnywhere) int32 OutputCount = 1;
     UPROPERTY(EditAnywhere) int32 MaxBatch = 1;
     UPROPERTY(EditAnywhere) bool bRequiresCampfire = false;
+    UPROPERTY(EditAnywhere) bool bRequiresLitCampfire = false;
     UPROPERTY(EditAnywhere) bool bEnabled = true;
 };
 

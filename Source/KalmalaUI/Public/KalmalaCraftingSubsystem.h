@@ -31,6 +31,7 @@ private:
     UFUNCTION() void Place();
     UFUNCTION() void Refuel();
     UFUNCTION() void Light();
+    UFUNCTION() void EatFood();
     UFUNCTION() void InspectStorage();
     UFUNCTION() void PreviousStorageItem();
     UFUNCTION() void NextStorageItem();
@@ -41,6 +42,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipesText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StateText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
     int32 Selected = 0;

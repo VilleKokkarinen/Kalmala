@@ -23,6 +23,7 @@ public:
     UFUNCTION(Server, Reliable) void ServerPlaceConstruction(FName KitId);
     UFUNCTION(Server, Reliable) void ServerRefuel();
     UFUNCTION(Server, Reliable) void ServerLight();
+    UFUNCTION(Server, Reliable) void ServerConsumeFood(FName FoodItemId);
     UFUNCTION(Server, Reliable) void ServerOpenStorage();
     UFUNCTION(Server, Reliable) void ServerCloseStorage();
     UFUNCTION(Server, Reliable) void ServerDepositStorage(FName ItemId);
@@ -37,15 +38,18 @@ public:
     AKalmalaConstructionActor* FindNearbyWorkbench() const;
     FString GetNearbyWorkbenchText() const;
     FString GetNearbyConstructionText() const;
+    bool ConsumeFoodFromServer(FName FoodItemId, FString& Reason);
     bool CraftFromServer(FName RecipeId, int32 Batch, FString& Reason);
     bool PlaceFromServer(FString& Reason);
     bool PlaceConstructionFromServer(FName KitId, FString& Reason);
+    FString GetFoodText() const;
     FString GetRecipeDescription(FName RecipeId) const;
     FString GetRecipeAvailability(FName RecipeId) const;
     FString GetNearbyFireText() const;
     const FString& GetLastResult() const { return LastResult; }
     AKalmalaCampfire* FindNearbyFire(bool bRequireUsable) const;
 private:
+    AKalmalaCampfire* FindNearbyLitFire() const;
     bool AcceptRequest();
     void PublishResult(const FString& Result, bool bAccepted);
     AKalmalaCharacter* GetCharacter() const;

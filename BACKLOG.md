@@ -474,6 +474,8 @@ PC solo/listen-server co-op boundary. The roadmap contract is in
   - [ ] Add accepted repair at a validated station or workbench with repair-material costs; persist only approved sparse depletion facts and never accept client-selected nodes, yield, damage, durability, repair result, or reward.
 - [ ] Add optional food, preparation, and nutrition choices.
   - [ ] Add original edible items and recipes through existing inventory/crafting transactions, with a first camp-processing set covering a cooking rack, heat-safe kettle or cauldron analogue, and drying or smoking frame.
+    - [x] Add the first two original roast recipes, usable lit-hearth validation, and one non-stacking server-owned meal benefit through the existing inventory/status transactions. Passed 2026-09-23: boar and deer meat produce RoastedFieldMeat in batches up to five; consumption is one allowlisted item for a 120-second 0.90 stamina-cost multiplier, with duplicate use rejected through expiry.
+    - [ ] Add the cooking rack, heat-safe kettle or cauldron analogue, and drying or smoking frame with explicit station-specific fuel, heat, access, batch, and failure rules.
   - [ ] Define explicit fuel, heat, access, batch, failure, stacking, replacement, expiry, and duplicate-consumption rules for finite readable stat benefits without making food a hard travel gate.
 - [ ] Broaden crafting and camp progression.
   - [ ] Add a bounded first tier of tools, gathering implements, repair materials, cooking/preservation recipes, storage/camp improvements, and skill-gated recipes through atomic inventory exchanges and station validation.

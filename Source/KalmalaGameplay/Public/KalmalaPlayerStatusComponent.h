@@ -38,7 +38,11 @@ public:
     UKalmalaPlayerStatusComponent();
 
     static const FName WetStatusId;
+    static const FName SteadyMealStatusId;
+    static const FName RoastedFieldMeatItemId;
     static constexpr float WetMaximumSeconds = 120.0f;
+    static constexpr float SteadyMealMaximumSeconds = 120.0f;
+    static constexpr float SteadyMealStaminaUseMultiplier = 0.90f;
     static constexpr float UnroofedRainTriggerSeconds = 10.0f;
     // Wet remains a meaningful exposure pressure, but its movement and sprint
     // costs leave room for a player to recover or choose a short detour.
@@ -55,6 +59,11 @@ public:
     bool HasStatus(FName StatusId) const;
     float GetRemainingSeconds(FName StatusId) const;
     const TArray<FKalmalaPlayerStatusEntry>& GetStatuses() const { return Statuses; }
+
+    static bool IsKnownFoodItem(FName ItemId);
+    static bool ApplyFood(TArray<FKalmalaPlayerStatusEntry>& Entries, FName ItemId);
+    bool CanApplyFoodFromServer(FName ItemId) const;
+    bool ApplyFoodFromServer(FName ItemId);
 
     /** Server-only source-independent wet application. Reapplication clamps at the definition maximum. */
     void ApplyWetFromServer();

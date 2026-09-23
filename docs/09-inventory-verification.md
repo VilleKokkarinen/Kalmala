@@ -6,6 +6,8 @@ Each visit requires the owning client to receive seven wood, reject local grant/
 
 The harvest fixture checks server-selected Wood/Stone/Fibre, full-stack rejection followed by successful retry, distance rejection, uninitialized descriptors, duplicate/depleted interaction rejection, and a single sparse-delta callback per successful grant. Its M7 source fixture additionally checks wrong-tool and full-stack rejection without changing owner tool condition or node state, then accepts the catalogue-selected Wood grant, spends one FieldHatchet condition point, and records one depletion callback. Fixtures use isolated temporary actors and do not write a world-save slot or tool condition. The runner terminates only its own peer processes and retains all three logs in the printed temporary directory.
 
+`Kalmala.Gameplay.Food.CampfireProcessing` verifies the first food transaction through the live recipe and status components. Boar/deer meat roast only at an accessible nearby lit hearth with positive heat; missing, unlit, smouldering, malformed-batch, and client-role attempts leave ingredients unchanged. The owning player's food request carries only a food identity, consumes one catalogue item atomically, and applies the fixed 120-second `State.Food.SteadyMeal` modifier. Duplicate or forged consumption preserves both inventory and effect timer; expiry opens the single meal slot again. Food stacks and effects remain pawn-lifetime, with no save-schema change.
+
 Also run these headless automations with the memory-cache and temporary user/log flags documented in `07-development-setup.md`:
 
 - `Kalmala.Gameplay.Inventory.Catalogue`

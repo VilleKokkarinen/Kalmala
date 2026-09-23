@@ -62,6 +62,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Place selected kit"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Place);
     AddButton(TEXT("Add fuel bundle"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Refuel);
     AddButton(TEXT("Light hearth"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Light);
+    FoodText = AddText(TEXT(""), 18);
+    AddButton(TEXT("Eat one roasted field meat"))->OnClicked.AddDynamic(this, &ThisClass::EatFood);
     AddText(TEXT("\nWoven chest — shared nearby storage\nInspect a visible chest, choose an item, then store or take one. Contents clear when closed or out of reach."), 16);
     StorageText = AddText(TEXT(""), 18);
     AddButton(TEXT("Inspect nearby chest"))->OnClicked.AddDynamic(this, &ThisClass::InspectStorage);
@@ -120,6 +122,7 @@ void UKalmalaCraftingWidget::Refresh()
         const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), GetOwningPlayerPawn(), Recipes[Selected].Output);
         PreviewText = TEXT("\n") + Preview.Message + (Preview.bIsValid ? FString::Printf(TEXT(" (%.0f, %.0f)"), Preview.Location.X, Preview.Location.Y) : TEXT("")) + TEXT("\n");
     }
+    FoodText->SetText(FText::FromString(M->GetFoodText()));
     StateText->SetText(FText::FromString(TEXT("\nNearby hearth (replicated shared state; text does not rely on colour):\n")
         + M->GetNearbyFireText()+TEXT("\n")+M->GetNearbyConstructionText()+TEXT("\n")+M->GetNearbyWorkbenchText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")+PreviewText));
     const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
@@ -142,7 +145,7 @@ void UKalmalaCraftingWidget::Refresh()
 FString UKalmalaCraftingWidget::GetPresentationText() const
 {
     return InstructionsText && RecipesText && DetailText && StateText
-        ? InstructionsText->GetText().ToString()+RecipesText->GetText().ToString()+DetailText->GetText().ToString()+StateText->GetText().ToString() : FString();
+        ? InstructionsText->GetText().ToString()+RecipesText->GetText().ToString()+DetailText->GetText().ToString()+StateText->GetText().ToString() + (FoodText ? FoodText->GetText().ToString() : FString()) : FString();
 }
 void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D) { Super::NativeTick(G,D); if(bOpen) Refresh(); }
 void UKalmalaCraftingWidget::Previous() { const int32 N=GetDefault<UKalmalaRecipeCatalogue>()->Recipes.Num(); if(N) Selected=(Selected+N-1)%N; Refresh(); }
@@ -159,6 +162,7 @@ void UKalmalaCraftingWidget::Place()
         if (Kit == TEXT("CampfireKit")) M->ServerPlaceCampfire(); else M->ServerPlaceConstruction(Kit);
     }
 }
+void UKalmalaCraftingWidget::EatFood() { if(auto* M=Model()) M->ServerConsumeFood(TEXT("RoastedFieldMeat")); }
 void UKalmalaCraftingWidget::Refuel() { if(auto* M=Model()) M->ServerRefuel(); }
 void UKalmalaCraftingWidget::Light() { if(auto* M=Model()) M->ServerLight(); }
 void UKalmalaCraftingWidget::InspectStorage() { if (auto* M=Model()) M->ServerOpenStorage(); }
@@ -229,7 +233,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             const auto PreviewText=Widget->GetPresentationText();
             const bool Passed=Text.Contains(TEXT("Craft menu input:")) && Text.Contains(TEXT("Up/Down"))
                 && Text.Contains(TEXT("Cost:")) && Text.Contains(TEXT("Output:")) && Text.Contains(TEXT("Handcrafted; no station"))
-                && Text.Contains(TEXT("Need 2 Splitwood")) && PreviewText.Contains(TEXT("Preview:")) && PC->IsMoveInputIgnored() && Widget->IsFocusable();
+                && Text.Contains(TEXT("Need 2 Splitwood")) && Text.Contains(TEXT("Roasted field meat:")) && PreviewText.Contains(TEXT("Preview:")) && PC->IsMoveInputIgnored() && Widget->IsFocusable();
             Widget->Close();
             UE_LOG(LogTemp,Display,TEXT("Crafting presentation: Passed=%d Restored=%d"),Passed,!PC->IsMoveInputIgnored()); bVerified=true;
         }

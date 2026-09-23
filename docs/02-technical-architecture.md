@@ -261,3 +261,11 @@ The crafting panel shows the nearest initialized, visible construction within 25
 ### Weather mutation runtime guard
 
 SetWeatherStateFromServer now rejects non-authority and invalid input at runtime instead of relying on assertions that can compile out. Weather validity also requires a finite, nonnegative server start time. Rejected calls preserve the complete previous weather interval and do not force replication. Valid server selection remains unchanged; there is still no weather mutation RPC or weather save field. This prevents client-local writes through this C++ seam, without claiming a remotely exploitable server endpoint previously existed.
+
+## M7 first food transaction
+
+The first prepared food reuses the server-local item and recipe catalogues, UKalmalaInventoryComponent::BuildExchange, the existing hearth actor, and the replicated player-status component. Roasting requires a same-world fire that the server observes as usable, within 250 cm, Lit, and producing finite positive heat; a workbench, extinguished fire, or Smouldering fire cannot satisfy it. The server checks recipe identity, batch, inputs, and output capacity before changing the private pack. No additional fuel charge is applied beyond the hearth's normal fuel burn.
+
+Food use is an owning-client request containing only an item identity. The server allowlists Roasted field meat, checks the owner's pack and meal slot, commits one-item consumption through a candidate inventory exchange, then publishes a fixed-duration State.Food.SteadyMeal entry. The entry reduces server-derived stamina cost to 0.90 for 120 server seconds. Only one meal entry is permitted: an active effect neither stacks, refreshes, nor gets replaced; rejected consumption leaves pack and status unchanged. The existing status replication carries effect identity and remaining time, while the private inventory and crafting result remain owner-only. Food, cooking progress, and meal effects add no save field or schema.
+
+The current slice cooks directly over an existing hearth. Cooking-rack, kettle/cauldron, and drying/smoking station actors and their station-specific processing rules remain open M7 work.
