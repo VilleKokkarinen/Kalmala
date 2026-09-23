@@ -14,6 +14,7 @@ class UKalmalaCombatComponent;
 class UKalmalaDiscoveryProgressComponent;
 class UKalmalaSupportMagicComponent;
 class UKalmalaSkillProgressionComponent;
+class AKalmalaHarvestNode;
 enum class EKalmalaSupportEffect : uint8;
 
 USTRUCT(BlueprintType)
@@ -51,6 +52,7 @@ public:
     UKalmalaInventoryComponent* GetInventoryComponent() const { return Inventory; }
     UKalmalaSupportMagicComponent* GetSupportMagicComponent() const { return SupportMagic; }
     UKalmalaSkillProgressionComponent* GetSkillProgressionComponent() const { return SkillProgression; }
+    int32 GetToolDurability(FName ToolId) const;
     EKalmalaSupportEffect GetSelectedSupportEffect() const;
     float GetHealth() const { return Health; }
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
@@ -68,6 +70,12 @@ protected:
     virtual void OnRep_ReplicatedMovement() override;
 
 private:
+    friend class AKalmalaHarvestNode;
+
+    bool CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, float TraceDistance, float MaximumRange,
+        FName ClientToolId, uint8 ClientAction);
+    int32* FindToolDurabilityFromServer(FName ToolId);
+
     UPROPERTY(VisibleAnywhere, Category="Crafting") TObjectPtr<UKalmalaCraftingComponent> Crafting;
     UPROPERTY(VisibleAnywhere, Category="Combat") TObjectPtr<UKalmalaCombatComponent> Combat;
     UPROPERTY(VisibleAnywhere, Category="Discovery") TObjectPtr<UKalmalaDiscoveryProgressComponent> DiscoveryProgress;
@@ -145,7 +153,7 @@ private:
     void OnRep_Health();
 
     UFUNCTION(Server, Reliable)
-    void ServerRequestInteract();
+    void ServerRequestInteract(FName ClientToolId, uint8 ClientAction);
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<USpringArmComponent> CameraBoom;
@@ -161,6 +169,16 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
     float Health = 100.0f;
+
+    /** Transient tool condition; detailed values are replicated only to this player's owner. */
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
+    int32 ReedKnifeDurability = 0;
+
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
+    int32 FieldHatchetDurability = 0;
+
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
+    int32 StonePickDurability = 0;
 
     float BaselineMaxWalkSpeed = 0.0f;
 

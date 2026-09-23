@@ -1,5 +1,7 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaHarvestNode.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaCombatComponent.h"
 #include "KalmalaDiscoveryProgressComponent.h"
@@ -92,6 +94,9 @@ void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaCharacter, ExposureState);
     DOREPLIFETIME(AKalmalaCharacter, Health);
+    DOREPLIFETIME_CONDITION(AKalmalaCharacter, ReedKnifeDurability, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(AKalmalaCharacter, FieldHatchetDurability, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(AKalmalaCharacter, StonePickDurability, COND_OwnerOnly);
 }
 
 void AKalmalaCharacter::OnRep_Health()
@@ -137,6 +142,14 @@ bool AKalmalaCharacter::ReceiveMendingFromServer(const AKalmalaCharacter* Source
 void AKalmalaCharacter::BeginPlay()
 {
     Super::BeginPlay();
+    if (HasAuthority())
+    {
+        for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetDefinitions())
+        {
+            if (int32* Durability = FindToolDurabilityFromServer(Definition.ToolId)) *Durability = Definition.MaxDurability;
+        }
+        ForceNetUpdate();
+    }
     bTraversalTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaTraversalTest"));
     bExposureReplicationTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureReplicationTest"));
     TraversalStartLocation = GetActorLocation();
@@ -530,7 +543,32 @@ void AKalmalaCharacter::RequestInteract()
 {
     if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored())
     {
-        ServerRequestInteract();
+        FName ClientToolId = NAME_None;
+        uint8 ClientAction = 0;
+        FVector ViewLocation;
+        FRotator ViewRotation;
+        Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+        FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaLocalToolIntent), false, this);
+        FHitResult Hit;
+        if (GetWorld() && GetWorld()->LineTraceSingleByChannel(Hit, ViewLocation,
+            ViewLocation + ViewRotation.Vector() * InteractionRange, ECC_Visibility, QueryParams))
+        {
+            if (const AKalmalaHarvestNode* Node = Cast<AKalmalaHarvestNode>(Hit.GetActor()))
+            {
+                FKalmalaToolServerSelection Selection;
+                if (FKalmalaToolLifecycleContract::BuildServerSelection(Node->GetGatheringSourceId(), Selection))
+                {
+                    const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::GetDefinitions().FindByPredicate(
+                        [&Selection](const FKalmalaToolDefinition& Candidate) { return Candidate.Kind == Selection.RequiredTool; });
+                    if (Definition != nullptr)
+                    {
+                        ClientToolId = Definition->ToolId;
+                        ClientAction = static_cast<uint8>(Selection.Action);
+                    }
+                }
+            }
+        }
+        ServerRequestInteract(ClientToolId, ClientAction);
     }
 }
 
@@ -569,7 +607,7 @@ void AKalmalaCharacter::ActivateSelectedSupportEffect()
     SupportMagic->ServerRequestActivateSupportEffect(Effect, ++LocalSupportRequestSequence);
 }
 
-void AKalmalaCharacter::ServerRequestInteract_Implementation()
+void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientToolId, const uint8 ClientAction)
 {
     if (Controller == nullptr || GetWorld() == nullptr)
     {
@@ -589,9 +627,70 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation()
     }
 
     AActor* Target = Hit.GetActor();
+    if (AKalmalaHarvestNode* HarvestNode = Cast<AKalmalaHarvestNode>(Target);
+        HarvestNode != nullptr && !HarvestNode->GetGatheringSourceId().IsNone())
+    {
+        HarvestNode->InteractWithToolIntentFromServer(this, Hit.Distance, InteractionRange, ClientToolId, ClientAction);
+        return;
+    }
+
     if (IsValid(Target) && Target->Implements<UKalmalaInteractable>()
         && IKalmalaInteractable::Execute_CanInteract(Target, this))
     {
         IKalmalaInteractable::Execute_Interact(Target, this);
     }
+}
+
+int32 AKalmalaCharacter::GetToolDurability(const FName ToolId) const
+{
+    if (ToolId == TEXT("ReedKnife")) return ReedKnifeDurability;
+    if (ToolId == TEXT("FieldHatchet")) return FieldHatchetDurability;
+    if (ToolId == TEXT("StonePick")) return StonePickDurability;
+    return 0;
+}
+
+int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FName ToolId)
+{
+    if (ToolId == TEXT("ReedKnife")) return &ReedKnifeDurability;
+    if (ToolId == TEXT("FieldHatchet")) return &FieldHatchetDurability;
+    if (ToolId == TEXT("StonePick")) return &StonePickDurability;
+    return nullptr;
+}
+
+bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, const float TraceDistance,
+    const float MaximumRange, const FName ClientToolId, const uint8 ClientAction)
+{
+    if (!HasAuthority() || !IsValid(Node) || !Node->HasAuthority() || Node->GetWorld() != GetWorld()
+        || !Node->CanInteract_Implementation(this) || !SkillProgression || !Inventory) return false;
+
+    FKalmalaToolServerSelection Selection;
+    if (!FKalmalaToolLifecycleContract::BuildServerSelection(Node->GetGatheringSourceId(), Selection)) return false;
+    const FKalmalaSkillState* Skill = SkillProgression->GetServerLedger().Find(Selection.RequiredSkill);
+    int32* CurrentDurability = FindToolDurabilityFromServer(ClientToolId);
+    if (Skill == nullptr || CurrentDurability == nullptr) return false;
+
+    FKalmalaToolServerContext Context;
+    Context.bServerAuthority = HasAuthority() && Node->HasAuthority();
+    Context.bTraceHit = true; // Called only for the actor returned by the server's interaction trace.
+    Context.bSameWorld = Node->GetWorld() == GetWorld();
+    Context.bNodeAvailable = !Node->IsHarvested();
+    Context.TraceDistance = TraceDistance;
+    Context.MaximumRange = MaximumRange;
+
+    FKalmalaToolState CandidateToolState{ClientToolId, *CurrentDurability};
+    FName RewardItemId = NAME_None;
+    int32 RewardQuantity = 0;
+    if (!FKalmalaToolLifecycleContract::ApplyServerUse(CandidateToolState, Context, ClientToolId,
+        static_cast<EKalmalaToolAction>(ClientAction), *Skill, Selection, RewardItemId, RewardQuantity)) return false;
+
+    TArray<FKalmalaInventoryStack> CandidateInventory;
+    FString Reason;
+    const TArray<FKalmalaInventoryStack>& CurrentInventory = Inventory->GetStacks();
+    if (!UKalmalaInventoryComponent::BuildGrant(CurrentInventory, RewardItemId, RewardQuantity, CandidateInventory, Reason)
+        || !Inventory->TryCommitStacksFromServer(CurrentInventory, CandidateInventory)) return false;
+
+    *CurrentDurability = CandidateToolState.Durability;
+    Node->CommitHarvestedStateFromServer();
+    ForceNetUpdate();
+    return true;
 }

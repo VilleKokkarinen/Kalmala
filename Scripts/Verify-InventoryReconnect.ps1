@@ -29,7 +29,7 @@ try {
             if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Inventory server: Passed=0|Harvest inventory: Passed=0|Inventory remote: Empty=0|Inventory owner: Rejected=0') { throw 'Inventory verification failed.' }
             $ownerIndex = $clientText.IndexOf('Inventory owner: Rejected=1 Wood=7 Slots=1')
             if ([regex]::Matches($serverText, 'Inventory server: Passed=1 Wood=7 Slots=1').Count -eq (1 + $visit) `
-                -and [regex]::Matches($serverText, 'Harvest inventory: Passed=1 Materials=3 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1').Count -eq (1 + $visit) `
+                -and [regex]::Matches($serverText, 'Harvest inventory: Passed=1 Materials=3 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1 ToolMismatch=1 ToolPackAtomic=1 ToolWear=1 ToolDepletion=1').Count -eq (1 + $visit) `
                 -and $ownerIndex -ge 0 -and $clientText.IndexOf('Inventory remote: Empty=1', $ownerIndex) -gt $ownerIndex `
                 -and $serverText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1') `
                 -and $clientText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1')) { break }

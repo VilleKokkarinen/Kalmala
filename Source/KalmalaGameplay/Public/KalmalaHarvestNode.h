@@ -28,14 +28,20 @@ public:
     FName GetGatheringSourceId() const { return GatheringSourceId; }
     FName GetGatheringPresentationId() const;
     FName GetHarvestItemId() const;
+    bool IsHarvested() const { return bHarvested; }
+    bool InteractWithToolIntentFromServer(AKalmalaCharacter* Interactor, float TraceDistance, float MaximumRange,
+        FName ClientToolId, uint8 ClientAction);
     FKalmalaHarvestNodeHarvested OnHarvested;
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
     virtual void Interact_Implementation(AKalmalaCharacter* Interactor) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
+    friend class AKalmalaCharacter;
+
     void BuildSourcePresentation();
     void ApplyHarvestedState();
+    void CommitHarvestedStateFromServer();
 
     UPROPERTY(VisibleAnywhere, Category = "Harvest")
     TObjectPtr<USphereComponent> Collision;

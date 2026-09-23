@@ -141,6 +141,8 @@ FName AKalmalaHarvestNode::GetGatheringPresentationId() const
 
 void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
 {
+    // Generated biome sources must pass through the server trace/tool transaction.
+    if (!GatheringSourceId.IsNone()) return;
     // No client-selected reward or quantity. Commit depletion only after the complete grant succeeds.
     if (!CanInteract_Implementation(Interactor)) return;
     auto* Inventory = Interactor->FindComponentByClass<UKalmalaInventoryComponent>();
@@ -151,6 +153,26 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
         OnHarvested.Broadcast(PersistentSpawnId);
         ForceNetUpdate();
     }
+}
+
+bool AKalmalaHarvestNode::InteractWithToolIntentFromServer(AKalmalaCharacter* Interactor,
+    const float TraceDistance, const float MaximumRange, const FName ClientToolId, const uint8 ClientAction)
+{
+    if (!HasAuthority() || !IsValid(Interactor) || !Interactor->HasAuthority()
+        || Interactor->GetWorld() != GetWorld()
+        || !FKalmalaBiomeContentContract::IsValidGatheringSourceId(GatheringSourceId)
+        || !IsHarvestAllowed(true, bHarvested, Interactor->GetActorLocation(), GetActorLocation())) return false;
+
+    return Interactor->CommitToolHarvestFromServer(this, TraceDistance, MaximumRange, ClientToolId, ClientAction);
+}
+
+void AKalmalaHarvestNode::CommitHarvestedStateFromServer()
+{
+    if (!HasAuthority() || bHarvested || PersistentSpawnId.IsEmpty()) return;
+    bHarvested = true;
+    ApplyHarvestedState();
+    OnHarvested.Broadcast(PersistentSpawnId);
+    ForceNetUpdate();
 }
 
 FName AKalmalaHarvestNode::GetHarvestItemId() const

@@ -78,6 +78,18 @@ After the editor build, run the focused deterministic catalogue check:
 The wildlife authority regression covers the six niche profiles and their
 bounded flee responses through `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`.
 
+### M7 first-wave tool gathering
+
+Valid generated gathering sources select a bounded transient tool/action on
+the client; the existing server interaction RPC still carries no target or
+outcome. The server retraces, validates the source/tool/action/skill/condition,
+preflights the catalogue reward against inventory capacity, and commits pack,
+condition, node depletion, and the existing sparse callback as one accepted
+action. Owner-only condition replication and the current no-persistence limit
+are specified in `17-m7-tools-and-gathering.md`. Run its focused automation,
+then `Scripts/Verify-InventoryReconnect.ps1` for the host/client inventory and
+tool transaction fixture.
+
 ## First build
 
 Open PowerShell and run:

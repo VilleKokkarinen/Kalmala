@@ -3,6 +3,33 @@
 #include "KalmalaStorageSaveGame.h"
 #include "GameFramework/Actor.h"
 
+namespace
+{
+bool IsValidInventoryState(const TArray<FKalmalaInventoryStack>& Stacks)
+{
+    const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    if (Stacks.Num() > UKalmalaInventoryComponent::MaxSlots || Catalogue == nullptr) return false;
+    TSet<FName> Seen;
+    for (const FKalmalaInventoryStack& Stack : Stacks)
+    {
+        if (Seen.Contains(Stack.ItemId) || !Catalogue->IsValidStack(Stack.ItemId, Stack.Quantity)) return false;
+        Seen.Add(Stack.ItemId);
+    }
+    return true;
+}
+
+bool AreInventoryStatesEqual(const TArray<FKalmalaInventoryStack>& Left,
+    const TArray<FKalmalaInventoryStack>& Right)
+{
+    if (Left.Num() != Right.Num()) return false;
+    for (int32 Index = 0; Index < Left.Num(); ++Index)
+    {
+        if (Left[Index].ItemId != Right[Index].ItemId || Left[Index].Quantity != Right[Index].Quantity) return false;
+    }
+    return true;
+}
+}
+
 bool UKalmalaInventoryComponent::BuildExchange(const TArray<FKalmalaInventoryStack>& Before,
     const TArray<FKalmalaInventoryStack>& Costs, FName Output, int32 OutputCount,
     TArray<FKalmalaInventoryStack>& After, FString& Reason)
@@ -44,6 +71,45 @@ bool UKalmalaInventoryComponent::BuildExchange(const TArray<FKalmalaInventorySta
     }
     After = MoveTemp(Candidate);
     Reason = TEXT("Ready");
+    return true;
+}
+
+bool UKalmalaInventoryComponent::BuildGrant(const TArray<FKalmalaInventoryStack>& Before,
+    const FName ItemId, const int32 Quantity, TArray<FKalmalaInventoryStack>& After, FString& Reason)
+{
+    Reason = TEXT("Invalid grant");
+    const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    if (!IsValidInventoryState(Before) || Catalogue == nullptr || !Catalogue->IsValidStack(ItemId, Quantity)) return false;
+
+    TArray<FKalmalaInventoryStack> Candidate = Before;
+    int32 Index = Candidate.IndexOfByPredicate([ItemId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == ItemId; });
+    if (!Catalogue->CanAddToStack(ItemId, Index == INDEX_NONE ? 0 : Candidate[Index].Quantity, Quantity)
+        || (Index == INDEX_NONE && Candidate.Num() >= MaxSlots))
+    {
+        Reason = TEXT("Pack output capacity reached");
+        return false;
+    }
+    if (Index == INDEX_NONE)
+    {
+        Index = Candidate.AddDefaulted();
+        Candidate[Index].ItemId = ItemId;
+    }
+    Candidate[Index].Quantity += Quantity;
+    After = MoveTemp(Candidate);
+    Reason = TEXT("Ready");
+    return true;
+}
+
+bool UKalmalaInventoryComponent::TryCommitStacksFromServer(
+    const TArray<FKalmalaInventoryStack>& ExpectedBefore,
+    const TArray<FKalmalaInventoryStack>& CandidateAfter)
+{
+    AActor* Owner = GetOwner();
+    if (!Owner || !Owner->HasAuthority() || !AreInventoryStatesEqual(Stacks, ExpectedBefore)
+        || !IsValidInventoryState(CandidateAfter)) return false;
+
+    Stacks = CandidateAfter;
+    Owner->ForceNetUpdate();
     return true;
 }
 

@@ -58,6 +58,20 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     Before={{TEXT("Wood"),4}};
     TestFalse(TEXT("Missing second ingredient is atomic"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,Fuel->Output,Count,After,Reason));
     TestEqual(TEXT("First ingredient was not consumed"),Before[0].Quantity,4);
+    const auto* Wood = GetDefault<UKalmalaItemCatalogue>()->FindItem(TEXT("Wood"));
+    if (Wood != nullptr)
+    {
+        Before = {{TEXT("Wood"), Wood->MaxStack - 1}};
+        TestTrue(TEXT("Catalogue grant builds a scratch inventory candidate"),
+            UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Wood"), 1, After, Reason));
+        TestEqual(TEXT("Grant candidate reaches but does not exceed the stack limit"), After[0].Quantity, Wood->MaxStack);
+        const auto CandidateBeforeReject = After;
+        TestFalse(TEXT("Full stack rejects a grant candidate"),
+            UKalmalaInventoryComponent::BuildGrant(After, TEXT("Wood"), 1, After, Reason));
+        TestEqual(TEXT("Rejected grant leaves the caller candidate unchanged"), After[0].Quantity, CandidateBeforeReject[0].Quantity);
+        TestFalse(TEXT("Unknown item cannot build a grant"),
+            UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Forged"), 1, After, Reason));
+    }
     const auto CostCopy=Costs[0]; Costs.Add(CostCopy);
     TestFalse(TEXT("Duplicate costs reject"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,Fuel->Output,Count,After,Reason));
     Costs={{TEXT("Wood"),MAX_int32}};

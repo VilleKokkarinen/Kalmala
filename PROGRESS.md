@@ -6932,3 +6932,17 @@ remain open.
 Next task: Wire the verified selection into the existing server interaction
 and harvest-node transaction, with atomic inventory, durability, node
 depletion, and catalogue reward changes.
+
+### 2026-09-23T08:45:48+03:00 - Wire M7 tool gathering transaction
+
+Outcome: Completed the first live M7 generated-source tool interaction increment. A locally visible generated source supplies only an allowlisted tool/action intent to the existing interaction RPC. The server retraces and selects the node, validates source mapping, skill, range, availability, condition, and catalogue reward, then commits the candidate inventory, one condition point, node depletion, and the existing sparse-depletion callback.
+
+Changed: `Source/KalmalaGameplay/Public/KalmalaCharacter.h`, `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`, `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`, `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`, `Source/KalmalaGameplay/Public/KalmalaInventoryComponent.h`, `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp`, `Source/KalmalaGameplay/Private/KalmalaInventoryTransactions.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaInventoryNetworkContractTest.cpp`, `Scripts/Verify-InventoryReconnect.ps1`, `docs/07-development-setup.md`, `docs/09-inventory-verification.md`, `docs/17-m7-tools-and-gathering.md`, `BACKLOG.md`, and this handoff. No save field or schema changed.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development` build with `%LOCALAPPDATA%\\UnrealBuildTool` access succeeded (20 actions); a forced 4-action rebuild after strengthening the peer log assertions also succeeded. `Kalmala.Gameplay.Tools.LifecycleContract`, `Kalmala.Gameplay.Inventory.NetworkContract`, `Kalmala.Gameplay.Inventory.Catalogue`, and `Kalmala.Gameplay.Crafting.Transactions` all reported `Result={Success}`. `Scripts/Verify-InventoryReconnect.ps1 -Port 18499` passed both client visits; all three server pawn fixtures logged `ToolMismatch=1 ToolPackAtomic=1 ToolWear=1 ToolDepletion=1`. M5 documentation contracts, local-input contract, and `git diff --check` passed.
+
+Multiplayer impact: Server trace and source identity choose the target and reward. The client submits only a tool name and action byte; no target, reward, quantity, condition, damage, or result is accepted. Inventory contents remain owner-only; tool condition is also owner-only. The existing server depletion callback continues to record the approved sparse identity.
+
+Known limits: Tool condition and default tools are transient per pawn and reset on a new pawn; there are no tool inventory items, repair interaction, condition save state, or player-facing condition controls yet. The peer fixture calls the server transaction helper with a server-trace distance; rendered local aiming through the full RPC and player-visible equipment presentation remain unverified. This interaction gates the required skill but does not yet award gathering experience.
+
+Next task: Add accepted repair at a validated station or workbench with repair-material costs, retaining the approved sparse persistence boundary.

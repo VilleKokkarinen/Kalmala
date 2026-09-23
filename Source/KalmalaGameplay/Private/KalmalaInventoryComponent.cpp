@@ -2,6 +2,7 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaHarvestNode.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
@@ -58,7 +59,56 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
         Node->OnHarvested.Clear();
         Node->Destroy();
     }
-    return bPassed && Materials.Num() == 3;
+    bPassed &= Materials.Num() == 3;
+
+    // Exercise the generated-source tool transaction, including a full-pack
+    // rejection that must preserve condition and leave the node available.
+    FActorSpawnParameters Parameters;
+    Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    auto* ToolNode = Character->GetWorld()->SpawnActor<AKalmalaHarvestNode>(
+        AKalmalaHarvestNode::StaticClass(), Character->GetActorLocation(), FRotator::ZeroRotator, Parameters);
+    if (!ToolNode) return false;
+    FKalmalaWorldPopulationSpawn ToolSpawn;
+    ToolSpawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
+    ToolSpawn.SpawnSeed = MAX_uint64;
+    ToolSpawn.Location = Character->GetActorLocation();
+    ToolSpawn.ContentId = TEXT("meadows-birch-bark");
+    ToolNode->InitializeServer(ToolSpawn);
+    const int32 BeforeWood = Inventory->GetQuantity(TEXT("Wood"));
+    const FKalmalaItemDefinition* WoodDefinition = GetDefault<UKalmalaItemCatalogue>()->FindItem(TEXT("Wood"));
+    if (WoodDefinition == nullptr) { ToolNode->Destroy(); return false; }
+    const int32 MaxWood = WoodDefinition->MaxStack;
+    const int32 HatchetBefore = Character->GetToolDurability(TEXT("FieldHatchet"));
+    int32 ToolHarvestEvents = 0;
+    ToolNode->OnHarvested.AddLambda([&](const FString&) { ++ToolHarvestEvents; });
+    if (BeforeWood > MaxWood || HatchetBefore <= 0) bPassed = false;
+    else
+    {
+        const int32 FillAmount = MaxWood - BeforeWood;
+        if (FillAmount > 0) bPassed &= Inventory->TryGrantFromServer(TEXT("Wood"), FillAmount);
+        const int32 FullWood = Inventory->GetQuantity(TEXT("Wood"));
+        const bool bWrongToolRejected = !ToolNode->InteractWithToolIntentFromServer(
+            Character, 0.0f, 250.0f, TEXT("StonePick"), static_cast<uint8>(EKalmalaToolAction::Mining));
+        const bool bFullPackRejected = !ToolNode->InteractWithToolIntentFromServer(
+            Character, 0.0f, 250.0f, TEXT("FieldHatchet"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
+        bPassed &= bWrongToolRejected && bFullPackRejected && !ToolNode->IsHarvested()
+            && ToolHarvestEvents == 0 && Inventory->GetQuantity(TEXT("Wood")) == FullWood
+            && Character->GetToolDurability(TEXT("FieldHatchet")) == HatchetBefore;
+        if (FullWood > 0) bPassed &= Inventory->TryConsumeFromServer(TEXT("Wood"), 1);
+        const bool bAccepted = ToolNode->InteractWithToolIntentFromServer(
+            Character, 0.0f, 250.0f, TEXT("FieldHatchet"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
+        const bool bDuplicateRejected = !ToolNode->InteractWithToolIntentFromServer(
+            Character, 0.0f, 250.0f, TEXT("FieldHatchet"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
+        bPassed &= bAccepted && bDuplicateRejected && ToolNode->IsHarvested() && ToolHarvestEvents == 1
+            && Inventory->GetQuantity(TEXT("Wood")) == FullWood && Character->GetToolDurability(TEXT("FieldHatchet")) == HatchetBefore - 1;
+        if (Inventory->GetQuantity(TEXT("Wood")) > BeforeWood)
+        {
+            bPassed &= Inventory->TryConsumeFromServer(TEXT("Wood"), Inventory->GetQuantity(TEXT("Wood")) - BeforeWood);
+        }
+    }
+    ToolNode->OnHarvested.Clear();
+    ToolNode->Destroy();
+    return bPassed;
 }
 }
 #endif
@@ -138,7 +188,7 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
             && GetQuantity(TEXT("Wood")) == 7 && Stacks.Num() == 1;
         UE_LOG(LogTemp, Display, TEXT("Inventory server: Passed=%d Wood=%d Slots=%d"), bPassed, GetQuantity(TEXT("Wood")), Stacks.Num());
         const bool bHarvestPassed = VerifyHarvestGrants(Cast<AKalmalaCharacter>(Pawn));
-        UE_LOG(LogTemp, Display, TEXT("Harvest inventory: Passed=%d Materials=3 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1"), bHarvestPassed);
+        UE_LOG(LogTemp, Display, TEXT("Harvest inventory: Passed=%d Materials=3 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1 ToolMismatch=1 ToolPackAtomic=1 ToolWear=1 ToolDepletion=1"), bHarvestPassed);
     }
     else if (Pawn->IsLocallyControlled())
     {

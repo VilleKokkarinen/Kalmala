@@ -28,6 +28,12 @@ public:
     static bool BuildExchange(const TArray<FKalmalaInventoryStack>& Before,
         const TArray<FKalmalaInventoryStack>& Costs, FName Output, int32 OutputCount,
         TArray<FKalmalaInventoryStack>& After, FString& Reason);
+    /** Build a catalogue-validated grant without mutating the live pack. */
+    static bool BuildGrant(const TArray<FKalmalaInventoryStack>& Before, FName ItemId, int32 Quantity,
+        TArray<FKalmalaInventoryStack>& After, FString& Reason);
+    /** Publish a previously validated candidate only if the live pack still matches its snapshot. */
+    bool TryCommitStacksFromServer(const TArray<FKalmalaInventoryStack>& ExpectedBefore,
+        const TArray<FKalmalaInventoryStack>& CandidateAfter);
     bool TryExchangeFromServer(const TArray<FKalmalaInventoryStack>& Costs,
         FName Output, int32 OutputCount, FString& Reason);
     static bool BuildTransfer(const TArray<FKalmalaInventoryStack>& Source,
