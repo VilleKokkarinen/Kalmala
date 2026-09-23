@@ -5,6 +5,9 @@
 /** Server-only math for the recoverable exposure consequence. */
 struct KALMALAGAMEPLAY_API FKalmalaExposureResponse
 {
+    static constexpr float ColdStaminaRecoveryWarmthThreshold = 40.0f;
+    static constexpr float ColdStaminaRecoveryMinimumMultiplier = 0.80f;
+
     static float GetHeatIntensity(const float AmbientTemperatureCelsius)
     {
         return FMath::IsFinite(AmbientTemperatureCelsius)
@@ -38,5 +41,12 @@ struct KALMALAGAMEPLAY_API FKalmalaExposureResponse
     static float GetTravelSpeedMultiplier(const float Warmth)
     {
         return FMath::Lerp(0.68f, 1.0f, FMath::Clamp((Warmth - 15.0f) / 35.0f, 0.0f, 1.0f));
+    }
+
+    static float GetStaminaRecoveryMultiplier(const float Warmth)
+    {
+        if (!FMath::IsFinite(Warmth)) return 1.0f;
+        const float WarmthFraction = FMath::Clamp(Warmth / ColdStaminaRecoveryWarmthThreshold, 0.0f, 1.0f);
+        return FMath::Lerp(ColdStaminaRecoveryMinimumMultiplier, 1.0f, WarmthFraction);
     }
 };

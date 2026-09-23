@@ -1,6 +1,7 @@
 #include "KalmalaCharacterMovementComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaPlayerStatusComponent.h"
+#include "KalmalaExposureResponse.h"
 #include "GameFramework/Character.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaWorldBounds.h"
@@ -41,7 +42,9 @@ void UKalmalaCharacterMovementComponent::AdvanceStaminaFromServer(const float De
     }
     else
     {
-        Stamina = FMath::Min(CurrentMaximumStamina, Stamina + RecoveryPerSecond * Step);
+        const float Warmth = Pawn != nullptr ? Pawn->GetExposureState().Warmth : 100.0f;
+        const float RecoveryMultiplier = FKalmalaExposureResponse::GetStaminaRecoveryMultiplier(Warmth);
+        Stamina = FMath::Min(CurrentMaximumStamina, Stamina + RecoveryPerSecond * RecoveryMultiplier * Step);
         if (Stamina >= SprintRecoveryThreshold) bSprintExhausted = false;
     }
 }

@@ -2,6 +2,7 @@
 
 #include "KalmalaInteractionTestActor.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaCharacterMovementComponent.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaCampfireWeatherResponse.h"
 #include "KalmalaExposureResponse.h"
@@ -9,6 +10,7 @@
 #include "KalmalaHazardSpawn.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "Engine/World.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -96,15 +98,58 @@ bool FKalmalaExposureConsequenceTest::RunTest(const FString& Parameters)
     const float ExposedWetness = FKalmalaExposureResponse::AdvanceWetness(0.0f, 1.0f, 0.8f, 1.0f, 0.0f, 0.0f, 120.0f);
     const float ExposedWarmth = FKalmalaExposureResponse::AdvanceWarmth(100.0f, -12.0f, ExposedWetness, 1.0f, 0.0f, 0.0f, 120.0f);
     const float ExposedSpeed = FKalmalaExposureResponse::GetTravelSpeedMultiplier(ExposedWarmth);
+    const float ExposedStaminaRecovery = FKalmalaExposureResponse::GetStaminaRecoveryMultiplier(ExposedWarmth);
     const float RecoveredWetness = FKalmalaExposureResponse::AdvanceWetness(ExposedWetness, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 60.0f);
     const float RecoveredWarmth = FKalmalaExposureResponse::AdvanceWarmth(ExposedWarmth, -12.0f, RecoveredWetness, 0.0f, 1.0f, 1.0f, 60.0f);
 
     TestTrue(TEXT("Prolonged exposed rain produces wetness"), ExposedWetness > 0.0f);
     TestTrue(TEXT("Prolonged cold exposure reduces warmth"), ExposedWarmth < 50.0f);
     TestTrue(TEXT("Low warmth applies a visible reversible travel penalty"), ExposedSpeed < 1.0f);
+    TestTrue(TEXT("Cold exposure reduces stamina recovery by a bounded amount"), ExposedStaminaRecovery < 1.0f && ExposedStaminaRecovery >= FKalmalaExposureResponse::ColdStaminaRecoveryMinimumMultiplier);
     TestTrue(TEXT("Shelter and a lit fire dry the player"), RecoveredWetness < ExposedWetness);
     TestTrue(TEXT("Shelter and a lit fire recover warmth"), RecoveredWarmth > ExposedWarmth);
     TestEqual(TEXT("Recovered warmth removes the travel penalty"), FKalmalaExposureResponse::GetTravelSpeedMultiplier(RecoveredWarmth), 1.0f);
+    TestEqual(TEXT("Recovered warmth restores full stamina recovery"), FKalmalaExposureResponse::GetStaminaRecoveryMultiplier(RecoveredWarmth), 1.0f);
+    TestEqual(TEXT("Zero warmth cannot reduce stamina recovery below its floor"), FKalmalaExposureResponse::GetStaminaRecoveryMultiplier(0.0f), FKalmalaExposureResponse::ColdStaminaRecoveryMinimumMultiplier);
+    TestEqual(TEXT("Non-finite warmth fails open to ordinary stamina recovery"), FKalmalaExposureResponse::GetStaminaRecoveryMultiplier(NAN), 1.0f);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaColdStaminaRecoveryAuthorityTest,
+    "Kalmala.Gameplay.Exposure.ColdStaminaRecoveryAuthority",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaColdStaminaRecoveryAuthorityTest::RunTest(const FString& Parameters)
+{
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    AKalmalaCharacter* Pawn = World->SpawnActor<AKalmalaCharacter>();
+    if (!TestNotNull(TEXT("Cold stamina fixture spawned"), Pawn)) { World->DestroyWorld(false); return false; }
+    auto* Movement = CastChecked<UKalmalaCharacterMovementComponent>(Pawn->GetCharacterMovement());
+    Movement->SetMovementMode(MOVE_Walking);
+    Movement->SetSprintRequested(true);
+    Movement->Velocity = FVector(500.0f, 0.0f, 0.0f);
+    for (int32 Step = 0; Step < 16; ++Step) Movement->AdvanceStaminaFromServer(0.25f);
+    TestEqual(TEXT("Server sprint fixture drains a known stamina amount"), Movement->GetStamina(), 60.0f);
+
+    FKalmalaExposureState Cold;
+    Cold.Warmth = 0.0f;
+    Cold.ColdIntensity = 1.0f;
+    Pawn->SetExposureStateFromServer(Cold);
+    Movement->SetSprintRequested(false);
+    for (int32 Step = 0; Step < 4; ++Step) Movement->AdvanceStaminaFromServer(0.25f);
+    TestEqual(TEXT("Server recovery at zero warmth is reduced to the bounded floor"), Movement->GetStamina(), 72.0f);
+
+    FKalmalaExposureState Recovered;
+    Recovered.Warmth = 100.0f;
+    Pawn->SetExposureStateFromServer(Recovered);
+    for (int32 Step = 0; Step < 4; ++Step) Movement->AdvanceStaminaFromServer(0.25f);
+    TestEqual(TEXT("Server recovery returns to normal after shelter or fire restores warmth"), Movement->GetStamina(), 87.0f);
+
+    Pawn->SetRole(ROLE_SimulatedProxy);
+    Movement->AdvanceStaminaFromServer(1.0f);
+    TestEqual(TEXT("A client-side movement copy cannot author stamina recovery"), Movement->GetStamina(), 87.0f);
+    World->DestroyWorld(false);
     return true;
 }
 
