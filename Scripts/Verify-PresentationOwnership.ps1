@@ -43,6 +43,8 @@ $sourceContracts = @(
     @{ Label = 'environment'; Path = 'Source\KalmalaWorld\Private\KalmalaGeneratedTerrainPatch.cpp'; Patterns = @('AppendLowPolyRock', 'M_GeneratedTerrain', 'M_GeneratedWater', 'M_GeneratedCanopy') },
     @{ Label = 'hearth'; Path = 'Source\KalmalaGameplay\Private\KalmalaCampfire.cpp'; Patterns = @('Original low polygon stone ring', 'M_GeneratedRock', 'CreateMeshSection_LinearColor') },
     @{ Label = 'ui'; Path = 'Source\KalmalaUI\Private\KalmalaMinimapWidget.cpp'; Patterns = @('CreateTransient', 'UpdateTextureRegions') },
+    @{ Label = 'survival-status'; Path = 'Source\KalmalaUI\Private\KalmalaSurvivalStatusWidget.cpp'; Patterns = @('BuildStatusText', 'Source: exposed rain or water', 'Source: prepared food', 'Recovery: shelter or a lit hearth restores warmth', 'SetIsFocusable(false)') },
+    @{ Label = 'survival-status-owner'; Path = 'Source\KalmalaUI\Private\KalmalaSurvivalStatusSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'GetServerWorldTimeSeconds()', 'SetSnapshot', 'AddToPlayerScreen(54)', 'HitTestInvisible') },
     @{ Label = 'feedback-status'; Path = 'Source\KalmalaUI\Private\KalmalaInventorySubsystem.cpp'; Patterns = @('Attack result:', 'Discovery:', 'Wet: inactive', 'UKalmalaSupportGlyphWidget', 'SupportGlyphRow', 'SetSupportGlyphState', 'EKalmalaSupportGlyph::DeerCall', 'HasLearnedEffect', 'GetSelectedSupportEffect') },
     @{ Label = 'feedback-crafting'; Path = 'Source\KalmalaUI\Private\KalmalaCraftingSubsystem.cpp'; Patterns = @('text does not rely on colour', 'Construction feedback: Passed=') }
 )
