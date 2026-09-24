@@ -54,3 +54,11 @@ Until the M8 persistence gate passes, do not save vessel identity, occupancy, tr
 ## Multiplayer assessment
 
 This contract preserves server authority: clients send bounded action and steering intent, while the server selects seats, validates world/collision constraints, simulates movement, and publishes accepted outcomes. The only public replicated vessel state is relevant movement, mode, and current session occupancy. Private input and all persistent state remain excluded.
+
+## Implemented launch and occupancy increment (2026-09-24)
+
+The first runtime increment adds one server-created skiff per session. Launch uses the existing server-side interaction trace and accepts only a hit on an active generated terrain patch within 250 cm whose sampled Ocean depth is at least 100 cm and whose position is inside the 16 km world boundary. The launch point comes from the server trace; a client cannot submit a transform. A second skiff is rejected for this two-player prototype session.
+
+The first eligible player receives the Helm seat and the next distinct session player receives Passenger. Seat references and the `Moored` state replicate; the skiff remains unowned by either client. Occupants attach to server-selected local seat positions while their normal pawn movement and collision are disabled. An occupant may request disembarkation only while stopped; the server checks up to eight generated-world exit positions, requires deep ocean or dry land, and accepts the first capsule placement with no blocking pawn collision. If no safe exit exists, seat and pawn state remain unchanged. Travel state remains transient and is not saved.
+
+This increment does not yet accept throttle or rudder intent or move the skiff; its mode remains `Moored`. Sequenced helm input, bounded server movement, stale-input decay, and collision sweeps remain open under the authoritative traversal backlog task. Player-facing launch denial and shallow-water guidance remain in the coast-readability task. `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` covers launch gates, seat selection, and stopped safe-exit conditions; it does not replace a live host/client collision and interaction scenario.

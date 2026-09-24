@@ -168,6 +168,14 @@ After an editor build, run `Scripts/Verify-Swimming.ps1`. It starts a memory-onl
 
 After an editor build, run `Scripts/Verify-OceanTravel.ps1`. It starts a current-generator seed-418 listen server and a conflicting-seed client. The server resolves the existing nearest emergent-island endpoint once, spawns a non-shipping replicated deep-water ribbon from a nearby entry point to that endpoint, and both peers adopt only that server-owned fixture descriptor. Each locally controlled pawn crosses the spawned water through predicted Character Movement and must log ocean entry, island arrival, and a complete duplicate-free terrain neighborhood. The fixture's temporary world-static collision relaxation and faster traversal cap exist only under `-KalmalaOceanTravelTest`; normal swimming, terrain collision, island lookup, client intent, save data, and production replication contracts remain unchanged.
 
+## M8 skiff launch and occupancy contract
+
+After an editor build, run `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` with an isolated temporary `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"`. It checks the server/deep-water/generated-terrain/world-bound launch gates, one-skiff session cap, helm-first and passenger-second seat selection, and the stopped-speed/safe-placement disembark gate. This focused contract test does not prove a live client interaction, rendered skiff presentation, or movement; those remain part of the open M8 traversal implementation and peer scenario.
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8SkiffUser' -abslog='C:\temp\KalmalaM8Skiff.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract; Quit" -TestExit="Automation Test Queue Empty"
+```
+
 ## Item catalogue verification
 
 For the M2 material contract, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above after building the editor. It loads the real project catalogue and checks required materials, exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate configuration. This is a pure contract check; live inventory replication and harvest-grant verification follow when the inventory component exists.

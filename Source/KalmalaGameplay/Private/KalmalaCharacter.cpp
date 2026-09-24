@@ -30,6 +30,7 @@
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaOceanTravelTestFixture.h"
+#include "KalmalaOceanSkiff.h"
 
 AKalmalaCharacter::AKalmalaCharacter(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<UKalmalaCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -523,6 +524,7 @@ void AKalmalaCharacter::StopSprint()
 
 void AKalmalaCharacter::MoveForward(const float Value)
 {
+    if (Cast<AKalmalaOceanSkiff>(GetAttachParentActor()) != nullptr) return;
     if (Controller != nullptr && !FMath::IsNearlyZero(Value))
     {
         const FRotator ControlRotation = Controller->GetControlRotation();
@@ -533,6 +535,7 @@ void AKalmalaCharacter::MoveForward(const float Value)
 
 void AKalmalaCharacter::MoveRight(const float Value)
 {
+    if (Cast<AKalmalaOceanSkiff>(GetAttachParentActor()) != nullptr) return;
     if (Controller != nullptr && !FMath::IsNearlyZero(Value))
     {
         const FRotator ControlRotation = Controller->GetControlRotation();
@@ -611,6 +614,12 @@ void AKalmalaCharacter::ActivateSelectedSupportEffect()
 
 void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientToolId, const uint8 ClientAction)
 {
+    if (AKalmalaOceanSkiff* CurrentSkiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
+    {
+        CurrentSkiff->TryDisembarkFromServer(this);
+        return;
+    }
+
     if (Controller == nullptr || GetWorld() == nullptr)
     {
         return;
@@ -629,6 +638,12 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientT
     }
 
     AActor* Target = Hit.GetActor();
+    if (Cast<AKalmalaGeneratedTerrainPatch>(Target) != nullptr
+        && AKalmalaOceanSkiff::TryLaunchFromServer(this, Hit) != nullptr)
+    {
+        return;
+    }
+
     if (AKalmalaHarvestNode* HarvestNode = Cast<AKalmalaHarvestNode>(Target);
         HarvestNode != nullptr && !HarvestNode->GetGatheringSourceId().IsNone())
     {

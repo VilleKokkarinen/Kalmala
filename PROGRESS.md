@@ -7260,3 +7260,45 @@ recipe are not specified by this network contract.
 
 Next task: Implement server-validated launch, boarding, steering, occupancy,
 and disembarkation using generated-world collision.
+
+### 2026-09-24T12:07:14Z — Add transient skiff launch and occupancy
+
+Outcome: Added a server-created, session-only skiff launch and occupancy path.
+The server accepts launch only from its own interaction trace against an active
+generated terrain patch in at least 100 cm of sampled Ocean inside the 16 km
+world boundary, and allows one skiff per session. It assigns Helm before
+Passenger, rejects duplicate session-player occupancy, attaches seated pawns
+with movement/collision disabled, and permits an occupant to leave only while
+stopped and when a server-selected generated-world capsule placement is clear.
+
+Changed this run: added `Source/KalmalaGameplay/Public/KalmalaOceanSkiff.h`,
+`Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp`, and
+`Source/KalmalaGameplay/Private/Tests/KalmalaOceanSkiffTest.cpp`; connected the
+existing server interaction path and suppresses normal character movement
+while attached to this skiff in `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`.
+Updated `docs/19-m8-ocean-travel-contract.md`,
+`docs/07-development-setup.md`, `BACKLOG.md`, and this handoff. Existing
+working-tree edits in those handoff/setup files and unrelated gameplay files
+were preserved.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed
+all 173 actions in a disposable mirror; the final code adjustment rebuilt and
+linked in four actions. UnrealBuildTool wrote its trace to
+`C:\Users\Ville\AppData\Local\UnrealBuildTool\Trace.uba`. The isolated
+`Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` automation passed with
+`Result={Success}` after the final build. `Scripts/Verify-M5DocumentationContracts.ps1`
+passed all five checks and scoped `git diff --check` passed.
+
+Multiplayer and persistence impact: The server traces and samples every launch,
+assigns seat references, checks player identity, stopped speed, and exit
+clearance, then replicates the skiff mode and current occupants. The skiff is
+not client-owned and no vessel, seat, transform, or travel state is saved; no
+save schema changed.
+
+Known limits: This increment has not yet implemented steering or skiff motion,
+so the vessel remains `Moored`; there is no live host/client collision,
+occupancy, or rendered-presentation run, and no player-facing denial reason.
+Damage/recovery and broader coastline readability remain later M8 work.
+
+Next task: Add bounded sequenced helm input, server movement with stale-input
+decay, deep-water/world-bound checks, and generated-terrain collision sweeps.

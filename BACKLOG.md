@@ -543,6 +543,8 @@ gate passes. After this baseline gate, the six goal groups follow the order in
   - [x] Define the first original watercraft or equivalent travel medium's bounded server-owned state, client intent, occupancy, movement, failure, and replication contract; leave persistence disabled until the M8 persistence gate passes.
     - Contract: `docs/19-m8-ocean-travel-contract.md`; runtime implementation, coast, weather, failure/recovery, and persistence remain open below.
   - [ ] Implement server-validated launch, boarding, steering, occupancy, and disembarkation using generated-world collision; reject forged, distant, occupied, or invalid requests without mutation.
+    - [x] Add server-traced deep-ocean launch, one transient two-seat session skiff, unique helm/passenger assignment, and stopped server-selected disembarkation with generated-world capsule clearance; persist no travel state. Passed 2026-09-24 after the forced UE5.8.2 editor build and `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` automation.
+    - [ ] Add sequenced, rate-limited helm steering and server-simulated movement with stale-input decay, depth/bounds validation, and generated-terrain collision sweeps; reject malformed or replayed inputs without mutation.
   - [ ] Add server-owned damage or disable and recovery outcomes when applicable to the chosen travel medium; otherwise record why that state is unnecessary.
 - [ ] Make generated coasts and launch or landing opportunities readable.
   - [ ] Verify seed-generated launch/landing access and shallow-water/collision edge cases across representative coastlines without adding a handcrafted route.
