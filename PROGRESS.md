@@ -7231,3 +7231,32 @@ long-distance player travel. The profile is a single local run.
 Next task: Define the first ocean travel medium's bounded server-owned state,
 client intent, occupancy, movement, failure, and replication contract while
 keeping persistence disabled until its gate passes.
+
+### 2026-09-24T11:25:00Z — Define the M8 travel-medium contract
+
+Outcome: Defined the first M8 travel medium as a transient two-seat open-water
+skiff and recorded its bounded server-owned movement, input, occupancy, failure,
+replication, and no-persistence contract.
+
+Changed this run: `docs/19-m8-ocean-travel-contract.md`, `BACKLOG.md`, and this
+handoff. Pre-existing working-tree changes were preserved. No runtime source,
+RPC, replicated field, save schema, or product visual asset changed.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` passed all five
+M5 documentation contracts. `git diff --check` passed for the current-run
+documentation and handoff changes. No Unreal build was applicable because this
+increment changed documentation only.
+
+Multiplayer and persistence impact: The contract keeps launch, occupancy,
+movement, and accepted outcomes server-owned; clients provide bounded sequenced
+steering and action intent only. Replicated state is limited to relevant
+movement, mode, and session occupants, with requester-only transient action
+feedback. Vessel, seat, position, and travel state remain unsaved until the M8
+persistence gate passes.
+
+Known limits: No runtime travel medium exists yet. Coast access, weather
+pressure, damage/disable, repair, and recovery remain later M8 tasks; mesh and
+recipe are not specified by this network contract.
+
+Next task: Implement server-validated launch, boarding, steering, occupancy,
+and disembarkation using generated-world collision.
