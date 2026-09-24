@@ -21,6 +21,7 @@ This folder is the project’s durable operating manual. An agent must read the 
 | [15 Presentation ownership](15-presentation-ownership.md) | Project-owned visual seams, allowed sources, and runtime limits |
 | [Presentation ownership check](../Scripts/Verify-PresentationOwnership.ps1) | No-build audit for presentation assets and source anchors |
 | [16 Audio cue contract](16-audio-cue-contract.md) | Original audio cues, readable fallbacks, and authority/privacy limits |
+| [18 M7 automated acceptance](18-m7-automated-acceptance.md) | Headless M7 progression, camp recovery, food, creature, discovery, and privacy acceptance |
 | [Audio cue contract check](../Scripts/Verify-AudioCueContract.ps1) | No-build validation for the M5 audio specification |
 | [Local input contract check](../Scripts/Verify-LocalInputContract.ps1) | No-build validation for the existing keyboard/controller input baseline |
 | [M5 documentation contract suite](../Scripts/Verify-M5DocumentationContracts.ps1) | Runs all current no-build M5 presentation/settings checks together |
