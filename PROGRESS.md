@@ -7122,3 +7122,19 @@ changed paths passed.
 
 Next task: Re-run minimap identity and rendered layout acceptance across
 supported aspect ratios; then continue package and supported-session acceptance.
+
+### 2026-09-24T08:20:02Z — Recheck M6 minimap identity and layouts
+
+Outcome: Completed the minimap identity and rendered layout slice of the M6 release-candidate regression. The host/client minimap passed at 1920×1080, 1024×768, and 3440×1440.
+
+Changed this run: `BACKLOG.md` and this handoff only. Checked the minimap task and recorded verification. Existing unrelated working-tree edits were preserved. No runtime source or presentation/network contract changed.
+
+Verification: A clean temporary UE5.8.2 project mirror matched 281 current `Source`, `Config`, and `Scripts` files by SHA-256; no generated project directories were copied into the workspace. The forced `KalmalaEditor Win64 Development` build passed all 171 actions and wrote its UnrealBuildTool log to `%LOCALAPPDATA%\UnrealBuildTool`. `Kalmala.UI.Minimap.LocalPresentation` reported `Test Completed. Result={Success}` in `C:\Users\Ville\AppData\Local\Temp\KalmalaM6MinimapChecks-9111bd36e9664ff5b6214abf77300604\MinimapLocalPresentation.log`.
+
+`Scripts/Verify-Minimap.ps1 -Rendered` passed at 1920×1080 (`-Port 24661`), 1024×768 (`-Port 24662`), and 3440×1440 (`-Port 24663`). All three runs confirmed the conflicting-seed client received seed 418 and both peers matched regional fingerprint `7644800015248745432` across 81 samples; each peer passed actual paint bounds, 16,641 texture samples, min/max zoom, and modal input ownership/resumption. Captures: `C:\Users\Ville\AppData\Local\Temp\KalmalaMinimap-6cf3305890ad463fb4f875228ce62853`, `C:\Users\Ville\AppData\Local\Temp\KalmalaMinimap-01187a75468d4ed58541f911b5b2dc39`, and `C:\Users\Ville\AppData\Local\Temp\KalmalaMinimap-b9358df6107e420d851e6649f071ce0d`. Reviewed the 1920×1080 host and 1024×768 host/client images. The 3440×1440 images were generated and passed automated checks, but the local preview tool could not decode those larger PNGs.
+
+Multiplayer and persistence impact: Presentation-only verification; no gameplay request, authority, replication, or save mutation was introduced.
+
+Known limits: This does not cover the clean-profile Windows Development package smoke or supported packaged co-op walkthrough. Whole-worktree `git diff --check` still reports the pre-existing extra blank line at `docs/04-roadmap.md:363`; the current-run handoff changes will be checked separately.
+
+Next task: Rebuild and smoke-launch the Windows Development package from a clean profile; then complete the supported packaged co-op walkthrough when a targetable game window is available.
