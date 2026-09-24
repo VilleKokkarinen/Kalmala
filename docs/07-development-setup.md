@@ -777,3 +777,22 @@ After the forced editor build, run the focused food, status, inventory recipe, a
 ```powershell
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CampfireProcessing+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
+
+## Windows Development package smoke
+
+Create a disposable mirror of the current workspace, excluding .git,
+Binaries, Intermediate, Saved, and DerivedDataCache. Put the archive and fresh
+smoke profile outside that mirror. With UE 5.8.2, package the project using
+both -pak and -iostore so cooked assets are staged in local containers; omitting
+them can produce an archive that points at the temporary Zen store without
+including local game content.
+
+    & "C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/RunUAT.bat" BuildCookRun "-project=$projectMirror/Kalmala.uproject" -noP4 -platform=Win64 -clientconfig=Development -build -cook -stage -package -archive -pak -iostore "-archivedirectory=$archiveRoot/Archive" -unattended -utf8output
+
+Smoke-launch Archive/Windows/Kalmala.exe from its containing directory with a
+new empty UserDir, null rendering, and a unique absolute log path. Keep the
+process alive for at least 20 seconds and require the log to contain
+“Game Engine Initialized” and “Load map complete /Game/Kalmala/Maps/Prototype/L_Prototype”.
+The wrapper starts the actual game under Kalmala/Binaries/Win64; check that
+process before stopping the smoke run. Null rendering verifies startup and map
+loading only; it does not cover the player-facing co-op walkthrough.

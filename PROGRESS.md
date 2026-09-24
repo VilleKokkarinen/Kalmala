@@ -7138,3 +7138,21 @@ Multiplayer and persistence impact: Presentation-only verification; no gameplay 
 Known limits: This does not cover the clean-profile Windows Development package smoke or supported packaged co-op walkthrough. Whole-worktree `git diff --check` still reports the pre-existing extra blank line at `docs/04-roadmap.md:363`; the current-run handoff changes will be checked separately.
 
 Next task: Rebuild and smoke-launch the Windows Development package from a clean profile; then complete the supported packaged co-op walkthrough when a targetable game window is available.
+
+### 2026-09-24T09:00:10Z — Rebuild and smoke-launch Windows Development package
+
+Outcome: Completed the clean-profile Windows Development package smoke slice of the M6 release-candidate regression.
+
+Changed this run: `BACKLOG.md`, `docs/07-development-setup.md`, and this handoff. The setup now records the required local container packaging flags and smoke acceptance. Existing unrelated workspace edits were preserved.
+
+Verification: Copied the current workspace to a disposable short-path mirror, excluding `.git`, `Binaries`, `Intermediate`, `Saved`, and `DerivedDataCache`; SHA-256 matched all 25 changed project/source/script files checked. The initial long temp path hit the Windows 260-character action-path limit. A full UE5.8.2 `KalmalaEditor` and `Kalmala` build then succeeded in 169.44 seconds with normal `%LOCALAPPDATA%\UnrealBuildTool` access.
+
+The first archive lacked local cooked containers and waited on Zen storage at launch. Repackaged with `RunUAT BuildCookRun -pak -iostore`; cook, stage, and archive completed successfully, producing the local global and Kalmala IoStore containers plus the Pak file. The final archive is under `C:\Users\Ville\AppData\Local\Temp\krea12d367\a2\Windows`.
+
+Launched `Kalmala.exe` from its package directory with null rendering and a new empty `UserDir`. The captured log reports `Game Engine Initialized` and `Load map complete /Game/Kalmala/Maps/Prototype/L_Prototype`; the packaged game process remained alive for 20 seconds. The smoke processes were stopped after capture. Current-run `git diff --check` passed for the handoff, backlog, and setup changes; the pre-existing whole-worktree whitespace warning remains at `docs/04-roadmap.md:363`.
+
+Multiplayer impact: No gameplay action, RPC, authority, replication, or saved-data schema changed. This headless package smoke does not exercise host/client joining, normal input, reconnect, or the player-facing HUD.
+
+Known limits: Null-RHI startup and map loading passed, but rendered controls and the supported packaged co-op walkthrough remain unverified.
+
+Next task: Complete the supported packaged co-op walkthrough with normal joining, input, and reconnect when a targetable native game surface is available.

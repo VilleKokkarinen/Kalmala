@@ -504,7 +504,8 @@ PC solo/listen-server co-op boundary. The roadmap contract is in
         `Scripts/Verify-Minimap.ps1 -Rendered` passed at 1920×1080 (`-Port 24661`), 1024×768 (`-Port 24662`), and 3440×1440 (`-Port 24663`). Host and client received server seed 418 and matched fingerprint `7644800015248745432` over 81 samples at each resolution; both peers passed minimap paint bounds, the 16,641-sample raster, zoom clamp, and CommonUI modal ownership/resumption checks.
         Captures are retained under `%TEMP%\KalmalaMinimap-6cf3305890ad463fb4f875228ce62853`, `%TEMP%\KalmalaMinimap-01187a75468d4ed58541f911b5b2dc39`, and `%TEMP%\KalmalaMinimap-b9358df6107e420d851e6649f071ce0d`. Reviewed the 1920×1080 host and 1024×768 host/client captures. The 3440×1440 captures passed automated rendered checks, but the local image preview could not decode those PNGs.
         No gameplay, authority, RPC, replication, or save contract changed.
-    - [ ] Rebuild and smoke-launch the Windows Development package from a clean profile.
+    - [x] Rebuild and smoke-launch the Windows Development package from a clean profile.
+      - Passed 2026-09-24: The UE5.8.2 Win64 Development package built, cooked, staged, and archived successfully with `RunUAT BuildCookRun -pak -iostore`. A fresh-profile smoke launch logged engine initialization and completion of `L_Prototype`, then remained alive for 20 seconds.
     - [ ] Complete the supported packaged co-op walkthrough with normal joining, input, and reconnect.
 
 **M7 multiplayer boundary:** the server owns skill awards, resource identity,
