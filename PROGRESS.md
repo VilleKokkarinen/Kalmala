@@ -6960,3 +6960,41 @@ Multiplayer impact: The server validates recipe identity, batch, same-world usab
 Known limits: This increment roasts directly over an existing hearth. Cooking rack, heat-safe kettle/cauldron, and drying/smoking stations remain open, along with their station-specific fuel/heat/batch/failure rules. Prepared food does not spoil, does not add hunger drain, and gives no Cooking XP. The peer scenario checked crafting-menu text but did not consume food over a live network session; the new server transaction and RPC signature were verified in focused automation. The menu check used null-RHI rather than a rendered screenshot.
 
 Next task: Add the required cooking rack, heat-safe kettle or cauldron analogue, and drying or smoking frame with explicit server-owned station, fuel, heat, access, batch, and failure rules.
+
+### 2026-09-24T05:54:36Z — Recheck M6 traversal controls
+
+Outcome: The first M6 release-candidate regression slice passed: host/client
+movement controls and server-observed remote movement remained correct. The
+larger M6 release loop remains open.
+
+Changed this run: `BACKLOG.md` and this handoff. Both files already contained
+prior working-tree edits; this run added only the traversal result and ordered
+remaining regression slices. No runtime source or contract changed.
+
+Verification: The isolated UE5.8.2 copy
+`C:\Users\Ville\AppData\Local\Temp\K7m7-c36ef5` matched all 25 currently
+modified or added implementation/config/script files. The forced
+`KalmalaEditor Win64 Development` build had normal `%LOCALAPPDATA%\\UnrealBuildTool`
+access and returned `Target is up to date`, `Result: Succeeded` (0 actions).
+`Scripts/Verify-PlayerControls.ps1 -Rendered -Port 23901` passed host/client
+model, jump/sprint/release, landing, conflicting-seed identity, and
+server-observed remote-movement checks. Both 1280×720 captures were reviewed
+under `C:\Users\Ville\AppData\Local\Temp\KalmalaPlayerControls-c973d3dd92034d7f9067f4887f6b1b4d`.
+`Kalmala.Gameplay.Movement.SprintSavedMoves` passed; log:
+`C:\Users\Ville\AppData\Local\Temp\KalmalaM6Traversal-c425c648542840c7a8e57718c4bd48d0\automation.log`.
+
+Multiplayer and persistence impact: No runtime, authority, replication, or
+save contract changed. The host observed remote movement and the client adopted
+the server's seed-418 world identity. This test fixture does not simulate
+physical keyboard input.
+
+Known limits: Camp/recovery, combat/support, construction/storage, sparse
+persistence/reconnect, minimap layout variants, package smoke, and the normal
+player walkthrough remain open. The current CUA runtime still exposes no
+native app inventory or launch API (`apps=[]`; `listApps`, `listWindows`, and
+`computer` are undefined), so the supported-session child still needs a
+targetable game window. This used the main checkout; no worktree sync was
+needed. Pre-existing edits were preserved.
+
+Next task: Re-run camp placement, crafting, fire, shelter, and weather recovery
+acceptance; then continue the ordered M6 release-candidate regression slices.

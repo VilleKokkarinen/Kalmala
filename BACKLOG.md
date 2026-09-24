@@ -491,6 +491,14 @@ PC solo/listen-server co-op boundary. The roadmap contract is in
   - [ ] Verify same-seed host/client resources and creatures, rejected client mutations, owner-only progression/inventory privacy, rare-loot visibility, status presentation, reconnect behavior, and bounded actor, memory, replication, and save costs.
 - [ ] Retain the M6 release-candidate loop after the content pass.
   - [ ] Re-run traversal, camp, combat, support, weather, construction, storage, persistence, minimap, packaged, and supported-session acceptance without regression.
+    - [x] Re-run host/client traversal controls and server-observed movement.
+      - Passed 2026-09-24: `Scripts/Verify-PlayerControls.ps1 -Rendered -Port 23901` passed from an isolated UE5.8.2 project copy after a successful current-source editor build. `Kalmala.Gameplay.Movement.SprintSavedMoves` passed. Host/client captures were reviewed at 1280×720; both show the replicated world minimap, arrival prompt, and local status HUD. This fixture verifies bound controls and server-observed remote movement; physical keyboard input remains for the supported-session walkthrough.
+    - [ ] Re-run camp placement, crafting, fire, shelter, and weather recovery acceptance.
+    - [ ] Re-run combat and support-effect authority, replication, and recovery acceptance.
+    - [ ] Re-run construction, storage, sparse persistence, and reconnect acceptance.
+    - [ ] Re-run minimap identity and rendered layout acceptance across supported aspect ratios.
+    - [ ] Rebuild and smoke-launch the Windows Development package from a clean profile.
+    - [ ] Complete the supported packaged co-op walkthrough with normal joining, input, and reconnect.
 
 **M7 multiplayer boundary:** the server owns skill awards, resource identity,
 creature behavior and defeat, tool validation, durability, repair outcomes, node
