@@ -7070,3 +7070,55 @@ supported-session acceptance and packaged walkthrough remain open.
 
 Next task: Re-run construction, storage, sparse persistence, and reconnect
 acceptance; continue the ordered M6 release-candidate loop.
+
+### 2026-09-24T07:46:19Z — Recheck M6 construction, storage, persistence, and reconnect
+
+Outcome: Completed the construction, storage, sparse generated-world persistence,
+and reconnect slice of the M6 release-candidate loop. A restored camp no longer
+causes the development crafting fixture to fail its next paid floor placement;
+the reconnect harvest fixture now executes an accepted server-selected tool
+transaction for biome gathering sources and confirms depletion before restart.
+
+Changed this run: `Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `BACKLOG.md`, and this
+handoff. The first construction rerun exposed restored floors blocking the
+fixture's shared player-start placement area; the development-only fixture now
+tries bounded nearby terrain under the same server placement validation. The
+first combined restart exposed its obsolete source-less `Interact` call on
+modern biome gathering nodes; the fixture now derives the matching tool/action
+from the server-selected source and confirms the accepted sparse-state update.
+
+Verification: Forced UE5.8.2 `KalmalaEditor Win64 Development` builds passed in
+four actions after each fixture update, with normal `%LOCALAPPDATA%\UnrealBuildTool`
+access. Six focused automations passed: construction save, storage network/save/
+transfers, population sparse deltas, and the M7 persistence boundary.
+`Scripts/Verify-Storage.ps1 -Port 24541` passed both paid host/client transfer
+visits and same-directory restart. `Scripts/Verify-ConstructionPersistence.ps1
+-Port 24543` passed exact server-paid IDs, restoration, and distinct new paid
+placements on reconnect. `Scripts/Verify-PersistedCampRestart.ps1 -Port 24545`
+passed exact ten-construction and private chest restoration to a conflicting-seed
+client, accepted harvest depletion across restart, and seed-419 isolation.
+`Scripts/Verify-InventoryReconnect.ps1 -Port 24546` passed both client visits,
+accepted gathering and repair, owner-only tool condition, private inventory,
+and rejected local mutations. `git diff --check` passed for current-run hunks.
+Retained fixtures are under `C:\Users\Ville\AppData\Local\Temp\KalmalaStorage-10c6d2884e5b400799ecd33eac63a2cf`,
+`C:\Users\Ville\AppData\Local\Temp\KalmalaConstructionRestore-02508eedcf384b58a70c475df0dd9abf`,
+`C:\Users\Ville\AppData\Local\Temp\KalmalaPersistedCampRestart-b060049888964b76805864a7a9149f4c`,
+and `C:\Users\Ville\AppData\Local\Temp\KalmalaInventoryReconnect-0694e5dc8e8149c5bae9cb9f73e82f01`.
+
+Multiplayer and persistence impact: The added relocation and server tool/action
+selection are development verification paths only. No client-selected target or
+outcome, gameplay RPC, production authority path, replicated field, or save
+schema changed. The passing fixtures verified private chest/inventory state,
+server-selected harvest rewards, sparse depletion persistence, exact identity
+restoration, and cross-world rejection.
+
+Known limits: M6 minimap identity/layout at supported aspect ratios, clean-profile
+Windows Development package smoke, and the supported packaged co-op walkthrough
+remain open. These automated fixtures do not simulate physical keyboard input.
+Whole-worktree `git diff --check` still reports the pre-existing extra blank line
+at `docs/04-roadmap.md:363`; it was left unchanged. The check on this run's four
+changed paths passed.
+
+Next task: Re-run minimap identity and rendered layout acceptance across
+supported aspect ratios; then continue package and supported-session acceptance.

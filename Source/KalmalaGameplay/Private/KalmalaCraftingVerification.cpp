@@ -117,6 +117,33 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             C->SetActorRotation(FRotator(0, Turn * 45, 0));
             ConstructionPlaced = PlaceConstructionFromServer(TEXT("FloorKit"), Reason);
         }
+        const FVector ConstructionSearchOrigin = C->GetActorLocation();
+        if (!ConstructionPlaced)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Crafting fixture seeking clear construction ground: Player=%d Origin=%s Reason=%s"),
+                C->GetPlayerState()->GetPlayerId(), *ConstructionSearchOrigin.ToCompactString(), *Reason);
+            FCollisionQueryParams Query(SCENE_QUERY_STAT(CraftingFixtureConstructionGround), false, C);
+            for (int32 Site = 0; Site < 24 && !ConstructionPlaced; ++Site)
+            {
+                const FVector Probe = ConstructionSearchOrigin + FRotator(0, (Site % 8) * 45, 0).Vector() * (600 + (Site / 8) * 600);
+                FHitResult Ground;
+                if (!GetWorld()->LineTraceSingleByChannel(Ground, Probe + FVector(0,0,1000), Probe - FVector(0,0,2000), ECC_Visibility, Query)
+                    || !Cast<AKalmalaGeneratedTerrainPatch>(Ground.GetActor())) continue;
+                C->SetActorLocation(Ground.ImpactPoint + FVector(0,0,C->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + 2));
+                for (int32 Turn = 0; Turn < 8 && !ConstructionPlaced; ++Turn)
+                {
+                    C->SetActorRotation(FRotator(0, Turn * 45, 0));
+                    ConstructionPlaced = PlaceConstructionFromServer(TEXT("FloorKit"), Reason);
+                }
+            }
+            if (ConstructionPlaced)
+            {
+                C->GetCharacterMovement()->StopMovementImmediately();
+                UE_LOG(LogTemp, Display, TEXT("Crafting fixture found clear construction ground: Player=%d Location=%s"),
+                    C->GetPlayerState()->GetPlayerId(), *C->GetActorLocation().ToCompactString());
+            }
+            C->SetActorLocation(ConstructionSearchOrigin);
+        }
         Check(ConstructionPlaced, TEXT("Server construction placement ignores local preview and pays once"));
         for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It) if (!ExistingConstruction.Contains(*It))
         {

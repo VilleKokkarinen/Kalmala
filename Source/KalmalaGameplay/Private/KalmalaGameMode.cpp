@@ -34,6 +34,7 @@
 #include "KalmalaWorldBounds.h"
 #include "KalmalaWorldPopulationMarker.h"
 #include "KalmalaWorldPopulationSaveGame.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWeatherCycle.h"
 #include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaCampConditionSampler.h"
@@ -1882,8 +1883,38 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
             if (Node != nullptr && Node->GetPersistentSpawnId() == PersistentSpawnId)
             {
                 ServerPawn->SetActorLocation(Node->GetActorLocation());
-                Node->Interact_Implementation(Cast<AKalmalaCharacter>(ServerPawn));
-                UE_LOG(LogTemp, Display, TEXT("Reconnect verification harvested generated node %s before listen-server restart."), *PersistentSpawnId);
+                AKalmalaCharacter* Interactor = Cast<AKalmalaCharacter>(ServerPawn);
+                bool bHarvestAccepted = false;
+                if (Interactor != nullptr && Node->GetGatheringSourceId().IsNone())
+                {
+                    Node->Interact_Implementation(Interactor);
+                    bHarvestAccepted = Node->IsHarvested();
+                }
+                else if (Interactor != nullptr)
+                {
+                    FKalmalaToolServerSelection Selection;
+                    if (FKalmalaToolLifecycleContract::BuildServerSelection(Node->GetGatheringSourceId(), Selection))
+                    {
+                        const FKalmalaToolDefinition* Tool = FKalmalaToolLifecycleContract::GetDefinitions().FindByPredicate(
+                            [&Selection](const FKalmalaToolDefinition& Definition) { return Definition.Kind == Selection.RequiredTool; });
+                        if (Tool != nullptr)
+                        {
+                            bHarvestAccepted = Node->InteractWithToolIntentFromServer(Interactor, 0.0f,
+                                FKalmalaToolLifecycleContract::DefaultMaximumRange, Tool->ToolId,
+                                static_cast<uint8>(Selection.Action));
+                        }
+                    }
+                }
+
+                if (bHarvestAccepted && PopulationSaveGame->IsHarvested(PersistentSpawnId))
+                {
+                    UE_LOG(LogTemp, Display, TEXT("Reconnect verification harvested generated node %s through its accepted server transaction before listen-server restart."), *PersistentSpawnId);
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Reconnect verification could not commit generated harvest %s; accepted=%d sparse-state=%d."),
+                        *PersistentSpawnId, bHarvestAccepted, PopulationSaveGame->IsHarvested(PersistentSpawnId));
+                }
                 FPlatformMisc::RequestExit(false);
                 return;
             }
