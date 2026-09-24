@@ -7171,3 +7171,63 @@ Multiplayer and persistence impact: No runtime, RPC, authority, replication, or 
 Known limits: M7's documented headless acceptance passed, while physical input and the player-visible packaged walkthrough remain unverified. M8 travel, ocean pressure, discoveries, and persistence remain unimplemented.
 
 Next task: Re-run the Phase 7 regional-generation/master-map checks and `Scripts/Verify-OceanTravel.ps1` before transport changes.
+
+### 2026-09-24T11:04:23Z — Reconfirm M8 Phase 7 and ocean baselines
+
+Outcome: Completed the ordered M8 baseline gate before transport design. The
+current Phase 7 master-map/regional generation and generated-ocean peer path
+passed, with a seed-418 starting world profile recorded.
+
+Changed this run: `BACKLOG.md` and this handoff. Checked the M8 baseline gate
+and added the exact acceptance/profile results. The workspace already contained
+uncommitted changes in both handoff files and unrelated source/docs; they were
+preserved. No runtime source, gameplay contract, RPC, replication field, or
+save schema changed.
+
+Verification: A disposable mirror of the current checkout built UE5.8.2
+`KalmalaEditor Win64 Development` successfully in 171 actions. UnrealBuildTool
+used the normal `%LOCALAPPDATA%\\UnrealBuildTool` path. The documented
+master-map run reported Success for all six concrete tests: MasterMap,
+FiniteWorld, Integrated, ClippedSurface, OceanDepth, and GenerationPerformance.
+`Scripts/Verify-RegionalGeneration.ps1` passed its automation and same-seed
+render comparison; seed 418 hashes matched, seed 419 varied, and
+`Scripts/Verify-Minimap.ps1` passed the host/client 81-position fingerprint
+`7644800015248745432` with the conflicting-seed client adopting server seed
+418. `Scripts/Verify-OceanTravel.ps1 -Port 25180` passed on both peers: they
+entered open ocean, reached the seed-derived island about 1.79 km away, and
+audited 18 unique terrain patches with a complete island neighborhood and no
+duplicate descriptors. Generated terrain patches logged 1,152 collision
+triangles each. The development fixture intentionally ignores pawn and
+world-static collision and accelerates movement, so it does not prove normal
+collision traversal. `Scripts/Verify-WorldProfile.ps1 -Port 25181` measured
+initial generation at 159.75 ms, used physical memory at 1,766.34 MB, available
+physical memory at 9,554.82 MB, 47 total/29 replicated actors, 9 terrain
+patches, 1 population key, and 2,215 serialized save bytes; two-player late
+join passed. This is a one-run baseline, not long-session or frame-time
+profiling. `git diff --check -- BACKLOG.md PROGRESS.md` passed for the handoff
+changes.
+
+Evidence: master-map log is under
+`C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaM8MasterMap-20260924-1347`;
+regional previews/logs under
+`C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaRegionalProof-ba22d3b8db414ca59c636b8ab83f6ba7`;
+minimap peers under
+`C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaMinimap-395a78baa48e42adb1c466e2e03e9c29`;
+ocean peers under
+`C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaOceanTravel-778aac4a25b64255bc92736f0387a297`;
+world profile under
+`C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldProfile-ae3db185d70c47239d2a6d4a3764f553`.
+
+Multiplayer and persistence impact: Verification only. Host authority and
+conflicting-seed client identity agreement passed; the client adopted seed
+418, matching server world generation. No production authority or persistence
+behavior changed.
+
+Known limits: The ocean script uses a non-shipping water ribbon, a faster test
+movement cap, and relaxed collision; it validates generated-ocean streaming
+and peer agreement but not ordinary swimming collision, a watercraft, or
+long-distance player travel. The profile is a single local run.
+
+Next task: Define the first ocean travel medium's bounded server-owned state,
+client intent, occupancy, movement, failure, and replication contract while
+keeping persistence disabled until its gate passes.
