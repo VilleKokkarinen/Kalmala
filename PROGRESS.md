@@ -7156,3 +7156,18 @@ Multiplayer impact: No gameplay action, RPC, authority, replication, or saved-da
 Known limits: Null-RHI startup and map loading passed, but rendered controls and the supported packaged co-op walkthrough remain unverified.
 
 Next task: Complete the supported packaged co-op walkthrough with normal joining, input, and reconnect when a targetable native game surface is available.
+
+### 2026-09-24T10:33:45Z — Add ordered M8 ocean-travel backlog
+
+Outcome: Added an ordered M8 breakdown from the roadmap, including a Phase 7/ocean baseline gate, server-authoritative travel, coast readability, ocean weather, optional discoveries, identity-safe persistence, and integrated peer/budget validation. No M8 runtime implementation began.
+
+Changed this run: `BACKLOG.md` and this handoff. Existing uncommitted project changes were preserved.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` passed all five
+documentation contracts. `git diff --check -- BACKLOG.md PROGRESS.md` passed.
+
+Multiplayer and persistence impact: No runtime, RPC, authority, replication, or save contract changed. The new checklist retains the roadmap's server-owned outcome boundary and requires a versioned identity-safe persistence gate before travel state is saved.
+
+Known limits: M7's documented headless acceptance passed, while physical input and the player-visible packaged walkthrough remain unverified. M8 travel, ocean pressure, discoveries, and persistence remain unimplemented.
+
+Next task: Re-run the Phase 7 regional-generation/master-map checks and `Scripts/Verify-OceanTravel.ps1` before transport changes.

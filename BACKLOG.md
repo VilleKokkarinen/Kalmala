@@ -524,3 +524,46 @@ recovery guidance are readable without colour; matching peers observe permitted
 state; rejected requests leave inventory, skills, tools, resources, effects,
 hazards, loot, and saves unchanged; and the M6 release-candidate loop remains
 playable.
+
+### M8 — Ocean and long-distance travel
+
+Start only after M7 acceptance passes and the Phase 7 coherent-generation
+contract remains green. Extend the existing master land/water crop, collision,
+server-seed, and PC solo/listen-server foundations. Keep
+`Scripts/Verify-OceanTravel.ps1` as the generated-ocean crossing baseline; its
+swimming scenario does not by itself satisfy the M8 long-distance travel goal.
+Do not add authored routes or persist travel state before the M8 persistence
+gate passes. After this baseline gate, the six goal groups follow the order in
+`docs/04-roadmap.md`.
+
+- [ ] Reconfirm the Phase 7 and generated-ocean travel baselines before transport changes.
+  - [ ] Run `Scripts/Verify-RegionalGeneration.ps1`, the documented master-map checks, and `Scripts/Verify-OceanTravel.ps1`; record seed identity, host/client agreement, collision/streaming results, and the measured starting budgets.
+- [ ] Add authoritative ocean traversal.
+  - [ ] Define the first original watercraft or equivalent travel medium's bounded server-owned state, client intent, occupancy, movement, failure, and replication contract; leave persistence disabled until the M8 persistence gate passes.
+  - [ ] Implement server-validated launch, boarding, steering, occupancy, and disembarkation using generated-world collision; reject forged, distant, occupied, or invalid requests without mutation.
+  - [ ] Add server-owned damage or disable and recovery outcomes when applicable to the chosen travel medium; otherwise record why that state is unnecessary.
+- [ ] Make generated coasts and launch or landing opportunities readable.
+  - [ ] Verify seed-generated launch/landing access and shallow-water/collision edge cases across representative coastlines without adding a handcrafted route.
+  - [ ] Present water access, shallow hazards, collision constraints, and rejected embark reasons to players; verify matching host/client feedback.
+- [ ] Add bounded ocean-weather and navigation pressure.
+  - [ ] Extend server-selected weather to open water with readable, reversible wind, rain, visibility, wave, exposure, or stamina pressure and viable counterplay.
+  - [ ] Verify clients cannot submit weather or mitigation outcomes and that accepted pressure and recovery agree across peers.
+- [ ] Add optional server-selected ocean discoveries.
+  - [ ] Define a small original sea-discovery catalogue with stable sparse identities and optional, route-free rewards.
+  - [ ] Materialize and claim discoveries through server authority; reject duplicate, forged, or replayed claims without duplicating rewards after reconnect/load.
+- [ ] Add travel-safe persistence and reconnect.
+  - [ ] Define and test the versioned identity-safe travel-save contract, including explicit world/player scope, bounded state (and cargo only if the system carries it), migration policy, round-trip, and rejection before enabling persistence.
+  - [ ] Restore accepted vessel/passenger and sparse ocean-discovery facts across restart/reconnect without duplicate players, cargo, rewards, or world identities.
+- [ ] Verify long-distance peer travel and budgets.
+  - [ ] Exercise launch, embark, travel, weather pressure/recovery, discovery, disembark, late join, reconnect, and world-origin/streaming transitions in representative two-player journeys.
+  - [ ] Record and meet actor, memory, replication, save-size, and frame-time budgets; document any remaining limits.
+
+**M8 multiplayer boundary:** the server owns travel-medium state and accepted
+movement, occupancy, ocean weather, discovery identities and rewards,
+damage/disable outcomes where applicable, and persisted travel facts. Clients
+send steering, interaction, and action intent only.
+
+**M8 acceptance:** two players launch, travel a meaningful ocean distance,
+survive or mitigate active ocean weather, find an optional sea discovery, land
+elsewhere, and reconnect without duplicated or lost accepted state while
+remaining within documented performance and replication budgets.
