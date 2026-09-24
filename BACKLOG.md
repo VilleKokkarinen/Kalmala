@@ -493,7 +493,8 @@ PC solo/listen-server co-op boundary. The roadmap contract is in
   - [ ] Re-run traversal, camp, combat, support, weather, construction, storage, persistence, minimap, packaged, and supported-session acceptance without regression.
     - [x] Re-run host/client traversal controls and server-observed movement.
       - Passed 2026-09-24: `Scripts/Verify-PlayerControls.ps1 -Rendered -Port 23901` passed from an isolated UE5.8.2 project copy after a successful current-source editor build. `Kalmala.Gameplay.Movement.SprintSavedMoves` passed. Host/client captures were reviewed at 1280×720; both show the replicated world minimap, arrival prompt, and local status HUD. This fixture verifies bound controls and server-observed remote movement; physical keyboard input remains for the supported-session walkthrough.
-    - [ ] Re-run camp placement, crafting, fire, shelter, and weather recovery acceptance.
+    - [x] Re-run camp placement, crafting, fire, shelter, and weather recovery acceptance.
+      - Passed 2026-09-24: Forced UE5.8.2 build passed after a Unity-compilation helper rename; 24 focused automation tests, rendered host/client crafting, two-visit inventory reconnect, replicated camp recovery, and the rain/roof/hearth peer scenario all passed. This slice uses automated fixtures and does not claim the supported-session or packaged walkthrough.
     - [ ] Re-run combat and support-effect authority, replication, and recovery acceptance.
     - [ ] Re-run construction, storage, sparse persistence, and reconnect acceptance.
     - [ ] Re-run minimap identity and rendered layout acceptance across supported aspect ratios.

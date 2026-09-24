@@ -6998,3 +6998,41 @@ needed. Pre-existing edits were preserved.
 
 Next task: Re-run camp placement, crafting, fire, shelter, and weather recovery
 acceptance; then continue the ordered M6 release-candidate regression slices.
+
+### 2026-09-24T06:18:52Z - Recheck M6 camp and weather recovery
+
+Outcome: Completed the next M6 release-candidate regression slice: camp
+placement, crafting, hearth state, shelter protection, and weather recovery
+passed across focused automation and two-peer fixtures.
+
+Changed this run: `Source/KalmalaUI/Private/KalmalaSurvivalStatusWidget.cpp`,
+`BACKLOG.md`, and this handoff. The first forced editor build exposed a
+duplicate anonymous-namespace helper name in two UI sources under Unity
+compilation. Renamed the status-widget helper; this changes no presentation or
+gameplay contract. Existing unrelated working-tree edits were preserved.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed
+in five actions with normal `%LOCALAPPDATA%\UnrealBuildTool` access. A focused
+headless run passed 24 automation tests covering crafting transactions and RPC
+shape, construction placement/shelter/save geometry, inventory, hearth, food,
+Wet recovery, storm response, and local weather presentation.
+`Scripts/Verify-Crafting.ps1 -Rendered -Port 24101` passed on host and client;
+the retained 1280x720 captures were reviewed. `Scripts/Verify-InventoryReconnect.ps1
+-Port 24102` passed two client visits, owner-only inventory/tool state, and
+rejected local mutations. `Scripts/Verify-CampChoices.ps1 -Port 24103` passed
+32 matching exposure snapshots for each pawn and normal fire recovery.
+`Scripts/Verify-RainVerticalSlice.ps1 -Port 24104` passed water/rain Wet,
+Highly Active trigger timing, roof protection, capped rain wear, hearth
+smoulder/reignition, and lit-fire recovery on host and client.
+
+Multiplayer and persistence impact: No gameplay authority, RPC, replication,
+or save schema changed. Fixtures exercised existing server-owned outcomes and
+owner privacy.
+
+Known limits: These automated fixtures do not simulate physical input or a
+supported packaged session. M6 combat/support, construction/storage persistence,
+minimap aspect ratios, clean-profile package smoke, and the supported-session
+walkthrough remain open.
+
+Next task: Re-run combat and support-effect authority, replication, and
+recovery acceptance; then continue the ordered M6 release-candidate loop.

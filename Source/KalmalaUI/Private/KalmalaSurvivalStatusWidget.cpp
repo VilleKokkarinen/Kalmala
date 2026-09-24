@@ -21,7 +21,7 @@ namespace
         return FString::Printf(TEXT("%d s"), FMath::Max(0, FMath::CeilToInt(Seconds)));
     }
 
-    const TCHAR* SupportEffectName(const EKalmalaSupportEffect Effect)
+    const TCHAR* StatusWidgetSupportEffectName(const EKalmalaSupportEffect Effect)
     {
         switch (Effect)
         {
@@ -154,7 +154,7 @@ FString UKalmalaSurvivalStatusWidget::BuildStatusText(const FKalmalaSurvivalStat
             FMath::RoundToInt(SafeCold * 100.0f), FMath::RoundToInt(SafeWarmth), RecoveryPercent));
     }
 
-    const TCHAR* ActiveEffectName = SupportEffectName(Snapshot.ActiveSupportEffect);
+    const TCHAR* ActiveEffectName = StatusWidgetSupportEffectName(Snapshot.ActiveSupportEffect);
     const float SupportRemaining = Snapshot.ActiveSupportEffectExpiry - Snapshot.ServerTimeSeconds;
     if (ActiveEffectName != nullptr && FMath::IsFinite(SupportRemaining) && SupportRemaining > ActiveStatusThresholdSeconds)
     {
