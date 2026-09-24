@@ -7036,3 +7036,37 @@ walkthrough remain open.
 
 Next task: Re-run combat and support-effect authority, replication, and
 recovery acceptance; then continue the ordered M6 release-candidate loop.
+
+### 2026-09-24T06:52:16Z - Recheck M6 combat and support-effect regression
+
+Outcome: Completed the M6 combat/support regression slice through the current
+headless automation and two-peer acceptance fixtures.
+
+Changed this run: `BACKLOG.md` and this handoff. The isolated copy
+`C:\Users\Ville\AppData\Local\Temp\KalmalaM6Combat-8e93629d` included all 223
+Source files and excluded generated project folders; pre-existing checkout
+implementation and documentation edits were preserved.
+
+Verification: The clean isolated UE5.8.2 `KalmalaEditor Win64 Development`
+build passed in 171 actions with normal `%LOCALAPPDATA%\UnrealBuildTool` access.
+`Kalmala.Gameplay.Combat.IntentContract.RejectionDoesNotMutate` and
+`Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown` passed.
+`Scripts/Verify-CombatPeer.ps1 -Port 24421` passed target-free client rejection,
+server-committed attacks, relevant client action/defeat replication, private
+feedback, and same-world defeat persistence after restart.
+`Scripts/Verify-M4VerticalSlice.ps1 -Port 24430` passed the Mireling, boar, and
+deer host/client/restart fixtures plus
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence` for all four support
+entitlements, authority gates, non-damaging behavior, and matching-world learned
+effect persistence.
+
+Multiplayer and persistence impact: No runtime source, authority, RPC,
+replication, or save schema changed. Existing server-owned combat outcomes and
+owner-only reward/learned-effect boundaries passed their fixtures.
+
+Known limits: These fixtures do not run rendered live support casts or verify
+active support-state replication and timed expiry on remote peers. The documented
+supported-session acceptance and packaged walkthrough remain open.
+
+Next task: Re-run construction, storage, sparse persistence, and reconnect
+acceptance; continue the ordered M6 release-candidate loop.
