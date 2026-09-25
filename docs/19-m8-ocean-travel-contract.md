@@ -155,3 +155,22 @@ steering outcomes. This peer fixture verifies replicated state and the
 production pressure calculation, but it does not launch or move a skiff,
 measure replicated hull transforms, or inspect a rendered viewport. Those
 remain part of the longer two-player travel acceptance task.
+
+## Sea-discovery catalogue definition (2026-09-25)
+
+The bounded first-wave catalogue defines three original optional discoveries:
+`ocean-driftwood-cache` (`Wood` x2), `ocean-shellbank-shoal` (`Fibre` x2),
+and `ocean-stormmark-islet` (`Stone` x1). Each has a separate stable
+presentation ID and readable name. Rewards reuse existing server item IDs and
+are validated against the item catalogue; no new inventory item or grant path
+is introduced.
+
+The canonical sparse fact ID is
+`ocean-discovery:1:<discovery-id>:<spatial-x>,<spatial-y>`. It is stable for
+that discovery kind and deterministic spatial key; the enclosing world save
+identity supplies world seed and generator revision. Catalogue entries carry
+no route, waypoint, direction, or coordinate data. This contract defines
+content and identity only: discoveries are not materialized, claimable, or
+persisted by this increment. `Kalmala.Gameplay.OceanTravel.DiscoveryCatalogue`
+checks bounded definitions, known optional rewards, forged-input rejection,
+identity reproducibility, and sparse-ID validity.

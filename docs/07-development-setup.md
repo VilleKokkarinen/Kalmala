@@ -858,3 +858,14 @@ process alive for at least 20 seconds and require the log to contain
 The wrapper starts the actual game under Kalmala/Binaries/Win64; check that
 process before stopping the smoke run. Null rendering verifies startup and map
 loading only; it does not cover the player-facing co-op walkthrough.
+
+## M8 sea-discovery catalogue
+
+After the forced editor build, run
+`Kalmala.Gameplay.OceanTravel.DiscoveryCatalogue` with the isolated headless
+automation flags above. The contract checks the three canonical optional
+discovery definitions, reward mappings against the server item catalogue,
+stable sparse IDs derived from discovery kind and spatial key, and rejection
+of forged definitions or unknown discovery IDs. This is catalogue and identity
+coverage only; server placement, claiming, rewards, and persistence remain
+separate M8 tasks.

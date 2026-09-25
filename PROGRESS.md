@@ -7521,3 +7521,17 @@ runner timing check and was resolved before the passing retry.
 
 Next task: Define a small original sea-discovery catalogue with stable sparse
 identities and optional route-free rewards.
+
+### 2026-09-25T08:40:00Z — Define M8 sea-discovery catalogue
+
+Outcome: Added a bounded first-wave sea-discovery catalogue with three original optional kinds: a driftwood cache, a Shellbank shoal, and a Stormmark islet. Each has a stable discovery ID, distinct presentation ID, readable name, and low-quantity reward mapped to an existing server item. Stable sparse identities use the catalogue ID and deterministic spatial key; the future world save envelope supplies world seed and generator revision. No route or waypoint is represented.
+
+Changed this run: `Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryCatalogue.h`, `Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryCatalogue.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaOceanDiscoveryCatalogueTest.cpp`, `docs/19-m8-ocean-travel-contract.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this handoff. Pre-existing working-tree edits were preserved.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed all 176 actions from a short disposable mirror with normal `%LOCALAPPDATA%\\UnrealBuildTool` access. The first mirror hit Windows' 260-character action-path limit in the Visual Studio Tools plugin; the short-path retry passed. `Kalmala.Gameplay.OceanTravel.DiscoveryCatalogue` passed with `Result={Success}` through the documented `UnrealEditor.exe` fallback because `UnrealEditor-Cmd.exe` stopped during all-platform SDK preflight for unavailable Linux Arm64 and VisionOS SDKs. `Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts, and scoped `git diff --check` passed.
+
+Multiplayer and persistence impact: The catalogue is immutable lookup data. Item rewards are validated against the configured server item catalogue, while clients receive no authority to select discovery identity, location, or reward. No actor spawning, claim/grant logic, RPC, replicated field, save schema, or persistence behavior changed.
+
+Known limits: No sea-discovery placement, interaction, duplicate/replay rejection, reward grant, reconnect behavior, or persistence has been implemented. This increment has no live host/client presentation run.
+
+Next task: Materialize and claim discoveries through server authority; reject duplicate, forged, or replayed claims without duplicating rewards after reconnect/load.
