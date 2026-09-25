@@ -7740,3 +7740,45 @@ Next eligible task: Record and meet actor, memory, replication, save-size, and
 frame-time budgets. The two-seat voyage/crosswind/calm terrain-patch crossing
 remains explicitly blocked and requires steering-driver diagnosis before a
 retry. Main checkout used; no worktree handoff synchronization was needed.
+
+### 2026-09-25T14:18:17Z — Bound M8 travel-save record sizes
+
+Outcome: Completed one bounded slice of the M8 performance-budget task. The
+schema-1 ocean travel save contract now caps each serialized world-vessel or
+player-seat record at 3,072 bytes. Setters serialize the candidate and roll it
+back if serialization fails or exceeds the cap. The travel contract test
+checks ordinary and maximum-valid owner/vessel identities and reports the
+serialized byte counts.
+
+Changed this run: Updated
+`Source/KalmalaWorld/Public/KalmalaOceanTravelPersistenceContract.h`,
+`Source/KalmalaWorld/Private/KalmalaOceanTravelPersistenceContract.cpp`, and
+`Source/KalmalaWorld/Private/Tests/KalmalaOceanTravelPersistenceContractTest.cpp`.
+Added `docs/20-m8-ocean-performance-budget.md`, indexed it in
+`docs/README.md`, and recorded this completed slice under the still-open M8
+budget leaf in `BACKLOG.md`. Pre-existing working-tree changes remain intact.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build
+passed 180 actions, then the final cap adjustment passed an incremental
+10-action build. With normal UnrealBuildTool LocalAppData access, the isolated
+`Kalmala.World.OceanTravel.PersistenceContract` and
+`Kalmala.World.M7.PersistenceContract` automations both passed. Serialized
+payloads measured 2,598 bytes for the primary world vessel, 2,821 for a
+`player-alpha` seat, 2,707 for the maximum-length vessel ID, and 2,937 for the
+maximum-length owner plus vessel ID, all within 3,072 bytes. The 2-player
+maximum-valid travel records total 8,581 bytes; the arithmetic ceiling is
+9,216 bytes.
+
+Multiplayer and persistence impact: The server-owned candidate setters enforce
+the cap before accepting or saving travel state. Existing world/player scopes,
+schema fields, RPCs, replicated fields, and owner privacy remain unchanged.
+
+Known limits: This profiles in-memory serialization, not on-disk slot-wrapper
+size or the M7 discovery ledger. Runtime actor counts, per-process memory,
+replication bytes, and representative rendered frame times remain unmeasured;
+the integrated live voyage remains blocked on the steering-driver issue.
+
+Next eligible task: Measure actor counts and process memory in a representative
+two-player M8 fixture, then continue with replication traffic and rendered
+frame-time profiling. The long-distance skiff crossing remains blocked and
+must not be counted as acceptance.

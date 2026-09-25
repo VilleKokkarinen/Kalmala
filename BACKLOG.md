@@ -575,6 +575,7 @@ gate passes. After this baseline gate, the six goal groups follow the order in
     - [x] Verify a late join and authenticated restart/reconnect preserve one vessel, seat, and discovery reward without duplication.
       - Passed 2026-09-25: `Scripts/Verify-OceanSkiffReconnect.ps1` passed live on seed 418. A late joiner saw exactly one moored vessel, original Helm/Passenger occupants, no attachment, and no owner reward. After host restart and owner reconnect with the same isolated profiles, the saved vessel and both authenticated seat associations restored; the returning owner’s discovery replay was rejected with `AlreadyFound` and inventory remained at zero. The UE5.8.2 editor build and live runner passed from a disposable project mirror with normal `%LOCALAPPDATA%\\UnrealBuildTool` access. The runner uses stable development-only test-provider identities, not an external online authentication provider; it verifies existing server authority and save behavior without changing RPCs or save schemas.
   - [ ] Record and meet actor, memory, replication, save-size, and frame-time budgets; document any remaining limits.
+    - [x] Cap each M8 vessel/seat `SaveGameToMemory` record at 3,072 bytes and check maximum-valid IDs; measured maximum payloads were 2,707-byte world and 2,937-byte player records. See `docs/20-m8-ocean-performance-budget.md`.
 
 **M8 multiplayer boundary:** the server owns travel-medium state and accepted
 movement, occupancy, ocean weather, discovery identities and rewards,

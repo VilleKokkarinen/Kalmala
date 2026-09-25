@@ -1,4 +1,5 @@
 #include "KalmalaOceanTravelPersistenceContract.h"
+#include "Kismet/GameplayStatics.h"
 
 bool FKalmalaOceanTravelVesselState::IsValidVesselId(const FString& InVesselId)
 {
@@ -22,6 +23,13 @@ bool FKalmalaOceanTravelVesselState::IsValid() const
 
     const double RadiusSquared = FMath::Square(SafeLocation.X) + FMath::Square(SafeLocation.Y);
     return RadiusSquared <= FMath::Square(MaxWorldRadiusCm);
+}
+
+bool UKalmalaOceanTravelPersistenceSaveGame::HasSerializedSizeBudget()
+{
+    TArray<uint8> SerializedBytes;
+    return UGameplayStatics::SaveGameToMemory(this, SerializedBytes)
+        && SerializedBytes.Num() <= MaxSerializedRecordBytes;
 }
 
 bool FKalmalaOceanTravelPassengerState::IsValid() const
@@ -93,8 +101,16 @@ bool UKalmalaOceanTravelPersistenceSaveGame::SetVesselState(const FKalmalaOceanT
         return false;
     }
 
+    const FKalmalaOceanTravelVesselState PreviousState = VesselState;
+    const bool bHadPreviousState = bHasVesselState;
     VesselState = State;
     bHasVesselState = true;
+    if (!HasSerializedSizeBudget())
+    {
+        VesselState = PreviousState;
+        bHasVesselState = bHadPreviousState;
+        return false;
+    }
     return true;
 }
 
@@ -111,8 +127,16 @@ bool UKalmalaOceanTravelPersistenceSaveGame::SetPassengerState(
         return false;
     }
 
+    const FKalmalaOceanTravelPassengerState PreviousState = PassengerState;
+    const bool bHadPreviousState = bHasPassengerState;
     PassengerState = State;
     bHasPassengerState = true;
+    if (!HasSerializedSizeBudget())
+    {
+        PassengerState = PreviousState;
+        bHasPassengerState = bHadPreviousState;
+        return false;
+    }
     return true;
 }
 

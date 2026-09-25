@@ -18,7 +18,7 @@ bool FKalmalaOceanTravelPersistenceContractTest::RunTest(const FString& Paramete
     WorldSave->Initialize(WorldIdentity);
 
     FKalmalaOceanTravelVesselState Vessel;
-    Vessel.VesselId = TEXT("ocean-skiff:session-0001");
+    Vessel.VesselId = TEXT("ocean-skiff:primary");
     Vessel.SafeLocation = FVector(5'000.0, -10'000.0, 250.0);
     Vessel.YawDegrees = 90.0f;
     TestTrue(TEXT("A world-scoped save accepts one bounded moored vessel snapshot"), WorldSave->SetVesselState(Vessel));
@@ -27,6 +27,9 @@ bool FKalmalaOceanTravelPersistenceContractTest::RunTest(const FString& Paramete
 
     TArray<uint8> WorldBytes;
     TestTrue(TEXT("The world-scoped contract serializes to memory"), UGameplayStatics::SaveGameToMemory(WorldSave, WorldBytes));
+    TestTrue(TEXT("A world vessel record stays within the serialized byte budget"),
+        WorldBytes.Num() <= UKalmalaOceanTravelPersistenceSaveGame::MaxSerializedRecordBytes);
+    TestTrue(TEXT("The accepted world record reports the serialized byte budget"), WorldSave->HasSerializedSizeBudget());
     UKalmalaOceanTravelPersistenceSaveGame* ReloadedWorldSave =
         Cast<UKalmalaOceanTravelPersistenceSaveGame>(UGameplayStatics::LoadGameFromMemory(WorldBytes));
     if (TestNotNull(TEXT("The world snapshot reloads as its versioned contract"), ReloadedWorldSave))
@@ -66,6 +69,9 @@ bool FKalmalaOceanTravelPersistenceContractTest::RunTest(const FString& Paramete
 
     TArray<uint8> PlayerBytes;
     TestTrue(TEXT("The player-scoped contract serializes to memory"), UGameplayStatics::SaveGameToMemory(PlayerSave, PlayerBytes));
+    TestTrue(TEXT("A player seat record stays within the serialized byte budget"),
+        PlayerBytes.Num() <= UKalmalaOceanTravelPersistenceSaveGame::MaxSerializedRecordBytes);
+    TestTrue(TEXT("The accepted player record reports the serialized byte budget"), PlayerSave->HasSerializedSizeBudget());
     UKalmalaOceanTravelPersistenceSaveGame* ReloadedPlayerSave =
         Cast<UKalmalaOceanTravelPersistenceSaveGame>(UGameplayStatics::LoadGameFromMemory(PlayerBytes));
     if (TestNotNull(TEXT("The player seat reloads as its versioned contract"), ReloadedPlayerSave))
@@ -117,6 +123,31 @@ bool FKalmalaOceanTravelPersistenceContractTest::RunTest(const FString& Paramete
         DifferentVesselSave->SetVesselState({ TEXT("ocean-skiff:session-0003"), Vessel.SafeLocation, Vessel.YawDegrees });
         TestFalse(TEXT("A player seat cannot pair with a different vessel identity"), ReloadedPlayerSave->CanPairWithWorldSave(*DifferentVesselSave));
     }
+
+    FKalmalaOceanTravelVesselState MaxLengthVessel = Vessel;
+    MaxLengthVessel.VesselId = TEXT("ocean-skiff:")
+        + FString::ChrN(FKalmalaOceanTravelVesselState::MaxVesselIdLength - 12, TEXT('A'));
+    UKalmalaOceanTravelPersistenceSaveGame* MaxWorldSave = NewObject<UKalmalaOceanTravelPersistenceSaveGame>();
+    MaxWorldSave->Initialize(WorldIdentity);
+    TestTrue(TEXT("A maximum-length vessel identity fits the bounded world record"), MaxWorldSave->SetVesselState(MaxLengthVessel));
+    TArray<uint8> MaxWorldBytes;
+    TestTrue(TEXT("The maximum-length world record serializes"), UGameplayStatics::SaveGameToMemory(MaxWorldSave, MaxWorldBytes));
+    TestTrue(TEXT("The maximum-length world record stays within 3 KiB"),
+        MaxWorldBytes.Num() <= UKalmalaOceanTravelPersistenceSaveGame::MaxSerializedRecordBytes);
+
+    const FString MaxLengthOwner = FString::ChrN(FKalmalaM7SaveIdentity::MaxOwnerIdentityLength, TEXT('p'));
+    const FKalmalaM7SaveIdentity MaxPlayerIdentity = FKalmalaM7SaveIdentity::ForPlayer(418, MaxLengthOwner);
+    UKalmalaOceanTravelPersistenceSaveGame* MaxPlayerSave = NewObject<UKalmalaOceanTravelPersistenceSaveGame>();
+    MaxPlayerSave->Initialize(MaxPlayerIdentity);
+    TestTrue(TEXT("The maximum-length authenticated identity is valid"), MaxPlayerIdentity.IsValid());
+    TestTrue(TEXT("A maximum-length passenger record fits the bounded player record"), MaxPlayerSave->SetPassengerState(Passenger));
+    TArray<uint8> MaxPlayerBytes;
+    TestTrue(TEXT("The maximum-length player record serializes"), UGameplayStatics::SaveGameToMemory(MaxPlayerSave, MaxPlayerBytes));
+    TestTrue(TEXT("The maximum-length player record stays within 3 KiB"),
+        MaxPlayerBytes.Num() <= UKalmalaOceanTravelPersistenceSaveGame::MaxSerializedRecordBytes);
+    AddInfo(FString::Printf(TEXT("M8 travel save-size profile: world=%d player=%d max-world=%d max-player=%d limit=%d bytes"),
+        WorldBytes.Num(), PlayerBytes.Num(), MaxWorldBytes.Num(), MaxPlayerBytes.Num(),
+        UKalmalaOceanTravelPersistenceSaveGame::MaxSerializedRecordBytes));
 
     TestFalse(TEXT("Path-like vessel IDs are rejected"), FKalmalaOceanTravelVesselState::IsValidVesselId(TEXT("ocean-skiff:../slot")));
     TestFalse(TEXT("Vessel snapshots outside the finite world are rejected"),

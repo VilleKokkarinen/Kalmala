@@ -63,6 +63,7 @@ class KALMALAWORLD_API UKalmalaOceanTravelPersistenceSaveGame : public USaveGame
 
 public:
     static constexpr int32 CurrentSchemaVersion = 1;
+    static constexpr int32 MaxSerializedRecordBytes = 3072;
 
     void Initialize(const FKalmalaM7SaveIdentity& InIdentity);
     bool Matches(const FKalmalaM7SaveIdentity& InIdentity) const;
@@ -75,6 +76,7 @@ public:
     const FKalmalaOceanTravelVesselState& GetVesselState() const { return VesselState; }
     const FKalmalaOceanTravelPassengerState& GetPassengerState() const { return PassengerState; }
     const FKalmalaM7SaveIdentity& GetIdentity() const { return Identity; }
+    bool HasSerializedSizeBudget();
 
     /** A player seat association is usable only with its matching world vessel record. */
     bool CanPairWithWorldSave(const UKalmalaOceanTravelPersistenceSaveGame& WorldSave) const;
