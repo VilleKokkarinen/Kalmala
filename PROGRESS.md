@@ -7583,3 +7583,45 @@ exception is logged and cannot grant a duplicate.
 Next task: Define and test the versioned identity-safe travel-save contract,
 including explicit world/player scope, bounded state, migration policy, and
 round-trip/rejection before enabling vessel persistence.
+
+### 2026-09-25T10:07:44Z — Define M8 travel-save contract
+
+Outcome: Defined and tested schema 1 for M8 travel persistence without
+enabling normal-play save or restore. A world-scoped record holds one stable
+skiff identity and bounded last-safe transform; an authenticated player-scoped
+record holds one vessel reference and assigned seat. The records must match
+world seed, generator revision, and vessel identity before pairing. The current
+skiff has no cargo.
+
+Changed this run: Added
+`Source/KalmalaWorld/Public/KalmalaOceanTravelPersistenceContract.h`,
+`Source/KalmalaWorld/Private/KalmalaOceanTravelPersistenceContract.cpp`, and
+`Source/KalmalaWorld/Private/Tests/KalmalaOceanTravelPersistenceContractTest.cpp`;
+updated `docs/19-m8-ocean-travel-contract.md`, `docs/07-development-setup.md`,
+`BACKLOG.md`, and this handoff. Pre-existing working-tree changes were
+preserved.
+
+Verification: Forced UE5.8.2 `KalmalaEditor Win64 Development` build passed
+the final 8 incremental actions in a disposable mirror with normal
+`%LOCALAPPDATA%\\UnrealBuildTool` access. The initial clean-mirror build
+reached 172 of 179 actions before test-only numeric-limit helper errors; those
+were replaced with standard numeric limits before the passing rebuild.
+`Kalmala.World.OceanTravel.PersistenceContract` and
+`Kalmala.World.M7.PersistenceContract` both reported `Result={Success}` using
+`SaveGameToMemory`/`LoadGameFromMemory`.
+
+Multiplayer and persistence impact: The contract reuses the M7 exact world
+seed, generator revision, and explicit world/player identity rules. It adds
+no RPC, replicated field, live actor reference, cargo, or runtime save path.
+The server must still validate generated-ocean placement and arbitrate unique
+seat occupancy during the later restore implementation.
+
+Known limits: Current skiff actors do not yet assign stable persistent IDs.
+The type-level pairing check does not validate generated water depth, hull
+clearance, or duplicate seat assignments across separate player records; the
+restore task must enforce those before spawning or attaching players. No real
+save slot or restart/reconnect flow was exercised.
+
+Next task: Restore accepted vessel/passenger and sparse ocean-discovery facts
+across restart/reconnect without duplicate players, cargo, rewards, or world
+identities.

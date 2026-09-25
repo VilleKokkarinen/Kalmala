@@ -24,6 +24,25 @@ After the editor build, run it with the documented temporary-user pattern:
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7PersistenceUser' -abslog='C:\temp\KalmalaM7Persistence.log' -ExecCmds="Automation RunTests Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
+### M8 travel-save contract
+
+`UKalmalaOceanTravelPersistenceSaveGame` is a separate schema-1 gate over the
+existing M7 world/player identity. World scope accepts one stable skiff ID and
+one bounded last-safe transform; player scope accepts one authenticated
+player's vessel ID and assigned seat. The current skiff carries no cargo, and
+the contract contains no velocity, steering, or live actor references. Schema
+zero requires an explicit migration decision; future schemas, identity
+mismatches, malformed vessel IDs, out-of-bounds transforms, invalid seats,
+and cross-world or orphaned player-to-vessel associations fail closed. The
+contract does not enable runtime save or restore.
+
+After the forced editor build, run the in-memory round-trip and rejection
+contract with the M7 identity/save checks:
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8TravelSaveUser' -abslog='C:\temp\KalmalaM8TravelSave.log' -ExecCmds="Automation RunTests Kalmala.World.OceanTravel.PersistenceContract+Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
+```
+
 ### M7 skill progression contract
 
 `FKalmalaSkillProgressionLedger` provides a transient server-owned contract for

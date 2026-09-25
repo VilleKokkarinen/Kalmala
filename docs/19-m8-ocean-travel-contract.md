@@ -51,6 +51,35 @@ Replicate skiff movement at no more than 10 updates per second while moving. Rep
 
 Until the M8 persistence gate passes, do not save vessel identity, occupancy, transform, cargo, or travel state in any world or player save. A server-created skiff and its occupancy expire with the session. No saved-data schema changes as part of this contract.
 
+### Versioned travel-save contract (defined; runtime restore remains gated)
+
+`UKalmalaOceanTravelPersistenceSaveGame` defines a separate schema-1 gate and
+does not extend or rewrite the M7 sparse-discovery container. It reuses the
+M7 identity contract so every record is bound to the exact `WorldSeed`,
+generator revision, and explicit world or authenticated-player scope. A
+world-scoped record holds at most one stable `ocean-skiff:` identity and its
+last server-accepted safe location and heading. The writer may capture that
+snapshot only when the server has stopped the skiff in `Moored`; coordinates
+must be finite and inside the 16 km world radius, with bounded vertical offset
+and heading. A player-scoped record holds at most one stable vessel reference
+and a `Helm` or `Passenger` seat, keyed by the authenticated player identity
+in the enclosing save identity. The two records pair only when world seed,
+generator revision, and vessel ID agree.
+
+This skiff has no cargo, so the contract has no cargo field. It also omits
+velocity, steering samples, session actor references, and saved live occupancy;
+seat references are rebuilt from authenticated player records. The gate
+validates record shape and identity, but the future restore path must still
+revalidate generated-ocean depth, the hull footprint, and unique live seat
+occupancy before spawning or attaching anything. Separate player records can
+name the same seat, so restore must arbitrate that conflict without creating a
+duplicate occupant. Schema zero returns `MigrateBeforeLoad` and requires an
+explicit migration before load; unknown future schemas fail closed. The
+focused `Kalmala.World.OceanTravel.PersistenceContract` automation round-trips
+both scopes in memory and rejects mismatched identities, malformed bounds,
+orphaned vessel references, and invalid seats. It does not write project save
+slots or enable normal-play persistence.
+
 ## Multiplayer assessment
 
 This contract preserves server authority: clients send bounded action and steering intent, while the server selects seats, validates world/collision constraints, simulates movement, and publishes accepted outcomes. The only public replicated vessel state is relevant movement, mode, and current session occupancy. Private input and all persistent state remain excluded.
