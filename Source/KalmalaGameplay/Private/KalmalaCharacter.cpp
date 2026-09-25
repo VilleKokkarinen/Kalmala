@@ -203,6 +203,59 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
     }
 
 #if !UE_BUILD_SHIPPING
+    if (IsLocallyControlled() && GetWorld() != nullptr
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanWeatherPeerTest")))
+    {
+        static int32 LastOceanWeatherPeerCycle = INDEX_NONE;
+        static bool bClientForgeryRejected = false;
+        AKalmalaWorldGenerationGameState* WeatherState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+        if (WeatherState != nullptr)
+        {
+            const FKalmalaWeatherState& Weather = WeatherState->GetWeatherState();
+            if ((Weather.WeatherCycleIndex == 7001 || Weather.WeatherCycleIndex == 7002)
+                && LastOceanWeatherPeerCycle != Weather.WeatherCycleIndex)
+            {
+                LastOceanWeatherPeerCycle = Weather.WeatherCycleIndex;
+                if (!HasAuthority() && Weather.WeatherCycleIndex == 7001)
+                {
+                    FKalmalaWeatherState ForgedWeather = Weather;
+                    ForgedWeather.WeatherCycleIndex = 7003;
+                    ForgedWeather.WindDirectionDegrees = 270;
+                    ForgedWeather.WindStrength = 0.0f;
+                    ForgedWeather.RefreshActivityLevel();
+                    WeatherState->SetWeatherStateFromServer(ForgedWeather);
+                    const FKalmalaWeatherState& AfterForgery = WeatherState->GetWeatherState();
+                    bClientForgeryRejected = AfterForgery.WeatherCycleIndex == 7001
+                        && AfterForgery.WindDirectionDegrees == 90
+                        && FMath::IsNearlyEqual(AfterForgery.WindStrength, 1.0f);
+                }
+
+                const FKalmalaWeatherState& AcceptedWeather = WeatherState->GetWeatherState();
+                constexpr float VerificationSpeed = 350.0f;
+                const float WindRate = AKalmalaOceanSkiff::CalculateWeatherYawRate(0.0f, 0.0f,
+                    static_cast<float>(AcceptedWeather.WindDirectionDegrees), AcceptedWeather.WindStrength,
+                    VerificationSpeed);
+                const float CounterSteerRate = AKalmalaOceanSkiff::CalculateWeatherYawRate(-0.2f, 0.0f,
+                    static_cast<float>(AcceptedWeather.WindDirectionDegrees), AcceptedWeather.WindStrength,
+                    VerificationSpeed);
+                const float ExpectedWindRate = AcceptedWeather.WeatherCycleIndex == 7001 ? 4.0f : 0.0f;
+                const bool bWeatherRateMatches = FMath::IsNearlyEqual(WindRate, ExpectedWindRate, 0.001f);
+                const bool bForgeryCheckMatches = HasAuthority() || bClientForgeryRejected;
+                const bool bPassed = AcceptedWeather.IsValid() && bWeatherRateMatches && bForgeryCheckMatches
+                    && (AcceptedWeather.WeatherCycleIndex != 7001 || CounterSteerRate < 0.0f);
+                UE_LOG(LogTemp, Display,
+                    TEXT("Ocean weather peer result: Authority=%d Cycle=%d Direction=%d Strength=%.3f WindRate=%.3f CounterRate=%.3f ClientForgeryRejected=%d Passed=%d"),
+                    HasAuthority() ? 1 : 0, AcceptedWeather.WeatherCycleIndex,
+                    AcceptedWeather.WindDirectionDegrees, AcceptedWeather.WindStrength,
+                    WindRate, CounterSteerRate, bClientForgeryRejected ? 1 : 0, bPassed ? 1 : 0);
+                if (!bPassed)
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Ocean weather peer verification FAILED: accepted weather or pressure differed from the expected server state."));
+                }
+            }
+        }
+    }
+
     if (!bOceanTravelFeedbackPeerPrivacyLogged && !HasAuthority() && !IsLocallyControlled()
         && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanSkiffFeedbackTest"))
         && OceanTravelFeedbackPeerStartTime >= 0.0f

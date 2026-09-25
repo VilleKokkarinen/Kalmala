@@ -134,5 +134,24 @@ mitigation outcome is accepted, replicated separately, or saved. The focused
 `Kalmala.Gameplay.OceanTravel.SkiffWeatherPressure` automation covers direction,
 scaling, bounds, counter-steering, and malformed values, while
 `Kalmala.UI.SurvivalStatus.LocalPresentation` covers the local guidance and its
-removal in calm weather. Peer agreement and full weather recovery verification
-remain the next M8 weather task.
+removal in calm weather. The cross-peer accepted-weather and recovery check is
+recorded below; live skiff travel remains in the longer M8 journey task.
+
+## Cross-peer ocean weather verification (2026-09-25)
+
+`Scripts/Verify-OceanSkiffWeather.ps1` starts a development-only listen host
+and conflicting-seed client. The server selects a full beam crosswind
+(cycle 7001, 90 degrees, strength 1), followed by calm weather (cycle 7002).
+Both locally controlled peers read those accepted replicated snapshots and
+run the production `CalculateWeatherYawRate` helper at a 350 cm/s verification
+speed: the wind produces 4 degrees/second, a -0.2 rudder produces -3
+degrees/second after counter-steering, and wind pressure returns to zero when
+the calm state arrives. The client also calls the public server weather setter
+with a forged calm cycle and verifies its local accepted snapshot stays on
+cycle 7001; no cycle 7003 is replicated.
+
+The focused authority tests continue to require server-owned weather and
+steering outcomes. This peer fixture verifies replicated state and the
+production pressure calculation, but it does not launch or move a skiff,
+measure replicated hull transforms, or inspect a rendered viewport. Those
+remain part of the longer two-player travel acceptance task.

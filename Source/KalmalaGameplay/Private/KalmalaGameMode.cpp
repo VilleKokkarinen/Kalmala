@@ -1097,6 +1097,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveCombatPeerTest();
     DriveDiscoveryPeerTest();
     DriveOceanTravelFeedbackTest();
+    DriveOceanWeatherPeerTest();
     ReportWorldProfileIfReady();
     AdvanceWeatherCycleIfNeeded();
 
@@ -1197,6 +1198,92 @@ void AKalmalaGameMode::DriveOceanTravelFeedbackTest()
             RemoteFeedback != nullptr ? RemoteFeedback->GetFeedbackSerial() : 0);
     }
     OceanTravelFeedbackTestStage = 2;
+#endif
+}
+
+void AKalmalaGameMode::DriveOceanWeatherPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanWeatherPeerTest"))
+        || GetWorld() == nullptr || OceanWeatherPeerTestStage >= 3)
+    {
+        return;
+    }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    if (OceanWeatherPeerTestStage == 0)
+    {
+        int32 PlayerCount = 0;
+        for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+        {
+            PlayerCount += It->Get() != nullptr ? 1 : 0;
+        }
+        if (PlayerCount < 2) return;
+
+        const auto SetVerificationWeather = [this, Now](const int32 CycleIndex,
+            const int32 WindDirectionDegrees, const float WindStrength)
+        {
+            AKalmalaWorldGenerationGameState* State = GetGameState<AKalmalaWorldGenerationGameState>();
+            if (State == nullptr) return false;
+            FKalmalaWeatherState Weather = State->GetWeatherState();
+            Weather.WeatherCycleIndex = CycleIndex;
+            Weather.ServerStartTimeSeconds = Now;
+            Weather.DurationSeconds = 120.0f;
+            Weather.PrecipitationIntensity = 0.0f;
+            Weather.FogIntensity = 0.0f;
+            Weather.WindDirectionDegrees = WindDirectionDegrees;
+            Weather.WindStrength = WindStrength;
+            Weather.RefreshActivityLevel();
+            State->SetWeatherStateFromServer(Weather);
+            return State->GetWeatherState().WeatherCycleIndex == CycleIndex;
+        };
+
+        if (!SetVerificationWeather(7001, 90, 1.0f))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Ocean weather peer verification FAILED: server could not select crosswind state."));
+            OceanWeatherPeerTestStage = 3;
+            return;
+        }
+        OceanWeatherPeerTestStageTime = Now;
+        OceanWeatherPeerTestStage = 1;
+        return;
+    }
+
+    if (OceanWeatherPeerTestStage == 1 && Now - OceanWeatherPeerTestStageTime >= 3.0f)
+    {
+        AKalmalaWorldGenerationGameState* State = GetGameState<AKalmalaWorldGenerationGameState>();
+        if (State == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Ocean weather peer verification FAILED: world state disappeared."));
+            OceanWeatherPeerTestStage = 3;
+            return;
+        }
+        FKalmalaWeatherState Weather = State->GetWeatherState();
+        Weather.WeatherCycleIndex = 7002;
+        Weather.ServerStartTimeSeconds = Now;
+        Weather.DurationSeconds = 120.0f;
+        Weather.PrecipitationIntensity = 0.0f;
+        Weather.FogIntensity = 0.0f;
+        Weather.WindDirectionDegrees = 0;
+        Weather.WindStrength = 0.0f;
+        Weather.RefreshActivityLevel();
+        State->SetWeatherStateFromServer(Weather);
+        if (State->GetWeatherState().WeatherCycleIndex != 7002)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Ocean weather peer verification FAILED: server could not select calm recovery state."));
+            OceanWeatherPeerTestStage = 3;
+            return;
+        }
+        OceanWeatherPeerTestStageTime = Now;
+        OceanWeatherPeerTestStage = 2;
+        return;
+    }
+
+    if (OceanWeatherPeerTestStage == 2 && Now - OceanWeatherPeerTestStageTime >= 3.0f)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Ocean weather peer verification server states complete."));
+        OceanWeatherPeerTestStage = 3;
+    }
 #endif
 }
 

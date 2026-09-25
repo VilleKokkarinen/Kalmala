@@ -7478,3 +7478,46 @@ Main checkout used; no handoff synchronization was needed.
 
 Next task: Verify clients cannot submit weather or mitigation outcomes and
 that accepted ocean pressure and recovery agree across host and client peers.
+
+### 2026-09-25T08:09:37Z — Verify ocean weather peer authority and recovery
+
+Outcome: Added a development-only listen-host/client fixture that selects a
+full 90-degree crosswind and then calm weather on the server. Both locally
+controlled peers read matching accepted replicated weather and derive 4
+degrees/second crosswind pressure plus a -3 degrees/second counter-steered rate
+at 350 cm/s through the production skiff helper. After the calm state
+replicates, both derive zero wind pressure. The client attempted to replace the
+crosswind with a forged calm-weather cycle; the server-only setter left its
+accepted local snapshot unchanged and no forged cycle replicated.
+
+Changed this run: `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+`Scripts/Verify-OceanSkiffWeather.ps1`, `docs/07-development-setup.md`,
+`docs/19-m8-ocean-travel-contract.md`, `BACKLOG.md`, and this handoff.
+Pre-existing working-tree edits were preserved.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed
+all 174 actions. The first sandboxed invocation exited before writing a fresh
+UBT log; rerunning with normal `%LOCALAPPDATA%\UnrealBuildTool` access passed.
+`ServerAuthoritativeReplicationContract`, `WeatherMutation`,
+`SkiffSteeringContract`, `SkiffWeatherPressure`, and
+`SurvivalStatus.LocalPresentation` all reported `Result={Success}`.
+`Scripts/Verify-OceanSkiffWeather.ps1 -Port 18168` passed after adjusting its
+poll to wait for the complete recovery sequence. All five
+`Verify-M5DocumentationContracts` checks passed.
+
+Multiplayer and persistence impact: The server remains the sole weather and
+movement-outcome writer. The test confirms clients can read the selected
+weather and derive matching pressure but cannot replace the accepted weather;
+clients still submit steering intent only. No production authority, RPC,
+replicated gameplay field, or save schema changed.
+
+Known limits: The peer fixture checks replicated accepted weather and the
+production pressure calculation; it does not launch or move a skiff, compare
+replicated hull transforms, or assess rendered movement. Those remain in the
+longer M8 two-player travel acceptance task. The initial peer-run failure was a
+runner timing check and was resolved before the passing retry.
+
+Next task: Define a small original sea-discovery catalogue with stable sparse
+identities and optional route-free rewards.

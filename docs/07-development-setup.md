@@ -220,6 +220,16 @@ that the crosswind guidance appears aboard a skiff and clears when replicated
 wind subsides. The focused tests do not replace the remaining host/client
 weather-pressure and recovery agreement check.
 
+Then run `Scripts\Verify-OceanSkiffWeather.ps1 -Port 18167`. The development-
+only host/client fixture selects a full crosswind state and then calm weather
+on the server. Both locally controlled peers must derive the same 4 degrees/s
+pressure and -3 degrees/s counter-steered rate from the production skiff helper
+at 350 cm/s, then derive zero wind pressure after the calm state replicates.
+The client also attempts to replace the accepted crosswind with a forged calm
+state; its server-only setter must leave the replicated weather unchanged.
+This check covers accepted weather replication, derived pressure/recovery, and
+client authority rejection, but does not move or render a live skiff.
+
 ## Item catalogue verification
 
 For the M2 material contract, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above after building the editor. It loads the real project catalogue and checks required materials, exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate configuration. This is a pure contract check; live inventory replication and harvest-grant verification follow when the inventory component exists.

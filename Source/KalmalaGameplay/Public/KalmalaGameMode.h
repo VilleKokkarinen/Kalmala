@@ -58,6 +58,7 @@ private:
     void DriveCombatPeerTest();
     void DriveDiscoveryPeerTest();
     void DriveOceanTravelFeedbackTest();
+    void DriveOceanWeatherPeerTest();
     float CampChoiceStartTime = -1.0f;
     int32 CampChoiceStage = 0;
     TArray<TWeakObjectPtr<class AKalmalaCharacter>> CampChoicePlayers;
@@ -91,6 +92,8 @@ private:
     float OceanTravelFeedbackTestStageTime = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> OceanTravelFeedbackTestHost;
     TWeakObjectPtr<class AKalmalaCharacter> OceanTravelFeedbackTestRemote;
+    int32 OceanWeatherPeerTestStage = 0;
+    float OceanWeatherPeerTestStageTime = 0.0f;
     void InitializeWeatherCycle();
     void AdvanceWeatherCycleIfNeeded();
     void PlacePawnAtGeneratedStart(class APlayerController* PlayerController);
