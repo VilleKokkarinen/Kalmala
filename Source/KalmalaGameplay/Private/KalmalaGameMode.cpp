@@ -23,6 +23,9 @@
 #include "KalmalaInteractionGrid.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaHazardSpawn.h"
+#include "KalmalaOceanDiscoveryCatalogue.h"
+#include "KalmalaItemCatalogue.h"
+#include "KalmalaM7PersistenceContract.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaTerrainPatchLayout.h"
@@ -83,6 +86,10 @@ namespace KalmalaGameMode
     FString PlayerDiscoverySaveSlot(const FKalmalaWorldGenerationConfig& Config, const FString& PlayerIdentity)
     {
         return FString::Printf(TEXT("KalmalaPlayerDiscoveries_%llu_%08x"), Config.WorldSeed, FCrc::StrCrc32(*PlayerIdentity));
+    }
+    FString OceanDiscoverySaveSlot(const FKalmalaM7SaveIdentity& Identity)
+    {
+        return FString::Printf(TEXT("KalmalaOceanClaims_%llu_%d_%08x"), Identity.WorldSeed, Identity.GeneratorRevision, FCrc::StrCrc32(*Identity.OwnerIdentity));
     }
 }
 
@@ -1113,6 +1120,12 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
         UpdateInteractionGrid();
     }
 
+    if (GetWorld()->GetTimeSeconds() >= NextOceanDiscoveryRefreshTime)
+    {
+        NextOceanDiscoveryRefreshTime = GetWorld()->GetTimeSeconds() + 1.0f;
+        RefreshOceanDiscoveries();
+    }
+
     if (GetWorld()->GetTimeSeconds() < NextTerrainPatchActivationTime)
     {
         return;
@@ -1534,6 +1547,85 @@ void AKalmalaGameMode::RecordDefeatedSpawn(const FString& PersistentSpawnId)
     }
 }
 
+void AKalmalaGameMode::RefreshOceanDiscoveries()
+{
+    if (!HasAuthority() || GetWorld() == nullptr || !WorldGenerationConfig.IsValid())
+    {
+        return;
+    }
+
+    constexpr int32 NeighborhoodRadius = 1;
+    constexpr int32 MaxActiveKeys = 18; // Nine nearby cells for each prototype player.
+    TSet<FIntPoint> DesiredKeys;
+    for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+    {
+        const APlayerController* Controller = Iterator->Get();
+        const APawn* Pawn = Controller != nullptr ? Controller->GetPawn() : nullptr;
+        if (Pawn == nullptr)
+        {
+            continue;
+        }
+
+        const FIntPoint CenterKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(Pawn->GetActorLocation()));
+        for (int32 Y = -NeighborhoodRadius; Y <= NeighborhoodRadius && DesiredKeys.Num() < MaxActiveKeys; ++Y)
+        {
+            for (int32 X = -NeighborhoodRadius; X <= NeighborhoodRadius && DesiredKeys.Num() < MaxActiveKeys; ++X)
+            {
+                DesiredKeys.Add(CenterKey + FIntPoint(X, Y));
+            }
+        }
+
+        if (DesiredKeys.Num() >= MaxActiveKeys)
+        {
+            break;
+        }
+    }
+
+    for (auto It = ActiveOceanDiscoveryActors.CreateIterator(); It; ++It)
+    {
+        if (DesiredKeys.Contains(It.Key()))
+        {
+            continue;
+        }
+
+        for (const TWeakObjectPtr<AKalmalaDiscoveryActor>& WeakActor : It.Value())
+        {
+            if (AKalmalaDiscoveryActor* Actor = WeakActor.Get())
+            {
+                Actor->Destroy();
+            }
+        }
+        It.RemoveCurrent();
+    }
+
+    for (const FIntPoint& SpatialKey : DesiredKeys)
+    {
+        if (ActiveOceanDiscoveryActors.Contains(SpatialKey))
+        {
+            continue;
+        }
+
+        TArray<TWeakObjectPtr<AKalmalaDiscoveryActor>> SpawnedActors;
+        for (const FKalmalaOceanDiscoveryDescriptor& Descriptor : FKalmalaOceanDiscoveryCatalogue::BuildDescriptors(WorldGenerationConfig, SpatialKey))
+        {
+            FActorSpawnParameters Parameters;
+            Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            AKalmalaDiscoveryActor* Actor = GetWorld()->SpawnActor<AKalmalaDiscoveryActor>(
+                AKalmalaDiscoveryActor::StaticClass(), Descriptor.Location, FRotator::ZeroRotator, Parameters);
+            if (Actor != nullptr && Actor->InitializeOceanServer(Descriptor))
+            {
+                SpawnedActors.Add(Actor);
+            }
+            else if (Actor != nullptr)
+            {
+                Actor->Destroy();
+            }
+        }
+
+        ActiveOceanDiscoveryActors.Add(SpatialKey, MoveTemp(SpawnedActors));
+    }
+}
+
 UKalmalaPlayerDiscoverySaveGame* AKalmalaGameMode::GetPlayerDiscoverySave(AKalmalaCharacter* Interactor, FString& OutIdentity)
 {
     OutIdentity.Reset();
@@ -1605,6 +1697,130 @@ bool AKalmalaGameMode::ClaimDiscovery(AKalmalaCharacter* Interactor, const FKalm
     if (Effect != EKalmalaSupportEffect::None) Interactor->GetSupportMagicComponent()->LearnEffectFromServer(Effect);
     Feedback->PublishFeedbackFromServer(Descriptor.Kind == EKalmalaWorldDiscoveryKind::Scroll ? EKalmalaDiscoveryFeedback::ScrollFound : EKalmalaDiscoveryFeedback::LandmarkFound,
         Descriptor.Kind == EKalmalaWorldDiscoveryKind::Scroll ? FString::Printf(TEXT("Scroll found: %s"), *Descriptor.DefinitionId) : TEXT("Landmark discovered"));
+    return true;
+}
+
+bool AKalmalaGameMode::ClaimOceanDiscovery(AKalmalaCharacter* Interactor, const FKalmalaOceanDiscoveryDescriptor& Descriptor)
+{
+    if (!HasAuthority() || Interactor == nullptr || !Interactor->HasAuthority() || Interactor->GetWorld() != GetWorld()
+        || !FKalmalaOceanDiscoveryCatalogue::IsCurrentDescriptor(WorldGenerationConfig, Descriptor)
+        || FVector::DistSquared(Interactor->GetActorLocation(), Descriptor.Location) > FMath::Square(250.0f))
+    {
+        return false;
+    }
+
+    const FKalmalaOceanDiscoveryDefinition* Definition = FKalmalaOceanDiscoveryCatalogue::FindDefinition(Descriptor.DiscoveryId);
+    UKalmalaInventoryComponent* Inventory = Interactor->GetInventoryComponent();
+    UKalmalaDiscoveryProgressComponent* Feedback = Interactor->GetDiscoveryProgressComponent();
+    const APlayerState* PlayerState = Interactor->GetPlayerState();
+    FString PlayerIdentity;
+    if (PlayerState != nullptr)
+    {
+        const FUniqueNetIdRepl UniqueId = PlayerState->GetUniqueId();
+        if (UniqueId.IsValid())
+        {
+            const TSharedPtr<const FUniqueNetId> AuthenticatedId = UniqueId.GetUniqueNetId();
+            if (AuthenticatedId.IsValid())
+            {
+                PlayerIdentity = AuthenticatedId->GetType().ToString() + TEXT(":") + AuthenticatedId->ToString();
+            }
+        }
+    }
+    const FKalmalaM7SaveIdentity SaveIdentity = FKalmalaM7SaveIdentity::ForPlayer(WorldGenerationConfig.WorldSeed, PlayerIdentity);
+    const FString SaveSlot = KalmalaGameMode::OceanDiscoverySaveSlot(SaveIdentity);
+    if (Definition == nullptr || Inventory == nullptr || Feedback == nullptr || !SaveIdentity.IsValid()
+        || !FKalmalaOceanDiscoveryCatalogue::IsValidDefinition(*Definition, GetDefault<UKalmalaItemCatalogue>()))
+    {
+        if (Feedback != nullptr)
+        {
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery unavailable"));
+        }
+        return false;
+    }
+
+    UKalmalaM7PersistenceSaveGame* Save = nullptr;
+    if (TObjectPtr<UKalmalaM7PersistenceSaveGame>* Existing = OceanDiscoverySaves.Find(PlayerIdentity))
+    {
+        Save = *Existing;
+        if (Save == nullptr || !Save->Matches(SaveIdentity))
+        {
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery save unavailable"));
+            return false;
+        }
+    }
+    else if (UGameplayStatics::DoesSaveGameExist(SaveSlot, 0))
+    {
+        Save = Cast<UKalmalaM7PersistenceSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlot, 0));
+        if (Save == nullptr || !Save->Matches(SaveIdentity))
+        {
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery save needs migration review"));
+            return false;
+        }
+    }
+    else
+    {
+        Save = NewObject<UKalmalaM7PersistenceSaveGame>(this);
+        Save->Initialize(SaveIdentity);
+    }
+
+    if (Save == nullptr || !Save->Matches(SaveIdentity))
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery save unavailable"));
+        return false;
+    }
+
+    const FString DiscoveryIdentity = FKalmalaOceanDiscoveryCatalogue::MakeStableIdentity(Descriptor.DiscoveryId, Descriptor.SpatialKey);
+    if (Save->HasSparseDelta(EKalmalaM7SparseDeltaKind::DiscoveryClaimed, DiscoveryIdentity))
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::AlreadyFound, TEXT("Sea discovery already claimed"));
+        return false;
+    }
+
+    const TArray<FKalmalaInventoryStack> ExistingStacks = Inventory->GetStacks();
+    TArray<FKalmalaInventoryStack> CandidateStacks;
+    FString GrantFailure;
+    if (!UKalmalaInventoryComponent::BuildGrant(ExistingStacks, Definition->RewardItemId, Definition->RewardQuantity, CandidateStacks, GrantFailure))
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Pack full; sea discovery remains"));
+        return false;
+    }
+
+    TArray<uint8> SaveBytes;
+    if (!UGameplayStatics::SaveGameToMemory(Save, SaveBytes))
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery unavailable"));
+        return false;
+    }
+    UKalmalaM7PersistenceSaveGame* CandidateSave = Cast<UKalmalaM7PersistenceSaveGame>(UGameplayStatics::LoadGameFromMemory(SaveBytes));
+    FKalmalaM7SparseDelta ClaimDelta;
+    ClaimDelta.Kind = EKalmalaM7SparseDeltaKind::DiscoveryClaimed;
+    ClaimDelta.StableId = DiscoveryIdentity;
+    if (CandidateSave == nullptr || !CandidateSave->Matches(SaveIdentity) || !CandidateSave->AddSparseDelta(ClaimDelta))
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery ledger is full or invalid"));
+        return false;
+    }
+
+    if (!UGameplayStatics::SaveGameToSlot(CandidateSave, SaveSlot, 0))
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery could not be saved"));
+        return false;
+    }
+
+    if (!Inventory->TryCommitStacksFromServer(ExistingStacks, CandidateStacks))
+    {
+        const bool bLedgerRestored = UGameplayStatics::SaveGameToSlot(Save, SaveSlot, 0);
+        if (!bLedgerRestored)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to restore the prior sea-discovery ledger for player %s after reward rejection."), *PlayerIdentity);
+        }
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery reward could not be granted"));
+        return false;
+    }
+
+    OceanDiscoverySaves.Add(PlayerIdentity, CandidateSave);
+    Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::LandmarkFound,
+        FString::Printf(TEXT("Sea discovery: %s (+%d %s)"), *Definition->DisplayName, Definition->RewardQuantity, *Definition->RewardItemId.ToString()));
     return true;
 }
 

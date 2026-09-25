@@ -8,6 +8,8 @@
 #include "KalmalaInteractionGrid.h"
 #include "KalmalaGameMode.generated.h"
 
+struct FKalmalaOceanDiscoveryDescriptor;
+
 /**
  * Server-authoritative rules for a Kalmala session.
  * Gameplay systems are added in later milestones.
@@ -29,6 +31,7 @@ public:
     bool ReadStorage(const class AKalmalaConstructionActor* Construction, TArray<FKalmalaInventoryStack>& Out) const;
     bool PersistStorage(const class AKalmalaConstructionActor* Construction, const TArray<FKalmalaInventoryStack>& Stacks);
     bool ClaimDiscovery(class AKalmalaCharacter* Interactor, const struct FKalmalaWorldDiscoveryDescriptor& Descriptor);
+    bool ClaimOceanDiscovery(class AKalmalaCharacter* Interactor, const FKalmalaOceanDiscoveryDescriptor& Descriptor);
     bool ClaimMirelingBossScroll(class AKalmalaCharacter* Attacker, const FString& PersistentSpawnId);
     static bool IsMirelingBossRewardId(const FString& PersistentSpawnId);
     static FString GetMirelingBossScrollDefinition(uint64 WorldSeed);
@@ -39,6 +42,7 @@ private:
     void ActivateTerrainPatchNeighborhood(const FVector2D& WorldPosition);
     void RefreshTerrainPatchNeighborhoods();
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
+    void RefreshOceanDiscoveries();
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
     void RecordDefeatedSpawn(const FString& PersistentSpawnId);
     class UKalmalaPlayerDiscoverySaveGame* GetPlayerDiscoverySave(class AKalmalaCharacter* Interactor, FString& OutIdentity);
@@ -104,6 +108,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<class AKalmalaOceanTravelTestFixture> OceanTravelTestFixture;
     TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
     TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGame>> PlayerDiscoverySaves;
+    TMap<FString, TObjectPtr<class UKalmalaM7PersistenceSaveGame>> OceanDiscoverySaves;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGame> ConstructionSaveGame;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaStorageSaveGame> StorageSaveGame;
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;
@@ -115,7 +120,9 @@ private:
     TSet<FIntPoint> ActiveMossyMireDiscoveryKeys;
     TSet<FIntPoint> ActiveFreezingTundraDiscoveryKeys;
     TSet<FIntPoint> ActiveThunderMountainsDiscoveryKeys;
+    TMap<FIntPoint, TArray<TWeakObjectPtr<class AKalmalaDiscoveryActor>>> ActiveOceanDiscoveryActors;
     float NextTerrainPatchActivationTime = 0.0f;
+    float NextOceanDiscoveryRefreshTime = 0.0f;
     float NextExposureUpdateTime = 0.0f;
     float NextInteractionGridUpdateTime = 0.0f;
     TMap<FIntPoint, FKalmalaInteractionCellState> ActiveInteractionCells;

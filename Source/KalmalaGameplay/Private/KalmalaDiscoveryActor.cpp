@@ -47,6 +47,9 @@ namespace
 
     FLinearColor GetDiscoveryAccent(const FName PresentationId)
     {
+        if (PresentationId == TEXT("driftwood-cache-marker")) return FLinearColor(0.34f, 0.19f, 0.09f);
+        if (PresentationId == TEXT("shellbank-shoal-marker")) return FLinearColor(0.76f, 0.69f, 0.48f);
+        if (PresentationId == TEXT("stormmark-islet-marker")) return FLinearColor(0.30f, 0.37f, 0.44f);
         if (PresentationId == TEXT("stone-hollow-marker")) return FLinearColor(0.42f, 0.34f, 0.25f);
         if (PresentationId == TEXT("island-cache-marker")) return FLinearColor(0.22f, 0.52f, 0.62f);
         if (PresentationId == TEXT("root-hollow-marker")) return FLinearColor(0.34f, 0.20f, 0.10f);
@@ -81,18 +84,63 @@ void AKalmalaDiscoveryActor::InitializeServer(const FKalmalaWorldDiscoveryDescri
     SetActorLocation(InDescriptor.Location);
     BuildDiscoveryPresentation();
 }
+bool AKalmalaDiscoveryActor::InitializeOceanServer(const FKalmalaOceanDiscoveryDescriptor& InDescriptor)
+{
+    if (!HasAuthority() || !OceanDescriptor.DiscoveryId.IsNone() || !Descriptor.DefinitionId.IsEmpty()
+        || InDescriptor.Location.ContainsNaN())
+    {
+        return false;
+    }
+
+    const FKalmalaOceanDiscoveryDefinition* Definition = FKalmalaOceanDiscoveryCatalogue::FindDefinition(InDescriptor.DiscoveryId);
+    if (Definition == nullptr || FKalmalaOceanDiscoveryCatalogue::MakeStableIdentity(InDescriptor.DiscoveryId, InDescriptor.SpatialKey).IsEmpty())
+    {
+        return false;
+    }
+
+    OceanDescriptor = InDescriptor;
+    OceanPresentationId = Definition->PresentationId;
+    SetActorLocation(InDescriptor.Location);
+    Collision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    Collision->SetCollisionResponseToAllChannels(ECR_Ignore);
+    Collision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+    BuildDiscoveryPresentation();
+    ForceNetUpdate();
+    return true;
+}
 bool AKalmalaDiscoveryActor::CanInteract_Implementation(AKalmalaCharacter* Interactor) const
-{ return HasAuthority() && IsValid(Interactor) && Interactor->HasAuthority() && Interactor->GetWorld() == GetWorld() && !Descriptor.DefinitionId.IsEmpty() && FVector::DistSquared(Interactor->GetActorLocation(), GetActorLocation()) <= FMath::Square(250.0f); }
+{ return HasAuthority() && IsValid(Interactor) && Interactor->HasAuthority() && Interactor->GetWorld() == GetWorld()
+    && (!OceanDescriptor.DiscoveryId.IsNone() || !Descriptor.DefinitionId.IsEmpty())
+    && FVector::DistSquared(Interactor->GetActorLocation(), GetActorLocation()) <= FMath::Square(250.0f); }
 void AKalmalaDiscoveryActor::Interact_Implementation(AKalmalaCharacter* Interactor)
-{ if (!CanInteract_Implementation(Interactor)) return; if (AKalmalaGameMode* Mode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>()) Mode->ClaimDiscovery(Interactor, Descriptor); }
+{
+    if (!CanInteract_Implementation(Interactor)) return;
+    if (AKalmalaGameMode* Mode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>())
+    {
+        if (!OceanDescriptor.DiscoveryId.IsNone())
+        {
+            Mode->ClaimOceanDiscovery(Interactor, OceanDescriptor);
+        }
+        else
+        {
+            Mode->ClaimDiscovery(Interactor, Descriptor);
+        }
+    }
+}
 
 void AKalmalaDiscoveryActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaDiscoveryActor, RareDiscoverySourceId);
+    DOREPLIFETIME(AKalmalaDiscoveryActor, OceanPresentationId);
 }
 
 void AKalmalaDiscoveryActor::OnRep_RareDiscoverySourceId()
+{
+    BuildDiscoveryPresentation();
+}
+
+void AKalmalaDiscoveryActor::OnRep_OceanPresentationId()
 {
     BuildDiscoveryPresentation();
 }
@@ -102,7 +150,9 @@ void AKalmalaDiscoveryActor::BuildDiscoveryPresentation()
     if (!DiscoveryMesh) return;
     DiscoveryMesh->ClearAllMeshSections();
 
-    const FName PresentationId = FKalmalaBiomeContentContract::GetRareDiscoveryPresentationId(RareDiscoverySourceId);
+    const FName PresentationId = OceanPresentationId.IsNone()
+        ? FKalmalaBiomeContentContract::GetRareDiscoveryPresentationId(RareDiscoverySourceId)
+        : OceanPresentationId;
     if (PresentationId.IsNone())
     {
         DiscoveryMesh->SetVisibility(false);
@@ -113,7 +163,25 @@ void AKalmalaDiscoveryActor::BuildDiscoveryPresentation()
     TArray<FVector> Vertices;
     TArray<int32> Triangles;
     TArray<FLinearColor> Colors;
-    if (PresentationId == TEXT("stone-hollow-marker"))
+    if (PresentationId == TEXT("driftwood-cache-marker"))
+    {
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(-16.0f, 0.0f, 0.0f), FVector(32.0f, 7.0f, 0.0f), 5.0f, 0.96f, -9.0f, Accent);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(12.0f, 2.0f, 5.0f), FVector(25.0f, 6.0f, 0.0f), 5.0f, 0.94f, 7.0f, Accent * 0.82f);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(-4.0f, -1.0f, 10.0f), FVector(16.0f, 5.0f, 0.0f), 4.0f, 0.94f, 2.0f, Accent);
+    }
+    else if (PresentationId == TEXT("shellbank-shoal-marker"))
+    {
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(-15.0f, -3.0f, 0.0f), FVector(12.0f, 10.0f, 0.0f), 12.0f, 0.62f, -14.0f, Accent);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(10.0f, 2.0f, 0.0f), FVector(13.0f, 9.0f, 0.0f), 16.0f, 0.58f, 11.0f, Accent * 0.82f);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(0.0f, -9.0f, 0.0f), FVector(7.0f, 6.0f, 0.0f), 9.0f, 0.56f, 3.0f, FLinearColor(0.86f, 0.81f, 0.66f));
+    }
+    else if (PresentationId == TEXT("stormmark-islet-marker"))
+    {
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(0.0f, 0.0f, 0.0f), FVector(28.0f, 22.0f, 0.0f), 8.0f, 0.90f, 0.0f, FLinearColor(0.56f, 0.48f, 0.35f));
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(0.0f, 0.0f, 8.0f), FVector(14.0f, 12.0f, 0.0f), 22.0f, 0.64f, 0.0f, Accent);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(0.0f, 0.0f, 30.0f), FVector(7.0f, 6.0f, 0.0f), 17.0f, 0.58f, 0.0f, FLinearColor(0.62f, 0.68f, 0.72f));
+    }
+    else if (PresentationId == TEXT("stone-hollow-marker"))
     {
         AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(-16.0f, 0.0f, 0.0f), FVector(28.0f, 12.0f, 0.0f), 30.0f, 0.78f, -10.0f, Accent);
         AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(16.0f, 2.0f, 0.0f), FVector(20.0f, 10.0f, 0.0f), 24.0f, 0.72f, 12.0f, Accent);

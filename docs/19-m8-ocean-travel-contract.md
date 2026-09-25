@@ -156,21 +156,46 @@ production pressure calculation, but it does not launch or move a skiff,
 measure replicated hull transforms, or inspect a rendered viewport. Those
 remain part of the longer two-player travel acceptance task.
 
-## Sea-discovery catalogue definition (2026-09-25)
+## Sea-discovery placement and claim path (2026-09-25)
 
 The bounded first-wave catalogue defines three original optional discoveries:
 `ocean-driftwood-cache` (`Wood` x2), `ocean-shellbank-shoal` (`Fibre` x2),
 and `ocean-stormmark-islet` (`Stone` x1). Each has a separate stable
 presentation ID and readable name. Rewards reuse existing server item IDs and
-are validated against the item catalogue; no new inventory item or grant path
-is introduced.
+are validated against the item catalogue; no new inventory item is introduced.
 
 The canonical sparse fact ID is
 `ocean-discovery:1:<discovery-id>:<spatial-x>,<spatial-y>`. It is stable for
 that discovery kind and deterministic spatial key; the enclosing world save
 identity supplies world seed and generator revision. Catalogue entries carry
-no route, waypoint, direction, or coordinate data. This contract defines
-content and identity only: discoveries are not materialized, claimable, or
-persisted by this increment. `Kalmala.Gameplay.OceanTravel.DiscoveryCatalogue`
-checks bounded definitions, known optional rewards, forged-input rejection,
-identity reproducibility, and sparse-ID validity.
+no route, waypoint, direction, or coordinate data. A server hash selects at
+most one optional discovery per 60 m population cell; a bounded retry search
+requires an in-bounds master-ocean sample at least 100 cm deep. The server
+materializes candidates only in the rolling 3-by-3 cell neighborhoods around
+connected players, retaining at most 18 cells for the two-player prototype and
+retiring actors as those neighborhoods move. The replicated actor contains
+only its presentation ID; the client never selects or receives candidate
+lists, stable IDs, positions, or rewards.
+
+The existing server interaction trace resolves the target. The actor and game
+mode recheck server authority, same-world identity, canonical generated
+descriptor, and 250 cm range before claiming. The catalogue alone selects the
+reward, and the server validates and builds the complete inventory change
+before publishing it. A full pack leaves the discovery available. Successful
+claims use the existing M7 version-1 sparse save container with explicit
+player scope, authenticated owner identity, world seed, and generator revision.
+The server persists a `DiscoveryClaimed` delta before granting the item, caches
+the accepted ledger, and rejects duplicates after reconnect/load. Existing or
+future-incompatible saves fail closed without overwrite. This reuses the
+existing schema; vessel identity, occupancy, transform, cargo, and travel state
+remain unsaved pending the M8 travel-persistence gate.
+
+`Kalmala.Gameplay.OceanTravel.DiscoveryCatalogue` checks bounded definitions,
+known optional rewards, forged-input rejection, identity reproducibility, and
+sparse-ID validity. `Kalmala.Gameplay.OceanTravel.DiscoveryClaimContract`
+checks deterministic deep-ocean placement, forged kind/position rejection,
+exact server reward construction, player/world/revision scope, sparse-ledger
+round-trip, and replay rejection. Live host/client interaction and rendered
+presentation remain part of the later M8 two-player journey acceptance. The
+shared M7 ledger is bounded at 256 sparse facts per player; expanding that
+budget requires the M8 persistence/budget review.

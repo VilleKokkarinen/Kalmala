@@ -859,13 +859,20 @@ The wrapper starts the actual game under Kalmala/Binaries/Win64; check that
 process before stopping the smoke run. Null rendering verifies startup and map
 loading only; it does not cover the player-facing co-op walkthrough.
 
-## M8 sea-discovery catalogue
+## M8 sea-discovery placement and claim contract
 
 After the forced editor build, run
 `Kalmala.Gameplay.OceanTravel.DiscoveryCatalogue` with the isolated headless
 automation flags above. The contract checks the three canonical optional
 discovery definitions, reward mappings against the server item catalogue,
 stable sparse IDs derived from discovery kind and spatial key, and rejection
-of forged definitions or unknown discovery IDs. This is catalogue and identity
-coverage only; server placement, claiming, rewards, and persistence remain
-separate M8 tasks.
+of forged definitions or unknown discovery IDs.
+
+Also run `Kalmala.Gameplay.OceanTravel.DiscoveryClaimContract`. It scans the
+seed-418 deterministic layout for all three optional kinds, checks qualifying
+100 cm master-ocean water, verifies the server rejects altered IDs and
+positions, and round-trips a player-scoped M7 `DiscoveryClaimed` delta to
+confirm replay rejection after load. It checks catalogue reward construction
+without mutating a live inventory. These focused checks and the editor build do
+not replace a live client interaction trace, owner feedback inspection, or
+rendered presentation review in the later two-player journey acceptance.

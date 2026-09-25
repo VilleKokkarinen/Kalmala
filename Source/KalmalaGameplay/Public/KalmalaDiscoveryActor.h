@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "KalmalaInteractable.h"
+#include "KalmalaOceanDiscoveryCatalogue.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaDiscoveryActor.generated.h"
 class USphereComponent;
@@ -18,6 +19,7 @@ class KALMALAGAMEPLAY_API AKalmalaDiscoveryActor : public AActor, public IKalmal
 public:
     AKalmalaDiscoveryActor();
     void InitializeServer(const FKalmalaWorldDiscoveryDescriptor& InDescriptor);
+    bool InitializeOceanServer(const FKalmalaOceanDiscoveryDescriptor& InDescriptor);
     const FKalmalaWorldDiscoveryDescriptor& GetDescriptor() const { return Descriptor; }
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
     virtual void Interact_Implementation(AKalmalaCharacter* Interactor) override;
@@ -27,13 +29,18 @@ private:
     UPROPERTY(VisibleAnywhere) TObjectPtr<USphereComponent> Collision;
     UPROPERTY(ReplicatedUsing = OnRep_RareDiscoverySourceId, VisibleAnywhere, Category = "Discovery")
     FName RareDiscoverySourceId = NAME_None;
+    UPROPERTY(ReplicatedUsing = OnRep_OceanPresentationId, VisibleAnywhere, Category = "Discovery")
+    FName OceanPresentationId = NAME_None;
     UPROPERTY(VisibleAnywhere, Category = "Discovery") TObjectPtr<UProceduralMeshComponent> DiscoveryMesh;
     UPROPERTY(Transient) TObjectPtr<UMaterialInterface> DiscoveryMaterial;
 
     UFUNCTION()
     void OnRep_RareDiscoverySourceId();
+    UFUNCTION()
+    void OnRep_OceanPresentationId();
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
     FKalmalaWorldDiscoveryDescriptor Descriptor;
+    FKalmalaOceanDiscoveryDescriptor OceanDescriptor;
 };

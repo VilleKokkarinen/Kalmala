@@ -7535,3 +7535,51 @@ Multiplayer and persistence impact: The catalogue is immutable lookup data. Item
 Known limits: No sea-discovery placement, interaction, duplicate/replay rejection, reward grant, reconnect behavior, or persistence has been implemented. This increment has no live host/client presentation run.
 
 Next task: Materialize and claim discoveries through server authority; reject duplicate, forged, or replayed claims without duplicating rewards after reconnect/load.
+
+### 2026-09-25T09:25:02Z — Materialize and claim ocean discoveries
+
+Outcome: Completed the open M8 ocean-discovery leaf. The server now derives at
+most one optional discovery per 60 m cell and streams markers only around
+connected players. The existing server interaction trace selects each target;
+the game mode revalidates the generated descriptor, authority, world, and
+range, then awards the catalogue-defined item only after an authenticated
+player-scoped M7 `DiscoveryClaimed` delta is written. Duplicate claims are
+rejected after reconnect/load, and a full pack or incompatible save fails
+closed. No save schema changed.
+
+Changed this run: `Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryCatalogue.h`,
+`Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryCatalogue.cpp`,
+`Source/KalmalaGameplay/Public/KalmalaDiscoveryActor.h`,
+`Source/KalmalaGameplay/Private/KalmalaDiscoveryActor.cpp`,
+`Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaOceanDiscoveryClaimTest.cpp`,
+`docs/19-m8-ocean-travel-contract.md`, `docs/07-development-setup.md`,
+`BACKLOG.md`, and this handoff. Existing unrelated working-tree edits were
+preserved.
+
+Verification: Forced UE5.8.2 `KalmalaEditor Win64 Development` build passed
+all 177 actions in a disposable mirror with normal
+`%LOCALAPPDATA%\\UnrealBuildTool` access; the updated slot-reload test rebuilt
+and linked in four actions. `DiscoveryCatalogue`, `DiscoveryClaimContract`,
+and `Kalmala.World.M7.PersistenceContract` all reported `Result={Success}`.
+All five `Scripts/Verify-M5DocumentationContracts.ps1` checks passed. Scoped
+`git diff --check` passed for clean-at-start implementation/contract files.
+
+Multiplayer and persistence impact: Candidate locations and rewards remain
+server-derived, the client sends no discovery identity or position, and the
+relevant replicated actor carries only a presentation ID. The existing M7
+version-1 sparse ledger scopes claims to world seed, generator revision, and
+authenticated player identity. Vessel identity, occupancy, transform, cargo,
+and travel state remain unsaved.
+
+Known limits: No live host/client claim interaction or rendered marker/HUD
+review was run; those remain in the later two-player journey task. The shared
+M7 player ledger is capped at 256 sparse facts. If the already-validated
+inventory commit unexpectedly fails after the save write and the ledger
+restore also fails, the discovery remains consumed without its reward; this
+exception is logged and cannot grant a duplicate.
+
+Next task: Define and test the versioned identity-safe travel-save contract,
+including explicit world/player scope, bounded state, migration policy, and
+round-trip/rejection before enabling vessel persistence.

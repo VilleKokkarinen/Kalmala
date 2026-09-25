@@ -2,6 +2,29 @@
 
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaM7PersistenceContract.h"
+#include "KalmalaOceanSampler.h"
+#include "KalmalaWorldBounds.h"
+#include "KalmalaWorldPopulationLayout.h"
+
+namespace
+{
+    uint64 MixOceanDiscoverySeed(uint64 Value)
+    {
+        Value ^= Value >> 30;
+        Value *= 0xBF58476D1CE4E5B9ull;
+        Value ^= Value >> 27;
+        Value *= 0x94D049BB133111EBull;
+        return Value ^ (Value >> 31);
+    }
+
+    uint64 DeriveOceanDiscoverySeed(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey)
+    {
+        uint64 Value = Config.WorldSeed ^ 0x0CEA4D15C0A71E5Bull;
+        Value ^= static_cast<uint64>(static_cast<uint32>(SpatialKey.X)) * 0x9E3779B185EBCA87ull;
+        Value ^= static_cast<uint64>(static_cast<uint32>(SpatialKey.Y)) * 0xC2B2AE3D27D4EB4Full;
+        return MixOceanDiscoverySeed(Value);
+    }
+}
 
 const TArray<FKalmalaOceanDiscoveryDefinition>& FKalmalaOceanDiscoveryCatalogue::GetDefinitions()
 {
@@ -83,4 +106,71 @@ FString FKalmalaOceanDiscoveryCatalogue::MakeStableIdentity(const FName Discover
         SpatialKey.Y);
 
     return FKalmalaM7SparseDelta::IsValidStableId(StableId) ? StableId : FString();
+}
+
+TArray<FKalmalaOceanDiscoveryDescriptor> FKalmalaOceanDiscoveryCatalogue::BuildDescriptors(
+    const FKalmalaWorldGenerationConfig& Config,
+    const FIntPoint SpatialKey)
+{
+    TArray<FKalmalaOceanDiscoveryDescriptor> Descriptors;
+    const TArray<FKalmalaOceanDiscoveryDefinition>& Definitions = GetDefinitions();
+    if (!Config.IsValid() || Definitions.IsEmpty())
+    {
+        return Descriptors;
+    }
+
+    const uint64 CellSeed = DeriveOceanDiscoverySeed(Config, SpatialKey);
+    if (CellSeed % PlacementChanceDenominator != 0)
+    {
+        return Descriptors;
+    }
+
+    const int32 DefinitionIndex = static_cast<int32>((CellSeed >> 8) % static_cast<uint64>(Definitions.Num()));
+    const FKalmalaOceanDiscoveryDefinition& Definition = Definitions[DefinitionIndex];
+    const FVector2D CellOrigin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+    for (int32 CandidateIndex = 0; CandidateIndex < PlacementCandidateBudget; ++CandidateIndex)
+    {
+        const uint64 CandidateSeed = MixOceanDiscoverySeed(
+            CellSeed ^ (static_cast<uint64>(CandidateIndex + 1) * 0x165667B19E3779F9ull));
+        const float XFraction = static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f;
+        const float YFraction = static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f;
+        const FVector2D Position = CellOrigin + FVector2D(XFraction, YFraction) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+        if (!FKalmalaWorldBounds::Contains(Config, Position))
+        {
+            continue;
+        }
+
+        const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, Position);
+        if (!Ocean.IsWater() || Ocean.WaterDepth < MinimumOceanDepthCm)
+        {
+            continue;
+        }
+
+        FKalmalaOceanDiscoveryDescriptor& Descriptor = Descriptors.AddDefaulted_GetRef();
+        Descriptor.DiscoveryId = Definition.DiscoveryId;
+        Descriptor.SpatialKey = SpatialKey;
+        Descriptor.Location = FVector(Position.X, Position.Y, Ocean.TerrainHeight + Ocean.WaterDepth + 20.0f);
+        break;
+    }
+
+    return Descriptors;
+}
+
+bool FKalmalaOceanDiscoveryCatalogue::IsCurrentDescriptor(
+    const FKalmalaWorldGenerationConfig& Config,
+    const FKalmalaOceanDiscoveryDescriptor& Descriptor)
+{
+    if (Descriptor.DiscoveryId.IsNone() || Descriptor.Location.ContainsNaN()
+        || MakeStableIdentity(Descriptor.DiscoveryId, Descriptor.SpatialKey).IsEmpty())
+    {
+        return false;
+    }
+
+    const TArray<FKalmalaOceanDiscoveryDescriptor> Expected = BuildDescriptors(Config, Descriptor.SpatialKey);
+    return Expected.ContainsByPredicate([&Descriptor](const FKalmalaOceanDiscoveryDescriptor& Candidate)
+    {
+        return Candidate.DiscoveryId == Descriptor.DiscoveryId
+            && Candidate.SpatialKey == Descriptor.SpatialKey
+            && Candidate.Location.Equals(Descriptor.Location, 1.0f);
+    });
 }
