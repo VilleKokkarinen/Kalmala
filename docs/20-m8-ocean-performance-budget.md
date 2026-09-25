@@ -27,6 +27,43 @@ overhead. They are not measurements of on-disk slot wrapper size or the full
 M7 discovery ledger. Maximum-valid two-player travel payloads measured at
 8,581 bytes total, below the 9,216-byte arithmetic ceiling.
 
+## Two-player actor and process-memory snapshot
+
+Run `Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1` after the forced editor
+build to measure a bounded M8 state with the seed-418 listen host and one
+conflicting-seed client. The runner enables the existing `KalmalaWorldProfile`
+report and waits until the discovery/disembark fixture passes before accepting
+the profile. It records total and replicated world actors, active terrain
+patches, initial generation time, and the engine's used/available physical
+memory snapshot. It also samples each Unreal process's private bytes and
+working set from PowerShell while both peers are still running.
+
+The scenario has one moored primary skiff, two authenticated seats, two accepted
+optional discovery claims, and an empty vessel after safe disembark. This
+startup snapshot provides actor and per-process memory evidence for that
+specific two-peer fixture. It is not a memory-growth or peak measurement and
+does not cover underway travel, a late join, restart, longer sessions, or a
+representative rendered frame-time target. Current structural limits remain
+one vessel per session and at most 25 active terrain patches; numeric actor
+and process-memory ceilings still require an accepted target.
+
+The 2026-09-25 run reported:
+
+| Measurement | Value |
+| --- | ---: |
+| World actors (including the M8 skiff and fixture) | 56 |
+| Replicated world actors | 38 |
+| Active terrain patches | 9 |
+| Active population keys | 2 |
+| Initial generation | 102.35 ms |
+| System used / available physical memory | 1,799.97 / 19,039.00 MiB |
+| Listen-server private bytes / working set | 1,677.39 / 1,799.97 MiB |
+| Client private bytes / working set | 1,675.50 / 1,774.26 MiB |
+
+The profile sampled one run immediately after the peers accepted their rewards
+and disembarked from the still-live moored skiff. These values are evidence for
+that machine and fixture, not numeric performance ceilings.
+
 ## Verification
 
 After the forced `KalmalaEditor Win64 Development` build, run
@@ -43,9 +80,9 @@ four measurements.
 The skiff's existing contract remains one vessel per session with movement
 replication capped at 10 updates per second. Ocean discovery activation is
 bounded to 18 nearby cells across the two-player prototype, and generated
-terrain remains capped at 25 active patches. These are structural ceilings;
-the live integrated voyage has not measured actual actor counts, per-process
-memory growth, network bytes, or representative rendered frame times. The
-crossing fixture remains blocked on steering as recorded in `PROGRESS.md`.
-The serialized save cap is one completed slice of the open M8 actor, memory,
-replication, save-size, and frame-time budget task.
+terrain remains capped at 25 active patches. These are structural ceilings.
+The two-peer startup snapshot now records actual actor count and per-process
+memory, but sustained/peak use, network bytes, and rendered frame time remain
+unmeasured. The crossing fixture remains blocked on steering as recorded in
+`PROGRESS.md`. The serialized save cap and two-peer actor/memory snapshot are
+completed slices of the open M8 budget task.

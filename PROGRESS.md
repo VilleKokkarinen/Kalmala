@@ -7782,3 +7782,44 @@ Next eligible task: Measure actor counts and process memory in a representative
 two-player M8 fixture, then continue with replication traffic and rendered
 frame-time profiling. The long-distance skiff crossing remains blocked and
 must not be counted as acceptance.
+
+### 2026-09-25T14:50:12Z — Profile M8 actors and process memory
+
+Outcome: Completed the actor-count and process-memory slice of the open M8
+performance-budget task. The seed-418 two-peer discovery/disembark fixture now
+waits for its server/client acceptance before reporting the existing world
+profile and per-process memory.
+
+Changed this run: Extended
+`Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1` to capture the profile and
+the listen-server/client private bytes and working sets. Updated
+`docs/20-m8-ocean-performance-budget.md` with the measurement procedure,
+results, and limits; checked only the matching M8 child in `BACKLOG.md`; and
+recorded this handoff. The source fixture and gameplay contracts did not
+change.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed
+all 180 actions in disposable mirror
+`C:\Users\Ville\AppData\Local\Temp\K8m8-1a07f7fa`, with normal
+`%LOCALAPPDATA%\UnrealBuildTool` access. PowerShell parser validation and
+scoped `git diff --check` passed. The final
+`Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1 -Port 18173` run passed with
+the conflicting-seed client and logged 56 total actors, 38 replicated actors,
+9 terrain patches, 2 population keys, 102.35 ms initial generation, and 2,215
+population-save bytes. The system snapshot was 1,799.97 MiB used and 19,039.00
+MiB available. The listen server measured 1,677.39 MiB private bytes / 1,799.97
+MiB working set; the client measured 1,675.50 MiB / 1,774.26 MiB.
+
+Multiplayer and persistence impact: This is observational profiling only.
+Existing server authority, replication, save fields, player privacy, and the
+M8 one-vessel/25-patch structural limits are unchanged.
+
+Known limits: These are one null-RHI post-disembark startup sample, not peak or
+long-session growth measurements. No numeric actor or process-memory ceilings
+have been approved. Network bytes and rendered frame time remain unmeasured;
+the underway crossing remains blocked on steering and is not counted as
+acceptance.
+
+Next eligible task: Measure M8 peer replication traffic and rendered frame
+time; keep the integrated crossing blocked until the steering-driver path is
+diagnosed. This used the main checkout, so no worktree handoff sync was needed.
