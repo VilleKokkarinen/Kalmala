@@ -239,3 +239,23 @@ round-trip, and replay rejection. Live host/client interaction and rendered
 presentation remain part of the later M8 two-player journey acceptance. The
 shared M7 ledger is bounded at 256 sparse facts per player; expanding that
 budget requires the M8 persistence/budget review.
+
+## Owner-scoped discovery and safe disembark peer check (2026-09-25)
+
+`Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1 -Port 18170` uses a separate
+development-only listen-host/client fixture so discovery and exit verification
+does not depend on the blocked helm driver. From a bounded deep-ocean search,
+the server selects a canonical optional discovery, places the two authenticated
+players in helm and passenger seats, then commits one claim and exact
+catalogue reward into each player's existing sparse ledger and owner inventory.
+With the vessel already `Moored`, it calls the production safe-disembark path
+for both occupants. The server requires both seats empty, both players detached,
+the vessel still moored, both owner feedback states accepted, and exactly one
+reward per player. The remote client independently requires its private reward
+and discovery acknowledgement, its disembark result, and the replicated empty
+seats and moored mode.
+
+This focused peer check does not simulate a voyage, decelerate a moving vessel,
+exercise a client-originated discovery trace, verify restart/reconnect, or
+measure long-session budgets. The existing journaled two-player helm crossing
+remains blocked and is not marked as passing here.

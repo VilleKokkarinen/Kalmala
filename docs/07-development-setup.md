@@ -252,6 +252,23 @@ state; its server-only setter must leave the replicated weather unchanged.
 This check covers accepted weather replication, derived pressure/recovery, and
 client authority rejection, but does not move or render a live skiff.
 
+## M8 owner-scoped discovery and safe disembark peer check
+
+After a forced editor build, run
+`Scripts\Verify-OceanSkiffDiscoveryDisembark.ps1 -Port 18170`. The development-
+only seed-418 listen host and conflicting-seed client use a canonical
+deep-ocean discovery descriptor and isolated user directories. The server
+places both players in the helm/passenger seats, accepts that optional claim
+once for each authenticated player, and requires the exact catalogue reward
+and owner-only discovery feedback. It then verifies the already-moored skiff
+can safely disembark both players, clears both persisted seat associations,
+and leaves the vessel moored and empty. The remote owner must receive only its
+own reward, discovery acknowledgement, and disembark result while observing
+the replicated empty seats. The fixture enters in `Moored` mode; it does not
+prove sailing, deceleration from underway travel, a client interaction trace,
+or a rendered presentation. Those remain separate M8 journey acceptance
+checks.
+
 ## Item catalogue verification
 
 For the M2 material contract, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above after building the editor. It loads the real project catalogue and checks required materials, exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate configuration. This is a pure contract check; live inventory replication and harvest-grant verification follow when the inventory component exists.

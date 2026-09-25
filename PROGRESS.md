@@ -7639,3 +7639,52 @@ Multiplayer and persistence impact: Clients cannot choose vessel identity, trans
 Known limits: No live two-player shutdown/restart/rejoin journey or long-distance budget profile was run. Skiff snapshots are accepted only while moored; normal inventory and cargo are not persisted.
 
 Next task: Verify long-distance peer travel and budgets, including two-player embark/travel/discovery/disembark/reconnect and actor, memory, replication, save-size, and frame-time measurements. Main checkout used; no worktree handoff synchronization was needed.
+
+### 2026-09-25T12:22:00Z — Verify ocean discovery and safe disembark peers
+
+Outcome: Completed the next unblocked M8 journey child. Added an isolated
+development-only host/client fixture that selects a canonical seed-418
+deep-ocean discovery, seats two authenticated peers in a server-created moored
+skiff, commits one catalogue reward to each player's existing sparse ledger
+and owner-only inventory, then safely disembarks both players and clears their
+saved seat associations. The server verifies both accepted outcomes; the
+remote client verifies its private reward and discovery acknowledgement,
+disembark result, empty replicated seats, and moored vessel mode.
+
+Changed this run: Added
+`Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryDisembarkPeerTest.cpp`,
+`Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryDisembarkPeerTest.h`, and
+`Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1`. Added the development-only
+fixture spawn hook in `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` and
+documented the command, outcome, and limits in `docs/07-development-setup.md`
+and `docs/19-m8-ocean-travel-contract.md`. Checked only this M8 leaf in
+`BACKLOG.md` and added this handoff. Pre-existing working-tree edits remain
+preserved and unstaged.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed
+all 180 actions from `C:\\temp\\K8pef564`, a short disposable mirror, with
+normal `%LOCALAPPDATA%\\UnrealBuildTool` access. The live
+`Verify-OceanSkiffDiscoveryDisembark.ps1 -Port 18170` host/client fixture
+passed: server and remote peer confirmed the same optional `Fibre x2`
+discovery, the vessel stayed moored, and both disembarked. Six focused
+automations passed: DiscoveryCatalogue, DiscoveryClaimContract,
+SkiffAuthorityContract, SkiffRestoreContract, OceanTravel.PersistenceContract,
+and M7.PersistenceContract. The PowerShell parser, all five M5 documentation
+contracts, and scoped `git diff --check` passed. A repository-wide diff check
+still reports trailing whitespace in the pre-existing `docs/04-roadmap.md:331`
+edit; it was left unchanged.
+
+Multiplayer and persistence impact: The fixture uses existing server-owned
+discovery claim, inventory, vessel-seat, and seat-clear paths. No production
+RPC, replicated gameplay field, or save schema changed. A development-only
+replicated fixture actor reports test expectations and observes the existing
+owner-only feedback/inventory plus relevant vessel state.
+
+Known limits: The fixture begins in `Moored` state and does not verify slowing
+from underway speed, sailing, a client interaction trace, rendered feedback,
+restart/reconnect, or long-session performance budgets. The separate M8
+crossing child remains blocked and unchecked. This work used the main checkout;
+no worktree handoff synchronization was needed.
+
+Next eligible task: Verify a late join and authenticated restart/reconnect
+preserve one vessel, seat, and discovery reward without duplication.

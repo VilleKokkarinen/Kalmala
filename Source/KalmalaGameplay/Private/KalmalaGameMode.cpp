@@ -50,6 +50,7 @@
 #include "KalmalaOceanTravelFeedbackComponent.h"
 #include "KalmalaOceanTravelPersistenceContract.h"
 #include "KalmalaOceanSkiff.h"
+#include "KalmalaOceanDiscoveryDisembarkPeerTest.h"
 
 #include "Engine/World.h"
 #include "TimerManager.h"
@@ -1210,6 +1211,26 @@ void AKalmalaGameMode::DriveOceanTravelFeedbackTest()
 
     if (GetWorld()->GetTimeSeconds() - OceanTravelFeedbackTestStageTime < 1.0f) return;
     const AKalmalaCharacter* HostCharacter = OceanTravelFeedbackTestHost.Get();
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanDiscoveryDisembarkPeerTest")))
+    {
+        bool bFixtureExists = false;
+        for (TActorIterator<AKalmalaOceanDiscoveryDisembarkPeerTest> It(GetWorld()); It; ++It)
+        {
+            bFixtureExists = true;
+            break;
+        }
+        if (!bFixtureExists)
+        {
+            FActorSpawnParameters Parameters;
+            Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            GetWorld()->SpawnActor<AKalmalaOceanDiscoveryDisembarkPeerTest>(
+                AKalmalaOceanDiscoveryDisembarkPeerTest::StaticClass(), FVector::ZeroVector,
+                FRotator::ZeroRotator, Parameters);
+        }
+    }
+#endif
+
     const AKalmalaCharacter* RemoteCharacter = OceanTravelFeedbackTestRemote.Get();
     const UKalmalaOceanTravelFeedbackComponent* HostFeedback = HostCharacter != nullptr
         ? HostCharacter->GetOceanTravelFeedbackComponent() : nullptr;
