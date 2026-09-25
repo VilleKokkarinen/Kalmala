@@ -7316,3 +7316,17 @@ Multiplayer and persistence impact: Clients send bounded input only; the server 
 Known limits: The automation covers authority/input gates and movement tuning, while the editor build compiles the runtime path; no live host/client skiff movement, collision traversal, rendered correction, or player-facing Blocked reason was exercised. Vessel and occupancy state remain session-only.
 
 Next task: Add server-owned skiff damage/disable and recovery outcomes, or document why that state is unnecessary for this medium.
+
+### 2026-09-25T05:53:32Z — Resolve skiff damage and recovery scope
+
+Outcome: Recorded that the current session-only, no-cargo skiff does not need hull damage or disablement. Its server-owned `Blocked` result already clamps collision or invalid-water movement to the last safe transform and permits the helm to steer clear; stale or disconnected helm input decelerates it to `Moored`. Adding durability without an accepted damage source would introduce unsupported damage, repair, or salvage systems. Hull damage can be reconsidered if an approved later hazard explicitly affects vessel integrity.
+
+Changed this run: Updated the M8 traversal and damage/recovery checkboxes and evidence in `BACKLOG.md`, recorded the accepted scope decision in `docs/05-decision-log.md`, clarified the recovery contract in `docs/19-m8-ocean-travel-contract.md`, and appended this handoff. No runtime source, RPC, replicated field, save schema, or gameplay behavior changed. Pre-existing workspace edits were preserved.
+
+Verification: `Scripts/Verify-M5DocumentationContracts.ps1` passed all five documentation checks. Scoped `git diff --check` passed for the backlog, decision log, and ocean travel contract. No Unreal build or runtime automation was applicable because this increment changes documentation only; the immediately preceding M8 run built the current skiff source and passed `SkiffAuthorityContract` and `SkiffSteeringContract`.
+
+Multiplayer and persistence impact: This records existing server behavior only: the server owns movement rejection, safe-transform restoration, `Blocked`, input expiry, and deceleration. No client authority, replication, or persistence behavior changed.
+
+Known limits: No live host/client collision traversal, rendered correction, or player-facing blocked reason has been exercised. The skiff remains transient; hull durability and repair are intentionally outside the accepted current medium contract.
+
+Next task: Verify seed-generated launch/landing access and shallow-water/collision edge cases across representative coastlines without adding a handcrafted route.
