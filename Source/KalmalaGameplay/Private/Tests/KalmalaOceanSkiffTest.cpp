@@ -31,4 +31,57 @@ bool FKalmalaOceanSkiffAuthorityContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Disembark is rejected without a safe capsule placement"), AKalmalaOceanSkiff::IsDisembarkAllowed(true, true, 0.0f, false));
     return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaOceanSkiffSteeringContractTest,
+    "Kalmala.Gameplay.OceanTravel.SkiffSteeringContract",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaOceanSkiffSteeringContractTest::RunTest(const FString& Parameters)
+{
+    TestTrue(TEXT("The current helm may submit finite bounded sequenced input"),
+        AKalmalaOceanSkiff::IsSteeringIntentAllowed(true, true, 1.0f, -1.0f, 1, 0, 10.0, 0.0, false));
+    TestFalse(TEXT("Clients cannot decide accepted vessel steering"),
+        AKalmalaOceanSkiff::IsSteeringIntentAllowed(false, true, 0.5f, 0.0f, 1, 0, 10.0, 0.0, false));
+    TestFalse(TEXT("Passengers cannot steer"),
+        AKalmalaOceanSkiff::IsSteeringIntentAllowed(true, false, 0.5f, 0.0f, 1, 0, 10.0, 0.0, false));
+    TestFalse(TEXT("Throttle outside the intent bounds is rejected"),
+        AKalmalaOceanSkiff::IsSteeringIntentAllowed(true, true, 1.01f, 0.0f, 1, 0, 10.0, 0.0, false));
+    TestFalse(TEXT("Non-finite rudder input is rejected"),
+        AKalmalaOceanSkiff::IsSteeringIntentAllowed(true, true, 0.0f, NAN, 1, 0, 10.0, 0.0, false));
+    TestFalse(TEXT("Replayed sequences are rejected"),
+        AKalmalaOceanSkiff::IsSteeringIntentAllowed(true, true, 0.5f, 0.0f, 4, 4, 10.2, 10.0, true));
+    TestFalse(TEXT("Inputs faster than ten updates per second are rejected"),
+        AKalmalaOceanSkiff::IsSteeringIntentAllowed(true, true, 0.5f, 0.0f, 5, 4, 10.05, 10.0, true));
+    TestTrue(TEXT("A new sequence is accepted at the ten-hertz interval"),
+        AKalmalaOceanSkiff::IsSteeringIntentAllowed(true, true, 0.5f, 0.0f, 5, 4, 10.1, 10.0, true));
+
+    TestTrue(TEXT("The last input remains fresh through the half-second boundary"),
+        AKalmalaOceanSkiff::IsInputFresh(10.5, 10.0, true));
+    TestFalse(TEXT("Steering expires after half a second without a fresh sequence"),
+        AKalmalaOceanSkiff::IsInputFresh(10.5001, 10.0, true));
+    TestFalse(TEXT("A disconnected or never-accepted helm has no fresh input"),
+        AKalmalaOceanSkiff::IsInputFresh(10.0, 10.0, false));
+
+    TestTrue(TEXT("Forward acceleration is capped at 100 cm/s^2"),
+        FMath::IsNearlyEqual(AKalmalaOceanSkiff::AdvanceSpeed(0.0f, 1.0f, 0.25f), 25.0f));
+    TestTrue(TEXT("Reverse acceleration is capped at 100 cm/s^2"),
+        FMath::IsNearlyEqual(AKalmalaOceanSkiff::AdvanceSpeed(0.0f, -1.0f, 0.25f), -25.0f));
+
+    float Speed = 0.0f;
+    for (int32 Step = 0; Step < 40; ++Step)
+    {
+        Speed = AKalmalaOceanSkiff::AdvanceSpeed(Speed, 1.0f, 0.25f);
+    }
+    TestTrue(TEXT("Forward speed clamps to 700 cm/s"), FMath::IsNearlyEqual(Speed, 700.0f));
+    Speed = AKalmalaOceanSkiff::AdvanceSpeed(Speed, -1.0f, 0.25f);
+    TestTrue(TEXT("Reverse intent changes speed only within the acceleration cap"), FMath::IsNearlyEqual(Speed, 675.0f));
+    for (int32 Step = 0; Step < 80; ++Step)
+    {
+        Speed = AKalmalaOceanSkiff::AdvanceSpeed(Speed, -1.0f, 0.25f);
+    }
+    TestTrue(TEXT("Reverse speed clamps to -200 cm/s"), FMath::IsNearlyEqual(Speed, -200.0f));
+    TestTrue(TEXT("Expired input decelerates toward zero"),
+        FMath::IsNearlyEqual(AKalmalaOceanSkiff::AdvanceSpeed(100.0f, 0.0f, 0.25f), 75.0f));
+    return true;
+}
 #endif

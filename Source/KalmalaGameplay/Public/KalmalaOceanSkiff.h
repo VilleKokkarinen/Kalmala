@@ -34,6 +34,7 @@ class KALMALAGAMEPLAY_API AKalmalaOceanSkiff : public AActor, public IKalmalaInt
 public:
     AKalmalaOceanSkiff();
 
+    virtual void Tick(float DeltaSeconds) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
     virtual void Interact_Implementation(AKalmalaCharacter* Interactor) override;
@@ -44,11 +45,16 @@ public:
     AKalmalaCharacter* GetHelmOccupant() const { return HelmOccupant; }
     AKalmalaCharacter* GetPassengerOccupant() const { return PassengerOccupant; }
     EKalmalaOceanSkiffMode GetMode() const { return Mode; }
-
     static bool IsLaunchAllowed(bool bServerAuthority, bool bGeneratedTerrainHit, bool bInRange,
         bool bDeepOcean, bool bWorldBounded, bool bSessionSlotAvailable);
     static EKalmalaOceanSkiffSeat ChooseSeat(bool bHelmOccupied, bool bPassengerOccupied);
     static bool IsDisembarkAllowed(bool bServerAuthority, bool bIsOccupant, float Speed, bool bHasSafePlacement);
+    static bool IsSteeringIntentAllowed(bool bServerAuthority, bool bIsHelmOccupant, float Throttle,
+        float Rudder, uint32 Sequence, uint32 LastAcceptedSequence, double ServerTime,
+        double LastAcceptedTime, bool bHasAcceptedInput);
+    static bool IsInputFresh(double ServerTime, double LastAcceptedTime, bool bHasAcceptedInput);
+    static float AdvanceSpeed(float CurrentSpeed, float Throttle, float DeltaSeconds);
+    bool AcceptSteeringFromServer(AKalmalaCharacter* Interactor, float Throttle, float Rudder, uint32 Sequence);
 
 private:
     UPROPERTY(VisibleAnywhere, Category = "Travel")
@@ -73,8 +79,18 @@ private:
     void OnRep_SeatOccupants();
 
     bool FindSafeExitLocation(AKalmalaCharacter* Interactor, FVector& OutLocation) const;
+    bool HasDeepOceanFootprint(FVector Location, FRotator Rotation) const;
+    void AdvanceServerMovement(float DeltaSeconds);
+    void BlockMovementAtLastSafeTransform(const FVector& SafeLocation, const FRotator& SafeRotation);
     void RefreshSeatOccupancyPresentation();
     void SetSeatOccupant(AKalmalaCharacter* Interactor, EKalmalaOceanSkiffSeat Seat);
     void ClearSeatOccupant(AKalmalaCharacter* Interactor);
     static bool BuildOriginalHull(UProceduralMeshComponent* Mesh);
+
+    float ThrottleInput = 0.0f;
+    float RudderInput = 0.0f;
+    float CurrentSpeed = 0.0f;
+    double LastAcceptedInputTime = 0.0;
+    uint32 LastAcceptedInputSequence = 0;
+    bool bHasAcceptedInput = false;
 };

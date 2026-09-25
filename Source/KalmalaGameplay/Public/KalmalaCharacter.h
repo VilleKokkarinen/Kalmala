@@ -93,6 +93,7 @@ private:
 
     void MoveForward(float Value);
     void MoveRight(float Value);
+    void SendOceanSkiffSteeringInput();
     void RequestInteract();
     void RequestAttack();
     void SelectMending();
@@ -138,6 +139,10 @@ private:
     bool bCombatPeerTestInvalidAttackSent = false;
     uint8 SelectedSupportEffectValue = 0;
     uint32 LocalSupportRequestSequence = 0;
+    uint32 LocalOceanSkiffInputSequence = 0;
+    float LocalOceanSkiffThrottle = 0.0f;
+    float LocalOceanSkiffRudder = 0.0f;
+    double LastOceanSkiffInputSendTime = -1.0;
     bool bDiscoveryPeerPrivacyLogged = false;
     float DiscoveryPeerTestStartTime = -1.0f;
     bool bOceanTravelTargetConfigured = false;
@@ -160,6 +165,9 @@ private:
 
     UFUNCTION(Server, Reliable)
     void ServerRequestInteract(FName ClientToolId, uint8 ClientAction);
+
+    UFUNCTION(Server, Unreliable)
+    void ServerSubmitOceanSkiffSteeringInput(float Throttle, float Rudder, uint32 Sequence);
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<USpringArmComponent> CameraBoom;

@@ -170,10 +170,10 @@ After an editor build, run `Scripts/Verify-OceanTravel.ps1`. It starts a current
 
 ## M8 skiff launch and occupancy contract
 
-After an editor build, run `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` with an isolated temporary `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"`. It checks the server/deep-water/generated-terrain/world-bound launch gates, one-skiff session cap, helm-first and passenger-second seat selection, and the stopped-speed/safe-placement disembark gate. This focused contract test does not prove a live client interaction, rendered skiff presentation, or movement; those remain part of the open M8 traversal implementation and peer scenario.
+After an editor build, run `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` and `Kalmala.Gameplay.OceanTravel.SkiffSteeringContract` with isolated temporary `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"`. The launch test checks the server/deep-water/generated-terrain/world-bound gates, one-skiff session cap, helm-first and passenger-second seat selection, and stopped safe-exit gate. The steering test checks helm-only authority, finite bounded axes, increasing sequences, the 10 Hz rate limit, 0.5-second expiry, acceleration, and forward/reverse speed caps. These focused contracts do not prove a live client interaction, rendered skiff presentation, or collision movement over a representative coastline.
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8SkiffUser' -abslog='C:\temp\KalmalaM8Skiff.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8SkiffUser' -abslog='C:\temp\KalmalaM8Skiff.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract+Kalmala.Gameplay.OceanTravel.SkiffSteeringContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ## Item catalogue verification

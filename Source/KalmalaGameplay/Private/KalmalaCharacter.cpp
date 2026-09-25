@@ -524,7 +524,15 @@ void AKalmalaCharacter::StopSprint()
 
 void AKalmalaCharacter::MoveForward(const float Value)
 {
-    if (Cast<AKalmalaOceanSkiff>(GetAttachParentActor()) != nullptr) return;
+    if (AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
+    {
+        if (IsLocallyControlled() && Skiff->GetHelmOccupant() == this)
+        {
+            LocalOceanSkiffThrottle = FMath::IsFinite(Value) ? FMath::Clamp(Value, -1.0f, 1.0f) : 0.0f;
+            SendOceanSkiffSteeringInput();
+        }
+        return;
+    }
     if (Controller != nullptr && !FMath::IsNearlyZero(Value))
     {
         const FRotator ControlRotation = Controller->GetControlRotation();
@@ -535,7 +543,15 @@ void AKalmalaCharacter::MoveForward(const float Value)
 
 void AKalmalaCharacter::MoveRight(const float Value)
 {
-    if (Cast<AKalmalaOceanSkiff>(GetAttachParentActor()) != nullptr) return;
+    if (AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
+    {
+        if (IsLocallyControlled() && Skiff->GetHelmOccupant() == this)
+        {
+            LocalOceanSkiffRudder = FMath::IsFinite(Value) ? FMath::Clamp(Value, -1.0f, 1.0f) : 0.0f;
+            SendOceanSkiffSteeringInput();
+        }
+        return;
+    }
     if (Controller != nullptr && !FMath::IsNearlyZero(Value))
     {
         const FRotator ControlRotation = Controller->GetControlRotation();
@@ -575,6 +591,22 @@ void AKalmalaCharacter::RequestInteract()
         }
         ServerRequestInteract(ClientToolId, ClientAction);
     }
+}
+
+void AKalmalaCharacter::SendOceanSkiffSteeringInput()
+{
+    if (!IsLocallyControlled() || Controller == nullptr || Controller->IsMoveInputIgnored()
+        || Cast<AKalmalaOceanSkiff>(GetAttachParentActor()) == nullptr || GetWorld() == nullptr
+        || LocalOceanSkiffInputSequence == TNumericLimits<uint32>::Max())
+    {
+        return;
+    }
+
+    const double Now = GetWorld()->GetTimeSeconds();
+    if (LastOceanSkiffInputSendTime >= 0.0 && Now - LastOceanSkiffInputSendTime < 0.1) return;
+    LastOceanSkiffInputSendTime = Now;
+    ServerSubmitOceanSkiffSteeringInput(LocalOceanSkiffThrottle, LocalOceanSkiffRudder,
+        ++LocalOceanSkiffInputSequence);
 }
 
 void AKalmalaCharacter::RequestAttack()
@@ -655,6 +687,15 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientT
         && IKalmalaInteractable::Execute_CanInteract(Target, this))
     {
         IKalmalaInteractable::Execute_Interact(Target, this);
+    }
+}
+
+void AKalmalaCharacter::ServerSubmitOceanSkiffSteeringInput_Implementation(const float Throttle,
+    const float Rudder, const uint32 Sequence)
+{
+    if (AKalmalaOceanSkiff* CurrentSkiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
+    {
+        CurrentSkiff->AcceptSteeringFromServer(this, Throttle, Rudder, Sequence);
     }
 }
 

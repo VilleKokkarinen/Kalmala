@@ -7302,3 +7302,17 @@ Damage/recovery and broader coastline readability remain later M8 work.
 
 Next task: Add bounded sequenced helm input, server movement with stale-input
 decay, deep-water/world-bound checks, and generated-terrain collision sweeps.
+
+### 2026-09-25T05:33:13Z — Add authoritative skiff steering
+
+Outcome: Completed the first open M8 steering child. Helm input now uses the owning character's unreliable server RPC; the server accepts bounded throttle/rudder only from the current helm occupant, enforces 10 updates per second and increasing sequences, expires input after 0.5 seconds, and simulates capped skiff movement. The server checks the hull footprint against deep generated Ocean and the 16 km world boundary, then sweeps the hull against active generated-terrain collision. A rejected move returns to the last safe transform and publishes Blocked.
+
+Changed this run: Source/KalmalaGameplay/Private/KalmalaCharacter.cpp, Source/KalmalaGameplay/Public/KalmalaCharacter.h, Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp, Source/KalmalaGameplay/Public/KalmalaOceanSkiff.h, and Source/KalmalaGameplay/Private/Tests/KalmalaOceanSkiffTest.cpp; updated docs/19-m8-ocean-travel-contract.md, docs/07-development-setup.md, this handoff, and the steering checkbox/evidence in BACKLOG.md. Pre-existing working-tree changes remain preserved; only current-run hunks are eligible for commit.
+
+Verification: The isolated UE5.8.2 KalmalaEditor Win64 Development build passed all 173 actions; the final header cleanup then rebuilt in 7 actions. UnrealBuildTool used normal access and wrote traces under C:\Users\Ville\AppData\Local\UnrealBuildTool. Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract and Kalmala.Gameplay.OceanTravel.SkiffSteeringContract both completed with Result={Success} after the final build in C:\Users\Ville\AppData\Local\Temp\KalmalaM8SkiffSteering-20260925-01\SkiffAutomationFinal.log. Scripts/Verify-M5DocumentationContracts.ps1 passed all five documentation checks, and scoped git diff --check passed.
+
+Multiplayer and persistence impact: Clients send bounded input only; the server validates helm identity, timing, sequence, water depth, world bounds, and collision before moving and replicating the unowned skiff. Steering samples and freshness remain private. No save schema or persistence path changed.
+
+Known limits: The automation covers authority/input gates and movement tuning, while the editor build compiles the runtime path; no live host/client skiff movement, collision traversal, rendered correction, or player-facing Blocked reason was exercised. Vessel and occupancy state remain session-only.
+
+Next task: Add server-owned skiff damage/disable and recovery outcomes, or document why that state is unnecessary for this medium.

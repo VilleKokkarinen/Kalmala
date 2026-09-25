@@ -24,12 +24,26 @@ namespace KalmalaOceanSkiff
     constexpr float MaximumExitSpeed = 50.0f;
     constexpr float ExitOffset = 190.0f;
     constexpr float SeaSurfaceZ = 0.0f;
+    constexpr float MaximumForwardSpeed = 700.0f;
+    constexpr float MaximumReverseSpeed = 200.0f;
+    constexpr float Acceleration = 100.0f;
+    constexpr float MaximumYawRate = 35.0f;
+    constexpr float MaximumInputInterval = 0.1f;
+    constexpr float InputExpirySeconds = 0.5f;
+    constexpr float MaximumSimulationStep = 0.25f;
+    constexpr float MaximumSweepStepDistance = 50.0f;
+    constexpr float HullHalfLength = 140.0f;
+    constexpr float HullHalfWidth = 70.0f;
+    constexpr int32 MaximumSweepSteps = 64;
 }
 
 AKalmalaOceanSkiff::AKalmalaOceanSkiff()
 {
+    PrimaryActorTick.bCanEverTick = true;
     bReplicates = true;
-    SetReplicateMovement(false);
+    SetReplicateMovement(true);
+    SetNetUpdateFrequency(10.0f);
+    SetMinNetUpdateFrequency(10.0f);
 
     HullCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("HullCollision"));
     HullCollision->SetBoxExtent(FVector(140.0f, 70.0f, 40.0f));
@@ -44,6 +58,12 @@ AKalmalaOceanSkiff::AKalmalaOceanSkiff()
     HullMesh->SetupAttachment(RootComponent);
     HullMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     BuildOriginalHull(HullMesh);
+}
+
+void AKalmalaOceanSkiff::Tick(const float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    if (HasAuthority()) AdvanceServerMovement(DeltaSeconds);
 }
 
 void AKalmalaOceanSkiff::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -72,6 +92,176 @@ bool AKalmalaOceanSkiff::IsDisembarkAllowed(const bool bServerAuthority, const b
 {
     return bServerAuthority && bIsOccupant && FMath::IsFinite(Speed)
         && Speed >= 0.0f && Speed <= KalmalaOceanSkiff::MaximumExitSpeed && bHasSafePlacement;
+}
+
+bool AKalmalaOceanSkiff::IsSteeringIntentAllowed(const bool bServerAuthority, const bool bIsHelmOccupant,
+    const float Throttle, const float Rudder, const uint32 Sequence, const uint32 LastAcceptedSequence,
+    const double ServerTime, const double LastAcceptedTime, const bool bHasAcceptedInput)
+{
+    return bServerAuthority && bIsHelmOccupant
+        && FMath::IsFinite(Throttle) && FMath::IsFinite(Rudder)
+        && Throttle >= -1.0f && Throttle <= 1.0f && Rudder >= -1.0f && Rudder <= 1.0f
+        && Sequence > LastAcceptedSequence
+        && FMath::IsFinite(ServerTime) && FMath::IsFinite(LastAcceptedTime)
+        && (!bHasAcceptedInput || ServerTime - LastAcceptedTime >= KalmalaOceanSkiff::MaximumInputInterval - 0.0001);
+}
+
+bool AKalmalaOceanSkiff::IsInputFresh(const double ServerTime, const double LastAcceptedTime,
+    const bool bHasAcceptedInput)
+{
+    return bHasAcceptedInput && FMath::IsFinite(ServerTime) && FMath::IsFinite(LastAcceptedTime)
+        && ServerTime >= LastAcceptedTime
+        && ServerTime - LastAcceptedTime <= KalmalaOceanSkiff::InputExpirySeconds;
+}
+
+float AKalmalaOceanSkiff::AdvanceSpeed(const float CurrentSpeedValue, const float Throttle, const float DeltaSeconds)
+{
+    if (!FMath::IsFinite(CurrentSpeedValue) || !FMath::IsFinite(Throttle)
+        || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f)
+    {
+        return FMath::IsFinite(CurrentSpeedValue) ? CurrentSpeedValue : 0.0f;
+    }
+
+    const float BoundedThrottle = FMath::Clamp(Throttle, -1.0f, 1.0f);
+    const float TargetSpeed = BoundedThrottle >= 0.0f
+        ? BoundedThrottle * KalmalaOceanSkiff::MaximumForwardSpeed
+        : BoundedThrottle * KalmalaOceanSkiff::MaximumReverseSpeed;
+    return FMath::FInterpConstantTo(CurrentSpeedValue, TargetSpeed, FMath::Min(DeltaSeconds,
+        KalmalaOceanSkiff::MaximumSimulationStep), KalmalaOceanSkiff::Acceleration);
+}
+
+bool AKalmalaOceanSkiff::AcceptSteeringFromServer(AKalmalaCharacter* Interactor, const float Throttle,
+    const float Rudder, const uint32 Sequence)
+{
+    if (!HasAuthority() || !IsValid(Interactor) || Interactor != HelmOccupant || GetWorld() == nullptr) return false;
+    const double Now = GetWorld()->GetTimeSeconds();
+    if (!IsSteeringIntentAllowed(HasAuthority(), Interactor == HelmOccupant, Throttle, Rudder,
+        Sequence, LastAcceptedInputSequence, Now, LastAcceptedInputTime, bHasAcceptedInput))
+    {
+        return false;
+    }
+
+    ThrottleInput = Throttle;
+    RudderInput = Rudder;
+    LastAcceptedInputSequence = Sequence;
+    LastAcceptedInputTime = Now;
+    bHasAcceptedInput = true;
+    return true;
+}
+
+bool AKalmalaOceanSkiff::HasDeepOceanFootprint(const FVector Location, const FRotator Rotation) const
+{
+    const AKalmalaWorldGenerationGameState* State = GetWorld() != nullptr
+        ? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
+    if (State == nullptr || !State->GetWorldGenerationConfig().IsValid()) return false;
+
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector Forward = Rotation.Vector();
+    const FVector Right = FRotationMatrix(Rotation).GetUnitAxis(EAxis::Y);
+    const FVector2D Footprint[] = {
+        FVector2D::ZeroVector,
+        FVector2D(Forward * KalmalaOceanSkiff::HullHalfLength),
+        FVector2D(Forward * -KalmalaOceanSkiff::HullHalfLength),
+        FVector2D(Right * KalmalaOceanSkiff::HullHalfWidth),
+        FVector2D(Right * -KalmalaOceanSkiff::HullHalfWidth),
+        FVector2D(Forward * KalmalaOceanSkiff::HullHalfLength + Right * KalmalaOceanSkiff::HullHalfWidth),
+        FVector2D(Forward * KalmalaOceanSkiff::HullHalfLength - Right * KalmalaOceanSkiff::HullHalfWidth),
+        FVector2D(Forward * -KalmalaOceanSkiff::HullHalfLength + Right * KalmalaOceanSkiff::HullHalfWidth),
+        FVector2D(Forward * -KalmalaOceanSkiff::HullHalfLength - Right * KalmalaOceanSkiff::HullHalfWidth)
+    };
+
+    for (const FVector2D& Offset : Footprint)
+    {
+        const FVector2D SamplePosition = FVector2D(Location) + Offset;
+        if (!FKalmalaWorldBounds::Contains(Config, SamplePosition)
+            || FKalmalaShimmeringLakeSampler::IsWater(Config, SamplePosition))
+        {
+            return false;
+        }
+        const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, SamplePosition);
+        if (!Ocean.bIsValid || Ocean.WaterDepth < KalmalaOceanSkiff::MinimumWaterDepth) return false;
+    }
+    return true;
+}
+
+void AKalmalaOceanSkiff::BlockMovementAtLastSafeTransform(const FVector& SafeLocation, const FRotator& SafeRotation)
+{
+    SetActorLocationAndRotation(SafeLocation, SafeRotation, false, nullptr, ETeleportType::TeleportPhysics);
+    CurrentSpeed = 0.0f;
+    ThrottleInput = 0.0f;
+    RudderInput = 0.0f;
+    Mode = EKalmalaOceanSkiffMode::Blocked;
+    ForceNetUpdate();
+}
+
+void AKalmalaOceanSkiff::AdvanceServerMovement(const float DeltaSeconds)
+{
+    if (!HasAuthority() || GetWorld() == nullptr || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f) return;
+
+    const double Now = GetWorld()->GetTimeSeconds();
+    if (!IsValid(HelmOccupant) || HelmOccupant->GetController() == nullptr
+        || !IsInputFresh(Now, LastAcceptedInputTime, bHasAcceptedInput))
+    {
+        ThrottleInput = 0.0f;
+        RudderInput = 0.0f;
+    }
+
+    if (Mode == EKalmalaOceanSkiffMode::Blocked && FMath::IsNearlyZero(ThrottleInput)
+        && FMath::IsNearlyZero(RudderInput))
+    {
+        CurrentSpeed = 0.0f;
+        return;
+    }
+
+    const float StepSeconds = FMath::Min(DeltaSeconds, KalmalaOceanSkiff::MaximumSimulationStep);
+    CurrentSpeed = AdvanceSpeed(CurrentSpeed, ThrottleInput, StepSeconds);
+    const float YawDelta = RudderInput * KalmalaOceanSkiff::MaximumYawRate * StepSeconds;
+    const FVector StartLocation = GetActorLocation();
+    const FRotator StartRotation = GetActorRotation();
+    const float TravelDistance = FMath::Abs(CurrentSpeed * StepSeconds);
+    const int32 SweepSteps = FMath::Max(1, FMath::CeilToInt(TravelDistance / KalmalaOceanSkiff::MaximumSweepStepDistance));
+    if (SweepSteps > KalmalaOceanSkiff::MaximumSweepSteps)
+    {
+        BlockMovementAtLastSafeTransform(StartLocation, StartRotation);
+        return;
+    }
+
+    FVector LastSafeLocation = StartLocation;
+    FRotator LastSafeRotation = StartRotation;
+    for (int32 Step = 1; Step <= SweepSteps; ++Step)
+    {
+        const float Alpha = static_cast<float>(Step) / SweepSteps;
+        FRotator CandidateRotation = StartRotation;
+        CandidateRotation.Yaw += YawDelta * Alpha;
+        const FVector CandidateLocation = LastSafeLocation
+            + CandidateRotation.Vector() * (CurrentSpeed * StepSeconds / SweepSteps);
+        if (!HasDeepOceanFootprint(CandidateLocation, CandidateRotation))
+        {
+            BlockMovementAtLastSafeTransform(LastSafeLocation, LastSafeRotation);
+            return;
+        }
+
+        FHitResult SweepHit;
+        SetActorLocationAndRotation(CandidateLocation, CandidateRotation, true, &SweepHit, ETeleportType::None);
+        if (SweepHit.bBlockingHit)
+        {
+            BlockMovementAtLastSafeTransform(LastSafeLocation, LastSafeRotation);
+            return;
+        }
+        LastSafeLocation = GetActorLocation();
+        LastSafeRotation = GetActorRotation();
+    }
+
+    if (FMath::Abs(CurrentSpeed) <= KalmalaOceanSkiff::MaximumExitSpeed
+        && FMath::IsNearlyZero(ThrottleInput) && FMath::IsNearlyZero(RudderInput))
+    {
+        CurrentSpeed = 0.0f;
+        Mode = EKalmalaOceanSkiffMode::Moored;
+    }
+    else
+    {
+        Mode = EKalmalaOceanSkiffMode::Underway;
+    }
 }
 
 AKalmalaOceanSkiff* AKalmalaOceanSkiff::TryLaunchFromServer(AKalmalaCharacter* Interactor, const FHitResult& TerrainHit)
@@ -180,8 +370,9 @@ bool AKalmalaOceanSkiff::TryDisembarkFromServer(AKalmalaCharacter* Interactor)
     }
 
     FVector ExitLocation;
-    const float Speed = GetVelocity().Size();
+    const float Speed = FMath::Abs(CurrentSpeed);
     if (!FindSafeExitLocation(Interactor, ExitLocation)
+        || !FMath::IsNearlyZero(ThrottleInput) || !FMath::IsNearlyZero(RudderInput)
         || !IsDisembarkAllowed(HasAuthority(), Interactor == HelmOccupant || Interactor == PassengerOccupant,
             Speed, true))
     {
@@ -238,7 +429,15 @@ bool AKalmalaOceanSkiff::FindSafeExitLocation(AKalmalaCharacter* Interactor, FVe
 void AKalmalaOceanSkiff::SetSeatOccupant(AKalmalaCharacter* Interactor, const EKalmalaOceanSkiffSeat Seat)
 {
     if (!HasAuthority() || !IsValid(Interactor) || Seat == EKalmalaOceanSkiffSeat::None) return;
-    if (Seat == EKalmalaOceanSkiffSeat::Helm) HelmOccupant = Interactor;
+    if (Seat == EKalmalaOceanSkiffSeat::Helm)
+    {
+        HelmOccupant = Interactor;
+        LastAcceptedInputSequence = 0;
+        LastAcceptedInputTime = 0.0;
+        bHasAcceptedInput = false;
+        ThrottleInput = 0.0f;
+        RudderInput = 0.0f;
+    }
     else PassengerOccupant = Interactor;
     RefreshSeatOccupancyPresentation();
     ForceNetUpdate();
@@ -247,7 +446,17 @@ void AKalmalaOceanSkiff::SetSeatOccupant(AKalmalaCharacter* Interactor, const EK
 void AKalmalaOceanSkiff::ClearSeatOccupant(AKalmalaCharacter* Interactor)
 {
     if (!HasAuthority() || !IsValid(Interactor)) return;
-    if (HelmOccupant == Interactor) HelmOccupant = nullptr;
+    if (HelmOccupant == Interactor)
+    {
+        HelmOccupant = nullptr;
+        LastAcceptedInputSequence = 0;
+        LastAcceptedInputTime = 0.0;
+        bHasAcceptedInput = false;
+        ThrottleInput = 0.0f;
+        RudderInput = 0.0f;
+        CurrentSpeed = 0.0f;
+        Mode = EKalmalaOceanSkiffMode::Moored;
+    }
     if (PassengerOccupant == Interactor) PassengerOccupant = nullptr;
     RefreshSeatOccupancyPresentation();
 }
