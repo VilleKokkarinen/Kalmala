@@ -207,6 +207,19 @@ both local HUD text paths must show their own result, while the client copy of
 the host pawn must retain no feedback. This headless check verifies owner-only
 replication and message text, not a rendered viewport or live launch trace.
 
+## M8 ocean weather navigation pressure
+
+After a forced editor build, run
+`Kalmala.Gameplay.OceanTravel.SkiffWeatherPressure` and
+`Kalmala.UI.SurvivalStatus.LocalPresentation` with the isolated headless
+automation flags above. The skiff test checks that head or following wind adds
+no yaw, crosswind direction changes the drift sign, pressure scales with
+server wind and vessel speed, helm counter-steering works, and the combined
+steering rate retains its 35 degrees/second cap. The local status test checks
+that the crosswind guidance appears aboard a skiff and clears when replicated
+wind subsides. The focused tests do not replace the remaining host/client
+weather-pressure and recovery agreement check.
+
 ## Item catalogue verification
 
 For the M2 material contract, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above after building the editor. It loads the real project catalogue and checks required materials, exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate configuration. This is a pure contract check; live inventory replication and harvest-grant verification follow when the inventory component exists.

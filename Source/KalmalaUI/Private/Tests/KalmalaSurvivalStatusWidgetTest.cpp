@@ -95,6 +95,23 @@ bool FKalmalaSurvivalStatusWidgetTest::RunTest(const FString& Parameters)
         BlockedTravelText.Contains(TEXT("COLLISION BLOCKED"))
         && BlockedTravelText.Contains(TEXT("Turn away from the coast")));
 
+    TravelSnapshot.OceanSkiffMode = EKalmalaOceanSkiffMode::Underway;
+    TravelSnapshot.bHasWeatherState = true;
+    TravelSnapshot.Weather.DurationSeconds = 120.0f;
+    TravelSnapshot.Weather.WindStrength = 0.8f;
+    TravelSnapshot.Weather.RefreshActivityLevel();
+    const FString WindTravelText = UKalmalaSurvivalStatusWidget::BuildStatusText(TravelSnapshot);
+    TestTrue(TEXT("Skiff guidance explains server crosswind pressure and helm counter-steering"),
+        WindTravelText.Contains(TEXT("TRAVEL · CROSSWIND"))
+        && WindTravelText.Contains(TEXT("Server wind can turn the underway hull"))
+        && WindTravelText.Contains(TEXT("steer against the drift")));
+
+    TravelSnapshot.Weather.WindStrength = 0.0f;
+    TravelSnapshot.Weather.RefreshActivityLevel();
+    const FString RecoveredTravelText = UKalmalaSurvivalStatusWidget::BuildStatusText(TravelSnapshot);
+    TestFalse(TEXT("Calm server weather clears crosswind guidance"),
+        RecoveredTravelText.Contains(TEXT("TRAVEL · CROSSWIND")));
+
     FKalmalaSurvivalStatusSnapshot EmptySnapshot;
     EmptySnapshot.bHasCharacter = true;
     TestEqual(TEXT("No active state has a readable local empty label"),

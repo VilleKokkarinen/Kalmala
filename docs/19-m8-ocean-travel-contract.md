@@ -115,3 +115,24 @@ listen-host/client owner results and that the remote client sees no host-only
 feedback. This host/client fixture verifies owner-scoped message transport and
 the local text path; it does not exercise an actual coastline trace, rendered
 skiff travel, or terrain collision sweep.
+
+## Bounded ocean crosswind pressure (2026-09-25)
+
+While underway, the server reads the existing replicated, server-selected
+`FKalmalaWeatherState` and adds a heading-relative crosswind yaw rate to helm
+rudder input. Head or following wind adds no turn; perpendicular wind adds at
+most 8 degrees/second at full wind strength and 700 cm/second vessel speed.
+The weather and rudder rates together remain within the existing 35
+degrees/second steering cap. The helmsman can steer against the drift, and the
+pressure scales continuously with wind strength, wind angle, and vessel speed;
+calm weather removes it. Malformed weather values contribute no pressure.
+
+The local survival status panel identifies crosswind while the player is in the
+skiff and explains counter-steering. The pressure is derived only from the
+server-selected weather and server-owned skiff movement; no client weather or
+mitigation outcome is accepted, replicated separately, or saved. The focused
+`Kalmala.Gameplay.OceanTravel.SkiffWeatherPressure` automation covers direction,
+scaling, bounds, counter-steering, and malformed values, while
+`Kalmala.UI.SurvivalStatus.LocalPresentation` covers the local guidance and its
+removal in calm weather. Peer agreement and full weather recovery verification
+remain the next M8 weather task.

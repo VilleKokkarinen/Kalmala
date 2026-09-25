@@ -194,6 +194,11 @@ FString UKalmalaSurvivalStatusWidget::BuildOceanTravelText(const FKalmalaSurviva
             ? TEXT("⚓ TRAVEL · HELM · W/S throttle; A/D steer. Hull needs ≥1 m of open ocean at all nine samples; generated land and the world edge block movement. Disembark stopped at ≤0.5 m/s with controls neutral.")
             : TEXT("⚓ TRAVEL · PASSENGER · The helm steers. Hull needs ≥1 m of open ocean at all nine samples; generated land and the world edge block movement. Disembark stopped at ≤0.5 m/s."));
 
+        if (Snapshot.bHasWeatherState && Snapshot.Weather.IsValid() && Snapshot.Weather.WindStrength >= 0.15f)
+        {
+            Lines.Add(TEXT("▲ TRAVEL · CROSSWIND · Server wind can turn the underway hull; steer against the drift. Pressure eases as the wind subsides."));
+        }
+
         if (Snapshot.OceanSkiffMode == EKalmalaOceanSkiffMode::Blocked)
         {
             switch (Snapshot.OceanSkiffBlockReason)

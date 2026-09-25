@@ -134,6 +134,32 @@ bool FKalmalaOceanSkiffSteeringContractTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaOceanSkiffWeatherPressureTest,
+    "Kalmala.Gameplay.OceanTravel.SkiffWeatherPressure",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaOceanSkiffWeatherPressureTest::RunTest(const FString& Parameters)
+{
+    TestTrue(TEXT("Calm weather and head or following wind do not yaw the hull"),
+        FMath::IsNearlyZero(AKalmalaOceanSkiff::CalculateWeatherYawRate(0.0f, 0.0f, 0.0f, 1.0f, 700.0f))
+        && FMath::IsNearlyZero(AKalmalaOceanSkiff::CalculateWeatherYawRate(0.0f, 0.0f, 180.0f, 1.0f, 700.0f))
+        && FMath::IsNearlyZero(AKalmalaOceanSkiff::CalculateWeatherYawRate(0.0f, 0.0f, 90.0f, 0.0f, 700.0f)));
+    TestTrue(TEXT("Full beam wind adds at most eight degrees per second at full speed"),
+        FMath::IsNearlyEqual(AKalmalaOceanSkiff::CalculateWeatherYawRate(0.0f, 0.0f, 90.0f, 1.0f, 700.0f), 8.0f));
+    TestTrue(TEXT("Opposite crosswinds turn in opposite directions"),
+        FMath::IsNearlyEqual(AKalmalaOceanSkiff::CalculateWeatherYawRate(0.0f, 0.0f, 270.0f, 1.0f, 700.0f), -8.0f));
+    TestTrue(TEXT("Crosswind pressure scales with replicated wind strength and vessel speed"),
+        FMath::IsNearlyEqual(AKalmalaOceanSkiff::CalculateWeatherYawRate(0.0f, 0.0f, 90.0f, 0.5f, 350.0f), 2.0f));
+    TestTrue(TEXT("Helm counter-steering can overcome the bounded crosswind turn"),
+        AKalmalaOceanSkiff::CalculateWeatherYawRate(-1.0f, 0.0f, 90.0f, 1.0f, 700.0f) < 0.0f);
+    TestTrue(TEXT("Weather cannot exceed the existing yaw-rate cap"),
+        FMath::IsNearlyEqual(AKalmalaOceanSkiff::CalculateWeatherYawRate(1.0f, 0.0f, 90.0f, 1.0f, 700.0f), 35.0f));
+    TestTrue(TEXT("Malformed weather or movement values create no yaw pressure"),
+        FMath::IsNearlyZero(AKalmalaOceanSkiff::CalculateWeatherYawRate(0.0f, 0.0f, NAN, 1.0f, 700.0f))
+        && FMath::IsNearlyZero(AKalmalaOceanSkiff::CalculateWeatherYawRate(0.0f, 0.0f, 90.0f, NAN, 700.0f)));
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaOceanSkiffCoastlineAccessTest,
     "Kalmala.Gameplay.OceanTravel.SkiffCoastlineAccess",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)

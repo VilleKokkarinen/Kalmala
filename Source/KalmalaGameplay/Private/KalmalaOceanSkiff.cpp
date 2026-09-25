@@ -5,6 +5,7 @@
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaWeatherState.h"
 #include "KalmalaWorldBounds.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "Components/BoxComponent.h"
@@ -29,6 +30,7 @@ namespace KalmalaOceanSkiff
     constexpr float MaximumReverseSpeed = 200.0f;
     constexpr float Acceleration = 100.0f;
     constexpr float MaximumYawRate = 35.0f;
+    constexpr float MaximumCrosswindYawRate = 8.0f;
     constexpr float MaximumInputInterval = 0.1f;
     constexpr float InputExpirySeconds = 0.5f;
     constexpr float MaximumSimulationStep = 0.25f;
@@ -194,6 +196,30 @@ float AKalmalaOceanSkiff::AdvanceSpeed(const float CurrentSpeedValue, const floa
         KalmalaOceanSkiff::MaximumSimulationStep), KalmalaOceanSkiff::Acceleration);
 }
 
+float AKalmalaOceanSkiff::CalculateWeatherYawRate(const float Rudder, const float HeadingDegrees,
+    const float WindDirectionDegrees, const float WindStrength, const float Speed)
+{
+    if (!FMath::IsFinite(Rudder) || !FMath::IsFinite(HeadingDegrees)
+        || !FMath::IsFinite(WindDirectionDegrees) || !FMath::IsFinite(WindStrength)
+        || !FMath::IsFinite(Speed))
+    {
+        return 0.0f;
+    }
+
+    const float BoundedRudder = FMath::Clamp(Rudder, -1.0f, 1.0f);
+    const float WindFraction = FMath::Clamp(WindStrength, 0.0f, 1.0f);
+    const float SpeedFraction = FMath::Clamp(FMath::Abs(Speed) / KalmalaOceanSkiff::MaximumForwardSpeed, 0.0f, 1.0f);
+    const float RelativeWindRadians = FMath::DegreesToRadians(
+        FMath::FindDeltaAngleDegrees(HeadingDegrees, WindDirectionDegrees));
+    const float CrosswindFraction = FMath::Sin(RelativeWindRadians);
+    const float AlignedCrosswindFraction = FMath::IsNearlyZero(CrosswindFraction, 0.0001f)
+        ? 0.0f : CrosswindFraction;
+    const float CrosswindRate = AlignedCrosswindFraction * WindFraction * SpeedFraction
+        * KalmalaOceanSkiff::MaximumCrosswindYawRate;
+    return FMath::Clamp(BoundedRudder * KalmalaOceanSkiff::MaximumYawRate + CrosswindRate,
+        -KalmalaOceanSkiff::MaximumYawRate, KalmalaOceanSkiff::MaximumYawRate);
+}
+
 bool AKalmalaOceanSkiff::AcceptSteeringFromServer(AKalmalaCharacter* Interactor, const float Throttle,
     const float Rudder, const uint32 Sequence)
 {
@@ -256,9 +282,23 @@ void AKalmalaOceanSkiff::AdvanceServerMovement(const float DeltaSeconds)
 
     const float StepSeconds = FMath::Min(DeltaSeconds, KalmalaOceanSkiff::MaximumSimulationStep);
     CurrentSpeed = AdvanceSpeed(CurrentSpeed, ThrottleInput, StepSeconds);
-    const float YawDelta = RudderInput * KalmalaOceanSkiff::MaximumYawRate * StepSeconds;
     const FVector StartLocation = GetActorLocation();
     const FRotator StartRotation = GetActorRotation();
+    float WindDirectionDegrees = 0.0f;
+    float WindStrength = 0.0f;
+    const AKalmalaWorldGenerationGameState* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (WorldState != nullptr)
+    {
+        const FKalmalaWeatherState& Weather = WorldState->GetWeatherState();
+        if (Weather.IsValid())
+        {
+            WindDirectionDegrees = static_cast<float>(Weather.WindDirectionDegrees);
+            WindStrength = Weather.WindStrength;
+        }
+    }
+    const float YawRate = CalculateWeatherYawRate(RudderInput, StartRotation.Yaw,
+        WindDirectionDegrees, WindStrength, CurrentSpeed);
+    const float YawDelta = YawRate * StepSeconds;
     const float TravelDistance = FMath::Abs(CurrentSpeed * StepSeconds);
     const int32 SweepSteps = FMath::Max(1, FMath::CeilToInt(TravelDistance / KalmalaOceanSkiff::MaximumSweepStepDistance));
     if (SweepSteps > KalmalaOceanSkiff::MaximumSweepSteps)

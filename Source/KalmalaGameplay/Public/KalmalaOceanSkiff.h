@@ -73,6 +73,8 @@ public:
         double LastAcceptedTime, bool bHasAcceptedInput);
     static bool IsInputFresh(double ServerTime, double LastAcceptedTime, bool bHasAcceptedInput);
     static float AdvanceSpeed(float CurrentSpeed, float Throttle, float DeltaSeconds);
+    static float CalculateWeatherYawRate(float Rudder, float HeadingDegrees, float WindDirectionDegrees,
+        float WindStrength, float Speed);
     bool AcceptSteeringFromServer(AKalmalaCharacter* Interactor, float Throttle, float Rudder, uint32 Sequence);
 
 private:

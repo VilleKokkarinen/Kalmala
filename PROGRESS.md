@@ -7433,3 +7433,48 @@ tested.
 Next task: Extend server-selected ocean weather with readable, reversible
 pressure and viable counterplay, then verify matching accepted state/recovery
 across peers.
+
+### 2026-09-25T07:32:07Z — Add bounded ocean crosswind pressure
+
+Outcome: Underway skiff movement now derives heading-relative crosswind from
+the existing replicated server weather. Pressure scales with wind direction,
+wind strength, and vessel speed, adds at most 8 degrees/second at full wind and
+full speed, and shares the existing 35 degrees/second yaw cap with helm input.
+The local survival panel explains counter-steering and indicates that pressure
+eases as server wind subsides.
+
+Changed this run: `Source/KalmalaGameplay/Public/KalmalaOceanSkiff.h`,
+`Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaOceanSkiffTest.cpp`,
+`Source/KalmalaUI/Private/KalmalaSurvivalStatusWidget.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaSurvivalStatusWidgetTest.cpp`,
+`docs/19-m8-ocean-travel-contract.md`, `docs/07-development-setup.md`,
+`BACKLOG.md`, and this handoff. Existing unrelated checkout edits were
+preserved.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build
+passed all 174 actions in a temporary mirror with normal
+`%LOCALAPPDATA%\UnrealBuildTool` access; after fixing a tiny aligned-wind
+floating-point residue, the incremental rebuild passed all four actions.
+`Kalmala.Gameplay.OceanTravel.SkiffWeatherPressure` and
+`Kalmala.UI.SurvivalStatus.LocalPresentation` both reported
+`Result={Success}` in the final `UnrealEditor.exe` fallback run. The initial
+`UnrealEditor-Cmd.exe` path exited during unsupported all-platform SDK
+preflight; its run exposed the alignment test edge case, which was corrected
+before the passing rebuild and rerun. Scoped `git diff --check` passed before
+the handoff update.
+
+Multiplayer and persistence impact: Only the server advances skiff movement
+and reads the server-selected replicated weather; client steering remains
+bounded helm intent. Weather and mitigation have no client mutation path. No
+RPC, replicated gameplay field, or save schema changed, and no travel state is
+persisted.
+
+Known limits: The focused automations cover pressure math, counter-steering,
+caps, local copy, and calm-weather guidance removal. They do not prove host and
+client agreement during a live weather shift, rejection of forged weather, or
+rendered HUD legibility. These remain in the next peer-verification child.
+Main checkout used; no handoff synchronization was needed.
+
+Next task: Verify clients cannot submit weather or mitigation outcomes and
+that accepted ocean pressure and recovery agree across host and client peers.
