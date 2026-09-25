@@ -7688,3 +7688,55 @@ no worktree handoff synchronization was needed.
 
 Next eligible task: Verify a late join and authenticated restart/reconnect
 preserve one vessel, seat, and discovery reward without duplication.
+
+### 2026-09-25T13:41:18Z — M8 late-join and restart/reconnect passed
+
+Outcome: Completed the first unblocked late-join/restart M8 verification leaf.
+The development-only seed-418 fixture and `Scripts/Verify-OceanSkiffReconnect.ps1`
+passed with a listen host, returning owner, and third late joiner. Each late
+join saw one moored primary skiff with the original Helm and Passenger seats,
+remained unattached, and received no private discovery reward. After stopping
+the peers, the host restarted with its existing profile and the owner
+reconnected with its profile; the server restored the same vessel and both
+authenticated seat associations. Replaying the owner's discovery returned
+`AlreadyFound` and did not grant another inventory reward.
+
+Changed this run: Extended
+`Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryDisembarkPeerTest.cpp` and
+`Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryDisembarkPeerTest.h` with
+the late-join/reconnect fixture and added
+`Scripts/Verify-OceanSkiffReconnect.ps1`. In
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` and
+`Source/KalmalaGameplay/Public/KalmalaGameMode.h`, added stable test-provider
+identity assignment and a server-side deferred, idempotent seat-restore retry
+for controllers whose pawn or PlayerState is not ready in `PostLogin`. Updated
+the M8 contract and setup instructions, checked only the reconnect leaf in
+`BACKLOG.md`, and added this handoff. These files also contain unrelated
+pre-existing edits that remain preserved and unstaged.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed
+in a disposable mirror with normal `%LOCALAPPDATA%\\UnrealBuildTool` access.
+`Scripts/Verify-OceanSkiffReconnect.ps1` passed its full live two-session flow:
+seeded owner-only discovery and exact reward, initial late join, process stop,
+host restart, original-owner reconnect with Helm restore and replay rejection,
+host Passenger restore, and post-restart late join. The runner uses separate
+temporary host, owner, and late-join profiles; retained logs are under
+`C:/Users/Ville/AppData/Local/Temp/KalmalaOceanSkiffReconnect-retry2`.
+
+Multiplayer and persistence impact: Travel seat restoration remains server
+owned and uses existing authenticated player/world records and vessel checks.
+The restore queue adds no RPC, client-provided authority, replicated gameplay
+field, or save-schema change. Discovery privacy and duplicate rejection remain
+in the existing player-scoped ledger.
+
+Known limits: The headless fixture assigns stable development-only test-provider
+identities because the null network driver has no persistent external identity;
+real platform authentication is unverified. The scenario starts with a moored
+vessel and does not cover sailing or long-session actor, memory, replication,
+save-size, and frame-time budgets. The separate integrated 2.4 km crossing
+remains blocked and unchecked.
+
+Next eligible task: Record and meet actor, memory, replication, save-size, and
+frame-time budgets. The two-seat voyage/crosswind/calm terrain-patch crossing
+remains explicitly blocked and requires steering-driver diagnosis before a
+retry. Main checkout used; no worktree handoff synchronization was needed.

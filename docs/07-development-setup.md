@@ -212,6 +212,29 @@ interaction trace, query live pawn overlap, exercise the skiff's actual world
 collision sweep, or prove a dry-shore disembark; keep those limits in M8
 host/client acceptance.
 
+## M8 late-join and restart/reconnect verification
+
+After a forced editor build, create a short disposable project mirror and run
+`Scripts\Verify-OceanSkiffReconnect.ps1 -Port 18171 -Project '<mirror>\Kalmala.uproject'`.
+The runner starts a seed-418 listen host, its returning owner, and a third late
+joiner using isolated user directories. It verifies the late peer sees one
+moored vessel with the original helm/passenger occupants, remains unattached,
+and receives no private discovery reward. It then stops all peers, restarts the
+host with its original profile, reconnects the owner with the owner's original
+profile, and checks that the same vessel and both authenticated seats restore.
+The returning owner retries the same discovery; the server must report
+`AlreadyFound` and leave the fresh inventory at zero. A second late join checks
+that restart preserved the same public vessel state and private reward boundary.
+
+This non-shipping fixture assigns stable local test-provider identities so the
+headless null network driver can exercise the existing authenticated save-key
+path across separate processes. It does not integrate an external online
+identity provider. Player travel restore is server-owned and retries after a
+controller's pawn and PlayerState are available; repeated restore calls are
+idempotent for a peer already attached to its saved seat. The fixture adds no
+gameplay RPC, replicated gameplay field, or save-schema change. Keep the live
+logs under the runner's temporary output directory for diagnosis.
+
 ## M8 coast feedback presentation
 
 After the forced editor build, run

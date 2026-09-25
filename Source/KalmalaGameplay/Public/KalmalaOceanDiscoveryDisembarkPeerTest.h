@@ -16,6 +16,13 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
+	void DriveReconnectPeerTest(const FString& Phase);
+	bool PrepareReconnectScenario(bool bResume);
+	void VerifyReconnectLateJoin(bool bResume);
+	void VerifyReconnectLocalReplica(const FString& Phase);
+	bool FindReconnectDiscovery(struct FKalmalaOceanDiscoveryDescriptor& OutDescriptor) const;
+	bool HasSingleReconnectSkiff() const;
+	void FailReconnect(const TCHAR* Reason);
 	bool PrepareServerScenario();
 	void VerifyServerOutcome();
 	void VerifyLocalOwnerReplica();
@@ -28,10 +35,16 @@ private:
 	UPROPERTY(Replicated) FName ExpectedRewardItemId = NAME_None;
 	UPROPERTY(Replicated) int32 ExpectedRewardQuantity = 0;
 	UPROPERTY(Replicated) bool bServerOutcomePublished = false;
+	UPROPERTY(Replicated) bool bLateJoinOutcomePublished = false;
+	UPROPERTY(Replicated) uint32 HostIdentityHash = 0;
+	UPROPERTY(Replicated) uint32 HelmIdentityHash = 0;
+	UPROPERTY(Replicated) uint32 LateJoinIdentityHash = 0;
 
 	TWeakObjectPtr<class AKalmalaCharacter> HelmCharacter;
 	TWeakObjectPtr<class AKalmalaCharacter> PassengerCharacter;
 	float StartedAtSeconds = -1.0f;
+	int32 ReconnectStage = 0;
+	bool bReconnectLocalReported = false;
 	bool bSetupAttempted = false;
 	bool bServerFailed = false;
 	bool bServerReported = false;

@@ -259,3 +259,35 @@ This focused peer check does not simulate a voyage, decelerate a moving vessel,
 exercise a client-originated discovery trace, verify restart/reconnect, or
 measure long-session budgets. The existing journaled two-player helm crossing
 remains blocked and is not marked as passing here.
+
+## Late-join and authenticated restart/reconnect verification (2026-09-25)
+
+`Scripts/Verify-OceanSkiffReconnect.ps1` runs two isolated seed-418 sessions.
+In the first, the server creates one moored primary skiff, assigns the remote
+owner to Helm and the host to Passenger, accepts the owner's one optional
+discovery reward, and admits a third peer. The server and late peer require
+one vessel with the original seats; the late peer remains unattached and has
+no discovery feedback or reward. After all processes stop, the runner restarts
+the host with the same profile and reconnects the owner with the owner's same
+profile. The server restores the same moored vessel and both authenticated seat
+associations. The owner cannot replay the accepted discovery; feedback is
+`AlreadyFound` and the fresh inventory stays empty. A post-restart late join
+again sees the single public vessel without private reward state.
+
+The listen host can enter `PostLogin` before its pawn and PlayerState are ready
+for the travel restore path. The server now queues that controller and retries
+after both are available. The restore path is idempotent when that player
+already occupies the saved seat. This does not add client authority, an RPC,
+replicated gameplay state, or a save field. The runner assigns stable
+development-only test-provider IDs because the headless null driver does not
+provide a persistent external identity; actual platform authentication remains
+unverified.
+
+Verification (2026-09-25): The UE5.8.2 `KalmalaEditor Win64 Development`
+build and `Verify-OceanSkiffReconnect.ps1` passed in a disposable project
+mirror with normal `%LOCALAPPDATA%\\UnrealBuildTool` access. The full flow
+verified the host Passenger and owner Helm restores, late-join state before
+and after restart, matching host/owner identity hashes and discovery values,
+and replay rejection without a second reward. This is a focused two-peer save
+check, not a long-session actor, memory, replication, save-size, or frame-time
+profile. The integrated 2.4 km crossing remains blocked separately.

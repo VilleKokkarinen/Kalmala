@@ -14,6 +14,8 @@
 #include "KalmalaOceanTravelFeedbackComponent.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPopulationLayout.h"
+#include "Misc/Crc.h"
+#include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
 
 namespace
@@ -22,6 +24,7 @@ namespace
 	constexpr float ExitOffsetCm = 260.0f;
 	constexpr int32 DiscoverySearchRadiusCells = 24;
 	constexpr float ObservationTimeoutSeconds = 30.0f;
+	constexpr float ReconnectSetupTimeoutSeconds = 180.0f;
 
 	bool HasSafeExitCandidate(const FKalmalaWorldGenerationConfig& Config, const FVector2D Center)
 	{
@@ -36,6 +39,18 @@ namespace
 			}
 		}
 		return false;
+	}
+
+	bool GetIdentityHash(const APlayerState* PlayerState, uint32& OutHash)
+	{
+		if (PlayerState == nullptr) return false;
+		const FUniqueNetIdRepl UniqueId = PlayerState->GetUniqueId();
+		const TSharedPtr<const FUniqueNetId> AuthenticatedId = UniqueId.GetUniqueNetId();
+		if (!UniqueId.IsValid() || !AuthenticatedId.IsValid()) return false;
+		const FString Identity = AuthenticatedId->GetType().ToString() + TEXT(":") + AuthenticatedId->ToString();
+		if (Identity.IsEmpty() || Identity.Len() > 128) return false;
+		OutHash = FCrc::StrCrc32(*Identity);
+		return true;
 	}
 }
 
@@ -57,6 +72,13 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::Tick(const float DeltaSeconds)
 	}
 
 #if !UE_BUILD_SHIPPING
+	FString ReconnectPhase;
+	if (FParse::Value(FCommandLine::Get(), TEXT("KalmalaOceanReconnectPhase="), ReconnectPhase))
+	{
+		DriveReconnectPeerTest(ReconnectPhase);
+		return;
+	}
+
 	if (HasAuthority())
 	{
 		if (!bSetupAttempted && !bServerFailed && PrepareServerScenario())
@@ -86,6 +108,352 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, ExpectedRewardItemId);
 	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, ExpectedRewardQuantity);
 	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, bServerOutcomePublished);
+	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, bLateJoinOutcomePublished);
+	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, HostIdentityHash);
+	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, HelmIdentityHash);
+	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, LateJoinIdentityHash);
+}
+
+void AKalmalaOceanDiscoveryDisembarkPeerTest::DriveReconnectPeerTest(const FString& Phase)
+{
+	const bool bResume = Phase.Equals(TEXT("Resume"), ESearchCase::IgnoreCase);
+	if (!bResume && !Phase.Equals(TEXT("Seed"), ESearchCase::IgnoreCase))
+	{
+		FailReconnect(TEXT("phase must be Seed or Resume"));
+		return;
+	}
+
+	if (HasAuthority())
+	{
+		if (ReconnectStage == 0 && !bServerFailed && PrepareReconnectScenario(bResume))
+		{
+			ReconnectStage = 1;
+		}
+		if (ReconnectStage == 1 && !bLateJoinOutcomePublished && !bServerFailed)
+		{
+			VerifyReconnectLateJoin(bResume);
+		}
+	}
+	else if (!bReconnectLocalReported && !bServerFailed)
+	{
+		VerifyReconnectLocalReplica(Phase);
+	}
+
+	if (!bLateJoinOutcomePublished && GetWorld() != nullptr
+		&& GetWorld()->GetTimeSeconds() - StartedAtSeconds > ReconnectSetupTimeoutSeconds)
+	{
+		FailReconnect(TEXT("two original players and one late-joining peer did not complete the bounded scenario"));
+	}
+}
+
+bool AKalmalaOceanDiscoveryDisembarkPeerTest::FindReconnectDiscovery(
+	FKalmalaOceanDiscoveryDescriptor& OutDescriptor) const
+{
+	const AKalmalaWorldGenerationGameState* WorldState = GetWorld() != nullptr
+		? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
+	if (WorldState == nullptr || !WorldState->GetWorldGenerationConfig().IsValid()) return false;
+	const FKalmalaWorldGenerationConfig& Config = WorldState->GetWorldGenerationConfig();
+	const FVector2D SearchCenter(447810.0, -31559.0);
+	const FIntPoint CenterKey = FKalmalaWorldPopulationLayout::GetSpatialKey(SearchCenter);
+	for (int32 Y = -DiscoverySearchRadiusCells; Y <= DiscoverySearchRadiusCells; ++Y)
+	{
+		for (int32 X = -DiscoverySearchRadiusCells; X <= DiscoverySearchRadiusCells; ++X)
+		{
+			const FIntPoint Key = CenterKey + FIntPoint(X, Y);
+			for (const FKalmalaOceanDiscoveryDescriptor& Candidate : FKalmalaOceanDiscoveryCatalogue::BuildDescriptors(Config, Key))
+			{
+				const FVector2D CandidatePosition(Candidate.Location);
+				if (AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(Config, CandidatePosition, 0.0f)
+					&& HasSafeExitCandidate(Config, CandidatePosition))
+				{
+					OutDescriptor = Candidate;
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool AKalmalaOceanDiscoveryDisembarkPeerTest::HasSingleReconnectSkiff() const
+{
+	if (GetWorld() == nullptr || !IsValid(TestSkiff)) return false;
+	int32 Count = 0;
+	for (TActorIterator<AKalmalaOceanSkiff> It(GetWorld()); It; ++It) ++Count;
+	return Count == 1;
+}
+
+bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareReconnectScenario(const bool bResume)
+{
+	if (!HasAuthority() || GetWorld() == nullptr)
+	{
+		FailReconnect(TEXT("authoritative world is unavailable"));
+		return false;
+	}
+
+	AKalmalaCharacter* Host = nullptr;
+	AKalmalaCharacter* Remote = nullptr;
+	int32 PlayerCount = 0;
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* Controller = It->Get();
+		AKalmalaCharacter* Character = Controller != nullptr
+			? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+		if (Controller == nullptr || Character == nullptr || Character->GetPlayerState() == nullptr) continue;
+		++PlayerCount;
+		if (Controller->IsLocalController()) Host = Character;
+		else if (Remote == nullptr) Remote = Character;
+	}
+	if (PlayerCount < 2) return false;
+	if (PlayerCount != 2 || Host == nullptr || Remote == nullptr)
+	{
+		FailReconnect(TEXT("expected exactly one listen host and one returning remote peer before setup"));
+		return false;
+	}
+
+	AKalmalaGameMode* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
+	AKalmalaWorldGenerationGameState* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+	FKalmalaOceanDiscoveryDescriptor DiscoveryDescriptor;
+	uint32 LocalHostHash = 0;
+	uint32 LocalHelmHash = 0;
+	if (GameMode == nullptr || WorldState == nullptr || WorldState->GetWorldGenerationConfig().WorldSeed != 418
+		|| !GetIdentityHash(Host->GetPlayerState(), LocalHostHash)
+		|| !GetIdentityHash(Remote->GetPlayerState(), LocalHelmHash) || LocalHostHash == LocalHelmHash
+		|| !FindReconnectDiscovery(DiscoveryDescriptor))
+	{
+		FailReconnect(TEXT("world seed, authenticated peer identities, or canonical sea discovery is unavailable"));
+		return false;
+	}
+
+	const FKalmalaOceanDiscoveryDefinition* Definition =
+		FKalmalaOceanDiscoveryCatalogue::FindDefinition(DiscoveryDescriptor.DiscoveryId);
+	UKalmalaInventoryComponent* HostInventory = Host->GetInventoryComponent();
+	UKalmalaInventoryComponent* HelmInventory = Remote->GetInventoryComponent();
+	UKalmalaDiscoveryProgressComponent* HostDiscovery = Host->GetDiscoveryProgressComponent();
+	UKalmalaDiscoveryProgressComponent* HelmDiscovery = Remote->GetDiscoveryProgressComponent();
+	if (Definition == nullptr || HostInventory == nullptr || HelmInventory == nullptr
+		|| HostDiscovery == nullptr || HelmDiscovery == nullptr)
+	{
+		FailReconnect(TEXT("peer inventory, discovery presentation, or reward catalogue is unavailable"));
+		return false;
+	}
+
+	ExpectedDiscoveryId = DiscoveryDescriptor.DiscoveryId;
+	ExpectedRewardItemId = Definition->RewardItemId;
+	ExpectedRewardQuantity = Definition->RewardQuantity;
+	HostIdentityHash = LocalHostHash;
+	HelmIdentityHash = LocalHelmHash;
+
+	if (bResume)
+	{
+		int32 SkiffCount = 0;
+		TestSkiff = nullptr;
+		for (TActorIterator<AKalmalaOceanSkiff> It(GetWorld()); It; ++It)
+		{
+			++SkiffCount;
+			if (It->GetPersistentVesselId() == TEXT("ocean-skiff:primary")) TestSkiff = *It;
+		}
+		const FVector ExpectedLocation(DiscoveryDescriptor.Location.X, DiscoveryDescriptor.Location.Y, SeaSurfaceZ);
+		const bool bRestoredSeats = HasSingleReconnectSkiff()
+			&& TestSkiff->GetPersistentVesselId() == TEXT("ocean-skiff:primary")
+			&& TestSkiff->GetMode() == EKalmalaOceanSkiffMode::Moored
+			&& TestSkiff->GetActorLocation().Equals(ExpectedLocation, 1.0f)
+			&& TestSkiff->GetHelmOccupant() == Remote
+			&& TestSkiff->GetPassengerOccupant() == Host
+			&& Remote->GetAttachParentActor() == TestSkiff
+			&& Host->GetAttachParentActor() == TestSkiff;
+		if (SkiffCount != 1 || !bRestoredSeats
+			|| HelmInventory->GetQuantity(ExpectedRewardItemId) != 0
+			|| HostInventory->GetQuantity(ExpectedRewardItemId) != 0)
+		{
+			FailReconnect(TEXT("restart did not restore exactly one moored vessel and the authenticated original seats, or inventory baseline was not fresh"));
+			return false;
+		}
+
+		if (GameMode->ClaimOceanDiscovery(Remote, DiscoveryDescriptor)
+			|| HelmDiscovery->GetFeedback() != EKalmalaDiscoveryFeedback::AlreadyFound
+			|| HelmInventory->GetQuantity(ExpectedRewardItemId) != 0)
+		{
+			FailReconnect(TEXT("reconnected owner could replay the sea discovery or received a duplicate reward"));
+			return false;
+		}
+	}
+	else
+	{
+		for (TActorIterator<AKalmalaOceanSkiff> It(GetWorld()); It; ++It)
+		{
+			FailReconnect(TEXT("fresh seed phase already contains a vessel"));
+			return false;
+		}
+		if (HostInventory->GetQuantity(ExpectedRewardItemId) != 0
+			|| HelmInventory->GetQuantity(ExpectedRewardItemId) != 0
+			|| HostDiscovery->GetFeedback() != EKalmalaDiscoveryFeedback::None
+			|| HelmDiscovery->GetFeedback() != EKalmalaDiscoveryFeedback::None)
+		{
+			FailReconnect(TEXT("fresh peer reward and discovery baselines are not empty"));
+			return false;
+		}
+
+		const FVector Location(DiscoveryDescriptor.Location.X, DiscoveryDescriptor.Location.Y, SeaSurfaceZ);
+		Host->SetActorLocationAndRotation(Location, FRotator::ZeroRotator, false, nullptr, ETeleportType::TeleportPhysics);
+		Remote->SetActorLocationAndRotation(Location, FRotator::ZeroRotator, false, nullptr, ETeleportType::TeleportPhysics);
+		FActorSpawnParameters Parameters;
+		Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		TestSkiff = GetWorld()->SpawnActor<AKalmalaOceanSkiff>(Location, FRotator::ZeroRotator, Parameters);
+		if (TestSkiff == nullptr || !TestSkiff->InitializePersistentIdentityFromServer(TEXT("ocean-skiff:primary")))
+		{
+			FailReconnect(TEXT("could not create the one server-owned primary skiff"));
+			return false;
+		}
+		GameMode->OnOceanSkiffStateChanged(TestSkiff);
+		if (!TestSkiff->TryInteractFromServer(Remote) || !TestSkiff->TryInteractFromServer(Host)
+			|| TestSkiff->GetHelmOccupant() != Remote || TestSkiff->GetPassengerOccupant() != Host
+			|| !GameMode->ClaimOceanDiscovery(Remote, DiscoveryDescriptor)
+			|| HelmInventory->GetQuantity(ExpectedRewardItemId) != ExpectedRewardQuantity
+			|| HostInventory->GetQuantity(ExpectedRewardItemId) != 0
+			|| HelmDiscovery->GetFeedback() != EKalmalaDiscoveryFeedback::LandmarkFound
+			|| HostDiscovery->GetFeedback() != EKalmalaDiscoveryFeedback::None)
+		{
+			FailReconnect(TEXT("server could not persist the two authenticated seats and one owner-only discovery reward"));
+			return false;
+		}
+	}
+
+	HelmCharacter = Remote;
+	PassengerCharacter = Host;
+	HelmPlayerState = Remote->GetPlayerState();
+	PassengerPlayerState = Host->GetPlayerState();
+	bServerOutcomePublished = true;
+	ForceNetUpdate();
+
+	UE_LOG(LogTemp, Display,
+		TEXT("Ocean skiff reconnect %s server passed: Seed=418 VesselActors=1 VesselId=ocean-skiff:primary HostId=%08x HelmId=%08x Seats=Helm,Passenger Discovery=%s Reward=%s:%d ClaimState=%s InventoryQuantity=%d"),
+		bResume ? TEXT("resume") : TEXT("seed"), HostIdentityHash, HelmIdentityHash,
+		*ExpectedDiscoveryId.ToString(), *ExpectedRewardItemId.ToString(), ExpectedRewardQuantity,
+		bResume ? TEXT("AlreadyFound") : TEXT("LandmarkFound"),
+		bResume ? 0 : HelmInventory->GetQuantity(ExpectedRewardItemId));
+	return true;
+}
+
+void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyReconnectLateJoin(const bool bResume)
+{
+	int32 PlayerCount = 0;
+	AKalmalaCharacter* LateJoinCharacter = nullptr;
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* Controller = It->Get();
+		AKalmalaCharacter* Character = Controller != nullptr
+			? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+		if (Character == nullptr || Character->GetPlayerState() == nullptr) continue;
+		++PlayerCount;
+		if (Character->GetPlayerState() != HelmPlayerState && Character->GetPlayerState() != PassengerPlayerState)
+		{
+			LateJoinCharacter = Character;
+		}
+	}
+	if (PlayerCount < 3) return;
+	if (PlayerCount != 3 || LateJoinCharacter == nullptr || !HasSingleReconnectSkiff()
+		|| !IsValid(HelmCharacter.Get()) || !IsValid(PassengerCharacter.Get())
+		|| TestSkiff->GetMode() != EKalmalaOceanSkiffMode::Moored
+		|| TestSkiff->GetHelmOccupant() != HelmCharacter.Get()
+		|| TestSkiff->GetPassengerOccupant() != PassengerCharacter.Get()
+		|| LateJoinCharacter->GetAttachParentActor() != nullptr)
+	{
+		FailReconnect(TEXT("late join changed vessel count, original occupancy, or the late player's attachment state"));
+		return;
+	}
+
+	uint32 LateJoinHash = 0;
+	UKalmalaInventoryComponent* Inventory = LateJoinCharacter->GetInventoryComponent();
+	UKalmalaDiscoveryProgressComponent* Discovery = LateJoinCharacter->GetDiscoveryProgressComponent();
+	if (!GetIdentityHash(LateJoinCharacter->GetPlayerState(), LateJoinHash)
+		|| LateJoinHash == HostIdentityHash || LateJoinHash == HelmIdentityHash
+		|| Inventory == nullptr || Discovery == nullptr
+		|| Inventory->GetQuantity(ExpectedRewardItemId) != 0
+		|| Discovery->GetFeedback() != EKalmalaDiscoveryFeedback::None)
+	{
+		FailReconnect(TEXT("late join did not have a distinct authenticated identity and private discovery baseline"));
+		return;
+	}
+
+	LateJoinCharacter->SetActorLocation(TestSkiff->GetActorLocation() + FVector(1200.0f, 0.0f, 0.0f),
+		false, nullptr, ETeleportType::TeleportPhysics);
+	LateJoinCharacter->ForceNetUpdate();
+	TestSkiff->ForceNetUpdate();
+	LateJoinIdentityHash = LateJoinHash;
+	bLateJoinOutcomePublished = true;
+	ForceNetUpdate();
+	UE_LOG(LogTemp, Display,
+		TEXT("Ocean skiff reconnect %s late-join server passed: Seed=418 LateJoinId=%08x VesselActors=1 Helm=OriginalOwner Passenger=Host Attached=0 RewardLeak=0"),
+		bResume ? TEXT("resume") : TEXT("seed"), LateJoinHash);
+}
+
+void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyReconnectLocalReplica(const FString& Phase)
+{
+	APlayerController* Controller = GetWorld() != nullptr ? GetWorld()->GetFirstPlayerController() : nullptr;
+	AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+	if (Controller == nullptr || !Controller->IsLocalController() || Character == nullptr
+		|| Character->GetPlayerState() == nullptr || !bServerOutcomePublished) return;
+
+	UKalmalaInventoryComponent* Inventory = Character->GetInventoryComponent();
+	UKalmalaDiscoveryProgressComponent* Discovery = Character->GetDiscoveryProgressComponent();
+	const APlayerState* LocalState = Character->GetPlayerState();
+	if (!HasSingleReconnectSkiff() || Inventory == nullptr || Discovery == nullptr) return;
+	const bool bResume = Phase.Equals(TEXT("Resume"), ESearchCase::IgnoreCase);
+	const bool bSkiffState = TestSkiff->GetMode() == EKalmalaOceanSkiffMode::Moored
+		&& IsValid(TestSkiff->GetHelmOccupant()) && IsValid(TestSkiff->GetPassengerOccupant())
+		&& TestSkiff->GetHelmOccupant()->GetPlayerState() == HelmPlayerState
+		&& TestSkiff->GetPassengerOccupant()->GetPlayerState() == PassengerPlayerState;
+
+	if (LocalState == HelmPlayerState)
+	{
+		const bool bExpectedFeedback = bResume
+			? Discovery->GetFeedback() == EKalmalaDiscoveryFeedback::AlreadyFound && Discovery->GetFeedbackSerial() > 0
+			: Discovery->GetFeedback() == EKalmalaDiscoveryFeedback::LandmarkFound && Discovery->GetFeedbackSerial() > 0;
+		const int32 ExpectedQuantity = bResume ? 0 : ExpectedRewardQuantity;
+		if (!bSkiffState || !bExpectedFeedback || Inventory->GetQuantity(ExpectedRewardItemId) != ExpectedQuantity
+			|| Character->GetAttachParentActor() != TestSkiff) return;
+		UE_LOG(LogTemp, Display,
+			TEXT("Ocean skiff reconnect %s owner peer passed: Authority=0 Seat=Helm Seed=418 DiscoveryFeedback=%s Reward=%s:%d VesselActors=1"),
+			bResume ? TEXT("resume") : TEXT("seed"), bResume ? TEXT("AlreadyFound") : TEXT("LandmarkFound"),
+			*ExpectedRewardItemId.ToString(), Inventory->GetQuantity(ExpectedRewardItemId));
+		bReconnectLocalReported = true;
+		return;
+	}
+	if (LocalState == PassengerPlayerState)
+	{
+		if (!bSkiffState || Character->GetAttachParentActor() != TestSkiff
+			|| Inventory->GetQuantity(ExpectedRewardItemId) != 0
+			|| Discovery->GetFeedback() != EKalmalaDiscoveryFeedback::None) return;
+		UE_LOG(LogTemp, Display,
+			TEXT("Ocean skiff reconnect %s host peer passed: Authority=1 Seat=Passenger Seed=418 OwnerRewardLeak=0 VesselActors=1"),
+			bResume ? TEXT("resume") : TEXT("seed"));
+		bReconnectLocalReported = true;
+		return;
+	}
+	uint32 LocalIdentityHash = 0;
+	const bool bLocalIsAuthenticatedLateJoin = GetIdentityHash(LocalState, LocalIdentityHash)
+		&& LocalIdentityHash == LateJoinIdentityHash;
+	if (bLateJoinOutcomePublished && bLocalIsAuthenticatedLateJoin
+		&& Character->GetAttachParentActor() == nullptr
+		&& IsValid(TestSkiff->GetHelmOccupant()) && IsValid(TestSkiff->GetPassengerOccupant())
+		&& TestSkiff->GetHelmOccupant()->GetPlayerState() == HelmPlayerState
+		&& TestSkiff->GetPassengerOccupant()->GetPlayerState() == PassengerPlayerState
+		&& Inventory->GetQuantity(ExpectedRewardItemId) == 0
+		&& Discovery->GetFeedback() == EKalmalaDiscoveryFeedback::None)
+	{
+		UE_LOG(LogTemp, Display,
+			TEXT("Ocean skiff reconnect %s late-join peer passed: Authority=0 Seed=418 VesselActors=1 Seats=OriginalPeers LatePlayerAttached=0 RewardLeak=0"),
+			bResume ? TEXT("resume") : TEXT("seed"));
+		bReconnectLocalReported = true;
+	}
+}
+
+void AKalmalaOceanDiscoveryDisembarkPeerTest::FailReconnect(const TCHAR* Reason)
+{
+	if (bServerFailed) return;
+	bServerFailed = true;
+	UE_LOG(LogTemp, Error, TEXT("Ocean skiff reconnect peer verification FAILED: %s"), Reason);
 }
 
 bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareServerScenario()

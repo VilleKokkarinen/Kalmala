@@ -1122,6 +1122,24 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
         return;
     }
 
+    for (int32 Index = PendingOceanTravelRestores.Num() - 1; Index >= 0; --Index)
+    {
+        APlayerController* PendingController = PendingOceanTravelRestores[Index].Get();
+        if (!IsValid(PendingController))
+        {
+            PendingOceanTravelRestores.RemoveAtSwap(Index);
+            continue;
+        }
+        AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(PendingController->GetPawn());
+        if (Character == nullptr || Character->GetPlayerState() == nullptr) continue;
+
+        PendingOceanTravelRestores.RemoveAtSwap(Index);
+        FString IgnoredIdentity;
+        GetPlayerDiscoverySave(Character, IgnoredIdentity);
+        LoadOceanDiscoveryLedger(Character);
+        RestoreOceanTravelForPlayer(PendingController);
+    }
+
     DriveTraversalTest();
     DriveCampChoiceTest();
     DriveRainVerticalSliceTest();
@@ -1993,6 +2011,13 @@ void AKalmalaGameMode::RestoreOceanTravelForPlayer(APlayerController* PlayerCont
 
     const EKalmalaOceanSkiffSeat Seat = SavedPassenger.Seat == EKalmalaOceanTravelSavedSeat::Helm
         ? EKalmalaOceanSkiffSeat::Helm : EKalmalaOceanSkiffSeat::Passenger;
+    const bool bAlreadyOccupiesSavedSeat = Seat == EKalmalaOceanSkiffSeat::Helm
+        ? Skiff->GetHelmOccupant() == Character : Skiff->GetPassengerOccupant() == Character;
+    if (bAlreadyOccupiesSavedSeat && Character->GetAttachParentActor() == Skiff)
+    {
+        OceanTravelPlayerSaves.Add(PlayerIdentity, PlayerSave);
+        return;
+    }
     if (!Skiff->RestoreSeatFromServer(Character, Seat))
     {
         UE_LOG(LogTemp, Warning, TEXT("Ocean travel seat restore rejected for player %s because the saved seat is occupied or the player is already attached."),
@@ -2249,15 +2274,63 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer);
 
+#if !UE_BUILD_SHIPPING
+    FString ReconnectPhase;
+    const bool bOceanReconnectPeerTest = FParse::Param(FCommandLine::Get(),
+        TEXT("KalmalaOceanDiscoveryDisembarkPeerTest"))
+        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaOceanReconnectPhase="), ReconnectPhase);
+    if (NewPlayer != nullptr && bOceanReconnectPeerTest)
+    {
+        APlayerState* PlayerState = NewPlayer->GetPlayerState<APlayerState>();
+        FString StableTestId;
+        FString StableTestRole;
+        if (NewPlayer->IsLocalController())
+        {
+            StableTestRole = TEXT("Host");
+            StableTestId = TEXT("m8-reconnect-host");
+        }
+        else
+        {
+            int32 ExistingRemotePlayers = 0;
+            for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+            {
+                APlayerController* ExistingController = It->Get();
+                if (ExistingController != nullptr && ExistingController != NewPlayer
+                    && !ExistingController->IsLocalController()
+                    && ExistingController->GetPlayerState<APlayerState>() != nullptr)
+                {
+                    ++ExistingRemotePlayers;
+                }
+            }
+            StableTestRole = ExistingRemotePlayers == 0 ? TEXT("ReturningOwner") : TEXT("LateJoiner");
+            StableTestId = ExistingRemotePlayers == 0
+                ? TEXT("m8-reconnect-owner") : TEXT("m8-reconnect-late");
+        }
+        if (PlayerState != nullptr && !StableTestId.IsEmpty())
+        {
+            const FUniqueNetIdStringRef TestNetId = FUniqueNetIdString::Create(
+                StableTestId, FName(TEXT("KalmalaReconnectTest")));
+            PlayerState->SetUniqueId(FUniqueNetIdRepl(*TestNetId));
+            UE_LOG(LogTemp, Display,
+                TEXT("M8 reconnect fixture assigned stable test-provider identity: Role=%s Phase=%s"),
+                *StableTestRole, *ReconnectPhase);
+        }
+    }
+#endif
+
     PlacePawnAtGeneratedStart(NewPlayer);
 
-    if (NewPlayer != nullptr && NewPlayer->GetPawn() != nullptr)
+    if (NewPlayer != nullptr)
     {
-        FString IgnoredIdentity;
         AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(NewPlayer->GetPawn());
-        GetPlayerDiscoverySave(Character, IgnoredIdentity);
-        LoadOceanDiscoveryLedger(Character);
-        RestoreOceanTravelForPlayer(NewPlayer);
+        if (Character != nullptr && Character->GetPlayerState() != nullptr)
+        {
+            FString IgnoredIdentity;
+            GetPlayerDiscoverySave(Character, IgnoredIdentity);
+            LoadOceanDiscoveryLedger(Character);
+            RestoreOceanTravelForPlayer(NewPlayer);
+        }
+        PendingOceanTravelRestores.AddUnique(NewPlayer);
     }
 
 #if !UE_BUILD_SHIPPING

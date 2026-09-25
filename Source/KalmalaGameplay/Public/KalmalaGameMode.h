@@ -122,6 +122,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame> OceanTravelWorldSave;
     TMap<FString, TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame>> OceanTravelPlayerSaves;
     TWeakObjectPtr<class AKalmalaOceanSkiff> RestoredOceanSkiff;
+    TArray<TWeakObjectPtr<APlayerController>> PendingOceanTravelRestores;
     bool bOceanTravelPersistenceWritable = false;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGame> ConstructionSaveGame;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaStorageSaveGame> StorageSaveGame;
