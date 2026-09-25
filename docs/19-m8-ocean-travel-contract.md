@@ -55,6 +55,26 @@ Until the M8 persistence gate passes, do not save vessel identity, occupancy, tr
 
 This contract preserves server authority: clients send bounded action and steering intent, while the server selects seats, validates world/collision constraints, simulates movement, and publishes accepted outcomes. The only public replicated vessel state is relevant movement, mode, and current session occupancy. Private input and all persistent state remain excluded.
 
+## Seeded coastline verification (2026-09-25)
+
+The `Kalmala.Gameplay.OceanTravel.SkiffCoastlineAccess` automation samples 32
+radial mainland coast directions from each resolved start for seeds 418, 999,
+and 1337. Every seed contains shallow-water positions rejected by the production
+hull-depth predicate and at least one candidate satisfying its nine-point
+100 cm ocean-depth footprint, the server launch gates, and one of the eight
+190 cm safe-exit surface checks. The candidates are 79 m, 287 m, and 167 m from
+the sampled dry shoreline, respectively, at 102.4 cm, 100.4 cm, and 100.5 cm
+water depth. Their accepted exits remain in qualifying ocean water at 105.3 cm,
+100.7 cm, and 101.2 cm depth, so the occupant can leave the skiff at the water
+surface and continue swimming.
+
+The companion `Kalmala.World.Water.OceanDepth` test confirms coastline depth
+queries use the generated collision-triangle plane and clipped mesh. This is
+deterministic sampler and rule coverage; it does not spawn the skiff, exercise
+the server visibility trace or pawn-overlap query, prove a dry-shore disembark,
+or test the actor's live terrain collision sweep. The open coastline-presentation
+subtask and live host/client collision and feedback acceptance remain separate.
+
 ## Implemented launch and occupancy increment (2026-09-24)
 
 The first runtime increment adds one server-created skiff per session. Launch uses the existing server-side interaction trace and accepts only a hit on an active generated terrain patch within 250 cm whose sampled Ocean depth is at least 100 cm and whose position is inside the 16 km world boundary. The launch point comes from the server trace; a client cannot submit a transform. A second skiff is rejected for this two-player prototype session.

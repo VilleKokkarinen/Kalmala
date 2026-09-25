@@ -8,6 +8,7 @@
 class AKalmalaCharacter;
 class UBoxComponent;
 class UProceduralMeshComponent;
+struct FKalmalaWorldGenerationConfig;
 
 UENUM(BlueprintType)
 enum class EKalmalaOceanSkiffMode : uint8
@@ -47,6 +48,10 @@ public:
     EKalmalaOceanSkiffMode GetMode() const { return Mode; }
     static bool IsLaunchAllowed(bool bServerAuthority, bool bGeneratedTerrainHit, bool bInRange,
         bool bDeepOcean, bool bWorldBounded, bool bSessionSlotAvailable);
+    static bool HasNavigableOceanFootprintForConfig(const FKalmalaWorldGenerationConfig& Config,
+        FVector2D Center, float YawDegrees);
+    static bool IsSafeExitSurfaceForConfig(const FKalmalaWorldGenerationConfig& Config,
+        FVector2D Position, double WorldMargin = 0.0);
     static EKalmalaOceanSkiffSeat ChooseSeat(bool bHelmOccupied, bool bPassengerOccupied);
     static bool IsDisembarkAllowed(bool bServerAuthority, bool bIsOccupant, float Speed, bool bHasSafePlacement);
     static bool IsSteeringIntentAllowed(bool bServerAuthority, bool bIsHelmOccupant, float Throttle,

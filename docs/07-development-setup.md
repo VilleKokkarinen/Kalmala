@@ -176,6 +176,20 @@ After an editor build, run `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract`
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8SkiffUser' -abslog='C:\temp\KalmalaM8Skiff.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract+Kalmala.Gameplay.OceanTravel.SkiffSteeringContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
+Add `Kalmala.Gameplay.OceanTravel.SkiffCoastlineAccess` and
+`Kalmala.World.Water.OceanDepth` to that automation prefix when validating
+coasts. The coastline test follows 32 radial mainland coast samples from the
+resolved start for seeds 418, 999, and 1337; it checks shallow-water rejection,
+the production nine-point hull-depth footprint, a qualifying server launch
+sample, and one of the server's eight 190 cm safe-exit surface candidates. It
+requires launch candidates between 100 and 250 cm of sampled ocean depth and
+within 300 m of the dry shoreline. `OceanDepth` validates the sampled depth
+against the generated collision-triangle planes and clipped coastal mesh.
+These deterministic checks do not instantiate a skiff, execute a visibility
+interaction trace, query live pawn overlap, exercise the skiff's actual world
+collision sweep, or prove a dry-shore disembark; keep those limits in M8
+host/client acceptance.
+
 ## Item catalogue verification
 
 For the M2 material contract, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above after building the editor. It loads the real project catalogue and checks required materials, exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate configuration. This is a pure contract check; live inventory replication and harvest-grant verification follow when the inventory component exists.

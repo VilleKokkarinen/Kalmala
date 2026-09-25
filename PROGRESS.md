@@ -3,7 +3,7 @@
 ## Current state
 
 - Automation bootstrap created on 2026-09-01.
-- The project is in M0 (Bootstrap); the authoritative milestone acceptance criteria are in `docs/04-roadmap.md`.
+- As of 2026-09-25, the active backlog milestone is M8 (Ocean and long-distance travel); the earliest unchecked item is tracked in BACKLOG.md and docs/04-roadmap.md.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
 ## Run log
@@ -7330,3 +7330,46 @@ Multiplayer and persistence impact: This records existing server behavior only: 
 Known limits: No live host/client collision traversal, rendered correction, or player-facing blocked reason has been exercised. The skiff remains transient; hull durability and repair are intentionally outside the accepted current medium contract.
 
 Next task: Verify seed-generated launch/landing access and shallow-water/collision edge cases across representative coastlines without adding a handcrafted route.
+
+### 2026-09-25T06:31:00Z — Verify generated skiff coast access
+
+Outcome: Completed one M8 coastline-verification leaf. Extracted the skiff's
+nine-point hull-depth and exit-surface predicates into shared helpers so the
+deterministic coast scan exercises the same rules as runtime movement and
+disembarkation. No handcrafted route, gameplay authority, RPC, replication, or
+persistence behavior changed.
+
+Changed this run: `Source/KalmalaGameplay/Public/KalmalaOceanSkiff.h`,
+`Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaOceanSkiffTest.cpp`,
+`docs/07-development-setup.md`, `docs/19-m8-ocean-travel-contract.md`,
+`BACKLOG.md`, and this handoff. Pre-existing workspace edits were preserved.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed
+all 173 actions with normal `%LOCALAPPDATA%\\UnrealBuildTool` access; the final
+test adjustment rebuilt in four actions. `SkiffAuthorityContract`,
+`SkiffSteeringContract`, `SkiffCoastlineAccess`, and
+`Kalmala.World.Water.OceanDepth` all reported `Result={Success}`. The coast
+scan found shallow-water rejection and a candidate launch/exit pair for seeds
+418, 999, and 1337. Candidates were 79 m, 287 m, and 167 m from the dry
+shoreline at 102.4 cm, 100.4 cm, and 100.5 cm of sampled water; accepted exits
+remained in qualifying water at 105.3 cm, 100.7 cm, and 101.2 cm. The initial
+dry-shore-only probe found no candidate within the 250 cm interaction radius;
+the final test therefore checks access by wading/swimming to the candidate
+within 300 m of shore, then applies the existing near-surface 100–250 cm depth
+and server launch predicates. It does not claim a live view trace or land exit.
+
+Multiplayer and persistence impact: The server still owns trace validation,
+movement, footprint depth checks, exit selection, and overlap checks. The
+shared helpers are read-only generation queries; no new client-authoritative
+state, replicated field, RPC, or save data was added.
+
+Known limits: This is deterministic generator and collision-triangle sampler
+coverage, not a spawned-skiff interaction, pawn-overlap, or terrain-sweep
+scenario. The accepted exits in the sampled coasts were into water, so users
+must swim after disembarking; dry-shore landing and player-facing coast,
+shallow-hazard, and rejection feedback remain unverified. The three seeds do
+not establish all generated coastline behavior.
+
+Next task: Present water access, shallow hazards, collision constraints, and
+rejected embark reasons to players; verify matching host/client feedback.

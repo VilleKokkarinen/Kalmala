@@ -80,6 +80,55 @@ bool AKalmalaOceanSkiff::IsLaunchAllowed(const bool bServerAuthority, const bool
     return bServerAuthority && bGeneratedTerrainHit && bInRange && bDeepOcean && bWorldBounded && bSessionSlotAvailable;
 }
 
+bool AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(
+    const FKalmalaWorldGenerationConfig& Config, const FVector2D Center, const float YawDegrees)
+{
+    if (!Config.IsValid() || !FMath::IsFinite(YawDegrees) || Center.ContainsNaN()) return false;
+
+    const FRotator Rotation(0.0f, YawDegrees, 0.0f);
+    const FVector Forward = Rotation.Vector();
+    const FVector Right = FRotationMatrix(Rotation).GetUnitAxis(EAxis::Y);
+    const FVector2D Footprint[] = {
+        FVector2D::ZeroVector,
+        FVector2D(Forward * KalmalaOceanSkiff::HullHalfLength),
+        FVector2D(Forward * -KalmalaOceanSkiff::HullHalfLength),
+        FVector2D(Right * KalmalaOceanSkiff::HullHalfWidth),
+        FVector2D(Right * -KalmalaOceanSkiff::HullHalfWidth),
+        FVector2D(Forward * KalmalaOceanSkiff::HullHalfLength + Right * KalmalaOceanSkiff::HullHalfWidth),
+        FVector2D(Forward * KalmalaOceanSkiff::HullHalfLength - Right * KalmalaOceanSkiff::HullHalfWidth),
+        FVector2D(Forward * -KalmalaOceanSkiff::HullHalfLength + Right * KalmalaOceanSkiff::HullHalfWidth),
+        FVector2D(Forward * -KalmalaOceanSkiff::HullHalfLength - Right * KalmalaOceanSkiff::HullHalfWidth)
+    };
+
+    for (const FVector2D& Offset : Footprint)
+    {
+        const FVector2D SamplePosition = Center + Offset;
+        if (!FKalmalaWorldBounds::Contains(Config, SamplePosition)
+            || FKalmalaShimmeringLakeSampler::IsWater(Config, SamplePosition))
+        {
+            return false;
+        }
+        const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, SamplePosition);
+        if (!Ocean.bIsValid || Ocean.WaterDepth < KalmalaOceanSkiff::MinimumWaterDepth) return false;
+    }
+    return true;
+}
+
+bool AKalmalaOceanSkiff::IsSafeExitSurfaceForConfig(
+    const FKalmalaWorldGenerationConfig& Config, const FVector2D Position, const double WorldMargin)
+{
+    if (!Config.IsValid() || !FMath::IsFinite(WorldMargin) || WorldMargin < 0.0
+        || !FKalmalaWorldBounds::Contains(Config, Position, WorldMargin)
+        || FKalmalaShimmeringLakeSampler::IsWater(Config, Position))
+    {
+        return false;
+    }
+
+    const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, Position);
+    return Ocean.bIsValid && !(Ocean.WaterDepth > 0.0f
+        && Ocean.WaterDepth < KalmalaOceanSkiff::MinimumWaterDepth);
+}
+
 EKalmalaOceanSkiffSeat AKalmalaOceanSkiff::ChooseSeat(const bool bHelmOccupied, const bool bPassengerOccupied)
 {
     if (!bHelmOccupied) return EKalmalaOceanSkiffSeat::Helm;
@@ -155,33 +204,8 @@ bool AKalmalaOceanSkiff::HasDeepOceanFootprint(const FVector Location, const FRo
         ? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
     if (State == nullptr || !State->GetWorldGenerationConfig().IsValid()) return false;
 
-    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector Forward = Rotation.Vector();
-    const FVector Right = FRotationMatrix(Rotation).GetUnitAxis(EAxis::Y);
-    const FVector2D Footprint[] = {
-        FVector2D::ZeroVector,
-        FVector2D(Forward * KalmalaOceanSkiff::HullHalfLength),
-        FVector2D(Forward * -KalmalaOceanSkiff::HullHalfLength),
-        FVector2D(Right * KalmalaOceanSkiff::HullHalfWidth),
-        FVector2D(Right * -KalmalaOceanSkiff::HullHalfWidth),
-        FVector2D(Forward * KalmalaOceanSkiff::HullHalfLength + Right * KalmalaOceanSkiff::HullHalfWidth),
-        FVector2D(Forward * KalmalaOceanSkiff::HullHalfLength - Right * KalmalaOceanSkiff::HullHalfWidth),
-        FVector2D(Forward * -KalmalaOceanSkiff::HullHalfLength + Right * KalmalaOceanSkiff::HullHalfWidth),
-        FVector2D(Forward * -KalmalaOceanSkiff::HullHalfLength - Right * KalmalaOceanSkiff::HullHalfWidth)
-    };
-
-    for (const FVector2D& Offset : Footprint)
-    {
-        const FVector2D SamplePosition = FVector2D(Location) + Offset;
-        if (!FKalmalaWorldBounds::Contains(Config, SamplePosition)
-            || FKalmalaShimmeringLakeSampler::IsWater(Config, SamplePosition))
-        {
-            return false;
-        }
-        const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, SamplePosition);
-        if (!Ocean.bIsValid || Ocean.WaterDepth < KalmalaOceanSkiff::MinimumWaterDepth) return false;
-    }
-    return true;
+    return HasNavigableOceanFootprintForConfig(State->GetWorldGenerationConfig(),
+        FVector2D(Location), Rotation.Yaw);
 }
 
 void AKalmalaOceanSkiff::BlockMovementAtLastSafeTransform(const FVector& SafeLocation, const FRotator& SafeRotation)
@@ -406,11 +430,8 @@ bool AKalmalaOceanSkiff::FindSafeExitLocation(AKalmalaCharacter* Interactor, FVe
         const float Angle = FMath::DegreesToRadians(DirectionIndex * 45.0f);
         const FVector2D Direction(FMath::Cos(Angle), FMath::Sin(Angle));
         const FVector2D CandidateXY = FVector2D(GetActorLocation()) + Direction * KalmalaOceanSkiff::ExitOffset;
-        if (!FKalmalaWorldBounds::Contains(Config, CandidateXY, Radius + 2.0f)) continue;
-
+        if (!IsSafeExitSurfaceForConfig(Config, CandidateXY, Radius + 2.0f)) continue;
         const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, CandidateXY);
-        if (!Ocean.bIsValid || (Ocean.WaterDepth > 0.0f && Ocean.WaterDepth < KalmalaOceanSkiff::MinimumWaterDepth)
-            || FKalmalaShimmeringLakeSampler::IsWater(Config, CandidateXY)) continue;
         const float CandidateZ = Ocean.WaterDepth >= KalmalaOceanSkiff::MinimumWaterDepth
             ? KalmalaOceanSkiff::SeaSurfaceZ + HalfHeight + 8.0f
             : Ocean.TerrainHeight + HalfHeight + 4.0f;

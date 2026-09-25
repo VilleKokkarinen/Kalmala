@@ -1,5 +1,9 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaOceanSkiff.h"
+#include "KalmalaOceanSampler.h"
+#include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaWorldBounds.h"
+#include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaOceanSkiffAuthorityContractTest,
@@ -82,6 +86,146 @@ bool FKalmalaOceanSkiffSteeringContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Reverse speed clamps to -200 cm/s"), FMath::IsNearlyEqual(Speed, -200.0f));
     TestTrue(TEXT("Expired input decelerates toward zero"),
         FMath::IsNearlyEqual(AKalmalaOceanSkiff::AdvanceSpeed(100.0f, 0.0f, 0.25f), 75.0f));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaOceanSkiffCoastlineAccessTest,
+    "Kalmala.Gameplay.OceanTravel.SkiffCoastlineAccess",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaOceanSkiffCoastlineAccessTest::RunTest(const FString& Parameters)
+{
+    constexpr uint64 RepresentativeSeeds[] = {418, 999, 1337};
+    constexpr float CoarseCoastStep = 10000.0f;
+    constexpr float MaximumScanRadius = 1400000.0f;
+    constexpr float CoastCandidateStep = 100.0f;
+    constexpr float InteractionRange = 250.0f;
+    constexpr float MaximumSwimAccessDistance = 30000.0f;
+    constexpr float SafeExitOffset = 190.0f;
+    constexpr double CapsuleWorldMargin = 44.0;
+
+    for (const uint64 Seed : RepresentativeSeeds)
+    {
+        const FKalmalaWorldGenerationConfig Config{Seed};
+        const FVector2D Start(FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config).GetLocation());
+        bool bFoundCoast = false;
+        bool bFoundShallowRejection = false;
+        bool bFoundAccessAndExit = false;
+        int32 CoastSegments = 0;
+        FVector2D AcceptedLaunch = FVector2D::ZeroVector;
+        FVector2D AcceptedExit = FVector2D::ZeroVector;
+        float AcceptedDepth = 0.0f;
+        float AcceptedShoreDistance = 0.0f;
+        float AcceptedExitDepth = 0.0f;
+
+        for (int32 DirectionIndex = 0; DirectionIndex < 32; ++DirectionIndex)
+        {
+            const float Angle = DirectionIndex * (2.0f * PI / 32.0f);
+            const FVector2D Direction(FMath::Cos(Angle), FMath::Sin(Angle));
+            float PreviousRadius = 0.0f;
+            FKalmalaOceanSample Previous = FKalmalaOceanSampler::Sample(Config, Start);
+            if (!Previous.bIsValid || Previous.TerrainHeight < 0.0f) continue;
+
+            for (float Radius = CoarseCoastStep; Radius <= MaximumScanRadius; Radius += CoarseCoastStep)
+            {
+                const FVector2D Probe = Start + Direction * Radius;
+                if (!FKalmalaWorldBounds::Contains(Config, Probe, 160.0)) break;
+
+                const FKalmalaOceanSample Current = FKalmalaOceanSampler::Sample(Config, Probe);
+                if (!Current.bIsValid) break;
+                const FVector2D PreviousPosition = Start + Direction * PreviousRadius;
+                if (Previous.TerrainHeight >= 0.0f && Current.WaterDepth > 0.0f
+                    && !FKalmalaShimmeringLakeSampler::IsWater(Config, PreviousPosition)
+                    && !FKalmalaShimmeringLakeSampler::IsWater(Config, Probe))
+                {
+                    ++CoastSegments;
+                    bFoundCoast = true;
+                    float LandRadius = PreviousRadius;
+                    float SeaRadius = Radius;
+                    for (int32 Refine = 0; Refine < 12 && SeaRadius - LandRadius > 1.0f; ++Refine)
+                    {
+                        const float MidRadius = (LandRadius + SeaRadius) * 0.5f;
+                        const FKalmalaOceanSample Mid = FKalmalaOceanSampler::Sample(
+                            Config, Start + Direction * MidRadius);
+                        if (Mid.bIsValid && Mid.WaterDepth > 0.0f) SeaRadius = MidRadius;
+                        else LandRadius = MidRadius;
+                    }
+
+                    const FVector2D Shore = Start + Direction * ((LandRadius + SeaRadius) * 0.5f);
+                    for (float Offset = 0.0f; Offset <= MaximumSwimAccessDistance; Offset += CoastCandidateStep)
+                    {
+                        const FVector2D Candidate = Start + Direction * (SeaRadius + Offset);
+                        const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, Candidate);
+                        if (!Ocean.bIsValid || FKalmalaShimmeringLakeSampler::IsWater(Config, Candidate)) continue;
+
+                        if (Offset <= InteractionRange && Ocean.WaterDepth > 0.0f && Ocean.WaterDepth < 100.0f)
+                        {
+                            bool bAllHeadingsRejected = true;
+                            for (int32 HeadingIndex = 0; HeadingIndex < 12; ++HeadingIndex)
+                            {
+                                bAllHeadingsRejected &= !AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(
+                                    Config, Candidate, HeadingIndex * 15.0f);
+                            }
+                            bFoundShallowRejection |= bAllHeadingsRejected;
+                        }
+
+                        if (Ocean.WaterDepth < 100.0f || Ocean.WaterDepth > InteractionRange)
+                        {
+                            continue;
+                        }
+                        const bool bLaunchGatesPass = AKalmalaOceanSkiff::IsLaunchAllowed(true, true, true,
+                            Ocean.WaterDepth >= 100.0f, FKalmalaWorldBounds::Contains(Config, Candidate, 160.0), true);
+                        if (!bLaunchGatesPass) continue;
+
+                        for (int32 HeadingIndex = 0; HeadingIndex < 12 && !bFoundAccessAndExit; ++HeadingIndex)
+                        {
+                            if (!AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(
+                                Config, Candidate, HeadingIndex * 15.0f)) continue;
+
+                            for (int32 ExitDirection = 0; ExitDirection < 8; ++ExitDirection)
+                            {
+                                const float ExitAngle = ExitDirection * (2.0f * PI / 8.0f);
+                                const FVector2D Exit = Candidate
+                                    + FVector2D(FMath::Cos(ExitAngle), FMath::Sin(ExitAngle)) * SafeExitOffset;
+                                if (AKalmalaOceanSkiff::IsSafeExitSurfaceForConfig(Config, Exit, CapsuleWorldMargin))
+                                {
+                                    AcceptedLaunch = Candidate;
+                                    AcceptedExit = Exit;
+                                    AcceptedDepth = Ocean.WaterDepth;
+                                    AcceptedShoreDistance = (Candidate - Shore).Size();
+                                    AcceptedExitDepth = FKalmalaOceanSampler::Sample(Config, Exit).WaterDepth;
+                                    bFoundAccessAndExit = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (bFoundAccessAndExit) break;
+                    }
+                    break;
+                }
+
+                Previous = Current;
+                PreviousRadius = Radius;
+            }
+        }
+
+        TestTrue(FString::Printf(TEXT("Seed %llu has a generated mainland-to-ocean coastline"), Seed), bFoundCoast);
+        TestTrue(FString::Printf(TEXT("Seed %llu rejects shallow hull footprints"), Seed), bFoundShallowRejection);
+        TestTrue(FString::Printf(TEXT("Seed %llu has a launch candidate within 300 m of the coast and a safe exit"), Seed),
+            bFoundAccessAndExit);
+        AddInfo(FString::Printf(TEXT("Coast seed %llu: coast rays=%d shallow-rejected=%s access=%s launch-depth=%.1f cm shore-distance=%.1f m exit-water-depth=%.1f cm launch=(%.0f, %.0f) exit=(%.0f, %.0f)"),
+            Seed, CoastSegments, bFoundShallowRejection ? TEXT("yes") : TEXT("no"),
+            bFoundAccessAndExit ? TEXT("yes") : TEXT("no"), AcceptedDepth, AcceptedShoreDistance / 100.0f, AcceptedExitDepth,
+            AcceptedLaunch.X, AcceptedLaunch.Y, AcceptedExit.X, AcceptedExit.Y));
+    }
+
+    const FKalmalaWorldGenerationConfig Config{418};
+    TestFalse(TEXT("A hull footprint outside the finite playable world is rejected"),
+        AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(Config, FVector2D(FKalmalaWorldBounds::Radius + 500.0, 0.0), 0.0f));
+    TestFalse(TEXT("A safe-exit candidate outside the finite playable world is rejected"),
+        AKalmalaOceanSkiff::IsSafeExitSurfaceForConfig(Config, FVector2D(FKalmalaWorldBounds::Radius + 500.0, 0.0)));
+    TestFalse(TEXT("Negative exit clearance is malformed"),
+        AKalmalaOceanSkiff::IsSafeExitSurfaceForConfig(Config, FVector2D::ZeroVector, -1.0));
     return true;
 }
 #endif
