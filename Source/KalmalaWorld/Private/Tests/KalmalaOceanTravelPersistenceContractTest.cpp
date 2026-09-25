@@ -3,6 +3,7 @@
 #include "KalmalaOceanTravelPersistenceContract.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include "Misc/Guid.h"
 #include <limits>
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -38,6 +39,20 @@ bool FKalmalaOceanTravelPersistenceContractTest::RunTest(const FString& Paramete
         TestEqual(TEXT("The reloaded world snapshot retains its accepted heading"),
             ReloadedWorldSave->GetVesselState().YawDegrees, Vessel.YawDegrees);
     }
+
+    const FString DurableWorldSlot = TEXT("KalmalaM8TravelContract_") + FGuid::NewGuid().ToString(EGuidFormats::Digits);
+    TestTrue(TEXT("The accepted world record writes through the local slot API used by runtime restore"),
+        UGameplayStatics::SaveGameToSlot(WorldSave, DurableWorldSlot, 0));
+    UKalmalaOceanTravelPersistenceSaveGame* SlotReloadedWorldSave =
+        Cast<UKalmalaOceanTravelPersistenceSaveGame>(UGameplayStatics::LoadGameFromSlot(DurableWorldSlot, 0));
+    if (TestNotNull(TEXT("The world vessel record reloads from its local save slot"), SlotReloadedWorldSave))
+    {
+        TestTrue(TEXT("A slot-reloaded world record retains its exact scope"), SlotReloadedWorldSave->Matches(WorldIdentity));
+        TestEqual(TEXT("A slot-reloaded world record retains the accepted vessel ID"),
+            SlotReloadedWorldSave->GetVesselState().VesselId, Vessel.VesselId);
+    }
+    TestTrue(TEXT("The focused test removes its temporary local slot"),
+        UGameplayStatics::DeleteGameInSlot(DurableWorldSlot, 0));
 
     const FKalmalaM7SaveIdentity PlayerIdentity = FKalmalaM7SaveIdentity::ForPlayer(418, TEXT("player-alpha"));
     UKalmalaOceanTravelPersistenceSaveGame* PlayerSave = NewObject<UKalmalaOceanTravelPersistenceSaveGame>();

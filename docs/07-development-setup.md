@@ -34,13 +34,16 @@ the contract contains no velocity, steering, or live actor references. Schema
 zero requires an explicit migration decision; future schemas, identity
 mismatches, malformed vessel IDs, out-of-bounds transforms, invalid seats,
 and cross-world or orphaned player-to-vessel associations fail closed. The
-contract does not enable runtime save or restore.
+server game mode saves a generated-ocean-validated skiff snapshot while
+moored, reloads it at startup, restores authenticated seats on login, and
+preloads that player's sparse ocean-discovery ledger. Seat collisions and
+failed disembark-save clears fail closed; inventory and cargo are not saved.
 
-After the forced editor build, run the in-memory round-trip and rejection
-contract with the M7 identity/save checks:
+After the forced editor build, run the in-memory and local-slot round-trip and
+rejection contracts with the M7 identity/save checks:
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8TravelSaveUser' -abslog='C:\temp\KalmalaM8TravelSave.log' -ExecCmds="Automation RunTests Kalmala.World.OceanTravel.PersistenceContract+Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8TravelSaveUser' -abslog='C:\temp\KalmalaM8TravelSave.log' -ExecCmds="Automation RunTests Kalmala.World.OceanTravel.PersistenceContract+Kalmala.Gameplay.OceanTravel.SkiffRestoreContract+Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ### M7 skill progression contract

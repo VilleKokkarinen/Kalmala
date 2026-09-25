@@ -13,7 +13,7 @@ bool UKalmalaOceanTravelFeedbackComponent::IsFeedbackAllowed(
 	const bool bServerAuthority, const EKalmalaOceanTravelFeedback NewFeedback)
 {
 	return bServerAuthority && NewFeedback > EKalmalaOceanTravelFeedback::None
-		&& NewFeedback <= EKalmalaOceanTravelFeedback::Disembarked;
+		&& NewFeedback <= EKalmalaOceanTravelFeedback::TravelSaveUnavailable;
 }
 
 FString UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(const EKalmalaOceanTravelFeedback InFeedback)
@@ -50,6 +50,8 @@ FString UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(const EKalmalaOcea
 		return TEXT("◇ TRAVEL · NO SAFE EXIT · No clear landing capsule is available nearby. Move to open water and stop again.");
 	case EKalmalaOceanTravelFeedback::Disembarked:
 		return TEXT("⚓ TRAVEL · LEFT SKIFF · The server selected a clear landing point; continue from there.");
+	case EKalmalaOceanTravelFeedback::TravelSaveUnavailable:
+		return TEXT("□ TRAVEL · SAVE UNAVAILABLE · The server could not update your saved seat, so disembarking was cancelled safely.");
 	default:
 		return FString();
 	}

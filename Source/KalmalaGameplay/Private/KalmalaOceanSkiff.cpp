@@ -1,7 +1,9 @@
 #include "KalmalaOceanSkiff.h"
 
 #include "KalmalaCharacter.h"
+#include "KalmalaGameMode.h"
 #include "KalmalaOceanTravelFeedbackComponent.h"
+#include "KalmalaOceanTravelPersistenceContract.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
@@ -153,6 +155,14 @@ EKalmalaOceanSkiffSeat AKalmalaOceanSkiff::ChooseSeat(const bool bHelmOccupied, 
     return EKalmalaOceanSkiffSeat::None;
 }
 
+bool AKalmalaOceanSkiff::IsSeatRestoreAllowed(const bool bServerAuthority, const bool bAuthenticatedPlayer,
+    const bool bMatchingPersistentVessel, const bool bValidSeat, const bool bSeatAvailable,
+    const bool bPlayerAlreadySeated, const bool bAttachedElsewhere)
+{
+    return bServerAuthority && bAuthenticatedPlayer && bMatchingPersistentVessel && bValidSeat
+        && bSeatAvailable && !bPlayerAlreadySeated && !bAttachedElsewhere;
+}
+
 bool AKalmalaOceanSkiff::IsDisembarkAllowed(const bool bServerAuthority, const bool bIsOccupant,
     const float Speed, const bool bHasSafePlacement)
 {
@@ -266,6 +276,7 @@ void AKalmalaOceanSkiff::AdvanceServerMovement(const float DeltaSeconds)
     if (!HasAuthority() || GetWorld() == nullptr || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f) return;
 
     const double Now = GetWorld()->GetTimeSeconds();
+    const EKalmalaOceanSkiffMode PreviousMode = Mode;
     if (!IsValid(HelmOccupant) || HelmOccupant->GetController() == nullptr
         || !IsInputFresh(Now, LastAcceptedInputTime, bHasAcceptedInput))
     {
@@ -346,6 +357,10 @@ void AKalmalaOceanSkiff::AdvanceServerMovement(const float DeltaSeconds)
         Mode = EKalmalaOceanSkiffMode::Underway;
     }
     BlockReason = EKalmalaOceanSkiffBlockReason::None;
+    if (PreviousMode != EKalmalaOceanSkiffMode::Moored && Mode == EKalmalaOceanSkiffMode::Moored)
+    {
+        NotifyPersistenceStateChanged();
+    }
 }
 
 AKalmalaOceanSkiff* AKalmalaOceanSkiff::TryLaunchFromServer(AKalmalaCharacter* Interactor, const FHitResult& TerrainHit)
@@ -401,6 +416,18 @@ AKalmalaOceanSkiff* AKalmalaOceanSkiff::TryLaunchFromServer(AKalmalaCharacter* I
     SpawnParameters.Instigator = nullptr;
     SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
     AKalmalaOceanSkiff* LaunchedSkiff = World->SpawnActor<AKalmalaOceanSkiff>(SpawnLocation, SpawnRotation, SpawnParameters);
+    if (LaunchedSkiff != nullptr)
+    {
+        if (!LaunchedSkiff->InitializePersistentIdentityFromServer(TEXT("ocean-skiff:primary")))
+        {
+            LaunchedSkiff->Destroy();
+            LaunchedSkiff = nullptr;
+        }
+        else if (AKalmalaGameMode* GameMode = World->GetAuthGameMode<AKalmalaGameMode>())
+        {
+            GameMode->OnOceanSkiffStateChanged(LaunchedSkiff);
+        }
+    }
     Interactor->GetOceanTravelFeedbackComponent()->SetFeedbackFromServer(LaunchedSkiff != nullptr
         ? EKalmalaOceanTravelFeedback::SkiffLaunched : EKalmalaOceanTravelFeedback::LaunchObstructed);
     return LaunchedSkiff;
@@ -522,6 +549,15 @@ bool AKalmalaOceanSkiff::TryDisembarkFromServer(AKalmalaCharacter* Interactor)
         return false;
     }
 
+    if (AKalmalaGameMode* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>())
+    {
+        if (!GameMode->ClearOceanTravelPassenger(Interactor, PersistentVesselId))
+        {
+            SendFeedback(Interactor, EKalmalaOceanTravelFeedback::TravelSaveUnavailable);
+            return false;
+        }
+    }
+
     Interactor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
     Interactor->SetActorLocation(ExitLocation, false, nullptr, ETeleportType::TeleportPhysics);
     ClearSeatOccupant(Interactor);
@@ -582,6 +618,7 @@ void AKalmalaOceanSkiff::SetSeatOccupant(AKalmalaCharacter* Interactor, const EK
     else PassengerOccupant = Interactor;
     RefreshSeatOccupancyPresentation();
     ForceNetUpdate();
+    NotifyPersistenceStateChanged();
 }
 
 void AKalmalaOceanSkiff::ClearSeatOccupant(AKalmalaCharacter* Interactor)
@@ -600,6 +637,46 @@ void AKalmalaOceanSkiff::ClearSeatOccupant(AKalmalaCharacter* Interactor)
     }
     if (PassengerOccupant == Interactor) PassengerOccupant = nullptr;
     RefreshSeatOccupancyPresentation();
+    NotifyPersistenceStateChanged();
+}
+
+bool AKalmalaOceanSkiff::InitializePersistentIdentityFromServer(const FString& InVesselId)
+{
+    if (!HasAuthority() || !FKalmalaOceanTravelVesselState::IsValidVesselId(InVesselId)
+        || (!PersistentVesselId.IsEmpty() && PersistentVesselId != InVesselId))
+    {
+        return false;
+    }
+    PersistentVesselId = InVesselId;
+    return true;
+}
+
+bool AKalmalaOceanSkiff::RestoreSeatFromServer(AKalmalaCharacter* Interactor, const EKalmalaOceanSkiffSeat Seat)
+{
+    if (!IsValid(Interactor) || !Interactor->HasAuthority() || Interactor->GetWorld() != GetWorld()
+        || Interactor->GetPlayerState() == nullptr) return false;
+    const APlayerState* CandidateState = Interactor->GetPlayerState();
+    const bool bValidSeat = Seat == EKalmalaOceanSkiffSeat::Helm || Seat == EKalmalaOceanSkiffSeat::Passenger;
+    const bool bSeatAvailable = Seat == EKalmalaOceanSkiffSeat::Helm
+        ? !IsValid(HelmOccupant) : Seat == EKalmalaOceanSkiffSeat::Passenger && !IsValid(PassengerOccupant);
+    const bool bPlayerAlreadySeated = (IsValid(HelmOccupant) && HelmOccupant->GetPlayerState() == CandidateState)
+        || (IsValid(PassengerOccupant) && PassengerOccupant->GetPlayerState() == CandidateState);
+    const bool bAllowed = IsSeatRestoreAllowed(HasAuthority(), CandidateState->GetUniqueId().IsValid(),
+        !PersistentVesselId.IsEmpty(), bValidSeat, bSeatAvailable, bPlayerAlreadySeated,
+        Interactor->GetAttachParentActor() != nullptr);
+    if (!bAllowed) return false;
+
+    SetSeatOccupant(Interactor, Seat);
+    return Seat == EKalmalaOceanSkiffSeat::Helm ? HelmOccupant == Interactor : PassengerOccupant == Interactor;
+}
+
+void AKalmalaOceanSkiff::NotifyPersistenceStateChanged()
+{
+    if (!HasAuthority() || GetWorld() == nullptr) return;
+    if (AKalmalaGameMode* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>())
+    {
+        GameMode->OnOceanSkiffStateChanged(this);
+    }
 }
 
 void AKalmalaOceanSkiff::OnRep_SeatOccupants()

@@ -4,7 +4,7 @@ This is the design contract for the first M8 authoritative-traversal increment. 
 
 ## Travel medium and identity
 
-The first medium is a project-original open-water skiff with two seats: one helm and one passenger. It carries no cargo. This contract does not prescribe its mesh or recipe. Each skiff is a transient actor created by the server and has no stable saved vessel identity.
+The first medium is a project-original open-water skiff with two seats: one helm and one passenger. It carries no cargo. This contract does not prescribe its mesh or recipe. Each skiff is a transient server-created actor; the primary skiff receives the stable world-scoped identity `ocean-skiff:primary` when its moored state is saved, while the live actor reference remains transient.
 
 The existing server-owned immutable `WorldSeed` remains the only generated-world identity. The skiff adds no generator input, biome, route, authored waterway, or alternate world identity. It operates on master-map Ocean; inland lakes do not qualify.
 
@@ -49,9 +49,9 @@ If a server sweep or water sample blocks movement, the server clamps to the last
 
 Replicate skiff movement at no more than 10 updates per second while moving. Replicate movement mode and the two session occupant references to relevant peers. Do not replicate raw steering samples, input sequence/freshness, or per-player control data to other players. Send transient action and failure feedback only to the requesting player; do not multicast every input sample.
 
-Until the M8 persistence gate passes, do not save vessel identity, occupancy, transform, cargo, or travel state in any world or player save. A server-created skiff and its occupancy expire with the session. No saved-data schema changes as part of this contract.
+The versioned M8 persistence gate below now permits one server-created skiff's moored snapshot and authenticated player seat references. Cargo, velocity, steering input, and live actor references remain excluded. Ocean discovery claims continue in the separate M7 sparse ledger.
 
-### Versioned travel-save contract (defined; runtime restore remains gated)
+### Versioned travel-save contract and runtime restore
 
 `UKalmalaOceanTravelPersistenceSaveGame` defines a separate schema-1 gate and
 does not extend or rewrite the M7 sparse-discovery container. It reuses the
@@ -68,17 +68,28 @@ generator revision, and vessel ID agree.
 
 This skiff has no cargo, so the contract has no cargo field. It also omits
 velocity, steering samples, session actor references, and saved live occupancy;
-seat references are rebuilt from authenticated player records. The gate
-validates record shape and identity, but the future restore path must still
-revalidate generated-ocean depth, the hull footprint, and unique live seat
-occupancy before spawning or attaching anything. Separate player records can
-name the same seat, so restore must arbitrate that conflict without creating a
-duplicate occupant. Schema zero returns `MigrateBeforeLoad` and requires an
-explicit migration before load; unknown future schemas fail closed. The
-focused `Kalmala.World.OceanTravel.PersistenceContract` automation round-trips
-both scopes in memory and rejects mismatched identities, malformed bounds,
-orphaned vessel references, and invalid seats. It does not write project save
-slots or enable normal-play persistence.
+seat references are rebuilt from authenticated player records. The runtime
+writes world state only when the server has a `Moored` skiff, then writes each
+authenticated occupant's seat under that player's scoped slot. A disembark
+clears the player's seat slot before moving the pawn, and fails closed if the
+slot cannot be cleared. Startup accepts an existing world record only when its
+identity, safe bounds, sea-level position, and full generated-ocean hull
+footprint remain valid; actor spawn must also pass collision handling. On
+login, the server pairs the player's exact identity and saved seat with that
+world vessel, then rejects an already occupied seat, a duplicate player, or an
+already attached pawn. Invalid or incompatible records are preserved without
+overwrite. Ocean discovery `DiscoveryClaimed` ledgers are loaded for the
+authenticated player at login, so reconnects keep duplicate rewards rejected.
+
+Schema zero returns `MigrateBeforeLoad` and requires an explicit migration
+before load; unknown future schemas fail closed. The focused
+`Kalmala.World.OceanTravel.PersistenceContract` automation round-trips both
+scopes in memory and through a local save slot, and rejects mismatched
+identities, malformed bounds, orphaned vessel references, and invalid seats.
+`Kalmala.Gameplay.OceanTravel.SkiffRestoreContract` covers server-only seat
+restore gates, duplicate player/seat rejection, and safe disembark-save
+feedback. Normal save and restore now run in the server game mode; the full
+two-player restart/reconnect journey remains in M8 acceptance.
 
 ## Multiplayer assessment
 
@@ -216,8 +227,8 @@ player scope, authenticated owner identity, world seed, and generator revision.
 The server persists a `DiscoveryClaimed` delta before granting the item, caches
 the accepted ledger, and rejects duplicates after reconnect/load. Existing or
 future-incompatible saves fail closed without overwrite. This reuses the
-existing schema; vessel identity, occupancy, transform, cargo, and travel state
-remain unsaved pending the M8 travel-persistence gate.
+existing schema; vessel, seat, and ocean-claim state use their separate
+versioned world/player save contracts described above.
 
 `Kalmala.Gameplay.OceanTravel.DiscoveryCatalogue` checks bounded definitions,
 known optional rewards, forged-input rejection, identity reproducibility, and

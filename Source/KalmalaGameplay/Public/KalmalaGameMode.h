@@ -9,6 +9,7 @@
 #include "KalmalaGameMode.generated.h"
 
 struct FKalmalaOceanDiscoveryDescriptor;
+enum class EKalmalaOceanSkiffSeat : uint8;
 
 /**
  * Server-authoritative rules for a Kalmala session.
@@ -36,6 +37,8 @@ public:
     static bool IsMirelingBossRewardId(const FString& PersistentSpawnId);
     static FString GetMirelingBossScrollDefinition(uint64 WorldSeed);
     static FString GetMirelingBossScrollId(uint64 WorldSeed);
+    void OnOceanSkiffStateChanged(class AKalmalaOceanSkiff* Skiff);
+    bool ClearOceanTravelPassenger(class AKalmalaCharacter* Interactor, const FString& VesselId);
 
 private:
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);
@@ -102,6 +105,13 @@ private:
     void AdvanceWeatherCycleIfNeeded();
     void PlacePawnAtGeneratedStart(class APlayerController* PlayerController);
     void SpawnOceanTravelTestFixture();
+    void LoadOceanTravelWorldSave();
+    void RestorePersistedOceanSkiff();
+    void RestoreOceanTravelForPlayer(class APlayerController* PlayerController);
+    void LoadOceanDiscoveryLedger(class AKalmalaCharacter* Interactor);
+    bool PersistOceanTravelState(class AKalmalaOceanSkiff* Skiff);
+    bool PersistOceanTravelPassenger(class AKalmalaCharacter* Interactor,
+        const FString& VesselId, EKalmalaOceanSkiffSeat Seat);
 
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
@@ -109,6 +119,10 @@ private:
     TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
     TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGame>> PlayerDiscoverySaves;
     TMap<FString, TObjectPtr<class UKalmalaM7PersistenceSaveGame>> OceanDiscoverySaves;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame> OceanTravelWorldSave;
+    TMap<FString, TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame>> OceanTravelPlayerSaves;
+    TWeakObjectPtr<class AKalmalaOceanSkiff> RestoredOceanSkiff;
+    bool bOceanTravelPersistenceWritable = false;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGame> ConstructionSaveGame;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaStorageSaveGame> StorageSaveGame;
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;

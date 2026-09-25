@@ -67,6 +67,9 @@ public:
     static bool IsSafeExitSurfaceForConfig(const FKalmalaWorldGenerationConfig& Config,
         FVector2D Position, double WorldMargin = 0.0);
     static EKalmalaOceanSkiffSeat ChooseSeat(bool bHelmOccupied, bool bPassengerOccupied);
+    static bool IsSeatRestoreAllowed(bool bServerAuthority, bool bAuthenticatedPlayer,
+        bool bMatchingPersistentVessel, bool bValidSeat, bool bSeatAvailable,
+        bool bPlayerAlreadySeated, bool bAttachedElsewhere);
     static bool IsDisembarkAllowed(bool bServerAuthority, bool bIsOccupant, float Speed, bool bHasSafePlacement);
     static bool IsSteeringIntentAllowed(bool bServerAuthority, bool bIsHelmOccupant, float Throttle,
         float Rudder, uint32 Sequence, uint32 LastAcceptedSequence, double ServerTime,
@@ -76,6 +79,9 @@ public:
     static float CalculateWeatherYawRate(float Rudder, float HeadingDegrees, float WindDirectionDegrees,
         float WindStrength, float Speed);
     bool AcceptSteeringFromServer(AKalmalaCharacter* Interactor, float Throttle, float Rudder, uint32 Sequence);
+    bool InitializePersistentIdentityFromServer(const FString& InVesselId);
+    bool RestoreSeatFromServer(AKalmalaCharacter* Interactor, EKalmalaOceanSkiffSeat Seat);
+    const FString& GetPersistentVesselId() const { return PersistentVesselId; }
 
 private:
     UPROPERTY(VisibleAnywhere, Category = "Travel")
@@ -111,6 +117,7 @@ private:
     void RefreshSeatOccupancyPresentation();
     void SetSeatOccupant(AKalmalaCharacter* Interactor, EKalmalaOceanSkiffSeat Seat);
     void ClearSeatOccupant(AKalmalaCharacter* Interactor);
+    void NotifyPersistenceStateChanged();
     static bool BuildOriginalHull(UProceduralMeshComponent* Mesh);
 
     float ThrottleInput = 0.0f;
@@ -119,4 +126,5 @@ private:
     double LastAcceptedInputTime = 0.0;
     uint32 LastAcceptedInputSequence = 0;
     bool bHasAcceptedInput = false;
+    FString PersistentVesselId;
 };

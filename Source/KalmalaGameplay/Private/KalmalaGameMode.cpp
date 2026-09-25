@@ -48,6 +48,8 @@
 #include "KalmalaIslandLocator.h"
 #include "KalmalaOceanTravelTestFixture.h"
 #include "KalmalaOceanTravelFeedbackComponent.h"
+#include "KalmalaOceanTravelPersistenceContract.h"
+#include "KalmalaOceanSkiff.h"
 
 #include "Engine/World.h"
 #include "TimerManager.h"
@@ -90,6 +92,25 @@ namespace KalmalaGameMode
     FString OceanDiscoverySaveSlot(const FKalmalaM7SaveIdentity& Identity)
     {
         return FString::Printf(TEXT("KalmalaOceanClaims_%llu_%d_%08x"), Identity.WorldSeed, Identity.GeneratorRevision, FCrc::StrCrc32(*Identity.OwnerIdentity));
+    }
+    FString OceanTravelWorldSaveSlot(const FKalmalaM7SaveIdentity& Identity)
+    {
+        return FString::Printf(TEXT("KalmalaOceanTravelWorld_%llu_%d"), Identity.WorldSeed, Identity.GeneratorRevision);
+    }
+    FString OceanTravelPlayerSaveSlot(const FKalmalaM7SaveIdentity& Identity)
+    {
+        return FString::Printf(TEXT("KalmalaOceanTravelPlayer_%llu_%d_%08x"), Identity.WorldSeed,
+            Identity.GeneratorRevision, FCrc::StrCrc32(*Identity.OwnerIdentity));
+    }
+    FString GetAuthenticatedPlayerIdentity(const APlayerState* PlayerState)
+    {
+        if (PlayerState == nullptr) return FString();
+        const FUniqueNetIdRepl UniqueId = PlayerState->GetUniqueId();
+        if (!UniqueId.IsValid()) return FString();
+        const TSharedPtr<const FUniqueNetId> AuthenticatedId = UniqueId.GetUniqueNetId();
+        if (!AuthenticatedId.IsValid()) return FString();
+        const FString Identity = AuthenticatedId->GetType().ToString() + TEXT(":") + AuthenticatedId->ToString();
+        return Identity.Len() <= FKalmalaM7SaveIdentity::MaxOwnerIdentityLength ? Identity : FString();
     }
 }
 
@@ -300,6 +321,7 @@ void AKalmalaGameMode::BeginPlay()
     }
 
     WorldGenerationConfig = WorldGenerationState->GetWorldGenerationConfig();
+    LoadOceanTravelWorldSave();
     InitializeWeatherCycle();
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest")))
@@ -361,6 +383,7 @@ void AKalmalaGameMode::BeginPlay()
         ActivateTerrainPatchNeighborhood(TerrainPatchOrigin);
         SpawnOceanTravelTestFixture();
         RestorePersistedConstruction();
+        RestorePersistedOceanSkiff();
         UE_LOG(LogTemp, Display, TEXT("Server activated %d seed-derived terrain patches around the generated start."), ActiveTerrainPatchCoordinates.Num());
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
         {
@@ -1655,6 +1678,311 @@ UKalmalaPlayerDiscoverySaveGame* AKalmalaGameMode::GetPlayerDiscoverySave(AKalma
     return Save;
 }
 
+void AKalmalaGameMode::LoadOceanTravelWorldSave()
+{
+    bOceanTravelPersistenceWritable = HasAuthority() && WorldGenerationConfig.IsValid();
+    OceanTravelWorldSave = nullptr;
+    if (!bOceanTravelPersistenceWritable) return;
+
+    const FKalmalaM7SaveIdentity Identity = FKalmalaM7SaveIdentity::ForWorld(WorldGenerationConfig.WorldSeed);
+    const FString Slot = KalmalaGameMode::OceanTravelWorldSaveSlot(Identity);
+    if (!UGameplayStatics::DoesSaveGameExist(Slot, 0)) return;
+
+    UKalmalaOceanTravelPersistenceSaveGame* Loaded =
+        Cast<UKalmalaOceanTravelPersistenceSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
+    if (Loaded == nullptr || !Loaded->Matches(Identity) || !Loaded->HasVesselState()
+        || !Loaded->GetVesselState().IsValid())
+    {
+        bOceanTravelPersistenceWritable = false;
+        UE_LOG(LogTemp, Warning, TEXT("Ocean travel restore blocked: existing world save is invalid or incompatible; preserved without overwrite."));
+        return;
+    }
+    OceanTravelWorldSave = Loaded;
+}
+
+void AKalmalaGameMode::RestorePersistedOceanSkiff()
+{
+    if (!bOceanTravelPersistenceWritable || OceanTravelWorldSave == nullptr) return;
+    const FKalmalaM7SaveIdentity Identity = FKalmalaM7SaveIdentity::ForWorld(WorldGenerationConfig.WorldSeed);
+    if (!OceanTravelWorldSave->Matches(Identity) || !OceanTravelWorldSave->HasVesselState()) return;
+
+    const FKalmalaOceanTravelVesselState& Vessel = OceanTravelWorldSave->GetVesselState();
+    const FVector2D Center(Vessel.SafeLocation);
+    if (!Vessel.IsValid() || FMath::Abs(Vessel.SafeLocation.Z) > 250.0
+        || !AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(WorldGenerationConfig, Center, Vessel.YawDegrees))
+    {
+        bOceanTravelPersistenceWritable = false;
+        UE_LOG(LogTemp, Warning, TEXT("Ocean travel restore blocked: saved vessel no longer has a valid generated-ocean hull footprint; save preserved."));
+        return;
+    }
+
+    for (TActorIterator<AKalmalaOceanSkiff> It(GetWorld()); It; ++It)
+    {
+        if (It->GetPersistentVesselId() == Vessel.VesselId)
+        {
+            RestoredOceanSkiff = *It;
+            return;
+        }
+    }
+
+    FActorSpawnParameters Parameters;
+    Parameters.Owner = nullptr;
+    Parameters.Instigator = nullptr;
+    Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
+    const FRotator Rotation(0.0f, Vessel.YawDegrees, 0.0f);
+    AKalmalaOceanSkiff* Skiff = GetWorld()->SpawnActor<AKalmalaOceanSkiff>(
+        Vessel.SafeLocation, Rotation, Parameters);
+    if (Skiff == nullptr || !Skiff->InitializePersistentIdentityFromServer(Vessel.VesselId))
+    {
+        if (Skiff != nullptr) Skiff->Destroy();
+        UE_LOG(LogTemp, Warning, TEXT("Ocean travel restore blocked: saved moored vessel could not be spawned without overlap; save preserved."));
+        return;
+    }
+
+    RestoredOceanSkiff = Skiff;
+    UE_LOG(LogTemp, Display, TEXT("Restored moored ocean skiff %s at %s after generated-ocean validation."),
+        *Vessel.VesselId, *Vessel.SafeLocation.ToCompactString());
+}
+
+void AKalmalaGameMode::LoadOceanDiscoveryLedger(AKalmalaCharacter* Interactor)
+{
+    if (!HasAuthority() || Interactor == nullptr || Interactor->GetWorld() != GetWorld()) return;
+    const FString PlayerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Interactor->GetPlayerState());
+    const FKalmalaM7SaveIdentity Identity = FKalmalaM7SaveIdentity::ForPlayer(
+        WorldGenerationConfig.WorldSeed, PlayerIdentity);
+    if (!Identity.IsValid() || OceanDiscoverySaves.Contains(PlayerIdentity)) return;
+
+    const FString Slot = KalmalaGameMode::OceanDiscoverySaveSlot(Identity);
+    if (!UGameplayStatics::DoesSaveGameExist(Slot, 0)) return;
+    UKalmalaM7PersistenceSaveGame* Loaded =
+        Cast<UKalmalaM7PersistenceSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
+    if (Loaded == nullptr || !Loaded->Matches(Identity))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Ocean discovery ledger for authenticated player %s is invalid or incompatible; preserved without overwrite."),
+            *PlayerIdentity);
+        return;
+    }
+    OceanDiscoverySaves.Add(PlayerIdentity, Loaded);
+}
+
+bool AKalmalaGameMode::PersistOceanTravelPassenger(AKalmalaCharacter* Interactor,
+    const FString& VesselId, const EKalmalaOceanSkiffSeat Seat)
+{
+    if (!bOceanTravelPersistenceWritable || !IsValid(Interactor) || !Interactor->HasAuthority()
+        || !FKalmalaOceanTravelVesselState::IsValidVesselId(VesselId)
+        || (Seat != EKalmalaOceanSkiffSeat::Helm && Seat != EKalmalaOceanSkiffSeat::Passenger))
+    {
+        return false;
+    }
+
+    const FString PlayerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Interactor->GetPlayerState());
+    const FKalmalaM7SaveIdentity Identity = FKalmalaM7SaveIdentity::ForPlayer(
+        WorldGenerationConfig.WorldSeed, PlayerIdentity);
+    if (!Identity.IsValid()) return false;
+    const FString Slot = KalmalaGameMode::OceanTravelPlayerSaveSlot(Identity);
+
+    UKalmalaOceanTravelPersistenceSaveGame* Existing = nullptr;
+    if (TObjectPtr<UKalmalaOceanTravelPersistenceSaveGame>* Cached = OceanTravelPlayerSaves.Find(PlayerIdentity))
+    {
+        Existing = *Cached;
+        if (Existing == nullptr || !Existing->Matches(Identity)) return false;
+    }
+    else if (UGameplayStatics::DoesSaveGameExist(Slot, 0))
+    {
+        Existing = Cast<UKalmalaOceanTravelPersistenceSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
+        if (Existing == nullptr || !Existing->Matches(Identity))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Ocean travel passenger save for %s is invalid or incompatible; preserved without overwrite."),
+                *PlayerIdentity);
+            return false;
+        }
+    }
+
+    UKalmalaOceanTravelPersistenceSaveGame* Candidate = nullptr;
+    if (Existing == nullptr)
+    {
+        Candidate = NewObject<UKalmalaOceanTravelPersistenceSaveGame>(this);
+        Candidate->Initialize(Identity);
+    }
+    else
+    {
+        TArray<uint8> Bytes;
+        if (!UGameplayStatics::SaveGameToMemory(Existing, Bytes)) return false;
+        Candidate = Cast<UKalmalaOceanTravelPersistenceSaveGame>(UGameplayStatics::LoadGameFromMemory(Bytes));
+    }
+
+    FKalmalaOceanTravelPassengerState Passenger;
+    Passenger.VesselId = VesselId;
+    Passenger.Seat = Seat == EKalmalaOceanSkiffSeat::Helm
+        ? EKalmalaOceanTravelSavedSeat::Helm : EKalmalaOceanTravelSavedSeat::Passenger;
+    if (Candidate == nullptr || !Candidate->GetIdentity().Matches(Identity)
+        || !Candidate->SetPassengerState(Passenger)
+        || !Candidate->Matches(Identity)
+        || !UGameplayStatics::SaveGameToSlot(Candidate, Slot, 0))
+    {
+        return false;
+    }
+
+    OceanTravelPlayerSaves.Add(PlayerIdentity, Candidate);
+    return true;
+}
+
+bool AKalmalaGameMode::PersistOceanTravelState(AKalmalaOceanSkiff* Skiff)
+{
+    if (!bOceanTravelPersistenceWritable || !HasAuthority() || !IsValid(Skiff)
+        || !Skiff->HasAuthority() || Skiff->GetMode() != EKalmalaOceanSkiffMode::Moored
+        || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    FKalmalaOceanTravelVesselState Vessel;
+    Vessel.VesselId = Skiff->GetPersistentVesselId();
+    Vessel.SafeLocation = Skiff->GetActorLocation();
+    Vessel.YawDegrees = Skiff->GetActorRotation().Yaw;
+    if (!Vessel.IsValid() || FMath::Abs(Vessel.SafeLocation.Z) > 250.0
+        || !AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(
+            WorldGenerationConfig, FVector2D(Vessel.SafeLocation), Vessel.YawDegrees))
+    {
+        return false;
+    }
+
+    const FKalmalaM7SaveIdentity WorldIdentity = FKalmalaM7SaveIdentity::ForWorld(WorldGenerationConfig.WorldSeed);
+    const FString WorldSlot = KalmalaGameMode::OceanTravelWorldSaveSlot(WorldIdentity);
+    UKalmalaOceanTravelPersistenceSaveGame* CandidateWorld = nullptr;
+    if (OceanTravelWorldSave == nullptr)
+    {
+        CandidateWorld = NewObject<UKalmalaOceanTravelPersistenceSaveGame>(this);
+        CandidateWorld->Initialize(WorldIdentity);
+    }
+    else
+    {
+        TArray<uint8> Bytes;
+        if (!OceanTravelWorldSave->Matches(WorldIdentity)
+            || !UGameplayStatics::SaveGameToMemory(OceanTravelWorldSave, Bytes)) return false;
+        CandidateWorld = Cast<UKalmalaOceanTravelPersistenceSaveGame>(UGameplayStatics::LoadGameFromMemory(Bytes));
+    }
+    if (CandidateWorld == nullptr || !CandidateWorld->GetIdentity().Matches(WorldIdentity)
+        || !CandidateWorld->SetVesselState(Vessel)
+        || !CandidateWorld->Matches(WorldIdentity)
+        || !UGameplayStatics::SaveGameToSlot(CandidateWorld, WorldSlot, 0))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Could not persist moored ocean skiff %s; existing world state remains authoritative."), *Vessel.VesselId);
+        return false;
+    }
+
+    OceanTravelWorldSave = CandidateWorld;
+    RestoredOceanSkiff = Skiff;
+    bool bPassengersPersisted = true;
+    if (AKalmalaCharacter* Helm = Skiff->GetHelmOccupant())
+    {
+        bPassengersPersisted &= PersistOceanTravelPassenger(Helm, Vessel.VesselId, EKalmalaOceanSkiffSeat::Helm);
+    }
+    if (AKalmalaCharacter* Passenger = Skiff->GetPassengerOccupant())
+    {
+        bPassengersPersisted &= PersistOceanTravelPassenger(Passenger, Vessel.VesselId, EKalmalaOceanSkiffSeat::Passenger);
+    }
+    return bPassengersPersisted;
+}
+
+void AKalmalaGameMode::OnOceanSkiffStateChanged(AKalmalaOceanSkiff* Skiff)
+{
+    if (!PersistOceanTravelState(Skiff))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Ocean skiff state change was not persisted; session state remains server-authoritative."));
+    }
+}
+
+bool AKalmalaGameMode::ClearOceanTravelPassenger(AKalmalaCharacter* Interactor, const FString& VesselId)
+{
+    if (!HasAuthority() || !IsValid(Interactor) || !Interactor->HasAuthority()
+        || !FKalmalaOceanTravelVesselState::IsValidVesselId(VesselId)) return false;
+    const FString PlayerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Interactor->GetPlayerState());
+    const FKalmalaM7SaveIdentity Identity = FKalmalaM7SaveIdentity::ForPlayer(
+        WorldGenerationConfig.WorldSeed, PlayerIdentity);
+    if (!Identity.IsValid()) return true;
+    const FString Slot = KalmalaGameMode::OceanTravelPlayerSaveSlot(Identity);
+    if (!UGameplayStatics::DoesSaveGameExist(Slot, 0))
+    {
+        OceanTravelPlayerSaves.Remove(PlayerIdentity);
+        return true;
+    }
+    if (!bOceanTravelPersistenceWritable)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Could not clear ocean travel seat association for %s while the world save is unavailable."), *PlayerIdentity);
+        return false;
+    }
+    UKalmalaOceanTravelPersistenceSaveGame* Existing =
+        Cast<UKalmalaOceanTravelPersistenceSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
+    if (Existing == nullptr || !Existing->Matches(Identity) || !Existing->HasPassengerState()
+        || Existing->GetPassengerState().VesselId != VesselId)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Could not clear ocean travel seat association for %s because the record is incompatible or references another vessel."), *PlayerIdentity);
+        return false;
+    }
+    if (!UGameplayStatics::DeleteGameInSlot(Slot, 0))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Could not clear ocean travel seat association for %s; disembarkation rejected."), *PlayerIdentity);
+        return false;
+    }
+    OceanTravelPlayerSaves.Remove(PlayerIdentity);
+    return true;
+}
+
+void AKalmalaGameMode::RestoreOceanTravelForPlayer(APlayerController* PlayerController)
+{
+    if (!HasAuthority() || !IsValid(PlayerController) || !bOceanTravelPersistenceWritable) return;
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(PlayerController->GetPawn());
+    if (Character == nullptr || Character->GetPlayerState() == nullptr) return;
+    const FString PlayerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Character->GetPlayerState());
+    const FKalmalaM7SaveIdentity PlayerIdentityScope = FKalmalaM7SaveIdentity::ForPlayer(
+        WorldGenerationConfig.WorldSeed, PlayerIdentity);
+    if (!PlayerIdentityScope.IsValid()) return;
+
+    const FString Slot = KalmalaGameMode::OceanTravelPlayerSaveSlot(PlayerIdentityScope);
+    UKalmalaOceanTravelPersistenceSaveGame* PlayerSave = nullptr;
+    if (TObjectPtr<UKalmalaOceanTravelPersistenceSaveGame>* Cached = OceanTravelPlayerSaves.Find(PlayerIdentity))
+    {
+        PlayerSave = *Cached;
+    }
+    else if (UGameplayStatics::DoesSaveGameExist(Slot, 0))
+    {
+        PlayerSave = Cast<UKalmalaOceanTravelPersistenceSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
+    }
+    if (PlayerSave == nullptr || !PlayerSave->Matches(PlayerIdentityScope) || !PlayerSave->HasPassengerState()
+        || OceanTravelWorldSave == nullptr || !PlayerSave->CanPairWithWorldSave(*OceanTravelWorldSave))
+    {
+        return;
+    }
+
+    const FKalmalaOceanTravelPassengerState& SavedPassenger = PlayerSave->GetPassengerState();
+    AKalmalaOceanSkiff* Skiff = RestoredOceanSkiff.Get();
+    if (Skiff == nullptr)
+    {
+        for (TActorIterator<AKalmalaOceanSkiff> It(GetWorld()); It; ++It)
+        {
+            if (It->GetPersistentVesselId() == SavedPassenger.VesselId)
+            {
+                Skiff = *It;
+                break;
+            }
+        }
+    }
+    if (Skiff == nullptr || Skiff->GetPersistentVesselId() != SavedPassenger.VesselId) return;
+
+    const EKalmalaOceanSkiffSeat Seat = SavedPassenger.Seat == EKalmalaOceanTravelSavedSeat::Helm
+        ? EKalmalaOceanSkiffSeat::Helm : EKalmalaOceanSkiffSeat::Passenger;
+    if (!Skiff->RestoreSeatFromServer(Character, Seat))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Ocean travel seat restore rejected for player %s because the saved seat is occupied or the player is already attached."),
+            *PlayerIdentity);
+        return;
+    }
+    OceanTravelPlayerSaves.Add(PlayerIdentity, PlayerSave);
+    UE_LOG(LogTemp, Display, TEXT("Restored authenticated player %s to ocean skiff %s seat %s."), *PlayerIdentity,
+        *SavedPassenger.VesselId, Seat == EKalmalaOceanSkiffSeat::Helm ? TEXT("Helm") : TEXT("Passenger"));
+}
+
 bool AKalmalaGameMode::IsCurrentDiscoveryDescriptor(const FKalmalaWorldDiscoveryDescriptor& Descriptor) const
 {
     if (Descriptor.DefinitionId.IsEmpty() || Descriptor.Ordinal < 0 || Descriptor.Ordinal >= 8 || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Descriptor.Location))) return false;
@@ -1905,7 +2233,10 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     if (NewPlayer != nullptr && NewPlayer->GetPawn() != nullptr)
     {
         FString IgnoredIdentity;
-        GetPlayerDiscoverySave(Cast<AKalmalaCharacter>(NewPlayer->GetPawn()), IgnoredIdentity);
+        AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(NewPlayer->GetPawn());
+        GetPlayerDiscoverySave(Character, IgnoredIdentity);
+        LoadOceanDiscoveryLedger(Character);
+        RestoreOceanTravelForPlayer(NewPlayer);
     }
 
 #if !UE_BUILD_SHIPPING

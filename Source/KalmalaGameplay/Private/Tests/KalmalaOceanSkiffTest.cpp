@@ -49,13 +49,39 @@ bool FKalmalaOceanSkiffAuthorityContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("The first accepted player receives the helm"), AKalmalaOceanSkiff::ChooseSeat(false, false), Seat::Helm);
     TestEqual(TEXT("The next accepted player receives the passenger seat"), AKalmalaOceanSkiff::ChooseSeat(true, false), Seat::Passenger);
     TestEqual(TEXT("Occupied seats reject another player"), AKalmalaOceanSkiff::ChooseSeat(true, true), Seat::None);
-
     TestTrue(TEXT("An occupant may leave at a safe stopped position"), AKalmalaOceanSkiff::IsDisembarkAllowed(true, true, 50.0f, true));
     TestFalse(TEXT("Clients cannot choose a disembark outcome"), AKalmalaOceanSkiff::IsDisembarkAllowed(false, true, 0.0f, true));
     TestFalse(TEXT("Non-occupants cannot disembark"), AKalmalaOceanSkiff::IsDisembarkAllowed(true, false, 0.0f, true));
     TestFalse(TEXT("Disembark is rejected above the stopped-speed limit"), AKalmalaOceanSkiff::IsDisembarkAllowed(true, true, 50.01f, true));
     TestFalse(TEXT("Malformed speed is rejected"), AKalmalaOceanSkiff::IsDisembarkAllowed(true, true, NAN, true));
     TestFalse(TEXT("Disembark is rejected without a safe capsule placement"), AKalmalaOceanSkiff::IsDisembarkAllowed(true, true, 0.0f, false));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaOceanSkiffRestoreContractTest,
+    "Kalmala.Gameplay.OceanTravel.SkiffRestoreContract",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaOceanSkiffRestoreContractTest::RunTest(const FString& Parameters)
+{
+    using Feedback = EKalmalaOceanTravelFeedback;
+    TestTrue(TEXT("A server restores an authenticated player into their matching free saved seat"),
+        AKalmalaOceanSkiff::IsSeatRestoreAllowed(true, true, true, true, true, false, false));
+    TestFalse(TEXT("A client cannot restore an ocean-travel seat"),
+        AKalmalaOceanSkiff::IsSeatRestoreAllowed(false, true, true, true, true, false, false));
+    TestFalse(TEXT("Unauthenticated players cannot restore saved seats"),
+        AKalmalaOceanSkiff::IsSeatRestoreAllowed(true, false, true, true, true, false, false));
+    TestFalse(TEXT("A seat from another vessel cannot be restored"),
+        AKalmalaOceanSkiff::IsSeatRestoreAllowed(true, true, false, true, true, false, false));
+    TestFalse(TEXT("An occupied saved seat is not assigned twice"),
+        AKalmalaOceanSkiff::IsSeatRestoreAllowed(true, true, true, true, false, false, false));
+    TestFalse(TEXT("A duplicate player cannot occupy two seats"),
+        AKalmalaOceanSkiff::IsSeatRestoreAllowed(true, true, true, true, true, true, false));
+    TestFalse(TEXT("An already attached player cannot be duplicated on a saved skiff"),
+        AKalmalaOceanSkiff::IsSeatRestoreAllowed(true, true, true, true, true, false, true));
+    TestTrue(TEXT("Failed saved-seat cleanup explains why disembarking was cancelled"),
+        UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(Feedback::TravelSaveUnavailable)
+            .Contains(TEXT("disembarking was cancelled safely")));
     return true;
 }
 

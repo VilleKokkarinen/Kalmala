@@ -7625,3 +7625,17 @@ save slot or restart/reconnect flow was exercised.
 Next task: Restore accepted vessel/passenger and sparse ocean-discovery facts
 across restart/reconnect without duplicate players, cargo, rewards, or world
 identities.
+
+### 2026-09-25T10:46:52Z — Persist and restore ocean skiff state
+
+Outcome: Completed the M8 travel-persistence and reconnect implementation leaf. The server now saves the stable primary skiff's transform only while moored, under the exact world seed and generator revision. It saves each authenticated occupant's seat under that player's identity, revalidates the saved water footprint and collision clearance at startup, and restores a matching free seat after login. The server preloads the returning player's M7 ocean-discovery ledger, preventing duplicate discovery rewards. Disembark clears only the matching player/vessel seat record before detaching and fails closed if that record is incompatible or cannot be removed.
+
+Changed this run: `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp`, `Source/KalmalaGameplay/Public/KalmalaOceanSkiff.h`, `Source/KalmalaGameplay/Private/KalmalaOceanTravelFeedbackComponent.cpp`, `Source/KalmalaGameplay/Public/KalmalaOceanTravelFeedbackComponent.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaOceanSkiffTest.cpp`, `Source/KalmalaWorld/Private/Tests/KalmalaOceanTravelPersistenceContractTest.cpp`, `docs/19-m8-ocean-travel-contract.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this handoff. Pre-existing M7 workspace edits remain preserved and unstaged.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed all 105 actions after one helper-scope compile error was corrected; the final seat-cleanup change rebuilt and linked in 13 actions. UnrealBuildTool had normal `%LOCALAPPDATA%\\UnrealBuildTool` access. `Kalmala.World.OceanTravel.PersistenceContract`, `Kalmala.Gameplay.OceanTravel.SkiffRestoreContract`, and `Kalmala.World.M7.PersistenceContract` all reported `Result={Success}`; the travel contract also wrote and reloaded a temporary local save slot. `Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts, and scoped `git diff --check` passed.
+
+Multiplayer and persistence impact: Clients cannot choose vessel identity, transform, seat, or accepted save outcomes. The server validates authenticated player identity and exact world/generator identity, rejects occupied or duplicate seats, saves no cargo or inventory, and keeps the existing bounded M7 sparse-claim schema.
+
+Known limits: No live two-player shutdown/restart/rejoin journey or long-distance budget profile was run. Skiff snapshots are accepted only while moored; normal inventory and cargo are not persisted.
+
+Next task: Verify long-distance peer travel and budgets, including two-player embark/travel/discovery/disembark/reconnect and actor, memory, replication, save-size, and frame-time measurements. Main checkout used; no worktree handoff synchronization was needed.
