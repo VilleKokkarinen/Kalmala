@@ -44,6 +44,7 @@
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaIslandLocator.h"
 #include "KalmalaOceanTravelTestFixture.h"
+#include "KalmalaOceanTravelFeedbackComponent.h"
 
 #include "Engine/World.h"
 #include "TimerManager.h"
@@ -1095,6 +1096,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveRainVerticalSliceTest();
     DriveCombatPeerTest();
     DriveDiscoveryPeerTest();
+    DriveOceanTravelFeedbackTest();
     ReportWorldProfileIfReady();
     AdvanceWeatherCycleIfNeeded();
 
@@ -1126,6 +1128,76 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
             ActivatePopulationKey(FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(PlayerPawn->GetActorLocation())));
         }
     }
+}
+
+void AKalmalaGameMode::DriveOceanTravelFeedbackTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanSkiffFeedbackTest"))
+        || GetWorld() == nullptr || OceanTravelFeedbackTestStage >= 2)
+    {
+        return;
+    }
+
+    if (OceanTravelFeedbackTestStage == 0)
+    {
+        AKalmalaCharacter* HostCharacter = nullptr;
+        AKalmalaCharacter* RemoteCharacter = nullptr;
+        for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+        {
+            APlayerController* Controller = It->Get();
+            AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+            if (Character == nullptr) continue;
+            if (Controller->IsLocalController()) HostCharacter = Character;
+            else RemoteCharacter = Character;
+        }
+        if (HostCharacter == nullptr || RemoteCharacter == nullptr) return;
+
+        UKalmalaOceanTravelFeedbackComponent* HostFeedback = HostCharacter->GetOceanTravelFeedbackComponent();
+        UKalmalaOceanTravelFeedbackComponent* RemoteFeedback = RemoteCharacter->GetOceanTravelFeedbackComponent();
+        if (HostFeedback == nullptr || RemoteFeedback == nullptr
+            || !HostFeedback->SetFeedbackFromServer(EKalmalaOceanTravelFeedback::ShallowLaunch)
+            || !RemoteFeedback->SetFeedbackFromServer(EKalmalaOceanTravelFeedback::SeatsFull))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Ocean skiff feedback verification FAILED: owner feedback component could not accept server state."));
+            OceanTravelFeedbackTestStage = 2;
+            return;
+        }
+
+        OceanTravelFeedbackTestHost = HostCharacter;
+        OceanTravelFeedbackTestRemote = RemoteCharacter;
+        OceanTravelFeedbackTestStageTime = GetWorld()->GetTimeSeconds();
+        OceanTravelFeedbackTestStage = 1;
+        return;
+    }
+
+    if (GetWorld()->GetTimeSeconds() - OceanTravelFeedbackTestStageTime < 1.0f) return;
+    const AKalmalaCharacter* HostCharacter = OceanTravelFeedbackTestHost.Get();
+    const AKalmalaCharacter* RemoteCharacter = OceanTravelFeedbackTestRemote.Get();
+    const UKalmalaOceanTravelFeedbackComponent* HostFeedback = HostCharacter != nullptr
+        ? HostCharacter->GetOceanTravelFeedbackComponent() : nullptr;
+    const UKalmalaOceanTravelFeedbackComponent* RemoteFeedback = RemoteCharacter != nullptr
+        ? RemoteCharacter->GetOceanTravelFeedbackComponent() : nullptr;
+    const bool bPassed = HostFeedback != nullptr && RemoteFeedback != nullptr
+        && HostFeedback->GetFeedback() == EKalmalaOceanTravelFeedback::ShallowLaunch
+        && HostFeedback->GetFeedbackSerial() == 1
+        && RemoteFeedback->GetFeedback() == EKalmalaOceanTravelFeedback::SeatsFull
+        && RemoteFeedback->GetFeedbackSerial() == 1;
+    if (bPassed)
+    {
+        UE_LOG(LogTemp, Display,
+            TEXT("Ocean skiff feedback verification server: Passed=1 Host=ShallowLaunch Remote=SeatsFull HostSerial=%u RemoteSerial=%u"),
+            HostFeedback->GetFeedbackSerial(), RemoteFeedback->GetFeedbackSerial());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Ocean skiff feedback verification server: Passed=0 HostSerial=%u RemoteSerial=%u"),
+            HostFeedback != nullptr ? HostFeedback->GetFeedbackSerial() : 0,
+            RemoteFeedback != nullptr ? RemoteFeedback->GetFeedbackSerial() : 0);
+    }
+    OceanTravelFeedbackTestStage = 2;
+#endif
 }
 
 void AKalmalaGameMode::ReportWorldProfileIfReady()

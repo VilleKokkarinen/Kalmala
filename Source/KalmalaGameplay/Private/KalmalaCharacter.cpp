@@ -8,6 +8,7 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
+#include "KalmalaOceanTravelFeedbackComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
@@ -43,6 +44,7 @@ AKalmalaCharacter::AKalmalaCharacter(const FObjectInitializer& ObjectInitializer
     SupportMagic = CreateDefaultSubobject<UKalmalaSupportMagicComponent>(TEXT("SupportMagic"));
     SkillProgression = CreateDefaultSubobject<UKalmalaSkillProgressionComponent>(TEXT("SkillProgression"));
     Statuses = CreateDefaultSubobject<UKalmalaPlayerStatusComponent>(TEXT("Statuses"));
+    OceanTravelFeedback = CreateDefaultSubobject<UKalmalaOceanTravelFeedbackComponent>(TEXT("OceanTravelFeedback"));
     SetReplicateMovement(true);
 
     bUseControllerRotationPitch = false;
@@ -163,6 +165,10 @@ void AKalmalaCharacter::BeginPlay()
     {
         DiscoveryPeerTestStartTime = GetWorld()->GetTimeSeconds();
     }
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanSkiffFeedbackTest")) && GetWorld() != nullptr)
+    {
+        OceanTravelFeedbackPeerStartTime = GetWorld()->GetTimeSeconds();
+    }
     if (bOceanTravelTestEnabled)
     {
         // The fixture compares terrain streaming and movement agreement, not
@@ -197,6 +203,24 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
     }
 
 #if !UE_BUILD_SHIPPING
+    if (!bOceanTravelFeedbackPeerPrivacyLogged && !HasAuthority() && !IsLocallyControlled()
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanSkiffFeedbackTest"))
+        && OceanTravelFeedbackPeerStartTime >= 0.0f
+        && GetWorld()->GetTimeSeconds() - OceanTravelFeedbackPeerStartTime >= 4.0f)
+    {
+        bOceanTravelFeedbackPeerPrivacyLogged = true;
+        const UKalmalaOceanTravelFeedbackComponent* Feedback = GetOceanTravelFeedbackComponent();
+        if (Feedback != nullptr && Feedback->GetFeedback() == EKalmalaOceanTravelFeedback::None
+            && Feedback->GetFeedbackSerial() == 0)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Ocean skiff feedback verification client retained no other-owner feedback."));
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Ocean skiff feedback verification client received another player's feedback."));
+        }
+    }
+
     if (!bDiscoveryPeerPrivacyLogged && !HasAuthority() && IsLocallyControlled()
         && FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest"))
         && DiscoveryPeerTestStartTime >= 0.0f && GetWorld()->GetTimeSeconds() - DiscoveryPeerTestStartTime >= 4.0f)
@@ -673,6 +697,12 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientT
     if (Cast<AKalmalaGeneratedTerrainPatch>(Target) != nullptr
         && AKalmalaOceanSkiff::TryLaunchFromServer(this, Hit) != nullptr)
     {
+        return;
+    }
+
+    if (AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(Target))
+    {
+        Skiff->TryInteractFromServer(this);
         return;
     }
 

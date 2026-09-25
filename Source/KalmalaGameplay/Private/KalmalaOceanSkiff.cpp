@@ -1,6 +1,7 @@
 #include "KalmalaOceanSkiff.h"
 
 #include "KalmalaCharacter.h"
+#include "KalmalaOceanTravelFeedbackComponent.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
@@ -72,12 +73,26 @@ void AKalmalaOceanSkiff::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
     DOREPLIFETIME(AKalmalaOceanSkiff, HelmOccupant);
     DOREPLIFETIME(AKalmalaOceanSkiff, PassengerOccupant);
     DOREPLIFETIME(AKalmalaOceanSkiff, Mode);
+    DOREPLIFETIME(AKalmalaOceanSkiff, BlockReason);
 }
 
 bool AKalmalaOceanSkiff::IsLaunchAllowed(const bool bServerAuthority, const bool bGeneratedTerrainHit,
     const bool bInRange, const bool bDeepOcean, const bool bWorldBounded, const bool bSessionSlotAvailable)
 {
     return bServerAuthority && bGeneratedTerrainHit && bInRange && bDeepOcean && bWorldBounded && bSessionSlotAvailable;
+}
+
+EKalmalaOceanTravelFeedback AKalmalaOceanSkiff::GetLaunchDenialFeedback(const bool bGeneratedSurface,
+    const bool bInRange, const bool bDeepOcean, const bool bWorldBounded,
+    const bool bSessionSlotAvailable, const bool bNavigableHull)
+{
+    if (!bGeneratedSurface) return EKalmalaOceanTravelFeedback::LaunchObstructed;
+    if (!bInRange) return EKalmalaOceanTravelFeedback::OutOfReach;
+    if (!bSessionSlotAvailable) return EKalmalaOceanTravelFeedback::SessionSkiffExists;
+    if (!bWorldBounded) return EKalmalaOceanTravelFeedback::WorldEdge;
+    if (!bDeepOcean) return EKalmalaOceanTravelFeedback::ShallowLaunch;
+    if (!bNavigableHull) return EKalmalaOceanTravelFeedback::ShallowHull;
+    return EKalmalaOceanTravelFeedback::None;
 }
 
 bool AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(
@@ -208,13 +223,15 @@ bool AKalmalaOceanSkiff::HasDeepOceanFootprint(const FVector Location, const FRo
         FVector2D(Location), Rotation.Yaw);
 }
 
-void AKalmalaOceanSkiff::BlockMovementAtLastSafeTransform(const FVector& SafeLocation, const FRotator& SafeRotation)
+void AKalmalaOceanSkiff::BlockMovementAtLastSafeTransform(const FVector& SafeLocation, const FRotator& SafeRotation,
+    const EKalmalaOceanSkiffBlockReason Reason)
 {
     SetActorLocationAndRotation(SafeLocation, SafeRotation, false, nullptr, ETeleportType::TeleportPhysics);
     CurrentSpeed = 0.0f;
     ThrottleInput = 0.0f;
     RudderInput = 0.0f;
     Mode = EKalmalaOceanSkiffMode::Blocked;
+    BlockReason = Reason;
     ForceNetUpdate();
 }
 
@@ -246,7 +263,7 @@ void AKalmalaOceanSkiff::AdvanceServerMovement(const float DeltaSeconds)
     const int32 SweepSteps = FMath::Max(1, FMath::CeilToInt(TravelDistance / KalmalaOceanSkiff::MaximumSweepStepDistance));
     if (SweepSteps > KalmalaOceanSkiff::MaximumSweepSteps)
     {
-        BlockMovementAtLastSafeTransform(StartLocation, StartRotation);
+        BlockMovementAtLastSafeTransform(StartLocation, StartRotation, EKalmalaOceanSkiffBlockReason::SweepLimit);
         return;
     }
 
@@ -261,7 +278,8 @@ void AKalmalaOceanSkiff::AdvanceServerMovement(const float DeltaSeconds)
             + CandidateRotation.Vector() * (CurrentSpeed * StepSeconds / SweepSteps);
         if (!HasDeepOceanFootprint(CandidateLocation, CandidateRotation))
         {
-            BlockMovementAtLastSafeTransform(LastSafeLocation, LastSafeRotation);
+            BlockMovementAtLastSafeTransform(LastSafeLocation, LastSafeRotation,
+                EKalmalaOceanSkiffBlockReason::InvalidOceanFootprint);
             return;
         }
 
@@ -269,7 +287,8 @@ void AKalmalaOceanSkiff::AdvanceServerMovement(const float DeltaSeconds)
         SetActorLocationAndRotation(CandidateLocation, CandidateRotation, true, &SweepHit, ETeleportType::None);
         if (SweepHit.bBlockingHit)
         {
-            BlockMovementAtLastSafeTransform(LastSafeLocation, LastSafeRotation);
+            BlockMovementAtLastSafeTransform(LastSafeLocation, LastSafeRotation,
+                EKalmalaOceanSkiffBlockReason::GeneratedTerrainCollision);
             return;
         }
         LastSafeLocation = GetActorLocation();
@@ -286,6 +305,7 @@ void AKalmalaOceanSkiff::AdvanceServerMovement(const float DeltaSeconds)
     {
         Mode = EKalmalaOceanSkiffMode::Underway;
     }
+    BlockReason = EKalmalaOceanSkiffBlockReason::None;
 }
 
 AKalmalaOceanSkiff* AKalmalaOceanSkiff::TryLaunchFromServer(AKalmalaCharacter* Interactor, const FHitResult& TerrainHit)
@@ -321,20 +341,38 @@ AKalmalaOceanSkiff* AKalmalaOceanSkiff::TryLaunchFromServer(AKalmalaCharacter* I
     const bool bDeepOcean = Ocean.bIsValid && Ocean.WaterDepth >= KalmalaOceanSkiff::MinimumWaterDepth;
     const bool bWorldBounded = State != nullptr
         && FKalmalaWorldBounds::Contains(State->GetWorldGenerationConfig(), LaunchPosition, 160.0);
-
-    if (!IsLaunchAllowed(Interactor->HasAuthority(), bGeneratedTerrainHit, bInRange,
-        bDeepOcean, bWorldBounded, bSessionSlotAvailable))
+    const FRotator SpawnRotation(0.0f, Interactor->GetActorRotation().Yaw, 0.0f);
+    const bool bNavigableHull = State != nullptr && HasNavigableOceanFootprintForConfig(
+        State->GetWorldGenerationConfig(), LaunchPosition, SpawnRotation.Yaw);
+    const EKalmalaOceanTravelFeedback Denial = GetLaunchDenialFeedback(bGeneratedTerrainHit, bInRange,
+        bDeepOcean, bWorldBounded, bSessionSlotAvailable, bNavigableHull);
+    if (Denial != EKalmalaOceanTravelFeedback::None
+        || !IsLaunchAllowed(Interactor->HasAuthority(), bGeneratedTerrainHit, bInRange,
+            bDeepOcean, bWorldBounded, bSessionSlotAvailable))
     {
+        Interactor->GetOceanTravelFeedbackComponent()->SetFeedbackFromServer(Denial == EKalmalaOceanTravelFeedback::None
+            ? EKalmalaOceanTravelFeedback::LaunchObstructed : Denial);
         return nullptr;
     }
 
-    const FRotator SpawnRotation(0.0f, Interactor->GetActorRotation().Yaw, 0.0f);
     const FVector SpawnLocation(LaunchPosition.X, LaunchPosition.Y, KalmalaOceanSkiff::SeaSurfaceZ);
     FActorSpawnParameters SpawnParameters;
     SpawnParameters.Owner = nullptr;
     SpawnParameters.Instigator = nullptr;
     SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
-    return World->SpawnActor<AKalmalaOceanSkiff>(SpawnLocation, SpawnRotation, SpawnParameters);
+    AKalmalaOceanSkiff* LaunchedSkiff = World->SpawnActor<AKalmalaOceanSkiff>(SpawnLocation, SpawnRotation, SpawnParameters);
+    Interactor->GetOceanTravelFeedbackComponent()->SetFeedbackFromServer(LaunchedSkiff != nullptr
+        ? EKalmalaOceanTravelFeedback::SkiffLaunched : EKalmalaOceanTravelFeedback::LaunchObstructed);
+    return LaunchedSkiff;
+}
+
+void AKalmalaOceanSkiff::SendFeedback(AKalmalaCharacter* Interactor,
+    const EKalmalaOceanTravelFeedback Feedback) const
+{
+    if (IsValid(Interactor) && Interactor->GetOceanTravelFeedbackComponent() != nullptr)
+    {
+        Interactor->GetOceanTravelFeedbackComponent()->SetFeedbackFromServer(Feedback);
+    }
 }
 
 bool AKalmalaOceanSkiff::CanInteract_Implementation(AKalmalaCharacter* Interactor) const
@@ -370,19 +408,54 @@ bool AKalmalaOceanSkiff::CanInteract_Implementation(AKalmalaCharacter* Interacto
 
 void AKalmalaOceanSkiff::Interact_Implementation(AKalmalaCharacter* Interactor)
 {
-    if (!CanInteract_Implementation(Interactor)) return;
+    TryInteractFromServer(Interactor);
+}
+
+bool AKalmalaOceanSkiff::TryInteractFromServer(AKalmalaCharacter* Interactor)
+{
+    if (!HasAuthority() || !IsValid(Interactor) || !Interactor->HasAuthority()
+        || Interactor->GetWorld() != GetWorld()
+        || Interactor->GetPlayerState() == nullptr)
+    {
+        return false;
+    }
+
+    const float DistanceSquared = FVector::DistSquared(Interactor->GetActorLocation(), GetActorLocation());
+    if (!FMath::IsFinite(DistanceSquared) || DistanceSquared > FMath::Square(KalmalaOceanSkiff::MaximumInteractionDistance))
+    {
+        SendFeedback(Interactor, EKalmalaOceanTravelFeedback::OutOfReach);
+        return false;
+    }
 
     if (Interactor == HelmOccupant || Interactor == PassengerOccupant)
     {
-        TryDisembarkFromServer(Interactor);
-        return;
+        return TryDisembarkFromServer(Interactor);
+    }
+
+    const APlayerState* InteractorState = Interactor->GetPlayerState();
+    if ((IsValid(HelmOccupant) && HelmOccupant->GetPlayerState() == InteractorState)
+        || (IsValid(PassengerOccupant) && PassengerOccupant->GetPlayerState() == InteractorState))
+    {
+        SendFeedback(Interactor, EKalmalaOceanTravelFeedback::AlreadySeated);
+        return false;
+    }
+    if (Interactor->GetAttachParentActor() != nullptr)
+    {
+        SendFeedback(Interactor, EKalmalaOceanTravelFeedback::AttachedElsewhere);
+        return false;
     }
 
     const EKalmalaOceanSkiffSeat Seat = ChooseSeat(IsValid(HelmOccupant), IsValid(PassengerOccupant));
-    if (Seat != EKalmalaOceanSkiffSeat::None)
+    if (Seat == EKalmalaOceanSkiffSeat::None)
     {
-        SetSeatOccupant(Interactor, Seat);
+        SendFeedback(Interactor, EKalmalaOceanTravelFeedback::SeatsFull);
+        return false;
     }
+
+    SetSeatOccupant(Interactor, Seat);
+    SendFeedback(Interactor, Seat == EKalmalaOceanSkiffSeat::Helm
+        ? EKalmalaOceanTravelFeedback::HelmAssigned : EKalmalaOceanTravelFeedback::PassengerAssigned);
+    return true;
 }
 
 bool AKalmalaOceanSkiff::TryDisembarkFromServer(AKalmalaCharacter* Interactor)
@@ -395,11 +468,17 @@ bool AKalmalaOceanSkiff::TryDisembarkFromServer(AKalmalaCharacter* Interactor)
 
     FVector ExitLocation;
     const float Speed = FMath::Abs(CurrentSpeed);
+    if (Speed > KalmalaOceanSkiff::MaximumExitSpeed || !FMath::IsNearlyZero(ThrottleInput)
+        || !FMath::IsNearlyZero(RudderInput))
+    {
+        SendFeedback(Interactor, EKalmalaOceanTravelFeedback::StopBeforeDisembarking);
+        return false;
+    }
     if (!FindSafeExitLocation(Interactor, ExitLocation)
-        || !FMath::IsNearlyZero(ThrottleInput) || !FMath::IsNearlyZero(RudderInput)
         || !IsDisembarkAllowed(HasAuthority(), Interactor == HelmOccupant || Interactor == PassengerOccupant,
             Speed, true))
     {
+        SendFeedback(Interactor, EKalmalaOceanTravelFeedback::NoSafeExit);
         return false;
     }
 
@@ -410,6 +489,7 @@ bool AKalmalaOceanSkiff::TryDisembarkFromServer(AKalmalaCharacter* Interactor)
     Interactor->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
     Interactor->ForceNetUpdate();
     ForceNetUpdate();
+    SendFeedback(Interactor, EKalmalaOceanTravelFeedback::Disembarked);
     return true;
 }
 

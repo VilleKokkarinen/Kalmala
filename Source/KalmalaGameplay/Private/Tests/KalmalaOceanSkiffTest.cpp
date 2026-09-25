@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaOceanSkiff.h"
+#include "KalmalaOceanTravelFeedbackComponent.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaWorldBounds.h"
@@ -23,6 +24,28 @@ bool FKalmalaOceanSkiffAuthorityContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Out-of-world launch targets are rejected"), AKalmalaOceanSkiff::IsLaunchAllowed(true, true, true, true, false, true));
     TestFalse(TEXT("A second session skiff is rejected"), AKalmalaOceanSkiff::IsLaunchAllowed(true, true, true, true, true, false));
 
+    TestEqual(TEXT("Non-generated surface launch gives coast guidance"),
+        AKalmalaOceanSkiff::GetLaunchDenialFeedback(false, true, true, true, true, true),
+        EKalmalaOceanTravelFeedback::LaunchObstructed);
+    TestEqual(TEXT("Distant launch gives reach guidance"),
+        AKalmalaOceanSkiff::GetLaunchDenialFeedback(true, false, true, true, true, true),
+        EKalmalaOceanTravelFeedback::OutOfReach);
+    TestEqual(TEXT("An occupied session slot is explained"),
+        AKalmalaOceanSkiff::GetLaunchDenialFeedback(true, true, true, true, false, true),
+        EKalmalaOceanTravelFeedback::SessionSkiffExists);
+    TestEqual(TEXT("The finite-world edge has its own launch reason"),
+        AKalmalaOceanSkiff::GetLaunchDenialFeedback(true, true, true, false, true, true),
+        EKalmalaOceanTravelFeedback::WorldEdge);
+    TestEqual(TEXT("Shallow launch position reports access guidance"),
+        AKalmalaOceanSkiff::GetLaunchDenialFeedback(true, true, false, true, true, true),
+        EKalmalaOceanTravelFeedback::ShallowLaunch);
+    TestEqual(TEXT("A shallow hull corner reports its own launch reason"),
+        AKalmalaOceanSkiff::GetLaunchDenialFeedback(true, true, true, true, true, false),
+        EKalmalaOceanTravelFeedback::ShallowHull);
+    TestEqual(TEXT("A valid launch has no denial reason"),
+        AKalmalaOceanSkiff::GetLaunchDenialFeedback(true, true, true, true, true, true),
+        EKalmalaOceanTravelFeedback::None);
+
     TestEqual(TEXT("The first accepted player receives the helm"), AKalmalaOceanSkiff::ChooseSeat(false, false), Seat::Helm);
     TestEqual(TEXT("The next accepted player receives the passenger seat"), AKalmalaOceanSkiff::ChooseSeat(true, false), Seat::Passenger);
     TestEqual(TEXT("Occupied seats reject another player"), AKalmalaOceanSkiff::ChooseSeat(true, true), Seat::None);
@@ -33,6 +56,28 @@ bool FKalmalaOceanSkiffAuthorityContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Disembark is rejected above the stopped-speed limit"), AKalmalaOceanSkiff::IsDisembarkAllowed(true, true, 50.01f, true));
     TestFalse(TEXT("Malformed speed is rejected"), AKalmalaOceanSkiff::IsDisembarkAllowed(true, true, NAN, true));
     TestFalse(TEXT("Disembark is rejected without a safe capsule placement"), AKalmalaOceanSkiff::IsDisembarkAllowed(true, true, 0.0f, false));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaOceanTravelFeedbackContractTest,
+    "Kalmala.Gameplay.OceanTravel.FeedbackAuthority",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaOceanTravelFeedbackContractTest::RunTest(const FString& Parameters)
+{
+    using Feedback = EKalmalaOceanTravelFeedback;
+    TestTrue(TEXT("A server may publish a known requester feedback reason"),
+        UKalmalaOceanTravelFeedbackComponent::IsFeedbackAllowed(true, Feedback::ShallowLaunch));
+    TestFalse(TEXT("A client cannot choose an ocean travel result"),
+        UKalmalaOceanTravelFeedbackComponent::IsFeedbackAllowed(false, Feedback::HelmAssigned));
+    TestFalse(TEXT("No-result is not a published feedback outcome"),
+        UKalmalaOceanTravelFeedbackComponent::IsFeedbackAllowed(true, Feedback::None));
+    TestTrue(TEXT("Shallow launch text explains depth and how to reach launch water"),
+        UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(Feedback::ShallowLaunch)
+            .Contains(TEXT("Wade or swim farther out")));
+    TestTrue(TEXT("Stop-before-exit text states the released-control speed limit"),
+        UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(Feedback::StopBeforeDisembarking)
+            .Contains(TEXT("0.5 m/s or slower")));
     return true;
 }
 

@@ -190,6 +190,23 @@ interaction trace, query live pawn overlap, exercise the skiff's actual world
 collision sweep, or prove a dry-shore disembark; keep those limits in M8
 host/client acceptance.
 
+## M8 coast feedback presentation
+
+After the forced editor build, run
+`Kalmala.Gameplay.OceanTravel.FeedbackAuthority` and
+`Kalmala.UI.SurvivalStatus.LocalPresentation` with the isolated headless
+automation flags above. The first checks server-only feedback selection and
+the launch denial mapping for shallow water, hull footprint, world edge,
+session capacity, and invalid coast hits. The UI test checks one-metre
+open-ocean access guidance, all-nine-sample hull depth, safe-stop text, and
+generated-terrain collision recovery guidance.
+
+Then run `Scripts\Verify-OceanSkiffFeedback.ps1 -Port 18166`. Its listen-host
+and conflicting-seed client receive distinct server-published owner messages;
+both local HUD text paths must show their own result, while the client copy of
+the host pawn must retain no feedback. This headless check verifies owner-only
+replication and message text, not a rendered viewport or live launch trace.
+
 ## Item catalogue verification
 
 For the M2 material contract, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above after building the editor. It loads the real project catalogue and checks required materials, exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate configuration. This is a pure contract check; live inventory replication and harvest-grant verification follow when the inventory component exists.

@@ -72,6 +72,29 @@ bool FKalmalaSurvivalStatusWidgetTest::RunTest(const FString& Parameters)
     }
     TestEqual(TEXT("Duplicate Wet input still resolves to one active row"), WetRowCount, 1);
 
+    FKalmalaSurvivalStatusSnapshot TravelSnapshot;
+    TravelSnapshot.bHasCharacter = true;
+    TravelSnapshot.bShowOceanTravelFeedback = true;
+    TravelSnapshot.OceanTravelFeedback = EKalmalaOceanTravelFeedback::ShallowLaunch;
+    const FString ShallowText = UKalmalaSurvivalStatusWidget::BuildStatusText(TravelSnapshot);
+    TestTrue(TEXT("Shallow launch feedback names the one-metre open-ocean and swim-access requirements"),
+        ShallowText.Contains(TEXT("SHALLOW WATER")) && ShallowText.Contains(TEXT("at least 1 m"))
+        && ShallowText.Contains(TEXT("Wade or swim farther out")));
+
+    TravelSnapshot.bShowOceanTravelFeedback = false;
+    TravelSnapshot.bInOceanSkiff = true;
+    TravelSnapshot.bAtOceanSkiffHelm = true;
+    TravelSnapshot.OceanSkiffMode = EKalmalaOceanSkiffMode::Blocked;
+    TravelSnapshot.OceanSkiffBlockReason = EKalmalaOceanSkiffBlockReason::GeneratedTerrainCollision;
+    const FString BlockedTravelText = UKalmalaSurvivalStatusWidget::BuildStatusText(TravelSnapshot);
+    TestTrue(TEXT("Helm guidance exposes collision, hull-depth, and safe-disembark limits"),
+        BlockedTravelText.Contains(TEXT("W/S throttle; A/D steer"))
+        && BlockedTravelText.Contains(TEXT("all nine samples"))
+        && BlockedTravelText.Contains(TEXT("≤0.5 m/s")));
+    TestTrue(TEXT("Blocked mode explains that generated terrain requires steering back to open water"),
+        BlockedTravelText.Contains(TEXT("COLLISION BLOCKED"))
+        && BlockedTravelText.Contains(TEXT("Turn away from the coast")));
+
     FKalmalaSurvivalStatusSnapshot EmptySnapshot;
     EmptySnapshot.bHasCharacter = true;
     TestEqual(TEXT("No active state has a readable local empty label"),

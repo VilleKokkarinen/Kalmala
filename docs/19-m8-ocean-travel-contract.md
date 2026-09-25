@@ -87,4 +87,31 @@ The owning character maps the existing forward axis to throttle and right axis t
 
 The server advances speed at no more than 100 cm/s² toward 700 cm/s forward or 200 cm/s reverse and turns at no more than 35 degrees/s. Each bounded movement step samples the hull centre, edges, and corners against the seed-derived ocean-depth surface, checks the 16 km boundary and excludes inland lakes, then sweeps the replicated hull against active generated-terrain collision. Water or collision rejection restores the last safe transform, zeros speed, and publishes `Blocked`. Stale input decelerates to `Moored`; a fresh helm intent can retry away from an obstruction. Replicated movement is configured for 10 updates per second, and steering axes, sequence, and freshness remain server-private. Travel remains transient and unsaved.
 
-`Kalmala.Gameplay.OceanTravel.SkiffSteeringContract` verifies authority/helm ownership, bounds, sequence ordering, rate limit, input expiry, acceleration, and speed caps. `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` continues to cover launch and occupancy. These pure contract checks and the editor build do not prove a live host/client collision sweep, rendered movement, or denial feedback; those remain open acceptance work. Player-facing launch denial and shallow-water guidance remain in the coast-readability task.
+`Kalmala.Gameplay.OceanTravel.SkiffSteeringContract` verifies authority/helm ownership, bounds, sequence ordering, rate limit, input expiry, acceleration, and speed caps. `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` continues to cover launch and occupancy. These pure contract checks and the editor build do not prove a live host/client collision sweep or rendered movement; those remain open M8 acceptance work. Coast and action guidance is covered by the presentation contract below.
+
+## Coast and travel feedback presentation (2026-09-25)
+
+The server records launch, boarding, and disembark results on the requesting
+character's owner-only `UKalmalaOceanTravelFeedbackComponent`. It reports
+shallow launch depth, an invalid nine-point hull footprint, the finite-world
+edge, an existing session skiff, blocked coast placement, seat availability,
+and safe-stop/exit requirements. A local row in the existing survival status
+panel shows that result for eight seconds. While attached, the same row remains
+visible with helm/passenger controls, the 100 cm depth rule across all nine
+hull samples, generated-land and finite-world collision limits, and the stopped
+disembark rule. A server-published skiff `BlockReason` distinguishes an invalid
+deep-ocean footprint, generated-terrain collision, and a rejected movement
+sweep; the local row gives recovery guidance from that replicated state.
+
+Feedback does not change launch, seat, movement, or exit outcomes. Clients
+cannot set it; action validation, hull sampling, movement, and safe placement
+remain server-owned. Per-player reasons and serials replicate only to that
+character's owner. The skiff's relevant movement mode and block reason remain
+visible to relevant peers. No save field, client-selected position, or new
+interaction authority was added. `Kalmala.Gameplay.OceanTravel.FeedbackAuthority`
+checks the denial mapping and feedback authority; `Kalmala.UI.SurvivalStatus.LocalPresentation`
+checks the local text. `Scripts/Verify-OceanSkiffFeedback.ps1` checks distinct
+listen-host/client owner results and that the remote client sees no host-only
+feedback. This host/client fixture verifies owner-scoped message transport and
+the local text path; it does not exercise an actual coastline trace, rendered
+skiff travel, or terrain collision sweep.

@@ -6,6 +6,7 @@
 #include "KalmalaSurvivalStatusSubsystem.generated.h"
 
 class APlayerController;
+class AKalmalaCharacter;
 class UKalmalaSurvivalStatusWidget;
 
 /** Builds each local player's status view from that pawn's existing replicated state. */
@@ -31,4 +32,8 @@ private:
     TObjectPtr<UKalmalaSurvivalStatusWidget> StatusWidget;
 
     TWeakObjectPtr<APlayerController> LocalController;
+    TWeakObjectPtr<AKalmalaCharacter> FeedbackPawn;
+    uint32 LastOceanTravelFeedbackSerial = 0;
+    uint32 LastLoggedOceanTravelFeedbackSerial = 0;
+    float OceanTravelFeedbackExpiry = 0.0f;
 };

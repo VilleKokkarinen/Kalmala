@@ -9,6 +9,7 @@ class AKalmalaCharacter;
 class UBoxComponent;
 class UProceduralMeshComponent;
 struct FKalmalaWorldGenerationConfig;
+enum class EKalmalaOceanTravelFeedback : uint8;
 
 UENUM(BlueprintType)
 enum class EKalmalaOceanSkiffMode : uint8
@@ -16,6 +17,15 @@ enum class EKalmalaOceanSkiffMode : uint8
     Moored,
     Underway,
     Blocked
+};
+
+UENUM(BlueprintType)
+enum class EKalmalaOceanSkiffBlockReason : uint8
+{
+	None,
+	InvalidOceanFootprint,
+	GeneratedTerrainCollision,
+	SweepLimit
 };
 
 UENUM()
@@ -41,11 +51,15 @@ public:
     virtual void Interact_Implementation(AKalmalaCharacter* Interactor) override;
 
     static AKalmalaOceanSkiff* TryLaunchFromServer(AKalmalaCharacter* Interactor, const FHitResult& TerrainHit);
+    static EKalmalaOceanTravelFeedback GetLaunchDenialFeedback(bool bGeneratedSurface, bool bInRange,
+        bool bDeepOcean, bool bWorldBounded, bool bSessionSlotAvailable, bool bNavigableHull);
+    bool TryInteractFromServer(AKalmalaCharacter* Interactor);
     bool TryDisembarkFromServer(AKalmalaCharacter* Interactor);
 
     AKalmalaCharacter* GetHelmOccupant() const { return HelmOccupant; }
     AKalmalaCharacter* GetPassengerOccupant() const { return PassengerOccupant; }
     EKalmalaOceanSkiffMode GetMode() const { return Mode; }
+    EKalmalaOceanSkiffBlockReason GetBlockReason() const { return BlockReason; }
     static bool IsLaunchAllowed(bool bServerAuthority, bool bGeneratedTerrainHit, bool bInRange,
         bool bDeepOcean, bool bWorldBounded, bool bSessionSlotAvailable);
     static bool HasNavigableOceanFootprintForConfig(const FKalmalaWorldGenerationConfig& Config,
@@ -77,6 +91,9 @@ private:
     UPROPERTY(Replicated, VisibleAnywhere, Category = "Travel")
     EKalmalaOceanSkiffMode Mode = EKalmalaOceanSkiffMode::Moored;
 
+    UPROPERTY(Replicated, VisibleAnywhere, Category = "Travel")
+    EKalmalaOceanSkiffBlockReason BlockReason = EKalmalaOceanSkiffBlockReason::None;
+
     TWeakObjectPtr<AKalmalaCharacter> PresentedHelmOccupant;
     TWeakObjectPtr<AKalmalaCharacter> PresentedPassengerOccupant;
 
@@ -86,7 +103,9 @@ private:
     bool FindSafeExitLocation(AKalmalaCharacter* Interactor, FVector& OutLocation) const;
     bool HasDeepOceanFootprint(FVector Location, FRotator Rotation) const;
     void AdvanceServerMovement(float DeltaSeconds);
-    void BlockMovementAtLastSafeTransform(const FVector& SafeLocation, const FRotator& SafeRotation);
+    void BlockMovementAtLastSafeTransform(const FVector& SafeLocation, const FRotator& SafeRotation,
+        EKalmalaOceanSkiffBlockReason Reason);
+    void SendFeedback(AKalmalaCharacter* Interactor, EKalmalaOceanTravelFeedback Feedback) const;
     void RefreshSeatOccupancyPresentation();
     void SetSeatOccupant(AKalmalaCharacter* Interactor, EKalmalaOceanSkiffSeat Seat);
     void ClearSeatOccupant(AKalmalaCharacter* Interactor);

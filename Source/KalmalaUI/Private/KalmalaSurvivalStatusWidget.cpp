@@ -173,7 +173,52 @@ FString UKalmalaSurvivalStatusWidget::BuildStatusText(const FKalmalaSurvivalStat
             ActiveEffectName, *FormatSeconds(SupportRemaining), *Magnitude));
     }
 
+    const FString TravelText = BuildOceanTravelText(Snapshot);
+    if (!TravelText.IsEmpty()) Rows.Add(TravelText);
+
     return Rows.IsEmpty() ? TEXT("○ STATUS · NO ACTIVE EFFECTS") : FString::Join(Rows, TEXT("\n"));
+}
+
+FString UKalmalaSurvivalStatusWidget::BuildOceanTravelText(const FKalmalaSurvivalStatusSnapshot& Snapshot)
+{
+    TArray<FString> Lines;
+    if (Snapshot.bShowOceanTravelFeedback)
+    {
+        const FString Feedback = UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(Snapshot.OceanTravelFeedback);
+        if (!Feedback.IsEmpty()) Lines.Add(Feedback);
+    }
+
+    if (Snapshot.bInOceanSkiff)
+    {
+        Lines.Add(Snapshot.bAtOceanSkiffHelm
+            ? TEXT("⚓ TRAVEL · HELM · W/S throttle; A/D steer. Hull needs ≥1 m of open ocean at all nine samples; generated land and the world edge block movement. Disembark stopped at ≤0.5 m/s with controls neutral.")
+            : TEXT("⚓ TRAVEL · PASSENGER · The helm steers. Hull needs ≥1 m of open ocean at all nine samples; generated land and the world edge block movement. Disembark stopped at ≤0.5 m/s."));
+
+        if (Snapshot.OceanSkiffMode == EKalmalaOceanSkiffMode::Blocked)
+        {
+            switch (Snapshot.OceanSkiffBlockReason)
+            {
+            case EKalmalaOceanSkiffBlockReason::InvalidOceanFootprint:
+	                Lines.Add(TEXT("▲ TRAVEL · HULL BLOCKED · Shallow water, inland water, or the finite-world edge stopped the hull. Steer back into deep open ocean."));
+                break;
+            case EKalmalaOceanSkiffBlockReason::GeneratedTerrainCollision:
+                Lines.Add(TEXT("▲ TRAVEL · COLLISION BLOCKED · Generated terrain stopped the skiff. Turn away from the coast and steer through open water."));
+                break;
+            case EKalmalaOceanSkiffBlockReason::SweepLimit:
+                Lines.Add(TEXT("▲ TRAVEL · MOVEMENT BLOCKED · The server could not safely sweep this step. Release controls and steer away at low speed."));
+                break;
+            default:
+                Lines.Add(TEXT("▲ TRAVEL · MOVEMENT BLOCKED · The server stopped at the last safe position. Steer away from the obstruction."));
+                break;
+            }
+        }
+        else if (Snapshot.OceanSkiffMode == EKalmalaOceanSkiffMode::Underway)
+        {
+            Lines.Add(TEXT("◇ TRAVEL · UNDERWAY · The server checks deep water and generated-terrain collision; release controls to slow down."));
+        }
+    }
+
+    return FString::Join(Lines, TEXT("\n"));
 }
 
 void UKalmalaSurvivalStatusWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapshot& Snapshot,

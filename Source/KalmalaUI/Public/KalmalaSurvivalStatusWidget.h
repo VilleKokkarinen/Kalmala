@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaOceanSkiff.h"
+#include "KalmalaOceanTravelFeedbackComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaWeatherState.h"
@@ -25,6 +27,12 @@ struct KALMALAUI_API FKalmalaSurvivalStatusSnapshot
     float ActiveSupportEffectExpiry = 0.0f;
     float HearthShieldStrength = 0.0f;
     float BearsVigorStrengthMultiplier = 1.0f;
+    bool bShowOceanTravelFeedback = false;
+    EKalmalaOceanTravelFeedback OceanTravelFeedback = EKalmalaOceanTravelFeedback::None;
+    bool bInOceanSkiff = false;
+    bool bAtOceanSkiffHelm = false;
+    EKalmalaOceanSkiffMode OceanSkiffMode = EKalmalaOceanSkiffMode::Moored;
+    EKalmalaOceanSkiffBlockReason OceanSkiffBlockReason = EKalmalaOceanSkiffBlockReason::None;
 };
 
 /** Persistent, read-only local presentation of replicated survival status. */
@@ -40,6 +48,7 @@ public:
     void SetSnapshot(const FKalmalaSurvivalStatusSnapshot& Snapshot, int32 TextScalePercent, int32 ContrastMode);
 
     static FString BuildStatusText(const FKalmalaSurvivalStatusSnapshot& Snapshot);
+    static FString BuildOceanTravelText(const FKalmalaSurvivalStatusSnapshot& Snapshot);
 
 protected:
     virtual void NativeOnInitialized() override;

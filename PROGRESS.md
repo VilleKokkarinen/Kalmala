@@ -7373,3 +7373,63 @@ not establish all generated coastline behavior.
 
 Next task: Present water access, shallow hazards, collision constraints, and
 rejected embark reasons to players; verify matching host/client feedback.
+
+### 2026-09-25T07:02:56Z — Present skiff coast and action feedback
+
+Outcome: Completed the M8 coast-readability task. Server launch checks now
+select distinct owner-only reasons for shallow water, invalid hull footprint,
+world edge, session skiff capacity, out-of-reach requests, and blocked coast
+placement. Boarding and disembarkation report seat assignment, full/already
+occupied state, required stopped speed and neutral controls, and missing safe
+exit placement. The local survival status panel displays each recent result
+for eight seconds and, while attached, persistent helm/passenger controls,
+one-metre nine-point open-ocean depth guidance, collision limits, and recovery
+from the replicated blocked reason.
+
+Changed this run: `Source/KalmalaGameplay/Public/KalmalaOceanTravelFeedbackComponent.h`,
+`Source/KalmalaGameplay/Private/KalmalaOceanTravelFeedbackComponent.cpp`,
+`Source/KalmalaGameplay/Public/KalmalaCharacter.h`,
+`Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+`Source/KalmalaGameplay/Public/KalmalaOceanSkiff.h`,
+`Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp`,
+`Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaOceanSkiffTest.cpp`,
+`Source/KalmalaUI/Public/KalmalaSurvivalStatusWidget.h`,
+`Source/KalmalaUI/Private/KalmalaSurvivalStatusWidget.cpp`,
+`Source/KalmalaUI/Public/KalmalaSurvivalStatusSubsystem.h`,
+`Source/KalmalaUI/Private/KalmalaSurvivalStatusSubsystem.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaSurvivalStatusWidgetTest.cpp`,
+`Scripts/Verify-OceanSkiffFeedback.ps1`, `docs/07-development-setup.md`,
+`docs/19-m8-ocean-travel-contract.md`, `BACKLOG.md`, and this handoff.
+Existing unrelated workspace changes remain untouched.
+
+Verification: An initial disposable mirror path exceeded Windows' 260-character
+action limit before compilation. Rebuilding from a shorter temporary mirror
+with normal `%LOCALAPPDATA%\UnrealBuildTool` access succeeded in 174 actions.
+`Kalmala.Gameplay.OceanTravel.FeedbackAuthority`, `SkiffAuthorityContract`,
+`SkiffSteeringContract`, `SkiffCoastlineAccess`, `Kalmala.World.Water.OceanDepth`,
+and `Kalmala.UI.SurvivalStatus.LocalPresentation` all reported
+`Result={Success}`. `Scripts/Verify-OceanSkiffFeedback.ps1 -Port 18166` passed:
+the listen host displayed shallow-water access guidance, the client displayed
+its own full-seat denial, the client adopted server seed 418, and the remote
+copy of the host retained no private feedback. All five
+`Scripts/Verify-M5DocumentationContracts.ps1` checks and `git diff --check`
+passed.
+
+Multiplayer and persistence impact: The server still resolves every launch,
+seat, movement, and exit outcome. The feedback reason and serial replicate only
+to the requesting character's owner; skiff movement mode and its blocked reason
+replicate to relevant peers. No client-selected target/outcome, RPC payload,
+save field, or persistence behavior changed.
+
+Known limits: The peer fixture sets representative server outcomes directly to
+exercise owner replication and HUD text; it does not run a live coast
+interaction trace or render the skiff moving into terrain. The status panel
+text test and headless peer logs establish copy and ownership, not viewport
+readability across scales. No hull-collision screenshot or dry-shore exit was
+tested.
+
+Next task: Extend server-selected ocean weather with readable, reversible
+pressure and viable counterplay, then verify matching accepted state/recovery
+across peers.

@@ -14,6 +14,7 @@ class UKalmalaCombatComponent;
 class UKalmalaDiscoveryProgressComponent;
 class UKalmalaSupportMagicComponent;
 class UKalmalaSkillProgressionComponent;
+class UKalmalaOceanTravelFeedbackComponent;
 class AKalmalaHarvestNode;
 enum class EKalmalaSupportEffect : uint8;
 
@@ -58,6 +59,7 @@ public:
     UKalmalaInventoryComponent* GetInventoryComponent() const { return Inventory; }
     UKalmalaSupportMagicComponent* GetSupportMagicComponent() const { return SupportMagic; }
     UKalmalaSkillProgressionComponent* GetSkillProgressionComponent() const { return SkillProgression; }
+    UKalmalaOceanTravelFeedbackComponent* GetOceanTravelFeedbackComponent() const { return OceanTravelFeedback; }
     int32 GetToolDurability(FName ToolId) const;
     EKalmalaSupportEffect GetSelectedSupportEffect() const;
     float GetHealth() const { return Health; }
@@ -88,6 +90,7 @@ private:
     UPROPERTY(VisibleAnywhere, Category="Support") TObjectPtr<UKalmalaSupportMagicComponent> SupportMagic;
     UPROPERTY(VisibleAnywhere, Category="Progression") TObjectPtr<UKalmalaSkillProgressionComponent> SkillProgression;
     UPROPERTY(VisibleAnywhere, Category="Status") TObjectPtr<UKalmalaPlayerStatusComponent> Statuses;
+    UPROPERTY(VisibleAnywhere, Category="Ocean Travel") TObjectPtr<UKalmalaOceanTravelFeedbackComponent> OceanTravelFeedback;
     UPROPERTY(VisibleAnywhere, Category = "Inventory")
     TObjectPtr<UKalmalaInventoryComponent> Inventory;
 
@@ -144,6 +147,8 @@ private:
     float LocalOceanSkiffRudder = 0.0f;
     double LastOceanSkiffInputSendTime = -1.0;
     bool bDiscoveryPeerPrivacyLogged = false;
+    bool bOceanTravelFeedbackPeerPrivacyLogged = false;
+    float OceanTravelFeedbackPeerStartTime = -1.0f;
     float DiscoveryPeerTestStartTime = -1.0f;
     bool bOceanTravelTargetConfigured = false;
     bool bOceanTravelOceanEntryLogged = false;

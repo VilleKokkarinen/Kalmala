@@ -3,12 +3,16 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaOceanSkiff.h"
+#include "KalmalaOceanTravelFeedbackComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaSurvivalStatusWidget.h"
 #include "KalmalaWeatherActivityWidget.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 void UKalmalaSurvivalStatusSubsystem::Tick(float)
 {
@@ -34,10 +38,39 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float)
     }
 
     FKalmalaSurvivalStatusSnapshot Snapshot;
-    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(FoundController->GetPawn());
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(FoundController->GetPawn());
     Snapshot.bHasCharacter = Character != nullptr;
     if (Character != nullptr)
     {
+        if (FeedbackPawn.Get() != Character)
+        {
+            FeedbackPawn = Character;
+            LastOceanTravelFeedbackSerial = 0;
+            LastLoggedOceanTravelFeedbackSerial = 0;
+            OceanTravelFeedbackExpiry = 0.0f;
+        }
+
+        const UKalmalaOceanTravelFeedbackComponent* Feedback = Character->GetOceanTravelFeedbackComponent();
+        if (Feedback != nullptr)
+        {
+            Snapshot.OceanTravelFeedback = Feedback->GetFeedback();
+            if (Feedback->GetFeedbackSerial() != LastOceanTravelFeedbackSerial)
+            {
+                LastOceanTravelFeedbackSerial = Feedback->GetFeedbackSerial();
+                OceanTravelFeedbackExpiry = World->GetTimeSeconds() + 8.0f;
+            }
+            Snapshot.bShowOceanTravelFeedback = Feedback->GetFeedbackSerial() > 0
+                && World->GetTimeSeconds() <= OceanTravelFeedbackExpiry;
+        }
+
+        if (const AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(Character->GetAttachParentActor()))
+        {
+            Snapshot.bInOceanSkiff = true;
+            Snapshot.bAtOceanSkiffHelm = Skiff->GetHelmOccupant() == Character;
+            Snapshot.OceanSkiffMode = Skiff->GetMode();
+            Snapshot.OceanSkiffBlockReason = Skiff->GetBlockReason();
+        }
+
         Snapshot.Exposure = Character->GetExposureState();
         if (const UKalmalaPlayerStatusComponent* Status = Character->GetStatusComponent())
         {
@@ -66,12 +99,29 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float)
     StatusWidget->SetSnapshot(Snapshot,
         UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
     StatusWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanSkiffFeedbackTest"))
+        && Character != nullptr && Snapshot.bShowOceanTravelFeedback
+        && Snapshot.OceanTravelFeedback != EKalmalaOceanTravelFeedback::None
+        && LastLoggedOceanTravelFeedbackSerial != LastOceanTravelFeedbackSerial)
+    {
+        LastLoggedOceanTravelFeedbackSerial = LastOceanTravelFeedbackSerial;
+        UE_LOG(LogTemp, Display, TEXT("Ocean skiff feedback UI local: NetMode=%d Serial=%u Message=%s"),
+            static_cast<int32>(World->GetNetMode()), LastOceanTravelFeedbackSerial,
+            *UKalmalaSurvivalStatusWidget::BuildOceanTravelText(Snapshot));
+    }
+#endif
 }
 
 void UKalmalaSurvivalStatusSubsystem::ReleaseController()
 {
     if (StatusWidget != nullptr) StatusWidget->RemoveFromParent();
     StatusWidget = nullptr;
+    FeedbackPawn = nullptr;
+    LastOceanTravelFeedbackSerial = 0;
+    LastLoggedOceanTravelFeedbackSerial = 0;
+    OceanTravelFeedbackExpiry = 0.0f;
 }
 
 void UKalmalaSurvivalStatusSubsystem::Deinitialize()
