@@ -80,8 +80,8 @@ window. They include all connection traffic in that interval and do not
 separate actor replication from RPC/control traffic or account for UDP/IP
 headers. They exclude the listen host's in-process local player and the initial
 connection handshake. This moored discovery/disembark snapshot does not measure
-underway movement, sustained traffic, or a traffic ceiling; rendered frame time
-remains open.
+underway movement, sustained traffic, or a traffic ceiling; rendered frame
+time is measured separately below.
 
 The 2026-09-26 UE 5.8.2 Development/null-RHI run on seed 418 reported:
 
@@ -94,6 +94,42 @@ The same run passed the two-peer discovery/disembark acceptance and recorded
 56 world actors, 38 replicated actors, 9 terrain patches, 177.49 ms initial
 generation, and 2,215 serialized population-save bytes. The byte counts are a
 single bounded moored-state sample, not a numeric budget target.
+
+## Two-peer rendered frame-time snapshot
+
+After a forced editor build, run
+`Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1 -RenderedFrameTimeProfile`.
+This retains the seed-418 `L_Prototype` listen-host and conflicting-seed client
+scenario. Each peer starts a 300-frame CSV capture only after it observes the
+accepted optional discovery, exact owner reward, and empty moored skiff after
+safe disembark. Captures are written to the run's temporary `FrameTimes`
+directory, outside the project `Saved` tree. The runner requires 300 positive
+samples for `FrameTime`, `GameThreadTime`, `RenderThreadTime`, and `GPUTime`
+from both peer CSVs and rejects NullRHI.
+
+The 2026-09-26 UE 5.8.2 Win64 Development run requested a 1280x720 offscreen
+D3D12 RHI render, with VSync disabled and GPU CSV stats enabled. Both peer logs
+reported D3D12 on an NVIDIA GeForce RTX 5090. The measured scene contained the
+accepted seed-418 shellbank-shoal reward, two disembarked players, one empty
+moored skiff, 56 world actors, 38 replicated actors, and 9 active terrain
+patches. Values below are p50 / p95 milliseconds across 300 frames per peer;
+they are a single diagnostic snapshot, not approved performance ceilings.
+
+| Metric | Listen host p50 / p95 (ms) | Remote client p50 / p95 (ms) |
+| --- | ---: | ---: |
+| Total frame (`FrameTime`) | 2.52 / 4.67 | 4.07 / 7.09 |
+| Game thread | 1.80 / 2.56 | 2.68 / 3.97 |
+| Render thread | 2.49 / 4.83 | 4.04 / 6.47 |
+| GPU | 0.97 / 1.15 | 1.14 / 1.45 |
+
+The capture ran offscreen through the hardware RHI and did not present to a
+monitor; it excludes display and VSync presentation costs. The first captured
+frames include setup hitches (maximum total-frame samples were 165.81 ms on
+the host and 187.06 ms on the client), so the percentiles describe the steady
+portion better than the maxima. This is one short moored-state sample, not an
+underway, sustained, peak, packaged, or representative-hardware matrix result.
+No numeric actor, memory, replication, or frame-time ceilings have been
+approved.
 
 ## Verification
 
@@ -112,9 +148,9 @@ The skiff's existing contract remains one vessel per session with movement
 replication capped at 10 updates per second. Ocean discovery activation is
 bounded to 18 nearby cells across the two-player prototype, and generated
 terrain remains capped at 25 active patches. These are structural ceilings.
-The two-peer startup snapshot records actor count, per-process memory, and a
-bounded per-client connection-traffic delta, but sustained/peak use and
-rendered frame time remain unmeasured. The crossing fixture remains blocked on
-steering as recorded in `PROGRESS.md`. The serialized save cap, actor/memory
-snapshot, and connection-traffic sample are completed slices of the open M8
-budget task.
+The two-peer startup snapshot records actor count, per-process memory, a
+bounded per-client connection-traffic delta, and the rendered frame-time
+snapshot above, but sustained/peak use remains unmeasured. The crossing fixture
+remains blocked on steering as recorded in `PROGRESS.md`. Numeric performance
+targets have not been approved, so the recorded snapshots do not establish
+that the game meets a performance ceiling.

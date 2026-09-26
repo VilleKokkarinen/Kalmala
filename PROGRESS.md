@@ -7870,3 +7870,49 @@ Next eligible task: Capture representative rendered frame times for the M8
 two-peer skiff state and document the render setup; keep the integrated
 crossing blocked until the steering-driver path is diagnosed. Main checkout
 used; no handoff synchronization was needed.
+
+### 2026-09-26T06:25:24Z — Capture M8 rendered frame times
+
+Outcome: Completed the M8 rendered frame-time evidence slice and the final
+child of the M8 budget-evidence task. The opt-in profile captures 300 frames
+from each peer only after discovery reward, disembark, and empty moored-skiff
+state are accepted. The existing NullRHI runner behavior remains the default.
+
+Changed this run: Added dev-only CSV capture hooks to
+`Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryDisembarkPeerTest.cpp` and
+`Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryDisembarkPeerTest.h`, plus
+`-RenderedFrameTimeProfile` to `Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1`.
+The runner validates both non-NullRHI peer captures and reports 300-sample
+p50/p95/max values. Updated `docs/20-m8-ocean-performance-budget.md` with the
+1280x720 offscreen D3D12 setup, scene, results, and limits; checked the final
+M8 budget child and parent in `BACKLOG.md`; and recorded this handoff. Raw
+captures and logs remain in the temporary directory
+`C:\Users\Ville\AppData\Local\Temp\KalmalaOceanSkiffDiscoveryDisembark-0f95387c6e1a4edf8db32753d52706b5`.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed
+14 actions with normal `%LOCALAPPDATA%\UnrealBuildTool` access. The PowerShell
+parser passed. The final
+`Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1 -RenderedFrameTimeProfile -Port 19373`
+run passed both peers and the four timing metrics at 300 samples each. It used
+D3D12 on NVIDIA GeForce RTX 5090 at 1280x720 offscreen with VSync disabled.
+Host/client total-frame p50/p95 were 2.52/4.67 ms and 4.07/7.09 ms; game-thread
+were 1.80/2.56 and 2.68/3.97 ms; render-thread were 2.49/4.83 and 4.04/6.47
+ms; GPU were 0.97/1.15 and 1.14/1.45 ms. Scoped `git diff --check` passed for
+the source, runner, and budget document.
+
+Multiplayer and persistence impact: The capture hook is development-only and
+starts locally after each peer observes the accepted fixture outcome. It adds
+no production RPC, replicated field, server-authority path, or saved-data
+change.
+
+Known limits: This is one short moored-state offscreen hardware-RHI sample; it
+does not include display/VSync presentation, underway travel, sustained or
+peak load, packaged builds, or a hardware matrix. Initial-frame maxima were
+165.81 ms on the host and 187.06 ms on the client. Numeric actor, memory,
+replication, and frame-time thresholds remain unapproved, so these snapshots do
+not establish compliance with a numeric ceiling. The integrated voyage remains
+blocked pending steering-driver diagnosis and M8 acceptance is still open.
+
+Next eligible task: Diagnose the steering-driver/RPC path before retrying the
+blocked integrated two-seat voyage. This used the main checkout; no handoff
+synchronization was needed.

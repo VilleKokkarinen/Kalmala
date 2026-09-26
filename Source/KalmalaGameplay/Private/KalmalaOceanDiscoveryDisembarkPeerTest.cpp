@@ -17,7 +17,9 @@
 #include "KalmalaWorldPopulationLayout.h"
 #include "Misc/Crc.h"
 #include "Misc/Parse.h"
+#include "Misc/Paths.h"
 #include "Net/UnrealNetwork.h"
+#include "ProfilingDebugging/CsvProfiler.h"
 
 namespace
 {
@@ -99,6 +101,19 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::Tick(const float DeltaSeconds)
 	else if (bServerOutcomePublished && !bLocalOwnerReported)
 	{
 		VerifyLocalOwnerReplica();
+	}
+
+	if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCaptureRenderedFrameTimes")))
+	{
+		const bool bAcceptedStateObserved = HasAuthority() ? bServerReported : bLocalOwnerReported;
+		if (bAcceptedStateObserved && !bRenderedFrameCaptureStarted)
+		{
+			StartRenderedFrameCapture();
+		}
+		if (bRenderedFrameCaptureStarted && !bRenderedFrameCaptureCompleted)
+		{
+			UpdateRenderedFrameCapture();
+		}
 	}
 #endif
 }
@@ -687,6 +702,64 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::ReportPeerNetworkProfile()
 		TEXT("Ocean M8 peer connection profile: Peer=Client WindowSeconds=%.2f InBytes=%u OutBytes=%u InPackets=%u OutPackets=%u"),
 		WindowSeconds, InBytes, OutBytes, InPackets, OutPackets);
 	bNetworkProfileReported = true;
+}
+
+void AKalmalaOceanDiscoveryDisembarkPeerTest::StartRenderedFrameCapture()
+{
+	if (!FParse::Param(FCommandLine::Get(), TEXT("RenderOffscreen"))
+		|| FParse::Param(FCommandLine::Get(), TEXT("nullrhi")))
+	{
+		Fail(TEXT("rendered frame capture requires the offscreen RHI mode without NullRHI"));
+		return;
+	}
+
+	FString OutputDirectory;
+	if (!FParse::Value(FCommandLine::Get(), TEXT("KalmalaFrameTimeOutputDir="), OutputDirectory)
+		|| !FPaths::DirectoryExists(OutputDirectory)
+		|| !FParse::Value(FCommandLine::Get(), TEXT("ResX="), RenderedFrameCaptureWidth)
+		|| !FParse::Value(FCommandLine::Get(), TEXT("ResY="), RenderedFrameCaptureHeight)
+		|| RenderedFrameCaptureWidth <= 0 || RenderedFrameCaptureHeight <= 0)
+	{
+		Fail(TEXT("rendered frame capture requires an existing output directory and positive ResX/ResY"));
+		return;
+	}
+
+#if CSV_PROFILER
+	RenderedFrameCapturePeer = HasAuthority() ? TEXT("ListenServer") : TEXT("Client");
+	RenderedFrameCaptureFilename = HasAuthority() ? TEXT("M8SkiffListenServer") : TEXT("M8SkiffClient");
+	FCsvProfiler::Get()->BeginCapture(300, OutputDirectory, RenderedFrameCaptureFilename,
+		ECsvProfilerFlags::WriteCompletionFile);
+	bRenderedFrameCaptureStarted = true;
+	UE_LOG(LogTemp, Display,
+		TEXT("Ocean M8 rendered frame capture started: Peer=%s Resolution=%dx%d RenderMode=OffscreenRHI Frames=300 Csv=%s.csv"),
+		*RenderedFrameCapturePeer, RenderedFrameCaptureWidth, RenderedFrameCaptureHeight,
+		*RenderedFrameCaptureFilename);
+#else
+	Fail(TEXT("rendered frame capture requested but CSV_PROFILER is disabled in this build"));
+#endif
+}
+
+void AKalmalaOceanDiscoveryDisembarkPeerTest::UpdateRenderedFrameCapture()
+{
+#if CSV_PROFILER
+	FCsvProfiler* CsvProfiler = FCsvProfiler::Get();
+	if (CsvProfiler->IsCapturing())
+	{
+		bRenderedFrameCaptureSawStart = true;
+		return;
+	}
+
+	if (!bRenderedFrameCaptureSawStart || CsvProfiler->IsWritingFile())
+	{
+		return;
+	}
+
+	bRenderedFrameCaptureCompleted = true;
+	UE_LOG(LogTemp, Display,
+		TEXT("Ocean M8 rendered frame capture complete: Peer=%s Resolution=%dx%d RenderMode=OffscreenRHI Frames=300 Csv=%s.csv"),
+		*RenderedFrameCapturePeer, RenderedFrameCaptureWidth, RenderedFrameCaptureHeight,
+		*RenderedFrameCaptureFilename);
+#endif
 }
 
 void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyLocalOwnerReplica()

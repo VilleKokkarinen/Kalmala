@@ -26,6 +26,8 @@ private:
 	bool PrepareServerScenario();
 	void VerifyServerOutcome();
 	void ReportPeerNetworkProfile();
+	void StartRenderedFrameCapture();
+	void UpdateRenderedFrameCapture();
 	void VerifyLocalOwnerReplica();
 	void Fail(const TCHAR* Reason);
 
@@ -58,4 +60,11 @@ private:
 	bool bServerReported = false;
 	bool bNetworkProfileReported = false;
 	bool bLocalOwnerReported = false;
+	bool bRenderedFrameCaptureStarted = false;
+	bool bRenderedFrameCaptureSawStart = false;
+	bool bRenderedFrameCaptureCompleted = false;
+	FString RenderedFrameCapturePeer;
+	FString RenderedFrameCaptureFilename;
+	int32 RenderedFrameCaptureWidth = 0;
+	int32 RenderedFrameCaptureHeight = 0;
 };

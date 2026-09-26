@@ -2,6 +2,7 @@ param(
     [int]$Port = 18170,
     [string]$OutputDirectory = '',
     [string]$Project = '',
+    [switch]$RenderedFrameTimeProfile,
     [int]$TimeoutSeconds = 120
 )
 
@@ -14,9 +15,51 @@ $hostLog = Join-Path $output 'host.log'
 $clientLog = Join-Path $output 'client.log'
 $hostShaderDir = Join-Path $output 'Host\ShaderWorkingDir'
 $clientShaderDir = Join-Path $output 'Client\ShaderWorkingDir'
+$frameTimeDirectory = Join-Path $output 'FrameTimes'
 New-Item -ItemType Directory -Path $hostShaderDir -Force | Out-Null
 New-Item -ItemType Directory -Path $clientShaderDir -Force | Out-Null
-$common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaOceanDiscoveryDisembarkPeerTest -KalmalaWorldProfile'
+$common = '-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaOceanDiscoveryDisembarkPeerTest -KalmalaWorldProfile'
+if ($RenderedFrameTimeProfile) {
+    New-Item -ItemType Directory -Path $frameTimeDirectory -Force | Out-Null
+    $common += " -RenderOffscreen -ResX=1280 -ResY=720 -novsync -csvGpuStats -KalmalaCaptureRenderedFrameTimes -KalmalaFrameTimeOutputDir=`"$frameTimeDirectory`""
+}
+else {
+    $common += ' -nullrhi'
+}
+
+function Get-FrameTimeMetricSummary {
+    param(
+        [Parameter(Mandatory = $true)][string]$CsvPath,
+        [Parameter(Mandatory = $true)][string]$Metric
+    )
+
+    $culture = [System.Globalization.CultureInfo]::InvariantCulture
+    $samples = [System.Collections.Generic.List[double]]::new()
+    foreach ($row in (Import-Csv -LiteralPath $CsvPath)) {
+        if ($row.EVENTS -eq '[HasHeaderRowAtEnd]') { continue }
+        $rawValue = $row.PSObject.Properties[$Metric].Value
+        $value = 0.0
+        if ($null -ne $rawValue -and [double]::TryParse([string]$rawValue, [System.Globalization.NumberStyles]::Float, $culture, [ref]$value) -and $value -gt 0.0) {
+            [void]$samples.Add($value)
+        }
+    }
+
+    if ($samples.Count -ne 300) {
+        throw "Rendered M8 CSV '$CsvPath' contains $($samples.Count) positive $Metric samples; expected 300."
+    }
+
+    $sorted = @($samples.ToArray() | Sort-Object)
+    $p50 = $sorted[[int][Math]::Ceiling(0.50 * $sorted.Count) - 1]
+    $p95 = $sorted[[int][Math]::Ceiling(0.95 * $sorted.Count) - 1]
+    $maximum = $sorted[-1]
+    return [pscustomobject]@{
+        Samples = $samples.Count
+        P50Ms = $p50.ToString('F2', $culture)
+        P95Ms = $p95.ToString('F2', $culture)
+        MaxMs = $maximum.ToString('F2', $culture)
+    }
+}
+
 $hostProcess = $null
 $client = $null
 try {
@@ -54,7 +97,15 @@ try {
         if ($networkProfileMatch.Success -and $serverOutcomeIndex -ge 0 -and $networkProfileIndex -lt $serverOutcomeIndex) {
             throw 'The M8 peer connection profile was captured before the two-peer skiff scenario completed.'
         }
-        $ready = $serverAccepted -and $clientAccepted -and $clientWorld -and $profileMatch.Success -and $networkProfileMatch.Success
+        $frameTimeProfilesReady = $true
+        if ($RenderedFrameTimeProfile) {
+            $hostCapture = $hostText -match 'Ocean M8 rendered frame capture complete: Peer=ListenServer Resolution=1280x720 RenderMode=OffscreenRHI Frames=300 Csv=M8SkiffListenServer\.csv'
+            $clientCapture = $clientText -match 'Ocean M8 rendered frame capture complete: Peer=Client Resolution=1280x720 RenderMode=OffscreenRHI Frames=300 Csv=M8SkiffClient\.csv'
+            $hostCaptureFile = Test-Path -LiteralPath (Join-Path $frameTimeDirectory 'M8SkiffListenServer.csv')
+            $clientCaptureFile = Test-Path -LiteralPath (Join-Path $frameTimeDirectory 'M8SkiffClient.csv')
+            $frameTimeProfilesReady = $hostCapture -and $clientCapture -and $hostCaptureFile -and $clientCaptureFile
+        }
+        $ready = $serverAccepted -and $clientAccepted -and $clientWorld -and $profileMatch.Success -and $networkProfileMatch.Success -and $frameTimeProfilesReady
         if ($ready) { break }
         Start-Sleep -Seconds 1
     } while ((Get-Date) -lt $deadline)
@@ -76,6 +127,26 @@ try {
     $clientPrivateMiB = ($clientMemory.PrivateMemorySize64 / 1MB).ToString('F2', $invariantCulture)
     $clientWorkingSetMiB = ($clientMemory.WorkingSet64 / 1MB).ToString('F2', $invariantCulture)
     Write-Output ('M8 process memory snapshot: ListenServerPrivateMiB={0} ListenServerWorkingSetMiB={1} ClientPrivateMiB={2} ClientWorkingSetMiB={3}' -f $hostPrivateMiB, $hostWorkingSetMiB, $clientPrivateMiB, $clientWorkingSetMiB)
+    if ($RenderedFrameTimeProfile) {
+        $hostRhiMatch = [regex]::Match($hostText, 'LogRHI: Using Default RHI: (?<rhi>[^\r\n]+)')
+        $clientRhiMatch = [regex]::Match($clientText, 'LogRHI: Using Default RHI: (?<rhi>[^\r\n]+)')
+        if (!$hostRhiMatch.Success -or !$clientRhiMatch.Success -or $hostRhiMatch.Groups['rhi'].Value -match 'NullRHI' -or $clientRhiMatch.Groups['rhi'].Value -match 'NullRHI') {
+            throw 'Rendered M8 captures did not report an active non-NullRHI render interface on both peers.'
+        }
+        $hostAdapterLine = Select-String -LiteralPath $hostLog -Pattern 'LogRHI:\s+Name:' | Select-Object -First 1
+        $clientAdapterLine = Select-String -LiteralPath $clientLog -Pattern 'LogRHI:\s+Name:' | Select-Object -First 1
+        $hostAdapter = if ($null -ne $hostAdapterLine) { $hostAdapterLine.Line -replace '.*LogRHI:\s+Name:\s*', '' } else { 'unreported' }
+        $clientAdapter = if ($null -ne $clientAdapterLine) { $clientAdapterLine.Line -replace '.*LogRHI:\s+Name:\s*', '' } else { 'unreported' }
+        $hostCsv = Join-Path $frameTimeDirectory 'M8SkiffListenServer.csv'
+        $clientCsv = Join-Path $frameTimeDirectory 'M8SkiffClient.csv'
+        foreach ($metric in 'FrameTime', 'GameThreadTime', 'RenderThreadTime', 'GPUTime') {
+            $hostMetric = Get-FrameTimeMetricSummary -CsvPath $hostCsv -Metric $metric
+            $clientMetric = Get-FrameTimeMetricSummary -CsvPath $clientCsv -Metric $metric
+            Write-Output ('M8 rendered frame timing: Metric={0} Unit=ms Samples={1} ListenServerP50={2} ListenServerP95={3} ListenServerMax={4} ClientP50={5} ClientP95={6} ClientMax={7}' -f $metric, $hostMetric.Samples, $hostMetric.P50Ms, $hostMetric.P95Ms, $hostMetric.MaxMs, $clientMetric.P50Ms, $clientMetric.P95Ms, $clientMetric.MaxMs)
+        }
+        Write-Output "M8 rendered frame CSVs: $frameTimeDirectory"
+        Write-Output ('Render mode: Resolution=1280x720 OffscreenRHI VSync=off GPUStats=on ListenServerRHI={0} ListenServerAdapter={1} ClientRHI={2} ClientAdapter={3}; each capture covers 300 frames after accepted discovery and safe disembark.' -f $hostRhiMatch.Groups['rhi'].Value, $hostAdapter, $clientRhiMatch.Groups['rhi'].Value, $clientAdapter)
+    }
 }
 finally {
     foreach ($peer in @($client, $hostProcess)) {
