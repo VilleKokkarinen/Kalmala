@@ -129,6 +129,10 @@ The server advances speed at no more than 100 cm/s² toward 700 cm/s forward or 
 
 `Kalmala.Gameplay.OceanTravel.SkiffSteeringContract` verifies authority/helm ownership, bounds, sequence ordering, rate limit, input expiry, acceleration, and speed caps. `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` continues to cover launch and occupancy. These pure contract checks and the editor build do not prove a live host/client collision sweep or rendered movement; those remain open M8 acceptance work. Coast and action guidance is covered by the presentation contract below.
 
+In the development-only integrated journey fixture, local movement-axis callbacks are suppressed while scripted helm intent is active so neutral axis samples cannot overwrite the fixture throttle. After the fixture verifies its crosswind and calm states, automatic weather-cycle advancement is held at calm until the route completes; this prevents unrelated later wind from steering the test skiff off its sampled corridor. Neither guard changes normal movement input or production weather behavior.
+
+On 2026-09-26, the forced UE5.8.2 build, `SkiffAuthorityContract`, `SkiffSteeringContract`, and `Scripts/Verify-OceanSkiffJourney.ps1 -Port 18169` passed. The seed-418 host and client observed a 242,511 cm crossing from terrain patch (71,0) to (152,5), with 9 active patches, both crosswind/calm states, and the final moored state. The fixture keeps `OriginShift=inactive`; this remains a bounded NullRHI integration check, not physical helm input or rendered travel acceptance.
+
 ## Coast and travel feedback presentation (2026-09-25)
 
 The server records launch, boarding, and disembark results on the requesting

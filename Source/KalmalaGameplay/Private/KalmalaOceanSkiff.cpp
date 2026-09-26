@@ -19,6 +19,8 @@
 #include "ProceduralMeshComponent.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
 
 namespace KalmalaOceanSkiff
@@ -235,8 +237,23 @@ bool AKalmalaOceanSkiff::AcceptSteeringFromServer(AKalmalaCharacter* Interactor,
 {
     if (!HasAuthority() || !IsValid(Interactor) || Interactor != HelmOccupant || GetWorld() == nullptr) return false;
     const double Now = GetWorld()->GetTimeSeconds();
-    if (!IsSteeringIntentAllowed(HasAuthority(), Interactor == HelmOccupant, Throttle, Rudder,
-        Sequence, LastAcceptedInputSequence, Now, LastAcceptedInputTime, bHasAcceptedInput))
+    const bool bInputAllowed = IsSteeringIntentAllowed(HasAuthority(), Interactor == HelmOccupant, Throttle, Rudder,
+        Sequence, LastAcceptedInputSequence, Now, LastAcceptedInputTime, bHasAcceptedInput);
+#if !UE_BUILD_SHIPPING
+    static bool bLoggedFirstJourneySteeringValidation = false;
+    if (!bLoggedFirstJourneySteeringValidation
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")))
+    {
+        bLoggedFirstJourneySteeringValidation = true;
+        UE_LOG(LogTemp, Display,
+            TEXT("Ocean journey steering validator: Authority=%d IsHelm=%d Finite=%d Sequence=%u LastSequence=%u FreshInterval=%.3f HasPriorInput=%d Allowed=%d."),
+            HasAuthority() ? 1 : 0, Interactor == HelmOccupant ? 1 : 0,
+            FMath::IsFinite(Throttle) && FMath::IsFinite(Rudder) ? 1 : 0,
+            Sequence, LastAcceptedInputSequence, bHasAcceptedInput ? Now - LastAcceptedInputTime : -1.0,
+            bHasAcceptedInput ? 1 : 0, bInputAllowed ? 1 : 0);
+    }
+#endif
+    if (!bInputAllowed)
     {
         return false;
     }
@@ -283,6 +300,18 @@ void AKalmalaOceanSkiff::AdvanceServerMovement(const float DeltaSeconds)
         ThrottleInput = 0.0f;
         RudderInput = 0.0f;
     }
+#if !UE_BUILD_SHIPPING
+    static bool bLoggedFirstJourneyMovementTick = false;
+    if (!bLoggedFirstJourneyMovementTick && bHasAcceptedInput
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")))
+    {
+        bLoggedFirstJourneyMovementTick = true;
+        UE_LOG(LogTemp, Display,
+            TEXT("Ocean journey skiff movement tick: Mode=%d Delta=%.3f InputAge=%.3f Throttle=%.2f Rudder=%.2f Speed=%.2f."),
+            static_cast<int32>(Mode), DeltaSeconds, Now - LastAcceptedInputTime,
+            ThrottleInput, RudderInput, CurrentSpeed);
+    }
+#endif
 
     if (Mode == EKalmalaOceanSkiffMode::Blocked && FMath::IsNearlyZero(ThrottleInput)
         && FMath::IsNearlyZero(RudderInput))

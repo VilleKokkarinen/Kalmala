@@ -572,6 +572,13 @@ void AKalmalaGameMode::AdvanceWeatherCycleIfNeeded()
     }
 
     FKalmalaWeatherState Weather = WorldGenerationState->GetWeatherState();
+#if !UE_BUILD_SHIPPING
+    if (Weather.WeatherCycleIndex == 7002
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")))
+    {
+        return;
+    }
+#endif
     const float ServerTimeSeconds = GetWorld()->GetTimeSeconds();
     while (ServerTimeSeconds >= Weather.ServerStartTimeSeconds + Weather.DurationSeconds)
     {

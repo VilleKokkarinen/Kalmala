@@ -601,6 +601,9 @@ void AKalmalaCharacter::StopSprint()
 
 void AKalmalaCharacter::MoveForward(const float Value)
 {
+#if !UE_BUILD_SHIPPING
+    if (IsLocallyControlled() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest"))) return;
+#endif
     if (AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
     {
         if (IsLocallyControlled() && Skiff->GetHelmOccupant() == this)
@@ -620,6 +623,9 @@ void AKalmalaCharacter::MoveForward(const float Value)
 
 void AKalmalaCharacter::MoveRight(const float Value)
 {
+#if !UE_BUILD_SHIPPING
+    if (IsLocallyControlled() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest"))) return;
+#endif
     if (AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
     {
         if (IsLocallyControlled() && Skiff->GetHelmOccupant() == this)
@@ -776,10 +782,22 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientT
 void AKalmalaCharacter::ServerSubmitOceanSkiffSteeringInput_Implementation(const float Throttle,
     const float Rudder, const uint32 Sequence)
 {
-    if (AKalmalaOceanSkiff* CurrentSkiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
+    AKalmalaOceanSkiff* CurrentSkiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor());
+    const bool bAccepted = CurrentSkiff != nullptr
+        && CurrentSkiff->AcceptSteeringFromServer(this, Throttle, Rudder, Sequence);
+#if !UE_BUILD_SHIPPING
+    static bool bLoggedFirstJourneySteeringRpc = false;
+    if (!bLoggedFirstJourneySteeringRpc
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")))
     {
-        CurrentSkiff->AcceptSteeringFromServer(this, Throttle, Rudder, Sequence);
+        bLoggedFirstJourneySteeringRpc = true;
+        UE_LOG(LogTemp, Display,
+            TEXT("Ocean journey steering RPC reached server: Authority=%d Character=%s AttachedSkiff=%d Helm=%d Accepted=%d Sequence=%u Throttle=%.2f Rudder=%.2f."),
+            HasAuthority() ? 1 : 0, *GetName(), CurrentSkiff != nullptr ? 1 : 0,
+            CurrentSkiff != nullptr && CurrentSkiff->GetHelmOccupant() == this ? 1 : 0,
+            bAccepted ? 1 : 0, Sequence, Throttle, Rudder);
     }
+#endif
 }
 
 int32 AKalmalaCharacter::GetToolDurability(const FName ToolId) const
