@@ -8004,3 +8004,27 @@ Multiplayer impact: The test-only fixture invokes existing server steering accep
 Known limits: The integrated fixture creates its test skiff directly and claims discovery at voyage start. It disembarks at qualifying open water rather than dry shore, and does not include late join/reconnect in the same journey, physical helm input, rendered travel, origin rebasing, or underway performance ceilings. Separate M8 checks cover parts of this scope; the representative-journey parent and M8 acceptance remain open.
 
 Next task: Continue the first unchecked M8 representative-journey task by combining this voyage with a dry-shore landing and/or late-join/reconnect acceptance in the same two-player trip.
+
+### 2026-09-26T14:03:47Z — Combine M8 voyage late join and restart
+
+Outcome: Passed the selected M8 integrated late-join and authenticated
+restart/reconnect increment. A third peer joined while the seed-418 voyage was
+underway without attaching or receiving private reward state. The original
+helm owner and host passenger each retained the accepted Stone x1 reward
+through a 242,482 cm crosswind/calm trip to a moored stop. On restart, the same
+authenticated host and returning owner recovered the saved vessel at its exact
+stop and restored Passenger and Helm seats. Discovery replay returned
+`AlreadyFound`, inventory remained at zero after restart, and the helm seat
+remained attached. A second late peer joined after restart with no attachment
+or reward leak.
+
+Changed this run: Added `Scripts/Verify-OceanSkiffIntegratedReconnectJourney.ps1`
+and the development-only `Source/KalmalaGameplay/Private/KalmalaOceanIntegratedReconnectPeerTest.cpp`; added its fixture declarations and checks in `Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryDisembarkPeerTest.h` and `Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryDisembarkPeerTest.cpp`; enabled stable test-provider identities for this fixture in `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; updated `docs/07-development-setup.md`, `docs/22-m8-integrated-discovery-voyage.md`, `BACKLOG.md`, and this handoff. All unrelated and pre-existing working-tree edits remain untouched.
+
+Verification: Forced UE5.8.2 `KalmalaEditor Win64 Development` build passed in 182 actions; final incremental builds passed with normal `%LOCALAPPDATA%\UnrealBuildTool` access. The runner PowerShell parser and scoped `git diff --check` passed. `Scripts/Verify-OceanSkiffIntegratedReconnectJourney.ps1 -Port 18181 -TimeoutSeconds 900` passed the full fresh-profile host/owner/underway-late sequence, 242,482 cm trip, weather and patch checks, moored save, owner replica, `AlreadyFound` replay rejection with no duplicate grant, and post-restart late-join privacy check. Logs: `C:\Users\Ville\AppData\Local\Temp\KalmalaOceanSkiffIntegratedReconnectJourney-final`.
+
+Multiplayer and persistence impact: The peer fixture uses existing server-authoritative movement, identity-bound seats, and discovery-ledger save paths. Stable synthetic identities are assigned only when the development reconnect fixture flag is present. No production RPC, replicated gameplay field, or saved-data schema changed. The late peer received neither attachment nor owner reward state before or after restart.
+
+Known limits: Inventory is not persistent in the approved M8 contract; this run verifies persistent discovery entitlement and duplicate-reward rejection, not restoration of inventory quantity. The server test fixture directly initializes its skiff and temporarily relocates the returning test character within discovery range for the replay request before restoring the helm position. The dry-shore sibling remains blocked after three seed-418 route searches; this run does not claim dry-land, rendered, physical-helm-input, or unscripted player acceptance.
+
+Next eligible task: No unblocked leaf remains in the earliest incomplete M8 milestone. The dry-shore landing leaf is still blocked and needs a qualifying generated route or a product-approved alternate landing rule; M9 remains out of order. Main checkout used; no worktree handoff synchronization was needed.

@@ -23,6 +23,12 @@ private:
 	bool FindReconnectDiscovery(struct FKalmalaOceanDiscoveryDescriptor& OutDescriptor) const;
 	bool HasSingleReconnectSkiff() const;
 	void FailReconnect(const TCHAR* Reason);
+	void VerifyIntegratedJourneyLateJoin();
+	void VerifyIntegratedJourneyLateJoinReplica();
+	void VerifyIntegratedReconnectServerOutcome();
+	void VerifyIntegratedReconnectOwnerReplica();
+	bool IsIntegratedReconnectRoute(const struct FKalmalaWorldGenerationConfig& Config,
+		const FVector2D StartPosition) const;
 	bool PrepareServerScenario();
 	void VerifyServerOutcome();
 	void ReportPeerNetworkProfile();
@@ -81,6 +87,7 @@ private:
 	bool bServerReported = false;
 	bool bNetworkProfileReported = false;
 	bool bLocalOwnerReported = false;
+	bool bIntegratedReconnectRestoreWaitLogged = false;
 	bool bRenderedFrameCaptureStarted = false;
 	bool bRenderedFrameCaptureSawStart = false;
 	bool bRenderedFrameCaptureCompleted = false;

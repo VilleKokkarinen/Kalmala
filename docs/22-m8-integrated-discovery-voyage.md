@@ -32,3 +32,24 @@ The peer runner retains both logs in its temporary output directory. It
 requires the server's integrated-journey result, the helm owner's complete
 replica result, server/client seed agreement, and the existing weather peer
 checks for cycle 7001 crosswind and cycle 7002 calm.
+
+## Same-voyage late join and authenticated restart
+
+`Scripts/Verify-OceanSkiffIntegratedReconnectJourney.ps1` covers the same
+seed-418 sailing/discovery trip with an underway late join, a host restart,
+returning-owner reconnect, discovery replay rejection, and a second late join
+after restart. The final live run passed at 242,482 cm, crossing the recorded
+terrain-patch boundary and observing both crosswind and calm. The original
+owner held the helm and host passenger seat; each kept the accepted Stone x1
+reward until shutdown. After restart, the exact moored vessel position and
+both authenticated seats restored, replay reported `AlreadyFound` without a
+second reward, and neither late peer attached or received private reward
+state.
+
+This runner uses stable development-only test-provider identities. It does
+not persist inventory: the claim ledger persists and blocks a duplicate grant,
+while inventory returns to its fresh-process baseline. The fixture briefly
+moves the reconnecting test character into the server-validated discovery
+range for the replay attempt, then restores its helm position. This is
+complementary to the earlier dry-shore landing attempt; this result does not
+close that blocked dry-shore acceptance or the rendered player-facing M8 run.

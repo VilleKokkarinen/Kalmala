@@ -938,3 +938,30 @@ confirm replay rejection after load. It checks catalogue reward construction
 without mutating a live inventory. These focused checks and the editor build do
 not replace a live client interaction trace, owner feedback inspection, or
 rendered presentation review in the later two-player journey acceptance.
+
+## M8 combined-voyage late-join and restart verification
+
+After a forced `KalmalaEditor Win64 Development` build, run
+`Scripts/Verify-OceanSkiffIntegratedReconnectJourney.ps1 -Port 18181`.
+The isolated seed-418 host and returning helm owner sail the existing 2.4 km
+development route through the server-selected crosswind and calm intervals. A
+third peer joins underway; the host verifies one vessel, the original seats,
+no late-player attachment, and no private reward leak. The two original owners
+must each retain their accepted catalogue reward through the moored stop.
+
+The runner then stops and restarts the host using the same save profile and
+reconnects the returning owner with the same development-only authenticated
+identity. It checks the exact moored stop, one restored vessel, both saved
+seats, and the resumed client replica. The server briefly moves the test owner
+to the discovery's validated interaction range to attempt a duplicate claim,
+then restores the saved helm position; the ledger must report `AlreadyFound`,
+with no second inventory grant and the helm seat intact. A new late peer joins
+after restart and must remain unattached without private reward state.
+
+Inventory is intentionally transient under the current M8 save contract, so
+the restart check proves the claim ledger prevents a duplicate reward rather
+than restoring the original inventory quantity. This fixture uses stable
+development test-provider identities, not an external authentication
+provider. It complements the separate dry-shore task and does not claim
+player-facing, rendered, physical-input, or dry-land acceptance; it adds no
+production RPC or saved-data field.

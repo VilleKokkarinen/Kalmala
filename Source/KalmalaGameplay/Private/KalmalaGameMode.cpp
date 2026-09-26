@@ -2285,7 +2285,8 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     FString ReconnectPhase;
     const bool bOceanReconnectPeerTest = FParse::Param(FCommandLine::Get(),
         TEXT("KalmalaOceanDiscoveryDisembarkPeerTest"))
-        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaOceanReconnectPhase="), ReconnectPhase);
+        && (FParse::Value(FCommandLine::Get(), TEXT("KalmalaOceanReconnectPhase="), ReconnectPhase)
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedReconnectPeerTest")));
     if (NewPlayer != nullptr && bOceanReconnectPeerTest)
     {
         APlayerState* PlayerState = NewPlayer->GetPlayerState<APlayerState>();

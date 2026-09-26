@@ -93,7 +93,14 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::Tick(const float DeltaSeconds)
 		}
 		if (bSetupAttempted && bServerOutcomePublished && !bServerReported && !bServerFailed)
 		{
-			VerifyServerOutcome();
+			if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedReconnectPeerTest")))
+			{
+				VerifyIntegratedReconnectServerOutcome();
+			}
+			else
+			{
+				VerifyServerOutcome();
+			}
 		}
 		if (bServerReported && !bNetworkProfileReported && NetworkProfileReportSeconds >= 0.0f
 			&& GetWorld()->GetTimeSeconds() >= NetworkProfileReportSeconds)
@@ -103,11 +110,29 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::Tick(const float DeltaSeconds)
 	}
 	else if (bServerOutcomePublished && !bLocalOwnerReported)
 	{
-		VerifyLocalOwnerReplica();
+		if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedReconnectPeerTest")))
+		{
+			VerifyIntegratedReconnectOwnerReplica();
+		}
+		else
+		{
+			VerifyLocalOwnerReplica();
+		}
 	}
 	if (!HasAuthority() && bIntegratedJourneyStarted && !bLocalOwnerReported)
 	{
 		ObserveIntegratedJourneyReplica();
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedReconnectPeerTest")))
+	{
+		if (HasAuthority() && bIntegratedJourneyStarted && !bLateJoinOutcomePublished && !bServerFailed)
+		{
+			VerifyIntegratedJourneyLateJoin();
+		}
+		else if (!HasAuthority() && bLateJoinOutcomePublished && !bReconnectLocalReported)
+		{
+			VerifyIntegratedJourneyLateJoinReplica();
+		}
 	}
 	if (HasAuthority() && bSetupAttempted && bIntegratedJourneyStarted
 		&& !bServerOutcomePublished && !bServerFailed)
@@ -181,7 +206,15 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::DriveReconnectPeerTest(const FStri
 	if (!bLateJoinOutcomePublished && GetWorld() != nullptr
 		&& GetWorld()->GetTimeSeconds() - StartedAtSeconds > ReconnectSetupTimeoutSeconds)
 	{
-		FailReconnect(TEXT("two original players and one late-joining peer did not complete the bounded scenario"));
+		if (bResume && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedReconnectPeerTest"))
+			&& ReconnectStage == 0)
+		{
+			FailReconnect(TEXT("authenticated vessel and seat state did not finish restoring within the bounded wait"));
+		}
+		else
+		{
+			FailReconnect(TEXT("two original players and one late-joining peer did not complete the bounded scenario"));
+		}
 	}
 }
 
@@ -202,8 +235,11 @@ bool AKalmalaOceanDiscoveryDisembarkPeerTest::FindReconnectDiscovery(
 			for (const FKalmalaOceanDiscoveryDescriptor& Candidate : FKalmalaOceanDiscoveryCatalogue::BuildDescriptors(Config, Key))
 			{
 				const FVector2D CandidatePosition(Candidate.Location);
+				const bool bIntegratedReconnect = FParse::Param(FCommandLine::Get(),
+					TEXT("KalmalaOceanIntegratedReconnectPeerTest"));
 				if (AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(Config, CandidatePosition, 0.0f)
-					&& HasSafeExitCandidate(Config, CandidatePosition))
+					&& HasSafeExitCandidate(Config, CandidatePosition)
+					&& (!bIntegratedReconnect || IsIntegratedReconnectRoute(Config, CandidatePosition)))
 				{
 					OutDescriptor = Candidate;
 					return true;
@@ -292,7 +328,20 @@ bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareReconnectScenario(const boo
 			++SkiffCount;
 			if (It->GetPersistentVesselId() == TEXT("ocean-skiff:primary")) TestSkiff = *It;
 		}
-		const FVector ExpectedLocation(DiscoveryDescriptor.Location.X, DiscoveryDescriptor.Location.Y, SeaSurfaceZ);
+		FVector ExpectedLocation(DiscoveryDescriptor.Location.X, DiscoveryDescriptor.Location.Y, SeaSurfaceZ);
+		if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedReconnectPeerTest")))
+		{
+			float ExpectedX = 0.0f;
+			float ExpectedY = 0.0f;
+			if (!FParse::Value(FCommandLine::Get(), TEXT("KalmalaOceanReconnectExpectedX="), ExpectedX)
+				|| !FParse::Value(FCommandLine::Get(), TEXT("KalmalaOceanReconnectExpectedY="), ExpectedY)
+				|| !FMath::IsFinite(ExpectedX) || !FMath::IsFinite(ExpectedY))
+			{
+				FailReconnect(TEXT("integrated restart did not receive its accepted moored stop position"));
+				return false;
+			}
+			ExpectedLocation = FVector(ExpectedX, ExpectedY, SeaSurfaceZ);
+		}
 		const bool bRestoredSeats = HasSingleReconnectSkiff()
 			&& TestSkiff->GetPersistentVesselId() == TEXT("ocean-skiff:primary")
 			&& TestSkiff->GetMode() == EKalmalaOceanSkiffMode::Moored
@@ -301,17 +350,50 @@ bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareReconnectScenario(const boo
 			&& TestSkiff->GetPassengerOccupant() == Host
 			&& Remote->GetAttachParentActor() == TestSkiff
 			&& Host->GetAttachParentActor() == TestSkiff;
-		if (SkiffCount != 1 || !bRestoredSeats
-			|| HelmInventory->GetQuantity(ExpectedRewardItemId) != 0
-			|| HostInventory->GetQuantity(ExpectedRewardItemId) != 0)
+		const bool bFreshInventory = HelmInventory->GetQuantity(ExpectedRewardItemId) == 0
+			&& HostInventory->GetQuantity(ExpectedRewardItemId) == 0;
+		if (SkiffCount != 1 || !bFreshInventory)
 		{
 			FailReconnect(TEXT("restart did not restore exactly one moored vessel and the authenticated original seats, or inventory baseline was not fresh"));
 			return false;
 		}
+		if (!bRestoredSeats)
+		{
+			if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedReconnectPeerTest")))
+			{
+				if (!bIntegratedReconnectRestoreWaitLogged)
+				{
+					UE_LOG(LogTemp, Display,
+						TEXT("Ocean integrated reconnect waiting for authenticated seats: VesselActors=%d Mode=%d HelmRestored=%d PassengerRestored=%d HelmAttached=%d PassengerAttached=%d PositionMatches=%d"),
+						SkiffCount, TestSkiff != nullptr ? static_cast<int32>(TestSkiff->GetMode()) : -1,
+						TestSkiff != nullptr && TestSkiff->GetHelmOccupant() == Remote ? 1 : 0,
+						TestSkiff != nullptr && TestSkiff->GetPassengerOccupant() == Host ? 1 : 0,
+						TestSkiff != nullptr && Remote->GetAttachParentActor() == TestSkiff ? 1 : 0,
+						TestSkiff != nullptr && Host->GetAttachParentActor() == TestSkiff ? 1 : 0,
+						TestSkiff != nullptr && TestSkiff->GetActorLocation().Equals(ExpectedLocation, 1.0f) ? 1 : 0);
+					bIntegratedReconnectRestoreWaitLogged = true;
+				}
+				return false;
+			}
+			FailReconnect(TEXT("restart did not restore exactly one moored vessel and the authenticated original seats, or inventory baseline was not fresh"));
+			return false;
+		}
 
-		if (GameMode->ClaimOceanDiscovery(Remote, DiscoveryDescriptor)
+		const FVector ReconnectedOwnerLocation = Remote->GetActorLocation();
+		Remote->SetActorLocation(FVector(DiscoveryDescriptor.Location.X, DiscoveryDescriptor.Location.Y, SeaSurfaceZ),
+			false, nullptr, ETeleportType::TeleportPhysics);
+		const bool bReplayClaimAccepted = GameMode->ClaimOceanDiscovery(Remote, DiscoveryDescriptor);
+		Remote->SetActorLocation(ReconnectedOwnerLocation, false, nullptr, ETeleportType::TeleportPhysics);
+		const bool bRestoredHelmSeat = TestSkiff->GetHelmOccupant() == Remote
+			&& Remote->GetAttachParentActor() == TestSkiff;
+		UE_LOG(LogTemp, Display,
+			TEXT("Ocean reconnect replay check: Accepted=%d Feedback=%d RewardQuantity=%d Discovery=%s SpatialKey=(%d,%d) SeatRestored=%d"),
+			bReplayClaimAccepted ? 1 : 0, static_cast<int32>(HelmDiscovery->GetFeedback()),
+			HelmInventory->GetQuantity(ExpectedRewardItemId), *ExpectedDiscoveryId.ToString(),
+			DiscoveryDescriptor.SpatialKey.X, DiscoveryDescriptor.SpatialKey.Y, bRestoredHelmSeat ? 1 : 0);
+		if (bReplayClaimAccepted
 			|| HelmDiscovery->GetFeedback() != EKalmalaDiscoveryFeedback::AlreadyFound
-			|| HelmInventory->GetQuantity(ExpectedRewardItemId) != 0)
+			|| HelmInventory->GetQuantity(ExpectedRewardItemId) != 0 || !bRestoredHelmSeat)
 		{
 			FailReconnect(TEXT("reconnected owner could replay the sea discovery or received a duplicate reward"));
 			return false;
@@ -585,7 +667,10 @@ bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareServerScenario()
 				const FVector2D CandidatePosition(Candidate.Location);
 				if (!AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(Config, CandidatePosition, 0.0f)
 					|| !HasSafeExitCandidate(Config, CandidatePosition)
-					|| (bIntegratedJourney && !IsIntegratedJourneyRoute(Config, CandidatePosition)))
+					|| (bIntegratedJourney && !(FParse::Param(FCommandLine::Get(),
+						TEXT("KalmalaOceanIntegratedReconnectPeerTest"))
+						? IsIntegratedReconnectRoute(Config, CandidatePosition)
+						: IsIntegratedJourneyRoute(Config, CandidatePosition))))
 				{
 					continue;
 				}
@@ -818,6 +903,13 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::DriveIntegratedJourneyScenario()
 		|| !bIntegratedJourneySawCalm || !bIntegratedJourneyStreamingPassed)
 	{
 		Fail(TEXT("integrated journey missed travel distance, underway weather, streamed patch, or safe-exit acceptance"));
+		return;
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedReconnectPeerTest")))
+	{
+		if (!bLateJoinOutcomePublished) return;
+		bServerOutcomePublished = true;
+		ForceNetUpdate();
 		return;
 	}
 
