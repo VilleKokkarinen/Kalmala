@@ -7974,3 +7974,17 @@ finite-world limit is still 16 km.
 Next eligible task: Resolve the remaining world-origin/streaming acceptance
 under the open M8 journey parent, using the documented 16 km finite-world
 scope. Main checkout used; no worktree handoff synchronization was needed.
+
+### 2026-09-26T08:49:20Z — Verify M8 finite-world origin stability
+
+Outcome: Passed a bounded M8 journey increment. The seed-418 two-peer skiff crossed 242,569 cm from terrain patch (71,0) to (152,5) with 9 active patches; listen-host passenger and remote helm both retained world origin (0,0,0) from seat attachment through the moored stop.
+
+Changed: Added the development-only KalmalaOceanOriginStabilityPeerTestSubsystem observer and standalone Scripts/Verify-OceanSkiffOriginStability.ps1 runner. Added docs/21-m8-world-origin-stability.md and its docs/README.md index entry. Checked the matching origin-stability child and recorded this handoff. Pre-existing workspace edits remain untouched.
+
+Verification: The forced UE5.8.2 KalmalaEditor Win64 Development build passed 7 actions with normal %LOCALAPPDATA%\UnrealBuildTool access. The PowerShell parser passed. Scripts/Verify-OceanSkiffOriginStability.ps1 -Port 18263 passed the host/client journey, crosswind/calm checks, bounds and patch transition, and both per-peer origin assertions. Logs: C:\Users\Ville\AppData\Local\Temp\KalmalaOceanSkiffOrigin\Run-2f334106521543f7b983a36caa1475ca.
+
+Multiplayer impact: The subsystem is created only for the development journey flag and observes local seat attachment, world origin, and replicated skiff movement. It adds no RPC, replicated field, authority path, or save data; vessel movement and acceptance remain server-owned.
+
+Known limits: The finite 16 km world remains unrebased; this verifies a fixed zero origin and does not claim origin-rebasing support. The broader M8 representative-journey parent remains open for combined discovery/disembark/reconnect acceptance, physical helm input, rendered travel, and underway performance budgets. A workspace-wide diff check also reports pre-existing trailing whitespace in docs/04-roadmap.md.
+
+Next task: Continue the first unchecked M8 representative-journey task by combining the sailing/weather leg with discovery and safe disembark acceptance.
