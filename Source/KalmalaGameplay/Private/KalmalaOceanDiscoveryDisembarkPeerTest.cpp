@@ -9,12 +9,15 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaDiscoveryProgressComponent.h"
 #include "KalmalaGameMode.h"
+#include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaOceanDiscoveryCatalogue.h"
 #include "KalmalaOceanSkiff.h"
 #include "KalmalaOceanTravelFeedbackComponent.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPopulationLayout.h"
+#include "KalmalaTerrainPatchLayout.h"
+#include "KalmalaWorldBounds.h"
 #include "Misc/Crc.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
@@ -102,6 +105,15 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::Tick(const float DeltaSeconds)
 	{
 		VerifyLocalOwnerReplica();
 	}
+	if (!HasAuthority() && bIntegratedJourneyStarted && !bLocalOwnerReported)
+	{
+		ObserveIntegratedJourneyReplica();
+	}
+	if (HasAuthority() && bSetupAttempted && bIntegratedJourneyStarted
+		&& !bServerOutcomePublished && !bServerFailed)
+	{
+		DriveIntegratedJourneyScenario();
+	}
 
 	if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCaptureRenderedFrameTimes")))
 	{
@@ -130,6 +142,12 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, ExpectedRewardQuantity);
 	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, bServerOutcomePublished);
 	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, bLateJoinOutcomePublished);
+	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, bIntegratedJourneyStarted);
+	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, IntegratedJourneyStart);
+	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, IntegratedJourneyDistance);
+	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, bIntegratedJourneySawCrosswind);
+	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, bIntegratedJourneySawCalm);
+	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, bIntegratedJourneyStreamingPassed);
 	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, HostIdentityHash);
 	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, HelmIdentityHash);
 	DOREPLIFETIME(AKalmalaOceanDiscoveryDisembarkPeerTest, LateJoinIdentityHash);
@@ -477,6 +495,39 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::FailReconnect(const TCHAR* Reason)
 	UE_LOG(LogTemp, Error, TEXT("Ocean skiff reconnect peer verification FAILED: %s"), Reason);
 }
 
+bool AKalmalaOceanDiscoveryDisembarkPeerTest::IsIntegratedJourneyRoute(
+	const FKalmalaWorldGenerationConfig& Config, const FVector2D StartPosition) const
+{
+	if (!Config.IsValid() || !FKalmalaWorldBounds::Contains(Config, StartPosition)) return false;
+
+	constexpr float TravelDistanceCm = 240000.0f;
+	constexpr float CoastStopDistanceCm = 3000.0f;
+	constexpr float RouteSampleIntervalCm = 5000.0f;
+	constexpr float CrossTrackAllowanceCm = 15000.0f;
+	const FVector2D Direction(1.0f, 0.0f);
+	const FVector2D Side(0.0f, 1.0f);
+	const float TargetYaw = 0.0f;
+	const FVector2D StopPosition = StartPosition + Direction * (TravelDistanceCm + CoastStopDistanceCm);
+	const FIntPoint StartPatch = FKalmalaTerrainPatchLayout::GetPatchCoordinate(FVector2D::ZeroVector, StartPosition);
+	const FIntPoint StopPatch = FKalmalaTerrainPatchLayout::GetPatchCoordinate(FVector2D::ZeroVector, StopPosition);
+	if (StartPatch == StopPatch || !HasSafeExitCandidate(Config, StopPosition)) return false;
+
+	for (float Distance = 0.0f; Distance <= TravelDistanceCm + CoastStopDistanceCm; Distance += RouteSampleIntervalCm)
+	{
+		const FVector2D Center = StartPosition + Direction * Distance;
+		for (const float SideOffset : {-CrossTrackAllowanceCm, 0.0f, CrossTrackAllowanceCm})
+		{
+			const FVector2D SamplePosition = Center + Side * SideOffset;
+			if (!FKalmalaWorldBounds::Contains(Config, SamplePosition)
+				|| !AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(Config, SamplePosition, TargetYaw))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareServerScenario()
 {
 	if (!HasAuthority() || GetWorld() == nullptr)
@@ -518,6 +569,7 @@ bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareServerScenario()
 		return false;
 	}
 	const FKalmalaWorldGenerationConfig& Config = WorldState->GetWorldGenerationConfig();
+	const bool bIntegratedJourney = FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedJourneyPeerTest"));
 
 	FKalmalaOceanDiscoveryDescriptor DiscoveryDescriptor;
 	bool bFoundDiscovery = false;
@@ -532,7 +584,8 @@ bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareServerScenario()
 			{
 				const FVector2D CandidatePosition(Candidate.Location);
 				if (!AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(Config, CandidatePosition, 0.0f)
-					|| !HasSafeExitCandidate(Config, CandidatePosition))
+					|| !HasSafeExitCandidate(Config, CandidatePosition)
+					|| (bIntegratedJourney && !IsIntegratedJourneyRoute(Config, CandidatePosition)))
 				{
 					continue;
 				}
@@ -544,7 +597,9 @@ bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareServerScenario()
 	}
 	if (!bFoundDiscovery)
 	{
-		Fail(TEXT("bounded seed-418 ocean search found no deep-water discovery with a safe exit"));
+		Fail(bIntegratedJourney
+			? TEXT("bounded seed-418 search found no discovery with a deep-water patch-crossing route and safe stop")
+			: TEXT("bounded seed-418 ocean search found no deep-water discovery with a safe exit"));
 		return false;
 	}
 
@@ -627,6 +682,21 @@ bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareServerScenario()
 		return false;
 	}
 
+	if (bIntegratedJourney)
+	{
+		IntegratedJourneyStart = FVector2D(TestSkiff->GetActorLocation());
+		IntegratedJourneyStartTimeSeconds = GetWorld()->GetTimeSeconds();
+		IntegratedJourneyLastSampleTimeSeconds = -1.0f;
+		IntegratedJourneyLastSamplePosition = IntegratedJourneyStart;
+		bIntegratedJourneyStarted = true;
+		ForceNetUpdate();
+		UE_LOG(LogTemp, Display,
+			TEXT("Ocean integrated journey started: Seed=418 Discovery=%s Start=%s Target=%s Seats=Helm,Passenger Weather=server-selected."),
+			*ExpectedDiscoveryId.ToString(), *IntegratedJourneyStart.ToString(),
+			*(IntegratedJourneyStart + FVector2D(240000.0f, 0.0f)).ToString());
+		return true;
+	}
+
 	const bool bPassengerDisembarked = TestSkiff->TryDisembarkFromServer(Host);
 	const bool bHelmDisembarked = TestSkiff->TryDisembarkFromServer(Remote);
 	if (!bPassengerDisembarked || !bHelmDisembarked)
@@ -638,6 +708,147 @@ bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareServerScenario()
 	bServerOutcomePublished = true;
 	ForceNetUpdate();
 	return true;
+}
+
+void AKalmalaOceanDiscoveryDisembarkPeerTest::DriveIntegratedJourneyScenario()
+{
+	if (GetWorld() == nullptr) return;
+	AKalmalaCharacter* Helm = HelmCharacter.Get();
+	AKalmalaCharacter* Passenger = PassengerCharacter.Get();
+	AKalmalaOceanSkiff* Skiff = TestSkiff;
+	AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+	if (!IsValid(Helm) || !IsValid(Passenger) || !IsValid(Skiff) || State == nullptr
+		|| !State->GetWorldGenerationConfig().IsValid())
+	{
+		Fail(TEXT("integrated journey lost its server skiff, occupants, or world state"));
+		return;
+	}
+
+	const float Now = GetWorld()->GetTimeSeconds();
+	if (IntegratedJourneyStartTimeSeconds < 0.0f) IntegratedJourneyStartTimeSeconds = Now;
+	if (Now - IntegratedJourneyStartTimeSeconds > 480.0f)
+	{
+		Fail(TEXT("integrated discovery voyage exceeded 480 seconds before a safe stop"));
+		return;
+	}
+
+	const FVector2D CurrentPosition(Skiff->GetActorLocation());
+	IntegratedJourneyDistance = FVector2D::Distance(IntegratedJourneyStart, CurrentPosition);
+	if (Skiff->GetMode() == EKalmalaOceanSkiffMode::Blocked)
+	{
+		Fail(TEXT("integrated discovery voyage blocked against shallow water, bounds, or generated terrain"));
+		return;
+	}
+
+	const FKalmalaWeatherState& Weather = State->GetWeatherState();
+	if (Skiff->GetMode() == EKalmalaOceanSkiffMode::Underway && IntegratedJourneyDistance >= 100.0f)
+	{
+		bIntegratedJourneySawCrosswind |= Weather.WeatherCycleIndex == 7001
+			&& Weather.WindDirectionDegrees == 90 && FMath::IsNearlyEqual(Weather.WindStrength, 1.0f);
+		bIntegratedJourneySawCalm |= Weather.WeatherCycleIndex == 7002
+			&& Weather.WindDirectionDegrees == 0 && FMath::IsNearlyZero(Weather.WindStrength);
+	}
+
+	if (IntegratedJourneyLastInputTime < 0.0 || Now - IntegratedJourneyLastInputTime >= 0.105)
+	{
+		if (IntegratedJourneyInputSequence == TNumericLimits<uint32>::Max())
+		{
+			Fail(TEXT("integrated helm intent sequence exhausted"));
+			return;
+		}
+
+		float EstimatedSpeed = 0.0f;
+		if (IntegratedJourneyLastSampleTimeSeconds >= 0.0f && Now > IntegratedJourneyLastSampleTimeSeconds)
+		{
+			EstimatedSpeed = FMath::Clamp(
+				FVector2D::Distance(IntegratedJourneyLastSamplePosition, CurrentPosition)
+					/ (Now - IntegratedJourneyLastSampleTimeSeconds), 0.0f, 700.0f);
+		}
+		IntegratedJourneyLastSampleTimeSeconds = Now;
+		IntegratedJourneyLastSamplePosition = CurrentPosition;
+
+		const bool bReachedTarget = IntegratedJourneyDistance >= 240000.0f;
+		float Throttle = bReachedTarget ? 0.0f : 1.0f;
+		float Rudder = 0.0f;
+		if (!bReachedTarget)
+		{
+			const FVector2D TargetPosition = IntegratedJourneyStart + FVector2D(240000.0f, 0.0f);
+			const FVector2D ToTarget = TargetPosition - CurrentPosition;
+			const float DesiredYaw = FMath::RadiansToDegrees(FMath::Atan2(ToTarget.Y, ToTarget.X));
+			const float HeadingError = FMath::FindDeltaAngleDegrees(Skiff->GetActorRotation().Yaw, DesiredYaw);
+			const float DesiredYawRate = FMath::Clamp(HeadingError * 0.75f, -18.0f, 18.0f);
+			const float CrosswindYawRate = AKalmalaOceanSkiff::CalculateWeatherYawRate(0.0f,
+				Skiff->GetActorRotation().Yaw, static_cast<float>(Weather.WindDirectionDegrees),
+				Weather.WindStrength, EstimatedSpeed);
+			Rudder = FMath::Clamp((DesiredYawRate - CrosswindYawRate) / 35.0f, -1.0f, 1.0f);
+		}
+
+		if (!Skiff->AcceptSteeringFromServer(Helm, Throttle, Rudder, ++IntegratedJourneyInputSequence))
+		{
+			UE_LOG(LogTemp, Error,
+				TEXT("Ocean integrated journey helm intent rejected: SkiffAuthority=%d HelmMatch=%d HelmAuthority=%d Sequence=%u Now=%.6f LastInput=%.6f Throttle=%.3f Rudder=%.3f Mode=%d."),
+				Skiff->HasAuthority() ? 1 : 0, Skiff->GetHelmOccupant() == Helm ? 1 : 0,
+				Helm->HasAuthority() ? 1 : 0, IntegratedJourneyInputSequence,
+				Now, IntegratedJourneyLastInputTime, Throttle, Rudder, static_cast<int32>(Skiff->GetMode()));
+			Fail(TEXT("server rejected the fixture's bounded helm intent"));
+			return;
+		}
+		IntegratedJourneyLastInputTime = Now;
+	}
+
+	if (Skiff->GetMode() != EKalmalaOceanSkiffMode::Moored || IntegratedJourneyDistance < 239000.0f)
+	{
+		return;
+	}
+
+	const FVector2D FinalPosition(Skiff->GetActorLocation());
+	const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+	IntegratedJourneyStartPatch = FKalmalaTerrainPatchLayout::GetPatchCoordinate(FVector2D::ZeroVector, IntegratedJourneyStart);
+	IntegratedJourneyEndPatch = FKalmalaTerrainPatchLayout::GetPatchCoordinate(FVector2D::ZeroVector, FinalPosition);
+	IntegratedJourneyActivePatchCount = 0;
+	for (TActorIterator<AKalmalaGeneratedTerrainPatch> It(GetWorld()); It; ++It)
+	{
+		++IntegratedJourneyActivePatchCount;
+	}
+	bIntegratedJourneyStreamingPassed = IntegratedJourneyStartPatch != IntegratedJourneyEndPatch
+		&& IntegratedJourneyActivePatchCount > 0 && IntegratedJourneyActivePatchCount <= 25
+		&& FKalmalaWorldBounds::Contains(Config, FinalPosition)
+		&& HasSafeExitCandidate(Config, FinalPosition);
+	if (IntegratedJourneyDistance > 250000.0f || !bIntegratedJourneySawCrosswind
+		|| !bIntegratedJourneySawCalm || !bIntegratedJourneyStreamingPassed)
+	{
+		Fail(TEXT("integrated journey missed travel distance, underway weather, streamed patch, or safe-exit acceptance"));
+		return;
+	}
+
+	const bool bPassengerDisembarked = Skiff->TryDisembarkFromServer(Passenger);
+	const bool bHelmDisembarked = bPassengerDisembarked && Skiff->TryDisembarkFromServer(Helm);
+	if (!bPassengerDisembarked || !bHelmDisembarked)
+	{
+		Fail(TEXT("integrated voyage did not safely disembark both peers at the stopped endpoint"));
+		return;
+	}
+
+	bServerOutcomePublished = true;
+	ForceNetUpdate();
+}
+
+void AKalmalaOceanDiscoveryDisembarkPeerTest::ObserveIntegratedJourneyReplica()
+{
+	if (GetWorld() == nullptr || !IsValid(TestSkiff)
+		|| TestSkiff->GetMode() != EKalmalaOceanSkiffMode::Underway)
+	{
+		return;
+	}
+	const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+	if (State == nullptr) return;
+	const float Travelled = FVector2D::Distance(IntegratedJourneyStart, FVector2D(TestSkiff->GetActorLocation()));
+	if (Travelled < 100.0f) return;
+	const FKalmalaWeatherState& Weather = State->GetWeatherState();
+	bLocalIntegratedJourneySawCrosswind |= Weather.WeatherCycleIndex == 7001
+		&& Weather.WindDirectionDegrees == 90 && FMath::IsNearlyEqual(Weather.WindStrength, 1.0f);
+	bLocalIntegratedJourneySawCalm |= Weather.WeatherCycleIndex == 7002
+		&& Weather.WindDirectionDegrees == 0 && FMath::IsNearlyZero(Weather.WindStrength);
 }
 
 void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyServerOutcome()
@@ -654,6 +865,10 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyServerOutcome()
 		? Passenger->GetOceanTravelFeedbackComponent() : nullptr;
 	const UKalmalaInventoryComponent* HelmInventory = Helm != nullptr ? Helm->GetInventoryComponent() : nullptr;
 	const UKalmalaInventoryComponent* PassengerInventory = Passenger != nullptr ? Passenger->GetInventoryComponent() : nullptr;
+	const bool bIntegratedJourney = FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedJourneyPeerTest"));
+	const bool bJourneyPassed = !bIntegratedJourney || (IntegratedJourneyDistance >= 239000.0f
+		&& IntegratedJourneyDistance <= 250000.0f && bIntegratedJourneySawCrosswind && bIntegratedJourneySawCalm
+		&& bIntegratedJourneyStreamingPassed);
 	const bool bPassed = IsValid(TestSkiff) && Helm != nullptr && Passenger != nullptr
 		&& Helm->GetAttachParentActor() == nullptr && Passenger->GetAttachParentActor() == nullptr
 		&& TestSkiff->GetHelmOccupant() == nullptr && TestSkiff->GetPassengerOccupant() == nullptr
@@ -666,16 +881,30 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyServerOutcome()
 		&& PassengerTravel->GetFeedback() == EKalmalaOceanTravelFeedback::Disembarked
 		&& HelmInventory != nullptr && PassengerInventory != nullptr
 		&& HelmInventory->GetQuantity(ExpectedRewardItemId) == ExpectedRewardQuantity
-		&& PassengerInventory->GetQuantity(ExpectedRewardItemId) == ExpectedRewardQuantity;
+		&& PassengerInventory->GetQuantity(ExpectedRewardItemId) == ExpectedRewardQuantity
+		&& bJourneyPassed;
 	if (!bPassed)
 	{
 		Fail(TEXT("server did not retain both discovery rewards and stopped disembark outcomes"));
 		return;
 	}
 
-	UE_LOG(LogTemp, Display,
-		TEXT("Ocean discovery-stop server passed: Seed=418 Players=2 Discovery=%s Reward=%s:%d Claims=2 Mode=Moored Disembarked=2"),
-		*ExpectedDiscoveryId.ToString(), *ExpectedRewardItemId.ToString(), ExpectedRewardQuantity);
+	if (bIntegratedJourney)
+	{
+		UE_LOG(LogTemp, Display,
+			TEXT("Ocean integrated journey server passed: Seed=418 Players=2 Discovery=%s Reward=%s:%d Claims=2 Distance=%.0f Crosswind=%d Calm=%d PatchStart=(%d,%d) PatchEnd=(%d,%d) ActivePatches=%d Mode=Moored Disembarked=2"),
+			*ExpectedDiscoveryId.ToString(), *ExpectedRewardItemId.ToString(), ExpectedRewardQuantity,
+			IntegratedJourneyDistance, bIntegratedJourneySawCrosswind ? 1 : 0, bIntegratedJourneySawCalm ? 1 : 0,
+			IntegratedJourneyStartPatch.X, IntegratedJourneyStartPatch.Y,
+			IntegratedJourneyEndPatch.X, IntegratedJourneyEndPatch.Y,
+			IntegratedJourneyActivePatchCount);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Display,
+			TEXT("Ocean discovery-stop server passed: Seed=418 Players=2 Discovery=%s Reward=%s:%d Claims=2 Mode=Moored Disembarked=2"),
+			*ExpectedDiscoveryId.ToString(), *ExpectedRewardItemId.ToString(), ExpectedRewardQuantity);
+	}
 	bServerReported = true;
 	NetworkProfileReportSeconds = GetWorld()->GetTimeSeconds() + 1.0f;
 }
@@ -778,6 +1007,11 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyLocalOwnerReplica()
 
 	const bool bKnownPeer = LocalCharacter->GetPlayerState() == HelmPlayerState
 		|| LocalCharacter->GetPlayerState() == PassengerPlayerState;
+	const bool bIntegratedJourney = FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedJourneyPeerTest"));
+	const bool bJourneyAccepted = !bIntegratedJourney || (bIntegratedJourneyStarted
+		&& IntegratedJourneyDistance >= 239000.0f && IntegratedJourneyDistance <= 250000.0f
+		&& bIntegratedJourneySawCrosswind && bIntegratedJourneySawCalm && bIntegratedJourneyStreamingPassed
+		&& bLocalIntegratedJourneySawCrosswind && bLocalIntegratedJourneySawCalm);
 	const bool bAcceptedOwnerState = Discovery->GetFeedback() == EKalmalaDiscoveryFeedback::LandmarkFound
 		&& Discovery->GetFeedbackSerial() > 0
 		&& Discovery->GetFeedbackLabel().StartsWith(TEXT("Sea discovery:"))
@@ -786,19 +1020,37 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyLocalOwnerReplica()
 		&& LocalCharacter->GetAttachParentActor() == nullptr
 		&& TestSkiff->GetHelmOccupant() == nullptr && TestSkiff->GetPassengerOccupant() == nullptr
 		&& TestSkiff->GetMode() == EKalmalaOceanSkiffMode::Moored;
-	if (!bKnownPeer || !bAcceptedOwnerState)
+	if (!bKnownPeer || !bAcceptedOwnerState || !bJourneyAccepted)
 	{
-		if (GetWorld()->GetTimeSeconds() - StartedAtSeconds > ObservationTimeoutSeconds)
+		if (bIntegratedJourney && LocalIntegratedJourneyObservationStartSeconds < 0.0f)
 		{
-			Fail(TEXT("client did not observe its owner reward, stopped disembark, and empty replicated seats"));
+			LocalIntegratedJourneyObservationStartSeconds = GetWorld()->GetTimeSeconds();
+		}
+		const float ObservationStart = bIntegratedJourney
+			? LocalIntegratedJourneyObservationStartSeconds : StartedAtSeconds;
+		if (GetWorld()->GetTimeSeconds() - ObservationStart > ObservationTimeoutSeconds)
+		{
+			Fail(bIntegratedJourney
+				? TEXT("client missed the underway weather, voyage, discovery reward, or safe disembark replica")
+				: TEXT("client did not observe its owner reward, stopped disembark, and empty replicated seats"));
 		}
 		return;
 	}
 
 	const TCHAR* Seat = LocalCharacter->GetPlayerState() == HelmPlayerState ? TEXT("Helm") : TEXT("Passenger");
-	UE_LOG(LogTemp, Display,
-		TEXT("Ocean discovery-stop peer replica passed: Authority=0 Seat=%s Discovery=%s DiscoveryFeedback=LandmarkFound Reward=%s:%d Disembarked=1 EmptySeats=1 Mode=Moored"),
-		Seat, *ExpectedDiscoveryId.ToString(), *ExpectedRewardItemId.ToString(), ExpectedRewardQuantity);
+	if (bIntegratedJourney)
+	{
+		UE_LOG(LogTemp, Display,
+			TEXT("Ocean integrated journey peer replica passed: Authority=0 Seat=%s Discovery=%s DiscoveryFeedback=LandmarkFound Reward=%s:%d Distance=%.0f Crosswind=1 Calm=1 Disembarked=1 EmptySeats=1 Mode=Moored"),
+			Seat, *ExpectedDiscoveryId.ToString(), *ExpectedRewardItemId.ToString(),
+			ExpectedRewardQuantity, IntegratedJourneyDistance);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Display,
+			TEXT("Ocean discovery-stop peer replica passed: Authority=0 Seat=%s Discovery=%s DiscoveryFeedback=LandmarkFound Reward=%s:%d Disembarked=1 EmptySeats=1 Mode=Moored"),
+			Seat, *ExpectedDiscoveryId.ToString(), *ExpectedRewardItemId.ToString(), ExpectedRewardQuantity);
+	}
 	bLocalOwnerReported = true;
 }
 

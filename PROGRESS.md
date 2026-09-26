@@ -7988,3 +7988,19 @@ Multiplayer impact: The subsystem is created only for the development journey fl
 Known limits: The finite 16 km world remains unrebased; this verifies a fixed zero origin and does not claim origin-rebasing support. The broader M8 representative-journey parent remains open for combined discovery/disembark/reconnect acceptance, physical helm input, rendered travel, and underway performance budgets. A workspace-wide diff check also reports pre-existing trailing whitespace in docs/04-roadmap.md.
 
 Next task: Continue the first unchecked M8 representative-journey task by combining the sailing/weather leg with discovery and safe disembark acceptance.
+
+### 2026-09-26T09:43:02Z — Combine discovery with skiff voyage
+
+Outcome: Passed one integrated M8 two-peer journey increment. On seed 418, the server-selected skiff route covered 242,485 cm from terrain patch (164,-59) to (245,-59), observed crosswind and calm underway, crossed nine active terrain patches, retained Stone x1 discovery rewards for both players, and safely disembarked both at a moored stop.
+
+Changed: Added an opt-in integrated journey mode to the existing development-only discovery/disembark peer fixture, a live host/client runner, and the M8 integrated-voyage contract page indexed in docs/README.md. The first live attempt exposed neutral movement-axis RPCs racing the fixture steering; the development-only integrated flag now suppresses those axis callbacks. Added the completed combined-voyage child and its evidence to BACKLOG.md. Existing unrelated workspace edits remain preserved.
+
+Files changed this run: Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryDisembarkPeerTest.cpp, Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryDisembarkPeerTest.h, Scripts/Verify-OceanSkiffIntegratedJourney.ps1, docs/22-m8-integrated-discovery-voyage.md, docs/README.md, BACKLOG.md, PROGRESS.md, plus only the two integrated-journey input-guard hunks in Source/KalmalaGameplay/Private/KalmalaCharacter.cpp.
+
+Verification: The forced UE5.8.2 KalmalaEditor Win64 Development build passed after the final fixture fix (4 actions) with normal %LOCALAPPDATA%\UnrealBuildTool access. Scripts/Verify-OceanSkiffIntegratedJourney.ps1 -Port 18174 -TimeoutSeconds 600 passed the host/client route, weather, owner reward, patch-transition, moored-stop, and safe-disembark checks. Existing embedded ocean-weather peer checks passed for cycles 7001 (crosswind) and 7002 (calm). The PowerShell parser and scoped git diff --check passed after the handoff edit. Logs: C:\Users\Ville\AppData\Local\Temp\KalmalaOceanSkiffIntegratedJourney-e2f1edb9423d497dbba348835406fc72.
+
+Multiplayer impact: The test-only fixture invokes existing server steering acceptance and server-owned movement, weather, discovery, rewards, and disembark outcomes. The focused input suppression is development-only. No production RPC, saved-data schema, or production gameplay authority path changed.
+
+Known limits: The integrated fixture creates its test skiff directly and claims discovery at voyage start. It disembarks at qualifying open water rather than dry shore, and does not include late join/reconnect in the same journey, physical helm input, rendered travel, origin rebasing, or underway performance ceilings. Separate M8 checks cover parts of this scope; the representative-journey parent and M8 acceptance remain open.
+
+Next task: Continue the first unchecked M8 representative-journey task by combining this voyage with a dry-shore landing and/or late-join/reconnect acceptance in the same two-player trip.

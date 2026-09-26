@@ -602,7 +602,8 @@ void AKalmalaCharacter::StopSprint()
 void AKalmalaCharacter::MoveForward(const float Value)
 {
 #if !UE_BUILD_SHIPPING
-    if (IsLocallyControlled() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest"))) return;
+    if (IsLocallyControlled() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest"))
+        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedJourneyPeerTest")))) return;
 #endif
     if (AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
     {
@@ -624,7 +625,8 @@ void AKalmalaCharacter::MoveForward(const float Value)
 void AKalmalaCharacter::MoveRight(const float Value)
 {
 #if !UE_BUILD_SHIPPING
-    if (IsLocallyControlled() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest"))) return;
+    if (IsLocallyControlled() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest"))
+        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedJourneyPeerTest")))) return;
 #endif
     if (AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
     {

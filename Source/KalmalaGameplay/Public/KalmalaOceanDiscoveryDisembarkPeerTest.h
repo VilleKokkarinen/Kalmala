@@ -29,6 +29,10 @@ private:
 	void StartRenderedFrameCapture();
 	void UpdateRenderedFrameCapture();
 	void VerifyLocalOwnerReplica();
+	void DriveIntegratedJourneyScenario();
+	void ObserveIntegratedJourneyReplica();
+	bool IsIntegratedJourneyRoute(const struct FKalmalaWorldGenerationConfig& Config,
+		const FVector2D StartPosition) const;
 	void Fail(const TCHAR* Reason);
 
 	UPROPERTY(Replicated) TObjectPtr<class AKalmalaOceanSkiff> TestSkiff;
@@ -39,6 +43,12 @@ private:
 	UPROPERTY(Replicated) int32 ExpectedRewardQuantity = 0;
 	UPROPERTY(Replicated) bool bServerOutcomePublished = false;
 	UPROPERTY(Replicated) bool bLateJoinOutcomePublished = false;
+	UPROPERTY(Replicated) bool bIntegratedJourneyStarted = false;
+	UPROPERTY(Replicated) FVector2D IntegratedJourneyStart = FVector2D::ZeroVector;
+	UPROPERTY(Replicated) float IntegratedJourneyDistance = 0.0f;
+	UPROPERTY(Replicated) bool bIntegratedJourneySawCrosswind = false;
+	UPROPERTY(Replicated) bool bIntegratedJourneySawCalm = false;
+	UPROPERTY(Replicated) bool bIntegratedJourneyStreamingPassed = false;
 	UPROPERTY(Replicated) uint32 HostIdentityHash = 0;
 	UPROPERTY(Replicated) uint32 HelmIdentityHash = 0;
 	UPROPERTY(Replicated) uint32 LateJoinIdentityHash = 0;
@@ -54,6 +64,17 @@ private:
 	int32 NetworkProfileStartInPackets = 0;
 	int32 NetworkProfileStartOutPackets = 0;
 	int32 ReconnectStage = 0;
+	uint32 IntegratedJourneyInputSequence = 0;
+	double IntegratedJourneyLastInputTime = -1.0;
+	float IntegratedJourneyStartTimeSeconds = -1.0f;
+	float LocalIntegratedJourneyObservationStartSeconds = -1.0f;
+	float IntegratedJourneyLastSampleTimeSeconds = -1.0f;
+	FVector2D IntegratedJourneyLastSamplePosition = FVector2D::ZeroVector;
+	FIntPoint IntegratedJourneyStartPatch = FIntPoint::ZeroValue;
+	FIntPoint IntegratedJourneyEndPatch = FIntPoint::ZeroValue;
+	int32 IntegratedJourneyActivePatchCount = 0;
+	bool bLocalIntegratedJourneySawCrosswind = false;
+	bool bLocalIntegratedJourneySawCalm = false;
 	bool bReconnectLocalReported = false;
 	bool bSetupAttempted = false;
 	bool bServerFailed = false;
