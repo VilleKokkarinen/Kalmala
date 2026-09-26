@@ -33,6 +33,12 @@ requires the server's integrated-journey result, the helm owner's complete
 replica result, server/client seed agreement, and the existing weather peer
 checks for cycle 7001 crosswind and cycle 7002 calm.
 
+## Dry-shore scope decision (2026-09-26)
+
+The user waived the dry-shore-specific M8 subtask. The earlier integrated
+voyage passed the required safe stopped disembark using the qualifying
+deep-water fallback, so dry shore is not required for M8 acceptance. No
+dry-shore result is claimed.
 ## Same-voyage late join and authenticated restart
 
 `Scripts/Verify-OceanSkiffIntegratedReconnectJourney.ps1` covers the same

@@ -8028,3 +8028,17 @@ Multiplayer and persistence impact: The peer fixture uses existing server-author
 Known limits: Inventory is not persistent in the approved M8 contract; this run verifies persistent discovery entitlement and duplicate-reward rejection, not restoration of inventory quantity. The server test fixture directly initializes its skiff and temporarily relocates the returning test character within discovery range for the replay request before restoring the helm position. The dry-shore sibling remains blocked after three seed-418 route searches; this run does not claim dry-land, rendered, physical-helm-input, or unscripted player acceptance.
 
 Next eligible task: No unblocked leaf remains in the earliest incomplete M8 milestone. The dry-shore landing leaf is still blocked and needs a qualifying generated route or a product-approved alternate landing rule; M9 remains out of order. Main checkout used; no worktree handoff synchronization was needed.
+
+### 2026-09-26T14:33:56Z — Waive M8 dry-shore acceptance
+
+Outcome: Per explicit user direction, the dry-shore-specific M8 leaf is waived and marked complete as skipped. Safe stopped disembark through the already-verified qualifying deep-water fallback remains sufficient. With the remaining M8 journey and budget children checked, closed their parents and updated M8 acceptance so M9 can proceed.
+
+Changed this run: Updated the dry-shore checkbox and M8 parent handoff in BACKLOG.md; clarified safe-disembark acceptance in docs/04-roadmap.md; recorded the scope decision in docs/05-decision-log.md; aligned docs/07-development-setup.md and docs/22-m8-integrated-discovery-voyage.md; and appended this handoff. No gameplay, network, or persistence code changed.
+
+Verification: Handoff and acceptance consistency assertions passed. Prior accepted evidence was reviewed in BACKLOG.md and PROGRESS.md: the integrated seed-418 journey passed crosswind/calm travel, discovery, patch transition, and safe moored disembark for both peers. The three stricter dry-shore route attempts remain failures; this handoff does not claim a dry-shore result. This is a documentation-only scope update; no Unreal build or gameplay test was run. 'git diff --check' reports pre-existing trailing whitespace at 'docs/04-roadmap.md:331' in an unrelated M9 entry; the M8 edits do not touch it.
+
+Multiplayer and persistence impact: The server continues to select and validate disembark positions; clients submit no exit coordinates. No RPC, replicated state, authority, or saved-data schema changed.
+
+Known limits: Dry-shore placement and the dry-shore fixture variant remain unverified and are no longer M8 gates. Physical helm input, rendered travel, and unscripted player acceptance remain open limitations.
+
+Next task: Begin M9 with its first unchecked task, the second-wave biome source and loot catalogue.

@@ -209,8 +209,9 @@ within 300 m of the dry shoreline. `OceanDepth` validates the sampled depth
 against the generated collision-triangle planes and clipped coastal mesh.
 These deterministic checks do not instantiate a skiff, execute a visibility
 interaction trace, query live pawn overlap, exercise the skiff's actual world
-collision sweep, or prove a dry-shore disembark; keep those limits in M8
-host/client acceptance.
+collision sweep. Dry-shore-specific acceptance was waived on 2026-09-26; the
+M8 journey accepts a safe stopped disembark through the server's qualifying
+deep-water fallback.
 
 ## M8 late-join and restart/reconnect verification
 
