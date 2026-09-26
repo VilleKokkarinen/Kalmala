@@ -150,7 +150,9 @@ bounded to 18 nearby cells across the two-player prototype, and generated
 terrain remains capped at 25 active patches. These are structural ceilings.
 The two-peer startup snapshot records actor count, per-process memory, a
 bounded per-client connection-traffic delta, and the rendered frame-time
-snapshot above, but sustained/peak use remains unmeasured. The crossing fixture
-remains blocked on steering as recorded in `PROGRESS.md`. Numeric performance
-targets have not been approved, so the recorded snapshots do not establish
-that the game meets a performance ceiling.
+snapshot above, but sustained/peak use remains unmeasured. The integrated
+2.4 km host/client crossing now passes its steering and terrain-patch checks;
+see `docs/19-m8-ocean-travel-contract.md`. The fixture records
+`OriginShift=inactive`, and underway sustained/peak budgets remain unmeasured.
+Numeric performance targets have not been approved, so the recorded snapshots
+do not establish that the game meets a performance ceiling.
