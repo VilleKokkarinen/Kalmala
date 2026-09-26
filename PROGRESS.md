@@ -7916,3 +7916,61 @@ blocked pending steering-driver diagnosis and M8 acceptance is still open.
 Next eligible task: Diagnose the steering-driver/RPC path before retrying the
 blocked integrated two-seat voyage. This used the main checkout; no handoff
 synchronization was needed.
+
+### 2026-09-26T07:31:47Z — Verify integrated M8 skiff crossing
+
+Outcome: Completed the blocked M8 integrated two-peer crossing child. The
+seed-418 host/client fixture launched a server-owned skiff, assigned the remote
+client to Helm and the host to Passenger, sailed 242,511 cm through accepted
+crosswind and calm states, crossed terrain patch (71,0) to (152,5), and stopped
+with 9 active patches. Both peers observed underway movement and the final
+moored state.
+
+Changed this run: Added development-only journey diagnostics at the character
+RPC and skiff validation/movement boundaries. The first trace showed that
+neutral movement-axis callbacks sent an accepted zero-throttle sample and
+starved the scripted driver; the journey flag now suppresses those callbacks.
+The live retry then exposed normal weather cycle 7003 expiring the fixture's
+120-second calm state and steering the vessel out of its prevalidated route.
+Automatic weather advancement now pauses at the verified calm state only under
+the development journey flag. Documented the fixture guards and passing
+evidence in `docs/07-development-setup.md` and
+`docs/19-m8-ocean-travel-contract.md`, cleared the stale status in
+`docs/20-m8-ocean-performance-budget.md`, checked the integrated crossing child
+in `BACKLOG.md`, and added this handoff. Other pre-existing edits in these files
+and unrelated workspace files remain preserved and unstaged.
+
+Files touched this run: `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp`,
+`docs/07-development-setup.md`, `docs/19-m8-ocean-travel-contract.md`,
+`docs/20-m8-ocean-performance-budget.md`, `BACKLOG.md`, and `PROGRESS.md`.
+Commits b03c352 and 7fb3d10 contain only current-run source/contract hunks and
+the clean budget-status update. Only this run's exact M8 child checkbox/evidence and this handoff entry are staged for the documentation commit; all unrelated pre-existing edits remain unstaged.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed
+4 actions after the final fixture change with normal
+`%LOCALAPPDATA%\UnrealBuildTool` access. The live
+`Scripts/Verify-OceanSkiffJourney.ps1 -Port 18169 -TimeoutSeconds 480` passed;
+host/client logs are in
+`C:\Users\Ville\AppData\Local\Temp\KalmalaOceanSkiffJourney-384596c99aeb413dbdad675876741e54`.
+Both `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` and
+`Kalmala.Gameplay.OceanTravel.SkiffSteeringContract` reported `Result={Success}`;
+the runner PowerShell parser and scoped `git diff --check` passed after the
+handoff update.
+
+Multiplayer and persistence impact: Client steering still sends bounded intent
+to the existing server RPC; the server accepted it and remained authoritative
+for movement, collision, occupancy, weather, and replicated stop state. The
+new input and weather guards are development-test-only. No production RPC,
+replicated gameplay field, or saved-data schema changed.
+
+Known limits: `OriginShift=inactive`; this run tested generated terrain-patch
+streaming but not origin rebasing, physical helm input, rendered travel,
+discovery/disembark/reconnect, or underway performance budgets. The M8 journey
+parent and acceptance remain open for the origin/streaming requirement; the
+finite-world limit is still 16 km.
+
+Next eligible task: Resolve the remaining world-origin/streaming acceptance
+under the open M8 journey parent, using the documented 16 km finite-world
+scope. Main checkout used; no worktree handoff synchronization was needed.
