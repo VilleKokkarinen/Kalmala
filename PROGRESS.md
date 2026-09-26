@@ -7823,3 +7823,50 @@ acceptance.
 Next eligible task: Measure M8 peer replication traffic and rendered frame
 time; keep the integrated crossing blocked until the steering-driver path is
 diagnosed. This used the main checkout, so no worktree handoff sync was needed.
+
+### 2026-09-26T05:54:18Z — Profile M8 peer connection traffic
+
+Outcome: Completed the per-client connection-traffic slice of the open M8
+performance-budget task. The seed-418 listen-host/conflicting-seed client
+discovery and safe-disembark fixture now reports server-side connection byte
+and packet deltas over a one-second accepted-state replication window.
+
+Changed this run: Extended
+`Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryDisembarkPeerTest.cpp` and
+`Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryDisembarkPeerTest.h` to
+capture the remote connection baseline before the scenario and report totals
+one second after server verification. Updated
+`Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1` to require and print the
+profile, documented scope and results in `docs/20-m8-ocean-performance-budget.md`,
+checked this M8 budget child in `BACKLOG.md`, and recorded this handoff.
+Pre-existing unrelated worktree edits remain untouched.
+
+Verification: An initial forced editor build in the main checkout exited 1
+while waiting on the engine-wide UnrealBuildTool mutex and produced no build
+diagnostics. The forced UE5.8.2 `KalmalaEditor Win64 Development` retry passed
+all 180 actions in isolated mirror
+`C:\Users\Ville\AppData\Local\Temp\K8m8-NetProfile-b105ea40`, with normal
+`%LOCALAPPDATA%\UnrealBuildTool` access. The PowerShell parser and scoped
+`git diff --check` passed. The live
+`Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1 -Port 19371` run passed and
+measured, over 1.00 second, 3,842 bytes/67 packets client-to-server and
+7,951 bytes/68 packets server-to-client. The same run recorded 56 actors, 38
+replicated actors, 9 terrain patches, 177.49 ms generation, and 2,215
+population-save bytes. Logs:
+`C:\Users\Ville\AppData\Local\Temp\KalmalaOceanSkiffDiscoveryDisembark-6969f23d61844744bd4e4334044edf92`.
+
+Multiplayer and persistence impact: Development-only profiling reads the
+server's existing remote `UNetConnection` counters. It adds no RPC, replicated
+gameplay field, authority path, save data, or persistence change.
+
+Known limits: This is one null-RHI moored discovery/disembark snapshot. It
+includes all connection traffic in the sample window, excludes the initial
+handshake and the listen host's in-process player, and does not separate actor
+replication from RPC/control traffic or account for UDP/IP headers. It does not
+measure underway traffic, sustained peaks, numeric ceilings, or rendered frame
+time. The long-distance crossing remains blocked on steering-driver diagnosis.
+
+Next eligible task: Capture representative rendered frame times for the M8
+two-peer skiff state and document the render setup; keep the integrated
+crossing blocked until the steering-driver path is diagnosed. Main checkout
+used; no handoff synchronization was needed.

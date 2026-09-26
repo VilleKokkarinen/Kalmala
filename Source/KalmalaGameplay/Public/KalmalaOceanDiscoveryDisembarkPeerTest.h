@@ -25,6 +25,7 @@ private:
 	void FailReconnect(const TCHAR* Reason);
 	bool PrepareServerScenario();
 	void VerifyServerOutcome();
+	void ReportPeerNetworkProfile();
 	void VerifyLocalOwnerReplica();
 	void Fail(const TCHAR* Reason);
 
@@ -42,11 +43,19 @@ private:
 
 	TWeakObjectPtr<class AKalmalaCharacter> HelmCharacter;
 	TWeakObjectPtr<class AKalmalaCharacter> PassengerCharacter;
+	TWeakObjectPtr<class UNetConnection> ProfiledRemoteConnection;
 	float StartedAtSeconds = -1.0f;
+	float NetworkProfileStartSeconds = -1.0f;
+	float NetworkProfileReportSeconds = -1.0f;
+	int32 NetworkProfileStartInBytes = 0;
+	int32 NetworkProfileStartOutBytes = 0;
+	int32 NetworkProfileStartInPackets = 0;
+	int32 NetworkProfileStartOutPackets = 0;
 	int32 ReconnectStage = 0;
 	bool bReconnectLocalReported = false;
 	bool bSetupAttempted = false;
 	bool bServerFailed = false;
 	bool bServerReported = false;
+	bool bNetworkProfileReported = false;
 	bool bLocalOwnerReported = false;
 };

@@ -578,6 +578,9 @@ gate passes. After this baseline gate, the six goal groups follow the order in
     - [x] Cap each M8 vessel/seat `SaveGameToMemory` record at 3,072 bytes and check maximum-valid IDs; measured maximum payloads were 2,707-byte world and 2,937-byte player records. See `docs/20-m8-ocean-performance-budget.md`.
     - [x] Measure total/replicated actors and per-process memory in a two-peer M8 discovery/skiff fixture; retain the result as a snapshot until numeric ceilings are approved.
       - Passed 2026-09-25: The seed-418 listen-host/conflicting-seed client run recorded 56 world actors, 38 replicated actors, 9 terrain patches, 1,799.97 MiB system physical memory in use, 1,677.39/1,799.97 MiB listen-server private/working-set memory, and 1,675.50/1,774.26 MiB client private/working-set memory. The post-disembark profile included one still-live moored skiff. This is one null-RHI snapshot, not a peak or long-session measurement; no numeric actor/memory ceiling is approved yet.
+    - [x] Capture per-client network byte and packet deltas for the existing M8 two-peer discovery/disembark fixture; document the profile scope and limitations.
+      - Passed 2026-09-26: The seed-418 null-RHI host/client fixture measured one second of server-side connection-counter deltas after the accepted discovery/disembark outcome: 3,842 bytes/67 packets client-to-server and 7,951 bytes/68 packets server-to-client. The sample includes all connection traffic during that window, excludes the initial handshake, and does not separate replication from RPC/control traffic; it is not a ceiling or underway measurement.
+    - [ ] Capture representative rendered frame times for the M8 two-peer skiff state; document resolution, render mode, scene, and limits.
 
 **M8 multiplayer boundary:** the server owns travel-medium state and accepted
 movement, occupancy, ocean weather, discovery identities and rewards,

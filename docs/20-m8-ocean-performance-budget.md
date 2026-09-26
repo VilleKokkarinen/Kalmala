@@ -64,6 +64,37 @@ The profile sampled one run immediately after the peers accepted their rewards
 and disembarked from the still-live moored skiff. These values are evidence for
 that machine and fixture, not numeric performance ceilings.
 
+## Two-peer connection traffic snapshot
+
+`Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1` also records the remote
+client's server-side `UNetConnection` byte and packet counter deltas. The
+baseline is captured after both peers are ready and immediately before the
+discovery/skiff fixture mutates state. The server samples again one second
+after it verifies both rewards and safe disembarkation, allowing the accepted
+actor state and owner feedback to replicate. The reported directions are from
+the server's perspective: inbound is client-to-server and outbound is
+server-to-client.
+
+These are Unreal connection counters for one remote peer over the fixture
+window. They include all connection traffic in that interval and do not
+separate actor replication from RPC/control traffic or account for UDP/IP
+headers. They exclude the listen host's in-process local player and the initial
+connection handshake. This moored discovery/disembark snapshot does not measure
+underway movement, sustained traffic, or a traffic ceiling; rendered frame time
+remains open.
+
+The 2026-09-26 UE 5.8.2 Development/null-RHI run on seed 418 reported:
+
+| Direction | Bytes in 1.00 s | Packets in 1.00 s |
+| --- | ---: | ---: |
+| Client to listen server | 3,842 | 67 |
+| Listen server to client | 7,951 | 68 |
+
+The same run passed the two-peer discovery/disembark acceptance and recorded
+56 world actors, 38 replicated actors, 9 terrain patches, 177.49 ms initial
+generation, and 2,215 serialized population-save bytes. The byte counts are a
+single bounded moored-state sample, not a numeric budget target.
+
 ## Verification
 
 After the forced `KalmalaEditor Win64 Development` build, run
@@ -81,8 +112,9 @@ The skiff's existing contract remains one vessel per session with movement
 replication capped at 10 updates per second. Ocean discovery activation is
 bounded to 18 nearby cells across the two-player prototype, and generated
 terrain remains capped at 25 active patches. These are structural ceilings.
-The two-peer startup snapshot now records actual actor count and per-process
-memory, but sustained/peak use, network bytes, and rendered frame time remain
-unmeasured. The crossing fixture remains blocked on steering as recorded in
-`PROGRESS.md`. The serialized save cap and two-peer actor/memory snapshot are
-completed slices of the open M8 budget task.
+The two-peer startup snapshot records actor count, per-process memory, and a
+bounded per-client connection-traffic delta, but sustained/peak use and
+rendered frame time remain unmeasured. The crossing fixture remains blocked on
+steering as recorded in `PROGRESS.md`. The serialized save cap, actor/memory
+snapshot, and connection-traffic sample are completed slices of the open M8
+budget task.

@@ -44,12 +44,17 @@ try {
         $clientAccepted = $clientText -match 'Ocean discovery-stop peer replica passed: Authority=0 Seat=Helm Discovery=.+ DiscoveryFeedback=LandmarkFound Reward=(?:Wood|Fibre|Stone):[12] Disembarked=1 EmptySeats=1 Mode=Moored'
         $clientWorld = $clientText -match 'Client received world-generation identity: Seed=418'
         $profileMatch = [regex]::Match($hostText, 'World profile: InitialGenerationMs=(?<generation>[0-9.]+) UsedPhysicalMB=(?<used>[0-9.]+) AvailablePhysicalMB=(?<available>[0-9.]+) Actors=(?<actors>[0-9]+) ReplicatedActors=(?<replicated>[0-9]+) TerrainPatches=(?<patches>[0-9]+) PopulationKeys=(?<population>[0-9]+) SaveBytes=(?<save>[0-9]+) SaveSerialized=(?<serialized>[01]) LateJoinPlayers=(?<players>[0-9]+)\.')
+        $networkProfileMatch = [regex]::Match($hostText, 'Ocean M8 peer connection profile: Peer=Client WindowSeconds=(?<window>[0-9.]+) InBytes=(?<inBytes>[0-9]+) OutBytes=(?<outBytes>[0-9]+) InPackets=(?<inPackets>[0-9]+) OutPackets=(?<outPackets>[0-9]+)')
         $serverOutcomeIndex = $hostText.IndexOf('Ocean discovery-stop server passed:', [System.StringComparison]::Ordinal)
         $profileIndex = $hostText.IndexOf('World profile:', [System.StringComparison]::Ordinal)
         if ($profileMatch.Success -and $serverOutcomeIndex -ge 0 -and $profileIndex -lt $serverOutcomeIndex) {
             throw 'The M8 world profile was captured before the two-peer skiff scenario completed.'
         }
-        $ready = $serverAccepted -and $clientAccepted -and $clientWorld -and $profileMatch.Success
+        $networkProfileIndex = $hostText.IndexOf('Ocean M8 peer connection profile:', [System.StringComparison]::Ordinal)
+        if ($networkProfileMatch.Success -and $serverOutcomeIndex -ge 0 -and $networkProfileIndex -lt $serverOutcomeIndex) {
+            throw 'The M8 peer connection profile was captured before the two-peer skiff scenario completed.'
+        }
+        $ready = $serverAccepted -and $clientAccepted -and $clientWorld -and $profileMatch.Success -and $networkProfileMatch.Success
         if ($ready) { break }
         Start-Sleep -Seconds 1
     } while ((Get-Date) -lt $deadline)
@@ -64,6 +69,8 @@ try {
     }
     Write-Output 'PASS: both peers retained one server-selected sea-discovery reward and replicated the safely moored, empty skiff after disembark.'
     Write-Output ('M8 actor/memory profile: Seed=418 Players={0} Actors={1} ReplicatedActors={2} TerrainPatches={3} PopulationKeys={4} InitialGenerationMs={5} SystemUsedPhysicalMB={6} SystemAvailablePhysicalMB={7} PopulationSaveBytes={8}' -f $profile['players'].Value, $profile['actors'].Value, $profile['replicated'].Value, $profile['patches'].Value, $profile['population'].Value, $profile['generation'].Value, $profile['used'].Value, $profile['available'].Value, $profile['save'].Value)
+    $networkProfile = $networkProfileMatch.Groups
+    Write-Output ('M8 peer connection profile: WindowSeconds={0} ClientToServerBytes={1} ServerToClientBytes={2} ClientToServerPackets={3} ServerToClientPackets={4}' -f $networkProfile['window'].Value, $networkProfile['inBytes'].Value, $networkProfile['outBytes'].Value, $networkProfile['inPackets'].Value, $networkProfile['outPackets'].Value)
     $hostPrivateMiB = ($hostMemory.PrivateMemorySize64 / 1MB).ToString('F2', $invariantCulture)
     $hostWorkingSetMiB = ($hostMemory.WorkingSet64 / 1MB).ToString('F2', $invariantCulture)
     $clientPrivateMiB = ($clientMemory.PrivateMemorySize64 / 1MB).ToString('F2', $invariantCulture)

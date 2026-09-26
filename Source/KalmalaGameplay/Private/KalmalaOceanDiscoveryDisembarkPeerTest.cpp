@@ -2,6 +2,7 @@
 
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "Engine/NetConnection.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
@@ -88,6 +89,11 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::Tick(const float DeltaSeconds)
 		if (bSetupAttempted && bServerOutcomePublished && !bServerReported && !bServerFailed)
 		{
 			VerifyServerOutcome();
+		}
+		if (bServerReported && !bNetworkProfileReported && NetworkProfileReportSeconds >= 0.0f
+			&& GetWorld()->GetTimeSeconds() >= NetworkProfileReportSeconds)
+		{
+			ReportPeerNetworkProfile();
 		}
 	}
 	else if (bServerOutcomePublished && !bLocalOwnerReported)
@@ -538,6 +544,19 @@ bool AKalmalaOceanDiscoveryDisembarkPeerTest::PrepareServerScenario()
 		Fail(TEXT("fresh peer reward baseline or discovery catalogue is invalid"));
 		return false;
 	}
+	APlayerController* RemoteController = Cast<APlayerController>(Remote->GetController());
+	UNetConnection* RemoteConnection = RemoteController != nullptr ? RemoteController->GetNetConnection() : nullptr;
+	if (RemoteConnection == nullptr)
+	{
+		Fail(TEXT("remote peer network connection is unavailable for the M8 traffic profile"));
+		return false;
+	}
+	ProfiledRemoteConnection = RemoteConnection;
+	NetworkProfileStartSeconds = GetWorld()->GetTimeSeconds();
+	NetworkProfileStartInBytes = RemoteConnection->InTotalBytes;
+	NetworkProfileStartOutBytes = RemoteConnection->OutTotalBytes;
+	NetworkProfileStartInPackets = RemoteConnection->InTotalPackets;
+	NetworkProfileStartOutPackets = RemoteConnection->OutTotalPackets;
 
 	for (TActorIterator<AKalmalaOceanSkiff> It(GetWorld()); It; ++It)
 	{
@@ -643,6 +662,31 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyServerOutcome()
 		TEXT("Ocean discovery-stop server passed: Seed=418 Players=2 Discovery=%s Reward=%s:%d Claims=2 Mode=Moored Disembarked=2"),
 		*ExpectedDiscoveryId.ToString(), *ExpectedRewardItemId.ToString(), ExpectedRewardQuantity);
 	bServerReported = true;
+	NetworkProfileReportSeconds = GetWorld()->GetTimeSeconds() + 1.0f;
+}
+
+void AKalmalaOceanDiscoveryDisembarkPeerTest::ReportPeerNetworkProfile()
+{
+	const UNetConnection* Connection = ProfiledRemoteConnection.Get();
+	if (Connection == nullptr || NetworkProfileStartSeconds < 0.0f)
+	{
+		Fail(TEXT("remote peer connection closed before the M8 traffic profile completed"));
+		return;
+	}
+
+	const uint32 InBytes = static_cast<uint32>(Connection->InTotalBytes)
+		- static_cast<uint32>(NetworkProfileStartInBytes);
+	const uint32 OutBytes = static_cast<uint32>(Connection->OutTotalBytes)
+		- static_cast<uint32>(NetworkProfileStartOutBytes);
+	const uint32 InPackets = static_cast<uint32>(Connection->InTotalPackets)
+		- static_cast<uint32>(NetworkProfileStartInPackets);
+	const uint32 OutPackets = static_cast<uint32>(Connection->OutTotalPackets)
+		- static_cast<uint32>(NetworkProfileStartOutPackets);
+	const float WindowSeconds = GetWorld()->GetTimeSeconds() - NetworkProfileStartSeconds;
+	UE_LOG(LogTemp, Display,
+		TEXT("Ocean M8 peer connection profile: Peer=Client WindowSeconds=%.2f InBytes=%u OutBytes=%u InPackets=%u OutPackets=%u"),
+		WindowSeconds, InBytes, OutBytes, InPackets, OutPackets);
+	bNetworkProfileReported = true;
 }
 
 void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyLocalOwnerReplica()
