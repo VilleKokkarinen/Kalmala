@@ -319,6 +319,43 @@ bool UKalmalaCraftingComponent::RepairToolFromServer(const FName ToolId, FString
     return true;
 }
 
+bool UKalmalaCraftingComponent::RepairAllToolsFromServer(
+    AKalmalaConstructionActor* GrindingStone,
+    FString& Reason)
+{
+    auto* Character = GetCharacter();
+    Reason = TEXT("Server authority required");
+    if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
+
+    const bool bAtGrindingStone = IsValid(GrindingStone)
+        && GrindingStone->GetWorld() == Character->GetWorld()
+        && GrindingStone->HasAuthority()
+        && GrindingStone->GetConstructionKit() == TEXT("GrindingStoneKit")
+        && GrindingStone->CanInteract_Implementation(Character);
+    Reason = TEXT("Need to interact with a visible same-world Grinding Stone within 2.5 m");
+    if (!bAtGrindingStone) return false;
+
+    TArray<FKalmalaToolState> CandidateTools;
+    int32 RepairedCount = 0;
+    if (!FKalmalaToolLifecycleContract::BuildServerRepairAll(
+        true, true, Character->CarriedTools, CandidateTools, RepairedCount))
+    {
+        Reason = TEXT("Carried tool state is invalid; no tools were changed");
+        return false;
+    }
+    if (RepairedCount == 0)
+    {
+        Reason = TEXT("All carried tools are already at full condition");
+        return true;
+    }
+
+    Character->CarriedTools = MoveTemp(CandidateTools);
+    Character->ForceNetUpdate();
+    Reason = FString::Printf(TEXT("Grinding Stone repaired %d carried tool%s to full condition at no cost"),
+        RepairedCount, RepairedCount == 1 ? TEXT("") : TEXT("s"));
+    return true;
+}
+
 void UKalmalaCraftingComponent::ServerRepairTool_Implementation(const FName ToolId)
 {
     if (!AcceptRequest()) return;

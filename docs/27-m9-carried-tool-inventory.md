@@ -100,8 +100,31 @@ preserved, and the existing `CarriedTools` array remains owner-only and
 transient.
 
 This M9 rule retires M7's material-paid repair and zero-condition replacement
-recipes. The buildable Grinding Stone and its server-owned `Repair All` action
-remain future work.
+recipes.
+
+## M9 Grinding Stone Repair All
+
+The paid `GrindingStoneKit` costs 2 Lashed timber and 4 Fieldstone and is
+crafted at a visible same-world Workbench within 250 cm. It uses the existing
+construction placement checks and schema-1 construction record; the Grinding
+Stone adds no save fields or repair inventory. The owner interacts with the
+placed stone to request Repair All. The server revalidates that exact accepted
+stone as same-world, visible, and within 250 cm before reading the owner's
+server-owned `CarriedTools` array.
+
+Repair All builds and validates a complete candidate for the bounded list
+before publishing it. Every damaged or zero-condition known tool returns to
+its authored maximum; already-full tools remain unchanged, and identity, list
+slot, and tool level are preserved. Unknown, duplicate, oversized, or malformed
+tool state rejects the whole action without partial repair. The client sends
+no tool list, tool ID, or condition value. Repair costs no materials and gives
+no Crafting experience. The result and detailed tool condition remain
+owner-only, and the sharpening animation remains a separate presentation task.
+
+`Kalmala.Gameplay.M9.GrindingStoneRepairAll` checks the paid recipe and
+existing save/placement kit contracts, all five carried-tool definitions,
+broken and damaged repair, unchanged full tools and levels, and atomic rejection
+for invalid authority, missing stone validation, and malformed lists.
 
 ## Verification
 

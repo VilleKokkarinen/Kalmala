@@ -20,6 +20,7 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         {TEXT("Forge"), TEXT("ForgeKit"), 1, false, false, {{TEXT("ConstructionSupply"),5},{TEXT("Stone"),6}}},
         {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit"), 1, false, false, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),2}}},
         {TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit"), 1, false, false, {{TEXT("ConstructionSupply"),3},{TEXT("Stone"),4}}},
+        {TEXT("GrindingStone"), TEXT("GrindingStoneKit"), 1, false, false, {{TEXT("ConstructionSupply"),2},{TEXT("Stone"),4}}},
         {TEXT("Storage"), TEXT("StorageKit"), 1, false, false, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),4}}},
         {TEXT("Floor"), TEXT("FloorKit"), 5, true, false, {{TEXT("ConstructionSupply"),2}}},
         {TEXT("Wall"), TEXT("WallKit"), 5, true, false, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),2}}},
@@ -27,7 +28,7 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         {TEXT("RoastBoarMeat"), TEXT("RoastedFieldMeat"), 5, false, true, {{TEXT("BoarMeat"),1}}},
         {TEXT("RoastDeerMeat"), TEXT("RoastedFieldMeat"), 5, false, true, {{TEXT("DeerMeat"),1}}}
     };
-    TestEqual(TEXT("Recipe catalogue stays deliberately small"), Recipes->Recipes.Num(), Expected.Num());
+    TestEqual(TEXT("Recipe catalogue matches its exact verified set"), Recipes->Recipes.Num(), Expected.Num());
     for (const FExpectedRecipe& Definition : Expected)
     {
         const FKalmalaRecipe* Recipe = Recipes->Find(Definition.Id);

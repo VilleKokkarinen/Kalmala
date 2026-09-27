@@ -91,7 +91,13 @@ bool UKalmalaCraftingComponent::OpenStorageFromServer(AKalmalaConstructionActor*
 void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConstructionActor* Construction)
 {
     if (!AcceptRequest() || !IsValid(Construction) || !Construction->CanInteract_Implementation(GetCharacter())) return;
-    if (Construction->GetConstructionKit() == TEXT("StorageKit"))
+    if (Construction->GetConstructionKit() == TEXT("GrindingStoneKit"))
+    {
+        FString Reason;
+        const bool bAccepted = RepairAllToolsFromServer(Construction, Reason);
+        PublishResult(Reason, bAccepted);
+    }
+    else if (Construction->GetConstructionKit() == TEXT("StorageKit"))
     {
         const bool bAccepted = OpenStorageFromServer(Construction);
         PublishResult(bAccepted ? TEXT("Chest inspected; use Camp crafting to transfer items") : TEXT("Storage unavailable"), bAccepted);

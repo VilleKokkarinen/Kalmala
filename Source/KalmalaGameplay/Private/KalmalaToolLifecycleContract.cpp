@@ -260,3 +260,43 @@ bool FKalmalaToolLifecycleContract::BuildServerFreeRepair(
     OutRepairedState.Durability = Definition->MaxDurability;
     return true;
 }
+
+bool FKalmalaToolLifecycleContract::BuildServerRepairAll(
+    const bool bServerAuthority,
+    const bool bAtValidatedGrindingStone,
+    const TArray<FKalmalaToolState>& ToolStates,
+    TArray<FKalmalaToolState>& OutRepairedStates,
+    int32& OutRepairedCount)
+{
+    OutRepairedStates = ToolStates;
+    OutRepairedCount = 0;
+    if (!bServerAuthority || !bAtValidatedGrindingStone || ToolStates.Num() > MaxCarriedToolRecords) return false;
+
+    TSet<FName> SeenToolIds;
+    for (int32 Index = 0; Index < ToolStates.Num(); ++Index)
+    {
+        const FKalmalaToolState& ToolState = ToolStates[Index];
+        const FKalmalaToolDefinition* Definition = FindDefinition(ToolState.ToolId);
+        if (!Definition || ToolState.ToolId.IsNone() || SeenToolIds.Contains(ToolState.ToolId)
+            || ToolState.ToolLevel < 1 || ToolState.Durability < 0
+            || ToolState.Durability > Definition->MaxDurability)
+        {
+            OutRepairedStates = ToolStates;
+            OutRepairedCount = 0;
+            return false;
+        }
+        SeenToolIds.Add(ToolState.ToolId);
+        if (ToolState.Durability == Definition->MaxDurability) continue;
+
+        FKalmalaToolState RepairedState;
+        if (!BuildServerFreeRepair(true, true, ToolState, RepairedState))
+        {
+            OutRepairedStates = ToolStates;
+            OutRepairedCount = 0;
+            return false;
+        }
+        OutRepairedStates[Index] = RepairedState;
+        ++OutRepairedCount;
+    }
+    return true;
+}

@@ -127,4 +127,11 @@ public:
         bool bAtValidatedRepairStation,
         const FKalmalaToolState& ToolState,
         FKalmalaToolState& OutRepairedState);
+    /** Build one atomic no-cost repair candidate from the server-owned carried-tool list. */
+    static bool BuildServerRepairAll(
+        bool bServerAuthority,
+        bool bAtValidatedGrindingStone,
+        const TArray<FKalmalaToolState>& ToolStates,
+        TArray<FKalmalaToolState>& OutRepairedStates,
+        int32& OutRepairedCount);
 };

@@ -1007,4 +1007,13 @@ authority, station, unknown-tool, full, and invalid-condition rejection.
 are absent. `Scripts/Verify-InventoryReconnect.ps1` checks live Workbench
 range/rejection, repair with an empty pack, unchanged Crafting experience,
 retired replacement requests, and owner-only condition across two visits.
-Grinding Stone `Repair All` and its sharpening presentation remain open.
+After the forced editor build, run
+`Kalmala.Gameplay.M9.GrindingStoneRepairAll` with an isolated user and log
+directory. It checks the paid Workbench recipe, generic construction save and
+placement allowlists, repair of every damaged/broken carried tool, unchanged
+full tools and levels, and whole-action rejection for client authority,
+missing Grinding Stone validation, malformed records, duplicates, and an
+oversized list. In-world use is server-only: interact with a visible accepted
+Grinding Stone within 250 cm; the server reads and repairs the owner's current
+carried list, with no client-supplied IDs/conditions, cost, or Crafting XP. The
+short sharpening animation remains open presentation work.

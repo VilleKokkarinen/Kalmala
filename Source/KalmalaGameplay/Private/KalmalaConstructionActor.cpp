@@ -41,7 +41,8 @@ void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FS
 bool AKalmalaConstructionActor::CanUse(const AKalmalaCharacter* Character) const
 {
     if (!IsValid(Character) || !Character->GetController() || Character->GetWorld() != GetWorld() || ConstructionId.IsEmpty()
-        || (ConstructionKit != TEXT("WorkbenchKit") && ConstructionKit != TEXT("StorageKit"))
+        || (ConstructionKit != TEXT("WorkbenchKit") && ConstructionKit != TEXT("StorageKit")
+            && ConstructionKit != TEXT("GrindingStoneKit"))
         || Character->GetActorLocation().ContainsNaN() || GetActorLocation().ContainsNaN()
         || FVector::DistSquared(Character->GetActorLocation(), GetActorLocation()) > FMath::Square(250.0)) return false;
     const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
@@ -99,6 +100,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("ForgeKit")) return FVector(60, 60, 62);
     if (KitId == TEXT("WorkbenchToolRackKit")) return FVector(32, 25, 34);
     if (KitId == TEXT("ForgeAnvilKit")) return FVector(28, 16, 28);
+    if (KitId == TEXT("GrindingStoneKit")) return FVector(42, 34, 18);
     return FVector(54, 54, 56);
 }
 
@@ -163,6 +165,12 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
         AddBox(Vertices, Triangles, FVector(0, 0, -2), FVector(18, 11, 7));
         AddBox(Vertices, Triangles, FVector(-20, 0, 6), FVector(8, 8, 3));
         AddBox(Vertices, Triangles, FVector(18, 0, 6), FVector(9, 7, 3));
+    }
+    else if (ConstructionKit == TEXT("GrindingStoneKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(0, 0, -8), FVector(42, 34, 10));
+        AddBox(Vertices, Triangles, FVector(0, 0, 5), FVector(35, 28, 4));
+        AddBox(Vertices, Triangles, FVector(0, 0, 12), FVector(26, 8, 3));
     }
     else if (ConstructionKit == TEXT("StorageKit"))
     {

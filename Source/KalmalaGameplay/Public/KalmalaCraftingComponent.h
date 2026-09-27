@@ -44,6 +44,7 @@ public:
     bool ProgressToolFromServer(FName ToolId, FString& Reason);
     bool CraftFromServer(FName RecipeId, int32 Batch, FString& Reason);
     bool RepairToolFromServer(FName ToolId, FString& Reason);
+    bool RepairAllToolsFromServer(AKalmalaConstructionActor* GrindingStone, FString& Reason);
     bool PlaceFromServer(FString& Reason);
     bool PlaceConstructionFromServer(FName KitId, FString& Reason);
     FString GetFoodText() const;

@@ -8196,3 +8196,19 @@ Observable and multiplayer impact: Repair RPC intent remains only the selected t
 Known limits: The reconnect fixture exercised Workbench repair; Forge repair has contract-level and code-path validation but no separate live peer walkthrough. Buildable Grinding Stone Repair All and the presentation-only repair animation remain unfinished, so this backlog task stays unchecked. Tool condition remains transient under the existing persistence gate.
 
 Next task: Complete the same repair backlog leaf with a buildable Grinding Stone and server-validated Repair All, then finish the presentation-only animation and repeat the focused verification. Main checkout used; no worktree handoff synchronization was needed.
+
+### 2026-09-27T15:21:14Z - Add Grinding Stone Repair All
+
+Outcome: Added the paid buildable GrindingStoneKit and its in-world, server-authoritative Repair All action. It costs 2 Lashed timber and 4 Fieldstone at a visible Workbench. The server revalidates the exact accepted Grinding Stone for same-world visibility and 250 cm range, validates the complete bounded carried-tool candidate, repairs damaged and broken tools, preserves full tools and each tool level/slot, and publishes atomically. The owner receives a private result.
+
+Files changed this increment: Config/DefaultGame.ini; Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp; Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp; Source/KalmalaGameplay/Private/KalmalaPlacementPreview.cpp; Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp; Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaM9GrindingStoneRepairTest.cpp; Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h; Source/KalmalaGameplay/Public/KalmalaToolLifecycleContract.h; docs/02-technical-architecture.md; docs/07-development-setup.md; docs/27-m9-carried-tool-inventory.md; BACKLOG.md; and PROGRESS.md.
+
+Verification: The documented UE 5.8.2 KalmalaEditor Win64 Development build passed in 37 actions with normal UnrealBuildTool LocalAppData access; the final incremental rebuild passed in 4 actions. UnrealEditor-Cmd stopped at the documented all-platform SDK preflight because LinuxArm64 and VisionOS SDK versions are unavailable. The waited UnrealEditor fallback exited 0, and all six focused automations passed: Kalmala.Gameplay.M9.GrindingStoneRepairAll, Kalmala.Gameplay.Construction.LocalPreview, Kalmala.Gameplay.Construction.SaveContract, Kalmala.Gameplay.Crafting.Transactions, Kalmala.Gameplay.Crafting.NetworkContract, and Kalmala.Gameplay.Tools.LifecycleContract. The first automation run exposed a stale 20-recipe expectation; the Grinding Stone recipe was added to that exact catalogue contract and the rerun passed. Scoped git diff --check passed.
+
+Observable and multiplayer impact: The placed stone provides Repair All on interaction. Clients provide only interaction intent; the server chooses the owner carried-tool list and condition outcomes. No client tool list, tool ID, or condition is accepted. Tool details and result remain owner-only; no inventory cost, Crafting XP, replicated field, or save schema change was introduced.
+
+Known limits: The sharpening animation is still open presentation work. Tool and workstation progression remain transient until the M9 migration contract; no live two-client Grinding Stone walkthrough ran.
+
+Handoff: The selected backlog checkbox is checked in the working copy. The surrounding M9 section had pre-existing edits, so BACKLOG.md remains unstaged to preserve them. Main checkout used; no handoff sync was needed.
+
+Next eligible task: Add the short tool-appropriate sharpening animation for Grinding Stone repair and keep it presentation-only.

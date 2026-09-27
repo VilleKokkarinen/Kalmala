@@ -11,7 +11,7 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
 {
     if (ItemId == TEXT("ForgeKit")) return true;
     return ItemId == TEXT("CampfireKit") || ItemId == TEXT("WorkbenchKit") || ItemId == TEXT("StorageKit")
-        || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit")
+        || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit");
 }
 
@@ -44,11 +44,12 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     }
 
     const bool bIsStationAttachment = ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit");
-    const FVector PlacementExtent = bIsStationAttachment
+    const bool bIsCompactConstruction = bIsStationAttachment || ItemId == TEXT("GrindingStoneKit");
+    const FVector PlacementExtent = bIsCompactConstruction
         ? AKalmalaConstructionActor::GetCollisionExtent(ItemId) : FVector(54, 54, 56);
-    const float PlacementHalfHeight = PlacementExtent.Z + (bIsStationAttachment ? 2.0f : 0.0f);
+    const float PlacementHalfHeight = PlacementExtent.Z + (bIsCompactConstruction ? 2.0f : 0.0f);
     Result.Location = Ground.ImpactPoint + FVector(0, 0, PlacementHalfHeight);
-    const float PreviewRadius = bIsStationAttachment
+    const float PreviewRadius = bIsCompactConstruction
         ? FMath::Max3(PlacementExtent.X, PlacementExtent.Y, PlacementExtent.Z) : 54.0f;
     if (World->OverlapBlockingTestByChannel(Result.Location, FQuat::Identity, ECC_Pawn,
         FCollisionShape::MakeSphere(PreviewRadius), Query))
