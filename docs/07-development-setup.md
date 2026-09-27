@@ -1015,5 +1015,9 @@ full tools and levels, and whole-action rejection for client authority,
 missing Grinding Stone validation, malformed records, duplicates, and an
 oversized list. In-world use is server-only: interact with a visible accepted
 Grinding Stone within 250 cm; the server reads and repairs the owner's current
-carried list, with no client-supplied IDs/conditions, cost, or Crafting XP. The
-short sharpening animation remains open presentation work.
+carried list, with no client-supplied IDs/conditions, cost, or Crafting XP.
+The accepted transaction sends a parameterless cosmetic multicast for the
+1.2-second procedural sharpening pose; no gameplay or saved state is carried.
+Run `Kalmala.Gameplay.Tools.SharpeningPresentation` with the same isolated
+editor automation setup to check its bounded three-stroke pose and return to
+the current gait. This pose test does not replace rendered in-world review.

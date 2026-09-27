@@ -16,6 +16,14 @@ public:
     virtual void BeginPlay() override;
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* TickFunction) override;
     int32 GetPartCount() const { return Parts.Num(); }
+    static constexpr float ToolSharpeningDurationSeconds = 1.2f;
+    static bool EvaluateToolSharpeningArmPose(float ElapsedSeconds, float RestLeftArmPitch, float RestRightArmPitch,
+        float& OutLeftArmPitch, float& OutRightArmPitch);
+
+    UFUNCTION(NetMulticast, Unreliable)
+    void MulticastPlayGrindingStoneSharpening();
+
+    void MulticastPlayGrindingStoneSharpening_Implementation();
 private:
     UProceduralMeshComponent* AddPart(FName Name, FVector Pivot, FVector Centre, FVector HalfSize, UMaterialInterface* Material, bool bTapered = false);
     UPROPERTY(Transient)
@@ -35,4 +43,5 @@ private:
     UPROPERTY()
     TObjectPtr<UMaterialInterface> DarkMaterial;
     float GaitPhase = 0.0f;
+    float ToolSharpeningElapsedSeconds = -1.0f;
 };

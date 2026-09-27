@@ -7,6 +7,7 @@
 
 UKalmalaPlayerModelComponent::UKalmalaPlayerModelComponent()
 {
+    SetIsReplicatedByDefault(true);
     PrimaryComponentTick.bCanEverTick = true;
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> Cloth(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrain.M_GeneratedTerrain"));
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> Head(TEXT("/Game/Kalmala/World/Materials/M_GeneratedBark.M_GeneratedBark"));
@@ -143,8 +144,45 @@ void UKalmalaPlayerModelComponent::TickComponent(float DeltaTime, ELevelTick Tic
     const bool bFalling = Character->GetCharacterMovement()->IsFalling();
     GaitPhase = FMath::Fmod(GaitPhase + DeltaTime * Speed / 45.0f, 2.0f * PI);
     const float Swing = bFalling ? 0.0f : FMath::Sin(GaitPhase) * FMath::Clamp(Speed / 600.0f, 0.0f, 1.4f) * 25.0f;
-    LeftArm->SetRelativeRotation(FRotator(bFalling ? -35.0f : Swing, 0, 0));
-    RightArm->SetRelativeRotation(FRotator(bFalling ? -35.0f : -Swing, 0, 0));
+    float LeftArmPitch = bFalling ? -35.0f : Swing;
+    float RightArmPitch = bFalling ? -35.0f : -Swing;
+    if (ToolSharpeningElapsedSeconds >= 0.0f)
+    {
+        if (EvaluateToolSharpeningArmPose(ToolSharpeningElapsedSeconds, LeftArmPitch, RightArmPitch,
+            LeftArmPitch, RightArmPitch))
+        {
+            ToolSharpeningElapsedSeconds += DeltaTime;
+        }
+        else
+        {
+            ToolSharpeningElapsedSeconds = -1.0f;
+        }
+    }
+    LeftArm->SetRelativeRotation(FRotator(LeftArmPitch, 0, 0));
+    RightArm->SetRelativeRotation(FRotator(RightArmPitch, 0, 0));
     LeftLeg->SetRelativeRotation(FRotator(bFalling ? 15.0f : -Swing, 0, 0));
     RightLeg->SetRelativeRotation(FRotator(bFalling ? 15.0f : Swing, 0, 0));
+}
+
+bool UKalmalaPlayerModelComponent::EvaluateToolSharpeningArmPose(const float ElapsedSeconds,
+    const float RestLeftArmPitch, const float RestRightArmPitch, float& OutLeftArmPitch, float& OutRightArmPitch)
+{
+    if (!FMath::IsFinite(ElapsedSeconds) || ElapsedSeconds < 0.0f || ElapsedSeconds >= ToolSharpeningDurationSeconds)
+        return false;
+
+    constexpr float FadeSeconds = 0.16f;
+    constexpr float StrokeCycles = 3.0f;
+    const float Envelope = FMath::Clamp(FMath::Min(ElapsedSeconds / FadeSeconds,
+        (ToolSharpeningDurationSeconds - ElapsedSeconds) / FadeSeconds), 0.0f, 1.0f);
+    const float Stroke = FMath::Sin((ElapsedSeconds / ToolSharpeningDurationSeconds) * StrokeCycles * 2.0f * PI);
+    const float BracingPitch = -38.0f;
+    const float SharpeningPitch = -52.0f + 16.0f * Stroke;
+    OutLeftArmPitch = FMath::Lerp(RestLeftArmPitch, BracingPitch, Envelope);
+    OutRightArmPitch = FMath::Lerp(RestRightArmPitch, SharpeningPitch, Envelope);
+    return true;
+}
+
+void UKalmalaPlayerModelComponent::MulticastPlayGrindingStoneSharpening_Implementation()
+{
+    ToolSharpeningElapsedSeconds = 0.0f;
 }

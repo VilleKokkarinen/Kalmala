@@ -3,6 +3,7 @@
 #include "KalmalaConstructionActor.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaPlayerModelComponent.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 
@@ -95,6 +96,17 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
     {
         FString Reason;
         const bool bAccepted = RepairAllToolsFromServer(Construction, Reason);
+        if (bAccepted)
+        {
+            if (auto* Character = GetCharacter())
+            {
+                if (Character->HasAuthority())
+                {
+                    if (auto* PlayerModel = Character->FindComponentByClass<UKalmalaPlayerModelComponent>())
+                        PlayerModel->MulticastPlayGrindingStoneSharpening();
+                }
+            }
+        }
         PublishResult(Reason, bAccepted);
     }
     else if (Construction->GetConstructionKit() == TEXT("StorageKit"))

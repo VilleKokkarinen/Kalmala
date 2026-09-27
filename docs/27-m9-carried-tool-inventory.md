@@ -119,7 +119,18 @@ slot, and tool level are preserved. Unknown, duplicate, oversized, or malformed
 tool state rejects the whole action without partial repair. The client sends
 no tool list, tool ID, or condition value. Repair costs no materials and gives
 no Crafting experience. The result and detailed tool condition remain
-owner-only, and the sharpening animation remains a separate presentation task.
+owner-only.
+
+After the server accepts Repair All, it sends a parameterless cosmetic
+multicast to the character's procedural player model. Each peer locally plays
+a 1.2-second, three-stroke sharpening pose: one arm braces while the other
+draws across the stone, then both arms blend back to their current gait pose.
+The procedural parts remain collision-free. The multicast carries no tool,
+inventory, condition, cost, or result data; the pose changes no gameplay or
+saved state. `Kalmala.Gameplay.Tools.SharpeningPresentation` checks the bounded
+pose duration, alternating stroke, smooth rest-pose endpoints, and rejection
+of invalid elapsed time. Rendered in-world readability remains a separate
+visual review.
 
 `Kalmala.Gameplay.M9.GrindingStoneRepairAll` checks the paid recipe and
 existing save/placement kit contracts, all five carried-tool definitions,
