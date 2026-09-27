@@ -11,6 +11,7 @@ class UMaterialInterface;
 class UProceduralMeshComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaHarvestNodeHarvested, const FString& /* PersistentSpawnId */);
+DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaM9ResourceDepleted, const FString& /* StableResourceId */);
 
 /** Server-owned one-use material grant; accepted depletion retains the stable sparse-save ID. */
 UCLASS(NotBlueprintable)
@@ -25,6 +26,7 @@ public:
     void InitializeDiscoveryServer(const FString& InPersistentSpawnId, const FVector& InLocation);
     static bool IsHarvestAllowed(bool bServerAuthority, bool bAlreadyHarvested, const FVector& InteractorLocation, const FVector& NodeLocation, float MaximumDistance = 250.0f);
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
+    FString GetM9ResourceDepletionId() const;
     FName GetGatheringSourceId() const { return GatheringSourceId; }
     FName GetGatheringPresentationId() const;
     FName GetHarvestItemId() const;
@@ -32,6 +34,8 @@ public:
     bool InteractWithToolIntentFromServer(AKalmalaCharacter* Interactor, float TraceDistance, float MaximumRange,
         FName ClientToolId, uint8 ClientAction);
     FKalmalaHarvestNodeHarvested OnHarvested;
+    /** Session-only M9 depletion handoff; it deliberately does not use the M7 save callback. */
+    FKalmalaM9ResourceDepleted OnM9ResourceDepleted;
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
     virtual void Interact_Implementation(AKalmalaCharacter* Interactor) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

@@ -3,6 +3,7 @@
 #include "Components/SphereComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaM9SourceLootContract.h"
 #include "Materials/MaterialInterface.h"
 #include "Misc/Crc.h"
 #include "Net/UnrealNetwork.h"
@@ -61,6 +62,8 @@ namespace
 
     FLinearColor GetSourceAccent(const FName PresentationId)
     {
+        if (PresentationId == TEXT("peat-amber-seam")) return FLinearColor(0.78f, 0.43f, 0.12f);
+        if (PresentationId == TEXT("tundra-salt-crystals")) return FLinearColor(0.72f, 0.84f, 0.88f);
         if (PresentationId == TEXT("birch-bark-bundle")) return FLinearColor(0.52f, 0.34f, 0.18f);
         if (PresentationId == TEXT("reed-cluster")) return FLinearColor(0.35f, 0.64f, 0.24f);
         if (PresentationId == TEXT("resinwood-bundle")) return FLinearColor(0.30f, 0.20f, 0.10f);
@@ -72,7 +75,8 @@ namespace
 
     bool IsRockSource(const FName PresentationId)
     {
-        return PresentationId == TEXT("bog-iron-vein") || PresentationId == TEXT("slate-vein");
+        return PresentationId == TEXT("bog-iron-vein") || PresentationId == TEXT("slate-vein")
+            || PresentationId == TEXT("peat-amber-seam") || PresentationId == TEXT("tundra-salt-crystals");
     }
 }
 
@@ -139,6 +143,11 @@ FName AKalmalaHarvestNode::GetGatheringPresentationId() const
     return FKalmalaBiomeContentContract::GetGatheringPresentationId(GatheringSourceId);
 }
 
+FString AKalmalaHarvestNode::GetM9ResourceDepletionId() const
+{
+    return FKalmalaM9SourceLootContract::BuildResourceDepletionId(GatheringSourceId, PersistentSpawnId);
+}
+
 void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
 {
     // Generated biome sources must pass through the server trace/tool transaction.
@@ -171,7 +180,15 @@ void AKalmalaHarvestNode::CommitHarvestedStateFromServer()
     if (!HasAuthority() || bHarvested || PersistentSpawnId.IsEmpty()) return;
     bHarvested = true;
     ApplyHarvestedState();
-    OnHarvested.Broadcast(PersistentSpawnId);
+    const FString M9ResourceId = GetM9ResourceDepletionId();
+    if (!M9ResourceId.IsEmpty())
+    {
+        OnM9ResourceDepleted.Broadcast(M9ResourceId);
+    }
+    else
+    {
+        OnHarvested.Broadcast(PersistentSpawnId);
+    }
     ForceNetUpdate();
 }
 

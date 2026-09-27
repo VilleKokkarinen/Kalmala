@@ -2,6 +2,7 @@
 
 #include "KalmalaBiomeContentContract.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaM9SourceLootContract.h"
 
 namespace
 {
@@ -132,6 +133,13 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
     else if (ServerSourceId == TEXT("elderwood-ironheart-trunk"))
     {
         OutSelection = { ServerSourceId, EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None, EKalmalaSkill::Woodcutting, TEXT("Densewood"), 1, EKalmalaToolTier::Iron };
+    }
+    else if (ServerSourceId == TEXT("mire-peat-amber-seam") || ServerSourceId == TEXT("tundra-frost-salt-deposit"))
+    {
+        FName RewardItemId;
+        if (!FKalmalaM9SourceLootContract::GetPrimaryItemId(ServerSourceId, RewardItemId)) return false;
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::StonePick,
+            EKalmalaSkill::Mining, RewardItemId, 1 };
     }
 
     const UKalmalaItemCatalogue* Catalogue = GetDefault<UKalmalaItemCatalogue>();

@@ -38,6 +38,7 @@
 #include "KalmalaWorldPopulationMarker.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaM9SourceLootContract.h"
 #include "KalmalaWeatherCycle.h"
 #include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaCampConditionSampler.h"
@@ -1424,7 +1425,10 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
             if (Kind == EKalmalaWorldPopulationKind::HarvestNode)
             {
                 const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
-                if (PopulationSaveGame != nullptr && PopulationSaveGame->IsHarvested(PersistentSpawnId))
+                const FString M9ResourceId = FKalmalaM9SourceLootContract::BuildResourceDepletionId(Spawn.ContentId, PersistentSpawnId);
+                if (FKalmalaM9SourceLootContract::IsM9Source(Spawn.ContentId)
+                    ? (M9ResourceId.IsEmpty() || SessionM9ResourceDepletionIds.Contains(M9ResourceId))
+                    : (PopulationSaveGame != nullptr && PopulationSaveGame->IsHarvested(PersistentSpawnId)))
                 {
                     continue;
                 }
@@ -1434,6 +1438,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                 {
                     HarvestNode->InitializeServer(Spawn);
                     HarvestNode->OnHarvested.AddUObject(this, &AKalmalaGameMode::RecordHarvestedSpawn);
+                    HarvestNode->OnM9ResourceDepleted.AddUObject(this, &AKalmalaGameMode::RecordM9ResourceDepleted);
                     ++SpawnedMarkerCount;
                 }
             }
@@ -1616,6 +1621,14 @@ void AKalmalaGameMode::RecordDefeatedSpawn(const FString& PersistentSpawnId)
     }
 }
 
+void AKalmalaGameMode::RecordM9ResourceDepleted(const FString& StableResourceId)
+{
+    if (HasAuthority() && FKalmalaM7SparseDelta::IsValidStableId(StableResourceId)
+        && StableResourceId.StartsWith(TEXT("resource:m9:v1:")))
+    {
+        SessionM9ResourceDepletionIds.Add(StableResourceId);
+    }
+}
 void AKalmalaGameMode::RefreshOceanDiscoveries()
 {
     if (!HasAuthority() || GetWorld() == nullptr || !WorldGenerationConfig.IsValid())

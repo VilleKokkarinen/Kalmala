@@ -47,6 +47,7 @@ private:
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void RefreshOceanDiscoveries();
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
+    void RecordM9ResourceDepleted(const FString& StableResourceId);
     void RecordDefeatedSpawn(const FString& PersistentSpawnId);
     class UKalmalaPlayerDiscoverySaveGame* GetPlayerDiscoverySave(class AKalmalaCharacter* Interactor, FString& OutIdentity);
     bool IsCurrentDiscoveryDescriptor(const struct FKalmalaWorldDiscoveryDescriptor& Descriptor) const;
@@ -117,6 +118,7 @@ private:
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
     UPROPERTY(Transient) TObjectPtr<class AKalmalaOceanTravelTestFixture> OceanTravelTestFixture;
     TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
+    TSet<FString> SessionM9ResourceDepletionIds;
     TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGame>> PlayerDiscoverySaves;
     TMap<FString, TObjectPtr<class UKalmalaM7PersistenceSaveGame>> OceanDiscoverySaves;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame> OceanTravelWorldSave;

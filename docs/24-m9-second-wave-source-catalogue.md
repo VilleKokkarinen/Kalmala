@@ -1,9 +1,10 @@
 # M9 second-wave source catalogue contract
 
-This page completes the M9 design child for source identities, presentation,
-placement limits, depletion identity, and bounded optional loot. It extends the
-source map in `23-m9-second-wave-biome-sources.md`; it does not activate the
-sources, add item definitions, or enable new persistent state.
+This page defines the M9 source identities, presentation, placement limits,
+depletion identity, and bounded optional loot. It extends the source map in
+`23-m9-second-wave-biome-sources.md`. Runtime integration status is recorded in
+`25-m9-second-wave-harvest-integration.md`; generated population activation and
+persistent M9 state remain gated by their later tasks.
 
 ## Canonical source definitions
 
@@ -110,4 +111,7 @@ The server chooses descriptors, placement, stable IDs, bonus outcomes, and
 inventory changes. Existing M7 harvest and sparse-resource contracts remain
 the implementation seam. This catalogue design adds no RPC, runtime actor,
 persistence write, or save-schema change. The M9 field gate adds owner-only
-transient axe-condition fields; no tool condition or level is persisted.
+transient axe-condition fields; no tool condition or level is persisted. The
+existing harvest transaction now uses these primary items, deterministic bonus
+rules, and source-specific session depletion IDs; see
+`25-m9-second-wave-harvest-integration.md`.

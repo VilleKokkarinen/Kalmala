@@ -2,6 +2,7 @@
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaM9SourceLootContract.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaCombatComponent.h"
 #include "KalmalaDiscoveryProgressComponent.h"
@@ -839,6 +840,17 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
 
     FKalmalaToolServerSelection Selection;
     if (!FKalmalaToolLifecycleContract::BuildServerSelection(Node->GetGatheringSourceId(), Selection)) return false;
+    if (FKalmalaM9SourceLootContract::IsM9Source(Selection.SourceId))
+    {
+        const AKalmalaWorldGenerationGameState* WorldState = GetWorld() != nullptr
+            ? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
+        int32 M9RewardQuantity = 0;
+        if (WorldState == nullptr
+            || !FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
+                WorldState->GetWorldGenerationConfig(), Selection.SourceId, Node->GetPersistentSpawnId(), M9RewardQuantity)
+            || Node->GetM9ResourceDepletionId().IsEmpty()) return false;
+        Selection.RewardQuantity = M9RewardQuantity;
+    }
     const FKalmalaSkillState* Skill = SkillProgression->GetServerLedger().Find(Selection.RequiredSkill);
     int32* CurrentDurability = FindToolDurabilityFromServer(ClientToolId);
     if (Skill == nullptr || CurrentDurability == nullptr) return false;
