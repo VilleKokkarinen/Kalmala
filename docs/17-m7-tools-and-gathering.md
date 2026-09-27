@@ -66,3 +66,31 @@ The focused automation covers the six source mappings, catalogue rewards,
 forged-source rejection, authority/range/trace/node gates, tool/action/skill
 matching, one-point durability spend, and no-mutation rejection paths. It is
 not live host/client gathering or repair evidence.
+
+## M9 Bronze and Iron Axe field gates
+
+The canonical `meadows-birch-trunk` source selects `Lightwood` and requires a
+server-owned Bronze Axe or better. The canonical
+`elderwood-ironheart-trunk` source selects `Densewood` and requires a
+server-owned Iron Axe. The owner sends only the selected tool identity and
+Woodcutting action; the server resolves the source and reward, checks the
+owner-only condition, same-world server trace, range, source availability,
+skill, and full inventory grant, then spends condition and depletes the node
+atomically. An uncrafted axe has the owner-only condition sentinel `-1` and
+cannot pass field use or repair validation.
+
+The source-use contract contains no Workbench or Forge state: field harvest
+does not check a station. A matching station level belongs to the later
+server-side transaction that crafts or upgrades an axe. Axe acquisition,
+upgrade costs, active M9 trunk placement, and persistent condition remain
+separate M9 work.
+
+The separate `Kalmala.Gameplay.M9.AxeHarvestGates` automation checks the two
+canonical source/reward mappings, Bronze and Iron eligibility,
+Iron-for-Bronze substitution, lower-tier and uncrafted rejection, owner tool
+condition spend, and bounded server-selected reward. Run it with the existing
+tool-lifecycle and item-catalogue contracts after a forced build:
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM9AxeUser' -abslog='C:\temp\KalmalaM9AxeAutomation.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.M9.AxeHarvestGates+Kalmala.Gameplay.Tools.LifecycleContract+Kalmala.Gameplay.Inventory.Catalogue; Quit" -TestExit="Automation Test Queue Empty"
+```

@@ -82,6 +82,8 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
     static FName GetGatheringPresentationId(const FName GatheringSourceId)
     {
         if (GatheringSourceId.IsNone()) return NAME_None;
+        if (GatheringSourceId == TEXT("meadows-birch-trunk")) return TEXT("birch-trunk-harvest");
+        if (GatheringSourceId == TEXT("elderwood-ironheart-trunk")) return TEXT("ironheart-trunk-harvest");
         for (const EKalmalaBiome Biome : {
             EKalmalaBiome::Meadows,
             EKalmalaBiome::ShimmeringLakes,

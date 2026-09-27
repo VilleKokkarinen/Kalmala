@@ -102,6 +102,8 @@ void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME_CONDITION(AKalmalaCharacter, ReedKnifeDurability, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(AKalmalaCharacter, FieldHatchetDurability, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(AKalmalaCharacter, StonePickDurability, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(AKalmalaCharacter, BronzeAxeDurability, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(AKalmalaCharacter, IronAxeDurability, COND_OwnerOnly);
 }
 
 void AKalmalaCharacter::OnRep_Health()
@@ -664,8 +666,15 @@ void AKalmalaCharacter::RequestInteract()
                 FKalmalaToolServerSelection Selection;
                 if (FKalmalaToolLifecycleContract::BuildServerSelection(Node->GetGatheringSourceId(), Selection))
                 {
-                    const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::GetDefinitions().FindByPredicate(
-                        [&Selection](const FKalmalaToolDefinition& Candidate) { return Candidate.Kind == Selection.RequiredTool; });
+                    const FKalmalaToolDefinition* Definition = nullptr;
+                    for (const FKalmalaToolDefinition& Candidate : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions())
+                    {
+                        if (!FKalmalaToolLifecycleContract::IsToolSuitableForSelection(Candidate, Selection)
+                            || GetToolDurability(Candidate.ToolId) <= 0) continue;
+                        if (Definition == nullptr || FKalmalaToolLifecycleContract::GetToolTier(Candidate.Kind)
+                            > FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind)) Definition = &Candidate;
+                    }
+                    if (Definition == nullptr) Definition = FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(Selection);
                     if (Definition != nullptr)
                     {
                         ClientToolId = Definition->ToolId;
@@ -807,6 +816,8 @@ int32 AKalmalaCharacter::GetToolDurability(const FName ToolId) const
     if (ToolId == TEXT("ReedKnife")) return ReedKnifeDurability;
     if (ToolId == TEXT("FieldHatchet")) return FieldHatchetDurability;
     if (ToolId == TEXT("StonePick")) return StonePickDurability;
+    if (ToolId == TEXT("BronzeAxe")) return BronzeAxeDurability;
+    if (ToolId == TEXT("IronAxe")) return IronAxeDurability;
     return 0;
 }
 
@@ -815,6 +826,8 @@ int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FName ToolId)
     if (ToolId == TEXT("ReedKnife")) return &ReedKnifeDurability;
     if (ToolId == TEXT("FieldHatchet")) return &FieldHatchetDurability;
     if (ToolId == TEXT("StonePick")) return &StonePickDurability;
+    if (ToolId == TEXT("BronzeAxe")) return &BronzeAxeDurability;
+    if (ToolId == TEXT("IronAxe")) return &IronAxeDurability;
     return nullptr;
 }
 

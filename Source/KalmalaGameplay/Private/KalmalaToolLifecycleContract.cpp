@@ -16,11 +16,41 @@ namespace
         return Definitions;
     }
 
+    const TArray<FKalmalaToolDefinition>& TieredAxeDefinitions()
+    {
+        static const TArray<FKalmalaToolDefinition> Definitions = []
+        {
+            FKalmalaToolDefinition Bronze;
+            Bronze.ToolId = TEXT("BronzeAxe");
+            Bronze.Kind = EKalmalaToolKind::BronzeAxe;
+            Bronze.Action = EKalmalaToolAction::Woodcutting;
+            Bronze.RequiredSkill = EKalmalaSkill::Woodcutting;
+            Bronze.MinimumSkillLevel = 1;
+            Bronze.MaxDurability = 24;
+            Bronze.DurabilityCost = 1;
+
+            FKalmalaToolDefinition Iron;
+            Iron.ToolId = TEXT("IronAxe");
+            Iron.Kind = EKalmalaToolKind::IronAxe;
+            Iron.Action = EKalmalaToolAction::Woodcutting;
+            Iron.RequiredSkill = EKalmalaSkill::Woodcutting;
+            Iron.MinimumSkillLevel = 1;
+            Iron.MaxDurability = 24;
+            Iron.DurabilityCost = 1;
+            return TArray<FKalmalaToolDefinition>{Bronze, Iron};
+        }();
+        return Definitions;
+    }
+
     bool IsSelectionShapeValid(const FKalmalaToolServerSelection& Selection)
     {
+        const bool bExactTool = FKalmalaToolLifecycleContract::IsKnownTool(Selection.RequiredTool)
+            && Selection.MinimumToolTier == EKalmalaToolTier::None;
+        const bool bTieredTool = Selection.RequiredTool == EKalmalaToolKind::None
+            && FKalmalaToolLifecycleContract::IsKnownToolTier(Selection.MinimumToolTier);
         return !Selection.SourceId.IsNone()
             && FKalmalaToolLifecycleContract::IsKnownAction(Selection.Action)
-            && FKalmalaToolLifecycleContract::IsKnownTool(Selection.RequiredTool)
+            && (bExactTool || bTieredTool)
             && FKalmalaSkillProgressionContract::IsKnownSkill(Selection.RequiredSkill)
             && !Selection.RewardItemId.IsNone()
             && Selection.RewardQuantity == 1;
@@ -32,11 +62,21 @@ const TArray<FKalmalaToolDefinition>& FKalmalaToolLifecycleContract::GetDefiniti
     return ToolDefinitions();
 }
 
+const TArray<FKalmalaToolDefinition>& FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()
+{
+    return TieredAxeDefinitions();
+}
+
 const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindDefinition(const FName ToolId)
 {
-    return ToolDefinitions().FindByPredicate([ToolId](const FKalmalaToolDefinition& Definition)
+    const FKalmalaToolDefinition* Definition = ToolDefinitions().FindByPredicate([ToolId](const FKalmalaToolDefinition& Candidate)
     {
-        return Definition.ToolId == ToolId;
+        return Candidate.ToolId == ToolId;
+    });
+    if (Definition != nullptr) return Definition;
+    return TieredAxeDefinitions().FindByPredicate([ToolId](const FKalmalaToolDefinition& Candidate)
+    {
+        return Candidate.ToolId == ToolId;
     });
 }
 
@@ -47,7 +87,22 @@ bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Actio
 
 bool FKalmalaToolLifecycleContract::IsKnownTool(const EKalmalaToolKind Tool)
 {
-    return Tool >= EKalmalaToolKind::ReedKnife && Tool <= EKalmalaToolKind::StonePick;
+    return Tool >= EKalmalaToolKind::ReedKnife && Tool <= EKalmalaToolKind::IronAxe;
+}
+
+bool FKalmalaToolLifecycleContract::IsKnownToolTier(const EKalmalaToolTier Tier)
+{
+    return Tier >= EKalmalaToolTier::Bronze && Tier <= EKalmalaToolTier::Iron;
+}
+
+EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(const EKalmalaToolKind Tool)
+{
+    switch (Tool)
+    {
+    case EKalmalaToolKind::BronzeAxe: return EKalmalaToolTier::Bronze;
+    case EKalmalaToolKind::IronAxe: return EKalmalaToolTier::Iron;
+    default: return EKalmalaToolTier::None;
+    }
 }
 
 bool FKalmalaToolLifecycleContract::BuildServerSelection(
@@ -70,11 +125,49 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
     {
         OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::StonePick, EKalmalaSkill::Mining, TEXT("Stone"), 1 };
     }
+    else if (ServerSourceId == TEXT("meadows-birch-trunk"))
+    {
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None, EKalmalaSkill::Woodcutting, TEXT("Lightwood"), 1, EKalmalaToolTier::Bronze };
+    }
+    else if (ServerSourceId == TEXT("elderwood-ironheart-trunk"))
+    {
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None, EKalmalaSkill::Woodcutting, TEXT("Densewood"), 1, EKalmalaToolTier::Iron };
+    }
 
     const UKalmalaItemCatalogue* Catalogue = GetDefault<UKalmalaItemCatalogue>();
     return IsSelectionShapeValid(OutSelection)
         && Catalogue != nullptr
         && Catalogue->IsValidStack(OutSelection.RewardItemId, OutSelection.RewardQuantity);
+}
+
+bool FKalmalaToolLifecycleContract::IsToolSuitableForSelection(
+    const FKalmalaToolDefinition& Definition,
+    const FKalmalaToolServerSelection& Selection)
+{
+    if (Definition.Action != Selection.Action) return false;
+    if (Selection.MinimumToolTier == EKalmalaToolTier::None)
+    {
+        return Definition.Kind == Selection.RequiredTool;
+    }
+    return IsKnownToolTier(Selection.MinimumToolTier)
+        && IsKnownToolTier(GetToolTier(Definition.Kind))
+        && GetToolTier(Definition.Kind) >= Selection.MinimumToolTier;
+}
+
+const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(
+    const FKalmalaToolServerSelection& Selection)
+{
+    if (!IsSelectionShapeValid(Selection)) return nullptr;
+    const FKalmalaToolDefinition* Best = nullptr;
+    const auto ConsiderDefinition = [&Selection, &Best](const FKalmalaToolDefinition& Definition)
+    {
+        if (!IsToolSuitableForSelection(Definition, Selection)) return;
+        const EKalmalaToolTier Tier = GetToolTier(Definition.Kind);
+        if (Best == nullptr || static_cast<uint8>(Tier) < static_cast<uint8>(GetToolTier(Best->Kind))) Best = &Definition;
+    };
+    for (const FKalmalaToolDefinition& Definition : GetDefinitions()) ConsiderDefinition(Definition);
+    for (const FKalmalaToolDefinition& Definition : GetTieredAxeDefinitions()) ConsiderDefinition(Definition);
+    return Best;
 }
 
 bool FKalmalaToolLifecycleContract::IsUseAllowed(
@@ -94,8 +187,7 @@ bool FKalmalaToolLifecycleContract::IsUseAllowed(
     const FKalmalaToolDefinition* Definition = FindDefinition(ClientToolId);
     if (Definition == nullptr || !IsKnownAction(ClientAction)
         || Definition->Action != ClientAction
-        || Definition->Action != ServerSelection.Action
-        || Definition->Kind != ServerSelection.RequiredTool
+        || !IsToolSuitableForSelection(*Definition, ServerSelection)
         || Definition->RequiredSkill != ServerSelection.RequiredSkill
         || ToolState.ToolId != ClientToolId
         || ToolState.Durability <= 0 || ToolState.Durability > Definition->MaxDurability

@@ -18,7 +18,17 @@ enum class EKalmalaToolKind : uint8
     None,
     ReedKnife,
     FieldHatchet,
-    StonePick
+    StonePick,
+    BronzeAxe,
+    IronAxe
+};
+
+/** M9 harvesting tiers; station level is validated only by later craft/upgrade transactions. */
+enum class EKalmalaToolTier : uint8
+{
+    None,
+    Bronze,
+    Iron
 };
 
 struct KALMALAGAMEPLAY_API FKalmalaToolDefinition
@@ -58,6 +68,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolServerSelection
     EKalmalaSkill RequiredSkill = EKalmalaSkill::None;
     FName RewardItemId = NAME_None;
     int32 RewardQuantity = 0;
+    EKalmalaToolTier MinimumToolTier = EKalmalaToolTier::None;
 };
 
 /**
@@ -72,10 +83,15 @@ public:
     static constexpr float DefaultMaximumRange = 250.0f;
 
     static const TArray<FKalmalaToolDefinition>& GetDefinitions();
+    static const TArray<FKalmalaToolDefinition>& GetTieredAxeDefinitions();
     static const FKalmalaToolDefinition* FindDefinition(FName ToolId);
     static bool IsKnownAction(EKalmalaToolAction Action);
     static bool IsKnownTool(EKalmalaToolKind Tool);
+    static bool IsKnownToolTier(EKalmalaToolTier Tier);
+    static EKalmalaToolTier GetToolTier(EKalmalaToolKind Tool);
     static bool BuildServerSelection(FName ServerSourceId, FKalmalaToolServerSelection& OutSelection);
+    static bool IsToolSuitableForSelection(const FKalmalaToolDefinition& Definition, const FKalmalaToolServerSelection& Selection);
+    static const FKalmalaToolDefinition* FindMinimumQualifiedTool(const FKalmalaToolServerSelection& Selection);
     static bool IsUseAllowed(
         const FKalmalaToolServerContext& Context,
         FName ClientToolId,

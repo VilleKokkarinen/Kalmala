@@ -98,12 +98,16 @@ against the existing item catalogue and owner inventory before publishing any
 reward, tool wear, or in-session depletion. A full pack, invalid source,
 wrong-world target, failed server trace, invalid range, or mismatched tool
 intent leaves inventory and source state unchanged. Client requests carry no
-reward ID, quantity, bonus result, target, or spawn identity. The Bronze Axe
-and Iron Axe field gates remain the next M9 source-catalogue child.
+reward ID, quantity, bonus result, target, or spawn identity. The separate
+server-side field-gate implementation maps the approved birch trunk to
+Bronze-or-better and the ironheart trunk to Iron Axe; it does not check a
+station at the source. Axe crafting or upgrade transactions will validate the
+matching Workbench or Forge level when the tool-progression work is added.
 
 ## Authority and compatibility boundary
 
 The server chooses descriptors, placement, stable IDs, bonus outcomes, and
 inventory changes. Existing M7 harvest and sparse-resource contracts remain
-the implementation seam. This design-only increment adds no RPC, replicated
-field, runtime actor, catalogue entry, persistence write, or save-schema change.
+the implementation seam. This catalogue design adds no RPC, runtime actor,
+persistence write, or save-schema change. The M9 field gate adds owner-only
+transient axe-condition fields; no tool condition or level is persisted.

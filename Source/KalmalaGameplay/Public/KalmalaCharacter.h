@@ -199,6 +199,13 @@ private:
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
     int32 StonePickDurability = 0;
 
+    /** M9 axe condition is owner-only; -1 means the tool has not been crafted. */
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
+    int32 BronzeAxeDurability = -1;
+
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
+    int32 IronAxeDurability = -1;
+
     float BaselineMaxWalkSpeed = 0.0f;
 
     bool bTraversalTelemetryEnabled = false;

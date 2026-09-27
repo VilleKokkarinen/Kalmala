@@ -8112,3 +8112,55 @@ schema was added.
 Next task: Gate Lightwood and Densewood harvesting with server-validated
 Bronze Axe and Iron Axe requirements, checking station level only when each
 tool is crafted or upgraded. Main checkout used; no handoff sync was needed.
+
+### 2026-09-27T07:04:00Z — Add M9 axe harvest gates
+
+Outcome: Completed the first M9 source-catalogue implementation leaf. The
+server now maps the canonical birch trunk to Lightwood with a Bronze-or-better
+gate and the ironheart trunk to Densewood with an Iron Axe gate. Iron Axes can
+also satisfy the Lightwood minimum.
+
+Changed: Added tier-aware server tool selection and validation, owner-only
+transient Bronze/Iron Axe condition fields (unowned axes use condition -1),
+the canonical source presentation identities, and Lightwood/Densewood catalogue
+entries. Added the focused Kalmala.Gameplay.M9.AxeHarvestGates automation.
+Updated the M7 tool contract and M9 source-catalogue notes, checked only the
+axe-gate child in BACKLOG.md, and recorded this handoff. Unrelated pre-existing
+workspace changes remain untouched.
+
+Files changed this run: Config/DefaultGame.ini,
+Source/KalmalaGameplay/Private/KalmalaCharacter.cpp,
+Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp,
+Source/KalmalaGameplay/Private/Tests/KalmalaM9AxeHarvestGateTest.cpp,
+Source/KalmalaGameplay/Public/KalmalaCharacter.h,
+Source/KalmalaGameplay/Public/KalmalaToolLifecycleContract.h,
+Source/KalmalaWorld/Public/KalmalaBiomeContentContract.h,
+docs/17-m7-tools-and-gathering.md, docs/24-m9-second-wave-source-catalogue.md,
+BACKLOG.md, and PROGRESS.md.
+
+Verification: Forced UE 5.8.2 KalmalaEditor Win64 Development build passed;
+the final incremental build completed 14 actions with normal
+%LOCALAPPDATA%/UnrealBuildTool access. Kalmala.Gameplay.M9.AxeHarvestGates,
+Kalmala.Gameplay.Tools.LifecycleContract, and
+Kalmala.Gameplay.Inventory.Catalogue reported Result={Success} in
+C:/Users/Ville/AppData/Local/Temp/KalmalaM9AxeAutomation3.log.
+Scripts/Verify-InventoryReconnect.ps1 -Port 18219 passed its two-visit
+host/client harvest, repair/replacement, inventory privacy, and owner-only tool
+condition checks. Logs:
+C:/Users/Ville/AppData/Local/Temp/KalmalaInventoryReconnect-4c24524827b94bb3ad8aeb4ce58fc758.
+Scoped git diff --check passed.
+
+Multiplayer and persistence impact: The server derives source, required tier,
+reward, and accepted wear from the server-owned node and owner tool condition;
+clients submit only tool/action intent. Axe condition replicates to its owner
+only. Field harvest does not check workstation level; future craft/upgrade
+transactions own that validation. No save schema or persistence path changed.
+
+Known limits: M9 trunk nodes are not yet activated in generated populations,
+and Bronze/Iron Axe acquisition, levels, upgrade recipes, and station checks
+remain later work. The newly configured tree materials are not yet fully wired
+through deterministic placement, bonus loot, or sparse depletion.
+
+Next task: Integrate the approved second-wave materials and bounded loot with
+the existing harvest transaction, owner inventory, and sparse world-delta
+contracts. Main checkout used; no worktree handoff synchronization was needed.
