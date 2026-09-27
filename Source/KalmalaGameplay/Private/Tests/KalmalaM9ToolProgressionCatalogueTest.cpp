@@ -2,6 +2,9 @@
 
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaToolProgressionContract.h"
+#include "KalmalaItemCatalogue.h"
+#include "KalmalaPlacementPreview.h"
+#include "KalmalaRecipeCatalogue.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -66,6 +69,34 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         StartingTools.ContainsByPredicate([](const FKalmalaToolState& State) { return State.ToolId == TEXT("BronzeAxe"); }));
     TestFalse(TEXT("Uncrafted Iron Axe is not granted at character start"),
         StartingTools.ContainsByPredicate([](const FKalmalaToolState& State) { return State.ToolId == TEXT("IronAxe"); }));
+
+    TestEqual(TEXT("Workbench is a buildable level-one station"),
+        FKalmalaToolProgressionContract::GetBaseStationLevel(TEXT("WorkbenchKit")), 1);
+    TestEqual(TEXT("Forge is a buildable level-one station"),
+        FKalmalaToolProgressionContract::GetBaseStationLevel(TEXT("ForgeKit")), 1);
+    TestEqual(TEXT("Workbench progression selects its station kit"),
+        FKalmalaToolProgressionContract::GetStationKit(EKalmalaToolStationKind::Workbench), FName(TEXT("WorkbenchKit")));
+    TestEqual(TEXT("Forge progression selects its station kit"),
+        FKalmalaToolProgressionContract::GetStationKit(EKalmalaToolStationKind::Forge), FName(TEXT("ForgeKit")));
+    TestTrue(TEXT("Forge supports paid placement and existing construction saves"), FKalmalaPlacementPreview::IsSupportedKit(TEXT("ForgeKit")));
+
+    const UKalmalaItemCatalogue* Items = GetDefault<UKalmalaItemCatalogue>();
+    const FKalmalaItemDefinition* ForgeKit = Items->FindItem(TEXT("ForgeKit"));
+    TestNotNull(TEXT("Forge kit is in the item catalogue"), ForgeKit);
+    const FKalmalaRecipe* ForgeRecipe = GetDefault<UKalmalaRecipeCatalogue>()->Find(TEXT("Forge"));
+    TestNotNull(TEXT("Forge has a paid build recipe"), ForgeRecipe);
+    if (ForgeRecipe)
+    {
+        TestEqual(TEXT("Forge recipe yields its buildable kit"), ForgeRecipe->Output, FName(TEXT("ForgeKit")));
+        const FKalmalaInventoryStack* TimberCost = ForgeRecipe->Ingredients.FindByPredicate(
+            [](const FKalmalaInventoryStack& Cost) { return Cost.ItemId == TEXT("ConstructionSupply"); });
+        const FKalmalaInventoryStack* StoneCost = ForgeRecipe->Ingredients.FindByPredicate(
+            [](const FKalmalaInventoryStack& Cost) { return Cost.ItemId == TEXT("Stone"); });
+        TestNotNull(TEXT("Forge recipe includes lashed timber"), TimberCost);
+        TestNotNull(TEXT("Forge recipe includes fieldstone"), StoneCost);
+        if (TimberCost) TestEqual(TEXT("Forge kit costs five lashed timber"), TimberCost->Quantity, 5);
+        if (StoneCost) TestEqual(TEXT("Forge kit costs six fieldstone"), StoneCost->Quantity, 6);
+    }
 
     return true;
 }

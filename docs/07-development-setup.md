@@ -966,3 +966,27 @@ development test-provider identities, not an external authentication
 provider. It complements the separate dry-shore task and does not claim
 player-facing, rendered, physical-input, or dry-land acceptance; it adds no
 production RPC or saved-data field.
+
+## M9 tool stations and progression
+
+The Forge is a paid construction kit handled by the existing placement and
+schema-1 construction-save paths. The Workbench and Forge each derive base
+level 1 from their server-accepted kit identity. Tool upgrade requests contain
+only a tool ID; the server selects a visible same-world station within 250 cm
+and requires its effective level to equal the progression target. Iron Axe
+requires Forge level 2 and remains unavailable until the separate attachment
+task provides that level.
+
+After the forced editor build, run these focused automations with isolated
+user and log directories: Kalmala.Gameplay.M9.ToolStationProgression,
+Kalmala.Gameplay.M9.ToolProgressionCatalogue,
+Kalmala.Gameplay.Crafting.Transactions,
+Kalmala.Gameplay.Crafting.NetworkContract,
+Kalmala.Gameplay.Construction.LocalPreview, and
+Kalmala.Gameplay.Construction.SaveContract.
+
+ToolStationProgression covers Bronze Axe creation, exact station family and
+level checks, Iron Axe prerequisite/replacement, full condition, paid costs,
+and unchanged candidates after rejection; it also verifies the RPC accepts only
+the target tool ID. The catalogue check covers the paid Forge recipe and base
+station levels.

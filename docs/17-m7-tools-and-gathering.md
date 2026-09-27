@@ -80,10 +80,12 @@ atomically. An uncrafted axe has the owner-only condition sentinel `-1` and
 cannot pass field use or repair validation.
 
 The source-use contract contains no Workbench or Forge state: field harvest
-does not check a station. A matching station level belongs to the later
-server-side transaction that crafts or upgrades an axe. Axe acquisition,
-upgrade costs, active M9 trunk placement, and persistent condition remain
-separate M9 work.
+does not check a station. Bronze Axe crafting now uses the server-selected
+visible same-world level-one Workbench. Iron Axe replaces a carried level-one
+Bronze Axe at a level-two Forge after the same server-side material and tool
+candidate checks. Both base stations currently start at level one, so the
+level-two Iron Axe action stays unavailable until the later paid Forge
+attachment task. Tool levels remain owner-only and transient.
 
 The separate `Kalmala.Gameplay.M9.AxeHarvestGates` automation checks the two
 canonical source/reward mappings, Bronze and Iron eligibility,

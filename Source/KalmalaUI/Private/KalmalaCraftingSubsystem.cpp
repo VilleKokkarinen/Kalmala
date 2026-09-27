@@ -66,6 +66,10 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Light hearth"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Light);
     FoodText = AddText(TEXT(""), 18);
     AddButton(TEXT("Eat one roasted field meat"))->OnClicked.AddDynamic(this, &ThisClass::EatFood);
+    ToolProgressionText = AddText(TEXT(""), 18);
+    auto* ToolProgressionActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(ToolProgressionActions);
+    AddButton(TEXT("Craft Bronze Axe"), ToolProgressionActions)->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeAxe);
+    AddButton(TEXT("Upgrade to Iron Axe"), ToolProgressionActions)->OnClicked.AddDynamic(this, &ThisClass::UpgradeIronAxe);
     AddText(TEXT("\nWoven chest — shared nearby storage\nInspect a visible chest, choose an item, then store or take one. Contents clear when closed or out of reach."), 16);
     StorageText = AddText(TEXT(""), 18);
     AddButton(TEXT("Inspect nearby chest"))->OnClicked.AddDynamic(this, &ThisClass::InspectStorage);
@@ -148,6 +152,7 @@ void UKalmalaCraftingWidget::Refresh()
         }
     }
     StorageText->SetText(FText::FromString(ChestText));
+    if (ToolProgressionText) ToolProgressionText->SetText(FText::FromString(M->GetToolProgressionText()));
 }
 
 FString UKalmalaCraftingWidget::GetPresentationText() const
@@ -171,6 +176,8 @@ void UKalmalaCraftingWidget::Place()
     }
 }
 void UKalmalaCraftingWidget::EatFood() { if(auto* M=Model()) M->ServerConsumeFood(TEXT("RoastedFieldMeat")); }
+void UKalmalaCraftingWidget::CraftBronzeAxe() { if(auto* M=Model()) M->ServerProgressTool(TEXT("BronzeAxe")); }
+void UKalmalaCraftingWidget::UpgradeIronAxe() { if(auto* M=Model()) M->ServerProgressTool(TEXT("IronAxe")); }
 void UKalmalaCraftingWidget::Refuel() { if(auto* M=Model()) M->ServerRefuel(); }
 void UKalmalaCraftingWidget::Light() { if(auto* M=Model()) M->ServerLight(); }
 void UKalmalaCraftingWidget::InspectStorage() { if (auto* M=Model()) M->ServerOpenStorage(); }

@@ -8,6 +8,7 @@
 
 bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
 {
+    if (ItemId == TEXT("ForgeKit")) return true;
     return ItemId == TEXT("CampfireKit") || ItemId == TEXT("WorkbenchKit") || ItemId == TEXT("StorageKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit");
 }

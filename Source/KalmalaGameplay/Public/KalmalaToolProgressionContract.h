@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaToolLifecycleContract.h"
 
 /** Buildable station family required by an authored tool recipe. */
 enum class EKalmalaToolStationKind : uint8
@@ -37,5 +39,17 @@ public:
 
     static const TArray<FKalmalaToolProgressionEntry>& GetEntries();
     static const FKalmalaToolProgressionEntry* FindEntry(FName ToolId);
+    static FName GetStationKit(EKalmalaToolStationKind Station);
+    static int32 GetBaseStationLevel(FName KitId);
     static bool IsCatalogueValid();
+    static bool BuildServerUpgrade(
+        bool bServerAuthority,
+        FName SelectedStationKit,
+        int32 EffectiveStationLevel,
+        FName ToolId,
+        const TArray<FKalmalaToolState>& ExistingTools,
+        const TArray<FKalmalaInventoryStack>& ExistingInventory,
+        TArray<FKalmalaToolState>& OutTools,
+        TArray<FKalmalaInventoryStack>& OutInventory,
+        FString& Reason);
 };

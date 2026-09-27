@@ -23,6 +23,7 @@ public:
     UFUNCTION(Server, Reliable) void ServerPlaceConstruction(FName KitId);
     UFUNCTION(Server, Reliable) void ServerRefuel();
     UFUNCTION(Server, Reliable) void ServerLight();
+    UFUNCTION(Server, Reliable) void ServerProgressTool(FName ToolId);
     UFUNCTION(Server, Reliable) void ServerConsumeFood(FName FoodItemId);
     UFUNCTION(Server, Reliable) void ServerOpenStorage();
     UFUNCTION(Server, Reliable) void ServerCloseStorage();
@@ -39,10 +40,12 @@ public:
     FString GetNearbyWorkbenchText() const;
     FString GetNearbyConstructionText() const;
     bool ConsumeFoodFromServer(FName FoodItemId, FString& Reason);
+    bool ProgressToolFromServer(FName ToolId, FString& Reason);
     bool CraftFromServer(FName RecipeId, int32 Batch, FString& Reason);
     bool PlaceFromServer(FString& Reason);
     bool PlaceConstructionFromServer(FName KitId, FString& Reason);
     FString GetFoodText() const;
+    FString GetToolProgressionText() const;
     FString GetRecipeDescription(FName RecipeId) const;
     FString GetRecipeAvailability(FName RecipeId) const;
     FString GetNearbyFireText() const;
@@ -57,6 +60,7 @@ private:
     void RunStorageVerification(float DeltaTime);
     void RunPersistedCampVerification(float DeltaTime);
     void RunRainVerticalSliceVerification(float DeltaTime);
+    AKalmalaConstructionActor* FindNearbyToolProgressionStation(FName Kit) const;
     void RefreshStorageView();
     void ClearStorageView();
     AKalmalaConstructionActor* FindNearbyConstruction(FName Kit) const;

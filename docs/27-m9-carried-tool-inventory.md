@@ -25,10 +25,38 @@ the roadmap's station-match rule.
 All costs use existing item-catalogue IDs. Densewood is excluded from the Iron
 Axe recipe because Iron Axe is itself required to harvest it. The catalogue
 validates tool identities, one-level progression, station/target matching,
-and bounded costs against the item catalogue. These entries are definitions
-only: no craft or upgrade transaction consumes the materials yet, and the
-level-two Forge becomes usable after the later Forge attachment work. Axes
-remain absent from starting inventory and tool level remains transient.
+and bounded costs against the item catalogue.
+
+The paid Forge recipe uses 5 Lashed timber and 6 Fieldstone. It uses the
+existing generic construction placement and schema-1 construction record;
+Workbench and Forge levels are derived from their kit identity, with each base
+station at level 1. No new save field stores a station level.
+
+The owner crafting panel now offers Bronze Axe crafting and Iron Axe upgrading.
+The client sends only the target tool ID. The server selects the nearest
+visible same-world station of the required family within 250 cm, derives its
+base level, validates an exact level match, checks the carried-tool prerequisite
+and condition bounds, and builds both the paid inventory candidate and carried
+tool candidate before committing either. Bronze Axe is added at level 1 with
+full condition from a level-1 Workbench. Iron Axe replaces a carried level-1
+Bronze Axe and requires a level-2 Forge. Forge attachments are a later task, so
+the current level-1 Forge correctly rejects that upgrade until it is improved.
+Rejected calls leave materials and carried tools unchanged.
+
+Axes remain absent from starting inventory and tool level remains transient.
+The existing owner-only CarriedTools replication carries crafted axe level and
+condition; no new RPC state, save field, or schema was added. M7 material-paid
+repair remains until the later free-repair task.
+
+## M9 station transaction verification
+
+Kalmala.Gameplay.M9.ToolProgressionCatalogue checks the axe entries, target
+and prerequisite levels, station matches, Forge recipe, and item-catalogue-
+valid costs. Kalmala.Gameplay.M9.ToolStationProgression checks paid Bronze
+Axe creation and Iron Axe replacement, exact station family/level validation,
+prerequisite checks, full-condition output, material consumption, and
+no-mutation rejection. It also verifies that the tool progression RPC carries
+only the target tool ID, without client-supplied station, level, cost, or result.
 
 `CarriedTools` is replicated with `COND_OwnerOnly`. Harvest and repair code
 reads and changes a record on the server; existing client requests continue to

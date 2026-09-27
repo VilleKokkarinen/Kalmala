@@ -96,6 +96,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("FloorKit")) return FVector(120, 120, 12);
     if (KitId == TEXT("WallKit")) return FVector(120, 12, 110);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
+    if (KitId == TEXT("ForgeKit")) return FVector(60, 60, 62);
     return FVector(54, 54, 56);
 }
 
@@ -160,3 +161,11 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
     TArray<FProcMeshTangent> Tangents; Tangents.Init(FProcMeshTangent(), Vertices.Num());
     PieceMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, Colours, Tangents, false);
 }
+    else if (ConstructionKit == TEXT("ForgeKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(0, 0, -34), FVector(58, 58, 18));
+        AddBox(Vertices, Triangles, FVector(0, 0, -2), FVector(42, 44, 24));
+        AddBox(Vertices, Triangles, FVector(18, 10, 34), FVector(16, 18, 14));
+        AddBox(Vertices, Triangles, FVector(-30, -18, 24), FVector(20, 15, 5));
+        AddBox(Vertices, Triangles, FVector(-50, -18, 28), FVector(8, 6, 3));
+    }

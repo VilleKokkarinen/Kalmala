@@ -101,3 +101,115 @@ bool FKalmalaToolProgressionContract::IsCatalogueValid()
 
     return true;
 }
+
+FName FKalmalaToolProgressionContract::GetStationKit(const EKalmalaToolStationKind Station)
+{
+    switch (Station)
+    {
+    case EKalmalaToolStationKind::Workbench: return TEXT("WorkbenchKit");
+    case EKalmalaToolStationKind::Forge: return TEXT("ForgeKit");
+    default: return NAME_None;
+    }
+}
+
+int32 FKalmalaToolProgressionContract::GetBaseStationLevel(const FName KitId)
+{
+    return KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit") ? 1 : 0;
+}
+
+bool FKalmalaToolProgressionContract::BuildServerUpgrade(
+    const bool bServerAuthority,
+    const FName SelectedStationKit,
+    const int32 EffectiveStationLevel,
+    const FName ToolId,
+    const TArray<FKalmalaToolState>& ExistingTools,
+    const TArray<FKalmalaInventoryStack>& ExistingInventory,
+    TArray<FKalmalaToolState>& OutTools,
+    TArray<FKalmalaInventoryStack>& OutInventory,
+    FString& Reason)
+{
+    Reason = TEXT("Server authority required");
+    if (!bServerAuthority) return false;
+    Reason = TEXT("Tool progression catalogue unavailable");
+    if (!IsCatalogueValid()) return false;
+
+    const FKalmalaToolProgressionEntry* Entry = FindEntry(ToolId);
+    Reason = TEXT("Unknown tool progression");
+    if (!Entry) return false;
+    const FName RequiredStationKit = GetStationKit(Entry->RequiredStation);
+    Reason = TEXT("A matching Workbench or Forge is required");
+    if (RequiredStationKit.IsNone() || SelectedStationKit != RequiredStationKit) return false;
+    Reason = FString::Printf(TEXT("%s level %d is required"),
+        Entry->RequiredStation == EKalmalaToolStationKind::Workbench ? TEXT("Workbench") : TEXT("Forge"),
+        Entry->RequiredStationLevel);
+    if (EffectiveStationLevel != Entry->RequiredStationLevel) return false;
+
+    Reason = TEXT("Carried tool inventory is invalid or full");
+    if (ExistingTools.IsEmpty() || ExistingTools.Num() > FKalmalaToolLifecycleContract::MaxCarriedToolRecords)
+        return false;
+    TSet<FName> SeenTools;
+    for (const FKalmalaToolState& State : ExistingTools)
+    {
+        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(State.ToolId);
+        const FKalmalaToolProgressionEntry* ToolProgression = FindEntry(State.ToolId);
+        const int32 MaximumLevel = ToolProgression ? ToolProgression->TargetToolLevel : 1;
+        if (!Definition || SeenTools.Contains(State.ToolId) || State.ToolLevel < 1 || State.ToolLevel > MaximumLevel
+            || State.Durability < 0 || State.Durability > Definition->MaxDurability)
+        {
+            return false;
+        }
+        SeenTools.Add(State.ToolId);
+    }
+
+    Reason = TEXT("That tool is already carried");
+    if (SeenTools.Contains(Entry->ToolId)) return false;
+
+    int32 PreviousIndex = INDEX_NONE;
+    if (!Entry->PreviousToolId.IsNone())
+    {
+        PreviousIndex = ExistingTools.IndexOfByPredicate([Entry](const FKalmalaToolState& State)
+        {
+            return State.ToolId == Entry->PreviousToolId && State.ToolLevel == Entry->PreviousToolLevel;
+        });
+        Reason = TEXT("The required previous tool and level are not carried");
+        if (PreviousIndex == INDEX_NONE) return false;
+    }
+    else if (Entry->TargetToolLevel != 1)
+    {
+        Reason = TEXT("The first tool progression step must target level one");
+        return false;
+    }
+
+    const FKalmalaToolDefinition* OutputDefinition = FKalmalaToolLifecycleContract::FindDefinition(Entry->ToolId);
+    Reason = TEXT("Tool definition is invalid");
+    if (!OutputDefinition || (PreviousIndex == INDEX_NONE
+        && ExistingTools.Num() >= FKalmalaToolLifecycleContract::MaxCarriedToolRecords)) return false;
+
+    TArray<FKalmalaToolState> CandidateTools = ExistingTools;
+    if (PreviousIndex != INDEX_NONE) CandidateTools.RemoveAt(PreviousIndex);
+    FKalmalaToolState& OutputState = CandidateTools.AddDefaulted_GetRef();
+    OutputState.ToolId = Entry->ToolId;
+    OutputState.ToolLevel = Entry->TargetToolLevel;
+    OutputState.Durability = OutputDefinition->MaxDurability;
+
+    TArray<FKalmalaInventoryStack> Costs;
+    Costs.Reserve(Entry->MaterialCosts.Num());
+    for (const FKalmalaToolMaterialCost& Material : Entry->MaterialCosts)
+    {
+        FKalmalaInventoryStack& Cost = Costs.AddDefaulted_GetRef();
+        Cost.ItemId = Material.ItemId;
+        Cost.Quantity = Material.Quantity;
+    }
+    TArray<FKalmalaInventoryStack> CandidateInventory;
+    if (!UKalmalaInventoryComponent::BuildExchange(
+        ExistingInventory, Costs, NAME_None, 0, CandidateInventory, Reason))
+    {
+        return false;
+    }
+
+    OutTools = MoveTemp(CandidateTools);
+    OutInventory = MoveTemp(CandidateInventory);
+    Reason = FString::Printf(TEXT("Crafted %s at level %d"),
+        *Entry->ToolId.ToString(), Entry->TargetToolLevel);
+    return true;
+}
