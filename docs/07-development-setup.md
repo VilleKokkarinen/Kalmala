@@ -1021,3 +1021,18 @@ The accepted transaction sends a parameterless cosmetic multicast for the
 Run `Kalmala.Gameplay.Tools.SharpeningPresentation` with the same isolated
 editor automation setup to check its bounded three-stroke pose and return to
 the current gait. This pose test does not replace rendered in-world review.
+
+### M9 owner-local tool progression feedback
+
+After the forced editor build, run `Scripts/Verify-Crafting.ps1 -Rendered`
+with an unused port. Require `M9 tool feedback: Passed=1` on both the listen
+server and joining client. The check covers private carried-tool status,
+current/target axe levels, material costs and available quantities, matching
+station levels and missing-station requirements, the attachment persistence
+gate, and selected-tool plus Grinding Stone Repair All guidance. The fixture
+captures both 1280x720 peers at the panel's initial scroll
+position; its M9 checks assert the off-screen tool-feedback text through the
+widget presentation seam, so the captures do not visually review the scrolled
+tool section. This fixture checks presentation and existing owner-local data
+flow; it adds no server request, gameplay authority, replicated field, or save
+schema.

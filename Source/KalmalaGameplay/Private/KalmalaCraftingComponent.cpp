@@ -638,8 +638,8 @@ FString UKalmalaCraftingComponent::GetToolProgressionText() const
         }
         else
         {
-            Text += FString::Printf(TEXT(". Need a visible same-world %s within 2.5 m"),
-                StationName);
+            Text += FString::Printf(TEXT(". Need a visible same-world %s level %d within 2.5 m"),
+                StationName, Entry.RequiredStationLevel);
         }
         Text += TEXT(".\n");
     }

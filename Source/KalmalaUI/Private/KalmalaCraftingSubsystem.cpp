@@ -66,7 +66,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Light hearth"),FireActions)->OnClicked.AddDynamic(this, &ThisClass::Light);
     FoodText = AddText(TEXT(""), 18);
     AddButton(TEXT("Eat one roasted field meat"))->OnClicked.AddDynamic(this, &ThisClass::EatFood);
-    RepairText = AddText(TEXT("\nFree repair: at a visible same-world Workbench or Forge within 2.5 m, select a damaged or broken carried tool to restore it to full condition. Repair uses no materials and awards no Crafting experience; rejected requests leave tool condition unchanged.\n"), 16);
+    RepairText = AddText(TEXT("\nFree repair: at a visible same-world Workbench or Forge within 2.5 m, select a damaged or broken carried tool to restore it to full condition. Repair uses no materials and awards no Crafting experience; rejected requests leave tool condition unchanged.\nGrinding Stone Repair All: interact with a visible same-world Grinding Stone within 2.5 m to repair every damaged or broken carried tool. The server selects your tools; no materials or Crafting experience are used.\n"), 16);
     auto* RepairActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(RepairActions);
     AddButton(TEXT("Repair Reed Knife"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairReedKnife);
     AddButton(TEXT("Repair Field Hatchet"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairFieldHatchet);
@@ -260,6 +260,17 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             const auto Text=Widget->GetPresentationText();
             Widget->EnablePlacementPreview();
             const auto PreviewText=Widget->GetPresentationText();
+            const bool ToolFeedbackPassed = Text.Contains(TEXT("Tool condition and free repair status (owner-only)"))
+                && Text.Contains(TEXT("TOOL PROGRESSION — OWNER ONLY"))
+                && Text.Contains(TEXT("target level 1")) && Text.Contains(TEXT("target level 2"))
+                && Text.Contains(TEXT("Cost: 4 Splitwood (have "))
+                && (Text.Contains(TEXT("Nearby Workbench level 1; required level 1"))
+                    || Text.Contains(TEXT("Need a visible same-world Workbench level 1 within 2.5 m")))
+                && (Text.Contains(TEXT("Nearby Forge level 2; required level 2"))
+                    || Text.Contains(TEXT("Need a visible same-world Forge level 2 within 2.5 m")))
+                && Text.Contains(TEXT("Attachments last only for this session until M9 persistence is approved"))
+                && Text.Contains(TEXT("Grinding Stone Repair All: interact with a visible same-world Grinding Stone"));
+            UE_LOG(LogTemp, Display, TEXT("M9 tool feedback: Passed=%d"), ToolFeedbackPassed);
             const bool Passed=Text.Contains(TEXT("Craft menu input:")) && Text.Contains(TEXT("Up/Down"))
                 && Text.Contains(TEXT("Cost:")) && Text.Contains(TEXT("Output:")) && Text.Contains(TEXT("Handcrafted; no station"))
                 && Text.Contains(TEXT("Need 2 Splitwood")) && Text.Contains(TEXT("Roasted field meat:")) && PreviewText.Contains(TEXT("Preview:")) && PC->IsMoveInputIgnored() && Widget->IsFocusable();

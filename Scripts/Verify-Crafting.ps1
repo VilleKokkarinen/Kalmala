@@ -38,7 +38,9 @@ try {
             -and $serverText.Contains('Crafting owner final: Passed=1 Authority=1 Fuel=2 Slots=1') `
             -and $clientText.Contains('Crafting owner final: Passed=1 Authority=0 Fuel=2 Slots=1') `
             -and $serverText.Contains('Crafting presentation: Passed=1 Restored=1') `
-            -and $clientText.Contains('Crafting presentation: Passed=1 Restored=1')
+            -and $clientText.Contains('Crafting presentation: Passed=1 Restored=1') `
+            -and $serverText.Contains('M9 tool feedback: Passed=1') `
+            -and $clientText.Contains('M9 tool feedback: Passed=1')
         $ready = $ready -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Forged Batch=1 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Fuel Batch=2147483647 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting placement RPC: Accepted=0').Count -eq 2
