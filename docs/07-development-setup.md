@@ -990,3 +990,21 @@ level checks, Iron Axe prerequisite/replacement, full condition, paid costs,
 and unchanged candidates after rejection; it also verifies the RPC accepts only
 the target tool ID. The catalogue check covers the paid Forge recipe and base
 station levels.
+
+### M9 free selected-tool repair
+
+The owner-only crafting panel offers one selected-tool action for each of the
+three starting tools and both axe tiers. The owning client sends only the tool
+ID. The server reads the carried record and requires a visible same-world
+Workbench or Forge within 250 cm; damaged and zero-condition tools restore to
+their authored maximum without inventory changes or Crafting experience.
+Material-paid repair and broken-tool replacement recipes are retired.
+
+`Kalmala.Gameplay.Tools.LifecycleContract` checks free repair for all five
+tool definitions, including zero condition and tool-level preservation, plus
+authority, station, unknown-tool, full, and invalid-condition rejection.
+`Kalmala.Gameplay.Crafting.Transactions` confirms the old replacement recipes
+are absent. `Scripts/Verify-InventoryReconnect.ps1` checks live Workbench
+range/rejection, repair with an empty pack, unchanged Crafting experience,
+retired replacement requests, and owner-only condition across two visits.
+Grinding Stone `Repair All` and its sharpening presentation remain open.

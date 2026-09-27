@@ -121,4 +121,10 @@ public:
         const FKalmalaToolServerSelection& ServerSelection,
         FName& OutRewardItemId,
         int32& OutRewardQuantity);
+    /** Build a no-cost full-repair outcome from authoritative current condition. */
+    static bool BuildServerFreeRepair(
+        bool bServerAuthority,
+        bool bAtValidatedRepairStation,
+        const FKalmalaToolState& ToolState,
+        FKalmalaToolState& OutRepairedState);
 };

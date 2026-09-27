@@ -245,3 +245,18 @@ bool FKalmalaToolLifecycleContract::ApplyServerUse(
     OutRewardQuantity = ServerSelection.RewardQuantity;
     return true;
 }
+
+bool FKalmalaToolLifecycleContract::BuildServerFreeRepair(
+    const bool bServerAuthority,
+    const bool bAtValidatedRepairStation,
+    const FKalmalaToolState& ToolState,
+    FKalmalaToolState& OutRepairedState)
+{
+    OutRepairedState = ToolState;
+    const FKalmalaToolDefinition* Definition = FindDefinition(ToolState.ToolId);
+    if (!bServerAuthority || !bAtValidatedRepairStation || Definition == nullptr
+        || ToolState.Durability < 0 || ToolState.Durability >= Definition->MaxDurability) return false;
+
+    OutRepairedState.Durability = Definition->MaxDurability;
+    return true;
+}

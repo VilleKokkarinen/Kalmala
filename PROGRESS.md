@@ -8182,3 +8182,17 @@ through deterministic placement, bonus loot, or sparse depletion.
 Next task: Integrate the approved second-wave materials and bounded loot with
 the existing harvest transaction, owner inventory, and sparse world-delta
 contracts. Main checkout used; no worktree handoff synchronization was needed.
+
+### 2026-09-27T13:57:49Z — Add free selected-tool repair
+
+Outcome: Replaced material-paid repair and zero-condition tool replacement with free repair of the selected damaged carried tool at a visible same-world Workbench or Forge. The server restores condition to maximum while preserving tool identity, level, and other state. Retired replacement recipes no longer appear or execute, and the owner crafting panel now exposes the free repair action for the five current tools.
+
+Files changed this increment: Config/DefaultGame.ini, Scripts/Verify-InventoryReconnect.ps1, Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp, Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp, Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaToolLifecycleContractTest.cpp, Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h, Source/KalmalaGameplay/Public/KalmalaToolLifecycleContract.h, Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp, Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h, docs/02-technical-architecture.md, docs/07-development-setup.md, docs/10-campfire-and-crafting.md, docs/17-m7-tools-and-gathering.md, docs/27-m9-carried-tool-inventory.md, and PROGRESS.md.
+
+Verification: Forced UE 5.8.2 KalmalaEditor Win64 Development build passed; the final forced build passed in seven actions with normal LOCALAPPDATA/UnrealBuildTool access. Six focused editor automations passed: Kalmala.Gameplay.Tools.LifecycleContract, Kalmala.Gameplay.Crafting.Transactions, Kalmala.Gameplay.Crafting.NetworkContract, Kalmala.Gameplay.M9.ToolStationProgression, Kalmala.Gameplay.M9.ToolProgressionCatalogue, and Kalmala.Gameplay.Tools.CarriedToolInventoryContract. Scripts/Verify-InventoryReconnect.ps1 -Port 19841 passed two client visits to one listen server, including free repair, empty-pack/no-XP behavior, retired-recipe rejection, owner condition visibility, and remote privacy checks. Scoped git diff --check passed.
+
+Observable and multiplayer impact: Repair RPC intent remains only the selected tool ID. The server validates authority, tool identity/condition, station type, same-world visibility, and range before restoring condition; the operation spends no inventory items and grants no XP. No replicated field or save schema changed.
+
+Known limits: The reconnect fixture exercised Workbench repair; Forge repair has contract-level and code-path validation but no separate live peer walkthrough. Buildable Grinding Stone Repair All and the presentation-only repair animation remain unfinished, so this backlog task stays unchecked. Tool condition remains transient under the existing persistence gate.
+
+Next task: Complete the same repair backlog leaf with a buildable Grinding Stone and server-validated Repair All, then finish the presentation-only animation and repeat the focused verification. Main checkout used; no worktree handoff synchronization was needed.

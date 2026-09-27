@@ -84,9 +84,24 @@ only the target tool ID, without client-supplied station, level, cost, or result
 reads and changes a record on the server; existing client requests continue to
 send only tool or recipe intent. The detail array is transient and is not a
 SaveGame field. Tool and workstation levels are derived from transient
-server-owned records and placed attachment actors. Free repair is still not
-enabled; the existing M7 material-paid repair behavior remains until the later
-M9 repair task replaces it.
+server-owned records and placed attachment actors. Free selected-tool repair
+is available at a Workbench or Forge; Grinding Stone Repair All remains open.
+
+## M9 free selected-tool repair
+
+The owner crafting panel has a separate repair action for each of the three
+starting tools and both carried axe tiers. Each request sends only the chosen
+tool ID. The server finds that tool in the owner's carried records, validates
+a visible same-world Workbench or Forge within 250 cm, and restores a damaged
+or zero-condition record to its authored maximum. The action spends no pack
+materials and awards no Crafting experience. Unknown, absent, full-condition,
+or out-of-range tools leave condition and inventory unchanged. Tool level is
+preserved, and the existing `CarriedTools` array remains owner-only and
+transient.
+
+This M9 rule retires M7's material-paid repair and zero-condition replacement
+recipes. The buildable Grinding Stone and its server-owned `Repair All` action
+remain future work.
 
 ## Verification
 

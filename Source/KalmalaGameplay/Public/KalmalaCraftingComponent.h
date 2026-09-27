@@ -23,6 +23,7 @@ public:
     UFUNCTION(Server, Reliable) void ServerPlaceConstruction(FName KitId);
     UFUNCTION(Server, Reliable) void ServerRefuel();
     UFUNCTION(Server, Reliable) void ServerLight();
+    UFUNCTION(Server, Reliable) void ServerRepairTool(FName ToolId);
     UFUNCTION(Server, Reliable) void ServerProgressTool(FName ToolId);
     UFUNCTION(Server, Reliable) void ServerConsumeFood(FName FoodItemId);
     UFUNCTION(Server, Reliable) void ServerOpenStorage();
@@ -42,6 +43,7 @@ public:
     bool ConsumeFoodFromServer(FName FoodItemId, FString& Reason);
     bool ProgressToolFromServer(FName ToolId, FString& Reason);
     bool CraftFromServer(FName RecipeId, int32 Batch, FString& Reason);
+    bool RepairToolFromServer(FName ToolId, FString& Reason);
     bool PlaceFromServer(FString& Reason);
     bool PlaceConstructionFromServer(FName KitId, FString& Reason);
     FString GetFoodText() const;

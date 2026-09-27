@@ -64,6 +64,9 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     Before={{TEXT("Wood"),4}};
     TestFalse(TEXT("Missing second ingredient is atomic"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,Fuel->Output,Count,After,Reason));
     TestEqual(TEXT("First ingredient was not consumed"),Before[0].Quantity,4);
+    for (const FName RetiredRecipe : {FName(TEXT("ReplaceFieldHatchet")), FName(TEXT("ReplaceStonePick")), FName(TEXT("ReplaceReedKnife"))})
+        TestNull(TEXT("M7 material-paid tool replacement is retired"), Recipes->Find(RetiredRecipe));
+
     const auto* Wood = GetDefault<UKalmalaItemCatalogue>()->FindItem(TEXT("Wood"));
     if (Wood != nullptr)
     {

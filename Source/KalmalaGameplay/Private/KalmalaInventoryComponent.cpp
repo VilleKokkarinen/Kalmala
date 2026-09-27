@@ -108,6 +108,90 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
     }
     ToolNode->OnHarvested.Clear();
     ToolNode->Destroy();
+    // Verify selected-tool free repair against a real accepted workbench actor.
+    auto* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
+    if (!Crafting) return false;
+    const int32 ConditionAfterGather = Character->GetToolDurability(TEXT("FieldHatchet"));
+    const int32 RepairBaselineWood = Inventory->GetQuantity(TEXT("Wood"));
+    const TArray<FKalmalaInventoryStack> RepairBaselineStacks = Inventory->GetStacks();
+    FString RepairReason;
+    const bool bNoStationRejected = Crafting != nullptr
+        && !Crafting->RepairToolFromServer(TEXT("FieldHatchet"), RepairReason)
+        && Character->GetToolDurability(TEXT("FieldHatchet")) == ConditionAfterGather
+        && Inventory->GetStacks().Num() == RepairBaselineStacks.Num();
+
+    const FVector Forward = Character->GetActorForwardVector().GetSafeNormal2D();
+    const FTransform FarTransform(FRotator::ZeroRotator, Character->GetActorLocation() + Forward * 500.0f);
+    auto* Bench = Character->GetWorld()->SpawnActorDeferred<AKalmalaConstructionActor>(
+        AKalmalaConstructionActor::StaticClass(), FarTransform, nullptr, Character,
+        ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+    if (!Bench) return false;
+    Bench->InitializeFromServer(TEXT("WorkbenchKit"), FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower));
+    Bench->FinishSpawning(FarTransform);
+    RepairReason.Reset();
+    const bool bFarStationRejected = !Crafting->RepairToolFromServer(TEXT("FieldHatchet"), RepairReason)
+        && Character->GetToolDurability(TEXT("FieldHatchet")) == ConditionAfterGather
+        && Inventory->GetStacks().Num() == RepairBaselineStacks.Num();
+
+    const FTransform NearTransform(FRotator::ZeroRotator, Character->GetActorLocation() + Forward * 150.0f);
+    Bench->SetActorTransform(NearTransform);
+    const bool bVisibleStationAccepted = Bench->CanInteract_Implementation(Character);
+    const TArray<FKalmalaInventoryStack> EmptyPack;
+    const bool bPackCleared = Inventory->TryCommitStacksFromServer(RepairBaselineStacks, EmptyPack);
+    auto* Progression = Character->GetSkillProgressionComponent();
+    const FKalmalaSkillState* CraftingBefore = Progression
+        ? Progression->GetServerLedger().Find(EKalmalaSkill::Crafting) : nullptr;
+    const int32 CraftingExperienceBefore = CraftingBefore ? CraftingBefore->Experience : -1;
+    const auto* HatchetDefinition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("FieldHatchet"));
+    RepairReason.Reset();
+    const bool bRepairAccepted = bPackCleared && HatchetDefinition && Inventory->GetStacks().IsEmpty()
+        && Crafting->RepairToolFromServer(TEXT("FieldHatchet"), RepairReason)
+        && Character->GetToolDurability(TEXT("FieldHatchet")) == HatchetDefinition->MaxDurability
+        && Inventory->GetStacks().IsEmpty() && RepairReason.Contains(TEXT("at no cost"));
+    RepairReason.Reset();
+    const bool bFullConditionRejected = !Crafting->RepairToolFromServer(TEXT("FieldHatchet"), RepairReason)
+        && HatchetDefinition && Character->GetToolDurability(TEXT("FieldHatchet")) == HatchetDefinition->MaxDurability
+        && Inventory->GetStacks().IsEmpty();
+    const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(EmptyPack, RepairBaselineStacks);
+    const FKalmalaSkillState* CraftingAfter = Progression
+        ? Progression->GetServerLedger().Find(EKalmalaSkill::Crafting) : nullptr;
+    const bool bNoCraftingExperience = CraftingExperienceBefore >= 0 && CraftingAfter
+        && CraftingAfter->Experience == CraftingExperienceBefore;
+    const bool bRepairPassed = bNoStationRejected && bFarStationRejected && bVisibleStationAccepted
+        && bRepairAccepted && bFullConditionRejected && bInventoryRestored && bNoCraftingExperience
+        && Inventory->GetStacks().Num() == RepairBaselineStacks.Num()
+        && Inventory->GetQuantity(TEXT("Wood")) == RepairBaselineWood;
+    UE_LOG(LogTemp, Display, TEXT("Tool free repair fixture: Passed=%d Workbench=1 NoCost=1 NoXP=1 FullCondition=1"), bRepairPassed);
+    bPassed &= bRepairPassed;
+
+    const TArray<FName> RetiredToolIds = {TEXT("FieldHatchet"), TEXT("StonePick"), TEXT("ReedKnife")};
+    TArray<int32> RetiredToolConditions;
+    RetiredToolConditions.Reserve(RetiredToolIds.Num());
+    for (const FName ToolId : RetiredToolIds) RetiredToolConditions.Add(Character->GetToolDurability(ToolId));
+    const TArray<FKalmalaInventoryStack> RetiredRecipePack = Inventory->GetStacks();
+    const int32 ExperienceBeforeRetiredRecipes = CraftingAfter ? CraftingAfter->Experience : -1;
+    bool bRetiredRecipesRejected = Crafting != nullptr;
+    for (const FName RecipeId : {FName(TEXT("ReplaceFieldHatchet")), FName(TEXT("ReplaceStonePick")), FName(TEXT("ReplaceReedKnife"))})
+    {
+        FString RetiredReason;
+        bRetiredRecipesRejected &= !Crafting->CraftFromServer(RecipeId, 1, RetiredReason);
+    }
+    bool bToolConditionsUnchanged = true;
+    for (int32 Index = 0; Index < RetiredToolIds.Num(); ++Index)
+        bToolConditionsUnchanged &= Character->GetToolDurability(RetiredToolIds[Index]) == RetiredToolConditions[Index];
+    bool bPackUnchanged = Inventory->GetStacks().Num() == RetiredRecipePack.Num();
+    for (int32 Index = 0; bPackUnchanged && Index < RetiredRecipePack.Num(); ++Index)
+        bPackUnchanged &= Inventory->GetStacks()[Index].ItemId == RetiredRecipePack[Index].ItemId
+            && Inventory->GetStacks()[Index].Quantity == RetiredRecipePack[Index].Quantity;
+    const FKalmalaSkillState* ExperienceAfterRetiredRecipes = Progression
+        ? Progression->GetServerLedger().Find(EKalmalaSkill::Crafting) : nullptr;
+    const bool bRetiredRecipeXPUnchanged = ExperienceBeforeRetiredRecipes >= 0 && ExperienceAfterRetiredRecipes
+        && ExperienceAfterRetiredRecipes->Experience == ExperienceBeforeRetiredRecipes;
+    const bool bRetiredRecipesPassed = bRetiredRecipesRejected && bToolConditionsUnchanged
+        && bPackUnchanged && bRetiredRecipeXPUnchanged;
+    UE_LOG(LogTemp, Display, TEXT("Retired tool replacement fixture: Passed=%d Disabled=1 NoMutation=1 NoXP=1"), bRetiredRecipesPassed);
+    bPassed &= bRetiredRecipesPassed;    Bench->Destroy();
+
     return bPassed;
 }
 }

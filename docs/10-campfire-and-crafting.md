@@ -140,3 +140,11 @@ M3's authoritative defaults make this concrete. Each accepted floor, wall, workb
 A hearth's replicated state will replace the current boolean with `Extinguished`, `Lit`, or `Smouldering`. `Lit` means positive fuel and either roof protection or less than 0.05 precipitation, with normalized 1.0 heat in the existing 600 cm falloff. An already-lit, exposed hearth at or above 0.05 precipitation becomes `Smouldering`: it continues the normal one-second-per-second fuel burn but has zero heat/light. It returns to `Lit` automatically when roofed or dry again. `Extinguished` has no fuel (or has never passed the existing server lighting validation) and cannot self-light. Existing 60-second bundles and the 300-second cap remain the configuration defaults. All traces, health, fuel, weather inputs, state transitions, and replicated fields remain server-owned.
 
 The three-state runtime is now implemented. Existing crafting verification checks replicated enum values alongside fuel and heat for both Lit and rain-Smouldering fires. Initial lighting still validates authority, access, distance, fuel and fuel condition; automatic reignition from Smouldering bypasses no client request because it is selected entirely by the server weather/roof update. Fuel wetness is retained as initial-lighting information and legacy telemetry, not a veto on active dry/roofed fires. Roof-driven reignition is covered by real collision in Hearth.RainState; the full live roof-building scenario remains later M3 acceptance.
+
+M9 free tool repair supersedes M7's material-paid repair and broken-tool
+replacement routes. The owner selects any damaged carried tool in Camp
+crafting; the server reads its condition and restores it for free at a visible
+same-world Workbench or Forge within 250 cm. Repair spends no inventory and
+awards no Crafting experience. The client submits only the tool ID. The M9
+Grinding Stone `Repair All` action remains a later increment; see
+`27-m9-carried-tool-inventory.md` for the current progression boundary.

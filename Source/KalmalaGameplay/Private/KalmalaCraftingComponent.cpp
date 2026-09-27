@@ -11,6 +11,7 @@
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "KalmalaToolProgressionContract.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "EngineUtils.h"
@@ -102,6 +103,11 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     const auto* Recipe = GetDefault<UKalmalaRecipeCatalogue>()->Find(RecipeId);
     Reason = TEXT("Unknown or disabled recipe");
     if (!Recipe || !Recipe->bEnabled) return false;
+    if (!Recipe->OutputTool.IsNone())
+    {
+        Reason = TEXT("Tool replacement recipes are retired; repair a damaged tool for free at a Workbench or Forge");
+        return false;
+    }
     TArray<FKalmalaInventoryStack> Costs; int32 OutputCount;
     Reason = TEXT("Invalid batch quantity");
     if (!UKalmalaRecipeCatalogue::Scale(*Recipe, Batch, Costs, OutputCount)) return false;
@@ -281,10 +287,52 @@ void UKalmalaCraftingComponent::ServerLight_Implementation()
     PublishResult(bAccepted ? TEXT("Hearth lit") : TEXT("Need a usable nearby unlit hearth with dry fuel"), bAccepted);
 }
 
+bool UKalmalaCraftingComponent::RepairToolFromServer(const FName ToolId, FString& Reason)
+{
+    auto* Character = GetCharacter();
+    Reason = TEXT("Server authority required");
+    if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
+    const bool bAtRepairStation = FindNearbyWorkbench() != nullptr
+        || FindNearbyToolProgressionStation(TEXT("ForgeKit")) != nullptr;
+    if (!bAtRepairStation)
+    {
+        Reason = TEXT("Need a visible same-world Workbench or Forge within 2.5 m");
+        return false;
+    }
+
+    int32* CurrentDurability = Character->FindToolDurabilityFromServer(ToolId);
+    if (CurrentDurability == nullptr) { Reason = TEXT("Unknown tool"); return false; }
+    FKalmalaToolState CurrentState;
+    CurrentState.ToolId = ToolId;
+    CurrentState.Durability = *CurrentDurability;
+    CurrentState.ToolLevel = Character->GetCarriedToolLevel(ToolId);
+    FKalmalaToolState RepairedState;
+    if (!FKalmalaToolLifecycleContract::BuildServerFreeRepair(true, true, CurrentState, RepairedState))
+    {
+        Reason = TEXT("Tool is already at full condition or has invalid condition");
+        return false;
+    }
+
+    *CurrentDurability = RepairedState.Durability;
+    Character->ForceNetUpdate();
+    Reason = TEXT("Repaired selected tool to full condition at no cost");
+    return true;
+}
+
+void UKalmalaCraftingComponent::ServerRepairTool_Implementation(const FName ToolId)
+{
+    if (!AcceptRequest()) return;
+    FString Reason;
+    const bool bAccepted = RepairToolFromServer(ToolId, Reason);
+    PublishResult(Reason, bAccepted);
+}
+
 FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
 {
     const auto* R = GetDefault<UKalmalaRecipeCatalogue>()->Find(Id);
     if (!R || !R->bEnabled) return TEXT("Recipe unavailable");
+    if (!R->OutputTool.IsNone())
+        return TEXT("Tool replacement recipes are retired; use the free repair action at a Workbench or Forge");
     if (FKalmalaToolProgressionContract::IsStationAttachmentKit(R->Output))
     {
         const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(R->Output);
@@ -401,6 +449,8 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
 {
     const auto* R = GetDefault<UKalmalaRecipeCatalogue>()->Find(Id);
     if (!R) return TEXT("Unknown recipe");
+    if (!R->OutputTool.IsNone())
+        return TEXT("Tool replacement recipes are retired; use the free repair action at a Workbench or Forge");
     FString Text = R->DisplayName + TEXT("\nCost: ");
     for (const auto& Cost : R->Ingredients)
         Text += FString::Printf(TEXT("%d %s  "), Cost.Quantity, *GetDefault<UKalmalaItemCatalogue>()->FindItem(Cost.ItemId)->DisplayName);

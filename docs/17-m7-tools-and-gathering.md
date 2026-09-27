@@ -96,3 +96,11 @@ tool-lifecycle and item-catalogue contracts after a forced build:
 ```powershell
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM9AxeUser' -abslog='C:\temp\KalmalaM9AxeAutomation.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.M9.AxeHarvestGates+Kalmala.Gameplay.Tools.LifecycleContract+Kalmala.Gameplay.Inventory.Catalogue; Quit" -TestExit="Automation Test Queue Empty"
 ```
+
+## M9 repair supersession
+
+The M7 material-paid repair and zero-condition replacement routes are retired.
+Current selected-tool repair is free, accepts damaged and broken carried tools,
+uses a visible same-world Workbench or Forge within 250 cm, spends no materials,
+and grants no Crafting experience. See
+`27-m9-carried-tool-inventory.md` for the active contract.

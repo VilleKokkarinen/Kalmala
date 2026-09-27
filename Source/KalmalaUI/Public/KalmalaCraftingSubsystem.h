@@ -32,6 +32,11 @@ private:
     UFUNCTION() void Refuel();
     UFUNCTION() void Light();
     UFUNCTION() void EatFood();
+    UFUNCTION() void RepairReedKnife();
+    UFUNCTION() void RepairFieldHatchet();
+    UFUNCTION() void RepairStonePick();
+    UFUNCTION() void RepairBronzeAxe();
+    UFUNCTION() void RepairIronAxe();
     UFUNCTION() void CraftBronzeAxe();
     UFUNCTION() void UpgradeIronAxe();
     UFUNCTION() void InspectStorage();
@@ -46,6 +51,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolProgressionText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> RepairText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StateText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;

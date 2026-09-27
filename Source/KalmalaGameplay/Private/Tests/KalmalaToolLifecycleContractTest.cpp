@@ -31,6 +31,63 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
     FKalmalaToolServerSelection Selection;
     TestFalse(TEXT("Forged source fails closed"), FKalmalaToolLifecycleContract::BuildServerSelection(TEXT("forged-source"), Selection));
 
+
+    const TArray<TPair<FName, int32>> RepairTools = {
+        {TEXT("ReedKnife"), 1},
+        {TEXT("FieldHatchet"), 1},
+        {TEXT("StonePick"), 1},
+        {TEXT("BronzeAxe"), 1},
+        {TEXT("IronAxe"), 2}
+    };
+    for (const auto& Entry : RepairTools)
+    {
+        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Entry.Key);
+        TestNotNull(TEXT("Repair tool has a bounded definition"), Definition);
+        if (Definition == nullptr) continue;
+        for (const int32 Condition : {Definition->MaxDurability - 5, 0})
+        {
+            FKalmalaToolState Damaged;
+            Damaged.ToolId = Entry.Key;
+            Damaged.Durability = Condition;
+            Damaged.ToolLevel = Entry.Value;
+            FKalmalaToolState Repaired;
+            TestTrue(TEXT("Validated free repair accepts damaged or broken carried tools"),
+                FKalmalaToolLifecycleContract::BuildServerFreeRepair(true, true, Damaged, Repaired));
+            TestEqual(TEXT("Free repair restores full server-owned condition"), Repaired.Durability, Definition->MaxDurability);
+            TestEqual(TEXT("Free repair preserves tool identity"), Repaired.ToolId, Damaged.ToolId);
+            TestEqual(TEXT("Free repair preserves the authored tool level"), Repaired.ToolLevel, Damaged.ToolLevel);
+        }
+    }
+
+    const auto ExpectRepairRejected = [this](const TCHAR* Label, const bool bServer, const bool bRepairStation,
+        const FKalmalaToolState& State)
+    {
+        FKalmalaToolState Repaired;
+        Repaired.ToolId = TEXT("Stale");
+        Repaired.Durability = 99;
+        Repaired.ToolLevel = 99;
+        TestFalse(Label, FKalmalaToolLifecycleContract::BuildServerFreeRepair(
+            bServer, bRepairStation, State, Repaired));
+        TestTrue(*FString::Printf(TEXT("%s leaves tool condition unchanged"), Label),
+            Repaired.ToolId == State.ToolId && Repaired.Durability == State.Durability
+            && Repaired.ToolLevel == State.ToolLevel);
+    };
+    FKalmalaToolState RepairState;
+    RepairState.ToolId = TEXT("ReedKnife");
+    RepairState.Durability = 2;
+    RepairState.ToolLevel = 1;
+    ExpectRepairRejected(TEXT("Client free repair rejects"), false, true, RepairState);
+    ExpectRepairRejected(TEXT("Missing Workbench or Forge rejects"), true, false, RepairState);
+    RepairState.ToolId = TEXT("ForgedTool");
+    ExpectRepairRejected(TEXT("Unknown repair tool rejects"), true, true, RepairState);
+    RepairState.ToolId = TEXT("ReedKnife");
+    RepairState.Durability = 16;
+    ExpectRepairRejected(TEXT("Full condition rejects"), true, true, RepairState);
+    RepairState.Durability = -1;
+    ExpectRepairRejected(TEXT("Negative repair condition rejects"), true, true, RepairState);
+    RepairState.Durability = 17;
+    ExpectRepairRejected(TEXT("Over-maximum repair condition rejects"), true, true, RepairState);
+
     FKalmalaSkillProgressionLedger Ledger;
     Ledger.Initialize();
     const FKalmalaSkillState* Skill = Ledger.Find(EKalmalaSkill::Woodcutting);
