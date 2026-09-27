@@ -8074,3 +8074,41 @@ and Bronze Axe/Iron Axe gates remain for later M9 children.
 Next task: Define catalogue identities, presentation, deterministic placement
 budgets, sparse depletion identities, and bounded optional loot for the mapped
 sources.
+
+### 2026-09-27T06:13:31Z — Define M9 source catalogue contract
+
+Outcome: Completed the M9 catalogue-definition child for the four mapped
+second-wave sources. The contract now fixes canonical source, presentation,
+item, and display IDs; four original local silhouettes; deterministic
+placement and population ceilings; world-scoped sparse depletion identities;
+and one bounded deterministic bonus yield.
+
+Changed: Added `docs/24-m9-second-wave-source-catalogue.md`, indexed it in
+`docs/README.md`, checked the matching catalogue-definition child in
+`BACKLOG.md`, and added this handoff. Other existing working-tree changes
+remain preserved. The backlog checkbox is a worktree-only update and will
+remain unstaged because its M9 parent block was already uncommitted at run
+start; staging that block would include pre-existing changes.
+
+Files changed this run: `docs/24-m9-second-wave-source-catalogue.md`,
+`docs/README.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Verification: Focused documentation assertions passed for all four approved
+source rows, canonical IDs, candidate/source ceilings, the sparse key, the
+fixed bonus rule, and the docs index. Scoped `git diff --check` passed. No
+Unreal build or gameplay automation ran because this was a design-contract-only
+increment with no executable changes.
+
+Multiplayer and persistence impact: No runtime, RPC, replication, authority,
+item-catalogue, or save behavior changed. The contract leaves descriptor
+selection, placement, loot, and future depletion server-owned, and keeps M9
+save writes disabled until the M9 persistence/migration gate passes.
+
+Known limits: The new sources are not materialized, the item definitions and
+harvest transactions are not active, and Bronze Axe/Iron Axe field gates
+remain undefined for the next child. No visual asset, network field, or save
+schema was added.
+
+Next task: Gate Lightwood and Densewood harvesting with server-validated
+Bronze Axe and Iron Axe requirements, checking station level only when each
+tool is crafted or upgraded. Main checkout used; no handoff sync was needed.
