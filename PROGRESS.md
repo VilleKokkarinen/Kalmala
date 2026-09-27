@@ -5899,6 +5899,24 @@ durations, stamina/wetness penalties, pressure, rewards, and recovery without
 introducing hard travel gates, then rerun the authority/persistence/reconnect
 checks.
 
+### 2026-09-27T10:58:08Z — Add Forge and gated axe progression
+
+Outcome: Added the paid, buildable level-one Forge and server-validated axe crafting/upgrade transactions. Bronze Axe requires a visible same-world level-one Workbench; Iron Axe requires a visible same-world level-two Forge and exchanges a carried level-one Bronze Axe.
+
+Files changed this run: `Config/DefaultGame.ini`, `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`, `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`, `Source/KalmalaGameplay/Private/KalmalaPlacementPreview.cpp`, `Source/KalmalaGameplay/Private/KalmalaToolProgressionContract.cpp`, `Source/KalmalaGameplay/Public/KalmalaToolProgressionContract.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolProgressionCatalogueTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolStationProgressionTest.cpp`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `docs/07-development-setup.md`, `docs/10-campfire-and-crafting.md`, `docs/17-m7-tools-and-gathering.md`, `docs/27-m9-carried-tool-inventory.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in four actions with normal `%LOCALAPPDATA%/UnrealBuildTool` access. Eleven focused construction, crafting, carried-tool, and M9 progression automations passed, including `Kalmala.Gameplay.M9.ToolStationProgression`. `Scripts/Verify-InventoryReconnect.ps1 -Port 19127` passed two client visits to one listen server, including accepted/rejected transactions, replication, and owner/remote privacy. Scoped `git diff --check` passed.
+
+Commit: `8de9d0c` (`Add M9 Forge tool station progression`).
+
+Observable and multiplayer impact: The crafting panel exposes Bronze/Iron axe actions and owner-only station/cost guidance. Clients submit only the target tool ID; the server chooses the matching visible station, derives its level, validates carried-tool state and materials, and commits the inventory/tool candidates. Tool and station levels remain transient; the generic construction save schema is unchanged.
+
+Known limits: Both base stations are level 1, so Iron Axe remains unavailable until the next Forge attachment task contributes level 2. Rendered player walkthrough, station attachments, tool persistence, and free repair remain future work. The task checkbox is updated in the working copy but remains unstaged because `BACKLOG.md` contains pre-existing M9 roadmap edits.
+
+Next eligible task: Add paid, buildable station attachments that each contribute +1 to the matching nearby Workbench or Forge level; validate same-world placement and station-use range on the server.
+
+Main checkout used; no worktree handoff synchronization was needed.
+
 ### 2026-09-22T07:27:57Z — Tune Wet exposure penalties
 
 Outcome: Completed one bounded M5 balance increment under the first open
