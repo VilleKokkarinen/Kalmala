@@ -8042,3 +8042,35 @@ Multiplayer and persistence impact: The server continues to select and validate 
 Known limits: Dry-shore placement and the dry-shore fixture variant remain unverified and are no longer M8 gates. Physical helm input, rendered travel, and unscripted player acceptance remain open limitations.
 
 Next task: Begin M9 with its first unchecked task, the second-wave biome source and loot catalogue.
+
+### 2026-09-27T05:51:23Z — Map M9 biome materials
+
+Outcome: Completed the first M9 source-catalogue child by mapping each new
+source parent to one material across the supported land-biome list.
+
+Changed: Added `docs/23-m9-second-wave-biome-sources.md` and indexed it in
+`docs/README.md`. The map records birch trunk → Lightwood, ironheart tree →
+Densewood, peat-bank seam → Peat Amber, and tundra salt deposit → Frost Salt;
+it also records existing M7 source/reward mappings for all six land biomes.
+Checked only the source-to-material child in `BACKLOG.md`; the M9 parent and
+catalogue-definition child remain open.
+
+Files changed: `docs/23-m9-second-wave-biome-sources.md`, `docs/README.md`,
+`BACKLOG.md`, and `PROGRESS.md`.
+
+Verification: Documentation mapping assertions and scoped `git diff --check`
+passed. No Unreal build or gameplay automation ran because this increment only
+defines the source/material map and changes no executable content.
+
+Multiplayer impact: No runtime behavior changed. The contract keeps future
+source selection, harvest eligibility, rewards, inventory changes, and sparse
+depletion server-owned through the existing validated paths. No RPC,
+replicated field, or save schema changed.
+
+Known limits: Canonical item/source IDs, runtime presentations and placement,
+deterministic activation budgets, sparse depletion identities, optional loot,
+and Bronze Axe/Iron Axe gates remain for later M9 children.
+
+Next task: Define catalogue identities, presentation, deterministic placement
+budgets, sparse depletion identities, and bounded optional loot for the mapped
+sources.

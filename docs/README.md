@@ -25,6 +25,7 @@ This folder is the project’s durable operating manual. An agent must read the 
 | [20 M8 ocean travel budget profile](20-m8-ocean-performance-budget.md) | Serialized travel-save size cap, measurement, and remaining M8 profiling work |
 | [21 M8 finite-world origin stability](21-m8-world-origin-stability.md) | Fixed-origin peer verification during the streamed ocean crossing |
 | [22 M8 integrated discovery voyage](22-m8-integrated-discovery-voyage.md) | Two-peer discovery, crosswind/calm sailing, streamed route, and safe disembark check |
+| [23 M9 second-wave biome sources](23-m9-second-wave-biome-sources.md) | Source-to-material map for the second-wave biome catalogue |
 | [Audio cue contract check](../Scripts/Verify-AudioCueContract.ps1) | No-build validation for the M5 audio specification |
 | [Local input contract check](../Scripts/Verify-LocalInputContract.ps1) | No-build validation for the existing keyboard/controller input baseline |
 | [M5 documentation contract suite](../Scripts/Verify-M5DocumentationContracts.ps1) | Runs all current no-build M5 presentation/settings checks together |
