@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "KalmalaCharacter.generated.h"
 
 class UCameraComponent;
@@ -61,6 +62,8 @@ public:
     UKalmalaSkillProgressionComponent* GetSkillProgressionComponent() const { return SkillProgression; }
     UKalmalaOceanTravelFeedbackComponent* GetOceanTravelFeedbackComponent() const { return OceanTravelFeedback; }
     int32 GetToolDurability(FName ToolId) const;
+    int32 GetCarriedToolLevel(FName ToolId) const;
+    const TArray<FKalmalaToolState>& GetCarriedToolInventory() const { return CarriedTools; }
     EKalmalaSupportEffect GetSelectedSupportEffect() const;
     float GetHealth() const { return Health; }
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
@@ -189,22 +192,27 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
     float Health = 100.0f;
 
-    /** Transient tool condition; detailed values are replicated only to this player's owner. */
+    /** Server-owned carried tools; condition and level are replicated only to the owning player. */
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
+    TArray<FKalmalaToolState> CarriedTools;
+
+#if WITH_EDITORONLY_DATA
+    /** Legacy fixture seed fields; production tool state lives only in CarriedTools. */
+    UPROPERTY(Transient)
     int32 ReedKnifeDurability = 0;
 
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(Transient)
     int32 FieldHatchetDurability = 0;
 
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(Transient)
     int32 StonePickDurability = 0;
 
-    /** M9 axe condition is owner-only; -1 means the tool has not been crafted. */
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(Transient)
     int32 BronzeAxeDurability = -1;
 
-    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(Transient)
     int32 IronAxeDurability = -1;
+#endif
 
     float BaselineMaxWalkSpeed = 0.0f;
 

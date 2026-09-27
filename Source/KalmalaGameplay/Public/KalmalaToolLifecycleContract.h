@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "KalmalaSkillProgressionContract.h"
+#include "KalmalaToolLifecycleContract.generated.h"
 
 /** Client-selectable action categories; the server still validates the source and outcome. */
 enum class EKalmalaToolAction : uint8
@@ -12,7 +13,7 @@ enum class EKalmalaToolAction : uint8
     Mining
 };
 
-/** First-wave transient tool identities. These are not inventory or save IDs yet. */
+/** Tool kinds; these are not pack-item or saved-data IDs. */
 enum class EKalmalaToolKind : uint8
 {
     None,
@@ -42,10 +43,20 @@ struct KALMALAGAMEPLAY_API FKalmalaToolDefinition
     int32 DurabilityCost = 1;
 };
 
+USTRUCT(BlueprintType)
 struct KALMALAGAMEPLAY_API FKalmalaToolState
 {
+    GENERATED_BODY()
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tools")
     FName ToolId = NAME_None;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tools")
     int32 Durability = 0;
+
+    /** Authored tool progression, independent of the owner's skill ledger. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (ClampMin = "1"))
+    int32 ToolLevel = 1;
 };
 
 /** Server-derived trace and node facts; clients cannot author these values. */
@@ -80,10 +91,12 @@ class KALMALAGAMEPLAY_API FKalmalaToolLifecycleContract
 {
 public:
     static constexpr int32 MaxFirstWaveToolDefinitions = 3;
+    static constexpr int32 MaxCarriedToolRecords = 5;
     static constexpr float DefaultMaximumRange = 250.0f;
 
     static const TArray<FKalmalaToolDefinition>& GetDefinitions();
     static const TArray<FKalmalaToolDefinition>& GetTieredAxeDefinitions();
+    static TArray<FKalmalaToolState> BuildInitialCarriedTools();
     static const FKalmalaToolDefinition* FindDefinition(FName ToolId);
     static bool IsKnownAction(EKalmalaToolAction Action);
     static bool IsKnownTool(EKalmalaToolKind Tool);

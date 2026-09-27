@@ -68,6 +68,24 @@ const TArray<FKalmalaToolDefinition>& FKalmalaToolLifecycleContract::GetTieredAx
     return TieredAxeDefinitions();
 }
 
+TArray<FKalmalaToolState> FKalmalaToolLifecycleContract::BuildInitialCarriedTools()
+{
+    TArray<FKalmalaToolState> CarriedTools;
+    CarriedTools.Reserve(FMath::Min(GetDefinitions().Num(), MaxCarriedToolRecords));
+    for (const FKalmalaToolDefinition& Definition : GetDefinitions())
+    {
+        if (CarriedTools.Num() >= MaxCarriedToolRecords || Definition.ToolId.IsNone()
+            || Definition.MaxDurability <= 0) break;
+
+        FKalmalaToolState State;
+        State.ToolId = Definition.ToolId;
+        State.ToolLevel = 1;
+        State.Durability = Definition.MaxDurability;
+        CarriedTools.Add(State);
+    }
+    return CarriedTools;
+}
+
 const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindDefinition(const FName ToolId)
 {
     const FKalmalaToolDefinition* Definition = ToolDefinitions().FindByPredicate([ToolId](const FKalmalaToolDefinition& Candidate)

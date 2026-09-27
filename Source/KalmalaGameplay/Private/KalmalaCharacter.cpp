@@ -100,11 +100,7 @@ void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaCharacter, ExposureState);
     DOREPLIFETIME(AKalmalaCharacter, Health);
-    DOREPLIFETIME_CONDITION(AKalmalaCharacter, ReedKnifeDurability, COND_OwnerOnly);
-    DOREPLIFETIME_CONDITION(AKalmalaCharacter, FieldHatchetDurability, COND_OwnerOnly);
-    DOREPLIFETIME_CONDITION(AKalmalaCharacter, StonePickDurability, COND_OwnerOnly);
-    DOREPLIFETIME_CONDITION(AKalmalaCharacter, BronzeAxeDurability, COND_OwnerOnly);
-    DOREPLIFETIME_CONDITION(AKalmalaCharacter, IronAxeDurability, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(AKalmalaCharacter, CarriedTools, COND_OwnerOnly);
 }
 
 void AKalmalaCharacter::OnRep_Health()
@@ -152,10 +148,7 @@ void AKalmalaCharacter::BeginPlay()
     Super::BeginPlay();
     if (HasAuthority())
     {
-        for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetDefinitions())
-        {
-            if (int32* Durability = FindToolDurabilityFromServer(Definition.ToolId)) *Durability = Definition.MaxDurability;
-        }
+        CarriedTools = FKalmalaToolLifecycleContract::BuildInitialCarriedTools();
         ForceNetUpdate();
     }
     bTraversalTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaTraversalTest"));
@@ -814,21 +807,53 @@ void AKalmalaCharacter::ServerSubmitOceanSkiffSteeringInput_Implementation(const
 
 int32 AKalmalaCharacter::GetToolDurability(const FName ToolId) const
 {
+    if (const FKalmalaToolState* State = CarriedTools.FindByPredicate([ToolId](const FKalmalaToolState& Candidate)
+        { return Candidate.ToolId == ToolId; })) return State->Durability;
+#if WITH_EDITORONLY_DATA
     if (ToolId == TEXT("ReedKnife")) return ReedKnifeDurability;
     if (ToolId == TEXT("FieldHatchet")) return FieldHatchetDurability;
     if (ToolId == TEXT("StonePick")) return StonePickDurability;
     if (ToolId == TEXT("BronzeAxe")) return BronzeAxeDurability;
     if (ToolId == TEXT("IronAxe")) return IronAxeDurability;
+#endif
+    if (ToolId == TEXT("BronzeAxe") || ToolId == TEXT("IronAxe")) return -1;
     return 0;
+}
+
+int32 AKalmalaCharacter::GetCarriedToolLevel(const FName ToolId) const
+{
+    const FKalmalaToolState* State = CarriedTools.FindByPredicate([ToolId](const FKalmalaToolState& Candidate)
+    {
+        return Candidate.ToolId == ToolId;
+    });
+    return State ? State->ToolLevel : 0;
 }
 
 int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FName ToolId)
 {
-    if (ToolId == TEXT("ReedKnife")) return &ReedKnifeDurability;
-    if (ToolId == TEXT("FieldHatchet")) return &FieldHatchetDurability;
-    if (ToolId == TEXT("StonePick")) return &StonePickDurability;
-    if (ToolId == TEXT("BronzeAxe")) return &BronzeAxeDurability;
-    if (ToolId == TEXT("IronAxe")) return &IronAxeDurability;
+    if (!HasAuthority()) return nullptr;
+    if (FKalmalaToolState* State = CarriedTools.FindByPredicate([ToolId](FKalmalaToolState& Candidate)
+        { return Candidate.ToolId == ToolId; })) return &State->Durability;
+#if WITH_EDITORONLY_DATA
+    int32* LegacyCondition = nullptr;
+    if (ToolId == TEXT("ReedKnife")) LegacyCondition = &ReedKnifeDurability;
+    else if (ToolId == TEXT("FieldHatchet")) LegacyCondition = &FieldHatchetDurability;
+    else if (ToolId == TEXT("StonePick")) LegacyCondition = &StonePickDurability;
+    else if (ToolId == TEXT("BronzeAxe")) LegacyCondition = &BronzeAxeDurability;
+    else if (ToolId == TEXT("IronAxe")) LegacyCondition = &IronAxeDurability;
+
+    const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(ToolId);
+    if (LegacyCondition != nullptr && Definition != nullptr && *LegacyCondition >= 0
+        && *LegacyCondition <= Definition->MaxDurability && CarriedTools.Num() < FKalmalaToolLifecycleContract::MaxCarriedToolRecords)
+    {
+        FKalmalaToolState SeededState;
+        SeededState.ToolId = ToolId;
+        SeededState.ToolLevel = 1;
+        SeededState.Durability = *LegacyCondition;
+        CarriedTools.Add(SeededState);
+        return &CarriedTools.Last().Durability;
+    }
+#endif
     return nullptr;
 }
 
