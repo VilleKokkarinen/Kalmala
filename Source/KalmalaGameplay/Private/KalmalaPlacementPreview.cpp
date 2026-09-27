@@ -4,12 +4,14 @@
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaConstructionActor.h"
 #include "GameFramework/Pawn.h"
 
 bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
 {
     if (ItemId == TEXT("ForgeKit")) return true;
     return ItemId == TEXT("CampfireKit") || ItemId == TEXT("WorkbenchKit") || ItemId == TEXT("StorageKit")
+        || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit");
 }
 
@@ -41,8 +43,15 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
         return Result;
     }
 
-    Result.Location = Ground.ImpactPoint + FVector(0, 0, 56);
-    if (World->OverlapBlockingTestByChannel(Result.Location, FQuat::Identity, ECC_Pawn, FCollisionShape::MakeSphere(54), Query))
+    const bool bIsStationAttachment = ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit");
+    const FVector PlacementExtent = bIsStationAttachment
+        ? AKalmalaConstructionActor::GetCollisionExtent(ItemId) : FVector(54, 54, 56);
+    const float PlacementHalfHeight = PlacementExtent.Z + (bIsStationAttachment ? 2.0f : 0.0f);
+    Result.Location = Ground.ImpactPoint + FVector(0, 0, PlacementHalfHeight);
+    const float PreviewRadius = bIsStationAttachment
+        ? FMath::Max3(PlacementExtent.X, PlacementExtent.Y, PlacementExtent.Z) : 54.0f;
+    if (World->OverlapBlockingTestByChannel(Result.Location, FQuat::Identity, ECC_Pawn,
+        FCollisionShape::MakeSphere(PreviewRadius), Query))
     {
         Result.Message = TEXT("Preview invalid: clear more space");
         return Result;

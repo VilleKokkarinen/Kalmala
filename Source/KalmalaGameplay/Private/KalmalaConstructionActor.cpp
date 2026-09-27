@@ -97,6 +97,8 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("WallKit")) return FVector(120, 12, 110);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
     if (KitId == TEXT("ForgeKit")) return FVector(60, 60, 62);
+    if (KitId == TEXT("WorkbenchToolRackKit")) return FVector(32, 25, 34);
+    if (KitId == TEXT("ForgeAnvilKit")) return FVector(28, 16, 28);
     return FVector(54, 54, 56);
 }
 
@@ -146,6 +148,21 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
         AddBox(Vertices, Triangles, FVector(0, 0, 36), FVector(54, 54, 10));
         for (const float X : {-40.0f, 40.0f}) for (const float Y : {-40.0f, 40.0f})
             AddBox(Vertices, Triangles, FVector(X, Y, -14), FVector(8, 8, 40));
+    }
+    else if (ConstructionKit == TEXT("WorkbenchToolRackKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(0, 0, 22), FVector(26, 5, 5));
+        for (const float X : {-21.0f, 21.0f})
+            AddBox(Vertices, Triangles, FVector(X, 0, 0), FVector(4, 5, 34));
+        for (const float X : {-12.0f, 0.0f, 12.0f})
+            AddBox(Vertices, Triangles, FVector(X, -13, 8), FVector(2, 12, 2));
+    }
+    else if (ConstructionKit == TEXT("ForgeAnvilKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(0, 0, -17), FVector(15, 16, 11));
+        AddBox(Vertices, Triangles, FVector(0, 0, -2), FVector(18, 11, 7));
+        AddBox(Vertices, Triangles, FVector(-20, 0, 6), FVector(8, 8, 3));
+        AddBox(Vertices, Triangles, FVector(18, 0, 6), FVector(9, 7, 3));
     }
     else if (ConstructionKit == TEXT("StorageKit"))
     {

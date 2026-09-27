@@ -105,6 +105,14 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     TArray<FKalmalaInventoryStack> Costs; int32 OutputCount;
     Reason = TEXT("Invalid batch quantity");
     if (!UKalmalaRecipeCatalogue::Scale(*Recipe, Batch, Costs, OutputCount)) return false;
+    if (FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe->Output))
+    {
+        const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe->Output);
+        const AKalmalaConstructionActor* Station = FindNearbyToolProgressionStation(StationKit);
+        const TCHAR* StationName = StationKit == TEXT("WorkbenchKit") ? TEXT("Workbench") : TEXT("Forge");
+        Reason = FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"), StationName);
+        if (!Station) return false;
+    }
     if (Recipe->bRequiresLitCampfire && !FindNearbyLitFire())
     {
         Reason = TEXT("Need a usable lit hearth with heat within 2.5 m");
@@ -177,6 +185,35 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
     const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), Character, KitId);
     Reason = Preview.Message;
     if (!Preview.bIsValid || FVector::DistSquared(Character->GetActorLocation(), Preview.Location) > FMath::Square(250.0f)) return false;
+    if (FKalmalaToolProgressionContract::IsStationAttachmentKit(KitId))
+    {
+        int32 ActiveAttachmentCount = 0;
+        for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It)
+        {
+            const AKalmalaConstructionActor* Existing = *It;
+            if (IsValid(Existing) && Existing->GetWorld() == GetWorld() && !Existing->GetConstructionId().IsEmpty()
+                && FKalmalaToolProgressionContract::IsStationAttachmentKit(Existing->GetConstructionKit()))
+            {
+                ++ActiveAttachmentCount;
+            }
+        }
+        Reason = FString::Printf(TEXT("Session station attachment limit reached (%d)"),
+            FKalmalaToolProgressionContract::MaxStationAttachments);
+        if (ActiveAttachmentCount >= FKalmalaToolProgressionContract::MaxStationAttachments) return false;
+
+        const FName RequiredStationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(KitId);
+        AKalmalaConstructionActor* NearbyStation = FindNearbyToolProgressionStation(RequiredStationKit);
+        if (!NearbyStation)
+        {
+            return FKalmalaToolProgressionContract::CanPlaceAttachment(
+                KitId, RequiredStationKit, 0.0f, false, false, Reason);
+        }
+        const float StationDistance = FVector::Distance(Preview.Location, NearbyStation->GetActorLocation());
+        const bool bAlreadyUpgraded = FKalmalaToolProgressionContract::GetEffectiveStationLevel(NearbyStation)
+            > FKalmalaToolProgressionContract::GetBaseStationLevel(RequiredStationKit);
+        if (!FKalmalaToolProgressionContract::CanPlaceAttachment(
+            KitId, NearbyStation->GetConstructionKit(), StationDistance, true, bAlreadyUpgraded, Reason)) return false;
+    }
     const FRotator Rotation(0.0f, Character->GetActorRotation().Yaw, 0.0f);
     if (Rotation.ContainsNaN()) { Reason = TEXT("Invalid placement rotation"); return false; }
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
@@ -185,21 +222,28 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
     if (!Inventory || !UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Cost, NAME_None, 0, Scratch, Reason)) return false;
     const FTransform Transform(Rotation, Preview.Location);
     auto* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
-    if (!GameMode || !GameMode->CanPersistConstruction(KitId, Transform)) { Reason = TEXT("Construction save limit reached or unavailable"); return false; }
+    const bool bTransientAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(KitId);
+    if (!GameMode || (!bTransientAttachment && !GameMode->CanPersistConstruction(KitId, Transform)))
+    {
+        Reason = TEXT("Construction save limit reached or unavailable");
+        return false;
+    }
     auto* Construction = GetWorld()->SpawnActorDeferred<AKalmalaConstructionActor>(AKalmalaConstructionActor::StaticClass(), Transform, nullptr, Character,
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
     if (!Construction) { Reason = TEXT("Could not allocate construction"); return false; }
     if (!Inventory->TryExchangeFromServer(Cost, NAME_None, 0, Reason)) { Construction->Destroy(); return false; }
     Construction->InitializeFromServer(KitId, FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower));
     Construction->FinishSpawning(Transform);
-    if (!GameMode->PersistConstruction(Construction))
+    if (!bTransientAttachment && !GameMode->PersistConstruction(Construction))
     {
         Construction->Destroy();
         Inventory->TryGrantFromServer(KitId, 1);
         Reason = TEXT("Could not save construction; kit restored");
         return false;
     }
-    Reason = TEXT("Placed construction; server accepted the kit and ground");
+    Reason = bTransientAttachment
+        ? TEXT("Placed the paid station attachment; its level bonus lasts for this session")
+        : TEXT("Placed construction; server accepted the kit and ground");
     return true;
 }
 
@@ -241,6 +285,15 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
 {
     const auto* R = GetDefault<UKalmalaRecipeCatalogue>()->Find(Id);
     if (!R || !R->bEnabled) return TEXT("Recipe unavailable");
+    if (FKalmalaToolProgressionContract::IsStationAttachmentKit(R->Output))
+    {
+        const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(R->Output);
+        if (!FindNearbyToolProgressionStation(StationKit))
+        {
+            const TCHAR* StationName = StationKit == TEXT("WorkbenchKit") ? TEXT("Workbench") : TEXT("Forge");
+            return FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"), StationName);
+        }
+    }
     if (R->bRequiresLitCampfire && !FindNearbyLitFire()) return TEXT("Need a usable lit hearth with heat within 2.5 m");
     if (R->bRequiresCampfire && !FindNearbyFire(true) && !FindNearbyWorkbench()) return TEXT("Need a usable hearth or workbench within 2.5 m");
 AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyToolProgressionStation(const FName Kit) const
@@ -299,7 +352,7 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FStri
     Reason = FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"), StationName);
     if (!Station) return false;
 
-    const int32 EffectiveLevel = FKalmalaToolProgressionContract::GetBaseStationLevel(Station->GetConstructionKit());
+    const int32 EffectiveLevel = FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station);
     Reason = FString::Printf(TEXT("Nearby %s is level %d; level %d is required"),
         StationName, EffectiveLevel, Entry->RequiredStationLevel);
     if (EffectiveLevel != Entry->RequiredStationLevel) return false;
@@ -352,6 +405,12 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     for (const auto& Cost : R->Ingredients)
         Text += FString::Printf(TEXT("%d %s  "), Cost.Quantity, *GetDefault<UKalmalaItemCatalogue>()->FindItem(Cost.ItemId)->DisplayName);
     Text += FString::Printf(TEXT("\nOutput: %d (stack limit %d)"),R->OutputCount,GetDefault<UKalmalaItemCatalogue>()->FindItem(R->Output)->MaxStack);
+    if (FKalmalaToolProgressionContract::IsStationAttachmentKit(R->Output))
+    {
+        const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(R->Output);
+        const TCHAR* StationName = StationKit == TEXT("WorkbenchKit") ? TEXT("Workbench") : TEXT("Forge");
+        return Text + FString::Printf(TEXT("\nStation: craft at a visible same-world %s within 2.5 m.\nPlacement: place within 1.25 m of that station; the level bonus lasts for this session until M9 save migration is approved."), StationName);
+    }
     if (R->bRequiresLitCampfire) return Text + TEXT("\nStation: usable lit hearth with heat within 2.5 m");
     return Text + (R->bRequiresCampfire ? TEXT("\nStation: nearby usable hearth or workbench") : TEXT("\nHandcrafted; no station"));
 }
@@ -486,7 +545,7 @@ FString UKalmalaCraftingComponent::GetToolProgressionText() const
         const AKalmalaConstructionActor* Station = FindNearbyToolProgressionStation(StationKit);
         if (Station)
         {
-            const int32 Level = FKalmalaToolProgressionContract::GetBaseStationLevel(Station->GetConstructionKit());
+            const int32 Level = FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station);
             Text += FString::Printf(TEXT(". Nearby %s level %d; required level %d"),
                 StationName, Level, Entry.RequiredStationLevel);
         }
@@ -497,6 +556,6 @@ FString UKalmalaCraftingComponent::GetToolProgressionText() const
         }
         Text += TEXT(".\n");
     }
-    Text += TEXT("Workbench and Forge bases are level 1. Attachments are required for level 2; the server checks the station again when you craft.");
+    Text += TEXT("Workbench and Forge bases are level 1. A nearby paid tool rack or anvil adds one level, up to level 2. Attachments last only for this session until M9 persistence is approved; the server checks placement and station level.");
     return Text;
 }

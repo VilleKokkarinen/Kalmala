@@ -32,6 +32,27 @@ existing generic construction placement and schema-1 construction record;
 Workbench and Forge levels are derived from their kit identity, with each base
 station at level 1. No new save field stores a station level.
 
+## Paid station attachments
+
+Two paid construction kits add one effective level to a matching nearby
+station: the Workbench tool rack costs 2 Lashed timber and 2 Reed fibre; the
+Forge anvil costs 3 Lashed timber and 4 Fieldstone. Each recipe requires its
+matching visible same-world Workbench or Forge within the normal 250 cm
+station-use range. Placement is server-derived from the pawn, rechecks the
+matching usable station, and requires the attachment to land within 125 cm of
+that station. One attachment upgrades a station from level 1 to level 2; a
+second attachment at the same station is rejected. Effective level is capped
+at the authored level-2 tier.
+
+The placed attachment actor and level bonus are session-only until the M9
+versioned save contract passes migration and round-trip checks. Attachments do
+not enter the existing construction save, and no tool or construction save
+schema changed. The server limits live attachments to 32, checks placement and
+kit costs before committing, and derives level from initialized same-world
+construction actors. Clients submit only the attachment kit ID for placement
+and the tool ID for an upgrade; they cannot select the station or author a
+distance, level, or outcome.
+
 The owner crafting panel now offers Bronze Axe crafting and Iron Axe upgrading.
 The client sends only the target tool ID. The server selects the nearest
 visible same-world station of the required family within 250 cm, derives its
@@ -39,8 +60,8 @@ base level, validates an exact level match, checks the carried-tool prerequisite
 and condition bounds, and builds both the paid inventory candidate and carried
 tool candidate before committing either. Bronze Axe is added at level 1 with
 full condition from a level-1 Workbench. Iron Axe replaces a carried level-1
-Bronze Axe and requires a level-2 Forge. Forge attachments are a later task, so
-the current level-1 Forge correctly rejects that upgrade until it is improved.
+Bronze Axe and requires a level-2 Forge. The level-1 Forge rejects that
+upgrade until a nearby paid anvil is placed and accepted by the server.
 Rejected calls leave materials and carried tools unchanged.
 
 Axes remain absent from starting inventory and tool level remains transient.
@@ -50,9 +71,10 @@ repair remains until the later free-repair task.
 
 ## M9 station transaction verification
 
-Kalmala.Gameplay.M9.ToolProgressionCatalogue checks the axe entries, target
-and prerequisite levels, station matches, Forge recipe, and item-catalogue-
-valid costs. Kalmala.Gameplay.M9.ToolStationProgression checks paid Bronze
+Kalmala.Gameplay.M9.ToolProgressionCatalogue checks the axe and attachment
+entries, compatible station families, bounded level derivation, placement
+range and duplicate rejection, paid recipes, and item-catalogue-valid costs.
+Kalmala.Gameplay.M9.ToolStationProgression checks paid Bronze
 Axe creation and Iron Axe replacement, exact station family/level validation,
 prerequisite checks, full-condition output, material consumption, and
 no-mutation rejection. It also verifies that the tool progression RPC carries
@@ -61,9 +83,10 @@ only the target tool ID, without client-supplied station, level, cost, or result
 `CarriedTools` is replicated with `COND_OwnerOnly`. Harvest and repair code
 reads and changes a record on the server; existing client requests continue to
 send only tool or recipe intent. The detail array is transient and is not a
-SaveGame field. Tool levels, workstation levels, upgrades, and free repair are
-not enabled by this increment; the existing M7 material-paid repair behavior
-remains until the later M9 repair task replaces it.
+SaveGame field. Tool and workstation levels are derived from transient
+server-owned records and placed attachment actors. Free repair is still not
+enabled; the existing M7 material-paid repair behavior remains until the later
+M9 repair task replaces it.
 
 ## Verification
 
@@ -75,7 +98,8 @@ After the forced editor build, run
 `Kalmala.Gameplay.Crafting.NetworkContract` tests. The carried-inventory
 contract checks the bounded starting list, full initial condition, level-1
 baseline, transient state, and owner-only replication condition.
-`Kalmala.Gameplay.M9.ToolProgressionCatalogue` checks the axe entries, target
-and prerequisite levels, station matches, and item-catalogue-valid costs.
+`Kalmala.Gameplay.M9.ToolProgressionCatalogue` checks axe and attachment
+catalogues, station matches, level derivation, attachment placement bounds,
+paid recipes, and item-catalogue-valid costs.
 `Scripts/Verify-InventoryReconnect.ps1` also checks two live client visits:
 the owner receives tool condition and the remote peer receives no tool details.

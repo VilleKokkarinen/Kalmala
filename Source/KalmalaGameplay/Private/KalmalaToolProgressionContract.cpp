@@ -2,9 +2,20 @@
 
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaConstructionActor.h"
+#include "EngineUtils.h"
 
 namespace
 {
+    const TArray<FKalmalaStationAttachmentDefinition>& StationAttachmentDefinitions()
+    {
+        static const TArray<FKalmalaStationAttachmentDefinition> Definitions = {
+            {TEXT("WorkbenchToolRackKit"), TEXT("WorkbenchKit")},
+            {TEXT("ForgeAnvilKit"), TEXT("ForgeKit")}
+        };
+        return Definitions;
+    }
+
     const TArray<FKalmalaToolProgressionEntry>& ToolProgressionEntries()
     {
         static const TArray<FKalmalaToolProgressionEntry> Entries = []
@@ -45,6 +56,11 @@ const TArray<FKalmalaToolProgressionEntry>& FKalmalaToolProgressionContract::Get
     return ToolProgressionEntries();
 }
 
+const TArray<FKalmalaStationAttachmentDefinition>& FKalmalaToolProgressionContract::GetAttachmentDefinitions()
+{
+    return StationAttachmentDefinitions();
+}
+
 const FKalmalaToolProgressionEntry* FKalmalaToolProgressionContract::FindEntry(const FName ToolId)
 {
     if (ToolId.IsNone()) return nullptr;
@@ -54,12 +70,42 @@ const FKalmalaToolProgressionEntry* FKalmalaToolProgressionContract::FindEntry(c
     });
 }
 
+const FKalmalaStationAttachmentDefinition* FKalmalaToolProgressionContract::FindAttachment(const FName KitId)
+{
+    if (KitId.IsNone()) return nullptr;
+    return StationAttachmentDefinitions().FindByPredicate([KitId](const FKalmalaStationAttachmentDefinition& Definition)
+    {
+        return Definition.KitId == KitId;
+    });
+}
+
+bool FKalmalaToolProgressionContract::IsStationAttachmentKit(const FName KitId)
+{
+    return FindAttachment(KitId) != nullptr;
+}
+
+FName FKalmalaToolProgressionContract::GetAttachmentStationKit(const FName AttachmentKitId)
+{
+    const FKalmalaStationAttachmentDefinition* Definition = FindAttachment(AttachmentKitId);
+    return Definition ? Definition->StationKitId : NAME_None;
+}
+
 bool FKalmalaToolProgressionContract::IsCatalogueValid()
 {
     const TArray<FKalmalaToolProgressionEntry>& Entries = ToolProgressionEntries();
     const UKalmalaItemCatalogue* ItemCatalogue = GetDefault<UKalmalaItemCatalogue>();
-    if (Entries.Num() != MaxAxeProgressionEntries || ItemCatalogue == nullptr
+    const TArray<FKalmalaStationAttachmentDefinition>& Attachments = StationAttachmentDefinitions();
+    if (Entries.Num() != MaxAxeProgressionEntries || Attachments.Num() != 2 || ItemCatalogue == nullptr
         || !ItemCatalogue->IsValidCatalogue()) return false;
+
+    TSet<FName> SeenAttachmentIds;
+    for (const FKalmalaStationAttachmentDefinition& Attachment : Attachments)
+    {
+        if (Attachment.KitId.IsNone() || SeenAttachmentIds.Contains(Attachment.KitId)
+            || GetBaseStationLevel(Attachment.StationKitId) != 1
+            || !ItemCatalogue->IsValidStack(Attachment.KitId, 1)) return false;
+        SeenAttachmentIds.Add(Attachment.KitId);
+    }
 
     TSet<FName> SeenToolIds;
     for (const FKalmalaToolProgressionEntry& Entry : Entries)
@@ -115,6 +161,88 @@ FName FKalmalaToolProgressionContract::GetStationKit(const EKalmalaToolStationKi
 int32 FKalmalaToolProgressionContract::GetBaseStationLevel(const FName KitId)
 {
     return KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit") ? 1 : 0;
+}
+
+int32 FKalmalaToolProgressionContract::DeriveEffectiveStationLevel(
+    const FName StationKitId,
+    const TArray<FKalmalaStationAttachmentCandidate>& Attachments)
+{
+    const int32 BaseLevel = GetBaseStationLevel(StationKitId);
+    if (BaseLevel == 0) return 0;
+
+    for (const FKalmalaStationAttachmentCandidate& Candidate : Attachments)
+    {
+        const FKalmalaStationAttachmentDefinition* Definition = FindAttachment(Candidate.KitId);
+        if (Definition && Definition->StationKitId == StationKitId && Candidate.bSameWorld
+            && Candidate.bInitialized && FMath::IsFinite(Candidate.DistanceToStationCm)
+            && Candidate.DistanceToStationCm >= 0.0f
+            && Candidate.DistanceToStationCm <= MaxAttachmentDistanceCm)
+        {
+            return FMath::Min(MaxStationLevel, BaseLevel + 1);
+        }
+    }
+    return BaseLevel;
+}
+
+int32 FKalmalaToolProgressionContract::GetEffectiveStationLevel(const AKalmalaConstructionActor* Station)
+{
+    if (!IsValid(Station) || Station->GetConstructionId().IsEmpty()
+        || GetBaseStationLevel(Station->GetConstructionKit()) == 0
+        || Station->GetActorLocation().ContainsNaN()) return 0;
+    UWorld* World = Station->GetWorld();
+    if (!World) return 0;
+
+    TArray<FKalmalaStationAttachmentCandidate> Attachments;
+    for (TActorIterator<AKalmalaConstructionActor> It(World); It; ++It)
+    {
+        const AKalmalaConstructionActor* CandidateActor = *It;
+        if (!IsValid(CandidateActor) || CandidateActor->GetWorld() != World
+            || (Station->HasAuthority() && !CandidateActor->HasAuthority())) continue;
+
+        FKalmalaStationAttachmentCandidate& Candidate = Attachments.AddDefaulted_GetRef();
+        Candidate.KitId = CandidateActor->GetConstructionKit();
+        Candidate.bSameWorld = CandidateActor->GetWorld() == World;
+        Candidate.bInitialized = !CandidateActor->GetConstructionId().IsEmpty()
+            && !CandidateActor->GetActorLocation().ContainsNaN();
+        if (Candidate.bInitialized)
+        {
+            const float DistanceSquared = FVector::DistSquared(
+                Station->GetActorLocation(), CandidateActor->GetActorLocation());
+            Candidate.DistanceToStationCm = FMath::Sqrt(DistanceSquared);
+        }
+    }
+    return DeriveEffectiveStationLevel(Station->GetConstructionKit(), Attachments);
+}
+
+bool FKalmalaToolProgressionContract::CanPlaceAttachment(
+    const FName AttachmentKitId,
+    const FName StationKitId,
+    const float DistanceToStationCm,
+    const bool bStationUsable,
+    const bool bAlreadyUpgraded,
+    FString& Reason)
+{
+    const FKalmalaStationAttachmentDefinition* Definition = FindAttachment(AttachmentKitId);
+    Reason = TEXT("Unknown station attachment");
+    if (!Definition) return false;
+
+    const TCHAR* StationName = Definition->StationKitId == TEXT("WorkbenchKit")
+        ? TEXT("Workbench") : TEXT("Forge");
+    Reason = TEXT("This attachment does not match that station");
+    if (Definition->StationKitId != StationKitId) return false;
+    Reason = FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"), StationName);
+    if (!bStationUsable) return false;
+    Reason = FString::Printf(TEXT("Place the attachment within %.2f m of the %s"),
+        MaxAttachmentDistanceCm / 100.0f, StationName);
+    if (!FMath::IsFinite(DistanceToStationCm) || DistanceToStationCm < 0.0f
+        || DistanceToStationCm > MaxAttachmentDistanceCm) return false;
+    Reason = TEXT("That station already has an attachment");
+    if (bAlreadyUpgraded) return false;
+
+    Reason = Definition->KitId == TEXT("WorkbenchToolRackKit")
+        ? TEXT("Place the paid tool rack beside the Workbench to raise it to level 2")
+        : TEXT("Place the paid anvil beside the Forge to raise it to level 2");
+    return true;
 }
 
 bool FKalmalaToolProgressionContract::BuildServerUpgrade(

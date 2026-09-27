@@ -5,6 +5,7 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaPlacementPreview.h"
 #include "KalmalaRecipeCatalogue.h"
+#include "KalmalaCraftingComponent.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -80,6 +81,55 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         FKalmalaToolProgressionContract::GetStationKit(EKalmalaToolStationKind::Forge), FName(TEXT("ForgeKit")));
     TestTrue(TEXT("Forge supports paid placement and existing construction saves"), FKalmalaPlacementPreview::IsSupportedKit(TEXT("ForgeKit")));
 
+    const TArray<FKalmalaStationAttachmentDefinition>& Attachments =
+        FKalmalaToolProgressionContract::GetAttachmentDefinitions();
+    TestEqual(TEXT("Workbench and Forge each have one authored attachment"), Attachments.Num(), 2);
+    TestEqual(TEXT("Workbench tool rack upgrades only a Workbench"),
+        FKalmalaToolProgressionContract::GetAttachmentStationKit(TEXT("WorkbenchToolRackKit")), FName(TEXT("WorkbenchKit")));
+    TestEqual(TEXT("Forge anvil upgrades only a Forge"),
+        FKalmalaToolProgressionContract::GetAttachmentStationKit(TEXT("ForgeAnvilKit")), FName(TEXT("ForgeKit")));
+    TestTrue(TEXT("Both station attachment kits support the validated placement preview"),
+        FKalmalaPlacementPreview::IsSupportedKit(TEXT("WorkbenchToolRackKit"))
+        && FKalmalaPlacementPreview::IsSupportedKit(TEXT("ForgeAnvilKit")));
+
+    FKalmalaStationAttachmentCandidate RackCandidate;
+    RackCandidate.KitId = TEXT("WorkbenchToolRackKit");
+    RackCandidate.DistanceToStationCm = FKalmalaToolProgressionContract::MaxAttachmentDistanceCm;
+    RackCandidate.bSameWorld = true;
+    RackCandidate.bInitialized = true;
+    TArray<FKalmalaStationAttachmentCandidate> RackCandidates;
+    RackCandidates.Add(RackCandidate);
+    TestEqual(TEXT("A same-world nearby tool rack raises its Workbench to level two"),
+        FKalmalaToolProgressionContract::DeriveEffectiveStationLevel(TEXT("WorkbenchKit"), RackCandidates), 2);
+    TestEqual(TEXT("A tool rack does not raise a Forge level"),
+        FKalmalaToolProgressionContract::DeriveEffectiveStationLevel(TEXT("ForgeKit"), RackCandidates), 1);
+    RackCandidate.DistanceToStationCm += 0.1f;
+    RackCandidates[0] = RackCandidate;
+    TestEqual(TEXT("A distant tool rack does not raise station level"),
+        FKalmalaToolProgressionContract::DeriveEffectiveStationLevel(TEXT("WorkbenchKit"), RackCandidates), 1);
+    RackCandidate.DistanceToStationCm = 100.0f;
+    RackCandidate.bSameWorld = false;
+    RackCandidates[0] = RackCandidate;
+    TestEqual(TEXT("A foreign-world tool rack does not raise station level"),
+        FKalmalaToolProgressionContract::DeriveEffectiveStationLevel(TEXT("WorkbenchKit"), RackCandidates), 1);
+
+    FString AttachmentReason;
+    TestTrue(TEXT("Server-usable matching station accepts a paid nearby attachment"),
+        FKalmalaToolProgressionContract::CanPlaceAttachment(
+            TEXT("ForgeAnvilKit"), TEXT("ForgeKit"), 100.0f, true, false, AttachmentReason));
+    TestFalse(TEXT("An attachment rejects the wrong station family"),
+        FKalmalaToolProgressionContract::CanPlaceAttachment(
+            TEXT("ForgeAnvilKit"), TEXT("WorkbenchKit"), 100.0f, true, false, AttachmentReason));
+    TestFalse(TEXT("An attachment rejects placement outside its station radius"),
+        FKalmalaToolProgressionContract::CanPlaceAttachment(
+            TEXT("ForgeAnvilKit"), TEXT("ForgeKit"), 126.0f, true, false, AttachmentReason));
+    TestFalse(TEXT("An attachment rejects an unusable or out-of-range station"),
+        FKalmalaToolProgressionContract::CanPlaceAttachment(
+            TEXT("ForgeAnvilKit"), TEXT("ForgeKit"), 100.0f, false, false, AttachmentReason));
+    TestFalse(TEXT("A station cannot receive a duplicate level attachment"),
+        FKalmalaToolProgressionContract::CanPlaceAttachment(
+            TEXT("ForgeAnvilKit"), TEXT("ForgeKit"), 100.0f, true, true, AttachmentReason));
+
     const UKalmalaItemCatalogue* Items = GetDefault<UKalmalaItemCatalogue>();
     const FKalmalaItemDefinition* ForgeKit = Items->FindItem(TEXT("ForgeKit"));
     TestNotNull(TEXT("Forge kit is in the item catalogue"), ForgeKit);
@@ -96,6 +146,38 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TestNotNull(TEXT("Forge recipe includes fieldstone"), StoneCost);
         if (TimberCost) TestEqual(TEXT("Forge kit costs five lashed timber"), TimberCost->Quantity, 5);
         if (StoneCost) TestEqual(TEXT("Forge kit costs six fieldstone"), StoneCost->Quantity, 6);
+    }
+
+    const UKalmalaRecipeCatalogue* Recipes = GetDefault<UKalmalaRecipeCatalogue>();
+    TestTrue(TEXT("The complete recipe catalogue accepts both paid station attachment recipes"),
+        Recipes->IsValidCatalogue());
+    const FKalmalaRecipe* RackRecipe = Recipes->Find(TEXT("WorkbenchToolRack"));
+    const FKalmalaRecipe* AnvilRecipe = Recipes->Find(TEXT("ForgeAnvil"));
+    TestNotNull(TEXT("Workbench tool rack has a paid build recipe"), RackRecipe);
+    TestNotNull(TEXT("Forge anvil has a paid build recipe"), AnvilRecipe);
+    if (RackRecipe)
+    {
+        TestEqual(TEXT("Rack recipe yields a Workbench attachment kit"), RackRecipe->Output, FName(TEXT("WorkbenchToolRackKit")));
+        TestEqual(TEXT("Rack recipe selects the Workbench family from its output kit"),
+            FKalmalaToolProgressionContract::GetAttachmentStationKit(RackRecipe->Output), FName(TEXT("WorkbenchKit")));
+        TestTrue(TEXT("Rack recipe has paid material costs"), !RackRecipe->Ingredients.IsEmpty());
+    }
+    if (AnvilRecipe)
+    {
+        TestEqual(TEXT("Anvil recipe yields a Forge attachment kit"), AnvilRecipe->Output, FName(TEXT("ForgeAnvilKit")));
+        TestEqual(TEXT("Anvil recipe selects the Forge family from its output kit"),
+            FKalmalaToolProgressionContract::GetAttachmentStationKit(AnvilRecipe->Output), FName(TEXT("ForgeKit")));
+        TestTrue(TEXT("Anvil recipe has paid material costs"), !AnvilRecipe->Ingredients.IsEmpty());
+    }
+
+    const UFunction* PlaceIntent = UKalmalaCraftingComponent::StaticClass()->FindFunctionByName(TEXT("ServerPlaceConstruction"));
+    if (TestNotNull(TEXT("Construction placement intent exists"), PlaceIntent))
+    {
+        TestTrue(TEXT("Construction placement is an owning-client server RPC"),
+            PlaceIntent->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
+        TestEqual(TEXT("Placement submits only a kit identity"), int32(PlaceIntent->NumParms), 1);
+        TestNotNull(TEXT("Placement cannot submit a station, transform, level, or cost"),
+            PlaceIntent->FindPropertyByName(TEXT("KitId")));
     }
 
     return true;
