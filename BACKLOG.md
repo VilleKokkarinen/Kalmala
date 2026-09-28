@@ -373,9 +373,9 @@ contract and migration checks pass.
     - [x] Retire the roofed Smokehouse alternative; use the Smoke Frame as the only smoking station, with raw per-serving fuel and no recipe skill-level gate.
     - [x] Add the bounded no-hearth Drying Line recipes through the existing inventory, meal-effect, and Cooking-skill authorities.
     - [x] Verify host/client privacy, rejected-mutation behavior, costs, and accessible feedback across the accepted camp additions.
-- [ ] Add optional exploration rewards without quest routing.
+- [x] Add optional exploration rewards without quest routing.
   - [x] Define original clue, landmark, treasure, boss, or environmental-discovery candidates that reward observation without a prescribed route or mandatory combat gate. See `docs/29-m9-exploration-rewards.md`.
-  - [ ] Derive candidate identity, placement, interaction eligibility, and any reward on the server; use stable sparse identities and reject duplicate, forged, or replayed claims.
+  - [x] Derive candidate identity, placement, interaction eligibility, and any reward on the server; use stable sparse identities and reject duplicate, forged, or replayed claims.
 - [ ] Version and migrate newly persistent M9 state before normal saves use it.
   - [ ] Define explicit world/player scope, bounded records, exact seed/revision matching, compatibility policy, and migration behavior for tool levels, station progression, discoveries, and any approved camp/equipment state.
   - [ ] Add round-trip, migration, mismatch, malformed-data, duplicate, and over-cap rejection coverage before enabling persistence.

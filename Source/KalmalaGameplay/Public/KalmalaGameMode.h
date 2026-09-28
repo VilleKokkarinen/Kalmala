@@ -4,11 +4,13 @@
 #include "GameFramework/GameModeBase.h"
 #include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaWorldPopulationLayout.h"
+#include "KalmalaM9ExplorationRewardCatalogue.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaInteractionGrid.h"
 #include "KalmalaGameMode.generated.h"
 
 struct FKalmalaOceanDiscoveryDescriptor;
+struct FKalmalaM9ExplorationRewardDescriptor;
 enum class EKalmalaOceanSkiffSeat : uint8;
 
 /**
@@ -33,6 +35,7 @@ public:
     bool PersistStorage(const class AKalmalaConstructionActor* Construction, const TArray<FKalmalaInventoryStack>& Stacks);
     bool ClaimDiscovery(class AKalmalaCharacter* Interactor, const struct FKalmalaWorldDiscoveryDescriptor& Descriptor);
     bool ClaimOceanDiscovery(class AKalmalaCharacter* Interactor, const FKalmalaOceanDiscoveryDescriptor& Descriptor);
+    bool ClaimM9ExplorationReward(class AKalmalaCharacter* Interactor, const FKalmalaM9ExplorationRewardDescriptor& Descriptor);
     bool ClaimMirelingBossScroll(class AKalmalaCharacter* Attacker, const FString& PersistentSpawnId);
     static bool IsMirelingBossRewardId(const FString& PersistentSpawnId);
     static FString GetMirelingBossScrollDefinition(uint64 WorldSeed);
@@ -65,6 +68,7 @@ private:
     void DriveRainVerticalSliceTest();
     void DriveCombatPeerTest();
     void DriveDiscoveryPeerTest();
+    void DriveM9ExplorationRewardPeerTest();
     void DriveOceanTravelFeedbackTest();
     void DriveOceanWeatherPeerTest();
     void DriveOceanJourneyPeerTest();
@@ -97,6 +101,14 @@ private:
     TWeakObjectPtr<class AKalmalaCharacter> DiscoveryPeerTestEntitled;
     TWeakObjectPtr<class AKalmalaCharacter> DiscoveryPeerTestRemote;
     TWeakObjectPtr<class AKalmalaDiscoveryActor> DiscoveryPeerTestActor;
+    int32 M9ExplorationRewardPeerTestStage = 0;
+    float M9ExplorationRewardPeerTestStageTime = 0.0f;
+    FKalmalaM9ExplorationRewardDescriptor M9ExplorationRewardPeerTestDescriptor;
+    TWeakObjectPtr<class AKalmalaCharacter> M9ExplorationRewardPeerTestHost;
+    TWeakObjectPtr<class AKalmalaCharacter> M9ExplorationRewardPeerTestRemote;
+    TWeakObjectPtr<class AKalmalaDiscoveryActor> M9ExplorationRewardPeerTestActor;
+    int32 M9ExplorationRewardPeerTestHostBaseline = 0;
+    int32 M9ExplorationRewardPeerTestRemoteBaseline = 0;
     int32 OceanTravelFeedbackTestStage = 0;
     float OceanTravelFeedbackTestStageTime = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> OceanTravelFeedbackTestHost;
@@ -133,6 +145,7 @@ private:
     TSet<FString> SessionM9ResourceDepletionIds;
     TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGame>> PlayerDiscoverySaves;
     TMap<FString, TObjectPtr<class UKalmalaM7PersistenceSaveGame>> OceanDiscoverySaves;
+    TMap<FString, TSet<FString>> SessionM9ExplorationClaims;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame> OceanTravelWorldSave;
     TMap<FString, TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame>> OceanTravelPlayerSaves;
     TWeakObjectPtr<class AKalmalaOceanSkiff> RestoredOceanSkiff;

@@ -1220,3 +1220,30 @@ privacy, rejected transfer, and stable saved-identity regressions. These are
 text-contract checks; the null-renderer run does not review layout or
 assistive-technology output. No RPC, replicated gameplay field, or saved-data
 schema is added.
+
+### M9 optional land exploration rewards
+
+After the forced editor build, run
+`Kalmala.Gameplay.M9.ExplorationRewardCatalogue` with isolated user and log
+directories. The test checks the bounded two-candidate catalogue, canonical
+rewards, sparse identities, deterministic placement in each accepted biome,
+walkable land and shoreline/ridge conditions, forged descriptor rejection,
+and seed variation. For example:
+
+```powershell
+$testRoot = Join-Path $env:TEMP ('KalmalaM9ExplorationRewards-' + [guid]::NewGuid().ToString('N'))
+$userDir = Join-Path $testRoot 'User'
+$logFile = Join-Path $testRoot 'catalogue.log'
+New-Item -ItemType Directory -Path $userDir | Out-Null
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir="$userDir" -abslog="$logFile" -ExecCmds="Automation RunTests Kalmala.Gameplay.M9.ExplorationRewardCatalogue; Quit" -TestExit="Automation Test Queue Empty"
+```
+
+Require `Result={Success}` for `ExplorationRewardCatalogue`. If the command-line
+editor stops at the existing LinuxArm64/VisionOS SDK preflight, use
+`UnrealEditor.exe` with the same project and automation arguments. Then run
+`Scripts/Verify-M9ExplorationRewards.ps1 -Port <unused-port>`. The host/client
+fixture requires the server to accept the exact reward for each player while
+rejecting distant, forged, duplicate, and replayed claims, and checks that
+owner-only feedback and inventory state do not leak to the other peer. The
+fixture uses the null renderer, so it does not review the discovery's visual
+presentation in-world. Claims remain session-only pending M9 save migration.

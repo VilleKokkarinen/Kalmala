@@ -56,6 +56,8 @@ namespace
         if (PresentationId == TEXT("sunken-cache-marker")) return FLinearColor(0.16f, 0.22f, 0.18f);
         if (PresentationId == TEXT("ice-spring-marker")) return FLinearColor(0.58f, 0.82f, 0.88f);
         if (PresentationId == TEXT("storm-overlook-marker")) return FLinearColor(0.30f, 0.36f, 0.48f);
+        if (PresentationId == TEXT("three-run-rillstone-marker")) return FLinearColor(0.44f, 0.42f, 0.36f);
+        if (PresentationId == TEXT("leeward-grain-marker")) return FLinearColor(0.55f, 0.50f, 0.34f);
         return FLinearColor::Transparent;
     }
 }
@@ -108,9 +110,32 @@ bool AKalmalaDiscoveryActor::InitializeOceanServer(const FKalmalaOceanDiscoveryD
     ForceNetUpdate();
     return true;
 }
+bool AKalmalaDiscoveryActor::InitializeM9ExplorationRewardServer(const FKalmalaM9ExplorationRewardDescriptor& InDescriptor)
+{
+    if (!HasAuthority() || !OceanDescriptor.DiscoveryId.IsNone() || !M9ExplorationRewardDescriptor.CandidateId.IsNone()
+        || !Descriptor.DefinitionId.IsEmpty() || InDescriptor.Location.ContainsNaN()) return false;
+
+    const FKalmalaM9ExplorationRewardDefinition* Definition =
+        FKalmalaM9ExplorationRewardCatalogue::FindDefinition(InDescriptor.CandidateId);
+    if (Definition == nullptr
+        || FKalmalaM9ExplorationRewardCatalogue::MakeStableIdentity(InDescriptor.CandidateId, InDescriptor.SpatialKey).IsEmpty())
+    {
+        return false;
+    }
+
+    M9ExplorationRewardDescriptor = InDescriptor;
+    M9PresentationId = Definition->PresentationId;
+    SetActorLocation(InDescriptor.Location);
+    Collision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    Collision->SetCollisionResponseToAllChannels(ECR_Ignore);
+    Collision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+    BuildDiscoveryPresentation();
+    ForceNetUpdate();
+    return true;
+}
 bool AKalmalaDiscoveryActor::CanInteract_Implementation(AKalmalaCharacter* Interactor) const
 { return HasAuthority() && IsValid(Interactor) && Interactor->HasAuthority() && Interactor->GetWorld() == GetWorld()
-    && (!OceanDescriptor.DiscoveryId.IsNone() || !Descriptor.DefinitionId.IsEmpty())
+    && (!OceanDescriptor.DiscoveryId.IsNone() || !M9ExplorationRewardDescriptor.CandidateId.IsNone() || !Descriptor.DefinitionId.IsEmpty())
     && FVector::DistSquared(Interactor->GetActorLocation(), GetActorLocation()) <= FMath::Square(250.0f); }
 void AKalmalaDiscoveryActor::Interact_Implementation(AKalmalaCharacter* Interactor)
 {
@@ -120,6 +145,10 @@ void AKalmalaDiscoveryActor::Interact_Implementation(AKalmalaCharacter* Interact
         if (!OceanDescriptor.DiscoveryId.IsNone())
         {
             Mode->ClaimOceanDiscovery(Interactor, OceanDescriptor);
+        }
+        else if (!M9ExplorationRewardDescriptor.CandidateId.IsNone())
+        {
+            Mode->ClaimM9ExplorationReward(Interactor, M9ExplorationRewardDescriptor);
         }
         else
         {
@@ -133,6 +162,7 @@ void AKalmalaDiscoveryActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaDiscoveryActor, RareDiscoverySourceId);
     DOREPLIFETIME(AKalmalaDiscoveryActor, OceanPresentationId);
+    DOREPLIFETIME(AKalmalaDiscoveryActor, M9PresentationId);
 }
 
 void AKalmalaDiscoveryActor::OnRep_RareDiscoverySourceId()
@@ -145,14 +175,21 @@ void AKalmalaDiscoveryActor::OnRep_OceanPresentationId()
     BuildDiscoveryPresentation();
 }
 
+void AKalmalaDiscoveryActor::OnRep_M9PresentationId()
+{
+    BuildDiscoveryPresentation();
+}
+
 void AKalmalaDiscoveryActor::BuildDiscoveryPresentation()
 {
     if (!DiscoveryMesh) return;
     DiscoveryMesh->ClearAllMeshSections();
 
-    const FName PresentationId = OceanPresentationId.IsNone()
-        ? FKalmalaBiomeContentContract::GetRareDiscoveryPresentationId(RareDiscoverySourceId)
-        : OceanPresentationId;
+    const FName PresentationId = !OceanPresentationId.IsNone()
+        ? OceanPresentationId
+        : !M9PresentationId.IsNone()
+            ? M9PresentationId
+            : FKalmalaBiomeContentContract::GetRareDiscoveryPresentationId(RareDiscoverySourceId);
     if (PresentationId.IsNone())
     {
         DiscoveryMesh->SetVisibility(false);
@@ -213,6 +250,25 @@ void AKalmalaDiscoveryActor::BuildDiscoveryPresentation()
         AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(0.0f, 0.0f, 0.0f), FVector(18.0f, 14.0f, 0.0f), 32.0f, 0.76f, 0.0f, Accent);
         AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(0.0f, 0.0f, 32.0f), FVector(12.0f, 10.0f, 0.0f), 38.0f, 0.68f, 0.0f, Accent);
         AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(0.0f, 0.0f, 70.0f), FVector(6.0f, 6.0f, 0.0f), 28.0f, 0.5f, 0.0f, FLinearColor(0.48f, 0.52f, 0.62f));
+    }
+    else if (PresentationId == TEXT("three-run-rillstone-marker"))
+    {
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector::ZeroVector, FVector(27.0f, 22.0f, 0.0f), 12.0f, 0.88f, -7.0f, Accent);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(-13.0f, 0.0f, 12.0f), FVector(12.0f, 2.5f, 0.0f), 2.0f, 0.96f, 0.0f, FLinearColor(0.24f, 0.29f, 0.29f));
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(7.0f, 10.0f, 12.0f), FVector(12.0f, 2.5f, 0.0f), 2.0f, 0.96f, -58.0f, FLinearColor(0.24f, 0.29f, 0.29f));
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(7.0f, -10.0f, 12.0f), FVector(12.0f, 2.5f, 0.0f), 2.0f, 0.96f, 58.0f, FLinearColor(0.24f, 0.29f, 0.29f));
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(1.0f, 0.0f, 12.0f), FVector(6.0f, 5.0f, 0.0f), 3.0f, 0.88f, 0.0f, FLinearColor(0.64f, 0.61f, 0.53f));
+    }
+    else if (PresentationId == TEXT("leeward-grain-marker"))
+    {
+        const FLinearColor Score = FLinearColor(0.28f, 0.29f, 0.27f);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(-9.0f, -11.0f, 0.0f), FVector(30.0f, 2.0f, 0.0f), 2.0f, 1.0f, -8.0f, Score);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(-5.0f, 0.0f, 0.0f), FVector(29.0f, 2.0f, 0.0f), 2.0f, 1.0f, -3.0f, Score);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(-2.0f, 11.0f, 0.0f), FVector(28.0f, 2.0f, 0.0f), 2.0f, 1.0f, 5.0f, Score);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(18.0f, 21.0f, 0.0f), FVector(17.0f, 7.0f, 0.0f), 10.0f, 0.78f, -18.0f, Accent);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(24.0f, 19.0f, 10.0f), FVector(2.0f, 2.0f, 0.0f), 15.0f, 0.88f, -15.0f, FLinearColor(0.70f, 0.64f, 0.40f));
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(20.0f, 23.0f, 10.0f), FVector(2.0f, 2.0f, 0.0f), 12.0f, 0.88f, 12.0f, FLinearColor(0.70f, 0.64f, 0.40f));
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(18.0f, 18.0f, 10.0f), FVector(2.0f, 2.0f, 0.0f), 13.0f, 0.88f, 1.0f, FLinearColor(0.70f, 0.64f, 0.40f));
     }
 
     DiscoveryMesh->SetMaterial(0, DiscoveryMaterial);

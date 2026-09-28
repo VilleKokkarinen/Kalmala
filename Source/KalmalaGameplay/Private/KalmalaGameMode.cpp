@@ -24,6 +24,7 @@
 #include "KalmalaHarvestNode.h"
 #include "KalmalaHazardSpawn.h"
 #include "KalmalaOceanDiscoveryCatalogue.h"
+#include "KalmalaM9ExplorationRewardCatalogue.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaM7PersistenceContract.h"
 #include "KalmalaWildlifeSpawn.h"
@@ -74,6 +75,7 @@ namespace KalmalaGameMode
     constexpr int32 PlayerTerrainPatchRadius = 1;
     constexpr int32 MaxActiveTerrainPatches = 25;
     constexpr int32 MaxActivePopulationSpatialKeys = 9;
+    constexpr int32 MaxSessionM9ExplorationClaimsPerPlayer = 64;
     constexpr float TerrainPatchActivationIntervalSeconds = 1.0f;
     constexpr float ExposureUpdateIntervalSeconds = 1.0f;
     constexpr float InteractionGridUpdateIntervalSeconds = 1.0f;
@@ -1212,6 +1214,210 @@ void AKalmalaGameMode::DriveDiscoveryPeerTest()
 #endif
 }
 
+void AKalmalaGameMode::DriveM9ExplorationRewardPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaM9ExplorationRewardPeerTest"))
+        || GetWorld() == nullptr || M9ExplorationRewardPeerTestStage >= 99)
+    {
+        return;
+    }
+
+    if (M9ExplorationRewardPeerTestStage == 0)
+    {
+        AKalmalaCharacter* Host = nullptr;
+        AKalmalaCharacter* Remote = nullptr;
+        for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+        {
+            APlayerController* Controller = It->Get();
+            AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+            if (Character == nullptr) continue;
+            if (Controller->IsLocalController()) Host = Character;
+            else Remote = Character;
+        }
+        if (Host == nullptr || Remote == nullptr || Host->GetPlayerState() == nullptr || Remote->GetPlayerState() == nullptr) return;
+
+        const FUniqueNetIdStringRef HostId = FUniqueNetIdString::Create(
+            TEXT("m9-land-host"), FName(TEXT("KalmalaM9ExplorationPeerTest")));
+        const FUniqueNetIdStringRef RemoteId = FUniqueNetIdString::Create(
+            TEXT("m9-land-remote"), FName(TEXT("KalmalaM9ExplorationPeerTest")));
+        Host->GetPlayerState()->SetUniqueId(FUniqueNetIdRepl(*HostId));
+        Remote->GetPlayerState()->SetUniqueId(FUniqueNetIdRepl(*RemoteId));
+
+        bool bFoundDescriptor = false;
+        for (int32 Y = -160; Y <= 160 && !bFoundDescriptor; ++Y)
+        {
+            for (int32 X = -160; X <= 160 && !bFoundDescriptor; ++X)
+            {
+                const FIntPoint SpatialKey(X, Y);
+                const FVector2D KeyCenter = (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f))
+                    * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
+                    FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCenter));
+                if (KeyBiome != EKalmalaBiome::ShimmeringLakes && KeyBiome != EKalmalaBiome::ThunderMountains) continue;
+
+                const TArray<FKalmalaM9ExplorationRewardDescriptor> Candidates =
+                    FKalmalaM9ExplorationRewardCatalogue::BuildDescriptors(WorldGenerationConfig, SpatialKey);
+                if (Candidates.IsEmpty()) continue;
+                M9ExplorationRewardPeerTestDescriptor = Candidates[0];
+                bFoundDescriptor = true;
+            }
+        }
+        if (!bFoundDescriptor)
+        {
+            UE_LOG(LogTemp, Error, TEXT("M9 exploration reward verification FAILED: no canonical descriptor in bounded world scan."));
+            M9ExplorationRewardPeerTestStage = 99;
+            return;
+        }
+
+        const FKalmalaM9ExplorationRewardDefinition* Definition =
+            FKalmalaM9ExplorationRewardCatalogue::FindDefinition(M9ExplorationRewardPeerTestDescriptor.CandidateId);
+        UKalmalaInventoryComponent* HostInventory = Host->GetInventoryComponent();
+        UKalmalaInventoryComponent* RemoteInventory = Remote->GetInventoryComponent();
+        if (Definition == nullptr || HostInventory == nullptr || RemoteInventory == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("M9 exploration reward verification FAILED: catalogue or owner inventory missing."));
+            M9ExplorationRewardPeerTestStage = 99;
+            return;
+        }
+
+        ActivePopulationSpatialKeys.Add(M9ExplorationRewardPeerTestDescriptor.SpatialKey);
+        FActorSpawnParameters SpawnParameters;
+        SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        AKalmalaDiscoveryActor* Actor = GetWorld()->SpawnActor<AKalmalaDiscoveryActor>(
+            AKalmalaDiscoveryActor::StaticClass(), M9ExplorationRewardPeerTestDescriptor.Location,
+            FRotator::ZeroRotator, SpawnParameters);
+        if (Actor == nullptr || !Actor->InitializeM9ExplorationRewardServer(M9ExplorationRewardPeerTestDescriptor))
+        {
+            if (Actor != nullptr) Actor->Destroy();
+            UE_LOG(LogTemp, Error, TEXT("M9 exploration reward verification FAILED: server actor initialization rejected its descriptor."));
+            M9ExplorationRewardPeerTestStage = 99;
+            return;
+        }
+
+        M9ExplorationRewardPeerTestHost = Host;
+        M9ExplorationRewardPeerTestRemote = Remote;
+        M9ExplorationRewardPeerTestActor = Actor;
+        M9ExplorationRewardPeerTestHostBaseline = HostInventory->GetQuantity(Definition->RewardItemId);
+        M9ExplorationRewardPeerTestRemoteBaseline = RemoteInventory->GetQuantity(Definition->RewardItemId);
+        Host->SetActorLocation(Actor->GetActorLocation() - FVector(125.0f, 0.0f, 0.0f), false);
+        Remote->SetActorLocation(Actor->GetActorLocation() + FVector(1000.0f, 0.0f, 0.0f), false);
+        Host->ForceNetUpdate();
+        Remote->ForceNetUpdate();
+        M9ExplorationRewardPeerTestStage = 1;
+        return;
+    }
+
+    AKalmalaCharacter* Host = M9ExplorationRewardPeerTestHost.Get();
+    AKalmalaCharacter* Remote = M9ExplorationRewardPeerTestRemote.Get();
+    AKalmalaDiscoveryActor* Actor = M9ExplorationRewardPeerTestActor.Get();
+    const FKalmalaM9ExplorationRewardDefinition* Definition =
+        FKalmalaM9ExplorationRewardCatalogue::FindDefinition(M9ExplorationRewardPeerTestDescriptor.CandidateId);
+    if (Host == nullptr || Remote == nullptr || Actor == nullptr || Definition == nullptr
+        || Host->GetInventoryComponent() == nullptr || Remote->GetInventoryComponent() == nullptr
+        || Host->GetDiscoveryProgressComponent() == nullptr || Remote->GetDiscoveryProgressComponent() == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("M9 exploration reward verification FAILED: peer state disappeared."));
+        M9ExplorationRewardPeerTestStage = 99;
+        return;
+    }
+
+    if (M9ExplorationRewardPeerTestStage == 1)
+    {
+        UKalmalaInventoryComponent* HostInventory = Host->GetInventoryComponent();
+        UKalmalaInventoryComponent* RemoteInventory = Remote->GetInventoryComponent();
+        UKalmalaDiscoveryProgressComponent* HostFeedback = Host->GetDiscoveryProgressComponent();
+        UKalmalaDiscoveryProgressComponent* RemoteFeedback = Remote->GetDiscoveryProgressComponent();
+        const bool bDistantRejected = !Actor->CanInteract_Implementation(Remote)
+            && !ClaimM9ExplorationReward(Remote, M9ExplorationRewardPeerTestDescriptor)
+            && RemoteInventory->GetQuantity(Definition->RewardItemId) == M9ExplorationRewardPeerTestRemoteBaseline
+            && RemoteFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::None
+            && RemoteFeedback->GetFeedbackSerial() == 0;
+
+        FKalmalaM9ExplorationRewardDescriptor Forged = M9ExplorationRewardPeerTestDescriptor;
+        Forged.Location.X += 500.0f;
+        const bool bForgedRejected = !ClaimM9ExplorationReward(Host, Forged)
+            && HostInventory->GetQuantity(Definition->RewardItemId) == M9ExplorationRewardPeerTestHostBaseline
+            && HostFeedback->GetFeedbackSerial() == 0;
+
+        Actor->Interact_Implementation(Host);
+        const FString ExpectedFeedback = FString::Printf(TEXT("%s (+%d %s)"), *Definition->ObservationText,
+            Definition->RewardQuantity, *Definition->RewardItemId.ToString());
+        const bool bFirstClaimAccepted = HostInventory->GetQuantity(Definition->RewardItemId)
+                == M9ExplorationRewardPeerTestHostBaseline + Definition->RewardQuantity
+            && HostFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::LandmarkFound
+            && HostFeedback->GetFeedbackSerial() == 1
+            && HostFeedback->GetFeedbackLabel() == ExpectedFeedback;
+        const bool bRemoteUnchanged = RemoteInventory->GetQuantity(Definition->RewardItemId)
+                == M9ExplorationRewardPeerTestRemoteBaseline
+            && RemoteFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::None
+            && RemoteFeedback->GetFeedbackSerial() == 0;
+        if (!bDistantRejected || !bForgedRejected || !bFirstClaimAccepted || !bRemoteUnchanged)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("M9 exploration reward verification FAILED: Distant=%d Forged=%d First=%d RemoteUnchanged=%d HostQty=%d RemoteQty=%d HostFeedback=%d RemoteFeedback=%d"),
+                bDistantRejected, bForgedRejected, bFirstClaimAccepted, bRemoteUnchanged,
+                HostInventory->GetQuantity(Definition->RewardItemId), RemoteInventory->GetQuantity(Definition->RewardItemId),
+                HostFeedback->GetFeedbackSerial(), RemoteFeedback->GetFeedbackSerial());
+            M9ExplorationRewardPeerTestStage = 99;
+            return;
+        }
+        M9ExplorationRewardPeerTestStage = 2;
+        return;
+    }
+
+    if (M9ExplorationRewardPeerTestStage == 2)
+    {
+        UKalmalaInventoryComponent* HostInventory = Host->GetInventoryComponent();
+        UKalmalaInventoryComponent* RemoteInventory = Remote->GetInventoryComponent();
+        UKalmalaDiscoveryProgressComponent* HostFeedback = Host->GetDiscoveryProgressComponent();
+        UKalmalaDiscoveryProgressComponent* RemoteFeedback = Remote->GetDiscoveryProgressComponent();
+
+        Actor->Interact_Implementation(Host);
+        const bool bActorReplayRejected = HostInventory->GetQuantity(Definition->RewardItemId)
+                == M9ExplorationRewardPeerTestHostBaseline + Definition->RewardQuantity
+            && HostFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::AlreadyFound
+            && HostFeedback->GetFeedbackSerial() == 2;
+        const bool bDirectReplayRejected = !ClaimM9ExplorationReward(Host, M9ExplorationRewardPeerTestDescriptor)
+            && HostInventory->GetQuantity(Definition->RewardItemId)
+                == M9ExplorationRewardPeerTestHostBaseline + Definition->RewardQuantity;
+        const bool bOtherOwnerUnaffected = RemoteInventory->GetQuantity(Definition->RewardItemId)
+                == M9ExplorationRewardPeerTestRemoteBaseline
+            && RemoteFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::None
+            && RemoteFeedback->GetFeedbackSerial() == 0;
+
+        Remote->SetActorLocation(Actor->GetActorLocation() - FVector(125.0f, 0.0f, 0.0f), false);
+        Remote->ForceNetUpdate();
+        Actor->Interact_Implementation(Remote);
+        const bool bIndependentPlayerClaim = RemoteInventory->GetQuantity(Definition->RewardItemId)
+                == M9ExplorationRewardPeerTestRemoteBaseline + Definition->RewardQuantity
+            && RemoteFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::LandmarkFound
+            && RemoteFeedback->GetFeedbackSerial() == 1;
+
+        const bool bPassed = bActorReplayRejected && bDirectReplayRejected && bOtherOwnerUnaffected
+            && bIndependentPlayerClaim
+            && HostInventory->GetQuantity(Definition->RewardItemId)
+                == M9ExplorationRewardPeerTestHostBaseline + Definition->RewardQuantity;
+        if (bPassed)
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("M9 exploration reward verification server: Passed=1 Deterministic=1 DistantRejected=1 ForgedRejected=1 ActorReplayRejected=1 DirectReplayRejected=1 IndependentPlayer=1 OwnerOnlyState=1 Candidate=%s HostQty=%d RemoteQty=%d HostFeedbackSerial=%u RemoteFeedbackSerial=%u"),
+                *Definition->CandidateId.ToString(), HostInventory->GetQuantity(Definition->RewardItemId),
+                RemoteInventory->GetQuantity(Definition->RewardItemId), HostFeedback->GetFeedbackSerial(), RemoteFeedback->GetFeedbackSerial());
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("M9 exploration reward verification server: Passed=0 ActorReplay=%d DirectReplay=%d OtherOwner=%d Independent=%d HostQty=%d RemoteQty=%d HostFeedbackSerial=%u RemoteFeedbackSerial=%u"),
+                bActorReplayRejected, bDirectReplayRejected, bOtherOwnerUnaffected, bIndependentPlayerClaim,
+                HostInventory->GetQuantity(Definition->RewardItemId), RemoteInventory->GetQuantity(Definition->RewardItemId),
+                HostFeedback->GetFeedbackSerial(), RemoteFeedback->GetFeedbackSerial());
+        }
+        M9ExplorationRewardPeerTestStage = 99;
+    }
+#endif
+}
+
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -1264,6 +1470,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveRainVerticalSliceTest();
     DriveCombatPeerTest();
     DriveDiscoveryPeerTest();
+    DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();
     DriveOceanWeatherPeerTest();
     DriveOceanJourneyPeerTest();
@@ -1875,6 +2082,23 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
             }
         }
         ActiveThunderMountainsDiscoveryKeys.Add(SpatialKey);
+    }
+
+    for (const FKalmalaM9ExplorationRewardDescriptor& Descriptor :
+        FKalmalaM9ExplorationRewardCatalogue::BuildDescriptors(WorldGenerationConfig, SpatialKey))
+    {
+        FActorSpawnParameters Parameters;
+        Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        AKalmalaDiscoveryActor* Discovery = GetWorld()->SpawnActor<AKalmalaDiscoveryActor>(
+            AKalmalaDiscoveryActor::StaticClass(), Descriptor.Location, FRotator::ZeroRotator, Parameters);
+        if (Discovery != nullptr && Discovery->InitializeM9ExplorationRewardServer(Descriptor))
+        {
+            ++SpawnedMarkerCount;
+        }
+        else if (Discovery != nullptr)
+        {
+            Discovery->Destroy();
+        }
     }
 
     ActivePopulationSpatialKeys.Add(SpatialKey);
@@ -2497,6 +2721,81 @@ bool AKalmalaGameMode::ClaimOceanDiscovery(AKalmalaCharacter* Interactor, const 
     return true;
 }
 
+bool AKalmalaGameMode::ClaimM9ExplorationReward(
+    AKalmalaCharacter* Interactor, const FKalmalaM9ExplorationRewardDescriptor& Descriptor)
+{
+    if (!HasAuthority() || Interactor == nullptr || !Interactor->HasAuthority() || Interactor->GetWorld() != GetWorld()
+        || !ActivePopulationSpatialKeys.Contains(Descriptor.SpatialKey)
+        || !FKalmalaM9ExplorationRewardCatalogue::IsCurrentDescriptor(WorldGenerationConfig, Descriptor)
+        || FVector::DistSquared(Interactor->GetActorLocation(), Descriptor.Location) > FMath::Square(250.0f))
+    {
+        return false;
+    }
+
+    UKalmalaInventoryComponent* Inventory = Interactor->GetInventoryComponent();
+    UKalmalaDiscoveryProgressComponent* Feedback = Interactor->GetDiscoveryProgressComponent();
+    const FKalmalaM9ExplorationRewardDefinition* Definition =
+        FKalmalaM9ExplorationRewardCatalogue::FindDefinition(Descriptor.CandidateId);
+    const FString PlayerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Interactor->GetPlayerState());
+    const FString StableIdentity = FKalmalaM9ExplorationRewardCatalogue::MakeStableIdentity(
+        Descriptor.CandidateId, Descriptor.SpatialKey);
+    if (Inventory == nullptr || Feedback == nullptr || PlayerIdentity.IsEmpty() || StableIdentity.IsEmpty()
+        || Definition == nullptr
+        || !FKalmalaM9ExplorationRewardCatalogue::IsValidDefinition(*Definition, UKalmalaItemCatalogue::Get()))
+    {
+        if (Feedback != nullptr)
+        {
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Land discovery unavailable"));
+        }
+        return false;
+    }
+
+    TSet<FString>* ExistingClaims = SessionM9ExplorationClaims.Find(PlayerIdentity);
+    if (ExistingClaims != nullptr && ExistingClaims->Contains(StableIdentity))
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::AlreadyFound, TEXT("Land discovery already claimed"));
+        return false;
+    }
+    if (ExistingClaims != nullptr && ExistingClaims->Num() >= KalmalaGameMode::MaxSessionM9ExplorationClaimsPerPlayer)
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Land discovery record is full"));
+        return false;
+    }
+
+    const TArray<FKalmalaInventoryStack> ExistingStacks = Inventory->GetStacks();
+    TArray<FKalmalaInventoryStack> CandidateStacks;
+    FString GrantFailure;
+    if (!UKalmalaInventoryComponent::BuildGrant(
+        ExistingStacks, Definition->RewardItemId, Definition->RewardQuantity, CandidateStacks, GrantFailure))
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Pack full; discovery remains"));
+        return false;
+    }
+
+    TSet<FString>& Claims = SessionM9ExplorationClaims.FindOrAdd(PlayerIdentity);
+    if (Claims.Contains(StableIdentity) || Claims.Num() >= KalmalaGameMode::MaxSessionM9ExplorationClaimsPerPlayer)
+    {
+        Feedback->PublishFeedbackFromServer(Claims.Contains(StableIdentity)
+            ? EKalmalaDiscoveryFeedback::AlreadyFound : EKalmalaDiscoveryFeedback::Unavailable,
+            Claims.Contains(StableIdentity) ? TEXT("Land discovery already claimed") : TEXT("Land discovery record is full"));
+        return false;
+    }
+
+    Claims.Add(StableIdentity);
+    if (!Inventory->TryCommitStacksFromServer(ExistingStacks, CandidateStacks))
+    {
+        Claims.Remove(StableIdentity);
+        if (Claims.IsEmpty()) SessionM9ExplorationClaims.Remove(PlayerIdentity);
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery reward could not be granted"));
+        return false;
+    }
+
+    Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::LandmarkFound,
+        FString::Printf(TEXT("%s (+%d %s)"), *Definition->ObservationText,
+            Definition->RewardQuantity, *Definition->RewardItemId.ToString()));
+    return true;
+}
+
 bool AKalmalaGameMode::ClaimMirelingBossScroll(AKalmalaCharacter* Attacker, const FString& PersistentSpawnId)
 {
     if (!HasAuthority() || Attacker == nullptr || !Attacker->HasAuthority() || Attacker->GetWorld() != GetWorld()
@@ -2638,7 +2937,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 #else
     const bool bAmbientAudioTest = false;
 #endif
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")) && !bAmbientAudioTest) || NewPlayer == nullptr)
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaM9ExplorationRewardPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")) && !bAmbientAudioTest) || NewPlayer == nullptr)
     {
         return;
     }

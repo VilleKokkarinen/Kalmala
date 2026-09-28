@@ -9597,3 +9597,19 @@ Known limits: The candidates are design-only and do not yet spawn, interact, gra
 Commit and handoff: Main checkout used; the design and handoff are included together in this run's dedicated documentation commit, so no worktree synchronization is needed.
 
 Next task: Derive and implement candidate placement, interaction eligibility, stable sparse identities, and server-authoritative claims for the defined discovery slate.
+
+### Run 2026-09-28T18:52:51Z - Implement optional M9 land rewards
+
+Outcome: Implemented the two optional land discoveries from the accepted slate. Shimmering Lakes cells can host Three-Run Rillstone for 2 Stone, and Thunder Mountains cells can host Leeward Grain for 2 Fibre. The server derives canonical placement and sparse identity, validates the interaction and player claim, and grants the exact reward once per player per session. Checked the server-implementation child and its parent.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaDiscoveryActor.cpp`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Private/KalmalaM9ExplorationRewardCatalogue.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaM9ExplorationRewardCatalogueTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaDiscoveryActor.h`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; new `Source/KalmalaGameplay/Public/KalmalaM9ExplorationRewardCatalogue.h`; new `Scripts/Verify-M9ExplorationRewards.ps1`; `docs/29-m9-exploration-rewards.md`; `docs/07-development-setup.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed, including the final seven-action rebuild, with normal `%LOCALAPPDATA%\UnrealBuildTool` access. `Kalmala.Gameplay.M9.ExplorationRewardCatalogue` passed with `Result={Success}`. `Scripts/Verify-M9ExplorationRewards.ps1 -Port 23842` passed the host/client check for deterministic placement, exact owner rewards, distant/forged/duplicate/replayed claim rejection, and independent co-op claims. `git diff --check` passed after documentation and handoff updates. `UnrealEditor-Cmd.exe` stopped during its existing LinuxArm64/VisionOS SDK preflight; the documented `UnrealEditor.exe` fallback ran the automation successfully.
+
+Observable and multiplayer impact: Optional discoveries materialize with active population cells and present their canonical feature text through the existing owner-only feedback path. The server owns placement, eligibility, authenticated player identity, duplicate tracking, and atomic reward exchange. Clients receive only the presentation identity and send interaction intent. Each player has an in-memory limit of 64 claims per server session; no save schema or client reward field was added.
+
+Known limits: Claims are transient and reset on reconnect or server restart pending the M9 save migration contract. The peer check used the null renderer; visual presentation was not reviewed in-world. No new gated M9 material was introduced.
+
+Commit and handoff: Main checkout used; the reviewed files for this increment are committed together after verification. No worktree synchronization was needed.
+
+Next task: Define scope, bounds, seed/revision matching, compatibility, and migration behavior for newly persistent M9 progression and discovery state.
