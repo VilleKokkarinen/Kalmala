@@ -65,7 +65,7 @@ private:
     void RunRainVerticalSliceVerification(float DeltaTime);
     void RefreshStorageView();
     void ClearStorageView();
-    AKalmalaConstructionActor* FindNearbyConstruction(FName Kit) const;
+    AKalmalaConstructionActor* FindNearbyConstruction(FName Kit, FName AlternateKit = NAME_None) const;
     AKalmalaConstructionActor* FindNearbyToolProgressionStation(FName Kit) const;
     TWeakObjectPtr<AKalmalaConstructionActor> ActiveStorage;
     UPROPERTY(Replicated) TArray<FKalmalaInventoryStack> StorageView;

@@ -42,7 +42,8 @@ bool UKalmalaRecipeCatalogue::IsValidCatalogue() const
         const bool bHasExperienceAward = Recipe.ExperienceSkill != EKalmalaSkill::None;
         const bool bHasSkillRequirement = Recipe.RequiredSkill != EKalmalaSkill::None;
         if (Recipe.RecipeId.IsNone() || Seen.Contains(Recipe.RecipeId) || Recipe.DisplayName.TrimStartAndEnd().IsEmpty()
-            || Recipe.DisplayName.Len() > 64 || (Recipe.bRequiresCampfire && (Recipe.bRequiresLitCampfire || !Recipe.RequiredStationKit.IsNone()))
+            || Recipe.DisplayName.Len() > 64 || (Recipe.bRequiresCampfire && (Recipe.bRequiresLitCampfire || !Recipe.RequiredStationKit.IsNone()
+                || !Recipe.AlternateStationKit.IsNone()))
             || (bHasSkillRequirement && (!FKalmalaSkillProgressionContract::IsKnownSkill(Recipe.RequiredSkill)
                 || Recipe.RequiredSkillLevel < 2 || Recipe.RequiredSkillLevel > FKalmalaSkillProgressionContract::MaxLevel))
             || (!bHasSkillRequirement && Recipe.RequiredSkillLevel != 0)
@@ -50,6 +51,9 @@ bool UKalmalaRecipeCatalogue::IsValidCatalogue() const
                 || Recipe.ExperienceAward < 1 || Recipe.ExperienceAward > FKalmalaSkillProgressionContract::MaxAwardPerAcceptedAction))
             || (!bHasExperienceAward && Recipe.ExperienceAward != 0)
             || (!Recipe.RequiredStationKit.IsNone() && !AKalmalaConstructionActor::IsCraftingStationKit(Recipe.RequiredStationKit))
+            || (!Recipe.AlternateStationKit.IsNone() && (Recipe.RequiredStationKit.IsNone()
+                || Recipe.AlternateStationKit == Recipe.RequiredStationKit
+                || !AKalmalaConstructionActor::IsCraftingStationKit(Recipe.AlternateStationKit)))
             || ( !Recipe.OutputTool.IsNone() && !Recipe.Output.IsNone())
             || !Scale(Recipe, Recipe.MaxBatch, Costs, Count)) return false;
         Seen.Add(Recipe.RecipeId);

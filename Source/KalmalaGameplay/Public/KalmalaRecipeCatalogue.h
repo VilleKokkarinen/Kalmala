@@ -18,6 +18,7 @@ struct KALMALAGAMEPLAY_API FKalmalaRecipe
     UPROPERTY(EditAnywhere) bool bRequiresCampfire = false;
     UPROPERTY(EditAnywhere) bool bRequiresLitCampfire = false;
     UPROPERTY(EditAnywhere) FName RequiredStationKit;
+    UPROPERTY(EditAnywhere) FName AlternateStationKit;
     UPROPERTY(EditAnywhere) EKalmalaSkill RequiredSkill = EKalmalaSkill::None;
     UPROPERTY(EditAnywhere) int32 RequiredSkillLevel = 0;
     UPROPERTY(EditAnywhere) EKalmalaSkill ExperienceSkill = EKalmalaSkill::None;

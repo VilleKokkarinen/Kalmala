@@ -26,6 +26,11 @@ AKalmalaConstructionActor::AKalmalaConstructionActor()
     Collision->SetBoxExtent(FVector(54, 54, 56));
     Collision->SetCollisionProfileName(TEXT("BlockAll"));
     RootComponent = Collision;
+    SmokehouseRoofCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("SmokehouseRoofCollision"));
+    SmokehouseRoofCollision->SetupAttachment(Collision);
+    SmokehouseRoofCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    SmokehouseRoofCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+    SmokehouseRoofCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
     PieceMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ConstructionPiece"));
     PieceMesh->SetupAttachment(Collision);
     PieceMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -96,7 +101,7 @@ bool AKalmalaConstructionActor::IsShelterKit(const FName KitId)
 bool AKalmalaConstructionActor::IsCraftingStationKit(const FName KitId)
 {
     return KitId == TEXT("WorkbenchKit") || KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
-        || KitId == TEXT("SmokeFrameKit");
+        || KitId == TEXT("SmokeFrameKit") || KitId == TEXT("SmokehouseKit");
 }
 
 bool AKalmalaConstructionActor::IsStorageKit(const FName KitId)
@@ -110,6 +115,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("WallKit")) return FVector(120, 12, 110);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
     if (KitId == TEXT("SmokeFrameKit")) return FVector(56, 56, 64);
+    if (KitId == TEXT("SmokehouseKit")) return FVector(24, 24, 54);
     if (KitId == TEXT("ForgeKit")) return FVector(60, 60, 62);
     if (KitId == TEXT("WorkbenchToolRackKit")) return FVector(32, 25, 34);
     if (KitId == TEXT("ForgeAnvilKit")) return FVector(28, 16, 28);
@@ -146,8 +152,16 @@ void AKalmalaConstructionActor::ApplyConstructionKit()
     Collision->SetBoxExtent(GetCollisionExtent(ConstructionKit));
     Tags.Remove(TEXT("KalmalaShelterRoof"));
     Tags.Remove(TEXT("KalmalaShelterWindbreak"));
-    if (ConstructionKit == TEXT("RoofKit")) Tags.AddUnique(TEXT("KalmalaShelterRoof"));
+    if (ConstructionKit == TEXT("RoofKit") || ConstructionKit == TEXT("SmokehouseKit"))
+        Tags.AddUnique(TEXT("KalmalaShelterRoof"));
     if (ConstructionKit == TEXT("WallKit")) Tags.AddUnique(TEXT("KalmalaShelterWindbreak"));
+    if (SmokehouseRoofCollision)
+    {
+        SmokehouseRoofCollision->SetBoxExtent(FVector(128.0f, 104.0f, 8.0f));
+        SmokehouseRoofCollision->SetRelativeLocation(FVector(0.0f, 0.0f, 132.0f));
+        SmokehouseRoofCollision->SetCollisionEnabled(ConstructionKit == TEXT("SmokehouseKit")
+            ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+    }
     BuildPiecePresentation();
 }
 
@@ -190,6 +204,20 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
         for (const float Y : {-24.0f, -8.0f, 8.0f, 24.0f})
             AddBox(Vertices, Triangles, FVector(0, Y, 30), FVector(36, 2, 3));
         AddBox(Vertices, Triangles, FVector(0, 0, 56), FVector(34, 34, 3));
+    }
+    else if (ConstructionKit == TEXT("SmokehouseKit"))
+    {
+        for (const float X : {-72.0f, 72.0f}) for (const float Y : {-58.0f, 58.0f})
+            AddBox(Vertices, Triangles, FVector(X, Y, 38.0f), FVector(5.0f, 5.0f, 94.0f));
+        for (const float Z : {-8.0f, 12.0f, 32.0f, 52.0f})
+        {
+            AddBox(Vertices, Triangles, FVector(0.0f, -58.0f, Z), FVector(72.0f, 3.0f, 3.0f));
+            AddBox(Vertices, Triangles, FVector(0.0f, 58.0f, Z), FVector(72.0f, 3.0f, 3.0f));
+        }
+        for (const float Y : {-36.0f, -18.0f, 0.0f, 18.0f, 36.0f})
+            AddBox(Vertices, Triangles, FVector(0.0f, Y, 48.0f), FVector(62.0f, 2.0f, 3.0f));
+        AddBox(Vertices, Triangles, FVector(0.0f, 0.0f, 132.0f), FVector(128.0f, 104.0f, 8.0f));
+        AddBox(Vertices, Triangles, FVector(0.0f, 0.0f, 143.0f), FVector(132.0f, 5.0f, 4.0f));
     }
     else if (ConstructionKit == TEXT("WorkbenchKit"))
     {

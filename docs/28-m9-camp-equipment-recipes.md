@@ -1,9 +1,9 @@
 # M9 optional camp and equipment recipe contract
 
 This page selects a bounded set from the candidate examples in
-`04-roadmap.md`. It defines intended recipes and server checks before runtime
-implementation. Existing item, recipe, construction, storage, hearth, food,
-and skill authorities remain the implementation seams.
+`04-roadmap.md`. It defines the accepted recipes, server checks, and current
+runtime boundaries. Existing item, recipe, construction, storage, hearth,
+food, and skill authorities remain the implementation seams.
 
 ## Accepted recipes
 
@@ -38,17 +38,17 @@ without removing the dried meat. A successful drying request awards one fixed
 batch size. Missing station, inputs, output capacity, or valid batch leaves
 inventory and experience unchanged.
 
-The smokehouse accepts the existing Cooking-level-2 boar and deer smoke
-recipes unchanged:
+The existing Smoke Frame and roofed Smokehouse accept the same
+Cooking-level-2 boar and deer smoke recipes:
 each serving consumes one matching raw meat and one `Fuel`, outputs one
 `SmokedFieldMeat`, caps the batch at 3, and awards 10 Cooking experience per
-accepted request after payment. The server requires a visible, same-world
-smokehouse within 250 cm of the owner and a usable Lit hearth with finite,
-positive heat within 250 cm of both owner and smokehouse. Hearth fuel burns at
-its ordinary rate; the recipe's one `Fuel` per serving remains the explicit
-additional processing cost. The roof may protect the hearth from rain through
-the existing shelter check, but cannot create heat, light a fire, or bypass
-station, range, visibility, or fuel validation.
+accepted request after payment. The server selects a visible, same-world
+smoke station within 250 cm of the owner and a usable Lit hearth with finite,
+positive heat within 250 cm of both owner and selected station. Hearth fuel
+burns at its ordinary rate; the recipe's one `Fuel` per serving remains the
+explicit additional processing cost. The roof may protect the hearth from
+rain through the existing shelter check, but cannot create heat, light a fire,
+or bypass station, range, visibility, Cooking-level, or fuel validation.
 
 ## Server transaction requirements
 
@@ -98,8 +98,9 @@ contract suite. Exercise accepted and rejected host/client requests for wrong
 or distant stations, out-of-range or blocked use, missing inputs, output
 capacity, meal-slot consumption rejection, malformed batches, and owner-only
 chest contents. Run the storage and crafting peer verifiers after the
-persistence gate is approved. The Smokehouse and Drying Line portions remain
-design-only; no implementation or peer-playtest claim is made for them.
+persistence gate is approved. Smokehouse transaction, roof, session-save, and
+accessibility assertions are recorded below; a rendered two-peer walkthrough
+has not run. The Drying Line remains design-only.
 
 ## Runtime increment: raised storage
 
@@ -125,5 +126,37 @@ The existing storage transfer and network contract suites continue to cover
 the 16-stack transaction and owner-only replicated view. A rendered two-peer
 raised-chest walkthrough has not run.
 
-The Smokehouse and Drying Line recipes remain design-only; this increment does
-not complete the optional camp/equipment backlog task or enable M9 migration.
+The Drying Line remains design-only; raised storage alone does not complete the
+optional camp/equipment backlog task or enable M9 migration.
+
+## Runtime increment: roofed Smokehouse
+
+`Smokehouse` produces one `SmokehouseKit` for three `Densewood`, two
+`ConstructionSupply`, and two `Fibre` at a visible same-world Workbench within
+250 cm. The paid placement and local preview use the existing construction
+path. The original procedural slatted rack and broad roof reuse the replicated
+construction-kit presentation. The roof uses query-only Visibility collision
+and the accepted `KalmalaShelterRoof` tag; it contributes to the existing
+server shelter and hearth rain-protection traces while ignoring Pawn collision
+so a hearth can fit under its overhang.
+
+The new kit is session-only and is rejected by construction save schema 1; the
+record shape and version remain unchanged. The owner-facing build details and
+placement result explain the session limit. No private storage, separate fuel
+store, processing timer, heat source, or recipe bonus was added.
+
+The two existing smoke recipes keep their Smoke Frame as the primary station
+and add `SmokehouseKit` as an alternate. The server selects the nearest visible
+same-world accepted station; client intent still contains only the existing
+recipe ID and bounded batch. The original Cooking level-2 check, one `Fuel`
+per serving, lit-hearth positive-heat/range checks, three-serving bound,
+atomic inventory exchange, and one 10-point Cooking award per accepted request
+remain unchanged. Owner-facing recipe detail names both stations and retains
+the heat and extra-fuel guidance.
+
+`Kalmala.Gameplay.M9.Smokehouse` checks catalogue cost, Workbench access,
+placement eligibility, roof shelter sampling, hearth placement clearance,
+and schema-one exclusion. `Kalmala.Gameplay.Food.CampfireProcessing` checks
+the Smokehouse alternate, heavy-rain roof protection, retained positive-heat
+and range rejection, batch/fuel rules, atomic result, and experience. No
+rendered host/client walkthrough has run.

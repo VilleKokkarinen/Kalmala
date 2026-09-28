@@ -36,6 +36,8 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         {TEXT("SmokeDeerMeat"), TEXT("SmokedFieldMeat"), 3, false, true, {{TEXT("DeerMeat"),1},{TEXT("Fuel"),1}}},
         {TEXT("RaisedStorage"), TEXT("RaisedStorageKit"), 1, false, false,
             {{TEXT("Densewood"),3},{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),2}}, NAME_None, TEXT("WorkbenchKit")},
+        {TEXT("Smokehouse"), TEXT("SmokehouseKit"), 1, false, false,
+            {{TEXT("Densewood"),3},{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),2}}, NAME_None, TEXT("WorkbenchKit")},
     };
     TestEqual(TEXT("Recipe catalogue matches its exact verified set"), Recipes->Recipes.Num(), Expected.Num());
     for (const FExpectedRecipe& Definition : Expected)

@@ -69,6 +69,20 @@ FString GetSkillRequirementText(const FKalmalaRecipe& Recipe, const AKalmalaChar
         *GetSkillDisplayName(Recipe.RequiredSkill), Recipe.RequiredSkillLevel,
         GetCurrentSkillLevel(Character, Recipe.RequiredSkill));
 }
+
+FString GetStationDisplayName(const FName KitId)
+{
+    const auto* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(KitId);
+    return Item ? Item->DisplayName : KitId.ToString();
+}
+
+FString GetRecipeStationNames(const FKalmalaRecipe& Recipe)
+{
+    FString Names = GetStationDisplayName(Recipe.RequiredStationKit);
+    if (!Recipe.AlternateStationKit.IsNone())
+        Names += TEXT(" or ") + GetStationDisplayName(Recipe.AlternateStationKit);
+    return Names;
+}
 }
 
 UKalmalaCraftingComponent::UKalmalaCraftingComponent()
@@ -186,12 +200,11 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
         if (!Station) return false;
     }
     const AKalmalaConstructionActor* RequiredStation = Recipe->RequiredStationKit.IsNone()
-        ? nullptr : FindNearbyConstruction(Recipe->RequiredStationKit);
+        ? nullptr : FindNearbyConstruction(Recipe->RequiredStationKit, Recipe->AlternateStationKit);
     if (!Recipe->RequiredStationKit.IsNone() && !RequiredStation)
     {
-        const auto* StationItem = GetDefault<UKalmalaItemCatalogue>()->FindItem(Recipe->RequiredStationKit);
-        Reason = FString::Printf(TEXT("Need a visible %s within 2.5 m"),
-            StationItem ? *StationItem->DisplayName : *Recipe->RequiredStationKit.ToString());
+        Reason = FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"),
+            *GetRecipeStationNames(*Recipe));
         return false;
     }
     if (Recipe->bRequiresLitCampfire && !FindNearbyLitFire(RequiredStation))
@@ -442,7 +455,9 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
         ? TEXT("Placed the paid station attachment; its level bonus lasts for this session")
         : KitId == TEXT("RaisedStorageKit")
             ? TEXT("Placed raised rainproof storage; chest and contents last for this server session")
-            : TEXT("Placed construction; server accepted the kit and ground");
+            : KitId == TEXT("SmokehouseKit")
+                ? TEXT("Placed the roofed smokehouse; it lasts for this server session while ordinary hearth, fuel, and recipe gates remain")
+                : TEXT("Placed construction; server accepted the kit and ground");
     return true;
 }
 
@@ -580,12 +595,11 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
         }
     }
     const AKalmalaConstructionActor* RequiredStation = R->RequiredStationKit.IsNone()
-        ? nullptr : FindNearbyConstruction(R->RequiredStationKit);
+        ? nullptr : FindNearbyConstruction(R->RequiredStationKit, R->AlternateStationKit);
     if (!R->RequiredStationKit.IsNone() && !RequiredStation)
     {
-        const auto* StationItem = GetDefault<UKalmalaItemCatalogue>()->FindItem(R->RequiredStationKit);
-        return FString::Printf(TEXT("Need a visible %s within 2.5 m"),
-            StationItem ? *StationItem->DisplayName : *R->RequiredStationKit.ToString());
+        return FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"),
+            *GetRecipeStationNames(*R));
     }
     if (R->bRequiresLitCampfire && !FindNearbyLitFire(RequiredStation))
     {
@@ -706,8 +720,7 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     }
     if (!R->RequiredStationKit.IsNone())
     {
-        const auto* StationItem = GetDefault<UKalmalaItemCatalogue>()->FindItem(R->RequiredStationKit);
-        const FString StationName = StationItem ? StationItem->DisplayName : R->RequiredStationKit.ToString();
+        const FString StationName = GetRecipeStationNames(*R);
         Text += FString::Printf(TEXT("\nStation: visible same-world %s within 2.5 m"), *StationName);
         if (R->bRequiresLitCampfire)
         {
@@ -724,6 +737,9 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
         Text += TEXT("\nStation: nearby usable same-world hearth or workbench.");
     else
         Text += TEXT("\nHandcrafted; no station");
+
+    if (R->Output == TEXT("SmokehouseKit"))
+        Text += TEXT("\nPlacement: its roof shelters the player and a nearby hearth from rain. It adds no private stock, fuel store, timer, or recipe bonus and lasts only for this server session until M9 save migration is approved.");
 
     Text += TEXT("\nFailure: the availability text below names the first unmet requirement. Rejected requests preserve ingredients and tool condition.");
     return Text;

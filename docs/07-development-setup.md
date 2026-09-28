@@ -1146,3 +1146,25 @@ actor rejection, and schema-one exclusion. The storage checks retain the
 existing 16-stack transaction and owner-only view contract. No construction or
 storage save schema is extended. A live rendered raised-chest peer walkthrough
 remains open.
+
+### M9 roofed Smokehouse
+
+After the forced UE 5.8.2 `KalmalaEditor Win64 Development` build with normal
+`%LOCALAPPDATA%/UnrealBuildTool` access, run the Smokehouse catalogue/roof/save
+test, the existing food-processing transaction suite, and the construction,
+crafting, preview, shelter, and save contracts:
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM9SmokehouseUser' -abslog='C:\temp\KalmalaM9Smokehouse.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.M9.Smokehouse+Kalmala.Gameplay.Food.CampfireProcessing+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract+Kalmala.Gameplay.Construction.ShelterSampling; Quit" -TestExit="Automation Test Queue Empty"
+```
+
+Require every requested automation to report success. The focused Smokehouse
+checks cover the paid Workbench recipe, same-world station access, original
+Smoke Frame plus alternate Smokehouse selection, roof traces with no hearth
+placement block, session-only kit policy, and schema-one exclusion. The food
+transaction checks retain the Cooking level-2 gate, positive lit-hearth heat,
+range, one Ember bundle per serving, bounded batch, atomic output, and one
+Cooking award per accepted request. A rendered host/client Smokehouse
+walkthrough remains open. If `UnrealEditor-Cmd.exe` exits during its
+all-platform SDK preflight, run the same arguments with `UnrealEditor.exe` and
+require successful results in the automation log.

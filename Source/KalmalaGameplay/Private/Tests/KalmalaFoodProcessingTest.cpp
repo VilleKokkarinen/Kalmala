@@ -55,6 +55,7 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Smoking requires a lit hearth with heat"), Recipe->bRequiresLitCampfire);
         TestFalse(TEXT("Smoking does not accept a generic assembly station"), Recipe->bRequiresCampfire);
         TestEqual(TEXT("Smoking requires the server-owned frame"), Recipe->RequiredStationKit, FName(TEXT("SmokeFrameKit")));
+        TestEqual(TEXT("Smoking accepts the roofed smokehouse as its alternate station"), Recipe->AlternateStationKit, FName(TEXT("SmokehouseKit")));
         TestEqual(TEXT("Smoke batches are capped at three servings"), Recipe->MaxBatch, 3);
         TestEqual(TEXT("Smoking yields only the approved food item"), Recipe->Output, FName(TEXT("SmokedFieldMeat")));
         const FKalmalaInventoryStack* FuelCost = Recipe->Ingredients.FindByPredicate(
@@ -256,6 +257,56 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Recipe text explains smoke-frame fuel and heat"), Crafting->GetRecipeDescription(TEXT("SmokeBoarMeat")).Contains(TEXT("fuel cost")));
     TestTrue(TEXT("Food panel names the available smoked serving"), Crafting->GetFoodText().Contains(TEXT("Smoked field meat: 1 available")));
 
+    SmokeFrame->SetActorLocation(Pawn->GetActorLocation() + FVector(400.0f, 0.0f, 0.0f));
+    AKalmalaConstructionActor* Smokehouse = World->SpawnActor<AKalmalaConstructionActor>();
+    if (!TestNotNull(TEXT("Transient roofed smokehouse fixture spawned"), Smokehouse))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    Smokehouse->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, 60.0f, 56.0f));
+    Smokehouse->InitializeFromServer(TEXT("SmokehouseKit"), TEXT("FoodProcessingSmokehouse"));
+    TestTrue(TEXT("Placed smokehouse passes the authoritative visibility and access check"), Smokehouse->CanUse(Pawn));
+    TestTrue(TEXT("Smoke recipe feedback names the alternate smokehouse"),
+        Crafting->GetRecipeDescription(TEXT("SmokeBoarMeat")).Contains(TEXT("Roofed smokehouse kit")));
+    TestTrue(TEXT("Smokehouse feedback explains its session-only roof behavior"),
+        Crafting->GetRecipeDescription(TEXT("Smokehouse")).Contains(TEXT("lasts only for this server session")));
+    Fire->AdvanceFromServer(1.0f, 1.0f, 0.0f);
+    TestTrue(TEXT("Smokehouse roof keeps its nearby lit hearth protected in heavy rain"), Fire->HasRoof() && Fire->IsLit());
+
+    const int32 BoarBeforeSmokehouseHeatCheck = Inventory->GetQuantity(TEXT("BoarMeat"));
+    TestTrue(TEXT("Fixture supplies smokehouse meat and its per-serving fuel"),
+        Inventory->TryGrantFromServer(TEXT("BoarMeat"), 1) && Inventory->TryGrantFromServer(TEXT("Fuel"), 1));
+    Smokehouse->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, 60.0f, 56.0f));
+    Fire->SetActorLocation(Pawn->GetActorLocation() + FVector(200.0f, 0.0f, 0.0f));
+    Fire->AdvanceFromServer(1.0f, 0.1f, 0.0f);
+    TestFalse(TEXT("Smokehouse does not bypass the positive-heat hearth gate"), Crafting->CraftFromServer(TEXT("SmokeBoarMeat"), 1, Reason));
+    TestEqual(TEXT("Missing smokehouse heat preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarBeforeSmokehouseHeatCheck + 1);
+    TestEqual(TEXT("Missing smokehouse heat preserves per-serving fuel"), Inventory->GetQuantity(TEXT("Fuel")), 1);
+    Fire->SetActorLocation(Pawn->GetActorLocation() + FVector(120.0f, 0.0f, 0.0f));
+    Fire->AdvanceFromServer(0.0f, 0.0f, 0.0f);
+    TestTrue(TEXT("Smokehouse roof restores heat when the lit hearth is sheltered"), Fire->HasRoof() && Fire->IsLit());
+
+    const int32 SmokehouseMeatBeforeDistantCheck = Inventory->GetQuantity(TEXT("BoarMeat"));
+    Smokehouse->SetActorLocation(Pawn->GetActorLocation() + FVector(400.0f, 0.0f, 56.0f));
+    TestFalse(TEXT("Smokehouse rejects processing beyond same-world use range"), Crafting->CraftFromServer(TEXT("SmokeBoarMeat"), 1, Reason));
+    TestEqual(TEXT("Distant smokehouse preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), SmokehouseMeatBeforeDistantCheck);
+    TestEqual(TEXT("Distant smokehouse preserves fuel"), Inventory->GetQuantity(TEXT("Fuel")), 1);
+    Smokehouse->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, 60.0f, 56.0f));
+    TestFalse(TEXT("Smokehouse retains the existing three-serving cap"), Crafting->CraftFromServer(TEXT("SmokeBoarMeat"), 4, Reason));
+    TestEqual(TEXT("Invalid smokehouse batch preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), SmokehouseMeatBeforeDistantCheck);
+
+    const float HearthFuelBeforeSmokehouse = Fire->GetFuelSeconds();
+    const int32 CookingExperienceBeforeSmokehouse = GetCookingExperience();
+    TestTrue(TEXT("Roofed smokehouse uses the existing smoke transaction"), Crafting->CraftFromServer(TEXT("SmokeBoarMeat"), 1, Reason));
+    TestEqual(TEXT("Smokehouse processing consumes one raw serving"), Inventory->GetQuantity(TEXT("BoarMeat")), SmokehouseMeatBeforeDistantCheck - 1);
+    TestEqual(TEXT("Smokehouse processing charges the unchanged per-serving fuel"), Inventory->GetQuantity(TEXT("Fuel")), 0);
+    TestEqual(TEXT("Smokehouse does not add a separate hearth fuel debit"), Fire->GetFuelSeconds(), HearthFuelBeforeSmokehouse);
+    TestEqual(TEXT("Smokehouse creates one existing smoked serving"), Inventory->GetQuantity(TEXT("SmokedFieldMeat")), 2);
+    TestEqual(TEXT("Smokehouse awards the existing one-per-request Cooking experience"), GetCookingExperience(), CookingExperienceBeforeSmokehouse + 10);
+    Smokehouse->Destroy();
+    SmokeFrame->SetActorLocation(Pawn->GetActorLocation() + FVector(120.0f, 120.0f, 0.0f));
+
     const int32 BoarMeatBeforeRack = Inventory->GetQuantity(TEXT("BoarMeat"));
     Rack->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -240.0f, 0.0f));
     TestFalse(TEXT("A player-near fire cannot heat a rack more than 250 cm away"), Crafting->CraftFromServer(TEXT("RoastBoarMeat"), 1, Reason));
@@ -312,7 +363,7 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
     const FString ActiveMealText = Crafting->GetFoodText();
     TestTrue(TEXT("Owner feedback names the active benefit and wait rule"), ActiveMealText.Contains(TEXT("10% lower")) && ActiveMealText.Contains(TEXT("Wait for expiry")));
     TestTrue(TEXT("Owner feedback keeps every food count visible during a meal"), ActiveMealText.Contains(TEXT("Roasted field meat 2"))
-        && ActiveMealText.Contains(TEXT("Hearth broth 10")) && ActiveMealText.Contains(TEXT("Smoked field meat 1")));
+        && ActiveMealText.Contains(TEXT("Hearth broth 10")) && ActiveMealText.Contains(TEXT("Smoked field meat 2")));
 
     Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     TestFalse(TEXT("Meal expires on server status time"), Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId));
@@ -325,7 +376,7 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
         UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     TestTrue(TEXT("Smoked field meat is an approved alternate meal"), Crafting->ConsumeFoodFromServer(TEXT("SmokedFieldMeat"), Reason));
-    TestEqual(TEXT("Smoked-meat consumption removes one serving"), Inventory->GetQuantity(TEXT("SmokedFieldMeat")), 0);
+    TestEqual(TEXT("Smoked-meat consumption removes one serving"), Inventory->GetQuantity(TEXT("SmokedFieldMeat")), 1);
     TestEqual(TEXT("Smoked meat grants the existing bounded meal duration"), Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
         UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
 

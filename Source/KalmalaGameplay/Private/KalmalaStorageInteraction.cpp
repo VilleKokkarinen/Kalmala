@@ -7,7 +7,7 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 
-AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyConstruction(FName Kit) const
+AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyConstruction(FName Kit, FName AlternateKit) const
 {
     const auto* Character = GetCharacter();
     if (!Character || !GetWorld()) return nullptr;
@@ -19,7 +19,8 @@ AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyConstruction(FNa
         const bool bMatchesKit = Kit == TEXT("StorageKit")
             ? AKalmalaConstructionActor::IsStorageKit(It->GetConstructionKit())
             : It->GetConstructionKit() == Kit;
-        if (!bMatchesKit || !It->CanUse(Character)) continue;
+        const bool bMatchesAlternateKit = !AlternateKit.IsNone() && It->GetConstructionKit() == AlternateKit;
+        if ((!bMatchesKit && !bMatchesAlternateKit) || !It->CanUse(Character)) continue;
         const double Distance = FVector::DistSquared(Character->GetActorLocation(), It->GetActorLocation());
         if (Distance < Best || (Distance == Best && (!Closest || It->GetConstructionId() < Closest->GetConstructionId())))
         { Best = Distance; Closest = *It; }

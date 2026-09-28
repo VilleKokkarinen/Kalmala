@@ -365,7 +365,7 @@ contract and migration checks pass.
   - [x] Review the roadmap examples—weatherproof storage, hearth-compatible processing, storm-rated shelter, insulated equipment, and camp drying utility—and define the accepted recipes and server-side validation before implementation.
   - [ ] Keep storage, processing, construction, equipment effects, repair, costs, and skill awards within their existing authorities and accessibility feedback paths.
     - [x] Add paid, rain-immune raised storage with the shared bounded chest interface; keep its construction and contents session-only until M9 migration.
-    - [ ] Add the roofed Smokehouse alternative while retaining the existing server-owned smoke recipe, hearth, fuel, and skill gates.
+    - [x] Add the roofed Smokehouse alternative while retaining the existing server-owned smoke recipe, hearth, fuel, and skill gates.
     - [ ] Add the bounded no-hearth Drying Line recipes through the existing inventory, meal-effect, and Cooking-skill authorities.
     - [ ] Verify host/client privacy, rejected-mutation behavior, costs, and accessible feedback across the accepted camp additions.
 - [ ] Add optional exploration rewards without quest routing.
