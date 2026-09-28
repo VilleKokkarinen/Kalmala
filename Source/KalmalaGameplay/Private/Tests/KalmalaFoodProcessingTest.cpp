@@ -268,7 +268,7 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
     Smokehouse->InitializeFromServer(TEXT("SmokehouseKit"), TEXT("FoodProcessingSmokehouse"));
     TestTrue(TEXT("Placed smokehouse passes the authoritative visibility and access check"), Smokehouse->CanUse(Pawn));
     TestTrue(TEXT("Smoke recipe feedback names the alternate smokehouse"),
-        Crafting->GetRecipeDescription(TEXT("SmokeBoarMeat")).Contains(TEXT("Roofed smokehouse kit")));
+        Crafting->GetRecipeDescription(TEXT("SmokeBoarMeat")).Contains(TEXT("Roofed smokehouse")));
     TestTrue(TEXT("Smokehouse feedback explains its session-only roof behavior"),
         Crafting->GetRecipeDescription(TEXT("Smokehouse")).Contains(TEXT("lasts only for this server session")));
     Fire->AdvanceFromServer(1.0f, 1.0f, 0.0f);

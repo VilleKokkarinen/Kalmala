@@ -18,3 +18,11 @@ Also run these headless automations with the memory-cache and temporary user/log
 - `Kalmala.Gameplay.Interaction.ServerOnlyRangeValidation`
 
 The network contract inspects the compiled RPC signature: interaction intent carries no client-selected target, item, quantity, or outcome; neither the inventory nor harvest node declares a server mutation RPC. Catalogue and authority fixtures check malformed values and invalid calls, while the live peers check real owner-only replication. This is not a malformed-packet fuzz test or a test of simultaneous physical harvest input through the interaction trace. No runtime authority, replication, save schema, or normal gameplay behavior changes in this verification increment.
+
+Every item in the schema-version-2 JSON catalogue has a required, bounded
+description. The catalogue test also rejects player-facing item or recipe names
+that still contain "Kit". The crafting menu displays the selected recipe
+output description and the description of the item chosen by its Previous /
+Next item controls, so all catalogue descriptions can be browsed without putting
+them into the inventory HUD. Internal IDs remain unchanged for recipe,
+construction, and save compatibility.

@@ -16,6 +16,9 @@ struct KALMALAGAMEPLAY_API FKalmalaItemDefinition
     FString DisplayName;
 
     UPROPERTY(EditAnywhere)
+    FString Description;
+
+    UPROPERTY(EditAnywhere)
     int32 MaxStack = 1;
 };
 

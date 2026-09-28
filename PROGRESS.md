@@ -9507,3 +9507,17 @@ needed.
 Next task: Continue moving remaining kit-based camp structures to direct
 Construction Hammer builds from raw materials while preserving their existing
 server validation and stable placement/save identities.
+
+### Run 2026-09-28T13:06:03Z - Remove Kit from player-facing item names
+
+Outcome: All 32 item definitions now have required descriptions of at most 180 characters. Player-facing item and recipe names no longer contain "Kit". Recipe output details and the item selector show the descriptions. The content catalogue schema advanced from version 1 to version 2.
+
+Changed: BACKLOG.md; Content/Data/GameCatalogues.json; Source/KalmalaGameplay/Public/KalmalaItemCatalogue.h; Source/KalmalaGameplay/Private/KalmalaItemCatalogue.cpp, KalmalaGameCatalogueLoader.cpp, and KalmalaCraftingComponent.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp, KalmalaFoodProcessingTest.cpp, and KalmalaItemCatalogueTest.cpp; Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp; docs/02-technical-architecture.md, docs/07-development-setup.md, docs/09-inventory-verification.md, docs/10-campfire-and-crafting.md; and PROGRESS.md.
+
+Verification: Forced UE 5.8.2 KalmalaEditor Win64 Development build passed all 195 actions; the fixture repair rebuild passed four actions. All five focused automations passed: Inventory.Catalogue, Food.CampfireProcessing, M9.Smokehouse, Crafting.Transactions, and Crafting.NetworkContract. Scripts/Verify-Crafting.ps1 -Port 18041 passed with host and client, including Crafting presentation: Passed=1 Restored=1 on both. JSON parsed as schema 2 with 32 items and 23 recipes; git diff --check passed. The combined first run found a temporary test item missing its new required description; the fixture was repaired before the passing rebuild and rerun.
+
+Multiplayer impact: Names and descriptions are static presentation data. The server still owns item validation, costs, transactions, and construction; canonical item IDs remain stable. No RPC, replicated field, or saved-data schema changed.
+
+Known limits: The peer check used the null renderer, so menu layout was not visually reviewed. Internal IDs still include Kit where required by recipes, construction identities, and existing saves; remaining camp structures still use their current kit recipes pending direct-build migration.
+
+Next task: Move the remaining kit-based camp structures to direct Construction Hammer builds from raw materials while preserving server validation and construction-save identities.

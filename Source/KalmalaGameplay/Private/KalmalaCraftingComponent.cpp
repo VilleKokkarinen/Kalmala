@@ -773,6 +773,7 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
         const auto* BuildItem = UKalmalaItemCatalogue::Get()->FindItem(R->Output);
         Text += FString::Printf(TEXT("\nOutput: %s construction (no kit item created)."),
             BuildItem ? *BuildItem->DisplayName : *R->Output.ToString());
+        if (BuildItem) Text += TEXT("\nDescription: ") + BuildItem->Description;
         Text += R->Output == TEXT("CampfireKit")
             ? TEXT("\nBuild quantity: one hearth per request. Placement: clear, dry, gently sloping ground ahead. The server rechecks terrain, slope, water, overlap, range, payment, and the session limit. Failure: the availability text below names missing materials.")
             : TEXT("\nBuild quantity: one construction per request; repeat to build another.\nPlacement: clear, dry, gently sloping ground. The server rechecks terrain, slope, overlap, range, payment, and save identity. Failure: the availability text below names missing materials.");
@@ -791,6 +792,7 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     Text += FString::Printf(TEXT("\nOutput: %d %s (stack limit %d per inventory stack)"),
         R->OutputCount, OutputItem ? *OutputItem->DisplayName : *R->Output.ToString(),
         OutputItem ? OutputItem->MaxStack : 0);
+    if (OutputItem) Text += TEXT("\nDescription: ") + OutputItem->Description;
     if (R->RequiredSkill != EKalmalaSkill::None)
         Text += FString::Printf(TEXT("\nUnlock: %s."), *GetSkillRequirementText(*R, GetCharacter()));
     if (FKalmalaToolProgressionContract::IsStationAttachmentKit(R->Output))

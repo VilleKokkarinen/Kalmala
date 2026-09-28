@@ -214,7 +214,8 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     for(int32 I=0;I<15;++I)
     {
         const FName Id(*FString::Printf(TEXT("TestSlot%d"),I));
-        FKalmalaItemDefinition Def; Def.ItemId=Id; Def.DisplayName=Id.ToString(); Def.MaxStack=2; Items->Items.Add(Def);
+        FKalmalaItemDefinition Def; Def.ItemId=Id; Def.DisplayName=Id.ToString();
+        Def.Description=TEXT("Test item used to exercise inventory slot limits."); Def.MaxStack=2; Items->Items.Add(Def);
         Before.Add({Id,1});
     }
     Costs={{TEXT("Wood"),1}};

@@ -367,8 +367,13 @@ void UKalmalaCraftingWidget::Refresh()
     if (ToolProgressionText) ToolProgressionText->SetText(FText::FromString(M->GetToolProgressionText()));
     const auto* Catalogue = UKalmalaItemCatalogue::Get();
     SelectedStorageItem = FMath::Clamp(SelectedStorageItem, 0, FMath::Max(0, Catalogue->Items.Num()-1));
-    FString ChestText = Catalogue->Items.IsValidIndex(SelectedStorageItem)
-        ? TEXT("Selected item: ") + Catalogue->Items[SelectedStorageItem].DisplayName + TEXT("\n") : TEXT("No item catalogue\n");
+    FString ChestText = TEXT("No item catalogue\n");
+    if (Catalogue->Items.IsValidIndex(SelectedStorageItem))
+    {
+        const FKalmalaItemDefinition& SelectedItem = Catalogue->Items[SelectedStorageItem];
+        ChestText = FString::Printf(TEXT("Selected item: %s\nDescription: %s\n"),
+            *SelectedItem.DisplayName, *SelectedItem.Description);
+    }
     ChestText += M->HasStorageView() ? TEXT("Inspected chest (16 stack maximum):\n") : TEXT("Chest contents unavailable; inspect nearby first.\n");
     if (M->HasStorageView())
     {
@@ -389,7 +394,8 @@ FString UKalmalaCraftingWidget::GetPresentationText() const
             + StateText->GetText().ToString() + (FoodText ? FoodText->GetText().ToString() : FString())
             + (RepairText ? RepairText->GetText().ToString() : FString())
             + (ToolProgressionText ? ToolProgressionText->GetText().ToString() : FString())
-            + (CraftButton ? CraftButton->GetToolTipText().ToString() : FString()) : FString();
+            + (CraftButton ? CraftButton->GetToolTipText().ToString() : FString())
+            + (StorageText ? StorageText->GetText().ToString() : FString()) : FString();
 }
 void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D) { Super::NativeTick(G,D); if(bOpen) Refresh(); }
 void UKalmalaCraftingWidget::Previous() { const int32 N=UKalmalaRecipeCatalogue::Get()->Recipes.Num(); if(N) Selected=(Selected+N-1)%N; Refresh(); }
@@ -505,6 +511,8 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && Text.Contains(TEXT("Raw material cost: 5 Fieldstone, 3 Splitwood"))
                 && Text.Contains(TEXT("Ignition: one Ember bundle is also consumed to start the hearth with 60 seconds of fuel."))
                 && Text.Contains(TEXT("Output: Hearth ring construction (no kit item created)"))
+                && Text.Contains(TEXT("Description: A low stone-and-wood hearth built in place with a Construction Hammer; an Ember bundle lights it."))
+                && Text.Contains(TEXT("Description: Split, dry timber for fire fuel and simple construction."))
                 && Text.Contains(TEXT("Build quantity: one hearth per request"))
                 && Text.Contains(TEXT("Failure: the availability text below"))
                 && Text.Contains(TEXT("SKILL PROGRESS [PRIVATE TO YOU]"))

@@ -14,6 +14,18 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Versioned JSON loads a valid recipe catalogue"), Recipes->IsValidCatalogue());
     TestEqual(TEXT("The JSON item catalogue contains the complete current set"), Catalogue->Items.Num(), 32);
     TestEqual(TEXT("The JSON recipe catalogue contains the complete current set"), Recipes->Recipes.Num(), 23);
+    for (const FKalmalaItemDefinition& Item : Catalogue->Items)
+    {
+        TestFalse(FString::Printf(TEXT("%s has a player-facing name without Kit"), *Item.ItemId.ToString()),
+            Item.DisplayName.Contains(TEXT("kit"), ESearchCase::IgnoreCase));
+        TestFalse(FString::Printf(TEXT("%s has a bounded description"), *Item.ItemId.ToString()),
+            Item.Description.TrimStartAndEnd().IsEmpty() || Item.Description.Len() > 180);
+    }
+    for (const FKalmalaRecipe& Recipe : Recipes->Recipes)
+    {
+        TestFalse(FString::Printf(TEXT("%s has a player-facing recipe name without Kit"), *Recipe.RecipeId.ToString()),
+            Recipe.DisplayName.Contains(TEXT("kit"), ESearchCase::IgnoreCase));
+    }
     for (const FName Id : {FName(TEXT("Wood")), FName(TEXT("Stone")), FName(TEXT("Fibre")),
         FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply"))})
     {
@@ -47,6 +59,11 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Unbounded configuration fails closed"), Invalid->IsValidCatalogue());
     Invalid->Items[0].MaxStack = 0;
     TestFalse(TEXT("Zero stack configuration rejected"), Invalid->IsValidCatalogue());
+    Invalid->Items = Catalogue->Items;
+    Invalid->Items[0].Description.Reset();
+    TestFalse(TEXT("Missing item description fails closed"), Invalid->IsValidCatalogue());
+    Invalid->Items[0].Description = FString::ChrN(181, TEXT('x'));
+    TestFalse(TEXT("Overlong item description fails closed"), Invalid->IsValidCatalogue());
     Invalid->Items.Reset();
     TestFalse(TEXT("Missing configuration fails closed"), Invalid->IsValidCatalogue());
     return true;

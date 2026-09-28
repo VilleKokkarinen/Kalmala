@@ -18,6 +18,7 @@ bool UKalmalaItemCatalogue::IsValidCatalogue() const
     {
         if (Item.ItemId.IsNone() || Seen.Contains(Item.ItemId)
             || Item.DisplayName.TrimStartAndEnd().IsEmpty() || Item.DisplayName.Len() > 64
+            || Item.Description.TrimStartAndEnd().IsEmpty() || Item.Description.Len() > 180
             || Item.MaxStack < 1 || Item.MaxStack > AbsoluteMaxStack)
         {
             return false;

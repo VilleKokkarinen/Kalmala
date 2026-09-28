@@ -42,7 +42,7 @@ namespace
         double SchemaVersion = 0.0;
         const TArray<TSharedPtr<FJsonValue>>* ItemValues = nullptr;
         const TArray<TSharedPtr<FJsonValue>>* RecipeValues = nullptr;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 1.0
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 2.0
             || !Root->TryGetArrayField(TEXT("items"), ItemValues)
             || !Root->TryGetArrayField(TEXT("recipes"), RecipeValues)
             || ItemValues == nullptr || RecipeValues == nullptr

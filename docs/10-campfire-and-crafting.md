@@ -11,11 +11,11 @@ The server-local `KalmalaRecipeCatalogue` loads these original recipes from the 
 | Ember bundle | 2 splitwood + 1 reed fibre | Handcrafted | 5 |
 | Lashed timber | 3 splitwood + 2 reed fibre | Handcrafted | 5 |
 | Hearth ring | 5 fieldstone + 3 splitwood; also consumes 1 ember bundle to start with 60 seconds of fuel | Construction Hammer; clear ground ahead | 1 per placement |
-| Joiner's bench kit | 3 lashed timber + 2 fieldstone | Handcrafted | 1 |
-| Woven chest kit | 2 lashed timber + 4 reed fibre | Handcrafted | 1 |
-| Cooking rack kit | 3 lashed timber + 2 reed fibre | Handcrafted | 1 |
-| Smoke frame kit | 3 lashed timber + 3 reed fibre | Handcrafted | 1 |
-| Roofed smokehouse kit | 3 Densewood + 2 lashed timber + 2 reed fibre | Visible same-world workbench within 250 cm | 1 |
+| Joiner's bench | 3 lashed timber + 2 fieldstone | Handcrafted | 1 |
+| Woven chest | 2 lashed timber + 4 reed fibre | Handcrafted | 1 |
+| Cooking rack | 3 lashed timber + 2 reed fibre | Handcrafted | 1 |
+| Smoke frame | 3 lashed timber + 3 reed fibre | Handcrafted | 1 |
+| Roofed smokehouse | 3 Densewood + 2 lashed timber + 2 reed fibre | Visible same-world workbench within 250 cm | 1 |
 | Timber floor | 6 splitwood + 4 reed fibre | Construction Hammer; valid ground | 1 per placement |
 | Windbreak wall | 6 splitwood + 6 reed fibre | Construction Hammer; valid ground | 1 per placement |
 | Reed roof | 6 splitwood + 8 reed fibre | Construction Hammer; valid ground | 1 per placement |
@@ -34,10 +34,13 @@ Grinding Stone `Repair All` action remains a later increment; see
 
 The panel shows the selected recipe and its position in the catalogue above
 the longer hearth and status details; Previous and Next continue to navigate
-the full catalogue. The selected-recipe detail spells out its batch-1 ingredient cost, maximum
-batch, output quantity and per-stack limit, station and heat requirements,
+the full catalogue. The selected-recipe detail spells out its batch-1 ingredient cost,
+maximum batch, output quantity and per-stack limit, the output item description,
+station and heat requirements,
 skill requirement with the current level, and the first unmet availability
-reason. A separate text block lists the owning player's six private skills,
+reason. Previous item / Next item in the storage selector also show the
+selected catalogue item description, including raw materials without crafting
+outputs. A separate text block lists the owning player's six private skills,
 their current level and experience toward the next level, and the nearest
 locked recipe with its current/required experience; accepted recipes that
 award that skill identify the experience earned per request. This block reads

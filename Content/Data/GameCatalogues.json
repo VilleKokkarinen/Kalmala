@@ -1,164 +1,196 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "items": [
     {
       "ItemId": "Wood",
       "DisplayName": "Splitwood",
+      "Description": "Split, dry timber for fire fuel and simple construction.",
       "MaxStack": 50
     },
     {
       "ItemId": "Stone",
       "DisplayName": "Fieldstone",
+      "Description": "Loose stone gathered from the field, used for hearths, tools, and sturdy fittings.",
       "MaxStack": 40
     },
     {
       "ItemId": "Fibre",
       "DisplayName": "Reed fibre",
+      "Description": "Plant strands gathered for bindings, woven gear, and cooking frames.",
       "MaxStack": 50
     },
     {
       "ItemId": "Fuel",
       "DisplayName": "Ember bundle",
+      "Description": "Bound splitwood and fibre that keeps an ordinary hearth burning for one minute.",
       "MaxStack": 20
     },
     {
       "ItemId": "ConstructionSupply",
       "DisplayName": "Lashed timber",
+      "Description": "Timber lashed with fibre for stronger camp structures and stations.",
       "MaxStack": 20
     },
     {
       "ItemId": "CampfireKit",
       "DisplayName": "Hearth ring",
+      "Description": "A low stone-and-wood hearth built in place with a Construction Hammer; an Ember bundle lights it.",
       "MaxStack": 5
     },
     {
       "ItemId": "WorkbenchKit",
-      "DisplayName": "Joiner's bench kit",
+      "DisplayName": "Joiner's bench",
+      "Description": "A compact crafting bench for assembling camp furnishings and repairing tools.",
       "MaxStack": 5
     },
     {
       "ItemId": "ForgeKit",
-      "DisplayName": "Forge kit",
+      "DisplayName": "Forge",
+      "Description": "A stone-and-timber workstation for higher-tier tool progression and repair.",
       "MaxStack": 5
     },
     {
       "ItemId": "WorkbenchToolRackKit",
-      "DisplayName": "Workbench tool rack kit",
+      "DisplayName": "Workbench tool rack",
+      "Description": "A bench attachment that raises Workbench level for matching tool upgrades.",
       "MaxStack": 5
     },
     {
       "ItemId": "ForgeAnvilKit",
-      "DisplayName": "Forge anvil kit",
+      "DisplayName": "Forge anvil",
+      "Description": "A forge attachment that raises Forge level for matching tool upgrades.",
       "MaxStack": 5
     },
     {
       "ItemId": "GrindingStoneKit",
-      "DisplayName": "Grinding stone kit",
+      "DisplayName": "Grinding stone",
+      "Description": "A sturdy stone used to repair all carried tools in one action.",
       "MaxStack": 5
     },
     {
       "ItemId": "StorageKit",
-      "DisplayName": "Woven chest kit",
+      "DisplayName": "Woven chest",
+      "Description": "A shared camp chest that holds up to sixteen unique item stacks.",
       "MaxStack": 5
     },
     {
       "ItemId": "RaisedStorageKit",
-      "DisplayName": "Raised rainproof chest kit",
+      "DisplayName": "Raised rainproof chest",
+      "Description": "An elevated, rain-resistant chest with the same bounded shared storage.",
       "MaxStack": 5
     },
     {
       "ItemId": "CookingRackKit",
-      "DisplayName": "Cooking rack kit",
+      "DisplayName": "Cooking rack",
+      "Description": "A rack for roasting boar or deer meat over a nearby burning hearth.",
       "MaxStack": 5
     },
     {
       "ItemId": "CauldronKit",
-      "DisplayName": "Hearth cauldron kit",
+      "DisplayName": "Hearth cauldron",
+      "Description": "A pot for simmering boar or deer broth over a nearby burning hearth.",
       "MaxStack": 5
     },
     {
       "ItemId": "SmokeFrameKit",
-      "DisplayName": "Smoke frame kit",
+      "DisplayName": "Smoke frame",
+      "Description": "An open frame for smoking boar or deer meat over a burning hearth.",
       "MaxStack": 5
     },
     {
       "ItemId": "SmokehouseKit",
-      "DisplayName": "Roofed smokehouse kit",
+      "DisplayName": "Roofed smokehouse",
+      "Description": "A roofed alternative to the Smoke Frame with the same hearth and skill requirements.",
       "MaxStack": 5
     },
     {
       "ItemId": "FloorKit",
       "DisplayName": "Timber floor",
+      "Description": "A timber floor assembled directly with the Construction Hammer.",
       "MaxStack": 10
     },
     {
       "ItemId": "WallKit",
       "DisplayName": "Windbreak wall",
+      "Description": "A light windbreak of lashed timber and reed fibre for camp shelter.",
       "MaxStack": 10
     },
     {
       "ItemId": "RoofKit",
       "DisplayName": "Reed roof",
+      "Description": "A reed roof that shelters a small camp space from rain.",
       "MaxStack": 10
     },
     {
       "ItemId": "MirelingAsh",
       "DisplayName": "Mireling ember ash",
+      "Description": "Fine, soot-darkened remains left by a Mireling.",
       "MaxStack": 25
     },
     {
       "ItemId": "BoarMeat",
       "DisplayName": "Boar field meat",
+      "Description": "Fresh field meat from a hunted boar, suitable for roasting, smoking, or drying.",
       "MaxStack": 20
     },
     {
       "ItemId": "BoarHide",
       "DisplayName": "Boar rough hide",
+      "Description": "A tough, bristly hide recovered from a boar.",
       "MaxStack": 20
     },
     {
       "ItemId": "DeerMeat",
       "DisplayName": "Deer field meat",
+      "Description": "Fresh field meat from a hunted deer, suitable for roasting, smoking, or drying.",
       "MaxStack": 20
     },
     {
       "ItemId": "DeerHide",
       "DisplayName": "Deer soft hide",
+      "Description": "A soft hide recovered from a deer.",
       "MaxStack": 20
     },
     {
       "ItemId": "RoastedFieldMeat",
       "DisplayName": "Roasted field meat",
+      "Description": "Boar or deer field meat roasted over a hearth, ready to eat as a steady meal.",
       "MaxStack": 20
     },
     {
       "ItemId": "HearthBroth",
       "DisplayName": "Hearth broth",
+      "Description": "Boar or deer meat simmered into a warming broth for a steady meal.",
       "MaxStack": 20
     },
     {
       "ItemId": "SmokedFieldMeat",
       "DisplayName": "Smoked field meat",
+      "Description": "Boar or deer meat slowly smoked over a hearth and ready to eat as a steady meal.",
       "MaxStack": 20
     },
     {
       "ItemId": "Lightwood",
       "DisplayName": "Lightwood",
+      "Description": "Pale, lightweight timber from second-wave trunks, used in advanced tool recipes.",
       "MaxStack": 50
     },
     {
       "ItemId": "Densewood",
       "DisplayName": "Densewood",
+      "Description": "Dense timber from second-wave trunks, used for sturdy stations and raised storage.",
       "MaxStack": 50
     },
     {
       "ItemId": "PeatAmber",
       "DisplayName": "Peat Amber",
+      "Description": "Amber-colored peat from Mire sources, kept as an unprocessed material.",
       "MaxStack": 40
     },
     {
       "ItemId": "FrostSalt",
       "DisplayName": "Frost Salt",
+      "Description": "A pale mineral salt from tundra sources, kept as an unprocessed material.",
       "MaxStack": 40
     }
   ],
@@ -246,7 +278,7 @@
     },
     {
       "RecipeId": "Workbench",
-      "DisplayName": "Joiner's bench kit",
+      "DisplayName": "Joiner's bench",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -273,7 +305,7 @@
     },
     {
       "RecipeId": "Forge",
-      "DisplayName": "Forge kit",
+      "DisplayName": "Forge",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -300,7 +332,7 @@
     },
     {
       "RecipeId": "WorkbenchToolRack",
-      "DisplayName": "Workbench tool rack kit",
+      "DisplayName": "Workbench tool rack",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -327,7 +359,7 @@
     },
     {
       "RecipeId": "ForgeAnvil",
-      "DisplayName": "Forge anvil kit",
+      "DisplayName": "Forge anvil",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -354,7 +386,7 @@
     },
     {
       "RecipeId": "GrindingStone",
-      "DisplayName": "Grinding stone kit",
+      "DisplayName": "Grinding stone",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -381,7 +413,7 @@
     },
     {
       "RecipeId": "Storage",
-      "DisplayName": "Woven chest kit",
+      "DisplayName": "Woven chest",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -408,7 +440,7 @@
     },
     {
       "RecipeId": "RaisedStorage",
-      "DisplayName": "Raised rainproof chest kit",
+      "DisplayName": "Raised rainproof chest",
       "Ingredients": [
         {
           "ItemId": "Densewood",
@@ -439,7 +471,7 @@
     },
     {
       "RecipeId": "CookingRack",
-      "DisplayName": "Cooking rack kit",
+      "DisplayName": "Cooking rack",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -466,7 +498,7 @@
     },
     {
       "RecipeId": "Cauldron",
-      "DisplayName": "Hearth cauldron kit",
+      "DisplayName": "Hearth cauldron",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -493,7 +525,7 @@
     },
     {
       "RecipeId": "SmokeFrame",
-      "DisplayName": "Smoke frame kit",
+      "DisplayName": "Smoke frame",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -520,7 +552,7 @@
     },
     {
       "RecipeId": "Smokehouse",
-      "DisplayName": "Roofed smokehouse kit",
+      "DisplayName": "Roofed smokehouse",
       "Ingredients": [
         {
           "ItemId": "Densewood",
