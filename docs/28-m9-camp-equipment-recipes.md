@@ -2,7 +2,7 @@
 
 This page selects a bounded set from the candidate examples in
 `04-roadmap.md`. It defines the accepted recipes, server checks, and current
-runtime boundaries. Existing item, recipe, construction, storage, hearth,
+runtime boundaries. The schema-version-3 JSON uses clean buildable IDs and the `RequiredStation` / `AlternateStation` fields; the loader translates those aliases to the stable kit-suffixed runtime construction identities used by current server and save contracts. Existing item, recipe, construction, storage, hearth,
 food, and skill authorities remain the implementation seams.
 
 ## Accepted recipes

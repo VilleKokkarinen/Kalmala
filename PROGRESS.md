@@ -9521,3 +9521,16 @@ Multiplayer impact: Names and descriptions are static presentation data. The ser
 Known limits: The peer check used the null renderer, so menu layout was not visually reviewed. Internal IDs still include Kit where required by recipes, construction identities, and existing saves; remaining camp structures still use their current kit recipes pending direct-build migration.
 
 Next task: Move the remaining kit-based camp structures to direct Construction Hammer builds from raw materials while preserving server validation and construction-save identities.
+### Run 2026-09-28T13:40:22Z - Remove Kit from external catalogue identities
+
+Outcome: GameCatalogues.json schema 3 now uses clean buildable item IDs and RequiredStation / AlternateStation field names. No Kit substring remains in the JSON; the loader maps those aliases to the stable runtime IDs used by existing construction and saves.
+
+Changed: BACKLOG.md; Content/Data/GameCatalogues.json; Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp and Tests/KalmalaItemCatalogueTest.cpp; Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp; docs/02-technical-architecture.md, docs/05-decision-log.md, docs/07-development-setup.md, docs/09-inventory-verification.md, docs/28-m9-camp-equipment-recipes.md; and PROGRESS.md.
+
+Verification: Forced UE 5.8.2 editor build passed (5 actions); the verifier text assertion rebuild passed (4 actions). Eight focused editor automations passed: Inventory.Catalogue, Crafting.Transactions, Crafting.NetworkContract, Food.CampfireProcessing, M9.Smokehouse, Construction.LocalPreview, Construction.SaveContract, and Construction.ShelterSampling. Scripts/Verify-Crafting.ps1 -Port 18094 passed with host and client. JSON audit confirmed schema 3, 32 items, 23 recipes, bounded descriptions, valid recipe references, and zero Kit substrings. git diff --check passed.
+
+Multiplayer impact: Server and client translate the same clean static catalogue aliases to existing runtime item and station identities before validation. The server retains transaction and placement authority; no RPC, replicated field, or saved-data schema changed.
+
+Known limits: Runtime IDs still contain Kit where required to preserve existing construction and save identities; the external JSON contains none.
+
+Next task: Move the remaining kit-based camp structures to direct Construction Hammer builds from raw materials while preserving server validation and construction-save identities.

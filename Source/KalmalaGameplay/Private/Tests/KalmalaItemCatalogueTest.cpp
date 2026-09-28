@@ -2,6 +2,8 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "Misc/AutomationTest.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaItemCatalogueTest, "Kalmala.Gameplay.Inventory.Catalogue",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -14,6 +16,10 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Versioned JSON loads a valid recipe catalogue"), Recipes->IsValidCatalogue());
     TestEqual(TEXT("The JSON item catalogue contains the complete current set"), Catalogue->Items.Num(), 32);
     TestEqual(TEXT("The JSON recipe catalogue contains the complete current set"), Recipes->Recipes.Num(), 23);
+    FString JsonText;
+    TestTrue(TEXT("The catalogue JSON is available to verify its external identifiers"),
+        FFileHelper::LoadFileToString(JsonText, *(FPaths::ProjectContentDir() / TEXT("Data/GameCatalogues.json"))));
+    TestFalse(TEXT("The catalogue JSON has no Kit-suffixed property or identity"), JsonText.Contains(TEXT("Kit\"")));
     for (const FKalmalaItemDefinition& Item : Catalogue->Items)
     {
         TestFalse(FString::Printf(TEXT("%s has a player-facing name without Kit"), *Item.ItemId.ToString()),
@@ -25,6 +31,36 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     {
         TestFalse(FString::Printf(TEXT("%s has a player-facing recipe name without Kit"), *Recipe.RecipeId.ToString()),
             Recipe.DisplayName.Contains(TEXT("kit"), ESearchCase::IgnoreCase));
+    }
+    const TPair<FName, FName> LegacyAliases[] = {
+        {TEXT("HearthRing"), TEXT("CampfireKit")}, {TEXT("Workbench"), TEXT("WorkbenchKit")},
+        {TEXT("Forge"), TEXT("ForgeKit")}, {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit")},
+        {TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit")}, {TEXT("GrindingStone"), TEXT("GrindingStoneKit")},
+        {TEXT("Storage"), TEXT("StorageKit")}, {TEXT("RaisedStorage"), TEXT("RaisedStorageKit")},
+        {TEXT("CookingRack"), TEXT("CookingRackKit")}, {TEXT("Cauldron"), TEXT("CauldronKit")},
+        {TEXT("SmokeFrame"), TEXT("SmokeFrameKit")}, {TEXT("Smokehouse"), TEXT("SmokehouseKit")},
+        {TEXT("Floor"), TEXT("FloorKit")}, {TEXT("Wall"), TEXT("WallKit")}, {TEXT("Roof"), TEXT("RoofKit")}
+    };
+    for (const TPair<FName, FName>& Alias : LegacyAliases)
+    {
+        TestNotNull(FString::Printf(TEXT("Clean catalogue ID %s resolves to its stable runtime item"), *Alias.Key.ToString()),
+            Catalogue->FindItem(Alias.Value));
+        TestNull(FString::Printf(TEXT("Clean catalogue ID %s is translated before runtime lookup"), *Alias.Key.ToString()),
+            Catalogue->FindItem(Alias.Key));
+    }
+    const FKalmalaRecipe* GrindingStone = Recipes->Find(TEXT("GrindingStone"));
+    TestNotNull(TEXT("Grinding Stone recipe loads"), GrindingStone);
+    if (GrindingStone)
+    {
+        TestEqual(TEXT("Clean output identity maps to the existing construction identity"), GrindingStone->Output, FName(TEXT("GrindingStoneKit")));
+        TestEqual(TEXT("Clean station identity maps to the existing station identity"), GrindingStone->RequiredStationKit, FName(TEXT("WorkbenchKit")));
+    }
+    const FKalmalaRecipe* SmokeRecipe = Recipes->Find(TEXT("SmokeBoarMeat"));
+    TestNotNull(TEXT("Smoke recipe loads"), SmokeRecipe);
+    if (SmokeRecipe)
+    {
+        TestEqual(TEXT("Clean required station maps to the existing station identity"), SmokeRecipe->RequiredStationKit, FName(TEXT("SmokeFrameKit")));
+        TestEqual(TEXT("Clean alternate station maps to the existing station identity"), SmokeRecipe->AlternateStationKit, FName(TEXT("SmokehouseKit")));
     }
     for (const FName Id : {FName(TEXT("Wood")), FName(TEXT("Stone")), FName(TEXT("Fibre")),
         FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply"))})

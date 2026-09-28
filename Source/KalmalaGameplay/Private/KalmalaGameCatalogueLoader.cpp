@@ -21,6 +21,113 @@ namespace
 
     ECatalogueLoadState LoadState = ECatalogueLoadState::NotStarted;
 
+    FName ToRuntimeItemId(const FName CatalogueItemId)
+    {
+        if (CatalogueItemId == TEXT("HearthRing")) return TEXT("CampfireKit");
+        if (CatalogueItemId == TEXT("Workbench")) return TEXT("WorkbenchKit");
+        if (CatalogueItemId == TEXT("Forge")) return TEXT("ForgeKit");
+        if (CatalogueItemId == TEXT("WorkbenchToolRack")) return TEXT("WorkbenchToolRackKit");
+        if (CatalogueItemId == TEXT("ForgeAnvil")) return TEXT("ForgeAnvilKit");
+        if (CatalogueItemId == TEXT("GrindingStone")) return TEXT("GrindingStoneKit");
+        if (CatalogueItemId == TEXT("Storage")) return TEXT("StorageKit");
+        if (CatalogueItemId == TEXT("RaisedStorage")) return TEXT("RaisedStorageKit");
+        if (CatalogueItemId == TEXT("CookingRack")) return TEXT("CookingRackKit");
+        if (CatalogueItemId == TEXT("Cauldron")) return TEXT("CauldronKit");
+        if (CatalogueItemId == TEXT("SmokeFrame")) return TEXT("SmokeFrameKit");
+        if (CatalogueItemId == TEXT("Smokehouse")) return TEXT("SmokehouseKit");
+        if (CatalogueItemId == TEXT("Floor")) return TEXT("FloorKit");
+        if (CatalogueItemId == TEXT("Wall")) return TEXT("WallKit");
+        if (CatalogueItemId == TEXT("Roof")) return TEXT("RoofKit");
+        return CatalogueItemId;
+    }
+
+    bool NormalizeItemReference(const TSharedPtr<FJsonObject>& Object, const TCHAR* FieldName)
+    {
+        FString CatalogueId;
+        if (!Object.IsValid() || !Object->TryGetStringField(FieldName, CatalogueId))
+        {
+            return false;
+        }
+
+        if (!CatalogueId.IsEmpty())
+        {
+            Object->SetStringField(FieldName, ToRuntimeItemId(FName(*CatalogueId)).ToString());
+        }
+        return true;
+    }
+
+    bool RestoreStationField(const TSharedPtr<FJsonObject>& RecipeObject,
+        const TCHAR* CatalogueFieldName, const TCHAR* RuntimeFieldName)
+    {
+        if (!RecipeObject.IsValid() || RecipeObject->HasField(RuntimeFieldName))
+        {
+            return false;
+        }
+        if (!RecipeObject->HasField(CatalogueFieldName))
+        {
+            return true;
+        }
+
+        FString CatalogueId;
+        if (!RecipeObject->TryGetStringField(CatalogueFieldName, CatalogueId))
+        {
+            return false;
+        }
+
+        RecipeObject->RemoveField(CatalogueFieldName);
+        if (!CatalogueId.IsEmpty())
+        {
+            CatalogueId = ToRuntimeItemId(FName(*CatalogueId)).ToString();
+        }
+        RecipeObject->SetStringField(RuntimeFieldName, CatalogueId);
+        return true;
+    }
+
+    bool NormalizeCatalogueItemReferences(const TArray<TSharedPtr<FJsonValue>>& ItemValues,
+        const TArray<TSharedPtr<FJsonValue>>& RecipeValues)
+    {
+        for (const TSharedPtr<FJsonValue>& Value : ItemValues)
+        {
+            if (!Value.IsValid() || Value->Type != EJson::Object
+                || !NormalizeItemReference(Value->AsObject(), TEXT("ItemId")))
+            {
+                return false;
+            }
+        }
+
+        for (const TSharedPtr<FJsonValue>& Value : RecipeValues)
+        {
+            if (!Value.IsValid() || Value->Type != EJson::Object)
+            {
+                return false;
+            }
+            const TSharedPtr<FJsonObject> RecipeObject = Value->AsObject();
+            if (!NormalizeItemReference(RecipeObject, TEXT("Output"))
+                || (RecipeObject->HasField(TEXT("OutputTool"))
+                    && !NormalizeItemReference(RecipeObject, TEXT("OutputTool")))
+                || !RestoreStationField(RecipeObject, TEXT("RequiredStation"), TEXT("RequiredStationKit"))
+                || !RestoreStationField(RecipeObject, TEXT("AlternateStation"), TEXT("AlternateStationKit")))
+            {
+                return false;
+            }
+
+            const TArray<TSharedPtr<FJsonValue>>* IngredientValues = nullptr;
+            if (!RecipeObject->TryGetArrayField(TEXT("Ingredients"), IngredientValues) || IngredientValues == nullptr)
+            {
+                return false;
+            }
+            for (const TSharedPtr<FJsonValue>& IngredientValue : *IngredientValues)
+            {
+                if (!IngredientValue.IsValid() || IngredientValue->Type != EJson::Object
+                    || !NormalizeItemReference(IngredientValue->AsObject(), TEXT("ItemId")))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     bool LoadCataloguesFromJson()
     {
         const FString JsonPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Data/GameCatalogues.json"));
@@ -42,7 +149,7 @@ namespace
         double SchemaVersion = 0.0;
         const TArray<TSharedPtr<FJsonValue>>* ItemValues = nullptr;
         const TArray<TSharedPtr<FJsonValue>>* RecipeValues = nullptr;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 2.0
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 3.0
             || !Root->TryGetArrayField(TEXT("items"), ItemValues)
             || !Root->TryGetArrayField(TEXT("recipes"), RecipeValues)
             || ItemValues == nullptr || RecipeValues == nullptr
@@ -50,6 +157,12 @@ namespace
             || RecipeValues->IsEmpty() || RecipeValues->Num() > 32)
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON has an unsupported schema or invalid catalogue bounds: %s"), *JsonPath);
+            return false;
+        }
+
+        if (!NormalizeCatalogueItemReferences(*ItemValues, *RecipeValues))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON has invalid clean item or station references: %s"), *JsonPath);
             return false;
         }
 
