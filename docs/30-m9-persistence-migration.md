@@ -102,3 +102,11 @@ replay rejection, and owner-only tool details without new replicated state.
 Do not enable schema-2 writes in normal play until these checks pass. M9
 cross-system acceptance remains responsible for restart/reconnect behavior and
 documented actor, memory, replication, and save budgets.
+
+## Implementation handoff
+
+The schema-2 world construction candidate now has memory round-trip and
+schema-1 migration coverage, including identity, malformed-record, duplicate,
+and capacity rejection. Normal construction save slots and transactions still
+use schema 1. Player discovery/tool migration and the combined host/client
+reconnect gate remain open, so this increment does not enable M9 save writes.

@@ -9629,3 +9629,19 @@ Known limits: Schema-2 code and its tests are not implemented; normal writes rem
 Commit and handoff: Main checkout used. No worktree handoff synchronization was needed.
 
 Next task: Add schema-2 round-trip and schema-1 migration coverage, including identity mismatch, malformed-data, duplicate, and over-cap rejection, before enabling persistence.
+
+### Run 2026-09-28T20:09:45Z - Cover M9 world save migration
+
+Outcome: Added an isolated schema-2 world construction candidate with exact seed/revision-7/world-scope identity, bounded existing construction, station attachment, and Drying Line records, plus an explicit schema-1 migration that creates a validated candidate without mutating its source. Checked the world-construction child under the still-open M9 persistence coverage task. Normal save slots and transactions remain on schema 1 while player-save and peer-reconnect checks are outstanding.
+
+Changed: `BACKLOG.md`; `Source/KalmalaGameplay/Private/KalmalaConstructionSaveGame.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaConstructionSaveGameTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaConstructionSaveGame.h`; `docs/07-development-setup.md`; `docs/30-m9-persistence-migration.md`; and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in the disposable project mirror with normal `%LOCALAPPDATA%\\UnrealBuildTool` access; the final rebuild compiled four actions. `Kalmala.Gameplay.Construction.Schema2Migration` passed with `Result={Success}`. It covers schema-2 memory round-trip, schema-1 record preservation and default-empty M9 fields, source-byte preservation, seed/revision/scope mismatch, unsupported schema zero/future versions, malformed construction ID/transform, duplicate IDs, unapproved schema-1 records, and total/attachment/Drying Line caps plus one. `git diff --check` passed. The initial build exposed unsupported `TArray::CountByPredicate`, and the first automation run exposed a self-referential test insertion; both were fixed and reverified.
+
+Observable and multiplayer impact: No player-facing behavior, RPC, replicated state, or normal save write changed. The new candidate keeps world records server-owned and binds migration to the requested world seed plus revision-7 world identity. Normal schema-1 construction behavior remains active until the full M9 gate passes.
+
+Known limits: Player discovery, carried-tool, and M9 claim schema-2 coverage remains open. Host/client reconnect, replay rejection, and owner-only tool-detail acceptance have not run; normal M9 writes remain disabled.
+
+Commit and handoff: Main checkout used; no worktree synchronization was needed. This verified implementation and handoff are committed together.
+
+Next task: Implement schema-2 player discovery/tool/claim round-trip and schema-1 migration coverage with exact identity and bounded rejection tests.

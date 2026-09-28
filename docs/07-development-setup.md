@@ -1260,3 +1260,18 @@ rejecting distant, forged, duplicate, and replayed claims, and checks that
 owner-only feedback and inventory state do not leak to the other peer. The
 fixture uses the null renderer, so it does not review the discovery's visual
 presentation in-world. Claims remain session-only pending M9 save migration.
+
+### M9 schema-2 world construction migration coverage
+
+After the forced editor build, run
+`Kalmala.Gameplay.Construction.Schema2Migration` with isolated `-UserDir`,
+`-abslog`, `-DDC-ForceMemoryCache`, and
+`-TestExit="Automation Test Queue Empty"` arguments. The in-memory schema-2
+candidate round-trips established construction records, station attachments,
+and Drying Lines; migrates matching schema-1 construction records while
+binding seed/revision/world scope; and rejects mismatched, unsupported,
+malformed, duplicate, and over-cap legacy data without changing its source
+bytes. It also checks exact schema-2 identity, malformed/duplicate current
+records, and the 32-attachment and five-line limits. Normal construction slots
+and transactions still use schema 1; the candidate is not wired to normal
+save writes while player migration and peer reconnect coverage remain open.
