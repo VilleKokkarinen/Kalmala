@@ -343,7 +343,9 @@ checks.
 
 ## Item catalogue verification
 
-For the M2 material contract, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above after building the editor. It loads the real project catalogue and checks required materials, exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate configuration. This is a pure contract check; live inventory replication and harvest-grant verification follow when the inventory component exists.
+`Content/Data/GameCatalogues.json` is the version-1 source for both item and recipe definitions. Keep the `Data` directory in `DirectoriesToAlwaysStageAsUFS` under `[/Script/UnrealEd.ProjectPackagingSettings]`; the loader reads it through Unreal's file layer so it works from both the project and a packaged UFS container. The loader validates schema version, array bounds, struct fields, recipe references, duplicate IDs, quantities, stack limits, station and skill rules before exposing either catalogue. Missing or invalid data leaves the catalogues empty, and server transactions fail closed.
+
+After building the editor, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above. It checks that the complete 32-item and 23-recipe JSON catalogues load, along with required materials, exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate definitions. This is a pure contract check; live inventory replication and harvest-grant verification remain covered by their separate checks.
 
 ## Player inventory verification
 

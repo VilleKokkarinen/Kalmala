@@ -49,7 +49,7 @@ bool FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
         FKalmalaM7SaveIdentity::CurrentGeneratorRevision,
         *SourceId.ToString(), *PopulationSpawnId);
     const int32 CandidateQuantity = PrimaryYield + (HashAscii(LootKey) % BonusDivisor == 0 ? 1 : 0);
-    const UKalmalaItemCatalogue* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     if (Catalogue == nullptr || !Catalogue->IsValidStack(ItemId, CandidateQuantity)) return false;
 
     OutQuantity = CandidateQuantity;

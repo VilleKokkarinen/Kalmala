@@ -60,7 +60,7 @@ bool FKalmalaStorageTransferTest::RunTest(const FString& Parameters)
         TestFalse(TEXT("Malformed quantity rejected"), UKalmalaInventoryComponent::BuildTransfer(Pack,Chest,TEXT("Wood"),Quantity,NextPack,NextChest,Reason));
     TestFalse(TEXT("Missing item rejected"), UKalmalaInventoryComponent::BuildTransfer(Pack,Chest,TEXT("Fibre"),1,NextPack,NextChest,Reason));
     TestFalse(TEXT("Unknown item rejected"), UKalmalaInventoryComponent::BuildTransfer(Pack,Chest,TEXT("Forged"),1,NextPack,NextChest,Reason));
-    const auto* Wood = GetDefault<UKalmalaItemCatalogue>()->FindItem(TEXT("Wood"));
+    const auto* Wood = UKalmalaItemCatalogue::Get()->FindItem(TEXT("Wood"));
     TestFalse(TEXT("Full stack rejected"), UKalmalaInventoryComponent::BuildTransfer(Pack,{{TEXT("Wood"),Wood->MaxStack}},TEXT("Wood"),1,NextPack,NextChest,Reason));
     TestFalse(TEXT("Duplicate destination fails closed"), UKalmalaInventoryComponent::BuildTransfer(Pack,{{TEXT("Stone"),1},{TEXT("Stone"),1}},TEXT("Wood"),1,NextPack,NextChest,Reason));
     TestEqual(TEXT("Failures preserve previous output"), NextPack[0].Quantity, 2);

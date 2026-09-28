@@ -130,10 +130,10 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         FKalmalaToolProgressionContract::CanPlaceAttachment(
             TEXT("ForgeAnvilKit"), TEXT("ForgeKit"), 100.0f, true, true, AttachmentReason));
 
-    const UKalmalaItemCatalogue* Items = GetDefault<UKalmalaItemCatalogue>();
+    const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
     const FKalmalaItemDefinition* ForgeKit = Items->FindItem(TEXT("ForgeKit"));
     TestNotNull(TEXT("Forge kit is in the item catalogue"), ForgeKit);
-    const FKalmalaRecipe* ForgeRecipe = GetDefault<UKalmalaRecipeCatalogue>()->Find(TEXT("Forge"));
+    const FKalmalaRecipe* ForgeRecipe = UKalmalaRecipeCatalogue::Get()->Find(TEXT("Forge"));
     TestNotNull(TEXT("Forge has a paid build recipe"), ForgeRecipe);
     if (ForgeRecipe)
     {
@@ -148,7 +148,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         if (StoneCost) TestEqual(TEXT("Forge kit costs six fieldstone"), StoneCost->Quantity, 6);
     }
 
-    const UKalmalaRecipeCatalogue* Recipes = GetDefault<UKalmalaRecipeCatalogue>();
+    const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
     TestTrue(TEXT("The complete recipe catalogue accepts both paid station attachment recipes"),
         Recipes->IsValidCatalogue());
     const FKalmalaRecipe* RackRecipe = Recipes->Find(TEXT("WorkbenchToolRack"));

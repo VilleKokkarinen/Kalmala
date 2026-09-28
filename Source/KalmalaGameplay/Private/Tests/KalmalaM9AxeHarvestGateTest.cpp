@@ -27,7 +27,7 @@ bool FKalmalaM9AxeHarvestGateTest::RunTest(const FString& Parameters)
         { TEXT("elderwood-ironheart-trunk"), TEXT("ironheart-trunk-harvest"), TEXT("Densewood"), EKalmalaToolTier::Iron, TEXT("IronAxe") }
     };
 
-    const UKalmalaItemCatalogue* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     for (const FExpectedGate& Gate : Gates)
     {
         FKalmalaToolServerSelection Selection;

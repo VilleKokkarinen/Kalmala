@@ -386,7 +386,7 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
     {
         for (const auto& Stack : Inventory->GetStacks())
         {
-            const auto* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(Stack.ItemId);
+            const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Stack.ItemId);
             Text += FString::Printf(TEXT("%s: %d\n"), Item ? *Item->DisplayName : *Stack.ItemId.ToString(), Stack.Quantity);
             bHasPreparedFood |= Stack.Quantity > 0 && UKalmalaPlayerStatusComponent::IsKnownFoodItem(Stack.ItemId);
         }

@@ -160,7 +160,7 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
             EKalmalaSkill::Mining, RewardItemId, 1 };
     }
 
-    const UKalmalaItemCatalogue* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     return IsSelectionShapeValid(OutSelection)
         && Catalogue != nullptr
         && Catalogue->IsValidStack(OutSelection.RewardItemId, OutSelection.RewardQuantity);
@@ -220,7 +220,7 @@ bool FKalmalaToolLifecycleContract::IsUseAllowed(
         || !SkillState.IsValid() || SkillState.Skill != ServerSelection.RequiredSkill
         || SkillState.Level < Definition->MinimumSkillLevel) return false;
 
-    const UKalmalaItemCatalogue* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     return Catalogue != nullptr && Catalogue->IsValidStack(ServerSelection.RewardItemId, ServerSelection.RewardQuantity);
 }
 

@@ -26,12 +26,14 @@ struct KALMALAGAMEPLAY_API FKalmalaRecipe
     UPROPERTY(EditAnywhere) bool bEnabled = true;
 };
 
-UCLASS(Config=Game, DefaultConfig)
+UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaRecipeCatalogue : public UObject
 {
     GENERATED_BODY()
 public:
-    UPROPERTY(Config, EditDefaultsOnly) TArray<FKalmalaRecipe> Recipes;
+    UPROPERTY(EditDefaultsOnly) TArray<FKalmalaRecipe> Recipes;
+    /** Loads and validates the packaged recipe catalogue before returning the immutable runtime view. */
+    static const UKalmalaRecipeCatalogue* Get();
     bool IsValidCatalogue() const;
     const FKalmalaRecipe* Find(FName Id) const;
     static bool Scale(const FKalmalaRecipe& Recipe, int32 Batch,

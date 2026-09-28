@@ -24,7 +24,7 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
     {
         FKalmalaToolServerSelection Selection;
         TestTrue(TEXT("Catalogue source produces a server selection"), FKalmalaToolLifecycleContract::BuildServerSelection(Source, Selection));
-        TestTrue(TEXT("Server selection reward is catalogue-valid"), GetDefault<UKalmalaItemCatalogue>()->IsValidStack(Selection.RewardItemId, Selection.RewardQuantity));
+        TestTrue(TEXT("Server selection reward is catalogue-valid"), UKalmalaItemCatalogue::Get()->IsValidStack(Selection.RewardItemId, Selection.RewardQuantity));
         Rewards.Add(Selection.RewardItemId);
     }
     TestEqual(TEXT("First-wave selection covers the three existing material rewards"), Rewards.Num(), 3);

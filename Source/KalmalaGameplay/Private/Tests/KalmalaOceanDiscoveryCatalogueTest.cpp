@@ -13,7 +13,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FKalmalaOceanDiscoveryCatalogueTest::RunTest(const FString& Parameters)
 {
-    const UKalmalaItemCatalogue* Items = GetDefault<UKalmalaItemCatalogue>();
+    const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
     const TArray<FKalmalaOceanDiscoveryDefinition>& Definitions = FKalmalaOceanDiscoveryCatalogue::GetDefinitions();
     TestTrue(TEXT("The sea catalogue has the bounded original first wave"), FKalmalaOceanDiscoveryCatalogue::IsValid(Items));
     TestEqual(TEXT("The first sea catalogue remains small"), Definitions.Num(), FKalmalaOceanDiscoveryCatalogue::MaxDefinitions);

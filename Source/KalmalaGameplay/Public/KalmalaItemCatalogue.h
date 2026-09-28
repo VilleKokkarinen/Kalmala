@@ -19,8 +19,8 @@ struct KALMALAGAMEPLAY_API FKalmalaItemDefinition
     int32 MaxStack = 1;
 };
 
-/** Server-local game configuration. Client copies are presentation only, never authority. */
-UCLASS(Config=Game, DefaultConfig)
+/** JSON-backed game data. Client copies are presentation only, never authority. */
+UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaItemCatalogue : public UObject
 {
     GENERATED_BODY()
@@ -30,8 +30,11 @@ public:
     static constexpr int32 MaxDefinitions = 64;
     static constexpr int32 AbsoluteMaxStack = 999;
 
-    UPROPERTY(Config, EditDefaultsOnly)
+    UPROPERTY(EditDefaultsOnly)
     TArray<FKalmalaItemDefinition> Items;
+
+    /** Loads and validates the packaged item catalogue before returning the immutable runtime view. */
+    static const UKalmalaItemCatalogue* Get();
 
     bool IsValidCatalogue() const;
     const FKalmalaItemDefinition* FindItem(FName ItemId) const;

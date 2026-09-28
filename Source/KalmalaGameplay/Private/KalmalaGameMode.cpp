@@ -2432,7 +2432,7 @@ bool AKalmalaGameMode::ClaimOceanDiscovery(AKalmalaCharacter* Interactor, const 
     const FKalmalaM7SaveIdentity SaveIdentity = FKalmalaM7SaveIdentity::ForPlayer(WorldGenerationConfig.WorldSeed, PlayerIdentity);
     const FString SaveSlot = KalmalaGameMode::OceanDiscoverySaveSlot(SaveIdentity);
     if (Definition == nullptr || Inventory == nullptr || Feedback == nullptr || !SaveIdentity.IsValid()
-        || !FKalmalaOceanDiscoveryCatalogue::IsValidDefinition(*Definition, GetDefault<UKalmalaItemCatalogue>()))
+        || !FKalmalaOceanDiscoveryCatalogue::IsValidDefinition(*Definition, UKalmalaItemCatalogue::Get()))
     {
         if (Feedback != nullptr)
         {

@@ -7,7 +7,7 @@ namespace
 {
 bool IsValidInventoryState(const TArray<FKalmalaInventoryStack>& Stacks)
 {
-    const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    const auto* Catalogue = UKalmalaItemCatalogue::Get();
     if (Stacks.Num() > UKalmalaInventoryComponent::MaxSlots || Catalogue == nullptr) return false;
     TSet<FName> Seen;
     for (const FKalmalaInventoryStack& Stack : Stacks)
@@ -34,7 +34,7 @@ bool UKalmalaInventoryComponent::BuildExchange(const TArray<FKalmalaInventorySta
     const TArray<FKalmalaInventoryStack>& Costs, FName Output, int32 OutputCount,
     TArray<FKalmalaInventoryStack>& After, FString& Reason)
 {
-    const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    const auto* Catalogue = UKalmalaItemCatalogue::Get();
     Reason = TEXT("Invalid transaction");
     if (Before.Num() > MaxSlots || Costs.IsEmpty() || Costs.Num() > MaxSlots
         || (Output.IsNone() ? OutputCount != 0 : !Catalogue->IsValidStack(Output, OutputCount))) return false;
@@ -78,7 +78,7 @@ bool UKalmalaInventoryComponent::BuildGrant(const TArray<FKalmalaInventoryStack>
     const FName ItemId, const int32 Quantity, TArray<FKalmalaInventoryStack>& After, FString& Reason)
 {
     Reason = TEXT("Invalid grant");
-    const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    const auto* Catalogue = UKalmalaItemCatalogue::Get();
     if (!IsValidInventoryState(Before) || Catalogue == nullptr || !Catalogue->IsValidStack(ItemId, Quantity)) return false;
 
     TArray<FKalmalaInventoryStack> Candidate = Before;
@@ -129,7 +129,7 @@ bool UKalmalaInventoryComponent::BuildTransfer(const TArray<FKalmalaInventorySta
     TArray<FKalmalaInventoryStack>& NextSource, TArray<FKalmalaInventoryStack>& NextDestination, FString& Reason)
 {
     Reason = TEXT("Invalid storage transfer");
-    const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    const auto* Catalogue = UKalmalaItemCatalogue::Get();
     if (&NextSource == &NextDestination || !Catalogue->IsValidStack(ItemId, Quantity)
         || !UKalmalaStorageSaveGame::IsValidStacks(Source) || !UKalmalaStorageSaveGame::IsValidStacks(Destination)) return false;
     TArray<FKalmalaInventoryStack> From;

@@ -22,8 +22,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaM9RaisedStorageTest,
 
 bool FKalmalaM9RaisedStorageTest::RunTest(const FString& Parameters)
 {
-    const auto* Items = GetDefault<UKalmalaItemCatalogue>();
-    const auto* Recipes = GetDefault<UKalmalaRecipeCatalogue>();
+    const auto* Items = UKalmalaItemCatalogue::Get();
+    const auto* Recipes = UKalmalaRecipeCatalogue::Get();
     TestTrue(TEXT("Raised storage item and recipe catalogues validate"), Items->IsValidCatalogue() && Recipes->IsValidCatalogue());
     const auto* Kit = Items->FindItem(TEXT("RaisedStorageKit"));
     if (TestNotNull(TEXT("Raised chest kit has a canonical item definition"), Kit))

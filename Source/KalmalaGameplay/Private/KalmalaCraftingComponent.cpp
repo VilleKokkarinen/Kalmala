@@ -72,7 +72,7 @@ FString GetSkillRequirementText(const FKalmalaRecipe& Recipe, const AKalmalaChar
 
 FString GetStationDisplayName(const FName KitId)
 {
-    const auto* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(KitId);
+    const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(KitId);
     return Item ? Item->DisplayName : KitId.ToString();
 }
 
@@ -170,7 +170,7 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     auto* Character = GetCharacter();
     Reason = TEXT("Server authority required");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
-    const auto* Recipe = GetDefault<UKalmalaRecipeCatalogue>()->Find(RecipeId);
+    const auto* Recipe = UKalmalaRecipeCatalogue::Get()->Find(RecipeId);
     Reason = TEXT("Unknown or disabled recipe");
     if (!Recipe || !Recipe->bEnabled) return false;
     if (!Recipe->OutputTool.IsNone())
@@ -209,7 +209,7 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     }
     if (Recipe->bRequiresLitCampfire && !FindNearbyLitFire(RequiredStation))
     {
-        const auto* StationItem = RequiredStation ? GetDefault<UKalmalaItemCatalogue>()->FindItem(RequiredStation->GetConstructionKit()) : nullptr;
+        const auto* StationItem = RequiredStation ? UKalmalaItemCatalogue::Get()->FindItem(RequiredStation->GetConstructionKit()) : nullptr;
         Reason = RequiredStation
             ? FString::Printf(TEXT("Need a usable lit hearth with heat within 2.5 m of the player and %s"),
                 StationItem ? *StationItem->DisplayName : *RequiredStation->GetConstructionKit().ToString())
@@ -224,7 +224,7 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
         if (auto* Progression = Character->GetSkillProgressionComponent())
             Progression->AwardExperienceFromAcceptedServerAction(Recipe->ExperienceSkill, Recipe->ExperienceAward);
     }
-    const auto* OutputItem = GetDefault<UKalmalaItemCatalogue>()->FindItem(Recipe->Output);
+    const auto* OutputItem = UKalmalaItemCatalogue::Get()->FindItem(Recipe->Output);
     Reason = FString::Printf(TEXT("Crafted %d %s"), OutputCount, OutputItem ? *OutputItem->DisplayName : *Recipe->Output.ToString());
     return true;
 }
@@ -574,7 +574,7 @@ void UKalmalaCraftingComponent::ServerRepairTool_Implementation(const FName Tool
 
 FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
 {
-    const auto* R = GetDefault<UKalmalaRecipeCatalogue>()->Find(Id);
+    const auto* R = UKalmalaRecipeCatalogue::Get()->Find(Id);
     if (!R || !R->bEnabled) return TEXT("Recipe unavailable");
     if (!R->OutputTool.IsNone())
         return TEXT("Tool replacement recipes are retired; use the free repair action at a Workbench or Forge");
@@ -603,7 +603,7 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
     }
     if (R->bRequiresLitCampfire && !FindNearbyLitFire(RequiredStation))
     {
-        const auto* StationItem = RequiredStation ? GetDefault<UKalmalaItemCatalogue>()->FindItem(RequiredStation->GetConstructionKit()) : nullptr;
+        const auto* StationItem = RequiredStation ? UKalmalaItemCatalogue::Get()->FindItem(RequiredStation->GetConstructionKit()) : nullptr;
         return RequiredStation
             ? FString::Printf(TEXT("Need a usable lit hearth with heat within 2.5 m of the player and %s"),
                 StationItem ? *StationItem->DisplayName : *RequiredStation->GetConstructionKit().ToString())
@@ -622,7 +622,7 @@ FString UKalmalaCraftingComponent::GetToolProgressionText() const
     const AKalmalaCharacter* Character = GetCharacter();
     const UKalmalaInventoryComponent* Inventory = Character
         ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
-    const UKalmalaItemCatalogue* Items = GetDefault<UKalmalaItemCatalogue>();
+    const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
     if (!Character || !Inventory || !Items) return TEXT("Tool progression is waiting for your private inventory.\n");
     const auto ToolName = [](const FName ToolId)
     {
@@ -692,20 +692,20 @@ FString UKalmalaCraftingComponent::GetToolProgressionText() const
 
 FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
 {
-    const auto* R = GetDefault<UKalmalaRecipeCatalogue>()->Find(Id);
+    const auto* R = UKalmalaRecipeCatalogue::Get()->Find(Id);
     if (!R) return TEXT("Unknown recipe");
     if (!R->OutputTool.IsNone())
         return TEXT("Tool replacement recipes are retired; use the free repair action at a Workbench or Forge");
     FString Text = R->DisplayName + TEXT("\nCost: ");
     for (const auto& Cost : R->Ingredients)
     {
-        const auto* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(Cost.ItemId);
+        const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Cost.ItemId);
         Text += FString::Printf(TEXT("%d %s  "), Cost.Quantity,
             Item ? *Item->DisplayName : *Cost.ItemId.ToString());
     }
     Text += FString::Printf(TEXT("\nCost list is for batch 1; larger batches multiply each listed quantity.\nMaximum batch: up to %d per request; this panel submits batch 1 per press."),
         R->MaxBatch);
-    const auto* OutputItem = GetDefault<UKalmalaItemCatalogue>()->FindItem(R->Output);
+    const auto* OutputItem = UKalmalaItemCatalogue::Get()->FindItem(R->Output);
     Text += FString::Printf(TEXT("\nOutput: %d %s (stack limit %d per inventory stack)"),
         R->OutputCount, OutputItem ? *OutputItem->DisplayName : *R->Output.ToString(),
         OutputItem ? OutputItem->MaxStack : 0);
@@ -812,7 +812,7 @@ bool UKalmalaCraftingComponent::ConsumeFoodFromServer(const FName FoodItemId, FS
         return false;
     }
 
-    const auto* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(FoodItemId);
+    const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(FoodItemId);
     Reason = FString::Printf(TEXT("Ate %s; stamina use is 10%% lower for %.0f seconds"),
         Item ? *Item->DisplayName : TEXT("prepared food"), UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     return true;

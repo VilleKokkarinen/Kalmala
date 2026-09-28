@@ -20,7 +20,7 @@ bool UKalmalaStorageSaveGame::IsValidStacks(const TArray<FKalmalaInventoryStack>
     TSet<FName> Seen;
     for (const auto& Stack : Stacks)
     {
-        if (Seen.Contains(Stack.ItemId) || !GetDefault<UKalmalaItemCatalogue>()->IsValidStack(Stack.ItemId, Stack.Quantity)) return false;
+        if (Seen.Contains(Stack.ItemId) || !UKalmalaItemCatalogue::Get()->IsValidStack(Stack.ItemId, Stack.Quantity)) return false;
         Seen.Add(Stack.ItemId);
     }
     return true;

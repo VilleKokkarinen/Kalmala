@@ -1,4 +1,11 @@
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaGameCatalogueLoader.h"
+
+const UKalmalaItemCatalogue* UKalmalaItemCatalogue::Get()
+{
+    FKalmalaGameCatalogueLoader::EnsureLoaded();
+    return GetDefault<UKalmalaItemCatalogue>();
+}
 
 bool UKalmalaItemCatalogue::IsValidCatalogue() const
 {

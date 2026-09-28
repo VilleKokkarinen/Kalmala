@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaRecipeCatalogue.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaItemCatalogueTest, "Kalmala.Gameplay.Inventory.Catalogue",
@@ -7,13 +8,17 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaItemCatalogueTest, "Kalmala.Gameplay.In
 
 bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
 {
-    const UKalmalaItemCatalogue* Catalogue = GetDefault<UKalmalaItemCatalogue>();
-    TestTrue(TEXT("Project config loads a valid catalogue"), Catalogue->IsValidCatalogue());
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
+    TestTrue(TEXT("Versioned JSON loads a valid item catalogue"), Catalogue->IsValidCatalogue());
+    TestTrue(TEXT("Versioned JSON loads a valid recipe catalogue"), Recipes->IsValidCatalogue());
+    TestEqual(TEXT("The JSON item catalogue contains the complete current set"), Catalogue->Items.Num(), 32);
+    TestEqual(TEXT("The JSON recipe catalogue contains the complete current set"), Recipes->Recipes.Num(), 23);
     for (const FName Id : {FName(TEXT("Wood")), FName(TEXT("Stone")), FName(TEXT("Fibre")),
         FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply"))})
     {
         const FKalmalaItemDefinition* Item = Catalogue->FindItem(Id);
-        if (!TestNotNull(TEXT("Required camp material exists in config"), Item)) { continue; }
+        if (!TestNotNull(TEXT("Required camp material exists in JSON"), Item)) { continue; }
         TestTrue(TEXT("Exact stack limit accepted"), Catalogue->IsValidStack(Id, Item->MaxStack));
         TestFalse(TEXT("Over-limit stack rejected"), Catalogue->IsValidStack(Id, Item->MaxStack + 1));
         TestTrue(TEXT("Fill remaining capacity"), Catalogue->CanAddToStack(Id, Item->MaxStack - 1, 1));

@@ -37,7 +37,7 @@ bool FKalmalaM9SourceLootContractTest::RunTest(const FString& Parameters)
             EKalmalaToolAction::Mining, EKalmalaToolKind::StonePick, EKalmalaToolTier::None }
     };
 
-    const UKalmalaItemCatalogue* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     FKalmalaWorldGenerationConfig WorldConfig;
     WorldConfig.WorldSeed = 418;
     const FString SpawnId = TEXT("1/-3/4/123456");

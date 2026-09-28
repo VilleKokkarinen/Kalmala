@@ -21,8 +21,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaFoodProcessingTest,
 
 bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
 {
-    const auto* Recipes = GetDefault<UKalmalaRecipeCatalogue>();
-    const auto* Items = GetDefault<UKalmalaItemCatalogue>();
+    const auto* Recipes = UKalmalaRecipeCatalogue::Get();
+    const auto* Items = UKalmalaItemCatalogue::Get();
     TestTrue(TEXT("Food recipes remain in the validated server catalogue"), Recipes->IsValidCatalogue());
     for (const FName RecipeId : { FName(TEXT("RoastBoarMeat")), FName(TEXT("RoastDeerMeat")) })
     {

@@ -284,7 +284,7 @@ void UKalmalaCraftingWidget::Close()
 void UKalmalaCraftingWidget::Refresh()
 {
     auto* M=Model(); if (!M) { Close(); return; }
-    const auto& Recipes=GetDefault<UKalmalaRecipeCatalogue>()->Recipes;
+    const auto& Recipes=UKalmalaRecipeCatalogue::Get()->Recipes;
     if (Recipes.IsEmpty()) return; Selected=FMath::Clamp(Selected,0,Recipes.Num()-1);
     const FKalmalaRecipe& SelectedRecipe = Recipes[Selected];
     RecipesText->SetText(FText::FromString(FString::Printf(TEXT("> Recipe %d of %d: %s\n"),
@@ -344,7 +344,7 @@ void UKalmalaCraftingWidget::Refresh()
         + ToolConditionText + TEXT("\n") + M->GetNearbyFireText()+TEXT("\n")+M->GetNearbyConstructionText()+TEXT("\n")+M->GetNearbyWorkbenchText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")+PreviewText));
     FoodText->SetText(FText::FromString(M->GetFoodText()));
     if (ToolProgressionText) ToolProgressionText->SetText(FText::FromString(M->GetToolProgressionText()));
-    const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    const auto* Catalogue = UKalmalaItemCatalogue::Get();
     SelectedStorageItem = FMath::Clamp(SelectedStorageItem, 0, FMath::Max(0, Catalogue->Items.Num()-1));
     FString ChestText = Catalogue->Items.IsValidIndex(SelectedStorageItem)
         ? TEXT("Selected item: ") + Catalogue->Items[SelectedStorageItem].DisplayName + TEXT("\n") : TEXT("No item catalogue\n");
@@ -371,14 +371,14 @@ FString UKalmalaCraftingWidget::GetPresentationText() const
             + (CraftButton ? CraftButton->GetToolTipText().ToString() : FString()) : FString();
 }
 void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D) { Super::NativeTick(G,D); if(bOpen) Refresh(); }
-void UKalmalaCraftingWidget::Previous() { const int32 N=GetDefault<UKalmalaRecipeCatalogue>()->Recipes.Num(); if(N) Selected=(Selected+N-1)%N; Refresh(); }
-void UKalmalaCraftingWidget::Next() { const int32 N=GetDefault<UKalmalaRecipeCatalogue>()->Recipes.Num(); if(N) Selected=(Selected+1)%N; Refresh(); }
-void UKalmalaCraftingWidget::Craft() { const auto& R=GetDefault<UKalmalaRecipeCatalogue>()->Recipes; if(auto* M=Model(); M && R.IsValidIndex(Selected)) M->ServerCraft(R[Selected].RecipeId,1); }
+void UKalmalaCraftingWidget::Previous() { const int32 N=UKalmalaRecipeCatalogue::Get()->Recipes.Num(); if(N) Selected=(Selected+N-1)%N; Refresh(); }
+void UKalmalaCraftingWidget::Next() { const int32 N=UKalmalaRecipeCatalogue::Get()->Recipes.Num(); if(N) Selected=(Selected+1)%N; Refresh(); }
+void UKalmalaCraftingWidget::Craft() { const auto& R=UKalmalaRecipeCatalogue::Get()->Recipes; if(auto* M=Model(); M && R.IsValidIndex(Selected)) M->ServerCraft(R[Selected].RecipeId,1); }
 void UKalmalaCraftingWidget::EnablePlacementPreview() { bPlacementPreviewEnabled = true; Refresh(); }
 void UKalmalaCraftingWidget::Preview() { EnablePlacementPreview(); }
 void UKalmalaCraftingWidget::Place()
 {
-    const auto& Recipes = GetDefault<UKalmalaRecipeCatalogue>()->Recipes;
+    const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
     if (auto* M = Model(); M && Recipes.IsValidIndex(Selected))
     {
         const FName Kit = Recipes[Selected].Output;
@@ -400,24 +400,24 @@ void UKalmalaCraftingWidget::UpgradeIronAxe() { if(auto* M=Model()) M->ServerPro
 void UKalmalaCraftingWidget::InspectStorage() { if (auto* M=Model()) M->ServerOpenStorage(); }
 void UKalmalaCraftingWidget::PreviousStorageItem()
 {
-    const int32 Count = GetDefault<UKalmalaItemCatalogue>()->Items.Num();
+    const int32 Count = UKalmalaItemCatalogue::Get()->Items.Num();
     if (Count) SelectedStorageItem = (SelectedStorageItem + Count - 1) % Count;
     Refresh();
 }
 void UKalmalaCraftingWidget::NextStorageItem()
 {
-    const int32 Count = GetDefault<UKalmalaItemCatalogue>()->Items.Num();
+    const int32 Count = UKalmalaItemCatalogue::Get()->Items.Num();
     if (Count) SelectedStorageItem = (SelectedStorageItem + 1) % Count;
     Refresh();
 }
 void UKalmalaCraftingWidget::DepositStorage()
 {
-    const auto& Items = GetDefault<UKalmalaItemCatalogue>()->Items;
+    const auto& Items = UKalmalaItemCatalogue::Get()->Items;
     if (auto* M=Model(); M && Items.IsValidIndex(SelectedStorageItem)) M->ServerDepositStorage(Items[SelectedStorageItem].ItemId);
 }
 void UKalmalaCraftingWidget::WithdrawStorage()
 {
-    const auto& Items = GetDefault<UKalmalaItemCatalogue>()->Items;
+    const auto& Items = UKalmalaItemCatalogue::Get()->Items;
     if (auto* M=Model(); M && Items.IsValidIndex(SelectedStorageItem)) M->ServerWithdrawStorage(Items[SelectedStorageItem].ItemId);
 }
 void UKalmalaCraftingWidget::CloseClicked() { Close(); }

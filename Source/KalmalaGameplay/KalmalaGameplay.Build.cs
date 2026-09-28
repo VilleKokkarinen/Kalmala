@@ -18,6 +18,8 @@ public class KalmalaGameplay : ModuleRules
             "GameplayAbilities",
             "GameplayTags",
             "GameplayTasks",
+            "Json",
+            "JsonUtilities",
             "KalmalaCore",
             "KalmalaWorld",
             "ProceduralMeshComponent"

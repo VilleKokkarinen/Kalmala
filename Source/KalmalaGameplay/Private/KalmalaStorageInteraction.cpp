@@ -54,7 +54,7 @@ FString UKalmalaCraftingComponent::GetNearbyConstructionText() const
         Best = Distance; Closest = *It;
     }
     if (!Closest) return TEXT("Construction: none visible within 2.5 m");
-    const auto* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(Closest->GetConstructionKit());
+    const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Closest->GetConstructionKit());
     const bool bRoof = Closest->GetConstructionKit() == TEXT("RoofKit");
     if (Closest->GetConstructionKit() == TEXT("RaisedStorageKit"))
     {

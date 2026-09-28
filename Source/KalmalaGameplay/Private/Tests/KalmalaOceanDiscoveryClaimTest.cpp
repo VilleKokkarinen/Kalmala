@@ -120,7 +120,7 @@ bool FKalmalaOceanDiscoveryClaimContractTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("The reward grants the catalogue's exact quantity"), GrantedStack->Quantity, Definition->RewardQuantity);
         }
 
-        const FKalmalaItemDefinition* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(Definition->RewardItemId);
+        const FKalmalaItemDefinition* Item = UKalmalaItemCatalogue::Get()->FindItem(Definition->RewardItemId);
         if (Item != nullptr)
         {
             FKalmalaInventoryStack FullRewardStack;

@@ -7,7 +7,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaCraftingTransactionsTest,"Kalmala.Gamep
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
 {
-    const auto* Recipes=GetDefault<UKalmalaRecipeCatalogue>();
+    const auto* Recipes=UKalmalaRecipeCatalogue::Get();
     TestTrue(TEXT("Configured recipes validate"),Recipes->IsValidCatalogue());
     for(const FName Id:{FName(TEXT("Campfire")),FName(TEXT("Workbench")),FName(TEXT("Storage")),FName(TEXT("Floor")),FName(TEXT("Wall")),FName(TEXT("Roof"))})
         TestNotNull(TEXT("Required recipe exists"),Recipes->Find(Id));
@@ -109,7 +109,7 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("First ingredient was not consumed"),Before[0].Quantity,4);
     for (const FName RetiredRecipe : {FName(TEXT("ReplaceFieldHatchet")), FName(TEXT("ReplaceStonePick")), FName(TEXT("ReplaceReedKnife"))})
         TestNull(TEXT("M7 material-paid tool replacement is retired"), Recipes->Find(RetiredRecipe));
-    const auto* Wood = GetDefault<UKalmalaItemCatalogue>()->FindItem(TEXT("Wood"));
+    const auto* Wood = UKalmalaItemCatalogue::Get()->FindItem(TEXT("Wood"));
     if (Wood != nullptr)
     {
         Before = {{TEXT("Wood"), Wood->MaxStack - 1}};

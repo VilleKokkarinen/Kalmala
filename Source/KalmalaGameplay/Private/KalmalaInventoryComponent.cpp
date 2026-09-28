@@ -44,7 +44,7 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
         const FString Id = Node->GetPersistentSpawnId();
         const FName Item = Node->GetHarvestItemId();
         Materials.Add(Item);
-        const auto* Definition = GetDefault<UKalmalaItemCatalogue>()->FindItem(Item);
+        const auto* Definition = UKalmalaItemCatalogue::Get()->FindItem(Item);
         if (!Definition) { Node->Destroy(); return false; }
         const int32 Before = Inventory->GetQuantity(Item);
         Node->Interact_Implementation(Character); // Range rejection does not write a delta.
@@ -78,7 +78,7 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
     ToolSpawn.ContentId = TEXT("meadows-birch-bark");
     ToolNode->InitializeServer(ToolSpawn);
     const int32 BeforeWood = Inventory->GetQuantity(TEXT("Wood"));
-    const FKalmalaItemDefinition* WoodDefinition = GetDefault<UKalmalaItemCatalogue>()->FindItem(TEXT("Wood"));
+    const FKalmalaItemDefinition* WoodDefinition = UKalmalaItemCatalogue::Get()->FindItem(TEXT("Wood"));
     if (WoodDefinition == nullptr) { ToolNode->Destroy(); return false; }
     const int32 MaxWood = WoodDefinition->MaxStack;
     const int32 HatchetBefore = Character->GetToolDurability(TEXT("FieldHatchet"));
@@ -223,7 +223,7 @@ int32 UKalmalaInventoryComponent::GetQuantity(FName ItemId) const
 bool UKalmalaInventoryComponent::TryGrantFromServer(FName ItemId, int32 Quantity)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority()) return false;
-    const auto* Catalogue = GetDefault<UKalmalaItemCatalogue>();
+    const auto* Catalogue = UKalmalaItemCatalogue::Get();
     if (!Catalogue->CanAddToStack(ItemId, GetQuantity(ItemId), Quantity)) return false;
     auto* Stack = Stacks.FindByPredicate([ItemId](const FKalmalaInventoryStack& Entry) { return Entry.ItemId == ItemId; });
     if (!Stack)
@@ -240,7 +240,7 @@ bool UKalmalaInventoryComponent::TryGrantFromServer(FName ItemId, int32 Quantity
 bool UKalmalaInventoryComponent::TryConsumeFromServer(FName ItemId, int32 Quantity)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority()
-        || !GetDefault<UKalmalaItemCatalogue>()->IsValidStack(ItemId, Quantity)) return false;
+        || !UKalmalaItemCatalogue::Get()->IsValidStack(ItemId, Quantity)) return false;
     const int32 Index = Stacks.IndexOfByPredicate([ItemId](const FKalmalaInventoryStack& Entry) { return Entry.ItemId == ItemId; });
     if (Index == INDEX_NONE || Stacks[Index].Quantity < Quantity) return false;
     Stacks[Index].Quantity -= Quantity;

@@ -111,7 +111,7 @@ FName FKalmalaToolProgressionContract::GetAttachmentStationKit(const FName Attac
 bool FKalmalaToolProgressionContract::IsCatalogueValid()
 {
     const TArray<FKalmalaToolProgressionEntry>& Entries = ToolProgressionEntries();
-    const UKalmalaItemCatalogue* ItemCatalogue = GetDefault<UKalmalaItemCatalogue>();
+    const UKalmalaItemCatalogue* ItemCatalogue = UKalmalaItemCatalogue::Get();
     const TArray<FKalmalaStationAttachmentDefinition>& Attachments = StationAttachmentDefinitions();
     if (Entries.Num() != MaxAxeProgressionEntries || Attachments.Num() != 2 || ItemCatalogue == nullptr
         || !ItemCatalogue->IsValidCatalogue()) return false;

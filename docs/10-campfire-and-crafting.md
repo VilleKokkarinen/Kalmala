@@ -4,7 +4,7 @@ Open **Camp crafting** with **B** or the controller **View / special-left** butt
 
 ## Recipes and transactions
 
-The server-local `KalmalaRecipeCatalogue` configuration defines these original recipes. Item recipes output one unit per batch; tool replacements restore existing owner-only tool condition and create no inventory item. Fuel and timber support up to five batches per request; the UI crafts one at a time. Recipe IDs, ingredient IDs, duplicate definitions, quantities, output stack limits, tool outputs and batch arithmetic are validated before use; invalid catalogue configuration fails closed. Disabled recipes are locked server-side.
+The server-local `KalmalaRecipeCatalogue` loads these original recipes from the versioned `Content/Data/GameCatalogues.json` file alongside the item definitions. Unreal stages the `Content/Data` directory through UFS for packaged builds. Item recipes output one unit per batch; tool replacements restore existing owner-only tool condition and create no inventory item. Fuel and timber support up to five batches per request; the UI crafts one at a time. Recipe IDs, ingredient IDs, duplicate definitions, quantities, output stack limits, tool outputs and batch arithmetic are validated before use; malformed or missing JSON fails closed. Disabled recipes are locked server-side.
 
 | Recipe | Ingredients per unit | Station | Maximum batch |
 | --- | --- | --- | --- |

@@ -1,12 +1,19 @@
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaGameCatalogueLoader.h"
 #include "KalmalaToolLifecycleContract.h"
+
+const UKalmalaRecipeCatalogue* UKalmalaRecipeCatalogue::Get()
+{
+    FKalmalaGameCatalogueLoader::EnsureLoaded();
+    return GetDefault<UKalmalaRecipeCatalogue>();
+}
 
 bool UKalmalaRecipeCatalogue::Scale(const FKalmalaRecipe& Recipe, int32 Batch,
     TArray<FKalmalaInventoryStack>& Costs, int32& OutputCount)
 {
-    const auto* Items = GetDefault<UKalmalaItemCatalogue>();
+    const auto* Items = UKalmalaItemCatalogue::Get();
     if (Recipe.MaxBatch < 1 || Recipe.MaxBatch > 10 || Batch < 1 || Batch > Recipe.MaxBatch
         || Recipe.Ingredients.IsEmpty() || Recipe.Ingredients.Num() > 8) return false;
     const bool bOutputsTool = !Recipe.OutputTool.IsNone();
