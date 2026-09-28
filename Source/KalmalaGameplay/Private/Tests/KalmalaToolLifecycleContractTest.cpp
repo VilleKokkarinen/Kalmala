@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaInventoryComponent.h"
 #include "KalmalaSkillProgressionContract.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "Misc/AutomationTest.h"
@@ -30,7 +31,6 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
 
     FKalmalaToolServerSelection Selection;
     TestFalse(TEXT("Forged source fails closed"), FKalmalaToolLifecycleContract::BuildServerSelection(TEXT("forged-source"), Selection));
-
 
     const TArray<TPair<FName, int32>> RepairTools = {
         {TEXT("ReedKnife"), 1},

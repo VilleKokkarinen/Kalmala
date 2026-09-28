@@ -15,7 +15,11 @@ AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyConstruction(FNa
     double Best = FMath::Square(250.0);
     for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It)
     {
-        if (!IsValid(*It) || It->GetConstructionKit() != Kit || !It->CanUse(Character)) continue;
+        if (!IsValid(*It)) continue;
+        const bool bMatchesKit = Kit == TEXT("StorageKit")
+            ? AKalmalaConstructionActor::IsStorageKit(It->GetConstructionKit())
+            : It->GetConstructionKit() == Kit;
+        if (!bMatchesKit || !It->CanUse(Character)) continue;
         const double Distance = FVector::DistSquared(Character->GetActorLocation(), It->GetActorLocation());
         if (Distance < Best || (Distance == Best && (!Closest || It->GetConstructionId() < Closest->GetConstructionId())))
         { Best = Distance; Closest = *It; }
@@ -51,6 +55,11 @@ FString UKalmalaCraftingComponent::GetNearbyConstructionText() const
     if (!Closest) return TEXT("Construction: none visible within 2.5 m");
     const auto* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(Closest->GetConstructionKit());
     const bool bRoof = Closest->GetConstructionKit() == TEXT("RoofKit");
+    if (Closest->GetConstructionKit() == TEXT("RaisedStorageKit"))
+    {
+        return FString::Printf(TEXT("Construction: %s\nHealth: %.1f / %.0f\nRain-immune raised chest; chest and contents last for this server session"),
+            Item ? *Item->DisplayName : TEXT("Raised chest"), Closest->GetHealth(), AKalmalaConstructionActor::MaximumHealth);
+    }
     return FString::Printf(TEXT("Construction: %s\nHealth: %.1f / %.0f\n%s"),
         Item ? *Item->DisplayName : TEXT("Structure"), Closest->GetHealth(), AKalmalaConstructionActor::MaximumHealth,
         bRoof ? TEXT("Rain-immune roof") : Closest->GetHealth() <= AKalmalaConstructionActor::RainHealthFloor
@@ -83,7 +92,7 @@ bool UKalmalaCraftingComponent::OpenStorageFromServer(AKalmalaConstructionActor*
     auto* Character = GetCharacter();
     if (!Character || !Character->HasAuthority()) return false;
     ClearStorageView();
-    if (!IsValid(Construction) || Construction->GetConstructionKit() != TEXT("StorageKit")
+    if (!IsValid(Construction) || !AKalmalaConstructionActor::IsStorageKit(Construction->GetConstructionKit())
         || !Construction->CanInteract_Implementation(Character)) return false;
     ActiveStorage = Construction; RefreshStorageView(); Character->ForceNetUpdate();
     return bStorageViewOpen;
@@ -109,11 +118,20 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
         }
         PublishResult(Reason, bAccepted);
     }
-    else if (Construction->GetConstructionKit() == TEXT("StorageKit"))
+    else if (AKalmalaConstructionActor::IsStorageKit(Construction->GetConstructionKit()))
     {
         const bool bAccepted = OpenStorageFromServer(Construction);
-        PublishResult(bAccepted ? TEXT("Chest inspected; use Camp crafting to transfer items") : TEXT("Storage unavailable"), bAccepted);
+        const bool bRaised = Construction->GetConstructionKit() == TEXT("RaisedStorageKit");
+        PublishResult(bAccepted
+            ? (bRaised ? TEXT("Raised rainproof chest inspected; its contents last for this server session") : TEXT("Chest inspected; use Camp crafting to transfer items"))
+            : TEXT("Storage unavailable"), bAccepted);
     }
+    else if (Construction->GetConstructionKit() == TEXT("CookingRackKit"))
+        PublishResult(TEXT("Cooking rack ready; use Camp crafting to roast boar or deer meat"), true);
+    else if (Construction->GetConstructionKit() == TEXT("CauldronKit"))
+        PublishResult(TEXT("Hearth cauldron ready; use Camp crafting to simmer broth with extra fuel"), true);
+    else if (Construction->GetConstructionKit() == TEXT("SmokeFrameKit"))
+        PublishResult(TEXT("Smoke frame ready; use Camp crafting with a lit hearth and one extra fuel bundle per serving"), true);
     else PublishResult(TEXT("Joiner's bench ready; use Camp crafting to assemble floor, wall and roof kits"), true);
 }
 
@@ -138,7 +156,7 @@ void UKalmalaCraftingComponent::ServerOpenStorage_Implementation()
 {
     if (!AcceptRequest()) return;
     const bool bAccepted = OpenStorageFromServer(FindNearbyConstruction(TEXT("StorageKit")));
-    PublishResult(bAccepted ? TEXT("Nearby chest inspected") : TEXT("Need a saved, visible chest within 2.5 m"), bAccepted);
+    PublishResult(bAccepted ? TEXT("Nearby chest inspected") : TEXT("Need a registered, visible chest within 2.5 m"), bAccepted);
 }
 void UKalmalaCraftingComponent::ServerCloseStorage_Implementation() { ClearStorageView(); }
 void UKalmalaCraftingComponent::ServerDepositStorage_Implementation(FName ItemId)

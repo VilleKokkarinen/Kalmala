@@ -12,6 +12,7 @@
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaOceanDiscoveryCatalogue.h"
+#include "KalmalaOceanSampler.h"
 #include "KalmalaOceanSkiff.h"
 #include "KalmalaOceanTravelFeedbackComponent.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -28,6 +29,11 @@ namespace
 {
 	constexpr float SeaSurfaceZ = 0.0f;
 	constexpr float ExitOffsetCm = 260.0f;
+	constexpr float SkiffExitOffsetCm = 190.0f;
+	constexpr float MaximumDryShoreExitOffsetCm = 8000.0f;
+	constexpr float DryShoreExitRingStepCm = 500.0f;
+	constexpr float SafeExitCapsuleMarginCm = 44.0f;
+	constexpr float IntegratedJourneyExpectedStopDistanceCm = 242500.0f;
 	constexpr int32 DiscoverySearchRadiusCells = 24;
 	constexpr float ObservationTimeoutSeconds = 30.0f;
 	constexpr float ReconnectSetupTimeoutSeconds = 180.0f;
@@ -42,6 +48,39 @@ namespace
 				Center + Direction * ExitOffsetCm, 44.0))
 			{
 				return true;
+			}
+		}
+		return false;
+	}
+
+	bool IsDryShoreLandingForConfig(const FKalmalaWorldGenerationConfig& Config, const FVector Location)
+	{
+		const FVector2D Position(Location);
+		if (!AKalmalaOceanSkiff::IsSafeExitSurfaceForConfig(Config, Position, SafeExitCapsuleMarginCm)) return false;
+		const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, Position);
+		return Ocean.bIsValid && Ocean.WaterDepth <= 0.0f
+			&& Ocean.TerrainHeight > SeaSurfaceZ && Location.Z > SeaSurfaceZ;
+	}
+
+	bool HasTwoDryShoreExitCandidates(const FKalmalaWorldGenerationConfig& Config, const FVector2D Center)
+	{
+		int32 DryCandidateCount = 0;
+		const int32 RadiusCount = FMath::CeilToInt((MaximumDryShoreExitOffsetCm - SkiffExitOffsetCm)
+			/ DryShoreExitRingStepCm) + 1;
+		for (int32 RadiusIndex = 0; RadiusIndex < RadiusCount; ++RadiusIndex)
+		{
+			const float CandidateOffset = RadiusIndex == 0 ? SkiffExitOffsetCm
+				: FMath::Min(RadiusIndex * DryShoreExitRingStepCm, MaximumDryShoreExitOffsetCm);
+			for (int32 DirectionIndex = 0; DirectionIndex < 8; ++DirectionIndex)
+			{
+				const float Angle = FMath::DegreesToRadians(DirectionIndex * 45.0f);
+				const FVector2D Direction(FMath::Cos(Angle), FMath::Sin(Angle));
+				const FVector2D Candidate = Center + Direction * CandidateOffset;
+				if (!AKalmalaOceanSkiff::IsSafeExitSurfaceForConfig(Config, Candidate, SafeExitCapsuleMarginCm)) continue;
+
+				const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, Candidate);
+				if (Ocean.bIsValid && Ocean.WaterDepth <= 0.0f && Ocean.TerrainHeight > SeaSurfaceZ
+					&& ++DryCandidateCount == 2) return true;
 			}
 		}
 		return false;
@@ -590,9 +629,11 @@ bool AKalmalaOceanDiscoveryDisembarkPeerTest::IsIntegratedJourneyRoute(
 	const FVector2D Side(0.0f, 1.0f);
 	const float TargetYaw = 0.0f;
 	const FVector2D StopPosition = StartPosition + Direction * (TravelDistanceCm + CoastStopDistanceCm);
+	const FVector2D DryLandingCenter = StartPosition + Direction * IntegratedJourneyExpectedStopDistanceCm;
 	const FIntPoint StartPatch = FKalmalaTerrainPatchLayout::GetPatchCoordinate(FVector2D::ZeroVector, StartPosition);
 	const FIntPoint StopPatch = FKalmalaTerrainPatchLayout::GetPatchCoordinate(FVector2D::ZeroVector, StopPosition);
-	if (StartPatch == StopPatch || !HasSafeExitCandidate(Config, StopPosition)) return false;
+	if (StartPatch == StopPatch || !HasSafeExitCandidate(Config, StopPosition)
+		|| !HasTwoDryShoreExitCandidates(Config, DryLandingCenter)) return false;
 
 	for (float Distance = 0.0f; Distance <= TravelDistanceCm + CoastStopDistanceCm; Distance += RouteSampleIntervalCm)
 	{
@@ -920,6 +961,12 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::DriveIntegratedJourneyScenario()
 		Fail(TEXT("integrated voyage did not safely disembark both peers at the stopped endpoint"));
 		return;
 	}
+	if (!IsDryShoreLandingForConfig(State->GetWorldGenerationConfig(), Passenger->GetActorLocation())
+		|| !IsDryShoreLandingForConfig(State->GetWorldGenerationConfig(), Helm->GetActorLocation()))
+	{
+		Fail(TEXT("integrated voyage disembarked a peer outside the dry-shore landing surface"));
+		return;
+	}
 
 	bServerOutcomePublished = true;
 	ForceNetUpdate();
@@ -958,9 +1005,17 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyServerOutcome()
 	const UKalmalaInventoryComponent* HelmInventory = Helm != nullptr ? Helm->GetInventoryComponent() : nullptr;
 	const UKalmalaInventoryComponent* PassengerInventory = Passenger != nullptr ? Passenger->GetInventoryComponent() : nullptr;
 	const bool bIntegratedJourney = FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedJourneyPeerTest"));
+	const AKalmalaWorldGenerationGameState* State = GetWorld() != nullptr
+		? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
+	const bool bDryShoreHost = !bIntegratedJourney || (State != nullptr && Passenger != nullptr
+		&& State->GetWorldGenerationConfig().IsValid()
+		&& IsDryShoreLandingForConfig(State->GetWorldGenerationConfig(), Passenger->GetActorLocation()));
+	const bool bDryShoreHelm = !bIntegratedJourney || (State != nullptr && Helm != nullptr
+		&& State->GetWorldGenerationConfig().IsValid()
+		&& IsDryShoreLandingForConfig(State->GetWorldGenerationConfig(), Helm->GetActorLocation()));
 	const bool bJourneyPassed = !bIntegratedJourney || (IntegratedJourneyDistance >= 239000.0f
 		&& IntegratedJourneyDistance <= 250000.0f && bIntegratedJourneySawCrosswind && bIntegratedJourneySawCalm
-		&& bIntegratedJourneyStreamingPassed);
+		&& bIntegratedJourneyStreamingPassed && bDryShoreHost && bDryShoreHelm);
 	const bool bPassed = IsValid(TestSkiff) && Helm != nullptr && Passenger != nullptr
 		&& Helm->GetAttachParentActor() == nullptr && Passenger->GetAttachParentActor() == nullptr
 		&& TestSkiff->GetHelmOccupant() == nullptr && TestSkiff->GetPassengerOccupant() == nullptr
@@ -984,12 +1039,12 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyServerOutcome()
 	if (bIntegratedJourney)
 	{
 		UE_LOG(LogTemp, Display,
-			TEXT("Ocean integrated journey server passed: Seed=418 Players=2 Discovery=%s Reward=%s:%d Claims=2 Distance=%.0f Crosswind=%d Calm=%d PatchStart=(%d,%d) PatchEnd=(%d,%d) ActivePatches=%d Mode=Moored Disembarked=2"),
+			TEXT("Ocean integrated journey server passed: Seed=418 Players=2 Discovery=%s Reward=%s:%d Claims=2 Distance=%.0f Crosswind=%d Calm=%d PatchStart=(%d,%d) PatchEnd=(%d,%d) ActivePatches=%d DryShoreHost=%d DryShoreHelm=%d Mode=Moored Disembarked=2"),
 			*ExpectedDiscoveryId.ToString(), *ExpectedRewardItemId.ToString(), ExpectedRewardQuantity,
 			IntegratedJourneyDistance, bIntegratedJourneySawCrosswind ? 1 : 0, bIntegratedJourneySawCalm ? 1 : 0,
 			IntegratedJourneyStartPatch.X, IntegratedJourneyStartPatch.Y,
 			IntegratedJourneyEndPatch.X, IntegratedJourneyEndPatch.Y,
-			IntegratedJourneyActivePatchCount);
+			IntegratedJourneyActivePatchCount, bDryShoreHost ? 1 : 0, bDryShoreHelm ? 1 : 0);
 	}
 	else
 	{
@@ -1100,10 +1155,15 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyLocalOwnerReplica()
 	const bool bKnownPeer = LocalCharacter->GetPlayerState() == HelmPlayerState
 		|| LocalCharacter->GetPlayerState() == PassengerPlayerState;
 	const bool bIntegratedJourney = FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedJourneyPeerTest"));
+	const AKalmalaWorldGenerationGameState* State = GetWorld() != nullptr
+		? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
+	const bool bLocalDryShoreLanding = !bIntegratedJourney || (State != nullptr
+		&& State->GetWorldGenerationConfig().IsValid()
+		&& IsDryShoreLandingForConfig(State->GetWorldGenerationConfig(), LocalCharacter->GetActorLocation()));
 	const bool bJourneyAccepted = !bIntegratedJourney || (bIntegratedJourneyStarted
 		&& IntegratedJourneyDistance >= 239000.0f && IntegratedJourneyDistance <= 250000.0f
 		&& bIntegratedJourneySawCrosswind && bIntegratedJourneySawCalm && bIntegratedJourneyStreamingPassed
-		&& bLocalIntegratedJourneySawCrosswind && bLocalIntegratedJourneySawCalm);
+		&& bLocalIntegratedJourneySawCrosswind && bLocalIntegratedJourneySawCalm && bLocalDryShoreLanding);
 	const bool bAcceptedOwnerState = Discovery->GetFeedback() == EKalmalaDiscoveryFeedback::LandmarkFound
 		&& Discovery->GetFeedbackSerial() > 0
 		&& Discovery->GetFeedbackLabel().StartsWith(TEXT("Sea discovery:"))
@@ -1133,7 +1193,7 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyLocalOwnerReplica()
 	if (bIntegratedJourney)
 	{
 		UE_LOG(LogTemp, Display,
-			TEXT("Ocean integrated journey peer replica passed: Authority=0 Seat=%s Discovery=%s DiscoveryFeedback=LandmarkFound Reward=%s:%d Distance=%.0f Crosswind=1 Calm=1 Disembarked=1 EmptySeats=1 Mode=Moored"),
+			TEXT("Ocean integrated journey peer replica passed: Authority=0 Seat=%s Discovery=%s DiscoveryFeedback=LandmarkFound Reward=%s:%d Distance=%.0f Crosswind=1 Calm=1 DryShore=1 Disembarked=1 EmptySeats=1 Mode=Moored"),
 			Seat, *ExpectedDiscoveryId.ToString(), *ExpectedRewardItemId.ToString(),
 			ExpectedRewardQuantity, IntegratedJourneyDistance);
 	}

@@ -16,6 +16,7 @@ bool UKalmalaConstructionSaveGame::MatchesWorld(const FKalmalaWorldGenerationCon
 bool UKalmalaConstructionSaveGame::IsValidRecord(const FKalmalaConstructionSaveRecord& Record)
 {
     return Record.ConstructionId.Len() > 0 && Record.ConstructionId.Len() <= 64 && FKalmalaPlacementPreview::IsSupportedKit(Record.KitId)
+        && !FKalmalaPlacementPreview::IsSessionOnlyKit(Record.KitId)
         && !Record.Transform.GetLocation().ContainsNaN() && !Record.Transform.GetRotation().ContainsNaN();
 }
 

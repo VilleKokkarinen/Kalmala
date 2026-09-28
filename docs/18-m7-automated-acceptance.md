@@ -21,10 +21,13 @@ that the capture and owner-local crafting presentation checks pass. The
 automation tests assert text-plus-marker and status content directly. These
 are functional and presentation-contract checks, not a claim that one player
 completed the entire progression in a single unscripted journey. M7 does not
-require Computer Use or physical keyboard/controller interaction. The later
-M6 release-candidate loop remains responsible for supported-session and
-packaged player walkthrough acceptance; the M5 charter in
-`12-vertical-slice-runbook.md` is unchanged.
+require Computer Use or physical keyboard/controller interaction. This suite is
+the no-native-window host/client gate for the M7 post-content regression when
+combined with the checked M6 regression slices and clean-profile package smoke.
+It verifies process-level authority, replication, reconnect, and presentation
+contracts; it does not pass physical input or the player-visible packaged
+walkthrough. Keep those as explicit M6 limitations. The M5 player-facing
+charter in `12-vertical-slice-runbook.md` remains unchanged.
 
 The suite changes no gameplay, RPC, replication, authority, or save contract.
 The existing server continues to own gathering, tool condition and repair,

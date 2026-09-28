@@ -15,7 +15,7 @@ feedback, but it cannot become a gameplay source.
 | Player | `UKalmalaPlayerModelComponent` procedural mesh and the generated bark/terrain/rock materials | Nine local, collision-free cosmetic parts; shape and pose never author gameplay | Faceted mantle/hood presentation verified in the rendered offscreen host/client controls fixture |
 | Wildlife | `AKalmalaWildlifeSpawn::BuildArchetypePresentation` procedural low-poly geometry and vertex colours | Server-owned replicated actor state; mesh is presentation only and has no collision | Mireling's low forward hunch, reaching arms, and split crown read as a distinct close-view silhouette in the rendered host fixture; dark body planes merge somewhat. Boar has a low wedge-backed profile, broken bristle ridge, tapered muzzle, and paired tusks; deer has a lighter, long-legged alert profile with paired forked antlers |
 | Environment | `AKalmalaGeneratedTerrainPatch`, campfire, and construction procedural meshes using generated materials | Terrain collision and shelter collision remain the gameplay authority; decorative meshes do not add routes or hidden content | Existing generated terrain, water, rock, tree, hearth, and kit sources are audited here |
-| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the inventory HUD explains prepared-food effects and the active meal timer from that same owner's pack/status; the owner HUD retains original support glyphs; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; settings Audio/Controls/Settings tabs expose local options |
+| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the inventory HUD explains prepared-food effects and the active meal timer from that same owner's pack/status; the crafting panel reads the owning pawn's owner-only skill ledger for six skill bars and the nearest recipe unlock; the owner HUD retains original support glyphs; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; settings Audio/Controls/Settings tabs expose local options |
 | Feedback | Text and shape/icon treatments in the inventory, crafting, combat, discovery, and settings widgets | Readable without colour or audio; feedback reports accepted replicated results rather than client claims | Support glyphs reflect only the owner's learned/selected state and retain explicit text names/status; the optional owner-only Text + markers overlay adds bracketed Wet, hearth, construction, combat, discovery, and support markers |
 
 The ledger is an ownership and scope check, not a claim that the complete M5
@@ -41,6 +41,21 @@ contrast. `Kalmala.UI.Inventory.PreparedFoodDetails` checks the bounded benefit,
 active timer formatting, and fail-closed invalid timer behavior. The
 host/client inventory reconnect fixture continues to verify owner-only pack
 visibility; rendered multi-row layout and scaled-font appearance remain open.
+
+## Owner-local crafting skill and unlock detail
+
+The Camp crafting panel reads detailed progression only from the local owning
+pawn's `UKalmalaSkillProgressionComponent`. It lists the six allowlisted skills
+with the current level and experience toward the next level, then names the
+nearest skill-gated recipe unlock and the XP progress required. When an
+accepted recipe can advance that skill, the panel names its per-request XP
+award. Missing or incomplete owner replication is described as unavailable;
+no aggregate peer badge is used as a substitute for private skill detail.
+The selected-recipe details and skill block follow the local text-scale and
+high-contrast settings inside the existing scroll view. This is read-only
+presentation: it adds no RPC, focus target, progression mutation, or save
+field. `Scripts/Verify-Crafting.ps1` checks the fresh-owner values and
+host/client presentation; `-Rendered` retains both 1280x720 captures.
 
 ## Allowed and forbidden sources
 
@@ -132,3 +147,14 @@ The lower-centre card exposes current W/A/S/D, left-stick, mouse/right-stick,
 jump, sprint, dismiss, and revisit labels. Other prompt contexts, viewport
 scales, and keyboard/controller prompt-button presses remain for the follow-up
 onboarding acceptance check.
+
+## Rendered survival status HUD layout
+
+`UKalmalaSurvivalStatusWidget` remains a non-focusable local-player view of the
+owning pawn's replicated Wet/food entries, exposure, active support, and server
+weather. Its wrapped lower-left status column uses a 400-unit content width and
+stays clear of the centered arrival card at the documented 1280×720 viewport.
+The rendered host/client capture shows the weather row and recovery guidance
+without overlap; `Kalmala.UI.SurvivalStatus.LocalPresentation` checks the full
+Wet, food, weather, temperature, support, and empty-state text cases. This
+layout adjustment changes no gameplay, replication, or persistence contract.

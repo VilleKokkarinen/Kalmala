@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaSkillProgressionContract.h"
 #include "KalmalaRecipeCatalogue.generated.h"
 
 USTRUCT()
@@ -11,10 +12,16 @@ struct KALMALAGAMEPLAY_API FKalmalaRecipe
     UPROPERTY(EditAnywhere) FString DisplayName;
     UPROPERTY(EditAnywhere) TArray<FKalmalaInventoryStack> Ingredients;
     UPROPERTY(EditAnywhere) FName Output;
+    UPROPERTY(EditAnywhere) FName OutputTool;
     UPROPERTY(EditAnywhere) int32 OutputCount = 1;
     UPROPERTY(EditAnywhere) int32 MaxBatch = 1;
     UPROPERTY(EditAnywhere) bool bRequiresCampfire = false;
     UPROPERTY(EditAnywhere) bool bRequiresLitCampfire = false;
+    UPROPERTY(EditAnywhere) FName RequiredStationKit;
+    UPROPERTY(EditAnywhere) EKalmalaSkill RequiredSkill = EKalmalaSkill::None;
+    UPROPERTY(EditAnywhere) int32 RequiredSkillLevel = 0;
+    UPROPERTY(EditAnywhere) EKalmalaSkill ExperienceSkill = EKalmalaSkill::None;
+    UPROPERTY(EditAnywhere) int32 ExperienceAward = 0;
     UPROPERTY(EditAnywhere) bool bEnabled = true;
 };
 

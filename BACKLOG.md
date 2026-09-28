@@ -306,298 +306,85 @@ longer a roadmap requirement.
 
 ### M5 — Vertical-slice finish (complete)
 
-This milestone is decomposed so its release work is ordered and independently
-verifiable. M4 is complete under its revised focused-regression acceptance.
+**Status:** Closed for backlog sequencing through the documented external-surface skip. The packaged fresh-player co-op loop remains unverified; see `docs/12-vertical-slice-runbook.md` and `PROGRESS.md`.
 
-**M5 status:** complete for backlog sequencing through the documented external-
-surface skip. The player-visible packaged co-op completion path remains an
-explicit limitation and is not represented as passed.
-
-- [x] Establish the shippable vertical-slice baseline and tool-free loop.
-  - [x] Document the 20–30 minute solo/listen-server co-op walkthrough using only normal player actions and the existing route-free world. See `docs/12-vertical-slice-runbook.md`.
-  - [x] Define the fresh-player start, camp preparation, optional wilderness travel, creature/discovery/support choices, and return-state evidence required by M5 acceptance. See the acceptance matrix in `docs/12-vertical-slice-runbook.md`.
-- [x] Keep the current M5 documentation and presentation contracts runnable as one no-build suite. See `Scripts/Verify-M5DocumentationContracts.ps1`.
-- [x] Complete the original visual and audio presentation pass.
-  - [x] Inventory the remaining presentation seams and add a no-build project-ownership audit. See `docs/15-presentation-ownership.md` and `Scripts/Verify-PresentationOwnership.ps1`.
-  - [x] Replace remaining prototype presentation with original project-owned player, creature, environment, UI, and feedback assets without changing gameplay contracts.
-    - [x] Verify the existing original faceted player model through a rendered offscreen host/client controls fixture.
-    - [x] Add original project-owned vector glyphs for all four support effects to the local HUD; retain explicit text and input labels.
-    - [x] Refine the original collision-free Mireling silhouette for clearer camp-pressure readability without changing its replicated gameplay behavior.
-    - [x] Replace the boar's generic tetra silhouette with an original low, bristled profile, tapered muzzle, and paired tusks while preserving its replicated gameplay behavior.
-    - [x] Refine the original deer silhouette into a lighter, long-legged, alert profile while retaining its existing antler identity and replicated gameplay behavior.
-      - [x] Review the refined deer in a rendered, close host view after the bounded peer fixture positions the target and companion.
-      - [x] Inspect the original Mireling silhouette in a rendered, bounded host/client encounter before closing the creature presentation pass.
-  - [x] Define original ambient, weather, interaction, combat, discovery, and support-effect cue groups with readable non-audio equivalents and a no-build contract check. See `docs/16-audio-cue-contract.md` and `Scripts/Verify-AudioCueContract.ps1`.
-  - [x] Add original ambient, weather, movement, interaction, combat, discovery, and support-effect audio cues with readable non-audio state equivalents.
-    - [x] Add a quiet, project-owned wind ambience bed for each local player in normal generated-world play; preserve the existing readable weather/exposure state.
-    - [x] Add local water, fire, and biome ambience layers without revealing hidden content or implying a route.
-      - [x] Add an original local water bed only near line-of-sight sea or visible lake water; preserve readable state text and avoid gameplay/network state.
-      - [x] Add a quiet local fire bed only for a nearby visible, lit hearth; retain readable hearth state.
-      - [x] Add local biome ambience from the owning player's sampled, locally visible biome without implying a route.
-    - [x] Add local weather/exposure cues from accepted replicated state while retaining Wet, warmth, shelter, hearth, and recovery text.
-    - [x] Add one quiet owner-local support acceptance cue from the existing server-confirmed feedback serial; keep readable support result text.
-    - [x] Add local interaction/gathering, combat, discovery, and support-effect cues from their existing accepted feedback; retain readable result text and current privacy boundaries.
-      - [x] Add a local combat result cue from the owning pawn's existing server-confirmed combat feedback serial; retain readable HIT/DEFEAT/UNAVAILABLE text.
-      - [x] Add local interaction/gathering result cues from their existing accepted feedback; preserve readable interaction and inventory result text.
-      - [x] Add a local discovery acknowledgement cue from existing owner-only, server-confirmed landmark/scroll feedback; preserve readable discovery result text.
-      - [x] Add effect-specific support activation and expiry cues from existing accepted effect state; preserve readable support result text.
-    - [x] Add local movement and traversal cues from the owning player's current movement state; retain readable pose, HUD, and input feedback.
-      - [x] Add quiet owner-local footfall, jump, and landing cues from sampled movement state; retain readable pose, HUD, and input feedback.
-      - [x] Add local water-entry and exit cues from the owning player's generated-ocean movement mode; retain readable water and exposure state.
-- [x] Add optional onboarding and tutorial beats.
-  - [x] Define the route-free local prompt beats, visibility triggers, accessibility cues, and authority boundaries. See `docs/13-onboarding-and-tutorial.md`.
-  - [x] Add a no-build contract check for the tutorial specification and document its limits. See `Scripts/Verify-OnboardingContract.ps1`.
-  - [x] Teach movement, gathering, shelter, weather, optional combat, discoveries, and support magic through route-free local prompts.
-  - [x] Verify tutorial prompts never require a fixed route, authored corridor, mandatory camp, quest chain, or developer command.
-- [x] Complete local settings and accessibility coverage.
-  - [x] Define local option groups, keyboard/controller access, text scale, contrast, non-colour feedback, persistence, and authority boundaries. See `docs/14-settings-and-accessibility.md`.
-  - [x] Add a no-build contract check for the local settings/accessibility specification and document its limits. See `Scripts/Verify-SettingsAccessibilityContract.ps1`.
-  - [x] Validate the existing keyboard/controller input baseline used by the future Controls tab without changing runtime bindings. See `Scripts/Verify-LocalInputContract.ps1`.
-  - [x] Add local audio, control/remapping, text-scale, contrast, and non-colour feedback options to the existing settings shell.
-    - [x] Add persisted local master-volume steps and reversible mute/restore controls with visible text values.
-    - [x] Add local ambient, music, and interaction/combat feedback category levels while preserving readable state text.
-    - [x] Add local keyboard/controller control remapping and restore defaults.
-    - [x] Add local text scale and contrast choices with readable modal layout.
-    - [x] Add local colour-independent feedback preferences for current gameplay state.
-  - [x] Verify options persist locally, remain usable with keyboard/controller input, and never mutate server gameplay or replicated state.
-- [x] Run the performance and startup pass.
-  - [x] Profile packaged startup, generated-world traversal, population activation, weather/camp updates, replication, and map/minimap workers on the supported Windows target.
-    - Passed 2026-09-22: forced UE5.8 editor build; archived Windows Development package; packaged listen readiness 12,025.8 ms; `Scripts/Verify-WorldProfile.ps1 -Port 18474`; `Scripts/Verify-PlayerControls.ps1 -Port 18478`; `Scripts/Verify-CampChoices.ps1 -Port 18479`; `Scripts/Verify-WorldMapProfile.ps1 -Port 18475`; and focused minimap/map performance automations. Evidence retained under `C:/Users/Ville/AppData/Local/Temp/KalmalaPackagedStartup-ee433834eb0448b69850c424e32f1fce`, `C:/Users/Ville/AppData/Local/Temp/KalmalaWorldProfile-02e679698cd140d7b9f9a42d7c00788b`, `C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-ae5a594d4b784b61a0f036c2bc7806a9`, `C:/Users/Ville/AppData/Local/Temp/KalmalaCampChoices-c5df507da1774d838485d4f21e3738f2`, `C:/Users/Ville/AppData/Local/Temp/KalmalaWorldMapProfile-19bcb9b22fab47fe8ba1b39c04abf9ef`, and `C:/Users/Ville/AppData/Local/Temp/KalmalaPerfAutomation-41b3a434bee14073bce8862f9d476108`.
-  - [x] Fix regressions within existing bounded actor, memory, worker, and raster budgets without increasing world, population, or online-service scope.
-    - Passed 2026-09-22: forced UE5.8 editor build; fresh `Scripts/Verify-WorldProfile.ps1 -Port 18480` and `Scripts/Verify-WorldMapProfile.ps1 -Port 18481`; focused minimap/map generation, presentation, and budget automations. No actor, memory, worker, raster, authority, or save regression was exposed, so no runtime fix was required.
-- [x] Tune the survival, combat, creature, and support loop.
-  - [x] Tune costs, cooldowns, durations, stamina/wetness penalties, creature pressure, rewards, and recovery so preparation creates choices without hard travel gates.
-    - [x] Tune the server-owned Wet movement and sprint-stamina penalties to 0.92x and 1.15x while retaining the 120-second duration, 10-second rain trigger, and campfire recovery.
-      - Passed 2026-09-22: forced editor build; focused Wet/status automation; `Scripts/Verify-PlayerControls.ps1 -WetStamina -Port 18482`; `Scripts/Verify-CampChoices.ps1 -Port 18483`; and the M5 documentation suite. Both peers retained server-owned state and the Wet penalty remained recoverable through normal fire/shelter choices.
-    - [x] Tune the shared support activation cost to an 18-stamina dry base, applying the existing authoritative Wet multiplier so Wet costs 20.7 without changing cooldowns, durations, targets, rewards, or recovery rules.
-      - Passed 2026-09-22: direct UE5.8 `KalmalaEditor Win64 Development` UnrealBuildTool run succeeded in 11 actions with `%LOCALAPPDATA%\UnrealBuildTool` access; `Kalmala.Gameplay.Status.Wet+Kalmala.Gameplay.Discovery.PlayerScopedPersistence` passed; all five M5 documentation contracts and `git diff --check` passed.
-    - [x] Tune the committed player-combat recovery window from 0.42 to 0.36 seconds while preserving server-selected targets, fixed damage, replay gates, and relevant-peer action presentation.
-      - Passed 2026-09-22: isolated UE5.8 `KalmalaEditor Win64 Development` build succeeded in 153 actions with `%LOCALAPPDATA%\\UnrealBuildTool` access; focused combat authority/rejection automations passed; `Scripts/Verify-CombatPeer.ps1 -Port 18484` passed the owner-only feedback, relevant defeat, and restart-persistence checks; all five M5 documentation contracts and `git diff --check` passed.
-    - [x] Tune the shared support activation cooldown from 4.0 to 5.0 seconds while preserving the 18-stamina base, effect durations, server-selected targets, rewards, and non-damaging execution.
-      - Passed 2026-09-22: forced UE5.8 `KalmalaEditor Win64 Development` build succeeded in 10 actions with `%LOCALAPPDATA%\\UnrealBuildTool` access; focused Wet/support persistence tests passed; `Scripts/Verify-M4VerticalSlice.ps1 -Port 18492` passed Mireling, boar, deer, support authority/non-damage, owner-only rewards, and matching-world persistence; documentation and diff checks passed.
-    - [x] Tune Hearth Shield's server-owned protection window from 8.0 to 10.0 seconds while preserving its 40-point absorption, five-second cooldown, 18-stamina base, expiry clearing, and non-damaging execution.
-      - Passed 2026-09-22: forced UE5.8 `KalmalaEditor Win64 Development` build; focused `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`; `Scripts/Verify-M4VerticalSlice.ps1`; all five M5 documentation contracts; and `git diff --check` passed.
-    - [x] Tune Bear's Vigor's server-owned support window from 8.0 to 10.0 seconds while preserving its 1.4x strength, 140-point stamina cap, five-second cooldown, no-refill/expiry behavior, and non-damaging execution.
-      - Passed 2026-09-22: forced UE5.8 `KalmalaEditor Win64 Development` build recorded `Result: Succeeded` in `%LOCALAPPDATA%\UnrealBuildTool\Log.txt`; `Scripts/Verify-M4VerticalSlice.ps1 -Port 18495` passed the Mireling, boar, deer, support authority/non-damage, owner-only reward, defeat-persistence, and matching-world learning checks; the five M5 documentation contracts, presentation ownership audit, and `git diff --check` passed. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-dd1ae5ede2e24d369a12138acb990f38`.
-    - [x] Tune the server-owned Mireling melee repeat interval from 1.0 to 1.25 seconds while preserving its 10-point damage, 180 cm range, target selection, defeat, and reward rules.
-      - Passed 2026-09-22: forced UE5.8 `KalmalaEditor Win64 Development` build recorded `Result: Succeeded` in `C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt`; focused `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle` passed with the exact 1.25-second assertion; a fresh `Scripts/Verify-MirelingPeer.ps1 -Port 18497` passed server pressure, target-free client rejection, relevant replication, owner-only reward, and restart persistence; `Scripts/Verify-M4VerticalSlice.ps1 -Port 18498` passed all three creature peers, support authority/non-damage, and matching-world learning persistence. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaMirelingBalance-830c89d64a704e0f8b99fa1211a062e9/wildlife.log` and `C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-ca83ce4e5b3a42df87bf3aafb319b000`.
-  - [x] Re-run authority, persistence, reconnect, and host/client checks after tuning; clients still provide intent only.
-    - Passed 2026-09-22: rebuilt `KalmalaEditor Win64 Development`; `Scripts/Verify-M4VerticalSlice.ps1 -Port 18485`, `Scripts/Verify-PlayerControls.ps1 -WetStamina -Port 18488`, `Scripts/Verify-CampChoices.ps1 -Port 18489`, `Scripts/Verify-CombatPeer.ps1 -Port 18490`, and `Scripts/Verify-DiscoveryPeer.ps1 -Port 18491`; and the focused status/combat/discovery automation. Authority, owner privacy, relevant-peer replication, matching-world persistence, reconnect defeat/discovery state, Wet recovery, and client intent-only rejection all passed.
-- [x] Complete release regression and packaging verification.
-  - Resolved 2026-09-22: the ocean-travel test now spawns a server-owned replicated deep-water ribbon to the existing seed-derived island endpoint instead of searching the current generator for an arbitrary nearby waypoint.
-  - [x] Run the relevant automated, rendered host/client, reconnect, and current-generator regression suites and record retained evidence.
-    - Passed 2026-09-22: disposable UE5.8 `KalmalaEditor Win64 Development` build; `Scripts/Verify-OceanTravel.ps1 -Port 18516` passed host/client fixture adoption, authoritative/predicted ocean entry, seeded-island arrival, and duplicate-free terrain-neighborhood audit; `Scripts/Verify-RegionalGeneration.ps1` passed repeated seed-418 determinism, seed-419 variation, host/client identity agreement, and fingerprint `7644800015248745432`; rendered `Scripts/Verify-PlayerControls.ps1 -Rendered -Port 18517`; `Scripts/Verify-M4VerticalSlice.ps1 -Port 18518`; and all five M5 documentation contracts passed. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaOceanTravel-64b0abb98881496cbf5169c2f0324a44`, `C:/Users/Ville/AppData/Local/Temp/KalmalaRegionalProof-d369797ca3fa49b8a49003dfed14a533`, `C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-da1927e7c6de4c5b92ab3d9d84b2f4eb`, and `C:/Users/Ville/AppData/Local/Temp/KalmalaM4VerticalSlice-b074b18eaf0b491caa5a2beee301008f`.
-  - [x] Produce and smoke-launch a Windows Development package from the accepted revision without changing saved-data schemas or CI/release configuration.
-    - Passed 2026-09-22: extracted accepted HEAD `9cd3662` into an isolated temporary checkout, ran the UE5.8 `RunUAT.bat BuildCookRun` Windows Development build/cook/stage/archive with `%LOCALAPPDATA%\\UnrealBuildTool` access, and smoke-launched the archived `Kalmala.exe` for 10 seconds with `-nullrhi -nosound -unattended`; the process remained alive with no immediate crash. Main-checkout `Saved/`, `Binaries/`, `Intermediate/`, and release configuration were untouched. Evidence: `C:/Users/Ville/AppData/Local/Temp/KalmalaRelease-511dae00c4734478a302d99ded81dc60/Archive/Windows/Kalmala.exe`.
-  - [x] Attempt the dedicated-server playtest only with a server-capable UE 5.8 build; otherwise retain the documented Launcher-engine blocker.
-    - Checked 2026-09-22: only `C:\Program Files\Epic Games\UE_5.8` is installed; `Engine\Build\InstalledBuild.txt` is present, no alternate UE 5.8 installation or `UnrealServer.exe` is available, and `docs/07-development-setup.md` plus the accepted decision log state that this Launcher distribution does not support dedicated-server targets. The retained `KalmalaServer` target was not invoked.
-  - Completed 2026-09-22: the automated, rendered, current-generator, package smoke, and conditional dedicated-server checks above close this aggregate. The remaining native play-surface limitation belongs to the separate final M5 acceptance task below.
-- [x] Close the final M5 acceptance by either completing the packaged co-op run or recording a documented external-surface skip.
-  - [x] **Completion path:** Verify a fresh player can complete the documented 20–30 minute co-op loop in the packaged build with optional routes, matching peer state, and no hidden developer dependency. This path remains pending until a targetable native Windows game surface is available.
-  - [x] **Skip path (external environment only):** Record that the final player-visible run is unavailable after the release-regression aggregate has passed and at least three normal packaged launches, including one fresh-profile windowed launch, remain alive in the active session with `MainWindowHandle=0` and no targetable native-app inventory. This skip closes the M5 queue but does not claim the player-visible acceptance, normal joining, reconnect observation, physical input, audio, packaged persistence, or long-session balance as passed. **SKIPPED 2026-09-22:** four retained-package launches meet these conditions: default, windowed, normal listen, and fresh-profile windowed `-ForceRes`; all exposed `MainWindowHandle=0` in session 8 while `cua.getState()` reported `apps=[]` with only the Codex in-app browser. See `PROGRESS.md` for exact evidence.
-- [x] Record remaining limitations, supported session modes, and the handoff for M6. The current supported evidence is automated, rendered offscreen, current-generator, authority, persistence, reconnect, package-smoke, and conditional dedicated-server checks; tool-free native packaged co-op remains a deferred M6 acceptance finding.
+- [x] Complete original presentation and audio, onboarding, settings/accessibility, balance, performance, and release-regression work.
+- [x] Smoke-launch the Windows Development package and record the conditional dedicated-server blocker.
+- [x] Close M5 through the documented skip path; do not claim player-visible packaged co-op acceptance.
 
 ### M6 — Production hardening and supported-session validation (complete)
 
-Start only after M5's vertical-slice acceptance passes or its documented
-external-surface skip closes the M5 queue. Do not add gameplay content, change
-saved-data schemas, expand online services, or change the current PC
-solo/listen-server co-op scope. The detailed sequencing and acceptance remain
-in `docs/04-roadmap.md`; the player-facing charter remains in
-`docs/12-vertical-slice-runbook.md`.
+**Status:** Administratively closed by explicit user direction on 2026-09-22. Package smoke and regression subsets passed; the full release suite, tool-free packaged loop, and dedicated-server playtest remain unverified or blocked. See `docs/04-roadmap.md`, `docs/07-development-setup.md`, and `PROGRESS.md`.
 
-**M6 status:** closed for backlog sequencing by explicit user direction on
-2026-09-22. This administrative closure does not claim that the native-surface
-co-op run, two-pass release suite, package player loop, or dedicated-server
-validation passed; those remain documented limitations and release-candidate
-gates.
+- [x] Retain available host/client regression and package-smoke evidence.
+- [x] Record the installed Launcher engine's dedicated-server limitation; do not claim server validation.
 
-- [x] Close the deferred M5 acceptance finding and any additional player-visible findings. **Administrative closure; player-visible evidence remains deferred.**
-  - [x] Restore a targetable native Windows game surface and run the unchanged fresh-player 20–30 minute packaged co-op charter using normal player actions only. **Deferred; no targetable native surface was available.**
-  - [x] Triage crash, hang, reconnect, late-join, save-identity, input, accessibility, and readable non-audio feedback findings; convert each result into a focused regression or an explicit documented non-goal. **Deferred with the player-facing run.**
-  - [x] Do not substitute developer fixtures, offscreen captures, console commands, teleportation, or scripted gameplay for the player-facing run. **Constraint retained.**
-- [x] Re-run the complete release suite twice from clean temporary user directories. **Administrative closure; retained evidence does not claim two complete passes.**
-  - [x] Run the automated, rendered host/client, current-generator, authority, persistence, reconnect, and performance checks and retain logs, screenshots, package metadata, and the known-limit record. **Existing retained evidence covers the documented subsets.**
-  - [x] Repair only regressions within the existing actor, memory, worker, raster, startup, replication, and save budgets; do not increase world, population, or online-service scope. **Scope constraint retained; no new runtime repair in this closure.**
-- [x] Validate the Windows Development package as the supported release candidate. **Administrative closure; player-facing acceptance remains deferred.**
-  - [x] Produce and smoke-launch the accepted package without changing saved-data schemas or CI/release configuration. **Package smoke passed; native player surface remained unavailable.**
-  - [x] Verify the fresh-player loop, relevant peer state, normal joining, reconnect, sparse persistence, and readable local feedback without developer tools. **Deferred to a usable native surface.**
-- [x] Attempt dedicated-server validation only when a server-capable Unreal 5.8 build is available. **Conditional closure.**
-  - [x] If available, compile the retained `KalmalaServer` target and run a bounded two-to-four-player test covering join, movement, interaction, weather/camp recovery, creatures, support effects, late join, reconnect, and sparse persistence. **Not attempted because no server-capable build is installed.**
-  - [x] If only the installed Launcher engine remains available, retain the documented blocker and do not invent a replacement service. **Documented blocker retained.**
+### M7 — Content update: survival progression and readable gameplay UI (complete)
 
-**M6 multiplayer boundary:** the server continues to own world generation,
-combat, support, discovery, rewards, persistence, and all accepted outcomes.
-Clients provide intent only; M6 must not add client-selected targets, damage,
-timing, rewards, hidden-content queries, or save values.
+**Status:** Closed through the documented headless acceptance path. Physical input and the player-visible packaged walkthrough remain unverified; details are in `PROGRESS.md`.
 
-**M6 acceptance:** the supported Windows Development package passes the complete
-release suite twice from clean temporary user directories; a fresh player
-completes the 20–30 minute co-op loop without developer tools; relevant peer
-state, reconnect, and persistence remain correct; recorded performance budgets
-remain green; and only explicitly documented limitations remain. Dedicated-
-server acceptance is conditional on the documented Unreal 5.8 capability.
+- [x] Establish versioned persistence and migration boundaries without silently extending earlier save schemas.
+- [x] Complete server-owned skills, first-wave biome content, tool gathering and repair, food/crafting, hazards, and readable HUD work.
+- [x] Pass fresh-profile host/client acceptance and the available M6 regression; record remaining player-session limitations.
 
-### M7 — Content update: survival progression and readable gameplay UI
+See `docs/04-roadmap.md` for the gameplay and authority contract and `PROGRESS.md` for retained verification evidence.
 
-Start only after the M6 release-candidate gates are explicitly reviewed. Use the
-existing inventory, harvest-node, camp-crafting, construction, status, and local
-HUD foundations. Add original, route-free survival content without silently
-extending saved-data schemas, online services, platform scope, or the current
-PC solo/listen-server co-op boundary. The roadmap contract is in
-`docs/04-roadmap.md`.
+### M8 — Ocean and long-distance travel (complete; dry-shore acceptance waived)
 
-- [x] Establish the versioned M7 persistence and migration gate before adding persistent progression, food, tool, depletion, or rare-loot state.
-  - [x] Define identity/world matching, migration policy, sparse generated-content deltas, and round-trip/rejection tests for any state that must survive reconnect or restart.
-  - [x] Keep development fixtures transient and server-owned until the save contract is approved; do not silently extend existing save schemas.
-    - Passed 2026-09-22: independent `UKalmalaM7PersistenceSaveGame` schema 1 contract covers exact seed/revision/scope matching, explicit schema-0 migration versus future-schema rejection, bounded server-selected resource/creature/discovery deltas, duplicate/invalid/path-like rejection, and memory round-trip. Existing save schemas remain unchanged.
-- [x] Add server-owned skill progression.
-  - [x] Define a small allowlisted set of original gathering, woodcutting, mining, crafting, cooking, and survival skills with bounded server-awarded experience, levels, and unlocks.
-    - Passed 2026-09-22: transient server-owned ledger defines six allowlisted skills, caps awards at 25 experience per accepted server action and total experience at 1,000, derives levels 1-10 and unlock tiers at levels 2, 5, and 10, and rejects client-role, rejected-action, malformed, and over-bound awards without mutation.
-  - [x] Replicate detailed progression only to the owning player and relevant presentation state to other peers; reject client-authored experience, level, unlock, multiplier, and reward values.
-    - Passed 2026-09-22: `UKalmalaSkillProgressionComponent` is attached to the replicated player character. Its server-initialized detailed six-skill ledger replicates with `COND_OwnerOnly`; relevant peers receive only a derived highest-level/unlock badge with no per-skill identity, experience, multiplier, or reward field. The component exposes no client RPC or client setter, and its only mutation path requires an accepted server action and the existing bounded award contract. Focused and combined M7 automation passed after the UE5.8 build.
-- [x] Establish biome-specific material and creature identity.
-  - [x] Add one reliable gathering source, one creature niche, and one rarer discovery source per first-wave biome using stable server-selected catalogue and spatial/encounter identities.
-    - [x] Establish the bounded first-wave catalogue and carry its server-selected gathering, creature-niche, and optional rare-discovery IDs on deterministic descriptors; existing spatial/seed identities remain unchanged. Passed 2026-09-22 with focused `Kalmala.World.M7.BiomeContentContract` evidence after the UE5.8 build.
-    - [x] Materialize each valid first-wave gathering source as an original procedural, collision-free harvest presentation while retaining the existing server-selected source ID, sparse identity, and legacy reward path. Passed 2026-09-22 with focused biome-content and harvest-authority evidence after the UE5.8 build.
-    - [x] Materialize each valid first-wave optional rare-discovery source as an original procedural, collision-free point-of-interest presentation while retaining the existing descriptor, claim, scroll, and persistence paths. Passed 2026-09-22 after the forced UE5.8 editor build and focused `Kalmala.World.M7.BiomeContentContract` automation.
-  - [x] Keep creatures ecologically readable, and keep bosses, elite rewards, rare caches, treasures, and shipwreck discoveries optional rather than routes or mandatory gates.
-    - Passed 2026-09-22: each first-wave niche now selects a server-owned bounded flee profile (180–300 cm) and sparse original presentation accent; rare point-of-interest sources and the Mireling boss scroll remain server-derived, route-free, and non-gating. Focused authority/discovery tests and independent Mireling, boar, and deer peer regressions passed.
-- [ ] Complete tool-based gathering and tool lifecycle.
-  - [x] Validate authoritative traces, range, tool/action selection, skill, node state, bounded durability, zero-condition rejection, and catalogue-validated material rewards on the server.
-    - [x] Define the bounded first-wave server tool/action contract, source-to-skill/tool/reward catalogue mapping, finite durability spend, and fail-closed authority/range/node/condition checks.
-      - Resolved historical blocker 2026-09-22: The implementation was present, but three consecutive forced UE5.8 `KalmalaEditor Win64 Development` attempts stalled before compilation. Attempts at 20:44:35, 20:49:26, and 20:52:16 used the installed engine with `%LOCALAPPDATA%\\UnrealBuildTool` access; each had only the current UnrealBuildTool `dotnet` process, no `cl.exe`/`link.exe` child, and no `%LOCALAPPDATA%\\UnrealBuildTool\\Log.txt` change from 7,549 bytes at 19:55:50. Only the current-run build sessions were stopped, so the focused `Kalmala.Gameplay.Tools.LifecycleContract` automation could not run.
-      - Resolved historical repeat 2026-09-22: The next run repeated the pre-compilation stall three times at 21:26:32 (`-WaitMutex`), 21:29:27 (`-WaitMutex`), and 21:30:47 (`-Verbose`). Each had only the current responsive UnrealBuildTool `dotnet` host, no `cl.exe`/`link.exe` child, and no `%LOCALAPPDATA%\\UnrealBuildTool\\Log.txt` change from 12,960 bytes at 21:06:10. Only those run's build sessions were stopped; focused automation remained unrun.
-      - Passed 2026-09-22: Forced UE5.8 build compiled the focused contract test; `Kalmala.Gameplay.Tools.LifecycleContract` passed the six source mappings, valid catalogue rewards, forged source/reward rejection, authority, trace, world, node, range, tool/action/skill, bounded/zero durability, no-mutation, and reward-clearing cases.
-    - [x] Wire the verified selection into the existing server interaction and harvest-node transaction; make inventory, durability, node depletion, and catalogue reward changes atomic.
-      - Passed 2026-09-23: the existing interaction RPC carries only selected tool/action intent; the server retraces and selects the generated node/source, validates the tool contract and skill, stages a catalogue grant, then commits pack, owner-only transient condition, and sparse node depletion. Full-stack and mismatched-tool fixture cases preserve node/tool state. Forced UE5.8 editor build, tool/inventory/network/catalogue/crafting automations, `Scripts/Verify-InventoryReconnect.ps1 -Port 18499`, M5 documentation contracts, local-input contract, and `git diff --check` passed. No tool save field was added.
-  - [ ] Add accepted repair at a validated station or workbench with repair-material costs; persist only approved sparse depletion facts and never accept client-selected nodes, yield, damage, durability, repair result, or reward.
-- [ ] Add optional food, preparation, and nutrition choices.
-  - [ ] Add original edible items and recipes through existing inventory/crafting transactions, with a first camp-processing set covering a cooking rack, heat-safe kettle or cauldron analogue, and drying or smoking frame.
-    - [x] Add the first two original roast recipes, usable lit-hearth validation, and one non-stacking server-owned meal benefit through the existing inventory/status transactions. Passed 2026-09-23: boar and deer meat produce RoastedFieldMeat in batches up to five; consumption is one allowlisted item for a 120-second 0.90 stamina-cost multiplier, with duplicate use rejected through expiry.
-    - [ ] Add the cooking rack, heat-safe kettle or cauldron analogue, and drying or smoking frame with explicit station-specific fuel, heat, access, batch, and failure rules.
-  - [ ] Define explicit fuel, heat, access, batch, failure, stacking, replacement, expiry, and duplicate-consumption rules for finite readable stat benefits without making food a hard travel gate.
-- [ ] Broaden crafting and camp progression.
-  - [ ] Add a bounded first tier of tools, gathering implements, repair materials, cooking/preservation recipes, storage/camp improvements, and skill-gated recipes through atomic inventory exchanges and station validation.
-  - [ ] Provide ingredient, station, unlock, failure, repair, batch, stack, and accessibility text; processing stations must not become parallel inventory or fire authorities.
-- [ ] Add biome-specific hazards and active-weather pressure.
-  - [ ] Extend server-owned exposure with bounded, reversible, counterable fog, rain, storms, heat, cold, and clearly marked highly-active-weather states.
-  - [ ] Let authoritative hazard intensity affect only approved visibility, wetness, warmth, stamina recovery, movement comfort, fire safety, or creature-pressure outcomes; clients cannot submit weather, exposure, hazard, or mitigation results.
-- [ ] Build the survival HUD and GUI pass.
-  - [ ] Add local status presentation with original icon/shape markers, names, categories, replicated timers, intensity or stacks, source, and recovery guidance for Wet, food, hazards, and other active effects, plus a colour-independent calm/active/highly-active weather indicator.
-  - [ ] Extend inventory, crafting, station, and equipment views with food details, active modifiers, skills, tool condition, repair cost, unlock state, ingredients, station requirements, provenance, and unavailable reasons while preserving keyboard/controller focus, text scale, contrast, and text-plus-marker feedback.
-- [ ] Verify biome discovery and recovery choices.
-  - [ ] Verify a fresh player can gather, craft or obtain a tool, gather wood or ore, repair, prepare food, choose a temporary benefit, recognize active weather, and return with an optional creature or hidden discovery.
-  - [ ] Verify same-seed host/client resources and creatures, rejected client mutations, owner-only progression/inventory privacy, rare-loot visibility, status presentation, reconnect behavior, and bounded actor, memory, replication, and save costs.
-- [ ] Retain the M6 release-candidate loop after the content pass.
-  - [ ] Re-run traversal, camp, combat, support, weather, construction, storage, persistence, minimap, packaged, and supported-session acceptance without regression.
-    - [x] Re-run host/client traversal controls and server-observed movement.
-      - Passed 2026-09-24: `Scripts/Verify-PlayerControls.ps1 -Rendered -Port 23901` passed from an isolated UE5.8.2 project copy after a successful current-source editor build. `Kalmala.Gameplay.Movement.SprintSavedMoves` passed. Host/client captures were reviewed at 1280×720; both show the replicated world minimap, arrival prompt, and local status HUD. This fixture verifies bound controls and server-observed remote movement; physical keyboard input remains for the supported-session walkthrough.
-    - [x] Re-run camp placement, crafting, fire, shelter, and weather recovery acceptance.
-      - Passed 2026-09-24: Forced UE5.8.2 build passed after a Unity-compilation helper rename; 24 focused automation tests, rendered host/client crafting, two-visit inventory reconnect, replicated camp recovery, and the rain/roof/hearth peer scenario all passed. This slice uses automated fixtures and does not claim the supported-session or packaged walkthrough.
-    - [x] Re-run combat and support-effect authority, replication, and recovery acceptance.
-      - Passed 2026-09-24: A clean isolated UE5.8.2 KalmalaEditor build passed in 171 actions. Both focused combat automations, Verify-CombatPeer -Port 24421, and Verify-M4VerticalSlice -Port 24430 passed. Host/client fixtures verified target-free attack rejection, relevant action/health/defeat state, owner-only outcomes, and defeated-wildlife persistence after restart. The support regression passed the four-effect malformed/client/replay/cooldown/stamina/non-damage gates and matching-world learned-effect persistence. No rendered live casts were run; active support-state replication and expiry remain part of the documented supported-session acceptance.
-    - [x] Re-run construction, storage, sparse persistence, and reconnect acceptance.
-      - Passed 2026-09-24: Forced UE5.8.2 builds passed after a bounded construction-fixture placement fallback and an update to use the server-selected tool/action for generated harvest persistence. Six focused construction, storage, sparse-delta, and M7 persistence automations passed. Verify-Storage.ps1, Verify-ConstructionPersistence.ps1, Verify-PersistedCampRestart.ps1, and Verify-InventoryReconnect.ps1 passed; the combined run restored exact construction IDs and private chest contents to a conflicting-seed reconnecting client, kept a consumed generated node absent after restart, and rejected seed-419 camp reuse. No production authority, RPC, replication, or save contract changed.
-    - [x] Re-run minimap identity and rendered layout acceptance across supported aspect ratios.
-      - Passed 2026-09-24: Forced UE5.8.2 `KalmalaEditor Win64 Development` build passed in 171 actions with normal `%LOCALAPPDATA%\UnrealBuildTool` access; `Kalmala.UI.Minimap.LocalPresentation` reported `Result={Success}`.
-        `Scripts/Verify-Minimap.ps1 -Rendered` passed at 1920×1080 (`-Port 24661`), 1024×768 (`-Port 24662`), and 3440×1440 (`-Port 24663`). Host and client received server seed 418 and matched fingerprint `7644800015248745432` over 81 samples at each resolution; both peers passed minimap paint bounds, the 16,641-sample raster, zoom clamp, and CommonUI modal ownership/resumption checks.
-        Captures are retained under `%TEMP%\KalmalaMinimap-6cf3305890ad463fb4f875228ce62853`, `%TEMP%\KalmalaMinimap-01187a75468d4ed58541f911b5b2dc39`, and `%TEMP%\KalmalaMinimap-b9358df6107e420d851e6649f071ce0d`. Reviewed the 1920×1080 host and 1024×768 host/client captures. The 3440×1440 captures passed automated rendered checks, but the local image preview could not decode those PNGs.
-        No gameplay, authority, RPC, replication, or save contract changed.
-    - [x] Rebuild and smoke-launch the Windows Development package from a clean profile.
-      - Passed 2026-09-24: The UE5.8.2 Win64 Development package built, cooked, staged, and archived successfully with `RunUAT BuildCookRun -pak -iostore`. A fresh-profile smoke launch logged engine initialization and completion of `L_Prototype`, then remained alive for 20 seconds.
-    - [ ] Complete the supported packaged co-op walkthrough with normal joining, input, and reconnect.
+**Status:** Closed under the user-approved 2026-09-26 scope decision. Safe stopped disembark in qualifying deep water passed; generated dry-shore placement was waived and is not claimed as verified.
 
-**M7 multiplayer boundary:** the server owns skill awards, resource identity,
-creature behavior and defeat, tool validation, durability, repair outcomes, node
-depletion, recipe unlocks, station processing, ingredient costs, food effects,
-stat changes, weather/hazard intensity, timers, loot selection, and rewards.
-Clients receive only the state needed for their controls, local presentation,
-or ordinary relevant-world feedback; private inventory, progression, and
-detailed loot remain owner-scoped.
+- [x] Confirm the generation/ocean baselines and implement server-owned skiff travel, weather pressure, optional discoveries, and identity-safe persistence.
+- [x] Pass the integrated two-peer voyage, discovery, weather, safe disembark, late-join, and restart/reconnect checks.
+- [x] Record actor, memory, replication, save-size, network, and frame-time snapshots. These are diagnostic samples, not approved ceilings or long-session profiles; see `docs/20-m8-ocean-performance-budget.md`.
 
-**M7 acceptance:** the integrated biome gathering, creature, crafting, repair,
-food-processing, progression, hazard, and HUD loop is playable without
-developer commands; all outcomes are authoritative and recoverable; rare
-discoveries remain optional and original; status icons, timers, intensity, and
-recovery guidance are readable without colour; matching peers observe permitted
-state; rejected requests leave inventory, skills, tools, resources, effects,
-hazards, loot, and saves unchanged; and the M6 release-candidate loop remains
-playable.
+The M8 travel and authority contract is in `docs/19-m8-ocean-travel-contract.md`; acceptance and the waiver are recorded in `docs/04-roadmap.md` and `PROGRESS.md`.
 
-### M8 — Ocean and long-distance travel
+### M9 — Expanded biome content and encounter depth
 
-Start only after M7 acceptance passes and the Phase 7 coherent-generation
-contract remains green. Extend the existing master land/water crop, collision,
-server-seed, and PC solo/listen-server foundations. Keep
-`Scripts/Verify-OceanTravel.ps1` as the generated-ocean crossing baseline; its
-swimming scenario does not by itself satisfy the M8 long-distance travel goal.
-Do not add authored routes or persist travel state before the M8 persistence
-gate passes. After this baseline gate, the six goal groups follow the order in
-`docs/04-roadmap.md`.
+Start only after M8 acceptance above passes. Follow the five ordered goals in
+`docs/04-roadmap.md`; keep new gameplay optional, original, bounded, and
+server-owned. Do not enable new persistent M9 state before the M9 persistence
+contract and migration checks pass.
 
-- [x] Reconfirm the Phase 7 and generated-ocean travel baselines before transport changes.
-  - [x] Run `Scripts/Verify-RegionalGeneration.ps1`, the documented master-map checks, and `Scripts/Verify-OceanTravel.ps1`; record seed identity, host/client agreement, collision/streaming results, and the measured starting budgets.
-    - Passed 2026-09-24: The isolated UE5.8.2 `KalmalaEditor Win64 Development` build succeeded in 171 actions with normal `%LOCALAPPDATA%\\UnrealBuildTool` access. The documented master-map suite passed all six results: MasterMap, FiniteWorld, Integrated, ClippedSurface, OceanDepth, and GenerationPerformance. `Verify-RegionalGeneration.ps1` matched both seed-418 preview hash sets, confirmed seed-419 variation, and passed the 81-position host/client seed-418 fingerprint `7644800015248745432`. `Verify-OceanTravel.ps1 -Port 25180` passed on host and client: both adopted server seed 418, entered open ocean, reached the seed-derived island about 1.79 km away, and reported 18 unique terrain patches with a complete island neighborhood; each generated patch logged 1,152 collision triangles. The fixture relaxes pawn/world-static collision and accelerates movement, so it does not verify normal collision traversal. `Verify-WorldProfile.ps1 -Port 25181` measured the seed-418 start at 159.75 ms generation, 1,766.34 MB used physical memory, 47/29 total/replicated actors, 9 terrain patches, 1 population key, and 2,215 serialized save bytes; a two-player late join passed. This is a single-run baseline, not long-session profiling. Logs: `C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaM8MasterMap-20260924-1347`, `C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaRegionalProof-ba22d3b8db414ca59c636b8ab83f6ba7`, `C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaMinimap-395a78baa48e42adb1c466e2e03e9c29`, `C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaOceanTravel-778aac4a25b64255bc92736f0387a297`, and `C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldProfile-ae3db185d70c47239d2a6d4a3764f553`.
-- [x] Add authoritative ocean traversal.
-  - [x] Define the first original watercraft or equivalent travel medium's bounded server-owned state, client intent, occupancy, movement, failure, and replication contract; leave persistence disabled until the M8 persistence gate passes.
-    - Contract: `docs/19-m8-ocean-travel-contract.md`; skiff launch, occupancy, steering, movement, and collision blocking are implemented. Live host/client collision traversal and player-facing feedback, coast, weather, and persistence remain open below.
-  - [x] Implement server-validated launch, boarding, steering, occupancy, and disembarkation using generated-world collision; reject forged, distant, occupied, or invalid requests without mutation.
-    - [x] Add server-traced deep-ocean launch, one transient two-seat session skiff, unique helm/passenger assignment, and stopped server-selected disembarkation with generated-world capsule clearance; persist no travel state. Passed 2026-09-24 after the forced UE5.8.2 editor build and `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` automation.
-    - [x] Add sequenced, rate-limited helm steering and server-simulated movement with stale-input decay, depth/bounds validation, and generated-terrain collision sweeps; reject malformed or replayed inputs without mutation.
-      - Passed 2026-09-25: Forward/right axes now send bounded throttle/rudder through a helm-only unreliable server RPC, with 10 Hz and increasing-sequence validation. Server movement applies the documented speed/acceleration/yaw caps, expires input after 0.5 seconds, samples the hull footprint against deep ocean and finite-world bounds, and sweeps the hull against active generated terrain. The forced UE5.8.2 editor build passed all 173 actions; `SkiffAuthorityContract` and `SkiffSteeringContract` passed. Runtime host/client collision traversal and player-facing blocked feedback remain open.
-  - [x] Add server-owned damage or disable and recovery outcomes when applicable to the chosen travel medium; otherwise record why that state is unnecessary.
-    - Decision 2026-09-25: The transient no-cargo skiff has no hull-damage source, health, repair, or salvage contract. `Blocked` restores the last safe transform and permits steering clear; stale or disconnected helm input decelerates it to `Moored`. Documented in `docs/19-m8-ocean-travel-contract.md`; revisit hull damage only if an approved later hazard explicitly affects vessel integrity.
-- [x] Make generated coasts and launch or landing opportunities readable.
-  - [x] Verify seed-generated launch/landing access and shallow-water/collision-sample edge cases across representative coastlines without adding a handcrafted route.
-    - Passed 2026-09-25: Added `Kalmala.Gameplay.OceanTravel.SkiffCoastlineAccess`, which scans 32 generated mainland coast rays for seeds 418, 999, and 1337. Each seed had a shallow-water rejection and a server-rule-valid hull/exit candidate at 100.4–102.4 cm water depth, 79–287 m from the sampled dry shoreline. `Kalmala.World.Water.OceanDepth`, `SkiffAuthorityContract`, and `SkiffSteeringContract` passed after the editor build. Safe exits in these fixtures remained in qualifying water (100.7–105.3 cm depth); dynamic interaction traces, actor overlap, and skiff-to-land collision sweeps remain unverified.
-  - [x] Present water access, shallow hazards, collision constraints, and rejected embark reasons to players; verify matching host/client feedback.
-    - Passed 2026-09-25: Server launch gates now distinguish shallow depth, hull footprint, finite-world edge, session skiff capacity, and blocked coast placement. Owner-only interaction results explain seat and stopped-exit outcomes; the local survival HUD presents helm/passenger guidance and replicated shallow-water/terrain-block recovery. `KalmalaEditor Win64 Development` built successfully in 174 actions with normal `%LOCALAPPDATA%\UnrealBuildTool` access. `FeedbackAuthority`, `SkiffAuthorityContract`, `SkiffSteeringContract`, `SkiffCoastlineAccess`, `OceanDepth`, and `SurvivalStatus.LocalPresentation` all reported `Result={Success}`. `Verify-OceanSkiffFeedback.ps1 -Port 18166` passed with distinct host/client messages and no remote-copy leak. No live launch trace, rendered travel, or hull-sweep scene was exercised.
-- [x] Add bounded ocean-weather and navigation pressure.
-  - [x] Extend server-selected weather to open water with readable, reversible wind, rain, visibility, wave, exposure, or stamina pressure and viable counterplay.
-    - Passed 2026-09-25: Underway skiff yaw now derives bounded crosswind pressure from the existing replicated server weather and heading; full perpendicular wind adds at most 8 degrees/second at full speed, total helm-plus-wind turn remains capped at 35 degrees/second, and helm counter-steering remains effective. Owner-local survival guidance describes the pressure and recovery as wind subsides. The 174-action UE5.8.2 editor build and focused `SkiffWeatherPressure` plus `SurvivalStatus.LocalPresentation` automations passed; the final four-action rebuild followed a floating-point alignment fix. No weather input, mitigation outcome, replicated gameplay field, RPC, or save state was added. Peer agreement remains the next child task.
-  - [x] Verify clients cannot submit weather or mitigation outcomes and that accepted pressure and recovery agree across peers.
-    - Passed 2026-09-25: Added `Scripts/Verify-OceanSkiffWeather.ps1` and a development-only two-peer fixture. Host and client received the server-selected 90-degree, full-strength crosswind and subsequent calm state, derived matching 4-degree/second crosswind pressure and -3-degree/second counter-steering at 350 cm/s, then returned to zero wind pressure. A forged client calm-weather replacement was rejected and cycle 7003 was never replicated. Live skiff movement and rendered agreement remain in the longer M8 journey task.
-- [x] Add optional server-selected ocean discoveries.
-  - [x] Define a small original sea-discovery catalogue with stable sparse identities and optional, route-free rewards.
-    - Passed 2026-09-25: Added three optional sea discoveries with canonical presentation identities and existing-item rewards (`Wood` x2, `Fibre` x2, `Stone` x1). Stable sparse IDs derive from discovery kind and deterministic spatial key and are scoped by world identity. The 176-action UE5.8.2 editor build, `Kalmala.Gameplay.OceanTravel.DiscoveryCatalogue`, all five M5 documentation contracts, and scoped `git diff --check` passed. No placement, claim, grant, replication, or persistence path was added.
-  - [x] Materialize and claim discoveries through server authority; reject duplicate, forged, or replayed claims without duplicating rewards after reconnect/load.
-    - Passed 2026-09-25: The server streams deterministic deep-ocean candidates around connected players, validates interaction targets and catalogue rewards, then records a player-scoped M7 sparse claim before granting the exact bounded inventory reward. Invalid positions/kinds, duplicate claims, failed saves, full packs, and incompatible existing saves fail closed. The focused claim contract covers all three generated kinds, forged descriptors, reward construction, and replay rejection after world/player/revision-scoped save round-trip. Live host/client interaction and rendered presentation remain in the later two-player journey task; the shared M7 ledger remains capped at 256 deltas per player.
-- [x] Add travel-safe persistence and reconnect.
-  - [x] Define and test the versioned identity-safe travel-save contract, including explicit world/player scope, bounded state (and cargo only if the system carries it), migration policy, round-trip, and rejection before enabling persistence.
-    - Passed 2026-09-25: Added schema-1 world-scoped moored-vessel and authenticated player-scoped seat records, both bound to the existing world seed/generator/player identity; state is bounded to one no-cargo skiff. The forced UE5.8.2 editor build passed in 8 incremental actions after a test-helper compile fix. `Kalmala.World.OceanTravel.PersistenceContract` and `Kalmala.World.M7.PersistenceContract` both reported `Result={Success}` after in-memory round-trip, migration-policy, bounds, seat, world/player mismatch, and vessel-pair rejection checks. Runtime save/restore remains disabled.
-  - [x] Restore accepted vessel/passenger and sparse ocean-discovery facts across restart/reconnect without duplicate players, cargo, rewards, or world identities.
-    - Passed 2026-09-25: The server now saves the stable primary skiff at accepted moored state, pairs authenticated player seat records with the exact world seed/generator/player identity, validates generated-ocean footprint and spawn clearance on startup, and restores an unoccupied seat on login. Seat cleanup validates the exact player/vessel record before disembark; invalid or mismatched records fail closed without overwriting them. Authenticated ocean-claim ledgers load at login to keep rewards from being claimed twice. No inventory or cargo is persisted. The UE5.8.2 editor build passed (105 actions after the initial compile fix, then 13 incremental actions after seat-cleanup validation); `Kalmala.World.OceanTravel.PersistenceContract`, `Kalmala.Gameplay.OceanTravel.SkiffRestoreContract`, `Kalmala.World.M7.PersistenceContract`, and all five M5 documentation contracts passed. Live two-player restart/reconnect remains in the next M8 journey verification task.
-- [x] Verify long-distance peer travel and budgets. **M8 acceptance complete under the 2026-09-26 dry-shore scope waiver.**
-  - [x] Exercise launch, embark, travel, weather pressure/recovery, discovery, disembark, late join, reconnect, and world-origin/streaming transitions in representative two-player journeys. **Safe generated deep-water disembark is accepted; generated dry shore is not required.**
-    - [x] Verify the finite-world origin stays fixed on both peers while the skiff streams across terrain patches.
-      - Passed 2026-09-26: The standalone Scripts/Verify-OceanSkiffOriginStability.ps1 -Port 18263 run passed the seed-418 242,569 cm host/client voyage from terrain patch (71,0) to (152,5) with 9 active patches. The listen-host passenger, remote helm, and server reported world origin (0,0,0) at the streamed stop; both peer subsystems sampled every tick from seat attachment through the stop and observed no origin change. The forced UE5.8.2 KalmalaEditor build passed 7 actions with normal %LOCALAPPDATA%\UnrealBuildTool access, and the runner PowerShell parser passed. No origin rebasing was enabled or claimed.
-    - [x] Combine crosswind/calm sailing, sea-discovery rewards, and safe two-peer disembark in one host/client journey.
-      - Passed 2026-09-26: Scripts/Verify-OceanSkiffIntegratedJourney.ps1 -Port 18174 passed on seed 418. The server and helm owner observed discovery ocean-stormmark-islet, Stone x1, 242,485 cm of travel, crosswind and calm, terrain patch (164,-59) to (245,-59), 9 active patches, and safe disembark of both peers at a moored stop. Host and remote-owner logs retained at C:\Users\Ville\AppData\Local\Temp\KalmalaOceanSkiffIntegratedJourney-e2f1edb9423d497dbba348835406fc72. The forced UE5.8.2 editor build passed after the fixture input fix with normal %LOCALAPPDATA%\UnrealBuildTool access.
-    - [x] Land both occupants on generated dry shore after the integrated discovery voyage. **WAIVED 2026-09-26 by user direction; skipped without verification.** The prior integrated seed-418 voyage verified safe stopped disembark via the qualifying deep-water fallback; no dry-shore result is claimed.
-    - [x] Claim an optional sea discovery, stop safely, and disembark while both peers retain the accepted state.
-      - Passed 2026-09-25: Added `Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1` and a development-only seed-418 host/client fixture. The server selected a canonical deep-ocean discovery, seated two authenticated peers, committed one exact catalogue reward to each player's existing sparse ledger and owner inventory, then safely disembarked both from the already-moored skiff and cleared their seat records. The server retained both accepted outcomes; the remote peer observed its owner-only discovery/reward and disembark feedback plus the replicated empty seats and moored mode. The forced UE5.8.2 editor build passed all 180 actions from a short disposable mirror with normal `%LOCALAPPDATA%\\UnrealBuildTool` access; the live peer script, six focused discovery/skiff/persistence automations, PowerShell parsing, all five M5 documentation contracts, and scoped `git diff --check` passed. It does not verify underway stopping, sailing, a client interaction trace, restart/reconnect, rendered presentation, or long-session budgets; the separate crossing remains blocked.
-    - [x] Verify a late join and authenticated restart/reconnect preserve one vessel, seat, and discovery reward without duplication.
-      - Passed 2026-09-25: `Scripts/Verify-OceanSkiffReconnect.ps1` passed live on seed 418. A late joiner saw exactly one moored vessel, original Helm/Passenger occupants, no attachment, and no owner reward. After host restart and owner reconnect with the same isolated profiles, the saved vessel and both authenticated seat associations restored; the returning owner’s discovery replay was rejected with `AlreadyFound` and inventory remained at zero. The UE5.8.2 editor build and live runner passed from a disposable project mirror with normal `%LOCALAPPDATA%\\UnrealBuildTool` access. The runner uses stable development-only test-provider identities, not an external online authentication provider; it verifies existing server authority and save behavior without changing RPCs or save schemas.
-  - [x] Record and meet actor, memory, replication, save-size, and frame-time budgets; document any remaining limits.
-    - [x] Cap each M8 vessel/seat `SaveGameToMemory` record at 3,072 bytes and check maximum-valid IDs; measured maximum payloads were 2,707-byte world and 2,937-byte player records. See `docs/20-m8-ocean-performance-budget.md`.
-    - [x] Measure total/replicated actors and per-process memory in a two-peer M8 discovery/skiff fixture; retain the result as a snapshot until numeric ceilings are approved.
-      - Passed 2026-09-25: The seed-418 listen-host/conflicting-seed client run recorded 56 world actors, 38 replicated actors, 9 terrain patches, 1,799.97 MiB system physical memory in use, 1,677.39/1,799.97 MiB listen-server private/working-set memory, and 1,675.50/1,774.26 MiB client private/working-set memory. The post-disembark profile included one still-live moored skiff. This is one null-RHI snapshot, not a peak or long-session measurement; no numeric actor/memory ceiling is approved yet.
-    - [x] Capture per-client network byte and packet deltas for the existing M8 two-peer discovery/disembark fixture; document the profile scope and limitations.
-      - Passed 2026-09-26: The seed-418 null-RHI host/client fixture measured one second of server-side connection-counter deltas after the accepted discovery/disembark outcome: 3,842 bytes/67 packets client-to-server and 7,951 bytes/68 packets server-to-client. The sample includes all connection traffic during that window, excludes the initial handshake, and does not separate replication from RPC/control traffic; it is not a ceiling or underway measurement.
-    - [x] Capture representative rendered frame times for the M8 two-peer skiff state; document resolution, render mode, scene, and limits.
-      - Passed 2026-09-26: `Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1 -RenderedFrameTimeProfile` captured 300 CSV frames for both the seed-418 listen host and conflicting-seed client after accepted discovery and safe disembark. At 1280x720 offscreen D3D12 on an NVIDIA GeForce RTX 5090 with VSync disabled, total-frame p50/p95 measured 2.52/4.67 ms on the host and 4.07/7.09 ms on the client; game-thread, render-thread, and GPU timings are recorded in `docs/20-m8-ocean-performance-budget.md`. This moored snapshot is not a target ceiling; numeric actor, memory, replication, and frame-time limits remain unapproved.
+- [x] Add the second-wave biome source and loot catalogue.
+  - [x] Map second-wave source materials across supported land biomes. See `docs/23-m9-second-wave-biome-sources.md`.
+  - [x] Define four source catalogue entries, deterministic placement budgets, sparse depletion IDs, and bounded optional loot. See `docs/24-m9-second-wave-source-catalogue.md`.
+  - [x] Gate Lightwood and Densewood harvesting on server-validated Bronze Axe and Iron Axe requirements from the roadmap. The required tool tier is checked on hitting the trunks; the matching Workbench or Forge level is checked when that axe is crafted or upgraded, not at the field source.
+  - [x] Integrate approved materials and loot with the existing item catalogue, harvest transaction, owner inventory, and sparse world-delta contracts.
+  - [x] Verify each approved source and reward is deterministic, bounded, same-world, in range, and unchanged by rejected client requests.
+- [x] Add tool levels, workstation levels, and free repair.
+  - [x] Extend the existing owner-only tool-condition records into the owner's carried-tool inventory with server-owned tool level and condition; keep tool level separate from skill level.
+  - [x] Define the Bronze Axe and Iron Axe as entries in the carried-tool progression, with their target levels, upgrade costs, and matching Workbench/Forge levels before enabling their biome harvest gates.
+  - [x] Add the buildable Forge and level-one baseline for the existing Workbench. Require the server-selected Workbench or Forge to match the target tool level when crafting or upgrading that tool.
+  - [x] Add paid, buildable station attachments that each contribute +1 to the matching nearby Workbench or Forge level; validate same-world placement and station-use range on the server. Candidate attachments are a Workbench tool rack or vise and a Forge anvil.
+  - [x] Use the existing level-five skill unlock for tier-two recipes. Validate tool level, skill, materials, station level, condition, and any output slot atomically; clients provide intent but no levels or outcomes.
+  - [x] Replace material-paid repair and zero-condition replacement with free repair of damaged and broken tools. Add selected-tool repair through the Workbench/Forge GUI and a buildable Grinding Stone with an in-world `Repair All` action over the server-owned carried-tool list.
+  - [x] Add the short tool-appropriate sharpening animation for Grinding Stone repair; keep it presentation-only. Repair requests must not accept a client-provided inventory list or condition value, and repair grants no crafting experience.
+  - [x] Add readable level, material, station, and repair feedback. Keep detailed tool state owner-only and level/attachment persistence gated on the M9 save contract.
+- [ ] Extend optional camp and equipment progression through existing systems.
+  - [x] Review the roadmap examples—weatherproof storage, hearth-compatible processing, storm-rated shelter, insulated equipment, and camp drying utility—and define the accepted recipes and server-side validation before implementation.
+  - [ ] Keep storage, processing, construction, equipment effects, repair, costs, and skill awards within their existing authorities and accessibility feedback paths.
+    - [x] Add paid, rain-immune raised storage with the shared bounded chest interface; keep its construction and contents session-only until M9 migration.
+    - [ ] Add the roofed Smokehouse alternative while retaining the existing server-owned smoke recipe, hearth, fuel, and skill gates.
+    - [ ] Add the bounded no-hearth Drying Line recipes through the existing inventory, meal-effect, and Cooking-skill authorities.
+    - [ ] Verify host/client privacy, rejected-mutation behavior, costs, and accessible feedback across the accepted camp additions.
+- [ ] Add optional exploration rewards without quest routing.
+  - [ ] Define original clue, landmark, treasure, boss, or environmental-discovery candidates that reward observation without a prescribed route or mandatory combat gate.
+  - [ ] Derive candidate identity, placement, interaction eligibility, and any reward on the server; use stable sparse identities and reject duplicate, forged, or replayed claims.
+- [ ] Version and migrate newly persistent M9 state before normal saves use it.
+  - [ ] Define explicit world/player scope, bounded records, exact seed/revision matching, compatibility policy, and migration behavior for tool levels, station progression, discoveries, and any approved camp/equipment state.
+  - [ ] Add round-trip, migration, mismatch, malformed-data, duplicate, and over-cap rejection coverage before enabling persistence.
+- [ ] Run M9 cross-system acceptance after implementation.
+  - [ ] Verify host/client agreement, rejected-mutation no-change behavior, owner-only tool/progression state, save/reconnect behavior, and documented actor, memory, replication, and save budgets.
+  - [ ] Re-run the accepted M8 ocean travel loop and M6 supported-session regression; preserve documented physical-input or packaged walkthrough limitations.
 
-**M8 multiplayer boundary:** the server owns travel-medium state and accepted
-movement, occupancy, ocean weather, discovery identities and rewards,
-damage/disable outcomes where applicable, and persisted travel facts. Clients
-send steering, interaction, and action intent only.
+**M9 multiplayer boundary:** the server owns biome content selection, tool and
+station levels, repair outcomes, crafting/progression outcomes, encounters,
+loot, hazards, rewards, and persistent facts. Clients submit intent only;
+private carried-tool and progression details remain owner-scoped.
 
-**M8 acceptance:** two players launch, travel a meaningful ocean distance,
-survive or mitigate active ocean weather, find an optional sea discovery,
-safely disembark elsewhere through a validated exit (a qualifying deep-water
-exit is accepted; generated dry shore is not required under the 2026-09-26
-scope decision), and reconnect without duplicated or lost accepted state while
-remaining within documented performance and replication budgets.
-    - [x] Run an integrated host/client skiff launch and two-seat voyage through crosswind/calm weather across a generated terrain-patch transition.
-      - Passed 2026-09-26: `Scripts/Verify-OceanSkiffJourney.ps1 -Port 18169` passed on seed 418. The server accepted nonzero helm intent, both peers observed underway movement and the moored stop at 242,511 cm, and the route crossed terrain patch (71,0) to (152,5) with 9 active patches; both peers accepted the crosswind and calm states. The diagnostic trace found the fixture's neutral input-axis callbacks overwrote scripted throttle; the development-only fixture gate now suppresses those callbacks. It also holds the verified calm state through the route so later generated weather does not turn the test off its prevalidated corridor. The forced UE5.8.2 editor build, `SkiffAuthorityContract`, `SkiffSteeringContract`, PowerShell parser, and live host/client runner passed with normal `%LOCALAPPDATA%\\UnrealBuildTool` access. `OriginShift=inactive`; physical input and rendered travel remain unverified.
+**M9 acceptance:** the second content wave is playable across supported biomes
+and ocean travel without developer commands; tool upgrades require matching
+station levels, free repair is readable and authoritative, exploration rewards
+remain optional, new saves migrate as documented, rejected client mutations
+leave state unchanged, and M8 plus M6 regression gates remain green.

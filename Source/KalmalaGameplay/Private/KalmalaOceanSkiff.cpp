@@ -29,6 +29,8 @@ namespace KalmalaOceanSkiff
     constexpr float MinimumWaterDepth = 100.0f;
     constexpr float MaximumExitSpeed = 50.0f;
     constexpr float ExitOffset = 190.0f;
+    constexpr float MaximumDryShoreExitOffset = 8000.0f;
+    constexpr float DryShoreExitRingStep = 500.0f;
     constexpr float SeaSurfaceZ = 0.0f;
     constexpr float MaximumForwardSpeed = 700.0f;
     constexpr float MaximumReverseSpeed = 200.0f;
@@ -610,23 +612,42 @@ bool AKalmalaOceanSkiff::FindSafeExitLocation(AKalmalaCharacter* Interactor, FVe
     FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaSkiffExit), false, Interactor);
     QueryParams.AddIgnoredActor(this);
 
-    for (int32 DirectionIndex = 0; DirectionIndex < 8; ++DirectionIndex)
+    for (int32 ExitPass = 0; ExitPass < 2; ++ExitPass)
     {
-        const float Angle = FMath::DegreesToRadians(DirectionIndex * 45.0f);
-        const FVector2D Direction(FMath::Cos(Angle), FMath::Sin(Angle));
-        const FVector2D CandidateXY = FVector2D(GetActorLocation()) + Direction * KalmalaOceanSkiff::ExitOffset;
-        if (!IsSafeExitSurfaceForConfig(Config, CandidateXY, Radius + 2.0f)) continue;
-        const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, CandidateXY);
-        const float CandidateZ = Ocean.WaterDepth >= KalmalaOceanSkiff::MinimumWaterDepth
-            ? KalmalaOceanSkiff::SeaSurfaceZ + HalfHeight + 8.0f
-            : Ocean.TerrainHeight + HalfHeight + 4.0f;
-        const FVector Candidate(CandidateXY, CandidateZ);
-        const FCollisionShape Capsule = FCollisionShape::MakeCapsule(Radius, HalfHeight);
-        if (!GetWorld()->OverlapBlockingTestByChannel(Candidate, FQuat(Interactor->GetActorRotation()),
-            ECC_Pawn, Capsule, QueryParams))
+        const int32 RadiusCount = ExitPass == 0
+            ? FMath::CeilToInt((KalmalaOceanSkiff::MaximumDryShoreExitOffset - KalmalaOceanSkiff::ExitOffset)
+                / KalmalaOceanSkiff::DryShoreExitRingStep) + 1
+            : 1;
+        for (int32 RadiusIndex = 0; RadiusIndex < RadiusCount; ++RadiusIndex)
         {
-            OutLocation = Candidate;
-            return true;
+            const float CandidateOffset = ExitPass == 0
+                ? (RadiusIndex == 0 ? KalmalaOceanSkiff::ExitOffset
+                    : FMath::Min(RadiusIndex * KalmalaOceanSkiff::DryShoreExitRingStep,
+                        KalmalaOceanSkiff::MaximumDryShoreExitOffset))
+                : KalmalaOceanSkiff::ExitOffset;
+            for (int32 DirectionIndex = 0; DirectionIndex < 8; ++DirectionIndex)
+            {
+                const float Angle = FMath::DegreesToRadians(DirectionIndex * 45.0f);
+                const FVector2D Direction(FMath::Cos(Angle), FMath::Sin(Angle));
+                const FVector2D CandidateXY = FVector2D(GetActorLocation()) + Direction * CandidateOffset;
+                if (!IsSafeExitSurfaceForConfig(Config, CandidateXY, Radius + 2.0f)) continue;
+                const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, CandidateXY);
+                const bool bDryLand = Ocean.WaterDepth <= 0.0f && Ocean.TerrainHeight > KalmalaOceanSkiff::SeaSurfaceZ;
+                const bool bDeepWater = Ocean.WaterDepth >= KalmalaOceanSkiff::MinimumWaterDepth;
+                if ((ExitPass == 0 && !bDryLand) || (ExitPass == 1 && !bDeepWater)) continue;
+
+                const float CandidateZ = bDeepWater
+                    ? KalmalaOceanSkiff::SeaSurfaceZ + HalfHeight + 8.0f
+                    : Ocean.TerrainHeight + HalfHeight + 4.0f;
+                const FVector Candidate(CandidateXY, CandidateZ);
+                const FCollisionShape Capsule = FCollisionShape::MakeCapsule(Radius, HalfHeight);
+                if (!GetWorld()->OverlapBlockingTestByChannel(Candidate, FQuat(Interactor->GetActorRotation()),
+                    ECC_Pawn, Capsule, QueryParams))
+                {
+                    OutLocation = Candidate;
+                    return true;
+                }
+            }
         }
     }
     return false;

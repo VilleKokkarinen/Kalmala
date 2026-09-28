@@ -14,11 +14,62 @@
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaToolProgressionContract.h"
 #include "KalmalaPlayerStatusComponent.h"
+#include "KalmalaSkillProgressionComponent.h"
 #include "EngineUtils.h"
 #include "GameFramework/Controller.h"
 #include "Net/UnrealNetwork.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+
+namespace
+{
+FString GetSkillDisplayName(const EKalmalaSkill Skill)
+{
+    switch (Skill)
+    {
+    case EKalmalaSkill::Gathering: return TEXT("Gathering");
+    case EKalmalaSkill::Woodcutting: return TEXT("Woodcutting");
+    case EKalmalaSkill::Mining: return TEXT("Mining");
+    case EKalmalaSkill::Crafting: return TEXT("Crafting");
+    case EKalmalaSkill::Cooking: return TEXT("Cooking");
+    case EKalmalaSkill::Survival: return TEXT("Survival");
+    default: return TEXT("Skill");
+    }
+}
+
+FString GetToolDisplayName(const FName ToolId)
+{
+    if (ToolId == TEXT("ReedKnife")) return TEXT("Reed Knife");
+    if (ToolId == TEXT("FieldHatchet")) return TEXT("Field Hatchet");
+    if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
+    if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
+    if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
+    return ToolId.ToString();
+}
+
+int32 GetCurrentSkillLevel(const AKalmalaCharacter* Character, const EKalmalaSkill Skill)
+{
+    const auto* Progression = Character ? Character->GetSkillProgressionComponent() : nullptr;
+    if (!Progression) return 1;
+
+    if (Character->HasAuthority())
+    {
+        const FKalmalaSkillState* State = Progression->GetServerLedger().Find(Skill);
+        return State && State->IsValid() ? State->Level : 1;
+    }
+
+    for (const FKalmalaSkillState& State : Progression->GetDetailedProgression())
+        if (State.Skill == Skill && State.IsValid()) return State.Level;
+    return 1;
+}
+
+FString GetSkillRequirementText(const FKalmalaRecipe& Recipe, const AKalmalaCharacter* Character)
+{
+    return FString::Printf(TEXT("%s level %d (current level %d)"),
+        *GetSkillDisplayName(Recipe.RequiredSkill), Recipe.RequiredSkillLevel,
+        GetCurrentSkillLevel(Character, Recipe.RequiredSkill));
+}
+}
 
 UKalmalaCraftingComponent::UKalmalaCraftingComponent()
 {
@@ -74,7 +125,7 @@ AKalmalaCampfire* UKalmalaCraftingComponent::FindNearbyFire(bool bRequireUsable)
     return Closest;
 }
 
-AKalmalaCampfire* UKalmalaCraftingComponent::FindNearbyLitFire() const
+AKalmalaCampfire* UKalmalaCraftingComponent::FindNearbyLitFire(const AKalmalaConstructionActor* RequiredStation) const
 {
     const auto* Character = GetCharacter();
     if (!Character || !GetWorld()) return nullptr;
@@ -83,10 +134,15 @@ AKalmalaCampfire* UKalmalaCraftingComponent::FindNearbyLitFire() const
     for (TActorIterator<AKalmalaCampfire> It(GetWorld()); It; ++It)
     {
         const AKalmalaCampfire* Fire = *It;
-        if (!IsValid(Fire) || !Fire->CanUse(Character) || !Fire->IsLit()
-            || !FMath::IsFinite(Fire->GetEffectiveWarmth()) || Fire->GetEffectiveWarmth() <= 0.0f) continue;
+        if (!IsValid(Fire) || !Fire->CanUse(Character) || !Fire->IsLit()) continue;
+        const FVector HeatPoint = RequiredStation ? RequiredStation->GetActorLocation() : Character->GetActorLocation();
+        const float AvailableHeat = Fire->GetWarmthContributionAt(HeatPoint);
+        if (!FMath::IsFinite(AvailableHeat) || AvailableHeat <= 0.0f) continue;
         const double Distance = FVector::DistSquared(Character->GetActorLocation(), Fire->GetActorLocation());
-        if (FMath::IsFinite(Distance) && Distance <= Best)
+        const double StationDistance = RequiredStation
+            ? FVector::DistSquared(RequiredStation->GetActorLocation(), Fire->GetActorLocation()) : 0.0;
+        if (FMath::IsFinite(Distance) && Distance <= Best
+            && (!RequiredStation || (FMath::IsFinite(StationDistance) && StationDistance <= FMath::Square(250.0))))
         {
             Best = Distance;
             Closest = *It;
@@ -111,6 +167,16 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     TArray<FKalmalaInventoryStack> Costs; int32 OutputCount;
     Reason = TEXT("Invalid batch quantity");
     if (!UKalmalaRecipeCatalogue::Scale(*Recipe, Batch, Costs, OutputCount)) return false;
+    if (Recipe->RequiredSkill != EKalmalaSkill::None)
+    {
+        const int32 CurrentLevel = GetCurrentSkillLevel(Character, Recipe->RequiredSkill);
+        if (CurrentLevel < Recipe->RequiredSkillLevel)
+        {
+            Reason = FString::Printf(TEXT("Requires %s; prepare food to gain Cooking experience"),
+                *GetSkillRequirementText(*Recipe, Character));
+            return false;
+        }
+    }
     if (FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe->Output))
     {
         const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe->Output);
@@ -119,15 +185,34 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
         Reason = FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"), StationName);
         if (!Station) return false;
     }
-    if (Recipe->bRequiresLitCampfire && !FindNearbyLitFire())
+    const AKalmalaConstructionActor* RequiredStation = Recipe->RequiredStationKit.IsNone()
+        ? nullptr : FindNearbyConstruction(Recipe->RequiredStationKit);
+    if (!Recipe->RequiredStationKit.IsNone() && !RequiredStation)
     {
-        Reason = TEXT("Need a usable lit hearth with heat within 2.5 m");
+        const auto* StationItem = GetDefault<UKalmalaItemCatalogue>()->FindItem(Recipe->RequiredStationKit);
+        Reason = FString::Printf(TEXT("Need a visible %s within 2.5 m"),
+            StationItem ? *StationItem->DisplayName : *Recipe->RequiredStationKit.ToString());
+        return false;
+    }
+    if (Recipe->bRequiresLitCampfire && !FindNearbyLitFire(RequiredStation))
+    {
+        const auto* StationItem = RequiredStation ? GetDefault<UKalmalaItemCatalogue>()->FindItem(RequiredStation->GetConstructionKit()) : nullptr;
+        Reason = RequiredStation
+            ? FString::Printf(TEXT("Need a usable lit hearth with heat within 2.5 m of the player and %s"),
+                StationItem ? *StationItem->DisplayName : *RequiredStation->GetConstructionKit().ToString())
+            : TEXT("Need a usable lit hearth with heat within 2.5 m");
         return false;
     }
     if (Recipe->bRequiresCampfire && !FindNearbyFire(true) && !FindNearbyWorkbench()) { Reason = TEXT("Need a usable hearth or workbench within 2.5 m"); return false; }
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
     if (!Inventory || !Inventory->TryExchangeFromServer(Costs, Recipe->Output, OutputCount, Reason)) return false;
-    Reason = FString::Printf(TEXT("Crafted %d %s"), OutputCount, *GetDefault<UKalmalaItemCatalogue>()->FindItem(Recipe->Output)->DisplayName);
+    if (Recipe->ExperienceAward > 0)
+    {
+        if (auto* Progression = Character->GetSkillProgressionComponent())
+            Progression->AwardExperienceFromAcceptedServerAction(Recipe->ExperienceSkill, Recipe->ExperienceAward);
+    }
+    const auto* OutputItem = GetDefault<UKalmalaItemCatalogue>()->FindItem(Recipe->Output);
+    Reason = FString::Printf(TEXT("Crafted %d %s"), OutputCount, OutputItem ? *OutputItem->DisplayName : *Recipe->Output.ToString());
     return true;
 }
 
@@ -139,6 +224,100 @@ void UKalmalaCraftingComponent::ServerCraft_Implementation(FName RecipeId, int32
     if(FParse::Param(FCommandLine::Get(),TEXT("KalmalaCraftingTest")))
         UE_LOG(LogTemp,Display,TEXT("Crafting RPC: Recipe=%s Batch=%d Accepted=%d"),*RecipeId.ToString(),Batch,Accepted);
 #endif
+}
+
+AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyToolProgressionStation(const FName Kit) const
+{
+    if (Kit == TEXT("WorkbenchKit")) return FindNearbyConstruction(Kit);
+    if (Kit != TEXT("ForgeKit")) return nullptr;
+
+    const AKalmalaCharacter* Character = GetCharacter();
+    if (!Character || !Character->GetController() || !GetWorld()) return nullptr;
+    const AKalmalaWorldGenerationGameState* State =
+        GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (!State || !State->GetWorldGenerationConfig().IsValid()) return nullptr;
+
+    AKalmalaConstructionActor* Closest = nullptr;
+    double Best = FMath::Square(250.0);
+    for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It)
+    {
+        AKalmalaConstructionActor* Candidate = *It;
+        if (!IsValid(Candidate) || Candidate->GetWorld() != Character->GetWorld()
+            || Candidate->GetConstructionKit() != Kit || Candidate->GetConstructionId().IsEmpty()
+            || (Character->HasAuthority() && !Candidate->HasAuthority())
+            || Character->GetActorLocation().ContainsNaN() || Candidate->GetActorLocation().ContainsNaN())
+        {
+            continue;
+        }
+        const double Distance = FVector::DistSquared(Character->GetActorLocation(), Candidate->GetActorLocation());
+        if (!FMath::IsFinite(Distance) || Distance > Best) continue;
+        FCollisionQueryParams Query(SCENE_QUERY_STAT(ToolProgressionStation), false, Character);
+        FHitResult Hit;
+        if (!GetWorld()->LineTraceSingleByChannel(
+            Hit, Character->GetPawnViewLocation(), Candidate->GetActorLocation(), ECC_Visibility, Query)
+            || Hit.GetActor() != Candidate) continue;
+        if (Distance < Best || (Distance == Best
+            && (!Closest || Candidate->GetConstructionId() < Closest->GetConstructionId())))
+        {
+            Best = Distance;
+            Closest = Candidate;
+        }
+    }
+    return Closest;
+}
+
+bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FString& Reason)
+{
+    auto* Character = GetCharacter();
+    Reason = TEXT("Server authority required");
+    if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
+
+    const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(ToolId);
+    Reason = TEXT("Unknown tool progression");
+    if (!Entry || !FKalmalaToolProgressionContract::IsCatalogueValid()) return false;
+    const FName StationKit = FKalmalaToolProgressionContract::GetStationKit(Entry->RequiredStation);
+    const TCHAR* StationName = Entry->RequiredStation == EKalmalaToolStationKind::Workbench
+        ? TEXT("Workbench") : TEXT("Forge");
+    const AKalmalaConstructionActor* Station = FindNearbyToolProgressionStation(StationKit);
+    Reason = FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"), StationName);
+    if (!Station) return false;
+
+    const int32 EffectiveLevel = FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station);
+    Reason = FString::Printf(TEXT("Nearby %s is level %d; level %d is required"),
+        StationName, EffectiveLevel, Entry->RequiredStationLevel);
+    if (EffectiveLevel != Entry->RequiredStationLevel) return false;
+
+    auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
+    Reason = TEXT("Pack unavailable");
+    if (!Inventory) return false;
+    TArray<FKalmalaToolState> CandidateTools;
+    TArray<FKalmalaInventoryStack> CandidateInventory;
+    const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
+    if (!FKalmalaToolProgressionContract::BuildServerUpgradeFromCharacter(
+        Character, Station->GetConstructionKit(), EffectiveLevel, ToolId,
+        Character->CarriedTools, Before, CandidateTools, CandidateInventory, Reason))
+    {
+        return false;
+    }
+    if (!Inventory->TryCommitStacksFromServer(Before, CandidateInventory))
+    {
+        Reason = TEXT("Pack changed; tool progression was not applied");
+        return false;
+    }
+
+    Character->CarriedTools = MoveTemp(CandidateTools);
+    Character->ForceNetUpdate();
+    Reason = FString::Printf(TEXT("Crafted %s at level %d; previous tool exchanged where required"),
+        *ToolId.ToString(), Entry->TargetToolLevel);
+    return true;
+}
+
+void UKalmalaCraftingComponent::ServerProgressTool_Implementation(const FName ToolId)
+{
+    if (!AcceptRequest()) return;
+    FString Reason;
+    const bool bAccepted = ProgressToolFromServer(ToolId, Reason);
+    PublishResult(Reason, bAccepted);
 }
 
 bool UKalmalaCraftingComponent::PlaceFromServer(FString& Reason)
@@ -191,6 +370,7 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
     const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), Character, KitId);
     Reason = Preview.Message;
     if (!Preview.bIsValid || FVector::DistSquared(Character->GetActorLocation(), Preview.Location) > FMath::Square(250.0f)) return false;
+
     if (FKalmalaToolProgressionContract::IsStationAttachmentKit(KitId))
     {
         int32 ActiveAttachmentCount = 0;
@@ -218,8 +398,10 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
         const bool bAlreadyUpgraded = FKalmalaToolProgressionContract::GetEffectiveStationLevel(NearbyStation)
             > FKalmalaToolProgressionContract::GetBaseStationLevel(RequiredStationKit);
         if (!FKalmalaToolProgressionContract::CanPlaceAttachment(
-            KitId, NearbyStation->GetConstructionKit(), StationDistance, true, bAlreadyUpgraded, Reason)) return false;
+            KitId, NearbyStation ? NearbyStation->GetConstructionKit() : NAME_None,
+            StationDistance, true, bAlreadyUpgraded, Reason)) return false;
     }
+
     const FRotator Rotation(0.0f, Character->GetActorRotation().Yaw, 0.0f);
     if (Rotation.ContainsNaN()) { Reason = TEXT("Invalid placement rotation"); return false; }
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
@@ -229,7 +411,9 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
     const FTransform Transform(Rotation, Preview.Location);
     auto* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
     const bool bTransientAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(KitId);
-    if (!GameMode || (!bTransientAttachment && !GameMode->CanPersistConstruction(KitId, Transform)))
+    const bool bSessionOnlyKit = FKalmalaPlacementPreview::IsSessionOnlyKit(KitId);
+    if (!GameMode || (!bTransientAttachment && !bSessionOnlyKit && !GameMode->CanPersistConstruction(KitId, Transform))
+        || (KitId == TEXT("RaisedStorageKit") && !GameMode->CanRegisterSessionStorage()))
     {
         Reason = TEXT("Construction save limit reached or unavailable");
         return false;
@@ -240,7 +424,14 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
     if (!Inventory->TryExchangeFromServer(Cost, NAME_None, 0, Reason)) { Construction->Destroy(); return false; }
     Construction->InitializeFromServer(KitId, FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower));
     Construction->FinishSpawning(Transform);
-    if (!bTransientAttachment && !GameMode->PersistConstruction(Construction))
+    if (KitId == TEXT("RaisedStorageKit") && !GameMode->RegisterSessionStorage(Construction))
+    {
+        Construction->Destroy();
+        Inventory->TryGrantFromServer(KitId, 1);
+        Reason = TEXT("Session chest limit reached; kit restored");
+        return false;
+    }
+    if (!bTransientAttachment && !bSessionOnlyKit && !GameMode->PersistConstruction(Construction))
     {
         Construction->Destroy();
         Inventory->TryGrantFromServer(KitId, 1);
@@ -249,7 +440,9 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
     }
     Reason = bTransientAttachment
         ? TEXT("Placed the paid station attachment; its level bonus lasts for this session")
-        : TEXT("Placed construction; server accepted the kit and ground");
+        : KitId == TEXT("RaisedStorageKit")
+            ? TEXT("Placed raised rainproof storage; chest and contents last for this server session")
+            : TEXT("Placed construction; server accepted the kit and ground");
     return true;
 }
 
@@ -370,6 +563,13 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
     if (!R || !R->bEnabled) return TEXT("Recipe unavailable");
     if (!R->OutputTool.IsNone())
         return TEXT("Tool replacement recipes are retired; use the free repair action at a Workbench or Forge");
+    auto* Character = GetCharacter();
+    if (R->RequiredSkill != EKalmalaSkill::None
+        && GetCurrentSkillLevel(Character, R->RequiredSkill) < R->RequiredSkillLevel)
+    {
+        return FString::Printf(TEXT("Requires %s; prepare food to gain Cooking experience"),
+            *GetSkillRequirementText(*R, Character));
+    }
     if (FKalmalaToolProgressionContract::IsStationAttachmentKit(R->Output))
     {
         const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(R->Output);
@@ -379,107 +579,101 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
             return FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"), StationName);
         }
     }
-    if (R->bRequiresLitCampfire && !FindNearbyLitFire()) return TEXT("Need a usable lit hearth with heat within 2.5 m");
+    const AKalmalaConstructionActor* RequiredStation = R->RequiredStationKit.IsNone()
+        ? nullptr : FindNearbyConstruction(R->RequiredStationKit);
+    if (!R->RequiredStationKit.IsNone() && !RequiredStation)
+    {
+        const auto* StationItem = GetDefault<UKalmalaItemCatalogue>()->FindItem(R->RequiredStationKit);
+        return FString::Printf(TEXT("Need a visible %s within 2.5 m"),
+            StationItem ? *StationItem->DisplayName : *R->RequiredStationKit.ToString());
+    }
+    if (R->bRequiresLitCampfire && !FindNearbyLitFire(RequiredStation))
+    {
+        const auto* StationItem = RequiredStation ? GetDefault<UKalmalaItemCatalogue>()->FindItem(RequiredStation->GetConstructionKit()) : nullptr;
+        return RequiredStation
+            ? FString::Printf(TEXT("Need a usable lit hearth with heat within 2.5 m of the player and %s"),
+                StationItem ? *StationItem->DisplayName : *RequiredStation->GetConstructionKit().ToString())
+            : TEXT("Need a usable lit hearth with heat within 2.5 m");
+    }
     if (R->bRequiresCampfire && !FindNearbyFire(true) && !FindNearbyWorkbench()) return TEXT("Need a usable hearth or workbench within 2.5 m");
-AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyToolProgressionStation(const FName Kit) const
-{
-    if (Kit == TEXT("WorkbenchKit")) return FindNearbyConstruction(Kit);
-    if (Kit != TEXT("ForgeKit")) return nullptr;
-
-    const AKalmalaCharacter* Character = GetCharacter();
-    if (!Character || !Character->GetController() || !GetWorld()) return nullptr;
-    const AKalmalaWorldGenerationGameState* State =
-        GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
-    if (!State || !State->GetWorldGenerationConfig().IsValid()) return nullptr;
-
-    AKalmalaConstructionActor* Closest = nullptr;
-    double Best = FMath::Square(250.0);
-    for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It)
-    {
-        AKalmalaConstructionActor* Candidate = *It;
-        if (!IsValid(Candidate) || Candidate->GetWorld() != Character->GetWorld()
-            || Candidate->GetConstructionKit() != Kit || Candidate->GetConstructionId().IsEmpty()
-            || (Character->HasAuthority() && !Candidate->HasAuthority())
-            || Character->GetActorLocation().ContainsNaN() || Candidate->GetActorLocation().ContainsNaN())
-        {
-            continue;
-        }
-        const double Distance = FVector::DistSquared(Character->GetActorLocation(), Candidate->GetActorLocation());
-        if (!FMath::IsFinite(Distance) || Distance > Best) continue;
-        FCollisionQueryParams Query(SCENE_QUERY_STAT(ToolProgressionStation), false, Character);
-        FHitResult Hit;
-        if (!GetWorld()->LineTraceSingleByChannel(
-            Hit, Character->GetPawnViewLocation(), Candidate->GetActorLocation(), ECC_Visibility, Query)
-            || Hit.GetActor() != Candidate) continue;
-        if (Distance < Best || (Distance == Best
-            && (!Closest || Candidate->GetConstructionId() < Closest->GetConstructionId())))
-        {
-            Best = Distance;
-            Closest = Candidate;
-        }
-    }
-    return Closest;
-}
-
-bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FString& Reason)
-{
-    auto* Character = GetCharacter();
-    Reason = TEXT("Server authority required");
-    if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
-
-    const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(ToolId);
-    Reason = TEXT("Unknown tool progression");
-    if (!Entry || !FKalmalaToolProgressionContract::IsCatalogueValid()) return false;
-    const FName StationKit = FKalmalaToolProgressionContract::GetStationKit(Entry->RequiredStation);
-    const TCHAR* StationName = Entry->RequiredStation == EKalmalaToolStationKind::Workbench
-        ? TEXT("Workbench") : TEXT("Forge");
-    const AKalmalaConstructionActor* Station = FindNearbyToolProgressionStation(StationKit);
-    Reason = FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"), StationName);
-    if (!Station) return false;
-
-    const int32 EffectiveLevel = FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station);
-    Reason = FString::Printf(TEXT("Nearby %s is level %d; level %d is required"),
-        StationName, EffectiveLevel, Entry->RequiredStationLevel);
-    if (EffectiveLevel != Entry->RequiredStationLevel) return false;
-
-    auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
-    Reason = TEXT("Pack unavailable");
-    if (!Inventory) return false;
-    TArray<FKalmalaToolState> CandidateTools;
-    TArray<FKalmalaInventoryStack> CandidateInventory;
-    const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
-    if (!FKalmalaToolProgressionContract::BuildServerUpgrade(
-        true, Station->GetConstructionKit(), EffectiveLevel, ToolId,
-        Character->CarriedTools, Before, CandidateTools, CandidateInventory, Reason))
-    {
-        return false;
-    }
-    if (!Inventory->TryCommitStacksFromServer(Before, CandidateInventory))
-    {
-        Reason = TEXT("Pack changed; tool progression was not applied");
-        return false;
-    }
-
-    Character->CarriedTools = MoveTemp(CandidateTools);
-    Character->ForceNetUpdate();
-    Reason = FString::Printf(TEXT("Crafted %s at level %d; previous tool exchanged where required"),
-        *ToolId.ToString(), Entry->TargetToolLevel);
-    return true;
-}
-
-void UKalmalaCraftingComponent::ServerProgressTool_Implementation(const FName ToolId)
-{
-    if (!AcceptRequest()) return;
-    FString Reason;
-    const bool bAccepted = ProgressToolFromServer(ToolId, Reason);
-    PublishResult(Reason, bAccepted);
-}
-
-    auto* C = GetCharacter(); auto* Inv = C ? C->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    auto* C = Character; auto* Inv = C ? C->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (!Inv) return TEXT("Waiting for pack");
     TArray<FKalmalaInventoryStack> Next; FString Reason;
     UKalmalaInventoryComponent::BuildExchange(Inv->GetStacks(), R->Ingredients, R->Output, R->OutputCount, Next, Reason);
     return Reason;
+}
+
+FString UKalmalaCraftingComponent::GetToolProgressionText() const
+{
+    const AKalmalaCharacter* Character = GetCharacter();
+    const UKalmalaInventoryComponent* Inventory = Character
+        ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    const UKalmalaItemCatalogue* Items = GetDefault<UKalmalaItemCatalogue>();
+    if (!Character || !Inventory || !Items) return TEXT("Tool progression is waiting for your private inventory.\n");
+    const auto ToolName = [](const FName ToolId)
+    {
+        if (ToolId == TEXT("BronzeAxe")) return FString(TEXT("Bronze Axe"));
+        if (ToolId == TEXT("IronAxe")) return FString(TEXT("Iron Axe"));
+        return ToolId.ToString();
+    };
+
+    FString Text = TEXT("\nTOOL PROGRESSION — OWNER ONLY\n");
+    for (const FKalmalaToolProgressionEntry& Entry : FKalmalaToolProgressionContract::GetEntries())
+    {
+        const TCHAR* StationName = Entry.RequiredStation == EKalmalaToolStationKind::Workbench
+            ? TEXT("Workbench") : TEXT("Forge");
+        const FName StationKit = FKalmalaToolProgressionContract::GetStationKit(Entry.RequiredStation);
+        const FKalmalaToolState* Existing = Character->GetCarriedToolInventory().FindByPredicate(
+            [&Entry](const FKalmalaToolState& State) { return State.ToolId == Entry.ToolId; });
+        Text += FString::Printf(TEXT("%s: target level %d; "), *ToolName(Entry.ToolId), Entry.TargetToolLevel);
+        if (Existing)
+        {
+            Text += FString::Printf(TEXT("already carried at level %d (%d condition). "),
+                Existing->ToolLevel, Existing->Durability);
+        }
+        else if (!Entry.PreviousToolId.IsNone())
+        {
+            const int32 PreviousLevel = Character->GetCarriedToolLevel(Entry.PreviousToolId);
+            Text += PreviousLevel == Entry.PreviousToolLevel
+                ? FString::Printf(TEXT("upgrades %s level %d. "), *ToolName(Entry.PreviousToolId), Entry.PreviousToolLevel)
+                : FString::Printf(TEXT("requires carried %s level %d. "), *ToolName(Entry.PreviousToolId), Entry.PreviousToolLevel);
+        }
+
+        if (Entry.RequiredSkill != EKalmalaSkill::None)
+        {
+            const TCHAR* SkillName = Entry.RequiredSkill == EKalmalaSkill::Crafting
+                ? TEXT("Crafting") : TEXT("Skill");
+            Text += FString::Printf(TEXT("Requires %s level %d (second-tier unlock). "),
+                SkillName, Entry.RequiredSkillLevel);
+        }
+
+        Text += TEXT("Cost: ");
+        for (int32 Index = 0; Index < Entry.MaterialCosts.Num(); ++Index)
+        {
+            const FKalmalaToolMaterialCost& Cost = Entry.MaterialCosts[Index];
+            const FKalmalaItemDefinition* Item = Items->FindItem(Cost.ItemId);
+            Text += FString::Printf(TEXT("%s%d %s (have %d)"),
+                Index == 0 ? TEXT("") : TEXT(", "), Cost.Quantity,
+                Item ? *Item->DisplayName : *Cost.ItemId.ToString(),
+                Inventory->GetQuantity(Cost.ItemId));
+        }
+
+        const AKalmalaConstructionActor* Station = FindNearbyToolProgressionStation(StationKit);
+        if (Station)
+        {
+            const int32 Level = FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station);
+            Text += FString::Printf(TEXT(". Nearby %s level %d; required level %d"),
+                StationName, Level, Entry.RequiredStationLevel);
+        }
+        else
+        {
+            Text += FString::Printf(TEXT(". Need a visible same-world %s level %d within 2.5 m"),
+                StationName, Entry.RequiredStationLevel);
+        }
+        Text += TEXT(".\n");
+    }
+    Text += TEXT("Workbench and Forge bases are level 1. A nearby paid tool rack or anvil adds one level, up to level 2. Attachments last only for this session until M9 persistence is approved; the server checks placement and station level.");
+    return Text;
 }
 
 FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
@@ -490,16 +684,49 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
         return TEXT("Tool replacement recipes are retired; use the free repair action at a Workbench or Forge");
     FString Text = R->DisplayName + TEXT("\nCost: ");
     for (const auto& Cost : R->Ingredients)
-        Text += FString::Printf(TEXT("%d %s  "), Cost.Quantity, *GetDefault<UKalmalaItemCatalogue>()->FindItem(Cost.ItemId)->DisplayName);
-    Text += FString::Printf(TEXT("\nOutput: %d (stack limit %d)"),R->OutputCount,GetDefault<UKalmalaItemCatalogue>()->FindItem(R->Output)->MaxStack);
+    {
+        const auto* Item = GetDefault<UKalmalaItemCatalogue>()->FindItem(Cost.ItemId);
+        Text += FString::Printf(TEXT("%d %s  "), Cost.Quantity,
+            Item ? *Item->DisplayName : *Cost.ItemId.ToString());
+    }
+    Text += FString::Printf(TEXT("\nCost list is for batch 1; larger batches multiply each listed quantity.\nMaximum batch: up to %d per request; this panel submits batch 1 per press."),
+        R->MaxBatch);
+    const auto* OutputItem = GetDefault<UKalmalaItemCatalogue>()->FindItem(R->Output);
+    Text += FString::Printf(TEXT("\nOutput: %d %s (stack limit %d per inventory stack)"),
+        R->OutputCount, OutputItem ? *OutputItem->DisplayName : *R->Output.ToString(),
+        OutputItem ? OutputItem->MaxStack : 0);
+    if (R->RequiredSkill != EKalmalaSkill::None)
+        Text += FString::Printf(TEXT("\nUnlock: %s."), *GetSkillRequirementText(*R, GetCharacter()));
     if (FKalmalaToolProgressionContract::IsStationAttachmentKit(R->Output))
     {
         const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(R->Output);
         const TCHAR* StationName = StationKit == TEXT("WorkbenchKit") ? TEXT("Workbench") : TEXT("Forge");
-        return Text + FString::Printf(TEXT("\nStation: craft at a visible same-world %s within 2.5 m.\nPlacement: place within 1.25 m of that station; the level bonus lasts for this session until M9 save migration is approved."), StationName);
+        Text += FString::Printf(TEXT("\nStation: craft at a visible same-world %s within 2.5 m.\nPlacement: place within 1.25 m of that station; the level bonus lasts for this session until M9 save migration is approved."), StationName);
+        return Text;
     }
-    if (R->bRequiresLitCampfire) return Text + TEXT("\nStation: usable lit hearth with heat within 2.5 m");
-    return Text + (R->bRequiresCampfire ? TEXT("\nStation: nearby usable hearth or workbench") : TEXT("\nHandcrafted; no station"));
+    if (!R->RequiredStationKit.IsNone())
+    {
+        const auto* StationItem = GetDefault<UKalmalaItemCatalogue>()->FindItem(R->RequiredStationKit);
+        const FString StationName = StationItem ? StationItem->DisplayName : R->RequiredStationKit.ToString();
+        Text += FString::Printf(TEXT("\nStation: visible same-world %s within 2.5 m"), *StationName);
+        if (R->bRequiresLitCampfire)
+        {
+            Text += FString::Printf(TEXT("\nHeat: a usable lit hearth with positive heat must be within 2.5 m of both the player and %s."), *StationName);
+            if (R->RequiredStationKit == TEXT("CookingRackKit"))
+                Text += TEXT(" The hearth burns at its normal rate; processing spends no extra fuel.");
+            else
+                Text += TEXT(" The listed Ember fuel cost is charged per serving with the ingredients; rejected batches spend neither.");
+        }
+    }
+    else if (R->bRequiresLitCampfire)
+        Text += TEXT("\nStation: usable same-world lit hearth with positive heat within 2.5 m.");
+    else if (R->bRequiresCampfire)
+        Text += TEXT("\nStation: nearby usable same-world hearth or workbench.");
+    else
+        Text += TEXT("\nHandcrafted; no station");
+
+    Text += TEXT("\nFailure: the availability text below names the first unmet requirement. Rejected requests preserve ingredients and tool condition.");
+    return Text;
 }
 
 FString UKalmalaCraftingComponent::GetFoodText() const
@@ -507,17 +734,17 @@ FString UKalmalaCraftingComponent::GetFoodText() const
     const auto* Character = GetCharacter();
     const auto* Inventory = Character ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     const auto* Status = Character ? Character->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
-    const int32 Count = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::RoastedFieldMeatItemId) : 0;
+    const int32 RoastCount = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::RoastedFieldMeatItemId) : 0;
+    const int32 BrothCount = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::HearthBrothItemId) : 0;
+    const int32 SmokedCount = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::SmokedFieldMeatItemId) : 0;
     const float Remaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId) : 0.0f;
     if (Remaining > 0.0f)
     {
-        return FString::Printf(TEXT("Steady meal: %.0f seconds remaining; stamina use is 10%% lower. Additional meals cannot stack or replace it."), Remaining);
+        return FString::Printf(TEXT("Steady meal: %.0f seconds remaining; stamina use is 10%% lower. Wait for expiry; food effects cannot stack or replace this meal.\nAvailable: Roasted field meat %d; Hearth broth %d; Smoked field meat %d."),
+            Remaining, RoastCount, BrothCount, SmokedCount);
     }
-    if (Count > 0)
-    {
-        return FString::Printf(TEXT("Roasted field meat: %d available. Eat one for 120 seconds of 10%% lower stamina use."), Count);
-    }
-    return TEXT("Roasted field meat: none. Roast boar or deer meat at a nearby usable lit hearth.");
+    return FString::Printf(TEXT("Roasted field meat: %d available. Hearth broth: %d available. Smoked field meat: %d available. Food is optional. Eat one for 120 seconds of 10%% lower stamina use; only one meal can be active."),
+        RoastCount, BrothCount, SmokedCount);
 }
 
 FString UKalmalaCraftingComponent::GetNearbyFireText() const
@@ -581,68 +808,4 @@ void UKalmalaCraftingComponent::ServerConsumeFood_Implementation(const FName Foo
     FString Reason;
     const bool bAccepted = ConsumeFoodFromServer(FoodItemId, Reason);
     PublishResult(Reason, bAccepted);
-}
-FString UKalmalaCraftingComponent::GetToolProgressionText() const
-{
-    const AKalmalaCharacter* Character = GetCharacter();
-    const UKalmalaInventoryComponent* Inventory = Character
-        ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
-    const UKalmalaItemCatalogue* Items = GetDefault<UKalmalaItemCatalogue>();
-    if (!Character || !Inventory || !Items) return TEXT("Tool progression is waiting for your private inventory.\n");
-    const auto ToolName = [](const FName ToolId)
-    {
-        if (ToolId == TEXT("BronzeAxe")) return FString(TEXT("Bronze Axe"));
-        if (ToolId == TEXT("IronAxe")) return FString(TEXT("Iron Axe"));
-        return ToolId.ToString();
-    };
-
-    FString Text = TEXT("\nTOOL PROGRESSION — OWNER ONLY\n");
-    for (const FKalmalaToolProgressionEntry& Entry : FKalmalaToolProgressionContract::GetEntries())
-    {
-        const TCHAR* StationName = Entry.RequiredStation == EKalmalaToolStationKind::Workbench
-            ? TEXT("Workbench") : TEXT("Forge");
-        const FName StationKit = FKalmalaToolProgressionContract::GetStationKit(Entry.RequiredStation);
-        const FKalmalaToolState* Existing = Character->GetCarriedToolInventory().FindByPredicate(
-            [&Entry](const FKalmalaToolState& State) { return State.ToolId == Entry.ToolId; });
-        Text += FString::Printf(TEXT("%s: target level %d; "), *ToolName(Entry.ToolId), Entry.TargetToolLevel);
-        if (Existing)
-        {
-            Text += FString::Printf(TEXT("already carried at level %d (%d condition). "),
-                Existing->ToolLevel, Existing->Durability);
-        }
-        else if (!Entry.PreviousToolId.IsNone())
-        {
-            const int32 PreviousLevel = Character->GetCarriedToolLevel(Entry.PreviousToolId);
-            Text += PreviousLevel == Entry.PreviousToolLevel
-                ? FString::Printf(TEXT("upgrades %s level %d. "), *ToolName(Entry.PreviousToolId), Entry.PreviousToolLevel)
-                : FString::Printf(TEXT("requires carried %s level %d. "), *ToolName(Entry.PreviousToolId), Entry.PreviousToolLevel);
-        }
-
-        Text += TEXT("Cost: ");
-        for (int32 Index = 0; Index < Entry.MaterialCosts.Num(); ++Index)
-        {
-            const FKalmalaToolMaterialCost& Cost = Entry.MaterialCosts[Index];
-            const FKalmalaItemDefinition* Item = Items->FindItem(Cost.ItemId);
-            Text += FString::Printf(TEXT("%s%d %s (have %d)"),
-                Index == 0 ? TEXT("") : TEXT(", "), Cost.Quantity,
-                Item ? *Item->DisplayName : *Cost.ItemId.ToString(),
-                Inventory->GetQuantity(Cost.ItemId));
-        }
-
-        const AKalmalaConstructionActor* Station = FindNearbyToolProgressionStation(StationKit);
-        if (Station)
-        {
-            const int32 Level = FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station);
-            Text += FString::Printf(TEXT(". Nearby %s level %d; required level %d"),
-                StationName, Level, Entry.RequiredStationLevel);
-        }
-        else
-        {
-            Text += FString::Printf(TEXT(". Need a visible same-world %s level %d within 2.5 m"),
-                StationName, Entry.RequiredStationLevel);
-        }
-        Text += TEXT(".\n");
-    }
-    Text += TEXT("Workbench and Forge bases are level 1. A nearby paid tool rack or anvil adds one level, up to level 2. Attachments last only for this session until M9 persistence is approved; the server checks placement and station level.");
-    return Text;
 }

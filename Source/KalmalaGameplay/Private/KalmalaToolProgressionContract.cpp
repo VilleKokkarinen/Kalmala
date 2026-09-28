@@ -3,10 +3,26 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaConstructionActor.h"
+#include "KalmalaCharacter.h"
+#include "KalmalaSkillProgressionComponent.h"
 #include "EngineUtils.h"
 
 namespace
 {
+    const TCHAR* GetSkillName(const EKalmalaSkill Skill)
+    {
+        switch (Skill)
+        {
+        case EKalmalaSkill::Gathering: return TEXT("Gathering");
+        case EKalmalaSkill::Woodcutting: return TEXT("Woodcutting");
+        case EKalmalaSkill::Mining: return TEXT("Mining");
+        case EKalmalaSkill::Crafting: return TEXT("Crafting");
+        case EKalmalaSkill::Cooking: return TEXT("Cooking");
+        case EKalmalaSkill::Survival: return TEXT("Survival");
+        default: return TEXT("Skill");
+        }
+    }
+
     const TArray<FKalmalaStationAttachmentDefinition>& StationAttachmentDefinitions()
     {
         static const TArray<FKalmalaStationAttachmentDefinition> Definitions = {
@@ -38,6 +54,8 @@ namespace
             IronAxe.PreviousToolLevel = 1;
             IronAxe.RequiredStation = EKalmalaToolStationKind::Forge;
             IronAxe.RequiredStationLevel = 2;
+            IronAxe.RequiredSkill = EKalmalaSkill::Crafting;
+            IronAxe.RequiredSkillLevel = 5;
             IronAxe.MaterialCosts = {
                 {TEXT("Lightwood"), 3},
                 {TEXT("PeatAmber"), 2},
@@ -111,11 +129,20 @@ bool FKalmalaToolProgressionContract::IsCatalogueValid()
     for (const FKalmalaToolProgressionEntry& Entry : Entries)
     {
         const FKalmalaToolDefinition* Tool = FKalmalaToolLifecycleContract::FindDefinition(Entry.ToolId);
+        const bool bHasSkillRequirement = Entry.RequiredSkill != EKalmalaSkill::None;
+        const uint8 RequiredSkillUnlocks = bHasSkillRequirement
+            ? FKalmalaSkillProgressionContract::GetUnlockMaskForLevel(Entry.RequiredSkillLevel) : 0;
+        const uint8 SecondTierMask = static_cast<uint8>(EKalmalaSkillUnlock::SecondTier);
         if (Entry.ToolId.IsNone() || SeenToolIds.Contains(Entry.ToolId) || Tool == nullptr
             || FKalmalaToolLifecycleContract::GetToolTier(Tool->Kind) == EKalmalaToolTier::None
             || Entry.TargetToolLevel <= 0 || Entry.RequiredStationLevel != Entry.TargetToolLevel
             || (Entry.RequiredStation != EKalmalaToolStationKind::Workbench
                 && Entry.RequiredStation != EKalmalaToolStationKind::Forge)
+            || (bHasSkillRequirement && (!FKalmalaSkillProgressionContract::IsKnownSkill(Entry.RequiredSkill)
+                || Entry.RequiredSkillLevel < 2 || Entry.RequiredSkillLevel > FKalmalaSkillProgressionContract::MaxLevel))
+            || (!bHasSkillRequirement && Entry.RequiredSkillLevel != 0)
+            || (Entry.TargetToolLevel >= 2 && (!bHasSkillRequirement
+                || (RequiredSkillUnlocks & SecondTierMask) == 0))
             || Entry.MaterialCosts.IsEmpty() || Entry.MaterialCosts.Num() > 4)
         {
             return false;
@@ -247,6 +274,7 @@ bool FKalmalaToolProgressionContract::CanPlaceAttachment(
 
 bool FKalmalaToolProgressionContract::BuildServerUpgrade(
     const bool bServerAuthority,
+    const FKalmalaSkillProgressionLedger* ServerSkills,
     const FName SelectedStationKit,
     const int32 EffectiveStationLevel,
     const FName ToolId,
@@ -271,6 +299,17 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
         Entry->RequiredStation == EKalmalaToolStationKind::Workbench ? TEXT("Workbench") : TEXT("Forge"),
         Entry->RequiredStationLevel);
     if (EffectiveStationLevel != Entry->RequiredStationLevel) return false;
+
+    if (Entry->RequiredSkill != EKalmalaSkill::None)
+    {
+        Reason = FString::Printf(TEXT("Requires %s level %d and its second-tier unlock"),
+            GetSkillName(Entry->RequiredSkill), Entry->RequiredSkillLevel);
+        if (!ServerSkills || !ServerSkills->IsValid()) return false;
+        const FKalmalaSkillState* SkillState = ServerSkills->Find(Entry->RequiredSkill);
+        const uint8 SecondTierMask = static_cast<uint8>(EKalmalaSkillUnlock::SecondTier);
+        if (!SkillState || !SkillState->IsValid() || SkillState->Level < Entry->RequiredSkillLevel
+            || (SkillState->UnlockMask & SecondTierMask) == 0) return false;
+    }
 
     Reason = TEXT("Carried tool inventory is invalid or full");
     if (ExistingTools.IsEmpty() || ExistingTools.Num() > FKalmalaToolLifecycleContract::MaxCarriedToolRecords)
@@ -340,4 +379,25 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
     Reason = FString::Printf(TEXT("Crafted %s at level %d"),
         *Entry->ToolId.ToString(), Entry->TargetToolLevel);
     return true;
+}
+
+bool FKalmalaToolProgressionContract::BuildServerUpgradeFromCharacter(
+    const AKalmalaCharacter* ServerCharacter,
+    const FName SelectedStationKit,
+    const int32 EffectiveStationLevel,
+    const FName ToolId,
+    const TArray<FKalmalaToolState>& ExistingTools,
+    const TArray<FKalmalaInventoryStack>& ExistingInventory,
+    TArray<FKalmalaToolState>& OutTools,
+    TArray<FKalmalaInventoryStack>& OutInventory,
+    FString& Reason)
+{
+    const bool bServerAuthority = IsValid(ServerCharacter) && ServerCharacter->HasAuthority();
+    const UKalmalaSkillProgressionComponent* SkillProgression = bServerAuthority
+        ? ServerCharacter->GetSkillProgressionComponent() : nullptr;
+    const FKalmalaSkillProgressionLedger* ServerSkills = SkillProgression
+        ? &SkillProgression->GetServerLedger() : nullptr;
+    return BuildServerUpgrade(bServerAuthority, ServerSkills, SelectedStationKit,
+        EffectiveStationLevel, ToolId, ExistingTools, ExistingInventory,
+        OutTools, OutInventory, Reason);
 }

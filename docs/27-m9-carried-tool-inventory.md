@@ -64,10 +64,20 @@ Bronze Axe and requires a level-2 Forge. The level-1 Forge rejects that
 upgrade until a nearby paid anvil is placed and accepted by the server.
 Rejected calls leave materials and carried tools unchanged.
 
+The Iron Axe level-two recipe also requires the owner's server-ledger Crafting
+skill to have reached level 5, which carries the existing second-tier unlock.
+The level, unlock mask, Bronze Axe level and condition, matching level-two
+Forge, and material exchange are checked before either candidate is committed.
+The upgrade replaces the carried Bronze Axe in its existing tool-record slot
+and creates a full-condition Iron Axe. The owner crafting panel shows the
+required Crafting level, and a rejected request explains the missing
+second-tier unlock. The client still submits only the target tool ID; skill,
+carried-tool state, station, costs, and result are derived by the server.
+
 Axes remain absent from starting inventory and tool level remains transient.
 The existing owner-only CarriedTools replication carries crafted axe level and
-condition; no new RPC state, save field, or schema was added. M7 material-paid
-repair remains until the later free-repair task.
+condition; no new RPC state, save field, or schema was added. See the M9 free
+selected-tool repair section below for the superseding repair contract.
 
 ## M9 station transaction verification
 
@@ -77,7 +87,9 @@ range and duplicate rejection, paid recipes, and item-catalogue-valid costs.
 Kalmala.Gameplay.M9.ToolStationProgression checks paid Bronze
 Axe creation and Iron Axe replacement, exact station family/level validation,
 prerequisite checks, full-condition output, material consumption, and
-no-mutation rejection. It also verifies that the tool progression RPC carries
+no-mutation rejection. It verifies that level 1 and level 4 Crafting cannot
+perform the Iron Axe upgrade, level 5 can, and a missing skill ledger fails
+closed without changing candidate tools or materials. It also verifies that the tool progression RPC carries
 only the target tool ID, without client-supplied station, level, cost, or result.
 
 `CarriedTools` is replicated with `COND_OwnerOnly`. Harvest and repair code
@@ -85,7 +97,8 @@ reads and changes a record on the server; existing client requests continue to
 send only tool or recipe intent. The detail array is transient and is not a
 SaveGame field. Tool and workstation levels are derived from transient
 server-owned records and placed attachment actors. Free selected-tool repair
-is available at a Workbench or Forge; Grinding Stone Repair All remains open.
+is available at a Workbench or Forge; Grinding Stone `Repair All` and its
+cosmetic pose are implemented and documented below.
 
 ## M9 free selected-tool repair
 
@@ -152,3 +165,23 @@ catalogues, station matches, level derivation, attachment placement bounds,
 paid recipes, and item-catalogue-valid costs.
 `Scripts/Verify-InventoryReconnect.ps1` also checks two live client visits:
 the owner receives tool condition and the remote peer receives no tool details.
+
+## Owner-local M9 tool feedback
+
+The Camp crafting panel reads tool records and material counts from the owning
+pawn. Its private tool-status block names all supported tools, shows carried
+condition and repair availability, and keeps uncrafted axes unavailable until
+the server creates them. The progression block shows axe target/current levels,
+the previous-tool and skill prerequisites, every material cost with the
+owner's available quantity, and the matching Workbench or Forge requirement.
+When no matching station is nearby, the message includes its required level and
+the visible same-world 2.5 m range. Paid attachment guidance explains the
+session-only level bonus and the M9 save-migration gate.
+
+Repair guidance distinguishes free selected-tool repair at a Workbench/Forge
+from Repair All at a visible Grinding Stone. The UI only presents owner state;
+repair RPCs remain intent-only and the server derives the tool list and
+outcome. No tool or station save fields were added. `Scripts/Verify-Crafting.ps1`
+checks the level, material, station, persistence-gate, and repair text on the
+listen-server owner and joining client; the separate inventory reconnect
+verification continues to cover owner-only detail on remote peers.

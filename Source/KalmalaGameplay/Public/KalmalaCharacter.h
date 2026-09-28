@@ -82,6 +82,7 @@ protected:
 
 private:
     friend class AKalmalaHarvestNode;
+    friend class UKalmalaCraftingComponent;
 
     bool CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, float TraceDistance, float MaximumRange,
         FName ClientToolId, uint8 ClientAction);

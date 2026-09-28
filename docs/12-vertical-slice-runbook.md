@@ -155,10 +155,13 @@ following:
 Marking this skip closes the M5 execution queue only. It must explicitly state
 that it does not pass the player-visible 20–30-minute co-op loop, normal peer
 joining or reconnect, physical input, audible quality, packaged persistence,
-or long-session balance. M6 must restore a native surface and run this
-unchanged player-facing charter before treating any of those deferred checks as
-accepted. No developer fixture, offscreen capture, console command, or
-scripted gameplay may substitute for the skipped run.
+or long-session balance. Those player-facing checks remain unverified until a
+native session is available. The separate M7 post-content regression may use
+the headless host/client gate in `docs/18-m7-automated-acceptance.md`, together
+with the checked M6 regression slices and clean-profile package smoke. That
+gate closes only the automated regression task; it does not substitute for or
+claim completion of this M5 player-facing charter. Do not report physical
+input, the unscripted co-op journey, or packaged persistence as passed.
 
 ## Authority and persistence boundary
 

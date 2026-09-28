@@ -98,5 +98,32 @@ contract suite. Exercise accepted and rejected host/client requests for wrong
 or distant stations, out-of-range or blocked use, missing inputs, output
 capacity, meal-slot consumption rejection, malformed batches, and owner-only
 chest contents. Run the storage and crafting peer verifiers after the
-persistence gate is approved; this design increment changes no runtime
-behavior and makes no build or playtest claim.
+persistence gate is approved. The Smokehouse and Drying Line portions remain
+design-only; no implementation or peer-playtest claim is made for them.
+
+## Runtime increment: raised storage
+
+`RaisedStorage` is implemented as a paid `RaisedStorageKit` using three
+`Densewood`, two `ConstructionSupply`, and two `Fibre` at a visible same-world
+level-one Workbench within 250 cm. Placement reuses the existing server ground,
+slope, bounds, collision, and kit checks. The raised chest shares the existing
+server-selected storage interaction, 16-unique-stack bound, and owner-only
+contents view, and is exempt from rain wear.
+
+The raised kit is a session-only M9 actor. Its bounded contents live in the
+authoritative GameMode session map, do not enter either schema-one save, and
+are cleared with that server session. Schema-one construction validation
+rejects the new kit; the save version and record shape are unchanged. The
+existing storage transfer intent still accepts only an item ID, and storage
+failure leaves the player's pack unchanged. The owner is told that raised
+construction and contents last for the current server session.
+
+Focused verification: `Kalmala.Gameplay.M9.RaisedStorage` covers catalogue
+identity and cost, rain immunity, same-actor session registration, bounded
+server contents, rejection of forged actor identity, and schema-one exclusion.
+The existing storage transfer and network contract suites continue to cover
+the 16-stack transaction and owner-only replicated view. A rendered two-peer
+raised-chest walkthrough has not run.
+
+The Smokehouse and Drying Line recipes remain design-only; this increment does
+not complete the optional camp/equipment backlog task or enable M9 migration.

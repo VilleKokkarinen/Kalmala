@@ -12,7 +12,7 @@ namespace
         {
             { TEXT("ReedKnife"), EKalmalaToolKind::ReedKnife, EKalmalaToolAction::Gathering, EKalmalaSkill::Gathering, 1, 16, 1 },
             { TEXT("FieldHatchet"), EKalmalaToolKind::FieldHatchet, EKalmalaToolAction::Woodcutting, EKalmalaSkill::Woodcutting, 1, 24, 1 },
-            { TEXT("StonePick"), EKalmalaToolKind::StonePick, EKalmalaToolAction::Mining, EKalmalaSkill::Mining, 1, 20, 1 }
+            { TEXT("StonePick"), EKalmalaToolKind::StonePick, EKalmalaToolAction::Mining, EKalmalaSkill::Mining, 1, 20, 1 },
         };
         return Definitions;
     }

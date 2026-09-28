@@ -2,9 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaSkillProgressionContract.h"
 #include "KalmalaToolLifecycleContract.h"
 
 class AKalmalaConstructionActor;
+class AKalmalaCharacter;
 
 /** Buildable station family required by an authored tool recipe. */
 enum class EKalmalaToolStationKind : uint8
@@ -30,6 +32,8 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProgressionEntry
     int32 PreviousToolLevel = 0;
     EKalmalaToolStationKind RequiredStation = EKalmalaToolStationKind::None;
     int32 RequiredStationLevel = 0;
+    EKalmalaSkill RequiredSkill = EKalmalaSkill::None;
+    int32 RequiredSkillLevel = 0;
     TArray<FKalmalaToolMaterialCost> MaterialCosts;
 };
 
@@ -80,6 +84,17 @@ public:
     static bool IsCatalogueValid();
     static bool BuildServerUpgrade(
         bool bServerAuthority,
+        const FKalmalaSkillProgressionLedger* ServerSkills,
+        FName SelectedStationKit,
+        int32 EffectiveStationLevel,
+        FName ToolId,
+        const TArray<FKalmalaToolState>& ExistingTools,
+        const TArray<FKalmalaInventoryStack>& ExistingInventory,
+        TArray<FKalmalaToolState>& OutTools,
+        TArray<FKalmalaInventoryStack>& OutInventory,
+        FString& Reason);
+    static bool BuildServerUpgradeFromCharacter(
+        const AKalmalaCharacter* ServerCharacter,
         FName SelectedStationKit,
         int32 EffectiveStationLevel,
         FName ToolId,

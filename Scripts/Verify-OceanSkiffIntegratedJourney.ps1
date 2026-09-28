@@ -40,8 +40,8 @@ try {
             throw 'Integrated ocean journey verification failed; inspect retained logs.'
         }
 
-        $serverJourney = $hostText -match 'Ocean integrated journey server passed: Seed=418 Players=2 Discovery=.+ Reward=(?:Wood|Fibre|Stone):[12] Claims=2 Distance=2[3-4][0-9]{4} Crosswind=1 Calm=1 PatchStart=\((-?[0-9]+),(-?[0-9]+)\) PatchEnd=\((-?[0-9]+),(-?[0-9]+)\) ActivePatches=(?:[1-9]|1[0-9]|2[0-5]) Mode=Moored Disembarked=2'
-        $clientJourney = $clientText -match 'Ocean integrated journey peer replica passed: Authority=0 Seat=Helm Discovery=.+ DiscoveryFeedback=LandmarkFound Reward=(?:Wood|Fibre|Stone):[12] Distance=2[3-4][0-9]{4} Crosswind=1 Calm=1 Disembarked=1 EmptySeats=1 Mode=Moored'
+        $serverJourney = $hostText -match 'Ocean integrated journey server passed: Seed=418 Players=2 Discovery=.+ Reward=(?:Wood|Fibre|Stone):[12] Claims=2 Distance=2[3-4][0-9]{4} Crosswind=1 Calm=1 PatchStart=\((-?[0-9]+),(-?[0-9]+)\) PatchEnd=\((-?[0-9]+),(-?[0-9]+)\) ActivePatches=(?:[1-9]|1[0-9]|2[0-5]) DryShoreHost=1 DryShoreHelm=1 Mode=Moored Disembarked=2'
+        $clientJourney = $clientText -match 'Ocean integrated journey peer replica passed: Authority=0 Seat=Helm Discovery=.+ DiscoveryFeedback=LandmarkFound Reward=(?:Wood|Fibre|Stone):[12] Distance=2[3-4][0-9]{4} Crosswind=1 Calm=1 DryShore=1 Disembarked=1 EmptySeats=1 Mode=Moored'
         $clientWorld = $clientText -match 'Client received world-generation identity: Seed=418'
         $hostWeather = $hostText -match 'Ocean weather peer result: Authority=1 Cycle=7001 Direction=90 Strength=1\.000 .*Passed=1' -and $hostText -match 'Ocean weather peer result: Authority=1 Cycle=7002 Direction=0 Strength=0\.000 .*Passed=1'
         $clientWeather = $clientText -match 'Ocean weather peer result: Authority=0 Cycle=7001 Direction=90 Strength=1\.000 .*ClientForgeryRejected=1 Passed=1' -and $clientText -match 'Ocean weather peer result: Authority=0 Cycle=7002 Direction=0 Strength=0\.000 .*ClientForgeryRejected=1 Passed=1'
@@ -51,7 +51,7 @@ try {
     } while ((Get-Date) -lt $deadline)
 
     if (!$ready) { throw "Integrated ocean journey did not satisfy the two-peer checks within $TimeoutSeconds seconds; inspect retained logs." }
-    Write-Output 'PASS: both peers observed the accepted weather states, discovery reward, 2.4 km skiff route, patch transition, and safe disembark.'
+    Write-Output 'PASS: both peers observed the accepted weather states, discovery reward, 2.4 km skiff route, patch transition, and dry-shore disembark.'
 }
 finally {
     foreach ($peer in @($client, $hostProcess)) {

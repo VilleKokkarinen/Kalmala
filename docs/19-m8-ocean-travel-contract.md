@@ -119,7 +119,7 @@ subtask and live host/client collision and feedback acceptance remain separate.
 
 The first runtime increment adds one server-created skiff per session. Launch uses the existing server-side interaction trace and accepts only a hit on an active generated terrain patch within 250 cm whose sampled Ocean depth is at least 100 cm and whose position is inside the 16 km world boundary. The launch point comes from the server trace; a client cannot submit a transform. A second skiff is rejected for this two-player prototype session.
 
-The first eligible player receives the Helm seat and the next distinct session player receives Passenger. Seat references and the `Moored` state replicate; the skiff remains unowned by either client. Occupants attach to server-selected local seat positions while their normal pawn movement and collision are disabled. An occupant may request disembarkation only while stopped; the server checks up to eight generated-world exit positions, requires deep ocean or dry land, and accepts the first capsule placement with no blocking pawn collision. If no safe exit exists, seat and pawn state remain unchanged. Travel state remains transient and is not saved.
+The first eligible player receives the Helm seat and the next distinct session player receives Passenger. Seat references and the `Moored` state replicate; the skiff remains unowned by either client. Occupants attach to server-selected local seat positions while their normal pawn movement and collision are disabled. An occupant may request disembarkation only while stopped. The server checks eight generated-world directions for dry-land capsule placements, beginning at the existing 190 cm exit and expanding in 500 cm rings to a bounded 8,000 cm maximum; if none is clear, it retains the original qualifying deep-water exit fallback. Each candidate must pass generated-surface, world-bound, and pawn-overlap checks. If no safe exit exists, seat and pawn state remain unchanged. Travel state remains transient and is not saved.
 
 ## Implemented sequenced steering and movement increment (2026-09-25)
 
@@ -243,6 +243,38 @@ round-trip, and replay rejection. Live host/client interaction and rendered
 presentation remain part of the later M8 two-player journey acceptance. The
 shared M7 ledger is bounded at 256 sparse facts per player; expanding that
 budget requires the M8 persistence/budget review.
+
+## Integrated peer sailing increment (2026-09-25)
+
+`Scripts/Verify-OceanSkiffJourney.ps1 -Port 18169` starts an isolated seed-418
+listen host and a conflicting-seed client. A development-only server fixture
+chooses a coast launch and a 2.4 km deep-water path that crosses a generated
+terrain-patch coordinate. It constructs the launch hit from the active
+generated patch's world-static collision component, calls the production
+server launch and seat paths, and submits sequenced bounded helm intent
+through the owning helm's existing server steering RPC. The existing weather peer fixture selects
+a beam crosswind, then calm weather while the voyage is underway. Both local
+peers must observe the server world identity, their replicated seat, underway
+movement, the stopped skiff, and the replicated calm/crosswind results. The
+server also requires a patch-coordinate transition with no more than the
+existing 25 active-patch cap.
+
+This is a server-driven integration fixture. The remote client owning the helm
+sends steering through the normal server RPC; the server fixture selects the
+generated launch and assigns both seats, with the host in the passenger seat.
+It does not exercise physical input, claim an ocean discovery, or disembark.
+Those remain in the later M8 journey acceptance. The finite 16 km
+world has no origin-rebasing path, so this increment records
+`OriginShift=inactive` and verifies terrain-patch streaming only. It is not a
+long-session actor, memory, replication, save-size, or frame-time profile.
+
+Status (2026-09-25): The forced editor build and runner syntax checks pass, but
+the live crossing is blocked. Two direct server-steering attempts rejected
+validated helm input; the listen-host and remote-client owner-RPC runs each
+launched and occupied both seats but neither peer reported underway travel or
+a stop after about two minutes. The latest run passed host/client weather-state
+checks. See `PROGRESS.md`; the crossing is not verified until the steering
+path produces movement in this fixture.
 
 ## Owner-scoped discovery and safe disembark peer check (2026-09-25)
 

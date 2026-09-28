@@ -26,6 +26,14 @@ bool FKalmalaCraftingNetworkContractTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Campfire intent is an owning-client server RPC"), Function->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
         TestEqual(TEXT("Campfire intent cannot provide a target or authoritative state"), int32(Function->NumParms), 0);
     }
+    const UFunction* Repair = CraftingClass->FindFunctionByName(TEXT("ServerRepairTool"));
+    if (TestNotNull(TEXT("Repair intent exists"), Repair))
+    {
+        TestTrue(TEXT("Repair is an owning-client server RPC"), Repair->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
+        TestEqual(TEXT("Repair intent accepts only the allowlisted tool identity"), int32(Repair->NumParms), 1);
+        TestNotNull(TEXT("Repair intent cannot provide condition, materials, or result"), Repair->FindPropertyByName(TEXT("ToolId")));
+    }
+
     const UFunction* Construction = CraftingClass->FindFunctionByName(TEXT("ServerPlaceConstruction"));
     if (TestNotNull(TEXT("Construction placement intent exists"), Construction))
     {

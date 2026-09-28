@@ -252,6 +252,85 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
         }
     }
 
+    if (IsLocallyControlled() && GetWorld() != nullptr
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")))
+    {
+        static TWeakObjectPtr<AKalmalaOceanSkiff> TestDrivenSkiff;
+        static FVector2D TestJourneyStart = FVector2D::ZeroVector;
+        AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor());
+        if (Skiff != nullptr && Skiff->GetHelmOccupant() == this)
+        {
+            if (TestDrivenSkiff.Get() != Skiff)
+            {
+                TestDrivenSkiff = Skiff;
+                TestJourneyStart = FVector2D(Skiff->GetActorLocation());
+            }
+            const float Travelled = FVector2D::Distance(
+                TestJourneyStart, FVector2D(Skiff->GetActorLocation()));
+            LocalOceanSkiffThrottle = Travelled < 240000.0f ? 1.0f : 0.0f;
+            LocalOceanSkiffRudder = 0.0f;
+            const double Now = GetWorld()->GetTimeSeconds();
+            if (LocalOceanSkiffInputSequence != TNumericLimits<uint32>::Max()
+                && (LastOceanSkiffInputSendTime < 0.0 || Now - LastOceanSkiffInputSendTime >= 0.1))
+            {
+                LastOceanSkiffInputSendTime = Now;
+                ServerSubmitOceanSkiffSteeringInput(LocalOceanSkiffThrottle, LocalOceanSkiffRudder,
+                    ++LocalOceanSkiffInputSequence);
+            }
+        }
+    }
+
+    if (IsLocallyControlled() && GetWorld() != nullptr
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")))
+    {
+        static TWeakObjectPtr<AKalmalaOceanSkiff> ObservedJourneySkiff;
+        static FVector2D JourneyStart = FVector2D::ZeroVector;
+        static bool bJourneyAttachReported = false;
+        static bool bJourneyTravelReported = false;
+        static bool bJourneyCompleteReported = false;
+        AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor());
+        if (Skiff != nullptr)
+        {
+            if (ObservedJourneySkiff.Get() != Skiff)
+            {
+                ObservedJourneySkiff = Skiff;
+                JourneyStart = FVector2D(Skiff->GetActorLocation());
+                bJourneyAttachReported = false;
+                bJourneyTravelReported = false;
+                bJourneyCompleteReported = false;
+            }
+
+            const bool bHelm = Skiff->GetHelmOccupant() == this;
+            const float JourneyDistance = FVector2D::Distance(JourneyStart, FVector2D(Skiff->GetActorLocation()));
+            const AKalmalaWorldGenerationGameState* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+            const uint64 Seed = WorldState != nullptr ? WorldState->GetWorldGenerationConfig().WorldSeed : 0;
+            if (!bJourneyAttachReported)
+            {
+                bJourneyAttachReported = true;
+                UE_LOG(LogTemp, Display,
+                    TEXT("Ocean journey peer replica attached: Authority=%d Seat=%s Mode=%d Seed=%llu."),
+                    HasAuthority() ? 1 : 0, bHelm ? TEXT("Helm") : TEXT("Passenger"),
+                    static_cast<int32>(Skiff->GetMode()), Seed);
+            }
+            if (!bJourneyTravelReported && JourneyDistance >= 100000.0f
+                && Skiff->GetMode() == EKalmalaOceanSkiffMode::Underway)
+            {
+                bJourneyTravelReported = true;
+                UE_LOG(LogTemp, Display,
+                    TEXT("Ocean journey peer replica observed travel: Authority=%d Seat=%s Mode=Underway Distance=%.0f Seed=%llu."),
+                    HasAuthority() ? 1 : 0, bHelm ? TEXT("Helm") : TEXT("Passenger"), JourneyDistance, Seed);
+            }
+            if (!bJourneyCompleteReported && JourneyDistance >= 239000.0f
+                && Skiff->GetMode() == EKalmalaOceanSkiffMode::Moored)
+            {
+                bJourneyCompleteReported = true;
+                UE_LOG(LogTemp, Display,
+                    TEXT("Ocean journey peer replica observed stop: Authority=%d Seat=%s Mode=Moored Distance=%.0f Seed=%llu."),
+                    HasAuthority() ? 1 : 0, bHelm ? TEXT("Helm") : TEXT("Passenger"), JourneyDistance, Seed);
+            }
+        }
+    }
+
     if (!bOceanTravelFeedbackPeerPrivacyLogged && !HasAuthority() && !IsLocallyControlled()
         && FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanSkiffFeedbackTest"))
         && OceanTravelFeedbackPeerStartTime >= 0.0f

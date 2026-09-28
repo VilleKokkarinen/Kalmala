@@ -110,7 +110,20 @@ condition, node depletion, and the existing sparse callback as one accepted
 action. Owner-only condition replication and the current no-persistence limit
 are specified in `17-m7-tools-and-gathering.md`. Run its focused automation,
 then `Scripts/Verify-InventoryReconnect.ps1` for the host/client inventory and
-tool transaction fixture.
+tool transaction fixture. The Camp crafting panel provides one repair action
+per tool at a visible Joiner's workbench; the server derives the matching
+gathered material cost from current condition and publishes payment and repair
+together. Run `Kalmala.Gameplay.Crafting.NetworkContract` and the same
+reconnect script to check the payload boundary, validated station, atomic
+material failure/success, and owner-only condition. The same reconnect fixture
+wears the Field Hatchet through accepted server harvests and verifies its
+replacement, then wears the Stone Pick through server-selected mining harvests
+and verifies its replacement, then gathers Fibre with the Reed Knife and
+verifies its replacement: zero-condition and visible-workbench gates, exact
+material payments, no mutation on intact-tool, missing-station, or missing-
+material attempts, owner-only condition restoration, post-payment Crafting
+experience, and duplicate rejection. Recipe identity and batch remain the
+only crafting RPC fields.
 
 ## First build
 
@@ -208,7 +221,7 @@ requires launch candidates between 100 and 250 cm of sampled ocean depth and
 within 300 m of the dry shoreline. `OceanDepth` validates the sampled depth
 against the generated collision-triangle planes and clipped coastal mesh.
 These deterministic checks do not instantiate a skiff, execute a visibility
-interaction trace, query live pawn overlap, exercise the skiff's actual world
+interaction trace, query live pawn overlap, or exercise the skiff's actual world
 collision sweep. Dry-shore-specific acceptance was waived on 2026-09-26; the
 M8 journey accepts a safe stopped disembark through the server's qualifying
 deep-water fallback.
@@ -275,6 +288,41 @@ The client also attempts to replace the accepted crosswind with a forged calm
 state; its server-only setter must leave the replicated weather unchanged.
 This check covers accepted weather replication, derived pressure/recovery, and
 client authority rejection, but does not move or render a live skiff.
+
+## M8 integrated skiff crossing
+
+After a forced editor build, run `Scripts\Verify-OceanSkiffJourney.ps1 -Port 18169`.
+The development-only seed-418 listen host and conflicting-seed client create a
+server launch from an active generated terrain patch, occupy the helm and
+passenger seats, and sail 2.4 km with the existing bounded steering rules. The
+fixture also selects crosswind and calm weather, requires both local peers to
+observe replicated seats, underway movement, and the final moored state, and
+checks that terrain-patch coordinates transition while active patches remain
+at or below 25. The generated launch hit and seat assignment are driven by the
+server fixture; the remote client owning the helm sends bounded steering through
+the existing server RPC. The fixture does not test physical input or a
+client-originated launch/boarding request. The finite 16 km world does not configure origin rebasing,
+so the fixture verifies patch streaming and records `OriginShift=inactive`.
+Discovery claims, disembark, late join, restart/reconnect, and long-session
+resource budgets remain separate M8 acceptance work.
+
+Status (2026-09-25): The forced editor build and runner syntax checks pass, but
+the live crossing is blocked. Two direct server-steering attempts rejected
+validated helm input; the listen-host and remote-client owner-RPC runs each
+launched and occupied both seats but neither peer reported underway travel or
+a stop after about two minutes. The latest run passed host/client weather-state
+checks. See `PROGRESS.md`; do not count the crossing as verified until the
+    steering path produces movement in this fixture.
+
+Status (2026-09-26): The blocker is resolved. The fixture now gates neutral
+movement-axis callbacks while it drives helm input, and holds the verified calm
+state after weather cycle 7002 for the full route. The forced editor build,
+focused skiff authority/steering contracts, PowerShell parser, and live
+seed-418 host/client run passed. Both peers observed underway travel and the
+moored stop at 242,511 cm across a terrain-patch transition with 9 active
+patches. `OriginShift=inactive`; this run does not verify physical input,
+rendered travel, or origin rebasing. Retained logs:
+`C:\Users\Ville\AppData\Local\Temp\KalmalaOceanSkiffJourney-384596c99aeb413dbdad675876741e54`.
 
 ## M8 owner-scoped discovery and safe disembark peer check
 
@@ -889,18 +937,59 @@ After a forced editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered -P
 
 ### M3 rain vertical-slice verification
 
-After a forced editor build, run `Scripts/Verify-RainVerticalSlice.ps1` on an unused port. Its development-only listen-server fixture activates the deterministic seed-418 coverage domain, locates water using the authoritative ocean/lake samplers, and freezes two ordinary peer pawns while it drives the production weather, status, roof-trace, rain-wear, and hearth update paths. The client joins with seed 999 and must receive seed 418. The server then requires immediate water Wet, heat-based removal, delayed unroofed-rain Wet, an exposed floor at the 50-health cap, rain-immune roofed floor and roof, a Smouldering fire, and roof-driven Lit recovery; the remote owner independently reads the replicated final construction IDs, hearth state, roof state, and no-Wet status. The fixture adds no gameplay RPC, save record, client-supplied mutation, or normal-play grant, and uses separate temporary user directories.
+After a forced editor build, run `Scripts/Verify-RainVerticalSlice.ps1` on an unused port. Its development-only listen-server fixture activates the deterministic seed-418 coverage domain, locates water using the authoritative ocean/lake samplers, and freezes two ordinary peer pawns while it drives the production weather, status, roof-trace, rain-wear, and hearth update paths. The client joins with seed 999 and must receive seed 418. The server then requires immediate water Wet, heat-based removal, Highly Active rain Wet by 8.5 seconds (7.5-second trigger), an exposed floor at the 50-health cap, rain-immune roofed floor and roof, a Smouldering fire, and roof-driven Lit recovery; the remote owner independently reads the replicated final construction IDs, hearth state, roof state, and no-Wet status. The fixture adds no gameplay RPC, save record, client-supplied mutation, or normal-play grant, and uses separate temporary user directories.
 
+### M7 weather hazards and stamina recovery
+
+`Kalmala.World.WeatherCycle.Determinism` verifies seeded fog, normalized
+storm intensity, and the calm/active/highly-active thresholds.
+`Kalmala.Gameplay.Exposure.RecoverableTravelPenalty` covers bounded
+heat/cold summaries plus the reversible low-warmth stamina-recovery curve.
+Kalmala.Gameplay.Exposure.WeatherHazardResponse checks that only Highly Active
+weather shortens the normal 10-second unroofed-rain Wet trigger to 7.5 seconds. It also checks the shared 0.65 storm threshold, the bounded 25% fuel-wetting increase, and roof/windbreak mitigation; Kalmala.Gameplay.Hearth.RainState exercises the production roof trace against storm wetting.
+`Kalmala.Gameplay.Exposure.ColdStaminaRecoveryAuthority` checks the live server
+stamina path at cold and recovered warmth, and rejects mutation from a
+simulated client copy. After the forced editor build, run these tests with an
+isolated temporary user directory. Then run `Scripts/Verify-CampChoices.ps1`
+to compare replicated weather tier/fog and both players' heat/cold exposure
+snapshots against server logs. `Kalmala.UI.WeatherActivity.LocalPresentation`
+verifies that each replicated tier maps to distinct shape-plus-text feedback
+and that its owner-local badge remains anchored below the minimap; it does not
+replace rendered viewport inspection.
+
+The focused command is:
+
+    & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7WeatherUser' -abslog='C:\temp\KalmalaM7Weather.log' -ExecCmds="Automation RunTests Kalmala.World.WeatherCycle.Determinism+Kalmala.Gameplay.Exposure.RecoverableTravelPenalty+Kalmala.Gameplay.Exposure.WeatherHazardResponse+Kalmala.Gameplay.Exposure.ColdStaminaRecoveryAuthority+Kalmala.Gameplay.Hearth.WeatherMutation+Kalmala.Gameplay.Hearth.RainState+Kalmala.UI.WeatherActivity.LocalPresentation; Quit" -TestExit="Automation Test Queue Empty"
+    Scripts\Verify-CampChoices.ps1 -Port 17842
+    Scripts\Verify-RainVerticalSlice.ps1 -Port 18119
+
+### M7 local survival status presentation
+
+After the editor build, run `Kalmala.UI.SurvivalStatus.LocalPresentation` with
+the standard `-unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache`,
+isolated `-UserDir`, unique `-abslog`, and
+`-TestExit="Automation Test Queue Empty"` flags. The test covers shape-plus-
+text labels, server-derived Wet/food timers, weather interval/intensity,
+heat/cold context, active support expiry/magnitude, recovery/source guidance,
+the empty state, and the local lower-left viewport slot. If
+`UnrealEditor-Cmd.exe` exits during its all-platform SDK preflight, run the same
+arguments with `UnrealEditor.exe` and wait for process completion; the editor
+automation log must show `Result={Success}`. This is a presentation-only
+contract check and does not replace rendered readability review.
 ### M7 first food transaction
 
-Roasted field meat is cooked from existing server-selected boar or deer rewards at a same-world hearth the player may use within 250 cm. Cooking needs Lit state and finite positive heat; a workbench, extinguished fire, or rain-smouldering fire is not a substitute. The server applies the catalogue batch limit and the existing atomic inventory exchange. No extra fuel debit is charged beyond the fire's normal burn.
+Roasted field meat is cooked from existing server-selected boar or deer rewards using a visible same-world Cooking rack and a usable lit hearth. The rack must be within 250 cm of the player; the hearth must be within 250 cm of both player and rack, in Lit state with finite positive heat. A workbench, missing/distant rack, extinguished fire, or rain-smouldering fire is not a substitute. The server applies the catalogue batch limit and existing atomic inventory exchange. The hearth burns at its normal rate; processing adds no separate fuel debit.
 
-The owner food request carries only the food item ID. The server checks its allowlist, private inventory, and the one-meal slot before consuming one item and publishing a 120-second server status that multiplies stamina use by 0.90. An active meal cannot be stacked, refreshed, or replaced. Food and the effect remain transient; no save schema changed. This initial recipe uses the hearth directly; cooking rack, kettle, and drying/smoking stations remain open.
+The Cooking rack, Hearth cauldron, and Smoke frame use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. Roasting requires its visible same-world rack and a usable Lit hearth with positive heat within 250 cm of both player and rack; it adds no fuel debit. Broth and smoked field meat require their matching visible same-world station plus a usable Lit hearth with finite positive heat within 250 cm of both player and station. Each broth or smoke serving atomically consumes one raw meat and one additional Ember bundle; both batch limits are three. The hearth burns normally, and a station does not add a hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming one roasted meat, Hearth Broth, or smoked meat and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. The crafting panel shows the timer, benefit, wait rule, and all prepared-food counts while the effect is active. Food remains optional, with no hunger drain or travel requirement. Food, station fuel payments, and the effect remain transient; no save schema changed.
 
-After the forced editor build, run the focused food, status, inventory recipe, and RPC contracts:
+Each successful prepared-food recipe transaction awards one fixed 10 Cooking experience through the existing server-owned skill component, regardless of its serving batch. The award happens only after the atomic private-pack exchange succeeds. Rejected stations, heat, quantities, inputs, or output capacity award no experience; client-side calls cannot reach the award path. The award is transient. After the forced editor build, verify `Kalmala.Gameplay.Food.CampfireProcessing` and `Kalmala.Gameplay.Crafting.Transactions` alongside the food contract suite to check accepted, rejected, batched, and malformed catalogue cases.
+
+The smoke recipes require Cooking level 2. Their details show the required and current level, and availability feedback names food preparation as the way to earn Cooking experience. The focused food automation verifies that the server rejects a locked smoke request without changing inventory or progression, that nine additional accepted broth requests after the first accepted preparation reach 100 Cooking experience, and that level 2 opens smoking before station, fuel, batch, and output checks continue.
+
+After the forced editor build, run the focused food, status, inventory recipe, RPC, and placement-preview contracts. The food processing test covers smoke-frame access, positive hearth heat, per-serving fuel, bounded batch, output-capacity failure, and atomic success alongside roast/cauldron rules. Its food-use assertions also check rejected duplicate and replacement consumption, preserved timers/inventory, expiry, alternate meals, and active-effect text:
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CampfireProcessing+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CampfireProcessing+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ## Windows Development package smoke
@@ -963,19 +1052,25 @@ Inventory is intentionally transient under the current M8 save contract, so
 the restart check proves the claim ledger prevents a duplicate reward rather
 than restoring the original inventory quantity. This fixture uses stable
 development test-provider identities, not an external authentication
-provider. It complements the separate dry-shore task and does not claim
-player-facing, rendered, physical-input, or dry-land acceptance; it adds no
+provider. It complements the separate safe-disembark evidence and does not
+claim player-facing, rendered, or physical-input acceptance. Dry-shore-specific
+acceptance was waived on 2026-09-26; the integrated journey accepts a safe
+stopped disembark through the qualifying deep-water fallback. It adds no
 production RPC or saved-data field.
 
 ## M9 tool stations and progression
 
 The Forge is a paid construction kit handled by the existing placement and
 schema-1 construction-save paths. The Workbench and Forge each derive base
-level 1 from their server-accepted kit identity. Tool upgrade requests contain
-only a tool ID; the server selects a visible same-world station within 250 cm
-and requires its effective level to equal the progression target. Iron Axe
-requires Forge level 2 and remains unavailable until the separate attachment
-task provides that level.
+level 1 from their server-accepted kit identity. Paid Workbench tool-rack and
+Forge-anvil kits are crafted at the matching visible same-world station within
+250 cm, then placed within 125 cm of a compatible station by server-derived
+placement. The server derives effective level from initialized matching
+construction actors and caps it at level 2; duplicate, distant, wrong-family,
+and unusable-station attachments are rejected. Tool upgrade requests contain
+only a tool ID, and placement requests contain only a kit ID. Attachments and
+their level bonus remain session-only until the M9 save migration contract is
+approved; they do not extend the current construction schema.
 
 After the forced editor build, run these focused automations with isolated
 user and log directories: Kalmala.Gameplay.M9.ToolStationProgression,
@@ -988,8 +1083,9 @@ Kalmala.Gameplay.Construction.SaveContract.
 ToolStationProgression covers Bronze Axe creation, exact station family and
 level checks, Iron Axe prerequisite/replacement, full condition, paid costs,
 and unchanged candidates after rejection; it also verifies the RPC accepts only
-the target tool ID. The catalogue check covers the paid Forge recipe and base
-station levels.
+the target tool ID. The catalogue check covers the paid Forge, Workbench rack,
+and Forge anvil recipes; base/effective station levels; compatible families;
+placement range; duplicate rejection; and the kit-only placement RPC payload.
 
 ### M9 free selected-tool repair
 
@@ -1036,3 +1132,17 @@ widget presentation seam, so the captures do not visually review the scrolled
 tool section. This fixture checks presentation and existing owner-local data
 flow; it adds no server request, gameplay authority, replicated field, or save
 schema.
+
+### M9 raised storage
+
+After the forced UE 5.8.2 editor build with normal `%LOCALAPPDATA%/UnrealBuildTool`
+access, run `Kalmala.Gameplay.M9.RaisedStorage` together with
+`Kalmala.Gameplay.Storage.SaveContract+Kalmala.Gameplay.Storage.Transfers+Kalmala.Gameplay.Storage.NetworkContract`,
+`Kalmala.Gameplay.Construction.SaveContract+Kalmala.Gameplay.Construction.LocalPreview`,
+and `Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract`.
+Require every requested automation result to report success. The M9 check covers
+the paid Workbench recipe, rain immunity, session-only server contents, forged
+actor rejection, and schema-one exclusion. The storage checks retain the
+existing 16-stack transaction and owner-only view contract. No construction or
+storage save schema is extended. A live rendered raised-chest peer walkthrough
+remains open.

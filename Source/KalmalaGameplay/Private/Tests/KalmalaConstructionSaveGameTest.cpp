@@ -11,13 +11,18 @@ bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
     FKalmalaWorldGenerationConfig World; World.WorldSeed = 418; auto* Save = NewObject<UKalmalaConstructionSaveGame>(); Save->InitializeForWorld(World);
     FKalmalaConstructionSaveRecord Record; Record.ConstructionId = TEXT("camp-0001"); Record.KitId = TEXT("FloorKit"); Record.Transform = FTransform(FVector(100, 200, 300));
     TestTrue(TEXT("Construction save accepts a bounded valid record"), Save->AddRecord(Record));
+    Record.ConstructionId = TEXT("camp-rack"); Record.KitId = TEXT("CookingRackKit");
+    TestTrue(TEXT("Cooking rack uses the existing bounded construction record"), Save->AddRecord(Record));
+    Record.ConstructionId = TEXT("camp-cauldron"); Record.KitId = TEXT("CauldronKit");
+    TestTrue(TEXT("Cauldron uses the existing bounded construction record"), Save->AddRecord(Record));
+    Record.ConstructionId = TEXT("camp-0001"); Record.KitId = TEXT("FloorKit");
     Record.Transform.SetLocation(FVector(NAN, 0, 0));
     TestFalse(TEXT("Construction save rejects non-finite transforms"), UKalmalaConstructionSaveGame::IsValidRecord(Record));
     Record.Transform = FTransform(FVector(100, 200, 300));
     TestFalse(TEXT("Construction save rejects duplicate stable IDs"), Save->AddRecord(Record));
     TestTrue(TEXT("Construction save can roll back a newly added record"), Save->RemoveRecord(TEXT("camp-0001")));
     TestTrue(TEXT("Construction save can re-add a rolled-back record"), Save->AddRecord(Record));
-    for (int32 Index = 2; Index <= UKalmalaConstructionSaveGame::MaxRecords; ++Index)
+    for (int32 Index = Save->GetRecords().Num() + 1; Index <= UKalmalaConstructionSaveGame::MaxRecords; ++Index)
     {
         Record.ConstructionId = FString::Printf(TEXT("camp-%04d"), Index);
         TestTrue(TEXT("Construction save accepts records within its cap"), Save->AddRecord(Record));

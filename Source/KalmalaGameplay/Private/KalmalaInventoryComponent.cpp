@@ -2,7 +2,10 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaHarvestNode.h"
+#include "KalmalaCraftingComponent.h"
+#include "KalmalaConstructionActor.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
@@ -108,6 +111,7 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
     }
     ToolNode->OnHarvested.Clear();
     ToolNode->Destroy();
+
     // Verify selected-tool free repair against a real accepted workbench actor.
     auto* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
     if (!Crafting) return false;
@@ -191,7 +195,6 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
         && bPackUnchanged && bRetiredRecipeXPUnchanged;
     UE_LOG(LogTemp, Display, TEXT("Retired tool replacement fixture: Passed=%d Disabled=1 NoMutation=1 NoXP=1"), bRetiredRecipesPassed);
     bPassed &= bRetiredRecipesPassed;    Bench->Destroy();
-
     return bPassed;
 }
 }
@@ -277,13 +280,31 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
     else if (Pawn->IsLocallyControlled())
     {
         if (GetQuantity(TEXT("Wood")) != 7) return;
+        const auto* Character = Cast<AKalmalaCharacter>(Pawn);
+        const auto* Hatchet = FKalmalaToolLifecycleContract::FindDefinition(TEXT("FieldHatchet"));
+        const auto* StonePick = FKalmalaToolLifecycleContract::FindDefinition(TEXT("StonePick"));
+        const auto* ReedKnife = FKalmalaToolLifecycleContract::FindDefinition(TEXT("ReedKnife"));
+        if (!Character || !Hatchet || !StonePick || !ReedKnife
+            || Character->GetToolDurability(TEXT("FieldHatchet")) != Hatchet->MaxDurability
+            || Character->GetToolDurability(TEXT("StonePick")) != StonePick->MaxDurability
+            || Character->GetToolDurability(TEXT("ReedKnife")) != ReedKnife->MaxDurability) return;
         const bool bRejected = !TryGrantFromServer(TEXT("Wood"), 1) && !TryConsumeFromServer(TEXT("Wood"), 1);
         UE_LOG(LogTemp, Display, TEXT("Inventory owner: Rejected=%d Wood=%d Slots=%d"), bRejected, GetQuantity(TEXT("Wood")), Stacks.Num());
+        UE_LOG(LogTemp, Display, TEXT("Tool condition owner: Passed=%d FieldHatchet=%d StonePick=%d ReedKnife=%d"),
+            Character->GetToolDurability(TEXT("FieldHatchet")) == Hatchet->MaxDurability && StonePick && ReedKnife
+                && Character->GetToolDurability(TEXT("StonePick")) == StonePick->MaxDurability
+                && Character->GetToolDurability(TEXT("ReedKnife")) == ReedKnife->MaxDurability,
+            Character->GetToolDurability(TEXT("FieldHatchet")), Character->GetToolDurability(TEXT("StonePick")),
+            Character->GetToolDurability(TEXT("ReedKnife")));
     }
     else
     {
         // Repeat remote checks so the runner observes privacy after owner replication arrives.
         UE_LOG(LogTemp, Display, TEXT("Inventory remote: Empty=%d"), Stacks.IsEmpty());
+        const auto* Character = Cast<AKalmalaCharacter>(Pawn);
+        UE_LOG(LogTemp, Display, TEXT("Tool condition remote: Hidden=%d"), Character == nullptr
+            || (Character->GetToolDurability(TEXT("FieldHatchet")) == 0 && Character->GetToolDurability(TEXT("StonePick")) == 0
+                && Character->GetToolDurability(TEXT("ReedKnife")) == 0));
         return;
     }
     bVerificationComplete = true;

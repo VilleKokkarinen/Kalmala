@@ -33,6 +33,33 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
         ConstructionSave->AddRecord(ForgeRecord));
 
     const TArray<FKalmalaToolState> StartingTools = FKalmalaToolLifecycleContract::BuildInitialCarriedTools();
+    const FKalmalaToolProgressionEntry* IronEntry = FKalmalaToolProgressionContract::FindEntry(TEXT("IronAxe"));
+    TestNotNull(TEXT("Iron Axe progression entry exists"), IronEntry);
+    if (IronEntry)
+    {
+        TestEqual(TEXT("Iron Axe tier two requires Crafting"), IronEntry->RequiredSkill, EKalmalaSkill::Crafting);
+        TestEqual(TEXT("Iron Axe requires the level-five second-tier unlock"), IronEntry->RequiredSkillLevel, 5);
+    }
+    FKalmalaSkillProgressionLedger CraftingLevelOne;
+    CraftingLevelOne.Initialize();
+    FKalmalaSkillProgressionLedger CraftingLevelFour = CraftingLevelOne;
+    bool bReachedLevelFour = true;
+    for (int32 Award = 0; Award < 12; ++Award)
+        bReachedLevelFour &= CraftingLevelFour.AwardExperienceFromServer(EKalmalaSkill::Crafting, true, true, 25);
+    TestTrue(TEXT("Server ledger can reach Crafting level four"), bReachedLevelFour);
+    FKalmalaSkillProgressionLedger CraftingLevelFive = CraftingLevelOne;
+    bool bReachedLevelFive = true;
+    for (int32 Award = 0; Award < 16; ++Award)
+        bReachedLevelFive &= CraftingLevelFive.AwardExperienceFromServer(EKalmalaSkill::Crafting, true, true, 25);
+    TestTrue(TEXT("Server ledger reaches Crafting level five through accepted awards"), bReachedLevelFive);
+    const FKalmalaSkillState* LevelFiveCrafting = CraftingLevelFive.Find(EKalmalaSkill::Crafting);
+    TestNotNull(TEXT("Level-five Crafting state exists"), LevelFiveCrafting);
+    if (LevelFiveCrafting)
+    {
+        TestEqual(TEXT("Four hundred Crafting experience gives level five"), LevelFiveCrafting->Level, 5);
+        TestTrue(TEXT("Level five derives the existing second-tier unlock"),
+            (LevelFiveCrafting->UnlockMask & static_cast<uint8>(EKalmalaSkillUnlock::SecondTier)) != 0);
+    }
     const TArray<FKalmalaInventoryStack> BronzeMaterials = {
         {TEXT("Wood"), 4}, {TEXT("Stone"), 3}, {TEXT("Fibre"), 2}
     };
@@ -47,7 +74,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     };
     TestTrue(TEXT("Bronze Axe is crafted at the matching level-one Workbench"),
         FKalmalaToolProgressionContract::BuildServerUpgrade(
-            true, TEXT("WorkbenchKit"), 1, TEXT("BronzeAxe"), StartingTools, BronzeMaterials,
+            true, nullptr, TEXT("WorkbenchKit"), 1, TEXT("BronzeAxe"), StartingTools, BronzeMaterials,
             BronzeTools, BronzeInventory, Reason));
 
     const FKalmalaToolState* Bronze = BronzeTools.FindByPredicate(
@@ -66,31 +93,32 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
 
     TArray<FKalmalaToolState> RejectedTools = StartingTools;
     TArray<FKalmalaInventoryStack> RejectedInventory = BronzeMaterials;
-    const auto RejectWithoutMutation = [&](const bool bServerAuthority, const FName StationKit,
+    const auto RejectWithoutMutation = [&](const bool bServerAuthority,
+        const FKalmalaSkillProgressionLedger* SkillLedger, const FName StationKit,
         const int32 StationLevel, const FName ToolId, const TArray<FKalmalaToolState>& Tools,
         const TArray<FKalmalaInventoryStack>& Inventory, const TCHAR* Message)
     {
         const TArray<FKalmalaToolState> BeforeTools = RejectedTools;
         const TArray<FKalmalaInventoryStack> BeforeInventory = RejectedInventory;
         TestFalse(Message, FKalmalaToolProgressionContract::BuildServerUpgrade(
-            bServerAuthority, StationKit, StationLevel, ToolId, Tools, Inventory,
+            bServerAuthority, SkillLedger, StationKit, StationLevel, ToolId, Tools, Inventory,
             RejectedTools, RejectedInventory, Reason));
         TestEqual(TEXT("Rejected station/tool request keeps candidate tool output untouched"), RejectedTools.Num(), BeforeTools.Num());
         TestEqual(TEXT("Rejected station/tool request keeps candidate pack output untouched"), RejectedInventory.Num(), BeforeInventory.Num());
     };
-    RejectWithoutMutation(false, TEXT("WorkbenchKit"), 1, TEXT("BronzeAxe"), StartingTools, BronzeMaterials,
+    RejectWithoutMutation(false, nullptr, TEXT("WorkbenchKit"), 1, TEXT("BronzeAxe"), StartingTools, BronzeMaterials,
         TEXT("A non-authoritative progression call is rejected"));
-    RejectWithoutMutation(true, NAME_None, 0, TEXT("BronzeAxe"), StartingTools, BronzeMaterials,
+    RejectWithoutMutation(true, nullptr, NAME_None, 0, TEXT("BronzeAxe"), StartingTools, BronzeMaterials,
         TEXT("Missing station is rejected"));
-    RejectWithoutMutation(true, TEXT("ForgeKit"), 1, TEXT("BronzeAxe"), StartingTools, BronzeMaterials,
+    RejectWithoutMutation(true, nullptr, TEXT("ForgeKit"), 1, TEXT("BronzeAxe"), StartingTools, BronzeMaterials,
         TEXT("Wrong station family is rejected"));
-    RejectWithoutMutation(true, TEXT("WorkbenchKit"), 2, TEXT("BronzeAxe"), StartingTools, BronzeMaterials,
+    RejectWithoutMutation(true, nullptr, TEXT("WorkbenchKit"), 2, TEXT("BronzeAxe"), StartingTools, BronzeMaterials,
         TEXT("Workbench level must equal the target tool level"));
     TArray<FKalmalaToolState> MissingMaterialTools;
     TArray<FKalmalaInventoryStack> MissingMaterialInventory;
     TestFalse(TEXT("Bronze Axe rejects insufficient materials"),
         FKalmalaToolProgressionContract::BuildServerUpgrade(
-            true, TEXT("WorkbenchKit"), 1, TEXT("BronzeAxe"), StartingTools, {},
+            true, nullptr, TEXT("WorkbenchKit"), 1, TEXT("BronzeAxe"), StartingTools, {},
             MissingMaterialTools, MissingMaterialInventory, Reason));
     TestTrue(TEXT("Missing materials leave candidate tool state unchanged"), MissingMaterialTools.IsEmpty());
     TestTrue(TEXT("Missing materials leave candidate inventory unchanged"), MissingMaterialInventory.IsEmpty());
@@ -100,13 +128,21 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     };
     TArray<FKalmalaToolState> IronTools;
     TArray<FKalmalaInventoryStack> IronInventory;
+    RejectWithoutMutation(true, &CraftingLevelOne, TEXT("ForgeKit"), 2, TEXT("IronAxe"), BronzeTools, IronMaterials,
+        TEXT("Iron Axe rejects Crafting level one without changing candidate state"));
+    RejectWithoutMutation(true, &CraftingLevelFour, TEXT("ForgeKit"), 2, TEXT("IronAxe"), BronzeTools, IronMaterials,
+        TEXT("Iron Axe rejects Crafting level four without the second-tier unlock"));
+    RejectWithoutMutation(true, nullptr, TEXT("ForgeKit"), 2, TEXT("IronAxe"), BronzeTools, IronMaterials,
+        TEXT("Iron Axe rejects a missing server skill ledger"));
+    RejectWithoutMutation(true, &CraftingLevelFive, TEXT("ForgeKit"), 2, TEXT("IronAxe"), BronzeTools, {},
+        TEXT("Iron Axe rejects insufficient materials after skill acceptance"));
     TestFalse(TEXT("Level-one Forge cannot satisfy the level-two Iron Axe target"),
         FKalmalaToolProgressionContract::BuildServerUpgrade(
-            true, TEXT("ForgeKit"), 1, TEXT("IronAxe"), BronzeTools, IronMaterials,
+            true, &CraftingLevelFive, TEXT("ForgeKit"), 1, TEXT("IronAxe"), BronzeTools, IronMaterials,
             IronTools, IronInventory, Reason));
     TestFalse(TEXT("Iron Axe cannot be crafted without its carried Bronze Axe prerequisite"),
         FKalmalaToolProgressionContract::BuildServerUpgrade(
-            true, TEXT("ForgeKit"), 2, TEXT("IronAxe"), StartingTools, IronMaterials,
+            true, &CraftingLevelFive, TEXT("ForgeKit"), 2, TEXT("IronAxe"), StartingTools, IronMaterials,
             IronTools, IronInventory, Reason));
     TArray<FKalmalaToolState> InvalidConditionTools = BronzeTools;
     if (FKalmalaToolState* CarriedBronze = InvalidConditionTools.FindByPredicate(
@@ -115,16 +151,12 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
         if (const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("BronzeAxe")))
             CarriedBronze->Durability = Definition->MaxDurability + 1;
     }
-    TArray<FKalmalaToolState> InvalidConditionOutput;
-    TArray<FKalmalaInventoryStack> InvalidConditionInventory;
-    TestFalse(TEXT("Iron upgrade rejects an invalid carried condition"),
-        FKalmalaToolProgressionContract::BuildServerUpgrade(
-            true, TEXT("ForgeKit"), 2, TEXT("IronAxe"), InvalidConditionTools, IronMaterials,
-            InvalidConditionOutput, InvalidConditionInventory, Reason));
+    RejectWithoutMutation(true, &CraftingLevelFive, TEXT("ForgeKit"), 2, TEXT("IronAxe"), InvalidConditionTools, IronMaterials,
+        TEXT("Iron upgrade rejects an invalid carried condition without changing candidates"));
 
     TestTrue(TEXT("Level-two Forge upgrades the carried Bronze Axe to Iron Axe"),
         FKalmalaToolProgressionContract::BuildServerUpgrade(
-            true, TEXT("ForgeKit"), 2, TEXT("IronAxe"), BronzeTools, IronMaterials,
+            true, &CraftingLevelFive, TEXT("ForgeKit"), 2, TEXT("IronAxe"), BronzeTools, IronMaterials,
             IronTools, IronInventory, Reason));
     TestFalse(TEXT("Upgrade exchanges away the previous Bronze Axe"),
         IronTools.ContainsByPredicate([](const FKalmalaToolState& State) { return State.ToolId == TEXT("BronzeAxe"); }));
@@ -144,7 +176,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     TArray<FKalmalaInventoryStack> DuplicateInventory;
     TestFalse(TEXT("Bronze Axe cannot be crafted twice"),
         FKalmalaToolProgressionContract::BuildServerUpgrade(
-            true, TEXT("WorkbenchKit"), 1, TEXT("BronzeAxe"), BronzeTools, BronzeMaterials,
+            true, nullptr, TEXT("WorkbenchKit"), 1, TEXT("BronzeAxe"), BronzeTools, BronzeMaterials,
             DuplicateTools, DuplicateInventory, Reason));
 
     return true;

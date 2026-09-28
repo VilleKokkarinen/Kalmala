@@ -5,6 +5,7 @@
 #include "Tickable.h"
 #include "KalmalaCraftingSubsystem.generated.h"
 class UTextBlock;
+class UButton;
 class UInputComponent;
 class UKalmalaCraftingComponent;
 
@@ -32,6 +33,8 @@ private:
     UFUNCTION() void Refuel();
     UFUNCTION() void Light();
     UFUNCTION() void EatFood();
+    UFUNCTION() void EatBroth();
+    UFUNCTION() void EatSmokedMeat();
     UFUNCTION() void RepairReedKnife();
     UFUNCTION() void RepairFieldHatchet();
     UFUNCTION() void RepairStonePick();
@@ -49,14 +52,17 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipesText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailText;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolProgressionText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> StateText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RepairText;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> StateText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolProgressionText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
+    UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;
     int32 Selected = 0;
     int32 SelectedStorageItem = 0;
+    int32 LastDetailTextScalePercent = INDEX_NONE;
+    int32 LastDetailContrastMode = INDEX_NONE;
     bool bOpen = false;
     bool bPlacementPreviewEnabled = false;
     bool bPreviousCursor = false;

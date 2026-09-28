@@ -57,6 +57,7 @@
 #include "TimerManager.h"
 #include "EngineUtils.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
@@ -66,6 +67,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Misc/Crc.h"
+#include "OnlineSubsystemTypes.h"
 
 namespace KalmalaGameMode
 {
@@ -113,6 +115,94 @@ namespace KalmalaGameMode
         if (!AuthenticatedId.IsValid()) return FString();
         const FString Identity = AuthenticatedId->GetType().ToString() + TEXT(":") + AuthenticatedId->ToString();
         return Identity.Len() <= FKalmalaM7SaveIdentity::MaxOwnerIdentityLength ? Identity : FString();
+    }
+}
+
+namespace KalmalaOceanJourneyPeer
+{
+    constexpr double LaunchDepthCm = 180.0;
+    constexpr double RouteLengthCm = 240000.0;
+    constexpr double RouteSampleSpacingCm = 5000.0;
+    constexpr double RadialScanSpacingCm = 10000.0;
+
+    bool FindRoute(const FKalmalaWorldGenerationConfig& Config, const FVector2D Origin,
+        const FVector2D PatchOrigin, FVector2D& OutLaunch, float& OutYaw)
+    {
+        constexpr int32 RayCount = 72;
+        constexpr double MaximumSearchDistanceCm = FKalmalaWorldBounds::Radius - 200000.0;
+        for (int32 RayIndex = 0; RayIndex < RayCount; ++RayIndex)
+        {
+            const float RayYaw = 360.0f * static_cast<float>(RayIndex) / RayCount;
+            const FVector2D RayDirection(FMath::Cos(FMath::DegreesToRadians(RayYaw)),
+                FMath::Sin(FMath::DegreesToRadians(RayYaw)));
+            double PreviousDistance = 0.0;
+            float PreviousDepth = FKalmalaOceanSampler::Sample(Config, Origin).WaterDepth;
+            for (double Distance = RadialScanSpacingCm; Distance <= MaximumSearchDistanceCm;
+                Distance += RadialScanSpacingCm)
+            {
+                const FVector2D Probe = Origin + RayDirection * Distance;
+                const float ProbeDepth = FKalmalaOceanSampler::Sample(Config, Probe).WaterDepth;
+                if (PreviousDepth < LaunchDepthCm && ProbeDepth >= LaunchDepthCm)
+                {
+                    double Low = PreviousDistance;
+                    double High = Distance;
+                    for (int32 Iteration = 0; Iteration < 20; ++Iteration)
+                    {
+                        const double Mid = (Low + High) * 0.5;
+                        if (FKalmalaOceanSampler::Sample(Config, Origin + RayDirection * Mid).WaterDepth
+                            < LaunchDepthCm)
+                        {
+                            Low = Mid;
+                        }
+                        else
+                        {
+                            High = Mid;
+                        }
+                    }
+
+                    const FVector2D Launch = Origin + RayDirection * High;
+                    const FKalmalaOceanSample LaunchSample = FKalmalaOceanSampler::Sample(Config, Launch);
+                    if (FMath::Abs(LaunchSample.WaterDepth - LaunchDepthCm) <= 12.0f)
+                    {
+                        for (int32 HeadingStep = 0; HeadingStep < 24; ++HeadingStep)
+                        {
+                            const float Yaw = HeadingStep * 15.0f;
+                            if (!AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(Config, Launch, Yaw))
+                            {
+                                continue;
+                            }
+
+                            const FVector2D Direction(FMath::Cos(FMath::DegreesToRadians(Yaw)),
+                                FMath::Sin(FMath::DegreesToRadians(Yaw)));
+                            bool bRouteOpen = true;
+                            for (double AlongRoute = RouteSampleSpacingCm; AlongRoute <= RouteLengthCm;
+                                AlongRoute += RouteSampleSpacingCm)
+                            {
+                                const FVector2D Candidate = Launch + Direction * AlongRoute;
+                                if (!AKalmalaOceanSkiff::HasNavigableOceanFootprintForConfig(Config, Candidate, Yaw))
+                                {
+                                    bRouteOpen = false;
+                                    break;
+                                }
+                            }
+
+                            const FIntPoint StartPatch = FKalmalaTerrainPatchLayout::GetPatchCoordinate(PatchOrigin, Launch);
+                            const FIntPoint EndPatch = FKalmalaTerrainPatchLayout::GetPatchCoordinate(
+                                PatchOrigin, Launch + Direction * RouteLengthCm);
+                            if (bRouteOpen && StartPatch != EndPatch)
+                            {
+                                OutLaunch = Launch;
+                                OutYaw = Yaw;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                PreviousDistance = Distance;
+                PreviousDepth = ProbeDepth;
+            }
+        }
+        return false;
     }
 }
 
@@ -491,10 +581,33 @@ void AKalmalaGameMode::RestorePersistedConstruction()
     }
 }
 
+bool AKalmalaGameMode::CanRegisterSessionStorage() const
+{
+    return HasAuthority() && SessionStorageRecords.Num() < UKalmalaStorageSaveGame::MaxRecords;
+}
+
+bool AKalmalaGameMode::RegisterSessionStorage(AKalmalaConstructionActor* Construction)
+{
+    if (!CanRegisterSessionStorage() || !IsValid(Construction) || !Construction->HasAuthority()
+        || Construction->GetWorld() != GetWorld() || Construction->GetConstructionKit() != TEXT("RaisedStorageKit")
+        || Construction->GetConstructionId().IsEmpty() || SessionStorageRecords.Contains(Construction->GetConstructionId())) return false;
+    FSessionStorageRecord& Record = SessionStorageRecords.Add(Construction->GetConstructionId());
+    Record.Construction = Construction;
+    return true;
+}
+
 bool AKalmalaGameMode::ReadStorage(const AKalmalaConstructionActor* Construction, TArray<FKalmalaInventoryStack>& Out) const
 {
-    if (!HasAuthority() || !IsValid(Construction) || !Construction->HasAuthority() || Construction->GetWorld() != GetWorld()
-        || Construction->GetConstructionKit() != TEXT("StorageKit") || !StorageSaveGame || !ConstructionSaveGame
+    if (!HasAuthority() || !IsValid(Construction) || !Construction->HasAuthority() || Construction->GetWorld() != GetWorld()) return false;
+    if (Construction->GetConstructionKit() == TEXT("RaisedStorageKit"))
+    {
+        const FSessionStorageRecord* SessionRecord = SessionStorageRecords.Find(Construction->GetConstructionId());
+        if (!SessionRecord || SessionRecord->Construction.Get() != Construction
+            || !UKalmalaStorageSaveGame::IsValidStacks(SessionRecord->Stacks)) return false;
+        Out = SessionRecord->Stacks;
+        return true;
+    }
+    if (Construction->GetConstructionKit() != TEXT("StorageKit") || !StorageSaveGame || !ConstructionSaveGame
         || !StorageSaveGame->MatchesWorld(WorldGenerationConfig) || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
     // Only a paid, registered construction in this immutable world can address a chest record.
     const auto* Placed = ConstructionSaveGame->GetRecords().FindByPredicate([&](const auto& Record) {
@@ -509,6 +622,14 @@ bool AKalmalaGameMode::ReadStorage(const AKalmalaConstructionActor* Construction
 
 bool AKalmalaGameMode::PersistStorage(const AKalmalaConstructionActor* Construction, const TArray<FKalmalaInventoryStack>& Stacks)
 {
+    if (HasAuthority() && IsValid(Construction) && Construction->HasAuthority() && Construction->GetWorld() == GetWorld()
+        && Construction->GetConstructionKit() == TEXT("RaisedStorageKit"))
+    {
+        FSessionStorageRecord* SessionRecord = SessionStorageRecords.Find(Construction->GetConstructionId());
+        if (!SessionRecord || SessionRecord->Construction.Get() != Construction || !UKalmalaStorageSaveGame::IsValidStacks(Stacks)) return false;
+        SessionRecord->Stacks = Stacks;
+        return true;
+    }
     TArray<FKalmalaInventoryStack> Before;
     if (!ReadStorage(Construction, Before)) return false;
     auto* Candidate = DuplicateObject<UKalmalaStorageSaveGame>(StorageSaveGame, this);
@@ -1148,6 +1269,26 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
         RestoreOceanTravelForPlayer(PendingController);
     }
 
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanDiscoveryDisembarkPeerTest")))
+    {
+        bool bFixtureExists = false;
+        for (TActorIterator<AKalmalaOceanDiscoveryDisembarkPeerTest> It(GetWorld()); It; ++It)
+        {
+            bFixtureExists = true;
+            break;
+        }
+        if (!bFixtureExists)
+        {
+            FActorSpawnParameters Parameters;
+            Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            GetWorld()->SpawnActor<AKalmalaOceanDiscoveryDisembarkPeerTest>(
+                AKalmalaOceanDiscoveryDisembarkPeerTest::StaticClass(), FVector::ZeroVector,
+                FRotator::ZeroRotator, Parameters);
+        }
+    }
+#endif
+
     DriveTraversalTest();
     DriveCampChoiceTest();
     DriveRainVerticalSliceTest();
@@ -1155,6 +1296,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveDiscoveryPeerTest();
     DriveOceanTravelFeedbackTest();
     DriveOceanWeatherPeerTest();
+    DriveOceanJourneyPeerTest();
     ReportWorldProfileIfReady();
     AdvanceWeatherCycleIfNeeded();
 
@@ -1237,26 +1379,6 @@ void AKalmalaGameMode::DriveOceanTravelFeedbackTest()
 
     if (GetWorld()->GetTimeSeconds() - OceanTravelFeedbackTestStageTime < 1.0f) return;
     const AKalmalaCharacter* HostCharacter = OceanTravelFeedbackTestHost.Get();
-#if !UE_BUILD_SHIPPING
-    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanDiscoveryDisembarkPeerTest")))
-    {
-        bool bFixtureExists = false;
-        for (TActorIterator<AKalmalaOceanDiscoveryDisembarkPeerTest> It(GetWorld()); It; ++It)
-        {
-            bFixtureExists = true;
-            break;
-        }
-        if (!bFixtureExists)
-        {
-            FActorSpawnParameters Parameters;
-            Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-            GetWorld()->SpawnActor<AKalmalaOceanDiscoveryDisembarkPeerTest>(
-                AKalmalaOceanDiscoveryDisembarkPeerTest::StaticClass(), FVector::ZeroVector,
-                FRotator::ZeroRotator, Parameters);
-        }
-    }
-#endif
-
     const AKalmalaCharacter* RemoteCharacter = OceanTravelFeedbackTestRemote.Get();
     const UKalmalaOceanTravelFeedbackComponent* HostFeedback = HostCharacter != nullptr
         ? HostCharacter->GetOceanTravelFeedbackComponent() : nullptr;
@@ -1367,6 +1489,192 @@ void AKalmalaGameMode::DriveOceanWeatherPeerTest()
         UE_LOG(LogTemp, Display, TEXT("Ocean weather peer verification server states complete."));
         OceanWeatherPeerTestStage = 3;
     }
+#endif
+}
+
+void AKalmalaGameMode::DriveOceanJourneyPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest"))
+        || GetWorld() == nullptr || OceanJourneyPeerTestStage >= 2)
+    {
+        return;
+    }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    if (OceanJourneyPeerTestStartTime <= 0.0f)
+    {
+        OceanJourneyPeerTestStartTime = Now;
+    }
+
+    if (OceanJourneyPeerTestStage == 0)
+    {
+        AKalmalaCharacter* Host = nullptr;
+        AKalmalaCharacter* Remote = nullptr;
+        int32 PlayerCount = 0;
+        for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+        {
+            APlayerController* Controller = It->Get();
+            AKalmalaCharacter* Character = Controller != nullptr
+                ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+            if (Controller == nullptr || Character == nullptr) continue;
+            ++PlayerCount;
+            if (Controller->IsLocalController()) Host = Character;
+            else Remote = Character;
+        }
+
+        if (PlayerCount < 2)
+        {
+            if (Now - OceanJourneyPeerTestStartTime > 120.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Ocean journey peer verification FAILED: two player pawns did not join."));
+                OceanJourneyPeerTestStage = 99;
+            }
+            return;
+        }
+        if (PlayerCount != 2 || Host == nullptr || Remote == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Ocean journey peer verification FAILED: expected one listen host and one remote player; found %d."), PlayerCount);
+            OceanJourneyPeerTestStage = 99;
+            return;
+        }
+
+        if (!KalmalaOceanJourneyPeer::FindRoute(WorldGenerationConfig,
+            FVector2D(GeneratedPlayerStart != nullptr ? GeneratedPlayerStart->GetActorLocation() : FVector::ZeroVector),
+            TerrainPatchOrigin, OceanJourneyPeerTestLaunch, OceanJourneyPeerTestYaw))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Ocean journey peer verification FAILED: seed %llu has no coast launch and 2.4 km deep-water patch-crossing corridor."),
+                WorldGenerationConfig.WorldSeed);
+            OceanJourneyPeerTestStage = 99;
+            return;
+        }
+
+        for (TActorIterator<AKalmalaOceanSkiff> It(GetWorld()); It; ++It)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Ocean journey peer verification FAILED: isolated journey profile already contains skiff %s."),
+                *It->GetPersistentVesselId());
+            OceanJourneyPeerTestStage = 99;
+            return;
+        }
+
+        const FIntPoint LaunchPatchCoordinate = FKalmalaTerrainPatchLayout::GetPatchCoordinate(
+            TerrainPatchOrigin, OceanJourneyPeerTestLaunch);
+        ActivateTerrainPatchNeighborhood(OceanJourneyPeerTestLaunch);
+        TObjectPtr<AKalmalaGeneratedTerrainPatch>* PatchEntry = ActiveTerrainPatches.Find(LaunchPatchCoordinate);
+        AKalmalaGeneratedTerrainPatch* LaunchPatch = PatchEntry != nullptr ? PatchEntry->Get() : nullptr;
+        TArray<UPrimitiveComponent*> Components;
+        if (LaunchPatch != nullptr) LaunchPatch->GetComponents<UPrimitiveComponent>(Components);
+        UPrimitiveComponent* TerrainCollision = nullptr;
+        for (UPrimitiveComponent* Component : Components)
+        {
+            if (Component != nullptr && Component->GetCollisionEnabled() != ECollisionEnabled::NoCollision
+                && Component->GetCollisionObjectType() == ECC_WorldStatic)
+            {
+                TerrainCollision = Component;
+                break;
+            }
+        }
+        if (LaunchPatch == nullptr || !LaunchPatch->HasGenerationData() || TerrainCollision == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Ocean journey peer verification FAILED: generated launch patch collision was unavailable."));
+            OceanJourneyPeerTestStage = 99;
+            return;
+        }
+
+        const FKalmalaOceanSample LaunchSample = FKalmalaOceanSampler::Sample(
+            WorldGenerationConfig, OceanJourneyPeerTestLaunch);
+        const FVector HitLocation(OceanJourneyPeerTestLaunch.X, OceanJourneyPeerTestLaunch.Y,
+            LaunchSample.TerrainHeight);
+        const FVector PawnLocation = HitLocation + FVector(0.0f, 0.0f, 100.0f);
+        const FRotator LaunchRotation(0.0f, OceanJourneyPeerTestYaw, 0.0f);
+        Host->SetActorLocationAndRotation(PawnLocation, LaunchRotation, false, nullptr, ETeleportType::TeleportPhysics);
+        Remote->SetActorLocationAndRotation(PawnLocation, LaunchRotation, false, nullptr, ETeleportType::TeleportPhysics);
+
+        FHitResult LaunchHit(LaunchPatch, TerrainCollision, HitLocation, FVector::UpVector);
+        LaunchHit.bBlockingHit = true;
+        LaunchHit.ImpactPoint = HitLocation;
+        LaunchHit.TraceStart = PawnLocation;
+        LaunchHit.TraceEnd = HitLocation;
+        LaunchHit.Distance = 100.0f;
+        AKalmalaOceanSkiff* Skiff = AKalmalaOceanSkiff::TryLaunchFromServer(Remote, LaunchHit);
+        if (Skiff == nullptr || !Skiff->TryInteractFromServer(Remote) || !Skiff->TryInteractFromServer(Host)
+            || Skiff->GetHelmOccupant() != Remote || Skiff->GetPassengerOccupant() != Host)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Ocean journey peer verification FAILED: generated server launch or two-seat embark was rejected."));
+            OceanJourneyPeerTestStage = 99;
+            return;
+        }
+
+        OceanJourneyPeerTestSkiff = Skiff;
+        OceanJourneyPeerTestHelm = Remote;
+        OceanJourneyPeerTestPassenger = Host;
+        OceanJourneyPeerTestTarget = OceanJourneyPeerTestLaunch
+            + FVector2D(FRotator(0.0f, OceanJourneyPeerTestYaw, 0.0f).Vector()) * 240000.0f;
+        OceanJourneyPeerTestStageTime = Now;
+        OceanJourneyPeerTestStage = 1;
+        UE_LOG(LogTemp, Display,
+            TEXT("Ocean journey peer launched and embarked: Seed=%llu Vessel=%s Seats=Helm,Passenger Start=%s Target=%s Yaw=%.1f Depth=%.1f."),
+            WorldGenerationConfig.WorldSeed, *Skiff->GetPersistentVesselId(), *OceanJourneyPeerTestLaunch.ToString(),
+            *OceanJourneyPeerTestTarget.ToString(), OceanJourneyPeerTestYaw, LaunchSample.WaterDepth);
+        return;
+    }
+
+    AKalmalaOceanSkiff* Skiff = OceanJourneyPeerTestSkiff.Get();
+    AKalmalaCharacter* Helm = OceanJourneyPeerTestHelm.Get();
+    AKalmalaCharacter* Passenger = OceanJourneyPeerTestPassenger.Get();
+    const AKalmalaWorldGenerationGameState* State = GetGameState<AKalmalaWorldGenerationGameState>();
+    if (!IsValid(Skiff) || !IsValid(Helm) || !IsValid(Passenger) || State == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Ocean journey peer verification FAILED: skiff, seat, or world state disappeared."));
+        OceanJourneyPeerTestStage = 99;
+        return;
+    }
+
+    const FKalmalaWeatherState& Weather = State->GetWeatherState();
+    bOceanJourneyPeerTestSawCrosswind |= Weather.WeatherCycleIndex == 7001
+        && Skiff->GetMode() == EKalmalaOceanSkiffMode::Underway;
+    bOceanJourneyPeerTestSawCalm |= Weather.WeatherCycleIndex == 7002;
+
+    const FVector2D StartPosition = OceanJourneyPeerTestLaunch;
+    const float Travelled = FVector2D::Distance(StartPosition, FVector2D(Skiff->GetActorLocation()));
+    if (Skiff->GetMode() == EKalmalaOceanSkiffMode::Blocked)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Ocean journey peer verification FAILED: travel blocked with reason %d at %s."),
+            static_cast<int32>(Skiff->GetBlockReason()), *Skiff->GetActorLocation().ToCompactString());
+        OceanJourneyPeerTestStage = 99;
+        return;
+    }
+    if (Now - OceanJourneyPeerTestStageTime > 480.0f)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Ocean journey peer verification FAILED: 2.4 km voyage exceeded 480 seconds; reached %.0f cm."), Travelled);
+        OceanJourneyPeerTestStage = 99;
+        return;
+    }
+
+    if (Skiff->GetMode() != EKalmalaOceanSkiffMode::Moored || Travelled < 239000.0f)
+    {
+        return;
+    }
+
+    const FVector2D CurrentPosition(Skiff->GetActorLocation());
+    const FIntPoint StartPatch = FKalmalaTerrainPatchLayout::GetPatchCoordinate(TerrainPatchOrigin, OceanJourneyPeerTestLaunch);
+    const FIntPoint CurrentPatch = FKalmalaTerrainPatchLayout::GetPatchCoordinate(TerrainPatchOrigin, CurrentPosition);
+    const bool bSeatsMatch = Skiff->GetHelmOccupant() == Helm && Skiff->GetPassengerOccupant() == Passenger
+        && Helm->GetAttachParentActor() == Skiff && Passenger->GetAttachParentActor() == Skiff;
+    const bool bPassed = bSeatsMatch && CurrentPatch != StartPatch && !ActiveTerrainPatches.IsEmpty()
+        && ActiveTerrainPatches.Num() <= KalmalaGameMode::MaxActiveTerrainPatches
+        && bOceanJourneyPeerTestSawCrosswind && bOceanJourneyPeerTestSawCalm
+        && FKalmalaWorldBounds::Contains(WorldGenerationConfig, CurrentPosition);
+    UE_LOG(LogTemp, Display,
+        TEXT("Ocean journey peer verification %s: Seed=%llu Seats=Helm,Passenger Distance=%.0f PatchStart=(%d,%d) PatchEnd=(%d,%d) ActivePatches=%d Crosswind=%d Calm=%d OriginShift=inactive."),
+        bPassed ? TEXT("passed") : TEXT("FAILED"), WorldGenerationConfig.WorldSeed, Travelled,
+        StartPatch.X, StartPatch.Y, CurrentPatch.X, CurrentPatch.Y, ActiveTerrainPatches.Num(),
+        bOceanJourneyPeerTestSawCrosswind ? 1 : 0, bOceanJourneyPeerTestSawCalm ? 1 : 0);
+    if (!bPassed)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Ocean journey peer verification FAILED: seat, weather, bounds, or streaming contract did not hold."));
+    }
+    OceanJourneyPeerTestStage = 2;
 #endif
 }
 
@@ -1629,6 +1937,7 @@ void AKalmalaGameMode::RecordM9ResourceDepleted(const FString& StableResourceId)
         SessionM9ResourceDepletionIds.Add(StableResourceId);
     }
 }
+
 void AKalmalaGameMode::RefreshOceanDiscoveries()
 {
     if (!HasAuthority() || GetWorld() == nullptr || !WorldGenerationConfig.IsValid())
@@ -2359,7 +2668,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 #else
     const bool bAmbientAudioTest = false;
 #endif
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) && !bAmbientAudioTest) || NewPlayer == nullptr)
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")) && !bAmbientAudioTest) || NewPlayer == nullptr)
     {
         return;
     }

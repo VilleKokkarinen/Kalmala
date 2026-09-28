@@ -29,6 +29,8 @@ public:
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
     bool CanPersistConstruction(FName KitId, const FTransform& Transform) const;
     bool PersistConstruction(class AKalmalaConstructionActor* Construction);
+    bool CanRegisterSessionStorage() const;
+    bool RegisterSessionStorage(class AKalmalaConstructionActor* Construction);
     bool ReadStorage(const class AKalmalaConstructionActor* Construction, TArray<FKalmalaInventoryStack>& Out) const;
     bool PersistStorage(const class AKalmalaConstructionActor* Construction, const TArray<FKalmalaInventoryStack>& Stacks);
     bool ClaimDiscovery(class AKalmalaCharacter* Interactor, const struct FKalmalaWorldDiscoveryDescriptor& Descriptor);
@@ -67,6 +69,7 @@ private:
     void DriveDiscoveryPeerTest();
     void DriveOceanTravelFeedbackTest();
     void DriveOceanWeatherPeerTest();
+    void DriveOceanJourneyPeerTest();
     float CampChoiceStartTime = -1.0f;
     int32 CampChoiceStage = 0;
     TArray<TWeakObjectPtr<class AKalmalaCharacter>> CampChoicePlayers;
@@ -102,6 +105,17 @@ private:
     TWeakObjectPtr<class AKalmalaCharacter> OceanTravelFeedbackTestRemote;
     int32 OceanWeatherPeerTestStage = 0;
     float OceanWeatherPeerTestStageTime = 0.0f;
+    int32 OceanJourneyPeerTestStage = 0;
+    float OceanJourneyPeerTestStartTime = 0.0f;
+    float OceanJourneyPeerTestStageTime = 0.0f;
+    FVector2D OceanJourneyPeerTestLaunch = FVector2D::ZeroVector;
+    FVector2D OceanJourneyPeerTestTarget = FVector2D::ZeroVector;
+    float OceanJourneyPeerTestYaw = 0.0f;
+    bool bOceanJourneyPeerTestSawCrosswind = false;
+    bool bOceanJourneyPeerTestSawCalm = false;
+    TWeakObjectPtr<class AKalmalaCharacter> OceanJourneyPeerTestHelm;
+    TWeakObjectPtr<class AKalmalaCharacter> OceanJourneyPeerTestPassenger;
+    TWeakObjectPtr<class AKalmalaOceanSkiff> OceanJourneyPeerTestSkiff;
     void InitializeWeatherCycle();
     void AdvanceWeatherCycleIfNeeded();
     void PlacePawnAtGeneratedStart(class APlayerController* PlayerController);
@@ -128,6 +142,12 @@ private:
     bool bOceanTravelPersistenceWritable = false;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGame> ConstructionSaveGame;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaStorageSaveGame> StorageSaveGame;
+    struct FSessionStorageRecord
+    {
+        TWeakObjectPtr<class AKalmalaConstructionActor> Construction;
+        TArray<FKalmalaInventoryStack> Stacks;
+    };
+    TMap<FString, FSessionStorageRecord> SessionStorageRecords;
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;
     TSet<FIntPoint> ActiveTerrainPatchCoordinates;
     TMap<FIntPoint, TObjectPtr<class AKalmalaGeneratedTerrainPatch>> ActiveTerrainPatches;

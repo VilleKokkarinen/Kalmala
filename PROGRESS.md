@@ -3,7 +3,7 @@
 ## Current state
 
 - Automation bootstrap created on 2026-09-01.
-- As of 2026-09-25, the active backlog milestone is M8 (Ocean and long-distance travel); the earliest unchecked item is tracked in BACKLOG.md and docs/04-roadmap.md.
+- As of 2026-09-27, the active backlog milestone is M9 (Expanded biome content and encounter depth); the earliest unchecked item is tracked in BACKLOG.md and docs/04-roadmap.md.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
 ## Run log
@@ -5899,24 +5899,6 @@ durations, stamina/wetness penalties, pressure, rewards, and recovery without
 introducing hard travel gates, then rerun the authority/persistence/reconnect
 checks.
 
-### 2026-09-27T10:58:08Z — Add Forge and gated axe progression
-
-Outcome: Added the paid, buildable level-one Forge and server-validated axe crafting/upgrade transactions. Bronze Axe requires a visible same-world level-one Workbench; Iron Axe requires a visible same-world level-two Forge and exchanges a carried level-one Bronze Axe.
-
-Files changed this run: `Config/DefaultGame.ini`, `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`, `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`, `Source/KalmalaGameplay/Private/KalmalaPlacementPreview.cpp`, `Source/KalmalaGameplay/Private/KalmalaToolProgressionContract.cpp`, `Source/KalmalaGameplay/Public/KalmalaToolProgressionContract.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolProgressionCatalogueTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolStationProgressionTest.cpp`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `docs/07-development-setup.md`, `docs/10-campfire-and-crafting.md`, `docs/17-m7-tools-and-gathering.md`, `docs/27-m9-carried-tool-inventory.md`, `BACKLOG.md`, and `PROGRESS.md`.
-
-Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in four actions with normal `%LOCALAPPDATA%/UnrealBuildTool` access. Eleven focused construction, crafting, carried-tool, and M9 progression automations passed, including `Kalmala.Gameplay.M9.ToolStationProgression`. `Scripts/Verify-InventoryReconnect.ps1 -Port 19127` passed two client visits to one listen server, including accepted/rejected transactions, replication, and owner/remote privacy. Scoped `git diff --check` passed.
-
-Commit: `8de9d0c` (`Add M9 Forge tool station progression`).
-
-Observable and multiplayer impact: The crafting panel exposes Bronze/Iron axe actions and owner-only station/cost guidance. Clients submit only the target tool ID; the server chooses the matching visible station, derives its level, validates carried-tool state and materials, and commits the inventory/tool candidates. Tool and station levels remain transient; the generic construction save schema is unchanged.
-
-Known limits: Both base stations are level 1, so Iron Axe remains unavailable until the next Forge attachment task contributes level 2. Rendered player walkthrough, station attachments, tool persistence, and free repair remain future work. The task checkbox is updated in the working copy but remains unstaged because `BACKLOG.md` contains pre-existing M9 roadmap edits.
-
-Next eligible task: Add paid, buildable station attachments that each contribute +1 to the matching nearby Workbench or Forge level; validate same-world placement and station-use range on the server.
-
-Main checkout used; no worktree handoff synchronization was needed.
-
 ### 2026-09-22T07:27:57Z — Tune Wet exposure penalties
 
 Outcome: Completed one bounded M5 balance increment under the first open
@@ -6965,6 +6947,104 @@ Known limits: Tool condition and default tools are transient per pawn and reset 
 
 Next task: Add accepted repair at a validated station or workbench with repair-material costs, retaining the approved sparse persistence boundary.
 
+### 2026-09-23T09:09:35+03:00 — M7 repair increment blocked on UnrealBuildTool
+
+Outcome: Implemented a bounded first-wave repair path in source, but could not
+verify or complete the increment because three forced UE5.8 builds failed
+before producing a current UnrealBuildTool log. The repair backlog item remains
+unchecked and blocked. No files were staged or committed.
+
+Changed: Added server-derived per-tool repair material and cost rules
+(Fibre/ReedKnife, Wood/FieldHatchet, Stone/StonePick; one material per four
+missing condition points), a server repair request carrying only a tool ID,
+the existing visible same-world workbench/range gate, candidate inventory
+payment before owner-only condition restoration, and three Camp crafting
+repair controls with condition/cost text. Added lifecycle and RPC contract
+assertions plus a real-workbench reconnect fixture. Updated `docs/07`, `docs/09`,
+`docs/17`, and this backlog/progress handoff. No save field or schema changed.
+
+Verification: Three forced
+`KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force
+-MaxParallelActions=4` attempts failed before current-source verification.
+The first `Build.bat` wrapper returned 1 after printing only the UnrealBuildTool
+launch; the next two returned .NET host exit `-532462766`. On the third attempt,
+the requested dedicated log
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7Repair-ForcedBuild.log` was not
+created. The shared
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt` stayed at 7,978 bytes
+with an 08:44 local timestamp and an older `Result: Succeeded` entry. Its
+compiled gameplay DLL timestamp (08:43) predates the edited source (09:00),
+so the attempted lifecycle/crafting automation results loaded stale code and
+do not verify this increment. `Scripts/Verify-InventoryReconnect.ps1 -Port
+18557` timed out at its client wait; the retained server log has no repair
+fixture output and the client never observed the repair condition. Its logs are
+under `C:/Users/Ville/AppData/Local/Temp/KalmalaInventoryReconnect-19f661a7ef7c410ba1d7d1d140b86237`.
+
+Multiplayer impact: The source changes intend for the server to validate the
+allowlisted tool, visible workbench, current condition and inventory payment;
+only tool condition and inventory replicate to their owner. Clients submit no
+condition, materials, target, damage, reward, or repair result. Repair adds no
+persistence path; gathering continues to use the existing approved sparse
+depletion callback. These changes are uncompiled and not runtime-verified
+because the loaded module was stale.
+
+Known limits: Tool condition remains pawn-transient with no save-schema change.
+The repair UI, current-condition costs, material rejection atomicity, station
+visibility/range rejection, owner replication, and remote privacy are not yet
+verified against the edited module. The user must restore a functioning UE5.8
+UnrealBuildTool/.NET invocation before this task can be accepted. No commit was
+made because required verification failed.
+
+Next task: Restore the UE5.8 `Build.bat`/UnrealBuildTool host, then rerun the
+forced editor build, focused tool/crafting automations, and
+`Scripts/Verify-InventoryReconnect.ps1` before checking the repair backlog item.
+
+### 2026-09-23T09:23:04+03:00 — Verify M7 tool repair
+
+Outcome: Resolved the repair build blocker and completed the M7 tool-lifecycle
+parent. The previous run's repair implementation now has current-source build,
+contract, transaction, and two-visit host/client evidence. The default
+workspace-sandbox retry still exited `-532462766`; rerunning with the
+explicitly requested `%LOCALAPPDATA%\\UnrealBuildTool` access created a fresh
+log and built the edited source successfully.
+
+Changed this run: Updated `BACKLOG.md` and appended this handoff. The repair
+source, reconnect fixture, and contract-documentation edits were already in the
+working tree at run start; they were preserved unchanged. No save field or
+schema changed, and no other source files were edited.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development` build succeeded
+in 21 actions with `Result: Succeeded`; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaM7Repair-ae80b1ce3ae449568bd1bae27d68735e.log`.
+`Kalmala.Gameplay.Tools.LifecycleContract`,
+`Kalmala.Gameplay.Crafting.NetworkContract`, and
+`Kalmala.Gameplay.Crafting.Transactions` each reported `Result={Success}` in
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7Repair-51288845e5494a0681e810170a2209e2/RepairAutomation.log`.
+`Scripts/Verify-InventoryReconnect.ps1 -Port 18558` passed both visits to one
+live server; its repair fixture verified absent/distant station rejection,
+insufficient-material no-mutation, accepted repair, full-condition rejection,
+owner condition replication, and remote condition privacy. M5 documentation
+contracts and `git diff --check` passed. Two Unreal startup
+`LogAutomationTest: Error: Condition failed` lines preceded the test session;
+all three requested tests then completed successfully.
+
+Multiplayer impact: Repair RPC carries only the allowlisted tool ID. The
+server selects the visible nearby workbench, reads condition, maps cost, and
+builds the inventory exchange; it publishes payment and owner-only tool
+condition after validation. Peers cannot select stations, materials, costs,
+condition, or results. Existing sparse harvest depletion remains the only
+generated-content persistence path.
+
+Known limits: Tool condition remains pawn-transient and resets with a new pawn;
+no repair-condition persistence or saved-data schema was added. This run did
+not exercise rendered repair-button use or full player aiming at the workbench.
+The repair implementation and docs remain pre-existing unstaged changes, so no
+commit was made.
+
+Next task: Add optional original food and preparation choices through the
+existing inventory/crafting transactions, starting with a bounded camp-
+processing set and explicit server-owned consumption rules.
+
 ### 2026-09-23T10:04:28+03:00 — M7 first roasted-meal increment
 
 Outcome: Added the first integrated optional-food slice. Existing server-selected boar and deer meat now cook into Roasted field meat through two bounded recipes. The Camp crafting menu exposes one eat action; eating one serving reduces server-derived stamina costs to 90% for 120 seconds. The meal cannot stack, refresh, or replace an active meal, and rejected requests do not consume inventory.
@@ -6978,6 +7058,700 @@ Multiplayer impact: The server validates recipe identity, batch, same-world usab
 Known limits: This increment roasts directly over an existing hearth. Cooking rack, heat-safe kettle/cauldron, and drying/smoking stations remain open, along with their station-specific fuel/heat/batch/failure rules. Prepared food does not spoil, does not add hunger drain, and gives no Cooking XP. The peer scenario checked crafting-menu text but did not consume food over a live network session; the new server transaction and RPC signature were verified in focused automation. The menu check used null-RHI rather than a rendered screenshot.
 
 Next task: Add the required cooking rack, heat-safe kettle or cauldron analogue, and drying or smoking frame with explicit server-owned station, fuel, heat, access, batch, and failure rules.
+
+### 2026-09-23T10:57:55+03:00 — M7 cooking rack processing station
+
+Outcome: Added the first placed M7 food station. Players can craft a Cooking rack kit, place it through the existing paid construction transaction, and use it to roast the existing server-selected boar/deer meat. A roast requires a visible same-world rack and a usable visible same-world lit hearth within 250 cm of the player; the hearth must also be within 250 cm of the rack and supply positive heat at the rack. Batches remain capped at five. The hearth keeps its ordinary one-fuel-second-per-second burn; rack processing has no separate fuel store or extra debit. Missing/distant rack, missing/distant/unlit/smouldering heat, invalid batch, or failed inventory exchange leaves ingredients unchanged.
+
+Changed this run: `Config/DefaultGame.ini`; `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`; `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaGameplay/Private/KalmalaPlacementPreview.cpp`; `Source/KalmalaGameplay/Private/KalmalaRecipeCatalogue.cpp`; `Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaConstructionSaveGameTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaFoodProcessingTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaPlacementPreviewTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaConstructionActor.h`; `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`; `Source/KalmalaGameplay/Public/KalmalaRecipeCatalogue.h`; `docs/05-decision-log.md`; `docs/07-development-setup.md`; `docs/09-inventory-verification.md`; `docs/10-campfire-and-crafting.md`; `BACKLOG.md`; and this handoff. Pre-existing tool-repair source and handoff edits were preserved.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` build succeeded in a temporary copy of the current working tree; final build log is `C:/Users/Ville/AppData/Local/Temp/KalmalaCookRack-50c2b4e92f834c5ca0f0b6e692cf7d85/KalmalaCookRackBuild-StationContract.log`. `Kalmala.Gameplay.Food.CampfireProcessing`, `Kalmala.Gameplay.Crafting.Transactions`, `Kalmala.Gameplay.Crafting.NetworkContract`, `Kalmala.Gameplay.Construction.LocalPreview`, and `Kalmala.Gameplay.Construction.SaveContract` all reported `Result={Success}` in `C:/Users/Ville/AppData/Local/Temp/KalmalaCookRackAutomation-StationContract.log`. `Scripts/Verify-Crafting.ps1 -Port 18560`, `Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` passed. The first focused attempt exposed a fixture missing the production GameState context needed by placed-station access checks; after matching that context, the final forced rebuild and all five automations passed.
+
+Multiplayer impact: The existing reliable `ServerCraft(RecipeId, Batch)` request remains unchanged; the server resolves the visible nearby rack and usable hearth, validates range and heat, then applies the existing private inventory exchange. Clients cannot choose a station, fire, ingredient cost, or outcome. The rack uses the already replicated construction kit identity and schema-1 construction record. The hearth remains the only fire/fuel authority; no new save field or RPC was added.
+
+Known limits: The live host/client crafting regression covers existing crafting and construction flows but did not place/replicate a Cooking rack or roast over the network. Rack processing passed the focused server-authority automation; rendered rack/UI use and a rack-specific peer capture remain unverified. Food inventory and meal state retain their existing pawn-lifetime limits.
+
+Next task: Add the heat-safe kettle/cauldron analogue with its own server-validated access, heat, fuel, batch, and failure rules. The drying/smoking frame and remaining food-benefit rules remain open.
+
+### 2026-09-23T08:20:55Z — Add Hearth cauldron processing
+
+Outcome: Completed the next M7 food-processing task with a placed Hearth
+cauldron, original broth item, and two server-catalogued recipes. Broth uses
+boar or deer meat plus one additional Ember bundle per serving, with a maximum
+batch of three. The station must be visible and same-world within 250 cm; a
+usable Lit hearth must provide positive heat within 250 cm of both the player
+and cauldron. Rejected access, heat, fuel, batch, ingredient, or output-capacity
+checks leave the inventory exchange unchanged. Hearth Broth uses the existing
+non-stacking 120-second steady-meal status and has its own eat button.
+
+Changed this run: Added cauldron and Hearth Broth catalogue entries and recipes
+in `Config/DefaultGame.ini`; extended the existing construction presentation,
+placement allowlist, station lookup, recipe feedback, and food consumption in
+`Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`,
+`KalmalaPlacementPreview.cpp`, `KalmalaCraftingComponent.cpp`,
+`KalmalaStorageInteraction.cpp`, and `KalmalaPlayerStatusComponent.cpp` plus
+`KalmalaPlayerStatusComponent.h`; added the broth action to
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp` and
+`Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; expanded food, recipe,
+status, construction-save, and placement-preview coverage in their focused
+tests; and updated `docs/05-decision-log.md`, `docs/07-development-setup.md`,
+`docs/10-campfire-and-crafting.md`, this backlog, and this handoff. Existing
+unstaged rack, roast, and tool-repair edits present at run start were preserved.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development` build succeeded
+with `%LOCALAPPDATA%\UnrealBuildTool` access; the corrected final build compiled
+the food-processing test in 4 actions and reported `Result: Succeeded`.
+`Kalmala.Gameplay.Food.CampfireProcessing`,
+`Kalmala.Gameplay.Status.SteadyMeal`,
+`Kalmala.Gameplay.Crafting.Transactions`,
+`Kalmala.Gameplay.Crafting.NetworkContract`,
+`Kalmala.Gameplay.Construction.LocalPreview`, and
+`Kalmala.Gameplay.Construction.SaveContract` all reported success. The initial
+food test run exposed two old raw-meat baseline assertions; the fixture was
+updated for broth consumption and the retry passed. `Scripts/Verify-Crafting.ps1
+-Port 18601`, `Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check` passed.
+
+Multiplayer impact: No RPC signature or gameplay authority changed. The server
+selects the visible same-world cauldron by its replicated construction kit,
+validates the Lit hearth and heat at the station, scales the recipe and extra
+fuel from the server catalogue, and commits ingredients/output through the
+existing private-pack exchange. Food requests still contain only an item ID;
+the server allowlists roasted meat or Hearth Broth and publishes the existing
+server-owned status only after payment. No save schema or new save field was
+added.
+
+Known limits: The focused server automation covers cauldron access, heat while
+fuel is available, fuel-shortage and full-output-stack atomicity, batch
+rejection, successful broth, and meal use. The host/client regression passed
+its existing construction and crafting flow but
+did not process broth through a live cauldron. No rendered cauldron/UI capture
+was produced. Food and meal state remain pawn-lifetime only. No commit was
+made: this increment builds on pre-existing unstaged rack and roast changes in
+the same files, so staging those whole files would also stage earlier work.
+
+Next task: Add a drying or smoking frame with station-specific access, heat,
+fuel, batch, and failure rules; then finish the explicit food stacking,
+replacement, expiry, and duplicate-consumption rules.
+### 2026-09-23T08:45:30Z — Add smoke-frame food processing
+
+Outcome: Completed the next eligible M7 food-station leaf. Added a placed Smoke frame and boar/deer smoked-meat recipes through the existing construction, recipe, hearth, inventory and food-status systems. Each serving uses one server-selected raw meat and one extra Ember bundle; batches cap at three. A visible same-world frame and Lit hearth with positive heat must be within 250 cm of both player and frame. The hearth burns normally; rejected access, heat, fuel, batch or output-capacity checks preserve inventory. Smoked field meat uses the existing one-slot 120-second meal effect. No new RPC, timer, station inventory or save-schema field was added.
+
+Changed this run: `Config/DefaultGame.ini`; `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`, `KalmalaCraftingComponent.cpp`, `KalmalaPlacementPreview.cpp`, `KalmalaPlayerStatusComponent.cpp`, and `KalmalaStorageInteraction.cpp`; `Source/KalmalaGameplay/Public/KalmalaPlayerStatusComponent.h`; `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`, `KalmalaFoodProcessingTest.cpp`, and `KalmalaPlacementPreviewTest.cpp`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `docs/05-decision-log.md`, `docs/07-development-setup.md`, `docs/09-inventory-verification.md`, `docs/10-campfire-and-crafting.md`; `BACKLOG.md`; and this handoff.
+
+Verification: Forced `KalmalaEditor Win64 Development` build with explicit `%LOCALAPPDATA%\\UnrealBuildTool` access succeeded in 163 actions using a source-only copy at `C:/Users/Ville/AppData/Local/Temp/KalmalaM7SmokeFrame-73f705f724694cc2837e96c469da1c22`; log: `C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaM7SmokeFrame-ForcedBuild.log`. `Kalmala.Gameplay.Food.CampfireProcessing`, `Kalmala.Gameplay.Status.SteadyMeal`, `Kalmala.Gameplay.Crafting.Transactions`, `Kalmala.Gameplay.Crafting.NetworkContract`, `Kalmala.Gameplay.Construction.LocalPreview`, and `Kalmala.Gameplay.Construction.SaveContract` all reported `Result={Success}` in `C:/Users/Ville/AppData/Local/Temp/KalmalaM7SmokeFrame-Automation.log`. `Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts and `git diff --check` passed.
+
+Multiplayer impact: The existing craft request still contains only recipe ID and batch. Server catalogue data selects the frame, costs, output and batch cap; server construction lookup rechecks same-world visibility/range, and the server requires a usable Lit hearth with positive heat at the frame before committing the inventory exchange. The existing food RPC carries only an allowlisted food ID; the server consumes one private-pack item and applies the owner status. Construction replicates its existing kit identity and uses schema 1; no client outcome, target, fuel, heat or cost authority was added.
+
+Known limits: The focused server automation exercises range, fuel shortage, heat shortage, batch cap, output-cap rejection, accepted atomic processing and food use. This run did not place or process at a smoke frame in a live host/client session and did not produce a rendered capture. Food inventory and status remain pawn-lifetime. All touched implementation and contract files already had pre-existing changes at run start; no files were staged or committed so those edits remain intact.
+
+Next task: Define and verify the complete M7 food fuel/heat/access/batch/failure and stacking/replacement/expiry/duplicate-consumption rules for finite readable benefits.
+
+### 2026-09-23T09:07:08Z — Complete finite food-effect rules
+
+Outcome: Completed the first M7 food-processing set and its finite-benefit
+contract. The Camp crafting panel now retains roasted meat, Hearth Broth, and
+smoked meat counts while a Steady Meal is active and states its remaining time,
+10% lower stamina use, and wait-for-expiry rule. Food stays optional. Added
+focused transaction assertions proving same-food duplicates and alternate-food
+replacement neither consume the item nor refresh a partially elapsed timer.
+Documented the explicit one-slot, non-stacking/non-replacing 120-second
+server-timed effect and aligned the roadmap language with that behavior.
+
+Changed this run: `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`
+and `Source/KalmalaGameplay/Private/Tests/KalmalaFoodProcessingTest.cpp`;
+`docs/04-roadmap.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`,
+`docs/09-inventory-verification.md`, and `docs/10-campfire-and-crafting.md`;
+`BACKLOG.md`; and this handoff. Every implementation, test, and handoff file
+was already modified before this run; those earlier edits were preserved.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development` build succeeded
+in 163 actions in a disposable source copy; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaM7FoodRules-ForcedBuild.log`.
+The six documented `Kalmala.Gameplay.Food.CampfireProcessing`,
+`Kalmala.Gameplay.Status.SteadyMeal`, crafting transaction/network, and
+construction preview/save automations all reported `Result={Success}` in
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7FoodRules-Automation.log`.
+`Scripts/Verify-M5DocumentationContracts.ps1` passed all five checks and
+`git diff --check` passed.
+
+Multiplayer impact: No RPC, replication, gameplay authority, or save schema
+changed. The owner sends only an allowlisted food ID; the server still checks
+and consumes its private inventory atomically, controls status application and
+expiry, and rejects duplicate or replacement use. The crafting panel reads
+owner-visible status and inventory only.
+
+Known limits: Focused automation checked the active meal text contract but this
+run did not capture its rendered layout or process food in a live host/client
+session. Food inventory and status remain pawn-lifetime.
+
+Next task: Broaden crafting and camp progression with the first bounded tier of
+tools, gathering implements, repair materials, cooking/preservation recipes,
+camp improvements, and skill-gated recipes.
+
+### 2026-09-23T09:44:36Z — Award Cooking skill progression
+
+Outcome: Prepared-food recipes now grant a fixed 10 server-owned Cooking
+experience once after a successful atomic inventory exchange. The award is per
+accepted recipe request, independent of batch size; station, heat, batch,
+ingredient, output-capacity, malformed catalogue, and client-side failures do
+not award experience. This establishes the progression path for skill-gated
+recipes without adding a save field.
+
+Changed this run: `Source/KalmalaGameplay/Public/KalmalaRecipeCatalogue.h`,
+`Source/KalmalaGameplay/Private/KalmalaRecipeCatalogue.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`,
+`Config/DefaultGame.ini`, `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaFoodProcessingTest.cpp`,
+`docs/02-technical-architecture.md`, `docs/04-roadmap.md`,
+`docs/05-decision-log.md`, `docs/07-development-setup.md`,
+`docs/10-campfire-and-crafting.md`, `BACKLOG.md`, and this handoff.
+
+Verification: The forced UE5.8 `KalmalaEditor Win64 Development` build compiled
+the full current source in 163 actions and reported `Result: Succeeded` with
+`%LOCALAPPDATA%\\UnrealBuildTool` access. After adjusting the test fixture to
+initialize its transient ledger and compare awards after earlier accepted
+broth/smoke requests, two final incremental builds each succeeded in four
+actions. The final `Kalmala.Gameplay.Food.CampfireProcessing`,
+`Kalmala.Gameplay.Status.SteadyMeal`, `Kalmala.Gameplay.Crafting.Transactions`,
+`Kalmala.Gameplay.Crafting.NetworkContract`,
+`Kalmala.Gameplay.Construction.LocalPreview`,
+`Kalmala.Gameplay.Construction.SaveContract`, and
+`Kalmala.Gameplay.Progression.SkillContract` automations all passed; the
+separate `Kalmala.Gameplay.Progression.ReplicationContract` passed. The five
+`Scripts/Verify-M5DocumentationContracts.ps1` checks and `git diff --check`
+passed. Logs: `C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaM7CookingXP-ForcedBuild.log`,
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaM7CookingXP-FinalBuild.log`,
+and `C:/Users/Ville/AppData/Local/Temp/Kalmala-M7Cooking-XP-FinalAutomation.log`.
+
+Multiplayer impact: The existing craft RPC still carries only recipe identity
+and batch. The server reads the configured allowlisted skill and bounded award
+after committing its private-pack exchange; clients submit no skill, award,
+experience, unlock, or output value. Detailed progression remains owner-only,
+and relevant peers retain only the existing derived badge. No RPC, saved-data
+schema, or persistence path changed.
+
+Known limits: Progression remains transient; no learned-recipe save contract
+or Cooking level-gated recipe exists yet. The host/client script was not run
+for prepared food in this increment; focused server transaction, RPC boundary,
+and progression replication contracts passed. Existing source/config/handoff
+files were already dirty at run start and were preserved; no commit was made.
+The main checkout is `E:/dev/Kalmala`, so no worktree synchronization applied.
+
+Next task: Add the first optional Cooking level-2 recipe unlock with a readable
+requirement and server-validated inventory exchange.
+
+### 2026-09-23T10:08:18Z - Add Cooking level-two smoke unlock
+
+Outcome: Smoke-frame recipes for boar and deer now require Cooking level 2. Recipe detail and availability/result feedback state the required and current level and explain that accepted food preparation earns Cooking experience. The server checks the owner's skill ledger before station lookup or pack exchange. Roasting and broth remain available at level 1, so preparation and travel remain optional.
+
+Changed this run: `Config/DefaultGame.ini`, `Source/KalmalaGameplay/Public/KalmalaRecipeCatalogue.h`, `Source/KalmalaGameplay/Private/KalmalaRecipeCatalogue.cpp`, `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaFoodProcessingTest.cpp`, `docs/02-technical-architecture.md`, `docs/04-roadmap.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `docs/09-inventory-verification.md`, `docs/10-campfire-and-crafting.md`, `BACKLOG.md`, and this handoff.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development` build succeeded in 163 actions with `Result: Succeeded` using the isolated source copy at `C:/Users/Ville/AppData/Local/Temp/KalmalaM7CookingUnlock-01a0cda9` and `%LOCALAPPDATA%\\UnrealBuildTool`; log: `C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaM7CookingUnlock-ForcedBuild.log`. The five-action incremental build also succeeded after correcting test-fixture setup/count expectations. The final headless run passed all eight tests: `Kalmala.Gameplay.Food.CampfireProcessing`, `Kalmala.Gameplay.Status.SteadyMeal`, `Kalmala.Gameplay.Crafting.Transactions`, `Kalmala.Gameplay.Crafting.NetworkContract`, `Kalmala.Gameplay.Construction.LocalPreview`, `Kalmala.Gameplay.Construction.SaveContract`, `Kalmala.Gameplay.Progression.SkillContract`, and `Kalmala.Gameplay.Progression.ReplicationContract`. All five `Scripts/Verify-M5DocumentationContracts.ps1` checks and `git diff --check` passed. Logs: `C:/Users/Ville/AppData/Local/Temp/KalmalaM7CookingUnlock-Automation-Retry.log` and `C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaM7CookingUnlock-ForcedBuild.log`.
+
+Multiplayer impact: `ServerCraft` still accepts only recipe ID and batch. The server compares its owner's skill ledger to the catalogue requirement before station and private-inventory checks; clients cannot submit skill level, unlock, costs, station, or outcome. The panel reads existing owner-only detailed progression. No RPC, replicated property, save field, or save schema changed.
+
+Known limits: Progression and the derived recipe unlock remain pawn-lifetime; no learned-recipe persistence contract was added. No live host/client smoke-frame craft was run; focused server exchange, RPC boundary, and progression owner/relevant-peer replication contracts passed. Reaching level 2 from zero takes ten accepted prepared-food requests because each awards 10 experience once regardless of batch size. Touched files already had working-tree edits before this run; they were preserved and nothing was staged or committed. Main checkout, no worktree synchronization. No other Kalmala run was active at start.
+
+Next task: Continue the bounded first-tier crafting progression with the next single server-validated craft or camp-improvement recipe.
+
+### 2026-09-23T10:41:16Z — Add broken Field Hatchet replacement recipe
+
+Outcome: Added one original Field Hatchet replacement recipe to the existing
+server catalogue. It is available only when the owner's existing hatchet
+condition is exactly zero and a visible same-world Joiner's workbench is
+within 250 cm. The exchange costs 2 Wood, 2 Stone, and 1 Fibre. The server
+commits all ingredients before restoring condition to 24/24 and awarding 10
+Crafting experience. Worn tools retain the existing dynamic repair action.
+
+Changed this run: `Config/DefaultGame.ini`;
+`Source/KalmalaGameplay/Public/KalmalaRecipeCatalogue.h`;
+`Source/KalmalaGameplay/Private/KalmalaRecipeCatalogue.cpp` and
+`KalmalaCraftingComponent.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp` and
+`Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`;
+`Scripts/Verify-InventoryReconnect.ps1`; `docs/02-technical-architecture.md`,
+`docs/04-roadmap.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`,
+`docs/10-campfire-and-crafting.md`, `docs/17-m7-tools-and-gathering.md`,
+`BACKLOG.md`, and this handoff.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development` build succeeded
+in 163 actions with `Result: Succeeded`, using an isolated copy of the current
+checkout and `%LOCALAPPDATA%\\UnrealBuildTool`; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaM7ToolRecipe-ForcedBuild.log`.
+Eight focused headless automations passed:
+`Kalmala.Gameplay.Crafting.Transactions`,
+`Kalmala.Gameplay.Crafting.NetworkContract`,
+`Kalmala.Gameplay.Food.CampfireProcessing`,
+`Kalmala.Gameplay.Status.SteadyMeal`,
+`Kalmala.Gameplay.Tools.LifecycleContract`,
+`Kalmala.Gameplay.Inventory.NetworkContract`,
+`Kalmala.Gameplay.Progression.SkillContract`, and
+`Kalmala.Gameplay.Progression.ReplicationContract`; log:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaM7ToolRecipe-Automation.log`.
+`Scripts/Verify-InventoryReconnect.ps1 -Port 18672` passed two visits to one
+live listen server; both server fixtures logged replacement `Passed=1` for
+workbench, atomic input, owner condition, Crafting experience, and duplicate
+gates. Owner condition replicated as 24/24 and was hidden from the remote
+peer. Logs are in
+`C:/Users/Ville/AppData/Local/Temp/KalmalaInventoryReconnect-62aa326e750044a9b48b1cb3d45187d3`.
+All five M5 documentation contracts and `git diff --check` passed.
+
+Multiplayer impact: `ServerCraft` remains recipe ID plus batch only. The
+server selects the tool, cost, condition gate, and station from its own
+catalogue and pawn state; ingredient payment, condition restore, and experience
+award occur only on accepted server execution. Tool condition and detailed
+progression remain owner-only. No new RPC, item output, persistence path, or
+save schema was added.
+
+Known limits: The replacement covers only Field Hatchet; other tools have no
+replacement recipe. Tool condition and Crafting experience remain transient.
+The host/client verification is headless and does not establish rendered
+recipe layout or physical controller focus. All implementation and handoff
+files were already modified at run start; earlier changes were preserved and
+nothing was staged or committed. The main checkout was used, so no worktree
+synchronization applied. No competing Kalmala run was active at start.
+
+Next task: Continue the first-tier crafting progression with the next single
+server-validated craft or camp-improvement recipe.
+
+### 2026-09-23T11:10:07Z — Add Stone Pick replacement recipe
+
+Outcome: Added a server-catalogued Stone Pick replacement at the visible,
+same-world Joiner's workbench. The owner's pick must be at zero condition;
+the atomic exchange consumes 2 Wood, 3 Stone, and 1 Fibre before restoring
+the existing owner-only condition to 20/20. Each accepted replacement awards
+10 transient Crafting experience. Worn picks remain repairable through the
+existing gathered-Stone repair action. Closed the optional-food backlog parent
+because every listed recipe, processing-station, and finite-benefit task is
+complete.
+
+Changed this run: `Config/DefaultGame.ini`;
+`Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp` and
+`Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`;
+`Scripts/Verify-InventoryReconnect.ps1`; `docs/02-technical-architecture.md`,
+`docs/04-roadmap.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`,
+`docs/09-inventory-verification.md`, `docs/10-campfire-and-crafting.md`,
+`docs/17-m7-tools-and-gathering.md`, `BACKLOG.md`, and this handoff.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development` build passed in
+163 actions with `Result: Succeeded` using an isolated project copy and
+`%LOCALAPPDATA%\UnrealBuildTool`; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaM7StonePick-ForcedBuild.log`.
+After correcting the transaction test to consolidate the configured Stone
+stack, the 4-action incremental rebuild passed; log:
+`C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaM7StonePick-IncrementalBuild.log`.
+Six headless automations passed:
+`Kalmala.Gameplay.Crafting.Transactions`,
+`Kalmala.Gameplay.Tools.LifecycleContract`,
+`Kalmala.Gameplay.Crafting.NetworkContract`,
+`Kalmala.Gameplay.Inventory.NetworkContract`,
+`Kalmala.Gameplay.Progression.SkillContract`, and
+`Kalmala.Gameplay.Progression.ReplicationContract`; log:
+`C:/Users/Ville/AppData/Local/Temp/Kalmala-StonePick-GameplayAutomation-Retry.log`.
+`Scripts/Verify-InventoryReconnect.ps1 -Port 19343` passed both client visits
+to one listen server. Each server pawn passed zero-condition/workbench,
+material atomicity, replacement, experience, and duplicate fixtures; owners
+received 20/20 condition and simulated remote peers observed it hidden. Logs:
+`C:/Users/Ville/AppData/Local/Temp/KalmalaInventoryReconnect-1c1dc384412c411184e3aaf6aba2c277`.
+All five `Verify-M5DocumentationContracts` checks and `git diff --check` passed.
+
+Multiplayer impact: `ServerCraft` still sends recipe identity and batch only.
+The server selects the catalogue cost, station, tool definition, and condition
+gate, then pays before restoring condition and awarding experience. Detailed
+condition remains owner-only. No new RPC, replicated condition field, item
+output, persistence path, or save schema was added.
+
+Known limits: tool condition and Crafting experience remain pawn-lifetime.
+The peer run is headless and does not prove rendered recipe focus or physical
+controller input. All affected implementation and handoff files already had
+working-tree edits before this run; those changes were preserved and nothing
+was staged or committed. This used the main checkout, so no worktree
+synchronization applied. No competing Kalmala automation run was active.
+
+Next task: Add one server-validated Reed Knife replacement recipe through the
+existing atomic workbench exchange.
+
+### 2026-09-23T11:38:12Z - Add Reed Knife replacement recipe
+
+Outcome: Added a server-catalogued Reed Knife replacement at a visible same-world Joiner's workbench. Replacement is available only at zero condition and costs 1 Wood, 1 Stone, and 2 Fibre through the existing atomic private-inventory exchange. Accepted payment restores owner-only condition to 16/16 and grants 10 transient Crafting experience. Repair remains available for a worn knife.
+
+Changed this run: `Config/DefaultGame.ini`; `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`; `Scripts/Verify-InventoryReconnect.ps1`; `docs/02-technical-architecture.md`, `docs/04-roadmap.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `docs/09-inventory-verification.md`, `docs/10-campfire-and-crafting.md`, `docs/17-m7-tools-and-gathering.md`, `BACKLOG.md`, and this handoff.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development` build passed all 163 actions from isolated copy `C:\Temp\K3b0a`; result is recorded in `%LOCALAPPDATA%\UnrealBuildTool\Log.txt`. The first compile exposed and prompted correction of a duplicate local test-fixture pointer; a subsequent long temp path exceeded Windows' 260-character limit before compiling, so the passing build used a short path. Six focused automations passed: `Kalmala.Gameplay.Crafting.Transactions`, `Kalmala.Gameplay.Crafting.NetworkContract`, `Kalmala.Gameplay.Tools.LifecycleContract`, `Kalmala.Gameplay.Inventory.NetworkContract`, `Kalmala.Gameplay.Progression.SkillContract`, and `Kalmala.Gameplay.Progression.ReplicationContract`; log: `C:\Temp\K3b0a\ReedKnife-Automation.log`. `Scripts/Verify-InventoryReconnect.ps1 -Port 19237` passed two client visits to one listen server. Each server pawn passed intact-tool, missing/distant-workbench, insufficient-material, exact-payment, 16/16 restoration, post-payment experience, and duplicate checks; owner condition was visible and remote condition hidden. Logs: `C:\Users\Ville\AppData\Local\Temp\KalmalaInventoryReconnect-90d21c8333b148bda5e4c41d56e1e94a`. All five M5 documentation contracts and `git diff --check` passed.
+
+Multiplayer impact: The existing craft RPC still carries recipe identity and batch only. The server selects the configured recipe, checks its own tool condition and visible workbench, commits its private inventory before restoring condition or awarding experience, and replicates detailed tool condition only to the owner. No RPC or save-schema change.
+
+Known limits: Tool condition and Crafting experience remain pawn-lifetime. The reconnect fixture is headless and does not establish rendered recipe focus or physical controller input. All implementation and handoff files already contained pre-existing edits at run start; those were preserved and no files were staged or committed. This was the main checkout; no worktree synchronization applied. No competing Kalmala automation run was active.
+
+Next task: Provide ingredient, station, unlock, failure, repair, batch, stack, and accessibility text while keeping processing stations on the existing inventory and fire authority paths.
+
+### 2026-09-23T12:07:15Z — Complete M7 crafting and camp text
+
+Outcome: Completed the first bounded crafting and camp progression text pass. The panel places the selected recipe and its catalogue position ahead of longer camp status. Its detail text gives batch-1 ingredient costs, maximum batch and the panel's batch-1 action, readable output and per-stack cap, station and heat rules, skill requirement/current level, first unmet availability reason, and the no-mutation failure rule. Replacement recipes explain broken-tool replacement and the matching workbench repair rule. Owner-only tool condition now uses readable names and exact repair costs. Action buttons have explanatory tooltips; keyboard, controller, mouse, the `>` selection marker, and text-first feedback are explained. The preview button label fits its row. Documentation records that processing still uses the existing server-owned construction, hearth, and inventory paths.
+
+Changed this run: `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `docs/10-campfire-and-crafting.md`, `BACKLOG.md`, and this handoff. Closed the bounded crafting/camp-progression backlog parent after its listed children were completed.
+
+Verification: Forced UE5.8 `KalmalaEditor Win64 Development` build passed all 163 actions with `Result: Succeeded` in isolated copy `C:\Users\Ville\AppData\Local\Temp\KTx4b26ec`; log: `C:\Users\Ville\AppData\Local\UnrealBuildTool\KalmalaM7CraftText-ForcedBuild.log`. Both final incremental editor rebuilds passed in four actions each; the final log is `C:\Users\Ville\AppData\Local\UnrealBuildTool\KalmalaM7CraftText-FinalBuild.log`. `Scripts/Verify-Crafting.ps1 -Rendered -Port 19424` passed host/client server validation, payment/atomicity gates, matching hearth states, menu input restoration, and both presentation assertions; logs and captures are in `C:\Users\Ville\AppData\Local\Temp\KalmalaCrafting-056503a4eadc47a5a79af08c5fb3b2bc`. All five M5 documentation contracts and `git diff --check` passed.
+
+Multiplayer impact: This is read-only local UI text over the existing owner state. Clients still send only the existing recipe identity/batch and action intents; the server selects costs, skills, station, heat, and outcomes and commits pack exchanges. No RPC, replication, save schema, or processing authority changed.
+
+Known limits: Tool condition, skill progression, food, and current inventory remain transient as already documented. The rendered host/client captures cover 1280x720; they do not establish physical controller hardware or assistive-technology certification. The modified source and handoff files were already dirty before this run; those edits were preserved and nothing was staged or committed. This was the main checkout, so no worktree synchronization applied. A first rendered attempt passed both presentation assertions but crashed when sandbox permissions blocked Unreal shader transfer-file creation; the documented retry with shader access passed.
+
+Next task: Extend server-owned exposure with bounded, reversible, counterable fog, rain, storms, heat, cold, and readable highly-active-weather states.
+
+### 2026-09-23T12:46:19Z - Add replicated M7 weather hazard descriptors
+
+Outcome: Added deterministic normalized fog and a server-derived storm intensity plus Calm, Active, or Highly Active weather tier to the replicated world weather state. The server publishes normalized per-pawn heat and cold snapshots from generated ambient temperature through the existing replicated exposure state. Weather setters recompute storm/activity values and reject invalid intensities or non-authority writes. BACKLOG records this descriptor substep as complete while keeping hazard gameplay outcomes open.
+
+Changed this run: Source/KalmalaWorld/Public/KalmalaWeatherState.h, Source/KalmalaWorld/Public/KalmalaWeatherCycle.h, Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp, Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp, Source/KalmalaGameplay/Public/KalmalaExposureResponse.h, Source/KalmalaGameplay/Public/KalmalaCharacter.h, Source/KalmalaGameplay/Private/KalmalaCharacter.cpp, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaRainAuthorityTest.cpp, Scripts/Verify-CampChoices.ps1, docs/02-technical-architecture.md, docs/05-decision-log.md, docs/07-development-setup.md, BACKLOG.md, and this handoff.
+
+Verification: Forced UE 5.8 KalmalaEditor Win64 Development build passed all 163 actions with Result: Succeeded; log: C:/Users/Ville/AppData/Local/UnrealBuildTool/KalmalaM7Weather-ForcedBuild.log. Kalmala.World.WeatherCycle.Determinism, Kalmala.Gameplay.Exposure.RecoverableTravelPenalty, and Kalmala.Gameplay.Hearth.WeatherMutation passed; log: C:/Users/Ville/AppData/Local/Temp/KalmalaM7Weather-3a0a36a62ed04c09bd565d973ce447a8/WeatherAutomation.log. Scripts/Verify-CampChoices.ps1 -Port 17842 passed with matching weather on both peers and 32 matching replicated exposure snapshots for each player; logs: C:/Users/Ville/AppData/Local/Temp/KalmalaCampChoices-a2ebe8d989c14ed7b5f008bd7575de30. All five M5 documentation contracts and git diff --check passed.
+
+Multiplayer impact: GameMode remains the sole weather/exposure writer. World weather replicates to peers; the existing exposure snapshot carries heat/cold values. The server derives storm/activity values and validates bounds; clients receive presentation data only. No RPC or save-schema change.
+
+Known limits: Fog is a replicated descriptor and does not yet change sight or create fog visuals. Heat/cold snapshots do not add independent penalties. Existing rain, warmth, shelter, fire, and reversible travel outcomes remain unchanged; the status HUD and hazard gameplay effects are still open. Prior checkout edits were preserved. Commit b1abf0b contains only this run's 11 selectively staged source, test, and verifier files; handoff/documentation files had earlier uncommitted edits and remain unstaged.
+
+Next task: Apply authoritative hazard intensity only to approved visibility, wetness, warmth, stamina-recovery, movement-comfort, fire-safety, or creature-pressure outcomes, with server-owned mitigation.
+
+### 2026-09-23T13:24:29Z - Add reversible cold stamina pressure
+
+Outcome: Server-owned warmth now scales stamina recovery smoothly from the existing 15 points/second at 40 warmth to a bounded 12 points/second at zero warmth. Warmth recovered through the existing shelter and lit-hearth path restores normal recovery. Added a focused server movement regression plus bounds, non-finite, and recovery math assertions. The broader M7 hazard item remains open.
+
+Changed this run: Source/KalmalaGameplay/Public/KalmalaExposureResponse.h; Source/KalmalaGameplay/Private/KalmalaCharacterMovementComponent.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp; docs/02-technical-architecture.md; docs/04-roadmap.md; docs/05-decision-log.md; docs/07-development-setup.md; BACKLOG.md; and this handoff.
+
+Verification: Forced UE 5.8.2 KalmalaEditor Win64 Development build passed all 163 actions from isolated project copy C:\Users\Ville\AppData\Local\Temp\KalmalaColdRecovery-521aaa26; log: C:\Users\Ville\AppData\Local\UnrealBuildTool\KalmalaM7ColdStaminaBuild.log. Kalmala.World.WeatherCycle.Determinism, Kalmala.Gameplay.Exposure.RecoverableTravelPenalty, Kalmala.Gameplay.Exposure.ColdStaminaRecoveryAuthority, Kalmala.Gameplay.Exposure.ServerAuthoritativeReplicationContract, and Kalmala.Gameplay.Hearth.WeatherMutation passed; log: C:\Users\Ville\AppData\Local\Temp\KalmalaM7ColdStamina.log. Scripts/Verify-CampChoices.ps1 -Port 17852 passed for two freely chosen camps, normal fire recovery, matching weather, and 32 matching exposure snapshots per pawn; logs: C:\Users\Ville\AppData\Local\Temp\KalmalaCampChoices-794270d4c46a442687af0a43a31764f9. git diff --check passed.
+
+Multiplayer impact: Only the server updates stamina and environmental exposure. The recovery adjustment reads the existing replicated warmth snapshot; the existing replicated stamina value communicates the result. A simulated client movement copy cannot author recovery. No RPC, new replicated field, or save schema was added.
+
+Known limits: No rendered cold-status or stamina-recovery hint exists yet. The peer scenario checks weather/exposure agreement but does not drive a cold recovery difference live between peers; the focused authority regression covers the recovery path. Fog visibility, other hazard outcomes, and the survival HUD remain open. Pre-existing checkout edits were preserved. This used the main checkout, so no worktree synchronization applied. Only the three clean source/test files were committed as a229901; the changed handoff and documentation files were already dirty before this run and remain unstaged.
+
+Next task: Continue the M7 hazard outcome leaf with one bounded server-owned fog, rain, storm, heat, cold, fire-safety, or creature-pressure response and counterplay before starting the survival HUD pass.
+
+### 2026-09-23T14:00:15Z - Add Highly Active rain pressure
+
+Outcome: The server now applies the existing Wet status after 7.5 uninterrupted seconds of exposed rain in Highly Active weather. Calm and Active weather retain the existing 10-second trigger. Roof shelter resets rain exposure, water still applies Wet immediately, and lit-fire recovery plus the 120-second status cap remain unchanged.
+
+Changed this run: Source/KalmalaGameplay/Public/KalmalaExposureResponse.h; Source/KalmalaGameplay/Private/KalmalaGameMode.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaWeatherHazardResponseTest.cpp; Scripts/Verify-RainVerticalSlice.ps1; docs/02-technical-architecture.md; docs/04-roadmap.md; docs/05-decision-log.md; docs/07-development-setup.md; BACKLOG.md; and this handoff.
+
+Verification: Forced UE 5.8.2 KalmalaEditor Win64 Development build passed all 164 actions with Result: Succeeded from isolated project copy C:\Users\Ville\AppData\Local\Temp\K7rain; UnrealBuildTool wrote its log under %LOCALAPPDATA%\UnrealBuildTool. Five focused automations passed: Kalmala.World.WeatherCycle.Determinism, Kalmala.Gameplay.Exposure.RecoverableTravelPenalty, Kalmala.Gameplay.Exposure.WeatherHazardResponse, Kalmala.Gameplay.Exposure.ColdStaminaRecoveryAuthority, and Kalmala.Gameplay.Hearth.WeatherMutation. Scripts/Verify-RainVerticalSlice.ps1 -Port 18129 passed host/client water Wet, the 7.5-second Highly Active rain gate, roof protection, capped rain wear, hearth smoulder/recovery, and replicated client state; evidence is in C:\Users\Ville\AppData\Local\Temp\KalmalaRainVerticalSlice-debf0b5a7a954e6ba242ebe0cbdce260. All five M5 documentation contracts passed.
+
+Multiplayer impact: GameMode reads the server-owned weather activity tier, advances and resets exposed-rain time from authoritative precipitation and roof samples, and applies Wet through the existing server status path. Clients cannot submit weather, exposure, roof, or mitigation state. No RPC, replicated field, persistence path, or save schema changed.
+
+Known limits: The outcome changes only when the existing Wet status begins; its effects, duration, and recovery are unchanged. Headless peer evidence does not cover rendered hazard/status feedback, which remains in the M7 HUD pass. Pre-existing working-tree edits were preserved. This used the main checkout, so no worktree synchronization applied.
+
+Next task: Continue the first open M7 hazard gameplay-outcome leaf with one bounded server-owned effect and counterplay, then complete the survival HUD pass.
+
+
+### 2026-09-23T14:42:16Z - Add storm-driven hearth fuel pressure
+
+Outcome: Exposed campfire fuel wetting now ramps linearly above the shared
+0.65 rain/wind Highly Active threshold, reaching a 25% maximum increase at
+full rain and wind. The existing server roof trace removes rain input, and
+the windbreak trace removes the added wind-driven surge.
+
+Changed this run: Source/KalmalaWorld/Public/KalmalaWeatherState.h;
+Source/KalmalaGameplay/Public/KalmalaCampfireWeatherResponse.h;
+Source/KalmalaGameplay/Private/Tests/KalmalaWeatherHazardResponseTest.cpp;
+Source/KalmalaGameplay/Private/Tests/KalmalaHearthStateTest.cpp;
+docs/02-technical-architecture.md; docs/04-roadmap.md;
+docs/05-decision-log.md; docs/07-development-setup.md;
+docs/10-campfire-and-crafting.md; BACKLOG.md; and this handoff.
+
+Verification: Forced UE5.8.2 KalmalaEditor Win64 Development build passed all
+164 actions from isolated copy C:\Users\Ville\AppData\Local\Temp\K7s2; log:
+C:\Users\Ville\AppData\Local\UnrealBuildTool\KalmalaM7StormHazard-ForcedBuild.log.
+After correcting the hearth fixture's post-roof fuel expectation, its
+four-action incremental rebuild passed:
+C:\Users\Ville\AppData\Local\UnrealBuildTool\KalmalaM7StormHazard-IncrementalBuild.log.
+All six weather, exposure, storm-response, and real-roof hearth automations
+passed at C:\Users\Ville\AppData\Local\Temp\K7hweather-final.log.
+Scripts/Verify-RainVerticalSlice.ps1 -Port 18341 passed with conflicting-seed
+host/client evidence at
+C:\Users\Ville\AppData\Local\Temp\KalmalaRainVerticalSlice-c9a743698810466f80eae83770059768.
+All five M5 documentation contracts and git diff --check passed. The first
+focused run caught only the outdated 48-second fixture expectation; after
+repair, the final six-test run passed.
+
+Multiplayer impact: The server calculates storm wetting from authoritative
+rain and wind inputs after accepted construction shelter traces. The existing
+replicated FuelWetness conveys the result; clients cannot submit weather,
+shelter, or fuel state. No RPC, replicated field, save schema, or persistence
+path changed.
+
+Known limits: The two-peer rain scenario confirms existing weather, Wet,
+roof, and hearth-state agreement, but does not assert storm fuel wetness on a
+remote peer or render the new fuel pressure. The focused authority automation
+checks the real server roof trace and the bounded response math. No rendered
+weather/fuel UI was inspected.
+
+Next task: Add the colour-independent local Calm/Active/Highly Active weather
+indicator and begin the M7 status HUD pass; use the replicated server tier.
+
+### 2026-09-23T15:27:17Z — Add local weather activity badge
+
+Outcome: Added an owner-local weather activity badge below the minimap. It reads
+the existing replicated server tier and displays Calm, Active, or Highly Active
+with distinct circle, diamond, or triangle markers and explicit text. It follows
+local text-scale and contrast settings. Closed the M7 weather hazard/activity
+backlog item; the remaining survival status strip and GUI pass stay open.
+
+Changed this run: `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp`,
+`Source/KalmalaUI/Private/KalmalaWeatherActivityWidget.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaWeatherActivityWidgetTest.cpp`,
+`Source/KalmalaUI/Public/KalmalaWeatherActivitySubsystem.h`,
+`Source/KalmalaUI/Public/KalmalaWeatherActivityWidget.h`,
+`BACKLOG.md`, `docs/02-technical-architecture.md`, `docs/04-roadmap.md`,
+`docs/05-decision-log.md`, `docs/07-development-setup.md`,
+`docs/15-presentation-ownership.md`, and this handoff.
+
+Verification: `KalmalaEditor Win64 Development` built successfully in 32
+actions with `%LOCALAPPDATA%\\UnrealBuildTool` access; result is recorded in
+`%LOCALAPPDATA%\\UnrealBuildTool\\Log.txt`. Seven focused automation tests
+passed, including `Kalmala.UI.WeatherActivity.LocalPresentation`; log:
+`C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWeatherActivity-f9c4aec69c824784a39fcdfc35779671\\WeatherActivity-Automation.log`.
+`Scripts/Verify-CampChoices.ps1 -Port 19263` passed and matched server/client
+weather plus 32 exposure snapshots for each pawn. All five M5 documentation
+contracts and `git diff --check` passed.
+
+Multiplayer impact: Each local-player subsystem reads `ActivityLevel` from the
+existing replicated `AKalmalaWorldGenerationGameState`; clients only render it.
+The server remains the sole weather/exposure authority. No RPC, replicated
+field, gameplay mutation, persistence path, or save schema was added.
+
+Known limits: The focused UI automation checked all tier labels and the
+top-right viewport slot, but the badge has not had rendered screenshot review.
+This increment does not add the remaining Wet/food/hazard status rows, timers,
+intensity, source, or recovery guidance; the broader M7 HUD/GUI pass remains
+open. Pre-existing dirty workspace files were preserved. Commit `96e185b`
+contains only the five new UI source/test files and the clean-at-start
+presentation-ownership document; current-run changes to already-dirty handoff
+and contract files remain unstaged.
+
+Next task: Add the persistent local status strip for Wet, food modifiers,
+exposure hazards, and other active effects using replicated timers and readable
+source/recovery guidance.
+
+### 2026-09-23T16:01:48Z - Add local survival status strip
+
+Outcome: Added a persistent local-player status panel at the lower-left. It reads existing replicated Wet and shared prepared-meal entries, server exposure snapshots, server-selected weather, and the pawn's timed support effect. Rows pair shape markers with category/name text and show applicable timers, modifiers/intensity, shared source context, and counterplay guidance. The existing Calm/Active/Highly Active badge remains separate below the minimap. The panel follows local text scale and contrast preferences and never takes focus.
+
+Changed this run: Source/KalmalaUI/Public/KalmalaSurvivalStatusSubsystem.h; Source/KalmalaUI/Private/KalmalaSurvivalStatusSubsystem.cpp; Source/KalmalaUI/Public/KalmalaSurvivalStatusWidget.h; Source/KalmalaUI/Private/KalmalaSurvivalStatusWidget.cpp; Source/KalmalaUI/Private/Tests/KalmalaSurvivalStatusWidgetTest.cpp; Scripts/Verify-PresentationOwnership.ps1; docs/15-presentation-ownership.md; BACKLOG.md; docs/02-technical-architecture.md; docs/05-decision-log.md; docs/07-development-setup.md; and this handoff.
+
+Verification: Forced UE 5.8.2 KalmalaEditor Win64 Development build passed in 7 actions with %LOCALAPPDATA%\UnrealBuildTool access; the corrected test-only rebuild passed in 4 actions. Kalmala.UI.SurvivalStatus.LocalPresentation passed; log: C:\Users\Ville\AppData\Local\Temp\KalmalaSurvivalStatus-Final-20260923.log. Scripts/Verify-CampChoices.ps1 -Port 19523 passed with matching replicated weather and 31 exposure snapshots per pawn. Scripts/Verify-PresentationOwnership.ps1, all five M5 documentation contracts, and git diff --check passed. The UnrealEditor-Cmd wrapper stopped before test startup on an all-platform SDK preflight requiring unavailable LinuxArm64 and VisionOS SDK versions; the same automation passed when launched with UnrealEditor.exe. An initial test assertion's substring overlap was corrected before the final pass.
+
+Multiplayer impact: Each local-player subsystem reads only its own pawn's replicated status, exposure and support fields, plus the replicated server weather. Status seconds are displayed directly; support/weather countdowns use replicated server expiry/start/duration and synchronized server time. No RPC, replicated field, gameplay mutation, persistence path, or save schema was added; server authority is unchanged.
+
+Known limits: Wet's exact trigger and the prepared meal's exact recipe are not stored on their shared status entries, so the UI reports the valid shared source context (rain or water; prepared food) rather than inventing an exact origin. Rendered host/client layout, multi-row clipping, and scaled-font legibility have not been inspected. Existing working-tree edits were preserved; handoff and contract files already had unrelated edits and remain unstaged. This was the main checkout, so no worktree synchronization applied.
+
+Next task: Extend the inventory, crafting, station, and equipment views with food details, active modifiers, skills, tool condition, repair cost, unlock state, ingredients, station requirements, provenance, and clear unavailable reasons while preserving local keyboard/controller focus, text scale, contrast, and text-plus-marker feedback.
+
+### 2026-09-23T16:24:26Z - Add prepared-food details to inventory HUD
+
+Outcome: The read-only owner-local inventory panel now explains the carried
+prepared-food benefit: Steady Meal reduces stamina cost by 10% for 120 seconds,
+and meal effects do not stack or replace. When that pawn already has an active
+meal, the panel also shows its remaining server-published seconds and tells the
+player to wait for expiry. The panel applies local text-scale and contrast
+settings, keeps its existing non-focusable behavior, and adds no input.
+
+Changed this run: `Source/KalmalaUI/Public/KalmalaInventorySubsystem.h`,
+`Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaInventoryWidgetTest.cpp`,
+`docs/15-presentation-ownership.md`, `BACKLOG.md`, and this handoff.
+
+Verification: The isolated UE 5.8.2 `KalmalaEditor Win64 Development` build
+first caught an unsupported test NaN helper; after correcting the fixture, the
+incremental build passed in four actions with `%LOCALAPPDATA%\UnrealBuildTool`
+access. Log: `C:\Users\Ville\AppData\Local\UnrealBuildTool\KalmalaM7InventoryFood-IncrementalBuild.log`.
+`Kalmala.UI.Inventory.PreparedFoodDetails` passed with `Result={Success}`;
+log: `C:\Users\Ville\AppData\Local\Temp\KalmalaM7InventoryFood-Automation.log`.
+`Scripts/Verify-InventoryReconnect.ps1 -Port 19579` passed both client visits,
+including private inventory visibility, remote privacy, read-only presentation,
+tool condition privacy, and reconnect transactions; logs:
+`C:\Users\Ville\AppData\Local\Temp\KalmalaInventoryReconnect-c1ebb7b684ad47abb47874282827cb1d`.
+`Scripts/Verify-PresentationOwnership.ps1` and `git diff --check` passed.
+The build and UI automation used the isolated temp project copy, so generated
+directories in the main checkout were not touched.
+
+Multiplayer impact: The local panel reads prepared-food presence from its
+owning pawn's existing private replicated inventory and the meal timer from
+that same pawn's existing server-published status. No RPC, replicated field,
+gameplay mutation, persistence path, or save schema was added; server authority
+is unchanged.
+
+Known limits: The detail appears only while one of the three existing prepared
+foods is carried; exact per-stack harvest provenance is not stored. No rendered
+host/client screenshot or physical controller review was performed. Food and
+meal state remain transient. Skill-progress/unlock and broader item provenance
+details remain open. The current-run code, test, and clean presentation-contract
+file were committed as `c50cca8` after verification. Current-run BACKLOG and
+PROGRESS updates remain unstaged alongside their pre-existing changes; all
+other pre-existing edits were left intact.
+
+Next task: Show owner-only skill progress and the next recipe unlock alongside
+crafting requirements.
+
+### 2026-09-23T17:01:34Z — Owner-only crafting skill details blocked on UnrealBuildTool
+
+Outcome: Added a read-only skill section to the Camp crafting details. It lists all six owner-only skills with current level and experience toward the next level, names the nearest still-locked recipe and its experience threshold, and identifies an accepted recipe that awards experience toward it. The skill and selected-recipe detail block follows local text-scale and high-contrast settings. The development presentation fixture now requires the fresh-player Cooking progress and level-2 smoke unlock text. The backlog item remains unchecked and is marked BLOCKED because the required build could not start.
+
+Changed this run: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `docs/10-campfire-and-crafting.md`; `docs/15-presentation-ownership.md`; `BACKLOG.md`; and this handoff.
+
+Verification: Three forced `KalmalaEditor Win64 Development` attempts used the isolated project copy `C:\Users\Ville\AppData\Local\Temp\KalmalaSkillUI-eb466939d3934949a9644ee8124b7f49`. Attempts began at 19:52:44 and 19:56:33 local with `-WaitMutex`, and at 19:59:33 local without `-WaitMutex`. Each remained for two minutes with a responsive, nearly idle UBT `dotnet` host, no visible `cl.exe` or `link.exe` process, no requested build log, and no update to `C:\Users\Ville\AppData\Local\UnrealBuildTool\Log.txt` (14,018 bytes, last written 19:20:21). Only the current-run UBT process was stopped each time. `git diff --check` passed; build, automation, and peer verification remain unrun because compilation never began.
+
+Multiplayer impact: Presentation reads only `GetOwningPlayerPawn()` and that pawn's existing detailed progression array, which is already replicated with `COND_OwnerOnly`. No RPC, replicated field, award path, gameplay authority, or save schema changed. No control or focus target was added.
+
+Known limits: The source and new presentation assertion are uncompiled and unverified; no host/client crafting run or screenshot was produced. The three build stalls provide no evidence of a source compile result. Existing unrelated checkout edits remain preserved. This used the main checkout; no worktree handoff was needed. No files were staged or committed because required build verification did not pass.
+
+Next task: Retry this increment's forced UE5.8.2 build after UnrealBuildTool startup resumes, then run the progression contracts and `Scripts/Verify-Crafting.ps1 -Rendered` before closing the backlog item.
+
+### 2026-09-23T17:30:59Z — Refine rendered survival HUD layout
+
+Outcome: Narrowed the persistent owner-local survival status column so its wrapped weather text stays clear of the centered arrival card. After inspecting the first 1280×720 capture, widened the content column to 400 logical units: host and client now show the server-derived weather intensity, interval time, source, and recovery guidance without horizontal overlap. Closed the M7 survival HUD and GUI backlog parent after the focused state test and rendered peer review passed.
+
+Changed this run: `Source/KalmalaUI/Public/KalmalaSurvivalStatusWidget.h`, `Source/KalmalaUI/Private/KalmalaSurvivalStatusWidget.cpp`, `Source/KalmalaUI/Private/Tests/KalmalaSurvivalStatusWidgetTest.cpp`, `docs/15-presentation-ownership.md`, `BACKLOG.md`, and this handoff. BACKLOG records the prior skill-panel build blocker as resolved by the full current-source build; its focused progression and rendered privacy checks remain open. Other pre-existing working-tree edits were preserved.
+
+Verification: Forced UE5.8.2 `KalmalaEditor Win64 Development` build passed 171 actions, `Result: Succeeded`, from isolated copy `C:/Users/Ville/AppData/Local/Temp/KalmalaHudVerify-c01f530a08f544a3ad9d06875355769f`, with `%LOCALAPPDATA%\\UnrealBuildTool` access. The final 400-unit adjustment passed an incremental seven-action build. `Kalmala.UI.SurvivalStatus.LocalPresentation` reported `Result={Success}` in `C:/Users/Ville/AppData/Local/Temp/KalmalaHudVerify-c01f530a08f544a3ad9d06875355769f/SurvivalStatus400.log`. `Scripts/Verify-PlayerControls.ps1 -Rendered -Port 19643` passed host/client controls and produced the reviewed 1280×720 captures under `C:/Users/Ville/AppData/Local/Temp/KalmalaPlayerControls-8637652e8f7d4d15842200b6e47a1d14`; `Scripts/Verify-PresentationOwnership.ps1` and `git diff --check` passed. An initial rendered-crafting retry reached passing host/client gameplay gates but timed out before capture because its existing 96%-wet capture condition did not match the observed 100%-wet peer state; the player-controls fixture supplied the final HUD captures.
+
+Multiplayer impact: This changes only the local widget content width. It still reads the owning pawn's existing replicated status/exposure/support data and server weather. No RPC, replicated field, gameplay mutation, persistence path, or save schema changed.
+
+Known limits: Rendered inspection covers the fresh-weather host/client HUD at 1280×720 and default local text scale. Wet/food/cold/support detail rows passed the presentation automation but were not individually captured, and larger text-scale layout remains unreviewed. The failed crafting capture gate is an existing fixture condition, not a gameplay assertion failure.
+
+Next task: Continue the first open M7 inventory/crafting/equipment GUI item by running owner-only skill-progress automation and rendered host/client privacy verification; the prior UnrealBuildTool startup blocker is resolved.
+### 2026-09-23T18:05:39Z — Verify owner-only crafting skill detail
+
+Outcome: Closed the M7 inventory/crafting/equipment UI item after verifying the read-only owner-local crafting panel presents all six skill levels and XP, the nearest skill-gated recipe unlock and progress, and the accepted-action XP source alongside crafting requirements. Added a viewport-derived wrap width to the panel text labels. Updated the rendered crafting verifier to place each peer's shader working files in its run directory and compare the stable lit/smouldering state while allowing the observed 96–100% fuel-wetness progression.
+
+Changed this run: `Scripts/Verify-Crafting.ps1`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `BACKLOG.md`, and this handoff. The source and handoff files already contained pre-existing work; those changes were preserved.
+
+Verification: UE5.8.2 `KalmalaEditor Win64 Development` incremental build passed in 4 actions with `%LOCALAPPDATA%\\UnrealBuildTool` access. `Kalmala.Gameplay.Progression.SkillContract`, `Kalmala.Gameplay.Progression.ReplicationContract`, `Kalmala.Gameplay.Crafting.Transactions`, and `Kalmala.Gameplay.Crafting.NetworkContract` all reported `Success`. `Scripts/Verify-Crafting.ps1 -Rendered -Port 19651` passed its two-peer authority, atomicity, inventory, hearth-state, focus-restoration, and capture gates. Host/client 1280×720 captures are retained at `C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-3d6cdb0b2b3d4aa083ca1fc71f10d026`. `git diff --check` passed after the handoff edits. Commit `a29c3c6` contains only this run's verifier and UI hunks; pre-existing edits remain unstaged.
+
+Multiplayer and persistence impact: the panel reads each local owning pawn's existing detailed progression; the owner-only replication contract passed. No client-authored award, RPC, gameplay mutation, replicated field, persistence path, or save schema changed.
+
+Known limits: rendered review covers 1280×720 at the default text scale. Larger text scale and other aspect ratios remain unreviewed. The initial rendered attempts exposed the verifier's missing shader-directory argument and stale 96%-wetness threshold; both fixture issues are corrected and the final host/client run passed.
+
+Next task: Verify M7 biome discovery and recovery choices, beginning with the fresh-player gather, craft, tool, repair, food, weather, and optional discovery loop.
+
+### 2026-09-23T19:05:39Z — Verify M7 loop components; block normal-play closure
+
+Outcome: Corrected the camp recipe detail to say the listed Ember fuel cost is charged per serving and rejected batches spend none. This satisfies the food-processing text contract and keeps the M7 fresh-player verification leaf open and marked BLOCKED: this run could verify its component paths, but could not observe one unscripted player completing them in one session.
+
+Changed this run: `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `BACKLOG.md`, and this handoff. The source, backlog, and progress files already contained working-tree edits; those edits were preserved. No contract or save schema changed.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed in 171 actions from isolated copy `C:\Users\Ville\AppData\Local\Temp\K7m7-c36ef5`; log: `C:\Users\Ville\AppData\Local\Temp\K7m7-c36ef5\forced-build.log`. It had access to `%LOCALAPPDATA%\UnrealBuildTool`. An initial, longer temp-copy path failed before compilation because an optional Visual Studio helper exceeded the 260-character Windows path limit; the short-path copy resolved it. `Kalmala.Gameplay.Food.CampfireProcessing`, `Kalmala.Gameplay.Status.SteadyMeal`, and `Kalmala.UI.SurvivalStatus.LocalPresentation` passed after the recipe-text correction; log: `C:\Users\Ville\AppData\Local\Temp\KalmalaM7FoodCurrent-78b5b5d6a6814c1aa4339727f84a7143\automation.log`. The seven weather determinism, hazard, hearth, cold recovery, and local activity-badge automations passed; log: `C:\Users\Ville\AppData\Local\Temp\KalmalaM7WeatherCurrent-d67e534cab4c4cf4ace31f6ba1c3c018\automation.log`. `Kalmala.World.BiomeExpansion.IntegratedScenario` passed; log: `C:\Users\Ville\AppData\Local\Temp\KalmalaM7BiomeCurrent-bc55287b57ad4810b2fe1913d6e35037\automation.log`. `Scripts/Verify-InventoryReconnect.ps1 -Port 21314`, `Scripts/Verify-Crafting.ps1 -Rendered -Port 21315`, `Scripts/Verify-CampChoices.ps1 -Port 21316` (32 matching exposure snapshots per pawn), and `Scripts/Verify-DiscoveryPeer.ps1 -Port 21317` passed against the isolated built copy. The 1280x720 host crafting capture was visually reviewed; the client capture and gameplay gates were produced by the same passing run. `git diff --check` passed. The first food run caught two stale text expectations (`fuel cost`); the implementation now explicitly names the Ember fuel cost, and the rebuilt rerun passed.
+
+Multiplayer impact: The source change affects only owner-local recipe text; it adds no RPC, replicated field, gameplay mutation, persistence path, or save schema. The supporting host/client fixtures passed existing server-selected gathering, atomic repair/crafting, weather/exposure, owner-only inventory/progression, and private discovery-feedback checks.
+
+Known limits: These automated cases use separate development fixtures and do not establish a single unscripted fresh-player session across gathering, repair, food, weather, and return. `cua.getState()` exposed `apps=[]` and only the Codex in-app browser; native app launch/list APIs were unavailable. This is the same targetable-game-surface blocker recorded in the earlier M5 packaged attempts. Tool condition, progression, and food effects remain transient under the approved persistence gate. Actor/memory/replication/save budget verification is still open. No files were staged or committed because the source and handoff files already contained unrelated pre-existing edits; all were preserved.
+
+Next task: Resume the first M7 fresh-player loop leaf when a targetable game surface is available; then continue its separate host/client resource, creature, privacy, reconnect, and cost verification child.
+
+### 2026-09-23T19:26:06Z — Verify M7 peers and bounded profile
+
+Outcome: Closed the M7 same-seed host/client, rejected-mutation, privacy, reconnect, and bounded-cost verification child. The seed-418 current-generator profile passed its conflicting-seed late join and captured current actor, replication, memory, and sparse-save measurements. The unscripted fresh-player leaf remains BLOCKED and unchecked because this host has no targetable native game window.
+
+Changed this run: `BACKLOG.md`, `docs/07-development-setup.md`, and this handoff. No gameplay, UI, networking, or persistence source changed. Commit `5b0a2a1` contains only the current-run profile paragraph from the otherwise dirty setup document; prior edits to BACKLOG and PROGRESS remain unstaged and preserved.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build passed 171 actions in the immediately preceding M7 run from isolated copy `C:\Users\Ville\AppData\Local\Temp\K7m7-c36ef5`; no source changed between that build and this verification. Ten current-source automations passed: `Kalmala.World.M7.BiomeContentContract`, `Kalmala.World.M7.PersistenceContract`, `Kalmala.Gameplay.Progression.ReplicationContract`, `Kalmala.Gameplay.Inventory.NetworkContract`, `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`, `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`, `Kalmala.UI.SurvivalStatus.LocalPresentation`, `Kalmala.Gameplay.Food.CampfireProcessing`, `Kalmala.Gameplay.Status.SteadyMeal`, and `Kalmala.Gameplay.Crafting.NetworkContract`; log: `C:\Users\Ville\AppData\Local\Temp\KalmalaM7Acceptance-57dd38cfe93240219b5bc6ff4da91611\automation.log`. `Scripts/Verify-WorldProfile.ps1 -Port 21318` passed; log directory: `C:\Users\Ville\AppData\Local\Temp\KalmalaWorldProfile-55fd232bc0814f83982f7a98bd1b3b06`. It measured 103.13 ms generation, 1,776.77 MB used physical memory, 47 total and 29 replicated actors, 9 terrain patches, 1 active population key, and 2,215 serialized population-save bytes. This is one initial snapshot, not a long-session memory-growth result; the existing 25-patch and 256-sparse-identity limits remain the documented bounds. `Scripts/Verify-MirelingPeer.ps1 -Port 21319`, `Scripts/Verify-DeerPeer.ps1 -Port 21320`, and `Scripts/Verify-BoarPeer.ps1 -Port 21321` each passed seed reproduction, server-authoritative encounter/combat, invalid-client rejection, owner-only rewards, relevant peer replication, and restart persistence. Their logs are in `C:\Users\Ville\AppData\Local\Temp\KalmalaMirelingPeer-0dc4f3e67d30418196d84eb92e48e265`, `C:\Users\Ville\AppData\Local\Temp\KalmalaDeerPeer-e5c2c7ac37f141429e99d26c2c1b768c`, and `C:\Users\Ville\AppData\Local\Temp\KalmalaBoarPeer-b32458abe39b4ee4843868299cc64427`. The immediately preceding current-source run also passed inventory reconnect, rendered crafting, camp recovery, and rare-discovery peer checks at ports 21314–21317. The M5 documentation-contract suite passed all five no-build contracts and `git diff --check` passed after the handoff update.
+
+Multiplayer and persistence impact: No runtime contract changed. The passing peer fixtures confirm server-selected encounters and rewards, rejected target-free client attacks, owner-only rewards and private inventory/progression, relevant combat/weather/status state, and matching-world restart state. No new RPC, client-authored outcome, replicated field, or save-schema field was added.
+
+Known limits: The current profile measures the existing serialized population delta, not persistent M7 tools, food, progression, or loot (which remain transient under the approved save gate). Physical memory is a single host snapshot, with no sustained-growth measurement. Rendered host/client crafting was reviewed at 1280×720; the full unscripted fresh-player M7 session still requires a targetable game window.
+
+Next task: Run the remaining M6 release-candidate regression loop after the M7 content pass; keep the fresh-player M7 leaf blocked until native game-window access is available.
+
+### 2026-09-23T20:13:51Z — Retry M7 fresh-player surface check
+
+Outcome: The first remaining M7 fresh-player loop remains blocked because this
+host still cannot expose a targetable native game window. The later M6 release
+candidate regression loop remains gated on completion of the M7 content pass.
+
+Changed this run: `BACKLOG.md` and this handoff only. No runtime source or
+contract changed. The existing unrelated working-tree edits were preserved;
+nothing was staged or committed.
+
+Verification: `cua.getState()` returned `apps=[]` and only the Codex in-app
+browser. The retained package path is
+`C:\Users\Ville\AppData\Local\Temp\KalmalaRelease-511dae00c4734478a302d99ded81dc60\Archive\Windows\Kalmala.exe`.
+Attempting the documented native launch and inventory calls failed because
+`cua.computer.launch_app` and `cua.listApps` are undefined in this runtime. No
+game window could be selected, so the normal-player session, build, automated
+gameplay checks, and gated release suite were not run in this attempt.
+
+Multiplayer and persistence impact: None. No gameplay action occurred and no
+network, authority, persistence, or save-schema contract changed.
+
+Known limits: The M7 unscripted gather/craft/repair/food/weather/discovery loop
+has not been observed in one player session. Earlier independent fixtures do
+not replace that acceptance. The supported native player surface is the
+remaining blocker.
+
+Next task: Resume the blocked fresh-player M7 loop when a targetable native
+game window can be exposed; then run the M6 release-candidate regression loop.
+
+### 2026-09-24T04:47:13Z — Recheck M7 player-loop access
+
+Outcome: The M7 fresh-player loop remains blocked because this runtime cannot
+expose a targetable native game window. The M6 release-candidate loop remains
+gated on the M7 content pass.
+
+Changed this run: `BACKLOG.md` and this handoff only; added the current native
+surface recheck to the blocked leaf. No runtime source or contract changed.
+Pre-existing working-tree edits were preserved. Nothing was staged or
+committed.
+
+Verification: `cua.getState()` returned `apps=[]` and only the Codex in-app
+browser. `cua.listApps`, `cua.listWindows`, and `cua.computer` are undefined in
+the current runtime, so there is no API to launch or select a native game
+window. The required fresh-player session and gameplay/build regression were
+not run. `git diff --check` passed after the handoff update.
+
+Multiplayer and persistence impact: None. No gameplay action occurred and no
+authority, network, persistence, or save-schema contract changed.
+
+Known limits: The one-session gather/craft/repair/food/weather/return/discovery
+loop remains unobserved. The runbook requires player-visible evidence and does
+not accept developer fixtures as a substitute. The current targetable native
+game surface is the blocker.
+
+Next task: Make a native Windows game window available to the CUA runtime and
+resume the M7 fresh-player loop; run the gated M6 release regression only after
+that content pass.
+
+### 2026-09-24T05:34:10Z — Replace M7 native-use gate with headless acceptance
+
+Outcome: Completed M7 biome discovery and recovery acceptance through isolated
+fresh-profile host/client fixtures and local presentation automations. M7 no
+longer requires Computer Use or an unscripted single-session walkthrough. M6
+still owns supported-session and packaged player walkthrough acceptance.
+
+Changed this run: `Scripts/Verify-M7AutomatedAcceptance.ps1`,
+`docs/18-m7-automated-acceptance.md`, `docs/README.md`, `docs/04-roadmap.md`,
+`docs/05-decision-log.md`, `BACKLOG.md`, and this handoff. Existing unrelated
+working-tree changes were preserved.
+
+Verification: PowerShell parser validation passed for the new acceptance
+script. `Scripts/Verify-M7AutomatedAcceptance.ps1 -PortBase 23820` passed all
+13 focused Unreal automation tests and all five host/client scenarios:
+gathering/tool lifecycle, rendered crafting and stations, camp weather/recovery,
+optional boar encounter, and optional discovery. This ran in isolated UE5.8.2
+copy `C:\Users\Ville\AppData\Local\Temp\K7m7-c36ef5`; hashes for the 23
+modified C++ sources matched the current checkout. The rendered crafting
+scenario's capture assertions passed. `git diff --check` passed. No Unreal build
+was needed for this script and documentation increment.
+
+Multiplayer and persistence impact: No runtime source, RPC, authority,
+replication, or save contract changed. The fixtures exercised existing
+server-owned outcomes and privacy checks.
+
+Known limits: The outcomes were verified in separate isolated fixtures rather
+than one unscripted player journey. The M6 supported-session and packaged
+walkthrough remains open.
+
+Next task: Retain the M6 release-candidate loop after the content pass; rerun
+traversal, camp, combat, support, weather, construction, storage, persistence,
+minimap, packaged, and supported-session acceptance without regression.
 
 ### 2026-09-24T05:54:36Z — Recheck M6 traversal controls
 
@@ -7174,6 +7948,53 @@ Multiplayer impact: No gameplay action, RPC, authority, replication, or saved-da
 Known limits: Null-RHI startup and map loading passed, but rendered controls and the supported packaged co-op walkthrough remain unverified.
 
 Next task: Complete the supported packaged co-op walkthrough with normal joining, input, and reconnect when a targetable native game surface is available.
+
+### 2026-09-24T09:25:27Z — Block supported packaged co-op walkthrough
+
+Outcome: The supported packaged co-op walkthrough could not start because this
+session has no controllable native Windows game surface. The same blocker has
+persisted across earlier release attempts, including four ordinary packaged
+launches with no main window handle.
+
+Changed this run: `BACKLOG.md` marks the open supported-session leaf BLOCKED
+with current and historical evidence; this handoff records the required
+external action. No gameplay or package files changed.
+
+Verification: The concurrency check found only this Kalmala task active for
+`E:\dev\Kalmala`; other same-project tasks were idle. `cua.getState()` returned
+`apps=[]` and only the Codex in-app browser. The CUA runtime has no
+`listApps`, `listWindows`, or `computer.launch_app` methods, so it cannot select
+or launch a native game window for physical input. No packaged walkthrough,
+normal joining, gameplay input, or reconnect was run. The prior clean-profile
+null-RHI package smoke remains the latest package verification and does not
+cover this acceptance.
+
+Multiplayer impact: None. No gameplay authority, replication, RPC, or save
+contract changed.
+
+Known limits: Normal packaged joining, physical input, player-visible co-op,
+and reconnect remain unverified. The packaged game needs to be exposed through
+a session with native app/window inventory and input controls enabled.
+Nothing was staged or committed because the required acceptance verification
+could not run.
+
+Next task: Enable native app/window inventory and input control for this
+session, expose the packaged game window, and rerun the supported co-op
+walkthrough from a fresh local user directory.
+
+### 2026-09-24T10:14:58Z — Complete M7 post-content regression without a native window
+
+Outcome: Replaced the native-window-dependent M7 release-regression leaf with a documented headless host/client acceptance path. The criterion explicitly distinguishes process-level validation from the still-unverified player-visible packaged walkthrough.
+
+Changed this run: `BACKLOG.md`, `docs/04-roadmap.md`, `docs/12-vertical-slice-runbook.md`, `docs/18-m7-automated-acceptance.md`, and this handoff. Existing working-tree edits were preserved. No runtime source or gameplay contract changed.
+
+Verification: `Scripts/Verify-M7AutomatedAcceptance.ps1 -PortBase 25110` passed all 13 focused Unreal automation tests and all five isolated host/client scenarios: gathering/tool lifecycle, rendered crafting/stations, weather/camp recovery, optional boar encounter, and optional discovery. Captures and logs are under `C:\Users\Ville\AppData\Local\Temp\KalmalaM7AutomatedAcceptance-1d7a092852cf48299add3726b09a2e31`. `Scripts/Verify-M5DocumentationContracts.ps1` passed all five documentation contracts. `git diff --check` passed on the changed backlog, handoff, and documentation paths.
+
+Multiplayer and persistence impact: No runtime, RPC, authority, replication, or save contract changed. The existing fixtures checked server-owned outcomes, peer state, privacy, reconnect, and rejection behavior.
+
+Known limits: Native packaged gameplay, physical keyboard/controller input, and the unscripted 20–30-minute co-op journey remain unverified. The prior clean-profile package smoke verified startup and map load only. The headless pass does not represent those player-facing checks as passed.
+
+Next task: The backlog currently has no M8 implementation leaf. Add ordered M8 ocean-travel tasks from `docs/04-roadmap.md` before starting that milestone.
 
 ### 2026-09-24T10:33:45Z — Add ordered M8 ocean-travel backlog
 
@@ -7657,6 +8478,19 @@ Multiplayer and persistence impact: Clients cannot choose vessel identity, trans
 Known limits: No live two-player shutdown/restart/rejoin journey or long-distance budget profile was run. Skiff snapshots are accepted only while moored; normal inventory and cargo are not persisted.
 
 Next task: Verify long-distance peer travel and budgets, including two-player embark/travel/discovery/disembark/reconnect and actor, memory, replication, save-size, and frame-time measurements. Main checkout used; no worktree handoff synchronization was needed.
+### 2026-09-25T11:46:10Z — M8 peer skiff crossing blocked
+
+Outcome: Added a development-only seed-418 host/client journey fixture that finds a generated-coast launch, uses the server launch/seat paths, assigns the remote client as helm, and asks its local Character to send steering through the existing owner RPC. The fixture also checks host/client weather state and expects a 2.4 km voyage. The first M8 integrated-crossing child remains BLOCKED and unchecked: no run demonstrated underway movement, long-distance travel, or the patch transition.
+
+Changed this run: `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Scripts/Verify-OceanSkiffJourney.ps1`, `docs/07-development-setup.md`, `docs/19-m8-ocean-travel-contract.md`, `BACKLOG.md`, and this handoff. Edits to the already-dirty `BACKLOG.md` and `docs/07-development-setup.md` are limited to this M8 status; pre-existing changes remain intact.
+
+Verification: The forced UE5.8.2 `KalmalaEditor Win64 Development` build succeeded after the Character driver and again after assigning helm to the remote client; both builds had normal `%LOCALAPPDATA%/UnrealBuildTool` access. The PowerShell runner parsed successfully and scoped `git diff --check` passed. The live peer runner did not pass. Two direct server-steering attempts logged `Ocean journey peer verification FAILED: validated helm steering was rejected.` A listen-host helm-RPC run and the latest remote-client helm-RPC run each launched the skiff and assigned both seats but emitted no underway, travel, or stop observation after about two minutes. In the latest run, host and client weather checks for cycles 7001 and 7002 passed. Its retained logs are in `C:/Users/Ville/AppData/Local/Temp/KalmalaOceanSkiffJourney-9d6145059eaf4f7cbc7bb377a9e3e394`; the process was stopped after the steering blocker recurred. No full 660-second runner timeout or engine failure was observed.
+
+Multiplayer and persistence impact: The new movement driver is compiled only outside shipping builds and uses the existing helm-owned server RPC. Vessel movement and occupancy remain server-authoritative. This run added no production RPC, replicated gameplay state, or saved-data field.
+
+Known limits: The fixture has not verified movement, a 2.4 km voyage, terrain-patch transition, discovery, disembark, late join, reconnect, or actor/memory/replication/save-size/frame-time budgets. The finite world has no origin rebasing. All run changes remain uncommitted because the required live verification failed; unrelated working-tree changes were not staged or modified.
+
+Next eligible task: Claim an optional sea discovery, stop safely, and disembark while both peers retain accepted state. Before rerunning the blocked crossing, diagnose why both validated direct server steering and owner-RPC driving fail to produce movement. Main checkout used; no worktree handoff synchronization was needed.
 
 ### 2026-09-25T12:22:00Z — Verify ocean discovery and safe disembark peers
 
@@ -8023,6 +8857,49 @@ Known limits: The integrated fixture creates its test skiff directly and claims 
 
 Next task: Continue the first unchecked M8 representative-journey task by combining this voyage with a dry-shore landing and/or late-join/reconnect acceptance in the same two-player trip.
 
+### 2026-09-26T12:23:22Z — Block integrated dry-shore landing
+
+Outcome: The integrated dry-shore increment remains blocked. The development
+fixture now seeks a representative discovery voyage with two safe dry-land
+exit positions and checks server and remote-owner landing samples. The
+production disembark path prefers server-selected dry land within its bounded
+search, retaining the prior deep-water exit as fallback.
+
+Changed this run: `Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryDisembarkPeerTest.cpp`,
+`Scripts/Verify-OceanSkiffIntegratedJourney.ps1`, the M8 disembark rule in
+`docs/19-m8-ocean-travel-contract.md`,
+`docs/22-m8-integrated-discovery-voyage.md`, `BACKLOG.md`, and this handoff.
+Other pre-existing working-tree edits remain untouched. Nothing was staged or
+committed.
+
+Verification: The initial build from the main checkout exited 1 without UBT
+diagnostics. Forced UE5.8.2 `KalmalaEditor Win64 Development` builds in a
+disposable project mirror passed, first in 181 actions and then in 5-action
+incremental builds after the implementation changes, with normal
+`%LOCALAPPDATA%\UnrealBuildTool` access. The runner PowerShell parser and an
+initial scoped `git diff --check` passed. Three live
+`Scripts/Verify-OceanSkiffIntegratedJourney.ps1` attempts on seed 418 failed
+with the same setup evidence: `bounded seed-418 search found no discovery with
+a deep-water patch-crossing route and safe stop`. Logs are recorded under the
+three temporary paths in `BACKLOG.md`; no voyage or landing assertion passed.
+
+Multiplayer and persistence impact: Landing position remains server-selected;
+clients do not submit exit coordinates. Existing interaction authority,
+occupancy, clear-capsule checks, deep-water fallback, RPCs, replication, and
+save schema are unchanged. The expanded dry-land scan reaches 8,000 cm, but
+that behavior has not been verified in a live peer landing.
+
+Known limits: Seed 418 did not provide an eligible integrated route after
+three task-scoped attempts (original 190 cm search, dry-first selection, then
+the 8,000 cm bounded search). Dry-shore peer acceptance is not complete; the
+new behavior is uncommitted. No commit was made because the required live
+verification failed.
+
+Next task: After this blocked leaf, combine late join and authenticated
+restart/reconnect with the same M8 sailing/discovery trip while preserving
+accepted seat and reward state.
+
 ### 2026-09-26T14:03:47Z — Combine M8 voyage late join and restart
 
 Outcome: Passed the selected M8 integrated late-join and authenticated
@@ -8131,6 +9008,23 @@ Next task: Gate Lightwood and Densewood harvesting with server-validated
 Bronze Axe and Iron Axe requirements, checking station level only when each
 tool is crafted or upgraded. Main checkout used; no handoff sync was needed.
 
+
+### 2026-09-27T06:29:52Z — Trim backlog after M4
+
+Outcome: Condensed completed M5–M8 checklists into short milestone summaries while preserving their statuses, limitations, and accepted scope decisions.
+
+Changed: Removed repeated build/test logs and implementation detail from the completed backlog sections, and shortened the completed M9 catalogue entries. Kept all open M9 tasks and their order, and linked to the roadmap, contracts, and existing handoff evidence. No gameplay or contract files changed.
+
+Files changed this run: `BACKLOG.md` and `PROGRESS.md`.
+
+Verification: Backlog milestone/order/state assertions passed; scoped `git diff --check -- BACKLOG.md PROGRESS.md` passed. No build was needed for this documentation-only edit.
+
+Multiplayer impact: None. No gameplay, network, authority, or persistence behavior changed.
+
+Known limits: M5's packaged player loop and M7 physical-input walkthrough remain unverified; M6 release gates remain administrative/deferred; M8 dry-shore landing remains waived. Historical run evidence remains in `PROGRESS.md`.
+
+Next task: Gate Lightwood and Densewood harvesting with server-validated Bronze Axe and Iron Axe requirements; check Workbench/Forge level only when crafting or upgrading the axe.
+
 ### 2026-09-27T07:04:00Z — Add M9 axe harvest gates
 
 Outcome: Completed the first M9 source-catalogue implementation leaf. The
@@ -8183,6 +9077,225 @@ Next task: Integrate the approved second-wave materials and bounded loot with
 the existing harvest transaction, owner inventory, and sparse world-delta
 contracts. Main checkout used; no worktree handoff synchronization was needed.
 
+### 2026-09-27T07:56:35Z — Integrate M9 source rewards
+
+Outcome: Completed the first M9 implementation child for second-wave harvest
+rewards. All four canonical source IDs now resolve to their catalogue material,
+and accepted server harvests can grant the contract's deterministic one-or-two
+units through the existing owner-inventory candidate transaction.
+
+Changed: Added `PeatAmber` and `FrostSalt` with their approved 40-item stack
+caps; extended the server selection for both deposits using the existing Stone
+Pick/Mining path; added standard FNV-1a yield selection and source-specific
+`resource:m9:v1:` depletion IDs; routed M9 depletion through a GameMode
+session-only set without enabling schema-1 SaveGame writes. Added the focused
+M9 source/loot contract automation and documented its verification boundary.
+Checked the material-and-loot integration child in `BACKLOG.md`.
+
+Files changed this run: `Config/DefaultGame.ini`,
+`Source/KalmalaWorld/Public/KalmalaBiomeContentContract.h`,
+`Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaM9SourceLootContract.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceLootContractTest.cpp`,
+`Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+`Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`,
+`Source/KalmalaGameplay/Public/KalmalaM9SourceLootContract.h`,
+`docs/24-m9-second-wave-source-catalogue.md`,
+`docs/25-m9-second-wave-harvest-integration.md`, `docs/README.md`,
+`BACKLOG.md`, and `PROGRESS.md`.
+
+Verification: UE 5.8.2 `KalmalaEditor Win64 Development` build passed 27
+actions with normal `%LOCALAPPDATA%/UnrealBuildTool` access. The focused editor
+automations passed: `Kalmala.Gameplay.M9.SecondWaveHarvestContract`,
+`Kalmala.Gameplay.M9.AxeHarvestGates`,
+`Kalmala.Gameplay.Tools.LifecycleContract`,
+`Kalmala.Gameplay.Inventory.Catalogue`,
+`Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion`, and
+`Kalmala.World.M7.BiomeContentContract`. The two-visit
+`Scripts/Verify-InventoryReconnect.ps1 -Port 18977` host/client run passed.
+Scoped `git diff --check` passed for this increment's paths.
+
+Multiplayer and persistence impact: The server selects reward, quantity, and
+source identity from server-owned source/world data; clients provide only tool
+and action intent. The whole inventory grant is preflighted before condition
+and node mutation. First-wave sparse-save callbacks remain unchanged. M9
+resource IDs are session-only until the versioned migration gate; no new save
+field or persistent write was added.
+
+Known limits: M9 source descriptors are not yet activated in generated
+populations. The new M9 item/bonus contract passed headless checks, but this run
+did not exercise a newly generated M9 source through live peer interaction.
+M9 depletion does not survive restart until its persistence gate passes.
+
+Next task: Verify each approved source and reward is deterministic, bounded,
+same-world, in range, and unchanged by rejected client requests. Main checkout
+used; no worktree handoff sync was needed.
+
+### 2026-09-27T08:20:45Z — Verify M9 source harvest acceptance
+
+Outcome: Completed the final verification child for the M9 source and loot catalogue. All four approved source IDs completed an accepted server harvest with the expected deterministic bounded reward, tool wear, and stable depletion identity.
+
+Changed this run: Added Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance and documented its coverage in docs/26-m9-second-wave-source-acceptance.md. The fixture rejects forged tool/action intent, excessive trace distance, out-of-range interaction, foreign-world pawns, and non-authoritative execution without changing the source, owner inventory, or tool condition. Checked the M9 source-catalogue parent and final child in BACKLOG.md and indexed the acceptance note.
+
+Files changed this run: Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp, docs/26-m9-second-wave-source-acceptance.md, docs/README.md, BACKLOG.md, and PROGRESS.md.
+
+Verification: Forced UE 5.8.2 KalmalaEditor Win64 Development build passed after compiling the new fixture in four actions with normal %LOCALAPPDATA%/UnrealBuildTool access. Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance, Kalmala.Gameplay.M9.SecondWaveHarvestContract, Kalmala.Gameplay.M9.AxeHarvestGates, Kalmala.Gameplay.Tools.LifecycleContract, Kalmala.Gameplay.Inventory.Catalogue, and Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion all reported Result={Success}. Scoped diff and new-file whitespace checks passed.
+
+Observable impact: Each of the four catalogue materials now has direct acceptance coverage through the server harvest seam, including successful reward/depletion and unchanged state after rejected requests.
+
+Multiplayer and persistence impact: Production source selection, reward, tool wear, inventory commit, and depletion remain server-owned. The fixture exercises the server transaction seam but adds no RPC, replicated field, or save schema. M9 sparse depletion remains session-only pending the versioned persistence gate.
+
+Known limits: The test initializes transient source nodes from server population descriptors; generated-world M9 source activation and live host/client acceptance remain unverified.
+
+Next eligible task: Extend the existing owner-only tool-condition records into the owner's carried-tool inventory with server-owned tool level and condition, keeping tool level separate from skill level.
+
+Main checkout used; no worktree handoff synchronization was needed.
+
+
+
+### 2026-09-27T09:01:33Z — Add carried-tool inventory records
+
+Outcome: Completed the first M9 tool-progression child. Each character now has a
+bounded `CarriedTools` array of server-created records with separate tool level
+and condition. The three starting tools begin at level 1 with full condition.
+
+Changed: Replaced replicated per-tool condition fields with one `COND_OwnerOnly`
+record array; added server-side initial-list construction and read accessors;
+harvest and repair continue to mutate the server-owned records. Kept
+editor-only legacy condition seeds solely so the existing M9 source acceptance
+fixture can construct axe states. Added the focused inventory automation and
+the M9 carried-tool contract note; checked only this backlog child.
+
+Files changed this run: `Source/KalmalaGameplay/Public/KalmalaToolLifecycleContract.h`,
+`Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp`,
+`Source/KalmalaGameplay/Public/KalmalaCharacter.h`,
+`Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaCarriedToolInventoryTest.cpp`,
+`docs/27-m9-carried-tool-inventory.md`, `docs/README.md`, `BACKLOG.md`, and
+`PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in
+34 actions with normal `%LOCALAPPDATA%/UnrealBuildTool` access. The first
+`UnrealEditor-Cmd.exe` attempt stopped at the documented all-platform SDK
+preflight because LinuxArm64 and VisionOS `MainVersion` SDKs are unavailable;
+the `UnrealEditor.exe` fallback passed
+`Kalmala.Gameplay.Tools.CarriedToolInventoryContract`,
+`Kalmala.Gameplay.Tools.LifecycleContract`,
+`Kalmala.Gameplay.M9.AxeHarvestGates`,
+`Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`, and
+`Kalmala.Gameplay.Crafting.NetworkContract`. `Scripts/Verify-InventoryReconnect.ps1
+-Port 19681` passed its two-client reconnect, tool condition, and owner/remote
+privacy checks. Scoped `git diff --check` passed.
+
+Observable and multiplayer impact: The owner receives each carried tool's
+level and condition; remote peers receive no detailed tool state. The server
+creates and mutates records, while client requests remain intent-only. The new
+array is transient and adds no save field or RPC.
+
+Known limits: All current starting tools remain level 1; Bronze/Iron Axe
+progression, acquisition costs, station matching, and free repair remain
+future M9 work. No tool state is persisted.
+
+Next eligible task: Define the Bronze Axe and Iron Axe in carried-tool
+progression, with target levels, upgrade costs, and matching Workbench/Forge
+levels. Main checkout used; no worktree handoff synchronization was needed.
+
+
+### 2026-09-27T09:45:26Z — Define M9 axe progression entries
+
+Outcome: Added a bounded server-authored progression catalogue for Bronze and Iron Axes. Bronze Axe targets level 1 at a level-1 Workbench; Iron Axe upgrades Bronze Axe level 1 to level 2 at a level-2 Forge, using existing catalogue materials.
+
+Changed: Added `FKalmalaToolProgressionContract`, static material/station/prerequisite entries, and its focused automation. Updated `docs/27-m9-carried-tool-inventory.md` with levels, costs, and transaction/persistence limits. Checked only the selected axe-progression child in `BACKLOG.md`.
+
+Files changed this run: `Source/KalmalaGameplay/Public/KalmalaToolProgressionContract.h`, `Source/KalmalaGameplay/Private/KalmalaToolProgressionContract.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolProgressionCatalogueTest.cpp`, `docs/27-m9-carried-tool-inventory.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed 33 actions with normal `%LOCALAPPDATA%/UnrealBuildTool` access. Headless `UnrealEditor.exe` automation passed `Kalmala.Gameplay.M9.ToolProgressionCatalogue`, `Kalmala.Gameplay.Tools.CarriedToolInventoryContract`, `Kalmala.Gameplay.M9.AxeHarvestGates`, and `Kalmala.Gameplay.Tools.LifecycleContract`; automation log: `C:/Users/Ville/AppData/Local/Temp/KalmalaM9ToolProgressionCombined/Automation.log`. `git diff --check -- docs/27-m9-carried-tool-inventory.md` passed.
+
+Multiplayer impact: This is static server-rule data only. Existing harvest gates still validate server-owned tool state; no RPC, replication, inventory mutation, or client-authored result changed.
+
+Known limits: The materials, prerequisite, and station requirements are not consumed by a craft/upgrade transaction yet. Forge construction, level-two attachments, free repair, and tool persistence remain later M9 work. Axe progression remains transient and axes remain absent from starting inventory.
+
+Next task: Add the buildable Forge and level-one Workbench baseline, then require the server-selected matching Workbench or Forge level when crafting or upgrading a tool.
+
+Main checkout used; no worktree handoff synchronization was needed.
+
+### 2026-09-27T10:58:08Z — Add Forge and gated axe progression
+
+Outcome: Added the paid, buildable level-one Forge and server-validated axe crafting/upgrade transactions. Bronze Axe requires a visible same-world level-one Workbench; Iron Axe requires a visible same-world level-two Forge and exchanges a carried level-one Bronze Axe.
+
+Files changed this run: `Config/DefaultGame.ini`, `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`, `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`, `Source/KalmalaGameplay/Private/KalmalaPlacementPreview.cpp`, `Source/KalmalaGameplay/Private/KalmalaToolProgressionContract.cpp`, `Source/KalmalaGameplay/Public/KalmalaToolProgressionContract.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolProgressionCatalogueTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolStationProgressionTest.cpp`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `docs/07-development-setup.md`, `docs/10-campfire-and-crafting.md`, `docs/17-m7-tools-and-gathering.md`, `docs/27-m9-carried-tool-inventory.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in four actions with normal `%LOCALAPPDATA%/UnrealBuildTool` access. Eleven focused construction, crafting, carried-tool, and M9 progression automations passed, including `Kalmala.Gameplay.M9.ToolStationProgression`. `Scripts/Verify-InventoryReconnect.ps1 -Port 19127` passed two client visits to one listen server, including accepted/rejected transactions, replication, and owner/remote privacy. `git diff --check` passed for the scoped changes.
+
+Commit: `8de9d0c` (`Add M9 Forge tool station progression`).
+
+Observable and multiplayer impact: The crafting panel exposes Bronze/Iron axe actions and owner-only station/cost guidance. Clients submit only the target tool ID; the server chooses the matching visible station, derives its level, validates carried-tool state and materials, and commits the inventory/tool candidates. Tool and station levels remain transient; the generic construction save schema is unchanged.
+
+Known limits: Both base stations are level 1, so Iron Axe remains unavailable until the next Forge attachment task contributes level 2. Rendered player walkthrough, station attachments, tool persistence, and free repair remain future work. The task checkbox and this handoff entry are updated in the working copy but remain unstaged: `BACKLOG.md` and `PROGRESS.md` already contain unrelated uncommitted roadmap/history changes, so staging them would include pre-existing work.
+
+Next eligible task: Add paid, buildable station attachments that each contribute +1 to the matching nearby Workbench or Forge level; validate same-world placement and station-use range on the server.
+
+Main checkout used; no worktree handoff synchronization was needed.
+
+### 2026-09-27T12:17:11Z — Add paid station level attachments
+
+Outcome: Added paid Workbench tool-rack and Forge-anvil kits. Their matching visible same-world station must be within 250 cm to craft; server placement must land within 125 cm of that station. An accepted attachment raises its station from level 1 to 2, enabling the existing level-two Iron Axe Forge requirement. Attachments are session-only under the current persistence gate.
+
+Files committed in this increment: `Config/DefaultGame.ini`, `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`, `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaGameplay/Private/KalmalaPlacementPreview.cpp`, `Source/KalmalaGameplay/Private/KalmalaToolProgressionContract.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolProgressionCatalogueTest.cpp`, `Source/KalmalaGameplay/Public/KalmalaToolProgressionContract.h`, and `docs/27-m9-carried-tool-inventory.md`. Commit: `8961449 Add paid station level attachments`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in 8 actions with normal `%LOCALAPPDATA%/UnrealBuildTool` access. These six editor automations passed: `Kalmala.Gameplay.Construction.LocalPreview`, `Kalmala.Gameplay.Construction.SaveContract`, `Kalmala.Gameplay.Crafting.NetworkContract`, `Kalmala.Gameplay.Crafting.Transactions`, `Kalmala.Gameplay.M9.ToolProgressionCatalogue`, and `Kalmala.Gameplay.M9.ToolStationProgression`. Staged `git diff --cached --check` passed.
+
+Multiplayer impact: Craft and placement RPCs still accept only recipe/batch intent or a kit ID. The server selects the matching nearby station, checks authority, same-world visibility and range, rejects duplicate or distant attachments, derives effective level from initialized actors, and caps the session at 32 attachments. No client-supplied station, transform, level, cost, or result was added; no save schema changed.
+
+Known limits: Attachments and their level bonus disappear when the session ends; persistence remains gated on the M9 migration contract. No live host/client placement walkthrough or rendered placement review ran. `BACKLOG.md` has the selected child checked in the working copy; its surrounding M9 section and prior progress history were already uncommitted, so the backlog/progress handoff remains unstaged to preserve those edits. The M9 verification notes in `docs/07-development-setup.md` are likewise left with its pre-existing edits. Main checkout used; no worktree handoff synchronization was needed.
+
+Next eligible task: Use the existing level-five skill unlock for tier-two recipes, validating tool level, skill, materials, station level, condition, and any output slot atomically.
+
+### 2026-09-27T12:55:03Z — Gate tier-two Iron Axe upgrade
+
+Outcome: The Iron Axe level-two upgrade now requires the server-owned Crafting
+skill at level 5, including its derived second-tier unlock. The owner crafting
+panel displays this requirement and rejected attempts explain the missing
+unlock.
+
+Files changed this increment: `Source/KalmalaGameplay/Public/KalmalaToolProgressionContract.h`,
+`Source/KalmalaGameplay/Private/KalmalaToolProgressionContract.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolStationProgressionTest.cpp`,
+`docs/27-m9-carried-tool-inventory.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in
+190 actions in a temporary mirror with normal `%LOCALAPPDATA%/UnrealBuildTool`
+access; final rebuild passed in 7 actions. These six editor automations passed:
+`Kalmala.Gameplay.M9.ToolStationProgression`,
+`Kalmala.Gameplay.M9.ToolProgressionCatalogue`,
+`Kalmala.Gameplay.Tools.CarriedToolInventoryContract`,
+`Kalmala.Gameplay.Tools.LifecycleContract`,
+`Kalmala.Gameplay.Crafting.NetworkContract`, and
+`Kalmala.Gameplay.Progression.SkillContract`. The two-client
+`Scripts/Verify-InventoryReconnect.ps1 -Port 19748` run passed owner-only tool
+condition and remote inventory privacy checks. Scoped `git diff --check` passed.
+
+Observable and multiplayer impact: The server reads the skill ledger from the
+authoritative character, then validates Crafting level/unlock, carried Bronze
+Axe level and condition, level-two Forge, materials, and tool/inventory
+candidates before commit. The RPC still accepts only a target tool ID; clients
+cannot submit skill or tool levels, costs, station, or outcome. No save schema
+or replicated field changed.
+
+Known limits: A live peer upgrade walkthrough was not run. Tool and station
+progression remain transient until the M9 migration contract passes; free repair
+remains open. The task is checked in the working copy, but no commit was made:
+automatic review rejected index staging because it could not independently
+establish the pre-existing state of the changed files. No files were staged.
+
+Next eligible task: Replace material-paid repair and zero-condition replacement
+with free selected-tool repair at the Workbench/Forge and `Repair All` at a
+buildable Grinding Stone. Main checkout used; no worktree sync was needed.
+
 ### 2026-09-27T13:57:49Z — Add free selected-tool repair
 
 Outcome: Replaced material-paid repair and zero-condition tool replacement with free repair of the selected damaged carried tool at a visible same-world Workbench or Forge. The server restores condition to maximum while preserving tool identity, level, and other state. Retired replacement recipes no longer appear or execute, and the owner crafting panel now exposes the free repair action for the five current tools.
@@ -8196,7 +9309,6 @@ Observable and multiplayer impact: Repair RPC intent remains only the selected t
 Known limits: The reconnect fixture exercised Workbench repair; Forge repair has contract-level and code-path validation but no separate live peer walkthrough. Buildable Grinding Stone Repair All and the presentation-only repair animation remain unfinished, so this backlog task stays unchecked. Tool condition remains transient under the existing persistence gate.
 
 Next task: Complete the same repair backlog leaf with a buildable Grinding Stone and server-validated Repair All, then finish the presentation-only animation and repeat the focused verification. Main checkout used; no worktree handoff synchronization was needed.
-
 ### 2026-09-27T15:21:14Z - Add Grinding Stone Repair All
 
 Outcome: Added the paid buildable GrindingStoneKit and its in-world, server-authoritative Repair All action. It costs 2 Lashed timber and 4 Fieldstone at a visible Workbench. The server revalidates the exact accepted Grinding Stone for same-world visibility and 250 cm range, validates the complete bounded carried-tool candidate, repairs damaged and broken tools, preserves full tools and each tool level/slot, and publishes atomically. The owner receives a private result.
@@ -8212,3 +9324,79 @@ Known limits: The sharpening animation is still open presentation work. Tool and
 Handoff: The selected backlog checkbox is checked in the working copy. The surrounding M9 section had pre-existing edits, so BACKLOG.md remains unstaged to preserve them. Main checkout used; no handoff sync was needed.
 
 Next eligible task: Add the short tool-appropriate sharpening animation for Grinding Stone repair and keep it presentation-only.
+
+### Run 2026-09-27T16:05:53Z — Add Grinding Stone sharpening animation
+
+Outcome: An accepted server-side Grinding Stone Repair All now triggers a 1.2-second, three-stroke procedural arm pose. The left arm braces while the right arm draws across the stone; both blend back to the live gait pose. The character model's procedural parts remain cosmetic and collision-free.
+
+Files changed this increment: `Source/KalmalaGameplay/Private/KalmalaPlayerModelComponent.cpp`, `Source/KalmalaGameplay/Public/KalmalaPlayerModelComponent.h`, `Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaToolSharpeningPresentationTest.cpp`, `docs/27-m9-carried-tool-inventory.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Commit: `cf8b2a2` (`Add Grinding Stone sharpening pose`). The implementation, focused automation, and M9 contract/setup hunks are committed; the backlog checkbox and this handoff remain unstaged because both files contain pre-existing edits.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in four actions with normal `%LOCALAPPDATA%/UnrealBuildTool` access. The first build exposed a test-only `TNumericLimits<float>::QuietNaN` compile error; replacing it with `std::numeric_limits<float>::quiet_NaN` fixed the failure. Isolated editor automation passed `Kalmala.Gameplay.Tools.SharpeningPresentation` and `Kalmala.Gameplay.M9.GrindingStoneRepairAll` (`Result={Success}` for both); log: `C:/Users/Ville/AppData/Local/Temp/KalmalaSharpening-3fd8c2a5455e464a910ef87b1b17995a/Automation.log`. Scoped `git diff --check` passed. UnrealEditor-Cmd reported missing LinuxArm64 and VisionOS SDK entries during preflight, then completed both tests successfully.
+
+Observable and multiplayer impact: The server triggers a parameterless unreliable multicast only after the existing accepted Repair All transaction. Peers animate their local procedural player model; the event carries no tool, inventory, condition, cost, or result data. No gameplay authority, replicated gameplay state, XP, or save schema changed. Repair validation remains server-owned and owner-only tool details are unchanged.
+
+Known limits: No live two-client or rendered in-world animation walkthrough ran; visual readability at normal play distance remains unreviewed. Tool and workstation progression remain transient under the existing M9 save gate. `BACKLOG.md` and `PROGRESS.md` contain pre-existing M9 edits and remain unstaged to preserve them.
+
+Next eligible task: Add readable level, material, station, and repair feedback while keeping detailed tool state owner-only and level/attachment persistence gated on the M9 save contract. Main checkout used; no worktree handoff synchronization was needed.
+
+### Run 2026-09-27T16:43:50Z - Clarify owner-local M9 tool feedback
+
+Outcome: Completed the first remaining M9 tool-progression feedback leaf. The owner crafting panel now states the required Workbench/Forge level when no matching station is nearby and explains Grinding Stone Repair All. The host/client feedback check covers private tool status, axe levels, material quantities, station requirements, the transient attachment gate, and repair guidance.
+
+Files changed this increment: `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Scripts/Verify-Crafting.ps1`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `docs/27-m9-carried-tool-inventory.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in 9 actions with normal `%LOCALAPPDATA%/UnrealBuildTool` access. `Scripts/Verify-Crafting.ps1 -Rendered -Port 19921` passed both peers, including `M9 tool feedback: Passed=1`; `Scripts/Verify-InventoryReconnect.ps1 -Port 19922` passed two client visits and owner-only/remote privacy checks. Scoped `git diff --check` passed. Rendered captures are retained under `C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-37908ba948c04470b48f0964f8bb7491`.
+
+Observable and multiplayer impact: Presentation reads only the local owner's existing owner-only carried-tool records and inventory. The server remains authoritative for costs, progression, station access, and repair. No RPC, gameplay outcome, replicated field, or save schema changed.
+
+Known limits: Rendered captures show the initial scroll position; M9 tool text is asserted through the widget presentation seam but its scrolled visual layout was not inspected. Tool levels and attachment bonuses remain transient until the M9 save migration contract passes.
+
+Next eligible task: Review the M9 optional camp/equipment examples and define accepted recipes plus server-side validation before implementation. Main checkout used; no worktree handoff synchronization was needed. Commit: 738a225 (Clarify M9 tool feedback).
+
+### 2026-09-28T07:55:34Z — Define M9 optional camp recipes
+
+Outcome: Defined three accepted optional M9 additions: raised rain-resistant storage, a roofed smokehouse using existing hearth checks, and a no-hearth drying line. Deferred a storm-rated shelter variant until its effect is distinct from existing roof/windbreak checks, and an insulated wrap until an equipment-slot contract exists.
+
+Changed: `docs/28-m9-camp-equipment-recipes.md` records exact kit and processing recipe IDs, costs, batch and output bounds, server validation, owner-only storage handling, and the M9 persistence gate. `docs/05-decision-log.md` records the accepted/deferred set. `docs/README.md` links the contract. The first M9 camp/equipment backlog child is checked, and this handoff is appended here. Commit `16b81d9` (`Define M9 camp recipes`) contains only the new contract and decision-log row. The BACKLOG, PROGRESS, and README updates remain unstaged because those files already contain unrelated working-tree edits; all other pre-existing changes remain untouched. Main checkout used; no worktree sync was needed.
+
+Verification: Cross-checked ingredient/output IDs, the Cooking level-2 smoke gate, and the existing meal effect against `Config/DefaultGame.ini` and `docs/10-campfire-and-crafting.md`. Staged and scoped `git diff --check` passed. No UE build or automation ran because this increment changes documentation only.
+
+Multiplayer impact: No runtime RPC, replicated field, or gameplay outcome changed. The contract keeps recipes and placement intent client-submitted, with station selection, range/visibility/heat checks, inventory candidates, and XP awards server-owned; storage contents remain owner-only.
+
+Known limits: This is a design/acceptance contract only. The new kit and food IDs remain disabled in normal save/restore until the M9 migration task passes; no gameplay implementation or host/client playtest is claimed.
+
+Next task: Keep storage, processing, construction, equipment effects, repair, costs, and skill awards within their existing authorities and accessibility feedback paths.
+
+### 2026-09-28T08:11:26Z — Close M9 tool progression parent
+
+Outcome: Closed the M9 tool levels, workstation levels, and free repair parent after confirming all eight child items are checked and their prior handoffs record passing forced builds and focused verification. This closes the completed backlog aggregate; no runtime implementation changed in this increment.
+
+Files changed this increment: `BACKLOG.md` and `PROGRESS.md` in the working tree.
+
+Verification: Confirmed all eight child checkboxes are complete and reviewed the tool progression, station, repair, sharpening, and owner-feedback contracts plus their prior build, automation, and peer-verification records. The current documentation-only update passed the M9 backlog hierarchy assertion and `git diff --check`. No Unreal build or gameplay automation was rerun because this increment changes only the aggregate handoff status.
+
+Multiplayer impact: None in this increment. The existing contract keeps tool levels, station selection, upgrade and repair outcomes server-owned, with detailed carried-tool state owner-only. Tool and workstation progression remain transient pending the M9 save migration contract.
+
+Known limits: Existing limits remain: no live Forge-repair peer walkthrough or rendered sharpening review was recorded, and M9 tool/station persistence remains gated.
+
+Commit and handoff: No commit was made. `BACKLOG.md` and `PROGRESS.md` contain pre-run edits; the current M9 checklist section is absent from `HEAD`, so an isolated coherent commit would require staging pre-existing backlog/history content. Those edits remain preserved and unstaged. Main checkout used; no worktree handoff synchronization was needed.
+
+Next eligible task: Keep storage, processing, construction, equipment effects, repair, costs, and skill awards within their existing authorities and accessibility feedback paths.
+
+### 2026-09-28T09:02:48Z — Add session-only raised storage
+
+Outcome: Added a paid `RaisedStorageKit` recipe (3 Densewood, 2 ConstructionSupply, 2 Fibre) requiring a visible same-world Workbench. The buildable chest is rain-immune and reuses the existing server-selected storage interaction, 16-stack bound, and owner-only contents view. Its actor and contents live in a server-session map and remain out of schema-one construction/storage saves; owner feedback states the session-only limit.
+
+Files changed this increment: `BACKLOG.md`, `Config/DefaultGame.ini`, `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`, `Source/KalmalaGameplay/Private/KalmalaConstructionSaveGame.cpp`, `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Private/KalmalaPlacementPreview.cpp`, `Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9RaisedStorageTest.cpp`, `Source/KalmalaGameplay/Public/KalmalaConstructionActor.h`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Public/KalmalaPlacementPreview.h`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `docs/07-development-setup.md`, and `docs/28-m9-camp-equipment-recipes.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed with normal `%LOCALAPPDATA%/UnrealBuildTool` access (30 actions; final rebuild after fixture/catalogue repairs passed 5 actions). `UnrealEditor-Cmd` returned 255 at its all-platform preflight because LinuxArm64 and VisionOS SDK versions are unavailable; the documented hidden `UnrealEditor.exe` fallback exited 0 and all 11 requested tests passed: `M9.RaisedStorage`, storage save/transfer/network, construction save/preview/rain-wear, crafting transaction/network, food processing, and steady meal. Scoped `git diff --check` passed. Repository-wide `git diff --check` still reports pre-existing trailing whitespace at `docs/04-roadmap.md:331`, outside this increment.
+
+Observable and multiplayer impact: Recipe, placement, rain immunity, storage identity, and contents are selected and mutated by the server. Clients still submit only recipe/batch or storage item intent; the existing owner-only storage view and result remain unchanged. No RPC, replicated gameplay field, or save schema changed.
+
+Known limits: No rendered two-peer raised-chest walkthrough ran. The raised construction and contents disappear when the server session ends until the M9 save migration is implemented. The roofed Smokehouse and Drying Line remain open.
+
+Commit and handoff: No commit was made. Main checkout used, so no worktree synchronization was needed. The current working tree contains a pre-existing correction that moves the ForgeKit branch into `BuildPiecePresentation`; `HEAD` leaves that branch detached after the function. The forced build passed against the working tree. A raised-storage-only commit from `HEAD` would omit the correction and fail compilation; including that earlier change would violate the run commit boundary. All current-run implementation and handoff edits remain in the working tree, unstaged.
+
+Next eligible task: Add the roofed Smokehouse alternative while retaining the server-owned smoke recipe, hearth, fuel, and skill gates.

@@ -26,6 +26,8 @@ public:
     static constexpr float RainHealthFloor = 50.0f;
     static constexpr float RainWearPerSecond = 0.10f;
     static bool IsShelterKit(FName KitId);
+    static bool IsCraftingStationKit(FName KitId);
+    static bool IsStorageKit(FName KitId);
     static FVector GetCollisionExtent(FName KitId);
     /** Advisory on clients; every mutation separately requires server authority. */
     bool CanUse(const AKalmalaCharacter* Character) const;

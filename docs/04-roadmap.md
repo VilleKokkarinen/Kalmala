@@ -166,9 +166,10 @@ M7 has nine ordered goals:
    set such as a cooking rack over a fire, a heat-safe kettle or cauldron
    analogue, and a drying or smoking frame; each station must have explicit
    fuel, heat, access, batch, and failure rules. Eating grants finite, readable
-   stat modifiers such as stamina capacity, recovery, movement comfort, or
-   exposure resilience. Effects must stack, replace, expire, and reject invalid
-   or duplicate consumption through server-owned rules. Food should create
+    stat modifiers such as stamina capacity, recovery, movement comfort, or
+    exposure resilience. Effects must define server-owned stacking and
+    replacement behavior, expire on authoritative time, and reject invalid or
+    duplicate consumption. Food should create
    preparation choices without making starvation or a mandatory food route a
    hard travel gate in the first M7 slice.
 5. **Broaden the crafting and camp progression.** Extend the existing recipe
@@ -179,6 +180,25 @@ M7 has nine ordered goals:
    must have explicit ingredient, station, unlock, failure, repair, and
    accessibility text rather than relying on colour. Processing stations must
    be useful preparation choices, not parallel inventory or fire authorities.
+   The first progression hook assigns each accepted prepared-food recipe one
+   fixed 10-point Cooking award after its inventory exchange succeeds; batch
+   size does not multiply experience, and rejected requests award none. The
+   award remains transient until a versioned progression save contract exists.
+   Smoke-frame recipes are the first optional Cooking level-2 unlock; the
+   crafting panel shows the requirement and current level, and the server
+   checks the owner's progression before attempting station or pack access.
+   The first tool replacement recipe rebuilds a Field Hatchet only at zero
+   condition through a visible workbench and atomic two-Wood/two-Stone/one-
+   Fibre payment; it restores the existing owner-only condition and awards a
+   fixed 10 Crafting experience only after payment succeeds.
+   The next first-tier replacement rebuilds a Stone Pick only at zero
+   condition, for two Wood, three Stone, and one Fibre at a visible same-world
+   workbench; accepted payment restores its existing owner-only condition and
+   awards the same fixed transient Crafting experience.
+   A Reed Knife replacement is also available only at zero condition, for one
+   Wood, one Stone, and two Fibre at a visible same-world workbench; accepted
+   payment restores its existing owner-only condition and awards the same
+   fixed transient Crafting experience.
 6. **Add biome-specific hazards and active-weather pressure.** Extend the
    server-owned environmental presentation and exposure rules with readable
    fog, rain, storms, heat, cold, and a clearly marked highly-active-weather
@@ -187,7 +207,12 @@ M7 has nine ordered goals:
    reversible, and counterable by shelter, fire, food, tools, or timing rather
    than becoming biome damage walls or mandatory travel gates. The server
    selects weather and hazard intensity from the authoritative world state;
-   clients never submit weather, exposure, hazard, or mitigation outcomes.
+   clients never submit weather, exposure, hazard, or mitigation outcomes. The
+   first bounded outcome reduces stamina recovery by at most 20% below 40
+   warmth and returns to normal as shelter or a lit fire restores warmth. A second bounded outcome shortens the existing exposed-rain Wet trigger from 10 to 7.5 uninterrupted seconds only during Highly Active weather; roofs reset exposure and lit-fire recovery remains available. A third bounded outcome increases exposed campfire fuel wetting by up to 25% in severe rain/wind storms, with accepted roofs and windbreaks suppressing their server-sampled weather inputs.
+   The replicated activity tier is now shown to each local player with a distinct
+   circle, diamond, or triangle marker and explicit tier text below the minimap;
+   local text-scale and contrast preferences apply without changing gameplay.
 7. **Build the survival HUD and GUI pass.** Add a persistent local status strip
    with an original icon or shape marker, name, category, readable remaining
    timer, intensity or stack count, source, and recovery hint for `Wet`, food
@@ -206,14 +231,22 @@ M7 has nine ordered goals:
    ore, repair the tool, prepare food at camp, choose a temporary benefit,
    recognize an active-weather hazard, and return with a creature or hidden
    discovery while weather, inventory, and status feedback remain
-   understandable. Verify same-seed host/client resource and creature
+   understandable. Verify the cross-system outcomes with deterministic,
+   fresh-profile host/client fixtures and local presentation automations; this
+   M7 gate does not require native computer use or an unscripted single-session
+   walkthrough. The M6 player-visible session remains preferred and its
+   limitation must stay documented; item 9 defines the headless M7 regression
+   path. Verify same-seed host/client resource and creature
    agreement, rejected client mutations, owner-only progression and inventory
    privacy, rare-loot visibility rules, status presentation, reconnect
    behavior, and bounded actor, memory, replication, and save costs.
-9. **Retain the M6 release-candidate loop.** Re-run the supported-session
-   acceptance after the content pass; the new systems must not regress the
-   existing traversal, camp, combat, support, weather, construction, storage,
-   persistence, or minimap contracts.
+9. **Retain the M6 release-candidate regression.** After the content pass,
+   re-run traversal, camp, combat, support, weather, construction, storage,
+   persistence, and minimap checks. If no targetable native game window is
+   available, use the documented headless host/client acceptance suite after
+   these regression slices and clean-profile package smoke pass. This verifies
+   process-level behavior; it does not claim that physical input or the native
+   20–30-minute player walkthrough passed.
 
 **M7 persistence gate:** skill experience, learned recipes, tool condition,
 food effects, food inventory, biome resource depletion, defeated creature
@@ -256,5 +289,106 @@ developer commands; all outcomes remain authoritative and recoverable; rare
 discoveries are optional and original; status icons, timers, intensity, and
 recovery guidance are readable without colour; matching peers observe the
 permitted state; rejected requests leave inventory, skills, tools, resources,
-effects, hazards, loot, and saves unchanged; and the M6 release-candidate loop
-remains playable.
+effects, hazards, loot, and saves unchanged; and the M6 host/client regression
+remains green through the supported native session or documented headless
+acceptance path. Headless completion leaves physical input and the player-
+visible packaged walkthrough explicitly unverified.
+
+
+**## M8 — Ocean and long-distance travel**
+
+Start only after M7 acceptance passes and the existing Phase 7 coherent biome generation and hydrology contract remains green. Implement the deferred **Phase 8 — Ocean and long-distance travel** track without replacing the current land-generation, authority, persistence, or PC solo/listen-server foundations.
+
+M8 has six ordered goals:
+
+1. **Authoritative ocean traversal.** Add an original player-controlled watercraft or equivalent long-distance travel system with server-owned movement state, boarding, disembarking, occupancy, damage or disable state where applicable, and bounded replication.
+
+2. **Coast and launch readability.** Ensure generated coastlines expose usable launch/landing opportunities without requiring handcrafted routes. Water access, shallow hazards, collision, and invalid embark locations must be readable without developer tools.
+
+3. **Ocean weather and navigation pressure.** Extend the existing weather/hazard model to open water with bounded wind, rain, visibility, wave, exposure, or stamina pressure that remains reversible and readable. Weather must complicate travel without becoming an unavoidable damage wall.
+
+4. **Optional ocean discoveries.** Add a small original catalogue of shipwreck, shoal, islet, or other sea discoveries with stable server-selected identities. Rewards remain optional, sparse, and route-free.
+
+5. **Travel-safe persistence and reconnect.** Define the minimum versioned state required to restore accepted vessel, passenger, discovery, and sparse ocean facts without duplicating players, cargo, rewards, or world identities.
+
+6. **Long-distance peer validation.** Exercise embark, travel, weather pressure, discovery, disembark, late join, reconnect, and world-origin/streaming transitions across representative long-distance journeys while holding actor, memory, replication, save, and frame-time budgets.
+
+**M8 persistence gate:** vessel or travel state may persist only through a versioned identity-safe contract with explicit world/player scope, bounded cargo/state, migration policy, and round-trip/rejection tests. Ocean discoveries use stable sparse identities and cannot be claimed twice through reconnect or load.
+
+**M8 multiplayer boundary:** the server owns vessel state, accepted movement outcomes, occupancy, ocean weather, discovery identity, rewards, damage/disable outcomes, and persisted travel facts. Clients provide steering, interaction, and action intent only.
+
+**M8 accept:** two players can launch, travel a meaningful ocean distance, survive or mitigate active ocean weather, find an optional sea discovery, safely disembark elsewhere through a validated exit (a qualifying deep-water exit is accepted; generated dry shore is not required under the 2026-09-26 scope decision), reconnect without duplicated or lost accepted state, and remain within documented performance and replication budgets.
+
+**## M9 — Expanded biome content and encounter depth**
+
+Start only after M8 acceptance passes. Deepen the existing biomes and progression systems with a bounded second content wave while preserving the route-free world, optional discoveries, original content requirement, and server-owned outcome model.
+
+M9 has five ordered goals:
+
+1. **Second-wave biome identity.** Expand each supported biome with a small additional set of original gathering sources and loot.
+   - **Example new material sources and harvests:**
+     - Meadows — birch tree (the generated tree presentation exists; a harvest interaction would be new).
+       - Lightwood from the trunk, requires an bronze axe or better to harvest.    
+     - Elderwood — ironheart tree (new tree and harvest source).
+       - Densewood from the trunk, requires an iron axe or better to harvest.
+     - Mossy Mire — peat bank (new harvest source).
+       - Peat amber from hardened seams in the bank.
+     - Freezing Tundra — salt deposits (new harvest source).
+       - Frost salt, new mining resource
+   - Treat these as candidate directions for a curated catalogue, not a locked list. Every approved gameplay entry needs a canonical ID, server-derived source or placement rule, bounded activation budget, and existing-item reward or recipe mapping where applicable. Ocean content must use M8 travel interactions; placement, depletion, hazards, claims, and rewards remain server-owned and deterministic. Do not add open-ended drop tables or client-authored content data.
+
+2. **Camp and equipment progression.** Add level upgrades for tools and matching workstation progression, then extend camp utility through the existing validated inventory, crafting, construction, station, and accessibility contracts.
+   - **Tool level and workstation matching:**
+     - Give each carried tool an authored level path. Tool level is distinct from the player's skill level and remains server-owned, with detailed tool state visible only to its owner.
+     - Extend the existing owner-only tool-condition records into the carried-tool inventory shown to that owner; the current first-wave tools are condition fields rather than pack stacks. The server, not the client, supplies the eligible tool list to repair and upgrade actions.
+     - Crafting or upgrading a tool to level N requires the server-selected, same-world Workbench or Forge to have effective level N. The level match is checked at the accepted craft or upgrade; the tool remains usable away from that station afterward.
+     - Use the existing server-owned skill ledger and its level-5 unlock band for tier-two recipes. The server validates the current tool level, requested next level, skill, station, materials, condition, and any required output slot as one transaction; clients do not choose the result or author either level.
+   - **Buildable workstation upgrades:**
+     - The existing Joiner's Workbench has no level today; M9 gives it a level-1 base. The Forge and Grinding Stone are new buildable objects. A Forge starts at level 1, and a nearby, server-accepted, station-compatible buildable attachment adds +1 to a Workbench's or Forge's effective level; the server derives the result from placed objects in the same world and the existing validated station-use range.
+     - Example new attachment objects are a Workbench tool rack or vise and a Forge anvil. Each must be a real paid construction object with a catalogue identity, placement validation, and readable recipe and station feedback.
+     - Bound effective levels to the authored progression tiers. A missing, distant, wrong-station, unbuilt, or invalidated attachment leaves station level and tool state unchanged.
+   - **Free tool repair:**
+     - Repair costs no materials or currency and restores damaged tools, including zero-condition tools, to their defined maximum condition. Repair itself awards no crafting experience.
+     - At a Workbench or Forge, an owner-local GUI action repairs the selected damaged carried tool; the server reads its current condition and validates the station and owner state.
+     - Add a Grinding Stone as a buildable camp utility. Its in-world `Repair All` action repairs every eligible damaged tool in the server-owned carried-tool list after a same-world range check, without accepting a client-supplied tool list or condition value.
+     - Play a short, tool-appropriate sharpening animation during the Grinding Stone action, such as sharpening the carried axe or sword. The animation is presentation only; the server owns acceptance and resulting condition.
+     - This free-repair rule supersedes M7's material-paid repair path and zero-condition replacement recipes. Broken tools use the same free repair action; material costs remain for tool-level upgrades and workstation attachments.
+   - **Other optional camp and equipment examples:** a raised weatherproof chest, a covered smokehouse using existing hearth heat checks, a storm-rated shelter piece, an insulated travel wrap, or a drying line for supplies. Extend their existing server-owned storage, processing, construction, status, and inventory paths.
+   - Show tool level, skill requirement, matching station level, material cost for upgrades, repair availability, and rejection reasons in readable text as well as colour or icons. Keep upgrades optional and recoverable, and award progression only after an accepted server transaction.
+   - Keep detailed tool and skill state owner-scoped. Do not persist new tool levels or workstation attachment progression until the M9 persistence goal defines and verifies the versioned migration contract; extend existing tool-condition and construction authority rather than adding parallel subsystems.
+
+3. **Exploration rewards without quest routing.** Add optional clue, landmark, treasure, boss, or environmental-discovery structures that reward observation and travel without turning the world into a prescribed quest chain.
+
+4. **Persistence schema expansion.** Version and migrate any newly persistent progression, creature, discovery, storage, equipment, or encounter state before enabling it in normal saves. Preserve exact identity/world matching and bounded sparse records.
+
+5. **Cross-system regression.** Verify the second content wave against land/ocean travel, weather, survival HUD, crafting, combat, support effects, construction, reconnect, persistence, and the retained supported-session loop.
+
+**M9 content boundary:** expansion stays within the established PC solo/listen-server co-op product scope unless a separate roadmap revision explicitly changes platforms or online services. New systems should extend existing contracts rather than introduce parallel inventory, combat, weather, progression, or persistence authorities.
+
+**M9 multiplayer boundary:** all encounter selection, creature state, crafting/progression outcomes, loot, hazards, rewards, and persistent facts remain server-owned. Private inventory and progression remain owner-scoped; peers receive only relevant world and presentation state.
+
+**M9 accept:** the second content wave is playable across the supported biomes and ocean travel path without developer commands; new encounters and progression remain optional and readable; rejected client mutations leave state unchanged; versioned saves round-trip and migrate as documented; and the M8 travel loop plus M6 supported-session loop remain green.
+
+**## M10 — Release completion and launch validation**
+
+Start only after M9 acceptance passes. Freeze feature scope and turn the complete supported game into the launch candidate through content lock, compatibility validation, performance hardening, accessibility review, packaging, and release evidence rather than adding another gameplay layer.
+
+M10 has six ordered goals:
+
+1. **Feature and content freeze.** Close or defer remaining backlog items, lock accepted gameplay and save schemas, and require any post-freeze change to include a focused regression and explicit release rationale.
+
+2. **Full clean-profile validation.** Run the complete automated, rendered, authority, persistence, reconnect, world-generation, land-travel, ocean-travel, combat, support, construction, crafting, progression, weather, HUD, accessibility, and performance suite from clean temporary user directories.
+
+3. **Save compatibility and recovery.** Validate current-version saves, all approved migrations, corrupt/malformed rejection, world/player identity mismatch handling, backup/recovery behaviour where supported, and no partial mutation on failed loads.
+
+4. **Performance and scalability closeout.** Reconfirm startup, frame-time, actor, memory, streaming, worker, raster, replication, package-size, and save budgets across the documented representative hardware/profile matrix. Record any remaining limitations explicitly.
+
+5. **Supported package and multiplayer playtest.** Produce the release candidate package and run the documented fresh-player co-op loop plus extended progression and long-distance travel using normal player actions only. Attempt the retained dedicated-server validation only when the documented engine capability is available.
+
+6. **Release evidence and known limits.** Archive build metadata, test results, logs, screenshots, migration notes, accessibility checks, known limitations, and reproducible release steps so the candidate can be rebuilt and audited.
+
+**M10 release boundary:** no new gameplay system, platform, online service, save schema, or authority model is introduced after feature freeze unless the roadmap is explicitly reopened. Release work may fix defects, tune bounded values, improve presentation/accessibility, or optimize implementation while preserving accepted contracts.
+
+**M10 multiplayer boundary:** the established server-authority model remains unchanged through release. Launch hardening must not add client-selected targets, outcomes, rewards, hidden-content queries, save values, timing authority, or private-state leakage.
+
+**M10 accept:** the release candidate passes the complete documented suite from clean profiles, approved saves load or migrate correctly, the full co-op progression from first spawn through biome exploration and long-distance ocean travel is playable without developer tools, performance and accessibility budgets remain within recorded limits, rejected requests leave authoritative state unchanged, and all remaining limitations are explicitly documented.
