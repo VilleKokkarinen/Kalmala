@@ -9581,3 +9581,19 @@ Multiplayer impact: The server still owns recipe, station, cost, and exchange va
 Known limits: No rendered menu inspection or assistive-technology review ran. Successful drying transactions are covered by the focused automation; this peer scenario checks Drying Line rejection and feedback, not a successful live multiplayer drying action. Drying Lines remain session-only until the M9 save migration contract is completed.
 
 Next task: Define original optional exploration-reward candidates that reward observation without a prescribed route or mandatory combat gate.
+
+### Run 2026-09-28T17:46:43Z - Define optional M9 discovery candidates
+
+Outcome: Defined and accepted two original land-discovery candidates: Three-Run Rillstone in Shimmering Lakes (2 Stone) and Leeward Grain in Thunder Mountains (2 Fibre). Both reward observation through short local text and existing common materials without a route, combat, precision traversal, new item, or access to gated M9 materials. Checked only the candidate-definition child; server-side implementation remains open.
+
+Changed: `BACKLOG.md`; `docs/04-roadmap.md`; `docs/05-decision-log.md`; new `docs/29-m9-exploration-rewards.md`; and `PROGRESS.md`.
+
+Verification: Scoped `git diff --check` passed. Parsed the current schema-4 catalogue and confirmed `Stone` and `Fibre` are existing item IDs; reviewed the candidate document against the M9 roadmap, open-world game-design constraints, and the M9 save gate. A whole-file whitespace scan found the pre-existing trailing-space line `docs/04-roadmap.md:331`; changed hunks and the new document are clean. This documentation-only increment changes no runtime code, so no Unreal build or gameplay automation was applicable.
+
+Observable and multiplayer impact: Players have a defined slate for two optional environmental discoveries. No gameplay, network authority, replication, or saved-data behavior changed. The next implementation must derive placement, stable player/world claim identities, eligibility, and bounded rewards on the server; clients will submit intent only.
+
+Known limits: The candidates are design-only and do not yet spawn, interact, grant materials, or persist. Durable claims and reconnect behavior remain gated on the separate M9 save migration task.
+
+Commit and handoff: Main checkout used; the design and handoff are included together in this run's dedicated documentation commit, so no worktree synchronization is needed.
+
+Next task: Derive and implement candidate placement, interaction eligibility, stable sparse identities, and server-authoritative claims for the defined discovery slate.
