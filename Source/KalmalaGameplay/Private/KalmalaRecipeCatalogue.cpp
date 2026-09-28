@@ -75,7 +75,7 @@ const FKalmalaRecipe* UKalmalaRecipeCatalogue::Find(FName Id) const
 
 bool UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(const FName BuildableId)
 {
-    return BuildableId == TEXT("FloorKit") || BuildableId == TEXT("WallKit")
+    return BuildableId == TEXT("CampfireKit") || BuildableId == TEXT("FloorKit") || BuildableId == TEXT("WallKit")
         || BuildableId == TEXT("RoofKit");
 }
 

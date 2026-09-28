@@ -60,6 +60,7 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     }
     struct FExpectedBuildCost { FName Id; TArray<FKalmalaInventoryStack> Costs; };
     const TArray<FExpectedBuildCost> DirectBuildCosts = {
+        {TEXT("CampfireKit"), {{TEXT("Stone"),5},{TEXT("Wood"),3}}},
         {TEXT("FloorKit"), {{TEXT("Wood"),6},{TEXT("Fibre"),4}}},
         {TEXT("WallKit"), {{TEXT("Wood"),6},{TEXT("Fibre"),6}}},
         {TEXT("RoofKit"), {{TEXT("Wood"),6},{TEXT("Fibre"),8}}},
@@ -77,6 +78,7 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Direct build charges its raw resource quantity"), Actual[Index].Quantity, ExpectedCost.Costs[Index].Quantity);
         }
     }
+    TestTrue(TEXT("Hearth ring is a direct hammer buildable"), UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(TEXT("CampfireKit")));
     TArray<FKalmalaInventoryStack> InvalidBuildCost;
     FString InvalidBuildReason;
     TestFalse(TEXT("A food or forged identity cannot enter the direct build list"),
@@ -93,6 +95,19 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Missing one raw resource rejects the whole floor build"),
         UKalmalaInventoryComponent::BuildExchange(ShortFloorInventory, FloorCost, NAME_None, 0,
             FloorInventoryAfter, FloorCostReason));
+    TArray<FKalmalaInventoryStack> HearthCost;
+    FString HearthCostReason;
+    TestTrue(TEXT("Hearth construction cost comes from its recipe"),
+        UKalmalaRecipeCatalogue::BuildDirectMaterialCost(TEXT("CampfireKit"), HearthCost, HearthCostReason));
+    HearthCost.Add({TEXT("Fuel"),1});
+    TArray<FKalmalaInventoryStack> HearthInventoryAfter;
+    TestTrue(TEXT("Hearth build atomically consumes raw construction materials and one ignition bundle"),
+        UKalmalaInventoryComponent::BuildExchange({{TEXT("Stone"),5},{TEXT("Wood"),3},{TEXT("Fuel"),1}},
+            HearthCost, NAME_None, 0, HearthInventoryAfter, HearthCostReason)
+        && HearthInventoryAfter.IsEmpty());
+    TestFalse(TEXT("Missing ignition bundle rejects a hearth build without consuming raw materials"),
+        UKalmalaInventoryComponent::BuildExchange({{TEXT("Stone"),5},{TEXT("Wood"),3}},
+            HearthCost, NAME_None, 0, HearthInventoryAfter, HearthCostReason));
     for (const FName Id : { FName(TEXT("RoastBoarMeat")), FName(TEXT("RoastDeerMeat")) })
     {
         const auto* Recipe = Recipes->Find(Id);

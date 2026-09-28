@@ -7,6 +7,7 @@
 #include "KalmalaWorldBounds.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaInventoryComponent.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaOceanSampler.h"
@@ -82,6 +83,23 @@ FString GetRecipeStationNames(const FKalmalaRecipe& Recipe)
     if (!Recipe.AlternateStationKit.IsNone())
         Names += TEXT(" or ") + GetStationDisplayName(Recipe.AlternateStationKit);
     return Names;
+}
+
+bool AddInventoryCost(TArray<FKalmalaInventoryStack>& Costs, const FName ItemId, const int32 Quantity)
+{
+    if (ItemId.IsNone() || Quantity < 1) return false;
+    if (FKalmalaInventoryStack* Existing = Costs.FindByPredicate([ItemId](const FKalmalaInventoryStack& Cost)
+        { return Cost.ItemId == ItemId; }))
+    {
+        if (Existing->Quantity < 1 || Quantity > UKalmalaItemCatalogue::AbsoluteMaxStack - Existing->Quantity) return false;
+        Existing->Quantity += Quantity;
+        return true;
+    }
+    if (Costs.Num() >= UKalmalaInventoryComponent::MaxSlots || Quantity > UKalmalaItemCatalogue::AbsoluteMaxStack) return false;
+    FKalmalaInventoryStack& Cost = Costs.AddDefaulted_GetRef();
+    Cost.ItemId = ItemId;
+    Cost.Quantity = Quantity;
+    return true;
 }
 }
 
@@ -175,7 +193,7 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     if (!Recipe || !Recipe->bEnabled) return false;
     if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe->Output))
     {
-        Reason = TEXT("Use the construction hammer to build this directly from Wood and Fibre");
+        Reason = TEXT("Use the construction hammer to build this directly from its recipe materials");
         return false;
     }
     if (!Recipe->OutputTool.IsNone())
@@ -351,7 +369,13 @@ bool UKalmalaCraftingComponent::PlaceFromServer(FString& Reason)
     for (TActorIterator<AKalmalaCampfire> It(GetWorld()); It; ++It) if (IsValid(*It)) ++Count;
     if (Count >= 32) { Reason = TEXT("Session hearth limit reached (32)"); return false; }
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
-    const TArray<FKalmalaInventoryStack> Costs = {{TEXT("CampfireKit"),1},{TEXT("Fuel"),1}};
+    TArray<FKalmalaInventoryStack> Costs;
+    if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(TEXT("CampfireKit"), Costs, Reason)
+        || !AddInventoryCost(Costs, TEXT("Fuel"), 1))
+    {
+        if (Reason == TEXT("Ready")) Reason = TEXT("Hearth placement cost exceeds its bound");
+        return false;
+    }
     TArray<FKalmalaInventoryStack> Preview;
     if (!Inventory || !UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Costs, NAME_None, 0, Preview, Reason)) return false;
     const FVector Forward = FRotator(0, Character->GetActorRotation().Yaw, 0).Vector();
@@ -609,6 +633,8 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
         TArray<FKalmalaInventoryStack> Costs;
         FString Reason;
         if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(R->Output, Costs, Reason)) return Reason;
+        if (R->Output == TEXT("CampfireKit") && !AddInventoryCost(Costs, TEXT("Fuel"), 1))
+            return TEXT("Hearth placement cost exceeds its bound");
         TArray<FKalmalaInventoryStack> Candidate;
         UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Costs, NAME_None, 0, Candidate, Reason);
         return Reason;
@@ -742,10 +768,14 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
             Text += FString::Printf(TEXT("%s%d %s"), Index ? TEXT(", ") : TEXT(""), Costs[Index].Quantity,
                 Item ? *Item->DisplayName : *Costs[Index].ItemId.ToString());
         }
+        if (R->Output == TEXT("CampfireKit"))
+            Text += TEXT("\nIgnition: one Ember bundle is also consumed to start the hearth with 60 seconds of fuel.");
         const auto* BuildItem = UKalmalaItemCatalogue::Get()->FindItem(R->Output);
         Text += FString::Printf(TEXT("\nOutput: %s construction (no kit item created)."),
             BuildItem ? *BuildItem->DisplayName : *R->Output.ToString());
-        Text += TEXT("\nBuild quantity: one construction per request; repeat to build another.\nPlacement: clear, dry, gently sloping ground. The server rechecks terrain, slope, overlap, range, payment, and save identity. Failure: the availability text below names missing materials.");
+        Text += R->Output == TEXT("CampfireKit")
+            ? TEXT("\nBuild quantity: one hearth per request. Placement: clear, dry, gently sloping ground ahead. The server rechecks terrain, slope, water, overlap, range, payment, and the session limit. Failure: the availability text below names missing materials.")
+            : TEXT("\nBuild quantity: one construction per request; repeat to build another.\nPlacement: clear, dry, gently sloping ground. The server rechecks terrain, slope, overlap, range, payment, and save identity. Failure: the availability text below names missing materials.");
         return Text;
     }
     FString Text = R->DisplayName + TEXT("\nCost: ");

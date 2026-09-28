@@ -3,7 +3,7 @@
 ## Current state
 
 - Automation bootstrap created on 2026-09-01.
-- As of 2026-09-27, the active backlog milestone is M9 (Expanded biome content and encounter depth); the earliest unchecked item is tracked in BACKLOG.md and docs/04-roadmap.md.
+- As of 2026-09-28, the active backlog milestone is M9 (Expanded biome content and encounter depth); the earliest unchecked item is tracked in BACKLOG.md and docs/04-roadmap.md.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
 ## Run log
@@ -9451,3 +9451,59 @@ Known limits: The packaged smoke covered startup and map load, not in-world craf
 Commit and handoff: Changes are staged and committed separately from generated outputs. Main checkout used; no worktree sync was needed.
 
 Next eligible task: Add the bounded no-hearth Drying Line recipes through the existing inventory, meal-effect, and Cooking-skill authorities.
+
+### 2026-09-28T12:28:56Z — Build the hearth ring directly from materials
+
+Outcome: The hammer menu now builds the hearth ring from its JSON-backed raw
+recipe cost of 5 Stone and 3 Wood. Placement still consumes one Ember bundle
+to start the existing 60 seconds of fuel. Normal crafting no longer creates a
+CampfireKit item; its ID remains the internal placement identity. Server-side
+hammer, world, terrain, water, slope, overlap, range, session-limit, and atomic
+payment checks remain in force. The remaining kit-based camp structures are
+still queued for later bounded migrations.
+
+Files changed this increment: `BACKLOG.md`, `Content/Data/GameCatalogues.json`,
+`Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`,
+`KalmalaCraftingVerification.cpp`, `KalmalaRecipeCatalogue.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`,
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`,
+`docs/02-technical-architecture.md`, `docs/05-decision-log.md`,
+`docs/07-development-setup.md`, and `docs/10-campfire-and-crafting.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in
+an isolated short-path project mirror (195 actions initially; the final
+fixture-log compatibility rebuild also passed). Thirteen focused editor
+automations passed, including carried-tool inventory; crafting transactions
+and network contract; construction preview, save, shelter-piece and shelter
+sampling; raised storage; Smokehouse; campfire processing; and storage save,
+transfer, and network contracts. `Scripts/Verify-Crafting.ps1 -Port 17877`
+passed with two peers, covering direct hearth material/fuel payment, menu
+feedback, rejected overlap without payment, and exact inventory conservation.
+`Scripts/Verify-PersistedCampHearth.ps1 -Port 17878` passed for both owners;
+each gathered the full camp budget, directly built a fueled hearth, completed
+the saved construction and storage scenario, and ended with an empty pack.
+`Scripts/Verify-ConstructionPersistence.ps1 -Port 17879` passed, restoring the
+same floor identities after restart and accepting two new paid placements.
+The JSON still parses as schema 1 with 32 items and 23 recipes, and
+`git diff --check` passed. All generated build and test outputs stayed in the
+temporary mirror or isolated temporary user directories.
+
+Observable and multiplayer impact: The local hammer menu presents the raw
+Stone/Wood cost and separate Ember-bundle ignition requirement. It continues
+to send only the existing payload-free hearth placement RPC. The server reads
+the recipe cost, verifies the owner's carried hammer and placement conditions,
+and commits raw materials plus fuel atomically before initializing the hearth.
+No RPC payload, replicated gameplay field, or saved-data schema changed.
+
+Known limits: Hearths remain session-only, as before. CampfireKit is retained
+internally for placement compatibility; other camp kits remain craftable until
+later migration increments. This was a null-renderer peer review, not a
+rendered menu-layout or in-hand model review.
+
+Commit and handoff: Main checkout used. The scoped current-run files were
+committed separately from generated outputs; no worktree synchronization was
+needed.
+
+Next task: Continue moving remaining kit-based camp structures to direct
+Construction Hammer builds from raw materials while preserving their existing
+server validation and stable placement/save identities.

@@ -28,7 +28,7 @@
     },
     {
       "ItemId": "CampfireKit",
-      "DisplayName": "Hearth ring kit",
+      "DisplayName": "Hearth ring",
       "MaxStack": 5
     },
     {
@@ -219,7 +219,7 @@
     },
     {
       "RecipeId": "Campfire",
-      "DisplayName": "Hearth ring kit",
+      "DisplayName": "Hearth ring",
       "Ingredients": [
         {
           "ItemId": "Stone",

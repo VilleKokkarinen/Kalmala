@@ -35,7 +35,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         };
         FString Reason;
         Check(!PlaceFromServer(Reason), TEXT("No ingredients cannot create a hearth"));
-        Check(!CraftFromServer(TEXT("Campfire"),1,Reason), TEXT("Insufficient craft ingredients"));
+        Check(!CraftFromServer(TEXT("Campfire"),1,Reason), TEXT("Hearth ring cannot be crafted into a kit"));
         Check(!CraftFromServer(TEXT("Forged"),1,Reason), TEXT("Unknown recipe"));
         for (int32 Batch : {MIN_int32,-1,0,MAX_int32}) Check(!CraftFromServer(TEXT("Fuel"),Batch,Reason),TEXT("Malformed batch"));
         Check(I->TryGrantFromServer(TEXT("Wood"),50) && I->TryGrantFromServer(TEXT("Stone"),40)
@@ -50,7 +50,11 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Check(I->TryGrantFromServer(TEXT("Fuel"),20),TEXT("Fill output stack"));
         const int32 WoodBefore=I->GetQuantity(TEXT("Wood"));
         Check(!CraftFromServer(TEXT("Fuel"),1,Reason) && I->GetQuantity(TEXT("Wood"))==WoodBefore,TEXT("Full output cannot consume inputs"));
-        Check(CraftFromServer(TEXT("Campfire"),1,Reason),TEXT("Craft hearth kit"));
+        Check(!CraftFromServer(TEXT("Campfire"),1,Reason),TEXT("Normal crafting cannot create a hearth kit"));
+        Check(GetRecipeAvailability(TEXT("Campfire")) == TEXT("Ready"),TEXT("Hearth direct build checks recipe materials and ignition bundle"));
+        const int32 HearthWoodBefore = I->GetQuantity(TEXT("Wood"));
+        const int32 HearthStoneBefore = I->GetQuantity(TEXT("Stone"));
+        const int32 HearthFuelBefore = I->GetQuantity(TEXT("Fuel"));
         FVector Original=C->GetActorLocation(); const FRotator OriginalRotation=C->GetActorRotation();
         TSet<AKalmalaCampfire*> Existing;
         for(TActorIterator<AKalmalaCampfire> It(GetWorld());It;++It) Existing.Add(*It);
@@ -95,10 +99,15 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         for(TActorIterator<AKalmalaCampfire> It(GetWorld());It;++It) if(!Existing.Contains(*It)) VerificationFire=*It;
         if (!VerificationFire) { VerificationStage=99; return; }
         auto* Fire=VerificationFire.Get(); Fire->SetActorTickEnabled(false);
-        Check(I->GetQuantity(TEXT("CampfireKit"))==0 && I->GetQuantity(TEXT("Fuel"))==19,TEXT("Placement charges kit and fuel exactly once"));
-        Check(CraftFromServer(TEXT("Campfire"),1,Reason),TEXT("Prepare overlapping placement"));
-        Check(!PlaceFromServer(Reason) && I->GetQuantity(TEXT("CampfireKit"))==1
-            && I->GetQuantity(TEXT("Fuel"))==19,TEXT("Overlap rejects placement without payment"));
+        Check(I->GetQuantity(TEXT("CampfireKit"))==0 && I->GetQuantity(TEXT("Fuel"))==HearthFuelBefore-1
+            && I->GetQuantity(TEXT("Wood"))==HearthWoodBefore-3 && I->GetQuantity(TEXT("Stone"))==HearthStoneBefore-5,
+            TEXT("Placement charges raw hearth materials and ignition fuel exactly once without creating a kit"));
+        const int32 WoodBeforeOverlap = I->GetQuantity(TEXT("Wood"));
+        const int32 StoneBeforeOverlap = I->GetQuantity(TEXT("Stone"));
+        const int32 FuelBeforeOverlap = I->GetQuantity(TEXT("Fuel"));
+        Check(!PlaceFromServer(Reason) && I->GetQuantity(TEXT("CampfireKit"))==0
+            && I->GetQuantity(TEXT("Fuel"))==FuelBeforeOverlap && I->GetQuantity(TEXT("Wood"))==WoodBeforeOverlap
+            && I->GetQuantity(TEXT("Stone"))==StoneBeforeOverlap,TEXT("Overlap rejects placement without raw-material payment"));
         Check(!CraftFromServer(TEXT("Floor"),1,Reason) && GetRecipeAvailability(TEXT("Floor")) == TEXT("Ready"),
             TEXT("Floor is built directly from materials and no longer crafts into a kit"));
         Fire->SetOwner(nullptr); Fire->SetSharedFromServer(false);
@@ -388,8 +397,8 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
         // personal camp needs fuel/hearth, eleven timber supplies, and the wall/roof fibre costs.
         const TMap<FName, int32> Required = { { TEXT("Wood"), 38 }, { TEXT("Stone"), 7 }, { TEXT("Fibre"), 33 } };
         const bool bGathered = GatherPersistedCampMaterials(Character, Inventory, Required);
-        const bool bHearthCrafted = bGathered && CraftFromServer(TEXT("Fuel"), 1, Reason) && CraftFromServer(TEXT("Campfire"), 1, Reason);
-        const bool bHearthPlaced = bHearthCrafted && PlacePersistedCampfireNearTerrain(this, Character, Reason);
+        const bool bHearthMaterialsReady = bGathered && CraftFromServer(TEXT("Fuel"), 1, Reason);
+        const bool bHearthPlaced = bHearthMaterialsReady && PlacePersistedCampfireNearTerrain(this, Character, Reason);
         const bool bKitsCrafted = bHearthPlaced && CraftFromServer(TEXT("Timber"), 5, Reason)
             && CraftFromServer(TEXT("Workbench"), 1, Reason) && CraftFromServer(TEXT("Storage"), 1, Reason);
         AKalmalaConstructionActor *Floor = nullptr, *Wall = nullptr, *Roof = nullptr, *Workbench = nullptr, *Storage = nullptr;
@@ -402,7 +411,7 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
         const bool bStorage = bBuilt && Inventory->TryGrantFromServer(TEXT("Wood"), 1) && OpenPersistedCampStorage(this, Character, Storage)
             && TransferStorageFromServer(TEXT("Wood"), true, Reason) && HasStorageView() && StorageView.Num() == 1 && StorageView[0].ItemId == TEXT("Wood") && StorageView[0].Quantity == 1;
         const bool bPaid = bStorage && Inventory->GetStacks().IsEmpty();
-        const bool bPassed = bGathered && bHearthCrafted && bHearthPlaced && bKitsCrafted && bBuilt && bStorage && bPaid;
+        const bool bPassed = bGathered && bHearthMaterialsReady && bHearthPlaced && bKitsCrafted && bBuilt && bStorage && bPaid;
         const AKalmalaCampfire* OwnedFire = FindOwnedPersistedCampfire(GetWorld(), Character);
         UE_LOG(LogTemp, Display, TEXT("Persisted camp build server: Passed=%d Player=%d Gathered=%d Hearth=%d Kits=%d Built=%d Storage=%d Paid=%d Fuel=%.0f"), bPassed, Character->GetPlayerState()->GetPlayerId(), bGathered, bHearthPlaced, bKitsCrafted, bBuilt, bStorage, bPaid, OwnedFire ? OwnedFire->GetFuelSeconds() : -1.0f);
         if (bBuilt)

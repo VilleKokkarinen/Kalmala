@@ -1140,9 +1140,11 @@ schema.
 The server creates a level-one carried Construction Hammer for each new
 character. Its owner can open the local build and craft menu with the remappable
 `CraftMenu` binding; other clients cannot supply hammer state or placement
-costs. Floors, walls, and roofs are paid directly with Wood and Fibre. Their
-internal construction identities remain stable so schema-one camp saves keep
-restoring the same actors.
+costs. Hearth rings consume 5 Stone, 3 Wood, and one Fuel bundle directly;
+floors, walls, and roofs are paid directly with Wood and Fibre. Their internal
+placement identities remain stable, and floor/wall/roof schema-one camp saves
+keep restoring the same actors. The Fuel bundle starts the hearth with its existing
+60-second payment; crafting no longer creates a CampfireKit item.
 
 After a forced editor build, run
 `Kalmala.Gameplay.Tools.CarriedToolInventoryContract`,
@@ -1153,17 +1155,22 @@ After a forced editor build, run
 `Kalmala.Gameplay.Storage.SaveContract+Kalmala.Gameplay.Storage.Transfers+Kalmala.Gameplay.Storage.NetworkContract`
 with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and
 `-TestExit="Automation Test Queue Empty"` arguments. Require every requested
-test result to report success. The crafting test checks the expanded raw costs,
-insufficient-material rejection, and refusal to craft the retired floor kit;
+test result to report success. The crafting test checks hearth and structural
+raw costs, the hearth's ignition bundle, insufficient-material rejection, and
+refusal to craft retired buildable kits;
 the network test checks that construction requests carry only the buildable
 identity.
 
-Then run `Scripts/Verify-Crafting.ps1 -Port <unused-port>` and
-`Scripts/Verify-ConstructionPersistence.ps1 -Port <unused-port>`. The first
-checks the owner-local menu, two-peer input restoration, payment/rejection
-gates, and exact final inventories. The second confirms that two raw-material
-floor builds replicate with server-generated identities, those same identities
-restore after restart, and subsequent paid builds replicate as two new records.
+Then run `Scripts/Verify-Crafting.ps1 -Port <unused-port>`,
+`Scripts/Verify-ConstructionPersistence.ps1 -Port <unused-port>`, and the
+single-session `Scripts/Verify-PersistedCampHearth.ps1 -Port <unused-port>`
+fixture described in `10-campfire-and-crafting.md`. The crafting runner checks
+the owner-local menu, two-peer input restoration, hearth raw-material and
+ignition payment, rejection gates, and exact final inventories. The construction
+runner confirms that two raw-material floor builds replicate with
+server-generated identities, those same identities restore after restart, and
+subsequent paid builds replicate as two new records. The gathered-camp fixture
+checks direct hearth construction alongside the full camp's material budget.
 Use the scripts' `-Rendered` option for the crafting run when visually reviewing
 the menu; a null-renderer peer run proves menu data and input flow but does not
 inspect layout or the in-hand model visually. These checks add no RPC fields,
