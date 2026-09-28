@@ -361,18 +361,18 @@ contract and migration checks pass.
   - [x] Replace material-paid repair and zero-condition replacement with free repair of damaged and broken tools. Add selected-tool repair through the Workbench/Forge GUI and a buildable Grinding Stone with an in-world `Repair All` action over the server-owned carried-tool list.
   - [x] Add the short tool-appropriate sharpening animation for Grinding Stone repair; keep it presentation-only. Repair requests must not accept a client-provided inventory list or condition value, and repair grants no crafting experience.
   - [x] Add readable level, material, station, and repair feedback. Keep detailed tool state owner-only and level/attachment persistence gated on the M9 save contract.
-- [ ] Extend optional camp and equipment progression through existing systems.
+- [x] Extend optional camp and equipment progression through existing systems.
   - [x] Review the roadmap examples—weatherproof storage, hearth-compatible processing, storm-rated shelter, insulated equipment, and camp drying utility—and select the current runtime additions: the normal Chest and Smoke Frame. The raised chest and Smokehouse were later retired by user direction; see `docs/05-decision-log.md`.
-  - [ ] Keep storage, processing, construction, equipment effects, repair, costs, and skill awards within their existing authorities and accessibility feedback paths.
+  - [x] Keep storage, processing, construction, equipment effects, repair, costs, and skill awards within their existing authorities and accessibility feedback paths.
     - [x] Add the carried Construction Hammer and owner-local build menu; directly build floors, walls, and roofs from JSON-backed raw-material costs with server-owned placement and unchanged construction-save identities.
-    - [ ] Move the remaining kit-based camp structures to direct hammer builds from raw materials; remove their kit outputs from normal crafting while preserving existing save identities and station validation.
+    - [x] Move the remaining kit-based camp structures to direct hammer builds from raw materials; remove their kit outputs from normal crafting while preserving existing save identities and station validation.
       - [x] Build the hearth ring directly from Stone and Wood with the Construction Hammer; consume one raw fuel item for ignition, with the placement checks and internal identity unchanged.
       - [x] Remove the Fuel and ConstructionSupply intermediate items; directly consume raw fuel or the equivalent Wood and Fibre recipe costs, and migrate stored legacy supplies without changing the save schema.
       - [x] Remove "Kit" from item and recipe names and external catalogue IDs/fields, add bounded descriptions to every item, and retain stable runtime/save IDs.
     - [x] Retire the raised chest variant; use the normal Chest as the only storage construction.
     - [x] Retire the roofed Smokehouse alternative; use the Smoke Frame as the only smoking station, with raw per-serving fuel and no recipe skill-level gate.
     - [x] Add the bounded no-hearth Drying Line recipes through the existing inventory, meal-effect, and Cooking-skill authorities.
-    - [ ] Verify host/client privacy, rejected-mutation behavior, costs, and accessible feedback across the accepted camp additions.
+    - [x] Verify host/client privacy, rejected-mutation behavior, costs, and accessible feedback across the accepted camp additions.
 - [ ] Add optional exploration rewards without quest routing.
   - [ ] Define original clue, landmark, treasure, boss, or environmental-discovery candidates that reward observation without a prescribed route or mandatory combat gate.
   - [ ] Derive candidate identity, placement, interaction eligibility, and any reward on the server; use stable sparse identities and reject duplicate, forged, or replayed claims.

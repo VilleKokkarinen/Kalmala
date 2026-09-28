@@ -69,6 +69,8 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
                 && GetRecipeAvailability(TEXT("Floor")) == TEXT("Ready")
                 && Pack->GetQuantity(TEXT("FloorKit")) == 0,
                 TEXT("Floor is a direct hammer build with raw material costs and no kit output"));
+            Check(Pack->TryConsumeFromServer(TEXT("Wood"), 6) && Pack->TryConsumeFromServer(TEXT("Fibre"), 4),
+                TEXT("Clear direct-build probe costs before chest privacy checks"));
         }
         // Give each owner a position where the no-target inspect RPC resolves its assigned chest.
         // Merely being in range of it can select the other restored player's nearer chest.

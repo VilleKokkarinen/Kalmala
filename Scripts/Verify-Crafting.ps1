@@ -32,7 +32,7 @@ try {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before verification.' }
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
-        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Crafting fixture FAILED:|Crafting [^\r\n]*Passed=0|Restored=0') { throw 'Crafting verification failed; inspect retained logs.' }
+        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Crafting fixture FAILED:|Crafting [^\r\n]*Passed=0|M9 camp [^\r\n]*Passed=0|Restored=0') { throw 'Crafting verification failed; inspect retained logs.' }
         $ready = [regex]::Matches($serverText, 'Crafting server gates: Passed=1').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting server final: Passed=1').Count -eq 2 `
             -and $serverText.Contains('Crafting owner final: Passed=1 Authority=1 WorkbenchKit=2 Slots=1') `
@@ -40,10 +40,19 @@ try {
             -and $serverText.Contains('Crafting presentation: Passed=1 Restored=1') `
             -and $clientText.Contains('Crafting presentation: Passed=1 Restored=1') `
             -and $serverText.Contains('M9 tool feedback: Passed=1') `
-            -and $clientText.Contains('M9 tool feedback: Passed=1')
+            -and $clientText.Contains('M9 tool feedback: Passed=1') `
+            -and $serverText.Contains('M9 camp feedback: Passed=1') `
+            -and $clientText.Contains('M9 camp feedback: Passed=1') `
+            -and $clientText.Contains('M9 camp rejected mutations: Passed=1 Authority=0 Inventory=unchanged CookingXP=unchanged')
         $ready = $ready -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Forged Batch=1 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Workbench Batch=2147483647 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting placement RPC: Accepted=0').Count -eq 2
+        foreach ($campRejection in @(
+            'Crafting RPC: Recipe=DryingLine Batch=4 Accepted=0',
+            'Crafting RPC: Recipe=DryingLine Batch=1 Accepted=0',
+            'Crafting RPC: Recipe=DryBoarMeat Batch=1 Accepted=0')) {
+            $ready = $ready -and [regex]::Matches($serverText, [regex]::Escape($campRejection)).Count -eq 1
+        }
         foreach ($statePattern in @('Fuel=60 Lit=1 Wet=0 Warmth=1 State=1', 'Fuel=48 Lit=0 Wet=(?:9[6-9]|100) Warmth=0 State=2')) {
             $serverNames = [regex]::Matches($serverText, ('Crafting fire server: Name=(\S+) ' + $statePattern)) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
             $clientNames = [regex]::Matches($clientText, ('Crafting fire client: Name=(\S+) ' + $statePattern)) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
@@ -55,7 +64,7 @@ try {
     } while ((Get-Date) -lt $deadline)
     if (!$ready) { throw 'Crafting host/client scenario timed out.' }
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client identity mismatch.' }
-    Write-Output 'PASS: server validation/payment/atomicity gates; overlapping owner RPC crafting; exact final inventory; two matching dry and rain-smouldering fires; local menu input restoration.'
+    Write-Output 'PASS: server validation/payment/atomicity gates; rejected M9 camp mutations preserve inventory and Cooking XP; owner-local camp costs/station feedback; exact final inventory; matching fires; local menu input restoration.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

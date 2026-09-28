@@ -9567,3 +9567,17 @@ Known limits: No rendered visual review ran; editor automation used the null ren
 Commit and handoff: Main checkout used; the reviewed current-run source, data, tests, docs, backlog, and progress changes were committed together after verification. Generated build and automation outputs were not added. No worktree synchronization was needed.
 
 Next task: Verify host/client privacy, rejected-mutation behavior, costs, and accessible feedback across the accepted camp additions.
+
+### Run 2026-09-28T17:09:57Z - Verify accepted camp additions across peers
+
+Outcome: Closed the M9 optional camp/equipment progression parent after its children passed. The host/client crafting fixture now checks owner-facing camp costs and station guidance, and rejected Drying Line actions preserve the client's inventory and Cooking experience. A stale storage verification fixture also now clears its direct-build probe materials before the Chest privacy checks.
+
+Changed: BACKLOG.md; Scripts/Verify-Crafting.ps1; Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp; Source/KalmalaGameplay/Private/KalmalaStorageVerification.cpp; Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h; Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp; docs/07-development-setup.md; docs/28-m9-camp-equipment-recipes.md; and PROGRESS.md.
+
+Verification: Forced UE 5.8.2 KalmalaEditor Win64 Development build passed with 196 actions and normal `%LOCALAPPDATA%\UnrealBuildTool` access; the storage fixture correction and stricter Cooking XP check each rebuilt successfully in four actions. Eleven focused automations passed: M9.RaisedStorage, M9.Smokehouse, M9.DryingLine, Food.CampfireProcessing, Status.SteadyMeal, Inventory.Catalogue, Crafting.Transactions, Crafting.NetworkContract, Construction.LocalPreview, Construction.SaveContract, and Storage.SaveContract. `Scripts/Verify-Crafting.ps1 -Port 23741` passed with host and client; after tightening the owner XP precondition, `-Port 23744` passed again. Both runs checked camp feedback on each peer and three rejected client recipes with unchanged inventory and Cooking XP. `Scripts/Verify-InventoryReconnect.ps1 -Port 23742` passed both visits. `Scripts/Verify-Storage.ps1 -Port 23743` passed both runs after the test-fixture correction, including private Chest snapshots and stable identities. `git diff --check` passed.
+
+Multiplayer impact: The server still owns recipe, station, cost, and exchange validation; the client submits only recipe identity and batch. The new peer checks confirm rejected Drying Line requests leave the owner's inventory and Cooking experience unchanged, and feedback/results stay on the owner. Existing owner-only inventory and Chest transfer paths passed reconnect checks. No RPC payload, replicated gameplay field, gameplay authority, or save schema changed.
+
+Known limits: No rendered menu inspection or assistive-technology review ran. Successful drying transactions are covered by the focused automation; this peer scenario checks Drying Line rejection and feedback, not a successful live multiplayer drying action. Drying Lines remain session-only until the M9 save migration contract is completed.
+
+Next task: Define original optional exploration-reward candidates that reward observation without a prescribed route or mandatory combat gate.

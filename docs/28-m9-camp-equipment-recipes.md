@@ -89,5 +89,13 @@ The M9.RaisedStorage and M9.Smokehouse automation names now assert that those
 items and placement identities are absent and that the normal Chest and Smoke
 Frame remain. Run `Scripts/Verify-Crafting.ps1` to verify server-selected raw
 fuel, direct material transactions, rejection gates, and exact peer inventory.
+The peer run checks the Drying Line's invalid batch, missing Workbench, and
+missing-line processing requests from the client, with no inventory or Cooking
+experience mutation. Both owner panels must expose camp recipe costs, station
+requirements, the no-hearth/no-fuel drying rule, smoking fuel, and direct
+hammer costs as readable text. Pair it with `Scripts/Verify-InventoryReconnect.ps1`
+and `Scripts/Verify-Storage.ps1` for owner-only inventory and Chest snapshots,
+rejected transfers, and stable Chest identities over reconnect. Null-renderer
+text checks do not claim rendered layout or assistive-technology acceptance.
 No RPC, replicated gameplay field, or saved-data schema changes for this
 contract.

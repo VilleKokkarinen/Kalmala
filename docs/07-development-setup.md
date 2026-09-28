@@ -1209,5 +1209,14 @@ and fuel requirements, atomic inventory exchange, no-change rejection, the
 existing meal effect, and one server-owned Cooking award after acceptance.
 The construction-save check confirms the line stays outside schema 1 before
 M9 migration. Then run `Scripts/Verify-Crafting.ps1 -Port <unused-port>` for
-the existing host/client menu, authority, and inventory regression. No RPC,
-replicated gameplay field, or saved-data schema is added.
+the host/client menu, authority, and inventory regression. The two-peer run
+also sends an over-bound Drying Line request and missing-Workbench/Drying-Line
+requests from the client owner, then requires the owner-only rejection result,
+inventory, and Cooking experience to remain unchanged. Both peer menus assert
+the readable Chest, Smoke Frame, Drying Line, drying/smoking, and direct-hammer
+cost and station guidance. Run `Scripts/Verify-InventoryReconnect.ps1` and
+`Scripts/Verify-Storage.ps1` on unused ports for owner-only inventory and Chest
+privacy, rejected transfer, and stable saved-identity regressions. These are
+text-contract checks; the null-renderer run does not review layout or
+assistive-technology output. No RPC, replicated gameplay field, or saved-data
+schema is added.

@@ -81,6 +81,10 @@ private:
     float VerificationElapsed = 0;
     int32 LocalVerificationStage = 0;
     float LocalVerificationElapsed = 0;
+    TArray<FKalmalaInventoryStack> M9CampInventoryBeforeRejectedRequests;
+    int32 M9CampCookingExperienceBeforeRejectedRequests = -1;
+    uint32 M9CampResultSerialBeforeRequest = 0;
+    bool bM9CampRejectedRequestsPassed = true;
     bool bVerificationPassed = true;
     UPROPERTY(Transient) TObjectPtr<AKalmalaCampfire> VerificationFire;
     int32 PersistedCampVerificationStage = 0;

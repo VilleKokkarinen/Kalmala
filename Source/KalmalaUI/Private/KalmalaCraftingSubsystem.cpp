@@ -445,6 +445,31 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && Text.Contains(TEXT("Attachments last only for this session until M9 persistence is approved"))
                 && Text.Contains(TEXT("Grinding Stone Repair All: interact with a visible same-world Grinding Stone"));
             UE_LOG(LogTemp, Display, TEXT("M9 tool feedback: Passed=%d"), ToolFeedbackPassed);
+            const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn());
+            const auto* Crafting = Character ? Character->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
+            const FString ChestDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("Storage")) : FString();
+            const FString SmokeFrameDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("SmokeFrame")) : FString();
+            const FString DryingLineDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("DryingLine")) : FString();
+            const FString DryingRecipeDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("DryBoarMeat")) : FString();
+            const FString SmokingRecipeDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("SmokeBoarMeat")) : FString();
+            const FString DirectBuildDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("Floor")) : FString();
+            const bool CampFeedbackPassed = ChestDescription.Contains(TEXT("6 Wood"))
+                && ChestDescription.Contains(TEXT("8 Reed fibre")) && ChestDescription.Contains(TEXT("Chest"))
+                && SmokeFrameDescription.Contains(TEXT("9 Wood")) && SmokeFrameDescription.Contains(TEXT("9 Reed fibre"))
+                && SmokeFrameDescription.Contains(TEXT("Smoke frame"))
+                && DryingLineDescription.Contains(TEXT("6 Wood")) && DryingLineDescription.Contains(TEXT("7 Reed fibre"))
+                && DryingLineDescription.Contains(TEXT("1 Densewood"))
+                && DryingLineDescription.Contains(TEXT("visible same-world Joiner's bench within 2.5 m"))
+                && DryingRecipeDescription.Contains(TEXT("1 Boar field meat"))
+                && DryingRecipeDescription.Contains(TEXT("Maximum batch: up to 3"))
+                && DryingRecipeDescription.Contains(TEXT("visible same-world Drying Line within 2.5 m"))
+                && DryingRecipeDescription.Contains(TEXT("no hearth or raw fuel is required"))
+                && DryingRecipeDescription.Contains(TEXT("Rejected requests preserve ingredients"))
+                && SmokingRecipeDescription.Contains(TEXT("1 Wood, Lightwood, Densewood, or Coal per serving"))
+                && SmokingRecipeDescription.Contains(TEXT("visible same-world Smoke frame within 2.5 m"))
+                && DirectBuildDescription.Contains(TEXT("Build directly with the Construction Hammer; no kit is created."))
+                && DirectBuildDescription.Contains(TEXT("6 Wood")) && DirectBuildDescription.Contains(TEXT("4 Reed fibre"));
+            UE_LOG(LogTemp, Display, TEXT("M9 camp feedback: Passed=%d"), CampFeedbackPassed);
             const bool Passed=Text.Contains(TEXT("Construction hammer menu input:")) && Text.Contains(TEXT("Up/Down"))
                 && Text.Contains(TEXT("Raw material cost: 5 Stone, 3 Wood"))
                 && Text.Contains(TEXT("Ignition: one raw Wood, Lightwood, Densewood, or Coal is also consumed to start the hearth with 60 seconds of fuel."))
