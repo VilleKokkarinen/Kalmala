@@ -3,14 +3,14 @@
   "items": [
     {
       "ItemId": "Wood",
-      "DisplayName": "Splitwood",
-      "Description": "Split, dry timber for fire fuel and simple construction.",
+      "DisplayName": "Wood",
+      "Description": "Basic construction material.",
       "MaxStack": 50
     },
     {
       "ItemId": "Stone",
-      "DisplayName": "Fieldstone",
-      "Description": "Loose stone gathered from the field, used for hearths, tools, and sturdy fittings.",
+      "DisplayName": "Stone",
+      "Description": "Add some googly eyes, and it becomes a friendly pet rock.",
       "MaxStack": 40
     },
     {
