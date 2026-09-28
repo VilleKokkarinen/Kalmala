@@ -9642,6 +9642,6 @@ Observable and multiplayer impact: No player-facing behavior, RPC, replicated st
 
 Known limits: Player discovery, carried-tool, and M9 claim schema-2 coverage remains open. Host/client reconnect, replay rejection, and owner-only tool-detail acceptance have not run; normal M9 writes remain disabled.
 
-Commit and handoff: Main checkout used; no worktree synchronization was needed. This verified implementation and handoff are committed together.
+Commit and handoff: Implementation commit `c7476c1`. Main checkout used; no worktree synchronization was needed.
 
 Next task: Implement schema-2 player discovery/tool/claim round-trip and schema-1 migration coverage with exact identity and bounded rejection tests.
