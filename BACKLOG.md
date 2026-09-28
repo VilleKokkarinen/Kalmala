@@ -377,7 +377,7 @@ contract and migration checks pass.
   - [x] Define original clue, landmark, treasure, boss, or environmental-discovery candidates that reward observation without a prescribed route or mandatory combat gate. See `docs/29-m9-exploration-rewards.md`.
   - [x] Derive candidate identity, placement, interaction eligibility, and any reward on the server; use stable sparse identities and reject duplicate, forged, or replayed claims.
 - [ ] Version and migrate newly persistent M9 state before normal saves use it.
-  - [ ] Define explicit world/player scope, bounded records, exact seed/revision matching, compatibility policy, and migration behavior for tool levels, station progression, discoveries, and any approved camp/equipment state.
+  - [x] Define explicit world/player scope, bounded records, exact seed/revision matching, compatibility policy, and migration behavior for tool levels, station progression, discoveries, and any approved camp/equipment state. See `docs/30-m9-persistence-migration.md`.
   - [ ] Add round-trip, migration, mismatch, malformed-data, duplicate, and over-cap rejection coverage before enabling persistence.
 - [ ] Run M9 cross-system acceptance after implementation.
   - [ ] Verify host/client agreement, rejected-mutation no-change behavior, owner-only tool/progression state, save/reconnect behavior, and documented actor, memory, replication, and save budgets.

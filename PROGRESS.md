@@ -9613,3 +9613,19 @@ Known limits: Claims are transient and reset on reconnect or server restart pend
 Commit and handoff: Main checkout used; the reviewed files for this increment are committed together after verification. No worktree synchronization was needed.
 
 Next task: Define scope, bounds, seed/revision matching, compatibility, and migration behavior for newly persistent M9 progression and discovery state.
+
+### Run 2026-09-28T19:23:54Z - Define M9 save migration contract
+
+Outcome: Defined the accepted M9 persistence contract in `docs/30-m9-persistence-migration.md`. It versions the existing world-construction and player-discovery containers to schema 2, requires exact seed/revision-7/scope identity, explicitly migrates their schema-1 records, and bounds carried tools, station attachments, land claims, and Drying Lines. The separate M7 sparse ledger and storage schema remain unchanged. Checked only the design child in the M9 backlog; the parent remains open until migration/rejection coverage passes.
+
+Changed: `BACKLOG.md`; `docs/02-technical-architecture.md`; `docs/04-roadmap.md`; `docs/05-decision-log.md`; `docs/07-development-setup.md`; new `docs/30-m9-persistence-migration.md`; and `PROGRESS.md`.
+
+Verification: `git diff --check` passed. Checked the contract references and task checkbox, and audited the proposed limits against the current source contracts: M7 identity revision 7 and 128-character player-ID bound, six carried-tool records, 32 station attachments, five Drying Lines, 128 total construction records, and 64 M9 claims. This documentation-only increment required no Unreal build or gameplay automation.
+
+Observable and multiplayer impact: The repository now has one explicit, reviewable migration design for the approved new persistent M9 state. No runtime behavior, RPC, replicated field, or save schema changed. The design keeps persistence server-owned and carried-tool detail owner-only.
+
+Known limits: Schema-2 code and its tests are not implemented; normal writes remain gated. Schema-1 construction/player-discovery records do not carry a generator revision, so the accepted one-time migration binds matching seed/player records to current revision 7 without moving existing placements. Land claims persist while their Stone/Fibre rewards remain in pawn-lifetime inventory; a reward absent after reconnect is not re-awarded, and general inventory persistence is outside this contract.
+
+Commit and handoff: Main checkout used. No worktree handoff synchronization was needed.
+
+Next task: Add schema-2 round-trip and schema-1 migration coverage, including identity mismatch, malformed-data, duplicate, and over-cap rejection, before enabling persistence.

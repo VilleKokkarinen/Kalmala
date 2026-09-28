@@ -24,6 +24,19 @@ After the editor build, run it with the documented temporary-user pattern:
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7PersistenceUser' -abslog='C:\temp\KalmalaM7Persistence.log' -ExecCmds="Automation RunTests Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
+### M9 progression and discovery migration gate
+
+The accepted schema-2 design extends the existing construction and
+player-discovery save owners; it leaves the M7 sparse ledger and storage schema
+unchanged. Read `docs/30-m9-persistence-migration.md` for exact seed/revision/
+scope matching, caps, and the schema-1 migration rules. Do not enable schema-2
+writes until focused tests round-trip both containers, preserve schema-1
+construction/discovery/effect facts, cover each identity mismatch and malformed,
+duplicate, and over-cap rejection, and prove rejected operations leave the old
+save and live state unchanged. Pair those tests with a host/client reconnect
+check for replay rejection and owner-only tool detail; no new replicated state
+is part of this design.
+
 ### M8 travel-save contract
 
 `UKalmalaOceanTravelPersistenceSaveGame` is a separate schema-1 gate over the
