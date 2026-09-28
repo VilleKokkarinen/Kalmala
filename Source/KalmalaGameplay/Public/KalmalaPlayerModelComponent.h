@@ -5,6 +5,7 @@
 
 class UProceduralMeshComponent;
 class UMaterialInterface;
+class USceneComponent;
 
 /** Original faceted wanderer silhouette; local cosmetics only. */
 UCLASS()
@@ -25,7 +26,8 @@ public:
 
     void MulticastPlayGrindingStoneSharpening_Implementation();
 private:
-    UProceduralMeshComponent* AddPart(FName Name, FVector Pivot, FVector Centre, FVector HalfSize, UMaterialInterface* Material, bool bTapered = false);
+    UProceduralMeshComponent* AddPart(FName Name, FVector Pivot, FVector Centre, FVector HalfSize,
+        UMaterialInterface* Material, bool bTapered = false, USceneComponent* Parent = nullptr);
     UPROPERTY(Transient)
     TArray<TObjectPtr<UProceduralMeshComponent>> Parts;
     UPROPERTY(Transient)

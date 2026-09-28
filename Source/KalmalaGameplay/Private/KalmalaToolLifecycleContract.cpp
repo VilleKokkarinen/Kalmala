@@ -43,6 +43,23 @@ namespace
         return Definitions;
     }
 
+    const FKalmalaToolDefinition& ConstructionHammerDefinition()
+    {
+        static const FKalmalaToolDefinition Definition = []
+        {
+            FKalmalaToolDefinition Hammer;
+            Hammer.ToolId = TEXT("ConstructionHammer");
+            Hammer.Kind = EKalmalaToolKind::ConstructionHammer;
+            Hammer.Action = EKalmalaToolAction::None;
+            Hammer.RequiredSkill = EKalmalaSkill::None;
+            Hammer.MinimumSkillLevel = 1;
+            Hammer.MaxDurability = 100;
+            Hammer.DurabilityCost = 0;
+            return Hammer;
+        }();
+        return Definition;
+    }
+
     bool IsSelectionShapeValid(const FKalmalaToolServerSelection& Selection)
     {
         const bool bExactTool = FKalmalaToolLifecycleContract::IsKnownTool(Selection.RequiredTool)
@@ -68,10 +85,15 @@ const TArray<FKalmalaToolDefinition>& FKalmalaToolLifecycleContract::GetTieredAx
     return TieredAxeDefinitions();
 }
 
+const FKalmalaToolDefinition& FKalmalaToolLifecycleContract::GetConstructionHammerDefinition()
+{
+    return ConstructionHammerDefinition();
+}
+
 TArray<FKalmalaToolState> FKalmalaToolLifecycleContract::BuildInitialCarriedTools()
 {
     TArray<FKalmalaToolState> CarriedTools;
-    CarriedTools.Reserve(FMath::Min(GetDefinitions().Num(), MaxCarriedToolRecords));
+    CarriedTools.Reserve(FMath::Min(GetDefinitions().Num() + 1, MaxCarriedToolRecords));
     for (const FKalmalaToolDefinition& Definition : GetDefinitions())
     {
         if (CarriedTools.Num() >= MaxCarriedToolRecords || Definition.ToolId.IsNone()
@@ -83,6 +105,14 @@ TArray<FKalmalaToolState> FKalmalaToolLifecycleContract::BuildInitialCarriedTool
         State.Durability = Definition.MaxDurability;
         CarriedTools.Add(State);
     }
+    if (CarriedTools.Num() < MaxCarriedToolRecords)
+    {
+        FKalmalaToolState HammerState;
+        HammerState.ToolId = ConstructionHammerDefinition().ToolId;
+        HammerState.ToolLevel = 1;
+        HammerState.Durability = ConstructionHammerDefinition().MaxDurability;
+        CarriedTools.Add(HammerState);
+    }
     return CarriedTools;
 }
 
@@ -93,10 +123,12 @@ const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindDefinition(cons
         return Candidate.ToolId == ToolId;
     });
     if (Definition != nullptr) return Definition;
-    return TieredAxeDefinitions().FindByPredicate([ToolId](const FKalmalaToolDefinition& Candidate)
+    Definition = TieredAxeDefinitions().FindByPredicate([ToolId](const FKalmalaToolDefinition& Candidate)
     {
         return Candidate.ToolId == ToolId;
     });
+    if (Definition != nullptr) return Definition;
+    return ToolId == ConstructionHammerDefinition().ToolId ? &ConstructionHammerDefinition() : nullptr;
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Action)
@@ -106,7 +138,7 @@ bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Actio
 
 bool FKalmalaToolLifecycleContract::IsKnownTool(const EKalmalaToolKind Tool)
 {
-    return Tool >= EKalmalaToolKind::ReedKnife && Tool <= EKalmalaToolKind::IronAxe;
+    return Tool >= EKalmalaToolKind::ReedKnife && Tool <= EKalmalaToolKind::ConstructionHammer;
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownToolTier(const EKalmalaToolTier Tier)

@@ -378,7 +378,7 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
     {
         Widget->SetSupportGlyphsVisible(false);
     }
-    Text += TEXT("Pack | Craft: ") + CraftKey + TEXT("\n");
+    Text += TEXT("Pack | Build/craft: ") + CraftKey + TEXT("\n");
     bool bHasPreparedFood = false;
     if (!Inventory) Text += TEXT("Waiting for player");
     else if (Inventory->GetStacks().IsEmpty()) Text += TEXT("Empty");

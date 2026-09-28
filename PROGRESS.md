@@ -9419,6 +9419,22 @@ Handoff: Main checkout used; no worktree synchronization was needed. `BACKLOG.md
 
 Next eligible task: Add the bounded no-hearth Drying Line recipes through the existing inventory, meal-effect, and Cooking-skill authorities.
 
+### 2026-09-28T11:41:06Z — Add hammer-driven direct construction
+
+Outcome: Added a level-one starter Construction Hammer as owner-only carried-tool state, with an original procedural right-hand model and a remappable B / View build-and-craft menu. The menu builds floors for 6 Wood + 4 Fibre, walls for 6 Wood + 6 Fibre, and roofs for 6 Wood + 8 Fibre directly from the JSON-backed recipe costs. The server refuses normal crafting of these retired structural kit outputs and validates the carried hammer, materials, placement, and persistence. Existing internal construction identities and schema-one save records remain stable. Other camp structures retain their existing kit path for now.
+
+Files changed this increment: `BACKLOG.md`, `Content/Data/GameCatalogues.json`, `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `KalmalaCraftingVerification.cpp`, `KalmalaPlayerModelComponent.cpp`, `KalmalaRecipeCatalogue.cpp`, `KalmalaStorageInteraction.cpp`, `KalmalaStorageVerification.cpp`, `KalmalaToolLifecycleContract.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaCarriedToolInventoryTest.cpp`, `KalmalaCraftingNetworkContractTest.cpp`, `KalmalaCraftingTest.cpp`, `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`, `KalmalaPlayerModelComponent.h`, `KalmalaRecipeCatalogue.h`, `KalmalaToolLifecycleContract.h`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `KalmalaInventorySubsystem.cpp`, `KalmalaSettingsWidget.cpp`, `KalmalaTutorialSubsystem.cpp`, `docs/02-technical-architecture.md`, `docs/04-roadmap.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `docs/10-campfire-and-crafting.md`, `docs/14-settings-and-accessibility.md`, `docs/27-m9-carried-tool-inventory.md`, and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -Force -MaxParallelActions=4` builds passed in an isolated temporary project mirror; the initial clean build exposed two compile errors, which were fixed, and subsequent full/incremental builds passed. Thirteen focused automations passed: carried-tool inventory; crafting transaction and network; construction save, preview, shelter-piece, and shelter-sampling; raised storage; Smokehouse; storage save, transfer, and network; and campfire processing. A final post-build rerun also passed carried-tool inventory, crafting transaction/network, and construction-save contracts. `Scripts/Verify-Crafting.ps1 -Port 17877` passed with both peers, including menu/input restoration and server payment/rejection checks. `Scripts/Verify-ConstructionPersistence.ps1 -Port 17879` confirmed two paid floors replicate, restore with their exact original IDs, and coexist with two new paid floors. `GameCatalogues.json` parsed as schema 1 with 32 items and 23 recipes; `git diff --check` passed. All generated project build and test outputs stayed in the temporary mirror.
+
+Observable and multiplayer impact: The starter hammer stays in the server-created owner-only carried-tool array and cannot be spent by harvesting. Clients open the local menu and submit only the existing single buildable-identity RPC argument. The server derives Wood/Fibre costs from the JSON catalogue and owns inventory exchange, ground/overlap/range checks, actor creation, and save commit; a failed save restores the exact pre-placement inventory. No RPC payload shape, replicated gameplay field, or saved-data schema changed. Existing `FloorKit`, `WallKit`, and `RoofKit` construction identities keep their actor presentation and schema-one records.
+
+Known limits: This increment migrates floors, walls, and roofs only. Other camp structures still use kits and remain in the backlog. The UI peer check used the null renderer; no rendered layout review or visual in-hand model review was performed. Smokehouse and raised-storage session-only limits remain unchanged.
+
+Commit and handoff: Main checkout used; the scoped current-run files were committed separately from generated build outputs. No worktree handoff synchronization was needed.
+
+Next task: Move the remaining kit-based camp structures to direct hammer builds from raw materials while keeping their server validation and construction-save identities stable.
+
 
 ### 2026-09-28T10:35:42Z — Move gameplay items and recipes into JSON
 

@@ -38,8 +38,8 @@ bool FKalmalaCraftingNetworkContractTest::RunTest(const FString& Parameters)
     if (TestNotNull(TEXT("Construction placement intent exists"), Construction))
     {
         TestTrue(TEXT("Construction placement is an owning-client server RPC"), Construction->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
-        TestEqual(TEXT("Construction placement accepts only a kit identity"), int32(Construction->NumParms), 1);
-        TestNotNull(TEXT("Construction placement cannot provide a transform or state"), Construction->FindPropertyByName(TEXT("KitId")));
+        TestEqual(TEXT("Construction placement accepts only a buildable identity"), int32(Construction->NumParms), 1);
+        TestNotNull(TEXT("Construction placement cannot provide a transform or state"), Construction->FindPropertyByName(TEXT("BuildableId")));
     }
     return true;
 }

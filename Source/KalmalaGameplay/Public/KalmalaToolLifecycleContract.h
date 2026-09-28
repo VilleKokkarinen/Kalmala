@@ -21,7 +21,8 @@ enum class EKalmalaToolKind : uint8
     FieldHatchet,
     StonePick,
     BronzeAxe,
-    IronAxe
+    IronAxe,
+    ConstructionHammer
 };
 
 /** M9 harvesting tiers; station level is validated only by later craft/upgrade transactions. */
@@ -91,11 +92,12 @@ class KALMALAGAMEPLAY_API FKalmalaToolLifecycleContract
 {
 public:
     static constexpr int32 MaxFirstWaveToolDefinitions = 3;
-    static constexpr int32 MaxCarriedToolRecords = 5;
+    static constexpr int32 MaxCarriedToolRecords = 6;
     static constexpr float DefaultMaximumRange = 250.0f;
 
     static const TArray<FKalmalaToolDefinition>& GetDefinitions();
     static const TArray<FKalmalaToolDefinition>& GetTieredAxeDefinitions();
+    static const FKalmalaToolDefinition& GetConstructionHammerDefinition();
     static TArray<FKalmalaToolState> BuildInitialCarriedTools();
     static const FKalmalaToolDefinition* FindDefinition(FName ToolId);
     static bool IsKnownAction(EKalmalaToolAction Action);

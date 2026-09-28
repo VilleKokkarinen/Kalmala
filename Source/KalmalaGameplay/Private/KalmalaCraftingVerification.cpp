@@ -99,12 +99,13 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Check(CraftFromServer(TEXT("Campfire"),1,Reason),TEXT("Prepare overlapping placement"));
         Check(!PlaceFromServer(Reason) && I->GetQuantity(TEXT("CampfireKit"))==1
             && I->GetQuantity(TEXT("Fuel"))==19,TEXT("Overlap rejects placement without payment"));
-        Check(CraftFromServer(TEXT("Floor"),1,Reason),TEXT("Nearby permitted station"));
+        Check(!CraftFromServer(TEXT("Floor"),1,Reason) && GetRecipeAvailability(TEXT("Floor")) == TEXT("Ready"),
+            TEXT("Floor is built directly from materials and no longer crafts into a kit"));
         Fire->SetOwner(nullptr); Fire->SetSharedFromServer(false);
         // Move away from any other player's eligible shared hearth while checking this lock.
         const FVector FireOrigin=Fire->GetActorLocation();
         C->SetActorLocation(Original+FVector(0,0,1000)); Fire->SetActorLocation(C->GetActorLocation()+FVector(100,0,0));
-        Check(!CraftFromServer(TEXT("Floor"),1,Reason),TEXT("Locked station"));
+        Check(!CraftFromServer(TEXT("Floor"),1,Reason),TEXT("Direct build materials cannot be converted into a kit by RPC"));
         Fire->SetOwner(C->GetController()); Fire->SetSharedFromServer(true);
         Fire->SetActorLocation(FireOrigin);
         Check(!CraftFromServer(TEXT("Floor"),1,Reason) && !Fire->TryRefuelFromServer(C),TEXT("Distant station and refuel"));
@@ -389,9 +390,8 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
         const bool bGathered = GatherPersistedCampMaterials(Character, Inventory, Required);
         const bool bHearthCrafted = bGathered && CraftFromServer(TEXT("Fuel"), 1, Reason) && CraftFromServer(TEXT("Campfire"), 1, Reason);
         const bool bHearthPlaced = bHearthCrafted && PlacePersistedCampfireNearTerrain(this, Character, Reason);
-        const bool bKitsCrafted = bHearthPlaced && CraftFromServer(TEXT("Timber"), 5, Reason) && CraftFromServer(TEXT("Timber"), 5, Reason)
-            && CraftFromServer(TEXT("Timber"), 1, Reason) && CraftFromServer(TEXT("Workbench"), 1, Reason) && CraftFromServer(TEXT("Storage"), 1, Reason)
-            && CraftFromServer(TEXT("Floor"), 1, Reason) && CraftFromServer(TEXT("Wall"), 1, Reason) && CraftFromServer(TEXT("Roof"), 1, Reason);
+        const bool bKitsCrafted = bHearthPlaced && CraftFromServer(TEXT("Timber"), 5, Reason)
+            && CraftFromServer(TEXT("Workbench"), 1, Reason) && CraftFromServer(TEXT("Storage"), 1, Reason);
         AKalmalaConstructionActor *Floor = nullptr, *Wall = nullptr, *Roof = nullptr, *Workbench = nullptr, *Storage = nullptr;
         const bool bBuilt = bKitsCrafted
             && PlacePersistedCampConstruction(this, Character, TEXT("FloorKit"), Reason, Floor)

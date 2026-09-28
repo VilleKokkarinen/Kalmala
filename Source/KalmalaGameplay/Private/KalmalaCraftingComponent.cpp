@@ -173,6 +173,11 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     const auto* Recipe = UKalmalaRecipeCatalogue::Get()->Find(RecipeId);
     Reason = TEXT("Unknown or disabled recipe");
     if (!Recipe || !Recipe->bEnabled) return false;
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe->Output))
+    {
+        Reason = TEXT("Use the construction hammer to build this directly from Wood and Fibre");
+        return false;
+    }
     if (!Recipe->OutputTool.IsNone())
     {
         Reason = TEXT("Tool replacement recipes are retired; repair a damaged tool for free at a Workbench or Forge");
@@ -338,6 +343,8 @@ bool UKalmalaCraftingComponent::PlaceFromServer(FString& Reason)
     auto* Character = GetCharacter();
     Reason = TEXT("Server authority required");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
+    Reason = TEXT("Need your carried Construction Hammer to build");
+    if (Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1) return false;
     const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (!State || !State->GetWorldGenerationConfig().IsValid()) { Reason = TEXT("Waiting for world"); return false; }
     int32 Count = 0;
@@ -372,19 +379,21 @@ bool UKalmalaCraftingComponent::PlaceFromServer(FString& Reason)
     return true;
 }
 
-bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, FString& Reason)
+bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName BuildableId, FString& Reason)
 {
     auto* Character = GetCharacter();
     Reason = TEXT("Server authority required");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
-    if (KitId == TEXT("CampfireKit")) return PlaceFromServer(Reason);
-    Reason = TEXT("Unknown construction kit");
-    if (!FKalmalaPlacementPreview::IsSupportedKit(KitId)) return false;
-    const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), Character, KitId);
+    Reason = TEXT("Need your carried Construction Hammer to build");
+    if (Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1) return false;
+    if (BuildableId == TEXT("CampfireKit")) return PlaceFromServer(Reason);
+    Reason = TEXT("Unknown buildable identity");
+    if (!FKalmalaPlacementPreview::IsSupportedKit(BuildableId)) return false;
+    const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), Character, BuildableId);
     Reason = Preview.Message;
     if (!Preview.bIsValid || FVector::DistSquared(Character->GetActorLocation(), Preview.Location) > FMath::Square(250.0f)) return false;
 
-    if (FKalmalaToolProgressionContract::IsStationAttachmentKit(KitId))
+    if (FKalmalaToolProgressionContract::IsStationAttachmentKit(BuildableId))
     {
         int32 ActiveAttachmentCount = 0;
         for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It)
@@ -400,33 +409,43 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
             FKalmalaToolProgressionContract::MaxStationAttachments);
         if (ActiveAttachmentCount >= FKalmalaToolProgressionContract::MaxStationAttachments) return false;
 
-        const FName RequiredStationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(KitId);
+        const FName RequiredStationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(BuildableId);
         AKalmalaConstructionActor* NearbyStation = FindNearbyToolProgressionStation(RequiredStationKit);
         if (!NearbyStation)
         {
             return FKalmalaToolProgressionContract::CanPlaceAttachment(
-                KitId, RequiredStationKit, 0.0f, false, false, Reason);
+                BuildableId, RequiredStationKit, 0.0f, false, false, Reason);
         }
         const float StationDistance = FVector::Distance(Preview.Location, NearbyStation->GetActorLocation());
         const bool bAlreadyUpgraded = FKalmalaToolProgressionContract::GetEffectiveStationLevel(NearbyStation)
             > FKalmalaToolProgressionContract::GetBaseStationLevel(RequiredStationKit);
         if (!FKalmalaToolProgressionContract::CanPlaceAttachment(
-            KitId, NearbyStation ? NearbyStation->GetConstructionKit() : NAME_None,
+            BuildableId, NearbyStation ? NearbyStation->GetConstructionKit() : NAME_None,
             StationDistance, true, bAlreadyUpgraded, Reason)) return false;
     }
 
     const FRotator Rotation(0.0f, Character->GetActorRotation().Yaw, 0.0f);
     if (Rotation.ContainsNaN()) { Reason = TEXT("Invalid placement rotation"); return false; }
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
-    const TArray<FKalmalaInventoryStack> Cost = {{KitId, 1}};
+    TArray<FKalmalaInventoryStack> Cost;
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(BuildableId))
+    {
+        if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(BuildableId, Cost, Reason)) return false;
+    }
+    else
+    {
+        Cost = {{BuildableId, 1}};
+    }
     TArray<FKalmalaInventoryStack> Scratch;
+    TArray<FKalmalaInventoryStack> InventoryBefore;
+    if (Inventory) InventoryBefore = Inventory->GetStacks();
     if (!Inventory || !UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Cost, NAME_None, 0, Scratch, Reason)) return false;
     const FTransform Transform(Rotation, Preview.Location);
     auto* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
-    const bool bTransientAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(KitId);
-    const bool bSessionOnlyKit = FKalmalaPlacementPreview::IsSessionOnlyKit(KitId);
-    if (!GameMode || (!bTransientAttachment && !bSessionOnlyKit && !GameMode->CanPersistConstruction(KitId, Transform))
-        || (KitId == TEXT("RaisedStorageKit") && !GameMode->CanRegisterSessionStorage()))
+    const bool bTransientAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(BuildableId);
+    const bool bSessionOnlyKit = FKalmalaPlacementPreview::IsSessionOnlyKit(BuildableId);
+    if (!GameMode || (!bTransientAttachment && !bSessionOnlyKit && !GameMode->CanPersistConstruction(BuildableId, Transform))
+        || (BuildableId == TEXT("RaisedStorageKit") && !GameMode->CanRegisterSessionStorage()))
     {
         Reason = TEXT("Construction save limit reached or unavailable");
         return false;
@@ -435,29 +454,31 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName KitId, F
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
     if (!Construction) { Reason = TEXT("Could not allocate construction"); return false; }
     if (!Inventory->TryExchangeFromServer(Cost, NAME_None, 0, Reason)) { Construction->Destroy(); return false; }
-    Construction->InitializeFromServer(KitId, FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower));
+    Construction->InitializeFromServer(BuildableId, FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower));
     Construction->FinishSpawning(Transform);
-    if (KitId == TEXT("RaisedStorageKit") && !GameMode->RegisterSessionStorage(Construction))
+    if (BuildableId == TEXT("RaisedStorageKit") && !GameMode->RegisterSessionStorage(Construction))
     {
         Construction->Destroy();
-        Inventory->TryGrantFromServer(KitId, 1);
-        Reason = TEXT("Session chest limit reached; kit restored");
+        Inventory->TryCommitStacksFromServer(Scratch, InventoryBefore);
+        Reason = TEXT("Session chest limit reached; materials restored");
         return false;
     }
     if (!bTransientAttachment && !bSessionOnlyKit && !GameMode->PersistConstruction(Construction))
     {
         Construction->Destroy();
-        Inventory->TryGrantFromServer(KitId, 1);
-        Reason = TEXT("Could not save construction; kit restored");
+        Inventory->TryCommitStacksFromServer(Scratch, InventoryBefore);
+        Reason = TEXT("Could not save construction; materials restored");
         return false;
     }
-    Reason = bTransientAttachment
+    Reason = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(BuildableId)
+        ? TEXT("Built directly from Wood and Fibre with the construction hammer")
+        : bTransientAttachment
         ? TEXT("Placed the paid station attachment; its level bonus lasts for this session")
-        : KitId == TEXT("RaisedStorageKit")
+        : BuildableId == TEXT("RaisedStorageKit")
             ? TEXT("Placed raised rainproof storage; chest and contents last for this server session")
-            : KitId == TEXT("SmokehouseKit")
+            : BuildableId == TEXT("SmokehouseKit")
                 ? TEXT("Placed the roofed smokehouse; it lasts for this server session while ordinary hearth, fuel, and recipe gates remain")
-                : TEXT("Placed construction; server accepted the kit and ground");
+                : TEXT("Placed construction; server accepted the buildable and ground");
     return true;
 }
 
@@ -471,10 +492,10 @@ void UKalmalaCraftingComponent::ServerPlaceCampfire_Implementation()
 #endif
 }
 
-void UKalmalaCraftingComponent::ServerPlaceConstruction_Implementation(const FName KitId)
+void UKalmalaCraftingComponent::ServerPlaceConstruction_Implementation(const FName BuildableId)
 {
     if (!AcceptRequest()) return;
-    FString Reason; const bool Accepted = PlaceConstructionFromServer(KitId, Reason); PublishResult(Reason, Accepted);
+    FString Reason; const bool Accepted = PlaceConstructionFromServer(BuildableId, Reason); PublishResult(Reason, Accepted);
 }
 
 void UKalmalaCraftingComponent::ServerRefuel_Implementation()
@@ -579,6 +600,19 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
     if (!R->OutputTool.IsNone())
         return TEXT("Tool replacement recipes are retired; use the free repair action at a Workbench or Forge");
     auto* Character = GetCharacter();
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(R->Output))
+    {
+        if (!Character || Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1)
+            return TEXT("Need your carried Construction Hammer");
+        const auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
+        if (!Inventory) return TEXT("Waiting for pack");
+        TArray<FKalmalaInventoryStack> Costs;
+        FString Reason;
+        if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(R->Output, Costs, Reason)) return Reason;
+        TArray<FKalmalaInventoryStack> Candidate;
+        UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Costs, NAME_None, 0, Candidate, Reason);
+        return Reason;
+    }
     if (R->RequiredSkill != EKalmalaSkill::None
         && GetCurrentSkillLevel(Character, R->RequiredSkill) < R->RequiredSkillLevel)
     {
@@ -696,6 +730,24 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     if (!R) return TEXT("Unknown recipe");
     if (!R->OutputTool.IsNone())
         return TEXT("Tool replacement recipes are retired; use the free repair action at a Workbench or Forge");
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(R->Output))
+    {
+        FString Text = R->DisplayName + TEXT("\nBuild directly with the Construction Hammer; no kit is created.\nRaw material cost: ");
+        TArray<FKalmalaInventoryStack> Costs;
+        FString Failure;
+        if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(R->Output, Costs, Failure)) return Failure;
+        for (int32 Index = 0; Index < Costs.Num(); ++Index)
+        {
+            const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Costs[Index].ItemId);
+            Text += FString::Printf(TEXT("%s%d %s"), Index ? TEXT(", ") : TEXT(""), Costs[Index].Quantity,
+                Item ? *Item->DisplayName : *Costs[Index].ItemId.ToString());
+        }
+        const auto* BuildItem = UKalmalaItemCatalogue::Get()->FindItem(R->Output);
+        Text += FString::Printf(TEXT("\nOutput: %s construction (no kit item created)."),
+            BuildItem ? *BuildItem->DisplayName : *R->Output.ToString());
+        Text += TEXT("\nBuild quantity: one construction per request; repeat to build another.\nPlacement: clear, dry, gently sloping ground. The server rechecks terrain, slope, overlap, range, payment, and save identity. Failure: the availability text below names missing materials.");
+        return Text;
+    }
     FString Text = R->DisplayName + TEXT("\nCost: ");
     for (const auto& Cost : R->Ingredients)
     {

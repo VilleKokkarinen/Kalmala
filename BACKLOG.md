@@ -364,6 +364,8 @@ contract and migration checks pass.
 - [ ] Extend optional camp and equipment progression through existing systems.
   - [x] Review the roadmap examples—weatherproof storage, hearth-compatible processing, storm-rated shelter, insulated equipment, and camp drying utility—and define the accepted recipes and server-side validation before implementation.
   - [ ] Keep storage, processing, construction, equipment effects, repair, costs, and skill awards within their existing authorities and accessibility feedback paths.
+    - [x] Add the carried Construction Hammer and owner-local build menu; directly build floors, walls, and roofs from JSON-backed raw-material costs with server-owned placement and unchanged construction-save identities.
+    - [ ] Move the remaining kit-based camp structures to direct hammer builds from raw materials; remove their kit outputs from normal crafting while preserving existing save identities and station validation.
     - [x] Add paid, rain-immune raised storage with the shared bounded chest interface; keep its construction and contents session-only until M9 migration.
     - [x] Add the roofed Smokehouse alternative while retaining the existing server-owned smoke recipe, hearth, fuel, and skill gates.
     - [ ] Add the bounded no-hearth Drying Line recipes through the existing inventory, meal-effect, and Cooking-skill authorities.

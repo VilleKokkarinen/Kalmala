@@ -63,9 +63,12 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
             bool BenchPlaced = false;
             for (int32 Turn = 0; Turn < 8 && !BenchPlaced; ++Turn)
             { C->SetActorRotation(FRotator(0, Turn*45, 0)); BenchPlaced = PlaceConstructionFromServer(TEXT("WorkbenchKit"), Reason); }
-            Check(BenchPlaced && FindNearbyWorkbench() && CraftFromServer(TEXT("Floor"), 1, Reason)
-                && Pack->GetQuantity(TEXT("FloorKit")) == 1 && Pack->GetQuantity(TEXT("ConstructionSupply")) == 0, TEXT("Paid visible workbench assembles a floor without hearth"));
-            Pack->TryConsumeFromServer(TEXT("FloorKit"), 1);
+            Check(BenchPlaced && FindNearbyWorkbench()
+                && Pack->TryGrantFromServer(TEXT("Wood"), 6) && Pack->TryGrantFromServer(TEXT("Fibre"), 4)
+                && !CraftFromServer(TEXT("Floor"), 1, Reason)
+                && GetRecipeAvailability(TEXT("Floor")) == TEXT("Ready")
+                && Pack->GetQuantity(TEXT("FloorKit")) == 0,
+                TEXT("Floor is a direct hammer build with raw material costs and no kit output"));
         }
         // Give each owner a position where the no-target inspect RPC resolves its assigned chest.
         // Merely being in range of it can select the other restored player's nearer chest.

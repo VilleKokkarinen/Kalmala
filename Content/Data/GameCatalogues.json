@@ -88,17 +88,17 @@
     },
     {
       "ItemId": "FloorKit",
-      "DisplayName": "Timber floor kit",
+      "DisplayName": "Timber floor",
       "MaxStack": 10
     },
     {
       "ItemId": "WallKit",
-      "DisplayName": "Windbreak wall kit",
+      "DisplayName": "Windbreak wall",
       "MaxStack": 10
     },
     {
       "ItemId": "RoofKit",
-      "DisplayName": "Reed roof kit",
+      "DisplayName": "Reed roof",
       "MaxStack": 10
     },
     {
@@ -551,7 +551,7 @@
     },
     {
       "RecipeId": "Floor",
-      "DisplayName": "Timber floor kit",
+      "DisplayName": "Timber floor",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -561,7 +561,7 @@
       "Output": "FloorKit",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "bRequiresCampfire": true,
+      "bRequiresCampfire": false,
       "OutputTool": "",
       "bRequiresLitCampfire": false,
       "RequiredStationKit": "",
@@ -574,7 +574,7 @@
     },
     {
       "RecipeId": "Wall",
-      "DisplayName": "Windbreak wall kit",
+      "DisplayName": "Windbreak wall",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -588,7 +588,7 @@
       "Output": "WallKit",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "bRequiresCampfire": true,
+      "bRequiresCampfire": false,
       "OutputTool": "",
       "bRequiresLitCampfire": false,
       "RequiredStationKit": "",
@@ -601,7 +601,7 @@
     },
     {
       "RecipeId": "Roof",
-      "DisplayName": "Reed roof kit",
+      "DisplayName": "Reed roof",
       "Ingredients": [
         {
           "ItemId": "ConstructionSupply",
@@ -615,7 +615,7 @@
       "Output": "RoofKit",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "bRequiresCampfire": true,
+      "bRequiresCampfire": false,
       "OutputTool": "",
       "bRequiresLitCampfire": false,
       "RequiredStationKit": "",

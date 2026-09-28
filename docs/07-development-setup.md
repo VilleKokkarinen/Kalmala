@@ -1135,6 +1135,40 @@ tool section. This fixture checks presentation and existing owner-local data
 flow; it adds no server request, gameplay authority, replicated field, or save
 schema.
 
+### M9 Construction Hammer and direct builds
+
+The server creates a level-one carried Construction Hammer for each new
+character. Its owner can open the local build and craft menu with the remappable
+`CraftMenu` binding; other clients cannot supply hammer state or placement
+costs. Floors, walls, and roofs are paid directly with Wood and Fibre. Their
+internal construction identities remain stable so schema-one camp saves keep
+restoring the same actors.
+
+After a forced editor build, run
+`Kalmala.Gameplay.Tools.CarriedToolInventoryContract`,
+`Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract`,
+`Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract+Kalmala.Gameplay.Construction.ShelterPieces+Kalmala.Gameplay.Construction.ShelterSampling`,
+`Kalmala.Gameplay.M9.RaisedStorage+Kalmala.Gameplay.M9.Smokehouse`,
+`Kalmala.Gameplay.Food.CampfireProcessing`, and
+`Kalmala.Gameplay.Storage.SaveContract+Kalmala.Gameplay.Storage.Transfers+Kalmala.Gameplay.Storage.NetworkContract`
+with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and
+`-TestExit="Automation Test Queue Empty"` arguments. Require every requested
+test result to report success. The crafting test checks the expanded raw costs,
+insufficient-material rejection, and refusal to craft the retired floor kit;
+the network test checks that construction requests carry only the buildable
+identity.
+
+Then run `Scripts/Verify-Crafting.ps1 -Port <unused-port>` and
+`Scripts/Verify-ConstructionPersistence.ps1 -Port <unused-port>`. The first
+checks the owner-local menu, two-peer input restoration, payment/rejection
+gates, and exact final inventories. The second confirms that two raw-material
+floor builds replicate with server-generated identities, those same identities
+restore after restart, and subsequent paid builds replicate as two new records.
+Use the scripts' `-Rendered` option for the crafting run when visually reviewing
+the menu; a null-renderer peer run proves menu data and input flow but does not
+inspect layout or the in-hand model visually. These checks add no RPC fields,
+replicated gameplay field, or saved-data schema.
+
 ### M9 raised storage
 
 After the forced UE 5.8.2 editor build with normal `%LOCALAPPDATA%/UnrealBuildTool`

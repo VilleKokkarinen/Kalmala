@@ -14,7 +14,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FKalmalaCarriedToolInventoryTest::RunTest(const FString& Parameters)
 {
     const TArray<FKalmalaToolState> InitialTools = FKalmalaToolLifecycleContract::BuildInitialCarriedTools();
-    TestEqual(TEXT("Starting inventory is bounded to the three first-wave tools"), InitialTools.Num(), 3);
+    TestEqual(TEXT("Starting inventory contains three gathering tools and the construction hammer"), InitialTools.Num(), 4);
     TestTrue(TEXT("Starting tool records stay within the carried-tool cap"),
         InitialTools.Num() <= FKalmalaToolLifecycleContract::MaxCarriedToolRecords);
 
@@ -26,6 +26,10 @@ bool FKalmalaCarriedToolInventoryTest::RunTest(const FString& Parameters)
         if (Definition != nullptr)
             TestEqual(TEXT("Starting carried tool has full condition"), State.Durability, Definition->MaxDurability);
     }
+    TestTrue(TEXT("The starter construction hammer is carried at level one"), InitialTools.ContainsByPredicate(
+        [](const FKalmalaToolState& State) { return State.ToolId == TEXT("ConstructionHammer") && State.ToolLevel == 1; }));
+    TestEqual(TEXT("The hammer has no use durability cost"),
+        FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().DurabilityCost, 0);
 
     UClass* CharacterClass = AKalmalaCharacter::StaticClass();
     CharacterClass->SetUpRuntimeReplicationData();

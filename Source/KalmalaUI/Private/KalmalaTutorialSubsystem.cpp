@@ -534,7 +534,7 @@ FString UKalmalaTutorialSubsystem::BuildBody(const EKalmalaTutorialBeat Beat) co
     case EKalmalaTutorialBeat::Gather:
         return FString::Printf(TEXT("Gather what you need from the wilderness. Your pack shows what was accepted. Press %s while the node remains visible."), *FormatInput(TEXT("Interact")));
     case EKalmalaTutorialBeat::Prepare:
-        return FString::Printf(TEXT("Craft menu: %s. Choose what to make, then place it where the terrain and your materials allow. The server checks each placement."),
+        return FString::Printf(TEXT("Construction Hammer menu: %s. Build floors, walls, and roofs directly from Wood and Fibre; the server checks materials and placement."),
             *FormatInput(TEXT("CraftMenu")));
     case EKalmalaTutorialBeat::Weather:
         return TEXT("Weather changes comfort and travel. Shelter, cover, and a lit hearth are options; your status shows current effects.");

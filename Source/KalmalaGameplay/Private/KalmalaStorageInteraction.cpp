@@ -133,7 +133,7 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
         PublishResult(TEXT("Hearth cauldron ready; use Camp crafting to simmer broth with extra fuel"), true);
     else if (Construction->GetConstructionKit() == TEXT("SmokeFrameKit"))
         PublishResult(TEXT("Smoke frame ready; use Camp crafting with a lit hearth and one extra fuel bundle per serving"), true);
-    else PublishResult(TEXT("Joiner's bench ready; use Camp crafting to assemble floor, wall and roof kits"), true);
+    else PublishResult(TEXT("Joiner's bench ready; use the Construction Hammer menu to build floors, walls, and roofs from Wood and Fibre"), true);
 }
 
 bool UKalmalaCraftingComponent::TransferStorageFromServer(FName ItemId, bool bDeposit, FString& Reason)

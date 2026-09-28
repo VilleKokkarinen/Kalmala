@@ -37,6 +37,7 @@ FString GetReadableToolName(const FName ToolId)
     if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
     if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
     if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
+    if (ToolId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
     return ToolId.ToString();
 }
 
@@ -186,11 +187,11 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         WrappedTextBlocks.Add(Label);
         Column->AddChild(Label); return Label;
     };
-    AddText(TEXT("Camp crafting"), 28);
+    AddText(TEXT("Construction hammer — Build and craft"), 28);
     FString CraftKey = TEXT("Unbound");
     for (const FInputActionKeyMapping& Mapping : GetDefault<UInputSettings>()->GetActionMappings())
         if (Mapping.ActionName == TEXT("CraftMenu") && !Mapping.Key.IsGamepadKey()) { CraftKey = Mapping.Key.GetDisplayName().ToString(); break; }
-    InstructionsText = AddText(FString::Printf(TEXT("Craft menu input: %s. Up/Down or D-pad: choose. Enter / A: craft. P: local preview. Escape / B: close.\nController Y: place hearth. X: add fuel. RB: light. Mouse buttons and focused keyboard/controller buttons also work.\nSelection is marked with >. Requirements and unavailable reasons are written in text; colour is never the only cue.\n"), *CraftKey), 16);
+    InstructionsText = AddText(FString::Printf(TEXT("Construction hammer menu input: %s (Controller View / special-left). Up/Down or D-pad: choose. Enter / A: craft or build. P: local preview. Escape / B: close.\nController Y: build or place selected. X: add fuel. RB: light. Mouse buttons and focused keyboard/controller buttons also work.\nFloor, wall, and roof are built directly from Wood and Fibre; no kit is created. Selection is marked with >. Requirements and unavailable reasons are written in text; colour is never the only cue.\n"), *CraftKey), 16);
     RecipesText = AddText(TEXT(""), 18);
     DetailText = AddText(TEXT(""), 18);
     auto AddButton = [&](const TCHAR* Label, UHorizontalBox* Row = nullptr, const TCHAR* Help = nullptr) {
@@ -206,10 +207,10 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Next"),RecipeActions,TEXT("Select the next recipe. Its ingredients, station, unlock, batch limit, and availability are shown above."))->OnClicked.AddDynamic(this, &ThisClass::Next);
     CraftButton = AddButton(TEXT("Craft one"),RecipeActions,TEXT("Craft batch 1 of the selected recipe. The server checks every requirement and rejected requests preserve ingredients."));
     CraftButton->OnClicked.AddDynamic(this, &ThisClass::Craft);
-    AddButton(TEXT("Preview kit"),RecipeActions,TEXT("Show a local placement preview for the selected kit. This does not place it or spend ingredients."))->OnClicked.AddDynamic(this, &ThisClass::Preview);
-    AddText(TEXT("\nPlace selected kit uses the derived ground ahead. A hearth also needs one ember bundle; every placement is rechecked by the server.\n"),16);
+    AddButton(TEXT("Preview placement"),RecipeActions,TEXT("Show a local placement preview for the selected buildable. This does not place it or spend ingredients."))->OnClicked.AddDynamic(this, &ThisClass::Preview);
+    AddText(TEXT("\nBuild/place selected uses the derived ground ahead. The server checks hammer, materials, terrain, and placement before committing. Other camp stations still use kits in this first construction pass.\n"),16);
     auto* FireActions=WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(FireActions);
-    AddButton(TEXT("Place selected kit"),FireActions,TEXT("Ask the server to place the selected camp kit. The server checks ground, range, overlap, and materials."))->OnClicked.AddDynamic(this, &ThisClass::Place);
+    AddButton(TEXT("Build / place selected"),FireActions,TEXT("Ask the server to build the selected structure. Floors, walls, and roofs consume raw Wood and Fibre directly; remaining station kits use their existing kit item."))->OnClicked.AddDynamic(this, &ThisClass::Place);
     AddButton(TEXT("Add fuel bundle"),FireActions,TEXT("Add one fuel bundle to a nearby usable hearth if the server confirms access and capacity."))->OnClicked.AddDynamic(this, &ThisClass::Refuel);
     AddButton(TEXT("Light hearth"),FireActions,TEXT("Light a nearby usable hearth. The server checks access, dry fuel, and fire state."))->OnClicked.AddDynamic(this, &ThisClass::Light);
     StateText = AddText(TEXT(""), 18);
@@ -257,6 +258,18 @@ UKalmalaCraftingComponent* UKalmalaCraftingWidget::Model() const
 void UKalmalaCraftingWidget::Open()
 {
     auto* PC = GetOwningPlayer(); if (bOpen || !PC || PC->IsMoveInputIgnored() || !Model()) return;
+    const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn());
+    if (!Character || Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1) return;
+    if (UKalmalaRecipeCatalogue::Get()->Recipes.IsValidIndex(Selected)
+        && Selected == 0)
+    {
+        const int32 FirstBuild = UKalmalaRecipeCatalogue::Get()->Recipes.IndexOfByPredicate(
+            [](const FKalmalaRecipe& Recipe)
+            {
+                return UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.Output);
+            });
+        if (FirstBuild != INDEX_NONE) Selected = FirstBuild;
+    }
     bOpen = true; bPreviousCursor = PC->bShowMouseCursor;
     int32 X, Y; PC->GetViewportSize(X,Y);
     const float Scale = FMath::Max(.1f, UWidgetLayoutLibrary::GetViewportScale(this));
@@ -312,11 +325,18 @@ void UKalmalaCraftingWidget::Refresh()
         LastDetailTextScalePercent = TextScalePercent;
         LastDetailContrastMode = ContrastMode;
     }
+    const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.Output);
     if (CraftButton)
     {
-        CraftButton->SetToolTipText(FText::FromString(FString::Printf(
-            TEXT("Craft batch 1 of %s. Availability: %s. A rejected request preserves ingredients and tool condition."),
-            *SelectedRecipe.DisplayName, *Availability)));
+        if (UTextBlock* ButtonLabel = Cast<UTextBlock>(CraftButton->GetContent()))
+            ButtonLabel->SetText(FText::FromString(bDirectBuild ? TEXT("Build selected") : TEXT("Craft one")));
+        const FString ButtonToolTip = bDirectBuild
+            ? FString::Printf(TEXT("Build %s directly from raw materials with the Construction Hammer. Availability: %s. Rejected requests preserve materials."),
+                *SelectedRecipe.DisplayName, *Availability)
+            : FString::Printf(TEXT("Craft batch 1 of %s. Availability: %s. A rejected request preserves ingredients and tool condition."),
+                *SelectedRecipe.DisplayName, *Availability);
+        CraftButton->SetToolTipText(FText::FromString(ButtonToolTip));
+        CraftButton->SetIsEnabled(SelectedRecipe.bEnabled && SelectedRecipe.OutputTool.IsNone());
     }
     FString PreviewText;
     if (bPlacementPreviewEnabled)
@@ -340,6 +360,7 @@ void UKalmalaCraftingWidget::Refresh()
     };
     for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetDefinitions()) AppendToolCondition(Definition);
     for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) AppendToolCondition(Definition);
+    AppendToolCondition(FKalmalaToolLifecycleContract::GetConstructionHammerDefinition());
     StateText->SetText(FText::FromString(TEXT("\nNearby hearth (replicated shared state; text does not rely on colour):\n")
         + ToolConditionText + TEXT("\n") + M->GetNearbyFireText()+TEXT("\n")+M->GetNearbyConstructionText()+TEXT("\n")+M->GetNearbyWorkbenchText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")+PreviewText));
     FoodText->SetText(FText::FromString(M->GetFoodText()));
@@ -373,7 +394,13 @@ FString UKalmalaCraftingWidget::GetPresentationText() const
 void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D) { Super::NativeTick(G,D); if(bOpen) Refresh(); }
 void UKalmalaCraftingWidget::Previous() { const int32 N=UKalmalaRecipeCatalogue::Get()->Recipes.Num(); if(N) Selected=(Selected+N-1)%N; Refresh(); }
 void UKalmalaCraftingWidget::Next() { const int32 N=UKalmalaRecipeCatalogue::Get()->Recipes.Num(); if(N) Selected=(Selected+1)%N; Refresh(); }
-void UKalmalaCraftingWidget::Craft() { const auto& R=UKalmalaRecipeCatalogue::Get()->Recipes; if(auto* M=Model(); M && R.IsValidIndex(Selected)) M->ServerCraft(R[Selected].RecipeId,1); }
+void UKalmalaCraftingWidget::Craft()
+{
+    const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
+    if (!Recipes.IsValidIndex(Selected)) return;
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipes[Selected].Output)) { Place(); return; }
+    if (auto* M = Model()) M->ServerCraft(Recipes[Selected].RecipeId, 1);
+}
 void UKalmalaCraftingWidget::EnablePlacementPreview() { bPlacementPreviewEnabled = true; Refresh(); }
 void UKalmalaCraftingWidget::Preview() { EnablePlacementPreview(); }
 void UKalmalaCraftingWidget::Place()
@@ -474,21 +501,22 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && Text.Contains(TEXT("Attachments last only for this session until M9 persistence is approved"))
                 && Text.Contains(TEXT("Grinding Stone Repair All: interact with a visible same-world Grinding Stone"));
             UE_LOG(LogTemp, Display, TEXT("M9 tool feedback: Passed=%d"), ToolFeedbackPassed);
-            const bool Passed=Text.Contains(TEXT("Craft menu input:")) && Text.Contains(TEXT("Up/Down"))
-                && Text.Contains(TEXT("Cost:")) && Text.Contains(TEXT("Output:")) && Text.Contains(TEXT("Handcrafted; no station"))
-                && Text.Contains(TEXT("Maximum batch:")) && Text.Contains(TEXT("stack limit"))
+            const bool Passed=Text.Contains(TEXT("Construction hammer menu input:")) && Text.Contains(TEXT("Up/Down"))
+                && Text.Contains(TEXT("Raw material cost: 6 Splitwood, 4 Reed fibre"))
+                && Text.Contains(TEXT("Output: Timber floor construction (no kit item created)"))
+                && Text.Contains(TEXT("Build quantity: one construction per request"))
                 && Text.Contains(TEXT("Failure: the availability text below"))
                 && Text.Contains(TEXT("SKILL PROGRESS [PRIVATE TO YOU]"))
                 && Text.Contains(TEXT("Cooking: Level 1, 0/100 XP to Level 2"))
                 && Text.Contains(TEXT("Next recipe unlock: Smoke boar field meat + Smoke deer field meat at Cooking level 2 (0/100 XP earned)"))
-                && Text.Contains(TEXT("Accepted roast boar field meat requests award +10 Cooking XP each; one batch still earns once."))
+                && Text.Contains(TEXT("Accepted Roast boar field meat requests award +10 Cooking XP each; one batch still earns once."))
                 && Text.Contains(TEXT("Selection is marked with >"))
-                && Text.Contains(TEXT("Need 2 Splitwood")) && Text.Contains(TEXT("Free repair: at a visible same-world Workbench or Forge"))
+                && Text.Contains(TEXT("Free repair: at a visible same-world Workbench or Forge"))
                 && Text.Contains(TEXT("Tool condition and free repair status (owner-only)")) && Text.Contains(TEXT("Bronze Axe:")) && Text.Contains(TEXT("Iron Axe:"))
                 && Text.Contains(TEXT("Roasted field meat:"))
-                && Text.Contains(TEXT("Craft batch 1 of"))
-                && Text.Contains(TEXT("A rejected request preserves ingredients and tool condition"))
-                && PreviewText.Contains(TEXT("Preview:"))
+                && Text.Contains(TEXT("Build Timber floor directly from raw materials"))
+                && Text.Contains(TEXT("Rejected requests preserve materials"))
+                && PreviewText.Contains(TEXT("Preview "))
                 && PC->IsMoveInputIgnored() && Widget->IsFocusable();
             Widget->Close();
             UE_LOG(LogTemp,Display,TEXT("Crafting presentation: Passed=%d Restored=%d"),Passed,!PC->IsMoveInputIgnored()); bVerified=true;

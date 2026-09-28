@@ -337,7 +337,8 @@ M9 has five ordered goals:
        - Frost salt, new mining resource
    - Treat these as candidate directions for a curated catalogue, not a locked list. Every approved gameplay entry needs a canonical ID, server-derived source or placement rule, bounded activation budget, and existing-item reward or recipe mapping where applicable. Ocean content must use M8 travel interactions; placement, depletion, hazards, claims, and rewards remain server-owned and deterministic. Do not add open-ended drop tables or client-authored content data.
 
-2. **Camp and equipment progression.** Add level upgrades for tools and matching workstation progression, then extend camp utility through the existing validated inventory, crafting, construction, station, and accessibility contracts.
+2. **Camp and equipment progression.** Add level upgrades for tools and matching workstation progression. Use a carried, wielded Construction Hammer to open the build menu and place constructions directly from server-validated raw-material costs, then extend camp utility through the existing inventory, crafting, construction, station, and accessibility contracts.
+   - The menu starts with floors, walls, and roofs, built directly from Wood and Fibre without producing kit items. Keep their existing internal construction identities and save records stable. Migrate the remaining camp kits through the same menu and server transaction in later bounded increments.
    - **Tool level and workstation matching:**
      - Give each carried tool an authored level path. Tool level is distinct from the player's skill level and remains server-owned, with detailed tool state visible only to its owner.
      - Extend the existing owner-only tool-condition records into the carried-tool inventory shown to that owner; the current first-wave tools are condition fields rather than pack stacks. The server, not the client, supplies the eligible tool list to repair and upgrade actions.
@@ -365,7 +366,7 @@ M9 has five ordered goals:
 
 **M9 content boundary:** expansion stays within the established PC solo/listen-server co-op product scope unless a separate roadmap revision explicitly changes platforms or online services. New systems should extend existing contracts rather than introduce parallel inventory, combat, weather, progression, or persistence authorities.
 
-**M9 multiplayer boundary:** all encounter selection, creature state, crafting/progression outcomes, loot, hazards, rewards, and persistent facts remain server-owned. Private inventory and progression remain owner-scoped; peers receive only relevant world and presentation state.
+**M9 multiplayer boundary:** all encounter selection, creature state, crafting/progression outcomes, construction material payment and placement, loot, hazards, rewards, and persistent facts remain server-owned. Clients submit a canonical buildable identity only; the server derives costs, terrain transform, validation and result. Private inventory and progression remain owner-scoped; peers receive only relevant world and presentation state.
 
 **M9 accept:** the second content wave is playable across the supported biomes and ocean travel path without developer commands; new encounters and progression remain optional and readable; rejected client mutations leave state unchanged; versioned saves round-trip and migrate as documented; and the M8 travel loop plus M6 supported-session loop remain green.
 

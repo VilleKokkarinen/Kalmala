@@ -87,7 +87,7 @@ remapping is added:
 | Sprint | Left Shift / Right Shift | Left stick click |
 | SettingsMenu | Escape / O | — |
 | WorldMap / WorldMapRecenter | M / R | — |
-| CraftMenu | B | Special left |
+| Build and crafting menu (`CraftMenu`) | B | Special left |
 | Support selection | 1–4 | D-pad directions |
 | Support activation | Q | Face button top |
 

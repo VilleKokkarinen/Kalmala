@@ -18,10 +18,11 @@ UKalmalaPlayerModelComponent::UKalmalaPlayerModelComponent()
 }
 
 UProceduralMeshComponent* UKalmalaPlayerModelComponent::AddPart(const FName Name, const FVector Pivot,
-    const FVector Centre, const FVector HalfSize, UMaterialInterface* Material, const bool bTapered)
+    const FVector Centre, const FVector HalfSize, UMaterialInterface* Material, const bool bTapered,
+    USceneComponent* Parent)
 {
     auto* Part = NewObject<UProceduralMeshComponent>(GetOwner(), Name, RF_Transient);
-    Part->SetupAttachment(this);
+    Part->SetupAttachment(Parent ? Parent : this);
     Part->SetRelativeLocation(Pivot);
     Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     Part->SetGenerateOverlapEvents(false);
@@ -131,6 +132,12 @@ void UKalmalaPlayerModelComponent::BeginPlay()
     AddPart(TEXT("PlayerFace"), FVector::ZeroVector, FVector(14.5f, 0, 160), FVector(1.5f, 8, 3), DarkMaterial);
     LeftArm = AddPart(TEXT("PlayerLeftArm"), FVector(0, -27, 129), FVector(0, 0, -27), FVector(7, 7, 29), ClothMaterial);
     RightArm = AddPart(TEXT("PlayerRightArm"), FVector(0, 27, 129), FVector(0, 0, -27), FVector(7, 7, 29), ClothMaterial);
+    // The starter construction hammer is a real carried tool and is visibly held
+    // by the arm that opens the build menu. Its meshes have no collision.
+    AddPart(TEXT("ConstructionHammerHandle"), FVector(8, 0, -47), FVector::ZeroVector,
+        FVector(2.5f, 2.5f, 13.0f), DarkMaterial, false, RightArm);
+    AddPart(TEXT("ConstructionHammerHead"), FVector(13, 0, -35), FVector::ZeroVector,
+        FVector(8.0f, 3.5f, 3.5f), HeadMaterial, false, RightArm);
     LeftLeg = AddPart(TEXT("PlayerLeftLeg"), FVector(0, -10, 76), FVector(2, 0, -38), FVector(9, 8, 38), DarkMaterial);
     RightLeg = AddPart(TEXT("PlayerRightLeg"), FVector(0, 10, 76), FVector(2, 0, -38), FVector(9, 8, 38), DarkMaterial);
 }

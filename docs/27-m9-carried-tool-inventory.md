@@ -6,10 +6,14 @@ properties with the character's bounded `CarriedTools` record array. Each
 level. Tool level belongs to the tool record and stays separate from the
 player's skill progression ledger.
 
-The server creates the initial three first-wave records at level 1 and full
-condition when an authoritative character begins play. The inventory is
-bounded to five records for the current three first-wave tools and two M9 axe
-tiers. Uncrafted Bronze and Iron Axes remain absent from the starting list.
+The server creates the initial three first-wave gathering tools and a level-one
+Construction Hammer when an authoritative character begins play. The hammer
+has 100 condition, no durability cost, and an original right-hand procedural
+model. The owner-local B / View build menu requires the carried hammer; each
+construction request independently validates its server-owned record. The
+inventory is bounded to six records for the three first-wave gathering tools,
+the hammer, and two M9 axe tiers. Uncrafted Bronze and Iron Axes remain absent
+from the starting list.
 
 ## M9 axe progression entries
 

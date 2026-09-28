@@ -36,6 +36,9 @@ public:
     static const UKalmalaRecipeCatalogue* Get();
     bool IsValidCatalogue() const;
     const FKalmalaRecipe* Find(FName Id) const;
+    static bool IsDirectMaterialBuildable(FName BuildableId);
+    static bool BuildDirectMaterialCost(FName BuildableId,
+        TArray<FKalmalaInventoryStack>& OutCosts, FString& Reason);
     static bool Scale(const FKalmalaRecipe& Recipe, int32 Batch,
         TArray<FKalmalaInventoryStack>& Costs, int32& OutputCount);
 };

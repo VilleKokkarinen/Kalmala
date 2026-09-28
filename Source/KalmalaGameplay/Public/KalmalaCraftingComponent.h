@@ -20,7 +20,7 @@ public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out) const override;
     UFUNCTION(Server, Reliable) void ServerCraft(FName RecipeId, int32 Batch);
     UFUNCTION(Server, Reliable) void ServerPlaceCampfire();
-    UFUNCTION(Server, Reliable) void ServerPlaceConstruction(FName KitId);
+    UFUNCTION(Server, Reliable) void ServerPlaceConstruction(FName BuildableId);
     UFUNCTION(Server, Reliable) void ServerRefuel();
     UFUNCTION(Server, Reliable) void ServerLight();
     UFUNCTION(Server, Reliable) void ServerRepairTool(FName ToolId);
@@ -46,7 +46,7 @@ public:
     bool ProgressToolFromServer(FName ToolId, FString& Reason);
     bool ConsumeFoodFromServer(FName FoodItemId, FString& Reason);
     bool PlaceFromServer(FString& Reason);
-    bool PlaceConstructionFromServer(FName KitId, FString& Reason);
+    bool PlaceConstructionFromServer(FName BuildableId, FString& Reason);
     FString GetRecipeDescription(FName RecipeId) const;
     FString GetRecipeAvailability(FName RecipeId) const;
     FString GetToolProgressionText() const;
