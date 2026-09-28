@@ -55,7 +55,7 @@ const TCHAR* GetReadableSkillName(const EKalmalaSkill Skill)
     }
 }
 
-FString BuildSkillProgressText(const AKalmalaCharacter* Character, const TArray<FKalmalaRecipe>& Recipes)
+FString BuildSkillProgressText(const AKalmalaCharacter* Character)
 {
     FString Text = TEXT("\nSKILL PROGRESS [PRIVATE TO YOU]\n");
     const UKalmalaSkillProgressionComponent* Progression = Character
@@ -105,69 +105,7 @@ FString BuildSkillProgressText(const AKalmalaCharacter* Character, const TArray<
         }
     }
 
-    const FKalmalaRecipe* NextUnlock = nullptr;
-    int32 SmallestExperienceGap = MAX_int32;
-    for (const FKalmalaRecipe& Recipe : Recipes)
-    {
-        if (!Recipe.bEnabled || Recipe.RequiredSkill == EKalmalaSkill::None
-            || !FKalmalaSkillProgressionContract::IsKnownSkill(Recipe.RequiredSkill)
-            || Recipe.RequiredSkillLevel < 2
-            || Recipe.RequiredSkillLevel > FKalmalaSkillProgressionContract::MaxLevel)
-        {
-            continue;
-        }
-
-        const FKalmalaSkillState* State = FindState(Recipe.RequiredSkill);
-        if (!State || State->Level >= Recipe.RequiredSkillLevel) continue;
-        const int32 RequiredExperience = FKalmalaSkillProgressionContract::GetExperienceForLevel(Recipe.RequiredSkillLevel);
-        const int32 ExperienceGap = RequiredExperience - State->Experience;
-        if (ExperienceGap < SmallestExperienceGap)
-        {
-            SmallestExperienceGap = ExperienceGap;
-            NextUnlock = &Recipe;
-        }
-    }
-
-    if (!NextUnlock)
-    {
-        Text += TEXT("Next recipe unlock: all current skill-gated recipes are available.\n");
-        return Text;
-    }
-
-    const FKalmalaSkillState* UnlockSkillState = FindState(NextUnlock->RequiredSkill);
-    if (!UnlockSkillState) return Text;
-    FString UnlockNames;
-    for (const FKalmalaRecipe& Recipe : Recipes)
-    {
-        if (!Recipe.bEnabled || Recipe.RequiredSkill != NextUnlock->RequiredSkill
-            || Recipe.RequiredSkillLevel != NextUnlock->RequiredSkillLevel
-            || UnlockSkillState->Level >= Recipe.RequiredSkillLevel)
-        {
-            continue;
-        }
-        if (!UnlockNames.IsEmpty()) UnlockNames += TEXT(" + ");
-        UnlockNames += Recipe.DisplayName;
-    }
-
-    const int32 RequiredExperience = FKalmalaSkillProgressionContract::GetExperienceForLevel(NextUnlock->RequiredSkillLevel);
-    Text += FString::Printf(TEXT("Next recipe unlock: %s at %s level %d (%d/%d XP earned).\n"),
-        *UnlockNames, GetReadableSkillName(NextUnlock->RequiredSkill), NextUnlock->RequiredSkillLevel,
-        UnlockSkillState->Experience, RequiredExperience);
-
-    const FKalmalaRecipe* EarningRecipe = Recipes.FindByPredicate(
-        [NextUnlock, UnlockSkillState](const FKalmalaRecipe& Recipe)
-        {
-            return Recipe.bEnabled && Recipe.ExperienceSkill == NextUnlock->RequiredSkill
-                && Recipe.ExperienceAward > 0
-                && (Recipe.RequiredSkill == EKalmalaSkill::None
-                    || UnlockSkillState->Level >= Recipe.RequiredSkillLevel);
-        });
-    if (EarningRecipe)
-    {
-        Text += FString::Printf(TEXT("Accepted %s requests award +%d %s XP each; one batch still earns once.\n"),
-            *EarningRecipe->DisplayName, EarningRecipe->ExperienceAward,
-            GetReadableSkillName(NextUnlock->RequiredSkill));
-    }
+    Text += TEXT("Recipe access depends on materials, stations, and world conditions; skill level does not lock recipes.\n");
     return Text;
 }
 }
@@ -211,7 +149,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddText(TEXT("\nBuild/place selected uses the derived ground ahead. The server checks hammer, materials, terrain, and placement before committing. Other camp stations still use kits in this first construction pass.\n"),16);
     auto* FireActions=WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(FireActions);
     AddButton(TEXT("Build / place selected"),FireActions,TEXT("Ask the server to build the selected structure. Floors, walls, and roofs consume raw Wood and Fibre directly; remaining station kits use their existing kit item."))->OnClicked.AddDynamic(this, &ThisClass::Place);
-    AddButton(TEXT("Add fuel bundle"),FireActions,TEXT("Add one fuel bundle to a nearby usable hearth if the server confirms access and capacity."))->OnClicked.AddDynamic(this, &ThisClass::Refuel);
+    AddButton(TEXT("Add raw fuel"),FireActions,TEXT("Add one Wood, Lightwood, Densewood, or Coal to a nearby usable hearth if the server confirms access and capacity."))->OnClicked.AddDynamic(this, &ThisClass::Refuel);
     AddButton(TEXT("Light hearth"),FireActions,TEXT("Light a nearby usable hearth. The server checks access, dry fuel, and fire state."))->OnClicked.AddDynamic(this, &ThisClass::Light);
     StateText = AddText(TEXT(""), 18);
     FoodText = AddText(TEXT(""), 18);
@@ -305,7 +243,7 @@ void UKalmalaCraftingWidget::Refresh()
     const FString Availability = M->GetRecipeAvailability(SelectedRecipe.RecipeId);
     DetailText->SetText(FText::FromString(M->GetRecipeDescription(SelectedRecipe.RecipeId)
         + TEXT("\nAvailability: ") + Availability + TEXT("\n")
-        + BuildSkillProgressText(Cast<AKalmalaCharacter>(GetOwningPlayerPawn()), Recipes)));
+        + BuildSkillProgressText(Cast<AKalmalaCharacter>(GetOwningPlayerPawn()))));
     const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(
         UKalmalaSettingsWidget::GetTextScalePercent());
     const int32 ContrastMode = UKalmalaSettingsWidget::ClampContrastMode(
@@ -336,7 +274,7 @@ void UKalmalaCraftingWidget::Refresh()
             : FString::Printf(TEXT("Craft batch 1 of %s. Availability: %s. A rejected request preserves ingredients and tool condition."),
                 *SelectedRecipe.DisplayName, *Availability);
         CraftButton->SetToolTipText(FText::FromString(ButtonToolTip));
-        CraftButton->SetIsEnabled(SelectedRecipe.bEnabled && SelectedRecipe.OutputTool.IsNone());
+        CraftButton->SetIsEnabled(SelectedRecipe.bEnabled);
     }
     FString PreviewText;
     if (bPlacementPreviewEnabled)
@@ -509,16 +447,16 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             UE_LOG(LogTemp, Display, TEXT("M9 tool feedback: Passed=%d"), ToolFeedbackPassed);
             const bool Passed=Text.Contains(TEXT("Construction hammer menu input:")) && Text.Contains(TEXT("Up/Down"))
                 && Text.Contains(TEXT("Raw material cost: 5 Stone, 3 Wood"))
-                && Text.Contains(TEXT("Ignition: one Ember bundle is also consumed to start the hearth with 60 seconds of fuel."))
+                && Text.Contains(TEXT("Ignition: one raw Wood, Lightwood, Densewood, or Coal is also consumed to start the hearth with 60 seconds of fuel."))
                 && Text.Contains(TEXT("Output: Hearth ring construction (no kit item created)"))
-                && Text.Contains(TEXT("Description: A low stone-and-wood hearth built in place with a Construction Hammer; an Ember bundle lights it."))
+                && Text.Contains(TEXT("Description: A low stone-and-wood hearth built in place with a Construction Hammer; raw fuel lights it."))
                 && Text.Contains(TEXT("Description: Basic construction material."))
                 && Text.Contains(TEXT("Build quantity: one hearth per request"))
                 && Text.Contains(TEXT("Failure: the availability text below"))
                 && Text.Contains(TEXT("SKILL PROGRESS [PRIVATE TO YOU]"))
                 && Text.Contains(TEXT("Cooking: Level 1, 0/100 XP to Level 2"))
-                && Text.Contains(TEXT("Next recipe unlock: Smoke boar field meat + Smoke deer field meat at Cooking level 2 (0/100 XP earned)"))
-                && Text.Contains(TEXT("Accepted Roast boar field meat requests award +10 Cooking XP each; one batch still earns once."))
+                && Text.Contains(TEXT("Recipe access depends on materials, stations, and world conditions; skill level does not lock recipes."))
+                && !Text.Contains(TEXT("Next recipe unlock:"))
                 && Text.Contains(TEXT("Selection is marked with >"))
                 && Text.Contains(TEXT("Free repair: at a visible same-world Workbench or Forge"))
                 && Text.Contains(TEXT("Tool condition and free repair status (owner-only)")) && Text.Contains(TEXT("Bronze Axe:")) && Text.Contains(TEXT("Iron Axe:"))

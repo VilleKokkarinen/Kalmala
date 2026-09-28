@@ -5,6 +5,7 @@
 #include "KalmalaCampfireWeatherResponse.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaRawFuelContract.h"
 #include "ProceduralMeshComponent.h"
 #include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
@@ -164,17 +165,21 @@ void AKalmalaCampfire::InitializePaidFromServer(AKalmalaCharacter* Character)
     if (!HasAuthority() || !IsValid(Character) || !Character->HasAuthority() || !Character->GetController()
         || Character->GetWorld()!=GetWorld() || GetOwner() || FuelSeconds > 0) return;
     SetOwner(Character->GetController());
-    FuelSeconds = FuelSecondsPerBundle;
+    FuelSeconds = FuelSecondsPerItem;
     ForceNetUpdate();
 }
 
 bool AKalmalaCampfire::TryRefuelFromServer(AKalmalaCharacter* Character)
 {
     if (!HasAuthority() || !IsValid(Character) || !Character->HasAuthority() || !CanUse(Character)
-        || FuelSeconds > MaxFuelSeconds - FuelSecondsPerBundle) return false;
+        || FuelSeconds > MaxFuelSeconds - FuelSecondsPerItem) return false;
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
-    if (!Inventory || !Inventory->TryConsumeFromServer(TEXT("Fuel"), 1)) return false;
-    FuelSeconds += FuelSecondsPerBundle; // Fresh fuel never erases the existing wetness.
+    if (!Inventory) return false;
+    TArray<FKalmalaInventoryStack> Costs;
+    FString Reason;
+    if (!FKalmalaRawFuelContract::AddCosts(Inventory->GetStacks(), 1, Costs, Reason)
+        || !Inventory->TryExchangeFromServer(Costs, NAME_None, 0, Reason)) return false;
+    FuelSeconds += FuelSecondsPerItem; // Fresh fuel never erases the existing wetness.
     ForceNetUpdate(); return true;
 }
 

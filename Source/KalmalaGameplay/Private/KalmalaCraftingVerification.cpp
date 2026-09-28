@@ -37,9 +37,9 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Check(!PlaceFromServer(Reason), TEXT("No ingredients cannot create a hearth"));
         Check(!CraftFromServer(TEXT("Campfire"),1,Reason), TEXT("Hearth ring cannot be crafted into a kit"));
         Check(!CraftFromServer(TEXT("Forged"),1,Reason), TEXT("Unknown recipe"));
-        for (int32 Batch : {MIN_int32,-1,0,MAX_int32}) Check(!CraftFromServer(TEXT("Fuel"),Batch,Reason),TEXT("Malformed batch"));
+        for (int32 Batch : {MIN_int32,-1,0,MAX_int32}) Check(!CraftFromServer(TEXT("Workbench"),Batch,Reason),TEXT("Malformed batch"));
         Check(I->TryGrantFromServer(TEXT("Wood"),50) && I->TryGrantFromServer(TEXT("Stone"),40)
-            && I->TryGrantFromServer(TEXT("Fibre"),50) && I->TryGrantFromServer(TEXT("ConstructionSupply"),20),TEXT("Seed bounded test materials"));
+            && I->TryGrantFromServer(TEXT("Fibre"),50),TEXT("Seed bounded test materials"));
         const FVector StationProbeOrigin=C->GetActorLocation();
         C->SetActorLocation(StationProbeOrigin+FVector(0,0,10000));
         Check(!CraftFromServer(TEXT("Floor"),1,Reason),TEXT("Missing station rejects craft"));
@@ -47,14 +47,14 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         auto* Recipes=GetMutableDefault<UKalmalaRecipeCatalogue>();
         auto& FuelRecipe=Recipes->Recipes[0]; const bool Enabled=FuelRecipe.bEnabled; FuelRecipe.bEnabled=false;
         Check(!CraftFromServer(FuelRecipe.RecipeId,1,Reason),TEXT("Disabled recipe rejects craft")); FuelRecipe.bEnabled=Enabled;
-        Check(I->TryGrantFromServer(TEXT("Fuel"),20),TEXT("Fill output stack"));
+        Check(I->TryGrantFromServer(TEXT("WorkbenchKit"),5),TEXT("Fill output stack"));
         const int32 WoodBefore=I->GetQuantity(TEXT("Wood"));
-        Check(!CraftFromServer(TEXT("Fuel"),1,Reason) && I->GetQuantity(TEXT("Wood"))==WoodBefore,TEXT("Full output cannot consume inputs"));
+        Check(!CraftFromServer(TEXT("Workbench"),1,Reason) && I->GetQuantity(TEXT("Wood"))==WoodBefore,TEXT("Full output cannot consume inputs"));
         Check(!CraftFromServer(TEXT("Campfire"),1,Reason),TEXT("Normal crafting cannot create a hearth kit"));
-        Check(GetRecipeAvailability(TEXT("Campfire")) == TEXT("Ready"),TEXT("Hearth direct build checks recipe materials and ignition bundle"));
+        Check(GetRecipeAvailability(TEXT("Campfire")) == TEXT("Ready"),TEXT("Hearth direct build checks recipe materials and raw fuel"));
         const int32 HearthWoodBefore = I->GetQuantity(TEXT("Wood"));
         const int32 HearthStoneBefore = I->GetQuantity(TEXT("Stone"));
-        const int32 HearthFuelBefore = I->GetQuantity(TEXT("Fuel"));
+
         FVector Original=C->GetActorLocation(); const FRotator OriginalRotation=C->GetActorRotation();
         TSet<AKalmalaCampfire*> Existing;
         for(TActorIterator<AKalmalaCampfire> It(GetWorld());It;++It) Existing.Add(*It);
@@ -99,14 +99,14 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         for(TActorIterator<AKalmalaCampfire> It(GetWorld());It;++It) if(!Existing.Contains(*It)) VerificationFire=*It;
         if (!VerificationFire) { VerificationStage=99; return; }
         auto* Fire=VerificationFire.Get(); Fire->SetActorTickEnabled(false);
-        Check(I->GetQuantity(TEXT("CampfireKit"))==0 && I->GetQuantity(TEXT("Fuel"))==HearthFuelBefore-1
-            && I->GetQuantity(TEXT("Wood"))==HearthWoodBefore-3 && I->GetQuantity(TEXT("Stone"))==HearthStoneBefore-5,
-            TEXT("Placement charges raw hearth materials and ignition fuel exactly once without creating a kit"));
+        Check(I->GetQuantity(TEXT("CampfireKit"))==0 && I->GetQuantity(TEXT("WorkbenchKit"))==5
+            && I->GetQuantity(TEXT("Wood"))==HearthWoodBefore-4 && I->GetQuantity(TEXT("Stone"))==HearthStoneBefore-5,
+            TEXT("Placement charges raw hearth materials and one raw-fuel item exactly once without creating a kit"));
         const int32 WoodBeforeOverlap = I->GetQuantity(TEXT("Wood"));
         const int32 StoneBeforeOverlap = I->GetQuantity(TEXT("Stone"));
-        const int32 FuelBeforeOverlap = I->GetQuantity(TEXT("Fuel"));
+        const int32 FuelBeforeOverlap = I->GetQuantity(TEXT("WorkbenchKit"));
         Check(!PlaceFromServer(Reason) && I->GetQuantity(TEXT("CampfireKit"))==0
-            && I->GetQuantity(TEXT("Fuel"))==FuelBeforeOverlap && I->GetQuantity(TEXT("Wood"))==WoodBeforeOverlap
+            && I->GetQuantity(TEXT("WorkbenchKit"))==FuelBeforeOverlap && I->GetQuantity(TEXT("Wood"))==WoodBeforeOverlap
             && I->GetQuantity(TEXT("Stone"))==StoneBeforeOverlap,TEXT("Overlap rejects placement without raw-material payment"));
         Check(!CraftFromServer(TEXT("Floor"),1,Reason) && GetRecipeAvailability(TEXT("Floor")) == TEXT("Ready"),
             TEXT("Floor is built directly from materials and no longer crafts into a kit"));
@@ -163,8 +163,8 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         }
         C->SetActorRotation(OriginalRotation);
         for(int32 N=0; N<4; ++N) Check(Fire->TryRefuelFromServer(C),TEXT("Bounded refuel"));
-        const int32 FuelBefore=I->GetQuantity(TEXT("Fuel"));
-        Check(!Fire->TryRefuelFromServer(C) && I->GetQuantity(TEXT("Fuel"))==FuelBefore,TEXT("Full hearth cannot consume fuel"));
+        const int32 FuelBefore=I->GetQuantity(TEXT("WorkbenchKit"));
+        Check(!Fire->TryRefuelFromServer(C) && I->GetQuantity(TEXT("WorkbenchKit"))==FuelBefore,TEXT("Full hearth cannot consume fuel"));
         Fire->Interact_Implementation(C); Fire->AdvanceFromServer(300,0,0);
         Check(Fire->GetFuelSeconds()==0 && !Fire->IsLit() && Fire->GetEffectiveWarmth()==0,TEXT("Fuel exhaustion extinguishes warmth"));
         Check(Fire->TryRefuelFromServer(C),TEXT("Refuel exhausted hearth"));
@@ -195,7 +195,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Fire->Interact_Implementation(C); Fire->AdvanceFromServer(0,0,0);
         Check(Fire->IsLit() && Fire->GetFuelSeconds()==60 && Fire->GetEffectiveWarmth()==1,TEXT("Dry replicated fixture"));
         const auto Stacks=I->GetStacks(); for(const auto& Stack:Stacks) I->TryConsumeFromServer(Stack.ItemId,Stack.Quantity);
-        Check(I->TryGrantFromServer(TEXT("Wood"),4) && I->TryGrantFromServer(TEXT("Fibre"),2),TEXT("Seed real RPC transactions"));
+        Check(I->TryGrantFromServer(TEXT("Wood"),18) && I->TryGrantFromServer(TEXT("Fibre"),12) && I->TryGrantFromServer(TEXT("Stone"),4),TEXT("Seed real raw-material RPC transactions"));
         UE_LOG(LogTemp,Display,TEXT("Crafting server gates: Passed=%d Player=%d Placement=1 Atomic=1 Malformed=1 Locked=1 Distant=1 Fuel=1 Rain=1"),bVerificationPassed,C->GetPlayerState()->GetPlayerId());
         UE_LOG(LogTemp,Display,TEXT("Crafting fire server: Name=%s Fuel=60 Lit=1 Wet=0 Warmth=1 State=1"),*Fire->GetName());
         PublishResult(TEXT("Verification ready"), true); VerificationStage=1; VerificationElapsed=0;
@@ -210,24 +210,24 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
     }
     if (C->HasAuthority() && VerificationStage==2 && VerificationElapsed>12)
     {
-        const bool Passed=I->GetQuantity(TEXT("Fuel"))==2 && I->GetQuantity(TEXT("Wood"))==0 && I->GetQuantity(TEXT("Fibre"))==0 && I->GetStacks().Num()==1;
-        UE_LOG(LogTemp,Display,TEXT("Crafting server final: Passed=%d Player=%d Fuel=%d Slots=%d"),Passed,C->GetPlayerState()->GetPlayerId(),I->GetQuantity(TEXT("Fuel")),I->GetStacks().Num());
+        const bool Passed=I->GetQuantity(TEXT("WorkbenchKit"))==2 && I->GetQuantity(TEXT("Wood"))==0 && I->GetQuantity(TEXT("Fibre"))==0 && I->GetQuantity(TEXT("Stone"))==0 && I->GetStacks().Num()==1;
+        UE_LOG(LogTemp,Display,TEXT("Crafting server final: Passed=%d Player=%d WorkbenchKit=%d Slots=%d"),Passed,C->GetPlayerState()->GetPlayerId(),I->GetQuantity(TEXT("WorkbenchKit")),I->GetStacks().Num());
         VerificationStage=3;
     }
     if (!C->IsLocallyControlled()) return;
     LocalVerificationElapsed+=DeltaTime;
-    if(LocalVerificationStage==0 && LastResult==TEXT("Verification ready") && I->GetQuantity(TEXT("Wood"))==4)
+    if(LocalVerificationStage==0 && LastResult==TEXT("Verification ready") && I->GetQuantity(TEXT("Wood"))==18)
     {
-        ServerCraft(TEXT("Fuel"),1); ServerCraft(TEXT("Fuel"),1); // immediate duplicate is rate-limited
+        ServerCraft(TEXT("Workbench"),1); ServerCraft(TEXT("Workbench"),1); // immediate duplicate is rate-limited
         LocalVerificationStage=1; LocalVerificationElapsed=0;
     }
-    else if(LocalVerificationStage==1 && LocalVerificationElapsed>2 && I->GetQuantity(TEXT("Fuel"))==1)
+    else if(LocalVerificationStage==1 && LocalVerificationElapsed>2 && I->GetQuantity(TEXT("WorkbenchKit"))==1)
     {
-        ServerCraft(TEXT("Fuel"),1); LocalVerificationStage=2; LocalVerificationElapsed=0;
+        ServerCraft(TEXT("Workbench"),1); LocalVerificationStage=2; LocalVerificationElapsed=0;
     }
-    else if(LocalVerificationStage==2 && LocalVerificationElapsed>2 && I->GetQuantity(TEXT("Fuel"))==2)
+    else if(LocalVerificationStage==2 && LocalVerificationElapsed>2 && I->GetQuantity(TEXT("WorkbenchKit"))==2)
     {
-        ServerCraft(TEXT("Fuel"),1); LocalVerificationStage=3; LocalVerificationElapsed=0; // insufficient
+        ServerCraft(TEXT("Workbench"),1); LocalVerificationStage=3; LocalVerificationElapsed=0; // insufficient
     }
     else if(LocalVerificationStage==3 && LocalVerificationElapsed>2)
     {
@@ -235,7 +235,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
     }
     else if(LocalVerificationStage==4 && LocalVerificationElapsed>1)
     {
-        ServerCraft(TEXT("Fuel"),MAX_int32); LocalVerificationStage=5; LocalVerificationElapsed=0;
+        ServerCraft(TEXT("Workbench"),MAX_int32); LocalVerificationStage=5; LocalVerificationElapsed=0;
     }
     else if(LocalVerificationStage==5 && LocalVerificationElapsed>1)
     {
@@ -244,14 +244,14 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
     else if(LocalVerificationStage==6 && LocalVerificationElapsed>1)
     {
         FString Reason;
-        bool Rejected=C->HasAuthority() || (!CraftFromServer(TEXT("Fuel"),1,Reason) && !PlaceFromServer(Reason));
+        bool Rejected=C->HasAuthority() || (!CraftFromServer(TEXT("Workbench"),1,Reason) && !PlaceFromServer(Reason));
         if(!C->HasAuthority()) if(auto* Fire=FindNearbyFire(false))
         {
             const float FuelBefore=Fire->GetFuelSeconds(); Fire->AdvanceFromServer(1000,1,1);
             Rejected &= Fire->GetFuelSeconds()==FuelBefore && !Fire->TryRefuelFromServer(C) && !Fire->CanInteract_Implementation(C);
         }
-        const bool Passed=Rejected && I->GetQuantity(TEXT("Fuel"))==2 && I->GetStacks().Num()==1;
-        UE_LOG(LogTemp,Display,TEXT("Crafting owner final: Passed=%d Authority=%d Fuel=%d Slots=%d"),Passed,C->HasAuthority(),I->GetQuantity(TEXT("Fuel")),I->GetStacks().Num());
+        const bool Passed=Rejected && I->GetQuantity(TEXT("WorkbenchKit"))==2 && I->GetStacks().Num()==1;
+        UE_LOG(LogTemp,Display,TEXT("Crafting owner final: Passed=%d Authority=%d WorkbenchKit=%d Slots=%d"),Passed,C->HasAuthority(),I->GetQuantity(TEXT("WorkbenchKit")),I->GetStacks().Num());
         LocalVerificationStage=7;
     }
 #endif
@@ -394,13 +394,13 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
         if (PlayerCount < 2) return;
         FString Reason;
         // These are deliberately harvested from initialized nodes instead of granted: one complete
-        // personal camp needs fuel/hearth, eleven timber supplies, and the wall/roof fibre costs.
-        const TMap<FName, int32> Required = { { TEXT("Wood"), 38 }, { TEXT("Stone"), 7 }, { TEXT("Fibre"), 33 } };
+        // personal camp needs direct Wood, Stone, and Fibre costs, including raw hearth fuel.
+        const TMap<FName, int32> Required = { { TEXT("Wood"), 37 }, { TEXT("Stone"), 7 }, { TEXT("Fibre"), 32 } };
         const bool bGathered = GatherPersistedCampMaterials(Character, Inventory, Required);
-        const bool bHearthMaterialsReady = bGathered && CraftFromServer(TEXT("Fuel"), 1, Reason);
+        const bool bHearthMaterialsReady = bGathered;
         const bool bHearthPlaced = bHearthMaterialsReady && PlacePersistedCampfireNearTerrain(this, Character, Reason);
-        const bool bKitsCrafted = bHearthPlaced && CraftFromServer(TEXT("Timber"), 5, Reason)
-            && CraftFromServer(TEXT("Workbench"), 1, Reason) && CraftFromServer(TEXT("Storage"), 1, Reason);
+        const bool bKitsCrafted = bHearthPlaced && CraftFromServer(TEXT("Workbench"), 1, Reason)
+            && CraftFromServer(TEXT("Storage"), 1, Reason);
         AKalmalaConstructionActor *Floor = nullptr, *Wall = nullptr, *Roof = nullptr, *Workbench = nullptr, *Storage = nullptr;
         const bool bBuilt = bKitsCrafted
             && PlacePersistedCampConstruction(this, Character, TEXT("FloorKit"), Reason, Floor)

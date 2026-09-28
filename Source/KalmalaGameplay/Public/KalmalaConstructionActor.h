@@ -38,7 +38,6 @@ private:
     void ApplyConstructionKit();
     void BuildPiecePresentation();
     UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> Collision;
-    UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> SmokehouseRoofCollision;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UProceduralMeshComponent> PieceMesh;
     UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FName ConstructionKit;
     UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FString ConstructionId;

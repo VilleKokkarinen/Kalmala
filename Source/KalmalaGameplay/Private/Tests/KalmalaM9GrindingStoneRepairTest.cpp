@@ -19,7 +19,7 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
     const FKalmalaRecipe* Recipe = Recipes ? Recipes->Find(TEXT("GrindingStone")) : nullptr;
     TestTrue(TEXT("Grinding stone kit is a catalogue item"), Items && Items->FindItem(TEXT("GrindingStoneKit")));
     TestTrue(TEXT("Grinding stone kit has a paid Workbench recipe"), Recipe
-        && Recipe->Output == TEXT("GrindingStoneKit") && Recipe->RequiredStationKit == TEXT("WorkbenchKit")
+        && Recipe->Output == TEXT("GrindingStoneKit") && Recipe->RequiredStation.Contains(TEXT("WorkbenchKit"))
         && Recipe->MaxBatch == 1);
     TestTrue(TEXT("Grinding stone is a supported buildable and saveable kit"),
         FKalmalaPlacementPreview::IsSupportedKit(TEXT("GrindingStoneKit")));

@@ -343,9 +343,9 @@ checks.
 
 ## Item catalogue verification
 
-`Content/Data/GameCatalogues.json` is the schema-version-3 source for both item and recipe definitions. Its item IDs and station fields use clean names without the old "Kit" suffix; the loader maps buildable aliases to the stable runtime identities used by construction and existing saves. Keep the `Data` directory in `DirectoriesToAlwaysStageAsUFS` under `[/Script/UnrealEd.ProjectPackagingSettings]`; the loader reads it through Unreal's file layer so it works from both the project and a packaged UFS container. The loader validates schema version, array bounds, required item descriptions and display names, recipe references, duplicate IDs, quantities, stack limits, station and skill rules before exposing either catalogue. Missing or invalid data leaves the catalogues empty, and server transactions fail closed.
+`Content/Data/GameCatalogues.json` is the schema-version-4 source for both item and recipe definitions. No property or value in the file contains `Kit`; clean buildable IDs and each recipe's `RequiredStation` array map to stable runtime construction identities, preserving construction and save compatibility. Keep the `Data` directory in `DirectoriesToAlwaysStageAsUFS` under `[/Script/UnrealEd.ProjectPackagingSettings]`; the loader reads it through Unreal's file layer so it works from both the project and a packaged UFS container. The loader validates schema version, array bounds, required item descriptions and display names, recipe references, duplicate IDs, quantities, stack limits, station and fuel rules before exposing either catalogue. Missing or invalid data leaves the catalogues empty, and server transactions fail closed.
 
-After building the editor, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above. It checks that the complete 32-item and 23-recipe JSON catalogues load, no JSON property or identity ends in "Kit", clean buildable aliases map to stable runtime IDs, every item has a bounded description and a player-facing name without "Kit", exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate definitions. The crafting-menu presentation check also verifies descriptions for the selected output and browsed item. This is a pure contract check; live inventory replication and harvest-grant verification remain covered by their separate checks.
+After building the editor, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above. It checks that the complete 29-item and 19-recipe JSON catalogues load, no JSON property or value contains "Kit", no retired item or recipe is present, clean buildable aliases map to stable runtime IDs, every item has a bounded description and a player-facing name without "Kit", exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate definitions. It also checks that station requirements are arrays and the removed recipe fields are absent. The crafting-menu presentation check verifies descriptions for the selected output and browsed item. This is a pure contract check; live inventory replication and harvest-grant verification remain covered by their separate checks.
 
 ## Player inventory verification
 
@@ -982,11 +982,11 @@ contract check and does not replace rendered readability review.
 
 Roasted field meat is cooked from existing server-selected boar or deer rewards using a visible same-world Cooking rack and a usable lit hearth. The rack must be within 250 cm of the player; the hearth must be within 250 cm of both player and rack, in Lit state with finite positive heat. A workbench, missing/distant rack, extinguished fire, or rain-smouldering fire is not a substitute. The server applies the catalogue batch limit and existing atomic inventory exchange. The hearth burns at its normal rate; processing adds no separate fuel debit.
 
-The Cooking rack, Hearth cauldron, and Smoke frame use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. Roasting requires its visible same-world rack and a usable Lit hearth with positive heat within 250 cm of both player and rack; it adds no fuel debit. Broth and smoked field meat require their matching visible same-world station plus a usable Lit hearth with finite positive heat within 250 cm of both player and station. Each broth or smoke serving atomically consumes one raw meat and one additional Ember bundle; both batch limits are three. The hearth burns normally, and a station does not add a hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming one roasted meat, Hearth Broth, or smoked meat and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. The crafting panel shows the timer, benefit, wait rule, and all prepared-food counts while the effect is active. Food remains optional, with no hunger drain or travel requirement. Food, station fuel payments, and the effect remain transient; no save schema changed.
+The Cooking rack, Hearth cauldron, and Smoke frame use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. Roasting requires its visible same-world rack and a usable Lit hearth with positive heat within 250 cm of both player and rack; it adds no fuel debit. Broth and smoked field meat require their matching visible same-world station plus a usable Lit hearth with finite positive heat within 250 cm of both player and station. Each broth or smoke serving atomically consumes one raw meat and one Wood, Lightwood, Densewood, or Coal item; both batch limits are three and a batch may mix fuels. The hearth burns normally, and a station does not add a hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming one roasted meat, Hearth Broth, or smoked meat and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. The crafting panel shows the timer, benefit, wait rule, and all prepared-food counts while the effect is active. Food remains optional, with no hunger drain or travel requirement. Food, station fuel payments, and the effect remain transient; no save schema changed.
 
 Each successful prepared-food recipe transaction awards one fixed 10 Cooking experience through the existing server-owned skill component, regardless of its serving batch. The award happens only after the atomic private-pack exchange succeeds. Rejected stations, heat, quantities, inputs, or output capacity award no experience; client-side calls cannot reach the award path. The award is transient. After the forced editor build, verify `Kalmala.Gameplay.Food.CampfireProcessing` and `Kalmala.Gameplay.Crafting.Transactions` alongside the food contract suite to check accepted, rejected, batched, and malformed catalogue cases.
 
-The smoke recipes require Cooking level 2. Their details show the required and current level, and availability feedback names food preparation as the way to earn Cooking experience. The focused food automation verifies that the server rejects a locked smoke request without changing inventory or progression, that nine additional accepted broth requests after the first accepted preparation reach 100 Cooking experience, and that level 2 opens smoking before station, fuel, batch, and output checks continue.
+The recipes do not require a Cooking level. The focused food automation verifies that smoking is available after its station, heat, material, batch, and output checks; nine accepted broth requests after the first accepted preparation still reach 100 Cooking experience, and accepted cooking awards remain post-transaction.
 
 After the forced editor build, run the focused food, status, inventory recipe, RPC, and placement-preview contracts. The food processing test covers smoke-frame access, positive hearth heat, per-serving fuel, bounded batch, output-capacity failure, and atomic success alongside roast/cauldron rules. Its food-use assertions also check rejected duplicate and replacement consumption, preserved timers/inventory, expiry, alternate meals, and active-effect text:
 
@@ -1140,11 +1140,13 @@ schema.
 The server creates a level-one carried Construction Hammer for each new
 character. Its owner can open the local build and craft menu with the remappable
 `CraftMenu` binding; other clients cannot supply hammer state or placement
-costs. Hearth rings consume 5 Stone, 3 Wood, and one Fuel bundle directly;
+costs. Hearth rings consume 5 Stone, 3 Wood, and one raw Wood, Lightwood,
+Densewood, or Coal directly;
 floors, walls, and roofs are paid directly with Wood and Fibre. Their internal
 placement identities remain stable, and floor/wall/roof schema-one camp saves
-keep restoring the same actors. The Fuel bundle starts the hearth with its existing
-60-second payment; crafting no longer creates a CampfireKit item.
+keep restoring the same actors. The selected raw-fuel item starts the hearth
+with its existing 60-second payment; crafting no longer creates a CampfireKit
+item.
 
 After a forced editor build, run
 `Kalmala.Gameplay.Tools.CarriedToolInventoryContract`,
@@ -1156,8 +1158,8 @@ After a forced editor build, run
 with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and
 `-TestExit="Automation Test Queue Empty"` arguments. Require every requested
 test result to report success. The crafting test checks hearth and structural
-raw costs, the hearth's ignition bundle, insufficient-material rejection, and
-refusal to craft retired buildable kits;
+raw costs, mixed raw-fuel payment, insufficient-material rejection, and
+refusal to craft direct-build items;
 the network test checks that construction requests carry only the buildable
 identity.
 
@@ -1176,38 +1178,16 @@ the menu; a null-renderer peer run proves menu data and input flow but does not
 inspect layout or the in-hand model visually. These checks add no RPC fields,
 replicated gameplay field, or saved-data schema.
 
-### M9 raised storage
+### M9 retired camp variants and raw-material catalogue
 
-After the forced UE 5.8.2 editor build with normal `%LOCALAPPDATA%/UnrealBuildTool`
-access, run `Kalmala.Gameplay.M9.RaisedStorage` together with
-`Kalmala.Gameplay.Storage.SaveContract+Kalmala.Gameplay.Storage.Transfers+Kalmala.Gameplay.Storage.NetworkContract`,
-`Kalmala.Gameplay.Construction.SaveContract+Kalmala.Gameplay.Construction.LocalPreview`,
-and `Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract`.
-Require every requested automation result to report success. The M9 check covers
-the paid Workbench recipe, rain immunity, session-only server contents, forged
-actor rejection, and schema-one exclusion. The storage checks retain the
-existing 16-stack transaction and owner-only view contract. No construction or
-storage save schema is extended. A live rendered raised-chest peer walkthrough
-remains open.
-
-### M9 roofed Smokehouse
-
-After the forced UE 5.8.2 `KalmalaEditor Win64 Development` build with normal
-`%LOCALAPPDATA%/UnrealBuildTool` access, run the Smokehouse catalogue/roof/save
-test, the existing food-processing transaction suite, and the construction,
-crafting, preview, shelter, and save contracts:
-
-```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM9SmokehouseUser' -abslog='C:\temp\KalmalaM9Smokehouse.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.M9.Smokehouse+Kalmala.Gameplay.Food.CampfireProcessing+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract+Kalmala.Gameplay.Construction.ShelterSampling; Quit" -TestExit="Automation Test Queue Empty"
-```
-
-Require every requested automation to report success. The focused Smokehouse
-checks cover the paid Workbench recipe, same-world station access, original
-Smoke Frame plus alternate Smokehouse selection, roof traces with no hearth
-placement block, session-only kit policy, and schema-one exclusion. The food
-transaction checks retain the Cooking level-2 gate, positive lit-hearth heat,
-range, one Ember bundle per serving, bounded batch, atomic output, and one
-Cooking award per accepted request. A rendered host/client Smokehouse
-walkthrough remains open. If `UnrealEditor-Cmd.exe` exits during its
-all-platform SDK preflight, run the same arguments with `UnrealEditor.exe` and
-require successful results in the automation log.
+The raised chest and Smokehouse have no item, recipe, placement-preview,
+storage, or crafting-station identity in current gameplay. The normal Chest and
+Smoke Frame remain supported. Run
+`Kalmala.Gameplay.M9.RaisedStorage+Kalmala.Gameplay.M9.Smokehouse` to assert
+those absences and the surviving Chest/Smoke Frame recipes, together with
+`Kalmala.Gameplay.Food.CampfireProcessing`,
+`Kalmala.Gameplay.Crafting.Transactions`,
+`Kalmala.Gameplay.Construction.LocalPreview`, and
+`Kalmala.Gameplay.Storage.SaveContract`. The storage test also checks that old
+schema-one chest contents convert Fuel to Wood and ConstructionSupply to its
+equivalent Wood and Fibre quantities. No save schema is extended.

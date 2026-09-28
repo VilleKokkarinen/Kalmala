@@ -2,7 +2,6 @@
 #include "KalmalaConstructionActor.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaGameCatalogueLoader.h"
-#include "KalmalaToolLifecycleContract.h"
 
 const UKalmalaRecipeCatalogue* UKalmalaRecipeCatalogue::Get()
 {
@@ -16,15 +15,8 @@ bool UKalmalaRecipeCatalogue::Scale(const FKalmalaRecipe& Recipe, int32 Batch,
     const auto* Items = UKalmalaItemCatalogue::Get();
     if (Recipe.MaxBatch < 1 || Recipe.MaxBatch > 10 || Batch < 1 || Batch > Recipe.MaxBatch
         || Recipe.Ingredients.IsEmpty() || Recipe.Ingredients.Num() > 8) return false;
-    const bool bOutputsTool = !Recipe.OutputTool.IsNone();
     const int64 Total = int64(Recipe.OutputCount) * Batch;
-    if (bOutputsTool)
-    {
-        if (!FKalmalaToolLifecycleContract::FindDefinition(Recipe.OutputTool)
-            || !Recipe.Output.IsNone() || Recipe.OutputCount != 1 || Recipe.MaxBatch != 1 || Batch != 1
-            || Recipe.RequiredStationKit != TEXT("WorkbenchKit")) return false;
-    }
-    else if (Total < 1 || Total > UKalmalaItemCatalogue::AbsoluteMaxStack
+    if (Total < 1 || Total > UKalmalaItemCatalogue::AbsoluteMaxStack
         || !Items->IsValidStack(Recipe.Output, int32(Total))) return false;
     TSet<FName> Seen;
     TArray<FKalmalaInventoryStack> Next;
@@ -47,22 +39,20 @@ bool UKalmalaRecipeCatalogue::IsValidCatalogue() const
     {
         TArray<FKalmalaInventoryStack> Costs; int32 Count;
         const bool bHasExperienceAward = Recipe.ExperienceSkill != EKalmalaSkill::None;
-        const bool bHasSkillRequirement = Recipe.RequiredSkill != EKalmalaSkill::None;
         if (Recipe.RecipeId.IsNone() || Seen.Contains(Recipe.RecipeId) || Recipe.DisplayName.TrimStartAndEnd().IsEmpty()
-            || Recipe.DisplayName.Len() > 64 || (Recipe.bRequiresCampfire && (Recipe.bRequiresLitCampfire || !Recipe.RequiredStationKit.IsNone()
-                || !Recipe.AlternateStationKit.IsNone()))
-            || (bHasSkillRequirement && (!FKalmalaSkillProgressionContract::IsKnownSkill(Recipe.RequiredSkill)
-                || Recipe.RequiredSkillLevel < 2 || Recipe.RequiredSkillLevel > FKalmalaSkillProgressionContract::MaxLevel))
-            || (!bHasSkillRequirement && Recipe.RequiredSkillLevel != 0)
+            || Recipe.DisplayName.Len() > 64 || Recipe.FuelPerServing < 0 || Recipe.FuelPerServing > 1
             || (bHasExperienceAward && (!FKalmalaSkillProgressionContract::IsKnownSkill(Recipe.ExperienceSkill)
                 || Recipe.ExperienceAward < 1 || Recipe.ExperienceAward > FKalmalaSkillProgressionContract::MaxAwardPerAcceptedAction))
             || (!bHasExperienceAward && Recipe.ExperienceAward != 0)
-            || (!Recipe.RequiredStationKit.IsNone() && !AKalmalaConstructionActor::IsCraftingStationKit(Recipe.RequiredStationKit))
-            || (!Recipe.AlternateStationKit.IsNone() && (Recipe.RequiredStationKit.IsNone()
-                || Recipe.AlternateStationKit == Recipe.RequiredStationKit
-                || !AKalmalaConstructionActor::IsCraftingStationKit(Recipe.AlternateStationKit)))
-            || ( !Recipe.OutputTool.IsNone() && !Recipe.Output.IsNone())
+            || Recipe.RequiredStation.Num() > 4
             || !Scale(Recipe, Recipe.MaxBatch, Costs, Count)) return false;
+        TSet<FName> StationIds;
+        for (const FName Station : Recipe.RequiredStation)
+        {
+            if (Station.IsNone() || StationIds.Contains(Station)
+                || !AKalmalaConstructionActor::IsCraftingStationKit(Station)) return false;
+            StationIds.Add(Station);
+        }
         Seen.Add(Recipe.RecipeId);
     }
     return true;
@@ -93,14 +83,9 @@ bool UKalmalaRecipeCatalogue::BuildDirectMaterialCost(const FName BuildableId,
     }
     const FKalmalaRecipe* BuildRecipe = Catalogue->Recipes.FindByPredicate([BuildableId](const FKalmalaRecipe& Candidate)
     {
-        return Candidate.Output == BuildableId && Candidate.OutputTool.IsNone();
+        return Candidate.Output == BuildableId;
     });
-    const FKalmalaRecipe* TimberRecipe = Catalogue->Recipes.FindByPredicate([](const FKalmalaRecipe& Candidate)
-    {
-        return Candidate.Output == TEXT("ConstructionSupply") && Candidate.OutputTool.IsNone();
-    });
-    if (!BuildRecipe || !BuildRecipe->bEnabled || !TimberRecipe || TimberRecipe->Ingredients.IsEmpty()
-        || BuildRecipe->Ingredients.IsEmpty() || TimberRecipe->OutputCount != 1)
+    if (!BuildRecipe || !BuildRecipe->bEnabled || BuildRecipe->Ingredients.IsEmpty())
     {
         Reason = TEXT("Build material catalogue unavailable");
         return false;
@@ -127,23 +112,7 @@ bool UKalmalaRecipeCatalogue::BuildDirectMaterialCost(const FName BuildableId,
 
     for (const FKalmalaInventoryStack& Ingredient : BuildRecipe->Ingredients)
     {
-        if (Ingredient.ItemId == TEXT("ConstructionSupply"))
-        {
-            for (const FKalmalaInventoryStack& TimberIngredient : TimberRecipe->Ingredients)
-            {
-                const int64 ExpandedNumerator = int64(Ingredient.Quantity) * TimberIngredient.Quantity;
-                const int64 Expanded = TimberRecipe->OutputCount > 0
-                    ? ExpandedNumerator / TimberRecipe->OutputCount : 0;
-                if (TimberRecipe->OutputCount <= 0 || ExpandedNumerator % TimberRecipe->OutputCount != 0
-                    || Expanded < 1 || Expanded > UKalmalaItemCatalogue::AbsoluteMaxStack
-                    || !AddCost(TimberIngredient.ItemId, int32(Expanded)))
-                {
-                    Reason = TEXT("Build material cost exceeds its bound");
-                    return false;
-                }
-            }
-        }
-        else if (!AddCost(Ingredient.ItemId, Ingredient.Quantity))
+        if (!AddCost(Ingredient.ItemId, Ingredient.Quantity))
         {
             Reason = TEXT("Build material cost exceeds its bound");
             return false;

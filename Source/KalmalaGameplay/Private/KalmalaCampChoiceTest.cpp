@@ -90,7 +90,7 @@ void AKalmalaGameMode::DriveCampChoiceTest()
             AKalmalaCampfire* Fire = GetWorld()->SpawnActor<AKalmalaCampfire>(AKalmalaCampfire::StaticClass(), Character->GetActorLocation() + FVector(100, 0, 0), FRotator::ZeroRotator, Parameters);
             if (Fire)
             {
-                if (auto* Pack = Character->FindComponentByClass<UKalmalaInventoryComponent>()) Pack->TryGrantFromServer(TEXT("Fuel"), 1);
+                if (auto* Pack = Character->FindComponentByClass<UKalmalaInventoryComponent>()) Pack->TryGrantFromServer(TEXT("Wood"), 1);
                 Fire->TryRefuelFromServer(Character);
                 Fire->Interact_Implementation(Character);
             }

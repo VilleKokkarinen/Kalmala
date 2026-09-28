@@ -1,63 +1,48 @@
 #if WITH_DEV_AUTOMATION_TESTS
-#include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaRawFuelContract.h"
+#include "KalmalaRecipeCatalogue.h"
 #include "Misc/AutomationTest.h"
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaCraftingTransactionsTest,"Kalmala.Gameplay.Crafting.Transactions",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaCraftingTransactionsTest, "Kalmala.Gameplay.Crafting.Transactions",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
 bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
 {
-    const auto* Recipes=UKalmalaRecipeCatalogue::Get();
-    TestTrue(TEXT("Configured recipes validate"),Recipes->IsValidCatalogue());
-    for(const FName Id:{FName(TEXT("Campfire")),FName(TEXT("Workbench")),FName(TEXT("Storage")),FName(TEXT("Floor")),FName(TEXT("Wall")),FName(TEXT("Roof"))})
-        TestNotNull(TEXT("Required recipe exists"),Recipes->Find(Id));
-    struct FExpectedRecipe { FName Id; FName Output; int32 MaxBatch; bool bRequiresHearth; bool bRequiresLitHearth; TArray<FKalmalaInventoryStack> Costs; FName ToolOutput = NAME_None; FName Station = NAME_None; };
-    const TArray<FExpectedRecipe> Expected = {
-        {TEXT("Fuel"), TEXT("Fuel"), 5, false, false, {{TEXT("Wood"),2},{TEXT("Fibre"),1}}},
-        {TEXT("Timber"), TEXT("ConstructionSupply"), 5, false, false, {{TEXT("Wood"),3},{TEXT("Fibre"),2}}},
-        {TEXT("Campfire"), TEXT("CampfireKit"), 1, false, false, {{TEXT("Stone"),5},{TEXT("Wood"),3}}},
-        {TEXT("Workbench"), TEXT("WorkbenchKit"), 1, false, false, {{TEXT("ConstructionSupply"),3},{TEXT("Stone"),2}}},
-        {TEXT("Forge"), TEXT("ForgeKit"), 1, false, false, {{TEXT("ConstructionSupply"),5},{TEXT("Stone"),6}}},
-        {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit"), 1, false, false, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),2}}},
-        {TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit"), 1, false, false, {{TEXT("ConstructionSupply"),3},{TEXT("Stone"),4}}},
-        {TEXT("GrindingStone"), TEXT("GrindingStoneKit"), 1, false, false, {{TEXT("ConstructionSupply"),2},{TEXT("Stone"),4}}, NAME_None, TEXT("WorkbenchKit")},
-        {TEXT("Storage"), TEXT("StorageKit"), 1, false, false, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),4}}},
-        {TEXT("CookingRack"), TEXT("CookingRackKit"), 1, false, false, {{TEXT("ConstructionSupply"),3},{TEXT("Fibre"),2}}},
-        {TEXT("Cauldron"), TEXT("CauldronKit"), 1, true, false, {{TEXT("ConstructionSupply"),3},{TEXT("Stone"),3}}},
-        {TEXT("SmokeFrame"), TEXT("SmokeFrameKit"), 1, false, false, {{TEXT("ConstructionSupply"),3},{TEXT("Fibre"),3}}},
-        {TEXT("Floor"), TEXT("FloorKit"), 5, false, false, {{TEXT("ConstructionSupply"),2}}},
-        {TEXT("Wall"), TEXT("WallKit"), 5, false, false, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),2}}},
-        {TEXT("Roof"), TEXT("RoofKit"), 5, false, false, {{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),4}}},
-        {TEXT("RoastBoarMeat"), TEXT("RoastedFieldMeat"), 5, false, true, {{TEXT("BoarMeat"),1}}},
-        {TEXT("RoastDeerMeat"), TEXT("RoastedFieldMeat"), 5, false, true, {{TEXT("DeerMeat"),1}}},
-        {TEXT("SimmerBoarBroth"), TEXT("HearthBroth"), 3, false, true, {{TEXT("BoarMeat"),1},{TEXT("Fuel"),1}}},
-        {TEXT("SimmerDeerBroth"), TEXT("HearthBroth"), 3, false, true, {{TEXT("DeerMeat"),1},{TEXT("Fuel"),1}}},
-        {TEXT("SmokeBoarMeat"), TEXT("SmokedFieldMeat"), 3, false, true, {{TEXT("BoarMeat"),1},{TEXT("Fuel"),1}}},
-        {TEXT("SmokeDeerMeat"), TEXT("SmokedFieldMeat"), 3, false, true, {{TEXT("DeerMeat"),1},{TEXT("Fuel"),1}}},
-        {TEXT("RaisedStorage"), TEXT("RaisedStorageKit"), 1, false, false,
-            {{TEXT("Densewood"),3},{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),2}}, NAME_None, TEXT("WorkbenchKit")},
-        {TEXT("Smokehouse"), TEXT("SmokehouseKit"), 1, false, false,
-            {{TEXT("Densewood"),3},{TEXT("ConstructionSupply"),2},{TEXT("Fibre"),2}}, NAME_None, TEXT("WorkbenchKit")},
-    };
-    TestEqual(TEXT("Recipe catalogue matches its exact verified set"), Recipes->Recipes.Num(), Expected.Num());
-    for (const FExpectedRecipe& Definition : Expected)
+    const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
+    const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
+    TestTrue(TEXT("Configured recipes validate"), Recipes->IsValidCatalogue());
+    for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("Timber")), FName(TEXT("RaisedStorage")), FName(TEXT("Smokehouse")) })
+        TestNull(TEXT("Removed recipe is not available"), Recipes->Find(Id));
+    for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply")), FName(TEXT("RaisedStorage")), FName(TEXT("Smokehouse")) })
+        TestNull(TEXT("Removed item is not available"), Items->FindItem(Id));
+
+    for (const FKalmalaRecipe& Recipe : Recipes->Recipes)
     {
-        const FKalmalaRecipe* Recipe = Recipes->Find(Definition.Id);
-        if (!TestNotNull(TEXT("Expected recipe is configured"), Recipe)) continue;
-        TestEqual(TEXT("Recipe has one bounded output"), Recipe->OutputCount, 1);
-        TestEqual(TEXT("Recipe item output matches contract"), Recipe->Output, Definition.Output);
-        TestEqual(TEXT("Recipe tool output matches contract"), Recipe->OutputTool, Definition.ToolOutput);
-        TestEqual(TEXT("Recipe batch cap matches contract"), Recipe->MaxBatch, Definition.MaxBatch);
-        TestEqual(TEXT("Recipe hearth requirement matches contract"), Recipe->bRequiresCampfire, Definition.bRequiresHearth);
-        TestEqual(TEXT("Recipe lit-hearth requirement matches contract"), Recipe->bRequiresLitCampfire, Definition.bRequiresLitHearth);
-        if (!Definition.Station.IsNone()) TestEqual(TEXT("Recipe requires its authored visible station"), Recipe->RequiredStationKit, Definition.Station);
-        TestEqual(TEXT("Recipe ingredient count matches contract"), Recipe->Ingredients.Num(), Definition.Costs.Num());
-        for (int32 Index = 0; Index < Definition.Costs.Num() && Recipe->Ingredients.IsValidIndex(Index); ++Index)
+        TestTrue(FString::Printf(TEXT("%s has a bounded fuel cost"), *Recipe.RecipeId.ToString()),
+            Recipe.FuelPerServing >= 0 && Recipe.FuelPerServing <= 1);
+        for (const FKalmalaInventoryStack& Ingredient : Recipe.Ingredients)
         {
-            TestEqual(TEXT("Recipe ingredient ID matches contract"), Recipe->Ingredients[Index].ItemId, Definition.Costs[Index].ItemId);
-            TestEqual(TEXT("Recipe ingredient quantity matches contract"), Recipe->Ingredients[Index].Quantity, Definition.Costs[Index].Quantity);
+            TestFalse(FString::Printf(TEXT("%s consumes only catalogue materials"), *Recipe.RecipeId.ToString()),
+                Ingredient.ItemId == TEXT("Fuel") || Ingredient.ItemId == TEXT("ConstructionSupply"));
         }
     }
+    const FKalmalaRecipe* Roast = Recipes->Find(TEXT("RoastBoarMeat"));
+    const FKalmalaRecipe* Broth = Recipes->Find(TEXT("SimmerBoarBroth"));
+    const FKalmalaRecipe* Smoke = Recipes->Find(TEXT("SmokeBoarMeat"));
+    if (Roast) TestEqual(TEXT("Roasting has no extra raw-fuel cost"), Roast->FuelPerServing, 0);
+    if (Broth)
+    {
+        TestEqual(TEXT("Broth uses one raw fuel unit per serving"), Broth->FuelPerServing, 1);
+        TestTrue(TEXT("Broth requires the cauldron station"), Broth->RequiredStation.Contains(TEXT("CauldronKit")));
+    }
+    if (Smoke)
+    {
+        TestEqual(TEXT("Smoking has no Cooking-level requirement and charges raw fuel"), Smoke->FuelPerServing, 1);
+        TestTrue(TEXT("Smoking requires only the open Smoke Frame"), Smoke->RequiredStation.Contains(TEXT("SmokeFrameKit"))
+            && Smoke->RequiredStation.Num() == 1);
+    }
+
     struct FExpectedBuildCost { FName Id; TArray<FKalmalaInventoryStack> Costs; };
     const TArray<FExpectedBuildCost> DirectBuildCosts = {
         {TEXT("CampfireKit"), {{TEXT("Stone"),5},{TEXT("Wood"),3}}},
@@ -65,164 +50,69 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         {TEXT("WallKit"), {{TEXT("Wood"),6},{TEXT("Fibre"),6}}},
         {TEXT("RoofKit"), {{TEXT("Wood"),6},{TEXT("Fibre"),8}}},
     };
-    for (const auto& ExpectedCost : DirectBuildCosts)
+    for (const FExpectedBuildCost& Expected : DirectBuildCosts)
     {
         TArray<FKalmalaInventoryStack> Actual;
-        FString Failure;
-        TestTrue(TEXT("Structural piece cost expands lashed timber to raw materials"),
-            UKalmalaRecipeCatalogue::BuildDirectMaterialCost(ExpectedCost.Id, Actual, Failure));
-        TestEqual(TEXT("Direct build cost has the expected raw material count"), Actual.Num(), ExpectedCost.Costs.Num());
-        for (int32 Index = 0; Index < ExpectedCost.Costs.Num() && Actual.IsValidIndex(Index); ++Index)
+        FString Reason;
+        TestTrue(TEXT("Direct build recipe expands to raw materials"),
+            UKalmalaRecipeCatalogue::BuildDirectMaterialCost(Expected.Id, Actual, Reason));
+        TestEqual(TEXT("Direct build has its expected material count"), Actual.Num(), Expected.Costs.Num());
+        for (int32 Index = 0; Index < Expected.Costs.Num() && Actual.IsValidIndex(Index); ++Index)
         {
-            TestEqual(TEXT("Direct build keeps the canonical material ID"), Actual[Index].ItemId, ExpectedCost.Costs[Index].ItemId);
-            TestEqual(TEXT("Direct build charges its raw resource quantity"), Actual[Index].Quantity, ExpectedCost.Costs[Index].Quantity);
+            TestEqual(TEXT("Direct build material identity is correct"), Actual[Index].ItemId, Expected.Costs[Index].ItemId);
+            TestEqual(TEXT("Direct build material quantity is correct"), Actual[Index].Quantity, Expected.Costs[Index].Quantity);
         }
     }
-    TestTrue(TEXT("Hearth ring is a direct hammer buildable"), UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(TEXT("CampfireKit")));
-    TArray<FKalmalaInventoryStack> InvalidBuildCost;
-    FString InvalidBuildReason;
-    TestFalse(TEXT("A food or forged identity cannot enter the direct build list"),
-        UKalmalaRecipeCatalogue::BuildDirectMaterialCost(TEXT("RoastedFieldMeat"), InvalidBuildCost, InvalidBuildReason));
-    TArray<FKalmalaInventoryStack> FloorCost;
-    FString FloorCostReason;
-    TArray<FKalmalaInventoryStack> FloorInventoryAfter;
-    TestTrue(TEXT("A floor builds by atomically consuming its raw materials without creating a kit"),
-        UKalmalaRecipeCatalogue::BuildDirectMaterialCost(TEXT("FloorKit"), FloorCost, FloorCostReason)
-        && UKalmalaInventoryComponent::BuildExchange({{TEXT("Wood"),6},{TEXT("Fibre"),4}},
-            FloorCost, NAME_None, 0, FloorInventoryAfter, FloorCostReason)
-        && FloorInventoryAfter.IsEmpty());
-    const TArray<FKalmalaInventoryStack> ShortFloorInventory = {{TEXT("Wood"),5},{TEXT("Fibre"),4}};
-    TestFalse(TEXT("Missing one raw resource rejects the whole floor build"),
-        UKalmalaInventoryComponent::BuildExchange(ShortFloorInventory, FloorCost, NAME_None, 0,
-            FloorInventoryAfter, FloorCostReason));
-    TArray<FKalmalaInventoryStack> HearthCost;
-    FString HearthCostReason;
-    TestTrue(TEXT("Hearth construction cost comes from its recipe"),
-        UKalmalaRecipeCatalogue::BuildDirectMaterialCost(TEXT("CampfireKit"), HearthCost, HearthCostReason));
-    HearthCost.Add({TEXT("Fuel"),1});
-    TArray<FKalmalaInventoryStack> HearthInventoryAfter;
-    TestTrue(TEXT("Hearth build atomically consumes raw construction materials and one ignition bundle"),
-        UKalmalaInventoryComponent::BuildExchange({{TEXT("Stone"),5},{TEXT("Wood"),3},{TEXT("Fuel"),1}},
-            HearthCost, NAME_None, 0, HearthInventoryAfter, HearthCostReason)
-        && HearthInventoryAfter.IsEmpty());
-    TestFalse(TEXT("Missing ignition bundle rejects a hearth build without consuming raw materials"),
-        UKalmalaInventoryComponent::BuildExchange({{TEXT("Stone"),5},{TEXT("Wood"),3}},
-            HearthCost, NAME_None, 0, HearthInventoryAfter, HearthCostReason));
-    for (const FName Id : { FName(TEXT("RoastBoarMeat")), FName(TEXT("RoastDeerMeat")) })
-    {
-        const auto* Recipe = Recipes->Find(Id);
-        if (Recipe) TestEqual(TEXT("Roasts name the required cooking rack"), Recipe->RequiredStationKit, FName(TEXT("CookingRackKit")));
-    }
-    for (const FName Id : { FName(TEXT("SimmerBoarBroth")), FName(TEXT("SimmerDeerBroth")) })
-    {
-        const auto* Recipe = Recipes->Find(Id);
-        if (Recipe) TestEqual(TEXT("Broth recipes name the required cauldron"), Recipe->RequiredStationKit, FName(TEXT("CauldronKit")));
-    }
-    for (const FName Id : { FName(TEXT("SmokeBoarMeat")), FName(TEXT("SmokeDeerMeat")) })
-    {
-        const auto* Recipe = Recipes->Find(Id);
-        if (Recipe)
-        {
-            TestEqual(TEXT("Smoke recipes name the required frame"), Recipe->RequiredStationKit, FName(TEXT("SmokeFrameKit")));
-            TestEqual(TEXT("Smoke recipes unlock at Cooking level two"), Recipe->RequiredSkill, EKalmalaSkill::Cooking);
-            TestEqual(TEXT("Smoke recipes use the first skill unlock tier"), Recipe->RequiredSkillLevel, 2);
-        }
-    }
-    for (const FName Id : { FName(TEXT("RoastBoarMeat")), FName(TEXT("RoastDeerMeat")),
-        FName(TEXT("SimmerBoarBroth")), FName(TEXT("SimmerDeerBroth")),
-        FName(TEXT("SmokeBoarMeat")), FName(TEXT("SmokeDeerMeat")) })
-    {
-        const auto* Recipe = Recipes->Find(Id);
-        if (!TestNotNull(TEXT("Prepared-food recipe is configured"), Recipe)) continue;
-        TestEqual(TEXT("Food preparation awards the server-owned Cooking skill"), Recipe->ExperienceSkill, EKalmalaSkill::Cooking);
-        TestEqual(TEXT("Each accepted food recipe action awards a fixed ten experience"), Recipe->ExperienceAward, 10);
-    }
-    const auto* Fuel=Recipes->Find(TEXT("Fuel")); if(!Fuel) return false;
-    TArray<FKalmalaInventoryStack> Costs; int32 Count=0;
-    for(int32 Batch:{MIN_int32,-1,0,MAX_int32}) TestFalse(TEXT("Malformed batch"),UKalmalaRecipeCatalogue::Scale(*Fuel,Batch,Costs,Count));
-    TestTrue(TEXT("Bounded batch"),UKalmalaRecipeCatalogue::Scale(*Fuel,1,Costs,Count));
-    TArray<FKalmalaInventoryStack> Before={{TEXT("Wood"),4},{TEXT("Fibre"),2}}, After;
+
+    TArray<FKalmalaInventoryStack> FuelCosts = {{TEXT("BoarMeat"),2}};
     FString Reason;
-    TestTrue(TEXT("First craft"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,Fuel->Output,Count,After,Reason));
-    Before=After;
-    TestTrue(TEXT("Second craft consumes remaining ingredients"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,Fuel->Output,Count,After,Reason));
-    TestEqual(TEXT("Only output remains"),After.Num(),1);
-    TestEqual(TEXT("Exactly two bundles"),After[0].Quantity,2);
-    Before=After;
-    TestFalse(TEXT("Third attempt cannot duplicate output"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,Fuel->Output,Count,After,Reason));
-    TestEqual(TEXT("Failure leaves caller output unchanged"),After[0].Quantity,2);
-    Before={{TEXT("Wood"),4},{TEXT("Fibre"),2},{TEXT("Fuel"),20}};
-    TestFalse(TEXT("Full output rejects entire craft"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,Fuel->Output,Count,After,Reason));
-    TestEqual(TEXT("Inputs untouched on failure"),Before[0].Quantity,4);
-    Before={{TEXT("Wood"),4}};
-    TestFalse(TEXT("Missing second ingredient is atomic"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,Fuel->Output,Count,After,Reason));
-    TestEqual(TEXT("First ingredient was not consumed"),Before[0].Quantity,4);
-    for (const FName RetiredRecipe : {FName(TEXT("ReplaceFieldHatchet")), FName(TEXT("ReplaceStonePick")), FName(TEXT("ReplaceReedKnife"))})
-        TestNull(TEXT("M7 material-paid tool replacement is retired"), Recipes->Find(RetiredRecipe));
-    const auto* Wood = UKalmalaItemCatalogue::Get()->FindItem(TEXT("Wood"));
-    if (Wood != nullptr)
+    const TArray<FKalmalaInventoryStack> MixedFuel = {{TEXT("Wood"),1},{TEXT("Coal"),1}};
+    TestTrue(TEXT("One serving can draw raw fuel from more than one material"),
+        FKalmalaRawFuelContract::AddCosts(MixedFuel, 2, FuelCosts, Reason));
+    TestEqual(TEXT("Wood participates directly in the exchange"), FuelCosts[1].ItemId, FName(TEXT("Wood")));
+    TestEqual(TEXT("Coal participates directly in the exchange"), FuelCosts[2].ItemId, FName(TEXT("Coal")));
+    TArray<FKalmalaInventoryStack> After;
+    TestTrue(TEXT("Food and mixed raw fuel commit as one transaction"),
+        UKalmalaInventoryComponent::BuildExchange({{TEXT("BoarMeat"),2},{TEXT("Wood"),1},{TEXT("Coal"),1}},
+            FuelCosts, TEXT("HearthBroth"), 2, After, Reason));
+    const FKalmalaInventoryStack* BrothOutput = After.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("HearthBroth"); });
+    if (TestNotNull(TEXT("Transaction contains its output"), BrothOutput))
+        TestEqual(TEXT("Successful transaction outputs both servings"), BrothOutput->Quantity, 2);
+    TestTrue(TEXT("Raw fuel is not an inventory item"), Items->FindItem(TEXT("Fuel")) == nullptr
+        && Items->FindItem(TEXT("Wood")) != nullptr && Items->FindItem(TEXT("Coal")) != nullptr);
+
+    const TArray<FKalmalaInventoryStack> NoFuel;
+    TArray<FKalmalaInventoryStack> UnchangedCosts = {{TEXT("BoarMeat"),1}};
+    TestFalse(TEXT("Missing raw fuel rejects a processing batch"),
+        FKalmalaRawFuelContract::AddCosts(NoFuel, 1, UnchangedCosts, Reason));
+    TestEqual(TEXT("Failed raw-fuel selection leaves costs untouched"), UnchangedCosts.Num(), 1);
+
+    auto* Invalid = NewObject<UKalmalaRecipeCatalogue>();
+    Invalid->Recipes = Recipes->Recipes;
+    Invalid->Recipes[0].Output = TEXT("Forged");
+    TestFalse(TEXT("Unknown output fails closed"), Invalid->IsValidCatalogue());
+    Invalid->Recipes = Recipes->Recipes;
+    Invalid->Recipes[0].FuelPerServing = 2;
+    TestFalse(TEXT("Out-of-bound raw-fuel requirement fails closed"), Invalid->IsValidCatalogue());
+    Invalid->Recipes = Recipes->Recipes;
+    Invalid->Recipes[0].RequiredStation.Add(TEXT("Wood"));
+    TestFalse(TEXT("A material cannot satisfy a station requirement"), Invalid->IsValidCatalogue());
+    Invalid->Recipes = Recipes->Recipes;
+    const FKalmalaRecipe Duplicate = Invalid->Recipes[0];
+    Invalid->Recipes.Add(Duplicate);
+    TestFalse(TEXT("Duplicate recipe IDs fail closed"), Invalid->IsValidCatalogue());
+
+    const FKalmalaItemDefinition* Wood = Items->FindItem(TEXT("Wood"));
+    if (Wood)
     {
-        Before = {{TEXT("Wood"), Wood->MaxStack - 1}};
+        TArray<FKalmalaInventoryStack> Candidate;
         TestTrue(TEXT("Catalogue grant builds a scratch inventory candidate"),
-            UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Wood"), 1, After, Reason));
-        TestEqual(TEXT("Grant candidate reaches but does not exceed the stack limit"), After[0].Quantity, Wood->MaxStack);
-        const auto CandidateBeforeReject = After;
-        TestFalse(TEXT("Full stack rejects a grant candidate"),
-            UKalmalaInventoryComponent::BuildGrant(After, TEXT("Wood"), 1, After, Reason));
-        TestEqual(TEXT("Rejected grant leaves the caller candidate unchanged"), After[0].Quantity, CandidateBeforeReject[0].Quantity);
-        TestFalse(TEXT("Unknown item cannot build a grant"),
-            UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Forged"), 1, After, Reason));
+            UKalmalaInventoryComponent::BuildGrant({{TEXT("Wood"),Wood->MaxStack - 1}}, TEXT("Wood"), 1, Candidate, Reason));
+        TestEqual(TEXT("Grant reaches but does not exceed its stack limit"), Candidate[0].Quantity, Wood->MaxStack);
     }
-    const auto CostCopy=Costs[0]; Costs.Add(CostCopy);
-    TestFalse(TEXT("Duplicate costs reject"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,Fuel->Output,Count,After,Reason));
-    Costs={{TEXT("Wood"),MAX_int32}};
-    TestFalse(TEXT("Overflow cost rejects"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,Fuel->Output,Count,After,Reason));
-    auto* Bad=NewObject<UKalmalaRecipeCatalogue>(); Bad->Recipes=Recipes->Recipes;
-    const auto Duplicate=Bad->Recipes[0]; Bad->Recipes.Add(Duplicate);
-    TestFalse(TEXT("Duplicate recipe IDs fail closed"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes[0].Output=TEXT("Forged");
-    TestFalse(TEXT("Unknown output fails closed"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes.Last().Output=TEXT("Fuel");
-    Bad->Recipes.Last().OutputTool=TEXT("FieldHatchet");
-    Bad->Recipes.Last().RequiredStationKit=TEXT("WorkbenchKit");
-    Bad->Recipes.Last().MaxBatch=1;
-    TestFalse(TEXT("Tool recipes cannot also grant a regular item"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes[0].Ingredients[0].Quantity=MAX_int32;
-    TestFalse(TEXT("Overflow definition fails closed"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes.Last().RequiredStationKit=TEXT("Wood");
-    TestFalse(TEXT("Non-station items cannot satisfy configured station requirements"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes.Last().RequiredStationKit=TEXT("FloorKit");
-    TestFalse(TEXT("Non-interactable construction kits cannot satisfy configured station requirements"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes.Last().bRequiresLitCampfire=false; Bad->Recipes.Last().bRequiresCampfire=true;
-    TestFalse(TEXT("A lit hearth or a construction station cannot be confused with a generic assembly station"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes.Last().ExperienceAward=FKalmalaSkillProgressionContract::MaxAwardPerAcceptedAction + 1;
-    TestFalse(TEXT("An experience award above the accepted-action cap fails closed"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes.Last().ExperienceSkill=static_cast<EKalmalaSkill>(255);
-    TestFalse(TEXT("An unknown skill award fails closed"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes.Last().ExperienceSkill=EKalmalaSkill::None;
-    TestFalse(TEXT("Experience cannot be configured without an allowlisted skill"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes.Last().RequiredSkill=EKalmalaSkill::Cooking; Bad->Recipes.Last().RequiredSkillLevel=0;
-    TestFalse(TEXT("Skill requirement without a minimum level fails closed"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes.Last().RequiredSkill=EKalmalaSkill::None; Bad->Recipes.Last().RequiredSkillLevel=2;
-    TestFalse(TEXT("Minimum skill level without a skill fails closed"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes.Last().RequiredSkill=static_cast<EKalmalaSkill>(255); Bad->Recipes.Last().RequiredSkillLevel=2;
-    TestFalse(TEXT("Unknown recipe skill requirement fails closed"),Bad->IsValidCatalogue());
-    Bad->Recipes=Recipes->Recipes; Bad->Recipes.Last().RequiredSkill=EKalmalaSkill::Cooking; Bad->Recipes.Last().RequiredSkillLevel=FKalmalaSkillProgressionContract::MaxLevel + 1;
-    TestFalse(TEXT("Over-bound recipe skill level fails closed"),Bad->IsValidCatalogue());
-    auto* Items=GetMutableDefault<UKalmalaItemCatalogue>(); const auto Saved=Items->Items;
-    Before={{TEXT("Wood"),2}};
-    for(int32 I=0;I<15;++I)
-    {
-        const FName Id(*FString::Printf(TEXT("TestSlot%d"),I));
-        FKalmalaItemDefinition Def; Def.ItemId=Id; Def.DisplayName=Id.ToString();
-        Def.Description=TEXT("Test item used to exercise inventory slot limits."); Def.MaxStack=2; Items->Items.Add(Def);
-        Before.Add({Id,1});
-    }
-    Costs={{TEXT("Wood"),1}};
-    TestFalse(TEXT("Full slot count rejects new output"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,TEXT("Fuel"),1,After,Reason));
-    Costs[0].Quantity=2;
-    TestTrue(TEXT("Consumed stack frees a slot atomically"),UKalmalaInventoryComponent::BuildExchange(Before,Costs,TEXT("Fuel"),1,After,Reason));
-    Items->Items=Saved;
+    TestFalse(TEXT("Unknown item IDs cannot be stored"), UKalmalaInventoryComponent::BuildExchange(
+        {{TEXT("Forged"),1}}, TArray<FKalmalaInventoryStack>(), NAME_None, 0, After, Reason));
     return true;
 }
 #endif

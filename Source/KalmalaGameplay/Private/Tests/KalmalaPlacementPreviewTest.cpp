@@ -8,11 +8,12 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaPlacementPreviewTest, "Kalmala.Gameplay
 bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
 {
     for (const FName Kit : {FName(TEXT("CampfireKit")), FName(TEXT("WorkbenchKit")), FName(TEXT("StorageKit")),
-        FName(TEXT("CookingRackKit")), FName(TEXT("CauldronKit")), FName(TEXT("SmokeFrameKit")), FName(TEXT("SmokehouseKit")),
+        FName(TEXT("CookingRackKit")), FName(TEXT("CauldronKit")), FName(TEXT("SmokeFrameKit")),
         FName(TEXT("FloorKit")), FName(TEXT("WallKit")), FName(TEXT("RoofKit"))})
         TestTrue(TEXT("Camp and construction kit supports a local preview"), FKalmalaPlacementPreview::IsSupportedKit(Kit));
-    TestTrue(TEXT("Smokehouse preview marks its construction as session-only"), FKalmalaPlacementPreview::IsSessionOnlyKit(TEXT("SmokehouseKit")));
-    for (const FName NotAKit : {FName(TEXT("Wood")), FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply")), FName()})
+    TestFalse(TEXT("Removed smokehouse cannot be previewed"), FKalmalaPlacementPreview::IsSupportedKit(TEXT("SmokehouseKit")));
+    TestFalse(TEXT("Removed raised chest cannot be previewed"), FKalmalaPlacementPreview::IsSupportedKit(TEXT("RaisedStorageKit")));
+    for (const FName NotAKit : {FName(TEXT("Wood")), FName(TEXT("ConstructionSupply")), FName()})
         TestFalse(TEXT("Materials and ingredients do not create a placement preview"), FKalmalaPlacementPreview::IsSupportedKit(NotAKit));
     const FKalmalaPlacementPreview NullPreview = FKalmalaPlacementPreview::Evaluate(nullptr, nullptr, TEXT("CampfireKit"));
     TestFalse(TEXT("Missing local presentation context cannot claim validity"), NullPreview.bIsValid);

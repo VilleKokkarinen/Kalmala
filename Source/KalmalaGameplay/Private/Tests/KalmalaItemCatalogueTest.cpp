@@ -14,12 +14,20 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
     TestTrue(TEXT("Versioned JSON loads a valid item catalogue"), Catalogue->IsValidCatalogue());
     TestTrue(TEXT("Versioned JSON loads a valid recipe catalogue"), Recipes->IsValidCatalogue());
-    TestEqual(TEXT("The JSON item catalogue contains the complete current set"), Catalogue->Items.Num(), 32);
-    TestEqual(TEXT("The JSON recipe catalogue contains the complete current set"), Recipes->Recipes.Num(), 23);
+    TestEqual(TEXT("The JSON item catalogue contains the complete current set"), Catalogue->Items.Num(), 29);
+    TestEqual(TEXT("The JSON recipe catalogue contains the complete current set"), Recipes->Recipes.Num(), 19);
     FString JsonText;
     TestTrue(TEXT("The catalogue JSON is available to verify its external identifiers"),
         FFileHelper::LoadFileToString(JsonText, *(FPaths::ProjectContentDir() / TEXT("Data/GameCatalogues.json"))));
-    TestFalse(TEXT("The catalogue JSON has no Kit-suffixed property or identity"), JsonText.Contains(TEXT("Kit\"")));
+    TestFalse(TEXT("The catalogue JSON has no Kit substring in any property or value"), JsonText.Contains(TEXT("Kit"), ESearchCase::IgnoreCase));
+    for (const TCHAR* RemovedField : { TEXT("OutputTool"), TEXT("bRequiresCampfire"), TEXT("AlternateStation"), TEXT("RequiredSkillLevel") })
+        TestFalse(FString::Printf(TEXT("Recipe data omits removed field %s"), RemovedField), JsonText.Contains(RemovedField));
+    TestTrue(TEXT("Station requirements use JSON arrays"), JsonText.Contains(TEXT("\"RequiredStation\": [")));
+    for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply")), FName(TEXT("RaisedStorage")), FName(TEXT("Smokehouse")) })
+    {
+        TestNull(TEXT("Removed item is not loaded"), Catalogue->FindItem(Id));
+        TestNull(TEXT("Removed item recipe is not loaded"), Recipes->Find(Id));
+    }
     for (const FKalmalaItemDefinition& Item : Catalogue->Items)
     {
         TestFalse(FString::Printf(TEXT("%s has a player-facing name without Kit"), *Item.ItemId.ToString()),
@@ -36,9 +44,9 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         {TEXT("HearthRing"), TEXT("CampfireKit")}, {TEXT("Workbench"), TEXT("WorkbenchKit")},
         {TEXT("Forge"), TEXT("ForgeKit")}, {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit")},
         {TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit")}, {TEXT("GrindingStone"), TEXT("GrindingStoneKit")},
-        {TEXT("Storage"), TEXT("StorageKit")}, {TEXT("RaisedStorage"), TEXT("RaisedStorageKit")},
+        {TEXT("Storage"), TEXT("StorageKit")},
         {TEXT("CookingRack"), TEXT("CookingRackKit")}, {TEXT("Cauldron"), TEXT("CauldronKit")},
-        {TEXT("SmokeFrame"), TEXT("SmokeFrameKit")}, {TEXT("Smokehouse"), TEXT("SmokehouseKit")},
+        {TEXT("SmokeFrame"), TEXT("SmokeFrameKit")},
         {TEXT("Floor"), TEXT("FloorKit")}, {TEXT("Wall"), TEXT("WallKit")}, {TEXT("Roof"), TEXT("RoofKit")}
     };
     for (const TPair<FName, FName>& Alias : LegacyAliases)
@@ -53,17 +61,17 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     if (GrindingStone)
     {
         TestEqual(TEXT("Clean output identity maps to the existing construction identity"), GrindingStone->Output, FName(TEXT("GrindingStoneKit")));
-        TestEqual(TEXT("Clean station identity maps to the existing station identity"), GrindingStone->RequiredStationKit, FName(TEXT("WorkbenchKit")));
+        TestTrue(TEXT("Clean station identity maps to the existing station identity"), GrindingStone->RequiredStation.Contains(TEXT("WorkbenchKit")));
     }
     const FKalmalaRecipe* SmokeRecipe = Recipes->Find(TEXT("SmokeBoarMeat"));
     TestNotNull(TEXT("Smoke recipe loads"), SmokeRecipe);
     if (SmokeRecipe)
     {
-        TestEqual(TEXT("Clean required station maps to the existing station identity"), SmokeRecipe->RequiredStationKit, FName(TEXT("SmokeFrameKit")));
-        TestEqual(TEXT("Clean alternate station maps to the existing station identity"), SmokeRecipe->AlternateStationKit, FName(TEXT("SmokehouseKit")));
+        TestTrue(TEXT("Clean required station maps to the existing station identity"), SmokeRecipe->RequiredStation.Contains(TEXT("SmokeFrameKit")));
+        TestEqual(TEXT("Smoke recipe has no alternate station"), SmokeRecipe->RequiredStation.Num(), 1);
     }
     for (const FName Id : {FName(TEXT("Wood")), FName(TEXT("Stone")), FName(TEXT("Fibre")),
-        FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply"))})
+        FName(TEXT("Lightwood")), FName(TEXT("Densewood")), FName(TEXT("Coal"))})
     {
         const FKalmalaItemDefinition* Item = Catalogue->FindItem(Id);
         if (!TestNotNull(TEXT("Required camp material exists in JSON"), Item)) { continue; }

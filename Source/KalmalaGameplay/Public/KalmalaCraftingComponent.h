@@ -66,6 +66,7 @@ private:
     void RefreshStorageView();
     void ClearStorageView();
     AKalmalaConstructionActor* FindNearbyConstruction(FName Kit, FName AlternateKit = NAME_None) const;
+    AKalmalaConstructionActor* FindNearbyConstruction(const TArray<FName>& RequiredStations) const;
     AKalmalaConstructionActor* FindNearbyToolProgressionStation(FName Kit) const;
     TWeakObjectPtr<AKalmalaConstructionActor> ActiveStorage;
     UPROPERTY(Replicated) TArray<FKalmalaInventoryStack> StorageView;

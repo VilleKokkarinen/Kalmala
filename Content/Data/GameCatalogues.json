@@ -1,11 +1,17 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "items": [
     {
       "ItemId": "Wood",
       "DisplayName": "Wood",
       "Description": "Basic construction material.",
       "MaxStack": 50
+    },
+    {
+      "ItemId": "Coal",
+      "DisplayName": "Coal",
+      "Description": "A dense, black mineral that burns directly as hearth fuel.",
+      "MaxStack": 40
     },
     {
       "ItemId": "Stone",
@@ -20,21 +26,9 @@
       "MaxStack": 50
     },
     {
-      "ItemId": "Fuel",
-      "DisplayName": "Ember bundle",
-      "Description": "Bound splitwood and fibre that keeps an ordinary hearth burning for one minute.",
-      "MaxStack": 20
-    },
-    {
-      "ItemId": "ConstructionSupply",
-      "DisplayName": "Lashed timber",
-      "Description": "Timber lashed with fibre for stronger camp structures and stations.",
-      "MaxStack": 20
-    },
-    {
       "ItemId": "HearthRing",
       "DisplayName": "Hearth ring",
-      "Description": "A low stone-and-wood hearth built in place with a Construction Hammer; an Ember bundle lights it.",
+      "Description": "A low stone-and-wood hearth built in place with a Construction Hammer; raw fuel lights it.",
       "MaxStack": 5
     },
     {
@@ -69,14 +63,8 @@
     },
     {
       "ItemId": "Storage",
-      "DisplayName": "Woven chest",
-      "Description": "A shared camp chest that holds up to sixteen unique item stacks.",
-      "MaxStack": 5
-    },
-    {
-      "ItemId": "RaisedStorage",
-      "DisplayName": "Raised rainproof chest",
-      "Description": "An elevated, rain-resistant chest with the same bounded shared storage.",
+      "DisplayName": "Chest",
+      "Description": "A shared chest that holds up to sixteen unique item stacks.",
       "MaxStack": 5
     },
     {
@@ -95,12 +83,6 @@
       "ItemId": "SmokeFrame",
       "DisplayName": "Smoke frame",
       "Description": "An open frame for smoking boar or deer meat over a burning hearth.",
-      "MaxStack": 5
-    },
-    {
-      "ItemId": "Smokehouse",
-      "DisplayName": "Roofed smokehouse",
-      "Description": "A roofed alternative to the Smoke Frame with the same hearth and skill requirements.",
       "MaxStack": 5
     },
     {
@@ -178,7 +160,7 @@
     {
       "ItemId": "Densewood",
       "DisplayName": "Densewood",
-      "Description": "Dense timber from second-wave trunks, used for sturdy stations and raised storage.",
+      "Description": "Dense timber from second-wave trunks, used for sturdy stations and as raw hearth fuel.",
       "MaxStack": 50
     },
     {
@@ -196,60 +178,6 @@
   ],
   "recipes": [
     {
-      "RecipeId": "Fuel",
-      "DisplayName": "Bind ember bundle",
-      "Ingredients": [
-        {
-          "ItemId": "Wood",
-          "Quantity": 2
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 1
-        }
-      ],
-      "Output": "Fuel",
-      "OutputCount": 1,
-      "MaxBatch": 5,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
-      "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "ExperienceSkill": "None",
-      "ExperienceAward": 0,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "Timber",
-      "DisplayName": "Lash timber",
-      "Ingredients": [
-        {
-          "ItemId": "Wood",
-          "Quantity": 3
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 2
-        }
-      ],
-      "Output": "ConstructionSupply",
-      "OutputCount": 1,
-      "MaxBatch": 5,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
-      "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "ExperienceSkill": "None",
-      "ExperienceAward": 0,
-      "bEnabled": true
-    },
-    {
       "RecipeId": "Campfire",
       "DisplayName": "Hearth ring",
       "Ingredients": [
@@ -265,24 +193,24 @@
       "Output": "HearthRing",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
       "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "Workbench",
       "DisplayName": "Joiner's bench",
       "Ingredients": [
         {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 3
+          "ItemId": "Wood",
+          "Quantity": 9
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 6
         },
         {
           "ItemId": "Stone",
@@ -292,24 +220,24 @@
       "Output": "Workbench",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
       "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "Forge",
       "DisplayName": "Forge",
       "Ingredients": [
         {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 5
+          "ItemId": "Wood",
+          "Quantity": 15
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 10
         },
         {
           "ItemId": "Stone",
@@ -319,51 +247,47 @@
       "Output": "Forge",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
       "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "WorkbenchToolRack",
       "DisplayName": "Workbench tool rack",
       "Ingredients": [
         {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 2
+          "ItemId": "Wood",
+          "Quantity": 6
         },
         {
           "ItemId": "Fibre",
-          "Quantity": 2
+          "Quantity": 6
         }
       ],
       "Output": "WorkbenchToolRack",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
       "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "ForgeAnvil",
       "DisplayName": "Forge anvil",
       "Ingredients": [
         {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 3
+          "ItemId": "Wood",
+          "Quantity": 9
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 6
         },
         {
           "ItemId": "Stone",
@@ -373,24 +297,24 @@
       "Output": "ForgeAnvil",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
       "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "GrindingStone",
       "DisplayName": "Grinding stone",
       "Ingredients": [
         {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 2
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 4
         },
         {
           "ItemId": "Stone",
@@ -400,109 +324,72 @@
       "Output": "GrindingStone",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "RequiredStation": "Workbench",
-      "OutputTool": "",
-      "bRequiresCampfire": false,
+      "RequiredStation": [
+        "Workbench"
+      ],
       "bRequiresLitCampfire": false,
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "Storage",
       "DisplayName": "Woven chest",
       "Ingredients": [
         {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 2
+          "ItemId": "Wood",
+          "Quantity": 6
         },
         {
           "ItemId": "Fibre",
-          "Quantity": 4
+          "Quantity": 8
         }
       ],
       "Output": "Storage",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
       "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "RaisedStorage",
-      "DisplayName": "Raised rainproof chest",
-      "Ingredients": [
-        {
-          "ItemId": "Densewood",
-          "Quantity": 3
-        },
-        {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 2
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 2
-        }
-      ],
-      "Output": "RaisedStorage",
-      "OutputCount": 1,
-      "MaxBatch": 1,
-      "RequiredStation": "Workbench",
-      "OutputTool": "",
-      "bRequiresCampfire": false,
-      "bRequiresLitCampfire": false,
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "ExperienceSkill": "None",
-      "ExperienceAward": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "CookingRack",
       "DisplayName": "Cooking rack",
       "Ingredients": [
         {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 3
+          "ItemId": "Wood",
+          "Quantity": 9
         },
         {
           "ItemId": "Fibre",
-          "Quantity": 2
+          "Quantity": 8
         }
       ],
       "Output": "CookingRack",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
       "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "Cauldron",
       "DisplayName": "Hearth cauldron",
       "Ingredients": [
         {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 3
+          "ItemId": "Wood",
+          "Quantity": 9
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 6
         },
         {
           "ItemId": "Stone",
@@ -512,151 +399,104 @@
       "Output": "Cauldron",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "bRequiresCampfire": true,
-      "OutputTool": "",
       "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "SmokeFrame",
       "DisplayName": "Smoke frame",
       "Ingredients": [
         {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 3
+          "ItemId": "Wood",
+          "Quantity": 9
         },
         {
           "ItemId": "Fibre",
-          "Quantity": 3
+          "Quantity": 9
         }
       ],
       "Output": "SmokeFrame",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
       "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "Smokehouse",
-      "DisplayName": "Roofed smokehouse",
-      "Ingredients": [
-        {
-          "ItemId": "Densewood",
-          "Quantity": 3
-        },
-        {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 2
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 2
-        }
-      ],
-      "Output": "Smokehouse",
-      "OutputCount": 1,
-      "MaxBatch": 1,
-      "RequiredStation": "Workbench",
-      "OutputTool": "",
-      "bRequiresCampfire": false,
-      "bRequiresLitCampfire": false,
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "ExperienceSkill": "None",
-      "ExperienceAward": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "Floor",
       "DisplayName": "Timber floor",
       "Ingredients": [
         {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 2
-        }
-      ],
-      "Output": "Floor",
-      "OutputCount": 1,
-      "MaxBatch": 5,
-      "bRequiresCampfire": false,
-      "OutputTool": "",
-      "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "ExperienceSkill": "None",
-      "ExperienceAward": 0,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "Wall",
-      "DisplayName": "Windbreak wall",
-      "Ingredients": [
-        {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 2
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 2
-        }
-      ],
-      "Output": "Wall",
-      "OutputCount": 1,
-      "MaxBatch": 5,
-      "bRequiresCampfire": false,
-      "OutputTool": "",
-      "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "ExperienceSkill": "None",
-      "ExperienceAward": 0,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "Roof",
-      "DisplayName": "Reed roof",
-      "Ingredients": [
-        {
-          "ItemId": "ConstructionSupply",
-          "Quantity": 2
+          "ItemId": "Wood",
+          "Quantity": 6
         },
         {
           "ItemId": "Fibre",
           "Quantity": 4
         }
       ],
+      "Output": "Floor",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "bRequiresLitCampfire": false,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true,
+      "FuelPerServing": 0
+    },
+    {
+      "RecipeId": "Wall",
+      "DisplayName": "Windbreak wall",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 6
+        }
+      ],
+      "Output": "Wall",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "bRequiresLitCampfire": false,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true,
+      "FuelPerServing": 0
+    },
+    {
+      "RecipeId": "Roof",
+      "DisplayName": "Reed roof",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 8
+        }
+      ],
       "Output": "Roof",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "bRequiresCampfire": false,
-      "OutputTool": "",
       "bRequiresLitCampfire": false,
-      "RequiredStation": "",
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "RoastBoarMeat",
@@ -671,15 +511,13 @@
       "OutputCount": 1,
       "MaxBatch": 5,
       "bRequiresLitCampfire": true,
-      "RequiredStation": "CookingRack",
+      "RequiredStation": [
+        "CookingRack"
+      ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "RoastDeerMeat",
@@ -694,15 +532,13 @@
       "OutputCount": 1,
       "MaxBatch": 5,
       "bRequiresLitCampfire": true,
-      "RequiredStation": "CookingRack",
+      "RequiredStation": [
+        "CookingRack"
+      ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 0
     },
     {
       "RecipeId": "SimmerBoarBroth",
@@ -711,25 +547,19 @@
         {
           "ItemId": "BoarMeat",
           "Quantity": 1
-        },
-        {
-          "ItemId": "Fuel",
-          "Quantity": 1
         }
       ],
       "Output": "HearthBroth",
       "OutputCount": 1,
       "MaxBatch": 3,
       "bRequiresLitCampfire": true,
-      "RequiredStation": "Cauldron",
+      "RequiredStation": [
+        "Cauldron"
+      ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 1
     },
     {
       "RecipeId": "SimmerDeerBroth",
@@ -738,25 +568,19 @@
         {
           "ItemId": "DeerMeat",
           "Quantity": 1
-        },
-        {
-          "ItemId": "Fuel",
-          "Quantity": 1
         }
       ],
       "Output": "HearthBroth",
       "OutputCount": 1,
       "MaxBatch": 3,
       "bRequiresLitCampfire": true,
-      "RequiredStation": "Cauldron",
+      "RequiredStation": [
+        "Cauldron"
+      ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
-      "AlternateStation": "",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 1
     },
     {
       "RecipeId": "SmokeBoarMeat",
@@ -765,25 +589,19 @@
         {
           "ItemId": "BoarMeat",
           "Quantity": 1
-        },
-        {
-          "ItemId": "Fuel",
-          "Quantity": 1
         }
       ],
       "Output": "SmokedFieldMeat",
       "OutputCount": 1,
       "MaxBatch": 3,
       "bRequiresLitCampfire": true,
-      "RequiredStation": "SmokeFrame",
-      "AlternateStation": "Smokehouse",
-      "RequiredSkill": "Cooking",
-      "RequiredSkillLevel": 2,
+      "RequiredStation": [
+        "SmokeFrame"
+      ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 1
     },
     {
       "RecipeId": "SmokeDeerMeat",
@@ -792,25 +610,19 @@
         {
           "ItemId": "DeerMeat",
           "Quantity": 1
-        },
-        {
-          "ItemId": "Fuel",
-          "Quantity": 1
         }
       ],
       "Output": "SmokedFieldMeat",
       "OutputCount": 1,
       "MaxBatch": 3,
       "bRequiresLitCampfire": true,
-      "RequiredStation": "SmokeFrame",
-      "AlternateStation": "Smokehouse",
-      "RequiredSkill": "Cooking",
-      "RequiredSkillLevel": 2,
+      "RequiredStation": [
+        "SmokeFrame"
+      ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "OutputTool": "",
-      "bRequiresCampfire": false,
-      "bEnabled": true
+      "bEnabled": true,
+      "FuelPerServing": 1
     }
   ]
 }

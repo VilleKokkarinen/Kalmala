@@ -11,17 +11,14 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
 {
     if (ItemId == TEXT("ForgeKit")) return true;
     return ItemId == TEXT("CampfireKit") || ItemId == TEXT("WorkbenchKit") || ItemId == TEXT("StorageKit")
-        || ItemId == TEXT("RaisedStorageKit")
         || ItemId == TEXT("CookingRackKit") || ItemId == TEXT("CauldronKit") || ItemId == TEXT("SmokeFrameKit")
-        || ItemId == TEXT("SmokehouseKit")
         || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit");
 }
 
 bool FKalmalaPlacementPreview::IsSessionOnlyKit(const FName ItemId)
 {
-    return ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit")
-        || ItemId == TEXT("RaisedStorageKit") || ItemId == TEXT("SmokehouseKit");
+    return ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit");
 }
 
 FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World, const APawn* Pawn, const FName ItemId)
@@ -53,8 +50,7 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     }
 
     const bool bIsStationAttachment = ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit");
-    const bool bIsCompactConstruction = bIsStationAttachment || ItemId == TEXT("GrindingStoneKit")
-        || ItemId == TEXT("RaisedStorageKit") || ItemId == TEXT("SmokehouseKit");
+    const bool bIsCompactConstruction = bIsStationAttachment || ItemId == TEXT("GrindingStoneKit");
     const FVector PlacementExtent = bIsCompactConstruction
         ? AKalmalaConstructionActor::GetCollisionExtent(ItemId) : FVector(54, 54, 56);
     const float PlacementHalfHeight = PlacementExtent.Z + (bIsCompactConstruction ? 2.0f : 0.0f);

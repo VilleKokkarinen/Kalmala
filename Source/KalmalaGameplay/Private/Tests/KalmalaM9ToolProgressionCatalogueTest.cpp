@@ -138,13 +138,17 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     if (ForgeRecipe)
     {
         TestEqual(TEXT("Forge recipe yields its buildable kit"), ForgeRecipe->Output, FName(TEXT("ForgeKit")));
-        const FKalmalaInventoryStack* TimberCost = ForgeRecipe->Ingredients.FindByPredicate(
-            [](const FKalmalaInventoryStack& Cost) { return Cost.ItemId == TEXT("ConstructionSupply"); });
+        const FKalmalaInventoryStack* WoodCost = ForgeRecipe->Ingredients.FindByPredicate(
+            [](const FKalmalaInventoryStack& Cost) { return Cost.ItemId == TEXT("Wood"); });
+        const FKalmalaInventoryStack* FibreCost = ForgeRecipe->Ingredients.FindByPredicate(
+            [](const FKalmalaInventoryStack& Cost) { return Cost.ItemId == TEXT("Fibre"); });
         const FKalmalaInventoryStack* StoneCost = ForgeRecipe->Ingredients.FindByPredicate(
             [](const FKalmalaInventoryStack& Cost) { return Cost.ItemId == TEXT("Stone"); });
-        TestNotNull(TEXT("Forge recipe includes lashed timber"), TimberCost);
+        TestNotNull(TEXT("Forge recipe includes raw wood"), WoodCost);
+        TestNotNull(TEXT("Forge recipe includes raw fibre"), FibreCost);
         TestNotNull(TEXT("Forge recipe includes fieldstone"), StoneCost);
-        if (TimberCost) TestEqual(TEXT("Forge kit costs five lashed timber"), TimberCost->Quantity, 5);
+        if (WoodCost) TestEqual(TEXT("Forge recipe uses the direct wood value of five former supplies"), WoodCost->Quantity, 15);
+        if (FibreCost) TestEqual(TEXT("Forge recipe uses the direct fibre value of five former supplies"), FibreCost->Quantity, 10);
         if (StoneCost) TestEqual(TEXT("Forge kit costs six fieldstone"), StoneCost->Quantity, 6);
     }
 

@@ -30,11 +30,9 @@ namespace
         if (CatalogueItemId == TEXT("ForgeAnvil")) return TEXT("ForgeAnvilKit");
         if (CatalogueItemId == TEXT("GrindingStone")) return TEXT("GrindingStoneKit");
         if (CatalogueItemId == TEXT("Storage")) return TEXT("StorageKit");
-        if (CatalogueItemId == TEXT("RaisedStorage")) return TEXT("RaisedStorageKit");
         if (CatalogueItemId == TEXT("CookingRack")) return TEXT("CookingRackKit");
         if (CatalogueItemId == TEXT("Cauldron")) return TEXT("CauldronKit");
         if (CatalogueItemId == TEXT("SmokeFrame")) return TEXT("SmokeFrameKit");
-        if (CatalogueItemId == TEXT("Smokehouse")) return TEXT("SmokehouseKit");
         if (CatalogueItemId == TEXT("Floor")) return TEXT("FloorKit");
         if (CatalogueItemId == TEXT("Wall")) return TEXT("WallKit");
         if (CatalogueItemId == TEXT("Roof")) return TEXT("RoofKit");
@@ -56,30 +54,25 @@ namespace
         return true;
     }
 
-    bool RestoreStationField(const TSharedPtr<FJsonObject>& RecipeObject,
-        const TCHAR* CatalogueFieldName, const TCHAR* RuntimeFieldName)
+    bool NormalizeStationArray(const TSharedPtr<FJsonObject>& RecipeObject)
     {
-        if (!RecipeObject.IsValid() || RecipeObject->HasField(RuntimeFieldName))
+        const TArray<TSharedPtr<FJsonValue>>* StationValues = nullptr;
+        if (!RecipeObject.IsValid() || !RecipeObject->TryGetArrayField(TEXT("RequiredStation"), StationValues)
+            || StationValues == nullptr || StationValues->Num() > 4)
         {
             return false;
         }
-        if (!RecipeObject->HasField(CatalogueFieldName))
+        TArray<TSharedPtr<FJsonValue>> NormalizedStations;
+        NormalizedStations.Reserve(StationValues->Num());
+        for (const TSharedPtr<FJsonValue>& Value : *StationValues)
         {
-            return true;
+            if (!Value.IsValid() || Value->Type != EJson::String) return false;
+            const FString CatalogueId = Value->AsString();
+            if (CatalogueId.IsEmpty()) return false;
+            NormalizedStations.Add(MakeShared<FJsonValueString>(
+                ToRuntimeItemId(FName(*CatalogueId)).ToString()));
         }
-
-        FString CatalogueId;
-        if (!RecipeObject->TryGetStringField(CatalogueFieldName, CatalogueId))
-        {
-            return false;
-        }
-
-        RecipeObject->RemoveField(CatalogueFieldName);
-        if (!CatalogueId.IsEmpty())
-        {
-            CatalogueId = ToRuntimeItemId(FName(*CatalogueId)).ToString();
-        }
-        RecipeObject->SetStringField(RuntimeFieldName, CatalogueId);
+        RecipeObject->SetArrayField(TEXT("RequiredStation"), MoveTemp(NormalizedStations));
         return true;
     }
 
@@ -103,10 +96,7 @@ namespace
             }
             const TSharedPtr<FJsonObject> RecipeObject = Value->AsObject();
             if (!NormalizeItemReference(RecipeObject, TEXT("Output"))
-                || (RecipeObject->HasField(TEXT("OutputTool"))
-                    && !NormalizeItemReference(RecipeObject, TEXT("OutputTool")))
-                || !RestoreStationField(RecipeObject, TEXT("RequiredStation"), TEXT("RequiredStationKit"))
-                || !RestoreStationField(RecipeObject, TEXT("AlternateStation"), TEXT("AlternateStationKit")))
+                || !NormalizeStationArray(RecipeObject))
             {
                 return false;
             }
@@ -149,7 +139,7 @@ namespace
         double SchemaVersion = 0.0;
         const TArray<TSharedPtr<FJsonValue>>* ItemValues = nullptr;
         const TArray<TSharedPtr<FJsonValue>>* RecipeValues = nullptr;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 3.0
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 4.0
             || !Root->TryGetArrayField(TEXT("items"), ItemValues)
             || !Root->TryGetArrayField(TEXT("recipes"), RecipeValues)
             || ItemValues == nullptr || RecipeValues == nullptr

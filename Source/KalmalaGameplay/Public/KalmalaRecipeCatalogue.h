@@ -12,15 +12,13 @@ struct KALMALAGAMEPLAY_API FKalmalaRecipe
     UPROPERTY(EditAnywhere) FString DisplayName;
     UPROPERTY(EditAnywhere) TArray<FKalmalaInventoryStack> Ingredients;
     UPROPERTY(EditAnywhere) FName Output;
-    UPROPERTY(EditAnywhere) FName OutputTool;
     UPROPERTY(EditAnywhere) int32 OutputCount = 1;
     UPROPERTY(EditAnywhere) int32 MaxBatch = 1;
-    UPROPERTY(EditAnywhere) bool bRequiresCampfire = false;
     UPROPERTY(EditAnywhere) bool bRequiresLitCampfire = false;
-    UPROPERTY(EditAnywhere) FName RequiredStationKit;
-    UPROPERTY(EditAnywhere) FName AlternateStationKit;
-    UPROPERTY(EditAnywhere) EKalmalaSkill RequiredSkill = EKalmalaSkill::None;
-    UPROPERTY(EditAnywhere) int32 RequiredSkillLevel = 0;
+    /** Raw fuel units charged per output serving, selected from the server-side fuel contract. */
+    UPROPERTY(EditAnywhere) int32 FuelPerServing = 0;
+    /** Any one of these visible nearby stations can satisfy the recipe. */
+    UPROPERTY(EditAnywhere) TArray<FName> RequiredStation;
     UPROPERTY(EditAnywhere) EKalmalaSkill ExperienceSkill = EKalmalaSkill::None;
     UPROPERTY(EditAnywhere) int32 ExperienceAward = 0;
     UPROPERTY(EditAnywhere) bool bEnabled = true;

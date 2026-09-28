@@ -29,8 +29,6 @@ public:
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
     bool CanPersistConstruction(FName KitId, const FTransform& Transform) const;
     bool PersistConstruction(class AKalmalaConstructionActor* Construction);
-    bool CanRegisterSessionStorage() const;
-    bool RegisterSessionStorage(class AKalmalaConstructionActor* Construction);
     bool ReadStorage(const class AKalmalaConstructionActor* Construction, TArray<FKalmalaInventoryStack>& Out) const;
     bool PersistStorage(const class AKalmalaConstructionActor* Construction, const TArray<FKalmalaInventoryStack>& Stacks);
     bool ClaimDiscovery(class AKalmalaCharacter* Interactor, const struct FKalmalaWorldDiscoveryDescriptor& Descriptor);
@@ -142,12 +140,6 @@ private:
     bool bOceanTravelPersistenceWritable = false;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGame> ConstructionSaveGame;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaStorageSaveGame> StorageSaveGame;
-    struct FSessionStorageRecord
-    {
-        TWeakObjectPtr<class AKalmalaConstructionActor> Construction;
-        TArray<FKalmalaInventoryStack> Stacks;
-    };
-    TMap<FString, FSessionStorageRecord> SessionStorageRecords;
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;
     TSet<FIntPoint> ActiveTerrainPatchCoordinates;
     TMap<FIntPoint, TObjectPtr<class AKalmalaGeneratedTerrainPatch>> ActiveTerrainPatches;

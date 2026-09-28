@@ -447,7 +447,8 @@ void AKalmalaGameMode::BeginPlay()
     if (UGameplayStatics::DoesSaveGameExist(StorageSlot, 0))
     {
         StorageSaveGame = Cast<UKalmalaStorageSaveGame>(UGameplayStatics::LoadGameFromSlot(StorageSlot, 0));
-        if (!StorageSaveGame || !StorageSaveGame->MatchesWorld(WorldGenerationConfig))
+        if (!StorageSaveGame || !StorageSaveGame->MigrateLegacyItemIds()
+            || !StorageSaveGame->MatchesWorld(WorldGenerationConfig))
         {
             StorageSaveGame = nullptr;
             UE_LOG(LogTemp, Warning, TEXT("Storage unavailable: existing save is invalid or incompatible; preserved without overwrite."));
@@ -581,32 +582,9 @@ void AKalmalaGameMode::RestorePersistedConstruction()
     }
 }
 
-bool AKalmalaGameMode::CanRegisterSessionStorage() const
-{
-    return HasAuthority() && SessionStorageRecords.Num() < UKalmalaStorageSaveGame::MaxRecords;
-}
-
-bool AKalmalaGameMode::RegisterSessionStorage(AKalmalaConstructionActor* Construction)
-{
-    if (!CanRegisterSessionStorage() || !IsValid(Construction) || !Construction->HasAuthority()
-        || Construction->GetWorld() != GetWorld() || Construction->GetConstructionKit() != TEXT("RaisedStorageKit")
-        || Construction->GetConstructionId().IsEmpty() || SessionStorageRecords.Contains(Construction->GetConstructionId())) return false;
-    FSessionStorageRecord& Record = SessionStorageRecords.Add(Construction->GetConstructionId());
-    Record.Construction = Construction;
-    return true;
-}
-
 bool AKalmalaGameMode::ReadStorage(const AKalmalaConstructionActor* Construction, TArray<FKalmalaInventoryStack>& Out) const
 {
     if (!HasAuthority() || !IsValid(Construction) || !Construction->HasAuthority() || Construction->GetWorld() != GetWorld()) return false;
-    if (Construction->GetConstructionKit() == TEXT("RaisedStorageKit"))
-    {
-        const FSessionStorageRecord* SessionRecord = SessionStorageRecords.Find(Construction->GetConstructionId());
-        if (!SessionRecord || SessionRecord->Construction.Get() != Construction
-            || !UKalmalaStorageSaveGame::IsValidStacks(SessionRecord->Stacks)) return false;
-        Out = SessionRecord->Stacks;
-        return true;
-    }
     if (Construction->GetConstructionKit() != TEXT("StorageKit") || !StorageSaveGame || !ConstructionSaveGame
         || !StorageSaveGame->MatchesWorld(WorldGenerationConfig) || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
     // Only a paid, registered construction in this immutable world can address a chest record.
@@ -622,14 +600,6 @@ bool AKalmalaGameMode::ReadStorage(const AKalmalaConstructionActor* Construction
 
 bool AKalmalaGameMode::PersistStorage(const AKalmalaConstructionActor* Construction, const TArray<FKalmalaInventoryStack>& Stacks)
 {
-    if (HasAuthority() && IsValid(Construction) && Construction->HasAuthority() && Construction->GetWorld() == GetWorld()
-        && Construction->GetConstructionKit() == TEXT("RaisedStorageKit"))
-    {
-        FSessionStorageRecord* SessionRecord = SessionStorageRecords.Find(Construction->GetConstructionId());
-        if (!SessionRecord || SessionRecord->Construction.Get() != Construction || !UKalmalaStorageSaveGame::IsValidStacks(Stacks)) return false;
-        SessionRecord->Stacks = Stacks;
-        return true;
-    }
     TArray<FKalmalaInventoryStack> Before;
     if (!ReadStorage(Construction, Before)) return false;
     auto* Candidate = DuplicateObject<UKalmalaStorageSaveGame>(StorageSaveGame, this);
@@ -2745,17 +2715,17 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
                     UKalmalaInventoryComponent* Inventory = TestCharacter->FindComponentByClass<UKalmalaInventoryComponent>();
                     UKalmalaCraftingComponent* Crafting = TestCharacter->FindComponentByClass<UKalmalaCraftingComponent>();
                     if (Inventory == nullptr || Crafting == nullptr) return;
-                    const bool bIngredientsGranted = Inventory->TryGrantFromServer(TEXT("Wood"), 2)
-                        && Inventory->TryGrantFromServer(TEXT("Fibre"), 1);
+                    const bool bIngredientsGranted = Inventory->TryGrantFromServer(TEXT("Wood"), 9)
+                        && Inventory->TryGrantFromServer(TEXT("Fibre"), 8);
                     const uint32 PreviousSerial = Crafting->GetResultSerial();
                     if (bIngredientsGranted)
                     {
-                        Crafting->ServerCraft_Implementation(TEXT("Fuel"), 1);
+                        Crafting->ServerCraft_Implementation(TEXT("CookingRack"), 1);
                     }
                     const bool bAccepted = bIngredientsGranted && Crafting->GetResultSerial() != PreviousSerial
-                        && Crafting->WasLastResultAccepted() && Inventory->GetQuantity(TEXT("Fuel")) == 1;
+                        && Crafting->WasLastResultAccepted() && Inventory->GetQuantity(TEXT("CookingRackKit")) == 1;
                     UE_LOG(LogTemp, Display,
-                        TEXT("Ambient audio verification server crafted fuel: Accepted=%d ResultSerial=%u"),
+                        TEXT("Ambient audio verification server crafted rack: Accepted=%d ResultSerial=%u"),
                         bAccepted ? 1 : 0, Crafting->GetResultSerial());
                 }), 2.0f, false);
 
@@ -2830,7 +2800,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
         AKalmalaCampfire* Campfire = GetWorld()->SpawnActor<AKalmalaCampfire>(AKalmalaCampfire::StaticClass(), NewPlayer->GetPawn()->GetActorLocation() + FVector(120.0f, 0.0f, 0.0f), FRotator::ZeroRotator, SpawnParameters);
         if (Campfire != nullptr)
         {
-            if (auto* Pack = NewPlayer->GetPawn()->FindComponentByClass<UKalmalaInventoryComponent>()) Pack->TryGrantFromServer(TEXT("Fuel"), 1);
+            if (auto* Pack = NewPlayer->GetPawn()->FindComponentByClass<UKalmalaInventoryComponent>()) Pack->TryGrantFromServer(TEXT("Wood"), 1);
             Campfire->TryRefuelFromServer(Cast<AKalmalaCharacter>(NewPlayer->GetPawn()));
             Campfire->Interact_Implementation(Cast<AKalmalaCharacter>(NewPlayer->GetPawn()));
             bExposureReplicationCampfireSpawned = Campfire->IsLit();

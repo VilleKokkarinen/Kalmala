@@ -59,7 +59,7 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
             Check(OpenStorageFromServer(Chest), TEXT("Open paid chest"));
             Check(Pack->TryGrantFromServer(TEXT("Wood"), 3), TEXT("Seed storage materials"));
             for (int32 N = 0; N < 3; ++N) Check(TransferStorageFromServer(TEXT("Wood"), true, Reason), TEXT("Save initial chest materials"));
-            Check(Pack->TryGrantFromServer(TEXT("WorkbenchKit"), 1) && Pack->TryGrantFromServer(TEXT("ConstructionSupply"), 2), TEXT("Seed bench and assembly cost"));
+            Check(Pack->TryGrantFromServer(TEXT("WorkbenchKit"), 1), TEXT("Seed bench and assembly cost"));
             bool BenchPlaced = false;
             for (int32 Turn = 0; Turn < 8 && !BenchPlaced; ++Turn)
             { C->SetActorRotation(FRotator(0, Turn*45, 0)); BenchPlaced = PlaceConstructionFromServer(TEXT("WorkbenchKit"), Reason); }

@@ -26,6 +26,62 @@ bool UKalmalaStorageSaveGame::IsValidStacks(const TArray<FKalmalaInventoryStack>
     return true;
 }
 
+bool UKalmalaStorageSaveGame::NormalizeLegacyStacks(TArray<FKalmalaInventoryStack>& Stacks)
+{
+    if (Stacks.Num() > UKalmalaInventoryComponent::MaxSlots) return false;
+    const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
+    TArray<FName> ItemOrder;
+    TMap<FName, int64> Quantities;
+    const auto AddQuantity = [&ItemOrder, &Quantities](const FName ItemId, const int64 Quantity)
+    {
+        if (Quantity <= 0) return false;
+        if (!Quantities.Contains(ItemId)) ItemOrder.Add(ItemId);
+        Quantities.FindOrAdd(ItemId) += Quantity;
+        return true;
+    };
+    for (const FKalmalaInventoryStack& Stack : Stacks)
+    {
+        if (Stack.Quantity <= 0 || Stack.ItemId.IsNone()) return false;
+        if (Stack.ItemId == TEXT("Fuel"))
+        {
+            if (!AddQuantity(TEXT("Wood"), Stack.Quantity)) return false;
+        }
+        else if (Stack.ItemId == TEXT("ConstructionSupply"))
+        {
+            const int64 SupplyCount = Stack.Quantity;
+            if (!AddQuantity(TEXT("Wood"), SupplyCount * 3) || !AddQuantity(TEXT("Fibre"), SupplyCount * 2)) return false;
+        }
+        else if (!Items->FindItem(Stack.ItemId) || !AddQuantity(Stack.ItemId, Stack.Quantity)) return false;
+    }
+
+    TArray<FKalmalaInventoryStack> Normalized;
+    for (const FName ItemId : ItemOrder)
+    {
+        const FKalmalaItemDefinition* Definition = Items->FindItem(ItemId);
+        if (!Definition) return false;
+        int64 Remaining = Quantities.FindRef(ItemId);
+        while (Remaining > 0)
+        {
+            if (Normalized.Num() >= UKalmalaInventoryComponent::MaxSlots) return false;
+            FKalmalaInventoryStack& Stack = Normalized.AddDefaulted_GetRef();
+            Stack.ItemId = ItemId;
+            Stack.Quantity = int32(FMath::Min<int64>(Remaining, Definition->MaxStack));
+            Remaining -= Stack.Quantity;
+        }
+    }
+    Stacks = MoveTemp(Normalized);
+    return IsValidStacks(Stacks);
+}
+
+bool UKalmalaStorageSaveGame::MigrateLegacyItemIds()
+{
+    TArray<FKalmalaStorageSaveRecord> MigratedRecords = Records;
+    for (FKalmalaStorageSaveRecord& Record : MigratedRecords)
+        if (!NormalizeLegacyStacks(Record.Stacks)) return false;
+    Records = MoveTemp(MigratedRecords);
+    return true;
+}
+
 bool UKalmalaStorageSaveGame::MatchesWorld(const FKalmalaWorldGenerationConfig& Config) const
 {
     if (!Config.IsValid() || SchemaVersion != CurrentSchemaVersion || WorldConfig != Config || Records.Num() > MaxRecords) return false;

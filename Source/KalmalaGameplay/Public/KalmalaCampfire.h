@@ -42,7 +42,7 @@ public:
     static constexpr float RainThreshold = 0.05f;
     float GetFuelWetness() const { return FuelWetness; }
     float GetEffectiveWarmth() const { return EffectiveWarmth; }
-    static constexpr float FuelSecondsPerBundle = 60.0f;
+    static constexpr float FuelSecondsPerItem = 60.0f;
     static constexpr float MaxFuelSeconds = 300.0f;
     float GetFuelSeconds() const { return FuelSeconds; }
     bool HasRoof() const { return bRoofProtected; }

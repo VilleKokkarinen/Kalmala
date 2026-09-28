@@ -28,6 +28,26 @@ AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyConstruction(FNa
     return Closest;
 }
 
+AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyConstruction(const TArray<FName>& RequiredStations) const
+{
+    const AKalmalaCharacter* Character = GetCharacter();
+    if (!Character) return nullptr;
+    AKalmalaConstructionActor* Closest = nullptr;
+    double Best = FMath::Square(250.0);
+    for (const FName Station : RequiredStations)
+    {
+        AKalmalaConstructionActor* Candidate = FindNearbyConstruction(Station);
+        if (!Candidate) continue;
+        const double Distance = FVector::DistSquared(Character->GetActorLocation(), Candidate->GetActorLocation());
+        if (Distance < Best || (Distance == Best && (!Closest || Candidate->GetConstructionId() < Closest->GetConstructionId())))
+        {
+            Best = Distance;
+            Closest = Candidate;
+        }
+    }
+    return Closest;
+}
+
 AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyWorkbench() const { return FindNearbyConstruction(TEXT("WorkbenchKit")); }
 
 FString UKalmalaCraftingComponent::GetNearbyWorkbenchText() const
@@ -56,11 +76,6 @@ FString UKalmalaCraftingComponent::GetNearbyConstructionText() const
     if (!Closest) return TEXT("Construction: none visible within 2.5 m");
     const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Closest->GetConstructionKit());
     const bool bRoof = Closest->GetConstructionKit() == TEXT("RoofKit");
-    if (Closest->GetConstructionKit() == TEXT("RaisedStorageKit"))
-    {
-        return FString::Printf(TEXT("Construction: %s\nHealth: %.1f / %.0f\nRain-immune raised chest; chest and contents last for this server session"),
-            Item ? *Item->DisplayName : TEXT("Raised chest"), Closest->GetHealth(), AKalmalaConstructionActor::MaximumHealth);
-    }
     return FString::Printf(TEXT("Construction: %s\nHealth: %.1f / %.0f\n%s"),
         Item ? *Item->DisplayName : TEXT("Structure"), Closest->GetHealth(), AKalmalaConstructionActor::MaximumHealth,
         bRoof ? TEXT("Rain-immune roof") : Closest->GetHealth() <= AKalmalaConstructionActor::RainHealthFloor
@@ -122,9 +137,8 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
     else if (AKalmalaConstructionActor::IsStorageKit(Construction->GetConstructionKit()))
     {
         const bool bAccepted = OpenStorageFromServer(Construction);
-        const bool bRaised = Construction->GetConstructionKit() == TEXT("RaisedStorageKit");
         PublishResult(bAccepted
-            ? (bRaised ? TEXT("Raised rainproof chest inspected; its contents last for this server session") : TEXT("Chest inspected; use Camp crafting to transfer items"))
+            ? TEXT("Chest inspected; use Camp crafting to transfer items")
             : TEXT("Storage unavailable"), bAccepted);
     }
     else if (Construction->GetConstructionKit() == TEXT("CookingRackKit"))
@@ -132,7 +146,7 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
     else if (Construction->GetConstructionKit() == TEXT("CauldronKit"))
         PublishResult(TEXT("Hearth cauldron ready; use Camp crafting to simmer broth with extra fuel"), true);
     else if (Construction->GetConstructionKit() == TEXT("SmokeFrameKit"))
-        PublishResult(TEXT("Smoke frame ready; use Camp crafting with a lit hearth and one extra fuel bundle per serving"), true);
+        PublishResult(TEXT("Smoke frame ready; use Camp crafting with a lit hearth and one extra raw fuel item per serving"), true);
     else PublishResult(TEXT("Joiner's bench ready; use the Construction Hammer menu to build floors, walls, and roofs from Wood and Fibre"), true);
 }
 
