@@ -25,6 +25,7 @@ public:
     static constexpr float MaximumHealth = 100.0f;
     static constexpr float RainHealthFloor = 50.0f;
     static constexpr float RainWearPerSecond = 0.10f;
+    static constexpr int32 MaxSessionDryingLines = 5;
     static bool IsShelterKit(FName KitId);
     static bool IsCraftingStationKit(FName KitId);
     static bool IsStorageKit(FName KitId);

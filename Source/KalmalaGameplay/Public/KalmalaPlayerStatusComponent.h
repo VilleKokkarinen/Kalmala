@@ -42,6 +42,7 @@ public:
     static const FName RoastedFieldMeatItemId;
     static const FName HearthBrothItemId;
     static const FName SmokedFieldMeatItemId;
+    static const FName DriedFieldMeatItemId;
     static constexpr float WetMaximumSeconds = 120.0f;
     static constexpr float SteadyMealMaximumSeconds = 120.0f;
     static constexpr float SteadyMealStaminaUseMultiplier = 0.90f;

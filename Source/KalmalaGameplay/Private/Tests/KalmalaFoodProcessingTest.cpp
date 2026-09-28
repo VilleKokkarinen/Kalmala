@@ -54,6 +54,21 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Smoking yields only the approved food item"), Recipe->Output, FName(TEXT("SmokedFieldMeat")));
         TestEqual(TEXT("Each smoked serving consumes one raw fuel unit"), Recipe->FuelPerServing, 1);
     }
+    for (const TPair<FName, FName>& Expected : { TPair<FName, FName>(TEXT("DryBoarMeat"), TEXT("BoarMeat")),
+        TPair<FName, FName>(TEXT("DryDeerMeat"), TEXT("DeerMeat")) })
+    {
+        const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
+        if (!TestNotNull(TEXT("Configured no-hearth drying recipe exists"), Recipe)) continue;
+        TestFalse(TEXT("Drying does not require a lit hearth"), Recipe->bRequiresLitCampfire);
+        TestTrue(TEXT("Drying uses the server-owned Drying Line"), Recipe->RequiredStation.Contains(TEXT("DryingLineKit"))
+            && Recipe->RequiredStation.Num() == 1);
+        TestEqual(TEXT("Drying batch remains bounded to three servings"), Recipe->MaxBatch, 3);
+        TestEqual(TEXT("Drying yields the approved dried field meat"), Recipe->Output, FName(TEXT("DriedFieldMeat")));
+        TestEqual(TEXT("Drying uses the matching raw meat"), Recipe->Ingredients.Num(), 1);
+        if (Recipe->Ingredients.Num() == 1) TestEqual(TEXT("Drying input matches the recipe species"), Recipe->Ingredients[0].ItemId, Expected.Value);
+        TestEqual(TEXT("Drying adds no fuel cost"), Recipe->FuelPerServing, 0);
+        TestEqual(TEXT("Drying awards the current fixed Cooking action award"), Recipe->ExperienceAward, 10);
+    }
     const FKalmalaItemDefinition* Food = Items->FindItem(TEXT("RoastedFieldMeat"));
     TestNotNull(TEXT("Prepared meat has a catalogue-bounded stack"), Food);
     if (Food) TestEqual(TEXT("Prepared meat stack ceiling is twenty"), Food->MaxStack, 20);
@@ -63,6 +78,10 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
     const FKalmalaItemDefinition* SmokedMeat = Items->FindItem(TEXT("SmokedFieldMeat"));
     TestNotNull(TEXT("Smoked meat has a catalogue-bounded stack"), SmokedMeat);
     if (SmokedMeat) TestEqual(TEXT("Smoked meat stack ceiling is twenty"), SmokedMeat->MaxStack, 20);
+    const FKalmalaItemDefinition* DriedMeat = Items->FindItem(TEXT("DriedFieldMeat"));
+    TestNotNull(TEXT("Dried meat has a catalogue-bounded stack"), DriedMeat);
+    if (DriedMeat) TestEqual(TEXT("Dried meat stack ceiling is twenty"), DriedMeat->MaxStack, 20);
+    if (!DriedMeat) return false;
 
     const UFunction* ConsumeIntent = UKalmalaCraftingComponent::StaticClass()->FindFunctionByName(TEXT("ServerConsumeFood"));
     if (TestNotNull(TEXT("Food use uses an explicit server RPC"), ConsumeIntent))
@@ -290,7 +309,8 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
     const FString ActiveMealText = Crafting->GetFoodText();
     TestTrue(TEXT("Owner feedback names the active benefit and wait rule"), ActiveMealText.Contains(TEXT("10% lower")) && ActiveMealText.Contains(TEXT("Wait for expiry")));
     TestTrue(TEXT("Owner feedback keeps every food count visible during a meal"), ActiveMealText.Contains(TEXT("Roasted field meat 2"))
-        && ActiveMealText.Contains(TEXT("Hearth broth 10")) && ActiveMealText.Contains(TEXT("Smoked field meat 1")));
+        && ActiveMealText.Contains(TEXT("Hearth broth 10")) && ActiveMealText.Contains(TEXT("Smoked field meat 1"))
+        && ActiveMealText.Contains(TEXT("Dried field meat 0")));
 
     Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     TestFalse(TEXT("Meal expires on server status time"), Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId));
@@ -317,10 +337,68 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Client requests cannot award Cooking experience"), GetCookingExperience(), CookingExperienceBeforeClientAttempt);
     TestEqual(TEXT("Client requests do not mutate the active effect"), Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), MealBeforeClientAttempt);
 
+    Pawn->SetRole(ROLE_Authority);
+    Fire->Destroy();
+    AKalmalaConstructionActor* DryingLine = World->SpawnActor<AKalmalaConstructionActor>();
+    if (!TestNotNull(TEXT("Session-only Drying Line fixture spawned"), DryingLine))
+    {
+        Rack->Destroy();
+        Cauldron->Destroy();
+        SmokeFrame->Destroy();
+        World->DestroyWorld(false);
+        return false;
+    }
+    DryingLine->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -120.0f, 0.0f));
+    DryingLine->InitializeFromServer(TEXT("DryingLineKit"), TEXT("FoodProcessingDryingLine"));
+    TestTrue(TEXT("Placed Drying Line passes the authoritative visibility and access check"), DryingLine->CanUse(Pawn));
+    TestTrue(TEXT("Dried recipes explain that no hearth is needed"),
+        Crafting->GetRecipeDescription(TEXT("DryBoarMeat")).Contains(TEXT("no hearth or raw fuel")));
+    TestTrue(TEXT("Fixture provides bounded boar and deer drying inputs"),
+        Inventory->TryGrantFromServer(TEXT("BoarMeat"), 3) && Inventory->TryGrantFromServer(TEXT("DeerMeat"), 3));
+    const int32 DryBoarBefore = Inventory->GetQuantity(TEXT("BoarMeat"));
+    const int32 DryDeerBefore = Inventory->GetQuantity(TEXT("DeerMeat"));
+    const int32 DryExperienceBefore = GetCookingExperience();
+    TestFalse(TEXT("Drying rejects a batch above three servings"), Crafting->CraftFromServer(TEXT("DryBoarMeat"), 4, Reason));
+    TestEqual(TEXT("Over-bound drying preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), DryBoarBefore);
+    TestEqual(TEXT("Over-bound drying awards no Cooking experience"), GetCookingExperience(), DryExperienceBefore);
+    DryingLine->SetActorLocation(Pawn->GetActorLocation() + FVector(400.0f, 0.0f, 0.0f));
+    TestFalse(TEXT("Drying rejects a distant station"), Crafting->CraftFromServer(TEXT("DryBoarMeat"), 1, Reason));
+    TestEqual(TEXT("Distant-line rejection preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), DryBoarBefore);
+    DryingLine->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -120.0f, 0.0f));
+    TestTrue(TEXT("Fixture fills the dried-meat output stack"), Inventory->TryGrantFromServer(TEXT("DriedFieldMeat"), DriedMeat->MaxStack));
+    TestFalse(TEXT("A full output stack rejects drying atomically"), Crafting->CraftFromServer(TEXT("DryBoarMeat"), 1, Reason));
+    TestEqual(TEXT("Output-cap rejection preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), DryBoarBefore);
+    TestEqual(TEXT("Output-cap rejection awards no Cooking experience"), GetCookingExperience(), DryExperienceBefore);
+    TestTrue(TEXT("Fixture clears the full dried-meat stack"), Inventory->TryConsumeFromServer(TEXT("DriedFieldMeat"), DriedMeat->MaxStack));
+    const int32 WoodBeforeDrying = Inventory->GetQuantity(TEXT("Wood"));
+    const int32 DryingExperienceBeforeAcceptedBatch = GetCookingExperience();
+    TestTrue(TEXT("Drying commits three servings without any hearth or fuel"), Crafting->CraftFromServer(TEXT("DryBoarMeat"), 3, Reason));
+    TestEqual(TEXT("Accepted drying consumes exactly three boar meat"), Inventory->GetQuantity(TEXT("BoarMeat")), DryBoarBefore - 3);
+    TestEqual(TEXT("Accepted drying produces three portions"), Inventory->GetQuantity(TEXT("DriedFieldMeat")), 3);
+    TestEqual(TEXT("No raw fuel is consumed by drying"), Inventory->GetQuantity(TEXT("Wood")), WoodBeforeDrying);
+    TestEqual(TEXT("One three-serving request awards Cooking experience once"), GetCookingExperience(), DryingExperienceBeforeAcceptedBatch + 10);
+    TestTrue(TEXT("Deer drying uses the same bounded server transaction"), Crafting->CraftFromServer(TEXT("DryDeerMeat"), 1, Reason));
+    TestEqual(TEXT("Accepted drying consumes the matching deer meat"), Inventory->GetQuantity(TEXT("DeerMeat")), DryDeerBefore - 1);
+    TestEqual(TEXT("Both species share the same dried food output"), Inventory->GetQuantity(TEXT("DriedFieldMeat")), 4);
+    TestTrue(TEXT("Owner food feedback shows dried portions"), Crafting->GetFoodText().Contains(TEXT("Dried field meat 4")));
+    TestEqual(TEXT("Drying works with no hearth in the world"), Crafting->GetNearbyFireText(), FString(TEXT("No hearth within 2.5 m")));
+
+    Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    TestTrue(TEXT("Dried field meat activates the existing steady meal"), Crafting->ConsumeFoodFromServer(TEXT("DriedFieldMeat"), Reason));
+    TestEqual(TEXT("Eating dried meat consumes one portion"), Inventory->GetQuantity(TEXT("DriedFieldMeat")), 3);
+    const int32 DriedBeforeDuplicateMeal = Inventory->GetQuantity(TEXT("DriedFieldMeat"));
+    TestFalse(TEXT("Dried meat cannot replace an active meal"), Crafting->ConsumeFoodFromServer(TEXT("DriedFieldMeat"), Reason));
+    TestEqual(TEXT("Active-meal rejection preserves dried meat"), Inventory->GetQuantity(TEXT("DriedFieldMeat")), DriedBeforeDuplicateMeal);
+    const int32 DryExperienceBeforeClientRequest = GetCookingExperience();
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestFalse(TEXT("Client cannot author Drying Line processing"), Crafting->CraftFromServer(TEXT("DryBoarMeat"), 1, Reason));
+    TestFalse(TEXT("Client cannot author a dried-meat effect"), Crafting->ConsumeFoodFromServer(TEXT("DriedFieldMeat"), Reason));
+    TestEqual(TEXT("Client drying attempts do not award skill experience"), GetCookingExperience(), DryExperienceBeforeClientRequest);
+
     Rack->Destroy();
     Cauldron->Destroy();
     SmokeFrame->Destroy();
-    Fire->Destroy();
+    DryingLine->Destroy();
     World->DestroyWorld(false);
     return true;
 }

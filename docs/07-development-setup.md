@@ -1191,3 +1191,23 @@ those absences and the surviving Chest/Smoke Frame recipes, together with
 `Kalmala.Gameplay.Storage.SaveContract`. The storage test also checks that old
 schema-one chest contents convert Fuel to Wood and ConstructionSupply to its
 equivalent Wood and Fibre quantities. No save schema is extended.
+
+### M9 no-hearth Drying Line
+
+After a forced `KalmalaEditor Win64 Development` build, run
+`Kalmala.Gameplay.M9.DryingLine`,
+`Kalmala.Gameplay.Food.CampfireProcessing`,
+`Kalmala.Gameplay.Status.SteadyMeal`,
+`Kalmala.Gameplay.Inventory.Catalogue`,
+`Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract`,
+and `Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract`
+with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and
+`-TestExit="Automation Test Queue Empty"` arguments. Require every requested
+test to pass. The drying tests check the raw-material construction recipe,
+visible same-world station requirement, three-serving cap, absence of hearth
+and fuel requirements, atomic inventory exchange, no-change rejection, the
+existing meal effect, and one server-owned Cooking award after acceptance.
+The construction-save check confirms the line stays outside schema 1 before
+M9 migration. Then run `Scripts/Verify-Crafting.ps1 -Port <unused-port>` for
+the existing host/client menu, authority, and inventory regression. No RPC,
+replicated gameplay field, or saved-data schema is added.

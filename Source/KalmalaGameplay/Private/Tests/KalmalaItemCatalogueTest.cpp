@@ -14,8 +14,8 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
     TestTrue(TEXT("Versioned JSON loads a valid item catalogue"), Catalogue->IsValidCatalogue());
     TestTrue(TEXT("Versioned JSON loads a valid recipe catalogue"), Recipes->IsValidCatalogue());
-    TestEqual(TEXT("The JSON item catalogue contains the complete current set"), Catalogue->Items.Num(), 29);
-    TestEqual(TEXT("The JSON recipe catalogue contains the complete current set"), Recipes->Recipes.Num(), 19);
+    TestEqual(TEXT("The JSON item catalogue contains the complete current set"), Catalogue->Items.Num(), 31);
+    TestEqual(TEXT("The JSON recipe catalogue contains the complete current set"), Recipes->Recipes.Num(), 22);
     FString JsonText;
     TestTrue(TEXT("The catalogue JSON is available to verify its external identifiers"),
         FFileHelper::LoadFileToString(JsonText, *(FPaths::ProjectContentDir() / TEXT("Data/GameCatalogues.json"))));
@@ -46,7 +46,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         {TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit")}, {TEXT("GrindingStone"), TEXT("GrindingStoneKit")},
         {TEXT("Storage"), TEXT("StorageKit")},
         {TEXT("CookingRack"), TEXT("CookingRackKit")}, {TEXT("Cauldron"), TEXT("CauldronKit")},
-        {TEXT("SmokeFrame"), TEXT("SmokeFrameKit")},
+        {TEXT("SmokeFrame"), TEXT("SmokeFrameKit")}, {TEXT("DryingLine"), TEXT("DryingLineKit")},
         {TEXT("Floor"), TEXT("FloorKit")}, {TEXT("Wall"), TEXT("WallKit")}, {TEXT("Roof"), TEXT("RoofKit")}
     };
     for (const TPair<FName, FName>& Alias : LegacyAliases)

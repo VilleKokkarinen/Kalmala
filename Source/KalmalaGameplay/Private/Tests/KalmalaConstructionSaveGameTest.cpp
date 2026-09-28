@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaConstructionSaveGame.h"
+#include "KalmalaPlacementPreview.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 
@@ -15,6 +16,9 @@ bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Cooking rack uses the existing bounded construction record"), Save->AddRecord(Record));
     Record.ConstructionId = TEXT("camp-cauldron"); Record.KitId = TEXT("CauldronKit");
     TestTrue(TEXT("Cauldron uses the existing bounded construction record"), Save->AddRecord(Record));
+    Record.ConstructionId = TEXT("session-drying-line"); Record.KitId = TEXT("DryingLineKit");
+    TestFalse(TEXT("M9 Drying Lines remain outside the existing save schema"), UKalmalaConstructionSaveGame::IsValidRecord(Record));
+    TestTrue(TEXT("Drying Line session policy is explicit"), FKalmalaPlacementPreview::IsSessionOnlyKit(TEXT("DryingLineKit")));
     Record.ConstructionId = TEXT("camp-0001"); Record.KitId = TEXT("FloorKit");
     Record.Transform.SetLocation(FVector(NAN, 0, 0));
     TestFalse(TEXT("Construction save rejects non-finite transforms"), UKalmalaConstructionSaveGame::IsValidRecord(Record));

@@ -86,6 +86,12 @@
       "MaxStack": 5
     },
     {
+      "ItemId": "DryingLine",
+      "DisplayName": "Drying Line",
+      "Description": "A raised line for air-drying boar or deer field meat without a hearth.",
+      "MaxStack": 5
+    },
+    {
       "ItemId": "Floor",
       "DisplayName": "Timber floor",
       "Description": "A timber floor assembled directly with the Construction Hammer.",
@@ -149,6 +155,12 @@
       "ItemId": "SmokedFieldMeat",
       "DisplayName": "Smoked field meat",
       "Description": "Boar or deer meat slowly smoked over a hearth and ready to eat as a steady meal.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "DriedFieldMeat",
+      "DisplayName": "Dried field meat",
+      "Description": "Boar or deer field meat air-dried on a camp line and ready to eat as a steady meal.",
       "MaxStack": 20
     },
     {
@@ -430,6 +442,35 @@
       "FuelPerServing": 0
     },
     {
+      "RecipeId": "DryingLine",
+      "DisplayName": "Drying Line",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 7
+        },
+        {
+          "ItemId": "Densewood",
+          "Quantity": 1
+        }
+      ],
+      "Output": "DryingLine",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "bRequiresLitCampfire": false,
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true,
+      "FuelPerServing": 0
+    },
+    {
       "RecipeId": "Floor",
       "DisplayName": "Timber floor",
       "Ingredients": [
@@ -623,6 +664,48 @@
       "ExperienceAward": 10,
       "bEnabled": true,
       "FuelPerServing": 1
+    },
+    {
+      "RecipeId": "DryBoarMeat",
+      "DisplayName": "Dry boar field meat",
+      "Ingredients": [
+        {
+          "ItemId": "BoarMeat",
+          "Quantity": 1
+        }
+      ],
+      "Output": "DriedFieldMeat",
+      "OutputCount": 1,
+      "MaxBatch": 3,
+      "bRequiresLitCampfire": false,
+      "RequiredStation": [
+        "DryingLine"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true,
+      "FuelPerServing": 0
+    },
+    {
+      "RecipeId": "DryDeerMeat",
+      "DisplayName": "Dry deer field meat",
+      "Ingredients": [
+        {
+          "ItemId": "DeerMeat",
+          "Quantity": 1
+        }
+      ],
+      "Output": "DriedFieldMeat",
+      "OutputCount": 1,
+      "MaxBatch": 3,
+      "bRequiresLitCampfire": false,
+      "RequiredStation": [
+        "DryingLine"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true,
+      "FuelPerServing": 0
     }
   ]
 }

@@ -54,18 +54,36 @@ fuel type, or construction results. The normal Chest keeps its existing
 server-selected transfer rules, bounded contents, and owner-only inventory
 view.
 
+## No-hearth Drying Line
+
+The schema-4 catalogue adds a clean `DryingLine` output alias that the loader
+maps to the stable runtime `DryingLineKit` construction identity. Its one-use
+construction recipe costs 6 Wood, 7 Fibre, and 1 Densewood at a visible
+same-world Workbench within 250 cm. The two retired ConstructionSupply units
+were converted to their accepted 3 Wood + 2 Fibre value each and merged with
+the original Fibre cost. The procedural line uses the validated construction
+placement path, has a five-line server-session cap, and is explicitly excluded
+from construction save schema 1 until M9 migration is approved.
+
+`DryBoarMeat` and `DryDeerMeat` each exchange one matching raw meat for one
+`DriedFieldMeat`. Each recipe requires a visible same-world Drying Line within
+250 cm, caps the batch at three servings, and requires no hearth or raw fuel.
+One fixed 10 Cooking experience is awarded per accepted request after the
+complete inventory exchange. Dried field meat stacks to 20 and uses the
+existing one-slot, 120-second `SteadyMeal` effect; active meals still cannot
+stack, refresh, or replace one another. Item inventory, Cooking progression,
+and meal status remain transient.
+
 ## Optional content still deferred
 
-The no-hearth Drying Line and Dried field meat remain design-only; they are not
-part of the schema-4 runtime catalogue. A storm-rated shelter piece remains
-deferred until its behavior differs from the existing roof and windbreak. An
-insulated wrap remains deferred until there is an approved equipment-slot and
-effect contract.
+A storm-rated shelter piece remains deferred until its behavior differs from
+the existing roof and windbreak. An insulated wrap remains deferred until
+there is an approved equipment-slot and effect contract.
 
 ## Verification
 
 After a forced editor build, run the catalogue, crafting transaction and
-network, campfire processing, placement preview, construction save, and storage
+network, campfire processing, Drying Line, placement preview, construction save, and storage
 save/transfer automations described in `docs/07-development-setup.md`.
 The M9.RaisedStorage and M9.Smokehouse automation names now assert that those
 items and placement identities are absent and that the normal Chest and Smoke

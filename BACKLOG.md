@@ -371,7 +371,7 @@ contract and migration checks pass.
       - [x] Remove "Kit" from item and recipe names and external catalogue IDs/fields, add bounded descriptions to every item, and retain stable runtime/save IDs.
     - [x] Retire the raised chest variant; use the normal Chest as the only storage construction.
     - [x] Retire the roofed Smokehouse alternative; use the Smoke Frame as the only smoking station, with raw per-serving fuel and no recipe skill-level gate.
-    - [ ] Add the bounded no-hearth Drying Line recipes through the existing inventory, meal-effect, and Cooking-skill authorities.
+    - [x] Add the bounded no-hearth Drying Line recipes through the existing inventory, meal-effect, and Cooking-skill authorities.
     - [ ] Verify host/client privacy, rejected-mutation behavior, costs, and accessible feedback across the accepted camp additions.
 - [ ] Add optional exploration rewards without quest routing.
   - [ ] Define original clue, landmark, treasure, boss, or environmental-discovery candidates that reward observation without a prescribed route or mandatory combat gate.

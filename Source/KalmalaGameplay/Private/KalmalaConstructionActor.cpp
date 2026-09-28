@@ -96,7 +96,7 @@ bool AKalmalaConstructionActor::IsShelterKit(const FName KitId)
 bool AKalmalaConstructionActor::IsCraftingStationKit(const FName KitId)
 {
     return KitId == TEXT("WorkbenchKit") || KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
-        || KitId == TEXT("SmokeFrameKit");
+        || KitId == TEXT("SmokeFrameKit") || KitId == TEXT("DryingLineKit");
 }
 
 bool AKalmalaConstructionActor::IsStorageKit(const FName KitId)
@@ -110,6 +110,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("WallKit")) return FVector(120, 12, 110);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
     if (KitId == TEXT("SmokeFrameKit")) return FVector(56, 56, 64);
+    if (KitId == TEXT("DryingLineKit")) return FVector(54, 40, 54);
     if (KitId == TEXT("ForgeKit")) return FVector(60, 60, 62);
     if (KitId == TEXT("WorkbenchToolRackKit")) return FVector(32, 25, 34);
     if (KitId == TEXT("ForgeAnvilKit")) return FVector(28, 16, 28);
@@ -190,6 +191,19 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
         for (const float Y : {-24.0f, -8.0f, 8.0f, 24.0f})
             AddBox(Vertices, Triangles, FVector(0, Y, 30), FVector(36, 2, 3));
         AddBox(Vertices, Triangles, FVector(0, 0, 56), FVector(34, 34, 3));
+    }
+    else if (ConstructionKit == TEXT("DryingLineKit"))
+    {
+        for (const float X : {-38.0f, 38.0f})
+            for (const float Y : {-24.0f, 24.0f})
+                AddBox(Vertices, Triangles, FVector(X, Y, -4), FVector(4, 4, 50));
+        AddBox(Vertices, Triangles, FVector(0, -24, 46), FVector(46, 4, 4));
+        AddBox(Vertices, Triangles, FVector(0, 24, 46), FVector(46, 4, 4));
+        for (const float X : {-28.0f, -14.0f, 0.0f, 14.0f, 28.0f})
+        {
+            AddBox(Vertices, Triangles, FVector(X, 0, 40), FVector(2, 22, 2));
+            AddBox(Vertices, Triangles, FVector(X, 0, 14), FVector(5, 4, 11));
+        }
     }
     else if (ConstructionKit == TEXT("WorkbenchKit"))
     {

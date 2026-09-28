@@ -169,6 +169,7 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Meal does not add a movement-speed bonus"), UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).Movement, 1.0f);
     TestFalse(TEXT("A second meal cannot stack or replace the active one"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("RoastedFieldMeat")));
     TestFalse(TEXT("An alternate broth also cannot replace an active meal"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("HearthBroth")));
+    TestFalse(TEXT("Dried meat also cannot replace an active meal"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("DriedFieldMeat")));
     TestEqual(TEXT("Rejected meal preserves its timer"), Entries[0].RemainingSeconds, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
 
     UKalmalaPlayerStatusComponent::Advance(Entries, 30.0f);
@@ -177,6 +178,9 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Expired meal is removed"), Entries.IsEmpty());
     TestEqual(TEXT("Expired meal restores stamina costs"), UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).StaminaUse, 1.0f);
     TestTrue(TEXT("Hearth broth may supply the next meal after expiry"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("HearthBroth")));
+    UKalmalaPlayerStatusComponent::Advance(Entries, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    TestTrue(TEXT("Dried field meat may supply the same bounded meal after expiry"),
+        UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("DriedFieldMeat")));
 
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     AKalmalaCharacter* Pawn = World ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
