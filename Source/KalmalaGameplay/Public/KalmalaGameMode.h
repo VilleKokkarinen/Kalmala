@@ -69,6 +69,8 @@ private:
     void DriveCombatPeerTest();
     void DriveDiscoveryPeerTest();
     void DriveM9ExplorationRewardPeerTest();
+    void RunM9Schema2CandidateWorldPeerTest();
+    void RunM9Schema2CandidatePlayerPeerTest(APlayerController* PlayerController);
     void DriveOceanTravelFeedbackTest();
     void DriveOceanWeatherPeerTest();
     void DriveOceanJourneyPeerTest();
@@ -179,6 +181,9 @@ private:
     bool bBiomeFeatureInspectionEnabled = false;
     bool bWorldProfileEnabled = false;
     bool bWorldProfileReported = false;
+    bool bM9Schema2CandidatePeerTestEnabled = false;
+    FString M9Schema2CandidatePeerTestPhase;
+    int32 M9Schema2CandidatePeerLoginCount = 0;
     FString ReconnectVerificationMode;
     FVector2D TraversalTestTarget = FVector2D::ZeroVector;
     TSet<TWeakObjectPtr<APawn>> TraversalTestCompletedPawns;

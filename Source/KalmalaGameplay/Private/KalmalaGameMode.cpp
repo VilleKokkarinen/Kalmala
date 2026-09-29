@@ -39,6 +39,7 @@
 #include "KalmalaWorldPopulationMarker.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaToolProgressionContract.h"
 #include "KalmalaM9SourceLootContract.h"
 #include "KalmalaWeatherCycle.h"
 #include "KalmalaEnvironmentalExposureSampler.h"
@@ -415,6 +416,13 @@ void AKalmalaGameMode::BeginPlay()
     }
 
     WorldGenerationConfig = WorldGenerationState->GetWorldGenerationConfig();
+#if !UE_BUILD_SHIPPING
+    bM9Schema2CandidatePeerTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaM9Schema2PeerTest"));
+    if (bM9Schema2CandidatePeerTestEnabled)
+    {
+        FParse::Value(FCommandLine::Get(), TEXT("KalmalaM9Schema2Phase="), M9Schema2CandidatePeerTestPhase);
+    }
+#endif
     LoadOceanTravelWorldSave();
     InitializeWeatherCycle();
 #if !UE_BUILD_SHIPPING
@@ -445,6 +453,12 @@ void AKalmalaGameMode::BeginPlay()
         ConstructionSaveGame = NewObject<UKalmalaConstructionSaveGame>(this);
         ConstructionSaveGame->InitializeForWorld(WorldGenerationConfig);
     }
+#if !UE_BUILD_SHIPPING
+    if (bM9Schema2CandidatePeerTestEnabled)
+    {
+        RunM9Schema2CandidateWorldPeerTest();
+    }
+#endif
     const FString StorageSlot = UKalmalaStorageSaveGame::MakeSlotName(WorldGenerationConfig);
     if (UGameplayStatics::DoesSaveGameExist(StorageSlot, 0))
     {
@@ -2873,6 +2887,25 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     Super::PostLogin(NewPlayer);
 
 #if !UE_BUILD_SHIPPING
+    if (bM9Schema2CandidatePeerTestEnabled && NewPlayer != nullptr && NewPlayer->GetPlayerState<APlayerState>() != nullptr)
+    {
+        FString TestRole;
+        if (NewPlayer->IsLocalController())
+        {
+            TestRole = TEXT("host");
+        }
+        else
+        {
+            TestRole = M9Schema2CandidatePeerLoginCount++ == 0 ? TEXT("owner") : TEXT("observer");
+        }
+        const FUniqueNetIdStringRef TestNetId = FUniqueNetIdString::Create(
+            FString::Printf(TEXT("m9-schema2-%s"), *TestRole), FName(TEXT("KalmalaM9Schema2PeerTest")));
+        NewPlayer->GetPlayerState<APlayerState>()->SetUniqueId(FUniqueNetIdRepl(*TestNetId));
+        NewPlayer->GetPlayerState<APlayerState>()->SetPlayerName(FString::Printf(TEXT("M9Schema2-%s"), *TestRole));
+        UE_LOG(LogTemp, Display, TEXT("M9 schema-2 candidate assigned test identity: Role=%s Phase=%s"),
+            *TestRole, *M9Schema2CandidatePeerTestPhase);
+    }
+
     FString ReconnectPhase;
     const bool bOceanReconnectPeerTest = FParse::Param(FCommandLine::Get(),
         TEXT("KalmalaOceanDiscoveryDisembarkPeerTest"))
@@ -2937,7 +2970,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 #else
     const bool bAmbientAudioTest = false;
 #endif
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaM9ExplorationRewardPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")) && !bAmbientAudioTest) || NewPlayer == nullptr)
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaM9ExplorationRewardPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")) && !bM9Schema2CandidatePeerTestEnabled && !bAmbientAudioTest) || NewPlayer == nullptr)
     {
         return;
     }
@@ -2948,6 +2981,13 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     {
         RestartPlayer(NewPlayer);
     }
+
+#if !UE_BUILD_SHIPPING
+    if (bM9Schema2CandidatePeerTestEnabled)
+    {
+        RunM9Schema2CandidatePlayerPeerTest(NewPlayer);
+    }
+#endif
 
     if (bAmbientAudioTest && NewPlayer->GetPawn() != nullptr)
     {
@@ -3134,6 +3174,215 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
         }
     }
     RunReconnectVerification(NewPlayer->GetPawn());
+}
+
+void AKalmalaGameMode::RunM9Schema2CandidateWorldPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    static const FString TestSlot(TEXT("KalmalaM9Schema2PeerWorld"));
+    if (!HasAuthority() || !WorldGenerationConfig.IsValid())
+    {
+        UE_LOG(LogTemp, Error, TEXT("M9 schema-2 candidate world: Phase=%s Passed=0 Reason=InvalidWorld"),
+            *M9Schema2CandidatePeerTestPhase);
+        return;
+    }
+
+    if (M9Schema2CandidatePeerTestPhase.Equals(TEXT("Seed"), ESearchCase::IgnoreCase))
+    {
+        UKalmalaConstructionSaveGameV2* Candidate = NewObject<UKalmalaConstructionSaveGameV2>(this);
+        Candidate->InitializeForWorld(WorldGenerationConfig);
+        const auto AddRecord = [Candidate](const TCHAR* Id, const FName KitId, const FVector& Location)
+        {
+            FKalmalaConstructionSaveRecord Record;
+            Record.ConstructionId = Id;
+            Record.KitId = KitId;
+            Record.Transform = FTransform(Location);
+            if (FKalmalaToolProgressionContract::IsStationAttachmentKit(KitId))
+            {
+                return Candidate->AddStationAttachmentRecord(Record);
+            }
+            if (KitId == TEXT("DryingLineKit"))
+            {
+                return Candidate->AddDryingLineRecord(Record);
+            }
+            return Candidate->AddRecord(Record);
+        };
+        const bool bAdded = AddRecord(TEXT("m9-peer-floor-01"), TEXT("FloorKit"), FVector(100.0f, 200.0f, 300.0f))
+            && AddRecord(TEXT("m9-peer-rack-01"), TEXT("WorkbenchToolRackKit"), FVector(400.0f, 500.0f, 300.0f))
+            && AddRecord(TEXT("m9-peer-drying-01"), TEXT("DryingLineKit"), FVector(700.0f, 800.0f, 300.0f));
+        const bool bSaved = bAdded && UGameplayStatics::SaveGameToSlot(Candidate, TestSlot, 0);
+        UE_LOG(LogTemp, Display,
+            TEXT("M9 schema-2 candidate world: Phase=Seed Passed=%d Records=%d Attachment=%d DryingLine=%d NormalSchema=%d"),
+            bSaved ? 1 : 0, Candidate->GetRecords().Num(),
+            Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId);
+            }) ? 1 : 0,
+            Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return Record.KitId == TEXT("DryingLineKit");
+            }) ? 1 : 0,
+            ConstructionSaveGame != nullptr ? ConstructionSaveGame->GetSchemaVersion() : 0);
+        return;
+    }
+
+    if (M9Schema2CandidatePeerTestPhase.Equals(TEXT("Resume"), ESearchCase::IgnoreCase))
+    {
+        UKalmalaConstructionSaveGameV2* Candidate = Cast<UKalmalaConstructionSaveGameV2>(
+            UGameplayStatics::LoadGameFromSlot(TestSlot, 0));
+        const bool bMatches = Candidate != nullptr && Candidate->MatchesWorld(WorldGenerationConfig)
+            && Candidate->GetRecords().Num() == 3
+            && Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return Record.ConstructionId == TEXT("m9-peer-floor-01") && Record.KitId == TEXT("FloorKit");
+            })
+            && Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return Record.ConstructionId == TEXT("m9-peer-rack-01") && Record.KitId == TEXT("WorkbenchToolRackKit");
+            })
+            && Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return Record.ConstructionId == TEXT("m9-peer-drying-01") && Record.KitId == TEXT("DryingLineKit");
+            });
+        UE_LOG(LogTemp, Display,
+            TEXT("M9 schema-2 candidate world: Phase=Resume Passed=%d Records=%d Attachment=%d DryingLine=%d NormalSchema=%d"),
+            bMatches ? 1 : 0, Candidate != nullptr ? Candidate->GetRecords().Num() : 0,
+            Candidate != nullptr && Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId);
+            }) ? 1 : 0,
+            Candidate != nullptr && Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return Record.KitId == TEXT("DryingLineKit");
+            }) ? 1 : 0,
+            ConstructionSaveGame != nullptr ? ConstructionSaveGame->GetSchemaVersion() : 0);
+        return;
+    }
+
+    UE_LOG(LogTemp, Error, TEXT("M9 schema-2 candidate world: Phase=%s Passed=0 Reason=InvalidPhase"),
+        *M9Schema2CandidatePeerTestPhase);
+#endif
+}
+
+void AKalmalaGameMode::RunM9Schema2CandidatePlayerPeerTest(APlayerController* PlayerController)
+{
+#if !UE_BUILD_SHIPPING
+    if (!HasAuthority() || PlayerController == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("M9 schema-2 candidate player: Phase=%s Passed=0 Reason=InvalidController"),
+            *M9Schema2CandidatePeerTestPhase);
+        return;
+    }
+
+    if (PlayerController->IsLocalController())
+    {
+        UE_LOG(LogTemp, Display,
+            TEXT("M9 schema-2 candidate player: Phase=%s Role=Host Passed=1 CandidateLoaded=0"),
+            *M9Schema2CandidatePeerTestPhase);
+        return;
+    }
+
+    APlayerState* PlayerState = PlayerController->GetPlayerState<APlayerState>();
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(PlayerController->GetPawn());
+    const FString PlayerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(PlayerState);
+    const FString TestRole = PlayerState != nullptr && PlayerIdentity.EndsWith(TEXT("m9-schema2-owner"))
+        ? TEXT("Owner") : TEXT("Observer");
+    FString NormalIdentity;
+    UKalmalaPlayerDiscoverySaveGame* NormalPlayerSave = Character != nullptr
+        ? GetPlayerDiscoverySave(Character, NormalIdentity) : nullptr;
+    if (Character == nullptr || PlayerIdentity.IsEmpty() || NormalPlayerSave == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("M9 schema-2 candidate player: Phase=%s Role=%s Passed=0 Reason=MissingCharacterOrNormalSchema1"),
+            *M9Schema2CandidatePeerTestPhase, *TestRole);
+        return;
+    }
+
+    if (TestRole == TEXT("Observer"))
+    {
+        const bool bObserverHasTools = !Character->CarriedTools.IsEmpty();
+        UE_LOG(LogTemp, Display,
+            TEXT("M9 schema-2 candidate player: Phase=%s Role=Observer Passed=%d CandidateLoaded=0 ServerTools=%d NormalSchema=%d"),
+            *M9Schema2CandidatePeerTestPhase, bObserverHasTools ? 1 : 0, Character->CarriedTools.Num(),
+            UKalmalaPlayerDiscoverySaveGame::Schema);
+        return;
+    }
+
+    const FString TestSlot = FString::Printf(TEXT("KalmalaM9Schema2PeerPlayer_%08x"), FCrc::StrCrc32(*PlayerIdentity));
+    UKalmalaPlayerDiscoverySaveGameV2* Candidate = nullptr;
+    const FString DiscoveryId(TEXT("Poi:1:lakes-island-cache:-2,4:1"));
+    const FString ClaimId = FKalmalaM9ExplorationRewardCatalogue::MakeStableIdentity(
+        TEXT("lakes-rillworn-marker"), FIntPoint(-29, 14));
+    bool bReplayRejected = false;
+    if (M9Schema2CandidatePeerTestPhase.Equals(TEXT("Seed"), ESearchCase::IgnoreCase))
+    {
+        Candidate = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(this);
+        Candidate->InitializeForPlayer(WorldGenerationConfig, PlayerIdentity);
+        const auto AddTool = [Candidate](const FName ToolId, const int32 ToolLevel, const int32 Condition)
+        {
+            FKalmalaPlayerToolSaveRecord Record;
+            Record.ToolId = ToolId;
+            Record.ToolLevel = ToolLevel;
+            Record.Condition = Condition;
+            return Candidate->AddToolRecord(Record);
+        };
+        const bool bCandidateBuilt = Candidate->AddDiscovery(DiscoveryId)
+            && Candidate->AddM9Claim(ClaimId)
+            && Candidate->AddLearnedEffect(TEXT("Effect:mending"))
+            && AddTool(TEXT("ReedKnife"), 1, 9)
+            && AddTool(TEXT("BronzeAxe"), 1, 0)
+            && AddTool(TEXT("IronAxe"), 2, 20);
+        if (!bCandidateBuilt || !UGameplayStatics::SaveGameToSlot(Candidate, TestSlot, 0))
+        {
+            UE_LOG(LogTemp, Error, TEXT("M9 schema-2 candidate player: Phase=Seed Role=Owner Passed=0 Reason=CandidateWrite"));
+            return;
+        }
+    }
+    else if (M9Schema2CandidatePeerTestPhase.Equals(TEXT("Resume"), ESearchCase::IgnoreCase))
+    {
+        Candidate = Cast<UKalmalaPlayerDiscoverySaveGameV2>(UGameplayStatics::LoadGameFromSlot(TestSlot, 0));
+        if (Candidate == nullptr || !Candidate->MatchesPlayer(WorldGenerationConfig, PlayerIdentity)
+            || !Candidate->HasDiscovery(DiscoveryId) || !Candidate->HasLearnedEffect(TEXT("Effect:mending"))
+            || !Candidate->GetM9ClaimIds().Contains(ClaimId) || Candidate->GetToolRecords().Num() != 3)
+        {
+            UE_LOG(LogTemp, Error, TEXT("M9 schema-2 candidate player: Phase=Resume Role=Owner Passed=0 Reason=CandidateMismatch"));
+            return;
+        }
+        const int32 ClaimsBeforeReplay = Candidate->GetM9ClaimIds().Num();
+        bReplayRejected = !Candidate->AddM9Claim(ClaimId)
+            && Candidate->GetM9ClaimIds().Num() == ClaimsBeforeReplay;
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("M9 schema-2 candidate player: Phase=%s Role=Owner Passed=0 Reason=InvalidPhase"),
+            *M9Schema2CandidatePeerTestPhase);
+        return;
+    }
+
+    Character->CarriedTools.Reset();
+    for (const FKalmalaPlayerToolSaveRecord& Record : Candidate->GetToolRecords())
+    {
+        FKalmalaToolState ToolState;
+        ToolState.ToolId = Record.ToolId;
+        ToolState.ToolLevel = Record.ToolLevel;
+        ToolState.Durability = Record.Condition;
+        Character->CarriedTools.Add(ToolState);
+    }
+    Character->ForceNetUpdate();
+    const bool bServerAgreement = Character->CarriedTools.Num() == Candidate->GetToolRecords().Num()
+        && Character->GetToolDurability(TEXT("ReedKnife")) == 9
+        && Character->GetToolDurability(TEXT("BronzeAxe")) == 0
+        && Character->GetToolDurability(TEXT("IronAxe")) == 20
+        && Character->GetCarriedToolLevel(TEXT("IronAxe")) == 2;
+    const bool bReplayCheckPassed = M9Schema2CandidatePeerTestPhase.Equals(TEXT("Seed"), ESearchCase::IgnoreCase)
+        || bReplayRejected;
+    const bool bPassed = Candidate->MatchesPlayer(WorldGenerationConfig, PlayerIdentity)
+        && Candidate->HasDiscovery(DiscoveryId) && Candidate->HasLearnedEffect(TEXT("Effect:mending"))
+        && Candidate->GetM9ClaimIds().Contains(ClaimId) && bReplayCheckPassed && bServerAgreement;
+    UE_LOG(LogTemp, Display,
+        TEXT("M9 schema-2 candidate player: Phase=%s Role=Owner Passed=%d CandidateReady=1 Discovery=1 Claim=1 ReplayRejected=%d ServerTools=%d NormalSchema=%d"),
+        *M9Schema2CandidatePeerTestPhase, bPassed ? 1 : 0, bReplayRejected ? 1 : 0,
+        Character->CarriedTools.Num(), UKalmalaPlayerDiscoverySaveGame::Schema);
+#endif
 }
 
 void AKalmalaGameMode::ConfigureTraversalTest()

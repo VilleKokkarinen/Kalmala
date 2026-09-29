@@ -115,7 +115,15 @@ revision, scope, and player mismatches; unsupported versions; malformed IDs,
 tools, levels, and conditions; duplicate claims/tools; and discovery, claim,
 and tool bounds. Failed player migrations preserve the source save bytes.
 
-Normal construction and player-discovery slots still use schema 1. The
-candidate does not yet merge/revalidate live session claims on its first write,
-and the combined host/client reconnect and owner-only tool gate remains open.
-This increment does not enable M9 save writes.
+The combined two-client host restart check passed for dedicated schema-2 test
+slots: server world records and the owner's discovery, learned effect, M9
+claim, and carried tools reloaded with matching seed/revision/owner identity;
+re-adding the persisted claim was rejected; both clients received only their
+own tool details. Normal construction and player-discovery slots remain schema
+1, and no schema-2 runtime writes were enabled. The test uses a deterministic
+test-provider identity and does not validate a production online identity
+provider.
+
+The candidate still does not merge and revalidate live session claims on its
+first normal write. M9 runtime save integration and cross-system acceptance,
+including restart behavior and resource budgets, remain open.

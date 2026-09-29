@@ -25,6 +25,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
+#include "OnlineSubsystemTypes.h"
 #include "KalmalaCharacterMovementComponent.h"
 #include "KalmalaPlayerModelComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -146,6 +147,12 @@ bool AKalmalaCharacter::ReceiveMendingFromServer(const AKalmalaCharacter* Source
 void AKalmalaCharacter::BeginPlay()
 {
     Super::BeginPlay();
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaM9Schema2PeerTest")) && GetWorld() != nullptr)
+    {
+        M9Schema2PeerTestStartTime = GetWorld()->GetTimeSeconds();
+    }
+#endif
     if (HasAuthority())
     {
         CarriedTools = FKalmalaToolLifecycleContract::BuildInitialCarriedTools();
@@ -185,6 +192,64 @@ void AKalmalaCharacter::BeginPlay()
 void AKalmalaCharacter::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+#if !UE_BUILD_SHIPPING
+    if (!bM9Schema2PeerTestLogged && !HasAuthority() && IsLocallyControlled()
+        && M9Schema2PeerTestStartTime >= 0.0f && GetWorld() != nullptr)
+    {
+        FString TestRole;
+        FString TestPhase;
+        FParse::Value(FCommandLine::Get(), TEXT("KalmalaM9Schema2ClientRole="), TestRole);
+        FParse::Value(FCommandLine::Get(), TEXT("KalmalaM9Schema2Phase="), TestPhase);
+        int32 OtherPlayerCharacterCount = 0;
+        bool bOtherToolsHidden = true;
+        bool bExpectedPeerPresent = false;
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            const AKalmalaCharacter* Other = *It;
+            if (Other != this && Other->GetPlayerState() != nullptr)
+            {
+                ++OtherPlayerCharacterCount;
+                bOtherToolsHidden &= Other->GetCarriedToolInventory().IsEmpty();
+                const FString OtherPlayerName = Other->GetPlayerState()->GetPlayerName();
+                const TCHAR* ExpectedOtherRole = TestRole.Equals(TEXT("Owner"), ESearchCase::IgnoreCase)
+                    ? TEXT("M9Schema2-observer") : TEXT("M9Schema2-owner");
+                bExpectedPeerPresent |= OtherPlayerName.Equals(ExpectedOtherRole, ESearchCase::IgnoreCase);
+            }
+        }
+        if (!TestRole.IsEmpty() && bExpectedPeerPresent
+            && GetWorld()->GetTimeSeconds() - M9Schema2PeerTestStartTime >= 2.0f)
+        {
+            bool bOwnToolsMatch = false;
+            if (TestRole.Equals(TEXT("Owner"), ESearchCase::IgnoreCase))
+            {
+                const FKalmalaToolState* ReedKnife = CarriedTools.FindByPredicate([](const FKalmalaToolState& State)
+                {
+                    return State.ToolId == TEXT("ReedKnife");
+                });
+                const FKalmalaToolState* BronzeAxe = CarriedTools.FindByPredicate([](const FKalmalaToolState& State)
+                {
+                    return State.ToolId == TEXT("BronzeAxe");
+                });
+                const FKalmalaToolState* IronAxe = CarriedTools.FindByPredicate([](const FKalmalaToolState& State)
+                {
+                    return State.ToolId == TEXT("IronAxe");
+                });
+                bOwnToolsMatch = CarriedTools.Num() == 3 && ReedKnife != nullptr && ReedKnife->Durability == 9
+                    && BronzeAxe != nullptr && BronzeAxe->ToolLevel == 1 && BronzeAxe->Durability == 0
+                    && IronAxe != nullptr && IronAxe->ToolLevel == 2 && IronAxe->Durability == 20;
+            }
+            else
+            {
+                bOwnToolsMatch = !CarriedTools.IsEmpty();
+            }
+            bM9Schema2PeerTestLogged = true;
+            UE_LOG(LogTemp, Display,
+                TEXT("M9 schema-2 candidate client: Phase=%s Role=%s Passed=%d OwnedTools=%d OtherOwnersHidden=%d OtherPlayers=%d"),
+                *TestPhase, *TestRole, bOwnToolsMatch && bOtherToolsHidden ? 1 : 0,
+                CarriedTools.Num(), bOtherToolsHidden ? 1 : 0, OtherPlayerCharacterCount);
+        }
+    }
+#endif
     VerifyPlayerControls(DeltaSeconds);
     VerifyConstructionMovement(DeltaSeconds);
     VerifySwimming(DeltaSeconds);

@@ -83,6 +83,7 @@ protected:
 private:
     friend class AKalmalaHarvestNode;
     friend class UKalmalaCraftingComponent;
+    friend class AKalmalaGameMode;
 
     bool CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, float TraceDistance, float MaximumRange,
         FName ClientToolId, uint8 ClientAction);
@@ -154,6 +155,8 @@ private:
     bool bOceanTravelFeedbackPeerPrivacyLogged = false;
     float OceanTravelFeedbackPeerStartTime = -1.0f;
     float DiscoveryPeerTestStartTime = -1.0f;
+    float M9Schema2PeerTestStartTime = -1.0f;
+    bool bM9Schema2PeerTestLogged = false;
     bool bOceanTravelTargetConfigured = false;
     bool bOceanTravelOceanEntryLogged = false;
     bool bOceanTravelArrivalLogged = false;

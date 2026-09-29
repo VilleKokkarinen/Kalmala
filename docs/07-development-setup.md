@@ -1300,6 +1300,31 @@ tool bound plus one; failed migrations preserve the original source bytes.
 Use `UnrealEditor-Cmd.exe` first; if it stops at the existing LinuxArm64 or
 VisionOS SDK preflight, use the `UnrealEditor.exe` fallback with the same
 project and automation arguments. Normal player-discovery slots still use
-schema 1. The schema-2 candidate is not wired to normal writes; reconnect,
-session-claim revalidation/merge, and owner-only tool acceptance remain in the
-following M9 gates.
+schema 1. The schema-2 candidate is not wired to normal writes; session-claim
+revalidation/merge remains outside normal saves until M9 cross-system
+acceptance.
+
+### M9 schema-2 world/player candidate host-client reconnect
+
+After the forced editor build and both focused migration automations, run the
+two-client restart fixture against the isolated project mirror:
+
+```powershell
+& '.\Scripts\Verify-M9Schema2CandidateReconnect.ps1' -Port 19725 -ProjectPath "$projectMirror/Kalmala.uproject"
+```
+
+The fixture writes only dedicated test slots. It seeds one schema-2 world
+candidate and one stable test-provider player candidate, stops the host, then
+restarts it with the same host user directory and reconnects an owner and an
+observer. Require the server to reload all three world records and the owner's
+first-wave discovery, learned effect, M9 claim, and three carried tools. On
+resume, adding the existing claim again must fail without changing the claim
+set. Each client must receive its own carried-tool details while seeing no
+other owner's tool array. The server also reports that normal construction and
+player-discovery save objects remain schema 1. The fixture adds no replicated
+fields and does not enable schema-2 writes in normal play.
+
+This null-renderer authority and replication check uses deterministic
+test-provider identities; it does not verify a production online identity
+provider, rendered UI, or normal-slot claim migration/merge. Those remain part
+of the M9 cross-system acceptance and write-enablement decision.
