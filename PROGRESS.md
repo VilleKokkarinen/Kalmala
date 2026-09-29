@@ -9828,3 +9828,47 @@ Known limits: No rendered UI or live multiplayer session was run. Iron still has
 Handoff: Implementation commit `b07fc71`; main checkout used; isolated verification mirror removed.
 
 Next eligible task: Continue the earliest unchecked M9 backlog item, “Version and migrate newly persistent M9 state before normal saves use it,” including the required schema-2 reconnect verification before enabling writes.
+
+### Run 2026-09-29T10:32:18Z — Verify M9 schema-2 candidate reconnect
+
+Outcome: Added a non-shipping host/client fixture for the isolated schema-2
+world construction and player discovery/tool candidates. It saves candidate
+records to dedicated test slots, restarts the host with the same user
+directory, and reconnects an owner and an observer. The resumed server
+reloaded the three world records and the owner's discovery, learned effect,
+M9 claim, and carried tools. A duplicate claim insertion was rejected without
+changing the claim set. Both clients received only their own carried-tool
+details. Normal construction and player-discovery save objects remained schema
+1; schema-2 normal writes remain disabled.
+
+Changed: `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`;
+`Source/KalmalaGameplay/Public/KalmalaCharacter.h`;
+`Source/KalmalaGameplay/Public/KalmalaGameMode.h`;
+`Scripts/Verify-M9Schema2CandidateReconnect.ps1`; `docs/07-development-setup.md`;
+`docs/30-m9-persistence-migration.md`; `BACKLOG.md`; and this handoff.
+
+Verification: Forced Unreal 5.8.2 `KalmalaEditor Win64 Development` build
+passed all 200 actions in the short isolated mirror; final incremental builds
+passed. `Kalmala.Gameplay.Construction.Schema2Migration` and
+`Kalmala.Gameplay.Discovery.Schema2Migration` each reported
+`Result={Success}`. `Scripts/Verify-M9Schema2CandidateReconnect.ps1 -Port 19725 -ProjectPath C:\t\k022057\Kalmala.uproject` passed both seed and host restart phases with two clients. The runner confirmed world seed agreement,
+schema-2 record restoration, persisted-claim duplicate rejection, owner-only
+tool details, and schema-1 normal saves. PowerShell parsing and
+`git diff --check` passed.
+
+Observable and multiplayer impact: The fixture is enabled only by a
+non-shipping test switch and uses dedicated slots plus stable test-provider
+identities. The server owns candidate writes and tool application; clients
+submit no save contents. Tool details use the existing owner-only replicated
+array. No replicated field or normal save schema changed.
+
+Known limits: The null-renderer fixture does not test rendered UI or a
+production online identity provider. Normal schema-2 save integration,
+first-write claim merge/revalidation, and M9 cross-system acceptance remain
+open. Schema-2 writes remain gated.
+
+Handoff: Implementation commit `d655600`; main checkout used; no worktree
+handoff synchronization was needed.
+
+Next eligible task: Run M9 cross-system acceptance after implementation.
