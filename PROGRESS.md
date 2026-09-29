@@ -9685,9 +9685,8 @@ are not wired. Normal construction/player slots remain schema 1. The combined
 host/client reconnect check, owner-only tool acceptance, replay rejection, and
 M9 save/reconnect acceptance remain open.
 
-Handoff: Main checkout used; no worktree synchronization was needed. The
-implementation and handoff changes will be committed together after staged
-diff review.
+Handoff: Implementation commit `2a9ddef`; main checkout used; no worktree
+synchronization was needed.
 
 Next eligible task: Verify the world and player schema-2 candidates together
 across host/client reconnect before enabling schema-2 writes.
