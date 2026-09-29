@@ -52,6 +52,21 @@ FString GetRecipeStationNames(const FKalmalaRecipe& Recipe)
     return Names;
 }
 
+bool IsFoodProcessingStation(const AKalmalaConstructionActor* Station)
+{
+    if (!Station) return false;
+    const FName Kit = Station->GetConstructionKit();
+    return Kit == TEXT("CookingRackKit") || Kit == TEXT("CauldronKit") || Kit == TEXT("SmokeFrameKit");
+}
+
+FString GetMissingFoodHeatReason(const AKalmalaConstructionActor* Station)
+{
+    if (!Station) return TEXT("Need a usable lit hearth with positive heat within 2.5 m");
+    const auto* StationItem = UKalmalaItemCatalogue::Get()->FindItem(Station->GetConstructionKit());
+    const FString StationName = StationItem ? StationItem->DisplayName : Station->GetConstructionKit().ToString();
+    return FString::Printf(TEXT("Need a usable lit hearth with positive heat within 2.5 m of both the player and %s"), *StationName);
+}
+
 }
 
 UKalmalaCraftingComponent::UKalmalaCraftingComponent()
@@ -166,19 +181,13 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
             *GetRecipeStationNames(*Recipe));
         return false;
     }
-    if (Recipe->bRequiresLitCampfire && !FindNearbyLitFire(RequiredStation))
+    if (IsFoodProcessingStation(RequiredStation) && !FindNearbyLitFire(RequiredStation))
     {
-        const auto* StationItem = RequiredStation ? UKalmalaItemCatalogue::Get()->FindItem(RequiredStation->GetConstructionKit()) : nullptr;
-        Reason = RequiredStation
-            ? FString::Printf(TEXT("Need a usable lit hearth with heat within 2.5 m of the player and %s"),
-                StationItem ? *StationItem->DisplayName : *RequiredStation->GetConstructionKit().ToString())
-            : TEXT("Need a usable lit hearth with heat within 2.5 m");
+        Reason = GetMissingFoodHeatReason(RequiredStation);
         return false;
     }
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
     if (!Inventory) { Reason = TEXT("Waiting for pack"); return false; }
-    if (Recipe->FuelPerServing > 0
-        && !FKalmalaRawFuelContract::AddCosts(Inventory->GetStacks(), Recipe->FuelPerServing * Batch, Costs, Reason)) return false;
     if (!Inventory || !Inventory->TryExchangeFromServer(Costs, Recipe->Output, OutputCount, Reason)) return false;
     if (Recipe->ExperienceAward > 0)
     {
@@ -598,20 +607,15 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
         return FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"),
             *GetRecipeStationNames(*R));
     }
-    if (R->bRequiresLitCampfire && !FindNearbyLitFire(RequiredStation))
+    if (IsFoodProcessingStation(RequiredStation) && !FindNearbyLitFire(RequiredStation))
     {
-        const auto* StationItem = RequiredStation ? UKalmalaItemCatalogue::Get()->FindItem(RequiredStation->GetConstructionKit()) : nullptr;
-        return RequiredStation
-            ? FString::Printf(TEXT("Need a usable lit hearth with heat within 2.5 m of the player and %s"),
-                StationItem ? *StationItem->DisplayName : *RequiredStation->GetConstructionKit().ToString())
-            : TEXT("Need a usable lit hearth with heat within 2.5 m");
+        return GetMissingFoodHeatReason(RequiredStation);
     }
     auto* C = Character; auto* Inv = C ? C->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (!Inv) return TEXT("Waiting for pack");
     TArray<FKalmalaInventoryStack> Costs; int32 OutputCount = 0;
     FString Reason;
     if (!UKalmalaRecipeCatalogue::Scale(*R, 1, Costs, OutputCount)) return TEXT("Recipe material list is invalid");
-    if (R->FuelPerServing > 0 && !FKalmalaRawFuelContract::AddCosts(Inv->GetStacks(), R->FuelPerServing, Costs, Reason)) return Reason;
     TArray<FKalmalaInventoryStack> Next;
     UKalmalaInventoryComponent::BuildExchange(Inv->GetStacks(), Costs, R->Output, OutputCount, Next, Reason);
     return Reason;
@@ -735,8 +739,6 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
         Text += TEXT("\nPlacement: server-authoritative and limited to five lines per session; the line is not saved until M9 migration is approved.");
     if (R->Output == TEXT("DriedFieldMeat"))
         Text += TEXT("\nProcessing: no hearth or raw fuel is required.");
-    if (R->FuelPerServing > 0)
-        Text += FString::Printf(TEXT("\nRaw fuel: %d Wood, Lightwood, Densewood, or Coal per serving; fuels can be mixed in a batch."), R->FuelPerServing);
     if (FKalmalaToolProgressionContract::IsStationAttachmentKit(R->Output))
     {
         const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(R->Output);
@@ -744,21 +746,15 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
         Text += FString::Printf(TEXT("\nStation: craft at a visible same-world %s within 2.5 m.\nPlacement: place within 1.25 m of that station; the level bonus lasts for this session until M9 save migration is approved."), StationName);
         return Text;
     }
+    const AKalmalaConstructionActor* RequiredStation = R->RequiredStation.IsEmpty()
+        ? nullptr : FindNearbyConstruction(R->RequiredStation);
     if (!R->RequiredStation.IsEmpty())
     {
         const FString StationName = GetRecipeStationNames(*R);
         Text += FString::Printf(TEXT("\nStation: visible same-world %s within 2.5 m"), *StationName);
-        if (R->bRequiresLitCampfire)
-        {
-            Text += FString::Printf(TEXT("\nHeat: a usable lit hearth with positive heat must be within 2.5 m of both the player and %s."), *StationName);
-            if (R->RequiredStation.Contains(TEXT("CookingRackKit")))
-                Text += TEXT(" The hearth burns at its normal rate; processing spends no extra fuel.");
-            else
-                Text += TEXT(" The listed raw fuel cost is charged per serving with the ingredients; rejected batches spend neither.");
-        }
+        if (IsFoodProcessingStation(RequiredStation))
+            Text += FString::Printf(TEXT("\nHeat: a usable lit hearth with positive heat must be within 2.5 m of both the player and %s. Its fuel burns at the normal rate while lit; the recipe adds no fuel cost."), *StationName);
     }
-    else if (R->bRequiresLitCampfire)
-        Text += TEXT("\nStation: usable same-world lit hearth with positive heat within 2.5 m.");
     else
         Text += TEXT("\nHandcrafted; no station");
 

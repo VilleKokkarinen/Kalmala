@@ -28,7 +28,6 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
     {
         const FKalmalaRecipe* Recipe = Recipes->Find(RecipeId);
         if (!TestNotNull(TEXT("Configured roasting recipe exists"), Recipe)) continue;
-        TestTrue(TEXT("Roasting requires a lit hearth rather than an assembly station"), Recipe->bRequiresLitCampfire);
         TestTrue(TEXT("Roasting requires the server-owned cooking rack"), Recipe->RequiredStation.Contains(TEXT("CookingRackKit")));
         TestEqual(TEXT("Roasting batch remains bounded"), Recipe->MaxBatch, 5);
         TestEqual(TEXT("Roasting yields only the approved food item"), Recipe->Output, FName(TEXT("RoastedFieldMeat")));
@@ -37,36 +36,30 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
     {
         const FKalmalaRecipe* Recipe = Recipes->Find(RecipeId);
         if (!TestNotNull(TEXT("Configured cauldron recipe exists"), Recipe)) continue;
-        TestTrue(TEXT("Broth requires a lit hearth"), Recipe->bRequiresLitCampfire);
         TestTrue(TEXT("Broth requires the server-owned cauldron"), Recipe->RequiredStation.Contains(TEXT("CauldronKit")));
         TestEqual(TEXT("Cauldron batch is capped at three servings"), Recipe->MaxBatch, 3);
         TestEqual(TEXT("Broth yields only the approved food item"), Recipe->Output, FName(TEXT("HearthBroth")));
-        TestEqual(TEXT("Each serving consumes one raw fuel unit"), Recipe->FuelPerServing, 1);
     }
     for (const FName RecipeId : { FName(TEXT("SmokeBoarMeat")), FName(TEXT("SmokeDeerMeat")) })
     {
         const FKalmalaRecipe* Recipe = Recipes->Find(RecipeId);
         if (!TestNotNull(TEXT("Configured smoke-frame recipe exists"), Recipe)) continue;
-        TestTrue(TEXT("Smoking requires a lit hearth with heat"), Recipe->bRequiresLitCampfire);
         TestTrue(TEXT("Smoking requires the server-owned frame"), Recipe->RequiredStation.Contains(TEXT("SmokeFrameKit")));
         TestEqual(TEXT("Smoking has no second station alternative"), Recipe->RequiredStation.Num(), 1);
         TestEqual(TEXT("Smoke batches are capped at three servings"), Recipe->MaxBatch, 3);
         TestEqual(TEXT("Smoking yields only the approved food item"), Recipe->Output, FName(TEXT("SmokedFieldMeat")));
-        TestEqual(TEXT("Each smoked serving consumes one raw fuel unit"), Recipe->FuelPerServing, 1);
     }
     for (const TPair<FName, FName>& Expected : { TPair<FName, FName>(TEXT("DryBoarMeat"), TEXT("BoarMeat")),
         TPair<FName, FName>(TEXT("DryDeerMeat"), TEXT("DeerMeat")) })
     {
         const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
         if (!TestNotNull(TEXT("Configured no-hearth drying recipe exists"), Recipe)) continue;
-        TestFalse(TEXT("Drying does not require a lit hearth"), Recipe->bRequiresLitCampfire);
         TestTrue(TEXT("Drying uses the server-owned Drying Line"), Recipe->RequiredStation.Contains(TEXT("DryingLineKit"))
             && Recipe->RequiredStation.Num() == 1);
         TestEqual(TEXT("Drying batch remains bounded to three servings"), Recipe->MaxBatch, 3);
         TestEqual(TEXT("Drying yields the approved dried field meat"), Recipe->Output, FName(TEXT("DriedFieldMeat")));
         TestEqual(TEXT("Drying uses the matching raw meat"), Recipe->Ingredients.Num(), 1);
         if (Recipe->Ingredients.Num() == 1) TestEqual(TEXT("Drying input matches the recipe species"), Recipe->Ingredients[0].ItemId, Expected.Value);
-        TestEqual(TEXT("Drying adds no fuel cost"), Recipe->FuelPerServing, 0);
         TestEqual(TEXT("Drying awards the current fixed Cooking action award"), Recipe->ExperienceAward, 10);
     }
     const FKalmalaItemDefinition* Food = Items->FindItem(TEXT("RoastedFieldMeat"));

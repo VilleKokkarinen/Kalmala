@@ -8,10 +8,12 @@ definitions. No property or value in the JSON contains the Kit suffix.
 ## Current recipe rules
 
 Recipe access is limited by the required raw materials, any visible same-world
-station listed in the `RequiredStation` array, hearth state where declared,
-and the bounded batch. There are no recipe skill-level requirements,
-`AlternateStation`, `OutputTool`, or legacy `bRequiresCampfire` fields.
-Cooking experience remains a server-owned reward after a successful inventory
+station listed in the `RequiredStation` array, the bounded batch, and live heat
+at food-processing stations. The server derives the heat rule from the
+resolved Cooking Rack, cauldron, or Smoke Frame identity; recipe metadata does
+not opt recipes into a generic hearth gate. There are no recipe skill-level
+requirements, `AlternateStation`, `OutputTool`, or legacy fire flags. Cooking
+experience remains a server-owned reward after a successful inventory
 exchange.
 
 All construction recipes consume the raw materials listed in the catalogue.
@@ -23,18 +25,17 @@ existing validated placement path.
 
 | Retired item or recipe | Current behavior |
 | --- | --- |
-| `Fuel` | Removed. Hearth placement, refuelling, broth, and smoking consume raw Wood, Lightwood, Densewood, or Coal directly. |
+| `Fuel` | Removed. Hearth placement and refuelling consume raw Wood, Lightwood, Densewood, or Coal directly. Cooking recipes consume only their listed ingredients. |
 | `ConstructionSupply` | Removed. Recipes consume its former 3 Wood + 2 Fibre value directly. |
 | `RaisedStorage` | Removed. `Storage` produces the normal Chest only. |
 | `Smokehouse` | Removed. Smoking recipes use the Smoke Frame only. |
 | `Timber` | Removed as an intermediate recipe; construction consumes its raw Wood/Fibre value. |
 
 Any one of Wood, Lightwood, Densewood, or Coal adds 60 seconds of hearth fuel.
-For per-serving processing fuel, the server chooses and consumes available raw
-fuel stacks in a stable order and can mix materials within one batch. Clients
-send neither a selected fuel ID nor costs. Ingredient and fuel costs are
-committed in one server-side inventory exchange. Coal is accepted as a fuel
-item, but the current world loot catalogue has no natural Coal source.
+The server burns one fuel second per elapsed server second while the hearth is
+lit. Cooking does not consume extra inventory fuel per serving or batch, and
+clients cannot select or charge fuel through a recipe. Coal is accepted as a
+fuel item, but the current world loot catalogue has no natural Coal source.
 
 ## Compatibility and authority
 
@@ -47,10 +48,10 @@ fields. RaisedStorage and Smokehouse were session-only additions and were not
 stored by schema 1.
 
 The server validates recipe identity, batch bounds, item IDs, required
-stations, hearth access and heat, output capacity, and total raw fuel before
-publishing an inventory change. It selects a visible station in the same world;
-clients cannot choose station actors, ingredient costs, outputs, rewards,
-fuel type, or construction results. The normal Chest keeps its existing
+stations, station-local hearth access and heat for food processing, and output
+capacity before publishing an inventory change. It selects a visible station
+in the same world; clients cannot choose station actors, ingredient costs,
+outputs, rewards, fuel type, or construction results. The normal Chest keeps its existing
 server-selected transfer rules, bounded contents, and owner-only inventory
 view.
 

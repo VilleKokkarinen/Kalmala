@@ -66,8 +66,6 @@ bool FKalmalaM9DryingLineTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Drying produces the shared prepared food item"), Recipe->Output, FName(TEXT("DriedFieldMeat")));
         TestTrue(TEXT("Drying requires its visible same-world station"), Recipe->RequiredStation.Contains(TEXT("DryingLineKit"))
             && Recipe->RequiredStation.Num() == 1);
-        TestFalse(TEXT("Drying never requires a lit hearth"), Recipe->bRequiresLitCampfire);
-        TestEqual(TEXT("Drying has no raw fuel cost"), Recipe->FuelPerServing, 0);
         TestEqual(TEXT("Drying batch is capped at three servings"), Recipe->MaxBatch, 3);
         TestEqual(TEXT("Successful drying awards the existing Cooking skill"), Recipe->ExperienceSkill, EKalmalaSkill::Cooking);
         TestEqual(TEXT("Drying awards one bounded amount per accepted request"), Recipe->ExperienceAward, 10);

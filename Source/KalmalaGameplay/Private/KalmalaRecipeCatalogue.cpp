@@ -40,7 +40,7 @@ bool UKalmalaRecipeCatalogue::IsValidCatalogue() const
         TArray<FKalmalaInventoryStack> Costs; int32 Count;
         const bool bHasExperienceAward = Recipe.ExperienceSkill != EKalmalaSkill::None;
         if (Recipe.RecipeId.IsNone() || Seen.Contains(Recipe.RecipeId) || Recipe.DisplayName.TrimStartAndEnd().IsEmpty()
-            || Recipe.DisplayName.Len() > 64 || Recipe.FuelPerServing < 0 || Recipe.FuelPerServing > 1
+            || Recipe.DisplayName.Len() > 64
             || (bHasExperienceAward && (!FKalmalaSkillProgressionContract::IsKnownSkill(Recipe.ExperienceSkill)
                 || Recipe.ExperienceAward < 1 || Recipe.ExperienceAward > FKalmalaSkillProgressionContract::MaxAwardPerAcceptedAction))
             || (!bHasExperienceAward && Recipe.ExperienceAward != 0)

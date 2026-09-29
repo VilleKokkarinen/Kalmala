@@ -22,7 +22,6 @@ bool FKalmalaM9SmokehouseTest::RunTest(const FString& Parameters)
     {
         TestTrue(TEXT("Smoking uses the Smoke Frame only"), Smoking->RequiredStation.Contains(TEXT("SmokeFrameKit"))
             && Smoking->RequiredStation.Num() == 1);
-        TestEqual(TEXT("Smoking charges raw fuel instead of a Fuel item"), Smoking->FuelPerServing, 1);
     }
     TestNull(TEXT("Raised chest variant is removed from the item catalogue"), Items->FindItem(TEXT("RaisedStorage")));
     TestNull(TEXT("Raised chest recipe is removed"), Recipes->Find(TEXT("RaisedStorage")));

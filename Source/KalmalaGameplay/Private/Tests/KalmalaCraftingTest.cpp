@@ -18,29 +18,27 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         TestNull(TEXT("Removed item is not available"), Items->FindItem(Id));
 
     for (const FKalmalaRecipe& Recipe : Recipes->Recipes)
-    {
-        TestTrue(FString::Printf(TEXT("%s has a bounded fuel cost"), *Recipe.RecipeId.ToString()),
-            Recipe.FuelPerServing >= 0 && Recipe.FuelPerServing <= 1);
         for (const FKalmalaInventoryStack& Ingredient : Recipe.Ingredients)
-        {
             TestFalse(FString::Printf(TEXT("%s consumes only catalogue materials"), *Recipe.RecipeId.ToString()),
                 Ingredient.ItemId == TEXT("Fuel") || Ingredient.ItemId == TEXT("ConstructionSupply"));
-        }
-    }
-    const FKalmalaRecipe* Roast = Recipes->Find(TEXT("RoastBoarMeat"));
+
+    const FKalmalaRecipe* CookedBoar = Recipes->Find(TEXT("CookedBoarMeatRecipe"));
+    if (!CookedBoar) CookedBoar = Recipes->Find(TEXT("RoastBoarMeat"));
     const FKalmalaRecipe* Broth = Recipes->Find(TEXT("SimmerBoarBroth"));
-    const FKalmalaRecipe* Smoke = Recipes->Find(TEXT("SmokeBoarMeat"));
-    if (Roast) TestEqual(TEXT("Roasting has no extra raw-fuel cost"), Roast->FuelPerServing, 0);
+    if (CookedBoar)
+    {
+        TestEqual(TEXT("Cooked boar uses its raw meat as the only ingredient"), CookedBoar->Ingredients.Num(), 1);
+        if (CookedBoar->Ingredients.Num() == 1)
+            TestEqual(TEXT("Cooked boar consumes boar meat"), CookedBoar->Ingredients[0].ItemId, FName(TEXT("BoarMeat")));
+        TestTrue(TEXT("Cooked boar produces its configured food output"), !CookedBoar->Output.IsNone());
+        TestTrue(TEXT("Cooked boar recipe resolves to the Cooking Rack"), CookedBoar->RequiredStation.Contains(TEXT("CookingRackKit")));
+    }
     if (Broth)
     {
-        TestEqual(TEXT("Broth uses one raw fuel unit per serving"), Broth->FuelPerServing, 1);
+        TestEqual(TEXT("Broth uses its meat as the only ingredient"), Broth->Ingredients.Num(), 1);
+        if (Broth->Ingredients.Num() == 1)
+            TestEqual(TEXT("Broth consumes boar meat"), Broth->Ingredients[0].ItemId, FName(TEXT("BoarMeat")));
         TestTrue(TEXT("Broth requires the cauldron station"), Broth->RequiredStation.Contains(TEXT("CauldronKit")));
-    }
-    if (Smoke)
-    {
-        TestEqual(TEXT("Smoking has no Cooking-level requirement and charges raw fuel"), Smoke->FuelPerServing, 1);
-        TestTrue(TEXT("Smoking requires only the open Smoke Frame"), Smoke->RequiredStation.Contains(TEXT("SmokeFrameKit"))
-            && Smoke->RequiredStation.Num() == 1);
     }
 
     struct FExpectedBuildCost { FName Id; TArray<FKalmalaInventoryStack> Costs; };
@@ -64,21 +62,18 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         }
     }
 
-    TArray<FKalmalaInventoryStack> FuelCosts = {{TEXT("BoarMeat"),2}};
+    TArray<FKalmalaInventoryStack> FuelCosts;
     FString Reason;
     const TArray<FKalmalaInventoryStack> MixedFuel = {{TEXT("Wood"),1},{TEXT("Coal"),1}};
-    TestTrue(TEXT("One serving can draw raw fuel from more than one material"),
+    TestTrue(TEXT("A hearth refuel can draw from more than one raw material"),
         FKalmalaRawFuelContract::AddCosts(MixedFuel, 2, FuelCosts, Reason));
-    TestEqual(TEXT("Wood participates directly in the exchange"), FuelCosts[1].ItemId, FName(TEXT("Wood")));
-    TestEqual(TEXT("Coal participates directly in the exchange"), FuelCosts[2].ItemId, FName(TEXT("Coal")));
+    TestEqual(TEXT("Wood participates directly in the exchange"), FuelCosts[0].ItemId, FName(TEXT("Wood")));
+    TestEqual(TEXT("Coal participates directly in the exchange"), FuelCosts[1].ItemId, FName(TEXT("Coal")));
     TArray<FKalmalaInventoryStack> After;
-    TestTrue(TEXT("Food and mixed raw fuel commit as one transaction"),
-        UKalmalaInventoryComponent::BuildExchange({{TEXT("BoarMeat"),2},{TEXT("Wood"),1},{TEXT("Coal"),1}},
-            FuelCosts, TEXT("HearthBroth"), 2, After, Reason));
-    const FKalmalaInventoryStack* BrothOutput = After.FindByPredicate(
-        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("HearthBroth"); });
-    if (TestNotNull(TEXT("Transaction contains its output"), BrothOutput))
-        TestEqual(TEXT("Successful transaction outputs both servings"), BrothOutput->Quantity, 2);
+    TestTrue(TEXT("A hearth refuel exchanges raw fuel without a recipe output"),
+        UKalmalaInventoryComponent::BuildExchange({{TEXT("Wood"),1},{TEXT("Coal"),1}}, FuelCosts,
+            NAME_None, 0, After, Reason));
+    TestTrue(TEXT("The accepted raw fuel exchange empties its supplied stacks"), After.IsEmpty());
     TestTrue(TEXT("Raw fuel is not an inventory item"), Items->FindItem(TEXT("Fuel")) == nullptr
         && Items->FindItem(TEXT("Wood")) != nullptr && Items->FindItem(TEXT("Coal")) != nullptr);
 
@@ -93,8 +88,8 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     Invalid->Recipes[0].Output = TEXT("Forged");
     TestFalse(TEXT("Unknown output fails closed"), Invalid->IsValidCatalogue());
     Invalid->Recipes = Recipes->Recipes;
-    Invalid->Recipes[0].FuelPerServing = 2;
-    TestFalse(TEXT("Out-of-bound raw-fuel requirement fails closed"), Invalid->IsValidCatalogue());
+    Invalid->Recipes[0].MaxBatch = 11;
+    TestFalse(TEXT("Out-of-bound recipe batch fails closed"), Invalid->IsValidCatalogue());
     Invalid->Recipes = Recipes->Recipes;
     Invalid->Recipes[0].RequiredStation.Add(TEXT("Wood"));
     TestFalse(TEXT("A material cannot satisfy a station requirement"), Invalid->IsValidCatalogue());

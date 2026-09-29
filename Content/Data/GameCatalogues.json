@@ -205,12 +205,10 @@
       "Output": "HearthRing",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "Workbench",
@@ -232,12 +230,10 @@
       "Output": "Workbench",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "Forge",
@@ -259,12 +255,10 @@
       "Output": "Forge",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "WorkbenchToolRack",
@@ -282,12 +276,10 @@
       "Output": "WorkbenchToolRack",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "ForgeAnvil",
@@ -309,12 +301,10 @@
       "Output": "ForgeAnvil",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "GrindingStone",
@@ -339,11 +329,9 @@
       "RequiredStation": [
         "Workbench"
       ],
-      "bRequiresLitCampfire": false,
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "Storage",
@@ -361,12 +349,10 @@
       "Output": "Storage",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "CookingRack",
@@ -384,12 +370,10 @@
       "Output": "CookingRack",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "Cauldron",
@@ -411,12 +395,10 @@
       "Output": "Cauldron",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "SmokeFrame",
@@ -434,12 +416,10 @@
       "Output": "SmokeFrame",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "DryingLine",
@@ -461,14 +441,12 @@
       "Output": "DryingLine",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [
         "Workbench"
       ],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "Floor",
@@ -486,12 +464,10 @@
       "Output": "Floor",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "Wall",
@@ -509,12 +485,10 @@
       "Output": "Wall",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "Roof",
@@ -532,12 +506,10 @@
       "Output": "Roof",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "RoastBoarMeat",
@@ -551,14 +523,12 @@
       "Output": "RoastedFieldMeat",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "bRequiresLitCampfire": true,
       "RequiredStation": [
         "CookingRack"
       ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "RoastDeerMeat",
@@ -572,14 +542,12 @@
       "Output": "RoastedFieldMeat",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "bRequiresLitCampfire": true,
       "RequiredStation": [
         "CookingRack"
       ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "SimmerBoarBroth",
@@ -593,14 +561,12 @@
       "Output": "HearthBroth",
       "OutputCount": 1,
       "MaxBatch": 3,
-      "bRequiresLitCampfire": true,
       "RequiredStation": [
         "Cauldron"
       ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "bEnabled": true,
-      "FuelPerServing": 1
+      "bEnabled": true
     },
     {
       "RecipeId": "SimmerDeerBroth",
@@ -614,14 +580,12 @@
       "Output": "HearthBroth",
       "OutputCount": 1,
       "MaxBatch": 3,
-      "bRequiresLitCampfire": true,
       "RequiredStation": [
         "Cauldron"
       ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "bEnabled": true,
-      "FuelPerServing": 1
+      "bEnabled": true
     },
     {
       "RecipeId": "SmokeBoarMeat",
@@ -635,14 +599,12 @@
       "Output": "SmokedFieldMeat",
       "OutputCount": 1,
       "MaxBatch": 3,
-      "bRequiresLitCampfire": true,
       "RequiredStation": [
         "SmokeFrame"
       ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "bEnabled": true,
-      "FuelPerServing": 1
+      "bEnabled": true
     },
     {
       "RecipeId": "SmokeDeerMeat",
@@ -656,14 +618,12 @@
       "Output": "SmokedFieldMeat",
       "OutputCount": 1,
       "MaxBatch": 3,
-      "bRequiresLitCampfire": true,
       "RequiredStation": [
         "SmokeFrame"
       ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "bEnabled": true,
-      "FuelPerServing": 1
+      "bEnabled": true
     },
     {
       "RecipeId": "DryBoarMeat",
@@ -677,14 +637,12 @@
       "Output": "DriedFieldMeat",
       "OutputCount": 1,
       "MaxBatch": 3,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [
         "DryingLine"
       ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     },
     {
       "RecipeId": "DryDeerMeat",
@@ -698,14 +656,12 @@
       "Output": "DriedFieldMeat",
       "OutputCount": 1,
       "MaxBatch": 3,
-      "bRequiresLitCampfire": false,
       "RequiredStation": [
         "DryingLine"
       ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "bEnabled": true,
-      "FuelPerServing": 0
+      "bEnabled": true
     }
   ]
 }
