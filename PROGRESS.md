@@ -9706,3 +9706,19 @@ Known limits: Automation used `-nullrhi`; tests logged world-context warnings, a
 Handoff: Implementation commit `fae90d1`; main checkout used; isolated verification mirror removed.
 
 Next eligible task: Verify the world and player schema-2 candidates together across host/client reconnect before enabling schema-2 writes.
+
+### Run 2026-09-29T07:36:30Z — Add crop and seed catalogue items
+
+Outcome: Added Carrot, Potato, Rutabaga (swede; lanttu in Finnish), and Onion, plus one corresponding seed item for each. Crop items use a 20-item stack limit and seed stacks use 50.
+
+Changed: `Content/Data/GameCatalogues.json` (implementation commit adds eight definitions to the committed catalogue; earlier local catalogue edits remain unstaged); `Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`; `docs/07-development-setup.md`; `docs/09-inventory-verification.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed all 200 actions in the isolated `.vc` project mirror. `Kalmala.Gameplay.Inventory.Catalogue` passed with `Result={Success}` and exit code 0 using the current working catalogue. JSON parsing and item validation passed for 35 current items and 15 current recipes; all descriptions are bounded and every seed description names its crop. `git diff --check` passed. The verification mirror was removed.
+
+Observable and multiplayer impact: These are data-only item definitions loaded through the existing catalogue. No planting action, crop growth, harvest source, recipe, RPC, replicated field, save-schema change, or new client-authoritative value was added. Existing server-owned inventory rules remain the authority for future item transactions.
+
+Known limits: The seed items are defined but are not currently granted or plantable through gameplay. No live multiplayer session was run. Existing user catalogue edits remain preserved and unstaged.
+
+Handoff: Implementation commit `18db74e`; main checkout used; isolated verification mirror removed.
+
+Next eligible task: Verify the world and player schema-2 candidates together across host/client reconnect before enabling schema-2 writes.
