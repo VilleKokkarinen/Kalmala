@@ -9645,3 +9645,49 @@ Known limits: Player discovery, carried-tool, and M9 claim schema-2 coverage rem
 Commit and handoff: Implementation commit `c7476c1`; handoff commit `1b92ee2`. Main checkout used; no worktree synchronization was needed.
 
 Next task: Implement schema-2 player discovery/tool/claim round-trip and schema-1 migration coverage with exact identity and bounded rejection tests.
+
+### Run 2026-09-29T06:35:31Z — Cover M9 player save migration
+
+Outcome: Added an isolated schema-2 player-discovery candidate for legacy
+discoveries, learned effects, separate M9 land claims, and carried-tool records.
+It validates exact seed/revision-7/player-scope identity, canonical discovery
+IDs, authored tool IDs/levels/condition, duplicate records, and the accepted
+bounds. Schema-1 migration preserves validated discovery/effect facts, binds
+the authenticated player identity, leaves absent claims/tools empty, and does
+not mutate the legacy save. Checked only the player-candidate backlog child.
+Normal player save slots and writes remain on schema 1.
+
+Changed: `BACKLOG.md`; `Source/KalmalaGameplay/Public/KalmalaPlayerDiscoverySaveGame.h`;
+`Source/KalmalaGameplay/Private/KalmalaPlayerDiscoverySaveGame.cpp`; new
+`Source/KalmalaGameplay/Private/Tests/KalmalaPlayerDiscoverySaveGameTest.cpp`;
+`docs/07-development-setup.md`; `docs/30-m9-persistence-migration.md`; and
+`PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed
+all 199 actions in a short isolated project mirror with normal
+`%LOCALAPPDATA%/UnrealBuildTool` access; after fixing an array-aliasing bug in
+the test fixture, the four-action rebuild passed. The first mirror path was too
+long for a Visual Studio plugin action, so the successful retry used `C:\t\K9`.
+`UnrealEditor-Cmd.exe` stopped at the documented LinuxArm64/VisionOS SDK
+preflight; the documented `UnrealEditor.exe` fallback passed
+`Kalmala.Gameplay.Discovery.Schema2Migration` with `Result={Success}`. The
+first test launch hit an Unreal container assertion because the fixture
+appended an element through an alias into the same array; copied-value fixtures
+were rebuilt and the rerun passed. `git diff --check` passed.
+
+Observable and multiplayer impact: No player-facing gameplay, normal save
+write, RPC, replicated field, or shared authority path changed. Candidate
+player records remain authenticated-player scoped; detailed tool data remains
+owner-only under the existing replication contract.
+
+Known limits: First-schema-2-write merging and revalidation of live M9 claims
+are not wired. Normal construction/player slots remain schema 1. The combined
+host/client reconnect check, owner-only tool acceptance, replay rejection, and
+M9 save/reconnect acceptance remain open.
+
+Handoff: Main checkout used; no worktree synchronization was needed. The
+implementation and handoff changes will be committed together after staged
+diff review.
+
+Next eligible task: Verify the world and player schema-2 candidates together
+across host/client reconnect before enabling schema-2 writes.

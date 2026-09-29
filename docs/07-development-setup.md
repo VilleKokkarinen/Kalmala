@@ -1275,3 +1275,24 @@ bytes. It also checks exact schema-2 identity, malformed/duplicate current
 records, and the 32-attachment and five-line limits. Normal construction slots
 and transactions still use schema 1; the candidate is not wired to normal
 save writes while player migration and peer reconnect coverage remain open.
+
+### M9 schema-2 player discovery and tool migration coverage
+
+After the forced `KalmalaEditor Win64 Development` build, run
+`Kalmala.Gameplay.Discovery.Schema2Migration` with isolated `-UserDir`,
+`-abslog`, `-DDC-ForceMemoryCache`, and
+`-TestExit="Automation Test Queue Empty"` arguments. The memory round-trip
+checks existing first-wave discoveries, learned effects, separate M9 land
+claims, and canonical carried-tool IDs, levels, and condition. The schema-1
+migration preserves valid discovery/effect facts, binds the requested seed,
+revision 7, player scope, and authenticated identity, and starts the absent M9
+claims and tool records empty. Rejection checks cover wrong seed/player,
+invalid identity, schema zero/future versions, malformed facts, duplicate M9
+claims and tools, invalid tool levels/condition, and each discovery, claim, and
+tool bound plus one; failed migrations preserve the original source bytes.
+Use `UnrealEditor-Cmd.exe` first; if it stops at the existing LinuxArm64 or
+VisionOS SDK preflight, use the `UnrealEditor.exe` fallback with the same
+project and automation arguments. Normal player-discovery slots still use
+schema 1. The schema-2 candidate is not wired to normal writes; reconnect,
+session-claim revalidation/merge, and owner-only tool acceptance remain in the
+following M9 gates.

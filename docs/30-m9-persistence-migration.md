@@ -105,8 +105,17 @@ documented actor, memory, replication, and save budgets.
 
 ## Implementation handoff
 
-The schema-2 world construction candidate now has memory round-trip and
-schema-1 migration coverage, including identity, malformed-record, duplicate,
-and capacity rejection. Normal construction save slots and transactions still
-use schema 1. Player discovery/tool migration and the combined host/client
-reconnect gate remain open, so this increment does not enable M9 save writes.
+The schema-2 world construction candidate has memory round-trip and schema-1
+migration coverage for exact identity, malformed records, duplicates, and
+capacity rejection. The isolated schema-2 player candidate now round-trips
+first-wave discoveries, learned effects, M9 claims, and carried tools; it
+migrates validated schema-1 discovery/effect facts, binds the exact player
+identity, and starts claims/tools empty. Its rejection coverage includes seed,
+revision, scope, and player mismatches; unsupported versions; malformed IDs,
+tools, levels, and conditions; duplicate claims/tools; and discovery, claim,
+and tool bounds. Failed player migrations preserve the source save bytes.
+
+Normal construction and player-discovery slots still use schema 1. The
+candidate does not yet merge/revalidate live session claims on its first write,
+and the combined host/client reconnect and owner-only tool gate remains open.
+This increment does not enable M9 save writes.

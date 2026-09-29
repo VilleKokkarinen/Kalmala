@@ -380,7 +380,7 @@ contract and migration checks pass.
   - [x] Define explicit world/player scope, bounded records, exact seed/revision matching, compatibility policy, and migration behavior for tool levels, station progression, discoveries, and any approved camp/equipment state. See `docs/30-m9-persistence-migration.md`.
   - [ ] Add round-trip, migration, mismatch, malformed-data, duplicate, and over-cap rejection coverage before enabling persistence.
     - [x] Implement the schema-2 world construction candidate and test its round-trip, schema-1 migration, exact identity, malformed/duplicate rejection, and bounds.
-    - [ ] Implement the schema-2 player discovery/tool/claim candidate and test its round-trip, schema-1 migration, exact identity, malformed/duplicate rejection, and bounds.
+    - [x] Implement the schema-2 player discovery/tool/claim candidate and test its round-trip, schema-1 migration, exact identity, malformed/duplicate rejection, and bounds.
     - [ ] Verify both candidates together across host/client reconnect before enabling schema-2 writes in normal play.
 - [ ] Run M9 cross-system acceptance after implementation.
   - [ ] Verify host/client agreement, rejected-mutation no-change behavior, owner-only tool/progression state, save/reconnect behavior, and documented actor, memory, replication, and save budgets.
