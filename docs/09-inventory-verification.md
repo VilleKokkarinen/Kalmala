@@ -27,3 +27,5 @@ displays the selected recipe output description and the description of the item
 chosen by its Previous / Next item controls, so all catalogue descriptions can
 be browsed without putting them into the inventory HUD. Clean JSON aliases map
 to stable internal IDs for recipe, construction, and save compatibility.
+
+The schema-version-4 item catalogue includes Carrot, Potato, Rutabaga (also called swede, or lanttu in Finnish), Onion, and a matching `CarrotSeed`, `PotatoSeed`, `RutabagaSeed`, and `OnionSeed` entry. Each seed description names the crop it is intended to grow. These definitions add no planting, crop growth, harvesting, recipe, replication, or save behavior.

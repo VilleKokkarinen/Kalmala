@@ -186,6 +186,54 @@
       "DisplayName": "Frost Salt",
       "Description": "A pale mineral salt from tundra sources, kept as an unprocessed material.",
       "MaxStack": 40
+    },
+    {
+      "ItemId": "Carrot",
+      "DisplayName": "Carrot",
+      "Description": "A crisp orange root vegetable with a sweet, earthy flavour.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "Potato",
+      "DisplayName": "Potato",
+      "Description": "A starchy tuber kept as a staple food ingredient.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "Rutabaga",
+      "DisplayName": "Rutabaga",
+      "Description": "A hardy root vegetable, also called swede (lanttu in Finnish).",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "Onion",
+      "DisplayName": "Onion",
+      "Description": "A pungent bulb with layered flesh, valued as a cooking ingredient.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "CarrotSeed",
+      "DisplayName": "Carrot seeds",
+      "Description": "Seeds to grow carrots.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "PotatoSeed",
+      "DisplayName": "Potato seeds",
+      "Description": "Seeds to grow potatoes.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "RutabagaSeed",
+      "DisplayName": "Rutabaga seeds",
+      "Description": "Seeds to grow rutabaga, also known as swede.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "OnionSeed",
+      "DisplayName": "Onion seeds",
+      "Description": "Seeds to grow onions.",
+      "MaxStack": 50
     }
   ],
   "recipes": [
