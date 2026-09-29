@@ -9690,3 +9690,19 @@ synchronization was needed.
 
 Next eligible task: Verify the world and player schema-2 candidates together
 across host/client reconnect before enabling schema-2 writes.
+
+### Run 2026-09-29T07:14:12Z — Remove per-serving recipe fuel and generic fire metadata
+
+Outcome: Removed recipe-specific raw-fuel charging and generic lit-fire recipe metadata. Cooking heat is derived from the resolved food-processing station and a usable lit hearth with positive heat near both the player and station. Lit hearths continue to burn fuel by elapsed server time.
+
+Changed: `BACKLOG.md`; `Content/Data/GameCatalogues.json` (the implementation commit removes the two metadata keys from all 22 recipes in the committed base; pre-existing catalogue edits remain unstaged in the working tree); `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaGameplay/Private/KalmalaRecipeCatalogue.cpp`; `Source/KalmalaGameplay/Public/KalmalaRecipeCatalogue.h`; crafting, food-processing, drying-line, smokehouse, and cooking-heat tests; architecture, decision, setup, inventory, campfire, and M9 recipe documentation; and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in an isolated project mirror; the final incremental build passed all 5 actions. `UnrealEditor-Cmd.exe` passed `Kalmala.Gameplay.Food.CookingStationHeat`, `Kalmala.Gameplay.Status.SteadyMeal`, `Kalmala.Gameplay.Crafting.Transactions`, `Kalmala.Gameplay.Crafting.NetworkContract`, `Kalmala.Gameplay.Construction.LocalPreview`, and `Kalmala.Gameplay.Construction.SaveContract` with `Result={Success}` and exit code 0. JSON parsing passed with 15 recipes and no remaining instances of either field. `git diff --check` passed. The temporary verification mirror was removed.
+
+Observable and multiplayer impact: Recipe transactions no longer debit raw fuel. Food processing requires the server-resolved station and a usable lit hearth with positive heat in range of both station and player. Existing server-side elapsed-time hearth burn remains authoritative. No save schema or client authority changed.
+
+Known limits: Automation used `-nullrhi`; tests logged world-context warnings, and restricted network access prevented EOS backend startup. All requested automation tests passed. No live host/client session was run. The pre-existing catalogue edits remain unstaged and untouched.
+
+Handoff: Implementation commit `fae90d1`; main checkout used; isolated verification mirror removed.
+
+Next eligible task: Verify the world and player schema-2 candidates together across host/client reconnect before enabling schema-2 writes.
