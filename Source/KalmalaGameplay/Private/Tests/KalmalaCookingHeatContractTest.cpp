@@ -25,9 +25,15 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
 
     const FKalmalaRecipe* CookRecipe = Recipes->Find(TEXT("CookedBoarMeatRecipe"));
     if (!CookRecipe) CookRecipe = Recipes->Find(TEXT("RoastBoarMeat"));
-    const FKalmalaRecipe* BrothRecipe = Recipes->Find(TEXT("SimmerBoarBroth"));
+    const FKalmalaRecipe* RootSoupRecipe = Recipes->Find(TEXT("RootVegetableSoupRecipe"));
+    const FKalmalaRecipe* FryingPanRecipe = Recipes->Find(TEXT("FryingPanRecipe"));
+    const FKalmalaRecipe* RoastedRootsRecipe = Recipes->Find(TEXT("RoastedRootVegetablesRecipe"));
+    const FKalmalaRecipe* DeerRootRoastRecipe = Recipes->Find(TEXT("DeerRootRoastRecipe"));
     if (!TestNotNull(TEXT("Cooked boar recipe exists"), CookRecipe)
-        || !TestNotNull(TEXT("Broth recipe exists"), BrothRecipe)) return false;
+        || !TestNotNull(TEXT("Root soup recipe exists"), RootSoupRecipe)
+        || !TestNotNull(TEXT("Frying pan recipe exists"), FryingPanRecipe)
+        || !TestNotNull(TEXT("Roasted roots recipe exists"), RoastedRootsRecipe)
+        || !TestNotNull(TEXT("Deer root roast recipe exists"), DeerRootRoastRecipe)) return false;
 
     const auto CheckMeatOnlyRecipeCost = [this](const FKalmalaRecipe& Recipe, const FName MeatId)
     {
@@ -39,11 +45,10 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
         }
     };
     CheckMeatOnlyRecipeCost(*CookRecipe, TEXT("BoarMeat"));
-    CheckMeatOnlyRecipeCost(*BrothRecipe, TEXT("BoarMeat"));
     TestTrue(TEXT("Cooked boar resolves to the Cooking Rack"), CookRecipe->RequiredStation.Contains(TEXT("CookingRackKit")));
-    TestTrue(TEXT("Broth resolves to the Cauldron"), BrothRecipe->RequiredStation.Contains(TEXT("CauldronKit")));
+    TestTrue(TEXT("Root soup resolves to the Cauldron"), RootSoupRecipe->RequiredStation.Contains(TEXT("CauldronKit")));
     TestEqual(TEXT("Cooked boar keeps its bounded batch"), CookRecipe->MaxBatch, 5);
-    TestEqual(TEXT("Broth keeps its bounded batch"), BrothRecipe->MaxBatch, 3);
+    TestEqual(TEXT("Root soup keeps a bounded batch"), RootSoupRecipe->MaxBatch, 5);
 
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Cooking heat test world created"), World)) return false;
@@ -73,10 +78,43 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
         const FKalmalaSkillState* State = Progression->GetServerLedger().Find(EKalmalaSkill::Cooking);
         return State ? State->Experience : -1;
     };
+    FString Reason;
+
+    TestTrue(TEXT("Fixture grants iron and root ingredients"),
+        Inventory->TryGrantFromServer(TEXT("Iron"), 5)
+        && Inventory->TryGrantFromServer(TEXT("Carrot"), 2)
+        && Inventory->TryGrantFromServer(TEXT("Potato"), 2)
+        && Inventory->TryGrantFromServer(TEXT("Onion"), 3)
+        && Inventory->TryGrantFromServer(TEXT("Rutabaga"), 2));
+    TestFalse(TEXT("Frying pan crafting rejects a missing Forge"),
+        Crafting->CraftFromServer(FryingPanRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Missing Forge preserves iron"), Inventory->GetQuantity(TEXT("Iron")), 5);
+    TestFalse(TEXT("Pan cooking rejects when the reusable tool is missing"),
+        Crafting->CraftFromServer(RoastedRootsRecipe->RecipeId, 1, Reason));
+    TestTrue(TEXT("Missing pan feedback names the tool"), Crafting->GetRecipeAvailability(RoastedRootsRecipe->RecipeId).Contains(TEXT("Frying pan")));
+    TestEqual(TEXT("Missing pan preserves vegetable inputs"), Inventory->GetQuantity(TEXT("Carrot")), 2);
+
+    AKalmalaConstructionActor* Forge = World->SpawnActor<AKalmalaConstructionActor>();
+    if (!TestNotNull(TEXT("Forge fixture spawned"), Forge))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(100.0f, 0.0f, 0.0f));
+    Forge->InitializeFromServer(TEXT("ForgeKit"), TEXT("CookingHeatForge"));
+    TestTrue(TEXT("Five iron make a reusable frying pan at the Forge"),
+        Crafting->CraftFromServer(FryingPanRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Pan crafting consumes five iron"), Inventory->GetQuantity(TEXT("Iron")), 0);
+    TestEqual(TEXT("Forge recipe produces one pan"), Inventory->GetQuantity(TEXT("FryingPan")), 1);
+    TestFalse(TEXT("Pan cooking rejects a missing lit hearth"),
+        Crafting->CraftFromServer(RoastedRootsRecipe->RecipeId, 1, Reason));
+    TestTrue(TEXT("Pan recipe detail explains nearby heat"),
+        Crafting->GetRecipeAvailability(RoastedRootsRecipe->RecipeId).Contains(TEXT("lit hearth")));
+    TestEqual(TEXT("Missing-pan-heat rejection preserves ingredients"), Inventory->GetQuantity(TEXT("Carrot")), 2);
+    TestEqual(TEXT("Missing-pan-heat rejection preserves the pan"), Inventory->GetQuantity(TEXT("FryingPan")), 1);
 
     TestTrue(TEXT("Fixture grants meat and hearth fuel"),
         Inventory->TryGrantFromServer(TEXT("BoarMeat"), 2) && Inventory->TryGrantFromServer(TEXT("Wood"), 1));
-    FString Reason;
     TestFalse(TEXT("Cooking rejects a missing rack"), Crafting->CraftFromServer(CookRecipe->RecipeId, 1, Reason));
     TestEqual(TEXT("Missing-rack rejection preserves meat"), Inventory->GetQuantity(TEXT("BoarMeat")), 2);
     TestEqual(TEXT("Missing-rack rejection preserves fuel"), Inventory->GetQuantity(TEXT("Wood")), 1);
@@ -126,6 +164,18 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Recipe detail explains time-based fire fuel"),
         Crafting->GetRecipeDescription(CookRecipe->RecipeId).Contains(TEXT("fuel burns at the normal rate")));
 
+    const float FuelBeforeRoots = Fire->GetFuelSeconds();
+    const int32 ExperienceBeforeRoots = GetCookingExperience();
+    TestTrue(TEXT("A lit hearth allows frying pan root vegetables"),
+        Crafting->CraftFromServer(RoastedRootsRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Roasted roots consume one of each listed ingredient"), Inventory->GetQuantity(TEXT("Carrot")), 1);
+    TestEqual(TEXT("Roasted roots leave the soup potato"), Inventory->GetQuantity(TEXT("Potato")), 1);
+    TestEqual(TEXT("Roasted roots leave the soup onion and both roast rutabagas"), Inventory->GetQuantity(TEXT("Onion")), 2);
+    TestEqual(TEXT("Roasted roots create one dish"), Inventory->GetQuantity(TEXT("RoastedRootVegetables")), 1);
+    TestEqual(TEXT("Roasted roots leave the frying pan reusable"), Inventory->GetQuantity(TEXT("FryingPan")), 1);
+    TestEqual(TEXT("Pan cooking adds no serving fuel debit"), Fire->GetFuelSeconds(), FuelBeforeRoots);
+    TestEqual(TEXT("Roasted roots award Cooking experience after acceptance"), GetCookingExperience(), ExperienceBeforeRoots + 10);
+
     Fire->AdvanceFromServer(2.0f, 0.0f, 0.0f);
     TestEqual(TEXT("The fire consumes fuel by elapsed server time"), Fire->GetFuelSeconds(), FuelBeforeCooking - 2.0f);
 
@@ -139,21 +189,30 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     }
     Cauldron->SetActorLocation(Pawn->GetActorLocation() + FVector(-240.0f, 0.0f, 0.0f));
     Cauldron->InitializeFromServer(TEXT("CauldronKit"), TEXT("CookingHeatCauldron"));
-    TestTrue(TEXT("Fixture grants broth input"), Inventory->TryGrantFromServer(TEXT("BoarMeat"), 1));
     TestFalse(TEXT("Cauldron rejects a fire that only heats another station"),
-        Crafting->CraftFromServer(BrothRecipe->RecipeId, 1, Reason));
-    TestEqual(TEXT("Cauldron heat rejection preserves meat"), Inventory->GetQuantity(TEXT("BoarMeat")), 1);
+        Crafting->CraftFromServer(RootSoupRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Cauldron heat rejection preserves root ingredients"), Inventory->GetQuantity(TEXT("Rutabaga")), 2);
 
     Fire->SetActorLocation(Cauldron->GetActorLocation() - FVector(0.0f, 0.0f, 40.0f));
-    const float FuelBeforeBroth = Fire->GetFuelSeconds();
-    TestTrue(TEXT("A lit fire at the cauldron allows broth"), Crafting->CraftFromServer(BrothRecipe->RecipeId, 1, Reason));
-    TestEqual(TEXT("Accepted broth consumes its meat input"), Inventory->GetQuantity(TEXT("BoarMeat")), 0);
-    TestEqual(TEXT("Accepted broth creates one serving"), Inventory->GetQuantity(TEXT("HearthBroth")), 1);
-    TestEqual(TEXT("Accepted broth does not spend raw fuel per serving"), Inventory->GetQuantity(TEXT("Wood")), 1);
-    TestEqual(TEXT("Accepted broth does not debit the lit fire"), Fire->GetFuelSeconds(), FuelBeforeBroth);
+    const float FuelBeforeSoup = Fire->GetFuelSeconds();
+    TestTrue(TEXT("A lit fire at the cauldron allows root soup"), Crafting->CraftFromServer(RootSoupRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Accepted soup consumes its root ingredients"), Inventory->GetQuantity(TEXT("Rutabaga")), 1);
+    TestEqual(TEXT("Accepted soup creates one serving"), Inventory->GetQuantity(TEXT("RootVegetableSoup")), 1);
+    TestEqual(TEXT("Accepted soup does not spend raw fuel per serving"), Inventory->GetQuantity(TEXT("Wood")), 1);
+    TestEqual(TEXT("Accepted soup does not debit the lit fire"), Fire->GetFuelSeconds(), FuelBeforeSoup);
+
+    TestTrue(TEXT("Fixture grants deer roast ingredients"), Inventory->TryGrantFromServer(TEXT("DeerMeat"), 1));
+    const float FuelBeforeDeerRoast = Fire->GetFuelSeconds();
+    TestTrue(TEXT("A nearby lit fire allows deer and rutabaga roast"),
+        Crafting->CraftFromServer(DeerRootRoastRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Deer roast consumes the listed meat"), Inventory->GetQuantity(TEXT("DeerMeat")), 0);
+    TestEqual(TEXT("Deer roast creates one dish"), Inventory->GetQuantity(TEXT("DeerRootRoast")), 1);
+    TestEqual(TEXT("Deer roast leaves the frying pan reusable"), Inventory->GetQuantity(TEXT("FryingPan")), 1);
+    TestEqual(TEXT("Deer roast adds no serving fuel debit"), Fire->GetFuelSeconds(), FuelBeforeDeerRoast);
 
     Rack->Destroy();
     Cauldron->Destroy();
+    Forge->Destroy();
     Fire->Destroy();
     World->DestroyWorld(false);
     return true;

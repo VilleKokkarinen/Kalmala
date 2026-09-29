@@ -16,6 +16,8 @@ struct KALMALAGAMEPLAY_API FKalmalaRecipe
     UPROPERTY(EditAnywhere) int32 MaxBatch = 1;
     /** Any one of these visible nearby stations can satisfy the recipe. */
     UPROPERTY(EditAnywhere) TArray<FName> RequiredStation;
+    /** Optional reusable item that must be present in the server-owned inventory. */
+    UPROPERTY(EditAnywhere) FName RequiredTool;
     UPROPERTY(EditAnywhere) EKalmalaSkill ExperienceSkill = EKalmalaSkill::None;
     UPROPERTY(EditAnywhere) int32 ExperienceAward = 0;
     UPROPERTY(EditAnywhere) bool bEnabled = true;
@@ -31,6 +33,7 @@ public:
     static const UKalmalaRecipeCatalogue* Get();
     bool IsValidCatalogue() const;
     const FKalmalaRecipe* Find(FName Id) const;
+    static bool HasRequiredTool(FName ToolId, const TArray<FKalmalaInventoryStack>& Stacks);
     static bool IsDirectMaterialBuildable(FName BuildableId);
     static bool BuildDirectMaterialCost(FName BuildableId,
         TArray<FKalmalaInventoryStack>& OutCosts, FString& Reason);

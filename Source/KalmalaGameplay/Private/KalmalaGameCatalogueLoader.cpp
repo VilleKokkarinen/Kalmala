@@ -77,6 +77,20 @@ namespace
         return true;
     }
 
+    bool NormalizeRequiredTool(const TSharedPtr<FJsonObject>& RecipeObject)
+    {
+        if (!RecipeObject.IsValid()) return false;
+        if (!RecipeObject->HasField(TEXT("RequiredTool")))
+        {
+            RecipeObject->SetStringField(TEXT("RequiredTool"), TEXT(""));
+            return true;
+        }
+        FString CatalogueId;
+        if (!RecipeObject->TryGetStringField(TEXT("RequiredTool"), CatalogueId) || CatalogueId.IsEmpty()) return false;
+        RecipeObject->SetStringField(TEXT("RequiredTool"), ToRuntimeItemId(FName(*CatalogueId)).ToString());
+        return true;
+    }
+
     bool NormalizeCatalogueItemReferences(const TArray<TSharedPtr<FJsonValue>>& ItemValues,
         const TArray<TSharedPtr<FJsonValue>>& RecipeValues)
     {
@@ -97,7 +111,8 @@ namespace
             }
             const TSharedPtr<FJsonObject> RecipeObject = Value->AsObject();
             if (!NormalizeItemReference(RecipeObject, TEXT("Output"))
-                || !NormalizeStationArray(RecipeObject))
+                || !NormalizeStationArray(RecipeObject)
+                || !NormalizeRequiredTool(RecipeObject))
             {
                 return false;
             }

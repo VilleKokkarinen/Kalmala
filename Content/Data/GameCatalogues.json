@@ -20,6 +20,12 @@
       "MaxStack": 40
     },
     {
+      "ItemId": "Iron",
+      "DisplayName": "Iron",
+      "Description": "A bar of iron prepared for smithing and cooking tools.",
+      "MaxStack": 50
+    },
+    {
       "ItemId": "Fibre",
       "DisplayName": "Reed fibre",
       "Description": "Plant strands gathered for bindings, woven gear, and cooking frames.",
@@ -72,6 +78,12 @@
       "DisplayName": "Cooking rack",
       "Description": "A rack for roasting boar or deer meat over a nearby burning hearth.",
       "MaxStack": 5
+    },
+    {
+      "ItemId": "FryingPan",
+      "DisplayName": "Frying pan",
+      "Description": "A reusable iron pan for cooking over a nearby lit hearth.",
+      "MaxStack": 1
     },
     {
       "ItemId": "Cauldron",
@@ -167,6 +179,24 @@
       "ItemId": "DriedFieldMeat",
       "DisplayName": "Dried field meat",
       "Description": "Boar or deer field meat air-dried on a camp line and ready to eat as a steady meal.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "RootVegetableSoup",
+      "DisplayName": "Root vegetable soup",
+      "Description": "Carrot, potato, rutabaga, and onion simmered together in a cauldron.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "RoastedRootVegetables",
+      "DisplayName": "Roasted root vegetables",
+      "Description": "Carrot, potato, and onion roasted in a frying pan over a lit hearth.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "DeerRootRoast",
+      "DisplayName": "Deer and rutabaga roast",
+      "Description": "Deer meat, rutabaga, and onion roasted together in a frying pan.",
       "MaxStack": 20
     },
     {
@@ -713,6 +743,108 @@
       "RequiredStation": [
         "DryingLine"
       ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "FryingPanRecipe",
+      "DisplayName": "Frying pan",
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 5
+        }
+      ],
+      "Output": "FryingPan",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Forge"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "RootVegetableSoupRecipe",
+      "DisplayName": "Root vegetable soup",
+      "Ingredients": [
+        {
+          "ItemId": "Carrot",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Potato",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Rutabaga",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Onion",
+          "Quantity": 1
+        }
+      ],
+      "Output": "RootVegetableSoup",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "Cauldron"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "RoastedRootVegetablesRecipe",
+      "DisplayName": "Roasted root vegetables",
+      "Ingredients": [
+        {
+          "ItemId": "Carrot",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Potato",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Onion",
+          "Quantity": 1
+        }
+      ],
+      "Output": "RoastedRootVegetables",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [],
+      "RequiredTool": "FryingPan",
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "DeerRootRoastRecipe",
+      "DisplayName": "Deer and rutabaga roast",
+      "Ingredients": [
+        {
+          "ItemId": "DeerMeat",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Rutabaga",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Onion",
+          "Quantity": 1
+        }
+      ],
+      "Output": "DeerRootRoast",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [],
+      "RequiredTool": "FryingPan",
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
       "bEnabled": true

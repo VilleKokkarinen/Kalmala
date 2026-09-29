@@ -95,7 +95,7 @@ bool AKalmalaConstructionActor::IsShelterKit(const FName KitId)
 
 bool AKalmalaConstructionActor::IsCraftingStationKit(const FName KitId)
 {
-    return KitId == TEXT("WorkbenchKit") || KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
+    return KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit") || KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
         || KitId == TEXT("SmokeFrameKit") || KitId == TEXT("DryingLineKit");
 }
 

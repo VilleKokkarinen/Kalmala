@@ -76,6 +76,25 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Cooked deer recipe outputs the stable item ID"), CookedDeerMeatRecipe->Output, FName(TEXT("CookedDeerMeat")));
     }
 
+    for (const FName Id : { FName(TEXT("Iron")), FName(TEXT("FryingPan")), FName(TEXT("RootVegetableSoup")),
+        FName(TEXT("RoastedRootVegetables")), FName(TEXT("DeerRootRoast")) })
+        TestNotNull(FString::Printf(TEXT("New crafting item %s is defined"), *Id.ToString()), Catalogue->FindItem(Id));
+    const FKalmalaRecipe* FryingPanRecipe = Recipes->Find(TEXT("FryingPanRecipe"));
+    TestNotNull(TEXT("Frying pan forge recipe is defined"), FryingPanRecipe);
+    if (FryingPanRecipe)
+    {
+        TestEqual(TEXT("Frying pan forge recipe outputs the pan"), FryingPanRecipe->Output, FName(TEXT("FryingPan")));
+        TestTrue(TEXT("Frying pan recipe references its reusable item"), JsonText.Contains(TEXT("\"RequiredTool\": \"FryingPan\"")));
+    }
+    for (const TPair<FName, FName>& RecipeAndOutput : {
+        TPair<FName, FName>(TEXT("RootVegetableSoupRecipe"), TEXT("RootVegetableSoup")),
+        TPair<FName, FName>(TEXT("RoastedRootVegetablesRecipe"), TEXT("RoastedRootVegetables")),
+        TPair<FName, FName>(TEXT("DeerRootRoastRecipe"), TEXT("DeerRootRoast")) })
+    {
+        const FKalmalaRecipe* Recipe = Recipes->Find(RecipeAndOutput.Key);
+        TestNotNull(FString::Printf(TEXT("Recipe %s is defined"), *RecipeAndOutput.Key.ToString()), Recipe);
+        if (Recipe) TestEqual(TEXT("New recipe resolves to its output item"), Recipe->Output, RecipeAndOutput.Value);
+    }
     for (const FKalmalaRecipe& Recipe : Recipes->Recipes)
     {
         TestFalse(FString::Printf(TEXT("%s has a player-facing recipe name without Kit"), *Recipe.RecipeId.ToString()),

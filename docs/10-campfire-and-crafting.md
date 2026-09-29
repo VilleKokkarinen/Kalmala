@@ -4,7 +4,7 @@ Every new character carries a Construction Hammer, shown in the right hand. Pres
 
 ## Recipes and transactions
 
-The server-local `KalmalaRecipeCatalogue` loads these original recipes from schema-version-4 `Content/Data/GameCatalogues.json` alongside the item definitions. Unreal stages the `Content/Data` directory through UFS for packaged builds. `RequiredStation` is an array; any listed visible same-world station satisfies that recipe. Food recipes use only their listed ingredients. When the resolved station is a cooking rack, cauldron, or smoke frame, the server also requires a usable lit hearth with positive heat near both the player and station. Hearth fuel burns continuously by server time; a cooking batch adds no fuel debit. Recipe IDs, ingredient IDs, duplicate definitions, quantities, output stack limits and batch arithmetic are validated before use; malformed or missing JSON fails closed. Disabled recipes are locked server-side.
+The server-local `KalmalaRecipeCatalogue` loads these original recipes from schema-version-4 `Content/Data/GameCatalogues.json` alongside the item definitions. Unreal stages the `Content/Data` directory through UFS for packaged builds. `RequiredStation` is an array; any listed visible same-world station satisfies that recipe. The optional `RequiredTool` names a catalogue item that must be present in the server-owned pack and is never consumed by the recipe exchange. Food recipes use only their listed ingredients. When the resolved station is a cooking rack, cauldron, or smoke frame, the server requires a usable lit hearth with positive heat near both player and station. Recipes cooked with a carried Frying pan have no placed station requirement, but the server requires a usable lit hearth with positive heat within 250 cm of the player. Hearth fuel burns continuously by server time; a cooking batch adds no fuel debit. Recipe IDs, ingredient and tool IDs, duplicate definitions, quantities, output stack limits and batch arithmetic are validated before use; malformed or missing JSON fails closed. Disabled recipes are locked server-side.
 
 | Recipe | Ingredients per unit | Station | Maximum batch |
 | --- | --- | --- | --- |
@@ -26,6 +26,12 @@ The server-local `KalmalaRecipeCatalogue` loads these original recipes from sche
 | Smoke deer field meat | 1 deer field meat | Visible Smoke Frame plus usable lit hearth with positive heat within 250 cm of both | 3 |
 | Dry boar field meat | 1 boar field meat | Visible same-world Drying Line within 250 cm; no hearth or fuel | 3 |
 | Dry deer field meat | 1 deer field meat | Visible same-world Drying Line within 250 cm; no hearth or fuel | 3 |
+| Frying pan | 5 Iron | Visible same-world Forge within 250 cm | 1 |
+| Root vegetable soup | 1 Carrot + 1 Potato + 1 Rutabaga + 1 Onion | Visible cauldron plus usable lit hearth with positive heat within 250 cm of both | 5 |
+| Roasted root vegetables | 1 Carrot + 1 Potato + 1 Onion; carry a reusable Frying pan | Usable lit hearth with positive heat within 250 cm of the player | 5 |
+| Deer and rutabaga roast | 1 deer meat + 1 Rutabaga + 1 Onion; carry a reusable Frying pan | Usable lit hearth with positive heat within 250 cm of the player | 5 |
+
+Iron is defined as a catalogue material for the Frying pan recipe; no Iron gathering source is currently configured.
 
 `Fuel`, `ConstructionSupply`, `RaisedStorage`, and `Smokehouse` are retired item IDs. Old saved chest `Fuel` stacks normalize to Wood; each saved `ConstructionSupply` becomes 3 Wood and 2 Fibre. Storage save schema 1 is unchanged. The normal storage construction is presented as **Chest** and is the only chest variant. Raw Wood, Lightwood, Densewood, and Coal each add 60 seconds to a hearth and burn at one fuel second per elapsed server second. Coal is accepted as fuel when present, but the current world loot catalogue has no Coal source.
 

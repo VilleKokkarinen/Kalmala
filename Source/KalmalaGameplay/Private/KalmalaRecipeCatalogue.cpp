@@ -46,6 +46,12 @@ bool UKalmalaRecipeCatalogue::IsValidCatalogue() const
             || (!bHasExperienceAward && Recipe.ExperienceAward != 0)
             || Recipe.RequiredStation.Num() > 4
             || !Scale(Recipe, Recipe.MaxBatch, Costs, Count)) return false;
+        if (!Recipe.RequiredTool.IsNone())
+        {
+            if (!UKalmalaItemCatalogue::Get()->IsValidStack(Recipe.RequiredTool, 1)
+                || Recipe.Ingredients.ContainsByPredicate([&Recipe](const FKalmalaInventoryStack& Ingredient)
+                    { return Ingredient.ItemId == Recipe.RequiredTool; })) return false;
+        }
         TSet<FName> StationIds;
         for (const FName Station : Recipe.RequiredStation)
         {
@@ -56,6 +62,18 @@ bool UKalmalaRecipeCatalogue::IsValidCatalogue() const
         Seen.Add(Recipe.RecipeId);
     }
     return true;
+}
+
+bool UKalmalaRecipeCatalogue::HasRequiredTool(const FName ToolId,
+    const TArray<FKalmalaInventoryStack>& Stacks)
+{
+    if (ToolId.IsNone()) return true;
+    const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
+    if (!Items || !Items->IsValidStack(ToolId, 1)) return false;
+    return Stacks.ContainsByPredicate([Items, ToolId](const FKalmalaInventoryStack& Stack)
+    {
+        return Stack.ItemId == ToolId && Items->IsValidStack(Stack.ItemId, Stack.Quantity);
+    });
 }
 
 const FKalmalaRecipe* UKalmalaRecipeCatalogue::Find(FName Id) const

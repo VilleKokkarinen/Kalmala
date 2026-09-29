@@ -360,6 +360,11 @@ checks.
 
 After building the editor, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above. It checks that all definitions in the schema-version-4 item and recipe arrays load, no JSON property or value contains "Kit", no retired item or recipe is present, clean buildable aliases map to stable runtime IDs, every item has a bounded description and a player-facing name without "Kit", exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate definitions. It also checks that station requirements are arrays, the removed recipe fields are absent, and Carrot, Potato, Rutabaga (swede), Onion, and their matching seed items are present. Seed descriptions identify their crops. These are catalogue definitions only; planting, growth, and harvesting behavior are not added by this increment. The crafting-menu presentation check verifies descriptions for the selected output and browsed item. This is a pure contract check; live inventory replication and harvest-grant verification remain covered by their separate checks.
 
+The catalogue and cooking contracts also cover the Iron and reusable Frying pan
+definitions, the five-Iron Forge recipe, the three new root-vegetable outputs,
+cauldron ingredients, and pan cooking with a nearby lit hearth. Iron currently
+has no configured gathering source.
+
 ## Player inventory verification
 
 Run `Scripts/Verify-Inventory.ps1` after an editor build for the inventory component increment. A development-only `-KalmalaInventoryTest` fixture grants ten wood and consumes three on each server pawn, rejects unknown/overflow grants and invalid/insufficient consumption, and verifies removal of an exhausted stone stack. The runner requires two successful server results, seven wood on the remote owner, rejected client-local mutation calls, empty remote contents after owner replication, matching immutable world identity, and read-only local pack presentation on both peers. Separate temporary user directories keep the scenario out of project-generated data. This headless check verifies widget data binding, not rendered layout; rendered harvest feedback and reconnect persistence remain subsequent tasks.

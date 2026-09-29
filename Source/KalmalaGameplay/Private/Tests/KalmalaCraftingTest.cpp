@@ -41,6 +41,52 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Broth requires the cauldron station"), Broth->RequiredStation.Contains(TEXT("CauldronKit")));
     }
 
+    const FKalmalaRecipe* FryingPan = Recipes->Find(TEXT("FryingPanRecipe"));
+    const FKalmalaRecipe* RootSoup = Recipes->Find(TEXT("RootVegetableSoupRecipe"));
+    const FKalmalaRecipe* RoastedRoots = Recipes->Find(TEXT("RoastedRootVegetablesRecipe"));
+    const FKalmalaRecipe* DeerRootRoast = Recipes->Find(TEXT("DeerRootRoastRecipe"));
+    if (FryingPan)
+    {
+        TestEqual(TEXT("Frying pan recipe outputs its reusable item"), FryingPan->Output, FName(TEXT("FryingPan")));
+        TestTrue(TEXT("Frying pan is forged at a Forge"), FryingPan->RequiredStation.Contains(TEXT("ForgeKit")));
+        TestEqual(TEXT("Frying pan costs one material stack"), FryingPan->Ingredients.Num(), 1);
+        if (FryingPan->Ingredients.Num() == 1)
+        {
+            TestEqual(TEXT("Frying pan costs iron"), FryingPan->Ingredients[0].ItemId, FName(TEXT("Iron")));
+            TestEqual(TEXT("Frying pan costs five iron"), FryingPan->Ingredients[0].Quantity, 5);
+        }
+    }
+    if (RootSoup)
+    {
+        TestEqual(TEXT("Root soup output is configured"), RootSoup->Output, FName(TEXT("RootVegetableSoup")));
+        TestTrue(TEXT("Root soup uses a cauldron"), RootSoup->RequiredStation.Contains(TEXT("CauldronKit")));
+        TestEqual(TEXT("Root soup uses four ingredients"), RootSoup->Ingredients.Num(), 4);
+        for (const FName IngredientId : { FName(TEXT("Carrot")), FName(TEXT("Potato")), FName(TEXT("Rutabaga")), FName(TEXT("Onion")) })
+        {
+            const FKalmalaInventoryStack* Ingredient = RootSoup->Ingredients.FindByPredicate(
+                [IngredientId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == IngredientId; });
+            TestNotNull(FString::Printf(TEXT("Root soup includes %s"), *IngredientId.ToString()), Ingredient);
+            if (Ingredient) TestEqual(TEXT("Root soup takes one of each root"), Ingredient->Quantity, 1);
+        }
+    }
+    for (const TPair<const FKalmalaRecipe*, FName>& Expected : {
+        TPair<const FKalmalaRecipe*, FName>(RoastedRoots, TEXT("RoastedRootVegetables")),
+        TPair<const FKalmalaRecipe*, FName>(DeerRootRoast, TEXT("DeerRootRoast")) })
+    {
+        if (!Expected.Key) continue;
+        TestEqual(TEXT("Pan dish output is configured"), Expected.Key->Output, Expected.Value);
+        TestEqual(TEXT("Pan dish requires a reusable frying pan"), Expected.Key->RequiredTool, FName(TEXT("FryingPan")));
+        TestTrue(TEXT("Pan dish has no placed-station requirement"), Expected.Key->RequiredStation.IsEmpty());
+    }
+    TestTrue(TEXT("No-tool recipes have no inventory tool requirement"),
+        UKalmalaRecipeCatalogue::HasRequiredTool(NAME_None, {}));
+    TestTrue(TEXT("Carried frying pan satisfies its reusable tool requirement"),
+        UKalmalaRecipeCatalogue::HasRequiredTool(TEXT("FryingPan"), {{TEXT("FryingPan"), 1}}));
+    TestFalse(TEXT("Missing frying pan fails the tool requirement"),
+        UKalmalaRecipeCatalogue::HasRequiredTool(TEXT("FryingPan"), {}));
+    TestFalse(TEXT("Zero-count pan stack fails the tool requirement"),
+        UKalmalaRecipeCatalogue::HasRequiredTool(TEXT("FryingPan"), {{TEXT("FryingPan"), 0}}));
+
     struct FExpectedBuildCost { FName Id; TArray<FKalmalaInventoryStack> Costs; };
     const TArray<FExpectedBuildCost> DirectBuildCosts = {
         {TEXT("CampfireKit"), {{TEXT("Stone"),5},{TEXT("Wood"),3}}},
@@ -93,6 +139,16 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     Invalid->Recipes = Recipes->Recipes;
     Invalid->Recipes[0].RequiredStation.Add(TEXT("Wood"));
     TestFalse(TEXT("A material cannot satisfy a station requirement"), Invalid->IsValidCatalogue());
+    Invalid->Recipes = Recipes->Recipes;
+    if (FKalmalaRecipe* PanRecipe = Invalid->Recipes.FindByPredicate(
+        [](const FKalmalaRecipe& Candidate) { return Candidate.RecipeId == TEXT("RoastedRootVegetablesRecipe"); }))
+        PanRecipe->RequiredTool = TEXT("UnknownTool");
+    TestFalse(TEXT("Unknown reusable tools fail closed"), Invalid->IsValidCatalogue());
+    Invalid->Recipes = Recipes->Recipes;
+    if (FKalmalaRecipe* PanRecipe = Invalid->Recipes.FindByPredicate(
+        [](const FKalmalaRecipe& Candidate) { return Candidate.RecipeId == TEXT("RoastedRootVegetablesRecipe"); }))
+        PanRecipe->RequiredTool = TEXT("Carrot");
+    TestFalse(TEXT("A reusable tool cannot also be consumed as an ingredient"), Invalid->IsValidCatalogue());
     Invalid->Recipes = Recipes->Recipes;
     const FKalmalaRecipe Duplicate = Invalid->Recipes[0];
     Invalid->Recipes.Add(Duplicate);

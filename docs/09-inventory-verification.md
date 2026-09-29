@@ -31,3 +31,14 @@ to stable internal IDs for recipe, construction, and save compatibility.
 The schema-version-4 item catalogue includes Carrot, Potato, Rutabaga (also called swede, or lanttu in Finnish), Onion, and a matching `CarrotSeed`, `PotatoSeed`, `RutabagaSeed`, and `OnionSeed` entry. Each seed description names the crop it is intended to grow. These definitions add no planting, crop growth, harvesting, recipe, replication, or save behavior.
 
 `CookedDeerMeat` is the stable output item for `CookedDeerMeatRecipe` when that recipe is configured. This catalogue item does not add food consumption or a `SteadyMeal` effect.
+
+The catalogue also defines Iron, a reusable Frying pan, and outputs for Root
+vegetable soup, Roasted root vegetables, and Deer and rutabaga roast. The pan
+costs five Iron at a visible Forge. Pan recipes require the pan in the server-
+owned pack without consuming it, plus a usable lit hearth near the player;
+Root vegetable soup uses the visible cauldron and the existing station heat
+rule. Kalmala.Gameplay.Food.CookingStationHeat verifies accepted exchanges,
+missing-tool and missing-heat rejection, retained pan inventory, ordinary
+time-based hearth fuel burn, and exact ingredient costs. Iron currently has no
+configured gathering source. These cooked outputs remain outside the existing
+meal-consumption allowlist and do not add SteadyMeal effects.

@@ -59,6 +59,17 @@ bool IsFoodProcessingStation(const AKalmalaConstructionActor* Station)
     return Kit == TEXT("CookingRackKit") || Kit == TEXT("CauldronKit") || Kit == TEXT("SmokeFrameKit");
 }
 
+bool IsPortablePanCookingRecipe(const FKalmalaRecipe& Recipe)
+{
+    return Recipe.RequiredTool == TEXT("FryingPan");
+}
+
+FString GetRecipeToolDisplayName(const FName ToolId)
+{
+    const FKalmalaItemDefinition* Item = UKalmalaItemCatalogue::Get()->FindItem(ToolId);
+    return Item ? Item->DisplayName : ToolId.ToString();
+}
+
 FString GetMissingFoodHeatReason(const AKalmalaConstructionActor* Station)
 {
     if (!Station) return TEXT("Need a usable lit hearth with positive heat within 2.5 m");
@@ -188,6 +199,16 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     }
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
     if (!Inventory) { Reason = TEXT("Waiting for pack"); return false; }
+    if (!UKalmalaRecipeCatalogue::HasRequiredTool(Recipe->RequiredTool, Inventory->GetStacks()))
+    {
+        Reason = FString::Printf(TEXT("Need a %s in your pack"), *GetRecipeToolDisplayName(Recipe->RequiredTool));
+        return false;
+    }
+    if (IsPortablePanCookingRecipe(*Recipe) && !FindNearbyLitFire(nullptr))
+    {
+        Reason = TEXT("Need a usable lit hearth with positive heat within 2.5 m of you");
+        return false;
+    }
     if (!Inventory || !Inventory->TryExchangeFromServer(Costs, Recipe->Output, OutputCount, Reason)) return false;
     if (Recipe->ExperienceAward > 0)
     {
@@ -613,6 +634,10 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
     }
     auto* C = Character; auto* Inv = C ? C->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (!Inv) return TEXT("Waiting for pack");
+    if (!UKalmalaRecipeCatalogue::HasRequiredTool(R->RequiredTool, Inv->GetStacks()))
+        return FString::Printf(TEXT("Need a %s in your pack"), *GetRecipeToolDisplayName(R->RequiredTool));
+    if (IsPortablePanCookingRecipe(*R) && !FindNearbyLitFire(nullptr))
+        return TEXT("Need a usable lit hearth with positive heat within 2.5 m of you");
     TArray<FKalmalaInventoryStack> Costs; int32 OutputCount = 0;
     FString Reason;
     if (!UKalmalaRecipeCatalogue::Scale(*R, 1, Costs, OutputCount)) return TEXT("Recipe material list is invalid");
@@ -735,6 +760,9 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
         R->OutputCount, OutputItem ? *OutputItem->DisplayName : *R->Output.ToString(),
         OutputItem ? OutputItem->MaxStack : 0);
     if (OutputItem) Text += TEXT("\nDescription: ") + OutputItem->Description;
+    if (!R->RequiredTool.IsNone())
+        Text += FString::Printf(TEXT("\nTool: carry a %s in your pack; it is reusable and not consumed."),
+            *GetRecipeToolDisplayName(R->RequiredTool));
     if (R->Output == TEXT("DryingLineKit"))
         Text += TEXT("\nPlacement: server-authoritative and limited to five lines per session; the line is not saved until M9 migration is approved.");
     if (R->Output == TEXT("DriedFieldMeat"))
@@ -755,8 +783,11 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
         if (IsFoodProcessingStation(RequiredStation))
             Text += FString::Printf(TEXT("\nHeat: a usable lit hearth with positive heat must be within 2.5 m of both the player and %s. Its fuel burns at the normal rate while lit; the recipe adds no fuel cost."), *StationName);
     }
-    else
+    else if (R->RequiredTool.IsNone())
         Text += TEXT("\nHandcrafted; no station");
+
+    if (IsPortablePanCookingRecipe(*R))
+        Text += TEXT("\nHeat: a usable lit hearth with positive heat must be within 2.5 m of you. Its fuel burns at the normal rate while lit; the recipe adds no fuel cost.");
 
     Text += TEXT("\nFailure: the availability text below names the first unmet requirement. Rejected requests preserve ingredients and tool condition.");
     return Text;
