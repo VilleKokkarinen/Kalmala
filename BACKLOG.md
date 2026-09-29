@@ -378,7 +378,7 @@ contract and migration checks pass.
   - [x] Derive candidate identity, placement, interaction eligibility, and any reward on the server; use stable sparse identities and reject duplicate, forged, or replayed claims.
 - [x] Remove per-serving recipe fuel and generic fire metadata; resolve cooking heat from the server-owned station and live fire state.
 - [x] Add Carrot, Potato, Rutabaga (swede), Onion, and one matching seed item for each to the item catalogue.
-- [x] Add CookedDeerMeat for the CookedDeerMeatRecipe output.
+- [x] Add MeatStew and CookedDeerMeat output items and align their configured recipes with the stable item IDs.
 - [x] Add Iron, a placeable Frying pan made from five Iron at a Forge, Root vegetable soup, Roasted root vegetables, and Deer and rutabaga roast recipes.
   - [x] Place the pan through the existing construction/save path; show look-at interaction text and open the selected Cooking rack, cauldron, or pan recipe GUI from the server-validated Interact input.
 - [ ] Version and migrate newly persistent M9 state before normal saves use it.

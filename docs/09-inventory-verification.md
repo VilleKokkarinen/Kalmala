@@ -30,7 +30,9 @@ to stable internal IDs for recipe, construction, and save compatibility.
 
 The schema-version-4 item catalogue includes Carrot, Potato, Rutabaga (also called swede, or lanttu in Finnish), Onion, and a matching `CarrotSeed`, `PotatoSeed`, `RutabagaSeed`, and `OnionSeed` entry. Each seed description names the crop it is intended to grow. These definitions add no planting, crop growth, harvesting, recipe, replication, or save behavior.
 
-`CookedDeerMeat` is the stable output item for `CookedDeerMeatRecipe` when that recipe is configured. This catalogue item does not add food consumption or a `SteadyMeal` effect.
+The catalogue also defines `MeatStew` as the stable output item for `MeatStewRecipe`. It is not added to the existing meal-consumption allowlist or given a `SteadyMeal` effect by this increment.
+
+The catalogue defines `CookedDeerMeat` as the stable output item for `CookedDeerMeatRecipe`. This item definition does not add food consumption or a `SteadyMeal` effect.
 
 The catalogue defines Iron and a placeable Frying pan made from five Iron at a
 visible Forge. Roasted root vegetables and Deer and rutabaga roast require the
@@ -43,4 +45,4 @@ missing-station and missing-heat rejection, normal time-based hearth fuel
 burn, and exact ingredient costs. The pan uses the existing persistent
 construction record with no added schema field. Iron currently has no
 configured gathering source. These cooked outputs remain outside the existing
-meal-consumption allowlist and do not add SteadyMeal effects.
+meal-consumption allowlist and do not add `SteadyMeal` effects.

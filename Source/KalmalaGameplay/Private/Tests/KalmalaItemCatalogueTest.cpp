@@ -69,6 +69,13 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         }
     }
 
+    const FKalmalaItemDefinition* MeatStew = Catalogue->FindItem(TEXT("MeatStew"));
+    TestNotNull(TEXT("Meat stew recipe output item is defined"), MeatStew);
+    if (const FKalmalaRecipe* MeatStewRecipe = Recipes->Find(TEXT("MeatStewRecipe")))
+    {
+        TestEqual(TEXT("Meat stew recipe outputs the stable item ID"), MeatStewRecipe->Output, FName(TEXT("MeatStew")));
+    }
+
     const FKalmalaItemDefinition* CookedDeerMeat = Catalogue->FindItem(TEXT("CookedDeerMeat"));
     TestNotNull(TEXT("Cooked deer recipe output item is defined"), CookedDeerMeat);
     if (const FKalmalaRecipe* CookedDeerMeatRecipe = Recipes->Find(TEXT("CookedDeerMeatRecipe")))
@@ -96,6 +103,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestNotNull(FString::Printf(TEXT("Recipe %s is defined"), *RecipeAndOutput.Key.ToString()), Recipe);
         if (Recipe) TestEqual(TEXT("New recipe resolves to its output item"), Recipe->Output, RecipeAndOutput.Value);
     }
+
     for (const FKalmalaRecipe& Recipe : Recipes->Recipes)
     {
         TestFalse(FString::Printf(TEXT("%s has a player-facing recipe name without Kit"), *Recipe.RecipeId.ToString()),

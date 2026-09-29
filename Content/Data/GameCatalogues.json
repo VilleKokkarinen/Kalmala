@@ -76,7 +76,7 @@
     {
       "ItemId": "CookingRack",
       "DisplayName": "Cooking rack",
-      "Description": "A rack for roasting boar or deer meat over a nearby burning hearth.",
+      "Description": "A rack for roasting boar or deer meat over a fire.",
       "MaxStack": 5
     },
     {
@@ -88,19 +88,7 @@
     {
       "ItemId": "Cauldron",
       "DisplayName": "Hearth cauldron",
-      "Description": "A pot for simmering boar or deer broth over a nearby burning hearth.",
-      "MaxStack": 5
-    },
-    {
-      "ItemId": "SmokeFrame",
-      "DisplayName": "Smoke frame",
-      "Description": "An open frame for smoking boar or deer meat over a burning hearth.",
-      "MaxStack": 5
-    },
-    {
-      "ItemId": "DryingLine",
-      "DisplayName": "Drying Line",
-      "Description": "A raised line for air-drying boar or deer field meat without a hearth.",
+      "Description": "A pot for simmering soup over a fire.",
       "MaxStack": 5
     },
     {
@@ -129,8 +117,8 @@
     },
     {
       "ItemId": "BoarMeat",
-      "DisplayName": "Boar field meat",
-      "Description": "Fresh field meat from a hunted boar, suitable for roasting, smoking, or drying.",
+      "DisplayName": "Boar meat",
+      "Description": "Filled with fat and flavor, perfect for cooking over a fire.",
       "MaxStack": 20
     },
     {
@@ -141,8 +129,8 @@
     },
     {
       "ItemId": "DeerMeat",
-      "DisplayName": "Deer field meat",
-      "Description": "Fresh field meat from a hunted deer, suitable for roasting, smoking, or drying.",
+      "DisplayName": "Deer meat",
+      "Description": "Lean but tender.",
       "MaxStack": 20
     },
     {
@@ -152,9 +140,9 @@
       "MaxStack": 20
     },
     {
-      "ItemId": "RoastedFieldMeat",
-      "DisplayName": "Roasted field meat",
-      "Description": "Boar or deer field meat roasted over a hearth, ready to eat as a steady meal.",
+      "ItemId": "CookedBoarMeat",
+      "DisplayName": "Cooked boar meat",
+      "Description": "Boar meat cooked over a fire, ready to eat.",
       "MaxStack": 20
     },
     {
@@ -170,15 +158,9 @@
       "MaxStack": 20
     },
     {
-      "ItemId": "SmokedFieldMeat",
-      "DisplayName": "Smoked field meat",
-      "Description": "Boar or deer meat slowly smoked over a hearth and ready to eat as a steady meal.",
-      "MaxStack": 20
-    },
-    {
-      "ItemId": "DriedFieldMeat",
-      "DisplayName": "Dried field meat",
-      "Description": "Boar or deer field meat air-dried on a camp line and ready to eat as a steady meal.",
+      "ItemId": "MeatStew",
+      "DisplayName": "Meat stew",
+      "Description": "A hearty stew of boar and deer meat with carrots and potatoes.",
       "MaxStack": 20
     },
     {
@@ -226,25 +208,25 @@
     {
       "ItemId": "Carrot",
       "DisplayName": "Carrot",
-      "Description": "A crisp orange root vegetable with a sweet, earthy flavour.",
+      "Description": "The Original 'Orange stick'.",
       "MaxStack": 20
     },
     {
       "ItemId": "Potato",
       "DisplayName": "Potato",
-      "Description": "A starchy tuber kept as a staple food ingredient.",
+      "Description": "Boil 'em, mash 'em, stick 'em in a stew!",
       "MaxStack": 20
     },
     {
       "ItemId": "Rutabaga",
       "DisplayName": "Rutabaga",
-      "Description": "A hardy root vegetable, also called swede (lanttu in Finnish).",
+      "Description": "A hardy root vegetable.",
       "MaxStack": 20
     },
     {
       "ItemId": "Onion",
       "DisplayName": "Onion",
-      "Description": "A pungent bulb with layered flesh, valued as a cooking ingredient.",
+      "Description": "Layers upon layers of destruction to the eyes.",
       "MaxStack": 20
     },
     {
@@ -262,7 +244,7 @@
     {
       "ItemId": "RutabagaSeed",
       "DisplayName": "Rutabaga seeds",
-      "Description": "Seeds to grow rutabaga, also known as swede.",
+      "Description": "Seeds to grow rutabaga.",
       "MaxStack": 50
     },
     {
@@ -340,6 +322,25 @@
       "OutputCount": 1,
       "MaxBatch": 1,
       "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "FryingPanRecipe",
+      "DisplayName": "Frying pan",
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 5
+        }
+      ],
+      "Output": "FryingPan",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Forge"
+      ],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
@@ -485,54 +486,6 @@
       "bEnabled": true
     },
     {
-      "RecipeId": "SmokeFrame",
-      "DisplayName": "Smoke frame",
-      "Ingredients": [
-        {
-          "ItemId": "Wood",
-          "Quantity": 9
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 9
-        }
-      ],
-      "Output": "SmokeFrame",
-      "OutputCount": 1,
-      "MaxBatch": 1,
-      "RequiredStation": [],
-      "ExperienceSkill": "None",
-      "ExperienceAward": 0,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "DryingLine",
-      "DisplayName": "Drying Line",
-      "Ingredients": [
-        {
-          "ItemId": "Wood",
-          "Quantity": 6
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 7
-        },
-        {
-          "ItemId": "Densewood",
-          "Quantity": 1
-        }
-      ],
-      "Output": "DryingLine",
-      "OutputCount": 1,
-      "MaxBatch": 1,
-      "RequiredStation": [
-        "Workbench"
-      ],
-      "ExperienceSkill": "None",
-      "ExperienceAward": 0,
-      "bEnabled": true
-    },
-    {
       "RecipeId": "Floor",
       "DisplayName": "Timber floor",
       "Ingredients": [
@@ -596,15 +549,34 @@
       "bEnabled": true
     },
     {
-      "RecipeId": "RoastBoarMeat",
-      "DisplayName": "Roast boar field meat",
+      "RecipeId": "CookedBoarMeatRecipe",
+      "DisplayName": "Cooked boar meat",
       "Ingredients": [
         {
           "ItemId": "BoarMeat",
           "Quantity": 1
         }
       ],
-      "Output": "RoastedFieldMeat",
+      "Output": "CookedBoarMeat",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "CookingRack"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+      {
+      "RecipeId": "CookedDeerMeatRecipe",
+      "DisplayName": "Cooked deer meat",
+      "Ingredients": [
+        {
+          "ItemId": "DeerMeat",
+          "Quantity": 1
+        }
+      ],
+      "Output": "CookedDeerMeat",
       "OutputCount": 1,
       "MaxBatch": 5,
       "RequiredStation": [
@@ -615,177 +587,44 @@
       "bEnabled": true
     },
     {
-      "RecipeId": "RoastDeerMeat",
-      "DisplayName": "Roast deer field meat",
+      "RecipeId": "MeatStewRecipe",
+      "DisplayName": "Meat stew",
       "Ingredients": [
+        {
+          "ItemId": "BoarMeat",
+          "Quantity": 1
+        },
         {
           "ItemId": "DeerMeat",
           "Quantity": 1
+        },
+        {
+          "ItemId": "Carrot",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Potato",
+          "Quantity": 2
         }
       ],
-      "Output": "RoastedFieldMeat",
+      "Output": "MeatStew",
       "OutputCount": 1,
       "MaxBatch": 5,
       "RequiredStation": [
-        "CookingRack"
-      ],
-      "ExperienceSkill": "Cooking",
-      "ExperienceAward": 10,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "SimmerBoarBroth",
-      "DisplayName": "Simmer boar hearth broth",
-      "Ingredients": [
-        {
-          "ItemId": "BoarMeat",
-          "Quantity": 1
-        }
-      ],
-      "Output": "HearthBroth",
-      "OutputCount": 1,
-      "MaxBatch": 3,
-      "RequiredStation": [
         "Cauldron"
       ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "SimmerDeerBroth",
-      "DisplayName": "Simmer deer hearth broth",
-      "Ingredients": [
-        {
-          "ItemId": "DeerMeat",
-          "Quantity": 1
-        }
-      ],
-      "Output": "HearthBroth",
-      "OutputCount": 1,
-      "MaxBatch": 3,
-      "RequiredStation": [
-        "Cauldron"
-      ],
-      "ExperienceSkill": "Cooking",
-      "ExperienceAward": 10,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "SmokeBoarMeat",
-      "DisplayName": "Smoke boar field meat",
-      "Ingredients": [
-        {
-          "ItemId": "BoarMeat",
-          "Quantity": 1
-        }
-      ],
-      "Output": "SmokedFieldMeat",
-      "OutputCount": 1,
-      "MaxBatch": 3,
-      "RequiredStation": [
-        "SmokeFrame"
-      ],
-      "ExperienceSkill": "Cooking",
-      "ExperienceAward": 10,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "SmokeDeerMeat",
-      "DisplayName": "Smoke deer field meat",
-      "Ingredients": [
-        {
-          "ItemId": "DeerMeat",
-          "Quantity": 1
-        }
-      ],
-      "Output": "SmokedFieldMeat",
-      "OutputCount": 1,
-      "MaxBatch": 3,
-      "RequiredStation": [
-        "SmokeFrame"
-      ],
-      "ExperienceSkill": "Cooking",
-      "ExperienceAward": 10,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "DryBoarMeat",
-      "DisplayName": "Dry boar field meat",
-      "Ingredients": [
-        {
-          "ItemId": "BoarMeat",
-          "Quantity": 1
-        }
-      ],
-      "Output": "DriedFieldMeat",
-      "OutputCount": 1,
-      "MaxBatch": 3,
-      "RequiredStation": [
-        "DryingLine"
-      ],
-      "ExperienceSkill": "Cooking",
-      "ExperienceAward": 10,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "DryDeerMeat",
-      "DisplayName": "Dry deer field meat",
-      "Ingredients": [
-        {
-          "ItemId": "DeerMeat",
-          "Quantity": 1
-        }
-      ],
-      "Output": "DriedFieldMeat",
-      "OutputCount": 1,
-      "MaxBatch": 3,
-      "RequiredStation": [
-        "DryingLine"
-      ],
-      "ExperienceSkill": "Cooking",
-      "ExperienceAward": 10,
-      "bEnabled": true
-    },
-    {
-      "RecipeId": "FryingPanRecipe",
-      "DisplayName": "Frying pan",
-      "Ingredients": [
-        {
-          "ItemId": "Iron",
-          "Quantity": 5
-        }
-      ],
-      "Output": "FryingPan",
-      "OutputCount": 1,
-      "MaxBatch": 1,
-      "RequiredStation": [
-        "Forge"
-      ],
-      "ExperienceSkill": "None",
-      "ExperienceAward": 0,
       "bEnabled": true
     },
     {
       "RecipeId": "RootVegetableSoupRecipe",
       "DisplayName": "Root vegetable soup",
       "Ingredients": [
-        {
-          "ItemId": "Carrot",
-          "Quantity": 1
-        },
-        {
-          "ItemId": "Potato",
-          "Quantity": 1
-        },
-        {
-          "ItemId": "Rutabaga",
-          "Quantity": 1
-        },
-        {
-          "ItemId": "Onion",
-          "Quantity": 1
-        }
+        { "ItemId": "Carrot", "Quantity": 1 },
+        { "ItemId": "Potato", "Quantity": 1 },
+        { "ItemId": "Rutabaga", "Quantity": 1 },
+        { "ItemId": "Onion", "Quantity": 1 }
       ],
       "Output": "RootVegetableSoup",
       "OutputCount": 1,
@@ -801,18 +640,9 @@
       "RecipeId": "RoastedRootVegetablesRecipe",
       "DisplayName": "Roasted root vegetables",
       "Ingredients": [
-        {
-          "ItemId": "Carrot",
-          "Quantity": 1
-        },
-        {
-          "ItemId": "Potato",
-          "Quantity": 1
-        },
-        {
-          "ItemId": "Onion",
-          "Quantity": 1
-        }
+        { "ItemId": "Carrot", "Quantity": 1 },
+        { "ItemId": "Potato", "Quantity": 1 },
+        { "ItemId": "Onion", "Quantity": 1 }
       ],
       "Output": "RoastedRootVegetables",
       "OutputCount": 1,
@@ -828,18 +658,9 @@
       "RecipeId": "DeerRootRoastRecipe",
       "DisplayName": "Deer and rutabaga roast",
       "Ingredients": [
-        {
-          "ItemId": "DeerMeat",
-          "Quantity": 1
-        },
-        {
-          "ItemId": "Rutabaga",
-          "Quantity": 1
-        },
-        {
-          "ItemId": "Onion",
-          "Quantity": 1
-        }
+        { "ItemId": "DeerMeat", "Quantity": 1 },
+        { "ItemId": "Rutabaga", "Quantity": 1 },
+        { "ItemId": "Onion", "Quantity": 1 }
       ],
       "Output": "DeerRootRoast",
       "OutputCount": 1,

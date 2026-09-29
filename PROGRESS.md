@@ -9723,6 +9723,43 @@ Handoff: Implementation commit `18db74e`; main checkout used; isolated verificat
 
 Next eligible task: Verify the world and player schema-2 candidates together across host/client reconnect before enabling schema-2 writes.
 
+### Run 2026-09-29T08:04:52Z — Add MeatStew output item
+
+Outcome: Added the `MeatStew` item and aligned the user-authored
+`MeatStewRecipe` output to that stable item ID. The recipe's ingredients,
+station, batch limit, and experience remain as authored.
+
+Changed: `Content/Data/GameCatalogues.json` (the file contains pre-existing
+user edits and remains unstaged); `Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/07-development-setup.md`; `docs/09-inventory-verification.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed
+all 200 actions in an isolated project mirror. The catalogue automation
+failed on the full working catalogue because `CookedDeetMeatRecipe` outputs
+`CookedDeerMeat`, which is not defined. A mirror-only retry omitting that one
+invalid recipe passed `Kalmala.Gameplay.Inventory.Catalogue` with
+`Result={Success}` while retaining `MeatStewRecipe`. JSON parsing and the
+MeatStew output reference check passed, as did `git diff --check`. The
+temporary mirror was removed. No commit was made because the required
+catalogue verification of the full working tree still fails.
+
+Observable and multiplayer impact: This increment defines a catalogue item
+and recipe output identity only. It adds no food-consumption behavior,
+replicated field, RPC, save-schema change, or client-authoritative value.
+
+Known limits: The current working catalogue cannot load all recipes until the
+missing `CookedDeerMeat` output is resolved. MeatStew is not added to the
+existing meal-consumption allowlist or given a `SteadyMeal` effect. No live
+multiplayer session was run. Existing user catalogue edits remain preserved
+and unstaged.
+
+Handoff: No implementation commit; main checkout used; isolated verification
+mirror removed.
+
+Next task: Resolve the missing item reference for `CookedDeetMeatRecipe`, then
+rerun catalogue validation against the full working catalogue.
+
 ### Run 2026-09-29T08:20:52Z — Add CookedDeerMeat output item
 
 Outcome: Added the `CookedDeerMeat` catalogue item for the user-renamed
