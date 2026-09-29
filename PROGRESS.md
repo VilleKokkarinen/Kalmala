@@ -9788,4 +9788,6 @@ Observable and multiplayer impact: The placed pan is visible construction and pe
 
 Known limits: No rendered UI or live multiplayer session was run. Iron still has no configured gathering source. Prepared dish consumption and meal effects remain outside this change.
 
-Next task: Continue the earliest unchecked M9 backlog item, “Version and migrate newly persistent M9 state before normal saves use it,” including the required schema-2 reconnect verification before enabling writes.
+Handoff: Implementation commit `b07fc71`; main checkout used; isolated verification mirror removed.
+
+Next eligible task: Continue the earliest unchecked M9 backlog item, “Version and migrate newly persistent M9 state before normal saves use it,” including the required schema-2 reconnect verification before enabling writes.
