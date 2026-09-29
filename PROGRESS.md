@@ -9775,3 +9775,17 @@ Known limits: Iron has no configured gathering source, so the pan recipe current
 Handoff: Implementation commit `6567235`; main checkout used; isolated verification mirror removed.
 
 Next eligible task: Verify the world and player schema-2 candidates together across host/client reconnect before enabling schema-2 writes.
+
+### Run 2026-09-29T09:42:10Z — Placeable frying pan and station cooking menus
+
+Outcome: Converted the five-Iron Forge Frying pan into a placeable cooking station using the existing construction placement and schema-1 save record. A local look prompt now shows the remappable Interact key for the Cooking rack, cauldron, and pan. Pressing E follows the server-validated interaction trace; owner-only station identity/serial opens the local crafting panel filtered to that station's recipes. Pan recipes require the placed pan and an active nearby hearth, with heat checked at both player and station.
+
+Changed: `BACKLOG.md`; `Content/Data/GameCatalogues.json`; `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`; `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`; `Source/KalmalaGameplay/Private/KalmalaPlacementPreview.cpp`; `Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp`; `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`; gameplay cooking, crafting, catalogue, construction-save, placement-preview, and replication-contract tests; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `docs/05-decision-log.md`; `docs/07-development-setup.md`; `docs/09-inventory-verification.md`; `docs/10-campfire-and-crafting.md`; and `PROGRESS.md`. Pre-existing catalogue, test, documentation, backlog, and progress edits were preserved.
+
+Verification: Forced Unreal 5.8.2 `KalmalaEditor Win64 Development` build succeeded all 200 actions in the isolated `.ms/PanStationBuild-20260929` project mirror. The changed test sources compiled as part of the build; automation tests and rendered/live multiplayer checks were not run. JSON parsing and `git diff --check` passed.
+
+Observable and multiplayer impact: The placed pan is visible construction and persists through the existing server-owned construction record; no save schema changed. Clients display the crosshair prompt and filtered menu only. The server re-traces interaction, validates the cooking station and live hearth, and owns ingredient exchange and Cooking experience. Station selection replication is owner-only.
+
+Known limits: No rendered UI or live multiplayer session was run. Iron still has no configured gathering source. Prepared dish consumption and meal effects remain outside this change.
+
+Next task: Continue the earliest unchecked M9 backlog item, “Version and migrate newly persistent M9 state before normal saves use it,” including the required schema-2 reconnect verification before enabling writes.

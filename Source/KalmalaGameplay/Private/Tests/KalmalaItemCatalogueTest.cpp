@@ -76,15 +76,16 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Cooked deer recipe outputs the stable item ID"), CookedDeerMeatRecipe->Output, FName(TEXT("CookedDeerMeat")));
     }
 
-    for (const FName Id : { FName(TEXT("Iron")), FName(TEXT("FryingPan")), FName(TEXT("RootVegetableSoup")),
+    for (const FName Id : { FName(TEXT("Iron")), FName(TEXT("FryingPanKit")), FName(TEXT("RootVegetableSoup")),
         FName(TEXT("RoastedRootVegetables")), FName(TEXT("DeerRootRoast")) })
         TestNotNull(FString::Printf(TEXT("New crafting item %s is defined"), *Id.ToString()), Catalogue->FindItem(Id));
     const FKalmalaRecipe* FryingPanRecipe = Recipes->Find(TEXT("FryingPanRecipe"));
     TestNotNull(TEXT("Frying pan forge recipe is defined"), FryingPanRecipe);
     if (FryingPanRecipe)
     {
-        TestEqual(TEXT("Frying pan forge recipe outputs the pan"), FryingPanRecipe->Output, FName(TEXT("FryingPan")));
-        TestTrue(TEXT("Frying pan recipe references its reusable item"), JsonText.Contains(TEXT("\"RequiredTool\": \"FryingPan\"")));
+        TestEqual(TEXT("Frying pan forge recipe outputs the placeable station"), FryingPanRecipe->Output, FName(TEXT("FryingPanKit")));
+        TestTrue(TEXT("Frying pan is made at a Forge"), FryingPanRecipe->RequiredStation.Contains(TEXT("ForgeKit")));
+        TestTrue(TEXT("Frying pan output is no longer a carried tool"), FryingPanRecipe->RequiredTool.IsNone());
     }
     for (const TPair<FName, FName>& RecipeAndOutput : {
         TPair<FName, FName>(TEXT("RootVegetableSoupRecipe"), TEXT("RootVegetableSoup")),
@@ -106,6 +107,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         {TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit")}, {TEXT("GrindingStone"), TEXT("GrindingStoneKit")},
         {TEXT("Storage"), TEXT("StorageKit")},
         {TEXT("CookingRack"), TEXT("CookingRackKit")}, {TEXT("Cauldron"), TEXT("CauldronKit")},
+        {TEXT("FryingPan"), TEXT("FryingPanKit")},
         {TEXT("SmokeFrame"), TEXT("SmokeFrameKit")}, {TEXT("DryingLine"), TEXT("DryingLineKit")},
         {TEXT("Floor"), TEXT("FloorKit")}, {TEXT("Wall"), TEXT("WallKit")}, {TEXT("Roof"), TEXT("RoofKit")}
     };

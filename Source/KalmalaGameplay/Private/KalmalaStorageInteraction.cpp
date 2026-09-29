@@ -117,6 +117,14 @@ bool UKalmalaCraftingComponent::OpenStorageFromServer(AKalmalaConstructionActor*
 void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConstructionActor* Construction)
 {
     if (!AcceptRequest() || !IsValid(Construction) || !Construction->CanInteract_Implementation(GetCharacter())) return;
+    const FName Kit = Construction->GetConstructionKit();
+    if (Kit == TEXT("CookingRackKit") || Kit == TEXT("CauldronKit") || Kit == TEXT("FryingPanKit"))
+    {
+        LastInteractedCookingStationKit = Kit;
+        CookingStationInteractionSerial = CookingStationInteractionSerial == TNumericLimits<uint32>::Max()
+            ? 1 : CookingStationInteractionSerial + 1;
+        GetOwner()->ForceNetUpdate();
+    }
     if (Construction->GetConstructionKit() == TEXT("GrindingStoneKit"))
     {
         FString Reason;
@@ -141,10 +149,12 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
             ? TEXT("Chest inspected; use Camp crafting to transfer items")
             : TEXT("Storage unavailable"), bAccepted);
     }
-    else if (Construction->GetConstructionKit() == TEXT("CookingRackKit"))
-        PublishResult(TEXT("Cooking rack ready; use Camp crafting to roast boar or deer meat"), true);
-    else if (Construction->GetConstructionKit() == TEXT("CauldronKit"))
-        PublishResult(TEXT("Hearth cauldron ready; use Camp crafting to simmer broth with extra fuel"), true);
+    else if (Kit == TEXT("CookingRackKit"))
+        PublishResult(TEXT("Cooking rack opened"), true);
+    else if (Kit == TEXT("CauldronKit"))
+        PublishResult(TEXT("Cauldron opened"), true);
+    else if (Kit == TEXT("FryingPanKit"))
+        PublishResult(TEXT("Frying pan opened"), true);
     else if (Construction->GetConstructionKit() == TEXT("SmokeFrameKit"))
         PublishResult(TEXT("Smoke frame ready; use Camp crafting with a lit hearth and one extra raw fuel item per serving"), true);
     else PublishResult(TEXT("Joiner's bench ready; use the Construction Hammer menu to build floors, walls, and roofs from Wood and Fibre"), true);

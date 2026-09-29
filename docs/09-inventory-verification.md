@@ -32,13 +32,15 @@ The schema-version-4 item catalogue includes Carrot, Potato, Rutabaga (also call
 
 `CookedDeerMeat` is the stable output item for `CookedDeerMeatRecipe` when that recipe is configured. This catalogue item does not add food consumption or a `SteadyMeal` effect.
 
-The catalogue also defines Iron, a reusable Frying pan, and outputs for Root
-vegetable soup, Roasted root vegetables, and Deer and rutabaga roast. The pan
-costs five Iron at a visible Forge. Pan recipes require the pan in the server-
-owned pack without consuming it, plus a usable lit hearth near the player;
-Root vegetable soup uses the visible cauldron and the existing station heat
-rule. Kalmala.Gameplay.Food.CookingStationHeat verifies accepted exchanges,
-missing-tool and missing-heat rejection, retained pan inventory, ordinary
-time-based hearth fuel burn, and exact ingredient costs. Iron currently has no
+The catalogue defines Iron and a placeable Frying pan made from five Iron at a
+visible Forge. Roasted root vegetables and Deer and rutabaga roast require the
+placed pan; all pan dishes need usable lit heat at both station and player.
+Looking at a Cooking rack, cauldron, or pan shows the remappable Interact prompt,
+and pressing E opens a recipe view filtered to that station after server
+validation. Root vegetable soup uses the visible cauldron and the same station
+heat rule. `Kalmala.Gameplay.Food.CookingStationHeat` covers accepted exchanges,
+missing-station and missing-heat rejection, normal time-based hearth fuel
+burn, and exact ingredient costs. The pan uses the existing persistent
+construction record with no added schema field. Iron currently has no
 configured gathering source. These cooked outputs remain outside the existing
 meal-consumption allowlist and do not add SteadyMeal effects.

@@ -32,6 +32,7 @@ namespace
         if (CatalogueItemId == TEXT("Storage")) return TEXT("StorageKit");
         if (CatalogueItemId == TEXT("CookingRack")) return TEXT("CookingRackKit");
         if (CatalogueItemId == TEXT("Cauldron")) return TEXT("CauldronKit");
+        if (CatalogueItemId == TEXT("FryingPan")) return TEXT("FryingPanKit");
         if (CatalogueItemId == TEXT("SmokeFrame")) return TEXT("SmokeFrameKit");
         if (CatalogueItemId == TEXT("DryingLine")) return TEXT("DryingLineKit");
         if (CatalogueItemId == TEXT("Floor")) return TEXT("FloorKit");

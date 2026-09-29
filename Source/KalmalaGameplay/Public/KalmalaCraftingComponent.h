@@ -31,6 +31,9 @@ public:
     UFUNCTION(Server, Reliable) void ServerDepositStorage(FName ItemId);
     UFUNCTION(Server, Reliable) void ServerWithdrawStorage(FName ItemId);
     void InteractWithConstructionFromServer(AKalmalaConstructionActor* Construction);
+    FName GetLastInteractedCookingStationKit() const { return LastInteractedCookingStationKit; }
+    uint32 GetCookingStationInteractionSerial() const { return CookingStationInteractionSerial; }
+    FName GetLookedAtCookingStationKit() const;
     bool OpenStorageFromServer(AKalmalaConstructionActor* Construction);
     bool TransferStorageFromServer(FName ItemId, bool bDeposit, FString& Reason);
     const TArray<FKalmalaInventoryStack>& GetStorageView() const { return StorageView; }
@@ -71,6 +74,8 @@ private:
     TWeakObjectPtr<AKalmalaConstructionActor> ActiveStorage;
     UPROPERTY(Replicated) TArray<FKalmalaInventoryStack> StorageView;
     UPROPERTY(Replicated) bool bStorageViewOpen = false;
+    UPROPERTY(Replicated) FName LastInteractedCookingStationKit;
+    UPROPERTY(Replicated) uint32 CookingStationInteractionSerial = 0;
     int32 StorageVerificationStage = 0;
     float StorageVerificationElapsed = 0;
     double NextRequestTime = 0;

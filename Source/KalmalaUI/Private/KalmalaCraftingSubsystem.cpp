@@ -27,6 +27,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "UnrealClient.h"
+#include "Engine/World.h"
 
 namespace
 {
@@ -39,6 +40,11 @@ FString GetReadableToolName(const FName ToolId)
     if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
     if (ToolId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
     return ToolId.ToString();
+}
+
+bool IsInWorldCookingStation(const FName KitId)
+{
+    return KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit") || KitId == TEXT("FryingPanKit");
 }
 
 const TCHAR* GetReadableSkillName(const EKalmalaSkill Skill)
@@ -110,6 +116,33 @@ FString BuildSkillProgressText(const AKalmalaCharacter* Character)
 }
 }
 
+void UKalmalaStationPromptWidget::NativeOnInitialized()
+{
+    Super::NativeOnInitialized();
+    if (!WidgetTree) return;
+    UBorder* Border = WidgetTree->ConstructWidget<UBorder>();
+    Border->SetPadding(FMargin(18.0f, 10.0f));
+    Border->SetBrushColor(FLinearColor(0.015f, 0.025f, 0.03f, 0.92f));
+    PromptText = WidgetTree->ConstructWidget<UTextBlock>();
+    PromptText->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), 20));
+    PromptText->SetColorAndOpacity(FSlateColor(FLinearColor::White));
+    Border->SetContent(PromptText);
+    WidgetTree->RootWidget = Border;
+    SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UKalmalaStationPromptWidget::SetPrompt(const FString& Text)
+{
+    if (!PromptText) return;
+    if (Text.IsEmpty())
+    {
+        SetVisibility(ESlateVisibility::Collapsed);
+        return;
+    }
+    PromptText->SetText(FText::FromString(Text));
+    SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
 void UKalmalaCraftingWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized(); SetIsFocusable(true);
@@ -125,11 +158,12 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         WrappedTextBlocks.Add(Label);
         Column->AddChild(Label); return Label;
     };
-    AddText(TEXT("Construction hammer — Build and craft"), 28);
+    HeaderText = AddText(TEXT("Construction hammer — Build and craft"), 28);
     FString CraftKey = TEXT("Unbound");
     for (const FInputActionKeyMapping& Mapping : GetDefault<UInputSettings>()->GetActionMappings())
         if (Mapping.ActionName == TEXT("CraftMenu") && !Mapping.Key.IsGamepadKey()) { CraftKey = Mapping.Key.GetDisplayName().ToString(); break; }
-    InstructionsText = AddText(FString::Printf(TEXT("Construction hammer menu input: %s (Controller View / special-left). Up/Down or D-pad: choose. Enter / A: craft or build. P: local preview. Escape / B: close.\nController Y: build or place selected. X: add fuel. RB: light. Mouse buttons and focused keyboard/controller buttons also work.\nFloor, wall, and roof are built directly from Wood and Fibre; no kit is created. Selection is marked with >. Requirements and unavailable reasons are written in text; colour is never the only cue.\n"), *CraftKey), 16);
+    GeneralInstructions = FString::Printf(TEXT("Construction hammer menu input: %s (Controller View / special-left). Up/Down or D-pad: choose. Enter / A: craft or build. P: local preview. Escape / B: close.\nController Y: build or place selected. X: add fuel. RB: light. Mouse buttons and focused keyboard/controller buttons also work.\nFloor, wall, and roof are built directly from Wood and Fibre; no kit is created. Selection is marked with >. Requirements and unavailable reasons are written in text; colour is never the only cue.\n"), *CraftKey);
+    InstructionsText = AddText(GeneralInstructions, 16);
     RecipesText = AddText(TEXT(""), 18);
     DetailText = AddText(TEXT(""), 18);
     auto AddButton = [&](const TCHAR* Label, UHorizontalBox* Row = nullptr, const TCHAR* Help = nullptr) {
@@ -193,13 +227,36 @@ UKalmalaCraftingComponent* UKalmalaCraftingWidget::Model() const
     auto* Pawn = GetOwningPlayerPawn(); return Pawn ? Pawn->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
 }
 
-void UKalmalaCraftingWidget::Open()
+TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
 {
-    auto* PC = GetOwningPlayer(); if (bOpen || !PC || PC->IsMoveInputIgnored() || !Model()) return;
+    TArray<int32> Indices;
+    const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
+    for (int32 Index = 0; Index < Recipes.Num(); ++Index)
+        if (StationFilterKit.IsNone() || Recipes[Index].RequiredStation.Contains(StationFilterKit)) Indices.Add(Index);
+    return Indices;
+}
+
+void UKalmalaCraftingWidget::Open() { OpenInternal(NAME_None); }
+
+void UKalmalaCraftingWidget::OpenForStation(const FName StationKit) { OpenInternal(StationKit); }
+
+void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
+{
+    if (!StationKit.IsNone() && !IsInWorldCookingStation(StationKit)) return;
+    if (bOpen)
+    {
+        StationFilterKit = StationKit;
+        Selected = 0;
+        bPlacementPreviewEnabled = false;
+        Refresh();
+        return;
+    }
+    auto* PC = GetOwningPlayer(); if (!PC || PC->IsMoveInputIgnored() || !Model()) return;
     const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn());
-    if (!Character || Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1) return;
-    if (UKalmalaRecipeCatalogue::Get()->Recipes.IsValidIndex(Selected)
-        && Selected == 0)
+    if (!Character || (StationKit.IsNone() && Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1)) return;
+    StationFilterKit = StationKit;
+    Selected = 0;
+    if (StationKit.IsNone() && UKalmalaRecipeCatalogue::Get()->Recipes.IsValidIndex(Selected))
     {
         const int32 FirstBuild = UKalmalaRecipeCatalogue::Get()->Recipes.IndexOfByPredicate(
             [](const FKalmalaRecipe& Recipe)
@@ -207,6 +264,20 @@ void UKalmalaCraftingWidget::Open()
                 return UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.Output);
             });
         if (FirstBuild != INDEX_NONE) Selected = FirstBuild;
+    }
+    if (StationFilterKit.IsNone())
+    {
+        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Construction hammer — Build and craft")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(GeneralInstructions));
+    }
+    else
+    {
+        const FKalmalaItemDefinition* StationItem = UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit);
+        const FString StationName = StationItem ? StationItem->DisplayName : StationFilterKit.ToString();
+        if (HeaderText) HeaderText->SetText(FText::FromString(StationName + TEXT(" — Cook")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(
+            TEXT("Station recipes. Up/Down or D-pad: choose. Enter / A: cook one. Escape / B: close.\n")
+            TEXT("The server requires this placed station and a usable, lit hearth with heat at both the station and you. Ingredients and availability are shown in text.")));
     }
     bOpen = true; bPreviousCursor = PC->bShowMouseCursor;
     int32 X, Y; PC->GetViewportSize(X,Y);
@@ -236,10 +307,22 @@ void UKalmalaCraftingWidget::Refresh()
 {
     auto* M=Model(); if (!M) { Close(); return; }
     const auto& Recipes=UKalmalaRecipeCatalogue::Get()->Recipes;
-    if (Recipes.IsEmpty()) return; Selected=FMath::Clamp(Selected,0,Recipes.Num()-1);
-    const FKalmalaRecipe& SelectedRecipe = Recipes[Selected];
-    RecipesText->SetText(FText::FromString(FString::Printf(TEXT("> Recipe %d of %d: %s\n"),
-        Selected + 1, Recipes.Num(), *SelectedRecipe.DisplayName)));
+    const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
+    if (VisibleIndices.IsEmpty())
+    {
+        RecipesText->SetText(FText::FromString(TEXT("No recipes are configured for this station.\n")));
+        DetailText->SetText(FText::GetEmpty());
+        if (CraftButton) CraftButton->SetIsEnabled(false);
+        return;
+    }
+    Selected=FMath::Clamp(Selected,0,VisibleIndices.Num()-1);
+    const int32 RecipeIndex = VisibleIndices[Selected];
+    const FKalmalaRecipe& SelectedRecipe = Recipes[RecipeIndex];
+    const FString StationPrefix = StationFilterKit.IsNone() ? TEXT("")
+        : (UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)
+            ? UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)->DisplayName : StationFilterKit.ToString()) + TEXT(" recipes: ");
+    RecipesText->SetText(FText::FromString(FString::Printf(TEXT("> %s%d of %d: %s\n"),
+        *StationPrefix, Selected + 1, VisibleIndices.Num(), *SelectedRecipe.DisplayName)));
     const FString Availability = M->GetRecipeAvailability(SelectedRecipe.RecipeId);
     DetailText->SetText(FText::FromString(M->GetRecipeDescription(SelectedRecipe.RecipeId)
         + TEXT("\nAvailability: ") + Availability + TEXT("\n")
@@ -279,7 +362,7 @@ void UKalmalaCraftingWidget::Refresh()
     FString PreviewText;
     if (bPlacementPreviewEnabled)
     {
-        const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), GetOwningPlayerPawn(), Recipes[Selected].Output);
+        const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), GetOwningPlayerPawn(), SelectedRecipe.Output);
         PreviewText = TEXT("\n") + Preview.Message + (Preview.bIsValid ? FString::Printf(TEXT(" (%.0f, %.0f)"), Preview.Location.X, Preview.Location.Y) : TEXT("")) + TEXT("\n");
     }
     FString ToolConditionText = TEXT("\nTool condition and free repair status (owner-only):");
@@ -336,23 +419,26 @@ FString UKalmalaCraftingWidget::GetPresentationText() const
             + (StorageText ? StorageText->GetText().ToString() : FString()) : FString();
 }
 void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D) { Super::NativeTick(G,D); if(bOpen) Refresh(); }
-void UKalmalaCraftingWidget::Previous() { const int32 N=UKalmalaRecipeCatalogue::Get()->Recipes.Num(); if(N) Selected=(Selected+N-1)%N; Refresh(); }
-void UKalmalaCraftingWidget::Next() { const int32 N=UKalmalaRecipeCatalogue::Get()->Recipes.Num(); if(N) Selected=(Selected+1)%N; Refresh(); }
+void UKalmalaCraftingWidget::Previous() { const int32 N=GetVisibleRecipeIndices().Num(); if(N) Selected=(Selected+N-1)%N; Refresh(); }
+void UKalmalaCraftingWidget::Next() { const int32 N=GetVisibleRecipeIndices().Num(); if(N) Selected=(Selected+1)%N; Refresh(); }
 void UKalmalaCraftingWidget::Craft()
 {
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
-    if (!Recipes.IsValidIndex(Selected)) return;
-    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipes[Selected].Output)) { Place(); return; }
-    if (auto* M = Model()) M->ServerCraft(Recipes[Selected].RecipeId, 1);
+    const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
+    if (!VisibleIndices.IsValidIndex(Selected) || !Recipes.IsValidIndex(VisibleIndices[Selected])) return;
+    const FKalmalaRecipe& Recipe = Recipes[VisibleIndices[Selected]];
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.Output)) { Place(); return; }
+    if (auto* M = Model()) M->ServerCraft(Recipe.RecipeId, 1);
 }
 void UKalmalaCraftingWidget::EnablePlacementPreview() { bPlacementPreviewEnabled = true; Refresh(); }
 void UKalmalaCraftingWidget::Preview() { EnablePlacementPreview(); }
 void UKalmalaCraftingWidget::Place()
 {
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
-    if (auto* M = Model(); M && Recipes.IsValidIndex(Selected))
+    const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
+    if (auto* M = Model(); M && VisibleIndices.IsValidIndex(Selected) && Recipes.IsValidIndex(VisibleIndices[Selected]))
     {
-        const FName Kit = Recipes[Selected].Output;
+        const FName Kit = Recipes[VisibleIndices[Selected]].Output;
         if (Kit == TEXT("CampfireKit")) M->ServerPlaceCampfire(); else M->ServerPlaceConstruction(Kit);
     }
 }
@@ -421,6 +507,41 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
         PC->InputComponent->BindAction(TEXT("CraftMenu"),IE_Pressed,this,&ThisClass::Toggle).bConsumeInput=true;
         BoundInput=PC->InputComponent;
     }
+    if (const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn()))
+    {
+        UKalmalaCraftingComponent* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
+        if (Crafting != StationInteractionModel.Get())
+        {
+            StationInteractionModel = Crafting;
+            LastStationInteractionSerial = Crafting ? Crafting->GetCookingStationInteractionSerial() : 0;
+            bHasSeenStationInteraction = Crafting != nullptr;
+        }
+        else if (Crafting)
+        {
+            const uint32 Serial = Crafting->GetCookingStationInteractionSerial();
+            if (bHasSeenStationInteraction && Serial != LastStationInteractionSerial)
+            {
+                LastStationInteractionSerial = Serial;
+                const FName StationKit = Crafting->GetLastInteractedCookingStationKit();
+                if (IsInWorldCookingStation(StationKit))
+                {
+                    if (!Widget)
+                    {
+                        Widget = CreateWidget<UKalmalaCraftingWidget>(PC);
+                        if (Widget) Widget->AddToPlayerScreen(160);
+                    }
+                    if (Widget) Widget->OpenForStation(StationKit);
+                }
+            }
+        }
+    }
+    else
+    {
+        StationInteractionModel.Reset();
+        LastStationInteractionSerial = 0;
+        bHasSeenStationInteraction = false;
+    }
+    UpdateStationPrompt(PC);
 #if !UE_BUILD_SHIPPING
     if(!bVerified && PC->GetPawn() && FParse::Param(FCommandLine::Get(),TEXT("KalmalaCraftingTest")))
     {
@@ -513,6 +634,49 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
     }
 #endif
 }
+
+void UKalmalaCraftingSubsystem::UpdateStationPrompt(APlayerController* PlayerController)
+{
+    if (!PlayerController) return;
+    if (!StationPrompt)
+    {
+        StationPrompt = CreateWidget<UKalmalaStationPromptWidget>(PlayerController);
+        if (!StationPrompt) return;
+        StationPrompt->AddToPlayerScreen(150);
+        StationPrompt->SetDesiredSizeInViewport(FVector2D(520.0f, 64.0f));
+        StationPrompt->SetAlignmentInViewport(FVector2D(0.5f, 1.0f));
+    }
+
+    int32 ViewportWidth = 0;
+    int32 ViewportHeight = 0;
+    PlayerController->GetViewportSize(ViewportWidth, ViewportHeight);
+    StationPrompt->SetPositionInViewport(FVector2D(ViewportWidth * 0.5f, ViewportHeight * 0.82f), true);
+    if (Widget && Widget->IsOpen())
+    {
+        StationPrompt->SetPrompt(FString());
+        return;
+    }
+
+    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(PlayerController->GetPawn());
+    if (!Character || PlayerController->IsMoveInputIgnored())
+    {
+        StationPrompt->SetPrompt(FString());
+        return;
+    }
+
+    const UKalmalaCraftingComponent* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
+    const FName StationKit = Crafting ? Crafting->GetLookedAtCookingStationKit() : NAME_None;
+    if (!IsInWorldCookingStation(StationKit))
+    {
+        StationPrompt->SetPrompt(FString());
+        return;
+    }
+    const FKalmalaItemDefinition* Definition = UKalmalaItemCatalogue::Get()->FindItem(StationKit);
+    const FString StationName = Definition ? Definition->DisplayName : StationKit.ToString();
+    const FString InteractKey = UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), false).ToString();
+    StationPrompt->SetPrompt(FString::Printf(TEXT("Press %s to use %s"), *InteractKey, *StationName));
+}
+
 void UKalmalaCraftingSubsystem::Toggle()
 {
     if(!Controller) return;
@@ -524,6 +688,10 @@ void UKalmalaCraftingSubsystem::Release()
 {
     if(auto* Input=BoundInput.Get()) for(int32 I=Input->GetNumActionBindings()-1;I>=0;--I)
         if(Input->GetActionBinding(I).ActionDelegate.IsBoundToObject(this)) Input->RemoveActionBinding(I);
-    BoundInput.Reset(); if(Widget) { Widget->Close(); Widget->RemoveFromParent(); Widget=nullptr; } Controller=nullptr; bVerified=false;
+    BoundInput.Reset();
+    if(Widget) { Widget->Close(); Widget->RemoveFromParent(); Widget=nullptr; }
+    if(StationPrompt) { StationPrompt->RemoveFromParent(); StationPrompt=nullptr; }
+    StationInteractionModel.Reset(); LastStationInteractionSerial = 0; bHasSeenStationInteraction = false;
+    Controller=nullptr; bVerified=false;
 }
 void UKalmalaCraftingSubsystem::Deinitialize() { Release(); Super::Deinitialize(); }

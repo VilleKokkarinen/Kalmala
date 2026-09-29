@@ -96,7 +96,7 @@ bool AKalmalaConstructionActor::IsShelterKit(const FName KitId)
 bool AKalmalaConstructionActor::IsCraftingStationKit(const FName KitId)
 {
     return KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit") || KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
-        || KitId == TEXT("SmokeFrameKit") || KitId == TEXT("DryingLineKit");
+        || KitId == TEXT("FryingPanKit") || KitId == TEXT("SmokeFrameKit") || KitId == TEXT("DryingLineKit");
 }
 
 bool AKalmalaConstructionActor::IsStorageKit(const FName KitId)
@@ -111,6 +111,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
     if (KitId == TEXT("SmokeFrameKit")) return FVector(56, 56, 64);
     if (KitId == TEXT("DryingLineKit")) return FVector(54, 40, 54);
+    if (KitId == TEXT("FryingPanKit")) return FVector(64, 40, 12);
     if (KitId == TEXT("ForgeKit")) return FVector(60, 60, 62);
     if (KitId == TEXT("WorkbenchToolRackKit")) return FVector(32, 25, 34);
     if (KitId == TEXT("ForgeAnvilKit")) return FVector(28, 16, 28);
@@ -176,6 +177,12 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
         AddBox(Vertices, Triangles, FVector(0, 0, 38), FVector(44, 44, 4));
         AddBox(Vertices, Triangles, FVector(-47, 0, 38), FVector(7, 3, 3));
         AddBox(Vertices, Triangles, FVector(47, 0, 38), FVector(7, 3, 3));
+    }
+    else if (ConstructionKit == TEXT("FryingPanKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(0, 0, -2), FVector(36, 36, 5));
+        AddBox(Vertices, Triangles, FVector(43, 0, 1), FVector(17, 5, 4));
+        AddBox(Vertices, Triangles, FVector(57, 0, 1), FVector(5, 7, 5));
     }
     else if (ConstructionKit == TEXT("SmokeFrameKit"))
     {

@@ -99,6 +99,7 @@ bool FKalmalaStorageNetworkTest::RunTest(const FString& Parameters)
     }
     TArray<FLifetimeProperty> Props; GetDefault<UKalmalaCraftingComponent>()->GetLifetimeReplicatedProps(Props);
     for (const FName Name : {FName(TEXT("StorageView")), FName(TEXT("bStorageViewOpen")),
+        FName(TEXT("LastInteractedCookingStationKit")), FName(TEXT("CookingStationInteractionSerial")),
         FName(TEXT("LastResult")), FName(TEXT("ResultSerial")), FName(TEXT("bLastResultAccepted"))})
     {
         const auto* Property = Class->FindPropertyByName(Name);

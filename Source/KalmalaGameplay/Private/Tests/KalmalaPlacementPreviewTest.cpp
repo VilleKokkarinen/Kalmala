@@ -8,7 +8,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaPlacementPreviewTest, "Kalmala.Gameplay
 bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
 {
     for (const FName Kit : {FName(TEXT("CampfireKit")), FName(TEXT("WorkbenchKit")), FName(TEXT("StorageKit")),
-        FName(TEXT("CookingRackKit")), FName(TEXT("CauldronKit")), FName(TEXT("SmokeFrameKit")),
+        FName(TEXT("CookingRackKit")), FName(TEXT("CauldronKit")), FName(TEXT("FryingPanKit")), FName(TEXT("SmokeFrameKit")),
         FName(TEXT("FloorKit")), FName(TEXT("WallKit")), FName(TEXT("RoofKit"))})
         TestTrue(TEXT("Camp and construction kit supports a local preview"), FKalmalaPlacementPreview::IsSupportedKit(Kit));
     TestFalse(TEXT("Removed smokehouse cannot be previewed"), FKalmalaPlacementPreview::IsSupportedKit(TEXT("SmokehouseKit")));

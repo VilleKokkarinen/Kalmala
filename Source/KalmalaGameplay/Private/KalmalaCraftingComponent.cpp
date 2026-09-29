@@ -56,12 +56,8 @@ bool IsFoodProcessingStation(const AKalmalaConstructionActor* Station)
 {
     if (!Station) return false;
     const FName Kit = Station->GetConstructionKit();
-    return Kit == TEXT("CookingRackKit") || Kit == TEXT("CauldronKit") || Kit == TEXT("SmokeFrameKit");
-}
-
-bool IsPortablePanCookingRecipe(const FKalmalaRecipe& Recipe)
-{
-    return Recipe.RequiredTool == TEXT("FryingPan");
+    return Kit == TEXT("CookingRackKit") || Kit == TEXT("CauldronKit") || Kit == TEXT("FryingPanKit")
+        || Kit == TEXT("SmokeFrameKit");
 }
 
 FString GetRecipeToolDisplayName(const FName ToolId)
@@ -89,6 +85,26 @@ UKalmalaCraftingComponent::UKalmalaCraftingComponent()
 
 AKalmalaCharacter* UKalmalaCraftingComponent::GetCharacter() const { return Cast<AKalmalaCharacter>(GetOwner()); }
 
+FName UKalmalaCraftingComponent::GetLookedAtCookingStationKit() const
+{
+    const AKalmalaCharacter* Character = GetCharacter();
+    AController* Controller = Character ? Character->GetController() : nullptr;
+    if (!Character || !Character->IsLocallyControlled() || !Controller || !GetWorld()) return NAME_None;
+    FVector ViewLocation;
+    FRotator ViewRotation;
+    Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+    FCollisionQueryParams Query(SCENE_QUERY_STAT(CookingStationPrompt), false, Character);
+    FHitResult Hit;
+    if (!GetWorld()->LineTraceSingleByChannel(Hit, ViewLocation,
+            ViewLocation + ViewRotation.Vector() * 250.0f, ECC_Visibility, Query)) return NAME_None;
+    const AKalmalaConstructionActor* Station = Cast<AKalmalaConstructionActor>(Hit.GetActor());
+    if (!Station || Station->GetConstructionId().IsEmpty()
+        || FVector::DistSquared(Character->GetActorLocation(), Station->GetActorLocation()) > FMath::Square(250.0f)) return NAME_None;
+    const FName Kit = Station->GetConstructionKit();
+    return Kit == TEXT("CookingRackKit") || Kit == TEXT("CauldronKit") || Kit == TEXT("FryingPanKit")
+        ? Kit : NAME_None;
+}
+
 void UKalmalaCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -97,6 +113,8 @@ void UKalmalaCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, bLastResultAccepted, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, StorageView, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, bStorageViewOpen, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, LastInteractedCookingStationKit, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, CookingStationInteractionSerial, COND_OwnerOnly);
 }
 
 bool UKalmalaCraftingComponent::AcceptRequest()
@@ -202,11 +220,6 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     if (!UKalmalaRecipeCatalogue::HasRequiredTool(Recipe->RequiredTool, Inventory->GetStacks()))
     {
         Reason = FString::Printf(TEXT("Need a %s in your pack"), *GetRecipeToolDisplayName(Recipe->RequiredTool));
-        return false;
-    }
-    if (IsPortablePanCookingRecipe(*Recipe) && !FindNearbyLitFire(nullptr))
-    {
-        Reason = TEXT("Need a usable lit hearth with positive heat within 2.5 m of you");
         return false;
     }
     if (!Inventory || !Inventory->TryExchangeFromServer(Costs, Recipe->Output, OutputCount, Reason)) return false;
@@ -636,8 +649,6 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
     if (!Inv) return TEXT("Waiting for pack");
     if (!UKalmalaRecipeCatalogue::HasRequiredTool(R->RequiredTool, Inv->GetStacks()))
         return FString::Printf(TEXT("Need a %s in your pack"), *GetRecipeToolDisplayName(R->RequiredTool));
-    if (IsPortablePanCookingRecipe(*R) && !FindNearbyLitFire(nullptr))
-        return TEXT("Need a usable lit hearth with positive heat within 2.5 m of you");
     TArray<FKalmalaInventoryStack> Costs; int32 OutputCount = 0;
     FString Reason;
     if (!UKalmalaRecipeCatalogue::Scale(*R, 1, Costs, OutputCount)) return TEXT("Recipe material list is invalid");
@@ -785,9 +796,6 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     }
     else if (R->RequiredTool.IsNone())
         Text += TEXT("\nHandcrafted; no station");
-
-    if (IsPortablePanCookingRecipe(*R))
-        Text += TEXT("\nHeat: a usable lit hearth with positive heat must be within 2.5 m of you. Its fuel burns at the normal rate while lit; the recipe adds no fuel cost.");
 
     Text += TEXT("\nFailure: the availability text below names the first unmet requirement. Rejected requests preserve ingredients and tool condition.");
     return Text;

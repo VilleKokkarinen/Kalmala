@@ -82,7 +82,7 @@
     {
       "ItemId": "FryingPan",
       "DisplayName": "Frying pan",
-      "Description": "A reusable iron pan for cooking over a nearby lit hearth.",
+      "Description": "A placeable iron pan for cooking ingredients over a nearby lit hearth.",
       "MaxStack": 1
     },
     {
@@ -817,8 +817,9 @@
       "Output": "RoastedRootVegetables",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "RequiredStation": [],
-      "RequiredTool": "FryingPan",
+      "RequiredStation": [
+        "FryingPan"
+      ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
       "bEnabled": true
@@ -843,8 +844,9 @@
       "Output": "DeerRootRoast",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "RequiredStation": [],
-      "RequiredTool": "FryingPan",
+      "RequiredStation": [
+        "FryingPan"
+      ],
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
       "bEnabled": true

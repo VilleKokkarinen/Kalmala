@@ -16,6 +16,8 @@ bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Cooking rack uses the existing bounded construction record"), Save->AddRecord(Record));
     Record.ConstructionId = TEXT("camp-cauldron"); Record.KitId = TEXT("CauldronKit");
     TestTrue(TEXT("Cauldron uses the existing bounded construction record"), Save->AddRecord(Record));
+    Record.ConstructionId = TEXT("camp-frying-pan"); Record.KitId = TEXT("FryingPanKit");
+    TestTrue(TEXT("Placeable frying pan uses the existing bounded construction record"), Save->AddRecord(Record));
     Record.ConstructionId = TEXT("session-drying-line"); Record.KitId = TEXT("DryingLineKit");
     TestFalse(TEXT("M9 Drying Lines remain outside the existing save schema"), UKalmalaConstructionSaveGame::IsValidRecord(Record));
     TestTrue(TEXT("Drying Line session policy is explicit"), FKalmalaPlacementPreview::IsSessionOnlyKit(TEXT("DryingLineKit")));

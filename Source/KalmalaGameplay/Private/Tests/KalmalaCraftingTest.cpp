@@ -47,7 +47,7 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     const FKalmalaRecipe* DeerRootRoast = Recipes->Find(TEXT("DeerRootRoastRecipe"));
     if (FryingPan)
     {
-        TestEqual(TEXT("Frying pan recipe outputs its reusable item"), FryingPan->Output, FName(TEXT("FryingPan")));
+        TestEqual(TEXT("Frying pan recipe outputs its placeable station"), FryingPan->Output, FName(TEXT("FryingPanKit")));
         TestTrue(TEXT("Frying pan is forged at a Forge"), FryingPan->RequiredStation.Contains(TEXT("ForgeKit")));
         TestEqual(TEXT("Frying pan costs one material stack"), FryingPan->Ingredients.Num(), 1);
         if (FryingPan->Ingredients.Num() == 1)
@@ -75,17 +75,17 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     {
         if (!Expected.Key) continue;
         TestEqual(TEXT("Pan dish output is configured"), Expected.Key->Output, Expected.Value);
-        TestEqual(TEXT("Pan dish requires a reusable frying pan"), Expected.Key->RequiredTool, FName(TEXT("FryingPan")));
-        TestTrue(TEXT("Pan dish has no placed-station requirement"), Expected.Key->RequiredStation.IsEmpty());
+        TestTrue(TEXT("Pan dish requires the placed frying pan station"), Expected.Key->RequiredStation.Contains(TEXT("FryingPanKit")));
+        TestTrue(TEXT("Pan dish does not require carrying a frying pan"), Expected.Key->RequiredTool.IsNone());
     }
     TestTrue(TEXT("No-tool recipes have no inventory tool requirement"),
         UKalmalaRecipeCatalogue::HasRequiredTool(NAME_None, {}));
-    TestTrue(TEXT("Carried frying pan satisfies its reusable tool requirement"),
-        UKalmalaRecipeCatalogue::HasRequiredTool(TEXT("FryingPan"), {{TEXT("FryingPan"), 1}}));
-    TestFalse(TEXT("Missing frying pan fails the tool requirement"),
-        UKalmalaRecipeCatalogue::HasRequiredTool(TEXT("FryingPan"), {}));
-    TestFalse(TEXT("Zero-count pan stack fails the tool requirement"),
-        UKalmalaRecipeCatalogue::HasRequiredTool(TEXT("FryingPan"), {{TEXT("FryingPan"), 0}}));
+    TestTrue(TEXT("A carried catalogue tool satisfies a generic tool requirement"),
+        UKalmalaRecipeCatalogue::HasRequiredTool(TEXT("Iron"), {{TEXT("Iron"), 1}}));
+    TestFalse(TEXT("A missing catalogue tool fails the generic tool requirement"),
+        UKalmalaRecipeCatalogue::HasRequiredTool(TEXT("Iron"), {}));
+    TestFalse(TEXT("A zero-count tool stack fails the generic tool requirement"),
+        UKalmalaRecipeCatalogue::HasRequiredTool(TEXT("Iron"), {{TEXT("Iron"), 0}}));
 
     struct FExpectedBuildCost { FName Id; TArray<FKalmalaInventoryStack> Costs; };
     const TArray<FExpectedBuildCost> DirectBuildCosts = {

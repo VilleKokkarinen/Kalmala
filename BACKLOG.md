@@ -379,7 +379,8 @@ contract and migration checks pass.
 - [x] Remove per-serving recipe fuel and generic fire metadata; resolve cooking heat from the server-owned station and live fire state.
 - [x] Add Carrot, Potato, Rutabaga (swede), Onion, and one matching seed item for each to the item catalogue.
 - [x] Add CookedDeerMeat for the CookedDeerMeatRecipe output.
-- [x] Add Iron, a reusable Frying pan made from five Iron at a Forge, Root vegetable soup, Roasted root vegetables, and Deer and rutabaga roast recipes.
+- [x] Add Iron, a placeable Frying pan made from five Iron at a Forge, Root vegetable soup, Roasted root vegetables, and Deer and rutabaga roast recipes.
+  - [x] Place the pan through the existing construction/save path; show look-at interaction text and open the selected Cooking rack, cauldron, or pan recipe GUI from the server-validated Interact input.
 - [ ] Version and migrate newly persistent M9 state before normal saves use it.
   - [x] Define explicit world/player scope, bounded records, exact seed/revision matching, compatibility policy, and migration behavior for tool levels, station progression, discoveries, and any approved camp/equipment state. See `docs/30-m9-persistence-migration.md`.
   - [ ] Add round-trip, migration, mismatch, malformed-data, duplicate, and over-cap rejection coverage before enabling persistence.

@@ -10,11 +10,24 @@ class UInputComponent;
 class UKalmalaCraftingComponent;
 
 UCLASS()
+class KALMALAUI_API UKalmalaStationPromptWidget : public UUserWidget
+{
+    GENERATED_BODY()
+public:
+    void SetPrompt(const FString& Text);
+protected:
+    virtual void NativeOnInitialized() override;
+private:
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> PromptText;
+};
+
+UCLASS()
 class KALMALAUI_API UKalmalaCraftingWidget : public UUserWidget
 {
     GENERATED_BODY()
 public:
     void Open();
+    void OpenForStation(FName StationKit);
     void Close();
     bool IsOpen() const { return bOpen; }
     FString GetPresentationText() const;
@@ -25,6 +38,8 @@ protected:
     virtual FReply NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
 private:
     UKalmalaCraftingComponent* Model() const;
+    void OpenInternal(FName StationKit);
+    TArray<int32> GetVisibleRecipeIndices() const;
     UFUNCTION() void Previous();
     UFUNCTION() void Next();
     UFUNCTION() void Craft();
@@ -50,6 +65,7 @@ private:
     UFUNCTION() void CloseClicked();
     void Refresh();
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipesText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> HeaderText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StateText;
@@ -60,6 +76,8 @@ private:
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;
     int32 Selected = 0;
+    FName StationFilterKit;
+    FString GeneralInstructions;
     int32 SelectedStorageItem = 0;
     int32 LastDetailTextScalePercent = INDEX_NONE;
     int32 LastDetailContrastMode = INDEX_NONE;
@@ -83,9 +101,14 @@ public:
 private:
     void Toggle();
     void Release();
+    void UpdateStationPrompt(APlayerController* PlayerController);
     UPROPERTY(Transient) TObjectPtr<UKalmalaCraftingWidget> Widget;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaStationPromptWidget> StationPrompt;
     UPROPERTY(Transient) TObjectPtr<APlayerController> Controller;
+    TWeakObjectPtr<UKalmalaCraftingComponent> StationInteractionModel;
     TWeakObjectPtr<UInputComponent> BoundInput;
+    uint32 LastStationInteractionSerial = 0;
+    bool bHasSeenStationInteraction = false;
     bool bVerified = false;
     bool bCaptureRequested = false;
     float CaptureWait = 0;
