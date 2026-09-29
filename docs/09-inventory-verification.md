@@ -29,3 +29,5 @@ be browsed without putting them into the inventory HUD. Clean JSON aliases map
 to stable internal IDs for recipe, construction, and save compatibility.
 
 The schema-version-4 item catalogue includes Carrot, Potato, Rutabaga (also called swede, or lanttu in Finnish), Onion, and a matching `CarrotSeed`, `PotatoSeed`, `RutabagaSeed`, and `OnionSeed` entry. Each seed description names the crop it is intended to grow. These definitions add no planting, crop growth, harvesting, recipe, replication, or save behavior.
+
+`CookedDeerMeat` is the stable output item for `CookedDeerMeatRecipe` when that recipe is configured. This catalogue item does not add food consumption or a `SteadyMeal` effect.

@@ -69,6 +69,13 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         }
     }
 
+    const FKalmalaItemDefinition* CookedDeerMeat = Catalogue->FindItem(TEXT("CookedDeerMeat"));
+    TestNotNull(TEXT("Cooked deer recipe output item is defined"), CookedDeerMeat);
+    if (const FKalmalaRecipe* CookedDeerMeatRecipe = Recipes->Find(TEXT("CookedDeerMeatRecipe")))
+    {
+        TestEqual(TEXT("Cooked deer recipe outputs the stable item ID"), CookedDeerMeatRecipe->Output, FName(TEXT("CookedDeerMeat")));
+    }
+
     for (const FKalmalaRecipe& Recipe : Recipes->Recipes)
     {
         TestFalse(FString::Printf(TEXT("%s has a player-facing recipe name without Kit"), *Recipe.RecipeId.ToString()),

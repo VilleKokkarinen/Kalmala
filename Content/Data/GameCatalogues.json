@@ -146,6 +146,12 @@
       "MaxStack": 20
     },
     {
+      "ItemId": "CookedDeerMeat",
+      "DisplayName": "Cooked deer meat",
+      "Description": "Lean deer meat cooked over a fire.",
+      "MaxStack": 20
+    },
+    {
       "ItemId": "HearthBroth",
       "DisplayName": "Hearth broth",
       "Description": "Boar or deer meat simmered into a warming broth for a steady meal.",
