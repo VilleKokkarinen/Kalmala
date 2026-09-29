@@ -9722,3 +9722,35 @@ Known limits: The seed items are defined but are not currently granted or planta
 Handoff: Implementation commit `18db74e`; main checkout used; isolated verification mirror removed.
 
 Next eligible task: Verify the world and player schema-2 candidates together across host/client reconnect before enabling schema-2 writes.
+
+### Run 2026-09-29T08:20:52Z — Add CookedDeerMeat output item
+
+Outcome: Added the `CookedDeerMeat` catalogue item for the user-renamed
+`CookedDeerMeatRecipe` output. The item uses the existing cooked-food stack
+limit; no consumption effect was added.
+
+Changed: `Content/Data/GameCatalogues.json` (shared with earlier user and
+assistant catalogue edits); `Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/07-development-setup.md`; `docs/09-inventory-verification.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed
+all 200 actions in the isolated `.ms` project mirror. The complete current
+catalogue passed `Kalmala.Gameplay.Inventory.Catalogue` with
+`Result={Success}`; the loader reported 37 items and 15 recipes. JSON parsing
+and `git diff --check` passed. The isolated mirror was removed.
+
+Observable and multiplayer impact: This is a catalogue definition loaded by
+the existing server-side catalogue path. No food-consumption behavior,
+replicated field, RPC, save-schema, or client authority changed.
+
+Known limits: `CookedDeerMeat` is defined as a cooking output but is not added
+to the meal-consumption allowlist or given a `SteadyMeal` effect. No live
+multiplayer session was run. Earlier working-tree catalogue and documentation
+changes remain preserved.
+
+Handoff: Implementation commit `c2acdf3`; main checkout used; isolated
+verification mirror removed.
+
+Next eligible task: Verify the world and player schema-2 candidates together
+across host/client reconnect before enabling schema-2 writes.
