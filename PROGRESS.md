@@ -9754,3 +9754,125 @@ verification mirror removed.
 
 Next eligible task: Verify the world and player schema-2 candidates together
 across host/client reconnect before enabling schema-2 writes.
+
+### Run 2026-09-29T09:04:30Z — Add frying pan and root recipes
+
+Outcome: Added Iron, a reusable Frying pan crafted from five Iron at a visible
+Forge, Root vegetable soup at the Cauldron, and Roasted root vegetables and
+Deer and rutabaga roast using the carried Frying pan. Pan recipes require the
+server-owned inventory to contain the pan without consuming it and require a
+nearby usable lit hearth. The Forge is now a valid recipe station. Cooking
+experience is awarded only after accepted transactions.
+
+Changed: `Content/Data/GameCatalogues.json`; `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp`; `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`; `Source/KalmalaGameplay/Private/KalmalaRecipeCatalogue.cpp`; `Source/KalmalaGameplay/Public/KalmalaRecipeCatalogue.h`; the catalogue, crafting transaction, and cooking heat tests; `docs/07-development-setup.md`; `docs/09-inventory-verification.md`; `docs/10-campfire-and-crafting.md`; `BACKLOG.md`; and `PROGRESS.md`. Earlier working-tree catalogue and documentation edits remain unstaged.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed all 200 actions in an isolated `.ms` mirror. After the loader and test refinements, the incremental builds passed. `Kalmala.Gameplay.Inventory.Catalogue`, `Kalmala.Gameplay.Crafting.Transactions`, and `Kalmala.Gameplay.Food.CookingStationHeat` each passed with `Result={Success}`. The cooking test covers five-Iron Forge payment, missing Forge/tool/heat rejection, all three dishes, retained pan inventory, ingredient consumption, Cooking experience, and unchanged serving fuel. JSON parsing and `git diff --check` passed.
+
+Observable and multiplayer impact: Recipe selection remains client intent only. The server resolves the Forge or Cauldron, checks the owner’s server-held inventory for required ingredients and the reusable pan, verifies hearth heat, performs the atomic exchange, and awards Cooking experience after acceptance. No client-authored item, station, heat, cost, or output value was added. No save-schema or replication field changed.
+
+Known limits: Iron has no configured gathering source, so the pan recipe currently needs Iron granted by another available route. The new cooked outputs remain outside the existing meal-consumption allowlist and have no `SteadyMeal` effects. No live multiplayer session was run. Earlier working-tree catalogue, test, and documentation edits were preserved and excluded from the implementation commit.
+
+Handoff: Implementation commit `6567235`; main checkout used; isolated verification mirror removed.
+
+Next eligible task: Verify the world and player schema-2 candidates together across host/client reconnect before enabling schema-2 writes.
+
+### Run 2026-09-29T07:14:12Z — Remove per-serving recipe fuel and generic fire metadata
+
+Outcome: Removed recipe-specific raw-fuel charging and generic lit-fire recipe metadata. Cooking heat is derived from the resolved food-processing station and a usable lit hearth with positive heat near both the player and station. Lit hearths continue to burn fuel by elapsed server time.
+
+Changed: `BACKLOG.md`; `Content/Data/GameCatalogues.json` (the implementation commit removes the two metadata keys from all 22 recipes in the committed base; pre-existing catalogue edits remain unstaged in the working tree); `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaGameplay/Private/KalmalaRecipeCatalogue.cpp`; `Source/KalmalaGameplay/Public/KalmalaRecipeCatalogue.h`; crafting, food-processing, drying-line, smokehouse, and cooking-heat tests; architecture, decision, setup, inventory, campfire, and M9 recipe documentation; and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed in an isolated project mirror; the final incremental build passed all 5 actions. `UnrealEditor-Cmd.exe` passed `Kalmala.Gameplay.Food.CookingStationHeat`, `Kalmala.Gameplay.Status.SteadyMeal`, `Kalmala.Gameplay.Crafting.Transactions`, `Kalmala.Gameplay.Crafting.NetworkContract`, `Kalmala.Gameplay.Construction.LocalPreview`, and `Kalmala.Gameplay.Construction.SaveContract` with `Result={Success}` and exit code 0. JSON parsing passed with 15 recipes and no remaining instances of either field. `git diff --check` passed. The temporary verification mirror was removed.
+
+Observable and multiplayer impact: Recipe transactions no longer debit raw fuel. Food processing requires the server-resolved station and a usable lit hearth with positive heat in range of both station and player. Existing server-side elapsed-time hearth burn remains authoritative. No save schema or client authority changed.
+
+Known limits: Automation used `-nullrhi`; tests logged world-context warnings, and restricted network access prevented EOS backend startup. All requested automation tests passed. No live host/client session was run. The pre-existing catalogue edits remain unstaged and untouched.
+
+Handoff: Implementation commit `fae90d1`; main checkout used; isolated verification mirror removed.
+
+Next eligible task: Verify the world and player schema-2 candidates together across host/client reconnect before enabling schema-2 writes.
+
+### Run 2026-09-29T07:36:30Z — Add crop and seed catalogue items
+
+Outcome: Added Carrot, Potato, Rutabaga (swede; lanttu in Finnish), and Onion, plus one corresponding seed item for each. Crop items use a 20-item stack limit and seed stacks use 50.
+
+Changed: `Content/Data/GameCatalogues.json` (implementation commit adds eight definitions to the committed catalogue; earlier local catalogue edits remain unstaged); `Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`; `docs/07-development-setup.md`; `docs/09-inventory-verification.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed all 200 actions in the isolated `.vc` project mirror. `Kalmala.Gameplay.Inventory.Catalogue` passed with `Result={Success}` and exit code 0 using the current working catalogue. JSON parsing and item validation passed for 35 current items and 15 current recipes; all descriptions are bounded and every seed description names its crop. `git diff --check` passed. The verification mirror was removed.
+
+Observable and multiplayer impact: These are data-only item definitions loaded through the existing catalogue. No planting action, crop growth, harvest source, recipe, RPC, replicated field, save-schema change, or new client-authoritative value was added. Existing server-owned inventory rules remain the authority for future item transactions.
+
+Known limits: The seed items are defined but are not currently granted or plantable through gameplay. No live multiplayer session was run. Existing user catalogue edits remain preserved and unstaged.
+
+Handoff: Implementation commit `18db74e`; main checkout used; isolated verification mirror removed.
+
+Next eligible task: Verify the world and player schema-2 candidates together across host/client reconnect before enabling schema-2 writes.
+
+### Run 2026-09-29T08:04:52Z — Add MeatStew output item
+
+Outcome: Added the `MeatStew` item and aligned the user-authored
+`MeatStewRecipe` output to that stable item ID. The recipe's ingredients,
+station, batch limit, and experience remain as authored.
+
+Changed: `Content/Data/GameCatalogues.json` (the file contains pre-existing
+user edits and remains unstaged); `Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/07-development-setup.md`; `docs/09-inventory-verification.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed
+all 200 actions in an isolated project mirror. The catalogue automation
+failed on the full working catalogue because `CookedDeetMeatRecipe` outputs
+`CookedDeerMeat`, which is not defined. A mirror-only retry omitting that one
+invalid recipe passed `Kalmala.Gameplay.Inventory.Catalogue` with
+`Result={Success}` while retaining `MeatStewRecipe`. JSON parsing and the
+MeatStew output reference check passed, as did `git diff --check`. The
+temporary mirror was removed. No commit was made because the required
+catalogue verification of the full working tree still fails.
+
+Observable and multiplayer impact: This increment defines a catalogue item
+and recipe output identity only. It adds no food-consumption behavior,
+replicated field, RPC, save-schema change, or client-authoritative value.
+
+Known limits: The current working catalogue cannot load all recipes until the
+missing `CookedDeerMeat` output is resolved. MeatStew is not added to the
+existing meal-consumption allowlist or given a `SteadyMeal` effect. No live
+multiplayer session was run. Existing user catalogue edits remain preserved
+and unstaged.
+
+Handoff: No implementation commit; main checkout used; isolated verification
+mirror removed.
+
+Next task: Resolve the missing item reference for `CookedDeetMeatRecipe`, then
+rerun catalogue validation against the full working catalogue.
+
+### Run 2026-09-29T08:20:52Z — Add CookedDeerMeat output item
+
+Outcome: Added the `CookedDeerMeat` catalogue item for the user-renamed
+`CookedDeerMeatRecipe` output. The item uses the existing cooked-food stack
+limit; no consumption effect was added.
+
+Changed: `Content/Data/GameCatalogues.json` (shared with earlier user and
+assistant catalogue edits); `Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/07-development-setup.md`; `docs/09-inventory-verification.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` build passed
+all 200 actions in the isolated `.ms` project mirror. The complete current
+catalogue passed `Kalmala.Gameplay.Inventory.Catalogue` with
+`Result={Success}`; the loader reported 37 items and 15 recipes. JSON parsing
+and `git diff --check` passed. The isolated mirror was removed.
+
+Observable and multiplayer impact: This is a catalogue definition loaded by
+the existing server-side catalogue path. No food-consumption behavior,
+replicated field, RPC, save-schema, or client authority changed.
+
+Known limits: `CookedDeerMeat` is defined as a cooking output but is not added
+to the meal-consumption allowlist or given a `SteadyMeal` effect. No live
+multiplayer session was run. Earlier working-tree catalogue and documentation
+changes remain preserved.
+
+Handoff: Implementation commit `c2acdf3`; main checkout used; isolated
+verification mirror removed.
+
+Next eligible task: Verify the world and player schema-2 candidates together
+across host/client reconnect before enabling schema-2 writes.
