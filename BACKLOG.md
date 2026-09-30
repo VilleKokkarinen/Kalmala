@@ -403,3 +403,20 @@ and ocean travel without developer commands; tool upgrades require matching
 station levels, free repair is readable and authoritative, exploration rewards
 remain optional, new saves migrate as documented, rejected client mutations
 leave state unchanged, and M8 plus M6 regression gates remain green.
+
+### M10 — Release completion and launch validation
+
+Start only after M9 acceptance passes. Freeze feature scope and prepare the complete supported game for release without adding another gameplay layer. Follow the six ordered goals in `docs/04-roadmap.md`:
+
+- [ ] Freeze feature and content scope: close or defer remaining backlog items, lock accepted gameplay and save schemas, and require a focused regression plus explicit release rationale for any post-freeze change.
+- [ ] Run the complete automated, rendered, authority, persistence, reconnect, world-generation, land-travel, ocean-travel, combat, support, construction, crafting, progression, weather, HUD, accessibility, and performance suite from clean temporary user directories.
+- [ ] Validate current-version saves and all approved migrations, corrupt or malformed rejection, world/player identity mismatch handling, supported backup/recovery behavior, and no partial mutation on failed loads.
+- [ ] Reconfirm startup, frame-time, actor, memory, streaming, worker, raster, replication, package-size, and save budgets across the documented representative hardware/profile matrix; record remaining limitations.
+- [ ] Produce the release candidate package and run the documented fresh-player co-op loop plus extended progression and long-distance travel using normal player actions. Attempt dedicated-server validation only if the documented engine capability is available.
+- [ ] Archive build metadata, test results, logs, screenshots, migration notes, accessibility checks, known limitations, and reproducible release steps.
+
+**M10 release boundary:** after feature freeze, do not introduce a gameplay system, platform, online service, save schema, or authority model unless the roadmap is explicitly reopened. Release work may fix defects, tune bounded values, improve presentation/accessibility, or optimize implementation while preserving accepted contracts.
+
+**M10 multiplayer boundary:** preserve server authority; launch hardening must not add client-selected targets, outcomes, rewards, hidden-content queries, save values, timing authority, or private-state leakage.
+
+**M10 acceptance:** the release candidate passes the complete documented suite from clean profiles; approved saves load or migrate correctly; full co-op progression from first spawn through biome exploration and long-distance ocean travel works without developer tools; performance and accessibility budgets stay within recorded limits; rejected requests leave authoritative state unchanged; and remaining limitations are documented.

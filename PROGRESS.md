@@ -9990,3 +9990,21 @@ working-tree changes.
 Next eligible task: Verify host/client agreement, rejected-mutation no-change
 behavior, owner-only tool/progression state, normal-save/reconnect behavior,
 and the documented actor, memory, replication, and save budgets.
+
+### Run 2026-09-30T11:18:11Z — Add M10 release tasks to backlog
+
+Outcome: Added the six ordered M10 release goals from `docs/04-roadmap.md` to `BACKLOG.md`, including the M9 acceptance start gate, release boundary, multiplayer boundary, and acceptance criteria.
+
+Files changed during this run: `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: `git diff --check` passed. This was a documentation-only queue update; no runtime build or gameplay automation applies.
+
+Observable impact: M10 now has an actionable six-item execution queue aligned with the roadmap. It remains ineligible until M9 acceptance passes.
+
+Authority and persistence assessment: No gameplay, networking, or persistence contracts changed. The M10 queue retains the roadmap's server-authority boundary and introduces no new save schema.
+
+Known limitations: M9 acceptance remains blocked: `Verify-InventoryReconnect.ps1` failed three times before client reconnect; latest evidence was `Accepted=0 DuplicateRejected=1 Harvested=0`, Hatchet stayed at 24, and `Harvest inventory: Passed=0`. This update does not satisfy or bypass that gate.
+
+Handoff: Main checkout used. Existing unrelated worktree changes were preserved and are not included in this run's staged patch.
+
+Next eligible task: Resume the blocked M9 cross-system acceptance child by identifying the exact rejecting stage in the server harvest transaction, then repair and rerun inventory reconnect before continuing parent verification.
