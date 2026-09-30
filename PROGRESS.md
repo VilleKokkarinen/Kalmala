@@ -9872,3 +9872,21 @@ Handoff: Implementation commit `d655600`; main checkout used; no worktree
 handoff synchronization was needed.
 
 Next eligible task: Run M9 cross-system acceptance after implementation.
+
+### Run 2026-09-30T06:49:27Z — Align food contracts to the schema-4 catalogue
+
+Outcome: Followed the user's direction to treat the current schema-4 catalogue as authoritative for camp cooking. Updated food processing, crafting, status, item-catalogue, and placement-preview tests to use the six current food recipe IDs and outputs. The camp-cooking, architecture, decision, persistence, setup, and backlog documentation now distinguish current schema-4 content from retired Smoke Frame and legacy food IDs. Earlier M7 Smoke Frame and broth decisions are marked superseded.
+
+Files changed during this run: BACKLOG.md; PROGRESS.md; docs/02-technical-architecture.md; docs/05-decision-log.md; docs/07-development-setup.md; docs/10-campfire-and-crafting.md; docs/28-m9-camp-equipment-recipes.md; docs/30-m9-persistence-migration.md; Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaFoodProcessingTest.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaPlacementPreviewTest.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp.
+
+Verification: The forced UE 5.8.2 KalmalaEditor Win64 Development build passed 198 actions in the disposable mirror with normal UnrealBuildTool cache access. After correcting a stew fixture count assertion, the incremental rebuild passed all four actions. The UnrealEditor-Cmd path stopped at its existing LinuxArm64/VisionOS SDK preflight; the documented UnrealEditor.exe fallback ran the focused automation batch with exit code 0. All nine tests passed: Food.CampfireProcessing, Food.CookingStationHeat, Status.SteadyMeal, Crafting.Transactions, Inventory.Catalogue, Crafting.NetworkContract, Construction.LocalPreview, Construction.SaveContract, and M9.RaisedStorage. The schema-4 catalogue check confirmed all six active food recipe IDs and zero legacy roast/broth/smoke recipe IDs. git diff --check passed. The longest workspace path was 201 characters and the longest build-mirror path was 223 characters.
+
+Observable impact: The previously failing CampfireProcessing test now verifies current rack and cauldron transactions, catalogue outputs, stack/batch bounds, server authority, and absence of retired IDs. The current recipe and station contract is consistent across the updated docs and tests.
+
+Authority and persistence: No production gameplay, RPC, or replicated fields changed. Normal world/player slots remain schema 1; no schema-2 write integration was added.
+
+Known limitations: HearthBroth remains an item without a catalogue production recipe. M9 cross-system acceptance remains blocked because normal schema-2 writes and first-write merge/revalidation require explicit user direction under AGENTS.md. Rendered UI, physical input, and the packaged walkthrough remain unverified.
+
+Handoff: Work used the main checkout, so no worktree synchronization was needed. The M9 cross-system parent remains unchecked and blocked only on the normal-save schema authorization and write/merge/revalidation work.
+
+Next eligible task: After explicit authorization for normal schema-2 writes to the existing construction/player save slots, implement first-write merge/revalidation and finish M9 cross-system acceptance.

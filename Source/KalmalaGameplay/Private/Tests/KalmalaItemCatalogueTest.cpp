@@ -40,7 +40,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     for (const TCHAR* RemovedField : { TEXT("OutputTool"), TEXT("bRequiresCampfire"), TEXT("AlternateStation"), TEXT("RequiredSkillLevel") })
         TestFalse(FString::Printf(TEXT("Recipe data omits removed field %s"), RemovedField), JsonText.Contains(RemovedField));
     TestTrue(TEXT("Station requirements use JSON arrays"), JsonText.Contains(TEXT("\"RequiredStation\": [")));
-    for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply")), FName(TEXT("RaisedStorage")), FName(TEXT("Smokehouse")) })
+    for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply")), FName(TEXT("RaisedStorage")) })
     {
         TestNull(TEXT("Removed item is not loaded"), Catalogue->FindItem(Id));
         TestNull(TEXT("Removed item recipe is not loaded"), Recipes->Find(Id));
@@ -116,7 +116,6 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         {TEXT("Storage"), TEXT("StorageKit")},
         {TEXT("CookingRack"), TEXT("CookingRackKit")}, {TEXT("Cauldron"), TEXT("CauldronKit")},
         {TEXT("FryingPan"), TEXT("FryingPanKit")},
-        {TEXT("SmokeFrame"), TEXT("SmokeFrameKit")}, {TEXT("DryingLine"), TEXT("DryingLineKit")},
         {TEXT("Floor"), TEXT("FloorKit")}, {TEXT("Wall"), TEXT("WallKit")}, {TEXT("Roof"), TEXT("RoofKit")}
     };
     for (const TPair<FName, FName>& Alias : LegacyAliases)
@@ -135,12 +134,6 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     {
         TestEqual(TEXT("Clean output identity maps to the existing construction identity"), GrindingStone->Output, FName(TEXT("GrindingStoneKit")));
         TestTrue(TEXT("Clean station identity maps to the existing station identity"), GrindingStone->RequiredStation.Contains(TEXT("WorkbenchKit")));
-    }
-    const FKalmalaRecipe* SmokeRecipe = Recipes->Find(TEXT("SmokeBoarMeat"));
-    if (SmokeRecipe)
-    {
-        TestTrue(TEXT("Clean required station maps to the existing station identity"), SmokeRecipe->RequiredStation.Contains(TEXT("SmokeFrameKit")));
-        TestEqual(TEXT("Smoke recipe has no alternate station"), SmokeRecipe->RequiredStation.Num(), 1);
     }
     for (const FName Id : {FName(TEXT("Wood")), FName(TEXT("Stone")), FName(TEXT("Fibre")),
         FName(TEXT("Lightwood")), FName(TEXT("Densewood")), FName(TEXT("Coal"))})

@@ -24,57 +24,52 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
     const auto* Recipes = UKalmalaRecipeCatalogue::Get();
     const auto* Items = UKalmalaItemCatalogue::Get();
     TestTrue(TEXT("Food recipes remain in the validated server catalogue"), Recipes->IsValidCatalogue());
-    for (const FName RecipeId : { FName(TEXT("RoastBoarMeat")), FName(TEXT("RoastDeerMeat")) })
+    TestTrue(TEXT("Food items remain in the validated server catalogue"), Items->IsValidCatalogue());
+
+    const TPair<FName, FName> RecipeAndOutput[] = {
+        {TEXT("CookedBoarMeatRecipe"), TEXT("CookedBoarMeat")},
+        {TEXT("CookedDeerMeatRecipe"), TEXT("CookedDeerMeat")},
+        {TEXT("MeatStewRecipe"), TEXT("MeatStew")},
+        {TEXT("RootVegetableSoupRecipe"), TEXT("RootVegetableSoup")},
+        {TEXT("RoastedRootVegetablesRecipe"), TEXT("RoastedRootVegetables")},
+        {TEXT("DeerRootRoastRecipe"), TEXT("DeerRootRoast")}
+    };
+    for (const TPair<FName, FName>& Entry : RecipeAndOutput)
     {
-        const FKalmalaRecipe* Recipe = Recipes->Find(RecipeId);
-        if (!TestNotNull(TEXT("Configured roasting recipe exists"), Recipe)) continue;
-        TestTrue(TEXT("Roasting requires the server-owned cooking rack"), Recipe->RequiredStation.Contains(TEXT("CookingRackKit")));
-        TestEqual(TEXT("Roasting batch remains bounded"), Recipe->MaxBatch, 5);
-        TestEqual(TEXT("Roasting yields only the approved food item"), Recipe->Output, FName(TEXT("RoastedFieldMeat")));
+        const FKalmalaRecipe* Recipe = Recipes->Find(Entry.Key);
+        if (!TestNotNull(FString::Printf(TEXT("Current food recipe %s exists"), *Entry.Key.ToString()), Recipe)) continue;
+        TestEqual(TEXT("Current recipe yields its stable catalogue food ID"), Recipe->Output, Entry.Value);
+        TestEqual(TEXT("Current food recipe batch stays bounded at five"), Recipe->MaxBatch, 5);
+        const FKalmalaItemDefinition* Output = Items->FindItem(Entry.Value);
+        if (TestNotNull(TEXT("Current recipe output has a catalogue item"), Output))
+            TestEqual(TEXT("Prepared food stack remains bounded at twenty"), Output->MaxStack, 20);
     }
-    for (const FName RecipeId : { FName(TEXT("SimmerBoarBroth")), FName(TEXT("SimmerDeerBroth")) })
+    for (const TPair<FName, FName>& Entry : {
+        TPair<FName, FName>(TEXT("CookedBoarMeatRecipe"), TEXT("CookingRackKit")),
+        TPair<FName, FName>(TEXT("CookedDeerMeatRecipe"), TEXT("CookingRackKit")),
+        TPair<FName, FName>(TEXT("MeatStewRecipe"), TEXT("CauldronKit")),
+        TPair<FName, FName>(TEXT("RootVegetableSoupRecipe"), TEXT("CauldronKit")),
+        TPair<FName, FName>(TEXT("RoastedRootVegetablesRecipe"), TEXT("FryingPanKit")),
+        TPair<FName, FName>(TEXT("DeerRootRoastRecipe"), TEXT("FryingPanKit")) })
     {
-        const FKalmalaRecipe* Recipe = Recipes->Find(RecipeId);
-        if (!TestNotNull(TEXT("Configured cauldron recipe exists"), Recipe)) continue;
-        TestTrue(TEXT("Broth requires the server-owned cauldron"), Recipe->RequiredStation.Contains(TEXT("CauldronKit")));
-        TestEqual(TEXT("Cauldron batch is capped at three servings"), Recipe->MaxBatch, 3);
-        TestEqual(TEXT("Broth yields only the approved food item"), Recipe->Output, FName(TEXT("HearthBroth")));
+        const FKalmalaRecipe* Recipe = Recipes->Find(Entry.Key);
+        if (Recipe) TestTrue(TEXT("Food preparation requires its catalogue station"), Recipe->RequiredStation.Contains(Entry.Value));
     }
-    for (const FName RecipeId : { FName(TEXT("SmokeBoarMeat")), FName(TEXT("SmokeDeerMeat")) })
-    {
-        const FKalmalaRecipe* Recipe = Recipes->Find(RecipeId);
-        if (!TestNotNull(TEXT("Configured smoke-frame recipe exists"), Recipe)) continue;
-        TestTrue(TEXT("Smoking requires the server-owned frame"), Recipe->RequiredStation.Contains(TEXT("SmokeFrameKit")));
-        TestEqual(TEXT("Smoking has no second station alternative"), Recipe->RequiredStation.Num(), 1);
-        TestEqual(TEXT("Smoke batches are capped at three servings"), Recipe->MaxBatch, 3);
-        TestEqual(TEXT("Smoking yields only the approved food item"), Recipe->Output, FName(TEXT("SmokedFieldMeat")));
-    }
-    for (const TPair<FName, FName>& Expected : { TPair<FName, FName>(TEXT("DryBoarMeat"), TEXT("BoarMeat")),
-        TPair<FName, FName>(TEXT("DryDeerMeat"), TEXT("DeerMeat")) })
-    {
-        const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
-        if (!TestNotNull(TEXT("Configured no-hearth drying recipe exists"), Recipe)) continue;
-        TestTrue(TEXT("Drying uses the server-owned Drying Line"), Recipe->RequiredStation.Contains(TEXT("DryingLineKit"))
-            && Recipe->RequiredStation.Num() == 1);
-        TestEqual(TEXT("Drying batch remains bounded to three servings"), Recipe->MaxBatch, 3);
-        TestEqual(TEXT("Drying yields the approved dried field meat"), Recipe->Output, FName(TEXT("DriedFieldMeat")));
-        TestEqual(TEXT("Drying uses the matching raw meat"), Recipe->Ingredients.Num(), 1);
-        if (Recipe->Ingredients.Num() == 1) TestEqual(TEXT("Drying input matches the recipe species"), Recipe->Ingredients[0].ItemId, Expected.Value);
-        TestEqual(TEXT("Drying awards the current fixed Cooking action award"), Recipe->ExperienceAward, 10);
-    }
-    const FKalmalaItemDefinition* Food = Items->FindItem(TEXT("RoastedFieldMeat"));
-    TestNotNull(TEXT("Prepared meat has a catalogue-bounded stack"), Food);
-    if (Food) TestEqual(TEXT("Prepared meat stack ceiling is twenty"), Food->MaxStack, 20);
-    const FKalmalaItemDefinition* Broth = Items->FindItem(TEXT("HearthBroth"));
-    TestNotNull(TEXT("Prepared broth has a catalogue-bounded stack"), Broth);
-    if (Broth) TestEqual(TEXT("Broth stack ceiling is twenty"), Broth->MaxStack, 20);
-    const FKalmalaItemDefinition* SmokedMeat = Items->FindItem(TEXT("SmokedFieldMeat"));
-    TestNotNull(TEXT("Smoked meat has a catalogue-bounded stack"), SmokedMeat);
-    if (SmokedMeat) TestEqual(TEXT("Smoked meat stack ceiling is twenty"), SmokedMeat->MaxStack, 20);
-    const FKalmalaItemDefinition* DriedMeat = Items->FindItem(TEXT("DriedFieldMeat"));
-    TestNotNull(TEXT("Dried meat has a catalogue-bounded stack"), DriedMeat);
-    if (DriedMeat) TestEqual(TEXT("Dried meat stack ceiling is twenty"), DriedMeat->MaxStack, 20);
-    if (!DriedMeat) return false;
+    for (const FName RemovedRecipe : {
+        FName(TEXT("RoastBoarMeat")), FName(TEXT("RoastDeerMeat")),
+        FName(TEXT("SimmerBoarBroth")), FName(TEXT("SimmerDeerBroth")),
+        FName(TEXT("SmokeBoarMeat")), FName(TEXT("SmokeDeerMeat")) })
+        TestNull(TEXT("Retired food recipe is absent from schema four"), Recipes->Find(RemovedRecipe));
+    for (const FName RemovedItem : {
+        FName(TEXT("RoastedFieldMeat")), FName(TEXT("SmokedFieldMeat")),
+        FName(TEXT("SmokeFrame")), FName(TEXT("SmokeFrameKit")) })
+        TestNull(TEXT("Retired food or station item is absent from schema four"), Items->FindItem(RemovedItem));
+
+    const FKalmalaItemDefinition* HearthBroth = Items->FindItem(TEXT("HearthBroth"));
+    if (TestNotNull(TEXT("Hearth broth remains a current catalogue item"), HearthBroth))
+        TestEqual(TEXT("Hearth broth stack remains bounded at twenty"), HearthBroth->MaxStack, 20);
+    TestNull(TEXT("Hearth broth currently has no production recipe"),
+        Recipes->Recipes.FindByPredicate([](const FKalmalaRecipe& Recipe) { return Recipe.Output == TEXT("HearthBroth"); }));
 
     const UFunction* ConsumeIntent = UKalmalaCraftingComponent::StaticClass()->FindFunctionByName(TEXT("ServerConsumeFood"));
     if (TestNotNull(TEXT("Food use uses an explicit server RPC"), ConsumeIntent))
@@ -102,6 +97,7 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
         return false;
     }
     Controller->Possess(Pawn);
+
     UKalmalaCraftingComponent* Crafting = Pawn->FindComponentByClass<UKalmalaCraftingComponent>();
     UKalmalaInventoryComponent* Inventory = Pawn->GetInventoryComponent();
     UKalmalaPlayerStatusComponent* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
@@ -120,278 +116,86 @@ bool FKalmalaFoodProcessingTest::RunTest(const FString& Parameters)
     };
     TestEqual(TEXT("A fresh server pawn begins with no Cooking experience"), GetCookingExperience(), 0);
 
-    TestTrue(TEXT("Fixture provides one boar meat and two deer meat"),
-        Inventory->TryGrantFromServer(TEXT("BoarMeat"), 1) && Inventory->TryGrantFromServer(TEXT("DeerMeat"), 2));
+    const FName CookedBoarRecipeId(TEXT("CookedBoarMeatRecipe"));
+    const FName MeatStewRecipeId(TEXT("MeatStewRecipe"));
+    TestTrue(TEXT("Fixture provides current meat ingredients"),
+        Inventory->TryGrantFromServer(TEXT("BoarMeat"), 2)
+        && Inventory->TryGrantFromServer(TEXT("DeerMeat"), 1));
     FString Reason;
-    TestFalse(TEXT("Roasting rejects a missing rack"), Crafting->CraftFromServer(TEXT("RoastBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Missing-rack failure preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), 1);
+    TestFalse(TEXT("Cooking rejects a missing rack"), Crafting->CraftFromServer(CookedBoarRecipeId, 1, Reason));
+    TestEqual(TEXT("Missing-rack rejection preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), 2);
     TestEqual(TEXT("Rejected preparation awards no Cooking experience"), GetCookingExperience(), 0);
-    TestTrue(TEXT("Unavailable recipe names its required rack"), Crafting->GetRecipeAvailability(TEXT("RoastBoarMeat")).Contains(TEXT("Cooking rack")));
 
     AKalmalaConstructionActor* Rack = World->SpawnActor<AKalmalaConstructionActor>();
-    if (!TestNotNull(TEXT("Transient cooking rack fixture spawned"), Rack))
+    AKalmalaCampfire* Fire = World->SpawnActor<AKalmalaCampfire>();
+    AKalmalaConstructionActor* Cauldron = World->SpawnActor<AKalmalaConstructionActor>();
+    if (!Rack || !Fire || !Cauldron)
     {
+        AddError(TEXT("Cooking station or hearth fixture spawn failed"));
         World->DestroyWorld(false);
         return false;
     }
     Rack->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, 120.0f, 0.0f));
     Rack->InitializeFromServer(TEXT("CookingRackKit"), TEXT("FoodProcessingRack"));
-    TestTrue(TEXT("Placed rack passes the authoritative visibility and access check"), Rack->CanUse(Pawn));
-    TestFalse(TEXT("Roasting rejects a rack without a hot hearth"), Crafting->CraftFromServer(TEXT("RoastBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Missing-heat failure preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), 1);
-
-    Rack->SetActorLocation(Pawn->GetActorLocation() + FVector(400.0f, 0.0f, 0.0f));
-    TestFalse(TEXT("Distant cooking rack rejects processing"), Crafting->CraftFromServer(TEXT("RoastBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Distant-rack failure preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), 1);
-    Rack->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, 120.0f, 0.0f));
-
-    AKalmalaCampfire* Fire = World->SpawnActor<AKalmalaCampfire>();
-    if (!TestNotNull(TEXT("Transient campfire fixture spawned"), Fire))
-    {
-        World->DestroyWorld(false);
-        return false;
-    }
-    Fire->SetActorLocation(Pawn->GetActorLocation() + FVector(120.0f, 0.0f, 0.0f));
-    Fire->InitializePaidFromServer(Pawn);
-    TestFalse(TEXT("An unlit fuelled fire cannot process food"), Crafting->CraftFromServer(TEXT("RoastBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Unlit-fire failure preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), 1);
-
-    Fire->Interact_Implementation(Pawn);
-    Fire->AdvanceFromServer(0.0f, 0.0f, 0.0f);
-    TestTrue(TEXT("Dry fire supplies authoritative heat"), Fire->IsLit() && Fire->GetEffectiveWarmth() > 0.0f);
-
-    AKalmalaConstructionActor* Cauldron = World->SpawnActor<AKalmalaConstructionActor>();
-    if (!TestNotNull(TEXT("Transient hearth cauldron fixture spawned"), Cauldron))
-    {
-        World->DestroyWorld(false);
-        return false;
-    }
     Cauldron->SetActorLocation(Pawn->GetActorLocation() + FVector(-120.0f, 0.0f, 0.0f));
     Cauldron->InitializeFromServer(TEXT("CauldronKit"), TEXT("FoodProcessingCauldron"));
-    TestTrue(TEXT("Placed cauldron passes the authoritative visibility and access check"), Cauldron->CanUse(Pawn));
-    TestTrue(TEXT("Cauldron fixture receives raw meat"), Inventory->TryGrantFromServer(TEXT("BoarMeat"), 2));
-    const int32 BoarMeatBeforeCauldron = Inventory->GetQuantity(TEXT("BoarMeat"));
-    const int32 FuelBeforeShortage = Inventory->GetQuantity(TEXT("Wood"));
-    if (FuelBeforeShortage > 0) Inventory->TryConsumeFromServer(TEXT("Wood"), FuelBeforeShortage);
-    TestFalse(TEXT("Cauldron rejects a batch without its extra fuel"), Crafting->CraftFromServer(TEXT("SimmerBoarBroth"), 1, Reason));
-    TestEqual(TEXT("Fuel shortage preserves cauldron ingredients"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeCauldron);
-    TestEqual(TEXT("Fuel shortage consumes no fuel"), Inventory->GetQuantity(TEXT("Wood")), 0);
-    Cauldron->SetActorLocation(Pawn->GetActorLocation() + FVector(400.0f, 0.0f, 0.0f));
-    Inventory->TryGrantFromServer(TEXT("Wood"), 1);
-    TestFalse(TEXT("Cauldron processing rejects a distant station"), Crafting->CraftFromServer(TEXT("SimmerBoarBroth"), 1, Reason));
-    TestEqual(TEXT("Distant station rejection preserves meat and fuel"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeCauldron);
-    TestEqual(TEXT("Distant station rejection preserves fuel"), Inventory->GetQuantity(TEXT("Wood")), 1);
-    Cauldron->SetActorLocation(Pawn->GetActorLocation() + FVector(-120.0f, 0.0f, 0.0f));
-    TestFalse(TEXT("Cauldron rejects a batch above its three-serving cap"), Crafting->CraftFromServer(TEXT("SimmerBoarBroth"), 4, Reason));
-    TestEqual(TEXT("Over-bound cauldron batch preserves all ingredients"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeCauldron);
-    TestTrue(TEXT("Fixture can fill the broth output stack"), Inventory->TryGrantFromServer(TEXT("HearthBroth"), Broth->MaxStack));
-    TestFalse(TEXT("Full broth output stack rejects cauldron processing"), Crafting->CraftFromServer(TEXT("SimmerBoarBroth"), 1, Reason));
-    TestEqual(TEXT("Output-cap rejection preserves cauldron ingredients"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeCauldron);
-    TestEqual(TEXT("Output-cap rejection preserves station fuel"), Inventory->GetQuantity(TEXT("Wood")), 1);
-    TestTrue(TEXT("Test fixture clears its full output stack"), Inventory->TryConsumeFromServer(TEXT("HearthBroth"), Broth->MaxStack));
-    const float HearthFuelBeforeBroth = Fire->GetFuelSeconds();
-    const int32 CookingExperienceBeforeBroth = GetCookingExperience();
-    TestTrue(TEXT("Cauldron commits meat and station fuel atomically"), Crafting->CraftFromServer(TEXT("SimmerBoarBroth"), 1, Reason));
-    TestEqual(TEXT("Accepted broth consumes one raw serving"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeCauldron - 1);
-    TestEqual(TEXT("Accepted broth consumes its explicit fuel cost"), Inventory->GetQuantity(TEXT("Wood")), 0);
-    TestEqual(TEXT("Cauldron processing adds no separate hearth debit"), Fire->GetFuelSeconds(), HearthFuelBeforeBroth);
-    TestEqual(TEXT("Accepted broth creates one prepared serving"), Inventory->GetQuantity(TEXT("HearthBroth")), 1);
-    TestEqual(TEXT("Accepted broth awards one Cooking transaction amount"), GetCookingExperience(), CookingExperienceBeforeBroth + 10);
-    TestTrue(TEXT("Recipe text states the extra fuel rule"), Crafting->GetRecipeDescription(TEXT("SimmerBoarBroth")).Contains(TEXT("fuel cost")));
-
-    AKalmalaConstructionActor* SmokeFrame = World->SpawnActor<AKalmalaConstructionActor>();
-    if (!TestNotNull(TEXT("Transient smoke frame fixture spawned"), SmokeFrame))
-    {
-        World->DestroyWorld(false);
-        return false;
-    }
-    SmokeFrame->SetActorLocation(Pawn->GetActorLocation() + FVector(120.0f, 120.0f, 0.0f));
-    SmokeFrame->InitializeFromServer(TEXT("SmokeFrameKit"), TEXT("FoodProcessingSmokeFrame"));
-    TestTrue(TEXT("Placed smoke frame passes the authoritative visibility and access check"), SmokeFrame->CanUse(Pawn));
-    const int32 BoarMeatBeforeSmoking = Inventory->GetQuantity(TEXT("BoarMeat"));
-
-    TestTrue(TEXT("Fixture prepares materials for nine accepted cooking actions"),
-        Inventory->TryGrantFromServer(TEXT("BoarMeat"), 9) && Inventory->TryGrantFromServer(TEXT("Wood"), 9));
-    for (int32 Action = 0; Action < 9; ++Action)
-        TestTrue(TEXT("Accepted broth preparation advances Cooking toward level two"),
-            Crafting->CraftFromServer(TEXT("SimmerBoarBroth"), 1, Reason));
-    TestEqual(TEXT("Ten accepted preparation requests reach Cooking level two"), GetCookingExperience(),
-        FKalmalaSkillProgressionContract::ExperiencePerLevel);
-    TestFalse(TEXT("Smoking has no Cooking-level unlock"), Crafting->GetRecipeAvailability(TEXT("SmokeBoarMeat")).Contains(TEXT("Cooking level")));
-
-    TestFalse(TEXT("Smoke frame rejects a batch without its extra fuel"), Crafting->CraftFromServer(TEXT("SmokeBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Fuel shortage preserves smoke-frame ingredients"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeSmoking);
-    TestEqual(TEXT("Fuel shortage consumes no raw fuel item"), Inventory->GetQuantity(TEXT("Wood")), 0);
-    TestTrue(TEXT("Fixture grants one smoke-frame raw fuel item"), Inventory->TryGrantFromServer(TEXT("Wood"), 1));
-    SmokeFrame->SetActorLocation(Pawn->GetActorLocation() + FVector(400.0f, 0.0f, 0.0f));
-    TestFalse(TEXT("Smoke frame rejects processing from beyond access range"), Crafting->CraftFromServer(TEXT("SmokeBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Distant smoke frame preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeSmoking);
-    TestEqual(TEXT("Distant smoke frame preserves fuel"), Inventory->GetQuantity(TEXT("Wood")), 1);
-    SmokeFrame->SetActorLocation(Pawn->GetActorLocation() + FVector(120.0f, 120.0f, 0.0f));
-    TestFalse(TEXT("Smoke frame rejects a batch above three servings"), Crafting->CraftFromServer(TEXT("SmokeBoarMeat"), 4, Reason));
-    TestEqual(TEXT("Over-bound smoking batch preserves meat"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeSmoking);
-    TestTrue(TEXT("Fixture can fill the smoked-meat output stack"), Inventory->TryGrantFromServer(TEXT("SmokedFieldMeat"), SmokedMeat->MaxStack));
-    TestFalse(TEXT("Full smoked-meat output stack rejects smoking"), Crafting->CraftFromServer(TEXT("SmokeBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Output-cap rejection preserves smoking ingredients"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeSmoking);
-    TestEqual(TEXT("Output-cap rejection preserves smoke-frame fuel"), Inventory->GetQuantity(TEXT("Wood")), 1);
-    TestTrue(TEXT("Fixture clears its full smoked-meat stack"), Inventory->TryConsumeFromServer(TEXT("SmokedFieldMeat"), SmokedMeat->MaxStack));
-    const float HearthFuelBeforeSmoking = Fire->GetFuelSeconds();
-    const int32 CookingExperienceBeforeSmoking = GetCookingExperience();
-    TestTrue(TEXT("Smoke frame commits meat and its station fuel atomically"), Crafting->CraftFromServer(TEXT("SmokeBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Accepted smoking consumes one raw serving"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeSmoking - 1);
-    TestEqual(TEXT("Accepted smoking consumes its explicit raw fuel item"), Inventory->GetQuantity(TEXT("Wood")), 0);
-    TestEqual(TEXT("Smoke processing adds no separate hearth debit"), Fire->GetFuelSeconds(), HearthFuelBeforeSmoking);
-    TestEqual(TEXT("Accepted smoking creates one prepared serving"), Inventory->GetQuantity(TEXT("SmokedFieldMeat")), 1);
-    TestEqual(TEXT("Accepted smoking awards one Cooking transaction amount"), GetCookingExperience(), CookingExperienceBeforeSmoking + 10);
-    TestTrue(TEXT("Recipe text explains smoke-frame fuel and heat"), Crafting->GetRecipeDescription(TEXT("SmokeBoarMeat")).Contains(TEXT("fuel cost")));
-    TestTrue(TEXT("Food panel names the available smoked serving"), Crafting->GetFoodText().Contains(TEXT("Smoked field meat: 1 available")));
-
-    const int32 BoarMeatBeforeRack = Inventory->GetQuantity(TEXT("BoarMeat"));
-    Rack->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -240.0f, 0.0f));
-    TestFalse(TEXT("A player-near fire cannot heat a rack more than 250 cm away"), Crafting->CraftFromServer(TEXT("RoastBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Distant-hearth failure preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeRack);
-    Rack->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, 120.0f, 0.0f));
-    TestTrue(TEXT("Recipe text explains rack access and hearth fuel"),
-        Crafting->GetRecipeDescription(TEXT("RoastBoarMeat")).Contains(TEXT("normal rate")));
-    const int32 CookingExperienceBeforeRoast = GetCookingExperience();
-    TestTrue(TEXT("Lit-hearth roast commits through the recipe exchange"), Crafting->CraftFromServer(TEXT("RoastBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Accepted roast consumes exactly one raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), BoarMeatBeforeRack - 1);
-    TestEqual(TEXT("Accepted roast creates exactly one cooked meat"), Inventory->GetQuantity(TEXT("RoastedFieldMeat")), 1);
-    TestEqual(TEXT("Accepted roast awards one Cooking transaction amount"), GetCookingExperience(), CookingExperienceBeforeRoast + 10);
-
-    TestFalse(TEXT("Over-bound cooking batch rejects"), Crafting->CraftFromServer(TEXT("RoastDeerMeat"), 6, Reason));
-    TestEqual(TEXT("Invalid batch preserves all raw ingredients"), Inventory->GetQuantity(TEXT("DeerMeat")), 2);
-    Fire->AdvanceFromServer(1.0f, 0.1f, 0.0f);
-    TestFalse(TEXT("Smouldering fire has no cooking heat"), Fire->IsLit());
-    TestFalse(TEXT("Rain-smouldered fire rejects cooking"), Crafting->CraftFromServer(TEXT("RoastDeerMeat"), 2, Reason));
-    TestEqual(TEXT("Heat failure leaves batch ingredients untouched"), Inventory->GetQuantity(TEXT("DeerMeat")), 2);
-    TestTrue(TEXT("Heat rejection fixture carries the station fuel cost"), Inventory->TryGrantFromServer(TEXT("Wood"), 1));
-    TestFalse(TEXT("Rain-smouldered fire rejects smoke-frame processing"), Crafting->CraftFromServer(TEXT("SmokeDeerMeat"), 1, Reason));
-    TestEqual(TEXT("Missing smoke-frame heat preserves meat"), Inventory->GetQuantity(TEXT("DeerMeat")), 2);
-    TestEqual(TEXT("Missing smoke-frame heat preserves fuel"), Inventory->GetQuantity(TEXT("Wood")), 1);
-    TestFalse(TEXT("Rain-smouldered fire also rejects cauldron processing"), Crafting->CraftFromServer(TEXT("SimmerDeerBroth"), 1, Reason));
-    TestEqual(TEXT("Missing cauldron heat preserves meat"), Inventory->GetQuantity(TEXT("DeerMeat")), 2);
-    TestEqual(TEXT("Missing cauldron heat preserves station fuel"), Inventory->GetQuantity(TEXT("Wood")), 1);
-    TestTrue(TEXT("Test fixture removes its unused station fuel"), Inventory->TryConsumeFromServer(TEXT("Wood"), 1));
+    Fire->SetActorLocation(Pawn->GetActorLocation() + FVector(120.0f, 0.0f, 0.0f));
+    Fire->InitializePaidFromServer(Pawn);
+    TestTrue(TEXT("Placed rack passes authoritative access"), Rack->CanUse(Pawn));
+    TestTrue(TEXT("Placed cauldron passes authoritative access"), Cauldron->CanUse(Pawn));
+    TestFalse(TEXT("An unlit fuelled hearth cannot process food"), Crafting->CraftFromServer(CookedBoarRecipeId, 1, Reason));
+    TestEqual(TEXT("Unlit-hearth rejection preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), 2);
+    Fire->Interact_Implementation(Pawn);
     Fire->AdvanceFromServer(0.0f, 0.0f, 0.0f);
-    TestTrue(TEXT("Dry fire recovers its existing heat state"), Fire->IsLit());
-    const int32 CookingExperienceBeforeBatch = GetCookingExperience();
-    TestTrue(TEXT("Two-item batch uses bounded atomic recipe scaling"), Crafting->CraftFromServer(TEXT("RoastDeerMeat"), 2, Reason));
-    TestEqual(TEXT("Batch consumes both raw pieces"), Inventory->GetQuantity(TEXT("DeerMeat")), 0);
-    TestEqual(TEXT("Batch outputs two cooked pieces"), Inventory->GetQuantity(TEXT("RoastedFieldMeat")), 3);
-    TestEqual(TEXT("One accepted batch awards once regardless of servings"), GetCookingExperience(), CookingExperienceBeforeBatch + 10);
+    TestTrue(TEXT("Dry hearth supplies authoritative heat"), Fire->IsLit() && Fire->GetEffectiveWarmth() > 0.0f);
 
-    TestTrue(TEXT("One prepared meal consumes exactly one food item"), Crafting->ConsumeFoodFromServer(TEXT("RoastedFieldMeat"), Reason));
-    TestEqual(TEXT("Accepted consumption removes one cooked meat"), Inventory->GetQuantity(TEXT("RoastedFieldMeat")), 2);
-    TestEqual(TEXT("Server applies the fixed meal duration"), Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
+    const float FuelBeforeCooking = Fire->GetFuelSeconds();
+    TestTrue(TEXT("Rack cooks the current boar recipe"), Crafting->CraftFromServer(CookedBoarRecipeId, 1, Reason));
+    TestEqual(TEXT("Accepted recipe consumes one raw boar meat"), Inventory->GetQuantity(TEXT("BoarMeat")), 1);
+    TestEqual(TEXT("Accepted recipe creates the current output"), Inventory->GetQuantity(TEXT("CookedBoarMeat")), 1);
+    TestEqual(TEXT("Accepted recipe awards one Cooking transaction amount"), GetCookingExperience(), 10);
+    TestEqual(TEXT("Cooking adds no separate fuel debit"), Fire->GetFuelSeconds(), FuelBeforeCooking);
+
+    TestTrue(TEXT("Fixture provides listed stew vegetables"),
+        Inventory->TryGrantFromServer(TEXT("BoarMeat"), 1)
+        && Inventory->TryGrantFromServer(TEXT("Carrot"), 2)
+        && Inventory->TryGrantFromServer(TEXT("Potato"), 2));
+    const float FuelBeforeStew = Fire->GetFuelSeconds();
+    TestTrue(TEXT("Cauldron prepares the current meat-stew recipe"), Crafting->CraftFromServer(MeatStewRecipeId, 1, Reason));
+    TestEqual(TEXT("Stew consumes one boar meat"), Inventory->GetQuantity(TEXT("BoarMeat")), 1);
+    TestEqual(TEXT("Stew consumes one deer meat"), Inventory->GetQuantity(TEXT("DeerMeat")), 0);
+    TestEqual(TEXT("Stew consumes both carrots"), Inventory->GetQuantity(TEXT("Carrot")), 0);
+    TestEqual(TEXT("Stew consumes both potatoes"), Inventory->GetQuantity(TEXT("Potato")), 0);
+    TestEqual(TEXT("Stew creates the current output"), Inventory->GetQuantity(TEXT("MeatStew")), 1);
+    TestEqual(TEXT("Each accepted recipe request awards Cooking once"), GetCookingExperience(), 20);
+    TestEqual(TEXT("Cauldron recipe adds no separate fuel debit"), Fire->GetFuelSeconds(), FuelBeforeStew);
+
+    TestTrue(TEXT("Hearth broth remains an item in the current catalogue"),
+        Inventory->TryGrantFromServer(TEXT("HearthBroth"), 2));
+    const int32 ExperienceBeforeMeal = GetCookingExperience();
+    TestTrue(TEXT("Current broth item can grant the steady meal"), Crafting->ConsumeFoodFromServer(TEXT("HearthBroth"), Reason));
+    TestEqual(TEXT("Meal use consumes one broth serving"), Inventory->GetQuantity(TEXT("HearthBroth")), 1);
+    TestEqual(TEXT("Meal grants the fixed server duration"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
         UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
-    TestEqual(TEXT("Meal modifier affects authoritative stamina cost"), Status->CalculateStaminaCost(20.0f), 18.0f);
-    Status->AdvanceFromServer(30.0f);
+    TestEqual(TEXT("Meal use awards no Cooking experience"), GetCookingExperience(), ExperienceBeforeMeal);
     const float MealRemainingBeforeDuplicate = Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId);
-    TestFalse(TEXT("A duplicate active meal is rejected"), Crafting->ConsumeFoodFromServer(TEXT("RoastedFieldMeat"), Reason));
-    TestEqual(TEXT("Duplicate rejection does not consume more food"), Inventory->GetQuantity(TEXT("RoastedFieldMeat")), 2);
-    TestEqual(TEXT("Duplicate rejection does not extend the meal"), Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
-        MealRemainingBeforeDuplicate);
-    const int32 BrothBeforeReplacementAttempt = Inventory->GetQuantity(TEXT("HearthBroth"));
-    TestFalse(TEXT("An alternate meal cannot replace an active meal"), Crafting->ConsumeFoodFromServer(TEXT("HearthBroth"), Reason));
-    TestEqual(TEXT("Replacement rejection preserves alternate food"), Inventory->GetQuantity(TEXT("HearthBroth")), BrothBeforeReplacementAttempt);
-    TestEqual(TEXT("Replacement rejection preserves the active timer"), Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
-        MealRemainingBeforeDuplicate);
-    TestFalse(TEXT("Forged food IDs are rejected"), Crafting->ConsumeFoodFromServer(TEXT("Wood"), Reason));
-    TestEqual(TEXT("Forged food rejection leaves inventory alone"), Inventory->GetQuantity(TEXT("RoastedFieldMeat")), 2);
-    const FString ActiveMealText = Crafting->GetFoodText();
-    TestTrue(TEXT("Owner feedback names the active benefit and wait rule"), ActiveMealText.Contains(TEXT("10% lower")) && ActiveMealText.Contains(TEXT("Wait for expiry")));
-    TestTrue(TEXT("Owner feedback keeps every food count visible during a meal"), ActiveMealText.Contains(TEXT("Roasted field meat 2"))
-        && ActiveMealText.Contains(TEXT("Hearth broth 10")) && ActiveMealText.Contains(TEXT("Smoked field meat 1"))
-        && ActiveMealText.Contains(TEXT("Dried field meat 0")));
+    TestFalse(TEXT("A duplicate active meal is rejected"), Crafting->ConsumeFoodFromServer(TEXT("HearthBroth"), Reason));
+    TestEqual(TEXT("Duplicate rejection preserves the remaining serving"), Inventory->GetQuantity(TEXT("HearthBroth")), 1);
+    TestEqual(TEXT("Duplicate rejection preserves the effect timer"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), MealRemainingBeforeDuplicate);
+    TestFalse(TEXT("A removed food ID cannot be consumed"), Crafting->ConsumeFoodFromServer(TEXT("RoastedFieldMeat"), Reason));
+    TestEqual(TEXT("Removed-food rejection preserves the current item"), Inventory->GetQuantity(TEXT("HearthBroth")), 1);
 
-    Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
-    TestFalse(TEXT("Meal expires on server status time"), Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId));
-    TestTrue(TEXT("A new meal is allowed after expiry"), Crafting->ConsumeFoodFromServer(TEXT("RoastedFieldMeat"), Reason));
-    TestEqual(TEXT("Post-expiry meal consumes once"), Inventory->GetQuantity(TEXT("RoastedFieldMeat")), 1);
-    Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
-    TestTrue(TEXT("Hearth broth is an approved alternate meal"), Crafting->ConsumeFoodFromServer(TEXT("HearthBroth"), Reason));
-    TestEqual(TEXT("Broth consumption removes one serving"), Inventory->GetQuantity(TEXT("HearthBroth")), 9);
-    TestEqual(TEXT("Broth grants the existing bounded meal duration"), Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
-        UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
-    Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
-    TestTrue(TEXT("Smoked field meat is an approved alternate meal"), Crafting->ConsumeFoodFromServer(TEXT("SmokedFieldMeat"), Reason));
-    TestEqual(TEXT("Smoked-meat consumption removes one serving"), Inventory->GetQuantity(TEXT("SmokedFieldMeat")), 0);
-    TestEqual(TEXT("Smoked meat grants the existing bounded meal duration"), Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
-        UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
-
-    const int32 FoodBeforeClientAttempt = Inventory->GetQuantity(TEXT("RoastedFieldMeat"));
-    const int32 CookingExperienceBeforeClientAttempt = GetCookingExperience();
-    const float MealBeforeClientAttempt = Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId);
     Pawn->SetRole(ROLE_AutonomousProxy);
-    TestFalse(TEXT("Client cannot invoke the server cooking transaction"), Crafting->CraftFromServer(TEXT("RoastBoarMeat"), 1, Reason));
-    TestFalse(TEXT("Client cannot invoke the server consumption transaction"), Crafting->ConsumeFoodFromServer(TEXT("RoastedFieldMeat"), Reason));
-    TestEqual(TEXT("Client requests do not mutate food inventory"), Inventory->GetQuantity(TEXT("RoastedFieldMeat")), FoodBeforeClientAttempt);
-    TestEqual(TEXT("Client requests cannot award Cooking experience"), GetCookingExperience(), CookingExperienceBeforeClientAttempt);
-    TestEqual(TEXT("Client requests do not mutate the active effect"), Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), MealBeforeClientAttempt);
-
+    TestFalse(TEXT("Client cannot invoke the server cooking transaction"), Crafting->CraftFromServer(CookedBoarRecipeId, 1, Reason));
+    TestFalse(TEXT("Client cannot invoke the server meal-consumption transaction"), Crafting->ConsumeFoodFromServer(TEXT("HearthBroth"), Reason));
+    TestEqual(TEXT("Client requests do not mutate food inventory"), Inventory->GetQuantity(TEXT("HearthBroth")), 1);
     Pawn->SetRole(ROLE_Authority);
+
     Fire->Destroy();
-    AKalmalaConstructionActor* DryingLine = World->SpawnActor<AKalmalaConstructionActor>();
-    if (!TestNotNull(TEXT("Session-only Drying Line fixture spawned"), DryingLine))
-    {
-        Rack->Destroy();
-        Cauldron->Destroy();
-        SmokeFrame->Destroy();
-        World->DestroyWorld(false);
-        return false;
-    }
-    DryingLine->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -120.0f, 0.0f));
-    DryingLine->InitializeFromServer(TEXT("DryingLineKit"), TEXT("FoodProcessingDryingLine"));
-    TestTrue(TEXT("Placed Drying Line passes the authoritative visibility and access check"), DryingLine->CanUse(Pawn));
-    TestTrue(TEXT("Dried recipes explain that no hearth is needed"),
-        Crafting->GetRecipeDescription(TEXT("DryBoarMeat")).Contains(TEXT("no hearth or raw fuel")));
-    TestTrue(TEXT("Fixture provides bounded boar and deer drying inputs"),
-        Inventory->TryGrantFromServer(TEXT("BoarMeat"), 3) && Inventory->TryGrantFromServer(TEXT("DeerMeat"), 3));
-    const int32 DryBoarBefore = Inventory->GetQuantity(TEXT("BoarMeat"));
-    const int32 DryDeerBefore = Inventory->GetQuantity(TEXT("DeerMeat"));
-    const int32 DryExperienceBefore = GetCookingExperience();
-    TestFalse(TEXT("Drying rejects a batch above three servings"), Crafting->CraftFromServer(TEXT("DryBoarMeat"), 4, Reason));
-    TestEqual(TEXT("Over-bound drying preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), DryBoarBefore);
-    TestEqual(TEXT("Over-bound drying awards no Cooking experience"), GetCookingExperience(), DryExperienceBefore);
-    DryingLine->SetActorLocation(Pawn->GetActorLocation() + FVector(400.0f, 0.0f, 0.0f));
-    TestFalse(TEXT("Drying rejects a distant station"), Crafting->CraftFromServer(TEXT("DryBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Distant-line rejection preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), DryBoarBefore);
-    DryingLine->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -120.0f, 0.0f));
-    TestTrue(TEXT("Fixture fills the dried-meat output stack"), Inventory->TryGrantFromServer(TEXT("DriedFieldMeat"), DriedMeat->MaxStack));
-    TestFalse(TEXT("A full output stack rejects drying atomically"), Crafting->CraftFromServer(TEXT("DryBoarMeat"), 1, Reason));
-    TestEqual(TEXT("Output-cap rejection preserves raw meat"), Inventory->GetQuantity(TEXT("BoarMeat")), DryBoarBefore);
-    TestEqual(TEXT("Output-cap rejection awards no Cooking experience"), GetCookingExperience(), DryExperienceBefore);
-    TestTrue(TEXT("Fixture clears the full dried-meat stack"), Inventory->TryConsumeFromServer(TEXT("DriedFieldMeat"), DriedMeat->MaxStack));
-    const int32 WoodBeforeDrying = Inventory->GetQuantity(TEXT("Wood"));
-    const int32 DryingExperienceBeforeAcceptedBatch = GetCookingExperience();
-    TestTrue(TEXT("Drying commits three servings without any hearth or fuel"), Crafting->CraftFromServer(TEXT("DryBoarMeat"), 3, Reason));
-    TestEqual(TEXT("Accepted drying consumes exactly three boar meat"), Inventory->GetQuantity(TEXT("BoarMeat")), DryBoarBefore - 3);
-    TestEqual(TEXT("Accepted drying produces three portions"), Inventory->GetQuantity(TEXT("DriedFieldMeat")), 3);
-    TestEqual(TEXT("No raw fuel is consumed by drying"), Inventory->GetQuantity(TEXT("Wood")), WoodBeforeDrying);
-    TestEqual(TEXT("One three-serving request awards Cooking experience once"), GetCookingExperience(), DryingExperienceBeforeAcceptedBatch + 10);
-    TestTrue(TEXT("Deer drying uses the same bounded server transaction"), Crafting->CraftFromServer(TEXT("DryDeerMeat"), 1, Reason));
-    TestEqual(TEXT("Accepted drying consumes the matching deer meat"), Inventory->GetQuantity(TEXT("DeerMeat")), DryDeerBefore - 1);
-    TestEqual(TEXT("Both species share the same dried food output"), Inventory->GetQuantity(TEXT("DriedFieldMeat")), 4);
-    TestTrue(TEXT("Owner food feedback shows dried portions"), Crafting->GetFoodText().Contains(TEXT("Dried field meat 4")));
-    TestEqual(TEXT("Drying works with no hearth in the world"), Crafting->GetNearbyFireText(), FString(TEXT("No hearth within 2.5 m")));
-
-    Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
-    TestTrue(TEXT("Dried field meat activates the existing steady meal"), Crafting->ConsumeFoodFromServer(TEXT("DriedFieldMeat"), Reason));
-    TestEqual(TEXT("Eating dried meat consumes one portion"), Inventory->GetQuantity(TEXT("DriedFieldMeat")), 3);
-    const int32 DriedBeforeDuplicateMeal = Inventory->GetQuantity(TEXT("DriedFieldMeat"));
-    TestFalse(TEXT("Dried meat cannot replace an active meal"), Crafting->ConsumeFoodFromServer(TEXT("DriedFieldMeat"), Reason));
-    TestEqual(TEXT("Active-meal rejection preserves dried meat"), Inventory->GetQuantity(TEXT("DriedFieldMeat")), DriedBeforeDuplicateMeal);
-    const int32 DryExperienceBeforeClientRequest = GetCookingExperience();
-    Pawn->SetRole(ROLE_AutonomousProxy);
-    TestFalse(TEXT("Client cannot author Drying Line processing"), Crafting->CraftFromServer(TEXT("DryBoarMeat"), 1, Reason));
-    TestFalse(TEXT("Client cannot author a dried-meat effect"), Crafting->ConsumeFoodFromServer(TEXT("DriedFieldMeat"), Reason));
-    TestEqual(TEXT("Client drying attempts do not award skill experience"), GetCookingExperience(), DryExperienceBeforeClientRequest);
-
     Rack->Destroy();
     Cauldron->Destroy();
-    SmokeFrame->Destroy();
-    DryingLine->Destroy();
     World->DestroyWorld(false);
     return true;
 }

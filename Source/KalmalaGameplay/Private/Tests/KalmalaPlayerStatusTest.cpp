@@ -160,16 +160,14 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
 {
     TArray<FKalmalaPlayerStatusEntry> Entries;
     TestFalse(TEXT("Unknown items cannot create food effects"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("Wood")));
-    TestTrue(TEXT("Roasted field meat creates a meal effect"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("RoastedFieldMeat")));
+    TestTrue(TEXT("Current catalogue hearth broth creates a meal effect"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("HearthBroth")));
     TestEqual(TEXT("Meal has one server-defined finite entry"), Entries.Num(), 1);
     TestEqual(TEXT("Meal uses the fixed server duration"), Entries[0].RemainingSeconds, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     TestEqual(TEXT("Meal reduces stamina use without changing movement speed"),
         UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).StaminaUse,
         UKalmalaPlayerStatusComponent::SteadyMealStaminaUseMultiplier);
     TestEqual(TEXT("Meal does not add a movement-speed bonus"), UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).Movement, 1.0f);
-    TestFalse(TEXT("A second meal cannot stack or replace the active one"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("RoastedFieldMeat")));
-    TestFalse(TEXT("An alternate broth also cannot replace an active meal"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("HearthBroth")));
-    TestFalse(TEXT("Dried meat also cannot replace an active meal"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("DriedFieldMeat")));
+    TestFalse(TEXT("A second broth serving cannot stack or replace the active meal"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("HearthBroth")));
     TestEqual(TEXT("Rejected meal preserves its timer"), Entries[0].RemainingSeconds, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
 
     UKalmalaPlayerStatusComponent::Advance(Entries, 30.0f);
@@ -179,8 +177,6 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Expired meal restores stamina costs"), UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).StaminaUse, 1.0f);
     TestTrue(TEXT("Hearth broth may supply the next meal after expiry"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("HearthBroth")));
     UKalmalaPlayerStatusComponent::Advance(Entries, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
-    TestTrue(TEXT("Dried field meat may supply the same bounded meal after expiry"),
-        UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("DriedFieldMeat")));
 
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     AKalmalaCharacter* Pawn = World ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
@@ -190,9 +186,9 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
         return false;
     }
     auto* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
-    TestTrue(TEXT("Server owner may apply a known meal"), Status && Status->ApplyFoodFromServer(TEXT("RoastedFieldMeat")));
+    TestTrue(TEXT("Server owner may apply the current catalogue meal item"), Status && Status->ApplyFoodFromServer(TEXT("HearthBroth")));
     Pawn->SetRole(ROLE_AutonomousProxy);
-    TestFalse(TEXT("Owning client cannot author a meal effect"), Status && Status->ApplyFoodFromServer(TEXT("RoastedFieldMeat")));
+    TestFalse(TEXT("Owning client cannot author a meal effect"), Status && Status->ApplyFoodFromServer(TEXT("HearthBroth")));
     TestEqual(TEXT("Rejected client application retains the server timer"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
         UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);

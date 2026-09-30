@@ -4,7 +4,7 @@ Every new character carries a Construction Hammer, shown in the right hand. Pres
 
 ## Recipes and transactions
 
-The server-local `KalmalaRecipeCatalogue` loads these original recipes from schema-version-4 `Content/Data/GameCatalogues.json` alongside the item definitions. Unreal stages the `Content/Data` directory through UFS for packaged builds. `RequiredStation` is an array; any listed visible same-world station within 250 cm satisfies that recipe. The optional `RequiredTool` names a catalogue item that must be present in the server-owned pack and is never consumed by the recipe exchange. Food recipes use only their listed ingredients. A usable lit hearth with positive heat must be within 250 cm of both player and station for cooking racks, cauldrons, frying pans, and smoke frames. Hearth fuel burns continuously by server time; a cooking batch adds no fuel debit. Recipe IDs, ingredient and tool IDs, duplicate definitions, quantities, output stack limits and batch arithmetic are validated before use; malformed or missing JSON fails closed. Disabled recipes are locked server-side.
+The server-local `KalmalaRecipeCatalogue` loads these original recipes from schema-version-4 `Content/Data/GameCatalogues.json` alongside the item definitions. Unreal stages the `Content/Data` directory through UFS for packaged builds. `RequiredStation` is an array; any listed visible same-world station within 250 cm satisfies that recipe. The optional `RequiredTool` names a catalogue item that must be present in the server-owned pack and is never consumed by the recipe exchange. Food recipes use only their listed ingredients. A usable lit hearth with positive heat must be within 250 cm of both player and station for Cooking Rack, Cauldron, and Frying Pan recipes; schema 4 has no Smoke Frame station or recipe. Hearth fuel burns continuously by server time; a cooking batch adds no fuel debit. Recipe IDs, ingredient and tool IDs, duplicate definitions, quantities, output stack limits and batch arithmetic are validated before use; malformed or missing JSON fails closed. Disabled recipes are locked server-side.
 
 Looking at a Cooking rack, Hearth cauldron, or Frying pan displays a remappable **Interact** prompt. Pressing **E** (the default) sends the existing server-validated interaction; the server confirms the target and sends the station identity to its owner. The local crafting panel then opens with only recipes for that placed station. This filter is presentation only: every craft request still makes the server resolve the nearby station, verify live hearth heat and inventory, and commit the listed ingredient exchange. The B Construction Hammer menu continues to show the full recipe list and placeable items.
 
@@ -15,27 +15,20 @@ Looking at a Cooking rack, Hearth cauldron, or Frying pan displays a remappable 
 | Chest | 6 splitwood + 8 reed fibre | Handcrafted | 1 |
 | Cooking rack | 9 splitwood + 8 reed fibre | Handcrafted | 1 |
 | Hearth cauldron | 9 splitwood + 6 reed fibre + 3 fieldstone | Handcrafted | 1 |
-| Smoke frame | 9 splitwood + 9 reed fibre | Handcrafted | 1 |
-| Drying Line | 6 splitwood + 7 reed fibre + 1 Densewood | Visible same-world Joiner's bench within 250 cm | 1 |
 | Timber floor | 6 splitwood + 4 reed fibre | Construction Hammer; valid ground | 1 per placement |
 | Windbreak wall | 6 splitwood + 6 reed fibre | Construction Hammer; valid ground | 1 per placement |
 | Reed roof | 6 splitwood + 8 reed fibre | Construction Hammer; valid ground | 1 per placement |
-| Roast boar field meat | 1 boar field meat | Visible cooking rack plus usable lit hearth with positive heat within 250 cm of both | 5 |
-| Roast deer field meat | 1 deer field meat | Visible cooking rack plus usable lit hearth with positive heat within 250 cm of both | 5 |
-| Simmer boar broth | 1 boar field meat | Visible cauldron plus usable lit hearth with positive heat within 250 cm of both | 3 |
-| Simmer deer broth | 1 deer field meat | Visible cauldron plus usable lit hearth with positive heat within 250 cm of both | 3 |
-| Smoke boar field meat | 1 boar field meat | Visible Smoke Frame plus usable lit hearth with positive heat within 250 cm of both | 3 |
-| Smoke deer field meat | 1 deer field meat | Visible Smoke Frame plus usable lit hearth with positive heat within 250 cm of both | 3 |
-| Dry boar field meat | 1 boar field meat | Visible same-world Drying Line within 250 cm; no hearth or fuel | 3 |
-| Dry deer field meat | 1 deer field meat | Visible same-world Drying Line within 250 cm; no hearth or fuel | 3 |
+| Cooked boar meat | 1 BoarMeat | Visible Cooking Rack plus usable lit hearth with positive heat within 250 cm of both | 5 |
+| Cooked deer meat | 1 DeerMeat | Visible Cooking Rack plus usable lit hearth with positive heat within 250 cm of both | 5 |
+| Meat stew | 1 BoarMeat + 1 DeerMeat + 2 Carrot + 2 Potato | Visible Cauldron plus usable lit hearth with positive heat within 250 cm of both | 5 |
 | Frying pan | 5 Iron | Visible same-world Forge within 250 cm; place the crafted pan with the Construction Hammer | 1 |
-| Root vegetable soup | 1 Carrot + 1 Potato + 1 Rutabaga + 1 Onion | Visible cauldron plus usable lit hearth with positive heat within 250 cm of both | 5 |
-| Roasted root vegetables | 1 Carrot + 1 Potato + 1 Onion | Visible same-world Frying pan plus usable lit hearth with positive heat within 250 cm of both | 5 |
-| Deer and rutabaga roast | 1 deer meat + 1 Rutabaga + 1 Onion | Visible same-world Frying pan plus usable lit hearth with positive heat within 250 cm of both | 5 |
+| Root vegetable soup | 1 Carrot + 1 Potato + 1 Rutabaga + 1 Onion | Visible Cauldron plus usable lit hearth with positive heat within 250 cm of both | 5 |
+| Roasted root vegetables | 1 Carrot + 1 Potato + 1 Onion | Visible same-world Frying Pan plus usable lit hearth with positive heat within 250 cm of both | 5 |
+| Deer and rutabaga roast | 1 DeerMeat + 1 Rutabaga + 1 Onion | Visible same-world Frying Pan plus usable lit hearth with positive heat within 250 cm of both | 5 |
 
 Iron is defined as a catalogue material for the Frying pan recipe; no Iron gathering source is currently configured.
 
-`Fuel`, `ConstructionSupply`, `RaisedStorage`, and `Smokehouse` are retired item IDs. Old saved chest `Fuel` stacks normalize to Wood; each saved `ConstructionSupply` becomes 3 Wood and 2 Fibre. Storage save schema 1 is unchanged. The normal storage construction is presented as **Chest** and is the only chest variant. Raw Wood, Lightwood, Densewood, and Coal each add 60 seconds to a hearth and burn at one fuel second per elapsed server second. Coal is accepted as fuel when present, but the current world loot catalogue has no Coal source.
+`Fuel`, `ConstructionSupply`, and `RaisedStorage` are retired item IDs. Old saved chest `Fuel` stacks normalize to Wood; each saved `ConstructionSupply` becomes 3 Wood and 2 Fibre. Storage save schema 1 is unchanged. The normal storage construction is presented as **Chest** and is the only chest variant. Raw Wood, Lightwood, Densewood, and Coal each add 60 seconds to a hearth and burn at one fuel second per elapsed server second. Coal is accepted as fuel when present, but the current world loot catalogue has no Coal source.
 
 M9 free tool repair supersedes M7's material-paid repair and broken-tool
 replacement routes. The owner selects any damaged carried tool in Camp
@@ -77,31 +70,36 @@ The Stone Pick replacement follows the same server transaction and visibility ru
 
 The Reed Knife replacement uses 1 splitwood, 1 fieldstone, and 2 reed fibre at the same visible same-world workbench. It is available only at zero condition, pays before restoring the existing owner-only 16/16 condition, and awards one fixed 10 Crafting experience after acceptance. Repair with gathered Fibre remains available for a worn knife. Intact-tool, missing-workbench/material, duplicate, batch, and malformed attempts leave inventory and condition unchanged; no tool item or save field is created.
 
-### First cooked food and consumption contract
+### Current catalogue food processing and meal use
 
-Roasted field meat uses the existing server-selected boar and deer drops, with one cooked piece per input and at most five pieces per request. The player needs an accepted Cooking rack construction and a usable hearth within 250 cm of both the player and rack. The fire must be in `Lit` state with finite positive heat. A workbench, empty fire, rain-smouldering fire, missing rack, or distant rack does not qualify. The rack has no separate fuel store: the hearth continues its normal one-fuel-second-per-second burn while lit, and a batch adds no fuel item cost or hidden processing timer. The server derives this heat check from the resolved cooking station and never trusts a client-selected fire.
+Schema 4 defines six food recipes: CookedBoarMeatRecipe and
+CookedDeerMeatRecipe use the Cooking Rack; MeatStewRecipe and
+RootVegetableSoupRecipe use the Cauldron; RoastedRootVegetablesRecipe and
+DeerRootRoastRecipe use the Frying Pan. Their outputs are CookedBoarMeat,
+CookedDeerMeat, MeatStew, RootVegetableSoup, RoastedRootVegetables, and
+DeerRootRoast. Every recipe has a five-serving batch cap and each output stack
+is capped at twenty. Recipe ingredients and station requirements are listed
+in the catalogue table above and in docs/28-m9-camp-equipment-recipes.md.
 
-Cooking uses the ordinary inventory scratch exchange. Missing rack access, heat, ingredients, valid recipe, or output capacity leaves all ingredients unchanged. The rack batch limit is five, output stack limit is 20, and roasted meat does not spoil in this first slice. Each food button sends only its selected allowlisted item identity; the server validates that identity, the owning pawn, its private pack, and the available meal slot before committing exactly one item.
+For each recipe, the server selects a visible same-world station and requires
+a usable lit hearth with finite positive heat within 250 cm of both player and
+station. Missing access, heat, ingredients, valid batch, or output capacity
+rejects the whole inventory exchange. Accepted requests award one fixed 10
+Cooking experience after the exchange succeeds, regardless of batch size.
+Recipes have no Cooking-level lock. Hearth fuel burns at the normal
+one-fuel-second-per-second rate; a serving batch charges no separate fuel or
+processing timer.
 
-The placed Hearth cauldron is a separate visible construction using the existing world-identity construction record. Simmering boar or deer broth requires a visible same-world cauldron and a usable lit same-world hearth with positive heat within 250 cm of both the player and cauldron. Each serving consumes only its listed raw meat ingredient. The hearth burns at its ordinary rate while lit, independent of serving count. Batches cap at three, the output stack caps at 20, and missing access, positive heat, ingredients, a valid batch, or output capacity leaves the entire exchange unchanged.
-
-The Smoke Frame, when present, follows the same station heat rule: the server resolves its visible same-world identity, then requires a usable lit hearth with positive heat near the player and frame. Its recipe consumes only its listed ingredients; the hearth burns at its ordinary rate while lit, with no extra fuel item cost or hidden processing timer.
-
-The Drying Line recipe converts the retired two ConstructionSupply cost into 6 Wood and 4 Fibre, then adds its original 3 Fibre and 1 Densewood cost. It requires a visible same-world Workbench within 250 cm. Its placed construction uses the existing actor and validation path, is capped at five per server session, and remains out of construction save schema 1 until M9 migration is approved. Drying boar or deer meat requires a visible same-world line within 250 cm; each serving exchanges one matching raw meat for one Dried field meat, batches cap at three, and no hearth or fuel is required. Rejected station, batch, input, or output-capacity checks preserve the inventory and Cooking experience.
-
-Smoking uses the Smoke Frame only. Recipes do not require a Cooking level; accepted recipe requests still grant the existing fixed Cooking experience after the inventory exchange succeeds. The removed roofed Smokehouse no longer participates in recipe selection or placement.
-
-Roasted field meat, Hearth Broth, Smoked field meat, and Dried field meat grant `State.Food.SteadyMeal` for 120 seconds of server status time and reduce server-derived stamina costs to 90% (including sprint and support activation costs). One meal slot is active at a time: effects do not stack, refresh, or replace one another. A further meal request fails without consuming food until the current effect expires; the server consumes the item only after checking that the slot is open and restores the candidate exchange if status application fails. Server status time expires the effect and immediately restores the ordinary stamina cost. The crafting panel keeps all four prepared-food counts visible while showing the active timer, benefit, wait-until-expiry rule, and no-stacking/no-replacement rule in text. Food remains optional: there is no hunger drain or food requirement for travel. Food inventory and the meal effect remain transient, with no save-schema change.
-
-Every accepted roast, broth, smoke, or drying recipe transaction also awards one fixed 10 Cooking experience through the server-owned skill component after the private-pack exchange succeeds. The award is per accepted request regardless of batch size; rejected station, heat, batch, ingredient, output-capacity, or client requests award none. This transient award provides progression for future skill-gated recipes without adding a client-authored outcome or save field.
-
-Food preparation has no skill-level lock. The server validates required station access and heat where declared, materials, output capacity, and batch bounds before committing an exchange; accepted actions still award a fixed 10 Cooking experience. Progression remains pawn-lifetime until a versioned progression save contract is added.
-
-The Cooking rack, Hearth cauldron, and Smoke frame use the existing recipe catalogue and server-validated construction transaction, and are stored as ordinary construction kit identities in construction save schema 1. The Drying Line is also server-validated and uses an original procedural presentation, but remains session-only until M9 migration. Their presentations derive from the replicated construction identity. None has a separate recipe timer, private storage, network payload, or recipe save state.
-
+The current schema-4 catalogue has no Smoke Frame, smoke recipes,
+RoastedFieldMeat, or SmokedFieldMeat. HearthBroth remains a catalogue item
+with no production recipe; it is still recognized by the existing transient
+steady-meal effect. Meal use is server-authoritative, consumes one item only
+when the slot is free, and grants 120 seconds of 10% lower stamina cost.
+Duplicate use preserves both item count and timer. Food is optional, and food
+inventory and the effect add no save field.
 ## Build menu and local placement preview
 
-Choose a construction entry in the hammer menu and press **P** or select **Preview placement**. The local presentation probes generated collision 165 cm ahead and reports a readable valid/invalid result for terrain availability, slope, water, and nearby pawn blocking. It supports hearth, workbench, Forge, Chest, cooking rack, cauldron, Smoke Frame, floor, wall, and roof constructions; ingredients and raw materials do not offer a placement preview. The preview does not spawn or reserve an actor, alter inventory, send an RPC, or write save data. It is only a local aid: the later server request revalidates every placement condition.
+Choose a construction entry in the hammer menu and press **P** or select **Preview placement**. The local presentation probes generated collision 165 cm ahead and reports a readable valid/invalid result for terrain availability, slope, water, and nearby pawn blocking. It supports hearth, workbench, Forge, Chest, cooking rack, cauldron, Frying Pan, floor, wall, and roof constructions; ingredients and raw materials do not offer a placement preview. The preview does not spawn or reserve an actor, alter inventory, send an RPC, or write save data. It is only a local aid: the later server request revalidates every placement condition.
 
 The hammer build menu places a hearth ring, floor, wall, and roof directly from materials. A hearth costs 5 Stone and 3 Wood, plus one raw Wood, Lightwood, Densewood, or Coal that starts it with 60 seconds; floors cost 6 Wood and 4 Fibre, walls cost 6 Wood and 6 Fibre, and roofs cost 6 Wood and 8 Fibre. All construction recipes consume raw materials directly. Players no longer craft or carry the four direct-build items, and no intermediate `Fuel` or `ConstructionSupply` item is produced. Other camp constructions also consume their listed raw-material recipes.
 

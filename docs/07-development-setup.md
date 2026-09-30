@@ -1000,18 +1000,22 @@ automation log must show `Result={Success}`. This is a presentation-only
 contract check and does not replace rendered readability review.
 ### M7 first food transaction
 
-Roasted field meat uses existing server-selected boar or deer rewards and a visible same-world Cooking rack. The rack must be within 250 cm of the player; a usable lit hearth with finite positive heat must be within 250 cm of both player and rack. A workbench, missing/distant rack, extinguished fire, or rain-smouldering fire is not a substitute. The server applies the catalogue batch limit and existing atomic inventory exchange. The hearth burns at its normal rate by elapsed server time; processing adds no separate fuel debit.
+The original M7 acceptance used roasted field-meat IDs. That content was
+superseded by the current schema-4 catalogue. For current recipe IDs,
+ingredients, stations, and outputs, use the catalogue contract in
+`docs/28-m9-camp-equipment-recipes.md` and the focused current-catalogue tests
+listed below.
 
-The Cooking rack, Hearth cauldron, Frying pan, and Smoke frame use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. The server resolves each required station and derives heat needs from its cooking identity. A cooking rack, cauldron, or frying-pan recipe requires a usable Lit hearth with finite positive heat within 250 cm of both player and station. Looking at a rack, cauldron, or frying pan shows a remappable Interact prompt; the default E interaction is rerun by the server, which replicates the selected station identity and opens an owner-local GUI filtered to that station's recipes. The filter does not authorize crafting: the server independently checks the recipe's visible same-world station, live hearth heat, private inventory, and atomic ingredient exchange. Each recipe exchange consumes only the listed ingredients; the hearth burns its fuel by elapsed server time at the ordinary one-fuel-second-per-second rate. A serving batch creates no raw-fuel item debit or hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming an accepted meal and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. The crafting panel shows the timer, benefit, wait rule, and all prepared-food counts while the effect is active. Food remains optional, with no hunger drain or travel requirement. Food and the effect remain transient; no save schema changed.
+The Cooking Rack, Cauldron, and Frying Pan use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. The server resolves each required station and derives heat needs from its cooking identity. A food recipe requires a usable Lit hearth with finite positive heat within 250 cm of both player and station. Looking at a rack, cauldron, or frying pan shows a remappable Interact prompt; the default E interaction is rerun by the server, which replicates the selected station identity and opens an owner-local GUI filtered to that station's recipes. The filter does not authorize crafting: the server independently checks the recipe's visible same-world station, live hearth heat, private inventory, and atomic ingredient exchange. Each recipe exchange consumes only the listed ingredients; the hearth burns its fuel by elapsed server time at the ordinary one-fuel-second-per-second rate. A serving batch creates no raw-fuel item debit or hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming an accepted meal and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. `HearthBroth` remains an item without a production recipe; food recipes and outputs are enumerated in `docs/28-m9-camp-equipment-recipes.md`. Food remains optional, with no hunger drain or travel requirement. Food and the effect remain transient; no save schema changed.
 
 Each successful prepared-food recipe transaction awards one fixed 10 Cooking experience through the existing server-owned skill component, regardless of its serving batch. The award happens only after the atomic private-pack exchange succeeds. Rejected stations, heat, quantities, inputs, or output capacity award no experience; client-side calls cannot reach the award path. The award is transient. `Kalmala.Gameplay.Food.CookingStationHeat` checks the station-local heat rule, no recipe fuel debit, and time-based fire burn; `Kalmala.Gameplay.Crafting.Transactions` checks recipe batches and raw-fuel selection for hearth refuelling.
 
 The recipes do not require a Cooking level, and accepted cooking awards remain post-transaction.
 
-After the forced editor build, run the focused cooking-heat, status, inventory recipe, RPC, and placement-preview contracts. The cooking heat test covers missing rack/fire rejection, heat at the resolved cooking station, no recipe fuel debit, elapsed-time hearth burn, bounded batches, and unchanged inventory on rejection. The crafting transaction test checks raw fuel selection for hearth refuelling separately from recipe ingredient exchanges:
+After the forced editor build, run `Kalmala.Gameplay.Food.CampfireProcessing`, `Kalmala.Gameplay.Food.CookingStationHeat`, and the focused status, inventory recipe, RPC, and placement-preview contracts. CampfireProcessing checks current schema-4 recipe/output/station IDs, retired cooking aliases, rack/cauldron inventory transactions, and the HearthBroth meal item. The cooking heat test covers station-local heat, no recipe fuel debit, elapsed-time hearth burn, bounded batches, and unchanged inventory on rejection. The crafting transaction test checks raw fuel selection for hearth refuelling separately from recipe ingredient exchanges:
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CampfireProcessing+Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ## Windows Development package smoke
@@ -1172,7 +1176,7 @@ After a forced editor build, run
 `Kalmala.Gameplay.Tools.CarriedToolInventoryContract`,
 `Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract`,
 `Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract+Kalmala.Gameplay.Construction.ShelterPieces+Kalmala.Gameplay.Construction.ShelterSampling`,
-`Kalmala.Gameplay.M9.RaisedStorage+Kalmala.Gameplay.M9.Smokehouse`,
+`Kalmala.Gameplay.M9.RaisedStorage`,
 `Kalmala.Gameplay.Food.CookingStationHeat`, and
 `Kalmala.Gameplay.Storage.SaveContract+Kalmala.Gameplay.Storage.Transfers+Kalmala.Gameplay.Storage.NetworkContract`
 with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and
@@ -1200,46 +1204,17 @@ replicated gameplay field, or saved-data schema.
 
 ### M9 retired camp variants and raw-material catalogue
 
-The raised chest and Smokehouse have no item, recipe, placement-preview,
-storage, or crafting-station identity in current gameplay. The normal Chest and
-Smoke Frame remain supported. Run
-`Kalmala.Gameplay.M9.RaisedStorage+Kalmala.Gameplay.M9.Smokehouse` to assert
-those absences and the surviving Chest/Smoke Frame recipes, together with
+The raised chest has no item, recipe, placement-preview, or storage identity in
+current gameplay. The normal Chest remains the only storage construction, and
+the current schema-4 catalogue has no Smoke Frame or legacy smoke recipes. Run
+`Kalmala.Gameplay.M9.RaisedStorage` to assert that absence and the surviving
+Chest recipe, together with `Kalmala.Gameplay.Food.CampfireProcessing`,
 `Kalmala.Gameplay.Food.CookingStationHeat`,
 `Kalmala.Gameplay.Crafting.Transactions`,
 `Kalmala.Gameplay.Construction.LocalPreview`, and
 `Kalmala.Gameplay.Storage.SaveContract`. The storage test also checks that old
 schema-one chest contents convert Fuel to Wood and ConstructionSupply to its
 equivalent Wood and Fibre quantities. No save schema is extended.
-
-### M9 no-hearth Drying Line
-
-After a forced `KalmalaEditor Win64 Development` build, run
-`Kalmala.Gameplay.M9.DryingLine`,
-`Kalmala.Gameplay.Food.CookingStationHeat`,
-`Kalmala.Gameplay.Status.SteadyMeal`,
-`Kalmala.Gameplay.Inventory.Catalogue`,
-`Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract`,
-and `Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract`
-with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and
-`-TestExit="Automation Test Queue Empty"` arguments. Require every requested
-test to pass. The drying tests check the raw-material construction recipe,
-visible same-world station requirement, three-serving cap, absence of hearth
-and fuel requirements, atomic inventory exchange, no-change rejection, the
-existing meal effect, and one server-owned Cooking award after acceptance.
-The construction-save check confirms the line stays outside schema 1 before
-M9 migration. Then run `Scripts/Verify-Crafting.ps1 -Port <unused-port>` for
-the host/client menu, authority, and inventory regression. The two-peer run
-also sends an over-bound Drying Line request and missing-Workbench/Drying-Line
-requests from the client owner, then requires the owner-only rejection result,
-inventory, and Cooking experience to remain unchanged. Both peer menus assert
-the readable Chest, Smoke Frame, Drying Line, drying/smoking, and direct-hammer
-cost and station guidance. Run `Scripts/Verify-InventoryReconnect.ps1` and
-`Scripts/Verify-Storage.ps1` on unused ports for owner-only inventory and Chest
-privacy, rejected transfer, and stable saved-identity regressions. These are
-text-contract checks; the null-renderer run does not review layout or
-assistive-technology output. No RPC, replicated gameplay field, or saved-data
-schema is added.
 
 ### M9 optional land exploration rewards
 

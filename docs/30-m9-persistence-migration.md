@@ -1,8 +1,7 @@
 # M9 progression and discovery persistence contract
 
 This accepted design defines the version and migration boundary required before
-M9 tool progression, station progression, land-discovery claims, or the
-approved Drying Line may use normal saves. It extends the existing world
+M9 tool progression, station progression, and land-discovery claims may use normal saves. It extends the existing world
 construction and player-discovery save owners; it does not add a parallel save
 authority or enable persistence by itself. Runtime changes remain gated on the
 round-trip and rejection coverage in the next backlog child.
@@ -33,8 +32,7 @@ are not reinterpreted or moved.
 | Carried tools | Authenticated player: canonical tool ID, authored tool level, and condition for each carried tool | At most the existing six records. IDs must be unique and in the tool catalogue; levels must match that tool's authored tier; condition must be finite and within its authored range. No skill ledger or pack inventory is included. |
 | Workbench/Forge progression | World: accepted Workbench tool-rack and Forge anvil construction records (stable construction ID, existing kit identity, transform) | Existing 128 construction-record total and 32 attachment cap. At most one compatible attachment may upgrade each station. Effective level is re-derived from same-world placed actors and capped at level 2; no numeric station-level save field is added. |
 | Land discoveries | Authenticated player: existing stable discovery IDs, including the two M9 land-discovery IDs | Preserve the old 64-entry first-wave allowance and add at most 64 M9 claims; schema 2 caps the combined set at 128 unique valid IDs, each no longer than the existing 128-character stable-ID limit. |
-| Drying Line | World: accepted line construction records using stable construction IDs and transforms | At most five lines and within the existing 128 construction-record total. Placement, visibility, recipe, and session gameplay checks remain server-owned. |
-| Other camp structures | World: existing schema-1 construction records for the approved Forge, Grinding Stone, normal Chest, Smoke Frame, and other accepted structures | Preserve their identities and records during migration; count all structures against the same 128-record cap. |
+| Other camp structures | World: existing schema-1 construction records for the approved Forge, Grinding Stone, normal Chest, legacy Smoke Frame records, and other accepted structures | Preserve existing identities and records during migration; count all structures against the same 128-record cap. Smoke Frame remains a legacy save identity but has no item or recipe in the current schema-4 catalogue. |
 
 No saved record contains a client-selected result, cost, tool level, station
 level, reward, actor pointer, or hidden discovery descriptor. Clients continue
@@ -61,7 +59,7 @@ not claim general inventory persistence.
    existing limit. The schema-1 format used the current generator without
    storing its revision, so the explicit migration binds it to revision 7,
    preserves every construction ID/kit/transform without moving or
-   re-generating it, and begins with no attachment or Drying Line records.
+   re-generating it, and begins with no attachment records.
 3. Migrate a player-discovery schema-1 payload only when its seed and
    authenticated player identity match and its existing discovery/effect sets
    validate. Bind it to revision 7, preserve those sets, and initialize tool
@@ -91,7 +89,7 @@ The implementation child must add focused memory round-trip tests for both
 schema-2 containers and fixture migrations from each known schema-1 container.
 Coverage must prove that old construction, discovery, and learned-effect facts
 survive migration; the new fields start empty when absent; and valid current
-tool, attachment, Drying Line, and claim records survive serialization and
+tool, attachment, and claim records survive serialization and
 reload. Rejection coverage must include wrong seed, revision, scope, and
 player; unsupported schema 0/future versions; malformed and duplicate IDs;
 invalid transforms, tools, levels, and conditions; and every cap plus cap+1.

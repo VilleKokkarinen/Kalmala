@@ -23,22 +23,38 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
                 Ingredient.ItemId == TEXT("Fuel") || Ingredient.ItemId == TEXT("ConstructionSupply"));
 
     const FKalmalaRecipe* CookedBoar = Recipes->Find(TEXT("CookedBoarMeatRecipe"));
-    if (!CookedBoar) CookedBoar = Recipes->Find(TEXT("RoastBoarMeat"));
-    const FKalmalaRecipe* Broth = Recipes->Find(TEXT("SimmerBoarBroth"));
-    if (CookedBoar)
+    const FKalmalaRecipe* CookedDeer = Recipes->Find(TEXT("CookedDeerMeatRecipe"));
+    const FKalmalaRecipe* MeatStew = Recipes->Find(TEXT("MeatStewRecipe"));
+    if (TestNotNull(TEXT("Current cooked-boar recipe exists"), CookedBoar))
     {
         TestEqual(TEXT("Cooked boar uses its raw meat as the only ingredient"), CookedBoar->Ingredients.Num(), 1);
         if (CookedBoar->Ingredients.Num() == 1)
             TestEqual(TEXT("Cooked boar consumes boar meat"), CookedBoar->Ingredients[0].ItemId, FName(TEXT("BoarMeat")));
-        TestTrue(TEXT("Cooked boar produces its configured food output"), !CookedBoar->Output.IsNone());
+        TestEqual(TEXT("Cooked boar produces the current catalogue food output"), CookedBoar->Output, FName(TEXT("CookedBoarMeat")));
         TestTrue(TEXT("Cooked boar recipe resolves to the Cooking Rack"), CookedBoar->RequiredStation.Contains(TEXT("CookingRackKit")));
     }
-    if (Broth)
+    if (TestNotNull(TEXT("Current cooked-deer recipe exists"), CookedDeer))
     {
-        TestEqual(TEXT("Broth uses its meat as the only ingredient"), Broth->Ingredients.Num(), 1);
-        if (Broth->Ingredients.Num() == 1)
-            TestEqual(TEXT("Broth consumes boar meat"), Broth->Ingredients[0].ItemId, FName(TEXT("BoarMeat")));
-        TestTrue(TEXT("Broth requires the cauldron station"), Broth->RequiredStation.Contains(TEXT("CauldronKit")));
+        TestEqual(TEXT("Cooked deer uses its raw meat as the only ingredient"), CookedDeer->Ingredients.Num(), 1);
+        if (CookedDeer->Ingredients.Num() == 1)
+            TestEqual(TEXT("Cooked deer consumes deer meat"), CookedDeer->Ingredients[0].ItemId, FName(TEXT("DeerMeat")));
+        TestEqual(TEXT("Cooked deer produces the current catalogue food output"), CookedDeer->Output, FName(TEXT("CookedDeerMeat")));
+        TestTrue(TEXT("Cooked deer recipe resolves to the Cooking Rack"), CookedDeer->RequiredStation.Contains(TEXT("CookingRackKit")));
+    }
+    if (TestNotNull(TEXT("Current meat-stew recipe exists"), MeatStew))
+    {
+        TestEqual(TEXT("Meat stew uses four catalogue ingredients"), MeatStew->Ingredients.Num(), 4);
+        TestEqual(TEXT("Meat stew produces the current catalogue food output"), MeatStew->Output, FName(TEXT("MeatStew")));
+        TestTrue(TEXT("Meat stew requires the cauldron station"), MeatStew->RequiredStation.Contains(TEXT("CauldronKit")));
+        for (const TPair<FName, int32>& IngredientAndQuantity : {
+            TPair<FName, int32>(TEXT("BoarMeat"), 1), TPair<FName, int32>(TEXT("DeerMeat"), 1),
+            TPair<FName, int32>(TEXT("Carrot"), 2), TPair<FName, int32>(TEXT("Potato"), 2) })
+        {
+            const FKalmalaInventoryStack* Ingredient = MeatStew->Ingredients.FindByPredicate(
+                [&IngredientAndQuantity](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == IngredientAndQuantity.Key; });
+            TestNotNull(FString::Printf(TEXT("Meat stew includes %s"), *IngredientAndQuantity.Key.ToString()), Ingredient);
+            if (Ingredient) TestEqual(TEXT("Meat stew uses its listed ingredient quantity"), Ingredient->Quantity, IngredientAndQuantity.Value);
+        }
     }
 
     const FKalmalaRecipe* FryingPan = Recipes->Find(TEXT("FryingPanRecipe"));

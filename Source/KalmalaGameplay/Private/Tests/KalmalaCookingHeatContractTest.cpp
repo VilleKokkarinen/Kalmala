@@ -24,7 +24,6 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Recipe and item catalogues validate"), Recipes->IsValidCatalogue() && Items->IsValidCatalogue());
 
     const FKalmalaRecipe* CookRecipe = Recipes->Find(TEXT("CookedBoarMeatRecipe"));
-    if (!CookRecipe) CookRecipe = Recipes->Find(TEXT("RoastBoarMeat"));
     const FKalmalaRecipe* RootSoupRecipe = Recipes->Find(TEXT("RootVegetableSoupRecipe"));
     const FKalmalaRecipe* FryingPanRecipe = Recipes->Find(TEXT("FryingPanRecipe"));
     const FKalmalaRecipe* RoastedRootsRecipe = Recipes->Find(TEXT("RoastedRootVegetablesRecipe"));

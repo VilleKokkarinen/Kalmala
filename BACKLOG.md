@@ -362,7 +362,7 @@ contract and migration checks pass.
   - [x] Add the short tool-appropriate sharpening animation for Grinding Stone repair; keep it presentation-only. Repair requests must not accept a client-provided inventory list or condition value, and repair grants no crafting experience.
   - [x] Add readable level, material, station, and repair feedback. Keep detailed tool state owner-only and level/attachment persistence gated on the M9 save contract.
 - [x] Extend optional camp and equipment progression through existing systems.
-  - [x] Review the roadmap examples—weatherproof storage, hearth-compatible processing, storm-rated shelter, insulated equipment, and camp drying utility—and select the current runtime additions: the normal Chest and Smoke Frame. The raised chest and Smokehouse were later retired by user direction; see `docs/05-decision-log.md`.
+  - [x] Review optional camp and equipment examples and select additions that fit existing systems: the normal Chest; the current schema-4 catalogue has no Smoke Frame item or recipe.
   - [x] Keep storage, processing, construction, equipment effects, repair, costs, and skill awards within their existing authorities and accessibility feedback paths.
     - [x] Add the carried Construction Hammer and owner-local build menu; directly build floors, walls, and roofs from JSON-backed raw-material costs with server-owned placement and unchanged construction-save identities.
     - [x] Move the remaining kit-based camp structures to direct hammer builds from raw materials; remove their kit outputs from normal crafting while preserving existing save identities and station validation.
@@ -387,8 +387,8 @@ contract and migration checks pass.
     - [x] Implement the schema-2 world construction candidate and test its round-trip, schema-1 migration, exact identity, malformed/duplicate rejection, and bounds.
     - [x] Implement the schema-2 player discovery/tool/claim candidate and test its round-trip, schema-1 migration, exact identity, malformed/duplicate rejection, and bounds.
     - [x] Verify both candidates together across host/client reconnect before enabling schema-2 writes in normal play.
-- [ ] Run M9 cross-system acceptance after implementation.
-  - [ ] Verify host/client agreement, rejected-mutation no-change behavior, owner-only tool/progression state, save/reconnect behavior, and documented actor, memory, replication, and save budgets.
+- [ ] BLOCKED: Run M9 cross-system acceptance after implementation.
+  - [ ] BLOCKED: Verify host/client agreement, rejected-mutation no-change behavior, owner-only tool/progression state, normal-save/reconnect behavior, and documented actor, memory, replication, and save budgets. Catalogue documentation and processing tests now use the schema-4 recipe/item IDs (2026-09-30; see `PROGRESS.md`). Schema-2 candidate migration and host/client reconnect checks pass, but normal save writes remain schema 1 and first-write merge/revalidation is not implemented. `AGENTS.md` requires explicit user direction before saved-data schema changes.
   - [ ] Re-run the accepted M8 ocean travel loop and M6 supported-session regression; preserve documented physical-input or packaged walkthrough limitations.
 
 **M9 multiplayer boundary:** the server owns biome content selection, tool and
