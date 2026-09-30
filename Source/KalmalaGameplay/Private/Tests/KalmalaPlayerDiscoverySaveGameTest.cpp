@@ -66,6 +66,14 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
     TestFalse(TEXT("An unapproved learned effect is rejected"), Current->AddLearnedEffect(TEXT("Effect:unknown")));
     TestEqual(TEXT("Rejected additions leave the candidate unchanged"), Current->GetToolRecords().Num(), 3);
 
+    UKalmalaPlayerDiscoverySaveGameV2* ToolReplacement = DuplicateObject<UKalmalaPlayerDiscoverySaveGameV2>(
+        Current, GetTransientPackage());
+    TArray<FKalmalaPlayerToolSaveRecord> InvalidReplacement = { MakeToolRecord(TEXT("IronAxe"), 1, 20) };
+    TestFalse(TEXT("Invalid complete tool replacement is rejected"), ToolReplacement->TryReplaceToolRecords(InvalidReplacement));
+    TestEqual(TEXT("Rejected tool replacement preserves the original records"), ToolReplacement->GetToolRecords().Num(), 3);
+    TestEqual(TEXT("Rejected tool replacement preserves the original Iron Axe level"),
+        ToolReplacement->GetToolRecords()[2].ToolLevel, 2);
+
     TArray<uint8> CurrentBytes;
     TestTrue(TEXT("Schema 2 player facts serialize in memory"), Serialize(Current, CurrentBytes));
     UKalmalaPlayerDiscoverySaveGameV2* Reloaded =

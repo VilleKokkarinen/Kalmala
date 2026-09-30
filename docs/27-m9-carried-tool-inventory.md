@@ -78,10 +78,11 @@ required Crafting level, and a rejected request explains the missing
 second-tier unlock. The client still submits only the target tool ID; skill,
 carried-tool state, station, costs, and result are derived by the server.
 
-Axes remain absent from starting inventory and tool level remains transient.
-The existing owner-only CarriedTools replication carries crafted axe level and
-condition; no new RPC state, save field, or schema was added. See the M9 free
-selected-tool repair section below for the superseding repair contract.
+Axes remain absent from starting inventory. The existing owner-only
+`CarriedTools` replication carries the server-owned tool level and condition;
+schema-2 player-discovery saves now preserve those records across reconnects.
+The client still submits only tool intent. See the M9 free selected-tool repair
+section below for the repair contract.
 
 ## M9 station transaction verification
 
@@ -98,9 +99,10 @@ only the target tool ID, without client-supplied station, level, cost, or result
 
 `CarriedTools` is replicated with `COND_OwnerOnly`. Harvest and repair code
 reads and changes a record on the server; existing client requests continue to
-send only tool or recipe intent. The detail array is transient and is not a
-SaveGame field. Tool and workstation levels are derived from transient
-server-owned records and placed attachment actors. Free selected-tool repair
+send only tool or recipe intent. The detail array is not client-authored;
+schema-2 player saves preserve the owner's validated tool records. Tool and
+workstation levels remain derived from server-owned tool records and placed
+attachment actors. Free selected-tool repair
 is available at a Workbench or Forge; Grinding Stone `Repair All` and its
 cosmetic pose are implemented and documented below.
 
@@ -113,8 +115,9 @@ a visible same-world Workbench or Forge within 250 cm, and restores a damaged
 or zero-condition record to its authored maximum. The action spends no pack
 materials and awards no Crafting experience. Unknown, absent, full-condition,
 or out-of-range tools leave condition and inventory unchanged. Tool level is
-preserved, and the existing `CarriedTools` array remains owner-only and
-transient.
+preserved, and the existing `CarriedTools` array remains owner-only. Accepted
+repair writes the complete tool candidate to the matching schema-2 player slot
+before publishing the new condition.
 
 This M9 rule retires M7's material-paid repair and zero-condition replacement
 recipes.
@@ -163,7 +166,7 @@ After the forced editor build, run
 `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`, and
 `Kalmala.Gameplay.Crafting.NetworkContract` tests. The carried-inventory
 contract checks the bounded starting list, full initial condition, level-1
-baseline, transient state, and owner-only replication condition.
+baseline, owner-only state, and owner-only replication condition.
 `Kalmala.Gameplay.M9.ToolProgressionCatalogue` checks axe and attachment
 catalogues, station matches, level derivation, attachment placement bounds,
 paid recipes, and item-catalogue-valid costs.
@@ -185,7 +188,7 @@ session-only level bonus and the M9 save-migration gate.
 Repair guidance distinguishes free selected-tool repair at a Workbench/Forge
 from Repair All at a visible Grinding Stone. The UI only presents owner state;
 repair RPCs remain intent-only and the server derives the tool list and
-outcome. No tool or station save fields were added. `Scripts/Verify-Crafting.ps1`
-checks the level, material, station, persistence-gate, and repair text on the
-listen-server owner and joining client; the separate inventory reconnect
-verification continues to cover owner-only detail on remote peers.
+outcome. Tool state uses the existing schema-2 player-discovery container; no
+new RPC or replicated field was added. `Scripts/Verify-Crafting.ps1` checks the
+level, material, station, and repair text on the listen-server owner and
+joining client; the M9 schema-2 reconnect fixture verifies saved owner state.

@@ -37,6 +37,9 @@ public:
     bool ClaimOceanDiscovery(class AKalmalaCharacter* Interactor, const FKalmalaOceanDiscoveryDescriptor& Descriptor);
     bool ClaimM9ExplorationReward(class AKalmalaCharacter* Interactor, const FKalmalaM9ExplorationRewardDescriptor& Descriptor);
     bool ClaimMirelingBossScroll(class AKalmalaCharacter* Attacker, const FString& PersistentSpawnId);
+    bool PersistPlayerStateFromServer(class AKalmalaCharacter* Character,
+        const FString& AdditionalDiscoveryId = FString(), const FString& AdditionalLearnedEffectId = FString(),
+        const FString& AdditionalM9ClaimId = FString());
     static bool IsMirelingBossRewardId(const FString& PersistentSpawnId);
     static FString GetMirelingBossScrollDefinition(uint64 WorldSeed);
     static FString GetMirelingBossScrollId(uint64 WorldSeed);
@@ -52,7 +55,8 @@ private:
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
     void RecordM9ResourceDepleted(const FString& StableResourceId);
     void RecordDefeatedSpawn(const FString& PersistentSpawnId);
-    class UKalmalaPlayerDiscoverySaveGame* GetPlayerDiscoverySave(class AKalmalaCharacter* Interactor, FString& OutIdentity);
+    class UKalmalaPlayerDiscoverySaveGameV2* GetPlayerDiscoverySave(class AKalmalaCharacter* Interactor, FString& OutIdentity);
+    bool IsCurrentM9ClaimId(const FString& ClaimId) const;
     bool IsCurrentDiscoveryDescriptor(const struct FKalmalaWorldDiscoveryDescriptor& Descriptor) const;
     void ConfigureTraversalTest();
     void DriveTraversalTest();
@@ -145,7 +149,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<class AKalmalaOceanTravelTestFixture> OceanTravelTestFixture;
     TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
     TSet<FString> SessionM9ResourceDepletionIds;
-    TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGame>> PlayerDiscoverySaves;
+    TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGameV2>> PlayerDiscoverySaves;
+    TSet<FString> RejectedPlayerDiscoverySaveIdentities;
     TMap<FString, TObjectPtr<class UKalmalaM7PersistenceSaveGame>> OceanDiscoverySaves;
     TMap<FString, TSet<FString>> SessionM9ExplorationClaims;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame> OceanTravelWorldSave;

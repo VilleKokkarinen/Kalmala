@@ -29,13 +29,13 @@ After the editor build, run it with the documented temporary-user pattern:
 The accepted schema-2 design extends the existing construction and
 player-discovery save owners; it leaves the M7 sparse ledger and storage schema
 unchanged. Read `docs/30-m9-persistence-migration.md` for exact seed/revision/
-scope matching, caps, and the schema-1 migration rules. Do not enable schema-2
-writes until focused tests round-trip both containers, preserve schema-1
-construction/discovery/effect facts, cover each identity mismatch and malformed,
-duplicate, and over-cap rejection, and prove rejected operations leave the old
-save and live state unchanged. Pair those tests with a host/client reconnect
-check for replay rejection and owner-only tool detail; no new replicated state
-is part of this design.
+scope matching, caps, and the schema-1 migration rules. Normal schema-2 writes
+are enabled after the focused round-trip, migration, rejection, and host/client
+reconnect checks passed. Construction and player writers preserve validated
+schema-1 facts, validate complete server-owned candidates before saving, and
+leave invalid existing slots untouched. The player writer also re-derives live
+M9 claim identities and saves the owner's bounded tool records without adding
+replicated state.
 
 ### M8 travel-save contract
 
@@ -1247,12 +1247,16 @@ New-Item -ItemType Directory -Path $userDir | Out-Null
 Require `Result={Success}` for `ExplorationRewardCatalogue`. If the command-line
 editor stops at the existing LinuxArm64/VisionOS SDK preflight, use
 `UnrealEditor.exe` with the same project and automation arguments. Then run
-`Scripts/Verify-M9ExplorationRewards.ps1 -Port <unused-port>`. The host/client
-fixture requires the server to accept the exact reward for each player while
-rejecting distant, forged, duplicate, and replayed claims, and checks that
-owner-only feedback and inventory state do not leak to the other peer. The
-fixture uses the null renderer, so it does not review the discovery's visual
-presentation in-world. Claims remain session-only pending M9 save migration.
+`Scripts/Verify-M9ExplorationRewards.ps1 -Port <unused-port>` from the same
+project mirror. This script resolves `Kalmala.uproject` relative to its own
+`Scripts` directory, so use the copied script inside the mirror when verifying
+a mirror build. The host/client fixture requires the server to accept the
+exact reward for each player while rejecting distant, forged, duplicate, and
+replayed claims, and checks that owner-only feedback and inventory state do not
+leak to the other peer. Claims now persist in the authenticated player's
+schema-2 save; reward materials remain session-only because ordinary inventory
+is not saved. The fixture uses the null renderer, so it does not review the
+discovery's visual presentation in-world.
 
 ### M9 schema-2 world construction migration coverage
 
@@ -1265,7 +1269,14 @@ and Drying Lines; migrates matching schema-1 construction records while
 binding seed/revision/world scope; and rejects mismatched, unsupported,
 malformed, duplicate, and over-cap legacy data without changing its source
 bytes. It also checks exact schema-2 identity, malformed/duplicate current
-records, and the 32-attachment and five-line limits. Normal construction writes use the schema-2 container. On first write, a matching schema-1 save is migrated and merged with the new server-accepted record; every record is revalidated before the slot is replaced. Invalid or mismatched existing slots remain untouched. Normal player-discovery slots still use schema 1 pending their schema-2 writer.
+records, and the 32-attachment and five-line limits. Normal construction writes use the
+schema-2 container. On first write, a matching schema-1 save is migrated and
+merged with the new server-accepted record; every record is revalidated before
+the slot is replaced. Invalid or mismatched existing slots remain untouched.
+Normal player-discovery writes use the schema-2 container. First writes migrate
+matching schema-1 discovery/effect facts, revalidate and merge current server
+M9 claims, and include the owner's complete carried-tool list. Invalid or
+mismatched existing player slots stay untouched and block restore and writes.
 
 ### M9 schema-2 player discovery and tool migration coverage
 
@@ -1283,10 +1294,9 @@ claims and tools, invalid tool levels/condition, and each discovery, claim, and
 tool bound plus one; failed migrations preserve the original source bytes.
 Use `UnrealEditor-Cmd.exe` first; if it stops at the existing LinuxArm64 or
 VisionOS SDK preflight, use the `UnrealEditor.exe` fallback with the same
-project and automation arguments. Normal player-discovery slots still use
-schema 1. The schema-2 candidate is not wired to normal writes; session-claim
-revalidation/merge remains outside normal saves until M9 cross-system
-acceptance.
+project and automation arguments. Normal player-discovery slots use schema 2;
+first-write migration and live claim/tool merging are covered by the M9
+cross-system acceptance fixture.
 
 ### M9 schema-2 world/player candidate host-client reconnect
 
@@ -1297,21 +1307,20 @@ two-client restart fixture against the isolated project mirror:
 & '.\Scripts\Verify-M9Schema2CandidateReconnect.ps1' -Port 19725 -ProjectPath "$projectMirror/Kalmala.uproject"
 ```
 
-The fixture writes only dedicated test slots. It seeds one schema-2 world
-candidate and one stable test-provider player candidate, stops the host, then
-restarts it with the same host user directory and reconnects an owner and an
-observer. Require the server to reload all three world records and the owner's
-first-wave discovery, learned effect, M9 claim, and three carried tools. On
-resume, adding the existing claim again must fail without changing the claim
-set. Each client must receive its own carried-tool details while seeing no
-other owner's tool array. The server also reports that its normal construction
-save object uses schema 2 and the normal player-discovery slot remains schema 1.
-This fixture uses dedicated candidate slots and adds no replicated fields;
+The fixture writes a dedicated world candidate and a schema-1 player fixture
+to isolated user directories. It also uses a dedicated player-candidate slot
+for owner-privacy checks. After the host restarts, it requires the normal player
+slot's migrated discovery/effect facts, re-derived M9 claim, and complete tool
+records to reload with exact identity. Adding the saved claim again must fail
+without changing the claim set. Each client must receive only its own carried-
+tool details. Normal construction and player slots must both report schema 2.
+This fixture adds no replicated fields;
 normal construction restart coverage is provided separately by
 `Scripts/Verify-ConstructionPersistence.ps1` and the focused write-candidate
 automation.
 
 This null-renderer authority and replication check uses deterministic
 test-provider identities; it does not verify a production online identity
-provider, rendered UI, or normal-slot claim migration/merge. Those remain part
-of the M9 cross-system acceptance and write-enablement decision.
+provider or rendered UI. It seeds a normal schema-1 player slot, verifies
+discovery/effect migration, writes a current re-derived M9 claim and tool state,
+then checks those facts after host restart and owner reconnect.

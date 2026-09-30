@@ -21,6 +21,7 @@
 #include "KalmalaOceanSampler.h"
 #include "KalmalaIslandLocator.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaGameMode.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -1020,6 +1021,7 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
             || Node->GetM9ResourceDepletionId().IsEmpty()) return false;
         Selection.RewardQuantity = M9RewardQuantity;
     }
+    const TArray<FKalmalaToolState> ExistingTools = CarriedTools;
     const FKalmalaSkillState* Skill = SkillProgression->GetServerLedger().Find(Selection.RequiredSkill);
     int32* CurrentDurability = FindToolDurabilityFromServer(ClientToolId);
     if (Skill == nullptr || CurrentDurability == nullptr) return false;
@@ -1040,11 +1042,24 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
 
     TArray<FKalmalaInventoryStack> CandidateInventory;
     FString Reason;
-    const TArray<FKalmalaInventoryStack>& CurrentInventory = Inventory->GetStacks();
-    if (!UKalmalaInventoryComponent::BuildGrant(CurrentInventory, RewardItemId, RewardQuantity, CandidateInventory, Reason)
-        || !Inventory->TryCommitStacksFromServer(CurrentInventory, CandidateInventory)) return false;
+    const TArray<FKalmalaInventoryStack> ExistingInventory = Inventory->GetStacks();
+    if (!UKalmalaInventoryComponent::BuildGrant(ExistingInventory, RewardItemId, RewardQuantity, CandidateInventory, Reason)
+        || !Inventory->TryCommitStacksFromServer(ExistingInventory, CandidateInventory)) return false;
 
     *CurrentDurability = CandidateToolState.Durability;
+    AKalmalaGameMode* GameMode = GetWorld() != nullptr
+        ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (GameMode == nullptr || !GameMode->PersistPlayerStateFromServer(this))
+    {
+        CarriedTools = ExistingTools;
+        if (!Inventory->TryCommitStacksFromServer(CandidateInventory, ExistingInventory))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player tool persistence rejected harvesting."));
+        }
+        ForceNetUpdate();
+        return false;
+    }
+
     Node->CommitHarvestedStateFromServer();
     ForceNetUpdate();
     return true;

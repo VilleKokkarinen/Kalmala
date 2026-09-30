@@ -207,6 +207,22 @@ bool UKalmalaPlayerDiscoverySaveGameV2::AddToolRecord(const FKalmalaPlayerToolSa
     return true;
 }
 
+bool UKalmalaPlayerDiscoverySaveGameV2::TryReplaceToolRecords(
+    const TArray<FKalmalaPlayerToolSaveRecord>& Records)
+{
+    if (!MatchesPlayer(WorldConfig, PlayerIdentity) || Records.Num() > MaxCarriedTools) return false;
+
+    TSet<FName> SeenToolIds;
+    for (const FKalmalaPlayerToolSaveRecord& Record : Records)
+    {
+        if (!IsValidToolRecord(Record) || SeenToolIds.Contains(Record.ToolId)) return false;
+        SeenToolIds.Add(Record.ToolId);
+    }
+
+    ToolRecords = Records;
+    return true;
+}
+
 bool UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema1(
     const UKalmalaPlayerDiscoverySaveGame* Legacy,
     const FKalmalaWorldGenerationConfig& RequestedWorld,

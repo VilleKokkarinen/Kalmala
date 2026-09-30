@@ -389,8 +389,8 @@ contract and migration checks pass.
     - [x] Verify both candidates together across host/client reconnect before enabling schema-2 writes in normal play.
 - [ ] Run M9 cross-system acceptance after implementation.
   - [x] Enable normal schema-2 construction-slot writes with schema-1 migration, complete-candidate revalidation, and persistent station attachments. (2026-09-30; see `PROGRESS.md`.)
-  - [ ] Enable normal schema-2 player-slot writes with migrated discovery/effect facts, server-revalidated M9 claims, and owner tool state.
-  - [ ] Verify host/client agreement, rejected-mutation no-change behavior, owner-only tool/progression state, normal-save/reconnect behavior, and documented actor, memory, replication, and save budgets. Catalogue documentation and processing tests now use the schema-4 recipe/item IDs (2026-09-30; see `PROGRESS.md`). Schema-2 player candidate migration and host/client reconnect checks pass; player normal-slot writes and first-write claim/tool merge/revalidation remain open.
+  - [x] Enable normal schema-2 player-slot writes with migrated discovery/effect facts, server-revalidated M9 claims, and owner tool state. (2026-09-30; see `PROGRESS.md`.)
+  - [ ] Verify host/client agreement, rejected-mutation no-change behavior, owner-only tool/progression state, normal-save/reconnect behavior, and documented actor, memory, replication, and save budgets. Catalogue documentation and processing tests now use the schema-4 recipe/item IDs (2026-09-30; see `PROGRESS.md`). Normal player-slot migration, current-claim revalidation, and owner tool persistence are implemented; full M9 acceptance remains.
   - [ ] Re-run the accepted M8 ocean travel loop and M6 supported-session regression; preserve documented physical-input or packaged walkthrough limitations.
 
 **M9 multiplayer boundary:** the server owns biome content selection, tool and

@@ -67,13 +67,13 @@ function Invoke-Phase([string]$Phase) {
 
         $owner = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -KalmalaM9Schema2Phase=$Phase -KalmalaM9Schema2ClientRole=Owner -abslog=`"$ownerLog`" -UserDir=`"$ownerDir`""
         $replayResult = if ($Phase -eq 'Resume') { 1 } else { 0 }
-        $ownerServerPattern = "M9 schema-2 candidate player: Phase=$Phase Role=Owner Passed=1 CandidateReady=1 Discovery=1 Claim=1 ReplayRejected=$replayResult ServerTools=3 NormalSchema=1"
+        $ownerServerPattern = "M9 schema-2 candidate player: Phase=$Phase Role=Owner Passed=1 CandidateReady=1 Discovery=1 Claim=1 ReplayRejected=$replayResult ServerTools=3 NormalSchema=2 NormalTools=4 NormalFacts=1"
         Wait-ForLogs @($server, $owner) @($serverLog, $ownerLog) { param($texts) $texts[0] -match $ownerServerPattern } "$Phase owner-player check" | Out-Null
 
         $observer = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -KalmalaM9Schema2Phase=$Phase -KalmalaM9Schema2ClientRole=Observer -abslog=`"$observerLog`" -UserDir=`"$observerDir`""
         $texts = Wait-ForLogs @($server, $owner, $observer) @($serverLog, $ownerLog, $observerLog) {
             param($current)
-            $serverOkay = $current[0] -match $ownerServerPattern -and $current[0] -match "M9 schema-2 candidate player: Phase=$Phase Role=Observer Passed=1 CandidateLoaded=0 ServerTools=4 NormalSchema=1"
+            $serverOkay = $current[0] -match $ownerServerPattern -and $current[0] -match "M9 schema-2 candidate player: Phase=$Phase Role=Observer Passed=1 CandidateLoaded=0 ServerTools=4 NormalSchema=2 NormalTools=0 NormalFacts=0"
             $ownerOkay = $current[1] -match "M9 schema-2 candidate client: Phase=$Phase Role=Owner Passed=1 OwnedTools=3 OtherOwnersHidden=1"
             $observerOkay = $current[2] -match "M9 schema-2 candidate client: Phase=$Phase Role=Observer Passed=1 OwnedTools=4 OtherOwnersHidden=1"
             $worldIdentityOkay = $current[1] -match 'Client received world-generation identity: Seed=418' -and $current[2] -match 'Client received world-generation identity: Seed=418'
@@ -91,7 +91,7 @@ function Invoke-Phase([string]$Phase) {
 try {
     Invoke-Phase 'Seed' | Out-Null
     Invoke-Phase 'Resume' | Out-Null
-    Write-Output 'PASS: schema-2 world and test-provider player candidates survived a listen-server restart; server records matched both peers, persisted discovery and tool facts returned to the owner, duplicate claims were rejected, other owners saw no tool details, the normal construction save object used schema 2, and the normal player slot remained schema 1.'
+    Write-Output 'PASS: schema-2 world and player state survived a listen-server restart; a schema-1 player slot migrated its discovery/effect facts, current M9 claims and owner tools persisted, replay was rejected, other owners saw no tool details, and both normal slots used schema 2.'
 }
 finally {
     Write-Output "Scenario logs: $output"

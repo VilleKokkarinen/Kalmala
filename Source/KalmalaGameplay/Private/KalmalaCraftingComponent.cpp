@@ -322,7 +322,20 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FStri
         return false;
     }
 
+    const TArray<FKalmalaToolState> PreviousTools = Character->CarriedTools;
     Character->CarriedTools = MoveTemp(CandidateTools);
+    AKalmalaGameMode* GameMode = GetWorld() != nullptr ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (GameMode == nullptr || !GameMode->PersistPlayerStateFromServer(Character))
+    {
+        Character->CarriedTools = PreviousTools;
+        if (!Inventory->TryCommitStacksFromServer(CandidateInventory, Before))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player tool progression persistence was rejected."));
+        }
+        Reason = TEXT("Player progression could not be saved; no tool or materials were changed");
+        return false;
+    }
+
     Character->ForceNetUpdate();
     Reason = FString::Printf(TEXT("Crafted %s at level %d; previous tool exchanged where required"),
         *ToolId.ToString(), Entry->TargetToolLevel);
@@ -555,7 +568,17 @@ bool UKalmalaCraftingComponent::RepairToolFromServer(const FName ToolId, FString
         return false;
     }
 
+    const int32 PreviousDurability = *CurrentDurability;
     *CurrentDurability = RepairedState.Durability;
+    AKalmalaGameMode* GameMode = GetWorld() != nullptr ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (GameMode == nullptr || !GameMode->PersistPlayerStateFromServer(Character))
+    {
+        if (int32* CurrentCondition = Character->FindToolDurabilityFromServer(ToolId)) *CurrentCondition = PreviousDurability;
+        Character->ForceNetUpdate();
+        Reason = TEXT("Player tool repair could not be saved");
+        return false;
+    }
+
     Character->ForceNetUpdate();
     Reason = TEXT("Repaired selected tool to full condition at no cost");
     return true;
@@ -591,7 +614,17 @@ bool UKalmalaCraftingComponent::RepairAllToolsFromServer(
         return true;
     }
 
+    const TArray<FKalmalaToolState> PreviousTools = Character->CarriedTools;
     Character->CarriedTools = MoveTemp(CandidateTools);
+    AKalmalaGameMode* GameMode = GetWorld() != nullptr ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (GameMode == nullptr || !GameMode->PersistPlayerStateFromServer(Character))
+    {
+        Character->CarriedTools = PreviousTools;
+        Character->ForceNetUpdate();
+        Reason = TEXT("Player tool repairs could not be saved");
+        return false;
+    }
+
     Character->ForceNetUpdate();
     Reason = FString::Printf(TEXT("Grinding Stone repaired %d carried tool%s to full condition at no cost"),
         RepairedCount, RepairedCount == 1 ? TEXT("") : TEXT("s"));

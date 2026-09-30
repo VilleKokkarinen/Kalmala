@@ -9924,3 +9924,69 @@ Known limitations: Normal player-discovery slots still use schema 1. Their schem
 Handoff: This run used the main checkout, so no separate worktree handoff synchronization was needed. The completed M9 construction-writer subtask is checked in `BACKLOG.md`; the M9 acceptance parent remains open. Only files changed by this run will be committed.
 
 Next eligible task: Enable normal schema-2 player-slot writes with schema-1 discovery/effect migration, server-revalidated M9 claims, and owner tool state.
+
+### Run 2026-09-30T10:12:02Z — Enable normal schema-2 player writes
+
+Outcome: Normal player-discovery slots now use the schema-2 container. The
+writer explicitly migrates matching schema-1 discovery/effect facts, preserves
+invalid or mismatched existing slots, merges only current server-revalidated
+M9 claims, and replaces the bounded tool list from server-owned character
+state. Complete candidates are validated and saved before cached facts or
+gameplay feedback publish. Tool harvest wear, progression, and repairs roll
+back their related mutation if the player save fails. The M9 reward persists
+its claim before granting success feedback; inventory itself remains
+session-only.
+
+Files changed during this run: `BACKLOG.md`; `PROGRESS.md`;
+`Scripts/Verify-M9Schema2CandidateReconnect.ps1`;
+`Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaPlayerDiscoverySaveGame.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaPlayerDiscoverySaveGameTest.cpp`;
+`Source/KalmalaGameplay/Public/KalmalaGameMode.h`;
+`Source/KalmalaGameplay/Public/KalmalaPlayerDiscoverySaveGame.h`;
+`docs/02-technical-architecture.md`; `docs/07-development-setup.md`;
+`docs/27-m9-carried-tool-inventory.md`;
+`docs/30-m9-persistence-migration.md`.
+
+Verification: The forced UE 5.8.2 `KalmalaEditor Win64 Development` build
+passed all 198 actions in the disposable project mirror with normal
+`%LOCALAPPDATA%\UnrealBuildTool` access; the follow-up test-fixture rebuild
+passed all four incremental actions. `Kalmala.Gameplay.Discovery.Schema2Migration`
+reported `Result={Success}`. `Verify-M9Schema2CandidateReconnect.ps1` passed
+both host phases and owner/observer checks after restart, including schema-1
+player migration, current claim persistence, and owner tool restoration.
+`Verify-M9ExplorationRewards.ps1` passed the server/client claim, replay, and
+owner-isolation scenario when run from the copied script in the built mirror.
+An earlier invocation resolved the main-checkout project and existing
+binaries; it did not exercise the mirror build and was not used as passing
+evidence. PowerShell parsing and `git diff --check` passed. All observed paths
+for this run remained below Windows' 260-character limit.
+
+Observable impact: Discovery/effect facts survive schema-1 migration; valid
+current M9 claims and carried tool levels/condition are stored in each
+authenticated player's existing save slot and restored on reconnect. Rejected
+transactions keep their prior live state and save contents. Existing intent
+RPCs and owner-only carried-tool replication remain unchanged.
+
+Authority and persistence: All identity selection, descriptor revalidation,
+complete-save validation, writes, and claim outcomes remain server-owned. The
+authorized existing player slot now writes schema 2; the M7 sparse ledger and
+storage schema are unchanged. Ordinary inventory is not saved.
+
+Known limitations: Identity coverage uses the deterministic test provider;
+production online identity, rendered UI, and packaged walkthrough remain
+unverified. Full M9 host/client acceptance and documented actor, memory,
+replication, and save-budget verification remain pending.
+
+Handoff: Main checkout used, so no worktree synchronization was needed. The
+player-writer child is checked; the M9 cross-system parent remains open. The
+updated architecture paragraph in `docs/02-technical-architecture.md` stays
+unstaged because its shared dirty file also contains pre-existing catalogue
+edits. The rest of this increment is committed separately from pre-existing
+working-tree changes.
+
+Next eligible task: Verify host/client agreement, rejected-mutation no-change
+behavior, owner-only tool/progression state, normal-save/reconnect behavior,
+and the documented actor, memory, replication, and save budgets.

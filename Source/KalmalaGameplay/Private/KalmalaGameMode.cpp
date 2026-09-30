@@ -1414,6 +1414,7 @@ void AKalmalaGameMode::DriveM9ExplorationRewardPeerTest()
         UKalmalaDiscoveryProgressComponent* HostFeedback = Host->GetDiscoveryProgressComponent();
         UKalmalaDiscoveryProgressComponent* RemoteFeedback = Remote->GetDiscoveryProgressComponent();
 
+        Host->SetActorLocation(Actor->GetActorLocation() - FVector(125.0f, 0.0f, 0.0f), false);
         Actor->Interact_Implementation(Host);
         const bool bActorReplayRejected = HostInventory->GetQuantity(Definition->RewardItemId)
                 == M9ExplorationRewardPeerTestHostBaseline + Definition->RewardQuantity
@@ -2252,33 +2253,184 @@ void AKalmalaGameMode::RefreshOceanDiscoveries()
     }
 }
 
-UKalmalaPlayerDiscoverySaveGame* AKalmalaGameMode::GetPlayerDiscoverySave(AKalmalaCharacter* Interactor, FString& OutIdentity)
+bool AKalmalaGameMode::IsCurrentM9ClaimId(const FString& ClaimId) const
+{
+    if (!UKalmalaPlayerDiscoverySaveGameV2::IsValidM9ClaimId(ClaimId)) return false;
+
+    const FString Prefix = FString::Printf(TEXT("land-discovery:m9:%d:"),
+        FKalmalaM9ExplorationRewardCatalogue::StableIdentityVersion);
+    FString CandidateText;
+    FString CoordinateText;
+    if (!ClaimId.StartsWith(Prefix, ESearchCase::CaseSensitive)
+        || !ClaimId.RightChop(Prefix.Len()).Split(TEXT(":"), &CandidateText, &CoordinateText)) return false;
+
+    FString XText;
+    FString YText;
+    int32 KeyX = 0;
+    int32 KeyY = 0;
+    if (CandidateText.IsEmpty() || FName(*CandidateText).ToString() != CandidateText
+        || !CoordinateText.Split(TEXT(","), &XText, &YText) || YText.Contains(TEXT(","))
+        || !LexTryParseString(KeyX, *XText) || !LexTryParseString(KeyY, *YText)
+        || FString::FromInt(KeyX) != XText || FString::FromInt(KeyY) != YText) return false;
+
+    const FName CandidateId(*CandidateText);
+    const FIntPoint SpatialKey(KeyX, KeyY);
+    if (FKalmalaM9ExplorationRewardCatalogue::MakeStableIdentity(CandidateId, SpatialKey) != ClaimId) return false;
+
+    const TArray<FKalmalaM9ExplorationRewardDescriptor> Expected =
+        FKalmalaM9ExplorationRewardCatalogue::BuildDescriptors(WorldGenerationConfig, SpatialKey);
+    return Expected.ContainsByPredicate([this, &ClaimId](const FKalmalaM9ExplorationRewardDescriptor& Descriptor)
+    {
+        return FKalmalaM9ExplorationRewardCatalogue::MakeStableIdentity(
+                Descriptor.CandidateId, Descriptor.SpatialKey) == ClaimId
+            && FKalmalaM9ExplorationRewardCatalogue::IsCurrentDescriptor(WorldGenerationConfig, Descriptor);
+    });
+}
+
+UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
+    AKalmalaCharacter* Interactor, FString& OutIdentity)
 {
     OutIdentity.Reset();
-    if (!HasAuthority() || Interactor == nullptr || Interactor->GetWorld() != GetWorld() || Interactor->GetPlayerState() == nullptr) return nullptr;
-    const FUniqueNetIdRepl UniqueId = Interactor->GetPlayerState()->GetUniqueId();
-    if (!UniqueId.IsValid()) return nullptr;
-    const TSharedPtr<const FUniqueNetId> AuthenticatedId = UniqueId.GetUniqueNetId();
-    if (!AuthenticatedId.IsValid()) return nullptr;
-    OutIdentity = AuthenticatedId->GetType().ToString() + TEXT(":") + AuthenticatedId->ToString();
-    if (OutIdentity.IsEmpty() || OutIdentity.Len() > 128) return nullptr;
-    if (TObjectPtr<UKalmalaPlayerDiscoverySaveGame>* Existing = PlayerDiscoverySaves.Find(OutIdentity)) return *Existing;
+    if (!HasAuthority() || Interactor == nullptr || Interactor->GetWorld() != GetWorld()
+        || Interactor->GetPlayerState() == nullptr) return nullptr;
+    OutIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Interactor->GetPlayerState());
+    if (OutIdentity.IsEmpty() || OutIdentity.Len() > FKalmalaM7SaveIdentity::MaxOwnerIdentityLength
+        || RejectedPlayerDiscoverySaveIdentities.Contains(OutIdentity)) return nullptr;
+    if (TObjectPtr<UKalmalaPlayerDiscoverySaveGameV2>* Existing = PlayerDiscoverySaves.Find(OutIdentity)) return *Existing;
+
     const FString Slot = KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, OutIdentity);
-    UKalmalaPlayerDiscoverySaveGame* Save = Cast<UKalmalaPlayerDiscoverySaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
-    if (Save == nullptr || !Save->Matches(WorldGenerationConfig, OutIdentity))
+    UKalmalaPlayerDiscoverySaveGameV2* Save = nullptr;
+    if (UGameplayStatics::DoesSaveGameExist(Slot, 0))
     {
-        Save = NewObject<UKalmalaPlayerDiscoverySaveGame>(this);
-        Save->InitializeForPlayer(WorldGenerationConfig, OutIdentity);
+        USaveGame* Loaded = UGameplayStatics::LoadGameFromSlot(Slot, 0);
+        if (UKalmalaPlayerDiscoverySaveGameV2* Current = Cast<UKalmalaPlayerDiscoverySaveGameV2>(Loaded))
+        {
+            bool bValidClaims = Current->MatchesPlayer(WorldGenerationConfig, OutIdentity);
+            for (const FString& ClaimId : Current->GetM9ClaimIds())
+            {
+                bValidClaims = bValidClaims && IsCurrentM9ClaimId(ClaimId);
+                if (!bValidClaims) break;
+            }
+            if (bValidClaims) Save = Current;
+        }
+        else if (UKalmalaPlayerDiscoverySaveGame* Legacy = Cast<UKalmalaPlayerDiscoverySaveGame>(Loaded))
+        {
+            UKalmalaPlayerDiscoverySaveGameV2* Migrated = nullptr;
+            if (UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema1(
+                Legacy, WorldGenerationConfig, OutIdentity, this, Migrated))
+            {
+                Save = Migrated;
+            }
+        }
+
+        if (Save == nullptr)
+        {
+            RejectedPlayerDiscoverySaveIdentities.Add(OutIdentity);
+            UE_LOG(LogTemp, Warning,
+                TEXT("Player discovery restore and writes blocked for authenticated player %s; existing save is invalid or incompatible and was preserved."),
+                *OutIdentity);
+            return nullptr;
+        }
     }
+    else
+    {
+        Save = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(this);
+        if (Save != nullptr) Save->InitializeForPlayer(WorldGenerationConfig, OutIdentity);
+    }
+
+    if (Save == nullptr || !Save->MatchesPlayer(WorldGenerationConfig, OutIdentity)) return nullptr;
     PlayerDiscoverySaves.Add(OutIdentity, Save);
+
+    if (!Save->GetToolRecords().IsEmpty())
+    {
+        Interactor->CarriedTools.Reset();
+        for (const FKalmalaPlayerToolSaveRecord& Record : Save->GetToolRecords())
+        {
+            FKalmalaToolState ToolState;
+            ToolState.ToolId = Record.ToolId;
+            ToolState.ToolLevel = Record.ToolLevel;
+            ToolState.Durability = Record.Condition;
+            Interactor->CarriedTools.Add(ToolState);
+        }
+        Interactor->ForceNetUpdate();
+    }
+
     if (UKalmalaSupportMagicComponent* Support = Interactor->GetSupportMagicComponent())
     {
-        for (const EKalmalaSupportEffect Effect : { EKalmalaSupportEffect::Mending, EKalmalaSupportEffect::HearthShield, EKalmalaSupportEffect::BearsVigor, EKalmalaSupportEffect::DeerCall })
+        for (const EKalmalaSupportEffect Effect : { EKalmalaSupportEffect::Mending,
+            EKalmalaSupportEffect::HearthShield, EKalmalaSupportEffect::BearsVigor, EKalmalaSupportEffect::DeerCall })
         {
-            if (Save->HasLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(Effect))) Support->LearnEffectFromServer(Effect);
+            if (Save->HasLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(Effect)))
+            {
+                Support->LearnEffectFromServer(Effect);
+            }
         }
     }
     return Save;
+}
+
+bool AKalmalaGameMode::PersistPlayerStateFromServer(
+    AKalmalaCharacter* Character,
+    const FString& AdditionalDiscoveryId,
+    const FString& AdditionalLearnedEffectId,
+    const FString& AdditionalM9ClaimId)
+{
+    if (!HasAuthority() || Character == nullptr || !Character->HasAuthority()
+        || Character->GetWorld() != GetWorld() || Character->GetPlayerState() == nullptr) return false;
+
+    const TArray<FKalmalaToolState> ToolStates = Character->GetCarriedToolInventory();
+    FString Identity;
+    UKalmalaPlayerDiscoverySaveGameV2* Current = GetPlayerDiscoverySave(Character, Identity);
+    if (Current == nullptr) return false;
+
+    TArray<uint8> CurrentBytes;
+    if (!UGameplayStatics::SaveGameToMemory(Current, CurrentBytes)) return false;
+    UKalmalaPlayerDiscoverySaveGameV2* Candidate =
+        Cast<UKalmalaPlayerDiscoverySaveGameV2>(UGameplayStatics::LoadGameFromMemory(CurrentBytes));
+    if (Candidate == nullptr || !Candidate->MatchesPlayer(WorldGenerationConfig, Identity)) return false;
+
+    TArray<FKalmalaPlayerToolSaveRecord> ToolRecords;
+    ToolRecords.Reserve(ToolStates.Num());
+    for (const FKalmalaToolState& ToolState : ToolStates)
+    {
+        FKalmalaPlayerToolSaveRecord& Record = ToolRecords.AddDefaulted_GetRef();
+        Record.ToolId = ToolState.ToolId;
+        Record.ToolLevel = ToolState.ToolLevel;
+        Record.Condition = ToolState.Durability;
+    }
+    if (!Candidate->TryReplaceToolRecords(ToolRecords)) return false;
+
+    for (const FString& ClaimId : Candidate->GetM9ClaimIds())
+    {
+        if (!IsCurrentM9ClaimId(ClaimId)) return false;
+    }
+
+    const TSet<FString>* SessionClaims = SessionM9ExplorationClaims.Find(Identity);
+    if (SessionClaims != nullptr)
+    {
+        if (SessionClaims->Num() > KalmalaGameMode::MaxSessionM9ExplorationClaimsPerPlayer) return false;
+        for (const FString& ClaimId : *SessionClaims)
+        {
+            if (!IsCurrentM9ClaimId(ClaimId)) return false;
+            if (!Candidate->HasDiscovery(ClaimId) && !Candidate->AddM9Claim(ClaimId)) return false;
+        }
+    }
+
+    if (!AdditionalDiscoveryId.IsEmpty()
+        && (Candidate->HasDiscovery(AdditionalDiscoveryId) || !Candidate->AddDiscovery(AdditionalDiscoveryId))) return false;
+    if (!AdditionalLearnedEffectId.IsEmpty()
+        && (Candidate->HasLearnedEffect(AdditionalLearnedEffectId)
+            || !Candidate->AddLearnedEffect(AdditionalLearnedEffectId))) return false;
+    if (!AdditionalM9ClaimId.IsEmpty()
+        && (!IsCurrentM9ClaimId(AdditionalM9ClaimId) || Candidate->HasDiscovery(AdditionalM9ClaimId)
+            || !Candidate->AddM9Claim(AdditionalM9ClaimId))) return false;
+
+    if (!Candidate->MatchesPlayer(WorldGenerationConfig, Identity)) return false;
+    const FString Slot = KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, Identity);
+    if (!UGameplayStatics::SaveGameToSlot(Candidate, Slot, 0)) return false;
+
+    PlayerDiscoverySaves.Add(Identity, Candidate);
+    return true;
 }
 
 void AKalmalaGameMode::LoadOceanTravelWorldSave()
@@ -2607,7 +2759,7 @@ bool AKalmalaGameMode::ClaimDiscovery(AKalmalaCharacter* Interactor, const FKalm
         || FVector::DistSquared(Interactor->GetActorLocation(), Descriptor.Location) > FMath::Square(250.0f)) return false;
     UKalmalaDiscoveryProgressComponent* Feedback = Interactor->GetDiscoveryProgressComponent();
     FString Identity;
-    UKalmalaPlayerDiscoverySaveGame* Save = GetPlayerDiscoverySave(Interactor, Identity);
+    UKalmalaPlayerDiscoverySaveGameV2* Save = GetPlayerDiscoverySave(Interactor, Identity);
     if (Save == nullptr || Feedback == nullptr) return false;
     const FString Id = FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Descriptor);
     if (Save->HasDiscovery(Id))
@@ -2615,20 +2767,11 @@ bool AKalmalaGameMode::ClaimDiscovery(AKalmalaCharacter* Interactor, const FKalm
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::AlreadyFound, TEXT("Already discovered"));
         return false;
     }
-    if (!Save->AddDiscovery(Id))
-    {
-        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery unavailable"));
-        return false;
-    }
     const EKalmalaSupportEffect Effect = Descriptor.Kind == EKalmalaWorldDiscoveryKind::Scroll ? UKalmalaSupportMagicComponent::FromScrollDefinition(Descriptor.DefinitionId) : EKalmalaSupportEffect::None;
-    if (Effect != EKalmalaSupportEffect::None && !Save->AddLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(Effect)))
+    const FString EffectId = Effect != EKalmalaSupportEffect::None
+        ? UKalmalaSupportMagicComponent::CanonicalId(Effect) : FString();
+    if (!PersistPlayerStateFromServer(Interactor, Id, EffectId))
     {
-        Save->RemoveDiscovery(Id); Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery unavailable")); return false;
-    }
-    if (!UGameplayStatics::SaveGameToSlot(Save, KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, Identity), 0))
-    {
-        Save->RemoveDiscovery(Id);
-        if (Effect != EKalmalaSupportEffect::None) Save->RemoveLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(Effect));
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery unavailable"));
         return false;
     }
@@ -2791,13 +2934,23 @@ bool AKalmalaGameMode::ClaimM9ExplorationReward(
         return false;
     }
 
+    FString SaveIdentity;
+    UKalmalaPlayerDiscoverySaveGameV2* PlayerSave = GetPlayerDiscoverySave(Interactor, SaveIdentity);
+    if (PlayerSave == nullptr || SaveIdentity != PlayerIdentity)
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Land discovery save unavailable"));
+        return false;
+    }
+
     TSet<FString>* ExistingClaims = SessionM9ExplorationClaims.Find(PlayerIdentity);
-    if (ExistingClaims != nullptr && ExistingClaims->Contains(StableIdentity))
+    if (PlayerSave->HasDiscovery(StableIdentity)
+        || (ExistingClaims != nullptr && ExistingClaims->Contains(StableIdentity)))
     {
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::AlreadyFound, TEXT("Land discovery already claimed"));
         return false;
     }
-    if (ExistingClaims != nullptr && ExistingClaims->Num() >= KalmalaGameMode::MaxSessionM9ExplorationClaimsPerPlayer)
+    if ((ExistingClaims != nullptr && ExistingClaims->Num() >= KalmalaGameMode::MaxSessionM9ExplorationClaimsPerPlayer)
+        || PlayerSave->GetM9ClaimIds().Num() >= UKalmalaPlayerDiscoverySaveGameV2::MaxM9Claims)
     {
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Land discovery record is full"));
         return false;
@@ -2813,23 +2966,25 @@ bool AKalmalaGameMode::ClaimM9ExplorationReward(
         return false;
     }
 
-    TSet<FString>& Claims = SessionM9ExplorationClaims.FindOrAdd(PlayerIdentity);
-    if (Claims.Contains(StableIdentity) || Claims.Num() >= KalmalaGameMode::MaxSessionM9ExplorationClaimsPerPlayer)
-    {
-        Feedback->PublishFeedbackFromServer(Claims.Contains(StableIdentity)
-            ? EKalmalaDiscoveryFeedback::AlreadyFound : EKalmalaDiscoveryFeedback::Unavailable,
-            Claims.Contains(StableIdentity) ? TEXT("Land discovery already claimed") : TEXT("Land discovery record is full"));
-        return false;
-    }
-
-    Claims.Add(StableIdentity);
     if (!Inventory->TryCommitStacksFromServer(ExistingStacks, CandidateStacks))
     {
-        Claims.Remove(StableIdentity);
-        if (Claims.IsEmpty()) SessionM9ExplorationClaims.Remove(PlayerIdentity);
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery reward could not be granted"));
         return false;
     }
+
+    if (!PersistPlayerStateFromServer(Interactor, FString(), FString(), StableIdentity))
+    {
+        if (!Inventory->TryCommitStacksFromServer(CandidateStacks, ExistingStacks))
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Failed to roll back inventory for player %s after M9 discovery persistence rejected the claim."),
+                *PlayerIdentity);
+        }
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Land discovery could not be saved"));
+        return false;
+    }
+
+    SessionM9ExplorationClaims.FindOrAdd(PlayerIdentity).Add(StableIdentity);
 
     Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::LandmarkFound,
         FString::Printf(TEXT("%s (+%d %s)"), *Definition->ObservationText,
@@ -2857,7 +3012,7 @@ bool AKalmalaGameMode::ClaimMirelingBossScroll(AKalmalaCharacter* Attacker, cons
     }
     if (!bDefeatedMireling) return false;
 
-    UKalmalaPlayerDiscoverySaveGame* Save = nullptr;
+    UKalmalaPlayerDiscoverySaveGameV2* Save = nullptr;
     FString Identity;
     Save = GetPlayerDiscoverySave(Attacker, Identity);
     UKalmalaDiscoveryProgressComponent* Feedback = Attacker->GetDiscoveryProgressComponent();
@@ -2872,16 +3027,9 @@ bool AKalmalaGameMode::ClaimMirelingBossScroll(AKalmalaCharacter* Attacker, cons
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::AlreadyFound, TEXT("Mireling scroll already claimed"));
         return false;
     }
-    if (!Save->AddDiscovery(DiscoveryId) || !Save->AddLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(Effect)))
+    if (!PersistPlayerStateFromServer(Attacker, DiscoveryId,
+        UKalmalaSupportMagicComponent::CanonicalId(Effect)))
     {
-        Save->RemoveDiscovery(DiscoveryId);
-        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Mireling scroll unavailable"));
-        return false;
-    }
-    if (!UGameplayStatics::SaveGameToSlot(Save, KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, Identity), 0))
-    {
-        Save->RemoveDiscovery(DiscoveryId);
-        Save->RemoveLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(Effect));
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Mireling scroll unavailable"));
         return false;
     }
@@ -2984,6 +3132,27 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
         AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(NewPlayer->GetPawn());
         if (Character != nullptr && Character->GetPlayerState() != nullptr)
         {
+#if !UE_BUILD_SHIPPING
+            if (bM9Schema2CandidatePeerTestEnabled
+                && M9Schema2CandidatePeerTestPhase.Equals(TEXT("Seed"), ESearchCase::IgnoreCase)
+                && KalmalaGameMode::GetAuthenticatedPlayerIdentity(Character->GetPlayerState()).EndsWith(
+                    TEXT("m9-schema2-owner"), ESearchCase::IgnoreCase))
+            {
+                const FString PlayerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Character->GetPlayerState());
+                const FString PlayerSlot = KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, PlayerIdentity);
+                if (!UGameplayStatics::DoesSaveGameExist(PlayerSlot, 0))
+                {
+                    UKalmalaPlayerDiscoverySaveGame* Legacy = NewObject<UKalmalaPlayerDiscoverySaveGame>(this);
+                    Legacy->InitializeForPlayer(WorldGenerationConfig, PlayerIdentity);
+                    const bool bLegacySeeded = Legacy->AddDiscovery(TEXT("Poi:1:lakes-island-cache:-2,4:1"))
+                        && Legacy->AddLearnedEffect(TEXT("Effect:mending"))
+                        && UGameplayStatics::SaveGameToSlot(Legacy, PlayerSlot, 0);
+                    UE_LOG(LogTemp, Display,
+                        TEXT("M9 schema-2 normal player migration fixture: Phase=Seed Seeded=%d"),
+                        bLegacySeeded ? 1 : 0);
+                }
+            }
+#endif
             FString IgnoredIdentity;
             GetPlayerDiscoverySave(Character, IgnoredIdentity);
             LoadOceanDiscoveryLedger(Character);
@@ -3315,11 +3484,11 @@ void AKalmalaGameMode::RunM9Schema2CandidatePlayerPeerTest(APlayerController* Pl
     const FString TestRole = PlayerState != nullptr && PlayerIdentity.EndsWith(TEXT("m9-schema2-owner"))
         ? TEXT("Owner") : TEXT("Observer");
     FString NormalIdentity;
-    UKalmalaPlayerDiscoverySaveGame* NormalPlayerSave = Character != nullptr
+    UKalmalaPlayerDiscoverySaveGameV2* NormalPlayerSave = Character != nullptr
         ? GetPlayerDiscoverySave(Character, NormalIdentity) : nullptr;
     if (Character == nullptr || PlayerIdentity.IsEmpty() || NormalPlayerSave == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("M9 schema-2 candidate player: Phase=%s Role=%s Passed=0 Reason=MissingCharacterOrNormalSchema1"),
+        UE_LOG(LogTemp, Error, TEXT("M9 schema-2 candidate player: Phase=%s Role=%s Passed=0 Reason=MissingCharacterOrNormalSchema2"),
             *M9Schema2CandidatePeerTestPhase, *TestRole);
         return;
     }
@@ -3327,10 +3496,11 @@ void AKalmalaGameMode::RunM9Schema2CandidatePlayerPeerTest(APlayerController* Pl
     if (TestRole == TEXT("Observer"))
     {
         const bool bObserverHasTools = !Character->CarriedTools.IsEmpty();
+        const bool bPassed = bObserverHasTools && NormalPlayerSave->GetToolRecords().IsEmpty();
         UE_LOG(LogTemp, Display,
-            TEXT("M9 schema-2 candidate player: Phase=%s Role=Observer Passed=%d CandidateLoaded=0 ServerTools=%d NormalSchema=%d"),
-            *M9Schema2CandidatePeerTestPhase, bObserverHasTools ? 1 : 0, Character->CarriedTools.Num(),
-            UKalmalaPlayerDiscoverySaveGame::Schema);
+            TEXT("M9 schema-2 candidate player: Phase=%s Role=Observer Passed=%d CandidateLoaded=0 ServerTools=%d NormalSchema=%d NormalTools=%d NormalFacts=0"),
+            *M9Schema2CandidatePeerTestPhase, bPassed ? 1 : 0, Character->CarriedTools.Num(),
+            UKalmalaPlayerDiscoverySaveGameV2::SchemaVersionValue, NormalPlayerSave->GetToolRecords().Num());
         return;
     }
 
@@ -3340,6 +3510,39 @@ void AKalmalaGameMode::RunM9Schema2CandidatePlayerPeerTest(APlayerController* Pl
     const FString ClaimId = FKalmalaM9ExplorationRewardCatalogue::MakeStableIdentity(
         TEXT("lakes-rillworn-marker"), FIntPoint(-29, 14));
     bool bReplayRejected = false;
+    if (M9Schema2CandidatePeerTestPhase.Equals(TEXT("Seed"), ESearchCase::IgnoreCase))
+    {
+        FString NormalClaimId;
+        for (int32 Y = -12; Y <= 12 && NormalClaimId.IsEmpty(); ++Y)
+        {
+            for (int32 X = -12; X <= 12 && NormalClaimId.IsEmpty(); ++X)
+            {
+                const FIntPoint SpatialKey(X, Y);
+                const TArray<FKalmalaM9ExplorationRewardDescriptor> Descriptors =
+                    FKalmalaM9ExplorationRewardCatalogue::BuildDescriptors(WorldGenerationConfig, SpatialKey);
+                if (!Descriptors.IsEmpty())
+                {
+                    NormalClaimId = FKalmalaM9ExplorationRewardCatalogue::MakeStableIdentity(
+                        Descriptors[0].CandidateId, SpatialKey);
+                }
+            }
+        }
+        if (NormalClaimId.IsEmpty()
+            || !PersistPlayerStateFromServer(Character, FString(), FString(), NormalClaimId))
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("M9 schema-2 candidate player: Phase=Seed Role=Owner Passed=0 Reason=NormalSlotWriteOrClaimRevalidation"));
+            return;
+        }
+        NormalPlayerSave = GetPlayerDiscoverySave(Character, NormalIdentity);
+    }
+
+    const bool bNormalFactsMatch = NormalPlayerSave != nullptr
+        && NormalPlayerSave->HasDiscovery(DiscoveryId)
+        && NormalPlayerSave->HasLearnedEffect(TEXT("Effect:mending"))
+        && !NormalPlayerSave->GetM9ClaimIds().IsEmpty()
+        && NormalPlayerSave->GetToolRecords().Num() == Character->CarriedTools.Num();
+
     if (M9Schema2CandidatePeerTestPhase.Equals(TEXT("Seed"), ESearchCase::IgnoreCase))
     {
         Candidate = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(this);
@@ -3404,11 +3607,13 @@ void AKalmalaGameMode::RunM9Schema2CandidatePlayerPeerTest(APlayerController* Pl
         || bReplayRejected;
     const bool bPassed = Candidate->MatchesPlayer(WorldGenerationConfig, PlayerIdentity)
         && Candidate->HasDiscovery(DiscoveryId) && Candidate->HasLearnedEffect(TEXT("Effect:mending"))
-        && Candidate->GetM9ClaimIds().Contains(ClaimId) && bReplayCheckPassed && bServerAgreement;
+        && Candidate->GetM9ClaimIds().Contains(ClaimId) && bReplayCheckPassed && bServerAgreement
+        && bNormalFactsMatch && NormalPlayerSave->MatchesPlayer(WorldGenerationConfig, NormalIdentity);
     UE_LOG(LogTemp, Display,
-        TEXT("M9 schema-2 candidate player: Phase=%s Role=Owner Passed=%d CandidateReady=1 Discovery=1 Claim=1 ReplayRejected=%d ServerTools=%d NormalSchema=%d"),
+        TEXT("M9 schema-2 candidate player: Phase=%s Role=Owner Passed=%d CandidateReady=1 Discovery=1 Claim=1 ReplayRejected=%d ServerTools=%d NormalSchema=%d NormalTools=%d NormalFacts=%d"),
         *M9Schema2CandidatePeerTestPhase, bPassed ? 1 : 0, bReplayRejected ? 1 : 0,
-        Character->CarriedTools.Num(), UKalmalaPlayerDiscoverySaveGame::Schema);
+        Character->CarriedTools.Num(), UKalmalaPlayerDiscoverySaveGameV2::SchemaVersionValue,
+        NormalPlayerSave->GetToolRecords().Num(), bNormalFactsMatch ? 1 : 0);
 #endif
 }
 

@@ -45,8 +45,7 @@ struct KALMALAGAMEPLAY_API FKalmalaPlayerToolSaveRecord
 };
 
 /**
- * Isolated schema-2 candidate for player discoveries and carried tools.
- * Normal player slots stay on schema 1 until the complete M9 gate passes.
+ * Schema-2 player discoveries and carried tools for the existing player slot.
  */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaPlayerDiscoverySaveGameV2 : public USaveGame
@@ -67,6 +66,7 @@ public:
     bool AddM9Claim(const FString& Id);
     bool AddLearnedEffect(const FString& Id);
     bool AddToolRecord(const FKalmalaPlayerToolSaveRecord& Record);
+    bool TryReplaceToolRecords(const TArray<FKalmalaPlayerToolSaveRecord>& Records);
     bool HasDiscovery(const FString& Id) const;
     bool HasLearnedEffect(const FString& Id) const;
 

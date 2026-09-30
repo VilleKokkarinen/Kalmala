@@ -97,11 +97,13 @@ Each rejected migration or transaction must leave the source save and live
 state unchanged. A host/client reconnect check must confirm server agreement,
 replay rejection, and owner-only tool details without new replicated state.
 
-Do not enable schema-2 writes in normal play until these checks pass. M9
-cross-system acceptance remains responsible for restart/reconnect behavior and
-documented actor, memory, replication, and save budgets.
+The focused round-trip, migration, rejection, and candidate reconnect checks
+passed before normal schema-2 writes were enabled on the existing construction
+and player slots. M9 cross-system acceptance remains responsible for full
+restart/reconnect behavior, state agreement, and documented actor, memory,
+replication, and save budgets.
 
-## Implementation handoff
+## Initial candidate handoff (before normal writers)
 
 The schema-2 world construction candidate has memory round-trip and schema-1
 migration coverage for exact identity, malformed records, duplicates, and
@@ -117,14 +119,13 @@ The combined two-client host restart check passed for dedicated schema-2 test
 slots: server world records and the owner's discovery, learned effect, M9
 claim, and carried tools reloaded with matching seed/revision/owner identity;
 re-adding the persisted claim was rejected; both clients received only their
-own tool details. Normal construction and player-discovery slots remain schema
-1, and no schema-2 runtime writes were enabled. The test uses a deterministic
+own tool details. At this candidate-only handoff, normal construction and
+player-discovery slots remained schema 1. The test uses a deterministic
 test-provider identity and does not validate a production online identity
 provider.
 
-The player candidate still does not merge and revalidate live session claims on
-its first normal write. M9 runtime save integration and cross-system acceptance,
-including restart behavior and resource budgets, remain open.
+The remaining work at this handoff was to implement normal schema-2 writers;
+the dated construction and player writer handoffs below record those increments.
 
 ### Normal construction writer handoff — 2026-09-30
 
@@ -141,3 +142,27 @@ bytes, and attachment serialization; the host/client construction restart
 check covers schema-2 writes through the normal world slot. Player slots remain
 schema 1 while their writer and
 first-write merge/revalidation are implemented in the next increment.
+
+### Normal player writer handoff — 2026-09-30
+
+The existing player-discovery slot now loads schema 2, explicitly migrates a
+matching schema-1 discovery/effect save, and preserves invalid or mismatched
+existing bytes by disabling restore and writes for that authenticated player.
+Each accepted player-state write copies the validated save candidate, replaces
+the bounded tool list from current server-owned state, re-derives every live
+M9 claim from the current world descriptor catalogue, merges those claims, and
+revalidates the complete candidate before saving. First-wave discovery and
+learned-effect facts survive migration; new M9 claims and tool changes publish
+only after a successful slot write. Tool harvest wear, progression, and repair
+reject and roll back their associated inventory or condition mutation when the
+player save cannot be committed. Carried tool details remain owner-only; no
+replicated field or RPC payload changed.
+
+The M9 reconnect fixture seeds a normal schema-1 player slot, exercises the
+normal writer, restarts the host, and requires the migrated discoveries/effect,
+current M9 claim, and tool records to return to the authenticated owner while
+the observer's slot remains isolated. Session-only ocean-discovery state stays
+in the existing M7 sparse ledger, and ordinary inventory is still not saved.
+The test-provider identity does not validate production online identity
+providers; rendered UI and packaged walkthrough evidence remain outside this
+child increment.
