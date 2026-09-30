@@ -19,6 +19,15 @@ bool FKalmalaCraftingNetworkContractTest::RunTest(const FString& Parameters)
         TestNotNull(TEXT("Craft intent supplies a bounded batch request"), Craft->FindPropertyByName(TEXT("Batch")));
     }
 
+    const UFunction* ConsumeFood = CraftingClass->FindFunctionByName(TEXT("ServerConsumeFood"));
+    if (TestNotNull(TEXT("Food consumption intent exists"), ConsumeFood))
+    {
+        TestTrue(TEXT("Food consumption is a reliable owning-client server RPC"),
+            ConsumeFood->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer | FUNC_NetReliable));
+        TestEqual(TEXT("Food consumption accepts only one item identity"), int32(ConsumeFood->NumParms), 1);
+        TestNotNull(TEXT("Food request carries the allowlisted item identity"), ConsumeFood->FindPropertyByName(TEXT("FoodItemId")));
+    }
+
     for (const FName Intent : {FName(TEXT("ServerPlaceCampfire")), FName(TEXT("ServerRefuel")), FName(TEXT("ServerLight"))})
     {
         const UFunction* Function = CraftingClass->FindFunctionByName(Intent);

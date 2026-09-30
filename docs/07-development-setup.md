@@ -358,7 +358,7 @@ checks.
 
 `Content/Data/GameCatalogues.json` is the schema-version-4 source for both item and recipe definitions. No property or value in the file contains `Kit`; clean buildable IDs and each recipe's `RequiredStation` array map to stable runtime construction identities, preserving construction and save compatibility. Keep the `Data` directory in `DirectoriesToAlwaysStageAsUFS` under `[/Script/UnrealEd.ProjectPackagingSettings]`; the loader reads it through Unreal's file layer so it works from both the project and a packaged UFS container. The loader validates schema version, array bounds, required item descriptions and display names, recipe references, duplicate IDs, quantities, stack limits, and station references before exposing either catalogue. Hearth refuelling separately validates raw fuel materials. Missing or invalid data leaves the catalogues empty, and server transactions fail closed.
 
-After building the editor, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above. It checks that all definitions in the schema-version-4 item and recipe arrays load, no JSON property or value contains "Kit", no retired item or recipe is present, clean buildable aliases map to stable runtime IDs, every item has a bounded description and a player-facing name without "Kit", exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate definitions. It also checks that station requirements are arrays, the removed recipe fields are absent, Carrot, Potato, Rutabaga (swede), Onion, their matching seed items, and the `MeatStew` and `CookedDeerMeat` recipe-output items are present. `MeatStewRecipe` and `CookedDeerMeatRecipe` resolve to their stable output item IDs when configured. These are catalogue definitions only; planting, growth, harvesting, and food-use behavior are not added by this increment. The crafting-menu presentation check verifies descriptions for the selected output and browsed item. This is a pure contract check; live inventory replication and harvest-grant verification remain covered by their separate checks.
+After building the editor, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above. It checks that all definitions in the schema-version-4 item and recipe arrays load, no JSON property or value contains "Kit", no retired item or recipe is present, clean buildable aliases map to stable runtime IDs, every item has a bounded description and a player-facing name without "Kit", exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate definitions. It also checks station-array structure and the removed recipe fields; crop and seed definitions; all six current food recipe IDs, outputs, stations, batch limits, output stack limits, retired food/smoke aliases, and the recipe-free HearthBroth item. These are catalogue definitions only; planting, growth, harvesting, and food-use behavior remain separate concerns. The crafting-menu presentation check verifies descriptions for the selected output and browsed item. This is a pure contract check; live inventory replication and harvest-grant verification remain covered by their separate checks.
 
 The catalogue and cooking contracts also cover Iron, the five-Iron Forge recipe
 for a placeable Frying pan, the three root-vegetable outputs, station-filtered
@@ -1012,10 +1012,20 @@ Each successful prepared-food recipe transaction awards one fixed 10 Cooking exp
 
 The recipes do not require a Cooking level, and accepted cooking awards remain post-transaction.
 
-After the forced editor build, run `Kalmala.Gameplay.Food.CampfireProcessing`, `Kalmala.Gameplay.Food.CookingStationHeat`, and the focused status, inventory recipe, RPC, and placement-preview contracts. CampfireProcessing checks current schema-4 recipe/output/station IDs, retired cooking aliases, rack/cauldron inventory transactions, and the HearthBroth meal item. The cooking heat test covers station-local heat, no recipe fuel debit, elapsed-time hearth burn, bounded batches, and unchanged inventory on rejection. The crafting transaction test checks raw fuel selection for hearth refuelling separately from recipe ingredient exchanges:
+The `Kalmala.Gameplay.Inventory.Catalogue` check above owns the six current food
+recipe IDs, outputs, stations, batch/output bounds, and retired aliases. After
+the forced editor build, run the six focused cooking, meal-use, crafting,
+network, and construction contracts:
+`Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract`.
+CookingStationHeat covers the live
+rack, cauldron, and pan transactions including stew, local hearth heat, and
+fuel behavior. SteadyMeal checks inventory consumption, duplicate/client
+rejection, and the active timer. NetworkContract checks that food use sends
+only the item identity. The crafting transaction test checks raw fuel
+selection for hearth refuelling separately from recipe ingredient exchanges:
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CampfireProcessing+Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ## Windows Development package smoke
@@ -1207,9 +1217,10 @@ replicated gameplay field, or saved-data schema.
 The raised chest has no item, recipe, placement-preview, or storage identity in
 current gameplay. The normal Chest remains the only storage construction, and
 the current schema-4 catalogue has no Smoke Frame or legacy smoke recipes. Run
-`Kalmala.Gameplay.M9.RaisedStorage` to assert that absence and the surviving
-Chest recipe, together with `Kalmala.Gameplay.Food.CampfireProcessing`,
-`Kalmala.Gameplay.Food.CookingStationHeat`,
+`Kalmala.Gameplay.M9.RaisedStorage` to assert the retired chest identity and
+surviving Chest recipe, `Kalmala.Gameplay.Inventory.Catalogue` for retired
+food and smoke aliases, and `Kalmala.Gameplay.Food.CookingStationHeat` plus
+`Kalmala.Gameplay.Status.SteadyMeal` for current food transactions, with
 `Kalmala.Gameplay.Crafting.Transactions`,
 `Kalmala.Gameplay.Construction.LocalPreview`, and
 `Kalmala.Gameplay.Storage.SaveContract`. The storage test also checks that old

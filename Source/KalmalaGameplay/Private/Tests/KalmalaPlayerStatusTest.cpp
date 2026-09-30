@@ -4,6 +4,8 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaCharacterMovementComponent.h"
 #include "KalmalaCampfire.h"
+#include "KalmalaCraftingComponent.h"
+#include "KalmalaInventoryComponent.h"
 #include "KalmalaSupportMagicComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
@@ -180,18 +182,46 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
 
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     AKalmalaCharacter* Pawn = World ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
-    if (!TestNotNull(TEXT("Authority status fixture spawned"), Pawn))
+    APlayerController* Controller = World ? World->SpawnActor<APlayerController>() : nullptr;
+    if (!TestNotNull(TEXT("Authority status fixture spawned"), Pawn) || !TestNotNull(TEXT("Meal inventory controller spawned"), Controller))
     {
         if (World) World->DestroyWorld(false);
         return false;
     }
+    Controller->Possess(Pawn);
     auto* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    auto* Crafting = Pawn->FindComponentByClass<UKalmalaCraftingComponent>();
+    auto* Inventory = Pawn->GetInventoryComponent();
+    if (!TestNotNull(TEXT("Food consumption component exists"), Crafting) || !TestNotNull(TEXT("Food inventory exists"), Inventory))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
     TestTrue(TEXT("Server owner may apply the current catalogue meal item"), Status && Status->ApplyFoodFromServer(TEXT("HearthBroth")));
     Pawn->SetRole(ROLE_AutonomousProxy);
     TestFalse(TEXT("Owning client cannot author a meal effect"), Status && Status->ApplyFoodFromServer(TEXT("HearthBroth")));
     TestEqual(TEXT("Rejected client application retains the server timer"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
         UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    Pawn->SetRole(ROLE_Authority);
+    Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    TestTrue(TEXT("Food transaction fixture grants two current meal items"), Inventory->TryGrantFromServer(TEXT("HearthBroth"), 2));
+    FString Reason;
+    TestTrue(TEXT("Server food transaction consumes and applies a meal"), Crafting->ConsumeFoodFromServer(TEXT("HearthBroth"), Reason));
+    TestEqual(TEXT("Accepted meal consumes exactly one item"), Inventory->GetQuantity(TEXT("HearthBroth")), 1);
+    TestEqual(TEXT("Accepted meal publishes its fixed effect duration"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
+        UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    const float MealTimeBeforeDuplicate = Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId);
+    TestFalse(TEXT("An active meal rejects a second consumption transaction"), Crafting->ConsumeFoodFromServer(TEXT("HearthBroth"), Reason));
+    TestEqual(TEXT("Duplicate rejection preserves the remaining inventory item"), Inventory->GetQuantity(TEXT("HearthBroth")), 1);
+    TestEqual(TEXT("Duplicate rejection preserves the active timer"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), MealTimeBeforeDuplicate);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestFalse(TEXT("Client cannot consume food through the server transaction"), Crafting->ConsumeFoodFromServer(TEXT("HearthBroth"), Reason));
+    TestEqual(TEXT("Client request preserves food inventory"), Inventory->GetQuantity(TEXT("HearthBroth")), 1);
+    TestEqual(TEXT("Client request preserves the active meal timer"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), MealTimeBeforeDuplicate);
     World->DestroyWorld(false);
     return true;
 }

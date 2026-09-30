@@ -9890,3 +9890,21 @@ Known limitations: HearthBroth remains an item without a catalogue production re
 Handoff: Work used the main checkout, so no worktree synchronization was needed. The M9 cross-system parent remains unchecked and blocked only on the normal-save schema authorization and write/merge/revalidation work.
 
 Next eligible task: After explicit authorization for normal schema-2 writes to the existing construction/player save slots, implement first-write merge/revalidation and finish M9 cross-system acceptance.
+
+### Run 2026-09-30T07:49:27Z — Consolidate overlapping food tests
+
+Outcome: Removed the standalone `Kalmala.Gameplay.Food.CampfireProcessing` automation and moved its distinct checks into existing contracts. `Inventory.Catalogue` now owns current food outputs, stations, bounds, recipe-free HearthBroth, and retired food/smoke IDs. `CookingStationHeat` owns rack, cauldron, pan, and stew transactions. `Status.SteadyMeal` covers food inventory use and duplicate/client rejection. `Crafting.NetworkContract` checks the item-ID-only consume RPC. Duplicate static recipe-output/station checks were removed from Crafting.Transactions and CookingStationHeat. The documented focused food selection is reduced from seven tests to six; the shared catalogue test remains its own required check.
+
+Files changed during this run: `PROGRESS.md`; `docs/07-development-setup.md`; `docs/28-m9-camp-equipment-recipes.md`; `Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingNetworkContractTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaFoodProcessingTest.cpp` (deleted); `Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp`.
+
+Verification: The UE 5.8.2 `KalmalaEditor Win64 Development` build passed all 197 actions in the disposable mirror with normal `%LOCALAPPDATA%\UnrealBuildTool` access. `UnrealEditor-Cmd.exe` returned exit code 0 and all seven affected automations passed: Inventory.Catalogue, Food.CookingStationHeat, Status.SteadyMeal, Crafting.Transactions, Crafting.NetworkContract, Construction.LocalPreview, and Construction.SaveContract. Its startup emitted optional LinuxArm64/VisionOS SDK preflight and two engine `Condition failed` log messages, but it continued to run the suite; no automation failed. `git diff --check` passed. The longest mirrored project file path was 137 characters, below Windows' 260-character limit.
+
+Observable impact: One standalone automation is removed, and the focused cooking selection now requires six tests instead of seven. The six current recipe and transaction coverage remains in already-existing checks; static outputs/stations have one catalogue owner. No gameplay contract changed.
+
+Authority and persistence: This increment changed tests and verification documentation only. No production gameplay, RPC, replicated field, or saved-data schema changed. The moved food-use assertion continues to call the server-owned transaction and checks client rejection.
+
+Known limitations: No new runtime limitation was introduced. M9 cross-system acceptance remains blocked because normal schema-2 writes and first-write merge/revalidation need explicit user direction as recorded above. Rendered UI, physical input, and packaged walkthrough coverage remain unverified.
+
+Handoff: Work used the main checkout, so no worktree synchronization was needed. The M9 cross-system acceptance parent remains unchecked and blocked; this test consolidation does not satisfy its acceptance criteria.
+
+Next eligible task: After explicit authorization for normal schema-2 writes to the existing construction/player save slots, implement first-write merge/revalidation and finish M9 cross-system acceptance.

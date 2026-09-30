@@ -69,22 +69,49 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         }
     }
 
-    const FKalmalaItemDefinition* MeatStew = Catalogue->FindItem(TEXT("MeatStew"));
-    TestNotNull(TEXT("Meat stew recipe output item is defined"), MeatStew);
-    if (const FKalmalaRecipe* MeatStewRecipe = Recipes->Find(TEXT("MeatStewRecipe")))
+    const TPair<FName, FName> CurrentFoodRecipes[] = {
+        {TEXT("CookedBoarMeatRecipe"), TEXT("CookedBoarMeat")},
+        {TEXT("CookedDeerMeatRecipe"), TEXT("CookedDeerMeat")},
+        {TEXT("MeatStewRecipe"), TEXT("MeatStew")},
+        {TEXT("RootVegetableSoupRecipe"), TEXT("RootVegetableSoup")},
+        {TEXT("RoastedRootVegetablesRecipe"), TEXT("RoastedRootVegetables")},
+        {TEXT("DeerRootRoastRecipe"), TEXT("DeerRootRoast")}
+    };
+    for (const TPair<FName, FName>& Entry : CurrentFoodRecipes)
     {
-        TestEqual(TEXT("Meat stew recipe outputs the stable item ID"), MeatStewRecipe->Output, FName(TEXT("MeatStew")));
-    }
+        const FKalmalaRecipe* Recipe = Recipes->Find(Entry.Key);
+        if (!TestNotNull(FString::Printf(TEXT("Current food recipe %s exists"), *Entry.Key.ToString()), Recipe)) continue;
+        TestEqual(TEXT("Current food recipe yields its stable output ID"), Recipe->Output, Entry.Value);
+        TestEqual(TEXT("Current food recipe batch is bounded at five"), Recipe->MaxBatch, 5);
+        TestTrue(TEXT("Current food recipe has no carried-tool requirement"), Recipe->RequiredTool.IsNone());
 
-    const FKalmalaItemDefinition* CookedDeerMeat = Catalogue->FindItem(TEXT("CookedDeerMeat"));
-    TestNotNull(TEXT("Cooked deer recipe output item is defined"), CookedDeerMeat);
-    if (const FKalmalaRecipe* CookedDeerMeatRecipe = Recipes->Find(TEXT("CookedDeerMeatRecipe")))
-    {
-        TestEqual(TEXT("Cooked deer recipe outputs the stable item ID"), CookedDeerMeatRecipe->Output, FName(TEXT("CookedDeerMeat")));
-    }
+        const FName StationId = Entry.Key == FName(TEXT("CookedBoarMeatRecipe")) || Entry.Key == FName(TEXT("CookedDeerMeatRecipe"))
+            ? FName(TEXT("CookingRackKit"))
+            : Entry.Key == FName(TEXT("MeatStewRecipe")) || Entry.Key == FName(TEXT("RootVegetableSoupRecipe"))
+                ? FName(TEXT("CauldronKit")) : FName(TEXT("FryingPanKit"));
+        TestTrue(TEXT("Current food recipe resolves to its required cooking station"), Recipe->RequiredStation.Contains(StationId));
 
-    for (const FName Id : { FName(TEXT("Iron")), FName(TEXT("FryingPanKit")), FName(TEXT("RootVegetableSoup")),
-        FName(TEXT("RoastedRootVegetables")), FName(TEXT("DeerRootRoast")) })
+        const FKalmalaItemDefinition* Output = Catalogue->FindItem(Entry.Value);
+        if (TestNotNull(TEXT("Current food recipe output item is defined"), Output))
+            TestEqual(TEXT("Prepared food stacks are bounded at twenty"), Output->MaxStack, 20);
+    }
+    for (const FName RemovedRecipe : {
+        FName(TEXT("RoastBoarMeat")), FName(TEXT("RoastDeerMeat")),
+        FName(TEXT("SimmerBoarBroth")), FName(TEXT("SimmerDeerBroth")),
+        FName(TEXT("SmokeBoarMeat")), FName(TEXT("SmokeDeerMeat")) })
+        TestNull(TEXT("Retired food recipe is absent from schema four"), Recipes->Find(RemovedRecipe));
+    for (const FName RemovedItem : {
+        FName(TEXT("RoastedFieldMeat")), FName(TEXT("SmokedFieldMeat")),
+        FName(TEXT("SmokeFrame")), FName(TEXT("SmokeFrameKit")) })
+        TestNull(TEXT("Retired food or station item is absent from schema four"), Catalogue->FindItem(RemovedItem));
+
+    const FKalmalaItemDefinition* HearthBroth = Catalogue->FindItem(TEXT("HearthBroth"));
+    if (TestNotNull(TEXT("Hearth broth remains a current catalogue item"), HearthBroth))
+        TestEqual(TEXT("Hearth broth stack remains bounded at twenty"), HearthBroth->MaxStack, 20);
+    TestNull(TEXT("Hearth broth has no production recipe"),
+        Recipes->Recipes.FindByPredicate([](const FKalmalaRecipe& Recipe) { return Recipe.Output == TEXT("HearthBroth"); }));
+
+    for (const FName Id : { FName(TEXT("Iron")), FName(TEXT("FryingPanKit")) })
         TestNotNull(FString::Printf(TEXT("New crafting item %s is defined"), *Id.ToString()), Catalogue->FindItem(Id));
     const FKalmalaRecipe* FryingPanRecipe = Recipes->Find(TEXT("FryingPanRecipe"));
     TestNotNull(TEXT("Frying pan forge recipe is defined"), FryingPanRecipe);
@@ -94,16 +121,6 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Frying pan is made at a Forge"), FryingPanRecipe->RequiredStation.Contains(TEXT("ForgeKit")));
         TestTrue(TEXT("Frying pan output is no longer a carried tool"), FryingPanRecipe->RequiredTool.IsNone());
     }
-    for (const TPair<FName, FName>& RecipeAndOutput : {
-        TPair<FName, FName>(TEXT("RootVegetableSoupRecipe"), TEXT("RootVegetableSoup")),
-        TPair<FName, FName>(TEXT("RoastedRootVegetablesRecipe"), TEXT("RoastedRootVegetables")),
-        TPair<FName, FName>(TEXT("DeerRootRoastRecipe"), TEXT("DeerRootRoast")) })
-    {
-        const FKalmalaRecipe* Recipe = Recipes->Find(RecipeAndOutput.Key);
-        TestNotNull(FString::Printf(TEXT("Recipe %s is defined"), *RecipeAndOutput.Key.ToString()), Recipe);
-        if (Recipe) TestEqual(TEXT("New recipe resolves to its output item"), Recipe->Output, RecipeAndOutput.Value);
-    }
-
     for (const FKalmalaRecipe& Recipe : Recipes->Recipes)
     {
         TestFalse(FString::Printf(TEXT("%s has a player-facing recipe name without Kit"), *Recipe.RecipeId.ToString()),

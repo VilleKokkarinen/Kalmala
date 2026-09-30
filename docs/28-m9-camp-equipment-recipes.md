@@ -83,9 +83,13 @@ there is an approved equipment-slot and effect contract.
 
 ## Verification
 
-After a forced editor build, run the catalogue, crafting transaction and
-network, campfire processing, placement preview, construction save, and storage
-save/transfer automations described in `docs/07-development-setup.md`.
+After a forced editor build, run the catalogue, cooking heat, steady-meal,
+crafting transaction and network, placement preview, construction save, and
+storage save/transfer automations described in `docs/07-development-setup.md`.
+The catalogue contract checks recipe IDs, outputs, stations, bounds, and retired
+aliases; the cooking test checks live rack/cauldron/pan exchanges; the steady
+meal test checks item use and rejection. These checks replace the former
+standalone food-processing automation while retaining its unique coverage.
 Run `Scripts/Verify-Crafting.ps1` to verify server-selected raw fuel, direct
 material transactions, rejection gates, and exact peer inventory. Pair it with
 `Scripts/Verify-InventoryReconnect.ps1` and `Scripts/Verify-Storage.ps1` for
