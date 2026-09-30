@@ -62,7 +62,7 @@ function Invoke-Phase([string]$Phase) {
     try {
         $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -KalmalaM9Schema2Phase=$Phase -abslog=`"$serverLog`" -UserDir=`"$hostDir`""
         Wait-Listen $server $serverLog
-        $worldPattern = "M9 schema-2 candidate world: Phase=$Phase Passed=1 Records=3 Attachment=1 DryingLine=1 NormalSchema=1"
+        $worldPattern = "M9 schema-2 candidate world: Phase=$Phase Passed=1 Records=3 Attachment=1 DryingLine=1 NormalSchema=2"
         Wait-ForLogs @($server) @($serverLog) { param($texts) $texts[0] -match $worldPattern } "$Phase world-candidate check" | Out-Null
 
         $owner = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -KalmalaM9Schema2Phase=$Phase -KalmalaM9Schema2ClientRole=Owner -abslog=`"$ownerLog`" -UserDir=`"$ownerDir`""
@@ -91,7 +91,7 @@ function Invoke-Phase([string]$Phase) {
 try {
     Invoke-Phase 'Seed' | Out-Null
     Invoke-Phase 'Resume' | Out-Null
-    Write-Output 'PASS: schema-2 world and test-provider player candidates survived a listen-server restart; server records matched both peers, persisted discovery and tool facts returned to the owner, duplicate claims were rejected, other owners saw no tool details, and normal save slots remained schema 1.'
+    Write-Output 'PASS: schema-2 world and test-provider player candidates survived a listen-server restart; server records matched both peers, persisted discovery and tool facts returned to the owner, duplicate claims were rejected, other owners saw no tool details, the normal construction save object used schema 2, and the normal player slot remained schema 1.'
 }
 finally {
     Write-Output "Scenario logs: $output"

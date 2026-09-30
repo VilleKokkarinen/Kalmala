@@ -1265,9 +1265,7 @@ and Drying Lines; migrates matching schema-1 construction records while
 binding seed/revision/world scope; and rejects mismatched, unsupported,
 malformed, duplicate, and over-cap legacy data without changing its source
 bytes. It also checks exact schema-2 identity, malformed/duplicate current
-records, and the 32-attachment and five-line limits. Normal construction slots
-and transactions still use schema 1; the candidate is not wired to normal
-save writes while player migration and peer reconnect coverage remain open.
+records, and the 32-attachment and five-line limits. Normal construction writes use the schema-2 container. On first write, a matching schema-1 save is migrated and merged with the new server-accepted record; every record is revalidated before the slot is replaced. Invalid or mismatched existing slots remain untouched. Normal player-discovery slots still use schema 1 pending their schema-2 writer.
 
 ### M9 schema-2 player discovery and tool migration coverage
 
@@ -1306,9 +1304,12 @@ observer. Require the server to reload all three world records and the owner's
 first-wave discovery, learned effect, M9 claim, and three carried tools. On
 resume, adding the existing claim again must fail without changing the claim
 set. Each client must receive its own carried-tool details while seeing no
-other owner's tool array. The server also reports that normal construction and
-player-discovery save objects remain schema 1. The fixture adds no replicated
-fields and does not enable schema-2 writes in normal play.
+other owner's tool array. The server also reports that its normal construction
+save object uses schema 2 and the normal player-discovery slot remains schema 1.
+This fixture uses dedicated candidate slots and adds no replicated fields;
+normal construction restart coverage is provided separately by
+`Scripts/Verify-ConstructionPersistence.ps1` and the focused write-candidate
+automation.
 
 This null-renderer authority and replication check uses deterministic
 test-provider identities; it does not verify a production online identity

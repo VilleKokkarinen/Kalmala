@@ -122,6 +122,22 @@ own tool details. Normal construction and player-discovery slots remain schema
 test-provider identity and does not validate a production online identity
 provider.
 
-The candidate still does not merge and revalidate live session claims on its
-first normal write. M9 runtime save integration and cross-system acceptance,
+The player candidate still does not merge and revalidate live session claims on
+its first normal write. M9 runtime save integration and cross-system acceptance,
 including restart behavior and resource budgets, remain open.
+
+### Normal construction writer handoff — 2026-09-30
+
+The user authorized normal schema-2 writes to the existing construction and
+player-discovery save slots. The construction slot now loads through the
+schema-2 container, explicitly migrates a matching schema-1 save, and leaves an
+invalid or mismatched existing slot untouched. A construction transaction
+copies the validated current candidate, adds only the server-created record,
+revalidates all records and caps, then saves before publishing the new in-memory
+container. Approved Workbench racks and Forge anvils now use this saved path;
+their levels remain derived from the restored nearby actors. A focused
+write-candidate check covers legacy fact preservation, unchanged legacy source
+bytes, and attachment serialization; the host/client construction restart
+check covers schema-2 writes through the normal world slot. Player slots remain
+schema 1 while their writer and
+first-write merge/revalidation are implemented in the next increment.

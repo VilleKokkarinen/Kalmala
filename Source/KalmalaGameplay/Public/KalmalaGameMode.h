@@ -153,7 +153,7 @@ private:
     TWeakObjectPtr<class AKalmalaOceanSkiff> RestoredOceanSkiff;
     TArray<TWeakObjectPtr<APlayerController>> PendingOceanTravelRestores;
     bool bOceanTravelPersistenceWritable = false;
-    UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGame> ConstructionSaveGame;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGameV2> ConstructionSaveGame;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaStorageSaveGame> StorageSaveGame;
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;
     TSet<FIntPoint> ActiveTerrainPatchCoordinates;

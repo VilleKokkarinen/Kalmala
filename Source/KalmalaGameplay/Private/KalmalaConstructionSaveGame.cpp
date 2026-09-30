@@ -160,6 +160,40 @@ void UKalmalaConstructionSaveGameV2::InitializeForWorld(const FKalmalaWorldGener
     Records.Reset();
 }
 
+bool UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(
+    USaveGame* Existing,
+    const FKalmalaWorldGenerationConfig& RequestedWorld,
+    UObject* Outer,
+    UKalmalaConstructionSaveGameV2*& OutCandidate)
+{
+    OutCandidate = nullptr;
+    if (!RequestedWorld.IsValid() || Outer == nullptr) return false;
+
+    UKalmalaConstructionSaveGameV2* Candidate = nullptr;
+    if (Existing == nullptr)
+    {
+        Candidate = NewObject<UKalmalaConstructionSaveGameV2>(Outer);
+        if (Candidate != nullptr) Candidate->InitializeForWorld(RequestedWorld);
+    }
+    else if (const auto* Current = Cast<UKalmalaConstructionSaveGameV2>(Existing))
+    {
+        if (!Current->MatchesWorld(RequestedWorld)) return false;
+        Candidate = DuplicateObject<UKalmalaConstructionSaveGameV2>(Current, Outer);
+    }
+    else if (const auto* Legacy = Cast<UKalmalaConstructionSaveGame>(Existing))
+    {
+        if (!TryMigrateSchema1(Legacy, RequestedWorld, Outer, Candidate)) return false;
+    }
+    else
+    {
+        return false;
+    }
+
+    if (Candidate == nullptr || !Candidate->MatchesWorld(RequestedWorld)) return false;
+    OutCandidate = Candidate;
+    return true;
+}
+
 bool UKalmalaConstructionSaveGameV2::MatchesWorld(const FKalmalaWorldGenerationConfig& InWorld) const
 {
     if (SchemaVersion != SchemaVersionValue || WorldConfig != InWorld

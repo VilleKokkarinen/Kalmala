@@ -54,12 +54,18 @@ public:
     static constexpr int32 MaxDryingLines = 5;
 
     void InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorld);
+    int32 GetSchemaVersion() const { return SchemaVersion; }
     bool MatchesWorld(const FKalmalaWorldGenerationConfig& InWorld) const;
     static bool IsValidRecord(const FKalmalaConstructionSaveRecord& Record);
     bool AddRecord(const FKalmalaConstructionSaveRecord& Record);
     bool AddStationAttachmentRecord(const FKalmalaConstructionSaveRecord& Record);
     bool AddDryingLineRecord(const FKalmalaConstructionSaveRecord& Record);
     const TArray<FKalmalaConstructionSaveRecord>& GetRecords() const { return Records; }
+    static bool TryBuildWriteCandidate(
+        class USaveGame* Existing,
+        const FKalmalaWorldGenerationConfig& RequestedWorld,
+        UObject* Outer,
+        UKalmalaConstructionSaveGameV2*& OutCandidate);
     static bool TryMigrateSchema1(
         const UKalmalaConstructionSaveGame* Legacy,
         const FKalmalaWorldGenerationConfig& RequestedWorld,

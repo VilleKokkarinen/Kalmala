@@ -464,9 +464,10 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
     if (!Inventory || !UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Cost, NAME_None, 0, Scratch, Reason)) return false;
     const FTransform Transform(Rotation, Preview.Location);
     auto* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
-    const bool bTransientAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(BuildableId);
+    const bool bStationAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(BuildableId);
     const bool bSessionOnlyKit = FKalmalaPlacementPreview::IsSessionOnlyKit(BuildableId);
-    if (!GameMode || (!bTransientAttachment && !bSessionOnlyKit && !GameMode->CanPersistConstruction(BuildableId, Transform)))
+    const bool bPersistentConstruction = !bSessionOnlyKit || bStationAttachment;
+    if (!GameMode || (bPersistentConstruction && !GameMode->CanPersistConstruction(BuildableId, Transform)))
     {
         Reason = TEXT("Construction save limit reached or unavailable");
         return false;
@@ -477,7 +478,7 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
     if (!Inventory->TryExchangeFromServer(Cost, NAME_None, 0, Reason)) { Construction->Destroy(); return false; }
     Construction->InitializeFromServer(BuildableId, FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower));
     Construction->FinishSpawning(Transform);
-    if (!bTransientAttachment && !bSessionOnlyKit && !GameMode->PersistConstruction(Construction))
+    if (bPersistentConstruction && !GameMode->PersistConstruction(Construction))
     {
         Construction->Destroy();
         Inventory->TryCommitStacksFromServer(Scratch, InventoryBefore);
@@ -486,8 +487,8 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
     }
     Reason = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(BuildableId)
         ? TEXT("Built directly from Wood and Fibre with the construction hammer")
-        : bTransientAttachment
-        ? TEXT("Placed the paid station attachment; its level bonus lasts for this session")
+        : bStationAttachment
+        ? TEXT("Placed the paid station attachment; its level bonus is saved for this world")
         : BuildableId == TEXT("DryingLineKit")
         ? TEXT("Placed the Drying Line; it lasts for this server session")
         : TEXT("Placed construction; server accepted the buildable and ground");

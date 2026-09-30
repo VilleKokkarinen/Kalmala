@@ -447,11 +447,23 @@ void AKalmalaGameMode::BeginPlay()
         PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
         PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
     }
-    ConstructionSaveGame = Cast<UKalmalaConstructionSaveGame>(UGameplayStatics::LoadGameFromSlot(KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0));
-    if (ConstructionSaveGame == nullptr || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig))
+    const FString ConstructionSlot = KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig);
+    const bool bConstructionSaveExists = UGameplayStatics::DoesSaveGameExist(ConstructionSlot, 0);
+    USaveGame* ExistingConstructionSave = bConstructionSaveExists
+        ? UGameplayStatics::LoadGameFromSlot(ConstructionSlot, 0) : nullptr;
+    UKalmalaConstructionSaveGameV2* LoadedConstructionSave = nullptr;
+    if ((!bConstructionSaveExists || ExistingConstructionSave != nullptr)
+        && UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(
+            ExistingConstructionSave, WorldGenerationConfig, this, LoadedConstructionSave))
     {
-        ConstructionSaveGame = NewObject<UKalmalaConstructionSaveGame>(this);
-        ConstructionSaveGame->InitializeForWorld(WorldGenerationConfig);
+        ConstructionSaveGame = LoadedConstructionSave;
+        UE_LOG(LogTemp, Display, TEXT("Construction save ready: Schema=%d Records=%d"),
+            ConstructionSaveGame->GetSchemaVersion(), ConstructionSaveGame->GetRecords().Num());
+    }
+    else
+    {
+        ConstructionSaveGame = nullptr;
+        UE_LOG(LogTemp, Warning, TEXT("Construction unavailable: existing save is invalid or incompatible; preserved without overwrite."));
     }
 #if !UE_BUILD_SHIPPING
     if (bM9Schema2CandidatePeerTestEnabled)
@@ -554,8 +566,18 @@ bool AKalmalaGameMode::CanPersistConstruction(const FName KitId, const FTransfor
     Candidate.ConstructionId = TEXT("pending");
     Candidate.KitId = KitId;
     Candidate.Transform = Transform;
-    return UKalmalaConstructionSaveGame::IsValidRecord(Candidate)
-        && ConstructionSaveGame->GetRecords().Num() < UKalmalaConstructionSaveGame::MaxRecords;
+    if (!UKalmalaConstructionSaveGameV2::IsValidRecord(Candidate)
+        || ConstructionSaveGame->GetRecords().Num() >= UKalmalaConstructionSaveGameV2::MaxRecords) return false;
+    if (FKalmalaToolProgressionContract::IsStationAttachmentKit(KitId))
+    {
+        int32 AttachmentCount = 0;
+        for (const FKalmalaConstructionSaveRecord& ExistingRecord : ConstructionSaveGame->GetRecords())
+        {
+            AttachmentCount += FKalmalaToolProgressionContract::IsStationAttachmentKit(ExistingRecord.KitId) ? 1 : 0;
+        }
+        if (AttachmentCount >= UKalmalaConstructionSaveGameV2::MaxStationAttachments) return false;
+    }
+    return true;
 }
 
 bool AKalmalaGameMode::PersistConstruction(AKalmalaConstructionActor* Construction)
@@ -565,13 +587,18 @@ bool AKalmalaGameMode::PersistConstruction(AKalmalaConstructionActor* Constructi
     Record.ConstructionId = Construction->GetConstructionId();
     Record.KitId = Construction->GetConstructionKit();
     Record.Transform = Construction->GetActorTransform();
-    if (!ConstructionSaveGame->AddRecord(Record)) return false;
-    if (!UGameplayStatics::SaveGameToSlot(ConstructionSaveGame, KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0))
+    UKalmalaConstructionSaveGameV2* Candidate = nullptr;
+    const bool bCandidateReady = UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(
+        ConstructionSaveGame, WorldGenerationConfig, this, Candidate);
+    const bool bAdded = bCandidateReady && (FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId)
+        ? Candidate->AddStationAttachmentRecord(Record) : Candidate->AddRecord(Record));
+    if (!bAdded || !Candidate->MatchesWorld(WorldGenerationConfig)) return false;
+    if (!UGameplayStatics::SaveGameToSlot(Candidate, KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0))
     {
-        ConstructionSaveGame->RemoveRecord(Record.ConstructionId);
         UE_LOG(LogTemp, Error, TEXT("Construction save failed for %s."), *Record.ConstructionId);
         return false;
     }
+    ConstructionSaveGame = Candidate;
     return true;
 }
 
@@ -580,7 +607,7 @@ void AKalmalaGameMode::RestorePersistedConstruction()
     if (!HasAuthority() || ConstructionSaveGame == nullptr || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return;
     for (const FKalmalaConstructionSaveRecord& Record : ConstructionSaveGame->GetRecords())
     {
-        if (!UKalmalaConstructionSaveGame::IsValidRecord(Record))
+        if (!UKalmalaConstructionSaveGameV2::IsValidRecord(Record))
         {
             UE_LOG(LogTemp, Warning, TEXT("Construction restore rejected malformed record."));
             continue;
