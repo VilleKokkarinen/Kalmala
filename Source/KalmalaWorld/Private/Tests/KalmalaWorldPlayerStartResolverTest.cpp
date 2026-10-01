@@ -376,8 +376,13 @@ bool FKalmalaCampConditionSamplerTest::RunTest(const FString& Parameters)
     float LowestWetness = 1.0f, HighestWetness = 0.0f, LowestCover = 1.0f, HighestCover = 0.0f;
     float NearestWater = FKalmalaCampConditionSampler::WaterSearchRadius, FarthestWater = 0.0f;
     int32 LowestResources = MAX_int32, HighestResources = 0;
-    for (int32 Y = -480000; Y <= 480000; Y += 16000)
-    for (int32 X = -480000; X <= 480000; X += 16000)
+    // A 16000 cm step advances Flora by exactly 12 noise cells, repeatedly
+    // sampling the same fractional phase instead of the local cover range.
+    constexpr int32 CampSampleStep = 15700;
+    const double FloraPhaseStep = FMath::Frac(CampSampleStep * FKalmalaRegionalTuning::FloraFrequency);
+    TestTrue(TEXT("Camp probes advance through distinct local Flora phases"), FloraPhaseStep >= 0.1 && FloraPhaseStep <= 0.9);
+    for (int32 Y = -480000; Y <= 480000; Y += CampSampleStep)
+    for (int32 X = -480000; X <= 480000; X += CampSampleStep)
     {
         const FKalmalaCampConditionSample Sample = FKalmalaCampConditionSampler::Sample(Config, FVector2D(X, Y));
         LowestWetness = FMath::Min(LowestWetness, Sample.GroundWetness); HighestWetness = FMath::Max(HighestWetness, Sample.GroundWetness);
@@ -385,6 +390,8 @@ bool FKalmalaCampConditionSamplerTest::RunTest(const FString& Parameters)
         NearestWater = FMath::Min(NearestWater, Sample.WaterDistance); FarthestWater = FMath::Max(FarthestWater, Sample.WaterDistance);
         LowestResources = FMath::Min(LowestResources, Sample.NearbyHarvestNodeCount); HighestResources = FMath::Max(HighestResources, Sample.NearbyHarvestNodeCount);
     }
+    AddInfo(FString::Printf(TEXT("Camp probe ranges: Wetness=%.6f..%.6f Cover=%.6f..%.6f Water=%.1f..%.1f Resources=%d..%d"),
+        LowestWetness, HighestWetness, LowestCover, HighestCover, NearestWater, FarthestWater, LowestResources, HighestResources));
     TestTrue(TEXT("Freely sampled camp ground has meaningful wetness variation"), HighestWetness - LowestWetness >= 0.30f);
     TestTrue(TEXT("Freely sampled camp ground has meaningful natural-cover variation"), HighestCover - LowestCover >= 0.30f);
     TestTrue(TEXT("Freely sampled camp ground has both near and distant water"), NearestWater < FarthestWater);
