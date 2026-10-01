@@ -147,7 +147,7 @@ private:
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
     UPROPERTY(Transient) TObjectPtr<class AKalmalaOceanTravelTestFixture> OceanTravelTestFixture;
-    TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
     TSet<FString> SessionM9ResourceDepletionIds;
     TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGameV2>> PlayerDiscoverySaves;
     TSet<FString> RejectedPlayerDiscoverySaveIdentities;
