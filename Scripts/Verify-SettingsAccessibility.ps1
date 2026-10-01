@@ -3,6 +3,7 @@ param(
     [int]$Port = 18461
 )
 $ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Drawing
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $output = Join-Path $env:TEMP ('KalmalaSettingsAccessibility-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $output | Out-Null
@@ -82,6 +83,16 @@ try {
         $bytes = [System.IO.File]::ReadAllBytes($capture)
         if ($bytes.Length -lt 8 -or $bytes[0] -ne 0x89 -or $bytes[1] -ne 0x50 -or $bytes[2] -ne 0x4e -or $bytes[3] -ne 0x47) {
             throw "Invalid settings capture: $capture"
+        }
+        $bitmap = [System.Drawing.Bitmap]::FromFile($capture)
+        try {
+            $backdropPixel = $bitmap.GetPixel(1100, 360)
+            if ($backdropPixel.R -gt 80 -or $backdropPixel.G -gt 80 -or $backdropPixel.B -gt 80) {
+                throw "Settings modal backdrop is not visible in capture: $capture (RGB $($backdropPixel.R),$($backdropPixel.G),$($backdropPixel.B))."
+            }
+        }
+        finally {
+            $bitmap.Dispose()
         }
     }
     $completed = $true

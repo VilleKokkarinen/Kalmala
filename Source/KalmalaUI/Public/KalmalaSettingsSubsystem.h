@@ -42,6 +42,7 @@ private:
     float DeveloperSettingsVerificationElapsed = 0.0f;
     int32 DeveloperSettingsVerificationStage = 0;
     bool bDeveloperScreenshotPending = false;
+    float DeveloperScreenshotDelay = 0.0f;
     int32 DeveloperSettingsScreenshotTab = -1;
     bool bDeveloperGameplayBaselineCaptured = false;
     FVector DeveloperSettingsInitialLocation = FVector::ZeroVector;

@@ -131,12 +131,17 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
 
     if (bDeveloperScreenshotPending)
     {
-        bDeveloperScreenshotPending = false;
-        static const TCHAR* ScreenshotTabs[] = { TEXT("settings"), TEXT("controls"), TEXT("audio") };
-        if (ScreenshotTabs[0] != nullptr && DeveloperSettingsScreenshotTab >= 0
-            && DeveloperSettingsScreenshotTab < UE_ARRAY_COUNT(ScreenshotTabs))
+        DeveloperScreenshotDelay += DeltaTime;
+        if (DeveloperScreenshotDelay >= 0.25f)
         {
-            RequestSettingsScreenshot(ScreenshotTabs[DeveloperSettingsScreenshotTab]);
+            bDeveloperScreenshotPending = false;
+            DeveloperScreenshotDelay = 0.0f;
+            static const TCHAR* ScreenshotTabs[] = { TEXT("settings"), TEXT("controls"), TEXT("audio") };
+            if (ScreenshotTabs[0] != nullptr && DeveloperSettingsScreenshotTab >= 0
+                && DeveloperSettingsScreenshotTab < UE_ARRAY_COUNT(ScreenshotTabs))
+            {
+                RequestSettingsScreenshot(ScreenshotTabs[DeveloperSettingsScreenshotTab]);
+            }
         }
     }
 
@@ -195,6 +200,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         }
         DeveloperSettingsScreenshotTab = 0;
         bDeveloperScreenshotPending = true;
+        DeveloperScreenshotDelay = 0.0f;
     }
 
     DeveloperSettingsVerificationElapsed += DeltaTime;
@@ -222,6 +228,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             HasEscapeSettingsMapping(LocalController->PlayerInput) ? 1 : 0);
         DeveloperSettingsScreenshotTab = 1;
         bDeveloperScreenshotPending = true;
+        DeveloperScreenshotDelay = 0.0f;
         ++DeveloperSettingsVerificationStage;
         return;
     }
@@ -239,6 +246,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat));
         DeveloperSettingsScreenshotTab = 2;
         bDeveloperScreenshotPending = true;
+        DeveloperScreenshotDelay = 0.0f;
         ++DeveloperSettingsVerificationStage;
         return;
     }

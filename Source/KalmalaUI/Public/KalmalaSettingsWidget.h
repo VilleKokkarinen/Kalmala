@@ -90,7 +90,7 @@ public:
     static void RestoreDefaultInputBindings(class APlayerController* Controller);
 
 protected:
-    virtual void NativeConstruct() override;
+    virtual void NativeOnInitialized() override;
 
 private:
     void ShowMainMenu();

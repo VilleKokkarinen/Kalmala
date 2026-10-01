@@ -373,9 +373,9 @@ void UKalmalaControlButton::HandleButtonClicked()
     OnControlBindingClicked.Broadcast(ControlName, bGamepad);
 }
 
-void UKalmalaSettingsWidget::NativeConstruct()
+void UKalmalaSettingsWidget::NativeOnInitialized()
 {
-    Super::NativeConstruct();
+    Super::NativeOnInitialized();
     if (ContentBox != nullptr) return;
 
     UCanvasPanel* Canvas = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("SettingsCanvas"));
@@ -392,7 +392,7 @@ void UKalmalaSettingsWidget::NativeConstruct()
     UCanvasPanelSlot* PanelSlot = Canvas->AddChildToCanvas(Panel);
     PanelSlot->SetAnchors(FAnchors(0.5f, 0.5f));
     PanelSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-    PanelSlot->SetSize(FVector2D(760.0f, 660.0f));
+    PanelSlot->SetSize(FVector2D(1000.0f, 980.0f));
 
     ContentBox = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("SettingsContent"));
     Panel->SetContent(ContentBox);
@@ -924,12 +924,13 @@ void UKalmalaSettingsWidget::ShowControlsTab()
     UScrollBox* Scroll = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("ControlsScroll"));
     UVerticalBox* Rows = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("ControlRows"));
     Scroll->AddChild(Rows);
-    ContentBox->AddChildToVerticalBox(Scroll);
+    UVerticalBoxSlot* ScrollSlot = ContentBox->AddChildToVerticalBox(Scroll);
+    ScrollSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 
     for (int32 Index = 0; Index < GetRemappableControlCount(); ++Index)
     {
         const FName ControlName = GetRemappableControlName(Index);
-        UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+        UVerticalBox* Row = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass());
         UTextBlock* Label = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
         Label->SetText(GetRemappableControlLabel(ControlName));
         Label->SetColorAndOpacity(FSlateColor(GetSettingsPalette().Text));
@@ -937,8 +938,7 @@ void UKalmalaSettingsWidget::ShowControlsTab()
         FSlateFontInfo Font = Label->GetFont();
         Font.Size = ScaleFontSize(16.0f);
         Label->SetFont(Font);
-        UHorizontalBoxSlot* LabelSlot = Row->AddChildToHorizontalBox(Label);
-        LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        UVerticalBoxSlot* LabelSlot = Row->AddChildToVerticalBox(Label);
         LabelSlot->SetPadding(FMargin(4.0f, 3.0f));
 
         const auto AddControlButton = [this, Row, ControlName](const bool bGamepad)
@@ -949,14 +949,14 @@ void UKalmalaSettingsWidget::ShowControlsTab()
             Button->Configure(ControlName, bGamepad);
             Button->SetDisplayText(FText::GetEmpty());
             Button->OnControlBindingClicked.AddDynamic(this, &ThisClass::HandleControlBindingClicked);
-            UHorizontalBoxSlot* ButtonSlot = Row->AddChildToHorizontalBox(Button);
-            ButtonSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+            UVerticalBoxSlot* ButtonSlot = Row->AddChildToVerticalBox(Button);
             ButtonSlot->SetPadding(FMargin(3.0f, 2.0f));
             ControlButtons.Add(Button);
         };
         AddControlButton(false);
         AddControlButton(true);
-        Rows->AddChildToVerticalBox(Row);
+        UVerticalBoxSlot* RowSlot = Rows->AddChildToVerticalBox(Row);
+        RowSlot->SetPadding(FMargin(3.0f, 6.0f));
     }
     UpdateControlsLabels();
     if (ControlButtons.Num() > 0)
