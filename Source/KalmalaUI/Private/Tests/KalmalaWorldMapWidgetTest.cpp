@@ -133,6 +133,18 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     UKalmalaWorldMapPinsSaveGame* Pins = NewObject<UKalmalaWorldMapPinsSaveGame>();
     Pins->InitializeForWorld(Config);
     TestTrue(TEXT("Personal pins accept bounded local presentation data"), Pins->SetPins(PinWidget->LocalPins));
+    const int32 ValidPinCount = Pins->GetPins().Num();
+    TArray<FKalmalaWorldMapPersonalPin> MalformedPins = PinWidget->LocalPins;
+    if (!MalformedPins.IsEmpty())
+    {
+        MalformedPins[0].Label.Reset();
+    }
+    TestFalse(TEXT("Malformed local pin data is rejected"), Pins->SetPins(MalformedPins));
+    TestEqual(TEXT("Rejecting malformed local pin data preserves the prior set"), Pins->GetPins().Num(), ValidPinCount);
+    if (!Pins->GetPins().IsEmpty())
+    {
+        TestEqual(TEXT("Rejected pin data does not partially replace accepted pins"), Pins->GetPins()[0].Label, FString(TEXT("Lantern ridge")));
+    }
     TArray<uint8> SerializedPins;
     TestTrue(TEXT("Personal pins serialize independently in memory"), UGameplayStatics::SaveGameToMemory(Pins, SerializedPins));
     UKalmalaWorldMapPinsSaveGame* ReloadedPins = Cast<UKalmalaWorldMapPinsSaveGame>(UGameplayStatics::LoadGameFromMemory(SerializedPins));
@@ -144,6 +156,16 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
         FKalmalaWorldGenerationConfig MismatchedPinConfig = Config;
         ++MismatchedPinConfig.WorldSeed;
         TestFalse(TEXT("Personal pins reject a mismatched immutable identity"), ReloadedPins->MatchesWorld(MismatchedPinConfig));
+    }
+    const FString PinSlotName = TEXT("KalmalaWorldMapPinsAutomation");
+    TestTrue(TEXT("Personal pins save to their independent local slot"), UGameplayStatics::SaveGameToSlot(Pins, PinSlotName, 0));
+    UKalmalaWorldMapPinsSaveGame* SlotReloadedPins = Cast<UKalmalaWorldMapPinsSaveGame>(UGameplayStatics::LoadGameFromSlot(PinSlotName, 0));
+    TestNotNull(TEXT("Personal pins reload from their local slot"), SlotReloadedPins);
+    if (SlotReloadedPins != nullptr)
+    {
+        TestTrue(TEXT("Slot-reloaded personal pins retain immutable world identity"), SlotReloadedPins->MatchesWorld(Config));
+        TestEqual(TEXT("Slot-reloaded personal pins retain the accepted set"), SlotReloadedPins->GetPins().Num(), ValidPinCount);
+        TestEqual(TEXT("Slot-reloaded personal pins retain the original label"), SlotReloadedPins->GetPins()[0].Label, FString(TEXT("Lantern ridge")));
     }
     const TArray<FColor> Tile = UKalmalaWorldMapWidget::BuildTilePixels(Config, FIntPoint(3, -2));
     const TArray<FColor> RepeatedTile = UKalmalaWorldMapWidget::BuildTilePixels(Config, FIntPoint(3, -2));
