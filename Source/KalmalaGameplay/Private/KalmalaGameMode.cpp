@@ -2293,10 +2293,25 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
     OutIdentity.Reset();
     if (!HasAuthority() || Interactor == nullptr || Interactor->GetWorld() != GetWorld()
         || Interactor->GetPlayerState() == nullptr) return nullptr;
+
+    const AKalmalaWorldGenerationGameState* WorldState = GetGameState<AKalmalaWorldGenerationGameState>();
+    if (WorldState == nullptr || !WorldState->GetWorldGenerationConfig().IsValid()) return nullptr;
+    // PostLogin can run before GameMode::BeginPlay has copied the final server seed.
+    // Bind player slots to the authoritative GameState identity before loading or caching them.
+    WorldGenerationConfig = WorldState->GetWorldGenerationConfig();
+
     OutIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Interactor->GetPlayerState());
     if (OutIdentity.IsEmpty() || OutIdentity.Len() > FKalmalaM7SaveIdentity::MaxOwnerIdentityLength
         || RejectedPlayerDiscoverySaveIdentities.Contains(OutIdentity)) return nullptr;
-    if (TObjectPtr<UKalmalaPlayerDiscoverySaveGameV2>* Existing = PlayerDiscoverySaves.Find(OutIdentity)) return *Existing;
+    if (TObjectPtr<UKalmalaPlayerDiscoverySaveGameV2>* Existing = PlayerDiscoverySaves.Find(OutIdentity))
+    {
+        if (*Existing != nullptr && (*Existing)->MatchesPlayer(WorldGenerationConfig, OutIdentity)) return *Existing;
+        RejectedPlayerDiscoverySaveIdentities.Add(OutIdentity);
+        UE_LOG(LogTemp, Warning,
+            TEXT("Player discovery restore and writes blocked for authenticated player %s; cached save identity no longer matches the authoritative world."),
+            *OutIdentity);
+        return nullptr;
+    }
 
     const FString Slot = KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, OutIdentity);
     UKalmalaPlayerDiscoverySaveGameV2* Save = nullptr;

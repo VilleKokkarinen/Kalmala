@@ -17,6 +17,12 @@ the authenticated `PlayerState` unique ID; a local player index, display name,
 client-provided ID, or shared fallback is never accepted. A missing or invalid
 authenticated ID disables player-save restore and writes for that session.
 
+Before loading or caching a player slot, the server refreshes its world
+generation config from the authoritative `GameState`. This covers `PostLogin`
+running before `GameMode::BeginPlay` copies the selected seed. Cached player
+saves are reused only after their full world and owner identity still matches;
+a stale cache fails closed without restoring or writing it.
+
 The existing construction and player-discovery slot names remain in use. Their
 schema-2 payloads carry the explicit M7 identity in addition to the legacy
 seed/player fields where those fields are retained. A record is usable only

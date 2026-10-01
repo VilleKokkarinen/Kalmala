@@ -10008,3 +10008,23 @@ Known limitations: M9 acceptance remains blocked: `Verify-InventoryReconnect.ps1
 Handoff: Main checkout used. Existing unrelated worktree changes were preserved and are not included in this run's staged patch.
 
 Next eligible task: Resume the blocked M9 cross-system acceptance child by identifying the exact rejecting stage in the server harvest transaction, then repair and rerun inventory reconnect before continuing parent verification.
+
+### Run 2026-10-01T06:15:11Z — M9 inventory reconnect accepted; M8 gate remains open
+
+Outcome: Fixed the normal player-save identity binding race. `GetPlayerDiscoverySave` now refreshes the world config from the authoritative `GameState` before it selects, loads, or caches a player slot, and validates a cached save against the full current world/player identity before reuse. Stale cached identity fails closed. Documented the contract and checked the M9 host/client, rejected-mutation, owner-privacy, reconnect, and bounded-observation child. The M9 cross-system parent remains unchecked.
+
+Files changed during this run: `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` (only the `GetPlayerDiscoverySave` identity-binding hunk; unrelated existing changes remain unstaged); `docs/30-m9-persistence-migration.md`; `BACKLOG.md`; `PROGRESS.md`.
+
+Verification: Forced UE 5.8.2 `KalmalaEditor Win64 Development` mirror build passed 198 actions. Eight `Kalmala.Gameplay.M9` automations passed; `Kalmala.Gameplay.Discovery.Schema2Migration` and `Kalmala.Gameplay.Construction.Schema2Migration` passed. `Verify-InventoryReconnect.ps1 -Port 19810`, `Verify-M9Schema2CandidateReconnect.ps1 -Port 19811`, and `Verify-M9ExplorationRewards.ps1 -Port 19812` passed. `Verify-WorldProfile.ps1 -Port 19813` passed: 190.88 ms initial generation, 1,778.76 MiB used physical memory, 46 actors/29 replicated actors, 9 terrain patches, 1 population key, and a 2,215-byte population save sample. `Verify-CampChoices.ps1 -Port 19814`, `Verify-CombatPeer.ps1 -Port 19815`, and `Verify-RainVerticalSlice.ps1 -Port 19816` passed. The supplementary `Verify-OceanSkiffIntegratedReconnectJourney.ps1 -Port 19817` passed its late-join privacy check (`VesselActors=1`, `Underway=1`, `OriginalSeats=1`, `Attached=0`, `RewardLeak=0`) but the host then crashed before voyage/restart completion with an access violation in `UKalmalaWorldPopulationSaveGame::IsHarvested` at `KalmalaWorldPopulationSaveGame.cpp:17`, called by `AKalmalaGameMode::ActivatePopulationKey` at `KalmalaGameMode.cpp:1957`.
+
+Verification level: The selected M9 child passed increment-level verification. The M8 integrated regression attempt failed as recorded above; the remaining M8/M6 child and full M9 parent verification are pending. `git diff --check` passed after the handoff entry was added. All paths checked for this run remained below 260 characters.
+
+Observable impact: Accepted tool harvesting, free Workbench repair, rejected-mutation rollback, owner-only carried-tool state, and normal-save reconnect now pass in the live two-client inventory scenario.
+
+Authority and persistence assessment: Player-slot world identity is taken from the server's authoritative `GameState`; cached values are reused only after full world/player identity matching. Existing server-side transaction validation and owner-only carried-tool replication remain unchanged. No saved-data schema changed.
+
+Known limitations: M8 voyage/restart acceptance did not complete because of the population-save access violation. The world-profile values are single-run observations; no numeric actor, memory, or replication ceilings are approved. The 2,215-byte profile measurement is a population save sample, not an M9 player-save measurement. Production online identity, rendered UI, and packaged walkthrough remain unverified.
+
+Handoff: Main checkout used, so no worktree synchronization was needed. Only the selected M9 child is checked; the parent remains open. Unrelated working-tree changes are preserved and must not be staged.
+
+Next eligible task: Diagnose and rerun the M8 integrated ocean travel/restart check in the remaining M8/M6 child, then complete the M9 parent acceptance once all children pass.
