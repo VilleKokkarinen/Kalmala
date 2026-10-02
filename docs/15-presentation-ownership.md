@@ -109,6 +109,10 @@ Server-owned replicated state remains the only gameplay result rendered to a
 peer. Local cosmetic geometry, UI preferences, and transient raster textures
 are not replicated and do not change saved-data schemas.
 
+The expanded map's `WorldMapPanelImage` is static project artwork painted
+behind its existing locally generated terrain and fog. It has no map data,
+world query, gameplay authority, or persistence path.
+
 ## Rendered deer silhouette review
 
 `Scripts/Verify-DeerPeer.ps1 -Rendered` captures the existing target after the

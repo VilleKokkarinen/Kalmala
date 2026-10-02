@@ -1,0 +1,27 @@
+Expanded map background verification — 2026-10-02
+
+Forced UE 5.8.2 KalmalaEditor Win64 Development build: passed, 204 actions,
+MaxParallelActions=4. UnrealBuildTool had normal LOCALAPPDATA access. The
+original WorldMapPanel.png was imported to /Game/Kalmala/UI in the disposable
+mirror; ImportAssets completed with exit code 0 and the generated texture was
+copied into the project content folder.
+
+Full Kalmala automation queue: 101/101 passed, zero failures, exit code 0.
+This includes Kalmala.UI.Theme.LocalPresentation,
+Kalmala.UI.WorldMap.LocalPresentation, Kalmala.UI.WorldMap.PerformanceBudget,
+and Kalmala.UI.Minimap.LocalPresentation.
+
+Rendered host/client map checks passed at 1024x768, 1280x720, and 2560x1080.
+Each checked map input, authoritative world identity, full-viewport map paint,
+terrain, fog texture, and screenshots. The 1280x720 host/client captures are
+retained as map-1280-host.png and map-1280-client.png.
+
+World-map tile/reconnect check passed: seed-418 host and conflicting-seed
+client matched 12 visible tiles and fingerprint 894301879 after server
+identity replication; remote terrain stayed unexplored. Both peers reloaded
+their own saved exploration after restart with Remote=0.
+
+The background is static original UI art with no geographic content. Existing
+fog, marker visibility, pin actions/save tests, M/Escape input, pan/zoom,
+recenter, privacy, and map save paths remain the live map's sources of truth.
+Package cooking and physical keyboard/controller playthrough remain unverified.

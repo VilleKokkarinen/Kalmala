@@ -718,7 +718,8 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
     const FMargin Margin(44.0f);
     const FVector2D MapSize(FMath::Max(1.0f, Size.X - Margin.Left - Margin.Right), FMath::Max(1.0f, Size.Y - Margin.Top - Margin.Bottom));
     const FPaintGeometry MapGeometry = AllottedGeometry.ToPaintGeometry(MapSize, FSlateLayoutTransform(FVector2D(Margin.Left, Margin.Top)));
-    const FSlateBrush PanelBrush = FKalmalaUITheme::Get().MakePanelBrush(UKalmalaSettingsWidget::GetContrastMode());
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    const FSlateBrush PanelBrush = Theme.MakePanelBrush(UKalmalaSettingsWidget::GetContrastMode(), &Theme.WorldMapPanelImage);
     FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer, AllottedGeometry.ToPaintGeometry(), &PanelBrush,
         ESlateDrawEffect::None, PanelBrush.TintColor.GetSpecifiedColor());
     if (ViewModel != nullptr)

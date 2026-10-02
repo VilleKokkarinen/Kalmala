@@ -105,6 +105,7 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadAsset(TEXT("PanelImage"), Theme.PanelImage);
     ReadAsset(TEXT("InventoryPanelImage"), Theme.InventoryPanelImage);
     ReadAsset(TEXT("BuildPanelImage"), Theme.BuildPanelImage);
+    ReadAsset(TEXT("WorldMapPanelImage"), Theme.WorldMapPanelImage);
     FString Face;
     if (Config.GetString(ThemeSection, TEXT("FontFace"), Face)
         && (Face == TEXT("Regular") || Face == TEXT("Bold"))) Theme.FontFace = FName(*Face);

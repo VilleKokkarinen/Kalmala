@@ -32,6 +32,7 @@ struct KALMALAUI_API FKalmalaUITheme
     FString PanelImage;
     FString InventoryPanelImage;
     FString BuildPanelImage;
+    FString WorldMapPanelImage;
     float OutlineSize = 0;
     float BorderWidth = 1;
     float CornerRadius = 3;

@@ -61,6 +61,7 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     "OutlineSize=2\nBorderWidth=2\nFontFace=Bold\nAnimateScrolling=True\nScrollSpeed=24\n"
     "InventoryPanelImage=/Game/Kalmala/UI/InventoryPanel.InventoryPanel\n"
     "BuildPanelImage=/Game/Kalmala/UI/BuildPanel.BuildPanel\n"
+    "WorldMapPanelImage=/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel\n"
     "ButtonHovered=(R=0.3,G=0.4,B=0.5,A=1)\n"), TEXT("ExtendedTheme.ini"));
     const FKalmalaUITheme Extension = FKalmalaUITheme::FromConfig(Extended);
     UButton* Button = NewObject<UButton>();
@@ -82,6 +83,8 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
         FString(TEXT("/Game/Kalmala/UI/InventoryPanel.InventoryPanel")));
     TestEqual(TEXT("Build background path propagates"), Extension.BuildPanelImage,
         FString(TEXT("/Game/Kalmala/UI/BuildPanel.BuildPanel")));
+    TestEqual(TEXT("World-map background path propagates"), Extension.WorldMapPanelImage,
+        FString(TEXT("/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel")));
     Extension.ApplyScroll(*Scroll, true);
     TestFalse(TEXT("Reduced motion overrides animation"), Scroll->IsAnimateWheelScrolling());
     Extension.ApplyButton(*Button, 1);
@@ -89,7 +92,7 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     FConfigFile InvalidExtension;
     InvalidExtension.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nIconWidth=999\nIconHeight=nan\n"
         "BorderWidth=-1\nOutlineSize=99\nScrollSpeed=0\nFontFace=unknown\nFontAsset=../font\nPanelImage=C:/image.png\n"
-        "InventoryPanelImage=C:/inventory.png\nBuildPanelImage=/Game/InvalidObjectPath\n"), TEXT("InvalidExtension.ini"));
+        "InventoryPanelImage=C:/inventory.png\nBuildPanelImage=/Game/InvalidObjectPath\nWorldMapPanelImage=C:/map.png\n"), TEXT("InvalidExtension.ini"));
     const FKalmalaUITheme Safe = FKalmalaUITheme::FromConfig(InvalidExtension);
     TestEqual(TEXT("Invalid icon width falls back"), Safe.IconWidth, Defaults.IconWidth);
     TestEqual(TEXT("Nonfinite icon height falls back"), Safe.IconHeight, Defaults.IconHeight);
@@ -98,7 +101,8 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Invalid animation falls back"), Safe.ScrollSpeed, Defaults.ScrollSpeed);
     TestEqual(TEXT("Invalid font face falls back"), Safe.FontFace, Defaults.FontFace);
     TestTrue(TEXT("Filesystem and malformed view-specific asset paths rejected"), Safe.FontAsset.IsEmpty()
-        && Safe.PanelImage.IsEmpty() && Safe.InventoryPanelImage.IsEmpty() && Safe.BuildPanelImage.IsEmpty());
+        && Safe.PanelImage.IsEmpty() && Safe.InventoryPanelImage.IsEmpty() && Safe.BuildPanelImage.IsEmpty()
+        && Safe.WorldMapPanelImage.IsEmpty());
     FKalmalaUITheme MissingAssets = Extension;
     MissingAssets.FontAsset = TEXT("/Game/MissingThemeFont.MissingThemeFont");
     MissingAssets.PanelImage = TEXT("/Game/MissingThemeImage.MissingThemeImage");
@@ -111,6 +115,7 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     UTexture2D* Texture = NewObject<UTexture2D>(Package, TEXT("Panel"), RF_Transient);
     UTexture2D* InventoryTexture = NewObject<UTexture2D>(Package, TEXT("InventoryPanel"), RF_Transient);
     UTexture2D* BuildTexture = NewObject<UTexture2D>(Package, TEXT("BuildPanel"), RF_Transient);
+    UTexture2D* WorldMapTexture = NewObject<UTexture2D>(Package, TEXT("WorldMapPanel"), RF_Transient);
     MissingAssets.PanelImage = Texture->GetPathName();
     MissingAssets.ApplyPanel(*Panel, 0);
     TestTrue(TEXT("Valid image reference reaches the shared panel"), Panel->Background.GetResourceObject() == Texture);
@@ -120,6 +125,11 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Inventory image override reaches its view panel"), Panel->Background.GetResourceObject() == InventoryTexture);
     MissingAssets.ApplyPanel(*Panel, 0, &MissingAssets.BuildPanelImage);
     TestTrue(TEXT("Build image override reaches its view panel"), Panel->Background.GetResourceObject() == BuildTexture);
+    MissingAssets.WorldMapPanelImage = WorldMapTexture->GetPathName();
+    const FSlateBrush WorldMapBrush = MissingAssets.MakePanelBrush(0, &MissingAssets.WorldMapPanelImage);
+    TestTrue(TEXT("World-map image override resolves for Slate"), WorldMapBrush.GetResourceObject() == WorldMapTexture);
+    const FSlateBrush WorldMapContrastBrush = MissingAssets.MakePanelBrush(1, &MissingAssets.WorldMapPanelImage);
+    TestTrue(TEXT("High contrast suppresses the world-map decoration"), WorldMapContrastBrush.GetResourceObject() == nullptr);
     MissingAssets.ApplyPanel(*Panel, 1);
     TestTrue(TEXT("Contrast ignores decorative images"), Panel->Background.GetResourceObject() == nullptr);
     MissingAssets.BorderWidth = 0;

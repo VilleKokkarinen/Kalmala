@@ -10752,3 +10752,57 @@ Handoff: Main checkout E:/dev/Kalmala was used; synchronization is unnecessary. 
 Next eligible task: Visually update the expanded world-map menu opened with M and add an original background image; preserve readable terrain/fog/markers/pins/controls and existing map behavior.
 
 Current run time: 2026-10-02T14:06:27Z.
+
+### Run 2026-10-02T14:36:53Z — M11 expanded-map background parent complete
+
+Outcome:
+Completed the next M11 top-level parent (no child tasks). The expanded M-key
+map now has original, theme-configured spruce-and-slate artwork behind its
+live terrain, fog, markers, pins, and controls. The texture contains no
+geographic information. Only the selected BACKLOG task was checked; broader
+M11 acceptance remains open.
+
+Changed:
+Added `WorldMapPanelImage` to the local theme and painted the image beneath
+existing Slate map layers, with invalid/missing-asset and high-contrast
+fallbacks covered by theme automation. Added the imported original texture,
+focused theme assertions, map/theme/ownership documentation, two reviewed
+host/client map captures and `docs/ui-world-map/verification.txt`, plus the
+BACKLOG and PROGRESS handoff. Main checkout `E:/dev/Kalmala` was used; no
+worktree-to-main synchronization was needed.
+
+Verification:
+Parent-level verification passed. Forced UE 5.8.2 KalmalaEditor Win64
+Development build succeeded in the disposable mirror with 204 actions,
+MaxParallelActions=4, and normal `%LOCALAPPDATA%/UnrealBuildTool` access. The
+original texture import completed with exit code 0. Full Kalmala automation
+passed 101/101, with zero failures and exit code 0. The run log is
+`C:/Users/Ville/AppData/Local/Temp/kwmap/Run/Automation.log`; the queue included
+theme, world-map, map-performance, and minimap presentation tests.
+`Scripts/Verify-WorldMap.ps1` passed host/client input, world-identity,
+terrain/fog paint, and screenshot checks at 1024x768, 1280x720, and 2560x1080.
+`Scripts/Verify-WorldMapTiles.ps1` matched 12 tiles and fingerprint 894301879
+across seed-conflicting peers; remote areas stayed unexplored, and both owners
+reloaded private exploration after restart. Five M5 documentation contracts,
+presentation-ownership audit, and `git diff --check` passed. The reviewed
+1280x720 captures show the background framing while retaining map/control
+readability.
+
+Multiplayer impact:
+Presentation only. The background is static local project art. Map terrain and
+fog still derive from the existing local view model and per-owner exploration;
+map input, server identity, owner privacy, pin actions, RPCs, and save schemas
+are unchanged. No geographic content is added or revealed.
+
+Known limits:
+Broader M11 acceptance remains open. Editor verification does not establish
+cooked/package asset inclusion or a physical keyboard/controller playthrough.
+The rendered map matrix uses the default theme; high-contrast image suppression
+and the black fallback are covered by automation, not a new rendered map pass.
+
+Next task:
+Add original background images to the main Escape options/settings shell and
+each option screen/tab, then verify readability, focus, contrast, and modal
+input behavior.
+
+Current run time: 2026-10-02T14:36:53Z.

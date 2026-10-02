@@ -840,6 +840,20 @@ Shift-click the expanded map to begin a personal pin: type a 1–32-character la
 
 Co-op awareness is off by default and returns to private after reconnecting. With the map open, press `C` or the gamepad Menu button to opt in; only connected, mutually opted-in non-spectators appear, and their markers/pings remain hidden outside your own current or remembered coverage. Middle-click a map point or press `Q`/right-stick click for a map-centre ping. The server accepts only finite locations within 65 m of the sender, limits requests to one every two seconds, relays to eligible nearby opted-in recipients through owner-only inboxes, and expires pings after six seconds. Opting out immediately removes ineligible pings. This shares neither exploration coverage nor personal pins; shared cartography remains unavailable until the M2 construction/persistence prerequisite exists.
 
+### M11 expanded-map background
+
+`WorldMapPanelImage` selects the static, project-owned image at
+`/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel`; import its original source at
+`Content/Kalmala/UI/Source/WorldMapPanel.png` into `/Game/Kalmala/UI`. The
+full-screen background is drawn beneath the existing live map layers. It must
+not carry geographic information or replace terrain/fog rendering. Empty or
+missing paths retain the geometric panel brush, and high contrast suppresses
+the decorative image. Verify the theme fallback assertions, then run
+`Scripts/Verify-WorldMap.ps1` for host/client input and rendered map checks at
+1024x768, 1280x720, and 2560x1080 plus `Scripts/Verify-WorldMapTiles.ps1` for
+matching seed identity and private saved coverage. Inspect captures for map
+readability; these tests do not establish packaged asset cooking.
+
 ## Biome feature inspection
 
 `Kalmala.World.Biomes.TerrainSelection` verifies current field/classifier agreement, Flora independence, seed variation and coverage. `Kalmala.World.BiomeExpansion.IntegratedScenario` searches eligible inner and outer distances for deterministic discovery candidates. Every launch and test runs the current generator with `-WorldSeed` as its sole world identity setting.

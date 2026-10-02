@@ -49,6 +49,7 @@ expanded-map, and options views as described below.
 | PanelImage | empty | Project-owned Texture2D object path; shared panels |
 | InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D override for the inventory pack panel |
 | BuildPanelImage | `/Game/Kalmala/UI/BuildPanel.BuildPanel` | Texture2D override for build/craft selection |
+| WorldMapPanelImage | `/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel` | Texture2D override for the expanded map shell |
 | OutlineSize | 0 | 0–3, rounded; black text outline |
 | BorderWidth / CornerRadius | 1 / 3 | 0–3 / 0–12; geometric panels and button states |
 | BorderColor | (0.35, 0.45, 0.42, 1) | Linear RGBA 0–1 |
@@ -71,10 +72,10 @@ Accessibility text scale still takes precedence over theme size. No focus,
 click delegate, navigation, modal ownership, authority, or save binding changed.
 
 The view-specific image keys override `PanelImage` only for their named view.
-The inventory and build textures are original Kalmala artwork imported from
-`Content/Kalmala/UI/Source/` into `/Game/Kalmala/UI`; missing or invalid view
-paths keep the geometric fallback. High contrast intentionally suppresses both
-decorative backgrounds.
+The inventory, build, and expanded-map textures are original Kalmala artwork
+imported from `Content/Kalmala/UI/Source/` into `/Game/Kalmala/UI`; missing or
+invalid view paths keep the geometric fallback. High contrast intentionally
+suppresses the decorative backgrounds.
 
 `ApplyScroll` has an explicit reduced-motion override; animation defaults off.
 A user-facing reduced-motion preference and options-opening slide animation
@@ -180,3 +181,21 @@ Reviewed captures are in `ui-theme/`: `build-default.png`, `build-custom.png`,
 logs remain under the temporary roots listed in PROGRESS.md and that file.
 These captures review initial menu positions; later menu polishing and full
 M11 acceptance retain the broader physical-input/layout requirements.
+
+## Expanded map background — 2026-10-02
+
+`WorldMapPanelImage` selects an original, static spruce-and-slate texture for
+the full-screen expanded map shell. It contains no map, routes, symbols, or
+world data. Slate paints this image before the live grid, generated terrain,
+fog, pins, co-op markers, and control labels, so the existing local map and
+visibility rules remain the only source of map information. Empty, invalid,
+missing, or wrong-type paths use the existing geometric theme brush; local
+high-contrast mode suppresses the image and uses the black shared surface.
+
+The source art is `Content/Kalmala/UI/Source/WorldMapPanel.png`, imported to
+`/Game/Kalmala/UI/WorldMapPanel`. `Kalmala.UI.Theme.LocalPresentation` checks
+the configured path, valid Slate image resolution, missing-asset fallback,
+and high-contrast suppression. Parent verification also renders the existing
+host/client map at three viewport sizes and runs the map tile/reconnect checks.
+These editor checks do not establish packaged asset cooking or physical-input
+playthrough.
