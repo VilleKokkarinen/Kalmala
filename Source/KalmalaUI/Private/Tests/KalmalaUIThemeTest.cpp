@@ -13,7 +13,7 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     FConfigFile Config;
     Config.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nBodySize=20\nHeadingSize=12\n"
         "EmphasisSize=24\nPaddingX=16\nText=(R=0.4,G=0.5,B=0.6,A=1)\n"
-        "HighContrastPanel=(R=1,G=1,B=1,A=0)\n"));
+        "HighContrastPanel=(R=1,G=1,B=1,A=0)\n"), TEXT("ThemeFixture.ini"));
     const FKalmalaUITheme Theme = FKalmalaUITheme::FromConfig(Config);
     UTextBlock* Status = NewObject<UTextBlock>();
     UTextBlock* Weather = NewObject<UTextBlock>();
@@ -35,7 +35,7 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     FConfigFile Invalid;
     Invalid.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nBodySize=999\nHeadingSize=garbage\n"
         "EmphasisSize=-2\nPaddingX=-1\nPaddingY=nan\nRowSpacing=999\n"
-        "Text=(R=2,G=0,B=0,A=1)\nPanel=garbage\n"));
+        "Text=(R=2,G=0,B=0,A=1)\nPanel=garbage\n"), TEXT("InvalidThemeFixture.ini"));
     const FKalmalaUITheme Fallback = FKalmalaUITheme::FromConfig(Invalid);
     const FKalmalaUITheme Defaults;
     TestEqual(TEXT("Out-of-range font falls back"), Fallback.BodySize, Defaults.BodySize);

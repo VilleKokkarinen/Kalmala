@@ -3,7 +3,7 @@
 ## Current state
 
 - Automation bootstrap created on 2026-09-01.
-- As of 2026-10-02, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) is approved for planning; its first unchecked task is the configurable theme and shared UI components in BACKLOG.md and docs/04-roadmap.md.
+- As of 2026-10-02, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) is in implementation: the local theme/HUD foundation child is verified; the configurable-theme parent remains open, with shared component extensions next in BACKLOG.md and docs/04-roadmap.md.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
 ## Run log
@@ -10660,3 +10660,24 @@ Multiplayer impact: No runtime changes. Recent entries must come from accepted o
 Known limits: Marker assets/styles remain queued; a small clock/corner badge with Recent text is a suggested theme-configurable treatment. Recent, manual favorites, and usage ranks must remain distinguishable and coexist without overlap. History lifecycle remains part of the Favorites implementation contract.
 
 Next task: Implement the first unchecked M11 increment, the configurable theme foundation and shared components, then follow the ordered UI queue.
+
+
+### Run 2026-10-02T10:46:32+00:00 — M11 theme foundation verified after owner merge
+
+Outcome: Completed only the first child of the M11 configurable-theme parent. The owner merged the theme source/config/HUD implementation in feaf18d and its test/documentation/backlog breakdown in 31823ff, then explicitly authorized continuation. The checkout was clean and this was the only active Kalmala chat at resume. Fixed the theme automation's two UE 5.8 config-parser calls by supplying required filename hints; documented its focused verification command; checked only the foundation child. The parent remains open.
+
+Files changed in this resumed increment: Source/KalmalaUI/Private/Tests/KalmalaUIThemeTest.cpp; docs/07-development-setup.md; BACKLOG.md; PROGRESS.md. Merged implementation remains intact; no unrelated files changed.
+
+Verification: Increment-level. UE 5.8.2 KalmalaEditor Win64 Development build in disposable C:/Users/Ville/AppData/Local/Temp/kt1102 initially failed only on the two test-fixture API calls; after correction, the final 11-action build passed with normal LOCALAPPDATA/UnrealBuildTool access and MaxParallelActions=4. The initial default-parallelism build recovered from compiler memory pressure. All six theme/config/HUD mirror inputs matched the checkout before the fix; the corrected test was then copied into the mirror and rebuilt. Kalmala.UI.Theme.LocalPresentation, Kalmala.UI.SurvivalStatus.LocalPresentation, and Kalmala.UI.WeatherActivity.LocalPresentation all reported Result={Success}; test exit code 0 in C:/Users/Ville/AppData/Local/Temp/kt11-test.log using fresh profile kt11u. Five M5 documentation-contract checks passed; final git diff --check passed. The staged diff is inspected before committing only these four files. Maximum observed mirror file path: 213 characters. No generated checkout directories were modified.
+
+Observable impact: Survival status and weather now use one local config-backed panel/text theme; colours, semantic text sizes, panel padding, and survival row spacing share bounded fallbacks and local text-scale/contrast overrides. The automated fixture exercises real UMG labels/panels with changed theme values, malformed/missing entries, and accessibility precedence. The final build repair makes this verification runnable on the installed engine.
+
+Multiplayer and persistence assessment: Presentation only. No gameplay bindings, RPC, owner-state visibility, timing authority, replicated data, gameplay mutation, or save schema changed.
+
+Known limitations: Full parent-level integration verification intentionally remains pending because two theme children remain. No full test suite, rendered layout/accessibility review, cross-menu propagation, custom font/image/button/slot/animation support, or packaged custom-config loading was verified. Startup logged two generic Condition failed messages before automation discovery; all selected tests subsequently passed and the engine reported non-critical exit 0. No physical input or peer session was run.
+
+Handoff: Main checkout E:/dev/Kalmala used; worktree-to-main synchronization is unnecessary. Commit only these four current-run files after diff inspection. Earlier implementation commits are owner merges, not commits made by this resumed run.
+
+Next eligible task: Extend this same theme foundation with font assets/weights, outlines/borders, buttons and interaction states, panel/background image references, slot/icon dimensions, and animation settings through shared components with real consumers and safe fallbacks. Do not start the status-hotbar parent.
+
+Current run time: 2026-10-02T10:46:32+00:00.
