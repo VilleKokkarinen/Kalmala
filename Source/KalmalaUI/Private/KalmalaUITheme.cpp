@@ -5,10 +5,25 @@
 #include "KalmalaSettingsWidget.h"
 #include "Misc/ConfigCacheIni.h"
 #include "Styling/CoreStyle.h"
+#include "Brushes/SlateRoundedBoxBrush.h"
+#include "Components/Button.h"
+#include "Components/SizeBox.h"
+#include "Components/ScrollBox.h"
+#include "Engine/Font.h"
+#include "Engine/Texture2D.h"
+#include "Misc/PackageName.h"
 
 namespace
 {
     const TCHAR* ThemeSection = TEXT("Kalmala.UI.Theme");
+
+    UObject* LoadThemeAsset(const FString& Path)
+    {
+        if (!FPackageName::IsValidObjectPath(Path)) return nullptr;
+        if (UObject* Loaded = FindObject<UObject>(nullptr, *Path)) return Loaded;
+        if (!FPackageName::DoesPackageExist(FPackageName::ObjectPathToPackageName(Path))) return nullptr;
+        return LoadObject<UObject>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+    }
 
     void ReadColor(const FConfigFile& Config, const TCHAR* Key, FLinearColor& Value)
     {
@@ -53,6 +68,32 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadNumber(Config, TEXT("PaddingX"), Theme.PaddingX, 0, 24);
     ReadNumber(Config, TEXT("PaddingY"), Theme.PaddingY, 0, 24);
     ReadNumber(Config, TEXT("RowSpacing"), Theme.RowSpacing, 0, 16);
+    ReadNumber(Config, TEXT("OutlineSize"), Theme.OutlineSize, 0, 3);
+    ReadNumber(Config, TEXT("BorderWidth"), Theme.BorderWidth, 0, 3);
+    ReadNumber(Config, TEXT("CornerRadius"), Theme.CornerRadius, 0, 12);
+    ReadNumber(Config, TEXT("SlotPadding"), Theme.SlotPadding, 0, 16);
+    ReadNumber(Config, TEXT("IconWidth"), Theme.IconWidth, 24, 96);
+    ReadNumber(Config, TEXT("IconHeight"), Theme.IconHeight, 24, 96);
+    ReadNumber(Config, TEXT("ScrollSpeed"), Theme.ScrollSpeed, 1, 60);
+    ReadColor(Config, TEXT("BorderColor"), Theme.BorderColor);
+    ReadColor(Config, TEXT("ButtonNormal"), Theme.ButtonNormal);
+    ReadColor(Config, TEXT("ButtonHovered"), Theme.ButtonHovered);
+    ReadColor(Config, TEXT("ButtonPressed"), Theme.ButtonPressed);
+    ReadColor(Config, TEXT("ButtonDisabled"), Theme.ButtonDisabled);
+    Config.GetBool(ThemeSection, TEXT("AnimateScrolling"), Theme.bAnimateScrolling);
+    const auto ReadAsset = [&Config](const TCHAR* Key, FString& Value)
+    {
+        FString Path;
+        if (Config.GetString(ThemeSection, Key, Path) && Path.StartsWith(TEXT("/Game/"))
+            && Path.Len() < 180 && FPackageName::IsValidObjectPath(Path)) Value = Path;
+    };
+    ReadAsset(TEXT("FontAsset"), Theme.FontAsset);
+    ReadAsset(TEXT("PanelImage"), Theme.PanelImage);
+    FString Face;
+    if (Config.GetString(ThemeSection, TEXT("FontFace"), Face)
+        && (Face == TEXT("Regular") || Face == TEXT("Bold"))) Theme.FontFace = FName(*Face);
+    if (Config.GetString(ThemeSection, TEXT("HeadingFace"), Face)
+        && (Face == TEXT("Regular") || Face == TEXT("Bold"))) Theme.HeadingFace = FName(*Face);
     return Theme;
 }
 
@@ -75,8 +116,20 @@ int32 FKalmalaUITheme::ScaledFontSize(const int32 BaseSize, const int32 TextScal
 
 void FKalmalaUITheme::ApplyPanel(UBorder& Border, const int32 ContrastMode) const
 {
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
     Border.SetPadding(PanelPadding());
-    Border.SetBrushColor(UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0 ? HighContrastPanel : Panel);
+    Border.SetBrushColor(FLinearColor::White);
+    FSlateBrush Brush = FSlateRoundedBoxBrush(bContrast ? HighContrastPanel : Panel, CornerRadius,
+        bContrast ? FLinearColor::White : BorderColor, bContrast ? FMath::Max(1.0f, BorderWidth) : BorderWidth);
+    if (!bContrast && !PanelImage.IsEmpty())
+    {
+        if (UTexture2D* Image = Cast<UTexture2D>(LoadThemeAsset(PanelImage)))
+        {
+            Brush.SetResourceObject(Image);
+            Brush.DrawAs = ESlateBrushDrawType::Image;
+        }
+    }
+    Border.SetBrush(Brush);
 }
 
 void FKalmalaUITheme::ApplyText(UTextBlock& Label, const int32 BaseSize, const bool bHeading,
@@ -84,5 +137,47 @@ void FKalmalaUITheme::ApplyText(UTextBlock& Label, const int32 BaseSize, const b
 {
     Label.SetColorAndOpacity(FSlateColor(UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0
         ? FLinearColor::White : (bHeading ? Heading : Text)));
-    Label.SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), ScaledFontSize(BaseSize, TextScalePercent)));
+    UFont* FontAssetObject = FontAsset.IsEmpty() ? nullptr : Cast<UFont>(LoadThemeAsset(FontAsset));
+    // Offline bitmap fonts do not provide a composite face for shared Slate text.
+    if (FontAssetObject && !FontAssetObject->GetCompositeFont()) FontAssetObject = nullptr;
+    FSlateFontInfo Font = FontAssetObject ? FSlateFontInfo(FontAssetObject, ScaledFontSize(BaseSize, TextScalePercent))
+        : FSlateFontInfo(FCoreStyle::GetDefaultFont(), ScaledFontSize(BaseSize, TextScalePercent));
+    Font.TypefaceFontName = bHeading ? HeadingFace : FontFace;
+    if (FontAssetObject && !FontAssetObject->GetCompositeFont()->DefaultTypeface.Fonts.ContainsByPredicate(
+        [&Font](const FTypefaceEntry& Entry) { return Entry.Name == Font.TypefaceFontName; }))
+    {
+        Font.TypefaceFontName = NAME_None;
+    }
+    Font.OutlineSettings.OutlineSize = FMath::RoundToInt(OutlineSize);
+    Font.OutlineSettings.OutlineColor = FLinearColor::Black;
+    Label.SetFont(Font);
+}
+
+void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode) const
+{
+    FButtonStyle Style = Button.GetStyle();
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const auto Brush = [this, bContrast](FLinearColor Color, float ContrastShade)
+    {
+        return FSlateRoundedBoxBrush(bContrast ? FLinearColor(ContrastShade, ContrastShade, ContrastShade, 1) : Color,
+            CornerRadius, bContrast ? FLinearColor::White : BorderColor, bContrast ? FMath::Max(1.0f, BorderWidth) : BorderWidth);
+    };
+    Style.SetNormal(Brush(ButtonNormal, 0.08f)).SetHovered(Brush(ButtonHovered, 0.20f))
+        .SetPressed(Brush(ButtonPressed, 0.0f)).SetDisabled(Brush(ButtonDisabled, 0.04f));
+    Style.SetNormalPadding(FMargin(SlotPadding)).SetPressedPadding(FMargin(SlotPadding + 1));
+    Button.SetStyle(Style);
+    Button.SetBackgroundColor(FLinearColor::White);
+    Button.SetColorAndOpacity(FLinearColor::White);
+}
+
+void FKalmalaUITheme::ApplyIconSlot(USizeBox& Slot) const
+{
+    Slot.SetWidthOverride(IconWidth);
+    Slot.SetHeightOverride(IconHeight);
+}
+
+void FKalmalaUITheme::ApplyScroll(UScrollBox& Scroll, const bool bReducedMotion) const
+{
+    Scroll.SetAnimateWheelScrolling(bAnimateScrolling && !bReducedMotion);
+    Scroll.SetScrollAnimationInterpolationSpeed(ScrollSpeed);
 }

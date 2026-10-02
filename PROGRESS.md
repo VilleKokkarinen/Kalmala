@@ -3,7 +3,7 @@
 ## Current state
 
 - Automation bootstrap created on 2026-09-01.
-- As of 2026-10-02, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) is in implementation: the local theme/HUD foundation child is verified; the configurable-theme parent remains open, with shared component extensions next in BACKLOG.md and docs/04-roadmap.md.
+- As of 2026-10-02, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) is in implementation: the local theme/HUD foundation and shared component extension children are verified; the configurable-theme parent remains open, with representative cross-menu migration next in BACKLOG.md and docs/04-roadmap.md.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
 ## Run log
@@ -10681,3 +10681,23 @@ Handoff: Main checkout E:/dev/Kalmala used; worktree-to-main synchronization is 
 Next eligible task: Extend this same theme foundation with font assets/weights, outlines/borders, buttons and interaction states, panel/background image references, slot/icon dimensions, and animation settings through shared components with real consumers and safe fallbacks. Do not start the status-hotbar parent.
 
 Current run time: 2026-10-02T10:46:32+00:00.
+
+### Run 2026-10-02T11:02:26+00:00 — M11 shared theme components extended
+
+Outcome: Completed only the second child of the first M11 theme parent. Added bounded font asset/Regular-Bold face and outline styling, geometric panel borders and optional background-image references, button normal/hover/pressed/disabled styling and slot padding, icon dimensions, and wheel-scroll animation settings. Real consumers are HUD panels/text, settings panel/action labels/buttons/control scroll, and existing support glyph slots. Checked only the selected child; parent remains open.
+
+Files changed: Config/DefaultKalmalaTheme.ini; Source/KalmalaUI/Public/KalmalaUITheme.h; Source/KalmalaUI/Private/KalmalaUITheme.cpp; Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp; Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp; Source/KalmalaUI/Private/Tests/KalmalaUIThemeTest.cpp; docs/35-ui-theme.md; docs/07-development-setup.md; BACKLOG.md; PROGRESS.md. Checkout was clean at start; HEAD remained dbfa446 throughout implementation. Concurrency inventory showed only this automation active; previous Kalmala chat was idle.
+
+Verification: Increment-level. Disposable mirror C:/Users/Ville/AppData/Local/Temp/kt1102 retained all checkout-generated outputs outside the repository. Initial sandbox build stalled before UBT logging and was cancelled; normal-access builds used LOCALAPPDATA/UnrealBuildTool and MaxParallelActions=4. One test compile failure used nonexistent UBorder::GetBrush; corrected to its public Background brush. Final UE 5.8.2 KalmalaEditor Win64 Development build passed five actions, Result: Succeeded. All five focused tests passed in fresh kt115u profile: Kalmala.UI.Theme.LocalPresentation, Kalmala.UI.Settings.LocalPresentation, Kalmala.UI.Inventory.PreparedFoodDetails, Kalmala.UI.SurvivalStatus.LocalPresentation, Kalmala.UI.WeatherActivity.LocalPresentation. Evidence: C:/Users/Ville/AppData/Local/Temp/kt115-test.log; test queue exit 0. Theme tests cover propagation, invalid bounds/paths, missing font/image fallback, transient image reference, unsupported offline font fallback, local text scale/contrast and reduced-motion helper override. Five M5 documentation checks, presentation ownership audit, and diff formatting checks passed. Maximum observed mirror file path was 213 characters; changed repository paths remain below 260. Startup repeated the two generic Condition failed messages from prior runs before automation discovery; selected tests and non-critical exit all succeeded.
+
+Observable impact: Theme config now drives shared styling beyond the original two HUD panels. Local high contrast suppresses images, forces white text/borders and neutral state fills; zero decorative border width cannot remove contrast outlines. Existing controls, delegates, modal input and navigation bindings remain intact. No new assets were generated or imported.
+
+Multiplayer and persistence assessment: Presentation only; no RPC, gameplay mutation, timing authority, replicated visibility, private peer data, inventory transaction, catalogue identity, or save schema changed.
+
+Known limitations: Full parent-level verification intentionally remains pending because the final migration child remains open. No rendered layout, custom project-font appearance, physical keyboard/controller peer session, full test suite, or packaged config/asset cooking was verified. Theme-only asset references must already be available at runtime. Some menu labels and other views retain legacy styling. AnimateScrolling defaults off; ApplyScroll supports an explicit reduced-motion override, but the user-facing reduced-motion setting and options slide-down are later tasks.
+
+Handoff: Main checkout E:/dev/Kalmala used, so worktree-to-main synchronization is unnecessary. Stage only the ten listed current-run files after inspecting their staged diff; no generated checkout directories changed.
+
+Next eligible task: Migrate representative inventory, build, map, and options styling to the shared theme; verify cross-view propagation, rendered layout and local accessibility overrides, then run parent-level integration verification. Do not start the status-hotbar parent.
+
+Current run time: 2026-10-02T11:02:26+00:00.

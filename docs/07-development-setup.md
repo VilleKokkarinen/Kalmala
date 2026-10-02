@@ -5,13 +5,13 @@
 Theme keys and the restart/load workflow are documented in `35-ui-theme.md`.
 Build a disposable project mirror (including existing project plugin source,
 excluding generated directories) to keep generated outputs out of the checkout.
-The first theme child uses only these focused tests after compilation:
+The theme foundation children use these focused tests after compilation:
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe' '<mirror>\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='<temporary-user-directory>' -abslog='<temporary-log-file>' -ExecCmds="Automation RunTests Kalmala.UI.Theme.LocalPresentation+Kalmala.UI.SurvivalStatus.LocalPresentation+Kalmala.UI.WeatherActivity.LocalPresentation; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe' '<mirror>\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='<temporary-user-directory>' -abslog='<temporary-log-file>' -ExecCmds="Automation RunTests Kalmala.UI.Theme.LocalPresentation+Kalmala.UI.SurvivalStatus.LocalPresentation+Kalmala.UI.WeatherActivity.LocalPresentation+Kalmala.UI.Settings.LocalPresentation+Kalmala.UI.Inventory.PreparedFoodDetails; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
-Require all three `Result={Success}` results. Run
+Require all five `Result={Success}` results. Run
 `Scripts/Verify-M5DocumentationContracts.ps1` and `git diff --check` as well.
 These are increment-level checks; they do not complete the theme parent or
 verify rendered menu propagation, viewport layout, or packaged theme loading.

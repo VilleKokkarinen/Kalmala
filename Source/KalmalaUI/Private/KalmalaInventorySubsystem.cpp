@@ -1,4 +1,5 @@
 #include "KalmalaInventorySubsystem.h"
+#include "KalmalaUITheme.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/HorizontalBox.h"
@@ -171,8 +172,7 @@ void UKalmalaInventoryWidget::NativeOnInitialized()
         Card->SetPadding(FMargin(3.0f));
         UVerticalBox* CardContent = WidgetTree->ConstructWidget<UVerticalBox>();
         USizeBox* GlyphBox = WidgetTree->ConstructWidget<USizeBox>();
-        GlyphBox->SetWidthOverride(64.0f);
-        GlyphBox->SetHeightOverride(42.0f);
+        FKalmalaUITheme::Get().ApplyIconSlot(*GlyphBox);
         UKalmalaSupportGlyphWidget* GlyphWidget = WidgetTree->ConstructWidget<UKalmalaSupportGlyphWidget>();
         GlyphWidget->SetGlyphState(GlyphKinds[Index], false, false);
         GlyphBox->SetContent(GlyphWidget);

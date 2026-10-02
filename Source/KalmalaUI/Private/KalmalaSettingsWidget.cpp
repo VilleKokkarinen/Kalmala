@@ -1,4 +1,5 @@
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaUITheme.h"
 
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
@@ -74,9 +75,7 @@ namespace
     void ApplyButtonPalette(UButton* Button)
     {
         if (Button == nullptr) return;
-        const FSettingsPalette Palette = GetSettingsPalette();
-        Button->SetBackgroundColor(Palette.ButtonBackground);
-        Button->SetColorAndOpacity(Palette.ButtonText);
+        FKalmalaUITheme::Get().ApplyButton(*Button, UKalmalaSettingsWidget::GetContrastMode());
     }
 
     enum class ELocalInputMappingKind : uint8
@@ -471,7 +470,7 @@ void UKalmalaSettingsWidget::ApplyModalPalette()
 {
     const FSettingsPalette Palette = GetSettingsPalette();
     if (BackdropBorder != nullptr) BackdropBorder->SetBrushColor(Palette.Background);
-    if (PanelBorder != nullptr) PanelBorder->SetBrushColor(Palette.Panel);
+    if (PanelBorder != nullptr) FKalmalaUITheme::Get().ApplyPanel(*PanelBorder, GetContrastMode());
 }
 
 int32 UKalmalaSettingsWidget::ClampViewDistanceQuality(const int32 Quality)
@@ -820,9 +819,7 @@ UButton* UKalmalaSettingsWidget::AddButton(UVerticalBox* Parent, const FText& La
     Text->SetColorAndOpacity(FSlateColor(GetSettingsPalette().ButtonText));
     Text->SetAutoWrapText(true);
     Text->SetJustification(ETextJustify::Center);
-    FSlateFontInfo Font = Text->GetFont();
-    Font.Size = ScaleFontSize(21.0f);
-    Text->SetFont(Font);
+    FKalmalaUITheme::Get().ApplyText(*Text, 21, false, GetTextScalePercent(), GetContrastMode());
     Button->SetContent(Text);
     UVerticalBoxSlot* BoxSlot = Parent->AddChildToVerticalBox(Button);
     BoxSlot->SetPadding(FMargin(4.0f, 7.0f));
@@ -922,6 +919,7 @@ void UKalmalaSettingsWidget::ShowControlsTab()
     AddLabel(ContentBox, FText::FromString(TEXT("Activate a keyboard or controller row to cycle its local binding.")), 15.0f);
 
     UScrollBox* Scroll = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("ControlsScroll"));
+    FKalmalaUITheme::Get().ApplyScroll(*Scroll);
     UVerticalBox* Rows = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("ControlRows"));
     Scroll->AddChild(Rows);
     UVerticalBoxSlot* ScrollSlot = ContentBox->AddChildToVerticalBox(Scroll);
