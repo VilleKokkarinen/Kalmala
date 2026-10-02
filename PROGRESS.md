@@ -3,7 +3,7 @@
 ## Current state
 
 - Automation bootstrap created on 2026-09-01.
-- As of 2026-10-02, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) is approved for planning; its first unchecked task is the invisible top-right status container in BACKLOG.md and docs/04-roadmap.md.
+- As of 2026-10-02, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) is approved for planning; its first unchecked task is the configurable theme and shared UI components in BACKLOG.md and docs/04-roadmap.md.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
 ## Run log
@@ -10094,3 +10094,17 @@ Multiplayer impact: No runtime impact. Icons, backgrounds, and grid cells remain
 Known limits: Assets and menus are planned, not implemented. Complete icon coverage must be audited against current catalogues during implementation; no item count or generated asset coverage is claimed here. Backgrounds follow the existing visual identity and must keep foreground content readable.
 
 Next task: Implement and verify the first unchecked M11 task, the invisible top-right status container; then follow the ordered icon/menu queue.
+
+### Run 2026-10-02 — M11 options backgrounds, opening animation, and shared theme planned
+
+Outcome: Expanded M11 to ten ordered goals, including backgrounds for all option menus, a fast restrained slide down from the top on main-options opening, and a configurable theme with mostly shared UI components. Theme foundations now precede visual implementation.
+
+Changed: `docs/04-roadmap.md` and `BACKLOG.md` define the new goals and acceptance; `docs/05-decision-log.md` records owner direction; `PROGRESS.md` updates the first task and adds this handoff. Pre-existing changes remain preserved.
+
+Verification: Documentation-only planning; `Scripts/Verify-M5DocumentationContracts.ps1` passed all five checks and `git diff --check` passed. The isolated staged diff is reviewed before committing only this run's edits. No Unreal build or gameplay test required.
+
+Multiplayer impact: No runtime change. Shared components retain existing actions and read only owner-visible state; theme settings and animation remain local presentation. No gameplay duration, save schema, authority, or privacy changes.
+
+Known limits: Theme file, assets, components, and animation are planned, not implemented. Theme format and load workflow will be documented during the first increment. Animation must retain immediate modal ownership, correct moving-panel hit testing, interruption handling, and an instant/reduced-motion path.
+
+Next task: Implement the first unchecked M11 increment: the configurable theme foundation and shared components, then follow the ordered status/icon/menu queue.
