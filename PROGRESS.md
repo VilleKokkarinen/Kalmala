@@ -3,7 +3,7 @@
 ## Current state
 
 - Automation bootstrap created on 2026-09-01.
-- As of 2026-09-28, the active backlog milestone is M9 (Expanded biome content and encounter depth); the earliest unchecked item is tracked in BACKLOG.md and docs/04-roadmap.md.
+- As of 2026-10-02, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) is approved for planning; its first unchecked task is the invisible top-right status container in BACKLOG.md and docs/04-roadmap.md.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
 ## Run log
@@ -10066,3 +10066,17 @@ Handoff: Main checkout used; no worktree synchronization. Pre-existing working-t
 Next eligible task: None; all current M0–M10 backlog goals are checked. Await the next approved project objective.
 
 Current run time: 2026-10-02T09:26:29Z.
+
+### Run 2026-10-02 — M11 UX and visual UI roadmap added
+
+Outcome: Added the owner-requested M11 milestone and an ordered, unchecked execution queue. No M11 runtime implementation was started.
+
+Changed: `docs/04-roadmap.md` defines scope, four ordered goals, authority boundaries, and acceptance; `BACKLOG.md` mirrors the queue; `docs/05-decision-log.md` records owner direction; `PROGRESS.md` updates current state and adds this handoff. Pre-existing working-tree edits are preserved.
+
+Verification: Documentation-only change; no Unreal build or gameplay scenario required. `Scripts/Verify-M5DocumentationContracts.ps1` passed all five checks; `git diff --check` passed. Only this run's documentation edits are staged for commit; earlier edits in the same files remain unstaged.
+
+Multiplayer impact: None at runtime. Future UI must read existing owner-visible replicated state and synchronized server timing without new effects, duration authority, gameplay mutations, private peer data, or save changes.
+
+Known limits: Icons and top-right layout are planned, not implemented. Conditions without authoritative expiry must display ongoing rather than an invented timer. Existing M10 evidence and accepted limitations remain recorded; this milestone does not change the visual identity or gameplay scope.
+
+Next task: Implement and verify the invisible owner-local top-right status container beside/below the minimap, the first unchecked M11 task.
