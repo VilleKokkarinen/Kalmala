@@ -3,7 +3,8 @@ param(
     [string]$OutputDirectory = '',
     [string]$Project = '',
     [switch]$RenderedFrameTimeProfile,
-    [int]$TimeoutSeconds = 120
+    [int]$TimeoutSeconds = 120,
+    [ValidateRange(0, 63)][int]$LogicalCoreAffinity = 0
 )
 
 $ErrorActionPreference = 'Stop'
@@ -19,6 +20,7 @@ $frameTimeDirectory = Join-Path $output 'FrameTimes'
 New-Item -ItemType Directory -Path $hostShaderDir -Force | Out-Null
 New-Item -ItemType Directory -Path $clientShaderDir -Force | Out-Null
 $common = '-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaOceanDiscoveryDisembarkPeerTest -KalmalaWorldProfile'
+if ($LogicalCoreAffinity -gt 0) { $common += " -processaffinity=$LogicalCoreAffinity" }
 if ($RenderedFrameTimeProfile) {
     New-Item -ItemType Directory -Path $frameTimeDirectory -Force | Out-Null
     $common += " -RenderOffscreen -ResX=1280 -ResY=720 -novsync -csvGpuStats -KalmalaCaptureRenderedFrameTimes -KalmalaFrameTimeOutputDir=`"$frameTimeDirectory`""
@@ -35,9 +37,17 @@ function Get-FrameTimeMetricSummary {
 
     $culture = [System.Globalization.CultureInfo]::InvariantCulture
     $samples = [System.Collections.Generic.List[double]]::new()
-    foreach ($row in (Import-Csv -LiteralPath $CsvPath)) {
-        if ($row.EVENTS -eq '[HasHeaderRowAtEnd]') { continue }
-        $rawValue = $row.PSObject.Properties[$Metric].Value
+    # Engine CSVs can repeat unrelated GPU-stat names. Parse by column position
+    # so those duplicate names cannot hide or prevent reading our four metrics.
+    $header = (Get-Content -LiteralPath $CsvPath -TotalCount 1).Split(',')
+    $metricIndices = @(for ($column = 0; $column -lt $header.Count; $column++) {
+        if ($header[$column].Trim('"') -eq $Metric) { $column }
+    })
+    if ($metricIndices.Count -ne 1) { throw "Expected exactly one $Metric column in '$CsvPath'." }
+    $columnNames = @(for ($column = 0; $column -lt $header.Count; $column++) { "Column$column" })
+    foreach ($row in (Import-Csv -LiteralPath $CsvPath -Header $columnNames)) {
+        # Original/repeated header and metadata rows are nonnumeric and skipped.
+        $rawValue = $row.PSObject.Properties[$columnNames[$metricIndices[0]]].Value
         $value = 0.0
         if ($null -ne $rawValue -and [double]::TryParse([string]$rawValue, [System.Globalization.NumberStyles]::Float, $culture, [ref]$value) -and $value -gt 0.0) {
             [void]$samples.Add($value)
