@@ -10028,3 +10028,19 @@ Known limitations: M8 voyage/restart acceptance did not complete because of the 
 Handoff: Main checkout used, so no worktree synchronization was needed. Only the selected M9 child is checked; the parent remains open. Unrelated working-tree changes are preserved and must not be staged.
 
 Next eligible task: Diagnose and rerun the M8 integrated ocean travel/restart check in the remaining M8/M6 child, then complete the M9 parent acceptance once all children pass.
+
+### Run 2026-10-02 — Owner confirmed manual release-candidate walkthrough completion
+
+Outcome: Marked the M10 release-candidate package and normal-player co-op/progression/travel task complete at the owner's explicit request after they reported completing it manually. Removed the active input blocker from the backlog. Historical agent attempts remain as evidence and are superseded by this manual completion report.
+
+Files changed: `BACKLOG.md`; this `PROGRESS.md` handoff. All pre-existing working-tree changes are preserved.
+
+Verification: Human-reported task completion is the walkthrough evidence; the agent did not independently observe or rerun the manual session. The prior passing UE 5.8.2 package build and startup smoke remain the packaging evidence. Documentation-only update; no new build or gameplay test is required. `git diff --check` verifies formatting and the requested task is checked while release-evidence archival remains unchecked.
+
+Multiplayer and persistence assessment: No gameplay, networking, server authority, owner privacy, replication, or save contract changed. Acceptance of the manual walkthrough rests on the owner's report, without inventing per-step observations.
+
+Known limitations: No additional manual-session logs, screenshots, timings, or per-step results were supplied in this turn. Dedicated-server validation remains skipped because the installed Launcher engine lacks the documented capability. The native input limitation from prior agent attempts is historical context, not an active blocker on this owner-completed task.
+
+Handoff: Main checkout used; no worktree synchronization. Stage and commit only this run's checkbox/completion annotation and handoff, preserving earlier uncommitted edits.
+
+Next task: Archive build metadata, test results, logs, screenshots, migration notes, accessibility checks, known limitations, and reproducible release steps.
