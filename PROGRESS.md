@@ -10136,3 +10136,17 @@ Multiplayer impact: No runtime changes. Usage ranks count accepted owner-visible
 Known limits: Features remain queued. Marker treatment is configurable; usage ranks are separate from manual bookmarks. History lifecycle/ties will be documented during implementation. Menu restoration is session-local. Sword/mace values illustrate text formatting only; absent stats must not be fabricated. Unselected suggestions 5, 6, and 8 from the latest proposal were not added.
 
 Next task: Implement the first unchecked M11 increment, the configurable theme foundation and shared components, then follow the ordered UI queue.
+
+### Run 2026-10-02 — M11 most-recent Favorites markers planned
+
+Outcome: Extended the existing Favorites goal with the latest successfully crafted item, built piece, and cooked recipe, including Recent shortcuts and distinct configurable styling. No implementation started.
+
+Changed: `docs/04-roadmap.md` and `BACKLOG.md` update Favorites and acceptance; `docs/05-decision-log.md` records approval; this `PROGRESS.md` handoff. Pre-existing edits remain preserved.
+
+Verification: Documentation-only; `Scripts/Verify-M5DocumentationContracts.ps1` passed all five checks and `git diff --check` passed. The isolated staged diff is reviewed before committing only this run's changes. No Unreal build/gameplay test required.
+
+Multiplayer impact: No runtime changes. Recent entries must come from accepted owner-visible events and remain local UI history; selection, failure, and replay do not update them. No authority, item, balance, privacy, or save-schema change.
+
+Known limits: Marker assets/styles remain queued; a small clock/corner badge with Recent text is a suggested theme-configurable treatment. Recent, manual favorites, and usage ranks must remain distinguishable and coexist without overlap. History lifecycle remains part of the Favorites implementation contract.
+
+Next task: Implement the first unchecked M11 increment, the configurable theme foundation and shared components, then follow the ordered UI queue.
