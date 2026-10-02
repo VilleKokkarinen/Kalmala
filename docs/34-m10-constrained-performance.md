@@ -7,7 +7,9 @@ profiles on the available i7-14700K / RTX 5090 Windows PC. The diagnostic
 matrix below makes resource and quality settings repeatable without changing gameplay,
 machine-wide power settings, drivers, or project configuration. It does not
 approve minimum/recommended hardware, numerical release limits, or substitute
-for measurements on those targets. The M10 performance parent remains open.
+for measurements on those targets. The owner subsequently directed completion
+of the M10 performance backlog item using this evidence with its recorded
+limitations; see the owner closeout below.
 
 ## Named resource and quality presets
 
@@ -129,14 +131,15 @@ and [texture streaming configuration](https://dev.epicgames.com/documentation/en
 
 ## Remaining closeout requirements
 
-The owner still needs to approve target device/profile coverage and numerical
+Future target-hardware certification needs approved device/profile coverage and numerical
 limits for startup, frame-time percentiles/hitches, actors, process/VRAM peaks
 and growth, streaming, worker/raster latency, per-peer traffic, archive size,
 and save size. Existing structural/save caps in `20-m8-ocean-performance-budget.md`
 remain unchanged. Hardware coverage, representative packaged scenes, sustained
 travel, long-session measurements and map worker/raster profiles are still
 required. Simulation evidence can supplement that matrix or form an explicitly
-approved limited diagnostic gate; it cannot silently close release acceptance.
+approved limited diagnostic gate. The owner explicitly accepted the limited
+closeout described below; this does not establish target-hardware certification.
 
 ## Harness validation — 2026-10-02
 
@@ -224,5 +227,19 @@ Med rerun passed end to end. Script syntax, all eight entries in `-ListProfiles`
 Potato pre-capture settings ordering, and git diff checks passed.
 
 No gameplay code, authority, replication, save schema, product video defaults
-or machine-wide settings changed. The M10 parent still requires approved
-hardware coverage and numerical limits, plus packaged and sustained scenarios.
+or machine-wide settings changed. Physical hardware coverage, numerical limits,
+and packaged/sustained scenarios remain limitations of these measurements.
+
+## Product-owner closeout — 2026-10-02
+
+After reviewing the five passing presets, the owner explicitly requested
+marking the blocked task done. The backlog parent is now completed on that
+direction, accepting the existing one-machine measurements and simulated
+profile evidence with the limitations recorded here and in
+`20-m8-ocean-performance-budget.md`. Earlier statements that the parent is
+blocked or pending are superseded by this acceptance.
+
+No numerical limits, physical low/mid-tier measurements or additional test
+results were supplied or invented. Those coverage gaps are accepted limitations
+of this closeout, not claims of certification. The release-candidate package
+and normal-player co-op walkthrough are the next backlog task.
