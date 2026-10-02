@@ -12,9 +12,9 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
     const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
     TestTrue(TEXT("Configured recipes validate"), Recipes->IsValidCatalogue());
-    for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("Timber")), FName(TEXT("RaisedStorage")), FName(TEXT("Smokehouse")) })
+    for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("Timber")), FName(TEXT("RaisedStorage")) })
         TestNull(TEXT("Removed recipe is not available"), Recipes->Find(Id));
-    for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply")), FName(TEXT("RaisedStorage")), FName(TEXT("Smokehouse")) })
+    for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply")), FName(TEXT("RaisedStorage")) })
         TestNull(TEXT("Removed item is not available"), Items->FindItem(Id));
 
     for (const FKalmalaRecipe& Recipe : Recipes->Recipes)

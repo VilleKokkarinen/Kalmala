@@ -35,7 +35,7 @@ try {
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Controls local result: FAIL') { throw 'Controls verification failed; inspect logs.' }
-        $localPass = $serverText -match 'Controls local result: PASS Authority=1 Parts=9 Jump=1' -and $clientText -match 'Controls local result: PASS Authority=0 Parts=9 Jump=1'
+        $localPass = $serverText -match 'Controls local result: PASS Authority=1 Parts=11 Jump=1' -and $clientText -match 'Controls local result: PASS Authority=0 Parts=11 Jump=1'
         $remotePass = $serverText -match 'Controls server sprint: Remote=1' -and $serverText -match 'Controls server jump: Remote=1' -and $serverText -match 'Controls server release: Remote=1'
         $renderPass = !$Rendered -or ((Test-Path "$output/host.png") -and (Test-Path "$output/client.png"))
         $wetPass = !$WetStamina -or ($serverText -match 'Wet stamina: Passed=1 Authority=1 Remote=0' -and $serverText -match 'Wet stamina: Passed=1 Authority=1 Remote=1' -and $clientText -match 'Wet stamina: Passed=1 Authority=0 Remote=0')

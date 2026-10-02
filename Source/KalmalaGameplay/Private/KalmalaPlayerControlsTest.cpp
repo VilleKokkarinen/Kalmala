@@ -80,11 +80,13 @@ void AKalmalaCharacter::VerifyPlayerControls(const float DeltaSeconds)
     {
         TArray<UProceduralMeshComponent*> Meshes;
         GetComponents(Meshes);
-        const bool bCosmeticOnly = Meshes.Num() == 9 && Meshes.ContainsByPredicate([](const auto* Mesh) { return Mesh->GetNumSections() > 0; })
+        // The original nine-part body now includes a two-part, non-colliding starter hammer.
+        constexpr int32 ExpectedModelPartCount = 11;
+        const bool bCosmeticOnly = Meshes.Num() == ExpectedModelPartCount && Meshes.ContainsByPredicate([](const auto* Mesh) { return Mesh->GetNumSections() > 0; })
             && !Meshes.ContainsByPredicate([](const auto* Mesh) { return Mesh->GetCollisionEnabled() != ECollisionEnabled::NoCollision; });
         const bool bPassed = bControlsTestLocalJumpObserved && !Movement->IsSprintRequested()
             && FMath::IsNearlyEqual(Movement->GetMaxSpeed(), Movement->MaxWalkSpeed * Statuses->GetModifiers().Movement)
-            && PlayerModel->GetPartCount() == 9 && bCosmeticOnly;
+            && PlayerModel->GetPartCount() == ExpectedModelPartCount && bCosmeticOnly;
         UE_LOG(LogTemp, Display, TEXT("Controls local result: %s Authority=%d Parts=%d Jump=%d"),
             bPassed ? TEXT("PASS") : TEXT("FAIL"), HasAuthority(), PlayerModel->GetPartCount(), bControlsTestLocalJumpObserved);
         ControlsTestStage = 4;

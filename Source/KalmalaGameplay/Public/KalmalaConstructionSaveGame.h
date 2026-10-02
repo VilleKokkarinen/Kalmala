@@ -51,7 +51,6 @@ public:
     static constexpr int32 SchemaVersionValue = 2;
     static constexpr int32 MaxRecords = 128;
     static constexpr int32 MaxStationAttachments = 32;
-    static constexpr int32 MaxDryingLines = 5;
 
     void InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorld);
     int32 GetSchemaVersion() const { return SchemaVersion; }
@@ -59,7 +58,6 @@ public:
     static bool IsValidRecord(const FKalmalaConstructionSaveRecord& Record);
     bool AddRecord(const FKalmalaConstructionSaveRecord& Record);
     bool AddStationAttachmentRecord(const FKalmalaConstructionSaveRecord& Record);
-    bool AddDryingLineRecord(const FKalmalaConstructionSaveRecord& Record);
     const TArray<FKalmalaConstructionSaveRecord>& GetRecords() const { return Records; }
     static bool TryBuildWriteCandidate(
         class USaveGame* Existing,

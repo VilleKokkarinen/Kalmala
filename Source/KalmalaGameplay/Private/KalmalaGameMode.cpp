@@ -3096,6 +3096,16 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
             *TestRole, *M9Schema2CandidatePeerTestPhase);
     }
 
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryTest"))
+        && NewPlayer != nullptr && NewPlayer->GetPlayerState<APlayerState>() != nullptr)
+    {
+        const FString TestRole = NewPlayer->IsLocalController() ? TEXT("host") : TEXT("client");
+        const FUniqueNetIdStringRef TestNetId = FUniqueNetIdString::Create(
+            FString::Printf(TEXT("inventory-test-%s"), *TestRole), FName(TEXT("KalmalaInventoryReconnectTest")));
+        NewPlayer->GetPlayerState<APlayerState>()->SetUniqueId(FUniqueNetIdRepl(*TestNetId));
+        UE_LOG(LogTemp, Display, TEXT("Inventory reconnect fixture assigned authenticated test identity: Role=%s"), *TestRole);
+    }
+
     FString ReconnectPhase;
     const bool bOceanReconnectPeerTest = FParse::Param(FCommandLine::Get(),
         TEXT("KalmalaOceanDiscoveryDisembarkPeerTest"))
@@ -3412,26 +3422,17 @@ void AKalmalaGameMode::RunM9Schema2CandidateWorldPeerTest()
             {
                 return Candidate->AddStationAttachmentRecord(Record);
             }
-            if (KitId == TEXT("DryingLineKit"))
-            {
-                return Candidate->AddDryingLineRecord(Record);
-            }
             return Candidate->AddRecord(Record);
         };
         const bool bAdded = AddRecord(TEXT("m9-peer-floor-01"), TEXT("FloorKit"), FVector(100.0f, 200.0f, 300.0f))
-            && AddRecord(TEXT("m9-peer-rack-01"), TEXT("WorkbenchToolRackKit"), FVector(400.0f, 500.0f, 300.0f))
-            && AddRecord(TEXT("m9-peer-drying-01"), TEXT("DryingLineKit"), FVector(700.0f, 800.0f, 300.0f));
+            && AddRecord(TEXT("m9-peer-rack-01"), TEXT("WorkbenchToolRackKit"), FVector(400.0f, 500.0f, 300.0f));
         const bool bSaved = bAdded && UGameplayStatics::SaveGameToSlot(Candidate, TestSlot, 0);
         UE_LOG(LogTemp, Display,
-            TEXT("M9 schema-2 candidate world: Phase=Seed Passed=%d Records=%d Attachment=%d DryingLine=%d NormalSchema=%d"),
+            TEXT("M9 schema-2 candidate world: Phase=Seed Passed=%d Records=%d Attachment=%d NormalSchema=%d"),
             bSaved ? 1 : 0, Candidate->GetRecords().Num(),
             Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
             {
                 return FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId);
-            }) ? 1 : 0,
-            Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
-            {
-                return Record.KitId == TEXT("DryingLineKit");
             }) ? 1 : 0,
             ConstructionSaveGame != nullptr ? ConstructionSaveGame->GetSchemaVersion() : 0);
         return;
@@ -3442,7 +3443,7 @@ void AKalmalaGameMode::RunM9Schema2CandidateWorldPeerTest()
         UKalmalaConstructionSaveGameV2* Candidate = Cast<UKalmalaConstructionSaveGameV2>(
             UGameplayStatics::LoadGameFromSlot(TestSlot, 0));
         const bool bMatches = Candidate != nullptr && Candidate->MatchesWorld(WorldGenerationConfig)
-            && Candidate->GetRecords().Num() == 3
+            && Candidate->GetRecords().Num() == 2
             && Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
             {
                 return Record.ConstructionId == TEXT("m9-peer-floor-01") && Record.KitId == TEXT("FloorKit");
@@ -3450,21 +3451,13 @@ void AKalmalaGameMode::RunM9Schema2CandidateWorldPeerTest()
             && Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
             {
                 return Record.ConstructionId == TEXT("m9-peer-rack-01") && Record.KitId == TEXT("WorkbenchToolRackKit");
-            })
-            && Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
-            {
-                return Record.ConstructionId == TEXT("m9-peer-drying-01") && Record.KitId == TEXT("DryingLineKit");
             });
         UE_LOG(LogTemp, Display,
-            TEXT("M9 schema-2 candidate world: Phase=Resume Passed=%d Records=%d Attachment=%d DryingLine=%d NormalSchema=%d"),
+            TEXT("M9 schema-2 candidate world: Phase=Resume Passed=%d Records=%d Attachment=%d NormalSchema=%d"),
             bMatches ? 1 : 0, Candidate != nullptr ? Candidate->GetRecords().Num() : 0,
             Candidate != nullptr && Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
             {
                 return FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId);
-            }) ? 1 : 0,
-            Candidate != nullptr && Candidate->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
-            {
-                return Record.KitId == TEXT("DryingLineKit");
             }) ? 1 : 0,
             ConstructionSaveGame != nullptr ? ConstructionSaveGame->GetSchemaVersion() : 0);
         return;

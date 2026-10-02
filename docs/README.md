@@ -30,7 +30,11 @@ This folder is the project’s durable operating manual. An agent must read the 
 | [25 M9 second-wave harvest integration](25-m9-second-wave-harvest-integration.md) | Item catalogue, bounded server harvest rewards, and session-only sparse depletion wiring |
 | [26 M9 second-wave source acceptance](26-m9-second-wave-source-acceptance.md) | Deterministic rewards and accepted/rejected server harvest transaction checks for all four sources |
 | [27 M9 carried-tool inventory](27-m9-carried-tool-inventory.md) | Owner-only tool records with separate server-owned level and condition |
-| [28 M9 camp and equipment recipes](28-m9-camp-equipment-recipes.md) | Accepted optional storage, smokehouse, and drying-line recipes with server validation |
+| [28 M9 camp and equipment recipes](28-m9-camp-equipment-recipes.md) | Current camp recipes, direct material costs, and server validation |
+| [29 M9 exploration rewards](29-m9-exploration-rewards.md) | Optional land discoveries, stable identities, and reward boundaries |
+| [30 M9 persistence migration](30-m9-persistence-migration.md) | Versioned world/player saves, identity matching, migration, and reconnect gates |
+| [31 M10 feature and content freeze](31-m10-scope-freeze.md) | Frozen launch gameplay/content baseline, save versions, and post-freeze change rule |
+| [34 M10 constrained performance](34-m10-constrained-performance.md) | Verified CPU-affinity stress profiles, simulation limits, and outstanding release acceptance |
 | [Audio cue contract check](../Scripts/Verify-AudioCueContract.ps1) | No-build validation for the M5 audio specification |
 | [Local input contract check](../Scripts/Verify-LocalInputContract.ps1) | No-build validation for the existing keyboard/controller input baseline |
 | [M5 documentation contract suite](../Scripts/Verify-M5DocumentationContracts.ps1) | Runs all current no-build M5 presentation/settings checks together |

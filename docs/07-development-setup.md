@@ -140,6 +140,15 @@ only crafting RPC fields.
 
 ## First build
 
+For M10 lower-resource diagnostics on the available high-end PC, see
+[`34-m10-constrained-performance.md`](34-m10-constrained-performance.md).
+`Scripts/Verify-ConstrainedPerformance.ps1` runs the existing rendered two-peer
+fixture with Potato/Low/Med/High/Ultra resource and quality presets or the
+original reference/eight-thread/four-thread CPU-only profiles. It verifies
+peer masks and requested rendering settings and preserves isolated evidence. Use a built
+disposable project mirror. These are CPU-contention diagnostics; they do not
+establish representative target-hardware or numerical budget acceptance.
+
 Open PowerShell and run:
 
 ```powershell
@@ -1047,6 +1056,72 @@ The wrapper starts the actual game under Kalmala/Binaries/Win64; check that
 process before stopping the smoke run. Null rendering verifies startup and map
 loading only; it does not cover the player-facing co-op walkthrough.
 
+## Native Windows control for packaged player validation
+
+Read the installed `computer-use:computer-use` skill and its guidance before
+driving the game. Use the deferred `mcp__node_repl__js` tool and initialize its
+persistent JavaScript session with:
+
+```javascript
+if (!globalThis.sky) {
+  const { sky } = await import("@oai/sky");
+  globalThis.sky = sky;
+}
+globalThis.nativeWindows = await sky.list_windows();
+nodeRepl.write(JSON.stringify(nativeWindows, null, 2));
+```
+
+Select exactly one returned game window per peer, carrying its returned `id`
+and `app` into `get_window`. Activate it, observe `get_window_state`, inspect
+the screenshot, then perform one normal input and refresh. For example,
+`sky.press_key({ window: gameState.window, key: "Escape" })` opens Settings.
+Use only the supported API and current observations; do not invent handles or
+replace normal player input with developer commands or gameplay fixtures.
+
+The packaged root `Kalmala.exe` is a bootstrap wrapper. Its actual window
+belongs to `Kalmala/Binaries/Win64/Kalmala.exe`. A native launch of the wrapper
+can report no targetable window before the child appears; refresh
+`sky.list_windows()` after startup and select the returned child window.
+A hidden/minimized shell launch may also need restoration before capture.
+If user input invalidates activation, reobserve before retrying activation.
+Never act on a screenshot showing another application.
+
+`cua.getState()` belongs to a separate browser-oriented control surface in
+this runtime. Its `apps: []`, and absent `cua.computer` methods, do not prove
+that native Windows control is unavailable. Check `@oai/sky` before declaring
+that blocker. On 2026-10-02 native discovery, game screenshot capture, Escape
+opening Settings, and clicking Quit were verified against the existing M10
+Development archive. This is a control preflight only: full fresh-profile
+co-op, progression, reconnect, and long-distance travel are still required.
+The runbook's native-surface skip conditions and dedicated-server capability
+restriction remain unchanged.
+
+### Windowed peers on the native-control desktop (2026-10-02)
+
+For this environment's shell launch path, start the packaged executable outside
+the shell sandbox using the approved `require_escalated` execution path.
+Sandboxed launches had real window handles but were absent from native
+discovery; outside-sandbox launches exposed both peers to `sky.list_windows()`.
+Windowed mode alone did not fix discovery. Never construct native window
+objects from shell-reported handles.
+
+Launch `Kalmala/Binaries/Win64/Kalmala.exe` with
+`/Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=19864 -windowed
+-ResX=960 -ResY=540 -WinX=20 -WinY=40 -WorldSeed=418`, a fresh host
+`-UserDir`, and an absolute log. Launch the client with `127.0.0.1:19864
+-windowed -ResX=960 -ResY=540 -WinX=1010 -WinY=40 -WorldSeed=999`, a
+separate fresh `-UserDir`, and its own log. Pick an unused port for later runs.
+These are startup/session arguments, not developer gameplay fixtures.
+Select each peer from returned native windows as above.
+
+This path confirmed joining and shared terrain/two-player presentation on one
+PC. Host B opened and closed crafting. It has not passed the walkthrough:
+W, Shift+W, and Space taps produced no observable movement, including after
+viewport focus. The documented `sky.press_key` takes a key/chord and window;
+it exposes no duration or key-down/key-up API. Sustained walking, sprinting,
+and vessel steering need a supported input path or human input. Joining logs,
+screenshots, and working menus do not pass progression, reconnect, or travel.
+
 ## M8 sea-discovery placement and claim contract
 
 After the forced editor build, run
@@ -1264,12 +1339,12 @@ After the forced editor build, run
 `Kalmala.Gameplay.Construction.Schema2Migration` with isolated `-UserDir`,
 `-abslog`, `-DDC-ForceMemoryCache`, and
 `-TestExit="Automation Test Queue Empty"` arguments. The in-memory schema-2
-candidate round-trips established construction records, station attachments,
-and Drying Lines; migrates matching schema-1 construction records while
+candidate round-trips established construction records and station
+attachments; migrates matching schema-1 construction records while
 binding seed/revision/world scope; and rejects mismatched, unsupported,
 malformed, duplicate, and over-cap legacy data without changing its source
 bytes. It also checks exact schema-2 identity, malformed/duplicate current
-records, and the 32-attachment and five-line limits. Normal construction writes use the
+records, and the 32-attachment limit. Normal construction writes use the
 schema-2 container. On first write, a matching schema-1 save is migrated and
 merged with the new server-accepted record; every record is revalidated before
 the slot is replaced. Invalid or mismatched existing slots remain untouched.

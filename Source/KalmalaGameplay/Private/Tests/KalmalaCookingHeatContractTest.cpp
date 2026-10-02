@@ -97,7 +97,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
         World->DestroyWorld(false);
         return false;
     }
-    Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(100.0f, 0.0f, 0.0f));
+    Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -200.0f, 0.0f));
     Forge->InitializeFromServer(TEXT("ForgeKit"), TEXT("CookingHeatForge"));
     TestTrue(TEXT("Five iron make a placeable frying pan at the Forge"),
         Crafting->CraftFromServer(FryingPanRecipe->RecipeId, 1, Reason));

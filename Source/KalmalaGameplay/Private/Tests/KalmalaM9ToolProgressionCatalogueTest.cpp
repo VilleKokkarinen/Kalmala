@@ -179,9 +179,9 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     {
         TestTrue(TEXT("Construction placement is an owning-client server RPC"),
             PlaceIntent->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
-        TestEqual(TEXT("Placement submits only a kit identity"), int32(PlaceIntent->NumParms), 1);
-        TestNotNull(TEXT("Placement cannot submit a station, transform, level, or cost"),
-            PlaceIntent->FindPropertyByName(TEXT("KitId")));
+        TestEqual(TEXT("Placement submits only a canonical buildable identity"), int32(PlaceIntent->NumParms), 1);
+        TestNotNull(TEXT("Placement identifies the requested buildable"),
+            PlaceIntent->FindPropertyByName(TEXT("BuildableId")));
     }
 
     return true;

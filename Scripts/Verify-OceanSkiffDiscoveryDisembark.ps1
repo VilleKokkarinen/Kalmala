@@ -126,12 +126,12 @@ try {
         $clientWorld = $clientText -match 'Client received world-generation identity: Seed=418'
         $profileMatch = [regex]::Match($hostText, 'World profile: InitialGenerationMs=(?<generation>[0-9.]+) UsedPhysicalMB=(?<used>[0-9.]+) AvailablePhysicalMB=(?<available>[0-9.]+) Actors=(?<actors>[0-9]+) ReplicatedActors=(?<replicated>[0-9]+) TerrainPatches=(?<patches>[0-9]+) PopulationKeys=(?<population>[0-9]+) SaveBytes=(?<save>[0-9]+) SaveSerialized=(?<serialized>[01]) LateJoinPlayers=(?<players>[0-9]+)\.')
         $networkProfileMatch = [regex]::Match($hostText, 'Ocean M8 peer connection profile: Peer=Client WindowSeconds=(?<window>[0-9.]+) InBytes=(?<inBytes>[0-9]+) OutBytes=(?<outBytes>[0-9]+) InPackets=(?<inPackets>[0-9]+) OutPackets=(?<outPackets>[0-9]+)')
-        $serverOutcomeIndex = $hostText.IndexOf('Ocean discovery-stop server passed:', [System.StringComparison]::Ordinal)
-        $profileIndex = $hostText.IndexOf('World profile:', [System.StringComparison]::Ordinal)
+        $serverOutcomeIndex = $hostText.IndexOf('Ocean discovery-stop server passed:')
+        $profileIndex = $hostText.IndexOf('World profile:')
         if ($profileMatch.Success -and $serverOutcomeIndex -ge 0 -and $profileIndex -lt $serverOutcomeIndex) {
             throw 'The M8 world profile was captured before the two-peer skiff scenario completed.'
         }
-        $networkProfileIndex = $hostText.IndexOf('Ocean M8 peer connection profile:', [System.StringComparison]::Ordinal)
+        $networkProfileIndex = $hostText.IndexOf('Ocean M8 peer connection profile:')
         if ($networkProfileMatch.Success -and $serverOutcomeIndex -ge 0 -and $networkProfileIndex -lt $serverOutcomeIndex) {
             throw 'The M8 peer connection profile was captured before the two-peer skiff scenario completed.'
         }

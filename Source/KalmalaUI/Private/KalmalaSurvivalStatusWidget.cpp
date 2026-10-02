@@ -8,7 +8,7 @@
 #include "Components/VerticalBoxSlot.h"
 #include "KalmalaExposureResponse.h"
 #include "KalmalaSettingsWidget.h"
-#include "Styling/CoreStyle.h"
+#include "KalmalaUITheme.h"
 
 namespace
 {
@@ -49,7 +49,7 @@ void UKalmalaSurvivalStatusWidget::NativeOnInitialized()
     SetIsFocusable(false);
 
     Background = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("SurvivalStatusBackground"));
-    Background->SetPadding(FMargin(12.0f, 9.0f));
+    Background->SetPadding(FKalmalaUITheme::Get().PanelPadding());
     ContentWidth = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("SurvivalStatusWidth"));
     ContentWidth->SetWidthOverride(StatusPanelContentWidth);
 
@@ -59,7 +59,7 @@ void UKalmalaSurvivalStatusWidget::NativeOnInitialized()
     StatusText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("SurvivalStatusRows"));
     StatusText->SetAutoWrapText(true);
     Content->AddChildToVerticalBox(HeadingText);
-    Content->AddChildToVerticalBox(StatusText)->SetPadding(FMargin(0.0f, 5.0f, 0.0f, 0.0f));
+    Content->AddChildToVerticalBox(StatusText)->SetPadding(FMargin(0.0f, FKalmalaUITheme::Get().RowSpacing, 0.0f, 0.0f));
     ContentWidth->SetContent(Content);
     Background->SetContent(ContentWidth);
     WidgetTree->RootWidget = Background;
@@ -246,14 +246,10 @@ void UKalmalaSurvivalStatusWidget::ApplyAccessibilityPresentation(const int32 Te
     const int32 BoundedContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode);
     if (LastTextScalePercent == BoundedTextScale && LastContrastMode == BoundedContrast) return;
 
-    const bool bHighContrast = BoundedContrast != 0;
-    Background->SetBrushColor(bHighContrast
-        ? FLinearColor(0.0f, 0.0f, 0.0f, 0.98f)
-        : FLinearColor(0.025f, 0.035f, 0.04f, 0.94f));
-    HeadingText->SetColorAndOpacity(FSlateColor(bHighContrast ? FLinearColor::White : FLinearColor(0.75f, 0.82f, 0.79f, 1.0f)));
-    StatusText->SetColorAndOpacity(FSlateColor(bHighContrast ? FLinearColor::White : FLinearColor(0.93f, 0.96f, 0.94f, 1.0f)));
-    HeadingText->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), FMath::RoundToInt(10.0f * BoundedTextScale / 100.0f)));
-    StatusText->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), FMath::RoundToInt(13.0f * BoundedTextScale / 100.0f)));
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    Theme.ApplyPanel(*Background, BoundedContrast);
+    Theme.ApplyText(*HeadingText, Theme.HeadingSize, true, BoundedTextScale, BoundedContrast);
+    Theme.ApplyText(*StatusText, Theme.BodySize, false, BoundedTextScale, BoundedContrast);
     LastTextScalePercent = BoundedTextScale;
     LastContrastMode = BoundedContrast;
 }

@@ -9,6 +9,7 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerState.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
@@ -21,6 +22,10 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
     if (!Character) return false;
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
     if (!Inventory) return false;
+    const bool bHasAuthenticatedIdentity = Character->GetPlayerState() != nullptr
+        && Character->GetPlayerState()->GetUniqueId().IsValid();
+    UE_LOG(LogTemp, Display, TEXT("Inventory persistence fixture: PlayerState=%d Authenticated=%d Tools=%d"),
+        Character->GetPlayerState() != nullptr, bHasAuthenticatedIdentity, Character->GetCarriedToolInventory().Num());
     auto* Save = NewObject<UKalmalaWorldPopulationSaveGame>();
     Save->InitializeForWorld(FKalmalaWorldGenerationConfig());
     bool bPassed = true;
@@ -102,6 +107,10 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
             Character, 0.0f, 250.0f, TEXT("FieldHatchet"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
         const bool bDuplicateRejected = !ToolNode->InteractWithToolIntentFromServer(
             Character, 0.0f, 250.0f, TEXT("FieldHatchet"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
+        UE_LOG(LogTemp, Display,
+            TEXT("Inventory persistence harvest detail: Accepted=%d DuplicateRejected=%d Harvested=%d Wood=%d Hatchet=%d"),
+            bAccepted, bDuplicateRejected, ToolNode->IsHarvested(), Inventory->GetQuantity(TEXT("Wood")),
+            Character->GetToolDurability(TEXT("FieldHatchet")));
         bPassed &= bAccepted && bDuplicateRejected && ToolNode->IsHarvested() && ToolHarvestEvents == 1
             && Inventory->GetQuantity(TEXT("Wood")) == FullWood && Character->GetToolDurability(TEXT("FieldHatchet")) == HatchetBefore - 1;
         if (Inventory->GetQuantity(TEXT("Wood")) > BeforeWood)
@@ -148,10 +157,12 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
     const int32 CraftingExperienceBefore = CraftingBefore ? CraftingBefore->Experience : -1;
     const auto* HatchetDefinition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("FieldHatchet"));
     RepairReason.Reset();
+    const bool bRepairRequestAccepted = Crafting->RepairToolFromServer(TEXT("FieldHatchet"), RepairReason);
     const bool bRepairAccepted = bPackCleared && HatchetDefinition && Inventory->GetStacks().IsEmpty()
-        && Crafting->RepairToolFromServer(TEXT("FieldHatchet"), RepairReason)
+        && bRepairRequestAccepted
         && Character->GetToolDurability(TEXT("FieldHatchet")) == HatchetDefinition->MaxDurability
         && Inventory->GetStacks().IsEmpty() && RepairReason.Contains(TEXT("at no cost"));
+    const FString AcceptedRepairReason = RepairReason;
     RepairReason.Reset();
     const bool bFullConditionRejected = !Crafting->RepairToolFromServer(TEXT("FieldHatchet"), RepairReason)
         && HatchetDefinition && Character->GetToolDurability(TEXT("FieldHatchet")) == HatchetDefinition->MaxDurability
@@ -165,7 +176,9 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
         && bRepairAccepted && bFullConditionRejected && bInventoryRestored && bNoCraftingExperience
         && Inventory->GetStacks().Num() == RepairBaselineStacks.Num()
         && Inventory->GetQuantity(TEXT("Wood")) == RepairBaselineWood;
-    UE_LOG(LogTemp, Display, TEXT("Tool free repair fixture: Passed=%d Workbench=1 NoCost=1 NoXP=1 FullCondition=1"), bRepairPassed);
+    UE_LOG(LogTemp, Display,
+        TEXT("Tool free repair fixture: Passed=%d Workbench=1 NoCost=1 NoXP=1 FullCondition=1 RequestAccepted=%d Reason=%s PackCleared=%d"),
+        bRepairPassed, bRepairRequestAccepted, *AcceptedRepairReason, bPackCleared);
     bPassed &= bRepairPassed;
 
     const TArray<FName> RetiredToolIds = {TEXT("FieldHatchet"), TEXT("StonePick"), TEXT("ReedKnife")};

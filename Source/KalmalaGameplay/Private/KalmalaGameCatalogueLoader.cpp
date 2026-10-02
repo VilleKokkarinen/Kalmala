@@ -34,7 +34,6 @@ namespace
         if (CatalogueItemId == TEXT("Cauldron")) return TEXT("CauldronKit");
         if (CatalogueItemId == TEXT("FryingPan")) return TEXT("FryingPanKit");
         if (CatalogueItemId == TEXT("SmokeFrame")) return TEXT("SmokeFrameKit");
-        if (CatalogueItemId == TEXT("DryingLine")) return TEXT("DryingLineKit");
         if (CatalogueItemId == TEXT("Floor")) return TEXT("FloorKit");
         if (CatalogueItemId == TEXT("Wall")) return TEXT("WallKit");
         if (CatalogueItemId == TEXT("Roof")) return TEXT("RoofKit");

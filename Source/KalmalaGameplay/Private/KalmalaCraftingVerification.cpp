@@ -24,24 +24,6 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
 #if !UE_BUILD_SHIPPING
     auto* C = GetCharacter(); if (!C || !C->GetPlayerState()) return;
     auto* I = C->FindComponentByClass<UKalmalaInventoryComponent>(); if (!I) return;
-    auto GetCookingExperience = [C]()
-    {
-        const auto* Progression = C->GetSkillProgressionComponent();
-        if (!Progression) return -1;
-        const auto* Cooking = Progression->GetDetailedProgression().FindByPredicate(
-            [](const FKalmalaSkillState& State) { return State.Skill == EKalmalaSkill::Cooking; });
-        return Cooking ? Cooking->Experience : -1;
-    };
-    auto CampInventoryUnchanged = [this, I]()
-    {
-        const TArray<FKalmalaInventoryStack>& Current = I->GetStacks();
-        if (Current.Num() != M9CampInventoryBeforeRejectedRequests.Num()) return false;
-        for (const FKalmalaInventoryStack& Before : M9CampInventoryBeforeRejectedRequests)
-        {
-            if (I->GetQuantity(Before.ItemId) != Before.Quantity) return false;
-        }
-        return true;
-    };
     VerificationElapsed += DeltaTime;
     if (C->HasAuthority() && VerificationStage == 0 && VerificationElapsed > 3)
     {
@@ -271,56 +253,6 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         }
         const bool Passed=Rejected && I->GetQuantity(TEXT("WorkbenchKit"))==2 && I->GetStacks().Num()==1;
         UE_LOG(LogTemp,Display,TEXT("Crafting owner final: Passed=%d Authority=%d WorkbenchKit=%d Slots=%d"),Passed,C->HasAuthority(),I->GetQuantity(TEXT("WorkbenchKit")),I->GetStacks().Num());
-        if (C->HasAuthority())
-        {
-            LocalVerificationStage = 10;
-        }
-        else
-        {
-            M9CampInventoryBeforeRejectedRequests = I->GetStacks();
-            M9CampCookingExperienceBeforeRejectedRequests = GetCookingExperience();
-            bM9CampRejectedRequestsPassed = M9CampCookingExperienceBeforeRejectedRequests >= 0;
-            M9CampResultSerialBeforeRequest = GetResultSerial();
-            ServerCraft(TEXT("DryingLine"), 4);
-            LocalVerificationStage = 7;
-            LocalVerificationElapsed = 0;
-        }
-    }
-    else if (LocalVerificationStage == 7 && LocalVerificationElapsed > 1)
-    {
-        const bool bRejectedInvalidBatch = GetResultSerial() != M9CampResultSerialBeforeRequest
-            && !WasLastResultAccepted() && GetLastResult().Contains(TEXT("Invalid batch quantity"));
-        bM9CampRejectedRequestsPassed &= bRejectedInvalidBatch && CampInventoryUnchanged()
-            && GetCookingExperience() == M9CampCookingExperienceBeforeRejectedRequests;
-        M9CampResultSerialBeforeRequest = GetResultSerial();
-        ServerCraft(TEXT("DryingLine"), 1);
-        LocalVerificationStage = 8;
-        LocalVerificationElapsed = 0;
-    }
-    else if (LocalVerificationStage == 8 && LocalVerificationElapsed > 1)
-    {
-        const FString& Result = GetLastResult();
-        const bool bRejectedMissingWorkbench = GetResultSerial() != M9CampResultSerialBeforeRequest
-            && !WasLastResultAccepted() && Result.Contains(TEXT("Need a visible same-world"))
-            && Result.Contains(TEXT("within 2.5 m"));
-        bM9CampRejectedRequestsPassed &= bRejectedMissingWorkbench && CampInventoryUnchanged()
-            && GetCookingExperience() == M9CampCookingExperienceBeforeRejectedRequests;
-        M9CampResultSerialBeforeRequest = GetResultSerial();
-        ServerCraft(TEXT("DryBoarMeat"), 1);
-        LocalVerificationStage = 9;
-        LocalVerificationElapsed = 0;
-    }
-    else if (LocalVerificationStage == 9 && LocalVerificationElapsed > 1)
-    {
-        const FString& Result = GetLastResult();
-        const bool bRejectedMissingDryingLine = GetResultSerial() != M9CampResultSerialBeforeRequest
-            && !WasLastResultAccepted() && Result.Contains(TEXT("Drying Line"))
-            && Result.Contains(TEXT("within 2.5 m"));
-        bM9CampRejectedRequestsPassed &= bRejectedMissingDryingLine && CampInventoryUnchanged()
-            && GetCookingExperience() == M9CampCookingExperienceBeforeRejectedRequests;
-        UE_LOG(LogTemp, Display,
-            TEXT("M9 camp rejected mutations: Passed=%d Authority=%d Inventory=unchanged CookingXP=unchanged"),
-            bM9CampRejectedRequestsPassed, C->HasAuthority());
         LocalVerificationStage = 10;
     }
 #endif

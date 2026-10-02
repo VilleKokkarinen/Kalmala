@@ -18,9 +18,9 @@ bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Cauldron uses the existing bounded construction record"), Save->AddRecord(Record));
     Record.ConstructionId = TEXT("camp-frying-pan"); Record.KitId = TEXT("FryingPanKit");
     TestTrue(TEXT("Placeable frying pan uses the existing bounded construction record"), Save->AddRecord(Record));
-    Record.ConstructionId = TEXT("session-drying-line"); Record.KitId = TEXT("DryingLineKit");
-    TestFalse(TEXT("M9 Drying Lines remain outside the existing save schema"), UKalmalaConstructionSaveGame::IsValidRecord(Record));
-    TestTrue(TEXT("Drying Line session policy is explicit"), FKalmalaPlacementPreview::IsSessionOnlyKit(TEXT("DryingLineKit")));
+    Record.ConstructionId = TEXT("session-attachment"); Record.KitId = TEXT("WorkbenchToolRackKit");
+    TestFalse(TEXT("M9 station attachments remain outside the existing save schema"), UKalmalaConstructionSaveGame::IsValidRecord(Record));
+    TestTrue(TEXT("Station attachment session policy is explicit"), FKalmalaPlacementPreview::IsSessionOnlyKit(TEXT("WorkbenchToolRackKit")));
     Record.ConstructionId = TEXT("camp-0001"); Record.KitId = TEXT("FloorKit");
     Record.Transform.SetLocation(FVector(NAN, 0, 0));
     TestFalse(TEXT("Construction save rejects non-finite transforms"), UKalmalaConstructionSaveGame::IsValidRecord(Record));
@@ -74,15 +74,13 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     Save->InitializeForWorld(World);
     const FKalmalaConstructionSaveRecord Floor = MakeRecord(TEXT("camp-floor-01"), TEXT("FloorKit"));
     const FKalmalaConstructionSaveRecord Rack = MakeRecord(TEXT("camp-rack-01"), TEXT("WorkbenchToolRackKit"));
-    const FKalmalaConstructionSaveRecord DryingLine = MakeRecord(TEXT("camp-drying-01"), TEXT("DryingLineKit"));
     TestTrue(TEXT("Schema 2 accepts an established camp record"), Save->AddRecord(Floor));
     TestTrue(TEXT("Schema 2 accepts a bounded station attachment"), Save->AddStationAttachmentRecord(Rack));
-    TestTrue(TEXT("Schema 2 accepts an approved Drying Line record"), Save->AddDryingLineRecord(DryingLine));
     TestFalse(TEXT("Schema 2 rejects a duplicate stable construction ID across record kinds"),
-        Save->AddDryingLineRecord(MakeRecord(TEXT("camp-rack-01"), TEXT("DryingLineKit"))));
-    TestFalse(TEXT("Schema 2 rejects unapproved session-only camp records"),
-        Save->AddDryingLineRecord(MakeRecord(TEXT("camp-unknown-01"), TEXT("SmokehouseKit"))));
-    TestEqual(TEXT("Rejected schema-2 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 3);
+        Save->AddStationAttachmentRecord(MakeRecord(TEXT("camp-floor-01"), TEXT("ForgeAnvilKit"))));
+    TestFalse(TEXT("Schema 2 rejects unsupported construction identities"),
+        Save->AddRecord(MakeRecord(TEXT("camp-unknown-01"), TEXT("UnknownConstructionKit"))));
+    TestEqual(TEXT("Rejected schema-2 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 2);
 
     TArray<uint8> CurrentBytes;
     TestTrue(TEXT("Schema 2 construction records serialize in memory"), Serialize(Save, CurrentBytes));
@@ -91,16 +89,11 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     if (TestNotNull(TEXT("Schema 2 construction records reload with their type"), Reloaded))
     {
         TestTrue(TEXT("Reloaded container carries exact world, revision, and world scope"), Reloaded->MatchesWorld(World));
-        TestEqual(TEXT("Existing, attachment, and Drying Line records round-trip together"), Reloaded->GetRecords().Num(), 3);
+        TestEqual(TEXT("Existing construction and attachment records round-trip together"), Reloaded->GetRecords().Num(), 2);
         TestTrue(TEXT("Reloaded container retains its station attachment"),
             Reloaded->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
             {
                 return Record.KitId == TEXT("WorkbenchToolRackKit");
-            }));
-        TestTrue(TEXT("Reloaded container retains its Drying Line"),
-            Reloaded->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
-            {
-                return Record.KitId == TEXT("DryingLineKit");
             }));
     }
 
@@ -123,11 +116,10 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
             {
                 return Record.ConstructionId == TEXT("camp-workbench-01") && Record.KitId == TEXT("WorkbenchKit");
             }));
-        TestFalse(TEXT("Absent attachments and Drying Lines start empty after migration"),
+        TestFalse(TEXT("Absent attachments start empty after migration"),
             Migrated->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
             {
-                return Record.KitId == TEXT("WorkbenchToolRackKit") || Record.KitId == TEXT("ForgeAnvilKit")
-                    || Record.KitId == TEXT("DryingLineKit");
+                return Record.KitId == TEXT("WorkbenchToolRackKit") || Record.KitId == TEXT("ForgeAnvilKit");
             }));
     }
     TArray<uint8> LegacyAfterMigration;
@@ -169,9 +161,9 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     const FKalmalaConstructionSaveRecord DuplicateLegacyRecord = DuplicateSource->Records[0];
     DuplicateSource->Records.Add(DuplicateLegacyRecord);
     RejectWithoutChangingSource(DuplicateSource, TEXT("Duplicate-ID"));
-    UKalmalaConstructionSaveGame* M9InLegacySource = DuplicateObject<UKalmalaConstructionSaveGame>(Legacy, GetTransientPackage());
-    M9InLegacySource->Records.Add(DryingLine);
-    RejectWithoutChangingSource(M9InLegacySource, TEXT("Unapproved-schema-one-record"));
+    UKalmalaConstructionSaveGame* UnsupportedInLegacySource = DuplicateObject<UKalmalaConstructionSaveGame>(Legacy, GetTransientPackage());
+    UnsupportedInLegacySource->Records.Add(MakeRecord(TEXT("camp-unknown-01"), TEXT("UnknownConstructionKit")));
+    RejectWithoutChangingSource(UnsupportedInLegacySource, TEXT("Unapproved-schema-one-record"));
     UKalmalaConstructionSaveGame* OverCapSource = DuplicateObject<UKalmalaConstructionSaveGame>(Legacy, GetTransientPackage());
     OverCapSource->Records.Reset();
     for (int32 Index = 0; Index <= UKalmalaConstructionSaveGame::MaxRecords; ++Index)
@@ -232,18 +224,6 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
         AttachmentCap->AddStationAttachmentRecord(MakeRecord(TEXT("attachment-over-cap"), TEXT("ForgeAnvilKit"))));
     TestEqual(TEXT("Rejected attachment does not change the candidate"),
         AttachmentCap->GetRecords().Num(), UKalmalaConstructionSaveGameV2::MaxStationAttachments);
-    UKalmalaConstructionSaveGameV2* DryingCap = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
-    DryingCap->InitializeForWorld(World);
-    for (int32 Index = 0; Index < UKalmalaConstructionSaveGameV2::MaxDryingLines; ++Index)
-    {
-        TestTrue(TEXT("Drying Line remains within its accepted cap"),
-            DryingCap->AddDryingLineRecord(MakeRecord(*FString::Printf(TEXT("drying-%02d"), Index), TEXT("DryingLineKit"))));
-    }
-    TestFalse(TEXT("Drying Line cap plus one is rejected"),
-        DryingCap->AddDryingLineRecord(MakeRecord(TEXT("drying-over-cap"), TEXT("DryingLineKit"))));
-    TestEqual(TEXT("Rejected Drying Line does not change the candidate"),
-        DryingCap->GetRecords().Num(), UKalmalaConstructionSaveGameV2::MaxDryingLines);
-
     return true;
 }
 #endif

@@ -156,3 +156,101 @@ see `docs/19-m8-ocean-travel-contract.md`. The fixture records
 `OriginShift=inactive`, and underway sustained/peak budgets remain unmeasured.
 Numeric performance targets have not been approved, so the recorded snapshots
 do not establish that the game meets a performance ceiling.
+
+## M10 one-machine diagnostic refresh — 2026-10-02
+
+These measurements refresh the existing development diagnostics on one
+Windows machine; they do not close M10's representative hardware/profile
+matrix. The offscreen D3D12 runs reported an NVIDIA GeForce RTX 5090 with
+32,607 MiB of video memory and driver 591.86. UnrealBuildTool reported 20
+physical and 28 logical cores and 31.76 GB physical memory. A follow-up local
+inventory identified the processor as an Intel Core i7-14700K. No low- or
+mid-tier device was available to this run.
+
+The forced UE 5.8.2 editor build in a disposable mirror was up to date. A
+Windows Development `BuildCookRun` build then compiled both editor and game
+targets, cooked all 521 packages, and archived with `-pak -iostore` in 87.07
+seconds. The archive contained 48 files and measured 925.69 MiB total: 851.14
+MiB under `Windows/Kalmala` and 74.55 MiB of engine runtime dependencies. Its
+longest absolute path was 145 characters. The fresh-profile null-renderer
+smoke reached `Game Engine Initialized` and loaded `L_Prototype` in 3.65
+seconds; the nested game process stayed alive for the required 20 seconds.
+This is a Development archive measurement, not the release package or a
+package-size ceiling.
+
+The current seed-418 two-peer world-profile run reported 101.24 ms initial
+generation, 1,759.27 MiB used and 18,385.62 MiB available physical memory,
+47 actors / 29 replicated actors, 9 active terrain patches, 1 active
+population key, and 2,215 serialized population-save bytes. The moored
+discovery/skiff fixture reported 103.54 ms initial generation, 56 actors / 38
+replicated actors, 9 patches, 2 population keys, and the same 2,215-byte
+population save. Its memory snapshot reported 2,542.62 MiB used and 16,593.34
+MiB available; host private bytes / working set were 3,008.58 / 2,542.70 MiB,
+and client values were 3,029.99 / 2,566.82 MiB. These are startup or fixture
+snapshots, not peak or long-session measurements.
+
+The 1.00-second server-side connection window in that fixture counted 2,404
+client-to-server bytes in 40 packets and 10,994 server-to-client bytes in 52
+packets. This is a single moored-state traffic sample, not a bandwidth target.
+Two valid 300-frame captures at 1280×720, with VSync disabled after the
+scenario reached its accepted moored state, produced these p50/p95 ranges in
+milliseconds:
+
+| Metric | Listen host p50 / p95 | Remote client p50 / p95 |
+| --- | ---: | ---: |
+| Total frame | 2.44–3.36 / 4.43–5.48 | 3.62–3.90 / 5.53–5.68 |
+| Game thread | 2.15–2.84 / 4.19–4.51 | 2.94–3.05 / 4.94–5.04 |
+| Render thread | 2.48–3.37 / 3.83–5.30 | 3.65–3.86 / 5.32–5.39 |
+| GPU | 0.97–1.14 / 1.25–1.42 | 1.15–1.22 / 1.42–1.59 |
+
+The maximum total-frame sample ranged from 106.26–126.12 ms on the host and
+116.90–138.85 ms on the client; these short captures include setup hitches.
+The map worker profile at 1280×720 recorded host/client open times of 327.135
+/ 62.658 ms, worker totals of 20.001 / 27.895 ms, worker maxima of 10.171 /
+15.380 ms, and 33,800 cached CPU bytes on each peer. That sample had two ready
+tiles. `Kalmala.UI.Minimap.GenerationPerformance` passed with mean refreshes
+of 44.304, 58.459, and 101.790 ms for 2.5, 5, and 10 km raster radii.
+
+The focused `Kalmala.World.OceanTravel.PersistenceContract` and
+`Kalmala.World.M7.PersistenceContract` automations passed again. The former
+rechecks the existing 3,072-byte record caps and 9,216-byte maximum-valid
+two-player total; the two-peer world profile separately confirmed a 2,215-byte
+population save.
+
+The frame-profile runner's two-argument `String.IndexOf` overload failed in
+its Windows PowerShell 5.1 and PowerShell 7.6 invocations before it could
+report the peer results. Its three literal marker searches now use the
+single-string overload; the same complete live host/client scenario then
+passed and captured both 300-frame CSVs. This is a profiling-harness fix only;
+gameplay, network authority, replication, and save contracts are unchanged.
+
+The M10 performance closeout remains open. The repository has no accepted
+numeric ceiling for frame time, actor count, memory, replication traffic, or
+archive size, and no representative low/mid/high hardware matrix is recorded.
+The measurements above cover one high-end GPU, one seed, and a short moored
+profile; they do not establish sustained travel, long-session growth, peak
+resource use, or target-hardware compliance. Closeout needs an approved
+hardware/profile matrix and acceptance limits, then measurements on those
+targets. The M10 backlog item remains unchecked until that matrix passes.
+
+## Constrained CPU diagnostics — 2026-10-02
+
+The product owner's follow-up requested simulated lower-resource profiles.
+[`34-m10-constrained-performance.md`](34-m10-constrained-performance.md)
+documents the new reference/8-thread/4-thread matrix and its measured evidence.
+The runner uses Unreal's explicit process affinity and monitors both actual
+peers, with identical rendered workload across profiles. It also tolerates
+duplicate unrelated GPU-stat CSV headers while rejecting ambiguous measured
+metrics. These simulations provide CPU-contention evidence on the same
+i7-14700K / RTX 5090; GPU, physical RAM/VRAM and storage remain unchanged.
+The representative-hardware and approved-numerical-budget blocker remains.
+
+### Product-owner closeout — 2026-10-02
+
+Following verification of Potato/Low/Med/High/Ultra, the owner explicitly
+directed marking the performance backlog task done. This supersedes the pending
+closeout/blocker statements above. Completion accepts the available one-machine
+and simulated-profile evidence with its documented limitations; physical
+low/mid-tier coverage, approved numerical ceilings, and extended/packaged
+measurements remain deferred. No additional measurements or numerical-budget
+compliance are implied. See `34-m10-constrained-performance.md`.

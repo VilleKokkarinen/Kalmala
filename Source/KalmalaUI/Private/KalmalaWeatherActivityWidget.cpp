@@ -5,7 +5,7 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
-#include "Styling/CoreStyle.h"
+#include "KalmalaUITheme.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaWeatherState.h"
 
@@ -15,7 +15,7 @@ void UKalmalaWeatherActivityWidget::NativeOnInitialized()
     SetIsFocusable(false);
 
     Background = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("WeatherActivityBackground"));
-    Background->SetPadding(FMargin(10.0f, 7.0f));
+    Background->SetPadding(FKalmalaUITheme::Get().PanelPadding());
 
     UVerticalBox* Content = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("WeatherActivityContent"));
     HeadingText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("WeatherActivityHeading"));
@@ -70,18 +70,10 @@ void UKalmalaWeatherActivityWidget::ApplyAccessibilityPresentation(const int32 T
     const int32 BoundedContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode);
     if (LastTextScalePercent == BoundedTextScale && LastContrastMode == BoundedContrast) return;
 
-    const bool bHighContrast = BoundedContrast != 0;
-    Background->SetBrushColor(bHighContrast
-        ? FLinearColor(0.0f, 0.0f, 0.0f, 0.98f)
-        : FLinearColor(0.025f, 0.035f, 0.04f, 0.94f));
-    HeadingText->SetColorAndOpacity(FSlateColor(bHighContrast
-        ? FLinearColor::White
-        : FLinearColor(0.75f, 0.82f, 0.79f, 1.0f)));
-    ActivityText->SetColorAndOpacity(FSlateColor(bHighContrast
-        ? FLinearColor::White
-        : FLinearColor(0.93f, 0.96f, 0.94f, 1.0f)));
-    HeadingText->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), FMath::RoundToInt(10.0f * BoundedTextScale / 100.0f)));
-    ActivityText->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), FMath::RoundToInt(17.0f * BoundedTextScale / 100.0f)));
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    Theme.ApplyPanel(*Background, BoundedContrast);
+    Theme.ApplyText(*HeadingText, Theme.HeadingSize, true, BoundedTextScale, BoundedContrast);
+    Theme.ApplyText(*ActivityText, Theme.EmphasisSize, false, BoundedTextScale, BoundedContrast);
     LastTextScalePercent = BoundedTextScale;
     LastContrastMode = BoundedContrast;
 }

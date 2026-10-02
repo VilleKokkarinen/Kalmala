@@ -42,17 +42,10 @@ try {
             -and $serverText.Contains('M9 tool feedback: Passed=1') `
             -and $clientText.Contains('M9 tool feedback: Passed=1') `
             -and $serverText.Contains('M9 camp feedback: Passed=1') `
-            -and $clientText.Contains('M9 camp feedback: Passed=1') `
-            -and $clientText.Contains('M9 camp rejected mutations: Passed=1 Authority=0 Inventory=unchanged CookingXP=unchanged')
+            -and $clientText.Contains('M9 camp feedback: Passed=1')
         $ready = $ready -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Forged Batch=1 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Workbench Batch=2147483647 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting placement RPC: Accepted=0').Count -eq 2
-        foreach ($campRejection in @(
-            'Crafting RPC: Recipe=DryingLine Batch=4 Accepted=0',
-            'Crafting RPC: Recipe=DryingLine Batch=1 Accepted=0',
-            'Crafting RPC: Recipe=DryBoarMeat Batch=1 Accepted=0')) {
-            $ready = $ready -and [regex]::Matches($serverText, [regex]::Escape($campRejection)).Count -eq 1
-        }
         foreach ($statePattern in @('Fuel=60 Lit=1 Wet=0 Warmth=1 State=1', 'Fuel=48 Lit=0 Wet=(?:9[6-9]|100) Warmth=0 State=2')) {
             $serverNames = [regex]::Matches($serverText, ('Crafting fire server: Name=(\S+) ' + $statePattern)) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
             $clientNames = [regex]::Matches($clientText, ('Crafting fire client: Name=(\S+) ' + $statePattern)) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique

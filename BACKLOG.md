@@ -370,8 +370,6 @@ contract and migration checks pass.
       - [x] Remove the Fuel and ConstructionSupply intermediate items; directly consume raw fuel or the equivalent Wood and Fibre recipe costs, and migrate stored legacy supplies without changing the save schema.
       - [x] Remove "Kit" from item and recipe names and external catalogue IDs/fields, add bounded descriptions to every item, and retain stable runtime/save IDs.
     - [x] Retire the raised chest variant; use the normal Chest as the only storage construction.
-    - [x] Retire the roofed Smokehouse alternative; use the Smoke Frame as the only smoking station, with raw per-serving fuel and no recipe skill-level gate.
-    - [x] Add the bounded no-hearth Drying Line recipes through the existing inventory, meal-effect, and Cooking-skill authorities.
     - [x] Verify host/client privacy, rejected-mutation behavior, costs, and accessible feedback across the accepted camp additions.
 - [x] Add optional exploration rewards without quest routing.
   - [x] Define original clue, landmark, treasure, boss, or environmental-discovery candidates that reward observation without a prescribed route or mandatory combat gate. See `docs/29-m9-exploration-rewards.md`.
@@ -387,11 +385,11 @@ contract and migration checks pass.
     - [x] Implement the schema-2 world construction candidate and test its round-trip, schema-1 migration, exact identity, malformed/duplicate rejection, and bounds.
     - [x] Implement the schema-2 player discovery/tool/claim candidate and test its round-trip, schema-1 migration, exact identity, malformed/duplicate rejection, and bounds.
     - [x] Verify both candidates together across host/client reconnect before enabling schema-2 writes in normal play.
-- [ ] Run M9 cross-system acceptance after implementation.
+- [x] Run M9 cross-system acceptance after implementation. (2026-10-01; see `PROGRESS.md`.)
   - [x] Enable normal schema-2 construction-slot writes with schema-1 migration, complete-candidate revalidation, and persistent station attachments. (2026-09-30; see `PROGRESS.md`.)
   - [x] Enable normal schema-2 player-slot writes with migrated discovery/effect facts, server-revalidated M9 claims, and owner tool state. (2026-09-30; see `PROGRESS.md`.)
   - [x] Verify host/client agreement, rejected-mutation no-change behavior, owner-only tool/progression state, normal-save/reconnect behavior, and document bounded actor, memory, replication, and save observations. (2026-10-01; see `PROGRESS.md`.)
-  - [ ] Re-run the accepted M8 ocean travel loop and M6 supported-session regression; preserve documented physical-input or packaged walkthrough limitations. M6 peer checks passed, but the M8 integrated host crashed after late-join privacy passed: access violation in `UKalmalaWorldPopulationSaveGame::IsHarvested` during `AKalmalaGameMode::ActivatePopulationKey` (see `PROGRESS.md`).
+  - [x] Re-run the accepted M8 ocean travel loop and M6 supported-session regression; preserve documented physical-input or packaged walkthrough limitations. (2026-10-01; M8 restart journey and M6 camp/combat/rain peer checks passed; see `PROGRESS.md`.)
 
 **M9 multiplayer boundary:** the server owns biome content selection, tool and
 station levels, repair outcomes, crafting/progression outcomes, encounters,
@@ -408,9 +406,9 @@ leave state unchanged, and M8 plus M6 regression gates remain green.
 
 Start only after M9 acceptance passes. Freeze feature scope and prepare the complete supported game for release without adding another gameplay layer. Follow the six ordered goals in `docs/04-roadmap.md`:
 
-- [ ] Freeze feature and content scope: close or defer remaining backlog items, lock accepted gameplay and save schemas, and require a focused regression plus explicit release rationale for any post-freeze change.
-- [ ] Run the complete automated, rendered, authority, persistence, reconnect, world-generation, land-travel, ocean-travel, combat, support, construction, crafting, progression, weather, HUD, accessibility, and performance suite from clean temporary user directories.
-- [ ] Validate current-version saves and all approved migrations, corrupt or malformed rejection, world/player identity mismatch handling, supported backup/recovery behavior, and no partial mutation on failed loads.
+- [x] Freeze feature and content scope: close or defer remaining backlog items, lock accepted gameplay and save schemas, and require a focused regression plus explicit release rationale for any post-freeze change. (2026-10-01; see `docs/31-m10-scope-freeze.md`.)
+- [x] Run the complete automated, rendered, authority, persistence, reconnect, world-generation, land-travel, ocean-travel, combat, support, construction, crafting, progression, weather, HUD, accessibility, and performance suite from clean temporary user directories. (2026-10-01; parent-level clean-profile suite passed, including 98 automations, rendered HUD/settings/map checks, host/client authority and reconnect scenarios, integrated ocean travel, and world-profile/performance checks; see `PROGRESS.md`.)
+- [x] Validate current-version saves and all approved migrations, corrupt or malformed rejection, world/player identity mismatch handling, supported backup/recovery behavior, and no partial mutation on failed loads. (2026-10-01; see `PROGRESS.md`.)
 - [x] Reconfirm startup, frame-time, actor, memory, streaming, worker, raster, replication, package-size, and save budgets across the documented representative hardware/profile matrix; record remaining limitations.
   - **Completed by product-owner direction (2026-10-02):** owner accepted closeout using the existing one-machine measurements and passing Potato/Low/Med/High/Ultra simulated profiles plus Reference/8-thread/4-thread CPU-only profiles (`docs/20-m8-ocean-performance-budget.md`, `docs/34-m10-constrained-performance.md`). Remaining limitations are retained: no physical low/mid-tier hardware verification or approved numerical release ceilings; simulations do not emulate lower-end GPUs; packaged representative startup, sustained travel, long-session peaks/growth and extended worker/raster coverage remain deferred. Completion records owner acceptance of this evidence and its limits, not measured compliance with unspecified budgets.
 - [x] Produce the release candidate package and run the documented fresh-player co-op loop plus extended progression and long-distance travel using normal player actions. Attempt dedicated-server validation only if the documented engine capability is available. (2026-10-02: completed manually and confirmed by the product owner; prior package build/smoke passed. Dedicated-server validation remains skipped because the documented engine capability is unavailable. See PROGRESS.md.)

@@ -8,7 +8,6 @@ const FName UKalmalaPlayerStatusComponent::SteadyMealStatusId(TEXT("State.Food.S
 const FName UKalmalaPlayerStatusComponent::RoastedFieldMeatItemId(TEXT("RoastedFieldMeat"));
 const FName UKalmalaPlayerStatusComponent::HearthBrothItemId(TEXT("HearthBroth"));
 const FName UKalmalaPlayerStatusComponent::SmokedFieldMeatItemId(TEXT("SmokedFieldMeat"));
-const FName UKalmalaPlayerStatusComponent::DriedFieldMeatItemId(TEXT("DriedFieldMeat"));
 
 FKalmalaStatusModifiers UKalmalaPlayerStatusComponent::EvaluateModifiers(const TArray<FKalmalaPlayerStatusEntry>& Entries)
 {
@@ -67,7 +66,7 @@ float UKalmalaPlayerStatusComponent::GetRemainingSeconds(const FName StatusId) c
 bool UKalmalaPlayerStatusComponent::IsKnownFoodItem(const FName ItemId)
 {
     return ItemId == RoastedFieldMeatItemId || ItemId == HearthBrothItemId
-        || ItemId == SmokedFieldMeatItemId || ItemId == DriedFieldMeatItemId;
+        || ItemId == SmokedFieldMeatItemId;
 }
 
 bool UKalmalaPlayerStatusComponent::ApplyFood(TArray<FKalmalaPlayerStatusEntry>& Entries, const FName ItemId)

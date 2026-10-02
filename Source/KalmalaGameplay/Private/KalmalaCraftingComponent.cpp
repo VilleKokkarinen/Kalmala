@@ -441,24 +441,6 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
             BuildableId, NearbyStation ? NearbyStation->GetConstructionKit() : NAME_None,
             StationDistance, true, bAlreadyUpgraded, Reason)) return false;
     }
-    if (BuildableId == TEXT("DryingLineKit"))
-    {
-        int32 ActiveDryingLines = 0;
-        for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It)
-        {
-            const AKalmalaConstructionActor* Existing = *It;
-            if (IsValid(Existing) && Existing->GetWorld() == GetWorld()
-                && Existing->GetConstructionKit() == TEXT("DryingLineKit")
-                && !Existing->GetConstructionId().IsEmpty())
-            {
-                ++ActiveDryingLines;
-            }
-        }
-        Reason = FString::Printf(TEXT("Session Drying Line limit reached (%d)"),
-            AKalmalaConstructionActor::MaxSessionDryingLines);
-        if (ActiveDryingLines >= AKalmalaConstructionActor::MaxSessionDryingLines) return false;
-    }
-
     const FRotator Rotation(0.0f, Character->GetActorRotation().Yaw, 0.0f);
     if (Rotation.ContainsNaN()) { Reason = TEXT("Invalid placement rotation"); return false; }
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
@@ -502,8 +484,6 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
         ? TEXT("Built directly from Wood and Fibre with the construction hammer")
         : bStationAttachment
         ? TEXT("Placed the paid station attachment; its level bonus is saved for this world")
-        : BuildableId == TEXT("DryingLineKit")
-        ? TEXT("Placed the Drying Line; it lasts for this server session")
         : TEXT("Placed construction; server accepted the buildable and ground");
     return true;
 }
@@ -808,10 +788,6 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     if (!R->RequiredTool.IsNone())
         Text += FString::Printf(TEXT("\nTool: carry a %s in your pack; it is reusable and not consumed."),
             *GetRecipeToolDisplayName(R->RequiredTool));
-    if (R->Output == TEXT("DryingLineKit"))
-        Text += TEXT("\nPlacement: server-authoritative and limited to five lines per session; the line is not saved until M9 migration is approved.");
-    if (R->Output == TEXT("DriedFieldMeat"))
-        Text += TEXT("\nProcessing: no hearth or raw fuel is required.");
     if (FKalmalaToolProgressionContract::IsStationAttachmentKit(R->Output))
     {
         const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(R->Output);
@@ -843,15 +819,14 @@ FString UKalmalaCraftingComponent::GetFoodText() const
     const int32 RoastCount = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::RoastedFieldMeatItemId) : 0;
     const int32 BrothCount = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::HearthBrothItemId) : 0;
     const int32 SmokedCount = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::SmokedFieldMeatItemId) : 0;
-    const int32 DriedCount = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::DriedFieldMeatItemId) : 0;
     const float Remaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId) : 0.0f;
     if (Remaining > 0.0f)
     {
-        return FString::Printf(TEXT("Steady meal: %.0f seconds remaining; stamina use is 10%% lower. Wait for expiry; food effects cannot stack or replace this meal.\nAvailable: Roasted field meat %d; Hearth broth %d; Smoked field meat %d; Dried field meat %d."),
-            Remaining, RoastCount, BrothCount, SmokedCount, DriedCount);
+        return FString::Printf(TEXT("Steady meal: %.0f seconds remaining; stamina use is 10%% lower. Wait for expiry; food effects cannot stack or replace this meal.\nAvailable: Roasted field meat %d; Hearth broth %d; Smoked field meat %d."),
+            Remaining, RoastCount, BrothCount, SmokedCount);
     }
-    return FString::Printf(TEXT("Roasted field meat: %d available. Hearth broth: %d available. Smoked field meat: %d available. Dried field meat: %d available. Food is optional. Eat one for 120 seconds of 10%% lower stamina use; only one meal can be active."),
-        RoastCount, BrothCount, SmokedCount, DriedCount);
+    return FString::Printf(TEXT("Roasted field meat: %d available. Hearth broth: %d available. Smoked field meat: %d available. Food is optional. Eat one for 120 seconds of 10%% lower stamina use; only one meal can be active."),
+        RoastCount, BrothCount, SmokedCount);
 }
 
 FString UKalmalaCraftingComponent::GetNearbyFireText() const

@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaCharacter.h"
+#include "KalmalaGameMode.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaM9SourceLootContract.h"
@@ -8,9 +9,13 @@
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPopulationLayout.h"
+#include "Engine/Engine.h"
+#include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "GameFramework/PlayerState.h"
+#include "GameFramework/WorldSettings.h"
 #include "Misc/AutomationTest.h"
-#include "UObject/UnrealType.h"
+#include "OnlineSubsystemTypes.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FKalmalaM9SourceAcceptanceTest,
@@ -24,20 +29,30 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         FName SourceId;
         FName ItemId;
         FName ToolId;
+        int32 ToolLevel;
         EKalmalaToolAction Action;
     };
 
     const FSourceCase Sources[] =
     {
-        { TEXT("meadows-birch-trunk"), TEXT("Lightwood"), TEXT("BronzeAxe"), EKalmalaToolAction::Woodcutting },
-        { TEXT("elderwood-ironheart-trunk"), TEXT("Densewood"), TEXT("IronAxe"), EKalmalaToolAction::Woodcutting },
-        { TEXT("mire-peat-amber-seam"), TEXT("PeatAmber"), TEXT("StonePick"), EKalmalaToolAction::Mining },
-        { TEXT("tundra-frost-salt-deposit"), TEXT("FrostSalt"), TEXT("StonePick"), EKalmalaToolAction::Mining },
+        { TEXT("meadows-birch-trunk"), TEXT("Lightwood"), TEXT("BronzeAxe"), 1, EKalmalaToolAction::Woodcutting },
+        { TEXT("elderwood-ironheart-trunk"), TEXT("Densewood"), TEXT("IronAxe"), 2, EKalmalaToolAction::Woodcutting },
+        { TEXT("mire-peat-amber-seam"), TEXT("PeatAmber"), TEXT("StonePick"), 1, EKalmalaToolAction::Mining },
+        { TEXT("tundra-frost-salt-deposit"), TEXT("FrostSalt"), TEXT("StonePick"), 1, EKalmalaToolAction::Mining },
     };
 
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("M9 harvest acceptance world created"), World)) return false;
     World->SetGameState(World->SpawnActor<AKalmalaWorldGenerationGameState>());
+    World->SetGameInstance(NewObject<UGameInstance>(GEngine));
+    World->GetWorldSettings()->DefaultGameMode = AKalmalaGameMode::StaticClass();
+    if (!TestTrue(TEXT("M9 harvest fixture creates its authoritative game mode"), World->SetGameMode(FURL())))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    World->InitializeActorsForPlay(FURL());
+    World->BeginPlay();
     const AKalmalaWorldGenerationGameState* WorldState = World->GetGameState<AKalmalaWorldGenerationGameState>();
     if (!TestNotNull(TEXT("M9 fixture has a server world identity"), WorldState))
     {
@@ -59,12 +74,23 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         return false;
     }
 
-    const auto SetServerToolCondition = [this](AKalmalaCharacter* Pawn, const FName ToolId, const int32 Condition)
+    const auto SetServerToolState = [this](AKalmalaCharacter* Pawn, const FName ToolId,
+        const int32 Condition, const int32 ToolLevel)
     {
-        const FName PropertyName(*FString::Printf(TEXT("%sDurability"), *ToolId.ToString()));
-        FIntProperty* Property = FindFProperty<FIntProperty>(Pawn->GetClass(), PropertyName);
-        if (!TestNotNull(TEXT("Fixture can set owner tool condition"), Property)) return false;
-        Property->SetPropertyValue_InContainer(Pawn, Condition);
+        TArray<FKalmalaToolState>& CarriedTools =
+            const_cast<TArray<FKalmalaToolState>&>(Pawn->GetCarriedToolInventory());
+        FKalmalaToolState* ToolState = CarriedTools.FindByPredicate([ToolId](const FKalmalaToolState& Candidate)
+        {
+            return Candidate.ToolId == ToolId;
+        });
+        if (ToolState == nullptr)
+        {
+            if (CarriedTools.Num() >= FKalmalaToolLifecycleContract::MaxCarriedToolRecords) return false;
+            ToolState = &CarriedTools.AddDefaulted_GetRef();
+            ToolState->ToolId = ToolId;
+        }
+        ToolState->ToolLevel = ToolLevel;
+        ToolState->Durability = Condition;
         return true;
     };
 
@@ -82,13 +108,25 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             continue;
         }
 
-        if (Pawn->GetSkillProgressionComponent()) Pawn->GetSkillProgressionComponent()->BeginPlay();
-        if (!SetServerToolCondition(Pawn, Source.ToolId,
-            FKalmalaToolLifecycleContract::FindDefinition(Source.ToolId)->MaxDurability))
+        APlayerState* PlayerState = World->SpawnActor<APlayerState>();
+        if (!TestNotNull(TEXT("M9 harvest fixture has an authenticated player state"), PlayerState))
         {
             bAllFixturesValid = false;
             continue;
         }
+        const FUniqueNetIdStringRef TestNetId = FUniqueNetIdString::Create(
+            FString::Printf(TEXT("m9-source-acceptance-%d"), Index), FName(TEXT("KalmalaM9SourceAcceptanceTest")));
+        PlayerState->SetUniqueId(FUniqueNetIdRepl(*TestNetId));
+        Pawn->SetPlayerState(PlayerState);
+
+        if (!SetServerToolState(Pawn, Source.ToolId,
+            FKalmalaToolLifecycleContract::FindDefinition(Source.ToolId)->MaxDurability, Source.ToolLevel))
+        {
+            bAllFixturesValid = false;
+            continue;
+        }
+        TestEqual(TEXT("Fixture carries the source-required server tool tier"),
+            Pawn->GetCarriedToolLevel(Source.ToolId), Source.ToolLevel);
 
         FKalmalaWorldPopulationSpawn Spawn;
         Spawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;

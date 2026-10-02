@@ -41,15 +41,6 @@ namespace
         return Count;
     }
 
-    int32 CountDryingLineRecords(const TArray<FKalmalaConstructionSaveRecord>& Records)
-    {
-        int32 Count = 0;
-        for (const FKalmalaConstructionSaveRecord& Record : Records)
-        {
-            Count += Record.KitId == TEXT("DryingLineKit") ? 1 : 0;
-        }
-        return Count;
-    }
 }
 
 void UKalmalaConstructionSaveGame::InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorld)
@@ -78,8 +69,7 @@ bool UKalmalaConstructionSaveGameV2::IsValidRecord(const FKalmalaConstructionSav
         || !IsValidConstructionTransform(Record.Transform)) return false;
 
     if (!FKalmalaPlacementPreview::IsSessionOnlyKit(Record.KitId)) return true;
-    return FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId)
-        || Record.KitId == TEXT("DryingLineKit");
+    return FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId);
 }
 
 bool UKalmalaConstructionSaveGameV2::TryMigrateSchema1(
@@ -123,21 +113,6 @@ bool UKalmalaConstructionSaveGameV2::AddStationAttachmentRecord(const FKalmalaCo
         || !FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId)
         || Records.Num() >= MaxRecords
         || CountStationAttachmentRecords(Records) >= MaxStationAttachments
-        || Records.ContainsByPredicate([&Record](const FKalmalaConstructionSaveRecord& Existing)
-        {
-            return Existing.ConstructionId == Record.ConstructionId;
-        })) return false;
-
-    Records.Add(Record);
-    return true;
-}
-
-bool UKalmalaConstructionSaveGameV2::AddDryingLineRecord(const FKalmalaConstructionSaveRecord& Record)
-{
-    if (!MatchesWorld(WorldConfig) || !IsValidRecord(Record)
-        || Record.KitId != TEXT("DryingLineKit")
-        || Records.Num() >= MaxRecords
-        || CountDryingLineRecords(Records) >= MaxDryingLines
         || Records.ContainsByPredicate([&Record](const FKalmalaConstructionSaveRecord& Existing)
         {
             return Existing.ConstructionId == Record.ConstructionId;
@@ -201,14 +176,12 @@ bool UKalmalaConstructionSaveGameV2::MatchesWorld(const FKalmalaWorldGenerationC
         || Records.Num() > MaxRecords || !HasUniqueConstructionIds(Records)) return false;
 
     int32 AttachmentCount = 0;
-    int32 DryingLineCount = 0;
     for (const FKalmalaConstructionSaveRecord& Record : Records)
     {
         if (!IsValidRecord(Record)) return false;
         AttachmentCount += FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId) ? 1 : 0;
-        DryingLineCount += Record.KitId == TEXT("DryingLineKit") ? 1 : 0;
     }
-    return AttachmentCount <= MaxStationAttachments && DryingLineCount <= MaxDryingLines;
+    return AttachmentCount <= MaxStationAttachments;
 }
 
 bool UKalmalaConstructionSaveGameV2::AddRecord(const FKalmalaConstructionSaveRecord& Record)

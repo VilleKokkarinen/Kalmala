@@ -354,13 +354,13 @@ M9 has five ordered goals:
      - Add a Grinding Stone as a buildable camp utility. Its in-world `Repair All` action repairs every eligible damaged tool in the server-owned carried-tool list after a same-world range check, without accepting a client-supplied tool list or condition value.
      - Play a short, tool-appropriate sharpening animation during the Grinding Stone action, such as sharpening the carried axe or sword. The animation is presentation only; the server owns acceptance and resulting condition.
      - This free-repair rule supersedes M7's material-paid repair path and zero-condition replacement recipes. Broken tools use the same free repair action; material costs remain for tool-level upgrades and workstation attachments.
-   - **Other optional camp and equipment examples:** a raised weatherproof chest, a covered smokehouse using existing hearth heat checks, a storm-rated shelter piece, an insulated travel wrap, or a drying line for supplies. Extend their existing server-owned storage, processing, construction, status, and inventory paths.
+   - **Other optional camp and equipment examples:** a storm-rated shelter piece or an insulated travel wrap. Extend existing server-owned construction, status, and inventory paths.
    - Show tool level, skill requirement, matching station level, material cost for upgrades, repair availability, and rejection reasons in readable text as well as colour or icons. Keep upgrades optional and recoverable, and award progression only after an accepted server transaction.
    - Keep detailed tool and skill state owner-scoped. Do not persist new tool levels or workstation attachment progression until the M9 persistence goal defines and verifies the versioned migration contract; extend existing tool-condition and construction authority rather than adding parallel subsystems.
 
 3. **Exploration rewards without quest routing.** Add optional clue, landmark, treasure, boss, or environmental-discovery structures that reward observation and travel without turning the world into a prescribed quest chain. The first two land-discovery candidates and their reward boundaries are defined in `29-m9-exploration-rewards.md`; server placement and claim behavior are implemented, with durable claims still gated by the M9 persistence contract.
 
-4. **Persistence schema expansion.** Version and migrate any newly persistent progression, creature, discovery, storage, equipment, or encounter state before enabling it in normal saves. Preserve exact identity/world matching and bounded sparse records. The accepted M9 tool, station, land-discovery, and Drying Line migration boundary is defined in `docs/30-m9-persistence-migration.md`; schema-2 writes remain gated on its round-trip and rejection coverage.
+4. **Persistence schema expansion.** Version and migrate any newly persistent progression, creature, discovery, storage, equipment, or encounter state before enabling it in normal saves. Preserve exact identity/world matching and bounded sparse records. The accepted M9 tool, station, land-discovery migration boundary is defined in `docs/30-m9-persistence-migration.md`; schema-2 writes remain gated on its round-trip and rejection coverage.
 
 5. **Cross-system regression.** Verify the second content wave against land/ocean travel, weather, survival HUD, crafting, combat, support effects, construction, reconnect, persistence, and the retained supported-session loop.
 
@@ -376,7 +376,7 @@ Start only after M9 acceptance passes. Freeze feature scope and turn the complet
 
 M10 has six ordered goals:
 
-1. **Feature and content freeze.** Close or defer remaining backlog items, lock accepted gameplay and save schemas, and require any post-freeze change to include a focused regression and explicit release rationale.
+1. **Feature and content freeze.** Close or defer remaining backlog items, lock accepted gameplay and save schemas, and require any post-freeze change to include a focused regression and explicit release rationale. The accepted baseline and change rule are recorded in `docs/31-m10-scope-freeze.md`.
 
 2. **Full clean-profile validation.** Run the complete automated, rendered, authority, persistence, reconnect, world-generation, land-travel, ocean-travel, combat, support, construction, crafting, progression, weather, HUD, accessibility, and performance suite from clean temporary user directories.
 
