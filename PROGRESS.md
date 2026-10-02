@@ -10044,3 +10044,25 @@ Known limitations: No additional manual-session logs, screenshots, timings, or p
 Handoff: Main checkout used; no worktree synchronization. Stage and commit only this run's checkbox/completion annotation and handoff, preserving earlier uncommitted edits.
 
 Next task: Archive build metadata, test results, logs, screenshots, migration notes, accessibility checks, known limitations, and reproducible release steps.
+
+### Run 2026-10-02T09:26:29Z — M10 release evidence archived
+
+Outcome: Completed the final M10 top-level release-evidence goal and checked only that backlog task. The archive is documented at docs/release-evidence/2026-10-02/README.md; the evidence bundle SHA-256 is 5440F663F6CC51C00BC5E66A9231FDFE8F369875143C27E53E5DD656E7BE6F66.
+
+Files changed during this run: new docs/release-evidence/2026-10-02/README.md and M10-evidence.zip; the selected M10 checkbox in BACKLOG.md; this handoff. All pre-existing changes were preserved.
+
+Verification: Parent-level archive verification opened the zip and validated 55 per-file size/SHA-256 entries across 56 entries; all 48 package-file hashes matched the local package output. No save files or Saved directories are present. The longest tested extraction path is 104 characters. git diff --check passed. No new build or gameplay tests were run; the archive retains the passing UE 5.8.2 BuildCookRun and smoke logs, the 98/98 automation log, migration/reconnect logs, accessibility captures, world-map captures, and performance/reference documents.
+
+Verification level: Parent-level archival task; zip contents, evidence checksums, package fingerprints, and Windows path lengths were checked.
+
+Observable impact: Build metadata, test logs, screenshots, migration/accessibility references, known limits, and the rebuild procedure are now retained together in a repository evidence bundle.
+
+Multiplayer and persistence assessment: No gameplay, RPC, authority, replicated field, save schema, or persistence behavior changed. The archive records the existing server-owned contracts and the accepted schema-1 to schema-2 migrations.
+
+Known limitations: The owner-reported manual fresh-player walkthrough has no per-step logs or screenshots. Dedicated-server validation is unavailable with the installed Launcher engine; no game-managed backup/restore path was exercised; physical low/mid-tier performance and numerical ceilings remain unverified under the accepted owner scope. The package smoke log contains missing audio-cue and default skiff hull material warnings. The package was built from a disposable mirror without an immutable source revision; the bundle fingerprints the package files but does not include a source patch or binary package.
+
+Handoff: Main checkout used; no worktree synchronization. Pre-existing working-tree changes remain preserved and unstaged. The only unchecked task was this final M10 archive goal; no backlog task remains eligible.
+
+Next eligible task: None; all current M0–M10 backlog goals are checked. Await the next approved project objective.
+
+Current run time: 2026-10-02T09:26:29Z.
