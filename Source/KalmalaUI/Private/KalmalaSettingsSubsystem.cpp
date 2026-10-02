@@ -136,7 +136,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         {
             bDeveloperScreenshotPending = false;
             DeveloperScreenshotDelay = 0.0f;
-            static const TCHAR* ScreenshotTabs[] = { TEXT("settings"), TEXT("controls"), TEXT("audio") };
+            static const TCHAR* ScreenshotTabs[] = { TEXT("settings"), TEXT("controls"), TEXT("audio"), TEXT("escape"), TEXT("video") };
             if (ScreenshotTabs[0] != nullptr && DeveloperSettingsScreenshotTab >= 0
                 && DeveloperSettingsScreenshotTab < UE_ARRAY_COUNT(ScreenshotTabs))
             {
@@ -184,17 +184,37 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             && UKalmalaSettingsWidget::GetTextScalePercent() == 150
             && UKalmalaSettingsWidget::GetContrastMode() == 1
             && UKalmalaSettingsWidget::GetFeedbackMode() == 1;
+        UKalmalaSettingsWidget::SetContrastMode(0);
+        static const int32 OptionViews[] = { 5, 4, 0, 1, 2 };
+        bool bOptionPanelImagesLoaded = true;
+        for (const int32 ViewIndex : OptionViews)
+        {
+            SettingsWidget->SetVerificationTab(ViewIndex);
+            bOptionPanelImagesLoaded &= !SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
+        }
+        UKalmalaSettingsWidget::SetContrastMode(1);
+        SettingsWidget->SetVerificationTab(2);
+        const bool bHighContrastSuppressesImage = SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
         UE_LOG(LogTemp, Display,
-            TEXT("Settings accessibility: Authority=%d Stage=Settings Open=%d Focused=%d FocusTargets=%d MoveIgnored=%d LookIgnored=%d LocalRoundTrip=%d InputApplied=%d TextScale=%d Contrast=%d Feedback=%d"),
+            TEXT("Settings accessibility: Authority=%d Stage=Settings Open=%d Focused=%d FocusTargets=%d MoveIgnored=%d LookIgnored=%d LocalRoundTrip=%d InputApplied=%d TextScale=%d Contrast=%d Feedback=%d PanelImages=%d ContrastImageSuppressed=%d"),
             Character->HasAuthority() ? 1 : 0, SettingsWidget->IsMenuOpen() ? 1 : 0,
             SettingsWidget->HasAnyUserFocus() ? 1 : 0, SettingsWidget->HasFocusableContentForVerification() ? 1 : 0,
             LocalController->IsMoveInputIgnored() ? 1 : 0,
             LocalController->IsLookInputIgnored() ? 1 : 0, bLocalRoundTrip ? 1 : 0, bInputApplied ? 1 : 0,
             UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode(),
-            UKalmalaSettingsWidget::GetFeedbackMode());
-        if (!bLocalRoundTrip || !bInputApplied)
+            UKalmalaSettingsWidget::GetFeedbackMode(), bOptionPanelImagesLoaded ? 1 : 0,
+            bHighContrastSuppressesImage ? 1 : 0);
+        UKalmalaSettingsWidget::SetContrastMode(0);
+        SettingsWidget->SetVerificationTab(2);
+        const bool bStandardBackgroundLoaded = !SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
+        UE_LOG(LogTemp, Display,
+            TEXT("Settings accessibility: Authority=%d Stage=StandardBackgroundCapture Loaded=%d Contrast=%d"),
+            Character->HasAuthority() ? 1 : 0, bStandardBackgroundLoaded ? 1 : 0,
+            UKalmalaSettingsWidget::GetContrastMode());
+        if (!bLocalRoundTrip || !bInputApplied || !bOptionPanelImagesLoaded
+            || !bHighContrastSuppressesImage || !bStandardBackgroundLoaded)
         {
-            UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL local option round-trip or local input application."));
+            UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL local options, page backgrounds, high contrast, or local input application."));
             bDeveloperSettingsVerificationCompleted = true;
             return;
         }
@@ -216,6 +236,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             DeveloperSettingsInitialWorldSeed = WorldState->GetWorldGenerationConfig().WorldSeed;
             bDeveloperGameplayBaselineCaptured = true;
         }
+        UKalmalaSettingsWidget::SetContrastMode(1);
         SettingsWidget->SetVerificationTab(1);
         UE_LOG(LogTemp, Display,
             TEXT("Settings accessibility: Authority=%d Stage=Controls Open=%d Focused=%d FocusTargets=%d FocusableControls=%d Keyboard=%s Controller=%s Escape=%d"),
@@ -247,6 +268,56 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         DeveloperSettingsScreenshotTab = 2;
         bDeveloperScreenshotPending = true;
         DeveloperScreenshotDelay = 0.0f;
+        ++DeveloperSettingsVerificationStage;
+        return;
+    }
+
+    if (DeveloperSettingsVerificationStage == 2)
+    {
+        UKalmalaSettingsWidget::SetContrastMode(0);
+        SettingsWidget->SetVerificationTab(5);
+        const bool bImageLoaded = !SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
+        UE_LOG(LogTemp, Display,
+            TEXT("Settings accessibility: Authority=%d Stage=EscapeBackgroundCapture Loaded=%d Contrast=%d FocusTargets=%d"),
+            Character->HasAuthority() ? 1 : 0, bImageLoaded ? 1 : 0,
+            UKalmalaSettingsWidget::GetContrastMode(), SettingsWidget->HasFocusableContentForVerification() ? 1 : 0);
+        DeveloperSettingsScreenshotTab = 3;
+        bDeveloperScreenshotPending = true;
+        DeveloperScreenshotDelay = 0.0f;
+        ++DeveloperSettingsVerificationStage;
+        return;
+    }
+
+    if (DeveloperSettingsVerificationStage == 3)
+    {
+        SettingsWidget->SetVerificationTab(4);
+        const bool bImageLoaded = !SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
+        UE_LOG(LogTemp, Display,
+            TEXT("Settings accessibility: Authority=%d Stage=VideoBackgroundCapture Loaded=%d Contrast=%d FocusTargets=%d"),
+            Character->HasAuthority() ? 1 : 0, bImageLoaded ? 1 : 0,
+            UKalmalaSettingsWidget::GetContrastMode(), SettingsWidget->HasFocusableContentForVerification() ? 1 : 0);
+        DeveloperSettingsScreenshotTab = 4;
+        bDeveloperScreenshotPending = true;
+        DeveloperScreenshotDelay = 0.0f;
+        ++DeveloperSettingsVerificationStage;
+        return;
+    }
+
+    if (DeveloperSettingsVerificationStage == 4)
+    {
+        UKalmalaSettingsWidget::SetContrastMode(1);
+        SettingsWidget->SetVerificationTab(1);
+        const bool bHighContrastSuppressesImage = SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
+        UE_LOG(LogTemp, Display,
+            TEXT("Settings accessibility: Authority=%d Stage=ContrastRestore Mode=%d ImageSuppressed=%d"),
+            Character->HasAuthority() ? 1 : 0, UKalmalaSettingsWidget::GetContrastMode(),
+            bHighContrastSuppressesImage ? 1 : 0);
+        if (!bHighContrastSuppressesImage)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL high contrast was not restored after standard captures."));
+            bDeveloperSettingsVerificationCompleted = true;
+            return;
+        }
         ++DeveloperSettingsVerificationStage;
         return;
     }

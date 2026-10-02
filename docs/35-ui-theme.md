@@ -50,6 +50,11 @@ expanded-map, and options views as described below.
 | InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D override for the inventory pack panel |
 | BuildPanelImage | `/Game/Kalmala/UI/BuildPanel.BuildPanel` | Texture2D override for build/craft selection |
 | WorldMapPanelImage | `/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel` | Texture2D override for the expanded map shell |
+| EscapePanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Escape home/options shell; fallback source for empty tab overrides |
+| VideoOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Video tab; empty falls back to EscapePanelImage |
+| AudioOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Audio tab; empty falls back to EscapePanelImage |
+| ControlsOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Controls tab; empty falls back to EscapePanelImage |
+| SettingsOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Settings tab; empty falls back to EscapePanelImage |
 | OutlineSize | 0 | 0–3, rounded; black text outline |
 | BorderWidth / CornerRadius | 1 / 3 | 0–3 / 0–12; geometric panels and button states |
 | BorderColor | (0.35, 0.45, 0.42, 1) | Linear RGBA 0–1 |
@@ -199,3 +204,27 @@ and high-contrast suppression. Parent verification also renders the existing
 host/client map at three viewport sizes and runs the map tile/reconnect checks.
 These editor checks do not establish packaged asset cooking or physical-input
 playthrough.
+
+## Escape options backgrounds — 2026-10-02
+
+The Escape home/settings shell and each Video, Audio, Controls, and Settings
+view now select a theme-configured image through the shared panel component.
+Each view has a separate key so a project theme can give the tabs distinct
+art. The defaults use the same original dark spruce-and-slate panel texture
+for a consistent shell. Empty tab keys inherit `EscapePanelImage`; if that
+key is also empty, the shared `PanelImage` applies. Syntactically invalid,
+missing, or wrong-type objects keep the geometric panel fallback. High
+contrast suppresses every decorative options image and uses the established
+black surface, white text, and focus borders.
+
+The source is `Content/Kalmala/UI/Source/OptionsPanel.png`, imported to
+`/Game/Kalmala/UI/OptionsPanel`. `Kalmala.UI.Theme.LocalPresentation` checks
+all five keys, valid shared-panel image resolution, invalid-path fallback, and
+high-contrast suppression. The settings accessibility peer probe visits the
+Escape shell and all four views, verifies each image resolves for host and
+client, then confirms high contrast removes it while existing value, focus,
+text-scale, input ownership, and local persistence checks pass. Ten retained
+host/client captures include standard-contrast Escape, Video, and Settings
+views plus high-contrast Controls and Audio views at 1280x720; inspect these for
+background framing and label readability. Other viewport sizes, cooked asset
+inclusion, and physical keyboard/controller walkthrough are unverified.

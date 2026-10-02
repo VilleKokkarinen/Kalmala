@@ -391,7 +391,7 @@ void UKalmalaSettingsWidget::NativeOnInitialized()
 
     ContentBox = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("SettingsContent"));
     Panel->SetContent(ContentBox);
-    ApplyModalPalette();
+    ApplyModalPalette(&FKalmalaUITheme::Get().EscapePanelImage);
     SetVisibility(ESlateVisibility::Collapsed);
 }
 
@@ -420,13 +420,21 @@ void UKalmalaSettingsWidget::OpenForVerification(APlayerController* InOwningPlay
 
 void UKalmalaSettingsWidget::SetVerificationTab(const int32 TabIndex)
 {
-    if (TabIndex == 3) { HandleStatusDetailsClicked(); return; }
-    switch (FMath::Clamp(TabIndex, 0, 2))
+    switch (TabIndex)
     {
     case 0: ShowAudioTab(); break;
     case 1: ShowControlsTab(); break;
-    default: ShowSettingsTab(); break;
+    case 2: ShowSettingsTab(); break;
+    case 3: HandleStatusDetailsClicked(); break;
+    case 4: ShowOptionsMenu(); break;
+    default: ShowMainMenu(); break;
     }
+}
+
+FString UKalmalaSettingsWidget::GetPanelImagePathForVerification() const
+{
+    const UObject* Image = PanelBorder != nullptr ? PanelBorder->Background.GetResourceObject() : nullptr;
+    return Image != nullptr ? Image->GetPathName() : FString();
 }
 
 bool UKalmalaSettingsWidget::HasFocusableContentForVerification() const
@@ -463,11 +471,15 @@ void UKalmalaSettingsWidget::Close()
     }
 }
 
-void UKalmalaSettingsWidget::ApplyModalPalette()
+void UKalmalaSettingsWidget::ApplyModalPalette(const FString* ImageOverride)
 {
     const FSettingsPalette Palette = GetSettingsPalette();
     if (BackdropBorder != nullptr) BackdropBorder->SetBrushColor(Palette.Background);
-    if (PanelBorder != nullptr) FKalmalaUITheme::Get().ApplyPanel(*PanelBorder, GetContrastMode());
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    const FString* SelectedImage = ImageOverride;
+    if (SelectedImage == nullptr || SelectedImage->IsEmpty()) SelectedImage = &Theme.EscapePanelImage;
+    if (SelectedImage->IsEmpty()) SelectedImage = nullptr;
+    if (PanelBorder != nullptr) Theme.ApplyPanel(*PanelBorder, GetContrastMode(), SelectedImage);
 }
 
 int32 UKalmalaSettingsWidget::ClampViewDistanceQuality(const int32 Quality)
@@ -827,6 +839,7 @@ UButton* UKalmalaSettingsWidget::AddButton(UVerticalBox* Parent, const FText& La
 
 void UKalmalaSettingsWidget::ShowMainMenu()
 {
+    ApplyModalPalette(&FKalmalaUITheme::Get().EscapePanelImage);
     StatusDetailsLabel = nullptr;
     ContentBox->ClearChildren();
     AddLabel(ContentBox, FText::FromString(TEXT("KALMALA")), 34.0f)->SetJustification(ETextJustify::Center);
@@ -871,6 +884,7 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
 
 void UKalmalaSettingsWidget::ShowVideoTab()
 {
+    ApplyModalPalette(&FKalmalaUITheme::Get().VideoOptionsPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     AddLabel(ContentBox, FText::FromString(TEXT("Video")), 24.0f);
     UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
@@ -889,6 +903,7 @@ void UKalmalaSettingsWidget::ShowVideoTab()
 
 void UKalmalaSettingsWidget::ShowAudioTab()
 {
+    ApplyModalPalette(&FKalmalaUITheme::Get().AudioOptionsPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     AddLabel(ContentBox, FText::FromString(TEXT("Audio")), 24.0f);
     UButton* MasterVolume = AddButton(ContentBox, FText::GetEmpty(), TEXT("MasterVolumeButton"));
@@ -913,6 +928,7 @@ void UKalmalaSettingsWidget::ShowAudioTab()
 
 void UKalmalaSettingsWidget::ShowControlsTab()
 {
+    ApplyModalPalette(&FKalmalaUITheme::Get().ControlsOptionsPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     ControlButtons.Reset();
     AddLabel(ContentBox, FText::FromString(TEXT("Controls")), 24.0f);
@@ -978,7 +994,7 @@ void UKalmalaSettingsWidget::UpdateControlsLabels()
 void UKalmalaSettingsWidget::ShowSettingsTab()
 {
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
-    ApplyModalPalette();
+    ApplyModalPalette(&FKalmalaUITheme::Get().SettingsOptionsPanelImage);
     AddLabel(ContentBox, FText::FromString(TEXT("Settings")), 24.0f);
 
     UButton* TextScale = AddButton(ContentBox, FText::GetEmpty(), TEXT("TextScaleButton"));
@@ -1074,7 +1090,7 @@ void UKalmalaSettingsWidget::ApplyVideoSettings() { if (UGameUserSettings* Setti
 void UKalmalaSettingsWidget::HandleOptionsClicked() { ShowOptionsMenu(); }
 void UKalmalaSettingsWidget::HandleStatusDetailsClicked()
 {
-    ApplyModalPalette();
+    ApplyModalPalette(&FKalmalaUITheme::Get().EscapePanelImage);
     ContentBox->ClearChildren();
     AddLabel(ContentBox, FText::FromString(TEXT("Your status and weather")), 24);
     AddLabel(ContentBox, FText::FromString(TEXT("One entry per active effect; effects do not stack. Ongoing signals have no expiry timer. Weather timer is the current server interval.")), 15);

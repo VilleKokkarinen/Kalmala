@@ -57,6 +57,7 @@ public:
     /** Opens a requested local tab for the development-only settings acceptance probe. */
     void OpenForVerification(APlayerController* InOwningPlayer, int32 TabIndex);
     void SetVerificationTab(int32 TabIndex);
+    FString GetPanelImagePathForVerification() const;
     bool HasFocusableContentForVerification() const;
     bool HasFocusableControlsForVerification() const;
 #endif
@@ -108,7 +109,7 @@ private:
     void UpdateSettingsLabels();
     void UpdateControlsLabels();
     void CycleAudioCategory(EKalmalaAudioCategory Category);
-    void ApplyModalPalette();
+    void ApplyModalPalette(const FString* ImageOverride = nullptr);
     UButton* AddButton(class UVerticalBox* Parent, const FText& Label, FName Name);
     UTextBlock* AddLabel(class UVerticalBox* Parent, const FText& Label, float FontSize = 20.0f);
 

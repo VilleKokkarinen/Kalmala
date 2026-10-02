@@ -62,6 +62,11 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     "InventoryPanelImage=/Game/Kalmala/UI/InventoryPanel.InventoryPanel\n"
     "BuildPanelImage=/Game/Kalmala/UI/BuildPanel.BuildPanel\n"
     "WorldMapPanelImage=/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel\n"
+    "EscapePanelImage=/Game/Kalmala/UI/OptionsPanel.OptionsPanel\n"
+    "VideoOptionsPanelImage=/Game/Kalmala/UI/OptionsPanel.OptionsPanel\n"
+    "AudioOptionsPanelImage=/Game/Kalmala/UI/OptionsPanel.OptionsPanel\n"
+    "ControlsOptionsPanelImage=/Game/Kalmala/UI/OptionsPanel.OptionsPanel\n"
+    "SettingsOptionsPanelImage=/Game/Kalmala/UI/OptionsPanel.OptionsPanel\n"
     "ButtonHovered=(R=0.3,G=0.4,B=0.5,A=1)\n"), TEXT("ExtendedTheme.ini"));
     const FKalmalaUITheme Extension = FKalmalaUITheme::FromConfig(Extended);
     UButton* Button = NewObject<UButton>();
@@ -85,6 +90,16 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
         FString(TEXT("/Game/Kalmala/UI/BuildPanel.BuildPanel")));
     TestEqual(TEXT("World-map background path propagates"), Extension.WorldMapPanelImage,
         FString(TEXT("/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel")));
+    TestEqual(TEXT("Escape shell background path propagates"), Extension.EscapePanelImage,
+        FString(TEXT("/Game/Kalmala/UI/OptionsPanel.OptionsPanel")));
+    TestEqual(TEXT("Video tab background path propagates"), Extension.VideoOptionsPanelImage,
+        FString(TEXT("/Game/Kalmala/UI/OptionsPanel.OptionsPanel")));
+    TestEqual(TEXT("Audio tab background path propagates"), Extension.AudioOptionsPanelImage,
+        FString(TEXT("/Game/Kalmala/UI/OptionsPanel.OptionsPanel")));
+    TestEqual(TEXT("Controls tab background path propagates"), Extension.ControlsOptionsPanelImage,
+        FString(TEXT("/Game/Kalmala/UI/OptionsPanel.OptionsPanel")));
+    TestEqual(TEXT("Settings tab background path propagates"), Extension.SettingsOptionsPanelImage,
+        FString(TEXT("/Game/Kalmala/UI/OptionsPanel.OptionsPanel")));
     Extension.ApplyScroll(*Scroll, true);
     TestFalse(TEXT("Reduced motion overrides animation"), Scroll->IsAnimateWheelScrolling());
     Extension.ApplyButton(*Button, 1);
@@ -92,7 +107,9 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     FConfigFile InvalidExtension;
     InvalidExtension.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nIconWidth=999\nIconHeight=nan\n"
         "BorderWidth=-1\nOutlineSize=99\nScrollSpeed=0\nFontFace=unknown\nFontAsset=../font\nPanelImage=C:/image.png\n"
-        "InventoryPanelImage=C:/inventory.png\nBuildPanelImage=/Game/InvalidObjectPath\nWorldMapPanelImage=C:/map.png\n"), TEXT("InvalidExtension.ini"));
+        "InventoryPanelImage=C:/inventory.png\nBuildPanelImage=/Game/InvalidObjectPath\nWorldMapPanelImage=C:/map.png\n"
+        "EscapePanelImage=C:/escape.png\nVideoOptionsPanelImage=/Game/InvalidObjectPath\n"
+        "AudioOptionsPanelImage=C:/audio.png\nControlsOptionsPanelImage=C:/controls.png\nSettingsOptionsPanelImage=C:/settings.png\n"), TEXT("InvalidExtension.ini"));
     const FKalmalaUITheme Safe = FKalmalaUITheme::FromConfig(InvalidExtension);
     TestEqual(TEXT("Invalid icon width falls back"), Safe.IconWidth, Defaults.IconWidth);
     TestEqual(TEXT("Nonfinite icon height falls back"), Safe.IconHeight, Defaults.IconHeight);
@@ -102,7 +119,9 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Invalid font face falls back"), Safe.FontFace, Defaults.FontFace);
     TestTrue(TEXT("Filesystem and malformed view-specific asset paths rejected"), Safe.FontAsset.IsEmpty()
         && Safe.PanelImage.IsEmpty() && Safe.InventoryPanelImage.IsEmpty() && Safe.BuildPanelImage.IsEmpty()
-        && Safe.WorldMapPanelImage.IsEmpty());
+        && Safe.WorldMapPanelImage.IsEmpty() && Safe.EscapePanelImage.IsEmpty()
+        && Safe.VideoOptionsPanelImage.IsEmpty() && Safe.AudioOptionsPanelImage.IsEmpty()
+        && Safe.ControlsOptionsPanelImage.IsEmpty() && Safe.SettingsOptionsPanelImage.IsEmpty());
     FKalmalaUITheme MissingAssets = Extension;
     MissingAssets.FontAsset = TEXT("/Game/MissingThemeFont.MissingThemeFont");
     MissingAssets.PanelImage = TEXT("/Game/MissingThemeImage.MissingThemeImage");
@@ -116,6 +135,11 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     UTexture2D* InventoryTexture = NewObject<UTexture2D>(Package, TEXT("InventoryPanel"), RF_Transient);
     UTexture2D* BuildTexture = NewObject<UTexture2D>(Package, TEXT("BuildPanel"), RF_Transient);
     UTexture2D* WorldMapTexture = NewObject<UTexture2D>(Package, TEXT("WorldMapPanel"), RF_Transient);
+    UTexture2D* EscapeTexture = NewObject<UTexture2D>(Package, TEXT("EscapePanel"), RF_Transient);
+    UTexture2D* VideoOptionsTexture = NewObject<UTexture2D>(Package, TEXT("VideoOptionsPanel"), RF_Transient);
+    UTexture2D* AudioOptionsTexture = NewObject<UTexture2D>(Package, TEXT("AudioOptionsPanel"), RF_Transient);
+    UTexture2D* ControlsOptionsTexture = NewObject<UTexture2D>(Package, TEXT("ControlsOptionsPanel"), RF_Transient);
+    UTexture2D* SettingsOptionsTexture = NewObject<UTexture2D>(Package, TEXT("SettingsOptionsPanel"), RF_Transient);
     MissingAssets.PanelImage = Texture->GetPathName();
     MissingAssets.ApplyPanel(*Panel, 0);
     TestTrue(TEXT("Valid image reference reaches the shared panel"), Panel->Background.GetResourceObject() == Texture);
@@ -130,6 +154,26 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("World-map image override resolves for Slate"), WorldMapBrush.GetResourceObject() == WorldMapTexture);
     const FSlateBrush WorldMapContrastBrush = MissingAssets.MakePanelBrush(1, &MissingAssets.WorldMapPanelImage);
     TestTrue(TEXT("High contrast suppresses the world-map decoration"), WorldMapContrastBrush.GetResourceObject() == nullptr);
+    MissingAssets.EscapePanelImage = EscapeTexture->GetPathName();
+    MissingAssets.VideoOptionsPanelImage = VideoOptionsTexture->GetPathName();
+    MissingAssets.AudioOptionsPanelImage = AudioOptionsTexture->GetPathName();
+    MissingAssets.ControlsOptionsPanelImage = ControlsOptionsTexture->GetPathName();
+    MissingAssets.SettingsOptionsPanelImage = SettingsOptionsTexture->GetPathName();
+    const FString* OptionPanelImages[] = { &MissingAssets.EscapePanelImage, &MissingAssets.VideoOptionsPanelImage,
+        &MissingAssets.AudioOptionsPanelImage, &MissingAssets.ControlsOptionsPanelImage,
+        &MissingAssets.SettingsOptionsPanelImage };
+    UTexture2D* const ExpectedOptionTextures[] = { EscapeTexture, VideoOptionsTexture, AudioOptionsTexture,
+        ControlsOptionsTexture, SettingsOptionsTexture };
+    static const TCHAR* OptionPanelNames[] = { TEXT("Escape"), TEXT("Video"), TEXT("Audio"), TEXT("Controls"), TEXT("Settings") };
+    for (int32 Index = 0; Index < UE_ARRAY_COUNT(OptionPanelImages); ++Index)
+    {
+        const FSlateBrush OptionBrush = MissingAssets.MakePanelBrush(0, OptionPanelImages[Index]);
+        TestTrue(FString::Printf(TEXT("%s options image resolves through the shared panel"), OptionPanelNames[Index]),
+            OptionBrush.GetResourceObject() == ExpectedOptionTextures[Index]);
+        const FSlateBrush ContrastBrush = MissingAssets.MakePanelBrush(1, OptionPanelImages[Index]);
+        TestTrue(FString::Printf(TEXT("High contrast suppresses the %s options image"), OptionPanelNames[Index]),
+            ContrastBrush.GetResourceObject() == nullptr);
+    }
     MissingAssets.ApplyPanel(*Panel, 1);
     TestTrue(TEXT("Contrast ignores decorative images"), Panel->Background.GetResourceObject() == nullptr);
     MissingAssets.BorderWidth = 0;

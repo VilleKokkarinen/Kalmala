@@ -10806,3 +10806,23 @@ each option screen/tab, then verify readability, focus, contrast, and modal
 input behavior.
 
 Current run time: 2026-10-02T14:36:53Z.
+
+### Run 2026-10-02T15:38:28Z — M11 Escape options backgrounds parent complete
+
+Outcome: Completed the selected M11 top-level parent (no child tasks). Added original artwork to the Escape shell and Video, Audio, Controls, and Settings views through separate theme keys and the shared panel component. Checked only this parent in BACKLOG.md; broader M11 acceptance remains open.
+
+Changed: Added the original options source PNG and imported Unreal texture, theme configuration/loading and per-view selection/fallbacks, focused theme checks, and the expanded host/client settings probe. Updated the development, theme, and settings/accessibility docs; retained ten reviewed host/client screenshots plus verification evidence under docs/ui-options-backgrounds/; checked the selected BACKLOG task.
+
+Verification: Parent-level verification passed. The isolated UE 5.8.2 KalmalaEditor Win64 Development forced build completed 204 actions before the final probe-only contrast-restoration adjustment. That final C++ change compiled and linked successfully in a 4-action incremental build; a post-change forced build succeeded and reported the target up to date (0 actions), with normal %LOCALAPPDATA%/UnrealBuildTool access. The original texture import exited 0. Full Automation RunTests Kalmala passed 101/101, zero failures, exit 0 (C:/Users/Ville/AppData/Local/Temp/kopt/Automation-parent.log). Scripts/Verify-SettingsAccessibility.ps1 passed after the final build and queue for host and client: all five views resolved the image, high contrast suppressed it and was restored/persisted, local values and bindings persisted, modal input/Escape recovery passed, and gameplay health, transform, and world identity stayed stable. Ten 1280x720 captures were inspected and retained. The settings contract, all five M5 documentation contracts, presentation ownership, and git diff --check passed.
+
+Observable impact: The Escape shell and each options view render the same dark spruce-and-slate artwork by default. Separate theme keys allow a project to select different art per view. Missing/invalid assets keep the shared panel fallback; high contrast uses the black surface and white focus treatment.
+
+Multiplayer and persistence assessment: Presentation only. Theme image choices remain local and do not change options behavior, gameplay authority, replication, or saved-data schemas. The probe's setting changes are confined to isolated host/client test profiles.
+
+Known limits: Other viewport sizes, cooked/package asset inclusion, and physical keyboard/controller hardware were not verified. Broader M11 acceptance remains open.
+
+Handoff: Main checkout E:/dev/Kalmala was used directly; handoff synchronization was unnecessary. Commit only this run's changed files after staged-diff and path review.
+
+Next eligible task: Add a slight, fast opening animation to the main Escape options menu, sliding the panel down from the top.
+
+Current run time: 2026-10-02T15:38:28Z.

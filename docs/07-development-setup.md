@@ -1,5 +1,46 @@
 # Development setup
 
+## M11 Escape options backgrounds
+
+Prepare a disposable project mirror with the original
+`Content/Kalmala/UI/Source/OptionsPanel.png`, project/plugin source and
+content, excluding generated directories. First run the forced
+`KalmalaEditor Win64 Development` build with normal
+`%LOCALAPPDATA%/UnrealBuildTool` access and `-MaxParallelActions=4`; the clean
+mirror needs its project modules before `ImportAssets` can start. Then import
+the PNG as `/Game/Kalmala/UI/OptionsPanel`:
+
+```powershell
+$mirror = 'C:\temp\kopt'
+$userDir = Join-Path $mirror 'ImportUser'
+$ddc = Join-Path $mirror 'ImportDDC'
+New-Item -ItemType Directory -Force -Path $userDir, $ddc | Out-Null
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' `
+  "$mirror\Kalmala.uproject" -run=ImportAssets `
+  "-source=$mirror\Content\Kalmala\UI\Source\OptionsPanel.png" `
+  -dest=/Game/Kalmala/UI -nosourcecontrol -unattended -nop4 -nosound -nullrhi `
+  -NoZenAutoLaunch -DDC=NoZenLocalFallback `
+  "-LocalDataCachePath=$ddc" "-UserDir=$userDir" `
+  "-abslog=$mirror\ImportAssets.log" -forcelogflush
+```
+
+Use a mirror/temp root and output paths that keep every absolute Windows path
+below 260 characters.
+
+Run the full `Automation RunTests Kalmala` queue, then
+`Scripts/Verify-SettingsAccessibility.ps1`,
+`Scripts/Verify-SettingsAccessibilityContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`. The
+host/client settings probe visits the Escape shell and Video, Audio, Controls,
+and Settings pages; require every configured panel image to resolve, high
+contrast to suppress it, and existing values, focus, text scale, keyboard and
+controller bindings, modal ownership, and local persistence checks to pass.
+Retain the runner output and inspect all ten PNGs: standard-contrast Escape,
+Video, and Settings captures plus high-contrast Controls and Audio captures on
+both peers. The rendered sample is 1280x720; physical input and packaged asset
+inclusion remain separate checks.
+
 ## M11 inventory/build backgrounds and slot grids
 
 For the inventory/build visual parent, prepare a disposable project mirror
@@ -674,17 +715,19 @@ rendered peer probe below for the live modal.
 
 After an editor build, run `Scripts/Verify-SettingsAccessibility.ps1`. It
 starts an isolated seed-418 listen server and conflicting-seed client, opens
-the live Audio, Controls, and Settings tabs, and captures each at 1280x720.
+the live Escape shell and Video, Audio, Controls, and Settings tabs, and
+captures each at 1280x720. Escape, Video, and Settings use standard contrast;
+Controls and Audio also retain high-contrast captures.
 The development-only probe writes bounded local audio, text, contrast,
 colour-independent feedback, and keyboard/controller remapping values to each
 peer's `GameUserSettings.ini`, applies those mappings to only the owning
 `UPlayerInput`, verifies focus ownership and the Escape mapping, then closes
 the modal. It compares pawn health, transform, and the replicated server world
 identity before and after the local changes. The printed temporary directory
-retains host/client logs and six PNG captures. This verifies local config and
-authority boundaries, not physical controller hardware, audible quality,
-packaged persistence, pixel-level modal readability in the current offscreen
-Slate compositor, or other viewport sizes.
+retains host/client logs and ten PNG captures. Inspect the rendered modal and
+backgrounds; this verifies the representative 1280x720 layout, not physical
+controller hardware, audible quality, packaged persistence, or other viewport
+sizes.
 
 ## M5 onboarding contract check
 

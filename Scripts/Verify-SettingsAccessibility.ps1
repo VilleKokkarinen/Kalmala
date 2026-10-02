@@ -56,7 +56,9 @@ try {
     $deadline = (Get-Date).AddSeconds(90)
     $captures = @(
         "$output\Host\settings-settings.png", "$output\Host\settings-controls.png", "$output\Host\settings-audio.png",
-        "$output\Client\settings-settings.png", "$output\Client\settings-controls.png", "$output\Client\settings-audio.png"
+        "$output\Host\settings-escape.png", "$output\Host\settings-video.png",
+        "$output\Client\settings-settings.png", "$output\Client\settings-controls.png", "$output\Client\settings-audio.png",
+        "$output\Client\settings-escape.png", "$output\Client\settings-video.png"
     )
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A settings accessibility peer exited.' }
@@ -73,8 +75,18 @@ try {
         $clientStages = $clientText -match 'Authority=0 Stage=Settings .*Open=1 .*FocusTargets=1 .*MoveIgnored=1 .*LookIgnored=1 .*LocalRoundTrip=1 InputApplied=1' -and
             $clientText -match 'Authority=0 Stage=Controls .*Open=1 .*FocusTargets=1 .*FocusableControls=1 .*Escape=1' -and
             $clientText -match 'Authority=0 Stage=Audio .*Open=1 .*FocusTargets=1 .*Master=0.50 Ambient=0.25 Music=0.50 InteractionCombat=0.75'
+        $hostBackgrounds = $serverText -match 'Authority=1 Stage=Settings .*PanelImages=1 ContrastImageSuppressed=1' -and
+            $serverText -match 'Authority=1 Stage=StandardBackgroundCapture Loaded=1 Contrast=0' -and
+            $serverText -match 'Authority=1 Stage=EscapeBackgroundCapture Loaded=1 Contrast=0 FocusTargets=1' -and
+            $serverText -match 'Authority=1 Stage=VideoBackgroundCapture Loaded=1 Contrast=0 FocusTargets=1' -and
+            $serverText -match 'Authority=1 Stage=ContrastRestore Mode=1 ImageSuppressed=1'
+        $clientBackgrounds = $clientText -match 'Authority=0 Stage=Settings .*PanelImages=1 ContrastImageSuppressed=1' -and
+            $clientText -match 'Authority=0 Stage=StandardBackgroundCapture Loaded=1 Contrast=0' -and
+            $clientText -match 'Authority=0 Stage=EscapeBackgroundCapture Loaded=1 Contrast=0 FocusTargets=1' -and
+            $clientText -match 'Authority=0 Stage=VideoBackgroundCapture Loaded=1 Contrast=0 FocusTargets=1' -and
+            $clientText -match 'Authority=0 Stage=ContrastRestore Mode=1 ImageSuppressed=1'
         $capturesReady = ($captures | Where-Object { !(Test-Path $_) -or (Get-Item $_).Length -le 32 }).Count -eq 0
-        if ($hostComplete -and $clientComplete -and $hostStages -and $clientStages -and $capturesReady) { break }
+        if ($hostComplete -and $clientComplete -and $hostStages -and $clientStages -and $hostBackgrounds -and $clientBackgrounds -and $capturesReady) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Settings accessibility verification timed out.' }
@@ -107,4 +119,4 @@ finally {
 if (!$completed) { throw 'Settings accessibility verification did not complete.' }
 Assert-SettingsConfig (Join-Path $output 'Host') 'Host'
 Assert-SettingsConfig (Join-Path $output 'Client') 'Client'
-Write-Output 'PASS: host/client settings tabs opened; local values persisted; keyboard/controller mappings stayed local; gameplay and replicated identity remained stable; six PNG captures retained.'
+Write-Output 'PASS: host/client settings panels loaded across all five views; standard-contrast Escape/Video captures and high-contrast fallback verified; local values persisted; keyboard/controller mappings stayed local; gameplay and replicated identity remained stable; ten PNG captures retained.'

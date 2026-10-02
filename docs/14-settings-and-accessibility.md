@@ -33,6 +33,13 @@ to implement:
   colour-independent feedback preference used by Wet, hearth, construction,
   combat, discovery, and support presentation.
 
+The Escape home/settings shell and all four option tabs use the local shared UI
+theme for their background image. Separate per-view keys allow a theme to
+customize the shell and tabs independently; the default reuses one original
+spruce-and-slate texture. High contrast suppresses decorative images and keeps
+the black panel, white text, and focus borders. This presentation does not
+change settings, input bindings, or modal ownership.
+
 Exact control ranges and device-specific labels remain implementation details;
 they must stay bounded, reversible, and compatible with the current input
 bindings. This increment makes no platform, visual-identity, or audio-content
@@ -153,22 +160,22 @@ The runtime implementation is accepted when a fresh local profile can open,
 navigate, change, cancel, apply, reset, and persist each option group with
 keyboard and controller bindings, while a second player observes no
 replicated settings state. `Scripts/Verify-SettingsAccessibility.ps1` runs
-isolated host/client profiles, opens the live Audio, Controls, and Settings
-tabs, checks focusable targets, modal input ownership, and Escape recovery, persists every local option,
-and compares the pawn health, transform, and server-selected world identity
-before and after the probe. It also retains 1280x720 host/client PNG captures
-for the three tabs. The offscreen runner checks capture production and the
-live widget state; pixel-level modal readability in those captures remains a
-manual follow-up because the current offscreen Slate compositor does not
-reliably include this modal surface.
+isolated host/client profiles, opens the Escape shell and live Video, Audio,
+Controls, and Settings tabs; it checks focusable targets, modal input
+ownership, and Escape recovery, persists every local option, and compares the
+pawn health, transform, and server-selected world identity before and after
+the probe. It retains ten
+1280x720 host/client PNG captures: standard-contrast Escape, Video, and
+Settings views plus high-contrast Controls and Audio views. Inspect the modal
+and artwork in these captures; they represent one viewport size and do not
+replace physical keyboard/controller or packaged verification.
 
 `Scripts/Verify-SettingsAccessibilityContract.ps1` checks this contract
 without Unreal. The focused `Kalmala.UI.Settings.LocalPresentation` automation
 and the rendered peer probe cover local round-trips, bounded input mappings,
 focusable controls, and the authority boundary. They do not simulate physical
 controller hardware, establish audible quality, prove packaged persistence,
-assert pixel-level modal readability in offscreen captures, or replace the
-final full settings acceptance.
+or replace the final full settings acceptance.
 The focused `Kalmala.UI.Settings.LocalPresentation` automation checks
 master-volume bounds, local config round-trip, immediate mute and restore,
 category-level bounds and config round-trips, bounded control labels, local
