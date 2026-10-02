@@ -67,11 +67,6 @@ namespace
         };
     }
 
-    float ScaleFontSize(const float BaseSize)
-    {
-        return BaseSize * (static_cast<float>(UKalmalaSettingsWidget::GetTextScalePercent()) / 100.0f);
-    }
-
     void ApplyButtonPalette(UButton* Button)
     {
         if (Button == nullptr) return;
@@ -362,9 +357,8 @@ void UKalmalaControlButton::SetDisplayText(const FText& Text)
     Label->SetText(Text);
     Label->SetColorAndOpacity(FSlateColor(GetSettingsPalette().ButtonText));
     Label->SetAutoWrapText(true);
-    FSlateFontInfo Font = Label->GetFont();
-    Font.Size = ScaleFontSize(16.0f);
-    Label->SetFont(Font);
+    FKalmalaUITheme::Get().ApplyText(*Label, FKalmalaUITheme::Get().BodySize + 3, false,
+        UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
 }
 
 void UKalmalaControlButton::HandleButtonClicked()
@@ -802,9 +796,10 @@ UTextBlock* UKalmalaSettingsWidget::AddLabel(UVerticalBox* Parent, const FText& 
     Text->SetText(Label);
     Text->SetColorAndOpacity(FSlateColor(GetSettingsPalette().Text));
     Text->SetAutoWrapText(true);
-    FSlateFontInfo Font = Text->GetFont();
-    Font.Size = ScaleFontSize(FontSize);
-    Text->SetFont(Font);
+    const auto& Theme = FKalmalaUITheme::Get();
+    const bool bHeading = FontSize >= 23;
+    Theme.ApplyText(*Text, FMath::RoundToInt(FontSize) + (bHeading ? Theme.EmphasisSize - 17 : Theme.BodySize - 13),
+        bHeading, GetTextScalePercent(), GetContrastMode());
     UVerticalBoxSlot* BoxSlot = Parent->AddChildToVerticalBox(Text);
     BoxSlot->SetPadding(FMargin(4.0f, 8.0f));
     return Text;
@@ -819,7 +814,7 @@ UButton* UKalmalaSettingsWidget::AddButton(UVerticalBox* Parent, const FText& La
     Text->SetColorAndOpacity(FSlateColor(GetSettingsPalette().ButtonText));
     Text->SetAutoWrapText(true);
     Text->SetJustification(ETextJustify::Center);
-    FKalmalaUITheme::Get().ApplyText(*Text, 21, false, GetTextScalePercent(), GetContrastMode());
+    FKalmalaUITheme::Get().ApplyText(*Text, FKalmalaUITheme::Get().BodySize + 8, false, GetTextScalePercent(), GetContrastMode());
     Button->SetContent(Text);
     UVerticalBoxSlot* BoxSlot = Parent->AddChildToVerticalBox(Button);
     BoxSlot->SetPadding(FMargin(4.0f, 7.0f));
@@ -852,9 +847,7 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
         Text->SetText(Label);
         Text->SetColorAndOpacity(FSlateColor(GetSettingsPalette().ButtonText));
         Text->SetJustification(ETextJustify::Center);
-        FSlateFontInfo Font = Text->GetFont();
-        Font.Size = ScaleFontSize(18.0f);
-        Text->SetFont(Font);
+        FKalmalaUITheme::Get().ApplyText(*Text, FKalmalaUITheme::Get().BodySize + 5, false, GetTextScalePercent(), GetContrastMode());
         Tab->SetContent(Text);
         Tab->OnClicked.Add(Delegate);
         UHorizontalBoxSlot* Slot = Tabs->AddChildToHorizontalBox(Tab); Slot->SetSize(FSlateChildSize(ESlateSizeRule::Fill)); Slot->SetPadding(FMargin(3.0f));
@@ -933,9 +926,7 @@ void UKalmalaSettingsWidget::ShowControlsTab()
         Label->SetText(GetRemappableControlLabel(ControlName));
         Label->SetColorAndOpacity(FSlateColor(GetSettingsPalette().Text));
         Label->SetAutoWrapText(true);
-        FSlateFontInfo Font = Label->GetFont();
-        Font.Size = ScaleFontSize(16.0f);
-        Label->SetFont(Font);
+        FKalmalaUITheme::Get().ApplyText(*Label, FKalmalaUITheme::Get().BodySize + 3, false, GetTextScalePercent(), GetContrastMode());
         UVerticalBoxSlot* LabelSlot = Row->AddChildToVerticalBox(Label);
         LabelSlot->SetPadding(FMargin(4.0f, 3.0f));
 

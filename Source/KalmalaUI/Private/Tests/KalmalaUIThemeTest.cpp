@@ -10,6 +10,8 @@
 #include "UObject/Package.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/ConfigCacheIni.h"
+#include "Blueprint/WidgetTree.h"
+#include "Components/VerticalBox.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaUIThemeTest, "Kalmala.UI.Theme.LocalPresentation",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -115,6 +117,27 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     MissingAssets.ApplyText(*Status, 13, false, 125, 0);
     TestTrue(TEXT("Unsupported bitmap font falls back to composite text"), Status->GetFont().FontObject == nullptr);
     TestEqual(TEXT("Font fallback preserves accessibility scale"), Status->GetFont().Size, 16.0f);
+    UWidgetTree* Menu = NewObject<UWidgetTree>();
+    UVerticalBox* MenuContent = Menu->ConstructWidget<UVerticalBox>();
+    Menu->RootWidget = MenuContent;
+    UTextBlock* Title = Menu->ConstructWidget<UTextBlock>();
+    UTextBlock* Detail = Menu->ConstructWidget<UTextBlock>();
+    UButton* Action = Menu->ConstructWidget<UButton>();
+    UTextBlock* ActionLabel = Menu->ConstructWidget<UTextBlock>();
+    MenuContent->AddChild(Title);
+    MenuContent->AddChild(Detail);
+    MenuContent->AddChild(Action);
+    Action->SetContent(ActionLabel);
+    Detail->SetText(FText::FromString(TEXT("Server-owned cost: 5 Stone")));
+    Action->SetIsEnabled(false);
+    Extension.ApplyMenu(*Menu, Title, 150, 1);
+    TestEqual(TEXT("Menu heading uses semantic theme and accessibility size"), Title->GetFont().Size, 42.0f);
+    TestEqual(TEXT("Menu detail uses theme and accessibility size"), Detail->GetFont().Size, 27.0f);
+    TestTrue(TEXT("Menu action label respects high contrast"), ActionLabel->GetColorAndOpacity().GetSpecifiedColor().Equals(FLinearColor::White));
+    TestFalse(TEXT("Styling preserves unavailable action"), Action->GetIsEnabled());
+    TestEqual(TEXT("Styling preserves authoritative detail text"), Detail->GetText().ToString(), FString(TEXT("Server-owned cost: 5 Stone")));
+    TestEqual(TEXT("Slate map and UMG use the same font"), Extension.MakeFont(Extension.BodySize + 5, false, 150).Size, Detail->GetFont().Size);
+    TestTrue(TEXT("Slate map and UMG use the same contrast surface"), Extension.MakePanelBrush(1).TintColor.GetSpecifiedColor().Equals(Panel->Background.TintColor.GetSpecifiedColor()));
     return true;
 }
 #endif

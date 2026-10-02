@@ -36,6 +36,7 @@ public:
     bool IsMapOpen() const { return bMapOpen; }
     void Recenter();
     void RunDeveloperVerification();
+    bool HasDeveloperClosedExploration() const { return bDeveloperClosedExplorationLogged; }
     /** Services local asynchronous tiles from either Slate or the owning local-player subsystem. */
     void TickTilePresentation(float DeltaTime);
     /** Records the owning pawn's travels even while the map is collapsed. No raster work. */

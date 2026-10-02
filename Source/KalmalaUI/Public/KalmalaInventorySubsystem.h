@@ -39,6 +39,7 @@ class KALMALAUI_API UKalmalaInventoryWidget : public UUserWidget
 public:
     void SetPackText(const FString& Text);
     void SetPackTextAccessibility(int32 TextScalePercent, int32 ContrastMode);
+    float GetRequiredPanelHeight() const;
     static FString BuildPreparedFoodDetails(bool bHasPreparedFood, float MealSecondsRemaining);
     void SetSupportGlyphState(int32 Index, EKalmalaSupportGlyph Glyph, bool bLearned, bool bSelected);
     void SetSupportGlyphsVisible(bool bVisible);

@@ -22,7 +22,8 @@ void UKalmalaWorldMapSubsystem::Tick(float DeltaTime)
         MapWidget->InitializeForLocalPlayer(LocalController); MapWidget->ConfigureViewportPlacement(); MapWidget->AddToPlayerScreen(150);
     }
     MapWidget->TickExploration(DeltaTime);
-    if (!bDeveloperVerificationStarted && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")) && LocalController->GetPawn() != nullptr)
+    if (!bDeveloperVerificationStarted && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification"))
+        && LocalController->GetPawn() != nullptr && MapWidget->HasDeveloperClosedExploration())
     {
         bDeveloperVerificationStarted = true;
         ToggleMap();

@@ -158,8 +158,7 @@ void UKalmalaInventoryWidget::NativeOnInitialized()
     Super::NativeOnInitialized();
     SetIsFocusable(false);
     Background = WidgetTree->ConstructWidget<UBorder>();
-    Background->SetBrushColor(FLinearColor(0.025f, 0.035f, 0.04f, 0.9f));
-    Background->SetPadding(FMargin(12));
+    FKalmalaUITheme::Get().ApplyPanel(*Background, UKalmalaSettingsWidget::GetContrastMode());
     UVerticalBox* Content = WidgetTree->ConstructWidget<UVerticalBox>();
     SupportGlyphRow = WidgetTree->ConstructWidget<UHorizontalBox>();
     const EKalmalaSupportGlyph GlyphKinds[] = { EKalmalaSupportGlyph::Mending, EKalmalaSupportGlyph::HearthShield,
@@ -191,10 +190,14 @@ void UKalmalaInventoryWidget::NativeOnInitialized()
     }
 
     PackText = WidgetTree->ConstructWidget<UTextBlock>();
-    PackText->SetColorAndOpacity(FSlateColor(FLinearColor::White));
-    PackText->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), 14));
+    FKalmalaUITheme::Get().ApplyText(*PackText, FKalmalaUITheme::Get().BodySize + 1, false,
+        UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
     PackText->SetAutoWrapText(true);
+    // Explicit width also makes prepass height include wrapped lines before
+    // the viewport panel is resized for a font/accessibility change.
+    PackText->SetWrapTextAt(340 - 2 * FKalmalaUITheme::Get().PaddingX);
     UScrollBox* Scroll = WidgetTree->ConstructWidget<UScrollBox>();
+    FKalmalaUITheme::Get().ApplyScroll(*Scroll);
     Scroll->AddChild(PackText);
     Content->AddChildToVerticalBox(SupportGlyphRow)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
     Content->AddChildToVerticalBox(Scroll);
@@ -214,20 +217,22 @@ void UKalmalaInventoryWidget::SetPackTextAccessibility(const int32 TextScalePerc
     const int32 BoundedContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode);
     if (LastTextScalePercent == BoundedTextScale && LastContrastMode == BoundedContrast) return;
 
-    const bool bHighContrast = BoundedContrast != 0;
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     if (Background)
     {
-        Background->SetBrushColor(bHighContrast
-            ? FLinearColor(0.0f, 0.0f, 0.0f, 0.98f)
-            : FLinearColor(0.025f, 0.035f, 0.04f, 0.9f));
+        Theme.ApplyPanel(*Background, BoundedContrast);
     }
     if (PackText)
     {
-        PackText->SetColorAndOpacity(FSlateColor(bHighContrast ? FLinearColor::White : FLinearColor(0.93f, 0.96f, 0.94f, 1.0f)));
-        PackText->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), FMath::RoundToInt(14.0f * BoundedTextScale / 100.0f)));
+        Theme.ApplyText(*PackText, Theme.BodySize + 1, false, BoundedTextScale, BoundedContrast);
     }
     LastTextScalePercent = BoundedTextScale;
     LastContrastMode = BoundedContrast;
+}
+
+float UKalmalaInventoryWidget::GetRequiredPanelHeight() const
+{
+    return Background ? Background->GetDesiredSize().Y : 0;
 }
 
 FString UKalmalaInventoryWidget::BuildPreparedFoodDetails(const bool bHasPreparedFood, const float MealSecondsRemaining)
@@ -400,10 +405,12 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
     Widget->SetPackText(Text);
     const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
     Widget->SetPackTextAccessibility(TextScalePercent, UKalmalaSettingsWidget::GetContrastMode());
+    Widget->ForceLayoutPrepass();
     int32 TextLineCount = 1;
     for (const TCHAR CurrentChar : Text) if (CurrentChar == TEXT('\n')) ++TextLineCount;
-    Widget->SetDesiredSizeInViewport(FVector2D(340, 60 + (Support && Character && Movement ? 68 : 0)
-        + FMath::RoundToInt(TextLineCount * 22.0f * TextScalePercent / 100.0f)));
+    Widget->SetDesiredSizeInViewport(FVector2D(340, FMath::Max(Widget->GetRequiredPanelHeight(),
+        60.0f + (Support && Character && Movement ? 68 : 0)
+        + FMath::RoundToInt(TextLineCount * 22.0f * TextScalePercent / 100.0f))));
 #if !UE_BUILD_SHIPPING
     if (!bVerified && Inventory && Inventory->GetQuantity(TEXT("Wood")) == 7
         && FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryTest")))

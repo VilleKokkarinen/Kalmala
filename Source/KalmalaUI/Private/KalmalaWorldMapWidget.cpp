@@ -1,4 +1,6 @@
 #include "KalmalaWorldMapWidget.h"
+#include "KalmalaUITheme.h"
+#include "KalmalaSettingsWidget.h"
 
 #include "Async/Async.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -23,11 +25,47 @@
 #include "Misc/Parse.h"
 #include "HAL/PlatformTime.h"
 #include "UnrealClient.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Fonts/FontMeasure.h"
 
 namespace
 {
     TAutoConsoleVariable<int32> RevealWorldMap(TEXT("kalmala.Map.RevealAll"), 1, TEXT("Debug: show all generated terrain without changing exploration."));
     TAutoConsoleVariable<int32> FitWorldMap(TEXT("kalmala.Map.FitWorldOnOpen"), 1, TEXT("Debug: open M at world origin and fit the full 16 km radius."));
+
+    float DrawMapLabel(FSlateWindowElementList& Elements, int32 Layer, const FGeometry& Geometry,
+        FVector2D Position, const FString& Text, int32 SizeOffset, bool bHeading = false)
+    {
+        const auto& Theme = FKalmalaUITheme::Get();
+        const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
+        const auto Font = Theme.MakeFont(Theme.BodySize + SizeOffset, false, UKalmalaSettingsWidget::GetTextScalePercent());
+        const auto Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+        Position.X = FMath::Clamp(Position.X, 20.0, FMath::Max(20.0, Geometry.GetLocalSize().X - 200.0));
+        const float Width = FMath::Max(100.0, Geometry.GetLocalSize().X - Position.X - 20.0);
+        TArray<FString> Words;
+        Text.ParseIntoArrayWS(Words);
+        FString Wrapped, Line;
+        for (const FString& Word : Words)
+        {
+            const FString Candidate = Line.IsEmpty() ? Word : Line + TEXT(" ") + Word;
+            if (!Line.IsEmpty() && Measure->Measure(Candidate, Font).X > Width)
+            {
+                Wrapped += Line + TEXT("\n");
+                Line = Word;
+            }
+            else Line = Candidate;
+        }
+        Wrapped += Line;
+        const FVector2D TextSize = Measure->Measure(Wrapped, Font);
+        const float Y = FMath::Max(0.0, FMath::Min(Position.Y, Geometry.GetLocalSize().Y - TextSize.Y - 4.0));
+        // Controls stay readable over terrain, independent of the selected theme image.
+        FSlateDrawElement::MakeBox(Elements, Layer, Geometry.ToPaintGeometry(FVector2D(Width + 8, TextSize.Y + 4),
+            FSlateLayoutTransform(FVector2D(Position.X - 4, Y - 2))), FCoreStyle::Get().GetBrush("WhiteBrush"),
+            ESlateDrawEffect::None, Contrast != 0 ? Theme.HighContrastPanel : Theme.Panel);
+        FSlateDrawElement::MakeText(Elements, Layer + 1, Geometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(Position.X, Y))),
+            Wrapped, Font, ESlateDrawEffect::None, Theme.TextColor(bHeading, Contrast));
+        return Y + TextSize.Y + 6;
+    }
 }
 
 void UKalmalaWorldMapWidget::InitializeForLocalPlayer(APlayerController* InOwningPlayer)
@@ -178,11 +216,12 @@ void UKalmalaWorldMapWidget::DrawCoopAwareness(const FGeometry& Geometry, FVecto
 {
     const auto* Awareness = GetOwningPlayer() ? GetOwningPlayer()->FindComponentByClass<UKalmalaMapAwarenessComponent>() : nullptr;
     if (!Awareness) return;
-    FSlateDrawElement::MakeText(Elements, LayerId, Geometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(20, Geometry.GetLocalSize().Y - 78))),
-        Awareness->GetStatusText(), FCoreStyle::GetDefaultFontStyle("Regular", 12), ESlateDrawEffect::None, FLinearColor::White);
-    FSlateDrawElement::MakeText(Elements, LayerId, Geometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(20, Geometry.GetLocalSize().Y - 60))),
+    const float FooterY = Geometry.GetLocalSize().Y - FKalmalaUITheme::Get().ScaledFontSize(
+        FKalmalaUITheme::Get().BodySize - 1, UKalmalaSettingsWidget::GetTextScalePercent()) * 5 - 30;
+    const float NextY = DrawMapLabel(Elements, LayerId, Geometry, FVector2D(20, FooterY), Awareness->GetStatusText(), -1);
+    DrawMapLabel(Elements, LayerId, Geometry, FVector2D(20, NextY),
         FString(TEXT("C / pad Menu: share · Middle-click: ping · Q / right-stick click: ping centre. ")) + PingFeedback,
-        FCoreStyle::GetDefaultFontStyle("Regular", 12), ESlateDrawEffect::None, FLinearColor::White);
+        -1);
     FVector2D Here;
     FKalmalaWorldGenerationConfig Config;
     if (!ViewModel || !ViewModel->GetPresentationInputs(Config, Here)) return;
@@ -200,7 +239,7 @@ void UKalmalaWorldMapWidget::DrawCoopAwareness(const FGeometry& Geometry, FVecto
         FSlateDrawElement::MakeLines(Elements, LayerId, Geometry.ToPaintGeometry(), Shape, ESlateDrawEffect::None,
             bPing ? FLinearColor(1, 0.75f, 0.4f) : FLinearColor(0.7f, 0.9f, 1), true, 2.5f);
         FSlateDrawElement::MakeText(Elements, LayerId, Geometry.ToPaintGeometry(FSlateLayoutTransform(P + FVector2D(12, bPing ? 14 : -14))),
-            Text, FCoreStyle::GetDefaultFontStyle("Regular", 12), ESlateDrawEffect::None, FLinearColor::White);
+            Text, FKalmalaUITheme::Get().MakeFont(FKalmalaUITheme::Get().BodySize - 1, false, UKalmalaSettingsWidget::GetTextScalePercent()), ESlateDrawEffect::None, FLinearColor::White);
     };
     for (const auto& Peer : Awareness->GetPeerMarkers()) DrawMarker(Peer.Location, FString::Printf(TEXT("Peer %d"), Peer.PlayerId), false);
     for (const auto& Ping : Awareness->GetVisiblePings()) DrawMarker(Ping.Location, FString::Printf(TEXT("Ping %d:%u (temporary)"), Ping.SenderId, Ping.Sequence), true);
@@ -679,8 +718,9 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
     const FMargin Margin(44.0f);
     const FVector2D MapSize(FMath::Max(1.0f, Size.X - Margin.Left - Margin.Right), FMath::Max(1.0f, Size.Y - Margin.Top - Margin.Bottom));
     const FPaintGeometry MapGeometry = AllottedGeometry.ToPaintGeometry(MapSize, FSlateLayoutTransform(FVector2D(Margin.Left, Margin.Top)));
-    FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer, AllottedGeometry.ToPaintGeometry(), FCoreStyle::Get().GetBrush("WhiteBrush"),
-        ESlateDrawEffect::None, FLinearColor(0.008f, 0.018f, 0.025f, 0.96f));
+    const FSlateBrush PanelBrush = FKalmalaUITheme::Get().MakePanelBrush(UKalmalaSettingsWidget::GetContrastMode());
+    FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer, AllottedGeometry.ToPaintGeometry(), &PanelBrush,
+        ESlateDrawEffect::None, PanelBrush.TintColor.GetSpecifiedColor());
     if (ViewModel != nullptr)
     {
         // Edge tiles extend past the view. Clip terrain and fog together so
@@ -766,23 +806,20 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
     }
     const FString Hint = FString::Printf(TEXT("MAP  |  %.0fm  |  Grid %.0fm  |  Drag/Arrows pan · Wheel/PgUp zoom · R recenter · M / Esc close"),
         MapZoom / 100.0f, ChooseGridSpacing(MapZoom) / 100.0f);
-    FSlateDrawElement::MakeText(OutDrawElements, DrawLayer + 5, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(20.0f, 18.0f))), Hint,
-        FCoreStyle::GetDefaultFontStyle("Regular", 16), ESlateDrawEffect::None, FLinearColor(0.85f, 0.91f, 0.87f, 1.0f));
+    const float HeaderBottom = DrawMapLabel(OutDrawElements, DrawLayer + 5, AllottedGeometry, FVector2D(20, 18), Hint, 3);
     if (LocalPins.IsValidIndex(SelectedPinIndex))
     {
         const FString SelectedHint = FString::Printf(TEXT("SELECTED: %s  |  Enter complete · H show/hide · Delete remove"),
             *GetPinAccessibilityLabel(LocalPins[SelectedPinIndex]));
-        FSlateDrawElement::MakeText(OutDrawElements, DrawLayer + 6, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(20.0f, 42.0f))), SelectedHint,
-            FCoreStyle::GetDefaultFontStyle("Regular", 14), ESlateDrawEffect::None, FLinearColor(0.92f, 0.8f, 0.58f, 1.0f));
+        DrawMapLabel(OutDrawElements, DrawLayer + 6, AllottedGeometry, FVector2D(20, HeaderBottom), SelectedHint, 1, true);
     }
     if (bPinLabelEntry)
     {
         const FString Draft = PendingPinLabel.IsEmpty() ? TEXT("Name marker…") : PendingPinLabel;
         const FString Prompt = FString::Printf(TEXT("MARKER: %s  |  1 Cairn · 2 Lantern · 3 Thread · Enter save · Esc cancel"), *Draft);
-        FSlateDrawElement::MakeText(OutDrawElements, DrawLayer + 7, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(20.0f, Size.Y - 38.0f))), Prompt,
-            FCoreStyle::GetDefaultFontStyle("Regular", 14), ESlateDrawEffect::None, FLinearColor(0.9f, 0.82f, 0.62f, 1.0f));
+        DrawMapLabel(OutDrawElements, DrawLayer + 8, AllottedGeometry, FVector2D(20, Size.Y - 38), Prompt, 1, true);
     }
-    return DrawLayer + 7;
+    return DrawLayer + 9;
 }
 
 FVector2D UKalmalaWorldMapWidget::ScreenToWorld(const FVector2D& ScreenPosition, const FVector2D& MapSize) const
@@ -915,7 +952,7 @@ void UKalmalaWorldMapWidget::DrawPins(const FGeometry& AllottedGeometry, const F
             FCoreStyle::Get().GetBrush("WhiteBrush"), ESlateDrawEffect::None, FLinearColor(1.0f, 1.0f, 1.0f, 0.2f));
         FSlateDrawElement::MakeText(OutDrawElements, LayerId + 4, AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(Position + FVector2D(10.0f, -8.0f))),
             GetPinAccessibilityLabel(Pin),
-            FCoreStyle::GetDefaultFontStyle("Regular", 12), ESlateDrawEffect::None, FLinearColor::White);
+            FKalmalaUITheme::Get().MakeFont(FKalmalaUITheme::Get().BodySize - 1, false, UKalmalaSettingsWidget::GetTextScalePercent()), ESlateDrawEffect::None, FLinearColor::White);
     }
 }
 

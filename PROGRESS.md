@@ -3,7 +3,7 @@
 ## Current state
 
 - Automation bootstrap created on 2026-09-01.
-- As of 2026-10-02, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) is in implementation: the local theme/HUD foundation and shared component extension children are verified; the configurable-theme parent remains open, with representative cross-menu migration next in BACKLOG.md and docs/04-roadmap.md.
+- As of 2026-10-02, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) is in implementation: the configurable-theme parent is complete after representative cross-menu migration and parent-level editor verification; the invisible top-right status hotbar parent is next in BACKLOG.md and docs/04-roadmap.md.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
 ## Run log
@@ -10701,3 +10701,19 @@ Handoff: Main checkout E:/dev/Kalmala used, so worktree-to-main synchronization 
 Next eligible task: Migrate representative inventory, build, map, and options styling to the shared theme; verify cross-view propagation, rendered layout and local accessibility overrides, then run parent-level integration verification. Do not start the status-hotbar parent.
 
 Current run time: 2026-10-02T11:02:26+00:00.
+
+### Run 2026-10-02T11:40:00Z — M11 theme parent integrated
+
+Outcome: Completed only the final child of the first M11 theme parent, then verified and checked that parent. Inventory pack, build/craft tree, expanded-map Slate surface/text, and options labels/tabs/control rows now consume the shared theme. Corrected map brush tint, wrapped/backed map controls, and inventory panel height accounting for wrapped lines. Fixed the developer map fixture opening before closed-map exploration on a joining client. First and final concurrency inventories showed only this Kalmala chat active; checkout was clean at 6a917f5 and HEAD stayed unchanged throughout.
+
+Changed: Source/KalmalaUI/Public/{KalmalaUITheme.h,KalmalaInventorySubsystem.h,KalmalaWorldMapWidget.h}; Source/KalmalaUI/Private/{KalmalaUITheme.cpp,KalmalaInventorySubsystem.cpp,KalmalaCraftingSubsystem.cpp,KalmalaSettingsWidget.cpp,KalmalaWorldMapWidget.cpp,KalmalaWorldMapSubsystem.cpp,Tests/KalmalaUIThemeTest.cpp}; docs/07-development-setup.md; docs/35-ui-theme.md; docs/ui-theme/ (nine reviewed PNGs and verification.txt); BACKLOG.md; PROGRESS.md. Every changed file belongs to this run; no generated checkout directory was modified.
+
+Verification: Parent-level. Final UE 5.8.2 KalmalaEditor Win64 Development build passed six actions in disposable C:/Users/Ville/AppData/Local/Temp/kt1102 with normal LOCALAPPDATA/UnrealBuildTool access and MaxParallelActions=4. Final full Kalmala automation queue passed 99/99 with test exit 0 (kt119-all.log), including theme, UI/accessibility, generation/map performance, authority and save tests. Inventory host/client authority and privacy runner passed. Rendered crafting runner passed server payments/rejections, owner feedback and modal input restoration with default and modified theme, including final inventory-height repair. Rendered settings runner passed local persistence, controls/focus, stable gameplay and input restoration at 150% text/high contrast, with default and modified theme. Rendered map runner passed host/client identity, fog/terrain painting and map input at 1024x768, 1280x720 and 2560x1080; changed-theme and changed-theme plus 150% high-contrast map runs also passed at 1024x768. Reviewed screenshots show shared blue/gold styling, missing font/image fallback, legible contrast overrides and corrected inventory backing. Initial map attempt timed out at 1280x720 because its client opened before the closed-exploration record; final guarded fixture passed all three resolutions. Rebuilt/reran after paint and height repairs. Five documentation contracts, ownership/accessibility audits and diff checks passed. Maximum inspected mirror/test file path was 213 characters; staged paths are checked before commit. Broad startup retained two pre-discovery generic Condition failed messages seen in prior runs, with all tests successful and noncritical exit 0.
+
+Multiplayer impact: Local presentation only. No gameplay RPC, client-controlled outcomes, private peer query, server timer, inventory transaction, catalogue ID, replicated field, map/fog save data or save schema changed. Normal map opening/input is unchanged; only the explicitly enabled developer fixture waits for its own recorded prerequisite.
+
+Known limits: Parent integration verification is complete; full M11 acceptance remains later. No new packaged build/config/font/image cooking or custom project-font visual check; no physical keyboard/controller peer walkthrough. Some ancillary glyph colours/layout and dense HUD reflow remain later view-polish work. New icons, backgrounds, slot grids, whole-interface scale, user reduced-motion option and options opening animation remain queued. Theme assets must already be runtime-available. Mirror-only test theme/local-setting overrides were restored/removed after verification. Full retained raw logs are temporary; selected assertions and reviewed captures are committed under docs/ui-theme/.
+
+Next task: Add the owner-local invisible top-right status hotbar parent beside/below the minimap; do not start another task in this run. Main checkout E:/dev/Kalmala used; handoff synchronization is unnecessary. Stage/commit only this run's listed files after staged-diff and path review.
+
+Current run time: 2026-10-02T11:40:00Z.

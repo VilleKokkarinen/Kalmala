@@ -12,6 +12,7 @@
 #include "Engine/Font.h"
 #include "Engine/Texture2D.h"
 #include "Misc/PackageName.h"
+#include "Blueprint/WidgetTree.h"
 
 namespace
 {
@@ -116,9 +117,14 @@ int32 FKalmalaUITheme::ScaledFontSize(const int32 BaseSize, const int32 TextScal
 
 void FKalmalaUITheme::ApplyPanel(UBorder& Border, const int32 ContrastMode) const
 {
-    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
     Border.SetPadding(PanelPadding());
     Border.SetBrushColor(FLinearColor::White);
+    Border.SetBrush(MakePanelBrush(ContrastMode));
+}
+
+FSlateBrush FKalmalaUITheme::MakePanelBrush(const int32 ContrastMode) const
+{
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
     FSlateBrush Brush = FSlateRoundedBoxBrush(bContrast ? HighContrastPanel : Panel, CornerRadius,
         bContrast ? FLinearColor::White : BorderColor, bContrast ? FMath::Max(1.0f, BorderWidth) : BorderWidth);
     if (!bContrast && !PanelImage.IsEmpty())
@@ -129,14 +135,24 @@ void FKalmalaUITheme::ApplyPanel(UBorder& Border, const int32 ContrastMode) cons
             Brush.DrawAs = ESlateBrushDrawType::Image;
         }
     }
-    Border.SetBrush(Brush);
+    return Brush;
 }
 
 void FKalmalaUITheme::ApplyText(UTextBlock& Label, const int32 BaseSize, const bool bHeading,
     const int32 TextScalePercent, const int32 ContrastMode) const
 {
-    Label.SetColorAndOpacity(FSlateColor(UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0
-        ? FLinearColor::White : (bHeading ? Heading : Text)));
+    Label.SetColorAndOpacity(FSlateColor(TextColor(bHeading, ContrastMode)));
+    Label.SetFont(MakeFont(BaseSize, bHeading, TextScalePercent));
+}
+
+FLinearColor FKalmalaUITheme::TextColor(const bool bHeading, const int32 ContrastMode) const
+{
+    return UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0
+        ? FLinearColor::White : (bHeading ? Heading : Text);
+}
+
+FSlateFontInfo FKalmalaUITheme::MakeFont(const int32 BaseSize, const bool bHeading, const int32 TextScalePercent) const
+{
     UFont* FontAssetObject = FontAsset.IsEmpty() ? nullptr : Cast<UFont>(LoadThemeAsset(FontAsset));
     // Offline bitmap fonts do not provide a composite face for shared Slate text.
     if (FontAssetObject && !FontAssetObject->GetCompositeFont()) FontAssetObject = nullptr;
@@ -150,7 +166,7 @@ void FKalmalaUITheme::ApplyText(UTextBlock& Label, const int32 BaseSize, const b
     }
     Font.OutlineSettings.OutlineSize = FMath::RoundToInt(OutlineSize);
     Font.OutlineSettings.OutlineColor = FLinearColor::Black;
-    Label.SetFont(Font);
+    return Font;
 }
 
 void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode) const
@@ -180,4 +196,18 @@ void FKalmalaUITheme::ApplyScroll(UScrollBox& Scroll, const bool bReducedMotion)
 {
     Scroll.SetAnimateWheelScrolling(bAnimateScrolling && !bReducedMotion);
     Scroll.SetScrollAnimationInterpolationSpeed(ScrollSpeed);
+}
+
+void FKalmalaUITheme::ApplyMenu(UWidgetTree& Tree, UTextBlock* HeadingLabel,
+    const int32 TextScalePercent, const int32 ContrastMode) const
+{
+    Tree.ForEachWidget([&](UWidget* Widget)
+    {
+        if (auto* Label = Cast<UTextBlock>(Widget))
+            ApplyText(*Label, Label == HeadingLabel ? EmphasisSize + 11 : BodySize + 5,
+                Label == HeadingLabel, TextScalePercent, ContrastMode);
+        else if (auto* Border = Cast<UBorder>(Widget)) ApplyPanel(*Border, ContrastMode);
+        else if (auto* Button = Cast<UButton>(Widget)) ApplyButton(*Button, ContrastMode);
+        else if (auto* Scroll = Cast<UScrollBox>(Widget)) ApplyScroll(*Scroll);
+    });
 }

@@ -1,4 +1,5 @@
 #include "KalmalaCraftingSubsystem.h"
+#include "KalmalaUITheme.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaPlacementPreview.h"
 #include "KalmalaRecipeCatalogue.h"
@@ -219,6 +220,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     Outer->AddChildToVerticalBox(Scroll)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     Outer->AddChildToVerticalBox(CloseButton)->SetPadding(FMargin(0,8,0,0));
     Border->SetContent(Outer); WidgetTree->RootWidget = Border;
+    FKalmalaUITheme::Get().ApplyMenu(*WidgetTree, HeaderText,
+        UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
     SetVisibility(ESlateVisibility::Collapsed);
 }
 
@@ -333,16 +336,7 @@ void UKalmalaCraftingWidget::Refresh()
         UKalmalaSettingsWidget::GetContrastMode());
     if (LastDetailTextScalePercent != TextScalePercent || LastDetailContrastMode != ContrastMode)
     {
-        DetailText->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(),
-            FMath::RoundToInt(18.0f * TextScalePercent / 100.0f)));
-        DetailText->SetColorAndOpacity(FSlateColor(ContrastMode != 0
-            ? FLinearColor::White : FLinearColor(0.86f, 0.92f, 0.90f, 1.0f)));
-        if (UBorder* Background = Cast<UBorder>(WidgetTree->RootWidget))
-        {
-            Background->SetBrushColor(ContrastMode != 0
-                ? FLinearColor(0.0f, 0.0f, 0.0f, 0.98f)
-                : FLinearColor(0.025f, 0.035f, 0.04f, 0.98f));
-        }
+        FKalmalaUITheme::Get().ApplyMenu(*WidgetTree, HeaderText, TextScalePercent, ContrastMode);
         LastDetailTextScalePercent = TextScalePercent;
         LastDetailContrastMode = ContrastMode;
     }

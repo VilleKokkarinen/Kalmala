@@ -16,6 +16,21 @@ Require all five `Result={Success}` results. Run
 These are increment-level checks; they do not complete the theme parent or
 verify rendered menu propagation, viewport layout, or packaged theme loading.
 
+For the final theme child / parent integration gate, build the isolated editor
+mirror with normal `%LOCALAPPDATA%/UnrealBuildTool` access and
+`-MaxParallelActions=4`. Run the full `Automation RunTests Kalmala` queue with
+the isolated headless flags above; require every completed test to succeed and
+test exit code 0. From the mirror, run `Scripts/Verify-Inventory.ps1`,
+`Scripts/Verify-Crafting.ps1 -Rendered`, `Scripts/Verify-SettingsAccessibility.ps1`,
+and `Scripts/Verify-WorldMap.ps1` with unused ports. The map runner covers
+1024x768, 1280x720, and 2560x1080; settings covers 150% text/high contrast.
+Inspect retained PNGs as well as runner assertions. Repeat rendered map and
+build checks with changed theme values in the disposable mirror, and with
+150% text/high contrast in its local settings. Restore mirror config afterward.
+This gate verifies representative editor presentation and existing authority /
+modal input contracts; it does not establish a new package or physical-input
+playthrough. Evidence and remaining M11 scope are recorded in `35-ui-theme.md`.
+
 ## Baseline
 
 - **Engine:** Installed Unreal Engine 5.8.2 build at `C:\Program Files\Epic Games\UE_5.8`.

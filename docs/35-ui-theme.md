@@ -39,7 +39,8 @@ disabled brushes and content padding; the settings panel uses the shared panel
 and optional image; its ordinary action labels use themed font styling; the
 Controls scroll view uses theme animation; existing support glyph boxes use
 shared icon dimensions. HUD panels/text also consume the extended styling.
-Other menu labels and views remain for the next migration child.
+The final foundation child migrates representative inventory, build/craft,
+expanded-map, and options views as described below.
 
 | Extension key | Default | Accepted values / consumer |
 | --- | --- | --- |
@@ -79,7 +80,62 @@ invalid numbers/paths, missing assets, and a transient in-memory image reference
 The settings/inventory and prior HUD tests remain required alongside it. No
 custom project font or rendered image appearance has been reviewed.
 
-The first M11 parent remains incomplete. Representative inventory, build, map,
-and options migration, cross-view propagation, rendered viewport/accessibility
-review, packaged asset/config inclusion, and full parent integration remain
-pending in the final child. Do not treat this extension as M11 acceptance.
+## Representative view migration
+
+Inventory's pack panel, wrapping text, and scroll use the shared theme. Pack
+text keeps its historical one-unit offset above BodySize. Its fixed wrap width
+and layout prepass include wrapped lines in the panel height, so larger theme
+text remains backed by the panel. Build/craft uses
+ApplyMenu over the existing widget tree: ordinary labels and actions use
+BodySize + 5, its title uses EmphasisSize + 11, and all sizes are bounded before
+local text scaling. Disabled buttons, delegates, selection, tooltips, and
+server-derived costs remain intact. Accessibility changes restyle the whole
+build tree rather than only its detail label.
+
+Options labels, tab text, and control-binding labels now share font assets,
+faces, outlines, colours, and semantic-size offsets. Existing layout offsets,
+modal backdrop and content navigation stay local and retain their established
+placement. Some ancillary HUD/support glyph styling still uses semantic
+colours; this parent establishes representative shared components, not the
+later per-view graphical-polish tasks.
+
+The expanded map consumes MakePanelBrush and MakeFont directly in Slate.
+Controls wrap to available width, use a readable theme-backed strip above
+terrain, and stack the selected-pin heading beneath the wrapped main hint.
+High contrast forces the same black surface and white text as UMG. Terrain,
+fog, personal pins, co-op visibility, marker colours, map geometry, and map
+input are unchanged. Slate painting explicitly passes the shared brush tint;
+UMG handles that tint through its border widget. The developer map fixture
+waits for its closed-map exploration record before opening, avoiding a race
+with joining-client world-identity arrival. Normal M-key opening does not wait.
+
+The foundation does not add new background art, item icons, slot grids,
+interface scaling, a user-facing reduced-motion preference, or the options
+opening animation. Those remain later M11 tasks. Theme-only font/image assets
+must already be runtime-available; packaged config/asset inclusion and custom
+project-font appearance are not established by editor integration checks.
+
+## Parent verification — 2026-10-02
+
+The foundation parent is complete. The isolated UE 5.8.2 editor build passed;
+all 99 Kalmala automations passed with exit 0. Inventory authority/privacy,
+rendered build/craft, settings/accessibility and expanded-map host/client
+regressions passed. Default map checks covered 1024x768, 1280x720 and
+2560x1080; settings checks covered 150% text and high contrast. Modified-theme
+build/HUD, map and options checks passed, including unavailable font/image
+fallback; a further 1024x768 map check confirmed 150% text/high-contrast
+precedence. All checks used isolated profiles and the disposable mirror.
+
+The test theme changed BodySize 13 to 15, EmphasisSize 17 to 19, panels and
+buttons to blue, and heading/body text to warm gold. FontAsset and PanelImage
+pointed at deliberately missing project objects. Production config remains
+unchanged. Map comparison is especially useful: terrain/fog remain the same
+while frame/text styling changes, and high contrast restores black/white.
+
+Reviewed captures are in `ui-theme/`: `build-default.png`, `build-custom.png`,
+`map-default.png`, `map-custom.png`, `map-hc.png`, `settings-hc.png`,
+`controls-hc.png`, `audio-hc.png`, and `settings-custom-hc.png`.
+`ui-theme/verification.txt` retains selected test and peer assertions. Full raw
+logs remain under the temporary roots listed in PROGRESS.md and that file.
+These captures review initial menu positions; later menu polishing and full
+M11 acceptance retain the broader physical-input/layout requirements.
