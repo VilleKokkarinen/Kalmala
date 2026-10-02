@@ -10108,3 +10108,17 @@ Multiplayer impact: No runtime change. Shared components retain existing actions
 Known limits: Theme file, assets, components, and animation are planned, not implemented. Theme format and load workflow will be documented during the first increment. Animation must retain immediate modal ownership, correct moving-panel hit testing, interruption handling, and an instant/reduced-motion path.
 
 Next task: Implement the first unchecked M11 increment: the configurable theme foundation and shared components, then follow the ordered status/icon/menu queue.
+
+### Run 2026-10-02 — Eight approved M11 UX improvements added
+
+Outcome: Added all eight approved suggestions to M11, including category grouping in appropriate menus such as building. The roadmap now has eighteen ordered goals; runtime implementation remains queued.
+
+Changed: `docs/04-roadmap.md` adds explicit goals and acceptance; `BACKLOG.md` adds matching unchecked tasks; `docs/05-decision-log.md` records approval; this `PROGRESS.md` handoff. Pre-existing work is preserved.
+
+Verification: Documentation-only update; `Scripts/Verify-M5DocumentationContracts.ps1` passed all five checks and `git diff --check` passed. The isolated staged diff is reviewed before committing only this run's changes. No Unreal build/gameplay test required.
+
+Multiplayer impact: No runtime changes. New views/filters/prompts must use existing owner-visible data; notifications report accepted outcomes; server validation, map privacy, inventory state, and gameplay saves remain unchanged. UI scale and reduced motion use existing local settings.
+
+Known limits: These are approved tasks, not implemented features. Item details show only supported statistics/actions; grouping/filtering changes presentation, not unlocks or saved inventory order. No hidden discovery query or speculative success notification is authorized.
+
+Next task: Implement the first unchecked M11 increment, the configurable theme foundation and shared components, then follow the ordered status/icon/menu/UX queue.
