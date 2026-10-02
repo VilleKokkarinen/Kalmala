@@ -10080,3 +10080,17 @@ Multiplayer impact: None at runtime. Future UI must read existing owner-visible 
 Known limits: Icons and top-right layout are planned, not implemented. Conditions without authoritative expiry must display ongoing rather than an invented timer. Existing M10 evidence and accepted limitations remain recorded; this milestone does not change the visual identity or gameplay scope.
 
 Next task: Implement and verify the invisible owner-local top-right status container beside/below the minimap, the first unchecked M11 task.
+
+### Run 2026-10-02 — M11 complete item icons and menu presentation planned
+
+Outcome: Expanded the approved M11 roadmap with complete inventory/buildable icon coverage, inventory/build slot grids, and background images for inventory, build, and the M-key world-map menus. No runtime implementation started.
+
+Changed: `docs/04-roadmap.md` now has seven ordered goals and expanded acceptance; `BACKLOG.md` mirrors the new tasks; `docs/05-decision-log.md` records owner direction; this `PROGRESS.md` handoff. All pre-existing edits are preserved.
+
+Verification: Documentation-only update. `Scripts/Verify-M5DocumentationContracts.ps1` passed all five checks; `git diff --check` passed. Inspect the isolated staged diff before committing only this run's changes. No Unreal build or gameplay scenario required.
+
+Multiplayer impact: No runtime impact. Icons, backgrounds, and grid cells remain local presentation of existing owner-visible state. Preserve server-owned transactions, inventory capacity/stacking, canonical identities, map privacy, input behavior, and save contracts.
+
+Known limits: Assets and menus are planned, not implemented. Complete icon coverage must be audited against current catalogues during implementation; no item count or generated asset coverage is claimed here. Backgrounds follow the existing visual identity and must keep foreground content readable.
+
+Next task: Implement and verify the first unchecked M11 task, the invisible top-right status container; then follow the ordered icon/menu queue.
