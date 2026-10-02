@@ -10122,3 +10122,17 @@ Multiplayer impact: No runtime changes. New views/filters/prompts must use exist
 Known limits: These are approved tasks, not implemented features. Item details show only supported statistics/actions; grouping/filtering changes presentation, not unlocks or saved inventory order. No hidden discovery query or speculative success notification is authorized.
 
 Next task: Implement the first unchecked M11 increment, the configurable theme foundation and shared components, then follow the ordered status/icon/menu/UX queue.
+
+### Run 2026-10-02 — M11 previews, ranked favorites, menu memory, status cues, and inline comparisons
+
+Outcome: Added the four selected suggestions and the owner's explicit inline-stat comparison direction to M11. The roadmap now has twenty-three ordered goals; theme foundations remain first.
+
+Changed: `docs/04-roadmap.md` and `BACKLOG.md` add matching goals/acceptance; `docs/05-decision-log.md` records owner approval; this `PROGRESS.md` handoff. Pre-existing edits remain preserved.
+
+Verification: Documentation-only planning; `Scripts/Verify-M5DocumentationContracts.ps1` passed all five checks, `git diff --check` passed, and all 23 goals have sequential numbering. The isolated staged diff is reviewed before committing only this run's changes. No runtime build/gameplay test required.
+
+Multiplayer impact: No runtime changes. Usage ranks count accepted owner-visible actions, menu state stays local, and comparisons/cues read existing supported authoritative data. No gameplay mutation, balance, item/stat catalogue expansion, peer-history exposure, or save-schema change.
+
+Known limits: Features remain queued. Marker treatment is configurable; usage ranks are separate from manual bookmarks. History lifecycle/ties will be documented during implementation. Menu restoration is session-local. Sword/mace values illustrate text formatting only; absent stats must not be fabricated. Unselected suggestions 5, 6, and 8 from the latest proposal were not added.
+
+Next task: Implement the first unchecked M11 increment, the configurable theme foundation and shared components, then follow the ordered UI queue.
