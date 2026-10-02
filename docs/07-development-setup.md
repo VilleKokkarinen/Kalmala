@@ -1,5 +1,35 @@
 # Development setup
 
+## M11 inventory/build backgrounds and slot grids
+
+For the inventory/build visual parent, prepare a disposable project mirror
+with project/plugin source and content, excluding generated directories. Use
+normal `%LOCALAPPDATA%/UnrealBuildTool` access and `-MaxParallelActions=4` for
+the forced `KalmalaEditor Win64 Development` build. Import the two original
+PNG sources from `Content/Kalmala/UI/Source/` into `/Game/Kalmala/UI` with
+Unreal's `ImportAssets` commandlet before runtime verification.
+
+Run the full `Automation RunTests Kalmala` queue. Then run the rendered
+two-peer checks from the mirror:
+
+```powershell
+Scripts/Verify-Inventory.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-Inventory.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+```
+
+Inventory verification requires 16 empty slots, a populated stack with its
+count, carried-tool condition, owner-only state, and positive scroll extent
+for the populated view. Build verification requires canonical recipe/build
+icons, selected/focused/unavailable labels, positive scroll extent, and
+selection/restoration through focused keyboard and D-pad key events. Inspect
+the screenshots for both original backgrounds and the high-contrast fallback.
+The checks cover representative editor rendering; they do not verify physical
+input devices or cooked/package asset inclusion. Retain selected captures and
+the exact runner/test results in `PROGRESS.md` and
+`docs/ui-inventory-build/`.
+
 ## M11 status parent and complete icon verification
 
 Follow `36-status-icons.md`: build the isolated editor mirror after the three

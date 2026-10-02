@@ -3,6 +3,7 @@
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaUITheme.h"
 #include "Blueprint/WidgetTree.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Border.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
@@ -11,6 +12,7 @@
 #include "Components/ScrollBox.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "UnrealClient.h"
 #include "Styling/CoreStyle.h"
 #include "Rendering/DrawElements.h"
 #include "Engine/LocalPlayer.h"
@@ -32,6 +34,21 @@
 
 namespace
 {
+void ApplyInventoryVisualTestSettings()
+{
+#if !UE_BUILD_SHIPPING
+    static bool bApplied = false;
+    if (bApplied || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryTest"))) return;
+    bApplied = true;
+    int32 TextScale = UKalmalaSettingsWidget::GetTextScalePercent();
+    int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
+    if (FParse::Value(FCommandLine::Get(), TEXT("KalmalaUIDeveloperTextScale="), TextScale))
+        UKalmalaSettingsWidget::SetTextScalePercent(TextScale);
+    if (FParse::Value(FCommandLine::Get(), TEXT("KalmalaUIDeveloperContrast="), Contrast))
+        UKalmalaSettingsWidget::SetContrastMode(Contrast);
+#endif
+}
+
 FString FindInputKeyLabel(const FName ActionName, const bool bGamepad)
 {
     const UInputSettings* Settings = GetDefault<UInputSettings>();
@@ -160,7 +177,8 @@ void UKalmalaInventoryWidget::NativeOnInitialized()
     Super::NativeOnInitialized();
     SetIsFocusable(false);
     Background = WidgetTree->ConstructWidget<UBorder>();
-    FKalmalaUITheme::Get().ApplyPanel(*Background, UKalmalaSettingsWidget::GetContrastMode());
+    const FKalmalaUITheme& InitialTheme = FKalmalaUITheme::Get();
+    InitialTheme.ApplyPanel(*Background, UKalmalaSettingsWidget::GetContrastMode(), &InitialTheme.InventoryPanelImage);
     UVerticalBox* Content = WidgetTree->ConstructWidget<UVerticalBox>();
     SupportGlyphRow = WidgetTree->ConstructWidget<UHorizontalBox>();
     const EKalmalaSupportGlyph GlyphKinds[] = { EKalmalaSupportGlyph::Mending, EKalmalaSupportGlyph::HearthShield,
@@ -198,14 +216,14 @@ void UKalmalaInventoryWidget::NativeOnInitialized()
     // Explicit width also makes prepass height include wrapped lines before
     // the viewport panel is resized for a font/accessibility change.
     PackText->SetWrapTextAt(340 - 2 * FKalmalaUITheme::Get().PaddingX);
-    UScrollBox* Scroll = WidgetTree->ConstructWidget<UScrollBox>();
-    FKalmalaUITheme::Get().ApplyScroll(*Scroll);
+    CatalogueScroll = WidgetTree->ConstructWidget<UScrollBox>();
+    FKalmalaUITheme::Get().ApplyScroll(*CatalogueScroll);
     auto* PackContent = WidgetTree->ConstructWidget<UVerticalBox>();
     PackContent->AddChild(PackText);
     CatalogueRows = WidgetTree->ConstructWidget<UKalmalaCatalogueRowsWidget>();
-    PackContent->AddChild(CatalogueRows); Scroll->AddChild(PackContent);
+    PackContent->AddChild(CatalogueRows); CatalogueScroll->AddChild(PackContent);
     Content->AddChildToVerticalBox(SupportGlyphRow)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
-    Content->AddChildToVerticalBox(Scroll);
+    Content->AddChildToVerticalBox(CatalogueScroll)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     Background->SetContent(Content);
     WidgetTree->RootWidget = Background;
     SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -225,7 +243,7 @@ void UKalmalaInventoryWidget::SetPackTextAccessibility(const int32 TextScalePerc
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     if (Background)
     {
-        Theme.ApplyPanel(*Background, BoundedContrast);
+        Theme.ApplyPanel(*Background, BoundedContrast, &Theme.InventoryPanelImage);
     }
     if (PackText)
     {
@@ -237,7 +255,17 @@ void UKalmalaInventoryWidget::SetPackTextAccessibility(const int32 TextScalePerc
 
 void UKalmalaInventoryWidget::SetCatalogueRows(const TArray<FKalmalaCatalogueRow>& Rows, int32 TextScale, int32 Contrast)
 {
-    if (CatalogueRows) CatalogueRows->SetRows(Rows, TextScale, Contrast);
+    if (CatalogueRows) CatalogueRows->SetRows(Rows, UKalmalaInventoryComponent::MaxSlots, TextScale, Contrast);
+}
+
+FString UKalmalaInventoryWidget::GetCatalogueGridSummary() const
+{
+    const bool bScrollable = CatalogueScroll && CatalogueScroll->GetScrollOffsetOfEnd() > 1.0f;
+    return CatalogueRows
+        ? FString::Printf(TEXT("PackSlots=%d Filled=%d Empty=%d CarriedTools=%d Scrollable=%d"),
+            CatalogueRows->GetSlotCapacity(), CatalogueRows->GetFilledSlotCount(),
+            CatalogueRows->GetEmptySlotCount(), CatalogueRows->GetCarriedToolCount(), bScrollable)
+        : FString::Printf(TEXT("PackSlots=0 Filled=0 Empty=0 CarriedTools=0 Scrollable=%d"), bScrollable);
 }
 
 float UKalmalaInventoryWidget::GetRequiredPanelHeight() const
@@ -286,6 +314,7 @@ void UKalmalaInventoryWidget::SetSupportGlyphsVisible(const bool bVisible)
 
 void UKalmalaInventorySubsystem::Tick(float DeltaTime)
 {
+    ApplyInventoryVisualTestSettings();
     if (!GetWorld() || !GetWorld()->IsGameWorld() || !GetLocalPlayer()) return;
     APlayerController* Controller = GetLocalPlayer()->GetPlayerController(GetWorld());
     if (Widget && Widget->GetOwningPlayer() != Controller)
@@ -388,7 +417,9 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
         for (const auto& Stack : Inventory->GetStacks())
         {
             const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Stack.ItemId);
-            Catalogue.Add({ Stack.ItemId, FString::Printf(TEXT("%s: %d"), Item ? *Item->DisplayName : *Stack.ItemId.ToString(), Stack.Quantity) });
+            Catalogue.Add({ Stack.ItemId,
+                Item ? Item->DisplayName : Stack.ItemId.ToString(),
+                FString::Printf(TEXT("× %d"), Stack.Quantity), false });
             bHasPreparedFood |= Stack.Quantity > 0 && UKalmalaPlayerStatusComponent::IsKnownFoodItem(Stack.ItemId);
         }
     }
@@ -403,8 +434,9 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
             Name.ReplaceInline(TEXT("IronAxe"), TEXT("Iron axe"));
             Name.ReplaceInline(TEXT("ConstructionHammer"), TEXT("Construction hammer"));
             const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(Tool.ToolId);
-            Catalogue.Add({ Tool.ToolId, FString::Printf(TEXT("%s · level %d · condition %d/%d"), *Name,
-                Tool.ToolLevel, Tool.Durability, Definition ? Definition->MaxDurability : 0) });
+            Catalogue.Add({ Tool.ToolId, Name,
+                FString::Printf(TEXT("Level %d · condition %d/%d"),
+                    Tool.ToolLevel, Tool.Durability, Definition ? Definition->MaxDurability : 0), true });
         }
     if (bHasPreparedFood)
     {
@@ -417,15 +449,73 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
     Widget->ForceLayoutPrepass();
     int32 TextLineCount = 1;
     for (const TCHAR CurrentChar : Text) if (CurrentChar == TEXT('\n')) ++TextLineCount;
-    Widget->SetDesiredSizeInViewport(FVector2D(340, FMath::Max(Widget->GetRequiredPanelHeight(),
+    int32 ViewportWidth = 0;
+    int32 ViewportHeight = 0;
+    if (APlayerController* PlayerController = GetLocalPlayer() ? GetLocalPlayer()->GetPlayerController(GetWorld()) : nullptr)
+    {
+        PlayerController->GetViewportSize(ViewportWidth, ViewportHeight);
+    }
+    const float ViewportScale = FMath::Max(0.1f, UWidgetLayoutLibrary::GetViewportScale(Widget));
+    const float PanelWidth = ViewportWidth > 0
+        ? FMath::Clamp(ViewportWidth / ViewportScale - 32.0f, 280.0f, 340.0f) : 340.0f;
+    const float AvailableHeight = ViewportHeight > 0 ? ViewportHeight / ViewportScale - 32.0f : 560.0f;
+    const float DesiredHeight = FMath::Max(Widget->GetRequiredPanelHeight(),
         60.0f + (Support && Character && Movement ? 68 : 0)
-        + FMath::RoundToInt(TextLineCount * 22.0f * TextScalePercent / 100.0f))));
+        + FMath::RoundToInt(TextLineCount * 22.0f * TextScalePercent / 100.0f));
+    Widget->SetDesiredSizeInViewport(FVector2D(PanelWidth, FMath::Clamp(DesiredHeight, 180.0f, FMath::Max(180.0f, AvailableHeight))));
 #if !UE_BUILD_SHIPPING
     if (!bVerified && Inventory && Inventory->GetQuantity(TEXT("Wood")) == 7
         && FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryTest")))
     {
         bVerified = true;
         UE_LOG(LogTemp, Display, TEXT("Inventory presentation: Owner=1 Wood=7 ReadOnly=%d"), !Widget->IsFocusable());
+        UE_LOG(LogTemp, Display, TEXT("Inventory grid: %s ReadOnly=%d"),
+            *Widget->GetCatalogueGridSummary(), !Widget->IsFocusable());
+    }
+
+    if (bVerified && GridCaptureStage < 4
+        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaInventoryCapture="), GridCaptureBasePath))
+    {
+        const int32 CaptureTextScale = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
+        const int32 CaptureContrast = UKalmalaSettingsWidget::ClampContrastMode(UKalmalaSettingsWidget::GetContrastMode());
+        if (GridCaptureStage <= 1)
+        {
+            const TArray<FKalmalaCatalogueRow> EmptyRows;
+            Widget->SetCatalogueRows(EmptyRows, CaptureTextScale, CaptureContrast);
+            Widget->ForceLayoutPrepass();
+            if (GridCaptureStage == 0)
+            {
+                GridCaptureStage = 1;
+                GridCaptureWait = 0.0f;
+                UE_LOG(LogTemp, Display, TEXT("Inventory grid fixture: State=Empty %s"),
+                    *Widget->GetCatalogueGridSummary());
+            }
+            GridCaptureWait += DeltaTime;
+            if (GridCaptureWait >= 0.75f)
+            {
+                FScreenshotRequest::RequestScreenshot(GridCaptureBasePath + TEXT("-empty.png"), true, false);
+                GridCaptureStage = 2;
+                GridCaptureWait = 0.0f;
+            }
+        }
+        else if (GridCaptureStage <= 3)
+        {
+            Widget->SetCatalogueRows(Catalogue, CaptureTextScale, CaptureContrast);
+            Widget->ForceLayoutPrepass();
+            if (GridCaptureStage == 2)
+            {
+                GridCaptureStage = 3;
+                GridCaptureWait = 0.0f;
+                UE_LOG(LogTemp, Display, TEXT("Inventory grid fixture: State=Filled %s"),
+                    *Widget->GetCatalogueGridSummary());
+            }
+            GridCaptureWait += DeltaTime;
+            if (GridCaptureWait >= 0.75f)
+            {
+                FScreenshotRequest::RequestScreenshot(GridCaptureBasePath + TEXT("-filled.png"), true, false);
+                GridCaptureStage = 4;
+            }
+        }
     }
 #endif
 }

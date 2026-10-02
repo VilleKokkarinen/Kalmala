@@ -85,11 +85,26 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     const auto ReadAsset = [&Config](const TCHAR* Key, FString& Value)
     {
         FString Path;
-        if (Config.GetString(ThemeSection, Key, Path) && Path.StartsWith(TEXT("/Game/"))
-            && Path.Len() < 180 && FPackageName::IsValidObjectPath(Path)) Value = Path;
+        if (!Config.GetString(ThemeSection, Key, Path) || !Path.StartsWith(TEXT("/Game/")) || Path.Len() >= 180)
+        {
+            return;
+        }
+        FString ClassName;
+        FString PackageName;
+        FString ObjectName;
+        FString SubObjectName;
+        FPackageName::SplitFullObjectPath(Path, ClassName, PackageName, ObjectName, SubObjectName, false);
+        if (!ObjectName.IsEmpty() && SubObjectName.IsEmpty()
+            && FPackageName::IsValidLongPackageName(PackageName)
+            && FPackageName::IsValidObjectPath(Path))
+        {
+            Value = Path;
+        }
     };
     ReadAsset(TEXT("FontAsset"), Theme.FontAsset);
     ReadAsset(TEXT("PanelImage"), Theme.PanelImage);
+    ReadAsset(TEXT("InventoryPanelImage"), Theme.InventoryPanelImage);
+    ReadAsset(TEXT("BuildPanelImage"), Theme.BuildPanelImage);
     FString Face;
     if (Config.GetString(ThemeSection, TEXT("FontFace"), Face)
         && (Face == TEXT("Regular") || Face == TEXT("Bold"))) Theme.FontFace = FName(*Face);
@@ -115,21 +130,22 @@ int32 FKalmalaUITheme::ScaledFontSize(const int32 BaseSize, const int32 TextScal
         * UKalmalaSettingsWidget::ClampTextScale(TextScalePercent) / 100.0f);
 }
 
-void FKalmalaUITheme::ApplyPanel(UBorder& Border, const int32 ContrastMode) const
+void FKalmalaUITheme::ApplyPanel(UBorder& Border, const int32 ContrastMode, const FString* ImageOverride) const
 {
     Border.SetPadding(PanelPadding());
     Border.SetBrushColor(FLinearColor::White);
-    Border.SetBrush(MakePanelBrush(ContrastMode));
+    Border.SetBrush(MakePanelBrush(ContrastMode, ImageOverride));
 }
 
-FSlateBrush FKalmalaUITheme::MakePanelBrush(const int32 ContrastMode) const
+FSlateBrush FKalmalaUITheme::MakePanelBrush(const int32 ContrastMode, const FString* ImageOverride) const
 {
     const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
     FSlateBrush Brush = FSlateRoundedBoxBrush(bContrast ? HighContrastPanel : Panel, CornerRadius,
         bContrast ? FLinearColor::White : BorderColor, bContrast ? FMath::Max(1.0f, BorderWidth) : BorderWidth);
-    if (!bContrast && !PanelImage.IsEmpty())
+    const FString& SelectedImage = ImageOverride ? *ImageOverride : PanelImage;
+    if (!bContrast && !SelectedImage.IsEmpty())
     {
-        if (UTexture2D* Image = Cast<UTexture2D>(LoadThemeAsset(PanelImage)))
+        if (UTexture2D* Image = Cast<UTexture2D>(LoadThemeAsset(SelectedImage)))
         {
             Brush.SetResourceObject(Image);
             Brush.DrawAs = ESlateBrushDrawType::Image;

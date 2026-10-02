@@ -20,6 +20,8 @@
 #include "Components/VerticalBoxSlot.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
+#include "Components/UniformGridPanel.h"
+#include "Components/UniformGridSlot.h"
 #include "Components/InputComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
@@ -34,6 +36,9 @@
 
 namespace
 {
+constexpr int32 RecipeGridColumns = 4;
+const FString NoPanelImage;
+
 FString GetReadableToolName(const FName ToolId)
 {
     if (ToolId == TEXT("ReedKnife")) return TEXT("Reed Knife");
@@ -150,9 +155,10 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized(); SetIsFocusable(true);
     auto* Border = WidgetTree->ConstructWidget<UBorder>(); Border->SetPadding(FMargin(20));
+    MenuBackground = Border;
     Border->SetBrushColor(FLinearColor(.025f,.035f,.04f,.98f));
-    auto* Scroll = WidgetTree->ConstructWidget<UScrollBox>();
-    auto* Column = WidgetTree->ConstructWidget<UVerticalBox>(); Scroll->AddChild(Column);
+    CraftingScrollBox = WidgetTree->ConstructWidget<UScrollBox>();
+    auto* Column = WidgetTree->ConstructWidget<UVerticalBox>(); CraftingScrollBox->AddChild(Column);
     auto AddText = [&](const FString& Text, int32 Size) {
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
         Label->SetText(FText::FromString(Text)); Label->SetAutoWrapText(true);
@@ -167,6 +173,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         if (Mapping.ActionName == TEXT("CraftMenu") && !Mapping.Key.IsGamepadKey()) { CraftKey = Mapping.Key.GetDisplayName().ToString(); break; }
     GeneralInstructions = FString::Printf(TEXT("Construction hammer menu input: %s (Controller View / special-left). Up/Down or D-pad: choose. Enter / A: craft or build. P: local preview. Escape / B: close.\nController Y: build or place selected. X: add fuel. RB: light. Mouse buttons and focused keyboard/controller buttons also work.\nFloor, wall, and roof are built directly from Wood and Fibre; no kit is created. Selection is marked with >. Requirements and unavailable reasons are written in text; colour is never the only cue.\n"), *CraftKey);
     InstructionsText = AddText(GeneralInstructions, 16);
+    RecipeGrid = WidgetTree->ConstructWidget<UUniformGridPanel>();
+    Column->AddChild(RecipeGrid);
     RecipesText = AddText(TEXT(""), 18);
     Column->RemoveChild(RecipesText);
     auto* RecipeRow = WidgetTree->ConstructWidget<UHorizontalBox>();
@@ -227,11 +235,13 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     auto* CloseButton=AddButton(TEXT("Close")); CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseClicked);
     CloseButton->RemoveFromParent();
     auto* Outer=WidgetTree->ConstructWidget<UVerticalBox>();
-    Outer->AddChildToVerticalBox(Scroll)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    Outer->AddChildToVerticalBox(CraftingScrollBox)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     Outer->AddChildToVerticalBox(CloseButton)->SetPadding(FMargin(0,8,0,0));
     Border->SetContent(Outer); WidgetTree->RootWidget = Border;
-    FKalmalaUITheme::Get().ApplyMenu(*WidgetTree, HeaderText,
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    Theme.ApplyMenu(*WidgetTree, HeaderText,
         UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
+    Theme.ApplyPanel(*MenuBackground, UKalmalaSettingsWidget::GetContrastMode(), &Theme.BuildPanelImage);
     SetVisibility(ESlateVisibility::Collapsed);
 }
 
@@ -316,11 +326,189 @@ void UKalmalaCraftingWidget::Close()
     if (auto* PC=GetOwningPlayer()) { PC->SetIgnoreMoveInput(false); PC->SetIgnoreLookInput(false); PC->bShowMouseCursor=bPreviousCursor; PC->SetInputMode(FInputModeGameOnly()); }
 }
 
+void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndices,
+    UKalmalaCraftingComponent* Crafting, const int32 TextScalePercent, const int32 ContrastMode)
+{
+    if (!RecipeGrid || !WidgetTree) return;
+
+    const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
+    const bool bRebuild = LastRecipeGridIndices != VisibleIndices;
+    if (bRebuild)
+    {
+        RecipeGrid->ClearChildren();
+        RecipeSlotCards.Reset();
+        RecipeSlotNames.Reset();
+        RecipeSlotStates.Reset();
+        RecipeSlotVisualStates.Reset();
+
+        for (int32 SlotIndex = 0; SlotIndex < VisibleIndices.Num(); ++SlotIndex)
+        {
+            const int32 RecipeIndex = VisibleIndices[SlotIndex];
+            if (!Recipes.IsValidIndex(RecipeIndex)) continue;
+            const FKalmalaRecipe& Recipe = Recipes[RecipeIndex];
+
+            UBorder* Card = WidgetTree->ConstructWidget<UBorder>();
+            Card->SetPadding(FMargin(4.0f));
+            USizeBox* CardSize = WidgetTree->ConstructWidget<USizeBox>();
+            CardSize->SetWidthOverride(184.0f);
+            CardSize->SetMinDesiredHeight(104.0f);
+
+            UVerticalBox* CardContent = WidgetTree->ConstructWidget<UVerticalBox>();
+            UHorizontalBox* HeadingRow = WidgetTree->ConstructWidget<UHorizontalBox>();
+            USizeBox* IconBox = WidgetTree->ConstructWidget<USizeBox>();
+            IconBox->SetWidthOverride(40.0f);
+            IconBox->SetHeightOverride(40.0f);
+            UKalmalaIconWidget* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+            EKalmalaIcon Kind;
+            int32 Variant;
+            UKalmalaIconWidget::FindCatalogueIcon(Recipe.Output, Kind, Variant);
+            Icon->SetIcon(Kind, Variant);
+            IconBox->SetContent(Icon);
+            HeadingRow->AddChildToHorizontalBox(IconBox)->SetPadding(FMargin(0.0f, 0.0f, 5.0f, 0.0f));
+
+            UTextBlock* Name = WidgetTree->ConstructWidget<UTextBlock>();
+            Name->SetText(FText::FromString(Recipe.DisplayName));
+            Name->SetAutoWrapText(true);
+            Name->SetWrapTextAt(128.0f);
+            HeadingRow->AddChild(Name);
+            CardContent->AddChild(HeadingRow);
+
+            UTextBlock* State = WidgetTree->ConstructWidget<UTextBlock>();
+            State->SetAutoWrapText(true);
+            State->SetWrapTextAt(168.0f);
+            CardContent->AddChild(State);
+            CardSize->SetContent(CardContent);
+            Card->SetContent(CardSize);
+            UBorder* CellMargin = WidgetTree->ConstructWidget<UBorder>();
+            CellMargin->SetBrushColor(FLinearColor::Transparent);
+            CellMargin->SetPadding(FMargin(3.0f));
+            CellMargin->SetContent(Card);
+            UUniformGridSlot* GridPanelSlot = RecipeGrid->AddChildToUniformGrid(
+                CellMargin, SlotIndex / RecipeGridColumns, SlotIndex % RecipeGridColumns);
+            GridPanelSlot->SetHorizontalAlignment(HAlign_Fill);
+            GridPanelSlot->SetVerticalAlignment(VAlign_Fill);
+
+            RecipeSlotCards.Add(Card);
+            RecipeSlotNames.Add(Name);
+            RecipeSlotStates.Add(State);
+            RecipeSlotVisualStates.Add(0xff);
+        }
+        LastRecipeGridIndices = VisibleIndices;
+    }
+
+    const bool bFocused = HasKeyboardFocus();
+    const bool bRestyle = bRebuild || LastRecipeGridTextScalePercent != TextScalePercent
+        || LastRecipeGridContrastMode != ContrastMode;
+    RecipeGridSelectedIndex = VisibleIndices.IsEmpty() ? INDEX_NONE : FMath::Clamp(Selected, 0, VisibleIndices.Num() - 1);
+    bRecipeGridFocused = bFocused;
+    RecipeGridUnavailableCount = 0;
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+
+    for (int32 SlotIndex = 0; SlotIndex < VisibleIndices.Num() && RecipeSlotCards.IsValidIndex(SlotIndex); ++SlotIndex)
+    {
+        const int32 RecipeIndex = VisibleIndices[SlotIndex];
+        if (!Recipes.IsValidIndex(RecipeIndex)) continue;
+        const FKalmalaRecipe& Recipe = Recipes[RecipeIndex];
+        const FString Reason = Crafting ? Crafting->GetRecipeAvailability(Recipe.RecipeId) : TEXT("Waiting for pack");
+        const bool bUnavailable = !Reason.IsEmpty();
+        const bool bSelected = SlotIndex == RecipeGridSelectedIndex;
+        if (bUnavailable) ++RecipeGridUnavailableCount;
+
+        const FString RecipeStateLabelText = bSelected && bFocused ? TEXT("FOCUSED · SELECTED")
+            : bSelected ? TEXT("SELECTED")
+            : bUnavailable ? TEXT("UNAVAILABLE") : TEXT("AVAILABLE");
+        if (RecipeSlotNames[SlotIndex]->GetText().ToString() != Recipe.DisplayName)
+        {
+            RecipeSlotNames[SlotIndex]->SetText(FText::FromString(Recipe.DisplayName));
+        }
+        if (RecipeSlotStates[SlotIndex]->GetText().ToString() != RecipeStateLabelText)
+        {
+            RecipeSlotStates[SlotIndex]->SetText(FText::FromString(RecipeStateLabelText));
+        }
+        const FText ToolTip = FText::FromString(bUnavailable ? Reason : Recipe.DisplayName + TEXT(" — Available"));
+        if (RecipeSlotCards[SlotIndex]->GetToolTipText().ToString() != ToolTip.ToString())
+        {
+            RecipeSlotCards[SlotIndex]->SetToolTipText(ToolTip);
+        }
+
+        const uint8 VisualState = static_cast<uint8>((bSelected ? 1 : 0) | (bFocused ? 2 : 0)
+            | (bUnavailable ? 4 : 0) | (ContrastMode != 0 ? 8 : 0));
+        if (bRestyle || RecipeSlotVisualStates[SlotIndex] != VisualState)
+        {
+            RecipeSlotVisualStates[SlotIndex] = VisualState;
+            Theme.ApplyPanel(*RecipeSlotCards[SlotIndex], ContrastMode, &NoPanelImage);
+            RecipeSlotCards[SlotIndex]->SetPadding(FMargin(Theme.SlotPadding + (bSelected ? 1.0f : 0.0f)));
+            RecipeSlotCards[SlotIndex]->SetBrushColor(ContrastMode != 0 ? FLinearColor::White
+                : bSelected ? FLinearColor(0.43f, 0.30f, 0.12f, 1.0f)
+                : bUnavailable ? FLinearColor(0.055f, 0.065f, 0.075f, 0.98f)
+                : FLinearColor(0.075f, 0.10f, 0.115f, 0.98f));
+            Theme.ApplyText(*RecipeSlotNames[SlotIndex], 11, bSelected, TextScalePercent, ContrastMode);
+            Theme.ApplyText(*RecipeSlotStates[SlotIndex], 9, false, TextScalePercent, ContrastMode);
+        }
+    }
+
+    LastRecipeGridTextScalePercent = TextScalePercent;
+    LastRecipeGridContrastMode = ContrastMode;
+}
+
+FString UKalmalaCraftingWidget::GetRecipeGridSummary() const
+{
+    const bool bScrollable = CraftingScrollBox && CraftingScrollBox->GetScrollOffsetOfEnd() > 1.0f;
+    return FString::Printf(TEXT("Slots=%d Unavailable=%d Selected=%d Focused=%d ReadOnly=1 Scrollable=%d"),
+        RecipeSlotCards.Num(), RecipeGridUnavailableCount, RecipeGridSelectedIndex, bRecipeGridFocused, bScrollable);
+}
+
+#if !UE_BUILD_SHIPPING
+bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
+{
+    if (!bOpen || RecipeSlotCards.IsEmpty() || RecipeGridSelectedIndex < 0 || !bRecipeGridFocused
+        || RecipeGridUnavailableCount < 1) return false;
+    const int32 InitialSelection = Selected;
+    const FModifierKeysState NoModifiers;
+    const FKeyEvent KeyboardDown(EKeys::Down, NoModifiers, 0, false, 0, 0);
+    const FReply KeyboardReply = NativeOnPreviewKeyDown(FGeometry(), KeyboardDown);
+    const bool bKeyboardAdvanced = KeyboardReply.IsEventHandled() && Selected != InitialSelection
+        && RecipeGridSelectedIndex == Selected;
+    const FKeyEvent KeyboardUp(EKeys::Up, NoModifiers, 0, false, 0, 0);
+    const FReply KeyboardUpReply = NativeOnPreviewKeyDown(FGeometry(), KeyboardUp);
+    const bool bKeyboardRestored = KeyboardUpReply.IsEventHandled() && Selected == InitialSelection
+        && RecipeGridSelectedIndex == InitialSelection;
+    const FKeyEvent ControllerDown(EKeys::Gamepad_DPad_Down, NoModifiers, 0, false, 0, 0);
+    const FReply ControllerDownReply = NativeOnPreviewKeyDown(FGeometry(), ControllerDown);
+    const bool bControllerAdvanced = ControllerDownReply.IsEventHandled() && Selected != InitialSelection
+        && RecipeGridSelectedIndex == Selected;
+    const FKeyEvent ControllerUp(EKeys::Gamepad_DPad_Up, NoModifiers, 0, false, 0, 0);
+    const FReply ControllerUpReply = NativeOnPreviewKeyDown(FGeometry(), ControllerUp);
+    const bool bControllerRestored = ControllerUpReply.IsEventHandled() && Selected == InitialSelection
+        && RecipeGridSelectedIndex == InitialSelection;
+    const float ScrollOffsetOfEnd = CraftingScrollBox ? CraftingScrollBox->GetScrollOffsetOfEnd() : 0.0f;
+    const bool bScrollable = ScrollOffsetOfEnd > 1.0f;
+    UE_LOG(LogTemp, Display, TEXT("Build grid input: KeyboardDown=%d KeyboardUp=%d DPadDown=%d DPadUp=%d Scrollable=%d ScrollEnd=%.1f Focused=%d"),
+        bKeyboardAdvanced, bKeyboardRestored, bControllerAdvanced, bControllerRestored,
+        bScrollable, ScrollOffsetOfEnd, HasKeyboardFocus());
+    return bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable;
+}
+#endif
+
 void UKalmalaCraftingWidget::Refresh()
 {
     auto* M=Model(); if (!M) { Close(); return; }
     const auto& Recipes=UKalmalaRecipeCatalogue::Get()->Recipes;
     const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
+    const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(
+        UKalmalaSettingsWidget::GetTextScalePercent());
+    const int32 ContrastMode = UKalmalaSettingsWidget::ClampContrastMode(
+        UKalmalaSettingsWidget::GetContrastMode());
+    if (LastDetailTextScalePercent != TextScalePercent || LastDetailContrastMode != ContrastMode)
+    {
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        Theme.ApplyMenu(*WidgetTree, HeaderText, TextScalePercent, ContrastMode);
+        Theme.ApplyPanel(*MenuBackground, ContrastMode, &Theme.BuildPanelImage);
+        LastDetailTextScalePercent = TextScalePercent;
+        LastDetailContrastMode = ContrastMode;
+    }
+    if (!VisibleIndices.IsEmpty()) Selected=FMath::Clamp(Selected,0,VisibleIndices.Num()-1);
+    RefreshRecipeGrid(VisibleIndices, M, TextScalePercent, ContrastMode);
     if (VisibleIndices.IsEmpty())
     {
         RecipesText->SetText(FText::FromString(TEXT("No recipes are configured for this station.\n")));
@@ -345,16 +533,6 @@ void UKalmalaCraftingWidget::Refresh()
     DetailText->SetText(FText::FromString(M->GetRecipeDescription(SelectedRecipe.RecipeId)
         + TEXT("\nAvailability: ") + Availability + TEXT("\n")
         + BuildSkillProgressText(Cast<AKalmalaCharacter>(GetOwningPlayerPawn()))));
-    const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(
-        UKalmalaSettingsWidget::GetTextScalePercent());
-    const int32 ContrastMode = UKalmalaSettingsWidget::ClampContrastMode(
-        UKalmalaSettingsWidget::GetContrastMode());
-    if (LastDetailTextScalePercent != TextScalePercent || LastDetailContrastMode != ContrastMode)
-    {
-        FKalmalaUITheme::Get().ApplyMenu(*WidgetTree, HeaderText, TextScalePercent, ContrastMode);
-        LastDetailTextScalePercent = TextScalePercent;
-        LastDetailContrastMode = ContrastMode;
-    }
     const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.Output);
     if (CraftButton)
     {
@@ -554,12 +732,24 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
 #if !UE_BUILD_SHIPPING
     if(!bVerified && PC->GetPawn() && FParse::Param(FCommandLine::Get(),TEXT("KalmalaCraftingTest")))
     {
+        int32 VisualTextScale = UKalmalaSettingsWidget::GetTextScalePercent();
+        int32 VisualContrast = UKalmalaSettingsWidget::GetContrastMode();
+        if (FParse::Value(FCommandLine::Get(), TEXT("KalmalaUIDeveloperTextScale="), VisualTextScale))
+            UKalmalaSettingsWidget::SetTextScalePercent(VisualTextScale);
+        if (FParse::Value(FCommandLine::Get(), TEXT("KalmalaUIDeveloperContrast="), VisualContrast))
+            UKalmalaSettingsWidget::SetContrastMode(VisualContrast);
         if(auto* Input=BoundInput.Get()) for(int32 Index=0;Index<Input->GetNumActionBindings();++Index)
         {
             auto& Binding=Input->GetActionBinding(Index);
             if(Binding.GetActionName()==TEXT("CraftMenu") && Binding.KeyEvent==IE_Pressed) Binding.ActionDelegate.Execute(FKey());
         }
-        if(Widget && Widget->IsOpen())
+        const bool bGridLayoutReady = Widget && Widget->IsOpen()
+            && Widget->GetRecipeGridSummary().Contains(TEXT("Scrollable=1"));
+        if (Widget && Widget->IsOpen() && !bGridLayoutReady && VerificationLayoutWait < 2.0f)
+        {
+            VerificationLayoutWait += DeltaTime;
+        }
+        if(Widget && Widget->IsOpen() && (bGridLayoutReady || VerificationLayoutWait >= 2.0f))
         {
             const auto Text=Widget->GetPresentationText();
             Widget->EnablePlacementPreview();
@@ -588,6 +778,12 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && DirectBuildDescription.Contains(TEXT("Build directly with the Construction Hammer; no kit is created."))
                 && DirectBuildDescription.Contains(TEXT("6 Wood")) && DirectBuildDescription.Contains(TEXT("4 Reed fibre"));
             UE_LOG(LogTemp, Display, TEXT("M9 camp feedback: Passed=%d"), CampFeedbackPassed);
+            const bool bGridNavigation = Widget->VerifyRecipeGridNavigationForTest();
+            const FString GridSummary = Widget->GetRecipeGridSummary();
+            const bool bGridReady = bGridNavigation && GridSummary.Contains(TEXT("Slots="))
+                && GridSummary.Contains(TEXT("Unavailable=")) && GridSummary.Contains(TEXT("Focused=1"))
+                && GridSummary.Contains(TEXT("ReadOnly=1")) && GridSummary.Contains(TEXT("Scrollable=1"));
+            UE_LOG(LogTemp, Display, TEXT("Build slot grid: %s Navigation=%d"), *GridSummary, bGridNavigation);
             const bool Passed=Text.Contains(TEXT("Construction hammer menu input:")) && Text.Contains(TEXT("Up/Down"))
                 && Text.Contains(TEXT("Raw material cost: 5 Stone, 3 Wood"))
                 && Text.Contains(TEXT("Ignition: one raw Wood, Lightwood, Densewood, or Coal is also consumed to start the hearth with 60 seconds of fuel."))
@@ -607,6 +803,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && Text.Contains(TEXT("Build Hearth ring directly from raw materials"))
                 && Text.Contains(TEXT("Rejected requests preserve materials"))
                 && PreviewText.Contains(TEXT("Preview "))
+                && bGridReady
                 && PC->IsMoveInputIgnored() && Widget->IsFocusable();
             Widget->Close();
             UE_LOG(LogTemp,Display,TEXT("Crafting presentation: Passed=%d Restored=%d"),Passed,!PC->IsMoveInputIgnored()); bVerified=true;

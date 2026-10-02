@@ -1,4 +1,5 @@
-param([int]$Port = 17849)
+param([int]$Port = 17849, [switch]$Rendered, [int]$Width = 1280, [int]$Height = 720,
+    [int]$TextScale = 100, [int]$Contrast = 0)
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
@@ -6,11 +7,19 @@ $output = Join-Path $env:TEMP ('KalmalaInventory-' + [guid]::NewGuid().ToString(
 New-Item -ItemType Directory -Path $output | Out-Null
 $serverLog = Join-Path $output 'server.log'
 $clientLog = Join-Path $output 'client.log'
-$common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaInventoryTest'
+$hostShaderDir = Join-Path $output 'Host\ShaderWorkingDir'
+$clientShaderDir = Join-Path $output 'Client\ShaderWorkingDir'
+if ($Rendered) { New-Item -ItemType Directory -Path $hostShaderDir, $clientShaderDir -Force | Out-Null }
+$common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaInventoryTest -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast"
+if ($Rendered) { $common += " -windowed -RenderOffscreen -ForceRes -ResX=$Width -ResY=$Height" } else { $common += ' -nullrhi' }
+$hostShader = if ($Rendered) { "-ShaderWorkingDir=`"$hostShaderDir`"" } else { '' }
+$clientShader = if ($Rendered) { "-ShaderWorkingDir=`"$clientShaderDir`"" } else { '' }
+$hostCapture = if ($Rendered) { "-KalmalaInventoryCapture=`"$output\Host\inventory`"" } else { '' }
+$clientCapture = if ($Rendered) { "-KalmalaInventoryCapture=`"$output\Client\inventory`"" } else { '' }
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common $hostShader $hostCapture -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($server.HasExited) { throw 'Listen server exited during startup.' }
@@ -18,7 +27,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Listen server readiness timed out.' }
-    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
+    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common $clientShader $clientCapture -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before verification.' }
@@ -30,12 +39,30 @@ try {
             -and [regex]::Matches($serverText, 'Harvest inventory: Passed=1 Materials=3 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1').Count -eq 2 `
             -and $ownerIndex -ge 0 -and $clientText.IndexOf('Inventory remote: Empty=1', $ownerIndex) -gt $ownerIndex `
             -and $serverText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1') `
-            -and $clientText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1')) { break }
+            -and $clientText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1') `
+            -and $serverText -match 'Inventory grid: PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=1 ReadOnly=1' `
+            -and $clientText -match 'Inventory grid: PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=1 ReadOnly=1') { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Inventory host/client scenario timed out.' }
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client world identity mismatch.' }
-    Write-Output 'PASS: server grants/removals and rejection checks, owner-only contents, rejected local client mutations, remote privacy after replication, and read-only local presentation on both peers.'
+    if ($Rendered) {
+        $captures = @("$output\Host\inventory-empty.png", "$output\Host\inventory-filled.png",
+            "$output\Client\inventory-empty.png", "$output\Client\inventory-filled.png")
+        $deadline = (Get-Date).AddSeconds(35)
+        while (($captures | Where-Object { !(Test-Path $_) }).Count -gt 0 -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250 }
+        if (($captures | Where-Object { !(Test-Path $_) }).Count -gt 0) { throw 'Inventory empty/filled slot screenshots timed out.' }
+        foreach ($capture in $captures) {
+            if ((Get-Item -LiteralPath $capture).Length -le 32) { throw "Inventory capture is empty: $capture" }
+        }
+        foreach ($peerText in @($serverText, $clientText)) {
+            if ($peerText -notmatch 'Inventory grid fixture: State=Empty PackSlots=16 Filled=0 Empty=16 CarriedTools=0' `
+                -or $peerText -notmatch 'Inventory grid fixture: State=Filled PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=1') {
+                throw 'Inventory empty/filled cell fixture did not render the expected fixed capacity.'
+            }
+        }
+    }
+    Write-Output "PASS: inventory capacity/empty cells and live owner slots at ${Width}x${Height}, text $TextScale%, contrast $Contrast; server grants/rejections, privacy, and read-only presentation passed."
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

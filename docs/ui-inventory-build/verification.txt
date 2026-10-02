@@ -1,0 +1,22 @@
+# Inventory and build menu verification — 2026-10-02
+
+## Build and automation
+
+- UE 5.8.2 `KalmalaEditor Win64 Development` forced editor build: succeeded in disposable mirror `C:\Users\Ville\AppData\Local\Temp\kui1`, with normal `%LOCALAPPDATA%\UnrealBuildTool` access and `-MaxParallelActions=4`.
+- Full `Automation RunTests Kalmala`: 101/101 passed, 0 failed, process exit 0. Log: `C:\Users\Ville\AppData\Local\Temp\kui1\Run\Automation4.log`.
+- Original `InventoryPanel.png` and `BuildPanel.png` imported into `/Game/Kalmala/UI` in the disposable mirror; import commandlet completed with 0 errors.
+
+## Rendered host/client checks
+
+All four two-peer rendered runners passed. Logs and raw captures are retained in their temporary runner directories.
+
+- `Verify-Inventory.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0`: 16 visible pack cells, empty and populated states, owner-local inventory, and populated scroll extent. Captures: `KalmalaInventory-c53255a72b364071818567626509f31b`.
+- `Verify-Inventory.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1`: high-contrast populated state and scroll extent. Captures: `KalmalaInventory-5793f50b080e4f26bd7147a26bb97418`.
+- `Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0`: full build list, selected/focused/unavailable state, scrolling, and keyboard/D-pad selection and restoration. Captures: `KalmalaCrafting-d0ac111228fb4066bd29749d159ca14b`.
+- `Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1`: high-contrast fallback, scrolling, and keyboard/D-pad selection and restoration. Captures: `KalmalaCrafting-456441a7383a42afb19d20a0f26fab37`.
+
+The five PNGs alongside this file are selected host captures. The default captures show the original backgrounds; high contrast hides the art and retains black panels, white text, and borders. Screenshots were visually reviewed.
+
+## Limits
+
+Editor rendering and the test fixture's keyboard/D-pad events do not establish cooked/package asset inclusion or a physical keyboard/controller playthrough. Rendered checks cover two representative viewport/text-scale settings; the broader M11 acceptance remains open. Empty inventory fits without scrolling; its populated state has positive scroll extent.

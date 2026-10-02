@@ -58,8 +58,10 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Production theme loads from config hierarchy"), FKalmalaUITheme::Get().BodySize, 13);
     FConfigFile Extended;
     Extended.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nIconWidth=80\nIconHeight=60\nSlotPadding=8\n"
-        "OutlineSize=2\nBorderWidth=2\nFontFace=Bold\nAnimateScrolling=True\nScrollSpeed=24\n"
-        "ButtonHovered=(R=0.3,G=0.4,B=0.5,A=1)\n"), TEXT("ExtendedTheme.ini"));
+    "OutlineSize=2\nBorderWidth=2\nFontFace=Bold\nAnimateScrolling=True\nScrollSpeed=24\n"
+    "InventoryPanelImage=/Game/Kalmala/UI/InventoryPanel.InventoryPanel\n"
+    "BuildPanelImage=/Game/Kalmala/UI/BuildPanel.BuildPanel\n"
+    "ButtonHovered=(R=0.3,G=0.4,B=0.5,A=1)\n"), TEXT("ExtendedTheme.ini"));
     const FKalmalaUITheme Extension = FKalmalaUITheme::FromConfig(Extended);
     UButton* Button = NewObject<UButton>();
     USizeBox* Icon = NewObject<USizeBox>();
@@ -76,13 +78,18 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Icon height propagates"), Icon->GetHeightOverride(), 60.0f);
     TestTrue(TEXT("Theme enables wheel animation"), Scroll->IsAnimateWheelScrolling());
     TestEqual(TEXT("Animation speed propagates"), Scroll->GetScrollAnimationInterpolationSpeed(), 24.0f);
+    TestEqual(TEXT("Inventory background path propagates"), Extension.InventoryPanelImage,
+        FString(TEXT("/Game/Kalmala/UI/InventoryPanel.InventoryPanel")));
+    TestEqual(TEXT("Build background path propagates"), Extension.BuildPanelImage,
+        FString(TEXT("/Game/Kalmala/UI/BuildPanel.BuildPanel")));
     Extension.ApplyScroll(*Scroll, true);
     TestFalse(TEXT("Reduced motion overrides animation"), Scroll->IsAnimateWheelScrolling());
     Extension.ApplyButton(*Button, 1);
     TestTrue(TEXT("High contrast outlines buttons"), Button->GetStyle().Normal.OutlineSettings.Color.GetSpecifiedColor().Equals(FLinearColor::White));
     FConfigFile InvalidExtension;
     InvalidExtension.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nIconWidth=999\nIconHeight=nan\n"
-        "BorderWidth=-1\nOutlineSize=99\nScrollSpeed=0\nFontFace=unknown\nFontAsset=../font\nPanelImage=C:/image.png\n"), TEXT("InvalidExtension.ini"));
+        "BorderWidth=-1\nOutlineSize=99\nScrollSpeed=0\nFontFace=unknown\nFontAsset=../font\nPanelImage=C:/image.png\n"
+        "InventoryPanelImage=C:/inventory.png\nBuildPanelImage=/Game/InvalidObjectPath\n"), TEXT("InvalidExtension.ini"));
     const FKalmalaUITheme Safe = FKalmalaUITheme::FromConfig(InvalidExtension);
     TestEqual(TEXT("Invalid icon width falls back"), Safe.IconWidth, Defaults.IconWidth);
     TestEqual(TEXT("Nonfinite icon height falls back"), Safe.IconHeight, Defaults.IconHeight);
@@ -90,7 +97,8 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Invalid outline falls back"), Safe.OutlineSize, Defaults.OutlineSize);
     TestEqual(TEXT("Invalid animation falls back"), Safe.ScrollSpeed, Defaults.ScrollSpeed);
     TestEqual(TEXT("Invalid font face falls back"), Safe.FontFace, Defaults.FontFace);
-    TestTrue(TEXT("Filesystem asset paths rejected"), Safe.FontAsset.IsEmpty() && Safe.PanelImage.IsEmpty());
+    TestTrue(TEXT("Filesystem and malformed view-specific asset paths rejected"), Safe.FontAsset.IsEmpty()
+        && Safe.PanelImage.IsEmpty() && Safe.InventoryPanelImage.IsEmpty() && Safe.BuildPanelImage.IsEmpty());
     FKalmalaUITheme MissingAssets = Extension;
     MissingAssets.FontAsset = TEXT("/Game/MissingThemeFont.MissingThemeFont");
     MissingAssets.PanelImage = TEXT("/Game/MissingThemeImage.MissingThemeImage");
@@ -101,9 +109,17 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("High contrast button retains border"), Button->GetStyle().Normal.OutlineSettings.Width >= 1);
     UPackage* Package = CreatePackage(TEXT("/Game/KalmalaThemeFixture"));
     UTexture2D* Texture = NewObject<UTexture2D>(Package, TEXT("Panel"), RF_Transient);
+    UTexture2D* InventoryTexture = NewObject<UTexture2D>(Package, TEXT("InventoryPanel"), RF_Transient);
+    UTexture2D* BuildTexture = NewObject<UTexture2D>(Package, TEXT("BuildPanel"), RF_Transient);
     MissingAssets.PanelImage = Texture->GetPathName();
     MissingAssets.ApplyPanel(*Panel, 0);
     TestTrue(TEXT("Valid image reference reaches the shared panel"), Panel->Background.GetResourceObject() == Texture);
+    MissingAssets.InventoryPanelImage = InventoryTexture->GetPathName();
+    MissingAssets.BuildPanelImage = BuildTexture->GetPathName();
+    MissingAssets.ApplyPanel(*Panel, 0, &MissingAssets.InventoryPanelImage);
+    TestTrue(TEXT("Inventory image override reaches its view panel"), Panel->Background.GetResourceObject() == InventoryTexture);
+    MissingAssets.ApplyPanel(*Panel, 0, &MissingAssets.BuildPanelImage);
+    TestTrue(TEXT("Build image override reaches its view panel"), Panel->Background.GetResourceObject() == BuildTexture);
     MissingAssets.ApplyPanel(*Panel, 1);
     TestTrue(TEXT("Contrast ignores decorative images"), Panel->Background.GetResourceObject() == nullptr);
     MissingAssets.BorderWidth = 0;

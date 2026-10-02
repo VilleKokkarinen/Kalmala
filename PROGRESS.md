@@ -10733,3 +10733,22 @@ Known limits: Verification for these three parents is complete; full M11 accepta
 Next task: Visually update inventory and build menus with original background images and individually framed slot grids. Main checkout E:/dev/Kalmala used; BACKLOG.md and PROGRESS.md are already visible there, so handoff synchronization is unnecessary. Commit only this run's changes after staged-diff and path inspection.
 
 Current run time: 2026-10-02T12:26:43.8404888Z.
+### Run 2026-10-02T14:06:27Z — M11 inventory and build menu parent complete
+
+Outcome: Completed the selected top-level task (no child tasks): original inventory/build backgrounds and individually framed slot grids. Checked only this task in BACKLOG.md; broader M11 acceptance remains open. Main checkout was used, and no worktree-to-main synchronization was needed.
+
+Files changed: Config/DefaultKalmalaTheme.ini; Scripts/Verify-Crafting.ps1 and Verify-Inventory.ps1; Source/KalmalaUI/ (catalogue rows, crafting/inventory presentation, theme handling and theme test); Content/Kalmala/UI/ (two original PNG sources and two imported Unreal assets); docs/07-development-setup.md; docs/35-ui-theme.md; docs/ui-inventory-build/ (five reviewed captures and verification.txt); BACKLOG.md; PROGRESS.md.
+
+Verification: Parent-level for this top-level task. UE 5.8.2 KalmalaEditor Win64 Development build succeeded in the disposable mirror with normal LOCALAPPDATA/UnrealBuildTool access and MaxParallelActions=4. Full Kalmala automation passed 101/101 with exit 0 (C:/Users/Ville/AppData/Local/Temp/kui1/Run/Automation4.log). Both original textures imported successfully. All four rendered host/client inventory and crafting runners passed: 1280x720 at 100% standard and 1024x768 at 150% high contrast. Checks covered empty/filled inventory cells, counts/tools, owner-local read-only state, selected/focused/unavailable build cards, full-list scroll extent, and keyboard/D-pad selection and restoration. Five M5 documentation contracts passed; git diff --check passed. Captures were visually reviewed and retained under docs/ui-inventory-build/. Audited temporary verification paths: 211-character maximum; changed checkout paths are below 260 characters.
+
+Observable impact: Inventory now shows all 16 fixed pack cells with catalogue icons, names and counts, plus existing carried-tool level/condition. The four-column build grid uses canonical icons and readable selected/focused/available/unavailable states. Original view-specific background art is theme-configured; high contrast suppresses images and retains black panels, white text and borders. Text scaling and scroll access work in the representative viewport checks.
+
+Multiplayer and persistence assessment: Inventory presentation reads the owner's existing local snapshot. Existing server-validated crafting/build transactions, capacity, stacking and persistence are unchanged. No new RPC, gameplay authority path, item/recipe identity or save schema was added.
+
+Known limitations: Broader M11 acceptance remains open. Editor checks do not establish cooked/package asset inclusion or a physical keyboard/controller playthrough. Rendered verification covers two representative viewport/text-scale combinations. Empty inventory fits without scrolling; the populated state has positive scroll extent.
+
+Handoff: Main checkout E:/dev/Kalmala was used; synchronization is unnecessary. Commit only this run's files after staged-diff and path review.
+
+Next eligible task: Visually update the expanded world-map menu opened with M and add an original background image; preserve readable terrain/fog/markers/pins/controls and existing map behavior.
+
+Current run time: 2026-10-02T14:06:27Z.

@@ -30,6 +30,8 @@ struct KALMALAUI_API FKalmalaUITheme
     FName FontFace = TEXT("Regular");
     FName HeadingFace = TEXT("Bold");
     FString PanelImage;
+    FString InventoryPanelImage;
+    FString BuildPanelImage;
     float OutlineSize = 0;
     float BorderWidth = 1;
     float CornerRadius = 3;
@@ -48,11 +50,11 @@ struct KALMALAUI_API FKalmalaUITheme
     static const FKalmalaUITheme& Get();
     int32 ScaledFontSize(int32 BaseSize, int32 TextScalePercent) const;
     FMargin PanelPadding() const { return FMargin(PaddingX, PaddingY); }
-    FSlateBrush MakePanelBrush(int32 ContrastMode) const;
+    FSlateBrush MakePanelBrush(int32 ContrastMode, const FString* ImageOverride = nullptr) const;
     FSlateFontInfo MakeFont(int32 BaseSize, bool bHeading, int32 TextScalePercent) const;
     FLinearColor TextColor(bool bHeading, int32 ContrastMode) const;
     void ApplyMenu(UWidgetTree& Tree, UTextBlock* HeadingLabel, int32 TextScalePercent, int32 ContrastMode) const;
-    void ApplyPanel(UBorder& Border, int32 ContrastMode) const;
+    void ApplyPanel(UBorder& Border, int32 ContrastMode, const FString* ImageOverride = nullptr) const;
     void ApplyButton(UButton& Button, int32 ContrastMode) const;
     void ApplyIconSlot(USizeBox& Slot) const;
     void ApplyScroll(UScrollBox& Scroll, bool bReducedMotion = false) const;

@@ -1,4 +1,5 @@
-param([int]$Port = 17869, [switch]$Rendered)
+param([int]$Port = 17869, [switch]$Rendered, [int]$Width = 1280, [int]$Height = 720,
+    [int]$TextScale = 100, [int]$Contrast = 0)
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
@@ -9,8 +10,8 @@ $clientLog = Join-Path $output 'client.log'
 $hostShaderDir = Join-Path $output 'Host\ShaderWorkingDir'
 $clientShaderDir = Join-Path $output 'Client\ShaderWorkingDir'
 New-Item -ItemType Directory -Path $hostShaderDir, $clientShaderDir -Force | Out-Null
-$common = '-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaCraftingTest -ExecCmds="t.MaxFPS 60"'
-if ($Rendered) { $common += ' -windowed -RenderOffscreen -ResX=1280 -ResY=720 -ForceRes' } else { $common += ' -nullrhi' }
+$common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaCraftingTest -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast -ExecCmds=`"t.MaxFPS 60`""
+if ($Rendered) { $common += " -windowed -RenderOffscreen -ForceRes -ResX=$Width -ResY=$Height" } else { $common += ' -nullrhi' }
 $hostShader = if ($Rendered) { "-ShaderWorkingDir=`"$hostShaderDir`"" } else { '' }
 $clientShader = if ($Rendered) { "-ShaderWorkingDir=`"$clientShaderDir`"" } else { '' }
 $serverCapture = if ($Rendered) { "-KalmalaCraftingCapture=`"$output\host.png`"" } else { '' }
@@ -43,6 +44,16 @@ try {
             -and $clientText.Contains('M9 tool feedback: Passed=1') `
             -and $serverText.Contains('M9 camp feedback: Passed=1') `
             -and $clientText.Contains('M9 camp feedback: Passed=1')
+        $gridPattern = 'Build slot grid: Slots=(\d+) Unavailable=(\d+) Selected=(\d+) Focused=1 ReadOnly=1 Scrollable=1 Navigation=1'
+        $serverGrid = [regex]::Match($serverText, $gridPattern)
+        $clientGrid = [regex]::Match($clientText, $gridPattern)
+        $serverGridSlots = if ($serverGrid.Success) { [int]$serverGrid.Groups[1].Value } else { 0 }
+        $serverGridUnavailable = if ($serverGrid.Success) { [int]$serverGrid.Groups[2].Value } else { 0 }
+        $clientGridSlots = if ($clientGrid.Success) { [int]$clientGrid.Groups[1].Value } else { 0 }
+        $clientGridUnavailable = if ($clientGrid.Success) { [int]$clientGrid.Groups[2].Value } else { 0 }
+        $ready = $ready -and $serverGrid.Success -and $clientGrid.Success `
+            -and $serverGridSlots -gt 0 -and $serverGridUnavailable -gt 0 `
+            -and $clientGridSlots -gt 0 -and $clientGridUnavailable -gt 0
         $ready = $ready -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Forged Batch=1 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting RPC: Recipe=Workbench Batch=2147483647 Accepted=0').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting placement RPC: Accepted=0').Count -eq 2
@@ -57,7 +68,7 @@ try {
     } while ((Get-Date) -lt $deadline)
     if (!$ready) { throw 'Crafting host/client scenario timed out.' }
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client identity mismatch.' }
-    Write-Output 'PASS: server validation/payment/atomicity gates; rejected M9 camp mutations preserve inventory and Cooking XP; owner-local camp costs/station feedback; exact final inventory; matching fires; local menu input restoration.'
+    Write-Output 'PASS: build-grid focus/selection/navigation/unavailable states, server validation/payment/atomicity gates, camp feedback, exact inventory, matching fires, and local menu input restoration.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

@@ -6,6 +6,9 @@
 #include "KalmalaCraftingSubsystem.generated.h"
 class UTextBlock;
 class UButton;
+class UBorder;
+class UUniformGridPanel;
+class UScrollBox;
 class UInputComponent;
 class UKalmalaCraftingComponent;
 
@@ -31,6 +34,10 @@ public:
     void Close();
     bool IsOpen() const { return bOpen; }
     FString GetPresentationText() const;
+    FString GetRecipeGridSummary() const;
+#if !UE_BUILD_SHIPPING
+    bool VerifyRecipeGridNavigationForTest();
+#endif
     void EnablePlacementPreview();
 protected:
     virtual void NativeOnInitialized() override;
@@ -64,7 +71,16 @@ private:
     UFUNCTION() void WithdrawStorage();
     UFUNCTION() void CloseClicked();
     void Refresh();
+    void RefreshRecipeGrid(const TArray<int32>& VisibleIndices, UKalmalaCraftingComponent* Crafting,
+        int32 TextScalePercent, int32 ContrastMode);
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipesText;
+    UPROPERTY(Transient) TObjectPtr<UBorder> MenuBackground;
+    UPROPERTY(Transient) TObjectPtr<UUniformGridPanel> RecipeGrid;
+    UPROPERTY(Transient) TObjectPtr<UScrollBox> CraftingScrollBox;
+    UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> RecipeSlotCards;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotNames;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotStates;
+    UPROPERTY(Transient) TArray<uint8> RecipeSlotVisualStates;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> SelectedIcon;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> HeaderText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
@@ -82,6 +98,12 @@ private:
     int32 SelectedStorageItem = 0;
     int32 LastDetailTextScalePercent = INDEX_NONE;
     int32 LastDetailContrastMode = INDEX_NONE;
+    int32 LastRecipeGridTextScalePercent = INDEX_NONE;
+    int32 LastRecipeGridContrastMode = INDEX_NONE;
+    int32 RecipeGridUnavailableCount = 0;
+    int32 RecipeGridSelectedIndex = INDEX_NONE;
+    bool bRecipeGridFocused = false;
+    TArray<int32> LastRecipeGridIndices;
     bool bOpen = false;
     bool bPlacementPreviewEnabled = false;
     bool bPreviousCursor = false;
@@ -113,4 +135,5 @@ private:
     bool bVerified = false;
     bool bCaptureRequested = false;
     float CaptureWait = 0;
+    float VerificationLayoutWait = 0;
 };

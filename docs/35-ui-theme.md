@@ -47,6 +47,8 @@ expanded-map, and options views as described below.
 | FontAsset | empty | Project-owned runtime UFont object path; shared text |
 | FontFace / HeadingFace | Regular / Bold | Regular or Bold; missing custom face uses font default |
 | PanelImage | empty | Project-owned Texture2D object path; shared panels |
+| InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D override for the inventory pack panel |
+| BuildPanelImage | `/Game/Kalmala/UI/BuildPanel.BuildPanel` | Texture2D override for build/craft selection |
 | OutlineSize | 0 | 0–3, rounded; black text outline |
 | BorderWidth / CornerRadius | 1 / 3 | 0–3 / 0–12; geometric panels and button states |
 | BorderColor | (0.35, 0.45, 0.42, 1) | Linear RGBA 0–1 |
@@ -67,6 +69,12 @@ borders to at least one unit. High contrast uses neutral button fills; pressed
 padding and Unreal's existing keyboard focus indicator remain available.
 Accessibility text scale still takes precedence over theme size. No focus,
 click delegate, navigation, modal ownership, authority, or save binding changed.
+
+The view-specific image keys override `PanelImage` only for their named view.
+The inventory and build textures are original Kalmala artwork imported from
+`Content/Kalmala/UI/Source/` into `/Game/Kalmala/UI`; missing or invalid view
+paths keep the geometric fallback. High contrast intentionally suppresses both
+decorative backgrounds.
 
 `ApplyScroll` has an explicit reduced-motion override; animation defaults off.
 A user-facing reduced-motion preference and options-opening slide animation
@@ -109,11 +117,44 @@ UMG handles that tint through its border widget. The developer map fixture
 waits for its closed-map exploration record before opening, avoiding a race
 with joining-client world-identity arrival. Normal M-key opening does not wait.
 
-The foundation does not add new background art, item icons, slot grids,
+The foundation did not add new background art, item icons, slot grids,
 interface scaling, a user-facing reduced-motion preference, or the options
-opening animation. Those remain later M11 tasks. Theme-only font/image assets
-must already be runtime-available; packaged config/asset inclusion and custom
-project-font appearance are not established by editor integration checks.
+opening animation. Later M11 increments address these separately. Theme-only
+font/image assets must be runtime-available; packaged config/asset inclusion
+and custom project-font appearance are not established by editor integration
+checks.
+
+## Inventory and build backgrounds and slot grids — 2026-10-02
+
+Inventory uses the portrait birch/timber background and a fixed four-column,
+16-slot read-only pack grid. Each stack keeps its catalogue icon, display name,
+and current quantity. Carried tools appear in a separate framed row with their
+existing level and condition. Empty cells remain visible. The grid reads the
+owner-local inventory snapshot and adds no per-slot action, transaction, or
+saved slot identity.
+
+The construction/build menu uses the original lake/camp background and a
+four-column grid of canonical recipe/build icons. Each card reports its name
+and current selected, focused, available, or unavailable state in text as
+well as themed styling. Existing selected-result text remains the source of
+truth for material costs, station/skill requirements, availability, and
+rejection details. Keyboard arrows and controller D-pad continue to select
+through the focused menu; the scroll view preserves access to the full recipe
+list after text scaling or smaller viewports.
+
+Both views use the shared theme and existing local text-scale/contrast
+settings. Populated inventory and the full build menu report positive scroll
+extent in the rendered checks. High contrast hides background art and keeps
+black panels, white text, and borders. Selected host captures and exact checks
+are retained in `docs/ui-inventory-build/`.
+
+Parent verification passed with the forced UE 5.8.2 editor build, all 101
+Kalmala automations, and rendered host/client inventory and crafting runners
+at 1280x720 standard and 1024x768 at 150% text/high contrast. The automated
+input probe sends keyboard Down/Up and gamepad D-pad Down/Up through the same
+focused widget preview handler, confirms selection updates and restoration,
+and checks the measured scroll extent. This does not replace a physical
+keyboard/controller playthrough or a cooked/package asset-inclusion check.
 
 ## Parent verification — 2026-10-02
 
