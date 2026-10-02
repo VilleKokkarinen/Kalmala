@@ -5,6 +5,12 @@ existing Kalmala settings shell. It covers presentation and input preferences
 only; it does not add gameplay tuning, a replicated option, a server setting,
 or a new save schema.
 
+M11 places Wet, meal, exposure, support and weather status markers in one
+transparent owner-local hotbar. Escape > Status and weather details exposes
+their live text without hover. The optional feedback overlay retains action
+results and nearby hearth/construction context, with no duplicate active
+status rows. See `36-status-icons.md` for the updated presentation contract.
+
 ## Existing shell and option groups
 
 The existing local menu opens and closes with **Escape**, owns modal input while

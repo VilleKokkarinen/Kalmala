@@ -1,5 +1,15 @@
 # Development setup
 
+## M11 status parent and complete icon verification
+
+Follow `36-status-icons.md`: build the isolated editor mirror after the three
+user-requested implementations, then run the full Kalmala automation queue,
+the new rendered `Scripts/Verify-StatusHotbar.ps1` viewport/text-scale matrix,
+and existing rendered crafting, settings/accessibility and owner inventory
+peer regressions. The hotbar probe is explicitly presentation-only and records
+actual owner snapshots before supplying its six-effect fixture. Inspect PNGs;
+retain exact results and unverified scope in PROGRESS.md.
+
 ## M11 theme foundation verification
 
 Theme keys and the restart/load workflow are documented in `35-ui-theme.md`.

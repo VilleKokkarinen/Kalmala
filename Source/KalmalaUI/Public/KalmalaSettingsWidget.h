@@ -91,8 +91,10 @@ public:
 
 protected:
     virtual void NativeOnInitialized() override;
+    virtual void NativeTick(const FGeometry& Geometry, float DeltaTime) override;
 
 private:
+    UFUNCTION()
     void ShowMainMenu();
     void ShowOptionsMenu();
     void ShowVideoTab();
@@ -112,6 +114,8 @@ private:
 
     UFUNCTION()
     void HandleOptionsClicked();
+    UFUNCTION()
+    void HandleStatusDetailsClicked();
     UFUNCTION()
     void HandleQuitClicked();
     UFUNCTION()
@@ -177,6 +181,8 @@ private:
     TObjectPtr<UTextBlock> ContrastLabel;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> FeedbackLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> StatusDetailsLabel;
 
     UPROPERTY(Transient)
     TObjectPtr<class UBorder> BackdropBorder;

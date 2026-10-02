@@ -1,5 +1,7 @@
 #include "KalmalaCraftingSubsystem.h"
 #include "KalmalaUITheme.h"
+#include "KalmalaIconWidget.h"
+#include "Components/SizeBox.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaPlacementPreview.h"
 #include "KalmalaRecipeCatalogue.h"
@@ -166,6 +168,14 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     GeneralInstructions = FString::Printf(TEXT("Construction hammer menu input: %s (Controller View / special-left). Up/Down or D-pad: choose. Enter / A: craft or build. P: local preview. Escape / B: close.\nController Y: build or place selected. X: add fuel. RB: light. Mouse buttons and focused keyboard/controller buttons also work.\nFloor, wall, and roof are built directly from Wood and Fibre; no kit is created. Selection is marked with >. Requirements and unavailable reasons are written in text; colour is never the only cue.\n"), *CraftKey);
     InstructionsText = AddText(GeneralInstructions, 16);
     RecipesText = AddText(TEXT(""), 18);
+    Column->RemoveChild(RecipesText);
+    auto* RecipeRow = WidgetTree->ConstructWidget<UHorizontalBox>();
+    auto* IconBox = WidgetTree->ConstructWidget<USizeBox>();
+    IconBox->SetWidthOverride(32); IconBox->SetHeightOverride(32);
+    SelectedIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+    IconBox->SetContent(SelectedIcon); RecipeRow->AddChild(IconBox);
+    RecipeRow->AddChildToHorizontalBox(RecipesText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    Column->AddChild(RecipeRow);
     DetailText = AddText(TEXT(""), 18);
     auto AddButton = [&](const TCHAR* Label, UHorizontalBox* Row = nullptr, const TCHAR* Help = nullptr) {
         auto* Button = WidgetTree->ConstructWidget<UButton>(); auto* Text = WidgetTree->ConstructWidget<UTextBlock>();
@@ -315,12 +325,17 @@ void UKalmalaCraftingWidget::Refresh()
     {
         RecipesText->SetText(FText::FromString(TEXT("No recipes are configured for this station.\n")));
         DetailText->SetText(FText::GetEmpty());
+        if (SelectedIcon) SelectedIcon->SetVisibility(ESlateVisibility::Collapsed);
         if (CraftButton) CraftButton->SetIsEnabled(false);
         return;
     }
     Selected=FMath::Clamp(Selected,0,VisibleIndices.Num()-1);
     const int32 RecipeIndex = VisibleIndices[Selected];
     const FKalmalaRecipe& SelectedRecipe = Recipes[RecipeIndex];
+    EKalmalaIcon Kind; int32 IconVariant;
+    UKalmalaIconWidget::FindCatalogueIcon(SelectedRecipe.Output, Kind, IconVariant);
+    SelectedIcon->SetIcon(Kind, IconVariant);
+    SelectedIcon->SetVisibility(ESlateVisibility::HitTestInvisible);
     const FString StationPrefix = StationFilterKit.IsNone() ? TEXT("")
         : (UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)
             ? UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)->DisplayName : StationFilterKit.ToString()) + TEXT(" recipes: ");

@@ -9,6 +9,7 @@
 #include "KalmalaExposureResponse.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaUITheme.h"
+#include "KalmalaWeatherActivityWidget.h"
 
 namespace
 {
@@ -55,7 +56,7 @@ void UKalmalaSurvivalStatusWidget::NativeOnInitialized()
 
     UVerticalBox* Content = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("SurvivalStatusContent"));
     HeadingText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("SurvivalStatusHeading"));
-    HeadingText->SetText(FText::FromString(TEXT("SURVIVAL STATUS")));
+    HeadingText->SetText(FText::FromString(TEXT("TRAVEL")));
     StatusText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("SurvivalStatusRows"));
     StatusText->SetAutoWrapText(true);
     Content->AddChildToVerticalBox(HeadingText);
@@ -100,10 +101,7 @@ FString UKalmalaSurvivalStatusWidget::BuildStatusText(const FKalmalaSurvivalStat
     }
 
     const FKalmalaWeatherState& Weather = Snapshot.Weather;
-    if (Snapshot.bHasWeatherState && Weather.IsValid()
-        && (Weather.PrecipitationIntensity >= WeatherSignalThreshold
-            || Weather.FogIntensity >= WeatherSignalThreshold
-            || Weather.WindStrength >= WeatherSignalThreshold))
+    if (Snapshot.bHasWeatherState && Weather.IsValid())
     {
         FString Counterplay;
         if (Weather.PrecipitationIntensity >= WeatherSignalThreshold)
@@ -131,6 +129,7 @@ FString UKalmalaSurvivalStatusWidget::BuildStatusText(const FKalmalaSurvivalStat
             FMath::RoundToInt(Weather.StormIntensity * 100.0f),
             *FormatSeconds(Remaining),
             Counterplay.IsEmpty() ? TEXT("wait for the next weather interval") : *Counterplay));
+        Rows.Add(UKalmalaWeatherActivityWidget::BuildActivityLabel(Weather.ActivityLevel));
     }
 
     const float SafeHeat = FMath::IsFinite(Snapshot.Exposure.HeatIntensity)
@@ -231,13 +230,14 @@ void UKalmalaSurvivalStatusWidget::SetSnapshot(const FKalmalaSurvivalStatusSnaps
 {
     if (StatusText == nullptr || HeadingText == nullptr || Background == nullptr) return;
 
-    const FString NewStatusText = BuildStatusText(Snapshot);
+    const FString NewStatusText = BuildOceanTravelText(Snapshot);
     if (LastStatusText != NewStatusText)
     {
         StatusText->SetText(FText::FromString(NewStatusText));
         LastStatusText = NewStatusText;
     }
     ApplyAccessibilityPresentation(TextScalePercent, ContrastMode);
+    SetVisibility(NewStatusText.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
 }
 
 void UKalmalaSurvivalStatusWidget::ApplyAccessibilityPresentation(const int32 TextScalePercent, const int32 ContrastMode)

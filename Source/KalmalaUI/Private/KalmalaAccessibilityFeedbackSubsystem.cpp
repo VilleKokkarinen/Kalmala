@@ -19,18 +19,6 @@
 
 namespace
 {
-const TCHAR* SupportEffectName(const EKalmalaSupportEffect Effect)
-{
-    switch (Effect)
-    {
-    case EKalmalaSupportEffect::Mending: return TEXT("Mending");
-    case EKalmalaSupportEffect::HearthShield: return TEXT("Hearth Shield");
-    case EKalmalaSupportEffect::BearsVigor: return TEXT("Bear's Vigor");
-    case EKalmalaSupportEffect::DeerCall: return TEXT("Deer Call");
-    default: return TEXT("None");
-    }
-}
-
 FString MarkerLine(const TCHAR* Marker, const FString& Value)
 {
     return FString::Printf(TEXT("[%s] %s\n"), Marker, *Value);
@@ -71,19 +59,6 @@ FString UKalmalaAccessibilityFeedbackSubsystem::BuildFeedbackText(APawn* Pawn) c
     if (Pawn == nullptr) return FString();
 
     FString Text = TEXT("COLOUR-INDEPENDENT FEEDBACK — Text + markers\n");
-    if (const UKalmalaPlayerStatusComponent* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>())
-    {
-        if (Status->HasStatus(UKalmalaPlayerStatusComponent::WetStatusId))
-        {
-            Text += MarkerLine(TEXT("WET"), FString::Printf(TEXT("active, %d s remaining"),
-                FMath::CeilToInt(Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WetStatusId))));
-        }
-        else
-        {
-            Text += MarkerLine(TEXT("WET"), TEXT("inactive"));
-        }
-    }
-
     if (const UKalmalaCraftingComponent* Crafting = Pawn->FindComponentByClass<UKalmalaCraftingComponent>())
     {
         Text += MarkerLine(TEXT("HEARTH"), Crafting->GetNearbyFireText());
@@ -126,10 +101,7 @@ FString UKalmalaAccessibilityFeedbackSubsystem::BuildFeedbackText(APawn* Pawn) c
                 ? TEXT("no server result yet")
                 : Support->GetFeedback() == EKalmalaSupportFeedback::Accepted ? TEXT("accepted") : TEXT("unavailable");
             Text += MarkerLine(TEXT("SUPPORT"), Result);
-            if (Support->GetActiveEffect() != EKalmalaSupportEffect::None)
-            {
-                Text += MarkerLine(TEXT("ACTIVE SUPPORT"), SupportEffectName(Support->GetActiveEffect()));
-            }
+
         }
     }
 

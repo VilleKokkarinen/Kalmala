@@ -8,6 +8,8 @@
 class UTextBlock;
 class UBorder;
 class UHorizontalBox;
+class UKalmalaCatalogueRowsWidget;
+struct FKalmalaCatalogueRow;
 
 enum class EKalmalaSupportGlyph : uint8
 {
@@ -38,6 +40,7 @@ class KALMALAUI_API UKalmalaInventoryWidget : public UUserWidget
     GENERATED_BODY()
 public:
     void SetPackText(const FString& Text);
+    void SetCatalogueRows(const TArray<FKalmalaCatalogueRow>& Rows, int32 TextScale, int32 Contrast);
     void SetPackTextAccessibility(int32 TextScalePercent, int32 ContrastMode);
     float GetRequiredPanelHeight() const;
     static FString BuildPreparedFoodDetails(bool bHasPreparedFood, float MealSecondsRemaining);
@@ -48,6 +51,7 @@ protected:
 private:
     UPROPERTY(Transient) TObjectPtr<UBorder> Background;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> PackText;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaCatalogueRowsWidget> CatalogueRows;
     UPROPERTY(Transient) TObjectPtr<UHorizontalBox> SupportGlyphRow;
     UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> SupportGlyphCards;
     UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaSupportGlyphWidget>> SupportGlyphs;

@@ -86,7 +86,6 @@ foreach ($anchor in @(
     'UKalmalaAccessibilityFeedbackSubsystem',
     'GetFeedbackMode',
     'COLOUR-INDEPENDENT FEEDBACK',
-    'MarkerLine(TEXT("WET")',
     'MarkerLine(TEXT("HEARTH")',
     'MarkerLine(TEXT("CONSTRUCTION")',
     'MarkerLine(TEXT("COMBAT")',
@@ -99,4 +98,8 @@ foreach ($anchor in @(
     }
 }
 
+$hotbarSource = Get-Content (Join-Path $projectRoot 'Source\KalmalaUI\Private\KalmalaStatusHotbarWidget.cpp') -Raw
+foreach ($anchor in @('WetStatusId', 'SteadyMealStatusId', 'HearthShield', 'HeatIntensity', 'Storm', 'HitTestInvisible')) {
+    if (!$hotbarSource.Contains($anchor)) { throw "Shared status hotbar is missing accessible status coverage: $anchor" }
+}
 Write-Output 'PASS: settings/accessibility contract covers option groups, input access, non-colour feedback, local persistence, and server authority.'

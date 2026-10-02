@@ -1,4 +1,6 @@
 #include "KalmalaInventorySubsystem.h"
+#include "KalmalaCatalogueRowsWidget.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "KalmalaUITheme.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
@@ -198,7 +200,10 @@ void UKalmalaInventoryWidget::NativeOnInitialized()
     PackText->SetWrapTextAt(340 - 2 * FKalmalaUITheme::Get().PaddingX);
     UScrollBox* Scroll = WidgetTree->ConstructWidget<UScrollBox>();
     FKalmalaUITheme::Get().ApplyScroll(*Scroll);
-    Scroll->AddChild(PackText);
+    auto* PackContent = WidgetTree->ConstructWidget<UVerticalBox>();
+    PackContent->AddChild(PackText);
+    CatalogueRows = WidgetTree->ConstructWidget<UKalmalaCatalogueRowsWidget>();
+    PackContent->AddChild(CatalogueRows); Scroll->AddChild(PackContent);
     Content->AddChildToVerticalBox(SupportGlyphRow)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
     Content->AddChildToVerticalBox(Scroll);
     Background->SetContent(Content);
@@ -228,6 +233,11 @@ void UKalmalaInventoryWidget::SetPackTextAccessibility(const int32 TextScalePerc
     }
     LastTextScalePercent = BoundedTextScale;
     LastContrastMode = BoundedContrast;
+}
+
+void UKalmalaInventoryWidget::SetCatalogueRows(const TArray<FKalmalaCatalogueRow>& Rows, int32 TextScale, int32 Contrast)
+{
+    if (CatalogueRows) CatalogueRows->SetRows(Rows, TextScale, Contrast);
 }
 
 float UKalmalaInventoryWidget::GetRequiredPanelHeight() const
@@ -305,17 +315,6 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
     const UKalmalaSupportMagicComponent* Support = Character ? Character->GetSupportMagicComponent() : nullptr;
     const UKalmalaCharacterMovementComponent* Movement = Pawn ? Cast<UKalmalaCharacterMovementComponent>(Pawn->GetMovementComponent()) : nullptr;
     FString Text;
-    if (Status && Status->HasStatus(UKalmalaPlayerStatusComponent::WetStatusId))
-    {
-        Text = FString::Printf(TEXT("WET | %d s remaining\nMovement -%.0f%%\nStamina use +%.0f%%\nDry off near a lit campfire.\n\n"),
-            FMath::CeilToInt(Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WetStatusId)),
-            (1.0f - UKalmalaPlayerStatusComponent::WetMovementMultiplier) * 100.0f,
-            (UKalmalaPlayerStatusComponent::WetStaminaUseMultiplier - 1.0f) * 100.0f);
-    }
-    else if (Status)
-    {
-        Text = TEXT("Wet: inactive\n\n");
-    }
     if (Combat)
     {
         const TCHAR* Phase = Combat->GetActionPhase() == EKalmalaCombatActionPhase::Windup ? TEXT("WINDUP") : Combat->GetActionPhase() == EKalmalaCombatActionPhase::Recovery ? TEXT("RECOVERING") : TEXT("READY");
@@ -372,10 +371,6 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
         }
         const float CooldownRemaining = FMath::Max(0.0f, Support->GetCooldownExpiry() - ServerNow);
         Text += FString::Printf(TEXT("Stamina: %.0f / %.0f | Cooldown: %s\n"), Movement->GetStamina(), Movement->GetMaximumStamina(), CooldownRemaining > 0.0f ? *FString::Printf(TEXT("%.1f s"), CooldownRemaining) : TEXT("READY"));
-        if (Support->GetActiveEffect() != EKalmalaSupportEffect::None && Support->GetActiveEffectExpiry() > ServerNow)
-            Text += FString::Printf(TEXT("Active: %s | Expiry: %.1f s\n"), InventorySupportEffectName(Support->GetActiveEffect()), Support->GetActiveEffectExpiry() - ServerNow);
-        else
-            Text += TEXT("Active: none\n");
         if (Support->GetFeedbackSerial() == 0) Text += TEXT("Server result: none yet\n\n");
         else Text += FString::Printf(TEXT("Server result: %s\n\n"), Support->GetFeedback() == EKalmalaSupportFeedback::Accepted ? TEXT("ACCEPTED") : TEXT("UNAVAILABLE"));
     }
@@ -385,6 +380,7 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
     }
     Text += TEXT("Pack | Build/craft: ") + CraftKey + TEXT("\n");
     bool bHasPreparedFood = false;
+    TArray<FKalmalaCatalogueRow> Catalogue;
     if (!Inventory) Text += TEXT("Waiting for player");
     else if (Inventory->GetStacks().IsEmpty()) Text += TEXT("Empty");
     else
@@ -392,19 +388,32 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
         for (const auto& Stack : Inventory->GetStacks())
         {
             const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Stack.ItemId);
-            Text += FString::Printf(TEXT("%s: %d\n"), Item ? *Item->DisplayName : *Stack.ItemId.ToString(), Stack.Quantity);
+            Catalogue.Add({ Stack.ItemId, FString::Printf(TEXT("%s: %d"), Item ? *Item->DisplayName : *Stack.ItemId.ToString(), Stack.Quantity) });
             bHasPreparedFood |= Stack.Quantity > 0 && UKalmalaPlayerStatusComponent::IsKnownFoodItem(Stack.ItemId);
         }
     }
+    if (Character)
+        for (const auto& Tool : Character->GetCarriedToolInventory())
+        {
+            FString Name = Tool.ToolId.ToString();
+            Name.ReplaceInline(TEXT("ReedKnife"), TEXT("Reed knife"));
+            Name.ReplaceInline(TEXT("FieldHatchet"), TEXT("Field hatchet"));
+            Name.ReplaceInline(TEXT("StonePick"), TEXT("Stone pick"));
+            Name.ReplaceInline(TEXT("BronzeAxe"), TEXT("Bronze axe"));
+            Name.ReplaceInline(TEXT("IronAxe"), TEXT("Iron axe"));
+            Name.ReplaceInline(TEXT("ConstructionHammer"), TEXT("Construction hammer"));
+            const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(Tool.ToolId);
+            Catalogue.Add({ Tool.ToolId, FString::Printf(TEXT("%s · level %d · condition %d/%d"), *Name,
+                Tool.ToolLevel, Tool.Durability, Definition ? Definition->MaxDurability : 0) });
+        }
     if (bHasPreparedFood)
     {
-        const float MealRemaining = Status
-            ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId) : 0.0f;
-        Text += UKalmalaInventoryWidget::BuildPreparedFoodDetails(true, MealRemaining);
+        Text += UKalmalaInventoryWidget::BuildPreparedFoodDetails(true, 0.0f);
     }
     Widget->SetPackText(Text);
     const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
     Widget->SetPackTextAccessibility(TextScalePercent, UKalmalaSettingsWidget::GetContrastMode());
+    Widget->SetCatalogueRows(Catalogue, TextScalePercent, UKalmalaSettingsWidget::GetContrastMode());
     Widget->ForceLayoutPrepass();
     int32 TextLineCount = 1;
     for (const TCHAR CurrentChar : Text) if (CurrentChar == TEXT('\n')) ++TextLineCount;

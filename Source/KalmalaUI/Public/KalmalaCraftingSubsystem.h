@@ -65,6 +65,7 @@ private:
     UFUNCTION() void CloseClicked();
     void Refresh();
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipesText;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> SelectedIcon;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> HeaderText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailText;

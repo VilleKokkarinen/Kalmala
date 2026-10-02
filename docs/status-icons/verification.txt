@@ -1,0 +1,82 @@
+Final editor build: succeeded, four actions; mirror kt1102; normal UnrealBuildTool access.
+Final full queue: 101 successes, 0 completed failures, exit 0; C:\Users\Ville\AppData\Local\Temp\kh-gate.log
+Rendered matrix: 1024x768/150%/high; 1280x720/100%/standard; 2560x1080/125%/high.
+Read-only UI snapshots/atlas; actual owner snapshot logged separately; no gameplay mutation.
+Parent-level verification of three selected top-level tasks; full M11 acceptance remains later.
+Mirror max path: 213; changed checkout max before handoff: 81.
+
+C:\Users\Ville\AppData\Local\Temp\kh-44f1c02c\host.log
+[2026.10.02-12.11.50:738][178]LogTemp: Display: Hotbar owner snapshot: NetMode=2 Local=1 Pawn=KalmalaCharacter_0 Statuses=0 WeatherValid=1
+[2026.10.02-12.11.55:732][421]LogTemp: Display: Hotbar fixture: Phase=empty Entries=0 ReadOnly=1 Bounds=687,173,1007,229 Scale=150 Dpi=0.7105
+[2026.10.02-12.12.00:941][642]LogTemp: Display: Hotbar fixture: Phase=populated Entries=6 ReadOnly=1 Bounds=687,173,1007,340 Scale=150 Dpi=0.7105
+[2026.10.02-12.12.05:933][874]LogTemp: Display: Hotbar fixture: Phase=expired Entries=0 ReadOnly=1 Bounds=687,173,1007,340 Scale=150 Dpi=0.7105
+[2026.10.02-12.12.11:943][160]LogTemp: Display: Hotbar details: Focusable=1 OwnerLocal=1 LiveDetails=1
+[2026.10.02-12.12.14:992][305]LogTemp: Display: Catalogue icon gallery: ItemsAndTools=48 ReadOnly=1
+
+C:\Users\Ville\AppData\Local\Temp\kh-44f1c02c\client.log
+[2026.10.02-12.12.15:336][185]LogTemp: Display: Hotbar owner snapshot: NetMode=3 Local=1 Pawn=KalmalaCharacter_0 Statuses=0 WeatherValid=1
+[2026.10.02-12.12.20:331][424]LogTemp: Display: Hotbar fixture: Phase=empty Entries=0 ReadOnly=1 Bounds=687,173,1007,229 Scale=150 Dpi=0.7105
+[2026.10.02-12.12.25:545][643]LogTemp: Display: Hotbar fixture: Phase=populated Entries=6 ReadOnly=1 Bounds=687,173,1007,340 Scale=150 Dpi=0.7105
+[2026.10.02-12.12.30:538][881]LogTemp: Display: Hotbar fixture: Phase=expired Entries=0 ReadOnly=1 Bounds=687,173,1007,340 Scale=150 Dpi=0.7105
+[2026.10.02-12.12.36:540][165]LogTemp: Display: Hotbar details: Focusable=1 OwnerLocal=1 LiveDetails=1
+[2026.10.02-12.12.39:613][310]LogTemp: Display: Catalogue icon gallery: ItemsAndTools=48 ReadOnly=1
+
+C:\Users\Ville\AppData\Local\Temp\kh-28eacb8f\host.log
+[2026.10.02-12.14.00:882][177]LogTemp: Display: Hotbar owner snapshot: NetMode=2 Local=1 Pawn=KalmalaCharacter_0 Statuses=0 WeatherValid=1
+[2026.10.02-12.14.05:885][417]LogTemp: Display: Hotbar fixture: Phase=empty Entries=0 ReadOnly=1 Bounds=964,163,1264,198 Scale=100 Dpi=0.6660
+[2026.10.02-12.14.11:374][638]LogTemp: Display: Hotbar fixture: Phase=populated Entries=6 ReadOnly=1 Bounds=964,163,1264,234 Scale=100 Dpi=0.6660
+[2026.10.02-12.14.16:367][872]LogTemp: Display: Hotbar fixture: Phase=expired Entries=0 ReadOnly=1 Bounds=964,163,1264,234 Scale=100 Dpi=0.6660
+[2026.10.02-12.14.22:382][149]LogTemp: Display: Hotbar details: Focusable=1 OwnerLocal=1 LiveDetails=1
+[2026.10.02-12.14.25:429][292]LogTemp: Display: Catalogue icon gallery: ItemsAndTools=48 ReadOnly=1
+
+C:\Users\Ville\AppData\Local\Temp\kh-28eacb8f\client.log
+[2026.10.02-12.14.25:885][183]LogTemp: Display: Hotbar owner snapshot: NetMode=3 Local=1 Pawn=KalmalaCharacter_0 Statuses=0 WeatherValid=1
+[2026.10.02-12.14.30:872][421]LogTemp: Display: Hotbar fixture: Phase=empty Entries=0 ReadOnly=1 Bounds=964,163,1264,198 Scale=100 Dpi=0.6660
+[2026.10.02-12.14.36:102][645]LogTemp: Display: Hotbar fixture: Phase=populated Entries=6 ReadOnly=1 Bounds=964,163,1264,234 Scale=100 Dpi=0.6660
+[2026.10.02-12.14.41:096][876]LogTemp: Display: Hotbar fixture: Phase=expired Entries=0 ReadOnly=1 Bounds=964,163,1264,234 Scale=100 Dpi=0.6660
+[2026.10.02-12.14.47:092][154]LogTemp: Display: Hotbar details: Focusable=1 OwnerLocal=1 LiveDetails=1
+[2026.10.02-12.14.50:157][297]LogTemp: Display: Catalogue icon gallery: ItemsAndTools=48 ReadOnly=1
+
+C:\Users\Ville\AppData\Local\Temp\kh-879fd4a6\host.log
+[2026.10.02-12.17.11:656][175]LogTemp: Display: Hotbar owner snapshot: NetMode=2 Local=1 Pawn=KalmalaCharacter_0 Statuses=0 WeatherValid=1
+[2026.10.02-12.17.16:650][413]LogTemp: Display: Hotbar fixture: Phase=empty Entries=0 ReadOnly=1 Bounds=2086,244,2536,310 Scale=125 Dpi=1.0000
+[2026.10.02-12.17.22:117][630]LogTemp: Display: Hotbar fixture: Phase=populated Entries=6 ReadOnly=1 Bounds=2086,244,2536,442 Scale=125 Dpi=1.0000
+[2026.10.02-12.17.27:132][853]LogTemp: Display: Hotbar fixture: Phase=expired Entries=0 ReadOnly=1 Bounds=2086,244,2536,442 Scale=125 Dpi=1.0000
+[2026.10.02-12.17.33:119][119]LogTemp: Display: Hotbar details: Focusable=1 OwnerLocal=1 LiveDetails=1
+[2026.10.02-12.17.36:176][261]LogTemp: Display: Catalogue icon gallery: ItemsAndTools=48 ReadOnly=1
+
+C:\Users\Ville\AppData\Local\Temp\kh-879fd4a6\client.log
+[2026.10.02-12.17.35:989][184]LogTemp: Display: Hotbar owner snapshot: NetMode=3 Local=1 Pawn=KalmalaCharacter_0 Statuses=0 WeatherValid=1
+[2026.10.02-12.17.41:011][421]LogTemp: Display: Hotbar fixture: Phase=empty Entries=0 ReadOnly=1 Bounds=2086,244,2536,310 Scale=125 Dpi=1.0000
+[2026.10.02-12.17.46:468][637]LogTemp: Display: Hotbar fixture: Phase=populated Entries=6 ReadOnly=1 Bounds=2086,244,2536,442 Scale=125 Dpi=1.0000
+[2026.10.02-12.17.51:471][858]LogTemp: Display: Hotbar fixture: Phase=expired Entries=0 ReadOnly=1 Bounds=2086,244,2536,442 Scale=125 Dpi=1.0000
+[2026.10.02-12.17.57:475][129]LogTemp: Display: Hotbar details: Focusable=1 OwnerLocal=1 LiveDetails=1
+[2026.10.02-12.18.00:536][272]LogTemp: Display: Catalogue icon gallery: ItemsAndTools=48 ReadOnly=1
+
+C:\Users\Ville\AppData\Local\Temp\KalmalaInventory-51be30cd4d5444f99edeb490101e6f8a\client.log
+[2026.10.02-12.14.18:741][ 95]LogTemp: Display: Inventory presentation: Owner=1 Wood=7 ReadOnly=1
+[2026.10.02-12.14.19:565][727]LogTemp: Display: Inventory remote: Empty=1
+[2026.10.02-12.14.20:485][379]LogTemp: Display: Inventory remote: Empty=1
+
+C:\Users\Ville\AppData\Local\Temp\KalmalaInventory-51be30cd4d5444f99edeb490101e6f8a\server.log
+[2026.10.02-12.13.56:326][871]LogTemp: Display: Inventory presentation: Owner=1 Wood=7 ReadOnly=1
+
+C:\Users\Ville\AppData\Local\Temp\khrain\client.log
+[2026.10.02-12.15.23:647][885]LogTemp: Display: Rain vertical slice client: Passed=1 Wet=0 ExposedHealth=50.0 RoofedHealth=100.0 RoofHealth=100.0 FireState=1 Roofed=1
+
+C:\Users\Ville\AppData\Local\Temp\khrain\server.log
+[2026.10.02-12.15.21:866][887]LogTemp: Display: Rain vertical slice server: Passed=1 WaterWet=1 RainWet=1 ExposedHealth=50.0 RoofedHealth=100.0 RoofHealth=100.0 FireState=1 Roofed=1 WetRemoved=1
+
+C:\Users\Ville\AppData\Local\Temp\KalmalaCrafting-57641db8bef546aa973eefc52a884823\client.log
+[2026.10.02-12.19.36:571][ 21]LogTemp: Display: Crafting presentation: Passed=1 Restored=1
+[2026.10.02-12.19.48:621][592]LogTemp: Display: Construction feedback: Passed=1
+
+C:\Users\Ville\AppData\Local\Temp\KalmalaCrafting-57641db8bef546aa973eefc52a884823\server.log
+[2026.10.02-12.19.08:309][  0]LogTemp: Display: Crafting presentation: Passed=1 Restored=1
+[2026.10.02-12.19.48:622][875]LogTemp: Display: Construction feedback: Passed=1
+
+C:\Users\Ville\AppData\Local\Temp\KalmalaSettingsAccessibility-8c8b7d5a662f47eea2d702545f9b8d79\client.log
+[2026.10.02-12.23.53:298][403]LogTemp: Display: Settings accessibility: Authority=0 Completed=1 GameplayStable=1 InputRestored=1 WorldSeed=418
+
+C:\Users\Ville\AppData\Local\Temp\KalmalaSettingsAccessibility-8c8b7d5a662f47eea2d702545f9b8d79\server.log
+[2026.10.02-12.23.28:257][540]LogTemp: Display: Settings accessibility: Authority=1 Completed=1 GameplayStable=1 InputRestored=1 WorldSeed=418

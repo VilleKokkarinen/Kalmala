@@ -8,6 +8,13 @@ identity, or the multiplayer authority model.
 Every audited seam is presentation-only: it may improve readability or
 feedback, but it cannot become a gameplay source.
 
+M11 supersedes the historical status placement below: active status/weather
+now appears only in the transparent owner-local top-right hotbar, with live
+details in Escape > Status and weather details. The lower-left widget retains
+only ocean travel, and pack preparation guidance retains no active timer.
+Original catalogue line art is shared by inventory/tool rows and the build
+selector. See `36-status-icons.md` for identities and verification boundaries.
+
 ## Ownership ledger
 
 | Presentation seam | Project-owned source | Current contract | Runtime status |

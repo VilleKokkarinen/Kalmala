@@ -38,14 +38,17 @@ foreach ($relativePath in $requiredAssets) {
 }
 
 $sourceContracts = @(
+    @{ Label = 'accessibility-feedback'; Path = 'Source\KalmalaUI\Private\KalmalaAccessibilityFeedbackSubsystem.cpp'; Patterns = @('MarkerLine', 'COLOUR-INDEPENDENT FEEDBACK', 'GetLocalPlayer()', 'HitTestInvisible') },
+    @{ Label = 'status-hotbar'; Path = 'Source\KalmalaUI\Private\KalmalaStatusHotbarWidget.cpp'; Patterns = @('HitTestInvisible', 'SetIsFocusable(false)', 'SetExplicitWrapSize', 'ongoing') },
+    @{ Label = 'catalogue-icons'; Path = 'Source\KalmalaUI\Private\KalmalaIconWidget.cpp'; Patterns = @('FindCatalogueIcon', 'ConstructionHammer', 'MakeLines') },
     @{ Label = 'player'; Path = 'Source\KalmalaGameplay\Private\KalmalaPlayerModelComponent.cpp'; Patterns = @('M_GeneratedTerrain', 'bTapered', 'CreateMeshSection_LinearColor') },
     @{ Label = 'wildlife'; Path = 'Source\KalmalaGameplay\Private\KalmalaWildlifeSpawn.cpp'; Patterns = @('BuildArchetypePresentation', 'Original low-poly silhouettes', 'CreateMeshSection_LinearColor') },
     @{ Label = 'environment'; Path = 'Source\KalmalaWorld\Private\KalmalaGeneratedTerrainPatch.cpp'; Patterns = @('AppendLowPolyRock', 'M_GeneratedTerrain', 'M_GeneratedWater', 'M_GeneratedCanopy') },
     @{ Label = 'hearth'; Path = 'Source\KalmalaGameplay\Private\KalmalaCampfire.cpp'; Patterns = @('Original low polygon stone ring', 'M_GeneratedRock', 'CreateMeshSection_LinearColor') },
     @{ Label = 'ui'; Path = 'Source\KalmalaUI\Private\KalmalaMinimapWidget.cpp'; Patterns = @('CreateTransient', 'UpdateTextureRegions') },
     @{ Label = 'survival-status'; Path = 'Source\KalmalaUI\Private\KalmalaSurvivalStatusWidget.cpp'; Patterns = @('BuildStatusText', 'Source: exposed rain or water', 'Source: prepared food', 'Recovery: shelter or a lit hearth restores warmth', 'SetIsFocusable(false)') },
-    @{ Label = 'survival-status-owner'; Path = 'Source\KalmalaUI\Private\KalmalaSurvivalStatusSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'GetServerWorldTimeSeconds()', 'SetSnapshot', 'AddToPlayerScreen(54)', 'HitTestInvisible') },
-    @{ Label = 'feedback-status'; Path = 'Source\KalmalaUI\Private\KalmalaInventorySubsystem.cpp'; Patterns = @('Attack result:', 'Discovery:', 'Wet: inactive', 'UKalmalaSupportGlyphWidget', 'SupportGlyphRow', 'SetSupportGlyphState', 'EKalmalaSupportGlyph::DeerCall', 'HasLearnedEffect', 'GetSelectedSupportEffect') },
+    @{ Label = 'survival-status-owner'; Path = 'Source\KalmalaUI\Private\KalmalaSurvivalStatusSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'GetServerWorldTimeSeconds()', 'SetSnapshot', 'AddToPlayerScreen(54)', 'HotbarWidget->SetSnapshot') },
+    @{ Label = 'feedback-status'; Path = 'Source\KalmalaUI\Private\KalmalaInventorySubsystem.cpp'; Patterns = @('Attack result:', 'Discovery:', 'SetCatalogueRows', 'UKalmalaSupportGlyphWidget', 'SupportGlyphRow', 'SetSupportGlyphState', 'EKalmalaSupportGlyph::DeerCall', 'HasLearnedEffect', 'GetSelectedSupportEffect') },
     @{ Label = 'feedback-crafting'; Path = 'Source\KalmalaUI\Private\KalmalaCraftingSubsystem.cpp'; Patterns = @('text does not rely on colour', 'Construction feedback: Passed=') }
 )
 $forbiddenPatterns = @('BasicShape', '/Engine/BasicShapes', 'StarterContent', 'Marketplace', 'Quixel', 'ThirdParty')
@@ -63,6 +66,11 @@ foreach ($contract in $sourceContracts) {
     foreach ($forbiddenPattern in $forbiddenPatterns) {
         if ($source -match [regex]::Escape($forbiddenPattern)) {
             throw "Presentation source '$($contract.Label)' contains forbidden asset path/token '$forbiddenPattern'"
+        }
+    }
+    if ($contract.Label -in @('feedback-status','accessibility-feedback')) {
+        foreach ($duplicateStatusQuery in @('GetRemainingSeconds(', 'GetActiveEffect()', 'Wet: inactive', 'ACTIVE SUPPORT')) {
+            if ($source.Contains($duplicateStatusQuery)) { throw "Duplicate active-status presentation in $($contract.Label): $duplicateStatusQuery" }
         }
     }
 }

@@ -41,6 +41,9 @@ This folder is the project’s durable operating manual. An agent must read the 
 
 ## Authority order
 
+The M11 status parent, status migration, complete icon audit and their
+verification are documented in [36 Status and icons](36-status-icons.md).
+
 1. A direct current user instruction
 2. This project’s decision log
 3. Technical architecture
