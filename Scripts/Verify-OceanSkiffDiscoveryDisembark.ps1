@@ -4,7 +4,10 @@ param(
     [string]$Project = '',
     [switch]$RenderedFrameTimeProfile,
     [int]$TimeoutSeconds = 120,
-    [ValidateRange(0, 63)][int]$LogicalCoreAffinity = 0
+    [ValidateRange(0, 63)][int]$LogicalCoreAffinity = 0,
+    [ValidateRange(-1, 3)][int]$ScalabilityQuality = -1,
+    [ValidateRange(25, 100)][int]$ScreenPercentage = 100,
+    [ValidateRange(0, 8192)][int]$TexturePoolMB = 0
 )
 
 $ErrorActionPreference = 'Stop'
@@ -21,6 +24,25 @@ New-Item -ItemType Directory -Path $hostShaderDir -Force | Out-Null
 New-Item -ItemType Directory -Path $clientShaderDir -Force | Out-Null
 $common = '-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaOceanDiscoveryDisembarkPeerTest -KalmalaWorldProfile'
 if ($LogicalCoreAffinity -gt 0) { $common += " -processaffinity=$LogicalCoreAffinity" }
+$renderSettings = [ordered]@{}
+if ($ScalabilityQuality -ge 0) {
+    if (!$RenderedFrameTimeProfile) { throw 'Rendering presets require -RenderedFrameTimeProfile.' }
+    foreach ($group in 'ViewDistance', 'AntiAliasing', 'Shadow', 'GlobalIllumination', 'Reflection', 'PostProcess', 'Texture', 'Effects', 'Foliage', 'Shading', 'Landscape') {
+        $renderSettings["sg.${group}Quality"] = $ScalabilityQuality
+    }
+    $renderSettings['r.DynamicRes.OperationMode'] = 0
+    $renderSettings['r.ScreenPercentage'] = $ScreenPercentage
+    $renderSettings['t.MaxFPS'] = 0
+}
+if ($TexturePoolMB -gt 0) {
+    if (!$RenderedFrameTimeProfile) { throw 'Texture-pool presets require -RenderedFrameTimeProfile.' }
+    $renderSettings['r.Streaming.UseFixedPoolSize'] = 1
+    $renderSettings['r.Streaming.PoolSize'] = $TexturePoolMB
+}
+if ($renderSettings.Count -gt 0) {
+    $commands = @($renderSettings.Keys | ForEach-Object { "$_ $($renderSettings[$_])" }) -join ','
+    $common += " -ExecCmds=`"$commands`""
+}
 if ($RenderedFrameTimeProfile) {
     New-Item -ItemType Directory -Path $frameTimeDirectory -Force | Out-Null
     $common += " -RenderOffscreen -ResX=1280 -ResY=720 -novsync -csvGpuStats -KalmalaCaptureRenderedFrameTimes -KalmalaFrameTimeOutputDir=`"$frameTimeDirectory`""
@@ -44,9 +66,15 @@ function Get-FrameTimeMetricSummary {
         if ($header[$column].Trim('"') -eq $Metric) { $column }
     })
     if ($metricIndices.Count -ne 1) { throw "Expected exactly one $Metric column in '$CsvPath'." }
+    $eventIndices = @(for ($column = 0; $column -lt $header.Count; $column++) {
+        if ($header[$column].Trim('"') -eq 'EVENTS') { $column }
+    })
+    if ($eventIndices.Count -ne 1) { throw "Expected exactly one EVENTS column in '$CsvPath'." }
     $columnNames = @(for ($column = 0; $column -lt $header.Count; $column++) { "Column$column" })
     foreach ($row in (Import-Csv -LiteralPath $CsvPath -Header $columnNames)) {
-        # Original/repeated header and metadata rows are nonnumeric and skipped.
+        # Footer metadata can contain numbers in timing-column positions.
+        if ($row.PSObject.Properties[$columnNames[$eventIndices[0]]].Value -eq '[HasHeaderRowAtEnd]') { continue }
+        # Original/repeated header rows are nonnumeric and skipped.
         $rawValue = $row.PSObject.Properties[$columnNames[$metricIndices[0]]].Value
         $value = 0.0
         if ($null -ne $rawValue -and [double]::TryParse([string]$rawValue, [System.Globalization.NumberStyles]::Float, $culture, [ref]$value) -and $value -gt 0.0) {
@@ -74,7 +102,7 @@ $hostProcess = $null
 $client = $null
 try {
     $hostProcess = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$projectPath`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -ShaderWorkingDir=`"$hostShaderDir`" -abslog=`"$hostLog`" -UserDir=`"$output\Host`""
-    $deadline = (Get-Date).AddSeconds(90)
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     do {
         if ($hostProcess.HasExited) { throw 'Ocean discovery/disembark listen server exited during startup.' }
         if ((Test-Path -LiteralPath $hostLog) -and (Select-String -LiteralPath $hostLog -Pattern 'GameNetDriver.*listening on port' -Quiet)) { break }
@@ -138,6 +166,17 @@ try {
     $clientWorkingSetMiB = ($clientMemory.WorkingSet64 / 1MB).ToString('F2', $invariantCulture)
     Write-Output ('M8 process memory snapshot: ListenServerPrivateMiB={0} ListenServerWorkingSetMiB={1} ClientPrivateMiB={2} ClientWorkingSetMiB={3}' -f $hostPrivateMiB, $hostWorkingSetMiB, $clientPrivateMiB, $clientWorkingSetMiB)
     if ($RenderedFrameTimeProfile) {
+        foreach ($peerText in $hostText, $clientText) {
+            $captureStart = $peerText.IndexOf('Ocean M8 rendered frame capture started:')
+            foreach ($setting in $renderSettings.Keys) {
+                $settingPattern = [regex]::Escape($setting) + '\s*=\s*"?(?<value>[0-9.]+)'
+                $settingMatches = [regex]::Matches($peerText, $settingPattern)
+                if ($settingMatches.Count -eq 0 -or $captureStart -lt 0 -or $settingMatches[$settingMatches.Count - 1].Index -ge $captureStart -or [double]$settingMatches[$settingMatches.Count - 1].Groups['value'].Value -ne $renderSettings[$setting]) {
+                    throw "A rendered peer did not confirm $setting=$($renderSettings[$setting]); inspect logs."
+                }
+            }
+        }
+        if ($renderSettings.Count -gt 0) { Write-Output "Verified rendering preset on both peers: $commands" }
         $hostRhiMatch = [regex]::Match($hostText, 'LogRHI: Using Default RHI: (?<rhi>[^\r\n]+)')
         $clientRhiMatch = [regex]::Match($clientText, 'LogRHI: Using Default RHI: (?<rhi>[^\r\n]+)')
         if (!$hostRhiMatch.Success -or !$clientRhiMatch.Success -or $hostRhiMatch.Groups['rhi'].Value -match 'NullRHI' -or $clientRhiMatch.Groups['rhi'].Value -match 'NullRHI') {

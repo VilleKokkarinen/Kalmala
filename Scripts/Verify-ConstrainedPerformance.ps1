@@ -1,15 +1,34 @@
 param(
-    [ValidateSet('Reference', 'Cpu8Threads', 'Cpu4Threads')]
+    [ValidateSet('Potato', 'Low', 'Med', 'High', 'Ultra', 'Reference', 'Cpu8Threads', 'Cpu4Threads')]
     [string]$Profile = 'Reference',
-    [Parameter(Mandatory = $true)][string]$Project,
+    [string]$Project = '',
     [int]$Port = 19981,
     [string]$OutputDirectory = '',
-    [ValidateRange(120, 240)][int]$TimeoutSeconds = 180
+    [ValidateRange(120, 240)][int]$TimeoutSeconds = 180,
+    [switch]$ListProfiles
 )
 
-# Diagnostic CPU contention profiles, not emulation of a particular CPU/GPU.
-# Keep the rendering workload identical so the CPU comparisons are useful.
+# Diagnostic resource/quality presets, not emulation of a particular CPU/GPU.
+# CPU-only profiles retain the old identical rendering workload.
 $ErrorActionPreference = 'Stop'
+$profiles = [ordered]@{
+    Potato = @{ Threads = 2; Quality = 0; ScreenPercentage = 50; TexturePoolMB = 256 }
+    Low = @{ Threads = 4; Quality = 0; ScreenPercentage = 75; TexturePoolMB = 512 }
+    Med = @{ Threads = 8; Quality = 1; ScreenPercentage = 100; TexturePoolMB = 1024 }
+    High = @{ Threads = 16; Quality = 2; ScreenPercentage = 100; TexturePoolMB = 2048 }
+    Ultra = @{ Threads = 0; Quality = 3; ScreenPercentage = 100; TexturePoolMB = 4096 }
+    Reference = @{ Threads = 0; Quality = -1; ScreenPercentage = 100; TexturePoolMB = 0 }
+    Cpu8Threads = @{ Threads = 8; Quality = -1; ScreenPercentage = 100; TexturePoolMB = 0 }
+    Cpu4Threads = @{ Threads = 4; Quality = -1; ScreenPercentage = 100; TexturePoolMB = 0 }
+}
+if ($ListProfiles) {
+    foreach ($name in $profiles.Keys) {
+        [pscustomobject]@{ Profile = $name; LogicalProcessorLimit = $profiles[$name].Threads; ScalabilityQuality = $profiles[$name].Quality; ScreenPercentage = $profiles[$name].ScreenPercentage; TexturePoolMB = $profiles[$name].TexturePoolMB }
+    }
+    return
+}
+if (!$Project) { throw 'Specify -Project with the built disposable Kalmala.uproject mirror, or use -ListProfiles.' }
+$preset = $profiles[$Profile]
 if ([IntPtr]::Size -ne 8 -or [Environment]::ProcessorCount -gt 63) {
     throw 'This runner requires 64-bit Windows with at most 63 logical processors in one processor group.'
 }
@@ -23,7 +42,7 @@ New-Item -ItemType Directory -Path $output | Out-Null
 $stopMonitor = Join-Path $output 'monitor.stop'
 $self = Get-Process -Id $PID
 $originalMask = $self.ProcessorAffinity.ToInt64()
-$threadCount = switch ($Profile) { 'Cpu8Threads' { 8 }; 'Cpu4Threads' { 4 }; default { 0 } }
+$threadCount = $preset.Threads
 $selectedMask = $originalMask
 if ($threadCount -gt 0) {
     # Unreal's processaffinity option selects the lowest N logical processors.
@@ -38,11 +57,11 @@ if ($threadCount -gt 0) {
 # actual Unreal host and client retain it, rather than assuming inheritance.
 # Unreal also needs its explicit processaffinity option to disable its normal
 # thread-affinity setup, which can otherwise widen the inherited process mask.
-$monitor = Start-Job -ArgumentList $PID, $stopMonitor -ScriptBlock {
-    param($ownerPid, $stopFile)
+$monitor = Start-Job -ArgumentList $PID, $stopMonitor, $TimeoutSeconds -ScriptBlock {
+    param($ownerPid, $stopFile, $scenarioTimeout)
     $ErrorActionPreference = 'Stop'
     $seen = @{}
-    $deadline = (Get-Date).AddMinutes(7)
+    $deadline = (Get-Date).AddSeconds(2 * $scenarioTimeout + 30)
     while (!(Test-Path -LiteralPath $stopFile) -and (Get-Date) -lt $deadline) {
         $peers = Get-CimInstance Win32_Process -Filter "ParentProcessId=$ownerPid AND Name='UnrealEditor.exe'"
         foreach ($peer in $peers) {
@@ -69,8 +88,8 @@ $observations = @()
 try {
     $self.ProcessorAffinity = [IntPtr]$selectedMask
     if ($self.ProcessorAffinity.ToInt64() -ne $selectedMask) { throw 'Caller affinity did not apply.' }
-    Write-Output "Diagnostic profile: $Profile; shared logical-processor mask=$selectedMask; GPU and rendering settings unchanged."
-    & $runner -Project $projectPath -Port $Port -OutputDirectory (Join-Path $output 'Peers') -RenderedFrameTimeProfile -TimeoutSeconds $TimeoutSeconds -LogicalCoreAffinity $threadCount |
+    Write-Output "Diagnostic profile: $Profile; shared logical-processor mask=$selectedMask; quality=$($preset.Quality); screen=$($preset.ScreenPercentage)%; texture pool=$($preset.TexturePoolMB) MB (quality -1/pool 0 retain existing settings)."
+    & $runner -Project $projectPath -Port $Port -OutputDirectory (Join-Path $output 'Peers') -RenderedFrameTimeProfile -TimeoutSeconds $TimeoutSeconds -LogicalCoreAffinity $threadCount -ScalabilityQuality $preset.Quality -ScreenPercentage $preset.ScreenPercentage -TexturePoolMB $preset.TexturePoolMB |
         Tee-Object -FilePath (Join-Path $output 'scenario.txt')
     $passed = $true
 }
@@ -101,14 +120,16 @@ finally {
         ElapsedSeconds = [Math]::Round(([DateTime]::UtcNow - $started).TotalSeconds, 2)
         SharedLogicalProcessors = $threadCount
         ReferenceUsesCallerAffinity = ($threadCount -eq 0)
+        RenderingPreset = $preset
+        OutputResolution = '1280x720'
         OriginalAffinityMask = $originalMask
         SelectedAffinityMask = $selectedMask
         ObservedPeers = $observations
         ScenarioPassed = $passed
         Failure = $failure
-        Limitations = 'Host and client share the mask; logical processors may be SMT siblings or hybrid cores. Per-core speed, GPU, VRAM, RAM and storage are unchanged. No numerical acceptance limits applied.'
+        Limitations = 'Host and client share the mask; logical processors may be SMT siblings or hybrid cores. Named presets combine resource restrictions with quality/workload changes. Texture pool is not total VRAM. Per-core speed, GPU hardware, physical VRAM/RAM and storage are unchanged. No numerical acceptance limits applied.'
     } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $output 'profile.json') -Encoding UTF8
-    Write-Output "CPU profile evidence: $output"
+    Write-Output "Profile evidence: $output"
 }
 if (!$passed) { throw $failure }
 Write-Output "PASS: $Profile scenario and observed host/client affinity."

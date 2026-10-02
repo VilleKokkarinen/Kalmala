@@ -4,12 +4,62 @@
 
 The product owner's 2026-10-02 request permits investigating lower-resource
 profiles on the available i7-14700K / RTX 5090 Windows PC. The diagnostic
-matrix below makes CPU contention repeatable without changing gameplay,
+matrix below makes resource and quality settings repeatable without changing gameplay,
 machine-wide power settings, drivers, or project configuration. It does not
 approve minimum/recommended hardware, numerical release limits, or substitute
 for measurements on those targets. The M10 performance parent remains open.
 
-## Implemented CPU matrix
+## Named resource and quality presets
+
+The owner's follow-up adds five selectable presets. These are diagnostic
+settings rather than minimum/recommended hardware specifications or player
+video-menu defaults. They combine CPU contention, rendering workload, and
+texture-pool budgets; use the separate CPU-only profiles below to isolate CPU
+effects. All keep a 1280×720 output viewport and disable VSync, the FPS cap,
+and dynamic resolution. Screen percentage controls internal rendering scale.
+
+| Profile | Shared logical-processor limit | Unreal quality level | Screen percentage | Texture pool MB |
+| --- | ---: | --- | ---: | ---: |
+| Potato | 2 | Low (0) | 50 | 256 |
+| Low | 4 | Low (0) | 75 | 512 |
+| Med | 8 | Medium (1) | 100 | 1024 |
+| High | 16 | High (2) | 100 | 2048 |
+| Ultra | Original caller affinity | Epic (3) | 100 | 4096 |
+
+The quality level applies to ViewDistance, AntiAliasing, Shadow,
+GlobalIllumination, Reflection, PostProcess, Texture, Effects, Foliage, Shading
+and Landscape scalability groups. Texture-pool size is applied after quality
+so the explicit budget takes precedence. `r.Streaming.UseFixedPoolSize=1`
+enables runtime pool resizing. The verifier checks that both peer logs report
+every requested setting before frame capture starts, alongside the scenario,
+CSV and affinity checks. This confirms console-variable application, not visual quality or
+continuous observation of effective GPU allocations during the capture.
+
+List all presets without launching Unreal:
+
+```powershell
+& '.\Scripts\Verify-ConstrainedPerformance.ps1' -ListProfiles
+```
+
+Run the five presets sequentially with isolated evidence directories:
+
+```powershell
+$profileProject = Join-Path $env:TEMP 'k10s\Kalmala.uproject'
+$profilePort = 19991
+foreach ($profileName in 'Potato', 'Low', 'Med', 'High', 'Ultra') {
+    & '.\Scripts\Verify-ConstrainedPerformance.ps1' -Profile $profileName -Project $profileProject -Port $profilePort -TimeoutSeconds 240
+    $profilePort++
+}
+```
+
+Names are case-insensitive. Low-resource presets need the first N logical
+processors available in the caller's affinity; the runner rejects an
+incompatible mask rather than silently widening it. Ultra means the Epic
+quality preset, not Unreal's Cinematic level. The actual GPU remains an
+RTX 5090; lower quality reduces its workload rather than emulating a slow GPU.
+The texture pool is not a cap on total VRAM or system RAM.
+
+## Original CPU-only matrix
 
 | Profile | CPU access shared by listen host and remote client | Render workload |
 | --- | --- | --- |
@@ -68,8 +118,8 @@ before drawing regression conclusions from timing differences.
 Unreal scalability settings control rendering cost and visual quality.
 `r.Streaming.PoolSize` controls the texture pool in MB; it does not cap all GPU
 memory (render targets, buffers and other allocations remain). These are useful
-separate experiments, not implemented presets in this CPU runner. Keep workload
-and resource restrictions separate so changes can be attributed correctly.
+separate controls in the named presets above. The original CPU-only profiles
+keep their rendering settings unchanged so CPU effects can be isolated.
 Network impairment is likewise a separate test; never alter server authority
 or client validation to accommodate simulated latency.
 
@@ -141,3 +191,38 @@ their latest evidence remains in `20-m8-ocean-performance-budget.md`.
 Evidence directories under `%TEMP%`: `k10cpu-ref`, `k10cpu-8c`, `k10cpu-4`.
 Rejected diagnostic attempts remain in `k10cpu-8` (affinity widened) and
 `k10cpu-8b` (duplicate CSV names; retained captures subsequently parsed).
+
+## Named preset verification — 2026-10-02
+
+All five named presets passed the rendered host/client scenario, actual
+affinity observations and requested console-variable confirmations before
+capture. The UE 5.8.2 editor mirror build passed (up to date). Each peer
+provided 300 positive samples for each of the four timing metrics.
+
+| Profile | Observed shared CPU mask | Frame p95 host / client ms | GPU p95 host / client ms | Evidence directory under `%TEMP%` |
+| --- | ---: | --- | --- | --- |
+| Potato | 3 | 17.38 / 14.58 | 0.59 / 0.56 | k10tier-potato |
+| Low | 15 | 9.65 / 10.64 | 0.73 / 0.75 | k10tier-low |
+| Med | 255 | 4.16 / 5.45 | 0.98 / 1.09 | k10tier-medb |
+| High | 65535 | 3.69 / 3.91 | 1.19 / 1.21 | k10tier-highb |
+| Ultra | 268435455 | 4.55 / 5.50 | 1.24 / 1.50 | k10tier-ultrab |
+
+These are single short captures, not hardware-tier rankings or approved
+performance ceilings. The presets change both CPU resources and GPU workload.
+Setup hitches remain in the samples (the Potato client's maximum frame was
+1,259.76 ms). Nine terrain patches, two population keys and a 2,215-byte
+population save were observed in every run; full snapshots remain in each
+`scenario.txt`, with preset metadata and peer masks in `profile.json`.
+
+The first Med run (`k10tier-med`) exposed a numeric CSV footer value being
+counted as a 301st FrameTime sample. The parser now locates the EVENTS column
+and skips `[HasHeaderRowAtEnd]` metadata before reading timing values, retaining
+its exact 300-sample guard. A synthetic regression with duplicate unrelated
+headers and a numeric footer passed; all eight retained Med metrics and all
+24 legacy CPU-profile metrics then parsed with exactly 300 samples. The final
+Med rerun passed end to end. Script syntax, all eight entries in `-ListProfiles`,
+Potato pre-capture settings ordering, and git diff checks passed.
+
+No gameplay code, authority, replication, save schema, product video defaults
+or machine-wide settings changed. The M10 parent still requires approved
+hardware coverage and numerical limits, plus packaged and sustained scenarios.
