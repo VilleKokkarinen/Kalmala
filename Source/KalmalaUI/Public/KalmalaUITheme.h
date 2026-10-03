@@ -51,6 +51,10 @@ struct KALMALAUI_API FKalmalaUITheme
     float IconHeight = 42;
     bool bAnimateScrolling = false;
     float ScrollSpeed = 15;
+    bool bAnimateOptionsOpening = true;
+    float OptionsOpeningDuration = 0.18f;
+    float OptionsOpeningTravel = 32.0f;
+    FName OptionsOpeningEasing = TEXT("EaseOutCubic");
 
     static FKalmalaUITheme FromConfig(const FConfigFile& Config);
     static const FKalmalaUITheme& Get();
@@ -64,6 +68,8 @@ struct KALMALAUI_API FKalmalaUITheme
     void ApplyButton(UButton& Button, int32 ContrastMode) const;
     void ApplyIconSlot(USizeBox& Slot) const;
     void ApplyScroll(UScrollBox& Scroll, bool bReducedMotion = false) const;
+    bool ShouldAnimateOptionsOpening() const;
+    float OptionsOpeningOffset(float Progress) const;
     void ApplyText(UTextBlock& Label, int32 BaseSize, bool bHeading,
         int32 TextScalePercent, int32 ContrastMode) const;
 };

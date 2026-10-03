@@ -10,10 +10,13 @@
 #include "Misc/Parse.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaUITheme.h"
 #include "KalmalaWorldMapSubsystem.h"
 #include "KalmalaCraftingSubsystem.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "Engine/LocalPlayer.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "GameFramework/GameUserSettings.h"
 
 #if !UE_BUILD_SHIPPING
 namespace
@@ -145,6 +148,178 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         }
     }
 
+    if (bDeveloperOpeningProbePending && SettingsWidget != nullptr && SettingsWidget->IsMenuOpen())
+    {
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        const bool bShouldAnimate = Theme.ShouldAnimateOptionsOpening();
+        const float InitialOffset = Theme.OptionsOpeningOffset(0.0f);
+        const bool bOpeningStartWasLogged = bDeveloperOpeningProbeStartLogged;
+        if (!bDeveloperOpeningProbeStartLogged)
+        {
+            ++DeveloperOpeningFocusFrameCount;
+            if (SettingsWidget->HasFocusedContentForVerification())
+            {
+                bDeveloperOpeningProbeStartLogged = true;
+                UE_LOG(LogTemp, Display,
+                    TEXT("Settings accessibility: Authority=%d Stage=OpeningFocus Focused=1 FocusTargets=%d FocusDuringAnimation=%d Frame=%d"),
+                    Character->HasAuthority() ? 1 : 0,
+                    SettingsWidget->HasFocusableContentForVerification() ? 1 : 0,
+                    (!bShouldAnimate || SettingsWidget->IsOptionsOpeningAnimationActiveForVerification()) ? 1 : 0,
+                    DeveloperOpeningFocusFrameCount);
+            }
+            else if (DeveloperOpeningFocusFrameCount >= 3)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL opening focus was not acquired during the transition."));
+                bDeveloperSettingsVerificationCompleted = true;
+                bDeveloperOpeningProbePending = false;
+                return;
+            }
+            else
+            {
+                return;
+            }
+        }
+        if (bOpeningStartWasLogged) DeveloperOpeningProbeElapsed += DeltaTime;
+        const bool bReopenWasFocused = bDeveloperOpeningProbeReopenFocused;
+        if (bDeveloperOpeningProbeReopened && !bDeveloperOpeningProbeReopenFocused
+            && SettingsWidget->HasFocusedContentForVerification())
+        {
+            bDeveloperOpeningProbeReopenFocused = true;
+            DeveloperOpeningReopenElapsed = 0.0f;
+            bDeveloperOpeningProbeReopenFocusDuringAnimation = !bShouldAnimate
+                || SettingsWidget->IsOptionsOpeningAnimationActiveForVerification();
+            UE_LOG(LogTemp, Display,
+                TEXT("Settings accessibility: Authority=%d Stage=OpeningCloseReopen Interrupted=%d Reopened=%d CloseReset=%d Focused=1 FocusDuringAnimation=%d CenterAnchored=%d"),
+                Character->HasAuthority() ? 1 : 0, bDeveloperOpeningProbeInterrupted ? 1 : 0,
+                bDeveloperOpeningProbeReopened ? 1 : 0, bDeveloperOpeningProbeCloseReset ? 1 : 0,
+                bDeveloperOpeningProbeReopenFocusDuringAnimation ? 1 : 0,
+                SettingsWidget->IsOptionsPanelCenterAnchoredForVerification() ? 1 : 0);
+        }
+        if (bReopenWasFocused) DeveloperOpeningReopenElapsed += DeltaTime;
+        const float CurrentPanelY = SettingsWidget->GetOptionsPanelPositionYForVerification();
+        if (bShouldAnimate && SettingsWidget->IsOptionsOpeningAnimationActiveForVerification()
+            && CurrentPanelY < -0.5f && CurrentPanelY > InitialOffset + 0.5f)
+        {
+            bDeveloperOpeningProbeObservedIntermediate = true;
+        }
+
+        if (bDeveloperOpeningProbeReopened && bDeveloperOpeningProbeReopenFocused && !bDeveloperOpeningProbeResizeAttempted
+            && DeveloperOpeningReopenElapsed >= 0.04f)
+        {
+            if (UGameUserSettings* UserSettings = UGameUserSettings::GetGameUserSettings())
+            {
+                bDeveloperOpeningProbeResizeAttempted = true;
+                const FVector2D InitialViewport = UWidgetLayoutLibrary::GetViewportSize(SettingsWidget);
+                DeveloperOpeningOriginalResolution = FIntPoint(FMath::RoundToInt(InitialViewport.X),
+                    FMath::RoundToInt(InitialViewport.Y));
+                const FIntPoint TestResolution = DeveloperOpeningOriginalResolution == FIntPoint(1600, 900)
+                    ? FIntPoint(1920, 1080) : FIntPoint(1600, 900);
+                UserSettings->SetScreenResolution(TestResolution);
+                UserSettings->ApplySettings(false);
+                const FVector2D AppliedViewport = UWidgetLayoutLibrary::GetViewportSize(SettingsWidget);
+                bDeveloperOpeningProbeResizeApplied = FMath::IsNearlyEqual(AppliedViewport.X, TestResolution.X, 2.0f)
+                    && FMath::IsNearlyEqual(AppliedViewport.Y, TestResolution.Y, 2.0f);
+                UE_LOG(LogTemp, Display,
+                    TEXT("Settings accessibility: Authority=%d Stage=OpeningResize Applied=%d Viewport=%.0fx%.0f PanelY=%.2f CenterAnchored=%d"),
+                    Character->HasAuthority() ? 1 : 0, bDeveloperOpeningProbeResizeApplied ? 1 : 0,
+                    AppliedViewport.X, AppliedViewport.Y, SettingsWidget->GetOptionsPanelPositionYForVerification(),
+                    SettingsWidget->IsOptionsPanelCenterAnchoredForVerification() ? 1 : 0);
+            }
+        }
+
+        const bool bReadyToInterrupt = bShouldAnimate
+            ? bDeveloperOpeningProbeObservedIntermediate && SettingsWidget->IsOptionsOpeningAnimationActiveForVerification()
+            : DeveloperOpeningProbeElapsed >= 0.08f;
+        if (!bDeveloperOpeningProbeReopened && bReadyToInterrupt)
+        {
+            const bool bWasMidOpening = !bShouldAnimate || bDeveloperOpeningProbeObservedIntermediate
+                || (SettingsWidget->IsOptionsOpeningAnimationActiveForVerification() && CurrentPanelY < -0.5f);
+            SettingsWidget->Close();
+            const bool bCloseReset = !SettingsWidget->IsOptionsOpeningAnimationActiveForVerification()
+                && FMath::IsNearlyZero(SettingsWidget->GetOptionsPanelPositionYForVerification(), 0.1f)
+                && !LocalController->IsMoveInputIgnored() && !LocalController->IsLookInputIgnored();
+            SettingsWidget->OpenForVerification(LocalController, 2);
+            const float ReopenedY = SettingsWidget->GetOptionsPanelPositionYForVerification();
+            const bool bReopenedAtStart = FMath::IsNearlyEqual(ReopenedY, InitialOffset, 0.1f)
+                && LocalController->IsMoveInputIgnored()
+                && LocalController->IsLookInputIgnored();
+            bDeveloperOpeningProbeCloseReset = bCloseReset;
+            bDeveloperOpeningProbeInterrupted = bWasMidOpening && bCloseReset;
+            bDeveloperOpeningProbeReopened = bReopenedAtStart
+                && SettingsWidget->IsOptionsPanelCenterAnchoredForVerification();
+            DeveloperOpeningReopenElapsed = 0.0f;
+            bDeveloperOpeningProbeReopenFocused = false;
+            bDeveloperOpeningProbeReopenFocusDuringAnimation = false;
+        }
+
+        if (bDeveloperOpeningProbeResizeAttempted && !bDeveloperOpeningProbeResizeRestoreAttempted
+            && DeveloperOpeningReopenElapsed >= 0.08f)
+        {
+            if (UGameUserSettings* UserSettings = UGameUserSettings::GetGameUserSettings())
+            {
+                bDeveloperOpeningProbeResizeRestoreAttempted = true;
+                UserSettings->SetScreenResolution(DeveloperOpeningOriginalResolution);
+                UserSettings->ApplySettings(false);
+                const FVector2D RestoredViewport = UWidgetLayoutLibrary::GetViewportSize(SettingsWidget);
+                bDeveloperOpeningProbeResizeRestored = FMath::IsNearlyEqual(RestoredViewport.X,
+                    DeveloperOpeningOriginalResolution.X, 2.0f)
+                    && FMath::IsNearlyEqual(RestoredViewport.Y, DeveloperOpeningOriginalResolution.Y, 2.0f);
+                UE_LOG(LogTemp, Display,
+                    TEXT("Settings accessibility: Authority=%d Stage=OpeningResizeRestore Restored=%d Viewport=%.0fx%.0f PanelY=%.2f CenterAnchored=%d"),
+                    Character->HasAuthority() ? 1 : 0, bDeveloperOpeningProbeResizeRestored ? 1 : 0,
+                    RestoredViewport.X, RestoredViewport.Y,
+                    SettingsWidget->GetOptionsPanelPositionYForVerification(),
+                    SettingsWidget->IsOptionsPanelCenterAnchoredForVerification() ? 1 : 0);
+            }
+        }
+
+        if (bDeveloperOpeningProbeReopened)
+        {
+            const float ReopenedPanelY = SettingsWidget->GetOptionsPanelPositionYForVerification();
+            if (bShouldAnimate && SettingsWidget->IsOptionsOpeningAnimationActiveForVerification()
+                && ReopenedPanelY < -0.5f && ReopenedPanelY > InitialOffset + 0.5f)
+            {
+                bDeveloperOpeningProbeReopenObservedIntermediate = true;
+            }
+            const bool bAnimationFinished = bShouldAnimate
+                ? DeveloperOpeningReopenElapsed >= Theme.OptionsOpeningDuration + 0.04f
+                    && !SettingsWidget->IsOptionsOpeningAnimationActiveForVerification()
+                : DeveloperOpeningReopenElapsed >= 0.04f
+                    && !SettingsWidget->IsOptionsOpeningAnimationActiveForVerification();
+            if (bAnimationFinished)
+            {
+                const bool bFinalPosition = FMath::IsNearlyZero(ReopenedPanelY, 0.1f);
+                const bool bMotionEvidence = !bShouldAnimate || (bDeveloperOpeningProbeObservedIntermediate
+                    && bDeveloperOpeningProbeReopenObservedIntermediate);
+                bDeveloperOpeningProbePassed = bFinalPosition && bMotionEvidence
+                    && bDeveloperOpeningProbeInterrupted && bDeveloperOpeningProbeResizeApplied
+                    && bDeveloperOpeningProbeResizeRestored && bDeveloperOpeningProbeStartLogged
+                    && bDeveloperOpeningProbeReopenFocused && SettingsWidget->HasFocusedContentForVerification()
+                    && bDeveloperOpeningProbeReopenFocusDuringAnimation
+                    && SettingsWidget->HasFocusableContentForVerification()
+                    && SettingsWidget->IsOptionsPanelCenterAnchoredForVerification()
+                    && LocalController->IsMoveInputIgnored() && LocalController->IsLookInputIgnored();
+                UE_LOG(LogTemp, Display,
+                    TEXT("Settings accessibility: Authority=%d Stage=OpeningAnimation Completed=%d Animated=%d Intermediate=%d Interrupted=%d Resize=1600x900 Restored=%d FinalY=%.2f Focused=%d CenterAnchored=%d"),
+                    Character->HasAuthority() ? 1 : 0, bDeveloperOpeningProbePassed ? 1 : 0,
+                    bShouldAnimate ? 1 : 0,
+                    (!bShouldAnimate || (bDeveloperOpeningProbeObservedIntermediate
+                        && bDeveloperOpeningProbeReopenObservedIntermediate)) ? 1 : 0,
+                    bDeveloperOpeningProbeInterrupted ? 1 : 0, bDeveloperOpeningProbeResizeRestored ? 1 : 0,
+                    ReopenedPanelY, SettingsWidget->HasFocusedContentForVerification() ? 1 : 0,
+                    SettingsWidget->IsOptionsPanelCenterAnchoredForVerification() ? 1 : 0);
+                if (!bDeveloperOpeningProbePassed)
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL opening animation, resize, interruption, focus, or reduced-motion path."));
+                    bDeveloperSettingsVerificationCompleted = true;
+                }
+                bDeveloperOpeningProbePending = false;
+            }
+        }
+
+        if (bDeveloperOpeningProbePending) return;
+    }
+
     if (!bDeveloperSettingsVerificationStarted)
     {
         bDeveloperSettingsVerificationStarted = true;
@@ -172,6 +347,31 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         if (SettingsWidget == nullptr) return;
 
         SettingsWidget->OpenForVerification(LocalController, 2);
+        const FKalmalaUITheme& OpeningTheme = FKalmalaUITheme::Get();
+        const float ExpectedOpeningY = OpeningTheme.OptionsOpeningOffset(0.0f);
+        bDeveloperOpeningProbeAnimated = SettingsWidget->IsOptionsOpeningAnimationActiveForVerification();
+        bDeveloperOpeningProbePending = true;
+        DeveloperOpeningProbeElapsed = 0.0f;
+        const bool bOpeningStartedCorrectly = FMath::IsNearlyEqual(
+                SettingsWidget->GetOptionsPanelPositionYForVerification(), ExpectedOpeningY, 0.1f)
+            && SettingsWidget->HasFocusableContentForVerification()
+            && SettingsWidget->IsOptionsPanelCenterAnchoredForVerification()
+            && LocalController->IsMoveInputIgnored() && LocalController->IsLookInputIgnored()
+            && bDeveloperOpeningProbeAnimated == OpeningTheme.ShouldAnimateOptionsOpening();
+        UE_LOG(LogTemp, Display,
+            TEXT("Settings accessibility: Authority=%d Stage=OpeningStart Animated=%d PanelY=%.2f ExpectedY=%.2f Duration=%.2f Travel=%.2f FocusQueued=1 MoveIgnored=%d LookIgnored=%d CenterAnchored=%d"),
+            Character->HasAuthority() ? 1 : 0, bDeveloperOpeningProbeAnimated ? 1 : 0,
+            SettingsWidget->GetOptionsPanelPositionYForVerification(), ExpectedOpeningY,
+            OpeningTheme.OptionsOpeningDuration, OpeningTheme.OptionsOpeningTravel,
+            LocalController->IsMoveInputIgnored() ? 1 : 0,
+            LocalController->IsLookInputIgnored() ? 1 : 0,
+            SettingsWidget->IsOptionsPanelCenterAnchoredForVerification() ? 1 : 0);
+        if (!bOpeningStartedCorrectly)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL immediate opening focus, animation start, or centering."));
+            bDeveloperSettingsVerificationCompleted = true;
+            return;
+        }
         const UPlayerInput* PlayerInput = LocalController->PlayerInput;
         const bool bInputApplied = bKeyboardSet && bGamepadSet
             && HasActionMapping(PlayerInput, TEXT("Interact"), EKeys::F)
@@ -198,7 +398,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         UE_LOG(LogTemp, Display,
             TEXT("Settings accessibility: Authority=%d Stage=Settings Open=%d Focused=%d FocusTargets=%d MoveIgnored=%d LookIgnored=%d LocalRoundTrip=%d InputApplied=%d TextScale=%d Contrast=%d Feedback=%d PanelImages=%d ContrastImageSuppressed=%d"),
             Character->HasAuthority() ? 1 : 0, SettingsWidget->IsMenuOpen() ? 1 : 0,
-            SettingsWidget->HasAnyUserFocus() ? 1 : 0, SettingsWidget->HasFocusableContentForVerification() ? 1 : 0,
+            SettingsWidget->HasFocusedContentForVerification() ? 1 : 0, SettingsWidget->HasFocusableContentForVerification() ? 1 : 0,
             LocalController->IsMoveInputIgnored() ? 1 : 0,
             LocalController->IsLookInputIgnored() ? 1 : 0, bLocalRoundTrip ? 1 : 0, bInputApplied ? 1 : 0,
             UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode(),
@@ -241,7 +441,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         UE_LOG(LogTemp, Display,
             TEXT("Settings accessibility: Authority=%d Stage=Controls Open=%d Focused=%d FocusTargets=%d FocusableControls=%d Keyboard=%s Controller=%s Escape=%d"),
             Character->HasAuthority() ? 1 : 0, SettingsWidget->IsMenuOpen() ? 1 : 0,
-            SettingsWidget->HasAnyUserFocus() ? 1 : 0,
+            SettingsWidget->HasFocusedContentForVerification() ? 1 : 0,
             SettingsWidget->HasFocusableContentForVerification() ? 1 : 0,
             SettingsWidget->HasFocusableControlsForVerification() ? 1 : 0,
             *UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), false).ToString(),
@@ -260,7 +460,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         UE_LOG(LogTemp, Display,
             TEXT("Settings accessibility: Authority=%d Stage=Audio Open=%d Focused=%d FocusTargets=%d Master=%.2f Ambient=%.2f Music=%.2f InteractionCombat=%.2f"),
             Character->HasAuthority() ? 1 : 0, SettingsWidget->IsMenuOpen() ? 1 : 0,
-            SettingsWidget->HasAnyUserFocus() ? 1 : 0, SettingsWidget->HasFocusableContentForVerification() ? 1 : 0,
+            SettingsWidget->HasFocusedContentForVerification() ? 1 : 0, SettingsWidget->HasFocusableContentForVerification() ? 1 : 0,
             UKalmalaSettingsWidget::GetStoredMasterVolume(),
             UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::Ambient),
             UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::Music),

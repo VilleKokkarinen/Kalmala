@@ -56,6 +56,22 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
         Fallback.Panel.Equals(Defaults.Panel) && Fallback.Text.Equals(Defaults.Text));
     TestEqual(TEXT("Missing file uses body defaults"), FKalmalaUITheme::FromConfig(FConfigFile()).BodySize, Defaults.BodySize);
     TestEqual(TEXT("Production theme loads from config hierarchy"), FKalmalaUITheme::Get().BodySize, 13);
+    TestTrue(TEXT("Production theme enables the restrained options opening"), FKalmalaUITheme::Get().ShouldAnimateOptionsOpening());
+    TestEqual(TEXT("Production opening duration is short"), FKalmalaUITheme::Get().OptionsOpeningDuration, 0.18f);
+    TestEqual(TEXT("Production opening begins above its final position"), FKalmalaUITheme::Get().OptionsOpeningOffset(0.0f), -32.0f);
+    TestEqual(TEXT("Production opening settles at its final position"), FKalmalaUITheme::Get().OptionsOpeningOffset(1.0f), 0.0f);
+    FConfigFile InstantOptions;
+    InstantOptions.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nAnimateOptionsOpening=False\nOptionsOpeningDuration=0.24\nOptionsOpeningTravel=48\nOptionsOpeningEasing=Linear\n"), TEXT("InstantOptions.ini"));
+    const FKalmalaUITheme InstantTheme = FKalmalaUITheme::FromConfig(InstantOptions);
+    TestFalse(TEXT("Theme can disable opening motion for reduced-motion use"), InstantTheme.ShouldAnimateOptionsOpening());
+    TestEqual(TEXT("Reduced-motion opening uses the final position immediately"), InstantTheme.OptionsOpeningOffset(0.0f), 0.0f);
+    FConfigFile OpeningExtension;
+    OpeningExtension.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nOptionsOpeningDuration=0.24\nOptionsOpeningTravel=48\nOptionsOpeningEasing=EaseOutQuad\n"), TEXT("OpeningExtension.ini"));
+    const FKalmalaUITheme OpeningTheme = FKalmalaUITheme::FromConfig(OpeningExtension);
+    TestEqual(TEXT("Options opening duration is configurable"), OpeningTheme.OptionsOpeningDuration, 0.24f);
+    TestEqual(TEXT("Options opening travel is configurable"), OpeningTheme.OptionsOpeningTravel, 48.0f);
+    TestEqual(TEXT("Options opening easing is configurable"), OpeningTheme.OptionsOpeningEasing, FName(TEXT("EaseOutQuad")));
+    TestEqual(TEXT("Ease-out travel follows its configured easing"), OpeningTheme.OptionsOpeningOffset(0.5f), -12.0f);
     FConfigFile Extended;
     Extended.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nIconWidth=80\nIconHeight=60\nSlotPadding=8\n"
     "OutlineSize=2\nBorderWidth=2\nFontFace=Bold\nAnimateScrolling=True\nScrollSpeed=24\n"
@@ -107,6 +123,7 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     FConfigFile InvalidExtension;
     InvalidExtension.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nIconWidth=999\nIconHeight=nan\n"
         "BorderWidth=-1\nOutlineSize=99\nScrollSpeed=0\nFontFace=unknown\nFontAsset=../font\nPanelImage=C:/image.png\n"
+        "OptionsOpeningDuration=99\nOptionsOpeningTravel=-2\nOptionsOpeningEasing=Spring\n"
         "InventoryPanelImage=C:/inventory.png\nBuildPanelImage=/Game/InvalidObjectPath\nWorldMapPanelImage=C:/map.png\n"
         "EscapePanelImage=C:/escape.png\nVideoOptionsPanelImage=/Game/InvalidObjectPath\n"
         "AudioOptionsPanelImage=C:/audio.png\nControlsOptionsPanelImage=C:/controls.png\nSettingsOptionsPanelImage=C:/settings.png\n"), TEXT("InvalidExtension.ini"));
@@ -116,6 +133,9 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Invalid border falls back"), Safe.BorderWidth, Defaults.BorderWidth);
     TestEqual(TEXT("Invalid outline falls back"), Safe.OutlineSize, Defaults.OutlineSize);
     TestEqual(TEXT("Invalid animation falls back"), Safe.ScrollSpeed, Defaults.ScrollSpeed);
+    TestEqual(TEXT("Invalid opening duration falls back"), Safe.OptionsOpeningDuration, Defaults.OptionsOpeningDuration);
+    TestEqual(TEXT("Invalid opening travel falls back"), Safe.OptionsOpeningTravel, Defaults.OptionsOpeningTravel);
+    TestEqual(TEXT("Invalid opening easing falls back"), Safe.OptionsOpeningEasing, Defaults.OptionsOpeningEasing);
     TestEqual(TEXT("Invalid font face falls back"), Safe.FontFace, Defaults.FontFace);
     TestTrue(TEXT("Filesystem and malformed view-specific asset paths rejected"), Safe.FontAsset.IsEmpty()
         && Safe.PanelImage.IsEmpty() && Safe.InventoryPanelImage.IsEmpty() && Safe.BuildPanelImage.IsEmpty()

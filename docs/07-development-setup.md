@@ -1,5 +1,28 @@
 # Development setup
 
+## M11 Escape options opening animation
+
+In a disposable project mirror, build `KalmalaEditor Win64 Development` with
+normal `%LOCALAPPDATA%/UnrealBuildTool` access and `-MaxParallelActions=4`, then
+run the full `Automation RunTests Kalmala` queue. Require
+`Kalmala.UI.Theme.LocalPresentation` to pass its duration/travel/easing bounds,
+easing, invalid-value fallback, and theme-disabled instant-motion assertions.
+
+Run `Scripts/Verify-SettingsAccessibility.ps1` from the mirror. Both host and
+client logs must contain successful `OpeningStart`, `OpeningResize`,
+`OpeningCloseReopen`, `OpeningResizeRestore`, and `OpeningAnimation` stages. The
+probe changes each isolated window from 1280x720 to 1600x900 and back while the
+panel is moving, interrupts and reopens it mid-transition, and checks the
+intermediate/final positions, center anchoring, immediate focus, modal input
+suppression/restoration, keyboard/controller mappings, gameplay stability, and
+the ten existing view captures. The temporary viewport change is restored
+before captures complete. Then run `Scripts/Verify-SettingsAccessibilityContract.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`.
+
+The probes use rendered offscreen editor peers and isolated settings profiles;
+they do not establish physical controller hardware behavior or package cooking.
+
 ## M11 Escape options backgrounds
 
 Prepare a disposable project mirror with the original

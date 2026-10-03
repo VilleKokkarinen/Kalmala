@@ -3,10 +3,63 @@
 ## Current state
 
 - Automation bootstrap created on 2026-09-01.
-- As of 2026-10-02, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) is in implementation: the configurable-theme parent is complete after representative cross-menu migration and parent-level editor verification; the invisible top-right status hotbar parent is next in BACKLOG.md and docs/04-roadmap.md.
+- As of 2026-10-03, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) remains in implementation. The configurable-theme, top-right status, catalogue-icon, inventory/build/map visual, options-background, and Escape opening-animation parents are complete at their recorded acceptance scope. The next eligible parent is view-specific polishing of the existing HUD and crafting, construction, equipment, and settings UI.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
 ## Run log
+
+### 2026-10-03T09:01:54Z — Animate Escape options opening
+
+Outcome: Completed the top-level M11 Escape-options opening-animation task
+(the backlog item has no child tasks). The centered options panel now slides
+down from a theme-configured offset while retaining immediate focus, modal
+input ownership, and hit-test alignment. Duration, travel, and easing are
+bounded theme values; the disabled/zero-duration path remains instant.
+
+Changed: Added the local CanvasPanelSlot transition and developer rendered
+host/client interruption, resize, focus, and gameplay-stability checks. Added
+theme loading/fallback coverage. Files changed: `Config/DefaultKalmalaTheme.ini`,
+`Scripts/Verify-SettingsAccessibility.ps1`, `Source/KalmalaUI/Public/KalmalaUITheme.h`,
+`Source/KalmalaUI/Private/KalmalaUITheme.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaUIThemeTest.cpp`,
+`Source/KalmalaUI/Public/KalmalaSettingsWidget.h`,
+`Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`,
+`Source/KalmalaUI/Public/KalmalaSettingsSubsystem.h`,
+`Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`, `BACKLOG.md`,
+`PROGRESS.md`, `docs/07-development-setup.md`,
+`docs/14-settings-and-accessibility.md`, and `docs/35-ui-theme.md`.
+
+Verification (parent level): Forced UE5.8 `KalmalaEditor Win64 Development`
+build passed in the disposable short-path mirror (final rebuild: 19 actions)
+with normal `%LOCALAPPDATA%/UnrealBuildTool` access. The full
+`Automation RunTests Kalmala` queue passed 101/101 tests with zero failed
+results and `TEST COMPLETE. EXIT CODE: 0`; log:
+`C:/Users/Ville/AppData/Local/Temp/ka/AutomationFinal.log`. The rendered
+`Scripts/Verify-SettingsAccessibility.ps1 -Port 18479` host/client run passed
+all animation and settings stages, including 1280x720 → 1600x900 → 1280x720
+resize/restore during motion, close/reopen interruption, immediate focus,
+input restoration, gameplay stability, and ten retained PNG captures under
+`C:/Users/Ville/AppData/Local/Temp/KalmalaSettingsAccessibility-880f9a13f5ca4960983662a90c2368d2`.
+`Verify-SettingsAccessibilityContract.ps1`,
+`Verify-M5DocumentationContracts.ps1`, `Verify-PresentationOwnership.ps1`,
+and `git diff --check` passed. The repository, mirror, and rendered-artifact
+path audits reported maxima of 68, 209, and 201 characters respectively, below
+the 260-character limit. Work used the main checkout, so no separate worktree
+handoff synchronization was needed.
+
+Presentation/network impact: This is a local panel-layout animation only. It
+does not alter gameplay timing, network/RPC authority, replicated state,
+input mappings, scrolling, or saved-data schemas. Focus, cursor/input mode,
+and movement/look suppression are applied immediately.
+
+Known limits: The peer harness verifies keyboard/controller mappings but not
+physical input hardware or packaged cooking. The harness's 150% text-scale
+Settings capture shows existing option-label overlap; it is recorded for the
+next view-specific UI-polish parent and was not changed in this increment.
+
+Next task: Polish the existing HUD and crafting, construction, equipment, and
+settings UI through small view-specific increments, documenting concrete UX
+improvements and preserving current actions and accessibility behavior.
 
 ### 2026-09-22T16:57:58Z — Materialize first-wave gathering sources
 

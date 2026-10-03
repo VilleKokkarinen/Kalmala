@@ -65,6 +65,10 @@ expanded-map, and options views as described below.
 | SlotPadding | 3 | 0–16; button content, pressed adds one unit |
 | IconWidth / IconHeight | 64 / 42 | 24–96; existing support glyph slots |
 | AnimateScrolling / ScrollSpeed | False / 15 | Boolean / 1–60; Controls wheel scrolling |
+| AnimateOptionsOpening | True | Boolean; set False for an instant/reduced-motion opening |
+| OptionsOpeningDuration | 0.18 seconds | 0–0.8 seconds; zero selects the instant path |
+| OptionsOpeningTravel | 32 logical units | 0–96; zero selects the instant path |
+| OptionsOpeningEasing | `EaseOutCubic` | `EaseOutCubic`, `EaseOutQuad`, or `Linear` |
 
 Asset keys accept only valid `/Game/Package.Asset` object paths shorter than
 180 characters. Empty, invalid, missing, or wrong-type objects retain the
@@ -82,9 +86,9 @@ imported from `Content/Kalmala/UI/Source/` into `/Game/Kalmala/UI`; missing or
 invalid view paths keep the geometric fallback. High contrast intentionally
 suppresses the decorative backgrounds.
 
-`ApplyScroll` has an explicit reduced-motion override; animation defaults off.
-A user-facing reduced-motion preference and options-opening slide animation
-remain later approved tasks. This scroll setting introduces neither. Custom
+`ApplyScroll` has an explicit reduced-motion override; scroll animation defaults off.
+A user-facing reduced-motion preference remains a later approved task. The
+options-opening slide is documented below. Custom
 font and image packages must already be available to the runtime; this child
 does not establish cooking/inclusion of config-only asset references.
 
@@ -124,8 +128,9 @@ waits for its closed-map exploration record before opening, avoiding a race
 with joining-client world-identity arrival. Normal M-key opening does not wait.
 
 The foundation did not add new background art, item icons, slot grids,
-interface scaling, a user-facing reduced-motion preference, or the options
-opening animation. Later M11 increments address these separately. Theme-only
+interface scaling, or a user-facing reduced-motion preference. The Escape
+opening animation is now covered below; a user-facing reduced-motion choice
+will later override its theme setting. Theme-only
 font/image assets must be runtime-available; packaged config/asset inclusion
 and custom project-font appearance are not established by editor integration
 checks.
@@ -228,3 +233,35 @@ host/client captures include standard-contrast Escape, Video, and Settings
 views plus high-contrast Controls and Audio views at 1280x720; inspect these for
 background framing and label readability. Other viewport sizes, cooked asset
 inclusion, and physical keyboard/controller walkthrough are unverified.
+
+## Escape options opening animation — 2026-10-03
+
+The local Escape panel drops a short distance into its centered final position
+when the modal first opens. The shared panel's `UCanvasPanelSlot` position is
+animated, so its hit-test geometry follows the visible panel each frame; the
+content is not scrolled or re-laid out. The center anchor keeps the panel
+aligned when the viewport changes during the transition. Focus, cursor, modal
+input mode, and movement/look suppression are set as soon as the panel opens.
+Animation progress advances with widget ticks, with catch-up capped at 1/30
+second per tick so a long frame hitch cannot skip the visible motion; sustained
+frame rates below 30 FPS can therefore extend the wall-clock duration. Closing
+resets the slot to its final position and cancels the transition; reopening
+starts at the configured offset again.
+
+`AnimateOptionsOpening`, `OptionsOpeningDuration`, `OptionsOpeningTravel`, and
+`OptionsOpeningEasing` are theme keys. Defaults are enabled, 0.18 seconds, 32
+logical units, and `EaseOutCubic`. Duration accepts 0–0.8 seconds and travel
+0–96 units; zero duration/travel or a false animation flag selects the instant
+path. Easing accepts `EaseOutCubic`, `EaseOutQuad`, or `Linear`; invalid values
+retain the cubic default. The instant path also serves as the reduced-motion
+fallback until the later M11 local reduced-motion preference is added.
+
+The rendered host/client settings probe opens, resizes 1280x720 → 1600x900 →
+1280x720 while the panel moves, closes and reopens mid-transition, and checks
+intermediate/final slot positions, centered anchoring, immediate focus, modal
+input suppression, restoration on close, keyboard/controller mappings, and
+gameplay stability. `Kalmala.UI.Theme.LocalPresentation` checks theme bounds,
+easing, invalid-value fallback, and the instant path. This remains a local
+presentation change: it adds no gameplay timing, RPC, replicated state, or
+saved-data setting. The automated peer probe does not replace physical
+keyboard/controller hardware or packaged-build verification.

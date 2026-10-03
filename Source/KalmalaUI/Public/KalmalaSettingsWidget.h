@@ -6,6 +6,7 @@
 #include "KalmalaSettingsWidget.generated.h"
 
 class UTextBlock;
+class UCanvasPanelSlot;
 
 enum class EKalmalaAudioCategory : uint8
 {
@@ -59,7 +60,11 @@ public:
     void SetVerificationTab(int32 TabIndex);
     FString GetPanelImagePathForVerification() const;
     bool HasFocusableContentForVerification() const;
+    bool HasFocusedContentForVerification() const;
     bool HasFocusableControlsForVerification() const;
+    bool IsOptionsOpeningAnimationActiveForVerification() const { return bOptionsOpeningAnimationActive; }
+    float GetOptionsPanelPositionYForVerification() const;
+    bool IsOptionsPanelCenterAnchoredForVerification() const;
 #endif
 
     static int32 ClampViewDistanceQuality(int32 Quality);
@@ -110,6 +115,8 @@ private:
     void UpdateControlsLabels();
     void CycleAudioCategory(EKalmalaAudioCategory Category);
     void ApplyModalPalette(const FString* ImageOverride = nullptr);
+    void StartOptionsOpeningAnimation();
+    void ResetOptionsOpeningAnimation();
     UButton* AddButton(class UVerticalBox* Parent, const FText& Label, FName Name);
     UTextBlock* AddLabel(class UVerticalBox* Parent, const FText& Label, float FontSize = 20.0f);
 
@@ -189,6 +196,8 @@ private:
     TObjectPtr<class UBorder> BackdropBorder;
     UPROPERTY(Transient)
     TObjectPtr<class UBorder> PanelBorder;
+    UPROPERTY(Transient)
+    TObjectPtr<UCanvasPanelSlot> PanelCanvasSlot;
 
     UPROPERTY(Transient)
     TArray<TObjectPtr<UKalmalaControlButton>> ControlButtons;
@@ -196,4 +205,6 @@ private:
     TArray<FIntPoint> ResolutionChoices;
     int32 ResolutionChoiceIndex = 0;
     bool bMenuOpen = false;
+    bool bOptionsOpeningAnimationActive = false;
+    float OptionsOpeningElapsed = 0.0f;
 };

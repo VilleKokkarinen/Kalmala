@@ -385,6 +385,7 @@ void UKalmalaSettingsWidget::NativeOnInitialized()
     PanelBorder = Panel;
     Panel->SetPadding(FMargin(40.0f));
     UCanvasPanelSlot* PanelSlot = Canvas->AddChildToCanvas(Panel);
+    PanelCanvasSlot = PanelSlot;
     PanelSlot->SetAnchors(FAnchors(0.5f, 0.5f));
     PanelSlot->SetAlignment(FVector2D(0.5f, 0.5f));
     PanelSlot->SetSize(FVector2D(1000.0f, 980.0f));
@@ -400,7 +401,6 @@ void UKalmalaSettingsWidget::Open(APlayerController* InOwningPlayer)
     if (InOwningPlayer == nullptr) return;
     SetOwningPlayer(InOwningPlayer);
     bMenuOpen = true;
-    ShowMainMenu();
     SetVisibility(ESlateVisibility::Visible);
     InOwningPlayer->SetShowMouseCursor(true);
     FInputModeGameAndUI InputMode;
@@ -408,6 +408,8 @@ void UKalmalaSettingsWidget::Open(APlayerController* InOwningPlayer)
     InOwningPlayer->SetInputMode(InputMode);
     InOwningPlayer->SetIgnoreMoveInput(true);
     InOwningPlayer->SetIgnoreLookInput(true);
+    ShowMainMenu();
+    StartOptionsOpeningAnimation();
 }
 
 #if !UE_BUILD_SHIPPING
@@ -448,6 +450,18 @@ bool UKalmalaSettingsWidget::HasFocusableContentForVerification() const
     return bHasFocusableButton;
 }
 
+bool UKalmalaSettingsWidget::HasFocusedContentForVerification() const
+{
+    if (WidgetTree == nullptr) return false;
+    bool bHasFocusedWidget = false;
+    WidgetTree->ForEachWidget([&bHasFocusedWidget](UWidget* Widget)
+    {
+        if (const UButton* Button = Cast<UButton>(Widget))
+            bHasFocusedWidget |= Button->GetIsFocusable() && Button->HasAnyUserFocus();
+    });
+    return bHasFocusedWidget;
+}
+
 bool UKalmalaSettingsWidget::HasFocusableControlsForVerification() const
 {
     return ControlButtons.Num() > 0 && ControlButtons.ContainsByPredicate([](const UKalmalaControlButton* Button)
@@ -455,12 +469,44 @@ bool UKalmalaSettingsWidget::HasFocusableControlsForVerification() const
         return Button == nullptr || !Button->GetIsFocusable();
     }) == false;
 }
+
+float UKalmalaSettingsWidget::GetOptionsPanelPositionYForVerification() const
+{
+    return PanelCanvasSlot != nullptr ? PanelCanvasSlot->GetPosition().Y : 0.0f;
+}
+
+bool UKalmalaSettingsWidget::IsOptionsPanelCenterAnchoredForVerification() const
+{
+    if (PanelCanvasSlot == nullptr) return false;
+    const FAnchors Anchors = PanelCanvasSlot->GetAnchors();
+    return Anchors.Minimum.Equals(FVector2D(0.5f, 0.5f))
+        && Anchors.Maximum.Equals(FVector2D(0.5f, 0.5f));
+}
 #endif
+
+void UKalmalaSettingsWidget::StartOptionsOpeningAnimation()
+{
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    bOptionsOpeningAnimationActive = Theme.ShouldAnimateOptionsOpening();
+    OptionsOpeningElapsed = 0.0f;
+    if (PanelCanvasSlot != nullptr)
+    {
+        PanelCanvasSlot->SetPosition(FVector2D(0.0f, Theme.OptionsOpeningOffset(0.0f)));
+    }
+}
+
+void UKalmalaSettingsWidget::ResetOptionsOpeningAnimation()
+{
+    bOptionsOpeningAnimationActive = false;
+    OptionsOpeningElapsed = 0.0f;
+    if (PanelCanvasSlot != nullptr) PanelCanvasSlot->SetPosition(FVector2D::ZeroVector);
+}
 
 void UKalmalaSettingsWidget::Close()
 {
     if (!bMenuOpen) return;
     bMenuOpen = false;
+    ResetOptionsOpeningAnimation();
     SetVisibility(ESlateVisibility::Collapsed);
     if (APlayerController* Controller = GetOwningPlayer())
     {
@@ -1108,6 +1154,16 @@ void UKalmalaSettingsWidget::HandleStatusDetailsClicked()
 void UKalmalaSettingsWidget::NativeTick(const FGeometry& Geometry, float DeltaTime)
 {
     Super::NativeTick(Geometry, DeltaTime);
+    if (bMenuOpen && bOptionsOpeningAnimationActive && PanelCanvasSlot != nullptr)
+    {
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        OptionsOpeningElapsed = FMath::Min(OptionsOpeningElapsed + FMath::Clamp(DeltaTime, 0.0f, 1.0f / 30.0f),
+            Theme.OptionsOpeningDuration);
+        const float Progress = Theme.OptionsOpeningDuration > 0.0f
+            ? OptionsOpeningElapsed / Theme.OptionsOpeningDuration : 1.0f;
+        PanelCanvasSlot->SetPosition(FVector2D(0.0f, Theme.OptionsOpeningOffset(Progress)));
+        if (Progress >= 1.0f) ResetOptionsOpeningAnimation();
+    }
     if (!bMenuOpen || !StatusDetailsLabel) return;
     const auto* LocalPlayer = GetOwningLocalPlayer();
     const auto* Status = LocalPlayer ? LocalPlayer->GetSubsystem<UKalmalaSurvivalStatusSubsystem>() : nullptr;

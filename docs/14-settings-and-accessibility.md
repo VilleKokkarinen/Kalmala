@@ -40,6 +40,12 @@ spruce-and-slate texture. High contrast suppresses decorative images and keeps
 the black panel, white text, and focus borders. This presentation does not
 change settings, input bindings, or modal ownership.
 
+The Escape panel opens with a short theme-configured downward slide. Focus and
+modal input ownership take effect immediately, and closing/reopening or
+resizing during the animation does not delay gameplay actions or change menu
+content. The theme can disable the animation for an instant/reduced-motion
+path; a user-facing reduced-motion preference remains a later M11 increment.
+
 Exact control ranges and device-specific labels remain implementation details;
 they must stay bounded, reversible, and compatible with the current input
 bindings. This increment makes no platform, visual-identity, or audio-content

@@ -76,12 +76,22 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadNumber(Config, TEXT("IconWidth"), Theme.IconWidth, 24, 96);
     ReadNumber(Config, TEXT("IconHeight"), Theme.IconHeight, 24, 96);
     ReadNumber(Config, TEXT("ScrollSpeed"), Theme.ScrollSpeed, 1, 60);
+    ReadNumber(Config, TEXT("OptionsOpeningDuration"), Theme.OptionsOpeningDuration, 0, 0.8f);
+    ReadNumber(Config, TEXT("OptionsOpeningTravel"), Theme.OptionsOpeningTravel, 0, 96);
     ReadColor(Config, TEXT("BorderColor"), Theme.BorderColor);
     ReadColor(Config, TEXT("ButtonNormal"), Theme.ButtonNormal);
     ReadColor(Config, TEXT("ButtonHovered"), Theme.ButtonHovered);
     ReadColor(Config, TEXT("ButtonPressed"), Theme.ButtonPressed);
     ReadColor(Config, TEXT("ButtonDisabled"), Theme.ButtonDisabled);
     Config.GetBool(ThemeSection, TEXT("AnimateScrolling"), Theme.bAnimateScrolling);
+    Config.GetBool(ThemeSection, TEXT("AnimateOptionsOpening"), Theme.bAnimateOptionsOpening);
+    FString OptionsOpeningEasing;
+    if (Config.GetString(ThemeSection, TEXT("OptionsOpeningEasing"), OptionsOpeningEasing)
+        && (OptionsOpeningEasing == TEXT("EaseOutCubic") || OptionsOpeningEasing == TEXT("EaseOutQuad")
+            || OptionsOpeningEasing == TEXT("Linear")))
+    {
+        Theme.OptionsOpeningEasing = FName(*OptionsOpeningEasing);
+    }
     const auto ReadAsset = [&Config](const TCHAR* Key, FString& Value)
     {
         FString Path;
@@ -218,6 +228,28 @@ void FKalmalaUITheme::ApplyScroll(UScrollBox& Scroll, const bool bReducedMotion)
 {
     Scroll.SetAnimateWheelScrolling(bAnimateScrolling && !bReducedMotion);
     Scroll.SetScrollAnimationInterpolationSpeed(ScrollSpeed);
+}
+
+bool FKalmalaUITheme::ShouldAnimateOptionsOpening() const
+{
+    return bAnimateOptionsOpening && OptionsOpeningDuration > 0.0f && OptionsOpeningTravel > 0.0f;
+}
+
+float FKalmalaUITheme::OptionsOpeningOffset(const float Progress) const
+{
+    if (!ShouldAnimateOptionsOpening()) return 0.0f;
+    const float ClampedProgress = FMath::Clamp(Progress, 0.0f, 1.0f);
+    float EasedProgress = ClampedProgress;
+    if (OptionsOpeningEasing == TEXT("EaseOutCubic"))
+    {
+        const float Remaining = 1.0f - ClampedProgress;
+        EasedProgress = 1.0f - Remaining * Remaining * Remaining;
+    }
+    else if (OptionsOpeningEasing == TEXT("EaseOutQuad"))
+    {
+        EasedProgress = ClampedProgress * (2.0f - ClampedProgress);
+    }
+    return -OptionsOpeningTravel * (1.0f - EasedProgress);
 }
 
 void FKalmalaUITheme::ApplyMenu(UWidgetTree& Tree, UTextBlock* HeadingLabel,
