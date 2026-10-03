@@ -70,12 +70,15 @@ class KALMALAUI_API UKalmalaInventorySubsystem : public ULocalPlayerSubsystem, p
     GENERATED_BODY()
 public:
     virtual void Tick(float DeltaTime) override;
+    void SetCraftingMenuSuppressed(bool bSuppressed);
+    bool IsCraftingMenuSuppressed() const;
     virtual void Deinitialize() override;
     virtual UWorld* GetTickableGameObjectWorld() const override { return GetWorld(); }
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UKalmalaInventorySubsystem, STATGROUP_Tickables); }
     virtual bool IsTickable() const override { return !IsTemplate(); }
 private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaInventoryWidget> Widget;
+    bool bCraftingMenuSuppressed = false;
     bool bVerified = false;
     int32 GridCaptureStage = 0;
     float GridCaptureWait = 0.0f;

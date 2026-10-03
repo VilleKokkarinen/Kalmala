@@ -312,6 +312,18 @@ void UKalmalaInventoryWidget::SetSupportGlyphsVisible(const bool bVisible)
     if (SupportGlyphRow && SupportGlyphRow->GetVisibility() != DesiredVisibility) SupportGlyphRow->SetVisibility(DesiredVisibility);
 }
 
+void UKalmalaInventorySubsystem::SetCraftingMenuSuppressed(const bool bSuppressed)
+{
+    bCraftingMenuSuppressed = bSuppressed;
+    if (Widget)
+        Widget->SetVisibility(bSuppressed ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
+}
+
+bool UKalmalaInventorySubsystem::IsCraftingMenuSuppressed() const
+{
+    return bCraftingMenuSuppressed && (!Widget || Widget->GetVisibility() == ESlateVisibility::Collapsed);
+}
+
 void UKalmalaInventorySubsystem::Tick(float DeltaTime)
 {
     ApplyInventoryVisualTestSettings();
@@ -331,6 +343,7 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
         Widget->SetDesiredSizeInViewport(FVector2D(340, 480));
         Widget->SetPositionInViewport(FVector2D(24, 24), false);
         Widget->AddToPlayerScreen(40);
+        SetCraftingMenuSuppressed(bCraftingMenuSuppressed);
     }
     APawn* Pawn = Controller->GetPawn();
     const UKalmalaInventoryComponent* Inventory = Pawn ? Pawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
