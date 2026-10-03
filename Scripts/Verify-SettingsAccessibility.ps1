@@ -110,7 +110,9 @@ try {
         }
         $bitmap = [System.Drawing.Bitmap]::FromFile($capture)
         try {
-            $backdropPixel = $bitmap.GetPixel(1100, 360)
+            # A resized 1600x900 capture places (1100,360) inside an option button.
+            # Sample the outer gutter, beyond the centred menu, at either viewport size.
+            $backdropPixel = $bitmap.GetPixel([int]($bitmap.Width * 0.975), [int]($bitmap.Height * 0.5))
             if ($backdropPixel.R -gt 80 -or $backdropPixel.G -gt 80 -or $backdropPixel.B -gt 80) {
                 throw "Settings modal backdrop is not visible in capture: $capture (RGB $($backdropPixel.R),$($backdropPixel.G),$($backdropPixel.B))."
             }

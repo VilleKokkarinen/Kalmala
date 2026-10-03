@@ -37,6 +37,7 @@ public:
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
+    bool ScrollReviewSectionForTest(bool bFeedback);
 #endif
     void EnablePlacementPreview();
 protected:
@@ -134,6 +135,7 @@ private:
     bool bHasSeenStationInteraction = false;
     bool bVerified = false;
     bool bCaptureRequested = false;
+    int32 ReviewCaptureStage = 0;
     float CaptureWait = 0;
     float VerificationLayoutWait = 0;
 };

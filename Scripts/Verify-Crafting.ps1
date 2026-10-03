@@ -62,7 +62,18 @@ try {
             $clientNames = [regex]::Matches($clientText, ('Crafting fire client: Name=(\S+) ' + $statePattern)) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
             $ready = $ready -and @($serverNames).Count -eq 2 -and @($clientNames).Count -eq 2
         }
-        if ($Rendered) { $ready = $ready -and (Test-Path "$output\host.png") -and (Test-Path "$output\client.png") -and $serverText.Contains('Construction feedback: Passed=1') -and $clientText.Contains('Construction feedback: Passed=1') }
+        if ($Rendered) {
+            foreach ($peerName in @('host', 'client')) {
+                foreach ($suffix in @('', '-details', '-feedback')) {
+                    $ready = $ready -and (Test-Path "$output\$peerName$suffix.png")
+                }
+            }
+            foreach ($peerText in @($serverText, $clientText)) {
+                $ready = $ready -and $peerText.Contains('Construction feedback: Passed=1') `
+                    -and $peerText.Contains('Crafting review scroll: Section=Details Passed=1') `
+                    -and $peerText.Contains('Crafting review scroll: Section=Feedback Passed=1')
+            }
+        }
         if ($ready) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)

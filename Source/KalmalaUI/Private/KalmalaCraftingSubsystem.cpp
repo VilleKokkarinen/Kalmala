@@ -1,4 +1,5 @@
 #include "KalmalaCraftingSubsystem.h"
+#include "Misc/Paths.h"
 #include "KalmalaInventorySubsystem.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaIconWidget.h"
@@ -200,9 +201,9 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     CraftButton = AddButton(TEXT("Craft one"),RecipeActions,TEXT("Craft batch 1 of the selected recipe. The server checks every requirement and rejected requests preserve ingredients."));
     CraftButton->OnClicked.AddDynamic(this, &ThisClass::Craft);
     AddButton(TEXT("Preview placement"),RecipeActions,TEXT("Show a local placement preview for the selected buildable. This does not place it or spend ingredients."))->OnClicked.AddDynamic(this, &ThisClass::Preview);
-    AddText(TEXT("\nBuild/place selected uses the derived ground ahead. The server checks hammer, materials, terrain, and placement before committing. Other camp stations still use kits in this first construction pass.\n"),16);
+    AddText(TEXT("\nBuild/place selected uses the derived ground ahead. The server checks hammer, raw materials, terrain, and placement before committing. Camp structures are built directly from their listed raw materials.\n"),16);
     auto* FireActions=WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(FireActions);
-    AddButton(TEXT("Build / place selected"),FireActions,TEXT("Ask the server to build the selected structure. Floors, walls, and roofs consume raw Wood and Fibre directly; remaining station kits use their existing kit item."))->OnClicked.AddDynamic(this, &ThisClass::Place);
+    AddButton(TEXT("Build / place selected"),FireActions,TEXT("Ask the server to build the selected structure directly from its listed raw materials with the Construction Hammer. The server validates placement and costs."))->OnClicked.AddDynamic(this, &ThisClass::Place);
     AddButton(TEXT("Add raw fuel"),FireActions,TEXT("Add one Wood, Lightwood, Densewood, or Coal to a nearby usable hearth if the server confirms access and capacity."))->OnClicked.AddDynamic(this, &ThisClass::Refuel);
     AddButton(TEXT("Light hearth"),FireActions,TEXT("Light a nearby usable hearth. The server checks access, dry fuel, and fire state."))->OnClicked.AddDynamic(this, &ThisClass::Light);
     StateText = AddText(TEXT(""), 18);
@@ -225,7 +226,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Upgrade to Iron Axe"), ToolProgressionActions,
         TEXT("Ask the server to exchange a carried level-one Bronze Axe for a level-two Iron Axe at a visible same-world level-two Forge. The server checks every material and condition."))->OnClicked.AddDynamic(this, &ThisClass::UpgradeIronAxe);
     AddText(TEXT("\nWoven chest — shared nearby storage\nInspect a visible chest, choose an item, then store or take one. Contents clear when closed or out of reach."), 16);
-    AddText(TEXT("Raised rainproof chest — also uses the shared 16-stack chest interface. Its construction and contents last for this server session until the M9 save migration is approved."), 16);
+    AddText(TEXT("Chest contents use the shared 16-stack interface. Accepted construction and storage records are saved for this world; rejected transfers leave both inventories unchanged."), 16);
     StorageText = AddText(TEXT(""), 18);
     AddButton(TEXT("Inspect nearby chest"),nullptr,TEXT("Open the owner-only view of a visible nearby chest. The view closes when the chest is closed or out of reach."))->OnClicked.AddDynamic(this, &ThisClass::InspectStorage);
     auto* StorageActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(StorageActions);
@@ -316,6 +317,18 @@ void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
     {
         if (Label) Label->SetWrapTextAt(TextWrapWidth);
     }
+    WidgetTree->ForEachWidget([TextWrapWidth](UWidget* Child)
+    {
+        auto* Label = Cast<UTextBlock>(Child);
+        auto* Button = Label ? Cast<UButton>(Label->GetParent()) : nullptr;
+        auto* Row = Button ? Cast<UHorizontalBox>(Button->GetParent()) : nullptr;
+        if (Row && Row->GetChildrenCount() > 0)
+        {
+            Label->SetAutoWrapText(false);
+            Label->SetWrapTextAt(FMath::Max(40.0f, TextWrapWidth / Row->GetChildrenCount() - 16.0f));
+            Label->SetJustification(ETextJustify::Center);
+        }
+    });
     SetAlignmentInViewport(FVector2D(.5,.5)); SetPositionInViewport(FVector2D(X*.5f,Y*.5f), true);
     SetVisibility(ESlateVisibility::Visible); Refresh();
     PC->SetIgnoreMoveInput(true); PC->SetIgnoreLookInput(true); PC->bShowMouseCursor = true;
@@ -769,7 +782,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                     || Text.Contains(TEXT("Need a visible same-world Workbench level 1 within 2.5 m")))
                 && (Text.Contains(TEXT("Nearby Forge level 2; required level 2"))
                     || Text.Contains(TEXT("Need a visible same-world Forge level 2 within 2.5 m")))
-                && Text.Contains(TEXT("Attachments last only for this session until M9 persistence is approved"))
+                && Text.Contains(TEXT("Accepted attachments persist in this world's construction save"))
                 && Text.Contains(TEXT("Grinding Stone Repair All: interact with a visible same-world Grinding Stone"));
             UE_LOG(LogTemp, Display, TEXT("M9 tool feedback: Passed=%d"), ToolFeedbackPassed);
             const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn());
@@ -834,11 +847,44 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                     M->GetNearbyConstructionText().Contains(TEXT("Health: 50.0 / 100"))
                     && M->GetNearbyConstructionText().Contains(TEXT("Rain-wear limit reached")));
                 FScreenshotRequest::RequestScreenshot(CapturePath,true,false); bCaptureRequested=true;
+                CaptureWait = 0;
             }
+        }
+    }
+    if (bCaptureRequested && ReviewCaptureStage < 4 && Widget
+        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaCraftingCapture="), CapturePath))
+    {
+        CaptureWait += DeltaTime;
+        if (CaptureWait > 3.0f)
+        {
+            CaptureWait = 0;
+            if (ReviewCaptureStage == 0 || ReviewCaptureStage == 2)
+            {
+                const bool bScrolled = Widget->ScrollReviewSectionForTest(ReviewCaptureStage == 2);
+                UE_LOG(LogTemp, Display, TEXT("Crafting review scroll: Section=%s Passed=%d"),
+                    ReviewCaptureStage == 0 ? TEXT("Details") : TEXT("Feedback"), bScrolled);
+            }
+            else
+            {
+                FScreenshotRequest::RequestScreenshot(
+                    FPaths::GetBaseFilename(CapturePath, false)
+                        + (ReviewCaptureStage == 1 ? TEXT("-details.png") : TEXT("-feedback.png")), true, false);
+            }
+            ++ReviewCaptureStage;
         }
     }
 #endif
 }
+
+#if !UE_BUILD_SHIPPING
+bool UKalmalaCraftingWidget::ScrollReviewSectionForTest(const bool bFeedback)
+{
+    UTextBlock* Target = bFeedback ? RepairText.Get() : DetailText.Get();
+    if (!CraftingScrollBox || !Target || !bOpen) return false;
+    CraftingScrollBox->ScrollWidgetIntoView(Target, false, EDescendantScrollDestination::TopOrLeft);
+    return true;
+}
+#endif
 
 void UKalmalaCraftingSubsystem::UpdateStationPrompt(APlayerController* PlayerController)
 {

@@ -740,7 +740,7 @@ FString UKalmalaCraftingComponent::GetToolProgressionText() const
         }
         Text += TEXT(".\n");
     }
-    Text += TEXT("Workbench and Forge bases are level 1. A nearby paid tool rack or anvil adds one level, up to level 2. Attachments last only for this session until M9 persistence is approved; the server checks placement and station level.");
+    Text += TEXT("Workbench and Forge bases are level 1. A nearby paid tool rack or anvil adds one level, up to level 2. Accepted attachments persist in this world's construction save; the server checks placement and station level.");
     return Text;
 }
 

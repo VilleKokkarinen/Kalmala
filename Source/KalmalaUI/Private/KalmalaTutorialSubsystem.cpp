@@ -300,7 +300,12 @@ void UKalmalaTutorialSubsystem::Tick(const float DeltaTime)
             const FVector2D DesiredSize(PhysicalWidth / ViewportScale, PhysicalHeight / ViewportScale);
             PromptWidget->SetCardSize(DesiredSize.X, DesiredSize.Y);
             PromptWidget->SetDesiredSizeInViewport(DesiredSize);
-            PromptWidget->SetPositionInViewport(FVector2D((ViewWidth - PhysicalWidth) * 0.5f / ViewportScale,
+            // Keep the arrival card clear of the left HUD (24 + 340 logical units).
+            // Preserve its centred position whenever that already leaves enough room.
+            const float PhysicalLeft = FMath::Clamp(
+                FMath::Max((ViewWidth - PhysicalWidth) * 0.5f, 364.0f * ViewportScale + 16.0f),
+                16.0f, FMath::Max(16.0f, ViewWidth - PhysicalWidth - 16.0f));
+            PromptWidget->SetPositionInViewport(FVector2D(PhysicalLeft / ViewportScale,
                 (ViewHeight - PhysicalHeight - 16.0f) / ViewportScale), false);
             LastViewportSize = ViewportSize;
             LastViewportScale = ViewportScale;
