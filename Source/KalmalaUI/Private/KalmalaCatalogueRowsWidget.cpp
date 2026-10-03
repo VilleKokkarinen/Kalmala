@@ -1,5 +1,6 @@
 #include "KalmalaCatalogueRowsWidget.h"
 #include "KalmalaIconWidget.h"
+#include "KalmalaItemDetailWidget.h"
 #include "KalmalaUITheme.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/VerticalBox.h"
@@ -78,7 +79,9 @@ UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
     }
     else if (Row)
     {
-        Card->SetToolTipText(FText::FromString(Row->Name + (Row->Detail.IsEmpty() ? TEXT("") : TEXT(" — ") + Row->Detail)));
+        auto* ItemDetail = Tree.ConstructWidget<UKalmalaItemDetailWidget>();
+        ItemDetail->SetItem(Row->Id, Row->Name, Row->Detail, TextScale, Contrast);
+        Card->SetToolTip(ItemDetail);
     }
     return Card;
 }
