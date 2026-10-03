@@ -191,3 +191,12 @@ round-trip. The rendered peer probe covers the live Audio, Controls, and
 Settings tabs at 1280x720 and the local gameplay-state boundary; physical
 controller hardware, audible quality, packaged persistence, and other viewport
 sizes remain outside this increment.
+
+## M11 Settings label polish
+
+The Settings tab uses two-line option controls: the option name above its current
+value, with the shared theme body size plus three. This gives the 150% text-scale
+view an explicit desired height without stale centered-text auto-wrap width and
+removes repeated activation hints from individual values. Existing button focus,
+activation, immediate local application, contrast treatment, and persistence stay
+unchanged. Other option tabs remain part of the broader view polish pass.

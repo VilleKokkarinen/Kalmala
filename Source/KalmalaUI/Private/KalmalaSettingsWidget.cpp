@@ -1058,6 +1058,13 @@ void UKalmalaSettingsWidget::ShowSettingsTab()
     AddLabel(ContentBox,
         FText::FromString(TEXT("Changes apply immediately to this local menu and are saved on this device.")),
         15.0f)->SetJustification(ETextJustify::Center);
+    // Explicit lines avoid auto-wrap measuring centered button text at a stale width.
+    for (UTextBlock* Label : { TextScaleLabel, ContrastLabel, FeedbackLabel })
+    {
+        Label->SetAutoWrapText(false);
+        FKalmalaUITheme::Get().ApplyText(*Label, FKalmalaUITheme::Get().BodySize + 3,
+            false, GetTextScalePercent(), GetContrastMode());
+    }
     UpdateSettingsLabels();
     TextScale->SetUserFocus(GetOwningPlayer());
     TextScale->SetKeyboardFocus();
@@ -1116,18 +1123,18 @@ void UKalmalaSettingsWidget::UpdateSettingsLabels()
     if (TextScaleLabel != nullptr)
     {
         TextScaleLabel->SetText(FText::FromString(FString::Printf(
-            TEXT("Text Scale: %d%% (Activate to change)"), GetTextScalePercent())));
+            TEXT("Text scale\n%d%%"), GetTextScalePercent())));
     }
     if (ContrastLabel != nullptr)
     {
         ContrastLabel->SetText(FText::FromString(FString::Printf(
-            TEXT("Contrast: %s (Activate to change)"),
+            TEXT("Contrast\n%s"),
             GetContrastMode() == 0 ? TEXT("Standard") : TEXT("High"))));
     }
     if (FeedbackLabel != nullptr)
     {
         FeedbackLabel->SetText(FText::FromString(FString::Printf(
-            TEXT("Colour-independent feedback: %s (Activate to change)"),
+            TEXT("Colour-independent feedback\n%s"),
             GetFeedbackMode() == 0 ? TEXT("Text only") : TEXT("Text + markers"))));
     }
 }

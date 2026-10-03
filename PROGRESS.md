@@ -10879,3 +10879,21 @@ Handoff: Main checkout E:/dev/Kalmala was used directly; handoff synchronization
 Next eligible task: Add a slight, fast opening animation to the main Escape options menu, sliding the panel down from the top.
 
 Current run time: 2026-10-02T15:38:28Z.
+
+### Run 2026-10-03T09:10:48Z — M11 Settings label polish child
+
+Outcome: Completed one bounded child of the first incomplete M11 UI-polish parent. Decomposed that broad parent into view-specific children and selected the Settings overlap recorded by the previous run. Option names and values now occupy explicit separate lines at theme BodySize + 3, with centered-text auto-wrap disabled for these three controls. Checked only this child; HUD, crafting/construction, equipment and parent integration remain open.
+
+Files changed: Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp; docs/14-settings-and-accessibility.md; docs/ui-polish/settings-host.png and settings-client.png; BACKLOG.md; PROGRESS.md. Initial checkout was clean. No competing active Kalmala task was present in the app inventory; OS process-command inventory was denied. Main checkout E:/dev/Kalmala used; handoff synchronization is unnecessary.
+
+Verification: Increment-level. Final isolated KalmalaEditor Win64 Development compile/link passed four actions with normal LOCALAPPDATA/UnrealBuildTool access and MaxParallelActions=4 in C:/Users/Ville/AppData/Local/Temp/ka. Rendered Verify-SettingsAccessibility.ps1 -Port 18482 passed host/client local settings persistence, keyboard/controller bindings, modal input/focus, gameplay/world-identity stability, five view images, high-contrast suppression/restoration, and opening resize/interruption checks. Evidence root: C:/Users/Ville/AppData/Local/Temp/KalmalaSettingsAccessibility-68ca1a6f362541f7b327f5bd09468c80. Reviewed both retained Settings screenshots at 1280x720/150%; no option-label overlap. First rendered run passed behavioral checks but visual inspection exposed stale auto-wrap width; corrected and rebuilt/reran before completion. Settings/accessibility, presentation ownership, all five M5 documentation contracts and diff checks passed. No full automation suite or full parent-level integration run was performed because additional children remain. Changed repository and retained evidence paths are below 260 characters; inherited mirror build paths were already audited by the previous run (209 max).
+
+Observable impact: Settings option names, values and explanatory text remain separated at the previously failing text scale. The three existing buttons retain activation and focus behavior.
+
+Networking/authority: Local presentation only; no RPC, gameplay value, replication, inventory transaction or save schema changed. Existing local settings persistence is unchanged.
+
+Known limitations: This verifies the Settings label correction at the rendered fixture viewport, not all settings/HUD view sizes, physical controller hardware or packaged playback. A client screenshot contains a background shader-preparation notice; the Settings controls themselves are readable. Broader UI-polish parent verification remains pending.
+
+Next eligible task: Polish the existing HUD typography, spacing, hierarchy and feedback with view-specific verification. Do not begin another parent.
+
+Current run time: 2026-10-03T09:10:48Z.
