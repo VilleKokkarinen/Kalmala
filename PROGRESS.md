@@ -10913,3 +10913,22 @@ Known limits: The two visible panels were overlapping; the fix removes that obse
 Next task: Reverify the blocked HUD/crafting candidates before broader UI-polish acceptance; do not advance to equipment while treating those candidates as complete. The user's overlap repair is complete.
 
 Current run time: 2026-10-03T10:55:46Z.
+
+### Run 2026-10-03 — user-requested capture-log repair; rendering still blocked
+
+Outcome: Fixed only the stale inventory capture-log verification failure. Missing rendered text remains unresolved after three distinct task-scoped diagnostics; stopped according to AGENTS.md, without accepting any visual candidate or starting another parent.
+
+Files changed this turn: new Scripts/Read-InventoryCapture.ps1; added bounded-reader invocation in Scripts/Verify-Inventory.ps1; docs/ui-polish/capture-logs.md; a narrow BACKLOG.md repair checkbox and this PROGRESS.md entry. All prior source/header/theme/verifier/capture delays/equipment candidates/images and handoffs preserved. Commit only these new additions, excluding pre-existing immediate refresh and EquipmentView/verifier changes.
+
+Verification: Increment-level script verification. New reader passed against the previously failing five-second capture logs and current fresh host/client logs. Final rendered diagnostic at port 18532 passed inventory authority/capacity/privacy/read-only and both empty/filled capture checks using the new helper (KalmalaInventory-ce084bcc3d424252a5ffbd6e9afcc6e8 under local Temp). Verifier/helper and exact-proposal PowerShell parsing, fatal-evidence rejection, missing-peer-state timeout rejection, ownership audit and diff check passed. No full project suite or parent integration. No persistent repository C++ change was introduced this turn; temporary theme probe compiled four UI actions with normal LOCALAPPDATA/UnrealBuildTool access. New paths are below 260 characters.
+
+Rendering diagnosis: Mirror-only -norhithread port 18530 and -d3d11 port 18531 still omitted tool text. Mirror-only shared text ClipToBoundsAlways port 18532 also omitted Reed knife/Field hatchet/condition portions on both peers despite successful log checks. Evidence roots under local Temp: KalmalaInventory-5d44974c0c2d4bb480994374678de475, -4e0031989e9b4e18b1d51a0c74adb284 and -ce084bcc3d424252a5ffbd6e9afcc6e8. No root cause proved; no GPU backend, thread or clipping change adopted. Mirror script and theme source restored to checkout versions; the disposable binary last built the clip probe and must be rebuilt before further normal verification. Existing failure images remain retained. HUD/crafting/equipment visual blockers remain open.
+
+Observable impact: After screenshots exist, the inventory runner polls fresh logs for up to ten seconds, requires correct empty/filled fixture records from both peers, and fails immediately on fatal/assert/ensure evidence. It no longer uses a pre-capture snapshot for acceptance. This is independent of the preserved prior immediate-refresh change. Normal scroll requirements remain; optional isolated equipment view can fit without scrolling.
+
+Networking/authority: Developer verification only. No gameplay, input, RPC, validation, replication, transaction, authority or save contract changes.
+
+Limits/next action: The visual renderer defect still blocks candidate completion and integrated parent acceptance. Continue root-cause diagnosis with a minimal rendered reproduction before retrying HUD/crafting/equipment acceptance. Do not check the polish parent or begin the later item-detail task. The log repair does not certify pixels.
+
+Handoff: Main checkout E:/dev/Kalmala; no synchronization needed. Preserve all unrelated work; stage only this turn's invocation, new helper/document and handoff additions.
+Current run time: 2026-10-03T11:44:04Z.

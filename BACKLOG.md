@@ -438,6 +438,7 @@ Start only after M10 acceptance closes under its recorded owner-approved scope a
 - [ ] Polish the existing HUD and crafting, construction, equipment, and settings UI through small view-specific increments for typography, spacing, alignment, icons, hierarchy, and feedback. Record each affected view's concrete UX improvement and verify existing actions, focus/modal behavior, text scaling, contrast, and accessible details before checking this parent.
   - [x] Correct the Settings tab option-label overlap at 150% text scale; verify rendered owner-local values, focus, contrast, persistence, and modal input.
   - [x] Prevent the left inventory/support HUD overlapping the crafting/cooking modal; hide it while open and restore it on close. (2026-10-03; user-requested fix, docs/ui-polish/modal-hud.md.)
+  - [x] Read fresh completed host/client inventory capture logs after delayed screenshots; reject missing states and peer errors. (2026-10-03; docs/ui-polish/capture-logs.md. Visual rendering blockers remain open.)
   - [ ] Polish the existing HUD typography, spacing, hierarchy, and feedback with view-specific verification.
   - [ ] Polish crafting and construction typography, spacing, alignment, and requirements/feedback with view-specific verification.
   - [ ] Polish equipment presentation and accessible details with view-specific verification.

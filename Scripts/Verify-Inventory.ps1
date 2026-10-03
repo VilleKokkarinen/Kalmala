@@ -55,6 +55,11 @@ try {
         foreach ($capture in $captures) {
             if ((Get-Item -LiteralPath $capture).Length -le 32) { throw "Inventory capture is empty: $capture" }
         }
+        . (Join-Path $PSScriptRoot 'Read-InventoryCapture.ps1')
+        $captureScrollState = if ($PSBoundParameters.ContainsKey('EquipmentView') -and $PSBoundParameters['EquipmentView']) { '[01]' } else { '1' }
+        $captureLogs = Read-KalmalaInventoryCaptureLogs -ServerLog $serverLog -ClientLog $clientLog -ScrollState $captureScrollState
+        $serverText = $captureLogs.Server
+        $clientText = $captureLogs.Client
         foreach ($peerText in @($serverText, $clientText)) {
             if ($peerText -notmatch 'Inventory grid fixture: State=Empty PackSlots=16 Filled=0 Empty=16 CarriedTools=0' `
                 -or $peerText -notmatch 'Inventory grid fixture: State=Filled PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=1') {
