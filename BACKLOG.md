@@ -458,6 +458,10 @@ Start only after M10 acceptance closes under its recorded owner-approved scope a
   - [x] Present supported station/tool/skill/unlock requirements and explicit unavailable reasons truthfully from existing contracts, without inventing recipe locks. (2026-10-04; docs/39-crafting-ingredients.md.)
   - [x] Verify counts/requirements together at supported scales/contrast with owner privacy, modal/focus and transaction regressions, then complete parent-level verification. (2026-10-04; docs/39-crafting-ingredients.md.)
 - [ ] Add compact icon-plus-text notifications for accepted owner-visible item gains, discoveries, and skill increases with a bounded/coalesced queue, no duplicate refresh/reconnect messages, unobstructed HUD/modal placement, and theme/reduced-motion timing.
+  - [x] Add owner-only skill-level notifications with silent session baselines, bounded/coalesced expiry and passive themed icon/text presentation. (2026-10-04; docs/40-notifications.md.)
+  - [ ] Add accepted owner-visible item-gain notifications without refresh/reconnect duplicates.
+  - [ ] Add accepted owner-visible discovery notifications without refresh/reconnect duplicates.
+  - [ ] Verify combined notifications, supported scales/contrast, HUD/modal placement, reduced motion, owner privacy and reconnect suppression; run parent-level checks.
 - [ ] Apply shared theme-driven hover/focus highlights and short transitions across buttons, tabs, slots, and selectable UI; distinguish focus/selection/disabled states without colour alone and retain essential cues and focus in refresh/reduced-motion paths.
 - [ ] Improve near-crosshair interaction prompts with the existing target name, supported action, and current remapped keyboard/controller binding; verify unavailable/no-target/modal/rebinding cases while preserving server trace/range validation and avoiding hidden-target queries.
 - [ ] Add a world-map symbol legend and local category visibility filters for already visible markers; preserve fog/co-op privacy and pin data, truthful selection, and keyboard/controller access without discovering content or deleting filtered markers.

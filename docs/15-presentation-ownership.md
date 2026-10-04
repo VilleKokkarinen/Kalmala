@@ -169,3 +169,14 @@ The rendered host/client capture shows the weather row and recovery guidance
 without overlap; `Kalmala.UI.SurvivalStatus.LocalPresentation` checks the full
 Wet, food, weather, temperature, support, and empty-state text cases. This
 layout adjustment changes no gameplay, replication, or persistence contract.
+
+## Skill-level notification boundary
+
+`UKalmalaNotificationSubsystem` reads only the local controller's owning pawn
+skill component and its owner-only detailed progression. Initial complete
+snapshots and replacement-pawn reconnects are silent; later accepted server
+level changes feed a bounded local queue. The widget uses original shared
+line-art icons and themed text. It adds no RPC, gameplay mutation, peer query,
+external asset or persistence field. Queue/widget behavior is focused-test
+covered; rendered multiplayer placement acceptance remains pending. See
+`docs/40-notifications.md` for lifecycle and limits.

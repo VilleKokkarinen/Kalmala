@@ -51,6 +51,7 @@ struct KALMALAUI_API FKalmalaUITheme
     float IconHeight = 42;
     bool bAnimateScrolling = false;
     float ScrollSpeed = 15;
+    float NotificationLifetime = 4;
     bool bAnimateOptionsOpening = true;
     float OptionsOpeningDuration = 0.18f;
     float OptionsOpeningTravel = 32.0f;

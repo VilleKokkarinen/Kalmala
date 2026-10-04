@@ -76,6 +76,7 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadNumber(Config, TEXT("IconWidth"), Theme.IconWidth, 24, 96);
     ReadNumber(Config, TEXT("IconHeight"), Theme.IconHeight, 24, 96);
     ReadNumber(Config, TEXT("ScrollSpeed"), Theme.ScrollSpeed, 1, 60);
+    ReadNumber(Config, TEXT("NotificationLifetime"), Theme.NotificationLifetime, 1, 10);
     ReadNumber(Config, TEXT("OptionsOpeningDuration"), Theme.OptionsOpeningDuration, 0, 0.8f);
     ReadNumber(Config, TEXT("OptionsOpeningTravel"), Theme.OptionsOpeningTravel, 0, 96);
     ReadColor(Config, TEXT("BorderColor"), Theme.BorderColor);

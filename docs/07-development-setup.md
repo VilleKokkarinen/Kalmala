@@ -1,5 +1,15 @@
 # Development setup
 
+## M11 skill notification child
+
+See `docs/40-notifications.md`. Build the affected editor target in the short
+isolated mirror, then run `Kalmala.UI.Notifications.SkillLevels` plus
+`Kalmala.UI.Theme.LocalPresentation`, `Kalmala.Gameplay.Progression.SkillContract`
+and `Kalmala.Gameplay.Progression.ReplicationContract` with isolated user/log
+paths, memory DDC and `-TestExit="Automation Test Queue Empty"`. This is targeted
+increment verification; combined rendered placement and full parent checks
+remain pending until the item-gain and discovery children are complete.
+
 ## M11 ingredient/requirements parent acceptance
 
 Follow `39-crafting-ingredients.md`: build the short isolated editor mirror
