@@ -37,6 +37,7 @@ public:
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
+    bool VerifyInventoryInspectionForTest();
     bool ScrollReviewSectionForTest(bool bFeedback);
 #endif
     void EnablePlacementPreview();
@@ -71,6 +72,7 @@ private:
     UFUNCTION() void DepositStorage();
     UFUNCTION() void WithdrawStorage();
     UFUNCTION() void CloseClicked();
+    UFUNCTION() void FocusInventoryDetails();
     void Refresh();
     void RefreshRecipeGrid(const TArray<int32>& VisibleIndices, UKalmalaCraftingComponent* Crafting,
         int32 TextScalePercent, int32 ContrastMode);
@@ -91,6 +93,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RepairText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolProgressionText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> InventoryInspector;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;
     int32 Selected = 0;

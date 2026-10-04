@@ -10966,3 +10966,31 @@ Verification: Increment-level. UE5.8.2 affected UI compile/link passed in the ex
 Impact/authority: Shared detail surface attached to existing populated cards; no gameplay, input, RPC, replication, save or transaction changes. Only existing caller-visible rows supply state.
 Limits: HUD/catalogue HitTestInvisible still prevents interactive tooltip access; selected/focused slot flow and action guidance belong to the next child. No rendered acceptance, removal/consumption fixture, physical input or package verification claimed. Mirror includes preserved pre-existing candidates; this is workspace increment verification, not clean-HEAD integration. Edited and mirror generated paths stay below MAX_PATH.
 Handoff: Main checkout E:/dev/Kalmala used; synchronization unnecessary. Next eligible child: connect selected/focused inventory slots with keyboard/controller access and existing action guidance. Full parent verification remains pending.
+
+### Run 2026-10-04T07:01:47.8011978Z — interrupted item-detail handoff conflict
+
+Outcome: Stopped for a true handoff conflict before implementation. Task inventory shows this chat active and prior chat 01a10219-5da7-7ed0-b21b-e827f190230b idle, with its latest turn explicitly interrupted. This is unfinished prior work, not an active concurrent run. First eligible child remains BACKLOG.md line 449: selected/focused inventory detail access.
+
+Evidence: Prior interrupted turn created KalmalaInventoryInspectWidget.h/.cpp and KalmalaInventoryInspectTest.cpp, changed KalmalaCraftingSubsystem.h/.cpp and Scripts/Verify-Crafting.ps1 for this exact child, and ended during investigation of a failed Verify-Crafting peer run on port 18570. Those files are still dirty/untracked; HEAD remains 84b09d4 (foundation). No completion handoff or interaction-child checkbox exists. Prior reported compile/test successes are not verification performed by this run.
+
+Changed: Only this appended handoff and automation memory. All pre-existing changes preserved; nothing staged or committed. No build, tests, gameplay, authority, input, RPC, replication or save changes this run. Verification was read-only concurrency/task/status inspection, not increment acceptance or parent integration.
+
+Limitation/action: Resume the interrupted chat to resolve its failed peer verification, document and commit its own selected-child changes, or explicitly authorize adoption of that unfinished increment. Current rules prohibit this run from staging/committing another run's changes; adding a competing implementation or checking its child complete would not produce a valid implementation commit. Parent-level verification remains pending. Do not start the later parent or acceptance child.
+
+Handoff: Main checkout E:/dev/Kalmala; synchronization unnecessary. Edited paths below 260 characters. Next eligible child unchanged: selected/focused inventory detail access after ownership/handoff resolution.
+
+### Run 2026-10-04T07:22:22.5185854Z — adopted item-detail interaction child completed
+
+Outcome: User explicitly authorized adoption of the interrupted selected child. Completed only the interaction child under the shared item-detail parent; parent remains unchecked and acceptance child remains next. Concurrency inventory found only this chat active, prior run idle/interrupted.
+
+Changed: Adopted KalmalaInventoryInspectWidget.h/.cpp, InventoryInspectTest.cpp and only prior interaction hunks in KalmalaCraftingSubsystem.h/.cpp and Verify-Crafting.ps1. Added a discoverable Inspect inventory modal button that focuses/scrolls to inspection. Updated docs/37-item-details.md and selected BACKLOG checkbox, appended this handoff. Unrelated earlier typography/capture-delay candidates, HUD/theme/equipment files, images and progress entries preserved and excluded from staging.
+
+Verification: Increment-level only. UE5.8.2 affected UI compile/link passed seven actions in existing short Temp/ka mirror with normal LOCALAPPDATA/UnrealBuildTool access. Focused Kalmala.UI.Inventory passed 4/4, failed=0, process exit=0 and TEST COMPLETE EXIT CODE 0 (Temp/ki2/pass.log). Rendered host/client Verify-Crafting -Port 18571 passed real Slate inspection focus and keyboard/controller selection/restoration, recipe-grid scrolling/navigation and existing authoritative transaction/payment/fire checks; evidence Temp/KalmalaCrafting-1b869647b1aa4583a1222af6398e92d6. Interrupted null-renderer failure had zero scroll extent; fresh rendered peers report Scrollable=1. Ownership, five M5 documentation contracts and diff checks passed. No full automation suite or parent-level integration: final acceptance child remains.
+
+Impact/authority: Existing modal gains owner-only read-only item inspection with canonical descriptions, larger icons, supplied count/condition, selected-slot marker and existing action guidance. Modal shortcuts yield to focused inspection; normal outside-modal input unchanged. No action dispatch, hidden peer query, RPC, authoritative value, gameplay balance or save schema added.
+
+Limitations: Comprehensive removal/consumption fixtures, item-detail rendered text-scale/contrast acceptance and separate-owner privacy regression remain in the next existing child. Current captures certify existing crafting stages, not all item-detail pixels. Physical input, packaging and clean-HEAD integration unverified; mirror includes preserved candidates. Mirror path audit max 209 characters, all introduced checkout paths below 260.
+
+Handoff: Main checkout E:/dev/Kalmala, synchronization unnecessary. Next eligible child: removal/consumption refresh, rendered scale/contrast and owner privacy, then parent-level integration. Commit only adopted interaction and this run's task-specific documentation/handoff.
+
+Final dependency repair: staged review found an older uncommitted BuildToolDetail helper reference. Replaced it with bounded condition formatting within this increment (invalid state says Condition unavailable). Final four-action UI compile/link passed; repeated rendered peers at port 18572 passed, evidence C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-2f78cb0e94dd4d559384a6e763c0e564. No older helper or equipment hunk adopted. Final rendered artifact paths max 188 characters.

@@ -1,6 +1,8 @@
 #include "KalmalaCraftingSubsystem.h"
 #include "Misc/Paths.h"
 #include "KalmalaInventorySubsystem.h"
+#include "KalmalaInventoryInspectWidget.h"
+#include "KalmalaInventoryComponent.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaIconWidget.h"
 #include "Components/SizeBox.h"
@@ -31,6 +33,7 @@
 #include "GameFramework/InputSettings.h"
 #include "Styling/CoreStyle.h"
 #include "InputCoreTypes.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "UnrealClient.h"
@@ -195,6 +198,9 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         if(Row) { auto* Slot=Row->AddChildToHorizontalBox(Button); Slot->SetSize(FSlateChildSize(ESlateSizeRule::Fill)); Slot->SetPadding(FMargin(2,4)); }
         else Column->AddChild(Button); return Button;
     };
+    auto* InspectButton = AddButton(TEXT("Inspect inventory"), nullptr,
+        TEXT("Read your inventory details. Arrows or D-pad select an item; Tab continues to other menu controls."));
+    InspectButton->OnClicked.AddDynamic(this, &ThisClass::FocusInventoryDetails);
     auto* RecipeActions=WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(RecipeActions);
     AddButton(TEXT("Previous"),RecipeActions,TEXT("Select the previous recipe. Its ingredients, station, unlock, batch limit, and availability are shown above."))->OnClicked.AddDynamic(this, &ThisClass::Previous);
     AddButton(TEXT("Next"),RecipeActions,TEXT("Select the next recipe. Its ingredients, station, unlock, batch limit, and availability are shown above."))->OnClicked.AddDynamic(this, &ThisClass::Next);
@@ -234,6 +240,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Next item"), StorageActions)->OnClicked.AddDynamic(this, &ThisClass::NextStorageItem);
     AddButton(TEXT("Store one"), StorageActions,TEXT("Ask the server to move one selected item from your pack into the nearby chest."))->OnClicked.AddDynamic(this, &ThisClass::DepositStorage);
     AddButton(TEXT("Take one"), StorageActions,TEXT("Ask the server to move one selected item from the nearby chest into your pack."))->OnClicked.AddDynamic(this, &ThisClass::WithdrawStorage);
+    InventoryInspector = WidgetTree->ConstructWidget<UKalmalaInventoryInspectWidget>();
+    Column->AddChild(InventoryInspector);
     auto* CloseButton=AddButton(TEXT("Close")); CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseClicked);
     CloseButton->RemoveFromParent();
     auto* Outer=WidgetTree->ConstructWidget<UVerticalBox>();
@@ -479,6 +487,22 @@ FString UKalmalaCraftingWidget::GetRecipeGridSummary() const
 }
 
 #if !UE_BUILD_SHIPPING
+bool UKalmalaCraftingWidget::VerifyInventoryInspectionForTest()
+{
+    if (!InventoryInspector || InventoryInspector->GetSelectedItem().IsNone() || !FSlateApplication::IsInitialized()) return false;
+    const FName First = InventoryInspector->GetSelectedItem();
+    FocusInventoryDetails();
+    const bool bFocused = InventoryInspector->HasKeyboardFocus();
+    auto& Slate = FSlateApplication::Get();
+    const FModifierKeysState Modifiers;
+    Slate.ProcessKeyDownEvent(FKeyEvent(EKeys::Right, Modifiers, 0, false, 0, 0));
+    const bool bChanged = InventoryInspector->GetSelectedItem() != First;
+    Slate.ProcessKeyDownEvent(FKeyEvent(EKeys::Gamepad_DPad_Left, Modifiers, 0, false, 0, 0));
+    const bool bReturned = InventoryInspector->GetSelectedItem() == First;
+    SetKeyboardFocus();
+    return bFocused && bChanged && bReturned && HasKeyboardFocus();
+}
+
 bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
 {
     if (!bOpen || RecipeSlotCards.IsEmpty() || RecipeGridSelectedIndex < 0 || !bRecipeGridFocused
@@ -519,6 +543,29 @@ void UKalmalaCraftingWidget::Refresh()
         UKalmalaSettingsWidget::GetTextScalePercent());
     const int32 ContrastMode = UKalmalaSettingsWidget::ClampContrastMode(
         UKalmalaSettingsWidget::GetContrastMode());
+    TArray<FKalmalaCatalogueRow> InspectionRows;
+    const auto* OwnerPawn = GetOwningPlayerPawn();
+    if (const auto* Inventory = OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr)
+        for (const auto& Stack : Inventory->GetStacks())
+        {
+            const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Stack.ItemId);
+            InspectionRows.Add({Stack.ItemId, Item ? Item->DisplayName : Stack.ItemId.ToString(),
+                FString::Printf(TEXT("Count %d"), Stack.Quantity), false});
+        }
+    if (const auto* Character = Cast<AKalmalaCharacter>(OwnerPawn))
+        for (const auto& Tool : Character->GetCarriedToolInventory())
+        {
+            const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(Tool.ToolId);
+            const bool bValidCondition = Definition && Tool.ToolLevel >= 1 && Tool.Durability >= 0
+                && Tool.Durability <= Definition->MaxDurability;
+            const FString VisibleState = bValidCondition
+                ? FString::Printf(TEXT("Level %d\nCondition %d/%d — %s"), Tool.ToolLevel,
+                    Tool.Durability, Definition->MaxDurability, Tool.Durability == 0 ? TEXT("Broken") : TEXT("Usable"))
+                : TEXT("Condition unavailable");
+            InspectionRows.Add({Tool.ToolId, GetReadableToolName(Tool.ToolId),
+                VisibleState, true});
+        }
+    if (InventoryInspector) InventoryInspector->SetRows(InspectionRows, TextScalePercent, ContrastMode);
     if (LastDetailTextScalePercent != TextScalePercent || LastDetailContrastMode != ContrastMode)
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
@@ -685,10 +732,19 @@ void UKalmalaCraftingWidget::WithdrawStorage()
     if (auto* M=Model(); M && Items.IsValidIndex(SelectedStorageItem)) M->ServerWithdrawStorage(Items[SelectedStorageItem].ItemId);
 }
 void UKalmalaCraftingWidget::CloseClicked() { Close(); }
+void UKalmalaCraftingWidget::FocusInventoryDetails()
+{
+    if (!bOpen || !InventoryInspector) return;
+    InventoryInspector->SetKeyboardFocus();
+    if (CraftingScrollBox)
+        CraftingScrollBox->ScrollWidgetIntoView(InventoryInspector, false, EDescendantScrollDestination::TopOrLeft);
+}
 FReply UKalmalaCraftingWidget::NativeOnPreviewKeyDown(const FGeometry& G,const FKeyEvent& E)
 {
     const FKey K=E.GetKey();
     if(K==EKeys::Escape || K==EKeys::Gamepad_FaceButton_Right) { Close(); return FReply::Handled(); }
+    if (InventoryInspector && (InventoryInspector->HasKeyboardFocus() || InventoryInspector->HasFocusedDescendants()))
+        return Super::NativeOnPreviewKeyDown(G,E);
     if(K==EKeys::Gamepad_FaceButton_Top) { if(!E.IsRepeat()) Place(); return FReply::Handled(); }
     if(K==EKeys::Gamepad_FaceButton_Left) { if(!E.IsRepeat()) Refuel(); return FReply::Handled(); }
     if(K==EKeys::Gamepad_RightShoulder) { if(!E.IsRepeat()) Light(); return FReply::Handled(); }
@@ -798,6 +854,8 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && DirectBuildDescription.Contains(TEXT("Build directly with the Construction Hammer; no kit is created."))
                 && DirectBuildDescription.Contains(TEXT("6 Wood")) && DirectBuildDescription.Contains(TEXT("4 Reed fibre"));
             UE_LOG(LogTemp, Display, TEXT("M9 camp feedback: Passed=%d"), CampFeedbackPassed);
+            const bool bInspection = Widget->VerifyInventoryInspectionForTest();
+            UE_LOG(LogTemp, Display, TEXT("Inventory inspection: FocusAndKeys=%d"), bInspection);
             const bool bGridNavigation = Widget->VerifyRecipeGridNavigationForTest();
             const FString GridSummary = Widget->GetRecipeGridSummary();
             const bool bGridReady = bGridNavigation && GridSummary.Contains(TEXT("Slots="))
@@ -806,7 +864,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             UE_LOG(LogTemp, Display, TEXT("Build slot grid: %s Navigation=%d"), *GridSummary, bGridNavigation);
             auto* InventoryHUD = GetLocalPlayer()->GetSubsystem<UKalmalaInventorySubsystem>();
             const bool bHUDHidden = InventoryHUD && InventoryHUD->IsCraftingMenuSuppressed();
-            const bool Passed=bHUDHidden && Text.Contains(TEXT("Construction hammer menu input:")) && Text.Contains(TEXT("Up/Down"))
+            const bool Passed=bInspection && bHUDHidden && Text.Contains(TEXT("Construction hammer menu input:")) && Text.Contains(TEXT("Up/Down"))
                 && Text.Contains(TEXT("Raw material cost: 5 Stone, 3 Wood"))
                 && Text.Contains(TEXT("Ignition: one raw Wood, Lightwood, Densewood, or Coal is also consumed to start the hearth with 60 seconds of fuel."))
                 && Text.Contains(TEXT("Output: Hearth ring construction (no kit item created)"))

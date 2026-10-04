@@ -42,6 +42,8 @@ try {
             -and $clientText.Contains('Crafting presentation: Passed=1 Restored=1') `
             -and $serverText.Contains('M9 tool feedback: Passed=1') `
             -and $clientText.Contains('M9 tool feedback: Passed=1') `
+            -and $serverText.Contains('Inventory inspection: FocusAndKeys=1') `
+            -and $clientText.Contains('Inventory inspection: FocusAndKeys=1') `
             -and $serverText.Contains('M9 camp feedback: Passed=1') `
             -and $clientText.Contains('M9 camp feedback: Passed=1')
         $gridPattern = 'Build slot grid: Slots=(\d+) Unavailable=(\d+) Selected=(\d+) Focused=1 ReadOnly=1 Scrollable=1 Navigation=1'
