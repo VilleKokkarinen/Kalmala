@@ -199,6 +199,17 @@ This gate verifies representative editor presentation and existing authority /
 modal input contracts; it does not establish a new package or physical-input
 playthrough. Evidence and remaining M11 scope are recorded in `35-ui-theme.md`.
 
+## M11 ingredient-count child
+
+Follow `39-crafting-ingredients.md`: compile affected UI in the short disposable
+mirror with normal UnrealBuildTool access. Run
+`Kalmala.UI.Crafting+Kalmala.Gameplay.Crafting.Transactions` with isolated
+UserDir/logs, null renderer and TestExit queue-empty; require success and exit0.
+Run mirror `Scripts/Verify-Crafting.ps1 -Rendered` for actual Slate geometry
+and existing navigation/modal/transaction gates, plus ownership, five M5
+documentation contracts and diff/path checks. Parent/full integration and
+combined scale/contrast pixel acceptance wait for remaining ordered children.
+
 ## Baseline
 
 - **Engine:** Installed Unreal Engine 5.8.2 build at `C:\Program Files\Epic Games\UE_5.8`.

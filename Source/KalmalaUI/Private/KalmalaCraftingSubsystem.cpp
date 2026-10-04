@@ -3,6 +3,7 @@
 #include "KalmalaInventorySubsystem.h"
 #include "KalmalaInventoryInspectWidget.h"
 #include "KalmalaItemDetailWidget.h"
+#include "KalmalaIngredientWidget.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaIconWidget.h"
@@ -195,6 +196,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     RecipeRow->AddChildToHorizontalBox(RecipesText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     Column->AddChild(RecipeRow);
     DetailText = AddText(TEXT(""), 18);
+    Ingredients = WidgetTree->ConstructWidget<UKalmalaIngredientWidget>();
+    Column->AddChild(Ingredients);
     auto AddButton = [&](const TCHAR* Label, UHorizontalBox* Row = nullptr, const TCHAR* Help = nullptr) {
         auto* Button = WidgetTree->ConstructWidget<UButton>(); auto* Text = WidgetTree->ConstructWidget<UTextBlock>();
         Text->SetText(FText::FromString(Label)); Text->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(),18));
@@ -736,6 +739,7 @@ void UKalmalaCraftingWidget::Refresh()
     {
         RecipesText->SetText(FText::FromString(TEXT("No matching recipes. Clear recipe search or choose All. Station scope still applies.\n")));
         DetailText->SetText(FText::GetEmpty());
+        Ingredients->SetIngredients({}, nullptr, TextScalePercent, ContrastMode);
         if (SelectedIcon) SelectedIcon->SetVisibility(ESlateVisibility::Collapsed);
         if (CraftButton) CraftButton->SetIsEnabled(false);
         return;
@@ -743,6 +747,15 @@ void UKalmalaCraftingWidget::Refresh()
     Selected=FMath::Clamp(Selected,0,VisibleIndices.Num()-1);
     const int32 RecipeIndex = VisibleIndices[Selected];
     const FKalmalaRecipe& SelectedRecipe = Recipes[RecipeIndex];
+    TArray<FKalmalaInventoryStack> IngredientCosts = SelectedRecipe.Ingredients;
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.Output))
+    {
+        FString Failure;
+        UKalmalaRecipeCatalogue::BuildDirectMaterialCost(SelectedRecipe.Output, IngredientCosts, Failure);
+    }
+    Ingredients->SetIngredients(IngredientCosts,
+        OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr,
+        TextScalePercent, ContrastMode);
     EKalmalaIcon Kind; int32 IconVariant;
     UKalmalaIconWidget::FindCatalogueIcon(SelectedRecipe.Output, Kind, IconVariant);
     SelectedIcon->SetIcon(Kind, IconVariant);
