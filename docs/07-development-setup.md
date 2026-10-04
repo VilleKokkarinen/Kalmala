@@ -210,6 +210,12 @@ and existing navigation/modal/transaction gates, plus ownership, five M5
 documentation contracts and diff/path checks. Parent/full integration and
 combined scale/contrast pixel acceptance wait for remaining ordered children.
 
+For the requirements child, also run
+`Kalmala.Gameplay.Food.CookingStationHeat` in that focused queue. The
+`Kalmala.UI.Crafting.Requirements` automation is included by the UI prefix;
+rendered Verify-Crafting additionally asserts live selected requirements,
+carried hammer and truthful skill/unlock labels on both peers. See docs/39.
+
 ## Baseline
 
 - **Engine:** Installed Unreal Engine 5.8.2 build at `C:\Program Files\Epic Games\UE_5.8`.

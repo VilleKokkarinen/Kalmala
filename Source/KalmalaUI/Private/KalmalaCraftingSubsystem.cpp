@@ -4,6 +4,7 @@
 #include "KalmalaInventoryInspectWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaIngredientWidget.h"
+#include "KalmalaRecipeRequirements.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaIconWidget.h"
@@ -198,6 +199,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     DetailText = AddText(TEXT(""), 18);
     Ingredients = WidgetTree->ConstructWidget<UKalmalaIngredientWidget>();
     Column->AddChild(Ingredients);
+    RequirementText = AddText(TEXT(""), 18);
     auto AddButton = [&](const TCHAR* Label, UHorizontalBox* Row = nullptr, const TCHAR* Help = nullptr) {
         auto* Button = WidgetTree->ConstructWidget<UButton>(); auto* Text = WidgetTree->ConstructWidget<UTextBlock>();
         Text->SetText(FText::FromString(Label)); Text->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(),18));
@@ -740,6 +742,7 @@ void UKalmalaCraftingWidget::Refresh()
         RecipesText->SetText(FText::FromString(TEXT("No matching recipes. Clear recipe search or choose All. Station scope still applies.\n")));
         DetailText->SetText(FText::GetEmpty());
         Ingredients->SetIngredients({}, nullptr, TextScalePercent, ContrastMode);
+        RequirementText->SetText(FText::GetEmpty());
         if (SelectedIcon) SelectedIcon->SetVisibility(ESlateVisibility::Collapsed);
         if (CraftButton) CraftButton->SetIsEnabled(false);
         return;
@@ -766,6 +769,11 @@ void UKalmalaCraftingWidget::Refresh()
     RecipesText->SetText(FText::FromString(FString::Printf(TEXT("> %s%d of %d: %s\n"),
         *StationPrefix, Selected + 1, VisibleIndices.Num(), *SelectedRecipe.DisplayName)));
     const FString Availability = M->GetRecipeAvailability(SelectedRecipe.RecipeId);
+    const auto* RequirementOwner = Cast<AKalmalaCharacter>(OwnerPawn);
+    RequirementText->SetText(FText::FromString(FKalmalaRecipeRequirements::Describe(SelectedRecipe,
+        OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr,
+        RequirementOwner ? RequirementOwner->GetCarriedToolLevel(TEXT("ConstructionHammer")) : -1,
+        Availability)));
     DetailText->SetText(FText::FromString(M->GetRecipeDescription(SelectedRecipe.RecipeId)
         + TEXT("\nAvailability: ") + Availability + TEXT("\n")
         + BuildSkillProgressText(Cast<AKalmalaCharacter>(GetOwningPlayerPawn()))));
@@ -838,6 +846,7 @@ FString UKalmalaCraftingWidget::GetPresentationText() const
             + StateText->GetText().ToString() + (FoodText ? FoodText->GetText().ToString() : FString())
             + (RepairText ? RepairText->GetText().ToString() : FString())
             + (ToolProgressionText ? ToolProgressionText->GetText().ToString() : FString())
+            + (RequirementText ? RequirementText->GetText().ToString() : FString())
             + (CraftButton ? CraftButton->GetToolTipText().ToString() : FString())
             + (StorageText ? StorageText->GetText().ToString() : FString()) : FString();
 }
@@ -1037,6 +1046,10 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             auto* InventoryHUD = GetLocalPlayer()->GetSubsystem<UKalmalaInventorySubsystem>();
             const bool bHUDHidden = InventoryHUD && InventoryHUD->IsCraftingMenuSuppressed();
             const bool Passed=bInspection && bHUDHidden && Text.Contains(TEXT("Construction hammer menu input:")) && Text.Contains(TEXT("Up/Down"))
+                && Text.Contains(TEXT("Requirements — selected recipe"))
+                && Text.Contains(TEXT("Tool: carried Construction Hammer level 1 — Present"))
+                && Text.Contains(TEXT("Skill level: no recipe requirement."))
+                && Text.Contains(TEXT("Unlock: no additional recipe lock."))
                 && Text.Contains(TEXT("Raw material cost: 5 Stone, 3 Wood"))
                 && Text.Contains(TEXT("Ignition: one raw Wood, Lightwood, Densewood, or Coal is also consumed to start the hearth with 60 seconds of fuel."))
                 && Text.Contains(TEXT("Output: Hearth ring construction (no kit item created)"))
