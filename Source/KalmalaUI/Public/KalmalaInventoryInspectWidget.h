@@ -15,6 +15,7 @@ public:
     FName GetSelectedItem() const;
     static FString ActionGuidance(FName Id, bool bTool);
 protected:
+    virtual TSharedRef<SWidget> RebuildWidget() override;
     virtual FReply NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
 private:
     void Build();

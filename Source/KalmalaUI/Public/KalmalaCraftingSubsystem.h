@@ -39,6 +39,7 @@ public:
     bool VerifyRecipeGridNavigationForTest();
     bool VerifyInventoryInspectionForTest();
     bool ScrollReviewSectionForTest(bool bFeedback);
+    bool ScrollInventoryDetailsForTest();
 #endif
     void EnablePlacementPreview();
 protected:

@@ -10,6 +10,12 @@
 #include "Components/Border.h"
 #include "InputCoreTypes.h"
 
+TSharedRef<SWidget> UKalmalaInventoryInspectWidget::RebuildWidget()
+{
+    Build();
+    return Super::RebuildWidget();
+}
+
 void UKalmalaInventoryInspectWidget::Build()
 {
     if (Column || !WidgetTree) return;

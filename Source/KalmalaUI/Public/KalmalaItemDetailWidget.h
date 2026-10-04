@@ -12,6 +12,7 @@ public:
     void SetItem(FName Id, const FString& Name, const FString& VisibleState, int32 TextScale, int32 Contrast);
     static FString DescribeItem(FName Id, const FString& VisibleState);
 protected:
+    virtual TSharedRef<SWidget> RebuildWidget() override;
     virtual void NativeOnInitialized() override;
 private:
     void BuildPanel();

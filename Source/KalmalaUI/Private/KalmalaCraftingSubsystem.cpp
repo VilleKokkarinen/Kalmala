@@ -2,6 +2,7 @@
 #include "Misc/Paths.h"
 #include "KalmalaInventorySubsystem.h"
 #include "KalmalaInventoryInspectWidget.h"
+#include "KalmalaItemDetailWidget.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaIconWidget.h"
@@ -565,7 +566,6 @@ void UKalmalaCraftingWidget::Refresh()
             InspectionRows.Add({Tool.ToolId, GetReadableToolName(Tool.ToolId),
                 VisibleState, true});
         }
-    if (InventoryInspector) InventoryInspector->SetRows(InspectionRows, TextScalePercent, ContrastMode);
     if (LastDetailTextScalePercent != TextScalePercent || LastDetailContrastMode != ContrastMode)
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
@@ -574,6 +574,7 @@ void UKalmalaCraftingWidget::Refresh()
         LastDetailTextScalePercent = TextScalePercent;
         LastDetailContrastMode = ContrastMode;
     }
+    if (InventoryInspector) InventoryInspector->SetRows(InspectionRows, TextScalePercent, ContrastMode);
     if (!VisibleIndices.IsEmpty()) Selected=FMath::Clamp(Selected,0,VisibleIndices.Num()-1);
     RefreshRecipeGrid(VisibleIndices, M, TextScalePercent, ContrastMode);
     if (VisibleIndices.IsEmpty())
@@ -737,7 +738,7 @@ void UKalmalaCraftingWidget::FocusInventoryDetails()
     if (!bOpen || !InventoryInspector) return;
     InventoryInspector->SetKeyboardFocus();
     if (CraftingScrollBox)
-        CraftingScrollBox->ScrollWidgetIntoView(InventoryInspector, false, EDescendantScrollDestination::TopOrLeft);
+        CraftingScrollBox->ScrollToEnd();
 }
 FReply UKalmalaCraftingWidget::NativeOnPreviewKeyDown(const FGeometry& G,const FKeyEvent& E)
 {
@@ -909,14 +910,18 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             }
         }
     }
-    if (bCaptureRequested && ReviewCaptureStage < 4 && Widget
+    if (bCaptureRequested && ReviewCaptureStage < 6 && Widget
         && FParse::Value(FCommandLine::Get(), TEXT("KalmalaCraftingCapture="), CapturePath))
     {
         CaptureWait += DeltaTime;
         if (CaptureWait > 3.0f)
         {
             CaptureWait = 0;
-            if (ReviewCaptureStage == 0 || ReviewCaptureStage == 2)
+            if (ReviewCaptureStage == 4)
+            {
+                UE_LOG(LogTemp, Display, TEXT("Inventory detail review: Scrolled=%d"), Widget->ScrollInventoryDetailsForTest());
+            }
+            else if (ReviewCaptureStage == 0 || ReviewCaptureStage == 2)
             {
                 const bool bScrolled = Widget->ScrollReviewSectionForTest(ReviewCaptureStage == 2);
                 UE_LOG(LogTemp, Display, TEXT("Crafting review scroll: Section=%s Passed=%d"),
@@ -926,7 +931,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             {
                 FScreenshotRequest::RequestScreenshot(
                     FPaths::GetBaseFilename(CapturePath, false)
-                        + (ReviewCaptureStage == 1 ? TEXT("-details.png") : TEXT("-feedback.png")), true, false);
+                        + (ReviewCaptureStage == 1 ? TEXT("-details.png") : ReviewCaptureStage == 3 ? TEXT("-feedback.png") : TEXT("-inspection.png")), true, false);
             }
             ++ReviewCaptureStage;
         }
@@ -935,6 +940,24 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
 }
 
 #if !UE_BUILD_SHIPPING
+bool UKalmalaCraftingWidget::ScrollInventoryDetailsForTest()
+{
+    if (!CraftingScrollBox || !InventoryInspector || !bOpen) return false;
+    TArray<UWidget*> Children;
+    InventoryInspector->WidgetTree->GetAllWidgets(Children);
+    for (UWidget* Child : Children)
+        if (auto* Detail = Cast<UKalmalaItemDetailWidget>(Child))
+        {
+            // Inspection is the final scroll child. Resolve the end after layout,
+            // rather than using clipped/offscreen descendant cached geometry.
+            CraftingScrollBox->ScrollToEnd();
+            return Detail->GetVisibility() == ESlateVisibility::Visible
+                && Detail->GetCachedGeometry().GetLocalSize().X > 1.0f
+                && Detail->GetCachedGeometry().GetLocalSize().Y > 1.0f;
+        }
+    return false;
+}
+
 bool UKalmalaCraftingWidget::ScrollReviewSectionForTest(const bool bFeedback)
 {
     UTextBlock* Target = bFeedback ? RepairText.Get() : DetailText.Get();

@@ -66,7 +66,7 @@ try {
         }
         if ($Rendered) {
             foreach ($peerName in @('host', 'client')) {
-                foreach ($suffix in @('', '-details', '-feedback')) {
+                foreach ($suffix in @('', '-details', '-feedback', '-inspection')) {
                     $ready = $ready -and (Test-Path "$output\$peerName$suffix.png")
                 }
             }
@@ -74,6 +74,7 @@ try {
                 $ready = $ready -and $peerText.Contains('Construction feedback: Passed=1') `
                     -and $peerText.Contains('Crafting review scroll: Section=Details Passed=1') `
                     -and $peerText.Contains('Crafting review scroll: Section=Feedback Passed=1')
+                $ready = $ready -and $peerText.Contains('Inventory detail review: Scrolled=1')
             }
         }
         if ($ready) { break }

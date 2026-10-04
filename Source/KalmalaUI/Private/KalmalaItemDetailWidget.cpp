@@ -16,6 +16,12 @@ FString UKalmalaItemDetailWidget::DescribeItem(FName Id, const FString& VisibleS
     return Text;
 }
 
+TSharedRef<SWidget> UKalmalaItemDetailWidget::RebuildWidget()
+{
+    BuildPanel();
+    return Super::RebuildWidget();
+}
+
 void UKalmalaItemDetailWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
@@ -35,6 +41,7 @@ void UKalmalaItemDetailWidget::BuildPanel()
     Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
     IconSize->SetContent(Icon); Column->AddChild(IconSize);
     Title = WidgetTree->ConstructWidget<UTextBlock>(); Column->AddChild(Title);
+    Title->SetAutoWrapText(true);
     Details = WidgetTree->ConstructWidget<UTextBlock>();
     Details->SetAutoWrapText(true); Column->AddChild(Details);
     Width->SetContent(Column); Panel->SetContent(Width); WidgetTree->RootWidget = Panel;
