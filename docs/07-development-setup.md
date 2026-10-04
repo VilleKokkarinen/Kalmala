@@ -1675,3 +1675,35 @@ accepted landmark/scroll feedback, rejected feedback silence, refresh/expiry
 deduplication, bounded labels, passive text and owner-local queue behavior.
 Combined source placement, modal/reduced-motion behavior and the supported
 viewport matrix remain in the notification parent's final acceptance child.
+
+## M11 combined notification parent acceptance
+
+Build `KalmalaEditor Win64 Development` from a short disposable mirror with
+normal `%LOCALAPPDATA%/UnrealBuildTool` access and `-MaxParallelActions=4`.
+Run the complete `Automation RunTests Kalmala` queue with an isolated user
+directory, log, memory DDC, and `-TestExit="Automation Test Queue Empty"`;
+require every requested test and process exit to pass, including
+`Kalmala.UI.Notifications.CombinedPresentation`.
+
+Run the two-peer rendered review at both supported acceptance settings:
+
+```powershell
+Scripts/Verify-Inventory.ps1 -Rendered -NotificationReview -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-Inventory.ps1 -Rendered -NotificationReview -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Verify-InventoryReconnect.ps1
+```
+
+Both rendered peers must report silent owner baselines, a complete three-source
+queue, readable passive text at the requested scale/contrast, modal collapse,
+and visible restoration. Retain and inspect combined/modal/restored source PNGs
+for both peers at both settings. The reconnect verifier uses two client visits
+to the same live host and requires a silent skill, item-receipt, and discovery
+baseline on each visit. The local synthetic review labels are presentation-only;
+the live inventory run remains the receipt-privacy and transaction check.
+
+Then run `Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, the PowerShell parser for the
+changed scripts, `git diff --check`, and the 260-character path audit. Check
+only the notification parent and final child after all required verification
+passes. This parent check does not complete the wider M11 acceptance matrix,
+physical input, package validation, or other M11 parents.

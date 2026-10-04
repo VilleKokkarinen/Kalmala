@@ -40,4 +40,13 @@ private:
     FKalmalaSkillNoticeQueue Queue;
     TWeakObjectPtr<class APawn> OwnerPawn;
     UPROPERTY(Transient) TObjectPtr<UKalmalaNotificationWidget> Widget;
+    bool bOwnerBaselineAudited = false;
+#if !UE_BUILD_SHIPPING
+    bool bReviewFixtureInitialized = false;
+    bool bReviewSettingsApplied = false;
+    int32 ReviewCaptureStage = 0;
+    float ReviewCaptureElapsed = 0.0f;
+    FString ReviewCaptureBasePath;
+    bool bReviewPriorMoveInputIgnored = false;
+#endif
 };

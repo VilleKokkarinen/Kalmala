@@ -1,6 +1,7 @@
 param([int]$Port = 17849, [switch]$Rendered, [int]$Width = 1280, [int]$Height = 720,
-    [int]$TextScale = 100, [int]$Contrast = 0, [switch]$EquipmentView)
+    [int]$TextScale = 100, [int]$Contrast = 0, [switch]$EquipmentView, [switch]$NotificationReview)
 $ErrorActionPreference = 'Stop'
+if ($NotificationReview -and !$Rendered) { throw 'Notification review requires -Rendered.' }
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
 $output = Join-Path $env:TEMP ('KalmalaInventory-' + [guid]::NewGuid().ToString('N'))
@@ -10,9 +11,11 @@ $clientLog = Join-Path $output 'client.log'
 $hostShaderDir = Join-Path $output 'Host\ShaderWorkingDir'
 $clientShaderDir = Join-Path $output 'Client\ShaderWorkingDir'
 if ($Rendered) { New-Item -ItemType Directory -Path $hostShaderDir, $clientShaderDir -Force | Out-Null }
-$common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaInventoryTest -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast"
+$common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaInventoryTest -KalmalaNotificationBaselineAudit -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast"
 if ($Rendered) { $common += " -windowed -RenderOffscreen -ForceRes -ResX=$Width -ResY=$Height" } else { $common += ' -nullrhi' }
 if ($EquipmentView) { $common += ' -KalmalaEquipmentView' }
+$hostNotificationCapture = if ($NotificationReview) { "-KalmalaNotificationCapture=`"$output\Host\notice`"" } else { '' }
+$clientNotificationCapture = if ($NotificationReview) { "-KalmalaNotificationCapture=`"$output\Client\notice`"" } else { '' }
 $scrollState = if ($EquipmentView) { '[01]' } else { '1' }
 $hostShader = if ($Rendered) { "-ShaderWorkingDir=`"$hostShaderDir`"" } else { '' }
 $clientShader = if ($Rendered) { "-ShaderWorkingDir=`"$clientShaderDir`"" } else { '' }
@@ -21,7 +24,7 @@ $clientCapture = if ($Rendered) { "-KalmalaInventoryCapture=`"$output\Client\inv
 $server = $null
 $client = $null
 try {
-    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common $hostShader $hostCapture -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common $hostShader $hostCapture $hostNotificationCapture -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($server.HasExited) { throw 'Listen server exited during startup.' }
@@ -29,7 +32,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Listen server readiness timed out.' }
-    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common $clientShader $clientCapture -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
+    $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common $clientShader $clientCapture $clientNotificationCapture -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before verification.' }
@@ -43,7 +46,14 @@ try {
             -and $serverText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1') `
             -and $clientText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1') `
             -and $serverText -match "Inventory grid: PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=$scrollState ReadOnly=1" `
-            -and $clientText -match "Inventory grid: PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=$scrollState ReadOnly=1") { break }
+            -and $clientText -match "Inventory grid: PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=$scrollState ReadOnly=1" `
+            -and (!$NotificationReview -or (
+                $serverText -match 'Notification combined layout: Complete=1 OwnerLocal=1 PeerPrivateHidden=1 Passive=1 Rows=3' `
+                -and $clientText -match 'Notification combined layout: Complete=1 OwnerLocal=1 PeerPrivateHidden=1 Passive=1 Rows=3' `
+                -and $serverText -match 'Notification modal fixture: Collapsed=1 Rows=3' `
+                -and $clientText -match 'Notification modal fixture: Collapsed=1 Rows=3' `
+                -and $serverText -match 'Notification restored fixture: Visible=1 Rows=3' `
+                -and $clientText -match 'Notification restored fixture: Visible=1 Rows=3'))) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Inventory host/client scenario timed out.' }
@@ -51,6 +61,23 @@ try {
         $clientText -notmatch 'Item gain receipts remote: Empty=1' -or
         ($serverText + $clientText) -match 'Item gain receipts remote: Empty=0') {
         throw 'Accepted item-gain receipts did not preserve owner delivery/privacy.'
+    }
+    if ($serverText -notmatch 'Notification owner baseline: Silent=1 Rows=0 Sources=3' -or
+        $clientText -notmatch 'Notification owner baseline: Silent=1 Rows=0 Sources=3') {
+        throw 'A peer replayed existing owner state while establishing notification baselines.'
+    }
+    if ($NotificationReview) {
+        foreach ($peer in @(@{ Name = 'Host'; Text = $serverText }, @{ Name = 'Client'; Text = $clientText })) {
+            if ($peer.Text -notmatch 'Notification reconnect baseline: Silent=1 Rows=0 Sources=3' -or
+                $peer.Text -notmatch 'Notification combined fixture: Ready=1 Rows=3 Skill=1 Item=1 Discovery=1' -or
+                $peer.Text -notmatch "Notification combined layout: Complete=1 OwnerLocal=1 PeerPrivateHidden=1 Passive=1 Rows=3 Scale=$TextScale Contrast=$Contrast Motion=Static" -or
+                $peer.Text -notmatch 'Notification modal fixture: Collapsed=1 Rows=3' -or
+                $peer.Text -notmatch 'Notification restored fixture: Visible=1 Rows=3') {
+                throw "$($peer.Name) peer did not verify its combined notification, modal, static-motion and owner-local presentation."
+            }
+            $otherOwner = if ($peer.Owner -eq 'Host') { 'Client' } else { 'Host' }
+            if ($peer.Text.Contains("$otherOwner owner discovery")) { throw "$($peer.Name) review fixture exposed the other peer's private label." }
+        }
     }
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client world identity mismatch.' }
     if ($Rendered) {
@@ -61,6 +88,17 @@ try {
         if (($captures | Where-Object { !(Test-Path $_) }).Count -gt 0) { throw 'Inventory empty/filled slot screenshots timed out.' }
         foreach ($capture in $captures) {
             if ((Get-Item -LiteralPath $capture).Length -le 32) { throw "Inventory capture is empty: $capture" }
+        }
+        if ($NotificationReview) {
+            $noticeCaptures = @(
+                "$output\Host\notice-combined.png", "$output\Host\notice-modal.png", "$output\Host\notice-restored.png",
+                "$output\Client\notice-combined.png", "$output\Client\notice-modal.png", "$output\Client\notice-restored.png")
+            $deadline = (Get-Date).AddSeconds(20)
+            while (($noticeCaptures | Where-Object { !(Test-Path $_) }).Count -gt 0 -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250 }
+            if (($noticeCaptures | Where-Object { !(Test-Path $_) }).Count -gt 0) { throw 'Combined notification captures timed out on a peer.' }
+            foreach ($capture in $noticeCaptures) {
+                if ((Get-Item -LiteralPath $capture).Length -le 32) { throw "Notification capture is empty: $capture" }
+            }
         }
         # Capture settling can outlast the transaction checks; validate fresh fixture logs.
         $serverText = Get-Content $serverLog -Raw
@@ -77,7 +115,8 @@ try {
             }
         }
     }
-    Write-Output "PASS: inventory capacity/empty cells and live owner slots at ${Width}x${Height}, text $TextScale%, contrast $Contrast; server grants/rejections, privacy, and read-only presentation passed."
+    Write-Output "PASS: inventory capacity/empty cells and live owner slots at ${Width}x${Height}, text $TextScale%, contrast $Contrast; server grants/rejections, privacy, notification baselines, and read-only presentation passed."
+    if ($NotificationReview) { Write-Output 'PASS: both peers rendered combined skill/item/discovery rows, modal collapse/restore, passive text, and unique owner-local review labels.' }
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

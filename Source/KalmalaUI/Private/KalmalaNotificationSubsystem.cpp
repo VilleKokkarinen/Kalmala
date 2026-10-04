@@ -16,6 +16,9 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "UnrealClient.h"
 
 namespace
 {
@@ -117,19 +120,153 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
     if (OwnerPawn.Get() != Pawn)
     {
         Queue.Reset(); OwnerPawn = Pawn;
+        bOwnerBaselineAudited = false;
+#if !UE_BUILD_SHIPPING
+        bReviewFixtureInitialized = false;
+        bReviewSettingsApplied = false;
+        ReviewCaptureStage = 0;
+        ReviewCaptureElapsed = 0.0f;
+        ReviewCaptureBasePath.Reset();
+#endif
         if (Widget) Widget->RemoveFromParent(); Widget = nullptr;
     }
+#if !UE_BUILD_SHIPPING
+    FString NotificationCapturePath;
+    const bool bNotificationCaptureRequested = FParse::Value(
+        FCommandLine::Get(), TEXT("KalmalaNotificationCapture="), NotificationCapturePath);
+    const bool bReviewPresentationActive = bNotificationCaptureRequested && bReviewFixtureInitialized;
+    if (bNotificationCaptureRequested && !bReviewSettingsApplied)
+    {
+        int32 ReviewScale = UKalmalaSettingsWidget::GetTextScalePercent();
+        int32 ReviewContrast = UKalmalaSettingsWidget::GetContrastMode();
+        if (FParse::Value(FCommandLine::Get(), TEXT("KalmalaUIDeveloperTextScale="), ReviewScale))
+            UKalmalaSettingsWidget::SetTextScalePercent(ReviewScale);
+        if (FParse::Value(FCommandLine::Get(), TEXT("KalmalaUIDeveloperContrast="), ReviewContrast))
+            UKalmalaSettingsWidget::SetContrastMode(ReviewContrast);
+        bReviewSettingsApplied = true;
+    }
+#endif
     Queue.Tick(DeltaTime);
     const auto* Skills = Pawn ? Pawn->FindComponentByClass<UKalmalaSkillProgressionComponent>() : nullptr;
-    if (Skills) Queue.Observe(Skills->GetDetailedProgression(), FKalmalaUITheme::Get().NotificationLifetime);
+#if !UE_BUILD_SHIPPING
+    const bool bSkillObserved = bReviewPresentationActive || (Skills && Queue.Observe(Skills->GetDetailedProgression(), FKalmalaUITheme::Get().NotificationLifetime));
+#else
+    const bool bSkillObserved = Skills && Queue.Observe(Skills->GetDetailedProgression(), FKalmalaUITheme::Get().NotificationLifetime);
+#endif
     const auto* Inventory = Pawn ? Pawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
-    if (Inventory) Queue.ObserveGains(Inventory->GetGainReceipts(), FKalmalaUITheme::Get().NotificationLifetime);
+#if !UE_BUILD_SHIPPING
+    const bool bGainsObserved = bReviewPresentationActive || (Inventory && Queue.ObserveGains(Inventory->GetGainReceipts(), FKalmalaUITheme::Get().NotificationLifetime));
+#else
+    const bool bGainsObserved = Inventory && Queue.ObserveGains(Inventory->GetGainReceipts(), FKalmalaUITheme::Get().NotificationLifetime);
+#endif
     const auto* Discovery = Pawn ? Pawn->FindComponentByClass<UKalmalaDiscoveryProgressComponent>() : nullptr;
-    if (Discovery) Queue.ObserveDiscovery(Discovery->GetFeedbackSerial(), Discovery->GetFeedback(),
+#if !UE_BUILD_SHIPPING
+    const bool bDiscoveryObserved = bReviewPresentationActive || (Discovery && Queue.ObserveDiscovery(Discovery->GetFeedbackSerial(), Discovery->GetFeedback(),
+        Discovery->GetFeedbackLabel(), FKalmalaUITheme::Get().NotificationLifetime));
+#else
+    const bool bDiscoveryObserved = Discovery && Queue.ObserveDiscovery(Discovery->GetFeedbackSerial(), Discovery->GetFeedback(),
         Discovery->GetFeedbackLabel(), FKalmalaUITheme::Get().NotificationLifetime);
+#endif
+
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaNotificationBaselineAudit"))
+        && !bOwnerBaselineAudited && !bReviewPresentationActive && bSkillObserved && bGainsObserved && bDiscoveryObserved)
+    {
+        bOwnerBaselineAudited = true;
+        const bool bSilent = Queue.GetRows().IsEmpty();
+        UE_LOG(LogTemp, Display, TEXT("Notification owner baseline: Silent=%d Rows=%d Sources=3"),
+            bSilent, Queue.GetRows().Num());
+    }
+
+    if (bNotificationCaptureRequested && !bReviewFixtureInitialized && Controller
+        && !Controller->IsMoveInputIgnored() && Skills && Inventory && Discovery
+        && bSkillObserved && bGainsObserved && bDiscoveryObserved)
+    {
+        const float Lifetime = FKalmalaUITheme::Get().NotificationLifetime;
+        const auto LiveSkills = Skills->GetDetailedProgression();
+        const auto LiveGains = Inventory->GetGainReceipts();
+        const uint32 LiveDiscoverySerial = Discovery->GetFeedbackSerial();
+        const auto LiveDiscoveryFeedback = Discovery->GetFeedback();
+        const FString LiveDiscoveryLabel = Discovery->GetFeedbackLabel();
+
+        Queue.Reset();
+        const bool bFirstBaselineReady = Queue.Observe(LiveSkills, Lifetime)
+            && Queue.ObserveGains(LiveGains, Lifetime)
+            && Queue.ObserveDiscovery(LiveDiscoverySerial, LiveDiscoveryFeedback, LiveDiscoveryLabel, Lifetime);
+        const bool bFirstBaselineSilent = bFirstBaselineReady && Queue.GetRows().IsEmpty();
+        Queue.Reset();
+        const bool bReconnectBaselineReady = Queue.Observe(LiveSkills, Lifetime)
+            && Queue.ObserveGains(LiveGains, Lifetime)
+            && Queue.ObserveDiscovery(LiveDiscoverySerial, LiveDiscoveryFeedback, LiveDiscoveryLabel, Lifetime);
+        const bool bReconnectBaselineSilent = bReconnectBaselineReady && Queue.GetRows().IsEmpty();
+
+        FKalmalaSkillProgressionLedger ReviewSkills;
+        ReviewSkills.Initialize();
+        Queue.Reset();
+        const bool bSkillBaselineReady = Queue.Observe(ReviewSkills.Skills, Lifetime);
+        for (int32 Award = 0; Award < 4; ++Award)
+            ReviewSkills.AwardExperienceFromServer(EKalmalaSkill::Crafting, true, true, 25);
+        const bool bSkillNoticeReady = Queue.Observe(ReviewSkills.Skills, Lifetime);
+
+        TArray<FKalmalaItemGainReceipt> ReviewGains{{1, TEXT("Wood"), 1}};
+        const bool bGainBaselineReady = Queue.ObserveGains(ReviewGains, Lifetime);
+        ReviewGains.Add({2, TEXT("Wood"), 2});
+        const bool bGainNoticeReady = Queue.ObserveGains(ReviewGains, Lifetime);
+
+        const bool bDiscoveryBaselineReady = Queue.ObserveDiscovery(
+            1, EKalmalaDiscoveryFeedback::Unavailable, FString(), Lifetime);
+        const FString ReviewLabel = Pawn->HasAuthority() ? TEXT("Host owner discovery") : TEXT("Client owner discovery");
+        const bool bDiscoveryNoticeReady = Queue.ObserveDiscovery(
+            2, EKalmalaDiscoveryFeedback::LandmarkFound, ReviewLabel, Lifetime);
+        const int32 SkillRows = Queue.GetRows().FilterByPredicate([](const auto& Row)
+            { return Row.ItemId.IsNone() && Row.DiscoveryText.IsEmpty(); }).Num();
+        const int32 ItemRows = Queue.GetRows().FilterByPredicate([](const auto& Row)
+            { return !Row.ItemId.IsNone(); }).Num();
+        const int32 DiscoveryRows = Queue.GetRows().FilterByPredicate([](const auto& Row)
+            { return !Row.DiscoveryText.IsEmpty(); }).Num();
+        const bool bCombinedReady = bFirstBaselineSilent && bReconnectBaselineSilent
+            && bSkillBaselineReady && bSkillNoticeReady && bGainBaselineReady && bGainNoticeReady
+            && bDiscoveryBaselineReady && bDiscoveryNoticeReady && Queue.GetRows().Num() == 3
+            && SkillRows == 1 && ItemRows == 1 && DiscoveryRows == 1;
+        UE_LOG(LogTemp, Display, TEXT("Notification reconnect baseline: Silent=%d Rows=%d Sources=3"),
+            bFirstBaselineSilent && bReconnectBaselineSilent,
+            (bFirstBaselineSilent && bReconnectBaselineSilent) ? 0 : Queue.GetRows().Num());
+        UE_LOG(LogTemp, Display, TEXT("Notification combined fixture: Ready=%d Rows=%d Skill=%d Item=%d Discovery=%d Owner=%s"),
+            bCombinedReady, Queue.GetRows().Num(), SkillRows, ItemRows, DiscoveryRows,
+            Pawn->HasAuthority() ? TEXT("Host") : TEXT("Client"));
+        if (bCombinedReady)
+        {
+            ReviewCaptureBasePath = MoveTemp(NotificationCapturePath);
+            bReviewFixtureInitialized = true;
+            ReviewCaptureStage = 0;
+            ReviewCaptureElapsed = 0.0f;
+        }
+    }
+    else if (!bNotificationCaptureRequested)
+    {
+        bReviewFixtureInitialized = false;
+        bReviewSettingsApplied = false;
+    }
+#endif
+
     if (!Pawn || !Controller || Queue.GetRows().IsEmpty() || Controller->IsMoveInputIgnored())
     {
         if (Widget) Widget->SetVisibility(ESlateVisibility::Collapsed);
+#if !UE_BUILD_SHIPPING
+        if (bReviewFixtureInitialized && Controller && Controller->IsMoveInputIgnored() && ReviewCaptureStage == 1)
+        {
+            ReviewCaptureElapsed += DeltaTime;
+            if (ReviewCaptureElapsed >= 0.5f)
+            {
+                UE_LOG(LogTemp, Display, TEXT("Notification modal fixture: Collapsed=%d Rows=%d"),
+                    Widget && Widget->GetVisibility() == ESlateVisibility::Collapsed, Queue.GetRows().Num());
+                FScreenshotRequest::RequestScreenshot(ReviewCaptureBasePath + TEXT("-modal.png"), true, false);
+                Controller->SetIgnoreMoveInput(bReviewPriorMoveInputIgnored);
+                ReviewCaptureStage = 2;
+                ReviewCaptureElapsed = 0.0f;
+            }
+        }
+#endif
         return;
     }
     if (!Widget)
@@ -146,17 +283,64 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
     }
     const float DPI = FMath::Max(0.1f, UWidgetLayoutLibrary::GetViewportScale(Widget));
     Widget->SetAlignmentInViewport(FVector2D(1,1));
-    Widget->SetPositionInViewport(FVector2D(Width / DPI - 24, Height / DPI - 160), false);
+    Widget->SetPositionInViewport(FVector2D(Width / DPI - 24, Height / DPI - 280), false);
     const auto& Theme = FKalmalaUITheme::Get();
     const float FontSize = Theme.MakeFont(Theme.BodySize, false, UKalmalaSettingsWidget::GetTextScalePercent()).Size;
     const float PanelHeight = Queue.GetRows().Num() * (FontSize * 2 + 28) + Theme.PaddingY * 2;
     Widget->SetDesiredSizeInViewport(FVector2D(FMath::Max(1.f, FMath::Min(320.f, Width / DPI - 48)), PanelHeight));
     Widget->SetNotices(Queue.GetRows(), UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
     Widget->SetVisibility(ESlateVisibility::HitTestInvisible);
+#if !UE_BUILD_SHIPPING
+    if (bReviewFixtureInitialized && ReviewCaptureStage < 3)
+    {
+        ReviewCaptureElapsed += DeltaTime;
+        if (ReviewCaptureStage == 0 && ReviewCaptureElapsed >= 0.75f)
+        {
+            const FString Presented = Widget->GetPresentationText();
+            const FString OwnerLabel = Pawn->HasAuthority() ? TEXT("Host owner discovery") : TEXT("Client owner discovery");
+            const FString PeerLabel = Pawn->HasAuthority() ? TEXT("Client owner discovery") : TEXT("Host owner discovery");
+            const bool bOwnerLocalLabel = Presented.Contains(OwnerLabel);
+            const bool bPeerPrivateLabelHidden = !Presented.Contains(PeerLabel);
+            const bool bTextComplete = Presented.Contains(TEXT("Crafting reached level 2"))
+                && Presented.Contains(TEXT("Gained 2 Wood")) && bOwnerLocalLabel;
+            const bool bPassive = !Widget->IsFocusable() && Widget->GetVisibility() == ESlateVisibility::HitTestInvisible;
+            UE_LOG(LogTemp, Display, TEXT("Notification combined layout: Complete=%d OwnerLocal=%d PeerPrivateHidden=%d Passive=%d Rows=%d Scale=%d Contrast=%d Motion=Static"),
+                bTextComplete, bOwnerLocalLabel, bPeerPrivateLabelHidden, bPassive, Queue.GetRows().Num(), UKalmalaSettingsWidget::GetTextScalePercent(),
+                UKalmalaSettingsWidget::GetContrastMode());
+            FScreenshotRequest::RequestScreenshot(ReviewCaptureBasePath + TEXT("-combined.png"), true, false);
+            ReviewCaptureStage = 1;
+            ReviewCaptureElapsed = 0.0f;
+            bReviewPriorMoveInputIgnored = Controller->IsMoveInputIgnored();
+            Controller->SetIgnoreMoveInput(true);
+        }
+        else if (ReviewCaptureStage == 2 && ReviewCaptureElapsed >= 0.5f)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Notification restored fixture: Visible=%d Rows=%d"),
+                Widget->GetVisibility() == ESlateVisibility::HitTestInvisible, Queue.GetRows().Num());
+            FScreenshotRequest::RequestScreenshot(ReviewCaptureBasePath + TEXT("-restored.png"), true, false);
+            ReviewCaptureStage = 3;
+        }
+    }
+#endif
 }
 
 void UKalmalaNotificationSubsystem::Deinitialize()
 {
+#if !UE_BUILD_SHIPPING
+    if (ReviewCaptureStage == 1)
+    {
+        if (APlayerController* Controller = GetLocalPlayer() ? GetLocalPlayer()->GetPlayerController(GetWorld()) : nullptr)
+            Controller->SetIgnoreMoveInput(bReviewPriorMoveInputIgnored);
+    }
+#endif
     if (Widget) Widget->RemoveFromParent(); Widget = nullptr;
-    Queue.Reset(); OwnerPawn.Reset(); Super::Deinitialize();
+    Queue.Reset(); OwnerPawn.Reset(); bOwnerBaselineAudited = false;
+#if !UE_BUILD_SHIPPING
+    bReviewFixtureInitialized = false;
+    bReviewSettingsApplied = false;
+    ReviewCaptureStage = 0;
+    ReviewCaptureElapsed = 0.0f;
+    ReviewCaptureBasePath.Reset();
+#endif
+    Super::Deinitialize();
 }

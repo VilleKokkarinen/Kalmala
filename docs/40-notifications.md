@@ -24,12 +24,14 @@ theme values outside 1–10 seconds fall back to the default. Runtime queue
 durations are also bounded. No entrance, exit or scrolling animation occurs,
 including reduced-motion use. Text scale and high contrast use the shared theme.
 
-The widget cannot focus or hit-test. Its provisional bottom-right anchor is
-160 logical pixels above the viewport bottom, with a maximum width of 320.
+The widget cannot focus or hit-test. Its bottom-right anchor is 280 logical
+pixels above the viewport bottom, with a maximum width of 320; this clears the
+centered arrival prompt at the supported 1024x768/150% layout.
 It collapses while the controller ignores movement for a modal; timers continue
 so closing a modal does not replay expired messages. Tiny/unavailable viewports
-collapse the widget. Combined rendered HUD/modal placement acceptance remains
-the final child, rather than a verified layout claim here.
+collapse the widget. The combined acceptance below checks both supported
+layouts and the existing movement-ignore modal signal; it does not open a
+gameplay menu.
 
 ## Increment verification
 
@@ -41,11 +43,16 @@ directory and memory DDC. The notification automation covers accepted awards,
 partial/invalid snapshots, coalescing, overflow, expiry, reconnect/reset,
 independent owners, passive widget text and bounded theme lifetime.
 
-Item gains and skill levels currently share the queue. Discovery notices have
-passed their focused increment-level check. Real replicated notification
-pixels, combined queue behavior, modal placement and the supported viewport
-matrix remain later acceptance scope. Full parent verification is intentionally
-pending until the combined acceptance child is complete.
+Item gains and skill levels share the queue with discovery notices. Their
+focused increment-level checks cover each source separately; the final
+`Kalmala.UI.Notifications.CombinedPresentation` automation checks all three
+sources together, no renewal on repeated snapshots, reset/reconnect baselines,
+and owner-queue isolation. The rendered acceptance uses the local-only
+`-KalmalaNotificationCapture` review fixture to inspect the real widget at
+100% standard contrast and 150% high contrast. Its synthetic labels are
+different per peer and do not mutate a pawn, claim, inventory, or replicated
+field. Normal player/client state remains under the existing receipt and
+authority checks.
 
 ## Accepted item gains
 
@@ -105,5 +112,29 @@ existing item-gain notice for the actual inventory increase.
 Run `Kalmala.UI.Notifications.Discoveries` with the affected editor build. It
 covers silent initial/reconnect baselines, accepted landmark/scroll feedback,
 rejected feedback silence, unchanged refresh, expiry, label bounds, passive
-text and owner-local queue behavior. Combined rendered placement remains
-final-child acceptance scope.
+text and owner-local queue behavior.
+
+## Combined acceptance
+
+`Scripts/Verify-Inventory.ps1 -Rendered -NotificationReview` runs two isolated
+peers with a developer-only local presentation fixture. Each peer silently
+baselines its current three owner sources, verifies a reset/reconnect baseline,
+then paints one skill, one item, and one discovery row in the same three-row
+widget. It captures combined, modal-collapsed, and restored states for both
+peers. The modal stage toggles the existing local movement-ignore signal for
+one bounded capture interval; it does not open a gameplay menu or change a
+gameplay action. The widget remains non-focusable and hit-test-invisible, and
+the notices have no entrance, exit, or scrolling animation, so their motion
+path is static under reduced-motion use. Theme lifetime still controls expiry.
+
+Run the rendered fixture at 1280x720/100%/standard contrast and
+1024x768/150%/high contrast, inspect both peers' source PNGs, and run
+`Scripts/Verify-InventoryReconnect.ps1`. That reconnect scenario starts two
+successive clients against the same live host and requires each fresh owner
+baseline to be silent for skills, accepted item receipts, and discovery state.
+The synthetic capture labels validate per-peer presentation isolation; actual
+inventory receipt privacy remains covered by the live inventory verifier and
+discovery ownership by its existing replication contract. Full queue, ownership,
+M5 documentation, PowerShell parser, diff, and path checks complete the parent
+verification. The review fixture and audit flags are inert unless explicitly
+passed to a non-shipping development process.

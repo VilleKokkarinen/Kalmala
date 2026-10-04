@@ -6,7 +6,7 @@ $output = Join-Path $env:TEMP ('KalmalaInventoryReconnect-' + [guid]::NewGuid().
 New-Item -ItemType Directory -Path $output | Out-Null
 $serverLog = Join-Path $output 'server.log'
 $clientLog = Join-Path $output 'client.log'
-$common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaInventoryTest'
+$common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaInventoryTest -KalmalaNotificationBaselineAudit'
 $server = $null
 $client = $null
 try {
@@ -35,6 +35,7 @@ try {
                 -and $ownerIndex -ge 0 -and $clientText.IndexOf('Inventory remote: Empty=1', $ownerIndex) -gt $ownerIndex `
                 -and $clientText.Contains('Tool condition owner: Passed=1 FieldHatchet=24 StonePick=20 ReedKnife=16') `
                 -and $clientText.Contains('Tool condition remote: Hidden=1') `
+                -and $clientText.Contains('Notification owner baseline: Silent=1 Rows=0 Sources=3') `
                 -and $serverText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1') `
                 -and $clientText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1')) { break }
             Start-Sleep -Milliseconds 500
