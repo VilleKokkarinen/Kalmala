@@ -41,6 +41,7 @@ public:
     bool VerifyInventoryInspectionForTest();
     bool ScrollReviewSectionForTest(bool bFeedback);
     bool ScrollInventoryDetailsForTest();
+    bool PrepareBrowseReviewForTest(int32 View);
 #endif
     void SetRecipeBrowse(const FString& Query, int32 Category, bool bNameSort);
     TArray<int32> GetVisibleRecipeIndices() const;

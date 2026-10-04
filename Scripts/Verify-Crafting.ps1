@@ -47,6 +47,7 @@ try {
             -and $serverText.Contains('M9 camp feedback: Passed=1') `
             -and $clientText.Contains('M9 camp feedback: Passed=1')
         foreach ($peerText in @($serverText, $clientText)) {
+            $ready = $ready -and $peerText.Contains('Inventory browsing: CategoryKey=1 SortKey=1 NoResults=1 Restored=1')
             $ready = $ready -and $peerText.Contains('Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1 SearchFocus=1')
             $ready = $ready -and $peerText.Contains('Build browsing: Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1')
         }
@@ -70,11 +71,14 @@ try {
         }
         if ($Rendered) {
             foreach ($peerName in @('host', 'client')) {
-                foreach ($suffix in @('', '-details', '-feedback', '-inspection')) {
+                foreach ($suffix in @('', '-details', '-feedback', '-inspection', '-cooking', '-structural', '-stations', '-utilities', '-no-results', '-inventory-browse')) {
                     $ready = $ready -and (Test-Path "$output\$peerName$suffix.png")
                 }
             }
             foreach ($peerText in @($serverText, $clientText)) {
+                foreach ($view in @('cooking', 'structural', 'stations', 'utilities', 'no-results', 'inventory-browse')) {
+                    $ready = $ready -and $peerText.Contains("Browsing review: View=$view Passed=1")
+                }
                 $ready = $ready -and $peerText.Contains('Construction feedback: Passed=1') `
                     -and $peerText.Contains('Crafting review scroll: Section=Details Passed=1') `
                     -and $peerText.Contains('Crafting review scroll: Section=Feedback Passed=1')

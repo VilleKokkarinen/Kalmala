@@ -124,3 +124,55 @@ owner privacy integration remain the final ordered child; physical controller
 text input and packaging are not certified by these fixtures.
 
 Build child evidence 2026-10-04T09:13:52.5454451Z: final UI build four actions passed; focused LocalBrowsing1/1/process and test exit0 at Temp/kbb1/tests.log before final card-label correction. Final rendered18591 passed both peers including refreshed group labels, canonical selection, category key, no-results, existing recipes/modal/authority and captures at Temp/KalmalaCrafting-ac6b78b4a5644854aba1de791c491708. Ownership/five documentation contracts/parser/diff/path checks passed; mirror maximum209. Full parent integration and supported-scale/contrast pixel acceptance remain pending.
+
+## Parent acceptance — 2026-10-04
+
+The final ordered acceptance child and browsing parent are complete. Grouped
+inventory now uses independently sized grid rows with headings spanning four
+columns; the uniform grid made headings as tall as the tallest tool card,
+creating large empty gaps. No RPC, gameplay, availability, save or source-order
+contract changed. Query/category/order still have widget lifetime only.
+
+Final parent-level evidence:
+
+- UE5.8.2 KalmalaEditor Win64 Development build passed in Temp/ka with normal
+  LOCALAPPDATA/UnrealBuildTool access; final compile/link took four actions.
+- Full Kalmala queue passed106/106, process and test exit0 at
+  C:/Users/Ville/AppData/Local/Temp/kba2/all.log after the final layout change.
+- Rendered Verify-Crafting passed18595 at1280x720/100%/standard and18597
+  at1024x768/150%/high contrast. Both peers passed inventory browsing,
+  recipe selection/category/no-results/search focus, build groups/selection/key
+  navigation, modal/HUD restoration and existing server rejection/payment/final
+  state checks. All twenty required captures per run completed.
+- Standard root:
+  C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-5f628428509e4f5ab4f5bdc5a9b381bb.
+  High-contrast root:
+  C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-372c908241b247eaba385d29a1f26524.
+- Final Verify-Inventory18596 passed owner privacy, capacity, read-only UI and
+  server grant/rejection checks at
+  C:/Users/Ville/AppData/Local/Temp/KalmalaInventory-b0572dbe1ce34bb5978f8082f173fbec.
+- Presentation ownership, all five M5 documentation contracts, script parsing,
+  diff and path checks passed; mirror maximum209, below260.
+
+Representative source PNG review accepted Cooking and all three named groups,
+category/name controls, selected/unavailable text, no-results recovery/disabled
+Craft, grouped inventory headings/cards, scrolling and fixed Close control at
+both settings. Twenty-four unchanged source captures are retained in
+`menu-browse/`, plus a lossless enlarged client item crop and `pixels.txt`.
+Paired central bright-text masks differ by only5–25 pixels in high contrast,
+against24,443–33,762 bright pixels; this supports review rather than proving
+pixel identity. A client inventory preview omitted the Joiner's bench label;
+the source crop contains the name/count. No renderer defect is asserted.
+
+The first capture-helper compile failed on an unbraced logging macro and was
+fixed. A subsequent rebuild hit a loaded UI DLL while the earlier rendered
+peers were active; after they exited the final rebuild passed. Earlier full
+queue106/106 and rendered18592/18594 passed before the grouping correction;
+only the final evidence above accepts the completed parent.
+
+Limits: normal scroll clipping remains intentional at enlarged text; long
+recipe/detail sections require scrolling. Programmatic text delegates and
+Slate key events do not certify physical keyboard/controller text entry,
+cooking-station physical interaction, exhaustive viewport combinations,
+package inclusion or clean-HEAD/package acceptance. Earlier pending statements
+above are historical; full parent verification is now complete under these limits.

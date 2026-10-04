@@ -35,7 +35,7 @@ private:
     UFUNCTION() void Previous();
     UFUNCTION() void Next();
     UPROPERTY(Transient) TObjectPtr<class UVerticalBox> Column;
-    UPROPERTY(Transient) TObjectPtr<class UUniformGridPanel> Grid;
+    UPROPERTY(Transient) TObjectPtr<class UGridPanel> Grid;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaItemDetailWidget> Detail;
     UPROPERTY(Transient) TObjectPtr<class UTextBlock> Instructions;
     UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> SearchBox;

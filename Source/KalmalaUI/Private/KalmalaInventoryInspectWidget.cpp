@@ -6,7 +6,8 @@
 #include "Components/HorizontalBox.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
-#include "Components/UniformGridPanel.h"
+#include "Components/GridPanel.h"
+#include "Components/GridSlot.h"
 #include "Components/Border.h"
 #include "Components/EditableTextBox.h"
 #include "InputCoreTypes.h"
@@ -52,7 +53,7 @@ void UKalmalaInventoryInspectWidget::Build()
     }
     Buttons[0]->OnClicked.AddDynamic(this, &ThisClass::Previous);
     Buttons[1]->OnClicked.AddDynamic(this, &ThisClass::Next);
-    Grid = WidgetTree->ConstructWidget<UUniformGridPanel>();
+    Grid = WidgetTree->ConstructWidget<UGridPanel>();
     Column->AddChild(Grid);
     Detail = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>(); Column->AddChild(Detail);
 }
@@ -155,7 +156,7 @@ void UKalmalaInventoryInspectWidget::Refresh()
             auto* Heading = WidgetTree->ConstructWidget<UTextBlock>();
             Heading->SetText(FText::FromString(Rows[Index].bCarriedTool ? TEXT("Carried tools") : TEXT("Items")));
             Theme.ApplyText(*Heading, Theme.BodySize, true, TextScale, ContrastMode);
-            Grid->AddChildToUniformGrid(Heading, GridRow++, 0);
+            Grid->AddChildToGrid(Heading, GridRow++, 0)->SetColumnSpan(4);
         }
         auto* Card = WidgetTree->ConstructWidget<UBorder>();
         const FString NoImage;
@@ -164,7 +165,7 @@ void UKalmalaInventoryInspectWidget::Refresh()
         Label->SetAutoWrapText(true); Label->SetWrapTextAt(140.0f);
         Label->SetText(FText::FromString((Index == Selected ? TEXT("> ") : TEXT("")) + Rows[Index].Name + TEXT("\n") + Rows[Index].Detail));
         Theme.ApplyText(*Label, Theme.BodySize, Index == Selected, TextScale, ContrastMode);
-        Card->SetContent(Label); Grid->AddChildToUniformGrid(Card, GridRow, GridColumn);
+        Card->SetContent(Label); Grid->AddChildToGrid(Card, GridRow, GridColumn);
         if (++GridColumn == 4) { ++GridRow; GridColumn = 0; }
     }
     Detail->SetVisibility(Rows.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);

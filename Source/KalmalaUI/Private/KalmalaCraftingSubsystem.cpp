@@ -1068,14 +1068,28 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             }
         }
     }
-    if (bCaptureRequested && ReviewCaptureStage < 6 && Widget
+    if (bCaptureRequested && ReviewCaptureStage < 18 && Widget
         && FParse::Value(FCommandLine::Get(), TEXT("KalmalaCraftingCapture="), CapturePath))
     {
         CaptureWait += DeltaTime;
         if (CaptureWait > 3.0f)
         {
             CaptureWait = 0;
-            if (ReviewCaptureStage == 4)
+            if (ReviewCaptureStage >= 6)
+            {
+                const int32 View = (ReviewCaptureStage - 6) / 2;
+                static const TCHAR* Names[] = { TEXT("cooking"), TEXT("structural"), TEXT("stations"), TEXT("utilities"), TEXT("no-results"), TEXT("inventory-browse") };
+                if (ReviewCaptureStage % 2 == 0)
+                {
+                    UE_LOG(LogTemp, Display, TEXT("Browsing review: View=%s Passed=%d"), Names[View], Widget->PrepareBrowseReviewForTest(View));
+                }
+                else
+                {
+                    FScreenshotRequest::RequestScreenshot(FPaths::GetBaseFilename(CapturePath, false)
+                        + TEXT("-") + Names[View] + TEXT(".png"), true, false);
+                }
+            }
+            else if (ReviewCaptureStage == 4)
             {
                 UE_LOG(LogTemp, Display, TEXT("Inventory detail review: Scrolled=%d"), Widget->ScrollInventoryDetailsForTest());
             }
@@ -1098,6 +1112,26 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
 }
 
 #if !UE_BUILD_SHIPPING
+bool UKalmalaCraftingWidget::PrepareBrowseReviewForTest(const int32 View)
+{
+    if (!bOpen || !CraftingScrollBox || !RecipeSearchBox || !InventoryInspector) return false;
+    if (View == 5)
+    {
+        InventoryInspector->SetSearch(TEXT(""));
+        InventoryInspector->SetCategory(0);
+        InventoryInspector->SetSort(2);
+        CraftingScrollBox->ScrollWidgetIntoView(InventoryInspector, false, EDescendantScrollDestination::TopOrLeft);
+        return InventoryInspector->GetVisibleCount() > 0;
+    }
+    const int32 Categories[] = { 2, 4, 5, 6, 3 };
+    if (View < 0 || View >= UE_ARRAY_COUNT(Categories)) return false;
+    SetRecipeBrowse(View == 4 ? TEXT("zz-no-matching-build") : TEXT(""), Categories[View], true);
+    RecipeSearchBox->SetText(FText::FromString(View == 4 ? TEXT("zz-no-matching-build") : TEXT("")));
+    CraftingScrollBox->ScrollWidgetIntoView(RecipeSearchBox, false, EDescendantScrollDestination::TopOrLeft);
+    return View == 4 ? GetVisibleRecipeIndices().IsEmpty() && !CraftButton->GetIsEnabled()
+        : !GetVisibleRecipeIndices().IsEmpty();
+}
+
 bool UKalmalaCraftingWidget::ScrollInventoryDetailsForTest()
 {
     if (!CraftingScrollBox || !InventoryInspector || !bOpen) return false;

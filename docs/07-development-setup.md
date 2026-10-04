@@ -1,5 +1,32 @@
 # Development setup
 
+## M11 combined menu browsing acceptance
+
+Build `KalmalaEditor Win64 Development` in the short disposable mirror with
+normal `%LOCALAPPDATA%/UnrealBuildTool` access and `-MaxParallelActions=4`.
+Close verification peers before rebuilding so their loaded UI DLL is released.
+Run the full `Automation RunTests Kalmala` queue with isolated UserDir/logs,
+null renderer, memory DDC and the queue-empty TestExit gate. Require every
+test to succeed and process/test exit 0.
+
+Run mirror `Scripts/Verify-Crafting.ps1 -Rendered` at 1280x720/100%/contrast0
+and 1024x768/150%/contrast1 with separate unused ports. Require both peers'
+inventory, recipe and build browsing, focus/navigation, modal restoration,
+server rejection/payment and final-state checks. Each peer must produce the
+original top/details/feedback/inspection captures plus Cooking, Structural
+pieces, Stations, Camp utilities, no-results and grouped inventory captures.
+The added developer-only review stages scroll to the browsing controls before
+capture; high text scale retains the normal scrollable header and close control.
+Review saved source PNGs for readable controls, group names, selected/unavailable
+cards, no-results recovery, and non-overlapping inventory headings/cards.
+
+Run mirror `Scripts/Verify-Inventory.ps1` for owner-only state and transaction
+regression, then presentation ownership, all five M5 documentation contracts,
+PowerShell parser and diff/path checks. Preserve source capture evidence and
+exact roots/results in `38-menu-browsing.md` and PROGRESS.md. This completes the
+browsing parent only; physical keyboard/controller text entry, exhaustive
+viewport combinations and packaged acceptance are not certified by the fixture.
+
 ## M11 build browsing increment
 
 Follow `38-menu-browsing.md`: compile affected UI in the short disposable mirror
