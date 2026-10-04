@@ -44,6 +44,8 @@ public:
 #endif
     void SetRecipeBrowse(const FString& Query, int32 Category, bool bNameSort);
     TArray<int32> GetVisibleRecipeIndices() const;
+    static int32 GetBuildBrowseGroup(FName Output);
+    static FString GetBrowseCategoryLabel(int32 Category);
     void EnablePlacementPreview();
 protected:
     virtual void NativeOnInitialized() override;

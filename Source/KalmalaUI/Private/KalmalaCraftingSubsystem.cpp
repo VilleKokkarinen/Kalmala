@@ -9,6 +9,7 @@
 #include "Components/SizeBox.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaPlacementPreview.h"
+#include "KalmalaConstructionActor.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaCharacter.h"
@@ -282,6 +283,28 @@ UKalmalaCraftingComponent* UKalmalaCraftingWidget::Model() const
     auto* Pawn = GetOwningPlayerPawn(); return Pawn ? Pawn->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
 }
 
+int32 UKalmalaCraftingWidget::GetBuildBrowseGroup(const FName Output)
+{
+    if (!FKalmalaPlacementPreview::IsSupportedKit(Output)) return 0;
+    if (Output == TEXT("FloorKit") || AKalmalaConstructionActor::IsShelterKit(Output)) return 4;
+    if (AKalmalaConstructionActor::IsCraftingStationKit(Output)) return 5;
+    return 6;
+}
+
+FString UKalmalaCraftingWidget::GetBrowseCategoryLabel(const int32 Category)
+{
+    switch (Category)
+    {
+    case 1: return TEXT("Other crafting");
+    case 2: return TEXT("Cooking");
+    case 3: return TEXT("All builds");
+    case 4: return TEXT("Structural pieces");
+    case 5: return TEXT("Stations");
+    case 6: return TEXT("Camp utilities");
+    default: return TEXT("All");
+    }
+}
+
 TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
 {
     TArray<int32> Indices;
@@ -290,13 +313,25 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
     {
         const auto& Recipe = Recipes[Index];
         const bool bCooking = Recipe.ExperienceSkill == EKalmalaSkill::Cooking;
+        const int32 BuildGroup = GetBuildBrowseGroup(Recipe.Output);
+        const bool bCategoryMatches = RecipeCategory == 0
+            || (RecipeCategory == 1 && !bCooking) || (RecipeCategory == 2 && bCooking)
+            || (RecipeCategory == 3 && BuildGroup != 0)
+            || (RecipeCategory >= 4 && BuildGroup == RecipeCategory);
         if ((StationFilterKit.IsNone() || Recipe.RequiredStation.Contains(StationFilterKit))
-            && (RecipeCategory == 0 || bCooking == (RecipeCategory == 2))
+            && bCategoryMatches
             && (RecipeQuery.IsEmpty() || Recipe.DisplayName.Contains(RecipeQuery, ESearchCase::IgnoreCase)))
             Indices.Add(Index);
     }
-    if (bRecipeNameSort) Indices.StableSort([&Recipes](int32 A, int32 B)
+    if (bRecipeNameSort || RecipeCategory == 3) Indices.StableSort([this, &Recipes](int32 A, int32 B)
     {
+        if (RecipeCategory == 3)
+        {
+            const int32 GroupA = GetBuildBrowseGroup(Recipes[A].Output);
+            const int32 GroupB = GetBuildBrowseGroup(Recipes[B].Output);
+            if (GroupA != GroupB) return GroupA < GroupB;
+        }
+        if (!bRecipeNameSort) return A < B;
         const int32 Compare = Recipes[A].DisplayName.Compare(Recipes[B].DisplayName, ESearchCase::IgnoreCase);
         return Compare == 0 ? Recipes[A].RecipeId.LexicalLess(Recipes[B].RecipeId) : Compare < 0;
     });
@@ -308,19 +343,18 @@ void UKalmalaCraftingWidget::SetRecipeBrowse(const FString& Query, int32 Categor
     const auto Before = GetVisibleRecipeIndices();
     const int32 OldRecipe = Before.IsValidIndex(Selected) ? Before[Selected] : INDEX_NONE;
     RecipeQuery = Query.Left(64).TrimStartAndEnd();
-    RecipeCategory = FMath::Clamp(Category, 0, 2); bRecipeNameSort = bNameSort;
+    RecipeCategory = FMath::Clamp(Category, 0, 6); bRecipeNameSort = bNameSort;
     const auto After = GetVisibleRecipeIndices();
     Selected = After.IndexOfByKey(OldRecipe);
     if (Selected == INDEX_NONE) Selected = 0;
     bPlacementPreviewEnabled = false;
-    if (RecipeCategoryLabel) RecipeCategoryLabel->SetText(FText::FromString(RecipeCategory == 0
-        ? TEXT("Recipes: All") : RecipeCategory == 1 ? TEXT("Recipes: Other crafting") : TEXT("Recipes: Cooking")));
+    if (RecipeCategoryLabel) RecipeCategoryLabel->SetText(FText::FromString(TEXT("Recipes: ") + GetBrowseCategoryLabel(RecipeCategory)));
     if (RecipeSortLabel) RecipeSortLabel->SetText(FText::FromString(bRecipeNameSort
         ? TEXT("Recipe order: Name") : TEXT("Recipe order: Catalogue")));
     if (bOpen) Refresh();
 }
 void UKalmalaCraftingWidget::RecipeSearchChanged(const FText& Text) { SetRecipeBrowse(Text.ToString(), RecipeCategory, bRecipeNameSort); }
-void UKalmalaCraftingWidget::CycleRecipeCategory() { SetRecipeBrowse(RecipeQuery, (RecipeCategory + 1) % 3, bRecipeNameSort); }
+void UKalmalaCraftingWidget::CycleRecipeCategory() { SetRecipeBrowse(RecipeQuery, (RecipeCategory + 1) % 7, bRecipeNameSort); }
 void UKalmalaCraftingWidget::CycleRecipeSort() { SetRecipeBrowse(RecipeQuery, RecipeCategory, !bRecipeNameSort); }
 void UKalmalaCraftingWidget::ClearRecipeSearch() { RecipeSearchBox->SetText(FText::GetEmpty()); SetRecipeBrowse(TEXT(""), RecipeCategory, bRecipeNameSort); }
 
@@ -450,7 +484,8 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             HeadingRow->AddChildToHorizontalBox(IconBox)->SetPadding(FMargin(0.0f, 0.0f, 5.0f, 0.0f));
 
             UTextBlock* Name = WidgetTree->ConstructWidget<UTextBlock>();
-            Name->SetText(FText::FromString(Recipe.DisplayName));
+            const int32 BuildGroup = GetBuildBrowseGroup(Recipe.Output);
+            Name->SetText(FText::FromString((BuildGroup ? GetBrowseCategoryLabel(BuildGroup) + TEXT("\n") : TEXT("")) + Recipe.DisplayName));
             Name->SetAutoWrapText(true);
             Name->SetWrapTextAt(128.0f);
             HeadingRow->AddChildToHorizontalBox(Name)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
@@ -504,9 +539,11 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             RecipeStateLabelText = (bFocused ? TEXT("FOCUSED · SELECTED\n") : TEXT("SELECTED\n"))
                 + RecipeStateLabelText;
         }
-        if (RecipeSlotNames[SlotIndex]->GetText().ToString() != Recipe.DisplayName)
+        const int32 BuildGroup = GetBuildBrowseGroup(Recipe.Output);
+        const FString CardName = (BuildGroup ? GetBrowseCategoryLabel(BuildGroup) + TEXT("\n") : TEXT("")) + Recipe.DisplayName;
+        if (RecipeSlotNames[SlotIndex]->GetText().ToString() != CardName)
         {
-            RecipeSlotNames[SlotIndex]->SetText(FText::FromString(Recipe.DisplayName));
+            RecipeSlotNames[SlotIndex]->SetText(FText::FromString(CardName));
         }
         if (RecipeSlotStates[SlotIndex]->GetText().ToString() != RecipeStateLabelText)
         {
@@ -608,6 +645,30 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     RecipeSearchBox->OnTextChanged.Broadcast(FText::FromString(TEXT("zz-no-matching-recipe")));
     const bool bNoResults = GetVisibleRecipeIndices().IsEmpty() && RecipeSlotCards.IsEmpty()
         && !CraftButton->GetIsEnabled();
+    SetRecipeBrowse(TEXT(""), 3, false);
+    const auto Builds = GetVisibleRecipeIndices();
+    bool bBuildGroups = !Builds.IsEmpty();
+    for (int32 Group = 4; Group <= 6; ++Group)
+    {
+        SetRecipeBrowse(TEXT(""), Group, true);
+        const auto Members = GetVisibleRecipeIndices();
+        bBuildGroups &= !Members.IsEmpty() && RecipeCategoryLabel->GetText().ToString().Contains(GetBrowseCategoryLabel(Group));
+        bBuildGroups &= !RecipeSlotNames.IsEmpty() && RecipeSlotNames[0]->GetText().ToString().StartsWith(GetBrowseCategoryLabel(Group) + TEXT("\n"));
+        for (int32 Index : Members) bBuildGroups &= Builds.Contains(Index)
+            && GetBuildBrowseGroup(UKalmalaRecipeCatalogue::Get()->Recipes[Index].Output) == Group;
+    }
+    SetRecipeBrowse(TEXT(""), 4, false);
+    const auto Structural = GetVisibleRecipeIndices();
+    const int32 BuildSelection = Structural.IsValidIndex(Selected) ? Structural[Selected] : INDEX_NONE;
+    CycleRecipeSort();
+    const auto BuildSorted = GetVisibleRecipeIndices();
+    const bool bBuildSelection = BuildSorted.IsValidIndex(Selected) && BuildSorted[Selected] == BuildSelection;
+    const FKeyEvent CategoryKey(EKeys::PageUp, NoModifiers, 0, false, 0, 0);
+    const bool bBuildKeys = NativeOnPreviewKeyDown(FGeometry(), CategoryKey).IsEventHandled() && RecipeCategory == 5;
+    RecipeSearchBox->OnTextChanged.Broadcast(FText::FromString(TEXT("zz-no-matching-build")));
+    const bool bBuildEmpty = GetVisibleRecipeIndices().IsEmpty() && RecipeSlotCards.IsEmpty() && !CraftButton->GetIsEnabled();
+    UE_LOG(LogTemp, Display, TEXT("Build browsing: Groups=%d SelectionKept=%d CategoryKey=%d NoResults=%d"),
+        bBuildGroups, bBuildSelection, bBuildKeys, bBuildEmpty);
     ClearRecipeSearch(); SetRecipeBrowse(TEXT(""), 0, false);
     Selected = InitialSelection; Refresh();
     const bool bRestored = GetVisibleRecipeIndices() == OriginalIndices && RecipeGridSelectedIndex == InitialSelection;
@@ -619,7 +680,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         bKeyboardAdvanced, bKeyboardRestored, bControllerAdvanced, bControllerRestored,
         bScrollable, ScrollOffsetOfEnd, HasKeyboardFocus());
     return bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
-        && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe;
+        && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe
+        && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty;
 }
 #endif
 

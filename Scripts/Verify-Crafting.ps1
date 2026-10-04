@@ -48,6 +48,7 @@ try {
             -and $clientText.Contains('M9 camp feedback: Passed=1')
         foreach ($peerText in @($serverText, $clientText)) {
             $ready = $ready -and $peerText.Contains('Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1 SearchFocus=1')
+            $ready = $ready -and $peerText.Contains('Build browsing: Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1')
         }
         $gridPattern = 'Build slot grid: Slots=(\d+) Unavailable=(\d+) Selected=(\d+) Focused=1 ReadOnly=1 Scrollable=1 Navigation=1'
         $serverGrid = [regex]::Match($serverText, $gridPattern)

@@ -1,5 +1,16 @@
 # Development setup
 
+## M11 build browsing increment
+
+Follow `38-menu-browsing.md`: compile affected UI in the short disposable mirror
+with normal UnrealBuildTool access, run Kalmala.UI.Crafting.LocalBrowsing with
+isolated UserDir/logs/null renderer/memory DDC, and require Success/test exit0.
+Run rendered Verify-Crafting at standard1280x720; both peers must report Build
+browsing Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1 alongside existing
+recipe/inventory/modal/authority checks. Run ownership, five M5 documentation
+contracts, script parser and diff/path checks. Parent integration stays pending
+until the final browsing acceptance child.
+
 ## M11 recipe browsing increment
 
 Follow `38-menu-browsing.md`: compile affected UI in the short disposable mirror

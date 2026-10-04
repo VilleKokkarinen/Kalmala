@@ -53,8 +53,9 @@ Accepted increment evidence, 2026-10-04: final affected UI compile/link passed f
 Recipe browsing searches existing display names case-insensitively, trims outer
 whitespace and bounds the effective query to 64 characters. All, Other crafting
 and Cooking partition the existing catalogue using ExperienceSkill == Cooking;
-Other crafting includes existing construction recipes until the separate build
-browsing increment. These filters always intersect the existing station scope.
+Other crafting includes existing construction recipes. The additional build
+filters provide a narrower view without changing that existing category.
+These filters always intersect the existing station scope.
 They never hide an unavailable recipe by availability or reveal extra recipes.
 Catalogue order and Name order operate on copied indices; name ties use RecipeId.
 A still-visible selected recipe retains identity through sorting/filter changes;
@@ -90,3 +91,36 @@ and programmatic SetText probe errors were repaired;18588 passed before final
 internal text-focus guard. Ownership/five documentation/parser/diff checks passed;
 mirror max209. These captures do not establish comprehensive new-control pixel
 acceptance; full scale/contrast/owner integration remains the ordered final child.
+
+## Build browsing
+
+The same local search/order/category controls now cycle through All builds,
+Structural pieces, Stations and Camp utilities after the existing recipe
+categories. Classification reads the existing recipe output and placement
+support contract: Floor and shelter pieces are structural; existing crafting
+stations are Stations; other supported placeables (hearth, storage, station
+attachments and grinding stone) are Camp utilities. Unknown or non-placeable
+outputs never enter a build group. No catalogue metadata, identity or save is
+changed. Each build card retains its named group above the canonical display
+name through refresh. All builds groups structural/station/utility entries in
+that order; Catalogue order preserves original relative order within groups,
+and Name order sorts within groups. Individual group filters use ordinary
+catalogue/name ordering. All retains the original full catalogue order.
+
+Search and station scope intersect these groups. Selection remains canonical
+through sorting and falls back when filtered away; no results disables Craft
+and clears cards/details. Existing Page Up/Down, focused button activation,
+text editing and modal close/navigation behavior apply. Browsing only copies
+indices and cancels an obsolete local placement preview; server availability,
+material validation and transactions remain independent.
+
+Child verification extends Kalmala.UI.Crafting.LocalBrowsing with exact supported
+build coverage, disjoint populated groups, name search, group order, unknown
+output exclusion, no-results and full source-order restoration. Rendered
+Verify-Crafting additionally requires both peers' Build browsing Groups,
+SelectionKept, CategoryKey and NoResults all1; Groups checks refreshed card
+labels as well as filter membership. Full scale/contrast pixel acceptance and
+owner privacy integration remain the final ordered child; physical controller
+text input and packaging are not certified by these fixtures.
+
+Build child evidence 2026-10-04T09:13:52.5454451Z: final UI build four actions passed; focused LocalBrowsing1/1/process and test exit0 at Temp/kbb1/tests.log before final card-label correction. Final rendered18591 passed both peers including refreshed group labels, canonical selection, category key, no-results, existing recipes/modal/authority and captures at Temp/KalmalaCrafting-ac6b78b4a5644854aba1de791c491708. Ownership/five documentation contracts/parser/diff/path checks passed; mirror maximum209. Full parent integration and supported-scale/contrast pixel acceptance remain pending.
