@@ -1,5 +1,19 @@
 # Development setup
 
+## M11 inventory browsing increment
+
+Follow `38-menu-browsing.md`: compile affected `KalmalaUI` sources in the short
+disposable mirror with normal `%LOCALAPPDATA%/UnrealBuildTool` access, then run
+`Automation RunTests Kalmala.UI.Inventory` with isolated `-UserDir`, `-abslog`,
+`-nullrhi`, `-DDC-ForceMemoryCache` and `-TestExit="Automation Test Queue Empty"`.
+Require `LocalBrowsing` and existing inventory tests to pass. Run rendered
+`Scripts/Verify-Crafting.ps1` at 1280x720/100% standard contrast; both peer logs
+must include `Inventory browsing: CategoryKey=1 SortKey=1 NoResults=1 Restored=1`
+and the existing inspection/focus/modal/authority checks. Run presentation
+ownership and M5 documentation contracts plus `git diff --check`. This is
+increment-level verification; full parent integration waits for recipe/build
+browsing and the final ordered acceptance child.
+
 ## M11 Escape options opening animation
 
 In a disposable project mirror, build `KalmalaEditor Win64 Development` with

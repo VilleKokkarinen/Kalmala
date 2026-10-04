@@ -506,8 +506,17 @@ bool UKalmalaCraftingWidget::VerifyInventoryInspectionForTest()
     const bool bChanged = InventoryInspector->GetSelectedItem() != First;
     Slate.ProcessKeyDownEvent(FKeyEvent(EKeys::Gamepad_DPad_Left, Modifiers, 0, false, 0, 0));
     const bool bReturned = InventoryInspector->GetSelectedItem() == First;
+    Slate.ProcessKeyDownEvent(FKeyEvent(EKeys::Gamepad_LeftShoulder, Modifiers, 0, false, 0, 0));
+    const bool bCategory = InventoryInspector->GetCategory() == 1 && InventoryInspector->HasKeyboardFocus();
+    Slate.ProcessKeyDownEvent(FKeyEvent(EKeys::Gamepad_RightShoulder, Modifiers, 0, false, 0, 0));
+    const bool bSort = InventoryInspector->GetSort() == 1 && InventoryInspector->HasKeyboardFocus();
+    InventoryInspector->SetSearch(TEXT("no matching inventory entry"));
+    const bool bNoResults = InventoryInspector->GetVisibleCount() == 0 && InventoryInspector->GetSelectedItem().IsNone();
+    InventoryInspector->SetSearch(TEXT("")); InventoryInspector->SetCategory(0); InventoryInspector->SetSort(0);
+    const bool bRestored = InventoryInspector->GetVisibleCount() > 0;
+    UE_LOG(LogTemp, Display, TEXT("Inventory browsing: CategoryKey=%d SortKey=%d NoResults=%d Restored=%d"), bCategory, bSort, bNoResults, bRestored);
     SetKeyboardFocus();
-    return bFocused && bChanged && bReturned && HasKeyboardFocus();
+    return bFocused && bChanged && bReturned && bCategory && bSort && bNoResults && bRestored && HasKeyboardFocus();
 }
 
 bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
