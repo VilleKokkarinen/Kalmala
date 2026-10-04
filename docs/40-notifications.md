@@ -2,9 +2,10 @@
 
 The first M11 child adds passive icon/text feedback for skill **levels**, not
 each experience award. The local-player subsystem reads only its local
-controller's owning pawn `GetDetailedProgression()`. It never reads peer
-presentation or changes progression. Gameplay's existing accepted-action
-server ledger and owner-only replication remain the authority boundary.
+controller's owning pawn for detailed progression and accepted item/discovery
+feedback. It never reads peer-private presentation or changes gameplay state.
+Gameplay's existing server-owned ledgers and owner-only replication remain the
+authority boundary.
 
 The first complete valid six-skill snapshot is a silent baseline. Missing,
 partial, duplicate or invalid snapshots cannot advance that baseline. A later
@@ -40,10 +41,11 @@ directory and memory DDC. The notification automation covers accepted awards,
 partial/invalid snapshots, coalescing, overflow, expiry, reconnect/reset,
 independent owners, passive widget text and bounded theme lifetime.
 
-Discoveries are the next child. Real replicated level-up
+Item gains and skill levels currently share the queue. Discovery notices have
+passed their focused increment-level check. Real replicated notification
 pixels, combined queue behavior, modal placement and the supported viewport
 matrix remain later acceptance scope. Full parent verification is intentionally
-pending until those children are complete.
+pending until the combined acceptance child is complete.
 
 ## Accepted item gains
 
@@ -81,3 +83,27 @@ and `Kalmala.UI.Theme.LocalPresentation` after the affected editor build.
 presence/bounds and empty remote receipt buffers, alongside existing inventory
 privacy and rejected-client-mutation gates. Rendered combined notification
 placement and real reconnect pixels remain final-child acceptance scope.
+
+## Accepted discoveries
+
+The local notification subsystem also observes the owning pawn's existing
+owner-only discovery acknowledgement. Its feedback serial establishes a silent
+baseline on first observation and after pawn replacement, so joining or
+reconnecting with an existing acknowledgement does not replay it. A newer
+`LandmarkFound` or `ScrollFound` serial adds the server-provided acknowledgement
+label as a passive discovery row; `AlreadyFound` and `Unavailable` serials are
+consumed without a notice. An unchanged serial does not renew the row, and
+expired feedback is never reconstructed from the last replicated label.
+
+Discovery rows share the three-row, theme-timed queue and use an original
+monochrome inspection glyph. Labels are trimmed and bounded to 48 characters,
+with a safe fallback for an empty accepted label. They are transient, local
+presentation: no new request, claim, reward, persistence, RPC, peer query, or
+saved-data field was added. Accepted discovery rewards may also produce an
+existing item-gain notice for the actual inventory increase.
+
+Run `Kalmala.UI.Notifications.Discoveries` with the affected editor build. It
+covers silent initial/reconnect baselines, accepted landmark/scroll feedback,
+rejected feedback silence, unchanged refresh, expiry, label bounds, passive
+text and owner-local queue behavior. Combined rendered placement remains
+final-child acceptance scope.

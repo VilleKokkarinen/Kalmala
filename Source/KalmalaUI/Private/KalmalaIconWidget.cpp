@@ -74,6 +74,7 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
     case EKalmalaIcon::Forge: Path({{4,31},{4,19},{10,19},{10,8},{25,8},{25,19},{32,19},{32,31}},true); Path({{12,30},{12,23},{18,20},{24,23},{24,30}}); break;
     case EKalmalaIcon::Chest: Path({{5,11},{30,11},{30,31},{5,31}},true); Path({{5,19},{30,19}}); Path({{15,16},{20,16},{20,23},{15,23}},true); break;
     case EKalmalaIcon::Fire: Path({{18,4},{25,14},{26,21},{23,27},{13,27},{9,21},{10,13},{15,18}},true); Path({{6,31},{30,31}}); break;
+    case EKalmalaIcon::Discovery: Circle({14,14},8); Path({{20,20},{31,31}}); Path({{14,9},{14,19}}); Path({{9,14},{19,14}}); break;
     default: Path({{18,5},{31,18},{18,31},{5,18}},true); Path({{15,13},{18,11},{21,13},{18,18},{18,22}}); Circle({18,27},1); break;
     }
     // Authored monochrome accents distinguish related materials/foods/tools at small size.

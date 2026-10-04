@@ -8,7 +8,7 @@ isolated mirror, then run `Kalmala.UI.Notifications.SkillLevels` plus
 and `Kalmala.Gameplay.Progression.ReplicationContract` with isolated user/log
 paths, memory DDC and `-TestExit="Automation Test Queue Empty"`. This is targeted
 increment verification; combined rendered placement and full parent checks
-remain pending until the item-gain and discovery children are complete.
+remain pending until the combined acceptance child is complete.
 
 ## M11 ingredient/requirements parent acceptance
 
@@ -1664,4 +1664,14 @@ Kalmala.Gameplay.Inventory.NetworkContract, Kalmala.Gameplay.Crafting.Transactio
 and Kalmala.UI.Theme.LocalPresentation with memory DDC and isolated user/log
 paths. Run the mirror's Scripts/Verify-Inventory.ps1 for live owner receipt
 delivery and remote privacy. Full parent and combined renderer checks remain
-pending until discovery and acceptance children are complete.
+pending until the combined acceptance child is complete.
+
+## M11 discovery-notification child
+
+After the affected isolated editor build, run
+`Kalmala.UI.Notifications.Discoveries` with the standard memory DDC and
+isolated user/log paths. It covers silent initial/reconnect baselines,
+accepted landmark/scroll feedback, rejected feedback silence, refresh/expiry
+deduplication, bounded labels, passive text and owner-local queue behavior.
+Combined source placement, modal/reduced-motion behavior and the supported
+viewport matrix remain in the notification parent's final acceptance child.

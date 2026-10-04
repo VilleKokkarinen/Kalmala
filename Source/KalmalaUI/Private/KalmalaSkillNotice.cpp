@@ -4,6 +4,7 @@
 void FKalmalaSkillNoticeQueue::Reset()
 {
     Levels.Reset(); Rows.Reset(); LastGainSequence = 0; bGainBaseline = false;
+    LastDiscoverySerial = 0; bDiscoveryBaseline = false;
 }
 
 bool FKalmalaSkillNoticeQueue::Observe(const TArray<FKalmalaSkillState>& Snapshot, float Lifetime)
@@ -22,7 +23,7 @@ bool FKalmalaSkillNoticeQueue::Observe(const TArray<FKalmalaSkillState>& Snapsho
     if (bBaseline)
     {
         Levels = MoveTemp(Next);
-        Rows.RemoveAll([](const auto& Row) { return Row.ItemId.IsNone(); });
+        Rows.RemoveAll([](const auto& Row) { return Row.ItemId.IsNone() && Row.DiscoveryText.IsEmpty(); });
         return true;
     }
     const float Duration = FMath::IsFinite(Lifetime) ? FMath::Clamp(Lifetime, 1.f, 10.f) : 4.f;
@@ -77,6 +78,40 @@ bool FKalmalaSkillNoticeQueue::ObserveGains(const TArray<FKalmalaItemGainReceipt
         }
         LastGainSequence = Receipt.Sequence;
     }
+    return true;
+}
+
+bool FKalmalaSkillNoticeQueue::ObserveDiscovery(
+    uint32 Serial, EKalmalaDiscoveryFeedback Feedback, const FString& Label, float Lifetime)
+{
+    if (!bDiscoveryBaseline)
+    {
+        LastDiscoverySerial = Serial;
+        bDiscoveryBaseline = true;
+        return true;
+    }
+    if (Serial < LastDiscoverySerial)
+    {
+        LastDiscoverySerial = Serial;
+        return true;
+    }
+    if (Serial == LastDiscoverySerial) return true;
+
+    LastDiscoverySerial = Serial;
+    if (Feedback != EKalmalaDiscoveryFeedback::LandmarkFound && Feedback != EKalmalaDiscoveryFeedback::ScrollFound)
+        return true;
+
+    const float Duration = FMath::IsFinite(Lifetime) ? FMath::Clamp(Lifetime, 1.f, 10.f) : 4.f;
+    FKalmalaSkillNotice Row;
+    Row.Remaining = Duration;
+    Row.DiscoveryText = Label.TrimStartAndEnd().Left(48);
+    if (Row.DiscoveryText.IsEmpty())
+    {
+        Row.DiscoveryText = Feedback == EKalmalaDiscoveryFeedback::ScrollFound
+            ? TEXT("Scroll found") : TEXT("Discovery found");
+    }
+    if (Rows.Num() == MaxRows) Rows.RemoveAt(0);
+    Rows.Add(MoveTemp(Row));
     return true;
 }
 

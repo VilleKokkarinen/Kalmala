@@ -1,5 +1,6 @@
 #include "KalmalaNotificationSubsystem.h"
 #include "KalmalaSkillProgressionComponent.h"
+#include "KalmalaDiscoveryProgressComponent.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaIconWidget.h"
@@ -51,6 +52,7 @@ FString NoticeText(const FKalmalaSkillNotice& Notice)
         const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Notice.ItemId);
         return FString::Printf(TEXT("Gained %d %s"), Notice.Quantity, Item ? *Item->DisplayName : *Notice.ItemId.ToString());
     }
+    if (!Notice.DiscoveryText.IsEmpty()) return Notice.DiscoveryText;
     return FString::Printf(TEXT("%s reached level %d"), SkillName(Notice.Skill), Notice.Level);
 }
 }
@@ -95,7 +97,8 @@ void UKalmalaNotificationWidget::SetNotices(const TArray<FKalmalaSkillNotice>& N
         Box->SetWidthOverride(28); Box->SetHeightOverride(28);
         auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
         EKalmalaIcon Kind = SkillIcon(Notices[Index].Skill); int32 Variant = 0;
-        if (!Notices[Index].ItemId.IsNone()) UKalmalaIconWidget::FindCatalogueIcon(Notices[Index].ItemId, Kind, Variant);
+        if (!Notices[Index].DiscoveryText.IsEmpty()) Kind = EKalmalaIcon::Discovery;
+        else if (!Notices[Index].ItemId.IsNone()) UKalmalaIconWidget::FindCatalogueIcon(Notices[Index].ItemId, Kind, Variant);
         Icon->SetIcon(Kind, Variant);
         Box->SetContent(Icon); Row->AddChild(Box);
         auto* Text = WidgetTree->ConstructWidget<UTextBlock>(); Text->SetAutoWrapText(true);
@@ -121,6 +124,9 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
     if (Skills) Queue.Observe(Skills->GetDetailedProgression(), FKalmalaUITheme::Get().NotificationLifetime);
     const auto* Inventory = Pawn ? Pawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (Inventory) Queue.ObserveGains(Inventory->GetGainReceipts(), FKalmalaUITheme::Get().NotificationLifetime);
+    const auto* Discovery = Pawn ? Pawn->FindComponentByClass<UKalmalaDiscoveryProgressComponent>() : nullptr;
+    if (Discovery) Queue.ObserveDiscovery(Discovery->GetFeedbackSerial(), Discovery->GetFeedback(),
+        Discovery->GetFeedbackLabel(), FKalmalaUITheme::Get().NotificationLifetime);
     if (!Pawn || !Controller || Queue.GetRows().IsEmpty() || Controller->IsMoveInputIgnored())
     {
         if (Widget) Widget->SetVisibility(ESlateVisibility::Collapsed);
