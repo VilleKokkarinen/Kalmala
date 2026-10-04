@@ -47,3 +47,46 @@ Full parent suite, rendered browsing-control layout at all supported scales,
 physical controller text entry and packaging remain pending.
 
 Accepted increment evidence, 2026-10-04: final affected UI compile/link passed four actions with normal UnrealBuildTool access. Focused inventory queue passed 5/5, exit0 at C:/Users/Ville/AppData/Local/Temp/kb1/final.log (before final contrast-only refinement). Initial port18583 peers crashed because UE5.8 SetWidgetStyle retains the supplied argument address in Slate; storing the style on the widget fixed it and port18584 passed. Final rendered port18585 passed after source-PNG inspection prompted search-background contrast and Clear search wrapping repairs. Both peer logs contain CategoryKey=1 SortKey=1 NoResults=1 Restored=1, FocusAndKeys=1 and Hidden=1 Restored=1. Final captures/logs are under C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-09a2058ab331410d9133d1cd7b2be721. Standard host inspection source PNG reviewed with browsing controls and complete selected details visible. Ownership/five documentation contracts and diff/path checks passed; mirror maximum209. Representative inspection does not establish full scale/contrast acceptance.
+
+## Crafting and cooking recipe browsing
+
+Recipe browsing searches existing display names case-insensitively, trims outer
+whitespace and bounds the effective query to 64 characters. All, Other crafting
+and Cooking partition the existing catalogue using ExperienceSkill == Cooking;
+Other crafting includes existing construction recipes until the separate build
+browsing increment. These filters always intersect the existing station scope.
+They never hide an unavailable recipe by availability or reveal extra recipes.
+Catalogue order and Name order operate on copied indices; name ties use RecipeId.
+A still-visible selected recipe retains identity through sorting/filter changes;
+a removed selection falls back to the first visible entry. No results clears
+recipe cards/details and disables Craft, with Clear search/All recovery text.
+Browsing cancels an obsolete placement preview and performs no transaction.
+
+The search and labelled category/order buttons precede the recipe grid inside
+the existing scroll view. Tab and normal button activation provide keyboard and
+controller access; Page Up/Down cycles category/order when the panel has focus.
+Search focus yields to ordinary text editing. Escape/B keeps modal close behavior.
+Existing controller hearth/build shortcuts outside text editing are retained.
+Theme text scale styles search font and menu labels; search uses a widget-owned
+Slate style to avoid dangling style pointers. Query/category/order last for the
+widget lifetime only; remembered-menu behavior remains a later task.
+
+Targeted verification: affected UI compilation, Kalmala.UI.Crafting.LocalBrowsing
+for category partition, name matching, ordering/no-results and source-order
+restoration; rendered Verify-Crafting requires both peers to report
+Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1, including
+actual editable-control delegate updates and SearchFocus=1 text-edit safety, alongside existing selection/navigation,
+modal restoration, authority, transaction and capture checks. Full supported-scale
+browsing acceptance, station interaction input and physical text entry remain in
+the later acceptance child. No RPC, gameplay availability, catalogue, save schema
+or inventory ordering changes.
+
+Recipe child evidence, 2026-10-04: final affected UI build passed four actions.
+Focused LocalBrowsing passed1/1, test exit0 at Temp/kr1/tests.log before final
+focus/probe refinement. Final rendered18589 passed both peers and existing
+transaction/modal/capture checks at Temp/KalmalaCrafting-516e8111904045dc856c7d17023e4365;
+SelectionKept/Category/NoResults/Restored/SearchFocus all1. Prior startup-readiness
+and programmatic SetText probe errors were repaired;18588 passed before final
+internal text-focus guard. Ownership/five documentation/parser/diff checks passed;
+mirror max209. These captures do not establish comprehensive new-control pixel
+acceptance; full scale/contrast/owner integration remains the ordered final child.

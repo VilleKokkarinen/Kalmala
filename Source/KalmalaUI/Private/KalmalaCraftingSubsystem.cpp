@@ -19,6 +19,7 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
+#include "Components/EditableTextBox.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/VerticalBox.h"
@@ -201,6 +202,24 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         if(Row) { auto* Slot=Row->AddChildToHorizontalBox(Button); Slot->SetSize(FSlateChildSize(ESlateSizeRule::Fill)); Slot->SetPadding(FMargin(2,4)); }
         else Column->AddChild(Button); return Button;
     };
+    RecipeSearchBox = WidgetTree->ConstructWidget<UEditableTextBox>();
+    RecipeSearchBox->SetHintText(FText::FromString(TEXT("Search recipe names")));
+    RecipeSearchStyle = FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox");
+    RecipeSearchStyle.SetForegroundColor(FSlateColor(FLinearColor::White));
+    RecipeSearchStyle.SetBackgroundColor(FSlateColor(FLinearColor(.02f,.025f,.03f,1.f)));
+    RecipeSearchBox->SetWidgetStyle(RecipeSearchStyle);
+    RecipeSearchBox->OnTextChanged.AddDynamic(this, &ThisClass::RecipeSearchChanged);
+    Column->InsertChildAt(2, RecipeSearchBox);
+    AddButton(TEXT("Clear recipe search"), nullptr)->OnClicked.AddDynamic(this, &ThisClass::ClearRecipeSearch);
+    auto* CategoryButton = AddButton(TEXT("Recipes: All"), nullptr);
+    RecipeCategoryLabel = CastChecked<UTextBlock>(CategoryButton->GetContent());
+    CategoryButton->OnClicked.AddDynamic(this, &ThisClass::CycleRecipeCategory);
+    Column->RemoveChild(CategoryButton); Column->InsertChildAt(3, CategoryButton);
+    auto* SortButton = AddButton(TEXT("Recipe order: Catalogue"), nullptr);
+    RecipeSortLabel = CastChecked<UTextBlock>(SortButton->GetContent());
+    SortButton->OnClicked.AddDynamic(this, &ThisClass::CycleRecipeSort);
+    Column->RemoveChild(SortButton); Column->InsertChildAt(4, SortButton);
+    AddText(TEXT("Recipe browsing: Tab reaches search, category and order. Page Up/Down cycles category/order while the panel is focused. Controller uses focused buttons. All retains this menu's station scope."), 14);
     auto* InspectButton = AddButton(TEXT("Inspect inventory"), nullptr,
         TEXT("Read your inventory details. Arrows or D-pad select an item; Tab continues to other menu controls."));
     InspectButton->OnClicked.AddDynamic(this, &ThisClass::FocusInventoryDetails);
@@ -268,9 +287,42 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
     TArray<int32> Indices;
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
     for (int32 Index = 0; Index < Recipes.Num(); ++Index)
-        if (StationFilterKit.IsNone() || Recipes[Index].RequiredStation.Contains(StationFilterKit)) Indices.Add(Index);
+    {
+        const auto& Recipe = Recipes[Index];
+        const bool bCooking = Recipe.ExperienceSkill == EKalmalaSkill::Cooking;
+        if ((StationFilterKit.IsNone() || Recipe.RequiredStation.Contains(StationFilterKit))
+            && (RecipeCategory == 0 || bCooking == (RecipeCategory == 2))
+            && (RecipeQuery.IsEmpty() || Recipe.DisplayName.Contains(RecipeQuery, ESearchCase::IgnoreCase)))
+            Indices.Add(Index);
+    }
+    if (bRecipeNameSort) Indices.StableSort([&Recipes](int32 A, int32 B)
+    {
+        const int32 Compare = Recipes[A].DisplayName.Compare(Recipes[B].DisplayName, ESearchCase::IgnoreCase);
+        return Compare == 0 ? Recipes[A].RecipeId.LexicalLess(Recipes[B].RecipeId) : Compare < 0;
+    });
     return Indices;
 }
+
+void UKalmalaCraftingWidget::SetRecipeBrowse(const FString& Query, int32 Category, bool bNameSort)
+{
+    const auto Before = GetVisibleRecipeIndices();
+    const int32 OldRecipe = Before.IsValidIndex(Selected) ? Before[Selected] : INDEX_NONE;
+    RecipeQuery = Query.Left(64).TrimStartAndEnd();
+    RecipeCategory = FMath::Clamp(Category, 0, 2); bRecipeNameSort = bNameSort;
+    const auto After = GetVisibleRecipeIndices();
+    Selected = After.IndexOfByKey(OldRecipe);
+    if (Selected == INDEX_NONE) Selected = 0;
+    bPlacementPreviewEnabled = false;
+    if (RecipeCategoryLabel) RecipeCategoryLabel->SetText(FText::FromString(RecipeCategory == 0
+        ? TEXT("Recipes: All") : RecipeCategory == 1 ? TEXT("Recipes: Other crafting") : TEXT("Recipes: Cooking")));
+    if (RecipeSortLabel) RecipeSortLabel->SetText(FText::FromString(bRecipeNameSort
+        ? TEXT("Recipe order: Name") : TEXT("Recipe order: Catalogue")));
+    if (bOpen) Refresh();
+}
+void UKalmalaCraftingWidget::RecipeSearchChanged(const FText& Text) { SetRecipeBrowse(Text.ToString(), RecipeCategory, bRecipeNameSort); }
+void UKalmalaCraftingWidget::CycleRecipeCategory() { SetRecipeBrowse(RecipeQuery, (RecipeCategory + 1) % 3, bRecipeNameSort); }
+void UKalmalaCraftingWidget::CycleRecipeSort() { SetRecipeBrowse(RecipeQuery, RecipeCategory, !bRecipeNameSort); }
+void UKalmalaCraftingWidget::ClearRecipeSearch() { RecipeSearchBox->SetText(FText::GetEmpty()); SetRecipeBrowse(TEXT(""), RecipeCategory, bRecipeNameSort); }
 
 void UKalmalaCraftingWidget::Open() { OpenInternal(NAME_None); }
 
@@ -541,12 +593,33 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const FReply ControllerUpReply = NativeOnPreviewKeyDown(FGeometry(), ControllerUp);
     const bool bControllerRestored = ControllerUpReply.IsEventHandled() && Selected == InitialSelection
         && RecipeGridSelectedIndex == InitialSelection;
+    const auto OriginalIndices = GetVisibleRecipeIndices();
+    const int32 OriginalRecipe = OriginalIndices.IsValidIndex(InitialSelection) ? OriginalIndices[InitialSelection] : INDEX_NONE;
+    SetRecipeBrowse(TEXT(""), 0, true);
+    const auto SortedIndices = GetVisibleRecipeIndices();
+    const bool bSelectionKept = SortedIndices.IsValidIndex(Selected) && SortedIndices[Selected] == OriginalRecipe;
+    CycleRecipeCategory();
+    const bool bCategoryWorked = RecipeCategory == 1;
+    RecipeSearchBox->SetKeyboardFocus();
+    const FKeyEvent TypingP(EKeys::P, NoModifiers, 0, false, 0, 0);
+    const bool bSearchFocusSafe = (RecipeSearchBox->HasKeyboardFocus() || RecipeSearchBox->HasFocusedDescendants())
+        && !NativeOnPreviewKeyDown(FGeometry(), TypingP).IsEventHandled();
+    SetKeyboardFocus();
+    RecipeSearchBox->OnTextChanged.Broadcast(FText::FromString(TEXT("zz-no-matching-recipe")));
+    const bool bNoResults = GetVisibleRecipeIndices().IsEmpty() && RecipeSlotCards.IsEmpty()
+        && !CraftButton->GetIsEnabled();
+    ClearRecipeSearch(); SetRecipeBrowse(TEXT(""), 0, false);
+    Selected = InitialSelection; Refresh();
+    const bool bRestored = GetVisibleRecipeIndices() == OriginalIndices && RecipeGridSelectedIndex == InitialSelection;
+    UE_LOG(LogTemp, Display, TEXT("Recipe browsing: SelectionKept=%d Category=%d NoResults=%d Restored=%d SearchFocus=%d"),
+        bSelectionKept, bCategoryWorked, bNoResults, bRestored, bSearchFocusSafe);
     const float ScrollOffsetOfEnd = CraftingScrollBox ? CraftingScrollBox->GetScrollOffsetOfEnd() : 0.0f;
     const bool bScrollable = ScrollOffsetOfEnd > 1.0f;
     UE_LOG(LogTemp, Display, TEXT("Build grid input: KeyboardDown=%d KeyboardUp=%d DPadDown=%d DPadUp=%d Scrollable=%d ScrollEnd=%.1f Focused=%d"),
         bKeyboardAdvanced, bKeyboardRestored, bControllerAdvanced, bControllerRestored,
         bScrollable, ScrollOffsetOfEnd, HasKeyboardFocus());
-    return bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable;
+    return bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
+        && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe;
 }
 #endif
 
@@ -586,6 +659,11 @@ void UKalmalaCraftingWidget::Refresh()
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
         Theme.ApplyMenu(*WidgetTree, HeaderText, TextScalePercent, ContrastMode);
         Theme.ApplyPanel(*MenuBackground, ContrastMode, &Theme.BuildPanelImage);
+        if (RecipeSearchBox)
+        {
+            RecipeSearchStyle.SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), FMath::RoundToInt(Theme.BodySize * TextScalePercent / 100.f)));
+            RecipeSearchBox->SetWidgetStyle(RecipeSearchStyle);
+        }
         LastDetailTextScalePercent = TextScalePercent;
         LastDetailContrastMode = ContrastMode;
     }
@@ -594,7 +672,7 @@ void UKalmalaCraftingWidget::Refresh()
     RefreshRecipeGrid(VisibleIndices, M, TextScalePercent, ContrastMode);
     if (VisibleIndices.IsEmpty())
     {
-        RecipesText->SetText(FText::FromString(TEXT("No recipes are configured for this station.\n")));
+        RecipesText->SetText(FText::FromString(TEXT("No matching recipes. Clear recipe search or choose All. Station scope still applies.\n")));
         DetailText->SetText(FText::GetEmpty());
         if (SelectedIcon) SelectedIcon->SetVisibility(ESlateVisibility::Collapsed);
         if (CraftButton) CraftButton->SetIsEnabled(false);
@@ -761,6 +839,9 @@ FReply UKalmalaCraftingWidget::NativeOnPreviewKeyDown(const FGeometry& G,const F
     if(K==EKeys::Escape || K==EKeys::Gamepad_FaceButton_Right) { Close(); return FReply::Handled(); }
     if (InventoryInspector && (InventoryInspector->HasKeyboardFocus() || InventoryInspector->HasFocusedDescendants()))
         return Super::NativeOnPreviewKeyDown(G,E);
+    if (RecipeSearchBox && (RecipeSearchBox->HasKeyboardFocus() || RecipeSearchBox->HasFocusedDescendants())) return Super::NativeOnPreviewKeyDown(G,E);
+    if (HasKeyboardFocus() && K == EKeys::PageUp) { CycleRecipeCategory(); return FReply::Handled(); }
+    if (HasKeyboardFocus() && K == EKeys::PageDown) { CycleRecipeSort(); return FReply::Handled(); }
     if(K==EKeys::Gamepad_FaceButton_Top) { if(!E.IsRepeat()) Place(); return FReply::Handled(); }
     if(K==EKeys::Gamepad_FaceButton_Left) { if(!E.IsRepeat()) Refuel(); return FReply::Handled(); }
     if(K==EKeys::Gamepad_RightShoulder) { if(!E.IsRepeat()) Light(); return FReply::Handled(); }

@@ -3,6 +3,7 @@
 #include "Subsystems/LocalPlayerSubsystem.h"
 #include "Blueprint/UserWidget.h"
 #include "Tickable.h"
+#include "Styling/SlateTypes.h"
 #include "KalmalaCraftingSubsystem.generated.h"
 class UTextBlock;
 class UButton;
@@ -41,6 +42,8 @@ public:
     bool ScrollReviewSectionForTest(bool bFeedback);
     bool ScrollInventoryDetailsForTest();
 #endif
+    void SetRecipeBrowse(const FString& Query, int32 Category, bool bNameSort);
+    TArray<int32> GetVisibleRecipeIndices() const;
     void EnablePlacementPreview();
 protected:
     virtual void NativeOnInitialized() override;
@@ -49,7 +52,10 @@ protected:
 private:
     UKalmalaCraftingComponent* Model() const;
     void OpenInternal(FName StationKit);
-    TArray<int32> GetVisibleRecipeIndices() const;
+    UFUNCTION() void RecipeSearchChanged(const FText& Text);
+    UFUNCTION() void CycleRecipeCategory();
+    UFUNCTION() void CycleRecipeSort();
+    UFUNCTION() void ClearRecipeSearch();
     UFUNCTION() void Previous();
     UFUNCTION() void Next();
     UFUNCTION() void Craft();
@@ -97,6 +103,13 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> InventoryInspector;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;
+    UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> RecipeSearchBox;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeCategoryLabel;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeSortLabel;
+    UPROPERTY(Transient) FEditableTextBoxStyle RecipeSearchStyle;
+    FString RecipeQuery;
+    int32 RecipeCategory = 0;
+    bool bRecipeNameSort = false;
     int32 Selected = 0;
     FName StationFilterKit;
     FString GeneralInstructions;
