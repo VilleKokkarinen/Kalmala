@@ -265,3 +265,35 @@ easing, invalid-value fallback, and the instant path. This remains a local
 presentation change: it adds no gameplay timing, RPC, replicated state, or
 saved-data setting. The automated peer probe does not replace physical
 keyboard/controller hardware or packaged-build verification.
+
+
+## M11 support HUD caption polish candidate (blocked)
+
+The four existing support glyph cards now use theme SlotPadding, ButtonNormal,
+ButtonPressed and ButtonDisabled fills. Their MEND/WARD/VIGOR/CALL captions use
+BodySize minus two with HeadingFace, shared font/outline handling and the local
+100/125/150% text scale. Captions remain single-line; the existing full effect
+names, learned/unavailable text, selection marker, remapped bindings, stamina
+and server feedback remain in the HUD details.
+
+Local high contrast paints glyphs/captions white and card fills black. Selection
+retains its geometric ring, so it does not depend on colour. Accessibility
+changes restyle cached glyph states immediately without a gameplay transition.
+The HUD remains non-focusable and hit-test-invisible. No input, RPC, replication,
+server timing or save contract changes.
+
+Increment verification: compile the affected UI module in the disposable mirror,
+run Theme.LocalPresentation and Inventory.PreparedFoodDetails, then run rendered
+Verify-Inventory.ps1 at 1280x720/100% standard and 1024x768/150% high contrast.
+Inspect both peers' glyph captions and retain representative captures. Use
+Verify-SettingsAccessibility.ps1 for existing modal/input and local accessibility
+regression, plus the ownership/documentation audits. This bounded caption/card
+polish does not complete the wider UI-polish parent; dense HUD details and custom
+font/theme geometry still require later acceptance.
+
+The uncommitted inventory developer capture candidate waits three seconds per
+state; the runner reads fresh logs after captures. This wait applies only to
+explicit non-shipping capture mode, never gameplay. It did not reliably repair
+missing glyph/text fragments at 1024x768/150% high contrast. Automated checks
+passed but final visual acceptance failed on both peers. The HUD child remains
+blocked; do not treat these candidate styling changes as verified or complete.

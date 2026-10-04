@@ -17,7 +17,7 @@
 namespace
 {
 constexpr int32 PackColumns = 4;
-constexpr int32 ToolColumns = 3;
+constexpr int32 ToolColumns = 2;
 const FString NoPanelImage;
 
 UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
@@ -55,9 +55,9 @@ UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
     UTextBlock* Name = Tree.ConstructWidget<UTextBlock>();
     Name->SetText(FText::FromString(bEmpty ? TEXT("Empty") : Row->Name));
     Name->SetJustification(ETextJustify::Center);
-    Name->SetAutoWrapText(true);
+    Name->SetAutoWrapText(bEmpty || !Row->bCarriedTool);
     Name->SetWrapTextAt(SlotWidth - 8.0f);
-    Theme.ApplyText(*Name, 9, false, TextScale, Contrast);
+    Theme.ApplyText(*Name, 9, !bEmpty && Row->bCarriedTool, TextScale, Contrast);
     Content->AddChild(Name);
 
     if (!bEmpty && Row && !Row->Detail.IsEmpty())
@@ -65,10 +65,11 @@ UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
         UTextBlock* Detail = Tree.ConstructWidget<UTextBlock>();
         Detail->SetText(FText::FromString(Row->Detail));
         Detail->SetJustification(ETextJustify::Center);
-        Detail->SetAutoWrapText(true);
+        Detail->SetAutoWrapText(!Row->bCarriedTool);
         Detail->SetWrapTextAt(SlotWidth - 8.0f);
         Theme.ApplyText(*Detail, 8, false, TextScale, Contrast);
-        Content->AddChild(Detail);
+        UVerticalBoxSlot* DetailSlot = Content->AddChildToVerticalBox(Detail);
+        if (Row->bCarriedTool) DetailSlot->SetPadding(FMargin(0.0f, Theme.RowSpacing, 0.0f, 0.0f));
     }
 
     Size->SetContent(Content);
@@ -85,6 +86,15 @@ UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
     }
     return Card;
 }
+}
+
+FString UKalmalaCatalogueRowsWidget::BuildToolDetail(const int32 Level, const int32 Condition, const int32 MaximumCondition)
+{
+    if (Level <= 0 || MaximumCondition <= 0 || Condition < 0 || Condition > MaximumCondition)
+        return TEXT("Tool state unavailable");
+    const TCHAR* State = Condition == 0 ? TEXT("BROKEN")
+        : Condition < MaximumCondition ? TEXT("DAMAGED") : TEXT("READY");
+    return FString::Printf(TEXT("Level %d\nCondition %d/%d\n%s"), Level, Condition, MaximumCondition, State);
 }
 
 #if !UE_BUILD_SHIPPING
@@ -161,7 +171,7 @@ void UKalmalaCatalogueRowsWidget::SetRows(const TArray<FKalmalaCatalogueRow>& Ro
         Column->AddChild(ToolGrid);
         for (int32 Index = 0; Index < ToolRows.Num(); ++Index)
         {
-            UBorder* Card = MakeSlot(*WidgetTree, ToolRows[Index], false, 102.0f, TextScale, Contrast);
+            UBorder* Card = MakeSlot(*WidgetTree, ToolRows[Index], false, 154.0f, TextScale, Contrast);
             UBorder* CellMargin = WidgetTree->ConstructWidget<UBorder>();
             CellMargin->SetBrushColor(FLinearColor::Transparent);
             CellMargin->SetPadding(FMargin(2.0f));

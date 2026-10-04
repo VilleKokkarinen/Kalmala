@@ -90,6 +90,14 @@ void UKalmalaSupportGlyphWidget::SetGlyphState(const EKalmalaSupportGlyph InGlyp
     Invalidate(EInvalidateWidget::Paint);
 }
 
+void UKalmalaSupportGlyphWidget::SetGlyphContrast(const int32 ContrastMode)
+{
+    const int32 Bounded = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode);
+    if (Contrast == Bounded) return;
+    Contrast = Bounded;
+    Invalidate(EInvalidateWidget::Paint);
+}
+
 int32 UKalmalaSupportGlyphWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
     FSlateWindowElementList& OutDrawElements, const int32 LayerId, const FWidgetStyle& InWidgetStyle, const bool bParentEnabled) const
 {
@@ -99,9 +107,10 @@ int32 UKalmalaSupportGlyphWidget::NativePaint(const FPaintArgs& Args, const FGeo
     if (Scale <= 0.0f) return DrawLayer;
 
     const FVector2D Centre = Size * 0.5f;
-    const FLinearColor Ink = !bLearned
-        ? FLinearColor(0.38f, 0.46f, 0.47f, 1.0f)
-        : bSelected ? FLinearColor(1.0f, 0.74f, 0.38f, 1.0f) : FLinearColor(0.72f, 0.91f, 0.84f, 1.0f);
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    // Selection has a ring; learned availability also remains explicit in the HUD text.
+    const FLinearColor Ink = Contrast != 0 ? FLinearColor::White
+        : Theme.TextColor(bSelected || !bLearned, 0);
     const auto ToLocal = [Centre, Scale](const FVector2D Point)
     {
         return Centre + (Point - FVector2D(18.0f, 18.0f)) * Scale;
@@ -188,7 +197,7 @@ void UKalmalaInventoryWidget::NativeOnInitialized()
     {
         UBorder* Card = WidgetTree->ConstructWidget<UBorder>();
         Card->SetBrushColor(FLinearColor(0.055f, 0.075f, 0.08f, 0.96f));
-        Card->SetPadding(FMargin(3.0f));
+        Card->SetPadding(FMargin(InitialTheme.SlotPadding));
         UVerticalBox* CardContent = WidgetTree->ConstructWidget<UVerticalBox>();
         USizeBox* GlyphBox = WidgetTree->ConstructWidget<USizeBox>();
         FKalmalaUITheme::Get().ApplyIconSlot(*GlyphBox);
@@ -199,11 +208,13 @@ void UKalmalaInventoryWidget::NativeOnInitialized()
         UTextBlock* Label = WidgetTree->ConstructWidget<UTextBlock>();
         Label->SetText(FText::FromString(GlyphLabels[Index]));
         Label->SetJustification(ETextJustify::Center);
-        Label->SetColorAndOpacity(FSlateColor(FLinearColor(0.82f, 0.87f, 0.84f, 1.0f)));
-        Label->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), 11));
+        InitialTheme.ApplyText(*Label, InitialTheme.BodySize - 2, true,
+            UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
+        Label->SetAutoWrapText(false);
         CardContent->AddChild(Label);
         Card->SetContent(CardContent);
         SupportGlyphRow->AddChildToHorizontalBox(Card)->SetPadding(FMargin(2.0f, 0.0f));
+        SupportGlyphLabels.Add(Label);
         SupportGlyphCards.Add(Card);
         SupportGlyphs.Add(GlyphWidget);
         SupportGlyphVisualStates.Add(0xff);
@@ -249,6 +260,16 @@ void UKalmalaInventoryWidget::SetPackTextAccessibility(const int32 TextScalePerc
     {
         Theme.ApplyText(*PackText, Theme.BodySize + 1, false, BoundedTextScale, BoundedContrast);
     }
+    LastContrastMode = BoundedContrast;
+    for (int32 Index = 0; Index < SupportGlyphLabels.Num(); ++Index)
+    {
+        Theme.ApplyText(*SupportGlyphLabels[Index], Theme.BodySize - 2, true, BoundedTextScale, BoundedContrast);
+        SupportGlyphs[Index]->SetGlyphContrast(BoundedContrast);
+        // Restyle the current state immediately, including when gameplay state has not changed.
+        const uint8 State = SupportGlyphVisualStates[Index] == 255 ? 0 : SupportGlyphVisualStates[Index];
+        SupportGlyphVisualStates[Index] = 255;
+        SetSupportGlyphState(Index, static_cast<EKalmalaSupportGlyph>(Index), (State & 1) != 0, (State & 2) != 0);
+    }
     LastTextScalePercent = BoundedTextScale;
     LastContrastMode = BoundedContrast;
 }
@@ -256,6 +277,15 @@ void UKalmalaInventoryWidget::SetPackTextAccessibility(const int32 TextScalePerc
 void UKalmalaInventoryWidget::SetCatalogueRows(const TArray<FKalmalaCatalogueRow>& Rows, int32 TextScale, int32 Contrast)
 {
     if (CatalogueRows) CatalogueRows->SetRows(Rows, UKalmalaInventoryComponent::MaxSlots, TextScale, Contrast);
+#if !UE_BUILD_SHIPPING
+    // Isolated visual review of the existing scrolled equipment region, without changing owner state.
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaEquipmentView")))
+    {
+        if (PackText) PackText->SetVisibility(ESlateVisibility::Collapsed);
+        if (SupportGlyphRow) SupportGlyphRow->SetVisibility(ESlateVisibility::Collapsed);
+        if (CatalogueScroll) CatalogueScroll->ScrollToEnd();
+    }
+#endif
 }
 
 FString UKalmalaInventoryWidget::GetCatalogueGridSummary() const
@@ -298,8 +328,10 @@ void UKalmalaInventoryWidget::SetSupportGlyphState(const int32 Index, const EKal
     const uint8 VisualState = static_cast<uint8>((bLearned ? 1 : 0) | (bSelected ? 2 : 0));
     if (SupportGlyphVisualStates[Index] != VisualState)
     {
-        const FLinearColor CardColour = bSelected ? FLinearColor(0.26f, 0.17f, 0.08f, 0.98f)
-            : bLearned ? FLinearColor(0.055f, 0.12f, 0.105f, 0.96f) : FLinearColor(0.055f, 0.075f, 0.08f, 0.96f);
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        const bool bContrast = LastContrastMode > 0;
+        const FLinearColor CardColour = bContrast ? FLinearColor::Black
+            : bSelected ? Theme.ButtonPressed : bLearned ? Theme.ButtonNormal : Theme.ButtonDisabled;
         SupportGlyphCards[Index]->SetBrushColor(CardColour);
         SupportGlyphVisualStates[Index] = VisualState;
     }
@@ -448,7 +480,7 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
             Name.ReplaceInline(TEXT("ConstructionHammer"), TEXT("Construction hammer"));
             const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(Tool.ToolId);
             Catalogue.Add({ Tool.ToolId, Name,
-                FString::Printf(TEXT("Level %d · condition %d/%d"),
+                UKalmalaCatalogueRowsWidget::BuildToolDetail(
                     Tool.ToolLevel, Tool.Durability, Definition ? Definition->MaxDurability : 0), true });
         }
     if (bHasPreparedFood)
@@ -504,7 +536,7 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
                     *Widget->GetCatalogueGridSummary());
             }
             GridCaptureWait += DeltaTime;
-            if (GridCaptureWait >= 0.75f)
+            if (GridCaptureWait >= (FParse::Param(FCommandLine::Get(), TEXT("KalmalaEquipmentView")) ? 5.0f : 3.0f))
             {
                 FScreenshotRequest::RequestScreenshot(GridCaptureBasePath + TEXT("-empty.png"), true, false);
                 GridCaptureStage = 2;
@@ -523,7 +555,7 @@ void UKalmalaInventorySubsystem::Tick(float DeltaTime)
                     *Widget->GetCatalogueGridSummary());
             }
             GridCaptureWait += DeltaTime;
-            if (GridCaptureWait >= 0.75f)
+            if (GridCaptureWait >= (FParse::Param(FCommandLine::Get(), TEXT("KalmalaEquipmentView")) ? 5.0f : 3.0f))
             {
                 FScreenshotRequest::RequestScreenshot(GridCaptureBasePath + TEXT("-filled.png"), true, false);
                 GridCaptureStage = 4;

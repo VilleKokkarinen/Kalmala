@@ -10898,6 +10898,95 @@ Next eligible task: Polish the existing HUD typography, spacing, hierarchy and f
 
 Current run time: 2026-10-03T09:10:48Z.
 
+### Run 2026-10-03T09:40:09+00:00 — M11 HUD polish blocked by rendered text corruption
+
+Outcome: Implemented a bounded candidate for the first eligible unchecked HUD
+child of the M11 UI-polish parent, but did not complete it or commit. Initial
+checkout was clean; app inventory showed only this Kalmala run active. OS
+command-line process inventory was denied; process names and app state gave no
+evidence of a competing run. No other parent or child was implemented.
+
+Files changed: Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp;
+Source/KalmalaUI/Public/KalmalaInventorySubsystem.h; Scripts/Verify-Inventory.ps1;
+docs/35-ui-theme.md; docs/ui-polish/hud-standard-host.png,
+hud-standard-client.png, hud-failed-hc-host.png, hud-failed-hc-client.png;
+BACKLOG.md; PROGRESS.md.
+
+Candidate impact: Existing support glyph captions use shared theme typography
+and local text scale; cards use theme padding/state fills; high contrast uses
+white glyphs/captions on black with the existing selection ring and explicit
+learned/unavailable details. Cached states restyle on accessibility changes.
+A capture-only three-second wait and fresh post-capture log reads were added.
+These changes remain uncommitted pending visual verification.
+
+Verification: Increment-level only. Initial isolated UE 5.8.2 KalmalaEditor
+compile/link passed six actions; final candidate compile/link passed four
+with MaxParallelActions=4 and normal LOCALAPPDATA/UnrealBuildTool access in
+C:/Users/Ville/AppData/Local/Temp/ka. Theme.LocalPresentation and
+Inventory.PreparedFoodDetails both passed with test/editor exit 0 (ka/Hud.log)
+before the capture-only wait adjustment. Rendered inventory authority/privacy,
+rejected mutations, owner read-only state and empty/filled checks passed at
+1280x720/100% standard and repeated 1024x768/150% high contrast. Standard
+host/client images were readable. Verify-SettingsAccessibility.ps1 -Port 18489
+passed host/client five-view images, contrast, local persistence, keyboard/
+controller mappings, focus/modal restoration, resize/interruption, gameplay
+and world-identity stability; evidence KalmalaSettingsAccessibility-
+995642cfcbe14ba78582ea0db0199e91 under the local Temp directory. Five M5
+documentation contracts, presentation ownership, verifier PowerShell parse,
+and diff checks passed. No full suite or parent integration was run.
+
+Exact blocker: Visual review, not the behavioral runner, fails. Initial and
+repeat high-contrast client images in KalmalaInventory-2728332374f14e27b55019bb19fc879a
+and -2093c7ae697b4768910f1f445ba50ab0 omitted portions of support captions and
+ordinary HUD text. A three-second mirror-only capture wait produced one readable
+client sample (-43f710e4898646b1b26086c099bd864e), but exposed stale fixture-log
+validation. After fixing log refresh and copying the final candidate back to
+the mirror, the runner at port 18491 passed, yet both final host/client images
+(-6f37a1ef8e0744af8bf0cd84455f55e0) still omit glyph/text fragments, including
+MEND/VIGOR and combat/support details. The root cause is unresolved; no claim
+that the delay repaired it. Three visual attempts plus final confirmation did
+not establish safe acceptance. Retained final failure images in docs/ui-polish/.
+Task is BLOCKED; no files staged and no commit made.
+
+Networking/authority: Local read-only presentation and developer capture timing
+only. No gameplay RPC, server timer, gameplay value, replicated field, inventory
+transaction, input binding or save schema changed. Hit-test-invisible/non-focusable
+HUD behavior remains; automated modal regression passed.
+
+Known limits/action: Diagnose the reproducible high-contrast rendered text/glyph
+failure, repair it and rerun visual host/client acceptance before checking or
+committing this HUD child. Dense HUD reflow, all viewports, physical controller
+hardware and packaged behavior are not established. Full parent verification
+remains pending with crafting/construction and equipment children still open.
+
+Handoff: Main checkout E:/dev/Kalmala used; these uncommitted files are already
+visible there, so synchronization is unnecessary. All pre-existing changes
+were absent/preserved; generated checkout directories were not modified.
+Mirror file paths audited at 209 characters maximum; retained paths below 260.
+Next unblocked child in this parent: crafting/construction polish; unresolved
+HUD visual acceptance must be repaired before completing the parent. Stop this
+run without starting that child.
+
+Current run time: 2026-10-03T09:40:09+00:00.
+
+### Run 2026-10-03T10:04:22Z — M11 crafting/construction polish blocked
+
+Outcome: Implemented only the first unchecked unblocked child in the first incomplete M11 UI-polish parent. Candidate adds theme spacing between text sections/card state, fills card-name heading width, and retains explicit availability alongside selection/focus. Three rendered attempts failed visual acceptance. Marked only this child BLOCKED; no completion checkbox, staging or commit. No later task started.
+
+Changed: Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp; docs/ui-polish/crafting.md; docs/ui-polish/craft-failed-client.png, craft-failed-hc-host.png, craft-failed-hc-client.png; this run's BACKLOG.md annotation and appended PROGRESS.md entry. Preserved all previous-run HUD source/header, inventory verifier, theme docs, four HUD images, backlog annotation and progress entry. App inventory showed only this run active; previous run explicitly completed. OS command-line process inventory was denied. Main checkout E:/dev/Kalmala used; no handoff synchronization required.
+
+Verification: Increment-level. Affected UI compile/link passed twice (four actions each) in C:/Users/Ville/AppData/Local/Temp/ka, UE 5.8.2, MaxParallelActions=4, normal LOCALAPPDATA/UnrealBuildTool access. Rendered Verify-Crafting.ps1 passed behavioral checks three times: 18494 at 1280x720/100%/standard, 18495 at 1024x768/150%/high contrast, 18496 at standard with developer capture wait increased from two to five seconds. All covered grid focus/selection, keyboard/D-pad navigation, scrolling, modal restoration, authoritative transaction/payment/rejection gates, matching fire states, owner inventory and construction/tool/camp feedback. Ownership and all five M5 documentation audits passed. Both peers visually inspected each time. No full automation suite or full parent integration run; additional children remain. Created/used evidence and source paths below 260 characters; mirror reused its previously audited 209-character maximum.
+
+Exact failure: First standard host screenshot omitted availability text fragments. High-contrast client screenshot omitted parts of the heading and multiple instruction lines, despite a readable host reference. Final five-second standard capture still omitted UNAVAILABLE fragments on client Timber floor, Cooked deer meat and other cards, while host labels were readable. Behavioral runner exit 0 does not establish visual acceptance. Evidence roots under local Temp: KalmalaCrafting-8bcdb172681942d69b6243e0e38716d4, KalmalaCrafting-f74a0ee2ad6e4fc2a6d11f3161b602eb, KalmalaCrafting-cb359e41a33f4c198a79182256c6e580. No claim that longer wait repaired rendering. Three attempts reached the repository stop threshold; candidate remains uncommitted.
+
+Multiplayer impact: Local presentation and non-shipping developer capture timing only. No RPC, server validation, gameplay rule/value, catalogue, private snapshot or save schema changed.
+
+Known limits: Text rendering root cause unresolved and shared with previous HUD failure; diagnose and rerun rendered host/client acceptance before completion. Existing fixture does not visually inspect every scrolled requirement/action, cooking-station view, physical input or package. Parent-level verification pending. No unsafe commit permitted.
+
+Next task: First remaining unblocked child is equipment presentation/accessibility. HUD and crafting rendering blockers must be repaired before parent completion. Stop this run without starting equipment.
+
+Current run time: 2026-10-03T10:04:22Z.
+
 ### Run 2026-10-03T10:55:46Z — user-requested crafting/HUD overlap fix
 
 Outcome: Completed one focused child fix under M11 UI polish, following the user's screenshot and direction to fix the overlapping menus before continuing. Opening the crafting/construction or cooking modal now collapses the owner's left inventory/support HUD; close restores hit-test-invisible HUD presentation. No later polish task started. Added only an overlap-fix completion checkbox; broader HUD/crafting candidates and their historical blockers remain unaccepted.
@@ -10913,6 +11002,28 @@ Known limits: The two visible panels were overlapping; the fix removes that obse
 Next task: Reverify the blocked HUD/crafting candidates before broader UI-polish acceptance; do not advance to equipment while treating those candidates as complete. The user's overlap repair is complete.
 
 Current run time: 2026-10-03T10:55:46Z.
+
+### Run 2026-10-03T11.30.57Z — M11 equipment polish blocked
+
+Outcome: Implemented only the first unchecked unblocked child in the first incomplete M11 UI-polish parent: equipment presentation, currently carried tools. Required visual acceptance failed; marked only this child BLOCKED. No later task, staging or commit. App inventory showed only this run active; other Kalmala runs were idle. OS process command inventory was denied.
+
+Files changed: Source/KalmalaUI/Private/KalmalaCatalogueRowsWidget.cpp; Source/KalmalaUI/Public/KalmalaCatalogueRowsWidget.h; narrow additions in Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp and Scripts/Verify-Inventory.ps1; new Source/KalmalaUI/Private/Tests/KalmalaToolPresentationTest.cpp; docs/ui-polish/equipment.md and four equipment PNGs; BACKLOG.md and this PROGRESS.md entry. All pre-existing HUD/crafting candidates, verifier log-refresh changes, theme edits, failure images and handoffs preserved.
+
+Candidate impact: Two wider carried-tool columns, bold names, theme spacing, separate level/condition lines and explicit READY/DAMAGED/BROKEN labels. Invalid/missing values display unavailable rather than a fabricated maximum. Non-shipping EquipmentView exposes the existing equipment region and waits five seconds per capture without changing inventory. The row cache continues refreshing on owner-state and accessibility changes.
+
+Verification: Increment-level. UE 5.8.2 UI compile/link passed in the existing disposable C:/Users/Ville/AppData/Local/Temp/ka mirror with MaxParallelActions=4 and normal LOCALAPPDATA/UnrealBuildTool access. Exact proposal excluding pre-existing candidates compiled in seven actions; wider-card and final capture-wait adjustments each compiled in four actions. ToolPresentation, PreparedFoodDetails and Theme.LocalPresentation passed 3/3, editor/test exit 0, ke/Tools3.log, before layout/capture-only adjustments. Initial new widget-construction assertions failed initialization and a replacement crashed on duplicate world initialization; removed that invalid harness and used rendered peers for widget integration, retaining the bounded-state unit test. Ownership, five M5 documentation contracts, verifier PowerShell parser and diff checks passed. No full suite or parent integration. Audited mirror source/intermediate maxima 119/168 characters; introduced evidence and temp paths below 260. No generated checkout directory modified.
+
+Exact blocker: Port 18521 high-contrast client omitted tool text and long Construction name crossed its card edge. Two wider columns fixed that overflow; exact-proposal port 18522 passed behavioral checks and both equipment regions were readable at 1024x768/150% high contrast, retained equipment-hc-host/client.png. Exact-proposal port 18523 at 1280x720/100% passed behavior but client omitted parts of Reed knife, Field hatchet and condition details. Final port 18524 with five-second settling still omitted part of Reed knife on host, retained equipment-failed-host/client.png. Three failed visual reviews across attempts do not establish safe acceptance. Final exact-proposal runner also failed its empty/filled capture-log assertion because it excludes the pre-existing log-refresh fix and reads stale logs; fresh retained peer logs show expected states. No claim that wider cards or longer waits fix the renderer. Evidence under local Temp: KalmalaInventory-9b9c8b4cdcbe49aa90d6574f26283ea5, -ab47c5dd29724bf7b3ca60e3170f65b2, -244773143b6144f0888b9e83af52da29 and -c90b44d797ab40778be233b1e32dacf7. Initial port 18520 exposed the isolated region's non-scrolling fit; the EquipmentView verifier now permits either scroll state while preserving normal checks.
+
+Multiplayer/authority: Read-only local formatting of existing owner-only tool records. No RPC, validation, gameplay value, transaction, replicated field, binding or save schema changed. Widget remains non-focusable/hit-test-invisible; no equipment action added.
+
+Limitations/action: Diagnose missing rendered tool text and resolve the capture-log verification dependency before accepting/committing equipment. Damaged/broken/invalid state has unit coverage, not rendered fixtures. Isolated captures do not establish normal dense-HUD layout, all tools/viewports, physical inputs or packaged behavior. Previous HUD/crafting blockers and parent-level verification remain pending.
+
+Handoff: Main checkout E:/dev/Kalmala used; synchronization unnecessary. No commit because required visual verification failed. All unrelated changes remain preserved and unstaged.
+
+Next task: Resolve the HUD/crafting/equipment rendering blockers before the remaining integration child can complete this parent; do not start the later item-detail parent.
+
+Current run time: 2026-10-03T11.30.57Z.
 
 ### Run 2026-10-03 — user-requested capture-log repair; rendering still blocked
 
@@ -10933,6 +11044,29 @@ Limits/next action: The visual renderer defect still blocks candidate completion
 Handoff: Main checkout E:/dev/Kalmala; no synchronization needed. Preserve all unrelated work; stage only this turn's invocation, new helper/document and handoff additions.
 Current run time: 2026-10-03T11:44:04Z.
 
+### Run 2026-10-03T12:01:34Z — requested blocked-item recheck
+
+Outcome: Three active BLOCKED children remain in the M11 UI-polish parent: HUD, crafting/construction, and equipment. Historical M7 administrative release closure is not an active task to recheck or reopen. No item marked done because required visual acceptance still fails. No implementation commit permitted; stop after three fresh repair probes under AGENTS.md. Only this chat was active; other Kalmala runs idle.
+
+Files changed this turn: narrow evidence annotation in BACKLOG.md and this appended PROGRESS.md handoff. All pre-existing candidates, documentation, images and verifier changes preserved and unstaged. No persistent source/config change adopted.
+
+Verification: Increment-level diagnosis only. Refreshed current UI sources/headers into existing disposable C:/Users/Ville/AppData/Local/Temp/ka mirror. First build incorrectly reported up-to-date due copied timestamps; forced source refresh exposed stale generated headers. Refreshed header timestamps and UI compile/link passed 39 actions with normal LOCALAPPDATA/UnrealBuildTool access, UE 5.8.2, MaxParallelActions=4. This removes the previous clip-probe binary; normal theme source is now built. No full project suite or parent integration run.
+
+Rendered Verify-Inventory.ps1 -Rendered -EquipmentView at 1280x720/100% standard passed behavioral/capture-log checks in all three probes, but both peers visually reviewed and each probe failed acceptance. Port18540 UI.SlateSDFText.Enable 0 was confirmed false in logs: host readable, client missing tool names/condition fragments; evidence KalmalaInventory-bdfcd97b2de243899e000b52f245b801. Port18541 removed RenderOffscreen while retaining hidden process launch: client readable, host fragments; evidence KalmalaInventory-53be5906fa20464fb7bd6c9072143121. Port18542 -onethread: both peers omit tool names/condition fragments; evidence KalmalaInventory-b7f55873480f49a2a807369cf1371a1b. All evidence roots under C:/Users/Ville/AppData/Local/Temp. No claim that SDF, offscreen mode or threading is the proved cause. Restore mirror verifier after probes; no engine files modified.
+
+Impact/authority: No runtime behavior change. Existing grants/rejections, owner privacy, capacity and read-only checks pass; no RPC, validation, transaction, replicated field, input or save change. Shared rendering remains unresolved. Crafting and normal HUD were not rerun this turn and cannot be accepted based on equipment behavior.
+
+Limitations/next task: Build/behavior success cannot certify missing pixels. Three fresh probes reached the mandatory stop threshold. Next repair should isolate Slate text/batch rendering with a minimal widget reproduction, then reverify each blocked view. Remaining integration child and parent-level verification remain pending; do not start the later item-detail parent. No external user action has been identified as required.
+
+Handoff: Main checkout E:/dev/Kalmala used; synchronization unnecessary. No files staged or committed. Introduced document paths below 260; disposable generated paths checked separately. Current run time: 2026-10-03T12:01:34Z.
+### Run 2026-10-03T12:15:59.9714908Z — UI integration readiness blocked
+
+Outcome: Selected the first unchecked unblocked child in the earliest incomplete M11 UI-polish parent: combined view/integration verification. Readiness inspection establishes a prerequisite blocker; no implementation candidate accepted, no later parent started. Marked this integration child BLOCKED rather than treating it as executable while all three required visual children remain blocked.
+Changed: Only this run's integration dependency annotation in BACKLOG.md and this appended PROGRESS.md handoff. Preserved every pre-existing source, verifier, documentation, image and handoff change; index remains empty.
+Verification: Increment-level readiness inspection only: seven children, three completed, four unfinished, three pre-existing blocked visual prerequisites. Reviewed existing equipment failure capture and latest exact evidence. Latest prior recheck records three rendered probes (SDF-disabled port18540, hidden-windowed port18541, single-threaded port18542) passing behavior but failing visual acceptance. These are prior-run results, not tests executed now. No build, rendered peer run, full automation suite or parent-level verification performed in this run. AGENTS.md three-attempt stop threshold was already reached for this unresolved blocker.
+Multiplayer impact: Documentation only; no runtime, gameplay authority, RPC, replication, input or save changes.
+Known limits: No rendering root cause established. Combined acceptance cannot pass until HUD, crafting/construction and equipment individually pass visual review. No external action from the user identified. No commit permitted because selected verification remains blocked. All referenced/edited paths are below 260 characters. Concurrency inventory showed only this run active; process command-line inventory was denied, with task inventory supplying the concurrency evidence.
+Next task: Isolate the text-rendering failure with a minimal Slate reproduction, repair it, and verify the three blocked views before combined integration. Do not start the later item-detail parent. Main checkout E:/dev/Kalmala used; handoff synchronization unnecessary.
 ### Run 2026-10-03T12:45:12.1555172Z — source-pixel UI review child completed
 
 Outcome: User-directed continuation completed one diagnostic child within the existing M11 UI-polish parent: lossless crop helper and paired source-pixel review evidence. No visual candidate or parent checkbox accepted. Source-pixel evidence contradicts blanket missing-text claims for the examined HUD regions; no Slate renderer root cause or runtime fix claimed.
@@ -10941,6 +11075,15 @@ Verification: Increment-level only. Helper parses; pixel-for-pixel output matche
 Multiplayer impact: Diagnostic review helper only; existing peer privacy/authority checks passed. No gameplay, RPC, input, replication, transaction or save change.
 Known limits: Fresh peers use preserved uncommitted candidates, not an exact-source proposal for this helper commit. Existing per-view blockers require original-pixel reassessment and remaining layout/accessibility acceptance. No full test suite or parent integration; high-contrast equipment, standard crafting, complete scrolling/details, settings regression, physical hardware and packaging not verified this turn. Paths below MAX_PATH; main checkout used, no handoff synchronization needed.
 Next task: Reassess the HUD candidate's recorded omissions against native-size/source-pixel evidence and finish its focused acceptance before other views or combined integration. Do not begin later item-detail parent.
+### Run 2026-10-03T13:15:19.9016808Z — no eligible UI-polish child
+
+Outcome: Selection blocked. Earliest incomplete milestone M11, first incomplete parent UI polish, has four unchecked children and all four are explicitly BLOCKED (HUD, crafting/construction, equipment, combined integration). No eligible unchecked unblocked child exists in that parent. Did not skip to item details or add a new task.
+
+Verification: Increment-level readiness inspection only. Read AGENTS.md, BACKLOG.md, PROGRESS.md, automation memory, development setup, roadmap and source-pixel review contract. Latest diagnostic evidence questions earlier preview-based omission claims but expressly does not accept any candidate. No build, new rendered peer test, full suite or parent-level verification run. Concurrency task inventory found only this chat active; previous nearby run is completed. Process command-line inventory denied; task inventory supplies concurrency evidence.
+
+Changed: This appended PROGRESS handoff and automation memory only. Existing backlog and all source, verifier, documentation and image candidates preserved; no staging or commit because no implementation increment passed acceptance. No gameplay, authority, RPC, replication, input or save change. Main checkout E:/dev/Kalmala used; synchronization unnecessary. Edited paths below 260 characters.
+
+Limitations/next action: Reassess HUD candidate against native-size/source-pixel evidence and complete focused layout/accessibility acceptance before clearing its blocker; then remaining view acceptance and parent integration. Selection protocol currently excludes that explicitly blocked child. No external permission or dependency identified. Parent verification remains pending.
 
 ### Run 2026-10-03T13:40:01.3944815Z — requested UI-polish blockers resolved
 
@@ -10994,6 +11137,15 @@ Limitations: Comprehensive removal/consumption fixtures, item-detail rendered te
 Handoff: Main checkout E:/dev/Kalmala, synchronization unnecessary. Next eligible child: removal/consumption refresh, rendered scale/contrast and owner privacy, then parent-level integration. Commit only adopted interaction and this run's task-specific documentation/handoff.
 
 Final dependency repair: staged review found an older uncommitted BuildToolDetail helper reference. Replaced it with bounded condition formatting within this increment (invalid state says Condition unavailable). Final four-action UI compile/link passed; repeated rendered peers at port 18572 passed, evidence C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-2f78cb0e94dd4d559384a6e763c0e564. No older helper or equipment hunk adopted. Final rendered artifact paths max 188 characters.
+
+### Run 2026-10-04T07:44:43.2011714Z — item-detail acceptance blocked
+
+Outcome: Selected only the final child of the first incomplete M11 item-detail parent. Added refresh/owner-isolation tests and rendered diagnostics, repaired root construction, stopped after three failed rendered acceptance attempts. Child BLOCKED; parent unchecked. Task inventory showed only this chat active; CIM process inventory denied.
+Changed: Scripts/Verify-Crafting.ps1; current-run capture/helper/include hunks in Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp; Public/KalmalaCraftingSubsystem.h; Private/KalmalaInventoryInspectWidget.cpp and Public/KalmalaInventoryInspectWidget.h; Private/KalmalaItemDetailWidget.cpp and Public/KalmalaItemDetailWidget.h; Private/Tests/KalmalaInventoryInspectTest.cpp; docs/37-item-details.md; selected BACKLOG blocker; this PROGRESS entry. All pre-existing dirty source, verifier, docs, images and handoff entries preserved. Nothing staged or committed.
+Verification: Parent-level attempted, not accepted. Final UE5.8.2 editor mirror build succeeded ten actions with normal LOCALAPPDATA/UnrealBuildTool access. Final full Kalmala queue passed104/104, failed0, process/test exit0 at C:/Users/Ville/AppData/Local/Temp/ki3/last.log. New assertions cover root-before-first-refresh, selected meal decrement/removal/fallback, stale action removal and independent owners. Network inventory port18577 passed privacy/grants/rejections/read-only checks at Temp/KalmalaInventory-810a378450c340fab3f92a5614105357. Ownership, five M5 documentation contracts, crafting script parsing and diff checks passed. Mirror maximum path209; introduced paths below260.
+Multiplayer impact: Presentation/tests only; inspection reads owning pawn's existing inventory/tool snapshots. No gameplay dispatch, RPC, authoritative value, replicated field, new statistic or saved-data change.
+Known limits: All rendered behavior runners pass but visual acceptance fails. Attempts18573/74 and18575/76 captured repair/progression. Final18578 standard now renders inspection but clips condition/action text; final18579 1024x768 150% high contrast still captures progression. Final Temp roots KalmalaCrafting-47be1d59de89459faddcf3745f7333a2 and KalmalaCrafting-eaf5fd1a91b54a40a8055a02551e06f5. Both peer source PNGs inspected; exact prior roots in docs/37. Three-attempt stop applies. Parent acceptance pending despite passing build/full suite. Consumption/removal uses supplied-row widget fixtures, not rendered meal input. Physical hardware, packaging and clean-HEAD integration unverified.
+Next task: Repair inspection scrolling/layout and verify full description/condition/action pixels at both scales before clearing BLOCKED or accepting parent; no later task started. Main checkout E:/dev/Kalmala used; synchronization unnecessary. No external permission/dependency identified. Implementation remains uncommitted for follow-up repair. Current run time: 2026-10-04T07:44:43.2011714Z.
 
 ### Run 2026-10-04T08:02:17.2467829Z — resumed item-detail parent completed
 

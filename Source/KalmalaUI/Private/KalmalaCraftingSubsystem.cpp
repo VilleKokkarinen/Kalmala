@@ -171,7 +171,9 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         Label->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), Size));
         Label->SetColorAndOpacity(FSlateColor(FLinearColor::White));
         WrappedTextBlocks.Add(Label);
-        Column->AddChild(Label); return Label;
+        Column->AddChildToVerticalBox(Label)->SetPadding(
+            FMargin(0.0f, 0.0f, 0.0f, FKalmalaUITheme::Get().SlotPadding));
+        return Label;
     };
     HeaderText = AddText(TEXT("Construction hammer — Build and craft"), 28);
     FString CraftKey = TEXT("Unbound");
@@ -399,13 +401,14 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             Name->SetText(FText::FromString(Recipe.DisplayName));
             Name->SetAutoWrapText(true);
             Name->SetWrapTextAt(128.0f);
-            HeadingRow->AddChild(Name);
+            HeadingRow->AddChildToHorizontalBox(Name)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
             CardContent->AddChild(HeadingRow);
 
             UTextBlock* State = WidgetTree->ConstructWidget<UTextBlock>();
             State->SetAutoWrapText(true);
             State->SetWrapTextAt(168.0f);
-            CardContent->AddChild(State);
+            CardContent->AddChildToVerticalBox(State)->SetPadding(
+                FMargin(0.0f, FKalmalaUITheme::Get().SlotPadding, 0.0f, 0.0f));
             CardSize->SetContent(CardContent);
             Card->SetContent(CardSize);
             UBorder* CellMargin = WidgetTree->ConstructWidget<UBorder>();
@@ -443,9 +446,12 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
         const bool bSelected = SlotIndex == RecipeGridSelectedIndex;
         if (bUnavailable) ++RecipeGridUnavailableCount;
 
-        const FString RecipeStateLabelText = bSelected && bFocused ? TEXT("FOCUSED · SELECTED")
-            : bSelected ? TEXT("SELECTED")
-            : bUnavailable ? TEXT("UNAVAILABLE") : TEXT("AVAILABLE");
+        FString RecipeStateLabelText = bUnavailable ? TEXT("UNAVAILABLE") : TEXT("AVAILABLE");
+        if (bSelected)
+        {
+            RecipeStateLabelText = (bFocused ? TEXT("FOCUSED · SELECTED\n") : TEXT("SELECTED\n"))
+                + RecipeStateLabelText;
+        }
         if (RecipeSlotNames[SlotIndex]->GetText().ToString() != Recipe.DisplayName)
         {
             RecipeSlotNames[SlotIndex]->SetText(FText::FromString(Recipe.DisplayName));
@@ -900,7 +906,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
         {
             if(Widget && !Widget->IsOpen()) Widget->Open();
             CaptureWait+=DeltaTime;
-            if(CaptureWait>2)
+            if(CaptureWait>5)
             {
                 UE_LOG(LogTemp, Display, TEXT("Construction feedback: Passed=%d"),
                     M->GetNearbyConstructionText().Contains(TEXT("Health: 50.0 / 100"))

@@ -26,6 +26,7 @@ class KALMALAUI_API UKalmalaSupportGlyphWidget : public UUserWidget
     GENERATED_BODY()
 public:
     void SetGlyphState(EKalmalaSupportGlyph InGlyph, bool bInLearned, bool bInSelected);
+    void SetGlyphContrast(int32 ContrastMode);
 protected:
     virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
         FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -33,6 +34,7 @@ private:
     EKalmalaSupportGlyph Glyph = EKalmalaSupportGlyph::Mending;
     bool bLearned = false;
     bool bSelected = false;
+    int32 Contrast = 0;
 };
 
 UCLASS()
@@ -58,6 +60,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UHorizontalBox> SupportGlyphRow;
     UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> SupportGlyphCards;
     UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaSupportGlyphWidget>> SupportGlyphs;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> SupportGlyphLabels;
     TArray<uint8> SupportGlyphVisualStates;
     int32 LastTextScalePercent = INDEX_NONE;
     int32 LastContrastMode = INDEX_NONE;

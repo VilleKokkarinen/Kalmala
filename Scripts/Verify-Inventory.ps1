@@ -1,5 +1,5 @@
 param([int]$Port = 17849, [switch]$Rendered, [int]$Width = 1280, [int]$Height = 720,
-    [int]$TextScale = 100, [int]$Contrast = 0)
+    [int]$TextScale = 100, [int]$Contrast = 0, [switch]$EquipmentView)
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
@@ -12,6 +12,8 @@ $clientShaderDir = Join-Path $output 'Client\ShaderWorkingDir'
 if ($Rendered) { New-Item -ItemType Directory -Path $hostShaderDir, $clientShaderDir -Force | Out-Null }
 $common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaInventoryTest -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast"
 if ($Rendered) { $common += " -windowed -RenderOffscreen -ForceRes -ResX=$Width -ResY=$Height" } else { $common += ' -nullrhi' }
+if ($EquipmentView) { $common += ' -KalmalaEquipmentView' }
+$scrollState = if ($EquipmentView) { '[01]' } else { '1' }
 $hostShader = if ($Rendered) { "-ShaderWorkingDir=`"$hostShaderDir`"" } else { '' }
 $clientShader = if ($Rendered) { "-ShaderWorkingDir=`"$clientShaderDir`"" } else { '' }
 $hostCapture = if ($Rendered) { "-KalmalaInventoryCapture=`"$output\Host\inventory`"" } else { '' }
@@ -40,8 +42,8 @@ try {
             -and $ownerIndex -ge 0 -and $clientText.IndexOf('Inventory remote: Empty=1', $ownerIndex) -gt $ownerIndex `
             -and $serverText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1') `
             -and $clientText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1') `
-            -and $serverText -match 'Inventory grid: PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=1 ReadOnly=1' `
-            -and $clientText -match 'Inventory grid: PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=1 ReadOnly=1') { break }
+            -and $serverText -match "Inventory grid: PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=$scrollState ReadOnly=1" `
+            -and $clientText -match "Inventory grid: PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=$scrollState ReadOnly=1") { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Inventory host/client scenario timed out.' }
@@ -55,6 +57,9 @@ try {
         foreach ($capture in $captures) {
             if ((Get-Item -LiteralPath $capture).Length -le 32) { throw "Inventory capture is empty: $capture" }
         }
+        # Capture settling can outlast the transaction checks; validate fresh fixture logs.
+        $serverText = Get-Content $serverLog -Raw
+        $clientText = Get-Content $clientLog -Raw
         . (Join-Path $PSScriptRoot 'Read-InventoryCapture.ps1')
         $captureScrollState = if ($PSBoundParameters.ContainsKey('EquipmentView') -and $PSBoundParameters['EquipmentView']) { '[01]' } else { '1' }
         $captureLogs = Read-KalmalaInventoryCaptureLogs -ServerLog $serverLog -ClientLog $clientLog -ScrollState $captureScrollState
@@ -62,7 +67,7 @@ try {
         $clientText = $captureLogs.Client
         foreach ($peerText in @($serverText, $clientText)) {
             if ($peerText -notmatch 'Inventory grid fixture: State=Empty PackSlots=16 Filled=0 Empty=16 CarriedTools=0' `
-                -or $peerText -notmatch 'Inventory grid fixture: State=Filled PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=1') {
+                -or $peerText -notmatch "Inventory grid fixture: State=Filled PackSlots=16 Filled=1 Empty=15 CarriedTools=\d+ Scrollable=$scrollState") {
                 throw 'Inventory empty/filled cell fixture did not render the expected fixed capacity.'
             }
         }
