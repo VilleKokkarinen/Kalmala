@@ -649,7 +649,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     SetKeyboardFocus();
     RecipeSearchBox->OnTextChanged.Broadcast(FText::FromString(TEXT("zz-no-matching-recipe")));
     const bool bNoResults = GetVisibleRecipeIndices().IsEmpty() && RecipeSlotCards.IsEmpty()
-        && !CraftButton->GetIsEnabled();
+        && !CraftButton->GetIsEnabled() && RequirementText->GetText().IsEmpty()
+        && Ingredients->GetPresentationText().IsEmpty();
     SetRecipeBrowse(TEXT(""), 3, false);
     const auto Builds = GetVisibleRecipeIndices();
     bool bBuildGroups = !Builds.IsEmpty();
@@ -1094,14 +1095,28 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             }
         }
     }
-    if (bCaptureRequested && ReviewCaptureStage < 18 && Widget
+    if (bCaptureRequested && ReviewCaptureStage < 26 && Widget
         && FParse::Value(FCommandLine::Get(), TEXT("KalmalaCraftingCapture="), CapturePath))
     {
         CaptureWait += DeltaTime;
         if (CaptureWait > 3.0f)
         {
             CaptureWait = 0;
-            if (ReviewCaptureStage >= 6)
+            if (ReviewCaptureStage >= 18)
+            {
+                const int32 View = (ReviewCaptureStage - 18) / 2;
+                static const TCHAR* Names[] = { TEXT("build-costs"), TEXT("build-requirements"), TEXT("cook-costs"), TEXT("cook-requirements") };
+                if (ReviewCaptureStage % 2 == 0)
+                {
+                    UE_LOG(LogTemp, Display, TEXT("Ingredient review: View=%s Passed=%d"), Names[View], Widget->PrepareIngredientReviewForTest(View));
+                }
+                else
+                {
+                    FScreenshotRequest::RequestScreenshot(FPaths::GetBaseFilename(CapturePath, false)
+                        + TEXT("-") + Names[View] + TEXT(".png"), true, false);
+                }
+            }
+            else if (ReviewCaptureStage >= 6)
             {
                 const int32 View = (ReviewCaptureStage - 6) / 2;
                 static const TCHAR* Names[] = { TEXT("cooking"), TEXT("structural"), TEXT("stations"), TEXT("utilities"), TEXT("no-results"), TEXT("inventory-browse") };
@@ -1138,6 +1153,30 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
 }
 
 #if !UE_BUILD_SHIPPING
+bool UKalmalaCraftingWidget::PrepareIngredientReviewForTest(const int32 View)
+{
+    if (!bOpen || !CraftingScrollBox || !Ingredients || !RequirementText || View < 0 || View > 3) return false;
+    const auto* Recipe = UKalmalaRecipeCatalogue::Get()->Find(View < 2 ? FName(TEXT("Floor")) : FName(TEXT("CookedBoarMeatRecipe")));
+    if (!Recipe) return false;
+    SetRecipeBrowse(Recipe->DisplayName, 0, false);
+    const auto Indices = GetVisibleRecipeIndices();
+    if (Indices.Num() != 1 || UKalmalaRecipeCatalogue::Get()->Recipes[Indices[0]].RecipeId != Recipe->RecipeId) return false;
+    const auto* Inventory = GetOwningPlayerPawn() ? GetOwningPlayerPawn()->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    if (!Inventory) return false;
+    const FString Costs = Ingredients->GetPresentationText();
+    for (const auto& Cost : Recipe->Ingredients)
+    {
+        if (!Costs.Contains(FString::Printf(TEXT("owned %d / required %d"), Inventory->GetQuantity(Cost.ItemId), Cost.Quantity))) return false;
+    }
+    const FString Requirements = RequirementText->GetText().ToString();
+    if (!Requirements.Contains(TEXT("Skill level: no recipe requirement."))
+        || (View < 2 && !Requirements.Contains(TEXT("carried Construction Hammer level 1 — Present")))
+        || (View >= 2 && !Requirements.Contains(TEXT("Cooking heat:")))) return false;
+    CraftingScrollBox->ScrollWidgetIntoView(View % 2 == 0 ? static_cast<UWidget*>(Ingredients.Get())
+        : static_cast<UWidget*>(RequirementText.Get()), false, EDescendantScrollDestination::TopOrLeft);
+    return true;
+}
+
 bool UKalmalaCraftingWidget::PrepareBrowseReviewForTest(const int32 View)
 {
     if (!bOpen || !CraftingScrollBox || !RecipeSearchBox || !InventoryInspector) return false;

@@ -97,3 +97,61 @@ Full parent-level verification and combined supported-scale pixel acceptance
 remain the final ordered child.
 
 Requirements child evidence, 2026-10-04: UE5.8.2 affected UI build passed ten actions in short Temp/ka with normal UBT access. Focused queue passed5/5, process/test exit0 at Temp/kreq1/tests.log. Rendered Verify-Crafting18601 passed both peers, new live requirements assertions, all twenty captures, existing navigation/modal/server validation/payment/atomicity checks at Temp/KalmalaCrafting-72631bb8acbc41aebf9bb93dba0ad5df. Standard host detail source PNG inspected: heading, no-station and Present hammer text visible; remaining requirements scroll below this capture. Full requirements pixel review at supported settings remains final-child scope. Ownership, five M5 documentation contracts and diff/path checks passed; mirror maximum209, added paths below260. No required check failed. No physical-input, package, rendered station/heat transition or clean-HEAD verification claimed. Parent full queue intentionally pending.
+
+## Combined parent acceptance procedure
+
+The final child adds four bounded developer review views per peer: direct-floor
+ingredient counts, direct-floor requirements, cooking ingredient counts and
+cooking requirements. Each view selects an existing canonical recipe and
+scrolls the normal menu to the relevant widget. Live assertions compare the
+displayed counts to the owning pawn's inventory and check the selected hammer,
+skill and heat guidance. They perform no action or inventory mutation.
+Existing no-results navigation additionally requires both ingredient and
+requirement text to clear. The rendered runner requires all fourteen PNGs per
+peer and every review assertion;180 seconds allows the eight extra bounded
+stages. Shipping menu timing/input and gameplay are unchanged.
+
+Parent verification requires the full Kalmala queue, standard1280x720/100%
+and high-contrast1024x768/150% rendered runs, owner-private inventory peers,
+ownership/five M5 contracts, script parsing and diff/path checks. Review each
+saved ingredient/requirement PNG for both peers. Earlier captures that merely
+showed a heading do not substitute for complete section review.
+
+## Parent accepted — 2026-10-04
+
+The final child and ingredient/requirements parent are complete under the
+existing editor-fixture scope. No production gameplay, RPC, authoritative
+value, catalogue, save or input action changed in acceptance work.
+
+- UE5.8.2 KalmalaEditor Win64 Development build passed eight actions in
+  Temp/ka with normal LOCALAPPDATA/UnrealBuildTool access.
+- Full Kalmala queue passed108/108, failed0, process/test exit0 at
+  C:/Users/Ville/AppData/Local/Temp/kpa1/all.log.
+- Rendered18602 at1280x720/100%/standard passed both peers and all28 captures:
+  Temp/KalmalaCrafting-9f708b6253614164928693ebe2debe7a.
+- Rendered18604 at1024x768/150%/high contrast passed both peers and all28 captures:
+  Temp/KalmalaCrafting-10e933d3915348f3babe94a8ed8f25c6.
+- Both runs passed existing selection/filter/no-results/focus/modal restoration,
+  server rejection/payment/atomicity/final state and all new review gates.
+  No-results checks require costs and requirements to clear together.
+- Inventory18603 passed owner privacy, capacity, server grants/rejections and
+  read-only presentation at Temp/KalmalaInventory-1334dc4ac1eb4445a8074550665c1d38.
+- Ownership, all five M5 documentation contracts, PowerShell parser and
+  diff/path checks passed; mirror maximum209, all added paths below260.
+
+All sixteen saved source ingredient/requirement images were inspected: four
+views × two peers × two settings. Original PNGs are retained in ingredients/
+with standard-/contrast- prefixes. Direct-floor Wood/Fibre counts and icons,
+hammer state, placement and no skill/unlock lock text, Cooking rack/heat,
+Boar meat count/icon and first unmet reasons are complete and readable.
+Long surrounding controls/details continue scrolling at enlarged text; the
+fixed Close control remains available. No visual repair was required.
+
+Limits: rendered fixtures show missing material/station states; sufficient
+counts, accepted consumption refresh, separate quantities, pending states,
+disabled metadata and reusable-tool branches are covered by focused tests in
+the full queue. No rendered physical cooking-station/heat transition, physical
+keyboard/controller playthrough, exhaustive viewport matrix, clean-HEAD or
+package acceptance claimed. Other first-unmet reasons retain the existing
+model contract. Earlier pending statements above are historical; this parent
+is now accepted, while the later complete M11 milestone acceptance remains open.

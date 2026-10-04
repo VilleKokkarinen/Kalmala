@@ -1,5 +1,20 @@
 # Development setup
 
+## M11 ingredient/requirements parent acceptance
+
+Follow `39-crafting-ingredients.md`: build the short isolated editor mirror
+with normal UnrealBuildTool access, run the full `Automation RunTests Kalmala`
+queue with isolated UserDir/logs and queue-empty TestExit, then rendered
+`Verify-Crafting.ps1` at1280x720/100%/contrast0 and1024x768/150%/contrast1.
+The runner now requires fourteen source captures per peer, including
+build-costs/build-requirements/cook-costs/cook-requirements and their successful
+developer review assertions. Rendered timeout is180 seconds for the bounded
+extra capture stages; no gameplay timing changes. Inspect both peers' source
+PNGs for complete readable counts and requirements through the normal scroll
+view. Run mirror Verify-Inventory for owner privacy/transaction regression,
+ownership, five M5 contracts, script parser and diff/path checks. Retain accepted
+captures and exact results/limits in docs/39 and PROGRESS before parent closeout.
+
 ## M11 combined menu browsing acceptance
 
 Build `KalmalaEditor Win64 Development` in the short disposable mirror with

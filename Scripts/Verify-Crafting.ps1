@@ -28,7 +28,7 @@ try {
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Listen server readiness timed out.' }
     $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common $clientShader $clientCapture -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
-    $deadline = (Get-Date).AddSeconds(120)
+    $deadline = (Get-Date).AddSeconds($(if ($Rendered) { 180 } else { 120 }))
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before verification.' }
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
@@ -71,13 +71,16 @@ try {
         }
         if ($Rendered) {
             foreach ($peerName in @('host', 'client')) {
-                foreach ($suffix in @('', '-details', '-feedback', '-inspection', '-cooking', '-structural', '-stations', '-utilities', '-no-results', '-inventory-browse')) {
+                foreach ($suffix in @('', '-details', '-feedback', '-inspection', '-cooking', '-structural', '-stations', '-utilities', '-no-results', '-inventory-browse', '-build-costs', '-build-requirements', '-cook-costs', '-cook-requirements')) {
                     $ready = $ready -and (Test-Path "$output\$peerName$suffix.png")
                 }
             }
             foreach ($peerText in @($serverText, $clientText)) {
                 foreach ($view in @('cooking', 'structural', 'stations', 'utilities', 'no-results', 'inventory-browse')) {
                     $ready = $ready -and $peerText.Contains("Browsing review: View=$view Passed=1")
+                }
+                foreach ($view in @('build-costs', 'build-requirements', 'cook-costs', 'cook-requirements')) {
+                    $ready = $ready -and $peerText.Contains("Ingredient review: View=$view Passed=1")
                 }
                 $ready = $ready -and $peerText.Contains('Construction feedback: Passed=1') `
                     -and $peerText.Contains('Crafting review scroll: Section=Details Passed=1') `
