@@ -47,6 +47,11 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Inventory host/client scenario timed out.' }
+    if ($clientText -notmatch 'Item gain receipts owner: Present=1 Bounded=1' -or
+        $clientText -notmatch 'Item gain receipts remote: Empty=1' -or
+        ($serverText + $clientText) -match 'Item gain receipts remote: Empty=0') {
+        throw 'Accepted item-gain receipts did not preserve owner delivery/privacy.'
+    }
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client world identity mismatch.' }
     if ($Rendered) {
         $captures = @("$output\Host\inventory-empty.png", "$output\Host\inventory-filled.png",

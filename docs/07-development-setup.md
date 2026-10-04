@@ -1656,3 +1656,12 @@ test-provider identities; it does not verify a production online identity
 provider or rendered UI. It seeds a normal schema-1 player slot, verifies
 discovery/effect migration, writes a current re-derived M9 claim and tool state,
 then checks those facts after host restart and owner reconnect.
+
+## M11 item-gain notification child
+
+After the affected isolated editor build, run Kalmala.UI.Notifications plus
+Kalmala.Gameplay.Inventory.NetworkContract, Kalmala.Gameplay.Crafting.Transactions
+and Kalmala.UI.Theme.LocalPresentation with memory DDC and isolated user/log
+paths. Run the mirror's Scripts/Verify-Inventory.ps1 for live owner receipt
+delivery and remote privacy. Full parent and combined renderer checks remain
+pending until discovery and acceptance children are complete.

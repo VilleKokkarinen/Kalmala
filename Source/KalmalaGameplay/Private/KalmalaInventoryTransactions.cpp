@@ -108,7 +108,9 @@ bool UKalmalaInventoryComponent::TryCommitStacksFromServer(
     if (!Owner || !Owner->HasAuthority() || !AreInventoryStatesEqual(Stacks, ExpectedBefore)
         || !IsValidInventoryState(CandidateAfter)) return false;
 
+    const auto Before = Stacks;
     Stacks = CandidateAfter;
+    RecordAcceptedGains(Before, Stacks);
     Owner->ForceNetUpdate();
     return true;
 }
@@ -119,7 +121,9 @@ bool UKalmalaInventoryComponent::TryExchangeFromServer(const TArray<FKalmalaInve
     if (!GetOwner() || !GetOwner()->HasAuthority()) { Reason = TEXT("Server authority required"); return false; }
     TArray<FKalmalaInventoryStack> Next;
     if (!BuildExchange(Stacks, Costs, Output, OutputCount, Next, Reason)) return false;
+    const auto Before = Stacks;
     Stacks = MoveTemp(Next);
+    RecordAcceptedGains(Before, Stacks);
     GetOwner()->ForceNetUpdate();
     return true;
 }
@@ -155,7 +159,9 @@ bool UKalmalaInventoryComponent::TransferStorageFromServer(const TArray<FKalmala
         : BuildTransfer(Storage, Stacks, ItemId, 1, NextStorage, NextPack, Reason);
     if (!Built) return false;
     if (!Persist(NextStorage)) { Reason = TEXT("Storage save failed; nothing transferred"); return false; }
+    const auto Before = Stacks;
     Stacks = MoveTemp(NextPack); GetOwner()->ForceNetUpdate();
+    RecordAcceptedGains(Before, Stacks);
     Reason = bDeposit ? TEXT("Stored one item") : TEXT("Took one item");
     return true;
 }

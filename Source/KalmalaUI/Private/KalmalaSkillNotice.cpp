@@ -1,8 +1,9 @@
 #include "KalmalaSkillNotice.h"
+#include "KalmalaItemCatalogue.h"
 
 void FKalmalaSkillNoticeQueue::Reset()
 {
-    Levels.Reset(); Rows.Reset();
+    Levels.Reset(); Rows.Reset(); LastGainSequence = 0; bGainBaseline = false;
 }
 
 bool FKalmalaSkillNoticeQueue::Observe(const TArray<FKalmalaSkillState>& Snapshot, float Lifetime)
@@ -20,7 +21,9 @@ bool FKalmalaSkillNoticeQueue::Observe(const TArray<FKalmalaSkillState>& Snapsho
         if (const auto* Previous = Levels.Find(Pair.Key); Previous && Pair.Value < *Previous) bBaseline = true;
     if (bBaseline)
     {
-        Levels = MoveTemp(Next); Rows.Reset(); return true;
+        Levels = MoveTemp(Next);
+        Rows.RemoveAll([](const auto& Row) { return Row.ItemId.IsNone(); });
+        return true;
     }
     const float Duration = FMath::IsFinite(Lifetime) ? FMath::Clamp(Lifetime, 1.f, 10.f) : 4.f;
     // Allowlist order gives deterministic ordering even if replication reorders rows.
@@ -38,6 +41,42 @@ bool FKalmalaSkillNoticeQueue::Observe(const TArray<FKalmalaSkillState>& Snapsho
         }
     }
     Levels = MoveTemp(Next);
+    return true;
+}
+
+bool FKalmalaSkillNoticeQueue::ObserveGains(const TArray<FKalmalaItemGainReceipt>& Receipts, float Lifetime)
+{
+    if (Receipts.Num() > UKalmalaInventoryComponent::MaxGainReceipts) return false;
+    int64 Previous = 0;
+    for (const auto& Receipt : Receipts)
+    {
+        if (Receipt.Sequence <= Previous || !UKalmalaItemCatalogue::Get()->IsValidStack(Receipt.ItemId, Receipt.Quantity))
+            return false;
+        Previous = Receipt.Sequence;
+    }
+    if (!bGainBaseline)
+    {
+        LastGainSequence = Previous; bGainBaseline = true; return true;
+    }
+    const float Duration = FMath::IsFinite(Lifetime) ? FMath::Clamp(Lifetime, 1.f, 10.f) : 4.f;
+    for (const auto& Receipt : Receipts)
+    {
+        if (Receipt.Sequence <= LastGainSequence) continue;
+        auto* Existing = Rows.FindByPredicate([&Receipt](const auto& Row) { return Row.ItemId == Receipt.ItemId; });
+        if (Existing)
+        {
+            Existing->Quantity = static_cast<int32>(FMath::Min<int64>(MAX_int32,
+                static_cast<int64>(Existing->Quantity) + Receipt.Quantity));
+            Existing->Remaining = Duration;
+        }
+        else
+        {
+            if (Rows.Num() == MaxRows) Rows.RemoveAt(0);
+            FKalmalaSkillNotice Row; Row.ItemId = Receipt.ItemId; Row.Quantity = Receipt.Quantity; Row.Remaining = Duration;
+            Rows.Add(Row);
+        }
+        LastGainSequence = Receipt.Sequence;
+    }
     return true;
 }
 

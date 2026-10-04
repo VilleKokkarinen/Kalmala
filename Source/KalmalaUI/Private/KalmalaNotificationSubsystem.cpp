@@ -1,5 +1,6 @@
 #include "KalmalaNotificationSubsystem.h"
 #include "KalmalaSkillProgressionComponent.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaIconWidget.h"
 #include "KalmalaSettingsWidget.h"
@@ -17,6 +18,7 @@
 
 namespace
 {
+FString NoticeText(const FKalmalaSkillNotice& Notice);
 const TCHAR* SkillName(EKalmalaSkill Skill)
 {
     switch (Skill)
@@ -41,6 +43,15 @@ EKalmalaIcon SkillIcon(EKalmalaSkill Skill)
     case EKalmalaSkill::Cooking: return EKalmalaIcon::Bowl;
     default: return EKalmalaIcon::Shield;
     }
+}
+FString NoticeText(const FKalmalaSkillNotice& Notice)
+{
+    if (!Notice.ItemId.IsNone())
+    {
+        const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Notice.ItemId);
+        return FString::Printf(TEXT("Gained %d %s"), Notice.Quantity, Item ? *Item->DisplayName : *Notice.ItemId.ToString());
+    }
+    return FString::Printf(TEXT("%s reached level %d"), SkillName(Notice.Skill), Notice.Level);
 }
 }
 
@@ -71,7 +82,7 @@ void UKalmalaNotificationWidget::SetNotices(const TArray<FKalmalaSkillNotice>& N
     if (!Panel) return;
     FString Next;
     for (int32 Index = 0; Index < FMath::Min(Notices.Num(), FKalmalaSkillNoticeQueue::MaxRows); ++Index)
-        Next += FString::Printf(TEXT("%s reached level %d\n"), SkillName(Notices[Index].Skill), Notices[Index].Level);
+        Next += NoticeText(Notices[Index]) + TEXT("\n");
     if (Next == Presentation && Scale == LastScale && Contrast == LastContrast) return;
     Presentation = Next; LastScale = Scale; LastContrast = Contrast;
     Rows->ClearChildren();
@@ -82,10 +93,13 @@ void UKalmalaNotificationWidget::SetNotices(const TArray<FKalmalaSkillNotice>& N
         auto* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
         auto* Box = WidgetTree->ConstructWidget<USizeBox>();
         Box->SetWidthOverride(28); Box->SetHeightOverride(28);
-        auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>(); Icon->SetIcon(SkillIcon(Notices[Index].Skill));
+        auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+        EKalmalaIcon Kind = SkillIcon(Notices[Index].Skill); int32 Variant = 0;
+        if (!Notices[Index].ItemId.IsNone()) UKalmalaIconWidget::FindCatalogueIcon(Notices[Index].ItemId, Kind, Variant);
+        Icon->SetIcon(Kind, Variant);
         Box->SetContent(Icon); Row->AddChild(Box);
         auto* Text = WidgetTree->ConstructWidget<UTextBlock>(); Text->SetAutoWrapText(true);
-        Text->SetText(FText::FromString(FString::Printf(TEXT("%s reached level %d"), SkillName(Notices[Index].Skill), Notices[Index].Level)));
+        Text->SetText(FText::FromString(NoticeText(Notices[Index])));
         Theme.ApplyText(*Text, Theme.BodySize, false, Scale, Contrast);
         auto* TextSlot = Row->AddChildToHorizontalBox(Text); TextSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
         TextSlot->SetPadding(FMargin(Theme.SlotPadding, 0)); Rows->AddChild(Row);
@@ -105,6 +119,8 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
     Queue.Tick(DeltaTime);
     const auto* Skills = Pawn ? Pawn->FindComponentByClass<UKalmalaSkillProgressionComponent>() : nullptr;
     if (Skills) Queue.Observe(Skills->GetDetailedProgression(), FKalmalaUITheme::Get().NotificationLifetime);
+    const auto* Inventory = Pawn ? Pawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    if (Inventory) Queue.ObserveGains(Inventory->GetGainReceipts(), FKalmalaUITheme::Get().NotificationLifetime);
     if (!Pawn || !Controller || Queue.GetRows().IsEmpty() || Controller->IsMoveInputIgnored())
     {
         if (Widget) Widget->SetVisibility(ESlateVisibility::Collapsed);

@@ -180,3 +180,9 @@ line-art icons and themed text. It adds no RPC, gameplay mutation, peer query,
 external asset or persistence field. Queue/widget behavior is focused-test
 covered; rendered multiplayer placement acceptance remains pending. See
 `docs/40-notifications.md` for lifecycle and limits.
+
+Accepted item-gain feedback uses reliable server-to-owner receipts only after
+validated inventory publications. The local 32-receipt buffer is transient;
+initial attachment is silent and the shared three-row widget does not inspect
+peer inventory. No server mutation RPC or persistence field is added. See
+40-notifications.md for net-gain and dropped-notice limits.

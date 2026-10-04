@@ -246,6 +246,7 @@ bool UKalmalaInventoryComponent::TryGrantFromServer(FName ItemId, int32 Quantity
         Stack->ItemId = ItemId;
     }
     Stack->Quantity += Quantity;
+    ClientAcceptedGain(ItemId, Quantity);
     GetOwner()->ForceNetUpdate();
     return true;
 }
@@ -270,6 +271,24 @@ void UKalmalaInventoryComponent::BeginPlay()
 #endif
 }
 
+void UKalmalaInventoryComponent::ClientAcceptedGain_Implementation(FName ItemId, int32 Quantity)
+{
+    if (!UKalmalaItemCatalogue::Get()->IsValidStack(ItemId, Quantity)) return;
+    if (GainReceipts.Num() == MaxGainReceipts) GainReceipts.RemoveAt(0);
+    GainReceipts.Add({++GainSequence, ItemId, Quantity});
+}
+
+void UKalmalaInventoryComponent::RecordAcceptedGains(const TArray<FKalmalaInventoryStack>& Before,
+    const TArray<FKalmalaInventoryStack>& After)
+{
+    for (const auto& Stack : After)
+    {
+        const auto* Previous = Before.FindByPredicate([&Stack](const auto& Row) { return Row.ItemId == Stack.ItemId; });
+        const int32 Increase = Stack.Quantity - (Previous ? Previous->Quantity : 0);
+        if (Increase > 0) ClientAcceptedGain(Stack.ItemId, Increase);
+    }
+}
+
 void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTick)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTick);
@@ -292,7 +311,7 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
     }
     else if (Pawn->IsLocallyControlled())
     {
-        if (GetQuantity(TEXT("Wood")) != 7) return;
+        if (GetQuantity(TEXT("Wood")) != 7 || GainReceipts.IsEmpty()) return;
         const auto* Character = Cast<AKalmalaCharacter>(Pawn);
         const auto* Hatchet = FKalmalaToolLifecycleContract::FindDefinition(TEXT("FieldHatchet"));
         const auto* StonePick = FKalmalaToolLifecycleContract::FindDefinition(TEXT("StonePick"));
@@ -303,6 +322,7 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
             || Character->GetToolDurability(TEXT("ReedKnife")) != ReedKnife->MaxDurability) return;
         const bool bRejected = !TryGrantFromServer(TEXT("Wood"), 1) && !TryConsumeFromServer(TEXT("Wood"), 1);
         UE_LOG(LogTemp, Display, TEXT("Inventory owner: Rejected=%d Wood=%d Slots=%d"), bRejected, GetQuantity(TEXT("Wood")), Stacks.Num());
+        UE_LOG(LogTemp, Display, TEXT("Item gain receipts owner: Present=%d Bounded=%d"), !GainReceipts.IsEmpty(), GainReceipts.Num() <= MaxGainReceipts);
         UE_LOG(LogTemp, Display, TEXT("Tool condition owner: Passed=%d FieldHatchet=%d StonePick=%d ReedKnife=%d"),
             Character->GetToolDurability(TEXT("FieldHatchet")) == Hatchet->MaxDurability && StonePick && ReedKnife
                 && Character->GetToolDurability(TEXT("StonePick")) == StonePick->MaxDurability
@@ -314,6 +334,7 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
     {
         // Repeat remote checks so the runner observes privacy after owner replication arrives.
         UE_LOG(LogTemp, Display, TEXT("Inventory remote: Empty=%d"), Stacks.IsEmpty());
+        UE_LOG(LogTemp, Display, TEXT("Item gain receipts remote: Empty=%d"), GainReceipts.IsEmpty());
         const auto* Character = Cast<AKalmalaCharacter>(Pawn);
         UE_LOG(LogTemp, Display, TEXT("Tool condition remote: Hidden=%d"), Character == nullptr
             || (Character->GetToolDurability(TEXT("FieldHatchet")) == 0 && Character->GetToolDurability(TEXT("StonePick")) == 0

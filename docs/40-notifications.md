@@ -40,7 +40,44 @@ directory and memory DDC. The notification automation covers accepted awards,
 partial/invalid snapshots, coalescing, overflow, expiry, reconnect/reset,
 independent owners, passive widget text and bounded theme lifetime.
 
-Item gains and discoveries are the next two children. Real replicated level-up
+Discoveries are the next child. Real replicated level-up
 pixels, combined queue behavior, modal placement and the supported viewport
 matrix remain later acceptance scope. Full parent verification is intentionally
 pending until those children are complete.
+
+## Accepted item gains
+
+Accepted server inventory publications send a reliable client-only
+`ClientAcceptedGain` receipt to the owning connection. Direct grants record the
+accepted quantity. Exchanges, validated candidate commits and successful
+storage withdrawals record each positive net item increase after publication;
+consumption, deposits, unchanged commits, rejected/stale candidates and failed
+storage writes produce no gain. This feedback adds no server mutation RPC and
+cannot mint or consume inventory. Receipts do not depend on a later inventory
+snapshot, so gain followed by consumption between UI refreshes still announces
+the accepted gain. A same-item exchange announces its positive **net** increase,
+not its gross output. Carried-tool records are a separate inventory contract and
+are not newly announced by this child.
+
+The owner stores only the latest 32 transient receipts with locally monotonic
+sequence numbers. The first observed buffer silently establishes a baseline,
+including already-delivered receipts on pawn attachment. Pawn replacement
+clears it through the existing session reset. Refresh, expiry, modal close and
+unchanged buffers never replay receipts. A UI polling gap exceeding 32 receipts
+drops older notices; it cannot change inventory. There is no receipt persistence
+or save-schema change. Reliable delivery follows the existing pawn's owning
+connection; there is no multicast or peer detail replication.
+
+New item receipts share the existing three-row queue with skill notices. Same
+canonical item gains coalesce into a summed `Gained N Item` label and renew the
+bounded lifetime; summed labels saturate at int32 maximum. Overflow evicts the
+oldest row. Canonical catalogue names and original catalogue icons are used.
+Late initial skill replication does not clear already accepted item feedback.
+
+Run `Kalmala.UI.Notifications.ItemGains` and `.SkillLevels`,
+`Kalmala.Gameplay.Inventory.NetworkContract`, `Kalmala.Gameplay.Crafting.Transactions`
+and `Kalmala.UI.Theme.LocalPresentation` after the affected editor build.
+`Scripts/Verify-Inventory.ps1` additionally requires live owning-client receipt
+presence/bounds and empty remote receipt buffers, alongside existing inventory
+privacy and rejected-client-mutation gates. Rendered combined notification
+placement and real reconnect pixels remain final-child acceptance scope.

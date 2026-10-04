@@ -13,6 +13,13 @@ struct FKalmalaInventoryStack
 };
 
 /** Pawn-lifetime inventory. Only trusted server gameplay may mutate its contents. */
+struct FKalmalaItemGainReceipt
+{
+    int64 Sequence = 0;
+    FName ItemId;
+    int32 Quantity = 0;
+};
+
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaInventoryComponent : public UActorComponent
 {
@@ -21,6 +28,9 @@ public:
     UKalmalaInventoryComponent();
     static constexpr int32 MaxSlots = 16;
     const TArray<FKalmalaInventoryStack>& GetStacks() const { return Stacks; }
+    /** Local owner receipt buffer, never used as inventory authority or persistence. */
+    const TArray<FKalmalaItemGainReceipt>& GetGainReceipts() const { return GainReceipts; }
+    static constexpr int32 MaxGainReceipts = 32;
     int32 GetQuantity(FName ItemId) const;
     bool TryGrantFromServer(FName ItemId, int32 Quantity);
     bool TryConsumeFromServer(FName ItemId, int32 Quantity);
@@ -47,6 +57,11 @@ protected:
     virtual void BeginPlay() override;
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTick) override;
 private:
+    void RecordAcceptedGains(const TArray<FKalmalaInventoryStack>& Before,
+        const TArray<FKalmalaInventoryStack>& After);
+    UFUNCTION(Client, Reliable) void ClientAcceptedGain(FName ItemId, int32 Quantity);
+    TArray<FKalmalaItemGainReceipt> GainReceipts;
+    int64 GainSequence = 0;
     UPROPERTY(Replicated) TArray<FKalmalaInventoryStack> Stacks;
     bool bVerificationComplete = false;
 };
