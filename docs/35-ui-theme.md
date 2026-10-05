@@ -166,6 +166,33 @@ focused widget preview handler, confirms selection updates and restoration,
 and checks the measured scroll extent. This does not replace a physical
 keyboard/controller playthrough or a cooked/package asset-inclusion check.
 
+## Selected recipe and build-result preview — 2026-10-05
+
+The selected recipe/build result uses a shared local detail panel with an
+88-logical-unit canonical line icon beside its name, description, availability,
+and existing requirement text. Ingredient costs remain in the separate
+owner-local ingredient view immediately below. The preview resolves only the
+selected recipe's existing output ID through `UKalmalaIconWidget`; it adds no
+catalogue fields, item definitions, transaction, placement, or gameplay spawn.
+
+When a selected result has no canonical icon, the panel keeps the result text,
+shows the existing unknown glyph, and labels the missing preview. A search with
+no matching result clears and collapses the whole detail panel. The panel uses
+shared theme colours, fonts, text scaling, and high-contrast treatment. Its
+selection follows the existing keyboard/controller recipe navigation and
+remains presentation-only.
+
+## Status transition cue theme keys — 2026-10-05
+
+The owner-local status hotbar reads `StatusCueStartedColor`,
+`StatusCueRefreshedColor`, `StatusCueEndedColor`, and `StatusCueDuration` from
+the shared theme. Colours use the same finite `[0,1]` RGBA parser and safely
+fall back when missing or invalid; duration is bounded to 0.4–3 seconds (default
+1.25). The icon ring fades/pulses while `AnimateInteractionStates=True` and
+local Reduced motion is off. Either motion setting produces a static ring until
+the same expiry. High contrast uses a white ring plus the textual Started,
+Refreshed, or Ended label.
+
 ## Parent verification — 2026-10-02
 
 The foundation parent is complete. The isolated UE 5.8.2 editor build passed;

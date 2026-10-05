@@ -9,6 +9,7 @@
 #include "KalmalaUITheme.h"
 #include "KalmalaThemedButton.h"
 #include "KalmalaIconWidget.h"
+#include "KalmalaSelectedResultWidget.h"
 #include "Components/SizeBox.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaPlacementPreview.h"
@@ -396,18 +397,10 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     RecipeGrid = WidgetTree->ConstructWidget<UUniformGridPanel>();
     Column->AddChild(RecipeGrid);
     RecipesText = AddText(TEXT(""), 18);
-    Column->RemoveChild(RecipesText);
-    auto* RecipeRow = WidgetTree->ConstructWidget<UHorizontalBox>();
-    auto* IconBox = WidgetTree->ConstructWidget<USizeBox>();
-    IconBox->SetWidthOverride(32); IconBox->SetHeightOverride(32);
-    SelectedIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
-    IconBox->SetContent(SelectedIcon); RecipeRow->AddChild(IconBox);
-    RecipeRow->AddChildToHorizontalBox(RecipesText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-    Column->AddChild(RecipeRow);
-    DetailText = AddText(TEXT(""), 18);
+    SelectedResultPreview = WidgetTree->ConstructWidget<UKalmalaSelectedResultWidget>();
+    Column->AddChild(SelectedResultPreview);
     Ingredients = WidgetTree->ConstructWidget<UKalmalaIngredientWidget>();
     Column->AddChild(Ingredients);
-    RequirementText = AddText(TEXT(""), 18);
     auto AddButton = [&](const TCHAR* Label, UHorizontalBox* Row = nullptr, const TCHAR* Help = nullptr) {
         auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>(); auto* Text = WidgetTree->ConstructWidget<UTextBlock>();
         Text->SetText(FText::FromString(Label)); Text->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(),18));
@@ -818,28 +811,87 @@ bool UKalmalaCraftingWidget::VerifyInventoryInspectionForTest()
 
 bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
 {
-    if (!bOpen || RecipeSlotCards.IsEmpty() || RecipeGridSelectedIndex < 0 || !bRecipeGridFocused
+    if (!bOpen || !SelectedResultPreview || RecipeSlotCards.IsEmpty() || RecipeGridSelectedIndex < 0 || !bRecipeGridFocused
         || RecipeGridUnavailableCount < 1) return false;
+    const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
+    const int32 InitialActorCount = GetWorld() ? GetWorld()->GetActorCount() : INDEX_NONE;
+    TArray<FName> OriginalOutputs;
+    OriginalOutputs.Reserve(Recipes.Num());
+    for (const FKalmalaRecipe& Recipe : Recipes) OriginalOutputs.Add(Recipe.Output);
+    const auto IsPreviewForSelection = [this, &Recipes]()
+    {
+        const TArray<int32> Indices = GetVisibleRecipeIndices();
+        if (!SelectedResultPreview || !Indices.IsValidIndex(Selected) || !Recipes.IsValidIndex(Indices[Selected])) return false;
+        const FKalmalaRecipe& Recipe = Recipes[Indices[Selected]];
+        EKalmalaIcon ExpectedIcon = EKalmalaIcon::Unknown;
+        int32 ExpectedVariant = 0;
+        return UKalmalaSelectedResultWidget::FindCanonicalIcon(Recipe.Output, ExpectedIcon, ExpectedVariant)
+            && SelectedResultPreview->IsShowingResult()
+            && SelectedResultPreview->GetOutputId() == Recipe.Output
+            && SelectedResultPreview->HasCanonicalIcon();
+    };
     const int32 InitialSelection = Selected;
     const FModifierKeysState NoModifiers;
     const FKeyEvent KeyboardDown(EKeys::Down, NoModifiers, 0, false, 0, 0);
     const FReply KeyboardReply = NativeOnPreviewKeyDown(FGeometry(), KeyboardDown);
     const bool bKeyboardAdvanced = KeyboardReply.IsEventHandled() && Selected != InitialSelection
         && RecipeGridSelectedIndex == Selected;
+    const bool bKeyboardPreviewAdvanced = bKeyboardAdvanced && IsPreviewForSelection();
     const FKeyEvent KeyboardUp(EKeys::Up, NoModifiers, 0, false, 0, 0);
     const FReply KeyboardUpReply = NativeOnPreviewKeyDown(FGeometry(), KeyboardUp);
     const bool bKeyboardRestored = KeyboardUpReply.IsEventHandled() && Selected == InitialSelection
         && RecipeGridSelectedIndex == InitialSelection;
+    const bool bKeyboardPreviewRestored = bKeyboardRestored && IsPreviewForSelection();
     const FKeyEvent ControllerDown(EKeys::Gamepad_DPad_Down, NoModifiers, 0, false, 0, 0);
     const FReply ControllerDownReply = NativeOnPreviewKeyDown(FGeometry(), ControllerDown);
     const bool bControllerAdvanced = ControllerDownReply.IsEventHandled() && Selected != InitialSelection
         && RecipeGridSelectedIndex == Selected;
+    const bool bControllerPreviewAdvanced = bControllerAdvanced && IsPreviewForSelection();
     const FKeyEvent ControllerUp(EKeys::Gamepad_DPad_Up, NoModifiers, 0, false, 0, 0);
     const FReply ControllerUpReply = NativeOnPreviewKeyDown(FGeometry(), ControllerUp);
     const bool bControllerRestored = ControllerUpReply.IsEventHandled() && Selected == InitialSelection
         && RecipeGridSelectedIndex == InitialSelection;
+    const bool bControllerPreviewRestored = bControllerRestored && IsPreviewForSelection();
     const auto OriginalIndices = GetVisibleRecipeIndices();
     const int32 OriginalRecipe = OriginalIndices.IsValidIndex(InitialSelection) ? OriginalIndices[InitialSelection] : INDEX_NONE;
+
+    UKalmalaCraftingComponent* const CraftingModel = Model();
+    int32 UnavailableSelection = INDEX_NONE;
+    FString UnavailableReason;
+    if (CraftingModel)
+    {
+        for (int32 VisibleIndex = 0; VisibleIndex < OriginalIndices.Num(); ++VisibleIndex)
+        {
+            const int32 RecipeIndex = OriginalIndices[VisibleIndex];
+            if (!Recipes.IsValidIndex(RecipeIndex)) continue;
+            const FString Reason = CraftingModel->GetRecipeAvailability(Recipes[RecipeIndex].RecipeId);
+            if (!Reason.IsEmpty())
+            {
+                UnavailableSelection = VisibleIndex;
+                UnavailableReason = Reason;
+                break;
+            }
+        }
+    }
+    bool bUnavailablePreview = false;
+    if (OriginalIndices.IsValidIndex(UnavailableSelection))
+    {
+        Selected = UnavailableSelection;
+        Refresh();
+        bUnavailablePreview = IsPreviewForSelection()
+            && RecipeSlotStates.IsValidIndex(UnavailableSelection)
+            && RecipeSlotStates[UnavailableSelection]->GetText().ToString().Contains(TEXT("UNAVAILABLE"))
+            && SelectedResultPreview->GetPresentationText().Contains(UnavailableReason);
+        Selected = InitialSelection;
+        Refresh();
+    }
+    SelectedResultPreview->SetResult(TEXT("KalmalaMissingPreviewFixture"), TEXT("Unmapped output"),
+        TEXT("Description fixture"), TEXT("Requirements fixture"),
+        UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
+    const bool bMissingIconFallback = SelectedResultPreview->IsShowingResult()
+        && !SelectedResultPreview->HasCanonicalIcon()
+        && SelectedResultPreview->GetPresentationText().Contains(TEXT("Preview icon unavailable"));
+    Refresh();
     SetRecipeBrowse(TEXT(""), 0, true);
     const auto SortedIndices = GetVisibleRecipeIndices();
     const bool bSelectionKept = SortedIndices.IsValidIndex(Selected) && SortedIndices[Selected] == OriginalRecipe;
@@ -852,7 +904,9 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     SetKeyboardFocus();
     RecipeSearchBox->OnTextChanged.Broadcast(FText::FromString(TEXT("zz-no-matching-recipe")));
     const bool bNoResults = GetVisibleRecipeIndices().IsEmpty() && RecipeSlotCards.IsEmpty()
-        && !CraftButton->GetIsEnabled() && RequirementText->GetText().IsEmpty()
+        && !CraftButton->GetIsEnabled() && !SelectedResultPreview->IsShowingResult()
+        && SelectedResultPreview->GetOutputId().IsNone()
+        && SelectedResultPreview->GetPresentationText().IsEmpty()
         && Ingredients->GetPresentationText().IsEmpty();
     SetRecipeBrowse(TEXT(""), 3, false);
     const auto Builds = GetVisibleRecipeIndices();
@@ -883,12 +937,29 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const bool bRestored = GetVisibleRecipeIndices() == OriginalIndices && RecipeGridSelectedIndex == InitialSelection;
     UE_LOG(LogTemp, Display, TEXT("Recipe browsing: SelectionKept=%d Category=%d NoResults=%d Restored=%d SearchFocus=%d"),
         bSelectionKept, bCategoryWorked, bNoResults, bRestored, bSearchFocusSafe);
+    TArray<FName> CurrentOutputs;
+    CurrentOutputs.Reserve(Recipes.Num());
+    for (const FKalmalaRecipe& Recipe : Recipes) CurrentOutputs.Add(Recipe.Output);
+    const bool bCatalogueStable = OriginalOutputs == CurrentOutputs;
+    const bool bNoActorsSpawned = GetWorld() && GetWorld()->GetActorCount() == InitialActorCount;
+    const FVector2D ConfiguredPreviewSize = SelectedResultPreview->GetConfiguredPreviewIconSize();
+    const bool bLargePreview = UKalmalaSelectedResultWidget::GetPreviewIconExtent() >= 64
+        && ConfiguredPreviewSize.X >= 64.0f && ConfiguredPreviewSize.Y >= 64.0f;
+    const bool bPreviewKeyboard = bKeyboardPreviewAdvanced && bKeyboardPreviewRestored;
+    const bool bPreviewController = bControllerPreviewAdvanced && bControllerPreviewRestored;
+    UE_LOG(LogTemp, Display, TEXT("Result preview: Keyboard=%d DPad=%d Unavailable=%d MissingIconFallback=%d NoResultsCleared=%d Large=%d NoActorsSpawned=%d CatalogueStable=%d IconExtent=%d"),
+        bPreviewKeyboard, bPreviewController, bUnavailablePreview, bMissingIconFallback,
+        bNoResults,
+        bLargePreview, bNoActorsSpawned, bCatalogueStable,
+        UKalmalaSelectedResultWidget::GetPreviewIconExtent());
     const float ScrollOffsetOfEnd = CraftingScrollBox ? CraftingScrollBox->GetScrollOffsetOfEnd() : 0.0f;
     const bool bScrollable = ScrollOffsetOfEnd > 1.0f;
     UE_LOG(LogTemp, Display, TEXT("Build grid input: KeyboardDown=%d KeyboardUp=%d DPadDown=%d DPadUp=%d Scrollable=%d ScrollEnd=%.1f Focused=%d"),
         bKeyboardAdvanced, bKeyboardRestored, bControllerAdvanced, bControllerRestored,
         bScrollable, ScrollOffsetOfEnd, HasKeyboardFocus());
     return bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
+        && bPreviewKeyboard && bPreviewController && bUnavailablePreview && bMissingIconFallback
+        && bNoResults && bLargePreview && bNoActorsSpawned && bCatalogueStable
         && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe
         && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty;
 }
@@ -944,10 +1015,8 @@ void UKalmalaCraftingWidget::Refresh()
     if (VisibleIndices.IsEmpty())
     {
         RecipesText->SetText(FText::FromString(TEXT("No matching recipes. Clear recipe search or choose All. Station scope still applies.\n")));
-        DetailText->SetText(FText::GetEmpty());
+        if (SelectedResultPreview) SelectedResultPreview->ClearResult();
         Ingredients->SetIngredients({}, nullptr, TextScalePercent, ContrastMode);
-        RequirementText->SetText(FText::GetEmpty());
-        if (SelectedIcon) SelectedIcon->SetVisibility(ESlateVisibility::Collapsed);
         if (CraftButton && CraftButton->GetIsEnabled())
         {
             CraftButton->SetIsEnabled(false);
@@ -967,10 +1036,6 @@ void UKalmalaCraftingWidget::Refresh()
     Ingredients->SetIngredients(IngredientCosts,
         OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr,
         TextScalePercent, ContrastMode);
-    EKalmalaIcon Kind; int32 IconVariant;
-    UKalmalaIconWidget::FindCatalogueIcon(SelectedRecipe.Output, Kind, IconVariant);
-    SelectedIcon->SetIcon(Kind, IconVariant);
-    SelectedIcon->SetVisibility(ESlateVisibility::HitTestInvisible);
     const FString StationPrefix = StationFilterKit.IsNone() ? TEXT("")
         : (UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)
             ? UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)->DisplayName : StationFilterKit.ToString()) + TEXT(" recipes: ");
@@ -978,13 +1043,16 @@ void UKalmalaCraftingWidget::Refresh()
         *StationPrefix, Selected + 1, VisibleIndices.Num(), *SelectedRecipe.DisplayName)));
     const FString Availability = M->GetRecipeAvailability(SelectedRecipe.RecipeId);
     const auto* RequirementOwner = Cast<AKalmalaCharacter>(OwnerPawn);
-    RequirementText->SetText(FText::FromString(FKalmalaRecipeRequirements::Describe(SelectedRecipe,
+    const FString Requirements = FKalmalaRecipeRequirements::Describe(SelectedRecipe,
         OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr,
         RequirementOwner ? RequirementOwner->GetCarriedToolLevel(TEXT("ConstructionHammer")) : -1,
-        Availability)));
-    DetailText->SetText(FText::FromString(M->GetRecipeDescription(SelectedRecipe.RecipeId)
+        Availability);
+    const FString Description = M->GetRecipeDescription(SelectedRecipe.RecipeId)
         + TEXT("\nAvailability: ") + Availability + TEXT("\n")
-        + BuildSkillProgressText(Cast<AKalmalaCharacter>(GetOwningPlayerPawn()))));
+        + BuildSkillProgressText(Cast<AKalmalaCharacter>(GetOwningPlayerPawn()));
+    if (SelectedResultPreview)
+        SelectedResultPreview->SetResult(SelectedRecipe.Output, SelectedRecipe.DisplayName,
+            Description, Requirements, TextScalePercent, ContrastMode);
     const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.Output);
     if (CraftButton)
     {
@@ -1053,12 +1121,12 @@ void UKalmalaCraftingWidget::Refresh()
 
 FString UKalmalaCraftingWidget::GetPresentationText() const
 {
-    return InstructionsText && RecipesText && DetailText && StateText
-        ? InstructionsText->GetText().ToString()+RecipesText->GetText().ToString()+DetailText->GetText().ToString()
+    return InstructionsText && RecipesText && StateText
+        ? InstructionsText->GetText().ToString()+RecipesText->GetText().ToString()
+            + (SelectedResultPreview ? SelectedResultPreview->GetPresentationText() : FString())
             + StateText->GetText().ToString() + (FoodText ? FoodText->GetText().ToString() : FString())
             + (RepairText ? RepairText->GetText().ToString() : FString())
             + (ToolProgressionText ? ToolProgressionText->GetText().ToString() : FString())
-            + (RequirementText ? RequirementText->GetText().ToString() : FString())
             + (CraftButton ? CraftButton->GetToolTipText().ToString() : FString())
             + (StorageText ? StorageText->GetText().ToString() : FString()) : FString();
 }
@@ -1372,7 +1440,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
 #if !UE_BUILD_SHIPPING
 bool UKalmalaCraftingWidget::PrepareIngredientReviewForTest(const int32 View)
 {
-    if (!bOpen || !CraftingScrollBox || !Ingredients || !RequirementText || View < 0 || View > 3) return false;
+    if (!bOpen || !CraftingScrollBox || !Ingredients || !SelectedResultPreview || View < 0 || View > 3) return false;
     const auto* Recipe = UKalmalaRecipeCatalogue::Get()->Find(View < 2 ? FName(TEXT("Floor")) : FName(TEXT("CookedBoarMeatRecipe")));
     if (!Recipe) return false;
     SetRecipeBrowse(Recipe->DisplayName, 0, false);
@@ -1385,12 +1453,12 @@ bool UKalmalaCraftingWidget::PrepareIngredientReviewForTest(const int32 View)
     {
         if (!Costs.Contains(FString::Printf(TEXT("owned %d / required %d"), Inventory->GetQuantity(Cost.ItemId), Cost.Quantity))) return false;
     }
-    const FString Requirements = RequirementText->GetText().ToString();
+    const FString Requirements = SelectedResultPreview->GetRequirementsText();
     if (!Requirements.Contains(TEXT("Skill level: no recipe requirement."))
         || (View < 2 && !Requirements.Contains(TEXT("carried Construction Hammer level 1 — Present")))
         || (View >= 2 && !Requirements.Contains(TEXT("Cooking heat:")))) return false;
     CraftingScrollBox->ScrollWidgetIntoView(View % 2 == 0 ? static_cast<UWidget*>(Ingredients.Get())
-        : static_cast<UWidget*>(RequirementText.Get()), false, EDescendantScrollDestination::TopOrLeft);
+        : static_cast<UWidget*>(SelectedResultPreview.Get()), false, EDescendantScrollDestination::TopOrLeft);
     return true;
 }
 
@@ -1434,7 +1502,8 @@ bool UKalmalaCraftingWidget::ScrollInventoryDetailsForTest()
 
 bool UKalmalaCraftingWidget::ScrollReviewSectionForTest(const bool bFeedback)
 {
-    UTextBlock* Target = bFeedback ? RepairText.Get() : DetailText.Get();
+    UWidget* Target = bFeedback ? static_cast<UWidget*>(RepairText.Get())
+        : static_cast<UWidget*>(SelectedResultPreview.Get());
     if (!CraftingScrollBox || !Target || !bOpen) return false;
     CraftingScrollBox->ScrollWidgetIntoView(Target, false, EDescendantScrollDestination::TopOrLeft);
     return true;

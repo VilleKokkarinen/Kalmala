@@ -48,6 +48,7 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
         HotbarWidget = CreateWidget<UKalmalaStatusHotbarWidget>(FoundController, UKalmalaStatusHotbarWidget::StaticClass());
         if (HotbarWidget) HotbarWidget->AddToPlayerScreen(55);
     }
+    bool bResetHotbarTransitionHistory = false;
     FKalmalaSurvivalStatusSnapshot Snapshot;
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(FoundController->GetPawn());
     Snapshot.bHasCharacter = Character != nullptr;
@@ -55,6 +56,7 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
     {
         if (FeedbackPawn.Get() != Character)
         {
+            bResetHotbarTransitionHistory = true;
             FeedbackPawn = Character;
             LastOceanTravelFeedbackSerial = 0;
             LastLoggedOceanTravelFeedbackSerial = 0;
@@ -112,6 +114,7 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
     StatusDetailsText = UKalmalaSurvivalStatusWidget::BuildStatusText(Snapshot);
     int32 HotbarScale = UKalmalaSettingsWidget::GetTextScalePercent();
     int32 HotbarContrast = UKalmalaSettingsWidget::GetContrastMode();
+    bool bSuppressHotbarTransitions = false;
 #if !UE_BUILD_SHIPPING
     FString CapturePrefix;
     if (Character && HotbarWidget && FParse::Value(FCommandLine::Get(), TEXT("KalmalaHotbarCapture="), CapturePrefix))
@@ -129,6 +132,7 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
         if (VerificationElapsed >= 6 && VerificationElapsed < 21)
         {
             Snapshot = FKalmalaSurvivalStatusSnapshot(); Snapshot.bHasCharacter = true;
+            bSuppressHotbarTransitions = true;
             if (VerificationElapsed >= 11 && VerificationElapsed < 16)
             {
                 Snapshot.Statuses.Add({UKalmalaPlayerStatusComponent::WetStatusId,31.2f});
@@ -137,6 +141,34 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
                 Snapshot.ActiveSupportEffect=EKalmalaSupportEffect::HearthShield; Snapshot.ActiveSupportEffectExpiry=80; Snapshot.ServerTimeSeconds=45;
                 Snapshot.bHasWeatherState=true; Snapshot.Weather.ServerStartTimeSeconds=15;
                 Snapshot.Weather.PrecipitationIntensity=.9f; Snapshot.Weather.WindStrength=.9f; Snapshot.Weather.RefreshActivityLevel();
+            }
+        }
+        const bool bCueFixtureActive = VerificationElapsed >= 32.0f && VerificationElapsed < 39.0f;
+        if (bCueFixtureActive)
+        {
+            Snapshot = FKalmalaSurvivalStatusSnapshot();
+            Snapshot.bHasCharacter = true;
+            Snapshot.bHasWeatherState = true;
+            Snapshot.ServerTimeSeconds = 45.0f;
+            Snapshot.Weather.ServerStartTimeSeconds = 15.0f;
+            Snapshot.Weather.PrecipitationIntensity = 0.9f;
+            Snapshot.Weather.WindStrength = 0.9f;
+            Snapshot.Weather.RefreshActivityLevel();
+            if (VerificationCueCapture == 0)
+            {
+                if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaHotbarReducedMotion")))
+                {
+                    UKalmalaSettingsWidget::SetReducedMotionEnabled(true);
+                }
+                bResetHotbarTransitionHistory = true;
+            }
+            else if (VerificationElapsed >= 33.0f && VerificationElapsed < 34.5f)
+            {
+                Snapshot.Statuses.Add({UKalmalaPlayerStatusComponent::WetStatusId, 31.2f});
+            }
+            else if (VerificationElapsed >= 34.5f && VerificationElapsed < 36.0f)
+            {
+                Snapshot.Statuses.Add({UKalmalaPlayerStatusComponent::WetStatusId, 74.0f});
             }
         }
         if ((VerificationCapture == 1 && VerificationElapsed >= 9) || (VerificationCapture == 2 && VerificationElapsed >= 14)
@@ -199,9 +231,60 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
             FScreenshotRequest::RequestScreenshot(CapturePrefix+TEXT("-icons.png"),true,false);
             ++VerificationCapture;
         }
+        if (VerificationCapture == 8 && VerificationElapsed >= 31.7f)
+        {
+            // Let the icon-gallery screenshot flush before removing its full-screen
+            // background; transition-cue captures must show the live HUD again.
+            for (UKalmalaCatalogueRowsWidget* Gallery : VerificationGallery)
+            {
+                if (Gallery != nullptr) Gallery->RemoveFromParent();
+            }
+            VerificationGallery.Reset();
+            ++VerificationCapture;
+        }
     }
 #endif
-    if (HotbarWidget) HotbarWidget->SetSnapshot(Snapshot, HotbarScale, HotbarContrast);
+    if (HotbarWidget) HotbarWidget->SetSnapshot(Snapshot, HotbarScale, HotbarContrast,
+        bResetHotbarTransitionHistory || bSuppressHotbarTransitions);
+
+#if !UE_BUILD_SHIPPING
+    if (Character != nullptr && HotbarWidget != nullptr
+        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaHotbarCapture="), CapturePrefix)
+        && VerificationElapsed >= 32.0f && VerificationElapsed < 39.0f)
+    {
+        if (VerificationCueCapture == 0)
+        {
+            VerificationCueCapture = 1;
+        }
+        else
+        {
+            const auto CaptureCue = [this, &CapturePrefix](const int32 ExpectedCapture,
+                const float ExpectedElapsedSeconds, const TCHAR* Phase,
+                const EKalmalaStatusCueKind ExpectedKind, const FString& ExpectedName)
+            {
+                if (VerificationCueCapture != ExpectedCapture || VerificationElapsed < ExpectedElapsedSeconds) return;
+                const EKalmalaStatusCueKind ActualKind = HotbarWidget->GetActiveCueKindForVerification(
+                    UKalmalaPlayerStatusComponent::WetStatusId);
+                const float Alpha = HotbarWidget->GetActiveCueOpacityForVerification(
+                    UKalmalaPlayerStatusComponent::WetStatusId);
+                const bool bCueMatches = ActualKind == ExpectedKind && Alpha > 0.0f;
+                UE_LOG(LogTemp, Display,
+                    TEXT("Hotbar transition fixture: Phase=%s Kind=%d Alpha=%.3f ReducedMotion=%d Passed=%d"),
+                    Phase, static_cast<int32>(ActualKind), Alpha,
+                    UKalmalaSettingsWidget::IsReducedMotionEnabled() ? 1 : 0, bCueMatches ? 1 : 0);
+                if (!bCueMatches)
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Hotbar transition fixture: FAIL %s cue was absent or expired."), Phase);
+                }
+                FScreenshotRequest::RequestScreenshot(CapturePrefix + TEXT("-") + ExpectedName + TEXT(".png"), true, false);
+                ++VerificationCueCapture;
+            };
+            CaptureCue(1, 33.1f, TEXT("started"), EKalmalaStatusCueKind::Started, TEXT("started"));
+            CaptureCue(2, 34.6f, TEXT("refreshed"), EKalmalaStatusCueKind::Refreshed, TEXT("refreshed"));
+            CaptureCue(3, 36.1f, TEXT("ended"), EKalmalaStatusCueKind::Ended, TEXT("ended"));
+        }
+    }
+#endif
 
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanSkiffFeedbackTest"))

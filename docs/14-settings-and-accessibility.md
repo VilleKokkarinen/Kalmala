@@ -234,6 +234,9 @@ Restoration invokes no setting-changing click handler. The index is bounded to
 four existing tabs, with Video as the dispatch fallback. Memory ends when the
 widget is recreated, including subsystem teardown; it writes no config/save data.
 Scroll position and exact previously focused control are not yet retained.
-Full verification is deferred to the final integration run. That run must check
-all four tabs across close/reopen, owner separation, focus/navigation, settings
-values remaining unchanged, accessibility scales, and widget-recreation defaults.
+The rendered settings accessibility fixture now returns from the Settings tab
+to the main shell, reopens Options, and requires the Settings tab and a focusable
+control to be restored on both peers while local interface/text scales and
+master volume remain unchanged. This covers the Options-tab-only increment;
+other menus, scrolling, exact control focus, and full per-menu restoration remain
+part of the broader M11 task.

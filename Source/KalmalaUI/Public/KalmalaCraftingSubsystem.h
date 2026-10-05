@@ -12,6 +12,7 @@ class UUniformGridPanel;
 class UScrollBox;
 class UInputComponent;
 class UKalmalaCraftingComponent;
+class UKalmalaSelectedResultWidget;
 
 UCLASS()
 class KALMALAUI_API UKalmalaInteractionPromptWidget : public UUserWidget
@@ -101,12 +102,10 @@ private:
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotNames;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotStates;
     UPROPERTY(Transient) TArray<uint8> RecipeSlotVisualStates;
-    UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> SelectedIcon;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaSelectedResultWidget> SelectedResultPreview;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> HeaderText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailText;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIngredientWidget> Ingredients;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> RequirementText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StateText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RepairText;

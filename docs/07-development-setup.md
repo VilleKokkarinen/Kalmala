@@ -184,6 +184,36 @@ input devices or cooked/package asset inclusion. Retain selected captures and
 the exact runner/test results in `PROGRESS.md` and
 `docs/ui-inventory-build/`.
 
+## M11 selected recipe/build-result previews
+
+Build `KalmalaEditor Win64 Development` in the short disposable project mirror
+with normal `%LOCALAPPDATA%/UnrealBuildTool` access and
+`-MaxParallelActions=4`, then run the full `Automation RunTests Kalmala` queue.
+Require `Kalmala.UI.Crafting.ResultPreview` and all other tests to pass with
+exit code 0. Run the rendered two-peer crafting fixture at standard contrast
+and at the high-contrast enlarged-text setting:
+
+```powershell
+Scripts/Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+```
+
+Both host and client must report `Result preview: Keyboard=1 DPad=1
+Unavailable=1 MissingIconFallback=1 NoResultsCleared=1 Large=1
+NoActorsSpawned=1 CatalogueStable=1 IconExtent=88`. This checks canonical
+mapping for every current recipe output, the unknown-icon text fallback,
+unavailable selection, no-result clearing, and preview identity after keyboard
+and D-pad changes. Existing crafting checks continue to cover selection,
+requirements/costs, modal restoration, payments, rejected requests, and owner
+state. Inspect the `host-details.png` and `client-details.png` captures after
+the fixture scrolls the preview into view. Retain reviewed standard and
+high-contrast host/client preview captures with run settings in
+`docs/ui-recipe-preview/`. Run presentation ownership, all five M5
+documentation contracts, changed-script PowerShell parsing,
+`git diff --check`, and MAX_PATH checks. The preview path does not issue
+gameplay requests or spawn actors; no recipe/item catalogue property changes.
+Physical devices and packaged/cooked output remain outside this editor check.
+
 ## M11 status parent and complete icon verification
 
 Follow `36-status-icons.md`: build the isolated editor mirror after the three
@@ -191,8 +221,19 @@ user-requested implementations, then run the full Kalmala automation queue,
 the new rendered `Scripts/Verify-StatusHotbar.ps1` viewport/text-scale matrix,
 and existing rendered crafting, settings/accessibility and owner inventory
 peer regressions. The hotbar probe is explicitly presentation-only and records
-actual owner snapshots before supplying its six-effect fixture. Inspect PNGs;
+actual owner snapshots before supplying its six-effect fixture. For the
+transition-cue increment, additionally run the rendered probe at standard
+motion (`-Width 1280 -Height 720 -TextScale 100 -Contrast 0`) and static reduced
+motion (`-Width 1024 -Height 768 -TextScale 150 -Contrast 1 -ReducedMotion`).
+Require both peers to capture started/refreshed/ended labels with matching cue
+kinds; the reduced-motion run must report alpha 1. Inspect the status screenshots;
 retain exact results and unverified scope in PROGRESS.md.
+
+The Settings accessibility fixture also checks that returning from the selected
+Settings options tab to the main shell and reopening Options restores that tab
+on both peers, keeps a focusable control, and leaves local settings values
+unchanged. This verifies only the Options-tab memory increment; selection and
+scroll restoration in other menus remains open.
 
 ## M11 theme foundation verification
 

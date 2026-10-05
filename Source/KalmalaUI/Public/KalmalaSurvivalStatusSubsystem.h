@@ -38,6 +38,7 @@ private:
     FString StatusDetailsText;
     float VerificationElapsed = 0;
     int32 VerificationCapture = 0;
+    int32 VerificationCueCapture = 0;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaSettingsWidget> VerificationDetails;
     UPROPERTY(Transient) TArray<TObjectPtr<class UKalmalaCatalogueRowsWidget>> VerificationGallery;
 

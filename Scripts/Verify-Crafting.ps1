@@ -52,6 +52,7 @@ try {
             $ready = $ready -and $peerText.Contains('Inventory browsing: CategoryKey=1 SortKey=1 NoResults=1 Restored=1')
             $ready = $ready -and $peerText.Contains('Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1 SearchFocus=1')
             $ready = $ready -and $peerText.Contains('Build browsing: Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1')
+            $ready = $ready -and $peerText.Contains('Result preview: Keyboard=1 DPad=1 Unavailable=1 MissingIconFallback=1 NoResultsCleared=1 Large=1 NoActorsSpawned=1 CatalogueStable=1 IconExtent=88')
         }
         $gridPattern = 'Build slot grid: Slots=(\d+) Unavailable=(\d+) Selected=(\d+) Focused=1 ReadOnly=1 Scrollable=1 Navigation=1'
         $serverGrid = [regex]::Match($serverText, $gridPattern)

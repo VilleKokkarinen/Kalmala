@@ -48,7 +48,35 @@ those canonical runtime IDs. The inventory renders icon/name rows and the
 recipe/build selector renders the same icon for its selected canonical
 output. All 19 selector entries therefore share the output's assignment.
 No item, recipe, balance value, RPC, replicated field or save schema changes.
-The later slot grid and larger selected-result preview remain separate tasks.
+The slot-grid and selected-result preview consumers reuse these canonical
+assignments; the selected-result preview is verified in
+`docs/ui-recipe-preview/`.
+
+## Status transition cues
+
+The local status hotbar gives short ring-and-label cues for an authoritative
+status start, a recognized refresh, and removal. Started, Refreshed, and Ended
+use separate theme colours and a bounded configurable `StatusCueDuration`.
+High contrast uses a white ring and keeps the words; the ring is decorative
+feedback, not the only distinction. An ended status keeps its former icon row
+for the cue interval with the word “Ended,” then disappears. The normal
+server-derived timer returns after a start/refresh cue expires. No effect,
+duration, countdown source, RPC, replication, or save data changes.
+
+The first owner/weather snapshot is a silent baseline. Late initial fields are
+folded in briefly, and pawn changes reset transition history, so reconnects and
+owner replacement do not replay old effects. Countdown decreases are silent;
+status remaining-time increases, support-effect expiry extensions, and a new
+weather authority timestamp can cue a refresh. Repeated changes coalesce per
+status. Reduced motion displays the same ring at a steady opacity until its
+theme duration expires; the theme can also disable the pulse animation.
+
+The focused `Kalmala.UI.StatusHotbar.Transitions` automation covers baselines,
+start/refresh/end decisions, timer decreases versus authoritative extensions,
+coalescing, expiry, and reduced motion. The rendered read-only fixture captures
+start, refresh, and end labels for both owners; `-ReducedMotion` requires a
+steady full-opacity cue. Its synthetic transitions replace only the fixture
+snapshot after logging the real owner snapshot.
 
 ## Verification
 

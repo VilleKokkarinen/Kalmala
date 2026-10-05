@@ -48,6 +48,10 @@ struct KALMALAUI_API FKalmalaUITheme
     FLinearColor ButtonDisabled = FLinearColor(0.08f, 0.08f, 0.08f, 1);
     FLinearColor ButtonFocused = FLinearColor(0.58f, 0.43f, 0.20f, 1);
     FLinearColor ButtonSelected = FLinearColor(0.18f, 0.23f, 0.17f, 1);
+    FLinearColor StatusCueStartedColor = FLinearColor(0.28f, 0.72f, 0.42f, 1);
+    FLinearColor StatusCueRefreshedColor = FLinearColor(0.95f, 0.69f, 0.24f, 1);
+    FLinearColor StatusCueEndedColor = FLinearColor(0.88f, 0.36f, 0.29f, 1);
+    float StatusCueDuration = 1.25f;
     float FocusBorderWidth = 2.0f;
     float SelectedBorderWidth = 2.0f;
     float DisabledBorderWidth = 2.0f;

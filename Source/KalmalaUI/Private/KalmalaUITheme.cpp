@@ -128,6 +128,7 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadNumber(Config, TEXT("IconHeight"), Theme.IconHeight, 24, 96);
     ReadNumber(Config, TEXT("ScrollSpeed"), Theme.ScrollSpeed, 1, 60);
     ReadNumber(Config, TEXT("NotificationLifetime"), Theme.NotificationLifetime, 1, 10);
+    ReadNumber(Config, TEXT("StatusCueDuration"), Theme.StatusCueDuration, 0.4f, 3.0f);
     ReadNumber(Config, TEXT("OptionsOpeningDuration"), Theme.OptionsOpeningDuration, 0, 0.8f);
     ReadNumber(Config, TEXT("OptionsOpeningTravel"), Theme.OptionsOpeningTravel, 0, 96);
     ReadColor(Config, TEXT("BorderColor"), Theme.BorderColor);
@@ -137,6 +138,9 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadColor(Config, TEXT("ButtonDisabled"), Theme.ButtonDisabled);
     ReadColor(Config, TEXT("ButtonFocused"), Theme.ButtonFocused);
     ReadColor(Config, TEXT("ButtonSelected"), Theme.ButtonSelected);
+    ReadColor(Config, TEXT("StatusCueStartedColor"), Theme.StatusCueStartedColor);
+    ReadColor(Config, TEXT("StatusCueRefreshedColor"), Theme.StatusCueRefreshedColor);
+    ReadColor(Config, TEXT("StatusCueEndedColor"), Theme.StatusCueEndedColor);
     ReadNumber(Config, TEXT("FocusBorderWidth"), Theme.FocusBorderWidth, 1, 5);
     ReadNumber(Config, TEXT("SelectedBorderWidth"), Theme.SelectedBorderWidth, 1, 5);
     ReadNumber(Config, TEXT("DisabledBorderWidth"), Theme.DisabledBorderWidth, 1, 5);

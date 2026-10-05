@@ -59,6 +59,7 @@ public:
     /** Opens a requested local tab for the development-only settings acceptance probe. */
     void OpenForVerification(APlayerController* InOwningPlayer, int32 TabIndex);
     void SetVerificationTab(int32 TabIndex);
+    int32 GetRememberedOptionsTabForVerification() const { return LastOptionsTabIndex; }
     FString GetPanelImagePathForVerification() const;
     bool HasFocusableContentForVerification() const;
     bool HasFocusedContentForVerification() const;

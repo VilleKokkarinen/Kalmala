@@ -45,7 +45,8 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     FConfigFile Invalid;
     Invalid.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nBodySize=999\nHeadingSize=garbage\n"
         "EmphasisSize=-2\nPaddingX=-1\nPaddingY=nan\nRowSpacing=999\n"
-        "Text=(R=2,G=0,B=0,A=1)\nPanel=garbage\n"), TEXT("InvalidThemeFixture.ini"));
+        "Text=(R=2,G=0,B=0,A=1)\nPanel=garbage\nStatusCueDuration=9\n"
+        "StatusCueEndedColor=(R=2,G=0,B=0,A=1)\n"), TEXT("InvalidThemeFixture.ini"));
     const FKalmalaUITheme Fallback = FKalmalaUITheme::FromConfig(Invalid);
     const FKalmalaUITheme Defaults;
     TestEqual(TEXT("Out-of-range font falls back"), Fallback.BodySize, Defaults.BodySize);
@@ -54,8 +55,10 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Negative padding falls back"), Fallback.PaddingX, Defaults.PaddingX);
     TestEqual(TEXT("Non-finite padding falls back"), Fallback.PaddingY, Defaults.PaddingY);
     TestEqual(TEXT("Excessive spacing falls back"), Fallback.RowSpacing, Defaults.RowSpacing);
+    TestEqual(TEXT("Out-of-range status cue duration falls back"), Fallback.StatusCueDuration, Defaults.StatusCueDuration);
     TestTrue(TEXT("Malformed and out-of-range colours fall back"),
-        Fallback.Panel.Equals(Defaults.Panel) && Fallback.Text.Equals(Defaults.Text));
+        Fallback.Panel.Equals(Defaults.Panel) && Fallback.Text.Equals(Defaults.Text)
+        && Fallback.StatusCueEndedColor.Equals(Defaults.StatusCueEndedColor));
     TestEqual(TEXT("Missing file uses body defaults"), FKalmalaUITheme::FromConfig(FConfigFile()).BodySize, Defaults.BodySize);
     TestEqual(TEXT("Production theme loads from config hierarchy"), FKalmalaUITheme::Get().BodySize, 13);
     TestTrue(TEXT("Production theme enables the restrained options opening"), FKalmalaUITheme::Get().ShouldAnimateOptionsOpening());
@@ -96,7 +99,9 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     "ButtonFocused=(R=0.6,G=0.45,B=0.2,A=1)\n"
     "ButtonSelected=(R=0.2,G=0.3,B=0.2,A=1)\n"
     "FocusBorderWidth=3\nSelectedBorderWidth=4\nDisabledBorderWidth=2.5\n"
-    "InteractionTransitionDuration=0.2\nAnimateInteractionStates=True\n"), TEXT("ExtendedTheme.ini"));
+    "InteractionTransitionDuration=0.2\nAnimateInteractionStates=True\n"
+    "StatusCueDuration=0.9\nStatusCueStartedColor=(R=0.2,G=0.7,B=0.3,A=1)\n"
+    "StatusCueRefreshedColor=(R=0.8,G=0.6,B=0.2,A=1)\nStatusCueEndedColor=(R=0.7,G=0.2,B=0.2,A=1)\n"), TEXT("ExtendedTheme.ini"));
     const FKalmalaUITheme Extension = FKalmalaUITheme::FromConfig(Extended);
     UKalmalaThemedButton* Button = NewObject<UKalmalaThemedButton>();
     USizeBox* Icon = NewObject<USizeBox>();
@@ -113,6 +118,11 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Theme focus border width propagates"), Extension.FocusBorderWidth, 3.0f);
     TestEqual(TEXT("Theme selected border width propagates"), Extension.SelectedBorderWidth, 4.0f);
     TestTrue(TEXT("Theme enables short interaction transitions"), Extension.bAnimateInteractionStates);
+    TestEqual(TEXT("Status cue duration is theme-configurable"), Extension.StatusCueDuration, 0.9f);
+    TestTrue(TEXT("Status transition colours are theme-configurable"),
+        Extension.StatusCueStartedColor.Equals(FLinearColor(0.2f, 0.7f, 0.3f, 1))
+        && Extension.StatusCueRefreshedColor.Equals(FLinearColor(0.8f, 0.6f, 0.2f, 1))
+        && Extension.StatusCueEndedColor.Equals(FLinearColor(0.7f, 0.2f, 0.2f, 1)));
     FConfigFile ImmediateInteractions;
     ImmediateInteractions.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nAnimateInteractionStates=False\n"),
         TEXT("ImmediateInteractions.ini"));

@@ -5,6 +5,58 @@ Read-only UI snapshots/atlas; actual owner snapshot logged separately; no gamepl
 Parent-level verification of three selected top-level tasks; full M11 acceptance remains later.
 Mirror max path: 213; changed checkout max before handoff: 81.
 
+## M11 transition-cue integration — 2026-10-05
+
+After fixture repair, the four-action UE5.8.2 incremental editor build succeeded;
+the complete Kalmala automation queue passed 115/115, with 0 failed tests and
+`Automation Test Queue Empty` exit 0. The full queue log is
+`C:\temp\km-919d6b51\full-automation-final.log`. The repaired source compiled
+`KalmalaSurvivalStatusSubsystem.cpp` before the final links.
+
+`Verify-StatusHotbar.ps1` passed on both owner peers in the rendered matrix:
+1280x720/100%/standard contrast (port17934), 1024x768/150%/high contrast with
+reduced motion (port17935), and 2560x1080/125%/high contrast (port17936). The
+latest fixture logs report Started/Refreshed/Ended kinds 1/2/3 on both peers;
+reduced motion held alpha at 1.000. The tested roots were
+`C:\Users\Ville\AppData\Local\Temp\kh-045c3b0d`,
+`C:\Users\Ville\AppData\Local\Temp\kh-3f277b30`, and
+`C:\Users\Ville\AppData\Local\Temp\kh-8810f041`. Reviewed cues show each
+label and icon ring on the top-right HUD beside the minimap. Standard and
+reduced-motion cues for both owners at 1280 and 1024 are retained as
+`cue-<width>-<peer>-<phase>.png`; a host/client 2560 start pair is also retained.
+
+The first verifier runs exposed two integration issues: PowerShell cannot cast
+the script's `SwitchParameter` directly to an integer, and the icon-gallery
+fixture covered the HUD cue captures. The script now maps the switch to a
+numeric log value, and the fixture removes the gallery after its own screenshot
+before capturing cues. Rebuild, full queue, and all three rendered matrices then
+passed. Owner inventory peer regression `Verify-Inventory.ps1 -Port 17937`
+passed capacity, live owner slots, grants/rejections, privacy, notification
+baseline, and read-only presentation. Settings accessibility passed at
+1280x720 (host/client interface scales 90/110) and 1024x768 (80/120), including
+RememberedOptionsTab Selected=3 Restored=3 Focused=1 ValuesUnchanged=1 and fresh
+process preference reload. Ownership audit, all five M5 documentation
+contracts, local-input contract, and changed PowerShell parser passed.
+
+Post-repair regression reruns on the same final binary: rendered crafting
+passed standard 1280x720/100% at port17938 (`KalmalaCrafting-8f5f72b...`) and
+high-contrast 1024x768/150% at port17939 (`KalmalaCrafting-bb886a...`). Settings
+accessibility passed again at port18463 with interface scales90/110
+(`KalmalaSettingsAccessibility-682d15cc26574d328fbf046ae9d07890`) and port18464
+with scales80/120 (`KalmalaSettingsAccessibility-35965dc2b9ba447c846ff7d7e14a2f02`).
+Both final settings runs repeated `Selected=3 Restored=3 Focused=1
+ValuesUnchanged=1` on host and client, then successfully reloaded local
+preferences in fresh processes. The preview evidence was refreshed from the two
+post-repair rendered crafting roots.
+
+The 2560 render exercises layout, labels, and both owner roles at large width;
+only its Started host/client pair is committed to limit binary evidence size.
+The other two configurations retain all three cue phases. Fixtures log the real
+local pawn/weather snapshot before supplying read-only cue data; they do not
+prove live weather-timed UI delivery, physical-controller use, or packaged
+output. Gameplay timing and removal remain covered by the Kalmala automation
+queue and established weather/status peer verification.
+
 C:\Users\Ville\AppData\Local\Temp\kh-44f1c02c\host.log
 [2026.10.02-12.11.50:738][178]LogTemp: Display: Hotbar owner snapshot: NetMode=2 Local=1 Pawn=KalmalaCharacter_0 Statuses=0 WeatherValid=1
 [2026.10.02-12.11.55:732][421]LogTemp: Display: Hotbar fixture: Phase=empty Entries=0 ReadOnly=1 Bounds=687,173,1007,229 Scale=150 Dpi=0.7105

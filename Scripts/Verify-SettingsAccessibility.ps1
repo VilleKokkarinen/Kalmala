@@ -79,6 +79,7 @@ try {
         $hostComplete = $serverText -match 'Settings accessibility: Authority=1 Completed=1 GameplayStable=1 InputRestored=1'
         $clientComplete = $clientText -match 'Settings accessibility: Authority=0 Completed=1 GameplayStable=1 InputRestored=1'
         $hostStages = $serverText -match "Authority=1 Stage=Settings .*Open=1 .*FocusTargets=1 .*MoveIgnored=1 .*LookIgnored=1 .*LocalRoundTrip=1 InputApplied=1 InterfaceScale=$HostInterfaceScale ReducedMotion=0" -and
+            $serverText -match 'Authority=1 Stage=RememberedOptionsTab Selected=3 Restored=3 Focused=1 ValuesUnchanged=1' -and
             $serverText -match 'Authority=1 Stage=Controls .*Open=1 .*FocusTargets=1 .*FocusableControls=1 .*Escape=1' -and
             $serverText -match 'Authority=1 Stage=Audio .*Open=1 .*FocusTargets=1 .*Master=0.50 Ambient=0.25 Music=0.50 InteractionCombat=0.75' -and
             $serverText -match 'Authority=1 Stage=OpeningStart Animated=1 PanelY=-32.00 ExpectedY=-32.00 Duration=0.18 Travel=32.00 FocusQueued=1 MoveIgnored=1 LookIgnored=1 CenterAnchored=1' -and
@@ -90,6 +91,7 @@ try {
         $hostStages = $hostStages -and $serverText -match 'Authority=1 Stage=MotionPreference ReducedMotion=1 Animated=0 Focused=1 PanelFits=1' -and
             $serverText -match "Authority=1 Stage=HUDScale InterfaceScale=$HostInterfaceScale ReducedMotion=1 InputRestored=1 Viewport=${Width}x${Height}"
         $clientStages = $clientText -match "Authority=0 Stage=Settings .*Open=1 .*FocusTargets=1 .*MoveIgnored=1 .*LookIgnored=1 .*LocalRoundTrip=1 InputApplied=1 InterfaceScale=$ClientInterfaceScale ReducedMotion=0" -and
+            $clientText -match 'Authority=0 Stage=RememberedOptionsTab Selected=3 Restored=3 Focused=1 ValuesUnchanged=1' -and
             $clientText -match 'Authority=0 Stage=Controls .*Open=1 .*FocusTargets=1 .*FocusableControls=1 .*Escape=1' -and
             $clientText -match 'Authority=0 Stage=Audio .*Open=1 .*FocusTargets=1 .*Master=0.50 Ambient=0.25 Music=0.50 InteractionCombat=0.75' -and
             $clientText -match 'Authority=0 Stage=OpeningStart Animated=1 PanelY=-32.00 ExpectedY=-32.00 Duration=0.18 Travel=32.00 FocusQueued=1 MoveIgnored=1 LookIgnored=1 CenterAnchored=1' -and
