@@ -120,6 +120,58 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     TopmostPin.bVisible = false;
     TestEqual(TEXT("Hidden topmost pins leave the next visible overlap selectable"),
         PinWidget->FindVisiblePinAtScreenPosition(OverlapScreenPosition, FVector2D(1000.0f, 1000.0f)), OverlappedOlderIndex);
+    const int32 PinCountBeforeFilter = PinWidget->LocalPins.Num();
+    const int32 EligiblePinCount = PinWidget->CountEligiblePersonalPins();
+    TestTrue(TEXT("New map marker categories start shown"),
+        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::PersonalPins)
+        && PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPlayers)
+        && PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPings));
+    PinWidget->ToggleMarkerCategory(EKalmalaWorldMapMarkerCategory::PersonalPins);
+    TestFalse(TEXT("Personal-pin filter hides only the marker drawing category"),
+        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::PersonalPins));
+    TestEqual(TEXT("Filtering does not delete or rewrite personal pin data"), PinWidget->LocalPins.Num(), PinCountBeforeFilter);
+    TestEqual(TEXT("Legend eligibility count remains truthful while a category is filtered"),
+        PinWidget->CountEligiblePersonalPins(), EligiblePinCount);
+    TestTrue(TEXT("Filtered pin category does not leave an invisible mouse target"),
+        PinWidget->FindVisiblePinAtScreenPosition(OverlapScreenPosition, FVector2D(1000.0f, 1000.0f)) == INDEX_NONE);
+    PinWidget->ToggleMarkerCategory(EKalmalaWorldMapMarkerCategory::PersonalPins);
+    TestEqual(TEXT("Re-enabling pins restores the existing visible marker target"),
+        PinWidget->FindVisiblePinAtScreenPosition(OverlapScreenPosition, FVector2D(1000.0f, 1000.0f)), OverlappedOlderIndex);
+
+    const UKalmalaWorldMapWidget::FMarkerLegendLayout LegendLayout = PinWidget->GetMarkerLegendLayout(FVector2D(1280.0f, 720.0f));
+    const float FirstFilterRowY = LegendLayout.Position.Y + LegendLayout.Padding + LegendLayout.HeaderHeight + LegendLayout.RowHeight * 1.5f;
+    for (int32 Category = 0; Category < static_cast<int32>(EKalmalaWorldMapMarkerCategory::Count); ++Category)
+    {
+        const FVector2D RowPosition(LegendLayout.Position.X + 18.0f,
+            FirstFilterRowY + Category * LegendLayout.RowHeight);
+        TestEqual(FString::Printf(TEXT("Legend row %d has an accurate mouse hit target"), Category),
+            PinWidget->GetMarkerCategoryAtPosition(RowPosition, FVector2D(1280.0f, 720.0f)), Category);
+    }
+    const FVector2D PlayerLegendRow(LegendLayout.Position.X + 18.0f,
+        LegendLayout.Position.Y + LegendLayout.Padding + LegendLayout.HeaderHeight + LegendLayout.RowHeight * 0.5f);
+    TestEqual(TEXT("Non-filterable owning-player legend symbol has no category action"),
+        PinWidget->GetMarkerCategoryAtPosition(PlayerLegendRow, FVector2D(1280.0f, 720.0f)), INDEX_NONE);
+
+    TestTrue(TEXT("F focuses the keyboard marker filters"), PinWidget->HandleMarkerFilterKey(EKeys::F));
+    TestTrue(TEXT("Keyboard filter focus is visibly active"), PinWidget->bMarkerFilterNavigationActive);
+    TestTrue(TEXT("Down selects the next marker category"), PinWidget->HandleMarkerFilterKey(EKeys::Down));
+    TestEqual(TEXT("Keyboard selection moves from pins to co-op players"), PinWidget->FocusedMarkerCategoryIndex, 1);
+    TestTrue(TEXT("Enter toggles only the focused player category"), PinWidget->HandleMarkerFilterKey(EKeys::Enter));
+    TestFalse(TEXT("Keyboard toggle suppresses co-op player drawing"),
+        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPlayers));
+    TestTrue(TEXT("Keyboard toggle leaves ping visibility unchanged"),
+        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPings));
+    TestTrue(TEXT("Escape leaves keyboard filter focus"), PinWidget->HandleMarkerFilterKey(EKeys::Escape));
+    TestFalse(TEXT("Leaving filter focus restores normal map navigation state"), PinWidget->bMarkerFilterNavigationActive);
+    TestTrue(TEXT("Left-stick click focuses controller marker filters"), PinWidget->HandleMarkerFilterKey(EKeys::Gamepad_LeftThumbstick));
+    TestTrue(TEXT("D-pad selects the next controller marker category"), PinWidget->HandleMarkerFilterKey(EKeys::Gamepad_DPad_Down));
+    TestEqual(TEXT("Controller selection reaches map pings"), PinWidget->FocusedMarkerCategoryIndex, 2);
+    TestTrue(TEXT("Controller A toggles the focused ping category"), PinWidget->HandleMarkerFilterKey(EKeys::Gamepad_FaceButton_Bottom));
+    TestFalse(TEXT("Controller toggle suppresses map ping drawing"),
+        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPings));
+    TestTrue(TEXT("Controller B leaves filter focus"), PinWidget->HandleMarkerFilterKey(EKeys::Gamepad_FaceButton_Right));
+    TestTrue(TEXT("Filter navigation preserves selected personal pin identity"),
+        PinWidget->LocalPins.IsValidIndex(PinWidget->SelectedPinIndex));
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
     const FIntPoint Dimensions(9, 5);

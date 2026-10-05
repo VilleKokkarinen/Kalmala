@@ -94,6 +94,8 @@ void UKalmalaWorldMapWidget::Open()
 {
     if (GetOwningPlayer() == nullptr || ViewModel == nullptr) return;
     bMapOpen = true;
+    bMarkerFilterNavigationActive = false;
+    HoveredMarkerCategoryIndex = INDEX_NONE;
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapProfile")))
     {
         DeveloperProfileOpenedAt = FPlatformTime::Seconds();
@@ -121,6 +123,8 @@ void UKalmalaWorldMapWidget::Close()
     if (!bMapOpen) return;
     bMapOpen = false;
     bDragging = false;
+    bMarkerFilterNavigationActive = false;
+    HoveredMarkerCategoryIndex = INDEX_NONE;
     SetVisibility(ESlateVisibility::Collapsed);
     if (APlayerController* Controller = GetOwningPlayer())
     {
@@ -157,6 +161,44 @@ void UKalmalaWorldMapWidget::RunDeveloperVerification()
     Recenter();
     bFitWholeWorld = FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldOverviewVerification"));
     bDeveloperVerificationLogged = true;
+    const uint8 OriginalVisibilityMask = MarkerVisibilityMask;
+    const int32 OriginalPinCount = LocalPins.Num();
+    const int32 OriginalSelectedPin = SelectedPinIndex;
+    MarkerVisibilityMask = 0x07;
+    FocusedMarkerCategoryIndex = 0;
+
+    bool bPointerTargets = true;
+    const FVector2D ReviewSize(1280.0f, 720.0f);
+    const FMarkerLegendLayout Legend = GetMarkerLegendLayout(ReviewSize);
+    const float FirstFilterRowY = Legend.Position.Y + Legend.Padding + Legend.HeaderHeight + Legend.RowHeight * 1.5f;
+    for (int32 Category = 0; Category < static_cast<int32>(EKalmalaWorldMapMarkerCategory::Count); ++Category)
+    {
+        const FVector2D RowPoint(Legend.Position.X + 18.0f, FirstFilterRowY + Category * Legend.RowHeight);
+        bPointerTargets &= GetMarkerCategoryAtPosition(RowPoint, ReviewSize) == Category;
+        const EKalmalaWorldMapMarkerCategory MarkerCategory = MarkerCategoryFromIndex(Category);
+        ToggleMarkerCategory(MarkerCategory);
+        bPointerTargets &= !IsMarkerCategoryVisible(MarkerCategory);
+        ToggleMarkerCategory(MarkerCategory);
+    }
+
+    const bool bKeyboardFocus = HandleMarkerFilterKey(EKeys::F)
+        && HandleMarkerFilterKey(EKeys::Down)
+        && HandleMarkerFilterKey(EKeys::Enter)
+        && !IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPlayers)
+        && HandleMarkerFilterKey(EKeys::Escape);
+    MarkerVisibilityMask = 0x07;
+    FocusedMarkerCategoryIndex = 1;
+    const bool bControllerFocus = HandleMarkerFilterKey(EKeys::Gamepad_LeftThumbstick)
+        && HandleMarkerFilterKey(EKeys::Gamepad_DPad_Down)
+        && HandleMarkerFilterKey(EKeys::Gamepad_FaceButton_Bottom)
+        && !IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPings)
+        && HandleMarkerFilterKey(EKeys::Gamepad_FaceButton_Right);
+    const bool bPinsPreserved = LocalPins.Num() == OriginalPinCount && SelectedPinIndex == OriginalSelectedPin;
+    MarkerVisibilityMask = OriginalVisibilityMask;
+    bMarkerFilterNavigationActive = true;
+    FocusedMarkerCategoryIndex = 0;
+    UE_LOG(LogTemp, Display, TEXT("World map marker filters: PointerTargets=%d Keyboard=%d Controller=%d PinsPreserved=%d."),
+        bPointerTargets ? 1 : 0, bKeyboardFocus ? 1 : 0, bControllerFocus ? 1 : 0, bPinsPreserved ? 1 : 0);
     UE_LOG(LogTemp, Display, TEXT("World map verification: Open=%d Input=%d ZoomMin=%d ZoomMax=%d Pan=%d Recenter=%d."),
         bMapOpen ? 1 : 0, GetOwningPlayer() && GetOwningPlayer()->IsMoveInputIgnored() && GetOwningPlayer()->IsLookInputIgnored() ? 1 : 0,
         bMinimumZoom ? 1 : 0, bMaximumZoom ? 1 : 0, bPanChangedCentre ? 1 : 0, bRecentered ? 1 : 0);
@@ -211,11 +253,137 @@ void UKalmalaWorldMapWidget::SendMapPing(FVector2D Location)
     PingFeedback = TEXT("Ping requested (6s lifetime; 2s cooldown; nearby opted-in peers only).");
 }
 
-void UKalmalaWorldMapWidget::DrawCoopAwareness(const FGeometry& Geometry, FVector2D MapSize, int32 LayerId,
+UKalmalaWorldMapWidget::FMarkerLegendLayout UKalmalaWorldMapWidget::GetMarkerLegendLayout(const FVector2D& WidgetSize) const
+{
+    FMarkerLegendLayout Layout;
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    const FSlateFontInfo Font = Theme.MakeFont(Theme.BodySize - 1, false, UKalmalaSettingsWidget::GetTextScalePercent());
+    const FSlateFontInfo SmallFont = Theme.MakeFont(Theme.BodySize - 2, false, UKalmalaSettingsWidget::GetTextScalePercent());
+    const TSharedRef<FSlateFontMeasure> Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+    const float TextHeight = Measure->Measure(TEXT("Ag"), Font).Y;
+    const float LongestRowWidth = FMath::Max(Measure->Measure(TEXT("Co-op players 256 [FILTERED]"), Font).X,
+        FMath::Max(Measure->Measure(TEXT("Click row toggles · F / L3 focus"), SmallFont).X,
+            Measure->Measure(TEXT("Enter / A toggle · Esc / B leave"), SmallFont).X));
+    const float TitleWidth = Measure->Measure(TEXT("MAP SYMBOLS"), Theme.MakeFont(Theme.BodySize, true,
+        UKalmalaSettingsWidget::GetTextScalePercent())).X;
+    Layout.HeaderHeight = TextHeight + 9.0f;
+    Layout.RowHeight = FMath::Max(28.0f, TextHeight + 10.0f);
+    Layout.FooterLineHeight = TextHeight + 4.0f;
+    const float Width = FMath::Max(220.0f, FMath::Max(TitleWidth, LongestRowWidth + 56.0f + Layout.Padding * 2.0f));
+    Layout.Size.X = FMath::Min(Width, FMath::Max(180.0f, WidgetSize.X - 24.0f));
+    Layout.Size.Y = Layout.Padding * 2.0f + Layout.HeaderHeight + Layout.RowHeight * 4.0f + Layout.FooterLineHeight * 3.0f;
+    Layout.Position.X = FMath::Max(12.0f, WidgetSize.X - Layout.Size.X - 18.0f);
+    Layout.Position.Y = FMath::Clamp(72.0f, 12.0f, FMath::Max(12.0f, WidgetSize.Y - Layout.Size.Y - 12.0f));
+    return Layout;
+}
+
+int32 UKalmalaWorldMapWidget::GetMarkerCategoryAtPosition(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const
+{
+    const FMarkerLegendLayout Layout = GetMarkerLegendLayout(WidgetSize);
+    const FVector2D Local = WidgetPosition - Layout.Position;
+    const float CategoryStart = Layout.Padding + Layout.HeaderHeight + Layout.RowHeight;
+    if (Local.X < Layout.Padding || Local.X > Layout.Size.X - Layout.Padding || Local.Y < CategoryStart) return INDEX_NONE;
+    const int32 Index = FMath::FloorToInt((Local.Y - CategoryStart) / Layout.RowHeight);
+    return Index >= 0 && Index < static_cast<int32>(EKalmalaWorldMapMarkerCategory::Count) ? Index : INDEX_NONE;
+}
+
+bool UKalmalaWorldMapWidget::IsInsideMarkerLegend(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const
+{
+    const FMarkerLegendLayout Layout = GetMarkerLegendLayout(WidgetSize);
+    return WidgetPosition.X >= Layout.Position.X && WidgetPosition.X <= Layout.Position.X + Layout.Size.X
+        && WidgetPosition.Y >= Layout.Position.Y && WidgetPosition.Y <= Layout.Position.Y + Layout.Size.Y;
+}
+
+EKalmalaWorldMapMarkerCategory UKalmalaWorldMapWidget::MarkerCategoryFromIndex(const int32 Index)
+{
+    return static_cast<EKalmalaWorldMapMarkerCategory>(FMath::Clamp(Index, 0, static_cast<int32>(EKalmalaWorldMapMarkerCategory::Count) - 1));
+}
+
+bool UKalmalaWorldMapWidget::IsMarkerCategoryVisible(const EKalmalaWorldMapMarkerCategory Category) const
+{
+    const uint8 CategoryIndex = static_cast<uint8>(Category);
+    return CategoryIndex < static_cast<uint8>(EKalmalaWorldMapMarkerCategory::Count)
+        && (MarkerVisibilityMask & (1u << CategoryIndex)) != 0;
+}
+
+void UKalmalaWorldMapWidget::ToggleMarkerCategory(const EKalmalaWorldMapMarkerCategory Category)
+{
+    const uint8 CategoryIndex = static_cast<uint8>(Category);
+    if (CategoryIndex < static_cast<uint8>(EKalmalaWorldMapMarkerCategory::Count))
+    {
+        MarkerVisibilityMask ^= static_cast<uint8>(1u << CategoryIndex);
+        Invalidate(EInvalidateWidget::Paint);
+    }
+}
+
+bool UKalmalaWorldMapWidget::HandleMarkerFilterKey(const FKey& Key)
+{
+    if (!bMarkerFilterNavigationActive)
+    {
+        if (Key == EKeys::F || Key == EKeys::Gamepad_LeftThumbstick)
+        {
+            bMarkerFilterNavigationActive = true;
+            FocusedMarkerCategoryIndex = FMath::Clamp(FocusedMarkerCategoryIndex, 0,
+                static_cast<int32>(EKalmalaWorldMapMarkerCategory::Count) - 1);
+            Invalidate(EInvalidateWidget::Paint);
+            return true;
+        }
+        return false;
+    }
+
+    const int32 CategoryCount = static_cast<int32>(EKalmalaWorldMapMarkerCategory::Count);
+    if (Key == EKeys::F || Key == EKeys::Gamepad_LeftThumbstick)
+    {
+        bMarkerFilterNavigationActive = false;
+        Invalidate(EInvalidateWidget::Paint);
+        return true;
+    }
+    if (Key == EKeys::Escape || Key == EKeys::Gamepad_FaceButton_Right)
+    {
+        bMarkerFilterNavigationActive = false;
+        Invalidate(EInvalidateWidget::Paint);
+        return true;
+    }
+    if (Key == EKeys::Up || Key == EKeys::Gamepad_DPad_Up)
+    {
+        FocusedMarkerCategoryIndex = (FocusedMarkerCategoryIndex + CategoryCount - 1) % CategoryCount;
+        Invalidate(EInvalidateWidget::Paint);
+        return true;
+    }
+    if (Key == EKeys::Down || Key == EKeys::Gamepad_DPad_Down)
+    {
+        FocusedMarkerCategoryIndex = (FocusedMarkerCategoryIndex + 1) % CategoryCount;
+        Invalidate(EInvalidateWidget::Paint);
+        return true;
+    }
+    if (Key == EKeys::Enter || Key == EKeys::Gamepad_FaceButton_Bottom)
+    {
+        ToggleMarkerCategory(MarkerCategoryFromIndex(FocusedMarkerCategoryIndex));
+        return true;
+    }
+    return false;
+}
+
+bool UKalmalaWorldMapWidget::IsPersonalPinOnCurrentView(const FKalmalaWorldMapPersonalPin& Pin) const
+{
+    if (!Pin.bVisible || ViewModel == nullptr) return false;
+    const FVector2D Normalized = WorldToMapNormalized(Pin.WorldLocation, ViewModel->GetMapCentre(), ViewModel->GetMapExtent());
+    return Normalized.X >= 0.0f && Normalized.X <= 1.0f && Normalized.Y >= 0.0f && Normalized.Y <= 1.0f;
+}
+
+int32 UKalmalaWorldMapWidget::CountEligiblePersonalPins() const
+{
+    int32 Count = 0;
+    for (const FKalmalaWorldMapPersonalPin& Pin : LocalPins) if (IsPersonalPinOnCurrentView(Pin)) ++Count;
+    return Count;
+}
+
+UKalmalaWorldMapWidget::FMarkerCounts UKalmalaWorldMapWidget::DrawCoopAwareness(const FGeometry& Geometry, FVector2D MapSize, int32 LayerId,
     FSlateWindowElementList& Elements) const
 {
+    FMarkerCounts Counts;
     const auto* Awareness = GetOwningPlayer() ? GetOwningPlayer()->FindComponentByClass<UKalmalaMapAwarenessComponent>() : nullptr;
-    if (!Awareness) return;
+    if (!Awareness) return Counts;
     const float FooterY = Geometry.GetLocalSize().Y - FKalmalaUITheme::Get().ScaledFontSize(
         FKalmalaUITheme::Get().BodySize - 1, UKalmalaSettingsWidget::GetTextScalePercent()) * 5 - 30;
     const float NextY = DrawMapLabel(Elements, LayerId, Geometry, FVector2D(20, FooterY), Awareness->GetStatusText(), -1);
@@ -224,14 +392,17 @@ void UKalmalaWorldMapWidget::DrawCoopAwareness(const FGeometry& Geometry, FVecto
         -1);
     FVector2D Here;
     FKalmalaWorldGenerationConfig Config;
-    if (!ViewModel || !ViewModel->GetPresentationInputs(Config, Here)) return;
+    if (!ViewModel || !ViewModel->GetPresentationInputs(Config, Here)) return Counts;
     const auto* Coverage = ExplorationSave && ExplorationSave->MatchesWorld(Config) ? ExplorationSave.Get() : nullptr;
     Elements.PushClip(FSlateClippingZone(Geometry.ToPaintGeometry(MapSize, FSlateLayoutTransform(FVector2D(44)))));
-    const auto DrawMarker = [&](FVector2D Location, const FString& Text, bool bPing)
+    const auto DrawMarker = [&](FVector2D Location, const FString& Text, const bool bPing)
     {
-        if (!CanShowCoopLocation(Location, Here, Coverage)) return;
+        if (!CanShowCoopLocation(Location, Here, Coverage)) return false;
         const FVector2D N = WorldToMapNormalized(Location, ViewModel->GetMapCentre(), ViewModel->GetMapExtent());
-        if (N.X < 0 || N.X > 1 || N.Y < 0 || N.Y > 1) return;
+        if (N.X < 0 || N.X > 1 || N.Y < 0 || N.Y > 1) return false;
+        if (bPing) ++Counts.CoopPings;
+        else ++Counts.CoopPlayers;
+        if (!IsMarkerCategoryVisible(bPing ? EKalmalaWorldMapMarkerCategory::CoopPings : EKalmalaWorldMapMarkerCategory::CoopPlayers)) return true;
         const FVector2D P = FVector2D(44) + N * MapSize;
         const TArray<FVector2D> Shape = bPing
             ? TArray<FVector2D>{P + FVector2D(-8, -8), P + FVector2D(8, 8), P, P + FVector2D(-8, 8), P + FVector2D(8, -8)}
@@ -240,10 +411,133 @@ void UKalmalaWorldMapWidget::DrawCoopAwareness(const FGeometry& Geometry, FVecto
             bPing ? FLinearColor(1, 0.75f, 0.4f) : FLinearColor(0.7f, 0.9f, 1), true, 2.5f);
         FSlateDrawElement::MakeText(Elements, LayerId, Geometry.ToPaintGeometry(FSlateLayoutTransform(P + FVector2D(12, bPing ? 14 : -14))),
             Text, FKalmalaUITheme::Get().MakeFont(FKalmalaUITheme::Get().BodySize - 1, false, UKalmalaSettingsWidget::GetTextScalePercent()), ESlateDrawEffect::None, FLinearColor::White);
+        return true;
     };
     for (const auto& Peer : Awareness->GetPeerMarkers()) DrawMarker(Peer.Location, FString::Printf(TEXT("Peer %d"), Peer.PlayerId), false);
     for (const auto& Ping : Awareness->GetVisiblePings()) DrawMarker(Ping.Location, FString::Printf(TEXT("Ping %d:%u (temporary)"), Ping.SenderId, Ping.Sequence), true);
     Elements.PopClip();
+    return Counts;
+}
+
+void UKalmalaWorldMapWidget::DrawMarkerLegend(const FGeometry& Geometry, const int32 LayerId, const FMarkerCounts& Counts,
+    FSlateWindowElementList& Elements) const
+{
+    const FMarkerLegendLayout Layout = GetMarkerLegendLayout(Geometry.GetLocalSize());
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
+    const bool bHighContrast = Contrast != 0;
+    const FSlateFontInfo Font = Theme.MakeFont(Theme.BodySize - 1, false, UKalmalaSettingsWidget::GetTextScalePercent());
+    const FSlateFontInfo SmallFont = Theme.MakeFont(Theme.BodySize - 2, false, UKalmalaSettingsWidget::GetTextScalePercent());
+    const TSharedRef<FSlateFontMeasure> Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+    const float TextHeight = Measure->Measure(TEXT("Ag"), Font).Y;
+    const FLinearColor TextColour = Theme.TextColor(false, Contrast);
+    const FLinearColor FocusColour = bHighContrast ? FLinearColor::White : Theme.ButtonFocused;
+    const FLinearColor PanelColour = bHighContrast ? Theme.HighContrastPanel : Theme.Panel;
+    const FVector2D Position = Layout.Position;
+    const FVector2D PanelSize = Layout.Size;
+    const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush("WhiteBrush");
+    FSlateDrawElement::MakeBox(Elements, LayerId,
+        Geometry.ToPaintGeometry(PanelSize, FSlateLayoutTransform(Position)), WhiteBrush, ESlateDrawEffect::None, PanelColour);
+    const TArray<FVector2D> PanelOutline = { Position, Position + FVector2D(PanelSize.X, 0.0f), Position + PanelSize,
+        Position + FVector2D(0.0f, PanelSize.Y), Position };
+    FSlateDrawElement::MakeLines(Elements, LayerId + 1, Geometry.ToPaintGeometry(), PanelOutline,
+        ESlateDrawEffect::None, bHighContrast ? FLinearColor::White : Theme.BorderColor, true, bHighContrast ? 2.0f : 1.0f);
+
+    const float TextX = Position.X + Layout.Padding + 48.0f;
+    float RowY = Position.Y + Layout.Padding;
+    FSlateDrawElement::MakeText(Elements, LayerId + 2,
+        Geometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(Position.X + Layout.Padding, RowY))),
+        FString(TEXT("MAP SYMBOLS")), Theme.MakeFont(Theme.BodySize, true, UKalmalaSettingsWidget::GetTextScalePercent()),
+        ESlateDrawEffect::None, Theme.TextColor(true, Contrast));
+    RowY += Layout.HeaderHeight;
+
+    const auto DrawSymbol = [&](const FVector2D& Centre, const EKalmalaWorldMapMarkerCategory Category, const bool bOwningPlayer)
+    {
+        TArray<FVector2D> Points;
+        FLinearColor Colour = bHighContrast ? FLinearColor::White : FLinearColor(0.7f, 0.9f, 1.0f);
+        if (!bHighContrast && bOwningPlayer) Colour = FLinearColor(0.86f, 0.96f, 0.9f);
+        else if (!bHighContrast && Category == EKalmalaWorldMapMarkerCategory::PersonalPins) Colour = GetPinColour(EKalmalaWorldMapPinStyle::Cairn);
+        else if (!bHighContrast && Category == EKalmalaWorldMapMarkerCategory::CoopPings) Colour = FLinearColor(1.0f, 0.75f, 0.4f);
+
+        if (bOwningPlayer)
+            Points = { Centre + FVector2D(0.0f, -8.0f), Centre + FVector2D(7.0f, 6.0f), Centre + FVector2D(-7.0f, 6.0f), Centre + FVector2D(0.0f, -8.0f) };
+        else if (Category == EKalmalaWorldMapMarkerCategory::CoopPings)
+            Points = { Centre + FVector2D(-6.0f, -6.0f), Centre + FVector2D(6.0f, 6.0f), Centre, Centre + FVector2D(-6.0f, 6.0f), Centre + FVector2D(6.0f, -6.0f) };
+        else
+            Points = { Centre + FVector2D(0.0f, -7.0f), Centre + FVector2D(7.0f, 0.0f), Centre + FVector2D(0.0f, 7.0f),
+                Centre + FVector2D(-7.0f, 0.0f), Centre + FVector2D(0.0f, -7.0f) };
+        FSlateDrawElement::MakeLines(Elements, LayerId + 3, Geometry.ToPaintGeometry(), Points,
+            ESlateDrawEffect::None, Colour, true, 2.5f);
+    };
+
+    const auto DrawRowText = [&](const FString& Text, const float Y, const int32 DrawLayer)
+    {
+        FSlateDrawElement::MakeText(Elements, DrawLayer,
+            Geometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(TextX, Y + (Layout.RowHeight - TextHeight) * 0.5f))),
+            Text, Font, ESlateDrawEffect::None, TextColour);
+    };
+    DrawSymbol(FVector2D(Position.X + 22.0f, RowY + Layout.RowHeight * 0.5f), EKalmalaWorldMapMarkerCategory::PersonalPins, true);
+    DrawRowText(TEXT("You (facing)"), RowY, LayerId + 3);
+    RowY += Layout.RowHeight;
+
+    const auto DrawFilterRow = [&](const EKalmalaWorldMapMarkerCategory Category, const int32 Index, const TCHAR* Name,
+        const int32 Count, const FVector2D& Centre)
+    {
+        const bool bVisible = IsMarkerCategoryVisible(Category);
+        const bool bFocused = bMarkerFilterNavigationActive && FocusedMarkerCategoryIndex == Index;
+        const bool bHovered = HoveredMarkerCategoryIndex == Index;
+        const FVector2D RowPosition(Position.X + 5.0f, RowY);
+        const FVector2D RowSize(PanelSize.X - 10.0f, Layout.RowHeight);
+        if (bFocused || bHovered)
+        {
+            const FLinearColor Fill = bHighContrast ? FLinearColor(0.1f, 0.1f, 0.1f, 1.0f)
+                : (bHovered ? Theme.ButtonHovered : Theme.ButtonFocused);
+            FSlateDrawElement::MakeBox(Elements, LayerId + 2,
+                Geometry.ToPaintGeometry(RowSize, FSlateLayoutTransform(RowPosition)), WhiteBrush, ESlateDrawEffect::None, Fill);
+            const TArray<FVector2D> Outline = { RowPosition, RowPosition + FVector2D(RowSize.X, 0.0f), RowPosition + RowSize,
+                RowPosition + FVector2D(0.0f, RowSize.Y), RowPosition };
+            FSlateDrawElement::MakeLines(Elements, LayerId + 3, Geometry.ToPaintGeometry(), Outline,
+                ESlateDrawEffect::None, bHighContrast ? FLinearColor::White : FocusColour, true,
+                bHighContrast ? FMath::Max(2.0f, Theme.FocusBorderWidth) : Theme.FocusBorderWidth);
+        }
+
+        const FLinearColor CheckFill = bHighContrast ? FLinearColor::Black : (bVisible ? Theme.ButtonSelected : Theme.ButtonNormal);
+        const FVector2D CheckPosition(Position.X + Layout.Padding, RowY + (Layout.RowHeight - 15.0f) * 0.5f);
+        FSlateDrawElement::MakeBox(Elements, LayerId + 3,
+            Geometry.ToPaintGeometry(FVector2D(15.0f), FSlateLayoutTransform(CheckPosition)), WhiteBrush, ESlateDrawEffect::None, CheckFill);
+        const TArray<FVector2D> CheckOutline = { CheckPosition, CheckPosition + FVector2D(15.0f, 0.0f),
+            CheckPosition + FVector2D(15.0f), CheckPosition + FVector2D(0.0f, 15.0f), CheckPosition };
+        FSlateDrawElement::MakeLines(Elements, LayerId + 4, Geometry.ToPaintGeometry(), CheckOutline,
+            ESlateDrawEffect::None, bHighContrast ? FLinearColor::White : Theme.BorderColor, true, bHighContrast ? 1.5f : 1.0f);
+        if (bVisible)
+        {
+            FSlateDrawElement::MakeLines(Elements, LayerId + 5, Geometry.ToPaintGeometry(),
+                { CheckPosition + FVector2D(3.0f, 8.0f), CheckPosition + FVector2D(6.0f, 11.0f), CheckPosition + FVector2D(12.0f, 3.0f) },
+                ESlateDrawEffect::None, bHighContrast ? FLinearColor::White : TextColour, true, 1.8f);
+        }
+        DrawSymbol(Centre, Category, false);
+        const FString Label = FString::Printf(TEXT("%s %d [%s]"), Name, Count, bVisible ? TEXT("SHOWN") : TEXT("FILTERED"));
+        DrawRowText(Label, RowY, LayerId + 5);
+        RowY += Layout.RowHeight;
+    };
+
+    DrawFilterRow(EKalmalaWorldMapMarkerCategory::PersonalPins, 0, TEXT("Personal pins"), Counts.PersonalPins,
+        FVector2D(Position.X + 22.0f, RowY + Layout.RowHeight * 0.5f));
+    DrawFilterRow(EKalmalaWorldMapMarkerCategory::CoopPlayers, 1, TEXT("Co-op players"), Counts.CoopPlayers,
+        FVector2D(Position.X + 22.0f, RowY + Layout.RowHeight * 0.5f));
+    DrawFilterRow(EKalmalaWorldMapMarkerCategory::CoopPings, 2, TEXT("Map pings"), Counts.CoopPings,
+        FVector2D(Position.X + 22.0f, RowY + Layout.RowHeight * 0.5f));
+
+    const float FooterY = RowY + 1.0f;
+    const TArray<FString> Help = bMarkerFilterNavigationActive
+        ? TArray<FString>{ TEXT("FILTER FOCUS: arrows / D-pad"), TEXT("Enter / A toggles visibility"), TEXT("Esc / B leaves filter focus") }
+        : TArray<FString>{ TEXT("Click row toggles · F / L3 focus"), TEXT("Up/Down or D-pad: select"), TEXT("Enter / A toggle · Esc / B leave") };
+    for (int32 Index = 0; Index < Help.Num(); ++Index)
+    {
+        FSlateDrawElement::MakeText(Elements, LayerId + 6,
+            Geometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(Position.X + Layout.Padding, FooterY + Index * Layout.FooterLineHeight))),
+            Help[Index], SmallFont, ESlateDrawEffect::None, TextColour);
+    }
 }
 
 FVector2D UKalmalaWorldMapWidget::WorldToMapNormalized(const FVector2D WorldPosition, const FVector2D MapCentre, const FVector2D MapExtent)
@@ -722,6 +1016,7 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
     const FSlateBrush PanelBrush = Theme.MakePanelBrush(UKalmalaSettingsWidget::GetContrastMode(), &Theme.WorldMapPanelImage);
     FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer, AllottedGeometry.ToPaintGeometry(), &PanelBrush,
         ESlateDrawEffect::None, PanelBrush.TintColor.GetSpecifiedColor());
+    FMarkerCounts MarkerCounts;
     if (ViewModel != nullptr)
     {
         // Edge tiles extend past the view. Clip terrain and fog together so
@@ -761,8 +1056,10 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
             FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 2, MapGeometry, &FogBrush, ESlateDrawEffect::None, FLinearColor::White);
         }
         OutDrawElements.PopClip();
-        DrawPins(AllottedGeometry, MapSize, DrawLayer + 3, OutDrawElements);
-        DrawCoopAwareness(AllottedGeometry, MapSize, DrawLayer + 6, OutDrawElements);
+        MarkerCounts.PersonalPins = DrawPins(AllottedGeometry, MapSize, DrawLayer + 3, OutDrawElements);
+        const FMarkerCounts CoopCounts = DrawCoopAwareness(AllottedGeometry, MapSize, DrawLayer + 6, OutDrawElements);
+        MarkerCounts.CoopPlayers = CoopCounts.CoopPlayers;
+        MarkerCounts.CoopPings = CoopCounts.CoopPings;
         if (!bDeveloperPaintVerified && bDeveloperVerificationLogged && FogTexture != nullptr
             && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
         {
@@ -805,13 +1102,16 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
                 ESlateDrawEffect::None, FLinearColor(0.86f, 0.96f, 0.9f, 1.0f), true, 2.5f);
         }
     }
+    DrawMarkerLegend(AllottedGeometry, DrawLayer + 9, MarkerCounts, OutDrawElements);
     const FString Hint = FString::Printf(TEXT("MAP  |  %.0fm  |  Grid %.0fm  |  Drag/Arrows pan · Wheel/PgUp zoom · R recenter · M / Esc close"),
         MapZoom / 100.0f, ChooseGridSpacing(MapZoom) / 100.0f);
     const float HeaderBottom = DrawMapLabel(OutDrawElements, DrawLayer + 5, AllottedGeometry, FVector2D(20, 18), Hint, 3);
     if (LocalPins.IsValidIndex(SelectedPinIndex))
     {
-        const FString SelectedHint = FString::Printf(TEXT("SELECTED: %s  |  Enter complete · H show/hide · Delete remove"),
-            *GetPinAccessibilityLabel(LocalPins[SelectedPinIndex]));
+        FString SelectedLabel = GetPinAccessibilityLabel(LocalPins[SelectedPinIndex]);
+        if (LocalPins[SelectedPinIndex].bVisible && !IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::PersonalPins))
+            SelectedLabel += TEXT("; filtered from map");
+        const FString SelectedHint = FString::Printf(TEXT("SELECTED: %s  |  Enter complete · H show/hide · Delete remove"), *SelectedLabel);
         DrawMapLabel(OutDrawElements, DrawLayer + 6, AllottedGeometry, FVector2D(20, HeaderBottom), SelectedHint, 1, true);
     }
     if (bPinLabelEntry)
@@ -820,7 +1120,7 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
         const FString Prompt = FString::Printf(TEXT("MARKER: %s  |  1 Cairn · 2 Lantern · 3 Thread · Enter save · Esc cancel"), *Draft);
         DrawMapLabel(OutDrawElements, DrawLayer + 8, AllottedGeometry, FVector2D(20, Size.Y - 38), Prompt, 1, true);
     }
-    return DrawLayer + 9;
+    return DrawLayer + 16;
 }
 
 FVector2D UKalmalaWorldMapWidget::ScreenToWorld(const FVector2D& ScreenPosition, const FVector2D& MapSize) const
@@ -831,13 +1131,13 @@ FVector2D UKalmalaWorldMapWidget::ScreenToWorld(const FVector2D& ScreenPosition,
 
 int32 UKalmalaWorldMapWidget::FindVisiblePinAtScreenPosition(const FVector2D& ScreenPosition, const FVector2D& MapSize) const
 {
-    if (ViewModel == nullptr) return INDEX_NONE;
+    if (ViewModel == nullptr || !IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::PersonalPins)) return INDEX_NONE;
     const FVector2D Centre = ViewModel->GetMapCentre();
     const FVector2D Extent = ViewModel->GetMapExtent();
     for (int32 Index = LocalPins.Num() - 1; Index >= 0; --Index)
     {
         const FKalmalaWorldMapPersonalPin& Pin = LocalPins[Index];
-        if (!Pin.bVisible) continue;
+        if (!IsPersonalPinOnCurrentView(Pin)) continue;
         const FVector2D PinScreen = WorldToMapNormalized(Pin.WorldLocation, Centre, Extent) * MapSize;
         if (FVector2D::DistSquared(PinScreen, ScreenPosition) <= FMath::Square(16.0f)) return Index;
     }
@@ -927,19 +1227,22 @@ FLinearColor UKalmalaWorldMapWidget::GetPinColour(const EKalmalaWorldMapPinStyle
     }
 }
 
-void UKalmalaWorldMapWidget::DrawPins(const FGeometry& AllottedGeometry, const FVector2D& MapSize, const int32 LayerId,
+int32 UKalmalaWorldMapWidget::DrawPins(const FGeometry& AllottedGeometry, const FVector2D& MapSize, const int32 LayerId,
     FSlateWindowElementList& OutDrawElements) const
 {
-    if (ViewModel == nullptr) return;
+    if (ViewModel == nullptr) return 0;
     const FVector2D Margin(44.0f, 44.0f);
     const FVector2D Centre = ViewModel->GetMapCentre();
     const FVector2D Extent = ViewModel->GetMapExtent();
+    int32 EligibleCount = 0;
     for (int32 Index = 0; Index < LocalPins.Num(); ++Index)
     {
         const FKalmalaWorldMapPersonalPin& Pin = LocalPins[Index];
         if (!Pin.bVisible) continue;
         const FVector2D Normalized = WorldToMapNormalized(Pin.WorldLocation, Centre, Extent);
         if (Normalized.X < 0.0f || Normalized.X > 1.0f || Normalized.Y < 0.0f || Normalized.Y > 1.0f) continue;
+        ++EligibleCount;
+        if (!IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::PersonalPins)) continue;
         const FVector2D Position = Margin + Normalized * MapSize;
         const TArray<FVector2D> Diamond = { Position + FVector2D(0.0f, -8.0f), Position + FVector2D(7.0f, 0.0f),
             Position + FVector2D(0.0f, 8.0f), Position + FVector2D(-7.0f, 0.0f), Position + FVector2D(0.0f, -8.0f) };
@@ -955,6 +1258,7 @@ void UKalmalaWorldMapWidget::DrawPins(const FGeometry& AllottedGeometry, const F
             GetPinAccessibilityLabel(Pin),
             FKalmalaUITheme::Get().MakeFont(FKalmalaUITheme::Get().BodySize - 1, false, UKalmalaSettingsWidget::GetTextScalePercent()), ESlateDrawEffect::None, FLinearColor::White);
     }
+    return EligibleCount;
 }
 
 void UKalmalaWorldMapWidget::PanByScreenDelta(const FVector2D& ScreenDelta, const FVector2D& MapSize)
@@ -982,6 +1286,20 @@ void UKalmalaWorldMapWidget::ZoomAtScreenPosition(const float WheelDelta, const 
 FReply UKalmalaWorldMapWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
     if (!bMapOpen) return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+    const FVector2D WidgetPosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
+    if (IsInsideMarkerLegend(WidgetPosition, InGeometry.GetLocalSize()))
+    {
+        const int32 CategoryIndex = GetMarkerCategoryAtPosition(WidgetPosition, InGeometry.GetLocalSize());
+        if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && CategoryIndex != INDEX_NONE)
+        {
+            FocusedMarkerCategoryIndex = CategoryIndex;
+            HoveredMarkerCategoryIndex = CategoryIndex;
+            bMarkerFilterNavigationActive = false;
+            ToggleMarkerCategory(MarkerCategoryFromIndex(CategoryIndex));
+            Invalidate(EInvalidateWidget::Paint);
+        }
+        return FReply::Handled();
+    }
     const FVector2D MapSize = InGeometry.GetLocalSize() - FVector2D(88.0f);
     const FVector2D MapPosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition()) - FVector2D(44.0f);
     if (InMouseEvent.GetEffectingButton() == EKeys::MiddleMouseButton)
@@ -1024,7 +1342,18 @@ FReply UKalmalaWorldMapWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry
 
 FReply UKalmalaWorldMapWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-    if (!bDragging) return Super::NativeOnMouseMove(InGeometry, InMouseEvent);
+    if (!bDragging)
+    {
+        const FVector2D WidgetPosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
+        const int32 HoveredIndex = IsInsideMarkerLegend(WidgetPosition, InGeometry.GetLocalSize())
+            ? GetMarkerCategoryAtPosition(WidgetPosition, InGeometry.GetLocalSize()) : INDEX_NONE;
+        if (HoveredIndex != HoveredMarkerCategoryIndex)
+        {
+            HoveredMarkerCategoryIndex = HoveredIndex;
+            Invalidate(EInvalidateWidget::Paint);
+        }
+        return Super::NativeOnMouseMove(InGeometry, InMouseEvent);
+    }
     const FVector2D Position = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition()) - FVector2D(44.0f);
     PanByScreenDelta(Position - LastDragPosition, InGeometry.GetLocalSize() - FVector2D(88.0f)); LastDragPosition = Position;
     return FReply::Handled();
@@ -1044,6 +1373,7 @@ FReply UKalmalaWorldMapWidget::NativeOnKeyDown(const FGeometry& InGeometry, cons
         return FReply::Unhandled();
     }
     if (!bMapOpen) return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+    if (HandleMarkerFilterKey(Key)) return FReply::Handled();
     if (Key == EKeys::C || Key == EKeys::Gamepad_Special_Right)
     {
         if (!InKeyEvent.IsRepeat())

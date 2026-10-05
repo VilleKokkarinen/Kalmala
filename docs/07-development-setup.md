@@ -1070,6 +1070,34 @@ the decorative image. Verify the theme fallback assertions, then run
 matching seed identity and private saved coverage. Inspect captures for map
 readability; these tests do not establish packaged asset cooking.
 
+### M11 expanded-map legend and marker filters
+
+The local legend identifies the owning-player facing triangle, personal-pin
+diamonds, co-op-player diamonds, and temporary-ping crosses. Filter counts are
+the markers already eligible in the current map view: locally shown pins, or
+owner-visible co-op entries that also pass the current/remembered personal-fog
+check. Counts remain stable when a category is filtered so they continue to
+describe what is available if drawing is re-enabled. The owning-player marker
+is always shown. Mouse clicks toggle a legend row; `F` or left-stick click
+focuses the filter list, arrows/D-pad select a category, Enter/A toggles it,
+and Escape/B leaves filter focus. Tab/pad-X pin selection still reaches
+personally hidden and locally filtered pins; the selected-pin text reports
+when its marker is filtered.
+
+Visibility is a transient local widget preference. It suppresses marker
+painting only: it does not request map data, change fog/exploration, mutate or
+remove pins, alter co-op consent/pings, or add an RPC or save field. After an
+isolated editor build, run the full `Automation RunTests Kalmala` queue and
+`Scripts/Verify-WorldMap.ps1` at 1024x768, 1280x720, and 2560x1080. Require each
+peer to log `World map marker filters: PointerTargets=1 Keyboard=1 Controller=1 PinsPreserved=1`; inspect the host/client captures for legend
+layout, checkbox state, text scaling, and keyboard focus. Run
+`Scripts/Verify-WorldMapTiles.ps1` to retain current seed/fog and private
+coverage checks. The focused `Kalmala.UI.WorldMap.LocalPresentation` test
+covers category defaults, pointer target mapping, keyboard/controller focus,
+filtered hit-testing, unchanged eligibility counts, and pin preservation.
+These editor/rendered checks do not establish physical-controller or packaged
+acceptance.
+
 ## Biome feature inspection
 
 `Kalmala.World.Biomes.TerrainSelection` verifies current field/classifier agreement, Flora independence, seed variation and coverage. `Kalmala.World.BiomeExpansion.IntegratedScenario` searches eligible inner and outer distances for deterministic discovery candidates. Every launch and test runs the current generator with `-WorldSeed` as its sole world identity setting.

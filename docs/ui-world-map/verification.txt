@@ -25,3 +25,36 @@ The background is static original UI art with no geographic content. Existing
 fog, marker visibility, pin actions/save tests, M/Escape input, pan/zoom,
 recenter, privacy, and map save paths remain the live map's sources of truth.
 Package cooking and physical keyboard/controller playthrough remain unverified.
+
+M11 world-map legend and marker filters — 2026-10-05
+
+Parent-level verification passed for the legend and local category visibility
+filters. The UE 5.8.2 KalmalaEditor Win64 Development build passed 223 actions
+in the short disposable mirror C:/Users/Ville/AppData/Local/Temp/kwm with
+normal LOCALAPPDATA/UnrealBuildTool access. The complete Kalmala automation
+queue passed 113/113 with zero failures and exit code 0, including
+Kalmala.UI.WorldMap.LocalPresentation and Kalmala.UI.WorldMap.PerformanceBudget.
+
+Scripts/Verify-WorldMap.ps1 -BasePort 17954 passed rendered host/client runs
+at 1024x768, 1280x720, and 2560x1080. Both peers logged successful pointer
+row targets, keyboard focus/toggle, controller focus/toggle, and pin
+preservation; terrain, fog, authoritative world identity, and full-viewport
+painting checks passed. The updated 1280x720 host/client captures above were
+reviewed and retained. These captures use standard contrast and 100% text
+scale; text-scale/high-contrast visual variants were not rendered in this run.
+
+Scripts/Verify-WorldMapTiles.ps1 -Port 17963 passed: the client with a
+conflicting initial seed matched the server's seed-418 identity and 12 visible
+tiles (fingerprint 894301879), while both peers kept remote terrain
+unexplored. After restart, each peer reloaded its own matching saved coverage
+without revealing remote terrain. Presentation-ownership, all five M5
+documentation contracts, changed PowerShell parser, git diff --check, and
+MAX_PATH audits passed. The longest path across audited build/render outputs
+was 224 characters.
+
+Marker filters are transient widget-local drawing preferences. Co-op counts
+come only from entries already available to the owner and still pass the
+existing current/remembered-fog gate; local filters neither query hidden
+content nor mutate pins, consent, exploration, RPCs, or save data. Keyboard
+and controller behavior was verified through editor automation and focused
+tests, not physical hardware. Packaged-build acceptance remains unverified.

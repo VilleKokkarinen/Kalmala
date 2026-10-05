@@ -22,6 +22,15 @@ enum class EKalmalaWorldMapFogTreatment : uint8
     ReservedShared
 };
 
+/** Owner-local visibility controls for marker sources already available to this map. */
+enum class EKalmalaWorldMapMarkerCategory : uint8
+{
+    PersonalPins,
+    CoopPlayers,
+    CoopPings,
+    Count
+};
+
 /** Large local map surface built from the same disposable seed-derived samples as the minimap. */
 UCLASS()
 class KALMALAUI_API UKalmalaWorldMapWidget : public UUserWidget
@@ -80,6 +89,21 @@ protected:
 
 private:
     friend class FKalmalaWorldMapWidgetTest;
+    struct FMarkerCounts
+    {
+        int32 PersonalPins = 0;
+        int32 CoopPlayers = 0;
+        int32 CoopPings = 0;
+    };
+    struct FMarkerLegendLayout
+    {
+        FVector2D Position = FVector2D::ZeroVector;
+        FVector2D Size = FVector2D::ZeroVector;
+        float Padding = 10.0f;
+        float HeaderHeight = 0.0f;
+        float RowHeight = 0.0f;
+        float FooterLineHeight = 0.0f;
+    };
     struct FWorldMapTile
     {
         struct FBuildResult
@@ -122,8 +146,18 @@ private:
     bool RemoveSelectedPin();
     void PanByKeyboardDelta(const FVector2D& ScreenDelta);
     void ZoomAtMapCentre(float WheelDelta);
-    void DrawPins(const FGeometry& AllottedGeometry, const FVector2D& MapSize, int32 LayerId, FSlateWindowElementList& OutDrawElements) const;
-    void DrawCoopAwareness(const FGeometry& Geometry, FVector2D MapSize, int32 LayerId, FSlateWindowElementList& Elements) const;
+    int32 DrawPins(const FGeometry& AllottedGeometry, const FVector2D& MapSize, int32 LayerId, FSlateWindowElementList& OutDrawElements) const;
+    FMarkerCounts DrawCoopAwareness(const FGeometry& Geometry, FVector2D MapSize, int32 LayerId, FSlateWindowElementList& Elements) const;
+    void DrawMarkerLegend(const FGeometry& Geometry, int32 LayerId, const FMarkerCounts& Counts, FSlateWindowElementList& Elements) const;
+    FMarkerLegendLayout GetMarkerLegendLayout(const FVector2D& WidgetSize) const;
+    int32 GetMarkerCategoryAtPosition(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const;
+    bool IsInsideMarkerLegend(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const;
+    bool HandleMarkerFilterKey(const FKey& Key);
+    bool IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory Category) const;
+    void ToggleMarkerCategory(EKalmalaWorldMapMarkerCategory Category);
+    static EKalmalaWorldMapMarkerCategory MarkerCategoryFromIndex(int32 Index);
+    int32 CountEligiblePersonalPins() const;
+    bool IsPersonalPinOnCurrentView(const FKalmalaWorldMapPersonalPin& Pin) const;
     void SendMapPing(FVector2D Location);
     FString PingFeedback;
     static FLinearColor GetPinColour(EKalmalaWorldMapPinStyle Style);
@@ -149,6 +183,11 @@ private:
     FString PendingPinLabel;
     EKalmalaWorldMapPinStyle PendingPinStyle = EKalmalaWorldMapPinStyle::Cairn;
     float MapZoom = 18000.0f;
+    /** Three low bits are local drawing preferences only; none are saved or replicated. */
+    uint8 MarkerVisibilityMask = 0x07;
+    int32 FocusedMarkerCategoryIndex = 0;
+    int32 HoveredMarkerCategoryIndex = INDEX_NONE;
+    bool bMarkerFilterNavigationActive = false;
     float ActiveTileWorldSize = 10000.0f;
     bool bFitWholeWorld = false;
     float RefreshAccumulator = 0.0f;

@@ -110,8 +110,15 @@ peer. Local cosmetic geometry, UI preferences, and transient raster textures
 are not replicated and do not change saved-data schemas.
 
 The expanded map's `WorldMapPanelImage` is static project artwork painted
-behind its existing locally generated terrain and fog. It has no map data,
-world query, gameplay authority, or persistence path.
+behind its existing locally generated terrain and fog. Its owner-local legend
+and personal-pin/co-op-player/temporary-ping filters read only pins already
+loaded for that local player and co-op markers already returned through the
+owner's visibility-gated map-awareness component. A separate local fog check
+still gates every co-op marker. Legend counts describe eligible markers in the
+current map view. Filters suppress painting only; they do not request hidden
+content, change exploration, alter co-op consent, or mutate/remove pin data.
+Their transient widget state has no authority, RPC, replication, or persistence
+path.
 
 ## Rendered deer silhouette review
 

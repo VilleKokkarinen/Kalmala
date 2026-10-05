@@ -210,6 +210,21 @@ host/client map at three viewport sizes and runs the map tile/reconnect checks.
 These editor checks do not establish packaged asset cooking or physical-input
 playthrough.
 
+## Expanded-map legend and marker filters
+
+The owner-local map legend uses the existing theme panel, body/heading fonts,
+button fills, focus outline, and text/contrast palette. The facing triangle is
+an unfiltered reference row; personal pins, co-op players, and temporary pings
+have separate checkboxes, textual shown/filtered states, and eligible-marker
+counts. Focus uses the shared focused-button treatment and a visible outline;
+high contrast uses a black panel, white text, and white row/checkbox outlines.
+Shape and text continue to distinguish marker categories without colour.
+
+No theme keys or map content sources were added. The three checkbox states are
+local to the map widget session and affect only marker drawing. Existing owner
+visibility/fog gating and personal pin data remain the source of truth; see
+the map verification contract in `docs/07-development-setup.md`.
+
 ## Escape options backgrounds — 2026-10-02
 
 The Escape home/settings shell and each Video, Audio, Controls, and Settings
