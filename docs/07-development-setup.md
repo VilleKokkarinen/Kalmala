@@ -241,6 +241,33 @@ PowerShell parsing, and the 260-character path audit. Theme configuration can
 disable interaction motion with `AnimateInteractionStates=False`; a
 user-facing reduced-motion preference remains a later M11 task.
 
+## M11 near-crosshair interaction prompts
+
+This no-child parent uses the owner's existing short visibility trace as the
+only interaction candidate. Build the isolated editor mirror with normal
+`%LOCALAPPDATA%/UnrealBuildTool` access, then run the full
+`Automation RunTests Kalmala` queue with a unique `-UserDir`, `-abslog`,
+`-nullrhi`, `-DDC-ForceMemoryCache`, and queue-empty `-TestExit`. The focused
+`Kalmala.UI.InteractionPrompt.Presentation` test covers target/action text,
+keyboard and controller labels, unavailable, missing-target, modal, and live
+remapping cases. The full queue also retains
+`Kalmala.Gameplay.Interaction.ServerOnlyRangeValidation` for server range and
+authority behavior.
+
+Run `Scripts/Verify-InteractionPrompt.ps1` from the mirror at 1280x720/100%
+standard contrast and 1024x768/150% high contrast, with separate unused ports.
+It renders the available and unavailable prompt plus modal/no-target clearing
+on both host and client; inspect the retained source PNGs. Run rendered
+`Scripts/Verify-Crafting.ps1` at both settings for live modal suppression and
+existing interaction/transaction regressions, and
+`Scripts/Verify-SettingsAccessibility.ps1` for the local Controls remapping
+path. Finish with `Scripts/Verify-LocalInputContract.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, changed-script PowerShell
+parsing, `git diff --check`, and the 260-character path audit. This verifies
+editor-rendered presentation and existing server validation; it does not claim
+physical keyboard/controller hardware or packaged-build acceptance.
+
 ## M11 ingredient-count child
 
 Follow `39-crafting-ingredients.md`: compile affected UI in the short disposable

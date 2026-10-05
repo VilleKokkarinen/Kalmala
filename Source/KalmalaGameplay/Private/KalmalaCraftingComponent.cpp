@@ -85,26 +85,6 @@ UKalmalaCraftingComponent::UKalmalaCraftingComponent()
 
 AKalmalaCharacter* UKalmalaCraftingComponent::GetCharacter() const { return Cast<AKalmalaCharacter>(GetOwner()); }
 
-FName UKalmalaCraftingComponent::GetLookedAtCookingStationKit() const
-{
-    const AKalmalaCharacter* Character = GetCharacter();
-    AController* Controller = Character ? Character->GetController() : nullptr;
-    if (!Character || !Character->IsLocallyControlled() || !Controller || !GetWorld()) return NAME_None;
-    FVector ViewLocation;
-    FRotator ViewRotation;
-    Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
-    FCollisionQueryParams Query(SCENE_QUERY_STAT(CookingStationPrompt), false, Character);
-    FHitResult Hit;
-    if (!GetWorld()->LineTraceSingleByChannel(Hit, ViewLocation,
-            ViewLocation + ViewRotation.Vector() * 250.0f, ECC_Visibility, Query)) return NAME_None;
-    const AKalmalaConstructionActor* Station = Cast<AKalmalaConstructionActor>(Hit.GetActor());
-    if (!Station || Station->GetConstructionId().IsEmpty()
-        || FVector::DistSquared(Character->GetActorLocation(), Station->GetActorLocation()) > FMath::Square(250.0f)) return NAME_None;
-    const FName Kit = Station->GetConstructionKit();
-    return Kit == TEXT("CookingRackKit") || Kit == TEXT("CauldronKit") || Kit == TEXT("FryingPanKit")
-        ? Kit : NAME_None;
-}
-
 void UKalmalaCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);

@@ -13,9 +13,19 @@
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaPlacementPreview.h"
 #include "KalmalaConstructionActor.h"
+#include "KalmalaCampfire.h"
+#include "KalmalaCampfireWeatherResponse.h"
+#include "KalmalaDiscoveryActor.h"
+#include "KalmalaHarvestNode.h"
+#include "KalmalaInteractable.h"
+#include "KalmalaOceanSkiff.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaGeneratedTerrainPatch.h"
+#include "KalmalaOceanSampler.h"
+#include "KalmalaWorldBounds.h"
+#include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaToolLifecycleContract.h"
@@ -133,25 +143,222 @@ FString BuildSkillProgressText(const AKalmalaCharacter* Character)
     Text += TEXT("Recipe access depends on materials, stations, and world conditions; skill level does not lock recipes.\n");
     return Text;
 }
+
+struct FInteractionPromptDescription
+{
+    FString TargetName;
+    FString ActionName;
+    FString UnavailableReason;
+};
+
+FString GetPromptItemName(const FName ItemId, const TCHAR* Fallback)
+{
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(ItemId) : nullptr;
+    return Definition && !Definition->DisplayName.IsEmpty() ? Definition->DisplayName : FString(Fallback);
 }
 
-void UKalmalaStationPromptWidget::NativeOnInitialized()
+const TCHAR* GetHarvestActionName(const EKalmalaToolAction Action)
+{
+    switch (Action)
+    {
+    case EKalmalaToolAction::Gathering: return TEXT("Gather");
+    case EKalmalaToolAction::Woodcutting: return TEXT("Chop");
+    case EKalmalaToolAction::Mining: return TEXT("Mine");
+    default: return TEXT("Harvest");
+    }
+}
+
+bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target,
+    const FHitResult& Hit, FInteractionPromptDescription& OutDescription)
+{
+    OutDescription = {};
+    if (!IsValid(Character) || !IsValid(Target)) return false;
+
+    if (Cast<AKalmalaGeneratedTerrainPatch>(Target) != nullptr)
+    {
+        const AKalmalaWorldGenerationGameState* State = Character->GetWorld()
+            ? Character->GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
+        if (!State || !State->GetWorldGenerationConfig().IsValid() || Hit.ImpactPoint.ContainsNaN()) return false;
+
+        const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+        const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, FVector2D(Hit.ImpactPoint));
+        if (!Ocean.IsWater()) return false;
+        OutDescription.TargetName = TEXT("Open water");
+        OutDescription.ActionName = TEXT("Launch skiff");
+        if (Ocean.WaterDepth < 100.0f) OutDescription.UnavailableReason = TEXT("Need at least 100 cm of water");
+        else if (!FKalmalaWorldBounds::Contains(Config, FVector2D(Hit.ImpactPoint), 160.0))
+            OutDescription.UnavailableReason = TEXT("Outside the safe world boundary");
+        return true;
+    }
+
+    if (const AKalmalaHarvestNode* Node = Cast<AKalmalaHarvestNode>(Target))
+    {
+        const FString ItemName = GetPromptItemName(Node->GetHarvestItemId(), TEXT("Resource"));
+        OutDescription.TargetName = FString::Printf(TEXT("%s source"), *ItemName);
+        OutDescription.ActionName = TEXT("Harvest");
+        if (Node->IsHarvested())
+        {
+            OutDescription.UnavailableReason = TEXT("Depleted");
+            return true;
+        }
+        if (FVector::DistSquared(Character->GetActorLocation(), Node->GetActorLocation())
+            > FMath::Square(Character->GetInteractionRange()))
+            OutDescription.UnavailableReason = TEXT("Out of reach");
+
+        if (!Node->GetGatheringSourceId().IsNone())
+        {
+            FName ToolId = NAME_None;
+            uint8 ActionValue = 0;
+            bool bHasUsableTool = false;
+            if (!Character->GetLocalHarvestInteractionIntent(Node, ToolId, ActionValue, bHasUsableTool))
+            {
+                OutDescription.UnavailableReason = TEXT("Unsupported source");
+                return true;
+            }
+            OutDescription.ActionName = GetHarvestActionName(static_cast<EKalmalaToolAction>(ActionValue));
+            if (!bHasUsableTool) OutDescription.UnavailableReason = TEXT("No suitable tool available");
+        }
+        return true;
+    }
+
+    if (const AKalmalaConstructionActor* Construction = Cast<AKalmalaConstructionActor>(Target))
+    {
+        OutDescription.TargetName = GetPromptItemName(Construction->GetConstructionKit(), TEXT("Workbench"));
+        OutDescription.ActionName = TEXT("Use");
+        if (!Construction->CanUse(Character)) OutDescription.UnavailableReason = TEXT("Unavailable here");
+        return true;
+    }
+
+    if (const AKalmalaCampfire* Campfire = Cast<AKalmalaCampfire>(Target))
+    {
+        OutDescription.TargetName = TEXT("Campfire");
+        OutDescription.ActionName = TEXT("Light");
+        if (!Campfire->CanUse(Character)) OutDescription.UnavailableReason = TEXT("Unavailable here");
+        else if (Campfire->IsLit()) OutDescription.UnavailableReason = TEXT("Already lit");
+        else if (Campfire->GetFuelSeconds() <= 0.0f) OutDescription.UnavailableReason = TEXT("No fuel");
+        else if (!FMath::IsFinite(Campfire->GetFuelWetness()) || Campfire->GetFuelWetness() < 0.0f
+            || Campfire->GetFuelWetness() >= FKalmalaCampfireWeatherResponse::ExtinguishWetness)
+            OutDescription.UnavailableReason = TEXT("Too wet to light");
+        return true;
+    }
+
+    if (Cast<AKalmalaDiscoveryActor>(Target) != nullptr)
+    {
+        OutDescription.TargetName = TEXT("Landmark");
+        OutDescription.ActionName = TEXT("Discover");
+        if (FVector::DistSquared(Character->GetActorLocation(), Target->GetActorLocation())
+            > FMath::Square(Character->GetInteractionRange()))
+            OutDescription.UnavailableReason = TEXT("Out of reach");
+        return true;
+    }
+
+    if (const AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(Target))
+    {
+        OutDescription.TargetName = TEXT("Skiff");
+        if (Skiff->GetHelmOccupant() == Character || Skiff->GetPassengerOccupant() == Character)
+        {
+            OutDescription.ActionName = TEXT("Disembark");
+            if (Skiff->GetMode() == EKalmalaOceanSkiffMode::Underway)
+                OutDescription.UnavailableReason = TEXT("Stop before disembarking");
+        }
+        else
+        {
+            OutDescription.ActionName = TEXT("Board");
+            if (Skiff->GetHelmOccupant() != nullptr && Skiff->GetPassengerOccupant() != nullptr)
+                OutDescription.UnavailableReason = TEXT("No open seat");
+        }
+        if (OutDescription.UnavailableReason.IsEmpty()
+            && FVector::DistSquared(Character->GetActorLocation(), Skiff->GetActorLocation())
+                > FMath::Square(Character->GetInteractionRange()))
+            OutDescription.UnavailableReason = TEXT("Out of reach");
+        return true;
+    }
+
+    if (Target->Implements<UKalmalaInteractable>())
+    {
+        OutDescription.TargetName = Target->GetClass()->GetDisplayNameText().ToString();
+        if (OutDescription.TargetName.IsEmpty()) OutDescription.TargetName = TEXT("Object");
+        OutDescription.ActionName = TEXT("Use");
+        return true;
+    }
+    return false;
+}
+}
+
+FString UKalmalaInteractionPromptWidget::BuildPromptText(const FString& TargetName, const FString& ActionName,
+    const FString& KeyboardBinding, const FString& ControllerBinding, const FString& UnavailableReason,
+    const bool bModalOpen)
+{
+    if (bModalOpen || TargetName.TrimStartAndEnd().IsEmpty() || ActionName.TrimStartAndEnd().IsEmpty()) return FString();
+
+    const bool bKeyboardBound = !KeyboardBinding.TrimStartAndEnd().IsEmpty()
+        && KeyboardBinding != TEXT("Not bound") && KeyboardBinding != TEXT("Unbound");
+    const bool bControllerBound = !ControllerBinding.TrimStartAndEnd().IsEmpty()
+        && ControllerBinding != TEXT("Not bound") && ControllerBinding != TEXT("Unbound");
+    const bool bUnavailable = !UnavailableReason.TrimStartAndEnd().IsEmpty() || (!bKeyboardBound && !bControllerBound);
+
+    FString Text = FString::Printf(TEXT("%s\n%s"), *TargetName, *ActionName);
+    if (bUnavailable)
+    {
+        const FString Reason = UnavailableReason.TrimStartAndEnd().IsEmpty()
+            ? TEXT("No binding") : UnavailableReason.TrimStartAndEnd();
+        Text += FString::Printf(TEXT(" — Unavailable: %s"), *Reason);
+    }
+
+    TArray<FString, TInlineAllocator<2>> Bindings;
+    if (bKeyboardBound) Bindings.Add(FString::Printf(TEXT("Keyboard: %s"), *KeyboardBinding.TrimStartAndEnd()));
+    if (bControllerBound)
+    {
+        FString DisplayBinding = ControllerBinding.TrimStartAndEnd();
+        if (DisplayBinding.StartsWith(TEXT("Gamepad "))) DisplayBinding.RightChopInline(8, EAllowShrinking::No);
+        Bindings.Add(FString::Printf(TEXT("Gamepad: %s"), *DisplayBinding));
+    }
+    if (!Bindings.IsEmpty()) Text += TEXT("\n") + FString::Join(Bindings, TEXT("\n"));
+    return Text;
+}
+
+void UKalmalaInteractionPromptWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
     if (!WidgetTree) return;
     UBorder* Border = WidgetTree->ConstructWidget<UBorder>();
-    Border->SetPadding(FMargin(18.0f, 10.0f));
-    Border->SetBrushColor(FLinearColor(0.015f, 0.025f, 0.03f, 0.92f));
+    Border->SetPadding(FMargin(12.0f, 8.0f));
+    Border->SetHorizontalAlignment(HAlign_Center);
+    Border->SetVerticalAlignment(VAlign_Center);
     PromptText = WidgetTree->ConstructWidget<UTextBlock>();
-    PromptText->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), 20));
-    PromptText->SetColorAndOpacity(FSlateColor(FLinearColor::White));
+    PromptText->SetJustification(ETextJustify::Center);
+    PromptText->SetAutoWrapText(true);
     Border->SetContent(PromptText);
-    WidgetTree->RootWidget = Border;
+    USizeBox* PromptSize = WidgetTree->ConstructWidget<USizeBox>();
+    PromptSize->SetWidthOverride(520.0f);
+    PromptSize->SetHeightOverride(176.0f);
+    PromptSize->SetContent(Border);
+    WidgetTree->RootWidget = PromptSize;
+    ApplyPromptStyle();
     SetVisibility(ESlateVisibility::Collapsed);
 }
 
-void UKalmalaStationPromptWidget::SetPrompt(const FString& Text)
+void UKalmalaInteractionPromptWidget::ApplyPromptStyle()
 {
+    const int32 TextScalePercent = UKalmalaSettingsWidget::GetTextScalePercent();
+    const int32 ContrastMode = UKalmalaSettingsWidget::GetContrastMode();
+    if (LastTextScalePercent == TextScalePercent && LastContrastMode == ContrastMode) return;
+    LastTextScalePercent = TextScalePercent;
+    LastContrastMode = ContrastMode;
+    UBorder* PromptBorder = Cast<UBorder>(GetRootWidget());
+    if (const USizeBox* PromptSize = Cast<USizeBox>(GetRootWidget()))
+        PromptBorder = Cast<UBorder>(PromptSize->GetContent());
+    if (PromptBorder)
+        FKalmalaUITheme::Get().ApplyPanel(*PromptBorder, ContrastMode, &NoPanelImage);
+    if (PromptText)
+        FKalmalaUITheme::Get().ApplyText(*PromptText, FKalmalaUITheme::Get().BodySize + 4,
+            false, TextScalePercent, ContrastMode);
+}
+
+void UKalmalaInteractionPromptWidget::SetPrompt(const FString& Text)
+{
+    ApplyPromptStyle();
     if (!PromptText) return;
     if (Text.IsEmpty())
     {
@@ -990,7 +1197,10 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
         LastStationInteractionSerial = 0;
         bHasSeenStationInteraction = false;
     }
-    UpdateStationPrompt(PC);
+    UpdateInteractionPrompt(PC);
+#if !UE_BUILD_SHIPPING
+    UpdateInteractionPromptReview(PC, DeltaTime);
+#endif
 #if !UE_BUILD_SHIPPING
     if(!bVerified && PC->GetPawn() && FParse::Param(FCommandLine::Get(),TEXT("KalmalaCraftingTest")))
     {
@@ -1050,6 +1260,8 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             UE_LOG(LogTemp, Display, TEXT("Build slot grid: %s Navigation=%d"), *GridSummary, bGridNavigation);
             auto* InventoryHUD = GetLocalPlayer()->GetSubsystem<UKalmalaInventorySubsystem>();
             const bool bHUDHidden = InventoryHUD && InventoryHUD->IsCraftingMenuSuppressed();
+            const bool bPromptHidden = !InteractionPrompt || InteractionPrompt->GetVisibility() != ESlateVisibility::Visible;
+            UE_LOG(LogTemp, Display, TEXT("Interaction prompt modal: Hidden=%d"), bPromptHidden ? 1 : 0);
             const bool Passed=bInspection && bHUDHidden && Text.Contains(TEXT("Construction hammer menu input:")) && Text.Contains(TEXT("Up/Down"))
                 && Text.Contains(TEXT("Requirements — selected recipe"))
                 && Text.Contains(TEXT("Tool: carried Construction Hammer level 1 — Present"))
@@ -1074,6 +1286,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && Text.Contains(TEXT("Rejected requests preserve materials"))
                 && PreviewText.Contains(TEXT("Preview "))
                 && bGridReady
+                && bPromptHidden
                 && PC->IsMoveInputIgnored() && Widget->IsFocusable();
             Widget->Close();
             const bool bHUDRestored = InventoryHUD && !InventoryHUD->IsCraftingMenuSuppressed();
@@ -1228,47 +1441,117 @@ bool UKalmalaCraftingWidget::ScrollReviewSectionForTest(const bool bFeedback)
 }
 #endif
 
-void UKalmalaCraftingSubsystem::UpdateStationPrompt(APlayerController* PlayerController)
+void UKalmalaCraftingSubsystem::UpdateInteractionPrompt(APlayerController* PlayerController)
 {
     if (!PlayerController) return;
-    if (!StationPrompt)
+    if (!InteractionPrompt)
     {
-        StationPrompt = CreateWidget<UKalmalaStationPromptWidget>(PlayerController);
-        if (!StationPrompt) return;
-        StationPrompt->AddToPlayerScreen(150);
-        StationPrompt->SetDesiredSizeInViewport(FVector2D(520.0f, 64.0f));
-        StationPrompt->SetAlignmentInViewport(FVector2D(0.5f, 1.0f));
+        InteractionPrompt = CreateWidget<UKalmalaInteractionPromptWidget>(PlayerController);
+        if (!InteractionPrompt) return;
+        InteractionPrompt->AddToPlayerScreen(150);
+        InteractionPrompt->SetDesiredSizeInViewport(FVector2D(520.0f, 176.0f));
+        InteractionPrompt->SetAlignmentInViewport(FVector2D(0.5f, 0.0f));
     }
 
     int32 ViewportWidth = 0;
     int32 ViewportHeight = 0;
     PlayerController->GetViewportSize(ViewportWidth, ViewportHeight);
-    StationPrompt->SetPositionInViewport(FVector2D(ViewportWidth * 0.5f, ViewportHeight * 0.82f), true);
-    if (Widget && Widget->IsOpen())
+    InteractionPrompt->SetPositionInViewport(FVector2D(ViewportWidth * 0.5f, ViewportHeight * 0.5f + 32.0f), true);
+    if (!PlayerController->IsLocalController() || (Widget && Widget->IsOpen())
+        || PlayerController->IsMoveInputIgnored())
     {
-        StationPrompt->SetPrompt(FString());
+        InteractionPrompt->SetPrompt(FString());
         return;
     }
 
     const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(PlayerController->GetPawn());
-    if (!Character || PlayerController->IsMoveInputIgnored())
+    if (!Character || !Character->IsLocallyControlled())
     {
-        StationPrompt->SetPrompt(FString());
+        InteractionPrompt->SetPrompt(FString());
         return;
     }
 
-    const UKalmalaCraftingComponent* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
-    const FName StationKit = Crafting ? Crafting->GetLookedAtCookingStationKit() : NAME_None;
-    if (!IsInWorldCookingStation(StationKit))
+    FInteractionPromptDescription Description;
+    const FHitResult* Candidate = nullptr;
+    FHitResult CandidateHit;
+    if (const AKalmalaOceanSkiff* AttachedSkiff = Cast<AKalmalaOceanSkiff>(Character->GetAttachParentActor()))
     {
-        StationPrompt->SetPrompt(FString());
+        Description.TargetName = TEXT("Skiff");
+        Description.ActionName = TEXT("Disembark");
+        if (AttachedSkiff->GetMode() == EKalmalaOceanSkiffMode::Underway)
+            Description.UnavailableReason = TEXT("Stop before disembarking");
+    }
+    else if (Character->GetLocalInteractionCandidate(CandidateHit))
+    {
+        Candidate = &CandidateHit;
+        ResolveInteractionPrompt(Character, CandidateHit.GetActor(), CandidateHit, Description);
+    }
+
+    const FString Text = Candidate != nullptr || !Description.TargetName.IsEmpty()
+        ? UKalmalaInteractionPromptWidget::BuildPromptText(Description.TargetName, Description.ActionName,
+            UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), false).ToString(),
+            UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), true).ToString(),
+            Description.UnavailableReason)
+        : FString();
+    InteractionPrompt->SetPrompt(Text);
+}
+
+#if !UE_BUILD_SHIPPING
+void UKalmalaCraftingSubsystem::UpdateInteractionPromptReview(APlayerController* PlayerController, const float DeltaTime)
+{
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaInteractionPromptReview")) || !InteractionPrompt
+        || !PlayerController || PlayerController->GetPawn() == nullptr) return;
+    if (bInteractionPromptReviewComplete)
+    {
+        InteractionPrompt->SetPrompt(FString());
         return;
     }
-    const FKalmalaItemDefinition* Definition = UKalmalaItemCatalogue::Get()->FindItem(StationKit);
-    const FString StationName = Definition ? Definition->DisplayName : StationKit.ToString();
-    const FString InteractKey = UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), false).ToString();
-    StationPrompt->SetPrompt(FString::Printf(TEXT("Press %s to use %s"), *InteractKey, *StationName));
+
+    FString CapturePath;
+    FParse::Value(FCommandLine::Get(), TEXT("KalmalaInteractionPromptCapture="), CapturePath);
+    InteractionPromptReviewWait += FMath::Clamp(DeltaTime, 0.0f, 0.1f);
+    if (InteractionPromptReviewWait < 0.75f) return;
+    InteractionPromptReviewWait = 0.0f;
+
+    const FString KeyboardBinding = UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), false).ToString();
+    const FString ControllerBinding = UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), true).ToString();
+    FString StageName;
+    FString Text;
+    switch (InteractionPromptReviewStage)
+    {
+    case 0:
+        StageName = TEXT("available");
+        Text = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Densewood trunk"), TEXT("Chop"),
+            KeyboardBinding, ControllerBinding);
+        break;
+    case 1:
+        StageName = TEXT("unavailable");
+        Text = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Mire campfire"), TEXT("Light"),
+            KeyboardBinding, ControllerBinding, TEXT("Too wet to light"));
+        break;
+    case 2:
+        StageName = TEXT("modal");
+        Text = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Workbench"), TEXT("Use"),
+            KeyboardBinding, ControllerBinding, FString(), true);
+        break;
+    default:
+        StageName = TEXT("no-target");
+        Text = UKalmalaInteractionPromptWidget::BuildPromptText(FString(), FString(),
+            KeyboardBinding, ControllerBinding);
+        break;
+    }
+
+    InteractionPrompt->SetPrompt(Text);
+    const bool bDisplayed = !Text.IsEmpty();
+    UE_LOG(LogTemp, Display, TEXT("Interaction prompt review: Stage=%s Displayed=%d"), *StageName, bDisplayed ? 1 : 0);
+    if (!CapturePath.IsEmpty())
+    {
+        FScreenshotRequest::RequestScreenshot(FPaths::GetBaseFilename(CapturePath, false)
+            + TEXT("-") + StageName + TEXT(".png"), true, false);
+    }
+    if (++InteractionPromptReviewStage >= 4) bInteractionPromptReviewComplete = true;
 }
+#endif
 
 void UKalmalaCraftingSubsystem::Toggle()
 {
@@ -1283,7 +1566,7 @@ void UKalmalaCraftingSubsystem::Release()
         if(Input->GetActionBinding(I).ActionDelegate.IsBoundToObject(this)) Input->RemoveActionBinding(I);
     BoundInput.Reset();
     if(Widget) { Widget->Close(); Widget->RemoveFromParent(); Widget=nullptr; }
-    if(StationPrompt) { StationPrompt->RemoveFromParent(); StationPrompt=nullptr; }
+    if(InteractionPrompt) { InteractionPrompt->RemoveFromParent(); InteractionPrompt=nullptr; }
     StationInteractionModel.Reset(); LastStationInteractionSerial = 0; bHasSeenStationInteraction = false;
     Controller=nullptr; bVerified=false;
 }

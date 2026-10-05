@@ -33,7 +33,6 @@ public:
     void InteractWithConstructionFromServer(AKalmalaConstructionActor* Construction);
     FName GetLastInteractedCookingStationKit() const { return LastInteractedCookingStationKit; }
     uint32 GetCookingStationInteractionSerial() const { return CookingStationInteractionSerial; }
-    FName GetLookedAtCookingStationKit() const;
     bool OpenStorageFromServer(AKalmalaConstructionActor* Construction);
     bool TransferStorageFromServer(FName ItemId, bool bDeposit, FString& Reason);
     const TArray<FKalmalaInventoryStack>& GetStorageView() const { return StorageView; }

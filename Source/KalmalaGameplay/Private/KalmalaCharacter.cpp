@@ -786,40 +786,70 @@ void AKalmalaCharacter::MoveRight(const float Value)
     }
 }
 
+bool AKalmalaCharacter::GetLocalInteractionCandidate(FHitResult& OutHit) const
+{
+    OutHit = FHitResult();
+    if (!IsLocallyControlled() || Controller == nullptr || GetWorld() == nullptr) return false;
+
+    FVector ViewLocation;
+    FRotator ViewRotation;
+    Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+    if (ViewLocation.ContainsNaN() || ViewRotation.ContainsNaN()
+        || !FMath::IsFinite(InteractionRange) || InteractionRange <= 0.0f) return false;
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaLocalInteractionCandidate), false, this);
+    return GetWorld()->LineTraceSingleByChannel(OutHit, ViewLocation,
+        ViewLocation + ViewRotation.Vector() * InteractionRange, ECC_Visibility, QueryParams);
+}
+
+bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNode* Node,
+    FName& OutToolId, uint8& OutAction, bool& bOutHasUsableTool) const
+{
+    OutToolId = NAME_None;
+    OutAction = 0;
+    bOutHasUsableTool = false;
+    if (!IsLocallyControlled() || !IsValid(Node)) return false;
+
+    if (Node->GetGatheringSourceId().IsNone())
+    {
+        bOutHasUsableTool = !Node->IsHarvested();
+        return true;
+    }
+
+    FKalmalaToolServerSelection Selection;
+    if (!FKalmalaToolLifecycleContract::BuildServerSelection(Node->GetGatheringSourceId(), Selection)) return false;
+
+    const FKalmalaToolDefinition* Definition = nullptr;
+    for (const FKalmalaToolDefinition& Candidate : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions())
+    {
+        if (!FKalmalaToolLifecycleContract::IsToolSuitableForSelection(Candidate, Selection)
+            || GetToolDurability(Candidate.ToolId) <= 0) continue;
+        if (Definition == nullptr || FKalmalaToolLifecycleContract::GetToolTier(Candidate.Kind)
+            > FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind)) Definition = &Candidate;
+    }
+    if (Definition == nullptr) Definition = FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(Selection);
+    if (Definition == nullptr) return false;
+
+    OutToolId = Definition->ToolId;
+    OutAction = static_cast<uint8>(Selection.Action);
+    bOutHasUsableTool = GetToolDurability(Definition->ToolId) > 0;
+    return true;
+}
+
 void AKalmalaCharacter::RequestInteract()
 {
     if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored())
     {
         FName ClientToolId = NAME_None;
         uint8 ClientAction = 0;
-        FVector ViewLocation;
-        FRotator ViewRotation;
-        Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
-        FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaLocalToolIntent), false, this);
         FHitResult Hit;
-        if (GetWorld() && GetWorld()->LineTraceSingleByChannel(Hit, ViewLocation,
-            ViewLocation + ViewRotation.Vector() * InteractionRange, ECC_Visibility, QueryParams))
+        if (GetLocalInteractionCandidate(Hit))
         {
             if (const AKalmalaHarvestNode* Node = Cast<AKalmalaHarvestNode>(Hit.GetActor()))
             {
-                FKalmalaToolServerSelection Selection;
-                if (FKalmalaToolLifecycleContract::BuildServerSelection(Node->GetGatheringSourceId(), Selection))
-                {
-                    const FKalmalaToolDefinition* Definition = nullptr;
-                    for (const FKalmalaToolDefinition& Candidate : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions())
-                    {
-                        if (!FKalmalaToolLifecycleContract::IsToolSuitableForSelection(Candidate, Selection)
-                            || GetToolDurability(Candidate.ToolId) <= 0) continue;
-                        if (Definition == nullptr || FKalmalaToolLifecycleContract::GetToolTier(Candidate.Kind)
-                            > FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind)) Definition = &Candidate;
-                    }
-                    if (Definition == nullptr) Definition = FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(Selection);
-                    if (Definition != nullptr)
-                    {
-                        ClientToolId = Definition->ToolId;
-                        ClientAction = static_cast<uint8>(Selection.Action);
-                    }
-                }
+                bool bHasUsableTool = false;
+                GetLocalHarvestInteractionIntent(Node, ClientToolId, ClientAction, bHasUsableTool);
+                (void)bHasUsableTool;
             }
         }
         ServerRequestInteract(ClientToolId, ClientAction);

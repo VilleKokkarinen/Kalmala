@@ -63,6 +63,12 @@ public:
     UKalmalaOceanTravelFeedbackComponent* GetOceanTravelFeedbackComponent() const { return OceanTravelFeedback; }
     int32 GetToolDurability(FName ToolId) const;
     int32 GetCarriedToolLevel(FName ToolId) const;
+    float GetInteractionRange() const { return InteractionRange; }
+    /** Owner-local candidate from the same short view trace used to choose interaction intent. */
+    bool GetLocalInteractionCandidate(FHitResult& OutHit) const;
+    /** Resolve the current local tool/action intent for this visible node; server validation remains authoritative. */
+    bool GetLocalHarvestInteractionIntent(const AKalmalaHarvestNode* Node, FName& OutToolId,
+        uint8& OutAction, bool& bOutHasUsableTool) const;
     const TArray<FKalmalaToolState>& GetCarriedToolInventory() const { return CarriedTools; }
     EKalmalaSupportEffect GetSelectedSupportEffect() const;
     float GetHealth() const { return Health; }

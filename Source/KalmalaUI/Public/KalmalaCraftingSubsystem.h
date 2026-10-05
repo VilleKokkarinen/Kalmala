@@ -14,14 +14,20 @@ class UInputComponent;
 class UKalmalaCraftingComponent;
 
 UCLASS()
-class KALMALAUI_API UKalmalaStationPromptWidget : public UUserWidget
+class KALMALAUI_API UKalmalaInteractionPromptWidget : public UUserWidget
 {
     GENERATED_BODY()
 public:
     void SetPrompt(const FString& Text);
+    static FString BuildPromptText(const FString& TargetName, const FString& ActionName,
+        const FString& KeyboardBinding, const FString& ControllerBinding,
+        const FString& UnavailableReason = FString(), bool bModalOpen = false);
 protected:
     virtual void NativeOnInitialized() override;
 private:
+    void ApplyPromptStyle();
+    int32 LastTextScalePercent = INDEX_NONE;
+    int32 LastContrastMode = INDEX_NONE;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> PromptText;
 };
 
@@ -148,9 +154,12 @@ public:
 private:
     void Toggle();
     void Release();
-    void UpdateStationPrompt(APlayerController* PlayerController);
+    void UpdateInteractionPrompt(APlayerController* PlayerController);
+#if !UE_BUILD_SHIPPING
+    void UpdateInteractionPromptReview(APlayerController* PlayerController, float DeltaTime);
+#endif
     UPROPERTY(Transient) TObjectPtr<UKalmalaCraftingWidget> Widget;
-    UPROPERTY(Transient) TObjectPtr<UKalmalaStationPromptWidget> StationPrompt;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaInteractionPromptWidget> InteractionPrompt;
     UPROPERTY(Transient) TObjectPtr<APlayerController> Controller;
     TWeakObjectPtr<UKalmalaCraftingComponent> StationInteractionModel;
     TWeakObjectPtr<UInputComponent> BoundInput;
@@ -161,4 +170,9 @@ private:
     int32 ReviewCaptureStage = 0;
     float CaptureWait = 0;
     float VerificationLayoutWait = 0;
+#if !UE_BUILD_SHIPPING
+    int32 InteractionPromptReviewStage = 0;
+    float InteractionPromptReviewWait = 0.0f;
+    bool bInteractionPromptReviewComplete = false;
+#endif
 };

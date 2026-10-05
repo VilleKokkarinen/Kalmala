@@ -40,6 +40,8 @@ try {
             -and $clientText.Contains('Crafting owner final: Passed=1 Authority=0 WorkbenchKit=2 Slots=1') `
             -and $serverText.Contains('Crafting presentation: Passed=1 Restored=1') `
             -and $clientText.Contains('Crafting presentation: Passed=1 Restored=1') `
+            -and $serverText.Contains('Interaction prompt modal: Hidden=1') `
+            -and $clientText.Contains('Interaction prompt modal: Hidden=1') `
             -and $serverText.Contains('M9 tool feedback: Passed=1') `
             -and $clientText.Contains('M9 tool feedback: Passed=1') `
             -and $serverText.Contains('Inventory inspection: FocusAndKeys=1') `
@@ -93,7 +95,7 @@ try {
     } while ((Get-Date) -lt $deadline)
     if (!$ready) { throw 'Crafting host/client scenario timed out.' }
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client identity mismatch.' }
-    Write-Output 'PASS: build-grid focus/selection/navigation/unavailable states, server validation/payment/atomicity gates, camp feedback, exact inventory, matching fires, and local menu input restoration.'
+    Write-Output 'PASS: interaction prompt modal suppression, build-grid focus/selection/navigation/unavailable states, server validation/payment/atomicity gates, camp feedback, exact inventory, matching fires, and local menu input restoration.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }
