@@ -3,9 +3,11 @@
 #include "Components/Border.h"
 #include "Components/TextBlock.h"
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaThemedButton.h"
 #include "Misc/ConfigCacheIni.h"
 #include "Styling/CoreStyle.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
+#include "Containers/Ticker.h"
 #include "Components/Button.h"
 #include "Components/SizeBox.h"
 #include "Components/ScrollBox.h"
@@ -17,6 +19,49 @@
 namespace
 {
     const TCHAR* ThemeSection = TEXT("Kalmala.UI.Theme");
+    TMap<TWeakObjectPtr<UBorder>, uint64> SelectableFillTransitionIds;
+    uint64 NextSelectableFillTransitionId = 1;
+
+    void TransitionBorderFill(UBorder& Border, const FLinearColor& Target, const float Duration, const bool bAnimate)
+    {
+        const TWeakObjectPtr<UBorder> WeakBorder(&Border);
+        const FLinearColor Start = Border.GetBrushColor();
+        if (!bAnimate || Duration <= 0.0f)
+        {
+            SelectableFillTransitionIds.Remove(WeakBorder);
+            Border.SetBrushColor(Target);
+            return;
+        }
+
+        const uint64 TransitionId = NextSelectableFillTransitionId++;
+        SelectableFillTransitionIds.Add(WeakBorder, TransitionId);
+        FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+            [WeakBorder, Start, Target, Duration, TransitionId, Elapsed = 0.0f](const float DeltaSeconds) mutable
+            {
+                UBorder* CurrentBorder = WeakBorder.Get();
+                const uint64* CurrentId = SelectableFillTransitionIds.Find(WeakBorder);
+                if (CurrentBorder == nullptr)
+                {
+                    if (CurrentId != nullptr && *CurrentId == TransitionId)
+                    {
+                        SelectableFillTransitionIds.Remove(WeakBorder);
+                    }
+                    return false;
+                }
+                if (CurrentId == nullptr || *CurrentId != TransitionId)
+                {
+                    return false;
+                }
+                Elapsed += FMath::Max(0.0f, DeltaSeconds);
+                const float Progress = FMath::Clamp(Elapsed / Duration, 0.0f, 1.0f);
+                const float Eased = Progress * Progress * (3.0f - 2.0f * Progress);
+                CurrentBorder->SetBrushColor(FMath::Lerp(Start, Target, Eased));
+                if (Progress < 1.0f) return true;
+                CurrentBorder->SetBrushColor(Target);
+                SelectableFillTransitionIds.Remove(WeakBorder);
+                return false;
+            }), 0.0f);
+    }
 
     UObject* LoadThemeAsset(const FString& Path)
     {
@@ -84,7 +129,14 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadColor(Config, TEXT("ButtonHovered"), Theme.ButtonHovered);
     ReadColor(Config, TEXT("ButtonPressed"), Theme.ButtonPressed);
     ReadColor(Config, TEXT("ButtonDisabled"), Theme.ButtonDisabled);
+    ReadColor(Config, TEXT("ButtonFocused"), Theme.ButtonFocused);
+    ReadColor(Config, TEXT("ButtonSelected"), Theme.ButtonSelected);
+    ReadNumber(Config, TEXT("FocusBorderWidth"), Theme.FocusBorderWidth, 1, 5);
+    ReadNumber(Config, TEXT("SelectedBorderWidth"), Theme.SelectedBorderWidth, 1, 5);
+    ReadNumber(Config, TEXT("DisabledBorderWidth"), Theme.DisabledBorderWidth, 1, 5);
+    ReadNumber(Config, TEXT("InteractionTransitionDuration"), Theme.InteractionTransitionDuration, 0, 0.5f);
     Config.GetBool(ThemeSection, TEXT("AnimateScrolling"), Theme.bAnimateScrolling);
+    Config.GetBool(ThemeSection, TEXT("AnimateInteractionStates"), Theme.bAnimateInteractionStates);
     Config.GetBool(ThemeSection, TEXT("AnimateOptionsOpening"), Theme.bAnimateOptionsOpening);
     FString OptionsOpeningEasing;
     if (Config.GetString(ThemeSection, TEXT("OptionsOpeningEasing"), OptionsOpeningEasing)
@@ -202,7 +254,7 @@ FSlateFontInfo FKalmalaUITheme::MakeFont(const int32 BaseSize, const bool bHeadi
     return Font;
 }
 
-void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode) const
+void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, const bool bReducedMotion) const
 {
     FButtonStyle Style = Button.GetStyle();
     const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
@@ -213,10 +265,61 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode) con
     };
     Style.SetNormal(Brush(ButtonNormal, 0.08f)).SetHovered(Brush(ButtonHovered, 0.20f))
         .SetPressed(Brush(ButtonPressed, 0.0f)).SetDisabled(Brush(ButtonDisabled, 0.04f));
+    const FLinearColor FocusOutline = bContrast ? FLinearColor::White : ButtonFocused;
+    Style.Normal.OutlineSettings.Color = FSlateColor(bContrast ? FLinearColor::White : BorderColor);
+    Style.Hovered.OutlineSettings.Color = FSlateColor(FocusOutline);
+    Style.Pressed.OutlineSettings.Color = FSlateColor(FocusOutline);
+    Style.Disabled.OutlineSettings.Color = FSlateColor(bContrast ? FLinearColor::White : BorderColor);
+    Style.Disabled.OutlineSettings.Width = FMath::Max(DisabledBorderWidth, BorderWidth);
+    Style.SetNormalForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
+    Style.SetHoveredForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
+    Style.SetPressedForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
+    Style.SetDisabledForeground(FSlateColor(bContrast ? FLinearColor(0.72f, 0.72f, 0.72f, 1)
+        : FLinearColor(0.55f, 0.58f, 0.57f, 1)));
     Style.SetNormalPadding(FMargin(SlotPadding)).SetPressedPadding(FMargin(SlotPadding + 1));
-    Button.SetStyle(Style);
+    if (UKalmalaThemedButton* ThemedButton = Cast<UKalmalaThemedButton>(&Button))
+    {
+        ThemedButton->SetThemeStyle(Style, FocusOutline,
+            bContrast ? FLinearColor(0.12f, 0.12f, 0.12f, 1.0f) : ButtonSelected,
+            bContrast ? FMath::Max(2.0f, FocusBorderWidth) : FocusBorderWidth,
+            bContrast ? FMath::Max(2.0f, SelectedBorderWidth) : SelectedBorderWidth,
+            bContrast ? FMath::Max(DisabledBorderWidth, 1.0f) : DisabledBorderWidth,
+            InteractionTransitionDuration, bAnimateInteractionStates && !bReducedMotion);
+    }
+    else
+    {
+        Button.SetStyle(Style);
+    }
     Button.SetBackgroundColor(FLinearColor::White);
     Button.SetColorAndOpacity(FLinearColor::White);
+}
+
+void FKalmalaUITheme::ApplySelectablePanel(UBorder& Border, const bool bSelected, const bool bFocused,
+    const bool bUnavailable, const int32 ContrastMode, const bool bReducedMotion) const
+{
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const FLinearColor Fill = bContrast ? HighContrastPanel
+        : bUnavailable ? ButtonDisabled : bSelected ? ButtonSelected : ButtonNormal;
+    const FLinearColor Outline = bContrast ? FLinearColor::White
+        : bFocused ? ButtonFocused : BorderColor;
+    const float OutlineWidth = bContrast
+        ? FMath::Max(1.0f, bFocused ? FocusBorderWidth : bSelected ? SelectedBorderWidth
+            : bUnavailable ? DisabledBorderWidth : BorderWidth)
+        : bFocused ? FocusBorderWidth : bSelected ? SelectedBorderWidth
+            : bUnavailable ? DisabledBorderWidth : BorderWidth;
+    const FLinearColor StartFill = Border.GetBrushColor();
+    Border.SetBrush(FSlateRoundedBoxBrush(FLinearColor::White, CornerRadius, Outline, OutlineWidth));
+    Border.SetPadding(FMargin(SlotPadding + ((bSelected || bFocused) ? 1.0f : 0.0f)));
+    // Selection and focus labels remain the non-colour cue; the fill transition is decorative.
+    if (!bAnimateInteractionStates || bReducedMotion || InteractionTransitionDuration <= 0.0f)
+    {
+        TransitionBorderFill(Border, Fill, 0.0f, false);
+    }
+    else
+    {
+        Border.SetBrushColor(StartFill);
+        TransitionBorderFill(Border, Fill, InteractionTransitionDuration, true);
+    }
 }
 
 void FKalmalaUITheme::ApplyIconSlot(USizeBox& Slot) const

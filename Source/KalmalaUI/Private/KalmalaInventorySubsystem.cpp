@@ -330,9 +330,8 @@ void UKalmalaInventoryWidget::SetSupportGlyphState(const int32 Index, const EKal
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
         const bool bContrast = LastContrastMode > 0;
-        const FLinearColor CardColour = bContrast ? FLinearColor::Black
-            : bSelected ? Theme.ButtonPressed : bLearned ? Theme.ButtonNormal : Theme.ButtonDisabled;
-        SupportGlyphCards[Index]->SetBrushColor(CardColour);
+        Theme.ApplySelectablePanel(*SupportGlyphCards[Index], bSelected, false, !bLearned,
+            bContrast ? 1 : 0);
         SupportGlyphVisualStates[Index] = VisualState;
     }
     SupportGlyphs[Index]->SetGlyphState(Glyph, bLearned, bSelected);

@@ -7,6 +7,7 @@
 #include "KalmalaRecipeRequirements.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaUITheme.h"
+#include "KalmalaThemedButton.h"
 #include "KalmalaIconWidget.h"
 #include "Components/SizeBox.h"
 #include "KalmalaCraftingComponent.h"
@@ -201,7 +202,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     Column->AddChild(Ingredients);
     RequirementText = AddText(TEXT(""), 18);
     auto AddButton = [&](const TCHAR* Label, UHorizontalBox* Row = nullptr, const TCHAR* Help = nullptr) {
-        auto* Button = WidgetTree->ConstructWidget<UButton>(); auto* Text = WidgetTree->ConstructWidget<UTextBlock>();
+        auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>(); auto* Text = WidgetTree->ConstructWidget<UTextBlock>();
         Text->SetText(FText::FromString(Label)); Text->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(),18));
         Text->SetColorAndOpacity(FSlateColor(FLinearColor::Black)); Button->SetContent(Text);
         Button->SetToolTipText(FText::FromString(Help ? Help : Label));
@@ -565,12 +566,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
         if (bRestyle || RecipeSlotVisualStates[SlotIndex] != VisualState)
         {
             RecipeSlotVisualStates[SlotIndex] = VisualState;
-            Theme.ApplyPanel(*RecipeSlotCards[SlotIndex], ContrastMode, &NoPanelImage);
-            RecipeSlotCards[SlotIndex]->SetPadding(FMargin(Theme.SlotPadding + (bSelected ? 1.0f : 0.0f)));
-            RecipeSlotCards[SlotIndex]->SetBrushColor(ContrastMode != 0 ? FLinearColor::White
-                : bSelected ? FLinearColor(0.43f, 0.30f, 0.12f, 1.0f)
-                : bUnavailable ? FLinearColor(0.055f, 0.065f, 0.075f, 0.98f)
-                : FLinearColor(0.075f, 0.10f, 0.115f, 0.98f));
+            Theme.ApplySelectablePanel(*RecipeSlotCards[SlotIndex], bSelected, bFocused, bUnavailable, ContrastMode);
             Theme.ApplyText(*RecipeSlotNames[SlotIndex], 11, bSelected, TextScalePercent, ContrastMode);
             Theme.ApplyText(*RecipeSlotStates[SlotIndex], 9, false, TextScalePercent, ContrastMode);
         }
@@ -745,7 +741,11 @@ void UKalmalaCraftingWidget::Refresh()
         Ingredients->SetIngredients({}, nullptr, TextScalePercent, ContrastMode);
         RequirementText->SetText(FText::GetEmpty());
         if (SelectedIcon) SelectedIcon->SetVisibility(ESlateVisibility::Collapsed);
-        if (CraftButton) CraftButton->SetIsEnabled(false);
+        if (CraftButton && CraftButton->GetIsEnabled())
+        {
+            CraftButton->SetIsEnabled(false);
+            FKalmalaUITheme::Get().ApplyButton(*CraftButton, ContrastMode);
+        }
         return;
     }
     Selected=FMath::Clamp(Selected,0,VisibleIndices.Num()-1);
@@ -789,7 +789,11 @@ void UKalmalaCraftingWidget::Refresh()
             : FString::Printf(TEXT("Craft batch 1 of %s. Availability: %s. A rejected request preserves ingredients and tool condition."),
                 *SelectedRecipe.DisplayName, *Availability);
         CraftButton->SetToolTipText(FText::FromString(ButtonToolTip));
-        CraftButton->SetIsEnabled(SelectedRecipe.bEnabled);
+        if (CraftButton->GetIsEnabled() != SelectedRecipe.bEnabled)
+        {
+            CraftButton->SetIsEnabled(SelectedRecipe.bEnabled);
+            FKalmalaUITheme::Get().ApplyButton(*CraftButton, ContrastMode);
+        }
     }
     FString PreviewText;
     if (bPlacementPreviewEnabled)

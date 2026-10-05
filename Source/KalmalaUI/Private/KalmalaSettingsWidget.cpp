@@ -868,7 +868,7 @@ UTextBlock* UKalmalaSettingsWidget::AddLabel(UVerticalBox* Parent, const FText& 
 
 UButton* UKalmalaSettingsWidget::AddButton(UVerticalBox* Parent, const FText& Label, const FName Name)
 {
-    UButton* Button = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), Name);
+    UButton* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>(UKalmalaThemedButton::StaticClass(), Name);
     ApplyButtonPalette(Button);
     UTextBlock* Text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
     Text->SetText(Label);
@@ -883,8 +883,25 @@ UButton* UKalmalaSettingsWidget::AddButton(UVerticalBox* Parent, const FText& La
     return Button;
 }
 
+void UKalmalaSettingsWidget::SelectOptionsTab(const int32 SelectedIndex)
+{
+    static const TCHAR* TabNames[] = { TEXT("Video"), TEXT("Audio"), TEXT("Controls"), TEXT("Settings") };
+    for (int32 Index = 0; Index < OptionsTabButtons.Num(); ++Index)
+    {
+        UKalmalaThemedButton* Tab = OptionsTabButtons[Index];
+        if (!Tab) continue;
+        const bool bSelected = Index == SelectedIndex;
+        Tab->SetInteractionSelected(bSelected);
+        if (UTextBlock* Label = Cast<UTextBlock>(Tab->GetContent()))
+        {
+            Label->SetText(FText::FromString(FString(bSelected ? TEXT("Active: ") : TEXT("")) + TabNames[Index]));
+        }
+    }
+}
+
 void UKalmalaSettingsWidget::ShowMainMenu()
 {
+    OptionsTabButtons.Reset();
     ApplyModalPalette(&FKalmalaUITheme::Get().EscapePanelImage);
     StatusDetailsLabel = nullptr;
     ContentBox->ClearChildren();
@@ -903,13 +920,14 @@ void UKalmalaSettingsWidget::ShowMainMenu()
 
 void UKalmalaSettingsWidget::ShowOptionsMenu()
 {
+    OptionsTabButtons.Reset();
     StatusDetailsLabel = nullptr;
     ContentBox->ClearChildren();
     AddLabel(ContentBox, FText::FromString(TEXT("Options")), 30.0f)->SetJustification(ETextJustify::Center);
     UHorizontalBox* Tabs = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
     const auto AddTab = [this, Tabs](const FText& Label, FName Name, FScriptDelegate Delegate)
     {
-        UButton* Tab = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), Name);
+        UKalmalaThemedButton* Tab = WidgetTree->ConstructWidget<UKalmalaThemedButton>(UKalmalaThemedButton::StaticClass(), Name);
         ApplyButtonPalette(Tab);
         UTextBlock* Text = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
         Text->SetText(Label);
@@ -917,6 +935,7 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
         Text->SetJustification(ETextJustify::Center);
         FKalmalaUITheme::Get().ApplyText(*Text, FKalmalaUITheme::Get().BodySize + 5, false, GetTextScalePercent(), GetContrastMode());
         Tab->SetContent(Text);
+        OptionsTabButtons.Add(Tab);
         Tab->OnClicked.Add(Delegate);
         UHorizontalBoxSlot* Slot = Tabs->AddChildToHorizontalBox(Tab); Slot->SetSize(FSlateChildSize(ESlateSizeRule::Fill)); Slot->SetPadding(FMargin(3.0f));
     };
@@ -930,6 +949,7 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
 
 void UKalmalaSettingsWidget::ShowVideoTab()
 {
+    SelectOptionsTab(0);
     ApplyModalPalette(&FKalmalaUITheme::Get().VideoOptionsPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     AddLabel(ContentBox, FText::FromString(TEXT("Video")), 24.0f);
@@ -949,6 +969,7 @@ void UKalmalaSettingsWidget::ShowVideoTab()
 
 void UKalmalaSettingsWidget::ShowAudioTab()
 {
+    SelectOptionsTab(1);
     ApplyModalPalette(&FKalmalaUITheme::Get().AudioOptionsPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     AddLabel(ContentBox, FText::FromString(TEXT("Audio")), 24.0f);
@@ -974,6 +995,7 @@ void UKalmalaSettingsWidget::ShowAudioTab()
 
 void UKalmalaSettingsWidget::ShowControlsTab()
 {
+    SelectOptionsTab(2);
     ApplyModalPalette(&FKalmalaUITheme::Get().ControlsOptionsPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     ControlButtons.Reset();
@@ -1039,6 +1061,7 @@ void UKalmalaSettingsWidget::UpdateControlsLabels()
 
 void UKalmalaSettingsWidget::ShowSettingsTab()
 {
+    SelectOptionsTab(3);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     ApplyModalPalette(&FKalmalaUITheme::Get().SettingsOptionsPanelImage);
     AddLabel(ContentBox, FText::FromString(TEXT("Settings")), 24.0f);

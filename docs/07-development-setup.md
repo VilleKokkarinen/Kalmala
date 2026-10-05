@@ -224,6 +224,23 @@ This gate verifies representative editor presentation and existing authority /
 modal input contracts; it does not establish a new package or physical-input
 playthrough. Evidence and remaining M11 scope are recorded in `35-ui-theme.md`.
 
+## M11 shared hover and focus feedback
+
+After an isolated editor build with normal `%LOCALAPPDATA%/UnrealBuildTool`
+access, run the full `Automation RunTests Kalmala` queue and require exit 0.
+`Kalmala.UI.Theme.LocalPresentation` covers themed pointer/focus/selection and
+disabled states, high-contrast outlines, transition settings, and immediate
+reduced-motion presentation. Run `Scripts/Verify-SettingsAccessibility.ps1`,
+`Scripts/Verify-Crafting.ps1 -Rendered`, and `Scripts/Verify-Inventory.ps1
+-Rendered` from the mirror with unused ports. Require host/client focus,
+selection, modal restoration, owner presentation, and existing transaction
+checks to pass; inspect the retained standard and high-contrast captures for
+active-tab, focused-control, selected-card, and unavailable-card cues. Run the
+ownership and M5 documentation audits, `git diff --check`, changed-script
+PowerShell parsing, and the 260-character path audit. Theme configuration can
+disable interaction motion with `AnimateInteractionStates=False`; a
+user-facing reduced-motion preference remains a later M11 task.
+
 ## M11 ingredient-count child
 
 Follow `39-crafting-ingredients.md`: compile affected UI in the short disposable

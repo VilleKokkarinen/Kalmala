@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/Button.h"
 #include "Blueprint/UserWidget.h"
+#include "KalmalaThemedButton.h"
 #include "KalmalaSettingsWidget.generated.h"
 
 class UTextBlock;
@@ -18,7 +19,7 @@ enum class EKalmalaAudioCategory : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FKalmalaControlBindingClicked, FName, ControlName, bool, bGamepad);
 
 UCLASS()
-class KALMALAUI_API UKalmalaControlButton : public UButton
+class KALMALAUI_API UKalmalaControlButton : public UKalmalaThemedButton
 {
     GENERATED_BODY()
 
@@ -118,6 +119,7 @@ private:
     void StartOptionsOpeningAnimation();
     void ResetOptionsOpeningAnimation();
     UButton* AddButton(class UVerticalBox* Parent, const FText& Label, FName Name);
+    void SelectOptionsTab(int32 SelectedIndex);
     UTextBlock* AddLabel(class UVerticalBox* Parent, const FText& Label, float FontSize = 20.0f);
 
     UFUNCTION()
@@ -191,6 +193,8 @@ private:
     TObjectPtr<UTextBlock> FeedbackLabel;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> StatusDetailsLabel;
+    UPROPERTY(Transient)
+    TArray<TObjectPtr<UKalmalaThemedButton>> OptionsTabButtons;
 
     UPROPERTY(Transient)
     TObjectPtr<class UBorder> BackdropBorder;

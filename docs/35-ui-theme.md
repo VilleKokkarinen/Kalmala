@@ -266,6 +266,38 @@ presentation change: it adds no gameplay timing, RPC, replicated state, or
 saved-data setting. The automated peer probe does not replace physical
 keyboard/controller hardware or packaged-build verification.
 
+## Shared hover, focus, selection, and disabled feedback — 2026-10-04
+
+`ButtonFocused` and `FocusBorderWidth` style keyboard/controller focus;
+`ButtonSelected` and `SelectedBorderWidth` style active tabs and selected
+controls; `DisabledBorderWidth` keeps unavailable controls visibly distinct.
+`InteractionTransitionDuration` accepts 0–0.5 seconds and defaults to 0.12.
+`AnimateInteractionStates=False` or a per-call reduced-motion override applies
+the same final cues immediately. Local text scale and high contrast still take
+precedence: high contrast uses a white focus outline and a neutral selected
+fill. Selected options tabs also say `Active:`, and selected/focused build
+cards retain their text labels, so state does not depend on colour.
+
+The shared themed button handles pointer hover and keyboard/controller focus
+across settings actions and tabs, inventory browsing controls, and crafting or
+build actions. Its short eased transition changes only the local Slate brush;
+it stops safely when a widget is destroyed, refreshes from the current logical
+state, and ends immediately when motion is disabled. Inventory detail cards,
+support-effect slots, and build/craft cards use the same selection treatment
+and short fill transition while keeping their existing navigation. High-contrast
+cards preserve stronger outlines for unavailable states. No new pointer
+selection, action, input binding, RPC, authority, gameplay, or save contract was
+added. Active tabs say `Active:`, inventory keeps its `>` selection marker, the
+support HUD keeps its geometric selection ring, and build/craft cards retain
+`SELECTED`, `FOCUSED`, and `UNAVAILABLE` text cues.
+
+Theme automation checks the normal/high-contrast focus outline, selected fill,
+disabled outline, short transition scheduling, and immediate reduced-motion
+path. Parent verification uses the full editor automation queue and rendered
+host/client settings, inventory, and crafting checks at standard and
+high-contrast/text-scale layouts. These checks do not replace physical input
+hardware or packaged-build verification.
+
 
 ## M11 support HUD caption polish candidate (blocked)
 

@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaUITheme.h"
+#include "KalmalaThemedButton.h"
 #include "Components/Border.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
@@ -83,9 +84,13 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     "AudioOptionsPanelImage=/Game/Kalmala/UI/OptionsPanel.OptionsPanel\n"
     "ControlsOptionsPanelImage=/Game/Kalmala/UI/OptionsPanel.OptionsPanel\n"
     "SettingsOptionsPanelImage=/Game/Kalmala/UI/OptionsPanel.OptionsPanel\n"
-    "ButtonHovered=(R=0.3,G=0.4,B=0.5,A=1)\n"), TEXT("ExtendedTheme.ini"));
+    "ButtonHovered=(R=0.3,G=0.4,B=0.5,A=1)\n"
+    "ButtonFocused=(R=0.6,G=0.45,B=0.2,A=1)\n"
+    "ButtonSelected=(R=0.2,G=0.3,B=0.2,A=1)\n"
+    "FocusBorderWidth=3\nSelectedBorderWidth=4\nDisabledBorderWidth=2.5\n"
+    "InteractionTransitionDuration=0.2\nAnimateInteractionStates=True\n"), TEXT("ExtendedTheme.ini"));
     const FKalmalaUITheme Extension = FKalmalaUITheme::FromConfig(Extended);
-    UButton* Button = NewObject<UButton>();
+    UKalmalaThemedButton* Button = NewObject<UKalmalaThemedButton>();
     USizeBox* Icon = NewObject<USizeBox>();
     UScrollBox* Scroll = NewObject<UScrollBox>();
     Extension.ApplyButton(*Button, 0);
@@ -96,6 +101,47 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Text outline propagates"), Status->GetFont().OutlineSettings.OutlineSize, 2);
     TestEqual(TEXT("Button slot padding propagates"), Button->GetStyle().NormalPadding.Left, 8.0f);
     TestTrue(TEXT("Hover state propagates"), Button->GetStyle().Hovered.TintColor.GetSpecifiedColor().Equals(Extension.ButtonHovered));
+    TestEqual(TEXT("Theme transition duration propagates"), Extension.InteractionTransitionDuration, 0.2f);
+    TestEqual(TEXT("Theme focus border width propagates"), Extension.FocusBorderWidth, 3.0f);
+    TestEqual(TEXT("Theme selected border width propagates"), Extension.SelectedBorderWidth, 4.0f);
+    TestTrue(TEXT("Theme enables short interaction transitions"), Extension.bAnimateInteractionStates);
+    FConfigFile ImmediateInteractions;
+    ImmediateInteractions.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nAnimateInteractionStates=False\n"),
+        TEXT("ImmediateInteractions.ini"));
+    const FKalmalaUITheme ImmediateInteractionTheme = FKalmalaUITheme::FromConfig(ImmediateInteractions);
+    UKalmalaThemedButton* ImmediateButton = NewObject<UKalmalaThemedButton>();
+    ImmediateInteractionTheme.ApplyButton(*ImmediateButton, 0);
+    ImmediateButton->SetInteractionFocusForVerification(true);
+    TestFalse(TEXT("Theme-level motion setting applies focus immediately"),
+        ImmediateButton->HasActiveInteractionTransitionForVerification());
+    TestTrue(TEXT("Theme-level reduced motion retains the focused outline"),
+        ImmediateButton->GetStyle().Normal.OutlineSettings.Width >= 2.0f);
+    Button->SetInteractionFocusForVerification(true);
+    TestTrue(TEXT("Keyboard/controller focus starts the short state transition"),
+        Button->HasActiveInteractionTransitionForVerification());
+    Extension.ApplyButton(*Button, 1, true);
+    TestFalse(TEXT("Reduced motion cancels the transition immediately"),
+        Button->HasActiveInteractionTransitionForVerification());
+    TestTrue(TEXT("High-contrast focus keeps a thick non-colour outline"),
+        Button->GetStyle().Normal.OutlineSettings.Width >= 3.0f
+        && Button->GetStyle().Normal.OutlineSettings.Color.GetSpecifiedColor().Equals(FLinearColor::White));
+    Button->SetInteractionSelected(true);
+    TestTrue(TEXT("Selected state retains its neutral fill in high contrast"),
+        Button->GetStyle().Normal.TintColor.GetSpecifiedColor().Equals(FLinearColor(0.12f, 0.12f, 0.12f, 1.0f)));
+    Button->SetInteractionFocusForVerification(false);
+    TestEqual(TEXT("Selected state has its distinct theme border width"),
+        Button->GetStyle().Normal.OutlineSettings.Width, 4.0f);
+    Extension.ApplySelectablePanel(*Panel, true, true, false, 1, true);
+    TestTrue(TEXT("Selectable card keeps a white focus outline and black high-contrast fill"),
+        Panel->Background.OutlineSettings.Width >= 3.0f
+        && Panel->GetBrushColor().Equals(Extension.HighContrastPanel));
+    Extension.ApplySelectablePanel(*Panel, false, false, true, 1, true);
+    TestEqual(TEXT("Unavailable high-contrast cards keep a stronger structural outline"),
+        Panel->Background.OutlineSettings.Width, 2.5f);
+    Button->SetIsEnabled(false);
+    Extension.ApplyButton(*Button, 1, true);
+    TestEqual(TEXT("Disabled buttons use the configured structural outline"),
+        Button->GetStyle().Disabled.OutlineSettings.Width, 2.5f);
     TestEqual(TEXT("Icon width propagates"), Icon->GetWidthOverride(), 80.0f);
     TestEqual(TEXT("Icon height propagates"), Icon->GetHeightOverride(), 60.0f);
     TestTrue(TEXT("Theme enables wheel animation"), Scroll->IsAnimateWheelScrolling());
@@ -197,7 +243,7 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     MissingAssets.ApplyPanel(*Panel, 1);
     TestTrue(TEXT("Contrast ignores decorative images"), Panel->Background.GetResourceObject() == nullptr);
     MissingAssets.BorderWidth = 0;
-    MissingAssets.ApplyButton(*Button, 1);
+    MissingAssets.ApplyButton(*Button, 1, true);
     TestEqual(TEXT("Contrast keeps border with zero decorative width"), Button->GetStyle().Normal.OutlineSettings.Width, 1.0f);
     TestFalse(TEXT("Contrast retains distinct hover fill"), Button->GetStyle().Normal.TintColor.GetSpecifiedColor()
         .Equals(Button->GetStyle().Hovered.TintColor.GetSpecifiedColor()));

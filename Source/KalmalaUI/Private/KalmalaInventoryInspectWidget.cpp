@@ -1,6 +1,7 @@
 #include "KalmalaInventoryInspectWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaUITheme.h"
+#include "KalmalaThemedButton.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/VerticalBox.h"
 #include "Components/HorizontalBox.h"
@@ -33,7 +34,7 @@ void UKalmalaInventoryInspectWidget::Build()
     auto* Browse = WidgetTree->ConstructWidget<UVerticalBox>(); Column->AddChild(Browse);
     auto MakeControl = [this, Browse]()
     {
-        auto* Button = WidgetTree->ConstructWidget<UButton>();
+        auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
         Label->SetAutoWrapText(true); Button->SetContent(Label); Browse->AddChild(Button);
         return Button;
@@ -46,7 +47,7 @@ void UKalmalaInventoryInspectWidget::Build()
     auto* Actions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(Actions);
     for (const TCHAR* Name : {TEXT("Inspect previous item"), TEXT("Inspect next item")})
     {
-        auto* Button = WidgetTree->ConstructWidget<UButton>();
+        auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
         Label->SetText(FText::FromString(Name)); Button->SetContent(Label);
         Actions->AddChild(Button); Buttons.Add(Button);
@@ -142,9 +143,9 @@ void UKalmalaInventoryInspectWidget::Refresh()
     Theme.ApplyText(*Results, Theme.BodySize, false, TextScale, ContrastMode);
     for (UButton* Button : Buttons)
     {
+        Button->SetIsEnabled(!Rows.IsEmpty());
         Theme.ApplyButton(*Button, ContrastMode);
         Theme.ApplyText(*CastChecked<UTextBlock>(Button->GetContent()), Theme.BodySize, false, TextScale, ContrastMode);
-        Button->SetIsEnabled(!Rows.IsEmpty());
     }
     Grid->ClearChildren();
     int32 GridRow = 0, GridColumn = 0;
@@ -159,8 +160,7 @@ void UKalmalaInventoryInspectWidget::Refresh()
             Grid->AddChildToGrid(Heading, GridRow++, 0)->SetColumnSpan(4);
         }
         auto* Card = WidgetTree->ConstructWidget<UBorder>();
-        const FString NoImage;
-        Theme.ApplyPanel(*Card, ContrastMode, &NoImage);
+        Theme.ApplySelectablePanel(*Card, Index == Selected, Index == Selected && HasKeyboardFocus(), false, ContrastMode);
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
         Label->SetAutoWrapText(true); Label->SetWrapTextAt(140.0f);
         Label->SetText(FText::FromString((Index == Selected ? TEXT("> ") : TEXT("")) + Rows[Index].Name + TEXT("\n") + Rows[Index].Detail));

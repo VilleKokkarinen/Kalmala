@@ -46,6 +46,13 @@ struct KALMALAUI_API FKalmalaUITheme
     FLinearColor ButtonHovered = FLinearColor(0.18f, 0.25f, 0.28f, 1);
     FLinearColor ButtonPressed = FLinearColor(0.07f, 0.10f, 0.12f, 1);
     FLinearColor ButtonDisabled = FLinearColor(0.08f, 0.08f, 0.08f, 1);
+    FLinearColor ButtonFocused = FLinearColor(0.58f, 0.43f, 0.20f, 1);
+    FLinearColor ButtonSelected = FLinearColor(0.18f, 0.23f, 0.17f, 1);
+    float FocusBorderWidth = 2.0f;
+    float SelectedBorderWidth = 2.0f;
+    float DisabledBorderWidth = 2.0f;
+    float InteractionTransitionDuration = 0.12f;
+    bool bAnimateInteractionStates = true;
     float SlotPadding = 3;
     float IconWidth = 64;
     float IconHeight = 42;
@@ -66,7 +73,9 @@ struct KALMALAUI_API FKalmalaUITheme
     FLinearColor TextColor(bool bHeading, int32 ContrastMode) const;
     void ApplyMenu(UWidgetTree& Tree, UTextBlock* HeadingLabel, int32 TextScalePercent, int32 ContrastMode) const;
     void ApplyPanel(UBorder& Border, int32 ContrastMode, const FString* ImageOverride = nullptr) const;
-    void ApplyButton(UButton& Button, int32 ContrastMode) const;
+    void ApplyButton(UButton& Button, int32 ContrastMode, bool bReducedMotion = false) const;
+    void ApplySelectablePanel(UBorder& Border, bool bSelected, bool bFocused, bool bUnavailable,
+        int32 ContrastMode, bool bReducedMotion = false) const;
     void ApplyIconSlot(USizeBox& Slot) const;
     void ApplyScroll(UScrollBox& Scroll, bool bReducedMotion = false) const;
     bool ShouldAnimateOptionsOpening() const;
