@@ -13,6 +13,7 @@ class UScrollBox;
 class UInputComponent;
 class UKalmalaCraftingComponent;
 class UKalmalaSelectedResultWidget;
+class UKalmalaCraftingSubsystem;
 
 UCLASS()
 class KALMALAUI_API UKalmalaInteractionPromptWidget : public UUserWidget
@@ -62,11 +63,14 @@ protected:
     virtual FReply NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
 private:
     UKalmalaCraftingComponent* Model() const;
+    UKalmalaCraftingSubsystem* GetLocalCraftingSubsystem() const;
+    bool IsRecipeFavorite(FName RecipeId) const;
     void OpenInternal(FName StationKit);
     UFUNCTION() void RecipeSearchChanged(const FText& Text);
     UFUNCTION() void CycleRecipeCategory();
     UFUNCTION() void CycleRecipeSort();
     UFUNCTION() void ClearRecipeSearch();
+    UFUNCTION() void ToggleSelectedFavorite();
     UFUNCTION() void Previous();
     UFUNCTION() void Next();
     UFUNCTION() void Craft();
@@ -117,6 +121,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> RecipeSearchBox;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeCategoryLabel;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeSortLabel;
+    UPROPERTY(Transient) TObjectPtr<UButton> FavoriteButton;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> FavoriteActionLabel;
     UPROPERTY(Transient) FEditableTextBoxStyle RecipeSearchStyle;
     FString RecipeQuery;
     int32 RecipeCategory = 0;
@@ -150,6 +156,10 @@ public:
     virtual bool IsTickable() const override { return !IsTemplate(); }
     bool CloseIfOpen();
     bool IsOpen() const { return Widget != nullptr && Widget->IsOpen(); }
+    bool IsRecipeFavorite(FName RecipeId) const { return FavoriteRecipeIds.Contains(RecipeId); }
+    bool CanFavoriteRecipe(FName RecipeId) const;
+    bool SetRecipeFavorite(FName RecipeId, bool bFavorite);
+    void PruneRecipeFavorites();
 private:
     void Toggle();
     void Release();
@@ -160,6 +170,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaCraftingWidget> Widget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaInteractionPromptWidget> InteractionPrompt;
     UPROPERTY(Transient) TObjectPtr<APlayerController> Controller;
+    UPROPERTY(Transient) TSet<FName> FavoriteRecipeIds;
     TWeakObjectPtr<UKalmalaCraftingComponent> StationInteractionModel;
     TWeakObjectPtr<UInputComponent> BoundInput;
     uint32 LastStationInteractionSerial = 0;

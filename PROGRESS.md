@@ -11379,3 +11379,25 @@ Authority and scope: preview and cue fixtures read existing owner-visible state 
 Commit handoff: menu-memory source commit `cb9ffd3` is integrated as `22edafd`; status and preview implementation, integration repairs, verification evidence, and backlog updates are committed as `049f86f` on `codex/m11-batch-integration`. Main-checkout handoff synchronization is complete for `BACKLOG.md` and `PROGRESS.md` only; its pre-existing `AGENTS.md` and implementation changes remain untouched.
 
 Next eligible backlog task: add local recipe/build Favorites, usage ranks, and Recent shortcuts/markers. Current run time: 2026-10-05T13:15:29Z.
+
+### Run 2026-10-05T13:45:00Z — local recipe/build Favorites increment
+
+Concurrency guard: Codex app inventory showed this run as the only active Kalmala task; the earlier parallel autonomous task was idle. Windows process inspection was denied. The main checkout contained pre-existing uncommitted handoff changes, so implementation was made in the managed isolated worktree from the verified M11 integration commit `2399563`, on branch `codex/m11-favorites`.
+
+Outcome: Selected the first unchecked M11 parent, which had no child tasks, and split its ordered implementation into trackable children. Completed only the first child: documented deterministic history rules and lifecycle, then added the local-session bookmark set, selected-entry toggle, Favorite text, and Favorites category/filter. The feature parent remains unchecked; no later child started. This is not milestone-final verification.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `docs/15-presentation-ownership.md`; `docs/38-menu-browsing.md`; new `docs/41-recipe-activity.md`; selected child in `BACKLOG.md`; and this `PROGRESS.md` handoff.
+
+Lightweight checks: `git diff --check` passed. Manual source review followed the canonical-ID validation, 256/current-catalogue cap, station and query intersection, selected-entry fallback, empty-action disabling, and local-player ownership paths. A narrow PowerShell source assertion passed for the Favorites label/category wrap, active-ID validation, bound, Favorite text, and absence of a gameplay RPC in the toggle handler. The absolute-path audit covered every changed path; the longest was 107 characters.
+
+Full verification remains deferred: no Unreal build, automation queue, rendered host/client pass, or package check was run for this normal child increment. M11 is not at its final implementation task.
+
+Observable impact: Each local player can add or remove the selected active recipe/build entry, browse the Favorites subset, and see explicit Favorite text on bookmarked cards and tooltips. Existing catalogue order, search/station scope, availability, selection recovery, and action validation remain in effect.
+
+Networking/authority: Bookmark state is transient in the owning `ULocalPlayer` subsystem. The toggle and filter send no RPC and alter no gameplay, inventory, peer visibility, replicated field, settings config, or saved-data schema.
+
+Known limitations: Bookmarks last for the local-player subsystem lifetime and do not survive process restart. Accepted-action counts, ranks, Recent shortcuts, theme-configurable corner markers, focused UI automation, rendered accessibility/coexistence checks, and broader M11 acceptance remain open.
+
+Next eligible task: consume unique owner-received successful build/cooking/other-crafting outcomes, count only accepted actions once, and derive bounded deterministic ranks plus one Recent entry per action kind.
+
+Main-checkout synchronization will update only `BACKLOG.md` and `PROGRESS.md` after inspection of their pre-existing versions; implementation files remain isolated in the managed worktree.

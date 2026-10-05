@@ -59,6 +59,7 @@
 namespace
 {
 constexpr int32 RecipeGridColumns = 4;
+constexpr int32 MaxFavoriteRecipeCount = 256;
 const FString NoPanelImage;
 
 FString GetReadableToolName(const FName ToolId)
@@ -426,7 +427,12 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     RecipeSortLabel = CastChecked<UTextBlock>(SortButton->GetContent());
     SortButton->OnClicked.AddDynamic(this, &ThisClass::CycleRecipeSort);
     Column->RemoveChild(SortButton); Column->InsertChildAt(4, SortButton);
-    AddText(TEXT("Recipe browsing: Tab reaches search, category and order. Page Up/Down cycles category/order while the panel is focused. Controller uses focused buttons. All retains this menu's station scope."), 14);
+    FavoriteButton = AddButton(TEXT("Favorite: select a recipe"), nullptr,
+        TEXT("Add or remove the selected recipe or build from your local Favorites list."));
+    FavoriteActionLabel = CastChecked<UTextBlock>(FavoriteButton->GetContent());
+    FavoriteButton->OnClicked.AddDynamic(this, &ThisClass::ToggleSelectedFavorite);
+    Column->RemoveChild(FavoriteButton); Column->InsertChildAt(5, FavoriteButton);
+    AddText(TEXT("Recipe browsing: Tab reaches search, category, order and Favorite. Page Up/Down cycles category/order while the panel is focused. Controller uses focused buttons. All retains this menu's station scope."), 14);
     auto* InspectButton = AddButton(TEXT("Inspect inventory"), nullptr,
         TEXT("Read your inventory details. Arrows or D-pad select an item; Tab continues to other menu controls."));
     InspectButton->OnClicked.AddDynamic(this, &ThisClass::FocusInventoryDetails);
@@ -507,8 +513,16 @@ FString UKalmalaCraftingWidget::GetBrowseCategoryLabel(const int32 Category)
     case 4: return TEXT("Structural pieces");
     case 5: return TEXT("Stations");
     case 6: return TEXT("Camp utilities");
+    case 7: return TEXT("Favorites");
     default: return TEXT("All");
     }
+}
+
+UKalmalaCraftingSubsystem* UKalmalaCraftingWidget::GetLocalCraftingSubsystem() const
+{
+    APlayerController* LocalController = GetOwningPlayer();
+    ULocalPlayer* LocalPlayer = LocalController ? LocalController->GetLocalPlayer() : nullptr;
+    return LocalPlayer ? LocalPlayer->GetSubsystem<UKalmalaCraftingSubsystem>() : nullptr;
 }
 
 TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
@@ -523,7 +537,8 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
         const bool bCategoryMatches = RecipeCategory == 0
             || (RecipeCategory == 1 && !bCooking) || (RecipeCategory == 2 && bCooking)
             || (RecipeCategory == 3 && BuildGroup != 0)
-            || (RecipeCategory >= 4 && BuildGroup == RecipeCategory);
+            || (RecipeCategory == 7 && IsRecipeFavorite(Recipe.RecipeId))
+            || (RecipeCategory >= 4 && RecipeCategory <= 6 && BuildGroup == RecipeCategory);
         if ((StationFilterKit.IsNone() || Recipe.RequiredStation.Contains(StationFilterKit))
             && bCategoryMatches
             && (RecipeQuery.IsEmpty() || Recipe.DisplayName.Contains(RecipeQuery, ESearchCase::IgnoreCase)))
@@ -549,7 +564,7 @@ void UKalmalaCraftingWidget::SetRecipeBrowse(const FString& Query, int32 Categor
     const auto Before = GetVisibleRecipeIndices();
     const int32 OldRecipe = Before.IsValidIndex(Selected) ? Before[Selected] : INDEX_NONE;
     RecipeQuery = Query.Left(64).TrimStartAndEnd();
-    RecipeCategory = FMath::Clamp(Category, 0, 6); bRecipeNameSort = bNameSort;
+    RecipeCategory = FMath::Clamp(Category, 0, 7); bRecipeNameSort = bNameSort;
     const auto After = GetVisibleRecipeIndices();
     Selected = After.IndexOfByKey(OldRecipe);
     if (Selected == INDEX_NONE) Selected = 0;
@@ -560,9 +575,21 @@ void UKalmalaCraftingWidget::SetRecipeBrowse(const FString& Query, int32 Categor
     if (bOpen) Refresh();
 }
 void UKalmalaCraftingWidget::RecipeSearchChanged(const FText& Text) { SetRecipeBrowse(Text.ToString(), RecipeCategory, bRecipeNameSort); }
-void UKalmalaCraftingWidget::CycleRecipeCategory() { SetRecipeBrowse(RecipeQuery, (RecipeCategory + 1) % 7, bRecipeNameSort); }
+void UKalmalaCraftingWidget::CycleRecipeCategory() { SetRecipeBrowse(RecipeQuery, (RecipeCategory + 1) % 8, bRecipeNameSort); }
 void UKalmalaCraftingWidget::CycleRecipeSort() { SetRecipeBrowse(RecipeQuery, RecipeCategory, !bRecipeNameSort); }
 void UKalmalaCraftingWidget::ClearRecipeSearch() { RecipeSearchBox->SetText(FText::GetEmpty()); SetRecipeBrowse(TEXT(""), RecipeCategory, bRecipeNameSort); }
+
+void UKalmalaCraftingWidget::ToggleSelectedFavorite()
+{
+    const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
+    const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
+    if (!VisibleIndices.IsValidIndex(Selected) || !Recipes.IsValidIndex(VisibleIndices[Selected])) return;
+    UKalmalaCraftingSubsystem* FavoriteState = GetLocalCraftingSubsystem();
+    if (!FavoriteState) return;
+    const FName RecipeId = Recipes[VisibleIndices[Selected]].RecipeId;
+    if (!FavoriteState->SetRecipeFavorite(RecipeId, !FavoriteState->IsRecipeFavorite(RecipeId))) return;
+    SetRecipeBrowse(RecipeQuery, RecipeCategory, bRecipeNameSort);
+}
 
 void UKalmalaCraftingWidget::Open() { OpenInternal(NAME_None); }
 
@@ -571,6 +598,7 @@ void UKalmalaCraftingWidget::OpenForStation(const FName StationKit) { OpenIntern
 void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
 {
     if (!StationKit.IsNone() && !IsInWorldCookingStation(StationKit)) return;
+    if (UKalmalaCraftingSubsystem* FavoriteState = GetLocalCraftingSubsystem()) FavoriteState->PruneRecipeFavorites();
     if (bOpen)
     {
         StationFilterKit = StationKit;
@@ -740,6 +768,8 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
         if (bUnavailable) ++RecipeGridUnavailableCount;
 
         FString RecipeStateLabelText = bUnavailable ? TEXT("UNAVAILABLE") : TEXT("AVAILABLE");
+        const bool bFavorite = IsRecipeFavorite(Recipe.RecipeId);
+        if (bFavorite) RecipeStateLabelText = TEXT("FAVORITE\n") + RecipeStateLabelText;
         if (bSelected)
         {
             RecipeStateLabelText = (bFocused ? TEXT("FOCUSED · SELECTED\n") : TEXT("SELECTED\n"))
@@ -755,13 +785,16 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
         {
             RecipeSlotStates[SlotIndex]->SetText(FText::FromString(RecipeStateLabelText));
         }
-        const FText ToolTip = FText::FromString(bUnavailable ? Reason : Recipe.DisplayName + TEXT(" — Available"));
+        FString ToolTipText = bUnavailable ? Reason : Recipe.DisplayName + TEXT(" — Available");
+        if (bFavorite) ToolTipText = TEXT("Favorite. ") + ToolTipText;
+        const FText ToolTip = FText::FromString(ToolTipText);
         if (RecipeSlotCards[SlotIndex]->GetToolTipText().ToString() != ToolTip.ToString())
         {
             RecipeSlotCards[SlotIndex]->SetToolTipText(ToolTip);
         }
 
         const uint8 VisualState = static_cast<uint8>((bSelected ? 1 : 0) | (bFocused ? 2 : 0)
+            | (bFavorite ? 16 : 0)
             | (bUnavailable ? 4 : 0) | (ContrastMode != 0 ? 8 : 0));
         if (bRestyle || RecipeSlotVisualStates[SlotIndex] != VisualState)
         {
@@ -1011,6 +1044,17 @@ void UKalmalaCraftingWidget::Refresh()
     }
     if (InventoryInspector) InventoryInspector->SetRows(InspectionRows, TextScalePercent, ContrastMode);
     if (!VisibleIndices.IsEmpty()) Selected=FMath::Clamp(Selected,0,VisibleIndices.Num()-1);
+    const int32 FavoriteRecipeIndex = VisibleIndices.IsValidIndex(Selected) ? VisibleIndices[Selected] : INDEX_NONE;
+    const FName FavoriteRecipeId = Recipes.IsValidIndex(FavoriteRecipeIndex) ? Recipes[FavoriteRecipeIndex].RecipeId : NAME_None;
+    const UKalmalaCraftingSubsystem* FavoriteState = GetLocalCraftingSubsystem();
+    const bool bSelectedFavorite = FavoriteState && FavoriteState->IsRecipeFavorite(FavoriteRecipeId);
+    const bool bCanBookmark = FavoriteState && !FavoriteRecipeId.IsNone()
+        && (bSelectedFavorite || FavoriteState->CanFavoriteRecipe(FavoriteRecipeId));
+    if (FavoriteButton) FavoriteButton->SetIsEnabled(bCanBookmark);
+    if (FavoriteActionLabel) FavoriteActionLabel->SetText(FText::FromString(FavoriteRecipeId.IsNone()
+        ? TEXT("Favorite: no recipe selected")
+        : bSelectedFavorite ? TEXT("Remove from Favorites")
+        : bCanBookmark ? TEXT("Add to Favorites") : TEXT("Favorites limit reached")));
     RefreshRecipeGrid(VisibleIndices, M, TextScalePercent, ContrastMode);
     if (VisibleIndices.IsEmpty())
     {
@@ -1127,6 +1171,7 @@ FString UKalmalaCraftingWidget::GetPresentationText() const
             + StateText->GetText().ToString() + (FoodText ? FoodText->GetText().ToString() : FString())
             + (RepairText ? RepairText->GetText().ToString() : FString())
             + (ToolProgressionText ? ToolProgressionText->GetText().ToString() : FString())
+            + (FavoriteActionLabel ? FavoriteActionLabel->GetText().ToString() : FString())
             + (CraftButton ? CraftButton->GetToolTipText().ToString() : FString())
             + (StorageText ? StorageText->GetText().ToString() : FString()) : FString();
 }
@@ -1621,6 +1666,42 @@ void UKalmalaCraftingSubsystem::UpdateInteractionPromptReview(APlayerController*
     if (++InteractionPromptReviewStage >= 4) bInteractionPromptReviewComplete = true;
 }
 #endif
+
+bool UKalmalaCraftingWidget::IsRecipeFavorite(const FName RecipeId) const
+{
+    const UKalmalaCraftingSubsystem* FavoriteState = GetLocalCraftingSubsystem();
+    return FavoriteState && FavoriteState->IsRecipeFavorite(RecipeId);
+}
+
+bool UKalmalaCraftingSubsystem::CanFavoriteRecipe(const FName RecipeId) const
+{
+    const UKalmalaRecipeCatalogue* Catalogue = UKalmalaRecipeCatalogue::Get();
+    if (!Catalogue || !Catalogue->Find(RecipeId)) return false;
+    if (FavoriteRecipeIds.Contains(RecipeId)) return true;
+    return FavoriteRecipeIds.Num() < FMath::Min(MaxFavoriteRecipeCount, Catalogue->Recipes.Num());
+}
+
+bool UKalmalaCraftingSubsystem::SetRecipeFavorite(const FName RecipeId, const bool bFavorite)
+{
+    if (!bFavorite) return FavoriteRecipeIds.Remove(RecipeId) > 0;
+    if (!CanFavoriteRecipe(RecipeId)) return false;
+    FavoriteRecipeIds.Add(RecipeId);
+    return true;
+}
+
+void UKalmalaCraftingSubsystem::PruneRecipeFavorites()
+{
+    const UKalmalaRecipeCatalogue* Catalogue = UKalmalaRecipeCatalogue::Get();
+    if (!Catalogue)
+    {
+        FavoriteRecipeIds.Reset();
+        return;
+    }
+    for (auto It = FavoriteRecipeIds.CreateIterator(); It; ++It)
+    {
+        if (!Catalogue->Find(*It)) It.RemoveCurrent();
+    }
+}
 
 void UKalmalaCraftingSubsystem::Toggle()
 {

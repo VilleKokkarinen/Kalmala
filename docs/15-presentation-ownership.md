@@ -201,3 +201,15 @@ validated inventory publications. The local 32-receipt buffer is transient;
 initial attachment is silent and the shared three-row widget does not inspect
 peer inventory. No server mutation RPC or persistence field is added. See
 40-notifications.md for net-gain and dropped-notice limits.
+
+## Owner-local recipe Favorites
+
+`UKalmalaCraftingSubsystem` keeps canonical recipe/build bookmark IDs for its
+own `ULocalPlayer` session. The crafting menu reads the set only to filter the
+existing owner-visible catalogue and show Favorite text. A selected-entry
+button changes this transient local set; it sends no request, changes no
+availability, and cannot place or craft anything. The bounded set is cleared
+with the local-player subsystem and is not written to gameplay saves, user
+settings, replicated state, or peer-visible data. Usage ranking and Recent
+presentation remain separate server-accepted-action work under the contract in
+`docs/41-recipe-activity.md`.

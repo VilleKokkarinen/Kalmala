@@ -176,3 +176,23 @@ Slate key events do not certify physical keyboard/controller text entry,
 cooking-station physical interaction, exhaustive viewport combinations,
 package inclusion or clean-HEAD/package acceptance. Earlier pending statements
 above are historical; full parent verification is now complete under these limits.
+
+## Owner-local Favorites slice
+
+The crafting/build menu now cycles All, Other crafting, Cooking, All builds,
+Structural pieces, Stations, Camp utilities, and Favorites. Favorites is the
+manually bookmarked subset of the same active catalogue and intersects the
+existing station filter and name query. The focusable Add to Favorites / Remove
+from Favorites button applies to the current selected recipe or build entry;
+it performs no gameplay action. Cards and tooltips identify bookmarks with the
+text label Favorite, and unavailable reasons remain visible. If the selected
+entry is removed while Favorites is active, ordinary browse fallback selects
+the first remaining entry; an empty view leaves Craft disabled.
+
+Bookmark IDs live in the owning `UKalmalaCraftingSubsystem` and are shared by
+that local player across menu reopen and pawn replacement. The set is capped at
+the lesser of 256 and the current recipe-catalogue size; opening the menu
+prunes IDs no longer in the catalogue. This first slice ends with the local
+player subsystem and does not write settings, world/player saves, or network
+state. Usage ranks, accepted-action Recent entries, and configurable corner
+badges remain later work; see `docs/41-recipe-activity.md`.
