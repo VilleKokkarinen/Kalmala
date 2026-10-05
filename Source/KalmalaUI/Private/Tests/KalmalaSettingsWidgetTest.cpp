@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaSettingsWidget.h"
+#include "Engine/UserInterfaceSettings.h"
 #include "InputCoreTypes.h"
 #include "Misc/App.h"
 #include "Misc/AutomationTest.h"
@@ -55,6 +56,30 @@ bool FKalmalaSettingsWidgetTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Text scale persists in local settings"),
         UKalmalaSettingsWidget::GetTextScalePercent(), 125);
     UKalmalaSettingsWidget::SetTextScalePercent(OriginalTextScale);
+
+    TestEqual(TEXT("Interface scale keeps its smallest supported choice"),
+        UKalmalaSettingsWidget::ClampInterfaceScalePercent(80), 80);
+    TestEqual(TEXT("Interface scale rounds to a supported choice"),
+        UKalmalaSettingsWidget::ClampInterfaceScalePercent(105), 100);
+    TestEqual(TEXT("Interface scale bounds high values"),
+        UKalmalaSettingsWidget::ClampInterfaceScalePercent(200), 120);
+    const int32 OriginalInterfaceScale = UKalmalaSettingsWidget::GetInterfaceScalePercent();
+    const float ThemeApplicationScale = UKalmalaSettingsWidget::GetThemeDefaultApplicationScale();
+    UKalmalaSettingsWidget::SetInterfaceScalePercent(120);
+    TestEqual(TEXT("Interface scale persists in local settings"),
+        UKalmalaSettingsWidget::GetInterfaceScalePercent(), 120);
+    TestTrue(TEXT("Interface scale applies over the project UI scale"), FMath::IsNearlyEqual(
+        UKalmalaSettingsWidget::GetAppliedApplicationScale(), ThemeApplicationScale * 1.2f, 0.001f));
+    const float ScaledViewport = GetDefault<UUserInterfaceSettings>()->GetDPIScaleBasedOnSize(FIntPoint(1280, 720));
+    UKalmalaSettingsWidget::SetInterfaceScalePercent(OriginalInterfaceScale);
+    TestTrue(TEXT("Restoring interface scale restores the prior viewport scale"), FMath::IsNearlyEqual(
+        GetDefault<UUserInterfaceSettings>()->GetDPIScaleBasedOnSize(FIntPoint(1280, 720)), ScaledViewport
+            * OriginalInterfaceScale / 120.0f, 0.001f));
+
+    const bool bOriginalReducedMotion = UKalmalaSettingsWidget::IsReducedMotionEnabled();
+    UKalmalaSettingsWidget::SetReducedMotionEnabled(true);
+    TestTrue(TEXT("Reduced motion persists in local settings"), UKalmalaSettingsWidget::IsReducedMotionEnabled());
+    UKalmalaSettingsWidget::SetReducedMotionEnabled(bOriginalReducedMotion);
 
     TestEqual(TEXT("Contrast mode clamps below standard"),
         UKalmalaSettingsWidget::ClampContrastMode(-1), 0);

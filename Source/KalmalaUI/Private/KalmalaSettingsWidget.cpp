@@ -11,6 +11,7 @@
 #include "Components/ScrollBox.h"
 #include "KalmalaSurvivalStatusSubsystem.h"
 #include "Engine/LocalPlayer.h"
+#include "Engine/UserInterfaceSettings.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
@@ -31,10 +32,13 @@ namespace
     constexpr TCHAR MasterVolumeKey[] = TEXT("LocalMasterVolume");
     constexpr TCHAR RestoreVolumeKey[] = TEXT("LocalRestoreVolume");
     constexpr TCHAR TextScaleKey[] = TEXT("LocalTextScalePercent");
+    constexpr TCHAR InterfaceScaleKey[] = TEXT("LocalInterfaceScalePercent");
+    constexpr TCHAR ReducedMotionKey[] = TEXT("LocalReducedMotionEnabled");
     constexpr TCHAR ContrastModeKey[] = TEXT("LocalContrastMode");
     constexpr TCHAR FeedbackModeKey[] = TEXT("LocalFeedbackMode");
     constexpr float DefaultMasterVolume = 1.0f;
     constexpr int32 DefaultTextScalePercent = 100;
+    constexpr int32 DefaultInterfaceScalePercent = 100;
     constexpr int32 DefaultContrastMode = 0;
     constexpr int32 DefaultFeedbackMode = 0;
 
@@ -334,6 +338,17 @@ namespace
         }
         return FMath::IsFinite(Value) ? FMath::Clamp(Value, 0.0f, 1.0f) : DefaultValue;
     }
+
+    float GetConfiguredApplicationScale()
+    {
+        static const float ConfiguredScale = []
+        {
+            const UUserInterfaceSettings* Settings = GetDefault<UUserInterfaceSettings>();
+            return Settings != nullptr && FMath::IsFinite(Settings->ApplicationScale)
+                && Settings->ApplicationScale > 0.0f ? Settings->ApplicationScale : 1.0f;
+        }();
+        return ConfiguredScale;
+    }
 }
 
 UKalmalaControlButton::UKalmalaControlButton(const FObjectInitializer& ObjectInitializer)
@@ -473,6 +488,22 @@ bool UKalmalaSettingsWidget::HasFocusableControlsForVerification() const
 float UKalmalaSettingsWidget::GetOptionsPanelPositionYForVerification() const
 {
     return PanelCanvasSlot != nullptr ? PanelCanvasSlot->GetPosition().Y : 0.0f;
+}
+
+FVector2D UKalmalaSettingsWidget::GetOptionsPanelSizeForVerification() const
+{
+    return PanelCanvasSlot != nullptr ? PanelCanvasSlot->GetSize() : FVector2D::ZeroVector;
+}
+
+bool UKalmalaSettingsWidget::DoesOptionsPanelFitViewportForVerification() const
+{
+    if (PanelCanvasSlot == nullptr || LastLayoutViewportSize.X <= 0.0f || LastLayoutViewportSize.Y <= 0.0f)
+    {
+        return false;
+    }
+    const FVector2D PanelSize = PanelCanvasSlot->GetSize();
+    return PanelSize.X <= LastLayoutViewportSize.X - 16.0f
+        && PanelSize.Y <= LastLayoutViewportSize.Y - 16.0f;
 }
 
 bool UKalmalaSettingsWidget::IsOptionsPanelCenterAnchoredForVerification() const
@@ -883,6 +914,76 @@ UButton* UKalmalaSettingsWidget::AddButton(UVerticalBox* Parent, const FText& La
     return Button;
 }
 
+int32 UKalmalaSettingsWidget::ClampInterfaceScalePercent(const int32 Percent)
+{
+    constexpr int32 Choices[] = { 80, 90, 100, 110, 120 };
+    int32 ClosestChoice = Choices[0];
+    int32 ClosestDistance = FMath::Abs(Percent - ClosestChoice);
+    for (const int32 Choice : Choices)
+    {
+        const int32 Distance = FMath::Abs(Percent - Choice);
+        if (Distance < ClosestDistance)
+        {
+            ClosestChoice = Choice;
+            ClosestDistance = Distance;
+        }
+    }
+    return ClosestChoice;
+}
+
+int32 UKalmalaSettingsWidget::GetInterfaceScalePercent()
+{
+    int32 Value = DefaultInterfaceScalePercent;
+    if (GConfig != nullptr)
+    {
+        GConfig->GetInt(AudioSettingsSection, InterfaceScaleKey, Value, GGameUserSettingsIni);
+    }
+    return ClampInterfaceScalePercent(Value);
+}
+
+void UKalmalaSettingsWidget::SetInterfaceScalePercent(const int32 Percent)
+{
+    if (GConfig == nullptr) return;
+    GConfig->SetInt(AudioSettingsSection, InterfaceScaleKey, ClampInterfaceScalePercent(Percent), GGameUserSettingsIni);
+    GConfig->Flush(false, GGameUserSettingsIni);
+    ApplySavedInterfaceScale();
+}
+
+void UKalmalaSettingsWidget::ApplySavedInterfaceScale()
+{
+    UUserInterfaceSettings* Settings = GetMutableDefault<UUserInterfaceSettings>();
+    if (Settings == nullptr) return;
+    Settings->ApplicationScale = GetConfiguredApplicationScale() * GetInterfaceScalePercent() / 100.0f;
+}
+
+float UKalmalaSettingsWidget::GetThemeDefaultApplicationScale()
+{
+    return GetConfiguredApplicationScale();
+}
+
+float UKalmalaSettingsWidget::GetAppliedApplicationScale()
+{
+    const UUserInterfaceSettings* Settings = GetDefault<UUserInterfaceSettings>();
+    return Settings != nullptr ? Settings->ApplicationScale : 1.0f;
+}
+
+bool UKalmalaSettingsWidget::IsReducedMotionEnabled()
+{
+    bool bEnabled = false;
+    if (GConfig != nullptr)
+    {
+        GConfig->GetBool(AudioSettingsSection, ReducedMotionKey, bEnabled, GGameUserSettingsIni);
+    }
+    return bEnabled;
+}
+
+void UKalmalaSettingsWidget::SetReducedMotionEnabled(const bool bEnabled)
+{
+    if (GConfig == nullptr) return;
+    GConfig->SetBool(AudioSettingsSection, ReducedMotionKey, bEnabled, GGameUserSettingsIni);
+    GConfig->Flush(false, GGameUserSettingsIni);
+}
+
 void UKalmalaSettingsWidget::SelectOptionsTab(const int32 SelectedIndex)
 {
     static const TCHAR* TabNames[] = { TEXT("Video"), TEXT("Audio"), TEXT("Controls"), TEXT("Settings") };
@@ -894,7 +995,7 @@ void UKalmalaSettingsWidget::SelectOptionsTab(const int32 SelectedIndex)
         Tab->SetInteractionSelected(bSelected);
         if (UTextBlock* Label = Cast<UTextBlock>(Tab->GetContent()))
         {
-            Label->SetText(FText::FromString(FString(bSelected ? TEXT("Active: ") : TEXT("")) + TabNames[Index]));
+            Label->SetText(FText::FromString(FString(bSelected ? TEXT("> ") : TEXT("")) + TabNames[Index]));
         }
     }
 }
@@ -933,6 +1034,7 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
         Text->SetText(Label);
         Text->SetColorAndOpacity(FSlateColor(GetSettingsPalette().ButtonText));
         Text->SetJustification(ETextJustify::Center);
+        Text->SetAutoWrapText(true);
         FKalmalaUITheme::Get().ApplyText(*Text, FKalmalaUITheme::Get().BodySize + 5, false, GetTextScalePercent(), GetContrastMode());
         Tab->SetContent(Text);
         OptionsTabButtons.Add(Tab);
@@ -1066,9 +1168,17 @@ void UKalmalaSettingsWidget::ShowSettingsTab()
     ApplyModalPalette(&FKalmalaUITheme::Get().SettingsOptionsPanelImage);
     AddLabel(ContentBox, FText::FromString(TEXT("Settings")), 24.0f);
 
+    UButton* InterfaceScale = AddButton(ContentBox, FText::GetEmpty(), TEXT("InterfaceScaleButton"));
+    InterfaceScale->OnClicked.AddDynamic(this, &ThisClass::HandleInterfaceScaleClicked);
+    InterfaceScaleLabel = Cast<UTextBlock>(InterfaceScale->GetContent());
+
     UButton* TextScale = AddButton(ContentBox, FText::GetEmpty(), TEXT("TextScaleButton"));
     TextScale->OnClicked.AddDynamic(this, &ThisClass::HandleTextScaleClicked);
     TextScaleLabel = Cast<UTextBlock>(TextScale->GetContent());
+
+    UButton* ReducedMotion = AddButton(ContentBox, FText::GetEmpty(), TEXT("ReducedMotionButton"));
+    ReducedMotion->OnClicked.AddDynamic(this, &ThisClass::HandleReducedMotionClicked);
+    ReducedMotionLabel = Cast<UTextBlock>(ReducedMotion->GetContent());
 
     UButton* Contrast = AddButton(ContentBox, FText::GetEmpty(), TEXT("ContrastButton"));
     Contrast->OnClicked.AddDynamic(this, &ThisClass::HandleContrastClicked);
@@ -1082,15 +1192,15 @@ void UKalmalaSettingsWidget::ShowSettingsTab()
         FText::FromString(TEXT("Changes apply immediately to this local menu and are saved on this device.")),
         15.0f)->SetJustification(ETextJustify::Center);
     // Explicit lines avoid auto-wrap measuring centered button text at a stale width.
-    for (UTextBlock* Label : { TextScaleLabel, ContrastLabel, FeedbackLabel })
+    for (UTextBlock* Label : { InterfaceScaleLabel, TextScaleLabel, ReducedMotionLabel, ContrastLabel, FeedbackLabel })
     {
         Label->SetAutoWrapText(false);
         FKalmalaUITheme::Get().ApplyText(*Label, FKalmalaUITheme::Get().BodySize + 3,
             false, GetTextScalePercent(), GetContrastMode());
     }
     UpdateSettingsLabels();
-    TextScale->SetUserFocus(GetOwningPlayer());
-    TextScale->SetKeyboardFocus();
+    InterfaceScale->SetUserFocus(GetOwningPlayer());
+    InterfaceScale->SetKeyboardFocus();
 }
 
 void UKalmalaSettingsWidget::ShowPlaceholderTab(const FText& Title, const FText& Description)
@@ -1143,10 +1253,20 @@ void UKalmalaSettingsWidget::UpdateAudioLabels()
 
 void UKalmalaSettingsWidget::UpdateSettingsLabels()
 {
+    if (InterfaceScaleLabel != nullptr)
+    {
+        InterfaceScaleLabel->SetText(FText::FromString(FString::Printf(
+            TEXT("Interface scale\n%d%%"), GetInterfaceScalePercent())));
+    }
     if (TextScaleLabel != nullptr)
     {
         TextScaleLabel->SetText(FText::FromString(FString::Printf(
             TEXT("Text scale\n%d%%"), GetTextScalePercent())));
+    }
+    if (ReducedMotionLabel != nullptr)
+    {
+        ReducedMotionLabel->SetText(FText::FromString(FString::Printf(
+            TEXT("Reduced motion\n%s"), IsReducedMotionEnabled() ? TEXT("On") : TEXT("Off"))));
     }
     if (ContrastLabel != nullptr)
     {
@@ -1184,15 +1304,44 @@ void UKalmalaSettingsWidget::HandleStatusDetailsClicked()
 void UKalmalaSettingsWidget::NativeTick(const FGeometry& Geometry, float DeltaTime)
 {
     Super::NativeTick(Geometry, DeltaTime);
+    const FVector2D ViewportSize = Geometry.GetLocalSize();
+    if (PanelCanvasSlot != nullptr && ViewportSize.X > 0.0f && ViewportSize.Y > 0.0f)
+    {
+        LastLayoutViewportSize = ViewportSize;
+        const FVector2D AvailableSize(
+            FMath::Max(0.0f, ViewportSize.X - 32.0f), FMath::Max(0.0f, ViewportSize.Y - 32.0f));
+        const FVector2D PanelSize(FMath::Min(1000.0f, AvailableSize.X), FMath::Min(980.0f, AvailableSize.Y));
+        const FVector2D CurrentPanelSize = PanelCanvasSlot->GetSize();
+        if (!FMath::IsNearlyEqual(CurrentPanelSize.X, PanelSize.X, 0.5f)
+            || !FMath::IsNearlyEqual(CurrentPanelSize.Y, PanelSize.Y, 0.5f))
+        {
+            PanelCanvasSlot->SetSize(PanelSize);
+        }
+        if (PanelBorder != nullptr)
+        {
+            const float PanelPadding = FMath::Clamp(FMath::Min(PanelSize.X, PanelSize.Y) * 0.04f, 12.0f, 40.0f);
+            if (!FMath::IsNearlyEqual(PanelBorder->GetPadding().Left, PanelPadding, 0.5f))
+            {
+                PanelBorder->SetPadding(FMargin(PanelPadding));
+            }
+        }
+    }
     if (bMenuOpen && bOptionsOpeningAnimationActive && PanelCanvasSlot != nullptr)
     {
-        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
-        OptionsOpeningElapsed = FMath::Min(OptionsOpeningElapsed + FMath::Clamp(DeltaTime, 0.0f, 1.0f / 30.0f),
-            Theme.OptionsOpeningDuration);
-        const float Progress = Theme.OptionsOpeningDuration > 0.0f
-            ? OptionsOpeningElapsed / Theme.OptionsOpeningDuration : 1.0f;
-        PanelCanvasSlot->SetPosition(FVector2D(0.0f, Theme.OptionsOpeningOffset(Progress)));
-        if (Progress >= 1.0f) ResetOptionsOpeningAnimation();
+        if (IsReducedMotionEnabled())
+        {
+            ResetOptionsOpeningAnimation();
+        }
+        else
+        {
+            const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+            OptionsOpeningElapsed = FMath::Min(OptionsOpeningElapsed + FMath::Clamp(DeltaTime, 0.0f, 1.0f / 30.0f),
+                Theme.OptionsOpeningDuration);
+            const float Progress = Theme.OptionsOpeningDuration > 0.0f
+                ? OptionsOpeningElapsed / Theme.OptionsOpeningDuration : 1.0f;
+            PanelCanvasSlot->SetPosition(FVector2D(0.0f, Theme.OptionsOpeningOffset(Progress)));
+            if (Progress >= 1.0f) ResetOptionsOpeningAnimation();
+        }
     }
     if (!bMenuOpen || !StatusDetailsLabel) return;
     const auto* LocalPlayer = GetOwningLocalPlayer();
@@ -1265,6 +1414,20 @@ void UKalmalaSettingsWidget::HandleTextScaleClicked()
     const int32 Current = GetTextScalePercent();
     const int32 Next = Current == 100 ? 125 : Current == 125 ? 150 : 100;
     SetTextScalePercent(Next);
+    ShowSettingsTab();
+}
+
+void UKalmalaSettingsWidget::HandleInterfaceScaleClicked()
+{
+    const int32 Current = GetInterfaceScalePercent();
+    const int32 Next = Current >= 120 ? 80 : Current + 10;
+    SetInterfaceScalePercent(Next);
+    ShowSettingsTab();
+}
+
+void UKalmalaSettingsWidget::HandleReducedMotionClicked()
+{
+    SetReducedMotionEnabled(!IsReducedMotionEnabled());
     ShowSettingsTab();
 }
 

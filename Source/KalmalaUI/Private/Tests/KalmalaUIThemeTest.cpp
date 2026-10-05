@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaUITheme.h"
 #include "KalmalaThemedButton.h"
+#include "KalmalaSettingsWidget.h"
 #include "Components/Border.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
@@ -61,6 +62,13 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Production opening duration is short"), FKalmalaUITheme::Get().OptionsOpeningDuration, 0.18f);
     TestEqual(TEXT("Production opening begins above its final position"), FKalmalaUITheme::Get().OptionsOpeningOffset(0.0f), -32.0f);
     TestEqual(TEXT("Production opening settles at its final position"), FKalmalaUITheme::Get().OptionsOpeningOffset(1.0f), 0.0f);
+    const bool bOriginalReducedMotion = UKalmalaSettingsWidget::IsReducedMotionEnabled();
+    UKalmalaSettingsWidget::SetReducedMotionEnabled(true);
+    TestFalse(TEXT("Local reduced motion overrides the theme opening animation"),
+        FKalmalaUITheme::Get().ShouldAnimateOptionsOpening());
+    TestEqual(TEXT("Local reduced motion keeps the final static opening position"),
+        FKalmalaUITheme::Get().OptionsOpeningOffset(0.0f), 0.0f);
+    UKalmalaSettingsWidget::SetReducedMotionEnabled(bOriginalReducedMotion);
     FConfigFile InstantOptions;
     InstantOptions.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nAnimateOptionsOpening=False\nOptionsOpeningDuration=0.24\nOptionsOpeningTravel=48\nOptionsOpeningEasing=Linear\n"), TEXT("InstantOptions.ini"));
     const FKalmalaUITheme InstantTheme = FKalmalaUITheme::FromConfig(InstantOptions);
@@ -164,6 +172,18 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
         FString(TEXT("/Game/Kalmala/UI/OptionsPanel.OptionsPanel")));
     Extension.ApplyScroll(*Scroll, true);
     TestFalse(TEXT("Reduced motion overrides animation"), Scroll->IsAnimateWheelScrolling());
+    UKalmalaSettingsWidget::SetReducedMotionEnabled(true);
+    Extension.ApplyScroll(*Scroll);
+    TestFalse(TEXT("Local reduced motion overrides the theme scrolling preference"), Scroll->IsAnimateWheelScrolling());
+    Extension.ApplyButton(*Button, 1);
+    Button->SetInteractionFocusForVerification(true);
+    TestFalse(TEXT("Local reduced motion applies button focus immediately"),
+        Button->HasActiveInteractionTransitionForVerification());
+    Extension.ApplySelectablePanel(*Panel, true, true, false, 1);
+    TestTrue(TEXT("Local reduced motion retains a static selected fill and focus outline"),
+        Panel->GetBrushColor().Equals(Extension.HighContrastPanel)
+        && Panel->Background.OutlineSettings.Width >= 3.0f);
+    UKalmalaSettingsWidget::SetReducedMotionEnabled(bOriginalReducedMotion);
     Extension.ApplyButton(*Button, 1);
     TestTrue(TEXT("High contrast outlines buttons"), Button->GetStyle().Normal.OutlineSettings.Color.GetSpecifiedColor().Equals(FLinearColor::White));
     FConfigFile InvalidExtension;

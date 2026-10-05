@@ -148,10 +148,11 @@ host/client settings probe visits the Escape shell and Video, Audio, Controls,
 and Settings pages; require every configured panel image to resolve, high
 contrast to suppress it, and existing values, focus, text scale, keyboard and
 controller bindings, modal ownership, and local persistence checks to pass.
-Retain the runner output and inspect all ten PNGs: standard-contrast Escape,
-Video, and Settings captures plus high-contrast Controls and Audio captures on
-both peers. The rendered sample is 1280x720; physical input and packaged asset
-inclusion remain separate checks.
+Retain the runner output and inspect all fourteen PNGs: standard-contrast
+Escape, Video, Settings, reduced-motion Settings, and restored HUD captures,
+plus high-contrast Controls and Audio captures on both peers. Use the two
+viewport runs described in the Local Settings tab section; physical input and
+packaged asset inclusion remain separate checks.
 
 ## M11 inventory/build backgrounds and slot grids
 
@@ -238,8 +239,8 @@ checks to pass; inspect the retained standard and high-contrast captures for
 active-tab, focused-control, selected-card, and unavailable-card cues. Run the
 ownership and M5 documentation audits, `git diff --check`, changed-script
 PowerShell parsing, and the 260-character path audit. Theme configuration can
-disable interaction motion with `AnimateInteractionStates=False`; a
-user-facing reduced-motion preference remains a later M11 task.
+disable interaction motion with `AnimateInteractionStates=False`; the local
+Reduced motion setting below overrides theme animation when enabled.
 
 ## M11 near-crosshair interaction prompts
 
@@ -878,29 +879,64 @@ and config round-trips.
 The same tab provides a local colour-independent feedback choice between
 `Text only` and `Text + markers`. Marker mode adds bracketed text markers for
 Wet, nearby hearth, construction, combat, discovery, and support state in an
-owner-only overlay. It reads the existing local pawn components and accepted
-replicated results, follows the local contrast palette, and sends no request.
+owner-only overlay that follows the scaled viewport in a center-right safe
+area. It reads the existing local pawn components and accepted replicated
+results, follows the local contrast palette, and sends no request.
 `Kalmala.UI.Settings.LocalPresentation` checks its bounded mode and config
 round-trip. The focused automation remains a null-RHI contract check; use the
 rendered peer probe below for the live modal.
 
+Whole-interface scale is a separate 80/90/100/110/120% choice, defaulting to
+100%, layered over the project's UI scale. It reflows the game HUD and menus;
+the bounded Escape panel follows the viewport and keeps a 16-unit margin.
+Reduced motion defaults off and removes the opening slide, themed button/card
+highlight transitions, and animated scrolling. Focus, selection, text, and
+actions remain immediately visible. Both preferences are stored in the local
+`GameUserSettings` config and are restored when the same local profile restarts.
+`Kalmala.UI.Settings.LocalPresentation` checks scaling bounds/application and
+local persistence; `Kalmala.UI.Theme.LocalPresentation` checks the static
+reduced-motion path.
+
 ### Rendered settings and accessibility regression
 
-After an editor build, run `Scripts/Verify-SettingsAccessibility.ps1`. It
-starts an isolated seed-418 listen server and conflicting-seed client, opens
-the live Escape shell and Video, Audio, Controls, and Settings tabs, and
-captures each at 1280x720. Escape, Video, and Settings use standard contrast;
-Controls and Audio also retain high-contrast captures.
-The development-only probe writes bounded local audio, text, contrast,
-colour-independent feedback, and keyboard/controller remapping values to each
-peer's `GameUserSettings.ini`, applies those mappings to only the owning
-`UPlayerInput`, verifies focus ownership and the Escape mapping, then closes
-the modal. It compares pawn health, transform, and the replicated server world
-identity before and after the local changes. The printed temporary directory
-retains host/client logs and ten PNG captures. Inspect the rendered modal and
-backgrounds; this verifies the representative 1280x720 layout, not physical
-controller hardware, audible quality, packaged persistence, or other viewport
-sizes.
+For parent-level settings acceptance, build an isolated UE 5.8.2 editor mirror
+with normal `%LOCALAPPDATA%\UnrealBuildTool` access, then run the full
+`Automation RunTests Kalmala` queue. Run the rendered settings probe at both
+viewport sizes, using the extreme local scales on the smaller view:
+
+```powershell
+Scripts/Verify-SettingsAccessibility.ps1 -Width 1280 -Height 720 -HostInterfaceScale 90 -ClientInterfaceScale 110 -Port 18461
+Scripts/Verify-SettingsAccessibility.ps1 -Width 1024 -Height 768 -HostInterfaceScale 80 -ClientInterfaceScale 120 -Port 18462
+```
+
+Choose another unused port if either example port is occupied.
+
+Require local settings to survive a fresh-process restart, menu focus and
+modal input to remain correct, both motion paths to behave as selected, and
+the Escape panel to fit. Inspect the retained standard/high-contrast menu and
+HUD captures from both viewports. Run
+`Scripts/Verify-SettingsAccessibilityContract.ps1`, the ownership and M5
+documentation audits, changed-script PowerShell parsing, `git diff --check`,
+and the 260-character path audit. The remaining physical controller and
+packaged-build checks are outside this parent increment.
+
+`Scripts/Verify-SettingsAccessibility.ps1` starts isolated host/client profiles.
+It starts a seed-418 listen server and conflicting-seed client, opens the live
+Escape shell and Video, Audio, Controls, and Settings tabs, and captures each
+at the selected 1280x720 or 1024x768 viewport. Escape, Video, Settings,
+reduced-motion Settings, and restored HUD use standard contrast; Controls and
+Audio also retain high-contrast captures. The development-only probe writes
+bounded local audio, text, contrast, colour-independent feedback, interface
+scale, reduced motion, and keyboard/controller remapping values to each peer's
+`GameUserSettings.ini`, applies those mappings to only the owning `UPlayerInput`,
+verifies focus ownership and the Escape mapping, then closes the modal. It
+compares pawn health, transform, and the replicated server world identity before
+and after local changes. A fresh pair of processes reuses each local user
+directory to verify saved scale and motion choices. The printed temporary
+directory retains host/client logs and fourteen PNG captures per viewport run.
+Inspect the rendered modal, HUD, and backgrounds; this verifies the two
+representative viewport sizes, not physical controller hardware, audible
+quality, or packaged persistence.
 
 ## M5 onboarding contract check
 

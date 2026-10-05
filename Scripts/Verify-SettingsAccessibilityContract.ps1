@@ -45,12 +45,21 @@ $requiredTerms = @{
     'Control baseline preservation' = 'DefaultInput\.ini.*never rewritten|DefaultInput\.ini.*unchanged'
     'Text scale option' = 'text scale'
     'Text-scale choices' = '100%, 125%, and 150%'
+    'Whole-interface scale choices' = '80%,\s*90%,\s*100%,\s*110%,\s*or 120%'
+    'Interface-scale default and local persistence' = '(?s)defaulting to 100%.*existing local `GameUserSettings` configuration'
+    'Interface scale layered over project defaults' = 'multiplier over the project.s\s+existing DPI curve and `UUserInterfaceSettings::ApplicationScale`'
+    'Separate text and interface scale' = 'It remains separate from text scale'
+    'Reduced-motion default and storage' = '(?s)Reduced motion.*defaults to Off.*existing local `GameUserSettings` configuration'
+    'Reduced motion overrides decorative effects' = 'overrides theme animation defaults for the options-panel slide, button/card\s+highlight transitions, and animated scrolling'
+    'Immediate static feedback under reduced motion' = 'Static focus, selection,\s+contrast, labels, status changes, and menu actions remain immediate'
+    'Fresh-process persistence check' = '(?s)restarts both peers.*confirms both choices.*reload'
     'Contrast option' = 'contrast'
     'Contrast choices' = 'Standard or High contrast'
     'Readable modal scaling' = 'auto-wrapped labels and buttons.*larger bounded panel'
     'Contrast palette' = 'backdrop, panel, button surfaces, text, and focusable state controls'
     'Non-colour feedback' = 'colour-independent feedback'
     'Feedback choices' = 'Text only.*Text \+ markers'
+    'Marker overlay reflow' = 'follows the scaled viewport'
     'Feedback state coverage' = '(?s)Wet, hearth, construction,.*combat, discovery, and support'
     'Owner-only feedback overlay' = 'owner-only overlay'
     'Keyboard/controller access' = 'keyboard.*controller|controller.*keyboard'
@@ -76,6 +85,9 @@ if ($text -notmatch 'Cancel.*apply.*reset|apply.*reset.*actions') {
 if ($text -notmatch 'Verify-SettingsAccessibility\.ps1' -or $text -notmatch 'physical\s+controller\s+hardware') {
     throw 'Settings/accessibility contract does not state the rendered probe and its remaining runtime limits'
 }
+if ($text -notmatch '1024x768.*1280x720|1280x720.*1024x768') {
+    throw 'Settings/accessibility acceptance does not cover both supported verification viewports'
+}
 
 $feedbackSource = Join-Path $projectRoot 'Source\KalmalaUI\Private\KalmalaAccessibilityFeedbackSubsystem.cpp'
 if (-not (Test-Path -LiteralPath $feedbackSource -PathType Leaf)) {
@@ -91,6 +103,9 @@ foreach ($anchor in @(
     'MarkerLine(TEXT("COMBAT")',
     'MarkerLine(TEXT("DISCOVERY")',
     'MarkerLine(TEXT("SUPPORT")',
+    'GetViewportScale',
+    'LastFeedbackViewportSize',
+    'SetPositionInViewport',
     'IsLocalController'
 )) {
     if ($feedbackSourceText -notmatch [regex]::Escape($anchor)) {
@@ -102,4 +117,4 @@ $hotbarSource = Get-Content (Join-Path $projectRoot 'Source\KalmalaUI\Private\Ka
 foreach ($anchor in @('WetStatusId', 'SteadyMealStatusId', 'HearthShield', 'HeatIntensity', 'Storm', 'HitTestInvisible')) {
     if (!$hotbarSource.Contains($anchor)) { throw "Shared status hotbar is missing accessible status coverage: $anchor" }
 }
-Write-Output 'PASS: settings/accessibility contract covers option groups, input access, non-colour feedback, local persistence, and server authority.'
+Write-Output 'PASS: settings/accessibility contract covers option groups, input access, non-colour feedback, interface scale, reduced motion, local persistence, and server authority.'

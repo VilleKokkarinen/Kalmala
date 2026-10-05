@@ -65,6 +65,9 @@ public:
     bool HasFocusableControlsForVerification() const;
     bool IsOptionsOpeningAnimationActiveForVerification() const { return bOptionsOpeningAnimationActive; }
     float GetOptionsPanelPositionYForVerification() const;
+    FVector2D GetOptionsPanelSizeForVerification() const;
+    FVector2D GetLayoutViewportSizeForVerification() const { return LastLayoutViewportSize; }
+    bool DoesOptionsPanelFitViewportForVerification() const;
     bool IsOptionsPanelCenterAnchoredForVerification() const;
 #endif
 
@@ -81,6 +84,14 @@ public:
     static int32 ClampTextScale(int32 Percent);
     static int32 GetTextScalePercent();
     static void SetTextScalePercent(int32 Percent);
+    static int32 ClampInterfaceScalePercent(int32 Percent);
+    static int32 GetInterfaceScalePercent();
+    static void SetInterfaceScalePercent(int32 Percent);
+    static void ApplySavedInterfaceScale();
+    static float GetThemeDefaultApplicationScale();
+    static float GetAppliedApplicationScale();
+    static bool IsReducedMotionEnabled();
+    static void SetReducedMotionEnabled(bool bEnabled);
     static int32 ClampContrastMode(int32 Mode);
     static int32 GetContrastMode();
     static void SetContrastMode(int32 Mode);
@@ -161,6 +172,10 @@ private:
     UFUNCTION()
     void HandleTextScaleClicked();
     UFUNCTION()
+    void HandleInterfaceScaleClicked();
+    UFUNCTION()
+    void HandleReducedMotionClicked();
+    UFUNCTION()
     void HandleContrastClicked();
     UFUNCTION()
     void HandleFeedbackClicked();
@@ -188,6 +203,10 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> TextScaleLabel;
     UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> InterfaceScaleLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> ReducedMotionLabel;
+    UPROPERTY(Transient)
     TObjectPtr<UTextBlock> ContrastLabel;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> FeedbackLabel;
@@ -202,6 +221,7 @@ private:
     TObjectPtr<class UBorder> PanelBorder;
     UPROPERTY(Transient)
     TObjectPtr<UCanvasPanelSlot> PanelCanvasSlot;
+    FVector2D LastLayoutViewportSize = FVector2D::ZeroVector;
 
     UPROPERTY(Transient)
     TArray<TObjectPtr<UKalmalaControlButton>> ControlButtons;

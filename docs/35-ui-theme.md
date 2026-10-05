@@ -87,8 +87,8 @@ invalid view paths keep the geometric fallback. High contrast intentionally
 suppresses the decorative backgrounds.
 
 `ApplyScroll` has an explicit reduced-motion override; scroll animation defaults off.
-A user-facing reduced-motion preference remains a later approved task. The
-options-opening slide is documented below. Custom
+The local Reduced motion choice also overrides scrolling. The options-opening
+slide is documented below. Custom
 font and image packages must already be available to the runtime; this child
 does not establish cooking/inclusion of config-only asset references.
 
@@ -127,10 +127,9 @@ UMG handles that tint through its border widget. The developer map fixture
 waits for its closed-map exploration record before opening, avoiding a race
 with joining-client world-identity arrival. Normal M-key opening does not wait.
 
-The foundation did not add new background art, item icons, slot grids,
-interface scaling, or a user-facing reduced-motion preference. The Escape
-opening animation is now covered below; a user-facing reduced-motion choice
-will later override its theme setting. Theme-only
+The theme foundation did not add new background art, item icons, or slot grids.
+The local interface-scale and reduced-motion settings are documented below.
+The Escape opening animation is covered below. Theme-only
 font/image assets must be runtime-available; packaged config/asset inclusion
 and custom project-font appearance are not established by editor integration
 checks.
@@ -269,7 +268,7 @@ logical units, and `EaseOutCubic`. Duration accepts 0–0.8 seconds and travel
 0–96 units; zero duration/travel or a false animation flag selects the instant
 path. Easing accepts `EaseOutCubic`, `EaseOutQuad`, or `Linear`; invalid values
 retain the cubic default. The instant path also serves as the reduced-motion
-fallback until the later M11 local reduced-motion preference is added.
+fallback; the local M11 Reduced motion preference selects it automatically.
 
 The rendered host/client settings probe opens, resizes 1280x720 → 1600x900 →
 1280x720 while the panel moves, closes and reopens mid-transition, and checks
@@ -290,7 +289,7 @@ controls; `DisabledBorderWidth` keeps unavailable controls visibly distinct.
 `AnimateInteractionStates=False` or a per-call reduced-motion override applies
 the same final cues immediately. Local text scale and high contrast still take
 precedence: high contrast uses a white focus outline and a neutral selected
-fill. Selected options tabs also say `Active:`, and selected/focused build
+fill. Selected options tabs also prepend `> `, and selected/focused build
 cards retain their text labels, so state does not depend on colour.
 
 The shared themed button handles pointer hover and keyboard/controller focus
@@ -302,7 +301,7 @@ support-effect slots, and build/craft cards use the same selection treatment
 and short fill transition while keeping their existing navigation. High-contrast
 cards preserve stronger outlines for unavailable states. No new pointer
 selection, action, input binding, RPC, authority, gameplay, or save contract was
-added. Active tabs say `Active:`, inventory keeps its `>` selection marker, the
+added. Active tabs use a `>` text marker, inventory keeps its `>` selection marker, the
 support HUD keeps its geometric selection ring, and build/craft cards retain
 `SELECTED`, `FOCUSED`, and `UNAVAILABLE` text cues.
 
@@ -312,6 +311,36 @@ path. Parent verification uses the full editor automation queue and rendered
 host/client settings, inventory, and crafting checks at standard and
 high-contrast/text-scale layouts. These checks do not replace physical input
 hardware or packaged-build verification.
+
+## Local interface scale and reduced motion — 2026-10-05
+
+The Settings tab has a whole-interface scale separate from its 100/125/150%
+text scale. It cycles through 80, 90, 100, 110, and 120%, defaults to 100%, and
+persists in the existing local `GameUserSettings` configuration. At launch and
+when changed, this value multiplies the project's configured
+`UUserInterfaceSettings::ApplicationScale`; it does not save over the project
+default. The game-layer DPI scale applies to HUD and menu layout and hit testing.
+The Escape panel tracks the available local viewport with a 16-unit outer
+margin, up to 1000×980 logical units, and reduces inner padding on smaller views.
+The owner-only colour-independent feedback overlay follows the scaled viewport
+and stays in the center-right area clear of the left HUD column.
+
+Reduced motion defaults off and is stored alongside the scale. When on, the
+options opening is immediate and themed button/card highlights and wheel
+scrolling take their final state without a transition. If enabled while a
+transition is running, it completes at its target. Focus outlines, active and
+selected labels, contrast, state text, and actions remain static and immediate.
+The theme's animation defaults continue to apply when the local preference is
+off. Neither setting changes gameplay authority, RPCs, replicated state,
+world/player saves, or a save schema.
+
+`Kalmala.UI.Settings.LocalPresentation` checks scale bounds, project-scale
+composition, local persistence, reduced-motion persistence, and its independence
+from text scale. `Kalmala.UI.Theme.LocalPresentation` checks immediate motion-
+free focus, selected fills, and opening behavior. The rendered peer verifier
+checks standard and reduced-motion menu paths, focus, panel fit, HUD closure,
+local restart persistence, and two viewport sizes. Physical input and packaged
+build verification remain separate acceptance work.
 
 
 ## M11 support HUD caption polish candidate (blocked)

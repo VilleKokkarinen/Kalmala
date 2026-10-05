@@ -17,6 +17,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "GameFramework/GameUserSettings.h"
+#include "Engine/UserInterfaceSettings.h"
 
 #if !UE_BUILD_SHIPPING
 namespace
@@ -50,6 +51,7 @@ void UKalmalaSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
     UKalmalaSettingsWidget::ApplySavedMasterVolume();
+    UKalmalaSettingsWidget::ApplySavedInterfaceScale();
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaSettingsAccessibilityTest")))
     {
@@ -120,6 +122,39 @@ void UKalmalaSettingsSubsystem::HandleSettingsMenu()
 #if !UE_BUILD_SHIPPING
 void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float DeltaTime)
 {
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaSettingsPreferenceReloadTest")))
+    {
+        if (bDeveloperSettingsVerificationCompleted || LocalController == nullptr
+            || LocalController->GetPawn() == nullptr)
+        {
+            return;
+        }
+        int32 ExpectedInterfaceScale = 100;
+        int32 ExpectedReducedMotion = 0;
+        FParse::Value(FCommandLine::Get(), TEXT("KalmalaExpectedInterfaceScale="), ExpectedInterfaceScale);
+        FParse::Value(FCommandLine::Get(), TEXT("KalmalaExpectedReducedMotion="), ExpectedReducedMotion);
+        const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(LocalController->GetPawn());
+        const int32 InterfaceScale = UKalmalaSettingsWidget::GetInterfaceScalePercent();
+        const bool bReducedMotion = UKalmalaSettingsWidget::IsReducedMotionEnabled();
+        const float ExpectedApplicationScale = UKalmalaSettingsWidget::GetThemeDefaultApplicationScale()
+            * InterfaceScale / 100.0f;
+        const bool bScaleApplied = FMath::IsNearlyEqual(UKalmalaSettingsWidget::GetAppliedApplicationScale(),
+            ExpectedApplicationScale, 0.001f);
+        const bool bPreferencesRestored = Character != nullptr && InterfaceScale == ExpectedInterfaceScale
+            && bReducedMotion == (ExpectedReducedMotion != 0) && bScaleApplied;
+        UE_LOG(LogTemp, Display,
+            TEXT("Settings accessibility reload: Authority=%d Completed=%d InterfaceScale=%d ReducedMotion=%d AppliedScale=%.3f ScaleApplied=%d"),
+            Character != nullptr && Character->HasAuthority() ? 1 : 0, bPreferencesRestored ? 1 : 0,
+            InterfaceScale, bReducedMotion ? 1 : 0, UKalmalaSettingsWidget::GetAppliedApplicationScale(),
+            bScaleApplied ? 1 : 0);
+        if (!bPreferencesRestored)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Settings accessibility reload: FAIL local accessibility preferences did not reload."));
+        }
+        bDeveloperSettingsVerificationCompleted = true;
+        return;
+    }
+
     if (bDeveloperSettingsVerificationCompleted
         || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaSettingsAccessibilityTest"))
         || LocalController == nullptr || LocalController->GetPawn() == nullptr
@@ -139,7 +174,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         {
             bDeveloperScreenshotPending = false;
             DeveloperScreenshotDelay = 0.0f;
-            static const TCHAR* ScreenshotTabs[] = { TEXT("settings"), TEXT("controls"), TEXT("audio"), TEXT("escape"), TEXT("video") };
+            static const TCHAR* ScreenshotTabs[] = { TEXT("settings"), TEXT("controls"), TEXT("audio"), TEXT("escape"), TEXT("video"), TEXT("motion"), TEXT("hud") };
             if (ScreenshotTabs[0] != nullptr && DeveloperSettingsScreenshotTab >= 0
                 && DeveloperSettingsScreenshotTab < UE_ARRAY_COUNT(ScreenshotTabs))
             {
@@ -331,6 +366,10 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::Ambient, 0.25f);
         UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::Music, 0.5f);
         UKalmalaSettingsWidget::SetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat, 0.75f);
+        int32 ExpectedInterfaceScale = Character->HasAuthority() ? 90 : 110;
+        FParse::Value(FCommandLine::Get(), TEXT("KalmalaSettingsInterfaceScale="), ExpectedInterfaceScale);
+        UKalmalaSettingsWidget::SetInterfaceScalePercent(ExpectedInterfaceScale);
+        UKalmalaSettingsWidget::SetReducedMotionEnabled(false);
         UKalmalaSettingsWidget::SetTextScalePercent(150);
         UKalmalaSettingsWidget::SetContrastMode(1);
         UKalmalaSettingsWidget::SetFeedbackMode(1);
@@ -381,6 +420,10 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             && FMath::IsNearlyEqual(UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::Ambient), 0.25f)
             && FMath::IsNearlyEqual(UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::Music), 0.5f)
             && FMath::IsNearlyEqual(UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat), 0.75f)
+            && UKalmalaSettingsWidget::GetInterfaceScalePercent() == ExpectedInterfaceScale
+            && FMath::IsNearlyEqual(UKalmalaSettingsWidget::GetAppliedApplicationScale(),
+                UKalmalaSettingsWidget::GetThemeDefaultApplicationScale() * ExpectedInterfaceScale / 100.0f, 0.001f)
+            && !UKalmalaSettingsWidget::IsReducedMotionEnabled()
             && UKalmalaSettingsWidget::GetTextScalePercent() == 150
             && UKalmalaSettingsWidget::GetContrastMode() == 1
             && UKalmalaSettingsWidget::GetFeedbackMode() == 1;
@@ -396,11 +439,13 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         SettingsWidget->SetVerificationTab(2);
         const bool bHighContrastSuppressesImage = SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
         UE_LOG(LogTemp, Display,
-            TEXT("Settings accessibility: Authority=%d Stage=Settings Open=%d Focused=%d FocusTargets=%d MoveIgnored=%d LookIgnored=%d LocalRoundTrip=%d InputApplied=%d TextScale=%d Contrast=%d Feedback=%d PanelImages=%d ContrastImageSuppressed=%d"),
+            TEXT("Settings accessibility: Authority=%d Stage=Settings Open=%d Focused=%d FocusTargets=%d MoveIgnored=%d LookIgnored=%d LocalRoundTrip=%d InputApplied=%d InterfaceScale=%d ReducedMotion=%d AppliedScale=%.3f TextScale=%d Contrast=%d Feedback=%d PanelImages=%d ContrastImageSuppressed=%d"),
             Character->HasAuthority() ? 1 : 0, SettingsWidget->IsMenuOpen() ? 1 : 0,
             SettingsWidget->HasFocusedContentForVerification() ? 1 : 0, SettingsWidget->HasFocusableContentForVerification() ? 1 : 0,
             LocalController->IsMoveInputIgnored() ? 1 : 0,
             LocalController->IsLookInputIgnored() ? 1 : 0, bLocalRoundTrip ? 1 : 0, bInputApplied ? 1 : 0,
+            UKalmalaSettingsWidget::GetInterfaceScalePercent(), UKalmalaSettingsWidget::IsReducedMotionEnabled() ? 1 : 0,
+            UKalmalaSettingsWidget::GetAppliedApplicationScale(),
             UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode(),
             UKalmalaSettingsWidget::GetFeedbackMode(), bOptionPanelImagesLoaded ? 1 : 0,
             bHighContrastSuppressesImage ? 1 : 0);
@@ -518,6 +563,64 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             bDeveloperSettingsVerificationCompleted = true;
             return;
         }
+        ++DeveloperSettingsVerificationStage;
+        return;
+    }
+
+    if (DeveloperSettingsVerificationStage == 5)
+    {
+        const bool bExpectedReducedMotion = Character->HasAuthority();
+        UKalmalaSettingsWidget::SetReducedMotionEnabled(bExpectedReducedMotion);
+        if (SettingsWidget != nullptr && SettingsWidget->IsMenuOpen()) SettingsWidget->Close();
+        SettingsWidget->OpenForVerification(LocalController, 2);
+        const bool bShouldAnimate = FKalmalaUITheme::Get().ShouldAnimateOptionsOpening();
+        const bool bAnimationPathMatches = bShouldAnimate
+            ? SettingsWidget->IsOptionsOpeningAnimationActiveForVerification()
+            : !SettingsWidget->IsOptionsOpeningAnimationActiveForVerification()
+                && FMath::IsNearlyZero(SettingsWidget->GetOptionsPanelPositionYForVerification(), 0.1f);
+        const bool bPanelFits = SettingsWidget->DoesOptionsPanelFitViewportForVerification();
+        const FVector2D PanelSize = SettingsWidget->GetOptionsPanelSizeForVerification();
+        const FVector2D LayoutSize = SettingsWidget->GetLayoutViewportSizeForVerification();
+        const bool bMotionPreferencePassed = UKalmalaSettingsWidget::IsReducedMotionEnabled() == bExpectedReducedMotion
+            && bAnimationPathMatches && SettingsWidget->HasFocusedContentForVerification() && bPanelFits;
+        UE_LOG(LogTemp, Display,
+            TEXT("Settings accessibility: Authority=%d Stage=MotionPreference ReducedMotion=%d Animated=%d Focused=%d PanelFits=%d InterfaceScale=%d Panel=%.0fx%.0f LayoutViewport=%.0fx%.0f"),
+            Character->HasAuthority() ? 1 : 0, UKalmalaSettingsWidget::IsReducedMotionEnabled() ? 1 : 0,
+            SettingsWidget->IsOptionsOpeningAnimationActiveForVerification() ? 1 : 0,
+            SettingsWidget->HasFocusedContentForVerification() ? 1 : 0, bPanelFits ? 1 : 0,
+            UKalmalaSettingsWidget::GetInterfaceScalePercent(), PanelSize.X, PanelSize.Y, LayoutSize.X, LayoutSize.Y);
+        if (!bMotionPreferencePassed)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL reduced-motion override, focus, or scaled panel fit."));
+            bDeveloperSettingsVerificationCompleted = true;
+            return;
+        }
+        DeveloperSettingsScreenshotTab = 5;
+        bDeveloperScreenshotPending = true;
+        DeveloperScreenshotDelay = 0.0f;
+        ++DeveloperSettingsVerificationStage;
+        return;
+    }
+
+    if (DeveloperSettingsVerificationStage == 6)
+    {
+        if (SettingsWidget != nullptr && SettingsWidget->IsMenuOpen()) SettingsWidget->Close();
+        const bool bInputRestored = !LocalController->IsMoveInputIgnored() && !LocalController->IsLookInputIgnored();
+        const FVector2D ViewportSize = UWidgetLayoutLibrary::GetViewportSize(SettingsWidget);
+        UE_LOG(LogTemp, Display,
+            TEXT("Settings accessibility: Authority=%d Stage=HUDScale InterfaceScale=%d ReducedMotion=%d InputRestored=%d Viewport=%.0fx%.0f"),
+            Character->HasAuthority() ? 1 : 0, UKalmalaSettingsWidget::GetInterfaceScalePercent(),
+            UKalmalaSettingsWidget::IsReducedMotionEnabled() ? 1 : 0, bInputRestored ? 1 : 0,
+            ViewportSize.X, ViewportSize.Y);
+        if (!bInputRestored)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL scaled settings close did not restore gameplay input."));
+            bDeveloperSettingsVerificationCompleted = true;
+            return;
+        }
+        DeveloperSettingsScreenshotTab = 6;
+        bDeveloperScreenshotPending = true;
+        DeveloperScreenshotDelay = 0.0f;
         ++DeveloperSettingsVerificationStage;
         return;
     }

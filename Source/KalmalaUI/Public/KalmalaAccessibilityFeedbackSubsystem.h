@@ -51,5 +51,6 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaAccessibilityFeedbackWidget> Widget;
 
+    FVector2D LastFeedbackViewportSize = FVector2D::ZeroVector;
     TWeakObjectPtr<class APlayerController> Controller;
 };

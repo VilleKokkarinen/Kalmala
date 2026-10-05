@@ -1,6 +1,7 @@
 #include "KalmalaThemedButton.h"
 
 #include "Containers/Ticker.h"
+#include "KalmalaSettingsWidget.h"
 
 namespace
 {
@@ -166,6 +167,12 @@ void UKalmalaThemedButton::RebuildInteractionStyle()
 
 bool UKalmalaThemedButton::AdvanceInteractionTransition(const float DeltaSeconds)
 {
+	if (UKalmalaSettingsWidget::IsReducedMotionEnabled())
+	{
+		SetStyle(TransitionTargetStyle);
+		TransitionTickerHandle.Reset();
+		return false;
+	}
 	TransitionElapsed += FMath::Max(0.0f, DeltaSeconds);
 	const float Progress = FMath::Clamp(TransitionElapsed / TransitionDuration, 0.0f, 1.0f);
 	const float Eased = Progress * Progress * (3.0f - 2.0f * Progress);

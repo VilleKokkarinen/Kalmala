@@ -43,8 +43,8 @@ change settings, input bindings, or modal ownership.
 The Escape panel opens with a short theme-configured downward slide. Focus and
 modal input ownership take effect immediately, and closing/reopening or
 resizing during the animation does not delay gameplay actions or change menu
-content. The theme can disable the animation for an instant/reduced-motion
-path; a user-facing reduced-motion preference remains a later M11 increment.
+content. Theme configuration can disable the animation for an instant path, and
+the local Reduced motion setting below also overrides decorative animation.
 
 Exact control ranges and device-specific labels remain implementation details;
 they must stay bounded, reversible, and compatible with the current input
@@ -80,13 +80,28 @@ while every state continues to expose an explicit text value. Both choices
 persist in the existing local `GameUserSettings` configuration and affect no
 gameplay widget, replicated property, or server request.
 
+The Settings tab also provides a whole-interface scale from 80%, 90%, 100%,
+110%, or 120%, defaulting to 100%, plus a Reduced motion On/Off choice that
+defaults to Off. Interface scale is a local multiplier over the project's
+existing DPI curve and `UUserInterfaceSettings::ApplicationScale`; it changes
+the game-layer DPI scale so all game UI reflows together and hit testing follows
+the displayed geometry. It remains separate from text scale and is stored only
+in the existing local `GameUserSettings` configuration. Reduced motion
+overrides theme animation defaults for the options-panel slide, button/card
+highlight transitions, and animated scrolling. Static focus, selection,
+contrast, labels, status changes, and menu actions remain immediate and
+visible. Theme animation keys continue to control those effects when Reduced
+motion is Off. Neither option creates a gameplay setting, RPC, replicated
+value, world/player save field, or new save schema.
+
 The Settings tab also provides a local colour-independent feedback choice:
 **Text only** keeps the existing readable state lines, while **Text + markers**
 adds explicit bracketed state markers for Wet, hearth, construction, combat,
 discovery, and support status in a local owner-only overlay. The marker mode
 uses text rather than colour as the distinction, follows the local contrast
-palette, and updates as the existing accepted gameplay state changes. It is
-stored beside the other local settings and never becomes a gameplay signal.
+palette, follows the scaled viewport, and updates as the existing accepted
+gameplay state changes. It is stored beside the other local settings and never
+becomes a gameplay signal.
 
 ## Existing input baseline
 
@@ -122,6 +137,10 @@ and send the same existing intent rather than a new gameplay payload.
 - Text scale changes must keep labels, values, help text, and action buttons
   readable without clipping the existing modal layout. The option itself must
   not require reading a colour or hearing a cue.
+- Whole-interface scale is independently adjustable from text scale, persists
+  locally, reflows the HUD and menus, and keeps their controls inside the
+  supported viewport. Reduced motion bypasses decorative movement while
+  keeping essential state feedback, focus, and actions immediate.
 - Contrast changes must affect local UI surfaces, text, focus, and state
   indicators together. State must still be distinguished by text, shape,
   pattern, or icon when colour is unavailable.
@@ -170,11 +189,14 @@ isolated host/client profiles, opens the Escape shell and live Video, Audio,
 Controls, and Settings tabs; it checks focusable targets, modal input
 ownership, and Escape recovery, persists every local option, and compares the
 pawn health, transform, and server-selected world identity before and after
-the probe. It retains ten
-1280x720 host/client PNG captures: standard-contrast Escape, Video, and
-Settings views plus high-contrast Controls and Audio views. Inspect the modal
-and artwork in these captures; they represent one viewport size and do not
-replace physical keyboard/controller or packaged verification.
+the probe. It checks interface scale and reduced motion in local config, then
+restarts both peers with the same user directories and confirms both choices
+reload and the scale is applied over the project default. It retains fourteen
+host/client PNG captures at either 1280x720 or 1024x768: standard-contrast
+Escape, Video, Settings, reduced-motion Settings, and restored HUD views plus
+high-contrast Controls and Audio views. Run both viewport sizes and inspect the
+modal, HUD, and artwork; these checks do not replace physical
+keyboard/controller or packaged verification.
 
 `Scripts/Verify-SettingsAccessibilityContract.ps1` checks this contract
 without Unreal. The focused `Kalmala.UI.Settings.LocalPresentation` automation
@@ -187,10 +209,12 @@ master-volume bounds, local config round-trip, immediate mute and restore,
 category-level bounds and config round-trips, bounded control labels, local
 control persistence and restore defaults, and text-scale/contrast bounds and
 round-trips plus the colour-independent feedback mode bounds and local
-round-trip. The rendered peer probe covers the live Audio, Controls, and
-Settings tabs at 1280x720 and the local gameplay-state boundary; physical
-controller hardware, audible quality, packaged persistence, and other viewport
-sizes remain outside this increment.
+round-trip. It also checks the 80–120% interface-scale bounds, application over
+the project scale, independent text-scale state, and local reduced-motion
+persistence. The rendered peer probe covers the live tabs, viewport reflow,
+focus, contrast, both animation paths, local restart persistence, and gameplay
+state boundary at 1280x720 and 1024x768; physical controller hardware, audible
+quality, and packaged persistence remain outside this verification.
 
 ## M11 Settings label polish
 

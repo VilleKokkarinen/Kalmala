@@ -52,6 +52,12 @@ namespace
                 {
                     return false;
                 }
+                if (UKalmalaSettingsWidget::IsReducedMotionEnabled())
+                {
+                    CurrentBorder->SetBrushColor(Target);
+                    SelectableFillTransitionIds.Remove(WeakBorder);
+                    return false;
+                }
                 Elapsed += FMath::Max(0.0f, DeltaSeconds);
                 const float Progress = FMath::Clamp(Elapsed / Duration, 0.0f, 1.0f);
                 const float Eased = Progress * Progress * (3.0f - 2.0f * Progress);
@@ -258,6 +264,7 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, con
 {
     FButtonStyle Style = Button.GetStyle();
     const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const bool bSuppressMotion = bReducedMotion || UKalmalaSettingsWidget::IsReducedMotionEnabled();
     const auto Brush = [this, bContrast](FLinearColor Color, float ContrastShade)
     {
         return FSlateRoundedBoxBrush(bContrast ? FLinearColor(ContrastShade, ContrastShade, ContrastShade, 1) : Color,
@@ -284,7 +291,7 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, con
             bContrast ? FMath::Max(2.0f, FocusBorderWidth) : FocusBorderWidth,
             bContrast ? FMath::Max(2.0f, SelectedBorderWidth) : SelectedBorderWidth,
             bContrast ? FMath::Max(DisabledBorderWidth, 1.0f) : DisabledBorderWidth,
-            InteractionTransitionDuration, bAnimateInteractionStates && !bReducedMotion);
+            InteractionTransitionDuration, bAnimateInteractionStates && !bSuppressMotion);
     }
     else
     {
@@ -311,7 +318,8 @@ void FKalmalaUITheme::ApplySelectablePanel(UBorder& Border, const bool bSelected
     Border.SetBrush(FSlateRoundedBoxBrush(FLinearColor::White, CornerRadius, Outline, OutlineWidth));
     Border.SetPadding(FMargin(SlotPadding + ((bSelected || bFocused) ? 1.0f : 0.0f)));
     // Selection and focus labels remain the non-colour cue; the fill transition is decorative.
-    if (!bAnimateInteractionStates || bReducedMotion || InteractionTransitionDuration <= 0.0f)
+    if (!bAnimateInteractionStates || bReducedMotion || UKalmalaSettingsWidget::IsReducedMotionEnabled()
+        || InteractionTransitionDuration <= 0.0f)
     {
         TransitionBorderFill(Border, Fill, 0.0f, false);
     }
@@ -330,13 +338,15 @@ void FKalmalaUITheme::ApplyIconSlot(USizeBox& Slot) const
 
 void FKalmalaUITheme::ApplyScroll(UScrollBox& Scroll, const bool bReducedMotion) const
 {
-    Scroll.SetAnimateWheelScrolling(bAnimateScrolling && !bReducedMotion);
+    Scroll.SetAnimateWheelScrolling(bAnimateScrolling && !bReducedMotion
+        && !UKalmalaSettingsWidget::IsReducedMotionEnabled());
     Scroll.SetScrollAnimationInterpolationSpeed(ScrollSpeed);
 }
 
 bool FKalmalaUITheme::ShouldAnimateOptionsOpening() const
 {
-    return bAnimateOptionsOpening && OptionsOpeningDuration > 0.0f && OptionsOpeningTravel > 0.0f;
+    return bAnimateOptionsOpening && !UKalmalaSettingsWidget::IsReducedMotionEnabled()
+        && OptionsOpeningDuration > 0.0f && OptionsOpeningTravel > 0.0f;
 }
 
 float FKalmalaUITheme::OptionsOpeningOffset(const float Progress) const

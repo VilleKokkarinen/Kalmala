@@ -1,5 +1,6 @@
 #include "KalmalaAccessibilityFeedbackSubsystem.h"
 
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/TextBlock.h"
@@ -131,9 +132,26 @@ void UKalmalaAccessibilityFeedbackSubsystem::Tick(float DeltaTime)
         Widget = CreateWidget<UKalmalaAccessibilityFeedbackWidget>(FoundController,
             UKalmalaAccessibilityFeedbackWidget::StaticClass());
         if (Widget == nullptr) return;
-        Widget->SetDesiredSizeInViewport(FVector2D(520.0f, 210.0f));
-        Widget->SetPositionInViewport(FVector2D(24.0f, 500.0f), false);
+        Widget->SetAlignmentInViewport(FVector2D::ZeroVector);
+        Widget->SetPositionInViewport(FVector2D::ZeroVector, false);
+        Widget->SetAnchorsInViewport(FAnchors(0.0f, 0.0f));
         Widget->AddToPlayerScreen(120);
+    }
+
+    const float ViewportScale = FMath::Max(0.01f, UWidgetLayoutLibrary::GetViewportScale(this));
+    const FVector2D ViewportSize = UWidgetLayoutLibrary::GetViewportSize(this) / ViewportScale;
+    if (ViewportSize.X > 0.0f && ViewportSize.Y > 0.0f
+        && !LastFeedbackViewportSize.Equals(ViewportSize, 0.5f))
+    {
+        const FVector2D OverlaySize(
+            FMath::Min(520.0f, FMath::Max(0.0f, ViewportSize.X - 48.0f)),
+            FMath::Min(210.0f, FMath::Max(0.0f, ViewportSize.Y - 48.0f)));
+        const FVector2D OverlayPosition(
+            FMath::Max(24.0f, ViewportSize.X - OverlaySize.X - 24.0f),
+            FMath::Max(24.0f, (ViewportSize.Y - OverlaySize.Y) * 0.5f));
+        Widget->SetDesiredSizeInViewport(OverlaySize);
+        Widget->SetPositionInViewport(OverlayPosition, false);
+        LastFeedbackViewportSize = ViewportSize;
     }
 
     if (FoundController->GetPawn() == nullptr)
@@ -150,6 +168,7 @@ void UKalmalaAccessibilityFeedbackSubsystem::ReleaseWidget()
 {
     if (Widget != nullptr) Widget->RemoveFromParent();
     Widget = nullptr;
+    LastFeedbackViewportSize = FVector2D::ZeroVector;
 }
 
 void UKalmalaAccessibilityFeedbackSubsystem::Deinitialize()
