@@ -11340,3 +11340,18 @@ Multiplayer/authority: Preferences remain local in the existing `GameUserSetting
 Known limits: Physical keyboard/controller hardware and packaged-build persistence were not exercised. Broader rendered M11 acceptance remains pending.
 
 Next task: First unchecked M11 parent — add a larger recipe/build-result image or icon beside selected-result descriptions and requirements, preserving local selection and authority boundaries. Current run time: 2026-10-05T10:26:21Z.
+
+
+### Development run 2026-10-05T11:20:13.8757347Z — Options-tab session memory implemented, unverified
+
+Selected increment: Options-tab memory under M11 remembered menu positions. Preview task is active in the other run; favorites overlaps its crafting component, so this independent settings-only increment was selected. Isolated branch codex/menu-memory at C:\Users\Ville\.codex\worktrees\menu-memory\Kalmala; base b9470f3. No other worktree was modified.
+
+Changed: Source/KalmalaUI/Public/KalmalaSettingsWidget.h; Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp; docs/14-settings-and-accessibility.md; BACKLOG.md; PROGRESS.md. The surviving owner-local widget records a bounded tab index and dispatches Options to the remembered tab. Escape still opens the main shell. Tab reconstruction only refreshes presentation; no click/action is replayed.
+
+Checks: careful source inspection of widget lifetime, four tab methods, modal open/close and option-changing handlers; git diff --check and changed-path MAX_PATH audit. No compile, automation, editor, rendered or parent-level check was run. Full verification is deferred to the final integration run; task and parent are not fully verified.
+
+Authority: no RPC, gameplay mutation, replicated state, private-peer query, config write or save schema change. Impact expected from code inspection: reopening Options returns to its previous tab.
+
+Risks/remaining: exact focus and scroll positions, other menus, widget recreation, rendered keyboard/controller and scale/contrast checks remain pending. Integration must verify all four tab reopen routes and unchanged local values. Main-checkout handoff synchronization omitted because development mode forbids changes to another active run's worktree; integration should merge this branch's BACKLOG/PROGRESS changes.
+
+Next eligible independent work: continue settings menu focus/scroll memory; favorites requires rechecking the active crafting preview claim. No second increment started.

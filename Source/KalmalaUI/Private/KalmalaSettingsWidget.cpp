@@ -986,6 +986,7 @@ void UKalmalaSettingsWidget::SetReducedMotionEnabled(const bool bEnabled)
 
 void UKalmalaSettingsWidget::SelectOptionsTab(const int32 SelectedIndex)
 {
+    LastOptionsTabIndex = FMath::Clamp(SelectedIndex, 0, 3);
     static const TCHAR* TabNames[] = { TEXT("Video"), TEXT("Audio"), TEXT("Controls"), TEXT("Settings") };
     for (int32 Index = 0; Index < OptionsTabButtons.Num(); ++Index)
     {
@@ -1046,7 +1047,14 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
     FScriptDelegate ControlsDelegate; ControlsDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleControlsClicked)); AddTab(FText::FromString(TEXT("Controls")), TEXT("ControlsTab"), ControlsDelegate);
     FScriptDelegate SettingsDelegate; SettingsDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleSettingsClicked)); AddTab(FText::FromString(TEXT("Settings")), TEXT("SettingsTab"), SettingsDelegate);
     ContentBox->AddChildToVerticalBox(Tabs);
-    ShowVideoTab();
+    // Restore presentation and focus without invoking option-changing handlers.
+    switch (LastOptionsTabIndex)
+    {
+    case 1: ShowAudioTab(); break;
+    case 2: ShowControlsTab(); break;
+    case 3: ShowSettingsTab(); break;
+    default: ShowVideoTab(); break;
+    }
 }
 
 void UKalmalaSettingsWidget::ShowVideoTab()
@@ -1067,6 +1075,8 @@ void UKalmalaSettingsWidget::ShowVideoTab()
     UButton* ViewDistance = AddButton(ContentBox, FText::GetEmpty(), TEXT("ViewDistanceButton")); ViewDistance->OnClicked.AddDynamic(this, &ThisClass::HandleViewDistanceClicked); ViewDistanceLabel = Cast<UTextBlock>(ViewDistance->GetContent());
     AddLabel(ContentBox, FText::FromString(TEXT("Changes are applied and saved immediately.")), 15.0f)->SetJustification(ETextJustify::Center);
     UpdateVideoLabels();
+    Resolution->SetUserFocus(GetOwningPlayer());
+    Resolution->SetKeyboardFocus();
 }
 
 void UKalmalaSettingsWidget::ShowAudioTab()

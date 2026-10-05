@@ -224,3 +224,16 @@ view an explicit desired height without stale centered-text auto-wrap width and
 removes repeated activation hints from individual values. Existing button focus,
 activation, immediate local application, contrast treatment, and persistence stay
 unchanged. Other option tabs remain part of the broader view polish pass.
+
+## Development increment: Options tab memory
+
+The owner-local settings widget retains its last Options tab (Video by default)
+across ordinary close/reopen. Escape still opens the main shell; choosing Options
+rebuilds the remembered tab with current labels and its normal focus target.
+Restoration invokes no setting-changing click handler. The index is bounded to
+four existing tabs, with Video as the dispatch fallback. Memory ends when the
+widget is recreated, including subsystem teardown; it writes no config/save data.
+Scroll position and exact previously focused control are not yet retained.
+Full verification is deferred to the final integration run. That run must check
+all four tabs across close/reopen, owner separation, focus/navigation, settings
+values remaining unchanged, accessibility scales, and widget-recreation defaults.

@@ -228,6 +228,8 @@ private:
 
     TArray<FIntPoint> ResolutionChoices;
     int32 ResolutionChoiceIndex = 0;
+    // Retained by the owner-local widget across ordinary close/reopen only.
+    int32 LastOptionsTabIndex = 0;
     bool bMenuOpen = false;
     bool bOptionsOpeningAnimationActive = false;
     float OptionsOpeningElapsed = 0.0f;
