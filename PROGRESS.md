@@ -11356,7 +11356,7 @@ Risks/remaining: exact focus and scroll positions, other menus, widget recreatio
 
 Next eligible independent work: continue settings menu focus/scroll memory; favorites requires rechecking the active crafting preview claim. No second increment started.
 
-### Final integration run 2026-10-05T13:12:48Z — M11 UI handoffs verified
+### Final integration run 2026-10-05T13:15:29Z — M11 UI handoffs verified
 
 Integration ran in exclusive isolated worktree `codex/m11-batch-integration` after confirming the other Kalmala development runs were idle. It reconciled three unfinished handoffs: selected-result preview source/evidence from the main-checkout handoff, status transition-cue source from `codex/m11-status-cues`, and the Options-tab memory commit `cb9ffd3` (cherry-picked here as `22edafd`). The previous menu-memory AWAITING_VERIFY statement above is historical; the child is now verified. Main implementation changes and the pre-existing `AGENTS.md` edit were not changed or committed by integration.
 
@@ -11376,6 +11376,6 @@ Engine log note: Unreal emitted two generic `LogAutomationTest: Error: Condition
 
 Authority and scope: preview and cue fixtures read existing owner-visible state and only supply presentation snapshots for explicitly requested verification. No gameplay request, RPC, replicated field, inventory, effect duration, or save schema changed. Packaged/cooked inclusion and physical keyboard/controller hardware remain unverified. Options-tab memory is the only verified child of the still-open remembered-menu task; selection and scroll restoration elsewhere remains unfinished. The wider rendered M11 acceptance parent also remains open.
 
-Commit handoff: menu-memory implementation is present as `22edafd`; the status/preview integration and this verification evidence are committed in the integration changeset. Main-checkout handoff synchronization is limited to `BACKLOG.md` and `PROGRESS.md` and preserves its pre-existing edits.
+Commit handoff: menu-memory source commit `cb9ffd3` is integrated as `22edafd`; status and preview implementation, integration repairs, verification evidence, and backlog updates are committed as `049f86f` on `codex/m11-batch-integration`. Main-checkout handoff synchronization is complete for `BACKLOG.md` and `PROGRESS.md` only; its pre-existing `AGENTS.md` and implementation changes remain untouched.
 
-Next eligible backlog task: add local recipe/build Favorites, usage ranks, and Recent shortcuts/markers. Current run time: 2026-10-05T13:12:48Z.
+Next eligible backlog task: add local recipe/build Favorites, usage ranks, and Recent shortcuts/markers. Current run time: 2026-10-05T13:15:29Z.
