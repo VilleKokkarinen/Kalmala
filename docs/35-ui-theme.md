@@ -196,6 +196,22 @@ shared theme colours, fonts, text scaling, and high-contrast treatment. Its
 selection follows the existing keyboard/controller recipe navigation and
 remains presentation-only.
 
+## Inline current-versus-selected stat comparison — 2026-10-06
+
+The existing crafting/forge details show the authored Iron Axe target beside
+the owner's carried Bronze Axe values when both comparison records are
+compatible. The current supported rows are tool level and condition; the
+selected condition is the authored new-tool maximum. Signed deltas and the
+selected value remain in accessible text. Improvements reuse the theme's
+positive status cue colour, decreases reuse its ended cue colour, and equal or
+unavailable values use normal theme text. Missing owner data, an already
+carried Iron Axe, or incompatible prior-tool data is stated as unavailable.
+There is no separate comparison card.
+
+The Iron Sword/Iron Mace crush/slash example remains only a presentation test
+fixture because the current catalogue has no such items or damage bonus stats.
+It adds no combat data, item, damage type, balance value, or stat authority.
+
 ## Status transition cue theme keys — 2026-10-05
 
 The owner-local status hotbar reads `StatusCueStartedColor`,

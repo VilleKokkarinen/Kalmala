@@ -72,6 +72,12 @@ be crafted. Keyboard/controller selection updates this read-only panel; it
 sends no request and creates no actor. No inventory, recipe, item, replicated,
 or save property is added.
 
+The inline Iron Axe upgrade comparison reads the owning player's carried
+Bronze Axe level and condition plus the existing progression/lifecycle
+definitions for the selected Iron Axe. It refreshes from local owner state and
+reports missing or incompatible comparisons as unavailable. It adds no
+request, equipment state, stat authority, replication field, or save data.
+
 ## Allowed and forbidden sources
 
 Allowed visual sources are original project code, the committed Kalmala

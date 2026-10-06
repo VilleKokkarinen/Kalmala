@@ -30,6 +30,8 @@
 #include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaToolProgressionContract.h"
+#include "KalmalaStatComparison.h"
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Border.h"
@@ -468,6 +470,12 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Repair Bronze Axe"), AxeRepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairBronzeAxe);
     AddButton(TEXT("Repair Iron Axe"), AxeRepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairIronAxe);
     ToolProgressionText = AddText(TEXT(""), 18);
+    ToolUpgradeComparisonTitle = AddText(TEXT(""), 16);
+    ToolUpgradeLevelComparison = AddText(TEXT(""), 16);
+    ToolUpgradeConditionComparison = AddText(TEXT(""), 16);
+    ToolUpgradeComparisonTitle->SetVisibility(ESlateVisibility::Collapsed);
+    ToolUpgradeLevelComparison->SetVisibility(ESlateVisibility::Collapsed);
+    ToolUpgradeConditionComparison->SetVisibility(ESlateVisibility::Collapsed);
     auto* ToolProgressionActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(ToolProgressionActions);
     AddButton(TEXT("Craft Bronze Axe"), ToolProgressionActions,
         TEXT("Ask the server to craft the level-one Bronze Axe at a visible same-world level-one Workbench. The server checks materials and private tool inventory."))->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeAxe);
@@ -1509,6 +1517,7 @@ void UKalmalaCraftingWidget::Refresh()
         LastDetailTextScalePercent = TextScalePercent;
         LastDetailContrastMode = ContrastMode;
     }
+    RefreshInlineToolUpgradeComparison(Cast<AKalmalaCharacter>(OwnerPawn), ContrastMode);
     if (InventoryInspector) InventoryInspector->SetRows(InspectionRows, TextScalePercent, ContrastMode);
     if (!VisibleIndices.IsEmpty()) Selected=FMath::Clamp(Selected,0,VisibleIndices.Num()-1);
     const int32 FavoriteRecipeIndex = VisibleIndices.IsValidIndex(Selected) ? VisibleIndices[Selected] : INDEX_NONE;
@@ -1638,10 +1647,84 @@ FString UKalmalaCraftingWidget::GetPresentationText() const
             + StateText->GetText().ToString() + (FoodText ? FoodText->GetText().ToString() : FString())
             + (RepairText ? RepairText->GetText().ToString() : FString())
             + (ToolProgressionText ? ToolProgressionText->GetText().ToString() : FString())
+            + (ToolUpgradeComparisonTitle ? ToolUpgradeComparisonTitle->GetText().ToString() : FString())
+            + (ToolUpgradeLevelComparison ? ToolUpgradeLevelComparison->GetText().ToString() : FString())
+            + (ToolUpgradeConditionComparison ? ToolUpgradeConditionComparison->GetText().ToString() : FString())
             + (FavoriteActionLabel ? FavoriteActionLabel->GetText().ToString() : FString())
             + (CraftButton ? CraftButton->GetToolTipText().ToString() : FString())
             + (StorageText ? StorageText->GetText().ToString() : FString()) : FString();
 }
+
+void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(
+    const AKalmalaCharacter* Character,
+    const int32 ContrastMode)
+{
+    if (!ToolUpgradeComparisonTitle || !ToolUpgradeLevelComparison || !ToolUpgradeConditionComparison) return;
+
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    const FKalmalaToolProgressionEntry* Upgrade = FKalmalaToolProgressionContract::FindEntry(TEXT("IronAxe"));
+    const FKalmalaToolDefinition* PreviousDefinition = Upgrade
+        ? FKalmalaToolLifecycleContract::FindDefinition(Upgrade->PreviousToolId) : nullptr;
+    const FKalmalaToolDefinition* SelectedDefinition = Upgrade
+        ? FKalmalaToolLifecycleContract::FindDefinition(Upgrade->ToolId) : nullptr;
+    const FString SelectedName = SelectedDefinition ? GetReadableToolName(SelectedDefinition->ToolId) : TEXT("Iron Axe");
+    const FString PreviousName = PreviousDefinition ? GetReadableToolName(PreviousDefinition->ToolId) : TEXT("previous tool");
+    FString UnavailableReason;
+    const FKalmalaToolState* CurrentTool = nullptr;
+
+    if (!Character)
+    {
+        UnavailableReason = TEXT("owner tool state is unavailable");
+    }
+    else if (!Upgrade || !PreviousDefinition || !SelectedDefinition
+        || Upgrade->PreviousToolLevel < 1 || Upgrade->TargetToolLevel <= Upgrade->PreviousToolLevel
+        || PreviousDefinition->MaxDurability < 1 || SelectedDefinition->MaxDurability < 1)
+    {
+        UnavailableReason = TEXT("authored progression data is unavailable");
+    }
+    else if (Character->GetCarriedToolInventory().ContainsByPredicate([Upgrade](const FKalmalaToolState& Tool)
+        { return Tool.ToolId == Upgrade->ToolId; }))
+    {
+        UnavailableReason = FString::Printf(TEXT("%s is already carried"), *SelectedName);
+    }
+    else
+    {
+        CurrentTool = Character->GetCarriedToolInventory().FindByPredicate([Upgrade](const FKalmalaToolState& Tool)
+            { return Tool.ToolId == Upgrade->PreviousToolId; });
+        if (!CurrentTool)
+        {
+            UnavailableReason = FString::Printf(TEXT("a matching %s is not carried"), *PreviousName);
+        }
+        else if (CurrentTool->ToolLevel != Upgrade->PreviousToolLevel
+            || CurrentTool->Durability < 0 || CurrentTool->Durability > PreviousDefinition->MaxDurability)
+        {
+            CurrentTool = nullptr;
+            UnavailableReason = FString::Printf(TEXT("the carried %s does not match its authored level or condition bounds"), *PreviousName);
+        }
+    }
+
+    ToolUpgradeComparisonTitle->SetText(FText::FromString(
+        FString::Printf(TEXT("Owner-only upgrade comparison: %s versus %s."),
+            *SelectedName, *PreviousName)));
+    const FKalmalaStatComparisonLine LevelLine = CurrentTool && Upgrade
+        ? FKalmalaStatComparisonLine::FromValues(TEXT("tool level"), CurrentTool->ToolLevel,
+            Upgrade->TargetToolLevel, true)
+        : FKalmalaStatComparisonLine::Unavailable(TEXT("tool level"), UnavailableReason);
+    const FKalmalaStatComparisonLine ConditionLine = CurrentTool && SelectedDefinition
+        ? FKalmalaStatComparisonLine::FromValues(TEXT("condition"), CurrentTool->Durability,
+            SelectedDefinition->MaxDurability, true)
+        : FKalmalaStatComparisonLine::Unavailable(TEXT("condition"), UnavailableReason);
+    ToolUpgradeLevelComparison->SetText(FText::FromString(LevelLine.Text));
+    ToolUpgradeConditionComparison->SetText(FText::FromString(ConditionLine.Text));
+
+    ToolUpgradeComparisonTitle->SetColorAndOpacity(FSlateColor(Theme.TextColor(false, ContrastMode)));
+    ToolUpgradeLevelComparison->SetColorAndOpacity(FSlateColor(LevelLine.ResolveColor(Theme, ContrastMode)));
+    ToolUpgradeConditionComparison->SetColorAndOpacity(FSlateColor(ConditionLine.ResolveColor(Theme, ContrastMode)));
+    ToolUpgradeComparisonTitle->SetVisibility(ESlateVisibility::HitTestInvisible);
+    ToolUpgradeLevelComparison->SetVisibility(ESlateVisibility::HitTestInvisible);
+    ToolUpgradeConditionComparison->SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
 void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D)
 {
     Super::NativeTick(G,D);

@@ -13,6 +13,7 @@ class UScrollBox;
 class UInputComponent;
 class UKalmalaCraftingComponent;
 class UKalmalaSelectedResultWidget;
+class AKalmalaCharacter;
 
 struct FKalmalaMenuBrowseMemory
 {
@@ -128,6 +129,8 @@ private:
     UFUNCTION() void CloseClicked();
     UFUNCTION() void FocusInventoryDetails();
     void Refresh();
+    void RefreshInlineToolUpgradeComparison(const AKalmalaCharacter* Character,
+        int32 ContrastMode);
     void RefreshRecipeGrid(const TArray<int32>& VisibleIndices, UKalmalaCraftingComponent* Crafting,
         int32 TextScalePercent, int32 ContrastMode);
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipesText;
@@ -151,6 +154,9 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RepairText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolProgressionText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeComparisonTitle;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeLevelComparison;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeConditionComparison;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> InventoryInspector;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;

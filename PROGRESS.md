@@ -11537,3 +11537,25 @@ Next eligible task: Add inline current-versus-selected item stat deltas using on
 Implementation commit: `91baf10` (`Restore M-key map view on reopen`) on `codex/m11-map-memory`.
 
 Main-checkout handoff synchronization: complete. After inspecting the main versions, synchronized only this run's menu-memory backlog rows and progress entry; all pre-existing main-checkout edits remain preserved. Implementation remains isolated in `E:\dev\Kalmala\wt\m11-map-memory`. Full verification remains deferred until M11's final acceptance task.
+
+### Run 2026-10-06T09:10:59Z — inline stat comparisons
+
+Concurrency guard: Codex task inventory showed this as the only active Kalmala run. The main checkout contains pre-existing edits, so the implementation is isolated in `E:\dev\Kalmala\wt\m11-stat-deltas` from the accepted M11 map-memory handoff `5d02e5d`.
+
+Outcome: Completed the ordered inline comparison increment. The existing crafting/forge details now compare the authored Iron Axe upgrade against the owning player's carried Bronze Axe using only existing tool-level and condition values. Signed deltas use green/red theme cue colours with explicit text; equal values are neutral. Missing, already-owned, or incompatible comparison data is stated as unavailable. The Iron Sword/Iron Mace crush/slash example is a presentation-only automation fixture; no items or gameplay stats were added. The final M11 acceptance task remains open.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; new `Source/KalmalaUI/Public/KalmalaStatComparison.h`, `Source/KalmalaUI/Private/KalmalaStatComparison.cpp`, and `Source/KalmalaUI/Private/Tests/KalmalaStatComparisonTest.cpp`; `docs/07-development-setup.md`; `docs/15-presentation-ownership.md`; `docs/35-ui-theme.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `git diff --check` passed; six focused source assertions and changed-file trailing-whitespace checks passed. The MAX_PATH audit passed; the longest absolute path was 94 characters. Manual review confirmed the displayed values come from the owner-only carried-tool list and existing progression/lifecycle contracts. No Unreal build or automation test was run.
+
+Full verification remains deferred: this is a normal M11 implementation increment. The new presentation automation fixture, live owner-state transitions, rendered high-contrast/text-scale captures, and full UI regressions remain for final M11 acceptance.
+
+Observable impact: While the crafting panel is open, its existing tool progression details show selected Iron Axe tool level and condition against the carried Bronze Axe, refreshing from current owner state each widget tick.
+
+Networking/authority: The comparison reads the owning client's owner-only carried-tool state plus static authored contracts. It submits no RPC and changes no server gameplay authority, replicated property, or save schema.
+
+Known limitations: The current project has no crush/slash bonus stats or Iron Sword/Iron Mace items; those approved example values exist only in presentation tests. Live production comparison currently covers the authored Iron Axe/Bronze Axe progression. Runtime rendering and M11 acceptance remain unverified.
+
+Next eligible task: complete M11 rendered host/client acceptance and its required regressions, performance checks, captures, and final milestone verification.
+
+Handoff synchronization: pending; after commit, synchronize only `BACKLOG.md` and this `PROGRESS.md` to the main checkout, preserving its existing edits.

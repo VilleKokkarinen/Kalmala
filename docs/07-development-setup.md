@@ -218,6 +218,26 @@ documentation contracts, changed-script PowerShell parsing,
 gameplay requests or spawn actors; no recipe/item catalogue property changes.
 Physical devices and packaged/cooked output remain outside this editor check.
 
+## M11 inline stat comparisons
+
+The local crafting/forge details compare the authored Iron Axe upgrade with
+the owning player's carried Bronze Axe when its level and condition are
+valid. The selected Iron Axe values come from the existing tool progression
+and lifecycle contracts; absent, already-owned, or incompatible state must be
+described as unavailable instead of using fabricated zeroes. The display
+refreshes from owner state while the panel is open and does not submit an
+upgrade request.
+
+`Kalmala.UI.Crafting.StatComparisonPresentation` uses presentation-only
+crush/slash values from the approved Iron Sword/Iron Mace example to check the
+exact `crush 60 (+60)` and `slash 0 (-40)` text, signed deltas, improvement and
+decrease treatments, equal values, lower-is-better semantics, and unavailable
+comparisons. These fixture labels and numbers are not catalogue or combat
+data. Run this test in M11's final full automation pass; rendered host/client
+acceptance must inspect text scaling and high contrast with a valid owner
+comparison and with the prior tool absent. No comparison card, gameplay stat,
+damage type, RPC, or saved field is introduced.
+
 ## M11 status parent and complete icon verification
 
 Follow `36-status-icons.md`: build the isolated editor mirror after the three
