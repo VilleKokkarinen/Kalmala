@@ -48,6 +48,7 @@ public:
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
+    bool PrepareRecipeActivityReviewForTest();
     bool VerifyInventoryInspectionForTest();
     bool ScrollReviewSectionForTest(bool bFeedback);
     bool ScrollInventoryDetailsForTest();
@@ -67,6 +68,7 @@ private:
     UKalmalaCraftingComponent* Model() const;
     UKalmalaCraftingSubsystem* GetLocalCraftingSubsystem() const;
     bool IsRecipeFavorite(FName RecipeId) const;
+    bool IsRecipeRecent(FName RecipeId) const;
     void OpenInternal(FName StationKit);
     UFUNCTION() void RecipeSearchChanged(const FText& Text);
     UFUNCTION() void CycleRecipeCategory();
@@ -105,8 +107,13 @@ private:
     UPROPERTY(Transient) TObjectPtr<UUniformGridPanel> RecipeGrid;
     UPROPERTY(Transient) TObjectPtr<UScrollBox> CraftingScrollBox;
     UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> RecipeSlotCards;
+    UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> RecipeSlotFavoriteFrames;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotNames;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotStates;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotFavoriteMarkers;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotRankMarkers;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotRecentMarkers;
+    UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> RecipeSlotRecentBadgeFrames;
     UPROPERTY(Transient) TArray<uint8> RecipeSlotVisualStates;
     UPROPERTY(Transient) TObjectPtr<UKalmalaSelectedResultWidget> SelectedResultPreview;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> HeaderText;
@@ -163,9 +170,14 @@ public:
     bool SetRecipeFavorite(FName RecipeId, bool bFavorite);
     void PruneRecipeFavorites();
     uint32 GetRecipeActivityCount(EKalmalaCraftingActionKind Kind, FName RecipeId) const;
+    TMap<FName, int32> GetRecipeActivityRanks(EKalmalaCraftingActionKind Kind) const;
     int32 GetRecipeActivityRank(EKalmalaCraftingActionKind Kind, FName RecipeId) const;
     FName GetRecentRecipeActivity(EKalmalaCraftingActionKind Kind) const;
     void PruneRecipeActivity();
+#if !UE_BUILD_SHIPPING
+    void ResetRecipeActivityForTest();
+    void SetRecipeActivityForTest(EKalmalaCraftingActionKind Kind, FName RecipeId, uint32 Count, bool bRecent);
+#endif
 private:
     void Toggle();
     void Release();

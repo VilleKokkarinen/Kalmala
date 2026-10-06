@@ -68,13 +68,14 @@ per current recipe ID per bucket and saturates at the unsigned 32-bit maximum.
 ## Presentation contract
 
 Favorites, rank, and Recent remain distinguishable without colour. The theme
-will configure Favorite treatment as a bottom-right star, border, or both;
-rank treatment as a medal plus `Rank` text; and Recent treatment as a clock
-badge plus `Recent` text. When a single card has multiple markers, each label
-retains its own meaning and occupies a reserved non-overlapping area. Reduced
-motion keeps all state changes immediate and static; it does not suppress an
-essential marker. Existing text scale, contrast, focus, selection, and modal
-input behavior continue to apply.
+configures Favorite treatment as a bottom-right star, border, or both; rank
+treatment uses a medal-coloured label with `Rank` text; and Recent uses a clock
+badge plus `Recent` text. The default Favorite treatment is both star and
+frame. Cards reserve separate right-aligned Rank and Recent rows, then place
+Favorite at the lower right; all three labels retain their meaning and do not
+overlap. Reduced motion keeps marker changes immediate and static; it does not
+suppress an essential marker. Existing text scale, contrast, focus, selection,
+and modal input behavior continue to apply.
 
 ## Implementation status
 
@@ -82,9 +83,12 @@ The first implementation slice adds the local session bookmark set, a
 selected-entry toggle, and Favorites browsing. The accepted-action slice adds
 the bounded owner-only receipt queue, unique sequence consumption, local bucket
 counts, deterministic top-three rank queries, and one Recent ID per bucket.
-Favorite, Rank, and Recent card markers, configurable marker treatments, and
-combined rendered acceptance remain separate unchecked work under the M11
-backlog item.
+The marker slice adds configurable star/frame/color treatment, three separate
+card rows, Recent-only shortcuts in Favorites, and a two-peer presentation
+fixture that checks ordinary-slot Recent markers and distinct local-owner
+recipes. Focused automation and both rendered motion modes remain unrun;
+parent integration and rendered acceptance remain open under the M11 backlog
+item.
 
 
 ## Verification handoff
@@ -94,10 +98,12 @@ The implementation child may be checked after careful source review,
 Before checking the feature parent, run focused
 `Kalmala.UI.Crafting.LocalBrowsing` coverage for add/remove, exact active-ID
 filtering, station/query intersection, selection fallback, empty-state action
-disabling, and per-local-player isolation. Rendered host/client checks should
-cover the selected-action label, card Favorite text, keyboard/controller
-category cycling, and high-contrast/text-scale readability. The combined parent
-gate also checks accepted counts, rank/Recent coexistence, reduced motion, and
+disabling, deterministic ranks, Recent shortcuts without bookmarks, and
+per-local-player isolation. Rendered host/client checks in normal and
+reduced-motion modes should cover marker coexistence, all three Recent buckets,
+distinct owner-local favorites, and high-contrast/text-scale readability. The
+review capture is named `*-activity-markers.png`. The combined parent gate also
+checks accepted counts, receipt replay, and
 marker overlap. These implementation slices have not had an editor build,
 automation run, or rendered acceptance; those remain deferred to the ordered
 parent verification work.

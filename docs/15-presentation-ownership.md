@@ -225,4 +225,8 @@ history remains local across menu and pawn replacement and clears with the local
 player subsystem. Failed requests, cooking counted as other crafting, peer
 state, inventory guesses, and reconnect snapshots do not create local history.
 See `docs/41-recipe-activity.md` for the bounded receipt and deterministic rank
-contract.
+contract. Each recipe/build card reserves separate right-aligned rows for
+Rank and Recent, with Favorite at the lower right, so their labels can coexist
+without covering the canonical name, availability, or each other. Recent-only
+entries appear in the Favorites filter without becoming bookmarked; all marker
+changes remain static under reduced motion.

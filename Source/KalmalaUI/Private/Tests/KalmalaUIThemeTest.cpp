@@ -23,7 +23,8 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     FConfigFile Config;
     Config.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nBodySize=20\nHeadingSize=12\n"
         "EmphasisSize=24\nPaddingX=16\nText=(R=0.4,G=0.5,B=0.6,A=1)\n"
-        "HighContrastPanel=(R=1,G=1,B=1,A=0)\n"), TEXT("ThemeFixture.ini"));
+        "HighContrastPanel=(R=1,G=1,B=1,A=0)\nFavoriteMarkerStyle=Everywhere\n"
+        "FavoriteMarkerBorderWidth=99\nFavoriteMarkerColor=(R=2,G=0,B=0,A=1)\n"), TEXT("ThemeFixture.ini"));
     const FKalmalaUITheme Theme = FKalmalaUITheme::FromConfig(Config);
     UTextBlock* Status = NewObject<UTextBlock>();
     UTextBlock* Weather = NewObject<UTextBlock>();
@@ -46,7 +47,8 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     Invalid.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nBodySize=999\nHeadingSize=garbage\n"
         "EmphasisSize=-2\nPaddingX=-1\nPaddingY=nan\nRowSpacing=999\n"
         "Text=(R=2,G=0,B=0,A=1)\nPanel=garbage\nStatusCueDuration=9\n"
-        "StatusCueEndedColor=(R=2,G=0,B=0,A=1)\n"), TEXT("InvalidThemeFixture.ini"));
+        "StatusCueEndedColor=(R=2,G=0,B=0,A=1)\nFavoriteMarkerStyle=All\n"
+        "FavoriteMarkerBorderWidth=99\nFavoriteMarkerColor=(R=2,G=0,B=0,A=1)\n"), TEXT("InvalidThemeFixture.ini"));
     const FKalmalaUITheme Fallback = FKalmalaUITheme::FromConfig(Invalid);
     const FKalmalaUITheme Defaults;
     TestEqual(TEXT("Out-of-range font falls back"), Fallback.BodySize, Defaults.BodySize);
@@ -59,8 +61,14 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Malformed and out-of-range colours fall back"),
         Fallback.Panel.Equals(Defaults.Panel) && Fallback.Text.Equals(Defaults.Text)
         && Fallback.StatusCueEndedColor.Equals(Defaults.StatusCueEndedColor));
+    TestEqual(TEXT("Invalid Favorite marker style falls back"), Fallback.FavoriteMarkerStyle, Defaults.FavoriteMarkerStyle);
+    TestEqual(TEXT("Invalid Favorite border width falls back"), Fallback.FavoriteMarkerBorderWidth, Defaults.FavoriteMarkerBorderWidth);
+    TestTrue(TEXT("Invalid Favorite colour falls back"), Fallback.FavoriteMarkerColor.Equals(Defaults.FavoriteMarkerColor));
     TestEqual(TEXT("Missing file uses body defaults"), FKalmalaUITheme::FromConfig(FConfigFile()).BodySize, Defaults.BodySize);
     TestEqual(TEXT("Production theme loads from config hierarchy"), FKalmalaUITheme::Get().BodySize, 13);
+    TestEqual(TEXT("Favorite marker default enables star and frame"), Defaults.FavoriteMarkerStyle, FName(TEXT("Both")));
+    TestTrue(TEXT("Production Favorite marker default keeps star and frame"),
+        FKalmalaUITheme::Get().UsesFavoriteMarkerStar() && FKalmalaUITheme::Get().UsesFavoriteMarkerBorder());
     TestTrue(TEXT("Production theme enables the restrained options opening"), FKalmalaUITheme::Get().ShouldAnimateOptionsOpening());
     TestEqual(TEXT("Production opening duration is short"), FKalmalaUITheme::Get().OptionsOpeningDuration, 0.18f);
     TestEqual(TEXT("Production opening begins above its final position"), FKalmalaUITheme::Get().OptionsOpeningOffset(0.0f), -32.0f);
@@ -101,7 +109,10 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     "FocusBorderWidth=3\nSelectedBorderWidth=4\nDisabledBorderWidth=2.5\n"
     "InteractionTransitionDuration=0.2\nAnimateInteractionStates=True\n"
     "StatusCueDuration=0.9\nStatusCueStartedColor=(R=0.2,G=0.7,B=0.3,A=1)\n"
-    "StatusCueRefreshedColor=(R=0.8,G=0.6,B=0.2,A=1)\nStatusCueEndedColor=(R=0.7,G=0.2,B=0.2,A=1)\n"), TEXT("ExtendedTheme.ini"));
+    "StatusCueRefreshedColor=(R=0.8,G=0.6,B=0.2,A=1)\nStatusCueEndedColor=(R=0.7,G=0.2,B=0.2,A=1)\n"
+    "FavoriteMarkerStyle=Border\nFavoriteMarkerBorderWidth=3\nFavoriteMarkerColor=(R=0.9,G=0.7,B=0.1,A=1)\n"
+    "RankGoldColor=(R=0.9,G=0.8,B=0.2,A=1)\nRankSilverColor=(R=0.7,G=0.8,B=0.9,A=1)\n"
+    "RankBronzeColor=(R=0.8,G=0.4,B=0.2,A=1)\nRecentMarkerColor=(R=0.2,G=0.8,B=0.9,A=1)\n"), TEXT("ExtendedTheme.ini"));
     const FKalmalaUITheme Extension = FKalmalaUITheme::FromConfig(Extended);
     UKalmalaThemedButton* Button = NewObject<UKalmalaThemedButton>();
     USizeBox* Icon = NewObject<USizeBox>();
@@ -123,6 +134,26 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
         Extension.StatusCueStartedColor.Equals(FLinearColor(0.2f, 0.7f, 0.3f, 1))
         && Extension.StatusCueRefreshedColor.Equals(FLinearColor(0.8f, 0.6f, 0.2f, 1))
         && Extension.StatusCueEndedColor.Equals(FLinearColor(0.7f, 0.2f, 0.2f, 1)));
+    TestEqual(TEXT("Border Favorite style is configurable"), Extension.FavoriteMarkerStyle, FName(TEXT("Border")));
+    TestFalse(TEXT("Border-only Favorite omits its star"), Extension.UsesFavoriteMarkerStar());
+    TestTrue(TEXT("Border-only Favorite retains its frame"), Extension.UsesFavoriteMarkerBorder());
+    TestEqual(TEXT("Favorite frame width is configurable"), Extension.FavoriteMarkerBorderWidth, 3.0f);
+    TestTrue(TEXT("Favorite, rank medals, and Recent badge colours are configurable"),
+        Extension.FavoriteMarkerColor.Equals(FLinearColor(0.9f, 0.7f, 0.1f, 1))
+        && Extension.RankGoldColor.Equals(FLinearColor(0.9f, 0.8f, 0.2f, 1))
+        && Extension.RankSilverColor.Equals(FLinearColor(0.7f, 0.8f, 0.9f, 1))
+        && Extension.RankBronzeColor.Equals(FLinearColor(0.8f, 0.4f, 0.2f, 1))
+        && Extension.RecentMarkerColor.Equals(FLinearColor(0.2f, 0.8f, 0.9f, 1)));
+    TestTrue(TEXT("Rank colours switch at Gold/Silver/Bronze and become white in high contrast"),
+        Extension.RankMarkerColor(1, 0).Equals(Extension.RankGoldColor)
+        && Extension.RankMarkerColor(2, 0).Equals(Extension.RankSilverColor)
+        && Extension.RankMarkerColor(3, 0).Equals(Extension.RankBronzeColor)
+        && Extension.RankMarkerColor(1, 1).Equals(FLinearColor::White));
+    FConfigFile StarMarkers;
+    StarMarkers.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nFavoriteMarkerStyle=Star\n"), TEXT("StarMarkers.ini"));
+    const FKalmalaUITheme StarTheme = FKalmalaUITheme::FromConfig(StarMarkers);
+    TestTrue(TEXT("Star-only Favorite treatment is accepted"),
+        StarTheme.UsesFavoriteMarkerStar() && !StarTheme.UsesFavoriteMarkerBorder());
     FConfigFile ImmediateInteractions;
     ImmediateInteractions.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nAnimateInteractionStates=False\n"),
         TEXT("ImmediateInteractions.ini"));

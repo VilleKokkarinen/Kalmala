@@ -11423,3 +11423,25 @@ Known limitations: The rolling receipt queue can drop older events if more than 
 Next eligible task: add theme-configurable Favorite, Rank, and Recent card markers with non-overlapping text, then cover coexistence, reduced motion, unbookmarked Recent entries, and separate local owners.
 
 Main-checkout handoff synchronization is complete for `BACKLOG.md` and `PROGRESS.md` only; all pre-existing main-checkout changes remain preserved, and implementation files remain isolated in this worktree.
+
+### Run 2026-10-06T06:15:56Z — Favorite, Rank, and Recent card markers
+
+Concurrency guard: Codex app inventory showed this as the only active Kalmala run; the other same-project entry was inactive. The main checkout has pre-existing handoff and implementation changes, so this increment is isolated in managed worktree `C:\Users\Ville\.codex\worktrees\m11-activity-markers\Kalmala`, based on the accepted recipe/build activity commit `b1199a1`.
+
+Outcome: Completed exactly the next unchecked M11 Favorites child. Added theme-configurable Favorite star/frame treatments and colors, readable Favorite/Gold-Silver-Bronze Rank/clock Recent rows on cards, Recent-only entries in Favorites, and development fixtures for coexistence, ordinary-slot Recent markers, reduced motion, unbookmarked Recent entries, and separate host/client local owners. Updated focused theme and local-owner coverage and verification handoff documentation. The Favorites parent remains open; no later child started. This is not milestone-final verification.
+
+Files changed: `Config/DefaultKalmalaTheme.ini`; `Scripts/Verify-Crafting.ps1`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaUITheme.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaRecipeBrowseTest.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaUIThemeTest.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `Source/KalmalaUI/Public/KalmalaUITheme.h`; `docs/07-development-setup.md`; `docs/15-presentation-ownership.md`; `docs/35-ui-theme.md`; `docs/41-recipe-activity.md`; and this `BACKLOG.md`/`PROGRESS.md` handoff.
+
+Lightweight checks: The changed PowerShell verifier parsed successfully. `git diff --check` passed, and manual review covered card marker construction/update, theme fallback/contrast, rank and action-kind mapping, Favorites filtering, and test fixture bounds. The absolute-path audit covered all changed and planned committed paths; the longest was 119 characters. No Unreal build, automation test, rendered check, or package check was run.
+
+Full verification remains deferred: this is a normal child increment, not the final M11 implementation task. The new local automation assertions and host/client rendered captures have not been executed; the overlap, scale, contrast, and reduced-motion appearance still needs visual review in the parent integration pass.
+
+Observable impact: Recipe/build cards can show Favorite, top-three Rank, and latest-by-kind Recent at once in reserved separate rows. Theme config controls Favorite style and marker colors. Recent recipes/builds appear in Favorites without manual bookmarking; the verification fixture selects distinct owner-local favorites and reports marker coexistence and static motion cues.
+
+Networking/authority: Production marker/filter state reads the owning local-player subsystem. This increment adds no gameplay RPC, authority change, replicated gameplay property, or save-schema change; successful-action receipt ownership remains as documented by the preceding increment.
+
+Known limitations: Rendered legibility and runtime integration remain unverified; focused automation coverage and the combined host/client normal/reduced-motion runs are pending. The Favorites feature parent and wider M11 acceptance remain open.
+
+Next eligible task: run M11 Favorites parent integration verification, including focused authority/replay regressions, rendered host/client accessibility/coexistence checks, and path/documentation audits.
+
+Handoff scope: synchronize only `BACKLOG.md` and `PROGRESS.md` after inspecting their pre-existing main-checkout versions; preserve all other changes and keep implementation files isolated in this worktree.

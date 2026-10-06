@@ -1856,3 +1856,31 @@ changed scripts, `git diff --check`, and the 260-character path audit. Check
 only the notification parent and final child after all required verification
 passes. This parent check does not complete the wider M11 acceptance matrix,
 physical input, package validation, or other M11 parents.
+
+## M11 Favorite, Rank, and Recent marker child
+
+After the affected isolated UI build, run `Kalmala.UI.Theme.LocalPresentation`
+and `Kalmala.UI.Crafting.LocalBrowsing` with isolated logs, UserDirs, and memory
+DDC. The theme test covers valid Favorite styles/colors, bounded border width,
+rank colors, high-contrast fallback, and invalid-value defaults. LocalBrowsing
+covers per-local-owner bookmarks and activity isolation.
+
+Run both rendered host/client modes:
+
+```powershell
+Scripts/Verify-Crafting.ps1 -Rendered -Port 17970 -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-Crafting.ps1 -Rendered -ReducedMotion -Port 17971 -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+```
+
+Both peers must report `Coexist=1 OrdinaryRecent=1 RecentShortcuts=1
+NoManualBookmark=1 StaticMotion=1 OwnerIsolation=1`; the host and client
+Favorite IDs must differ. The fixture checks Recent on ordinary All-category
+slots before confirming Recent-only cards in Favorites.
+Retain and inspect each `*-activity-markers.png` capture for separate
+right-aligned Rank and Recent rows, Favorite at the lower right, distinct
+star/frame treatment, readable Gold/Silver/Bronze rank labels, and the Recent
+clock/text badge. Reduced motion must keep all labels visible. Finish with
+presentation-ownership and M5 documentation
+contracts, changed-script PowerShell parsing, `git diff --check`, and the
+260-character path audit. This child leaves the wider M11 acceptance matrix
+and the Favorites parent integration verification open.

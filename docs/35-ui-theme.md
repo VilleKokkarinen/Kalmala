@@ -69,6 +69,11 @@ expanded-map, and options views as described below.
 | OptionsOpeningDuration | 0.18 seconds | 0–0.8 seconds; zero selects the instant path |
 | OptionsOpeningTravel | 32 logical units | 0–96; zero selects the instant path |
 | OptionsOpeningEasing | `EaseOutCubic` | `EaseOutCubic`, `EaseOutQuad`, or `Linear` |
+| FavoriteMarkerStyle | `Both` | `Star`, `Border`, or `Both`; local recipe/build cards |
+| FavoriteMarkerBorderWidth | 2 logical units | 1–4; Favorite frame width when enabled |
+| FavoriteMarkerColor | (0.98, 0.78, 0.20, 1) | Linear RGBA; Favorite star/frame |
+| RankGoldColor / RankSilverColor / RankBronzeColor | gold / silver / bronze tones | Linear RGBA; top-three usage markers |
+| RecentMarkerColor | (0.38, 0.82, 0.90, 1) | Linear RGBA; Recent clock badge |
 
 Asset keys accept only valid `/Game/Package.Asset` object paths shorter than
 180 characters. Empty, invalid, missing, or wrong-type objects retain the
@@ -79,6 +84,15 @@ borders to at least one unit. High contrast uses neutral button fills; pressed
 padding and Unreal's existing keyboard focus indicator remain available.
 Accessibility text scale still takes precedence over theme size. No focus,
 click delegate, navigation, modal ownership, authority, or save binding changed.
+
+Recipe/build activity cards reserve separate right-aligned rows for Rank and
+Recent, followed by the Favorite cue at the lower right, so a single card can
+show all three without overlap. Favorite style selects a star, an outer frame,
+or both; Favorite text is always present. Rank markers name Gold/Silver/Bronze
+and their rank. Recent uses a clock glyph and the word Recent. Local high
+contrast forces marker text and the Favorite frame to white; static labels
+remain visible under reduced motion. Marker changes are immediate and do not
+animate.
 
 The view-specific image keys override `PanelImage` only for their named view.
 The inventory, build, and expanded-map textures are original Kalmala artwork

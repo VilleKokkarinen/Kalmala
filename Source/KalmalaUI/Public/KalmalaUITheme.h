@@ -51,6 +51,13 @@ struct KALMALAUI_API FKalmalaUITheme
     FLinearColor StatusCueStartedColor = FLinearColor(0.28f, 0.72f, 0.42f, 1);
     FLinearColor StatusCueRefreshedColor = FLinearColor(0.95f, 0.69f, 0.24f, 1);
     FLinearColor StatusCueEndedColor = FLinearColor(0.88f, 0.36f, 0.29f, 1);
+    FName FavoriteMarkerStyle = TEXT("Both");
+    float FavoriteMarkerBorderWidth = 2.0f;
+    FLinearColor FavoriteMarkerColor = FLinearColor(0.98f, 0.78f, 0.20f, 1);
+    FLinearColor RankGoldColor = FLinearColor(1.0f, 0.78f, 0.20f, 1);
+    FLinearColor RankSilverColor = FLinearColor(0.78f, 0.84f, 0.90f, 1);
+    FLinearColor RankBronzeColor = FLinearColor(0.82f, 0.51f, 0.31f, 1);
+    FLinearColor RecentMarkerColor = FLinearColor(0.38f, 0.82f, 0.90f, 1);
     float StatusCueDuration = 1.25f;
     float FocusBorderWidth = 2.0f;
     float SelectedBorderWidth = 2.0f;
@@ -86,4 +93,13 @@ struct KALMALAUI_API FKalmalaUITheme
     float OptionsOpeningOffset(float Progress) const;
     void ApplyText(UTextBlock& Label, int32 BaseSize, bool bHeading,
         int32 TextScalePercent, int32 ContrastMode) const;
+    bool UsesFavoriteMarkerStar() const
+    {
+        return FavoriteMarkerStyle == TEXT("Star") || FavoriteMarkerStyle == TEXT("Both");
+    }
+    bool UsesFavoriteMarkerBorder() const
+    {
+        return FavoriteMarkerStyle == TEXT("Border") || FavoriteMarkerStyle == TEXT("Both");
+    }
+    FLinearColor RankMarkerColor(int32 Rank, int32 ContrastMode) const;
 };
