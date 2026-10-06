@@ -11558,4 +11558,4 @@ Known limitations: The current project has no crush/slash bonus stats or Iron Sw
 
 Next eligible task: complete M11 rendered host/client acceptance and its required regressions, performance checks, captures, and final milestone verification.
 
-Handoff synchronization: pending; after commit, synchronize only `BACKLOG.md` and this `PROGRESS.md` to the main checkout, preserving its existing edits.
+Main-checkout handoff synchronization: complete. After inspecting the main files, synchronized only this run's selected M11 task state and progress entry; all pre-existing main-checkout changes remain preserved. Implementation remains committed on `codex/m11-stat-deltas`.
