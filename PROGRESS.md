@@ -11534,4 +11534,6 @@ Known limitations: Reopen retention lasts for the local map-widget session and i
 
 Next eligible task: Add inline current-versus-selected item stat deltas using only supported existing data, then perform final M11 rendered and regression acceptance.
 
-Main-checkout handoff synchronization: pending after commit; synchronize only `BACKLOG.md` and `PROGRESS.md`, preserving all other pre-existing edits. Full verification remains deferred until M11's final acceptance task.
+Implementation commit: `91baf10` (`Restore M-key map view on reopen`) on `codex/m11-map-memory`.
+
+Main-checkout handoff synchronization: complete. After inspecting the main versions, synchronized only this run's menu-memory backlog rows and progress entry; all pre-existing main-checkout edits remain preserved. Implementation remains isolated in `E:\dev\Kalmala\wt\m11-map-memory`. Full verification remains deferred until M11's final acceptance task.
