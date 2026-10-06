@@ -11491,3 +11491,25 @@ Known limitations: Inventory-inspection state and M-key map state remain later o
 Next eligible task: remember inventory-inspection state separately from recipe/station browsing, with safe selection and scroll recovery.
 
 Main-checkout handoff synchronization: complete. After inspecting the main files, only this run's nested `BACKLOG.md` child updates and `PROGRESS.md` entry were synchronized; existing checkout edits remain preserved. Implementation remains isolated in `E:\dev\Kalmala\wt\m11-menu-state`.
+
+### Run 2026-10-06T08:35:52Z — remembered inventory inspection state
+
+Concurrency guard: Codex app inventory showed this as the only active Kalmala run; the other same-workspace automation runs were completed or idle. The main checkout contains pre-existing edits, including overlapping UI source changes, so this increment is isolated in `E:\dev\Kalmala\wt\m11-inv-inspection-memory` from the accepted menu-state handoff `7830e80`.
+
+Outcome: Completed exactly the next unchecked M11 remembered-menu child: inventory inspection now snapshots its search query, category, sort order, canonical selected item ID, and focused scroll position in a record separate from per-station recipe/build browsing. Reopening restores the inspector state against current owner-visible rows, falls back to the first visible item when the old selection is filtered or consumed, restores inspector focus when it was last active, and lets the existing post-layout scroll clamp adapt to the current viewport/UI scale. Closing from recipe browsing retains that recipe/station scroll independently.
+
+Files changed: `Source/KalmalaUI/Public/KalmalaInventoryInspectWidget.h`; `Source/KalmalaUI/Private/KalmalaInventoryInspectWidget.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `docs/38-menu-browsing.md`; `docs/07-development-setup.md`; the selected `BACKLOG.md` child; and this `PROGRESS.md` handoff.
+
+Lightweight checks: `git diff --check` passed. Manual source review covered first-open defaults, independent station/inspector snapshots, query/category/sort restoration, canonical-ID matching against refreshed rows, no-results/consumed fallback, widget focus, post-layout clamping, and the absence of gameplay calls in memory paths. Changed-path length audit passed; no Unreal build, automation test, rendered host/client check, or package check was run.
+
+Full verification remains deferred: this is a normal child increment, not the final M11 implementation task.
+
+Observable impact: During the local widget session, reopening after inventory inspection returns to the prior inspector filters and visible item where still available; its focused scroll state no longer overwrites the current recipe/station menu's remembered scroll offset.
+
+Networking/authority: All new memory is transient local presentation over rows already supplied from the owning pawn. It adds no RPC, replicated state, inventory mutation, gameplay action, settings write, or save-schema change.
+
+Known limitations: Scroll/focus restoration is widget-level and has not been confirmed in a rendered viewport; exact sub-control focus, physical controller navigation, and live resize/UI-scale behavior remain for M11 parent integration. No source build or automation was run for this normal child.
+
+Next eligible task: restore applicable M-key map category, selection, and scroll state while preserving existing map pan/zoom and modal behavior.
+
+Main-checkout handoff synchronization: after commit, inspect and update only `BACKLOG.md` and `PROGRESS.md`, preserving all pre-existing main-checkout edits. Implementation remains isolated in `E:\dev\Kalmala\wt\m11-inv-inspection-memory`.

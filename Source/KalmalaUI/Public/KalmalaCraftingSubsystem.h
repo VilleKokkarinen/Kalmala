@@ -22,6 +22,18 @@ struct FKalmalaMenuBrowseMemory
     FName SelectedRecipeId;
     float ScrollOffset = 0.0f;
 };
+
+struct FKalmalaInventoryInspectionMemory
+{
+    bool bHasState = false;
+    bool bWasLastActive = false;
+    FString Query;
+    int32 Category = 0;
+    int32 Sort = 0;
+    FName SelectedItemId;
+    float ScrollOffset = 0.0f;
+};
+
 class UKalmalaCraftingSubsystem;
 enum class EKalmalaCraftingActionKind : uint8;
 struct FKalmalaAcceptedCraftingActionReceipt;
@@ -83,6 +95,9 @@ private:
     void UpdateMenuHeader(FName StationKit);
     void RememberMenuBrowseState();
     bool RestoreMenuBrowseState(FName StationKit);
+    bool IsInventoryInspectionFocused() const;
+    void RememberInventoryInspectionState();
+    void RestoreInventoryInspectionState();
     UFUNCTION() void RecipeSearchChanged(const FText& Text);
     UFUNCTION() void CycleRecipeCategory();
     UFUNCTION() void CycleRecipeSort();
@@ -150,6 +165,7 @@ private:
     int32 RecipeCategory = 0;
     bool bRecipeNameSort = false;
     TMap<FName, FKalmalaMenuBrowseMemory> MenuBrowseMemory;
+    FKalmalaInventoryInspectionMemory InventoryInspectionMemory;
     bool bPendingMenuScrollRestore = false;
     float PendingMenuScrollRestoreOffset = 0.0f;
     int32 Selected = 0;

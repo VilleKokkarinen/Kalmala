@@ -636,17 +636,58 @@ void UKalmalaCraftingWidget::UpdateMenuHeader(const FName StationKit)
 
 void UKalmalaCraftingWidget::RememberMenuBrowseState()
 {
+    const bool bInventoryFocused = IsInventoryInspectionFocused();
+    RememberInventoryInspectionState();
     FKalmalaMenuBrowseMemory& Memory = MenuBrowseMemory.FindOrAdd(StationFilterKit);
     Memory.Query = RecipeQuery;
     Memory.Category = RecipeCategory;
     Memory.bNameSort = bRecipeNameSort;
     const float CurrentScrollOffset = CraftingScrollBox ? CraftingScrollBox->GetScrollOffset() : 0.0f;
-    Memory.ScrollOffset = FMath::IsFinite(CurrentScrollOffset) ? FMath::Max(0.0f, CurrentScrollOffset) : 0.0f;
+    if (!bInventoryFocused)
+        Memory.ScrollOffset = FMath::IsFinite(CurrentScrollOffset) ? FMath::Max(0.0f, CurrentScrollOffset) : 0.0f;
 
     const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
     Memory.SelectedRecipeId = VisibleIndices.IsValidIndex(Selected) && Recipes.IsValidIndex(VisibleIndices[Selected])
         ? Recipes[VisibleIndices[Selected]].RecipeId : NAME_None;
+}
+
+bool UKalmalaCraftingWidget::IsInventoryInspectionFocused() const
+{
+    return InventoryInspector && (InventoryInspector->HasKeyboardFocus() || InventoryInspector->HasFocusedDescendants());
+}
+
+void UKalmalaCraftingWidget::RememberInventoryInspectionState()
+{
+    if (!InventoryInspector) return;
+
+    FKalmalaInventoryInspectionMemory& Memory = InventoryInspectionMemory;
+    Memory.Query = InventoryInspector->GetSearch();
+    Memory.Category = InventoryInspector->GetCategory();
+    Memory.Sort = InventoryInspector->GetSort();
+    Memory.SelectedItemId = InventoryInspector->GetSelectedItem();
+    Memory.bWasLastActive = IsInventoryInspectionFocused();
+    if (Memory.bWasLastActive && CraftingScrollBox)
+    {
+        const float CurrentScrollOffset = CraftingScrollBox->GetScrollOffset();
+        Memory.ScrollOffset = FMath::IsFinite(CurrentScrollOffset) ? FMath::Max(0.0f, CurrentScrollOffset) : 0.0f;
+    }
+    Memory.bHasState = true;
+}
+
+void UKalmalaCraftingWidget::RestoreInventoryInspectionState()
+{
+    const FKalmalaInventoryInspectionMemory& Memory = InventoryInspectionMemory;
+    if (!InventoryInspector || !Memory.bHasState) return;
+
+    InventoryInspector->RestoreBrowseState(Memory.Query, Memory.Category, Memory.Sort, Memory.SelectedItemId);
+    if (Memory.bWasLastActive)
+    {
+        InventoryInspector->SetKeyboardFocus();
+        bPendingMenuScrollRestore = true;
+        PendingMenuScrollRestoreOffset = FMath::IsFinite(Memory.ScrollOffset)
+            ? FMath::Max(0.0f, Memory.ScrollOffset) : 0.0f;
+    }
 }
 
 bool UKalmalaCraftingWidget::RestoreMenuBrowseState(const FName StationKit)
@@ -726,6 +767,7 @@ void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
         UpdateMenuHeader(StationKit);
         bPlacementPreviewEnabled = false;
         Refresh();
+        RestoreInventoryInspectionState();
         return;
     }
     auto* PC = GetOwningPlayer(); if (!PC || PC->IsMoveInputIgnored() || !Model()) return;
@@ -763,6 +805,7 @@ void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
     PC->SetIgnoreMoveInput(true); PC->SetIgnoreLookInput(true); PC->bShowMouseCursor = true;
     FInputModeGameAndUI Mode; Mode.SetWidgetToFocus(TakeWidget()); Mode.SetHideCursorDuringCapture(false); PC->SetInputMode(Mode);
     SetKeyboardFocus();
+    RestoreInventoryInspectionState();
 }
 
 void UKalmalaCraftingWidget::Close()

@@ -84,7 +84,11 @@ disposable mirror with normal `%LOCALAPPDATA%/UnrealBuildTool` access, then run
 Require `LocalBrowsing` and existing inventory tests to pass. Run rendered
 `Scripts/Verify-Crafting.ps1` at 1280x720/100% standard contrast; both peer logs
 must include `Inventory browsing: CategoryKey=1 SortKey=1 NoResults=1 Restored=1`
-and the existing inspection/focus/modal/authority checks. Run presentation
+and the existing inspection/focus/modal/authority checks. Extend `LocalBrowsing`
+to reopen after inspecting and require independent query/category/sort/selection
+and inspector scroll restoration, filtered/consumed-ID fallback, and unchanged
+recipe/station scroll memory; verify scroll clamping after a changed layout.
+Run presentation
 ownership and M5 documentation contracts plus `git diff --check`. This is
 increment-level verification; full parent integration waits for recipe/build
 browsing and the final ordered acceptance child.

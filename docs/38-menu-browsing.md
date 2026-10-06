@@ -24,9 +24,16 @@ selection survives filter/sort/data refresh. If selection disappears, the first
 visible result is selected. No results clears selection, hides details and names
 Clear search / All as recovery options. Empty inventory has distinct feedback.
 Previous/next disable when no rows are visible; browsing never performs an item,
-craft, repair, construction or transfer action. The inspector's current query,
-category, sort and selected row remain with its crafting-panel widget; distinct
-per-menu inventory inspection memory remains a later ordered child.
+craft, repair, construction or transfer action. During the local widget session,
+the inventory inspector remembers its bounded query, category, sort and selected
+canonical item ID in state separate from each recipe/station menu. Reopen applies
+the filters to current owner-visible rows, restores the selected ID when visible,
+and falls back to the first visible row (or no selection when empty) if it was
+consumed or filtered out. If the inspector had focus when the menu closed, it
+regains focus and its own scroll offset; otherwise the recipe/station scroll
+position is restored. Scroll restoration waits for layout and clamps to the
+current range after viewport or UI-scale changes. This memory is transient and
+never replays an item or gameplay action.
 
 The shared local theme, text scale and contrast style labels, buttons and search
 text. Browse controls are vertically arranged inside the existing scroll view.
