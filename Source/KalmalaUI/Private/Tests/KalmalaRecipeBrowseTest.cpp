@@ -12,6 +12,8 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
 {
     auto* Widget = NewObject<UKalmalaCraftingWidget>();
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
+    TestTrue(TEXT("Craft/build browsing restores per main and cooking-station menu with safe selection fallback"),
+        Widget->VerifyMenuBrowseMemoryForTest());
     const auto All = Widget->GetVisibleRecipeIndices();
     TestEqual(TEXT("All retains the existing catalogue"), All.Num(), Recipes.Num());
     Widget->SetRecipeBrowse(TEXT("  zzz-no-recipe  "), 0, true);

@@ -13,6 +13,15 @@ class UScrollBox;
 class UInputComponent;
 class UKalmalaCraftingComponent;
 class UKalmalaSelectedResultWidget;
+
+struct FKalmalaMenuBrowseMemory
+{
+    FString Query;
+    int32 Category = 0;
+    bool bNameSort = false;
+    FName SelectedRecipeId;
+    float ScrollOffset = 0.0f;
+};
 class UKalmalaCraftingSubsystem;
 enum class EKalmalaCraftingActionKind : uint8;
 struct FKalmalaAcceptedCraftingActionReceipt;
@@ -48,6 +57,7 @@ public:
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
+    bool VerifyMenuBrowseMemoryForTest();
     bool PrepareRecipeActivityReviewForTest();
     bool VerifyInventoryInspectionForTest();
     bool ScrollReviewSectionForTest(bool bFeedback);
@@ -70,6 +80,9 @@ private:
     bool IsRecipeFavorite(FName RecipeId) const;
     bool IsRecipeRecent(FName RecipeId) const;
     void OpenInternal(FName StationKit);
+    void UpdateMenuHeader(FName StationKit);
+    void RememberMenuBrowseState();
+    bool RestoreMenuBrowseState(FName StationKit);
     UFUNCTION() void RecipeSearchChanged(const FText& Text);
     UFUNCTION() void CycleRecipeCategory();
     UFUNCTION() void CycleRecipeSort();
@@ -136,6 +149,9 @@ private:
     FString RecipeQuery;
     int32 RecipeCategory = 0;
     bool bRecipeNameSort = false;
+    TMap<FName, FKalmalaMenuBrowseMemory> MenuBrowseMemory;
+    bool bPendingMenuScrollRestore = false;
+    float PendingMenuScrollRestoreOffset = 0.0f;
     int32 Selected = 0;
     FName StationFilterKit;
     FString GeneralInstructions;

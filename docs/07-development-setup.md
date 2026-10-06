@@ -1912,3 +1912,19 @@ not modify shipped catalogue data or saved state. Retain the captures under
 handoff. Finish with presentation-ownership and M5 documentation contracts,
 PowerShell parsing for changed scripts, `git diff --check`, and the path audit.
 This completes only the Favorites parent, not the wider M11 acceptance matrix.
+
+## M11 crafting/build menu memory increment
+
+Compile the affected UI module in the short disposable project mirror with
+normal `%LOCALAPPDATA%/UnrealBuildTool` access, then run
+`Kalmala.UI.Crafting.LocalBrowsing` with an isolated user directory, log,
+memory DDC, null renderer and queue-empty test exit. The test requires the main
+build filter and a cooking-station filter to restore independently, recover the
+same canonical selection when still visible, fall back to the first visible row
+when the saved identity is missing, and queue the saved scroll offset for
+post-layout clamping. Run `Scripts/Verify-Crafting.ps1 -Rendered` at
+1280x720/100%/standard contrast for the existing focus, modal and transaction
+regressions, then run presentation-ownership, M5 documentation contracts,
+PowerShell parsing for changed scripts, `git diff --check`, and the 260-character
+path audit. Full scale/contrast/reopen rendering remains in the later M11
+acceptance pass. See `38-menu-browsing.md` for the local-state contract.

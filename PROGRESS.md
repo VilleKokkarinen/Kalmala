@@ -11469,3 +11469,25 @@ Known limitations: The active catalogue has no ordinary non-building, non-cookin
 Next eligible task: restore the applicable category, selection, and scroll position in the remaining menus, with safe fallback for filtered/consumed entries and resizing.
 
 Handoff synchronization: after commit, synchronize only `BACKLOG.md` and this `PROGRESS.md` into the main checkout, preserving all pre-existing main-checkout edits. Implementation and image evidence stay in the worktree. Full verification remains deferred until M11's final acceptance task.
+
+### Run 2026-10-06T07:57:30Z — remembered crafting/build menu state
+
+Concurrency guard: Codex app inventory showed this as the only active Kalmala run; the other same-project automation was idle. The main checkout contains pre-existing source, documentation, backlog and progress edits, so this increment uses a clean worktree based on the accepted M11 Favorites integration commit `e6eaff8`.
+
+Outcome: Split the broad remaining-menu memory child into ordered per-surface work and completed only the crafting/build panel increment. The general hammer menu and each cooking-station menu now retain query, category, sort, selected canonical recipe ID and scroll offset independently for the local widget session. Reopen restores the selected ID when it remains visible, falls back to the first visible entry when it does not, queues scroll restoration until layout has updated and clamps to the current range. Currently unavailable recipes remain visible with their existing reason. No map or inventory-inspector child was started.
+
+Files changed: `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaRecipeBrowseTest.cpp`; `docs/38-menu-browsing.md`; `docs/07-development-setup.md`; this `PROGRESS.md`; and the selected `BACKLOG.md` child breakdown.
+
+Lightweight checks: `git diff --check` passed. A manual review covered normal open, close, station switching, first-open defaults, canonical-ID lookup, filtered/removed-selection fallback, delayed/clamped scroll restore, title/instruction updates, and the absence of gameplay calls in the memory paths. The focused `Kalmala.UI.Crafting.LocalBrowsing` assertion was added but not run; no build, automation queue, rendered host/client pass, or package check was run. The changed-path audit passed; longest full path was 91 characters.
+
+Full verification remains deferred: this is a normal child increment, not the final M11 implementation task.
+
+Observable impact: Reopening the main build/craft panel or an individual cooking station returns to that menu's last browsing context and scroll position, subject to current catalogue/filter availability and viewport bounds.
+
+Networking/authority: All memory is transient widget-local presentation. It reads the existing local catalogue and makes no RPC, gameplay request, replicated change, inventory mutation, settings write, or save-schema change. Opening the panel still restores modal input focus through the existing path.
+
+Known limitations: Inventory-inspection state and M-key map state remain later ordered increments. The new focused automation assertion and live resize/scale rendering remain unverified; broader M11 integration remains open.
+
+Next eligible task: remember inventory-inspection state separately from recipe/station browsing, with safe selection and scroll recovery.
+
+Main-checkout handoff: after commit, synchronize only the selected `BACKLOG.md` changes and append this `PROGRESS.md` run record. Preserve all existing main-checkout edits; implementation remains isolated in `E:\dev\Kalmala\wt\m11-menu-state`.

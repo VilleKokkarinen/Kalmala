@@ -24,7 +24,9 @@ selection survives filter/sort/data refresh. If selection disappears, the first
 visible result is selected. No results clears selection, hides details and names
 Clear search / All as recovery options. Empty inventory has distinct feedback.
 Previous/next disable when no rows are visible; browsing never performs an item,
-craft, repair, construction or transfer action.
+craft, repair, construction or transfer action. The inspector's current query,
+category, sort and selected row remain with its crafting-panel widget; distinct
+per-menu inventory inspection memory remains a later ordered child.
 
 The shared local theme, text scale and contrast style labels, buttons and search
 text. Browse controls are vertically arranged inside the existing scroll view.
@@ -69,8 +71,19 @@ controller access; Page Up/Down cycles category/order when the panel has focus.
 Search focus yields to ordinary text editing. Escape/B keeps modal close behavior.
 Existing controller hearth/build shortcuts outside text editing are retained.
 Theme text scale styles search font and menu labels; search uses a widget-owned
-Slate style to avoid dangling style pointers. Query/category/order last for the
-widget lifetime only; remembered-menu behavior remains a later task.
+Slate style to avoid dangling style pointers. The main hammer menu and each
+station menu remember query, category, sort, selected recipe identity and scroll
+offset independently for the local widget session. Reopening first reapplies the
+saved filters, then restores the canonical selection if it is still visible;
+otherwise it selects the first visible result, or no selection for an empty
+filtered view. Station scopes never inherit another menu's filter. Scroll offsets
+are applied after the reopened layout updates and clamped to the current scroll
+range, so catalogue changes, viewport resize and interface-scale changes do
+not leave an invalid offset. Entries that remain in the catalogue but are
+currently unavailable stay selectable and show their live unavailable reason.
+This memory is transient to the local player's widget session and does not write
+settings, gameplay saves or network state. Inventory-inspector and world-map
+memory remain later ordered children.
 
 Targeted verification: affected UI compilation, Kalmala.UI.Crafting.LocalBrowsing
 for category partition, name matching, ordering/no-results and source-order
