@@ -14,6 +14,8 @@ class UInputComponent;
 class UKalmalaCraftingComponent;
 class UKalmalaSelectedResultWidget;
 class UKalmalaCraftingSubsystem;
+enum class EKalmalaCraftingActionKind : uint8;
+struct FKalmalaAcceptedCraftingActionReceipt;
 
 UCLASS()
 class KALMALAUI_API UKalmalaInteractionPromptWidget : public UUserWidget
@@ -160,9 +162,15 @@ public:
     bool CanFavoriteRecipe(FName RecipeId) const;
     bool SetRecipeFavorite(FName RecipeId, bool bFavorite);
     void PruneRecipeFavorites();
+    uint32 GetRecipeActivityCount(EKalmalaCraftingActionKind Kind, FName RecipeId) const;
+    int32 GetRecipeActivityRank(EKalmalaCraftingActionKind Kind, FName RecipeId) const;
+    FName GetRecentRecipeActivity(EKalmalaCraftingActionKind Kind) const;
+    void PruneRecipeActivity();
 private:
     void Toggle();
     void Release();
+    void ObserveRecipeActivity(UKalmalaCraftingComponent* Crafting);
+    void RecordAcceptedRecipeActivity(const FKalmalaAcceptedCraftingActionReceipt& Receipt);
     void UpdateInteractionPrompt(APlayerController* PlayerController);
 #if !UE_BUILD_SHIPPING
     void UpdateInteractionPromptReview(APlayerController* PlayerController, float DeltaTime);
@@ -171,6 +179,15 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaInteractionPromptWidget> InteractionPrompt;
     UPROPERTY(Transient) TObjectPtr<APlayerController> Controller;
     UPROPERTY(Transient) TSet<FName> FavoriteRecipeIds;
+    UPROPERTY(Transient) TMap<FName, uint32> BuiltPieceCounts;
+    UPROPERTY(Transient) TMap<FName, uint32> CookedRecipeCounts;
+    UPROPERTY(Transient) TMap<FName, uint32> CraftedItemCounts;
+    TWeakObjectPtr<UKalmalaCraftingComponent> ActivityCraftingComponent;
+    uint64 LastAcceptedRecipeActivitySequence = 0;
+    bool bHasObservedRecipeActivityComponent = false;
+    FName RecentBuiltPieceRecipeId;
+    FName RecentCookedRecipeId;
+    FName RecentCraftedItemRecipeId;
     TWeakObjectPtr<UKalmalaCraftingComponent> StationInteractionModel;
     TWeakObjectPtr<UInputComponent> BoundInput;
     uint32 LastStationInteractionSerial = 0;

@@ -598,7 +598,11 @@ void UKalmalaCraftingWidget::OpenForStation(const FName StationKit) { OpenIntern
 void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
 {
     if (!StationKit.IsNone() && !IsInWorldCookingStation(StationKit)) return;
-    if (UKalmalaCraftingSubsystem* FavoriteState = GetLocalCraftingSubsystem()) FavoriteState->PruneRecipeFavorites();
+    if (UKalmalaCraftingSubsystem* FavoriteState = GetLocalCraftingSubsystem())
+    {
+        FavoriteState->PruneRecipeFavorites();
+        FavoriteState->PruneRecipeActivity();
+    }
     if (bOpen)
     {
         StationFilterKit = StationKit;
@@ -1279,6 +1283,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
     if (const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn()))
     {
         UKalmalaCraftingComponent* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
+        ObserveRecipeActivity(Crafting);
         if (Crafting != StationInteractionModel.Get())
         {
             StationInteractionModel = Crafting;
@@ -1306,6 +1311,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
     }
     else
     {
+        ObserveRecipeActivity(nullptr);
         StationInteractionModel.Reset();
         LastStationInteractionSerial = 0;
         bHasSeenStationInteraction = false;
@@ -1703,6 +1709,149 @@ void UKalmalaCraftingSubsystem::PruneRecipeFavorites()
     }
 }
 
+void UKalmalaCraftingSubsystem::ObserveRecipeActivity(UKalmalaCraftingComponent* Crafting)
+{
+    if (!bHasObservedRecipeActivityComponent || ActivityCraftingComponent.Get() != Crafting)
+    {
+        ActivityCraftingComponent = Crafting;
+        LastAcceptedRecipeActivitySequence = 0;
+        if (Crafting)
+        {
+            for (const FKalmalaAcceptedCraftingActionReceipt& Receipt : Crafting->GetAcceptedCraftingActionReceipts())
+                if (Receipt.Sequence > LastAcceptedRecipeActivitySequence)
+                    LastAcceptedRecipeActivitySequence = Receipt.Sequence;
+        }
+        bHasObservedRecipeActivityComponent = true;
+        PruneRecipeActivity();
+        return;
+    }
+    if (!Crafting) return;
+
+    bool bObservedNewReceipt = false;
+    for (const FKalmalaAcceptedCraftingActionReceipt& Receipt : Crafting->GetAcceptedCraftingActionReceipts())
+    {
+        if (Receipt.Sequence <= LastAcceptedRecipeActivitySequence) continue;
+        LastAcceptedRecipeActivitySequence = Receipt.Sequence;
+        bObservedNewReceipt = true;
+        RecordAcceptedRecipeActivity(Receipt);
+    }
+    if (bObservedNewReceipt) PruneRecipeActivity();
+}
+
+void UKalmalaCraftingSubsystem::RecordAcceptedRecipeActivity(
+    const FKalmalaAcceptedCraftingActionReceipt& Receipt)
+{
+    const UKalmalaRecipeCatalogue* Catalogue = UKalmalaRecipeCatalogue::Get();
+    const FKalmalaRecipe* Recipe = Catalogue ? Catalogue->Find(Receipt.RecipeId) : nullptr;
+    if (!Recipe) return;
+
+    TMap<FName, uint32>* Counts = nullptr;
+    FName* Recent = nullptr;
+    switch (Receipt.Kind)
+    {
+    case EKalmalaCraftingActionKind::BuiltPiece:
+        if (UKalmalaCraftingWidget::GetBuildBrowseGroup(Recipe->Output) == 0) return;
+        Counts = &BuiltPieceCounts;
+        Recent = &RecentBuiltPieceRecipeId;
+        break;
+    case EKalmalaCraftingActionKind::CookedRecipe:
+        if (Recipe->ExperienceSkill != EKalmalaSkill::Cooking) return;
+        Counts = &CookedRecipeCounts;
+        Recent = &RecentCookedRecipeId;
+        break;
+    case EKalmalaCraftingActionKind::CraftedItem:
+        if (Recipe->ExperienceSkill == EKalmalaSkill::Cooking) return;
+        Counts = &CraftedItemCounts;
+        Recent = &RecentCraftedItemRecipeId;
+        break;
+    default:
+        return;
+    }
+
+    uint32& Count = Counts->FindOrAdd(Receipt.RecipeId);
+    if (Count < TNumericLimits<uint32>::Max()) ++Count;
+    *Recent = Receipt.RecipeId;
+}
+
+uint32 UKalmalaCraftingSubsystem::GetRecipeActivityCount(
+    const EKalmalaCraftingActionKind Kind, const FName RecipeId) const
+{
+    const TMap<FName, uint32>* Counts = nullptr;
+    switch (Kind)
+    {
+    case EKalmalaCraftingActionKind::BuiltPiece: Counts = &BuiltPieceCounts; break;
+    case EKalmalaCraftingActionKind::CookedRecipe: Counts = &CookedRecipeCounts; break;
+    case EKalmalaCraftingActionKind::CraftedItem: Counts = &CraftedItemCounts; break;
+    default: return 0;
+    }
+    const uint32* Count = Counts->Find(RecipeId);
+    return Count ? *Count : 0;
+}
+
+int32 UKalmalaCraftingSubsystem::GetRecipeActivityRank(
+    const EKalmalaCraftingActionKind Kind, const FName RecipeId) const
+{
+    const TMap<FName, uint32>* Counts = nullptr;
+    switch (Kind)
+    {
+    case EKalmalaCraftingActionKind::BuiltPiece: Counts = &BuiltPieceCounts; break;
+    case EKalmalaCraftingActionKind::CookedRecipe: Counts = &CookedRecipeCounts; break;
+    case EKalmalaCraftingActionKind::CraftedItem: Counts = &CraftedItemCounts; break;
+    default: return 0;
+    }
+    if (!Counts->Contains(RecipeId) || Counts->FindRef(RecipeId) == 0) return 0;
+
+    TArray<TPair<FName, uint32>> Ranked;
+    Ranked.Reserve(Counts->Num());
+    for (const TPair<FName, uint32>& Entry : *Counts)
+        if (Entry.Value > 0) Ranked.Add(Entry);
+    Ranked.StableSort([](const TPair<FName, uint32>& A, const TPair<FName, uint32>& B)
+    {
+        if (A.Value != B.Value) return A.Value > B.Value;
+        return A.Key.LexicalLess(B.Key);
+    });
+    for (int32 Index = 0; Index < FMath::Min(3, Ranked.Num()); ++Index)
+        if (Ranked[Index].Key == RecipeId) return Index + 1;
+    return 0;
+}
+
+FName UKalmalaCraftingSubsystem::GetRecentRecipeActivity(const EKalmalaCraftingActionKind Kind) const
+{
+    switch (Kind)
+    {
+    case EKalmalaCraftingActionKind::BuiltPiece: return RecentBuiltPieceRecipeId;
+    case EKalmalaCraftingActionKind::CookedRecipe: return RecentCookedRecipeId;
+    case EKalmalaCraftingActionKind::CraftedItem: return RecentCraftedItemRecipeId;
+    default: return NAME_None;
+    }
+}
+
+void UKalmalaCraftingSubsystem::PruneRecipeActivity()
+{
+    const UKalmalaRecipeCatalogue* Catalogue = UKalmalaRecipeCatalogue::Get();
+    if (!Catalogue)
+    {
+        BuiltPieceCounts.Reset();
+        CookedRecipeCounts.Reset();
+        CraftedItemCounts.Reset();
+        RecentBuiltPieceRecipeId = NAME_None;
+        RecentCookedRecipeId = NAME_None;
+        RecentCraftedItemRecipeId = NAME_None;
+        return;
+    }
+    const auto Prune = [Catalogue](TMap<FName, uint32>& Counts)
+    {
+        for (auto It = Counts.CreateIterator(); It; ++It)
+            if (It.Value() == 0 || !Catalogue->Find(It.Key())) It.RemoveCurrent();
+    };
+    Prune(BuiltPieceCounts);
+    Prune(CookedRecipeCounts);
+    Prune(CraftedItemCounts);
+    if (!Catalogue->Find(RecentBuiltPieceRecipeId)) RecentBuiltPieceRecipeId = NAME_None;
+    if (!Catalogue->Find(RecentCookedRecipeId)) RecentCookedRecipeId = NAME_None;
+    if (!Catalogue->Find(RecentCraftedItemRecipeId)) RecentCraftedItemRecipeId = NAME_None;
+}
+
 void UKalmalaCraftingSubsystem::Toggle()
 {
     if(!Controller) return;
@@ -1718,6 +1867,8 @@ void UKalmalaCraftingSubsystem::Release()
     if(Widget) { Widget->Close(); Widget->RemoveFromParent(); Widget=nullptr; }
     if(InteractionPrompt) { InteractionPrompt->RemoveFromParent(); InteractionPrompt=nullptr; }
     StationInteractionModel.Reset(); LastStationInteractionSerial = 0; bHasSeenStationInteraction = false;
+    ActivityCraftingComponent.Reset(); LastAcceptedRecipeActivitySequence = 0;
+    bHasObservedRecipeActivityComponent = false;
     Controller=nullptr; bVerified=false;
 }
 void UKalmalaCraftingSubsystem::Deinitialize() { Release(); Super::Deinitialize(); }

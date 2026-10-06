@@ -11401,3 +11401,25 @@ Known limitations: Bookmarks last for the local-player subsystem lifetime and do
 Next eligible task: consume unique owner-received successful build/cooking/other-crafting outcomes, count only accepted actions once, and derive bounded deterministic ranks plus one Recent entry per action kind.
 
 Main-checkout synchronization will update only `BACKLOG.md` and `PROGRESS.md` after inspection of their pre-existing versions; implementation files remain isolated in the managed worktree.
+
+### Run 2026-10-06T05:38:48Z — accepted recipe/build activity tracked
+
+Concurrency guard: Codex app inventory showed this run as the only active Kalmala task; the other same-project automation entry was inactive. Windows process inspection was unavailable. The main checkout contains pre-existing uncommitted handoff and implementation edits, so this increment was made in isolated worktree `E:\dev\Kalmala\wt\m11-use-counts`, based on verified Favorites commit `3618f27`.
+
+Outcome: Completed exactly the next unchecked M11 Favorites child: consume unique owner-received successful outcomes for builds, cooking, and other crafting; maintain local counts, deterministic top-three ranks, and one Recent ID per action kind. The Favorites parent remains open; no later child started. This is not milestone-final verification.
+
+Files changed: `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`; `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `docs/15-presentation-ownership.md`; `docs/41-recipe-activity.md`; the selected `BACKLOG.md` child; and this `PROGRESS.md` handoff.
+
+Lightweight checks: `git diff --check` passed. Ten focused source assertions passed for owner-only replication, append-after-acceptance, the 64-receipt bound, server-side cooking/build classification, first-observation baseline and sequence deduplication, deterministic lexical rank ties, current-catalogue pruning, and receipt shape. Manual review confirmed failed/non-recipe interactions do not append receipts, built outputs must map to one canonical current menu ID, and local history survives pawn replacement. The absolute-path audit covered every changed file; the longest was 92 characters.
+
+Full verification remains deferred: no Unreal build, automation queue, or rendered host/client pass was run for this normal child increment. M11 is not at its final implementation task.
+
+Observable impact: The server now publishes a rolling maximum of 64 owner-only accepted craft/placement receipts with a monotonic component sequence, canonical menu ID, and action kind. Each local-player crafting subsystem consumes new sequences once, keeps saturating counts for current recipe IDs, ranks up to three by count then `RecipeId.LexicalLess`, and replaces only the matching kind's Recent ID. Cooking is excluded from other-crafting counts; failed requests, replayed entries, and ambiguous build-output mappings are ignored.
+
+Networking/authority: Receipts are appended only after existing server craft or placement functions report success and are replicated to the owner only. The new owner-only receipt property cannot authorize a request. Counts/ranks/Recent IDs remain transient local-player state; no gameplay mutation RPC or save schema changed.
+
+Known limitations: The rolling receipt queue can drop older events if more than 64 accepted actions arrive between local observations. An accepted build with no unique recipe/menu ID is omitted. This child has no build, automation, rendered accessibility/coexistence, or packaged-build verification; those remain for later parent acceptance.
+
+Next eligible task: add theme-configurable Favorite, Rank, and Recent card markers with non-overlapping text, then cover coexistence, reduced motion, unbookmarked Recent entries, and separate local owners.
+
+Main-checkout handoff synchronization is complete for `BACKLOG.md` and `PROGRESS.md` only; all pre-existing main-checkout changes remain preserved, and implementation files remain isolated in this worktree.

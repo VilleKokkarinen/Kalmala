@@ -21,14 +21,19 @@ and an empty result disables the existing action.
 
 ## Accepted-action history contract
 
-The next implementation slice will consume an owner-only accepted-action
-receipt emitted only after the existing server-side action has committed. Each
-receipt carries a per-owner monotonic sequence and a canonical recipe/menu ID.
-The local subsystem silently establishes a baseline on first observation and
-pawn replacement, then consumes each newer sequence at most once. Rejected,
-failed, stale, duplicate, replayed, selected, previewed, or merely requested
-actions do not update history. The receipt reports an outcome already chosen
-by the server; it cannot authorize a transaction or supply a reward.
+The crafting component emits owner-only accepted-action receipts only after an
+existing server-side craft or placement has committed. Each receipt carries a
+monotonic sequence for that character component, a canonical recipe/menu ID,
+and one of the three action kinds below. The server retains a rolling maximum
+of 64 receipts so multiple accepted actions can survive property replication
+coalescing; the 64-bit sequence saturates instead of wrapping. The local
+subsystem silently establishes a baseline on first
+observation and pawn replacement, then consumes each newer sequence once. A
+component replacement does not reset the local player's accumulated history.
+Rejected, failed, stale, duplicate, replayed, selected, previewed, or merely
+requested actions do not update history. The receipt reports an outcome
+already chosen by the server; it cannot authorize a transaction or supply a
+reward. A build output with no unique current recipe/menu ID is omitted.
 
 Accepted actions have three disjoint buckets:
 
@@ -54,6 +59,12 @@ appearing in multiple sources is shown once, with separate text markers so
 Favorite, Rank, and Recent remain distinguishable. Ordinary recipe/build
 cards also mark their matching Recent entry.
 
+The local-player subsystem exposes bucket count, rank, and Recent queries for
+the menu presentation. It validates that receipt IDs still resolve in the
+current catalogue and that the receipt kind agrees with the existing Cooking
+classification or build-menu membership. Each count map holds at most one entry
+per current recipe ID per bucket and saturates at the unsigned 32-bit maximum.
+
 ## Presentation contract
 
 Favorites, rank, and Recent remain distinguishable without colour. The theme
@@ -67,10 +78,13 @@ input behavior continue to apply.
 
 ## Implementation status
 
-The initial implementation slice adds the local session bookmark set, a
-selected-entry toggle, and Favorites browsing. Server-accepted action receipts,
-counts, rank and Recent badges, configurable marker treatments, and combined
-rendered acceptance remain separate unchecked work under the M11 backlog item.
+The first implementation slice adds the local session bookmark set, a
+selected-entry toggle, and Favorites browsing. The accepted-action slice adds
+the bounded owner-only receipt queue, unique sequence consumption, local bucket
+counts, deterministic top-three rank queries, and one Recent ID per bucket.
+Favorite, Rank, and Recent card markers, configurable marker treatments, and
+combined rendered acceptance remain separate unchecked work under the M11
+backlog item.
 
 
 ## Verification handoff
@@ -84,5 +98,12 @@ disabling, and per-local-player isolation. Rendered host/client checks should
 cover the selected-action label, card Favorite text, keyboard/controller
 category cycling, and high-contrast/text-scale readability. The combined parent
 gate also checks accepted counts, rank/Recent coexistence, reduced motion, and
-marker overlap. The initial slice has not had an editor build, automation run,
-or rendered acceptance; those remain deferred.
+marker overlap. These implementation slices have not had an editor build,
+automation run, or rendered acceptance; those remain deferred to the ordered
+parent verification work.
+
+The owner receipt buffer contains only its newest 64 accepted actions. The UI
+subsystem polls it every tick and consumes every still-buffered sequence once;
+if more than 64 accepted actions arrive between observations, older receipts
+have already been discarded by the server. This bounded loss case remains a
+known limitation for parent-level verification.

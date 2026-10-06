@@ -25,6 +25,20 @@
 
 namespace
 {
+FName FindUniqueRecipeIdForOutput(const FName Output)
+{
+    const UKalmalaRecipeCatalogue* Catalogue = UKalmalaRecipeCatalogue::Get();
+    if (!Catalogue || !Catalogue->IsValidCatalogue()) return NAME_None;
+    const FKalmalaRecipe* Match = nullptr;
+    for (const FKalmalaRecipe& Recipe : Catalogue->Recipes)
+    {
+        if (Recipe.Output != Output) continue;
+        if (Match) return NAME_None;
+        Match = &Recipe;
+    }
+    return Match ? Match->RecipeId : NAME_None;
+}
+
 FString GetToolDisplayName(const FName ToolId)
 {
     if (ToolId == TEXT("ReedKnife")) return TEXT("Reed Knife");
@@ -91,6 +105,7 @@ void UKalmalaCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, LastResult, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, ResultSerial, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, bLastResultAccepted, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, AcceptedCraftingActionReceipts, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, StorageView, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, bStorageViewOpen, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, LastInteractedCookingStationKit, COND_OwnerOnly);
@@ -107,13 +122,25 @@ bool UKalmalaCraftingComponent::AcceptRequest()
     return true;
 }
 
-void UKalmalaCraftingComponent::PublishResult(const FString& Result, const bool bAccepted)
+void UKalmalaCraftingComponent::PublishResult(const FString& Result, const bool bAccepted,
+    const FName AcceptedRecipeId, const EKalmalaCraftingActionKind AcceptedActionKind)
 {
     if (GetOwner() && GetOwner()->HasAuthority())
     {
         LastResult = Result.Left(160);
         bLastResultAccepted = bAccepted;
         ResultSerial = ResultSerial == TNumericLimits<uint32>::Max() ? 1 : ResultSerial + 1;
+        if (bAccepted && !AcceptedRecipeId.IsNone()
+            && NextAcceptedCraftingActionSequence < TNumericLimits<uint64>::Max())
+        {
+            FKalmalaAcceptedCraftingActionReceipt& Receipt = AcceptedCraftingActionReceipts.AddDefaulted_GetRef();
+            Receipt.Sequence = ++NextAcceptedCraftingActionSequence;
+            Receipt.RecipeId = AcceptedRecipeId;
+            Receipt.Kind = AcceptedActionKind;
+            if (AcceptedCraftingActionReceipts.Num() > MaxAcceptedCraftingActionReceipts)
+                AcceptedCraftingActionReceipts.RemoveAt(0,
+                    AcceptedCraftingActionReceipts.Num() - MaxAcceptedCraftingActionReceipts, EAllowShrinking::No);
+        }
         GetOwner()->ForceNetUpdate();
     }
 }
@@ -216,7 +243,21 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
 void UKalmalaCraftingComponent::ServerCraft_Implementation(FName RecipeId, int32 Batch)
 {
     if (!AcceptRequest()) return;
-    FString Reason; const bool Accepted=CraftFromServer(RecipeId, Batch, Reason); PublishResult(Reason, Accepted);
+    FString Reason;
+    const bool Accepted = CraftFromServer(RecipeId, Batch, Reason);
+    FName AcceptedRecipeId = NAME_None;
+    EKalmalaCraftingActionKind AcceptedActionKind = EKalmalaCraftingActionKind::CraftedItem;
+    if (Accepted)
+    {
+        if (const FKalmalaRecipe* Recipe = UKalmalaRecipeCatalogue::Get()->Find(RecipeId))
+        {
+            AcceptedRecipeId = Recipe->RecipeId;
+            AcceptedActionKind = Recipe->ExperienceSkill == EKalmalaSkill::Cooking
+                ? EKalmalaCraftingActionKind::CookedRecipe
+                : EKalmalaCraftingActionKind::CraftedItem;
+        }
+    }
+    PublishResult(Reason, Accepted, AcceptedRecipeId, AcceptedActionKind);
 #if !UE_BUILD_SHIPPING
     if(FParse::Param(FCommandLine::Get(),TEXT("KalmalaCraftingTest")))
         UE_LOG(LogTemp,Display,TEXT("Crafting RPC: Recipe=%s Batch=%d Accepted=%d"),*RecipeId.ToString(),Batch,Accepted);
@@ -471,7 +512,10 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
 void UKalmalaCraftingComponent::ServerPlaceCampfire_Implementation()
 {
     if (!AcceptRequest()) return;
-    FString Reason; const bool Accepted=PlaceFromServer(Reason); PublishResult(Reason, Accepted);
+    FString Reason;
+    const bool Accepted = PlaceFromServer(Reason);
+    PublishResult(Reason, Accepted, Accepted ? FindUniqueRecipeIdForOutput(TEXT("CampfireKit")) : NAME_None,
+        EKalmalaCraftingActionKind::BuiltPiece);
 #if !UE_BUILD_SHIPPING
     if(FParse::Param(FCommandLine::Get(),TEXT("KalmalaCraftingTest")))
         UE_LOG(LogTemp,Display,TEXT("Crafting placement RPC: Accepted=%d"),Accepted);
@@ -481,7 +525,10 @@ void UKalmalaCraftingComponent::ServerPlaceCampfire_Implementation()
 void UKalmalaCraftingComponent::ServerPlaceConstruction_Implementation(const FName BuildableId)
 {
     if (!AcceptRequest()) return;
-    FString Reason; const bool Accepted = PlaceConstructionFromServer(BuildableId, Reason); PublishResult(Reason, Accepted);
+    FString Reason;
+    const bool Accepted = PlaceConstructionFromServer(BuildableId, Reason);
+    PublishResult(Reason, Accepted, Accepted ? FindUniqueRecipeIdForOutput(BuildableId) : NAME_None,
+        EKalmalaCraftingActionKind::BuiltPiece);
 }
 
 void UKalmalaCraftingComponent::ServerRefuel_Implementation()

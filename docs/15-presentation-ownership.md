@@ -210,6 +210,19 @@ existing owner-visible catalogue and show Favorite text. A selected-entry
 button changes this transient local set; it sends no request, changes no
 availability, and cannot place or craft anything. The bounded set is cleared
 with the local-player subsystem and is not written to gameplay saves, user
-settings, replicated state, or peer-visible data. Usage ranking and Recent
-presentation remain separate server-accepted-action work under the contract in
-`docs/41-recipe-activity.md`.
+settings, replicated state, or peer-visible data. Usage counts, ranks, and
+Recent IDs are local and derive only from unique server-accepted action
+receipts, under the contract in `docs/41-recipe-activity.md`.
+
+## Owner-local recipe activity
+
+The crafting component publishes a bounded owner-only receipt after a server
+craft or construction placement succeeds. Each receipt identifies the accepted
+recipe/menu entry and action kind; it cannot authorize a request. The local
+crafting subsystem consumes unique sequences, counts only IDs in the active
+catalogue, and derives usage ranks and one Recent entry per action kind. Its
+history remains local across menu and pawn replacement and clears with the local
+player subsystem. Failed requests, cooking counted as other crafting, peer
+state, inventory guesses, and reconnect snapshots do not create local history.
+See `docs/41-recipe-activity.md` for the bounded receipt and deterministic rank
+contract.
