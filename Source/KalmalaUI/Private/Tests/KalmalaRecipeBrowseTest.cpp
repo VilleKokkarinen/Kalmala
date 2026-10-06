@@ -4,6 +4,8 @@
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaPlacementPreview.h"
 #include "Misc/AutomationTest.h"
+#include "Engine/Engine.h"
+#include "Engine/LocalPlayer.h"
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRecipeBrowseTest, "Kalmala.UI.Crafting.LocalBrowsing",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
@@ -72,16 +74,12 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
 
     if (Builds.Num() >= 2 && !Cooking.IsEmpty())
     {
-        int32 CraftedIndex = INDEX_NONE;
-        for (int32 Index : All)
-            if (Recipes[Index].ExperienceSkill != EKalmalaSkill::Cooking
-                && Widget->GetBuildBrowseGroup(Recipes[Index].Output) == 0)
-            {
-                CraftedIndex = Index;
-                break;
-            }
-        auto* OwnerA = NewObject<UKalmalaCraftingSubsystem>();
-        auto* OwnerB = NewObject<UKalmalaCraftingSubsystem>();
+        ULocalPlayer* LocalPlayerA = NewObject<ULocalPlayer>(GEngine);
+        ULocalPlayer* LocalPlayerB = NewObject<ULocalPlayer>(GEngine);
+        if (!TestNotNull(TEXT("First local-player fixture"), LocalPlayerA)
+            || !TestNotNull(TEXT("Second local-player fixture"), LocalPlayerB)) return false;
+        auto* OwnerA = NewObject<UKalmalaCraftingSubsystem>(LocalPlayerA);
+        auto* OwnerB = NewObject<UKalmalaCraftingSubsystem>(LocalPlayerB);
         const FName OwnerABuild = Recipes[Builds[0]].RecipeId;
         const FName OwnerBBuild = Recipes[Builds.Last()].RecipeId;
         OwnerA->SetRecipeFavorite(OwnerABuild, true);
@@ -99,8 +97,8 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
             && OwnerB->GetRecipeActivityCount(EKalmalaCraftingActionKind::BuiltPiece, OwnerBBuild) == 3
             && OwnerB->GetRecipeActivityRank(EKalmalaCraftingActionKind::BuiltPiece, OwnerBBuild) == 1
             && OwnerB->GetRecentRecipeActivity(EKalmalaCraftingActionKind::BuiltPiece) == OwnerBBuild);
-        TestTrue(TEXT("Recent cooking and crafting kinds remain separate local buckets"), CraftedIndex != INDEX_NONE
-            && OwnerA->GetRecentRecipeActivity(EKalmalaCraftingActionKind::CookedRecipe).IsNone()
+        TestTrue(TEXT("A build receipt does not leak into unused cooking or crafting buckets"),
+            OwnerA->GetRecentRecipeActivity(EKalmalaCraftingActionKind::CookedRecipe).IsNone()
             && OwnerA->GetRecentRecipeActivity(EKalmalaCraftingActionKind::CraftedItem).IsNone());
     }
     else

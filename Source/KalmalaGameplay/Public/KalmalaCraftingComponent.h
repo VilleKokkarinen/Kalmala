@@ -62,6 +62,13 @@ public:
     {
         return AcceptedCraftingActionReceipts;
     }
+#if WITH_DEV_AUTOMATION_TESTS
+    void PublishResultForTest(const FString& Result, bool bAccepted, FName RecipeId,
+        EKalmalaCraftingActionKind Kind)
+    {
+        PublishResult(Result, bAccepted, RecipeId, Kind);
+    }
+#endif
     AKalmalaConstructionActor* FindNearbyWorkbench() const;
     FString GetNearbyWorkbenchText() const;
     FString GetNearbyConstructionText() const;

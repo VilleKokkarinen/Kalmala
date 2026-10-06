@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaCraftingComponent.h"
 #include "Misc/AutomationTest.h"
+#include "Net/UnrealNetwork.h"
 #include "UObject/UnrealType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaCraftingNetworkContractTest,
@@ -10,6 +11,22 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaCraftingNetworkContractTest,
 bool FKalmalaCraftingNetworkContractTest::RunTest(const FString& Parameters)
 {
     const UClass* CraftingClass = UKalmalaCraftingComponent::StaticClass();
+    const_cast<UClass*>(CraftingClass)->SetUpRuntimeReplicationData();
+    const FArrayProperty* Receipts = FindFProperty<FArrayProperty>(CraftingClass, TEXT("AcceptedCraftingActionReceipts"));
+    if (TestNotNull(TEXT("Accepted action receipt queue exists"), Receipts))
+    {
+        TestTrue(TEXT("Accepted action receipts replicate"), Receipts->HasAnyPropertyFlags(CPF_Net));
+        TestFalse(TEXT("Accepted action receipts are not included in SaveGame data"), Receipts->HasAnyPropertyFlags(CPF_SaveGame));
+
+        TArray<FLifetimeProperty> Lifetime;
+        GetDefault<UKalmalaCraftingComponent>()->GetLifetimeReplicatedProps(Lifetime);
+        TestTrue(TEXT("Accepted action receipts replicate only to the owner"), Lifetime.ContainsByPredicate(
+            [Receipts](const FLifetimeProperty& Entry)
+            {
+                return Entry.RepIndex == Receipts->RepIndex && Entry.Condition == COND_OwnerOnly;
+            }));
+    }
+
     const UFunction* Craft = CraftingClass->FindFunctionByName(TEXT("ServerCraft"));
     if (TestNotNull(TEXT("Craft intent exists"), Craft))
     {

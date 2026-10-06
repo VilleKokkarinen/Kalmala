@@ -1,0 +1,15 @@
+M11 Favorites parent integration — 2026-10-06
+
+Build: KalmalaEditor Win64 Development in the isolated E:\dev\Kalmala\kf mirror; passed after renaming two UWidget-shadowing locals.
+
+Headless automation: Kalmala.Gameplay.Crafting.NetworkContract, Kalmala.UI.Crafting.ActivityReceiptReplay, Kalmala.UI.Crafting.LocalBrowsing, and Kalmala.UI.Theme.LocalPresentation; all four passed with exit code 0.
+
+Rendered standard: Verify-Crafting.ps1 -Rendered -Port 17970 -Width 1280 -Height 720 -TextScale 100 -Contrast 0; host and client passed.
+
+Rendered accessibility: Verify-Crafting.ps1 -Rendered -ReducedMotion -Port 17971 -Width 1024 -Height 768 -TextScale 150 -Contrast 1; host and client passed.
+
+Both modes passed coexistence, ordinary Recent, unbookmarked Recent shortcuts, static reduced-motion cues, distinct owner Favorites, and the existing authority/rejection/payment/final-state checks. The four captures in this directory were visually inspected; Favorite, Rank, and Recent use distinct non-overlapping rows and remain legible at the high-contrast 150% setting.
+
+Presentation ownership, all five M5 documentation contracts, PowerShell parsing, git diff --check, and the 260-character path audit passed. The active catalogue currently has build and cooking recipes only; the development review and receipt automation tests add a temporary ordinary-craft fixture to cover the third action bucket. Shipped catalogue data and save schema are unchanged.
+
+The wider M11 acceptance matrix remains open.

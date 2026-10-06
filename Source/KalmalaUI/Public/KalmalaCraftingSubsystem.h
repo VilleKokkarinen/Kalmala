@@ -178,6 +178,9 @@ public:
     void ResetRecipeActivityForTest();
     void SetRecipeActivityForTest(EKalmalaCraftingActionKind Kind, FName RecipeId, uint32 Count, bool bRecent);
 #endif
+#if WITH_DEV_AUTOMATION_TESTS
+    void ObserveRecipeActivityForTest(UKalmalaCraftingComponent* Crafting) { ObserveRecipeActivity(Crafting); }
+#endif
 private:
     void Toggle();
     void Release();

@@ -909,11 +909,11 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             if (!RecipeSlotFavoriteFrames[SlotIndex]->GetBrushColor().Equals(FrameColor))
                 RecipeSlotFavoriteFrames[SlotIndex]->SetBrushColor(FrameColor);
         }
-        FString ToolTipText = bUnavailable ? Reason : Recipe.DisplayName + TEXT(" — Available");
-        if (bFavorite) ToolTipText = TEXT("Favorite. ") + ToolTipText;
-        if (ActivityRank > 0) ToolTipText = FString::Printf(TEXT("Rank %d. "), ActivityRank) + ToolTipText;
-        if (bRecent) ToolTipText = TEXT("Recent. ") + ToolTipText;
-        const FText ToolTip = FText::FromString(ToolTipText);
+        FString RecipeTooltip = bUnavailable ? Reason : Recipe.DisplayName + TEXT(" — Available");
+        if (bFavorite) RecipeTooltip = TEXT("Favorite. ") + RecipeTooltip;
+        if (ActivityRank > 0) RecipeTooltip = FString::Printf(TEXT("Rank %d. "), ActivityRank) + RecipeTooltip;
+        if (bRecent) RecipeTooltip = TEXT("Recent. ") + RecipeTooltip;
+        const FText ToolTip = FText::FromString(RecipeTooltip);
         if (RecipeSlotCards[SlotIndex]->GetToolTipText().ToString() != ToolTip.ToString())
         {
             RecipeSlotCards[SlotIndex]->SetToolTipText(ToolTip);
@@ -1126,9 +1126,35 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
 bool UKalmalaCraftingWidget::PrepareRecipeActivityReviewForTest()
 {
     if (!bOpen || !RecipeGrid) return false;
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaCraftingTest"))) return false;
     UKalmalaCraftingSubsystem* LocalState = GetLocalCraftingSubsystem();
     if (!LocalState) return false;
-    const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
+    const UKalmalaRecipeCatalogue* Catalogue = UKalmalaRecipeCatalogue::Get();
+    if (!Catalogue) return false;
+    const FName CraftingFixtureId(TEXT("KalmalaActivityCraftFixture"));
+    UKalmalaRecipeCatalogue* MutableCatalogue = GetMutableDefault<UKalmalaRecipeCatalogue>();
+    if (!MutableCatalogue->Recipes.ContainsByPredicate([CraftingFixtureId](const FKalmalaRecipe& Recipe)
+        { return Recipe.RecipeId == CraftingFixtureId; }))
+    {
+        FKalmalaRecipe& Fixture = MutableCatalogue->Recipes.AddDefaulted_GetRef();
+        Fixture.RecipeId = CraftingFixtureId;
+        Fixture.DisplayName = TEXT("Activity review crafted item");
+        FKalmalaInventoryStack& Cost = Fixture.Ingredients.AddDefaulted_GetRef();
+        Cost.ItemId = TEXT("Stone");
+        Cost.Quantity = 1;
+        Fixture.Output = TEXT("Wood");
+        Fixture.OutputCount = 1;
+        Fixture.MaxBatch = 1;
+        Fixture.ExperienceSkill = EKalmalaSkill::None;
+        Fixture.ExperienceAward = 0;
+        Fixture.bEnabled = true;
+        if (!MutableCatalogue->IsValidCatalogue())
+        {
+            MutableCatalogue->Recipes.Pop(EAllowShrinking::No);
+            return false;
+        }
+    }
+    const auto& Recipes = Catalogue->Recipes;
     TArray<int32> BuildIndices;
     TArray<int32> CookingIndices;
     TArray<int32> CraftingIndices;
@@ -1168,13 +1194,13 @@ bool UKalmalaCraftingWidget::PrepareRecipeActivityReviewForTest()
     const int32 OrdinaryCraftingSlot = OrdinaryVisibleIndices.IndexOfByKey(CraftingIndex);
     if (OrdinaryCookingSlot == INDEX_NONE || OrdinaryCraftingSlot == INDEX_NONE) return false;
     Refresh();
-    const auto HasActivityMarkerWidgets = [this](const int32 Slot)
+    const auto HasActivityMarkerWidgets = [this](const int32 MarkerSlotIndex)
     {
-        return RecipeSlotFavoriteFrames.IsValidIndex(Slot) && RecipeSlotFavoriteFrames[Slot]
-            && RecipeSlotFavoriteMarkers.IsValidIndex(Slot) && RecipeSlotFavoriteMarkers[Slot]
-            && RecipeSlotRankMarkers.IsValidIndex(Slot) && RecipeSlotRankMarkers[Slot]
-            && RecipeSlotRecentMarkers.IsValidIndex(Slot) && RecipeSlotRecentMarkers[Slot]
-            && RecipeSlotRecentBadgeFrames.IsValidIndex(Slot) && RecipeSlotRecentBadgeFrames[Slot];
+        return RecipeSlotFavoriteFrames.IsValidIndex(MarkerSlotIndex) && RecipeSlotFavoriteFrames[MarkerSlotIndex]
+            && RecipeSlotFavoriteMarkers.IsValidIndex(MarkerSlotIndex) && RecipeSlotFavoriteMarkers[MarkerSlotIndex]
+            && RecipeSlotRankMarkers.IsValidIndex(MarkerSlotIndex) && RecipeSlotRankMarkers[MarkerSlotIndex]
+            && RecipeSlotRecentMarkers.IsValidIndex(MarkerSlotIndex) && RecipeSlotRecentMarkers[MarkerSlotIndex]
+            && RecipeSlotRecentBadgeFrames.IsValidIndex(MarkerSlotIndex) && RecipeSlotRecentBadgeFrames[MarkerSlotIndex];
     };
     if (!HasActivityMarkerWidgets(OrdinaryCookingSlot) || !HasActivityMarkerWidgets(OrdinaryCraftingSlot))
         return false;
@@ -1244,6 +1270,8 @@ bool UKalmalaCraftingWidget::PrepareRecipeActivityReviewForTest()
         && FMath::IsNearlyEqual(RecipeSlotRankMarkers[BuildSlot]->GetRenderOpacity(), 1.0f)
         && FMath::IsNearlyEqual(RecipeSlotRecentMarkers[BuildSlot]->GetRenderOpacity(), 1.0f);
     const bool bStaticMotion = bMotionSettingMatches && bStaticMarkers;
+    if (CraftingScrollBox)
+        CraftingScrollBox->ScrollWidgetIntoView(RecipeGrid, false, EDescendantScrollDestination::TopOrLeft);
     const FString OwnerName = bHostOwner ? TEXT("Host") : TEXT("Client");
     UE_LOG(LogTemp, Display, TEXT("Recipe activity markers: Owner=%s FavoriteId=%s RecentCooking=%s RecentCrafting=%s Coexist=%d OrdinaryRecent=%d RecentShortcuts=%d NoManualBookmark=%d StaticMotion=%d OwnerIsolation=%d"),
         *OwnerName, *BuildId.ToString(), *CookingId.ToString(), *CraftingId.ToString(),

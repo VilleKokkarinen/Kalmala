@@ -86,27 +86,41 @@ counts, deterministic top-three rank queries, and one Recent ID per bucket.
 The marker slice adds configurable star/frame/color treatment, three separate
 card rows, Recent-only shortcuts in Favorites, and a two-peer presentation
 fixture that checks ordinary-slot Recent markers and distinct local-owner
-recipes. Focused automation and both rendered motion modes remain unrun;
-parent integration and rendered acceptance remain open under the M11 backlog
-item.
+recipes. Focused authority/replay automation, theme and local-browsing tests,
+and both rendered host/client modes pass; the four reviewed card captures are
+retained in `docs/ui-recipe-activity/`. The Favorites parent integration child
+is complete, while the wider M11 acceptance matrix remains open.
 
 
-## Verification handoff
+## Parent integration result
 
-The implementation child may be checked after careful source review,
-`git diff --check`, and the introduced-path audit recorded in `PROGRESS.md`.
-Before checking the feature parent, run focused
-`Kalmala.UI.Crafting.LocalBrowsing` coverage for add/remove, exact active-ID
-filtering, station/query intersection, selection fallback, empty-state action
-disabling, deterministic ranks, Recent shortcuts without bookmarks, and
-per-local-player isolation. Rendered host/client checks in normal and
-reduced-motion modes should cover marker coexistence, all three Recent buckets,
-distinct owner-local favorites, and high-contrast/text-scale readability. The
-review capture is named `*-activity-markers.png`. The combined parent gate also
-checks accepted counts, receipt replay, and
-marker overlap. These implementation slices have not had an editor build,
-automation run, or rendered acceptance; those remain deferred to the ordered
-parent verification work.
+The isolated `KalmalaEditor Win64 Development` build passed after two
+`UWidget`-member shadowing errors were fixed by renaming locals in
+`KalmalaCraftingSubsystem.cpp`. The focused headless automation queue passed
+`Kalmala.Gameplay.Crafting.NetworkContract`,
+`Kalmala.UI.Crafting.ActivityReceiptReplay`,
+`Kalmala.UI.Crafting.LocalBrowsing`, and
+`Kalmala.UI.Theme.LocalPresentation`. Receipt coverage confirms the owner-only
+property has no SaveGame flag, plus server-authority gating,
+first-observation baselining, one-time receipt consumption,
+repeated-snapshot suppression, and separate build/cooking/other-craft buckets.
+Local-player test fixtures use valid `ULocalPlayer` outers.
+
+The standard rendered host/client run at 1280x720/100% and the reduced-motion
+high-contrast run at 1024x768/150% both passed marker coexistence, ordinary
+Recent rows, unbookmarked Recent shortcuts, static motion, owner isolation,
+existing server rejection/payment checks, and final authoritative state. All
+four `*-activity-markers.png` captures were visually reviewed and retained in
+`docs/ui-recipe-activity/`. The Favorite, Rank, and Recent labels remain visible
+in the high-contrast captures with no row overlap.
+
+The active catalogue has builds and cooking recipes but no ordinary
+non-building, non-cooking recipe. Automation therefore appends a transient
+ordinary-craft fixture row only during the `-KalmalaCraftingTest` review session
+and in the receipt automation test; shipped catalogue data and save schema are
+unchanged. The live crafted-item bucket cannot be observed from a production
+recipe until such a recipe exists. This parent integration result does not
+complete the wider M11 acceptance matrix.
 
 The owner receipt buffer contains only its newest 64 accepted actions. The UI
 subsystem polls it every tick and consumes every still-buffered sequence once;

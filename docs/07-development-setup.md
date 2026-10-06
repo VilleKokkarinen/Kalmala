@@ -1884,3 +1884,31 @@ presentation-ownership and M5 documentation
 contracts, changed-script PowerShell parsing, `git diff --check`, and the
 260-character path audit. This child leaves the wider M11 acceptance matrix
 and the Favorites parent integration verification open.
+
+## M11 Favorites parent integration
+
+Build the isolated `KalmalaEditor Win64 Development` mirror with normal
+`%LOCALAPPDATA%/UnrealBuildTool` access and `-MaxParallelActions=4`. Run the
+focused headless queue `Kalmala.Gameplay.Crafting.NetworkContract`,
+`Kalmala.UI.Crafting.ActivityReceiptReplay`,
+`Kalmala.UI.Crafting.LocalBrowsing`, and
+`Kalmala.UI.Theme.LocalPresentation` with isolated UserDir/logs and memory DDC.
+Require a zero editor exit and Success for all four tests. NetworkContract
+checks accepted-receipt replication is owner-only and transient;
+ActivityReceiptReplay checks authority gating, first-observation baselining,
+one-time counting, repeated snapshot suppression, and disjoint action buckets.
+
+Run rendered `Verify-Crafting.ps1` at 1280x720/100%/standard contrast and at
+1024x768/150%/high contrast with `-ReducedMotion`, using separate ports. Both
+peers must report `Coexist=1 OrdinaryRecent=1 RecentShortcuts=1
+NoManualBookmark=1 StaticMotion=1 OwnerIsolation=1`, distinct owner Favorite
+IDs, `Crafting presentation: Passed=1 Restored=1`, and the existing server
+rejection/payment/final-state checks. Inspect the four activity-marker PNGs at
+both settings for distinct Favorite/Rank/Recent rows and readable labels. The
+verification-only fixture supplies a transient ordinary-craft recipe because
+the current active catalogue contains build and cooking recipes only; it does
+not modify shipped catalogue data or saved state. Retain the captures under
+`docs/ui-recipe-activity/` and record this current-catalogue limit in the
+handoff. Finish with presentation-ownership and M5 documentation contracts,
+PowerShell parsing for changed scripts, `git diff --check`, and the path audit.
+This completes only the Favorites parent, not the wider M11 acceptance matrix.

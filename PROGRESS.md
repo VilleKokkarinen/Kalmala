@@ -11445,3 +11445,27 @@ Known limitations: Rendered legibility and runtime integration remain unverified
 Next eligible task: run M11 Favorites parent integration verification, including focused authority/replay regressions, rendered host/client accessibility/coexistence checks, and path/documentation audits.
 
 Handoff scope: synchronize only `BACKLOG.md` and `PROGRESS.md` after inspecting their pre-existing main-checkout versions; preserve all other changes and keep implementation files isolated in this worktree.
+
+### Run 2026-10-06T07:36:34Z — M11 Favorites parent integration
+
+Concurrency guard: Codex app inventory showed this as the only active Kalmala run. The main checkout already contains unrelated/pre-existing edits, so all implementation and evidence changes remain in isolated worktree `E:\dev\Kalmala\wt\m11-fav-integration` at the accepted marker commit `9335b50`.
+
+Outcome: Completed the selected Favorites parent integration child and marked the Favorites parent complete. No later backlog increment started. This does not complete M11; the wider acceptance matrix remains open.
+
+Files changed: `Source/KalmalaGameplay/Private/Tests/KalmalaCraftingNetworkContractTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaRecipeBrowseTest.cpp`; new `Source/KalmalaUI/Private/Tests/KalmalaRecipeActivityReceiptTest.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `docs/07-development-setup.md`; `docs/41-recipe-activity.md`; four rendered captures plus `verification.txt` under `docs/ui-recipe-activity/`; and the selected `BACKLOG.md`/`PROGRESS.md` handoff.
+
+Implementation and repairs: The first isolated editor build found two C4458 warnings-as-errors where `ToolTipText` and `Slot` shadowed `UWidget` members; renamed those locals and the build then passed. Runtime integration found that LocalBrowsing created `ULocalPlayerSubsystem` test objects with invalid outers and assumed a current non-build/non-cooking recipe. Test fixtures now use valid `ULocalPlayer` outers and no longer assume unavailable active content. The first marker screenshot stayed scrolled down in recipe details; the review fixture now scrolls the marker cards into view. The active-catalogue-only absence of an ordinary craft item is covered with a temporary automation/developer-review recipe; shipped catalogue and saves do not change.
+
+Verification: The final isolated `KalmalaEditor Win64 Development` build passed. Headless `Kalmala.Gameplay.Crafting.NetworkContract`, `Kalmala.UI.Crafting.ActivityReceiptReplay`, `Kalmala.UI.Crafting.LocalBrowsing`, and `Kalmala.UI.Theme.LocalPresentation` all passed; editor exit 0. Rendered `Verify-Crafting.ps1` passed with host/client at 1280x720, 100% text, standard contrast and at 1024x768, 150% text, high contrast, reduced motion. Both peers passed coexistence, ordinary Recent, unbookmarked shortcuts, static motion, separate owners, server rejection/payment, and final-state checks. All four activity-marker screenshots were visually inspected; labels remain separate and readable. Presentation ownership, all five M5 documentation contracts, PowerShell parsing of the relevant scripts, `git diff --check`, and the path audit passed; longest changed full path was 113 characters.
+
+Full verification remains deferred: this is Favorites parent integration, not milestone-final verification. The wider M11 UI/accessibility/performance matrix, physical input, package validation, and other parents remain open.
+
+Observable impact: The integration path is now buildable and verified in focused authority/replay automation and two rendered host/client accessibility modes. The Review fixture surfaces all three marker types even though current production recipes contain only builds and cooking.
+
+Networking/authority: Receipt metadata is owner-only and has no SaveGame flag. The test confirms a non-authority owner cannot append a receipt; repeated snapshots are counted once and cooking does not enter the crafted-item bucket. No transaction RPC, gameplay authority, or save schema changed.
+
+Known limitations: The active catalogue has no ordinary non-building, non-cooking recipe, so the live CraftedItem bucket cannot yet be demonstrated by a production recipe. The test fixture covers its classification and display. The owner receipt window remains capped at 64; older events may be dropped if more than 64 arrive between observations.
+
+Next eligible task: restore the applicable category, selection, and scroll position in the remaining menus, with safe fallback for filtered/consumed entries and resizing.
+
+Handoff synchronization: after commit, synchronize only `BACKLOG.md` and this `PROGRESS.md` into the main checkout, preserving all pre-existing main-checkout edits. Implementation and image evidence stay in the worktree. Full verification remains deferred until M11's final acceptance task.
