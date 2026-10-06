@@ -11490,4 +11490,4 @@ Known limitations: Inventory-inspection state and M-key map state remain later o
 
 Next eligible task: remember inventory-inspection state separately from recipe/station browsing, with safe selection and scroll recovery.
 
-Main-checkout handoff: after commit, synchronize only the selected `BACKLOG.md` changes and append this `PROGRESS.md` run record. Preserve all existing main-checkout edits; implementation remains isolated in `E:\dev\Kalmala\wt\m11-menu-state`.
+Main-checkout handoff synchronization: complete. After inspecting the main files, only this run's nested `BACKLOG.md` child updates and `PROGRESS.md` entry were synchronized; existing checkout edits remain preserved. Implementation remains isolated in `E:\dev\Kalmala\wt\m11-menu-state`.
