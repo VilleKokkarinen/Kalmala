@@ -11512,4 +11512,4 @@ Known limitations: Scroll/focus restoration is widget-level and has not been con
 
 Next eligible task: restore applicable M-key map category, selection, and scroll state while preserving existing map pan/zoom and modal behavior.
 
-Main-checkout handoff synchronization: after commit, inspect and update only `BACKLOG.md` and `PROGRESS.md`, preserving all pre-existing main-checkout edits. Implementation remains isolated in `E:\dev\Kalmala\wt\m11-inv-inspection-memory`.
+Main-checkout handoff synchronization: complete. After inspecting the main versions, synchronized only this run's selected child update in `BACKLOG.md` and appended this run to `PROGRESS.md`; all pre-existing main-checkout edits remain preserved. Implementation remains committed on `codex/m11-inv-inspection-memory`.
