@@ -438,12 +438,12 @@ void UKalmalaWorldMapWidget::DrawMarkerLegend(const FGeometry& Geometry, const i
     const float TextHeight = Measure->Measure(TEXT("Ag"), Font).Y;
     const FLinearColor TextColour = Theme.TextColor(false, Contrast);
     const FLinearColor FocusColour = bHighContrast ? FLinearColor::White : Theme.ButtonFocused;
-    const FLinearColor PanelColour = bHighContrast ? Theme.HighContrastPanel : Theme.Panel;
+    const FLinearColor MapPanelColour = bHighContrast ? Theme.HighContrastPanel : Theme.Panel;
     const FVector2D Position = Layout.Position;
     const FVector2D PanelSize = Layout.Size;
     const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush("WhiteBrush");
     FSlateDrawElement::MakeBox(Elements, LayerId,
-        Geometry.ToPaintGeometry(PanelSize, FSlateLayoutTransform(Position)), WhiteBrush, ESlateDrawEffect::None, PanelColour);
+        Geometry.ToPaintGeometry(PanelSize, FSlateLayoutTransform(Position)), WhiteBrush, ESlateDrawEffect::None, MapPanelColour);
     const TArray<FVector2D> PanelOutline = { Position, Position + FVector2D(PanelSize.X, 0.0f), Position + PanelSize,
         Position + FVector2D(0.0f, PanelSize.Y), Position };
     FSlateDrawElement::MakeLines(Elements, LayerId + 1, Geometry.ToPaintGeometry(), PanelOutline,

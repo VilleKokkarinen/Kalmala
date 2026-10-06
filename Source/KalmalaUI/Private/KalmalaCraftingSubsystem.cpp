@@ -62,7 +62,7 @@ namespace
 {
 constexpr int32 RecipeGridColumns = 4;
 constexpr int32 MaxFavoriteRecipeCount = 256;
-const FString NoPanelImage;
+const FString CraftingNoPanelImage;
 
 FString GetReadableToolName(const FName ToolId)
 {
@@ -361,7 +361,7 @@ void UKalmalaInteractionPromptWidget::ApplyPromptStyle()
     if (const USizeBox* PromptSize = Cast<USizeBox>(GetRootWidget()))
         PromptBorder = Cast<UBorder>(PromptSize->GetContent());
     if (PromptBorder)
-        FKalmalaUITheme::Get().ApplyPanel(*PromptBorder, ContrastMode, &NoPanelImage);
+        FKalmalaUITheme::Get().ApplyPanel(*PromptBorder, ContrastMode, &CraftingNoPanelImage);
     if (PromptText)
         FKalmalaUITheme::Get().ApplyText(*PromptText, FKalmalaUITheme::Get().BodySize + 4,
             false, TextScalePercent, ContrastMode);
@@ -2119,12 +2119,17 @@ bool UKalmalaCraftingWidget::ScrollInventoryDetailsForTest()
     for (UWidget* Child : Children)
         if (auto* Detail = Cast<UKalmalaItemDetailWidget>(Child))
         {
-            // Inspection is the final scroll child. Resolve the end after layout,
-            // rather than using clipped/offscreen descendant cached geometry.
+            // Inspection is the final scroll child. Cached descendant geometry
+            // can still describe the pre-scroll frame here, so verify the live
+            // row/selection and request the scroll before the delayed capture.
             CraftingScrollBox->ScrollToEnd();
-            return Detail->GetVisibility() == ESlateVisibility::Visible
-                && Detail->GetCachedGeometry().GetLocalSize().X > 1.0f
-                && Detail->GetCachedGeometry().GetLocalSize().Y > 1.0f;
+            const int32 RowCount = InventoryInspector->GetVisibleCount();
+            const bool bSelectedDetailVisible = InventoryInspector->IsVisible() && RowCount > 0
+                && !InventoryInspector->GetSelectedItem().IsNone() && Detail->IsVisible();
+            UE_LOG(LogTemp, Display, TEXT("Inventory detail review: Scrolled=%d Rows=%d InspectorVisible=%d DetailVisible=%d ScrollEnd=%.1f"),
+                bSelectedDetailVisible, RowCount, InventoryInspector->IsVisible(), Detail->IsVisible(),
+                CraftingScrollBox->GetScrollOffsetOfEnd());
+            return bSelectedDetailVisible;
         }
     return false;
 }

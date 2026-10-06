@@ -11559,3 +11559,29 @@ Known limitations: The current project has no crush/slash bonus stats or Iron Sw
 Next eligible task: complete M11 rendered host/client acceptance and its required regressions, performance checks, captures, and final milestone verification.
 
 Main-checkout handoff synchronization: complete. After inspecting the main files, synchronized only this run's selected M11 task state and progress entry; all pre-existing main-checkout changes remain preserved. Implementation remains committed on `codex/m11-stat-deltas`.
+
+### Run 2026-10-06T10:27:16Z — M11 final rendered acceptance and milestone closeout
+
+Concurrency guard: Codex inventory showed this as the only active Kalmala run; other same-workspace runs were idle or complete. The main checkout contains pre-existing edits, so final acceptance used the clean accepted M11 chain in `E:\dev\Kalmala\wt\m11-final`, based at `bcc9a9d`. Main-checkout changes remain out of the implementation commit.
+
+Outcome: Completed the final unchecked M11 task: rendered host/client acceptance across status/weather, inventory/build/crafting, options/accessibility, prompts, and M-key map. The final task and M11 milestone are complete after passing the prescribed verification. Twenty representative host/client screenshots are retained under `docs/m11-final-acceptance/evidence/`; the complete command/configuration/result matrix and limitations are in `docs/m11-final-acceptance/verification.txt`.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `BACKLOG.md`; this `PROGRESS.md`; `docs/m11-final-acceptance/verification.txt`; and the 20 PNG captures in `docs/m11-final-acceptance/evidence/`.
+
+Milestone-final verification: The first full `KalmalaEditor Win64 Development` build found two unity-build compile errors: duplicate `NoPanelImage` (C2086) and shadowed `PanelColour` (C4459). Renamed them to `CraftingNoPanelImage` and `MapPanelColour`. The affected UI module rebuilt successfully, the full editor target completed, and a final target invocation was up to date. A first rendered crafting check also false-failed its item-detail gate because cached geometry described the pre-scroll frame; a scroll-end-only probe remained timing-sensitive. Updated the development-only helper to request scroll-to-end and assert current inspector rows, selection, and visible detail state, with scroll diagnostics. Rebuilt and reran standard and high-contrast rendered crafting checks; both passed.
+
+Ran the unattended `Automation RunTests Kalmala; Quit` queue with isolated user data and memory DDC; it ended on `Automation Test Queue Empty` with 117 completed successes and zero failed results. `Kalmala.UI.WorldMap.PerformanceBudget` passed. Two generic `LogAutomationTest: Error: Condition failed` messages appeared at Unreal startup beside `UE::UnifiedErrorTest`, before engine initialization and the Kalmala queue; they are not counted as failed Kalmala tests. No project automation failure remained.
+
+Rendered and regression checks all passed on host and client: `Verify-StatusHotbar.ps1` at 1024x768/150%/high contrast, 1280x720/100%/standard, and 2560x1080/125%/high contrast; `Verify-Crafting.ps1 -Rendered` at standard 1280x720 and high-contrast 1024x768/150%; `Verify-Inventory.ps1 -Rendered -NotificationReview` at both standard 1280x720 and high-contrast 1024x768/150%; `Verify-WorldMap.ps1 -BasePort 17880` at all three resolutions; `Verify-SettingsAccessibility.ps1` at 1280x720 and 1024x768 with distinct host/client text scales; `Verify-InteractionPrompt.ps1 -Rendered` at standard and high contrast; `Verify-InventoryReconnect.ps1 -Port 17950`; and `Verify-WorldMapTiles.ps1 -Port 17963`. Also passed `Verify-PresentationOwnership.ps1`, `Verify-M5DocumentationContracts.ps1`, `Verify-SettingsAccessibilityContract.ps1`, `Verify-LocalInputContract.ps1`, parsing of ten affected PowerShell scripts, `git diff --check`, and the changed-path audit. The detailed matrix, output folders, UI coverage, and worker-budget values are recorded in the acceptance report.
+
+Full verification is complete for this milestone. Evidence includes host/client state and transitions, item/build icons, menu/detail/crafting states, combined notifications, high-contrast settings and prompts, Favorites/Rank/Recent markers, and map layouts at three aspect ratios.
+
+Observable impact: M11's presentation/accessibility changes passed the Windows editor rendered matrix. This run's shipped-code effect is limited to resolving unity-build local-name collisions; the other C++ edit repairs a rendered development-test probe.
+
+Networking/authority: No gameplay rule, RPC, replication, save field/schema, balance value, or product scope changed. Server-side transaction rejection/payment, receipt ownership, privacy, reconnect, and map-tile identity/fog regressions passed.
+
+Known limitations: No packaged build or physical low/mid-tier hardware pass was run; the documented map worker budgets are development guardrails, not a numerical packaged frame-time target. This acceptance covers Windows/Win64; other platform SDKs were unavailable. Existing M10 package/hardware limits remain documented. No next milestone/task is defined after M11 in `BACKLOG.md`.
+
+Next eligible task: None is currently defined; add the next roadmap milestone/task before autonomous development resumes.
+
+Main-checkout handoff synchronization: Complete. After inspecting the dirty main files, changed only this run's M11 milestone heading/final acceptance status and appended this run's `PROGRESS.md` entry; pre-existing updates and unrelated changes remain preserved. Main-checkout changes were not staged or committed.
