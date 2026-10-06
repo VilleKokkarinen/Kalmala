@@ -11513,3 +11513,25 @@ Known limitations: Scroll/focus restoration is widget-level and has not been con
 Next eligible task: restore applicable M-key map category, selection, and scroll state while preserving existing map pan/zoom and modal behavior.
 
 Main-checkout handoff synchronization: complete. After inspecting the main versions, synchronized only this run's selected child update in `BACKLOG.md` and appended this run to `PROGRESS.md`; all pre-existing main-checkout edits remain preserved. Implementation remains committed on `codex/m11-inv-inspection-memory`.
+
+### Run 2026-10-06T08:45:43Z — remembered M-key map view
+
+Concurrency guard: Codex app inventory showed this as the only active Kalmala task; Windows process inspection was unavailable. The main checkout contains pre-existing implementation and handoff edits, so this run uses isolated worktree `E:\dev\Kalmala\wt\m11-map-memory` from accepted menu-memory handoff `d1d32cc`.
+
+Outcome: Completed exactly the remaining M11 map-memory child. The local map widget now applies its existing recenter and optional whole-world first-open default once; later M-key opens retain the owner-local map centre, zoom radius, and fit mode. The same widget already retains marker visibility, focused legend category, and selected pin; close still cancels legend/hover interaction and reopen still restores map keyboard focus and modal input. The menu-position parent is complete. No later backlog increment was started.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `docs/38-menu-browsing.md`; `BACKLOG.md`; and this `PROGRESS.md` entry.
+
+Lightweight checks: `git diff --check` passed. Four focused static assertions passed for first-open-only initialization, preservation of marker/pin state through close, aspect-ratio recomputation with retained centre, and unchanged modal focus/input ownership. Manual review confirmed explicit Recenter still resets to the owning pawn and map navigation does not submit gameplay actions. Full changed-path audit passed; the longest absolute path was 83 characters.
+
+Full verification remains deferred: this is a normal child increment, not M11's final implementation task. No Unreal build, automation run, rendered host/client pass, or package check was run.
+
+Observable impact: Closing and reopening the M-key map returns to the same local map view and marker/selection context; viewport resizing recomputes extent from the saved-in-session radius. First-open defaults remain unchanged.
+
+Networking/authority: The state is transient local widget/view-model presentation. This adds no RPC, replication, settings write, map save field/schema, or gameplay action; map marker visibility remains a drawing preference over already owner-visible data.
+
+Known limitations: Reopen retention lasts for the local map-widget session and is not persisted across restart or widget teardown. Rendered resize/UI-scale, physical input, and combined M11 acceptance remain pending.
+
+Next eligible task: Add inline current-versus-selected item stat deltas using only supported existing data, then perform final M11 rendered and regression acceptance.
+
+Main-checkout handoff synchronization: pending after commit; synchronize only `BACKLOG.md` and `PROGRESS.md`, preserving all other pre-existing edits. Full verification remains deferred until M11's final acceptance task.

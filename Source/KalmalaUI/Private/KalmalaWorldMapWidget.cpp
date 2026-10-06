@@ -106,8 +106,14 @@ void UKalmalaWorldMapWidget::Open()
         DeveloperProfileGameThreadTicks = 0;
         bDeveloperProfileLogged = false;
     }
-    Recenter();
-    bFitWholeWorld = FitWorldMap.GetValueOnGameThread() != 0;
+    if (!bHasOpenedMap)
+    {
+        // Preserve the established first-open default; later opens retain the
+        // owner's transient centre, zoom and whole-world view mode.
+        Recenter();
+        bFitWholeWorld = FitWorldMap.GetValueOnGameThread() != 0;
+        bHasOpenedMap = true;
+    }
     SetVisibility(ESlateVisibility::Visible);
     APlayerController* Controller = GetOwningPlayer();
     Controller->SetShowMouseCursor(true);

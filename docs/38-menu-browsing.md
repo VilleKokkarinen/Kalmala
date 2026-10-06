@@ -216,3 +216,30 @@ prunes IDs no longer in the catalogue. This first slice ends with the local
 player subsystem and does not write settings, world/player saves, or network
 state. Usage ranks, accepted-action Recent entries, and configurable corner
 badges remain later work; see `docs/41-recipe-activity.md`.
+
+## M-key world map position memory
+
+The local-player map widget remains alive while the M-key map is collapsed, so
+its marker visibility categories, focused legend category, and selected
+personal pin already remain transient to that local session. Closing cancels
+active legend navigation and hover state; reopening returns keyboard focus to
+the map and does not toggle, complete, or remove a pin. A pin hidden by its
+category filter remains selected and its existing status text reports that it
+is filtered. Existing removal and world-change paths keep their selection
+fallbacks.
+
+The map has no separate scrolling list. Its applicable viewport position is
+the current map centre and zoom radius, so the first successful open keeps the
+existing recenter/optional whole-world default and later opens retain the
+owner's last local pan, zoom, and fit mode. A changed viewport aspect ratio
+recomputes the map extent from the retained radius; it does not reset the
+centre. Explicit Recenter still returns to the owning pawn and exits whole-world
+fit. These values and the marker preferences are widget/view-model state only:
+they add no settings write, map save field, RPC, replication, or gameplay action.
+
+The M11 map-memory acceptance pass should reopen after pin filtering and
+selection, pan and zoom, then exercise recenter and viewport/UI-scale changes.
+Check marker focus/visibility and modal input on separate local owners, alongside
+the existing `Kalmala.UI.WorldMap.LocalPresentation` and rendered
+`Scripts/Verify-WorldMap.ps1` coverage. Cross-restart view restoration is not
+part of this contract.
