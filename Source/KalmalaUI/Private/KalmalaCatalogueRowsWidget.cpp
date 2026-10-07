@@ -18,14 +18,14 @@ namespace
 {
 constexpr int32 PackColumns = 4;
 constexpr int32 ToolColumns = 2;
-const FString NoPanelImage;
+const FString CatalogueNoPanelImage;
 
 UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
     const bool bEmpty, const float SlotWidth, const int32 TextScale, const int32 Contrast)
 {
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     UBorder* Card = Tree.ConstructWidget<UBorder>();
-    Theme.ApplyPanel(*Card, Contrast, &NoPanelImage);
+    Theme.ApplyPanel(*Card, Contrast, &CatalogueNoPanelImage);
     Card->SetPadding(FMargin(3.0f));
     Card->SetBrushColor(Contrast == 0
         ? (bEmpty ? FLinearColor(0.035f, 0.048f, 0.055f, 0.92f) : FLinearColor(0.07f, 0.095f, 0.11f, 0.98f))

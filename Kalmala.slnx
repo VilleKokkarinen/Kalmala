@@ -56,6 +56,7 @@
       <BuildType Project="Development" />
     </Project>
     <Project Path="Intermediate/ProjectFiles/DotNetPerforceLib.vcxproj" Id="225697cf-1835-321d-a4f2-06d2f45ea273">
+      <Build Project="false" />
       <BuildType Solution="DebugGame Editor|Win64" Project="DebugGame" />
       <BuildType Solution="DebugGame Editor|Win64-arm64" Project="Win64_arm64_DebugGame" />
       <BuildType Solution="DebugGame Editor|Win64-arm64ec" Project="Win64_arm64ec_DebugGame" />
@@ -159,6 +160,7 @@
   </Folder>
   <Folder Name="/Programs/LiveLink/">
     <Project Path="Intermediate/ProjectFiles/LiveLinkHub.vcxproj" Id="7bbd7cfd-7b25-3c34-aa64-199169b572e0">
+      <Build Project="false" />
       <BuildType Solution="DebugGame Editor|Win64" Project="DebugGame_Editor" />
       <BuildType Solution="DebugGame Editor|Win64-arm64" Project="Win64_arm64_DebugGame_Editor" />
       <BuildType Solution="DebugGame Editor|Win64-arm64ec" Project="Win64_arm64ec_DebugGame_Editor" />
