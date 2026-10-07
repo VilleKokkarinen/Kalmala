@@ -11380,3 +11380,15 @@ Lightweight checks: Inspected the revised roadmap/backlog against all four reque
 Observable impact: The plan now explicitly removes both screenshot-identified HUD panels, confines control legends to Options, eliminates developer/AI-style player copy, and separates unrelated functions from construction. Networking/authority: planned menu changes reuse existing actions and server validation, owner-visible information, catalogue requirements, costs, privacy, and persistence; they do not authorize new station gates or world objects.
 
 Known limitations/next task: Planning only; runtime behavior is unchanged. The next eligible implementation child remains the shared inventory-toggle action with Tab/I, modal/text-entry/focus priority, and input restoration. Main-checkout documentation updated directly; no worktree handoff needed.
+
+### Run 2026-10-07 — Specify M12 goal 7 object/menu contracts
+
+Completed: Replaced goal 7's general menu-separation description with explicit object/entry-point -> menu -> contents sub-bullets: Construction Hammer/Build; player pack/Inventory; Workbench/Craft and Repair; Forge/Craft, Upgrade and Repair; Grinding Stone/Tool repair; Cooking Rack, Cauldron and Frying Pan/their own cooking menus; Hearth/fire management; Chest/Storage; and passive tool-rack/anvil attachments/no separate service menu. Mirrored the mappings as unchecked backlog children. Defined concrete existing recipe examples, retained bootstrap construction, placed eating in Inventory without a new station gate, and kept explicit Repair All separate from opening the Grinding Stone menu.
+
+Files changed: `docs/04-roadmap.md`, `BACKLOG.md`, and this `PROGRESS.md`. Read the current schema-4 JSON recipe list, tool progression/repair contracts, and repair source to ground the mappings in supported content; only this chat appeared active on Kalmala. Preserved all pre-existing changes.
+
+Lightweight checks: Reviewed object/recipe/tool mappings against current catalogue and documented server validation; checked staged whitespace, run-owned paths and path lengths. Documentation-only clarification; no builds or runtime tests run. M12 implementation and full verification remain pending.
+
+Observable impact/authority: Goal 7 now explicitly assigns every displaced operation to a menu, defines excluded content and stale-context handling, and preserves existing costs, recipes, station/heat/tool requirements, privacy, and save contracts. No runtime changes, new items/world objects, or new eating/station gates.
+
+Next eligible task: M12's first shared inventory-toggle input child remains next; this clarification does not complete an implementation task. Main-checkout update; no worktree handoff required.

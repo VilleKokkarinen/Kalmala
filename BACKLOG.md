@@ -505,7 +505,18 @@ left-side panel to remove. All implementation tasks below remain pending.
   - [ ] Replace developer-facing copy with concise useful descriptions, ingredient counts, relevant output/requirements, and one actionable unavailable reason; remove repeated information, server/request/internal details, unrelated skill lists, and empty requirement boilerplate.
   - [ ] Verify representative build, cooking, crafting, upgrade, and repair states remain truthful and readable with no input legends, lost real prerequisites, or altered recipe/gameplay data.
 - [ ] Make the build menu construction-only and move other functions into dedicated menu systems.
-  - [ ] Define the destination and interaction entry/exit for inventory inspection, repair, cooking/food use, item crafting/upgrading, and chest/storage actions; use existing world objects/stations and preserve existing action availability and authority contracts.
+  - [ ] Implement the exact object -> menu -> contents mappings in roadmap goal 7; use existing validated world interactions and retain existing action availability/authority contracts.
+    - [ ] Construction Hammer -> Build: construction catalogue, piece/material/placement details, preview and build/place only; retain bootstrap construction and placement of crafted buildables.
+    - [ ] Player pack (Tab/I) -> Inventory: pack items/counts/details, carried tools/equipment and supported Eat/use actions; no new eating station gate.
+    - [ ] Joiner's bench/Workbench -> Workbench: station-compatible Craft (including Bronze Axe and Grinding Stone), selected-tool free Repair, station level/attachment state and relevant prerequisites.
+    - [ ] Forge -> Forge: compatible Craft (including Frying Pan), supported tool Upgrade (including Iron Axe), selected-tool free Repair, material/station/skill requirements and comparisons.
+    - [ ] Grinding Stone -> Tool repair: carried-tool conditions and explicit free Repair All; opening performs no repair automatically.
+    - [ ] Cooking Rack -> Rack cooking: Cooked boar/deer meat, counts, supported quantities, hearth heat and Cook only.
+    - [ ] Hearth Cauldron -> Cauldron cooking: Meat stew/Root vegetable soup, counts, supported quantities, hearth heat and Cook only.
+    - [ ] Frying Pan -> Pan cooking: Roasted root vegetables/Deer and rutabaga roast, counts, supported quantities, hearth heat and Cook only.
+    - [ ] Hearth ring/Campfire -> Hearth: fire state/fuel time, usable owned raw fuels, Add fuel/Light and concise unavailable feedback only.
+    - [ ] Chest -> Storage: interacted chest and owner pack stacks, item details, existing Deposit/Withdraw and capacity feedback only.
+    - [ ] Workbench Tool Rack/Forge Anvil -> no separate service menu: show passive attachment/effective-level state in the parent station menu; keep placement in Build.
   - [ ] Provide dedicated themed repair, cooking/food, crafting/upgrading, and storage contexts opened by relevant world interactions, with inventory access through the separate Tab/I menu; preserve station/range checks, owner privacy, and modal/input restoration.
   - [ ] Remove every non-construction action/section from the build menu, leaving buildable browsing, materials/requirements, selection/preview, and construction actions; verify every displaced function remains accessible in its proper context.
 - [ ] Complete M12 milestone-final verification: inspect combined changes, build and run the prescribed affected UI/input/inventory/construction/crafting/repair/cooking/storage/authority/reconnect regressions, and retain rendered host/client evidence for dedicated menu interactions and input restoration, empty/populated views, separate owners, removal of both pictured panels, Options-only binding text, concise truthful recipes, construction-only build scope, minimap placement, accessibility, and unchanged gameplay/persistence. Mark the milestone complete only after required verification passes.

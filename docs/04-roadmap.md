@@ -481,20 +481,82 @@ M12 has seven ordered UI goals:
    instructional selection legends, irrelevant skill lists, and “none/no lock”
    boilerplate. Keep real placement/fuel constraints understandable and truthful;
    technical contracts belong in documentation and developer diagnostics.
-7. **Construction-only build menu and dedicated context menus.** Make the
-   Construction Hammer/build menu contain buildable-piece browsing, relevant
-   materials/requirements, selection/preview, and construction actions only.
-   Remove inventory inspection, tool repair, cooking/eating, general item
-   crafting/upgrading, chest browsing/transfers, and unrelated progression or
-   diagnostic sections from this menu. Give those functions their own appropriate
-   inventory, repair, cooking/food, crafting/upgrading, and storage menu systems
-   using shared themed components. World services open by interacting with the
-   relevant existing object/station: for example, a workbench/forge, cooking
-   station, or chest. Dedicated inventory access remains Tab/I from goal 1.
-   Define entry/exit and ownership for every displaced action before removing
-   it; preserve existing action availability, catalogue/station requirements,
-   costs, range/line-of-sight validation, and owner privacy. Do not add world
-   objects or impose new gameplay station gates merely to separate menus.
+7. **Construction-only build menu and dedicated context menus.** Each entry
+   below defines the object or entry point, the menu it opens, and its contents.
+   World-object menus open only after a validated interaction with that object.
+
+   - **Carried Construction Hammer -> Build menu.** Keep the existing build-menu
+     entry action. Contents: buildable structures, stations and attachments;
+     categories/search, piece icon and short description; material counts and
+     relevant placement prerequisites; selection, local preview, and build/place
+     actions. Retain no-station construction recipes so the player can establish
+     a first camp/workbench. Place already crafted buildables through this menu;
+     producing an item that requires a station belongs to that station's menu.
+     Exclude pack inspection, food use/cooking, tool crafting/upgrades/repair,
+     hearth refuelling/lighting, chest transfers, and general skill/diagnostic lists.
+   - **Owning player's pack (Tab/I; no world object) -> Inventory menu.** Contents:
+     pack grid and quantities, search/filter/sort, selected-item icon/description,
+     carried tools and their level/condition, existing equipment inspection/actions,
+     and an Eat/use action for supported carried food with its existing effect
+     and availability state. No station requirement is added for eating. No
+     construction, station crafting, repair, or chest contents belong here.
+   - **Joiner's bench / Workbench -> Workbench menu.** Separate Craft and Repair
+     sections. Craft contains only current recipes/tool operations supported by
+     this station, including Bronze Axe creation and Grinding Stone production:
+     selected result, ingredients owned/required, relevant station level and
+     other real prerequisites, and Craft. Repair contains the owner's carried
+     tools, current/max condition, selected-tool free Repair, and one unmet reason
+     if unavailable. Show the station's effective level and relevant attachment
+     state; do not put the full build catalogue, cooking, storage, or eating here.
+   - **Forge -> Forge menu.** Separate Craft, Upgrade, and Repair sections. Craft
+     includes Forge-compatible production such as the Frying Pan. Upgrade includes
+     supported tool upgrades such as Bronze Axe -> Iron Axe, showing current and
+     resulting tool, required station/skill level, material counts, concise stat
+     comparison, and Upgrade. Repair contains carried-tool condition and the
+     existing free selected-tool Repair. Show effective Forge level/attachment
+     state. Exclude unrelated building, cooking, inventory browsing, and storage.
+   - **Grinding Stone -> Tool repair menu.** Contents: the owner's carried tools
+     and current/max condition, damaged/full-condition state, and the existing
+     free Repair All action with concise result/unavailable feedback. Opening
+     the menu must not automatically repair; the explicit action invokes the
+     existing repair-all transaction. No crafting, upgrading, cooking, or storage.
+   - **Cooking Rack -> Rack cooking menu.** Contents: Cooked boar meat and Cooked
+     deer meat; ingredient counts, selected food/result description, supported
+     quantity limits, nearby hearth heat availability, and Cook. No other station's
+     recipes, tool operations, construction, storage, or eating controls.
+   - **Hearth Cauldron -> Cauldron cooking menu.** Contents: Meat stew and Root
+     vegetable soup, with the same recipe/count/quantity/heat/Cook presentation.
+     Show only recipes supported by this cauldron; no unrelated actions.
+   - **Frying Pan -> Pan cooking menu.** Contents: Roasted root vegetables and
+     Deer and rutabaga roast, with the same recipe/count/quantity/heat/Cook
+     presentation. This uses an already placed pan; forging a pan belongs in
+     the Forge menu and placing it belongs in Build.
+   - **Hearth ring / Campfire -> Hearth menu.** Contents: actual Lit/Smouldering/
+     Unlit state, remaining fuel time, usable raw fuel choices and owned counts,
+     Add fuel, and Light when permitted. Show a concise roof/weather/fuel reason
+     when an action is unavailable. Keep existing fuel durations and ignition
+     rules; no food recipe list, tool repair, crafting catalogue, or chest controls.
+   - **Chest -> Storage menu.** Contents: this interacted chest's item stacks,
+     the owner's pack stacks needed for transfer, selected-item name/icon/count,
+     existing Deposit/Withdraw actions and capacity/unavailable feedback. Preserve
+     existing transfer quantities and owner-only access/refresh behavior. No
+     construction, station crafting, repair, cooking, upgrades, or eating.
+   - **Workbench Tool Rack / Forge Anvil -> No separate service menu.** These
+     existing passive attachments raise the corresponding station's effective
+     level; their state is shown in its Workbench/Forge menu. Their construction
+     placement belongs in Build. Do not invent attachment services or upgrades.
+
+   **Shared menu rules:** show only operations actually supported by the current
+   catalogue/gameplay contracts; the examples above do not add recipes or items.
+   Use shared themes, concise action labels, accessible focus, and remembered
+   selection where applicable. Keep input-binding text exclusively in Options.
+   Open one context menu at a time; close/leave restores local input and clears
+   stale object data. Revalidate object identity, distance, sight line, station
+   level, heat, costs, tool state, and privacy through existing server paths at
+   action time. Moving away, destruction, reconnect, or a newly unmet requirement
+   must never leave an actionable stale context. Keep existing gameplay/save
+   contracts and do not add world objects or new station gates. The listed
+   destinations must exist before their old build-menu sections are removed.
 
 **M12 boundary:** presentation and local input changes only. Reuse existing item,
 equipment, crafting, support, and inventory contracts; add no gameplay content,
