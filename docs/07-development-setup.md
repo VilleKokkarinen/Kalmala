@@ -288,6 +288,17 @@ parsing, `git diff --check`, and the 260-character path audit. This verifies
 editor-rendered presentation and existing server validation; it does not claim
 physical keyboard/controller hardware or packaged-build acceptance.
 
+## M12 inventory and service-menu binding text
+
+Inventory and build/crafting/repair/storage views keep descriptive action
+labels, focus navigation, and existing remapping behavior without displaying
+input key/button names or control combinations. Run
+`Scripts/Verify-MenuInputCopy.ps1` for the narrow source audit of player-facing
+menu copy, retained action labels, and keyboard/controller navigation seams.
+After an affected UI build, run the focused inventory/crafting automations;
+host/client rendering, text scaling, and physical input remain in M12
+milestone-final verification.
+
 ## M11 ingredient-count child
 
 Follow `39-crafting-ingredients.md`: compile affected UI in the short disposable

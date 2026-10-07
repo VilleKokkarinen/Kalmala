@@ -119,7 +119,7 @@ void UKalmalaInventoryInspectWidget::Refresh()
 {
     if (!Column) return;
     const auto& Theme = FKalmalaUITheme::Get();
-    Instructions->SetText(FText::FromString(TEXT("YOUR INVENTORY DETAILS — Tab to search/controls; arrows / D-pad select. Page Up / left shoulder cycles category; Page Down / right shoulder cycles sort. > marks selection. Escape / B closes.")));
+    Instructions->SetText(FText::FromString(TEXT("Inventory details. > marks the selected item.")));
     Theme.ApplyText(*Instructions, Theme.BodySize, false, TextScale, ContrastMode);
     BrowseSearchStyle = SearchBox->GetWidgetStyle();
     BrowseSearchStyle.SetFont(Theme.MakeFont(Theme.BodySize, false, TextScale));
@@ -128,8 +128,8 @@ void UKalmalaInventoryInspectWidget::Refresh()
     SearchBox->SetForegroundColor(Theme.TextColor(false, ContrastMode));
     const TCHAR* Categories[] = {TEXT("All"), TEXT("Items"), TEXT("Carried tools")};
     const TCHAR* Sorts[] = {TEXT("Owner order"), TEXT("Name"), TEXT("Category / name")};
-    CastChecked<UTextBlock>(CategoryButton->GetContent())->SetText(FText::FromString(FString(TEXT("Category: ")) + Categories[Category] + TEXT(" (activate to cycle)")));
-    CastChecked<UTextBlock>(SortButton->GetContent())->SetText(FText::FromString(FString(TEXT("Sort: ")) + Sorts[Sort] + TEXT(" (activate to cycle)")));
+    CastChecked<UTextBlock>(CategoryButton->GetContent())->SetText(FText::FromString(FString(TEXT("Category: ")) + Categories[Category]));
+    CastChecked<UTextBlock>(SortButton->GetContent())->SetText(FText::FromString(FString(TEXT("Sort: ")) + Sorts[Sort]));
     CastChecked<UTextBlock>(ClearButton->GetContent())->SetText(FText::FromString(TEXT("Clear search")));
     CastChecked<UTextBlock>(ClearButton->GetContent())->SetAutoWrapText(false);
     for (UButton* Button : {CategoryButton.Get(), SortButton.Get(), ClearButton.Get()})

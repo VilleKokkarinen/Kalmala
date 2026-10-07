@@ -11734,3 +11734,25 @@ Known limitations: Changed C++ automation has not been compiled or run. Host/cli
 Next eligible task: Remove binding/help legends from Inventory and build/crafting/repair/storage views and tooltips, while preserving action labels and focus navigation.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only this backlog task and progress entry; all unrelated changes remain untouched and uncommitted.
+
+### Run 2026-10-07T11:56:41Z — remove menu input legends
+
+Concurrency guard: Codex task inventory showed this as the only active Kalmala run; other scheduled runs were idle. Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` at `65f8874`. The main checkout contains pre-existing modified and untracked files, which remain untouched during implementation.
+
+Completed: Removed keyboard/controller binding names and control-use legends from Inventory, item inspection, construction/crafting, and cooking station views. Removed the crafting menu's live lookup of its current CraftMenu key. Simplified category/sort button text and the inventory selection label while preserving action names and existing keyboard/controller focus/navigation handlers. Updated the crafting review assertion and added `Scripts/Verify-MenuInputCopy.ps1` to check input-legend absence, retained action labels, and navigation seams.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaInventoryInspectWidget.cpp`; `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`; `Scripts/Verify-MenuInputCopy.ps1`; `docs/07-development-setup.md`; `docs/14-settings-and-accessibility.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Scripts/Verify-MenuInputCopy.ps1` passed; all five `Scripts/Verify-M5DocumentationContracts.ps1` contracts passed; the new PowerShell script parsed; and `git diff --check` passed. Manual source review confirmed action labels, focus/navigation methods, server-validated action paths, and remapping behavior remain present. No Unreal build or automation test was run.
+
+Full verification remains deferred: this is a normal M12 child increment, not the final implementation task in M12.
+
+Observable impact: Inventory and build/crafting/repair/storage views show action labels without spelling out keys, buttons, or control combinations. Current mappings remain available in Options > Controls.
+
+Networking/authority: UI copy and binding-label lookup only. Existing focus handlers, local remapping, server-validated gameplay actions, RPCs, replicated state, and save data are unchanged.
+
+Known limitations: The changed C++ automation was not compiled or run. Rendered host/client layout, text scaling, physical keyboard/controller input, and packaged behavior remain for M12 milestone-final verification.
+
+Next eligible task: Remove remaining map/status/detail-view legends and audit Options as the only player-facing binding-text source; add a narrow source/text audit and update stale text expectations.
+
+Main-checkout handoff synchronization: Pending.

@@ -550,10 +550,8 @@ void UKalmalaInventoryMenuWidget::UpdateBrowseControls(const int32 TextScale, co
 
     const TCHAR* Categories[] = {TEXT("All"), TEXT("Items"), TEXT("Carried tools")};
     const TCHAR* Sorts[] = {TEXT("Owner order"), TEXT("Name"), TEXT("Category / name")};
-    CategoryButtonLabel->SetText(FText::FromString(FString(TEXT("Category: "))
-        + Categories[InventoryCategoryIndex] + TEXT(" (activate to cycle)")));
-    SortButtonLabel->SetText(FText::FromString(FString(TEXT("Sort: "))
-        + Sorts[InventorySortIndex] + TEXT(" (activate to cycle)")));
+    CategoryButtonLabel->SetText(FText::FromString(FString(TEXT("Category: ")) + Categories[InventoryCategoryIndex]));
+    SortButtonLabel->SetText(FText::FromString(FString(TEXT("Sort: ")) + Sorts[InventorySortIndex]));
     ClearSearchButtonLabel->SetText(FText::FromString(TEXT("Clear search")));
     ClearSearchButton->SetIsEnabled(!InventorySearchQuery.IsEmpty());
     for (UKalmalaThemedButton* Button : {CategoryButton.Get(), SortButton.Get(), ClearSearchButton.Get()})
@@ -623,7 +621,7 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
     NextItemButton->SetIsEnabled(bHasSelection);
 
     const FString SelectionText = bHasSelection
-        ? FString::Printf(TEXT("Selected: %s — use arrows or D-pad to change"), *SelectedRow->Name)
+        ? FString::Printf(TEXT("Selected: %s"), *SelectedRow->Name)
         : TEXT("No item selected.");
     if (SelectedItemText->GetText().ToString() != SelectionText)
         SelectedItemText->SetText(FText::FromString(SelectionText));

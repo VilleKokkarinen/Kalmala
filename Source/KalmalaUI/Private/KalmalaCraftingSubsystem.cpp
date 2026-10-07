@@ -45,7 +45,6 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
-#include "GameFramework/InputSettings.h"
 #include "Styling/CoreStyle.h"
 #include "InputCoreTypes.h"
 #include "Framework/Application/SlateApplication.h"
@@ -368,10 +367,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         return Label;
     };
     HeaderText = AddText(TEXT("Construction hammer — Build and craft"), 28);
-    FString CraftKey = TEXT("Unbound");
-    for (const FInputActionKeyMapping& Mapping : GetDefault<UInputSettings>()->GetActionMappings())
-        if (Mapping.ActionName == TEXT("CraftMenu") && !Mapping.Key.IsGamepadKey()) { CraftKey = Mapping.Key.GetDisplayName().ToString(); break; }
-    GeneralInstructions = FString::Printf(TEXT("Construction hammer menu input: %s (Controller View / special-left). Up/Down or D-pad: choose. Enter / A: craft or build. P: local preview. Escape / B: close.\nController Y: build or place selected. X: add fuel. RB: light. Mouse buttons and focused keyboard/controller buttons also work.\nFloor, wall, and roof are built directly from Wood and Fibre; no kit is created. Selection is marked with >. Requirements and unavailable reasons are written in text; colour is never the only cue.\n"), *CraftKey);
+    GeneralInstructions = TEXT("Floor, wall, and roof are built directly from Wood and Fibre; no kit is created. Selection is marked with >. Requirements and unavailable reasons are written in text; colour is never the only cue.");
     InstructionsText = AddText(GeneralInstructions, 16);
     RecipeGrid = WidgetTree->ConstructWidget<UUniformGridPanel>();
     Column->AddChild(RecipeGrid);
@@ -413,9 +409,9 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     RecipeSortLabel = CastChecked<UTextBlock>(SortButton->GetContent());
     SortButton->OnClicked.AddDynamic(this, &ThisClass::CycleRecipeSort);
     Column->RemoveChild(SortButton); Column->InsertChildAt(4, SortButton);
-    AddText(TEXT("Recipe browsing: Tab reaches search, category and order. Page Up/Down cycles category/order while the panel is focused. Controller uses focused buttons. All retains this menu's station scope."), 14);
+    AddText(TEXT("All recipes stay within this menu's station scope."), 14);
     auto* InspectButton = AddButton(TEXT("Inspect inventory"), nullptr,
-        TEXT("Read your inventory details. Arrows or D-pad select an item; Tab continues to other menu controls."));
+        TEXT("Show carried items, tools, and supported actions."));
     InspectButton->OnClicked.AddDynamic(this, &ThisClass::FocusInventoryDetails);
     auto* RecipeActions=WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(RecipeActions);
     AddButton(TEXT("Previous"),RecipeActions,TEXT("Select the previous recipe. Its ingredients, station, unlock, batch limit, and availability are shown above."))->OnClicked.AddDynamic(this, &ThisClass::Previous);
@@ -591,7 +587,6 @@ void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
         const FString StationName = StationItem ? StationItem->DisplayName : StationFilterKit.ToString();
         if (HeaderText) HeaderText->SetText(FText::FromString(StationName + TEXT(" — Cook")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Station recipes. Up/Down or D-pad: choose. Enter / A: cook one. Escape / B: close.\n")
             TEXT("The server requires this placed station and a usable, lit hearth with heat at both the station and you. Ingredients and availability are shown in text.")));
     }
     bOpen = true; bPreviousCursor = PC->bShowMouseCursor;
@@ -1234,7 +1229,10 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             UE_LOG(LogTemp, Display, TEXT("Build slot grid: %s Navigation=%d"), *GridSummary, bGridNavigation);
             const bool bPromptHidden = !InteractionPrompt || InteractionPrompt->GetVisibility() != ESlateVisibility::Visible;
             UE_LOG(LogTemp, Display, TEXT("Interaction prompt modal: Hidden=%d"), bPromptHidden ? 1 : 0);
-            const bool Passed=bInspection && Text.Contains(TEXT("Construction hammer menu input:")) && Text.Contains(TEXT("Up/Down"))
+            const bool bInputLegendHidden = !Text.Contains(TEXT("Construction hammer menu input:"))
+                && !Text.Contains(TEXT("Up/Down")) && !Text.Contains(TEXT("Enter / A"))
+                && !Text.Contains(TEXT("Escape / B"));
+            const bool Passed=bInspection && bInputLegendHidden
                 && Text.Contains(TEXT("Requirements — selected recipe"))
                 && Text.Contains(TEXT("Tool: carried Construction Hammer level 1 — Present"))
                 && Text.Contains(TEXT("Skill level: no recipe requirement."))
