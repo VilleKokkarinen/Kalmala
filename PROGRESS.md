@@ -11805,7 +11805,7 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main versio
 
 ### Run 2026-10-07T12:47:03Z — simplify food and general recipe details
 
-Concurrency guard: Codex app inventory showed no other active Kalmala run. Continued in the retained worktree `E:\\dev\\Kalmala\\wt\\m12-hud-feedback-rebuild` at baseline `146fd04`; the main checkout contains pre-existing changes that remain untouched outside the required backlog/progress handoff.
+Concurrency guard: Codex app inventory showed no other active Kalmala run. Continued in the retained worktree `E:\\dev\\Kalmala\\wt\\m12-hud-feedback-rebuild` at baseline `146fd04`; implementation commit `a0e94bf`. The main checkout contains pre-existing changes that remain untouched outside the required backlog/progress handoff.
 
 Completed: Generic food and crafting details now show the canonical result description once, keep owner-local ingredient rows, and list result count, one batch per menu press, and the supported maximum batch when greater than one. Requirement copy lists only real station alternatives, applicable cooking heat, reusable tools, and at most one current blocker. Empty station/tool states, generic skill/unlock claims, unrelated skill progress, stack-limit and request/rejection boilerplate were removed. Server crafting and catalogue behavior are unchanged. The goal 6 parent remains open; the selected child is checked.
 
@@ -11823,4 +11823,4 @@ Known limitations: Changed C++ and revised automation remain uncompiled/unrun, a
 
 Next eligible task: M12 goal 6, simplify upgrade/repair templates to actual tool comparison/condition, relevant prerequisites/costs, and one blocker.
 
-Main-checkout handoff synchronization: Pending; only `BACKLOG.md` and `PROGRESS.md` will be synchronized after inspecting their dirty main-checkout versions.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only the selected BACKLOG child and this PROGRESS entry; all other modified and untracked main-checkout files remain untouched.
