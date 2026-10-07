@@ -11478,3 +11478,17 @@ Observable impact/authority: Agents can select one bounded integrated increment 
 Known limits: About 30 minutes is a planning estimate, not a measured guarantee. Image-service latency/retries, integration discoveries and mandatory milestone-final full checks/repairs can exceed it. Final verification is deliberately not weakened or spread across apparently complete acceptance items; AGENTS.md requires it during the final implementation run until success or a genuine blocker.
 
 Next eligible task: Add the shared Tab/I inventory-toggle action and minimal themed owner-local shell. Subsequent modal/input, pack and detail increments follow in order. Main-checkout documentation update; no worktree synchronization needed.
+
+### Run 2026-10-07 - Add owner-local inventory menu shell
+
+Completed: Added the remappable InventoryMenu action with default Tab and I mappings, one input binding and one reusable themed inventory shell per local player. The shell uses the configured inventory panel treatment, text scale, and contrast.
+
+Files changed: Config/DefaultInput.ini; Source/KalmalaUI/Private/KalmalaInventoryMenuSubsystem.cpp; Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp; Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp; Source/KalmalaUI/Public/KalmalaInventoryMenuSubsystem.h; Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h; docs/02-technical-architecture.md; docs/14-settings-and-accessibility.md; BACKLOG.md; PROGRESS.md.
+
+Lightweight checks: Inspected the selected input mappings, local-player binding and teardown, widget reuse/toggle path, theme application, owner-local state boundary, and changed files. Full verification remains deferred: no Unreal build, automation suite, or rendered host/client check was run.
+
+Observable impact and authority: Tab and I toggle the same local inventory shell. It performs no RPC or gameplay mutation and currently reads no inventory state; no network authority or save contract changed.
+
+Known limitations: This child adds only the menu shell. Modal priority, text-entry and focus handling, Escape close, and cursor/movement/look restoration remain in the next ordered child; inventory contents, details, tools, and food actions remain later M12 work.
+
+Next eligible task: Integrate inventory modal priority with crafting/settings/map, text-entry and focus handling, Escape close, and input restoration.

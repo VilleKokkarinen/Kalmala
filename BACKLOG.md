@@ -495,7 +495,7 @@ useful narrow checks; prepare/update affected acceptance helpers rather than run
 the full rendered matrix during normal increments. Document full verification as deferred.
 
 - [ ] Add the dedicated Inventory menu (roadmap goal 1).
-  - [ ] [20–30 min] Add the local inventory-toggle action with default Tab/I mappings and a minimal themed menu shell; both keys open/close the same owner-local instance through existing remapping conventions.
+  - [x] [20–30 min] Add the local inventory-toggle action with default Tab/I mappings and a minimal themed menu shell; both keys open/close the same owner-local instance through existing remapping conventions. (2026-10-07; remappable Tab/I action and themed owner-local shell)
   - [ ] [20–30 min] Integrate inventory modal priority with crafting/settings/map, text-entry and focus handling, Escape close, and cursor/movement/look restoration; inspect empty-shell open/close paths and update narrow input checks.
   - [ ] [20–30 min] Populate the shell with the existing owner pack grid/counts and empty state, reusing shared widgets and owner-only data; retain the old pack view until the new grid is usable.
   - [ ] [20–30 min] Bind selection to the existing item icon/description/detail component and safe fallback when an item disappears; prepare a focused selection/privacy check.

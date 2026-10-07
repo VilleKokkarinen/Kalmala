@@ -158,6 +158,8 @@ namespace
                 { EKeys::M, EKeys::N }, { EKeys::Gamepad_Special_Right }));
             Result.Add(MakeSingleInput(TEXT("WorldMapRecenter"), TEXT("Recenter map"), ELocalInputMappingKind::Action,
                 { EKeys::R, EKeys::T }, {}));
+            Result.Add(MakeSingleInput(TEXT("InventoryMenu"), TEXT("Inventory menu"), ELocalInputMappingKind::Action,
+                { EKeys::Tab, EKeys::I }, {}));
             Result.Add(MakeSingleInput(TEXT("CraftMenu"), TEXT("Build and crafting menu"), ELocalInputMappingKind::Action,
                 { EKeys::B, EKeys::C }, { EKeys::Gamepad_Special_Left, EKeys::Gamepad_Special_Right }));
             Result.Add(MakeSingleInput(TEXT("SupportActivate"), TEXT("Activate support effect"), ELocalInputMappingKind::Action,
