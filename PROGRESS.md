@@ -11534,3 +11534,25 @@ Known limitations: Item selection/details, carried tools, food actions, search/f
 Next eligible task: Bind Inventory menu selection to the existing item icon/description/detail component and add safe fallback when an item disappears.
 
 Main-checkout handoff synchronization: Complete. After inspecting the dirty main versions, synchronized only this run's selected BACKLOG row and appended progress entry. All pre-existing main-checkout edits remain uncommitted and untouched.
+
+### Run 2026-10-07T08:56:07Z — bind Inventory selection to item details
+
+Concurrency guard: Codex task inventory showed this as the only active Kalmala run. The main checkout contains pre-existing implementation and documentation edits, so work continued in the retained clean M12 pack-grid worktree.
+
+Completed: Bound Inventory's owner-supplied pack rows to local previous/next and arrow/D-pad selection. The selected slot receives the shared theme selection treatment and a non-colour label; `UKalmalaItemDetailWidget` displays its canonical icon/description and the current visible stack count. Refresh retains selection by canonical ID, falls back to the first remaining item when a stack disappears, and hides the detail panel when the pack is empty. Added a focused automation fixture for detail refresh, fallback, empty clearing, and separate menu-instance data.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCatalogueRowsWidget.cpp`; `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`; `Source/KalmalaUI/Public/KalmalaCatalogueRowsWidget.h`; `Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h`; `Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/14-settings-and-accessibility.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts; `git diff --check` passed; manual source review confirmed that production rows still originate only from the local controller's pawn inventory component, test hooks are non-shipping only, and removal/empty paths clear stale detail presentation. The changed-path audit passed (longest path 100 characters). The focused new automation test was prepared but not run; no Unreal build, automation queue, rendered peer check, or package check was performed.
+
+Full verification remains deferred: this is a normal M12 child increment, not the final task in the milestone.
+
+Observable impact: Players can inspect the selected pack item's existing icon, description and quantity directly in Inventory; selection follows live pack changes and remains local per menu instance.
+
+Networking/authority: Read-only local presentation continues to consume the owning pawn's `COND_OwnerOnly` stacks. No RPC, gameplay mutation, replicated state, or save schema changed.
+
+Known limitations: Carried-tool detail/actions, food actions, search/filter/sort and restored browsing state remain later M12 work. Runtime selection input, rendered scaling/contrast and host/client privacy remain for milestone-final verification.
+
+Next eligible task: Add carried-tool/equipment rows with existing inspection/actions and real levels/condition, preserving the bounded owner-only tool contract.
+
+Main-checkout handoff synchronization: Complete. Updated only the selected BACKLOG child and appended this progress entry; all pre-existing main-checkout changes remain uncommitted and untouched.

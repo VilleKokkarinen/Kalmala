@@ -21,7 +21,7 @@ constexpr int32 ToolColumns = 2;
 const FString CatalogueNoPanelImage;
 
 UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
-    const bool bEmpty, const float SlotWidth, const int32 TextScale, const int32 Contrast)
+    const bool bEmpty, const bool bSelected, const float SlotWidth, const int32 TextScale, const int32 Contrast)
 {
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     UBorder* Card = Tree.ConstructWidget<UBorder>();
@@ -30,6 +30,7 @@ UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
     Card->SetBrushColor(Contrast == 0
         ? (bEmpty ? FLinearColor(0.035f, 0.048f, 0.055f, 0.92f) : FLinearColor(0.07f, 0.095f, 0.11f, 0.98f))
         : FLinearColor::White);
+    if (bSelected) Theme.ApplySelectablePanel(*Card, true, false, false, Contrast);
 
     USizeBox* Size = Tree.ConstructWidget<USizeBox>();
     Size->SetWidthOverride(SlotWidth);
@@ -114,11 +115,12 @@ void UKalmalaCatalogueRowsWidget::NativeOnInitialized()
 }
 
 void UKalmalaCatalogueRowsWidget::SetRows(const TArray<FKalmalaCatalogueRow>& Rows, const int32 InSlotCapacity,
-    const int32 TextScale, const int32 Contrast)
+    const int32 TextScale, const int32 Contrast, const FName SelectedItem)
 {
     if (!Column) return;
     const int32 BoundedCapacity = FMath::Clamp(InSlotCapacity, 0, UKalmalaInventoryComponent::MaxSlots);
-    FString Key = FString::Printf(TEXT("%d|%d|%d"), BoundedCapacity, TextScale, Contrast);
+    FString Key = FString::Printf(TEXT("%d|%d|%d|selected:%s"), BoundedCapacity, TextScale, Contrast,
+        *SelectedItem.ToString());
     for (const auto& R : Rows)
     {
         Key += TEXT("|") + R.Id.ToString() + TEXT(":") + R.Name + TEXT(":") + R.Detail
@@ -150,7 +152,8 @@ void UKalmalaCatalogueRowsWidget::SetRows(const TArray<FKalmalaCatalogueRow>& Ro
     for (int32 Index = 0; Index < SlotCapacity; ++Index)
     {
         const FKalmalaCatalogueRow* Row = PackRows.IsValidIndex(Index) ? PackRows[Index] : nullptr;
-        UBorder* Card = MakeSlot(*WidgetTree, Row, Row == nullptr, PackSlotWidth, TextScale, Contrast);
+        UBorder* Card = MakeSlot(*WidgetTree, Row, Row == nullptr,
+            Row != nullptr && Row->Id == SelectedItem, PackSlotWidth, TextScale, Contrast);
         UBorder* CellMargin = WidgetTree->ConstructWidget<UBorder>();
         CellMargin->SetBrushColor(FLinearColor::Transparent);
         CellMargin->SetPadding(FMargin(2.0f));
@@ -171,7 +174,7 @@ void UKalmalaCatalogueRowsWidget::SetRows(const TArray<FKalmalaCatalogueRow>& Ro
         Column->AddChild(ToolGrid);
         for (int32 Index = 0; Index < ToolRows.Num(); ++Index)
         {
-            UBorder* Card = MakeSlot(*WidgetTree, ToolRows[Index], false, 154.0f, TextScale, Contrast);
+            UBorder* Card = MakeSlot(*WidgetTree, ToolRows[Index], false, false, 154.0f, TextScale, Contrast);
             UBorder* CellMargin = WidgetTree->ConstructWidget<UBorder>();
             CellMargin->SetBrushColor(FLinearColor::Transparent);
             CellMargin->SetPadding(FMargin(2.0f));
@@ -206,7 +209,7 @@ void UKalmalaCatalogueRowsWidget::SetRows(const TArray<FKalmalaCatalogueRow>& Ro
     Column->AddChild(Grid);
     for (int32 Index = 0; Index < Rows.Num(); ++Index)
     {
-        UBorder* Card = MakeSlot(*WidgetTree, &Rows[Index], false, 70.0f, TextScale, Contrast);
+        UBorder* Card = MakeSlot(*WidgetTree, &Rows[Index], false, false, 70.0f, TextScale, Contrast);
         UBorder* CellMargin = WidgetTree->ConstructWidget<UBorder>();
         CellMargin->SetBrushColor(FLinearColor::Transparent);
         CellMargin->SetPadding(FMargin(2.0f));

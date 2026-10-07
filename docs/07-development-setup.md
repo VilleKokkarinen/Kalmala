@@ -1098,6 +1098,25 @@ only that owner's canonical rows and counts, all sixteen slots in the empty
 case, and live owner updates while open. Capture standard and high-contrast
 views at the supported text scales as part of milestone-final verification.
 
+## M12 inventory selection increment
+
+The Inventory menu retains selection by canonical item ID while owner rows
+refresh. Previous/next buttons and arrow/D-pad input update the selected-slot
+outline, non-colour selected label, and shared `UKalmalaItemDetailWidget` with
+the canonical item icon/description and the existing visible stack count. If
+the selected stack disappears, the first remaining owner row becomes selected;
+when no rows remain, selection clears and the detail panel hides. Selection and
+detail data are local to each menu instance and read only the owning pawn's
+existing owner-only inventory component.
+
+After an affected UI build, run the focused automation test
+`Kalmala.UI.InventoryMenu.Selection`. It checks selected detail/count updates,
+owner-instance separation, fallback after removal, and empty-pack clearing.
+The milestone-final rendered host/client pass must additionally confirm that
+each peer sees its own selected item and that the controls/detail fit standard
+and high-contrast supported text scales. This increment adds no RPC, gameplay
+action, replicated field, or saved-data field.
+
 ## M5 documentation contract suite
 
 Run `Scripts/Verify-M5DocumentationContracts.ps1` to execute the onboarding,

@@ -2,6 +2,9 @@
 
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
+#include "Components/Button.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
 #include "Components/ScrollBox.h"
@@ -14,8 +17,10 @@
 #include "GameFramework/PlayerController.h"
 #include "InputCoreTypes.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaItemDetailWidget.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaThemedButton.h"
 #include "KalmalaUITheme.h"
 
 void UKalmalaInventoryMenuWidget::NativeOnInitialized()
@@ -58,11 +63,41 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     Theme.ApplyText(*PackStateText, Theme.BodySize, false, TextScale, Contrast);
     Content->AddChildToVerticalBox(PackStateText);
 
+    UHorizontalBox* SelectionControls = WidgetTree->ConstructWidget<UHorizontalBox>();
+    PreviousItemButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+    UTextBlock* PreviousLabel = WidgetTree->ConstructWidget<UTextBlock>();
+    PreviousLabel->SetText(FText::FromString(TEXT("Previous item")));
+    PreviousItemButton->SetContent(PreviousLabel);
+    Theme.ApplyButton(*PreviousItemButton, Contrast);
+    Theme.ApplyText(*PreviousLabel, Theme.BodySize, false, TextScale, Contrast);
+    SelectionControls->AddChildToHorizontalBox(PreviousItemButton)->SetPadding(FMargin(0.0f, 0.0f, 6.0f, 0.0f));
+
+    SelectedItemText = WidgetTree->ConstructWidget<UTextBlock>();
+    SelectedItemText->SetJustification(ETextJustify::Center);
+    SelectedItemText->SetAutoWrapText(true);
+    Theme.ApplyText(*SelectedItemText, Theme.BodySize, true, TextScale, Contrast);
+    SelectionControls->AddChildToHorizontalBox(SelectedItemText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+
+    NextItemButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+    UTextBlock* NextLabel = WidgetTree->ConstructWidget<UTextBlock>();
+    NextLabel->SetText(FText::FromString(TEXT("Next item")));
+    NextItemButton->SetContent(NextLabel);
+    Theme.ApplyButton(*NextItemButton, Contrast);
+    Theme.ApplyText(*NextLabel, Theme.BodySize, false, TextScale, Contrast);
+    SelectionControls->AddChildToHorizontalBox(NextItemButton)->SetPadding(FMargin(6.0f, 0.0f, 0.0f, 0.0f));
+    PreviousItemButton->OnClicked.AddDynamic(this, &ThisClass::SelectPreviousItem);
+    NextItemButton->OnClicked.AddDynamic(this, &ThisClass::SelectNextItem);
+    Content->AddChildToVerticalBox(SelectionControls);
+
+    UHorizontalBox* PackAndDetail = WidgetTree->ConstructWidget<UHorizontalBox>();
     UScrollBox* PackScroll = WidgetTree->ConstructWidget<UScrollBox>();
     Theme.ApplyScroll(*PackScroll);
     PackRowsView = WidgetTree->ConstructWidget<UKalmalaCatalogueRowsWidget>();
     PackScroll->AddChild(PackRowsView);
-    Content->AddChildToVerticalBox(PackScroll)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    PackAndDetail->AddChildToHorizontalBox(PackScroll)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    ItemDetailView = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
+    PackAndDetail->AddChildToHorizontalBox(ItemDetailView)->SetPadding(FMargin(4.0f, 0.0f, 0.0f, 0.0f));
+    Content->AddChildToVerticalBox(PackAndDetail)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 
     Panel->SetContent(Content);
     USizeBox* PanelSize = WidgetTree->ConstructWidget<USizeBox>();
@@ -124,34 +159,110 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerPack()
 
     const int32 TextScale = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
-    PackRowsView->SetRows(PackRows, UKalmalaInventoryComponent::MaxSlots, TextScale, Contrast);
+    ApplyPackRows(MoveTemp(PackRows), Inventory != nullptr, TextScale, Contrast);
+}
 
-    if (PackStateText != nullptr)
+void UKalmalaInventoryMenuWidget::ApplyPackRows(TArray<FKalmalaCatalogueRow>&& Rows,
+    const bool bInventoryAvailable, const int32 TextScale, const int32 Contrast)
+{
+    const FName PreviouslySelected = OwnerPackRows.IsValidIndex(SelectedPackIndex)
+        ? OwnerPackRows[SelectedPackIndex].Id : NAME_None;
+    OwnerPackRows = MoveTemp(Rows);
+    SelectedPackIndex = OwnerPackRows.IndexOfByPredicate([PreviouslySelected](const FKalmalaCatalogueRow& Row)
     {
-        FString State;
-        if (Inventory == nullptr)
-        {
-            State = TEXT("Waiting for your pack.");
-        }
-        else if (PackRows.IsEmpty())
-        {
-            State = TEXT("Your pack is empty.");
-        }
-        else
-        {
-            State = FString::Printf(TEXT("Your pack has %d of %d slots filled."),
-                PackRowsView->GetFilledSlotCount(), UKalmalaInventoryComponent::MaxSlots);
-        }
-        if (PackStateText->GetText().ToString() != State) PackStateText->SetText(FText::FromString(State));
+        return !PreviouslySelected.IsNone() && Row.Id == PreviouslySelected;
+    });
+    if (SelectedPackIndex == INDEX_NONE && !OwnerPackRows.IsEmpty()) SelectedPackIndex = 0;
 
-        if (LastTextScalePercent != TextScale || LastContrastMode != Contrast)
+    FString State;
+    if (!bInventoryAvailable) State = TEXT("Waiting for your pack.");
+    else if (OwnerPackRows.IsEmpty()) State = TEXT("Your pack is empty.");
+    else State = FString::Printf(TEXT("Your pack has %d of %d slots filled."),
+        FMath::Min(OwnerPackRows.Num(), UKalmalaInventoryComponent::MaxSlots), UKalmalaInventoryComponent::MaxSlots);
+    if (PackStateText->GetText().ToString() != State) PackStateText->SetText(FText::FromString(State));
+
+    RefreshSelectionPresentation(TextScale, Contrast);
+}
+
+void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextScale, const int32 Contrast)
+{
+    if (PackRowsView == nullptr || ItemDetailView == nullptr || SelectedItemText == nullptr
+        || PackStateText == nullptr || PreviousItemButton == nullptr || NextItemButton == nullptr) return;
+
+    if (LastTextScalePercent != TextScale || LastContrastMode != Contrast)
+    {
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        Theme.ApplyText(*PackStateText, Theme.BodySize, false, TextScale, Contrast);
+        Theme.ApplyText(*SelectedItemText, Theme.BodySize, true, TextScale, Contrast);
+        Theme.ApplyButton(*PreviousItemButton, Contrast);
+        Theme.ApplyButton(*NextItemButton, Contrast);
+        Theme.ApplyText(*CastChecked<UTextBlock>(PreviousItemButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
+        Theme.ApplyText(*CastChecked<UTextBlock>(NextItemButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
+        LastTextScalePercent = TextScale;
+        LastContrastMode = Contrast;
+    }
+
+    const bool bHasSelection = OwnerPackRows.IsValidIndex(SelectedPackIndex);
+    const FName SelectedItem = bHasSelection ? OwnerPackRows[SelectedPackIndex].Id : NAME_None;
+    PackRowsView->SetRows(OwnerPackRows, UKalmalaInventoryComponent::MaxSlots, TextScale, Contrast, SelectedItem);
+    PreviousItemButton->SetIsEnabled(bHasSelection);
+    NextItemButton->SetIsEnabled(bHasSelection);
+
+    const FString SelectionText = bHasSelection
+        ? FString::Printf(TEXT("Selected: %s — use arrows or D-pad to change"), *OwnerPackRows[SelectedPackIndex].Name)
+        : TEXT("No item selected.");
+    if (SelectedItemText->GetText().ToString() != SelectionText)
+        SelectedItemText->SetText(FText::FromString(SelectionText));
+
+    if (bHasSelection)
+    {
+        const FKalmalaCatalogueRow& Row = OwnerPackRows[SelectedPackIndex];
+        const FString DetailKey = FString::Printf(TEXT("%s|%s|%s|%d|%d"), *Row.Id.ToString(), *Row.Name,
+            *Row.Detail, TextScale, Contrast);
+        if (DetailKey != LastSelectedDetailKey)
         {
-            FKalmalaUITheme::Get().ApplyText(*PackStateText, FKalmalaUITheme::Get().BodySize, false, TextScale, Contrast);
-            LastTextScalePercent = TextScale;
-            LastContrastMode = Contrast;
+            ItemDetailView->SetItem(Row.Id, Row.Name, Row.Detail, TextScale, Contrast);
+            LastSelectedDetailKey = DetailKey;
         }
+        ItemDetailView->SetVisibility(ESlateVisibility::Visible);
+    }
+    else
+    {
+        LastSelectedDetailKey.Reset();
+        ItemDetailView->SetVisibility(ESlateVisibility::Collapsed);
     }
 }
+
+void UKalmalaInventoryMenuWidget::StepSelection(const int32 Direction)
+{
+    if (OwnerPackRows.IsEmpty()) return;
+    const int32 NumRows = OwnerPackRows.Num();
+    const int32 Current = SelectedPackIndex == INDEX_NONE ? 0 : SelectedPackIndex;
+    SelectedPackIndex = (Current + NumRows + (Direction < 0 ? -1 : 1)) % NumRows;
+    const int32 TextScale = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
+    RefreshSelectionPresentation(TextScale, UKalmalaSettingsWidget::GetContrastMode());
+}
+
+void UKalmalaInventoryMenuWidget::SelectPreviousItem() { StepSelection(-1); }
+void UKalmalaInventoryMenuWidget::SelectNextItem() { StepSelection(1); }
+
+#if !UE_BUILD_SHIPPING
+void UKalmalaInventoryMenuWidget::SetPackRowsForVerification(const TArray<FKalmalaCatalogueRow>& Rows,
+    const int32 TextScale, const int32 Contrast)
+{
+    ApplyPackRows(TArray<FKalmalaCatalogueRow>(Rows), true, TextScale, Contrast);
+}
+
+FName UKalmalaInventoryMenuWidget::GetSelectedItemForVerification() const
+{
+    return OwnerPackRows.IsValidIndex(SelectedPackIndex) ? OwnerPackRows[SelectedPackIndex].Id : NAME_None;
+}
+
+void UKalmalaInventoryMenuWidget::StepSelectionForVerification(const int32 Direction)
+{
+    StepSelection(Direction);
+}
+#endif
 
 void UKalmalaInventoryMenuWidget::Close()
 {
@@ -181,10 +292,24 @@ bool UKalmalaInventoryMenuWidget::HasTextEntryFocus() const
 
 FReply UKalmalaInventoryMenuWidget::NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event)
 {
-    if (bMenuOpen && !HasTextEntryFocus() && Event.GetKey() == EKeys::Gamepad_FaceButton_Right)
+    if (bMenuOpen && !HasTextEntryFocus())
     {
-        Close();
-        return FReply::Handled();
+        const FKey Key = Event.GetKey();
+        if (Key == EKeys::Gamepad_FaceButton_Right)
+        {
+            Close();
+            return FReply::Handled();
+        }
+        if (Key == EKeys::Left || Key == EKeys::Up || Key == EKeys::Gamepad_DPad_Left || Key == EKeys::Gamepad_DPad_Up)
+        {
+            StepSelection(-1);
+            return FReply::Handled();
+        }
+        if (Key == EKeys::Right || Key == EKeys::Down || Key == EKeys::Gamepad_DPad_Right || Key == EKeys::Gamepad_DPad_Down)
+        {
+            StepSelection(1);
+            return FReply::Handled();
+        }
     }
 
     return Super::NativeOnPreviewKeyDown(Geometry, Event);

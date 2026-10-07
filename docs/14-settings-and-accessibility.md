@@ -141,8 +141,12 @@ and returns input to gameplay. While an editable text control has keyboard
 focus, Tab/I do not toggle the menu. Gamepad B closes it when focus is outside
 text entry. The menu reads only the owning pawn's owner-only replicated pack
 stacks and displays them read-only; it performs no gameplay action or network
-request. The previous HUD pack view remains until the inventory-menu grid is
-ready to replace it in a later M12 task.
+request. Previous/next controls and arrow/D-pad input select a pack row, whose
+canonical icon, description and visible count appear in the shared detail panel.
+If a selected item disappears, selection falls back to the first remaining row;
+an empty pack clears the selection and hides the detail panel. The previous HUD
+pack view remains until the inventory-menu grid is ready to replace it in a later
+M12 task.
 
 ## Accessibility requirements
 
