@@ -429,3 +429,52 @@ M11 has twenty-three ordered goals:
 **M11 multiplayer boundary:** UI remains local and read-only over state already available to its owner. All effect application, refresh, removal, weather selection, duration, damage, modifiers, rewards, and persistence remain server-owned. Add no gameplay mutation RPC, hidden-content query, or private peer-state exposure.
 
 **M11 accept:** active status and weather icons with truthful timers appear in an invisible top-right parent without minimap overlap or a duplicate left-panel list; empty state has no visible hotbar chrome; every current inventory item and build-menu entry has its assigned original icon; inventory and build menus use readable slot grids; inventory, build, M-key map, and all option menus have background images; the main options menu opens with a fast, restrained slide down from the top; a documented configurable theme drives styling across mostly shared UI components, respects local accessibility preferences, and propagates edits across views; item details, menu search/filter/sort/category grouping (including building), crafting requirements, compact notifications, shared hover/focus cues, interaction prompts, map legend/marker filters, UI scale, reduced-motion options, result previews, configurable favorites, gold/silver/bronze usage markers, and distinct most-recent crafting/building/recipe markers, remembered menu position, status transition cues, and inline stat comparisons work over existing visible state; status and menu details remain accessible across supported layout/accessibility settings; rendered host/client evidence and relevant regressions pass; gameplay and persistence contracts are unchanged.
+
+## M12 — Inventory menu and cleaner gameplay HUD
+
+Start after M11 acceptance. Continue UX/UI improvements through existing shared
+themes, catalogue widgets, local input, and owner-visible state.
+
+M12 has three ordered UI goals:
+
+1. **Dedicated inventory menu.** Add an Inventory menu with the same presentation
+   quality and shared layout/components as the crafting menu. Both `Tab` and `I`
+   open/toggle the same local inventory menu by default. Provide the existing
+   pack slot grid, item counts, carried tools/equipment, selected-item details,
+   search/filter/sort, and remembered local browsing state as applicable. Keep
+   crafting/building available through its existing menu. Respect configurable
+   bindings, text-entry and focus navigation, modal priority, Escape-to-close,
+   and restoration of movement/look input when the inventory closes. Use only
+   inventory/equipment information already visible to the owning player.
+2. **Remove the persistent left-side view.** Remove the entire tall left-side
+   panel shown in the user's 2026-10-07 screenshot from the normal gameplay
+   screen, including its support glyph row, combat/support instructions and
+   diagnostic text, pack slots, and carried-tool list. Inventory inspection
+   belongs in the new menu. Preserve existing combat/support actions and their
+   bindings, essential player feedback through appropriate existing HUD/menu
+   surfaces, interaction prompts, notifications, and the top-right status/weather
+   presentation. Removing a widget must not disable a gameplay system.
+3. **Halve minimap edge padding.** Reduce the circular minimap's right and top
+   margins from the current 24 UI units to 12 UI units each. Preserve its size,
+   circular clipping, zoom, facing marker, and separation from status/weather
+   indicators. Apply the same proportional change under interface/DPI scaling;
+   this goal concerns the top-right minimap rather than the M-key full map.
+
+**M12 boundary:** presentation and local input changes only. Reuse existing item,
+equipment, crafting, support, and inventory contracts; add no gameplay content,
+balance changes, authoritative mutation paths, new save schemas, hidden-content
+queries, peer-private state exposure, or platform/online-service changes. Existing
+inventory actions continue through their current server-validated paths.
+
+**M12 accept:** Tab and I reliably open the same usable inventory menu on host
+and client; item/tool information and existing permitted actions remain truthful
+and accessible; menu close restores input without replaying an action; the
+pictured persistent left panel is absent during normal play; minimap top/right
+padding is half its former value without clipping or status overlap. Verify
+empty/populated inventories, selection and input changes, coexistence with
+crafting/settings/full map, separate owners, reconnect, keyboard/controller
+navigation, text entry, 4:3/16:9/ultrawide layouts, interface/text scaling, high
+contrast, and reduced motion. Retain rendered host/client captures. Perform
+lightweight checks during child increments and the prescribed affected build,
+UI/input/inventory/authority/reconnect regressions and full milestone-final
+verification from `docs/07-development-setup.md` before declaring M12 complete.

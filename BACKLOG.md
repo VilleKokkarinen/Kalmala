@@ -478,3 +478,23 @@ Start only after M10 acceptance closes under its recorded owner-approved scope a
 ## User-directed build repair — 2026-10-07
 
 - [x] Repair the main-checkout DebugGame editor compilation and unity-name collisions, exclude the two failing installed-engine utilities from `Kalmala.slnx` solution builds, and verify the editor target plus solution configuration. See `docs/42-build-repair.md`. This explicit repair adds no roadmap feature or new milestone; existing M11 acceptance records remain unchanged.
+
+## M12 — Inventory menu and cleaner gameplay HUD
+
+Start after M11 acceptance. Scope and acceptance are defined in
+`docs/04-roadmap.md`; the 2026-10-07 user screenshot identifies the whole tall
+left-side panel to remove. All implementation tasks below remain pending.
+
+- [ ] Add a dedicated Inventory menu like the crafting menu, opened with Tab or I.
+  - [ ] Establish the shared local inventory-toggle action with default Tab and I bindings, existing remapping support, modal/text-entry/focus priority, Escape close, and movement/look restoration.
+  - [ ] Present the owner's existing pack slots, counts, carried tools/equipment, and selected-item details in a themed inventory menu using shared crafting/menu components; reuse applicable search/filter/sort and remembered browsing state.
+  - [ ] Verify empty/populated views, truthful owner-visible data, existing inventory actions, separate host/client owners, and keyboard/controller navigation without new gameplay or save contracts.
+- [ ] Remove the persistent left-side panel shown in the user's screenshot from normal gameplay.
+  - [ ] Retire the pictured left-side support/combat/diagnostic and pack/tool presentation after inventory inspection is available in the dedicated menu; preserve combat/support bindings and essential feedback through existing HUD/menu surfaces.
+  - [ ] Verify that normal gameplay has no residual left-panel background, scroll area, slot grid, glyph row, or text, while support/combat actions, interaction prompts, notifications, and status/weather UI still work.
+- [ ] Halve the circular minimap's right and top padding.
+  - [ ] Change the top-right minimap margins from 24 to 12 UI units on both edges, keeping size, zoom, circular clipping, facing marker, and status/weather separation.
+  - [ ] Verify the halved margins and absence of clipping/overlap at 4:3, 16:9, and ultrawide resolutions with interface/text scaling and high contrast.
+- [ ] Complete M12 milestone-final verification: inspect combined changes, build and run the prescribed affected UI/input/inventory/authority/reconnect regressions, and retain rendered host/client evidence for menu input/modal restoration, empty/populated views, separate owners, panel removal, minimap placement, accessibility, and unchanged gameplay/persistence. Mark the milestone complete only after required verification passes.
+
+**M12 status:** Planned; implementation and milestone-final verification pending.

@@ -11356,3 +11356,15 @@ Observable impact: The current working-tree editor source compiles in DebugGame 
 Known limits/full verification: This was a targeted build repair, not milestone-final verification. The entire Visual Studio solution, Development configuration, runtime automations, rendered acceptance, and packaging were not rerun; full gameplay/milestone verification remains deferred for this repair. Project regeneration can replace solution exclusions. The legacy generated `Kalmala.sln` was not edited; open `Kalmala.slnx` or build the game target directly. The isolated build copy is retained under the already untracked `wt/` directory; none of its files enter the commit.
 
 Next eligible task: No autonomous roadmap increment is defined; future work requires a new task. Handoff synchronization: not required because this repair was made directly in the main checkout. Only this run's code, solution, new documentation, and appended backlog/progress entries belong to the repair commit.
+
+### Run 2026-10-07 — User-directed M12 roadmap planning
+
+Completed: Added M12 — Inventory menu and cleaner gameplay HUD to `docs/04-roadmap.md` and an ordered unchecked execution queue in `BACKLOG.md`. The milestone covers a crafting-style inventory menu opened with Tab or I, removal of the entire tall persistent left-side view identified in the user's screenshot, and halved top/right circular-minimap padding. Source inspection confirmed current minimap placement uses 24 UI units on each edge; M12 targets 12 each. Specified local modal/input restoration, shared theme/components, accessibility, owner privacy, unchanged existing gameplay actions, and rendered host/client acceptance.
+
+Files changed: `docs/04-roadmap.md`, `BACKLOG.md`, and this `PROGRESS.md`. Concurrency: only this chat appeared active on Kalmala. Preserved pre-existing working-tree documentation, source, asset, and untracked changes; planning does not implement a backlog child or change runtime code/assets.
+
+Lightweight checks: Inspected the requested goals against current inventory/minimap presentation and existing roadmap conventions; checked one M12 heading per roadmap/backlog file, unchecked implementation tasks, required Tab/I bindings and 24-to-12 margin contract, staged whitespace, and committed-path lengths. No build or runtime tests were run for documentation-only planning; M12 implementation and full milestone-final verification remain pending.
+
+Observable impact: The three requested UX/UI changes now have an actionable execution order and acceptance criteria. Networking/authority: planned UI reads existing owner-visible state and uses existing server-validated actions; no new authoritative path, private peer information, balance, or save schema is authorized.
+
+Known limitations: M12 is planned only. Runtime menus, the left HUD panel, and minimap placement remain unchanged. Next eligible task: M12's first inventory child — establish the shared local inventory-toggle action and Tab/I bindings with modal/text-entry/focus priority and input restoration. Handoff: planning performed directly in the main checkout; no worktree synchronization required.
