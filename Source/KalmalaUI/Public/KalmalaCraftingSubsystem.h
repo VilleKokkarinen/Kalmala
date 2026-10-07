@@ -20,7 +20,6 @@ class KALMALAUI_API UKalmalaInteractionPromptWidget : public UUserWidget
 public:
     void SetPrompt(const FString& Text);
     static FString BuildPromptText(const FString& TargetName, const FString& ActionName,
-        const FString& KeyboardBinding, const FString& ControllerBinding,
         const FString& UnavailableReason = FString(), bool bModalOpen = false);
 protected:
     virtual void NativeOnInitialized() override;

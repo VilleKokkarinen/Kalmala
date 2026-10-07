@@ -510,7 +510,7 @@ the full rendered matrix during normal increments. Document full verification as
 - [x] Remove the bottom tutorial/help card (goal 4).
   - [x] [15–25 min] Remove the pictured onboarding banner across fresh-start/transition/reconnect presentation, preserve essential existing notifications, and update the narrow absence check; no replacement banner. (2026-10-07; disabled the local presenter, removed its default dismiss/revisit mappings, and added fresh-start/reconnect absence preflights; see docs/13-onboarding-and-tutorial.md and PROGRESS.md.)
 - [ ] Confine input-binding text to Options (goal 5).
-  - [ ] [20–30 min] Remove key/button names and control legends from persistent HUD, onboarding and interaction prompts; preserve concise action names, binding behavior and nonvisual accessibility.
+  - [x] [20–30 min] Remove key/button names and control legends from persistent HUD, onboarding and interaction prompts; preserve concise action names, binding behavior and nonvisual accessibility. (2026-10-07; owner-local prompts now show readable target/action text without binding labels; mappings remain in Options > Controls.)
   - [ ] [20–30 min] Remove binding/help legends from inventory and build/crafting/repair/storage views and tooltips; preserve actual button labels and focus navigation.
   - [ ] [20–30 min] Remove remaining map/status/detail-view legends and audit Options as the only player-facing binding-text source; add a narrow source/text audit and update stale text expectations.
 - [ ] Simplify recipe/detail presentation templates (goal 6; catalogue prose is goal 9).

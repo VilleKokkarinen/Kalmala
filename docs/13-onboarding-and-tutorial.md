@@ -20,12 +20,13 @@ replicated property, or online service.
 - A prompt may trigger from a normal local input, a readable replicated state,
   or an already visible actor. It must not query hidden population, undiscovered
   rewards, private pins, target IDs, or future route information.
-- Prompts describe choices rather than objectives. They may say what an input
-  does and what a player can try; they must not select a destination, camp site,
-  creature, reward, recipe outcome, or support target.
-- Every prompt has a text equivalent, a non-colour icon/shape cue, and the
-  keyboard/controller input label. A player can dismiss, revisit, or ignore all
-  prompts without losing normal movement or menu access.
+- Prompts describe choices rather than objectives and use concise action names;
+  they must not select a destination, camp site, creature, reward, recipe
+  outcome, or support target.
+- Input-binding labels are not displayed in prompts. Key/button names and
+  control legends stay in Options > Controls. Prompt text and non-colour
+  icon/shape cues remain available, and a player can dismiss, revisit, or
+  ignore all prompts without losing normal movement or menu access.
 - Prompt timing is local presentation timing. It cannot pause the server, grant
   an interaction, alter stamina or Wet, confirm a hit, complete a discovery, or
   advance a reward.
@@ -34,9 +35,9 @@ replicated property, or online service.
 
 | Beat | Local trigger | Player-facing prompt | Required boundary |
 | --- | --- | --- | --- |
-| Arrive | Fresh local pawn becomes controllable | “Move with WASD or the left stick. Look around, jump with Space, and hold Shift to sprint.” | Does not name a direction, coordinate, route, or destination. |
-| Interact | The player first receives normal interaction focus on a visible actor | “Face a nearby usable object and press E, or the controller interact button.” | The prompt reflects only the existing local focus; the server still validates the request and outcome. |
-| Gather | The player has a visible, usable harvest node in normal range | “Gather what you need from the wilderness. Your pack shows what was accepted.” | Does not reveal distant nodes, quantities, depleted state, or a preferred resource. |
+| Arrive | Fresh local pawn becomes controllable | “Move and look around. Jump or sprint when the terrain calls for it.” | Does not name a direction, coordinate, route, or destination. |
+| Interact | The player first receives normal interaction focus on a visible actor | “Face a nearby usable object and choose its displayed action.” | The prompt reflects only the existing local focus; the server still validates the request and outcome. |
+| Gather | The player has a visible, usable harvest node in normal range | “Gather from the visible node. Your pack shows what was accepted.” | Does not reveal distant nodes, quantities, depleted state, or a preferred resource. |
 | Prepare | The player opens the existing camp crafting UI | “Choose what to make, then place it where the terrain and your materials allow.” | No fixed camp, construction transform, payment result, or shelter success is promised locally. |
 | Weather | The local HUD already shows an active Wet or exposure-related cue | “Weather changes comfort and travel. Shelter, cover, and a lit hearth are options.” | Uses existing replicated presentation only; it never invents a local weather value or a guaranteed recovery. |
 | Explore | The player leaves the immediate start area through normal movement | “Pick a heading and see what the generated land offers. The map is for orientation.” | Never points to an authored corridor, biome, encounter, discovery, or required return point. |
@@ -45,23 +46,27 @@ replicated property, or online service.
 | Support magic | The entitled player has already learned an effect and opens its existing local UI | “Support effects help an eligible ally or situation; choose a valid target when the UI allows.” | Learned effects, targets, durations, stamina, cooldowns, and execution remain server-owned; no effect deals direct damage. |
 | Return | The player chooses to head back or remains near a visible camp | “You can return, shelter, use the hearth, store materials, or keep exploring.” | Return is a choice, not a quest completion, timer, route requirement, or persistence grant. |
 
-The first three beats teach controls and interaction. The remaining beats are
-opportunistic: a player may encounter them in any order, never encounter some
-of them, or dismiss them all. A fresh-player walkthrough may therefore record
-which prompts were applicable rather than requiring every prompt to appear.
+The first three beats introduce movement, interaction context, and gathering.
+The remaining beats are opportunistic: a player may encounter them in any
+order, never encounter some of them, or dismiss them all. A fresh-player
+walkthrough may therefore record which prompts were applicable rather than
+requiring every prompt to appear.
 
 ## Presentation and accessibility acceptance
 
-The runtime presenter is acceptable when a fresh local session can demonstrate
-the following without developer commands or fixed fixture coordinates:
+If onboarding returns in a later increment, a fresh local session must
+demonstrate the following without developer commands or fixed fixture
+coordinates:
 
-1. Arrival teaches movement, jump, and sprint using the actual bound labels.
+1. Arrival teaches movement, jump, and sprint through plain action names, with
+   no key/button legend.
 2. A visible normal interaction can teach interaction and gathering without
    promising acceptance before the server response.
 3. Camp, weather, exploration, optional encounter, discovery, support, and
    return prompts appear only when their local visible context exists.
 4. Every prompt can be understood from text and shape/icon cues without colour
-   or audio, and keyboard and controller labels remain readable.
+   or audio. Keyboard/controller mappings remain readable in Options > Controls,
+   and prompts retain their full action text.
 5. Dismissing or ignoring prompts leaves movement, interaction, combat intent,
    support UI, map access, and reconnect behaviour unchanged.
 6. A two-player observation shows no prompt-driven replication, reward leak,

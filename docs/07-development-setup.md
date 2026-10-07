@@ -259,23 +259,25 @@ PowerShell parsing, and the 260-character path audit. Theme configuration can
 disable interaction motion with `AnimateInteractionStates=False`; the local
 Reduced motion setting below overrides theme animation when enabled.
 
-## M11 near-crosshair interaction prompts
+## M12 HUD and interaction prompt binding text
 
-This no-child parent uses the owner's existing short visibility trace as the
-only interaction candidate. Build the isolated editor mirror with normal
+The owner-local prompt uses the existing short visibility trace as its only
+interaction candidate. Build the isolated editor mirror with normal
 `%LOCALAPPDATA%/UnrealBuildTool` access, then run the full
 `Automation RunTests Kalmala` queue with a unique `-UserDir`, `-abslog`,
 `-nullrhi`, `-DDC-ForceMemoryCache`, and queue-empty `-TestExit`. The focused
 `Kalmala.UI.InteractionPrompt.Presentation` test covers target/action text,
-keyboard and controller labels, unavailable, missing-target, modal, and live
-remapping cases. The full queue also retains
+absence of keyboard/controller labels, unavailable reason, missing-target,
+modal, and live remapping cases. Remapped labels remain available in Options;
+they must not appear in the prompt. The full queue also retains
 `Kalmala.Gameplay.Interaction.ServerOnlyRangeValidation` for server range and
 authority behavior.
 
 Run `Scripts/Verify-InteractionPrompt.ps1` from the mirror at 1280x720/100%
 standard contrast and 1024x768/150% high contrast, with separate unused ports.
-It renders the available and unavailable prompt plus modal/no-target clearing
-on both host and client; inspect the retained source PNGs. Run rendered
+It renders the available and unavailable action plus modal/no-target clearing
+on both host and client; inspect the retained source PNGs for readable action
+text without binding labels. Run rendered
 `Scripts/Verify-Crafting.ps1` at both settings for live modal suppression and
 existing interaction/transaction regressions, and
 `Scripts/Verify-SettingsAccessibility.ps1` for the local Controls remapping
@@ -961,10 +963,10 @@ quality, or packaged persistence.
 
 `Scripts/Verify-OnboardingContract.ps1` is a no-build check for the retained
 local tutorial design in `docs/13-onboarding-and-tutorial.md`. It requires the
-ten route-free prompt beats, keyboard/controller labels, colour-independent
-text/icon guidance, visible-context triggers, server authority boundaries,
-hidden-content privacy rules, and protection of prompt history from the gameplay
-save schema. `Scripts/Verify-TutorialRouteFree.ps1` additionally checks that
+ten route-free prompt beats, no key/button legends in prompt examples,
+colour-independent text/icon guidance, visible-context triggers, server
+authority boundaries, hidden-content privacy rules, and protection of prompt
+history from the gameplay save schema. `Scripts/Verify-TutorialRouteFree.ps1` additionally checks that
 the M12 runtime presenter is disabled. These checks do not launch Unreal or
 claim packaged two-player prompt flow has passed.
 

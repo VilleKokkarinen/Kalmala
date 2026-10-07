@@ -36,7 +36,7 @@ class KALMALAUI_API UKalmalaTutorialPromptWidget : public UUserWidget
     GENERATED_BODY()
 
 public:
-    void SetPrompt(EKalmalaTutorialBeat Beat, const FString& Title, const FString& Body, const FString& Controls);
+    void SetPrompt(EKalmalaTutorialBeat Beat, const FString& Title, const FString& Body);
     void SetPromptVisible(bool bVisible);
     void SetCardSize(float Width, float Height);
 
@@ -48,7 +48,6 @@ protected:
 private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> TitleText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> BodyText;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> ControlsText;
     UPROPERTY(Transient) TObjectPtr<UBorder> CardBorder;
     UPROPERTY(Transient) TObjectPtr<USizeBox> CardSizeBox;
     EKalmalaTutorialBeat DisplayedBeat = EKalmalaTutorialBeat::None;
@@ -81,7 +80,6 @@ private:
     void RevisitPrompt();
     void NoteAttackIntent();
     FString BuildBody(EKalmalaTutorialBeat Beat) const;
-    FString BuildControls() const;
 
     UPROPERTY(Transient) TObjectPtr<APlayerController> LocalController;
     UPROPERTY(Transient) TObjectPtr<UKalmalaTutorialPromptWidget> PromptWidget;

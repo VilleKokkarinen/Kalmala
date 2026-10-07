@@ -11712,3 +11712,25 @@ Known limitations: Card absence and notification placement have not been visuall
 Next eligible task: Remove key/button names and control legends from persistent HUD, onboarding, and interaction prompts while preserving concise action names and remapping behavior.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main task row before updating it, appended this progress entry, and preserved all other pre-existing changes.
+
+### Run 2026-10-07T11:34:46Z — confine prompt binding labels to Options
+
+Concurrency guard: Codex task inventory showed this as the only active Kalmala run. Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` at `8519c33`; the main checkout contains pre-existing modified and untracked files, all left untouched during implementation.
+
+Completed: The live near-crosshair prompt now contains only its visible target, concise action, and any owner-visible unavailable reason. Removed keyboard/controller binding lookup and output from the prompt while retaining its text presentation and the existing remapping path in Options > Controls. Removed the dormant onboarding widget's control-label row and key lookup helpers; its retained prompt copy uses action descriptions without key/button legends. The tutorial presenter remains disabled at runtime. Updated focused source automation and the onboarding, accessibility, presentation ownership, UI theme, and setup contracts.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `Source/KalmalaUI/Private/KalmalaTutorialSubsystem.cpp`; `Source/KalmalaUI/Public/KalmalaTutorialSubsystem.h`; `Source/KalmalaUI/Private/Tests/KalmalaInteractionPromptTest.cpp`; `Scripts/Verify-OnboardingContract.ps1`; `Scripts/Verify-TutorialRouteFree.ps1`; `docs/07-development-setup.md`; `docs/13-onboarding-and-tutorial.md`; `docs/14-settings-and-accessibility.md`; `docs/15-presentation-ownership.md`; `docs/35-ui-theme.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-OnboardingContract.ps1`, `Verify-TutorialRouteFree.ps1`, `Verify-PresentationOwnership.ps1`, and all five `Verify-M5DocumentationContracts.ps1` contracts passed. The changed PowerShell files parsed; `git diff --check` passed; the MAX_PATH audit passed (longest changed absolute path 106 characters). Manual source inspection confirmed binding labels are absent from live/onboarding prompt implementations, mapping labels remain in Options, and the trace still presents only a local candidate.
+
+Full verification remains deferred: this is a normal M12 child increment, not the final implementation task in the milestone. No Unreal build, focused C++ automation, host/client render, physical input review, or package check was run.
+
+Observable impact: Players continue to see what nearby object and action are available, including any visible reason an action cannot proceed, without seeing key or button names in the prompt. Mappings remain inspectable and remappable in Options > Controls.
+
+Networking/authority: Local presentation only. The prompt still reads the owning pawn's visible candidate; the server independently traces and validates every interaction. No request, RPC, replicated field, gameplay state, or save schema changed.
+
+Known limitations: Changed C++ automation has not been compiled or run. Host/client prompt rendering, scaled/high-contrast layout, screen-reader integration, physical keyboard/controller behavior, and packaged behavior remain for M12 milestone-final verification.
+
+Next eligible task: Remove binding/help legends from Inventory and build/crafting/repair/storage views and tooltips, while preserving action labels and focus navigation.
+
+Main-checkout handoff synchronization: Pending this worktree commit; afterward synchronize only `BACKLOG.md` and `PROGRESS.md`, preserving the main checkout's unrelated changes.

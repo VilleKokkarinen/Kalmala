@@ -55,6 +55,7 @@ $body = Get-FunctionBody $source 'BuildBody'
 
 Assert-Contains $header 'class KALMALAUI_API UKalmalaTutorialSubsystem\s*:\s*public ULocalPlayerSubsystem' 'prompts must remain local-player UI state'
 Assert-Contains $header 'IsTickable\(\) const override \{ return false; \}' 'the M12 runtime must not mount onboarding cards during gameplay'
+Assert-NotContains ($source + $header) 'ControlsText|BuildControls|FindActionKeys|FindAxisKeys|FormatInput' 'the dormant onboarding widget must not build binding legends'
 if ([regex]::Matches($source, '\bBindLocalInput\(').Count -ne 2) {
     throw 'Route-free tutorial check failed: prompt input bindings must only be installed by the dormant tick'
 }
@@ -94,6 +95,7 @@ Assert-Contains $body 'Pick a heading' 'exploration text must leave direction to
 Assert-Contains $body 'not a required route' 'exploration text must explicitly reject a prescribed route'
 Assert-Contains $body 'You can engage or move on' 'encounters must remain optional'
 Assert-Contains $body 'keep exploring' 'a visible camp prompt must preserve the option to continue exploring'
+Assert-NotContains $body '(?i)keyboard|gamepad|W/A/S/D|\bspace\b|\bshift\b|\bd-pad\b|\bpress\s+[A-Z0-9]' 'onboarding copy must use action names without key or button legends'
 Assert-NotContains ($choose + $context) '\bQuest\b|\bMission\b|\bObjective\b|OpenLevel|ClientTravel|ServerTravel' 'prompt selection must not depend on quest progression or select a destination'
 Assert-NotContains ($source + $header) 'FParse::|FCommandLine::|GetCommandLine|KalmalaTutorial\w*Test|bEnableTutorial|UFUNCTION\s*\(\s*Server|SaveGame|Serialize\(' 'tutorial prompts must not require a developer flag, RPC, or gameplay save'
 

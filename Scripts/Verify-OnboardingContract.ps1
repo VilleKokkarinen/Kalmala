@@ -75,8 +75,14 @@ foreach ($fragment in $requiredFragments) {
 if ($text -notmatch 'must not.*route|never.*route|no.*route') {
     throw 'Onboarding contract does not state the route-free boundary'
 }
-if ($text -notmatch 'keyboard/controller input label') {
-    throw 'Onboarding contract does not require keyboard/controller labels'
+if ($text -notmatch 'input-binding labels are not displayed') {
+    throw 'Onboarding contract does not confine binding labels to Options'
+}
+if (($beatRows -join "`n") -match '(?i)W/A/S/D|\bSpace\b|\bShift\b|press\s+[A-Z0-9]|controller interact button') {
+    throw 'Onboarding beat examples expose a key or button legend'
+}
+if (($beatRows -join "`n") -notmatch '\bInteract\b|\bUse\b') {
+    throw 'Onboarding examples do not retain concise action names'
 }
 if ($text -notmatch 'never be\s+included in the gameplay save schema') {
     throw 'Onboarding contract does not protect local prompt history from gameplay saves'

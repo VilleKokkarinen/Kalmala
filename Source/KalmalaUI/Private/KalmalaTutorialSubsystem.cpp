@@ -13,10 +13,8 @@
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "GameFramework/GameStateBase.h"
-#include "GameFramework/InputSettings.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
-#include "InputCoreTypes.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCraftingSubsystem.h"
@@ -38,89 +36,6 @@ constexpr float NormalInteractionDistance = 250.0f;
 constexpr float EncounterNoticeDistance = 1200.0f;
 constexpr float VisibleCampDistance = 900.0f;
 constexpr float ExplorationDistance = 900.0f;
-
-FString FindActionKeys(const FName ActionName, const bool bGamepad)
-{
-    const UInputSettings* Settings = GetDefault<UInputSettings>();
-    if (Settings == nullptr) return TEXT("Unbound");
-
-    TArray<FString> Labels;
-    for (const FInputActionKeyMapping& Mapping : Settings->GetActionMappings())
-    {
-        if (Mapping.ActionName == ActionName && Mapping.Key.IsGamepadKey() == bGamepad)
-        {
-            FString Label = Mapping.Key.GetDisplayName().ToString();
-            Label.ReplaceInline(TEXT("Gamepad Face Button "), TEXT("Face "));
-            Label.ReplaceInline(TEXT("Gamepad Special "), TEXT("Special "));
-            if (Mapping.Key == EKeys::Gamepad_LeftThumbstick) Label = TEXT("L3");
-            if (Mapping.Key == EKeys::Gamepad_RightThumbstick) Label = TEXT("R3");
-            Labels.AddUnique(Label);
-        }
-    }
-    return Labels.IsEmpty() ? TEXT("Unbound") : FString::Join(Labels, TEXT(" / "));
-}
-
-FString FindAxisKeys(const FName FirstAxis, const FName SecondAxis, const bool bGamepad)
-{
-    const UInputSettings* Settings = GetDefault<UInputSettings>();
-    if (Settings == nullptr) return TEXT("Unbound");
-
-    TArray<FString> Labels;
-    bool bHasW = false;
-    bool bHasA = false;
-    bool bHasS = false;
-    bool bHasD = false;
-    bool bHasArrowUp = false;
-    bool bHasArrowDown = false;
-    bool bHasArrowLeft = false;
-    bool bHasArrowRight = false;
-    bool bHasLeftX = false;
-    bool bHasLeftY = false;
-    bool bHasRightX = false;
-    bool bHasRightY = false;
-    bool bHasMouseX = false;
-    bool bHasMouseY = false;
-    for (const FInputAxisKeyMapping& Mapping : Settings->GetAxisMappings())
-    {
-        if ((Mapping.AxisName == FirstAxis || Mapping.AxisName == SecondAxis)
-            && Mapping.Key.IsGamepadKey() == bGamepad)
-        {
-            bHasW |= Mapping.Key == EKeys::W;
-            bHasA |= Mapping.Key == EKeys::A;
-            bHasS |= Mapping.Key == EKeys::S;
-            bHasD |= Mapping.Key == EKeys::D;
-            bHasArrowUp |= Mapping.Key == EKeys::Up;
-            bHasArrowDown |= Mapping.Key == EKeys::Down;
-            bHasArrowLeft |= Mapping.Key == EKeys::Left;
-            bHasArrowRight |= Mapping.Key == EKeys::Right;
-            bHasLeftX |= Mapping.Key == EKeys::Gamepad_LeftX;
-            bHasLeftY |= Mapping.Key == EKeys::Gamepad_LeftY;
-            bHasRightX |= Mapping.Key == EKeys::Gamepad_RightX;
-            bHasRightY |= Mapping.Key == EKeys::Gamepad_RightY;
-            bHasMouseX |= Mapping.Key == EKeys::MouseX;
-            bHasMouseY |= Mapping.Key == EKeys::MouseY;
-            FString Label = Mapping.Key.GetDisplayName().ToString();
-            Label.ReplaceInline(TEXT("Gamepad Left "), TEXT("Left stick "));
-            Label.ReplaceInline(TEXT("Gamepad Right "), TEXT("Right stick "));
-            Labels.AddUnique(Label);
-        }
-    }
-    if (bGamepad && FirstAxis == TEXT("MoveForward") && SecondAxis == TEXT("MoveRight") && bHasLeftX && bHasLeftY)
-        return TEXT("Left stick");
-    if (bGamepad && FirstAxis == TEXT("Turn") && SecondAxis == TEXT("LookUp") && bHasRightX && bHasRightY)
-        return TEXT("Right stick");
-    if (!bGamepad && FirstAxis == TEXT("MoveForward") && SecondAxis == TEXT("MoveRight")
-        && bHasW && bHasA && bHasS && bHasD && bHasArrowUp && bHasArrowDown && bHasArrowLeft && bHasArrowRight)
-        return TEXT("W/A/S/D + arrow keys");
-    if (!bGamepad && FirstAxis == TEXT("Turn") && SecondAxis == TEXT("LookUp") && bHasMouseX && bHasMouseY)
-        return TEXT("Mouse");
-    return Labels.IsEmpty() ? TEXT("Unbound") : FString::Join(Labels, TEXT(", "));
-}
-
-FString FormatInput(const FName ActionName)
-{
-    return FString::Printf(TEXT("%s / %s"), *FindActionKeys(ActionName, false), *FindActionKeys(ActionName, true));
-}
 
 FSlateFontInfo PromptFont(const int32 Size)
 {
@@ -158,11 +73,6 @@ void UKalmalaTutorialPromptWidget::NativeOnInitialized()
     BodyText->SetColorAndOpacity(FSlateColor(FLinearColor::White));
     Copy->AddChildToVerticalBox(BodyText)->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 7.0f));
 
-    ControlsText = WidgetTree->ConstructWidget<UTextBlock>();
-    ControlsText->SetFont(PromptFont(14));
-    ControlsText->SetAutoWrapText(true);
-    ControlsText->SetColorAndOpacity(FSlateColor(FLinearColor(0.82f, 0.86f, 0.84f, 1.0f)));
-    Copy->AddChildToVerticalBox(ControlsText);
     Row->AddChildToHorizontalBox(Copy)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 
     CardBorder->SetContent(Row);
@@ -203,12 +113,11 @@ int32 UKalmalaTutorialPromptWidget::NativePaint(const FPaintArgs& Args, const FG
 }
 
 void UKalmalaTutorialPromptWidget::SetPrompt(const EKalmalaTutorialBeat Beat, const FString& Title,
-    const FString& Body, const FString& Controls)
+    const FString& Body)
 {
     DisplayedBeat = Beat;
     if (TitleText) TitleText->SetText(FText::FromString(Title));
     if (BodyText) BodyText->SetText(FText::FromString(Body));
-    if (ControlsText) ControlsText->SetText(FText::FromString(Controls));
     Invalidate(EInvalidateWidget::LayoutAndVolatility);
 }
 
@@ -498,7 +407,7 @@ void UKalmalaTutorialSubsystem::ShowBeat(const EKalmalaTutorialBeat Beat, const 
 
     const UEnum* BeatNames = StaticEnum<EKalmalaTutorialBeat>();
     const FString Title = (BeatNames != nullptr ? BeatNames->GetDisplayNameTextByValue(static_cast<int64>(Beat)).ToString() : TEXT("Field note")) + TEXT(" · optional");
-    PromptWidget->SetPrompt(Beat, Title, BuildBody(Beat), BuildControls());
+    PromptWidget->SetPrompt(Beat, Title, BuildBody(Beat));
     PromptWidget->SetPromptVisible(true);
 }
 
@@ -530,39 +439,28 @@ FString UKalmalaTutorialSubsystem::BuildBody(const EKalmalaTutorialBeat Beat) co
     switch (Beat)
     {
     case EKalmalaTutorialBeat::Arrive:
-        return FString::Printf(TEXT("Move: %s / %s\nLook: %s / %s\nJump: %s\nSprint: %s"),
-            *FindAxisKeys(TEXT("MoveForward"), TEXT("MoveRight"), false), *FindAxisKeys(TEXT("MoveForward"), TEXT("MoveRight"), true),
-            *FindAxisKeys(TEXT("Turn"), TEXT("LookUp"), false), *FindAxisKeys(TEXT("Turn"), TEXT("LookUp"), true),
-            *FormatInput(TEXT("Jump")), *FormatInput(TEXT("Sprint")));
+        return TEXT("Movement, looking, jumping, and sprinting are available whenever you need them.");
     case EKalmalaTutorialBeat::Interact:
-        return FString::Printf(TEXT("A nearby usable object is in view. Face it and press %s to interact; the server checks every request."), *FormatInput(TEXT("Interact")));
+        return TEXT("A nearby usable object is in view. Face it and choose its displayed action; the server checks every request.");
     case EKalmalaTutorialBeat::Gather:
-        return FString::Printf(TEXT("Gather what you need from the wilderness. Your pack shows what was accepted. Press %s while the node remains visible."), *FormatInput(TEXT("Interact")));
+        return TEXT("Gather what you need from the wilderness. Your pack shows what was accepted while the node remains visible.");
     case EKalmalaTutorialBeat::Prepare:
-        return FString::Printf(TEXT("Construction Hammer menu: %s. Build floors, walls, and roofs directly from Wood and Fibre; the server checks materials and placement."),
-            *FormatInput(TEXT("CraftMenu")));
+        return TEXT("Choose what to make, then place it where the terrain and your materials allow. The server checks materials and placement.");
     case EKalmalaTutorialBeat::Weather:
         return TEXT("Weather changes comfort and travel. Shelter, cover, and a lit hearth are options; your status shows current effects.");
     case EKalmalaTutorialBeat::Explore:
         return TEXT("Pick a heading and see what the generated land offers. The map is for orientation, not a required route.");
     case EKalmalaTutorialBeat::OptionalEncounter:
-        return FString::Printf(TEXT("You can engage or move on. Attack: %s. Hits and results are confirmed by the server."), *FormatInput(TEXT("Attack")));
+        return TEXT("You can engage or move on. Hits and results are confirmed by the server.");
     case EKalmalaTutorialBeat::Discovery:
-        return FString::Printf(TEXT("This visible discovery is optional. Press %s if you want to investigate."), *FormatInput(TEXT("Interact")));
+        return TEXT("This visible discovery is optional. Choose Interact if you want to investigate.");
     case EKalmalaTutorialBeat::SupportMagic:
-        return FString::Printf(TEXT("Learned support effects can help an eligible ally or situation. Select with 1–4 / D-pad and use %s when eligible."), *FormatInput(TEXT("SupportActivate")));
+        return TEXT("Learned support effects can help an eligible ally or situation. Choose a valid target and action when the interface allows.");
     case EKalmalaTutorialBeat::Return:
-        return FString::Printf(TEXT("At a visible camp, press %s to use the hearth or storage. You can shelter here or keep exploring."),
-            *FormatInput(TEXT("Interact")));
+        return TEXT("At a visible camp, choose Use to tend the hearth or open storage. You can shelter here or keep exploring.");
     default:
         return FString();
     }
-}
-
-FString UKalmalaTutorialSubsystem::BuildControls() const
-{
-    return FString::Printf(TEXT("%s dismiss   %s revisit"),
-        *FormatInput(TEXT("TutorialPromptDismiss")), *FormatInput(TEXT("TutorialPromptRevisit")));
 }
 
 void UKalmalaTutorialSubsystem::Deinitialize()

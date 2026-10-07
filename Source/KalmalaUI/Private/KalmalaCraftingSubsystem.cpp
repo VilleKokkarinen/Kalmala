@@ -286,34 +286,15 @@ bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target
 }
 
 FString UKalmalaInteractionPromptWidget::BuildPromptText(const FString& TargetName, const FString& ActionName,
-    const FString& KeyboardBinding, const FString& ControllerBinding, const FString& UnavailableReason,
-    const bool bModalOpen)
+    const FString& UnavailableReason, const bool bModalOpen)
 {
     if (bModalOpen || TargetName.TrimStartAndEnd().IsEmpty() || ActionName.TrimStartAndEnd().IsEmpty()) return FString();
 
-    const bool bKeyboardBound = !KeyboardBinding.TrimStartAndEnd().IsEmpty()
-        && KeyboardBinding != TEXT("Not bound") && KeyboardBinding != TEXT("Unbound");
-    const bool bControllerBound = !ControllerBinding.TrimStartAndEnd().IsEmpty()
-        && ControllerBinding != TEXT("Not bound") && ControllerBinding != TEXT("Unbound");
-    const bool bUnavailable = !UnavailableReason.TrimStartAndEnd().IsEmpty() || (!bKeyboardBound && !bControllerBound);
-
     FString Text = FString::Printf(TEXT("%s\n%s"), *TargetName, *ActionName);
-    if (bUnavailable)
+    if (!UnavailableReason.TrimStartAndEnd().IsEmpty())
     {
-        const FString Reason = UnavailableReason.TrimStartAndEnd().IsEmpty()
-            ? TEXT("No binding") : UnavailableReason.TrimStartAndEnd();
-        Text += FString::Printf(TEXT(" — Unavailable: %s"), *Reason);
+        Text += FString::Printf(TEXT(" — Unavailable: %s"), *UnavailableReason.TrimStartAndEnd());
     }
-
-    TArray<FString, TInlineAllocator<2>> Bindings;
-    if (bKeyboardBound) Bindings.Add(FString::Printf(TEXT("Keyboard: %s"), *KeyboardBinding.TrimStartAndEnd()));
-    if (bControllerBound)
-    {
-        FString DisplayBinding = ControllerBinding.TrimStartAndEnd();
-        if (DisplayBinding.StartsWith(TEXT("Gamepad "))) DisplayBinding.RightChopInline(8, EAllowShrinking::No);
-        Bindings.Add(FString::Printf(TEXT("Gamepad: %s"), *DisplayBinding));
-    }
-    if (!Bindings.IsEmpty()) Text += TEXT("\n") + FString::Join(Bindings, TEXT("\n"));
     return Text;
 }
 
@@ -1478,8 +1459,6 @@ void UKalmalaCraftingSubsystem::UpdateInteractionPrompt(APlayerController* Playe
 
     const FString Text = Candidate != nullptr || !Description.TargetName.IsEmpty()
         ? UKalmalaInteractionPromptWidget::BuildPromptText(Description.TargetName, Description.ActionName,
-            UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), false).ToString(),
-            UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), true).ToString(),
             Description.UnavailableReason)
         : FString();
     InteractionPrompt->SetPrompt(Text);
@@ -1502,31 +1481,25 @@ void UKalmalaCraftingSubsystem::UpdateInteractionPromptReview(APlayerController*
     if (InteractionPromptReviewWait < 0.75f) return;
     InteractionPromptReviewWait = 0.0f;
 
-    const FString KeyboardBinding = UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), false).ToString();
-    const FString ControllerBinding = UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), true).ToString();
     FString StageName;
     FString Text;
     switch (InteractionPromptReviewStage)
     {
     case 0:
         StageName = TEXT("available");
-        Text = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Densewood trunk"), TEXT("Chop"),
-            KeyboardBinding, ControllerBinding);
+        Text = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Densewood trunk"), TEXT("Chop"));
         break;
     case 1:
         StageName = TEXT("unavailable");
-        Text = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Mire campfire"), TEXT("Light"),
-            KeyboardBinding, ControllerBinding, TEXT("Too wet to light"));
+        Text = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Mire campfire"), TEXT("Light"), TEXT("Too wet to light"));
         break;
     case 2:
         StageName = TEXT("modal");
-        Text = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Workbench"), TEXT("Use"),
-            KeyboardBinding, ControllerBinding, FString(), true);
+        Text = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Workbench"), TEXT("Use"), FString(), true);
         break;
     default:
         StageName = TEXT("no-target");
-        Text = UKalmalaInteractionPromptWidget::BuildPromptText(FString(), FString(),
-            KeyboardBinding, ControllerBinding);
+        Text = UKalmalaInteractionPromptWidget::BuildPromptText(FString(), FString());
         break;
     }
 

@@ -373,19 +373,18 @@ missing glyph/text fragments at 1024x768/150% high contrast. Automated checks
 passed but final visual acceptance failed on both peers. The HUD child remains
 blocked; do not treat these candidate styling changes as verified or complete.
 
-## Near-crosshair interaction prompt — 2026-10-05
+## Near-crosshair interaction prompt — 2026-10-07
 
 The owner-local prompt sits just below screen centre and uses the shared panel,
 font, text-scale, and high-contrast styles. It reads the single actor hit by the
-owning pawn's current short visibility trace, names a supported action, and
-shows the current keyboard and controller mappings for Interact. The key labels
-are resolved on each local update, so the prompt follows a Controls-tab remap
-without a stale cached label. No hit, unsupported actor, or modal input clears
-the prompt. A recognized action that is locally unavailable remains named and
-is labelled Unavailable with a reason where owner-visible state supports one.
-Keyboard and gamepad bindings use separate rows; the bounded panel preserves
-the reason and binding rows at 150% text in the 1024x768 high-contrast review.
-Reviewed host/client captures are retained in `docs/interaction-prompts/`.
+owning pawn's current short visibility trace and presents its target and
+supported action as readable text. The prompt contains no key/button names or
+control legends; current bindings and remapping remain in Options > Controls.
+No hit, unsupported actor, or modal input clears the prompt. A recognized
+action that is locally unavailable remains named and is labelled Unavailable
+with a reason where owner-visible state supports one. Earlier host/client
+captures in `docs/interaction-prompts/` predate this text-only binding contract
+and are retained as historical evidence.
 
 The view trace is an advisory candidate only. The server keeps its own trace,
 range checks, target selection, tool validation, seat/launch checks, and action
@@ -394,10 +393,11 @@ launch preview uses only the hit water sample; the server still checks session
 capacity and hull placement. Skiff exit safety and network-delayed state may
 also cause a server rejection after a visible prompt.
 
-`Kalmala.UI.InteractionPrompt.Presentation` checks current bindings, remap
-reflection, unavailable, no-target, modal, and no-binding text. The disposable
-render fixture supplies available/unavailable labels and silent modal/no-target
-states on both local peers for standard and high-contrast review. Rendered
-crafting acceptance also confirms the live prompt hides while its modal is open.
-This editor evidence does not certify physical keyboard/controller hardware or
-packaged builds.
+`Kalmala.UI.InteractionPrompt.Presentation` checks target/action readability,
+absence of binding labels, unavailable, no-target, and modal text. It also
+confirms that live remapped labels remain available from Options without leaking
+into the prompt. The disposable render fixture supplies available/unavailable
+actions and silent modal/no-target states on both local peers for standard and
+high-contrast review. Rendered crafting acceptance also confirms the live
+prompt hides while its modal is open. This editor evidence does not certify
+physical keyboard/controller hardware or packaged builds.

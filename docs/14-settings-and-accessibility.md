@@ -18,6 +18,10 @@ other cues use their dedicated text/icon HUD surfaces. See
 `36-status-icons.md` for the status presentation contract and
 `40-notifications.md` for feedback rules.
 
+Gameplay HUD and interaction prompts name the visible action without showing
+key/button names or control legends. Current mappings and remapping remain in
+Options > Controls; prompt actions stay readable as text.
+
 ## Existing shell and option groups
 
 The existing local menu opens and closes with **Escape**, owns modal input while

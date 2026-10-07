@@ -22,7 +22,7 @@ selector. See `36-status-icons.md` for identities and verification boundaries.
 | Player | `UKalmalaPlayerModelComponent` procedural mesh and the generated bark/terrain/rock materials | Nine local, collision-free cosmetic parts; shape and pose never author gameplay | Faceted mantle/hood presentation verified in the rendered offscreen host/client controls fixture |
 | Wildlife | `AKalmalaWildlifeSpawn::BuildArchetypePresentation` procedural low-poly geometry and vertex colours | Server-owned replicated actor state; mesh is presentation only and has no collision | Mireling's low forward hunch, reaching arms, and split crown read as a distinct close-view silhouette in the rendered host fixture; dark body planes merge somewhat. Boar has a low wedge-backed profile, broken bristle ridge, tapered muzzle, and paired tusks; deer has a lighter, long-legged alert profile with paired forked antlers |
 | Environment | `AKalmalaGeneratedTerrainPatch`, campfire, and construction procedural meshes using generated materials | Terrain collision and shelter collision remain the gameplay authority; decorative meshes do not add routes or hidden content | Existing generated terrain, water, rock, tree, hearth, and kit sources are audited here |
-| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace, shows its action and current keyboard/controller mappings, and clears for no target or modal input; it does not enumerate targets or authorize actions. The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; a separate top-centre support strip reflects the local character's selected effect and the owner's learned set; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; settings Audio/Controls/Settings tabs expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
+| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace and shows its supported action plus any owner-visible unavailable reason; it clears for no target or modal input and contains no key/button legend. The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; a separate top-centre support strip reflects the local character's selected effect and the owner's learned set; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; settings Audio/Controls/Settings tabs expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
 | Feedback | Text and shape/icon treatments in the owner notification queue, crafting, discovery, and settings widgets | Readable without colour or audio; feedback reports accepted replicated results rather than client claims | Support glyphs reflect only the owner's learned/selected state and retain explicit text names/status; a bounded owner-only queue presents combat/support results and discovery acknowledgements; the optional Text + markers overlay remains for nearby hearth/construction context |
 
 The ledger is an ownership and scope check, not a claim that the complete M5
@@ -144,7 +144,7 @@ transient host camera does not alter the replicated actor; the same run checks
 server combat, client rejection, owner-only rewards, and same-world defeat
 persistence.
 
-## Local tutorial prompt presentation
+## Local HUD prompts and onboarding status
 
 `UKalmalaAccessibilityFeedbackSubsystem` belongs to each `ULocalPlayer`. When
 the local preference is **Text + markers**, it displays an owner-only text
@@ -153,20 +153,19 @@ discovery, and support state. The bracketed markers remain meaningful without
 colour, and the overlay follows the local high-contrast palette. It reads no
 hidden actor or reward and sends no request.
 
-`UKalmalaTutorialSubsystem` belongs to each `ULocalPlayer`. It displays an
-optional text card and a high-contrast compass mark from normal possession,
-visible local view focus, the local movement offset, the existing crafting
-shell, or that owner's replicated Wet/learned-effect state. It samples no
-hidden population or discovery descriptors, and it sends no gameplay request.
-Dismissal and revisit input are non-consuming local bindings; prompt history
-ends with the local-player session.
+`UKalmalaTutorialSubsystem` remains local-player state but is disabled at
+runtime. Its retained design source uses action names without key/button
+legends; no onboarding card mounts during fresh start, possession changes, or
+reconnect.
 
-`Scripts/Verify-PlayerControls.ps1 -Rendered` captured the arrival prompt for
-both host and client at 1280×720 while retaining the existing movement checks.
-The lower-centre card exposes current W/A/S/D, left-stick, mouse/right-stick,
-jump, sprint, dismiss, and revisit labels. Other prompt contexts, viewport
-scales, and keyboard/controller prompt-button presses remain for the follow-up
-onboarding acceptance check.
+The live near-crosshair prompt reads the actor hit by the owning pawn's current
+short view trace. It presents the target, supported action, and any
+owner-visible unavailable reason as text, then clears for no target or modal
+input. It contains no binding labels; current keyboard/controller mappings
+remain in Options > Controls. Its text remains available without relying on
+colour or a control glyph. Earlier `Verify-PlayerControls.ps1 -Rendered`
+captures predate this contract and retain historical key labels; they are not
+current presentation acceptance evidence.
 
 ## Rendered survival status HUD layout
 
