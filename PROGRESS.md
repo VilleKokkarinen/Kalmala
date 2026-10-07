@@ -11464,3 +11464,17 @@ Lightweight checks: Inspected the revised icon/timer contract and acceptance cri
 Observable impact/authority: The plan now specifies an icon-first HUD with durations only where they describe a timed player effect. Weather timing remains server-owned and can be diagnosed without being shown to players; no effect, duration, threshold, authority or save contract changes.
 
 Next eligible task: First M12 inventory-toggle child remains next. Main-checkout update; no worktree handoff needed.
+
+### Run 2026-10-07 — Size unchecked backlog for approximately 30-minute increments
+
+Completed: Reviewed all 52 unchecked backlog entries; none occur before M12. Replaced the M12 execution queue with 11 feature/verification parents and 71 direct selectable children. Removed nested aggregate execution tasks, split inventory presentation/input, each station/context and catalogue transformations, bounded generation to four images/copy to eight identities/texture mappings to sixteen, combined small minimap/tutorial changes with their narrow checks, and removed separate early expensive rendered-verification tasks. Preserved all ten product goals, corrections, ordering and completed historical records.
+
+Files changed: BACKLOG.md, docs/04-roadmap.md and this PROGRESS.md. Only this chat appeared active on Kalmala; pre-existing changes preserved. Roadmap execution notes distinguish cumulative goals from selectable increments and define manifest-based coverage/batching and safe replacement entry points.
+
+Lightweight checks: Parsed the queue to confirm only direct executable children, a 15–30-minute estimate on each normal child, one explicitly variable milestone-final verification exception, no checked M12 implementation entries, all ten goals plus final verification retained, unchanged pre-M12 content, staged whitespace and short committed paths. No build, runtime test, image generation or implementation performed; full verification remains deferred.
+
+Observable impact/authority: Agents can select one bounded integrated increment without accidentally taking a whole station-menu group or all artwork/copy in one run. Estimates include normal inspection and commit overhead; no features, gameplay/authority rules, privacy, fuel/repair/item contracts or saved schemas changed.
+
+Known limits: About 30 minutes is a planning estimate, not a measured guarantee. Image-service latency/retries, integration discoveries and mandatory milestone-final full checks/repairs can exceed it. Final verification is deliberately not weakened or spread across apparently complete acceptance items; AGENTS.md requires it during the final implementation run until success or a genuine blocker.
+
+Next eligible task: Add the shared Tab/I inventory-toggle action and minimal themed owner-local shell. Subsequent modal/input, pack and detail increments follow in order. Main-checkout documentation update; no worktree synchronization needed.

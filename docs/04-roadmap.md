@@ -435,6 +435,19 @@ M11 has twenty-three ordered goals:
 Start after M11 acceptance. Continue UX/UI improvements through existing shared
 themes, catalogue widgets, local input, and owner-visible state.
 
+Execution sizing is defined by the direct unchecked children in `BACKLOG.md`,
+not these cumulative feature goals. Normal increments target about 20–30 minutes
+including implementation, lightweight checks, progress/backlog updates and commit.
+Small layout/removal changes combine implementation and narrow checks; menu,
+art/import and catalogue work use bounded integrated increments. Generated art
+batches contain at most four objects; copy batches at most eight; texture mapping
+batches at most sixteen. Pin membership in manifests and add ordered bounded
+children when needed for full coverage. Keep old action entry points until their
+replacement works. Full build/rendered/regression execution stays in the mandatory
+milestone-final run, which can exceed 30 minutes and must finish or report a true
+blocker under `AGENTS.md`; elapsed estimates never count as implementation or
+verification success.
+
 M12 has ten ordered UI goals:
 
 1. **Dedicated inventory menu.** Add an Inventory menu with the same presentation

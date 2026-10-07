@@ -481,61 +481,107 @@ Start only after M10 acceptance closes under its recorded owner-approved scope a
 
 ## M12 — Inventory menu and cleaner gameplay HUD
 
-Start after M11 acceptance. Scope and acceptance are defined in
-`docs/04-roadmap.md`; the 2026-10-07 user screenshot identifies the whole tall
-left-side panel to remove. All implementation tasks below remain pending.
+Start after M11 acceptance. `docs/04-roadmap.md` defines the ten product goals.
+All implementation below remains pending; completed historical milestones are unchanged.
 
-- [ ] Add a dedicated Inventory menu like the crafting menu, opened with Tab or I.
-  - [ ] Establish the shared local inventory-toggle action with default Tab and I bindings, existing remapping support, modal/text-entry/focus priority, Escape close, and movement/look restoration.
-  - [ ] Present the owner's existing pack slots, counts, carried tools/equipment, and selected-item details in a themed inventory menu using shared crafting/menu components; reuse applicable search/filter/sort and remembered browsing state.
-  - [ ] Verify empty/populated views, truthful owner-visible data, existing inventory actions, separate host/client owners, and keyboard/controller navigation without new gameplay or save contracts.
-- [ ] Remove the persistent left-side panel shown in the user's screenshot from normal gameplay.
-  - [ ] Retire the pictured left-side support/combat/diagnostic and pack/tool presentation after inventory inspection is available in the dedicated menu; preserve combat/support bindings and essential feedback through existing HUD/menu surfaces.
-  - [ ] Verify that normal gameplay has no residual left-panel background, scroll area, slot grid, glyph row, or text, while support/combat actions, interaction prompts, notifications, and status/weather UI still work.
-- [ ] Halve the circular minimap's right and top padding.
-  - [ ] Change the top-right minimap margins from 24 to 12 UI units on both edges, keeping size, zoom, circular clipping, facing marker, and status/weather separation.
-  - [ ] Verify the halved margins and absence of clipping/overlap at 4:3, 16:9, and ultrawide resolutions with interface/text scaling and high contrast.
-- [ ] Remove the bottom-centred tutorial/help card shown in the follow-up screenshot.
-  - [ ] Retire the normal gameplay onboarding banner, including Arrive/optional and movement/look instructions, without adding a replacement help banner or losing essential action/status feedback.
-  - [ ] Verify the card stays absent on fresh start, onboarding transitions, reconnect, and supported layouts while existing interaction/status/notification presentation remains usable.
-- [ ] Show input-binding text only in the Options controls/binding configuration.
-  - [ ] Audit every player-facing HUD/menu/map/prompt/tooltip and remove key/button names, combination instructions, and control legends outside Options; keep concise action labels and usable keyboard/controller focus behavior.
-  - [ ] Verify default and remapped input, text-entry/modal priority, and absence of binding text outside Options across host/client views, including interaction prompts and station menus.
-- [ ] Simplify recipe and construction descriptions for players.
-  - [ ] Replace developer-facing copy with concise useful descriptions, ingredient counts, relevant output/requirements, and one actionable unavailable reason; remove repeated information, server/request/internal details, unrelated skill lists, and empty requirement boilerplate.
-  - [ ] Verify representative build, cooking, crafting, upgrade, and repair states remain truthful and readable with no input legends, lost real prerequisites, or altered recipe/gameplay data.
-- [ ] Make the build menu construction-only and move other functions into dedicated menu systems.
-  - [ ] Implement the exact object -> menu -> contents mappings in roadmap goal 7; use existing validated world interactions and retain existing action availability/authority contracts.
-    - [ ] Construction Hammer -> Build: construction catalogue, piece/material/placement details, preview and build/place only; retain bootstrap construction and placement of crafted buildables.
-    - [ ] Player pack (Tab/I) -> Inventory: pack items/counts/details, carried tools/equipment and supported Eat/use actions; no new eating station gate.
-    - [ ] Workbench -> Workbench: station-compatible Craft (including Bronze Axe and Grinding Stone), selected-tool free Repair, station level/attachment state and relevant prerequisites.
-    - [ ] Forge -> Forge: compatible Craft (including Frying Pan), supported tool Upgrade (including Iron Axe), selected-tool free Repair, material/station/skill requirements and comparisons.
-    - [ ] Grinding Stone -> direct Repair All on Interact (default E), with no menu/selector/confirmation; preserve free server validation, one action per accepted interaction and concise action-only feedback.
-    - [ ] Cooking Rack -> Rack cooking: Cooked boar/deer meat, counts, supported quantities, hearth heat and Cook only.
-    - [ ] Hearth Cauldron -> Cauldron cooking: Meat stew/Root vegetable soup, counts, supported quantities, hearth heat and Cook only.
-    - [ ] Frying Pan -> Pan cooking: Roasted root vegetables/Deer and rutabaga roast, counts, supported quantities, hearth heat and Cook only.
-    - [ ] Campfire -> direct Add fuel on Interact (default E), with no menu/picker/confirmation or extra lighting toggle; consume exactly one available item using existing Wood/Lightwood/Densewood/Coal priority, duration/cap and range validation; failed/full/no-fuel attempts spend nothing.
-    - [ ] Chest -> Storage: interacted chest and owner pack stacks, item details, existing Deposit/Withdraw and capacity feedback only.
-    - [ ] Workbench Tool Rack/Forge Anvil -> no separate service menu: show passive attachment/effective-level state in the parent station menu; keep placement in Build.
-  - [ ] Provide dedicated themed repair, cooking/food, crafting/upgrading, and storage contexts opened by relevant world interactions, with inventory access through the separate Tab/I menu; preserve station/range checks, owner privacy, and modal/input restoration.
-  - [ ] Remove every non-construction action/section from the build menu, leaving buildable browsing, materials/requirements, selection/preview, and construction actions; verify every displaced function remains accessible in its proper context.
-- [ ] Generate and integrate original 64x64 image icons for all item/recipe/crafting/build selections.
-  - [ ] Enumerate all current runtime items/materials/food, carried tools/equipment, recipe/build outputs and upgrade targets; define canonical object-to-image assignments and a source/output manifest, reusing an object's image across views.
-  - [ ] Generate original coloured object thumbnails with consistent framing/lighting and transparent backgrounds; prepare and visually inspect exactly 64x64 RGBA PNGs for every distinct supported object, with no baked-in text, slot chrome or state badges.
-  - [ ] Import project-owned UI textures and integrate them through shared canonical icon mappings in inventory, ingredient rows, crafting/build grids, station/upgrade/storage views and selected-result details; preserve readable overlays and unknown-ID fallback.
-  - [ ] Audit complete coverage, identity/alias correctness, dimensions/alpha and paths; inspect every native-size icon and rendered host/client views for recognizability, scaling/contrast and selection/Favorite/Rank/Recent coexistence. Retain generated sources, final icons, manifest and captures.
-- [ ] Rework inconsistent item/recipe display names and poor descriptions, preserving the user's intentional manual improvements.
-  - [ ] Audit every current item/material/food/tool/equipment/buildable/result identity and text source; record current/proposed names/descriptions and manual improvements to retain in a before/after copy list.
-  - [ ] Classify Campfire as construction only: remove HearthRing as a normal inventory item, display the Campfire building recipe/output as Campfire, and place one Campfire directly without creating an inventory stack; update loader/validation/UI/icon contracts while retaining internal/legacy construction-save aliases, current costs and rejection safety.
-  - [ ] Correct display-name mismatches, explicitly naming both the Workbench item and its recipe Workbench; propagate one readable name across menus/prompts/ingredients/results without renaming internal IDs, aliases or save fields.
-  - [ ] Rewrite remaining poor descriptions as concise natural player-facing copy with truthful uses and appropriate flavour; remove stale/developer/AI-style text, redundant names and vague filler while preserving intentional good manual edits.
-  - [ ] Verify complete copy coverage, cross-view name/description consistency, readable wrapping and search/sort, icon associations, owner privacy and unchanged gameplay/catalogue schemas; update relevant text expectations and documentation.
-- [ ] Move status/weather icons to the minimap's upper left and show only active special conditions with compact spacing.
-  - [ ] Anchor the group's right edge beside the minimap's left edge, align both tops at the 12-UI-unit margin, and derive scaled positioning from the minimap layout with a default 12-unit separation.
-  - [ ] Filter to existing active statuses, qualifying Hot/Cold exposure and current Storm; hide Calm/normal/generic weather activity icons, immediately remove expired/cleared icons and collapse the empty group without placeholder space or retained end icons.
-  - [ ] Provide original 64x64 status/weather image icons with no visible name text; show centred minutes:seconds beneath finite player effects only (Wet/meal/timed support), and no timer, ongoing label or placeholder for Storm/weather or untimed Hot/Cold. Retain nonvisual accessible names/details and remove server weather-duration information from player-facing details.
-  - [ ] Replace wide fixed status cells with compact 64x64-icon columns and optional timer underneath, minimal inner padding and default 4-unit inter-entry gaps; preserve stable order and wrap leftward/downward safely without clipping or minimap overlap.
-  - [ ] Verify rendered host/client empty/single/multiple states, Storm transitions, Hot/Cold recovery, expiry, reconnect, separate owners and supported layout/accessibility scales; retain captures, verify 64x64/no-name presentation with only player-effect timers underneath and no weather/untimed-condition durations, and confirm unchanged authoritative rules/timers.
-- [ ] Complete M12 milestone-final verification: inspect combined changes, build and run the prescribed affected UI/input/inventory/construction/crafting/repair/cooking/storage/authority/reconnect regressions, and retain rendered host/client evidence for dedicated menu interactions and input restoration, empty/populated views, separate owners, removal of both pictured panels, Options-only binding text, concise truthful recipes, construction-only build scope, minimap placement, generated 64x64 icon coverage/readability across all relevant views, consistent revised display names/descriptions with retained manual improvements, construction-only Campfire placement with no HearthRing inventory item and saved-construction compatibility, compact active-only 64x64 status/weather icons at the minimap upper left without visible names, timers underneath finite player effects only, no weather/untimed-condition durations and hidden empty state, accessibility, and unchanged gameplay/persistence. Mark the milestone complete only after required verification passes.
+**Run sizing:** top-level entries group features; each direct child is one selectable
+increment. Estimates include context, implementation, lightweight inspection/checks,
+backlog/progress updates and commit. Target 20–30 minutes, not a guaranteed deadline.
+No nested executable children: do not select an aggregate task accidentally.
+Keep every increment integrated/playable; retain an old entry point until its replacement
+works. Full builds, rendered peer runs and broad regressions remain deferred to the
+milestone-final run under `AGENTS.md`. Each child includes careful inspection and
+useful narrow checks; prepare/update affected acceptance helpers rather than running
+the full rendered matrix during normal increments. Document full verification as deferred.
+
+- [ ] Add the dedicated Inventory menu (roadmap goal 1).
+  - [ ] [20–30 min] Add the local inventory-toggle action with default Tab/I mappings and a minimal themed menu shell; both keys open/close the same owner-local instance through existing remapping conventions.
+  - [ ] [20–30 min] Integrate inventory modal priority with crafting/settings/map, text-entry and focus handling, Escape close, and cursor/movement/look restoration; inspect empty-shell open/close paths and update narrow input checks.
+  - [ ] [20–30 min] Populate the shell with the existing owner pack grid/counts and empty state, reusing shared widgets and owner-only data; retain the old pack view until the new grid is usable.
+  - [ ] [20–30 min] Bind selection to the existing item icon/description/detail component and safe fallback when an item disappears; prepare a focused selection/privacy check.
+  - [ ] [20–30 min] Add carried-tool/equipment rows and existing inspection/actions with real levels/condition; preserve the bounded owner-only tool contract.
+  - [ ] [20–30 min] Wire supported carried-food Eat/use actions and their actual availability/effect through existing server paths; add no station gate and keep rejected/replayed use safe.
+  - [ ] [20–30 min] Reuse inventory search/filter/sort, keyboard/controller focus and session selection/scroll restoration; adapt narrow browsing checks for removed entries and resize/scale fallback.
+- [ ] Remove the persistent left-side panel (goal 2).
+  - [ ] [20–30 min] Preserve support/combat selection and concise action-result/discovery feedback through existing appropriate HUD surfaces independently of the old panel; update narrow feedback/input expectations.
+  - [ ] [20–30 min] Remove the old panel, glyph row, diagnostic/help text and pack/tool grid now covered by Inventory; inspect normal/empty paths for residual chrome and prepare the absence regression.
+- [ ] Halve minimap edge padding (goal 3).
+  - [ ] [15–25 min] Change both margins from 24 to 12 UI units and update the narrow placement/layout validator for DPI, 4:3/16:9/ultrawide and status separation; keep size/zoom/circular clipping unchanged.
+- [ ] Remove the bottom tutorial/help card (goal 4).
+  - [ ] [15–25 min] Remove the pictured onboarding banner across fresh-start/transition/reconnect presentation, preserve essential existing notifications, and update the narrow absence check; no replacement banner.
+- [ ] Confine input-binding text to Options (goal 5).
+  - [ ] [20–30 min] Remove key/button names and control legends from persistent HUD, onboarding and interaction prompts; preserve concise action names, binding behavior and nonvisual accessibility.
+  - [ ] [20–30 min] Remove binding/help legends from inventory and build/crafting/repair/storage views and tooltips; preserve actual button labels and focus navigation.
+  - [ ] [20–30 min] Remove remaining map/status/detail-view legends and audit Options as the only player-facing binding-text source; add a narrow source/text audit and update stale text expectations.
+- [ ] Simplify recipe/detail presentation templates (goal 6; catalogue prose is goal 9).
+  - [ ] [20–30 min] Simplify construction recipe details to useful description, ingredients, real placement/fuel requirements and one blocker; remove repeated names/costs and server/request boilerplate.
+  - [ ] [20–30 min] Simplify food/general crafting detail templates to result, ingredients, supported quantity/real station/heat requirements and one blocker; remove empty/no-lock boilerplate and unrelated skill lists.
+  - [ ] [20–30 min] Simplify upgrade/repair templates to real tool comparison/condition, relevant prerequisites/costs and one blocker; update narrow detail assertions without changing catalogue/gameplay data.
+- [ ] Separate construction and world-service contexts (goal 7).
+  - [ ] [20–30 min] Add a shared themed station-context shell and validated interaction routing, with object identity, close/leave/destruction handling and input restoration; integrate one existing station entry while preserving old service access.
+  - [ ] [20–30 min] Workbench Craft section: reuse supported recipe/tool operations, including Bronze Axe and Grinding Stone, with material/station requirements and effective level/attachment state; no unrelated catalogue.
+  - [ ] [20–30 min] Workbench Repair section: owner carried-tool condition/selection and existing free selected-tool repair; prepare rejection/privacy checks and keep crafting selection separate.
+  - [ ] [20–30 min] Forge Craft section: Forge-compatible production including Frying Pan, real material/station requirements and effective level/attachment state; route the existing world interaction to it.
+  - [ ] [20–30 min] Forge Upgrade section: existing Bronze Axe-to-Iron Axe progression, target comparison, material/skill/station prerequisites and server transaction; retain correct unavailable states.
+  - [ ] [20–30 min] Forge Repair section: reuse selected-tool repair with owner conditions and exact existing validation; isolate its state from Craft/Upgrade and prepare focused checks.
+  - [ ] [20–30 min] Cooking Rack interaction/menu: only Cooked boar/deer meat, ingredient counts, supported quantity and live hearth heat through existing cooking paths; prepare one station/rejection check.
+  - [ ] [20–30 min] Cauldron interaction/menu: only Meat stew/Root vegetable soup, reusing the cooking shell with correct ingredients, quantity and heat; prepare one station-scope check.
+  - [ ] [20–30 min] Frying Pan interaction/menu: only Roasted root vegetables/Deer and rutabaga roast with existing heat/count rules; distinguish Forge production, Build placement and pan cooking in narrow checks.
+  - [ ] [20–30 min] Chest interaction/storage menu: reuse the existing private chest/owner-pack selector and Deposit/Withdraw transactions with capacity/count feedback; expire stale object data and prepare a privacy/transfer check.
+  - [ ] [15–25 min] Grinding Stone: retain direct remappable Interact/default E -> free Repair All with no menu/confirmation; adapt the interaction regression for one accepted action, no extra mutation and action-only feedback.
+  - [ ] [20–30 min] Campfire: Interact/default E -> exactly one available fuel item using existing priority/duration/cap and range validation; no menu/picker/extra lighting toggle; prepare no-fuel/full/rejection checks.
+  - [ ] [20–30 min] Scope the Build catalogue/grid to construction and placement, including bootstrap construction and station/attachment placement; keep station-required item production in its service menu and preserve ingredient/preview behavior.
+  - [ ] [20–30 min] Remove obsolete inventory/food/fire/repair/upgrade/storage actions and unrelated lists from Build only after every destination is integrated; audit passive rack/anvil state in parent-station menus and prepare cross-context regressions.
+- [ ] Generate/integrate catalogue icons (goal 8).
+  - [ ] [20–30 min] Create a pinned canonical icon manifest for all live items/tools/build/results/upgrade targets, with aliases, cross-view reuse and fixed batch membership; exclude Campfire from inventory but include its construction image.
+  - [ ] [20–30 min] Add the shared UI texture lookup/import preparation and unknown-ID fallback using one original pilot icon; establish transparent 64x64 RGBA output, source retention and a narrow image/path validator.
+  - [ ] [20–30 min] Generate/review icon batch 01: next up to four uncompleted manifest objects; retain original sources and final validated 64x64 PNGs, with no baked-in labels/chrome/badges.
+  - [ ] [20–30 min] Generate/review icon batch 02: next up to four uncompleted manifest objects; same framing/lighting and final-image checks.
+  - [ ] [20–30 min] Generate/review icon batch 03: next up to four uncompleted manifest objects; same source/output and native-size readability checks.
+  - [ ] [20–30 min] Generate/review icon batch 04: next up to four uncompleted manifest objects; same source/output and native-size readability checks.
+  - [ ] [20–30 min] Generate/review icon batch 05: next up to four uncompleted manifest objects; same source/output and native-size readability checks.
+  - [ ] [20–30 min] Generate/review icon batch 06: next up to four uncompleted manifest objects; same source/output and native-size readability checks.
+  - [ ] [20–30 min] Generate/review icon batch 07: next up to four uncompleted manifest objects; same source/output and native-size readability checks.
+  - [ ] [20–30 min] Generate/review icon batch 08: next up to four uncompleted manifest objects; same source/output and native-size readability checks.
+  - [ ] [20–30 min] Generate/review icon batch 09: next up to four uncompleted manifest objects; same source/output and native-size readability checks.
+  - [ ] [20–30 min] Generate/review icon batch 10: next up to four uncompleted manifest objects; same source/output and native-size readability checks.
+  - [ ] [20–30 min] Generate/review icon batch 11: next up to four uncompleted manifest objects; same source/output and native-size readability checks.
+  - [ ] [20–30 min] Generate/review icon batch 12: remaining up to four manifest objects; audit full source/final-image coverage. Add ordered four-object batches before this audit if the pinned manifest exceeds capacity; never mark uncovered objects complete.
+  - [ ] [20–30 min] Import/map texture batch A: first up to sixteen manifest outputs/aliases through the shared importer; preserve dimensions/alpha and validate only this batch's identity/asset assignments.
+  - [ ] [20–30 min] Import/map texture batch B: next up to sixteen manifest outputs/aliases through the same path; validate this batch's identity/asset assignments.
+  - [ ] [20–30 min] Import/map texture batch C: remaining up to sixteen manifest outputs/aliases; add bounded batches if needed, then audit full mappings without editor-wide verification.
+  - [ ] [20–30 min] Integrate shared images in Inventory/tool/item/ingredient/storage components and prepare focused overlay/count/unknown-ID checks; retain readable text and owner privacy.
+  - [ ] [20–30 min] Integrate shared images in Build/crafting/upgrade grids and selected-result previews; update coverage/alias assertions and prepare final rendered Favorite/Rank/Recent coexistence checks.
+- [ ] Rework names/descriptions and Campfire classification (goal 9).
+  - [ ] [20–30 min] Create a pinned before/after copy audit covering live catalogue/tool/build/result text sources and manual edits to retain; divide ordered copy batches of at most eight identities.
+  - [ ] [20–30 min] Separate the Campfire construction descriptor from inventory-item lookup in loaders/validators, retaining legacy/internal aliases; keep direct placement playable and prepare focused compatibility/no-stack checks.
+  - [ ] [20–30 min] Remove HearthRing's normal inventory-item definition/presentation once construction resolution works, name the recipe/placed result Campfire, and update icon/count contracts; inspect failed placement, current costs and saved-construction restoration paths.
+  - [ ] [20–30 min] Rename the Workbench item/recipe and their shared prompts/results to Workbench without changing stable identities; leave other audited name changes to the bounded copy batches.
+  - [ ] [20–30 min] Apply copy batch 01: first up to eight audited identities, preserving manual improvements and truthful uses; validate text/name consistency and unchanged non-text data.
+  - [ ] [20–30 min] Apply copy batch 02: next up to eight audited identities; same preservation, consistency and non-text-data checks.
+  - [ ] [20–30 min] Apply copy batch 03: next up to eight audited identities; same preservation, consistency and non-text-data checks.
+  - [ ] [20–30 min] Apply copy batch 04: next up to eight audited identities; same preservation, consistency and non-text-data checks.
+  - [ ] [20–30 min] Apply copy batch 05: next up to eight audited identities; same preservation, consistency and non-text-data checks.
+  - [ ] [20–30 min] Apply copy batch 06: remaining up to eight audited identities; add bounded batches if needed and close the before/after audit with complete coverage, not blanket regeneration.
+  - [ ] [20–30 min] Remove leftover hardcoded old labels from inventory/ingredients/storage/prompts and update focused search/sort/name/icon expectations for these sources.
+  - [ ] [20–30 min] Align recipe/build/station/upgrade/result text with the revised shared catalogue and update text assertions/documentation; audit wrapping expectations and preserved manual copy.
+- [ ] Compact active-only status/weather HUD (goal 10).
+  - [ ] [20–30 min] Anchor the status group to the minimap's actual upper-left layout, shared 12-unit top margin and 12-unit separation; update the narrow scaled placement validator.
+  - [ ] [20–30 min] Filter to active statuses, qualifying Hot/Cold and current Storm; hide normal weather and collapse expired/empty entries without retained end icons or reserved slots; update narrow snapshot/expiry assertions.
+  - [ ] [20–30 min] Pin a supported status/weather icon manifest and generate/review its first up to four original 64x64 transparent images through the established asset pipeline.
+  - [ ] [20–30 min] Generate/review the next up to four status/weather images; validate identities, alpha, dimensions and recognizable native-size silhouettes.
+  - [ ] [20–30 min] Generate/review remaining up to four status/weather images and import/map the complete bounded set; add bounded batches if necessary and validate coverage.
+  - [ ] [20–30 min] Render 64x64 icons without visible names, with centred m:ss beneath finite player effects only; remove weather/untimed durations/ongoing labels including player detail views while retaining accessible names and authoritative timings.
+  - [ ] [20–30 min] Replace wide cells with compact columns, four-unit gaps and safe leftward/downward wrap; update zero/one/three/many-state layout assertions for scales/aspect ratios.
+  - [ ] [20–30 min] Adapt the status-hotbar rendered helper for active-only/no-name/player-timer presentation and register the already prepared inventory/station/direct-interaction checks in the final capture matrix; parse/inspect now, defer execution to final verification.
+- [ ] Complete M12 milestone-final verification (required exception to normal run sizing).
+  - [ ] [Variable; may exceed 30 min] After the final implementation increment, inspect all milestone changes/handoffs; perform the prescribed full build, applicable automation/UI/input/inventory/construction/crafting/repair/cooking/storage/authority/reconnect and performance checks, plus rendered host/client/accessibility matrix and retained captures for all ten goals. Diagnose/repair milestone defects and rerun required verification until it passes or a genuine blocker prevents completion. Record commands/results/limits and commit only verified repairs; mark M12 complete only after success. This verification runs in the same final implementation run under AGENTS.md and is never split into unchecked passing-looking partial milestones.
 
 **M12 status:** Planned; implementation and milestone-final verification pending.
+
+**Sizing audit:** every unchecked item is in M12. Parent headings describe cumulative
+features, not 30-minute promises. Executable direct children are estimated at 15–30
+minutes with lightweight checks. Image-service waits/retries, unknown integration
+issues and milestone-final verification can exceed estimates; preserve the smallest
+integrated increment and record real results. Batch membership is pinned in manifests,
+with additional bounded children inserted in order if live coverage requires them.
