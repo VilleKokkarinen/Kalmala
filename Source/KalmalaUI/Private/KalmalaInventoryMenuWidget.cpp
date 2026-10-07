@@ -4,12 +4,17 @@
 #include "Components/Border.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
+#include "Components/ScrollBox.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
 #include "Framework/Application/SlateApplication.h"
+#include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "InputCoreTypes.h"
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaUITheme.h"
 
@@ -44,14 +49,25 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     Content->AddChildToVerticalBox(Heading);
 
     UTextBlock* Section = WidgetTree->ConstructWidget<UTextBlock>();
-    Section->SetText(FText::FromString(TEXT("Pack and carried equipment")));
+    Section->SetText(FText::FromString(TEXT("Pack contents")));
     Theme.ApplyText(*Section, Theme.BodySize, false, TextScale, Contrast);
     Content->AddChildToVerticalBox(Section);
 
+    PackStateText = WidgetTree->ConstructWidget<UTextBlock>();
+    PackStateText->SetText(FText::FromString(TEXT("Waiting for your pack.")));
+    Theme.ApplyText(*PackStateText, Theme.BodySize, false, TextScale, Contrast);
+    Content->AddChildToVerticalBox(PackStateText);
+
+    UScrollBox* PackScroll = WidgetTree->ConstructWidget<UScrollBox>();
+    Theme.ApplyScroll(*PackScroll);
+    PackRowsView = WidgetTree->ConstructWidget<UKalmalaCatalogueRowsWidget>();
+    PackScroll->AddChild(PackRowsView);
+    Content->AddChildToVerticalBox(PackScroll)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+
     Panel->SetContent(Content);
     USizeBox* PanelSize = WidgetTree->ConstructWidget<USizeBox>();
-    PanelSize->SetWidthOverride(620.0f);
-    PanelSize->SetHeightOverride(260.0f);
+    PanelSize->SetWidthOverride(640.0f);
+    PanelSize->SetHeightOverride(560.0f);
     PanelSize->SetContent(Panel);
 
     UOverlaySlot* PanelSlot = Root->AddChildToOverlay(PanelSize);
@@ -65,6 +81,8 @@ void UKalmalaInventoryMenuWidget::Open()
     if (bMenuOpen) return;
     APlayerController* Controller = GetOwningPlayer();
     if (Controller == nullptr || !Controller->IsLocalController()) return;
+
+    RefreshOwnerPack();
 
     bPreviousCursorVisibility = Controller->bShowMouseCursor;
     bAcquiredMoveIgnore = !Controller->IsMoveInputIgnored();
@@ -81,6 +99,58 @@ void UKalmalaInventoryMenuWidget::Open()
     SetVisibility(ESlateVisibility::Visible);
     SetUserFocus(Controller);
     SetKeyboardFocus();
+}
+
+void UKalmalaInventoryMenuWidget::RefreshOwnerPack()
+{
+    APlayerController* Controller = GetOwningPlayer();
+    if (Controller == nullptr || !Controller->IsLocalController() || PackRowsView == nullptr) return;
+
+    TArray<FKalmalaCatalogueRow> PackRows;
+    APawn* OwnerPawn = Controller->GetPawn();
+    const UKalmalaInventoryComponent* Inventory = OwnerPawn
+        ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    if (Inventory != nullptr)
+    {
+        const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+        for (const FKalmalaInventoryStack& Stack : Inventory->GetStacks())
+        {
+            if (Stack.ItemId.IsNone() || Stack.Quantity <= 0) continue;
+            const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(Stack.ItemId) : nullptr;
+            PackRows.Add({ Stack.ItemId, Definition ? Definition->DisplayName : Stack.ItemId.ToString(),
+                FString::Printf(TEXT("× %d"), Stack.Quantity), false });
+        }
+    }
+
+    const int32 TextScale = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
+    const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
+    PackRowsView->SetRows(PackRows, UKalmalaInventoryComponent::MaxSlots, TextScale, Contrast);
+
+    if (PackStateText != nullptr)
+    {
+        FString State;
+        if (Inventory == nullptr)
+        {
+            State = TEXT("Waiting for your pack.");
+        }
+        else if (PackRows.IsEmpty())
+        {
+            State = TEXT("Your pack is empty.");
+        }
+        else
+        {
+            State = FString::Printf(TEXT("Your pack has %d of %d slots filled."),
+                PackRowsView->GetFilledSlotCount(), UKalmalaInventoryComponent::MaxSlots);
+        }
+        if (PackStateText->GetText().ToString() != State) PackStateText->SetText(FText::FromString(State));
+
+        if (LastTextScalePercent != TextScale || LastContrastMode != Contrast)
+        {
+            FKalmalaUITheme::Get().ApplyText(*PackStateText, FKalmalaUITheme::Get().BodySize, false, TextScale, Contrast);
+            LastTextScalePercent = TextScale;
+            LastContrastMode = Contrast;
+        }
+    }
 }
 
 void UKalmalaInventoryMenuWidget::Close()

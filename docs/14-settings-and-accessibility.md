@@ -139,7 +139,10 @@ before Settings can open. Opening captures the current cursor visibility and
 only the movement/look ignore state it acquires; closing restores those values
 and returns input to gameplay. While an editable text control has keyboard
 focus, Tab/I do not toggle the menu. Gamepad B closes it when focus is outside
-text entry. The menu reads no peer inventory and performs no gameplay action.
+text entry. The menu reads only the owning pawn's owner-only replicated pack
+stacks and displays them read-only; it performs no gameplay action or network
+request. The previous HUD pack view remains until the inventory-menu grid is
+ready to replace it in a later M12 task.
 
 ## Accessibility requirements
 

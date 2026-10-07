@@ -17,6 +17,10 @@ void UKalmalaInventoryMenuSubsystem::Tick(float)
 
     LocalController = FoundController;
     BindLocalInput(LocalController);
+    if (InventoryWidget != nullptr && InventoryWidget->IsMenuOpen())
+    {
+        InventoryWidget->RefreshOwnerPack();
+    }
 }
 
 void UKalmalaInventoryMenuSubsystem::Deinitialize()

@@ -1079,6 +1079,25 @@ the Settings handler first closes Inventory. No gameplay request, inventory
 mutation, network state, or save state is added. Full Unreal and rendered
 host/client checks remain deferred to M12 milestone-final verification.
 
+## M12 inventory pack-grid increment
+
+The Inventory menu reuses `UKalmalaCatalogueRowsWidget` to draw the fixed
+16-slot pack grid, including the existing catalogue icons, display names, item
+counts, empty cells, and filled-slot count. Its data source is only the local
+player controller's pawn inventory component; that component replicates pack
+stacks with `COND_OwnerOnly`. An absent pawn/component is reported as waiting,
+while a valid zero-stack pack explicitly reports that it is empty. The menu
+refreshes on open and while visible so accepted owner inventory changes appear
+without a gameplay request. The existing HUD pack display stays in place until
+the later M12 task removes the persistent panel. This increment adds no RPC,
+mutation, replicated field, or saved-data field.
+
+For M12 acceptance, open Inventory independently for the host and client with
+different owner pack contents, then with an empty pack. Confirm each menu shows
+only that owner's canonical rows and counts, all sixteen slots in the empty
+case, and live owner updates while open. Capture standard and high-contrast
+views at the supported text scales as part of milestone-final verification.
+
 ## M5 documentation contract suite
 
 Run `Scripts/Verify-M5DocumentationContracts.ps1` to execute the onboarding,

@@ -11512,3 +11512,25 @@ Known limitations: The menu remains an empty shell pending pack rows, details, t
 Next eligible task: Populate the shell with the existing owner pack grid/counts and an empty state, retaining the old pack view until the new grid is usable.
 
 Main-checkout handoff synchronization: Complete. Only this run's selected BACKLOG row and PROGRESS entry were synchronized; pre-existing main-checkout edits remain untouched and uncommitted.
+
+### Run 2026-10-07T08:42:26Z — populate the Inventory pack grid
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run. The main checkout has pre-existing changes, including overlapping inventory presentation work, so this increment used isolated worktree `E:\dev\Kalmala\wt\m12-pack-grid` from accepted M12 modal handoff `549c115`.
+
+Completed: Added the existing shared 16-slot `UKalmalaCatalogueRowsWidget` to the owner-local Inventory menu. It displays canonical item names, icons, quantities, filled/empty slot counts and an explicit empty-pack state; missing owner inventory is reported as waiting. The menu refreshes on open and while visible. The existing HUD pack view remains available.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaInventoryMenuSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`; `Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/14-settings-and-accessibility.md`; `BACKLOG.md`; and this `PROGRESS.md` entry.
+
+Lightweight checks: `Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts; `git diff --check` passed; the changed-path MAX_PATH audit passed with paths from 42 to 90 characters. Manual source review confirmed that the widget reads only the local controller's pawn `UKalmalaInventoryComponent` and uses its `COND_OwnerOnly` stacks, without an RPC or gameplay action; the existing HUD renderer and data path remain intact. No Unreal build, automation queue, rendered peer run, or package check was run.
+
+Full verification remains deferred: this is a normal M12 child increment, not the final task in the milestone.
+
+Observable impact: Opening Inventory now shows the current owner pack in a scrollable themed 16-cell grid and distinguishes an empty pack from inventory data that has not arrived.
+
+Networking/authority: This is read-only local presentation of existing owner-only replicated stacks. No RPC, server mutation, replicated state, or save schema changed.
+
+Known limitations: Item selection/details, carried tools, food actions, search/filter/sort, and rendered viewport/accessibility acceptance remain later M12 tasks. The old HUD pack view intentionally remains until the separate HUD removal task.
+
+Next eligible task: Bind Inventory menu selection to the existing item icon/description/detail component and add safe fallback when an item disappears.
+
+Main-checkout handoff synchronization: Complete. After inspecting the dirty main versions, synchronized only this run's selected BACKLOG row and appended progress entry. All pre-existing main-checkout edits remain uncommitted and untouched.
