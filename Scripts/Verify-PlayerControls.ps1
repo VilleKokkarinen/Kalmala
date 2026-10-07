@@ -7,6 +7,8 @@ param(
     [switch]$OceanTraversalAudio
 )
 $ErrorActionPreference = 'Stop'
+$tutorialCheck = Join-Path $PSScriptRoot 'Verify-TutorialRouteFree.ps1'
+& $tutorialCheck
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $output = Join-Path $env:TEMP ('KalmalaPlayerControls-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $output | Out-Null

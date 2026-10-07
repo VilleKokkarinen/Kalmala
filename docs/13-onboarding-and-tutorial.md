@@ -1,4 +1,10 @@
-# M5 onboarding and tutorial contract
+# M5 onboarding and tutorial design contract
+
+**M12 runtime status:** the local tutorial presenter is disabled. No arrival or
+contextual help card appears during fresh start, pawn transition, or reconnect,
+and no replacement banner is shown. The prompt rules and beat matrix below are
+retained as a route-free design reference if onboarding returns in a later
+approved increment.
 
 This document defines optional, local onboarding prompts for a fresh player.
 Prompts teach the existing Kalmala loop without turning the generated wilderness
@@ -61,25 +67,18 @@ the following without developer commands or fixed fixture coordinates:
 6. A two-player observation shows no prompt-driven replication, reward leak,
    client-selected outcome, or private discovery/learned-effect disclosure.
 
-The runtime presenter is a `ULocalPlayerSubsystem`. It shows one short prompt
-at a time after possession, from a local visible-focus trace, the local map
-position relative to the initial pawn position, the existing crafting shell,
-or the owning pawn's readable replicated Wet and learned-effect state. Visible
-harvest nodes, discoveries, wildlife, usable actors, and campfires are tested
-only after the local view trace hits them. The trace never enumerates active or
-hidden world content. Prompt history lasts for the local-player session only;
-it is not written to gameplay or local save data. Each card shows readable text,
-a high-contrast compass shape, and the current keyboard/controller labels.
-F1 / the controller's B button dismisses the current card; F2 / right-stick
-click revisits the last card. Both bindings observe input without consuming
-movement or interaction. Prompts expire after 18 seconds or disappear when
-their context ends.
+The former runtime presenter was a `ULocalPlayerSubsystem`. Its source remains
+as a dormant design implementation, but its tick is disabled and it cannot
+mount a card. The default F1/F2 dismiss/revisit mappings have been removed with
+the gameplay prompts. The source-level route-free audit now also verifies that
+the presenter remains inactive.
 
-`Scripts/Verify-OnboardingContract.ps1` validates the specification; it is not
-a runtime presentation test. `Scripts/Verify-LocalInputContract.ps1` checks the
-actual keyboard/controller movement, interaction, and prompt bindings. The
-fresh-player context walkthrough, route-free trigger/privacy review, and
-packaged two-player evidence remain part of the acceptance work.
+`Scripts/Verify-OnboardingContract.ps1` validates the retained design
+specification; it is not a runtime presentation test. `Scripts/Verify-TutorialRouteFree.ps1`
+checks the route-free source contract and confirms that the presenter is
+disabled. `Scripts/Verify-LocalInputContract.ps1` checks the current
+keyboard/controller movement and interaction bindings. Fresh-player prompt
+walkthrough and prompt rendering are not part of current runtime acceptance.
 
 ## Authority, privacy, and persistence
 

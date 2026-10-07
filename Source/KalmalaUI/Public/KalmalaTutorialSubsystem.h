@@ -54,7 +54,7 @@ private:
     EKalmalaTutorialBeat DisplayedBeat = EKalmalaTutorialBeat::None;
 };
 
-/** Contextual prompts for this local player; it reads only that player's view and replicated pawn state. */
+/** Historical local prompt model, retained as a route-free design reference and disabled during gameplay. */
 UCLASS()
 class KALMALAUI_API UKalmalaTutorialSubsystem : public ULocalPlayerSubsystem, public FTickableGameObject
 {
@@ -65,7 +65,8 @@ public:
     virtual void Deinitialize() override;
     virtual UWorld* GetTickableGameObjectWorld() const override { return GetWorld(); }
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UKalmalaTutorialSubsystem, STATGROUP_Tickables); }
-    virtual bool IsTickable() const override { return !IsTemplate(); }
+    // M12 removes the bottom onboarding card; keep the presenter inactive across possession and reconnect.
+    virtual bool IsTickable() const override { return false; }
 
 private:
     void BindLocalInput(APlayerController* InController);

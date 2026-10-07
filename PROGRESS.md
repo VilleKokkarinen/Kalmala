@@ -11690,3 +11690,25 @@ Known limitations: The updated C++ layout automation and rendered DPI/margin che
 Next eligible task: Remove the bottom tutorial/help card across fresh-start, transition and reconnect presentation; preserve essential notifications and update the absence check.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and synchronized only this run's selected BACKLOG state and PROGRESS entry; all pre-existing main-checkout changes remain uncommitted and untouched.
+
+### Run 2026-10-07T11:16:30Z — remove the bottom tutorial/help card
+
+Concurrency guard: Codex app inventory showed this as the only active Kalmala run. Continued from the clean `codex/m12-hud-feedback-rebuild` worktree at `42cb505`; unrelated main-checkout changes remain untouched.
+
+Completed: Disabled ticking for the local tutorial prompt subsystem so it cannot mount arrival or contextual cards after fresh start, pawn transition, or reconnect. Removed the default F1/F2 and gamepad dismiss/revisit mappings. Existing action/discovery/status notifications remain on their separate HUD subsystem; no replacement banner was added. Updated the narrow route-free source audit, ran it as a fresh-player and Inventory/reconnect preflight, and marked M12 goal 4 complete.
+
+Files changed: `Config/DefaultInput.ini`; `Scripts/Verify-InventoryPanelRemoval.ps1`; `Scripts/Verify-LocalInputContract.ps1`; `Scripts/Verify-PlayerControls.ps1`; `Scripts/Verify-TutorialRouteFree.ps1`; `Source/KalmalaUI/Public/KalmalaTutorialSubsystem.h`; `docs/07-development-setup.md`; `docs/13-onboarding-and-tutorial.md`; `docs/15-presentation-ownership.md`; `docs/ui-polish/accepted.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-TutorialRouteFree.ps1`, `Verify-InventoryPanelRemoval.ps1`, `Verify-LocalInputContract.ps1` (five axes/fourteen actions), and `Verify-M5DocumentationContracts.ps1` all passed. Changed PowerShell files parsed; `git diff --check` passed; MAX_PATH audit passed (longest changed path 93 characters). Manual source review confirmed the dormant presenter cannot bind or mount its card and the independent notification subsystem is unchanged. No C++ build, runtime automation, rendered host/client check, or package check was run.
+
+Full verification remains deferred: this is a normal M12 child increment, not the final implementation task in M12.
+
+Observable impact: The bottom onboarding/help banner no longer appears during fresh start, possession changes, or reconnect. Default F1/F2 and gamepad dismiss/revisit bindings have been removed with the card.
+
+Networking/authority: Presentation/input cleanup only. No gameplay request, RPC, replicated field, save data, or server authority changed. Existing essential notifications retain their separate owner-local presentation path.
+
+Known limitations: Card absence and notification placement have not been visually checked in a running host/client build; transition/reconnect rendering and packaged behavior remain for M12 milestone-final verification.
+
+Next eligible task: Remove key/button names and control legends from persistent HUD, onboarding, and interaction prompts while preserving concise action names and remapping behavior.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main task row before updating it, appended this progress entry, and preserved all other pre-existing changes.

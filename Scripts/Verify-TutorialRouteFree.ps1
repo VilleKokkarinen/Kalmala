@@ -54,9 +54,13 @@ $context = Get-FunctionBody $source 'IsBeatContextActive'
 $body = Get-FunctionBody $source 'BuildBody'
 
 Assert-Contains $header 'class KALMALAUI_API UKalmalaTutorialSubsystem\s*:\s*public ULocalPlayerSubsystem' 'prompts must remain local-player UI state'
-Assert-Contains $tick 'World->IsGameWorld\(\)' 'presenter must run during ordinary gameplay'
-Assert-Contains $tick 'Controller->IsLocalController\(\)' 'presenter must bind only to the owning local controller'
-Assert-Contains $tick 'FindAvailableBeat\(Pawn\)' 'normal possession must choose prompts without a tutorial-enable command'
+Assert-Contains $header 'IsTickable\(\) const override \{ return false; \}' 'the M12 runtime must not mount onboarding cards during gameplay'
+if ([regex]::Matches($source, '\bBindLocalInput\(').Count -ne 2) {
+    throw 'Route-free tutorial check failed: prompt input bindings must only be installed by the dormant tick'
+}
+if ([regex]::Matches($source, '\bShowBeat\(').Count -ne 3) {
+    throw 'Route-free tutorial check failed: card presentation must stay limited to the dormant tick/input handler'
+}
 Assert-Contains $choose 'ChooseUnseen\(EKalmalaTutorialBeat::Arrive\)' 'a fresh possessed pawn must receive arrival guidance before other context'
 if ($choose.IndexOf('ChooseUnseen(EKalmalaTutorialBeat::Arrive)', [StringComparison]::Ordinal) -gt $choose.IndexOf('const AActor* FocusActor', [StringComparison]::Ordinal)) {
     throw 'Route-free tutorial check failed: arrival guidance is ordered behind a contextual prerequisite'
@@ -93,4 +97,4 @@ Assert-Contains $body 'keep exploring' 'a visible camp prompt must preserve the 
 Assert-NotContains ($choose + $context) '\bQuest\b|\bMission\b|\bObjective\b|OpenLevel|ClientTravel|ServerTravel' 'prompt selection must not depend on quest progression or select a destination'
 Assert-NotContains ($source + $header) 'FParse::|FCommandLine::|GetCommandLine|KalmalaTutorial\w*Test|bEnableTutorial|UFUNCTION\s*\(\s*Server|SaveGame|Serialize\(' 'tutorial prompts must not require a developer flag, RPC, or gameplay save'
 
-Write-Output 'PASS: tutorial beats are local and opportunistic; visible context and player movement drive them, with no route, quest, camp prerequisite, hidden-content scan, or tutorial launch flag.'
+Write-Output 'PASS: tutorial design remains route-free and local; the runtime presenter is disabled, so no gameplay help card mounts.'

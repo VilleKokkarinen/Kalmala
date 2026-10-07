@@ -507,8 +507,8 @@ the full rendered matrix during normal increments. Document full verification as
   - [x] [20–30 min] Remove the old panel, glyph row, diagnostic/help text and pack/tool grid now covered by Inventory; inspect normal/empty paths for residual chrome and prepare the absence regression. (2026-10-07; retired the persistent pack HUD and its overlap/capture hooks; Inventory remains on-demand with the sixteen-slot empty-state regression)
 - [x] Halve minimap edge padding (goal 3).
   - [x] [15–25 min] Change both margins from 24 to 12 UI units and update the narrow placement/layout validator for DPI, 4:3/16:9/ultrawide and status separation; keep size/zoom/circular clipping unchanged. (2026-10-07; top/right offsets are 12 UI units and rendered inset checks account for viewport DPI)
-- [ ] Remove the bottom tutorial/help card (goal 4).
-  - [ ] [15–25 min] Remove the pictured onboarding banner across fresh-start/transition/reconnect presentation, preserve essential existing notifications, and update the narrow absence check; no replacement banner.
+- [x] Remove the bottom tutorial/help card (goal 4).
+  - [x] [15–25 min] Remove the pictured onboarding banner across fresh-start/transition/reconnect presentation, preserve essential existing notifications, and update the narrow absence check; no replacement banner. (2026-10-07; disabled the local presenter, removed its default dismiss/revisit mappings, and added fresh-start/reconnect absence preflights; see docs/13-onboarding-and-tutorial.md and PROGRESS.md.)
 - [ ] Confine input-binding text to Options (goal 5).
   - [ ] [20–30 min] Remove key/button names and control legends from persistent HUD, onboarding and interaction prompts; preserve concise action names, binding behavior and nonvisual accessibility.
   - [ ] [20–30 min] Remove binding/help legends from inventory and build/crafting/repair/storage views and tooltips; preserve actual button labels and focus navigation.

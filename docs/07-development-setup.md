@@ -959,14 +959,14 @@ quality, or packaged persistence.
 
 ## M5 onboarding contract check
 
-`Scripts/Verify-OnboardingContract.ps1` is a no-build check for the optional
-local tutorial specification in `docs/13-onboarding-and-tutorial.md`. It
-requires the ten route-free prompt beats, normal keyboard/controller labels,
-colour-independent text/icon guidance, visible-context triggers, server
-authority boundaries, hidden-content privacy rules, and protection of prompt
-history from the gameplay save schema. It does not launch Unreal or claim that
-the runtime presenter, input routing, or packaged two-player prompt flow has
-been implemented.
+`Scripts/Verify-OnboardingContract.ps1` is a no-build check for the retained
+local tutorial design in `docs/13-onboarding-and-tutorial.md`. It requires the
+ten route-free prompt beats, keyboard/controller labels, colour-independent
+text/icon guidance, visible-context triggers, server authority boundaries,
+hidden-content privacy rules, and protection of prompt history from the gameplay
+save schema. `Scripts/Verify-TutorialRouteFree.ps1` additionally checks that
+the M12 runtime presenter is disabled. These checks do not launch Unreal or
+claim packaged two-player prompt flow has passed.
 
 ## M5 settings and accessibility contract check
 
@@ -1219,9 +1219,10 @@ collapsed startup, owner-specific rows, selection fallback, no-results recovery,
 and the full sixteen-cell empty pack with stale details hidden. The
 `Kalmala.UI.Inventory.PreparedFoodDetails` automation now reads the actual
 Inventory menu. `Scripts/Verify-InventoryPanelRemoval.ps1` checks that retired
-runtime classes, help text, crafting suppression and old capture expectations
-stay absent; the inventory and reconnect host/client scripts run this check as
-a preflight. After an affected editor build, run the focused menu automations,
+inventory runtime classes, help text, crafting suppression and old capture
+expectations stay absent, then confirms the tutorial presenter cannot mount the
+bottom card; the inventory and reconnect host/client scripts run this check as a
+preflight. After an affected editor build, run the focused menu automations,
 `Scripts/Verify-PresentationOwnership.ps1`, and `Scripts/Verify-Inventory.ps1`.
 Rendered host/client layout and privacy remain in M12 milestone-final review.
 
@@ -1484,9 +1485,9 @@ After building, run Scripts/Verify-Crafting.ps1 -Rendered. The paid floor fixtur
 
 ## Local tutorial prompt smoke test
 
-Run `Scripts/Verify-TutorialRouteFree.ps1` for a no-build source audit of the normal local-player prompt presenter. It checks that arrival does not depend on other progress, contextual prompts use only local visibility or already-readable state, exploration follows movement from the player's initial position without choosing a heading, a visible camp is optional, and no tutorial command-line gate, quest flow, hidden-actor scan, RPC, or gameplay save path exists.
+Run `Scripts/Verify-TutorialRouteFree.ps1` for a no-build source audit of the retained route-free prompt design and its disabled runtime presenter. It checks that the bottom gameplay card cannot mount, while the historical arrival/context rules still avoid routes, quest flow, hidden-actor scans, RPCs, and gameplay-save state. `Verify-PlayerControls.ps1` runs this audit before its fresh-pawn host/client scenario; `Verify-InventoryPanelRemoval.ps1` includes it in the reconnect/HUD-absence preflight.
 
-After a forced editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered -Port <unused-port>` from the same isolated project copy. Its fresh-pawn host/client path captures the arrival card while the existing fixture verifies local jump/sprint input and server-observed remote movement. The fixture uses a development-only movement-test flag, but the tutorial presenter has no opt-in flag and shows the arrival card without one. Inspect both 1280×720 captures for the text, bound controls, and compass shape. These checks do not render every contextual beat, simulate physical controller input, or replace the final packaged 20–30 minute no-developer-tools acceptance in `docs/12-vertical-slice-runbook.md`.
+After a forced editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered -Port <unused-port>` from the same isolated project copy. Its fresh-pawn host/client path verifies local jump/sprint input and server-observed remote movement, with the tutorial absence audit as a preflight. Inspect both 1280×720 captures for the absence of the bottom card while checking essential status/action notifications remain visible. The fixture uses a development-only movement-test flag. It does not simulate physical controller input or replace the final packaged 20–30 minute no-developer-tools acceptance in `docs/12-vertical-slice-runbook.md`.
 
 ### M3 rain vertical-slice verification
 

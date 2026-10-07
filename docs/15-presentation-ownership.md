@@ -172,8 +172,9 @@ onboarding acceptance check.
 
 `UKalmalaSurvivalStatusWidget` remains a non-focusable local-player view of the
 owning pawn's replicated Wet/food entries, exposure, active support, and server
-weather. Its wrapped lower-left status column uses a 400-unit content width and
-stays clear of the centered arrival card at the documented 1280×720 viewport.
+weather. Its wrapped lower-left status column uses a 400-unit content width.
+The centered arrival card described by the earlier M5 screenshot was removed
+in M12; current gameplay has no bottom tutorial banner.
 The rendered host/client capture shows the weather row and recovery guidance
 without overlap; `Kalmala.UI.SurvivalStatus.LocalPresentation` checks the full
 Wet, food, weather, temperature, support, and empty-state text cases. This

@@ -1,5 +1,9 @@
 # M11 UI-polish acceptance — 2026-10-03
 
+Historical M11 visual acceptance record. The arrival card shown in these
+captures was removed from current gameplay by M12; the screenshots remain as
+evidence of the earlier accepted presentation.
+
 The user explicitly requested finishing the four blocked children together.
 This review supersedes the earlier blanket missing-glyph blocker annotations
 for HUD, crafting/construction and equipment. The source PNGs and lossless

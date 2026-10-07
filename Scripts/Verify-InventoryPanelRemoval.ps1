@@ -67,4 +67,5 @@ if ($architecture.Contains('UKalmalaInventorySubsystem') -or $architecture.Conta
     throw 'Technical architecture still describes the retired persistent inventory panel.'
 }
 
-Write-Output 'PASS: legacy inventory HUD files, runtime hooks, help text and capture expectations are absent; on-demand Inventory and empty-state coverage remain.'
+& (Join-Path $PSScriptRoot 'Verify-TutorialRouteFree.ps1')
+Write-Output 'PASS: legacy inventory HUD and bottom tutorial card are absent; on-demand Inventory and empty-state coverage remain.'
