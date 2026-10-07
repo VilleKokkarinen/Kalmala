@@ -505,8 +505,8 @@ the full rendered matrix during normal increments. Document full verification as
 - [x] Remove the persistent left-side panel (goal 2).
   - [x] [20–30 min] Preserve support/combat selection and concise action-result/discovery feedback through existing appropriate HUD surfaces independently of the old panel; update narrow feedback/input expectations. (2026-10-07; owner-local support strip and deduplicated transient combat/support/discovery notices now sit outside the legacy panel)
   - [x] [20–30 min] Remove the old panel, glyph row, diagnostic/help text and pack/tool grid now covered by Inventory; inspect normal/empty paths for residual chrome and prepare the absence regression. (2026-10-07; retired the persistent pack HUD and its overlap/capture hooks; Inventory remains on-demand with the sixteen-slot empty-state regression)
-- [ ] Halve minimap edge padding (goal 3).
-  - [ ] [15–25 min] Change both margins from 24 to 12 UI units and update the narrow placement/layout validator for DPI, 4:3/16:9/ultrawide and status separation; keep size/zoom/circular clipping unchanged.
+- [x] Halve minimap edge padding (goal 3).
+  - [x] [15–25 min] Change both margins from 24 to 12 UI units and update the narrow placement/layout validator for DPI, 4:3/16:9/ultrawide and status separation; keep size/zoom/circular clipping unchanged. (2026-10-07; top/right offsets are 12 UI units and rendered inset checks account for viewport DPI)
 - [ ] Remove the bottom tutorial/help card (goal 4).
   - [ ] [15–25 min] Remove the pictured onboarding banner across fresh-start/transition/reconnect presentation, preserve essential existing notifications, and update the narrow absence check; no replacement banner.
 - [ ] Confine input-binding text to Options (goal 5).

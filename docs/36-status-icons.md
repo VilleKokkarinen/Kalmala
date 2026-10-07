@@ -5,7 +5,8 @@ with verification deferred until all three implementations were present.
 
 The owner-local survival subsystem reads only its local controller's pawn.
 It owns a transparent, non-focusable, hit-test-invisible hotbar at logical
-top-right (-24,244), twelve units below the existing 208-unit minimap.
+top-right (-24,244), 24 units below the existing 208-unit minimap, whose
+top/right inset is now 12 UI units.
 Entries wrap within 450 units, with six-unit gaps and wider cells for
 100/125/150% local text. Empty states collapse; no background, border or
 empty slots are drawn. Original monochrome line art and outlined text remain

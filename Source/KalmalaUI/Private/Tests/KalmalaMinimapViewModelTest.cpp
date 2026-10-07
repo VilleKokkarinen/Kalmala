@@ -3,6 +3,7 @@
 #include "KalmalaMinimapViewModel.h"
 #include "KalmalaMinimapWidget.h"
 #include "KalmalaMinimapRaster.h"
+#include "KalmalaWeatherActivityWidget.h"
 #include "Blueprint/GameViewportSubsystem.h"
 
 #include "KalmalaWorldGenerationConfig.h"
@@ -38,10 +39,10 @@ bool FKalmalaMinimapViewModelTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Circular minimap includes its centred player marker"), UKalmalaMinimapWidget::IsInsideCircularMap(FVector2D::ZeroVector));
     TestTrue(TEXT("Circular minimap includes positions on its edge"), UKalmalaMinimapWidget::IsInsideCircularMap(FVector2D(1.0f, 0.0f)));
     TestFalse(TEXT("Circular minimap rejects square-grid corners"), UKalmalaMinimapWidget::IsInsideCircularMap(FVector2D(1.0f, 1.0f)));
-    TestTrue(TEXT("Circular minimap remains top-right at 16:9 and 100% UI scale"), UKalmalaMinimapWidget::IsTopRightPlacementValid(FVector2D(1920.0f, 1080.0f), 208.0f, 24.0f, 1.0f));
-    TestTrue(TEXT("Circular minimap remains top-right at ultrawide and 125% UI scale"), UKalmalaMinimapWidget::IsTopRightPlacementValid(FVector2D(3440.0f, 1440.0f), 208.0f, 24.0f, 1.25f));
-    TestTrue(TEXT("Circular minimap remains top-right at 4:3 and 75% UI scale"), UKalmalaMinimapWidget::IsTopRightPlacementValid(FVector2D(1024.0f, 768.0f), 208.0f, 24.0f, 0.75f));
-    TestFalse(TEXT("Circular minimap rejects a footprint that cannot fit the viewport"), UKalmalaMinimapWidget::IsTopRightPlacementValid(FVector2D(200.0f, 100.0f), 208.0f, 24.0f, 1.0f));
+    TestTrue(TEXT("Circular minimap remains top-right at 16:9 and 100% UI scale"), UKalmalaMinimapWidget::IsTopRightPlacementValid(FVector2D(1920.0f, 1080.0f), 208.0f, 12.0f, 1.0f));
+    TestTrue(TEXT("Circular minimap remains top-right at ultrawide and 125% UI scale"), UKalmalaMinimapWidget::IsTopRightPlacementValid(FVector2D(3440.0f, 1440.0f), 208.0f, 12.0f, 1.25f));
+    TestTrue(TEXT("Circular minimap remains top-right at 4:3 and 75% UI scale"), UKalmalaMinimapWidget::IsTopRightPlacementValid(FVector2D(1024.0f, 768.0f), 208.0f, 12.0f, 0.75f));
+    TestFalse(TEXT("Circular minimap rejects a footprint that cannot fit the viewport"), UKalmalaMinimapWidget::IsTopRightPlacementValid(FVector2D(200.0f, 100.0f), 208.0f, 12.0f, 1.0f));
     TestEqual(TEXT("Minimap zoom clamps at its minimum"), UKalmalaMinimapWidget::ClampZoom(500.0f, 2500.0f, 10000.0f), 2500.0f);
     TestEqual(TEXT("Minimap zoom clamps at its maximum"), UKalmalaMinimapWidget::ClampZoom(15000.0f, 2500.0f, 10000.0f), 10000.0f);
     TestEqual(TEXT("Minimap zoom retains values inside its bounds"), UKalmalaMinimapWidget::ClampZoom(6000.0f, 2500.0f, 10000.0f), 6000.0f);
@@ -55,9 +56,18 @@ bool FKalmalaMinimapViewModelTest::RunTest(const FString& Parameters)
     const FGameViewportWidgetSlot Slot = UGameViewportSubsystem::Get()->GetWidgetSlot(Widget);
     TestTrue(TEXT("Actual viewport slot is anchored top-right"), Slot.Anchors == FAnchors(1.0f, 0.0f));
     TestEqual(TEXT("Actual slot aligns its right edge"), Slot.Alignment, FVector2D(1.0f, 0.0f));
-    TestEqual(TEXT("Margin stays in UI units without double DPI scaling"), Slot.Offsets.Left, -24.0f);
+    TestEqual(TEXT("Right margin stays at 12 UI units without double DPI scaling"), Slot.Offsets.Left, -12.0f);
+    TestEqual(TEXT("Top margin stays at 12 UI units without double DPI scaling"), Slot.Offsets.Top, 12.0f);
     TestEqual(TEXT("Actual viewport slot has a nonzero fixed width"), Slot.Offsets.Right, 208.0f);
+
+    UKalmalaWeatherActivityWidget* WeatherWidget = NewObject<UKalmalaWeatherActivityWidget>();
+    WeatherWidget->ConfigureViewportPlacement();
+    const FGameViewportWidgetSlot WeatherSlot = UGameViewportSubsystem::Get()->GetWidgetSlot(WeatherWidget);
+    const float MinimapBottom = Slot.Offsets.Top + Slot.Offsets.Bottom;
+    TestEqual(TEXT("Weather badge stays below the minimap with its existing clear gap"), WeatherSlot.Offsets.Top - MinimapBottom, 24.0f);
+    TestTrue(TEXT("Weather badge remains separated by at least the minimap edge inset"), WeatherSlot.Offsets.Top - MinimapBottom >= 12.0f);
     UGameViewportSubsystem::Get()->RemoveWidget(Widget);
+    UGameViewportSubsystem::Get()->RemoveWidget(WeatherWidget);
 
     const auto DetailedSamples = UKalmalaMinimapViewModel::BuildTerrainSamples(Config, FVector2D::ZeroVector, 5000.0f, 129);
     const auto Pixels = FKalmalaMinimapRaster::BuildPixels(DetailedSamples);

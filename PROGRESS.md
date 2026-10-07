@@ -11666,3 +11666,25 @@ Known limitations: The changed C++ sources and focused automations were not comp
 Next eligible task: Halve minimap edge padding from 24 to 12 UI units and update its narrow placement/layout validator.
 
 Main-checkout handoff synchronization: Complete. After inspecting the dirty main versions, updated only this selected BACKLOG parent/child state and appended this PROGRESS entry. All unrelated main-checkout edits remain untouched and uncommitted.
+
+### Run 2026-10-07T11:02:26Z — halve minimap edge padding
+
+Concurrency guard: Codex app inventory showed this as the only active Kalmala run. Continued in the clean M12 worktree at `1b5c336`; the main checkout has unrelated modified and untracked files, which remain untouched.
+
+Completed: Changed the circular minimap's top/right viewport offsets from 24 to 12 UI units. Kept the 208-unit map size, zoom bounds/step and circular clipping intact. Updated the narrow placement coverage for 4:3/75%, 16:9/100% and ultrawide/125% layouts, checked production slot offsets, and asserted the weather badge retains a 24-unit vertical gap below the repositioned minimap. The rendered verifier now derives viewport DPI from actual map geometry and checks the resulting 12-unit top/right insets. Updated minimap setup/status placement documentation.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaMinimapWidget.cpp`; `Source/KalmalaUI/Private/KalmalaWeatherActivityWidget.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp`; `Scripts/Verify-Minimap.ps1`; `docs/07-development-setup.md`; `docs/36-status-icons.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `git diff --check` passed; `Scripts/Verify-M5DocumentationContracts.ps1` passed its full suite; the changed PowerShell verifier parsed successfully; focused source assertions and MAX_PATH audit passed (longest changed path 105 characters). Manually reviewed viewport geometry, DPI scaling, unchanged map sizing/zoom/clipping, and weather-badge separation. No Unreal build, automation run, or rendered peer check was performed.
+
+Full verification remains deferred: this is a normal M12 implementation increment, not the final task in the milestone.
+
+Observable impact: The minimap now sits 12 UI units from the top and right edges, while the weather badge remains visibly separated below it.
+
+Networking/authority: This changes local UI layout only. No gameplay state, request, RPC, replication, save data, or server authority changed.
+
+Known limitations: The updated C++ layout automation and rendered DPI/margin checks were not executed; host/client visual review and packaged behavior remain for M12 milestone-final verification.
+
+Next eligible task: Remove the bottom tutorial/help card across fresh-start, transition and reconnect presentation; preserve essential notifications and update the absence check.
+
+Main-checkout handoff synchronization: Pending. Before syncing, inspect the dirty main versions and apply only this run's selected backlog/progress updates.

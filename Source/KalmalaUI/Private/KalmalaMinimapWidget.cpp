@@ -29,7 +29,7 @@ void UKalmalaMinimapWidget::ConfigureViewportPlacement()
 {
     // Both size and position setters reset anchors in UE 5.8. Set anchors LAST.
     SetDesiredSizeInViewport(FVector2D(MapDiameter, MapDiameter));
-    SetPositionInViewport(FVector2D(-24.0f, 24.0f), false);
+    SetPositionInViewport(FVector2D(-12.0f, 12.0f), false);
     SetAlignmentInViewport(FVector2D(1.0f, 0.0f));
     SetAnchorsInViewport(FAnchors(1.0f, 0.0f));
 }

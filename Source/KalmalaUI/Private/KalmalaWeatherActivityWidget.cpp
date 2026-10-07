@@ -31,7 +31,7 @@ void UKalmalaWeatherActivityWidget::NativeOnInitialized()
 
 void UKalmalaWeatherActivityWidget::ConfigureViewportPlacement()
 {
-    // The minimap ends at y=232; the 12-unit gap keeps this badge below it.
+    // The minimap ends at y=220; the 24-unit gap keeps this badge below it.
     // UE 5.8 resets anchors in the size and position setters, so set anchors last.
     SetDesiredSizeInViewport(FVector2D(252.0f, 72.0f));
     SetPositionInViewport(FVector2D(-24.0f, 244.0f), false);
