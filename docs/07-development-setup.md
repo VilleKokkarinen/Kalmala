@@ -1778,10 +1778,10 @@ the current gait. This pose test does not replace rendered in-world review.
 
 After the forced editor build, run `Scripts/Verify-Crafting.ps1 -Rendered`
 with an unused port. Require `M9 tool feedback: Passed=1` on both the listen
-server and joining client. The check covers private carried-tool status,
-current/target axe levels, material costs and available quantities, matching
-station levels and missing-station requirements, the attachment persistence
-gate, and selected-tool plus Grinding Stone Repair All guidance. The fixture
+server and joining client. The check covers owner-only carried-tool condition
+and upgrade comparison, target axe levels, authored material costs and carried
+quantities, station/skill prerequisites, one current blocker per upgrade, and
+selected-tool plus Grinding Stone Repair All guidance. The fixture
 captures both 1280x720 peers at the panel's initial scroll
 position; its M9 checks assert the off-screen tool-feedback text through the
 widget presentation seam, so the captures do not visually review the scrolled

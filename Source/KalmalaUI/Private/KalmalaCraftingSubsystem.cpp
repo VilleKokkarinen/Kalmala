@@ -360,7 +360,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Eat one roasted field meat"),nullptr,TEXT("Consume one roasted field meat for the steady meal effect. Another meal cannot replace an active effect."))->OnClicked.AddDynamic(this, &ThisClass::EatFood);
     AddButton(TEXT("Eat one hearth broth"),nullptr,TEXT("Consume one hearth broth for the steady meal effect. Another meal cannot replace an active effect."))->OnClicked.AddDynamic(this, &ThisClass::EatBroth);
     AddButton(TEXT("Eat one smoked field meat"),nullptr,TEXT("Consume one smoked field meat for the steady meal effect. Another meal cannot replace an active effect."))->OnClicked.AddDynamic(this, &ThisClass::EatSmokedMeat);
-    RepairText = AddText(TEXT("\nFree repair: at a visible same-world Workbench or Forge within 2.5 m, select a damaged or broken carried tool to restore it to full condition. Repair uses no materials and awards no Crafting experience; rejected requests leave tool condition unchanged.\nGrinding Stone Repair All: interact with a visible same-world Grinding Stone within 2.5 m to repair every damaged or broken carried tool. The server selects your tools; no materials or Crafting experience are used.\n"), 16);
+    RepairText = AddText(TEXT("\nRepair: restore a damaged carried tool to full condition at a visible same-world Workbench or Forge within 2.5 m (free).\nGrinding Stone: repair all damaged carried tools within 2.5 m.\n"), 16);
     auto* RepairActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(RepairActions);
     AddButton(TEXT("Repair Reed Knife"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairReedKnife);
     AddButton(TEXT("Repair Field Hatchet"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairFieldHatchet);
@@ -905,23 +905,27 @@ void UKalmalaCraftingWidget::Refresh()
         const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), GetOwningPlayerPawn(), SelectedRecipe.Output);
         PreviewText = TEXT("\n") + Preview.Message + (Preview.bIsValid ? FString::Printf(TEXT(" (%.0f, %.0f)"), Preview.Location.X, Preview.Location.Y) : TEXT("")) + TEXT("\n");
     }
-    FString ToolConditionText = TEXT("\nTool condition and free repair status (owner-only):");
+    FString ToolConditionText = TEXT("\nTool condition — owner-only:");
     const auto* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
-    const auto AppendToolCondition = [&ToolConditionText, Character](const FKalmalaToolDefinition& Definition)
+    int32 CarriedToolConditionCount = 0;
+    const auto AppendToolCondition = [&ToolConditionText, &CarriedToolConditionCount, Character](const FKalmalaToolDefinition& Definition)
     {
         const int32 ToolLevel = Character ? Character->GetCarriedToolLevel(Definition.ToolId) : 0;
-        const int32 Condition = Character && ToolLevel > 0 ? Character->GetToolDurability(Definition.ToolId) : -1;
-        const FString RepairState = Condition < 0 || Condition > Definition.MaxDurability
-            ? TEXT("; condition unavailable")
-            : Condition < Definition.MaxDurability
-                ? TEXT("; damaged, repair free at a visible Workbench or Forge")
-                : TEXT("; no repair needed");
-        ToolConditionText += FString::Printf(TEXT("\n%s: %d/%d%s"), *GetReadableToolName(Definition.ToolId), Condition,
-            Definition.MaxDurability, *RepairState);
+        if (ToolLevel <= 0) return;
+        ++CarriedToolConditionCount;
+        const int32 Condition = Character->GetToolDurability(Definition.ToolId);
+        if (Condition < 0 || Condition > Definition.MaxDurability)
+        {
+            ToolConditionText += FString::Printf(TEXT("\n%s: condition unavailable"), *GetReadableToolName(Definition.ToolId));
+            return;
+        }
+        ToolConditionText += FString::Printf(TEXT("\n%s level %d: %d/%d · %s"), *GetReadableToolName(Definition.ToolId),
+            ToolLevel, Condition, Definition.MaxDurability, Condition < Definition.MaxDurability ? TEXT("damaged") : TEXT("full"));
     };
     for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetDefinitions()) AppendToolCondition(Definition);
     for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) AppendToolCondition(Definition);
     AppendToolCondition(FKalmalaToolLifecycleContract::GetConstructionHammerDefinition());
+    if (CarriedToolConditionCount == 0) ToolConditionText += TEXT("\nNo carried tools.");
     StateText->SetText(FText::FromString(TEXT("\nNearby hearth (replicated shared state; text does not rely on colour):\n")
         + ToolConditionText + TEXT("\n") + M->GetNearbyFireText()+TEXT("\n")+M->GetNearbyConstructionText()+TEXT("\n")+M->GetNearbyWorkbenchText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")+PreviewText));
     FoodText->SetText(FText::FromString(M->GetFoodText()));
@@ -1124,16 +1128,17 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             const auto Text=Widget->GetPresentationText();
             Widget->EnablePlacementPreview();
             const auto PreviewText=Widget->GetPresentationText();
-            const bool ToolFeedbackPassed = Text.Contains(TEXT("Tool condition and free repair status (owner-only)"))
-                && Text.Contains(TEXT("TOOL PROGRESSION — OWNER ONLY"))
-                && Text.Contains(TEXT("target level 1")) && Text.Contains(TEXT("target level 2"))
+            const bool ToolFeedbackPassed = Text.Contains(TEXT("Tool condition — owner-only"))
+                && Text.Contains(TEXT("TOOL UPGRADES — OWNER ONLY"))
+                && Text.Contains(TEXT("New tool: Bronze Axe 1")) && Text.Contains(TEXT("Bronze Axe 1"))
+                && Text.Contains(TEXT("Iron Axe 2"))
                 && Text.Contains(TEXT("Cost: 4 Wood (have "))
-                && (Text.Contains(TEXT("Nearby Workbench level 1; required level 1"))
-                    || Text.Contains(TEXT("Need a visible same-world Workbench level 1 within 2.5 m")))
-                && (Text.Contains(TEXT("Nearby Forge level 2; required level 2"))
-                    || Text.Contains(TEXT("Need a visible same-world Forge level 2 within 2.5 m")))
-                && Text.Contains(TEXT("Accepted attachments persist in this world's construction save"))
-                && Text.Contains(TEXT("Grinding Stone Repair All: interact with a visible same-world Grinding Stone"));
+                && Text.Contains(TEXT("Requires: Workbench level 1."))
+                && Text.Contains(TEXT("Requires: Forge level 2, Crafting level 5 + second-tier unlock."))
+                && Text.Contains(TEXT("Status: "))
+                && Text.Contains(TEXT("Repair: restore a damaged carried tool to full condition"))
+                && Text.Contains(TEXT("Grinding Stone: repair all damaged carried tools"))
+                && Text.Contains(TEXT("Field Hatchet level "));
             UE_LOG(LogTemp, Display, TEXT("M9 tool feedback: Passed=%d"), ToolFeedbackPassed);
             const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn());
             const auto* Crafting = Character ? Character->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
@@ -1182,8 +1187,8 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && !Text.Contains(TEXT("Rejected requests preserve ingredients and tool condition."))
                 && !Text.Contains(TEXT("SKILL PROGRESS [PRIVATE TO YOU]"))
                 && Text.Contains(TEXT("Selection is marked with >"))
-                && Text.Contains(TEXT("Free repair: at a visible same-world Workbench or Forge"))
-                && Text.Contains(TEXT("Tool condition and free repair status (owner-only)")) && Text.Contains(TEXT("Bronze Axe:")) && Text.Contains(TEXT("Iron Axe:"))
+                && Text.Contains(TEXT("Repair: restore a damaged carried tool to full condition"))
+                && Text.Contains(TEXT("Tool condition — owner-only")) && Text.Contains(TEXT("Field Hatchet level "))
                 && Text.Contains(TEXT("Roasted field meat:"))
                 && Text.Contains(TEXT("Build Hearth ring directly from raw materials"))
                 && Text.Contains(TEXT("Build the selected structure from its shown materials."))

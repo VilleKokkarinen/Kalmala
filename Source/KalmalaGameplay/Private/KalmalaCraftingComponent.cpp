@@ -657,45 +657,72 @@ FString UKalmalaCraftingComponent::GetToolProgressionText() const
     const UKalmalaInventoryComponent* Inventory = Character
         ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
-    if (!Character || !Inventory || !Items) return TEXT("Tool progression is waiting for your private inventory.\n");
-    const auto ToolName = [](const FName ToolId)
-    {
-        if (ToolId == TEXT("BronzeAxe")) return FString(TEXT("Bronze Axe"));
-        if (ToolId == TEXT("IronAxe")) return FString(TEXT("Iron Axe"));
-        return ToolId.ToString();
-    };
+    if (!Character || !Inventory || !Items) return TEXT("Tool upgrade details unavailable.\n");
 
-    FString Text = TEXT("\nTOOL PROGRESSION — OWNER ONLY\n");
+    const UKalmalaSkillProgressionComponent* SkillProgression = Character->GetSkillProgressionComponent();
+    const TArray<FKalmalaSkillState>* SkillStates = SkillProgression
+        ? &SkillProgression->GetDetailedProgression() : nullptr;
+    const TArray<FKalmalaToolState>& CarriedTools = Character->GetCarriedToolInventory();
+    FString Text = TEXT("\nTOOL UPGRADES — OWNER ONLY\n");
     for (const FKalmalaToolProgressionEntry& Entry : FKalmalaToolProgressionContract::GetEntries())
     {
         const TCHAR* StationName = Entry.RequiredStation == EKalmalaToolStationKind::Workbench
             ? TEXT("Workbench") : TEXT("Forge");
         const FName StationKit = FKalmalaToolProgressionContract::GetStationKit(Entry.RequiredStation);
-        const FKalmalaToolState* Existing = Character->GetCarriedToolInventory().FindByPredicate(
+        const FKalmalaToolState* ExistingTarget = CarriedTools.FindByPredicate(
             [&Entry](const FKalmalaToolState& State) { return State.ToolId == Entry.ToolId; });
-        Text += FString::Printf(TEXT("%s: target level %d; "), *ToolName(Entry.ToolId), Entry.TargetToolLevel);
-        if (Existing)
+        const FKalmalaToolDefinition* TargetDefinition = FKalmalaToolLifecycleContract::FindDefinition(Entry.ToolId);
+        if (!TargetDefinition)
         {
-            Text += FString::Printf(TEXT("already carried at level %d (%d condition). "),
-                Existing->ToolLevel, Existing->Durability);
+            TargetDefinition = FKalmalaToolLifecycleContract::GetTieredAxeDefinitions().FindByPredicate(
+                [&Entry](const FKalmalaToolDefinition& Definition) { return Definition.ToolId == Entry.ToolId; });
         }
-        else if (!Entry.PreviousToolId.IsNone())
+        if (!TargetDefinition) continue;
+
+        if (ExistingTarget)
         {
-            const int32 PreviousLevel = Character->GetCarriedToolLevel(Entry.PreviousToolId);
-            Text += PreviousLevel == Entry.PreviousToolLevel
-                ? FString::Printf(TEXT("upgrades %s level %d. "), *ToolName(Entry.PreviousToolId), Entry.PreviousToolLevel)
-                : FString::Printf(TEXT("requires carried %s level %d. "), *ToolName(Entry.PreviousToolId), Entry.PreviousToolLevel);
+            Text += FString::Printf(TEXT("%s %d · carried, condition %d/%d.\nStatus: Already carried.\n"),
+                *GetToolDisplayName(Entry.ToolId), ExistingTarget->ToolLevel, ExistingTarget->Durability,
+                TargetDefinition->MaxDurability);
+            continue;
         }
 
+        const FKalmalaToolState* PreviousTool = Entry.PreviousToolId.IsNone() ? nullptr
+            : CarriedTools.FindByPredicate([&Entry](const FKalmalaToolState& State)
+                { return State.ToolId == Entry.PreviousToolId; });
+        const FKalmalaToolDefinition* PreviousDefinition = Entry.PreviousToolId.IsNone() ? nullptr
+            : FKalmalaToolLifecycleContract::FindDefinition(Entry.PreviousToolId);
+        if (!PreviousDefinition && !Entry.PreviousToolId.IsNone())
+        {
+            PreviousDefinition = FKalmalaToolLifecycleContract::GetTieredAxeDefinitions().FindByPredicate(
+                [&Entry](const FKalmalaToolDefinition& Definition) { return Definition.ToolId == Entry.PreviousToolId; });
+        }
+        if (!Entry.PreviousToolId.IsNone())
+        {
+            const FString PreviousState = PreviousTool && PreviousDefinition
+                ? FString::Printf(TEXT("%s %d (%d/%d condition)"), *GetToolDisplayName(Entry.PreviousToolId),
+                    PreviousTool->ToolLevel, PreviousTool->Durability, PreviousDefinition->MaxDurability)
+                : FString::Printf(TEXT("%s (not carried)"), *GetToolDisplayName(Entry.PreviousToolId));
+            Text += FString::Printf(TEXT("Comparison: %s → %s %d (starts at %d/%d condition).\n"),
+                *PreviousState, *GetToolDisplayName(Entry.ToolId), Entry.TargetToolLevel,
+                TargetDefinition->MaxDurability, TargetDefinition->MaxDurability);
+        }
+        else
+        {
+            Text += FString::Printf(TEXT("New tool: %s %d (starts at %d/%d condition).\n"),
+                *GetToolDisplayName(Entry.ToolId), Entry.TargetToolLevel,
+                TargetDefinition->MaxDurability, TargetDefinition->MaxDurability);
+        }
+
+        Text += FString::Printf(TEXT("Requires: %s level %d"), StationName, Entry.RequiredStationLevel);
         if (Entry.RequiredSkill != EKalmalaSkill::None)
         {
             const TCHAR* SkillName = Entry.RequiredSkill == EKalmalaSkill::Crafting
                 ? TEXT("Crafting") : TEXT("Skill");
-            Text += FString::Printf(TEXT("Requires %s level %d (second-tier unlock). "),
-                SkillName, Entry.RequiredSkillLevel);
+            Text += FString::Printf(TEXT(", %s level %d + second-tier unlock"), SkillName, Entry.RequiredSkillLevel);
         }
+        Text += TEXT(".\nCost: ");
 
-        Text += TEXT("Cost: ");
         for (int32 Index = 0; Index < Entry.MaterialCosts.Num(); ++Index)
         {
             const FKalmalaToolMaterialCost& Cost = Entry.MaterialCosts[Index];
@@ -705,22 +732,70 @@ FString UKalmalaCraftingComponent::GetToolProgressionText() const
                 Item ? *Item->DisplayName : *Cost.ItemId.ToString(),
                 Inventory->GetQuantity(Cost.ItemId));
         }
+        Text += TEXT(".\n");
 
         const AKalmalaConstructionActor* Station = FindNearbyToolProgressionStation(StationKit);
-        if (Station)
+        FString Blocker;
+        if (!Station)
         {
-            const int32 Level = FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station);
-            Text += FString::Printf(TEXT(". Nearby %s level %d; required level %d"),
+            Blocker = FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"), StationName);
+        }
+        else if (const int32 Level = FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station);
+            Level != Entry.RequiredStationLevel)
+        {
+            Blocker = FString::Printf(TEXT("Nearby %s is level %d; level %d is required"),
                 StationName, Level, Entry.RequiredStationLevel);
         }
-        else
+        else if (Entry.RequiredSkill != EKalmalaSkill::None)
         {
-            Text += FString::Printf(TEXT(". Need a visible same-world %s level %d within 2.5 m"),
-                StationName, Entry.RequiredStationLevel);
+            const FKalmalaSkillState* SkillState = SkillStates
+                ? SkillStates->FindByPredicate([&Entry](const FKalmalaSkillState& State)
+                    { return State.Skill == Entry.RequiredSkill; })
+                : nullptr;
+            if (!SkillState || !SkillState->IsValid())
+            {
+                Blocker = TEXT("Skill requirement is unavailable");
+            }
+            else if (SkillState->Level < Entry.RequiredSkillLevel)
+            {
+                Blocker = FString::Printf(TEXT("Need %s level %d"),
+                    Entry.RequiredSkill == EKalmalaSkill::Crafting ? TEXT("Crafting") : TEXT("Skill"),
+                    Entry.RequiredSkillLevel);
+            }
+            else if ((SkillState->UnlockMask & static_cast<uint8>(EKalmalaSkillUnlock::SecondTier)) == 0)
+            {
+                Blocker = FString::Printf(TEXT("Need the %s second-tier unlock"),
+                    Entry.RequiredSkill == EKalmalaSkill::Crafting ? TEXT("Crafting") : TEXT("skill"));
+            }
         }
-        Text += TEXT(".\n");
+
+        if (Blocker.IsEmpty() && !Entry.PreviousToolId.IsNone()
+            && (!PreviousTool || PreviousTool->ToolLevel != Entry.PreviousToolLevel))
+        {
+            Blocker = FString::Printf(TEXT("Need a carried %s level %d"),
+                *GetToolDisplayName(Entry.PreviousToolId), Entry.PreviousToolLevel);
+        }
+        if (Blocker.IsEmpty() && Entry.PreviousToolId.IsNone()
+            && CarriedTools.Num() >= FKalmalaToolLifecycleContract::MaxCarriedToolRecords)
+        {
+            Blocker = TEXT("Carried tool slots are full");
+        }
+        if (Blocker.IsEmpty())
+        {
+            for (const FKalmalaToolMaterialCost& Cost : Entry.MaterialCosts)
+            {
+                const int32 Have = Inventory->GetQuantity(Cost.ItemId);
+                if (Have >= Cost.Quantity) continue;
+                const FKalmalaItemDefinition* Item = Items->FindItem(Cost.ItemId);
+                Blocker = FString::Printf(TEXT("Need %d more %s (%d/%d carried)"), Cost.Quantity - Have,
+                    Item ? *Item->DisplayName : *Cost.ItemId.ToString(), Have, Cost.Quantity);
+                break;
+            }
+        }
+        Text += Blocker.IsEmpty()
+            ? TEXT("Status: Ready to upgrade.\n")
+            : FString::Printf(TEXT("Status: Blocked — %s.\n"), *Blocker);
     }
-    Text += TEXT("Workbench and Forge bases are level 1. A nearby paid tool rack or anvil adds one level, up to level 2. Accepted attachments persist in this world's construction save; the server checks placement and station level.");
     return Text;
 }
 
