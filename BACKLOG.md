@@ -495,6 +495,19 @@ left-side panel to remove. All implementation tasks below remain pending.
 - [ ] Halve the circular minimap's right and top padding.
   - [ ] Change the top-right minimap margins from 24 to 12 UI units on both edges, keeping size, zoom, circular clipping, facing marker, and status/weather separation.
   - [ ] Verify the halved margins and absence of clipping/overlap at 4:3, 16:9, and ultrawide resolutions with interface/text scaling and high contrast.
-- [ ] Complete M12 milestone-final verification: inspect combined changes, build and run the prescribed affected UI/input/inventory/authority/reconnect regressions, and retain rendered host/client evidence for menu input/modal restoration, empty/populated views, separate owners, panel removal, minimap placement, accessibility, and unchanged gameplay/persistence. Mark the milestone complete only after required verification passes.
+- [ ] Remove the bottom-centred tutorial/help card shown in the follow-up screenshot.
+  - [ ] Retire the normal gameplay onboarding banner, including Arrive/optional and movement/look instructions, without adding a replacement help banner or losing essential action/status feedback.
+  - [ ] Verify the card stays absent on fresh start, onboarding transitions, reconnect, and supported layouts while existing interaction/status/notification presentation remains usable.
+- [ ] Show input-binding text only in the Options controls/binding configuration.
+  - [ ] Audit every player-facing HUD/menu/map/prompt/tooltip and remove key/button names, combination instructions, and control legends outside Options; keep concise action labels and usable keyboard/controller focus behavior.
+  - [ ] Verify default and remapped input, text-entry/modal priority, and absence of binding text outside Options across host/client views, including interaction prompts and station menus.
+- [ ] Simplify recipe and construction descriptions for players.
+  - [ ] Replace developer-facing copy with concise useful descriptions, ingredient counts, relevant output/requirements, and one actionable unavailable reason; remove repeated information, server/request/internal details, unrelated skill lists, and empty requirement boilerplate.
+  - [ ] Verify representative build, cooking, crafting, upgrade, and repair states remain truthful and readable with no input legends, lost real prerequisites, or altered recipe/gameplay data.
+- [ ] Make the build menu construction-only and move other functions into dedicated menu systems.
+  - [ ] Define the destination and interaction entry/exit for inventory inspection, repair, cooking/food use, item crafting/upgrading, and chest/storage actions; use existing world objects/stations and preserve existing action availability and authority contracts.
+  - [ ] Provide dedicated themed repair, cooking/food, crafting/upgrading, and storage contexts opened by relevant world interactions, with inventory access through the separate Tab/I menu; preserve station/range checks, owner privacy, and modal/input restoration.
+  - [ ] Remove every non-construction action/section from the build menu, leaving buildable browsing, materials/requirements, selection/preview, and construction actions; verify every displaced function remains accessible in its proper context.
+- [ ] Complete M12 milestone-final verification: inspect combined changes, build and run the prescribed affected UI/input/inventory/construction/crafting/repair/cooking/storage/authority/reconnect regressions, and retain rendered host/client evidence for dedicated menu interactions and input restoration, empty/populated views, separate owners, removal of both pictured panels, Options-only binding text, concise truthful recipes, construction-only build scope, minimap placement, accessibility, and unchanged gameplay/persistence. Mark the milestone complete only after required verification passes.
 
 **M12 status:** Planned; implementation and milestone-final verification pending.

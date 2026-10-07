@@ -11368,3 +11368,15 @@ Lightweight checks: Inspected the requested goals against current inventory/mini
 Observable impact: The three requested UX/UI changes now have an actionable execution order and acceptance criteria. Networking/authority: planned UI reads existing owner-visible state and uses existing server-validated actions; no new authoritative path, private peer information, balance, or save schema is authorized.
 
 Known limitations: M12 is planned only. Runtime menus, the left HUD panel, and minimap placement remain unchanged. Next eligible task: M12's first inventory child — establish the shared local inventory-toggle action and Tab/I bindings with modal/text-entry/focus priority and input restoration. Handoff: planning performed directly in the main checkout; no worktree synchronization required.
+
+### Run 2026-10-07 — Extend M12 with HUD/copy/context-menu cleanup
+
+Completed: Extended M12 from three to seven ordered UX/UI goals using the user's follow-up screenshots and instructions. Added removal of the bottom onboarding/help card; all input key/button-binding text restricted to Options configuration; concise player-facing recipe/build descriptions; and a construction-only build menu with inventory, repair, cooking/food, item crafting/upgrading, and storage moved into appropriate dedicated menu contexts. World services use interaction with existing objects/stations. Retained the separately requested Tab/I inventory entry and required a destination for each displaced action before removing its old presentation.
+
+Files changed: `docs/04-roadmap.md`, `BACKLOG.md`, and this `PROGRESS.md`. All M12 implementation tasks remain unchecked. Only this chat appeared active on Kalmala; pre-existing source, asset, documentation, and untracked changes were preserved.
+
+Lightweight checks: Inspected the revised roadmap/backlog against all four requested additions and current documented station/authority contracts; checked seven numbered goals, one M12 heading per file, unchecked implementation tasks, staged whitespace, run-owned paths, and Windows path lengths. Documentation-only work: no runtime/build checks run. Full M12 implementation and milestone-final verification remain pending.
+
+Observable impact: The plan now explicitly removes both screenshot-identified HUD panels, confines control legends to Options, eliminates developer/AI-style player copy, and separates unrelated functions from construction. Networking/authority: planned menu changes reuse existing actions and server validation, owner-visible information, catalogue requirements, costs, privacy, and persistence; they do not authorize new station gates or world objects.
+
+Known limitations/next task: Planning only; runtime behavior is unchanged. The next eligible implementation child remains the shared inventory-toggle action with Tab/I, modal/text-entry/focus priority, and input restoration. Main-checkout documentation updated directly; no worktree handoff needed.

@@ -435,7 +435,7 @@ M11 has twenty-three ordered goals:
 Start after M11 acceptance. Continue UX/UI improvements through existing shared
 themes, catalogue widgets, local input, and owner-visible state.
 
-M12 has three ordered UI goals:
+M12 has seven ordered UI goals:
 
 1. **Dedicated inventory menu.** Add an Inventory menu with the same presentation
    quality and shared layout/components as the crafting menu. Both `Tab` and `I`
@@ -460,6 +460,42 @@ M12 has three ordered UI goals:
    indicators. Apply the same proportional change under interface/DPI scaling;
    this goal concerns the top-right minimap rather than the M-key full map.
 
+4. **Remove the bottom tutorial card.** Remove the bottom-centred onboarding/help
+   card shown in the follow-up screenshot (for example, “Arrive · optional” and
+   its movement/look instructions) from the normal gameplay screen. Retain
+   essential action results, interaction target names, and status/notifications
+   through their existing appropriate presentation; no replacement help banner.
+5. **Input bindings belong only in Options.** Remove all text that identifies
+   input keys/buttons or explains control combinations from every other view:
+   gameplay HUD, tutorial cards, inventory, build/crafting/station menus, map,
+   interaction prompts, tooltips, and keyboard/controller help legends. Only the
+   Options controls/binding configuration displays those bindings. Keep concise
+   action labels such as Build, Repair, Cook, and Open chest, accessible focus
+   navigation, and remapping behavior; prompts describe the available action
+   without key/button-name labels. Update binding changes only where configured.
+6. **Write recipes for players.** Replace verbose developer-facing recipe copy
+   with a short name, icon, useful description, ingredient counts, output quantity
+   when relevant, actual station/tool/heat requirements, and one clear actionable
+   unavailable reason when needed. Remove repeated names/costs/reasons, server
+   validation and transaction explanations, request/session/internal-ID language,
+   instructional selection legends, irrelevant skill lists, and “none/no lock”
+   boilerplate. Keep real placement/fuel constraints understandable and truthful;
+   technical contracts belong in documentation and developer diagnostics.
+7. **Construction-only build menu and dedicated context menus.** Make the
+   Construction Hammer/build menu contain buildable-piece browsing, relevant
+   materials/requirements, selection/preview, and construction actions only.
+   Remove inventory inspection, tool repair, cooking/eating, general item
+   crafting/upgrading, chest browsing/transfers, and unrelated progression or
+   diagnostic sections from this menu. Give those functions their own appropriate
+   inventory, repair, cooking/food, crafting/upgrading, and storage menu systems
+   using shared themed components. World services open by interacting with the
+   relevant existing object/station: for example, a workbench/forge, cooking
+   station, or chest. Dedicated inventory access remains Tab/I from goal 1.
+   Define entry/exit and ownership for every displaced action before removing
+   it; preserve existing action availability, catalogue/station requirements,
+   costs, range/line-of-sight validation, and owner privacy. Do not add world
+   objects or impose new gameplay station gates merely to separate menus.
+
 **M12 boundary:** presentation and local input changes only. Reuse existing item,
 equipment, crafting, support, and inventory contracts; add no gameplay content,
 balance changes, authoritative mutation paths, new save schemas, hidden-content
@@ -469,12 +505,16 @@ inventory actions continue through their current server-validated paths.
 **M12 accept:** Tab and I reliably open the same usable inventory menu on host
 and client; item/tool information and existing permitted actions remain truthful
 and accessible; menu close restores input without replaying an action; the
-pictured persistent left panel is absent during normal play; minimap top/right
+pictured persistent left panel and bottom tutorial card are absent during normal
+play; input-binding text appears only in Options; recipes use concise player-facing
+copy; the build menu contains construction only and displaced functions are
+accessible in their dedicated interaction/inventory contexts; minimap top/right
 padding is half its former value without clipping or status overlap. Verify
 empty/populated inventories, selection and input changes, coexistence with
 crafting/settings/full map, separate owners, reconnect, keyboard/controller
 navigation, text entry, 4:3/16:9/ultrawide layouts, interface/text scaling, high
 contrast, and reduced motion. Retain rendered host/client captures. Perform
 lightweight checks during child increments and the prescribed affected build,
-UI/input/inventory/authority/reconnect regressions and full milestone-final
+UI/input/inventory/construction/crafting/repair/cooking/storage/authority/reconnect
+regressions and full milestone-final
 verification from `docs/07-development-setup.md` before declaring M12 complete.
