@@ -676,18 +676,33 @@ M12 has ten ordered UI goals:
       its gap; decorative end cues must not retain an inactive icon. Reappearance
       follows current owner state, without reconnect/countdown replay or stale
       weather icons. Existing detail views may still explain the actual state.
+    - **64x64 icon with player-effect timer underneath:** each supported status
+      or weather condition uses an original 64x64 image icon, displayed at 64x64
+      UI units at default scale and following normal interface scaling. Centre
+      the remaining duration directly below the icon only for a finite player
+      status effect (for example Wet, an active meal or timed support effect).
+      Format it as minutes:seconds, such as 2:00, using the effect's existing
+      authoritative expiry/duration. No visible name label above, below or beside
+      the icon. Keep nonvisual accessible names and on-demand effect details.
+      Weather/Storm and untimed Hot/Cold exposure show the icon alone: no server
+      weather-cycle timer, duration, ongoing label, or empty timer placeholder.
+      Do not expose server weather intervals in player-facing detail views either;
+      developer diagnostics may retain them. The reference defines layout only
+      and does not authorize adding its example effects or copying its artwork.
     - **Tighter spacing:** remove wide fixed cells and unused horizontal padding.
-      Size each entry to its actual icon plus readable name/timer; use compact
+      Size each entry to its 64x64 icon and optional timer underneath; use compact
       theme-configurable inter-entry gaps (default 4 UI units) and minimal inner
       padding. Keep multiple active entries together with stable order. Grow
       leftward from the minimap and wrap downward within available viewport space
-      when needed; never overlap the minimap or clip labels/timers. Maintain
-      readable accessible text rather than compressing the text itself.
+      when needed; never overlap the minimap or clip icons/timers. Maintain
+      readable timers and nonvisual accessible names; do not add visible name text.
     - **Acceptance:** retain host/client captures for zero, one and many active
       conditions; normal-to-Storm/back, Hot/Cold recovery and status expiry;
       reconnect and separate owners; UI/text scaling, high contrast, reduced
       motion, and 4:3/16:9/ultrawide layouts. Verify shared top padding, compact
-      gaps, correct timers, immediate inactive collapse and no minimap overlap.
+      gaps, 64x64 icons with no visible names, correct player-effect timers underneath,
+      absent weather/untimed-condition durations, immediate inactive collapse and
+      no minimap overlap.
       This changes layout/visibility only, with no server or save-state changes.
 
 **M12 boundary:** presentation and local input changes only. Reuse existing item,
@@ -710,7 +725,9 @@ names/descriptions are concise, consistent and truthful with intentional manual
 improvements retained and Workbench named Workbench; Campfire exists only as a
 building recipe/placed construction, never a HearthRing inventory item; compact
 status/weather icons sit at the minimap's upper left and show only active special
-conditions, with a fully hidden empty state. Verify
+conditions as 64x64 icons without visible names, with timers underneath only
+finite player effects, no weather/untimed-condition durations, and a fully hidden
+empty state. Verify
 empty/populated inventories, selection and input changes, coexistence with
 crafting/settings/full map, separate owners, reconnect, keyboard/controller
 navigation, text entry, 4:3/16:9/ultrawide layouts, interface/text scaling, high

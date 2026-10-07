@@ -11452,3 +11452,15 @@ Lightweight checks: Reviewed the ten-goal plan and unchecked tasks against posit
 Observable impact/authority: The roadmap explicitly supersedes the old below-minimap placement, calm-weather icon and retained inactive/end-icon presentation. Uses current owner-visible authoritative status/exposure/Storm qualification and timers; adds no gameplay thresholds, effects, penalties or save changes. Existing status detail views remain available.
 
 Next eligible task: First M12 inventory-toggle child remains next; hotbar work follows earlier ordered parents. Main-checkout planning update; no worktree synchronization required.
+
+### Run 2026-10-07 — Refine M12 status icon sizing and timer presentation
+
+Completed: Updated goal 10 and its unchecked backlog tasks to require original 64x64 status/weather image icons, no visible name text, and centred minutes:seconds below only finite player-status effects such as Wet, meal or timed support. Storm/weather and untimed Hot/Cold show icons alone, without durations, ongoing labels or timer placeholders. Weather-cycle/server interval durations are excluded from player-facing details as well. Kept accessible nonvisual names, existing effect detail access, active-only filtering, minimap anchoring and compact four-unit gaps. Reference supplies layout guidance only; no new effects or copied art.
+
+Files changed: `docs/04-roadmap.md`, `BACKLOG.md`, and this `PROGRESS.md`. Only this chat appeared active on Kalmala; preserved pre-existing work. The previous illustrative mockup's names/weather timer are superseded by this contract.
+
+Lightweight checks: Inspected the revised icon/timer contract and acceptance criteria for finite player effects versus weather/untimed exposure, exact icon sizing, no visible names, unchecked task state, staged whitespace and committed path lengths. Documentation-only work: no images generated, runtime source/assets changed, builds or tests run. M12 implementation/full verification remain pending.
+
+Observable impact/authority: The plan now specifies an icon-first HUD with durations only where they describe a timed player effect. Weather timing remains server-owned and can be diagnosed without being shown to players; no effect, duration, threshold, authority or save contract changes.
+
+Next eligible task: First M12 inventory-toggle child remains next. Main-checkout update; no worktree handoff needed.
