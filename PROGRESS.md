@@ -11404,3 +11404,15 @@ Lightweight checks: Inspected the corrected roadmap/backlog diff for both no-men
 Observable impact/authority: The plan now replaces the previously specified stone/hearth menus with the two requested direct interactions, using existing server repair/refuel validation and inventory transactions. Current gameplay is unchanged. The prior progress entry records the superseded plan, not the current goal-7 contract.
 
 Next eligible task: The first M12 inventory-toggle child remains next. Main-checkout documentation update; no worktree synchronization required.
+
+### Run 2026-10-07 — Add M12 generated catalogue image icons
+
+Completed: Added goal 8 and ordered unchecked tasks for original generated 64x64 image icons covering every current inventory/material/food/tool/equipment identity and recipe/crafting/build/upgrade selection. Defined exact 64x64 RGBA PNGs, transparent backgrounds, consistent object framing/lighting, readable colour/material silhouettes, canonical result-image reuse across all menus, separate UI overlays, shared texture integration, a source/output manifest, and complete visual/coverage acceptance. The reference informs object-thumbnail readability only; Kalmala art remains original.
+
+Files changed: `docs/04-roadmap.md`, `BACKLOG.md`, and this `PROGRESS.md`. Reviewed the existing catalogue icon/alias contract and preserved current menu/direct-interaction goals. Only this chat appeared active on Kalmala; pre-existing changes remain preserved.
+
+Lightweight checks: Reviewed new icon scope/specification against the request and existing shared icon mappings; checked eight numbered M12 goals, unchecked implementation tasks, staged whitespace and committed path lengths. Documentation-only planning: no images generated, textures imported, code changed, or build/runtime tests run. Icon implementation and milestone-final verification remain pending.
+
+Observable impact/authority: M12 now requires generated image thumbnails rather than current line glyphs for supported catalogue objects. Planned art stays local/static with no runtime image service, item/recipe additions, gameplay/stat changes, private-data exposure, or save-schema changes.
+
+Next eligible task: The first M12 inventory-toggle child remains next; icon work follows the preceding ordered parents. Main-checkout planning update; no worktree synchronization required.

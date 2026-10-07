@@ -435,7 +435,7 @@ M11 has twenty-three ordered goals:
 Start after M11 acceptance. Continue UX/UI improvements through existing shared
 themes, catalogue widgets, local input, and owner-visible state.
 
-M12 has seven ordered UI goals:
+M12 has eight ordered UI goals:
 
 1. **Dedicated inventory menu.** Add an Inventory menu with the same presentation
    quality and shared layout/components as the crafting menu. Both `Tab` and `I`
@@ -570,6 +570,45 @@ M12 has seven ordered UI goals:
    contracts and do not add world objects or new station gates. The listed
    destinations must exist before their old build-menu sections are removed.
 
+8. **Generated 64x64 catalogue image icons.** Replace the current item/result
+   line glyphs with original generated raster thumbnails of the actual objects,
+   using the attached reference only for the general idea of readable object
+   thumbnails in a selection grid. Keep Kalmala's own objects, materials and
+   visual identity; do not copy the reference game's icons, assets or menu art.
+
+   - **Coverage:** every current inventory item/material/food, carried tool or
+     equipment identity, recipe output, crafting/upgrade selection and building
+     selection needs an explicit image assignment. Enumerate live runtime
+     catalogues and tool/upgrade/build contracts rather than relying on a fixed
+     historical count. Distinct visible objects must remain distinguishable.
+   - **Image specification:** deliver a generated image for each distinct object
+     as an exactly 64x64-pixel RGBA PNG with transparent background. Use a centred,
+     fully visible object, consistent angle/lighting, useful colour/material
+     detail and a clear silhouette at native size. No baked-in text, numbers,
+     key labels, slot background, selection border, or Favorite/Rank/Recent badge.
+     Generate higher-resolution originals when needed, then crop/downsample and
+     inspect the final 64x64 image; keep a manifest of identity and source/output.
+   - **Recipe and selection mapping:** show the image of the produced item or
+     buildable piece. Reuse that object's canonical image across inventory,
+     crafting, building, upgrade results, ingredient rows, storage and item/result
+     details; a recipe producing the same object does not need contradictory art.
+     An upgrade uses its target object's image. Retain the existing larger
+     selected-result preview layout using the same assignment; preserve source
+     art if needed for a clean larger preview. No runtime image-generation call.
+   - **Integration:** import the PNGs as project-owned UI textures with suitable
+     alpha/filtering settings and route them through the shared icon component
+     and canonical runtime IDs/aliases. Keep counts, names, unavailable states,
+     focus/selection and activity markers as separate accessible UI overlays.
+     Provide an honest fallback for unknown/unmapped IDs; fallback use for a
+     current supported identity fails coverage acceptance.
+   - **Acceptance:** audit complete mappings, exact output dimensions, alpha,
+     missing/duplicate/wrong-object assignments and short Windows paths. Inspect
+     every final icon at 64x64 on light/dark menu backgrounds and in host/client
+     inventory, crafting, build, station and storage views; verify scaled/larger
+     previews, contrast, recognizable silhouettes and non-overlapping markers.
+     Retain the icon manifest, source/final images and rendered evidence. Add no
+     items, recipes, stat authority, gameplay balance or save fields.
+
 **M12 boundary:** presentation and local input changes only. Reuse existing item,
 equipment, crafting, support, and inventory contracts; add no gameplay content,
 balance changes, authoritative mutation paths, new save schemas, hidden-content
@@ -583,7 +622,9 @@ pictured persistent left panel and bottom tutorial card are absent during normal
 play; input-binding text appears only in Options; recipes use concise player-facing
 copy; the build menu contains construction only and displaced functions are
 accessible in their dedicated interaction/inventory contexts; minimap top/right
-padding is half its former value without clipping or status overlap. Verify
+padding is half its former value without clipping or status overlap; every current
+catalogue object/result has its original generated 64x64 image icon, consistently
+mapped across views with readable separate overlays and complete coverage. Verify
 empty/populated inventories, selection and input changes, coexistence with
 crafting/settings/full map, separate owners, reconnect, keyboard/controller
 navigation, text entry, 4:3/16:9/ultrawide layouts, interface/text scaling, high
