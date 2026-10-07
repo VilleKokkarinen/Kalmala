@@ -11416,3 +11416,15 @@ Lightweight checks: Reviewed new icon scope/specification against the request an
 Observable impact/authority: M12 now requires generated image thumbnails rather than current line glyphs for supported catalogue objects. Planned art stays local/static with no runtime image service, item/recipe additions, gameplay/stat changes, private-data exposure, or save-schema changes.
 
 Next eligible task: The first M12 inventory-toggle child remains next; icon work follows the preceding ordered parents. Main-checkout planning update; no worktree synchronization required.
+
+### Run 2026-10-07 — Add M12 catalogue naming/description review
+
+Completed: Added goal 9 and unchecked backlog tasks for a catalogue-wide review of display names and item descriptions. Confirmed current JSON names both the Workbench item and recipe Joiner's bench; the plan explicitly changes their display name to Workbench and keeps internal Workbench/WorkbenchKit identities unchanged. Defined a before/after text audit, preservation of intentional manual improvements/flavour, short truthful descriptions, shared naming across all UI/recipe/result/interaction sources, and copy/accessibility verification. Updated goal 7's Workbench label to match the planned name.
+
+Files changed: `docs/04-roadmap.md`, `BACKLOG.md`, and this `PROGRESS.md`. Inspected current catalogue examples and runtime alias mapping; only this chat appeared active on Kalmala. Pre-existing source/assets/documentation/untracked changes were preserved.
+
+Lightweight checks: Reviewed the nine-goal plan and unchecked copy tasks for the user's naming example, retention of manual edits, cross-view coverage and stable-ID/schema boundaries; inspected staged diff, whitespace and committed path lengths. Planning only: no catalogue strings, runtime source or assets changed; no build/runtime tests run. M12 implementation/full verification remain pending.
+
+Observable impact/authority: The roadmap now explicitly includes remaining bad display names and descriptions, separate from goal 6's recipe-panel verbosity cleanup. This authorizes presentation-copy correction only, without changing item identities, stats, recipes, requirements, source distribution, gameplay transactions or persistence.
+
+Next eligible task: The first M12 inventory-toggle child remains next; catalogue copy work follows the prior ordered parents. Main-checkout planning update; no worktree synchronization needed.

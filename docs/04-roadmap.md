@@ -435,7 +435,7 @@ M11 has twenty-three ordered goals:
 Start after M11 acceptance. Continue UX/UI improvements through existing shared
 themes, catalogue widgets, local input, and owner-visible state.
 
-M12 has eight ordered UI goals:
+M12 has nine ordered UI goals:
 
 1. **Dedicated inventory menu.** Add an Inventory menu with the same presentation
    quality and shared layout/components as the crafting menu. Both `Tab` and `I`
@@ -500,7 +500,7 @@ M12 has eight ordered UI goals:
      and an Eat/use action for supported carried food with its existing effect
      and availability state. No station requirement is added for eating. No
      construction, station crafting, repair, or chest contents belong here.
-   - **Joiner's bench / Workbench -> Workbench menu.** Separate Craft and Repair
+   - **Workbench -> Workbench menu.** Separate Craft and Repair
      sections. Craft contains only current recipes/tool operations supported by
      this station, including Bronze Axe creation and Grinding Stone production:
      selected result, ingredients owned/required, relevant station level and
@@ -609,6 +609,38 @@ M12 has eight ordered UI goals:
      Retain the icon manifest, source/final images and rendered evidence. Add no
      items, recipes, stat authority, gameplay balance or save fields.
 
+9. **Clear, consistent item names and descriptions.** Review every current item,
+   material, food, tool/equipment, buildable and recipe-result display name and
+   description. Preserve the user's existing intentional manual improvements;
+   fix remaining inconsistent or poor copy rather than replacing everything
+   with generic generated prose.
+
+   - **Names:** use one recognizable player-facing name for the same object in
+     inventory, ingredients, recipes, building, station menus, storage, prompts
+     and previews. Specifically, item/recipe `Workbench` displays Workbench,
+     replacing Joiner's bench. Use normal readable spacing/capitalization for
+     compound identifiers; do not expose internal Kit suffixes or force literal
+     technical IDs into labels. Stable IDs, aliases and saved identities stay
+     unchanged (for example, internal WorkbenchKit remains an internal identity).
+   - **Descriptions:** write short natural sentences about what the object is
+     and its real use or character. Retain intentional flavour where it fits;
+     remove developer/AI-style explanations, implementation vocabulary, redundant
+     names, outdated uses and vague filler. Do not invent effects, gathering
+     sources, recipes, unlocks, mechanics or statistics. Put costs, condition,
+     quantities and requirements in their existing structured detail fields.
+   - **Audit and propagation:** capture the current name/description and proposed
+     replacement per canonical identity, identify manual edits to retain, and
+     trace every text source (JSON, runtime catalogue/aliases, hardcoded UI,
+     recipe/result/tool/interaction labels). Resolve conflicting labels at their
+     shared source and keep recipe/output naming aligned. Use current content
+     and gameplay contracts to check each claimed use; do not change schemas.
+   - **Acceptance:** review the complete before/after copy list, confirm no
+     supported entry is missed and retained manual improvements are preserved,
+     then verify consistent names/descriptions across host/client menus and
+     object prompts. Check wrapping, search/filter/sort, accessible labels,
+     icon association and current unavailable states. Update affected text
+     expectations and documentation without changing transaction/gameplay rules.
+
 **M12 boundary:** presentation and local input changes only. Reuse existing item,
 equipment, crafting, support, and inventory contracts; add no gameplay content,
 balance changes, authoritative mutation paths, new save schemas, hidden-content
@@ -624,7 +656,9 @@ copy; the build menu contains construction only and displaced functions are
 accessible in their dedicated interaction/inventory contexts; minimap top/right
 padding is half its former value without clipping or status overlap; every current
 catalogue object/result has its original generated 64x64 image icon, consistently
-mapped across views with readable separate overlays and complete coverage. Verify
+mapped across views with readable separate overlays and complete coverage; item
+names/descriptions are concise, consistent and truthful with intentional manual
+improvements retained and Workbench named Workbench. Verify
 empty/populated inventories, selection and input changes, coexistence with
 crafting/settings/full map, separate owners, reconnect, keyboard/controller
 navigation, text entry, 4:3/16:9/ultrawide layouts, interface/text scaling, high
