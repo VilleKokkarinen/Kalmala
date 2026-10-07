@@ -11621,4 +11621,4 @@ Known limitations: The updated focused automation was not executed; rendered lay
 
 Next eligible task: Preserve support/combat selection and concise action-result/discovery feedback on existing HUD surfaces independently of the persistent left-side panel; update narrow feedback/input expectations.
 
-Main-checkout handoff synchronization: Pending. Main `BACKLOG.md` and `PROGRESS.md` were inspected; only this selected backlog state and progress entry will be synchronized after the implementation commit. Existing main-checkout edits remain untouched.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only this selected backlog state and progress entry; existing main-checkout edits remain untouched.
