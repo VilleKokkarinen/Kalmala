@@ -11802,3 +11802,25 @@ Known limitations: Changed C++ and the revised automation remain uncompiled/unru
 Next eligible task: M12 goal 6, simplify food/general crafting detail templates to result, ingredients, supported quantity, real station/heat requirements, and one blocker.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and changed only the goal 5 parent, the selected goal 6 child, and this PROGRESS entry; all other modified and untracked main-checkout files remain untouched.
+
+### Run 2026-10-07T12:47:03Z — simplify food and general recipe details
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run. Continued in the retained worktree `E:\\dev\\Kalmala\\wt\\m12-hud-feedback-rebuild` at baseline `146fd04`; the main checkout contains pre-existing changes that remain untouched outside the required backlog/progress handoff.
+
+Completed: Generic food and crafting details now show the canonical result description once, keep owner-local ingredient rows, and list result count, one batch per menu press, and the supported maximum batch when greater than one. Requirement copy lists only real station alternatives, applicable cooking heat, reusable tools, and at most one current blocker. Empty station/tool states, generic skill/unlock claims, unrelated skill progress, stack-limit and request/rejection boilerplate were removed. Server crafting and catalogue behavior are unchanged. The goal 6 parent remains open; the selected child is checked.
+
+Files changed: `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaRecipeRequirements.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaRecipeRequirementsTest.cpp`; `docs/07-development-setup.md`; `docs/39-crafting-ingredients.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-PresentationOwnership.ps1` and `Verify-M5DocumentationContracts.ps1` (all five contracts) passed. Five focused source assertions, `git diff --check`, and the MAX_PATH audit passed (maximum changed absolute path 114 characters). Manual review confirmed ingredient rows and server-owned availability/validation paths remain intact. The updated C++ automation assertions were not executed.
+
+Full verification remains deferred: this is a normal M12 child, not the final implementation task in M12. No Unreal build, C++ automation, rendered host/client run, physical-input review, or package check was run.
+
+Observable impact: Food/general recipe details now show a canonical result and concise actionable requirements without duplicated costs, empty states, skill lists, or request boilerplate.
+
+Networking/authority: Presentation only. Existing owner-visible availability remains the single blocker source; the server still revalidates recipe identity, quantity, inventory exchange, station range/visibility, and cooking heat. No RPC, replicated field, catalogue data, transaction, or save schema changed.
+
+Known limitations: Changed C++ and revised automation remain uncompiled/unrun, and the text has not been rendered at supported scales/contrast. The menu submits one batch per press; other detail templates and M12 final acceptance remain pending.
+
+Next eligible task: M12 goal 6, simplify upgrade/repair templates to actual tool comparison/condition, relevant prerequisites/costs, and one blocker.
+
+Main-checkout handoff synchronization: Pending; only `BACKLOG.md` and `PROGRESS.md` will be synchronized after inspecting their dirty main-checkout versions.

@@ -734,44 +734,9 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
         if (BuildItem && !BuildItem->Description.IsEmpty()) return BuildItem->Description;
         return TEXT("Description unavailable.");
     }
-    FString Text = R->DisplayName + TEXT("\nCost: ");
-    for (const auto& Cost : R->Ingredients)
-    {
-        const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Cost.ItemId);
-        Text += FString::Printf(TEXT("%d %s  "), Cost.Quantity,
-            Item ? *Item->DisplayName : *Cost.ItemId.ToString());
-    }
-    Text += FString::Printf(TEXT("\nCost list is for batch 1; larger batches multiply each listed quantity.\nMaximum batch: up to %d per request; this panel submits batch 1 per press."),
-        R->MaxBatch);
     const auto* OutputItem = UKalmalaItemCatalogue::Get()->FindItem(R->Output);
-    Text += FString::Printf(TEXT("\nOutput: %d %s (stack limit %d per inventory stack)"),
-        R->OutputCount, OutputItem ? *OutputItem->DisplayName : *R->Output.ToString(),
-        OutputItem ? OutputItem->MaxStack : 0);
-    if (OutputItem) Text += TEXT("\nDescription: ") + OutputItem->Description;
-    if (!R->RequiredTool.IsNone())
-        Text += FString::Printf(TEXT("\nTool: carry a %s in your pack; it is reusable and not consumed."),
-            *GetRecipeToolDisplayName(R->RequiredTool));
-    if (FKalmalaToolProgressionContract::IsStationAttachmentKit(R->Output))
-    {
-        const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(R->Output);
-        const TCHAR* StationName = StationKit == TEXT("WorkbenchKit") ? TEXT("Workbench") : TEXT("Forge");
-        Text += FString::Printf(TEXT("\nStation: craft at a visible same-world %s within 2.5 m.\nPlacement: place within 1.25 m of that station; the level bonus lasts for this session until M9 save migration is approved."), StationName);
-        return Text;
-    }
-    const AKalmalaConstructionActor* RequiredStation = R->RequiredStation.IsEmpty()
-        ? nullptr : FindNearbyConstruction(R->RequiredStation);
-    if (!R->RequiredStation.IsEmpty())
-    {
-        const FString StationName = GetRecipeStationNames(*R);
-        Text += FString::Printf(TEXT("\nStation: visible same-world %s within 2.5 m"), *StationName);
-        if (IsFoodProcessingStation(RequiredStation))
-            Text += FString::Printf(TEXT("\nHeat: a usable lit hearth with positive heat must be within 2.5 m of both the player and %s. Its fuel burns at the normal rate while lit; the recipe adds no fuel cost."), *StationName);
-    }
-    else if (R->RequiredTool.IsNone())
-        Text += TEXT("\nHandcrafted; no station");
-
-    Text += TEXT("\nFailure: the availability text below names the first unmet requirement. Rejected requests preserve ingredients and tool condition.");
-    return Text;
+    return OutputItem && !OutputItem->Description.IsEmpty()
+        ? OutputItem->Description : TEXT("Description unavailable.");
 }
 
 FString UKalmalaCraftingComponent::GetFoodText() const

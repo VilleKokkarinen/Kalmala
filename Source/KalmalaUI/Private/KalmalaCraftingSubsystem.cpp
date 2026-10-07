@@ -25,7 +25,6 @@
 #include "KalmalaOceanSampler.h"
 #include "KalmalaWorldBounds.h"
 #include "KalmalaWorldGenerationGameState.h"
-#include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "Blueprint/WidgetTree.h"
@@ -72,74 +71,6 @@ FString GetReadableToolName(const FName ToolId)
 bool IsInWorldCookingStation(const FName KitId)
 {
     return KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit") || KitId == TEXT("FryingPanKit");
-}
-
-const TCHAR* GetReadableSkillName(const EKalmalaSkill Skill)
-{
-    switch (Skill)
-    {
-    case EKalmalaSkill::Gathering: return TEXT("Gathering");
-    case EKalmalaSkill::Woodcutting: return TEXT("Woodcutting");
-    case EKalmalaSkill::Mining: return TEXT("Mining");
-    case EKalmalaSkill::Crafting: return TEXT("Crafting");
-    case EKalmalaSkill::Cooking: return TEXT("Cooking");
-    case EKalmalaSkill::Survival: return TEXT("Survival");
-    default: return TEXT("Unknown skill");
-    }
-}
-
-FString BuildSkillProgressText(const AKalmalaCharacter* Character)
-{
-    FString Text = TEXT("\nSKILL PROGRESS [PRIVATE TO YOU]\n");
-    const UKalmalaSkillProgressionComponent* Progression = Character
-        ? Character->GetSkillProgressionComponent() : nullptr;
-    if (!Progression)
-    {
-        return Text + TEXT("Skill progress is not available yet.\n");
-    }
-
-    const TArray<EKalmalaSkill> AllowlistedSkills = FKalmalaSkillProgressionContract::GetAllowlistedSkills();
-    const TArray<FKalmalaSkillState>& DetailedProgression = Progression->GetDetailedProgression();
-    if (DetailedProgression.Num() != AllowlistedSkills.Num())
-    {
-        return Text + TEXT("Waiting for your complete private skill update.\n");
-    }
-
-    const auto FindState = [&DetailedProgression](const EKalmalaSkill Skill) -> const FKalmalaSkillState*
-    {
-        return DetailedProgression.FindByPredicate([Skill](const FKalmalaSkillState& State)
-        {
-            return State.Skill == Skill && State.IsValid();
-        });
-    };
-
-    for (const EKalmalaSkill Skill : AllowlistedSkills)
-    {
-        const FKalmalaSkillState* State = FindState(Skill);
-        if (!State)
-        {
-            return Text + TEXT("Waiting for your complete private skill update.\n");
-        }
-
-        if (State->Level < FKalmalaSkillProgressionContract::MaxLevel)
-        {
-            const int32 LevelStart = FKalmalaSkillProgressionContract::GetExperienceForLevel(State->Level);
-            const int32 NextLevelStart = FKalmalaSkillProgressionContract::GetExperienceForLevel(State->Level + 1);
-            const int32 LevelProgress = FMath::Clamp(State->Experience - LevelStart, 0, NextLevelStart - LevelStart);
-            Text += FString::Printf(TEXT("%s: Level %d, %d/%d XP to Level %d\n"),
-                GetReadableSkillName(Skill), State->Level, LevelProgress,
-                NextLevelStart - LevelStart, State->Level + 1);
-        }
-        else
-        {
-            Text += FString::Printf(TEXT("%s: Level %d, %d/%d total XP (maximum level)\n"),
-                GetReadableSkillName(Skill), State->Level, State->Experience,
-                FKalmalaSkillProgressionContract::MaxExperience);
-        }
-    }
-
-    Text += TEXT("Recipe access depends on materials, stations, and world conditions; skill level does not lock recipes.\n");
-    return Text;
 }
 
 struct FInteractionPromptDescription
@@ -953,17 +884,14 @@ void UKalmalaCraftingWidget::Refresh()
         Availability)));
     const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.Output);
     const FString RecipeDescription = M->GetRecipeDescription(SelectedRecipe.RecipeId);
-    DetailText->SetText(FText::FromString(bDirectBuild ? RecipeDescription
-        : RecipeDescription + TEXT("\nAvailability: ") + Availability + TEXT("\n")
-            + BuildSkillProgressText(Cast<AKalmalaCharacter>(GetOwningPlayerPawn()))));
+    DetailText->SetText(FText::FromString(RecipeDescription));
     if (CraftButton)
     {
         if (UTextBlock* ButtonLabel = Cast<UTextBlock>(CraftButton->GetContent()))
             ButtonLabel->SetText(FText::FromString(bDirectBuild ? TEXT("Build selected") : TEXT("Craft one")));
         const FString ButtonToolTip = bDirectBuild
             ? TEXT("Build the selected structure from its shown materials.")
-            : FString::Printf(TEXT("Craft batch 1 of %s. Availability: %s. A rejected request preserves ingredients and tool condition."),
-                *SelectedRecipe.DisplayName, *Availability);
+            : TEXT("Craft one batch of the selected recipe.");
         CraftButton->SetToolTipText(FText::FromString(ButtonToolTip));
         if (CraftButton->GetIsEnabled() != SelectedRecipe.bEnabled)
         {
@@ -1213,9 +1141,11 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             const FString RetiredSmokeFrameDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("SmokeFrame")) : FString();
             const FString RetiredSmokingRecipeDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("SmokeBoarMeat")) : FString();
             const FString DirectBuildDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("Floor")) : FString();
+            const FKalmalaRecipe* StorageRecipe = UKalmalaRecipeCatalogue::Get()->Find(TEXT("Storage"));
+            const FKalmalaItemDefinition* StorageItem = StorageRecipe
+                ? UKalmalaItemCatalogue::Get()->FindItem(StorageRecipe->Output) : nullptr;
             const FKalmalaItemDefinition* FloorItem = UKalmalaItemCatalogue::Get()->FindItem(TEXT("FloorKit"));
-            const bool CampFeedbackPassed = ChestDescription.Contains(TEXT("6 Wood"))
-                && ChestDescription.Contains(TEXT("8 Reed fibre")) && ChestDescription.Contains(TEXT("Chest"))
+            const bool CampFeedbackPassed = StorageItem && ChestDescription == StorageItem->Description
                 && RetiredSmokeFrameDescription == TEXT("Unknown recipe")
                 && RetiredSmokingRecipeDescription == TEXT("Unknown recipe")
                 && FloorItem && DirectBuildDescription == FloorItem->Description
@@ -1365,8 +1295,29 @@ bool UKalmalaCraftingWidget::PrepareIngredientReviewForTest(const int32 View)
             || Requirements.Contains(TEXT("Skill level:"))
             || Requirements.Contains(TEXT("server rechecks every request"))) return false;
     }
-    else if (!Requirements.Contains(TEXT("Skill level: no recipe requirement."))
-        || !Requirements.Contains(TEXT("Cooking heat:"))) return false;
+    else
+    {
+        const auto* Crafting = GetOwningPlayerPawn()
+            ? GetOwningPlayerPawn()->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
+        if (!Crafting || !Requirements.Contains(TEXT("Result:"))
+            || !Requirements.Contains(TEXT("Quantity: one batch per press"))
+            || !Requirements.Contains(TEXT("Cooking heat: usable lit hearth with positive heat"))
+            || Requirements.Contains(TEXT("Skill level:")) || Requirements.Contains(TEXT("Unlock:"))
+            || Requirements.Contains(TEXT("server rechecks"))
+            || Requirements.Contains(TEXT("Rejected requests preserve"))) return false;
+
+        const FString Availability = Crafting->GetRecipeAvailability(Recipe->RecipeId);
+        const FString Blocker = !Recipe->bEnabled
+            ? FString(TEXT("Recipe unavailable")) : Availability.TrimStartAndEnd();
+        const int32 FirstBlocker = Requirements.Find(TEXT("Unavailable:"), ESearchCase::IgnoreCase, ESearchDir::FromStart);
+        const int32 LastBlocker = Requirements.Find(TEXT("Unavailable:"), ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+        if (Blocker.IsEmpty() || Blocker.Equals(TEXT("Ready"), ESearchCase::IgnoreCase))
+        {
+            if (FirstBlocker != INDEX_NONE) return false;
+        }
+        else if (FirstBlocker == INDEX_NONE || FirstBlocker != LastBlocker
+            || !Requirements.Contains(TEXT("Unavailable: ") + Blocker)) return false;
+    }
     CraftingScrollBox->ScrollWidgetIntoView(View % 2 == 0 ? static_cast<UWidget*>(Ingredients.Get())
         : static_cast<UWidget*>(RequirementText.Get()), false, EDescendantScrollDestination::TopOrLeft);
     return true;

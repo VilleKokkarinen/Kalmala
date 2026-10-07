@@ -315,8 +315,10 @@ combined scale/contrast pixel acceptance wait for remaining ordered children.
 For the requirements child, also run
 `Kalmala.Gameplay.Food.CookingStationHeat` in that focused queue. The
 `Kalmala.UI.Crafting.Requirements` automation is included by the UI prefix;
-rendered Verify-Crafting additionally asserts live selected requirements,
-carried hammer and truthful skill/unlock labels on both peers. See docs/39.
+rendered Verify-Crafting additionally asserts the selected result, ingredients,
+supported batch quantity, live station/heat requirements and one current blocker;
+direct construction retains its carried-hammer and placement checks. Generic
+recipe detail copy omits skill/unlock boilerplate. See docs/39.
 
 ## Baseline
 

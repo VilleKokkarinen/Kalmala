@@ -175,3 +175,26 @@ Verify-Crafting presentation gate checks the selected hearth copy and ensures
 its old repeated costs, output label, skill list, and request prose are absent.
 Build, full automation, and rendered verification remain deferred to M12's
 milestone-final run.
+
+## M12 food and general recipe detail template
+
+Non-construction recipe details show the canonical output description once,
+the existing owner-local ingredient rows, and a compact requirement summary.
+The summary names the actual result count per batch, one batch per menu press,
+and the catalogue's supported maximum batch when it is greater than one. It
+lists only real station alternatives, the cooking-heat rule for rack/cauldron/
+pan recipes, and a reusable tool when the recipe requires one. The first
+current availability blocker appears once; a ready recipe has no synthetic
+success message. Recipes without station or reusable-tool requirements get no
+empty-state lines, and the selected details omit unrelated skill lists,
+no-lock claims, output-stack limits, request/rejection boilerplate, and repeated
+ingredient totals. Catalogue prose and server recipe validation remain intact.
+
+`Kalmala.UI.Crafting.Requirements` checks result/quantity coverage, station and
+heat requirements, reusable-tool text, omission of generic boilerplate and
+single-blocker behavior. `Kalmala.Gameplay.Food.CookingStationHeat` continues
+to verify the server heat gate and confirms the detail description comes from
+the canonical result item. The rendered Verify-Crafting review checks the live
+cooking result, ingredients, heat line and blocker count for both owners. Build,
+full automation and rendered checks remain deferred to M12's milestone-final
+run.

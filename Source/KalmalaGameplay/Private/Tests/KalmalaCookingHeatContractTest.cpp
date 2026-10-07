@@ -169,8 +169,9 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Accepted cooking does not consume an extra fuel item"), Inventory->GetQuantity(TEXT("Wood")), 1);
     TestEqual(TEXT("Accepted cooking does not debit fire fuel per serving"), Fire->GetFuelSeconds(), FuelBeforeCooking);
     TestEqual(TEXT("Accepted batch awards Cooking experience once"), GetCookingExperience(), ExperienceBeforeCooking + 10);
-    TestTrue(TEXT("Recipe detail explains time-based fire fuel"),
-        Crafting->GetRecipeDescription(CookRecipe->RecipeId).Contains(TEXT("fuel burns at the normal rate")));
+    const FKalmalaItemDefinition* CookedMeat = Items->FindItem(CookRecipe->Output);
+    TestTrue(TEXT("Recipe detail uses the result description once"),
+        CookedMeat && Crafting->GetRecipeDescription(CookRecipe->RecipeId) == CookedMeat->Description);
 
     const float FuelBeforeRoots = Fire->GetFuelSeconds();
     const int32 ExperienceBeforeRoots = GetCookingExperience();

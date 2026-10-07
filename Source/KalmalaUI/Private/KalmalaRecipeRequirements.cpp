@@ -4,8 +4,7 @@
 #include "KalmalaToolProgressionContract.h"
 
 FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
-    const UKalmalaInventoryComponent* Inventory, int32 CarriedHammerLevel,
-    const FString& Availability)
+    const UKalmalaInventoryComponent*, int32 CarriedHammerLevel, const FString& Availability)
 {
     const auto Name = [](FName Id)
     {
@@ -29,7 +28,14 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
         return Text;
     }
 
-    FString Text = TEXT("Requirements — selected recipe\n");
+    const FString ResultName = Name(Recipe.Output);
+    FString Text = Recipe.OutputCount > 0
+        ? FString::Printf(TEXT("Result: %d %s per batch.\n"), Recipe.OutputCount, *ResultName)
+        : FString::Printf(TEXT("Result: %s.\n"), *ResultName);
+    Text += TEXT("Quantity: one batch per press");
+    if (Recipe.MaxBatch > 1)
+        Text += FString::Printf(TEXT("; up to %d batches per request"), Recipe.MaxBatch);
+    Text += TEXT(".\n");
     {
         TArray<FName> Stations = Recipe.RequiredStation;
         if (FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output))
@@ -37,8 +43,7 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
             Stations.AddUnique(FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.Output));
             Text += TEXT("Attachment placement: within 1.25 m of its matching station.\n");
         }
-        Text += Stations.IsEmpty() ? TEXT("Station: none (handcrafted).\n")
-            : TEXT("Station: any one visible same-world station within 2.5 m: ");
+        if (!Stations.IsEmpty()) Text += TEXT("Station: any one visible same-world station within 2.5 m: ");
         bool bNeedsHeat = false;
         for (int32 Index = 0; Index < Stations.Num(); ++Index)
         {
@@ -49,20 +54,12 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
         if (!Stations.IsEmpty()) Text += TEXT(".\n");
         if (bNeedsHeat)
             Text += TEXT("Cooking heat: usable lit hearth with positive heat within 2.5 m of both you and the cooking station.\n");
-        if (Recipe.RequiredTool.IsNone()) Text += TEXT("Tool: no reusable pack item required.\n");
-        else
-        {
-            const bool bHasTool = Inventory && UKalmalaRecipeCatalogue::HasRequiredTool(Recipe.RequiredTool, Inventory->GetStacks());
-            Text += FString::Printf(TEXT("Tool: %s in your pack (not consumed) — %s.\n"), *Name(Recipe.RequiredTool),
-                !Inventory ? TEXT("Waiting for pack") : bHasTool ? TEXT("Present") : TEXT("Missing"));
-        }
+        if (!Recipe.RequiredTool.IsNone())
+            Text += FString::Printf(TEXT("Reusable tool: %s (not consumed).\n"), *Name(Recipe.RequiredTool));
     }
-    Text += TEXT("Skill level: no recipe requirement.\n");
-    Text += Recipe.bEnabled ? TEXT("Unlock: no additional recipe lock.\n")
-        : TEXT("Unlock: recipe disabled; unavailable.\n");
-    Text += !Recipe.bEnabled ? TEXT("Unavailable: Recipe unavailable")
-        : !Availability.IsEmpty() ? TEXT("Unavailable: ") + Availability
-        : TEXT("Preview: no unmet requirement reported; the server rechecks every request.");
-    Text += TEXT("\nRejected requests preserve ingredients and tool condition.\n");
+    const FString Blocker = !Recipe.bEnabled
+        ? FString(TEXT("Recipe unavailable")) : Availability.TrimStartAndEnd();
+    if (!Blocker.IsEmpty() && !Blocker.Equals(TEXT("Ready"), ESearchCase::IgnoreCase))
+        Text += TEXT("Unavailable: ") + Blocker;
     return Text;
 }
