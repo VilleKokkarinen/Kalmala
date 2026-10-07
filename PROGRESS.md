@@ -11824,3 +11824,27 @@ Known limitations: Changed C++ and revised automation remain uncompiled/unrun, a
 Next eligible task: M12 goal 6, simplify upgrade/repair templates to actual tool comparison/condition, relevant prerequisites/costs, and one blocker.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only the selected BACKLOG child and this PROGRESS entry; all other modified and untracked main-checkout files remain untouched.
+
+### Run 2026-10-07T13:04:06Z — simplify tool upgrade and repair details
+
+Concurrency guard: Codex task inventory showed this as the only active Kalmala run; the other same-automation thread was idle. Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` at `fdfd9ae`.
+
+Completed: Tool condition now lists only carried owner tools with their actual levels and durability. Upgrade details compare the current required tool and condition with the target, show authored station/skill requirements and material costs with owner inventory counts, and present one first actionable blocker or a ready/already-carried state. Repair guidance now states only the actual nearby-station requirement, full-condition result, and free cost; Grinding Stone repair-all remains clear. Updated the narrow presentation assertions and M9 verification notes. Marked M12 goal 6's parent complete; M12 remains in progress.
+
+Implementation commit: `bf720de` (`Simplify tool upgrade and repair details`) on `codex/m12-hud-feedback-rebuild`.
+
+Files changed: `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `docs/07-development-setup.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-PresentationOwnership.ps1` passed; all five `Verify-M5DocumentationContracts.ps1` contracts passed; focused source assertions and `git diff --check` passed. Manual review confirmed tool/skill details read existing owner-visible snapshots and all action dispatches remain unchanged. The changed C++ automation assertions were not executed. Changed absolute paths remain below MAX_PATH (maximum 102 characters).
+
+Full verification remains deferred: this is a normal M12 child, not the final implementation task in the milestone. No Unreal build, automation suite, rendered host/client review, physical-input review, or package check was run.
+
+Observable impact: Upgrade and repair details show current carried-tool condition and the real upgrade path, with costs and one current blocker instead of a long progression dump.
+
+Networking/authority: Presentation only. Tool condition and detailed skill state are read from existing owner-only snapshots; existing server validation, RPCs, replication, construction persistence, catalogue data, and save schemas are unchanged.
+
+Known limitations: Changed C++ and its assertions remain uncompiled/unrun; the revised copy has not been rendered or checked at supported text scales/contrast. M12 final host/client, accessibility, interaction, regression, and package verification remain pending.
+
+Next eligible task: M12 goal 7, add the shared themed station-context shell and validated interaction routing, integrate one existing station entry, and preserve old service access.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and applied only this selected BACKLOG state and PROGRESS entry; all other modified and untracked files remain untouched.
