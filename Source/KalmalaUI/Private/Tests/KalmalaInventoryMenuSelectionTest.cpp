@@ -45,6 +45,8 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TestNotNull(TEXT("First owner inventory menu initializes"), OwnerA);
     TestNotNull(TEXT("Second owner inventory menu initializes"), OwnerB);
     if (!OwnerA || !OwnerB) return false;
+    TestEqual(TEXT("Normal gameplay keeps Inventory collapsed until opened"),
+        OwnerA->GetVisibility(), ESlateVisibility::Collapsed);
 
     const TArray<FKalmalaCatalogueRow> OwnerARows = {
         {TEXT("Wood"), TEXT("Wood"), TEXT("× 7"), false},
@@ -275,9 +277,20 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Empty owner pack clears selection"), OwnerA->GetSelectedItemForVerification(), NAME_None);
     TArray<UWidget*> Widgets;
     OwnerA->WidgetTree->GetAllWidgets(Widgets);
+    bool bFoundEmptyPackGrid = false;
     for (UWidget* Widget : Widgets)
+    {
+        if (const auto* Rows = Cast<UKalmalaCatalogueRowsWidget>(Widget))
+        {
+            bFoundEmptyPackGrid = true;
+            TestEqual(TEXT("Empty Inventory retains all sixteen pack slots"), Rows->GetSlotCapacity(), 16);
+            TestEqual(TEXT("Empty Inventory has no filled pack slots"), Rows->GetFilledSlotCount(), 0);
+            TestEqual(TEXT("Empty Inventory renders sixteen empty pack slots"), Rows->GetEmptySlotCount(), 16);
+        }
         if (const auto* Detail = Cast<UKalmalaItemDetailWidget>(Widget))
             TestEqual(TEXT("Empty pack hides the stale detail panel"), Detail->GetVisibility(), ESlateVisibility::Collapsed);
+    }
+    TestTrue(TEXT("Empty Inventory retains its shared pack grid"), bFoundEmptyPackGrid);
 
     return true;
 }

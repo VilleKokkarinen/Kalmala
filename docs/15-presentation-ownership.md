@@ -38,16 +38,18 @@ multi-row clipping, and scaled-font legibility remain unreviewed.
 ## Owner-local prepared-food inventory detail
 
 When the owning player's private pack contains roasted field meat, Hearth
-Broth, or smoked field meat, the read-only inventory HUD explains that one
+Broth, or smoked field meat, the on-demand Inventory menu explains that one
 serving grants Steady Meal, reducing stamina cost by 10% for 120 seconds. If
-the same pawn's existing replicated status contains an active meal, the panel
+the same pawn's existing replicated status contains an active meal, the menu
 shows its remaining server-published time and the wait-for-expiry rule. The
-display adds no input, RPC, gameplay mutation, or persistence; shape markers
-and explicit text remain visible with the owner's configured text scale and
-contrast. `Kalmala.UI.Inventory.PreparedFoodDetails` checks the bounded benefit,
-active timer formatting, and fail-closed invalid timer behavior. The
-host/client inventory reconnect fixture continues to verify owner-only pack
-visibility; rendered multi-row layout and scaled-font appearance remain open.
+Eat action sends only the selected supported food ID through the existing
+server transaction; the server revalidates quantity and the active meal slot.
+The menu adds no new RPC, replicated field, or save data. Shape markers and
+explicit text remain visible with the owner's configured text scale and
+contrast. `Kalmala.UI.Inventory.PreparedFoodDetails` checks the selected menu
+detail and disabled action while owner data is unavailable. The host/client
+inventory reconnect fixture continues to verify owner-only pack visibility;
+rendered multi-row layout and scaled-font appearance remain open.
 
 ## Owner-local crafting skill and unlock detail
 

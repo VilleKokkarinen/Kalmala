@@ -1,5 +1,9 @@
 # Crafting/cooking modal and left HUD
 
+> Superseded by the M12 left-panel removal: the persistent inventory HUD and
+> its crafting suppression/restoration hooks no longer exist. This page records
+> the earlier overlap acceptance fixture as historical evidence.
+
 Opening the owner's construction/crafting or cooking-station menu collapses
 the left inventory/support HUD. Closing the menu restores its previous role as
 a hit-test-invisible HUD. The hidden HUD continues reading owner-visible state,

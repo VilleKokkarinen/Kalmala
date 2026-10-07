@@ -129,7 +129,7 @@ These events use the same three-row bound, theme lifetime, passive presentation,
 and modal collapse as skill, item-gain, and discovery notices. The notification
 subsystem reads only the local owning pawn. The server-owned components still
 validate and publish every result; this presentation adds no request, RPC,
-replicated field, save data, or gameplay mutation. The inventory HUD no longer
+replicated field, save data, or gameplay mutation. The Inventory menu no longer
 duplicates combat, support, or discovery result text.
 
 `Kalmala.UI.Notifications.CombinedPresentation` checks silent action baselines,

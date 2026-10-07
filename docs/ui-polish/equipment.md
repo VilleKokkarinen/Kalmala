@@ -1,5 +1,10 @@
 # Carried-tool presentation candidate
 
+> Historical fixture note: M12 replaced the persistent left pack/tool HUD with
+> the on-demand Inventory menu. `-EquipmentView` and the legacy panel capture
+> path described below were retired; the outcome and retained images record the
+> earlier presentation candidate only.
+
 Equipment currently consists of owner-only carried tools, not armour slots.
 The candidate uses two wider columns, bold readable tool names, theme spacing,
 and separate level, condition, and explicit READY / DAMAGED / BROKEN lines.

@@ -1,6 +1,5 @@
 #include "KalmalaCraftingSubsystem.h"
 #include "Misc/Paths.h"
-#include "KalmalaInventorySubsystem.h"
 #include "KalmalaInventoryInspectWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaIngredientWidget.h"
@@ -615,9 +614,6 @@ void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
             TEXT("The server requires this placed station and a usable, lit hearth with heat at both the station and you. Ingredients and availability are shown in text.")));
     }
     bOpen = true; bPreviousCursor = PC->bShowMouseCursor;
-    if (ULocalPlayer* LocalPlayer = GetOwningLocalPlayer())
-        if (auto* InventoryHUD = LocalPlayer->GetSubsystem<UKalmalaInventorySubsystem>())
-            InventoryHUD->SetCraftingMenuSuppressed(true);
     int32 X, Y; PC->GetViewportSize(X,Y);
     const float Scale = FMath::Max(.1f, UWidgetLayoutLibrary::GetViewportScale(this));
     const float PanelWidth = FMath::Min(840.0f, X / Scale - 32.0f);
@@ -649,9 +645,6 @@ void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
 void UKalmalaCraftingWidget::Close()
 {
     if (!bOpen) return; bOpen = false; bPlacementPreviewEnabled = false; SetVisibility(ESlateVisibility::Collapsed);
-    if (ULocalPlayer* LocalPlayer = GetOwningLocalPlayer())
-        if (auto* InventoryHUD = LocalPlayer->GetSubsystem<UKalmalaInventorySubsystem>())
-            InventoryHUD->SetCraftingMenuSuppressed(false);
     if (auto* M = Model()) M->ServerCloseStorage();
     if (auto* PC=GetOwningPlayer()) { PC->SetIgnoreMoveInput(false); PC->SetIgnoreLookInput(false); PC->bShowMouseCursor=bPreviousCursor; PC->SetInputMode(FInputModeGameOnly()); }
 }
@@ -1258,11 +1251,9 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && GridSummary.Contains(TEXT("Unavailable=")) && GridSummary.Contains(TEXT("Focused=1"))
                 && GridSummary.Contains(TEXT("ReadOnly=1")) && GridSummary.Contains(TEXT("Scrollable=1"));
             UE_LOG(LogTemp, Display, TEXT("Build slot grid: %s Navigation=%d"), *GridSummary, bGridNavigation);
-            auto* InventoryHUD = GetLocalPlayer()->GetSubsystem<UKalmalaInventorySubsystem>();
-            const bool bHUDHidden = InventoryHUD && InventoryHUD->IsCraftingMenuSuppressed();
             const bool bPromptHidden = !InteractionPrompt || InteractionPrompt->GetVisibility() != ESlateVisibility::Visible;
             UE_LOG(LogTemp, Display, TEXT("Interaction prompt modal: Hidden=%d"), bPromptHidden ? 1 : 0);
-            const bool Passed=bInspection && bHUDHidden && Text.Contains(TEXT("Construction hammer menu input:")) && Text.Contains(TEXT("Up/Down"))
+            const bool Passed=bInspection && Text.Contains(TEXT("Construction hammer menu input:")) && Text.Contains(TEXT("Up/Down"))
                 && Text.Contains(TEXT("Requirements — selected recipe"))
                 && Text.Contains(TEXT("Tool: carried Construction Hammer level 1 — Present"))
                 && Text.Contains(TEXT("Skill level: no recipe requirement."))
@@ -1289,9 +1280,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && bPromptHidden
                 && PC->IsMoveInputIgnored() && Widget->IsFocusable();
             Widget->Close();
-            const bool bHUDRestored = InventoryHUD && !InventoryHUD->IsCraftingMenuSuppressed();
-            UE_LOG(LogTemp, Display, TEXT("Crafting HUD overlap: Hidden=%d Restored=%d"), bHUDHidden, bHUDRestored);
-            UE_LOG(LogTemp,Display,TEXT("Crafting presentation: Passed=%d Restored=%d"),Passed,!PC->IsMoveInputIgnored() && bHUDRestored); bVerified=true;
+            UE_LOG(LogTemp,Display,TEXT("Crafting presentation: Passed=%d Restored=%d"),Passed,!PC->IsMoveInputIgnored()); bVerified=true;
         }
     }
     FString CapturePath;

@@ -11644,3 +11644,25 @@ Known limitations: The focused C++ automations were not compiled or run; rendere
 Next eligible task: Remove the old left-side panel, glyph row, diagnostic/help text and pack/tool grid now covered by Inventory; inspect normal/empty paths and prepare the absence regression.
 
 Main-checkout handoff synchronization: Complete. After inspecting the dirty main versions, synchronized only this selected BACKLOG row and the new PROGRESS entry. All other pre-existing main-checkout changes remain uncommitted and untouched.
+
+### Run 2026-10-07T10:51:02Z — remove the persistent Inventory HUD
+
+Concurrency guard: Codex app inventory showed this as the only active Kalmala run. Work continued in the clean M12 handoff worktree at ae91fda; the interrupted draft in wt/m12-pack-grid and all unrelated main-checkout changes were left untouched.
+
+Completed: Removed the always-visible inventory subsystem/widget, its pack/tool grid, build/craft shortcut and prepared-food banner, crafting-menu suppression hooks, old grid screenshot stages, and the delayed capture-log reader. The on-demand Inventory menu remains the only pack/tool surface. Support selection and action/discovery notifications remain on their separate HUD surfaces. The crafting modal regression now checks prompt hiding and movement/look restoration without requiring a retired HUD. The prepared-food automation retains its existing test ID but now exercises the actual Inventory menu. Inventory selection coverage now checks collapsed normal startup and all sixteen empty pack cells with selection/detail cleared.
+
+Files changed: Scripts/Verify-Inventory.ps1; Scripts/Verify-InventoryReconnect.ps1; Scripts/Verify-PresentationOwnership.ps1; new Scripts/Verify-InventoryPanelRemoval.ps1; deleted Scripts/Read-InventoryCapture.ps1; Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp; deleted Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp and Public/KalmalaInventorySubsystem.h; Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp; moved the prepared-food automation to Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuFoodTest.cpp; docs/02-technical-architecture.md; docs/07-development-setup.md; docs/15-presentation-ownership.md; docs/35-ui-theme.md; docs/40-notifications.md; docs/ui-polish/capture-logs.md; docs/ui-polish/equipment.md; docs/ui-polish/modal-hud.md; BACKLOG.md; and this PROGRESS.md entry.
+
+Lightweight checks: Verify-InventoryPanelRemoval.ps1 passed; Verify-PresentationOwnership.ps1 passed; Verify-M5DocumentationContracts.ps1 passed all five contracts; changed PowerShell files parsed; git diff --check passed. Manual review covered local-owner reads, on-demand modal startup, empty-pack grid capacity, existing menu input restoration, and unchanged gameplay authority. No Unreal build, automation test, rendered host/client review, or package check was run.
+
+Full verification remains deferred: this is a normal M12 child increment, not the final implementation task in M12.
+
+Observable impact: Gameplay no longer mounts the left pack/tool panel or its duplicate help and diagnostic text. Players open Inventory for pack, tools, details and supported actions; the sixteen-slot pack view remains available in that modal.
+
+Networking/authority: This removes local presentation only. Support and notification sources are unchanged; the Inventory menu still reads owner-visible pack/tool state and uses existing server-validated actions. No gameplay authority, RPC, replication field, or save schema changed.
+
+Known limitations: The changed C++ sources and focused automations were not compiled or run. Rendered normal/empty modal layout, host/client privacy, physical input and packaged behavior remain in M12 milestone-final verification.
+
+Next eligible task: Halve minimap edge padding from 24 to 12 UI units and update its narrow placement/layout validator.
+
+Main-checkout handoff synchronization: Complete. After inspecting the dirty main versions, updated only this selected BACKLOG parent/child state and appended this PROGRESS entry. All unrelated main-checkout edits remain untouched and uncommitted.

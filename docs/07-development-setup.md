@@ -681,7 +681,7 @@ currently has no configured gathering source.
 
 ## Player inventory verification
 
-Run `Scripts/Verify-Inventory.ps1` after an editor build for the inventory component increment. A development-only `-KalmalaInventoryTest` fixture grants ten wood and consumes three on each server pawn, rejects unknown/overflow grants and invalid/insufficient consumption, and verifies removal of an exhausted stone stack. The runner requires two successful server results, seven wood on the remote owner, rejected client-local mutation calls, empty remote contents after owner replication, matching immutable world identity, and read-only local pack presentation on both peers. Separate temporary user directories keep the scenario out of project-generated data. This headless check verifies widget data binding, not rendered layout; rendered harvest feedback and reconnect persistence remain subsequent tasks.
+Run `Scripts/Verify-Inventory.ps1` after an editor build for the inventory component increment. A development-only `-KalmalaInventoryTest` fixture grants ten wood and consumes three on each server pawn, rejects unknown/overflow grants and invalid/insufficient consumption, and verifies removal of an exhausted stone stack. The runner requires two successful server results, seven wood on the remote owner, rejected client-local mutation calls, empty remote contents after owner replication, and matching immutable world identity. `Verify-InventoryPanelRemoval.ps1` separately audits the retired HUD source and keeps the on-demand Inventory menu and its empty-state regression present. Separate temporary user directories keep the scenario out of project-generated data. This headless check verifies authority/privacy, not rendered layout; rendered harvest feedback and reconnect persistence remain subsequent tasks.
 
 The inventory runner also requires `Harvest inventory: Passed=1` for both server pawns. Its development-only fixture exercises twelve isolated initialized nodes covering Wood, Stone, and Fibre, uninitialized-node and distant rejection, full-stack rejection without depletion, successful retry after capacity is freed, duplicate rejection, and exactly one sparse-save callback per accepted grant. It restores the original seven-wood inventory before owner replication checks and destroys its temporary actors; it writes no world-save slot. Run `Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion` and `Kalmala.Gameplay.Inventory.Catalogue` with the headless flags above for the pure authority and malformed quantity gates. This does not yet exercise a client's actual harvest RPC, inventory reconnect restoration, or simultaneous competing player input.
 
@@ -1107,8 +1107,9 @@ player controller's pawn inventory component; that component replicates pack
 stacks with `COND_OwnerOnly`. An absent pawn/component is reported as waiting,
 while a valid zero-stack pack explicitly reports that it is empty. The menu
 refreshes on open and while visible so accepted owner inventory changes appear
-without a gameplay request. The existing HUD pack display stays in place until
-the later M12 task removes the persistent panel. This increment adds no RPC,
+without a gameplay request. The persistent HUD pack display was removed by the
+later M12 panel-removal increment; the modal Inventory menu is now the only pack
+grid surface. This increment adds no RPC,
 mutation, replicated field, or saved-data field.
 
 For M12 acceptance, open Inventory independently for the host and client with
@@ -1190,7 +1191,7 @@ Input still uses the existing 1–4/D-pad selection actions and Q/controller
 activation action. The transient notification queue now also observes the
 owner-only combat and support result serials, plus concise discovery
 found/already-found/unavailable acknowledgements from the existing owner
-source. The Inventory HUD must not supply these results or own the support
+source. The Inventory menu must not supply these results or own the support
 glyph selection. No new gameplay request or authority path is introduced.
 
 Run `Scripts/Verify-LocalInputContract.ps1`,
@@ -1202,6 +1203,27 @@ selection label for learned, unavailable, and no-selection cases.
 baselines, new serial feedback, deduplication, bounded expiry, and that combat
 text contains no target identity. Rendered strip positioning, action notices,
 modal behavior, and host/client privacy remain in M12 milestone-final review.
+
+## M12 persistent left-panel removal increment
+
+The always-visible `UKalmalaInventorySubsystem`/`UKalmalaInventoryWidget` pack
+panel is retired. Its pack/tool rows, duplicate support glyphs, build/craft
+shortcut, prepared-food banner, HUD-suppression hook and screenshot fixture no
+longer exist. Inventory remains available through its owner-local modal; it is
+collapsed until opened and continues to read only that owner's pack/tools.
+Support selection remains on its separate top-centre strip and combat/support/
+discovery results remain in transient owner notifications.
+
+The focused `Kalmala.UI.InventoryMenu.Selection` automation covers normal
+collapsed startup, owner-specific rows, selection fallback, no-results recovery,
+and the full sixteen-cell empty pack with stale details hidden. The
+`Kalmala.UI.Inventory.PreparedFoodDetails` automation now reads the actual
+Inventory menu. `Scripts/Verify-InventoryPanelRemoval.ps1` checks that retired
+runtime classes, help text, crafting suppression and old capture expectations
+stay absent; the inventory and reconnect host/client scripts run this check as
+a preflight. After an affected editor build, run the focused menu automations,
+`Scripts/Verify-PresentationOwnership.ps1`, and `Scripts/Verify-Inventory.ps1`.
+Rendered host/client layout and privacy remain in M12 milestone-final review.
 
 ## M5 documentation contract suite
 

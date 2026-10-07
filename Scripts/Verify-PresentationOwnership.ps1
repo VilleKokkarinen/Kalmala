@@ -3,6 +3,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot
+& (Join-Path $PSScriptRoot 'Verify-InventoryPanelRemoval.ps1')
 $documentPath = Join-Path $projectRoot 'docs\15-presentation-ownership.md'
 if (-not (Test-Path -LiteralPath $documentPath -PathType Leaf)) {
     throw "Presentation ownership document was not found: $documentPath"
@@ -50,7 +51,7 @@ $sourceContracts = @(
     @{ Label = 'ui'; Path = 'Source\KalmalaUI\Private\KalmalaMinimapWidget.cpp'; Patterns = @('CreateTransient', 'UpdateTextureRegions') },
     @{ Label = 'survival-status'; Path = 'Source\KalmalaUI\Private\KalmalaSurvivalStatusWidget.cpp'; Patterns = @('BuildStatusText', 'Source: exposed rain or water', 'Source: prepared food', 'Recovery: shelter or a lit hearth restores warmth', 'SetIsFocusable(false)') },
     @{ Label = 'survival-status-owner'; Path = 'Source\KalmalaUI\Private\KalmalaSurvivalStatusSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'GetServerWorldTimeSeconds()', 'SetSnapshot', 'AddToPlayerScreen(54)', 'HotbarWidget->SetSnapshot') },
-    @{ Label = 'inventory-panel'; Path = 'Source\KalmalaUI\Private\KalmalaInventorySubsystem.cpp'; Patterns = @('SetCatalogueRows', 'BuildPreparedFoodDetails') },
+    @{ Label = 'inventory-menu'; Path = 'Source\KalmalaUI\Private\KalmalaInventoryMenuWidget.cpp'; Patterns = @('GetOwningPlayer()', 'FindComponentByClass<UKalmalaInventoryComponent>()', 'GetCarriedToolInventory()', 'Waiting for your pack.') },
     @{ Label = 'feedback-crafting'; Path = 'Source\KalmalaUI\Private\KalmalaCraftingSubsystem.cpp'; Patterns = @('text does not rely on colour', 'Construction feedback: Passed=') }
 )
 $forbiddenPatterns = @('BasicShape', '/Engine/BasicShapes', 'StarterContent', 'Marketplace', 'Quixel', 'ThirdParty')
@@ -70,9 +71,9 @@ foreach ($contract in $sourceContracts) {
             throw "Presentation source '$($contract.Label)' contains forbidden asset path/token '$forbiddenPattern'"
         }
     }
-    if ($contract.Label -eq 'inventory-panel') {
+    if ($contract.Label -eq 'inventory-menu') {
         foreach ($movedFeedback in @('Attack result:', 'Discovery:', 'SetSupportGlyphState', 'GetSelectedSupportEffect', 'GetFeedbackSerial')) {
-            if ($source.Contains($movedFeedback)) { throw "Legacy inventory panel still owns moved HUD feedback: $movedFeedback" }
+            if ($source.Contains($movedFeedback)) { throw "Inventory menu still owns separate HUD feedback: $movedFeedback" }
         }
     }
     if ($contract.Label -in @('feedback-status','accessibility-feedback')) {

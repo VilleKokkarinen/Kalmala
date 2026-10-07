@@ -47,7 +47,7 @@ expanded-map, and options views as described below.
 | FontAsset | empty | Project-owned runtime UFont object path; shared text |
 | FontFace / HeadingFace | Regular / Bold | Regular or Bold; missing custom face uses font default |
 | PanelImage | empty | Project-owned Texture2D object path; shared panels |
-| InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D override for the inventory pack panel |
+| InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D override for the modal Inventory panel |
 | BuildPanelImage | `/Game/Kalmala/UI/BuildPanel.BuildPanel` | Texture2D override for build/craft selection |
 | WorldMapPanelImage | `/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel` | Texture2D override for the expanded map shell |
 | EscapePanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Escape home/options shell; fallback source for empty tab overrides |
@@ -95,15 +95,14 @@ does not establish cooking/inclusion of config-only asset references.
 Focused theme automation exercises changed brushes, padding, font face/outline,
 icon dimensions, scroll animation and reduced-motion override, high contrast,
 invalid numbers/paths, missing assets, and a transient in-memory image reference.
-The settings/inventory and prior HUD tests remain required alongside it. No
+The settings and Inventory menu tests remain required alongside it. No
 custom project font or rendered image appearance has been reviewed.
 
 ## Representative view migration
 
-Inventory's pack panel, wrapping text, and scroll use the shared theme. Pack
-text keeps its historical one-unit offset above BodySize. Its fixed wrap width
-and layout prepass include wrapped lines in the panel height, so larger theme
-text remains backed by the panel. Build/craft uses
+The modal Inventory menu's panel, labels, and scrolling use the shared theme.
+The former left-side pack panel and its bespoke wrapping layout were removed in
+M12. Build/craft uses
 ApplyMenu over the existing widget tree: ordinary labels and actions use
 BodySize + 5, its title uses EmphasisSize + 11, and all sizes are bounded before
 local text scaling. Disabled buttons, delegates, selection, tooltips, and
