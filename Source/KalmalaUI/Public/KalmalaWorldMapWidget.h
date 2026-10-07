@@ -102,7 +102,6 @@ private:
         float Padding = 10.0f;
         float HeaderHeight = 0.0f;
         float RowHeight = 0.0f;
-        float FooterLineHeight = 0.0f;
     };
     struct FWorldMapTile
     {

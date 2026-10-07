@@ -1016,7 +1016,6 @@ void UKalmalaSettingsWidget::ShowMainMenu()
     Status->OnClicked.AddDynamic(this, &ThisClass::HandleStatusDetailsClicked);
     UButton* Quit = AddButton(ContentBox, FText::FromString(TEXT("Quit")), TEXT("QuitButton"));
     Quit->OnClicked.AddDynamic(this, &ThisClass::HandleQuitClicked);
-    AddLabel(ContentBox, FText::FromString(TEXT("Press Esc to return to the game")), 16.0f)->SetJustification(ETextJustify::Center);
     Options->SetUserFocus(GetOwningPlayer());
     Options->SetKeyboardFocus();
 }

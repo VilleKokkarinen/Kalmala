@@ -288,16 +288,18 @@ parsing, `git diff --check`, and the 260-character path audit. This verifies
 editor-rendered presentation and existing server validation; it does not claim
 physical keyboard/controller hardware or packaged-build acceptance.
 
-## M12 inventory and service-menu binding text
+## M12 player-facing input-binding text
 
-Inventory and build/crafting/repair/storage views keep descriptive action
-labels, focus navigation, and existing remapping behavior without displaying
-input key/button names or control combinations. Run
-`Scripts/Verify-MenuInputCopy.ps1` for the narrow source audit of player-facing
-menu copy, retained action labels, and keyboard/controller navigation seams.
-After an affected UI build, run the focused inventory/crafting automations;
-host/client rendering, text scaling, and physical input remain in M12
-milestone-final verification.
+Gameplay prompts, inventory and service menus, the expanded map, status/detail
+views, and the Settings home screen do not print key/button names or control
+combinations. The map keeps its symbol legend, category state, and concise
+share/ping action names. Options > Controls is the only player-facing view that
+shows current bindings; all existing input paths and remapping behavior remain.
+Run `Scripts/Verify-MenuInputCopy.ps1` for the narrow source audit of visible
+copy, binding-label resolution, retained action names, and keyboard/controller
+navigation seams. After an affected UI build, run the focused map, status,
+inventory, and crafting automations; host/client rendering, text scaling, and
+physical input remain in M12 milestone-final verification.
 
 ## M11 ingredient-count child
 
@@ -1290,6 +1292,11 @@ focuses the filter list, arrows/D-pad select a category, Enter/A toggles it,
 and Escape/B leaves filter focus. Tab/pad-X pin selection still reaches
 personally hidden and locally filtered pins; the selected-pin text reports
 when its marker is filtered.
+
+The in-game map keeps this symbol/category legend and concise share/ping action
+names but omits keyboard/controller help text. Current binding labels are shown
+in Options > Controls only; map focus, selection, pan, zoom, recenter, pin, and
+sharing inputs remain available.
 
 Visibility is a transient local widget preference. It suppresses marker
 painting only: it does not request map data, change fog/exploration, mutate or

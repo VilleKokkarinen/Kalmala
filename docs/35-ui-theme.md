@@ -217,6 +217,9 @@ have separate checkboxes, textual shown/filtered states, and eligible-marker
 counts. Focus uses the shared focused-button treatment and a visible outline;
 high contrast uses a black panel, white text, and white row/checkbox outlines.
 Shape and text continue to distinguish marker categories without colour.
+The legend keeps marker names and shown/filtered state, but the map no longer
+prints keyboard/controller help beside its controls. Share, ping, and pin action
+names remain concise; current input labels appear in Options > Controls only.
 
 No theme keys or map content sources were added. The three checkbox states are
 local to the map widget session and affect only marker drawing. Existing owner

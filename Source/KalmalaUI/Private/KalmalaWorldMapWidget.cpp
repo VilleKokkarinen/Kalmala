@@ -258,20 +258,16 @@ UKalmalaWorldMapWidget::FMarkerLegendLayout UKalmalaWorldMapWidget::GetMarkerLeg
     FMarkerLegendLayout Layout;
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     const FSlateFontInfo Font = Theme.MakeFont(Theme.BodySize - 1, false, UKalmalaSettingsWidget::GetTextScalePercent());
-    const FSlateFontInfo SmallFont = Theme.MakeFont(Theme.BodySize - 2, false, UKalmalaSettingsWidget::GetTextScalePercent());
     const TSharedRef<FSlateFontMeasure> Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
     const float TextHeight = Measure->Measure(TEXT("Ag"), Font).Y;
-    const float LongestRowWidth = FMath::Max(Measure->Measure(TEXT("Co-op players 256 [FILTERED]"), Font).X,
-        FMath::Max(Measure->Measure(TEXT("Click row toggles · F / L3 focus"), SmallFont).X,
-            Measure->Measure(TEXT("Enter / A toggle · Esc / B leave"), SmallFont).X));
+    const float LongestRowWidth = Measure->Measure(TEXT("Co-op players 256 [FILTERED]"), Font).X;
     const float TitleWidth = Measure->Measure(TEXT("MAP SYMBOLS"), Theme.MakeFont(Theme.BodySize, true,
         UKalmalaSettingsWidget::GetTextScalePercent())).X;
     Layout.HeaderHeight = TextHeight + 9.0f;
     Layout.RowHeight = FMath::Max(28.0f, TextHeight + 10.0f);
-    Layout.FooterLineHeight = TextHeight + 4.0f;
     const float Width = FMath::Max(220.0f, FMath::Max(TitleWidth, LongestRowWidth + 56.0f + Layout.Padding * 2.0f));
     Layout.Size.X = FMath::Min(Width, FMath::Max(180.0f, WidgetSize.X - 24.0f));
-    Layout.Size.Y = Layout.Padding * 2.0f + Layout.HeaderHeight + Layout.RowHeight * 4.0f + Layout.FooterLineHeight * 3.0f;
+    Layout.Size.Y = Layout.Padding * 2.0f + Layout.HeaderHeight + Layout.RowHeight * 4.0f;
     Layout.Position.X = FMath::Max(12.0f, WidgetSize.X - Layout.Size.X - 18.0f);
     Layout.Position.Y = FMath::Clamp(72.0f, 12.0f, FMath::Max(12.0f, WidgetSize.Y - Layout.Size.Y - 12.0f));
     return Layout;
@@ -387,9 +383,9 @@ UKalmalaWorldMapWidget::FMarkerCounts UKalmalaWorldMapWidget::DrawCoopAwareness(
     const float FooterY = Geometry.GetLocalSize().Y - FKalmalaUITheme::Get().ScaledFontSize(
         FKalmalaUITheme::Get().BodySize - 1, UKalmalaSettingsWidget::GetTextScalePercent()) * 5 - 30;
     const float NextY = DrawMapLabel(Elements, LayerId, Geometry, FVector2D(20, FooterY), Awareness->GetStatusText(), -1);
-    DrawMapLabel(Elements, LayerId, Geometry, FVector2D(20, NextY),
-        FString(TEXT("C / pad Menu: share · Middle-click: ping · Q / right-stick click: ping centre. ")) + PingFeedback,
-        -1);
+    const float FeedbackY = DrawMapLabel(Elements, LayerId, Geometry, FVector2D(20, NextY),
+        TEXT("Share map · Ping · Ping centre"), -1);
+    if (!PingFeedback.IsEmpty()) DrawMapLabel(Elements, LayerId, Geometry, FVector2D(20, FeedbackY), PingFeedback, -1);
     FVector2D Here;
     FKalmalaWorldGenerationConfig Config;
     if (!ViewModel || !ViewModel->GetPresentationInputs(Config, Here)) return Counts;
@@ -528,16 +524,6 @@ void UKalmalaWorldMapWidget::DrawMarkerLegend(const FGeometry& Geometry, const i
     DrawFilterRow(EKalmalaWorldMapMarkerCategory::CoopPings, 2, TEXT("Map pings"), Counts.CoopPings,
         FVector2D(Position.X + 22.0f, RowY + Layout.RowHeight * 0.5f));
 
-    const float FooterY = RowY + 1.0f;
-    const TArray<FString> Help = bMarkerFilterNavigationActive
-        ? TArray<FString>{ TEXT("FILTER FOCUS: arrows / D-pad"), TEXT("Enter / A toggles visibility"), TEXT("Esc / B leaves filter focus") }
-        : TArray<FString>{ TEXT("Click row toggles · F / L3 focus"), TEXT("Up/Down or D-pad: select"), TEXT("Enter / A toggle · Esc / B leave") };
-    for (int32 Index = 0; Index < Help.Num(); ++Index)
-    {
-        FSlateDrawElement::MakeText(Elements, LayerId + 6,
-            Geometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(Position.X + Layout.Padding, FooterY + Index * Layout.FooterLineHeight))),
-            Help[Index], SmallFont, ESlateDrawEffect::None, TextColour);
-    }
 }
 
 FVector2D UKalmalaWorldMapWidget::WorldToMapNormalized(const FVector2D WorldPosition, const FVector2D MapCentre, const FVector2D MapExtent)
@@ -1103,7 +1089,7 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
         }
     }
     DrawMarkerLegend(AllottedGeometry, DrawLayer + 9, MarkerCounts, OutDrawElements);
-    const FString Hint = FString::Printf(TEXT("MAP  |  %.0fm  |  Grid %.0fm  |  Drag/Arrows pan · Wheel/PgUp zoom · R recenter · M / Esc close"),
+    const FString Hint = FString::Printf(TEXT("MAP  |  %.0fm  |  Grid %.0fm"),
         MapZoom / 100.0f, ChooseGridSpacing(MapZoom) / 100.0f);
     const float HeaderBottom = DrawMapLabel(OutDrawElements, DrawLayer + 5, AllottedGeometry, FVector2D(20, 18), Hint, 3);
     if (LocalPins.IsValidIndex(SelectedPinIndex))
@@ -1111,13 +1097,13 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
         FString SelectedLabel = GetPinAccessibilityLabel(LocalPins[SelectedPinIndex]);
         if (LocalPins[SelectedPinIndex].bVisible && !IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::PersonalPins))
             SelectedLabel += TEXT("; filtered from map");
-        const FString SelectedHint = FString::Printf(TEXT("SELECTED: %s  |  Enter complete · H show/hide · Delete remove"), *SelectedLabel);
+        const FString SelectedHint = FString::Printf(TEXT("SELECTED: %s"), *SelectedLabel);
         DrawMapLabel(OutDrawElements, DrawLayer + 6, AllottedGeometry, FVector2D(20, HeaderBottom), SelectedHint, 1, true);
     }
     if (bPinLabelEntry)
     {
         const FString Draft = PendingPinLabel.IsEmpty() ? TEXT("Name marker…") : PendingPinLabel;
-        const FString Prompt = FString::Printf(TEXT("MARKER: %s  |  1 Cairn · 2 Lantern · 3 Thread · Enter save · Esc cancel"), *Draft);
+        const FString Prompt = FString::Printf(TEXT("MARKER: %s  |  Cairn · Lantern · Thread · Save"), *Draft);
         DrawMapLabel(OutDrawElements, DrawLayer + 8, AllottedGeometry, FVector2D(20, Size.Y - 38), Prompt, 1, true);
     }
     return DrawLayer + 16;

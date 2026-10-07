@@ -20,9 +20,10 @@ other cues use their dedicated text/icon HUD surfaces. See
 
 Gameplay HUD and interaction prompts name the visible action without showing
 key/button names or control legends. Inventory and build/crafting/repair/storage
-views follow the same rule while keeping descriptive action labels and focus
-navigation. Current mappings and remapping remain in Options > Controls; prompt
-actions stay readable as text.
+views, the expanded map, status/detail views, and the Settings home screen follow
+the same rule while keeping useful action/status names and existing focus
+navigation. Options > Controls is the only player-facing view that displays
+current mappings; prompt actions stay readable as text and remain remappable.
 
 ## Existing shell and option groups
 

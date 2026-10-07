@@ -10,7 +10,7 @@ non-audio equivalent so silence never hides authoritative state.
 | Cue group | Normal trigger | Audio intent | Required non-audio equivalent | Authority/privacy boundary |
 | --- | --- | --- | --- | --- |
 | Ambient wilderness | Local player is in normal play | Quiet wind, water, fire, and biome atmosphere establish place without a fixed route | Terrain, weather, hearth, and exposure text/shape cues remain readable | Only local visible context; no hidden population, discovery, or route hint |
-| Movement and traversal | Local movement, jump, sprint, landing, or water entry is already visible | Sparse original footfall, jump, landing, and movement-state cues reinforce action | Existing movement pose, HUD state, and bound input labels remain sufficient | Local cosmetic response; no movement result, speed, stamina, or terrain authority is authored by audio |
+| Movement and traversal | Local movement, jump, sprint, landing, or water entry is already visible | Sparse original footfall, jump, landing, and movement-state cues reinforce action | Existing movement pose and HUD state remain readable; current bindings remain in Options > Controls | Local cosmetic response; no movement result, speed, stamina, or terrain authority is authored by audio |
 | Weather and exposure | Existing replicated weather/Wet presentation changes | Rain, wind, and shelter contrast communicates changing conditions | Wet duration, shelter, warmth, hearth, and recovery text/shape cues remain visible | Server owns weather/exposure/Wet; audio reads accepted replicated state only |
 | Interaction and gathering | A normal interaction receives an accepted or rejected result | Short, distinct confirmation or rejection cue avoids ambiguous input | Existing interaction text and inventory result identify accepted, rejected, or unavailable state | Server validates actor, range, payment, item, quantity, and outcome; audio carries no request payload |
 | Combat | Replicated committed action or feedback changes for the owning player/relevant actor | Windup, recovery, hit, defeat, and unavailable cues clarify timing and outcome | Combat phase and colour-independent HIT/DEFEAT/UNAVAILABLE text remain authoritative presentation | Server selects target, damage, cooldown, and defeat; clients never infer or author them from sound |
@@ -95,8 +95,9 @@ pawn transitions from ground movement into an upward falling state, and
 MovementLandingCue plays when its sampled state returns from falling to ground.
 The subsystem samples only the local controller's own character and its local
 movement component; it does not inspect remote pawns, claim server movement
-acceptance, or trigger an RPC. Existing pose, HUD, and bound input labels
-remain the readable movement state.
+acceptance, or trigger an RPC. Existing movement pose and HUD state remain the
+readable movement cues; current input bindings remain available in Options >
+Controls.
 GeneratedOceanEntryCue and GeneratedOceanExitCue each play once when that same
 local movement component's `IsSwimmingInGeneratedOcean()` state transitions
 into or out of its generated-ocean custom movement mode. Initial state sampling

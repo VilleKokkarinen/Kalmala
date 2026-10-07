@@ -11758,3 +11758,25 @@ Known limitations: The changed C++ automation was not compiled or run. Rendered 
 Next eligible task: Remove remaining map/status/detail-view legends and audit Options as the only player-facing binding-text source; add a narrow source/text audit and update stale text expectations.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only the selected BACKLOG child plus this PROGRESS entry; all unrelated main-checkout edits remain untouched and uncommitted.
+
+### Run 2026-10-07T12:10:43Z — remove map and status binding legends
+
+Concurrency guard: Codex app inventory showed this as the only active Kalmala run. Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` at `22acc2f`; the main checkout has unrelated pre-existing modified and untracked files, which remain untouched during implementation.
+
+Completed: Removed key/button help from the expanded map header, marker-filter legend, selected-pin label, pin-placement prompt, co-op sharing/ping footer, and Settings home screen. The map retains zoom/grid data, symbol/category names and counts, share/ping action names, status and ping feedback, and pin-style names. Reduced the marker legend layout after removing its three help rows. Expanded `Scripts/Verify-MenuInputCopy.ps1` to audit map, status, item-detail, Settings-home, inventory, crafting, repair, and storage copy; require Options > Controls to retain current mapping labels and focus; and reject key-label resolution elsewhere in player-facing UI sources. Updated stale menu/accessibility/audio/theme/setup text expectations.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`; `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`; `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`; `Scripts/Verify-MenuInputCopy.ps1`; `docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`; `docs/14-settings-and-accessibility.md`; `docs/16-audio-cue-contract.md`; `docs/35-ui-theme.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-MenuInputCopy.ps1`, `Verify-PresentationOwnership.ps1`, and all five `Verify-M5DocumentationContracts.ps1` contracts passed. The changed PowerShell script parsed; `git diff --check` and the changed-path MAX_PATH audit passed. Manual review confirmed map input handlers and marker focus/hit targets are unchanged, Options remains the visible binding-label source, and no map/status/detail player-facing binding strings remain.
+
+Full verification remains deferred: this is a normal M12 child increment, not the final implementation task in M12. No Unreal build, C++ automation, rendered host/client run, physical-input review, or package check was run.
+
+Observable impact: The expanded map and Settings home no longer print keyboard/controller keys or combinations. The map continues to show readable category, state, and action names; mappings are available in Options > Controls.
+
+Networking/authority: Presentation and documentation only. Existing map input paths, owner-local status/detail data, map awareness requests, remapping, server validation, RPCs, replicated state, and save data are unchanged.
+
+Known limitations: The changed C++ has not been compiled or rendered. Map/status/detail layout, text scale and contrast, host/client presentation, physical input, and packaged behavior remain for M12 milestone-final verification.
+
+Next eligible task: M12 goal 6, simplify construction recipe details to description, ingredients, real placement/fuel requirements, and one blocker.
+
+Main-checkout handoff synchronization: Complete after inspecting the dirty main versions; synchronized only this selected BACKLOG child and this PROGRESS entry, preserving all other modified and untracked main-checkout files.
