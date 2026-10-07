@@ -121,7 +121,7 @@ remapping is added:
 | Sprint | Left Shift / Right Shift | Left stick click |
 | SettingsMenu | Escape / O | — |
 | WorldMap / WorldMapRecenter | M / R | — |
-| InventoryMenu | Tab / I | None |
+| InventoryMenu | Tab / I | — |
 | Build and crafting menu (`CraftMenu`) | B | Special left |
 | Support selection | 1–4 | D-pad directions |
 | Support activation | Q | Face button top |
@@ -130,6 +130,16 @@ The baseline check proves that these existing names and inputs are present; it
 does not make them remappable. A runtime remapping presenter must display the
 actual current binding, retain a keyboard/controller path to cancel or reset,
 and send the same existing intent rather than a new gameplay payload.
+
+The owner-local Inventory menu opens only when no other modal is ignoring
+movement or look input. This keeps it exclusive with crafting, Settings, and
+the world map, whose existing modal paths retain their opening/closing rules.
+Its Escape path uses the existing SettingsMenu action to dismiss Inventory
+before Settings can open. Opening captures the current cursor visibility and
+only the movement/look ignore state it acquires; closing restores those values
+and returns input to gameplay. While an editable text control has keyboard
+focus, Tab/I do not toggle the menu. Gamepad B closes it when focus is outside
+text entry. The menu reads no peer inventory and performs no gameplay action.
 
 ## Accessibility requirements
 

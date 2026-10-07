@@ -11492,3 +11492,23 @@ Observable impact and authority: Tab and I toggle the same local inventory shell
 Known limitations: This child adds only the menu shell. Modal priority, text-entry and focus handling, Escape close, and cursor/movement/look restoration remain in the next ordered child; inventory contents, details, tools, and food actions remain later M12 work.
 
 Next eligible task: Integrate inventory modal priority with crafting/settings/map, text-entry and focus handling, Escape close, and input restoration.
+
+### Run 2026-10-07 — Integrate M12 inventory modal input
+
+Completed: Made Inventory an exclusive owner-local modal. It opens only when no existing modal ignores movement/look input, takes keyboard focus, shows the cursor, and ignores movement/look while open. The existing SettingsMenu path closes Inventory before opening Settings; current crafting/map gates continue to prevent stacking. Tab/I leave an editable text field alone, gamepad B closes outside text entry, and Escape closes through the existing SettingsMenu action. Close restores the cursor and releases only the input-ignore state this widget acquired.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaInventoryMenuSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`, `Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h`, `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`, `Scripts/Verify-LocalInputContract.ps1`, `docs/07-development-setup.md`, `docs/14-settings-and-accessibility.md`, `BACKLOG.md`, and this `PROGRESS.md`.
+
+Lightweight checks: `Scripts/Verify-LocalInputContract.ps1` passed with five axes and eleven actions, including default Inventory Tab/I. `Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts; the changed PowerShell script parsed, `git diff --check` passed, and changed paths are below 260 characters. Manually reviewed empty-shell open/close, modal gating, text-entry focus, Escape routing, and input restoration. No Unreal build, automation run, or rendered UI check was performed.
+
+Full verification remains deferred to the M12 milestone-final run.
+
+Observable impact: Inventory now behaves as a focused modal that pauses movement/look and restores gameplay input when closed. No item data or action is presented yet.
+
+Networking/authority: All behavior is local to the owning `ULocalPlayer`; there is no RPC, gameplay mutation, replicated state, or save-schema change.
+
+Known limitations: The menu remains an empty shell pending pack rows, details, tools/equipment, and food actions. Runtime focus behavior and rendered host/client presentation have not been verified.
+
+Next eligible task: Populate the shell with the existing owner pack grid/counts and an empty state, retaining the old pack view until the new grid is usable.
+
+Main-checkout handoff synchronization: Apply only this run's selected BACKLOG row and PROGRESS entry after its implementation commit; preserve all existing main-checkout edits.

@@ -31,6 +31,7 @@ $requiredActions = @{
     SettingsMenu = @('Escape', 'O')
     WorldMap = @('M')
     WorldMapRecenter = @('R')
+    InventoryMenu = @('Tab', 'I')
     CraftMenu = @('B', 'Gamepad_Special_Left')
 }
 

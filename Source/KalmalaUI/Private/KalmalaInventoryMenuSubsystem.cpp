@@ -79,6 +79,17 @@ void UKalmalaInventoryMenuSubsystem::ToggleInventoryMenu()
 {
     if (LocalController == nullptr || !LocalController->IsLocalController()) return;
 
+    if (IsMenuOpen())
+    {
+        if (InventoryWidget->HasTextEntryFocus()) return;
+        InventoryWidget->Close();
+        return;
+    }
+
+    // Other modal menus own movement and look input. Do not stack Inventory
+    // over crafting, Settings, the map, or another presentation modal.
+    if (LocalController->IsMoveInputIgnored() || LocalController->IsLookInputIgnored()) return;
+
     if (InventoryWidget == nullptr)
     {
         InventoryWidget = CreateWidget<UKalmalaInventoryMenuWidget>(
@@ -87,8 +98,7 @@ void UKalmalaInventoryMenuSubsystem::ToggleInventoryMenu()
         InventoryWidget->AddToPlayerScreen(250);
     }
 
-    if (InventoryWidget->IsMenuOpen()) InventoryWidget->Close();
-    else InventoryWidget->Open();
+    InventoryWidget->Open();
 }
 
 bool UKalmalaInventoryMenuSubsystem::CloseIfOpen()

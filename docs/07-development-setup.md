@@ -1064,9 +1064,20 @@ packaged playback.
 keyboard/mouse and controller baseline in `Config/DefaultInput.ini`, as
 documented in `docs/14-settings-and-accessibility.md`. It validates the
 movement/look/map axes and Interact, Attack, Jump, Sprint, SettingsMenu,
-WorldMap, WorldMapRecenter, and CraftMenu action bindings. It does not add
-runtime remapping or launch Unreal; local control changes and focus behavior
-remain part of the later settings implementation.
+WorldMap, WorldMapRecenter, InventoryMenu, and CraftMenu action bindings,
+including the default Tab/I Inventory keys. It does not launch Unreal or prove
+runtime input routing.
+
+## M12 inventory modal input increment
+
+Run `Scripts/Verify-LocalInputContract.ps1` to check the default Tab/I action.
+Inspect the owner-local Inventory shell's gameplay-only open gate, Escape close
+through the existing SettingsMenu action, editable-text focus guard, gamepad B
+close, and restoration of the prior cursor plus movement/look ignore state.
+Crafting and the map already refuse to open while a modal ignores movement;
+the Settings handler first closes Inventory. No gameplay request, inventory
+mutation, network state, or save state is added. Full Unreal and rendered
+host/client checks remain deferred to M12 milestone-final verification.
 
 ## M5 documentation contract suite
 
