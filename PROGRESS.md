@@ -11741,6 +11741,8 @@ Concurrency guard: Codex task inventory showed this as the only active Kalmala r
 
 Completed: Removed keyboard/controller binding names and control-use legends from Inventory, item inspection, construction/crafting, and cooking station views. Removed the crafting menu's live lookup of its current CraftMenu key. Simplified category/sort button text and the inventory selection label while preserving action names and existing keyboard/controller focus/navigation handlers. Updated the crafting review assertion and added `Scripts/Verify-MenuInputCopy.ps1` to check input-legend absence, retained action labels, and navigation seams.
 
+Implementation commit: `9022dc3` (`Remove menu input legends`) on `codex/m12-hud-feedback-rebuild`.
+
 Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaInventoryInspectWidget.cpp`; `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`; `Scripts/Verify-MenuInputCopy.ps1`; `docs/07-development-setup.md`; `docs/14-settings-and-accessibility.md`; `BACKLOG.md`; and this `PROGRESS.md`.
 
 Lightweight checks: `Scripts/Verify-MenuInputCopy.ps1` passed; all five `Scripts/Verify-M5DocumentationContracts.ps1` contracts passed; the new PowerShell script parsed; and `git diff --check` passed. Manual source review confirmed action labels, focus/navigation methods, server-validated action paths, and remapping behavior remain present. No Unreal build or automation test was run.
@@ -11755,4 +11757,4 @@ Known limitations: The changed C++ automation was not compiled or run. Rendered 
 
 Next eligible task: Remove remaining map/status/detail-view legends and audit Options as the only player-facing binding-text source; add a narrow source/text audit and update stale text expectations.
 
-Main-checkout handoff synchronization: Pending.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only the selected BACKLOG child plus this PROGRESS entry; all unrelated main-checkout edits remain untouched and uncommitted.
