@@ -146,8 +146,13 @@ appears in the shared detail panel. If a selected record disappears, selection
 falls back to the first remaining row; an empty owner view clears selection and
 hides the detail panel. A damaged selected tool exposes the existing repair
 action. It sends only the tool ID, and the server validates the carried record
-and nearby visible Workbench or Forge before changing condition. The previous
-HUD pack view remains until the separate HUD-removal task.
+and nearby visible Workbench or Forge before changing condition. A selected
+supported food item shows its existing Steady Meal benefit, owner-visible
+quantity and active timer, and an Eat one serving action. That action sends only
+the selected food ID through the existing station-free server transaction;
+rejected or replayed requests consume nothing and cannot refresh or replace an
+active meal. The owner sees the server result. The previous HUD pack view
+remains until the separate HUD-removal task.
 
 ## Accessibility requirements
 

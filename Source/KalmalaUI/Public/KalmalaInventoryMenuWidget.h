@@ -9,7 +9,7 @@ class UTextBlock;
 class UKalmalaItemDetailWidget;
 class UKalmalaThemedButton;
 
-/** Owner-local pack and carried-tool inspection with the existing server-validated repair action. */
+/** Owner-local pack, carried-tool and supported-food actions through existing server paths. */
 UCLASS()
 class KALMALAUI_API UKalmalaInventoryMenuWidget : public UUserWidget
 {
@@ -36,8 +36,10 @@ private:
     void RefreshSelectionPresentation(int32 TextScale, int32 Contrast);
     void StepSelection(int32 Direction);
     UFUNCTION() void RepairSelectedTool();
+    UFUNCTION() void EatSelectedFood();
     UFUNCTION() void SelectPreviousItem();
     UFUNCTION() void SelectNextItem();
+    void RefreshFoodActionPresentation(const FKalmalaCatalogueRow* SelectedRow, int32 TextScale, int32 Contrast);
     UPROPERTY(Transient) TObjectPtr<UTextBlock> PackStateText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> SelectedItemText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolActionStatusText;
@@ -46,6 +48,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> PreviousItemButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> NextItemButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> RepairToolButton;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> EatFoodButton;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodActionStatusText;
     TArray<FKalmalaCatalogueRow> OwnerInventoryRows;
     int32 SelectedInventoryIndex = INDEX_NONE;
     FString LastSelectedDetailKey;
@@ -54,7 +58,13 @@ private:
     FName AwaitingRepairToolId = NAME_None;
     FName LastPresentedSelectionId = NAME_None;
     uint32 RepairRequestResultSerial = 0;
+    uint32 FoodRequestResultSerial = 0;
+    FName AwaitingFoodItemId = NAME_None;
+    FName LastFoodResultItemId = NAME_None;
+    FString LastFoodResultText;
     bool bAwaitingRepairResult = false;
+    bool bAwaitingFoodResult = false;
+    bool bAwaitingAcceptedFoodStatus = false;
     bool bMenuOpen = false;
     bool bAcquiredMoveIgnore = false;
     bool bAcquiredLookIgnore = false;

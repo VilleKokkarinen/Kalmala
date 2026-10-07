@@ -1137,6 +1137,32 @@ pack/tool selection, tool-level/condition display, owner-instance privacy,
 fallback, and empty clearing. The final rendered host/client check also reviews
 the equipment rows, repair action and response at supported scales/contrast.
 
+## M12 carried-food Inventory increment
+
+When one of the three supported meal items is selected in the owner's pack,
+Inventory shows its existing Steady Meal effect and the live owner-visible
+availability: the current serving count, active meal time remaining, pending
+request, or last owner-only server result. `Eat one serving` is enabled only
+when owner inventory/status and the existing crafting component are present,
+the selected allowlisted item has a serving, and no meal or food request is
+active. It calls `ServerConsumeFood` with only that item ID. The action has no
+station/range gate. The existing server transaction revalidates the allowlist,
+pack quantity and free meal slot, atomically consumes one serving, applies the
+120-second 10%-lower stamina-use effect, and publishes the owner-only result;
+rejected and repeated requests consume nothing and cannot stack, refresh, or
+replace an active meal. No new RPC, gameplay state, replication field, or save
+data is introduced. `Kalmala.UI.InventoryMenu.Selection` also checks the
+supported-food effect text, visible Eat action, and fail-closed disabled state
+when its owner components are absent; run it after an affected UI build.
+
+For the M12 final host/client acceptance, exercise each supported item through
+Inventory while away from stations, verify the count changes only after server
+acceptance, and inspect the owner timer/effect and result. Confirm zero count,
+missing owner data, an active meal, a stale/replayed request, and a rejected
+request disable or reject use without consumption or effect refresh. Verify
+that the other peer cannot see the owner's pack or action result. Rendered
+scale/contrast and broad regressions remain in the milestone-final matrix.
+
 ## M5 documentation contract suite
 
 Run `Scripts/Verify-M5DocumentationContracts.ps1` to execute the onboarding,

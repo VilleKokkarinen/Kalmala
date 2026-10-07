@@ -4,6 +4,7 @@
 #include "KalmalaItemDetailWidget.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/TextBlock.h"
+#include "KalmalaThemedButton.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaInventoryMenuSelectionTest,
@@ -85,6 +86,40 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("First owner's tool detail excludes the second owner's condition"), DetailText(OwnerA).Contains(TEXT("Condition 8/55")));
     TestTrue(TEXT("Second owner's tool detail keeps its own condition"), DetailText(OwnerB).Contains(TEXT("Condition 8/55")));
     TestFalse(TEXT("Second owner's tool detail excludes the first owner's condition"), DetailText(OwnerB).Contains(TEXT("Condition 17/40")));
+
+    UKalmalaInventoryMenuWidget* FoodMenu = MakeMenu();
+    TestNotNull(TEXT("Food inventory menu initializes"), FoodMenu);
+    if (FoodMenu)
+    {
+        FoodMenu->SetInventoryRowsForVerification({
+            {TEXT("HearthBroth"), TEXT("Hearth Broth"), TEXT("× 1"), false}
+        }, 100, 0);
+        TestTrue(TEXT("Supported food detail shows its actual Steady Meal effect"),
+            DetailText(FoodMenu).Contains(TEXT("10% lower stamina use for 120 seconds")));
+
+        UKalmalaThemedButton* EatButton = nullptr;
+        FString MenuText;
+        TArray<UWidget*> FoodWidgets;
+        FoodMenu->WidgetTree->GetAllWidgets(FoodWidgets);
+        for (UWidget* Widget : FoodWidgets)
+        {
+            if (const auto* Text = Cast<UTextBlock>(Widget)) MenuText += Text->GetText().ToString();
+            if (auto* Button = Cast<UKalmalaThemedButton>(Widget))
+            {
+                const auto* Label = Cast<UTextBlock>(Button->GetContent());
+                if (Label && Label->GetText().ToString() == TEXT("Eat one serving")) EatButton = Button;
+            }
+        }
+        TestNotNull(TEXT("Supported food exposes the Eat action"), EatButton);
+        if (EatButton)
+        {
+            TestEqual(TEXT("Eat stays unavailable without live owner data"),
+                EatButton->GetVisibility(), ESlateVisibility::Visible);
+            TestFalse(TEXT("Eat stays disabled without the local owner components"), EatButton->GetIsEnabled());
+        }
+        TestTrue(TEXT("Unavailable owner food action explains the missing data"),
+            MenuText.Contains(TEXT("Food use is unavailable while owner data is loading.")));
+    }
 
     OwnerA->SetInventoryRowsForVerification({{TEXT("Wood"), TEXT("Wood"), TEXT("× 4"), false}}, 100, 0);
     TestEqual(TEXT("Removed selected tool falls back to the first remaining owner row"),

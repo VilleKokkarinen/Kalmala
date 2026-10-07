@@ -11578,3 +11578,25 @@ Known limitations: The focused automation and live host/client privacy or repair
 Next eligible task: Wire supported carried-food Eat/use actions and their actual availability/effect through existing server paths; add no station gate and keep rejected/replayed use safe.
 
 Main-checkout handoff synchronization: Complete. After inspecting dirty main versions, updated only this selected M12 backlog child/status and appended the run handoff; all pre-existing main-checkout edits remain uncommitted and untouched.
+
+### Run 2026-10-07T09:37:12Z — wire carried-food Inventory use
+
+Concurrency guard: Codex task inventory showed this as the only active Kalmala run; the other matching automation chats were idle. The main checkout has pre-existing modified and untracked files, so implementation continued in the retained `E:\dev\Kalmala\wt\m12-pack-grid` worktree at accepted carried-tool commit `4e0691a`.
+
+Completed: Added an Eat one serving action for supported selected food. The detail panel shows the existing Steady Meal benefit; the action state follows the owner's current quantity, active meal time, request state, and available owner components. A request sends only the food ID through `ServerConsumeFood`, then displays the owner-only result and waits for the accepted meal status before enabling another use. No station/range gate was added. Extended the focused Inventory selection automation to cover the effect text, action visibility, and fail-closed state when owner components are absent.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`; `Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h`; `Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`; `docs/14-settings-and-accessibility.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts; `git diff --check` passed; focused source assertions confirmed the selected allowlisted ID is the only UI request payload, the Eat handler has no station lookup, and the existing server path validates the item/meal slot, exchanges one serving, applies the status, and restores inventory on a failed status application. The changed-path audit passed (longest path 100 characters). Updated `Kalmala.UI.InventoryMenu.Selection` coverage was prepared but not run. No Unreal build, automation run, rendered peer check, or package check was performed.
+
+Full verification remains deferred: this is a normal M12 child, not the final implementation task in the milestone.
+
+Observable impact: Players can eat supported carried food directly from Inventory, see its true 120-second/10%-lower-stamina-use effect and live availability, and read the server outcome.
+
+Networking/authority: Inventory and status availability are read from the local owning pawn. The client sends only the selected canonical food ID through the existing server RPC; the server remains responsible for quantity, allowlist, free-slot, consumption, effect, and duplicate/replay validation. The result uses existing owner-only replication. No RPC, replicated field, or save schema was added.
+
+Known limitations: The updated focused automation was not compiled or run; the live host/client privacy, accepted/rejected/replayed requests, rendered scale/contrast, physical input, and packaged behavior remain for M12 final verification.
+
+Next eligible task: Reuse Inventory search/filter/sort, keyboard/controller focus, and session selection/scroll restoration; adapt browsing checks for removed entries and resize/scale fallback.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only this selected BACKLOG child plus this progress entry; all pre-existing main-checkout edits remain untouched and uncommitted.

@@ -21,6 +21,7 @@
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaThemedButton.h"
 #include "KalmalaToolLifecycleContract.h"
@@ -135,6 +136,24 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     RepairToolButton->SetVisibility(ESlateVisibility::Collapsed);
     ToolActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
 
+    UHorizontalBox* FoodActions = WidgetTree->ConstructWidget<UHorizontalBox>();
+    EatFoodButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+    UTextBlock* EatFoodLabel = WidgetTree->ConstructWidget<UTextBlock>();
+    EatFoodLabel->SetText(FText::FromString(TEXT("Eat one serving")));
+    EatFoodButton->SetContent(EatFoodLabel);
+    Theme.ApplyButton(*EatFoodButton, Contrast);
+    Theme.ApplyText(*EatFoodLabel, Theme.BodySize, false, TextScale, Contrast);
+    EatFoodButton->OnClicked.AddDynamic(this, &ThisClass::EatSelectedFood);
+    FoodActions->AddChildToHorizontalBox(EatFoodButton)->SetPadding(FMargin(0.0f, 0.0f, 8.0f, 0.0f));
+
+    FoodActionStatusText = WidgetTree->ConstructWidget<UTextBlock>();
+    FoodActionStatusText->SetAutoWrapText(true);
+    Theme.ApplyText(*FoodActionStatusText, Theme.BodySize, false, TextScale, Contrast);
+    FoodActions->AddChildToHorizontalBox(FoodActionStatusText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    Content->AddChildToVerticalBox(FoodActions);
+    EatFoodButton->SetVisibility(ESlateVisibility::Collapsed);
+    FoodActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
+
     UHorizontalBox* PackAndDetail = WidgetTree->ConstructWidget<UHorizontalBox>();
     UScrollBox* PackScroll = WidgetTree->ConstructWidget<UScrollBox>();
     Theme.ApplyScroll(*PackScroll);
@@ -239,6 +258,34 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
         }
     }
 
+    if (bAwaitingFoodResult)
+    {
+        if (const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(OwnerPawn))
+        {
+            if (const UKalmalaCraftingComponent* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
+                Crafting && Crafting->GetResultSerial() != FoodRequestResultSerial)
+            {
+                LastFoodResultText = Crafting->GetLastResult();
+                LastFoodResultItemId = AwaitingFoodItemId;
+                bAwaitingAcceptedFoodStatus = Crafting->WasLastResultAccepted();
+                bAwaitingFoodResult = false;
+                AwaitingFoodItemId = NAME_None;
+            }
+        }
+    }
+
+    if (bAwaitingAcceptedFoodStatus)
+    {
+        if (const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(OwnerPawn))
+        {
+            if (const UKalmalaPlayerStatusComponent* Status = Character->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+                Status && Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId))
+            {
+                bAwaitingAcceptedFoodStatus = false;
+            }
+        }
+    }
+
     RefreshSelectionPresentation(TextScale, Contrast);
 }
 
@@ -272,7 +319,8 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
 {
     if (InventoryRowsView == nullptr || ItemDetailView == nullptr || SelectedItemText == nullptr
         || PackStateText == nullptr || PreviousItemButton == nullptr || NextItemButton == nullptr
-        || RepairToolButton == nullptr || ToolActionStatusText == nullptr) return;
+        || RepairToolButton == nullptr || ToolActionStatusText == nullptr
+        || EatFoodButton == nullptr || FoodActionStatusText == nullptr) return;
 
     if (LastTextScalePercent != TextScale || LastContrastMode != Contrast)
     {
@@ -286,6 +334,9 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         Theme.ApplyButton(*RepairToolButton, Contrast);
         Theme.ApplyText(*CastChecked<UTextBlock>(RepairToolButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
         Theme.ApplyText(*ToolActionStatusText, Theme.BodySize, false, TextScale, Contrast);
+        Theme.ApplyButton(*EatFoodButton, Contrast);
+        Theme.ApplyText(*CastChecked<UTextBlock>(EatFoodButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
+        Theme.ApplyText(*FoodActionStatusText, Theme.BodySize, false, TextScale, Contrast);
         LastTextScalePercent = TextScale;
         LastContrastMode = Contrast;
     }
@@ -326,7 +377,14 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
             if (Row.bCarriedTool)
                 ItemDetailView->SetCarriedTool(Row.Id, Row.Name, Row.Detail, TextScale, Contrast);
             else
-                ItemDetailView->SetItem(Row.Id, Row.Name, Row.Detail, TextScale, Contrast);
+            {
+                FString VisibleState = Row.Detail;
+                if (UKalmalaPlayerStatusComponent::IsKnownFoodItem(Row.Id))
+                {
+                    VisibleState += TEXT("\n\nEffect: Steady Meal; 10% lower stamina use for 120 seconds.");
+                }
+                ItemDetailView->SetItem(Row.Id, Row.Name, VisibleState, TextScale, Contrast);
+            }
             LastSelectedDetailKey = DetailKey;
         }
         ItemDetailView->SetVisibility(ESlateVisibility::Visible);
@@ -364,6 +422,118 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         LastSelectedDetailKey.Reset();
         ItemDetailView->SetVisibility(ESlateVisibility::Collapsed);
     }
+
+    RefreshFoodActionPresentation(SelectedRow, TextScale, Contrast);
+}
+
+void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCatalogueRow* SelectedRow,
+    const int32 TextScale, const int32 Contrast)
+{
+    const bool bSelectedFood = SelectedRow != nullptr && !SelectedRow->bCarriedTool
+        && UKalmalaPlayerStatusComponent::IsKnownFoodItem(SelectedRow->Id);
+    const bool bShowFoodStatus = bSelectedFood || bAwaitingFoodResult || !LastFoodResultText.IsEmpty();
+    EatFoodButton->SetVisibility(bSelectedFood ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    FoodActionStatusText->SetVisibility(bShowFoodStatus ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (!bShowFoodStatus) return;
+
+    const APlayerController* Controller = GetOwningPlayer();
+    const APawn* OwnerPawn = Controller ? Controller->GetPawn() : nullptr;
+    const UKalmalaInventoryComponent* Inventory = OwnerPawn
+        ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    const UKalmalaPlayerStatusComponent* Status = OwnerPawn
+        ? OwnerPawn->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
+    const UKalmalaCraftingComponent* Crafting = OwnerPawn
+        ? OwnerPawn->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
+
+    bool bCanEat = false;
+    FString StatusText;
+    if (bAwaitingFoodResult)
+    {
+        const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+        const FKalmalaItemDefinition* PendingDefinition = Catalogue ? Catalogue->FindItem(AwaitingFoodItemId) : nullptr;
+        FString PendingName(TEXT("food"));
+        if (PendingDefinition) PendingName = PendingDefinition->DisplayName;
+        StatusText = FString::Printf(TEXT("Waiting for the server result for %s."), *PendingName);
+    }
+    else if (bSelectedFood)
+    {
+        const int32 Quantity = Inventory ? Inventory->GetQuantity(SelectedRow->Id) : 0;
+        const bool bMealActive = Status && Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId);
+        if (!Controller || !Controller->IsLocalController() || !Inventory || !Status || !Crafting)
+        {
+            StatusText = TEXT("Food use is unavailable while owner data is loading.");
+        }
+        else if (bMealActive)
+        {
+            StatusText = FString::Printf(TEXT("A steady meal is active for %.0f seconds. Wait for it to expire."),
+                Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId));
+        }
+        else if (bAwaitingAcceptedFoodStatus)
+        {
+            StatusText = TEXT("Food was accepted. Waiting for the owner meal status to update.");
+        }
+        else if (Quantity <= 0)
+        {
+            StatusText = TEXT("No serving of this food is available in your pack.");
+        }
+        else
+        {
+            StatusText = TEXT("Ready: eat one serving for 120 seconds of 10% lower stamina use.");
+            bCanEat = !bAwaitingFoodResult && !bAwaitingAcceptedFoodStatus;
+        }
+
+        if (LastFoodResultItemId == SelectedRow->Id && !LastFoodResultText.IsEmpty())
+        {
+            StatusText += TEXT("\nLast server result: ") + LastFoodResultText;
+        }
+    }
+    else
+    {
+        StatusText = TEXT("Last food result: ") + LastFoodResultText;
+    }
+
+    EatFoodButton->SetIsEnabled(bCanEat);
+    if (FoodActionStatusText->GetText().ToString() != StatusText)
+        FoodActionStatusText->SetText(FText::FromString(StatusText));
+}
+
+void UKalmalaInventoryMenuWidget::EatSelectedFood()
+{
+    if (bAwaitingFoodResult || bAwaitingAcceptedFoodStatus
+        || !OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)) return;
+
+    const FKalmalaCatalogueRow& Row = OwnerInventoryRows[SelectedInventoryIndex];
+    if (Row.bCarriedTool || !UKalmalaPlayerStatusComponent::IsKnownFoodItem(Row.Id)) return;
+
+    APlayerController* Controller = GetOwningPlayer();
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller ? Controller->GetPawn() : nullptr);
+    UKalmalaInventoryComponent* Inventory = Character
+        ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    UKalmalaPlayerStatusComponent* Status = Character
+        ? Character->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
+    UKalmalaCraftingComponent* Crafting = Character
+        ? Character->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
+    if (!Controller || !Controller->IsLocalController() || !Inventory || !Status || !Crafting
+        || Inventory->GetQuantity(Row.Id) <= 0
+        || Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId))
+    {
+        RefreshSelectionPresentation(UKalmalaSettingsWidget::ClampTextScale(
+            UKalmalaSettingsWidget::GetTextScalePercent()), UKalmalaSettingsWidget::GetContrastMode());
+        return;
+    }
+
+    FoodRequestResultSerial = Crafting->GetResultSerial();
+    AwaitingFoodItemId = Row.Id;
+    bAwaitingFoodResult = true;
+    bAwaitingAcceptedFoodStatus = false;
+    LastFoodResultText.Reset();
+    LastFoodResultItemId = NAME_None;
+    RefreshSelectionPresentation(UKalmalaSettingsWidget::ClampTextScale(
+        UKalmalaSettingsWidget::GetTextScalePercent()), UKalmalaSettingsWidget::GetContrastMode());
+
+    // This existing server transaction is station-free. It rechecks the
+    // allowlisted item, owner pack and meal slot, then publishes an owner result.
+    Crafting->ServerConsumeFood(Row.Id);
 }
 
 void UKalmalaInventoryMenuWidget::StepSelection(const int32 Direction)

@@ -95,8 +95,10 @@ RoastedFieldMeat, or SmokedFieldMeat. HearthBroth remains a catalogue item
 with no production recipe; it is still recognized by the existing transient
 steady-meal effect. Meal use is server-authoritative, consumes one item only
 when the slot is free, and grants 120 seconds of 10% lower stamina cost.
-Duplicate use preserves both item count and timer. Food is optional, and food
-inventory and the effect add no save field.
+Inventory exposes the same action without a station requirement. The server
+revalidates the allowlisted item, owner pack quantity, and free status slot;
+rejected or duplicate use preserves both item count and timer. Food is optional,
+and food inventory and the effect add no save field.
 ## Build menu and local placement preview
 
 Choose a construction entry in the hammer menu and press **P** or select **Preview placement**. The local presentation probes generated collision 165 cm ahead and reports a readable valid/invalid result for terrain availability, slope, water, and nearby pawn blocking. It supports hearth, workbench, Forge, Chest, cooking rack, cauldron, Frying Pan, floor, wall, and roof constructions; ingredients and raw materials do not offer a placement preview. The preview does not spawn or reserve an actor, alter inventory, send an RPC, or write save data. It is only a local aid: the later server request revalidates every placement condition.
