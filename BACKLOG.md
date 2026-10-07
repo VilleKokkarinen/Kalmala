@@ -510,11 +510,11 @@ left-side panel to remove. All implementation tasks below remain pending.
     - [ ] Player pack (Tab/I) -> Inventory: pack items/counts/details, carried tools/equipment and supported Eat/use actions; no new eating station gate.
     - [ ] Joiner's bench/Workbench -> Workbench: station-compatible Craft (including Bronze Axe and Grinding Stone), selected-tool free Repair, station level/attachment state and relevant prerequisites.
     - [ ] Forge -> Forge: compatible Craft (including Frying Pan), supported tool Upgrade (including Iron Axe), selected-tool free Repair, material/station/skill requirements and comparisons.
-    - [ ] Grinding Stone -> Tool repair: carried-tool conditions and explicit free Repair All; opening performs no repair automatically.
+    - [ ] Grinding Stone -> direct Repair All on Interact (default E), with no menu/selector/confirmation; preserve free server validation, one action per accepted interaction and concise action-only feedback.
     - [ ] Cooking Rack -> Rack cooking: Cooked boar/deer meat, counts, supported quantities, hearth heat and Cook only.
     - [ ] Hearth Cauldron -> Cauldron cooking: Meat stew/Root vegetable soup, counts, supported quantities, hearth heat and Cook only.
     - [ ] Frying Pan -> Pan cooking: Roasted root vegetables/Deer and rutabaga roast, counts, supported quantities, hearth heat and Cook only.
-    - [ ] Hearth ring/Campfire -> Hearth: fire state/fuel time, usable owned raw fuels, Add fuel/Light and concise unavailable feedback only.
+    - [ ] Hearth ring/Campfire -> direct Add fuel on Interact (default E), with no menu/picker/confirmation or extra lighting toggle; consume exactly one available item using existing Wood/Lightwood/Densewood/Coal priority, duration/cap and range validation; failed/full/no-fuel attempts spend nothing.
     - [ ] Chest -> Storage: interacted chest and owner pack stacks, item details, existing Deposit/Withdraw and capacity feedback only.
     - [ ] Workbench Tool Rack/Forge Anvil -> no separate service menu: show passive attachment/effective-level state in the parent station menu; keep placement in Build.
   - [ ] Provide dedicated themed repair, cooking/food, crafting/upgrading, and storage contexts opened by relevant world interactions, with inventory access through the separate Tab/I menu; preserve station/range checks, owner privacy, and modal/input restoration.

@@ -482,7 +482,7 @@ M12 has seven ordered UI goals:
    boilerplate. Keep real placement/fuel constraints understandable and truthful;
    technical contracts belong in documentation and developer diagnostics.
 7. **Construction-only build menu and dedicated context menus.** Each entry
-   below defines the object or entry point, the menu it opens, and its contents.
+   below defines the object or entry point and its menu contents or direct action.
    World-object menus open only after a validated interaction with that object.
 
    - **Carried Construction Hammer -> Build menu.** Keep the existing build-menu
@@ -515,11 +515,14 @@ M12 has seven ordered UI goals:
      comparison, and Upgrade. Repair contains carried-tool condition and the
      existing free selected-tool Repair. Show effective Forge level/attachment
      state. Exclude unrelated building, cooking, inventory browsing, and storage.
-   - **Grinding Stone -> Tool repair menu.** Contents: the owner's carried tools
-     and current/max condition, damaged/full-condition state, and the existing
-     free Repair All action with concise result/unavailable feedback. Opening
-     the menu must not automatically repair; the explicit action invokes the
-     existing repair-all transaction. No crafting, upgrading, cooking, or storage.
+   - **Grinding Stone -> Direct Repair All interaction; no menu.** Use the
+     existing Interact action (default E) on the stone to repair all damaged
+     carried tools through the existing free server-validated repair-all path.
+     Do not open a panel, tool selector, or confirmation dialog. Keep gameplay
+     input active and show only concise success/unavailable feedback. A valid
+     interaction performs the action once; rejected or repeated/replayed requests
+     must not cause extra mutations. The player-facing prompt says Repair all
+     without displaying the key binding outside Options.
    - **Cooking Rack -> Rack cooking menu.** Contents: Cooked boar meat and Cooked
      deer meat; ingredient counts, selected food/result description, supported
      quantity limits, nearby hearth heat availability, and Cook. No other station's
@@ -531,11 +534,17 @@ M12 has seven ordered UI goals:
      Deer and rutabaga roast, with the same recipe/count/quantity/heat/Cook
      presentation. This uses an already placed pan; forging a pan belongs in
      the Forge menu and placing it belongs in Build.
-   - **Hearth ring / Campfire -> Hearth menu.** Contents: actual Lit/Smouldering/
-     Unlit state, remaining fuel time, usable raw fuel choices and owned counts,
-     Add fuel, and Light when permitted. Show a concise roof/weather/fuel reason
-     when an action is unavailable. Keep existing fuel durations and ignition
-     rules; no food recipe list, tool repair, crafting catalogue, or chest controls.
+   - **Hearth ring / Campfire -> Direct Add fuel interaction; no menu.** Use the
+     existing Interact action (default E) on the hearth to consume exactly one
+     available eligible fuel item from the interacting player's inventory and
+     add its existing fuel duration. The server selects the item using the
+     current raw-fuel priority: Wood, then Lightwood, then Densewood, then Coal.
+     Do not open a fuel picker, fire panel, or confirmation dialog, or perform
+     an additional lighting toggle from this interaction. Preserve the existing
+     60 seconds per item, fuel cap, weather/ignition rules and use-range checks.
+     No fuel, a full hearth, or a rejected interaction consumes nothing. Keep
+     gameplay input active and show concise result/unavailable feedback; the
+     prompt says Add fuel without displaying a key binding outside Options.
    - **Chest -> Storage menu.** Contents: this interacted chest's item stacks,
      the owner's pack stacks needed for transfer, selected-item name/icon/count,
      existing Deposit/Withdraw actions and capacity/unavailable feedback. Preserve
@@ -550,7 +559,10 @@ M12 has seven ordered UI goals:
    catalogue/gameplay contracts; the examples above do not add recipes or items.
    Use shared themes, concise action labels, accessible focus, and remembered
    selection where applicable. Keep input-binding text exclusively in Options.
-   Open one context menu at a time; close/leave restores local input and clears
+   Grinding Stone and Hearth interactions open no menu and do not capture modal
+   input. Verify one Repair All or one fuel debit per accepted interaction and no
+   mutation on rejection. Open one context menu at a time; close/leave restores
+   local input and clears
    stale object data. Revalidate object identity, distance, sight line, station
    level, heat, costs, tool state, and privacy through existing server paths at
    action time. Moving away, destruction, reconnect, or a newly unmet requirement

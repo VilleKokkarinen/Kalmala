@@ -11392,3 +11392,15 @@ Lightweight checks: Reviewed object/recipe/tool mappings against current catalog
 Observable impact/authority: Goal 7 now explicitly assigns every displaced operation to a menu, defines excluded content and stale-context handling, and preserves existing costs, recipes, station/heat/tool requirements, privacy, and save contracts. No runtime changes, new items/world objects, or new eating/station gates.
 
 Next eligible task: M12's first shared inventory-toggle input child remains next; this clarification does not complete an implementation task. Main-checkout update; no worktree handoff required.
+
+### Run 2026-10-07 — Correct M12 direct stone/hearth interactions
+
+Completed: Applied the user's correction to roadmap goal 7 and its backlog mappings: Grinding Stone opens no menu and the default E/Interact directly performs existing free Repair All; Hearth ring/Campfire opens no menu and E/Interact adds exactly one available raw fuel item from the owner's inventory. Documented current server fuel priority (Wood, Lightwood, Densewood, Coal), existing 60-second duration and cap, no fuel-picker/confirmation, no extra lighting toggle, concise action-only prompts, and no inventory debit when unavailable/rejected. Direct interactions keep gameplay input active.
+
+Files changed: `docs/04-roadmap.md`, `BACKLOG.md`, and this `PROGRESS.md`. Checked current campfire refuelling and raw-fuel contract; only this chat appeared active on Kalmala. Preserved all pre-existing work.
+
+Lightweight checks: Inspected the corrected roadmap/backlog diff for both no-menu mappings, default E through remappable Interact, Options-only binding text, unchanged fuel selection/duration, rejection behavior, staged whitespace and committed path lengths. No runtime/build tests run for documentation-only work; implementation and milestone-final verification remain pending.
+
+Observable impact/authority: The plan now replaces the previously specified stone/hearth menus with the two requested direct interactions, using existing server repair/refuel validation and inventory transactions. Current gameplay is unchanged. The prior progress entry records the superseded plan, not the current goal-7 contract.
+
+Next eligible task: The first M12 inventory-toggle child remains next. Main-checkout documentation update; no worktree synchronization required.
