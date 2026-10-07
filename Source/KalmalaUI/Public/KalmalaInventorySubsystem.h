@@ -7,35 +7,9 @@
 
 class UTextBlock;
 class UBorder;
-class UHorizontalBox;
 class UKalmalaCatalogueRowsWidget;
 class UScrollBox;
 struct FKalmalaCatalogueRow;
-
-enum class EKalmalaSupportGlyph : uint8
-{
-    Mending,
-    HearthShield,
-    BearsVigor,
-    DeerCall
-};
-
-UCLASS()
-class KALMALAUI_API UKalmalaSupportGlyphWidget : public UUserWidget
-{
-    GENERATED_BODY()
-public:
-    void SetGlyphState(EKalmalaSupportGlyph InGlyph, bool bInLearned, bool bInSelected);
-    void SetGlyphContrast(int32 ContrastMode);
-protected:
-    virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
-        FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
-private:
-    EKalmalaSupportGlyph Glyph = EKalmalaSupportGlyph::Mending;
-    bool bLearned = false;
-    bool bSelected = false;
-    int32 Contrast = 0;
-};
 
 UCLASS()
 class KALMALAUI_API UKalmalaInventoryWidget : public UUserWidget
@@ -48,8 +22,6 @@ public:
     void SetPackTextAccessibility(int32 TextScalePercent, int32 ContrastMode);
     float GetRequiredPanelHeight() const;
     static FString BuildPreparedFoodDetails(bool bHasPreparedFood, float MealSecondsRemaining);
-    void SetSupportGlyphState(int32 Index, EKalmalaSupportGlyph Glyph, bool bLearned, bool bSelected);
-    void SetSupportGlyphsVisible(bool bVisible);
 protected:
     virtual void NativeOnInitialized() override;
 private:
@@ -57,11 +29,6 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> PackText;
     UPROPERTY(Transient) TObjectPtr<UKalmalaCatalogueRowsWidget> CatalogueRows;
     UPROPERTY(Transient) TObjectPtr<UScrollBox> CatalogueScroll;
-    UPROPERTY(Transient) TObjectPtr<UHorizontalBox> SupportGlyphRow;
-    UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> SupportGlyphCards;
-    UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaSupportGlyphWidget>> SupportGlyphs;
-    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> SupportGlyphLabels;
-    TArray<uint8> SupportGlyphVisualStates;
     int32 LastTextScalePercent = INDEX_NONE;
     int32 LastContrastMode = INDEX_NONE;
 };

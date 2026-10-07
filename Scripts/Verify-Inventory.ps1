@@ -62,8 +62,8 @@ try {
         ($serverText + $clientText) -match 'Item gain receipts remote: Empty=0') {
         throw 'Accepted item-gain receipts did not preserve owner delivery/privacy.'
     }
-    if ($serverText -notmatch 'Notification owner baseline: Silent=1 Rows=0 Sources=3' -or
-        $clientText -notmatch 'Notification owner baseline: Silent=1 Rows=0 Sources=3') {
+    if ($serverText -notmatch 'Notification owner baseline: Silent=1 Rows=0 Sources=5' -or
+        $clientText -notmatch 'Notification owner baseline: Silent=1 Rows=0 Sources=5') {
         throw 'A peer replayed existing owner state while establishing notification baselines.'
     }
     if ($NotificationReview) {

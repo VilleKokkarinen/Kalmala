@@ -8,15 +8,8 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Styling/CoreStyle.h"
-#include "KalmalaCampfire.h"
-#include "KalmalaCharacter.h"
-#include "KalmalaCombatComponent.h"
-#include "KalmalaConstructionActor.h"
 #include "KalmalaCraftingComponent.h"
-#include "KalmalaDiscoveryProgressComponent.h"
-#include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaSettingsWidget.h"
-#include "KalmalaSupportMagicComponent.h"
 
 namespace
 {
@@ -64,46 +57,6 @@ FString UKalmalaAccessibilityFeedbackSubsystem::BuildFeedbackText(APawn* Pawn) c
     {
         Text += MarkerLine(TEXT("HEARTH"), Crafting->GetNearbyFireText());
         Text += MarkerLine(TEXT("CONSTRUCTION"), Crafting->GetNearbyConstructionText());
-    }
-
-    if (const UKalmalaCombatComponent* Combat = Pawn->FindComponentByClass<UKalmalaCombatComponent>())
-    {
-        const TCHAR* Phase = Combat->GetActionPhase() == EKalmalaCombatActionPhase::Windup
-            ? TEXT("WINDUP") : Combat->GetActionPhase() == EKalmalaCombatActionPhase::Recovery ? TEXT("RECOVERING") : TEXT("READY");
-        Text += MarkerLine(TEXT("COMBAT"), FString::Printf(TEXT("phase %s"), Phase));
-        switch (Combat->GetFeedback())
-        {
-        case EKalmalaCombatFeedback::Hit: Text += MarkerLine(TEXT("HIT"), TEXT("confirmed")); break;
-        case EKalmalaCombatFeedback::Defeat: Text += MarkerLine(TEXT("DEFEAT"), TEXT("confirmed")); break;
-        case EKalmalaCombatFeedback::Unavailable: Text += MarkerLine(TEXT("UNAVAILABLE"), TEXT("move closer or wait")); break;
-        default: break;
-        }
-    }
-
-    if (const UKalmalaDiscoveryProgressComponent* Discovery = Pawn->FindComponentByClass<UKalmalaDiscoveryProgressComponent>();
-        Discovery != nullptr && Discovery->GetFeedbackSerial() > 0)
-    {
-        const TCHAR* Result = TEXT("unavailable");
-        switch (Discovery->GetFeedback())
-        {
-        case EKalmalaDiscoveryFeedback::LandmarkFound: Result = TEXT("landmark found"); break;
-        case EKalmalaDiscoveryFeedback::ScrollFound: Result = TEXT("scroll found"); break;
-        case EKalmalaDiscoveryFeedback::AlreadyFound: Result = TEXT("already found"); break;
-        default: break;
-        }
-        Text += MarkerLine(TEXT("DISCOVERY"), Result);
-    }
-
-    if (const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Pawn))
-    {
-        if (const UKalmalaSupportMagicComponent* Support = Character->GetSupportMagicComponent())
-        {
-            const TCHAR* Result = Support->GetFeedbackSerial() == 0
-                ? TEXT("no server result yet")
-                : Support->GetFeedback() == EKalmalaSupportFeedback::Accepted ? TEXT("accepted") : TEXT("unavailable");
-            Text += MarkerLine(TEXT("SUPPORT"), Result);
-
-        }
     }
 
     return Text;

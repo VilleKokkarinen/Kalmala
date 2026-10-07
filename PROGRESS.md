@@ -11622,3 +11622,25 @@ Known limitations: The updated focused automation was not executed; rendered lay
 Next eligible task: Preserve support/combat selection and concise action-result/discovery feedback on existing HUD surfaces independently of the persistent left-side panel; update narrow feedback/input expectations.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only this selected backlog state and progress entry; existing main-checkout edits remain untouched.
+
+### Run 2026-10-07T10:34:12Z — decouple support and action feedback from the pack HUD
+
+Concurrency guard: Codex task inventory showed this as the only active Kalmala run. An earlier interrupted attempt left an uncommitted draft in `E:\dev\Kalmala\wt\m12-pack-grid`; I inspected it and preserved it untouched, then re-applied the increment on a clean worktree from accepted M12 handoff `e377285` so this run owns the committed patch.
+
+Completed: Moved the support selection glyphs/text to a separate passive owner-local HUD strip. The transient owner notification queue now consumes the existing owner-only combat/support result serials and discovery acknowledgements (found, already found, unavailable), with concise text, a three-row cap, silent initial/reconnect baselines, deduplication and expiry. Removed duplicate combat/discovery/support diagnostics from the legacy inventory panel and optional feedback overlay. Existing input bindings and gameplay/server result paths are unchanged. Tightened notification kind handling so Gathering skill notices do not merge into Wood item receipts, consumed empty-result serials safely, and corrected the rendered reconnect fixture to report its actual three observed sources.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaAccessibilityFeedbackSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaInventorySubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaNotificationSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaSkillNotice.cpp`; `Source/KalmalaUI/Private/KalmalaSupportSelectionSubsystem.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaDiscoveryNoticeTest.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaNotificationAcceptanceTest.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaSupportSelectionWidgetTest.cpp`; `Source/KalmalaUI/Public/KalmalaInventorySubsystem.h`; `Source/KalmalaUI/Public/KalmalaSkillNotice.h`; `Source/KalmalaUI/Public/KalmalaSupportSelectionSubsystem.h`; `Scripts/Verify-Inventory.ps1`; `Scripts/Verify-InventoryReconnect.ps1`; `Scripts/Verify-LocalInputContract.ps1`; `Scripts/Verify-PresentationOwnership.ps1`; `Scripts/Verify-SettingsAccessibilityContract.ps1`; `docs/07-development-setup.md`; `docs/14-settings-and-accessibility.md`; `docs/15-presentation-ownership.md`; `docs/40-notifications.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Scripts/Verify-LocalInputContract.ps1` passed with five axes and sixteen actions; `Scripts/Verify-PresentationOwnership.ps1` passed seven assets/fourteen seams; `Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts; changed PowerShell files parsed; and `git diff --check` passed. Manually reviewed owner-local widget reads, owner-only result sources, serial baselines, the three-row notice cap, feedback text and unchanged gameplay authority. No Unreal build or automation test was run.
+
+Full verification remains deferred to M12 milestone-final verification.
+
+Observable impact: Support selection stays visible outside the left pack panel, while combat/support results and discovery acknowledgements appear as short notices without target identity or duplicate persistent diagnostics.
+
+Networking/authority: The support strip reads the owning character's local selected effect and owner-only learned mask. Notices read existing owner-only combat/support serials and the owner's existing discovery acknowledgement. No request, RPC, replicated field, save data or gameplay mutation was added.
+
+Known limitations: The focused C++ automations were not compiled or run; rendered host/client privacy, action notice placement, modal transitions, text scaling and packaged behavior remain for M12 final verification. The original interrupted draft remains preserved and uncommitted in `wt/m12-pack-grid`.
+
+Next eligible task: Remove the old left-side panel, glyph row, diagnostic/help text and pack/tool grid now covered by Inventory; inspect normal/empty paths and prepare the absence regression.
+
+Main-checkout handoff synchronization: Complete. After inspecting the dirty main versions, synchronized only this selected BACKLOG row and the new PROGRESS entry. All other pre-existing main-checkout changes remain uncommitted and untouched.
