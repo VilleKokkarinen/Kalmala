@@ -435,7 +435,7 @@ M11 has twenty-three ordered goals:
 Start after M11 acceptance. Continue UX/UI improvements through existing shared
 themes, catalogue widgets, local input, and owner-visible state.
 
-M12 has nine ordered UI goals:
+M12 has ten ordered UI goals:
 
 1. **Dedicated inventory menu.** Add an Inventory menu with the same presentation
    quality and shared layout/components as the crafting menu. Both `Tab` and `I`
@@ -655,6 +655,41 @@ M12 has nine ordered UI goals:
      icon association and current unavailable states. Update affected text
      expectations and documentation without changing transaction/gameplay rules.
 
+10. **Compact active-status icons at the minimap's upper left.** Move the local
+    status/weather group from below the minimap to immediately beside its upper
+    left. Match the minimap's top alignment and 12-UI-unit top margin from goal 3;
+    anchor the group's right edge to the minimap's left edge with a small
+    theme-configurable gap (default 12 UI units). Derive this from the minimap's
+    actual scaled layout rather than a separate hardcoded vertical offset.
+
+    - **Active conditions only:** show an icon only for a currently active special
+      state already available to the owner: for example Wet, an active meal or
+      support effect, qualifying Hot/Cold exposure, or a current Storm. Hide
+      normal/Calm weather and generic Active/High activity weather labels when
+      they do not represent an active Storm. Use existing authoritative status,
+      exposure and storm qualification rules; do not add gameplay thresholds,
+      penalties, effects or durations. Hot/Cold remain their own exposure icons;
+      do not add a second weather icon merely to repeat them.
+    - **Truly hidden empty/inactive state:** when there are no qualifying active
+      conditions, collapse the entire group with no background, border, placeholder
+      or reserved slots. Remove each expired/cleared icon immediately and close
+      its gap; decorative end cues must not retain an inactive icon. Reappearance
+      follows current owner state, without reconnect/countdown replay or stale
+      weather icons. Existing detail views may still explain the actual state.
+    - **Tighter spacing:** remove wide fixed cells and unused horizontal padding.
+      Size each entry to its actual icon plus readable name/timer; use compact
+      theme-configurable inter-entry gaps (default 4 UI units) and minimal inner
+      padding. Keep multiple active entries together with stable order. Grow
+      leftward from the minimap and wrap downward within available viewport space
+      when needed; never overlap the minimap or clip labels/timers. Maintain
+      readable accessible text rather than compressing the text itself.
+    - **Acceptance:** retain host/client captures for zero, one and many active
+      conditions; normal-to-Storm/back, Hot/Cold recovery and status expiry;
+      reconnect and separate owners; UI/text scaling, high contrast, reduced
+      motion, and 4:3/16:9/ultrawide layouts. Verify shared top padding, compact
+      gaps, correct timers, immediate inactive collapse and no minimap overlap.
+      This changes layout/visibility only, with no server or save-state changes.
+
 **M12 boundary:** presentation and local input changes only. Reuse existing item,
 equipment, crafting, support, and inventory contracts; add no gameplay content,
 balance changes, authoritative mutation paths, new save schemas, hidden-content
@@ -673,7 +708,9 @@ catalogue object/result has its original generated 64x64 image icon, consistentl
 mapped across views with readable separate overlays and complete coverage; item
 names/descriptions are concise, consistent and truthful with intentional manual
 improvements retained and Workbench named Workbench; Campfire exists only as a
-building recipe/placed construction, never a HearthRing inventory item. Verify
+building recipe/placed construction, never a HearthRing inventory item; compact
+status/weather icons sit at the minimap's upper left and show only active special
+conditions, with a fully hidden empty state. Verify
 empty/populated inventories, selection and input changes, coexistence with
 crafting/settings/full map, separate owners, reconnect, keyboard/controller
 navigation, text entry, 4:3/16:9/ultrawide layouts, interface/text scaling, high

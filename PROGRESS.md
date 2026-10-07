@@ -11440,3 +11440,15 @@ Lightweight checks: Inspected the staged construction-only contract, item-versus
 Observable impact/authority: M12 now explicitly requires Campfire as a construction result instead of an inventory item called Hearth ring. Existing placement/fuel costs, server validation and save schemas remain the implementation baseline. No new Campfire pickup/item is authorized.
 
 Next eligible task: First M12 inventory-toggle child remains next. Main-checkout planning update; no worktree handoff required.
+
+### Run 2026-10-07 — Add M12 compact active-status/minimap layout
+
+Completed: Added goal 10 and unchecked backlog tasks to place status/weather icons immediately left of the minimap at its top edge, sharing the planned 12-unit top margin. Defined a small 12-unit map/group separation, content-sized entries with default 4-unit gaps, and safe leftward expansion/downward wrapping. Only existing active special states qualify: statuses, Hot/Cold exposure and Storm; normal/Calm/generic weather labels are hidden. Empty groups collapse completely, and expired/inactive icons disappear without retained end cues or reserved slots.
+
+Files changed: `docs/04-roadmap.md`, `BACKLOG.md`, and this `PROGRESS.md`. Inspected the current hotbar's below-minimap placement, fixed-width cells, six-unit gaps and unconditional valid-weather entry. Only this chat appeared active on Kalmala; pre-existing changes preserved.
+
+Lightweight checks: Reviewed the ten-goal plan and unchecked tasks against positioning, visibility and spacing requirements; inspected staged diff, whitespace and committed path lengths. Documentation-only planning; no runtime code/assets changed and no build/runtime tests run. Implementation/full milestone-final verification remain pending.
+
+Observable impact/authority: The roadmap explicitly supersedes the old below-minimap placement, calm-weather icon and retained inactive/end-icon presentation. Uses current owner-visible authoritative status/exposure/Storm qualification and timers; adds no gameplay thresholds, effects, penalties or save changes. Existing status detail views remain available.
+
+Next eligible task: First M12 inventory-toggle child remains next; hotbar work follows earlier ordered parents. Main-checkout planning update; no worktree synchronization required.
