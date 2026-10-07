@@ -11428,3 +11428,15 @@ Lightweight checks: Reviewed the nine-goal plan and unchecked copy tasks for the
 Observable impact/authority: The roadmap now explicitly includes remaining bad display names and descriptions, separate from goal 6's recipe-panel verbosity cleanup. This authorizes presentation-copy correction only, without changing item identities, stats, recipes, requirements, source distribution, gameplay transactions or persistence.
 
 Next eligible task: The first M12 inventory-toggle child remains next; catalogue copy work follows the prior ordered parents. Main-checkout planning update; no worktree synchronization needed.
+
+### Run 2026-10-07 — Clarify Campfire construction-only identity in M12
+
+Completed: Added the user's correction to goal 9 and the backlog: HearthRing must not be a normal inventory item; Campfire is a building recipe named Campfire that directly places a Campfire without producing an item stack. Updated goal 7's object name to Campfire and required its icon to belong to the build selection rather than inventory. Current JSON has a HearthRing item with MaxStack 5 and Campfire recipe displayed as Hearth ring/output HearthRing; the loader aliases that output to CampfireKit, already classified as a direct-material buildable. The plan explicitly separates construction metadata from inventory identities and requires matching loader/validator/UI/icon updates, preserving needed legacy aliases and saved-construction compatibility.
+
+Files changed: `docs/04-roadmap.md`, `BACKLOG.md`, and this `PROGRESS.md`. Reviewed current JSON, runtime alias and direct-build classification; only this chat appeared active on Kalmala. Preserved pre-existing changes.
+
+Lightweight checks: Inspected the staged construction-only contract, item-versus-building distinction, direct placement/no-stack and failure invariants, compatibility boundaries, whitespace and path lengths. Documentation-only planning; no runtime/catalogue changes, builds or tests run. Implementation/full milestone verification remain pending.
+
+Observable impact/authority: M12 now explicitly requires Campfire as a construction result instead of an inventory item called Hearth ring. Existing placement/fuel costs, server validation and save schemas remain the implementation baseline. No new Campfire pickup/item is authorized.
+
+Next eligible task: First M12 inventory-toggle child remains next. Main-checkout planning update; no worktree handoff required.

@@ -534,7 +534,7 @@ M12 has nine ordered UI goals:
      Deer and rutabaga roast, with the same recipe/count/quantity/heat/Cook
      presentation. This uses an already placed pan; forging a pan belongs in
      the Forge menu and placing it belongs in Build.
-   - **Hearth ring / Campfire -> Direct Add fuel interaction; no menu.** Use the
+   - **Campfire -> Direct Add fuel interaction; no menu.** Use the
      existing Interact action (default E) on the hearth to consume exactly one
      available eligible fuel item from the interacting player's inventory and
      add its existing fuel duration. The server selects the item using the
@@ -622,6 +622,20 @@ M12 has nine ordered UI goals:
      compound identifiers; do not expose internal Kit suffixes or force literal
      technical IDs into labels. Stable IDs, aliases and saved identities stay
      unchanged (for example, internal WorkbenchKit remains an internal identity).
+   - **Campfire is construction, not an inventory item:** remove HearthRing from
+     the normal inventory-item catalogue/presentation. The existing Campfire
+     recipe belongs only in Build, is displayed as Campfire, and places a
+     Campfire directly from its current material costs and placement rules.
+     It never crafts a HearthRing/Campfire inventory stack or pickup item.
+     Represent its output as construction metadata rather than requiring a
+     normal inventory item; update catalogue loading/validation, UI selection
+     and icon coverage accordingly. Its generated image belongs to the Campfire
+     build selection and placed object, not an inventory slot. Use Campfire in
+     player-facing names/prompts; retain necessary internal CampfireKit and
+     legacy HearthRing aliases for existing construction/save compatibility.
+     Preserve current fuel/ignition costs, direct refuelling and server authority.
+     Verify valid placement creates one Campfire and no item stack, while failed
+     placement spends nothing; existing saved Campfires still restore correctly.
    - **Descriptions:** write short natural sentences about what the object is
      and its real use or character. Retain intentional flavour where it fits;
      remove developer/AI-style explanations, implementation vocabulary, redundant
@@ -658,7 +672,8 @@ padding is half its former value without clipping or status overlap; every curre
 catalogue object/result has its original generated 64x64 image icon, consistently
 mapped across views with readable separate overlays and complete coverage; item
 names/descriptions are concise, consistent and truthful with intentional manual
-improvements retained and Workbench named Workbench. Verify
+improvements retained and Workbench named Workbench; Campfire exists only as a
+building recipe/placed construction, never a HearthRing inventory item. Verify
 empty/populated inventories, selection and input changes, coexistence with
 crafting/settings/full map, separate owners, reconnect, keyboard/controller
 navigation, text entry, 4:3/16:9/ultrawide layouts, interface/text scaling, high
