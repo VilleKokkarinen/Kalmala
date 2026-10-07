@@ -140,13 +140,14 @@ only the movement/look ignore state it acquires; closing restores those values
 and returns input to gameplay. While an editable text control has keyboard
 focus, Tab/I do not toggle the menu. Gamepad B closes it when focus is outside
 text entry. The menu reads only the owning pawn's owner-only replicated pack
-stacks and displays them read-only; it performs no gameplay action or network
-request. Previous/next controls and arrow/D-pad input select a pack row, whose
-canonical icon, description and visible count appear in the shared detail panel.
-If a selected item disappears, selection falls back to the first remaining row;
-an empty pack clears the selection and hides the detail panel. The previous HUD
-pack view remains until the inventory-menu grid is ready to replace it in a later
-M12 task.
+stacks and bounded carried-tool records. Previous/next controls and arrow/D-pad
+input select a pack or equipment row, whose icon, description or level/condition
+appears in the shared detail panel. If a selected record disappears, selection
+falls back to the first remaining row; an empty owner view clears selection and
+hides the detail panel. A damaged selected tool exposes the existing repair
+action. It sends only the tool ID, and the server validates the carried record
+and nearby visible Workbench or Forge before changing condition. The previous
+HUD pack view remains until the separate HUD-removal task.
 
 ## Accessibility requirements
 

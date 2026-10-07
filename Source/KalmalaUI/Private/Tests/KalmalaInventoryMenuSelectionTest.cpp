@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaInventoryMenuWidget.h"
+#include "KalmalaCatalogueRowsWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/TextBlock.h"
@@ -43,10 +44,14 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
 
     const TArray<FKalmalaCatalogueRow> OwnerARows = {
         {TEXT("Wood"), TEXT("Wood"), TEXT("× 7"), false},
-        {TEXT("Stone"), TEXT("Stone"), TEXT("× 2"), false}
+        {TEXT("Stone"), TEXT("Stone"), TEXT("× 2"), false},
+        {TEXT("ReedKnife"), TEXT("Reed Knife"), TEXT("Level 1\nCondition 17/40\nDAMAGED\nFree repair at a visible Workbench or Forge."), true}
     };
-    OwnerA->SetPackRowsForVerification(OwnerARows, 100, 0);
-    OwnerB->SetPackRowsForVerification({{TEXT("Stone"), TEXT("Stone"), TEXT("× 93"), false}}, 100, 0);
+    OwnerA->SetInventoryRowsForVerification(OwnerARows, 100, 0);
+    OwnerB->SetInventoryRowsForVerification({
+        {TEXT("Stone"), TEXT("Stone"), TEXT("× 93"), false},
+        {TEXT("BronzeAxe"), TEXT("Bronze Axe"), TEXT("Level 1\nCondition 8/55\nBROKEN"), true}
+    }, 100, 0);
 
     TestEqual(TEXT("The first owner selects its first visible pack item"),
         OwnerA->GetSelectedItemForVerification(), FName(TEXT("Wood")));
@@ -55,18 +60,39 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("The second owner detail includes its own visible count"), DetailText(OwnerB).Contains(TEXT("× 93")));
     TestFalse(TEXT("The second owner's detail excludes the first owner's count"), DetailText(OwnerB).Contains(TEXT("× 7")));
 
+    UKalmalaCatalogueRowsWidget* OwnerARowsView = nullptr;
+    TArray<UWidget*> OwnerAWidgets;
+    OwnerA->WidgetTree->GetAllWidgets(OwnerAWidgets);
+    for (UWidget* Widget : OwnerAWidgets)
+        if (auto* RowsView = Cast<UKalmalaCatalogueRowsWidget>(Widget)) OwnerARowsView = RowsView;
+    TestNotNull(TEXT("Inventory creates the shared pack and tool rows view"), OwnerARowsView);
+    if (OwnerARowsView)
+    {
+        TestEqual(TEXT("Tool row remains separate from the sixteen pack slots"), OwnerARowsView->GetCarriedToolCount(), 1);
+        TestEqual(TEXT("Tool does not consume a pack slot"), OwnerARowsView->GetFilledSlotCount(), 2);
+        TestEqual(TEXT("Pack grid retains its empty cells"), OwnerARowsView->GetEmptySlotCount(), 14);
+    }
+
     OwnerA->StepSelectionForVerification(1);
     TestEqual(TEXT("Next selects the second owner-supplied item"),
         OwnerA->GetSelectedItemForVerification(), FName(TEXT("Stone")));
     TestTrue(TEXT("Selection updates the shared detail component"), DetailText(OwnerA).Contains(TEXT("× 2")));
 
-    OwnerA->SetPackRowsForVerification({{TEXT("Wood"), TEXT("Wood"), TEXT("× 4"), false}}, 100, 0);
-    TestEqual(TEXT("Removed selected item falls back to the first remaining item"),
-        OwnerA->GetSelectedItemForVerification(), FName(TEXT("Wood")));
-    TestTrue(TEXT("Fallback replaces the removed item's detail"), DetailText(OwnerA).Contains(TEXT("× 4")));
-    TestFalse(TEXT("Fallback does not retain the removed item's count"), DetailText(OwnerA).Contains(TEXT("× 2")));
+    OwnerA->StepSelectionForVerification(1);
+    TestEqual(TEXT("Selection reaches carried equipment after the pack rows"),
+        OwnerA->GetSelectedItemForVerification(), FName(TEXT("ReedKnife")));
+    TestTrue(TEXT("Selected tool detail shows its owner-visible level and condition"), DetailText(OwnerA).Contains(TEXT("Condition 17/40")));
+    TestFalse(TEXT("First owner's tool detail excludes the second owner's condition"), DetailText(OwnerA).Contains(TEXT("Condition 8/55")));
+    TestTrue(TEXT("Second owner's tool detail keeps its own condition"), DetailText(OwnerB).Contains(TEXT("Condition 8/55")));
+    TestFalse(TEXT("Second owner's tool detail excludes the first owner's condition"), DetailText(OwnerB).Contains(TEXT("Condition 17/40")));
 
-    OwnerA->SetPackRowsForVerification({}, 100, 0);
+    OwnerA->SetInventoryRowsForVerification({{TEXT("Wood"), TEXT("Wood"), TEXT("× 4"), false}}, 100, 0);
+    TestEqual(TEXT("Removed selected tool falls back to the first remaining owner row"),
+        OwnerA->GetSelectedItemForVerification(), FName(TEXT("Wood")));
+    TestTrue(TEXT("Fallback replaces the removed tool detail"), DetailText(OwnerA).Contains(TEXT("× 4")));
+    TestFalse(TEXT("Fallback does not retain the removed tool condition"), DetailText(OwnerA).Contains(TEXT("Condition 17/40")));
+
+    OwnerA->SetInventoryRowsForVerification({}, 100, 0);
     TestEqual(TEXT("Empty owner pack clears selection"), OwnerA->GetSelectedItemForVerification(), NAME_None);
     TArray<UWidget*> Widgets;
     OwnerA->WidgetTree->GetAllWidgets(Widgets);

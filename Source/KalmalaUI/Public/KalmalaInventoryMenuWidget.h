@@ -9,7 +9,7 @@ class UTextBlock;
 class UKalmalaItemDetailWidget;
 class UKalmalaThemedButton;
 
-/** Owner-local read-only pack grid with selected-item details; tools and actions remain later M12 work. */
+/** Owner-local pack and carried-tool inspection with the existing server-validated repair action. */
 UCLASS()
 class KALMALAUI_API UKalmalaInventoryMenuWidget : public UUserWidget
 {
@@ -18,11 +18,11 @@ class KALMALAUI_API UKalmalaInventoryMenuWidget : public UUserWidget
 public:
     void Open();
     void Close();
-    void RefreshOwnerPack();
+    void RefreshOwnerInventory();
     bool IsMenuOpen() const { return bMenuOpen; }
     bool HasTextEntryFocus() const;
 #if !UE_BUILD_SHIPPING
-    void SetPackRowsForVerification(const TArray<FKalmalaCatalogueRow>& Rows, int32 TextScale, int32 Contrast);
+    void SetInventoryRowsForVerification(const TArray<FKalmalaCatalogueRow>& Rows, int32 TextScale, int32 Contrast);
     FName GetSelectedItemForVerification() const;
     void StepSelectionForVerification(int32 Direction);
 #endif
@@ -32,20 +32,29 @@ protected:
     virtual FReply NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
 
 private:
-    void ApplyPackRows(TArray<FKalmalaCatalogueRow>&& Rows, bool bInventoryAvailable, int32 TextScale, int32 Contrast);
+    void ApplyInventoryRows(TArray<FKalmalaCatalogueRow>&& Rows, bool bInventoryAvailable, int32 TextScale, int32 Contrast);
     void RefreshSelectionPresentation(int32 TextScale, int32 Contrast);
     void StepSelection(int32 Direction);
+    UFUNCTION() void RepairSelectedTool();
     UFUNCTION() void SelectPreviousItem();
     UFUNCTION() void SelectNextItem();
     UPROPERTY(Transient) TObjectPtr<UTextBlock> PackStateText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> SelectedItemText;
-    UPROPERTY(Transient) TObjectPtr<UKalmalaCatalogueRowsWidget> PackRowsView;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolActionStatusText;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaCatalogueRowsWidget> InventoryRowsView;
     UPROPERTY(Transient) TObjectPtr<UKalmalaItemDetailWidget> ItemDetailView;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> PreviousItemButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> NextItemButton;
-    TArray<FKalmalaCatalogueRow> OwnerPackRows;
-    int32 SelectedPackIndex = INDEX_NONE;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> RepairToolButton;
+    TArray<FKalmalaCatalogueRow> OwnerInventoryRows;
+    int32 SelectedInventoryIndex = INDEX_NONE;
     FString LastSelectedDetailKey;
+    FString LastRepairResultText;
+    FName LastRepairResultToolId = NAME_None;
+    FName AwaitingRepairToolId = NAME_None;
+    FName LastPresentedSelectionId = NAME_None;
+    uint32 RepairRequestResultSerial = 0;
+    bool bAwaitingRepairResult = false;
     bool bMenuOpen = false;
     bool bAcquiredMoveIgnore = false;
     bool bAcquiredLookIgnore = false;

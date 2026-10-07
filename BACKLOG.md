@@ -482,7 +482,7 @@ Start only after M10 acceptance closes under its recorded owner-approved scope a
 ## M12 — Inventory menu and cleaner gameplay HUD
 
 Start after M11 acceptance. `docs/04-roadmap.md` defines the ten product goals.
-All implementation below remains pending; completed historical milestones are unchanged.
+Unchecked items below remain pending; completed historical milestones are unchanged.
 
 **Run sizing:** top-level entries group features; each direct child is one selectable
 increment. Estimates include context, implementation, lightweight inspection/checks,
@@ -499,7 +499,7 @@ the full rendered matrix during normal increments. Document full verification as
   - [x] [20–30 min] Integrate inventory modal priority with crafting/settings/map, text-entry and focus handling, Escape close, and cursor/movement/look restoration; inspect empty-shell open/close paths and update narrow input checks. (2026-10-07; owner-local modal/input integration and Tab/I contract)
   - [x] [20–30 min] Populate the shell with the existing owner pack grid/counts and empty state, reusing shared widgets and owner-only data; retain the old pack view until the new grid is usable. (2026-10-07; read-only 16-slot owner pack grid reuses the shared catalogue rows widget; empty/pending state and live local refresh added.)
   - [x] [20–30 min] Bind selection to the existing item icon/description/detail component and safe fallback when an item disappears; prepare a focused selection/privacy check. (2026-10-07; owner-local selected-slot detail, disappearance fallback, and focused automation coverage)
-  - [ ] [20–30 min] Add carried-tool/equipment rows and existing inspection/actions with real levels/condition; preserve the bounded owner-only tool contract.
+  - [x] [20–30 min] Add carried-tool/equipment rows and existing inspection/actions with real levels/condition; preserve the bounded owner-only tool contract. (2026-10-07; up to six owner-only tools are selectable with live level/condition and existing server-validated repair action)
   - [ ] [20–30 min] Wire supported carried-food Eat/use actions and their actual availability/effect through existing server paths; add no station gate and keep rejected/replayed use safe.
   - [ ] [20–30 min] Reuse inventory search/filter/sort, keyboard/controller focus and session selection/scroll restoration; adapt narrow browsing checks for removed entries and resize/scale fallback.
 - [ ] Remove the persistent left-side panel (goal 2).
@@ -577,7 +577,7 @@ the full rendered matrix during normal increments. Document full verification as
 - [ ] Complete M12 milestone-final verification (required exception to normal run sizing).
   - [ ] [Variable; may exceed 30 min] After the final implementation increment, inspect all milestone changes/handoffs; perform the prescribed full build, applicable automation/UI/input/inventory/construction/crafting/repair/cooking/storage/authority/reconnect and performance checks, plus rendered host/client/accessibility matrix and retained captures for all ten goals. Diagnose/repair milestone defects and rerun required verification until it passes or a genuine blocker prevents completion. Record commands/results/limits and commit only verified repairs; mark M12 complete only after success. This verification runs in the same final implementation run under AGENTS.md and is never split into unchecked passing-looking partial milestones.
 
-**M12 status:** Planned; implementation and milestone-final verification pending.
+**M12 status:** In progress; implementation and milestone-final verification pending.
 
 **Sizing audit:** every unchecked item is in M12. Parent headings describe cumulative
 features, not 30-minute promises. Executable direct children are estimated at 15–30

@@ -13,6 +13,8 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "Framework/Application/SlateApplication.h"
+#include "KalmalaCharacter.h"
+#include "KalmalaCraftingComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "InputCoreTypes.h"
@@ -21,7 +23,33 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaThemedButton.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "KalmalaUITheme.h"
+
+namespace
+{
+FString GetCarriedToolDisplayName(const FName ToolId)
+{
+    if (ToolId == TEXT("ReedKnife")) return TEXT("Reed Knife");
+    if (ToolId == TEXT("FieldHatchet")) return TEXT("Field Hatchet");
+    if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
+    if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
+    if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
+    if (ToolId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
+    return ToolId.ToString();
+}
+
+FString BuildToolInspectionText(const FKalmalaToolState& Tool, const FKalmalaToolDefinition& Definition)
+{
+    FString Text = UKalmalaCatalogueRowsWidget::BuildToolDetail(
+        Tool.ToolLevel, Tool.Durability, Definition.MaxDurability);
+    if (Tool.ToolLevel < 1 || Tool.Durability < 0 || Tool.Durability > Definition.MaxDurability)
+        return Text + TEXT("\nRepair unavailable.");
+    return Text + (Tool.Durability < Definition.MaxDurability
+        ? TEXT("\nFree repair at a visible Workbench or Forge.")
+        : TEXT("\nNo repair needed."));
+}
+}
 
 void UKalmalaInventoryMenuWidget::NativeOnInitialized()
 {
@@ -89,11 +117,29 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     NextItemButton->OnClicked.AddDynamic(this, &ThisClass::SelectNextItem);
     Content->AddChildToVerticalBox(SelectionControls);
 
+    UHorizontalBox* ToolActions = WidgetTree->ConstructWidget<UHorizontalBox>();
+    RepairToolButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+    UTextBlock* RepairLabel = WidgetTree->ConstructWidget<UTextBlock>();
+    RepairLabel->SetText(FText::FromString(TEXT("Repair selected tool")));
+    RepairToolButton->SetContent(RepairLabel);
+    Theme.ApplyButton(*RepairToolButton, Contrast);
+    Theme.ApplyText(*RepairLabel, Theme.BodySize, false, TextScale, Contrast);
+    RepairToolButton->OnClicked.AddDynamic(this, &ThisClass::RepairSelectedTool);
+    ToolActions->AddChildToHorizontalBox(RepairToolButton)->SetPadding(FMargin(0.0f, 0.0f, 8.0f, 0.0f));
+
+    ToolActionStatusText = WidgetTree->ConstructWidget<UTextBlock>();
+    ToolActionStatusText->SetAutoWrapText(true);
+    Theme.ApplyText(*ToolActionStatusText, Theme.BodySize, false, TextScale, Contrast);
+    ToolActions->AddChildToHorizontalBox(ToolActionStatusText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    Content->AddChildToVerticalBox(ToolActions);
+    RepairToolButton->SetVisibility(ESlateVisibility::Collapsed);
+    ToolActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
+
     UHorizontalBox* PackAndDetail = WidgetTree->ConstructWidget<UHorizontalBox>();
     UScrollBox* PackScroll = WidgetTree->ConstructWidget<UScrollBox>();
     Theme.ApplyScroll(*PackScroll);
-    PackRowsView = WidgetTree->ConstructWidget<UKalmalaCatalogueRowsWidget>();
-    PackScroll->AddChild(PackRowsView);
+    InventoryRowsView = WidgetTree->ConstructWidget<UKalmalaCatalogueRowsWidget>();
+    PackScroll->AddChild(InventoryRowsView);
     PackAndDetail->AddChildToHorizontalBox(PackScroll)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     ItemDetailView = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
     PackAndDetail->AddChildToHorizontalBox(ItemDetailView)->SetPadding(FMargin(4.0f, 0.0f, 0.0f, 0.0f));
@@ -117,7 +163,7 @@ void UKalmalaInventoryMenuWidget::Open()
     APlayerController* Controller = GetOwningPlayer();
     if (Controller == nullptr || !Controller->IsLocalController()) return;
 
-    RefreshOwnerPack();
+    RefreshOwnerInventory();
 
     bPreviousCursorVisibility = Controller->bShowMouseCursor;
     bAcquiredMoveIgnore = !Controller->IsMoveInputIgnored();
@@ -136,12 +182,12 @@ void UKalmalaInventoryMenuWidget::Open()
     SetKeyboardFocus();
 }
 
-void UKalmalaInventoryMenuWidget::RefreshOwnerPack()
+void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
 {
     APlayerController* Controller = GetOwningPlayer();
-    if (Controller == nullptr || !Controller->IsLocalController() || PackRowsView == nullptr) return;
+    if (Controller == nullptr || !Controller->IsLocalController() || InventoryRowsView == nullptr) return;
 
-    TArray<FKalmalaCatalogueRow> PackRows;
+    TArray<FKalmalaCatalogueRow> InventoryRows;
     APawn* OwnerPawn = Controller->GetPawn();
     const UKalmalaInventoryComponent* Inventory = OwnerPawn
         ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
@@ -152,33 +198,71 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerPack()
         {
             if (Stack.ItemId.IsNone() || Stack.Quantity <= 0) continue;
             const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(Stack.ItemId) : nullptr;
-            PackRows.Add({ Stack.ItemId, Definition ? Definition->DisplayName : Stack.ItemId.ToString(),
+            InventoryRows.Add({ Stack.ItemId, Definition ? Definition->DisplayName : Stack.ItemId.ToString(),
                 FString::Printf(TEXT("× %d"), Stack.Quantity), false });
+        }
+    }
+
+    if (const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(OwnerPawn))
+    {
+        const TArray<FKalmalaToolState>& CarriedTools = Character->GetCarriedToolInventory();
+        TSet<FName> SeenToolIds;
+        const int32 BoundedToolCount = FMath::Min(CarriedTools.Num(), FKalmalaToolLifecycleContract::MaxCarriedToolRecords);
+        for (int32 Index = 0; Index < BoundedToolCount; ++Index)
+        {
+            const FKalmalaToolState& Tool = CarriedTools[Index];
+            if (Tool.ToolId.IsNone() || SeenToolIds.Contains(Tool.ToolId)) continue;
+            const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Tool.ToolId);
+            if (Definition == nullptr) continue;
+            SeenToolIds.Add(Tool.ToolId);
+            InventoryRows.Add({ Tool.ToolId, GetCarriedToolDisplayName(Tool.ToolId),
+                BuildToolInspectionText(Tool, *Definition), true });
         }
     }
 
     const int32 TextScale = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
-    ApplyPackRows(MoveTemp(PackRows), Inventory != nullptr, TextScale, Contrast);
+    ApplyInventoryRows(MoveTemp(InventoryRows), Inventory != nullptr, TextScale, Contrast);
+
+    if (bAwaitingRepairResult)
+    {
+        if (const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(OwnerPawn))
+        {
+            if (const UKalmalaCraftingComponent* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
+                Crafting && Crafting->GetResultSerial() != RepairRequestResultSerial)
+            {
+                LastRepairResultText = Crafting->GetLastResult();
+                LastRepairResultToolId = AwaitingRepairToolId;
+                bAwaitingRepairResult = false;
+                AwaitingRepairToolId = NAME_None;
+            }
+        }
+    }
+
+    RefreshSelectionPresentation(TextScale, Contrast);
 }
 
-void UKalmalaInventoryMenuWidget::ApplyPackRows(TArray<FKalmalaCatalogueRow>&& Rows,
+void UKalmalaInventoryMenuWidget::ApplyInventoryRows(TArray<FKalmalaCatalogueRow>&& Rows,
     const bool bInventoryAvailable, const int32 TextScale, const int32 Contrast)
 {
-    const FName PreviouslySelected = OwnerPackRows.IsValidIndex(SelectedPackIndex)
-        ? OwnerPackRows[SelectedPackIndex].Id : NAME_None;
-    OwnerPackRows = MoveTemp(Rows);
-    SelectedPackIndex = OwnerPackRows.IndexOfByPredicate([PreviouslySelected](const FKalmalaCatalogueRow& Row)
+    const FName PreviouslySelected = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
+        ? OwnerInventoryRows[SelectedInventoryIndex].Id : NAME_None;
+    OwnerInventoryRows = MoveTemp(Rows);
+    SelectedInventoryIndex = OwnerInventoryRows.IndexOfByPredicate([PreviouslySelected](const FKalmalaCatalogueRow& Row)
     {
         return !PreviouslySelected.IsNone() && Row.Id == PreviouslySelected;
     });
-    if (SelectedPackIndex == INDEX_NONE && !OwnerPackRows.IsEmpty()) SelectedPackIndex = 0;
+    if (SelectedInventoryIndex == INDEX_NONE && !OwnerInventoryRows.IsEmpty()) SelectedInventoryIndex = 0;
 
+    const int32 PackRowCount = OwnerInventoryRows.CountByPredicate([](const FKalmalaCatalogueRow& Row)
+    {
+        return !Row.bCarriedTool;
+    });
     FString State;
     if (!bInventoryAvailable) State = TEXT("Waiting for your pack.");
-    else if (OwnerPackRows.IsEmpty()) State = TEXT("Your pack is empty.");
+    else if (PackRowCount == 0) State = TEXT("Your pack is empty.");
     else State = FString::Printf(TEXT("Your pack has %d of %d slots filled."),
-        FMath::Min(OwnerPackRows.Num(), UKalmalaInventoryComponent::MaxSlots), UKalmalaInventoryComponent::MaxSlots);
+        FMath::Min(PackRowCount, UKalmalaInventoryComponent::MaxSlots), UKalmalaInventoryComponent::MaxSlots);
     if (PackStateText->GetText().ToString() != State) PackStateText->SetText(FText::FromString(State));
 
     RefreshSelectionPresentation(TextScale, Contrast);
@@ -186,8 +270,9 @@ void UKalmalaInventoryMenuWidget::ApplyPackRows(TArray<FKalmalaCatalogueRow>&& R
 
 void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextScale, const int32 Contrast)
 {
-    if (PackRowsView == nullptr || ItemDetailView == nullptr || SelectedItemText == nullptr
-        || PackStateText == nullptr || PreviousItemButton == nullptr || NextItemButton == nullptr) return;
+    if (InventoryRowsView == nullptr || ItemDetailView == nullptr || SelectedItemText == nullptr
+        || PackStateText == nullptr || PreviousItemButton == nullptr || NextItemButton == nullptr
+        || RepairToolButton == nullptr || ToolActionStatusText == nullptr) return;
 
     if (LastTextScalePercent != TextScale || LastContrastMode != Contrast)
     {
@@ -198,33 +283,81 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         Theme.ApplyButton(*NextItemButton, Contrast);
         Theme.ApplyText(*CastChecked<UTextBlock>(PreviousItemButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
         Theme.ApplyText(*CastChecked<UTextBlock>(NextItemButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
+        Theme.ApplyButton(*RepairToolButton, Contrast);
+        Theme.ApplyText(*CastChecked<UTextBlock>(RepairToolButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
+        Theme.ApplyText(*ToolActionStatusText, Theme.BodySize, false, TextScale, Contrast);
         LastTextScalePercent = TextScale;
         LastContrastMode = Contrast;
     }
 
-    const bool bHasSelection = OwnerPackRows.IsValidIndex(SelectedPackIndex);
-    const FName SelectedItem = bHasSelection ? OwnerPackRows[SelectedPackIndex].Id : NAME_None;
-    PackRowsView->SetRows(OwnerPackRows, UKalmalaInventoryComponent::MaxSlots, TextScale, Contrast, SelectedItem);
+    const bool bHasSelection = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex);
+    const FKalmalaCatalogueRow* SelectedRow = bHasSelection ? &OwnerInventoryRows[SelectedInventoryIndex] : nullptr;
+    const FName SelectedItem = SelectedRow ? SelectedRow->Id : NAME_None;
+    if (SelectedItem != LastPresentedSelectionId)
+    {
+        LastPresentedSelectionId = SelectedItem;
+        if (!bAwaitingRepairResult)
+        {
+            LastRepairResultText.Reset();
+            LastRepairResultToolId = NAME_None;
+        }
+    }
+    InventoryRowsView->SetRows(OwnerInventoryRows, UKalmalaInventoryComponent::MaxSlots, TextScale, Contrast, SelectedItem);
     PreviousItemButton->SetIsEnabled(bHasSelection);
     NextItemButton->SetIsEnabled(bHasSelection);
 
     const FString SelectionText = bHasSelection
-        ? FString::Printf(TEXT("Selected: %s — use arrows or D-pad to change"), *OwnerPackRows[SelectedPackIndex].Name)
+        ? FString::Printf(TEXT("Selected: %s — use arrows or D-pad to change"), *SelectedRow->Name)
         : TEXT("No item selected.");
     if (SelectedItemText->GetText().ToString() != SelectionText)
         SelectedItemText->SetText(FText::FromString(SelectionText));
 
-    if (bHasSelection)
+    const bool bSelectedTool = SelectedRow != nullptr && SelectedRow->bCarriedTool;
+    RepairToolButton->SetVisibility(bSelectedTool ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    ToolActionStatusText->SetVisibility(bSelectedTool ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+
+    if (SelectedRow != nullptr)
     {
-        const FKalmalaCatalogueRow& Row = OwnerPackRows[SelectedPackIndex];
-        const FString DetailKey = FString::Printf(TEXT("%s|%s|%s|%d|%d"), *Row.Id.ToString(), *Row.Name,
-            *Row.Detail, TextScale, Contrast);
+        const FKalmalaCatalogueRow& Row = *SelectedRow;
+        const FString DetailKey = FString::Printf(TEXT("%s|%d|%s|%s|%d|%d"), *Row.Id.ToString(),
+            Row.bCarriedTool, *Row.Name, *Row.Detail, TextScale, Contrast);
         if (DetailKey != LastSelectedDetailKey)
         {
-            ItemDetailView->SetItem(Row.Id, Row.Name, Row.Detail, TextScale, Contrast);
+            if (Row.bCarriedTool)
+                ItemDetailView->SetCarriedTool(Row.Id, Row.Name, Row.Detail, TextScale, Contrast);
+            else
+                ItemDetailView->SetItem(Row.Id, Row.Name, Row.Detail, TextScale, Contrast);
             LastSelectedDetailKey = DetailKey;
         }
         ItemDetailView->SetVisibility(ESlateVisibility::Visible);
+
+        if (Row.bCarriedTool)
+        {
+            const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
+            const FKalmalaToolState* Tool = Character
+                ? Character->GetCarriedToolInventory().FindByPredicate([&Row](const FKalmalaToolState& Entry)
+                    { return Entry.ToolId == Row.Id; })
+                : nullptr;
+            const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Row.Id);
+            const bool bToolStateValid = Tool != nullptr && Definition != nullptr && Tool->ToolLevel >= 1
+                && Tool->Durability >= 0 && Tool->Durability <= Definition->MaxDurability;
+            const bool bNeedsRepair = bToolStateValid && Tool->Durability < Definition->MaxDurability;
+            const bool bHasRepairAction = Character != nullptr
+                && Character->FindComponentByClass<UKalmalaCraftingComponent>() != nullptr;
+            RepairToolButton->SetIsEnabled(bNeedsRepair && bHasRepairAction);
+
+            FString StatusText;
+            if (!bToolStateValid) StatusText = TEXT("Tool state unavailable.");
+            else if (bAwaitingRepairResult && AwaitingRepairToolId == Row.Id)
+                StatusText = TEXT("Repair requested. Waiting for the server result.");
+            else if (LastRepairResultToolId == Row.Id && !LastRepairResultText.IsEmpty())
+                StatusText = LastRepairResultText;
+            else if (bNeedsRepair)
+                StatusText = TEXT("Repair is free at a visible, same-world Workbench or Forge within 2.5 m.");
+            else StatusText = TEXT("This tool is at full condition.");
+            if (ToolActionStatusText->GetText().ToString() != StatusText)
+                ToolActionStatusText->SetText(FText::FromString(StatusText));
+        }
     }
     else
     {
@@ -235,10 +368,10 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
 
 void UKalmalaInventoryMenuWidget::StepSelection(const int32 Direction)
 {
-    if (OwnerPackRows.IsEmpty()) return;
-    const int32 NumRows = OwnerPackRows.Num();
-    const int32 Current = SelectedPackIndex == INDEX_NONE ? 0 : SelectedPackIndex;
-    SelectedPackIndex = (Current + NumRows + (Direction < 0 ? -1 : 1)) % NumRows;
+    if (OwnerInventoryRows.IsEmpty()) return;
+    const int32 NumRows = OwnerInventoryRows.Num();
+    const int32 Current = SelectedInventoryIndex == INDEX_NONE ? 0 : SelectedInventoryIndex;
+    SelectedInventoryIndex = (Current + NumRows + (Direction < 0 ? -1 : 1)) % NumRows;
     const int32 TextScale = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
     RefreshSelectionPresentation(TextScale, UKalmalaSettingsWidget::GetContrastMode());
 }
@@ -246,16 +379,50 @@ void UKalmalaInventoryMenuWidget::StepSelection(const int32 Direction)
 void UKalmalaInventoryMenuWidget::SelectPreviousItem() { StepSelection(-1); }
 void UKalmalaInventoryMenuWidget::SelectNextItem() { StepSelection(1); }
 
+void UKalmalaInventoryMenuWidget::RepairSelectedTool()
+{
+    if (!OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)) return;
+    const FKalmalaCatalogueRow& Row = OwnerInventoryRows[SelectedInventoryIndex];
+    if (!Row.bCarriedTool) return;
+
+    APlayerController* Controller = GetOwningPlayer();
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller ? Controller->GetPawn() : nullptr);
+    const FKalmalaToolState* Tool = Character
+        ? Character->GetCarriedToolInventory().FindByPredicate([&Row](const FKalmalaToolState& Entry)
+            { return Entry.ToolId == Row.Id; })
+        : nullptr;
+    const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Row.Id);
+    UKalmalaCraftingComponent* Crafting = Character
+        ? Character->FindComponentByClass<UKalmalaCraftingComponent>()
+        : nullptr;
+    if (Controller == nullptr || !Controller->IsLocalController() || Tool == nullptr || Definition == nullptr
+        || Tool->ToolLevel < 1 || Tool->Durability < 0 || Tool->Durability >= Definition->MaxDurability || Crafting == nullptr)
+    {
+        RefreshSelectionPresentation(UKalmalaSettingsWidget::ClampTextScale(
+            UKalmalaSettingsWidget::GetTextScalePercent()), UKalmalaSettingsWidget::GetContrastMode());
+        return;
+    }
+
+    RepairRequestResultSerial = Crafting->GetResultSerial();
+    AwaitingRepairToolId = Row.Id;
+    bAwaitingRepairResult = true;
+    LastRepairResultText.Reset();
+    LastRepairResultToolId = NAME_None;
+    ToolActionStatusText->SetText(FText::FromString(TEXT("Repair requested. Waiting for the server result.")));
+    Crafting->ServerRepairTool(Row.Id);
+    RefreshOwnerInventory();
+}
+
 #if !UE_BUILD_SHIPPING
-void UKalmalaInventoryMenuWidget::SetPackRowsForVerification(const TArray<FKalmalaCatalogueRow>& Rows,
+void UKalmalaInventoryMenuWidget::SetInventoryRowsForVerification(const TArray<FKalmalaCatalogueRow>& Rows,
     const int32 TextScale, const int32 Contrast)
 {
-    ApplyPackRows(TArray<FKalmalaCatalogueRow>(Rows), true, TextScale, Contrast);
+    ApplyInventoryRows(TArray<FKalmalaCatalogueRow>(Rows), true, TextScale, Contrast);
 }
 
 FName UKalmalaInventoryMenuWidget::GetSelectedItemForVerification() const
 {
-    return OwnerPackRows.IsValidIndex(SelectedPackIndex) ? OwnerPackRows[SelectedPackIndex].Id : NAME_None;
+    return OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex) ? OwnerInventoryRows[SelectedInventoryIndex].Id : NAME_None;
 }
 
 void UKalmalaInventoryMenuWidget::StepSelectionForVerification(const int32 Direction)

@@ -1100,14 +1100,14 @@ views at the supported text scales as part of milestone-final verification.
 
 ## M12 inventory selection increment
 
-The Inventory menu retains selection by canonical item ID while owner rows
-refresh. Previous/next buttons and arrow/D-pad input update the selected-slot
-outline, non-colour selected label, and shared `UKalmalaItemDetailWidget` with
-the canonical item icon/description and the existing visible stack count. If
-the selected stack disappears, the first remaining owner row becomes selected;
-when no rows remain, selection clears and the detail panel hides. Selection and
-detail data are local to each menu instance and read only the owning pawn's
-existing owner-only inventory component.
+The Inventory menu retains selection by canonical ID while owner rows refresh.
+Previous/next buttons and arrow/D-pad input update the selected-slot outline,
+non-colour selected label, and shared `UKalmalaItemDetailWidget` with the
+canonical item icon/description and visible count. If the selected stack
+disappears, the first remaining owner row becomes selected; when no rows remain,
+selection clears and the detail panel hides. Selection and detail data are local
+to each menu instance and read only the owning pawn's existing owner-only
+inventory component.
 
 After an affected UI build, run the focused automation test
 `Kalmala.UI.InventoryMenu.Selection`. It checks selected detail/count updates,
@@ -1116,6 +1116,26 @@ The milestone-final rendered host/client pass must additionally confirm that
 each peer sees its own selected item and that the controls/detail fit standard
 and high-contrast supported text scales. This increment adds no RPC, gameplay
 action, replicated field, or saved-data field.
+
+## M12 carried-tool Inventory increment
+
+Inventory also reads at most the six canonical records in the owning pawn's
+existing owner-only `CarriedTools` array. The shared catalogue rows widget keeps
+these equipment cards separate from the sixteen pack slots. Each card and the
+selected detail panel display the tool's authored level, current/max condition,
+and ready/damaged/broken state; malformed or unknown records cannot fabricate a
+usable state. Selection remains local to the menu instance.
+
+For a valid damaged or broken selected tool, `Repair selected tool` sends only
+that canonical tool ID through the existing `UKalmalaCraftingComponent` repair
+request. The server continues to look up its carried record, validate the
+visible same-world Workbench or Forge within 250 cm, and publish the existing
+owner-only result. The menu adds no client-supplied condition, station, cost,
+RPC, replicated field, or save data. Run
+`Kalmala.UI.InventoryMenu.Selection` after an affected build to check mixed
+pack/tool selection, tool-level/condition display, owner-instance privacy,
+fallback, and empty clearing. The final rendered host/client check also reviews
+the equipment rows, repair action and response at supported scales/contrast.
 
 ## M5 documentation contract suite
 

@@ -174,7 +174,8 @@ void UKalmalaCatalogueRowsWidget::SetRows(const TArray<FKalmalaCatalogueRow>& Ro
         Column->AddChild(ToolGrid);
         for (int32 Index = 0; Index < ToolRows.Num(); ++Index)
         {
-            UBorder* Card = MakeSlot(*WidgetTree, ToolRows[Index], false, false, 154.0f, TextScale, Contrast);
+            UBorder* Card = MakeSlot(*WidgetTree, ToolRows[Index], false,
+                ToolRows[Index]->Id == SelectedItem, 154.0f, TextScale, Contrast);
             UBorder* CellMargin = WidgetTree->ConstructWidget<UBorder>();
             CellMargin->SetBrushColor(FLinearColor::Transparent);
             CellMargin->SetPadding(FMargin(2.0f));

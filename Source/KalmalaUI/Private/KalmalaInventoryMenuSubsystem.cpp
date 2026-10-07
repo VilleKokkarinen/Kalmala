@@ -19,7 +19,7 @@ void UKalmalaInventoryMenuSubsystem::Tick(float)
     BindLocalInput(LocalController);
     if (InventoryWidget != nullptr && InventoryWidget->IsMenuOpen())
     {
-        InventoryWidget->RefreshOwnerPack();
+        InventoryWidget->RefreshOwnerInventory();
     }
 }
 

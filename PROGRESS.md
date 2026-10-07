@@ -11556,3 +11556,25 @@ Known limitations: Carried-tool detail/actions, food actions, search/filter/sort
 Next eligible task: Add carried-tool/equipment rows with existing inspection/actions and real levels/condition, preserving the bounded owner-only tool contract.
 
 Main-checkout handoff synchronization: Complete. Updated only the selected BACKLOG child and appended this progress entry; all pre-existing main-checkout changes remain uncommitted and untouched.
+
+### Run 2026-10-07T09:14:52Z — add carried tools to Inventory
+
+Concurrency guard: Codex task inventory showed this as the only active Kalmala run. The main checkout contains pre-existing modified and untracked files, so implementation continued in the retained clean `E:\dev\Kalmala\wt\m12-pack-grid` worktree at the accepted inventory-selection commit.
+
+Completed: Inventory now adds up to the six canonical carried-tool records from the owning pawn, in equipment rows separate from pack slots. Tool rows show the authored level and live current/max condition with ready, damaged, broken, or unavailable state. Local previous/next and arrow/D-pad selection spans pack items and tools; the shared detail panel identifies carried equipment, and the selected slot is highlighted. A damaged/broken valid tool exposes the existing repair request; the owner submits only its canonical tool ID and the current owner-only result is shown after server validation.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCatalogueRowsWidget.cpp`; `Source/KalmalaUI/Private/KalmalaInventoryMenuSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`; `Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h`; `Source/KalmalaUI/Private/KalmalaItemDetailWidget.cpp`; `Source/KalmalaUI/Public/KalmalaItemDetailWidget.h`; `Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/14-settings-and-accessibility.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts; `git diff --check` passed; focused source assertions confirmed owner-only carried-tool reads, the six-record cap, and use of only the existing ID-only `ServerRepairTool` request. Manual review covered state bounds, empty-pack behavior with equipment, selection fallback, repair gating, and owner-result flow. The changed-path audit passed (longest path 100 characters). The updated `Kalmala.UI.InventoryMenu.Selection` automation was prepared but not run. No Unreal build, automation queue, rendered peer check, or package check was performed.
+
+Full verification remains deferred: this is a normal M12 child increment and not the final task in the milestone.
+
+Observable impact: Players can inspect their carried equipment and condition in the Inventory menu and request a free repair from a valid nearby Workbench or Forge.
+
+Networking/authority: Tool details come only from the owning pawn's existing `COND_OwnerOnly` carried-tool array. Repair sends only the selected tool ID through the existing server RPC; server record, station, and range validation remain authoritative. No RPC, replicated field, or save schema was added.
+
+Known limitations: The focused automation and live host/client privacy or repair response were not run; rendered layout and supported text/contrast review remain for M12 milestone-final verification. Unknown tool IDs are omitted and invalid known records show unavailable state.
+
+Next eligible task: Wire supported carried-food Eat/use actions and their actual availability/effect through existing server paths; add no station gate and keep rejected/replayed use safe.
+
+Main-checkout handoff synchronization: Complete. After inspecting dirty main versions, updated only this selected M12 backlog child/status and appended the run handoff; all pre-existing main-checkout edits remain uncommitted and untouched.
