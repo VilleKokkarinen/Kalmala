@@ -730,26 +730,9 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     if (!R) return TEXT("Unknown recipe");
     if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(R->Output))
     {
-        FString Text = R->DisplayName + TEXT("\nBuild directly with the Construction Hammer; no kit is created.\nRaw material cost: ");
-        TArray<FKalmalaInventoryStack> Costs;
-        FString Failure;
-        if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(R->Output, Costs, Failure)) return Failure;
-        for (int32 Index = 0; Index < Costs.Num(); ++Index)
-        {
-            const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Costs[Index].ItemId);
-            Text += FString::Printf(TEXT("%s%d %s"), Index ? TEXT(", ") : TEXT(""), Costs[Index].Quantity,
-                Item ? *Item->DisplayName : *Costs[Index].ItemId.ToString());
-        }
-        if (R->Output == TEXT("CampfireKit"))
-            Text += TEXT("\nIgnition: one raw Wood, Lightwood, Densewood, or Coal is also consumed to start the hearth with 60 seconds of fuel.");
         const auto* BuildItem = UKalmalaItemCatalogue::Get()->FindItem(R->Output);
-        Text += FString::Printf(TEXT("\nOutput: %s construction (no kit item created)."),
-            BuildItem ? *BuildItem->DisplayName : *R->Output.ToString());
-        if (BuildItem) Text += TEXT("\nDescription: ") + BuildItem->Description;
-        Text += R->Output == TEXT("CampfireKit")
-            ? TEXT("\nBuild quantity: one hearth per request. Placement: clear, dry, gently sloping ground ahead. The server rechecks terrain, slope, water, overlap, range, payment, and the session limit. Failure: the availability text below names missing materials.")
-            : TEXT("\nBuild quantity: one construction per request; repeat to build another.\nPlacement: clear, dry, gently sloping ground. The server rechecks terrain, slope, overlap, range, payment, and save identity. Failure: the availability text below names missing materials.");
-        return Text;
+        if (BuildItem && !BuildItem->Description.IsEmpty()) return BuildItem->Description;
+        return TEXT("Description unavailable.");
     }
     FString Text = R->DisplayName + TEXT("\nCost: ");
     for (const auto& Cost : R->Ingredients)

@@ -155,3 +155,23 @@ keyboard/controller playthrough, exhaustive viewport matrix, clean-HEAD or
 package acceptance claimed. Other first-unmet reasons retain the existing
 model contract. Earlier pending statements above are historical; this parent
 is now accepted, while the later complete M11 milestone acceptance remains open.
+
+## M12 construction detail template
+
+Direct construction details use the existing result description once, followed
+by the existing owner-local ingredient counts and a compact Build requirements
+block. It names the carried Construction Hammer state, clear/dry/gently sloped
+placement, and the hearth's one-of-four raw-fuel requirement and 60-second
+starting duration. The current first blocker appears once when present; a
+ready recipe does not add success, skill, unlock, request, or rejection prose.
+The result name and material totals stay in their existing header and ingredient
+rows. Catalogue descriptions and all recipe, cost, placement, authority, and
+save behavior remain unchanged.
+
+The `Kalmala.UI.Crafting.Requirements` contract covers each direct build's
+placement and single-blocker copy, the hearth fuel summary, pending/present/
+missing hammer states, and omission of generic boilerplate. The rendered
+Verify-Crafting presentation gate checks the selected hearth copy and ensures
+its old repeated costs, output label, skill list, and request prose are absent.
+Build, full automation, and rendered verification remain deferred to M12's
+milestone-final run.

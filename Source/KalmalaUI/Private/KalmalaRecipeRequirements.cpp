@@ -13,18 +13,23 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
         return Item ? Item->DisplayName : Id.ToString();
     };
     const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.Output);
-    FString Text = TEXT("Requirements — selected recipe\n");
     if (bDirectBuild)
     {
-        Text += TEXT("Station: none; build in place.\n");
-        Text += FString::Printf(TEXT("Tool: carried Construction Hammer level 1 — %s.\n"),
+        FString Text = TEXT("Build requirements\n");
+        Text += FString::Printf(TEXT("Construction Hammer level 1: %s.\n"),
             CarriedHammerLevel < 0 ? TEXT("Waiting for your tool state")
                 : CarriedHammerLevel >= 1 ? TEXT("Present") : TEXT("Missing"));
-        Text += TEXT("Placement: clear, dry, gently sloping ground; server checks range and overlap.\n");
+        Text += TEXT("Placement: clear, dry ground with a gentle slope and room for the structure.\n");
         if (Recipe.Output == TEXT("CampfireKit"))
-            Text += TEXT("Ignition: one raw Wood, Lightwood, Densewood or Coal, in addition to construction costs.\n");
+            Text += TEXT("Hearth fuel: one raw Wood, Lightwood, Densewood, or Coal; starts with 60 seconds.\n");
+        const FString Blocker = !Recipe.bEnabled
+            ? FString(TEXT("Recipe unavailable")) : Availability.TrimStartAndEnd();
+        if (!Blocker.IsEmpty() && !Blocker.Equals(TEXT("Ready"), ESearchCase::IgnoreCase))
+            Text += TEXT("Unavailable: ") + Blocker;
+        return Text;
     }
-    else
+
+    FString Text = TEXT("Requirements — selected recipe\n");
     {
         TArray<FName> Stations = Recipe.RequiredStation;
         if (FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output))

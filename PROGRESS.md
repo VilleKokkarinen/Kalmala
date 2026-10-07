@@ -11780,3 +11780,25 @@ Known limitations: The changed C++ has not been compiled or rendered. Map/status
 Next eligible task: M12 goal 6, simplify construction recipe details to description, ingredients, real placement/fuel requirements, and one blocker.
 
 Main-checkout handoff synchronization: Complete after inspecting the dirty main versions; synchronized only this selected BACKLOG child and this PROGRESS entry, preserving all other modified and untracked main-checkout files.
+
+### Run 2026-10-07T12:22:37Z — simplify construction recipe details
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run. Continued in the retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` at `261ae51`; the main checkout already contains unrelated modified and untracked files, which remain untouched outside the backlog/progress handoff.
+
+Completed: Construction recipe detail now shows the catalogue result description once, the existing owner-local ingredient counts, concise hammer and placement requirements, the hearth's one-item raw-fuel requirement and 60-second starting duration, and at most one current blocker. It omits repeated result names/costs, generic skill/unlock text, and request/rejection boilerplate. The build action tooltip now names the selected structure and shown materials without repeating availability or rejection copy. Marked goal 5's fully completed parent as complete.
+
+Files changed: `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaRecipeRequirements.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaRecipeRequirementsTest.cpp`; `docs/39-crafting-ingredients.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-PresentationOwnership.ps1` and all five `Verify-M5DocumentationContracts.ps1` contracts passed. Focused source assertions passed for construction placement/fuel copy, one-blocker behavior, omitted skill progression, and removal of repeated cost/request copy; `git diff --check` passed. Reviewed the direct-build and non-build branches, ingredient summary/assertion wiring, canonical item description lookup, and existing owner-local/server-validation split. Changed absolute paths remain below MAX_PATH (maximum 107 characters). The updated Unreal automation assertions were not executed.
+
+Full verification remains deferred: this is a normal M12 child increment, not the final implementation task in M12. No Unreal build, automation suite, rendered host/client run, physical-input review, or package check was run.
+
+Observable impact: Construction details now keep material totals in the ingredient rows and present placement, hammer, hearth fuel, and one actionable blocker in a compact section.
+
+Networking/authority: Presentation only. Availability and carried-hammer status still come from existing owner-visible state; the server continues to validate construction identity, materials, fuel, terrain, overlap, range, and persistence. No gameplay transaction, RPC, replicated field, catalogue data, or save schema changed.
+
+Known limitations: Changed C++ and the revised automation remain uncompiled/unrun, and the new text has not been rendered at supported text scales/contrasts. Existing catalogue descriptions remain unchanged, including generic wording for some buildables.
+
+Next eligible task: M12 goal 6, simplify food/general crafting detail templates to result, ingredients, supported quantity, real station/heat requirements, and one blocker.
+
+Main-checkout handoff synchronization: Pending; only the selected BACKLOG and PROGRESS handoff will be synchronized after commit.

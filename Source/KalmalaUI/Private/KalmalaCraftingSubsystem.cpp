@@ -951,17 +951,17 @@ void UKalmalaCraftingWidget::Refresh()
         OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr,
         RequirementOwner ? RequirementOwner->GetCarriedToolLevel(TEXT("ConstructionHammer")) : -1,
         Availability)));
-    DetailText->SetText(FText::FromString(M->GetRecipeDescription(SelectedRecipe.RecipeId)
-        + TEXT("\nAvailability: ") + Availability + TEXT("\n")
-        + BuildSkillProgressText(Cast<AKalmalaCharacter>(GetOwningPlayerPawn()))));
     const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.Output);
+    const FString RecipeDescription = M->GetRecipeDescription(SelectedRecipe.RecipeId);
+    DetailText->SetText(FText::FromString(bDirectBuild ? RecipeDescription
+        : RecipeDescription + TEXT("\nAvailability: ") + Availability + TEXT("\n")
+            + BuildSkillProgressText(Cast<AKalmalaCharacter>(GetOwningPlayerPawn()))));
     if (CraftButton)
     {
         if (UTextBlock* ButtonLabel = Cast<UTextBlock>(CraftButton->GetContent()))
             ButtonLabel->SetText(FText::FromString(bDirectBuild ? TEXT("Build selected") : TEXT("Craft one")));
         const FString ButtonToolTip = bDirectBuild
-            ? FString::Printf(TEXT("Build %s directly from raw materials with the Construction Hammer. Availability: %s. Rejected requests preserve materials."),
-                *SelectedRecipe.DisplayName, *Availability)
+            ? TEXT("Build the selected structure from its shown materials.")
             : FString::Printf(TEXT("Craft batch 1 of %s. Availability: %s. A rejected request preserves ingredients and tool condition."),
                 *SelectedRecipe.DisplayName, *Availability);
         CraftButton->SetToolTipText(FText::FromString(ButtonToolTip));
@@ -1024,6 +1024,7 @@ FString UKalmalaCraftingWidget::GetPresentationText() const
 {
     return InstructionsText && RecipesText && DetailText && StateText
         ? InstructionsText->GetText().ToString()+RecipesText->GetText().ToString()+DetailText->GetText().ToString()
+            + (Ingredients ? Ingredients->GetPresentationText() : FString())
             + StateText->GetText().ToString() + (FoodText ? FoodText->GetText().ToString() : FString())
             + (RepairText ? RepairText->GetText().ToString() : FString())
             + (ToolProgressionText ? ToolProgressionText->GetText().ToString() : FString())
@@ -1212,12 +1213,14 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             const FString RetiredSmokeFrameDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("SmokeFrame")) : FString();
             const FString RetiredSmokingRecipeDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("SmokeBoarMeat")) : FString();
             const FString DirectBuildDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("Floor")) : FString();
+            const FKalmalaItemDefinition* FloorItem = UKalmalaItemCatalogue::Get()->FindItem(TEXT("FloorKit"));
             const bool CampFeedbackPassed = ChestDescription.Contains(TEXT("6 Wood"))
                 && ChestDescription.Contains(TEXT("8 Reed fibre")) && ChestDescription.Contains(TEXT("Chest"))
                 && RetiredSmokeFrameDescription == TEXT("Unknown recipe")
                 && RetiredSmokingRecipeDescription == TEXT("Unknown recipe")
-                && DirectBuildDescription.Contains(TEXT("Build directly with the Construction Hammer; no kit is created."))
-                && DirectBuildDescription.Contains(TEXT("6 Wood")) && DirectBuildDescription.Contains(TEXT("4 Reed fibre"));
+                && FloorItem && DirectBuildDescription == FloorItem->Description
+                && !DirectBuildDescription.Contains(TEXT("Raw material cost:"))
+                && !DirectBuildDescription.Contains(TEXT("Build quantity:"));
             UE_LOG(LogTemp, Display, TEXT("M9 camp feedback: Passed=%d"), CampFeedbackPassed);
             const bool bInspection = Widget->VerifyInventoryInspectionForTest();
             UE_LOG(LogTemp, Display, TEXT("Inventory inspection: FocusAndKeys=%d"), bInspection);
@@ -1233,27 +1236,27 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && !Text.Contains(TEXT("Up/Down")) && !Text.Contains(TEXT("Enter / A"))
                 && !Text.Contains(TEXT("Escape / B"));
             const bool Passed=bInspection && bInputLegendHidden
-                && Text.Contains(TEXT("Requirements — selected recipe"))
-                && Text.Contains(TEXT("Tool: carried Construction Hammer level 1 — Present"))
-                && Text.Contains(TEXT("Skill level: no recipe requirement."))
-                && Text.Contains(TEXT("Unlock: no additional recipe lock."))
-                && Text.Contains(TEXT("Raw material cost: 5 Stone, 3 Wood"))
-                && Text.Contains(TEXT("Ignition: one raw Wood, Lightwood, Densewood, or Coal is also consumed to start the hearth with 60 seconds of fuel."))
-                && Text.Contains(TEXT("Output: Hearth ring construction (no kit item created)"))
-                && Text.Contains(TEXT("Description: A low stone-and-wood hearth built in place with a Construction Hammer; raw fuel lights it."))
-                && Text.Contains(TEXT("Description: Basic construction material."))
-                && Text.Contains(TEXT("Build quantity: one hearth per request"))
-                && Text.Contains(TEXT("Failure: the availability text below"))
-                && Text.Contains(TEXT("SKILL PROGRESS [PRIVATE TO YOU]"))
-                && Text.Contains(TEXT("Cooking: Level 1, 0/100 XP to Level 2"))
-                && Text.Contains(TEXT("Recipe access depends on materials, stations, and world conditions; skill level does not lock recipes."))
-                && !Text.Contains(TEXT("Next recipe unlock:"))
+                && Text.Contains(TEXT("Build requirements"))
+                && Text.Contains(TEXT("Ingredients — one craft/build"))
+                && Text.Contains(TEXT("Stone |")) && Text.Contains(TEXT("Wood |"))
+                && Text.Contains(TEXT("Construction Hammer level 1: Present."))
+                && Text.Contains(TEXT("Placement: clear, dry ground with a gentle slope and room for the structure."))
+                && Text.Contains(TEXT("Hearth fuel: one raw Wood, Lightwood, Densewood, or Coal; starts with 60 seconds."))
+                && Text.Contains(TEXT("A low stone-and-wood hearth built in place with a Construction Hammer; raw fuel lights it."))
+                && !Text.Contains(TEXT("Raw material cost:"))
+                && !Text.Contains(TEXT("Build quantity:"))
+                && !Text.Contains(TEXT("Output: Hearth ring construction"))
+                && !Text.Contains(TEXT("Skill level: no recipe requirement."))
+                && !Text.Contains(TEXT("Unlock: no additional recipe lock."))
+                && !Text.Contains(TEXT("server rechecks every request"))
+                && !Text.Contains(TEXT("Rejected requests preserve ingredients and tool condition."))
+                && !Text.Contains(TEXT("SKILL PROGRESS [PRIVATE TO YOU]"))
                 && Text.Contains(TEXT("Selection is marked with >"))
                 && Text.Contains(TEXT("Free repair: at a visible same-world Workbench or Forge"))
                 && Text.Contains(TEXT("Tool condition and free repair status (owner-only)")) && Text.Contains(TEXT("Bronze Axe:")) && Text.Contains(TEXT("Iron Axe:"))
                 && Text.Contains(TEXT("Roasted field meat:"))
                 && Text.Contains(TEXT("Build Hearth ring directly from raw materials"))
-                && Text.Contains(TEXT("Rejected requests preserve materials"))
+                && Text.Contains(TEXT("Build the selected structure from its shown materials."))
                 && PreviewText.Contains(TEXT("Preview "))
                 && bGridReady
                 && bPromptHidden
@@ -1354,9 +1357,16 @@ bool UKalmalaCraftingWidget::PrepareIngredientReviewForTest(const int32 View)
         if (!Costs.Contains(FString::Printf(TEXT("owned %d / required %d"), Inventory->GetQuantity(Cost.ItemId), Cost.Quantity))) return false;
     }
     const FString Requirements = RequirementText->GetText().ToString();
-    if (!Requirements.Contains(TEXT("Skill level: no recipe requirement."))
-        || (View < 2 && !Requirements.Contains(TEXT("carried Construction Hammer level 1 — Present")))
-        || (View >= 2 && !Requirements.Contains(TEXT("Cooking heat:")))) return false;
+    if (View < 2)
+    {
+        if (!Requirements.Contains(TEXT("Build requirements"))
+            || !Requirements.Contains(TEXT("Construction Hammer level 1: Present."))
+            || !Requirements.Contains(TEXT("Placement: clear, dry ground"))
+            || Requirements.Contains(TEXT("Skill level:"))
+            || Requirements.Contains(TEXT("server rechecks every request"))) return false;
+    }
+    else if (!Requirements.Contains(TEXT("Skill level: no recipe requirement."))
+        || !Requirements.Contains(TEXT("Cooking heat:"))) return false;
     CraftingScrollBox->ScrollWidgetIntoView(View % 2 == 0 ? static_cast<UWidget*>(Ingredients.Get())
         : static_cast<UWidget*>(RequirementText.Get()), false, EDescendantScrollDestination::TopOrLeft);
     return true;

@@ -13,14 +13,26 @@ bool FKalmalaRecipeRequirementsTest::RunTest(const FString& Parameters)
     for (const auto& Recipe : UKalmalaRecipeCatalogue::Get()->Recipes)
     {
         const FString Text = FKalmalaRecipeRequirements::Describe(Recipe, nullptr, -1, TEXT("Waiting for pack"));
-        TestTrue(TEXT("No fabricated skill lock"), Text.Contains(TEXT("Skill level: no recipe requirement.")));
-        TestTrue(TEXT("First supplied reason is explicit"), Text.Contains(TEXT("Unavailable: Waiting for pack")));
         if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.Output))
         {
-            TestTrue(TEXT("Direct build needs carried hammer"), Text.Contains(TEXT("carried Construction Hammer level 1")));
-            TestTrue(TEXT("No station for direct build"), Text.Contains(TEXT("Station: none; build in place.")));
-            if (Recipe.Output == TEXT("CampfireKit")) TestTrue(TEXT("Ignition alternative remains explicit"), Text.Contains(TEXT("Ignition: one raw Wood, Lightwood, Densewood or Coal")));
+            TestTrue(TEXT("Construction detail keeps actual placement requirements"),
+                Text.Contains(TEXT("Build requirements"))
+                    && Text.Contains(TEXT("Placement: clear, dry ground with a gentle slope")));
+            TestTrue(TEXT("Construction detail shows its single first blocker"),
+                Text.Contains(TEXT("Unavailable: Waiting for pack"))
+                    && Text.Find(TEXT("Unavailable:"), ESearchCase::IgnoreCase, ESearchDir::FromStart)
+                        == Text.Find(TEXT("Unavailable:"), ESearchCase::IgnoreCase, ESearchDir::FromEnd));
+            TestFalse(TEXT("Construction detail omits generic requirement boilerplate"),
+                Text.Contains(TEXT("Skill level:")) || Text.Contains(TEXT("Unlock:"))
+                    || Text.Contains(TEXT("server rechecks")) || Text.Contains(TEXT("Rejected requests")));
+            if (Recipe.Output == TEXT("CampfireKit"))
+                TestTrue(TEXT("Hearth fuel and duration stay explicit"),
+                    Text.Contains(TEXT("one raw Wood, Lightwood, Densewood, or Coal; starts with 60 seconds")));
         }
+        else
+            TestTrue(TEXT("Existing recipe requirement summary remains explicit"),
+                Text.Contains(TEXT("Skill level: no recipe requirement."))
+                    && Text.Contains(TEXT("Unavailable: Waiting for pack")));
         if (Recipe.RequiredStation.Contains(TEXT("CookingRackKit")) || Recipe.RequiredStation.Contains(TEXT("CauldronKit"))
             || Recipe.RequiredStation.Contains(TEXT("FryingPanKit")))
             TestTrue(TEXT("Heat described even without a nearby station"), Text.Contains(TEXT("positive heat within 2.5 m of both")));
@@ -50,8 +62,25 @@ bool FKalmalaRecipeRequirementsTest::RunTest(const FString& Parameters)
     const auto* Floor = UKalmalaRecipeCatalogue::Get()->Find(TEXT("Floor"));
     if (TestNotNull(TEXT("Existing direct floor recipe"), Floor))
     {
-        TestTrue(TEXT("Missing carried hammer"), FKalmalaRecipeRequirements::Describe(*Floor, Inventory, 0, TEXT("Need your carried Construction Hammer")).Contains(TEXT("level 1 — Missing")));
-        TestTrue(TEXT("Unknown tool state is pending"), FKalmalaRecipeRequirements::Describe(*Floor, nullptr, -1, TEXT("Waiting for pack")).Contains(TEXT("Waiting for your tool state")));
+        const FString MissingFloor = FKalmalaRecipeRequirements::Describe(
+            *Floor, Inventory, 0, TEXT("Need your carried Construction Hammer"));
+        TestTrue(TEXT("Missing carried hammer has one concise blocker"),
+            MissingFloor.Contains(TEXT("Construction Hammer level 1: Missing."))
+                && MissingFloor.Contains(TEXT("Unavailable: Need your carried Construction Hammer")));
+        TestTrue(TEXT("Unknown tool state is pending"),
+            FKalmalaRecipeRequirements::Describe(*Floor, nullptr, -1, TEXT("Waiting for pack"))
+                .Contains(TEXT("Construction Hammer level 1: Waiting for your tool state.")));
+        const FString AvailableFloor = FKalmalaRecipeRequirements::Describe(*Floor, Inventory, 1, TEXT("Ready"));
+        TestTrue(TEXT("Available construction has no fabricated blocker"),
+            AvailableFloor.Contains(TEXT("Construction Hammer level 1: Present."))
+                && !AvailableFloor.Contains(TEXT("Unavailable:")));
+        FKalmalaRecipe DisabledFloor = *Floor;
+        DisabledFloor.bEnabled = false;
+        const FString DisabledFloorText = FKalmalaRecipeRequirements::Describe(DisabledFloor, Inventory, 1, FString());
+        TestTrue(TEXT("Disabled construction has one blocker"),
+            DisabledFloorText.Contains(TEXT("Unavailable: Recipe unavailable"))
+                && DisabledFloorText.Find(TEXT("Unavailable:"), ESearchCase::IgnoreCase, ESearchDir::FromStart)
+                    == DisabledFloorText.Find(TEXT("Unavailable:"), ESearchCase::IgnoreCase, ESearchDir::FromEnd));
     }
     World->DestroyWorld(false);
     return true;
