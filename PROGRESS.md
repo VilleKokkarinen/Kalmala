@@ -11733,4 +11733,4 @@ Known limitations: Changed C++ automation has not been compiled or run. Host/cli
 
 Next eligible task: Remove binding/help legends from Inventory and build/crafting/repair/storage views and tooltips, while preserving action labels and focus navigation.
 
-Main-checkout handoff synchronization: Pending this worktree commit; afterward synchronize only `BACKLOG.md` and `PROGRESS.md`, preserving the main checkout's unrelated changes.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only this backlog task and progress entry; all unrelated changes remain untouched and uncommitted.
