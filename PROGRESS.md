@@ -11600,3 +11600,25 @@ Known limitations: The updated focused automation was not compiled or run; the l
 Next eligible task: Reuse Inventory search/filter/sort, keyboard/controller focus, and session selection/scroll restoration; adapt browsing checks for removed entries and resize/scale fallback.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only this selected BACKLOG child plus this progress entry; all pre-existing main-checkout edits remain untouched and uncommitted.
+
+### Run 2026-10-07T09:52:51Z — add Inventory browsing memory
+
+Concurrency guard: Codex task inventory showed this as the only active Kalmala run; the matching sibling automation was idle. The main checkout contains pre-existing changes, so implementation continued in the clean retained `E:\dev\Kalmala\wt\m12-pack-grid` worktree at accepted food-use commit `3af61a4`.
+
+Completed: Added owner-row search by trimmed, bounded display-name query; All/Items/Carried tools filters; deterministic copied-row name/category sorting; labelled focusable controls; editable-text safety; Page Up/Down and shoulder filter/sort cycling; D-pad selection; and clear/no-results recovery. The widget retains query, category, sort, canonical selection and both scroll offsets for its local session. A filtered selection returns when visible again, removed owner rows fall back to the first visible item, and no-results clears selection/details. Added an outer menu scroll, inner row scroll, and a panel that shrinks with the viewport while preserving a 16-unit edge inset.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`; `Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h`; `Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/14-settings-and-accessibility.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Scripts/Verify-M5DocumentationContracts.ps1` passed all five contracts; `git diff --check` passed; manual source review covered owner-only row inputs, filter/sort/selection behavior, focus, scroll restoration, resize fallback and unchanged gameplay authority; the changed-path MAX_PATH audit passed (longest path 100 characters). Extended `Kalmala.UI.InventoryMenu.Selection` coverage for real editable-text delegate updates, filters/sorts, selection preservation/removal, no-results recovery, focusable controls, 480x320/1024x768 panel sizing and scroll state. The updated automation was not compiled or run. No Unreal build, automation queue, rendered peer check or package check was performed.
+
+Full verification remains deferred: this is the last implementation child of Inventory goal 1, not the final implementation task in M12.
+
+Observable impact: Players can find and sort their carried pack/equipment and continue browsing after closing the menu or resizing the viewport.
+
+Networking/authority: Search and sorting operate on the current local owner-visible pack/tool snapshot only. No gameplay mutation, RPC, replicated field, save schema or server-authority change was added.
+
+Known limitations: The updated focused automation was not executed; rendered layout/contrast, live host-client privacy, physical keyboard/controller text entry and packaged behavior remain for M12 final verification.
+
+Next eligible task: Preserve support/combat selection and concise action-result/discovery feedback on existing HUD surfaces independently of the persistent left-side panel; update narrow feedback/input expectations.
+
+Main-checkout handoff synchronization: Pending. Main `BACKLOG.md` and `PROGRESS.md` were inspected; only this selected backlog state and progress entry will be synchronized after the implementation commit. Existing main-checkout edits remain untouched.

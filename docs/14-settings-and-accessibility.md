@@ -154,6 +154,23 @@ rejected or replayed requests consume nothing and cannot refresh or replace an
 active meal. The owner sees the server result. The previous HUD pack view
 remains until the separate HUD-removal task.
 
+Inventory also has local search, category, and sort controls. Search trims outer
+whitespace, is limited to 64 characters, and matches only names already present
+in the owner's visible pack/tool rows; it cannot query descriptions, quantities,
+or hidden catalogue content. Category filters All, Items, or Carried tools, and
+sort chooses owner order, name, or category/name without changing pack order.
+Page Up/left shoulder cycles category, Page Down/right shoulder cycles sort,
+arrows/D-pad change the selected row, and Tab reaches search and labelled
+buttons. While text editing has focus, its cursor keys remain available. Query,
+filter, sort, canonical selection, and row/menu scroll offsets survive closing
+and reopening this local widget for the current session. An entry hidden by a
+filter or query keeps its remembered selection; an entry removed from the owner
+snapshot falls back to the first remaining result, while no results clears
+details and explains recovery. Separate menu and row scroll areas keep the
+browsing controls reachable when enlarged text or viewport changes need scroll
+fallback. The panel follows a resized viewport up to its normal 640×560 UI-unit
+size and leaves a 16-unit inset at each edge when the available area is smaller.
+
 ## Accessibility requirements
 
 - Every setting is reachable with keyboard focus and a controller, with visible

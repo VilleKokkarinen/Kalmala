@@ -494,14 +494,14 @@ milestone-final run under `AGENTS.md`. Each child includes careful inspection an
 useful narrow checks; prepare/update affected acceptance helpers rather than running
 the full rendered matrix during normal increments. Document full verification as deferred.
 
-- [ ] Add the dedicated Inventory menu (roadmap goal 1).
+- [x] Add the dedicated Inventory menu (roadmap goal 1).
   - [x] [20–30 min] Add the local inventory-toggle action with default Tab/I mappings and a minimal themed menu shell; both keys open/close the same owner-local instance through existing remapping conventions. (2026-10-07; remappable Tab/I action and themed owner-local shell)
   - [x] [20–30 min] Integrate inventory modal priority with crafting/settings/map, text-entry and focus handling, Escape close, and cursor/movement/look restoration; inspect empty-shell open/close paths and update narrow input checks. (2026-10-07; owner-local modal/input integration and Tab/I contract)
   - [x] [20–30 min] Populate the shell with the existing owner pack grid/counts and empty state, reusing shared widgets and owner-only data; retain the old pack view until the new grid is usable. (2026-10-07; read-only 16-slot owner pack grid reuses the shared catalogue rows widget; empty/pending state and live local refresh added.)
   - [x] [20–30 min] Bind selection to the existing item icon/description/detail component and safe fallback when an item disappears; prepare a focused selection/privacy check. (2026-10-07; owner-local selected-slot detail, disappearance fallback, and focused automation coverage)
   - [x] [20–30 min] Add carried-tool/equipment rows and existing inspection/actions with real levels/condition; preserve the bounded owner-only tool contract. (2026-10-07; up to six owner-only tools are selectable with live level/condition and existing server-validated repair action)
   - [x] [20–30 min] Wire supported carried-food Eat/use actions and their actual availability/effect through existing server paths; add no station gate and keep rejected/replayed use safe. (2026-10-07; owner-only Eat action routes supported food through the existing station-free server transaction, with live effect/availability/result feedback; replay remains server-rejected.)
-  - [ ] [20–30 min] Reuse inventory search/filter/sort, keyboard/controller focus and session selection/scroll restoration; adapt narrow browsing checks for removed entries and resize/scale fallback.
+  - [x] [20–30 min] Reuse inventory search/filter/sort, keyboard/controller focus and session selection/scroll restoration; adapt narrow browsing checks for removed entries and resize/scale fallback. (2026-10-07; owner-row search/filter/sort, focus navigation, session restoration, responsive panel and empty/no-results recovery checks)
 - [ ] Remove the persistent left-side panel (goal 2).
   - [ ] [20–30 min] Preserve support/combat selection and concise action-result/discovery feedback through existing appropriate HUD surfaces independently of the old panel; update narrow feedback/input expectations.
   - [ ] [20–30 min] Remove the old panel, glyph row, diagnostic/help text and pack/tool grid now covered by Inventory; inspect normal/empty paths for residual chrome and prepare the absence regression.

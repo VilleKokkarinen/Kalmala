@@ -89,6 +89,23 @@ ownership and M5 documentation contracts plus `git diff --check`. This is
 increment-level verification; full parent integration waits for recipe/build
 browsing and the final ordered acceptance child.
 
+## M12 Inventory browsing increment
+
+After an affected UI compile in the short disposable mirror, run
+`Automation RunTests Kalmala.UI.InventoryMenu.Selection` with isolated
+UserDir/logs, null renderer, memory DDC and the queue-empty TestExit gate.
+Require the menu test to cover bounded trimmed display-name search, item/tool
+filters, deterministic copied-row sorting, canonical selection through search
+and live owner refresh, safe removal/no-results fallback, D-pad and shoulder
+navigation, retained query/selection/scroll state, and focusable controls at
+150% text scale/high contrast. It also checks the panel shrinks with a 480x320
+viewport, returns to its standard size at 1024x768, and retains outer-menu and
+inventory-row scroll fallbacks. Run the M5 documentation contracts and
+`git diff --check`.
+Do not run the full rendered matrix for this child; the M12 final verification
+must inspect host/client captures at standard settings and at 1024x768/150%/
+high contrast, including menu resize, scroll, and no-results recovery.
+
 ## M11 Escape options opening animation
 
 In a disposable project mirror, build `KalmalaEditor Win64 Development` with

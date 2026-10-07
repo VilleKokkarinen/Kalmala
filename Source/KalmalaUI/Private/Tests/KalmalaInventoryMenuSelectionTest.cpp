@@ -3,7 +3,10 @@
 #include "KalmalaCatalogueRowsWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "Blueprint/WidgetTree.h"
+#include "Components/EditableTextBox.h"
+#include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
+#include "InputCoreTypes.h"
 #include "KalmalaThemedButton.h"
 #include "Misc/AutomationTest.h"
 
@@ -86,6 +89,147 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("First owner's tool detail excludes the second owner's condition"), DetailText(OwnerA).Contains(TEXT("Condition 8/55")));
     TestTrue(TEXT("Second owner's tool detail keeps its own condition"), DetailText(OwnerB).Contains(TEXT("Condition 8/55")));
     TestFalse(TEXT("Second owner's tool detail excludes the first owner's condition"), DetailText(OwnerB).Contains(TEXT("Condition 17/40")));
+
+    UKalmalaInventoryMenuWidget* BrowsingMenu = MakeMenu();
+    TestNotNull(TEXT("Inventory browsing menu initializes"), BrowsingMenu);
+    if (BrowsingMenu)
+    {
+        const TArray<FKalmalaCatalogueRow> BrowseRows = {
+            {TEXT("Wood"), TEXT("Wood"), TEXT("Count 7"), false},
+            {TEXT("Stone"), TEXT("Stone"), TEXT("Count 3"), false},
+            {TEXT("FieldHatchet"), TEXT("Field hatchet"), TEXT("Condition 17/40"), true}};
+        auto VisibleIdsAre = [BrowsingMenu](const TArray<FName>& Expected)
+        {
+            return BrowsingMenu->GetVisibleItemIdsForVerification() == Expected;
+        };
+        BrowsingMenu->SetInventoryRowsForVerification(BrowseRows, 150, 1);
+        TestTrue(TEXT("Search, category, sort and clear controls remain focusable at enlarged high contrast"),
+            BrowsingMenu->HasBrowseFocusTargetsForVerification());
+        TestTrue(TEXT("Owner order initially preserves pack/tool source order"),
+            VisibleIdsAre(TArray<FName>{FName(TEXT("Wood")), FName(TEXT("Stone")), FName(TEXT("FieldHatchet"))}));
+
+        int32 ScrollBoxCount = 0;
+        UEditableTextBox* SearchBox = nullptr;
+        UKalmalaThemedButton* CategoryButton = nullptr;
+        UKalmalaThemedButton* SortButton = nullptr;
+        UKalmalaThemedButton* ClearSearchButton = nullptr;
+        FString BrowseLabels;
+        TArray<UWidget*> BrowseWidgets;
+        BrowsingMenu->WidgetTree->GetAllWidgets(BrowseWidgets);
+        for (UWidget* Widget : BrowseWidgets)
+        {
+            if (Cast<UScrollBox>(Widget)) ++ScrollBoxCount;
+            if (auto* Edit = Cast<UEditableTextBox>(Widget)) SearchBox = Edit;
+            if (const auto* Text = Cast<UTextBlock>(Widget)) BrowseLabels += Text->GetText().ToString();
+            if (auto* Button = Cast<UKalmalaThemedButton>(Widget))
+            {
+                const auto* Label = Cast<UTextBlock>(Button->GetContent());
+                if (Label && Label->GetText().ToString().StartsWith(TEXT("Category:"))) CategoryButton = Button;
+                else if (Label && Label->GetText().ToString().StartsWith(TEXT("Sort:"))) SortButton = Button;
+                else if (Label && Label->GetText().ToString() == TEXT("Clear search")) ClearSearchButton = Button;
+            }
+        }
+        TestTrue(TEXT("Menu and item area retain scroll fallbacks for viewport/text growth"), ScrollBoxCount >= 2);
+        BrowsingMenu->SetViewportSizeForVerification(FVector2D(480.0f, 320.0f));
+        TestEqual(TEXT("Inventory menu width leaves a viewport margin after resize"),
+            BrowsingMenu->GetPanelSizeForVerification().X, 448.0f);
+        TestEqual(TEXT("Inventory menu height leaves room for outer scrolling after resize"),
+            BrowsingMenu->GetPanelSizeForVerification().Y, 288.0f);
+        BrowsingMenu->SetViewportSizeForVerification(FVector2D(1024.0f, 768.0f));
+        TestEqual(TEXT("Inventory menu returns to its normal width after resize"),
+            BrowsingMenu->GetPanelSizeForVerification().X, 640.0f);
+        TestEqual(TEXT("Inventory menu returns to its normal height after resize"),
+            BrowsingMenu->GetPanelSizeForVerification().Y, 560.0f);
+        TestNotNull(TEXT("Inventory has an editable search control"), SearchBox);
+        TestTrue(TEXT("Browse controls have visible category and sort labels"),
+            BrowseLabels.Contains(TEXT("Category: All")) && BrowseLabels.Contains(TEXT("Sort: Owner order")));
+        if (CategoryButton)
+        {
+            CategoryButton->OnClicked.Broadcast();
+            TestEqual(TEXT("Category button cycles to Items"), BrowsingMenu->GetInventoryCategoryForVerification(), 1);
+            CategoryButton->OnClicked.Broadcast();
+            TestEqual(TEXT("Category button cycles to Carried tools"), BrowsingMenu->GetInventoryCategoryForVerification(), 2);
+            CategoryButton->OnClicked.Broadcast();
+            TestEqual(TEXT("Category button wraps to All"), BrowsingMenu->GetInventoryCategoryForVerification(), 0);
+        }
+        if (SortButton)
+        {
+            SortButton->OnClicked.Broadcast();
+            TestEqual(TEXT("Sort button cycles to Name"), BrowsingMenu->GetInventorySortForVerification(), 1);
+            SortButton->OnClicked.Broadcast();
+            TestEqual(TEXT("Sort button cycles to Category/name"), BrowsingMenu->GetInventorySortForVerification(), 2);
+            SortButton->OnClicked.Broadcast();
+            TestEqual(TEXT("Sort button wraps to owner order"), BrowsingMenu->GetInventorySortForVerification(), 0);
+        }
+        if (SearchBox)
+        {
+            SearchBox->OnTextChanged.Broadcast(FText::FromString(TEXT("stone")));
+            TestTrue(TEXT("Editable text-change delegate updates visible search results"),
+                VisibleIdsAre(TArray<FName>{FName(TEXT("Stone"))}));
+            SearchBox->OnTextChanged.Broadcast(FText::GetEmpty());
+        }
+
+        BrowsingMenu->SetInventoryBrowseForVerification(TEXT("  HATCHET  "), 2, 1);
+        TestTrue(TEXT("Search trims and matches visible names without case sensitivity"),
+            VisibleIdsAre(TArray<FName>{FName(TEXT("FieldHatchet"))}));
+        TestEqual(TEXT("Search trims outer whitespace"), BrowsingMenu->GetInventorySearchForVerification(), FString(TEXT("HATCHET")));
+        TestEqual(TEXT("Carried-tool category is retained for this menu session"),
+            BrowsingMenu->GetInventoryCategoryForVerification(), 2);
+        BrowsingMenu->SetInventoryBrowseForVerification(TEXT(""), 1, 0);
+        TestTrue(TEXT("Items category excludes carried tools"),
+            VisibleIdsAre(TArray<FName>{FName(TEXT("Wood")), FName(TEXT("Stone"))}));
+        BrowsingMenu->SetInventoryBrowseForVerification(FString::ChrN(80, TCHAR('a')), 0, 0);
+        TestEqual(TEXT("Search input is bounded to 64 characters"), BrowsingMenu->GetInventorySearchForVerification().Len(), 64);
+
+        BrowsingMenu->SetInventoryBrowseForVerification(TEXT("Condition 17"), 0, 0);
+        TestEqual(TEXT("Search does not match private condition/details"), BrowsingMenu->GetVisibleItemIdsForVerification().Num(), 0);
+        TestEqual(TEXT("No-results state clears selection"), BrowsingMenu->GetSelectedItemForVerification(), NAME_None);
+        TestFalse(TEXT("No-results state hides stale item detail"),
+            DetailText(BrowsingMenu).Contains(TEXT("Condition 17/40")));
+        bool bNoResultsGuidance = false;
+        BrowsingMenu->WidgetTree->GetAllWidgets(BrowseWidgets);
+        for (UWidget* Widget : BrowseWidgets)
+            if (const auto* Text = Cast<UTextBlock>(Widget); Text && Text->GetText().ToString().Contains(TEXT("No results"))) bNoResultsGuidance = true;
+        TestTrue(TEXT("No-results state provides search recovery guidance"), bNoResultsGuidance);
+        TestTrue(TEXT("No-results controller navigation is handled safely"),
+            BrowsingMenu->NavigateForVerification(EKeys::Gamepad_DPad_Right));
+        TestEqual(TEXT("No-results controller navigation selects nothing"), BrowsingMenu->GetSelectedItemForVerification(), NAME_None);
+
+        BrowsingMenu->SetInventoryBrowseForVerification(TEXT(""), 0, 1);
+        TestTrue(TEXT("Name sort uses deterministic display-name order"),
+            VisibleIdsAre(TArray<FName>{FName(TEXT("Stone")), FName(TEXT("Wood")), FName(TEXT("FieldHatchet"))}));
+        BrowsingMenu->SetInventoryBrowseForVerification(TEXT(""), 0, 2);
+        TestTrue(TEXT("Category/name sort keeps items ahead of carried tools"),
+            VisibleIdsAre(TArray<FName>{FName(TEXT("Stone")), FName(TEXT("Wood")), FName(TEXT("FieldHatchet"))}));
+        TestTrue(TEXT("Keyboard category cycle is routed"), BrowsingMenu->NavigateForVerification(EKeys::PageUp));
+        TestEqual(TEXT("Keyboard category cycle reaches Items"), BrowsingMenu->GetInventoryCategoryForVerification(), 1);
+        TestTrue(TEXT("Controller shoulder sort cycle is routed"), BrowsingMenu->NavigateForVerification(EKeys::Gamepad_RightShoulder));
+        TestEqual(TEXT("Controller shoulder changes the session sort mode"), BrowsingMenu->GetInventorySortForVerification(), 0);
+
+        BrowsingMenu->SetInventoryBrowseForVerification(TEXT(""), 0, 0);
+        TestTrue(TEXT("D-pad changes the selected canonical inventory item"),
+            BrowsingMenu->NavigateForVerification(EKeys::Gamepad_DPad_Right));
+        TestTrue(TEXT("D-pad can move to the third owner-order item"),
+            BrowsingMenu->NavigateForVerification(EKeys::Gamepad_DPad_Right));
+        TestEqual(TEXT("Session selection tracks the canonical item"),
+            BrowsingMenu->GetSelectedItemForVerification(), FName(TEXT("FieldHatchet")));
+        BrowsingMenu->SetInventoryBrowseForVerification(TEXT("o"), 0, 0);
+        BrowsingMenu->SetInventoryScrollOffsetForVerification(72.0f);
+        BrowsingMenu->SetInventoryRowsForVerification({
+            {TEXT("Wood"), TEXT("Wood"), TEXT("Count 6"), false},
+            {TEXT("Stone"), TEXT("Stone"), TEXT("Count 3"), false}}, 150, 1);
+        TestEqual(TEXT("Removed selected item falls back to the first remaining row"),
+            BrowsingMenu->GetSelectedItemForVerification(), FName(TEXT("Wood")));
+        TestEqual(TEXT("Browse query remains local to this menu session"), BrowsingMenu->GetInventorySearchForVerification(), FString(TEXT("o")));
+        TestEqual(TEXT("Scroll position is retained when owner rows refresh"),
+            BrowsingMenu->GetInventoryScrollOffsetForVerification(), 72.0f);
+        BrowsingMenu->SetInventoryBrowseForVerification(TEXT("secret reward"), 0, 0);
+        TestEqual(TEXT("Search does not reveal absent catalogue entries"), BrowsingMenu->GetVisibleItemIdsForVerification().Num(), 0);
+        TestNotNull(TEXT("Clear search control remains available after no results"), ClearSearchButton);
+        if (ClearSearchButton) ClearSearchButton->OnClicked.Broadcast();
+        TestEqual(TEXT("Clearing no-results restores the session selection"),
+            BrowsingMenu->GetSelectedItemForVerification(), FName(TEXT("Wood")));
+    }
 
     UKalmalaInventoryMenuWidget* FoodMenu = MakeMenu();
     TestNotNull(TEXT("Food inventory menu initializes"), FoodMenu);
