@@ -173,3 +173,36 @@ until the later import and integration children.
 This changes presentation assets and documentation only. It does not change
 gameplay identity, inventory rules, network authority, RPCs, replicated fields,
 or save schemas.
+
+## Batch 04 review — 2026-10-08
+
+Generated ForgeKit, WorkbenchToolRackKit, ForgeAnvilKit, and
+GrindingStoneKit. Each original is retained as a 1254×1254 RGBA PNG in
+`Content/Kalmala/UI/Source/IconOriginals/`; each prepared image is a transparent
+64×64 RGBA PNG in `Content/Kalmala/UI/Source/Icons/`. Artwork was alpha-cropped,
+proportionally fitted to a centered 56×56 maximum area, and reviewed at native
+size against the earlier batches.
+
+ForgeKit reads as a squat stone-and-iron furnace with a short flue and ember-lit
+mouth, distinct from the CampfireKit's low open stone ring. WorkbenchToolRackKit
+shows an oak A-frame with a hand axe, mallet, and pick hanging from its bar.
+ForgeAnvilKit has a broad iron face and short horn on a cut oak stump.
+GrindingStoneKit has a prominent upright abrasive wheel with its crank and oak
+stand. All four retain the warm highlights, ivory edge accents, dark outlines,
+and restrained material palette used by the earlier batches; none contains
+text, labels, badges, borders, or scenery.
+
+The four individual prompts used the Wood and WorkbenchKit icons as style
+references only. Each requested one of the subjects above, centered framing
+within a 56×56 safe area, a genuinely transparent background, hand-painted UI
+line art, warm soft highlights, an ivory edge accent and thin dark contour, and
+no text or UI chrome. Subject details were written separately so station
+silhouettes remain distinct at 64×64.
+
+`Scripts/Validate-CatalogueIcon.ps1` passed for all four IDs, confirming the
+pinned identities, retained RGBA originals, transparent 64×64 finals, and import
+targets. These files are prepared for import only: no `.uasset` was created,
+and existing catalogue consumers remain on their vector icons pending the
+later import and menu-integration children. This changes presentation assets
+only; no gameplay identity, network authority, RPC, replicated field, or save
+schema changed.

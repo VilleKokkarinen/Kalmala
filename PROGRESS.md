@@ -12745,3 +12745,51 @@ Main-checkout handoff synchronization: Complete. Inspected the main
 versions before editing; applied only the selected BACKLOG child and
 appended this PROGRESS entry, preserving all other existing content and
 user changes. No implementation assets were synchronized.
+
+## Run 2026-10-08T11:47Z — Generate catalogue icon batch 04
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`; the main checkout was clean before handoff.
+
+Completed exactly the next M12 goal 8 child. Generated original ForgeKit,
+WorkbenchToolRackKit, ForgeAnvilKit, and GrindingStoneKit icons. Retained each
+generated 1254×1254 RGBA source and prepared a transparent 64×64 RGBA import
+PNG, with the visible subject proportionally fitted inside a centered 56×56
+area. Reviewed all four finals at native size beside the earlier icon batches.
+
+Files changed: `Content/Kalmala/UI/Source/IconOriginals/ForgeKit.png`;
+`Content/Kalmala/UI/Source/Icons/ForgeKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/WorkbenchToolRackKit.png`;
+`Content/Kalmala/UI/Source/Icons/WorkbenchToolRackKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/ForgeAnvilKit.png`;
+`Content/Kalmala/UI/Source/Icons/ForgeAnvilKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/GrindingStoneKit.png`;
+`Content/Kalmala/UI/Source/Icons/GrindingStoneKit.png`;
+`docs/43-catalogue-icon-manifest.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Validate-CatalogueIcon.ps1` for all four
+IDs (each 1254×1254 RGBA source and transparent 64×64 RGBA final with the
+pinned import target); manual native-size review; `git diff --check`; and a
+changed-path MAX_PATH audit. No Unreal import/build, automation, rendered or
+controller review, or package check was run. Full M12 verification remains
+deferred; this is a normal child increment.
+
+Observable impact: 16 of the 48 pinned canonical icon identities now have
+retained originals and validated prepared PNGs ready for Unreal import.
+
+Networking/authority: original presentation assets and documentation only; no
+gameplay, RPC, replication, authority, inventory, or save contract changed.
+
+Known limitations: none of these four prepared PNGs has been imported as an
+Unreal `.uasset`; live catalogue views still use vector icons. The next image
+batches, imports, view integration, and rendered acceptance remain open.
+
+Next eligible task: M12 goal 8, generate/review batch 05 for StorageKit,
+CookingRackKit, FryingPanKit, and CauldronKit.
+
+Main-checkout handoff synchronization: Complete. Inspected the main
+`BACKLOG.md` and `PROGRESS.md` before editing; applied only this selected
+BACKLOG child and this PROGRESS entry. No implementation assets were
+synchronized to the main checkout.
