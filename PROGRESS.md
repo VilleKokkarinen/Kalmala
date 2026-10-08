@@ -12047,3 +12047,67 @@ hearth heat through the existing cooking paths.
 Main-checkout handoff synchronization: Complete. Inspected both dirty main
 versions and applied only this selected BACKLOG child and PROGRESS entry; all
 other pre-existing modified and untracked main-checkout files remain untouched.
+
+### Run 2026-10-08T07:42:23Z — Add Cooking Rack menu
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Windows process inspection remained restricted. Continued in the clean retained
+worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`; the dirty main checkout
+was preserved.
+
+Completed exactly the next M12 goal 7 child. The Cooking Rack Cook section now
+shows only Cooked boar meat and Cooked deer meat, with selected-result
+descriptions, owner-visible ingredient counts, the existing one-batch-per-press
+and five-batch request limit, and a live hearth-heat summary from the existing
+recipe-availability path. Search/category controls and unrelated construction,
+tool, repair, eating, and storage actions are hidden. Cook is disabled and sends
+no request if the accepted rack context has expired. The existing server recipe
+RPC and authority checks remain unchanged. Added a focused host/client scope
+marker to `Verify-Crafting.ps1`, corrected the shared recipe-requirement heat
+labels for schema-4 cooking station IDs, and updated the development and cooking
+contracts.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`;
+`Source/KalmalaUI/Private/KalmalaRecipeRequirements.cpp`;
+`Scripts/Verify-Crafting.ps1`; `Scripts/Verify-PresentationOwnership.ps1`;
+`docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`; `BACKLOG.md`;
+and this `PROGRESS.md`.
+
+Lightweight checks passed: the catalogue JSON check confirmed exactly the two
+Cooking Rack recipes, one ingredient per batch, output count 1, and max batch 5;
+`Verify-PresentationOwnership.ps1`; all five `Verify-M5DocumentationContracts.ps1`
+contracts; changed PowerShell script parsing; `git diff --check`; focused source
+anchor inspection; and the MAX_PATH audit (longest changed absolute path 96
+characters). The initial catalogue check used the wrong root-property casing and
+station identifier; after inspecting the schema, the validator and UI mapping
+were corrected and the focused check passed.
+
+Full verification remains deferred: no Unreal build, C++ automation,
+`Verify-Crafting.ps1` runtime launch, rendered host/client review, physical
+controller check, or package check was run. This is a normal M12 child, not the
+milestone-final task.
+
+Observable impact: a Cooking Rack opens a concise, recipe-only cooking menu with
+truthful ingredient, quantity, selected-food, and heat feedback.
+
+Networking/authority: Presentation only. The local owner reads the existing
+availability path and submits the existing recipe ID with batch 1. The server
+still validates the visible same-world station, live hearth heat, costs, output
+capacity, and atomic exchange. No gameplay RPC, replicated field, save schema,
+or catalogue value changed.
+
+Known limitations: Changed C++ and the prepared focused marker remain
+uncompiled/unrun, and rendered host/client layout and physical controller access
+remain unreviewed. The UI displays the supported five-batch request limit but
+continues to submit one batch per Cook press. The existing server may resolve a
+different qualifying nearby Cooking Rack than the exact actor shown by the
+local station context.
+
+Next eligible task: M12 goal 7, Cauldron menu limited to Meat stew and Root
+vegetable soup with ingredient counts, quantity, live heat, and a focused
+station-scope check.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions and applied only this selected BACKLOG child and PROGRESS entry; all
+other pre-existing modified and untracked main-checkout files remain untouched.

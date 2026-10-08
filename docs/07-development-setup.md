@@ -2088,3 +2088,26 @@ and that repair results remain owner-only. Existing
 `Kalmala.Gameplay.Tools.LifecycleContract` retains server authority, station,
 unknown/full/invalid-tool, and rejected-state coverage. Runtime and rendered
 host/client execution remain in M12 final verification.
+
+## M12 Cooking Rack menu
+
+The Cooking Rack shell shows only Cooked boar meat and Cooked deer meat. The
+selected food uses the shared result description, live owned/required ingredient
+counts, the existing one-batch-per-press and five-batch request limit, and a
+live hearth-heat summary derived from the existing recipe-availability path.
+Losing the exact accepted rack context disables Cook and sends no recipe request.
+The owning client submits the existing recipe identity and batch-one request;
+the server still selects a visible same-world Cooking Rack, validates positive
+lit-hearth heat at both the player and station, checks materials/output capacity,
+and commits the existing exchange.
+
+`Verify-Crafting.ps1` expects `Cooking Rack scope: Recipes=1 Ingredients=1
+Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1` on
+both peers. Its focused UI marker covers the two catalogue recipes, their
+ingredient counts and quantity limits, result description, live availability
+presentation, hidden unrelated operations, and no request from an invalid
+context. `Verify-PresentationOwnership.ps1` checks the local availability read
+and existing ID/batch request route. The existing
+`Kalmala.Gameplay.Food.CookingStationHeat` automation covers server acceptance
+and missing-heat rejection for the accepted Cooking Rack. Run these checks with
+the full rendered menu matrix during M12 milestone-final verification.

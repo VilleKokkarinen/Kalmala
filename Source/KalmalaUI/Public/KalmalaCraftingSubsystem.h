@@ -52,6 +52,7 @@ public:
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
+    bool VerifyCookingRackScopeForTest();
     bool VerifyForgeUpgradeScopeForTest();
     bool VerifyForgeRepairScopeForTest();
     bool VerifyWorkbenchRepairScopeForTest();
@@ -156,6 +157,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> WorkbenchRepairInspector;
     UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> WorkbenchRepairExcludedWidgets;
     UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> StationCraftExcludedWidgets;
+    UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> CookingRackExcludedWidgets;
     UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> RecipeSearchBox;
     UPROPERTY(Transient) TObjectPtr<UButton> CloseButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeCategoryLabel;
@@ -178,6 +180,7 @@ private:
     TArray<int32> LastRecipeGridIndices;
     bool bOpen = false;
     bool bEmbeddedContext = false;
+    bool bCookingRackContext = false;
     bool bWorkbenchCraftContext = false;
     bool bForgeCraftContext = false;
     bool bForgeUpgradeContext = false;
@@ -187,6 +190,7 @@ private:
 #if !UE_BUILD_SHIPPING
     uint32 WorkbenchRepairRequestCountForTest = 0;
     uint32 ForgeUpgradeRequestCountForTest = 0;
+    uint32 CookingRackCraftRequestCountForTest = 0;
 #endif
     bool bPreviousMoveInputIgnored = false;
     bool bPreviousLookInputIgnored = false;

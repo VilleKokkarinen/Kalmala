@@ -48,8 +48,9 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
         for (int32 Index = 0; Index < Stations.Num(); ++Index)
         {
             Text += (Index ? TEXT(" or ") : TEXT("")) + Name(Stations[Index]);
-            bNeedsHeat |= Stations[Index] == TEXT("CookingRackKit")
-                || Stations[Index] == TEXT("CauldronKit") || Stations[Index] == TEXT("FryingPanKit");
+            bNeedsHeat |= Stations[Index] == TEXT("CookingRackKit") || Stations[Index] == TEXT("CookingRack")
+                || Stations[Index] == TEXT("CauldronKit") || Stations[Index] == TEXT("Cauldron")
+                || Stations[Index] == TEXT("FryingPanKit") || Stations[Index] == TEXT("FryingPan");
         }
         if (!Stations.IsEmpty()) Text += TEXT(".\n");
         if (bNeedsHeat)
