@@ -3,71 +3,99 @@
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaPlacementPreview.h"
 #include "Misc/AutomationTest.h"
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRecipeBrowseTest, "Kalmala.UI.Crafting.LocalBrowsing",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
 {
     auto* Widget = NewObject<UKalmalaCraftingWidget>();
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
-    const auto All = Widget->GetVisibleRecipeIndices();
-    TestEqual(TEXT("All retains the existing catalogue"), All.Num(), Recipes.Num());
-    Widget->SetRecipeBrowse(TEXT("  zzz-no-recipe  "), 0, true);
-    TestEqual(TEXT("No results is bounded"), Widget->GetVisibleRecipeIndices().Num(), 0);
-    Widget->SetRecipeBrowse(TEXT(""), 2, true);
-    const auto Cooking = Widget->GetVisibleRecipeIndices();
-    TestTrue(TEXT("Cooking category is populated"), !Cooking.IsEmpty());
-    for (int32 Index : Cooking) TestTrue(TEXT("Cooking uses existing metadata"), Recipes[Index].ExperienceSkill == EKalmalaSkill::Cooking);
-    Widget->SetRecipeBrowse(TEXT(""), 1, false);
-    const auto Other = Widget->GetVisibleRecipeIndices();
-    TestEqual(TEXT("Categories partition the existing catalogue"), Other.Num() + Cooking.Num(), All.Num());
-    for (int32 Index : Other) TestTrue(TEXT("Other excludes cooking"), Recipes[Index].ExperienceSkill != EKalmalaSkill::Cooking);
-    if (!Cooking.IsEmpty())
-    {
-        Widget->SetRecipeBrowse(TEXT("  ") + Recipes[Cooking[0]].DisplayName.ToUpper() + TEXT("  "), 2, true);
-        TestTrue(TEXT("Trimmed case-insensitive name query retains recipe"), Widget->GetVisibleRecipeIndices().Contains(Cooking[0]));
-    }
-    Widget->SetRecipeBrowse(TEXT(""), 0, true);
-    const auto Sorted = Widget->GetVisibleRecipeIndices();
-    for (int32 I = 1; I < Sorted.Num(); ++I) TestTrue(TEXT("Names sort without modifying catalogue"),
-        Recipes[Sorted[I-1]].DisplayName.Compare(Recipes[Sorted[I]].DisplayName, ESearchCase::IgnoreCase) <= 0);
-    Widget->SetRecipeBrowse(TEXT(""), 0, false);
-    TestTrue(TEXT("Catalogue order restored exactly"), Widget->GetVisibleRecipeIndices() == All);
-    Widget->SetRecipeBrowse(TEXT(""), 3, false);
-    const auto Builds = Widget->GetVisibleRecipeIndices();
+    const auto BuildIndices = Widget->GetVisibleRecipeIndices();
     int32 ExpectedBuilds = 0;
-    for (const auto& Recipe : Recipes) if (FKalmalaPlacementPreview::IsSupportedKit(Recipe.Output)) ++ExpectedBuilds;
-    TestEqual(TEXT("All builds includes exactly supported catalogue outputs"), Builds.Num(), ExpectedBuilds);
-    TestTrue(TEXT("Builds are populated"), !Builds.IsEmpty());
-    int32 PreviousGroup = 0;
-    for (int32 Index : Builds)
+    for (int32 Index = 0; Index < Recipes.Num(); ++Index)
     {
-        const int32 Group = Widget->GetBuildBrowseGroup(Recipes[Index].Output);
-        TestTrue(TEXT("All builds groups structural, stations then utilities"), Group >= PreviousGroup);
-        PreviousGroup = Group;
+        if (!FKalmalaPlacementPreview::IsSupportedKit(Recipes[Index].Output)) continue;
+        ++ExpectedBuilds;
+        TestTrue(TEXT("Default Build view includes every supported placeable output"), BuildIndices.Contains(Index));
     }
+    TestEqual(TEXT("Default Build view excludes non-placeable production recipes"), BuildIndices.Num(), ExpectedBuilds);
+    TestTrue(TEXT("Build view starts populated"), !BuildIndices.IsEmpty());
+    for (const int32 Index : BuildIndices)
+        TestTrue(TEXT("Build view contains only supported placeables"), Widget->GetBuildBrowseGroup(Recipes[Index].Output) != 0);
+
+    const auto FindRecipe = [&Recipes](const FName RecipeId) -> const FKalmalaRecipe*
+    {
+        return Recipes.FindByPredicate([RecipeId](const FKalmalaRecipe& Recipe) { return Recipe.RecipeId == RecipeId; });
+    };
+    for (const FName RecipeId : { FName(TEXT("Campfire")), FName(TEXT("Workbench")), FName(TEXT("Forge")),
+             FName(TEXT("WorkbenchToolRack")), FName(TEXT("ForgeAnvil")), FName(TEXT("FryingPanRecipe")),
+             FName(TEXT("GrindingStone")) })
+    {
+        const FKalmalaRecipe* Recipe = FindRecipe(RecipeId);
+        if (TestNotNull(TEXT("Existing bootstrap/station placement recipe"), Recipe))
+        {
+            const int32 RecipeIndex = Recipes.IndexOfByPredicate([RecipeId](const FKalmalaRecipe& Candidate)
+                { return Candidate.RecipeId == RecipeId; });
+            TestTrue(TEXT("Bootstrap, station, and attachment output stays placeable"),
+                BuildIndices.Contains(RecipeIndex));
+        }
+    }
+    const FKalmalaRecipe* Workbench = FindRecipe(TEXT("Workbench"));
+    const FKalmalaRecipe* Forge = FindRecipe(TEXT("Forge"));
+    const FKalmalaRecipe* Floor = FindRecipe(TEXT("Floor"));
+    const FKalmalaRecipe* Pan = FindRecipe(TEXT("FryingPanRecipe"));
+    const FKalmalaRecipe* Stone = FindRecipe(TEXT("GrindingStone"));
+    const FKalmalaRecipe* ToolRack = FindRecipe(TEXT("WorkbenchToolRack"));
+    const FKalmalaRecipe* Anvil = FindRecipe(TEXT("ForgeAnvil"));
+    if (TestNotNull(TEXT("Bootstrap Workbench recipe"), Workbench))
+        TestTrue(TEXT("Bootstrap kit production remains available from Build"), Widget->CanBuildMenuCraftRecipe(*Workbench));
+    if (TestNotNull(TEXT("Bootstrap Forge recipe"), Forge))
+        TestTrue(TEXT("Forge construction remains available from Build"), Widget->CanBuildMenuCraftRecipe(*Forge));
+    if (TestNotNull(TEXT("Direct floor recipe"), Floor))
+        TestTrue(TEXT("Direct construction retains its material action"), Widget->CanBuildMenuCraftRecipe(*Floor));
+    if (TestNotNull(TEXT("Forge-required Frying Pan recipe"), Pan))
+        TestFalse(TEXT("Forge-required production stays in its service menu"), Widget->CanBuildMenuCraftRecipe(*Pan));
+    if (TestNotNull(TEXT("Workbench-required Grinding Stone recipe"), Stone))
+        TestFalse(TEXT("Workbench-required production stays in its service menu"), Widget->CanBuildMenuCraftRecipe(*Stone));
+    if (TestNotNull(TEXT("Workbench Tool Rack attachment recipe"), ToolRack))
+        TestFalse(TEXT("Tool Rack production stays in its service menu"), Widget->CanBuildMenuCraftRecipe(*ToolRack));
+    if (TestNotNull(TEXT("Forge Anvil attachment recipe"), Anvil))
+        TestFalse(TEXT("Anvil production stays in its service menu"), Widget->CanBuildMenuCraftRecipe(*Anvil));
+
+    Widget->SetRecipeBrowse(TEXT("  zzz-no-build  "), 3, true);
+    TestEqual(TEXT("No results stays inside Build scope"), Widget->GetVisibleRecipeIndices().Num(), 0);
+    Widget->SetRecipeBrowse(TEXT(""), 3, true);
+    const auto Sorted = Widget->GetVisibleRecipeIndices();
+    for (int32 I = 1; I < Sorted.Num(); ++I)
+        TestTrue(TEXT("Build names sort without modifying the catalogue"),
+            Recipes[Sorted[I - 1]].DisplayName.Compare(Recipes[Sorted[I]].DisplayName, ESearchCase::IgnoreCase) <= 0);
+
+    Widget->SetRecipeBrowse(TEXT(""), 3, false);
+    TestTrue(TEXT("Catalogue order restores the original Build result"), Widget->GetVisibleRecipeIndices() == BuildIndices);
     int32 PartitionCount = 0;
     for (int32 Group = 4; Group <= 6; ++Group)
     {
         Widget->SetRecipeBrowse(TEXT(""), Group, true);
         const auto Members = Widget->GetVisibleRecipeIndices();
-        TestTrue(TEXT("Every named build group is populated"), !Members.IsEmpty());
+        TestTrue(TEXT("Every named Build group is populated"), !Members.IsEmpty());
         PartitionCount += Members.Num();
-        for (int32 Index : Members) TestEqual(TEXT("Group excludes unrelated outputs"), Widget->GetBuildBrowseGroup(Recipes[Index].Output), Group);
+        for (int32 Index : Members)
+            TestEqual(TEXT("Build group excludes unrelated outputs"), Widget->GetBuildBrowseGroup(Recipes[Index].Output), Group);
         if (!Members.IsEmpty())
         {
             Widget->SetRecipeBrowse(TEXT("  ") + Recipes[Members[0]].DisplayName.ToUpper() + TEXT("  "), Group, true);
             TestTrue(TEXT("Build name search intersects category"), Widget->GetVisibleRecipeIndices().Contains(Members[0]));
         }
         Widget->SetRecipeBrowse(TEXT("zzz-no-build"), Group, false);
-        TestTrue(TEXT("Build no-results stays empty"), Widget->GetVisibleRecipeIndices().IsEmpty());
+        TestTrue(TEXT("Build category no-results stays empty"), Widget->GetVisibleRecipeIndices().IsEmpty());
     }
-    TestEqual(TEXT("Named groups partition all builds"), PartitionCount, Builds.Num());
-    TestEqual(TEXT("Floor structural"), Widget->GetBuildBrowseGroup(TEXT("FloorKit")), 4);
-    TestEqual(TEXT("Workbench station"), Widget->GetBuildBrowseGroup(TEXT("WorkbenchKit")), 5);
-    TestEqual(TEXT("Hearth utility"), Widget->GetBuildBrowseGroup(TEXT("CampfireKit")), 6);
-    TestEqual(TEXT("Unknown output excluded"), Widget->GetBuildBrowseGroup(TEXT("UnknownKit")), 0);
-    Widget->SetRecipeBrowse(TEXT(""), 0, false);
-    TestTrue(TEXT("Build browsing preserves complete source order"), Widget->GetVisibleRecipeIndices() == All);
+    TestEqual(TEXT("Named groups partition all placeable outputs"), PartitionCount, BuildIndices.Num());
+    TestEqual(TEXT("Floor is structural"), Widget->GetBuildBrowseGroup(TEXT("FloorKit")), 4);
+    TestEqual(TEXT("Workbench is a station"), Widget->GetBuildBrowseGroup(TEXT("WorkbenchKit")), 5);
+    TestEqual(TEXT("Hearth is a camp utility"), Widget->GetBuildBrowseGroup(TEXT("CampfireKit")), 6);
+    TestEqual(TEXT("Unknown output is excluded"), Widget->GetBuildBrowseGroup(TEXT("UnknownKit")), 0);
+    Widget->SetRecipeBrowse(TEXT(""), 3, false);
+    TestTrue(TEXT("Build browsing preserves full supported source order"), Widget->GetVisibleRecipeIndices() == BuildIndices);
     return true;
 }
 #endif

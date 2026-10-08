@@ -84,15 +84,15 @@ try {
         }
         if ($Rendered) {
             foreach ($peerName in @('host', 'client')) {
-                foreach ($suffix in @('', '-details', '-feedback', '-inspection', '-cooking', '-structural', '-stations', '-utilities', '-no-results', '-inventory-browse', '-build-costs', '-build-requirements', '-cook-costs', '-cook-requirements')) {
+                foreach ($suffix in @('', '-details', '-feedback', '-inspection', '-builds', '-structural', '-stations', '-utilities', '-no-results', '-inventory-browse', '-build-costs', '-build-requirements', '-station-kit-costs', '-station-kit-requirements')) {
                     $ready = $ready -and (Test-Path "$output\$peerName$suffix.png")
                 }
             }
             foreach ($peerText in @($serverText, $clientText)) {
-                foreach ($view in @('cooking', 'structural', 'stations', 'utilities', 'no-results', 'inventory-browse')) {
+                foreach ($view in @('builds', 'structural', 'stations', 'utilities', 'no-results', 'inventory-browse')) {
                     $ready = $ready -and $peerText.Contains("Browsing review: View=$view Passed=1")
                 }
-                foreach ($view in @('build-costs', 'build-requirements', 'cook-costs', 'cook-requirements')) {
+                foreach ($view in @('build-costs', 'build-requirements', 'station-kit-costs', 'station-kit-requirements')) {
                     $ready = $ready -and $peerText.Contains("Ingredient review: View=$view Passed=1")
                 }
                 $ready = $ready -and $peerText.Contains('Construction feedback: Passed=1') `

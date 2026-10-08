@@ -15,6 +15,7 @@ class UKalmalaCraftingComponent;
 class AKalmalaConstructionActor;
 class APawn;
 class UKalmalaStationContextWidget;
+struct FKalmalaRecipe;
 
 UCLASS()
 class KALMALAUI_API UKalmalaInteractionPromptWidget : public UUserWidget
@@ -70,6 +71,7 @@ public:
     TArray<int32> GetVisibleRecipeIndices() const;
     static int32 GetBuildBrowseGroup(FName Output);
     static FString GetBrowseCategoryLabel(int32 Category);
+    static bool CanBuildMenuCraftRecipe(const FKalmalaRecipe& Recipe);
     void EnablePlacementPreview();
 protected:
     virtual void NativeOnInitialized() override;
@@ -174,7 +176,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeSortLabel;
     UPROPERTY(Transient) FEditableTextBoxStyle RecipeSearchStyle;
     FString RecipeQuery;
-    int32 RecipeCategory = 0;
+    int32 RecipeCategory = 3;
     bool bRecipeNameSort = false;
     int32 Selected = 0;
     FName StationFilterKit;

@@ -2208,3 +2208,24 @@ explicit no-fuel/full reasons; `Verify-PresentationOwnership.ps1` checks the
 existing server-owned raw-fuel route and owner-local prompt source. Run the
 host/client runtime and rendered prompt review with the M12 milestone-final
 verification.
+
+## M12 Build catalogue scope
+
+The standalone Construction Hammer menu defaults to the supported placeable
+catalogue and cycles only All builds, Structural pieces, Stations and Camp
+utilities. Bootstrap construction remains available. Station-required item
+production and station attachments remain in their matching Workbench/Forge
+service section; their placeable outputs stay in Build for preview/placement,
+but production is disabled there. The existing selected-output ingredient
+counts, direct-material cost substitution, local preview and server placement
+routes remain intact.
+
+The `Kalmala.UI.Crafting.LocalBrowsing` automation checks that the default Build
+grid equals the supported placement outputs, includes the bootstrap/station/
+attachment recipes, excludes non-placeable outputs, and rejects Build-menu
+production for service-only recipes. `Verify-Crafting.ps1 -Rendered` reviews
+All builds and its named groups plus bootstrap and station-kit costs/requirements
+on both peers. Workbench/Forge scope markers continue to check their production
+lists. Run the affected UI build, full queue, host/client rendered matrix,
+presentation ownership and documentation checks during M12 milestone-final
+verification; this child does not claim those runtime results.

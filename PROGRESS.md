@@ -12367,3 +12367,63 @@ while preserving required recipe production and preview behavior.
 Main-checkout handoff synchronization: Complete. Inspected the dirty main
 BACKLOG.md and PROGRESS.md versions; applied only this selected child and this
 progress entry, preserving all existing edits.
+
+
+## Run 2026-10-08 — Scope the Build catalogue
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in the retained clean worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`;
+the dirty main checkout was preserved.
+
+Completed exactly the first unchecked child of M12 goal 7. The standalone
+Construction Hammer Build menu now opens to the supported placeable outputs
+and cycles only All builds, Structural pieces, Stations, and Camp utilities.
+Bootstrap construction stays available. Supported station-required outputs
+and station attachments remain selectable for placement, while their
+production action is disabled in Build and directs the player to its matching
+Workbench/Forge service section. Placement and preview stay scoped to the
+standalone Build context. Existing ingredient counts, direct-material cost
+substitution, selected-output details, and server placement requests remain in
+place. The focused browse fixture and rendered review stages now cover the
+Build-only catalogue and station-kit costs instead of showing cooking recipes
+in the Build view.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`;
+`Source/KalmalaUI/Private/Tests/KalmalaRecipeBrowseTest.cpp`;
+`Scripts/Verify-Crafting.ps1`; `docs/07-development-setup.md`;
+`docs/10-campfire-and-crafting.md`; `docs/38-menu-browsing.md`;
+`BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks passed: presentation-ownership validator, all five M5
+documentation contracts, changed verifier PowerShell parser validation, and
+`git diff --check`. Manual source/catalogue review confirmed all supported
+placeables remain in the grid, service production remains station-scoped,
+Build-only actions guard service production, and preview/place retain the
+existing supported-kit route. No Unreal build, automation test queue, live
+host/client, rendered menu, controller, or package check was run. Full M12
+verification remains deferred; this is a normal child, not the milestone-final
+task.
+
+Observable impact: Build browsing now presents construction and placement
+choices without exposing station-service production recipes.
+
+Networking/authority: The UI filter and guards add no RPC, replication, or save
+contract. Existing station and placement server routes still authorize and
+validate each transaction; no client-supplied recipe, item, station, or kit is
+trusted by the server.
+
+Known limitations: Changed C++ and the focused automation are uncompiled and
+unrun; host/client behavior, rendered readability, controller navigation,
+preview placement pixels, and packaged behavior remain for M12 final
+verification. The following goal-7 cleanup child still removes obsolete
+inventory/food/fire/repair/upgrade/storage controls from Build.
+
+Next eligible task: M12 goal 7, remove obsolete inventory, food, fire, repair,
+upgrade, storage actions and unrelated lists from Build after confirming their
+destination menus are integrated; retain the passive rack/anvil cross-context
+regressions.
+
+Main-checkout handoff synchronization: Pending. Inspect the dirty main-checkout
+versions and synchronize only this selected BACKLOG child and this PROGRESS
+entry after the worktree commit; preserve all other changes.
