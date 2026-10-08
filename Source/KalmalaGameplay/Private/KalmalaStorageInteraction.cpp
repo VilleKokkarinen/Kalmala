@@ -154,8 +154,17 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
     else if (AKalmalaConstructionActor::IsStorageKit(Construction->GetConstructionKit()))
     {
         const bool bAccepted = OpenStorageFromServer(Construction);
+        if (bAccepted)
+        {
+            LastStationContextActor = Construction;
+            LastStationContextKit = Kit;
+            LastStationContextConstructionId = Construction->GetConstructionId();
+            StationContextInteractionSerial = StationContextInteractionSerial == TNumericLimits<uint32>::Max()
+                ? 1 : StationContextInteractionSerial + 1;
+            GetOwner()->ForceNetUpdate();
+        }
         PublishResult(bAccepted
-            ? TEXT("Chest inspected; use Camp crafting to transfer items")
+            ? TEXT("Chest storage opened")
             : TEXT("Storage unavailable"), bAccepted);
     }
     else if (Kit == TEXT("CookingRackKit"))
@@ -173,10 +182,12 @@ bool UKalmalaCraftingComponent::IsStationContextTargetCurrent(AKalmalaConstructi
     const FName ExpectedKit, const FString& ExpectedConstructionId) const
 {
     const AKalmalaCharacter* Character = GetCharacter();
+    const bool bStorageContext = AKalmalaConstructionActor::IsStorageKit(ExpectedKit);
     if (!Character || !Character->GetController() || !IsValid(ExpectedActor)
         || ExpectedActor != LastStationContextActor.Get() || ExpectedKit != LastStationContextKit
         || ExpectedConstructionId.IsEmpty() || ExpectedConstructionId != LastStationContextConstructionId
-        || !AKalmalaConstructionActor::IsCraftingStationKit(ExpectedKit)) return false;
+        || (!AKalmalaConstructionActor::IsCraftingStationKit(ExpectedKit) && !bStorageContext)
+        || (bStorageContext && !bStorageViewOpen)) return false;
     const FVector CharacterLocation = Character->GetActorLocation();
     const FVector StationLocation = ExpectedActor->GetActorLocation();
     const float Range = Character->GetInteractionRange();

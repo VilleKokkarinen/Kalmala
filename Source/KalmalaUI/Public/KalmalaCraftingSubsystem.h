@@ -52,6 +52,7 @@ public:
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
+    bool VerifyStorageContextScopeForTest();
     bool VerifyCookingRackScopeForTest();
     bool VerifyCauldronScopeForTest();
     bool VerifyFryingPanScopeForTest();
@@ -144,6 +145,12 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolProgressionText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> InventoryInspector;
+    UPROPERTY(Transient) TObjectPtr<class UVerticalBox> StorageContextPanel;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageContextStatusText;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> StoragePackInspector;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> StorageContentsInspector;
+    UPROPERTY(Transient) TObjectPtr<UButton> StorageStoreButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> StorageWithdrawButton;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;
     UPROPERTY(Transient) TObjectPtr<UButton> PlacementPreviewButton;
@@ -190,6 +197,7 @@ private:
     bool bForgeUpgradeContext = false;
     bool bForgeRepairContext = false;
     bool bWorkbenchRepairContext = false;
+    bool bStorageContext = false;
     bool bWorkbenchRepairPending = false;
 #if !UE_BUILD_SHIPPING
     uint32 WorkbenchRepairRequestCountForTest = 0;
@@ -197,6 +205,7 @@ private:
     uint32 CookingRackCraftRequestCountForTest = 0;
     uint32 CauldronCraftRequestCountForTest = 0;
     uint32 FryingPanCraftRequestCountForTest = 0;
+    uint32 StorageTransferRequestCountForTest = 0;
 #endif
     bool bPreviousMoveInputIgnored = false;
     bool bPreviousLookInputIgnored = false;

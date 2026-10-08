@@ -2150,3 +2150,29 @@ context request suppression. `Verify-PresentationOwnership.ps1` checks the
 owner-local availability read and existing recipe-ID/batch request route. Run
 the prepared checks with the full rendered menu matrix during M12 milestone-final
 verification.
+
+## M12 Chest storage menu
+
+An accepted Chest interaction opens the shared station shell in Store. Its pack
+selector reads only the local owner's current pack; its chest selector reads the
+existing owner-only `StorageView`. Both show item descriptions, icons, and
+counts. The summary reports occupied slots out of 16 for each destination and
+disables Store or Take when the selected item, stack, or destination capacity
+cannot accept one item. The UI submits only the selected item ID through the
+existing deposit/withdraw RPCs. On the server, each request refreshes and
+revalidates the exact active chest, visibility/range, current inventory, stack
+limits, and persistence before publishing inventory changes. Closing or losing
+the accepted chest context clears the private snapshot; no RPC or save schema
+is added.
+
+`Verify-Crafting.ps1 -Port <unused-port>` requires
+`Chest scope: OwnerPack=1 OwnerChest=1 Capacity=1 Route=1 StaleNoRequest=1
+UiScope=1` on both peers. Its focused marker checks the owner-local lists,
+capacity feedback, StorageKit interaction route, hidden unrelated actions, and
+no dispatch from a stale context. `Verify-PresentationOwnership.ps1` checks the
+owner-only replication conditions and selected-ID transfer routes.
+`Scripts/Verify-Storage.ps1 -Port <unused-port>` covers the live two-peer
+deposit/withdraw transactions, capacity/conservation, private snapshots, and
+restart persistence. Run those checks with the rendered Chest menu review in
+M12 milestone-final verification; the focused crafting marker alone does not
+replace the live transfer fixture.

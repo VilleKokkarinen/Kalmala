@@ -70,13 +70,15 @@ FString UKalmalaInventoryInspectWidget::ActionGuidance(FName Id, bool bTool)
     return TEXT("Use existing recipe, hearth or chest controls where this item is accepted. Inspection does not use or transfer an item.");
 }
 
-void UKalmalaInventoryInspectWidget::SetRows(const TArray<FKalmalaCatalogueRow>& InRows, int32 Scale, int32 Contrast)
+void UKalmalaInventoryInspectWidget::SetRows(const TArray<FKalmalaCatalogueRow>& InRows, int32 Scale, int32 Contrast,
+    const FString& InListLabel, const FString& InEmptyLabel, const bool bInAllowToolFilter)
 {
-    FString Key = FString::Printf(TEXT("%d|%d"), Scale, Contrast);
+    FString Key = FString::Printf(TEXT("%d|%d|%s|%s|%d"), Scale, Contrast, *InListLabel, *InEmptyLabel, bInAllowToolFilter);
     for (const auto& Row : InRows) Key += TEXT("|") + Row.Id.ToString() + Row.Name + Row.Detail + (Row.bCarriedTool ? TEXT("T") : TEXT("I"));
     if (Column && Key == LastRows) return;
     LastRows = Key;
     OwnerRows = InRows; TextScale = Scale; ContrastMode = Contrast;
+    ListLabel = InListLabel; EmptyLabel = InEmptyLabel; bAllowToolFilter = bInAllowToolFilter;
     Build(); Refilter();
 }
 
@@ -96,7 +98,7 @@ void UKalmalaInventoryInspectWidget::Refilter()
     const FName Old = GetSelectedItem();
     Rows.Reset();
     for (const auto& Row : OwnerRows)
-        if ((Category == 0 || Row.bCarriedTool == (Category == 2))
+        if ((!bAllowToolFilter || Category == 0 || Row.bCarriedTool == (Category == 2))
             && (Search.IsEmpty() || Row.Name.Contains(Search, ESearchCase::IgnoreCase))) Rows.Add(Row);
     if (Sort != 0)
         Rows.StableSort([this](const auto& A, const auto& B)
@@ -119,9 +121,10 @@ void UKalmalaInventoryInspectWidget::Refresh()
 {
     if (!Column) return;
     const auto& Theme = FKalmalaUITheme::Get();
-    Instructions->SetText(FText::FromString(TEXT("Inventory details. > marks the selected item.")));
+    Instructions->SetText(FText::FromString(ListLabel + TEXT(" details. > marks the selected item.")));
     Theme.ApplyText(*Instructions, Theme.BodySize, false, TextScale, ContrastMode);
     BrowseSearchStyle = SearchBox->GetWidgetStyle();
+    SearchBox->SetHintText(FText::FromString(FString::Printf(TEXT("Search %s by name"), *ListLabel.ToLower())));
     BrowseSearchStyle.SetFont(Theme.MakeFont(Theme.BodySize, false, TextScale));
     BrowseSearchStyle.SetBackgroundColor(ContrastMode != 0 ? Theme.HighContrastPanel : Theme.ButtonNormal);
     SearchBox->SetWidgetStyle(BrowseSearchStyle);
@@ -129,6 +132,7 @@ void UKalmalaInventoryInspectWidget::Refresh()
     const TCHAR* Categories[] = {TEXT("All"), TEXT("Items"), TEXT("Carried tools")};
     const TCHAR* Sorts[] = {TEXT("Owner order"), TEXT("Name"), TEXT("Category / name")};
     CastChecked<UTextBlock>(CategoryButton->GetContent())->SetText(FText::FromString(FString(TEXT("Category: ")) + Categories[Category]));
+    CategoryButton->SetVisibility(bAllowToolFilter ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     CastChecked<UTextBlock>(SortButton->GetContent())->SetText(FText::FromString(FString(TEXT("Sort: ")) + Sorts[Sort]));
     CastChecked<UTextBlock>(ClearButton->GetContent())->SetText(FText::FromString(TEXT("Clear search")));
     CastChecked<UTextBlock>(ClearButton->GetContent())->SetAutoWrapText(false);
@@ -137,8 +141,8 @@ void UKalmalaInventoryInspectWidget::Refresh()
         Theme.ApplyButton(*Button, ContrastMode);
         Theme.ApplyText(*CastChecked<UTextBlock>(Button->GetContent()), Theme.BodySize, false, TextScale, ContrastMode);
     }
-    Results->SetText(FText::FromString(OwnerRows.IsEmpty() ? TEXT("Your inventory is empty.") : Rows.IsEmpty()
-        ? TEXT("No results. Clear search or choose All to see your inventory.")
+    Results->SetText(FText::FromString(OwnerRows.IsEmpty() ? EmptyLabel : Rows.IsEmpty()
+        ? FString::Printf(TEXT("No results. Clear search or view all of %s."), *ListLabel.ToLower())
         : FString::Printf(TEXT("Showing %d of %d owner-visible entries."), Rows.Num(), OwnerRows.Num())));
     Theme.ApplyText(*Results, Theme.BodySize, false, TextScale, ContrastMode);
     for (UButton* Button : Buttons)

@@ -12191,3 +12191,58 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions and applied only this selected BACKLOG child and this appended PROGRESS
 entry; all other pre-existing modified and untracked main-checkout files remain
 untouched.
+
+## 2026-10-08 — M12 Chest interaction and storage menu
+
+Completed exactly the next M12 goal 7 child. A successful Chest interaction now
+opens the shared Store shell. It presents separate owner-local pack and
+owner-only chest selectors with names, item details, counts, and 16-stack
+capacity feedback. Store/Take submit only the selected item ID through the
+existing one-item Deposit/Withdraw RPCs. The shell validates the accepted
+StorageKit actor, stable construction ID, owner pawn, and current storage view;
+range loss, destruction, pawn replacement, or a cleared server view closes it.
+Added a focused host/client fixture marker for owner-list scope, capacity
+feedback, route selection, hidden unrelated controls, and stale-context
+no-request behavior. Updated the storage, interaction, and ownership docs.
+
+Files changed: `Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp`;
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`;
+`Source/KalmalaUI/Private/KalmalaInventoryInspectWidget.cpp`;
+`Source/KalmalaUI/Public/KalmalaInventoryInspectWidget.h`;
+`Scripts/Verify-Crafting.ps1`; `Scripts/Verify-PresentationOwnership.ps1`;
+`docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`;
+`docs/15-presentation-ownership.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: source review and `SetRows` call-site search; `git diff --check`; `Verify-PresentationOwnership.ps1`; all five contracts in
+`Verify-M5DocumentationContracts.ps1`; PowerShell parser checks for both
+changed verifier scripts; and changed-path MAX_PATH audit. All passed.
+Full verification is deferred: no Unreal build, C++ automation, two-peer
+runtime, rendered review, controller review, or package check is planned for
+this normal child increment.
+
+Observable impact: interacting with a Chest opens a focused transfer menu that
+shows the current pack and that chest's private contents, with clear counts and
+capacity limits.
+
+Networking/authority: The server accepts the Chest interaction and owns the
+active actor and stored contents. The pack and storage snapshots remain
+owner-only. The client submits only an item ID; the existing server checks the
+current pack, active visible/in-range chest, stack and slot capacity, and
+persistence before publishing the pack change. No RPC shape, authority rule,
+replicated field, or save schema was added.
+
+Known limitations: Changed C++ and the new scope marker remain uncompiled and
+unrun; live transactions/private peer snapshots, rendered scale/contrast,
+physical controller behavior, and packaged behavior remain for M12 final
+verification. The older CraftMenu storage controls remain available until the
+later Build-menu cleanup child.
+
+Next eligible task: M12 goal 7, retain Grinding Stone Interact/default E as one
+free Repair All action with no menu/confirmation and prepare its interaction
+regression.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions and applied only this selected BACKLOG child and this appended PROGRESS
+entry; all other pre-existing modified and untracked main-checkout files remain
+untouched.

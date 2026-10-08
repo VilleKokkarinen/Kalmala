@@ -58,6 +58,14 @@ selection or Forge Upgrade presentation. Repair rows read only the owning pawn's
 owner-only carried-tool array, show its real level and condition, and submit
 only the selected tool ID to the existing repair RPC. The response remains
 owner-only. The legacy CraftMenu path remains available.
+An accepted Chest interaction opens a Store section with separate selectors
+backed by the owning pawn's private pack and its owner-only current chest view.
+Each list shows the item's current count; the summary reports both 16-stack
+limits and disables a transfer when its current stack or destination slots are
+full. Store/Take submit only the selected item ID through the existing
+one-item server transactions, which revalidate the active chest and persist
+before changing the pack. Closing the shell, losing range, changing pawn, or
+destroying the chest expires the view and shell.
 While open, the local subsystem asks the owning crafting component to verify
 the same actor reference, stable ID, station kit, pawn world, and range. The
 server validated sight during the original interaction. It closes on target

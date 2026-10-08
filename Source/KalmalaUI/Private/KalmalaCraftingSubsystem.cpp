@@ -104,7 +104,8 @@ bool IsInWorldCookingStation(const FName KitId)
 bool IsStationContextShellKit(const FName KitId)
 {
     return KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
-        || KitId == TEXT("FryingPanKit") || KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit");
+        || KitId == TEXT("FryingPanKit") || KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit")
+        || KitId == TEXT("StorageKit");
 }
 
 bool IsStationContextSectionSupported(const FName KitId, const FString& Section)
@@ -116,7 +117,8 @@ bool IsStationContextSectionSupported(const FName KitId, const FString& Section)
             || Section.Equals(TEXT("Repair"), ESearchCase::IgnoreCase)))
         || (KitId == TEXT("ForgeKit") && (Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase)
             || Section.Equals(TEXT("Upgrade"), ESearchCase::IgnoreCase)
-            || Section.Equals(TEXT("Repair"), ESearchCase::IgnoreCase)));
+            || Section.Equals(TEXT("Repair"), ESearchCase::IgnoreCase)))
+        || (KitId == TEXT("StorageKit") && Section.Equals(TEXT("Store"), ESearchCase::IgnoreCase));
 }
 
 FString BuildForgeUpgradePresentationText(const UKalmalaCraftingComponent* Crafting)
@@ -136,6 +138,7 @@ FString GetInitialStationContextSection(const FName KitId)
 {
     if (KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit")) return TEXT("Craft");
     if (KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit") || KitId == TEXT("FryingPanKit")) return TEXT("Cook");
+    if (KitId == TEXT("StorageKit")) return TEXT("Store");
     return FString();
 }
 
@@ -517,6 +520,37 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Next item"), StorageActions)->OnClicked.AddDynamic(this, &ThisClass::NextStorageItem);
     AddButton(TEXT("Store one"), StorageActions,TEXT("Ask the server to move one selected item from your pack into the nearby chest."))->OnClicked.AddDynamic(this, &ThisClass::DepositStorage);
     AddButton(TEXT("Take one"), StorageActions,TEXT("Ask the server to move one selected item from the nearby chest into your pack."))->OnClicked.AddDynamic(this, &ThisClass::WithdrawStorage);
+    StorageContextPanel = WidgetTree->ConstructWidget<UVerticalBox>();
+    Column->AddChild(StorageContextPanel);
+    StationCraftExcludedWidgets.Add(StorageContextPanel);
+    StorageContextStatusText = WidgetTree->ConstructWidget<UTextBlock>();
+    StorageContextStatusText->SetAutoWrapText(true);
+    StorageContextPanel->AddChildToVerticalBox(StorageContextStatusText);
+    WrappedTextBlocks.Add(StorageContextStatusText);
+    auto* StorageSelectors = WidgetTree->ConstructWidget<UHorizontalBox>();
+    StorageContextPanel->AddChildToVerticalBox(StorageSelectors);
+    auto* PackColumn = WidgetTree->ConstructWidget<UVerticalBox>();
+    StorageSelectors->AddChildToHorizontalBox(PackColumn)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    auto* PackHeading = WidgetTree->ConstructWidget<UTextBlock>();
+    PackHeading->SetText(FText::FromString(TEXT("Your pack")));
+    PackColumn->AddChildToVerticalBox(PackHeading);
+    StoragePackInspector = WidgetTree->ConstructWidget<UKalmalaInventoryInspectWidget>();
+    PackColumn->AddChildToVerticalBox(StoragePackInspector);
+    auto* ChestColumn = WidgetTree->ConstructWidget<UVerticalBox>();
+    StorageSelectors->AddChildToHorizontalBox(ChestColumn)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    auto* ChestHeading = WidgetTree->ConstructWidget<UTextBlock>();
+    ChestHeading->SetText(FText::FromString(TEXT("This chest")));
+    ChestColumn->AddChildToVerticalBox(ChestHeading);
+    StorageContentsInspector = WidgetTree->ConstructWidget<UKalmalaInventoryInspectWidget>();
+    ChestColumn->AddChildToVerticalBox(StorageContentsInspector);
+    auto* StorageContextActions = WidgetTree->ConstructWidget<UHorizontalBox>();
+    StorageContextPanel->AddChildToVerticalBox(StorageContextActions);
+    StorageStoreButton = AddButton(TEXT("Store one selected"), StorageContextActions,
+        TEXT("Move one selected item from your pack into this chest."));
+    StorageStoreButton->OnClicked.AddDynamic(this, &ThisClass::DepositStorage);
+    StorageWithdrawButton = AddButton(TEXT("Take one selected"), StorageContextActions,
+        TEXT("Move one selected item from this chest into your pack."));
+    StorageWithdrawButton->OnClicked.AddDynamic(this, &ThisClass::WithdrawStorage);
     InventoryInspector = WidgetTree->ConstructWidget<UKalmalaInventoryInspectWidget>();
     Column->AddChild(InventoryInspector);
     StationCraftExcludedWidgets.Add(InventoryInspector);
@@ -648,6 +682,8 @@ bool UKalmalaCraftingWidget::IsStationContextValid() const
     const UKalmalaCraftingComponent* Crafting = Model();
     return bOpen && bEmbeddedContext && IsValid(Station) && Character
         && Character == ContextOwnerPawn.Get() && Crafting
+        && (!bStorageContext || (StationFilterKit == TEXT("StorageKit")
+            && Station->GetConstructionKit() == TEXT("StorageKit") && Crafting->HasStorageView()))
         && Crafting->IsStationContextTargetCurrent(ContextStationActor.Get(), StationFilterKit, ContextConstructionId);
 }
 
@@ -770,6 +806,8 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
         && Section.Equals(TEXT("Cook"), ESearchCase::IgnoreCase);
     bFryingPanContext = bEmbeddedContext && StationFilterKit == TEXT("FryingPanKit")
         && Section.Equals(TEXT("Cook"), ESearchCase::IgnoreCase);
+    bStorageContext = bEmbeddedContext && StationFilterKit == TEXT("StorageKit")
+        && Section.Equals(TEXT("Store"), ESearchCase::IgnoreCase);
     bWorkbenchCraftContext = bEmbeddedContext && StationFilterKit == TEXT("WorkbenchKit")
         && Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase);
     bForgeCraftContext = bEmbeddedContext && StationFilterKit == TEXT("ForgeKit")
@@ -796,7 +834,13 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
 
     const FKalmalaItemDefinition* StationItem = UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit);
     const FString StationName = StationItem ? StationItem->DisplayName : StationFilterKit.ToString();
-    if (bCookingRackContext)
+    if (bStorageContext)
+    {
+        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Chest — Storage")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(
+            TEXT("Choose one item from your pack to store or one item in this chest to take. The server moves one item per action and checks capacity.")));
+    }
+    else if (bCookingRackContext)
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Cooking Rack — Cook")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
@@ -860,8 +904,8 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     const bool bCookingContext = bCookingRackContext || bCauldronContext || bFryingPanContext;
     const bool bStationCraftContext = bCookingContext || bWorkbenchCraftContext || bForgeCraftContext;
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
-    const bool bStationContext = bStationCraftContext || bForgeUpgradeContext || bRepairContext;
-    const bool bNonCraftSection = bRepairContext || bForgeUpgradeContext;
+    const bool bStationContext = bStationCraftContext || bForgeUpgradeContext || bRepairContext || bStorageContext;
+    const bool bNonCraftSection = bRepairContext || bForgeUpgradeContext || bStorageContext;
     const ESlateVisibility ExcludedVisibility = bStationContext
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible;
     for (UWidget* Excluded : StationCraftExcludedWidgets)
@@ -889,6 +933,8 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     if (WorkbenchRepairStatusText)
         WorkbenchRepairStatusText->SetVisibility(bRepairContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (StorageContextPanel)
+        StorageContextPanel->SetVisibility(bStorageContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (WorkbenchCraftSectionButton)
     {
         WorkbenchCraftSectionButton->SetVisibility(bWorkbenchContext
@@ -925,19 +971,19 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
             Label->SetText(FText::FromString(bForgeRepairContext ? TEXT("> Repair") : TEXT("Repair")));
     }
     if (StationContextStatusText)
-        StationContextStatusText->SetVisibility(bStationContext
+        StationContextStatusText->SetVisibility(bStationContext && !bStorageContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (UpgradeIronAxeButton)
-        UpgradeIronAxeButton->SetVisibility(bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bWorkbenchRepairContext
+        UpgradeIronAxeButton->SetVisibility(bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bWorkbenchRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (CraftBronzeAxeButton)
-        CraftBronzeAxeButton->SetVisibility(bCookingContext || bForgeCraftContext || bForgeUpgradeContext || bWorkbenchRepairContext
+        CraftBronzeAxeButton->SetVisibility(bCookingContext || bForgeCraftContext || bForgeUpgradeContext || bWorkbenchRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (ToolProgressionText)
-        ToolProgressionText->SetVisibility(bCookingContext || bForgeCraftContext || bRepairContext
+        ToolProgressionText->SetVisibility(bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (ToolProgressionActions)
-        ToolProgressionActions->SetVisibility(bCookingContext || bForgeCraftContext || bRepairContext
+        ToolProgressionActions->SetVisibility(bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 }
 
@@ -946,10 +992,18 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
     if (!StationContextStatusText) return;
     const bool bCookingContext = bCookingRackContext || bCauldronContext || bFryingPanContext;
     const bool bStationContext = bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bForgeUpgradeContext
-        || bWorkbenchRepairContext || bForgeRepairContext;
+        || bWorkbenchRepairContext || bForgeRepairContext || bStorageContext;
     if (!bStationContext)
     {
         StationContextStatusText->SetVisibility(ESlateVisibility::Collapsed);
+        return;
+    }
+    if (bStorageContext)
+    {
+        StationContextStatusText->SetVisibility(ESlateVisibility::Collapsed);
+        const bool bContextValid = StationFilterKit == TEXT("StorageKit") && IsStationContextValid();
+        if (StorageContextStatusText && !bContextValid)
+            StorageContextStatusText->SetText(FText::FromString(TEXT("Chest context expired. Interact with a nearby Chest again.")));
         return;
     }
     const AKalmalaConstructionActor* Station = ContextStationActor.Get();
@@ -1146,6 +1200,7 @@ void UKalmalaCraftingWidget::Close()
     bForgeUpgradeContext = false;
     bForgeRepairContext = false;
     bWorkbenchRepairContext = false;
+    bStorageContext = false;
     bWorkbenchRepairPending = false;
     WorkbenchRepairPendingToolId = NAME_None;
     WorkbenchRepairResultToolId = NAME_None;
@@ -1516,6 +1571,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const bool bCookingRackScope = VerifyCookingRackScopeForTest();
     const bool bCauldronScope = VerifyCauldronScopeForTest();
     const bool bFryingPanScope = VerifyFryingPanScopeForTest();
+    const bool bChestScope = VerifyStorageContextScopeForTest();
     UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: BronzeAxe=%d GrindingStone=%d ToolRack=%d NoUnrelated=%d ToolPrerequisites=%d UiScope=%d"),
         bBronzeAxeScoped, bHasGrindingStone, bHasToolRack, bNoUnrelatedRecipes, bToolPrerequisites, bWorkbenchUiScope);
     UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d ForgeAnvil=%d Materials=%d Station=%d NoUnrelated=%d Route=%d UiScope=%d"),
@@ -1528,7 +1584,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && bToolPrerequisites && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
         && bForgeRepairScope
         && bHasFryingPan && bHasForgeAnvil && bFryingPanRequirements && bForgeOnlyRecipes
-        && bForgeInteractionRoute && bForgeUiScope && bCookingRackScope && bCauldronScope && bFryingPanScope;
+        && bForgeInteractionRoute && bForgeUiScope && bCookingRackScope && bCauldronScope && bFryingPanScope
+        && bChestScope;
 }
 
 bool UKalmalaCraftingWidget::VerifyCookingRackScopeForTest()
@@ -2380,6 +2437,83 @@ bool UKalmalaCraftingWidget::VerifyWorkbenchRepairScopeForTest()
     return bOwnerOnlySource && bToolRows && bCondition && bSelected && bCraftSelectionSeparate
         && bInvalidContextNoRequest && bUiScope;
 }
+
+bool UKalmalaCraftingWidget::VerifyStorageContextScopeForTest()
+{
+    UKalmalaCraftingComponent* Crafting = Model();
+    if (!bOpen || !Crafting || !StorageContextPanel || !StoragePackInspector
+        || !StorageContentsInspector || !StorageStoreButton || !StorageWithdrawButton) return false;
+    const FName PreviousKit = StationFilterKit;
+    const bool bPreviousEmbedded = bEmbeddedContext;
+    const bool bPreviousStorage = bStorageContext;
+    const TWeakObjectPtr<AKalmalaConstructionActor> PreviousActor = ContextStationActor;
+    const TWeakObjectPtr<APawn> PreviousOwner = ContextOwnerPawn;
+    const FString PreviousConstructionId = ContextConstructionId;
+    const FString PreviousSection = StationContextSection;
+    const FName StorageKit(TEXT("StorageKit"));
+    const FString StoreSection(TEXT("Store"));
+    const bool bRoute = IsStationContextShellKit(StorageKit)
+        && IsStationContextSectionSupported(StorageKit, StoreSection)
+        && GetInitialStationContextSection(StorageKit) == StoreSection;
+    StationFilterKit = TEXT("StorageKit");
+    StationContextSection = TEXT("Store");
+    bEmbeddedContext = true;
+    bStorageContext = true;
+    ContextStationActor.Reset();
+    ContextOwnerPawn.Reset();
+    ContextConstructionId.Reset();
+    ApplyStationCraftLayout();
+    Refresh();
+
+    const auto* Inventory = GetOwningPlayerPawn()
+        ? GetOwningPlayerPawn()->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    const int32 ExpectedChestRows = Crafting->HasStorageView() ? Crafting->GetStorageView().Num() : 0;
+    const bool bOwnerPackRows = Inventory
+        && StoragePackInspector->GetVisibleCount() == Inventory->GetStacks().Num();
+    const bool bOwnerChestRows = StorageContentsInspector->GetVisibleCount() == ExpectedChestRows;
+    const FString CapacityStatus = StorageContextStatusText ? StorageContextStatusText->GetText().ToString() : FString();
+    const bool bCapacityFeedback = CapacityStatus.Contains(TEXT("Pack stacks:"))
+        && CapacityStatus.Contains(TEXT("Chest stacks:")) && CapacityStatus.Contains(TEXT("/ 16"));
+    const bool bUiScope = StorageContextPanel->GetVisibility() == ESlateVisibility::Visible
+        && StoragePackInspector->GetVisibility() == ESlateVisibility::Visible
+        && StorageContentsInspector->GetVisibility() == ESlateVisibility::Visible
+        && InventoryInspector && InventoryInspector->GetVisibility() == ESlateVisibility::Collapsed
+        && RecipeSearchBox && RecipeSearchBox->GetVisibility() == ESlateVisibility::Collapsed
+        && RecipeGrid && RecipeGrid->GetVisibility() == ESlateVisibility::Collapsed
+        && CraftButton && CraftButton->GetVisibility() == ESlateVisibility::Collapsed
+        && WorkbenchRepairInspector && WorkbenchRepairInspector->GetVisibility() == ESlateVisibility::Collapsed
+        && StationContextStatusText && StationContextStatusText->GetVisibility() == ESlateVisibility::Collapsed
+        && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Collapsed
+        && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed
+        && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
+        && ToolProgressionText && ToolProgressionText->GetVisibility() == ESlateVisibility::Collapsed
+        && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Collapsed
+        && StorageStoreButton->GetVisibility() == ESlateVisibility::Visible && !StorageStoreButton->GetIsEnabled()
+        && StorageWithdrawButton->GetVisibility() == ESlateVisibility::Visible && !StorageWithdrawButton->GetIsEnabled();
+    bool bOtherControlsHidden = true;
+    for (const TObjectPtr<UWidget>& ExcludedWidget : WorkbenchRepairExcludedWidgets)
+        bOtherControlsHidden &= ExcludedWidget && ExcludedWidget->GetVisibility() == ESlateVisibility::Collapsed;
+    const uint32 RequestsBeforeStaleActions = StorageTransferRequestCountForTest;
+    DepositStorage();
+    WithdrawStorage();
+    const bool bStaleNoRequest = !IsStationContextValid()
+        && StorageTransferRequestCountForTest == RequestsBeforeStaleActions;
+
+    StationFilterKit = PreviousKit;
+    StationContextSection = PreviousSection;
+    bEmbeddedContext = bPreviousEmbedded;
+    bStorageContext = bPreviousStorage;
+    ContextStationActor = PreviousActor;
+    ContextOwnerPawn = PreviousOwner;
+    ContextConstructionId = PreviousConstructionId;
+    ApplyStationCraftLayout();
+    Refresh();
+
+    UE_LOG(LogTemp, Display, TEXT("Chest scope: OwnerPack=%d OwnerChest=%d Capacity=%d Route=%d StaleNoRequest=%d UiScope=%d"),
+        bOwnerPackRows, bOwnerChestRows, bCapacityFeedback, bRoute, bStaleNoRequest, bUiScope && bOtherControlsHidden);
+    return bOwnerPackRows && bOwnerChestRows && bCapacityFeedback && bRoute && bStaleNoRequest
+        && bUiScope && bOtherControlsHidden;
+}
 #endif
 
 void UKalmalaCraftingWidget::Refresh()
@@ -2401,12 +2535,24 @@ void UKalmalaCraftingWidget::Refresh()
         UKalmalaSettingsWidget::GetContrastMode());
     TArray<FKalmalaCatalogueRow> InspectionRows;
     TArray<FKalmalaCatalogueRow> WorkbenchRepairRows;
+    TArray<FKalmalaCatalogueRow> StoragePackRows;
+    TArray<FKalmalaCatalogueRow> StorageContentsRows;
     const auto* OwnerPawn = GetOwningPlayerPawn();
-    if (const auto* Inventory = OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr)
-        for (const auto& Stack : Inventory->GetStacks())
+    const auto* OwnerInventory = OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    if (OwnerInventory)
+        for (const auto& Stack : OwnerInventory->GetStacks())
         {
             const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Stack.ItemId);
-            InspectionRows.Add({Stack.ItemId, Item ? Item->DisplayName : Stack.ItemId.ToString(),
+            const FKalmalaCatalogueRow Row{Stack.ItemId, Item ? Item->DisplayName : Stack.ItemId.ToString(),
+                FString::Printf(TEXT("Count %d"), Stack.Quantity), false};
+            InspectionRows.Add(Row);
+            StoragePackRows.Add(Row);
+        }
+    if (M->HasStorageView())
+        for (const auto& Stack : M->GetStorageView())
+        {
+            const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Stack.ItemId);
+            StorageContentsRows.Add({Stack.ItemId, Item ? Item->DisplayName : Stack.ItemId.ToString(),
                 FString::Printf(TEXT("Count %d"), Stack.Quantity), false});
         }
     if (const auto* Character = Cast<AKalmalaCharacter>(OwnerPawn))
@@ -2443,10 +2589,55 @@ void UKalmalaCraftingWidget::Refresh()
         LastDetailContrastMode = ContrastMode;
     }
     if (InventoryInspector) InventoryInspector->SetRows(InspectionRows, TextScalePercent, ContrastMode);
+    if (StoragePackInspector)
+        StoragePackInspector->SetRows(StoragePackRows, TextScalePercent, ContrastMode,
+            TEXT("Your pack"), TEXT("Your pack is empty."), false);
+    if (StorageContentsInspector)
+        StorageContentsInspector->SetRows(StorageContentsRows, TextScalePercent, ContrastMode,
+            TEXT("This chest"), M->HasStorageView() ? TEXT("This chest is empty.") : TEXT("Chest contents are unavailable."), false);
     if (WorkbenchRepairInspector)
     {
         WorkbenchRepairInspector->SetRows(WorkbenchRepairRows, TextScalePercent, ContrastMode);
         RefreshWorkbenchRepairState(M);
+    }
+    if (StorageContextStatusText)
+    {
+        const TArray<FKalmalaInventoryStack>& ChestStacks = M->GetStorageView();
+        const bool bStorageContextValid = bStorageContext && IsStationContextValid();
+        FString ContextStatus = FString::Printf(TEXT("Pack stacks: %d / %d · Chest stacks: %d / %d\nOne item moves per action."),
+            OwnerInventory ? OwnerInventory->GetStacks().Num() : 0, UKalmalaInventoryComponent::MaxSlots,
+            M->HasStorageView() ? ChestStacks.Num() : 0, UKalmalaInventoryComponent::MaxSlots);
+        const FName DepositId = StoragePackInspector ? StoragePackInspector->GetSelectedItem() : NAME_None;
+        const FName WithdrawId = StorageContentsInspector ? StorageContentsInspector->GetSelectedItem() : NAME_None;
+        const UKalmalaItemCatalogue* ItemsCatalogue = UKalmalaItemCatalogue::Get();
+        const auto* DepositStack = OwnerInventory ? OwnerInventory->GetStacks().FindByPredicate(
+            [DepositId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == DepositId; }) : nullptr;
+        const auto* ChestDepositStack = ChestStacks.FindByPredicate(
+            [DepositId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == DepositId; });
+        const bool bCanStoreSelected = DepositStack && ItemsCatalogue && ItemsCatalogue->FindItem(DepositId)
+            && M->HasStorageView()
+            && (ChestDepositStack
+                ? ItemsCatalogue->CanAddToStack(DepositId, ChestDepositStack->Quantity, 1)
+                : ChestStacks.Num() < UKalmalaInventoryComponent::MaxSlots);
+        const auto* ChestWithdrawStack = ChestStacks.FindByPredicate(
+            [WithdrawId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == WithdrawId; });
+        const auto* PackWithdrawStack = OwnerInventory ? OwnerInventory->GetStacks().FindByPredicate(
+            [WithdrawId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == WithdrawId; }) : nullptr;
+        const bool bCanTakeSelected = ChestWithdrawStack && OwnerInventory && ItemsCatalogue
+            && ItemsCatalogue->FindItem(WithdrawId)
+            && (PackWithdrawStack
+                ? ItemsCatalogue->CanAddToStack(WithdrawId, PackWithdrawStack->Quantity, 1)
+                : OwnerInventory->GetStacks().Num() < UKalmalaInventoryComponent::MaxSlots);
+        if (!M->HasStorageView()) ContextStatus += TEXT("\nChest view unavailable.");
+        else if (!bStorageContextValid) ContextStatus += TEXT("\nChest context expired. Interact with a nearby Chest again.");
+        else if (!bCanStoreSelected && !DepositId.IsNone()) ContextStatus += TEXT("\nStore unavailable: chest stack or slot capacity reached.");
+        else if (!bCanTakeSelected && !WithdrawId.IsNone()) ContextStatus += TEXT("\nTake unavailable: pack stack or slot capacity reached.");
+        else ContextStatus += TEXT("\nSelect a pack item to store or a chest item to take.");
+        StorageContextStatusText->SetText(FText::FromString(ContextStatus));
+        FKalmalaUITheme::Get().ApplyText(*StorageContextStatusText, FKalmalaUITheme::Get().BodySize,
+            false, TextScalePercent, ContrastMode);
+        if (StorageStoreButton) StorageStoreButton->SetIsEnabled(bStorageContextValid && bCanStoreSelected);
+        if (StorageWithdrawButton) StorageWithdrawButton->SetIsEnabled(bStorageContextValid && bCanTakeSelected);
     }
     if (!VisibleIndices.IsEmpty()) Selected=FMath::Clamp(Selected,0,VisibleIndices.Num()-1);
     RefreshRecipeGrid(VisibleIndices, M, TextScalePercent, ContrastMode);
@@ -2682,11 +2873,35 @@ void UKalmalaCraftingWidget::NextStorageItem()
 }
 void UKalmalaCraftingWidget::DepositStorage()
 {
+    if (bStorageContext)
+    {
+        auto* M = Model();
+        const FName ItemId = StoragePackInspector ? StoragePackInspector->GetSelectedItem() : NAME_None;
+        if (!M || !IsStationContextValid() || !M->HasStorageView() || ItemId.IsNone()
+            || !StorageStoreButton || !StorageStoreButton->GetIsEnabled()) return;
+#if !UE_BUILD_SHIPPING
+        ++StorageTransferRequestCountForTest;
+#endif
+        M->ServerDepositStorage(ItemId);
+        return;
+    }
     const auto& Items = UKalmalaItemCatalogue::Get()->Items;
     if (auto* M=Model(); M && Items.IsValidIndex(SelectedStorageItem)) M->ServerDepositStorage(Items[SelectedStorageItem].ItemId);
 }
 void UKalmalaCraftingWidget::WithdrawStorage()
 {
+    if (bStorageContext)
+    {
+        auto* M = Model();
+        const FName ItemId = StorageContentsInspector ? StorageContentsInspector->GetSelectedItem() : NAME_None;
+        if (!M || !IsStationContextValid() || !M->HasStorageView() || ItemId.IsNone()
+            || !StorageWithdrawButton || !StorageWithdrawButton->GetIsEnabled()) return;
+#if !UE_BUILD_SHIPPING
+        ++StorageTransferRequestCountForTest;
+#endif
+        M->ServerWithdrawStorage(ItemId);
+        return;
+    }
     const auto& Items = UKalmalaItemCatalogue::Get()->Items;
     if (auto* M=Model(); M && Items.IsValidIndex(SelectedStorageItem)) M->ServerWithdrawStorage(Items[SelectedStorageItem].ItemId);
 }
