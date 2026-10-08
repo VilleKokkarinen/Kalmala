@@ -115,3 +115,32 @@ and integration children.
 
 This is presentation metadata only. It changes no gameplay identity,
 inventory rule, network authority, RPC, replicated field, or save schema.
+
+## Batch 02 review — 2026-10-08
+
+Completed the pinned Stone, Iron, Fibre, and PeatAmber batch. The retained
+originals are 1254×1254 RGBA PNGs in
+`Content/Kalmala/UI/Source/IconOriginals/`; the prepared import files are
+transparent 64×64 RGBA PNGs in `Content/Kalmala/UI/Source/Icons/`. All four
+were reviewed at native size alongside Wood and the batch 01 icons. Stone
+reads as a three-stone gray cluster, Iron as charcoal ore with pale metallic
+veins, Fibre as pale reed strands tied with a muted green band, and PeatAmber
+as dark peat with honey-amber inclusions. Their silhouettes remain distinct
+at 64×64.
+
+The prompt set kept the batch 01 framing and treatment: centered close-up
+material icons with warm soft light, ivory edge highlights, a thin dark
+contour, transparent margins, and no text, UI chrome, badges, props, scenery,
+or watermark. Each asset used its own subject: cool-gray fieldstones; a dark
+iron-ore chunk with silver-gray seams; a tied bundle of pale reed fibres; and
+a compact peat chunk with visible amber deposits. The four batch 01 PNGs were
+style references only.
+
+`Scripts/Validate-CatalogueIcon.ps1` passed for each identity and confirmed
+the retained source, 64×64 RGBA final, non-opaque transparency, manifest row,
+and import target. These are prepared for import only; no `.uasset` was made,
+and current catalogue consumers remain on vector icons until the later
+import/integration children.
+
+This is presentation content only. It changes no gameplay identity,
+inventory rule, network authority, RPC, replicated field, or save schema.

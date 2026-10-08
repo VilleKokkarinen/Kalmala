@@ -12640,3 +12640,57 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 `BACKLOG.md` and `PROGRESS.md` before synchronization, applied only this
 selected child and appended progress entry, and preserved all existing
 unrelated modified and untracked files.
+
+
+## Run 2026-10-08T11:24:47Z — Generate catalogue icon batch 02
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`; the main checkout contains pre-existing
+changes and is being preserved.
+
+Completed exactly the next M12 goal 8 child. Generated original Stone, Iron,
+Fibre, and PeatAmber icons using the batch 01 icons as style references only.
+Retained each generated 1254×1254 RGBA source and prepared a matching
+transparent 64×64 RGBA import PNG. Reviewed the four final images at native
+size alongside Wood and confirmed their material silhouettes remain distinct.
+
+Files changed: `Content/Kalmala/UI/Source/IconOriginals/Stone.png`;
+`Content/Kalmala/UI/Source/Icons/Stone.png`;
+`Content/Kalmala/UI/Source/IconOriginals/Iron.png`;
+`Content/Kalmala/UI/Source/Icons/Iron.png`;
+`Content/Kalmala/UI/Source/IconOriginals/Fibre.png`;
+`Content/Kalmala/UI/Source/Icons/Fibre.png`;
+`Content/Kalmala/UI/Source/IconOriginals/PeatAmber.png`;
+`Content/Kalmala/UI/Source/Icons/PeatAmber.png`;
+`docs/43-catalogue-icon-manifest.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Validate-CatalogueIcon.ps1 -Id Stone`,
+`-Id Iron`, `-Id Fibre`, and `-Id PeatAmber` confirmed each retained source is
+1254×1254 RGBA and each final is 64×64 RGBA with transparency and its pinned
+manifest/import identity. Manually reviewed the four finals beside batch 01 at
+native size; `git diff --check` passed, and all changed paths are below
+MAX_PATH (longest: 96 characters). No Unreal import/build, automation,
+runtime/rendered/controller check, or package check was run. Full M12
+verification remains deferred; this is a normal child, not the milestone-final
+task.
+
+Observable impact: the first eight of 48 canonical catalogue icon identities
+now have retained originals and validated prepared PNGs ready for import.
+
+Networking/authority: presentation assets and documentation only; no gameplay,
+RPC, replication, authority, or save contract changed.
+
+Known limitations: the four PNGs have not been imported as Unreal `.uasset`
+files, and live catalogue consumers remain on vector icons. Forty manifest
+identities and later batch imports, menu integration, and rendered checks
+remain open.
+
+Next eligible task: M12 goal 8, generate and review batch 03 for FrostSalt,
+MirelingAsh, CampfireKit, and WorkbenchKit.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md` versions before editing, applied only this
+selected child and appended this progress entry, and preserved all existing
+modified and untracked changes.
