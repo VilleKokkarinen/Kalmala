@@ -91,5 +91,27 @@ labels, UI chrome, or badges into the image. The project source and prepared
 PNG remain separate from the imported `.uasset`; actual batch imports and
 cross-view consumption are later children.
 
+## Batch 01 review — 2026-10-08
+
+Completed the pinned Wood, Lightwood, Densewood, and Coal batch. Wood is the
+previously prepared pilot; its 1254×1254 original and transparent 64×64 final
+were reviewed beside the three new identities. New source images are retained
+at `Content/Kalmala/UI/Source/IconOriginals/<ID>.png`; prepared import images
+are at `Content/Kalmala/UI/Source/Icons/<ID>.png`.
+
+The prompts kept one visual family: a close, centered, hand-painted bundle or
+cluster, soft warm light, a strong dark contour, a transparent margin, no
+background or labels, and a silhouette that survives 64×64 reduction.
+Lightwood uses pale birch-like crossed logs, Densewood uses dark dense-grained
+hardwood logs, and Coal uses three graphite-black fuel chunks. Each final image
+was inspected at 64×64 beside Wood; the timber values and coal silhouette
+remain distinct at native size. `Scripts/Validate-CatalogueIcon.ps1` passed
+for Lightwood, Densewood, and Coal, confirming retained 1254×1254 RGBA source
+images and transparent 64×64 RGBA finals with the pinned import targets.
+
+These images are prepared for import only. No `.uasset` was created and
+existing menu consumers continue to use vector icons until the later import
+and integration children.
+
 This is presentation metadata only. It changes no gameplay identity,
 inventory rule, network authority, RPC, replicated field, or save schema.

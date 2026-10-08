@@ -12585,3 +12585,58 @@ the existing Wood pilot for consistent framing and native-size readability.
 Main-checkout handoff synchronization: Complete. Inspected both dirty main
 versions and applied only this selected BACKLOG child and appended PROGRESS
 entry; all unrelated modified and untracked main-checkout files remain untouched.
+
+
+## Run 2026-10-08T11:14:25Z — Generate catalogue icon batch 01
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`; the main checkout contains pre-existing
+changes and was preserved.
+
+Completed exactly the next M12 goal 8 child. Generated original Lightwood,
+Densewood, and Coal icon sources to complete batch 01 with the existing Wood
+pilot. Prepared transparent 64×64 RGBA PNGs for all three new identities and
+reviewed all four batch images together at native size. Lightwood reads as pale
+birch-like timber, Densewood as sturdy dark timber, and Coal as a compact black
+mineral cluster; all retain a clear silhouette and the shared hand-painted
+framing. The complete prompt set used crossed or clustered material subjects,
+warm soft light, dark contours, transparent margins, and no text, labels,
+badges, props, or scenery. Subject details are recorded in
+`docs/43-catalogue-icon-manifest.md`.
+
+Files changed: `Content/Kalmala/UI/Source/IconOriginals/Lightwood.png`;
+`Content/Kalmala/UI/Source/Icons/Lightwood.png`;
+`Content/Kalmala/UI/Source/IconOriginals/Densewood.png`;
+`Content/Kalmala/UI/Source/Icons/Densewood.png`;
+`Content/Kalmala/UI/Source/IconOriginals/Coal.png`;
+`Content/Kalmala/UI/Source/Icons/Coal.png`;
+`docs/43-catalogue-icon-manifest.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Validate-CatalogueIcon.ps1` for
+Lightwood, Densewood, and Coal (each source 1254×1254 RGBA; each final
+64×64 RGBA with transparency); manual native-size visual review of Wood and
+the three new finals; `git diff --check`; and changed-path MAX_PATH audit.
+No Unreal import/build, automation, runtime/rendered/controller check, or
+package check was run. Full M12 verification remains deferred; this is a
+normal child increment.
+
+Observable impact: the first four pinned catalogue icon identities now have
+retained originals and validated prepared PNGs ready for a later Unreal import.
+
+Networking/authority: presentation assets and documentation only; no gameplay,
+RPC, replication, authority, or save contract changed.
+
+Known limitations: the three new PNGs have not been imported as Unreal
+`.uasset` files, and live catalogue consumers remain on vector icons. The
+remaining image batches, texture imports, menu integration, and rendered
+verification are still open.
+
+Next eligible task: M12 goal 8, generate and review batch 02 for Stone, Iron,
+Fibre, and PeatAmber.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md` before synchronization, applied only this
+selected child and appended progress entry, and preserved all existing
+unrelated modified and untracked files.
