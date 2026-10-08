@@ -13092,6 +13092,7 @@ host/client acceptance, and M12 milestone-final verification remain open.
 Next eligible task: M12 goal 8, import/map texture batch C for the remaining
 sixteen manifest identities.
 
-Main-checkout handoff synchronization: pending; only `BACKLOG.md` and
-`PROGRESS.md` will be synchronized after inspecting the main versions. No
-implementation assets will be synchronized.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; applied only the selected batch B child update
+and this entry, preserving all earlier main-checkout changes. No implementation
+assets were synchronized.
