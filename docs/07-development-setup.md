@@ -1788,18 +1788,14 @@ host/client acceptance; they do not replace a live damaged-tool repair review.
 
 ### M9 owner-local tool progression feedback
 
-After the forced editor build, run `Scripts/Verify-Crafting.ps1 -Rendered`
-with an unused port. Require `M9 tool feedback: Passed=1` on both the listen
-server and joining client. The check covers owner-only carried-tool condition
-and upgrade comparison, target axe levels, authored material costs and carried
-quantities, station/skill prerequisites, one current blocker per upgrade, and
-selected-tool plus Grinding Stone Repair All guidance. The fixture
-captures both 1280x720 peers at the panel's initial scroll
-position; its M9 checks assert the off-screen tool-feedback text through the
-widget presentation seam, so the captures do not visually review the scrolled
-tool section. This fixture checks presentation and existing owner-local data
-flow; it adds no server request, gameplay authority, replicated field, or save
-schema.
+The former combined M9 Build-panel text probe was retired when M12 removed the
+legacy progression panel from standalone Build. Tool progression remains in
+its Workbench Craft and Forge Upgrade contexts. `Scripts/Verify-Crafting.ps1`
+requires both peer markers for the Workbench Bronze Axe prerequisites and
+passive Tool Rack status, plus Forge Upgrade requirements/comparison and the
+passive Anvil status. These checks inspect the current station-scoped
+presentation; they add no server request, gameplay authority, replicated
+field, or save schema.
 
 ### M9 Construction Hammer and direct builds
 
@@ -2229,3 +2225,22 @@ on both peers. Workbench/Forge scope markers continue to check their production
 lists. Run the affected UI build, full queue, host/client rendered matrix,
 presentation ownership and documentation checks during M12 milestone-final
 verification; this child does not claim those runtime results.
+
+## M12 Build context cleanup
+
+Standalone Build retains placeable browsing, material details, local preview,
+placement, latest action feedback, and the explicit **Light hearth** action.
+The old pack inspector, food controls, raw-fuel button, repair/upgrade panels,
+and chest lists are removed from Build. Inventory/food use lives in Inventory;
+repair and upgrade live in Workbench/Forge contexts; storage lives in Chest.
+Campfire Interact replaces the raw-fuel button, but it only refuels, so the
+separate Light action remains until an equivalent relight route is integrated.
+
+After an affected UI build, `Verify-Crafting.ps1` requires
+`Build context cleanup: ObsoleteHidden=1 Placement=1 Relight=1 Status=1
+StorageShell=1` on both peers, alongside Workbench `PassiveRack=1` and Forge
+`PassiveAnvil=1`. Its rendered matrix captures the cleaned standalone Build
+menu and verifies the clean view after category/no-results recovery. Run the
+full queue, host/client rendered matrix, ownership and documentation checks
+during M12 milestone-final verification; this child does not claim those
+runtime results.

@@ -53,6 +53,10 @@ the owner's tool, material, and skill snapshots for prerequisites; the accepted
 Forge's effective level and Anvil state stay tied to the exact context actor.
 The existing progression RPC remains responsible for authoritative checks,
 material exchange, and persistence.
+These passive Workbench Tool Rack and Forge Anvil status lines remain visible
+in their parent Craft sections. The standalone Build menu no longer duplicates
+inventory, food, repair, upgrade, or storage controls; it keeps placement and
+the Light hearth action, while raw-fuel addition uses Campfire Interact.
 The owner can switch to a separate Repair section without changing the recipe
 selection or Forge Upgrade presentation. Repair rows read only the owning pawn's
 owner-only carried-tool array, show its real level and condition, and submit

@@ -42,20 +42,16 @@ try {
             -and $clientText.Contains('Crafting presentation: Passed=1 Restored=1') `
             -and $serverText.Contains('Interaction prompt modal: Hidden=1') `
             -and $clientText.Contains('Interaction prompt modal: Hidden=1') `
-            -and $serverText.Contains('M9 tool feedback: Passed=1') `
-            -and $clientText.Contains('M9 tool feedback: Passed=1') `
-            -and $serverText.Contains('Inventory inspection: FocusAndKeys=1') `
-            -and $clientText.Contains('Inventory inspection: FocusAndKeys=1') `
             -and $serverText.Contains('M9 camp feedback: Passed=1') `
             -and $clientText.Contains('M9 camp feedback: Passed=1')
         $ready = $ready -and $serverText.Contains('Grinding Stone interaction: AcceptedOnce=1 NoExtraMutation=1 ActionOnlyFeedback=1 NoMenu=1')
         $ready = $ready -and $serverText.Contains('Campfire interaction: AddedOne=1 NoLighting=1 FullRejected=1 NoFuelRejected=1 RangeRejected=1')
         foreach ($peerText in @($serverText, $clientText)) {
-            $ready = $ready -and $peerText.Contains('Inventory browsing: CategoryKey=1 SortKey=1 NoResults=1 Restored=1')
+            $ready = $ready -and $peerText.Contains('Build context cleanup: ObsoleteHidden=1 Placement=1 Relight=1 Status=1 StorageShell=1')
             $ready = $ready -and $peerText.Contains('Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1 SearchFocus=1')
             $ready = $ready -and $peerText.Contains('Build browsing: Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1')
-            $ready = $ready -and $peerText.Contains('Workbench Craft scope: BronzeAxe=1 GrindingStone=1 ToolRack=1 NoUnrelated=1 ToolPrerequisites=1 UiScope=1')
-            $ready = $ready -and $peerText.Contains('Forge Craft scope: FryingPan=1 ForgeAnvil=1 Materials=1 Station=1 NoUnrelated=1 Route=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Workbench Craft scope: BronzeAxe=1 GrindingStone=1 ToolRack=1 NoUnrelated=1 ToolPrerequisites=1 PassiveRack=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Forge Craft scope: FryingPan=1 ForgeAnvil=1 Materials=1 Station=1 NoUnrelated=1 Route=1 PassiveAnvil=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Cooking Rack scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Cauldron scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Frying Pan scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
@@ -84,12 +80,12 @@ try {
         }
         if ($Rendered) {
             foreach ($peerName in @('host', 'client')) {
-                foreach ($suffix in @('', '-details', '-feedback', '-inspection', '-builds', '-structural', '-stations', '-utilities', '-no-results', '-inventory-browse', '-build-costs', '-build-requirements', '-station-kit-costs', '-station-kit-requirements')) {
+                foreach ($suffix in @('', '-details', '-feedback', '-build-menu', '-builds', '-structural', '-stations', '-utilities', '-no-results', '-build-clean', '-build-costs', '-build-requirements', '-station-kit-costs', '-station-kit-requirements')) {
                     $ready = $ready -and (Test-Path "$output\$peerName$suffix.png")
                 }
             }
             foreach ($peerText in @($serverText, $clientText)) {
-                foreach ($view in @('builds', 'structural', 'stations', 'utilities', 'no-results', 'inventory-browse')) {
+                foreach ($view in @('builds', 'structural', 'stations', 'utilities', 'no-results', 'build-clean')) {
                     $ready = $ready -and $peerText.Contains("Browsing review: View=$view Passed=1")
                 }
                 foreach ($view in @('build-costs', 'build-requirements', 'station-kit-costs', 'station-kit-requirements')) {
@@ -98,7 +94,7 @@ try {
                 $ready = $ready -and $peerText.Contains('Construction feedback: Passed=1') `
                     -and $peerText.Contains('Crafting review scroll: Section=Details Passed=1') `
                     -and $peerText.Contains('Crafting review scroll: Section=Feedback Passed=1')
-                $ready = $ready -and $peerText.Contains('Inventory detail review: Scrolled=1')
+                $ready = $ready -and $peerText.Contains('Build cleanup review: Passed=1')
             }
         }
         if ($ready) { break }
@@ -106,7 +102,7 @@ try {
     } while ((Get-Date) -lt $deadline)
     if (!$ready) { throw 'Crafting host/client scenario timed out.' }
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client identity mismatch.' }
-    Write-Output 'PASS: interaction prompt modal suppression, build-grid focus/selection/navigation/unavailable states, server validation/payment/atomicity gates, camp feedback, exact inventory, matching fires, and local menu input restoration.'
+    Write-Output 'PASS: interaction prompt modal suppression, cleaned Build context, build-grid focus/selection/navigation/unavailable states, server validation/payment/atomicity gates, camp feedback, exact inventory, matching fires, and local menu input restoration.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

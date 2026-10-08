@@ -12427,3 +12427,56 @@ regressions.
 Main-checkout handoff synchronization: Complete. Inspected the dirty main
 BACKLOG.md and PROGRESS.md versions; applied only this selected child and this
 progress entry, preserving all unrelated user edits.
+
+
+## Run 2026-10-08T10:24:12Z — Clean standalone Build context
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in the retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`;
+the main checkout's existing changes were preserved.
+
+Completed the final child of M12 goal 7. Standalone Build no longer shows the
+old pack inspector, food-use controls, raw-fuel button, repair/upgrade panels,
+chest lists, or unrelated nearby hearth/tool/construction status. Its status
+text is limited to the last action result and local placement preview.
+Placement browsing, build/place, preview, and the distinct **Light hearth**
+action remain. Campfire Interact is the refuel route; Light remains because
+Interact does not relight extinguished fires. Parent Workbench/Forge Craft
+contexts continue to show passive Tool Rack/Anvil state, now included in their
+cross-context checks.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`;
+`Scripts/Verify-Crafting.ps1`; `docs/07-development-setup.md`;
+`docs/10-campfire-and-crafting.md`; `docs/15-presentation-ownership.md`;
+`docs/38-menu-browsing.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Verify-PresentationOwnership.ps1`, all
+five no-build M5 documentation contracts, changed verifier PowerShell parser,
+`git diff --check`, manual source/layout review, and changed-path MAX_PATH
+audit. The new C++ regression markers are prepared but were not compiled or
+run. No Unreal build, automation queue, host/client run, rendered matrix,
+controller review, or packaging check was performed. Full verification is
+deferred because this is a normal child, not the M12 milestone-final task.
+
+Observable impact: the Construction Hammer menu presents construction and
+placement controls without the old inventory, food, combat-tool, or storage
+panel; parent station sections retain their passive attachment state.
+
+Networking/authority: This changes UI visibility and regression assertions
+only. Campfire refuelling and relighting continue through their existing
+server-authoritative routes. No RPC, replicated field, gameplay rule, or save
+schema changed.
+
+Known limitations: C++ changes and the prepared host/client regression were
+not compiled or executed. Runtime menu geometry, cross-peer behavior,
+controller navigation, and packaged presentation remain for M12 final
+verification. Build keeps **Light hearth** because the existing Campfire
+Interact action only refuels; no alternative relight route has been integrated.
+
+Next eligible task: M12 goal 8, create the pinned canonical icon manifest for
+all live items, tools, build/results, and upgrade targets, with aliases,
+cross-view reuse, fixed batch membership, and the Campfire construction-image
+exception.
+
+Main-checkout handoff synchronization: Pending commit and selected-file sync.

@@ -123,6 +123,21 @@ placement remain tied to the selected supported output. Browsing only copies
 indices and cancels an obsolete local placement preview; server availability,
 material validation and transactions remain independent.
 
+Build no longer shows the old pack inspector, food-use, refuelling, repair,
+upgrade, or chest lists. Inventory and food use remain in the Inventory menu;
+repair, upgrade, and storage remain in their Workbench, Forge, and Chest
+contexts. Campfire Interact replaces the old Build refuel action. **Light
+hearth** remains in Build because Campfire Interact only adds fuel and does not
+relight an extinguished hearth. The Build feedback block contains only the
+latest action result and local placement-preview result; it no longer lists
+nearby fires, constructions, workbenches, or carried-tool condition.
+
+`Verify-Crafting.ps1` checks the obsolete-control visibility set, retained
+placement and relight actions, filtered Build feedback, and visible Workbench
+Tool Rack / Forge Anvil status. Its rendered review includes a clean Build
+capture after browse recovery; Inventory menu browsing remains covered by
+`Kalmala.UI.InventoryMenu.Selection`.
+
 Child verification extends Kalmala.UI.Crafting.LocalBrowsing with exact supported
 build coverage, disjoint populated groups, name search, group order, unknown
 output exclusion, no-results and full source-order restoration. Rendered

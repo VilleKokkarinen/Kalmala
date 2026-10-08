@@ -54,6 +54,7 @@ public:
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
+    bool VerifyBuildMenuCleanupForTest();
     bool VerifyStorageContextScopeForTest();
     bool VerifyCookingRackScopeForTest();
     bool VerifyCauldronScopeForTest();
@@ -61,9 +62,7 @@ public:
     bool VerifyForgeUpgradeScopeForTest();
     bool VerifyForgeRepairScopeForTest();
     bool VerifyWorkbenchRepairScopeForTest();
-    bool VerifyInventoryInspectionForTest();
     bool ScrollReviewSectionForTest(bool bFeedback);
-    bool ScrollInventoryDetailsForTest();
     bool PrepareBrowseReviewForTest(int32 View);
     bool PrepareIngredientReviewForTest(int32 View);
 #endif
@@ -120,7 +119,6 @@ private:
     UFUNCTION() void DepositStorage();
     UFUNCTION() void WithdrawStorage();
     UFUNCTION() void CloseClicked();
-    UFUNCTION() void FocusInventoryDetails();
     void Refresh();
     void RefreshRecipeGrid(const TArray<int32>& VisibleIndices, UKalmalaCraftingComponent* Crafting,
         int32 TextScalePercent, int32 ContrastMode);
@@ -147,7 +145,6 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RepairText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolProgressionText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
-    UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> InventoryInspector;
     UPROPERTY(Transient) TObjectPtr<class UVerticalBox> StorageContextPanel;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageContextStatusText;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> StoragePackInspector;
@@ -157,6 +154,8 @@ private:
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;
     UPROPERTY(Transient) TObjectPtr<UButton> PlacementPreviewButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> BuildPlacementButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> CampfireLightButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeAxeButton;
     UPROPERTY(Transient) TObjectPtr<UButton> UpgradeIronAxeButton;
     UPROPERTY(Transient) TObjectPtr<UWidget> ToolProgressionActions;
@@ -170,6 +169,7 @@ private:
     UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> WorkbenchRepairExcludedWidgets;
     UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> StationCraftExcludedWidgets;
     UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> CookingRackExcludedWidgets;
+    UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> BuildExcludedWidgets;
     UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> RecipeSearchBox;
     UPROPERTY(Transient) TObjectPtr<UButton> CloseButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeCategoryLabel;
