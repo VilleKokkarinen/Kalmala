@@ -60,6 +60,20 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
             Definition ? Definition->MaxDurability : -1);
     }
 
+    TArray<FKalmalaToolState> RepeatedRepair;
+    int32 RepeatedRepairCount = -1;
+    TestTrue(TEXT("A repeated accepted Repair All remains a valid no-op"),
+        FKalmalaToolLifecycleContract::BuildServerRepairAll(true, true, Repaired, RepeatedRepair, RepeatedRepairCount));
+    TestEqual(TEXT("Repeat repairs no additional tools"), RepeatedRepairCount, 0);
+    TestEqual(TEXT("Repeat preserves the carried-tool list"), RepeatedRepair.Num(), Repaired.Num());
+    for (int32 Index = 0; Index < Repaired.Num() && Index < RepeatedRepair.Num(); ++Index)
+    {
+        TestTrue(TEXT("Repeat does not mutate any repaired tool"),
+            RepeatedRepair[Index].ToolId == Repaired[Index].ToolId
+            && RepeatedRepair[Index].ToolLevel == Repaired[Index].ToolLevel
+            && RepeatedRepair[Index].Durability == Repaired[Index].Durability);
+    }
+
     const auto TestRejectedWithoutMutation = [this, &Before](const TCHAR* Label, const bool bServer, const bool bAtStone,
         const TArray<FKalmalaToolState>& Input)
     {

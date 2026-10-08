@@ -12192,6 +12192,7 @@ versions and applied only this selected BACKLOG child and this appended PROGRESS
 entry; all other pre-existing modified and untracked main-checkout files remain
 untouched.
 
+
 ## 2026-10-08 — M12 Chest interaction and storage menu
 
 Completed exactly the next M12 goal 7 child. A successful Chest interaction now
@@ -12246,3 +12247,64 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions and applied only this selected BACKLOG child and this appended PROGRESS
 entry; all other pre-existing modified and untracked main-checkout files remain
 untouched.
+
+
+## Run 2026-10-08T09:20:31Z — Keep Grinding Stone Repair All direct
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Windows process inspection remained restricted. Continued in the clean retained
+worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`; preserved the dirty main
+checkout.
+
+Completed exactly the next M12 goal 7 child. Grinding Stone's crosshair prompt
+now names the direct `Repair all` action; other construction prompts retain
+`Use`, and the prompt continues to omit keyboard/controller bindings. The
+existing remappable Interact/default E server route remains a direct action
+with no station-menu context. The headless crafting fixture sends one server
+Interact at a temporary visible Grinding Stone and requires exactly one
+accepted result, unchanged full carried tools and pack, unchanged station/menu
+context, and the concise already-full feedback. The M9 Repair All contract
+regression now confirms that repeating an accepted repair against full tools
+does not mutate any ID, level, or condition. The host/client prompt review adds
+a dedicated Repair All capture and checks action text without key legends.
+Updated the cooking/crafting and development setup contracts.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`;
+`Source/KalmalaUI/Private/Tests/KalmalaInteractionPromptTest.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaM9GrindingStoneRepairTest.cpp`;
+`Scripts/Verify-Crafting.ps1`; `Scripts/Verify-InteractionPrompt.ps1`;
+`docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`;
+`BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks passed: PowerShell parser validation for both changed
+verifier scripts, `git diff --check`, manual review of the server authority,
+single-result and no-menu flow, and a MAX_PATH audit (longest changed absolute
+path: 116 characters). Full verification remains deferred: no Unreal build,
+C++ automation, headless two-peer crafting run, rendered host/client prompt
+run, physical controller review, or packaging check was performed. This is a
+normal M12 child, not the milestone-final task.
+
+Observable impact: aiming at a Grinding Stone tells the player that Interact
+will repair all tools, while preserving the direct, non-modal flow.
+
+Networking/authority: The prompt is local presentation. The existing server
+interaction revalidates the exact visible same-world Grinding Stone and reads
+the server-owned carried tools; clients supply no tool IDs or conditions. An
+accepted no-op against already-full tools publishes one owner result without
+changing inventory, condition, or station context. No RPC, replicated field,
+or save schema changed.
+
+Known limitations: Changed C++ and the prepared server fixture remain
+uncompiled and unrun; rendered host/client prompt output and physical
+controller input remain for milestone-final verification. Live damaged-tool
+repair remains covered by the existing M9 contract but was not exercised in
+this normal increment.
+
+Next eligible task: M12 goal 7, Campfire Interact/default E adds exactly one
+available fuel item without a menu, picker, or additional lighting toggle.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions and applied only this selected BACKLOG child and the appended PROGRESS
+entry; preserved all unrelated user edits.

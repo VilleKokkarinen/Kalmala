@@ -1765,14 +1765,26 @@ directory. It checks the paid Workbench recipe, generic construction save and
 placement allowlists, repair of every damaged/broken carried tool, unchanged
 full tools and levels, and whole-action rejection for client authority,
 missing Grinding Stone validation, malformed records, duplicates, and an
-oversized list. In-world use is server-only: interact with a visible accepted
-Grinding Stone within 250 cm; the server reads and repairs the owner's current
-carried list, with no client-supplied IDs/conditions, cost, or Crafting XP.
+oversized list. A repeated Repair All against already repaired tools is an
+accepted no-op whose candidate preserves every tool ID, level, and condition.
+In-world use is server-only: the remappable Interact action (default E) targets
+a visible accepted Grinding Stone within 250 cm; the server reads and repairs
+the owner's current carried list, with no client-supplied IDs/conditions, cost,
+or Crafting XP.
 The accepted transaction sends a parameterless cosmetic multicast for the
 1.2-second procedural sharpening pose; no gameplay or saved state is carried.
 Run `Kalmala.Gameplay.Tools.SharpeningPresentation` with the same isolated
 editor automation setup to check its bounded three-stroke pose and return to
 the current gait. This pose test does not replace rendered in-world review.
+`Kalmala.UI.InteractionPrompt.Presentation` checks the action-only “Repair all”
+prompt, absence of key legends, and stable text when Interact is remapped.
+`Scripts/Verify-InteractionPrompt.ps1 -Rendered` captures the Grinding Stone
+prompt state on both host and client. In the M12 `Scripts/Verify-Crafting.ps1`
+fixture, the server sends one Interact request at a fresh visible Grinding
+Stone and requires exactly one accepted action result, unchanged full tools and
+pack, unchanged station/menu context, and the concise already-full feedback.
+These interaction and rendering fixtures prepare part of the later M12
+host/client acceptance; they do not replace a live damaged-tool repair review.
 
 ### M9 owner-local tool progression feedback
 

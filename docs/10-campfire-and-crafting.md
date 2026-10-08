@@ -39,9 +39,17 @@ same-world Workbench or Forge within 250 cm. Repair spends no inventory and
 awards no Crafting experience. The client submits only the tool ID. The M9
 Workbench shell now provides a separate owner-local Repair section with tool
 selection and current level/condition; it reuses this same ID-only request and
-server validation. The M9 Grinding Stone `Repair All` action remains a later
-increment; see `27-m9-carried-tool-inventory.md` for the current progression
-boundary.
+server validation.
+
+The Grinding Stone uses the remappable **Interact** action (default E) for a
+direct **Repair all** action. Its crosshair prompt names “Repair all” without
+printing a key or controller binding. It opens no menu, selector, or
+confirmation; the server revalidates the visible same-world stone within
+250 cm and reads only that owner's carried-tool list. The owner receives a
+concise result, and an accepted sharpening pose carries no gameplay state.
+Repeated use with all tools already at full condition changes no tool state.
+See `27-m9-carried-tool-inventory.md` for the full authority and repair
+contract.
 
 The panel shows the selected recipe and its position in the catalogue above
 the longer hearth and status details; Previous and Next continue to navigate

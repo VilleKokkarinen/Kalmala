@@ -9,6 +9,7 @@
 #include "KalmalaSkillProgressionComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Controller.h"
 #include "EngineUtils.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaEnvironmentalExposureSampler.h"
@@ -35,6 +36,80 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             if (!Passed) UE_LOG(LogTemp, Error, TEXT("Crafting fixture FAILED: %s"), Label);
         };
         FString Reason;
+        FActorSpawnParameters RepairStoneSpawn;
+        RepairStoneSpawn.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        AKalmalaConstructionActor* RepairStone = GetWorld()->SpawnActor<AKalmalaConstructionActor>(
+            AKalmalaConstructionActor::StaticClass(), FTransform::Identity, RepairStoneSpawn);
+        bool bRepairStoneVisible = false;
+        bool bAcceptedOnce = false;
+        bool bNoExtraMutation = false;
+        bool bActionOnlyFeedback = false;
+        bool bNoMenu = false;
+        if (RepairStone != nullptr && C->GetController() != nullptr)
+        {
+            RepairStone->InitializeFromServer(TEXT("GrindingStoneKit"), FString::Printf(
+                TEXT("m12-repair-all-%d"), C->GetPlayerState()->GetPlayerId()));
+            const FRotator PreviousViewRotation = C->GetController()->GetControlRotation();
+            for (int32 Turn = 0; Turn < 8 && !bRepairStoneVisible; ++Turn)
+            {
+                const FRotator TestViewRotation(0.0f, Turn * 45.0f, 0.0f);
+                C->GetController()->SetControlRotation(TestViewRotation);
+                RepairStone->SetActorLocation(C->GetActorLocation()
+                    + TestViewRotation.Vector() * 160.0f + FVector(0.0f, 0.0f, 24.0f));
+                bRepairStoneVisible = RepairStone->CanInteract_Implementation(C);
+            }
+
+            const TArray<FKalmalaToolState> ToolsBefore = C->GetCarriedToolInventory();
+            const TArray<FKalmalaInventoryStack> PackBefore = I->GetStacks();
+            const uint32 ResultSerialBefore = GetResultSerial();
+            AKalmalaConstructionActor* ContextActorBefore = GetLastStationContextActor();
+            const FName ContextKitBefore = GetLastStationContextKit();
+            const FString ContextIdBefore = GetLastStationContextConstructionId();
+            const uint32 ContextSerialBefore = GetStationContextInteractionSerial();
+            const FName CookingKitBefore = GetLastInteractedCookingStationKit();
+            const uint32 CookingSerialBefore = GetCookingStationInteractionSerial();
+            const bool bHadStorageBefore = HasStorageView();
+            const double NextRequestTimeBefore = NextRequestTime;
+
+            NextRequestTime = 0.0;
+            if (bRepairStoneVisible) C->ServerRequestInteract(NAME_None, 0);
+            NextRequestTime = NextRequestTimeBefore;
+
+            const uint32 ExpectedResultSerial = ResultSerialBefore == TNumericLimits<uint32>::Max()
+                ? 1 : ResultSerialBefore + 1;
+            bAcceptedOnce = bRepairStoneVisible && GetResultSerial() == ExpectedResultSerial
+                && WasLastResultAccepted();
+            bool bToolsUnchanged = C->GetCarriedToolInventory().Num() == ToolsBefore.Num();
+            for (int32 Index = 0; bToolsUnchanged && Index < ToolsBefore.Num(); ++Index)
+            {
+                const FKalmalaToolState& Before = ToolsBefore[Index];
+                const FKalmalaToolState& After = C->GetCarriedToolInventory()[Index];
+                bToolsUnchanged = Before.ToolId == After.ToolId && Before.ToolLevel == After.ToolLevel
+                    && Before.Durability == After.Durability;
+            }
+            bool bPackUnchanged = I->GetStacks().Num() == PackBefore.Num();
+            for (int32 Index = 0; bPackUnchanged && Index < PackBefore.Num(); ++Index)
+            {
+                bPackUnchanged = I->GetStacks()[Index].ItemId == PackBefore[Index].ItemId
+                    && I->GetStacks()[Index].Quantity == PackBefore[Index].Quantity;
+            }
+            bNoExtraMutation = bToolsUnchanged && bPackUnchanged;
+            bActionOnlyFeedback = GetLastResult() == TEXT("All carried tools are already at full condition");
+            bNoMenu = GetStationContextInteractionSerial() == ContextSerialBefore
+                && GetLastStationContextActor() == ContextActorBefore
+                && GetLastStationContextKit() == ContextKitBefore
+                && GetLastStationContextConstructionId() == ContextIdBefore
+                && GetLastInteractedCookingStationKit() == CookingKitBefore
+                && GetCookingStationInteractionSerial() == CookingSerialBefore
+                && HasStorageView() == bHadStorageBefore;
+            C->GetController()->SetControlRotation(PreviousViewRotation);
+        }
+        if (RepairStone != nullptr) RepairStone->Destroy();
+        Check(bAcceptedOnce && bNoExtraMutation && bActionOnlyFeedback && bNoMenu,
+            TEXT("Grinding Stone Interact accepts one Repair All without extra mutation or menu"));
+        UE_LOG(LogTemp, Display, TEXT("Grinding Stone interaction: AcceptedOnce=%d NoExtraMutation=%d ActionOnlyFeedback=%d NoMenu=%d"),
+            bAcceptedOnce ? 1 : 0, bNoExtraMutation ? 1 : 0, bActionOnlyFeedback ? 1 : 0, bNoMenu ? 1 : 0);
+
         Check(!PlaceFromServer(Reason), TEXT("No ingredients cannot create a hearth"));
         Check(!CraftFromServer(TEXT("Campfire"),1,Reason), TEXT("Hearth ring cannot be crafted into a kit"));
         Check(!CraftFromServer(TEXT("Forged"),1,Reason), TEXT("Unknown recipe"));

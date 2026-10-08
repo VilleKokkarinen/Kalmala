@@ -38,27 +38,29 @@ try {
 
     $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -ShaderWorkingDir=`"$clientShaderDir`" -KalmalaInteractionPromptCapture=`"$clientCapture`" -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
     $deadline = (Get-Date).AddSeconds(90)
-    $stages = @('available', 'unavailable', 'modal', 'no-target')
+    $stages = @('available', 'unavailable', 'modal', 'no-target', 'repair-all')
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before prompt review finished.' }
         $serverText = if (Test-Path -LiteralPath $serverLog) { Get-Content -LiteralPath $serverLog -Raw } else { '' }
         $clientText = if (Test-Path -LiteralPath $clientLog) { Get-Content -LiteralPath $clientLog -Raw } else { '' }
-        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Interaction prompt review: Stage=(available|unavailable) Displayed=0|Interaction prompt review: Stage=(modal|no-target) Displayed=1') {
+        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Interaction prompt review: Stage=(available|unavailable|repair-all) Displayed=0|Interaction prompt review: Stage=(modal|no-target) Displayed=1|Grinding Stone interaction prompt: (RepairAll|NoBinding)=0') {
             throw 'Interaction prompt review failed; inspect retained peer logs.'
         }
         $ready = $clientText.Contains('Client received world-generation identity: Seed=418')
         foreach ($stage in $stages) {
-            $expectedDisplay = if ($stage -in @('available','unavailable')) { 1 } else { 0 }
+            $expectedDisplay = if ($stage -in @('available','unavailable','repair-all')) { 1 } else { 0 }
             $ready = $ready -and $serverText.Contains("Interaction prompt review: Stage=$stage Displayed=$expectedDisplay")
             $ready = $ready -and $clientText.Contains("Interaction prompt review: Stage=$stage Displayed=$expectedDisplay")
             $ready = $ready -and (Test-Path -LiteralPath (Join-Path $output "host-$stage.png"))
             $ready = $ready -and (Test-Path -LiteralPath (Join-Path $output "client-$stage.png"))
         }
+        $ready = $ready -and $serverText.Contains('Grinding Stone interaction prompt: RepairAll=1 NoBinding=1') `
+            -and $clientText.Contains('Grinding Stone interaction prompt: RepairAll=1 NoBinding=1')
         if ($ready) { break }
         Start-Sleep -Milliseconds 250
     } while ((Get-Date) -lt $deadline)
     if (!$ready) { throw 'Host/client prompt review timed out or a required capture is missing.' }
-    Write-Output "PASS: local host/client interaction prompt render at ${Width}x${Height}, text scale ${TextScale}%, contrast $Contrast; available, unavailable, modal and no-target states."
+    Write-Output "PASS: local host/client interaction prompt render at ${Width}x${Height}, text scale ${TextScale}%, contrast $Contrast; available, unavailable, modal, no-target and Grinding Stone Repair All states."
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

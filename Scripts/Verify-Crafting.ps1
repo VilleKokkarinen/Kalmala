@@ -48,6 +48,7 @@ try {
             -and $clientText.Contains('Inventory inspection: FocusAndKeys=1') `
             -and $serverText.Contains('M9 camp feedback: Passed=1') `
             -and $clientText.Contains('M9 camp feedback: Passed=1')
+        $ready = $ready -and $serverText.Contains('Grinding Stone interaction: AcceptedOnce=1 NoExtraMutation=1 ActionOnlyFeedback=1 NoMenu=1')
         foreach ($peerText in @($serverText, $clientText)) {
             $ready = $ready -and $peerText.Contains('Inventory browsing: CategoryKey=1 SortKey=1 NoResults=1 Restored=1')
             $ready = $ready -and $peerText.Contains('Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1 SearchFocus=1')

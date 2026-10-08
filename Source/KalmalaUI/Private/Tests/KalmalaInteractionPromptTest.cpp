@@ -29,6 +29,15 @@ bool FKalmalaInteractionPromptTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Modal input clears the prompt"),
         UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Workbench"), TEXT("Use"), FString(), true).IsEmpty());
 
+    const FString GrindingStoneAction = UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("GrindingStoneKit"));
+    const FString GrindingStonePrompt = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Grinding Stone"), GrindingStoneAction);
+    TestTrue(TEXT("Grinding Stone prompt names its direct Repair All action"),
+        GrindingStoneAction == TEXT("Repair all") && GrindingStonePrompt == TEXT("Grinding Stone\nRepair all"));
+    TestFalse(TEXT("Grinding Stone prompt does not expose a key binding"),
+        GrindingStonePrompt.Contains(TEXT("Keyboard:")) || GrindingStonePrompt.Contains(TEXT("Gamepad:")));
+    TestTrue(TEXT("Other construction prompts retain their existing Use action"),
+        UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("WorkbenchKit")) == TEXT("Use"));
+
     if (!GConfig)
     {
         AddError(TEXT("Config cache is unavailable for the remapping case."));
@@ -53,6 +62,10 @@ bool FKalmalaInteractionPromptTest::RunTest(const FString& Parameters)
         bControllerChanged && RemappedController == EKeys::Gamepad_FaceButton_Right.GetDisplayName().ToString());
     const FString RemappedPrompt = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Workbench"), TEXT("Use"));
     TestTrue(TEXT("Remapping remains available in Options without changing prompt action text"), RemappedPrompt == Available);
+    const FString RemappedGrindingStonePrompt = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Grinding Stone"),
+        UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("GrindingStoneKit")));
+    TestTrue(TEXT("Interact remapping leaves Grinding Stone action-only prompt unchanged"),
+        RemappedGrindingStonePrompt == GrindingStonePrompt);
     TestFalse(TEXT("Remapped key names do not leak into the prompt"),
         RemappedPrompt.Contains(RemappedKeyboard) || RemappedPrompt.Contains(RemappedController));
 

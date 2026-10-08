@@ -223,7 +223,8 @@ bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target
     if (const AKalmalaConstructionActor* Construction = Cast<AKalmalaConstructionActor>(Target))
     {
         OutDescription.TargetName = GetPromptItemName(Construction->GetConstructionKit(), TEXT("Workbench"));
-        OutDescription.ActionName = TEXT("Use");
+        OutDescription.ActionName = UKalmalaInteractionPromptWidget::GetConstructionActionName(
+            Construction->GetConstructionKit());
         if (!Construction->CanUse(Character)) OutDescription.UnavailableReason = TEXT("Unavailable here");
         return true;
     }
@@ -295,6 +296,11 @@ FString UKalmalaInteractionPromptWidget::BuildPromptText(const FString& TargetNa
         Text += FString::Printf(TEXT(" — Unavailable: %s"), *UnavailableReason.TrimStartAndEnd());
     }
     return Text;
+}
+
+FString UKalmalaInteractionPromptWidget::GetConstructionActionName(const FName ConstructionKit)
+{
+    return ConstructionKit == TEXT("GrindingStoneKit") ? TEXT("Repair all") : TEXT("Use");
 }
 
 void UKalmalaInteractionPromptWidget::NativeOnInitialized()
@@ -3379,21 +3385,32 @@ void UKalmalaCraftingSubsystem::UpdateInteractionPromptReview(APlayerController*
         StageName = TEXT("modal");
         Text = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Workbench"), TEXT("Use"), FString(), true);
         break;
-    default:
+    case 3:
         StageName = TEXT("no-target");
         Text = UKalmalaInteractionPromptWidget::BuildPromptText(FString(), FString());
+        break;
+    default:
+        StageName = TEXT("repair-all");
+        Text = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Grinding Stone"),
+            UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("GrindingStoneKit")));
         break;
     }
 
     InteractionPrompt->SetPrompt(Text);
     const bool bDisplayed = !Text.IsEmpty();
     UE_LOG(LogTemp, Display, TEXT("Interaction prompt review: Stage=%s Displayed=%d"), *StageName, bDisplayed ? 1 : 0);
+    if (StageName == TEXT("repair-all"))
+    {
+        UE_LOG(LogTemp, Display, TEXT("Grinding Stone interaction prompt: RepairAll=%d NoBinding=%d"),
+            Text.Contains(TEXT("Grinding Stone\nRepair all")),
+            !Text.Contains(TEXT("Keyboard:")) && !Text.Contains(TEXT("Gamepad:")));
+    }
     if (!CapturePath.IsEmpty())
     {
         FScreenshotRequest::RequestScreenshot(FPaths::GetBaseFilename(CapturePath, false)
             + TEXT("-") + StageName + TEXT(".png"), true, false);
     }
-    if (++InteractionPromptReviewStage >= 4) bInteractionPromptReviewComplete = true;
+    if (++InteractionPromptReviewStage >= 5) bInteractionPromptReviewComplete = true;
 }
 #endif
 

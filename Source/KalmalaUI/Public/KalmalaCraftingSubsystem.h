@@ -22,6 +22,7 @@ class KALMALAUI_API UKalmalaInteractionPromptWidget : public UUserWidget
     GENERATED_BODY()
 public:
     void SetPrompt(const FString& Text);
+    static FString GetConstructionActionName(FName ConstructionKit);
     static FString BuildPromptText(const FString& TargetName, const FString& ActionName,
         const FString& UnavailableReason = FString(), bool bModalOpen = false);
 protected:
