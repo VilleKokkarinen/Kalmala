@@ -53,6 +53,7 @@ public:
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
     bool VerifyForgeUpgradeScopeForTest();
+    bool VerifyForgeRepairScopeForTest();
     bool VerifyWorkbenchRepairScopeForTest();
     bool VerifyInventoryInspectionForTest();
     bool ScrollReviewSectionForTest(bool bFeedback);
@@ -83,6 +84,7 @@ private:
     UFUNCTION() void SelectWorkbenchRepairSection();
     UFUNCTION() void SelectForgeCraftSection();
     UFUNCTION() void SelectForgeUpgradeSection();
+    UFUNCTION() void SelectForgeRepairSection();
     UFUNCTION() void RecipeSearchChanged(const FText& Text);
     UFUNCTION() void CycleRecipeCategory();
     UFUNCTION() void CycleRecipeSort();
@@ -149,6 +151,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchRepairSectionButton;
     UPROPERTY(Transient) TObjectPtr<UButton> ForgeCraftSectionButton;
     UPROPERTY(Transient) TObjectPtr<UButton> ForgeUpgradeSectionButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> ForgeRepairSectionButton;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchRepairButton;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> WorkbenchRepairInspector;
     UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> WorkbenchRepairExcludedWidgets;
@@ -178,6 +181,7 @@ private:
     bool bWorkbenchCraftContext = false;
     bool bForgeCraftContext = false;
     bool bForgeUpgradeContext = false;
+    bool bForgeRepairContext = false;
     bool bWorkbenchRepairContext = false;
     bool bWorkbenchRepairPending = false;
 #if !UE_BUILD_SHIPPING

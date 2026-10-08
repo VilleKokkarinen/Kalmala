@@ -2066,3 +2066,25 @@ routing and scope, plus no request from stale context. The existing
 the Bronze-to-Iron exchange, costs, and unchanged candidates after rejection.
 Run the full host/client and rendered checks only in M12 milestone-final
 verification.
+
+## M12 Forge Repair section
+
+The Forge shell adds a Repair section beside Craft and Upgrade. It reuses the
+owner-only carried-tool inspector and condition rows, with selection independent
+of both the recipe index and the Upgrade presentation. A repair request contains
+only the selected tool ID and uses the existing `ServerRepairTool` path; the
+server still reads the owner's current tool record and accepts only a visible
+same-world Workbench or Forge within 250 cm. Invalid or stale Forge context
+dispatches no request. The accepted Forge context remains bound to its exact
+actor and stable construction ID for UI lifetime, but the existing server
+repair rule may resolve another qualifying nearby station.
+
+`Verify-Crafting.ps1` requires `Forge Repair scope` from both host and client.
+Its prepared marker covers owner-only tool rows and condition, Repair tab
+routing, selection independence from Forge Upgrade and Craft, hidden unrelated
+operations, unavailable-context feedback, and no request after context expiry.
+`Verify-PresentationOwnership.ps1` checks that the client routes only a tool ID
+and that repair results remain owner-only. Existing
+`Kalmala.Gameplay.Tools.LifecycleContract` retains server authority, station,
+unknown/full/invalid-tool, and rejected-state coverage. Runtime and rendered
+host/client execution remain in M12 final verification.

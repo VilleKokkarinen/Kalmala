@@ -11990,3 +11990,60 @@ Next eligible task: M12 goal 7, Forge Repair section with owner carried-tool
 condition, independent state, existing repair validation, and focused checks.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and synchronized only the selected BACKLOG child and this PROGRESS entry; all other pre-existing main-checkout changes remain untouched.
+
+### Run 2026-10-08T06:57:27Z — add Forge Repair section
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` at `93fc3f5`; existing main-
+checkout changes were preserved.
+
+Completed: Added a Forge Repair section beside Craft and Upgrade. It reuses the
+owner-only carried-tool inspector and current level/condition rows, keeps repair
+selection separate from recipe and Upgrade presentation state, and routes the
+selected tool ID through the existing `ServerRepairTool` request. Added a
+focused Forge Repair scope marker for owner rows, section isolation, stale
+context rejection, and request suppression. Marked only the selected M12 goal 7
+child complete; the parent and milestone remain open.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`;
+`Scripts/Verify-Crafting.ps1`; `Scripts/Verify-PresentationOwnership.ps1`;
+`docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`;
+`docs/15-presentation-ownership.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-PresentationOwnership.ps1` passed; all five
+`Verify-M5DocumentationContracts.ps1` contracts passed; both changed
+PowerShell scripts parsed; five focused Forge Repair source assertions passed;
+`git diff --check` passed; and the MAX_PATH audit passed (longest changed
+absolute path 96 characters). The new C++ scope marker was prepared but not
+executed.
+
+Full verification remains deferred: this is a normal M12 child, not the final
+implementation task. No Unreal build, C++ automation, `Verify-Crafting.ps1`
+runtime launch, rendered host/client review, physical controller review, or
+package check was run.
+
+Observable impact: Forge now opens a Repair tab showing the owner's carried
+tools and condition, with the existing free repair action and no unrelated
+Craft/Upgrade operations.
+
+Networking/authority: Presentation only. The client sends only a selected tool
+ID through the existing repair RPC; the server remains authoritative for the
+current carried record, repair condition, persistence, and its existing visible
+same-world Workbench-or-Forge range check. No gameplay RPC payload, replicated
+field, catalogue data, or save schema changed.
+
+Known limitations: Changed C++ and the focused C++ marker remain uncompiled and
+unrun; rendered host/client layout and physical controller behavior remain
+unreviewed. The server may select another visible qualifying Workbench or Forge
+within 250 cm instead of the exact actor whose Forge shell is open. M12 final
+verification remains pending.
+
+Next eligible task: M12 goal 7, Cooking Rack interaction/menu limited to
+Cooked boar/deer meat with ingredient counts, supported quantity, and live
+hearth heat through the existing cooking paths.
+
+Main-checkout handoff synchronization: Complete. Inspected both dirty main
+versions and applied only this selected BACKLOG child and PROGRESS entry; all
+other pre-existing modified and untracked main-checkout files remain untouched.

@@ -166,6 +166,18 @@ before applying the atomic exchange. The accepted Forge's effective level and
 anvil state remain shown from its exact owner-visible context. No station ID,
 cost, outcome, RPC, replication, or save-schema change is introduced.
 
+## M12 Forge Repair section
+
+Forge also offers a separate Repair section using the owner's carried-tool
+condition inspector. Its tool selection is independent from Craft's recipe
+selection and Upgrade's Bronze-to-Iron comparison. Repair submits only the
+selected tool ID through the existing free-repair request. The server reads
+the current carried record and keeps its existing visible same-world Workbench
+or Forge range check at 250 cm; it does not accept a client target, condition,
+cost, or repair result. The local menu remains bound to the exact accepted
+Forge actor and closes when that context becomes invalid, while server repair
+may still use another qualifying nearby station as before.
+
 ## Verification
 
 Run the focused `Kalmala.Gameplay.Storage` tests for save round-trip/identity/bounds, transfer conservation and capacity, server RPC payloads, and owner-only replication. Run `Scripts/Verify-Storage.ps1` for a fresh temporary host/client followed by a restart of the same host user directory. Both owners place paid chests/workbenches and check direct floor-build availability from Wood and Fibre, reject distance/obstruction/unknown-item transfers, preserve contents on a simulated write failure, then issue real owner deposit/withdraw RPCs. Both must retain exactly three saved wood per chest and one private carried wood; client-local mutations fail, simulated peers have no chest snapshot, and closing clears the owner view. Restart must restore the same two chest IDs and exact contents. The fixture uses temporary grants and flying stationary pawns; it does not complete the later gather/build/weather camp scenario or rendered UI acceptance.

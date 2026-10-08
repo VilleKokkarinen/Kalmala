@@ -44,22 +44,22 @@ ID. The Cooking Rack embeds its station-filtered recipe view. Workbench opens a
 Craft section scoped to its supported recipes, matching Tool Rack production,
 and the owner-local Bronze Axe operation; its effective level and Tool Rack
 state come from the accepted station and replicated placement presentation.
-Forge exposes separate Craft and Upgrade sections. Upgrade compares the
+Forge exposes separate Craft, Upgrade, and Repair sections. Upgrade compares the
 owner-only carried Bronze Axe against its authored Iron Axe target and reads
 the owner's tool, material, and skill snapshots for prerequisites; the accepted
 Forge's effective level and Anvil state stay tied to the exact context actor.
 The existing progression RPC remains responsible for authoritative checks,
 material exchange, and persistence.
 The owner can switch to a separate Repair section without changing the recipe
-selection. Repair rows read only the owning pawn's owner-only carried-tool
-array, show its real level and condition, and submit only the selected tool ID
-to the existing repair RPC. The response remains owner-only. The legacy
-CraftMenu path remains available.
+selection or Forge Upgrade presentation. Repair rows read only the owning pawn's
+owner-only carried-tool array, show its real level and condition, and submit
+only the selected tool ID to the existing repair RPC. The response remains
+owner-only. The legacy CraftMenu path remains available.
 While open, the local subsystem asks the owning crafting component to verify
 the same actor reference, stable ID, station kit, pawn world, and range. The
 server validated sight during the original interaction. It closes on target
-destruction, loss of range, or pawn
-replacement, then restores the prior movement/look-ignore and cursor states.
+destruction, loss of range, or pawn replacement, then restores the prior
+movement/look-ignore and cursor states.
 The shell is presentation only: recipe and inventory changes remain on the
 existing server paths, which revalidate their own station, heat, costs, and
 owner inventory. No client target request, RPC, replication authority change,
