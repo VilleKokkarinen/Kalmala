@@ -35,8 +35,11 @@ replacement routes. The owner selects any damaged carried tool in Camp
 crafting; the server reads its condition and restores it for free at a visible
 same-world Workbench or Forge within 250 cm. Repair spends no inventory and
 awards no Crafting experience. The client submits only the tool ID. The M9
-Grinding Stone `Repair All` action remains a later increment; see
-`27-m9-carried-tool-inventory.md` for the current progression boundary.
+Workbench shell now provides a separate owner-local Repair section with tool
+selection and current level/condition; it reuses this same ID-only request and
+server validation. The M9 Grinding Stone `Repair All` action remains a later
+increment; see `27-m9-carried-tool-inventory.md` for the current progression
+boundary.
 
 The panel shows the selected recipe and its position in the catalogue above
 the longer hearth and status details; Previous and Next continue to navigate

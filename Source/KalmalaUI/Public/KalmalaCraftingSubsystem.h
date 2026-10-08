@@ -45,12 +45,14 @@ public:
     AKalmalaConstructionActor* GetStationContextActor() const { return ContextStationActor.Get(); }
     FName GetStationContextKit() const { return bEmbeddedContext ? StationFilterKit : NAME_None; }
     const FString& GetStationContextConstructionId() const { return ContextConstructionId; }
+    const FString& GetStationContextSection() const { return StationContextSection; }
     void Close();
     bool IsOpen() const { return bOpen; }
     FString GetPresentationText() const;
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
+    bool VerifyWorkbenchRepairScopeForTest();
     bool VerifyInventoryInspectionForTest();
     bool ScrollReviewSectionForTest(bool bFeedback);
     bool ScrollInventoryDetailsForTest();
@@ -74,6 +76,9 @@ private:
     void ConfigureStationContextPresentation(const FString& Section);
     void ApplyWorkbenchCraftLayout();
     void RefreshWorkbenchStationState();
+    void RefreshWorkbenchRepairState(UKalmalaCraftingComponent* Crafting);
+    UFUNCTION() void SelectWorkbenchCraftSection();
+    UFUNCTION() void SelectWorkbenchRepairSection();
     UFUNCTION() void RecipeSearchChanged(const FText& Text);
     UFUNCTION() void CycleRecipeCategory();
     UFUNCTION() void CycleRecipeSort();
@@ -93,6 +98,7 @@ private:
     UFUNCTION() void RepairStonePick();
     UFUNCTION() void RepairBronzeAxe();
     UFUNCTION() void RepairIronAxe();
+    UFUNCTION() void RepairWorkbenchSelectedTool();
     UFUNCTION() void CraftBronzeAxe();
     UFUNCTION() void UpgradeIronAxe();
     UFUNCTION() void InspectStorage();
@@ -117,6 +123,9 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> HeaderText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchStationStatusText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairContextText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairStatusText;
+    UPROPERTY(Transient) TObjectPtr<UWidget> WorkbenchSectionSwitcher;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailText;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIngredientWidget> Ingredients;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RequirementText;
@@ -131,6 +140,11 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> PlacementPreviewButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeAxeButton;
     UPROPERTY(Transient) TObjectPtr<UButton> UpgradeIronAxeButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchCraftSectionButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchRepairSectionButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchRepairButton;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> WorkbenchRepairInspector;
+    UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> WorkbenchRepairExcludedWidgets;
     UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> WorkbenchCraftExcludedWidgets;
     UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> RecipeSearchBox;
     UPROPERTY(Transient) TObjectPtr<UButton> CloseButton;
@@ -155,6 +169,11 @@ private:
     bool bOpen = false;
     bool bEmbeddedContext = false;
     bool bWorkbenchCraftContext = false;
+    bool bWorkbenchRepairContext = false;
+    bool bWorkbenchRepairPending = false;
+#if !UE_BUILD_SHIPPING
+    uint32 WorkbenchRepairRequestCountForTest = 0;
+#endif
     bool bPreviousMoveInputIgnored = false;
     bool bPreviousLookInputIgnored = false;
     bool bPlacementPreviewEnabled = false;
@@ -162,6 +181,11 @@ private:
     TWeakObjectPtr<AKalmalaConstructionActor> ContextStationActor;
     TWeakObjectPtr<APawn> ContextOwnerPawn;
     FString ContextConstructionId;
+    FString StationContextSection;
+    FString WorkbenchRepairResultText;
+    FName WorkbenchRepairPendingToolId = NAME_None;
+    FName WorkbenchRepairResultToolId = NAME_None;
+    uint32 WorkbenchRepairResultSerial = 0;
 };
 
 UCLASS()

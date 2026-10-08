@@ -61,6 +61,12 @@ void UKalmalaStationContextWidget::ApplyTheme()
 void UKalmalaStationContextWidget::NativeTick(const FGeometry& Geometry, const float DeltaTime)
 {
     Super::NativeTick(Geometry, DeltaTime);
+    if (bOpen && ServiceContent && SectionTitle)
+    {
+        const FString CurrentSection = ServiceContent->GetStationContextSection();
+        if (SectionTitle->GetText().ToString() != CurrentSection)
+            SectionTitle->SetText(FText::FromString(CurrentSection));
+    }
     if (LastTextScalePercent != UKalmalaSettingsWidget::GetTextScalePercent()
         || LastContrastMode != UKalmalaSettingsWidget::GetContrastMode()) ApplyTheme();
 }

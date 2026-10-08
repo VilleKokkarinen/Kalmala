@@ -1995,3 +1995,27 @@ changed scripts, `git diff --check`, and the 260-character path audit. Check
 only the notification parent and final child after all required verification
 passes. This parent check does not complete the wider M11 acceptance matrix,
 physical input, package validation, or other M11 parents.
+
+## M12 Workbench Repair section
+
+The Workbench context shell opens Craft by default and lets the owner switch to
+Repair without closing the accepted station context. Repair shows only that
+owner's carried repairable tools, with their authored level and current
+condition, through a separate selection widget from the Craft recipe state.
+The free repair request reuses `ServerRepairTool` and submits only the selected
+tool ID. The server reads the owner's current tool record, validates a visible
+same-world Workbench or Forge within 250 cm, persists the repaired state, and
+publishes the result only to the owner. Full tools and invalid client-side
+selections do not dispatch a request; the server remains the authority for
+station, tool, and persistence rejection.
+
+`Verify-Crafting.ps1` expects a `Workbench Repair scope` result from both host
+and client. It checks owner-pawn sourcing, tool-only rows, visible condition,
+selection independence from Craft, hidden unrelated controls, and that an
+invalid/stale context dispatches no repair request. `Verify-PresentationOwnership.ps1`
+also checks the owner-only carried-tool and repair-result replication contracts
+and the ID-only server route. The existing
+`Kalmala.Gameplay.Tools.LifecycleContract` covers server repair authority,
+unknown/full/invalid tools, missing stations, and rejected-state preservation.
+The rendered menu and physical controller review remain part of M12's final
+acceptance.

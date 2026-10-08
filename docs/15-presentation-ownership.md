@@ -44,7 +44,11 @@ ID. The Cooking Rack embeds its station-filtered recipe view. Workbench opens a
 Craft section scoped to its supported recipes, matching Tool Rack production,
 and the owner-local Bronze Axe operation; its effective level and Tool Rack
 state come from the accepted station and replicated placement presentation.
-The legacy CraftMenu path remains available.
+The owner can switch to a separate Repair section without changing the recipe
+selection. Repair rows read only the owning pawn's owner-only carried-tool
+array, show its real level and condition, and submit only the selected tool ID
+to the existing repair RPC. The response remains owner-only. The legacy
+CraftMenu path remains available.
 While open, the local subsystem asks the owning crafting component to verify
 the same actor reference, stable ID, station kit, pawn world, and range. The
 server validated sight during the original interaction. It closes on target

@@ -11892,3 +11892,25 @@ Known limitations: Changed C++ and its assertions remain uncompiled/unrun, and t
 Next eligible task: M12 goal 7, Workbench Repair section with owner carried-tool condition/selection and the existing free selected-tool repair.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and applied only this selected BACKLOG state and progress entry; all other modified and untracked files remain untouched.
+
+### Run 2026-10-08T06:22:25Z — add Workbench Repair section
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run. Continued in the retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` at baseline `34680d7`; the dirty main checkout's unrelated changes were preserved.
+
+Completed: Added Craft/Repair section controls to the Workbench station context. Repair renders a separate inspector populated only from the owning pawn's repairable carried-tool state, with current level and condition, selected-tool repair and owner-only server-result feedback. The recipe selection/index is preserved when switching sections. The action reuses the existing `ServerRepairTool` RPC with only the selected tool ID; the server code and its visible same-world Workbench/Forge range, current-record, and persistence validation are unchanged. Added a development verifier marker for owner-scoped rows, condition, selection isolation, unrelated-control hiding, and stale-context no-dispatch, plus static ownership and ID-only route checks.
+
+Files changed: `Scripts/Verify-Crafting.ps1`; `Scripts/Verify-PresentationOwnership.ps1`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaStationContextWidget.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`; `docs/15-presentation-ownership.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-PresentationOwnership.ps1` passed; all five `Verify-M5DocumentationContracts.ps1` contracts passed; both changed PowerShell scripts parsed; focused owner/station/ID-only source assertions passed; `git diff --check` passed; the longest changed absolute path was 99 characters. The new C++ development verifier and `Verify-Crafting.ps1` runtime acceptance were prepared but not run.
+
+Full verification remains deferred: this is a normal M12 child, not the final implementation task. No Unreal build, C++ automation, host/client rendered run, physical controller review, or package check was run.
+
+Observable impact: A Workbench user can switch from Craft to Repair, select a carried repairable tool, inspect its condition, and request the existing free repair without losing the recipe selection.
+
+Networking/authority: Presentation only. Carried-tool rows and repair results use existing owner-only replication. The client submits only the selected tool ID; the server remains authoritative for its current tool record, visible same-world Workbench/Forge lookup within 250 cm, repair acceptance, and persistence. No gameplay component, RPC payload, replicated field, catalogue data, or save schema changed.
+
+Known limitations: Changed C++ remains uncompiled, and the prepared two-peer verifier, rendered layout, scaled/high-contrast readability, and physical controller behavior remain unreviewed. The existing repair request selects any visible same-world Workbench or Forge within range, so it is not bound to the exact actor that opened the focused Workbench section. M12 final verification remains pending.
+
+Next eligible task: M12 goal 7, Forge Craft section for Forge-compatible production including Frying Pan and the existing station requirements.
+
+Main-checkout handoff synchronization: Complete. Updated only this selected BACKLOG child and appended this PROGRESS entry in the main checkout after inspecting both dirty versions; all other pre-existing changes remain untouched.
