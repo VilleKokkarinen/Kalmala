@@ -40,7 +40,7 @@ class KALMALAUI_API UKalmalaCraftingWidget : public UUserWidget
 public:
     void Open();
     bool OpenForStation(FName StationKit);
-    bool OpenInStationContext(AKalmalaConstructionActor* Station);
+    bool OpenInStationContext(AKalmalaConstructionActor* Station, const FString& Section);
     bool IsStationContextValid() const;
     AKalmalaConstructionActor* GetStationContextActor() const { return ContextStationActor.Get(); }
     FName GetStationContextKit() const { return bEmbeddedContext ? StationFilterKit : NAME_None; }
@@ -69,7 +69,11 @@ protected:
 private:
     UKalmalaCraftingComponent* Model() const;
     bool OpenInternal(FName StationKit, AKalmalaConstructionActor* StationActor = nullptr,
-        FString StationContextConstructionId = FString(), bool bEmbeddedContext = false);
+        FString StationContextConstructionId = FString(), bool bEmbeddedContext = false,
+        FString StationContextSection = FString());
+    void ConfigureStationContextPresentation(const FString& Section);
+    void ApplyWorkbenchCraftLayout();
+    void RefreshWorkbenchStationState();
     UFUNCTION() void RecipeSearchChanged(const FText& Text);
     UFUNCTION() void CycleRecipeCategory();
     UFUNCTION() void CycleRecipeSort();
@@ -112,6 +116,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> SelectedIcon;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> HeaderText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchStationStatusText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailText;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIngredientWidget> Ingredients;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RequirementText;
@@ -123,6 +128,10 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> InventoryInspector;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> PlacementPreviewButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeAxeButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> UpgradeIronAxeButton;
+    UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> WorkbenchCraftExcludedWidgets;
     UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> RecipeSearchBox;
     UPROPERTY(Transient) TObjectPtr<UButton> CloseButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeCategoryLabel;
@@ -145,6 +154,7 @@ private:
     TArray<int32> LastRecipeGridIndices;
     bool bOpen = false;
     bool bEmbeddedContext = false;
+    bool bWorkbenchCraftContext = false;
     bool bPreviousMoveInputIgnored = false;
     bool bPreviousLookInputIgnored = false;
     bool bPlacementPreviewEnabled = false;

@@ -60,7 +60,7 @@ public:
     bool PlaceConstructionFromServer(FName BuildableId, FString& Reason);
     FString GetRecipeDescription(FName RecipeId) const;
     FString GetRecipeAvailability(FName RecipeId) const;
-    FString GetToolProgressionText() const;
+    FString GetToolProgressionText(FName StationFilterKit = NAME_None) const;
     FString GetFoodText() const;
     FString GetNearbyFireText() const;
     const FString& GetLastResult() const { return LastResult; }

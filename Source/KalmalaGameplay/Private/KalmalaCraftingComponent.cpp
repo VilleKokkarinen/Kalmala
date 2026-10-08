@@ -655,7 +655,7 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
     return Reason;
 }
 
-FString UKalmalaCraftingComponent::GetToolProgressionText() const
+FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFilterKit) const
 {
     const AKalmalaCharacter* Character = GetCharacter();
     const UKalmalaInventoryComponent* Inventory = Character
@@ -667,12 +667,15 @@ FString UKalmalaCraftingComponent::GetToolProgressionText() const
     const TArray<FKalmalaSkillState>* SkillStates = SkillProgression
         ? &SkillProgression->GetDetailedProgression() : nullptr;
     const TArray<FKalmalaToolState>& CarriedTools = Character->GetCarriedToolInventory();
-    FString Text = TEXT("\nTOOL UPGRADES — OWNER ONLY\n");
+    FString Text = StationFilterKit.IsNone()
+        ? TEXT("\nTOOL UPGRADES — OWNER ONLY\n")
+        : TEXT("\nTOOL OPTIONS — OWNER ONLY\n");
     for (const FKalmalaToolProgressionEntry& Entry : FKalmalaToolProgressionContract::GetEntries())
     {
         const TCHAR* StationName = Entry.RequiredStation == EKalmalaToolStationKind::Workbench
             ? TEXT("Workbench") : TEXT("Forge");
         const FName StationKit = FKalmalaToolProgressionContract::GetStationKit(Entry.RequiredStation);
+        if (!StationFilterKit.IsNone() && StationKit != StationFilterKit) continue;
         const FKalmalaToolState* ExistingTarget = CarriedTools.FindByPredicate(
             [&Entry](const FKalmalaToolState& State) { return State.ToolId == Entry.ToolId; });
         const FKalmalaToolDefinition* TargetDefinition = FKalmalaToolLifecycleContract::FindDefinition(Entry.ToolId);

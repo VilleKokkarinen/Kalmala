@@ -28,6 +28,7 @@
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaToolProgressionContract.h"
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Border.h"
@@ -72,6 +73,11 @@ FString GetReadableToolName(const FName ToolId)
 bool IsInWorldCookingStation(const FName KitId)
 {
     return KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit") || KitId == TEXT("FryingPanKit");
+}
+
+bool IsStationContextShellKit(const FName KitId)
+{
+    return KitId == TEXT("CookingRackKit") || KitId == TEXT("WorkbenchKit");
 }
 
 struct FInteractionPromptDescription
@@ -301,6 +307,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     HeaderText = AddText(TEXT("Construction hammer — Build and craft"), 28);
     GeneralInstructions = TEXT("Floor, wall, and roof are built directly from Wood and Fibre; no kit is created. Selection is marked with >. Requirements and unavailable reasons are written in text; colour is never the only cue.");
     InstructionsText = AddText(GeneralInstructions, 16);
+    WorkbenchStationStatusText = AddText(TEXT(""), 18);
+    WorkbenchStationStatusText->SetVisibility(ESlateVisibility::Collapsed);
     RecipeGrid = WidgetTree->ConstructWidget<UUniformGridPanel>();
     Column->AddChild(RecipeGrid);
     RecipesText = AddText(TEXT(""), 18);
@@ -345,47 +353,69 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     auto* InspectButton = AddButton(TEXT("Inspect inventory"), nullptr,
         TEXT("Show carried items, tools, and supported actions."));
     InspectButton->OnClicked.AddDynamic(this, &ThisClass::FocusInventoryDetails);
+    WorkbenchCraftExcludedWidgets.Add(InspectButton);
     auto* RecipeActions=WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(RecipeActions);
     AddButton(TEXT("Previous"),RecipeActions,TEXT("Select the previous recipe. Its ingredients, station, unlock, batch limit, and availability are shown above."))->OnClicked.AddDynamic(this, &ThisClass::Previous);
     AddButton(TEXT("Next"),RecipeActions,TEXT("Select the next recipe. Its ingredients, station, unlock, batch limit, and availability are shown above."))->OnClicked.AddDynamic(this, &ThisClass::Next);
     CraftButton = AddButton(TEXT("Craft one"),RecipeActions,TEXT("Craft batch 1 of the selected recipe. The server checks every requirement and rejected requests preserve ingredients."));
     CraftButton->OnClicked.AddDynamic(this, &ThisClass::Craft);
-    AddButton(TEXT("Preview placement"),RecipeActions,TEXT("Show a local placement preview for the selected buildable. This does not place it or spend ingredients."))->OnClicked.AddDynamic(this, &ThisClass::Preview);
-    AddText(TEXT("\nBuild/place selected uses the derived ground ahead. The server checks hammer, raw materials, terrain, and placement before committing. Camp structures are built directly from their listed raw materials.\n"),16);
+    PlacementPreviewButton = AddButton(TEXT("Preview placement"),RecipeActions,TEXT("Show a local placement preview for the selected buildable. This does not place it or spend ingredients."));
+    PlacementPreviewButton->OnClicked.AddDynamic(this, &ThisClass::Preview);
+    WorkbenchCraftExcludedWidgets.Add(PlacementPreviewButton);
+    WorkbenchCraftExcludedWidgets.Add(AddText(TEXT("\nBuild/place selected uses the derived ground ahead. The server checks hammer, raw materials, terrain, and placement before committing. Camp structures are built directly from their listed raw materials.\n"),16));
     auto* FireActions=WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(FireActions);
+    WorkbenchCraftExcludedWidgets.Add(FireActions);
     AddButton(TEXT("Build / place selected"),FireActions,TEXT("Ask the server to build the selected structure directly from its listed raw materials with the Construction Hammer. The server validates placement and costs."))->OnClicked.AddDynamic(this, &ThisClass::Place);
     AddButton(TEXT("Add raw fuel"),FireActions,TEXT("Add one Wood, Lightwood, Densewood, or Coal to a nearby usable hearth if the server confirms access and capacity."))->OnClicked.AddDynamic(this, &ThisClass::Refuel);
     AddButton(TEXT("Light hearth"),FireActions,TEXT("Light a nearby usable hearth. The server checks access, dry fuel, and fire state."))->OnClicked.AddDynamic(this, &ThisClass::Light);
     StateText = AddText(TEXT(""), 18);
     FoodText = AddText(TEXT(""), 18);
-    AddButton(TEXT("Eat one roasted field meat"),nullptr,TEXT("Consume one roasted field meat for the steady meal effect. Another meal cannot replace an active effect."))->OnClicked.AddDynamic(this, &ThisClass::EatFood);
-    AddButton(TEXT("Eat one hearth broth"),nullptr,TEXT("Consume one hearth broth for the steady meal effect. Another meal cannot replace an active effect."))->OnClicked.AddDynamic(this, &ThisClass::EatBroth);
-    AddButton(TEXT("Eat one smoked field meat"),nullptr,TEXT("Consume one smoked field meat for the steady meal effect. Another meal cannot replace an active effect."))->OnClicked.AddDynamic(this, &ThisClass::EatSmokedMeat);
+    WorkbenchCraftExcludedWidgets.Add(StateText);
+    WorkbenchCraftExcludedWidgets.Add(FoodText);
+    UButton* EatMeatButton = AddButton(TEXT("Eat one roasted field meat"),nullptr,TEXT("Consume one roasted field meat for the steady meal effect. Another meal cannot replace an active effect."));
+    EatMeatButton->OnClicked.AddDynamic(this, &ThisClass::EatFood);
+    WorkbenchCraftExcludedWidgets.Add(EatMeatButton);
+    UButton* EatBrothButton = AddButton(TEXT("Eat one hearth broth"),nullptr,TEXT("Consume one hearth broth for the steady meal effect. Another meal cannot replace an active effect."));
+    EatBrothButton->OnClicked.AddDynamic(this, &ThisClass::EatBroth);
+    WorkbenchCraftExcludedWidgets.Add(EatBrothButton);
+    UButton* EatSmokedMeatButton = AddButton(TEXT("Eat one smoked field meat"),nullptr,TEXT("Consume one smoked field meat for the steady meal effect. Another meal cannot replace an active effect."));
+    EatSmokedMeatButton->OnClicked.AddDynamic(this, &ThisClass::EatSmokedMeat);
+    WorkbenchCraftExcludedWidgets.Add(EatSmokedMeatButton);
     RepairText = AddText(TEXT("\nRepair: restore a damaged carried tool to full condition at a visible same-world Workbench or Forge within 2.5 m (free).\nGrinding Stone: repair all damaged carried tools within 2.5 m.\n"), 16);
     auto* RepairActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(RepairActions);
+    WorkbenchCraftExcludedWidgets.Add(RepairText);
+    WorkbenchCraftExcludedWidgets.Add(RepairActions);
     AddButton(TEXT("Repair Reed Knife"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairReedKnife);
     AddButton(TEXT("Repair Field Hatchet"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairFieldHatchet);
     AddButton(TEXT("Repair Stone Pick"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairStonePick);
     auto* AxeRepairActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(AxeRepairActions);
+    WorkbenchCraftExcludedWidgets.Add(AxeRepairActions);
     AddButton(TEXT("Repair Bronze Axe"), AxeRepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairBronzeAxe);
     AddButton(TEXT("Repair Iron Axe"), AxeRepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairIronAxe);
     ToolProgressionText = AddText(TEXT(""), 18);
     auto* ToolProgressionActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(ToolProgressionActions);
-    AddButton(TEXT("Craft Bronze Axe"), ToolProgressionActions,
-        TEXT("Ask the server to craft the level-one Bronze Axe at a visible same-world level-one Workbench. The server checks materials and private tool inventory."))->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeAxe);
-    AddButton(TEXT("Upgrade to Iron Axe"), ToolProgressionActions,
-        TEXT("Ask the server to exchange a carried level-one Bronze Axe for a level-two Iron Axe at a visible same-world level-two Forge. The server checks every material and condition."))->OnClicked.AddDynamic(this, &ThisClass::UpgradeIronAxe);
-    AddText(TEXT("\nWoven chest — shared nearby storage\nInspect a visible chest, choose an item, then store or take one. Contents clear when closed or out of reach."), 16);
-    AddText(TEXT("Chest contents use the shared 16-stack interface. Accepted construction and storage records are saved for this world; rejected transfers leave both inventories unchanged."), 16);
+    CraftBronzeAxeButton = AddButton(TEXT("Craft Bronze Axe"), ToolProgressionActions,
+        TEXT("Ask the server to craft the level-one Bronze Axe at a visible same-world level-one Workbench. The server checks materials and private tool inventory."));
+    CraftBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeAxe);
+    UpgradeIronAxeButton = AddButton(TEXT("Upgrade to Iron Axe"), ToolProgressionActions,
+        TEXT("Ask the server to exchange a carried level-one Bronze Axe for a level-two Iron Axe at a visible same-world level-two Forge. The server checks every material and condition."));
+    UpgradeIronAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeIronAxe);
+    WorkbenchCraftExcludedWidgets.Add(AddText(TEXT("\nWoven chest — shared nearby storage\nInspect a visible chest, choose an item, then store or take one. Contents clear when closed or out of reach."), 16));
+    WorkbenchCraftExcludedWidgets.Add(AddText(TEXT("Chest contents use the shared 16-stack interface. Accepted construction and storage records are saved for this world; rejected transfers leave both inventories unchanged."), 16));
     StorageText = AddText(TEXT(""), 18);
-    AddButton(TEXT("Inspect nearby chest"),nullptr,TEXT("Open the owner-only view of a visible nearby chest. The view closes when the chest is closed or out of reach."))->OnClicked.AddDynamic(this, &ThisClass::InspectStorage);
+    WorkbenchCraftExcludedWidgets.Add(StorageText);
+    UButton* InspectChestButton = AddButton(TEXT("Inspect nearby chest"),nullptr,TEXT("Open the owner-only view of a visible nearby chest. The view closes when the chest is closed or out of reach."));
+    InspectChestButton->OnClicked.AddDynamic(this, &ThisClass::InspectStorage);
+    WorkbenchCraftExcludedWidgets.Add(InspectChestButton);
     auto* StorageActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(StorageActions);
+    WorkbenchCraftExcludedWidgets.Add(StorageActions);
     AddButton(TEXT("Previous item"), StorageActions)->OnClicked.AddDynamic(this, &ThisClass::PreviousStorageItem);
     AddButton(TEXT("Next item"), StorageActions)->OnClicked.AddDynamic(this, &ThisClass::NextStorageItem);
     AddButton(TEXT("Store one"), StorageActions,TEXT("Ask the server to move one selected item from your pack into the nearby chest."))->OnClicked.AddDynamic(this, &ThisClass::DepositStorage);
     AddButton(TEXT("Take one"), StorageActions,TEXT("Ask the server to move one selected item from the nearby chest into your pack."))->OnClicked.AddDynamic(this, &ThisClass::WithdrawStorage);
     InventoryInspector = WidgetTree->ConstructWidget<UKalmalaInventoryInspectWidget>();
     Column->AddChild(InventoryInspector);
+    WorkbenchCraftExcludedWidgets.Add(InventoryInspector);
     CloseButton=AddButton(TEXT("Close")); CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseClicked);
     CloseButton->RemoveFromParent();
     auto* Outer=WidgetTree->ConstructWidget<UVerticalBox>();
@@ -439,7 +469,10 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
             || (RecipeCategory == 1 && !bCooking) || (RecipeCategory == 2 && bCooking)
             || (RecipeCategory == 3 && BuildGroup != 0)
             || (RecipeCategory >= 4 && BuildGroup == RecipeCategory);
-        if ((StationFilterKit.IsNone() || Recipe.RequiredStation.Contains(StationFilterKit))
+        const bool bMatchingAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output)
+            && FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.Output) == StationFilterKit;
+        const bool bMatchesStation = Recipe.RequiredStation.Contains(StationFilterKit) || bMatchingAttachment;
+        if ((StationFilterKit.IsNone() || bMatchesStation)
             && bCategoryMatches
             && (RecipeQuery.IsEmpty() || Recipe.DisplayName.Contains(RecipeQuery, ESearchCase::IgnoreCase)))
             Indices.Add(Index);
@@ -486,14 +519,16 @@ bool UKalmalaCraftingWidget::OpenForStation(const FName StationKit)
     return OpenInternal(StationKit);
 }
 
-bool UKalmalaCraftingWidget::OpenInStationContext(AKalmalaConstructionActor* Station)
+bool UKalmalaCraftingWidget::OpenInStationContext(AKalmalaConstructionActor* Station, const FString& Section)
 {
     UKalmalaCraftingComponent* Crafting = Model();
     const FName Kit = Crafting ? Crafting->GetLastStationContextKit() : NAME_None;
     const FString ConstructionId = Crafting ? Crafting->GetLastStationContextConstructionId() : FString();
-    if (!Crafting || !IsValid(Station) || !IsInWorldCookingStation(Kit)
+    const bool bSectionSupported = (Kit == TEXT("CookingRackKit") && Section.Equals(TEXT("Cook"), ESearchCase::IgnoreCase))
+        || (Kit == TEXT("WorkbenchKit") && Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase));
+    if (!Crafting || !IsValid(Station) || !IsStationContextShellKit(Kit) || !bSectionSupported
         || !Crafting->IsStationContextTargetCurrent(Station, Kit, ConstructionId)) return false;
-    return OpenInternal(Kit, Station, ConstructionId, true);
+    return OpenInternal(Kit, Station, ConstructionId, true, Section);
 }
 
 bool UKalmalaCraftingWidget::IsStationContextValid() const
@@ -508,9 +543,11 @@ bool UKalmalaCraftingWidget::IsStationContextValid() const
 
 bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     AKalmalaConstructionActor* StationActor, FString StationContextConstructionId,
-    const bool bInEmbeddedContext)
+    const bool bInEmbeddedContext, FString StationContextSection)
 {
-    if (!StationKit.IsNone() && !IsInWorldCookingStation(StationKit)) return false;
+    if (!StationKit.IsNone() && !IsInWorldCookingStation(StationKit)
+        && !(bInEmbeddedContext && StationKit == TEXT("WorkbenchKit")
+            && StationContextSection.Equals(TEXT("Craft"), ESearchCase::IgnoreCase))) return false;
     if (bInEmbeddedContext && !StationActor) return false;
     if (StationActor)
     {
@@ -522,11 +559,18 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     {
         if (bEmbeddedContext != bInEmbeddedContext) return false;
         StationFilterKit = StationKit;
+        bEmbeddedContext = bInEmbeddedContext;
         ContextStationActor = StationActor;
         ContextOwnerPawn = StationActor ? GetOwningPlayerPawn() : nullptr;
         ContextConstructionId = StationActor ? MoveTemp(StationContextConstructionId) : FString();
         Selected = 0;
         bPlacementPreviewEnabled = false;
+        ConfigureStationContextPresentation(StationContextSection);
+        if (bWorkbenchCraftContext)
+        {
+            if (RecipeSearchBox) RecipeSearchBox->SetText(FText::GetEmpty());
+            SetRecipeBrowse(TEXT(""), 0, false);
+        }
         Refresh();
         return true;
     }
@@ -548,19 +592,11 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
             });
         if (FirstBuild != INDEX_NONE) Selected = FirstBuild;
     }
-    if (StationFilterKit.IsNone())
+    ConfigureStationContextPresentation(StationContextSection);
+    if (bWorkbenchCraftContext)
     {
-        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Construction hammer — Build and craft")));
-        if (InstructionsText) InstructionsText->SetText(FText::FromString(GeneralInstructions));
-    }
-    else
-    {
-        const FKalmalaItemDefinition* StationItem = UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit);
-        const FString StationName = StationItem ? StationItem->DisplayName : StationFilterKit.ToString();
-        if (HeaderText) HeaderText->SetText(FText::FromString(bEmbeddedContext
-            ? TEXT("Recipes") : StationName + TEXT(" — Cook")));
-        if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("The server requires this placed station and a usable, lit hearth with heat at both the station and you. Ingredients and availability are shown in text.")));
+        if (RecipeSearchBox) RecipeSearchBox->SetText(FText::GetEmpty());
+        SetRecipeBrowse(TEXT(""), 0, false);
     }
     bOpen = true;
     if (!bEmbeddedContext) bPreviousCursor = PC->bShowMouseCursor;
@@ -609,6 +645,73 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     return true;
 }
 
+void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& Section)
+{
+    bWorkbenchCraftContext = bEmbeddedContext && StationFilterKit == TEXT("WorkbenchKit")
+        && Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase);
+    ApplyWorkbenchCraftLayout();
+    RefreshWorkbenchStationState();
+
+    if (StationFilterKit.IsNone())
+    {
+        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Construction hammer — Build and craft")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(GeneralInstructions));
+        return;
+    }
+
+    const FKalmalaItemDefinition* StationItem = UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit);
+    const FString StationName = StationItem ? StationItem->DisplayName : StationFilterKit.ToString();
+    if (bWorkbenchCraftContext)
+    {
+        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Workbench — Craft")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(
+            TEXT("Only recipes for this Workbench and the Bronze Axe tool operation are shown. The server checks station, materials, and tool state when you craft.")));
+    }
+    else
+    {
+        if (HeaderText) HeaderText->SetText(FText::FromString(bEmbeddedContext
+            ? TEXT("Recipes") : StationName + TEXT(" — Cook")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(
+            TEXT("The server requires this placed station and a usable, lit hearth with heat at both the station and you. Ingredients and availability are shown in text.")));
+    }
+}
+
+void UKalmalaCraftingWidget::ApplyWorkbenchCraftLayout()
+{
+    const ESlateVisibility ExcludedVisibility = bWorkbenchCraftContext
+        ? ESlateVisibility::Collapsed : ESlateVisibility::Visible;
+    for (UWidget* Excluded : WorkbenchCraftExcludedWidgets)
+        if (Excluded) Excluded->SetVisibility(ExcludedVisibility);
+    if (WorkbenchStationStatusText)
+        WorkbenchStationStatusText->SetVisibility(bWorkbenchCraftContext
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (UpgradeIronAxeButton)
+        UpgradeIronAxeButton->SetVisibility(bWorkbenchCraftContext
+            ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+}
+
+void UKalmalaCraftingWidget::RefreshWorkbenchStationState()
+{
+    if (!WorkbenchStationStatusText) return;
+    if (!bWorkbenchCraftContext)
+    {
+        WorkbenchStationStatusText->SetVisibility(ESlateVisibility::Collapsed);
+        return;
+    }
+    const AKalmalaConstructionActor* Station = ContextStationActor.Get();
+    if (!IsValid(Station) || Station->GetConstructionKit() != TEXT("WorkbenchKit"))
+    {
+        WorkbenchStationStatusText->SetText(FText::FromString(TEXT("Workbench level unavailable · Tool Rack state unavailable")));
+        return;
+    }
+    const int32 BaseLevel = FKalmalaToolProgressionContract::GetBaseStationLevel(TEXT("WorkbenchKit"));
+    const int32 EffectiveLevel = FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station);
+    const bool bToolRackAttached = EffectiveLevel > BaseLevel;
+    WorkbenchStationStatusText->SetText(FText::FromString(FString::Printf(
+        TEXT("Workbench level %d · Tool Rack: %s"), EffectiveLevel,
+        bToolRackAttached ? TEXT("attached") : TEXT("not attached"))));
+}
+
 void UKalmalaCraftingWidget::Close()
 {
     if (!bOpen) return; bOpen = false; bPlacementPreviewEnabled = false; SetVisibility(ESlateVisibility::Collapsed);
@@ -629,6 +732,8 @@ void UKalmalaCraftingWidget::Close()
         Theme.ApplyPanel(*MenuBackground, UKalmalaSettingsWidget::GetContrastMode(), &Theme.BuildPanelImage);
     }
     bEmbeddedContext = false;
+    bWorkbenchCraftContext = false;
+    ApplyWorkbenchCraftLayout();
     ContextStationActor.Reset();
     ContextOwnerPawn.Reset();
     ContextConstructionId.Reset();
@@ -866,15 +971,79 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     UE_LOG(LogTemp, Display, TEXT("Build grid input: KeyboardDown=%d KeyboardUp=%d DPadDown=%d DPadUp=%d Scrollable=%d ScrollEnd=%.1f Focused=%d"),
         bKeyboardAdvanced, bKeyboardRestored, bControllerAdvanced, bControllerRestored,
         bScrollable, ScrollOffsetOfEnd, HasKeyboardFocus());
+    const FName PreviousStationFilterKit = StationFilterKit;
+    const FString PreviousRecipeQuery = RecipeQuery;
+    const int32 PreviousRecipeCategory = RecipeCategory;
+    const bool bPreviousNameSort = bRecipeNameSort;
+    StationFilterKit = TEXT("WorkbenchKit");
+    RecipeQuery.Reset();
+    RecipeCategory = 0;
+    bRecipeNameSort = false;
+    const TArray<int32> WorkbenchIndices = GetVisibleRecipeIndices();
+    bool bHasGrindingStone = false;
+    bool bHasToolRack = false;
+    bool bNoUnrelatedRecipes = true;
+    const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
+    for (const int32 RecipeIndex : WorkbenchIndices)
+    {
+        if (!Recipes.IsValidIndex(RecipeIndex)) { bNoUnrelatedRecipes = false; continue; }
+        const FKalmalaRecipe& Recipe = Recipes[RecipeIndex];
+        bHasGrindingStone |= Recipe.Output == TEXT("GrindingStoneKit");
+        bHasToolRack |= Recipe.Output == TEXT("WorkbenchToolRackKit");
+        const bool bMatchingAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output)
+            && FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.Output) == TEXT("WorkbenchKit");
+        bNoUnrelatedRecipes &= Recipe.RequiredStation.Contains(TEXT("WorkbenchKit")) || bMatchingAttachment;
+    }
+    const FString WorkbenchToolOptions = Model()
+        ? Model()->GetToolProgressionText(TEXT("WorkbenchKit")) : FString();
+    const FKalmalaToolProgressionEntry* BronzeAxe = FKalmalaToolProgressionContract::FindEntry(TEXT("BronzeAxe"));
+    const bool bBronzeAxeScoped = BronzeAxe != nullptr
+        && BronzeAxe->RequiredStation == EKalmalaToolStationKind::Workbench
+        && WorkbenchToolOptions.Contains(TEXT("Bronze Axe"))
+        && !WorkbenchToolOptions.Contains(TEXT("Iron Axe"));
+    const AKalmalaCharacter* ToolOwner = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
+    const bool bBronzeAlreadyCarried = ToolOwner && ToolOwner->GetCarriedToolLevel(TEXT("BronzeAxe")) > 0;
+    const bool bToolPrerequisites = bBronzeAlreadyCarried
+        ? WorkbenchToolOptions.Contains(TEXT("Already carried"))
+        : WorkbenchToolOptions.Contains(TEXT("Cost:"))
+            && WorkbenchToolOptions.Contains(TEXT("Requires: Workbench level 1"));
+    const bool bPreviousWorkbenchContext = bWorkbenchCraftContext;
+    bWorkbenchCraftContext = true;
+    ApplyWorkbenchCraftLayout();
+    bool bWorkbenchUiScope = WorkbenchStationStatusText
+        && WorkbenchStationStatusText->GetVisibility() == ESlateVisibility::Visible
+        && CraftButton && CraftButton->GetVisibility() != ESlateVisibility::Collapsed
+        && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() != ESlateVisibility::Collapsed
+        && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed;
+    for (const TObjectPtr<UWidget>& ExcludedWidget : WorkbenchCraftExcludedWidgets)
+    {
+        const UWidget* Excluded = ExcludedWidget.Get();
+        bWorkbenchUiScope &= Excluded && Excluded->GetVisibility() == ESlateVisibility::Collapsed;
+    }
+    bWorkbenchCraftContext = bPreviousWorkbenchContext;
+    ApplyWorkbenchCraftLayout();
+    StationFilterKit = PreviousStationFilterKit;
+    RecipeQuery = PreviousRecipeQuery;
+    RecipeCategory = PreviousRecipeCategory;
+    bRecipeNameSort = bPreviousNameSort;
+    Refresh();
+    UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: BronzeAxe=%d GrindingStone=%d ToolRack=%d NoUnrelated=%d ToolPrerequisites=%d UiScope=%d"),
+        bBronzeAxeScoped, bHasGrindingStone, bHasToolRack, bNoUnrelatedRecipes, bToolPrerequisites, bWorkbenchUiScope);
     return bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
         && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe
-        && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty;
+        && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty
+        && bBronzeAxeScoped && bHasGrindingStone && bHasToolRack && bNoUnrelatedRecipes
+        && bToolPrerequisites && bWorkbenchUiScope;
 }
 #endif
 
 void UKalmalaCraftingWidget::Refresh()
 {
     auto* M=Model(); if (!M) { Close(); return; }
+    if (ToolProgressionText)
+        ToolProgressionText->SetText(FText::FromString(M->GetToolProgressionText(
+            bWorkbenchCraftContext ? FName(TEXT("WorkbenchKit")) : NAME_None)));
+    RefreshWorkbenchStationState();
     const auto& Recipes=UKalmalaRecipeCatalogue::Get()->Recipes;
     const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
     const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(
@@ -1012,7 +1181,6 @@ void UKalmalaCraftingWidget::Refresh()
     StateText->SetText(FText::FromString(TEXT("\nNearby hearth (replicated shared state; text does not rely on colour):\n")
         + ToolConditionText + TEXT("\n") + M->GetNearbyFireText()+TEXT("\n")+M->GetNearbyConstructionText()+TEXT("\n")+M->GetNearbyWorkbenchText()+TEXT("\n")+M->GetLastResult()+TEXT("\n")+PreviewText));
     FoodText->SetText(FText::FromString(M->GetFoodText()));
-    if (ToolProgressionText) ToolProgressionText->SetText(FText::FromString(M->GetToolProgressionText()));
     const auto* Catalogue = UKalmalaItemCatalogue::Get();
     SelectedStorageItem = FMath::Clamp(SelectedStorageItem, 0, FMath::Max(0, Catalogue->Items.Num()-1));
     FString ChestText = TEXT("No item catalogue\n");
@@ -1188,7 +1356,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 if (Crafting->IsStationContextTargetCurrent(Station, ContextKit, ConstructionId))
                 {
                     LastStationContextSerial = ContextSerial;
-                    if (ContextKit == TEXT("CookingRackKit") && !IsOpen())
+                    if (IsStationContextShellKit(ContextKit) && !IsOpen())
                     {
                         if (!Widget)
                         {
@@ -1200,8 +1368,9 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                             StationContextWidget = CreateWidget<UKalmalaStationContextWidget>(PC);
                             if (StationContextWidget) StationContextWidget->AddToPlayerScreen(170);
                         }
+                        const FString Section = ContextKit == TEXT("WorkbenchKit") ? TEXT("Craft") : TEXT("Cook");
                         if (Widget && StationContextWidget)
-                            StationContextWidget->OpenForStation(Station, TEXT("Cook"), Widget);
+                            StationContextWidget->OpenForStation(Station, Section, Widget);
                     }
                 }
             }

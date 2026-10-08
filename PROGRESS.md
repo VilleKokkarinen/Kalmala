@@ -11870,3 +11870,25 @@ Known limitations: Changed C++ and narrow automation assertions remain uncompile
 Next eligible task: M12 goal 7, implement the Workbench Craft section for supported recipes/tools including Bronze Axe and Grinding Stone.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and applied only this selected BACKLOG child and the appended PROGRESS record; all other modified and untracked main-checkout files remain untouched.
+
+### Run 2026-10-08T06:02:49Z — add Workbench Craft section
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run. Continued in the retained clean worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` at `a1335cc`; pre-existing main-checkout changes were preserved.
+
+Completed: Added a Workbench Craft section to the shared station shell, routed from the owner-only accepted Workbench interaction. Its recipe list is limited to Workbench-required recipes and matching Tool Rack production, and it reuses the Bronze Axe operation with owner material and station requirements. The section shows the accepted Workbench's effective level and Tool Rack state; unrelated build, fire, food, repair, upgrade, storage, and inventory actions are hidden. Existing server craft/progression validation and request payloads remain unchanged. Marked only this goal 7 child complete.
+
+Files changed: `Scripts/Verify-Crafting.ps1`; `Scripts/Verify-PresentationOwnership.ps1`; `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaStationContextWidget.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`; `docs/15-presentation-ownership.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-PresentationOwnership.ps1`, all five `Verify-M5DocumentationContracts.ps1` contracts, PowerShell parsing for the two changed scripts, focused Workbench Craft source assertions, `git diff --check`, and the MAX_PATH audit passed (maximum changed absolute path 114 characters). The new C++ assertions were prepared but not executed.
+
+Full verification remains deferred: this is a normal M12 child, not the final implementation task. No Unreal build, automation test, rendered host/client run, physical-input review, or package check was run.
+
+Observable impact: interacting with a Workbench opens a focused Craft section for Grinding Stone, Tool Rack, and Bronze Axe work with current material and station details.
+
+Networking/authority: The accepted station context remains owner-only presentation state. Craft and Bronze Axe requests continue through existing server RPCs and server-side station, level, material, inventory, and tool checks. No gameplay payload, catalogue data, or save schema changed.
+
+Known limitations: Changed C++ and its assertions remain uncompiled/unrun, and the section has not been rendered or exercised on host/client. Each action still resolves its nearby station through existing server rules; with multiple benches in range, the server-selected bench may differ from the focused actor. M12 final accessibility, authority, interaction, regression, and package verification remains pending.
+
+Next eligible task: M12 goal 7, Workbench Repair section with owner carried-tool condition/selection and the existing free selected-tool repair.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and applied only this selected BACKLOG state and progress entry; all other modified and untracked files remain untouched.

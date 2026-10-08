@@ -52,7 +52,8 @@ $sourceContracts = @(
     @{ Label = 'survival-status'; Path = 'Source\KalmalaUI\Private\KalmalaSurvivalStatusWidget.cpp'; Patterns = @('BuildStatusText', 'Source: exposed rain or water', 'Source: prepared food', 'Recovery: shelter or a lit hearth restores warmth', 'SetIsFocusable(false)') },
     @{ Label = 'survival-status-owner'; Path = 'Source\KalmalaUI\Private\KalmalaSurvivalStatusSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'GetServerWorldTimeSeconds()', 'SetSnapshot', 'AddToPlayerScreen(54)', 'HotbarWidget->SetSnapshot') },
     @{ Label = 'inventory-menu'; Path = 'Source\KalmalaUI\Private\KalmalaInventoryMenuWidget.cpp'; Patterns = @('GetOwningPlayer()', 'FindComponentByClass<UKalmalaInventoryComponent>()', 'GetCarriedToolInventory()', 'Waiting for your pack.') },
-    @{ Label = 'feedback-crafting'; Path = 'Source\KalmalaUI\Private\KalmalaCraftingSubsystem.cpp'; Patterns = @('text does not rely on colour', 'Construction feedback: Passed=') }
+    @{ Label = 'feedback-crafting'; Path = 'Source\KalmalaUI\Private\KalmalaCraftingSubsystem.cpp'; Patterns = @('text does not rely on colour', 'Construction feedback: Passed=') },
+    @{ Label = 'workbench-craft-context'; Path = 'Source\KalmalaUI\Private\KalmalaCraftingSubsystem.cpp'; Patterns = @('IsStationContextShellKit', 'WorkbenchToolRackKit', 'GetEffectiveStationLevel(Station)', 'Tool Rack: %s', 'Workbench Craft scope:') }
 )
 $forbiddenPatterns = @('BasicShape', '/Engine/BasicShapes', 'StarterContent', 'Marketplace', 'Quixel', 'ThirdParty')
 foreach ($contract in $sourceContracts) {

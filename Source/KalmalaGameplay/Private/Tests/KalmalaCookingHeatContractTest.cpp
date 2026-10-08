@@ -256,6 +256,33 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Station context rejects a mismatched station kit"),
         Crafting->IsStationContextUsable(Rack, FName(TEXT("CauldronKit")), Rack->GetConstructionId()));
 
+    AKalmalaConstructionActor* Workbench = World->SpawnActor<AKalmalaConstructionActor>();
+    if (!TestNotNull(TEXT("Workbench fixture spawned"), Workbench))
+    {
+        Rack->Destroy();
+        Cauldron->Destroy();
+        Pan->Destroy();
+        Forge->Destroy();
+        Fire->Destroy();
+        World->DestroyWorld(false);
+        return false;
+    }
+    World->Tick(LEVELTICK_All, 0.25f);
+    Workbench->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -160.0f, 0.0f));
+    Workbench->InitializeFromServer(TEXT("WorkbenchKit"), TEXT("CookingHeatWorkbench"));
+    Workbench->Interact_Implementation(Pawn);
+    TestTrue(TEXT("Accepted Workbench interaction publishes its exact station context"),
+        Crafting->GetLastStationContextActor() == Workbench
+        && Crafting->GetLastStationContextKit() == FName(TEXT("WorkbenchKit"))
+        && Crafting->GetLastStationContextConstructionId() == Workbench->GetConstructionId());
+    TestEqual(TEXT("Workbench interaction increments the shared station context serial"),
+        Crafting->GetStationContextInteractionSerial(), 2u);
+    TestTrue(TEXT("The accepted Workbench context remains range and identity checked"),
+        Crafting->IsStationContextUsable(Workbench, FName(TEXT("WorkbenchKit")), Workbench->GetConstructionId()));
+    TestEqual(TEXT("Workbench interaction does not trigger the cooking-only menu event"),
+        Crafting->GetCookingStationInteractionSerial(), 1u);
+
+    Workbench->Destroy();
     Rack->Destroy();
     Cauldron->Destroy();
     Pan->Destroy();

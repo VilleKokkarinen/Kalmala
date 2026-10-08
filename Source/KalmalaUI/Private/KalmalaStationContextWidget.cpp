@@ -74,7 +74,7 @@ bool UKalmalaStationContextWidget::OpenForStation(AKalmalaConstructionActor* Sta
     if (!PC || !PC->IsLocalController() || !Character || !IsValid(Station) || !InServiceContent
         || Section.TrimStartAndEnd().IsEmpty() || PC->IsMoveInputIgnored() || PC->IsLookInputIgnored()
         || !ContentBox) return false;
-    if (!InServiceContent->OpenInStationContext(Station) || !InServiceContent->IsStationContextValid())
+    if (!InServiceContent->OpenInStationContext(Station, Section) || !InServiceContent->IsStationContextValid())
     {
         InServiceContent->Close();
         return false;

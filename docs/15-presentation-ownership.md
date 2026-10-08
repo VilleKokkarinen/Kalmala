@@ -40,8 +40,11 @@ multi-row clipping, and scaled-font legibility remain unreviewed.
 The shared themed station shell opens from an owner-only event emitted after
 the server accepts and revalidates a construction interaction. It binds the
 current section to the exact replicated station actor and stable construction
-ID. The first integrated entry is the Cooking Rack, which embeds the existing
-station-filtered recipe view; the legacy CraftMenu path remains available.
+ID. The Cooking Rack embeds its station-filtered recipe view. Workbench opens a
+Craft section scoped to its supported recipes, matching Tool Rack production,
+and the owner-local Bronze Axe operation; its effective level and Tool Rack
+state come from the accepted station and replicated placement presentation.
+The legacy CraftMenu path remains available.
 While open, the local subsystem asks the owning crafting component to verify
 the same actor reference, stable ID, station kit, pawn world, and range. The
 server validated sight during the original interaction. It closes on target
