@@ -34,20 +34,25 @@ left-side feedback source.
 
 ## Catalogue audit
 
-The schema-4 JSON currently contains 42 inventory definitions and 19 recipe
-outputs, of which 13 are direct-material construction entries. There are
-six carried tool identities from the tool lifecycle catalogue. All 48
-inventory/tool identities have explicit original icon assignments in
-KalmalaIconWidget.cpp. Related materials and foods use authored monochrome
-accents; root vegetables also have distinct silhouettes. Names, quantities,
-tool levels/condition, recipe descriptions and requirements remain text.
-Unknown IDs receive a question-mark fallback, never an invented assignment.
+The schema-4 JSON currently contains 42 item definitions and 19 recipe
+outputs, including 13 construction outputs. There are six carried tool
+identities from the tool lifecycle catalogue. All 48 canonical item/tool
+identities have explicit original line-art assignments in
+KalmalaIconWidget.cpp. M12 pins raster-image identity, aliases, shared views,
+and fixed batches in docs/43-catalogue-icon-manifest.md and
+docs/catalogue-icon-manifest.csv. The manifest marks CampfireKit as
+construction-only and excludes it from pack/storage views. Related materials
+and foods use authored monochrome accents; root vegetables also have distinct
+silhouettes. Names, quantities, tool levels/condition, recipe descriptions
+and requirements remain text. Unknown IDs receive a question-mark fallback,
+never an invented assignment.
 
 Construction JSON display IDs resolve through the existing loader to stable
 runtime/save IDs (for example HearthRing to CampfireKit); icon mappings use
-those canonical runtime IDs. The inventory renders icon/name rows and the
-recipe/build selector renders the same icon for its selected canonical
-output. All 19 selector entries therefore share the output's assignment.
+those canonical runtime IDs. Inventory, tool, ingredient, storage, recipe,
+and build surfaces reuse one identity's assignment instead of defining an
+image per view. All 19 recipe outputs therefore share their output identity's
+assignment. The manifest does not change gameplay catalogue or save IDs.
 No item, recipe, balance value, RPC, replicated field or save schema changes.
 The later slot grid and larger selected-result preview remain separate tasks.
 

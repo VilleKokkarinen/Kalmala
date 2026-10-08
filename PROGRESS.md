@@ -12482,3 +12482,51 @@ exception.
 Main-checkout handoff synchronization: Complete. Inspected the dirty main
 BACKLOG.md and PROGRESS.md versions; synchronized only the selected goal-7
 parent/child state and this progress entry, preserving all unrelated edits.
+
+
+## Run 2026-10-08T10:38:15Z — Pin catalogue icon manifest
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+E:\dev\Kalmala\wt\m12-hud-feedback-rebuild; the dirty main checkout was
+preserved.
+
+Completed exactly the first unchecked child of M12 goal 8. Added the pinned
+canonical image manifest for all 42 schema-4 item IDs and six carried tools.
+The table records all 13 normalized catalogue aliases, all 19 recipe outputs,
+all 13 construction outputs, the applicable shared views, and fixed membership
+in twelve four-image batches and three sixteen-image import batches.
+CampfireKit keeps one construction/recipe-result image identity and is
+explicitly excluded from pack and storage image use.
+
+Files changed: BACKLOG.md; docs/43-catalogue-icon-manifest.md;
+docs/catalogue-icon-manifest.csv; docs/36-status-icons.md; docs/README.md;
+and this PROGRESS.md.
+
+Lightweight checks passed: focused PowerShell parsing and source-coverage audit
+matched the manifest's 48 ordered IDs exactly to the existing canonical icon
+map and normalized catalogue/tool identities; verified the 13 aliases, 19
+recipe outputs, 13 build outputs, batch sizes and Campfire scope. All five
+M5 documentation contracts, presentation-ownership audit, and git diff --check
+passed. Full verification remains deferred. No Unreal build or automation,
+image generation/import, rendered review, controller check, or package check
+was run.
+
+Observable impact: icon work now has a deterministic identity, alias, shared
+view, and batch plan for each current item and carried tool.
+
+Networking/authority: documentation and manifest data only; no gameplay,
+network, RPC, replication, authority, or save contract changed.
+
+Known limitations: raster images have not been generated or imported; the
+existing vector icons remain active. Unknown-ID asset fallback and image
+validation remain in the next child. The legacy HearthRing item record remains
+until M12 goal 9.
+
+Next eligible task: M12 goal 8, add shared UI texture lookup/import
+preparation and unknown-ID fallback with one original pilot icon, transparent
+64x64 RGBA output, source retention, and a narrow image/path validator.
+
+Main-checkout handoff synchronization: Pending; after the worktree commit,
+apply only the selected BACKLOG child and this PROGRESS handoff to the dirty
+main-checkout files.
