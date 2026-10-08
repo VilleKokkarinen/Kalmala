@@ -13047,3 +13047,51 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 `BACKLOG.md` and `PROGRESS.md`; applied only the batch A child update and this
 entry, preserving all pre-existing main-checkout changes. No implementation
 assets were synchronized.
+
+## Run 2026-10-08 13:51 UTC — Import/map catalogue texture batch B
+
+Concurrency guard: Codex app task inventory showed no other active Kalmala
+automation run. Windows process inspection was restricted. Continued in the
+retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout had pre-existing changes to
+`BACKLOG.md` and `PROGRESS.md`; they are preserved during this handoff.
+
+Completed exactly M12 goal 8's batch B import child: StorageKit,
+CookingRackKit, FryingPanKit, CauldronKit, FloorKit, WallKit, RoofKit,
+BoarMeat, DeerMeat, BoarHide, DeerHide, CookedBoarMeat, CookedDeerMeat,
+HearthBroth, MeatStew, and RootVegetableSoup. Imported sixteen canonical
+Texture2D packages to `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`. The seven
+manifest aliases Storage, CookingRack, FryingPan, Cauldron, Floor, Wall, and
+Roof share canonical assignments; no duplicate alias packages were created.
+
+Files changed: `Content/Kalmala/UI/Icons/Items/` for the sixteen IDs above,
+`docs/43-catalogue-icon-manifest.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Import-CatalogueIconBatch.ps1 -Batch B`
+completed under normal Unreal access and validated each saved 64×64 Texture2D
+with source alpha, sRGB, UI texture group, no mipmaps, and non-streaming
+settings. `Scripts/Validate-CatalogueIcon.ps1` passed for all sixteen IDs; the
+runner checked aliases and emitted object paths. The initial sandboxed run
+exited without an import log and made no repository changes; the normal-access
+retry completed successfully. `git diff --check`, manifest-to-package and
+alias absence checks, and a changed-path MAX_PATH audit passed (longest path
+98 characters). No Kalmala project build, automation suite,
+rendered review, or package check was run. Full M12 verification remains
+deferred.
+
+Observable impact: the shared lookup now has imported targets for 32 of 48
+canonical identities and their listed aliases. Inventory and Build/crafting
+consumers remain on vector icons until their later integration children.
+
+Networking/authority: presentation assets only; gameplay, RPC, replication,
+server authority, inventory, and save contracts are unchanged.
+
+Known limitations: batch C, both menu integration children, rendered
+host/client acceptance, and M12 milestone-final verification remain open.
+
+Next eligible task: M12 goal 8, import/map texture batch C for the remaining
+sixteen manifest identities.
+
+Main-checkout handoff synchronization: pending; only `BACKLOG.md` and
+`PROGRESS.md` will be synchronized after inspecting the main versions. No
+implementation assets will be synchronized.

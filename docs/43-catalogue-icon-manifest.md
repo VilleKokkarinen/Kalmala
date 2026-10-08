@@ -426,3 +426,21 @@ same canonical target as their row; no alias texture assets were created.
 These imports prepare the shared runtime lookup targets only. Existing menu
 consumers still use vector icons until the two later integration children.
 Batch B, batch C, and rendered host/client acceptance remain open.
+
+## Import batch B — 2026-10-08
+
+Imported and validated the next sixteen manifest identities: StorageKit,
+CookingRackKit, FryingPanKit, CauldronKit, FloorKit, WallKit, RoofKit,
+BoarMeat, DeerMeat, BoarHide, DeerHide, CookedBoarMeat, CookedDeerMeat,
+HearthBroth, MeatStew, and RootVegetableSoup. The Unreal import log confirmed
+64×64 textures with source alpha and the UI texture group. The runner also
+verified sRGB, no mipmaps, and non-streaming settings for every package.
+
+The seven aliases Storage, CookingRack, FryingPan, Cauldron, Floor, Wall, and
+Roof resolve to their canonical texture targets; no alias packages were
+created. Each canonical package passed the per-ID validator and has the
+manifest's `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` target.
+
+These imports prepare shared runtime lookup targets only. Existing menu
+consumers still use vector icons until the two later integration children.
+Batch C and rendered host/client acceptance remain open.
