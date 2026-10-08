@@ -38,6 +38,20 @@ bool FKalmalaInteractionPromptTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Other construction prompts retain their existing Use action"),
         UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("WorkbenchKit")) == TEXT("Use"));
 
+    const FString CampfirePrompt = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Campfire"), TEXT("Add fuel"));
+    const FString CampfireNoFuelPrompt = UKalmalaInteractionPromptWidget::BuildPromptText(
+        TEXT("Campfire"), TEXT("Add fuel"), TEXT("No raw fuel"));
+    const FString CampfireFullPrompt = UKalmalaInteractionPromptWidget::BuildPromptText(
+        TEXT("Campfire"), TEXT("Add fuel"), TEXT("Fuel full"));
+    TestTrue(TEXT("Campfire Interact prompt names the direct Add fuel action"),
+        CampfirePrompt == TEXT("Campfire\nAdd fuel"));
+    TestTrue(TEXT("Campfire prompt shows the no-fuel rejection"),
+        CampfireNoFuelPrompt.Contains(TEXT("Unavailable: No raw fuel")));
+    TestTrue(TEXT("Campfire prompt shows the full-capacity rejection"),
+        CampfireFullPrompt.Contains(TEXT("Unavailable: Fuel full")));
+    TestFalse(TEXT("Campfire prompt does not expose a key binding"),
+        CampfirePrompt.Contains(TEXT("Keyboard:")) || CampfirePrompt.Contains(TEXT("Gamepad:")));
+
     if (!GConfig)
     {
         AddError(TEXT("Config cache is unavailable for the remapping case."));

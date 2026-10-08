@@ -204,7 +204,11 @@ short view trace. It presents the target, supported action, and any
 owner-visible unavailable reason as text, then clears for no target or modal
 input. It contains no binding labels; current keyboard/controller mappings
 remain in Options > Controls. Its text remains available without relying on
-colour or a control glyph. Earlier `Verify-PlayerControls.ps1 -Rendered`
+colour or a control glyph. A placed Campfire uses the action text **Add fuel**;
+the prompt reads the owner's local raw-fuel availability and the replicated
+hearth capacity, while the server rechecks both before consuming one item.
+Full capacity and an empty raw-fuel selection show explicit unavailable
+reasons. This action does not light the fire. Earlier `Verify-PlayerControls.ps1 -Rendered`
 captures predate this contract and retain historical key labels; they are not
 current presentation acceptance evidence.
 

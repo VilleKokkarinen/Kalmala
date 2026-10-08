@@ -12308,3 +12308,62 @@ available fuel item without a menu, picker, or additional lighting toggle.
 Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions and applied only this selected BACKLOG child and the appended PROGRESS
 entry; preserved all unrelated user edits.
+
+
+## Run 2026-10-08T09:37:52Z — Add direct Campfire refuelling
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in the retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`;
+preserved the dirty main checkout.
+
+Completed exactly the next M12 goal 7 child. The placed Campfire's remappable
+Interact/default E route now adds one raw-fuel item through the existing
+Wood/Lightwood/Densewood/Coal priority, 60-second duration, 300-second cap,
+same-world access, and 250 cm range checks. Refuelling does not change the
+hearth state; the separate Build-menu Light action still lights dry fuel.
+The local prompt says Add fuel and exposes full-capacity and no-raw-fuel
+reasons. Prepared the server interaction fixture for exact priority payment,
+no-lighting behavior, and full, empty, and out-of-range rejection.
+
+Files changed: `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp`;
+`Source/KalmalaGameplay/Public/KalmalaCampfire.h`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`;
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaInteractionPromptTest.cpp`;
+`Scripts/Verify-Crafting.ps1`; `Scripts/Verify-PresentationOwnership.ps1`;
+`docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`;
+`docs/15-presentation-ownership.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Verify-PresentationOwnership.ps1`, all five
+`Scripts/Verify-M5DocumentationContracts.ps1` contracts, PowerShell parser
+validation for both changed verifier scripts, `git diff --check`, manual
+authority/priority/cap review, and changed-path MAX_PATH audit (longest path:
+106 characters). Full verification remains deferred: no Unreal build, C++
+automation, headless two-peer crafting run, rendered host/client prompt review,
+controller review, or packaging check was performed. This is a normal M12
+child, not the milestone-final task.
+
+Observable impact: a player can add fuel by interacting with the visible
+Campfire without opening the Build menu or changing its lighting state.
+
+Networking/authority: The local prompt reads owner-visible fuel inventory and
+replicated hearth capacity. The existing server trace selects the visible
+target; the Campfire rechecks authority, same-world owner/shared access, range,
+capacity, and the server-owned raw-fuel exchange before consuming one item.
+Lighting remains server-validated on its existing explicit action. No RPC,
+replicated field, gameplay authority rule, or save schema was added.
+
+Known limitations: The prepared C++ transaction fixture and prompt automation
+were not compiled or run; live host/client rejection, rendered readability,
+physical controller input, and packaged behavior remain for M12 final
+verification. The older Build-menu fuel/light controls remain until the later
+goal-7 cleanup child.
+
+Next eligible task: M12 goal 7, scope the Build catalogue/grid to construction
+and placement, including bootstrap construction and stations/attachments,
+while preserving required recipe production and preview behavior.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+BACKLOG.md and PROGRESS.md versions; applied only this selected child and this
+progress entry, preserving all existing edits.

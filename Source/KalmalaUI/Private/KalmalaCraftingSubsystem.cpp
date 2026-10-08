@@ -13,7 +13,7 @@
 #include "KalmalaPlacementPreview.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaCampfire.h"
-#include "KalmalaCampfireWeatherResponse.h"
+#include "KalmalaRawFuelContract.h"
 #include "KalmalaDiscoveryActor.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaInteractable.h"
@@ -232,13 +232,20 @@ bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target
     if (const AKalmalaCampfire* Campfire = Cast<AKalmalaCampfire>(Target))
     {
         OutDescription.TargetName = TEXT("Campfire");
-        OutDescription.ActionName = TEXT("Light");
+        OutDescription.ActionName = TEXT("Add fuel");
         if (!Campfire->CanUse(Character)) OutDescription.UnavailableReason = TEXT("Unavailable here");
-        else if (Campfire->IsLit()) OutDescription.UnavailableReason = TEXT("Already lit");
-        else if (Campfire->GetFuelSeconds() <= 0.0f) OutDescription.UnavailableReason = TEXT("No fuel");
-        else if (!FMath::IsFinite(Campfire->GetFuelWetness()) || Campfire->GetFuelWetness() < 0.0f
-            || Campfire->GetFuelWetness() >= FKalmalaCampfireWeatherResponse::ExtinguishWetness)
-            OutDescription.UnavailableReason = TEXT("Too wet to light");
+        else if (!FMath::IsFinite(Campfire->GetFuelSeconds()) || Campfire->GetFuelSeconds() < 0.0f)
+            OutDescription.UnavailableReason = TEXT("Fuel unavailable");
+        else if (Campfire->GetFuelSeconds() > AKalmalaCampfire::MaxFuelSeconds - AKalmalaCampfire::FuelSecondsPerItem)
+            OutDescription.UnavailableReason = TEXT("Fuel full");
+        else
+        {
+            const UKalmalaInventoryComponent* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
+            TArray<FKalmalaInventoryStack> FuelCost;
+            FString FuelReason;
+            if (Inventory == nullptr || !FKalmalaRawFuelContract::AddCosts(Inventory->GetStacks(), 1, FuelCost, FuelReason))
+                OutDescription.UnavailableReason = TEXT("No raw fuel");
+        }
         return true;
     }
 

@@ -501,8 +501,7 @@ void UKalmalaCraftingComponent::ServerLight_Implementation()
 {
     if (!AcceptRequest()) return;
     auto* Fire = FindNearbyFire(true);
-    const bool bAccepted = Fire && Fire->CanInteract_Implementation(GetCharacter());
-    if (bAccepted) Fire->Interact_Implementation(GetCharacter());
+    const bool bAccepted = Fire && Fire->TryLightFromServer(GetCharacter());
     PublishResult(bAccepted ? TEXT("Hearth lit") : TEXT("Need a usable nearby unlit hearth with dry fuel"), bAccepted);
 }
 

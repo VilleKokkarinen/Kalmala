@@ -4,6 +4,7 @@
 #include "KalmalaConstructionActor.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaRawFuelContract.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaSkillProgressionComponent.h"
@@ -175,6 +176,25 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         for(TActorIterator<AKalmalaCampfire> It(GetWorld());It;++It) if(!Existing.Contains(*It)) VerificationFire=*It;
         if (!VerificationFire) { VerificationStage=99; return; }
         auto* Fire=VerificationFire.Get(); Fire->SetActorTickEnabled(false);
+        const auto AreStacksEqual = [](const TArray<FKalmalaInventoryStack>& Left, const TArray<FKalmalaInventoryStack>& Right)
+        {
+            if (Left.Num() != Right.Num()) return false;
+            for (int32 Index = 0; Index < Left.Num(); ++Index)
+                if (Left[Index].ItemId != Right[Index].ItemId || Left[Index].Quantity != Right[Index].Quantity) return false;
+            return true;
+        };
+        const auto InteractWithFire = [C, Fire](const bool bInRange)
+        {
+            if (!C->GetController()) return false;
+            const FRotator PreviousViewRotation = C->GetController()->GetControlRotation();
+            const FTransform PreviousFireTransform = Fire->GetActorTransform();
+            const float Distance = bInRange ? 160.0f : 300.0f;
+            Fire->SetActorLocation(C->GetActorLocation() + PreviousViewRotation.Vector() * Distance + FVector(0.0f, 0.0f, 24.0f));
+            C->ServerRequestInteract(NAME_None, 0);
+            Fire->SetActorTransform(PreviousFireTransform);
+            C->GetController()->SetControlRotation(PreviousViewRotation);
+            return true;
+        };
         Check(I->GetQuantity(TEXT("CampfireKit"))==0 && I->GetQuantity(TEXT("WorkbenchKit"))==5
             && I->GetQuantity(TEXT("Wood"))==HearthWoodBefore-4 && I->GetQuantity(TEXT("Stone"))==HearthStoneBefore-5,
             TEXT("Placement charges raw hearth materials and one raw-fuel item exactly once without creating a kit"));
@@ -239,11 +259,54 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         }
         C->SetActorRotation(OriginalRotation);
         for(int32 N=0; N<4; ++N) Check(Fire->TryRefuelFromServer(C),TEXT("Bounded refuel"));
-        const int32 FuelBefore=I->GetQuantity(TEXT("WorkbenchKit"));
-        Check(!Fire->TryRefuelFromServer(C) && I->GetQuantity(TEXT("WorkbenchKit"))==FuelBefore,TEXT("Full hearth cannot consume fuel"));
-        Fire->Interact_Implementation(C); Fire->AdvanceFromServer(300,0,0);
+        const TArray<FKalmalaInventoryStack> PackBeforeFullInteract = I->GetStacks();
+        const float FuelBeforeFullInteract = Fire->GetFuelSeconds();
+        const bool bFullInteractRejected = !Fire->CanInteract_Implementation(C) && InteractWithFire(true)
+            && !Fire->TryRefuelFromServer(C) && Fire->GetFuelSeconds() == FuelBeforeFullInteract
+            && AreStacksEqual(PackBeforeFullInteract, I->GetStacks());
+        Check(bFullInteractRejected, TEXT("Full hearth rejects direct Interact without consuming fuel"));
+        Fire->TryLightFromServer(C); Fire->AdvanceFromServer(300,0,0);
         Check(Fire->GetFuelSeconds()==0 && !Fire->IsLit() && Fire->GetEffectiveWarmth()==0,TEXT("Fuel exhaustion extinguishes warmth"));
-        Check(Fire->TryRefuelFromServer(C),TEXT("Refuel exhausted hearth"));
+        const TArray<FKalmalaInventoryStack> PackBeforeNoFuelInteract = I->GetStacks();
+        bool bRemovedAllRawFuel = true;
+        for (const FName FuelItemId : FKalmalaRawFuelContract::GetFuelItemIds())
+        {
+            const int32 Quantity = I->GetQuantity(FuelItemId);
+            if (Quantity > 0) bRemovedAllRawFuel = I->TryConsumeFromServer(FuelItemId, Quantity) && bRemovedAllRawFuel;
+        }
+        const TArray<FKalmalaInventoryStack> EmptyFuelPack = I->GetStacks();
+        const float FuelBeforeNoFuelInteract = Fire->GetFuelSeconds();
+        const bool bNoFuelInteractRejected = bRemovedAllRawFuel && !Fire->CanInteract_Implementation(C)
+            && InteractWithFire(true) && Fire->GetFuelSeconds() == FuelBeforeNoFuelInteract
+            && AreStacksEqual(EmptyFuelPack, I->GetStacks());
+        Check(bNoFuelInteractRejected, TEXT("No raw fuel rejects direct Interact without changing fuel or pack"));
+        const bool bRawFuelRestored = I->TryCommitStacksFromServer(EmptyFuelPack, PackBeforeNoFuelInteract);
+        Check(bRawFuelRestored, TEXT("Restore raw fuel after no-fuel interaction rejection"));
+
+        const TArray<FKalmalaInventoryStack> PackBeforeRangeInteract = I->GetStacks();
+        const float FuelBeforeRangeInteract = Fire->GetFuelSeconds();
+        const bool bRangeInteractRejected = InteractWithFire(false) && Fire->GetFuelSeconds() == FuelBeforeRangeInteract
+            && AreStacksEqual(PackBeforeRangeInteract, I->GetStacks());
+        Check(bRangeInteractRejected, TEXT("Out-of-range direct Interact cannot refuel"));
+
+        const TArray<FKalmalaInventoryStack> PackBeforeDirectRefuel = I->GetStacks();
+        TArray<FKalmalaInventoryStack> ExpectedFuelCost;
+        FString FuelReason;
+        const bool bExpectedFuelSelection = FKalmalaRawFuelContract::AddCosts(PackBeforeDirectRefuel, 1, ExpectedFuelCost, FuelReason);
+        TArray<FKalmalaInventoryStack> ExpectedPackAfterRefuel;
+        const bool bExpectedFuelExchange = bExpectedFuelSelection
+            && UKalmalaInventoryComponent::BuildExchange(PackBeforeDirectRefuel, ExpectedFuelCost, NAME_None, 0,
+                ExpectedPackAfterRefuel, FuelReason);
+        const float FuelBeforeDirectRefuel = Fire->GetFuelSeconds();
+        const bool bDirectRefuelAccepted = InteractWithFire(true) && bExpectedFuelExchange
+            && AreStacksEqual(ExpectedPackAfterRefuel, I->GetStacks())
+            && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), FuelBeforeDirectRefuel + AKalmalaCampfire::FuelSecondsPerItem);
+        const bool bDirectRefuelDidNotLight = Fire->GetHearthState() == EKalmalaHearthState::Extinguished;
+        Check(bDirectRefuelAccepted && bDirectRefuelDidNotLight,
+            TEXT("Campfire Interact consumes exactly one priority raw fuel item without lighting"));
+        UE_LOG(LogTemp, Display, TEXT("Campfire interaction: AddedOne=%d NoLighting=%d FullRejected=%d NoFuelRejected=%d RangeRejected=%d"),
+            bDirectRefuelAccepted ? 1 : 0, bDirectRefuelDidNotLight ? 1 : 0, bFullInteractRejected ? 1 : 0,
+            bNoFuelInteractRejected ? 1 : 0, bRangeInteractRejected ? 1 : 0);
         // Real server shelter traces must shield the fire; no authored protection volume.
         auto* WorldState=GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
         const auto SavedWeather=WorldState->GetWeatherState(); auto Storm=SavedWeather;
@@ -257,18 +320,18 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         };
         auto* Roof=MakeShelter(FVector(0,0,200),FVector(120,120,10),TEXT("KalmalaShelterRoof"));
         auto* Wall=MakeShelter(FVector(-200,0,60),FVector(10,120,180),TEXT("KalmalaShelterWindbreak"));
-        Fire->Interact_Implementation(C); Fire->Tick(1);
+        Fire->TryLightFromServer(C); Fire->Tick(1);
         Check(Fire->HasRoof() && Fire->HasWindbreak() && Fire->IsLit() && Fire->GetFuelWetness()==0
             && Fire->GetEffectiveWarmth()==1,TEXT("Server roof and windbreak traces protect fire"));
         Roof->Destroy(); Wall->Destroy(); WorldState->SetWeatherStateFromServer(SavedWeather);
         Fire->AdvanceFromServer(300,0,0); Check(Fire->TryRefuelFromServer(C),TEXT("Prepare rain fixture"));
-        Fire->Interact_Implementation(C); Fire->AdvanceFromServer(12,1,1);
+        Fire->TryLightFromServer(C); Fire->AdvanceFromServer(12,1,1);
         Check(Fire->GetHearthState()==EKalmalaHearthState::Smouldering && Fire->GetEffectiveWarmth()==0,TEXT("Exposed rain smoulders"));
-        Check(!Fire->CanInteract_Implementation(C),TEXT("Wet lighting rejected"));
+        Check(!Fire->TryLightFromServer(C),TEXT("Wet lighting rejected"));
         const float WetBefore=Fire->GetFuelWetness(); Check(Fire->TryRefuelFromServer(C) && Fire->GetFuelWetness()==WetBefore,TEXT("Refuel preserves wetness"));
-        Fire->AdvanceFromServer(100,0,0); Fire->Interact_Implementation(C); Fire->AdvanceFromServer(300,0,0);
+        Fire->AdvanceFromServer(100,0,0); Fire->TryLightFromServer(C); Fire->AdvanceFromServer(300,0,0);
         Check(Fire->TryRefuelFromServer(C),TEXT("Prepare replicated fire"));
-        Fire->Interact_Implementation(C); Fire->AdvanceFromServer(0,0,0);
+        Fire->TryLightFromServer(C); Fire->AdvanceFromServer(0,0,0);
         Check(Fire->IsLit() && Fire->GetFuelSeconds()==60 && Fire->GetEffectiveWarmth()==1,TEXT("Dry replicated fixture"));
         const auto Stacks=I->GetStacks(); for(const auto& Stack:Stacks) I->TryConsumeFromServer(Stack.ItemId,Stack.Quantity);
         Check(I->TryGrantFromServer(TEXT("Wood"),18) && I->TryGrantFromServer(TEXT("Fibre"),12) && I->TryGrantFromServer(TEXT("Stone"),4),TEXT("Seed real raw-material RPC transactions"));

@@ -2188,3 +2188,23 @@ deposit/withdraw transactions, capacity/conservation, private snapshots, and
 restart persistence. Run those checks with the rendered Chest menu review in
 M12 milestone-final verification; the focused crafting marker alone does not
 replace the live transfer fixture.
+
+## M12 Campfire direct refuelling
+
+Looking at a placed Campfire shows **Add fuel** for the remappable Interact
+action. The server interaction must consume exactly one raw item in the
+existing Wood, Lightwood, Densewood, Coal priority, add 60 seconds up to the
+300-second cap, and leave the hearth state unchanged. Its visible-target trace,
+same-world access, and 250 cm range remain required. Lighting stays on the
+separate existing Build-menu action until the goal-7 cleanup child.
+
+`Scripts/Verify-Crafting.ps1 -Port <unused-port>` requires the server marker
+`Campfire interaction: AddedOne=1 NoLighting=1 FullRejected=1
+NoFuelRejected=1 RangeRejected=1`. The fixture reaches the target through the
+normal server Interact trace and checks priority payment, no-lighting behavior,
+full-capacity and no-fuel preservation, and out-of-range rejection.
+`Kalmala.UI.InteractionPrompt.Presentation` covers the action-only prompt and
+explicit no-fuel/full reasons; `Verify-PresentationOwnership.ps1` checks the
+existing server-owned raw-fuel route and owner-local prompt source. Run the
+host/client runtime and rendered prompt review with the M12 milestone-final
+verification.
