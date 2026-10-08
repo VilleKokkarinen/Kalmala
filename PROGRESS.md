@@ -12923,3 +12923,53 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 `BACKLOG.md` and `PROGRESS.md` versions before editing, applied only this
 selected child and appended this progress entry, and preserved all existing
 modified and untracked changes.
+
+## Run 2026-10-08T11:35Z — Generate catalogue icon batch 03
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in the clean retained
+worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout was clean before handoff.
+
+Completed exactly the next M12 goal 8 child. Generated original FrostSalt,
+MirelingAsh, CampfireKit, and WorkbenchKit icons. Each original is retained as
+a 1254×1254 RGBA PNG and each import preparation is transparent 64×64 RGBA.
+Reviewed all four at native size against the earlier batches: crystalline
+FrostSalt, ember-flecked loose MirelingAsh, stone-ring CampfireKit, and a small
+oak WorkbenchKit remain recognizable and distinct. CampfireKit stays
+construction-only in the pinned manifest.
+
+Files changed: `Content/Kalmala/UI/Source/IconOriginals/FrostSalt.png`;
+`Content/Kalmala/UI/Source/Icons/FrostSalt.png`;
+`Content/Kalmala/UI/Source/IconOriginals/MirelingAsh.png`;
+`Content/Kalmala/UI/Source/Icons/MirelingAsh.png`;
+`Content/Kalmala/UI/Source/IconOriginals/CampfireKit.png`;
+`Content/Kalmala/UI/Source/Icons/CampfireKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/WorkbenchKit.png`;
+`Content/Kalmala/UI/Source/Icons/WorkbenchKit.png`;
+`docs/43-catalogue-icon-manifest.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Validate-CatalogueIcon.ps1` for all four
+identities, confirming source/final dimensions, RGBA, transparency, manifest
+identity and import target; manual 64×64 review; `git diff --check`; and a
+MAX_PATH audit (longest changed path 99 characters). No Unreal import/build,
+automation, rendered/controller check, or package check was run. Full M12
+verification remains deferred; this is a normal child increment.
+
+Observable impact: the first twelve of 48 pinned catalogue icon identities
+now have retained originals and validated prepared PNGs ready for import.
+
+Networking/authority: presentation assets and documentation only; no gameplay,
+RPC, replication, authority, inventory, or save contract changed.
+
+Known limitations: none of these four PNGs has been imported as an Unreal
+`.uasset`; catalogue consumers remain on vector icons until later import and
+menu-integration children.
+
+Next eligible task: M12 goal 8, generate and review icon batch 04 for ForgeKit,
+WorkbenchToolRackKit, ForgeAnvilKit, and GrindingStoneKit.
+
+Main-checkout handoff synchronization: Complete. Inspected the main
+versions before editing; applied only the selected BACKLOG child and
+appended this PROGRESS entry, preserving all other existing content and
+user changes. No implementation assets were synchronized.
