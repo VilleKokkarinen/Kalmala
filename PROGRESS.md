@@ -13096,3 +13096,53 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 `BACKLOG.md` and `PROGRESS.md`; applied only the selected batch B child update
 and this entry, preserving all earlier main-checkout changes. No implementation
 assets were synchronized.
+
+
+## Run 2026-10-08 14:02 UTC — Import/map catalogue texture batch C
+
+Concurrency guard: Codex app task inventory showed no other active Kalmala
+automation run. Continued from the committed batch B state in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout already contains handoff
+edits in `BACKLOG.md` and `PROGRESS.md`; they remain preserved.
+
+Completed exactly M12 goal 8's batch C child: RoastedRootVegetables,
+DeerRootRoast, Carrot, Potato, Rutabaga, Onion, CarrotSeed, PotatoSeed,
+RutabagaSeed, OnionSeed, ReedKnife, FieldHatchet, StonePick, BronzeAxe,
+IronAxe, and ConstructionHammer. Imported sixteen canonical Texture2D
+packages to `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`.
+
+Files changed: `Content/Kalmala/UI/Icons/Items/` for the sixteen IDs above,
+`docs/43-catalogue-icon-manifest.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Import-CatalogueIconBatch.ps1 -Batch C`
+completed with normal Unreal access and verified saved 64×64 dimensions,
+source alpha, sRGB, UI texture group, no mipmaps, and non-streaming settings.
+Its sixteen `Scripts/Validate-CatalogueIcon.ps1` calls passed. The complete
+manifest/package audit passed for all 48 canonical identities; all 13 aliases
+have no duplicate packages; a static comparison confirmed all 48 canonical IDs
+have vector-map fallbacks and the shared lookup builds their canonical object
+paths. `git diff --check` and changed-path MAX_PATH checks passed (longest path
+102 characters). An initial default-sandbox import could not create its
+temporary Unreal log and made no Kalmala content changes; the normal-access
+retry succeeded. No project build, automation suite, rendered review, or
+package check was run. Full M12 verification remains deferred.
+
+Observable impact: imported texture targets now cover all 48 manifest
+identities; all menu consumers still use vector icons until the two integration
+children.
+
+Networking/authority: presentation assets only; gameplay, RPC, replication,
+server authority, inventory, and save contracts are unchanged.
+
+Known limitations: shared-image menu integration, rendered host/client
+acceptance, and M12 milestone-final verification remain open.
+
+Next eligible task: M12 goal 8, integrate shared images in Inventory/tool/item/
+ingredient/storage components and prepare focused overlay/count/unknown-ID
+checks while retaining readable text and owner privacy.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; preserved all earlier modifications and applied
+only the selected batch C child update and this progress entry. No implementation
+assets were synchronized.

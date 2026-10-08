@@ -443,4 +443,24 @@ manifest's `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` target.
 
 These imports prepare shared runtime lookup targets only. Existing menu
 consumers still use vector icons until the two later integration children.
-Batch C and rendered host/client acceptance remain open.
+Batch C is recorded below; rendered host/client acceptance remains open.
+
+## Import batch C — 2026-10-08
+
+Imported and validated the remaining sixteen manifest identities:
+RoastedRootVegetables, DeerRootRoast, Carrot, Potato, Rutabaga, Onion,
+CarrotSeed, PotatoSeed, RutabagaSeed, OnionSeed, ReedKnife, FieldHatchet,
+StonePick, BronzeAxe, IronAxe, and ConstructionHammer. Each canonical
+Texture2D is stored at `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`. The importer
+verified the saved 64×64 dimensions, source alpha, sRGB, UI texture group,
+no-mipmap setting, and non-streaming setting; each prepared 64×64 transparent
+RGBA image passed the per-ID validator.
+
+The full lightweight mapping audit matched all 48 manifest identities to a
+canonical `.uasset` package and to the existing vector icon fallback map. All
+13 manifest aliases remain associated with their canonical rows, with no
+duplicate alias packages. The shared lookup builds the corresponding
+`/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` path. Menu consumers still use vector
+icons until the two integration children; rendered host/client acceptance
+remains open. This import changes presentation assets only and does not affect
+gameplay authority, replication, or saves.
