@@ -45,7 +45,9 @@ construction-only and excludes it from pack/storage views. Related materials
 and foods use authored monochrome accents; root vegetables also have distinct
 silhouettes. Names, quantities, tool levels/condition, recipe descriptions
 and requirements remain text. Unknown IDs receive a question-mark fallback,
-never an invented assignment.
+never an invented assignment. The M12 shared raster lookup accepts only these
+canonical runtime IDs; missing/unimported textures keep their existing vector
+icons, while unknown IDs keep the question-mark fallback.
 
 Construction JSON display IDs resolve through the existing loader to stable
 runtime/save IDs (for example HearthRing to CampfireKit); icon mappings use

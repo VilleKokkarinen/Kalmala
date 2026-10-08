@@ -12531,3 +12531,57 @@ preparation and unknown-ID fallback with one original pilot icon, transparent
 Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions before editing; updated only the selected BACKLOG child and appended
 this PROGRESS handoff, preserving all other existing changes.
+
+
+## Run 2026-10-08T11:02Z — Prepare catalogue icon texture pipeline
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`
+on `codex/m12-hud-feedback-rebuild`; the main checkout contains pre-existing
+changes and was preserved.
+
+Completed exactly the next M12 goal 8 child. Added a shared canonical-ID
+texture-path lookup and `SetCatalogueIcon` rendering path. Unknown IDs have no
+texture path and keep the question-mark vector; known IDs with a missing or
+not-yet-imported texture keep their existing canonical vector. Generated and
+retained the original Wood icon and prepared a separate transparent 64x64 RGBA
+PNG for the pinned Wood import target.
+
+Files changed: `Source/KalmalaUI/Public/KalmalaCatalogueIconLibrary.h`;
+`Source/KalmalaUI/Private/KalmalaCatalogueIconLibrary.cpp`;
+`Source/KalmalaUI/Public/KalmalaIconWidget.h`;
+`Source/KalmalaUI/Private/KalmalaIconWidget.cpp`;
+`Content/Kalmala/UI/Source/IconOriginals/Wood.png`;
+`Content/Kalmala/UI/Source/Icons/Wood.png`;
+`Scripts/Validate-CatalogueIcon.ps1`; `docs/43-catalogue-icon-manifest.md`;
+`docs/36-status-icons.md`; `docs/README.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: the new PowerShell validator parsed and
+`Scripts/Validate-CatalogueIcon.ps1 -Id Wood` confirmed the retained 1254x1254
+source and 64x64 final PNG are 8-bit RGBA with transparent pixels; `git diff
+--check`; focused source inspection of known-ID gating and vector fallback; and
+a MAX_PATH audit (longest referenced path: 99 characters). The first validator
+draft used byte-width shifts that truncated the PNG dimensions; corrected the
+parser to widen before shifting and reran the validator successfully. No Unreal
+build, automation, runtime/rendered/controller check, or package check was run.
+Full M12 verification is deferred; this is a normal child increment.
+
+Observable impact: one original item image is ready for import, and later
+catalogue UI consumers can share one canonical texture path with an existing
+vector fallback. Current views remain on their vector path until the later
+import and menu-integration children.
+
+Networking/authority: presentation-only code and assets; no RPC, replication,
+authority, gameplay, or save contract changed.
+
+Known limitations: the Wood PNG has not been imported into an Unreal `.uasset`
+or wired into live catalogue views; only this pilot identity has a generated
+source/final image. Runtime C++ behavior remains uncompiled and unrendered.
+
+Next eligible task: M12 goal 8, generate/review batch 01 for the remaining
+uncompleted identities Lightwood, Densewood, and Coal, checking them alongside
+the existing Wood pilot for consistent framing and native-size readability.
+
+Main-checkout handoff synchronization: Complete. Inspected both dirty main
+versions and applied only this selected BACKLOG child and appended PROGRESS
+entry; all unrelated modified and untracked main-checkout files remain untouched.

@@ -61,12 +61,35 @@ If the live identity set grows beyond these 48 rows, append identities in new
 four-image batches before claiming complete coverage. Keep existing batch
 membership stable; do not renumber or silently replace a pinned identity.
 
-This increment pins identity and membership only. The following goal-8 child
-defines the shared texture lookup, asset-import path, unknown-ID fallback,
-original-source retention, transparent 64×64 RGBA validator, and pilot image.
+The shared lookup in `FKalmalaCatalogueIconLibrary` accepts only canonical
+runtime IDs from the existing vector icon map. It maps them to
+`/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` and returns no texture for an unknown
+ID or an asset that has not been imported. `UKalmalaIconWidget::SetCatalogueIcon`
+uses the existing vector assignment when the raster is missing and the
+question-mark vector for unknown IDs. Existing consumers remain on their
+current vector path until the later menu-integration child.
+
+The pilot is Wood. Keep the original generated RGBA PNG at
+`Content/Kalmala/UI/Source/IconOriginals/Wood.png` and the prepared 64×64
+import PNG at `Content/Kalmala/UI/Source/Icons/Wood.png`; the intended imported
+object path is `/Game/Kalmala/UI/Icons/Items/Wood.Wood`. Run
+`Scripts/Validate-CatalogueIcon.ps1 -Id Wood` to verify the pinned identity,
+source retention, both PNG signatures/8-bit RGBA channels, real transparency,
+the final dimensions, and all relevant paths against the Windows path limit.
+The validator accepts one canonical ID at a time so batches remain bounded.
+
+Pilot prompt: “Two short cut firewood logs crossed in a compact bundle, one
+with visible growth rings and bark edge; original hand-drawn game UI line art,
+muted oak brown and warm tan fill, crisp ivory contour lines and a thin dark
+outline; centered strong silhouette with transparent margin, readable at
+64×64; no text, labels, badge, border, props, watermark, or scenery.” Keep the
+same framing, contour weight, restrained palette, and even lighting across each
+four-identity batch.
+
 Generation must retain original sources and final images and must not bake
-labels, UI chrome, or badges into the image. Existing vector icon presentation
-remains active until raster assets are generated and integrated.
+labels, UI chrome, or badges into the image. The project source and prepared
+PNG remain separate from the imported `.uasset`; actual batch imports and
+cross-view consumption are later children.
 
 This is presentation metadata only. It changes no gameplay identity,
 inventory rule, network authority, RPC, replicated field, or save schema.

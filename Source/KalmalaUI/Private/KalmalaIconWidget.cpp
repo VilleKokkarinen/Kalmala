@@ -1,12 +1,26 @@
 #include "KalmalaIconWidget.h"
+#include "KalmalaCatalogueIconLibrary.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaUITheme.h"
+#include "Brushes/SlateBrush.h"
+#include "Engine/Texture2D.h"
 #include "Rendering/DrawElements.h"
 
 void UKalmalaIconWidget::SetIcon(EKalmalaIcon InIcon, int32 InVariant)
 {
     SetIsFocusable(false);
-    Icon = InIcon; Variant = InVariant;
+    Icon = InIcon; Variant = InVariant; CatalogueTexture = nullptr;
+    Invalidate(EInvalidateWidget::Paint);
+}
+
+void UKalmalaIconWidget::SetCatalogueIcon(FName CanonicalId)
+{
+    SetIsFocusable(false);
+    const bool bKnownId = FindCatalogueIcon(CanonicalId, Icon, Variant);
+    if (bKnownId)
+        CatalogueTexture = FKalmalaCatalogueIconLibrary::LoadTexture(CanonicalId);
+    else
+        CatalogueTexture = nullptr;
     Invalidate(EInvalidateWidget::Paint);
 }
 
@@ -15,6 +29,16 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 {
     Layer = Super::NativePaint(Args, G, C, E, Layer, Style, bEnabled) + 1;
     const FVector2D Size = G.GetLocalSize();
+    if (CatalogueTexture)
+    {
+        FSlateBrush TextureBrush;
+        TextureBrush.SetResourceObject(CatalogueTexture);
+        TextureBrush.DrawAs = ESlateBrushDrawType::Image;
+        TextureBrush.ImageSize = Size;
+        FSlateDrawElement::MakeBox(E, Layer, G.ToPaintGeometry(), &TextureBrush,
+            ESlateDrawEffect::None, Style.GetColorAndOpacityTint());
+        return Layer + 1;
+    }
     const float Scale = FMath::Min(Size.X, Size.Y) / 36.0f;
     const FVector2D Offset = (Size - FVector2D(36, 36) * Scale) * .5;
     const FLinearColor Ink = FKalmalaUITheme::Get().TextColor(false, UKalmalaSettingsWidget::GetContrastMode());
