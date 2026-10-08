@@ -2111,3 +2111,21 @@ and existing ID/batch request route. The existing
 `Kalmala.Gameplay.Food.CookingStationHeat` automation covers server acceptance
 and missing-heat rejection for the accepted Cooking Rack. Run these checks with
 the full rendered menu matrix during M12 milestone-final verification.
+
+## M12 Cauldron menu
+
+The Cauldron opens the shared station shell in Cook with only Meat stew and Root
+vegetable soup. Each selection shows its owner-visible ingredient counts,
+existing one-batch-per-press and five-batch request limit, selected result
+description, and live hearth-heat availability. Expired station context disables
+Cook and sends no recipe request; the server's existing recipe-ID request and
+station, heat, cost, capacity, and exchange validation remain authoritative.
+
+`Verify-Crafting.ps1` expects `Cauldron scope: Recipes=1 Ingredients=1
+Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1` on
+both peers. The focused UI marker checks the two catalogue recipes and their
+authored ingredient costs, quantity limits, selected descriptions, heat requirement/status, hidden unrelated
+actions, and stale-context request suppression. `Verify-PresentationOwnership.ps1`
+checks the Cauldron recipe filter, owner-local availability read, and existing
+ID/batch request route. Run the prepared checks with the full rendered menu
+matrix during M12 milestone-final verification.

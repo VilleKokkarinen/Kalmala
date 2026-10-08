@@ -53,6 +53,7 @@ public:
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
     bool VerifyCookingRackScopeForTest();
+    bool VerifyCauldronScopeForTest();
     bool VerifyForgeUpgradeScopeForTest();
     bool VerifyForgeRepairScopeForTest();
     bool VerifyWorkbenchRepairScopeForTest();
@@ -181,6 +182,7 @@ private:
     bool bOpen = false;
     bool bEmbeddedContext = false;
     bool bCookingRackContext = false;
+    bool bCauldronContext = false;
     bool bWorkbenchCraftContext = false;
     bool bForgeCraftContext = false;
     bool bForgeUpgradeContext = false;
@@ -191,6 +193,7 @@ private:
     uint32 WorkbenchRepairRequestCountForTest = 0;
     uint32 ForgeUpgradeRequestCountForTest = 0;
     uint32 CookingRackCraftRequestCountForTest = 0;
+    uint32 CauldronCraftRequestCountForTest = 0;
 #endif
     bool bPreviousMoveInputIgnored = false;
     bool bPreviousLookInputIgnored = false;

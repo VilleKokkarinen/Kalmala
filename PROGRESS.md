@@ -12111,3 +12111,26 @@ station-scope check.
 Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions and applied only this selected BACKLOG child and PROGRESS entry; all
 other pre-existing modified and untracked main-checkout files remain untouched.
+
+
+### Run 2026-10-08T07:56:37Z — Add Cauldron menu
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run. Windows process inspection remained restricted. Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`; preserved the dirty main checkout.
+
+Completed exactly the next M12 goal 7 child. Cauldron interaction now opens the shared owner-local Cook shell with only Meat stew and Root vegetable soup. Each selection shows the catalogue description, current ingredient counts, existing one-batch-per-press and five-batch request limit, and heat availability from the existing recipe-availability path. Unrelated inventory, build, repair, tool, and storage actions are hidden. An expired accepted context disables Cook and sends no request. Added a focused host/client scope marker covering the Cauldron route, exact recipe set, ingredient definitions, quantity limits, descriptions, heat presentation, unrelated-action hiding, and stale-context suppression. Updated the cooking and ownership contracts.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `Scripts/Verify-Crafting.ps1`; `Scripts/Verify-PresentationOwnership.ps1`; `docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`; `docs/15-presentation-ownership.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks passed: `Verify-PresentationOwnership.ps1`; all five `Verify-M5DocumentationContracts.ps1` contracts; PowerShell parsing for both changed scripts; nine focused Cauldron source assertions; `git diff --check`; and the MAX_PATH audit (longest changed absolute path 96 characters).
+
+Full verification remains deferred: no Unreal build, C++ automation, `Verify-Crafting.ps1` runtime launch, rendered host/client review, controller review, or package check was run. This is a normal M12 child, not the milestone-final task.
+
+Observable impact: a Cauldron opens a focused two-recipe menu with truthful ingredient, quantity, result, and heat feedback.
+
+Networking/authority: Presentation only. The owner receives the accepted actor/kit/ID context and reads existing owner-visible recipe availability. The client submits the existing recipe ID with batch 1; the server remains authoritative for a usable same-world Cauldron, lit-hearth heat at the player and station, ingredients, output capacity, and atomic exchange. No gameplay RPC, replicated field, save schema, catalogue value, or server rule changed.
+
+Known limitations: Changed C++ and the prepared scope marker remain uncompiled and unrun; rendered host/client layout and physical controller input remain unreviewed. The shared action submits one batch per press despite displaying the existing five-batch request limit. The server may resolve another qualifying nearby Cauldron rather than the exact actor shown by the local shell. M12 final verification remains pending.
+
+Next eligible task: M12 goal 7, Frying Pan interaction/menu limited to Roasted root vegetables and Deer and rutabaga roast, with existing heat/count rules and checks distinguishing Forge production, Build placement, and pan cooking.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only this selected BACKLOG child plus this appended PROGRESS entry; all other pre-existing modified and untracked files remain untouched.

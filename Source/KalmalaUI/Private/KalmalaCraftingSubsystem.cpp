@@ -65,6 +65,19 @@ bool IsCookingRackMenuRecipe(const FKalmalaRecipe& Recipe)
         || Recipe.RecipeId == TEXT("CookedDeerMeatRecipe");
 }
 
+bool IsCauldronMenuRecipe(const FKalmalaRecipe& Recipe)
+{
+    return Recipe.RecipeId == TEXT("MeatStewRecipe")
+        || Recipe.RecipeId == TEXT("RootVegetableSoupRecipe");
+}
+
+bool IsCookingMenuRecipe(const FName StationKit, const FKalmalaRecipe& Recipe)
+{
+    if (StationKit == TEXT("CookingRackKit")) return IsCookingRackMenuRecipe(Recipe);
+    if (StationKit == TEXT("CauldronKit")) return IsCauldronMenuRecipe(Recipe);
+    return false;
+}
+
 FString GetReadableToolName(const FName ToolId)
 {
     if (ToolId == TEXT("ReedKnife")) return TEXT("Reed Knife");
@@ -83,12 +96,14 @@ bool IsInWorldCookingStation(const FName KitId)
 
 bool IsStationContextShellKit(const FName KitId)
 {
-    return KitId == TEXT("CookingRackKit") || KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit");
+    return KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
+        || KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit");
 }
 
 bool IsStationContextSectionSupported(const FName KitId, const FString& Section)
 {
     return (KitId == TEXT("CookingRackKit") && Section.Equals(TEXT("Cook"), ESearchCase::IgnoreCase))
+        || (KitId == TEXT("CauldronKit") && Section.Equals(TEXT("Cook"), ESearchCase::IgnoreCase))
         || (KitId == TEXT("WorkbenchKit") && (Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase)
             || Section.Equals(TEXT("Repair"), ESearchCase::IgnoreCase)))
         || (KitId == TEXT("ForgeKit") && (Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase)
@@ -112,7 +127,7 @@ FString BuildForgeUpgradePresentationText(const UKalmalaCraftingComponent* Craft
 FString GetInitialStationContextSection(const FName KitId)
 {
     if (KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit")) return TEXT("Craft");
-    if (KitId == TEXT("CookingRackKit")) return TEXT("Cook");
+    if (KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")) return TEXT("Cook");
     return FString();
 }
 
@@ -554,8 +569,10 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
             && FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.Output) == StationFilterKit;
         const bool bMatchesStation = Recipe.RequiredStation.Contains(StationFilterKit)
             || (StationFilterKit == TEXT("CookingRackKit") && Recipe.RequiredStation.Contains(TEXT("CookingRack")))
+            || (StationFilterKit == TEXT("CauldronKit") && Recipe.RequiredStation.Contains(TEXT("Cauldron")))
             || bMatchingAttachment;
-        if (StationFilterKit == TEXT("CookingRackKit") && !IsCookingRackMenuRecipe(Recipe)) continue;
+        if ((StationFilterKit == TEXT("CookingRackKit") || StationFilterKit == TEXT("CauldronKit"))
+            && !IsCookingMenuRecipe(StationFilterKit, Recipe)) continue;
         if ((StationFilterKit.IsNone() || bMatchesStation)
             && bCategoryMatches
             && (RecipeQuery.IsEmpty() || Recipe.DisplayName.Contains(RecipeQuery, ESearchCase::IgnoreCase)))
@@ -655,7 +672,7 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
             bPlacementPreviewEnabled = false;
         }
         ConfigureStationContextPresentation(this->StationContextSection);
-        if ((bCookingRackContext || bWorkbenchCraftContext || bForgeCraftContext) && !bSameStationContext)
+        if ((bCookingRackContext || bCauldronContext || bWorkbenchCraftContext || bForgeCraftContext) && !bSameStationContext)
         {
             if (RecipeSearchBox) RecipeSearchBox->SetText(FText::GetEmpty());
             SetRecipeBrowse(TEXT(""), 0, false);
@@ -683,7 +700,7 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
         if (FirstBuild != INDEX_NONE) Selected = FirstBuild;
     }
     ConfigureStationContextPresentation(this->StationContextSection);
-    if (bCookingRackContext || bWorkbenchCraftContext || bForgeCraftContext)
+    if (bCookingRackContext || bCauldronContext || bWorkbenchCraftContext || bForgeCraftContext)
     {
         if (RecipeSearchBox) RecipeSearchBox->SetText(FText::GetEmpty());
         SetRecipeBrowse(TEXT(""), 0, false);
@@ -739,6 +756,8 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
 {
     bCookingRackContext = bEmbeddedContext && StationFilterKit == TEXT("CookingRackKit")
         && Section.Equals(TEXT("Cook"), ESearchCase::IgnoreCase);
+    bCauldronContext = bEmbeddedContext && StationFilterKit == TEXT("CauldronKit")
+        && Section.Equals(TEXT("Cook"), ESearchCase::IgnoreCase);
     bWorkbenchCraftContext = bEmbeddedContext && StationFilterKit == TEXT("WorkbenchKit")
         && Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase);
     bForgeCraftContext = bEmbeddedContext && StationFilterKit == TEXT("ForgeKit")
@@ -770,6 +789,12 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Cooking Rack — Cook")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
             TEXT("Cooked boar meat and Cooked deer meat only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")));
+    }
+    else if (bCauldronContext)
+    {
+        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Cauldron — Cook")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(
+            TEXT("Meat stew and Root vegetable soup only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")));
     }
     else if (bWorkbenchCraftContext)
     {
@@ -814,7 +839,8 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
 {
     const bool bWorkbenchContext = bWorkbenchCraftContext || bWorkbenchRepairContext;
     const bool bForgeContext = bForgeCraftContext || bForgeUpgradeContext || bForgeRepairContext;
-    const bool bStationCraftContext = bCookingRackContext || bWorkbenchCraftContext || bForgeCraftContext;
+    const bool bCookingContext = bCookingRackContext || bCauldronContext;
+    const bool bStationCraftContext = bCookingContext || bWorkbenchCraftContext || bForgeCraftContext;
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
     const bool bStationContext = bStationCraftContext || bForgeUpgradeContext || bRepairContext;
     const bool bNonCraftSection = bRepairContext || bForgeUpgradeContext;
@@ -822,7 +848,7 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible;
     for (UWidget* Excluded : StationCraftExcludedWidgets)
         if (Excluded) Excluded->SetVisibility(ExcludedVisibility);
-    const ESlateVisibility CookingBrowseVisibility = bCookingRackContext
+    const ESlateVisibility CookingBrowseVisibility = bCookingContext
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible;
     for (UWidget* Excluded : CookingRackExcludedWidgets)
         if (Excluded) Excluded->SetVisibility(CookingBrowseVisibility);
@@ -884,23 +910,24 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
         StationContextStatusText->SetVisibility(bStationContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (UpgradeIronAxeButton)
-        UpgradeIronAxeButton->SetVisibility(bCookingRackContext || bWorkbenchCraftContext || bForgeCraftContext || bWorkbenchRepairContext
+        UpgradeIronAxeButton->SetVisibility(bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bWorkbenchRepairContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (CraftBronzeAxeButton)
-        CraftBronzeAxeButton->SetVisibility(bCookingRackContext || bForgeCraftContext || bForgeUpgradeContext || bWorkbenchRepairContext
+        CraftBronzeAxeButton->SetVisibility(bCookingContext || bForgeCraftContext || bForgeUpgradeContext || bWorkbenchRepairContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (ToolProgressionText)
-        ToolProgressionText->SetVisibility(bCookingRackContext || bForgeCraftContext || bRepairContext
+        ToolProgressionText->SetVisibility(bCookingContext || bForgeCraftContext || bRepairContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (ToolProgressionActions)
-        ToolProgressionActions->SetVisibility(bCookingRackContext || bForgeCraftContext || bRepairContext
+        ToolProgressionActions->SetVisibility(bCookingContext || bForgeCraftContext || bRepairContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 }
 
 void UKalmalaCraftingWidget::RefreshStationContextState()
 {
     if (!StationContextStatusText) return;
-    const bool bStationContext = bCookingRackContext || bWorkbenchCraftContext || bForgeCraftContext || bForgeUpgradeContext
+    const bool bCookingContext = bCookingRackContext || bCauldronContext;
+    const bool bStationContext = bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bForgeUpgradeContext
         || bWorkbenchRepairContext || bForgeRepairContext;
     if (!bStationContext)
     {
@@ -908,15 +935,17 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
         return;
     }
     const AKalmalaConstructionActor* Station = ContextStationActor.Get();
-    if (bCookingRackContext)
+    if (bCookingContext)
     {
-        const bool bContextValid = StationFilterKit == TEXT("CookingRackKit")
+        const FName ExpectedKit = bCauldronContext ? FName(TEXT("CauldronKit")) : FName(TEXT("CookingRackKit"));
+        const TCHAR* StationName = bCauldronContext ? TEXT("Cauldron") : TEXT("Cooking Rack");
+        const bool bContextValid = StationFilterKit == ExpectedKit
             && IsStationContextValid() && IsValid(Station)
-            && Station->GetConstructionKit() == TEXT("CookingRackKit");
+            && Station->GetConstructionKit() == ExpectedKit;
         if (!bContextValid)
         {
-            StationContextStatusText->SetText(FText::FromString(
-                TEXT("Cooking Rack context unavailable · hearth heat unchecked")));
+            StationContextStatusText->SetText(FText::FromString(FString::Printf(
+                TEXT("%s context unavailable · hearth heat unchecked"), StationName)));
             return;
         }
 
@@ -924,7 +953,8 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
         const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
         if (!VisibleIndices.IsValidIndex(Selected) || !Recipes.IsValidIndex(VisibleIndices[Selected]))
         {
-            StationContextStatusText->SetText(FText::FromString(TEXT("Hearth heat unavailable · select a rack recipe")));
+            StationContextStatusText->SetText(FText::FromString(FString::Printf(
+                TEXT("Hearth heat unavailable · select a %s recipe"), bCauldronContext ? TEXT("cauldron") : TEXT("rack"))));
             return;
         }
 
@@ -935,9 +965,10 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
         const bool bHeatUnavailable = Availability.Contains(
             TEXT("Need a usable lit hearth with positive heat"), ESearchCase::IgnoreCase)
             || Availability.Contains(TEXT("Need a visible same-world Cooking rack"), ESearchCase::IgnoreCase)
+            || Availability.Contains(TEXT("Need a visible same-world Cauldron"), ESearchCase::IgnoreCase)
             || Availability.Equals(TEXT("Recipe unavailable"), ESearchCase::IgnoreCase);
         StationContextStatusText->SetText(FText::FromString(FString::Printf(
-            TEXT("Cooking Rack · Hearth heat: %s"), bHeatUnavailable ? TEXT("unavailable") : TEXT("available"))));
+            TEXT("%s · Hearth heat: %s"), StationName, bHeatUnavailable ? TEXT("unavailable") : TEXT("available"))));
         return;
     }
 
@@ -1086,6 +1117,7 @@ void UKalmalaCraftingWidget::Close()
     }
     bEmbeddedContext = false;
     bCookingRackContext = false;
+    bCauldronContext = false;
     bWorkbenchCraftContext = false;
     bForgeCraftContext = false;
     bForgeUpgradeContext = false;
@@ -1459,6 +1491,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const bool bForgeUpgradeScope = VerifyForgeUpgradeScopeForTest();
     const bool bForgeRepairScope = VerifyForgeRepairScopeForTest();
     const bool bCookingRackScope = VerifyCookingRackScopeForTest();
+    const bool bCauldronScope = VerifyCauldronScopeForTest();
     UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: BronzeAxe=%d GrindingStone=%d ToolRack=%d NoUnrelated=%d ToolPrerequisites=%d UiScope=%d"),
         bBronzeAxeScoped, bHasGrindingStone, bHasToolRack, bNoUnrelatedRecipes, bToolPrerequisites, bWorkbenchUiScope);
     UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d ForgeAnvil=%d Materials=%d Station=%d NoUnrelated=%d Route=%d UiScope=%d"),
@@ -1471,7 +1504,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && bToolPrerequisites && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
         && bForgeRepairScope
         && bHasFryingPan && bHasForgeAnvil && bFryingPanRequirements && bForgeOnlyRecipes
-        && bForgeInteractionRoute && bForgeUiScope && bCookingRackScope;
+        && bForgeInteractionRoute && bForgeUiScope && bCookingRackScope && bCauldronScope;
 }
 
 bool UKalmalaCraftingWidget::VerifyCookingRackScopeForTest()
@@ -1507,6 +1540,7 @@ bool UKalmalaCraftingWidget::VerifyCookingRackScopeForTest()
 
     const bool bPreviousEmbedded = bEmbeddedContext;
     const bool bPreviousCookingRack = bCookingRackContext;
+    const bool bPreviousCauldron = bCauldronContext;
     const bool bPreviousWorkbenchCraft = bWorkbenchCraftContext;
     const bool bPreviousForgeCraft = bForgeCraftContext;
     const bool bPreviousForgeUpgrade = bForgeUpgradeContext;
@@ -1524,6 +1558,7 @@ bool UKalmalaCraftingWidget::VerifyCookingRackScopeForTest()
 
     bEmbeddedContext = true;
     StationFilterKit = RackKit;
+    bCauldronContext = false;
     StationContextSection = CookSection;
     ContextStationActor.Reset();
     ContextOwnerPawn.Reset();
@@ -1604,6 +1639,7 @@ bool UKalmalaCraftingWidget::VerifyCookingRackScopeForTest()
 
     bEmbeddedContext = bPreviousEmbedded;
     bCookingRackContext = bPreviousCookingRack;
+    bCauldronContext = bPreviousCauldron;
     bWorkbenchCraftContext = bPreviousWorkbenchCraft;
     bForgeCraftContext = bPreviousForgeCraft;
     bForgeUpgradeContext = bPreviousForgeUpgrade;
@@ -1625,6 +1661,178 @@ bool UKalmalaCraftingWidget::VerifyCookingRackScopeForTest()
         bOnlyRackRecipes, bIngredientCounts, bQuantity, bSelectedDescription, bLiveHeatFeedback,
         bNoUnrelatedRecipesOrActions, bStaleNoRequest, bUiScope);
     return bOnlyRackRecipes && bIngredientCounts && bQuantity && bSelectedDescription && bLiveHeatFeedback
+        && bNoUnrelatedRecipesOrActions && bStaleNoRequest && bUiScope;
+}
+
+bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
+{
+    const auto* Catalogue = UKalmalaRecipeCatalogue::Get();
+    if (!bOpen || !Catalogue || !RecipeGrid || !Ingredients || !RequirementText || !CraftButton || !StationContextStatusText)
+        return false;
+
+    const FName CauldronKit(TEXT("CauldronKit"));
+    const FName StewRecipeId(TEXT("MeatStewRecipe"));
+    const FName SoupRecipeId(TEXT("RootVegetableSoupRecipe"));
+    const FName StewOutputId(TEXT("MeatStew"));
+    const FName SoupOutputId(TEXT("RootVegetableSoup"));
+    const FKalmalaRecipe* StewRecipe = Catalogue->Find(StewRecipeId);
+    const FKalmalaRecipe* SoupRecipe = Catalogue->Find(SoupRecipeId);
+    const bool bRecipesAuthored = StewRecipe && SoupRecipe
+        && IsCauldronMenuRecipe(*StewRecipe) && IsCauldronMenuRecipe(*SoupRecipe)
+        && StewRecipe->Output == StewOutputId && SoupRecipe->Output == SoupOutputId
+        && StewRecipe->RequiredStation.Contains(TEXT("Cauldron"))
+        && SoupRecipe->RequiredStation.Contains(TEXT("Cauldron"));
+    const auto HasIngredient = [](const FKalmalaRecipe* Recipe, const FName ItemId, const int32 Quantity)
+    {
+        const FKalmalaInventoryStack* Ingredient = Recipe
+            ? Recipe->Ingredients.FindByPredicate([ItemId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == ItemId; })
+            : nullptr;
+        return Ingredient && Ingredient->Quantity == Quantity;
+    };
+    const bool bIngredientDefinitions = StewRecipe && SoupRecipe
+        && StewRecipe->Ingredients.Num() == 4 && SoupRecipe->Ingredients.Num() == 4
+        && HasIngredient(StewRecipe, TEXT("BoarMeat"), 1) && HasIngredient(StewRecipe, TEXT("DeerMeat"), 1)
+        && HasIngredient(StewRecipe, TEXT("Carrot"), 2) && HasIngredient(StewRecipe, TEXT("Potato"), 2)
+        && HasIngredient(SoupRecipe, TEXT("Carrot"), 1) && HasIngredient(SoupRecipe, TEXT("Potato"), 1)
+        && HasIngredient(SoupRecipe, TEXT("Rutabaga"), 1) && HasIngredient(SoupRecipe, TEXT("Onion"), 1);
+    const bool bQuantityDefinitions = StewRecipe && SoupRecipe
+        && StewRecipe->MaxBatch == 5 && SoupRecipe->MaxBatch == 5
+        && StewRecipe->OutputCount == 1 && SoupRecipe->OutputCount == 1;
+    const FString CookSection(TEXT("Cook"));
+    const bool bInteractionRoute = IsStationContextShellKit(CauldronKit)
+        && IsStationContextSectionSupported(CauldronKit, CookSection)
+        && GetInitialStationContextSection(CauldronKit) == CookSection;
+
+    const bool bPreviousEmbedded = bEmbeddedContext;
+    const bool bPreviousCookingRack = bCookingRackContext;
+    const bool bPreviousCauldron = bCauldronContext;
+    const bool bPreviousWorkbenchCraft = bWorkbenchCraftContext;
+    const bool bPreviousForgeCraft = bForgeCraftContext;
+    const bool bPreviousForgeUpgrade = bForgeUpgradeContext;
+    const bool bPreviousForgeRepair = bForgeRepairContext;
+    const bool bPreviousWorkbenchRepair = bWorkbenchRepairContext;
+    const FName PreviousStationKit = StationFilterKit;
+    const FString PreviousSection = StationContextSection;
+    const TWeakObjectPtr<AKalmalaConstructionActor> PreviousStation = ContextStationActor;
+    const TWeakObjectPtr<APawn> PreviousOwnerPawn = ContextOwnerPawn;
+    const FString PreviousConstructionId = ContextConstructionId;
+    const FString PreviousQuery = RecipeQuery;
+    const int32 PreviousCategory = RecipeCategory;
+    const bool bPreviousNameSort = bRecipeNameSort;
+    const int32 PreviousSelection = Selected;
+
+    bEmbeddedContext = true;
+    StationFilterKit = CauldronKit;
+    StationContextSection = CookSection;
+    ContextStationActor.Reset();
+    ContextOwnerPawn.Reset();
+    ContextConstructionId.Reset();
+    RecipeQuery.Reset();
+    RecipeCategory = 0;
+    bRecipeNameSort = false;
+    Selected = 0;
+    ConfigureStationContextPresentation(CookSection);
+    const TArray<int32> CauldronIndices = GetVisibleRecipeIndices();
+    const auto& Recipes = Catalogue->Recipes;
+    const int32 StewIndex = CauldronIndices.IndexOfByPredicate([&Recipes, StewRecipeId](const int32 Index)
+    {
+        return Recipes.IsValidIndex(Index) && Recipes[Index].RecipeId == StewRecipeId;
+    });
+    const int32 SoupIndex = CauldronIndices.IndexOfByPredicate([&Recipes, SoupRecipeId](const int32 Index)
+    {
+        return Recipes.IsValidIndex(Index) && Recipes[Index].RecipeId == SoupRecipeId;
+    });
+    Selected = StewIndex == INDEX_NONE ? 0 : StewIndex;
+    Refresh();
+
+    bool bOnlyCauldronRecipes = CauldronIndices.Num() == 2 && bRecipesAuthored && bInteractionRoute;
+    for (const int32 Index : CauldronIndices)
+        bOnlyCauldronRecipes &= Recipes.IsValidIndex(Index) && IsCauldronMenuRecipe(Recipes[Index])
+            && Recipes[Index].RequiredStation.Contains(TEXT("Cauldron"));
+    const FString StewRequirements = RequirementText->GetText().ToString();
+    const FString StewIngredients = Ingredients->GetPresentationText();
+    const bool bStewCounts = StewIngredients.Contains(TEXT("BoarMeat |")) && StewIngredients.Contains(TEXT("DeerMeat |"))
+        && StewIngredients.Contains(TEXT("Carrot |")) && StewIngredients.Contains(TEXT("Potato |"))
+        && StewIngredients.Contains(TEXT("owned ")) && StewIngredients.Contains(TEXT("/ required 1"))
+        && StewIngredients.Contains(TEXT("/ required 2"));
+    const bool bStewQuantity = StewRequirements.Contains(TEXT("one batch per press"))
+        && StewRequirements.Contains(TEXT("up to 5 batches per request"));
+    const bool bStewHeat = StewRequirements.Contains(TEXT("Cooking heat: usable lit hearth"));
+    Selected = SoupIndex == INDEX_NONE ? Selected : SoupIndex;
+    Refresh();
+    const FString SoupRequirements = RequirementText->GetText().ToString();
+    const FString SoupIngredients = Ingredients->GetPresentationText();
+    const bool bSoupCounts = SoupIngredients.Contains(TEXT("Carrot |")) && SoupIngredients.Contains(TEXT("Potato |"))
+        && SoupIngredients.Contains(TEXT("Rutabaga |")) && SoupIngredients.Contains(TEXT("Onion |"))
+        && SoupIngredients.Contains(TEXT("owned ")) && SoupIngredients.Contains(TEXT("/ required 1"));
+    const bool bSoupQuantity = SoupRequirements.Contains(TEXT("one batch per press"))
+        && SoupRequirements.Contains(TEXT("up to 5 batches per request"));
+    const bool bSoupHeat = SoupRequirements.Contains(TEXT("Cooking heat: usable lit hearth"));
+    const FKalmalaItemDefinition* SoupOutput = UKalmalaItemCatalogue::Get()->FindItem(SoupOutputId);
+    const bool bSoupDescription = SoupOutput && DetailText
+        && DetailText->GetText().ToString() == SoupOutput->Description;
+    Selected = StewIndex == INDEX_NONE ? 0 : StewIndex;
+    Refresh();
+    const FString Status = StationContextStatusText->GetText().ToString();
+    const bool bIngredientCounts = bIngredientDefinitions && bStewCounts && bSoupCounts;
+    const bool bQuantity = bQuantityDefinitions && bStewQuantity && bSoupQuantity;
+    const FKalmalaItemDefinition* StewOutput = UKalmalaItemCatalogue::Get()->FindItem(StewOutputId);
+    const bool bSelectedDescription = bSoupDescription && StewOutput && DetailText
+        && DetailText->GetText().ToString() == StewOutput->Description;
+    const bool bLiveHeatFeedback = bStewHeat && bSoupHeat
+        && Status.Contains(TEXT("hearth heat"), ESearchCase::IgnoreCase);
+    bool bNoUnrelatedRecipesOrActions = true;
+    for (const TObjectPtr<UWidget>& ExcludedWidget : StationCraftExcludedWidgets)
+        bNoUnrelatedRecipesOrActions &= ExcludedWidget
+            && ExcludedWidget->GetVisibility() == ESlateVisibility::Collapsed;
+    for (const TObjectPtr<UWidget>& ExcludedWidget : CookingRackExcludedWidgets)
+        bNoUnrelatedRecipesOrActions &= ExcludedWidget
+            && ExcludedWidget->GetVisibility() == ESlateVisibility::Collapsed;
+    bNoUnrelatedRecipesOrActions &= ToolProgressionText
+        && ToolProgressionText->GetVisibility() == ESlateVisibility::Collapsed
+        && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Collapsed
+        && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
+        && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed
+        && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Collapsed;
+    const bool bMenuContents = HeaderText && HeaderText->GetText().ToString() == TEXT("Cauldron — Cook")
+        && InstructionsText && InstructionsText->GetText().ToString().Contains(TEXT("Meat stew and Root vegetable soup only"))
+        && RecipeGrid->GetVisibility() != ESlateVisibility::Collapsed
+        && Ingredients->GetVisibility() != ESlateVisibility::Collapsed
+        && DetailText && DetailText->GetVisibility() != ESlateVisibility::Collapsed
+        && bSelectedDescription
+        && RequirementText->GetVisibility() != ESlateVisibility::Collapsed
+        && CraftButton->GetVisibility() != ESlateVisibility::Collapsed
+        && StationContextStatusText->GetVisibility() != ESlateVisibility::Collapsed
+        && !CraftButton->GetIsEnabled()
+        && Status.Contains(TEXT("Cauldron context unavailable"));
+    const uint32 RequestsBeforeStaleCraft = CauldronCraftRequestCountForTest;
+    Craft();
+    const bool bStaleNoRequest = CauldronCraftRequestCountForTest == RequestsBeforeStaleCraft;
+
+    bEmbeddedContext = bPreviousEmbedded;
+    bCookingRackContext = bPreviousCookingRack;
+    bCauldronContext = bPreviousCauldron;
+    bWorkbenchCraftContext = bPreviousWorkbenchCraft;
+    bForgeCraftContext = bPreviousForgeCraft;
+    bForgeUpgradeContext = bPreviousForgeUpgrade;
+    bForgeRepairContext = bPreviousForgeRepair;
+    bWorkbenchRepairContext = bPreviousWorkbenchRepair;
+    StationFilterKit = PreviousStationKit;
+    StationContextSection = PreviousSection;
+    ContextStationActor = PreviousStation;
+    ContextOwnerPawn = PreviousOwnerPawn;
+    ContextConstructionId = PreviousConstructionId;
+    SetRecipeBrowse(PreviousQuery, PreviousCategory, bPreviousNameSort);
+    const TArray<int32> RestoredIndices = GetVisibleRecipeIndices();
+    Selected = RestoredIndices.IsEmpty() ? 0 : FMath::Clamp(PreviousSelection, 0, RestoredIndices.Num() - 1);
+    ConfigureStationContextPresentation(PreviousSection);
+    Refresh();
+
+    const bool bUiScope = bMenuContents && bNoUnrelatedRecipesOrActions;
+    UE_LOG(LogTemp, Display, TEXT("Cauldron scope: Recipes=%d Ingredients=%d Quantity=%d Description=%d Heat=%d NoUnrelated=%d StaleNoRequest=%d UiScope=%d"),
+        bOnlyCauldronRecipes, bIngredientCounts, bQuantity, bSelectedDescription, bLiveHeatFeedback,
+        bNoUnrelatedRecipesOrActions, bStaleNoRequest, bUiScope);
+    return bOnlyCauldronRecipes && bIngredientCounts && bQuantity && bSelectedDescription && bLiveHeatFeedback
         && bNoUnrelatedRecipesOrActions && bStaleNoRequest && bUiScope;
 }
 
@@ -2077,9 +2285,9 @@ void UKalmalaCraftingWidget::Refresh()
             ? TEXT("Build the selected structure from its shown materials.")
             : TEXT("Craft one batch of the selected recipe.");
         CraftButton->SetToolTipText(FText::FromString(ButtonToolTip));
-        const bool bCookingContextCanCraft = !bCookingRackContext
-            || (StationFilterKit == TEXT("CookingRackKit") && IsStationContextValid()
-                && IsCookingRackMenuRecipe(SelectedRecipe));
+        const bool bCookingContext = bCookingRackContext || bCauldronContext;
+        const bool bCookingContextCanCraft = !bCookingContext
+            || (IsStationContextValid() && IsCookingMenuRecipe(StationFilterKit, SelectedRecipe));
         const bool bCanCraft = SelectedRecipe.bEnabled && bCookingContextCanCraft;
         if (CraftButton->GetIsEnabled() != bCanCraft)
         {
@@ -2160,13 +2368,14 @@ void UKalmalaCraftingWidget::Craft()
     const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
     if (!VisibleIndices.IsValidIndex(Selected) || !Recipes.IsValidIndex(VisibleIndices[Selected])) return;
     const FKalmalaRecipe& Recipe = Recipes[VisibleIndices[Selected]];
-    if (bCookingRackContext && (StationFilterKit != TEXT("CookingRackKit")
-        || !IsStationContextValid() || !IsCookingRackMenuRecipe(Recipe))) return;
+    if ((bCookingRackContext || bCauldronContext)
+        && (!IsStationContextValid() || !IsCookingMenuRecipe(StationFilterKit, Recipe))) return;
     if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.Output)) { Place(); return; }
     if (auto* M = Model())
     {
 #if !UE_BUILD_SHIPPING
         if (bCookingRackContext) ++CookingRackCraftRequestCountForTest;
+        if (bCauldronContext) ++CauldronCraftRequestCountForTest;
 #endif
         M->ServerCraft(Recipe.RecipeId, 1);
     }
