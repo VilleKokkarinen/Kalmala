@@ -64,6 +64,14 @@ presentation: it adds no RPC, focus target, progression mutation, or save
 field. `Scripts/Verify-Crafting.ps1` checks the fresh-owner values and
 host/client presentation; `-Rendered` retains both 1280x720 captures.
 
+The selected-result preview reads only the existing selected recipe output,
+description, requirements, and availability already shown by the local
+crafting panel. It resolves a canonical icon through the shared catalogue
+mapping and keeps the availability text visible when a recipe cannot currently
+be crafted. Keyboard/controller selection updates this read-only panel; it
+sends no request and creates no actor. No inventory, recipe, item, replicated,
+or save property is added.
+
 ## Allowed and forbidden sources
 
 Allowed visual sources are original project code, the committed Kalmala

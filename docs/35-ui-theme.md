@@ -166,6 +166,22 @@ focused widget preview handler, confirms selection updates and restoration,
 and checks the measured scroll extent. This does not replace a physical
 keyboard/controller playthrough or a cooked/package asset-inclusion check.
 
+## Selected recipe and build-result preview — 2026-10-05
+
+The selected recipe/build result uses a shared local detail panel with an
+88-logical-unit canonical line icon beside its name, description, availability,
+and existing requirement text. Ingredient costs remain in the separate
+owner-local ingredient view immediately below. The preview resolves only the
+selected recipe's existing output ID through `UKalmalaIconWidget`; it adds no
+catalogue fields, item definitions, transaction, placement, or gameplay spawn.
+
+When a selected result has no canonical icon, the panel keeps the result text,
+shows the existing unknown glyph, and labels the missing preview. A search with
+no matching result clears and collapses the whole detail panel. The panel uses
+shared theme colours, fonts, text scaling, and high-contrast treatment. Its
+selection follows the existing keyboard/controller recipe navigation and
+remains presentation-only.
+
 ## Parent verification — 2026-10-02
 
 The foundation parent is complete. The isolated UE 5.8.2 editor build passed;

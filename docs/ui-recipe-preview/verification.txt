@@ -1,0 +1,11 @@
+M11 selected recipe/build-result preview review — 2026-10-05
+
+All four captures show the selected Hearth ring result preview and its availability/requirements from the owner-local crafting panel. Host and client views use independent presentation state; the fixture does not spawn gameplay actors for preview verification.
+
+Standard: 1280x720, text scale 100%, contrast 0. Command: Scripts/Verify-Crafting.ps1 -Rendered -Port 19543 -Width 1280 -Height 720 -TextScale 100 -Contrast 0. PASS on host and client; the output also reported crafting presentation passed/restored on both peers. Captures: standard-host.png, standard-client.png.
+
+High contrast: 1024x768, text scale 150%, contrast 1. Command: Scripts/Verify-Crafting.ps1 -Rendered -Port 19544 -Width 1024 -Height 768 -TextScale 150 -Contrast 1. PASS on host and client; the output also reported crafting presentation passed/restored on both peers. Captures: high-contrast-host.png, high-contrast-client.png.
+
+The preview assertion on each peer passed: Keyboard=1, DPad=1, Unavailable=1, MissingIconFallback=1, NoResultsCleared=1, Large=1, NoActorsSpawned=1, CatalogueStable=1, IconExtent=88. The final full Kalmala automation run passed 114/114 tests, zero failures, exit code 0. The isolated UE5.8.2 editor build passed 225 actions, followed by successful 7-action and final 7-action UI rebuilds after scoped fixes.
+
+The two rendered runner output directories and full automation log were temporary and are not included; the reviewed selected-result screenshots and exact run settings are retained here.
