@@ -12802,6 +12802,8 @@ worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
 `codex/m12-hud-feedback-rebuild`. The main checkout contains pre-existing
 modifications to `BACKLOG.md` and `PROGRESS.md`; they were preserved.
 
+Implementation commit: 35bbafb (Generate catalogue icon batch 05).
+
 Completed exactly the next M12 goal 8 child. Generated original StorageKit,
 CookingRackKit, FryingPanKit, and CauldronKit icons using WorkbenchKit, ForgeKit,
 and Coal as style references only. Retained each 1254×1254 RGBA original and
@@ -12839,6 +12841,7 @@ imports, menu integration, and rendered acceptance remain open.
 Next eligible task: M12 goal 8, generate and review icon batch 06 for FloorKit,
 WallKit, RoofKit, and BoarMeat.
 
-Main-checkout handoff synchronization: Pending. Main `BACKLOG.md` and
-`PROGRESS.md` contain pre-existing edits; only this backlog child and this
-progress entry will be synchronized.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md` before editing; applied only the selected batch
+05 row and appended this progress entry. Preserved all pre-existing
+main-checkout edits. No implementation assets were synchronized.
