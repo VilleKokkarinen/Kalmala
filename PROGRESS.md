@@ -12479,4 +12479,6 @@ all live items, tools, build/results, and upgrade targets, with aliases,
 cross-view reuse, fixed batch membership, and the Campfire construction-image
 exception.
 
-Main-checkout handoff synchronization: Pending commit and selected-file sync.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+BACKLOG.md and PROGRESS.md versions; synchronized only the selected goal-7
+parent/child state and this progress entry, preserving all unrelated edits.
