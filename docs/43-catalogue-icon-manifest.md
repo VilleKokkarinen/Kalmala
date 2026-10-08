@@ -236,3 +236,28 @@ created, and current catalogue consumers remain on vector icons pending the
 later import and menu-integration children. This changes presentation assets
 only; no gameplay identity, network authority, RPC, replicated field, or save
 schema changed.
+
+## Batch 06 review — 2026-10-08
+
+Generated FloorKit, WallKit, RoofKit, and BoarMeat as separate original images
+with the built-in image generator. Retained their generated RGBA PNG sources in
+`Content/Kalmala/UI/Source/IconOriginals/`; the FloorKit source is 1536×1024
+and the other three are 1254×1254. Prepared transparent 64×64 RGBA images in
+`Content/Kalmala/UI/Source/Icons/`, with visible artwork proportionally fit
+inside a centered 56×56 area.
+
+FloorKit reads as a square oak plank floor tile with visible support beams;
+WallKit as a vertical plank panel with cross-braces; RoofKit as a sloped
+reed-thatch panel with a timber ridge; and BoarMeat as a fresh red pork cut
+with pale fat and a small bone. Their construction silhouettes and ingredient
+silhouette remain distinct at 64×64. The prompt set requested one subject per
+icon, transparent background, warm soft highlights, ivory edge accents, a thin
+dark contour, and no text, labels, UI chrome, scenery, or extra props.
+
+`Scripts/Validate-CatalogueIcon.ps1` passed for all four identities,
+confirming their pinned manifest rows, retained RGBA sources, transparent
+64×64 finals, and import targets. These remain prepared for import only: no
+`.uasset` was created, and current consumers remain on vector icons pending the
+later import and menu-integration children. This changes presentation assets
+only; no gameplay identity, network authority, RPC, replicated field, or save
+schema changed.

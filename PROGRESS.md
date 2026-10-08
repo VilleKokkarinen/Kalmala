@@ -12845,3 +12845,55 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 `BACKLOG.md` and `PROGRESS.md` before editing; applied only the selected batch
 05 row and appended this progress entry. Preserved all pre-existing
 main-checkout edits. No implementation assets were synchronized.
+
+## Run 2026-10-08T12:17Z — Generate catalogue icon batch 06
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in the clean retained
+worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout has pre-existing modified
+`BACKLOG.md` and `PROGRESS.md` content; preserve it during handoff.
+
+Completed exactly the next M12 goal 8 child. Generated four separate original
+icons with the built-in image generator: FloorKit (oak plank floor tile),
+WallKit (upright timber panel), RoofKit (reed-thatch roof panel), and BoarMeat
+(fresh red pork cut with pale fat and a small bone). Retained each original
+RGBA PNG and prepared a transparent 64×64 RGBA PNG with visible artwork fitted
+inside a centered 56×56 area. The FloorKit original is 1536×1024; the other
+three are 1254×1254. The prompt set specified one centered subject per icon,
+transparent background, warm soft highlights, ivory edge accents, a thin dark
+contour, and no text, UI chrome, scenery, or extra props.
+
+Files changed: `Content/Kalmala/UI/Source/IconOriginals/FloorKit.png`;
+`Content/Kalmala/UI/Source/Icons/FloorKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/WallKit.png`;
+`Content/Kalmala/UI/Source/Icons/WallKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/RoofKit.png`;
+`Content/Kalmala/UI/Source/Icons/RoofKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/BoarMeat.png`;
+`Content/Kalmala/UI/Source/Icons/BoarMeat.png`;
+`docs/43-catalogue-icon-manifest.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Validate-CatalogueIcon.ps1` for all four
+IDs, native-size visual review of all prepared icons, `git diff --check`, and a
+changed-path MAX_PATH audit (longest path 95 characters). No Unreal import or
+build, automation, in-game rendered/controller review, or package check was
+run. Full M12 verification remains deferred; this is a normal child increment.
+
+Observable impact: 24 of 48 canonical catalogue icon identities now have
+retained originals and validated prepared PNGs ready for Unreal import.
+
+Networking/authority: presentation assets and documentation only; no gameplay,
+RPC, replication, authority, inventory, or save contract changed.
+
+Known limitations: no PNG has been imported as an Unreal `.uasset` and live
+catalogue consumers remain on vector icons. Six more image batches, three
+import batches, menu integration, and rendered acceptance remain open.
+
+Next eligible task: M12 goal 8, generate/review icon batch 07 for DeerMeat,
+BoarHide, DeerHide, and CookedBoarMeat.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; applied only the selected batch 06 row and this
+PROGRESS entry. Preserved all earlier main-checkout edits. No implementation
+assets were synchronized.
