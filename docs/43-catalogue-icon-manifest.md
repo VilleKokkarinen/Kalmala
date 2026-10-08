@@ -144,3 +144,32 @@ import/integration children.
 
 This is presentation content only. It changes no gameplay identity,
 inventory rule, network authority, RPC, replicated field, or save schema.
+
+
+## Batch 03 review — 2026-10-08
+
+Completed FrostSalt, MirelingAsh, CampfireKit, and WorkbenchKit. Each generated
+original is retained as a 1254×1254 RGBA PNG in
+`Content/Kalmala/UI/Source/IconOriginals/`; its import preparation is a
+transparent 64×64 RGBA PNG in `Content/Kalmala/UI/Source/Icons/`. The visible
+artwork was fit proportionally into a centered 56×56 maximum area, leaving a
+clear transparent margin.
+
+At native size, FrostSalt reads as pale blue-gray crystalline salt, distinct
+from the ordinary Stone cluster. MirelingAsh is a loose charcoal-gray ash
+heap with small ember flecks, distinct from solid Coal and PeatAmber.
+CampfireKit shows a low ring of hearth stones around a small flame and remains
+construction-only; the image is for recipe/build/result/placement views, not
+pack or storage. WorkbenchKit reads as a compact oak joiner's bench with an
+end vise. All four share the batch 01 framing, warm highlights, dark contours,
+and contain no labels, UI chrome, or badges.
+
+`Scripts/Validate-CatalogueIcon.ps1` passed for all four IDs, confirming the
+manifest identity, retained high-resolution source, prepared 64×64 RGBA file,
+transparency, and import target. These remain prepared for import only; no
+`.uasset` was created, and current catalogue consumers remain on vector icons
+until the later import and integration children.
+
+This changes presentation assets and documentation only. It does not change
+gameplay identity, inventory rules, network authority, RPCs, replicated fields,
+or save schemas.
