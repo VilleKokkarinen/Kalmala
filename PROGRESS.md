@@ -12490,6 +12490,7 @@ Concurrency guard: Codex task inventory showed no other active Kalmala run.
 Continued in the clean retained worktree
 E:\dev\Kalmala\wt\m12-hud-feedback-rebuild; the dirty main checkout was
 preserved.
+Implementation commit: 5b48ce0 (Pin catalogue icon manifest).
 
 Completed exactly the first unchecked child of M12 goal 8. Added the pinned
 canonical image manifest for all 42 schema-4 item IDs and six carried tools.
@@ -12527,6 +12528,6 @@ Next eligible task: M12 goal 8, add shared UI texture lookup/import
 preparation and unknown-ID fallback with one original pilot icon, transparent
 64x64 RGBA output, source retention, and a narrow image/path validator.
 
-Main-checkout handoff synchronization: Pending; after the worktree commit,
-apply only the selected BACKLOG child and this PROGRESS handoff to the dirty
-main-checkout files.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions before editing; updated only the selected BACKLOG child and appended
+this PROGRESS handoff, preserving all other existing changes.
