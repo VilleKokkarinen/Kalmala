@@ -13146,3 +13146,64 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 `BACKLOG.md` and `PROGRESS.md`; preserved all earlier modifications and applied
 only the selected batch C child update and this progress entry. No implementation
 assets were synchronized.
+
+## Run 2026-10-08 14:16 UTC — Integrate Inventory-facing catalogue images
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`
+on `codex/m12-hud-feedback-rebuild`. The main checkout contains pre-existing
+handoff edits to `BACKLOG.md` and `PROGRESS.md`; they are preserved.
+
+Completed exactly M12 goal 8's first integration child. Inventory pack slots,
+carried-tool cards, selected item/tool details, inventory and repair browsing,
+recipe ingredient rows, and both chest selectors now use the shared canonical
+texture lookup. The two side-by-side chest lists use two columns to retain room
+for item names and counts. Missing textures keep their existing vector icon;
+unknown identities retain the question-mark fallback. Stack counts, tool
+condition, ingredient owned/required amounts, and owner-scoped rows remain
+readable and unchanged.
+
+Files changed: `Source/KalmalaUI/Public/KalmalaIconWidget.h`;
+`Source/KalmalaUI/Private/KalmalaIconWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaCatalogueRowsWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaItemDetailWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaIngredientWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaInventoryInspectWidget.cpp`;
+`Source/KalmalaUI/Public/KalmalaInventoryInspectWidget.h`;
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaItemDetailTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaIngredientTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaInventoryInspectTest.cpp`;
+`docs/15-presentation-ownership.md`; `docs/43-catalogue-icon-manifest.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `git diff --check`; changed-path MAX_PATH audit
+(longest absolute path 111 characters); imported package inventory (48
+canonical `.uasset` textures, including Wood); and static inspection confirming
+all four affected components call `SetCatalogueIcon`. Focused automation
+assertions were prepared for canonical texture paths, imported texture loading,
+unknown-ID fallback, image/count visibility, ingredient amounts, and owner-local
+inventory/chest rows. No C++ build, automation run, rendered host/client review,
+or package check was run. Full M12 verification remains deferred.
+
+Observable impact: inventory and service views display the original imported
+catalogue art while preserving readable labels and selection feedback.
+
+Networking/authority: presentation-only change. Gameplay, RPCs, replication,
+server authority, inventory transactions, and saves are unchanged; private
+inventory and chest rows still come from the existing owner-scoped sources.
+
+Known limitations: Build/crafting/upgrade grids and selected-result previews
+still use vector icons. Rendered icon/count acceptance and the M12 milestone-final
+verification remain open.
+
+Next eligible task: M12 goal 8, integrate shared images in Build/crafting/
+upgrade grids and selected-result previews; update alias/coverage assertions and
+prepare rendered Favorite/Rank/Recent coexistence checks.
+
+Main-checkout handoff synchronization: Complete. Inspected the existing main
+`BACKLOG.md` and `PROGRESS.md` edits; updated only the selected backlog child
+and appended this run record, preserving all earlier content. No implementation
+files or docs were synchronized.

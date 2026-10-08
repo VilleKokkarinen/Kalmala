@@ -66,8 +66,12 @@ runtime IDs from the existing vector icon map. It maps them to
 `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` and returns no texture for an unknown
 ID or an asset that has not been imported. `UKalmalaIconWidget::SetCatalogueIcon`
 uses the existing vector assignment when the raster is missing and the
-question-mark vector for unknown IDs. Existing consumers remain on their
-current vector path until the later menu-integration child.
+question-mark vector for unknown IDs. The first M12 integration child now uses
+this lookup in Inventory pack/tool slots, selected-item details, inventory and
+repair browsing, chest pack/content selectors, and recipe ingredient rows.
+Names, stack counts, tool condition, and owner-supplied state remain readable
+text. Build/crafting grids and selected-result previews remain on vector
+assignments until the next integration child.
 
 The pilot is Wood. Keep the original generated RGBA PNG at
 `Content/Kalmala/UI/Source/IconOriginals/Wood.png` and the prepared 64×64
@@ -464,3 +468,25 @@ duplicate alias packages. The shared lookup builds the corresponding
 icons until the two integration children; rendered host/client acceptance
 remains open. This import changes presentation assets only and does not affect
 gameplay authority, replication, or saves.
+
+## Inventory-facing image integration — 2026-10-08
+
+Inventory pack slots and carried-tool cards, selected item/tool detail, local
+inventory/repair browsing cards, recipe ingredient rows, and both owner-only
+chest selectors now call `SetCatalogueIcon` with the row's canonical runtime
+ID. Chest pack/content cards use two columns so the image and count/condition
+text retain usable width in their side-by-side storage view. Selection borders,
+names, counts, tool condition, ingredient owned/required amounts, and empty
+states remain separate from the image. These views only receive the same
+owner-scoped rows they used before; no peer or server data source changed.
+
+Focused automation assertions are prepared in
+`Kalmala.UI.CatalogueIcons.CompleteCoverage`,
+`Kalmala.UI.InventoryMenu.Selection`, `Kalmala.UI.Inventory.ItemDetail`,
+`Kalmala.UI.Inventory.InspectionNavigation`, and
+`Kalmala.UI.Crafting.IngredientCounts`. They cover canonical object paths,
+imported pilot texture loading, unknown-ID fallback, item/tool and chest image
+counts, readable stack/condition/ingredient text, and the existing owner-local
+selection boundaries. These automation tests were not run in this normal
+increment. Rendered item/count and chest screenshots remain for M12 final
+verification; build/crafting result grids are the next icon integration child.

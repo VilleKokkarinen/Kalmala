@@ -71,7 +71,5 @@ void UKalmalaItemDetailWidget::SetPresentation(FName Id, const FString& Name, co
     Theme.ApplyText(*Details, Theme.BodySize, false, TextScale, Contrast);
     Title->SetText(FText::FromString(Name));
     Details->SetText(FText::FromString(Description));
-    EKalmalaIcon Kind; int32 Variant;
-    UKalmalaIconWidget::FindCatalogueIcon(Id, Kind, Variant);
-    Icon->SetIcon(Kind, Variant);
+    Icon->SetCatalogueIcon(Id);
 }

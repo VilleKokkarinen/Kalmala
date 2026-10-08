@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaInventoryMenuWidget.h"
 #include "KalmalaCatalogueRowsWidget.h"
+#include "KalmalaIconWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/EditableTextBox.h"
@@ -77,6 +78,25 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Tool row remains separate from the sixteen pack slots"), OwnerARowsView->GetCarriedToolCount(), 1);
         TestEqual(TEXT("Tool does not consume a pack slot"), OwnerARowsView->GetFilledSlotCount(), 2);
         TestEqual(TEXT("Pack grid retains its empty cells"), OwnerARowsView->GetEmptySlotCount(), 14);
+        TArray<UWidget*> RowWidgets;
+        OwnerARowsView->WidgetTree->GetAllWidgets(RowWidgets);
+        int32 ImageCount = 0;
+        bool bAllImagesLoaded = true;
+        FString CardLabels;
+        for (UWidget* Child : RowWidgets)
+        {
+            if (const auto* Icon = Cast<UKalmalaIconWidget>(Child))
+            {
+                ++ImageCount;
+                bAllImagesLoaded &= Icon->HasCatalogueTexture();
+            }
+            if (const auto* Label = Cast<UTextBlock>(Child)) CardLabels += Label->GetText().ToString();
+        }
+        TestEqual(TEXT("Pack items and carried tools each retain an icon cell"), ImageCount, 3);
+        TestTrue(TEXT("Known pack/tool identities load their shared textures"), bAllImagesLoaded);
+        TestTrue(TEXT("Stack and tool condition counts remain readable beside icons"),
+            CardLabels.Contains(TEXT("× 7")) && CardLabels.Contains(TEXT("× 2"))
+                && CardLabels.Contains(TEXT("Condition 17/40")));
     }
 
     OwnerA->StepSelectionForVerification(1);

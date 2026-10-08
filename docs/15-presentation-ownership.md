@@ -12,8 +12,11 @@ M11 supersedes the historical status placement below: active status/weather
 now appears only in the transparent owner-local top-right hotbar, with live
 details in Escape > Status and weather details. The lower-left widget retains
 only ocean travel, and pack preparation guidance retains no active timer.
-Original catalogue line art is shared by inventory/tool rows and the build
-selector. See `36-status-icons.md` for identities and verification boundaries.
+Canonical catalogue images are shared by Inventory items, carried tools,
+selected-item details, ingredient rows, and the chest selectors; the existing
+vector assignment remains the missing-texture fallback. Build and crafting
+result grids remain on vector assignments until the next M12 icon integration
+child. See `36-status-icons.md` for identities and verification boundaries.
 
 ## Ownership ledger
 

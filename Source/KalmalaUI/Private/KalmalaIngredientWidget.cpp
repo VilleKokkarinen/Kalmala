@@ -58,10 +58,12 @@ void UKalmalaIngredientWidget::SetIngredients(const TArray<FKalmalaInventoryStac
         auto* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
         auto* Box = WidgetTree->ConstructWidget<USizeBox>();
         Theme.ApplyIconSlot(*Box);
+        const float SquareIconSize = FMath::Min(Theme.IconWidth, Theme.IconHeight);
+        Box->SetWidthOverride(SquareIconSize);
+        Box->SetHeightOverride(SquareIconSize);
         auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
-        EKalmalaIcon Kind; int32 Variant;
-        UKalmalaIconWidget::FindCatalogueIcon(Costs[Index].ItemId, Kind, Variant);
-        Icon->SetIcon(Kind, Variant); Box->SetContent(Icon); Row->AddChild(Box);
+        Icon->SetCatalogueIcon(Costs[Index].ItemId);
+        Box->SetContent(Icon); Row->AddChild(Box);
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
         Label->SetText(FText::FromString(Labels[Index])); Label->SetAutoWrapText(true);
         Theme.ApplyText(*Label, Theme.BodySize, false, TextScale, Contrast);

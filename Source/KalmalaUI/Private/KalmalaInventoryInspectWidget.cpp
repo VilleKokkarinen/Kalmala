@@ -1,16 +1,19 @@
 #include "KalmalaInventoryInspectWidget.h"
+#include "KalmalaIconWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaThemedButton.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/VerticalBox.h"
 #include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
 #include "Components/Border.h"
 #include "Components/EditableTextBox.h"
+#include "Components/SizeBox.h"
 #include "InputCoreTypes.h"
 
 TSharedRef<SWidget> UKalmalaInventoryInspectWidget::RebuildWidget()
@@ -71,14 +74,17 @@ FString UKalmalaInventoryInspectWidget::ActionGuidance(FName Id, bool bTool)
 }
 
 void UKalmalaInventoryInspectWidget::SetRows(const TArray<FKalmalaCatalogueRow>& InRows, int32 Scale, int32 Contrast,
-    const FString& InListLabel, const FString& InEmptyLabel, const bool bInAllowToolFilter)
+    const FString& InListLabel, const FString& InEmptyLabel, const bool bInAllowToolFilter, const int32 InGridColumns)
 {
-    FString Key = FString::Printf(TEXT("%d|%d|%s|%s|%d"), Scale, Contrast, *InListLabel, *InEmptyLabel, bInAllowToolFilter);
+    const int32 BoundedGridColumns = FMath::Clamp(InGridColumns, 1, 4);
+    FString Key = FString::Printf(TEXT("%d|%d|%s|%s|%d|%d"), Scale, Contrast, *InListLabel,
+        *InEmptyLabel, bInAllowToolFilter, BoundedGridColumns);
     for (const auto& Row : InRows) Key += TEXT("|") + Row.Id.ToString() + Row.Name + Row.Detail + (Row.bCarriedTool ? TEXT("T") : TEXT("I"));
     if (Column && Key == LastRows) return;
     LastRows = Key;
     OwnerRows = InRows; TextScale = Scale; ContrastMode = Contrast;
     ListLabel = InListLabel; EmptyLabel = InEmptyLabel; bAllowToolFilter = bInAllowToolFilter;
+    GridColumns = BoundedGridColumns;
     Build(); Refilter();
 }
 
@@ -161,16 +167,28 @@ void UKalmalaInventoryInspectWidget::Refresh()
             auto* Heading = WidgetTree->ConstructWidget<UTextBlock>();
             Heading->SetText(FText::FromString(Rows[Index].bCarriedTool ? TEXT("Carried tools") : TEXT("Items")));
             Theme.ApplyText(*Heading, Theme.BodySize, true, TextScale, ContrastMode);
-            Grid->AddChildToGrid(Heading, GridRow++, 0)->SetColumnSpan(4);
+            Grid->AddChildToGrid(Heading, GridRow++, 0)->SetColumnSpan(GridColumns);
         }
         auto* Card = WidgetTree->ConstructWidget<UBorder>();
         Theme.ApplySelectablePanel(*Card, Index == Selected, Index == Selected && HasKeyboardFocus(), false, ContrastMode);
+        auto* CardContent = WidgetTree->ConstructWidget<UHorizontalBox>();
+        auto* IconSize = WidgetTree->ConstructWidget<USizeBox>();
+        IconSize->SetWidthOverride(28.0f);
+        IconSize->SetHeightOverride(28.0f);
+        auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+        Icon->SetCatalogueIcon(Rows[Index].Id);
+        IconSize->SetContent(Icon);
+        auto* IconSlot = CardContent->AddChildToHorizontalBox(IconSize);
+        IconSlot->SetVerticalAlignment(VAlign_Center);
+        IconSlot->SetPadding(FMargin(0.0f, 0.0f, Theme.SlotPadding, 0.0f));
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
         Label->SetAutoWrapText(true); Label->SetWrapTextAt(140.0f);
         Label->SetText(FText::FromString((Index == Selected ? TEXT("> ") : TEXT("")) + Rows[Index].Name + TEXT("\n") + Rows[Index].Detail));
         Theme.ApplyText(*Label, Theme.BodySize, Index == Selected, TextScale, ContrastMode);
-        Card->SetContent(Label); Grid->AddChildToGrid(Card, GridRow, GridColumn);
-        if (++GridColumn == 4) { ++GridRow; GridColumn = 0; }
+        auto* LabelSlot = CardContent->AddChildToHorizontalBox(Label);
+        LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        Card->SetContent(CardContent); Grid->AddChildToGrid(Card, GridRow, GridColumn);
+        if (++GridColumn == GridColumns) { ++GridRow; GridColumn = 0; }
     }
     Detail->SetVisibility(Rows.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (Rows.IsValidIndex(Selected))

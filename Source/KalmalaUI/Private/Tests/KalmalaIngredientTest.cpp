@@ -21,6 +21,18 @@ bool FKalmalaIngredientTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Separate owner grant accepted"), Peer->TryGrantFromServer(TEXT("Wood"), 2));
     Widget->SetIngredients(Costs, Owner, 100, 0);
     TestTrue(TEXT("Owned/required and sufficient text"), Widget->GetPresentationText().Contains(TEXT("owned 9 / required 6 — Enough")));
+    TArray<UWidget*> IngredientWidgets;
+    Widget->WidgetTree->GetAllWidgets(IngredientWidgets);
+    int32 IngredientImageCount = 0;
+    bool bIngredientImageLoaded = false;
+    for (UWidget* Child : IngredientWidgets)
+        if (const auto* Icon = Cast<UKalmalaIconWidget>(Child))
+        {
+            ++IngredientImageCount;
+            bIngredientImageLoaded |= Icon->HasCatalogueTexture();
+        }
+    TestEqual(TEXT("Ingredient row retains one image beside readable owned/required counts"), IngredientImageCount, 1);
+    TestTrue(TEXT("Ingredient image uses the imported canonical texture"), bIngredientImageLoaded);
     TestTrue(TEXT("Accepted consumption"), Owner->TryConsumeFromServer(TEXT("Wood"), 5));
     Widget->SetIngredients(Costs, Owner, 150, 1);
     TestTrue(TEXT("Refresh follows consumption and missing state"), Widget->GetPresentationText().Contains(TEXT("owned 4 / required 6 — Missing")));

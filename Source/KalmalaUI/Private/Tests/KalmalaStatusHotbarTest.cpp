@@ -4,6 +4,8 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaCatalogueIconLibrary.h"
+#include "KalmalaIconWidget.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaStatusHotbarTest, "Kalmala.UI.StatusHotbar.SnapshotAndLayout",
@@ -53,6 +55,11 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
         EKalmalaIcon Icon; int32 Variant;
         TestTrue(*Id.ToString(), UKalmalaIconWidget::FindCatalogueIcon(Id, Icon, Variant));
         TestTrue(TEXT("Known original shape"), Icon != EKalmalaIcon::Unknown);
+        FSoftObjectPath TexturePath;
+        TestTrue(TEXT("Known identity resolves to an imported texture path"),
+            FKalmalaCatalogueIconLibrary::GetTextureObjectPath(Id, TexturePath));
+        TestEqual(TEXT("Texture path keeps the canonical identity"), TexturePath.ToString(),
+            FString::Printf(TEXT("/Game/Kalmala/UI/Icons/Items/%s.%s"), *Id.ToString(), *Id.ToString()));
         const int32 Key = static_cast<int32>(Icon)*8 + Variant;
         TestFalse(TEXT("Distinct item/tool assignment"), Shapes.Contains(Key)); Shapes.Add(Key);
     };
@@ -72,6 +79,16 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
     }
     EKalmalaIcon Missing; int32 Variant;
     TestFalse(TEXT("Forged IDs have no assigned icon"), UKalmalaIconWidget::FindCatalogueIcon(TEXT("Forged"), Missing, Variant));
+    TestEqual(TEXT("Unknown IDs retain the question-mark vector fallback"), Missing, EKalmalaIcon::Unknown);
+    FSoftObjectPath MissingPath;
+    TestFalse(TEXT("Forged IDs cannot resolve a texture path"),
+        FKalmalaCatalogueIconLibrary::GetTextureObjectPath(TEXT("Forged"), MissingPath));
+    auto* KnownWidget = NewObject<UKalmalaIconWidget>();
+    KnownWidget->SetCatalogueIcon(TEXT("Wood"));
+    TestTrue(TEXT("Imported pilot texture is loaded by the shared icon widget"), KnownWidget->HasCatalogueTexture());
+    auto* UnknownWidget = NewObject<UKalmalaIconWidget>();
+    UnknownWidget->SetCatalogueIcon(TEXT("Forged"));
+    TestFalse(TEXT("Unknown ID draws the vector fallback without a texture"), UnknownWidget->HasCatalogueTexture());
     return true;
 }
 #endif

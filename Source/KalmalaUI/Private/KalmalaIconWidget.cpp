@@ -9,13 +9,16 @@
 void UKalmalaIconWidget::SetIcon(EKalmalaIcon InIcon, int32 InVariant)
 {
     SetIsFocusable(false);
-    Icon = InIcon; Variant = InVariant; CatalogueTexture = nullptr;
+    Icon = InIcon; Variant = InVariant; CatalogueId = NAME_None; CatalogueTexture = nullptr;
     Invalidate(EInvalidateWidget::Paint);
 }
 
 void UKalmalaIconWidget::SetCatalogueIcon(FName CanonicalId)
 {
     SetIsFocusable(false);
+    if (CatalogueId == CanonicalId && CatalogueTexture)
+        return;
+    CatalogueId = CanonicalId;
     const bool bKnownId = FindCatalogueIcon(CanonicalId, Icon, Variant);
     if (bKnownId)
         CatalogueTexture = FKalmalaCatalogueIconLibrary::LoadTexture(CanonicalId);

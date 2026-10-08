@@ -5,7 +5,7 @@
 
 class UTexture2D;
 
-/** Original line art shared by read-only HUD and catalogue presentation. */
+/** Shared imported catalogue images with the original vector icon as fallback. */
 enum class EKalmalaIcon : uint8
 {
     Unknown, Drop, Sun, Snow, Cloud, Storm, Bowl, Shield, Cross, Paw, Antlers,
@@ -21,12 +21,14 @@ public:
     void SetIcon(EKalmalaIcon InIcon, int32 InVariant = 0);
     void SetCatalogueIcon(FName CanonicalId);
     static bool FindCatalogueIcon(FName CanonicalId, EKalmalaIcon& OutIcon, int32& OutVariant);
+    bool HasCatalogueTexture() const { return CatalogueTexture != nullptr; }
 protected:
     virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling,
         FSlateWindowElementList& Elements, int32 Layer, const FWidgetStyle& Style, bool bEnabled) const override;
 private:
     EKalmalaIcon Icon = EKalmalaIcon::Unknown;
     int32 Variant = 0;
+    FName CatalogueId = NAME_None;
     UPROPERTY(Transient)
     TObjectPtr<UTexture2D> CatalogueTexture = nullptr;
 };

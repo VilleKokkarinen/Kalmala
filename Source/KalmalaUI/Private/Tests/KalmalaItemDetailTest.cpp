@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaIconWidget.h"
 #include "Misc/AutomationTest.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/TextBlock.h"
@@ -26,10 +27,16 @@ bool FKalmalaItemDetailTest::RunTest(const FString& Parameters)
     TArray<UWidget*> Widgets;
     Panel->WidgetTree->GetAllWidgets(Widgets);
     bool bFoundDetails = false;
+    bool bFoundLoadedItemImage = false;
     for (auto* Widget : Widgets)
+    {
         if (const auto* Text = Cast<UTextBlock>(Widget))
             bFoundDetails |= Text->GetText().ToString() == UKalmalaItemDetailWidget::DescribeItem(TEXT("Wood"), TEXT("x 7"));
+        if (const auto* Icon = Cast<UKalmalaIconWidget>(Widget))
+            bFoundLoadedItemImage |= Icon->HasCatalogueTexture();
+    }
     TestTrue(TEXT("High-contrast scaled panel binds current owner-visible data"), bFoundDetails);
+    TestTrue(TEXT("Selected item detail shows its imported catalogue image"), bFoundLoadedItemImage);
     return true;
 }
 #endif

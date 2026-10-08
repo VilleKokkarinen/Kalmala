@@ -43,10 +43,7 @@ UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
         IconBox->SetWidthOverride(Row->bCarriedTool ? 32.0f : 28.0f);
         IconBox->SetHeightOverride(Row->bCarriedTool ? 32.0f : 28.0f);
         UKalmalaIconWidget* Icon = Tree.ConstructWidget<UKalmalaIconWidget>();
-        EKalmalaIcon Kind;
-        int32 Variant;
-        UKalmalaIconWidget::FindCatalogueIcon(Row->Id, Kind, Variant);
-        Icon->SetIcon(Kind, Variant);
+        Icon->SetCatalogueIcon(Row->Id);
         IconBox->SetContent(Icon);
         UVerticalBoxSlot* IconSlot = Content->AddChildToVerticalBox(IconBox);
         IconSlot->SetHorizontalAlignment(HAlign_Center);

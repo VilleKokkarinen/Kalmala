@@ -13,7 +13,7 @@ class KALMALAUI_API UKalmalaInventoryInspectWidget : public UUserWidget
 public:
     void SetRows(const TArray<FKalmalaCatalogueRow>& InRows, int32 Scale, int32 Contrast,
         const FString& ListLabel = TEXT("Inventory"), const FString& EmptyLabel = TEXT("Your inventory is empty."),
-        bool bAllowToolFilter = true);
+        bool bAllowToolFilter = true, int32 GridColumns = 4);
     bool Navigate(FKey Key);
     FName GetSelectedItem() const;
     void SetSearch(const FString& Query);
@@ -59,5 +59,6 @@ private:
     FString ListLabel = TEXT("Inventory");
     FString EmptyLabel = TEXT("Your inventory is empty.");
     bool bAllowToolFilter = true;
+    int32 GridColumns = 4;
     FString LastRows;
 };

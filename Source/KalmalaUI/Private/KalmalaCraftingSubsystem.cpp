@@ -2668,10 +2668,10 @@ void UKalmalaCraftingWidget::Refresh()
     }
     if (StoragePackInspector)
         StoragePackInspector->SetRows(StoragePackRows, TextScalePercent, ContrastMode,
-            TEXT("Your pack"), TEXT("Your pack is empty."), false);
+            TEXT("Your pack"), TEXT("Your pack is empty."), false, 2);
     if (StorageContentsInspector)
         StorageContentsInspector->SetRows(StorageContentsRows, TextScalePercent, ContrastMode,
-            TEXT("This chest"), M->HasStorageView() ? TEXT("This chest is empty.") : TEXT("Chest contents are unavailable."), false);
+            TEXT("This chest"), M->HasStorageView() ? TEXT("This chest is empty.") : TEXT("Chest contents are unavailable."), false, 2);
     if (WorkbenchRepairInspector)
     {
         WorkbenchRepairInspector->SetRows(WorkbenchRepairRows, TextScalePercent, ContrastMode);
