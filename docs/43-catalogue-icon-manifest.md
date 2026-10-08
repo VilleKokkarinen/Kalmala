@@ -261,3 +261,108 @@ confirming their pinned manifest rows, retained RGBA sources, transparent
 later import and menu-integration children. This changes presentation assets
 only; no gameplay identity, network authority, RPC, replicated field, or save
 schema changed.
+
+## Batch 07 review — 2026-10-08
+
+Generated DeerMeat, BoarHide, DeerHide, and CookedBoarMeat as four separate
+original images with the built-in image generator. The retained originals are
+1254×1254 RGBA PNGs in Content/Kalmala/UI/Source/IconOriginals/; the
+prepared import files are transparent 64×64 RGBA PNGs in
+Content/Kalmala/UI/Source/Icons/. Artwork was alpha-cropped and
+proportionally fit into a centered 56×56 maximum area.
+
+The prompts used earlier BoarMeat, DeerMeat, BoarHide, and Wood icons as style
+references only. They kept the hand-painted UI linework, warm highlights,
+ivory edge accents, and thin dark contour. DeerMeat is a lean crimson venison cut with a pale bone
+edge, distinct from the existing raw BoarMeat. BoarHide is a dark, coarse
+bristle pelt; DeerHide is a lighter fawn-colored soft pelt. CookedBoarMeat is
+a seared golden-brown chop with a warm cooked center and small bone. Each
+prompt specified genuine transparency and excluded labels, UI chrome, extra
+props, and scenery.
+
+All four prepared icons were reviewed at native 64×64 size. The
+Scripts/Validate-CatalogueIcon.ps1 validator passed for each ID, confirming
+the manifest row, retained RGBA original, transparent 64×64 final, and import
+target. These are prepared for import only: no .uasset was created, and
+current catalogue consumers remain on vector icons pending later import and
+menu-integration children.
+
+This changes presentation assets only. It does not change gameplay identity,
+inventory rules, network authority, RPCs, replicated fields, or save schemas.
+
+## Batch 08 review — 2026-10-08
+
+Generated CookedDeerMeat, HearthBroth, MeatStew, and RootVegetableSoup as
+separate original images with the built-in image generator. Each retained
+source is a 1254×1254 RGBA PNG in Content/Kalmala/UI/Source/IconOriginals/;
+each prepared import image is a transparent 64×64 RGBA PNG in
+Content/Kalmala/UI/Source/Icons/. Artwork was alpha-cropped and proportionally
+fit within a centered 56×56 maximum area.
+
+CookedDeerMeat is a lean seared venison cut with a warm cooked center.
+HearthBroth is clear golden broth in a small wooden bowl. MeatStew uses a
+darker broth with visible meat and root-vegetable pieces; RootVegetableSoup
+has a lighter broth and clearly visible vegetables without meat. Each prompt
+used existing icons as style references only and excluded text and scenery.
+
+All four finals were reviewed at native size and passed
+Scripts/Validate-CatalogueIcon.ps1. Their PNGs are prepared for import only;
+no .uasset was created and current consumers remain on vector icons.
+
+## Batch 09 review — 2026-10-08
+
+Generated RoastedRootVegetables, DeerRootRoast, Carrot, and Potato as separate
+original images with the built-in image generator. Each retained source is a
+1254×1254 RGBA PNG in Content/Kalmala/UI/Source/IconOriginals/; each prepared
+import image is a transparent 64×64 RGBA PNG in
+Content/Kalmala/UI/Source/Icons/. Artwork was alpha-cropped and proportionally
+fit within a centered 56×56 maximum area.
+
+RoastedRootVegetables is a compact pile of browned carrot, potato, and onion
+pieces. DeerRootRoast pairs seared venison with rutabaga and onion. Carrot is
+a tapered orange root with a leafy crown; Potato is an earthy oval with a
+cream-colored cut end. These subjects follow the catalogue identities and
+share the established hand-painted linework, warm highlights, ivory edge
+accents, and thin dark contour.
+
+All four finals were reviewed at native size and passed
+Scripts/Validate-CatalogueIcon.ps1. Their PNGs are prepared for import only;
+no .uasset was created and current consumers remain on vector icons.
+
+## Batch 10 review — 2026-10-08
+
+Generated Rutabaga, Onion, CarrotSeed, and PotatoSeed as separate original
+images with the built-in image generator. Each retained source is a
+1254×1254 RGBA PNG in Content/Kalmala/UI/Source/IconOriginals/; each prepared
+import image is a transparent 64×64 RGBA PNG in
+Content/Kalmala/UI/Source/Icons/. Artwork was alpha-cropped and proportionally
+fit within a centered 56×56 maximum area.
+
+Rutabaga has a pale golden body and muted purple shoulder; Onion has a rounded
+amber bulb with papery skin. CarrotSeed uses elongated ochre-brown seeds,
+while PotatoSeed uses a separate cluster of smooth pale-tan botanical seeds
+without tuber eyes or sprouts. Each prompt kept a transparent cutout, a
+simple strong silhouette, and the established hand-painted icon treatment.
+
+All four finals were reviewed at native size and passed
+Scripts/Validate-CatalogueIcon.ps1. Their PNGs are prepared for import only;
+no .uasset was created and current consumers remain on vector icons.
+
+## Batch 11 review — 2026-10-08
+
+Generated RutabagaSeed, OnionSeed, ReedKnife, and FieldHatchet as separate
+original images with the built-in image generator. Each retained source is a
+1254×1254 RGBA PNG in Content/Kalmala/UI/Source/IconOriginals/; each prepared
+import image is a transparent 64×64 RGBA PNG in
+Content/Kalmala/UI/Source/Icons/. Artwork was alpha-cropped and proportionally
+fit within a centered 56×56 maximum area.
+
+RutabagaSeed is a cluster of russet oval seeds, distinct from the lighter
+CarrotSeed and PotatoSeed. OnionSeed uses smaller charcoal teardrop seeds.
+ReedKnife has a short gathering blade and pale reed-wrapped grip; FieldHatchet
+has a broad iron edge and compact wooden handle. Each remains an individual
+tool or seed identity with no baked-in labels, UI chrome, or scenery.
+
+All four finals were reviewed at native size and passed
+Scripts/Validate-CatalogueIcon.ps1. Their PNGs are prepared for import only;
+no .uasset was created and current consumers remain on vector icons.

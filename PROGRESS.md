@@ -12897,3 +12897,53 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 `BACKLOG.md` and `PROGRESS.md`; applied only the selected batch 06 row and this
 PROGRESS entry. Preserved all earlier main-checkout edits. No implementation
 assets were synchronized.
+
+## Run 2026-10-08T12:30Z — Generate/review the next 20 catalogue icons
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in the clean retained
+worktree E:\dev\Kalmala\wt\m12-hud-feedback-rebuild on
+codex/m12-hud-feedback-rebuild. The main checkout contains pre-existing
+BACKLOG.md and PROGRESS.md edits; they are preserved during handoff.
+
+The current main-checkout BACKLOG row grouped the next twenty uncompleted
+manifest identities into one M12 goal 8 increment. Completed that exact
+increment: manifest image batches 07–11, covering DeerMeat, BoarHide,
+DeerHide, CookedBoarMeat, CookedDeerMeat, HearthBroth, MeatStew,
+RootVegetableSoup, RoastedRootVegetables, DeerRootRoast, Carrot, Potato,
+Rutabaga, Onion, CarrotSeed, PotatoSeed, RutabagaSeed, OnionSeed, ReedKnife,
+and FieldHatchet. The clean retained worktree still splits those identities
+into five four-item rows; all five rows are checked because all five pinned
+image batches were completed within the one main-checkout increment.
+
+Generated one original transparent image per identity with the built-in image
+generator and retained 1254×1254 RGBA sources. Prepared each as a transparent
+64×64 RGBA PNG by alpha-cropping and fitting the artwork within a centered
+56×56 maximum area. Reviewed all twenty finals at native size.
+
+Files changed: Original and prepared PNGs for the twenty IDs listed above in
+Content/Kalmala/UI/Source/IconOriginals/ and Content/Kalmala/UI/Source/Icons/;
+docs/43-catalogue-icon-manifest.md; BACKLOG.md; and PROGRESS.md.
+
+Lightweight checks passed: Scripts/Validate-CatalogueIcon.ps1 for all twenty
+IDs; native-size review of all twenty transparent icons; git diff --check;
+and a changed-path MAX_PATH audit (passed; longest changed path 108 characters).
+No Unreal import/build, automation suite, rendered game/controller review, or
+package check was run. Full M12 verification remains deferred.
+
+Observable impact: 44 of 48 canonical catalogue icon identities now have
+retained originals and validated prepared PNGs ready for Unreal import.
+
+Networking/authority: original presentation assets and documentation only; no
+gameplay, RPC, replication, authority, inventory, or save contract changed.
+
+Known limitations: the twenty PNGs are not imported as Unreal .uasset files;
+live catalogue consumers remain on vector icons. The final four image
+identities, imports, menu integration, and rendered acceptance remain open.
+
+Next eligible task: M12 goal 8, generate/review and audit final image batch 12
+for StonePick, BronzeAxe, IronAxe, and ConstructionHammer.
+
+Main-checkout handoff synchronization: Complete. Synchronized only the selected
+BACKLOG child and this PROGRESS entry into the main checkout, preserving existing
+main-checkout edits. No implementation assets were synchronized.
