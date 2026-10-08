@@ -12,6 +12,9 @@ class UUniformGridPanel;
 class UScrollBox;
 class UInputComponent;
 class UKalmalaCraftingComponent;
+class AKalmalaConstructionActor;
+class APawn;
+class UKalmalaStationContextWidget;
 
 UCLASS()
 class KALMALAUI_API UKalmalaInteractionPromptWidget : public UUserWidget
@@ -36,7 +39,12 @@ class KALMALAUI_API UKalmalaCraftingWidget : public UUserWidget
     GENERATED_BODY()
 public:
     void Open();
-    void OpenForStation(FName StationKit);
+    bool OpenForStation(FName StationKit);
+    bool OpenInStationContext(AKalmalaConstructionActor* Station);
+    bool IsStationContextValid() const;
+    AKalmalaConstructionActor* GetStationContextActor() const { return ContextStationActor.Get(); }
+    FName GetStationContextKit() const { return bEmbeddedContext ? StationFilterKit : NAME_None; }
+    const FString& GetStationContextConstructionId() const { return ContextConstructionId; }
     void Close();
     bool IsOpen() const { return bOpen; }
     FString GetPresentationText() const;
@@ -60,7 +68,8 @@ protected:
     virtual FReply NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
 private:
     UKalmalaCraftingComponent* Model() const;
-    void OpenInternal(FName StationKit);
+    bool OpenInternal(FName StationKit, AKalmalaConstructionActor* StationActor = nullptr,
+        FString StationContextConstructionId = FString(), bool bEmbeddedContext = false);
     UFUNCTION() void RecipeSearchChanged(const FText& Text);
     UFUNCTION() void CycleRecipeCategory();
     UFUNCTION() void CycleRecipeSort();
@@ -115,6 +124,7 @@ private:
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;
     UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> RecipeSearchBox;
+    UPROPERTY(Transient) TObjectPtr<UButton> CloseButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeCategoryLabel;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeSortLabel;
     UPROPERTY(Transient) FEditableTextBoxStyle RecipeSearchStyle;
@@ -134,8 +144,14 @@ private:
     bool bRecipeGridFocused = false;
     TArray<int32> LastRecipeGridIndices;
     bool bOpen = false;
+    bool bEmbeddedContext = false;
+    bool bPreviousMoveInputIgnored = false;
+    bool bPreviousLookInputIgnored = false;
     bool bPlacementPreviewEnabled = false;
     bool bPreviousCursor = false;
+    TWeakObjectPtr<AKalmalaConstructionActor> ContextStationActor;
+    TWeakObjectPtr<APawn> ContextOwnerPawn;
+    FString ContextConstructionId;
 };
 
 UCLASS()
@@ -149,7 +165,7 @@ public:
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UKalmalaCraftingSubsystem, STATGROUP_Tickables); }
     virtual bool IsTickable() const override { return !IsTemplate(); }
     bool CloseIfOpen();
-    bool IsOpen() const { return Widget != nullptr && Widget->IsOpen(); }
+    bool IsOpen() const;
 private:
     void Toggle();
     void Release();
@@ -158,12 +174,15 @@ private:
     void UpdateInteractionPromptReview(APlayerController* PlayerController, float DeltaTime);
 #endif
     UPROPERTY(Transient) TObjectPtr<UKalmalaCraftingWidget> Widget;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaStationContextWidget> StationContextWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaInteractionPromptWidget> InteractionPrompt;
     UPROPERTY(Transient) TObjectPtr<APlayerController> Controller;
     TWeakObjectPtr<UKalmalaCraftingComponent> StationInteractionModel;
     TWeakObjectPtr<UInputComponent> BoundInput;
     uint32 LastStationInteractionSerial = 0;
     bool bHasSeenStationInteraction = false;
+    uint32 LastStationContextSerial = 0;
+    bool bHasSeenStationContext = false;
     bool bVerified = false;
     bool bCaptureRequested = false;
     int32 ReviewCaptureStage = 0;

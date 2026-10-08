@@ -95,6 +95,10 @@ void UKalmalaCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, bStorageViewOpen, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, LastInteractedCookingStationKit, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, CookingStationInteractionSerial, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, LastStationContextActor, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, LastStationContextKit, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, LastStationContextConstructionId, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, StationContextInteractionSerial, COND_OwnerOnly);
 }
 
 bool UKalmalaCraftingComponent::AcceptRequest()

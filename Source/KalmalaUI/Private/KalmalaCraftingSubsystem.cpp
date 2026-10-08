@@ -21,6 +21,7 @@
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaStationContextWidget.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaWorldBounds.h"
@@ -385,7 +386,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     AddButton(TEXT("Take one"), StorageActions,TEXT("Ask the server to move one selected item from the nearby chest into your pack."))->OnClicked.AddDynamic(this, &ThisClass::WithdrawStorage);
     InventoryInspector = WidgetTree->ConstructWidget<UKalmalaInventoryInspectWidget>();
     Column->AddChild(InventoryInspector);
-    auto* CloseButton=AddButton(TEXT("Close")); CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseClicked);
+    CloseButton=AddButton(TEXT("Close")); CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseClicked);
     CloseButton->RemoveFromParent();
     auto* Outer=WidgetTree->ConstructWidget<UVerticalBox>();
     Outer->AddChildToVerticalBox(CraftingScrollBox)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
@@ -480,23 +481,63 @@ void UKalmalaCraftingWidget::ClearRecipeSearch() { RecipeSearchBox->SetText(FTex
 
 void UKalmalaCraftingWidget::Open() { OpenInternal(NAME_None); }
 
-void UKalmalaCraftingWidget::OpenForStation(const FName StationKit) { OpenInternal(StationKit); }
-
-void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
+bool UKalmalaCraftingWidget::OpenForStation(const FName StationKit)
 {
-    if (!StationKit.IsNone() && !IsInWorldCookingStation(StationKit)) return;
+    return OpenInternal(StationKit);
+}
+
+bool UKalmalaCraftingWidget::OpenInStationContext(AKalmalaConstructionActor* Station)
+{
+    UKalmalaCraftingComponent* Crafting = Model();
+    const FName Kit = Crafting ? Crafting->GetLastStationContextKit() : NAME_None;
+    const FString ConstructionId = Crafting ? Crafting->GetLastStationContextConstructionId() : FString();
+    if (!Crafting || !IsValid(Station) || !IsInWorldCookingStation(Kit)
+        || !Crafting->IsStationContextTargetCurrent(Station, Kit, ConstructionId)) return false;
+    return OpenInternal(Kit, Station, ConstructionId, true);
+}
+
+bool UKalmalaCraftingWidget::IsStationContextValid() const
+{
+    const AKalmalaConstructionActor* Station = ContextStationActor.Get();
+    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
+    const UKalmalaCraftingComponent* Crafting = Model();
+    return bOpen && bEmbeddedContext && IsValid(Station) && Character
+        && Character == ContextOwnerPawn.Get() && Crafting
+        && Crafting->IsStationContextTargetCurrent(ContextStationActor.Get(), StationFilterKit, ContextConstructionId);
+}
+
+bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
+    AKalmalaConstructionActor* StationActor, FString StationContextConstructionId,
+    const bool bInEmbeddedContext)
+{
+    if (!StationKit.IsNone() && !IsInWorldCookingStation(StationKit)) return false;
+    if (bInEmbeddedContext && !StationActor) return false;
+    if (StationActor)
+    {
+        const UKalmalaCraftingComponent* Crafting = Model();
+        if (!Crafting || !Crafting->IsStationContextTargetCurrent(StationActor, StationKit, StationContextConstructionId))
+            return false;
+    }
     if (bOpen)
     {
+        if (bEmbeddedContext != bInEmbeddedContext) return false;
         StationFilterKit = StationKit;
+        ContextStationActor = StationActor;
+        ContextOwnerPawn = StationActor ? GetOwningPlayerPawn() : nullptr;
+        ContextConstructionId = StationActor ? MoveTemp(StationContextConstructionId) : FString();
         Selected = 0;
         bPlacementPreviewEnabled = false;
         Refresh();
-        return;
+        return true;
     }
-    auto* PC = GetOwningPlayer(); if (!PC || PC->IsMoveInputIgnored() || !Model()) return;
+    auto* PC = GetOwningPlayer(); if (!PC || PC->IsMoveInputIgnored() || !Model()) return false;
     const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn());
-    if (!Character || (StationKit.IsNone() && Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1)) return;
+    if (!Character || (StationKit.IsNone() && Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1)) return false;
     StationFilterKit = StationKit;
+    bEmbeddedContext = bInEmbeddedContext;
+    ContextStationActor = StationActor;
+    ContextOwnerPawn = StationActor ? PC->GetPawn() : nullptr;
+    ContextConstructionId = StationActor ? MoveTemp(StationContextConstructionId) : FString();
     Selected = 0;
     if (StationKit.IsNone() && UKalmalaRecipeCatalogue::Get()->Recipes.IsValidIndex(Selected))
     {
@@ -516,15 +557,18 @@ void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
     {
         const FKalmalaItemDefinition* StationItem = UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit);
         const FString StationName = StationItem ? StationItem->DisplayName : StationFilterKit.ToString();
-        if (HeaderText) HeaderText->SetText(FText::FromString(StationName + TEXT(" — Cook")));
+        if (HeaderText) HeaderText->SetText(FText::FromString(bEmbeddedContext
+            ? TEXT("Recipes") : StationName + TEXT(" — Cook")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
             TEXT("The server requires this placed station and a usable, lit hearth with heat at both the station and you. Ingredients and availability are shown in text.")));
     }
-    bOpen = true; bPreviousCursor = PC->bShowMouseCursor;
+    bOpen = true;
+    if (!bEmbeddedContext) bPreviousCursor = PC->bShowMouseCursor;
     int32 X, Y; PC->GetViewportSize(X,Y);
     const float Scale = FMath::Max(.1f, UWidgetLayoutLibrary::GetViewportScale(this));
     const float PanelWidth = FMath::Min(840.0f, X / Scale - 32.0f);
-    SetDesiredSizeInViewport(FVector2D(PanelWidth, FMath::Min(980.0f, Y / Scale - 32.0f)));
+    if (!bEmbeddedContext)
+        SetDesiredSizeInViewport(FVector2D(PanelWidth, FMath::Min(980.0f, Y / Scale - 32.0f)));
     const float TextWrapWidth = FMath::Max(240.0f, PanelWidth - 64.0f);
     for (UTextBlock* Label : WrappedTextBlocks)
     {
@@ -542,18 +586,52 @@ void UKalmalaCraftingWidget::OpenInternal(const FName StationKit)
             Label->SetJustification(ETextJustify::Center);
         }
     });
-    SetAlignmentInViewport(FVector2D(.5,.5)); SetPositionInViewport(FVector2D(X*.5f,Y*.5f), true);
+    if (!bEmbeddedContext)
+    {
+        SetAlignmentInViewport(FVector2D(.5,.5)); SetPositionInViewport(FVector2D(X*.5f,Y*.5f), true);
+    }
+    if (CloseButton) CloseButton->SetVisibility(bEmbeddedContext ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+    if (bEmbeddedContext && MenuBackground)
+    {
+        MenuBackground->SetPadding(FMargin(0.0f));
+        MenuBackground->SetBrushColor(FLinearColor::Transparent);
+    }
     SetVisibility(ESlateVisibility::Visible); Refresh();
-    PC->SetIgnoreMoveInput(true); PC->SetIgnoreLookInput(true); PC->bShowMouseCursor = true;
-    FInputModeGameAndUI Mode; Mode.SetWidgetToFocus(TakeWidget()); Mode.SetHideCursorDuringCapture(false); PC->SetInputMode(Mode);
-    SetKeyboardFocus();
+    if (!bEmbeddedContext)
+    {
+        bPreviousMoveInputIgnored = PC->IsMoveInputIgnored();
+        bPreviousLookInputIgnored = PC->IsLookInputIgnored();
+        bPreviousCursor = PC->bShowMouseCursor;
+        PC->SetIgnoreMoveInput(true); PC->SetIgnoreLookInput(true); PC->bShowMouseCursor = true;
+        FInputModeGameAndUI Mode; Mode.SetWidgetToFocus(TakeWidget()); Mode.SetHideCursorDuringCapture(false); PC->SetInputMode(Mode);
+        SetKeyboardFocus();
+    }
+    return true;
 }
 
 void UKalmalaCraftingWidget::Close()
 {
     if (!bOpen) return; bOpen = false; bPlacementPreviewEnabled = false; SetVisibility(ESlateVisibility::Collapsed);
     if (auto* M = Model()) M->ServerCloseStorage();
-    if (auto* PC=GetOwningPlayer()) { PC->SetIgnoreMoveInput(false); PC->SetIgnoreLookInput(false); PC->bShowMouseCursor=bPreviousCursor; PC->SetInputMode(FInputModeGameOnly()); }
+    if (CloseButton) CloseButton->SetVisibility(ESlateVisibility::Visible);
+    if (auto* PC=GetOwningPlayer(); PC && !bEmbeddedContext)
+    {
+        if (!bPreviousMoveInputIgnored) PC->SetIgnoreMoveInput(false);
+        if (!bPreviousLookInputIgnored) PC->SetIgnoreLookInput(false);
+        PC->bShowMouseCursor=bPreviousCursor;
+        PC->SetInputMode(FInputModeGameOnly());
+    }
+    if (bEmbeddedContext && MenuBackground)
+    {
+        MenuBackground->SetPadding(FMargin(20.0f));
+        MenuBackground->SetBrushColor(FLinearColor::White);
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        Theme.ApplyPanel(*MenuBackground, UKalmalaSettingsWidget::GetContrastMode(), &Theme.BuildPanelImage);
+    }
+    bEmbeddedContext = false;
+    ContextStationActor.Reset();
+    ContextOwnerPawn.Reset();
+    ContextConstructionId.Reset();
 }
 
 void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndices,
@@ -829,7 +907,12 @@ void UKalmalaCraftingWidget::Refresh()
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
         Theme.ApplyMenu(*WidgetTree, HeaderText, TextScalePercent, ContrastMode);
-        Theme.ApplyPanel(*MenuBackground, ContrastMode, &Theme.BuildPanelImage);
+        if (bEmbeddedContext)
+        {
+            MenuBackground->SetPadding(FMargin(0.0f));
+            MenuBackground->SetBrushColor(FLinearColor::Transparent);
+        }
+        else Theme.ApplyPanel(*MenuBackground, ContrastMode, &Theme.BuildPanelImage);
         if (RecipeSearchBox)
         {
             RecipeSearchStyle.SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), FMath::RoundToInt(Theme.BodySize * TextScalePercent / 100.f)));
@@ -1065,6 +1148,8 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
         PC->InputComponent->BindAction(TEXT("CraftMenu"),IE_Pressed,this,&ThisClass::Toggle).bConsumeInput=true;
         BoundInput=PC->InputComponent;
     }
+    if (StationContextWidget && StationContextWidget->IsOpen() && !StationContextWidget->IsTargetValid())
+        StationContextWidget->Close();
     if (const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn()))
     {
         UKalmalaCraftingComponent* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
@@ -1073,6 +1158,8 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             StationInteractionModel = Crafting;
             LastStationInteractionSerial = Crafting ? Crafting->GetCookingStationInteractionSerial() : 0;
             bHasSeenStationInteraction = Crafting != nullptr;
+            LastStationContextSerial = Crafting ? Crafting->GetStationContextInteractionSerial() : 0;
+            bHasSeenStationContext = Crafting != nullptr;
         }
         else if (Crafting)
         {
@@ -1081,7 +1168,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             {
                 LastStationInteractionSerial = Serial;
                 const FName StationKit = Crafting->GetLastInteractedCookingStationKit();
-                if (IsInWorldCookingStation(StationKit))
+                if (IsInWorldCookingStation(StationKit) && StationKit != TEXT("CookingRackKit"))
                 {
                     if (!Widget)
                     {
@@ -1091,6 +1178,33 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                     if (Widget) Widget->OpenForStation(StationKit);
                 }
             }
+
+            const uint32 ContextSerial = Crafting->GetStationContextInteractionSerial();
+            if (bHasSeenStationContext && ContextSerial != LastStationContextSerial)
+            {
+                AKalmalaConstructionActor* Station = Crafting->GetLastStationContextActor();
+                const FName ContextKit = Crafting->GetLastStationContextKit();
+                const FString& ConstructionId = Crafting->GetLastStationContextConstructionId();
+                if (Crafting->IsStationContextTargetCurrent(Station, ContextKit, ConstructionId))
+                {
+                    LastStationContextSerial = ContextSerial;
+                    if (ContextKit == TEXT("CookingRackKit") && !IsOpen())
+                    {
+                        if (!Widget)
+                        {
+                            Widget = CreateWidget<UKalmalaCraftingWidget>(PC);
+                            if (Widget) Widget->AddToPlayerScreen(160);
+                        }
+                        if (!StationContextWidget)
+                        {
+                            StationContextWidget = CreateWidget<UKalmalaStationContextWidget>(PC);
+                            if (StationContextWidget) StationContextWidget->AddToPlayerScreen(170);
+                        }
+                        if (Widget && StationContextWidget)
+                            StationContextWidget->OpenForStation(Station, TEXT("Cook"), Widget);
+                    }
+                }
+            }
         }
     }
     else
@@ -1098,6 +1212,8 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
         StationInteractionModel.Reset();
         LastStationInteractionSerial = 0;
         bHasSeenStationInteraction = false;
+        LastStationContextSerial = 0;
+        bHasSeenStationContext = false;
     }
     UpdateInteractionPrompt(PC);
 #if !UE_BUILD_SHIPPING
@@ -1391,7 +1507,7 @@ void UKalmalaCraftingSubsystem::UpdateInteractionPrompt(APlayerController* Playe
     int32 ViewportHeight = 0;
     PlayerController->GetViewportSize(ViewportWidth, ViewportHeight);
     InteractionPrompt->SetPositionInViewport(FVector2D(ViewportWidth * 0.5f, ViewportHeight * 0.5f + 32.0f), true);
-    if (!PlayerController->IsLocalController() || (Widget && Widget->IsOpen())
+    if (!PlayerController->IsLocalController() || IsOpen()
         || PlayerController->IsMoveInputIgnored())
     {
         InteractionPrompt->SetPrompt(FString());
@@ -1482,18 +1598,54 @@ void UKalmalaCraftingSubsystem::UpdateInteractionPromptReview(APlayerController*
 void UKalmalaCraftingSubsystem::Toggle()
 {
     if(!Controller) return;
+    if (StationContextWidget && StationContextWidget->IsOpen())
+    {
+        StationContextWidget->Close();
+        return;
+    }
     if(!Widget) { Widget=CreateWidget<UKalmalaCraftingWidget>(Controller); if(Widget) Widget->AddToPlayerScreen(160); }
-    if(Widget) { if(Widget->IsOpen()) Widget->Close(); else Widget->Open(); }
+    if (Widget)
+    {
+        if (Widget->IsOpen()) Widget->Close();
+        else
+        {
+            if (!Widget->IsInViewport()) Widget->AddToPlayerScreen(160);
+            Widget->Open();
+        }
+    }
 }
-bool UKalmalaCraftingSubsystem::CloseIfOpen() { if(!Widget || !Widget->IsOpen()) return false; Widget->Close(); return true; }
+bool UKalmalaCraftingSubsystem::IsOpen() const
+{
+    return (StationContextWidget && StationContextWidget->IsOpen()) || (Widget && Widget->IsOpen());
+}
+
+bool UKalmalaCraftingSubsystem::CloseIfOpen()
+{
+    if (StationContextWidget && StationContextWidget->IsOpen())
+    {
+        StationContextWidget->Close();
+        return true;
+    }
+    if (!Widget || !Widget->IsOpen()) return false;
+    Widget->Close();
+    return true;
+}
+
 void UKalmalaCraftingSubsystem::Release()
 {
     if(auto* Input=BoundInput.Get()) for(int32 I=Input->GetNumActionBindings()-1;I>=0;--I)
         if(Input->GetActionBinding(I).ActionDelegate.IsBoundToObject(this)) Input->RemoveActionBinding(I);
     BoundInput.Reset();
+    if (StationContextWidget)
+    {
+        StationContextWidget->Close();
+        StationContextWidget->RemoveFromParent();
+        StationContextWidget = nullptr;
+    }
     if(Widget) { Widget->Close(); Widget->RemoveFromParent(); Widget=nullptr; }
     if(InteractionPrompt) { InteractionPrompt->RemoveFromParent(); InteractionPrompt=nullptr; }
     StationInteractionModel.Reset(); LastStationInteractionSerial = 0; bHasSeenStationInteraction = false;
+    LastStationContextSerial = 0; bHasSeenStationContext = false;
     Controller=nullptr; bVerified=false;
 }
 void UKalmalaCraftingSubsystem::Deinitialize() { Release(); Super::Deinitialize(); }

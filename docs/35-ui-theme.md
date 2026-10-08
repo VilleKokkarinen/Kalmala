@@ -157,6 +157,13 @@ extent in the rendered checks. High contrast hides background art and keeps
 black panels, white text, and borders. Selected host captures and exact checks
 are retained in `docs/ui-inventory-build/`.
 
+The shared station-context shell applies the same configurable panel, heading,
+text scale, contrast, and focused close-button theme. It presents one station
+identity and active service section around an existing local service widget;
+station-specific operation rows remain in that service view. The shell owns
+modal input and closes when its exact server-accepted target is no longer
+usable. Theme changes apply while it remains open, with no gameplay mutation.
+
 Parent verification passed with the forced UE 5.8.2 editor build, all 101
 Kalmala automations, and rendered host/client inventory and crafting runners
 at 1280x720 standard and 1024x768 at 150% text/high contrast. The automated

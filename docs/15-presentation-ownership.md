@@ -35,6 +35,23 @@ readability remains unreviewed. The survival strip's data mapping and lower-left
 viewport slot pass focused UI automation, but rendered host/client layout,
 multi-row clipping, and scaled-font legibility remain unreviewed.
 
+## Owner-local station context shell — 2026-10-08
+
+The shared themed station shell opens from an owner-only event emitted after
+the server accepts and revalidates a construction interaction. It binds the
+current section to the exact replicated station actor and stable construction
+ID. The first integrated entry is the Cooking Rack, which embeds the existing
+station-filtered recipe view; the legacy CraftMenu path remains available.
+While open, the local subsystem asks the owning crafting component to verify
+the same actor reference, stable ID, station kit, pawn world, and range. The
+server validated sight during the original interaction. It closes on target
+destruction, loss of range, or pawn
+replacement, then restores the prior movement/look-ignore and cursor states.
+The shell is presentation only: recipe and inventory changes remain on the
+existing server paths, which revalidate their own station, heat, costs, and
+owner inventory. No client target request, RPC, replication authority change,
+or persistence field is added.
+
 ## Owner-local prepared-food inventory detail
 
 When the owning player's private pack contains roasted field meat, Hearth

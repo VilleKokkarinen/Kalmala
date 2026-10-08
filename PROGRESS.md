@@ -11848,3 +11848,25 @@ Known limitations: Changed C++ and its assertions remain uncompiled/unrun; the r
 Next eligible task: M12 goal 7, add the shared themed station-context shell and validated interaction routing, integrate one existing station entry, and preserve old service access.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and applied only this selected BACKLOG state and PROGRESS entry; all other modified and untracked files remain untouched.
+
+### Run 2026-10-08T05:45:10Z — add the shared station context shell
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run. Continued the retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` from baseline `076f7de`; pre-existing main-checkout changes were preserved.
+
+Completed: Added an owner-only server-accepted station event carrying the exact actor, kit, stable construction ID, and interaction serial. The Cooking Rack now opens inside a shared themed local modal shell. The shell validates the accepted identity through the owner crafting component, closes when the player changes pawn, leaves range, or the station is destroyed, and restores the prior movement/look-ignore and cursor states. Existing CraftMenu reopening and Cauldron/Frying Pan service paths remain available. Marked only the first M12 goal 7 child complete; its parent and M12 remain open.
+
+Files changed: `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; `Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/KalmalaStationContextWidget.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `Source/KalmalaUI/Public/KalmalaStationContextWidget.h`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`; `docs/15-presentation-ownership.md`; `docs/35-ui-theme.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-PresentationOwnership.ps1` passed; all five `Verify-M5DocumentationContracts.ps1` contracts passed; focused source assertions, `git diff --check`, and the MAX_PATH audit passed (maximum changed absolute path 114 characters). Manual review confirmed the server still accepts the world interaction before publishing the owner-only context and UI closes stale contexts. The changed C++ automation assertions were not executed.
+
+Full verification remains deferred: this is a normal M12 child, not the final implementation task in the milestone. No Unreal build, automation suite, rendered host/client run, physical-input review, or package check was run.
+
+Observable impact: Cooking Rack interaction opens a station-titled themed shell with a Cook section and returns the shared crafting view to the existing CraftMenu after close.
+
+Networking/authority: The server remains authoritative for trace acceptance, station usability, crafting, and cooking. Exact accepted station context is replicated owner-only as presentation state; client checks are advisory and server action validation is unchanged. No save schema or catalogue data changed.
+
+Known limitations: Changed C++ and narrow automation assertions remain uncompiled/unrun. The shell has not been rendered across supported scales, high contrast, or gamepad/controller input; M12 acceptance remains pending.
+
+Next eligible task: M12 goal 7, implement the Workbench Craft section for supported recipes/tools including Bronze Axe and Grinding Stone.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and applied only this selected BACKLOG child and the appended PROGRESS record; all other modified and untracked main-checkout files remain untouched.

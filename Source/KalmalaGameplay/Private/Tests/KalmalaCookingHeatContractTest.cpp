@@ -241,6 +241,20 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
         Crafting->GetLastInteractedCookingStationKit(), FName(TEXT("CookingRackKit")));
     TestEqual(TEXT("Each accepted cooking-station interaction triggers one GUI open"),
         Crafting->GetCookingStationInteractionSerial(), 1u);
+    TestTrue(TEXT("Accepted station interaction retains exact owner-only actor identity"),
+        Crafting->GetLastStationContextActor() == Rack);
+    TestEqual(TEXT("Station context identity carries its validated station kit"),
+        Crafting->GetLastStationContextKit(), FName(TEXT("CookingRackKit")));
+    TestEqual(TEXT("Station context identity carries the stable construction ID"),
+        Crafting->GetLastStationContextConstructionId(), Rack->GetConstructionId());
+    TestEqual(TEXT("Accepted station context increments one owner event serial"),
+        Crafting->GetStationContextInteractionSerial(), 1u);
+    TestTrue(TEXT("Only the exact accepted station identity remains usable"),
+        Crafting->IsStationContextUsable(Rack, FName(TEXT("CookingRackKit")), Rack->GetConstructionId()));
+    TestFalse(TEXT("Station context rejects a mismatched construction ID"),
+        Crafting->IsStationContextUsable(Rack, FName(TEXT("CookingRackKit")), TEXT("OtherConstruction")));
+    TestFalse(TEXT("Station context rejects a mismatched station kit"),
+        Crafting->IsStationContextUsable(Rack, FName(TEXT("CauldronKit")), Rack->GetConstructionId()));
 
     Rack->Destroy();
     Cauldron->Destroy();

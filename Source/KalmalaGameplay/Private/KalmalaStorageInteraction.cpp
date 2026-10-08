@@ -118,6 +118,15 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
 {
     if (!AcceptRequest() || !IsValid(Construction) || !Construction->CanInteract_Implementation(GetCharacter())) return;
     const FName Kit = Construction->GetConstructionKit();
+    if (AKalmalaConstructionActor::IsCraftingStationKit(Kit))
+    {
+        LastStationContextActor = Construction;
+        LastStationContextKit = Kit;
+        LastStationContextConstructionId = Construction->GetConstructionId();
+        StationContextInteractionSerial = StationContextInteractionSerial == TNumericLimits<uint32>::Max()
+            ? 1 : StationContextInteractionSerial + 1;
+        GetOwner()->ForceNetUpdate();
+    }
     if (Kit == TEXT("CookingRackKit") || Kit == TEXT("CauldronKit") || Kit == TEXT("FryingPanKit"))
     {
         LastInteractedCookingStationKit = Kit;
@@ -158,6 +167,31 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
     else if (Construction->GetConstructionKit() == TEXT("SmokeFrameKit"))
         PublishResult(TEXT("Smoke frame ready; use Camp crafting with a lit hearth and one extra raw fuel item per serving"), true);
     else PublishResult(TEXT("Joiner's bench ready; use the Construction Hammer menu to build floors, walls, and roofs from Wood and Fibre"), true);
+}
+
+bool UKalmalaCraftingComponent::IsStationContextTargetCurrent(AKalmalaConstructionActor* ExpectedActor,
+    const FName ExpectedKit, const FString& ExpectedConstructionId) const
+{
+    const AKalmalaCharacter* Character = GetCharacter();
+    if (!Character || !Character->GetController() || !IsValid(ExpectedActor)
+        || ExpectedActor != LastStationContextActor.Get() || ExpectedKit != LastStationContextKit
+        || ExpectedConstructionId.IsEmpty() || ExpectedConstructionId != LastStationContextConstructionId
+        || !AKalmalaConstructionActor::IsCraftingStationKit(ExpectedKit)) return false;
+    const FVector CharacterLocation = Character->GetActorLocation();
+    const FVector StationLocation = ExpectedActor->GetActorLocation();
+    const float Range = Character->GetInteractionRange();
+    return Character->GetWorld() == ExpectedActor->GetWorld()
+        && !CharacterLocation.ContainsNaN() && !StationLocation.ContainsNaN()
+        && FMath::IsFinite(Range) && Range > 0.0f
+        && FVector::DistSquared(CharacterLocation, StationLocation) <= FMath::Square(Range);
+}
+
+bool UKalmalaCraftingComponent::IsStationContextUsable(AKalmalaConstructionActor* ExpectedActor,
+    const FName ExpectedKit, const FString& ExpectedConstructionId) const
+{
+    const AKalmalaCharacter* Character = GetCharacter();
+    return Character && IsStationContextTargetCurrent(ExpectedActor, ExpectedKit, ExpectedConstructionId)
+        && ExpectedActor->CanUse(Character);
 }
 
 bool UKalmalaCraftingComponent::TransferStorageFromServer(FName ItemId, bool bDeposit, FString& Reason)
