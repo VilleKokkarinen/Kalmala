@@ -12793,3 +12793,52 @@ Main-checkout handoff synchronization: Complete. Inspected the main
 `BACKLOG.md` and `PROGRESS.md` before editing; applied only this selected
 BACKLOG child and this PROGRESS entry. No implementation assets were
 synchronized to the main checkout.
+
+## Run 2026-10-08T12:00Z — Generate catalogue icon batch 05
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in the clean retained
+worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout contains pre-existing
+modifications to `BACKLOG.md` and `PROGRESS.md`; they were preserved.
+
+Completed exactly the next M12 goal 8 child. Generated original StorageKit,
+CookingRackKit, FryingPanKit, and CauldronKit icons using WorkbenchKit, ForgeKit,
+and Coal as style references only. Retained each 1254×1254 RGBA original and
+prepared a transparent 64×64 RGBA PNG with its visible subject proportionally
+fitted inside a centered 56×56 area. Reviewed all four prepared images at
+native size.
+
+Files changed: `Content/Kalmala/UI/Source/IconOriginals/StorageKit.png`;
+`Content/Kalmala/UI/Source/Icons/StorageKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/CookingRackKit.png`;
+`Content/Kalmala/UI/Source/Icons/CookingRackKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/FryingPanKit.png`;
+`Content/Kalmala/UI/Source/Icons/FryingPanKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/CauldronKit.png`;
+`Content/Kalmala/UI/Source/Icons/CauldronKit.png`; `docs/43-catalogue-icon-manifest.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Validate-CatalogueIcon.ps1` for all four
+IDs, confirming each source is 1254×1254 RGBA and each final is transparent
+64×64 RGBA with its pinned import target; manual 64×64 review; `git diff --check`;
+and a changed-path MAX_PATH audit. No Unreal import/build, automation,
+live rendered/controller review, or package check was run. Full M12 verification
+remains deferred; this is a normal child increment.
+
+Observable impact: 20 of the 48 canonical catalogue icon identities now have
+retained originals and validated prepared PNGs ready for Unreal import.
+
+Networking/authority: presentation assets and documentation only; no gameplay,
+RPC, replication, authority, inventory, or save contract changed.
+
+Known limitations: none of these four PNGs has been imported as an Unreal
+`.uasset`; live catalogue views still use vector icons. Remaining icon batches,
+imports, menu integration, and rendered acceptance remain open.
+
+Next eligible task: M12 goal 8, generate and review icon batch 06 for FloorKit,
+WallKit, RoofKit, and BoarMeat.
+
+Main-checkout handoff synchronization: Pending. Main `BACKLOG.md` and
+`PROGRESS.md` contain pre-existing edits; only this backlog child and this
+progress entry will be synchronized.

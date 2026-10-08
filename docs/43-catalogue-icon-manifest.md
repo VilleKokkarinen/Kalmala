@@ -206,3 +206,33 @@ and existing catalogue consumers remain on their vector icons pending the
 later import and menu-integration children. This changes presentation assets
 only; no gameplay identity, network authority, RPC, replicated field, or save
 schema changed.
+
+## Batch 05 review — 2026-10-08
+
+Generated StorageKit, CookingRackKit, FryingPanKit, and CauldronKit. Each
+original is retained as a 1254×1254 RGBA PNG in
+`Content/Kalmala/UI/Source/IconOriginals/`; each prepared icon is a transparent
+64×64 RGBA PNG in `Content/Kalmala/UI/Source/Icons/`. Visible artwork was
+alpha-cropped, proportionally fit inside a centered 56×56 area, and reviewed at
+native size.
+
+StorageKit reads as a squat oak chest with a domed lid, iron straps, and a
+front clasp. CookingRackKit shows an empty iron grate held by an oak A-frame.
+FryingPanKit has a shallow iron bowl and long handle. CauldronKit has a rounded
+open iron pot, loop handles, and three short feet. Their silhouettes remain
+distinct at 64×64 while keeping the warm highlights, ivory edge accents, and
+dark contours from the earlier batches. None contains labels, UI chrome,
+badges, food, or scenery.
+
+Each separate image prompt used WorkbenchKit, ForgeKit, and Coal as style
+references only, with one pinned subject per image. Prompts requested genuine
+transparency, close three-quarter framing, warm soft light, a thin dark contour,
+and no text or extra props.
+
+`Scripts/Validate-CatalogueIcon.ps1` passed for all four IDs, confirming their
+pinned manifest identities, retained RGBA originals, transparent 64×64 finals,
+and import targets. These files are prepared for import only: no `.uasset` was
+created, and current catalogue consumers remain on vector icons pending the
+later import and menu-integration children. This changes presentation assets
+only; no gameplay identity, network authority, RPC, replicated field, or save
+schema changed.
