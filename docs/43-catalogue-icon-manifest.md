@@ -393,3 +393,36 @@ pinned import path pattern. This completes prepared PNG coverage only: no
 the later import and integration children. This changes presentation assets
 only; gameplay identity, authority, replication, and save schemas are
 unchanged.
+
+## Shared texture importer
+
+Run `Scripts/Import-CatalogueIconBatch.ps1 -Batch A`, `-Batch B`, or `-Batch C`
+to import one pinned group of at most sixteen identities. The PowerShell runner
+creates a temporary UE 5.8 content-only project with the editor Python and
+scripting plugins enabled, then invokes `Scripts/Import-CatalogueIconBatch.py`
+against the manifest and prepared PNGs. It keeps Unreal-generated files outside
+the Kalmala project and copies only the requested texture packages to
+`Content/Kalmala/UI/Icons/Items/`.
+
+The Python importer creates exactly one Texture2D per canonical row at
+`/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`. It rejects missing sources or images
+that are not 64×64, 8-bit RGBA. Imported textures keep the source alpha and
+sRGB, use the UI texture group without mipmaps, and are not streamed. The
+runner checks each emitted canonical object path and then calls
+`Scripts/Validate-CatalogueIcon.ps1` for each identity in that batch. A
+catalogue alias stays on its manifest row and resolves to the canonical
+texture path; it never gets a second asset.
+
+## Import batch A — 2026-10-08
+
+Imported and validated the first sixteen manifest identities: Wood, Lightwood,
+Densewood, Coal, Stone, Iron, Fibre, PeatAmber, FrostSalt, MirelingAsh,
+CampfireKit, WorkbenchKit, ForgeKit, WorkbenchToolRackKit, ForgeAnvilKit, and
+GrindingStoneKit. The Unreal import log confirmed 64×64 textures with alpha
+compression disabled for all sixteen. The six aliases HearthRing, Workbench,
+Forge, WorkbenchToolRack, ForgeAnvil, and GrindingStone each resolve to the
+same canonical target as their row; no alias texture assets were created.
+
+These imports prepare the shared runtime lookup targets only. Existing menu
+consumers still use vector icons until the two later integration children.
+Batch B, batch C, and rendered host/client acceptance remain open.

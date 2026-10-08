@@ -12990,3 +12990,60 @@ Main-checkout handoff synchronization: Complete. Inspected the main-checkout
 versions before editing; synchronized only the selected BACKLOG child and this
 PROGRESS entry, preserving its existing edits. No implementation assets were
 synchronized.
+
+## Run 2026-10-08 13:37 UTC — Import/map catalogue texture batch A
+
+Concurrency guard: Codex app task inventory showed no other active Kalmala
+automation run. Windows process inspection was restricted. Continued in the
+retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout had pre-existing changes to
+`BACKLOG.md` and `PROGRESS.md`; they were preserved.
+
+Completed exactly M12 goal 8's batch A import child. Added a shared Python
+AssetImportTask importer and a bounded PowerShell runner. The runner uses a
+temporary UE 5.8 content-only project, imports the sixteen batch A manifest
+rows to `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`, then copies only those
+packages into the Kalmala content tree. Imported textures retain 64×64 size,
+source alpha and sRGB, use the UI texture group without mipmaps, and are not
+streamed. The six manifest aliases map to their canonical packages; no alias
+packages were created.
+
+Files changed: `Content/Kalmala/UI/Icons/Items/` for Wood, Lightwood,
+Densewood, Coal, Stone, Iron, Fibre, PeatAmber, FrostSalt, MirelingAsh,
+CampfireKit, WorkbenchKit, ForgeKit, WorkbenchToolRackKit, ForgeAnvilKit, and
+GrindingStoneKit; `Scripts/Import-CatalogueIconBatch.ps1`;
+`Scripts/Import-CatalogueIconBatch.py`; `docs/43-catalogue-icon-manifest.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Import-CatalogueIconBatch.ps1 -Batch A`
+ran the Unreal Python importer successfully and validated the saved 64×64
+Texture2D targets with alpha compression disabled and the UI settings above.
+`Scripts/Validate-CatalogueIcon.ps1` passed for all sixteen IDs, including the
+prepared PNG transparency checks. A focused manifest/alias-to-object-path
+audit, Python syntax parse, PowerShell parser check, `git diff --check`, and
+changed-path MAX_PATH audit passed. An initial validation call used a size
+method not exposed by UE 5.8; the importer now uses its supported Blueprint
+size accessors, and the complete batch was rerun successfully. No Kalmala
+project build, automation suite, rendered review, or package check was run.
+Full M12 verification remains deferred.
+
+Observable impact: the shared runtime lookup now has imported targets for the
+first sixteen canonical identities and their listed aliases. Inventory and
+Build/crafting consumers remain on vector icons until their later integration
+children.
+
+Networking/authority: presentation assets and editor-only import scripts;
+gameplay, RPC, replication, server authority, inventory, and save contracts are
+unchanged.
+
+Known limitations: batches B and C, both menu integration children, and
+rendered host/client acceptance remain open. The full M12 verification is
+deferred until the final implementation increment.
+
+Next eligible task: M12 goal 8, import/map texture batch B for the next sixteen
+manifest identities.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; applied only the batch A child update and this
+entry, preserving all pre-existing main-checkout changes. No implementation
+assets were synchronized.
