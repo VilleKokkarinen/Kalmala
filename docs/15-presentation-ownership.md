@@ -44,6 +44,12 @@ ID. The Cooking Rack embeds its station-filtered recipe view. Workbench opens a
 Craft section scoped to its supported recipes, matching Tool Rack production,
 and the owner-local Bronze Axe operation; its effective level and Tool Rack
 state come from the accepted station and replicated placement presentation.
+Forge exposes separate Craft and Upgrade sections. Upgrade compares the
+owner-only carried Bronze Axe against its authored Iron Axe target and reads
+the owner's tool, material, and skill snapshots for prerequisites; the accepted
+Forge's effective level and Anvil state stay tied to the exact context actor.
+The existing progression RPC remains responsible for authoritative checks,
+material exchange, and persistence.
 The owner can switch to a separate Repair section without changing the recipe
 selection. Repair rows read only the owning pawn's owner-only carried-tool
 array, show its real level and condition, and submit only the selected tool ID

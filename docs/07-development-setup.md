@@ -2041,3 +2041,28 @@ interaction routing, and focused Craft presentation. The focused
 `Kalmala.Gameplay.Food.CookingStationHeatContract` also checks the owner's exact
 accepted Forge actor/kit/ID and interaction serial. Full runtime host/client
 execution and rendered inspection remain in M12's final acceptance.
+
+## M12 Forge Upgrade section
+
+The Forge menu opens Craft by default and lets the owner switch to Upgrade
+without closing the accepted station context. Upgrade shows the carried
+Bronze Axe's level and condition against the level-two Iron Axe at its authored
+starting condition; it lists Forge level 2, Crafting level 5 and the second-tier
+unlock, the Bronze Axe level-one prerequisite, and every material cost with the
+owner's current counts. It presents the first unmet requirement and enables the
+existing Upgrade action only when the owner-visible progression is ready. The
+action calls `ServerProgressTool` with only `IronAxe`; the server still chooses
+a visible same-world Forge, validates the exact authored prerequisites, commits
+the material/tool exchange, and persists the owner state. A stale or invalid
+station context dispatches no upgrade request. Forge level/Anvil status remains
+bound to the accepted actor; the progression and inventory state remain
+owner-only.
+
+`Verify-Crafting.ps1` requires a `Forge Upgrade scope` result from both host
+and client. The focused marker checks target comparison, authored station/skill
+requirements, all catalogue costs, unavailable-state presentation, section
+routing and scope, plus no request from stale context. The existing
+`Kalmala.Gameplay.M9.ToolStationProgression` covers server acceptance/rejection,
+the Bronze-to-Iron exchange, costs, and unchanged candidates after rejection.
+Run the full host/client and rendered checks only in M12 milestone-final
+verification.

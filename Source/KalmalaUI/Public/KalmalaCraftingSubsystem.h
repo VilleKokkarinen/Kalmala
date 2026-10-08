@@ -52,6 +52,7 @@ public:
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
+    bool VerifyForgeUpgradeScopeForTest();
     bool VerifyWorkbenchRepairScopeForTest();
     bool VerifyInventoryInspectionForTest();
     bool ScrollReviewSectionForTest(bool bFeedback);
@@ -76,9 +77,12 @@ private:
     void ConfigureStationContextPresentation(const FString& Section);
     void ApplyStationCraftLayout();
     void RefreshStationContextState();
+    void RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting);
     void RefreshWorkbenchRepairState(UKalmalaCraftingComponent* Crafting);
     UFUNCTION() void SelectWorkbenchCraftSection();
     UFUNCTION() void SelectWorkbenchRepairSection();
+    UFUNCTION() void SelectForgeCraftSection();
+    UFUNCTION() void SelectForgeUpgradeSection();
     UFUNCTION() void RecipeSearchChanged(const FText& Text);
     UFUNCTION() void CycleRecipeCategory();
     UFUNCTION() void CycleRecipeSort();
@@ -125,7 +129,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StationContextStatusText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairContextText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairStatusText;
-    UPROPERTY(Transient) TObjectPtr<UWidget> WorkbenchSectionSwitcher;
+    UPROPERTY(Transient) TObjectPtr<UWidget> StationSectionSwitcher;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailText;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIngredientWidget> Ingredients;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RequirementText;
@@ -143,6 +147,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<UWidget> ToolProgressionActions;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchCraftSectionButton;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchRepairSectionButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> ForgeCraftSectionButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> ForgeUpgradeSectionButton;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchRepairButton;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> WorkbenchRepairInspector;
     UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> WorkbenchRepairExcludedWidgets;
@@ -171,10 +177,12 @@ private:
     bool bEmbeddedContext = false;
     bool bWorkbenchCraftContext = false;
     bool bForgeCraftContext = false;
+    bool bForgeUpgradeContext = false;
     bool bWorkbenchRepairContext = false;
     bool bWorkbenchRepairPending = false;
 #if !UE_BUILD_SHIPPING
     uint32 WorkbenchRepairRequestCountForTest = 0;
+    uint32 ForgeUpgradeRequestCountForTest = 0;
 #endif
     bool bPreviousMoveInputIgnored = false;
     bool bPreviousLookInputIgnored = false;

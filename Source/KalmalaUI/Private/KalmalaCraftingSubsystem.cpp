@@ -85,7 +85,21 @@ bool IsStationContextSectionSupported(const FName KitId, const FString& Section)
     return (KitId == TEXT("CookingRackKit") && Section.Equals(TEXT("Cook"), ESearchCase::IgnoreCase))
         || (KitId == TEXT("WorkbenchKit") && (Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase)
             || Section.Equals(TEXT("Repair"), ESearchCase::IgnoreCase)))
-        || (KitId == TEXT("ForgeKit") && Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase));
+        || (KitId == TEXT("ForgeKit") && (Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase)
+            || Section.Equals(TEXT("Upgrade"), ESearchCase::IgnoreCase)));
+}
+
+FString BuildForgeUpgradePresentationText(const UKalmalaCraftingComponent* Crafting)
+{
+    if (!Crafting) return TEXT("Upgrade requirements unavailable.");
+    FString Text = Crafting->GetToolProgressionText(TEXT("ForgeKit"));
+    Text.ReplaceInline(TEXT("\nTOOL OPTIONS — OWNER ONLY\n"), TEXT(""));
+    Text.ReplaceInline(TEXT("Requires:"), TEXT("Requirements:"));
+    Text.ReplaceInline(TEXT("Cost:"), TEXT("Materials:"));
+    Text.ReplaceInline(TEXT("Status: Ready to upgrade."), TEXT("Ready to upgrade."));
+    Text.ReplaceInline(TEXT("Status: Blocked — "), TEXT("Unavailable: "));
+    Text.ReplaceInline(TEXT("Status: Already carried."), TEXT("Iron Axe is already carried."));
+    return Text.TrimStartAndEnd();
 }
 
 FString GetInitialStationContextSection(const FName KitId)
@@ -353,14 +367,20 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         else Column->AddChild(Button); return Button;
     };
     auto* WorkbenchSections = WidgetTree->ConstructWidget<UHorizontalBox>();
-    WorkbenchSectionSwitcher = WorkbenchSections;
+    StationSectionSwitcher = WorkbenchSections;
     WorkbenchCraftSectionButton = AddButton(TEXT("Craft"), WorkbenchSections,
         TEXT("Show this Workbench's supported craft options."));
     WorkbenchCraftSectionButton->OnClicked.AddDynamic(this, &ThisClass::SelectWorkbenchCraftSection);
     WorkbenchRepairSectionButton = AddButton(TEXT("Repair"), WorkbenchSections,
         TEXT("Inspect and repair one selected carried tool at no cost."));
     WorkbenchRepairSectionButton->OnClicked.AddDynamic(this, &ThisClass::SelectWorkbenchRepairSection);
-    Column->InsertChildAt(2, WorkbenchSectionSwitcher);
+    ForgeCraftSectionButton = AddButton(TEXT("Craft"), WorkbenchSections,
+        TEXT("Show recipes supported by this Forge."));
+    ForgeCraftSectionButton->OnClicked.AddDynamic(this, &ThisClass::SelectForgeCraftSection);
+    ForgeUpgradeSectionButton = AddButton(TEXT("Upgrade"), WorkbenchSections,
+        TEXT("Compare the carried Bronze Axe with its Iron Axe upgrade."));
+    ForgeUpgradeSectionButton->OnClicked.AddDynamic(this, &ThisClass::SelectForgeUpgradeSection);
+    Column->InsertChildAt(2, StationSectionSwitcher);
     RecipeSearchBox = WidgetTree->ConstructWidget<UEditableTextBox>();
     RecipeSearchBox->SetHintText(FText::FromString(TEXT("Search recipe names")));
     RecipeSearchStyle = FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox");
@@ -440,14 +460,12 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     WorkbenchRepairStatusText = AddText(TEXT(""), 18);
     StationCraftExcludedWidgets.Add(WorkbenchRepairStatusText);
     ToolProgressionText = AddText(TEXT(""), 18);
-    WorkbenchRepairExcludedWidgets.Add(ToolProgressionText);
     ToolProgressionActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(ToolProgressionActions);
-    WorkbenchRepairExcludedWidgets.Add(ToolProgressionActions);
     CraftBronzeAxeButton = AddButton(TEXT("Craft Bronze Axe"), ToolProgressionActions,
         TEXT("Ask the server to craft the level-one Bronze Axe at a visible same-world level-one Workbench. The server checks materials and private tool inventory."));
     CraftBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeAxe);
     UpgradeIronAxeButton = AddButton(TEXT("Upgrade to Iron Axe"), ToolProgressionActions,
-        TEXT("Ask the server to exchange a carried level-one Bronze Axe for a level-two Iron Axe at a visible same-world level-two Forge. The server checks every material and condition."));
+        TEXT("Exchange a level-one Bronze Axe for a level-two Iron Axe when the Forge and shown requirements are ready."));
     UpgradeIronAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeIronAxe);
     StationCraftExcludedWidgets.Add(AddText(TEXT("\nWoven chest — shared nearby storage\nInspect a visible chest, choose an item, then store or take one. Contents clear when closed or out of reach."), 16));
     StationCraftExcludedWidgets.Add(AddText(TEXT("Chest contents use the shared 16-stack interface. Accepted construction and storage records are saved for this world; rejected transfers leave both inventories unchanged."), 16));
@@ -706,6 +724,8 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
         && Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase);
     bForgeCraftContext = bEmbeddedContext && StationFilterKit == TEXT("ForgeKit")
         && Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase);
+    bForgeUpgradeContext = bEmbeddedContext && StationFilterKit == TEXT("ForgeKit")
+        && Section.Equals(TEXT("Upgrade"), ESearchCase::IgnoreCase);
     bWorkbenchRepairContext = bEmbeddedContext && StationFilterKit == TEXT("WorkbenchKit")
         && Section.Equals(TEXT("Repair"), ESearchCase::IgnoreCase);
     if (bWorkbenchRepairContext && WorkbenchRepairInspector)
@@ -736,6 +756,12 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
             TEXT("Only Forge-compatible recipes and attachments are shown. Ingredient rows and selected requirements show their material and station needs; the server checks them again when you craft.")));
     }
+    else if (bForgeUpgradeContext)
+    {
+        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Forge — Upgrade")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(
+            TEXT("Compare your carried Bronze Axe with the Iron Axe upgrade. The Forge, skill, tool, and material requirements are shown below.")));
+    }
     else if (bWorkbenchRepairContext)
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Workbench — Repair")));
@@ -754,17 +780,20 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
 void UKalmalaCraftingWidget::ApplyStationCraftLayout()
 {
     const bool bWorkbenchContext = bWorkbenchCraftContext || bWorkbenchRepairContext;
+    const bool bForgeContext = bForgeCraftContext || bForgeUpgradeContext;
     const bool bStationCraftContext = bWorkbenchCraftContext || bForgeCraftContext;
-    const ESlateVisibility ExcludedVisibility = bStationCraftContext
+    const bool bStationContext = bStationCraftContext || bForgeUpgradeContext;
+    const bool bNonCraftSection = bWorkbenchRepairContext || bForgeUpgradeContext;
+    const ESlateVisibility ExcludedVisibility = bStationContext
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible;
     for (UWidget* Excluded : StationCraftExcludedWidgets)
         if (Excluded) Excluded->SetVisibility(ExcludedVisibility);
-    const ESlateVisibility RepairExcludedVisibility = bWorkbenchRepairContext
+    const ESlateVisibility RepairExcludedVisibility = bNonCraftSection
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible;
     for (UWidget* Excluded : WorkbenchRepairExcludedWidgets)
         if (Excluded) Excluded->SetVisibility(RepairExcludedVisibility);
-    if (WorkbenchSectionSwitcher)
-        WorkbenchSectionSwitcher->SetVisibility(bWorkbenchContext
+    if (StationSectionSwitcher)
+        StationSectionSwitcher->SetVisibility(bWorkbenchContext || bForgeContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (WorkbenchRepairContextText)
         WorkbenchRepairContextText->SetVisibility(bWorkbenchRepairContext
@@ -779,30 +808,55 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
         WorkbenchRepairStatusText->SetVisibility(bWorkbenchRepairContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (WorkbenchCraftSectionButton)
+    {
+        WorkbenchCraftSectionButton->SetVisibility(bWorkbenchContext
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
         if (UTextBlock* Label = Cast<UTextBlock>(WorkbenchCraftSectionButton->GetContent()))
             Label->SetText(FText::FromString(bWorkbenchCraftContext ? TEXT("> Craft") : TEXT("Craft")));
+    }
     if (WorkbenchRepairSectionButton)
+    {
+        WorkbenchRepairSectionButton->SetVisibility(bWorkbenchContext
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
         if (UTextBlock* Label = Cast<UTextBlock>(WorkbenchRepairSectionButton->GetContent()))
             Label->SetText(FText::FromString(bWorkbenchRepairContext ? TEXT("> Repair") : TEXT("Repair")));
+    }
+    if (ForgeCraftSectionButton)
+    {
+        ForgeCraftSectionButton->SetVisibility(bForgeContext
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+        if (UTextBlock* Label = Cast<UTextBlock>(ForgeCraftSectionButton->GetContent()))
+            Label->SetText(FText::FromString(bForgeCraftContext ? TEXT("> Craft") : TEXT("Craft")));
+    }
+    if (ForgeUpgradeSectionButton)
+    {
+        ForgeUpgradeSectionButton->SetVisibility(bForgeContext
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+        if (UTextBlock* Label = Cast<UTextBlock>(ForgeUpgradeSectionButton->GetContent()))
+            Label->SetText(FText::FromString(bForgeUpgradeContext ? TEXT("> Upgrade") : TEXT("Upgrade")));
+    }
     if (StationContextStatusText)
-        StationContextStatusText->SetVisibility(bStationCraftContext
+        StationContextStatusText->SetVisibility(bStationContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (UpgradeIronAxeButton)
-        UpgradeIronAxeButton->SetVisibility(bWorkbenchCraftContext
+        UpgradeIronAxeButton->SetVisibility(bWorkbenchCraftContext || bForgeCraftContext || bWorkbenchRepairContext
+            ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+    if (CraftBronzeAxeButton)
+        CraftBronzeAxeButton->SetVisibility(bForgeCraftContext || bForgeUpgradeContext || bWorkbenchRepairContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (ToolProgressionText)
-        ToolProgressionText->SetVisibility(bForgeCraftContext
+        ToolProgressionText->SetVisibility(bForgeCraftContext || bWorkbenchRepairContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (ToolProgressionActions)
-        ToolProgressionActions->SetVisibility(bForgeCraftContext
+        ToolProgressionActions->SetVisibility(bForgeCraftContext || bWorkbenchRepairContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 }
 
 void UKalmalaCraftingWidget::RefreshStationContextState()
 {
     if (!StationContextStatusText) return;
-    const bool bStationCraftContext = bWorkbenchCraftContext || bForgeCraftContext;
-    if (!bStationCraftContext)
+    const bool bStationContext = bWorkbenchCraftContext || bForgeCraftContext || bForgeUpgradeContext;
+    if (!bStationContext)
     {
         StationContextStatusText->SetVisibility(ESlateVisibility::Collapsed);
         return;
@@ -825,6 +879,27 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
         bAttachmentPresent ? TEXT("attached") : TEXT("not attached"))));
 }
 
+void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting)
+{
+    if (!UpgradeIronAxeButton) return;
+    if (!bForgeUpgradeContext)
+    {
+        UpgradeIronAxeButton->SetIsEnabled(true);
+        return;
+    }
+
+    const APlayerController* PC = GetOwningPlayer();
+    const AKalmalaConstructionActor* Station = ContextStationActor.Get();
+    const bool bContextValid = IsStationContextValid() && StationFilterKit == TEXT("ForgeKit")
+        && IsValid(Station) && Station->GetConstructionKit() == TEXT("ForgeKit");
+    FString Details = bContextValid ? BuildForgeUpgradePresentationText(Crafting)
+        : TEXT("Forge context unavailable. Reopen a nearby Forge.");
+    if (ToolProgressionText && ToolProgressionText->GetText().ToString() != Details)
+        ToolProgressionText->SetText(FText::FromString(Details));
+    UpgradeIronAxeButton->SetIsEnabled(bContextValid && PC && PC->IsLocalController()
+        && Details.Contains(TEXT("Ready to upgrade.")));
+}
+
 void UKalmalaCraftingWidget::SelectWorkbenchCraftSection()
 {
     if (!IsStationContextValid() || StationFilterKit != TEXT("WorkbenchKit")) return;
@@ -835,6 +910,18 @@ void UKalmalaCraftingWidget::SelectWorkbenchRepairSection()
 {
     if (!IsStationContextValid() || StationFilterKit != TEXT("WorkbenchKit")) return;
     OpenInternal(StationFilterKit, ContextStationActor.Get(), ContextConstructionId, true, TEXT("Repair"));
+}
+
+void UKalmalaCraftingWidget::SelectForgeCraftSection()
+{
+    if (!IsStationContextValid() || StationFilterKit != TEXT("ForgeKit")) return;
+    OpenInternal(StationFilterKit, ContextStationActor.Get(), ContextConstructionId, true, TEXT("Craft"));
+}
+
+void UKalmalaCraftingWidget::SelectForgeUpgradeSection()
+{
+    if (!IsStationContextValid() || StationFilterKit != TEXT("ForgeKit")) return;
+    OpenInternal(StationFilterKit, ContextStationActor.Get(), ContextConstructionId, true, TEXT("Upgrade"));
 }
 
 void UKalmalaCraftingWidget::RefreshWorkbenchRepairState(UKalmalaCraftingComponent* Crafting)
@@ -909,6 +996,7 @@ void UKalmalaCraftingWidget::Close()
     bEmbeddedContext = false;
     bWorkbenchCraftContext = false;
     bForgeCraftContext = false;
+    bForgeUpgradeContext = false;
     bWorkbenchRepairContext = false;
     bWorkbenchRepairPending = false;
     WorkbenchRepairPendingToolId = NAME_None;
@@ -1237,10 +1325,12 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && IsStationContextSectionSupported(ForgeKit, CraftSection)
         && GetInitialStationContextSection(ForgeKit) == CraftSection;
     const bool bPreviousForgeContext = bForgeCraftContext;
+    const bool bPreviousForgeUpgradeContext = bForgeUpgradeContext;
     const bool bPreviousRepairContext = bWorkbenchRepairContext;
     bWorkbenchCraftContext = false;
     bWorkbenchRepairContext = false;
     bForgeCraftContext = true;
+    bForgeUpgradeContext = false;
     ApplyStationCraftLayout();
     bool bForgeUiScope = StationContextStatusText
         && StationContextStatusText->GetVisibility() == ESlateVisibility::Visible
@@ -1250,10 +1340,15 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && RequirementText && RequirementText->GetVisibility() != ESlateVisibility::Collapsed
         && ToolProgressionText && ToolProgressionText->GetVisibility() == ESlateVisibility::Collapsed
         && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Collapsed
-        && WorkbenchSectionSwitcher && WorkbenchSectionSwitcher->GetVisibility() == ESlateVisibility::Collapsed;
+        && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Visible
+        && ForgeCraftSectionButton && ForgeCraftSectionButton->GetVisibility() == ESlateVisibility::Visible
+        && ForgeUpgradeSectionButton && ForgeUpgradeSectionButton->GetVisibility() == ESlateVisibility::Visible
+        && WorkbenchCraftSectionButton && WorkbenchCraftSectionButton->GetVisibility() == ESlateVisibility::Collapsed
+        && WorkbenchRepairSectionButton && WorkbenchRepairSectionButton->GetVisibility() == ESlateVisibility::Collapsed;
     for (const TObjectPtr<UWidget>& ExcludedWidget : StationCraftExcludedWidgets)
         bForgeUiScope &= ExcludedWidget && ExcludedWidget->GetVisibility() == ESlateVisibility::Collapsed;
     bForgeCraftContext = bPreviousForgeContext;
+    bForgeUpgradeContext = bPreviousForgeUpgradeContext;
     bWorkbenchCraftContext = bPreviousWorkbenchContext;
     bWorkbenchRepairContext = bPreviousRepairContext;
     ApplyStationCraftLayout();
@@ -1263,6 +1358,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     bRecipeNameSort = bPreviousNameSort;
     Refresh();
     const bool bWorkbenchRepairScope = VerifyWorkbenchRepairScopeForTest();
+    const bool bForgeUpgradeScope = VerifyForgeUpgradeScopeForTest();
     UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: BronzeAxe=%d GrindingStone=%d ToolRack=%d NoUnrelated=%d ToolPrerequisites=%d UiScope=%d"),
         bBronzeAxeScoped, bHasGrindingStone, bHasToolRack, bNoUnrelatedRecipes, bToolPrerequisites, bWorkbenchUiScope);
     UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d ForgeAnvil=%d Materials=%d Station=%d NoUnrelated=%d Route=%d UiScope=%d"),
@@ -1272,9 +1368,122 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe
         && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty
         && bBronzeAxeScoped && bHasGrindingStone && bHasToolRack && bNoUnrelatedRecipes
-        && bToolPrerequisites && bWorkbenchUiScope && bWorkbenchRepairScope
+        && bToolPrerequisites && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
         && bHasFryingPan && bHasForgeAnvil && bFryingPanRequirements && bForgeOnlyRecipes
         && bForgeInteractionRoute && bForgeUiScope;
+}
+
+bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
+{
+    const FName ForgeKit(TEXT("ForgeKit"));
+    const FName IronAxe(TEXT("IronAxe"));
+    const FString CraftSection(TEXT("Craft"));
+    const FString UpgradeSection(TEXT("Upgrade"));
+    const FString Details = BuildForgeUpgradePresentationText(Model());
+    const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(IronAxe);
+    const bool bComparison = Details.Contains(TEXT("Comparison: Bronze Axe"))
+        && Details.Contains(TEXT("Iron Axe 2")) && Details.Contains(TEXT("→"))
+        && Details.Contains(TEXT("24/24 condition"));
+    const bool bRequirements = Entry && Entry->RequiredStation == EKalmalaToolStationKind::Forge
+        && Entry->RequiredStationLevel == 2 && Entry->RequiredSkill == EKalmalaSkill::Crafting
+        && Entry->RequiredSkillLevel == 5
+        && Details.Contains(TEXT("Requirements: Forge level 2, Crafting level 5 + second-tier unlock"));
+    bool bMaterials = Entry && !Entry->MaterialCosts.IsEmpty();
+    const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
+    if (Entry && Items)
+    {
+        for (const FKalmalaToolMaterialCost& Cost : Entry->MaterialCosts)
+        {
+            const FKalmalaItemDefinition* Item = Items->FindItem(Cost.ItemId);
+            const FString RequiredMaterial = Item
+                ? FString::Printf(TEXT("%d %s"), Cost.Quantity, *Item->DisplayName)
+                : FString::Printf(TEXT("%d %s"), Cost.Quantity, *Cost.ItemId.ToString());
+            bMaterials &= Details.Contains(RequiredMaterial);
+        }
+    }
+    else bMaterials = false;
+    const bool bStatus = Details.Contains(TEXT("Ready to upgrade."))
+        || Details.Contains(TEXT("Unavailable: "))
+        || Details.Contains(TEXT("already carried."))
+        || Details.Contains(TEXT("details unavailable."))
+        || Details.Contains(TEXT("requirements unavailable."));
+    const bool bRoute = IsStationContextShellKit(ForgeKit)
+        && IsStationContextSectionSupported(ForgeKit, CraftSection)
+        && IsStationContextSectionSupported(ForgeKit, UpgradeSection)
+        && GetInitialStationContextSection(ForgeKit) == CraftSection;
+
+    const bool bPreviousOpen = bOpen;
+    const bool bPreviousEmbedded = bEmbeddedContext;
+    const bool bPreviousWorkbenchCraft = bWorkbenchCraftContext;
+    const bool bPreviousForgeCraft = bForgeCraftContext;
+    const bool bPreviousForgeUpgrade = bForgeUpgradeContext;
+    const bool bPreviousWorkbenchRepair = bWorkbenchRepairContext;
+    const FName PreviousStationKit = StationFilterKit;
+    const FString PreviousSection = StationContextSection;
+    const TWeakObjectPtr<AKalmalaConstructionActor> PreviousStation = ContextStationActor;
+    const TWeakObjectPtr<APawn> PreviousOwnerPawn = ContextOwnerPawn;
+    const FString PreviousConstructionId = ContextConstructionId;
+
+    bOpen = true;
+    bEmbeddedContext = true;
+    bWorkbenchCraftContext = false;
+    bForgeCraftContext = false;
+    bForgeUpgradeContext = true;
+    bWorkbenchRepairContext = false;
+    StationFilterKit = ForgeKit;
+    StationContextSection = UpgradeSection;
+    ContextStationActor.Reset();
+    ContextOwnerPawn.Reset();
+    ContextConstructionId.Reset();
+    ConfigureStationContextPresentation(UpgradeSection);
+    RefreshForgeUpgradeState(Model());
+    const bool bContextUnavailable = ToolProgressionText
+        && ToolProgressionText->GetText().ToString().Contains(TEXT("Forge context unavailable"))
+        && UpgradeIronAxeButton && !UpgradeIronAxeButton->GetIsEnabled()
+        && StationContextStatusText
+        && StationContextStatusText->GetText().ToString().Contains(TEXT("Forge level unavailable"));
+    const uint32 RequestsBeforeStaleClick = ForgeUpgradeRequestCountForTest;
+    UpgradeIronAxe();
+    const bool bStaleNoRequest = ForgeUpgradeRequestCountForTest == RequestsBeforeStaleClick;
+    bool bUiScope = HeaderText && HeaderText->GetText().ToString() == TEXT("Forge — Upgrade")
+        && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Visible
+        && StationContextStatusText && StationContextStatusText->GetVisibility() == ESlateVisibility::Visible
+        && ForgeCraftSectionButton && ForgeCraftSectionButton->GetVisibility() == ESlateVisibility::Visible
+        && ForgeUpgradeSectionButton && ForgeUpgradeSectionButton->GetVisibility() == ESlateVisibility::Visible
+        && WorkbenchCraftSectionButton && WorkbenchCraftSectionButton->GetVisibility() == ESlateVisibility::Collapsed
+        && WorkbenchRepairSectionButton && WorkbenchRepairSectionButton->GetVisibility() == ESlateVisibility::Collapsed
+        && ToolProgressionText && ToolProgressionText->GetVisibility() == ESlateVisibility::Visible
+        && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Visible
+        && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Visible
+        && !UpgradeIronAxeButton->GetIsEnabled()
+        && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
+        && CraftButton && CraftButton->GetVisibility() == ESlateVisibility::Collapsed
+        && RecipeGrid && RecipeGrid->GetVisibility() == ESlateVisibility::Collapsed
+        && WorkbenchRepairButton && WorkbenchRepairButton->GetVisibility() == ESlateVisibility::Collapsed
+        && WorkbenchRepairInspector && WorkbenchRepairInspector->GetVisibility() == ESlateVisibility::Collapsed;
+    for (const TObjectPtr<UWidget>& ExcludedWidget : StationCraftExcludedWidgets)
+        bUiScope &= ExcludedWidget && ExcludedWidget->GetVisibility() == ESlateVisibility::Collapsed;
+    for (const TObjectPtr<UWidget>& ExcludedWidget : WorkbenchRepairExcludedWidgets)
+        bUiScope &= ExcludedWidget && ExcludedWidget->GetVisibility() == ESlateVisibility::Collapsed;
+
+    bOpen = bPreviousOpen;
+    bEmbeddedContext = bPreviousEmbedded;
+    bWorkbenchCraftContext = bPreviousWorkbenchCraft;
+    bForgeCraftContext = bPreviousForgeCraft;
+    bForgeUpgradeContext = bPreviousForgeUpgrade;
+    bWorkbenchRepairContext = bPreviousWorkbenchRepair;
+    StationFilterKit = PreviousStationKit;
+    StationContextSection = PreviousSection;
+    ContextStationActor = PreviousStation;
+    ContextOwnerPawn = PreviousOwnerPawn;
+    ContextConstructionId = PreviousConstructionId;
+    ConfigureStationContextPresentation(PreviousSection);
+    Refresh();
+
+    UE_LOG(LogTemp, Display, TEXT("Forge Upgrade scope: Comparison=%d Requirements=%d Materials=%d Status=%d Route=%d UiScope=%d StaleNoRequest=%d ContextUnavailable=%d"),
+        bComparison, bRequirements, bMaterials, bStatus, bRoute, bUiScope, bStaleNoRequest, bContextUnavailable);
+    return bComparison && bRequirements && bMaterials && bStatus && bRoute
+        && bContextUnavailable && bStaleNoRequest && bUiScope;
 }
 
 bool UKalmalaCraftingWidget::VerifyWorkbenchRepairScopeForTest()
@@ -1366,6 +1575,7 @@ void UKalmalaCraftingWidget::Refresh()
         ToolProgressionText->SetText(FText::FromString(M->GetToolProgressionText(ProgressionStation)));
     }
     RefreshStationContextState();
+    RefreshForgeUpgradeState(M);
     const auto& Recipes=UKalmalaRecipeCatalogue::Get()->Recipes;
     const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
     const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(
@@ -1609,7 +1819,20 @@ void UKalmalaCraftingWidget::RepairWorkbenchSelectedTool()
     RefreshWorkbenchRepairState(Crafting);
 }
 void UKalmalaCraftingWidget::CraftBronzeAxe() { if(auto* M=Model()) M->ServerProgressTool(TEXT("BronzeAxe")); }
-void UKalmalaCraftingWidget::UpgradeIronAxe() { if(auto* M=Model()) M->ServerProgressTool(TEXT("IronAxe")); }
+void UKalmalaCraftingWidget::UpgradeIronAxe()
+{
+    UKalmalaCraftingComponent* Crafting = Model();
+    if (!Crafting) return;
+    if (bForgeUpgradeContext)
+    {
+        RefreshForgeUpgradeState(Crafting);
+        if (!UpgradeIronAxeButton || !UpgradeIronAxeButton->GetIsEnabled()) return;
+#if !UE_BUILD_SHIPPING
+        ++ForgeUpgradeRequestCountForTest;
+#endif
+    }
+    Crafting->ServerProgressTool(TEXT("IronAxe"));
+}
 void UKalmalaCraftingWidget::InspectStorage() { if (auto* M=Model()) M->ServerOpenStorage(); }
 void UKalmalaCraftingWidget::PreviousStorageItem()
 {

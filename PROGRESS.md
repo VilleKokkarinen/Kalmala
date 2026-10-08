@@ -11934,3 +11934,59 @@ Networking/authority: The exact accepted Forge actor/kit/stable ID remains owner
 Known limitations: C++ changes and prepared assertions remain uncompiled/unrun, and the section has not been rendered or exercised on host/client. The status line reads the exact accepted Forge actor, while existing recipe availability and server crafting continue to choose any visible same-world matching station under the established rules. Forge Upgrade/Repair sections and M12 final acceptance remain pending.
 
 Next eligible task: M12 goal 7, Forge Upgrade section for Bronze Axe-to-Iron Axe progression with current target comparison and material, skill, station, and unavailable-state details.
+
+### Run 2026-10-08T06:46:14Z — add Forge Upgrade section
+
+Concurrency guard: App inventory showed no other active Kalmala run. Continued
+in the retained clean worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`
+at `f21817d`; pre-existing main-checkout changes were preserved.
+
+Completed: Added a Forge Upgrade tab alongside Forge Craft. It presents the
+owner-visible Bronze Axe level/condition against the Iron Axe target, authored
+Forge and Crafting prerequisites, material costs/current counts, and the first
+unmet requirement. The action is enabled only for a current accepted Forge
+context when owner-visible progression reports readiness; stale context sends
+no request. It reuses the existing `ServerProgressTool(IronAxe)` path, with no
+gameplay or save contract changes. Marked only the selected goal 7 child
+complete; the parent and M12 remain open.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`;
+`Scripts/Verify-Crafting.ps1`; `docs/07-development-setup.md`;
+`docs/10-campfire-and-crafting.md`; `docs/15-presentation-ownership.md`;
+`BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-PresentationOwnership.ps1` passed; all five
+`Verify-M5DocumentationContracts.ps1` contracts passed; `Verify-Crafting.ps1`
+parsed successfully; six focused source assertions passed; `git diff --check`
+passed; and the MAX_PATH audit passed (longest changed absolute path 96
+characters). The Forge Upgrade host/client verifier marker was prepared but not
+run.
+
+Full verification remains deferred: this is a normal M12 child, not the final
+implementation task. No Unreal build, C++ automation, `Verify-Crafting.ps1`
+runtime launch, rendered host/client review, physical-input review, or package
+check was run.
+
+Observable impact: Players can inspect and perform the Bronze-to-Iron Axe
+upgrade from a focused Forge tab with current requirements and unavailable
+reasons.
+
+Networking/authority: The UI reads the owning player's replicated tool,
+inventory, and skill state and the exact accepted Forge context. Readiness and
+context checks are advisory; the existing request still sends only `IronAxe`,
+and the server validates its visible Forge, progression, costs, and persistence.
+No RPC payload, replicated gameplay field, catalogue data, or save schema
+changed.
+
+Known limitations: Changed C++ and the prepared host/client marker remain
+uncompiled/unrun; the new section has not been rendered or checked with physical
+controller input. The existing server progression query selects the nearest
+visible same-world Forge, which can differ from the exact Forge actor whose
+level/Anvil status the menu displays when several are in range. M12 final
+verification remains pending.
+
+Next eligible task: M12 goal 7, Forge Repair section with owner carried-tool
+condition, independent state, existing repair validation, and focused checks.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and synchronized only the selected BACKLOG child and this PROGRESS entry; all other pre-existing main-checkout changes remain untouched.

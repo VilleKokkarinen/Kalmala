@@ -151,6 +151,21 @@ server independently resolves a visible same-world Forge and rechecks the
 recipe, materials, inventory exchange, and station prerequisites. The older
 CraftMenu remains available.
 
+## M12 Forge Upgrade section
+
+The Forge context has a separate Upgrade section for the authored Bronze Axe
+level-one to Iron Axe level-two progression. Its comparison shows the carried
+Bronze Axe's level and condition and the Iron Axe's starting level and full
+condition, followed by the Forge, Crafting level/tier, previous-tool, and
+material requirements with carried counts. The first unmet requirement is
+shown, and Upgrade is enabled only while the owner-visible state reports the
+existing progression as ready. The action reuses `ServerProgressTool` with the
+Iron Axe tool ID; the server still selects a visible same-world Forge and
+validates level, skill unlock, carried Bronze Axe, materials, and persistence
+before applying the atomic exchange. The accepted Forge's effective level and
+anvil state remain shown from its exact owner-visible context. No station ID,
+cost, outcome, RPC, replication, or save-schema change is introduced.
+
 ## Verification
 
 Run the focused `Kalmala.Gameplay.Storage` tests for save round-trip/identity/bounds, transfer conservation and capacity, server RPC payloads, and owner-only replication. Run `Scripts/Verify-Storage.ps1` for a fresh temporary host/client followed by a restart of the same host user directory. Both owners place paid chests/workbenches and check direct floor-build availability from Wood and Fibre, reject distance/obstruction/unknown-item transfers, preserve contents on a simulated write failure, then issue real owner deposit/withdraw RPCs. Both must retain exactly three saved wood per chest and one private carried wood; client-local mutations fail, simulated peers have no chest snapshot, and closing clears the owner view. Restart must restore the same two chest IDs and exact contents. The fixture uses temporary grants and flying stationary pawns; it does not complete the later gather/build/weather camp scenario or rendered UI acceptance.
