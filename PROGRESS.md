@@ -12424,6 +12424,6 @@ upgrade, storage actions and unrelated lists from Build after confirming their
 destination menus are integrated; retain the passive rack/anvil cross-context
 regressions.
 
-Main-checkout handoff synchronization: Pending. Inspect the dirty main-checkout
-versions and synchronize only this selected BACKLOG child and this PROGRESS
-entry after the worktree commit; preserve all other changes.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+BACKLOG.md and PROGRESS.md versions; applied only this selected child and this
+progress entry, preserving all unrelated user edits.
