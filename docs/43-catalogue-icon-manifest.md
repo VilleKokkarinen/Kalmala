@@ -366,3 +366,30 @@ tool or seed identity with no baked-in labels, UI chrome, or scenery.
 All four finals were reviewed at native size and passed
 Scripts/Validate-CatalogueIcon.ps1. Their PNGs are prepared for import only;
 no .uasset was created and current consumers remain on vector icons.
+
+## Batch 12 review — 2026-10-08
+
+Generated StonePick, BronzeAxe, IronAxe, and ConstructionHammer as separate
+original images with the built-in image generator. Each retained source is a
+1254×1254 RGBA PNG in Content/Kalmala/UI/Source/IconOriginals/; each prepared
+import image is a transparent 64×64 RGBA PNG in
+Content/Kalmala/UI/Source/Icons/. Artwork was alpha-cropped and proportionally
+fit within a centered 56×56 maximum area.
+
+StonePick has a bound charcoal-gray stone head and short oak handle. BronzeAxe
+uses a warm bronze wedge blade; IronAxe has a dark iron blade and pale metal
+edge. ConstructionHammer has a broad iron head and oak handle. All four use
+the existing Wood, Iron, and WorkbenchKit images as style references only and
+retain the established hand-painted material texture, warm highlights, ivory
+edge accents, thin dark contour, and transparent margin. Each silhouette was
+reviewed at native size; none has labels, UI chrome, badges, scenery, or extra
+props.
+
+`Scripts/Validate-CatalogueIcon.ps1` passed for all four new identities. The
+manifest-wide source/final audit passed for all 48 canonical identities,
+confirming retained RGBA sources, transparent 64×64 RGBA finals, and the
+pinned import path pattern. This completes prepared PNG coverage only: no
+`.uasset` was created, and current menu consumers remain on vector icons until
+the later import and integration children. This changes presentation assets
+only; gameplay identity, authority, replication, and save schemas are
+unchanged.

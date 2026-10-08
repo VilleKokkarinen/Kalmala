@@ -12947,3 +12947,46 @@ for StonePick, BronzeAxe, IronAxe, and ConstructionHammer.
 Main-checkout handoff synchronization: Complete. Synchronized only the selected
 BACKLOG child and this PROGRESS entry into the main checkout, preserving existing
 main-checkout edits. No implementation assets were synchronized.
+
+## Run 2026-10-08 13:17 UTC — Generate/review final catalogue icon batch 12
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in the clean retained
+worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout has pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits; they were preserved during handoff.
+
+Completed exactly M12 goal 8's final image-generation child: StonePick,
+BronzeAxe, IronAxe, and ConstructionHammer. Generated each original separately
+with existing Wood, Iron, and WorkbenchKit icons as style references only.
+Retained four 1254×1254 RGBA sources and prepared four centered transparent
+64×64 RGBA PNGs with artwork fit within a 56×56 area. Reviewed every final at
+native size.
+
+Files changed: `Content/Kalmala/UI/Source/IconOriginals/` and
+`Content/Kalmala/UI/Source/Icons/` for the four IDs above;
+`docs/43-catalogue-icon-manifest.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Validate-CatalogueIcon.ps1` for all four
+new IDs and then all 48 manifest identities; native-size visual review;
+`git diff --check`; and changed-path MAX_PATH audit (longest path 105
+characters). No Unreal import/build, automation suite, rendered game/controller
+review, or package check was run. Full M12 verification remains deferred.
+
+Observable impact: all 48 canonical catalogue identities now have retained
+original RGBA PNGs and validated transparent 64×64 prepared PNGs.
+
+Networking/authority: presentation assets and documentation only; no gameplay,
+RPC, replication, authority, inventory, or save contract changed.
+
+Known limitations: no PNG is imported as an Unreal `.uasset`, and live menu
+consumers remain on vector icons. Three bounded texture-import tasks and two
+menu integration tasks remain open under M12 goal 8.
+
+Next eligible task: M12 goal 8, import/map texture batch A for the first 16
+manifest outputs and aliases.
+
+Main-checkout handoff synchronization: Complete. Inspected the main-checkout
+versions before editing; synchronized only the selected BACKLOG child and this
+PROGRESS entry, preserving its existing edits. No implementation assets were
+synchronized.
