@@ -41,9 +41,10 @@ The shared themed station shell opens from an owner-only event emitted after
 the server accepts and revalidates a construction interaction. It binds the
 current section to the exact replicated station actor and stable construction
 ID. The Cooking Rack embeds its station-filtered Cook view, limited to cooked
-boar/deer meat; the Cauldron uses the same owner-local shell for stew and soup,
-with ingredient, quantity, and current hearth-heat feedback. Workbench opens a
-Craft section scoped to its supported recipes, matching Tool Rack production,
+boar/deer meat; the Cauldron uses the same owner-local shell for stew and soup;
+the Frying Pan shows only roasted root vegetables and deer/rutabaga roast.
+All cooking views include ingredient, quantity, and current hearth-heat feedback.
+Workbench opens a Craft section scoped to its supported recipes, matching Tool Rack production,
 and the owner-local Bronze Axe operation; its effective level and Tool Rack
 state come from the accepted station and replicated placement presentation.
 Forge exposes separate Craft, Upgrade, and Repair sections. Upgrade compares the

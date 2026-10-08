@@ -54,6 +54,7 @@ public:
     bool VerifyRecipeGridNavigationForTest();
     bool VerifyCookingRackScopeForTest();
     bool VerifyCauldronScopeForTest();
+    bool VerifyFryingPanScopeForTest();
     bool VerifyForgeUpgradeScopeForTest();
     bool VerifyForgeRepairScopeForTest();
     bool VerifyWorkbenchRepairScopeForTest();
@@ -183,6 +184,7 @@ private:
     bool bEmbeddedContext = false;
     bool bCookingRackContext = false;
     bool bCauldronContext = false;
+    bool bFryingPanContext = false;
     bool bWorkbenchCraftContext = false;
     bool bForgeCraftContext = false;
     bool bForgeUpgradeContext = false;
@@ -194,6 +196,7 @@ private:
     uint32 ForgeUpgradeRequestCountForTest = 0;
     uint32 CookingRackCraftRequestCountForTest = 0;
     uint32 CauldronCraftRequestCountForTest = 0;
+    uint32 FryingPanCraftRequestCountForTest = 0;
 #endif
     bool bPreviousMoveInputIgnored = false;
     bool bPreviousLookInputIgnored = false;

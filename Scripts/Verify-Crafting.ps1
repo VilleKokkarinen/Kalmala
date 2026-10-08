@@ -56,6 +56,7 @@ try {
             $ready = $ready -and $peerText.Contains('Forge Craft scope: FryingPan=1 ForgeAnvil=1 Materials=1 Station=1 NoUnrelated=1 Route=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Cooking Rack scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Cauldron scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Frying Pan scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Forge Upgrade scope: Comparison=1 Requirements=1 Materials=1 Status=1 Route=1 UiScope=1 StaleNoRequest=1 ContextUnavailable=1')
             $ready = $ready -and $peerText.Contains('Forge Repair scope: OwnerOnly=1 ToolRows=1 Condition=1 Selected=1 UpgradeSelectionSeparate=1 Route=1 InvalidContextNoRequest=1 ContextUnavailable=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Workbench Repair scope: OwnerOnly=1 ToolRows=1 Condition=1 Selected=1 CraftSelectionSeparate=1 InvalidContextNoRequest=1 UiScope=1')

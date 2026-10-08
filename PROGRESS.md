@@ -12134,3 +12134,60 @@ Known limitations: Changed C++ and the prepared scope marker remain uncompiled a
 Next eligible task: M12 goal 7, Frying Pan interaction/menu limited to Roasted root vegetables and Deer and rutabaga roast, with existing heat/count rules and checks distinguishing Forge production, Build placement, and pan cooking.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only this selected BACKLOG child plus this appended PROGRESS entry; all other pre-existing modified and untracked files remain untouched.
+
+
+### Run 2026-10-08T08:29:57Z — Add Frying Pan menu
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`; preserved the dirty main checkout.
+
+Completed exactly the M12 goal 7 Frying Pan child. The accepted pan interaction
+opens the shared owner-local Cook shell with only Roasted root vegetables and
+Deer and rutabaga roast. The selected food shows catalogue description, current
+ingredient counts, the existing one-batch-per-press and five-batch request
+limit, and hearth heat availability. Expired station context disables Cook and
+sends no recipe request. The focused host/client scope marker checks the exact
+two-recipe set, authored ingredient and quantity definitions, descriptions,
+heat presentation, hidden unrelated actions, and stale-context suppression. It
+also distinguishes five-Iron Forge production, Build-category placement, and
+pan cooking. Updated the cooking, presentation-ownership, and verification
+contracts.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`;
+`Scripts/Verify-Crafting.ps1`; `Scripts/Verify-PresentationOwnership.ps1`;
+`docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`;
+`docs/15-presentation-ownership.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Verify-PresentationOwnership.ps1`,
+PowerShell parser validation for both changed scripts, and `git diff --check`.
+Full verification remains deferred: no Unreal build, C++ automation,
+`Verify-Crafting.ps1` runtime launch, rendered host/client review, controller
+review, or package check was run. This is a normal M12 child, not the
+milestone-final task.
+
+Observable impact: interacting with a placed Frying Pan opens a two-recipe Cook
+view with truthful ingredient, quantity, result, and heat feedback.
+
+Networking/authority: Presentation and filtering only. The owner reads the
+server-accepted actor/kit/ID context and existing owner-visible availability.
+The client submits the existing recipe ID with batch 1; the server remains
+authoritative for the visible same-world pan, lit-hearth heat, ingredients,
+output capacity, and atomic exchange. No gameplay RPC, replicated field, save
+schema, catalogue value, or server rule changed.
+
+Known limitations: Changed C++ and the prepared scope marker remain uncompiled
+and unrun; rendered host/client layout and physical controller input remain
+unreviewed. The shared action submits one batch per press despite displaying the
+existing five-batch request limit. The server may resolve another qualifying
+nearby Frying Pan rather than the exact actor shown by the local shell. M12
+final verification remains pending.
+
+Next eligible task: M12 goal 7, Chest interaction/storage menu using the existing
+private chest and owner-pack selector, Deposit/Withdraw transactions, capacity
+and count feedback, and stale-object/privacy checks.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions and applied only this selected BACKLOG child and this appended PROGRESS
+entry; all other pre-existing modified and untracked main-checkout files remain
+untouched.
