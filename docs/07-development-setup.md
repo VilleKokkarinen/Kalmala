@@ -2019,3 +2019,25 @@ and the ID-only server route. The existing
 unknown/full/invalid tools, missing stations, and rejected-state preservation.
 The rendered menu and physical controller review remain part of M12's final
 acceptance.
+
+## M12 Forge Craft section
+
+An accepted Forge interaction opens the shared station shell in Craft. Its
+recipe filter includes only recipes requiring the Forge and recipes producing
+its matching attachment, including Frying Pan production and Forge Anvil.
+Ingredient rows and selected recipe requirements retain the catalogue costs,
+station requirement, and current availability. A status line reads the
+effective level and Anvil attachment state from the accepted Forge actor. Craft
+requests continue through the existing recipe-ID/batch RPC without a
+client-selected station or costs; the server revalidates station
+visibility/range, recipe identity, inventory and material exchange. The Craft
+section hides Workbench-only Bronze Axe operations and
+unrelated build, food, repair, and storage controls.
+
+`Verify-Crafting.ps1` expects a `Forge Craft scope` marker from both host and
+client. Its prepared source assertion covers the Frying Pan's five-Iron Forge
+recipe, matching Forge Anvil attachment, station-only recipe filter, accepted
+interaction routing, and focused Craft presentation. The focused
+`Kalmala.Gameplay.Food.CookingStationHeatContract` also checks the owner's exact
+accepted Forge actor/kit/ID and interaction serial. Full runtime host/client
+execution and rendered inspection remain in M12's final acceptance.

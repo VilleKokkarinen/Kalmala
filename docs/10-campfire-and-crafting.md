@@ -138,6 +138,19 @@ Existing server weather wetting, drying, extinguishing and effective warmth rule
 
 Hearths are shared within the session by default. Trusted server code may set owner-only access; crafting, lighting and refuelling enforce it. No client sharing setter or private-inventory inspection is exposed. Lighting/refuelling RPCs take no target, fuel wetness, warmth, duration or lit-state value. Terrain, sparse generated-world saves and player save schemas are unchanged. Hearths and carried materials currently last only for the session/pawn; this does not complete M2's later persisted-camp acceptance gate.
 
+## M12 Forge Craft section
+
+An accepted Forge interaction opens the shared station-context shell in Craft.
+The section includes only Forge-required recipes and the matching Forge anvil
+attachment recipe. Selected recipe details continue to show catalogue material
+costs, station requirements, and current server-reported availability. A
+station status line reads effective Forge level and whether its anvil is
+attached from the exact owner-visible accepted actor. This status is
+presentation only: crafting still uses the existing recipe request and the
+server independently resolves a visible same-world Forge and rechecks the
+recipe, materials, inventory exchange, and station prerequisites. The older
+CraftMenu remains available.
+
 ## Verification
 
 Run the focused `Kalmala.Gameplay.Storage` tests for save round-trip/identity/bounds, transfer conservation and capacity, server RPC payloads, and owner-only replication. Run `Scripts/Verify-Storage.ps1` for a fresh temporary host/client followed by a restart of the same host user directory. Both owners place paid chests/workbenches and check direct floor-build availability from Wood and Fibre, reject distance/obstruction/unknown-item transfers, preserve contents on a simulated write failure, then issue real owner deposit/withdraw RPCs. Both must retain exactly three saved wood per chest and one private carried wood; client-local mutations fail, simulated peers have no chest snapshot, and closing clears the owner view. Restart must restore the same two chest IDs and exact contents. The fixture uses temporary grants and flying stationary pawns; it does not complete the later gather/build/weather camp scenario or rendered UI acceptance.

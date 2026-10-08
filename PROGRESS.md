@@ -11914,3 +11914,23 @@ Known limitations: Changed C++ remains uncompiled, and the prepared two-peer ver
 Next eligible task: M12 goal 7, Forge Craft section for Forge-compatible production including Frying Pan and the existing station requirements.
 
 Main-checkout handoff synchronization: Complete. Updated only this selected BACKLOG child and appended this PROGRESS entry in the main checkout after inspecting both dirty versions; all other pre-existing changes remain untouched.
+
+### Run 2026-10-08T06:33:40Z — add Forge Craft station section
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run. Continued in the retained clean worktree `E:\\dev\\Kalmala\\wt\\m12-hud-feedback-rebuild` at baseline `22bfce2`; existing main-checkout modifications were preserved.
+
+Completed: Added Forge Craft to the shared station-context shell and routed the accepted Forge interaction to that section. The scoped recipe list includes Forge-required production and the matching Forge Anvil attachment, including the Frying Pan recipe. Existing selected recipe details keep catalogue ingredient counts, station requirements, and current server-reported availability. The section shows effective level and Anvil attachment state from the exact owner-visible accepted Forge actor, and hides Workbench-only tool operations and unrelated build, food, repair, and storage controls. The existing server recipe transaction and validation remain unchanged. Marked only this goal 7 child complete.
+
+Files changed: `Scripts/Verify-Crafting.ps1`; `Scripts/Verify-PresentationOwnership.ps1`; `Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`; `BACKLOG.md`; and this `PROGRESS.md`.
+
+Lightweight checks: `Verify-PresentationOwnership.ps1` passed; all five `Verify-M5DocumentationContracts.ps1` contracts passed; both changed PowerShell scripts parsed; focused Forge Craft source/header assertions passed; `git diff --check` passed; and the MAX_PATH audit passed (maximum changed absolute path 114 characters). The prepared C++ Forge interaction/UI assertions were not executed.
+
+Full verification remains deferred: this is a normal M12 child, not the final implementation task. No Unreal build, C++ automation, `Verify-Crafting.ps1` runtime launch, rendered host/client run, physical-input review, or package check was run.
+
+Observable impact: Interacting with a Forge opens a focused Craft section for compatible production and its Anvil attachment, with material, station, level, and attachment details.
+
+Networking/authority: The exact accepted Forge actor/kit/stable ID remains owner-only presentation state. Craft requests continue through the existing recipe ID/batch path; the server independently resolves usable stations and validates recipe identity, requirements, inventory, and material exchange. No gameplay RPC, replicated state, catalogue data, transaction rule, or save schema changed.
+
+Known limitations: C++ changes and prepared assertions remain uncompiled/unrun, and the section has not been rendered or exercised on host/client. The status line reads the exact accepted Forge actor, while existing recipe availability and server crafting continue to choose any visible same-world matching station under the established rules. Forge Upgrade/Repair sections and M12 final acceptance remain pending.
+
+Next eligible task: M12 goal 7, Forge Upgrade section for Bronze Axe-to-Iron Axe progression with current target comparison and material, skill, station, and unavailable-state details.

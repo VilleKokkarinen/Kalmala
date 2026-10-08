@@ -74,8 +74,8 @@ private:
         FString StationContextConstructionId = FString(), bool bEmbeddedContext = false,
         FString StationContextSection = FString());
     void ConfigureStationContextPresentation(const FString& Section);
-    void ApplyWorkbenchCraftLayout();
-    void RefreshWorkbenchStationState();
+    void ApplyStationCraftLayout();
+    void RefreshStationContextState();
     void RefreshWorkbenchRepairState(UKalmalaCraftingComponent* Crafting);
     UFUNCTION() void SelectWorkbenchCraftSection();
     UFUNCTION() void SelectWorkbenchRepairSection();
@@ -122,7 +122,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> SelectedIcon;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> HeaderText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchStationStatusText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> StationContextStatusText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairContextText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairStatusText;
     UPROPERTY(Transient) TObjectPtr<UWidget> WorkbenchSectionSwitcher;
@@ -140,12 +140,13 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> PlacementPreviewButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeAxeButton;
     UPROPERTY(Transient) TObjectPtr<UButton> UpgradeIronAxeButton;
+    UPROPERTY(Transient) TObjectPtr<UWidget> ToolProgressionActions;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchCraftSectionButton;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchRepairSectionButton;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchRepairButton;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> WorkbenchRepairInspector;
     UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> WorkbenchRepairExcludedWidgets;
-    UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> WorkbenchCraftExcludedWidgets;
+    UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> StationCraftExcludedWidgets;
     UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> RecipeSearchBox;
     UPROPERTY(Transient) TObjectPtr<UButton> CloseButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeCategoryLabel;
@@ -169,6 +170,7 @@ private:
     bool bOpen = false;
     bool bEmbeddedContext = false;
     bool bWorkbenchCraftContext = false;
+    bool bForgeCraftContext = false;
     bool bWorkbenchRepairContext = false;
     bool bWorkbenchRepairPending = false;
 #if !UE_BUILD_SHIPPING

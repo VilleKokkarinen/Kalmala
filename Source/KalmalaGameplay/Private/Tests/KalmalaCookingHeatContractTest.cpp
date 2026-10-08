@@ -282,6 +282,20 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Workbench interaction does not trigger the cooking-only menu event"),
         Crafting->GetCookingStationInteractionSerial(), 1u);
 
+    Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(-150.0f, 150.0f, 0.0f));
+    World->Tick(LEVELTICK_All, 0.25f);
+    Forge->Interact_Implementation(Pawn);
+    TestTrue(TEXT("Accepted Forge interaction publishes its exact station context"),
+        Crafting->GetLastStationContextActor() == Forge
+        && Crafting->GetLastStationContextKit() == FName(TEXT("ForgeKit"))
+        && Crafting->GetLastStationContextConstructionId() == Forge->GetConstructionId());
+    TestEqual(TEXT("Forge interaction increments the shared station context serial"),
+        Crafting->GetStationContextInteractionSerial(), 3u);
+    TestTrue(TEXT("The accepted Forge context remains range and identity checked"),
+        Crafting->IsStationContextUsable(Forge, FName(TEXT("ForgeKit")), Forge->GetConstructionId()));
+    TestEqual(TEXT("Forge interaction does not trigger the cooking-only menu event"),
+        Crafting->GetCookingStationInteractionSerial(), 1u);
+
     Workbench->Destroy();
     Rack->Destroy();
     Cauldron->Destroy();

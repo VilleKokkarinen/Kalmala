@@ -53,6 +53,7 @@ try {
             $ready = $ready -and $peerText.Contains('Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1 SearchFocus=1')
             $ready = $ready -and $peerText.Contains('Build browsing: Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1')
             $ready = $ready -and $peerText.Contains('Workbench Craft scope: BronzeAxe=1 GrindingStone=1 ToolRack=1 NoUnrelated=1 ToolPrerequisites=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Forge Craft scope: FryingPan=1 ForgeAnvil=1 Materials=1 Station=1 NoUnrelated=1 Route=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Workbench Repair scope: OwnerOnly=1 ToolRows=1 Condition=1 Selected=1 CraftSelectionSeparate=1 InvalidContextNoRequest=1 UiScope=1')
         }
         $gridPattern = 'Build slot grid: Slots=(\d+) Unavailable=(\d+) Selected=(\d+) Focused=1 ReadOnly=1 Scrollable=1 Navigation=1'
