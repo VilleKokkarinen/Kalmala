@@ -11,6 +11,7 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaUITheme.h"
+#include "KalmalaInventoryMenuSubsystem.h"
 #include "KalmalaWorldMapSubsystem.h"
 #include "KalmalaCraftingSubsystem.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -108,6 +109,8 @@ void UKalmalaSettingsSubsystem::BindLocalInput(APlayerController* InLocalControl
 void UKalmalaSettingsSubsystem::HandleSettingsMenu()
 {
     if (LocalController == nullptr) return;
+    if (UKalmalaInventoryMenuSubsystem* Inventory = GetLocalPlayer()->GetSubsystem<UKalmalaInventoryMenuSubsystem>();
+        Inventory != nullptr && Inventory->CloseIfOpen()) return;
     if (auto* Crafting = GetLocalPlayer()->GetSubsystem<UKalmalaCraftingSubsystem>(); Crafting && Crafting->CloseIfOpen()) return;
     if (UKalmalaWorldMapSubsystem* MapSubsystem = GetLocalPlayer()->GetSubsystem<UKalmalaWorldMapSubsystem>(); MapSubsystem != nullptr && MapSubsystem->CloseMapIfOpen()) return;
     if (SettingsWidget == nullptr)

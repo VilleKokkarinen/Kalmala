@@ -93,6 +93,23 @@ ownership and M5 documentation contracts plus `git diff --check`. This is
 increment-level verification; full parent integration waits for recipe/build
 browsing and the final ordered acceptance child.
 
+## M12 Inventory browsing increment
+
+After an affected UI compile in the short disposable mirror, run
+`Automation RunTests Kalmala.UI.InventoryMenu.Selection` with isolated
+UserDir/logs, null renderer, memory DDC and the queue-empty TestExit gate.
+Require the menu test to cover bounded trimmed display-name search, item/tool
+filters, deterministic copied-row sorting, canonical selection through search
+and live owner refresh, safe removal/no-results fallback, D-pad and shoulder
+navigation, retained query/selection/scroll state, and focusable controls at
+150% text scale/high contrast. It also checks the panel shrinks with a 480x320
+viewport, returns to its standard size at 1024x768, and retains outer-menu and
+inventory-row scroll fallbacks. Run the M5 documentation contracts and
+`git diff --check`.
+Do not run the full rendered matrix for this child; the M12 final verification
+must inspect host/client captures at standard settings and at 1024x768/150%/
+high contrast, including menu resize, scroll, and no-results recovery.
+
 ## M11 Escape options opening animation
 
 In a disposable project mirror, build `KalmalaEditor Win64 Development` with
@@ -943,10 +960,12 @@ and config round-trips.
 
 The same tab provides a local colour-independent feedback choice between
 `Text only` and `Text + markers`. Marker mode adds bracketed text markers for
-Wet, nearby hearth, construction, combat, discovery, and support state in an
-owner-only overlay that follows the scaled viewport in a center-right safe
-area. It reads the existing local pawn components and accepted replicated
-results, follows the local contrast palette, and sends no request.
+nearby hearth and construction context in an owner-only overlay that follows
+the scaled viewport in a center-right safe area. Combat/support action results
+and discovery acknowledgements use the separate bounded notification queue;
+the support selection strip has explicit text in either feedback mode. These
+surfaces read only the existing local pawn and accepted replicated results,
+follow the local contrast palette, and send no request.
 `Kalmala.UI.Settings.LocalPresentation` checks its bounded mode and config
 round-trip. The focused automation remains a null-RHI contract check; use the
 rendered peer probe below for the live modal.
@@ -1129,9 +1148,125 @@ packaged playback.
 keyboard/mouse and controller baseline in `Config/DefaultInput.ini`, as
 documented in `docs/14-settings-and-accessibility.md`. It validates the
 movement/look/map axes and Interact, Attack, Jump, Sprint, SettingsMenu,
-WorldMap, WorldMapRecenter, and CraftMenu action bindings. It does not add
-runtime remapping or launch Unreal; local control changes and focus behavior
-remain part of the later settings implementation.
+WorldMap, WorldMapRecenter, InventoryMenu, and CraftMenu action bindings,
+including the default Tab/I Inventory keys. It does not launch Unreal or prove
+runtime input routing.
+
+## M12 inventory modal input increment
+
+Run `Scripts/Verify-LocalInputContract.ps1` to check the default Tab/I action.
+Inspect the owner-local Inventory shell's gameplay-only open gate, Escape close
+through the existing SettingsMenu action, editable-text focus guard, gamepad B
+close, and restoration of the prior cursor plus movement/look ignore state.
+Crafting and the map already refuse to open while a modal ignores movement;
+the Settings handler first closes Inventory. No gameplay request, inventory
+mutation, network state, or save state is added. Full Unreal and rendered
+host/client checks remain deferred to M12 milestone-final verification.
+
+## M12 inventory pack-grid increment
+
+The Inventory menu reuses `UKalmalaCatalogueRowsWidget` to draw the fixed
+16-slot pack grid, including the existing catalogue icons, display names, item
+counts, empty cells, and filled-slot count. Its data source is only the local
+player controller's pawn inventory component; that component replicates pack
+stacks with `COND_OwnerOnly`. An absent pawn/component is reported as waiting,
+while a valid zero-stack pack explicitly reports that it is empty. The menu
+refreshes on open and while visible so accepted owner inventory changes appear
+without a gameplay request. The existing HUD pack display stays in place until
+the later M12 task removes the persistent panel. This increment adds no RPC,
+mutation, replicated field, or saved-data field.
+
+For M12 acceptance, open Inventory independently for the host and client with
+different owner pack contents, then with an empty pack. Confirm each menu shows
+only that owner's canonical rows and counts, all sixteen slots in the empty
+case, and live owner updates while open. Capture standard and high-contrast
+views at the supported text scales as part of milestone-final verification.
+
+## M12 inventory selection increment
+
+The Inventory menu retains selection by canonical ID while owner rows refresh.
+Previous/next buttons and arrow/D-pad input update the selected-slot outline,
+non-colour selected label, and shared `UKalmalaItemDetailWidget` with the
+canonical item icon/description and visible count. If the selected stack
+disappears, the first remaining owner row becomes selected; when no rows remain,
+selection clears and the detail panel hides. Selection and detail data are local
+to each menu instance and read only the owning pawn's existing owner-only
+inventory component.
+
+After an affected UI build, run the focused automation test
+`Kalmala.UI.InventoryMenu.Selection`. It checks selected detail/count updates,
+owner-instance separation, fallback after removal, and empty-pack clearing.
+The milestone-final rendered host/client pass must additionally confirm that
+each peer sees its own selected item and that the controls/detail fit standard
+and high-contrast supported text scales. This increment adds no RPC, gameplay
+action, replicated field, or saved-data field.
+
+## M12 carried-tool Inventory increment
+
+Inventory also reads at most the six canonical records in the owning pawn's
+existing owner-only `CarriedTools` array. The shared catalogue rows widget keeps
+these equipment cards separate from the sixteen pack slots. Each card and the
+selected detail panel display the tool's authored level, current/max condition,
+and ready/damaged/broken state; malformed or unknown records cannot fabricate a
+usable state. Selection remains local to the menu instance.
+
+For a valid damaged or broken selected tool, `Repair selected tool` sends only
+that canonical tool ID through the existing `UKalmalaCraftingComponent` repair
+request. The server continues to look up its carried record, validate the
+visible same-world Workbench or Forge within 250 cm, and publish the existing
+owner-only result. The menu adds no client-supplied condition, station, cost,
+RPC, replicated field, or save data. Run
+`Kalmala.UI.InventoryMenu.Selection` after an affected build to check mixed
+pack/tool selection, tool-level/condition display, owner-instance privacy,
+fallback, and empty clearing. The final rendered host/client check also reviews
+the equipment rows, repair action and response at supported scales/contrast.
+
+## M12 carried-food Inventory increment
+
+When one of the three supported meal items is selected in the owner's pack,
+Inventory shows its existing Steady Meal effect and the live owner-visible
+availability: the current serving count, active meal time remaining, pending
+request, or last owner-only server result. `Eat one serving` is enabled only
+when owner inventory/status and the existing crafting component are present,
+the selected allowlisted item has a serving, and no meal or food request is
+active. It calls `ServerConsumeFood` with only that item ID. The action has no
+station/range gate. The existing server transaction revalidates the allowlist,
+pack quantity and free meal slot, atomically consumes one serving, applies the
+120-second 10%-lower stamina-use effect, and publishes the owner-only result;
+rejected and repeated requests consume nothing and cannot stack, refresh, or
+replace an active meal. No new RPC, gameplay state, replication field, or save
+data is introduced. `Kalmala.UI.InventoryMenu.Selection` also checks the
+supported-food effect text, visible Eat action, and fail-closed disabled state
+when its owner components are absent; run it after an affected UI build.
+
+For the M12 final host/client acceptance, exercise each supported item through
+Inventory while away from stations, verify the count changes only after server
+acceptance, and inspect the owner timer/effect and result. Confirm zero count,
+missing owner data, an active meal, a stale/replayed request, and a rejected
+request disable or reject use without consumption or effect refresh. Verify
+that the other peer cannot see the owner's pack or action result. Rendered
+scale/contrast and broad regressions remain in the milestone-final matrix.
+
+## M12 HUD feedback decoupling increment
+
+The selected support effect appears in a separate passive owner-local strip,
+using the character's local selection and the owner's learned-effect state.
+Input still uses the existing 1–4/D-pad selection actions and Q/controller
+activation action. The transient notification queue now also observes the
+owner-only combat and support result serials, plus concise discovery
+found/already-found/unavailable acknowledgements from the existing owner
+source. The Inventory HUD must not supply these results or own the support
+glyph selection. No new gameplay request or authority path is introduced.
+
+Run `Scripts/Verify-LocalInputContract.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` after an
+affected editor compile. `Kalmala.UI.SupportSelection.LocalHudCue` checks the
+selection label for learned, unavailable, and no-selection cases.
+`Kalmala.UI.Notifications.CombinedPresentation` checks silent combat/support
+baselines, new serial feedback, deduplication, bounded expiry, and that combat
+text contains no target identity. Rendered strip positioning, action notices,
+modal behavior, and host/client privacy remain in M12 milestone-final review.
 
 ## M5 documentation contract suite
 

@@ -100,9 +100,6 @@ foreach ($anchor in @(
     'COLOUR-INDEPENDENT FEEDBACK',
     'MarkerLine(TEXT("HEARTH")',
     'MarkerLine(TEXT("CONSTRUCTION")',
-    'MarkerLine(TEXT("COMBAT")',
-    'MarkerLine(TEXT("DISCOVERY")',
-    'MarkerLine(TEXT("SUPPORT")',
     'GetViewportScale',
     'LastFeedbackViewportSize',
     'SetPositionInViewport',
@@ -110,6 +107,11 @@ foreach ($anchor in @(
 )) {
     if ($feedbackSourceText -notmatch [regex]::Escape($anchor)) {
         throw "Accessibility feedback source is missing anchor: $anchor"
+    }
+}
+foreach ($movedFeedback in @('MarkerLine(TEXT("COMBAT")', 'MarkerLine(TEXT("DISCOVERY")', 'MarkerLine(TEXT("SUPPORT")')) {
+    if ($feedbackSourceText.Contains($movedFeedback)) {
+        throw "Accessibility overlay still duplicates dedicated HUD feedback: $movedFeedback"
     }
 }
 

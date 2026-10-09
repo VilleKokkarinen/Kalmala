@@ -62,13 +62,13 @@ try {
         ($serverText + $clientText) -match 'Item gain receipts remote: Empty=0') {
         throw 'Accepted item-gain receipts did not preserve owner delivery/privacy.'
     }
-    if ($serverText -notmatch 'Notification owner baseline: Silent=1 Rows=0 Sources=3' -or
-        $clientText -notmatch 'Notification owner baseline: Silent=1 Rows=0 Sources=3') {
+    if ($serverText -notmatch 'Notification owner baseline: Silent=1 Rows=0 Sources=5' -or
+        $clientText -notmatch 'Notification owner baseline: Silent=1 Rows=0 Sources=5') {
         throw 'A peer replayed existing owner state while establishing notification baselines.'
     }
     if ($NotificationReview) {
         foreach ($peer in @(@{ Name = 'Host'; Text = $serverText }, @{ Name = 'Client'; Text = $clientText })) {
-            if ($peer.Text -notmatch 'Notification reconnect baseline: Silent=1 Rows=0 Sources=3' -or
+            if ($peer.Text -notmatch 'Notification reconnect baseline: Silent=1 Rows=0 Sources=5' -or
                 $peer.Text -notmatch 'Notification combined fixture: Ready=1 Rows=3 Skill=1 Item=1 Discovery=1' -or
                 $peer.Text -notmatch "Notification combined layout: Complete=1 OwnerLocal=1 PeerPrivateHidden=1 Passive=1 Rows=3 Scale=$TextScale Contrast=$Contrast Motion=Static" -or
                 $peer.Text -notmatch 'Notification modal fixture: Collapsed=1 Rows=3' -or

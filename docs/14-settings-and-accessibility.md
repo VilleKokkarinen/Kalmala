@@ -7,9 +7,16 @@ or a new save schema.
 
 M11 places Wet, meal, exposure, support and weather status markers in one
 transparent owner-local hotbar. Escape > Status and weather details exposes
-their live text without hover. The optional feedback overlay retains action
-results and nearby hearth/construction context, with no duplicate active
-status rows. See `36-status-icons.md` for the updated presentation contract.
+their live text without hover. The optional feedback overlay retains nearby
+hearth/construction context, with no duplicate active status rows.
+Owner-local notifications now carry concise combat/support outcomes and
+discovery acknowledgements; a separate text-plus-glyph strip shows the selected
+support effect without control-binding labels. The colour-independent feedback
+system covers Wet, hearth, construction, combat, discovery, and support: the
+optional owner-only overlay shows nearby hearth/construction context while the
+other cues use their dedicated text/icon HUD surfaces. See
+`36-status-icons.md` for the status presentation contract and
+`40-notifications.md` for feedback rules.
 
 ## Existing shell and option groups
 
@@ -30,8 +37,9 @@ to implement:
   `UPlayerInput`, and provides a restore-defaults action without changing what
   the server validates.
 - **Settings:** local text scale and contrast choices, together with the
-  colour-independent feedback preference used by Wet, hearth, construction,
-  combat, discovery, and support presentation.
+  colour-independent feedback preference for the optional nearby hearth and
+  construction text overlay. Combat/support outcomes, discovery notices, and
+  selected-support text remain explicit in their separate HUD surfaces.
 
 The Escape home/settings shell and all four option tabs use the local shared UI
 theme for their background image. Separate per-view keys allow a theme to
@@ -121,6 +129,7 @@ remapping is added:
 | Sprint | Left Shift / Right Shift | Left stick click |
 | SettingsMenu | Escape / O | — |
 | WorldMap / WorldMapRecenter | M / R | — |
+| InventoryMenu | Tab / I | — |
 | Build and crafting menu (`CraftMenu`) | B | Special left |
 | Support selection | 1–4 | D-pad directions |
 | Support activation | Q | Face button top |
@@ -129,6 +138,46 @@ The baseline check proves that these existing names and inputs are present; it
 does not make them remappable. A runtime remapping presenter must display the
 actual current binding, retain a keyboard/controller path to cancel or reset,
 and send the same existing intent rather than a new gameplay payload.
+
+The owner-local Inventory menu opens only when no other modal is ignoring
+movement or look input. This keeps it exclusive with crafting, Settings, and
+the world map, whose existing modal paths retain their opening/closing rules.
+Its Escape path uses the existing SettingsMenu action to dismiss Inventory
+before Settings can open. Opening captures the current cursor visibility and
+only the movement/look ignore state it acquires; closing restores those values
+and returns input to gameplay. While an editable text control has keyboard
+focus, Tab/I do not toggle the menu. Gamepad B closes it when focus is outside
+text entry. The menu reads only the owning pawn's owner-only replicated pack
+stacks and bounded carried-tool records. Previous/next controls and arrow/D-pad
+input select a pack or equipment row, whose icon, description or level/condition
+appears in the shared detail panel. If a selected record disappears, selection
+falls back to the first remaining row; an empty owner view clears selection and
+hides the detail panel. A damaged selected tool exposes the existing repair
+action. It sends only the tool ID, and the server validates the carried record
+and nearby visible Workbench or Forge before changing condition. A selected
+supported food item shows its existing Steady Meal benefit, owner-visible
+quantity and active timer, and an Eat one serving action. That action sends only
+the selected food ID through the existing station-free server transaction;
+rejected or replayed requests consume nothing and cannot refresh or replace an
+active meal. The owner sees the server result. The previous HUD pack view
+remains until the separate HUD-removal task.
+
+Inventory also has local search, category, and sort controls. Search trims outer
+whitespace, is limited to 64 characters, and matches only names already present
+in the owner's visible pack/tool rows; it cannot query descriptions, quantities,
+or hidden catalogue content. Category filters All, Items, or Carried tools, and
+sort chooses owner order, name, or category/name without changing pack order.
+Page Up/left shoulder cycles category, Page Down/right shoulder cycles sort,
+arrows/D-pad change the selected row, and Tab reaches search and labelled
+buttons. While text editing has focus, its cursor keys remain available. Query,
+filter, sort, canonical selection, and row/menu scroll offsets survive closing
+and reopening this local widget for the current session. An entry hidden by a
+filter or query keeps its remembered selection; an entry removed from the owner
+snapshot falls back to the first remaining result, while no results clears
+details and explains recovery. Separate menu and row scroll areas keep the
+browsing controls reachable when enlarged text or viewport changes need scroll
+fallback. The panel follows a resized viewport up to its normal 640×560 UI-unit
+size and leaves a 16-unit inset at each edge when the available area is smaller.
 
 ## Accessibility requirements
 

@@ -31,7 +31,13 @@ $requiredActions = @{
     SettingsMenu = @('Escape', 'O')
     WorldMap = @('M')
     WorldMapRecenter = @('R')
+    InventoryMenu = @('Tab', 'I')
     CraftMenu = @('B', 'Gamepad_Special_Left')
+    SupportSelectMending = @('One', 'Gamepad_DPad_Up')
+    SupportSelectHearthShield = @('Two', 'Gamepad_DPad_Right')
+    SupportSelectBearsVigor = @('Three', 'Gamepad_DPad_Down')
+    SupportSelectDeerCall = @('Four', 'Gamepad_DPad_Left')
+    SupportActivate = @('Q', 'Gamepad_FaceButton_Top')
 }
 
 foreach ($mapping in $requiredMappings.GetEnumerator()) {
@@ -53,6 +59,17 @@ foreach ($action in $requiredActions.GetEnumerator()) {
 
 if ($text -notmatch 'DefaultInputComponentClass=/Script/EnhancedInput.EnhancedInputComponent') {
     throw 'Enhanced Input component baseline is missing'
+}
+
+$characterSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaCharacter.cpp'
+$characterSource = Get-Content -LiteralPath $characterSourcePath -Raw
+foreach ($binding in @(
+    'SupportSelectMending', 'SupportSelectHearthShield', 'SupportSelectBearsVigor',
+    'SupportSelectDeerCall', 'SupportActivate'
+)) {
+    if ($characterSource -notmatch ('BindAction\(TEXT\("' + [regex]::Escape($binding) + '"\)')) {
+        throw "Support input action is configured but not bound by the character: $binding"
+    }
 }
 
 Write-Output "PASS: local input baseline contains $($requiredMappings.Count) axes and $($requiredActions.Count) actions with their documented keyboard/controller bindings."

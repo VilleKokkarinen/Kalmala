@@ -50,6 +50,18 @@ void UKalmalaItemDetailWidget::BuildPanel()
 void UKalmalaItemDetailWidget::SetItem(FName Id, const FString& Name, const FString& VisibleState,
     const int32 TextScale, const int32 Contrast)
 {
+    SetPresentation(Id, Name, DescribeItem(Id, VisibleState), TextScale, Contrast);
+}
+
+void UKalmalaItemDetailWidget::SetCarriedTool(FName Id, const FString& Name, const FString& VisibleState,
+    const int32 TextScale, const int32 Contrast)
+{
+    SetPresentation(Id, Name, TEXT("Carried equipment\n\n") + VisibleState, TextScale, Contrast);
+}
+
+void UKalmalaItemDetailWidget::SetPresentation(FName Id, const FString& Name, const FString& Description,
+    const int32 TextScale, const int32 Contrast)
+{
     BuildPanel();
     if (!Panel) return;
     const auto& Theme = FKalmalaUITheme::Get();
@@ -58,7 +70,7 @@ void UKalmalaItemDetailWidget::SetItem(FName Id, const FString& Name, const FStr
     Theme.ApplyText(*Title, Theme.HeadingSize, true, TextScale, Contrast);
     Theme.ApplyText(*Details, Theme.BodySize, false, TextScale, Contrast);
     Title->SetText(FText::FromString(Name));
-    Details->SetText(FText::FromString(DescribeItem(Id, VisibleState)));
+    Details->SetText(FText::FromString(Description));
     EKalmalaIcon Kind; int32 Variant;
     UKalmalaIconWidget::FindCatalogueIcon(Id, Kind, Variant);
     Icon->SetIcon(Kind, Variant);

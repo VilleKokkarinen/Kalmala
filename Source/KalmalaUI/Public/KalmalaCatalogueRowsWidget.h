@@ -17,7 +17,8 @@ class KALMALAUI_API UKalmalaCatalogueRowsWidget : public UUserWidget
     GENERATED_BODY()
 public:
     static FString BuildToolDetail(int32 Level, int32 Condition, int32 MaximumCondition);
-    void SetRows(const TArray<FKalmalaCatalogueRow>& Rows, int32 SlotCapacity, int32 TextScale, int32 Contrast);
+    void SetRows(const TArray<FKalmalaCatalogueRow>& Rows, int32 SlotCapacity, int32 TextScale, int32 Contrast,
+        FName SelectedItem = NAME_None);
     /** Compact read-only catalogue presentation used by the developer icon gallery. */
     void SetRows(const TArray<FKalmalaCatalogueRow>& Rows, int32 TextScale, int32 Contrast);
     int32 GetSlotCapacity() const { return SlotCapacity; }
