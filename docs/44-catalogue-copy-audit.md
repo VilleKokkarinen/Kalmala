@@ -1,0 +1,112 @@
+# M12 goal 9: Catalogue copy audit
+
+The pinned before/after table is [catalogue-copy-audit.csv](catalogue-copy-audit.csv).
+It snapshots current copy at baseline commit 0dfad8e (schema 4), before any
+goal 9 text or catalogue implementation changes. Review notes and proposed
+wording are candidates for the later ordered copy increments; they are not
+runtime changes or an approval to change gameplay data.
+
+## Coverage and order
+
+The table has one row per canonical identity in
+[the icon manifest](catalogue-icon-manifest.csv): 42 item identities and six
+carried tools. It captures the exact item name/description source ID, current
+and proposed name/description, matching recipe IDs and recipe display names,
+and a copy decision. Recipe labels are aligned with their output identity.
+There are 19 recipe labels, including the Campfire construction recipe. Tool
+rows state where no authored description currently exists.
+
+The batch field pins six ordered groups of eight identities, following the
+existing canonical icon-manifest order:
+
+| Batch | Canonical identities |
+| --- | --- |
+| 01 | Wood, Lightwood, Densewood, Coal, Stone, Iron, Fibre, PeatAmber |
+| 02 | FrostSalt, MirelingAsh, CampfireKit, WorkbenchKit, ForgeKit, WorkbenchToolRackKit, ForgeAnvilKit, GrindingStoneKit |
+| 03 | StorageKit, CookingRackKit, FryingPanKit, CauldronKit, FloorKit, WallKit, RoofKit, BoarMeat |
+| 04 | DeerMeat, BoarHide, DeerHide, CookedBoarMeat, CookedDeerMeat, HearthBroth, MeatStew, RootVegetableSoup |
+| 05 | RoastedRootVegetables, DeerRootRoast, Carrot, Potato, Rutabaga, Onion, CarrotSeed, PotatoSeed |
+| 06 | RutabagaSeed, OnionSeed, ReedKnife, FieldHatchet, StonePick, BronzeAxe, IronAxe, ConstructionHammer |
+
+The CSV batch column is authoritative; each canonical identity occurs once and
+each batch has exactly eight rows. Later copy work should apply these batches
+in order and must not change the frozen current-copy columns.
+
+## Preserve intentional manual flavor
+
+The source history and copy review identify these distinctive owner-authored
+lines as intentional flavor to keep:
+
+- Stone's friendly pet-rock sentence remains unchanged.
+- Carrot's orange-stick wordplay remains, with capitalization normalized.
+- Onion's eye-watering joke remains unchanged.
+- The Meat Stew description keeps its hearty tone and actual ingredient list.
+
+The Potato description currently echoes a recognizable borrowed line. Its
+candidate replaces that wording with original cooking copy while retaining a
+playful food cue. The Workbench label is also an intentional earlier rename,
+but the roadmap explicitly replaces it with Workbench; its useful furnishing
+and repair description is retained. The other proposals make only the narrow
+changes called out in each CSV review note. Do not apply generic prose across
+the catalogue.
+
+Every proposed use must be checked against the current recipes, tool actions,
+construction rules, and cooking contracts before its batch is implemented.
+The candidates avoid costs, quantities, conditions, levels, invented effects,
+new unlocks, and planting mechanics. Campfire's proposed copy is for a
+construction result only: the later Campfire classification tasks must remove
+the normal HearthRing item presentation, preserve its legacy/runtime aliases
+and saved-construction compatibility, and keep existing placement costs and
+server validation.
+
+## Live text-source map
+
+- Content/Data/GameCatalogues.json is the live source for 42 item
+  DisplayName/Description pairs and 19 recipe DisplayName fields. Recipe
+  rows carry output IDs; result descriptions are resolved from the matching
+  item definition.
+- Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp maps
+  legacy catalogue IDs such as HearthRing and Workbench to stable runtime
+  construction IDs. It normalizes references and does not provide replacement
+  display copy. Keep IDs and aliases stable while changing text.
+- Source/KalmalaGameplay/Private/KalmalaItemCatalogue.cpp and
+  KalmalaRecipeCatalogue.cpp load and validate those JSON definitions.
+  Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp defines
+  tool identities/actions but has no display names or descriptions.
+- Tool display names are hard-coded in
+  Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp
+  (GetCarriedToolDisplayName) and
+  Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp
+  (GetToolDisplayName). The inventory detail panel currently supplies only
+  the generic Carried equipment label plus live tool level/condition.
+- Catalogue-backed item names flow through
+  Source/KalmalaUI/Private/KalmalaCatalogueRowsWidget.cpp,
+  KalmalaIngredientWidget.cpp, KalmalaInventoryInspectWidget.cpp,
+  KalmalaStationContextWidget.cpp, and KalmalaInventoryMenuWidget.cpp. Item
+  descriptions flow through KalmalaItemDetailWidget.cpp and recipe result
+  detail in KalmalaCraftingComponent.cpp. Recipe/build menus and interaction
+  prompts are assembled in Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp;
+  prompts resolve construction names from the shared catalogue, with Campfire
+  named directly.
+- The scan found stale player-facing literals in
+  Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp (Joiner's
+  bench in readiness/result text) and
+  Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp (Woven chest in the
+  storage heading). The Build heading also uses a separate Construction
+  hammer label. These are propagation targets for the later hard-coded-label
+  child; they are not additional canonical identities.
+- Source/KalmalaUI/Private/Tests/, Source/KalmalaGameplay/Private/Tests/,
+  Scripts/Verify-Crafting.ps1, and the goal 9 copy documentation contain
+  expectations or explanatory wording to review alongside each changed
+  batch. They are checks/documentation, not additional runtime catalogue
+  sources.
+- The art_subject column in catalogue-icon-manifest.csv is an internal
+  asset-review aid, not player-facing copy. Preserve the icon identity and
+  mapping while updating text.
+
+The audit is presentation copy only. This increment changes no catalogue,
+tool, recipe, construction, authority, transaction, networking, asset, or save
+data. For each later applied batch, verify that names stay aligned across
+inventory, ingredients, recipes, build, stations, storage, prompts and previews;
+confirm accessible/search/sort text and wrapping; and compare all non-text
+catalogue fields against the baseline.

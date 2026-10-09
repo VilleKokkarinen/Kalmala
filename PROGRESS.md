@@ -13227,3 +13227,52 @@ Known limitations: rendered host/client icon and Favorite/Rank/Recent coexistenc
 Next eligible task: M12 goal 9, create the pinned before/after catalogue text audit and identify manual edits to retain.
 
 Main-checkout handoff synchronization: Complete. Inspected the existing main-checkout edits; updated only this selected BACKLOG parent/child and appended this PROGRESS entry, preserving all earlier content. No implementation files or docs were synchronized.
+
+## Run 2026-10-09 05:23 UTC — Pin M12 catalogue copy audit
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the clean retained worktree E:\dev\Kalmala\wt\m12-hud-feedback-rebuild
+on codex/m12-hud-feedback-rebuild. The main checkout already had pre-existing
+BACKLOG.md and PROGRESS.md changes; they were inspected and preserved.
+
+Completed exactly M12 goal 9's first child. Added a pinned before/after
+catalogue copy audit at baseline 0dfad8e (schema 4), covering all 48 canonical
+identities, all 19 recipe display labels, and six ordered batches of eight.
+Recorded item aliases, the six tool labels with missing authored descriptions,
+the shared item/recipe/build/result copy paths, known hard-coded stale labels,
+and the intentional manual flavor to retain. The Campfire candidate is
+construction-only and leaves its classification, alias, placement, and save
+work to the later ordered children.
+
+Files changed: docs/44-catalogue-copy-audit.md; docs/catalogue-copy-audit.csv;
+BACKLOG.md; and PROGRESS.md.
+
+Lightweight checks passed: a focused PowerShell audit confirmed all 48 unique
+rows match the canonical icon-manifest order, each of six batches has eight
+rows, all 19 recipe labels are covered, and every item current-name/description
+pair exactly matches GameCatalogues.json. git diff --cached --check passed; Git emitted only CRLF/LF normalization warnings. The changed-path MAX_PATH audit passed (longest absolute path 74 characters). Source and factual-use review covered
+docs/04-roadmap.md, docs/07-development-setup.md, docs/10-campfire-and-crafting.md,
+docs/24-m9-second-wave-source-catalogue.md, docs/27-m9-carried-tool-inventory.md,
+docs/43-catalogue-icon-manifest.md, and the live catalogue/tool/UI sources.
+No build, automation, rendered check, or package check was run; full M12
+verification remains deferred.
+
+Observable impact: later name/description edits now have a reviewable baseline,
+stable batch order, source map, and explicit manual-copy preservation notes.
+
+Networking/authority: documentation-only. No catalogue, tool, recipe,
+construction, transaction, network, authority, asset, or save data changed.
+
+Known limitations: proposed wording remains unimplemented and is a candidate
+for its ordered copy batch; Campfire descriptor separation, the HearthRing
+item retirement, Workbench propagation, remaining copy batches and UI
+hard-coded labels remain open. Rendered M12 acceptance and milestone-final
+verification remain deferred.
+
+Next eligible task: M12 goal 9, separate the Campfire construction descriptor
+from inventory-item lookup while retaining aliases and placement behavior.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+BACKLOG.md and PROGRESS.md. Updated only the selected BACKLOG child and added
+this run entry; pre-existing user edits were preserved. No implementation
+files or documentation were synchronized.
