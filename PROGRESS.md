@@ -14100,4 +14100,7 @@ Next eligible task: M12 goal 10, render 64x64 icons without visible names,
 show centred m:ss only beneath finite player effects, and remove weather and
 untimed duration text while retaining accessible names and authoritative timing.
 
-Main-checkout handoff synchronization: Pending.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions first and changed only the selected `BACKLOG.md` child and this
+`PROGRESS.md` entry; all pre-existing main-checkout edits were preserved. No
+implementation files or other documentation were synchronized.
