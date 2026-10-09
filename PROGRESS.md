@@ -13470,6 +13470,8 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 appended this run entry, preserving all pre-existing handoff/user changes. No
 implementation files or other documentation were synchronized.
 
+
+
 ## Run 2026-10-09 06:09 UTC — Apply catalogue copy batch 02
 
 Concurrency guard: Codex app inventory showed no other active Kalmala run.
@@ -14052,3 +14054,50 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions first and changed only the selected `BACKLOG.md` child and this
 `PROGRESS.md` entry; all pre-existing main-checkout edits were preserved. No
 implementation files or other documentation were synchronized.
+
+## Run 2026-10-09 07:42 UTC — Import complete status icon set
+
+Completed exactly M12 goal 10's remaining status-image child. Generated the
+Storm original with the built-in image generator, prepared its transparent
+64x64 RGBA import image, and reviewed the native-size silhouette. Imported all
+nine pinned status images as Texture2D packages to
+`/Game/Kalmala/UI/Icons/Status/<IconId>.<IconId>` with source alpha, sRGB, the
+UI texture group, no mipmaps, and non-streaming settings. Added an explicit
+entry-to-image mapping and a nine-image runtime coverage automation.
+
+Files changed: nine `Content/Kalmala/UI/Icons/Status/*.uasset` packages;
+Storm original and prepared PNGs; `Scripts/Import-StatusIconAssets.ps1`,
+`Scripts/Import-StatusIconAssets.py`, and `Scripts/Validate-StatusIconSet.ps1`;
+`Source/KalmalaUI/Private/KalmalaStatusIconLibrary.cpp` and its public header;
+the status hotbar entry mapping and focused automation; `docs/36-status-icons.md`,
+`docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+
+Lightweight checks passed: `python Scripts/Prepare-StatusIconBatch.py --batch
+03`; `Scripts/Validate-StatusIcon.ps1 -Id Storm`; native-size visual review;
+`Scripts/Import-StatusIconAssets.ps1` completed with exit 0 and verified each
+Texture2D's 64x64 size and UI import settings; `Scripts/Validate-StatusIconSet.ps1`
+passed across all nine manifest identities; PowerShell parser checks, Python
+syntax parsing, `git diff --check`, and the MAX_PATH audit passed. The first
+sandboxed commandlet invocation returned without an import log or packages;
+the isolated importer succeeded with normal Unreal process access. No Unreal
+project build, automation test run, or rendered host/client review was run.
+Full M12 verification remains deferred.
+
+Observable impact: every supported active-status/weather entry now carries a
+stable canonical image ID and resolves to one imported texture package; the
+visible hotbar still uses its existing vector icons, names, and durations.
+
+Networking/authority: presentation-only assets and local ID/path lookup. The
+hotbar continues to read owner-visible state; no RPC, gameplay mutation,
+status timing, replication, or persistence contract changed.
+
+Known limitations: the raster images are not rendered yet. Icon-only
+presentation, finite player-effect m:ss display, weather/untimed duration
+removal, compact layout, and rendered acceptance remain in later M12 tasks.
+The new C++ coverage automation is prepared but has not been executed.
+
+Next eligible task: M12 goal 10, render 64x64 icons without visible names,
+show centred m:ss only beneath finite player effects, and remove weather and
+untimed duration text while retaining accessible names and authoritative timing.
+
+Main-checkout handoff synchronization: Pending.

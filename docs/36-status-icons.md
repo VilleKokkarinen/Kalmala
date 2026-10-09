@@ -116,8 +116,10 @@ import PNGs under `Content/Kalmala/UI/Source/Icons/Status/<IconId>.png` with
 `python Scripts/Prepare-StatusIconBatch.py --batch 01`; the script alpha-crops
 visible artwork and centers it in a transparent 64x64 RGBA canvas with a
 56x56 maximum artwork area. Validate each pinned ID with
-`Scripts/Validate-StatusIcon.ps1 -Id <IconId>`. The intended future Unreal
-texture location is `/Game/Kalmala/UI/Icons/Status/<IconId>.<IconId>`.
+`Scripts/Validate-StatusIcon.ps1 -Id <IconId>`. The complete set is imported
+as Texture2D packages at `/Game/Kalmala/UI/Icons/Status/<IconId>.<IconId>`.
+`FKalmalaStatusIconLibrary` maps each hotbar entry ID to its manifest image ID
+and constructs only those nine supported object paths.
 
 Batch 01 was generated with the built-in image generator and reviewed at
 native size. Its prompt set asks for: a clear blue-gray water droplet with a
@@ -140,8 +142,21 @@ were used. All four retained 1254x1254 RGBA sources and prepared 64x64 RGBA
 files pass the identity, dimension, alpha and path validator and remain
 recognizable at native size.
 
-The batch is prepared only: no status texture `.uasset` has been imported and
-the hotbar does not consume these images yet. Later goal-10 increments import
-the complete pinned set and switch the local status presentation to these
-images. No status timing, effect, authority, replication, or save contract is
-changed by the assets.
+Batch 03 was generated with the built-in image generator and reviewed at
+native size. Its prompt asks for one compact dark slate-blue storm cloud with
+a single bold amber lightning bolt, a thin charcoal contour, warm directional
+highlight, transparent margins, and no rain, text, scenery, badges, or UI
+border. The retained 1254x1254 RGBA source and prepared transparent 64x64 RGBA
+image pass the identity, dimension, alpha and path validator and remain
+recognizable at native size.
+
+`Scripts/Import-StatusIconAssets.ps1` imports all nine prepared PNGs through a
+temporary UE 5.8 content-only project and copies only their Texture2D packages
+into the project. The importer verifies 64x64 dimensions, source alpha,
+sRGB, UI texture group, no mipmaps, and non-streaming settings. Run
+`Scripts/Validate-StatusIconSet.ps1` for manifest, entry-map, PNG, and package
+coverage; `Kalmala.UI.StatusHotbar.StatusIconCoverage` checks the nine runtime
+paths and texture loads after an affected editor build. The current hotbar
+still renders its vector icons, names, and durations until the later
+icon-only presentation increment. No status timing, effect, authority,
+replication, or save contract changed.

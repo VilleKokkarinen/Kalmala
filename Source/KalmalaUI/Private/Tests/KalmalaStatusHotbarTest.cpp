@@ -6,6 +6,7 @@
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaCatalogueIconLibrary.h"
+#include "KalmalaStatusIconLibrary.h"
 #include "KalmalaIconWidget.h"
 #include "KalmalaExposureResponse.h"
 #include "Blueprint/GameViewportSubsystem.h"
@@ -32,7 +33,13 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     TestEqual(TEXT("Stable order"), Entries[0].Id, UKalmalaPlayerStatusComponent::WetStatusId);
     TestEqual(TEXT("Replicated duration rounded up"), Entries[0].Duration, FString(TEXT("32 s")));
     TestEqual(TEXT("Untimed heat"), Entries[2].Duration, FString(TEXT("ongoing")));
+    TestEqual(TEXT("Wet raster identity"), Entries[0].StatusIconId, FName(TEXT("Wet")));
+    TestEqual(TEXT("Meal raster identity"), Entries[1].StatusIconId, FName(TEXT("SteadyMeal")));
+    TestEqual(TEXT("Hot raster identity"), Entries[2].StatusIconId, FName(TEXT("Heat")));
+    TestEqual(TEXT("Cold raster identity"), Entries[3].StatusIconId, FName(TEXT("Cold")));
+    TestEqual(TEXT("Shield maps to its canonical hearth image"), Entries[4].StatusIconId, FName(TEXT("HearthShield")));
     TestEqual(TEXT("Storm distinct"), Entries[5].Icon, EKalmalaIcon::Storm);
+    TestEqual(TEXT("Weather maps to the canonical storm image"), Entries[5].StatusIconId, FName(TEXT("Storm")));
     TestEqual(TEXT("Current storm weather interval"), Entries[5].Duration, FString(TEXT("90 s")));
     S.Statuses.Reset(); S.ActiveSupportEffectExpiry = 45;
     TestEqual(TEXT("Expired statuses removed together"), UKalmalaStatusHotbarWidget::BuildEntries(S).Num(), 3);
@@ -115,6 +122,48 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
         }
     UGameViewportSubsystem::Get()->RemoveWidget(Minimap);
     UGameViewportSubsystem::Get()->RemoveWidget(Hotbar);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaStatusIconCoverageTest, "Kalmala.UI.StatusHotbar.StatusIconCoverage",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FKalmalaStatusIconCoverageTest::RunTest(const FString&)
+{
+    static const TPair<FName, FName> Expected[] = {
+        {TEXT("Wet"), TEXT("Wet")}, {TEXT("SteadyMeal"), TEXT("SteadyMeal")},
+        {TEXT("Heat"), TEXT("Heat")}, {TEXT("Cold"), TEXT("Cold")},
+        {TEXT("Mending"), TEXT("Mending")}, {TEXT("Shield"), TEXT("HearthShield")},
+        {TEXT("Vigor"), TEXT("BearsVigor")}, {TEXT("Call"), TEXT("DeerCall")},
+        {TEXT("Weather"), TEXT("Storm")},
+    };
+    TSet<FName> EntryIds;
+    TSet<FName> IconIds;
+    for (const TPair<FName, FName>& Mapping : Expected)
+    {
+        EntryIds.Add(Mapping.Key);
+        IconIds.Add(Mapping.Value);
+        FName ResolvedIconId = NAME_None;
+        TestTrue(*FString::Printf(TEXT("%s has a status-image assignment"), *Mapping.Key.ToString()),
+            FKalmalaStatusIconLibrary::GetIconIdForEntry(Mapping.Key, ResolvedIconId));
+        TestEqual(TEXT("Entry resolves to its pinned canonical image"), ResolvedIconId, Mapping.Value);
+
+        FSoftObjectPath TexturePath;
+        TestTrue(*FString::Printf(TEXT("%s resolves to a texture path"), *Mapping.Value.ToString()),
+            FKalmalaStatusIconLibrary::GetTextureObjectPath(Mapping.Value, TexturePath));
+        TestEqual(TEXT("Status texture path matches the manifest target"), TexturePath.ToString(),
+            FString::Printf(TEXT("/Game/Kalmala/UI/Icons/Status/%s.%s"), *Mapping.Value.ToString(), *Mapping.Value.ToString()));
+        TestNotNull(*FString::Printf(TEXT("%s imported status texture loads"), *Mapping.Value.ToString()),
+            FKalmalaStatusIconLibrary::LoadTexture(Mapping.Value));
+    }
+    TestEqual(TEXT("All nine entry identities are mapped once"), EntryIds.Num(), 9);
+    TestEqual(TEXT("All nine canonical status images are unique"), IconIds.Num(), 9);
+
+    FName UnknownIconId = NAME_None;
+    TestFalse(TEXT("Unknown entries have no status image"),
+        FKalmalaStatusIconLibrary::GetIconIdForEntry(TEXT("Forged"), UnknownIconId));
+    FSoftObjectPath UnknownPath;
+    TestFalse(TEXT("Unknown images cannot form a texture path"),
+        FKalmalaStatusIconLibrary::GetTextureObjectPath(TEXT("Forged"), UnknownPath));
     return true;
 }
 

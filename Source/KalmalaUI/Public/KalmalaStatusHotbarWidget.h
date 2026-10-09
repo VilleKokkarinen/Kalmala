@@ -11,6 +11,7 @@ struct KALMALAUI_API FKalmalaStatusHotbarEntry
     FString Name;
     FString Duration;
     EKalmalaIcon Icon = EKalmalaIcon::Unknown;
+    FName StatusIconId = NAME_None;
 };
 
 /** Transparent owner-local parent. No backgrounds, input, empty slots, or authority. */

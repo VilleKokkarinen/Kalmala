@@ -4,6 +4,7 @@
 #include "KalmalaSurvivalStatusWidget.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaUITheme.h"
+#include "KalmalaStatusIconLibrary.h"
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Engine/LocalPlayer.h"
@@ -109,27 +110,33 @@ TArray<FKalmalaStatusHotbarEntry> UKalmalaStatusHotbarWidget::BuildEntries(const
     TArray<FKalmalaStatusHotbarEntry> Entries;
     if (!S.bHasCharacter) return Entries;
     const auto Seconds = [](float Value) { return FString::Printf(TEXT("%d s"), FMath::Max(0, FMath::CeilToInt(Value))); };
+    const auto AddEntry = [&Entries](FName Id, const TCHAR* Name, FString Duration, EKalmalaIcon Icon)
+    {
+        FName StatusIconId = NAME_None;
+        FKalmalaStatusIconLibrary::GetIconIdForEntry(Id, StatusIconId);
+        Entries.Add({ Id, Name, MoveTemp(Duration), Icon, StatusIconId });
+    };
     // Fixed semantic order, never replication-array order. No local ticking of owner status durations.
     for (const FName Id : { UKalmalaPlayerStatusComponent::WetStatusId, UKalmalaPlayerStatusComponent::SteadyMealStatusId })
     {
         const auto* Status = S.Statuses.FindByPredicate([Id](const auto& E) { return E.StatusId == Id && FMath::IsFinite(E.RemainingSeconds) && E.RemainingSeconds > 0; });
-        if (Status) Entries.Add({ Id, Id == UKalmalaPlayerStatusComponent::WetStatusId ? TEXT("Wet") : TEXT("Steady meal"), Seconds(Status->RemainingSeconds),
-            Id == UKalmalaPlayerStatusComponent::WetStatusId ? EKalmalaIcon::Drop : EKalmalaIcon::Bowl });
+        if (Status) AddEntry(Id, Id == UKalmalaPlayerStatusComponent::WetStatusId ? TEXT("Wet") : TEXT("Steady meal"), Seconds(Status->RemainingSeconds),
+            Id == UKalmalaPlayerStatusComponent::WetStatusId ? EKalmalaIcon::Drop : EKalmalaIcon::Bowl);
     }
     if (FMath::IsFinite(S.Exposure.HeatIntensity) && S.Exposure.HeatIntensity >= .05f)
-        Entries.Add({ TEXT("Heat"), TEXT("Hot"), TEXT("ongoing"), EKalmalaIcon::Sun });
+        AddEntry(TEXT("Heat"), TEXT("Hot"), TEXT("ongoing"), EKalmalaIcon::Sun);
     if (FMath::IsFinite(S.Exposure.ColdIntensity) && S.Exposure.ColdIntensity >= .05f && FMath::IsFinite(S.Exposure.Warmth)
         && S.Exposure.Warmth < FKalmalaExposureResponse::ColdStaminaRecoveryWarmthThreshold)
-        Entries.Add({ TEXT("Cold"), TEXT("Cold"), TEXT("ongoing"), EKalmalaIcon::Snow });
+        AddEntry(TEXT("Cold"), TEXT("Cold"), TEXT("ongoing"), EKalmalaIcon::Snow);
     const float Remaining = S.ActiveSupportEffectExpiry - S.ServerTimeSeconds;
     if (FMath::IsFinite(Remaining) && Remaining > 0)
     {
         switch (S.ActiveSupportEffect)
         {
-        case EKalmalaSupportEffect::Mending: Entries.Add({ TEXT("Mending"), TEXT("Mending"), Seconds(Remaining), EKalmalaIcon::Cross }); break;
-        case EKalmalaSupportEffect::HearthShield: Entries.Add({ TEXT("Shield"), TEXT("Hearth shield"), Seconds(Remaining), EKalmalaIcon::Shield }); break;
-        case EKalmalaSupportEffect::BearsVigor: Entries.Add({ TEXT("Vigor"), TEXT("Bear's vigor"), Seconds(Remaining), EKalmalaIcon::Paw }); break;
-        case EKalmalaSupportEffect::DeerCall: Entries.Add({ TEXT("Call"), TEXT("Deer call"), Seconds(Remaining), EKalmalaIcon::Antlers }); break;
+        case EKalmalaSupportEffect::Mending: AddEntry(TEXT("Mending"), TEXT("Mending"), Seconds(Remaining), EKalmalaIcon::Cross); break;
+        case EKalmalaSupportEffect::HearthShield: AddEntry(TEXT("Shield"), TEXT("Hearth shield"), Seconds(Remaining), EKalmalaIcon::Shield); break;
+        case EKalmalaSupportEffect::BearsVigor: AddEntry(TEXT("Vigor"), TEXT("Bear's vigor"), Seconds(Remaining), EKalmalaIcon::Paw); break;
+        case EKalmalaSupportEffect::DeerCall: AddEntry(TEXT("Call"), TEXT("Deer call"), Seconds(Remaining), EKalmalaIcon::Antlers); break;
         default: break;
         }
     }
@@ -141,7 +148,7 @@ TArray<FKalmalaStatusHotbarEntry> UKalmalaStatusHotbarWidget::BuildEntries(const
         && S.Weather.GetStormIntensity() >= FKalmalaWeatherState::HighlyActiveStormThreshold)
     {
         const float WeatherRemaining = S.Weather.ServerStartTimeSeconds + S.Weather.DurationSeconds - S.ServerTimeSeconds;
-        Entries.Add({ TEXT("Weather"), TEXT("Storm"), Seconds(WeatherRemaining), EKalmalaIcon::Storm });
+        AddEntry(TEXT("Weather"), TEXT("Storm"), Seconds(WeatherRemaining), EKalmalaIcon::Storm);
     }
     return Entries;
 }
