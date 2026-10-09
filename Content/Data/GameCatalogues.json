@@ -165,14 +165,14 @@
     },
     {
       "ItemId": "RoastedRootVegetables",
-      "DisplayName": "Roasted root vegetables",
-      "Description": "Carrot, potato, and onion roasted in a frying pan over a lit hearth.",
+      "DisplayName": "Roasted Root Vegetables",
+      "Description": "Carrot, potato, and onion roasted in a pan over a lit hearth.",
       "MaxStack": 20
     },
     {
       "ItemId": "DeerRootRoast",
-      "DisplayName": "Deer and rutabaga roast",
-      "Description": "Deer meat, rutabaga, and onion roasted together in a frying pan.",
+      "DisplayName": "Deer and Rutabaga Roast",
+      "Description": "Deer meat, rutabaga, and onion roasted in a frying pan.",
       "MaxStack": 20
     },
     {
@@ -202,19 +202,19 @@
     {
       "ItemId": "Carrot",
       "DisplayName": "Carrot",
-      "Description": "The Original 'Orange stick'.",
+      "Description": "The original 'orange stick'.",
       "MaxStack": 20
     },
     {
       "ItemId": "Potato",
       "DisplayName": "Potato",
-      "Description": "Boil 'em, mash 'em, stick 'em in a stew!",
+      "Description": "A trusty root for stews, soups, and pan roasts.",
       "MaxStack": 20
     },
     {
       "ItemId": "Rutabaga",
       "DisplayName": "Rutabaga",
-      "Description": "A hardy root vegetable.",
+      "Description": "A hardy root with a mild, earthy flavor.",
       "MaxStack": 20
     },
     {
@@ -225,14 +225,14 @@
     },
     {
       "ItemId": "CarrotSeed",
-      "DisplayName": "Carrot seeds",
-      "Description": "Seeds to grow carrots.",
+      "DisplayName": "Carrot Seeds",
+      "Description": "Seeds from the carrot plant.",
       "MaxStack": 50
     },
     {
       "ItemId": "PotatoSeed",
-      "DisplayName": "Potato seeds",
-      "Description": "Seeds to grow potatoes.",
+      "DisplayName": "Potato Seeds",
+      "Description": "Seeds from the potato plant.",
       "MaxStack": 50
     },
     {
@@ -632,7 +632,7 @@
     },
     {
       "RecipeId": "RoastedRootVegetablesRecipe",
-      "DisplayName": "Roasted root vegetables",
+      "DisplayName": "Roasted Root Vegetables",
       "Ingredients": [
         { "ItemId": "Carrot", "Quantity": 1 },
         { "ItemId": "Potato", "Quantity": 1 },
@@ -650,7 +650,7 @@
     },
     {
       "RecipeId": "DeerRootRoastRecipe",
-      "DisplayName": "Deer and rutabaga roast",
+      "DisplayName": "Deer and Rutabaga Roast",
       "Ingredients": [
         { "ItemId": "DeerMeat", "Quantity": 1 },
         { "ItemId": "Rutabaga", "Quantity": 1 },

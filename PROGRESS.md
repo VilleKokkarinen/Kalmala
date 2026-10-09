@@ -13619,3 +13619,52 @@ DeerRootRoast, Carrot, Potato, Rutabaga, Onion, CarrotSeed, and PotatoSeed.
 Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions before editing; updated only the selected BACKLOG child and added this
 PROGRESS entry. Existing content and all implementation files are preserved.
+
+## Run 2026-10-09 06:30 UTC — Apply catalogue copy batch 05
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout already had pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits; they remain preserved.
+
+Completed exactly M12 goal 9's copy batch 05 for RoastedRootVegetables,
+DeerRootRoast, Carrot, Potato, Rutabaga, Onion, CarrotSeed, and PotatoSeed.
+Updated six descriptions and four item display names, aligned the two frying-pan
+recipe labels with their result names, retained Carrot's orange-stick wordplay
+and Onion's eye-watering joke, and replaced Potato's recognizable borrowed line
+with original cooking copy. Seed descriptions remain factual and do not imply a
+planting mechanic. Stable IDs, stack limits, recipe outputs, ingredients, batch
+limits, stations, and cooking effects are unchanged.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/44-catalogue-copy-audit.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: JSON parsing and exact assertions for all eight
+reviewed names/descriptions/stack limits; audit-proposal/runtime matching for
+all eight; recipe/output name alignment and stable output IDs for both recipes;
+comparisons against pre-increment HEAD confirmed every non-copy item and recipe
+field is unchanged; `git diff --check`; manual copy review against the cooking
+contract; and changed-path MAX_PATH audit (longest absolute path 108
+characters). Focused Unreal catalogue assertions were added but not compiled or
+run. No build, full automation queue, host/client runtime, rendered review, or
+package check was performed. Full M12 verification remains deferred.
+
+Observable impact: inventory, ingredient, recipe, and result views use the
+reviewed batch 05 names and descriptions.
+
+Networking/authority: presentation copy only. Server authority, transactions,
+replication, cooking effects, save identities, and schemas are unchanged.
+
+Known limitations: new catalogue assertions and rendered copy review have not
+been executed. Batch 06, hard-coded old-label cleanup, and downstream text
+alignment remain open.
+
+Next eligible task: M12 goal 9, apply copy batch 06 to RutabagaSeed, OnionSeed,
+ReedKnife, FieldHatchet, StonePick, BronzeAxe, IronAxe, and ConstructionHammer.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions before editing; applied only the selected BACKLOG child and this
+PROGRESS entry, preserving all pre-existing main-checkout content. No
+implementation files or other docs were synchronized.

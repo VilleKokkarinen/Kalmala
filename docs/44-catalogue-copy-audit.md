@@ -98,6 +98,18 @@ frozen current-copy columns remain unchanged. Item IDs, stack limits, recipe
 outputs, ingredients, batch counts, station requirements, and cooking effects
 are unchanged.
 
+## Batch 05 applied
+
+Batch 05 capitalizes Roasted Root Vegetables, Deer and Rutabaga Roast, Carrot
+Seeds, and Potato Seeds, aligning the two frying-pan recipe labels with their
+outputs. The descriptions retain the exact food ingredients and cooking
+context, preserve Carrot's orange-stick wordplay and Onion's tear joke, replace
+Potato's recognizable borrowed line with original cooking copy, and avoid
+implying that seeds have a planting mechanic. The focused catalogue assertions
+pin all eight names, descriptions, and stack limits plus the two stable recipe
+outputs. Frozen current-copy columns and all non-copy catalogue fields remain
+unchanged.
+
 ## Preserve intentional manual flavor
 
 The source history and copy review identify these distinctive owner-authored
@@ -108,13 +120,12 @@ lines as intentional flavor to keep:
 - Onion's eye-watering joke remains unchanged.
 - The Meat Stew description keeps its hearty tone and actual ingredient list.
 
-The Potato description currently echoes a recognizable borrowed line. Its
-candidate replaces that wording with original cooking copy while retaining a
-playful food cue. The Workbench label is also an intentional earlier rename,
-but the roadmap explicitly replaces it with Workbench; its useful furnishing
-and repair description is retained. The other proposals make only the narrow
-changes called out in each CSV review note. Do not apply generic prose across
-the catalogue.
+Batch 05 replaces Potato's recognizable borrowed line with original cooking
+copy while retaining a playful food cue. The Workbench label is also an
+intentional earlier rename, but the roadmap explicitly replaces it with
+Workbench; its useful furnishing and repair description is retained. The other
+proposals make only the narrow changes called out in each CSV review note. Do
+not apply generic prose across the catalogue.
 
 Every proposed use must be checked against the current recipes, tool actions,
 construction rules, and cooking contracts before its batch is implemented.
