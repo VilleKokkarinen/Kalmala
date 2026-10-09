@@ -14203,6 +14203,7 @@ active-only/no-name/player-timer presentation and register the prepared
 inventory/station/direct-interaction checks in the final capture matrix; parse
 and inspect now, defer execution to final verification.
 
-Main-checkout handoff synchronization: Pending at worktree commit time; will
-update only the selected backlog child and this progress entry after inspecting
-the dirty main versions. No implementation files or other docs will be synced.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions and changed only the selected `BACKLOG.md` child and this progress
+entry; all pre-existing main-checkout edits remain preserved. No implementation
+files or other documentation were synchronized.
