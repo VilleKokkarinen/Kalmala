@@ -16,6 +16,21 @@ FString UKalmalaItemDetailWidget::DescribeItem(FName Id, const FString& VisibleS
     return Text;
 }
 
+FString UKalmalaItemDetailWidget::DescribeCarriedTool(FName Id, const FString& VisibleState)
+{
+    FString Description = TEXT("Description unavailable.");
+    if (Id == TEXT("ReedKnife")) Description = TEXT("A light blade for gathering plants and reeds.");
+    else if (Id == TEXT("FieldHatchet")) Description = TEXT("A hand hatchet for gathering wood.");
+    else if (Id == TEXT("StonePick")) Description = TEXT("A stone-headed pick for mining.");
+    else if (Id == TEXT("BronzeAxe")) Description = TEXT("A bronze axe for harvesting Lightwood.");
+    else if (Id == TEXT("IronAxe")) Description = TEXT("An iron axe for harvesting Densewood.");
+    else if (Id == TEXT("ConstructionHammer")) Description = TEXT("A hand hammer for placing camp structures.");
+
+    FString Text = TEXT("Carried equipment\n\n") + Description;
+    if (!VisibleState.IsEmpty()) Text += TEXT("\n\n") + VisibleState;
+    return Text;
+}
+
 TSharedRef<SWidget> UKalmalaItemDetailWidget::RebuildWidget()
 {
     BuildPanel();
@@ -56,7 +71,7 @@ void UKalmalaItemDetailWidget::SetItem(FName Id, const FString& Name, const FStr
 void UKalmalaItemDetailWidget::SetCarriedTool(FName Id, const FString& Name, const FString& VisibleState,
     const int32 TextScale, const int32 Contrast)
 {
-    SetPresentation(Id, Name, TEXT("Carried equipment\n\n") + VisibleState, TextScale, Contrast);
+    SetPresentation(Id, Name, DescribeCarriedTool(Id, VisibleState), TextScale, Contrast);
 }
 
 void UKalmalaItemDetailWidget::SetPresentation(FName Id, const FString& Name, const FString& Description,

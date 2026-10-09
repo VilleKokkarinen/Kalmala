@@ -237,14 +237,14 @@
     },
     {
       "ItemId": "RutabagaSeed",
-      "DisplayName": "Rutabaga seeds",
-      "Description": "Seeds to grow rutabaga.",
+      "DisplayName": "Rutabaga Seeds",
+      "Description": "Seeds from the rutabaga plant.",
       "MaxStack": 50
     },
     {
       "ItemId": "OnionSeed",
-      "DisplayName": "Onion seeds",
-      "Description": "Seeds to grow onions.",
+      "DisplayName": "Onion Seeds",
+      "Description": "Seeds from the onion plant.",
       "MaxStack": 50
     }
   ],

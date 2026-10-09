@@ -110,6 +110,25 @@ pin all eight names, descriptions, and stack limits plus the two stable recipe
 outputs. Frozen current-copy columns and all non-copy catalogue fields remain
 unchanged.
 
+## Batch 06 applied; audit coverage complete
+
+Batch 06 capitalizes Rutabaga Seeds and Onion Seeds and replaces planting
+instructions with factual source descriptions. Reed Knife, Field Hatchet, Stone
+Pick, Bronze Axe, Iron Axe, and Construction Hammer now have the reviewed
+role-specific descriptions in the carried-tool detail; the existing names,
+live owner-only level/condition, and tool identities remain intact. The action
+copy matches the current tool contract: Bronze Axe harvests Lightwood, Iron Axe
+harvests Densewood, and Construction Hammer places structures. Focused
+assertions pin both seed names/descriptions/stack limits and all six tool
+descriptions, including visible-state and unknown-tool fallback behavior.
+
+All six ordered batches are now applied. The pinned CSV contains all 48
+canonical identities exactly once across six groups of eight; its original
+current-copy columns remain frozen for comparison. The 41 live item rows, the
+construction-only Campfire identity, and six carried-tool descriptions have
+complete proposal coverage. No tool became an inventory item and no planting,
+crafting, harvest, or construction rule changed.
+
 ## Preserve intentional manual flavor
 
 The source history and copy review identify these distinctive owner-authored
@@ -159,8 +178,9 @@ result description was implemented in copy batch 02.
   Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp
   (GetCarriedToolDisplayName) and
   Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp
-  (GetToolDisplayName). The inventory detail panel currently supplies only
-  the generic Carried equipment label plus live tool level/condition.
+  (GetToolDisplayName). The inventory detail panel uses the reviewed role
+  description in UKalmalaItemDetailWidget::DescribeCarriedTool, alongside the
+  generic Carried equipment label and live owner-visible level/condition.
 - Catalogue-backed item names flow through
   Source/KalmalaUI/Private/KalmalaCatalogueRowsWidget.cpp,
   KalmalaIngredientWidget.cpp, KalmalaInventoryInspectWidget.cpp,
@@ -189,8 +209,8 @@ result description was implemented in copy batch 02.
 The original CSV remains a frozen copy baseline, including the retired
 HearthRing item copy. The Campfire retirement removes that normal item
 definition and renames its direct-build recipe/result; no costs, placement
-authority, icon identity, or save schema change. For each later applied batch,
-verify that names stay aligned across
+authority, icon identity, or save schema change. Across the six applied
+batches, names stay aligned across
 inventory, ingredients, recipes, build, stations, storage, prompts and previews;
 confirm accessible/search/sort text and wrapping; and compare all non-text
 catalogue fields against the baseline.

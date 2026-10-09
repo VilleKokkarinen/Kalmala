@@ -271,6 +271,30 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
                 Recipe->Output, Expected.Value);
         }
     }
+    struct FExpectedBatchSixCopy
+    {
+        FName ItemId;
+        const TCHAR* DisplayName;
+        const TCHAR* Description;
+        int32 MaxStack;
+    };
+    const FExpectedBatchSixCopy BatchSixCopy[] = {
+        { TEXT("RutabagaSeed"), TEXT("Rutabaga Seeds"), TEXT("Seeds from the rutabaga plant."), 50 },
+        { TEXT("OnionSeed"), TEXT("Onion Seeds"), TEXT("Seeds from the onion plant."), 50 },
+    };
+    for (const FExpectedBatchSixCopy& Expected : BatchSixCopy)
+    {
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        if (TestNotNull(FString::Printf(TEXT("Batch 06 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
+        {
+            TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
+                Item->DisplayName, FString(Expected.DisplayName));
+            TestEqual(FString::Printf(TEXT("%s has the reviewed description"), *Expected.ItemId.ToString()),
+                Item->Description, FString(Expected.Description));
+            TestEqual(FString::Printf(TEXT("%s keeps its existing stack limit"), *Expected.ItemId.ToString()),
+                Item->MaxStack, Expected.MaxStack);
+        }
+    }
     TestFalse(TEXT("The catalogue JSON has no Kit substring in any property or value"), JsonText.Contains(TEXT("Kit"), ESearchCase::IgnoreCase));
     const FKalmalaRecipe* Campfire = Recipes->Find(TEXT("Campfire"));
     if (TestNotNull(TEXT("Campfire construction recipe resolves"), Campfire))

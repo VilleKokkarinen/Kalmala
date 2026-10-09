@@ -13668,3 +13668,60 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions before editing; applied only the selected BACKLOG child and this
 PROGRESS entry, preserving all pre-existing main-checkout content. No
 implementation files or other docs were synchronized.
+
+
+## Run 2026-10-09 06:41 UTC — Apply catalogue copy batch 06
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`; the main checkout's pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits remain protected.
+
+Completed exactly M12 goal 9 copy batch 06 for RutabagaSeed, OnionSeed,
+ReedKnife, FieldHatchet, StonePick, BronzeAxe, IronAxe, and
+ConstructionHammer. Capitalized the two seed names and replaced planting
+instructions with factual plant-source descriptions. Added the six reviewed
+tool descriptions to the shared carried-tool details, retaining the existing
+tool names, owner-visible level/condition, and fallback for unknown identities.
+Bronze Axe and Iron Axe copy reflects their supported Lightwood and Densewood
+harvest roles; Construction Hammer remains a placement tool. No tool became a
+pack item and no gameplay rule or saved identity changed.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`Source/KalmalaUI/Public/KalmalaItemDetailWidget.h`;
+`Source/KalmalaUI/Private/KalmalaItemDetailWidget.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaItemDetailTest.cpp`;
+`docs/37-item-details.md`; `docs/44-catalogue-copy-audit.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: PowerShell parsed the catalogue JSON and pinned CSV,
+confirmed all 48 unique identities occur once in six groups of eight, matched
+the batch 06 item text and all six tool descriptions to their proposals, and
+confirmed seed IDs and stack limits match baseline commit `0dfad8e`;
+`git diff --check`; manual review of tool actions against
+`docs/17-m7-tools-and-gathering.md`; and a changed-path MAX_PATH audit. The
+focused C++ assertions were added but not compiled or run. No Unreal build,
+automation, host/client runtime, rendered review, or package check was
+performed. Full M12 verification remains deferred.
+
+Observable impact: Inventory detail now explains carried tools and seed copy
+no longer promises an unimplemented planting mechanic.
+
+Networking/authority: local presentation only. Carried-tool descriptions use
+the existing owner-visible selection/state; no RPC, replication, transaction,
+or save schema changed.
+
+Known limitations: C++ assertions and rendered copy remain unverified. The
+remaining goal 9 hard-coded old-label cleanup and downstream recipe/build/
+station/upgrade/result text alignment are still open.
+
+Next eligible task: M12 goal 9, remove leftover hard-coded old labels from
+inventory/ingredients/storage/prompts and update the focused
+search/sort/name/icon expectations for those sources.
+
+Main-checkout handoff synchronization: Complete. Inspected the existing dirty
+main versions before editing, changed only the selected BACKLOG row, and
+appended this entry while preserving all pre-existing content. No implementation
+files or other docs were synchronized.

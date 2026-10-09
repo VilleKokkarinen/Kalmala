@@ -1,11 +1,13 @@
 # Shared inventory item details
 
 The M11 foundation is `UKalmalaItemDetailWidget`, attached as the detail tooltip
-of populated `UKalmalaCatalogueRowsWidget` cards. It uses the canonical item
-description and assigned icon (64 pixels versus the card's 28/32 pixels), plus
-the caller's existing visible count or tool condition text. Empty cards retain
-their empty-slot explanation. Unknown identities say Description unavailable.
-No weight field exists in the current item definition; no weight is invented.
+of populated `UKalmalaCatalogueRowsWidget` cards. Pack items use the canonical
+item description and assigned icon (64 pixels versus the card's 28/32 pixels),
+plus the caller's existing visible count. Carried tools use their reviewed
+tool-specific description, assigned icon, and the caller's live level and
+condition. Empty cards retain their empty-slot explanation. Unknown identities
+say Description unavailable. No weight field exists in the current item
+definition; no weight is invented.
 
 The panel applies the shared local theme, text scale and high-contrast mode.
 It exposes no mutation, RPC, private peer query, or saved selection. Reusing
@@ -119,7 +121,9 @@ client preview is contradicted by those saved pixels; no renderer fix claimed.
 Earlier three-attempt blocker is resolved in this resumed run; parent/child
 checked only after all final checks. Removal/consumption and independent-owner
 panel refresh are widget automation; canonical catalogue descriptions and
-fallbacks are automated. Reed Knife has no catalogue description, so its truthful
-fallback is retained. No weight/statistics invented. Physical input, packaging,
+fallbacks are automated. At this M11 acceptance, Reed Knife had no item-catalogue
+description, so its generic fallback was retained; M12 goal 9 batch 06 adds
+separate tool-detail copy without creating a pack item. No weight/statistics
+invented. Physical input, packaging,
 exhaustive viewports and clean-HEAD integration are not claimed; mirror includes
 preserved earlier uncommitted UI candidates. Main checkout, no handoff sync.
