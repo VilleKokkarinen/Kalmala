@@ -35,6 +35,20 @@ The CSV batch column is authoritative; each canonical identity occurs once and
 each batch has exactly eight rows. Later copy work should apply these batches
 in order and must not change the frozen current-copy columns.
 
+## Batch 01 applied
+
+Batch 01 updates the Wood, Lightwood, Densewood, Iron, Fibre, and Peat Amber
+descriptions and normalizes the player-facing Fibre name to **Reed Fibre**.
+Coal's concise fuel description and Stone's pet-rock line are retained
+verbatim. Densewood's candidate was tightened during implementation: current
+recipes and construction do not use it for structures, so its copy names the
+documented Ironheart-trunk source and hearth-fuel use without implying a
+structure recipe. The frozen current-copy columns above remain unchanged.
+
+The catalogue automation pins all eight reviewed names, descriptions, and
+existing stack limits. The development check compares every non-text field in
+these eight JSON item rows against baseline commit 0dfad8e.
+
 ## Preserve intentional manual flavor
 
 The source history and copy review identify these distinctive owner-authored

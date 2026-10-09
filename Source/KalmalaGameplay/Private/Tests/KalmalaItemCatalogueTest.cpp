@@ -36,6 +36,38 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Every JSON item definition is loaded"), Catalogue->Items.Num(), JsonItems->Num());
         TestEqual(TEXT("Every JSON recipe definition is loaded"), Recipes->Recipes.Num(), JsonRecipes->Num());
     }
+    struct FExpectedBatchOneCopy
+    {
+        FName ItemId;
+        const TCHAR* DisplayName;
+        const TCHAR* Description;
+        int32 MaxStack;
+    };
+    const FExpectedBatchOneCopy BatchOneCopy[] = {
+        { TEXT("Wood"), TEXT("Wood"), TEXT("Common timber for tools, structures, and camp equipment."), 50 },
+        { TEXT("Lightwood"), TEXT("Lightwood"), TEXT("Pale birch timber for stronger tools."), 50 },
+        { TEXT("Densewood"), TEXT("Densewood"),
+            TEXT("Dark, dense timber from Ironheart trunks that burns as hearth fuel."), 50 },
+        { TEXT("Coal"), TEXT("Coal"), TEXT("A dense, black mineral that burns directly as hearth fuel."), 40 },
+        { TEXT("Stone"), TEXT("Stone"), TEXT("Add some googly eyes, and it becomes a friendly pet rock."), 40 },
+        { TEXT("Iron"), TEXT("Iron"), TEXT("A bar of iron used to make a frying pan."), 50 },
+        { TEXT("Fibre"), TEXT("Reed Fibre"),
+            TEXT("Plant strands used in simple tools and camp furnishings."), 50 },
+        { TEXT("PeatAmber"), TEXT("Peat Amber"), TEXT("Dark peat threaded with amber from the Mire."), 40 },
+    };
+    for (const FExpectedBatchOneCopy& Expected : BatchOneCopy)
+    {
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        if (TestNotNull(FString::Printf(TEXT("Batch 01 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
+        {
+            TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
+                Item->DisplayName, FString(Expected.DisplayName));
+            TestEqual(FString::Printf(TEXT("%s has the reviewed description"), *Expected.ItemId.ToString()),
+                Item->Description, FString(Expected.Description));
+            TestEqual(FString::Printf(TEXT("%s keeps its existing stack limit"), *Expected.ItemId.ToString()),
+                Item->MaxStack, Expected.MaxStack);
+        }
+    }
     TestFalse(TEXT("The catalogue JSON has no Kit substring in any property or value"), JsonText.Contains(TEXT("Kit"), ESearchCase::IgnoreCase));
     const FKalmalaRecipe* Campfire = Recipes->Find(TEXT("Campfire"));
     if (TestNotNull(TEXT("Campfire construction recipe resolves"), Campfire))

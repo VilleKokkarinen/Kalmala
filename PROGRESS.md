@@ -13417,3 +13417,53 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 `BACKLOG.md` and `PROGRESS.md`; updated only the selected child state and added
 this run entry, preserving all pre-existing changes. No implementation files
 or other documentation were synchronized.
+
+## Run 2026-10-09 06:00 UTC — Apply catalogue copy batch 01
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout already contained prior
+`BACKLOG.md` and `PROGRESS.md` handoff edits; they remain preserved.
+
+Completed exactly M12 goal 9's first copy batch for Wood, Lightwood, Densewood,
+Coal, Stone, Iron, Fibre, and Peat Amber. Updated the six descriptions whose
+reviewed copy changed and normalized Fibre's player-facing name to Reed Fibre.
+Retained Coal's concise hearth-fuel description and Stone's authored pet-rock
+line verbatim. Cross-checked item uses against current catalogue recipes, tool
+costs, fuel rules, and source definitions. The proposed Densewood wording
+overstated a structure use, so the candidate and live description now identify
+Ironheart trunks and hearth fuel only. Stable IDs, stack limits, recipe data,
+costs, and all other non-text item fields are unchanged.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/44-catalogue-copy-audit.md`; `docs/catalogue-copy-audit.csv`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: PowerShell JSON/audit assertions confirmed all eight
+batch identities match the reviewed names/descriptions and every non-text item
+field matches baseline commit 0dfad8e; `git diff --check`; manual source review;
+and a changed-path MAX_PATH audit (six paths; longest absolute path 108
+characters). The catalogue automation now pins all eight names,
+descriptions, and stack limits, but was not run. No build, automation queue,
+rendered review, or package check was performed; full M12 verification remains
+deferred.
+
+Observable impact: inventory and item-detail views now show concise, supported
+material copy and the title-cased Reed Fibre name.
+
+Networking/authority: catalogue presentation text only. Stable IDs, stack
+limits, transactions, server authority, replication, and save data are
+unchanged.
+
+Known limitations: copy batches 02–06, leftover hard-coded names, and downstream
+recipe/build/station text alignment remain open. The new C++ assertions and
+rendered copy review have not been executed.
+
+Next eligible task: M12 goal 9, apply copy batch 02 to FrostSalt, MirelingAsh,
+CampfireKit, WorkbenchKit, ForgeKit, WorkbenchToolRackKit, ForgeAnvilKit, and
+GrindingStoneKit.
+
+Main-checkout handoff synchronization: Pending; only `BACKLOG.md` and
+`PROGRESS.md` will be synchronized after inspecting their main-checkout edits.

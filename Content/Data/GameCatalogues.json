@@ -4,7 +4,7 @@
     {
       "ItemId": "Wood",
       "DisplayName": "Wood",
-      "Description": "Basic construction material.",
+      "Description": "Common timber for tools, structures, and camp equipment.",
       "MaxStack": 50
     },
     {
@@ -22,13 +22,13 @@
     {
       "ItemId": "Iron",
       "DisplayName": "Iron",
-      "Description": "A bar of iron prepared for smithing and cooking tools.",
+      "Description": "A bar of iron used to make a frying pan.",
       "MaxStack": 50
     },
     {
       "ItemId": "Fibre",
-      "DisplayName": "Reed fibre",
-      "Description": "Plant strands gathered for bindings, woven gear, and cooking frames.",
+      "DisplayName": "Reed Fibre",
+      "Description": "Plant strands used in simple tools and camp furnishings.",
       "MaxStack": 50
     },
     {
@@ -178,19 +178,19 @@
     {
       "ItemId": "Lightwood",
       "DisplayName": "Lightwood",
-      "Description": "Pale, lightweight timber from second-wave trunks, used in advanced tool recipes.",
+      "Description": "Pale birch timber for stronger tools.",
       "MaxStack": 50
     },
     {
       "ItemId": "Densewood",
       "DisplayName": "Densewood",
-      "Description": "Dense timber from second-wave trunks, used for sturdy stations and as raw hearth fuel.",
+      "Description": "Dark, dense timber from Ironheart trunks that burns as hearth fuel.",
       "MaxStack": 50
     },
     {
       "ItemId": "PeatAmber",
       "DisplayName": "Peat Amber",
-      "Description": "Amber-colored peat from Mire sources, kept as an unprocessed material.",
+      "Description": "Dark peat threaded with amber from the Mire.",
       "MaxStack": 40
     },
     {
