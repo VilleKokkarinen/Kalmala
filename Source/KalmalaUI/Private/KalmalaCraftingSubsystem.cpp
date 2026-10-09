@@ -390,7 +390,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     Column->RemoveChild(RecipesText);
     auto* RecipeRow = WidgetTree->ConstructWidget<UHorizontalBox>();
     auto* IconBox = WidgetTree->ConstructWidget<USizeBox>();
-    IconBox->SetWidthOverride(32); IconBox->SetHeightOverride(32);
+    IconBox->SetWidthOverride(64); IconBox->SetHeightOverride(64);
     SelectedIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
     IconBox->SetContent(SelectedIcon); RecipeRow->AddChild(IconBox);
     RecipeRow->AddChildToHorizontalBox(RecipesText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
@@ -533,6 +533,14 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     CraftBronzeAxeButton = AddButton(TEXT("Craft Bronze Axe"), ToolProgressionActions,
         TEXT("Ask the server to craft the level-one Bronze Axe at a visible same-world level-one Workbench. The server checks materials and private tool inventory."));
     CraftBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeAxe);
+    UpgradeTargetIconBox = WidgetTree->ConstructWidget<USizeBox>();
+    UpgradeTargetIconBox->SetWidthOverride(64.0f);
+    UpgradeTargetIconBox->SetHeightOverride(64.0f);
+    UpgradeTargetIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+    UpgradeTargetIcon->SetCatalogueIcon(TEXT("IronAxe"));
+    UpgradeTargetIconBox->SetContent(UpgradeTargetIcon);
+    UpgradeTargetIconBox->SetVisibility(ESlateVisibility::Collapsed);
+    ToolProgressionActions->AddChildToHorizontalBox(UpgradeTargetIconBox);
     UpgradeIronAxeButton = AddButton(TEXT("Upgrade to Iron Axe"), ToolProgressionActions,
         TEXT("Exchange a level-one Bronze Axe for a level-two Iron Axe when the Forge and shown requirements are ready."));
     UpgradeIronAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeIronAxe);
@@ -1048,6 +1056,9 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     if (ToolProgressionActions)
         ToolProgressionActions->SetVisibility(bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+    if (UpgradeTargetIconBox)
+        UpgradeTargetIconBox->SetVisibility(bForgeUpgradeContext
+            ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
     const bool bStandaloneBuild = !bEmbeddedContext && StationFilterKit.IsNone();
     if (bStandaloneBuild)
         for (UWidget* Excluded : BuildExcludedWidgets)
@@ -1290,6 +1301,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
     {
         RecipeGrid->ClearChildren();
         RecipeSlotCards.Reset();
+        RecipeSlotIcons.Reset();
         RecipeSlotNames.Reset();
         RecipeSlotStates.Reset();
         RecipeSlotVisualStates.Reset();
@@ -1312,10 +1324,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             IconBox->SetWidthOverride(40.0f);
             IconBox->SetHeightOverride(40.0f);
             UKalmalaIconWidget* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
-            EKalmalaIcon Kind;
-            int32 Variant;
-            UKalmalaIconWidget::FindCatalogueIcon(Recipe.Output, Kind, Variant);
-            Icon->SetIcon(Kind, Variant);
+            Icon->SetCatalogueIcon(Recipe.Output);
             IconBox->SetContent(Icon);
             HeadingRow->AddChildToHorizontalBox(IconBox)->SetPadding(FMargin(0.0f, 0.0f, 5.0f, 0.0f));
 
@@ -1344,6 +1353,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             GridPanelSlot->SetVerticalAlignment(VAlign_Fill);
 
             RecipeSlotCards.Add(Card);
+            RecipeSlotIcons.Add(Icon);
             RecipeSlotNames.Add(Name);
             RecipeSlotStates.Add(State);
             RecipeSlotVisualStates.Add(0xff);
@@ -1444,6 +1454,26 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
 {
     if (!bOpen || RecipeSlotCards.IsEmpty() || RecipeGridSelectedIndex < 0 || !bRecipeGridFocused
         || RecipeGridUnavailableCount < 1) return false;
+    const auto& RecipeCatalogueEntries = UKalmalaRecipeCatalogue::Get()->Recipes;
+    bool bGridIconsLoaded = RecipeSlotIcons.Num() == RecipeSlotCards.Num()
+        && RecipeSlotIcons.Num() == LastRecipeGridIndices.Num();
+    for (int32 SlotIndex = 0; bGridIconsLoaded && SlotIndex < RecipeSlotIcons.Num(); ++SlotIndex)
+    {
+        const int32 RecipeIndex = LastRecipeGridIndices[SlotIndex];
+        bGridIconsLoaded = RecipeCatalogueEntries.IsValidIndex(RecipeIndex) && RecipeSlotIcons[SlotIndex]
+            && RecipeSlotIcons[SlotIndex]->GetCatalogueIdForTest() == RecipeCatalogueEntries[RecipeIndex].Output
+            && RecipeSlotIcons[SlotIndex]->HasCatalogueTexture();
+    }
+    const TArray<int32> InitialIndices = GetVisibleRecipeIndices();
+    const bool bSelectedIconLoaded = InitialIndices.IsValidIndex(Selected)
+        && RecipeCatalogueEntries.IsValidIndex(InitialIndices[Selected]) && SelectedIcon
+        && SelectedIcon->GetCatalogueIdForTest() == RecipeCatalogueEntries[InitialIndices[Selected]].Output
+        && SelectedIcon->HasCatalogueTexture();
+    const bool bUpgradeIconLoaded = UpgradeTargetIcon
+        && UpgradeTargetIcon->GetCatalogueIdForTest() == TEXT("IronAxe")
+        && UpgradeTargetIcon->HasCatalogueTexture();
+    UE_LOG(LogTemp, Display, TEXT("Catalogue icons: Grid=%d Selected=%d Upgrade=%d"),
+        bGridIconsLoaded, bSelectedIconLoaded, bUpgradeIconLoaded);
     const bool bBuildMenuCleanup = VerifyBuildMenuCleanupForTest();
     const int32 InitialSelection = Selected;
     const FModifierKeysState NoModifiers;
@@ -1664,7 +1694,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d ForgeAnvil=%d Materials=%d Station=%d NoUnrelated=%d Route=%d PassiveAnvil=%d UiScope=%d"),
         bHasFryingPan, bHasForgeAnvil, bFryingPanMaterials, bFryingPanStation,
         bForgeOnlyRecipes, bForgeInteractionRoute, bPassiveAnvilState, bForgeUiScope);
-    return bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
+    return bGridIconsLoaded && bSelectedIconLoaded && bUpgradeIconLoaded
+        && bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
         && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe
         && bBuildMenuCleanup && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty
         && bBronzeAxeScoped && bHasGrindingStone && bHasToolRack && bNoUnrelatedRecipes
@@ -2281,6 +2312,9 @@ bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
         && WorkbenchRepairSectionButton && WorkbenchRepairSectionButton->GetVisibility() == ESlateVisibility::Collapsed
         && ToolProgressionText && ToolProgressionText->GetVisibility() == ESlateVisibility::Visible
         && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Visible
+        && UpgradeTargetIconBox && UpgradeTargetIconBox->GetVisibility() == ESlateVisibility::HitTestInvisible
+        && UpgradeTargetIcon && UpgradeTargetIcon->GetCatalogueIdForTest() == TEXT("IronAxe")
+        && UpgradeTargetIcon->HasCatalogueTexture()
         && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Visible
         && !UpgradeIronAxeButton->GetIsEnabled()
         && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
@@ -2746,9 +2780,7 @@ void UKalmalaCraftingWidget::Refresh()
     Ingredients->SetIngredients(IngredientCosts,
         OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr,
         TextScalePercent, ContrastMode);
-    EKalmalaIcon Kind; int32 IconVariant;
-    UKalmalaIconWidget::FindCatalogueIcon(SelectedRecipe.Output, Kind, IconVariant);
-    SelectedIcon->SetIcon(Kind, IconVariant);
+    SelectedIcon->SetCatalogueIcon(SelectedRecipe.Output);
     SelectedIcon->SetVisibility(ESlateVisibility::HitTestInvisible);
     const FString StationPrefix = StationFilterKit.IsNone() ? TEXT("")
         : (UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)

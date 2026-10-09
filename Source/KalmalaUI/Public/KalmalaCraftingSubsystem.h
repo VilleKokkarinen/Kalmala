@@ -127,6 +127,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UUniformGridPanel> RecipeGrid;
     UPROPERTY(Transient) TObjectPtr<UScrollBox> CraftingScrollBox;
     UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> RecipeSlotCards;
+    UPROPERTY(Transient) TArray<TObjectPtr<class UKalmalaIconWidget>> RecipeSlotIcons;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotNames;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotStates;
     UPROPERTY(Transient) TArray<uint8> RecipeSlotVisualStates;
@@ -158,6 +159,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> CampfireLightButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeAxeButton;
     UPROPERTY(Transient) TObjectPtr<UButton> UpgradeIronAxeButton;
+    UPROPERTY(Transient) TObjectPtr<class USizeBox> UpgradeTargetIconBox;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> UpgradeTargetIcon;
     UPROPERTY(Transient) TObjectPtr<UWidget> ToolProgressionActions;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchCraftSectionButton;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchRepairSectionButton;

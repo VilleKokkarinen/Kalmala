@@ -60,6 +60,8 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
             FKalmalaCatalogueIconLibrary::GetTextureObjectPath(Id, TexturePath));
         TestEqual(TEXT("Texture path keeps the canonical identity"), TexturePath.ToString(),
             FString::Printf(TEXT("/Game/Kalmala/UI/Icons/Items/%s.%s"), *Id.ToString(), *Id.ToString()));
+        TestNotNull(*FString::Printf(TEXT("%s imported texture loads"), *Id.ToString()),
+            FKalmalaCatalogueIconLibrary::LoadTexture(Id));
         const int32 Key = static_cast<int32>(Icon)*8 + Variant;
         TestFalse(TEXT("Distinct item/tool assignment"), Shapes.Contains(Key)); Shapes.Add(Key);
     };
@@ -76,6 +78,28 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
         EKalmalaIcon Icon; int32 Variant;
         TestTrue(*Recipe.RecipeId.ToString(), UKalmalaIconWidget::FindCatalogueIcon(Recipe.Output, Icon, Variant));
         TestTrue(TEXT("Uses canonical inventory identity"), Items->FindItem(Recipe.Output) != nullptr);
+    }
+    static const TPair<FName, FName> Aliases[] = {
+        {TEXT("HearthRing"), TEXT("CampfireKit")}, {TEXT("Workbench"), TEXT("WorkbenchKit")},
+        {TEXT("Forge"), TEXT("ForgeKit")}, {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit")},
+        {TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit")}, {TEXT("GrindingStone"), TEXT("GrindingStoneKit")},
+        {TEXT("Storage"), TEXT("StorageKit")}, {TEXT("CookingRack"), TEXT("CookingRackKit")},
+        {TEXT("FryingPan"), TEXT("FryingPanKit")}, {TEXT("Cauldron"), TEXT("CauldronKit")},
+        {TEXT("Floor"), TEXT("FloorKit")}, {TEXT("Wall"), TEXT("WallKit")},
+        {TEXT("Roof"), TEXT("RoofKit")}
+    };
+    for (const TPair<FName, FName>& Alias : Aliases)
+    {
+        FSoftObjectPath CanonicalPath;
+        FSoftObjectPath AliasPath;
+        EKalmalaIcon AliasIcon;
+        int32 AliasVariant = 0;
+        TestTrue(*FString::Printf(TEXT("%s alias keeps its canonical texture identity"), *Alias.Key.ToString()),
+            UKalmalaIconWidget::FindCatalogueIcon(Alias.Value, AliasIcon, AliasVariant)
+                && FKalmalaCatalogueIconLibrary::GetTextureObjectPath(Alias.Value, CanonicalPath));
+        TestTrue(TEXT("Legacy output identity is canonicalized before icon lookup"), AliasIcon != EKalmalaIcon::Unknown);
+        TestFalse(*FString::Printf(TEXT("%s does not create a duplicate icon path"), *Alias.Key.ToString()),
+            FKalmalaCatalogueIconLibrary::GetTextureObjectPath(Alias.Key, AliasPath));
     }
     EKalmalaIcon Missing; int32 Variant;
     TestFalse(TEXT("Forged IDs have no assigned icon"), UKalmalaIconWidget::FindCatalogueIcon(TEXT("Forged"), Missing, Variant));

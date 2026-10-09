@@ -22,6 +22,9 @@ public:
     void SetCatalogueIcon(FName CanonicalId);
     static bool FindCatalogueIcon(FName CanonicalId, EKalmalaIcon& OutIcon, int32& OutVariant);
     bool HasCatalogueTexture() const { return CatalogueTexture != nullptr; }
+#if !UE_BUILD_SHIPPING
+    FName GetCatalogueIdForTest() const { return CatalogueId; }
+#endif
 protected:
     virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling,
         FSlateWindowElementList& Elements, int32 Layer, const FWidgetStyle& Style, bool bEnabled) const override;

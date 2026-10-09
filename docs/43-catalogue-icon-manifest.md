@@ -464,10 +464,11 @@ The full lightweight mapping audit matched all 48 manifest identities to a
 canonical `.uasset` package and to the existing vector icon fallback map. All
 13 manifest aliases remain associated with their canonical rows, with no
 duplicate alias packages. The shared lookup builds the corresponding
-`/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` path. Menu consumers still use vector
-icons until the two integration children; rendered host/client acceptance
-remains open. This import changes presentation assets only and does not affect
-gameplay authority, replication, or saves.
+`/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` path. At the batch-C handoff, menu
+consumers still used vector icons pending the two integration children;
+rendered host/client acceptance remained open. This import changes
+presentation assets only and does not affect gameplay authority, replication,
+or saves.
 
 ## Inventory-facing image integration — 2026-10-08
 
@@ -489,4 +490,29 @@ imported pilot texture loading, unknown-ID fallback, item/tool and chest image
 counts, readable stack/condition/ingredient text, and the existing owner-local
 selection boundaries. These automation tests were not run in this normal
 increment. Rendered item/count and chest screenshots remain for M12 final
-verification; build/crafting result grids are the next icon integration child.
+verification; Build/crafting result grids are covered in the following section.
+
+## Build, crafting and upgrade image integration — 2026-10-09
+
+The shared recipe grid now assigns each card its canonical `Recipe.Output`
+texture. This covers Build placeables and the existing crafting selections;
+names, availability, focus, costs and selection remain separate overlays/text.
+The selected output preview uses the same canonical image at 64×64, and the
+Forge Upgrade section shows the target Iron Axe image at 64×64. Unknown IDs
+continue through the existing honest vector fallback. Recipe and upgrade
+requests still use their existing server-validated routes.
+
+`Kalmala.UI.CatalogueIcons.CompleteCoverage` now prepares an imported-texture
+load assertion for every mapped item/tool identity, in addition to canonical
+path, recipe-output and alias/package coverage. The `Verify-Crafting.ps1`
+host/client marker requires a loaded canonical image for every visible grid
+output, the selected output and the Iron Axe upgrade target. No Unreal build,
+automation or rendered pass was run for this normal increment.
+
+For M12 final rendered review, capture Build categories and station craft/upgrade
+views on both peers with `Scripts/Verify-Crafting.ps1 -Rendered`; inspect the
+images at native scale alongside availability, focus, selection and counts.
+When marker-bearing cards are available, include a card carrying Favorite,
+Rank and Recent together and confirm the badges stay distinct and readable
+without covering the object image or each other. These checks remain for final
+rendered acceptance; no badge is baked into the source textures.

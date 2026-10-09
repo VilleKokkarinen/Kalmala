@@ -2244,3 +2244,25 @@ menu and verifies the clean view after category/no-results recovery. Run the
 full queue, host/client rendered matrix, ownership and documentation checks
 during M12 milestone-final verification; this child does not claim those
 runtime results.
+
+## M12 catalogue icon integration
+
+The shared recipe/build grid, selected-output preview and Forge Upgrade target
+use imported canonical textures through `UKalmalaIconWidget`. Each row retains
+its own player-facing name, availability, selection/focus and structured
+requirements. Run `Kalmala.UI.CatalogueIcons.CompleteCoverage` after an affected
+editor build to verify imported texture paths and loads for all current item,
+tool and recipe-output identities. `Scripts/Verify-Crafting.ps1` also requires
+`Catalogue icons: Grid=1 Selected=1 Upgrade=1` from both peers; the grid flag
+checks each visible recipe output against its canonical loaded texture.
+
+During M12 milestone-final verification, use
+`Scripts/Verify-Crafting.ps1 -Rendered` for Build categories and station
+craft/upgrade contexts, and inspect the selected-output and unavailable views
+for readable image, name, count, focus and requirement overlays. Review host and
+client captures. Once Favorite/Rank/Recent markers are present, render a card
+showing all applicable markers at once and confirm none overlap each other or
+the object image. Keep badges as independent UI overlays; unknown IDs must keep
+the honest fallback and no supported manifest identity may use it. This
+increment prepares these assertions; it does not perform the M12 rendered
+acceptance or full verification.

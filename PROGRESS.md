@@ -13207,3 +13207,23 @@ Main-checkout handoff synchronization: Complete. Inspected the existing main
 `BACKLOG.md` and `PROGRESS.md` edits; updated only the selected backlog child
 and appended this run record, preserving all earlier content. No implementation
 files or docs were synchronized.
+
+## Run 2026-10-09 05:07 UTC — Integrate Build/crafting catalogue icons
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run; the only active entry was this automation. Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on `codex/m12-hud-feedback-rebuild`. The main checkout already had pre-existing `BACKLOG.md` and `PROGRESS.md` edits; they are preserved.
+
+Completed exactly M12 goal 8's remaining integration child. Build and crafting recipe-grid cards now load the canonical `Recipe.Output` texture. Selected output previews use the same image at 64×64. Forge Upgrade shows the Iron Axe target image at 64×64. Existing text, focus, selection, availability, requirements, costs, and server routes remain separate and unchanged. Updated the full-coverage automation assertions to load every mapped item/tool texture and verify the 13 manifest aliases stay on canonical image paths without duplicate icon paths; the batch importer continues to reject duplicate alias packages. Added a host/client verifier marker for every visible grid image, selected result, and upgrade target, plus final rendered Favorite/Rank/Recent coexistence review instructions.
+
+Files changed: `Scripts/Verify-Crafting.ps1`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `Source/KalmalaUI/Public/KalmalaIconWidget.h`; `docs/07-development-setup.md`; `docs/43-catalogue-icon-manifest.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `git diff --check`; PowerShell AST parsing for `Verify-Crafting.ps1`; static consumer-binding assertions; manifest/package audit for 48 unique canonical IDs and 13 unique aliases with no duplicate alias packages; changed-path MAX_PATH audit (longest 101 characters); and manual source/authority review. No C++ build, automation run, runtime host/client scenario, rendered review, or package check was run. Full M12 verification remains deferred.
+
+Observable impact: Build, crafting and upgrade selections show the same canonical art used by Inventory while retaining readable labels and independent feedback overlays.
+
+Networking/authority: presentation-only. No server request, replication, save, inventory, or transaction behavior changed.
+
+Known limitations: rendered host/client icon and Favorite/Rank/Recent coexistence acceptance remains open for M12 final verification; badge overlays must remain separate from source images.
+
+Next eligible task: M12 goal 9, create the pinned before/after catalogue text audit and identify manual edits to retain.
+
+Main-checkout handoff synchronization: Pending; only `BACKLOG.md` and `PROGRESS.md` will be synchronized after inspecting and preserving their existing edits.
