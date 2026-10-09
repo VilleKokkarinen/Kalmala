@@ -53,8 +53,8 @@ UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
     UTextBlock* Name = Tree.ConstructWidget<UTextBlock>();
     Name->SetText(FText::FromString(bEmpty ? TEXT("Empty") : Row->Name));
     Name->SetJustification(ETextJustify::Center);
-    Name->SetAutoWrapText(bEmpty || !Row->bCarriedTool);
-    Name->SetWrapTextAt(SlotWidth - 8.0f);
+    Name->SetAutoWrapText(true);
+    Name->SetWrapTextAt(!bEmpty && Row->bCarriedTool ? 0.0f : SlotWidth - 8.0f);
     Theme.ApplyText(*Name, 9, !bEmpty && Row->bCarriedTool, TextScale, Contrast);
     Content->AddChild(Name);
 
@@ -63,8 +63,8 @@ UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
         UTextBlock* Detail = Tree.ConstructWidget<UTextBlock>();
         Detail->SetText(FText::FromString(Row->Detail));
         Detail->SetJustification(ETextJustify::Center);
-        Detail->SetAutoWrapText(!Row->bCarriedTool);
-        Detail->SetWrapTextAt(SlotWidth - 8.0f);
+        Detail->SetAutoWrapText(true);
+        Detail->SetWrapTextAt(Row->bCarriedTool ? 0.0f : SlotWidth - 8.0f);
         Theme.ApplyText(*Detail, 8, false, TextScale, Contrast);
         UVerticalBoxSlot* DetailSlot = Content->AddChildToVerticalBox(Detail);
         if (Row->bCarriedTool) DetailSlot->SetPadding(FMargin(0.0f, Theme.RowSpacing, 0.0f, 0.0f));
@@ -79,7 +79,8 @@ UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
     else if (Row)
     {
         auto* ItemDetail = Tree.ConstructWidget<UKalmalaItemDetailWidget>();
-        ItemDetail->SetItem(Row->Id, Row->Name, Row->Detail, TextScale, Contrast);
+        if (Row->bCarriedTool) ItemDetail->SetCarriedTool(Row->Id, Row->Name, Row->Detail, TextScale, Contrast);
+        else ItemDetail->SetItem(Row->Id, Row->Name, Row->Detail, TextScale, Contrast);
         Card->SetToolTip(ItemDetail);
     }
     return Card;

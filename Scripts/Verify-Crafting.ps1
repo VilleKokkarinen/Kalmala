@@ -28,11 +28,11 @@ try {
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Listen server readiness timed out.' }
     $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common $clientShader $clientCapture -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
-    $deadline = (Get-Date).AddSeconds($(if ($Rendered) { 180 } else { 120 }))
+    $deadline = (Get-Date).AddSeconds($(if ($Rendered) { 300 } else { 120 }))
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before verification.' }
-        $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
-        $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
+        $serverText = if (Test-Path $serverLog) { [string](Get-Content $serverLog -Raw) } else { '' }
+        $clientText = if (Test-Path $clientLog) { [string](Get-Content $clientLog -Raw) } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Crafting fixture FAILED:|Crafting [^\r\n]*Passed=0|M9 camp [^\r\n]*Passed=0|Restored=0') { throw 'Crafting verification failed; inspect retained logs.' }
         $ready = [regex]::Matches($serverText, 'Crafting server gates: Passed=1').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting server final: Passed=1').Count -eq 2 `
@@ -84,6 +84,11 @@ try {
                 foreach ($suffix in @('', '-details', '-feedback', '-build-menu', '-builds', '-structural', '-stations', '-utilities', '-no-results', '-build-clean', '-build-costs', '-build-requirements', '-station-kit-costs', '-station-kit-requirements')) {
                     $ready = $ready -and (Test-Path "$output\$peerName$suffix.png")
                 }
+                foreach ($view in @('workbench-craft', 'workbench-repair', 'forge-craft', 'forge-upgrade', 'forge-repair', 'rack-cook', 'cauldron-cook', 'pan-cook', 'chest-store')) {
+                    foreach ($suffix in @('', '-details')) {
+                        $ready = $ready -and (Test-Path "$output\$peerName-$view$suffix.png")
+                    }
+                }
             }
             foreach ($peerText in @($serverText, $clientText)) {
                 foreach ($view in @('builds', 'structural', 'stations', 'utilities', 'no-results', 'build-clean')) {
@@ -91,6 +96,11 @@ try {
                 }
                 foreach ($view in @('build-costs', 'build-requirements', 'station-kit-costs', 'station-kit-requirements')) {
                     $ready = $ready -and $peerText.Contains("Ingredient review: View=$view Passed=1")
+                }
+                foreach ($view in @('workbench-craft', 'workbench-repair', 'forge-craft', 'forge-upgrade', 'forge-repair', 'rack-cook', 'cauldron-cook', 'pan-cook', 'chest-store')) {
+                    foreach ($details in @(0, 1)) {
+                        $ready = $ready -and $peerText.Contains("Service review: View=$view Details=$details Passed=1 UnavailableContext=1")
+                    }
                 }
                 $ready = $ready -and $peerText.Contains('Construction feedback: Passed=1') `
                     -and $peerText.Contains('Crafting review scroll: Section=Details Passed=1') `

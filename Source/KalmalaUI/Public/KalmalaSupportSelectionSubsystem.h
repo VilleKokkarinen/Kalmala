@@ -47,6 +47,7 @@ public:
     void SetSnapshot(int32 SelectedIndex, uint8 LearnedMask, int32 TextScale, int32 Contrast);
     static FString BuildSelectedText(int32 SelectedIndex, bool bLearned);
     FString GetSelectionSummary() const;
+    FVector2D GetRequiredHudSize() const;
 
 protected:
     virtual void NativeOnInitialized() override;
@@ -81,6 +82,7 @@ public:
         RETURN_QUICK_DECLARE_CYCLE_STAT(UKalmalaSupportSelectionSubsystem, STATGROUP_Tickables);
     }
     virtual bool IsTickable() const override { return !IsTemplate(); }
+    const UKalmalaSupportSelectionWidget* GetSelectionWidget() const { return Widget; }
 
 private:
     void ReleaseWidget();
@@ -88,4 +90,5 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaSupportSelectionWidget> Widget;
     TWeakObjectPtr<class APlayerController> Controller;
     FVector2D LastViewportSize = FVector2D::ZeroVector;
+    FVector2D LastWidgetSize = FVector2D::ZeroVector;
 };

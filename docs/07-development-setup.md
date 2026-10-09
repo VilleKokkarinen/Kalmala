@@ -853,7 +853,11 @@ After the final M12 editor build and automation queue, run
 matrix in `36-status-icons.md`. The helper checks the read-only host/client
 snapshot, empty/populated/expired states, active six-icon fixture, icon-only
 visual contract, finite versus untimed timer assertions, and the group's actual
-12-unit top/minimap separation, left safe inset, and lower viewport bound. It
+12-unit top/minimap separation, left safe inset, and lower viewport bound. The
+populated phase also measures each scaled 64x64 raster image and requires a
+12-unit gap beyond the top-centre support selector. The fixture applies the
+same global text scale and contrast to both cues, so combined-layout review
+catches support/status overlap rather than scaling only the hotbar. It
 also checks that the widget source still creates raster images, visually hidden
 accessible names and centred timers, and that the automation source retains the
 finite/untimed assertions; the final automation queue executes those tests.
@@ -872,13 +876,22 @@ Scripts/Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Co
 Scripts/Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
 Scripts/Verify-InteractionPrompt.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
 Scripts/Verify-InteractionPrompt.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Verify-InventoryMenu.ps1 -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-InventoryMenu.ps1 -Width 1024 -Height 768 -TextScale 150 -Contrast 1 -InterfaceScale 120 -ReducedMotion
 Scripts/Verify-InventoryReconnect.ps1
 ```
 
-Run the inventory peer checks for owner privacy and transactions, and make the
-manual Inventory captures prescribed by the preceding pack-grid, selection,
-equipment, and food sections for each peer's distinct, empty, and populated
-state. Inspect the crafting runner's Build, Workbench/Forge, Cooking Rack/
+Run the inventory peer checks for owner privacy and transactions. The Inventory
+menu runner opens the production owner-local instance with distinct server-owned
+packs (host Wood 7/Stone 2; client Wood 23/Iron 4), exercises search recovery and
+Hearth Broth use/repeat, observes live Wood updates to 4/20 while open, then
+empties both packs through the existing server APIs. Inspect all eleven PNG
+stages per peer, including equipment, selected details, and top/bottom empty
+views covering all sixteen slots. It also checks painted 64x64 detail-image
+geometry and close/input restoration. The launch-gated fixture adds no RPC or
+save schema. Physical keyboard/controller acceptance remains a separate owner
+check; injected delegates are not hardware testing.
+Inspect the crafting runner's Build, Workbench/Forge, Cooking Rack/
 Cauldron/Frying Pan, repair/upgrade, chest and Campfire/Grinding Stone captures,
 plus every available/unavailable/modal/no-target/Repair All interaction-prompt
 capture from both peers. Require each runner's owner-privacy, server
@@ -886,6 +899,15 @@ acceptance/rejection, station-context, stale-target and input-restoration
 markers. These views supplement the complete M12 milestone-final authority and
 accessibility checks; they do not replace the prescribed build, automation,
 reconnect, or other verification.
+
+The crafting runner additionally retains top and detail views for nine service
+sections on each peer: Workbench Craft/Repair, Forge Craft/Upgrade/Repair,
+Cooking Rack/Cauldron/Frying Pan Cook, and Chest Store. These read-only views
+explicitly use an unavailable context; they do not fabricate an accepted actor
+or exercise a transaction. Accepted actions, owner privacy and stale-context
+suppression remain the earlier live/automation gates. Rendered timeout is 300
+seconds for the expanded capture sequence. Inspect these service images as
+well as the fourteen original Build/requirements views.
 
 ### Rendered minimap regression check
 
@@ -1221,7 +1243,7 @@ the equipment rows, repair action and response at supported scales/contrast.
 
 ## M12 carried-food Inventory increment
 
-When one of the three supported meal items is selected in the owner's pack,
+When Hearth Broth is selected in the owner's pack,
 Inventory shows its existing Steady Meal effect and the live owner-visible
 availability: the current serving count, active meal time remaining, pending
 request, or last owner-only server result. `Eat one serving` is enabled only
@@ -1236,6 +1258,14 @@ replace an active meal. No new RPC, gameplay state, replication field, or save
 data is introduced. `Kalmala.UI.InventoryMenu.Selection` also checks the
 supported-food effect text, visible Eat action, and fail-closed disabled state
 when its owner components are absent; run it after an affected UI build.
+
+Hearth Broth is the only current catalogue item accepted by the existing
+meal-use path. The historical RoastedFieldMeat/SmokedFieldMeat IDs remain in
+its allowlist but are absent from schema 4 and cannot be granted or consumed.
+The six schema-4 cooking outputs do not currently have an Eat action. This
+predates M12; the presentation work preserves that gameplay contract rather
+than adding food effects or reintroducing retired items. See
+`docs/28-m9-camp-equipment-recipes.md`.
 
 For the M12 final host/client acceptance, exercise each supported item through
 Inventory while away from stations, verify the count changes only after server

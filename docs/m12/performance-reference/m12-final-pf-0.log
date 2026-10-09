@@ -1,0 +1,14 @@
+Diagnostic profile: Reference; shared logical-processor mask=268435455; quality=-1; screen=100%; texture pool=0 MB (quality -1/pool 0 retain existing settings).
+PASS: both peers retained one server-selected sea-discovery reward and replicated the safely moored, empty skiff after disembark.
+M8 actor/memory profile: Seed=418 Players=2 Actors=57 ReplicatedActors=39 TerrainPatches=9 PopulationKeys=2 InitialGenerationMs=180.79 SystemUsedPhysicalMB=2388.93 SystemAvailablePhysicalMB=12896.19 PopulationSaveBytes=2215
+M8 peer connection profile: WindowSeconds=1.00 ClientToServerBytes=2927 ServerToClientBytes=8026 ClientToServerPackets=48 ServerToClientPackets=48
+M8 process memory snapshot: ListenServerPrivateMiB=2920.94 ListenServerWorkingSetMiB=2389.38 ClientPrivateMiB=2923.22 ClientWorkingSetMiB=2427.32
+M8 rendered frame timing: Metric=FrameTime Unit=ms Samples=300 ListenServerP50=2.81 ListenServerP95=5.33 ListenServerMax=172.14 ClientP50=3.41 ClientP95=5.71 ClientMax=185.78
+M8 rendered frame timing: Metric=GameThreadTime Unit=ms Samples=300 ListenServerP50=1.94 ListenServerP95=2.93 ListenServerMax=163.97 ClientP50=1.96 ClientP95=3.02 ClientMax=158.47
+M8 rendered frame timing: Metric=RenderThreadTime Unit=ms Samples=300 ListenServerP50=2.90 ListenServerP95=5.12 ListenServerMax=6.70 ClientP50=3.38 ClientP95=5.29 ClientMax=11.61
+M8 rendered frame timing: Metric=GPUTime Unit=ms Samples=300 ListenServerP50=1.02 ListenServerP95=1.26 ListenServerMax=2.61 ClientP50=1.05 ClientP95=1.36 ClientMax=2.25
+M8 rendered frame CSVs: E:\dev\Kalmala\m12verify\.mvtmp\m12-final-pf-0\Peers\FrameTimes
+Render mode: Resolution=1280x720 OffscreenRHI VSync=off GPUStats=on ListenServerRHI=D3D12 ListenServerAdapter=NVIDIA GeForce RTX 5090 ClientRHI=D3D12 ClientAdapter=NVIDIA GeForce RTX 5090; each capture covers 300 frames after accepted discovery and safe disembark.
+Discovery/disembark logs: E:\dev\Kalmala\m12verify\.mvtmp\m12-final-pf-0\Peers
+Profile evidence: E:\dev\Kalmala\m12verify\.mvtmp\m12-final-pf-0
+PASS: Reference scenario and observed host/client affinity.

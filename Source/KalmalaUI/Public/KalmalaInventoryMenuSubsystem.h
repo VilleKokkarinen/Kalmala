@@ -35,4 +35,9 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<APlayerController> LocalController;
     TWeakObjectPtr<UInputComponent> BoundInputComponent;
+#if !UE_BUILD_SHIPPING
+    void TickMenuReview(float DeltaTime);
+    int32 ReviewStage = 0;
+    float ReviewElapsed = 0.0f;
+#endif
 };

@@ -127,6 +127,13 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
             const FVector2D ScaledOneSize = UKalmalaStatusHotbarWidget::CalculateSize(1, TextScale, LogicalViewport, ScaledGroupRight);
             const FVector2D ThreeSize = UKalmalaStatusHotbarWidget::CalculateSize(3, TextScale, LogicalViewport, ScaledGroupRight);
             const FVector2D ManySize = UKalmalaStatusHotbarWidget::CalculateSize(6, TextScale, LogicalViewport, ScaledGroupRight);
+            // A narrowed HUD lane must wrap rather than covering another cue.
+            const float ReservedLeft = ScaledGroupRight - (2.0f * (72.0f * TextScale / 100.0f + 4.0f) + 1.0f);
+            const FVector2D ReservedSize = UKalmalaStatusHotbarWidget::CalculateSize(6, TextScale,
+                LogicalViewport, ScaledGroupRight, ReservedLeft);
+            TestTrue(TEXT("Status entries stay to the right of a reserved support cue"),
+                ScaledGroupRight - ReservedSize.X >= ReservedLeft);
+            TestTrue(TEXT("Reserved support space wraps the six entries down"), ReservedSize.Y > ManySize.Y);
             const float Scale = TextScale / 100.0f;
             const float CellWidth = UKalmalaStatusHotbarWidget::StatusCellWidth * Scale;
             const float RowHeight = UKalmalaStatusHotbarWidget::StatusCellContentHeight * Scale

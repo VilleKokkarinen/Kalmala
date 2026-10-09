@@ -1,0 +1,14 @@
+Diagnostic profile: Cpu4Threads; shared logical-processor mask=15; quality=-1; screen=100%; texture pool=0 MB (quality -1/pool 0 retain existing settings).
+PASS: both peers retained one server-selected sea-discovery reward and replicated the safely moored, empty skiff after disembark.
+M8 actor/memory profile: Seed=418 Players=2 Actors=56 ReplicatedActors=38 TerrainPatches=9 PopulationKeys=2 InitialGenerationMs=110.05 SystemUsedPhysicalMB=2403.16 SystemAvailablePhysicalMB=13046.14 PopulationSaveBytes=2215
+M8 peer connection profile: WindowSeconds=1.00 ClientToServerBytes=1790 ServerToClientBytes=6960 ClientToServerPackets=28 ServerToClientPackets=29
+M8 process memory snapshot: ListenServerPrivateMiB=2988.61 ListenServerWorkingSetMiB=2405.77 ClientPrivateMiB=3001.86 ClientWorkingSetMiB=2465.16
+M8 rendered frame timing: Metric=FrameTime Unit=ms Samples=300 ListenServerP50=5.03 ListenServerP95=12.82 ListenServerMax=205.56 ClientP50=5.45 ClientP95=13.96 ClientMax=236.01
+M8 rendered frame timing: Metric=GameThreadTime Unit=ms Samples=300 ListenServerP50=2.35 ListenServerP95=5.75 ListenServerMax=190.59 ClientP50=2.44 ClientP95=6.66 ClientMax=205.37
+M8 rendered frame timing: Metric=RenderThreadTime Unit=ms Samples=300 ListenServerP50=4.58 ListenServerP95=13.12 ListenServerMax=23.45 ClientP50=5.09 ClientP95=14.11 ClientMax=23.54
+M8 rendered frame timing: Metric=GPUTime Unit=ms Samples=300 ListenServerP50=1.02 ListenServerP95=1.25 ListenServerMax=1.73 ClientP50=1.05 ClientP95=1.33 ClientMax=2.29
+M8 rendered frame CSVs: E:\dev\Kalmala\m12verify\.mvtmp\m12-final-pf-2\Peers\FrameTimes
+Render mode: Resolution=1280x720 OffscreenRHI VSync=off GPUStats=on ListenServerRHI=D3D12 ListenServerAdapter=NVIDIA GeForce RTX 5090 ClientRHI=D3D12 ClientAdapter=NVIDIA GeForce RTX 5090; each capture covers 300 frames after accepted discovery and safe disembark.
+Discovery/disembark logs: E:\dev\Kalmala\m12verify\.mvtmp\m12-final-pf-2\Peers
+Profile evidence: E:\dev\Kalmala\m12verify\.mvtmp\m12-final-pf-2
+PASS: Cpu4Threads scenario and observed host/client affinity.

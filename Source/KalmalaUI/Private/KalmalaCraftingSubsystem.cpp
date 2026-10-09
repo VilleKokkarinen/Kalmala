@@ -392,7 +392,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     auto* IconBox = WidgetTree->ConstructWidget<USizeBox>();
     IconBox->SetWidthOverride(64); IconBox->SetHeightOverride(64);
     SelectedIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
-    IconBox->SetContent(SelectedIcon); RecipeRow->AddChild(IconBox);
+    IconBox->SetContent(SelectedIcon);
+    RecipeRow->AddChildToHorizontalBox(IconBox)->SetVerticalAlignment(VAlign_Top);
     RecipeRow->AddChildToHorizontalBox(RecipesText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     Column->AddChild(RecipeRow);
     WorkbenchRepairExcludedWidgets.Add(RecipeRow);
@@ -540,7 +541,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     UpgradeTargetIcon->SetCatalogueIcon(TEXT("IronAxe"));
     UpgradeTargetIconBox->SetContent(UpgradeTargetIcon);
     UpgradeTargetIconBox->SetVisibility(ESlateVisibility::Collapsed);
-    ToolProgressionActions->AddChildToHorizontalBox(UpgradeTargetIconBox);
+    ToolProgressionActions->AddChildToHorizontalBox(UpgradeTargetIconBox)->SetVerticalAlignment(VAlign_Center);
     UpgradeIronAxeButton = AddButton(TEXT("Upgrade to Iron Axe"), ToolProgressionActions,
         TEXT("Exchange a level-one Bronze Axe for a level-two Iron Axe when the Forge and shown requirements are ready."));
     UpgradeIronAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeIronAxe);
@@ -1336,7 +1337,9 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             UKalmalaIconWidget* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
             Icon->SetCatalogueIcon(Recipe.GetOutputIdentity());
             IconBox->SetContent(Icon);
-            HeadingRow->AddChildToHorizontalBox(IconBox)->SetPadding(FMargin(0.0f, 0.0f, 5.0f, 0.0f));
+            auto* GridIconSlot = HeadingRow->AddChildToHorizontalBox(IconBox);
+            GridIconSlot->SetVerticalAlignment(VAlign_Top);
+            GridIconSlot->SetPadding(FMargin(0.0f, 0.0f, 5.0f, 0.0f));
 
             UTextBlock* Name = WidgetTree->ConstructWidget<UTextBlock>();
             const int32 BuildGroup = GetBuildBrowseGroup(Recipe.GetOutputIdentity());
@@ -1716,6 +1719,31 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && bHasFryingPan && bHasForgeAnvil && bFryingPanRequirements && bForgeOnlyRecipes
         && bForgeInteractionRoute && bPassiveAnvilState && bForgeUiScope && bCookingRackScope && bCauldronScope && bFryingPanScope
         && bChestScope;
+}
+
+bool UKalmalaCraftingWidget::PrepareServiceReviewForTest(const int32 View, const bool bDetails)
+{
+    static const FName Kits[] = {TEXT("WorkbenchKit"), TEXT("WorkbenchKit"), TEXT("ForgeKit"),
+        TEXT("ForgeKit"), TEXT("ForgeKit"), TEXT("CookingRackKit"), TEXT("CauldronKit"),
+        TEXT("FryingPanKit"), TEXT("StorageKit")};
+    static const TCHAR* Sections[] = {TEXT("Craft"), TEXT("Repair"), TEXT("Craft"), TEXT("Upgrade"),
+        TEXT("Repair"), TEXT("Cook"), TEXT("Cook"), TEXT("Cook"), TEXT("Store")};
+    if (View < 0 || View >= UE_ARRAY_COUNT(Kits) || !bOpen || !CraftingScrollBox) return false;
+    // Render the real service content with an explicitly unavailable context.
+    // Accepted/stale-context requests are checked by the earlier live fixtures;
+    // this read-only review must never manufacture a server-accepted target.
+    bEmbeddedContext = true;
+    StationFilterKit = Kits[View];
+    ContextStationActor.Reset(); ContextOwnerPawn.Reset(); ContextConstructionId.Reset();
+    RecipeQuery.Reset(); RecipeCategory = 0; Selected = 0; bRecipeNameSort = false;
+    StationContextSection = Sections[View];
+    ConfigureStationContextPresentation(StationContextSection);
+    SetRecipeBrowse(TEXT(""), 0, false);
+    Refresh();
+    if (bDetails) CraftingScrollBox->ScrollToEnd();
+    else CraftingScrollBox->ScrollToStart();
+    return !IsStationContextValid() && GetVisibility() == ESlateVisibility::Visible
+        && HeaderText && HeaderText->GetText().ToString().Contains(View == 8 ? TEXT("Storage") : Sections[View]);
 }
 
 bool UKalmalaCraftingWidget::VerifyCookingRackScopeForTest()
@@ -3297,14 +3325,32 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             }
         }
     }
-    if (bCaptureRequested && ReviewCaptureStage < 26 && Widget
+    if (bCaptureRequested && ReviewCaptureStage < 62 && Widget
         && FParse::Value(FCommandLine::Get(), TEXT("KalmalaCraftingCapture="), CapturePath))
     {
         CaptureWait += DeltaTime;
         if (CaptureWait > 3.0f)
         {
             CaptureWait = 0;
-            if (ReviewCaptureStage >= 18)
+            if (ReviewCaptureStage >= 26)
+            {
+                const int32 View = (ReviewCaptureStage - 26) / 4;
+                const bool bDetails = (ReviewCaptureStage - 26) % 4 >= 2;
+                static const TCHAR* Names[] = {TEXT("workbench-craft"), TEXT("workbench-repair"),
+                    TEXT("forge-craft"), TEXT("forge-upgrade"), TEXT("forge-repair"),
+                    TEXT("rack-cook"), TEXT("cauldron-cook"), TEXT("pan-cook"), TEXT("chest-store")};
+                if (ReviewCaptureStage % 2 == 0)
+                {
+                    UE_LOG(LogTemp, Display, TEXT("Service review: View=%s Details=%d Passed=%d UnavailableContext=1"),
+                        Names[View], bDetails, Widget->PrepareServiceReviewForTest(View, bDetails));
+                }
+                else
+                {
+                    FScreenshotRequest::RequestScreenshot(FPaths::GetBaseFilename(CapturePath, false)
+                        + TEXT("-") + Names[View] + (bDetails ? TEXT("-details.png") : TEXT(".png")), true, false);
+                }
+            }
+            else if (ReviewCaptureStage >= 18)
             {
                 const int32 View = (ReviewCaptureStage - 18) / 2;
                 static const TCHAR* Names[] = { TEXT("build-costs"), TEXT("build-requirements"), TEXT("station-kit-costs"), TEXT("station-kit-requirements") };

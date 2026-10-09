@@ -9,6 +9,7 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -294,7 +295,12 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
     Super::TickComponent(DeltaTime, TickType, ThisTick);
 #if !UE_BUILD_SHIPPING
     APawn* Pawn = Cast<APawn>(GetOwner());
-    if (bVerificationComplete || !Pawn || !Pawn->GetPlayerState()) return;
+    if (!Pawn || !Pawn->GetPlayerState()) return;
+    if (bVerificationComplete)
+    {
+        TickMenuReview(DeltaTime);
+        return;
+    }
     if (Pawn->HasAuthority())
     {
         const bool bPassed = Stacks.IsEmpty() && TryGrantFromServer(TEXT("Wood"), 10)
@@ -344,3 +350,52 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
     bVerificationComplete = true;
 #endif
 }
+
+#if !UE_BUILD_SHIPPING
+void UKalmalaInventoryComponent::TickMenuReview(const float DeltaTime)
+{
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryMenuReview"))
+        || !GetOwner()->HasAuthority() || MenuReviewStage >= 3) return;
+    // Wait for both transaction fixtures before changing their packs. All review
+    // mutations use the existing trusted server API; no review RPC is added.
+    int32 ReadyPlayers = 0;
+    for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+    {
+        const APawn* PlayerPawn = It->Get() ? It->Get()->GetPawn() : nullptr;
+        const auto* Pack = PlayerPawn ? PlayerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+        if (Pack && Pack->bVerificationComplete) ++ReadyPlayers;
+    }
+    if (ReadyPlayers != 2) return;
+    MenuReviewElapsed += DeltaTime;
+    const bool bHost = CastChecked<APawn>(GetOwner())->IsLocallyControlled();
+    FString Food(TEXT("HearthBroth"));
+    FParse::Value(FCommandLine::Get(), TEXT("KalmalaInventoryMenuFood="), Food);
+    if (MenuReviewStage == 0)
+    {
+        if (MenuReviewElapsed < 3.0f) return;
+        const bool bPassed = (bHost || TryGrantFromServer(TEXT("Wood"), 16))
+            && TryGrantFromServer(bHost ? TEXT("Stone") : TEXT("Iron"), bHost ? 2 : 4)
+            && TryGrantFromServer(FName(*Food), 2);
+        UE_LOG(LogTemp, Display, TEXT("Inventory menu server: Stage=Filled Passed=%d Host=%d Wood=%d Food=%s"),
+            bPassed, bHost, GetQuantity(TEXT("Wood")), *Food);
+        MenuReviewStage = 1;
+        MenuReviewElapsed = 0.0f;
+    }
+    if (MenuReviewStage == 1 && MenuReviewElapsed >= 30.0f)
+    {
+        const bool bPassed = TryConsumeFromServer(TEXT("Wood"), 3);
+        UE_LOG(LogTemp, Display, TEXT("Inventory menu server: Stage=Live Passed=%d Host=%d Wood=%d"),
+            bPassed, bHost, GetQuantity(TEXT("Wood")));
+        MenuReviewStage = 2;
+    }
+    if (MenuReviewStage == 2 && MenuReviewElapsed >= 50.0f)
+    {
+        const TArray<FKalmalaInventoryStack> Before = Stacks;
+        bool bPassed = true;
+        for (const auto& Stack : Before) bPassed &= TryConsumeFromServer(Stack.ItemId, Stack.Quantity);
+        UE_LOG(LogTemp, Display, TEXT("Inventory menu server: Stage=Empty Passed=%d Host=%d Slots=%d"),
+            bPassed && Stacks.IsEmpty(), bHost, Stacks.Num());
+        MenuReviewStage = 3;
+    }
+}
+#endif

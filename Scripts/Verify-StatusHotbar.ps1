@@ -56,6 +56,8 @@ try {
         $log = Get-Content "$output/$peer.log" -Raw
         if ($log -match 'Fatal error:|Assertion failed:|Ensure condition failed:') { throw "$peer reported an engine failure." }
         if ($log -notmatch 'Hotbar owner snapshot:.*Local=1.*WeatherValid=1') { throw "$peer did not read its local pawn and valid replicated weather." }
+        if ($log -notmatch "Hotbar raster geometry: Passed=1 Icons=6 BaseSize=64 Scale=$TextScale") { throw "$peer raster icons did not fill their scaled 64x64 boxes." }
+        if ($log -notmatch 'Hotbar support separation: Passed=1') { throw "$peer support selector overlaps the status group." }
         foreach ($phase in @('empty','expired')) {
             if ($log -notmatch "Hotbar fixture: Phase=$phase Entries=0 ReadOnly=1") { throw "$peer $phase did not remove entries." }
         }

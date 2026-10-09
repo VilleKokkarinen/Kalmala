@@ -10,6 +10,7 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaSurvivalStatusWidget.h"
 #include "KalmalaStatusHotbarWidget.h"
+#include "KalmalaSupportSelectionSubsystem.h"
 #include "KalmalaWeatherActivityWidget.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "Misc/CommandLine.h"
@@ -122,6 +123,8 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
         FParse::Value(FCommandLine::Get(), TEXT("KalmalaHotbarContrast="), HotbarContrast);
         if (VerificationCapture == 0 && VerificationElapsed > 4)
         {
+            UKalmalaSettingsWidget::SetTextScalePercent(HotbarScale);
+            UKalmalaSettingsWidget::SetContrastMode(HotbarContrast);
             UE_LOG(LogTemp, Display, TEXT("Hotbar owner snapshot: NetMode=%d Local=%d Pawn=%s Statuses=%d WeatherValid=%d"),
                 static_cast<int32>(World->GetNetMode()), FoundController->IsLocalController(), *Character->GetName(), Snapshot.Statuses.Num(), Snapshot.bHasWeatherState);
             VerificationCapture = 1;
@@ -151,6 +154,21 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
                 Phase, UKalmalaStatusHotbarWidget::BuildEntries(Snapshot).Num(), !HotbarWidget->IsFocusable(), TL.X,TL.Y,BR.X,BR.Y,HotbarScale,
                 UWidgetLayoutLibrary::GetViewportScale(this));
             FScreenshotRequest::RequestScreenshot(CapturePrefix+TEXT("-")+Phase+TEXT(".png"),true,false);
+            if (VerificationCapture == 2)
+            {
+                UE_LOG(LogTemp, Display, TEXT("Hotbar raster geometry: Passed=%d Icons=6 BaseSize=64 Scale=%d"),
+                    HotbarWidget->HasRasterIconGeometryForVerification(HotbarScale, 6), HotbarScale);
+                const auto* SupportSubsystem = GetLocalPlayer()->GetSubsystem<UKalmalaSupportSelectionSubsystem>();
+                const auto* SupportWidget = SupportSubsystem ? SupportSubsystem->GetSelectionWidget() : nullptr;
+                bool bSeparated = true;
+                if (SupportWidget && SupportWidget->IsVisible())
+                {
+                    const FGeometry& SupportGeometry = SupportWidget->GetCachedGeometry();
+                    const FVector2D SupportRight = SupportGeometry.LocalToAbsolute(SupportGeometry.GetLocalSize());
+                    bSeparated = TL.X >= SupportRight.X + 12.0f * UWidgetLayoutLibrary::GetViewportScale(this) - 1.0f;
+                }
+                UE_LOG(LogTemp, Display, TEXT("Hotbar support separation: Passed=%d"), bSeparated);
+            }
             ++VerificationCapture;
         }
         if (VerificationCapture == 4 && VerificationElapsed >= 22)

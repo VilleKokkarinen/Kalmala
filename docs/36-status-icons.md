@@ -1,5 +1,17 @@
 # M11 status parent and catalogue icons
 
+M12 final rendering requires each raster image to fill its scaled 64x64 icon
+box. The overlay slot explicitly fills both axes; imported texture loading alone
+does not prove painted size. `Verify-StatusHotbar.ps1` now requires the runtime
+`Hotbar raster geometry` marker for all six populated icons on each peer in
+every rendered matrix case. Earlier M12 captures with smaller default-sized
+images are superseded by the final evidence in `docs/45-m12-acceptance.md`.
+The group also reserves a 12-unit gap beyond the top-centre support cue's
+actual right edge and wraps down when that reduces its available width.
+The support panel sizes to its four glyph cards so they remain within the
+panel. The rendered helper applies text scale/contrast to both cues and
+requires a `Hotbar support separation` marker on each peer.
+
 The user requested the next three backlog items together on 2026-10-02,
 with verification deferred until all three implementations were present.
 

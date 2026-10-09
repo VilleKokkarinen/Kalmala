@@ -3,6 +3,7 @@
 #include "KalmalaMinimapWidget.h"
 #include "KalmalaSurvivalStatusWidget.h"
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaSupportSelectionSubsystem.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaStatusIconLibrary.h"
 #include "Blueprint/WidgetTree.h"
@@ -10,6 +11,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Components/Image.h"
 #include "Components/Overlay.h"
+#include "Components/OverlaySlot.h"
 #include "Components/WrapBox.h"
 #include "Components/SizeBox.h"
 #include "Components/VerticalBox.h"
@@ -29,12 +31,14 @@ void UKalmalaStatusHotbarWidget::NativeOnInitialized()
     SetVisibility(ESlateVisibility::Collapsed);
 }
 
-FVector2D UKalmalaStatusHotbarWidget::CalculateSize(int32 Count, int32 TextScale, FVector2D Viewport, float StatusGroupRightEdge)
+FVector2D UKalmalaStatusHotbarWidget::CalculateSize(int32 Count, int32 TextScale, FVector2D Viewport,
+    float StatusGroupRightEdge, float StatusGroupLeftEdge)
 {
     if (Count <= 0) return FVector2D::ZeroVector;
     const float Scale = UKalmalaSettingsWidget::ClampTextScale(TextScale) / 100.0f;
     const float SafeRightEdge = FMath::Clamp(StatusGroupRightEdge, 0.0f, FMath::Max(0.0f, Viewport.X));
-    const float AvailableWidth = FMath::Max(1.0f, SafeRightEdge - UKalmalaMinimapWidget::ViewportInset);
+    const float AvailableWidth = FMath::Max(1.0f, SafeRightEdge
+        - FMath::Max(UKalmalaMinimapWidget::ViewportInset, StatusGroupLeftEdge));
     const float RowWidth = FMath::Min(MaximumStatusRowWidth, AvailableWidth);
     const float CellWidth = StatusCellWidth * Scale;
     const int32 Columns = FMath::Min(Count,
@@ -55,6 +59,7 @@ void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapsho
         Identity += TEXT("|") + Entry.Id.ToString() + TEXT(":") + Entry.Name + TEXT(":") + Entry.StatusIconId.ToString();
     const FVector2D Viewport = UWidgetLayoutLibrary::GetViewportSize(this) / UWidgetLayoutLibrary::GetViewportScale(this);
     FVector2D Position = UKalmalaMinimapWidget::GetDefaultStatusGroupViewportPosition();
+    float SafeLeftEdge = UKalmalaMinimapWidget::ViewportInset;
     if (ULocalPlayer* LocalPlayer = GetOwningLocalPlayer())
     {
         if (const UKalmalaMinimapSubsystem* MinimapSubsystem = LocalPlayer->GetSubsystem<UKalmalaMinimapSubsystem>())
@@ -64,8 +69,19 @@ void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapsho
                 Position = MinimapWidget->GetStatusGroupViewportPosition();
             }
         }
+        if (const auto* SupportSubsystem = LocalPlayer->GetSubsystem<UKalmalaSupportSelectionSubsystem>())
+        {
+            const auto* Support = SupportSubsystem->GetSelectionWidget();
+            if (Support && Support->IsVisible() && Support->GetCachedGeometry().GetLocalSize().X > 0.0f)
+            {
+                const FGeometry& SupportGeometry = Support->GetCachedGeometry();
+                const FVector2D Right = UWidgetLayoutLibrary::GetViewportWidgetGeometry(this).AbsoluteToLocal(
+                    SupportGeometry.LocalToAbsolute(SupportGeometry.GetLocalSize()));
+                SafeLeftEdge = FMath::Max(SafeLeftEdge, static_cast<float>(Right.X) + 12.0f);
+            }
+        }
     }
-    const FVector2D Size = CalculateSize(Entries.Num(), TextScale, Viewport, Viewport.X + Position.X);
+    const FVector2D Size = CalculateSize(Entries.Num(), TextScale, Viewport, Viewport.X + Position.X, SafeLeftEdge);
     ConfigureViewportPlacement(Size, Position);
     if (Identity != LastIdentity)
     {
@@ -84,7 +100,9 @@ void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapsho
             auto* RasterIcon = WidgetTree->ConstructWidget<UImage>();
             if (StatusTexture != nullptr) RasterIcon->SetBrushFromTexture(StatusTexture, false);
             RasterIcon->SetVisibility(StatusTexture != nullptr ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-            IconLayer->AddChild(RasterIcon);
+            auto* RasterSlot = IconLayer->AddChildToOverlay(RasterIcon);
+            RasterSlot->SetHorizontalAlignment(HAlign_Fill);
+            RasterSlot->SetVerticalAlignment(VAlign_Fill);
             auto* VectorFallback = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
             VectorFallback->SetIcon(Entry.Icon);
             VectorFallback->SetVisibility(StatusTexture == nullptr ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
@@ -120,6 +138,25 @@ void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapsho
     }
     SetVisibility(Entries.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
 }
+
+#if !UE_BUILD_SHIPPING
+bool UKalmalaStatusHotbarWidget::HasRasterIconGeometryForVerification(const int32 TextScale, const int32 ExpectedCount) const
+{
+    if (!WidgetTree) return false;
+    const float Size = 64.0f * TextScale / 100.0f;
+    int32 Count = 0;
+    bool bSized = true;
+    WidgetTree->ForEachWidget([&](UWidget* Widget) {
+        if (const auto* Raster = Cast<UImage>(Widget); Raster && Raster->GetVisibility() == ESlateVisibility::Visible)
+        {
+            ++Count;
+            bSized &= Raster->GetBrush().GetResourceObject() != nullptr
+                && Raster->GetCachedGeometry().GetLocalSize().Equals(FVector2D(Size, Size), 0.5f);
+        }
+    });
+    return bSized && Count == ExpectedCount;
+}
+#endif
 
 void UKalmalaStatusHotbarWidget::ConfigureViewportPlacement(const FVector2D& Size, const FVector2D& Position)
 {

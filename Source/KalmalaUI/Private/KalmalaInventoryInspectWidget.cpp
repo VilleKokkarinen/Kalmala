@@ -52,8 +52,11 @@ void UKalmalaInventoryInspectWidget::Build()
     {
         auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
-        Label->SetText(FText::FromString(Name)); Button->SetContent(Label);
-        Actions->AddChild(Button); Buttons.Add(Button);
+        Label->SetText(FText::FromString(Name));
+        Label->SetAutoWrapText(true); Label->SetJustification(ETextJustify::Center);
+        Button->SetContent(Label);
+        Actions->AddChildToHorizontalBox(Button)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        Buttons.Add(Button);
     }
     Buttons[0]->OnClicked.AddDynamic(this, &ThisClass::Previous);
     Buttons[1]->OnClicked.AddDynamic(this, &ThisClass::Next);
@@ -194,7 +197,9 @@ void UKalmalaInventoryInspectWidget::Refresh()
     if (Rows.IsValidIndex(Selected))
     {
         const auto& Row = Rows[Selected];
-        Detail->SetItem(Row.Id, Row.Name, Row.Detail + TEXT("\n\n") + ActionGuidance(Row.Id, Row.bCarriedTool), TextScale, ContrastMode);
+        const FString VisibleState = Row.Detail + TEXT("\n\n") + ActionGuidance(Row.Id, Row.bCarriedTool);
+        if (Row.bCarriedTool) Detail->SetCarriedTool(Row.Id, Row.Name, VisibleState, TextScale, ContrastMode);
+        else Detail->SetItem(Row.Id, Row.Name, VisibleState, TextScale, ContrastMode);
     }
 }
 

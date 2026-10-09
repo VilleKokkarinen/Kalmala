@@ -7,6 +7,7 @@
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
 
 FString UKalmalaItemDetailWidget::DescribeItem(FName Id, const FString& VisibleState)
 {
@@ -54,7 +55,8 @@ void UKalmalaItemDetailWidget::BuildPanel()
     auto* IconSize = WidgetTree->ConstructWidget<USizeBox>();
     IconSize->SetWidthOverride(64.0f); IconSize->SetHeightOverride(64.0f);
     Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
-    IconSize->SetContent(Icon); Column->AddChild(IconSize);
+    IconSize->SetContent(Icon);
+    Column->AddChildToVerticalBox(IconSize)->SetHorizontalAlignment(HAlign_Left);
     Title = WidgetTree->ConstructWidget<UTextBlock>(); Column->AddChild(Title);
     Title->SetAutoWrapText(true);
     Details = WidgetTree->ConstructWidget<UTextBlock>();

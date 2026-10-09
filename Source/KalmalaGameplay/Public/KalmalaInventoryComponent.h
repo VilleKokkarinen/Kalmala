@@ -64,4 +64,9 @@ private:
     int64 GainSequence = 0;
     UPROPERTY(Replicated) TArray<FKalmalaInventoryStack> Stacks;
     bool bVerificationComplete = false;
+#if !UE_BUILD_SHIPPING
+    void TickMenuReview(float DeltaTime);
+    float MenuReviewElapsed = 0.0f;
+    int32 MenuReviewStage = 0;
+#endif
 };

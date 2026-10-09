@@ -213,7 +213,9 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     ItemDetailView = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
     PackAndDetail->AddChildToHorizontalBox(ItemDetailView)->SetPadding(FMargin(4.0f, 0.0f, 0.0f, 0.0f));
     USizeBox* InventoryArea = WidgetTree->ConstructWidget<USizeBox>();
-    InventoryArea->SetHeightOverride(300.0f);
+    // Let enlarged descriptions and equipment rows contribute their full
+    // height to the outer scroll range instead of clipping below a fixed pane.
+    InventoryArea->SetMinDesiredHeight(300.0f);
     InventoryArea->SetContent(PackAndDetail);
     Content->AddChildToVerticalBox(InventoryArea);
 

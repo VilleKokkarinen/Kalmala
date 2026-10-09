@@ -474,6 +474,14 @@ or saves.
 
 ## Inventory-facing image integration — 2026-10-08
 
+The M12 final review repairs selected-detail image alignment so the actual
+painted image remains 64x64 inside the wider detail panel. Equipment-card text
+wraps to its allocated width, and Inventory's item/detail area contributes its
+full desired height to the outer menu scroll range. Enlarged text no longer
+overlaps adjacent tool cards or loses the bottom of a selected description.
+The rendered Inventory menu runner verifies image geometry and retains the
+scrolled owner views; see `docs/45-m12-acceptance.md` for final results.
+
 Inventory pack slots and carried-tool cards, selected item/tool detail, local
 inventory/repair browsing cards, recipe ingredient rows, and both owner-only
 chest selectors now call `SetCatalogueIcon` with the row's canonical runtime

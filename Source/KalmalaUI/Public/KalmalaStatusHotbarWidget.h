@@ -27,8 +27,12 @@ public:
 
     void SetSnapshot(const FKalmalaSurvivalStatusSnapshot& Snapshot, int32 TextScale, int32 Contrast);
     void ConfigureViewportPlacement(const FVector2D& Size, const FVector2D& Position);
+#if !UE_BUILD_SHIPPING
+    bool HasRasterIconGeometryForVerification(int32 TextScale, int32 ExpectedCount) const;
+#endif
     static TArray<FKalmalaStatusHotbarEntry> BuildEntries(const FKalmalaSurvivalStatusSnapshot& Snapshot);
-    static FVector2D CalculateSize(int32 Count, int32 TextScale, FVector2D Viewport, float StatusGroupRightEdge);
+    static FVector2D CalculateSize(int32 Count, int32 TextScale, FVector2D Viewport, float StatusGroupRightEdge,
+        float StatusGroupLeftEdge = 12.0f);
 protected:
     virtual void NativeOnInitialized() override;
 private:

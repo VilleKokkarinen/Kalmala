@@ -14386,3 +14386,139 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions and updated only the selected M12 final-verification row and this run
 entry; all other existing main-checkout edits were preserved. Implementation
 files and generated evidence remain in the worktree.
+
+## Run 2026-10-09 — Complete M12 final verification and retained UI acceptance
+
+Continued the same milestone-final task left awaiting manual acceptance by
+`a580e1b`, in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`, branch
+`codex/m12-hud-feedback-rebuild`. Codex chat inventories showed no other
+autonomous Kalmala run modifying this repository. Scheduled chats that observed
+this active run stopped under the concurrency guard without repository changes.
+The worktree started clean apart from its pre-existing untracked `.mvtmp`;
+the main checkout's dirty backlog/progress and disposable mirror remain preserved.
+
+Completed the outstanding owner Inventory capture review and recorded the
+user's physical keyboard/controller acceptance: “Tested both; all passed.”
+That is owner-reported hardware acceptance, not a claim of agent-driven hardware
+testing. Added `Verify-InventoryMenu.ps1` and launch-gated, non-shipping fixtures
+that open the actual subsystem-owned menu on distinct owners, inspect equipment
+and item details, recover search/no-results, accept Hearth Broth and reject a
+repeat, refresh live quantities, show all sixteen empty slots and restore input.
+
+Rendered acceptance found and repaired square-icon stretching in item details,
+recipe grids/results and upgrade previews; clipped large-text Inventory content;
+carried-tool wrapping and missing authored descriptions in repair inspectors;
+tiny status raster images despite successful texture loading; and support/status
+overlap on compact screens. Final Chest images also exposed clipped navigation
+captions at 150%; equal fill slots and wrapped captions keep them within each
+owner/chest column. The support panel now measures its four-card row;
+statuses reserve a 12-unit gap beyond the measured support edge and wrap down.
+Runtime helpers measure real raster geometry and combined HUD separation, with
+both cues using global text scale/contrast. Added eighteen real service views
+per peer to the crafting capture sequence using explicitly unavailable contexts;
+accepted/stale-context actions remain independent live/automation gates.
+
+Files changed: gameplay Inventory component `.h/.cpp` (test fixture only);
+UI Inventory menu subsystem `.h/.cpp`, Inventory menu/widget inspector,
+catalogue rows, item detail, Crafting subsystem `.h/.cpp`, Status hotbar
+`.h/.cpp`, Support selection subsystem `.h/.cpp`, Survival status subsystem
+and `KalmalaStatusHotbarTest.cpp`; `Scripts/Verify-InventoryMenu.ps1`,
+`Verify-Crafting.ps1`, `Verify-StatusHotbar.ps1`; `docs/07-development-setup.md`,
+`docs/36-status-icons.md`, `docs/43-catalogue-icon-manifest.md`,
+`docs/45-m12-acceptance.md`, documentation index/roadmap, retained `docs/m12/`
+evidence, `BACKLOG.md` and this progress entry.
+
+Verification was milestone-final; full verification is no longer deferred.
+The disposable `E:\dev\Kalmala\m12verify` mirror matches all nineteen changed
+source/script hashes. Engine invocations had normal UnrealBuildTool cache access.
+Commands/results:
+
+- `Build.bat KalmalaEditor Win64 Development E:/dev/Kalmala/m12verify/Kalmala.uproject
+  -WaitMutex -NoHotReload -Force -MaxParallelActions=4`: passed after repairs;
+  the final forced target build succeeded. Full
+  `UnrealEditor-Cmd.exe ... -nullrhi -DDC-ForceMemoryCache
+  -ExecCmds="Automation RunTests Kalmala" -TestExit="Automation Test Queue Empty"`
+  passed 116 tests, zero failures, exit 0 on the final source. The new narrowed
+  status-lane assertions also passed a focused two-test rerun before this queue.
+- `Verify-InventoryMenu.ps1` passed at 1280x720/100%/standard contrast and
+  1024x768/150%/high contrast, the latter with 120% interface scale and reduced
+  motion. Eleven stages per owner passed: distinct private packs, equipment,
+  painted 64x64 details, search recovery, meal acceptance/repeat rejection,
+  open-menu updates and empty slots, plus close/input restoration.
+- `Verify-Crafting.ps1 -Rendered` passed at both standard and compact/high-contrast
+  settings, including every existing transaction/context/privacy/input gate and
+  all 32 captures per owner. Final captures were refreshed after the HUD and
+  Chest-caption repairs. `Verify-InteractionPrompt.ps1 -Rendered` also passed
+  both configurations and retained all five stages per owner on the repaired HUD.
+- `Verify-StatusHotbar.ps1` passed all twelve cases: 1024x768, 1280x720 and
+  2560x1080 at 100% standard contrast and 100/125/150% high contrast. Both owners
+  passed painted scaled-64x64 image size, support gap, minimap alignment, safe
+  bounds, active-only/timer/empty/removal gates. Reviewed final combined HUD
+  contact sheets and full compact captures; prior tiny/overlapping images are
+  superseded by the retained final images.
+- `Verify-ConstrainedPerformance.ps1 -Profile Reference|Cpu8Threads|Cpu4Threads
+  -Project E:/dev/Kalmala/m12verify/Kalmala.uproject -OutputDirectory <new root>
+  -TimeoutSeconds 240` passed sequentially after the HUD/support repair. All three
+  discovery/disembark scenarios and observed host/client affinity checks passed,
+  retaining 300-frame timing samples per peer per profile.
+- All PowerShell scripts parse; Local Input, Presentation Ownership, all five
+  M5 documentation contracts, Settings Accessibility, Menu Input Copy,
+  Inventory Panel Removal, all 48 Catalogue Icon identities and all nine Status
+  Icon identities/package mappings pass. `git diff --check` and staged path
+  audits pass; every committed absolute path remains below 260 characters.
+
+Failures diagnosed during this continuation: capture-time UI changes initially
+produced mismatched screenshots, fixed by deferring the next mutation one tick;
+programmatic search text did not dispatch its change delegate, corrected in the
+fixture; an attempted historical-food grant failed the current catalogue, so the
+fixture uses the existing Hearth Broth item; initial client Wood exceeded the
+stack cap, reduced to a valid distinct count; tool-count expectation was corrected
+to the actual owner inventory; empty-log polling was hardened in Crafting.
+An unbraced logging conditional and a `Padding` name shadow caused compile
+errors, fixed with braces and a specific local name. A rebuild attempted while
+the preceding test still held its DLL failed to link; waiting for that owned
+test to exit and rebuilding passed. All relevant failing checks and the required
+full verification were rerun successfully. The final build/automation/static
+logs, peer logs, rendered matrix and performance evidence are in `docs/m12/`;
+`docs/45-m12-acceptance.md` maps the evidence and commands.
+
+Earlier passing milestone-final construction restore/remote replication,
+persisted camp/hearth authority, inventory/privacy/reconnect, camp choices,
+storage/persistence, settings/accessibility persistence, three minimap sizes,
+interaction prompts and player-controls results remain recorded in the 11:26 UTC
+handoff. They were inspected as inherited verification, not falsely presented
+as newly executed here. This continuation rechecked their applicable contracts
+in the full queue and refreshed affected UI/crafting/Inventory/status/prompt
+evidence. After the final Inspector-caption change, the editor target and full
+116-test queue passed again, followed by both affected service capture runs;
+the already passing HUD, Inventory, prompt and performance contracts were unchanged.
+
+Observable impact: Inventory and service details stay readable at large text
+scales, icon images keep their intended dimensions, and compact HUD cues no
+longer cover each other. Networking/authority remains server-owned; no new
+request, authoritative path, replication field, save schema, balance or content
+change. Test mutations use the existing validated server APIs and private snapshots.
+
+Known pre-existing limitation: Hearth Broth is the only current catalogue item
+accepted by the meal-use allowlist and has no production recipe. Historical
+Roasted/Smoked Field Meat IDs were removed before M12; current six cooking
+outputs have no Eat action. Baseline `8c10ab4` has the same allowlist and M9 docs
+record the old-ID retirement. No gameplay expansion was made to disguise this
+limit. No package/release, dedicated-server build or screen-reader session was
+run in this continuation; existing documented release/platform limits remain.
+
+Final milestone status: M12 complete; all ten goal parents and the final
+verification parent/child are checked. Next eligible task: none remaining in M12
+or the main-checkout queue. The retained branch's earlier unchecked M11 rows
+predate this run; main's M11 acceptance handoffs mark those complete. Those
+non-overlapping historical differences are preserved, rather than rewriting
+earlier milestones during this explicitly requested M12 closure. Favorite/Rank/
+Recent overlays are absent in this retained implementation, so the conditional
+coexistence capture is unavailable here. This run stops without selecting
+another increment or merging other implementation branches.
+
+Main-checkout handoff synchronization: complete. Inspected both dirty main
+files and changed only this run's M12 completion rows plus this appended progress
+entry. All prior edits were preserved. No implementation, other documentation,
+evidence or generated files were synchronized, staged or committed in main.

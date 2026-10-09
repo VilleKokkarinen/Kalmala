@@ -65,6 +65,7 @@ public:
     bool ScrollReviewSectionForTest(bool bFeedback);
     bool PrepareBrowseReviewForTest(int32 View);
     bool PrepareIngredientReviewForTest(int32 View);
+    bool PrepareServiceReviewForTest(int32 View, bool bDetails);
 #endif
     void SetRecipeBrowse(const FString& Query, int32 Category, bool bNameSort);
     TArray<int32> GetVisibleRecipeIndices() const;
