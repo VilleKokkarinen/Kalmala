@@ -13465,5 +13465,7 @@ Next eligible task: M12 goal 9, apply copy batch 02 to FrostSalt, MirelingAsh,
 CampfireKit, WorkbenchKit, ForgeKit, WorkbenchToolRackKit, ForgeAnvilKit, and
 GrindingStoneKit.
 
-Main-checkout handoff synchronization: Pending; only `BACKLOG.md` and
-`PROGRESS.md` will be synchronized after inspecting their main-checkout edits.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; updated only this selected child state and
+appended this run entry, preserving all pre-existing handoff/user changes. No
+implementation files or other documentation were synchronized.
