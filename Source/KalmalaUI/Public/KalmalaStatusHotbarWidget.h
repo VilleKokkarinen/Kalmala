@@ -9,7 +9,7 @@ struct KALMALAUI_API FKalmalaStatusHotbarEntry
 {
     FName Id;
     FString Name;
-    FString Duration;
+    FString TimerText;
     EKalmalaIcon Icon = EKalmalaIcon::Unknown;
     FName StatusIconId = NAME_None;
 };
@@ -28,7 +28,6 @@ protected:
     virtual void NativeOnInitialized() override;
 private:
     UPROPERTY(Transient) TObjectPtr<class UWrapBox> EntriesBox;
-    UPROPERTY(Transient) TArray<TObjectPtr<class UTextBlock>> Labels;
-    UPROPERTY(Transient) TArray<TObjectPtr<class UTextBlock>> Durations;
+    UPROPERTY(Transient) TArray<TObjectPtr<class UTextBlock>> Timers;
     FString LastIdentity;
 };

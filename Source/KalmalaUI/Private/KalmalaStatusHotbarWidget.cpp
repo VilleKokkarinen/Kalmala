@@ -8,10 +8,12 @@
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Engine/LocalPlayer.h"
+#include "Components/Image.h"
+#include "Components/Overlay.h"
 #include "Components/WrapBox.h"
 #include "Components/SizeBox.h"
-#include "Components/HorizontalBox.h"
 #include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
 #include "Components/TextBlock.h"
 #include "KalmalaExposureResponse.h"
 
@@ -29,9 +31,11 @@ void UKalmalaStatusHotbarWidget::NativeOnInitialized()
 FVector2D UKalmalaStatusHotbarWidget::CalculateSize(int32 Count, int32 TextScale, FVector2D Viewport)
 {
     const float Width = FMath::Min(450.0f, FMath::Max(1.0f, static_cast<float>(Viewport.X) - 48.0f));
-    const float Cell = 140.0f * UKalmalaSettingsWidget::ClampTextScale(TextScale) / 100.0f;
+    const float Scale = UKalmalaSettingsWidget::ClampTextScale(TextScale) / 100.0f;
+    const float Cell = 140.0f * Scale;
     const int32 Columns = FMath::Max(1, FMath::FloorToInt((Width + 6) / (Cell + 6)));
-    return FVector2D(Width, FMath::DivideAndRoundUp(FMath::Max(0, Count), Columns) * (48.0f * TextScale / 100.0f + 6));
+    constexpr float CellContentHeight = 86.0f; // 64-unit image plus a centred, single-line timer.
+    return FVector2D(Width, FMath::DivideAndRoundUp(FMath::Max(0, Count), Columns) * (CellContentHeight * Scale + 6));
 }
 
 void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapshot& Snapshot, int32 TextScale, int32 Contrast)
@@ -40,7 +44,8 @@ void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapsho
     TextScale = UKalmalaSettingsWidget::ClampTextScale(TextScale);
     const TArray<FKalmalaStatusHotbarEntry> Entries = BuildEntries(Snapshot);
     FString Identity = FString::FromInt(TextScale);
-    for (const auto& Entry : Entries) Identity += TEXT("|") + Entry.Id.ToString();
+    for (const auto& Entry : Entries)
+        Identity += TEXT("|") + Entry.Id.ToString() + TEXT(":") + Entry.Name + TEXT(":") + Entry.StatusIconId.ToString();
     const FVector2D Viewport = UWidgetLayoutLibrary::GetViewportSize(this) / UWidgetLayoutLibrary::GetViewportScale(this);
     const FVector2D Size = CalculateSize(Entries.Num(), TextScale, Viewport);
     FVector2D Position = UKalmalaMinimapWidget::GetDefaultStatusGroupViewportPosition();
@@ -57,38 +62,54 @@ void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapsho
     ConfigureViewportPlacement(Size, Position);
     if (Identity != LastIdentity)
     {
-        EntriesBox->ClearChildren(); Labels.Reset(); Durations.Reset();
+        EntriesBox->ClearChildren(); Timers.Reset();
         for (const auto& Entry : Entries)
         {
             auto* Cell = WidgetTree->ConstructWidget<USizeBox>();
             Cell->SetWidthOverride(140.0f * TextScale / 100.0f);
-            Cell->SetHeightOverride(48.0f * TextScale / 100.0f);
-            auto* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
+            Cell->SetHeightOverride(86.0f * TextScale / 100.0f);
+            auto* Column = WidgetTree->ConstructWidget<UVerticalBox>();
             auto* IconBox = WidgetTree->ConstructWidget<USizeBox>();
-            IconBox->SetWidthOverride(32); IconBox->SetHeightOverride(32);
-            auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>(); Icon->SetIcon(Entry.Icon);
-            IconBox->SetContent(Icon); Row->AddChild(IconBox);
-            auto* Text = WidgetTree->ConstructWidget<UVerticalBox>();
-            auto* Label = WidgetTree->ConstructWidget<UTextBlock>(); Label->SetAutoWrapText(true);
-            auto* Duration = WidgetTree->ConstructWidget<UTextBlock>();
-            Text->AddChild(Label); Text->AddChild(Duration); Row->AddChild(Text);
-            Cell->SetContent(Row); EntriesBox->AddChild(Cell);
-            Labels.Add(Label); Durations.Add(Duration);
+            const float IconSize = 64.0f * TextScale / 100.0f;
+            IconBox->SetWidthOverride(IconSize); IconBox->SetHeightOverride(IconSize);
+            auto* IconLayer = WidgetTree->ConstructWidget<UOverlay>();
+            UTexture2D* StatusTexture = FKalmalaStatusIconLibrary::LoadTexture(Entry.StatusIconId);
+            auto* RasterIcon = WidgetTree->ConstructWidget<UImage>();
+            if (StatusTexture != nullptr) RasterIcon->SetBrushFromTexture(StatusTexture, false);
+            RasterIcon->SetVisibility(StatusTexture != nullptr ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+            IconLayer->AddChild(RasterIcon);
+            auto* VectorFallback = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+            VectorFallback->SetIcon(Entry.Icon);
+            VectorFallback->SetVisibility(StatusTexture == nullptr ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+            IconLayer->AddChild(VectorFallback);
+            // Keep the player-facing name in the accessibility tree without drawing it beside the image.
+            auto* AccessibleName = WidgetTree->ConstructWidget<UTextBlock>();
+            AccessibleName->SetText(FText::FromString(Entry.Name));
+            AccessibleName->SetAutoWrapText(true);
+            AccessibleName->SetVisibility(ESlateVisibility::HitTestInvisible);
+            AccessibleName->SetRenderOpacity(0.0f);
+            IconLayer->AddChild(AccessibleName);
+            IconBox->SetContent(IconLayer);
+            const auto IconSlot = Column->AddChildToVerticalBox(IconBox);
+            IconSlot->SetHorizontalAlignment(HAlign_Center);
+            auto* Timer = WidgetTree->ConstructWidget<UTextBlock>();
+            Timer->SetJustification(ETextJustify::Center);
+            const auto TimerSlot = Column->AddChildToVerticalBox(Timer);
+            TimerSlot->SetHorizontalAlignment(HAlign_Center);
+            Cell->SetContent(Column); EntriesBox->AddChild(Cell);
+            Timers.Add(Timer);
         }
         LastIdentity = Identity;
     }
     const auto& Theme = FKalmalaUITheme::Get();
     for (int32 Index = 0; Index < Entries.Num(); ++Index)
     {
-        Labels[Index]->SetText(FText::FromString(Entries[Index].Name));
-        Durations[Index]->SetText(FText::FromString(Entries[Index].Duration));
-        Theme.ApplyText(*Labels[Index], Theme.BodySize, true, TextScale, Contrast);
-        Theme.ApplyText(*Durations[Index], Theme.HeadingSize, false, TextScale, Contrast);
-        for (UTextBlock* Text : { Labels[Index].Get(), Durations[Index].Get() })
-        {
-            auto Font = Text->GetFont(); Font.OutlineSettings.OutlineSize = FMath::Max(1, Font.OutlineSettings.OutlineSize);
-            Text->SetFont(Font);
-        }
+        Timers[Index]->SetText(FText::FromString(Entries[Index].TimerText));
+        Timers[Index]->SetVisibility(Entries[Index].TimerText.IsEmpty()
+            ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
+        Theme.ApplyText(*Timers[Index], Theme.HeadingSize, false, TextScale, Contrast);
+        auto Font = Timers[Index]->GetFont(); Font.OutlineSettings.OutlineSize = FMath::Max(1, Font.OutlineSettings.OutlineSize);
+        Timers[Index]->SetFont(Font);
     }
     SetVisibility(Entries.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
 }
@@ -109,34 +130,38 @@ TArray<FKalmalaStatusHotbarEntry> UKalmalaStatusHotbarWidget::BuildEntries(const
 {
     TArray<FKalmalaStatusHotbarEntry> Entries;
     if (!S.bHasCharacter) return Entries;
-    const auto Seconds = [](float Value) { return FString::Printf(TEXT("%d s"), FMath::Max(0, FMath::CeilToInt(Value))); };
-    const auto AddEntry = [&Entries](FName Id, const TCHAR* Name, FString Duration, EKalmalaIcon Icon)
+    const auto TimerForRemaining = [](float Value)
+    {
+        const int32 TotalSeconds = FMath::Max(0, FMath::CeilToInt(Value));
+        return FString::Printf(TEXT("%02d:%02d"), TotalSeconds / 60, TotalSeconds % 60);
+    };
+    const auto AddEntry = [&Entries](FName Id, const TCHAR* Name, FString TimerText, EKalmalaIcon Icon)
     {
         FName StatusIconId = NAME_None;
         FKalmalaStatusIconLibrary::GetIconIdForEntry(Id, StatusIconId);
-        Entries.Add({ Id, Name, MoveTemp(Duration), Icon, StatusIconId });
+        Entries.Add({ Id, Name, MoveTemp(TimerText), Icon, StatusIconId });
     };
     // Fixed semantic order, never replication-array order. No local ticking of owner status durations.
     for (const FName Id : { UKalmalaPlayerStatusComponent::WetStatusId, UKalmalaPlayerStatusComponent::SteadyMealStatusId })
     {
         const auto* Status = S.Statuses.FindByPredicate([Id](const auto& E) { return E.StatusId == Id && FMath::IsFinite(E.RemainingSeconds) && E.RemainingSeconds > 0; });
-        if (Status) AddEntry(Id, Id == UKalmalaPlayerStatusComponent::WetStatusId ? TEXT("Wet") : TEXT("Steady meal"), Seconds(Status->RemainingSeconds),
+        if (Status) AddEntry(Id, Id == UKalmalaPlayerStatusComponent::WetStatusId ? TEXT("Wet") : TEXT("Steady meal"), TimerForRemaining(Status->RemainingSeconds),
             Id == UKalmalaPlayerStatusComponent::WetStatusId ? EKalmalaIcon::Drop : EKalmalaIcon::Bowl);
     }
     if (FMath::IsFinite(S.Exposure.HeatIntensity) && S.Exposure.HeatIntensity >= .05f)
-        AddEntry(TEXT("Heat"), TEXT("Hot"), TEXT("ongoing"), EKalmalaIcon::Sun);
+        AddEntry(TEXT("Heat"), TEXT("Hot"), FString(), EKalmalaIcon::Sun);
     if (FMath::IsFinite(S.Exposure.ColdIntensity) && S.Exposure.ColdIntensity >= .05f && FMath::IsFinite(S.Exposure.Warmth)
         && S.Exposure.Warmth < FKalmalaExposureResponse::ColdStaminaRecoveryWarmthThreshold)
-        AddEntry(TEXT("Cold"), TEXT("Cold"), TEXT("ongoing"), EKalmalaIcon::Snow);
+        AddEntry(TEXT("Cold"), TEXT("Cold"), FString(), EKalmalaIcon::Snow);
     const float Remaining = S.ActiveSupportEffectExpiry - S.ServerTimeSeconds;
     if (FMath::IsFinite(Remaining) && Remaining > 0)
     {
         switch (S.ActiveSupportEffect)
         {
-        case EKalmalaSupportEffect::Mending: AddEntry(TEXT("Mending"), TEXT("Mending"), Seconds(Remaining), EKalmalaIcon::Cross); break;
-        case EKalmalaSupportEffect::HearthShield: AddEntry(TEXT("Shield"), TEXT("Hearth shield"), Seconds(Remaining), EKalmalaIcon::Shield); break;
-        case EKalmalaSupportEffect::BearsVigor: AddEntry(TEXT("Vigor"), TEXT("Bear's vigor"), Seconds(Remaining), EKalmalaIcon::Paw); break;
-        case EKalmalaSupportEffect::DeerCall: AddEntry(TEXT("Call"), TEXT("Deer call"), Seconds(Remaining), EKalmalaIcon::Antlers); break;
+        case EKalmalaSupportEffect::Mending: AddEntry(TEXT("Mending"), TEXT("Mending"), TimerForRemaining(Remaining), EKalmalaIcon::Cross); break;
+        case EKalmalaSupportEffect::HearthShield: AddEntry(TEXT("Shield"), TEXT("Hearth shield"), TimerForRemaining(Remaining), EKalmalaIcon::Shield); break;
+        case EKalmalaSupportEffect::BearsVigor: AddEntry(TEXT("Vigor"), TEXT("Bear's vigor"), TimerForRemaining(Remaining), EKalmalaIcon::Paw); break;
+        case EKalmalaSupportEffect::DeerCall: AddEntry(TEXT("Call"), TEXT("Deer call"), TimerForRemaining(Remaining), EKalmalaIcon::Antlers); break;
         default: break;
         }
     }
@@ -147,8 +172,7 @@ TArray<FKalmalaStatusHotbarEntry> UKalmalaStatusHotbarWidget::BuildEntries(const
     if (bCurrentWeatherInterval
         && S.Weather.GetStormIntensity() >= FKalmalaWeatherState::HighlyActiveStormThreshold)
     {
-        const float WeatherRemaining = S.Weather.ServerStartTimeSeconds + S.Weather.DurationSeconds - S.ServerTimeSeconds;
-        AddEntry(TEXT("Weather"), TEXT("Storm"), Seconds(WeatherRemaining), EKalmalaIcon::Storm);
+        AddEntry(TEXT("Weather"), TEXT("Storm"), FString(), EKalmalaIcon::Storm);
     }
     return Entries;
 }

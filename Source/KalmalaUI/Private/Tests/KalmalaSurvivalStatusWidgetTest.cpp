@@ -54,11 +54,14 @@ bool FKalmalaSurvivalStatusWidgetTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Food row shows its timer, finite benefit and non-stacking rule"),
         StatusText.Contains(TEXT("◆ FOOD · STEADY MEAL · 74 s · stamina cost −10%"))
         && StatusText.Contains(TEXT("prepared food · Recovery: wait for expiry; meals do not stack or replace.")));
-    TestTrue(TEXT("Weather row uses replicated intensity values and interval time"),
-        StatusText.Contains(TEXT("▲ HAZARD · WEATHER · rain 80% / fog 40% / wind 70% / storm 56% · 90 s")));
+    TestTrue(TEXT("Weather row uses replicated intensity values without a countdown"),
+        StatusText.Contains(TEXT("▲ HAZARD · WEATHER · rain 80% / fog 40% / wind 70% / storm 56% · Source: server weather")));
+    TestFalse(TEXT("Weather detail omits the interval countdown"),
+        StatusText.Contains(TEXT("WEATHER · rain 80% / fog 40% / wind 70% / storm 56% · 90 s")));
     TestTrue(TEXT("Cold row shows signal, warmth, gameplay recovery and guidance"),
-        StatusText.Contains(TEXT("◇ HAZARD · COLD · signal 50% / warmth 20% / stamina recovery 90% · ongoing"))
+        StatusText.Contains(TEXT("◇ HAZARD · COLD · signal 50% / warmth 20% / stamina recovery 90% · Source: local ambient conditions"))
         && StatusText.Contains(TEXT("Recovery: shelter or a lit hearth restores warmth.")));
+    TestFalse(TEXT("Untimed player detail rows omit ongoing labels"), StatusText.Contains(TEXT("ongoing")));
     TestTrue(TEXT("Shield row shows its marker, server timer and remaining absorption"),
         StatusText.Contains(TEXT("□ SUPPORT · HEARTH SHIELD · 10 s · absorption 25"))
         && StatusText.Contains(TEXT("Source: accepted support magic · Recovery: effect expires on server time.")));

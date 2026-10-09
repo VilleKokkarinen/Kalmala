@@ -14104,3 +14104,55 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions first and changed only the selected `BACKLOG.md` child and this
 `PROGRESS.md` entry; all pre-existing main-checkout edits were preserved. No
 implementation files or other documentation were synchronized.
+
+## Run 2026-10-09 07:54 UTC — Render status icons and timers
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's pre-existing
+`BACKLOG.md` and `PROGRESS.md` changes were inspected and preserved.
+
+Completed exactly M12 goal 10's icon-only status presentation child. The
+hotbar renders the nine imported status images at 64x64 with a vector fallback,
+keeps each status name in visually hidden text for assistive technology, and
+centres an m:ss timer below finite Wet, meal and support effects. Hot, Cold,
+and Storm have no timer. Status detail text retains finite player timing while
+removing weather countdowns and untimed "ongoing" labels.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp`,
+`Source/KalmalaUI/Public/KalmalaStatusHotbarWidget.h`,
+`Source/KalmalaUI/Private/KalmalaSurvivalStatusWidget.cpp`,
+`Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, focused status hotbar
+and survival-status automation assertions, `docs/07-development-setup.md`,
+`docs/36-status-icons.md`, `BACKLOG.md`, and this entry.
+
+Lightweight checks passed: focused source assertions for raster rendering,
+hidden names, centred layout, m:ss formatting, and omitted untimed/weather
+labels; `git diff --check`; manual review of snapshot timing and status-detail
+text; and the MAX_PATH audit (ten changed paths, all below 260 characters).
+Updated Unreal automation assertions were not run. No Unreal build, full
+automation, host/client rendered or screen-reader review, or package check was
+run. Full M12 verification remains deferred.
+
+Observable impact: status icons now use the imported art without visible
+names; finite player effects show a readable timer and untimed/weather entries
+no longer reserve or display a timer label.
+
+Networking/authority: presentation-only. Finite status time uses the existing
+owner-replicated remaining seconds; support uses existing expiry and
+synchronized server time. No local timer mutation, RPC, gameplay authority,
+replication, weather rule, or persistence contract changed.
+
+Known limitations: the visually hidden accessible names, native 64x64 rendering
+and detail copy remain unverified in a rendered peer run. Cells remain wide;
+the next ordered increment compacts them and updates wrap/layout coverage.
+
+Next eligible task: M12 goal 10, replace wide cells with compact columns,
+four-unit gaps and safe leftward/downward wrapping; update zero/one/three/many
+layout assertions across scales and aspect ratios.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions first and synchronized only the selected `BACKLOG.md` child and this
+`PROGRESS.md` entry; all pre-existing main-checkout changes were preserved.
+No implementation files or other documentation were synchronized.

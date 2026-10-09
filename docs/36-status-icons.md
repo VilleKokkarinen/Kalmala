@@ -4,29 +4,30 @@ The user requested the next three backlog items together on 2026-10-02,
 with verification deferred until all three implementations were present.
 
 The owner-local survival subsystem reads only its local controller's pawn.
-It owns a transparent, non-focusable, hit-test-invisible hotbar at logical
-top-right (-24,244), 24 units below the existing 208-unit minimap, whose
-top/right inset is now 12 UI units.
-Entries wrap within 450 units, with six-unit gaps and wider cells for
-100/125/150% local text. Empty states collapse; no background, border or
-empty slots are drawn. Original monochrome line art and outlined text remain
-readable over terrain without colour-dependent identification.
+It owns a transparent, non-focusable, hit-test-invisible status group just left
+of the configured minimap slot, sharing its top offset and leaving a 12-unit
+horizontal gap. Its current wide cells render 64x64 raster icons with no
+visible names; a visually hidden text label keeps each status name available
+to assistive technology. Finite player-effect timers are centred beneath the
+icons. Empty states collapse; no background, border or empty slots are drawn.
 
 Stable order: Wet, Steady meal, Hot, Cold, the current support effect, then
-weather. Status seconds come directly from owner replication; support and
-weather use their replicated expiry/interval with synchronized server time.
-Heat and cold say ongoing. Expired statuses disappear, duplicate status IDs
-appear once, and an elapsed weather interval says awaiting update until the
-server sends its replacement. Weather includes calm/active/high activity or
-Storm; the interval timer describes weather, not an invented player debuff.
+Storm. The M12 rendering uses the imported 64x64 icons without visible names;
+accessible names remain available to assistive technology. Only finite player
+statuses and support effects have a centred m:ss timer below the icon, derived
+from owner replication or synchronized server time. Hot, Cold and Storm have
+no countdown, and weather intervals are not displayed as player timers.
+Expired statuses disappear and duplicate status IDs appear once.
 
 Escape > Status and weather details provides live wrapped, scrollable text
-for category, intensity, magnitudes, source and recovery. This uses existing
-modal focus and input restoration. Supported statuses do not stack. The
-left HUD retains combat, discovery, support selection/cooldown/feedback,
-inventory and preparation guidance. Its active Wet, meal and support rows
-are removed; the old independent weather subsystem creates no badge. The
-lower-left survival widget now shows only ocean travel information.
+for category, intensity, magnitudes, source and recovery. It retains finite
+player-effect timing but omits weather countdowns and ongoing labels for
+untimed conditions. This uses existing modal focus and input restoration.
+Supported statuses do not stack. The left HUD retains combat, discovery,
+support selection/cooldown/feedback, inventory and preparation guidance. Its
+active Wet, meal and support rows are removed; the old independent weather
+subsystem creates no badge. The lower-left survival widget now shows only
+ocean travel information.
 The optional colour-independent feedback panel retains action results and
 nearby construction/hearth context; its duplicate Wet/active-support rows
 are also removed. The ownership audit rejects status queries in either
@@ -67,7 +68,8 @@ Kalmala.UI.StatusHotbar.SnapshotAndLayout and
 Kalmala.UI.CatalogueIcons.CompleteCoverage. Coverage enumerates runtime
 catalogues, all tool definitions and all build/recipe outputs; it rejects
 missing/duplicate assignments. Snapshot checks cover order, simultaneous
-signals, duplicate IDs, replicated timers, ongoing labels and expiry.
+signals, duplicate IDs, finite replicated m:ss timers, omitted untimed/weather
+countdowns, and expiry.
 
 Run Verify-StatusHotbar.ps1 from the mirror at 1024x768, 1280x720 and
 2560x1080 with 100/125/150% text and high contrast. Its explicit development
@@ -107,8 +109,9 @@ emitted by `UKalmalaStatusHotbarWidget::BuildEntries`: Wet, Steady meal, Hot,
 Cold, Mending, Hearth shield, Bear's vigor, Deer call, and Storm. `entry_id`
 matches the existing hotbar entry identity; `icon_id` is the canonical image
 name. The rows are fixed in three ordered batches (01: four player conditions;
-02: four support effects; 03: Storm). Existing accessible names and
-server-derived timing remain widget text and are never baked into an image.
+02: four support effects; 03: Storm). Assistive names stay available in a
+visually hidden text label and server-derived finite timing remains widget
+text; names and timing are never baked into an image.
 
 Keep generated originals under
 `Content/Kalmala/UI/Source/IconOriginals/Status/<IconId>.png`. Prepare the
@@ -156,7 +159,12 @@ into the project. The importer verifies 64x64 dimensions, source alpha,
 sRGB, UI texture group, no mipmaps, and non-streaming settings. Run
 `Scripts/Validate-StatusIconSet.ps1` for manifest, entry-map, PNG, and package
 coverage; `Kalmala.UI.StatusHotbar.StatusIconCoverage` checks the nine runtime
-paths and texture loads after an affected editor build. The current hotbar
-still renders its vector icons, names, and durations until the later
-icon-only presentation increment. No status timing, effect, authority,
-replication, or save contract changed.
+paths and texture loads after an affected editor build. Each current hotbar
+entry renders its imported image at 64x64, retaining a vector fallback and a
+visually hidden accessible name. A centred m:ss appears under finite
+Wet/meal/support entries only; Hot, Cold and Storm have no timer, and the
+separate Status and weather detail view omits weather countdowns and untimed
+"ongoing" labels. The displayed finite values are rebuilt from the existing
+owner snapshot and synchronized server time; the client does not decrement
+them locally. No status timing, effect, authority, replication, or save
+contract changed.

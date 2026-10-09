@@ -31,8 +31,11 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     TestEqual(TEXT("Simultaneous effects deduplicate"), Entries.Num(), 6);
     if (Entries.Num() != 6) return false;
     TestEqual(TEXT("Stable order"), Entries[0].Id, UKalmalaPlayerStatusComponent::WetStatusId);
-    TestEqual(TEXT("Replicated duration rounded up"), Entries[0].Duration, FString(TEXT("32 s")));
-    TestEqual(TEXT("Untimed heat"), Entries[2].Duration, FString(TEXT("ongoing")));
+    TestEqual(TEXT("Accessible name remains in the entry model"), Entries[0].Name, FString(TEXT("Wet")));
+    TestEqual(TEXT("Replicated finite status uses rounded m:ss"), Entries[0].TimerText, FString(TEXT("00:32")));
+    TestEqual(TEXT("Finite meal timer uses m:ss"), Entries[1].TimerText, FString(TEXT("01:14")));
+    TestTrue(TEXT("Untimed heat has no duration label"), Entries[2].TimerText.IsEmpty());
+    TestTrue(TEXT("Untimed cold has no duration label"), Entries[3].TimerText.IsEmpty());
     TestEqual(TEXT("Wet raster identity"), Entries[0].StatusIconId, FName(TEXT("Wet")));
     TestEqual(TEXT("Meal raster identity"), Entries[1].StatusIconId, FName(TEXT("SteadyMeal")));
     TestEqual(TEXT("Hot raster identity"), Entries[2].StatusIconId, FName(TEXT("Heat")));
@@ -40,7 +43,8 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     TestEqual(TEXT("Shield maps to its canonical hearth image"), Entries[4].StatusIconId, FName(TEXT("HearthShield")));
     TestEqual(TEXT("Storm distinct"), Entries[5].Icon, EKalmalaIcon::Storm);
     TestEqual(TEXT("Weather maps to the canonical storm image"), Entries[5].StatusIconId, FName(TEXT("Storm")));
-    TestEqual(TEXT("Current storm weather interval"), Entries[5].Duration, FString(TEXT("90 s")));
+    TestTrue(TEXT("Storm has no countdown"), Entries[5].TimerText.IsEmpty());
+    TestEqual(TEXT("Finite support effect uses rounded m:ss"), Entries[4].TimerText, FString(TEXT("00:35")));
     S.Statuses.Reset(); S.ActiveSupportEffectExpiry = 45;
     TestEqual(TEXT("Expired statuses removed together"), UKalmalaStatusHotbarWidget::BuildEntries(S).Num(), 3);
     auto HasEntry = [](const TArray<FKalmalaStatusHotbarEntry>& Values, FName Id)
@@ -82,6 +86,8 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     TestEqual(TEXT("Cleared, expired, unsupported and ordinary weather leave no end icons"), EmptySnapshot.Num(), 0);
     TestEqual(TEXT("Empty state has no retained height"),
         UKalmalaStatusHotbarWidget::CalculateSize(EmptySnapshot.Num(), 100, FVector2D(1280, 720)).Y, 0.0);
+    TestEqual(TEXT("One 64-unit icon and its timer fit the current cell row"),
+        UKalmalaStatusHotbarWidget::CalculateSize(1, 100, FVector2D(1280, 720)).Y, 92.0);
     S.bHasWeatherState = false;
     TestEqual(TEXT("Missing weather state also stays empty"), UKalmalaStatusHotbarWidget::BuildEntries(S).Num(), 0);
     UKalmalaMinimapWidget* Minimap = NewObject<UKalmalaMinimapWidget>();
