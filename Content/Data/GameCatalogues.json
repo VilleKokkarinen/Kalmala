@@ -64,43 +64,43 @@
     {
       "ItemId": "Storage",
       "DisplayName": "Chest",
-      "Description": "A shared chest that holds up to sixteen unique item stacks.",
+      "Description": "A shared chest for storing camp supplies.",
       "MaxStack": 5
     },
     {
       "ItemId": "CookingRack",
-      "DisplayName": "Cooking rack",
-      "Description": "A rack for roasting boar or deer meat over a fire.",
+      "DisplayName": "Cooking Rack",
+      "Description": "A rack for roasting boar and deer over a fire.",
       "MaxStack": 5
     },
     {
       "ItemId": "FryingPan",
-      "DisplayName": "Frying pan",
-      "Description": "A placeable iron pan for cooking ingredients over a nearby lit hearth.",
+      "DisplayName": "Frying Pan",
+      "Description": "An iron pan for cooking over a lit hearth.",
       "MaxStack": 1
     },
     {
       "ItemId": "Cauldron",
-      "DisplayName": "Hearth cauldron",
-      "Description": "A pot for simmering soup over a fire.",
+      "DisplayName": "Cauldron",
+      "Description": "A pot for simmering soups over a fire.",
       "MaxStack": 5
     },
     {
       "ItemId": "Floor",
-      "DisplayName": "Timber floor",
-      "Description": "A timber floor assembled directly with the Construction Hammer.",
+      "DisplayName": "Timber Floor",
+      "Description": "Timber boards for the floor of a camp shelter.",
       "MaxStack": 10
     },
     {
       "ItemId": "Wall",
-      "DisplayName": "Windbreak wall",
-      "Description": "A light windbreak of lashed timber and reed fibre for camp shelter.",
+      "DisplayName": "Windbreak Wall",
+      "Description": "A light timber-and-reed wall that blocks wind around camp.",
       "MaxStack": 10
     },
     {
       "ItemId": "Roof",
-      "DisplayName": "Reed roof",
-      "Description": "A reed roof that shelters a small camp space from rain.",
+      "DisplayName": "Reed Roof",
+      "Description": "A reed roof that shields a small camp from rain.",
       "MaxStack": 10
     },
     {
@@ -111,8 +111,8 @@
     },
     {
       "ItemId": "BoarMeat",
-      "DisplayName": "Boar meat",
-      "Description": "Filled with fat and flavor, perfect for cooking over a fire.",
+      "DisplayName": "Boar Meat",
+      "Description": "Rich boar meat for roasting over a fire.",
       "MaxStack": 20
     },
     {
@@ -322,7 +322,7 @@
     },
     {
       "RecipeId": "FryingPanRecipe",
-      "DisplayName": "Frying pan",
+      "DisplayName": "Frying Pan",
       "Ingredients": [
         {
           "ItemId": "Iron",
@@ -414,7 +414,7 @@
     },
     {
       "RecipeId": "Storage",
-      "DisplayName": "Woven chest",
+      "DisplayName": "Chest",
       "Ingredients": [
         {
           "ItemId": "Wood",
@@ -435,7 +435,7 @@
     },
     {
       "RecipeId": "CookingRack",
-      "DisplayName": "Cooking rack",
+      "DisplayName": "Cooking Rack",
       "Ingredients": [
         {
           "ItemId": "Wood",
@@ -456,7 +456,7 @@
     },
     {
       "RecipeId": "Cauldron",
-      "DisplayName": "Hearth cauldron",
+      "DisplayName": "Cauldron",
       "Ingredients": [
         {
           "ItemId": "Wood",
@@ -481,7 +481,7 @@
     },
     {
       "RecipeId": "Floor",
-      "DisplayName": "Timber floor",
+      "DisplayName": "Timber Floor",
       "Ingredients": [
         {
           "ItemId": "Wood",
@@ -502,7 +502,7 @@
     },
     {
       "RecipeId": "Wall",
-      "DisplayName": "Windbreak wall",
+      "DisplayName": "Windbreak Wall",
       "Ingredients": [
         {
           "ItemId": "Wood",
@@ -523,7 +523,7 @@
     },
     {
       "RecipeId": "Roof",
-      "DisplayName": "Reed roof",
+      "DisplayName": "Reed Roof",
       "Ingredients": [
         {
           "ItemId": "Wood",

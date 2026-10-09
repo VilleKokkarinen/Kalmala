@@ -67,6 +67,20 @@ The frozen current-copy columns are unchanged. Item stack limits, recipe output
 IDs, ingredients, batch counts, station requirements, aliases, placement costs,
 and construction/save identities remain unchanged.
 
+## Batch 03 applied
+
+Batch 03 aligns Chest, Cooking Rack, Frying Pan, Cauldron, Timber Floor,
+Windbreak Wall, and Reed Roof with their recipe names, and updates Boar Meat's
+name. Descriptions remove implementation wording, retain verified cooking and
+shelter uses, and keep Chest capacity in the structured storage details. Boar
+Meat keeps a food-focused line without claiming an effect. Focused catalogue
+assertions pin all eight names, descriptions, and existing stack limits, then
+check the seven recipe labels against their stable output identities.
+
+The frozen current-copy columns are unchanged. Item stack limits, recipe output
+IDs, ingredients, batch counts, station requirements, aliases, placement costs,
+and construction/save identities remain unchanged.
+
 ## Preserve intentional manual flavor
 
 The source history and copy review identify these distinctive owner-authored

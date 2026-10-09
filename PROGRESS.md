@@ -13523,3 +13523,51 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions, updated only this selected BACKLOG child and appended this PROGRESS
 entry; all earlier main content is preserved and no implementation files were
 synchronized.
+
+## Run 2026-10-09 06:15 UTC — Apply catalogue copy batch 03
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout has pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits; they remain preserved.
+
+Completed exactly M12 goal 9's copy batch 03 for StorageKit, CookingRackKit,
+FryingPanKit, CauldronKit, FloorKit, WallKit, RoofKit, and BoarMeat. Updated
+eight item names/descriptions and aligned seven recipe labels. Chest capacity
+remains in structured storage details; cooking and shelter descriptions retain
+verified uses, and Boar Meat copy claims no food effect. Stable item IDs, stack
+limits, recipe outputs, ingredients, batches, station requirements, aliases,
+and construction identities are unchanged.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/44-catalogue-copy-audit.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: PowerShell JSON parsing and exact copy assertions for
+all eight audited identities; non-text item-field comparisons against baseline
+commit 0dfad8e and pre-increment HEAD; non-display recipe-field and output-ID
+comparisons; seven recipe/output display-name checks; frozen current/proposed
+copy-column comparisons against pre-increment HEAD; `git diff --check`; manual
+review of the focused automation additions; and the changed-path MAX_PATH audit
+(longest absolute path 108 characters). The focused Unreal catalogue
+assertions were added but not compiled or run. No build, full automation queue,
+host/client runtime, rendered review, or package check was performed. Full M12
+verification remains deferred.
+
+Observable impact: inventory, recipe, and result views use the reviewed batch
+03 names and descriptions.
+
+Networking/authority: presentation copy only. Server authority, transactions,
+replication, inventory behavior, construction costs, save identities, and
+schemas are unchanged.
+
+Known limitations: the new catalogue assertions and rendered copy review have
+not been executed. Copy batches 04–06, leftover hard-coded label propagation,
+and downstream text alignment remain.
+
+Next eligible task: M12 goal 9, apply copy batch 04 to DeerMeat, BoarHide,
+DeerHide, CookedBoarMeat, CookedDeerMeat, HearthBroth, MeatStew, and
+RootVegetableSoup.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and changed only this selected task row plus the new PROGRESS entry; pre-existing content and all implementation files remain untouched.
