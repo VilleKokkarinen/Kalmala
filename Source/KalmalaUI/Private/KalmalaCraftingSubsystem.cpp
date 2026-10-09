@@ -378,7 +378,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
             FMargin(0.0f, 0.0f, 0.0f, FKalmalaUITheme::Get().SlotPadding));
         return Label;
     };
-    HeaderText = AddText(TEXT("Construction hammer — Build"), 28);
+    HeaderText = AddText(TEXT("Construction Hammer — Build"), 28);
     GeneralInstructions = TEXT("Browse construction and placeable items. Bootstrap structures use their listed materials; produce station-required items at their matching service menu, then select them here to place. Selection is marked with >; requirements and unavailable reasons are written in text.");
     InstructionsText = AddText(GeneralInstructions, 16);
     StationContextStatusText = AddText(TEXT(""), 18);
@@ -895,7 +895,7 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
 
     if (StationFilterKit.IsNone())
     {
-        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Construction hammer — Build")));
+        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Construction Hammer — Build")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(GeneralInstructions));
         if (RecipeCategoryLabel) RecipeCategoryLabel->SetText(FText::FromString(
             TEXT("Builds: ") + GetBrowseCategoryLabel(RecipeCategory)));
@@ -915,19 +915,19 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Cooking Rack — Cook")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Cooked boar meat and Cooked deer meat only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")));
+            TEXT("Cooked Boar Meat and Cooked Deer Meat only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")));
     }
     else if (bCauldronContext)
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Cauldron — Cook")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Meat stew and Root vegetable soup only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")));
+            TEXT("Meat Stew and Root Vegetable Soup only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")));
     }
     else if (bFryingPanContext)
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Frying Pan — Cook")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Roasted root vegetables and Deer and rutabaga roast only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")));
+            TEXT("Roasted Root Vegetables and Deer and Rutabaga Roast only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")));
     }
     else if (bWorkbenchCraftContext)
     {
@@ -1107,7 +1107,7 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
         {
             StationContextStatusText->SetText(FText::FromString(FString::Printf(
                 TEXT("Hearth heat unavailable · select a %s recipe"),
-                bFryingPanContext ? TEXT("Frying Pan") : (bCauldronContext ? TEXT("cauldron") : TEXT("rack"))));
+                bFryingPanContext ? TEXT("Frying Pan") : (bCauldronContext ? TEXT("Cauldron") : TEXT("Cooking Rack"))));
             return;
         }
 
@@ -1117,9 +1117,9 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
             : TEXT("Recipe availability unavailable");
         const bool bHeatUnavailable = Availability.Contains(
             TEXT("Need a usable lit hearth with positive heat"), ESearchCase::IgnoreCase)
-            || Availability.Contains(TEXT("Need a visible same-world Cooking rack"), ESearchCase::IgnoreCase)
+            || Availability.Contains(TEXT("Need a visible same-world Cooking Rack"), ESearchCase::IgnoreCase)
             || Availability.Contains(TEXT("Need a visible same-world Cauldron"), ESearchCase::IgnoreCase)
-            || Availability.Contains(TEXT("Need a visible same-world Frying pan"), ESearchCase::IgnoreCase)
+            || Availability.Contains(TEXT("Need a visible same-world Frying Pan"), ESearchCase::IgnoreCase)
             || Availability.Equals(TEXT("Recipe unavailable"), ESearchCase::IgnoreCase);
         StationContextStatusText->SetText(FText::FromString(FString::Printf(
             TEXT("%s · Hearth heat: %s"), StationName, bHeatUnavailable ? TEXT("unavailable") : TEXT("available"))));
@@ -1438,6 +1438,8 @@ bool UKalmalaCraftingWidget::VerifyBuildMenuCleanupForTest()
     const bool bRelightAvailable = CampfireLightButton
         && CampfireLightButton->GetVisibility() == ESlateVisibility::Visible;
     const FString BuildStatus = StateText ? StateText->GetText().ToString() : FString();
+    const bool bBuildHeader = HeaderText
+        && HeaderText->GetText().ToString() == TEXT("Construction Hammer — Build");
     const bool bStatusFiltered = StateText && StateText->GetVisibility() == ESlateVisibility::Visible
         && !BuildStatus.Contains(TEXT("Nearby hearth"))
         && !BuildStatus.Contains(TEXT("Tool condition"))
@@ -1445,9 +1447,9 @@ bool UKalmalaCraftingWidget::VerifyBuildMenuCleanupForTest()
         && !BuildStatus.Contains(TEXT("Nearby Workbench"));
     const bool bStorageShellHidden = StorageContextPanel
         && StorageContextPanel->GetVisibility() == ESlateVisibility::Collapsed;
-    UE_LOG(LogTemp, Display, TEXT("Build context cleanup: ObsoleteHidden=%d Placement=%d Relight=%d Status=%d StorageShell=%d"),
-        bObsoleteHidden, bPlacementVisible, bRelightAvailable, bStatusFiltered, bStorageShellHidden);
-    return bObsoleteHidden && bPlacementVisible && bRelightAvailable && bStatusFiltered && bStorageShellHidden;
+    UE_LOG(LogTemp, Display, TEXT("Build context cleanup: Header=%d ObsoleteHidden=%d Placement=%d Relight=%d Status=%d StorageShell=%d"),
+        bBuildHeader, bObsoleteHidden, bPlacementVisible, bRelightAvailable, bStatusFiltered, bStorageShellHidden);
+    return bBuildHeader && bObsoleteHidden && bPlacementVisible && bRelightAvailable && bStatusFiltered && bStorageShellHidden;
 }
 
 bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
@@ -1822,7 +1824,8 @@ bool UKalmalaCraftingWidget::VerifyCookingRackScopeForTest()
         && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed
         && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Collapsed;
     const bool bMenuContents = HeaderText && HeaderText->GetText().ToString() == TEXT("Cooking Rack — Cook")
-        && InstructionsText && InstructionsText->GetText().ToString().Contains(TEXT("Cooked boar meat and Cooked deer meat only"))
+        && InstructionsText && InstructionsText->GetText().ToString()
+            == TEXT("Cooked Boar Meat and Cooked Deer Meat only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")
         && RecipeGrid->GetVisibility() != ESlateVisibility::Collapsed
         && Ingredients->GetVisibility() != ESlateVisibility::Collapsed
         && DetailText && DetailText->GetVisibility() != ESlateVisibility::Collapsed
@@ -1994,7 +1997,8 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
         && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed
         && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Collapsed;
     const bool bMenuContents = HeaderText && HeaderText->GetText().ToString() == TEXT("Cauldron — Cook")
-        && InstructionsText && InstructionsText->GetText().ToString().Contains(TEXT("Meat stew and Root vegetable soup only"))
+        && InstructionsText && InstructionsText->GetText().ToString()
+            == TEXT("Meat Stew and Root Vegetable Soup only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")
         && RecipeGrid->GetVisibility() != ESlateVisibility::Collapsed
         && Ingredients->GetVisibility() != ESlateVisibility::Collapsed
         && DetailText && DetailText->GetVisibility() != ESlateVisibility::Collapsed
@@ -2186,7 +2190,8 @@ bool UKalmalaCraftingWidget::VerifyFryingPanScopeForTest()
         && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed
         && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Collapsed;
     const bool bMenuContents = HeaderText && HeaderText->GetText().ToString() == TEXT("Frying Pan — Cook")
-        && InstructionsText && InstructionsText->GetText().ToString().Contains(TEXT("Roasted root vegetables and Deer and rutabaga roast only"))
+        && InstructionsText && InstructionsText->GetText().ToString()
+            == TEXT("Roasted Root Vegetables and Deer and Rutabaga Roast only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")
         && RecipeGrid->GetVisibility() != ESlateVisibility::Collapsed
         && Ingredients->GetVisibility() != ESlateVisibility::Collapsed
         && DetailText && DetailText->GetVisibility() != ESlateVisibility::Collapsed

@@ -34,12 +34,12 @@ The catalogue also defines `MeatStew` as the stable output item for `MeatStewRec
 
 The catalogue defines `CookedDeerMeat` as the stable output item for `CookedDeerMeatRecipe`. This item definition does not add food consumption or a `SteadyMeal` effect.
 
-The catalogue defines Iron and a placeable Frying pan made from five Iron at a
-visible Forge. Roasted root vegetables and Deer and rutabaga roast require the
+The catalogue defines Iron and a placeable Frying Pan made from five Iron at a
+visible Forge. Roasted Root Vegetables and Deer and Rutabaga Roast require the
 placed pan; all pan dishes need usable lit heat at both station and player.
-Looking at a Cooking rack, cauldron, or pan shows the remappable Interact prompt,
+Looking at a Cooking Rack, Cauldron, or Frying Pan shows the remappable Interact prompt,
 and pressing E opens a recipe view filtered to that station after server
-validation. Root vegetable soup uses the visible cauldron and the same station
+validation. Root Vegetable Soup uses the visible Cauldron and the same station
 heat rule. `Kalmala.Gameplay.Food.CookingStationHeat` covers accepted exchanges,
 missing-station and missing-heat rejection, normal time-based hearth fuel
 burn, and exact ingredient costs. The pan uses the existing persistent

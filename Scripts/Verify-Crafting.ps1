@@ -48,7 +48,7 @@ try {
         $ready = $ready -and $serverText.Contains('Campfire interaction: AddedOne=1 NoLighting=1 FullRejected=1 NoFuelRejected=1 RangeRejected=1')
         foreach ($peerText in @($serverText, $clientText)) {
             $ready = $ready -and $peerText.Contains('Catalogue icons: Grid=1 Selected=1 Upgrade=1')
-            $ready = $ready -and $peerText.Contains('Build context cleanup: ObsoleteHidden=1 Placement=1 Relight=1 Status=1 StorageShell=1')
+            $ready = $ready -and $peerText.Contains('Build context cleanup: Header=1 ObsoleteHidden=1 Placement=1 Relight=1 Status=1 StorageShell=1')
             $ready = $ready -and $peerText.Contains('Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1 SearchFocus=1')
             $ready = $ready -and $peerText.Contains('Build browsing: Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1')
             $ready = $ready -and $peerText.Contains('Workbench Craft scope: BronzeAxe=1 GrindingStone=1 ToolRack=1 NoUnrelated=1 ToolPrerequisites=1 PassiveRack=1 UiScope=1')

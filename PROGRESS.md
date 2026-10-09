@@ -13779,3 +13779,52 @@ Main-checkout handoff synchronization: Complete. Inspected the main versions,
 updated only this selected BACKLOG child and appended this PROGRESS entry while
 preserving earlier edits; no implementation files or other docs were
 synchronized.
+# Run 2026-10-09 06:58 UTC — Align catalogue copy across menus
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout has pre-existing edits in
+`BACKLOG.md` and `PROGRESS.md`; they remain protected for handoff sync.
+
+Completed the final M12 goal 9 child. The Build heading now reads
+`Construction Hammer — Build`; Cooking Rack, Cauldron, and Frying Pan guidance
+uses the exact reviewed recipe names. Updated the missing-pan station
+expectation, exact cooking-guidance UI assertions, and the host/client Build
+header marker. Related M12 documentation now uses the same names. The existing
+intentional Stone, Carrot, Onion, Meat Stew, and Potato copy decisions remain
+documented and unchanged.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp`,
+`Scripts/Verify-Crafting.ps1`, `docs/07-development-setup.md`,
+`docs/09-inventory-verification.md`, `docs/10-campfire-and-crafting.md`,
+`docs/44-catalogue-copy-audit.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Lightweight checks: reviewed all live recipe/output labels and current source
+references; confirmed the updated shell instructions still use the existing
+auto-wrapped text helper and unchanged bounded card wrap widths; and inspected
+the focused source assertions. Full Unreal build, automation, host/client
+rendered review, and package checks remain deferred to M12 milestone-final
+verification.
+
+Observable impact: recipe names, station guidance, Build heading, availability
+expectations, and their focused checks now use one consistent player-facing
+capitalization.
+
+Networking/authority: presentation, assertion, verifier, and documentation
+changes only. Recipe IDs, item IDs, costs, server validation, transactions,
+replication, save state, and gameplay behavior are unchanged.
+
+Known limitations: the Unreal assertions and Verify-Crafting host/client
+fixture were not run. Multi-scale wrapping, accessibility, and rendered copy
+inspection remain part of the final M12 verification.
+
+Next eligible task: M12 goal 10, anchor the active-status group to the minimap's
+actual upper-left layout with shared 12-unit top/separation margins and update
+the narrow scaled-placement validator.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions; updated only the selected goal 9 parent/child state and appended this
+PROGRESS entry while preserving existing edits. No implementation files or
+other documentation were synchronized.

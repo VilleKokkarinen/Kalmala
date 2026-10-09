@@ -88,7 +88,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Missing Forge preserves iron"), Inventory->GetQuantity(TEXT("Iron")), 5);
     TestFalse(TEXT("Pan cooking rejects when the placeable pan station is missing"),
         Crafting->CraftFromServer(RoastedRootsRecipe->RecipeId, 1, Reason));
-    TestTrue(TEXT("Missing pan feedback names the required station"), Crafting->GetRecipeAvailability(RoastedRootsRecipe->RecipeId).Contains(TEXT("Frying pan")));
+    TestTrue(TEXT("Missing pan feedback names the required station"), Crafting->GetRecipeAvailability(RoastedRootsRecipe->RecipeId).Contains(TEXT("Frying Pan")));
     TestEqual(TEXT("Missing pan preserves vegetable inputs"), Inventory->GetQuantity(TEXT("Carrot")), 2);
 
     AKalmalaConstructionActor* Forge = World->SpawnActor<AKalmalaConstructionActor>();

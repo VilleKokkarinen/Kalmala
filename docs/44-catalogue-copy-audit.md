@@ -194,8 +194,8 @@ result description was implemented in copy batch 02.
   Workbench name in its readiness/result text and title-cased Cooking Rack and
   Frying Pan interaction results. The shared nearby-storage guidance in
   Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp now says Chest, matching
-  the canonical item name; the Build heading's Construction hammer label
-  remains for the following recipe/build/station text-alignment increment.
+  the canonical item name. The Build heading uses the player-facing Construction
+  Hammer name; station cooking guidance uses the catalogue's recipe names.
 - Source/KalmalaUI/Private/Tests/, Source/KalmalaGameplay/Private/Tests/,
   Scripts/Verify-Crafting.ps1, and the goal 9 copy documentation contain
   expectations or explanatory wording to review alongside each changed
@@ -205,19 +205,38 @@ result description was implemented in copy batch 02.
   asset-review aid, not player-facing copy. Preserve the icon identity and
   mapping while updating text.
 
-The inventory browse/detail rows, ingredient rows, storage selector and
-interaction prompt retain canonical identities and icon mappings while showing
-the current reviewed display names. Focused UI assertions cover Reed Fibre's
-visible name in search, sorting, ingredients and chest contents, its existing
-Fibre icon, and the Workbench catalogue name in its interaction prompt. The
-Hearth Broth food action prompt and status use the reviewed item capitalization.
+The inventory browse/detail rows, ingredient rows, storage selector, prompts,
+and build/station menus retain canonical identities and icon mappings while
+showing the current reviewed display names. Focused UI assertions cover Reed
+Fibre's visible name in search, sorting, ingredients and chest contents, its
+existing Fibre icon, and the Workbench catalogue name in its interaction prompt.
+Build, Cauldron, and Frying Pan guidance now spells output names exactly as the
+shared catalogue does. The Hearth Broth action prompt and station availability
+feedback use reviewed catalogue capitalization. Recipe-result details and
+build card names continue to resolve from their shared catalogue entries; the
+construction-only Campfire result keeps its dedicated label and description.
 
 The original CSV remains a frozen copy baseline, including the retired
 HearthRing item copy. The Campfire retirement removes that normal item
 definition and renames its direct-build recipe/result; no costs, placement
 authority, icon identity, or save schema change. Across the six applied batches
-and this cross-surface label cleanup, names stay aligned across inventory,
-ingredients, storage, prompts and previews. Recipe, build, station, upgrade and
-result text alignment plus wrapping review remain in the following increment;
-compare all non-text catalogue fields against the baseline during final
+and both cross-surface passes, names stay aligned across inventory, ingredients,
+storage, prompts, recipes, builds, stations, upgrades and result previews.
+Compare all non-text catalogue fields against the baseline during final
 milestone verification.
+
+## Recipe, build, station, upgrade, and result alignment
+
+The remaining hand-authored surface labels now match the reviewed catalogue:
+the standalone menu heading is **Construction Hammer — Build**, and cooking
+guidance names Cooked Boar Meat, Cooked Deer Meat, Meat Stew, Root Vegetable
+Soup, Roasted Root Vegetables, and Deer and Rutabaga Roast with their canonical
+capitalization. Existing catalogue assertions cover the 18 item-output recipe
+names and stable output identities; the Campfire construction recipe is checked
+separately as `Campfire` with no inventory output. A focused station-heat
+assertion now expects **Frying Pan** in the availability reason.
+
+The shared station shell creates its instruction text through the auto-wrapped
+text helper, while recipe cards retain their existing bounded wrap widths.
+Capitalization adds no fields or changes to those widths. The final rendered
+host/client copy, scaling, and clipping review remains part of M12 verification.

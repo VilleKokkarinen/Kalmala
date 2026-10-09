@@ -2099,7 +2099,7 @@ host/client execution remain in M12 final verification.
 
 ## M12 Cooking Rack menu
 
-The Cooking Rack shell shows only Cooked boar meat and Cooked deer meat. The
+The Cooking Rack shell shows only Cooked Boar Meat and Cooked Deer Meat. The
 selected food uses the shared result description, live owned/required ingredient
 counts, the existing one-batch-per-press and five-batch request limit, and a
 live hearth-heat summary derived from the existing recipe-availability path.
@@ -2122,8 +2122,8 @@ the full rendered menu matrix during M12 milestone-final verification.
 
 ## M12 Cauldron menu
 
-The Cauldron opens the shared station shell in Cook with only Meat stew and Root
-vegetable soup. Each selection shows its owner-visible ingredient counts,
+The Cauldron opens the shared station shell in Cook with only Meat Stew and Root
+Vegetable Soup. Each selection shows its owner-visible ingredient counts,
 existing one-batch-per-press and five-batch request limit, selected result
 description, and live hearth-heat availability. Expired station context disables
 Cook and sends no recipe request; the server's existing recipe-ID request and
@@ -2140,8 +2140,8 @@ matrix during M12 milestone-final verification.
 
 ## M12 Frying Pan menu
 
-The Frying Pan opens the shared station shell in Cook with only Roasted root
-vegetables and Deer and rutabaga roast. Each selection shows its owner-visible
+The Frying Pan opens the shared station shell in Cook with only Roasted Root
+Vegetables and Deer and Rutabaga Roast. Each selection shows its owner-visible
 ingredient counts, existing one-batch-per-press and five-batch request limit,
 selected result description, and live hearth-heat availability. Expired station
 context disables Cook and sends no recipe request. The narrow UI fixture also
@@ -2237,7 +2237,7 @@ Campfire Interact replaces the raw-fuel button, but it only refuels, so the
 separate Light action remains until an equivalent relight route is integrated.
 
 After an affected UI build, `Verify-Crafting.ps1` requires
-`Build context cleanup: ObsoleteHidden=1 Placement=1 Relight=1 Status=1
+`Build context cleanup: Header=1 ObsoleteHidden=1 Placement=1 Relight=1 Status=1
 StorageShell=1` on both peers, alongside Workbench `PassiveRack=1` and Forge
 `PassiveAnvil=1`. Its rendered matrix captures the cleaned standalone Build
 menu and verifies the clean view after category/no-results recovery. Run the
