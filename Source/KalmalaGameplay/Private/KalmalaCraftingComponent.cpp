@@ -812,7 +812,7 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(R->BuildableOutput))
     {
         if (R->BuildableOutput == TEXT("CampfireKit"))
-            return TEXT("A low stone-and-wood hearth built in place with a Construction Hammer; raw fuel lights it.");
+            return TEXT("A low stone ring for a campfire.");
         const auto* BuildItem = UKalmalaItemCatalogue::Get()->FindItem(R->BuildableOutput);
         if (BuildItem && !BuildItem->Description.IsEmpty()) return BuildItem->Description;
         return TEXT("Description unavailable.");

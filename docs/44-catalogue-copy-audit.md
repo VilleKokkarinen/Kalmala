@@ -49,6 +49,24 @@ The catalogue automation pins all eight reviewed names, descriptions, and
 existing stack limits. The development check compares every non-text field in
 these eight JSON item rows against baseline commit 0dfad8e.
 
+## Batch 02 applied
+
+Batch 02 applies the reviewed Frost Salt and Mireling Ember Ash copy and
+capitalizes the Workbench Tool Rack, Forge Anvil, and Grinding Stone labels in
+both their item and recipe rows. Workbench keeps the earlier roadmap-mandated
+name and now uses its concise camp-workbench description; Forge keeps its
+station name and clarifies its toolmaking and repair role. The rack description
+states its verified level-2 effect without claiming that it unlocks a current
+Workbench upgrade recipe. The Campfire remains construction-only: its short
+result description now comes from the direct-build result path, with no normal
+inventory item or pack description. The focused catalogue automation pins the
+seven live item names/descriptions and stack limits, and checks recipe labels
+against their stable output identities.
+
+The frozen current-copy columns are unchanged. Item stack limits, recipe output
+IDs, ingredients, batch counts, station requirements, aliases, placement costs,
+and construction/save identities remain unchanged.
+
 ## Preserve intentional manual flavor
 
 The source history and copy review identify these distinctive owner-authored
@@ -70,11 +88,11 @@ the catalogue.
 Every proposed use must be checked against the current recipes, tool actions,
 construction rules, and cooking contracts before its batch is implemented.
 The candidates avoid costs, quantities, conditions, levels, invented effects,
-new unlocks, and planting mechanics. Campfire's proposed copy is for a
-construction result only: its ordered classification task removes the normal
-HearthRing item presentation, preserves legacy/runtime aliases and
-saved-construction compatibility, and keeps existing placement costs and
-server validation. The proposed Campfire description remains for copy batch 02.
+new unlocks, and planting mechanics. Campfire copy is for a construction result
+only: the classification work removed the normal HearthRing item presentation,
+preserved legacy/runtime aliases and saved-construction compatibility, and kept
+existing placement costs and server validation. The construction-only Campfire
+result description was implemented in copy batch 02.
 
 ## Live text-source map
 

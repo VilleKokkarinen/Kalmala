@@ -34,31 +34,31 @@
     {
       "ItemId": "Workbench",
       "DisplayName": "Workbench",
-      "Description": "A compact crafting bench for assembling camp furnishings and repairing tools.",
+      "Description": "A camp workbench for making furnishings and repairing tools.",
       "MaxStack": 5
     },
     {
       "ItemId": "Forge",
       "DisplayName": "Forge",
-      "Description": "A stone-and-timber workstation for higher-tier tool progression and repair.",
+      "Description": "A stone-and-timber forge for making and repairing advanced tools.",
       "MaxStack": 5
     },
     {
       "ItemId": "WorkbenchToolRack",
-      "DisplayName": "Workbench tool rack",
-      "Description": "A bench attachment that raises Workbench level for matching tool upgrades.",
+      "DisplayName": "Workbench Tool Rack",
+      "Description": "A tool rack that raises a Workbench to level 2.",
       "MaxStack": 5
     },
     {
       "ItemId": "ForgeAnvil",
-      "DisplayName": "Forge anvil",
-      "Description": "A forge attachment that raises Forge level for matching tool upgrades.",
+      "DisplayName": "Forge Anvil",
+      "Description": "An anvil that lets a Forge support higher-tier tools.",
       "MaxStack": 5
     },
     {
       "ItemId": "GrindingStone",
-      "DisplayName": "Grinding stone",
-      "Description": "A sturdy stone used to repair all carried tools in one action.",
+      "DisplayName": "Grinding Stone",
+      "Description": "A stone wheel for repairing all worn tools at once.",
       "MaxStack": 5
     },
     {
@@ -105,8 +105,8 @@
     },
     {
       "ItemId": "MirelingAsh",
-      "DisplayName": "Mireling ember ash",
-      "Description": "Fine, soot-darkened remains left by a Mireling.",
+      "DisplayName": "Mireling Ember Ash",
+      "Description": "Fine, soot-dark ash left by a Mireling.",
       "MaxStack": 25
     },
     {
@@ -196,7 +196,7 @@
     {
       "ItemId": "FrostSalt",
       "DisplayName": "Frost Salt",
-      "Description": "A pale mineral salt from tundra sources, kept as an unprocessed material.",
+      "Description": "Pale mineral crystals gathered in the tundra.",
       "MaxStack": 40
     },
     {
@@ -341,7 +341,7 @@
     },
     {
       "RecipeId": "WorkbenchToolRack",
-      "DisplayName": "Workbench tool rack",
+      "DisplayName": "Workbench Tool Rack",
       "Ingredients": [
         {
           "ItemId": "Wood",
@@ -362,7 +362,7 @@
     },
     {
       "RecipeId": "ForgeAnvil",
-      "DisplayName": "Forge anvil",
+      "DisplayName": "Forge Anvil",
       "Ingredients": [
         {
           "ItemId": "Wood",
@@ -387,7 +387,7 @@
     },
     {
       "RecipeId": "GrindingStone",
-      "DisplayName": "Grinding stone",
+      "DisplayName": "Grinding Stone",
       "Ingredients": [
         {
           "ItemId": "Wood",

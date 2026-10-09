@@ -13469,3 +13469,56 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 `BACKLOG.md` and `PROGRESS.md`; updated only this selected child state and
 appended this run entry, preserving all pre-existing handoff/user changes. No
 implementation files or other documentation were synchronized.
+
+## Run 2026-10-09 06:09 UTC — Apply catalogue copy batch 02
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout has pre-existing backlog
+and progress handoff edits; they remain preserved.
+
+Completed exactly M12 goal 9's copy batch 02. Updated Frost Salt and Mireling
+Ember Ash descriptions, Workbench and Forge descriptions, and the Workbench
+Tool Rack, Forge Anvil, and Grinding Stone names/descriptions. The Campfire
+remains construction-only; its direct-build result now uses the audited short
+description, with no inventory item row. Recipe labels align with their item
+outputs. The Workbench Tool Rack copy states its verified level-2 effect and
+does not claim an unavailable Workbench upgrade recipe.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`docs/10-campfire-and-crafting.md`; `docs/44-catalogue-copy-audit.md`;
+`docs/catalogue-copy-audit.csv`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: PowerShell JSON parsing and exact copy/stack checks
+for all seven live identities; comparisons against the pre-increment catalogue
+confirmed non-copy item fields and all non-display recipe fields are unchanged;
+recipe/output display-name alignment passed for all five normal recipes; the
+Campfire item absence, legacy recipe output, and result description source were
+checked; the eight-row audit retained its frozen current-copy columns;
+`git diff --check`; and the changed-path MAX_PATH audit (longest absolute path
+108 characters). Manually reviewed the station attachment and repair contracts
+for truthful copy. The focused Unreal automation assertions were added but not
+run. No C++ build, full automation queue, host/client runtime, rendered review,
+or package check was run. Full M12 verification remains deferred.
+
+Observable impact: inventory, recipe, build, and result-detail views use the
+reviewed batch 02 names and descriptions.
+
+Networking/authority: presentation copy only. Server authority, transactions,
+replication, inventory behavior, placement costs, save identities, and schemas
+are unchanged.
+
+Known limitations: new catalogue automation assertions have not been compiled
+or executed, and rendered copy review remains open. Copy batches 03–06,
+leftover hard-coded label propagation, and downstream text alignment remain.
+
+Next eligible task: M12 goal 9, apply copy batch 03 to StorageKit, CookingRackKit,
+FryingPanKit, CauldronKit, FloorKit, WallKit, RoofKit, and BoarMeat.
+
+Main-checkout handoff synchronization: Pending. After the implementation
+commit, apply only this selected BACKLOG state and PROGRESS entry to the dirty
+main checkout, preserving all other edits.

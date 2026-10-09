@@ -68,6 +68,58 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
                 Item->MaxStack, Expected.MaxStack);
         }
     }
+    struct FExpectedBatchTwoCopy
+    {
+        FName ItemId;
+        const TCHAR* DisplayName;
+        const TCHAR* Description;
+        int32 MaxStack;
+    };
+    const FExpectedBatchTwoCopy BatchTwoCopy[] = {
+        { TEXT("FrostSalt"), TEXT("Frost Salt"), TEXT("Pale mineral crystals gathered in the tundra."), 40 },
+        { TEXT("MirelingAsh"), TEXT("Mireling Ember Ash"), TEXT("Fine, soot-dark ash left by a Mireling."), 25 },
+        { TEXT("WorkbenchKit"), TEXT("Workbench"), TEXT("A camp workbench for making furnishings and repairing tools."), 5 },
+        { TEXT("ForgeKit"), TEXT("Forge"), TEXT("A stone-and-timber forge for making and repairing advanced tools."), 5 },
+        { TEXT("WorkbenchToolRackKit"), TEXT("Workbench Tool Rack"),
+            TEXT("A tool rack that raises a Workbench to level 2."), 5 },
+        { TEXT("ForgeAnvilKit"), TEXT("Forge Anvil"),
+            TEXT("An anvil that lets a Forge support higher-tier tools."), 5 },
+        { TEXT("GrindingStoneKit"), TEXT("Grinding Stone"),
+            TEXT("A stone wheel for repairing all worn tools at once."), 5 },
+    };
+    for (const FExpectedBatchTwoCopy& Expected : BatchTwoCopy)
+    {
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        if (TestNotNull(FString::Printf(TEXT("Batch 02 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
+        {
+            TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
+                Item->DisplayName, FString(Expected.DisplayName));
+            TestEqual(FString::Printf(TEXT("%s has the reviewed description"), *Expected.ItemId.ToString()),
+                Item->Description, FString(Expected.Description));
+            TestEqual(FString::Printf(TEXT("%s keeps its existing stack limit"), *Expected.ItemId.ToString()),
+                Item->MaxStack, Expected.MaxStack);
+        }
+    }
+    const TPair<FName, FName> BatchTwoRecipeNames[] = {
+        { TEXT("Workbench"), TEXT("WorkbenchKit") },
+        { TEXT("Forge"), TEXT("ForgeKit") },
+        { TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit") },
+        { TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit") },
+        { TEXT("GrindingStone"), TEXT("GrindingStoneKit") },
+    };
+    for (const TPair<FName, FName>& Expected : BatchTwoRecipeNames)
+    {
+        const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
+        if (TestNotNull(FString::Printf(TEXT("Batch 02 recipe %s remains available"), *Expected.Key.ToString()), Recipe))
+        {
+            const FKalmalaItemDefinition* Output = Catalogue->FindItem(Expected.Value);
+            TestNotNull(FString::Printf(TEXT("Batch 02 recipe %s output item remains available"), *Expected.Key.ToString()), Output);
+            TestEqual(FString::Printf(TEXT("Batch 02 recipe %s matches its output name"), *Expected.Key.ToString()),
+                Recipe->DisplayName, Output ? Output->DisplayName : FString());
+            TestEqual(FString::Printf(TEXT("Batch 02 recipe %s preserves its output identity"), *Expected.Key.ToString()),
+                Recipe->Output, Expected.Value);
+        }
+    }
     TestFalse(TEXT("The catalogue JSON has no Kit substring in any property or value"), JsonText.Contains(TEXT("Kit"), ESearchCase::IgnoreCase));
     const FKalmalaRecipe* Campfire = Recipes->Find(TEXT("Campfire"));
     if (TestNotNull(TEXT("Campfire construction recipe resolves"), Campfire))
