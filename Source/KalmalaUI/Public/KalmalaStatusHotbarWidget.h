@@ -20,6 +20,7 @@ class KALMALAUI_API UKalmalaStatusHotbarWidget : public UUserWidget
     GENERATED_BODY()
 public:
     void SetSnapshot(const FKalmalaSurvivalStatusSnapshot& Snapshot, int32 TextScale, int32 Contrast);
+    void ConfigureViewportPlacement(const FVector2D& Size, const FVector2D& Position);
     static TArray<FKalmalaStatusHotbarEntry> BuildEntries(const FKalmalaSurvivalStatusSnapshot& Snapshot);
     static FVector2D CalculateSize(int32 Count, int32 TextScale, FVector2D Viewport);
 protected:

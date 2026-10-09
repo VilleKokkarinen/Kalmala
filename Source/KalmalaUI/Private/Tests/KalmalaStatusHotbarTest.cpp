@@ -1,11 +1,13 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaStatusHotbarWidget.h"
+#include "KalmalaMinimapWidget.h"
 #include "KalmalaSurvivalStatusWidget.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaCatalogueIconLibrary.h"
 #include "KalmalaIconWidget.h"
+#include "Blueprint/GameViewportSubsystem.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaStatusHotbarTest, "Kalmala.UI.StatusHotbar.SnapshotAndLayout",
@@ -35,13 +37,44 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     TestEqual(TEXT("Expired statuses removed together"), UKalmalaStatusHotbarWidget::BuildEntries(S).Num(), 3);
     S.bHasWeatherState = false; S.Exposure.HeatIntensity = 0; S.Exposure.ColdIntensity = 0;
     TestEqual(TEXT("Last expiry returns to empty"), UKalmalaStatusHotbarWidget::BuildEntries(S).Num(), 0);
+    UKalmalaMinimapWidget* Minimap = NewObject<UKalmalaMinimapWidget>();
+    Minimap->ConfigureViewportPlacement();
+    const FGameViewportWidgetSlot MinimapSlot = UGameViewportSubsystem::Get()->GetWidgetSlot(Minimap);
+    const FVector2D GroupPosition = Minimap->GetStatusGroupViewportPosition();
+    TestEqual(TEXT("Status group shares the minimap's top inset"), GroupPosition.Y, MinimapSlot.Offsets.Top);
+    TestEqual(TEXT("Status group right edge uses the minimap's actual left edge and 12-unit gap"),
+        GroupPosition.X, MinimapSlot.Offsets.Left - MinimapSlot.Offsets.Right - UKalmalaMinimapWidget::StatusGroupGap);
+
+    UKalmalaStatusHotbarWidget* Hotbar = NewObject<UKalmalaStatusHotbarWidget>();
+    const FVector2D SlotSize = UKalmalaStatusHotbarWidget::CalculateSize(6, 100, FVector2D(1280, 720));
+    Hotbar->ConfigureViewportPlacement(SlotSize, GroupPosition);
+    const FGameViewportWidgetSlot HotbarSlot = UGameViewportSubsystem::Get()->GetWidgetSlot(Hotbar);
+    TestTrue(TEXT("Status group uses the same top-right anchor and right alignment as the minimap"),
+        HotbarSlot.Anchors == MinimapSlot.Anchors && HotbarSlot.Alignment == MinimapSlot.Alignment);
+    TestEqual(TEXT("Actual status slot shares the map's top offset"), HotbarSlot.Offsets.Top, MinimapSlot.Offsets.Top);
+    TestEqual(TEXT("Actual status slot ends 12 UI units left of the map"), HotbarSlot.Offsets.Left,
+        MinimapSlot.Offsets.Left - MinimapSlot.Offsets.Right - UKalmalaMinimapWidget::StatusGroupGap);
+
     for (const FVector2D View : {FVector2D(1024,768), FVector2D(1280,720), FVector2D(2560,1080)})
-        for (const int32 Scale : {100,125,150})
+        for (const float DpiScale : {0.75f, 1.0f, 1.25f})
+            for (const int32 TextScale : {100,125,150})
         {
-            const auto Size = UKalmalaStatusHotbarWidget::CalculateSize(6, Scale, View);
-            TestTrue(TEXT("Below minimap and inside viewport"), Size.X + 48 <= View.X && Size.Y + 244 + 24 <= View.Y);
-            TestEqual(TEXT("Empty has zero height"), UKalmalaStatusHotbarWidget::CalculateSize(0,Scale,View).Y, 0.0);
+            const FVector2D LogicalViewport = View / DpiScale;
+            const FVector2D Size = UKalmalaStatusHotbarWidget::CalculateSize(6, TextScale, LogicalViewport);
+            const FVector2D ScaledGroupPosition = UKalmalaMinimapWidget::GetDefaultStatusGroupViewportPosition();
+            const float MinimapLeft = LogicalViewport.X - UKalmalaMinimapWidget::ViewportInset
+                - UKalmalaMinimapWidget::DefaultMapDiameter;
+            const float GroupRight = LogicalViewport.X + ScaledGroupPosition.X;
+            const float GroupLeft = GroupRight - Size.X;
+            TestEqual(TEXT("DPI-scaled layout keeps the status group 12 units left of the map"),
+                MinimapLeft - GroupRight, UKalmalaMinimapWidget::StatusGroupGap);
+            TestTrue(TEXT("DPI-scaled status group stays inside the left viewport edge"), GroupLeft >= 0.0f);
+            TestEqual(TEXT("DPI-scaled layout shares the map's top margin"), ScaledGroupPosition.Y, UKalmalaMinimapWidget::ViewportInset);
+            TestTrue(TEXT("DPI-scaled status group fits vertically"), ScaledGroupPosition.Y + Size.Y <= LogicalViewport.Y);
+            TestEqual(TEXT("Empty has zero height"), UKalmalaStatusHotbarWidget::CalculateSize(0, TextScale, LogicalViewport).Y, 0.0);
         }
+    UGameViewportSubsystem::Get()->RemoveWidget(Minimap);
+    UGameViewportSubsystem::Get()->RemoveWidget(Hotbar);
     return true;
 }
 

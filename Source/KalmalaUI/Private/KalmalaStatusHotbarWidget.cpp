@@ -1,9 +1,12 @@
 #include "KalmalaStatusHotbarWidget.h"
+#include "KalmalaMinimapSubsystem.h"
+#include "KalmalaMinimapWidget.h"
 #include "KalmalaSurvivalStatusWidget.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaUITheme.h"
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "Engine/LocalPlayer.h"
 #include "Components/WrapBox.h"
 #include "Components/SizeBox.h"
 #include "Components/HorizontalBox.h"
@@ -39,11 +42,18 @@ void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapsho
     for (const auto& Entry : Entries) Identity += TEXT("|") + Entry.Id.ToString();
     const FVector2D Viewport = UWidgetLayoutLibrary::GetViewportSize(this) / UWidgetLayoutLibrary::GetViewportScale(this);
     const FVector2D Size = CalculateSize(Entries.Num(), TextScale, Viewport);
-    EntriesBox->SetWrapSize(Size.X);
-    SetDesiredSizeInViewport(Size);
-    SetPositionInViewport(FVector2D(-24, 244), false);
-    SetAlignmentInViewport(FVector2D(1, 0));
-    SetAnchorsInViewport(FAnchors(1, 0)); // UE viewport setters reset anchors; set last.
+    FVector2D Position = UKalmalaMinimapWidget::GetDefaultStatusGroupViewportPosition();
+    if (ULocalPlayer* LocalPlayer = GetOwningLocalPlayer())
+    {
+        if (const UKalmalaMinimapSubsystem* MinimapSubsystem = LocalPlayer->GetSubsystem<UKalmalaMinimapSubsystem>())
+        {
+            if (const UKalmalaMinimapWidget* MinimapWidget = MinimapSubsystem->GetMinimapWidget())
+            {
+                Position = MinimapWidget->GetStatusGroupViewportPosition();
+            }
+        }
+    }
+    ConfigureViewportPlacement(Size, Position);
     if (Identity != LastIdentity)
     {
         EntriesBox->ClearChildren(); Labels.Reset(); Durations.Reset();
@@ -80,6 +90,18 @@ void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapsho
         }
     }
     SetVisibility(Entries.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
+}
+
+void UKalmalaStatusHotbarWidget::ConfigureViewportPlacement(const FVector2D& Size, const FVector2D& Position)
+{
+    if (EntriesBox != nullptr)
+    {
+        EntriesBox->SetWrapSize(Size.X);
+    }
+    SetDesiredSizeInViewport(Size);
+    SetPositionInViewport(Position, false);
+    SetAlignmentInViewport(FVector2D(1.0f, 0.0f));
+    SetAnchorsInViewport(FAnchors(1.0f, 0.0f)); // UE viewport setters reset anchors; set last.
 }
 
 TArray<FKalmalaStatusHotbarEntry> UKalmalaStatusHotbarWidget::BuildEntries(const FKalmalaSurvivalStatusSnapshot& S)

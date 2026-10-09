@@ -18,8 +18,16 @@ class KALMALAUI_API UKalmalaMinimapWidget : public UUserWidget
     GENERATED_BODY()
 
 public:
+    static constexpr float ViewportInset = 12.0f;
+    static constexpr float StatusGroupGap = 12.0f;
+    static constexpr float DefaultMapDiameter = 208.0f;
+
     void InitializeForLocalPlayer(APlayerController* InOwningPlayer, float InitialZoom = 5000.0f);
     void ConfigureViewportPlacement();
+    /** Position offset for a right-anchored status group immediately left of this map's configured slot. */
+    FVector2D GetStatusGroupViewportPosition() const;
+
+    static FVector2D GetDefaultStatusGroupViewportPosition(float InMapDiameter = DefaultMapDiameter);
 
     /** Pure geometry seam: all drawn map points must remain inside this circle. */
     static bool IsInsideCircularMap(const FVector2D& NormalizedMapPosition);
@@ -56,7 +64,7 @@ private:
     TObjectPtr<UKalmalaMinimapViewModel> ViewModel;
 
     UPROPERTY(EditDefaultsOnly, Category = "Minimap", meta = (ClampMin = "96.0", ClampMax = "512.0"))
-    float MapDiameter = 208.0f;
+    float MapDiameter = DefaultMapDiameter;
 
     UPROPERTY(EditDefaultsOnly, Category = "Minimap|Zoom", meta = (ClampMin = "100.0"))
     float MinZoom = 2500.0f;

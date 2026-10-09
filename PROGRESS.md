@@ -13828,3 +13828,54 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions; updated only the selected goal 9 parent/child state and appended this
 PROGRESS entry while preserving existing edits. No implementation files or
 other documentation were synchronized.
+
+## Run 2026-10-09 07:04 UTC — Anchor status hotbar to minimap
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits were preserved.
+
+Completed exactly M12 goal 10's first placement child. The owner-local status
+hotbar now derives its shared top offset and left-adjacent right-edge position
+from the configured minimap viewport slot, with a default-layout fallback until
+the minimap is available. The minimap inset and default map diameter now share
+named constants. The focused status-hotbar assertions cover actual widget-slot
+alignment and a 4:3, 16:9, and ultrawide layout matrix at 75%, 100%, and 125%
+DPI scales. Updated the development setup notes and checked only this backlog
+child.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaMinimapWidget.cpp`,
+`Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`,
+`Source/KalmalaUI/Public/KalmalaMinimapSubsystem.h`,
+`Source/KalmalaUI/Public/KalmalaMinimapWidget.h`,
+`Source/KalmalaUI/Public/KalmalaStatusHotbarWidget.h`,
+`docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Lightweight checks: `git diff --check` passed; manually reviewed actual slot
+offset derivation, setter ordering, fallback behavior, and the DPI-aware fit
+assertions. The updated Unreal automation assertions were not run. Full builds,
+automation, rendered host/client capture, and package checks remain deferred to
+M12 milestone-final verification.
+
+Observable impact: compact status/weather entries now occupy the minimap's
+upper-left side with matching top alignment and a 12 UI-unit horizontal gap.
+
+Networking/authority: local presentation reads the existing minimap widget
+slot and owner-visible snapshot. It adds no RPC, gameplay mutation, replication,
+or persistence change.
+
+Known limitations: rendered viewport placement and Unreal automation remain
+unverified. Until the minimap widget exists, the hotbar uses the default 208-unit
+map footprint and corrects placement on its next local refresh.
+
+Next eligible task: M12 goal 10, filter the status group to active statuses,
+qualifying Hot/Cold exposure and current Storm; hide normal weather and remove
+expired/empty entries immediately, with focused snapshot/expiry assertions.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions; applied only this selected backlog child and progress entry while
+preserving the pre-existing edits. No implementation files or other docs were
+synchronized.

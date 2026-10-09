@@ -2,6 +2,7 @@
 
 #include "KalmalaMinimapViewModel.h"
 #include "KalmalaMinimapRaster.h"
+#include "Blueprint/GameViewportSubsystem.h"
 #include "Engine/Texture2D.h"
 #include "GameFramework/PlayerController.h"
 #include "Misc/CommandLine.h"
@@ -29,9 +30,36 @@ void UKalmalaMinimapWidget::ConfigureViewportPlacement()
 {
     // Both size and position setters reset anchors in UE 5.8. Set anchors LAST.
     SetDesiredSizeInViewport(FVector2D(MapDiameter, MapDiameter));
-    SetPositionInViewport(FVector2D(-12.0f, 12.0f), false);
+    SetPositionInViewport(FVector2D(-ViewportInset, ViewportInset), false);
     SetAlignmentInViewport(FVector2D(1.0f, 0.0f));
     SetAnchorsInViewport(FAnchors(1.0f, 0.0f));
+}
+
+FVector2D UKalmalaMinimapWidget::GetStatusGroupViewportPosition() const
+{
+    if (UGameViewportSubsystem* ViewportSubsystem = UGameViewportSubsystem::Get())
+    {
+        const FGameViewportWidgetSlot Slot = ViewportSubsystem->GetWidgetSlot(this);
+        if (Slot.Anchors == FAnchors(1.0f, 0.0f)
+            && Slot.Alignment == FVector2D(1.0f, 0.0f)
+            && FMath::IsFinite(Slot.Offsets.Left)
+            && FMath::IsFinite(Slot.Offsets.Right)
+            && FMath::IsFinite(Slot.Offsets.Top)
+            && Slot.Offsets.Right > 0.0f)
+        {
+            // Both widgets share the top-right viewport anchor. Derive the status
+            // group's right edge from the actual map slot, including its size/margins.
+            return FVector2D(Slot.Offsets.Left - Slot.Offsets.Right - StatusGroupGap, Slot.Offsets.Top);
+        }
+    }
+
+    return GetDefaultStatusGroupViewportPosition(MapDiameter);
+}
+
+FVector2D UKalmalaMinimapWidget::GetDefaultStatusGroupViewportPosition(const float InMapDiameter)
+{
+    const float SafeDiameter = FMath::Max(0.0f, InMapDiameter);
+    return FVector2D(-(ViewportInset + SafeDiameter + StatusGroupGap), ViewportInset);
 }
 
 void UKalmalaMinimapWidget::UpdateMapTexture()
