@@ -99,3 +99,38 @@ Expired or cleared entries disappear from the rebuilt local snapshot list, and
 an empty list collapses the whole widget with zero calculated height. This is
 presentation-only and adds no timer, gameplay threshold, replication, or save
 state.
+
+## M12 active-status raster icons
+
+[`status-icon-manifest.csv`](status-icon-manifest.csv) pins the nine entries
+emitted by `UKalmalaStatusHotbarWidget::BuildEntries`: Wet, Steady meal, Hot,
+Cold, Mending, Hearth shield, Bear's vigor, Deer call, and Storm. `entry_id`
+matches the existing hotbar entry identity; `icon_id` is the canonical image
+name. The rows are fixed in three ordered batches (01: four player conditions;
+02: four support effects; 03: Storm). Existing accessible names and
+server-derived timing remain widget text and are never baked into an image.
+
+Keep generated originals under
+`Content/Kalmala/UI/Source/IconOriginals/Status/<IconId>.png`. Prepare the
+import PNGs under `Content/Kalmala/UI/Source/Icons/Status/<IconId>.png` with
+`python Scripts/Prepare-StatusIconBatch.py --batch 01`; the script alpha-crops
+visible artwork and centers it in a transparent 64x64 RGBA canvas with a
+56x56 maximum artwork area. Validate each pinned ID with
+`Scripts/Validate-StatusIcon.ps1 -Id <IconId>`. The intended future Unreal
+texture location is `/Game/Kalmala/UI/Icons/Status/<IconId>.<IconId>`.
+
+Batch 01 was generated with the built-in image generator and reviewed at
+native size. Its prompt set asks for: a clear blue-gray water droplet with a
+moisture sheen; a small wooden bowl of amber stew with root vegetables, one
+herb leaf, and steam; a golden-orange sun with three heat ripples; and a
+six-point icy frost crystal over a pale-blue shard. All four use a centered,
+hand-painted survival-game inventory style, a thin charcoal contour, a warm
+directional highlight, transparent margins, and no text, scenery, badges, or
+UI border. The retained sources and prepared files pass the PNG dimension and
+alpha validator and remain recognizable at 64x64.
+
+The batch is prepared only: no status texture `.uasset` has been imported and
+the hotbar does not consume these images yet. Later goal-10 increments import
+the complete pinned set and switch the local status presentation to these
+images. No status timing, effect, authority, replication, or save contract is
+changed by the assets.

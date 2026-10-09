@@ -13932,3 +13932,63 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions and synchronized only this selected backlog child and progress entry.
 All pre-existing changes remain preserved; no implementation files or other
 documentation were synchronized.
+
+## Run 2026-10-09 07:20 UTC — Pin active-status icon batch 01
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's existing
+`BACKLOG.md` and `PROGRESS.md` edits were left untouched during implementation.
+
+Completed exactly M12 goal 10's first status-image child. Pinned the nine
+current hotbar entry/icon identities in `docs/status-icon-manifest.csv` as
+fixed generation batches 01–03 with four, four, and one identity. Generated
+the first batch with the built-in image generator and retained the original
+PNG sources for Wet, SteadyMeal, Heat, and Cold. The batch preparation script
+alpha-crops artwork and centers it in a transparent 64x64 RGBA image with a
+56x56 maximum artwork area; the narrow PowerShell validator checks the pinned
+identity, source/final format, transparency, dimensions, and path lengths.
+Reviewed all four prepared images at native 64x64 size.
+
+Files changed: `Content/Kalmala/UI/Source/IconOriginals/Status/Wet.png`,
+`SteadyMeal.png`, `Heat.png`, and `Cold.png`; matching four files under
+`Content/Kalmala/UI/Source/Icons/Status/`; `Scripts/Prepare-StatusIconBatch.py`,
+`Scripts/Validate-StatusIcon.ps1`, `docs/status-icon-manifest.csv`,
+`docs/36-status-icons.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and
+this `PROGRESS.md` entry.
+
+Prompt set: a clear blue-gray water droplet; a small wooden bowl of amber stew
+with root vegetables, one herb leaf and steam; a golden-orange sun with three
+heat ripples; and a six-point icy frost crystal over a pale-blue shard. Each
+used the same centered hand-painted survival-game inventory style, thin dark
+contour, warm directional highlight, transparent margins, and no text,
+scenery, badges, or UI border.
+
+Lightweight checks: `python Scripts/Prepare-StatusIconBatch.py --batch 01`
+prepared all four images; `Scripts/Validate-StatusIcon.ps1 -Id <ID>` passed
+for Wet, SteadyMeal, Heat, and Cold, confirming 1254x1254 retained RGBA sources
+and transparent 64x64 RGBA finals; manually reviewed all four native-size
+images; `git diff --check` passed. No Unreal build, automation, imported
+texture check, or rendered host/client review was run. Full M12 verification
+remains deferred.
+
+Observable impact: the status HUD now has an explicit nine-entry raster-icon
+identity contract and four prepared, recognizable transparent icon assets.
+
+Networking/authority: image and documentation changes only. The hotbar still
+reads existing owner-visible state; no RPC, gameplay mutation, timing,
+replication, or persistence contract changed.
+
+Known limitations: the icons are prepared for import but no `.uasset` has been
+created and the hotbar still renders its current vector icons and labels.
+Import, layout, timer presentation, rendered acceptance, and full M12 checks
+remain in later goal-10 increments.
+
+Next eligible task: M12 goal 10, generate/review status-icon batch 02 (Mending,
+Hearth shield, Bear's vigor, and Deer call) and validate identities, alpha,
+dimensions, and 64x64 silhouettes.
+
+Main-checkout handoff synchronization: Pending; after the implementation
+commit, synchronize only the selected `BACKLOG.md` child and this progress
+entry while preserving existing main-checkout edits.
