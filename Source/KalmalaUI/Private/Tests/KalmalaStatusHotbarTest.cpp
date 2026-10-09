@@ -84,10 +84,17 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     S.Weather.PrecipitationIntensity = 0; S.Weather.WindStrength = 0; S.Weather.RefreshActivityLevel();
     const auto EmptySnapshot = UKalmalaStatusHotbarWidget::BuildEntries(S);
     TestEqual(TEXT("Cleared, expired, unsupported and ordinary weather leave no end icons"), EmptySnapshot.Num(), 0);
-    TestEqual(TEXT("Empty state has no retained height"),
-        UKalmalaStatusHotbarWidget::CalculateSize(EmptySnapshot.Num(), 100, FVector2D(1280, 720)).Y, 0.0);
-    TestEqual(TEXT("One 64-unit icon and its timer fit the current cell row"),
-        UKalmalaStatusHotbarWidget::CalculateSize(1, 100, FVector2D(1280, 720)).Y, 92.0);
+    const FVector2D TestViewport(1280, 720);
+    const FVector2D TestGroupPosition = UKalmalaMinimapWidget::GetDefaultStatusGroupViewportPosition();
+    const float TestGroupRight = TestViewport.X + TestGroupPosition.X;
+    const FVector2D EmptySize = UKalmalaStatusHotbarWidget::CalculateSize(0, 100, TestViewport, TestGroupRight);
+    TestEqual(TEXT("Empty state has no retained width"), EmptySize.X, 0.0);
+    TestEqual(TEXT("Empty state has no retained height"), EmptySize.Y, 0.0);
+    const FVector2D OneSize = UKalmalaStatusHotbarWidget::CalculateSize(1, 100, TestViewport, TestGroupRight);
+    TestEqual(TEXT("One state uses one compact icon cell"), OneSize.X,
+        UKalmalaStatusHotbarWidget::StatusCellWidth + UKalmalaStatusHotbarWidget::StatusCellGap);
+    TestEqual(TEXT("One state reserves one icon/timer row"), OneSize.Y,
+        UKalmalaStatusHotbarWidget::StatusCellContentHeight + UKalmalaStatusHotbarWidget::StatusCellGap);
     S.bHasWeatherState = false;
     TestEqual(TEXT("Missing weather state also stays empty"), UKalmalaStatusHotbarWidget::BuildEntries(S).Num(), 0);
     UKalmalaMinimapWidget* Minimap = NewObject<UKalmalaMinimapWidget>();
@@ -99,7 +106,7 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
         GroupPosition.X, MinimapSlot.Offsets.Left - MinimapSlot.Offsets.Right - UKalmalaMinimapWidget::StatusGroupGap);
 
     UKalmalaStatusHotbarWidget* Hotbar = NewObject<UKalmalaStatusHotbarWidget>();
-    const FVector2D SlotSize = UKalmalaStatusHotbarWidget::CalculateSize(6, 100, FVector2D(1280, 720));
+    const FVector2D SlotSize = UKalmalaStatusHotbarWidget::CalculateSize(6, 100, TestViewport, TestGroupRight);
     Hotbar->ConfigureViewportPlacement(SlotSize, GroupPosition);
     const FGameViewportWidgetSlot HotbarSlot = UGameViewportSubsystem::Get()->GetWidgetSlot(Hotbar);
     TestTrue(TEXT("Status group uses the same top-right anchor and right alignment as the minimap"),
@@ -113,18 +120,40 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
             for (const int32 TextScale : {100,125,150})
         {
             const FVector2D LogicalViewport = View / DpiScale;
-            const FVector2D Size = UKalmalaStatusHotbarWidget::CalculateSize(6, TextScale, LogicalViewport);
             const FVector2D ScaledGroupPosition = UKalmalaMinimapWidget::GetDefaultStatusGroupViewportPosition();
+            const float ScaledGroupRight = LogicalViewport.X + ScaledGroupPosition.X;
+            const FVector2D EmptySize = UKalmalaStatusHotbarWidget::CalculateSize(0, TextScale, LogicalViewport, ScaledGroupRight);
+            const FVector2D OneSize = UKalmalaStatusHotbarWidget::CalculateSize(1, TextScale, LogicalViewport, ScaledGroupRight);
+            const FVector2D ThreeSize = UKalmalaStatusHotbarWidget::CalculateSize(3, TextScale, LogicalViewport, ScaledGroupRight);
+            const FVector2D ManySize = UKalmalaStatusHotbarWidget::CalculateSize(6, TextScale, LogicalViewport, ScaledGroupRight);
+            const float Scale = TextScale / 100.0f;
+            const float CellWidth = UKalmalaStatusHotbarWidget::StatusCellWidth * Scale;
+            const float RowHeight = UKalmalaStatusHotbarWidget::StatusCellContentHeight * Scale
+                + UKalmalaStatusHotbarWidget::StatusCellGap;
+            const float SafeRowWidth = FMath::Min(UKalmalaStatusHotbarWidget::MaximumStatusRowWidth,
+                ScaledGroupRight - UKalmalaMinimapWidget::ViewportInset);
+            const int32 ManyColumns = FMath::Max(1, FMath::FloorToInt(SafeRowWidth /
+                (CellWidth + UKalmalaStatusHotbarWidget::StatusCellGap)));
+            const int32 ManyRows = FMath::DivideAndRoundUp(6, ManyColumns);
             const float MinimapLeft = LogicalViewport.X - UKalmalaMinimapWidget::ViewportInset
                 - UKalmalaMinimapWidget::DefaultMapDiameter;
             const float GroupRight = LogicalViewport.X + ScaledGroupPosition.X;
-            const float GroupLeft = GroupRight - Size.X;
             TestEqual(TEXT("DPI-scaled layout keeps the status group 12 units left of the map"),
                 MinimapLeft - GroupRight, UKalmalaMinimapWidget::StatusGroupGap);
-            TestTrue(TEXT("DPI-scaled status group stays inside the left viewport edge"), GroupLeft >= 0.0f);
+            TestEqual(TEXT("Empty state has zero width at every scale and aspect ratio"), EmptySize.X, 0.0);
+            TestEqual(TEXT("Empty state has zero height at every scale and aspect ratio"), EmptySize.Y, 0.0);
+            TestEqual(TEXT("One state has one compact cell"), OneSize.X, CellWidth + UKalmalaStatusHotbarWidget::StatusCellGap);
+            TestEqual(TEXT("One state remains one row"), OneSize.Y, RowHeight);
+            TestEqual(TEXT("Three states fit one compact row"), ThreeSize.X,
+                3.0f * (CellWidth + UKalmalaStatusHotbarWidget::StatusCellGap));
+            TestEqual(TEXT("Three states remain one row"), ThreeSize.Y, RowHeight);
+            TestEqual(TEXT("Many states wrap into the predicted number of rows"), ManySize.Y, ManyRows * RowHeight);
+            TestTrue(TEXT("Many states stay within the compact row width"), ManySize.X <= SafeRowWidth);
+            TestTrue(TEXT("DPI-scaled status group stays inside the left viewport margin"),
+                GroupRight - ManySize.X >= UKalmalaMinimapWidget::ViewportInset);
             TestEqual(TEXT("DPI-scaled layout shares the map's top margin"), ScaledGroupPosition.Y, UKalmalaMinimapWidget::ViewportInset);
-            TestTrue(TEXT("DPI-scaled status group fits vertically"), ScaledGroupPosition.Y + Size.Y <= LogicalViewport.Y);
-            TestEqual(TEXT("Empty has zero height"), UKalmalaStatusHotbarWidget::CalculateSize(0, TextScale, LogicalViewport).Y, 0.0);
+            TestTrue(TEXT("DPI-scaled wrapped layout stays above the bottom safe margin"),
+                ScaledGroupPosition.Y + ManySize.Y <= LogicalViewport.Y - UKalmalaMinimapWidget::ViewportInset);
         }
     UGameViewportSubsystem::Get()->RemoveWidget(Minimap);
     UGameViewportSubsystem::Get()->RemoveWidget(Hotbar);

@@ -6,10 +6,12 @@ with verification deferred until all three implementations were present.
 The owner-local survival subsystem reads only its local controller's pawn.
 It owns a transparent, non-focusable, hit-test-invisible status group just left
 of the configured minimap slot, sharing its top offset and leaving a 12-unit
-horizontal gap. Its current wide cells render 64x64 raster icons with no
-visible names; a visually hidden text label keeps each status name available
-to assistive technology. Finite player-effect timers are centred beneath the
-icons. Empty states collapse; no background, border or empty slots are drawn.
+horizontal gap. Compact 72-unit cells render 64x64 raster icons with no visible
+names; a visually hidden text label keeps each status name available to
+assistive technology. Finite player-effect timers are centred beneath the
+icons. Cells have four-unit gaps and wrap downward within a 384-unit row cap,
+clamped to the safe width left of the minimap. Empty states collapse; no
+background, border or empty slots are drawn.
 
 Stable order: Wet, Steady meal, Hot, Cold, the current support effect, then
 Storm. The M12 rendering uses the imported 64x64 icons without visible names;

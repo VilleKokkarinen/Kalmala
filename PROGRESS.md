@@ -14156,3 +14156,53 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions first and synchronized only the selected `BACKLOG.md` child and this
 `PROGRESS.md` entry; all pre-existing main-checkout changes were preserved.
 No implementation files or other documentation were synchronized.
+
+## Run 2026-10-09 08:12 UTC — Compact active-status cells
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's existing `BACKLOG.md`
+and `PROGRESS.md` edits remain preserved.
+
+Completed exactly M12 goal 10's compact-layout child. Status cells now use a
+72-unit base width and 86-unit content height, with four-unit gaps and a
+384-unit row cap. Width derives from the actual minimap-adjacent right edge and
+the viewport's safe left inset; additional entries wrap down. Empty state
+returns zero size. Added zero/one/three/six-state geometry assertions across
+1024x768, 1280x720 and 2560x1080 at 75/100/125% DPI and 100/125/150% text.
+Updated the status-icon layout contract.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp`,
+`Source/KalmalaUI/Public/KalmalaStatusHotbarWidget.h`,
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`,
+`docs/36-status-icons.md`, `BACKLOG.md`, and this `PROGRESS.md` entry.
+
+Lightweight checks passed: `git diff --check`; focused source/document
+assertions for compact sizing, gap, safe width, and all four layout states;
+call-site inspection for the updated `CalculateSize` signature; manual layout
+math review across the viewport/DPI/text-scale matrix; and MAX_PATH audit (all
+changed paths below 260 characters). Unreal automation assertions were not
+run. No build, full automation, rendered host/client or accessibility review,
+or package check was run. Full M12 verification remains deferred.
+
+Observable impact: active statuses use a compact adjacent group and wrap within
+a bounded width while preserving the minimap gap and safe viewport margin.
+
+Networking/authority: presentation-only. Layout reads the local viewport and
+existing minimap placement; status data remains owner-visible. No RPC,
+gameplay mutation, replication, timing, or persistence contract changed.
+
+Known limitations: geometry assertions were added but not executed in Unreal;
+the live WrapBox and rendered wrap remain unverified. The next child adapts the
+host/client rendered helper and final capture matrix before milestone-final
+verification.
+
+Next eligible task: M12 goal 10, adapt the status-hotbar rendered helper for
+active-only/no-name/player-timer presentation and register the prepared
+inventory/station/direct-interaction checks in the final capture matrix; parse
+and inspect now, defer execution to final verification.
+
+Main-checkout handoff synchronization: Pending at worktree commit time; will
+update only the selected backlog child and this progress entry after inspecting
+the dirty main versions. No implementation files or other docs will be synced.

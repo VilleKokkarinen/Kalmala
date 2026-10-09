@@ -23,19 +23,26 @@ void UKalmalaStatusHotbarWidget::NativeOnInitialized()
     SetIsFocusable(false);
     EntriesBox = WidgetTree->ConstructWidget<UWrapBox>();
     EntriesBox->SetExplicitWrapSize(true);
-    EntriesBox->SetInnerSlotPadding(FVector2D(6, 6));
+    // UWrapBox applies padding to both sides of each slot, so half the desired inter-cell gap.
+    EntriesBox->SetInnerSlotPadding(FVector2D(StatusCellGap * 0.5f, StatusCellGap * 0.5f));
     WidgetTree->RootWidget = EntriesBox;
     SetVisibility(ESlateVisibility::Collapsed);
 }
 
-FVector2D UKalmalaStatusHotbarWidget::CalculateSize(int32 Count, int32 TextScale, FVector2D Viewport)
+FVector2D UKalmalaStatusHotbarWidget::CalculateSize(int32 Count, int32 TextScale, FVector2D Viewport, float StatusGroupRightEdge)
 {
-    const float Width = FMath::Min(450.0f, FMath::Max(1.0f, static_cast<float>(Viewport.X) - 48.0f));
+    if (Count <= 0) return FVector2D::ZeroVector;
     const float Scale = UKalmalaSettingsWidget::ClampTextScale(TextScale) / 100.0f;
-    const float Cell = 140.0f * Scale;
-    const int32 Columns = FMath::Max(1, FMath::FloorToInt((Width + 6) / (Cell + 6)));
-    constexpr float CellContentHeight = 86.0f; // 64-unit image plus a centred, single-line timer.
-    return FVector2D(Width, FMath::DivideAndRoundUp(FMath::Max(0, Count), Columns) * (CellContentHeight * Scale + 6));
+    const float SafeRightEdge = FMath::Clamp(StatusGroupRightEdge, 0.0f, FMath::Max(0.0f, Viewport.X));
+    const float AvailableWidth = FMath::Max(1.0f, SafeRightEdge - UKalmalaMinimapWidget::ViewportInset);
+    const float RowWidth = FMath::Min(MaximumStatusRowWidth, AvailableWidth);
+    const float CellWidth = StatusCellWidth * Scale;
+    const int32 Columns = FMath::Min(Count,
+        FMath::Max(1, FMath::FloorToInt(RowWidth / (CellWidth + StatusCellGap))));
+    const int32 Rows = FMath::DivideAndRoundUp(Count, Columns);
+    const float Width = Columns * (CellWidth + StatusCellGap);
+    const float Height = Rows * (StatusCellContentHeight * Scale + StatusCellGap);
+    return FVector2D(Width, Height);
 }
 
 void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapshot& Snapshot, int32 TextScale, int32 Contrast)
@@ -47,7 +54,6 @@ void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapsho
     for (const auto& Entry : Entries)
         Identity += TEXT("|") + Entry.Id.ToString() + TEXT(":") + Entry.Name + TEXT(":") + Entry.StatusIconId.ToString();
     const FVector2D Viewport = UWidgetLayoutLibrary::GetViewportSize(this) / UWidgetLayoutLibrary::GetViewportScale(this);
-    const FVector2D Size = CalculateSize(Entries.Num(), TextScale, Viewport);
     FVector2D Position = UKalmalaMinimapWidget::GetDefaultStatusGroupViewportPosition();
     if (ULocalPlayer* LocalPlayer = GetOwningLocalPlayer())
     {
@@ -59,6 +65,7 @@ void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapsho
             }
         }
     }
+    const FVector2D Size = CalculateSize(Entries.Num(), TextScale, Viewport, Viewport.X + Position.X);
     ConfigureViewportPlacement(Size, Position);
     if (Identity != LastIdentity)
     {
@@ -66,8 +73,8 @@ void UKalmalaStatusHotbarWidget::SetSnapshot(const FKalmalaSurvivalStatusSnapsho
         for (const auto& Entry : Entries)
         {
             auto* Cell = WidgetTree->ConstructWidget<USizeBox>();
-            Cell->SetWidthOverride(140.0f * TextScale / 100.0f);
-            Cell->SetHeightOverride(86.0f * TextScale / 100.0f);
+            Cell->SetWidthOverride(StatusCellWidth * TextScale / 100.0f);
+            Cell->SetHeightOverride(StatusCellContentHeight * TextScale / 100.0f);
             auto* Column = WidgetTree->ConstructWidget<UVerticalBox>();
             auto* IconBox = WidgetTree->ConstructWidget<USizeBox>();
             const float IconSize = 64.0f * TextScale / 100.0f;
