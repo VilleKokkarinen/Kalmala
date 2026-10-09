@@ -168,11 +168,11 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
             : TEXT("Storage unavailable"), bAccepted);
     }
     else if (Kit == TEXT("CookingRackKit"))
-        PublishResult(TEXT("Cooking rack opened"), true);
+        PublishResult(TEXT("Cooking Rack opened"), true);
     else if (Kit == TEXT("CauldronKit"))
         PublishResult(TEXT("Cauldron opened"), true);
     else if (Kit == TEXT("FryingPanKit"))
-        PublishResult(TEXT("Frying pan opened"), true);
+        PublishResult(TEXT("Frying Pan opened"), true);
     else if (Construction->GetConstructionKit() == TEXT("SmokeFrameKit"))
         PublishResult(TEXT("Smoke frame ready; use Camp crafting with a lit hearth and one extra raw fuel item per serving"), true);
     else PublishResult(TEXT("Workbench ready; use the Construction Hammer menu to build floors, walls, and roofs from Wood and Fibre"), true);

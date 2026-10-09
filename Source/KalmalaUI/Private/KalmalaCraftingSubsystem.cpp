@@ -488,7 +488,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     EatMeatButton->OnClicked.AddDynamic(this, &ThisClass::EatFood);
     StationCraftExcludedWidgets.Add(EatMeatButton);
     BuildExcludedWidgets.Add(EatMeatButton);
-    UButton* EatBrothButton = AddButton(TEXT("Eat one hearth broth"),nullptr,TEXT("Consume one hearth broth for the steady meal effect. Another meal cannot replace an active effect."));
+    UButton* EatBrothButton = AddButton(TEXT("Eat one Hearth Broth"),nullptr,TEXT("Consume one Hearth Broth for the steady meal effect. Another meal cannot replace an active effect."));
     EatBrothButton->OnClicked.AddDynamic(this, &ThisClass::EatBroth);
     StationCraftExcludedWidgets.Add(EatBrothButton);
     BuildExcludedWidgets.Add(EatBrothButton);
@@ -546,7 +546,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     UpgradeIronAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeIronAxe);
     BuildExcludedWidgets.Add(CraftBronzeAxeButton);
     BuildExcludedWidgets.Add(UpgradeIronAxeButton);
-    StationCraftExcludedWidgets.Add(AddText(TEXT("\nWoven chest — shared nearby storage\nInspect a visible chest, choose an item, then store or take one. Contents clear when closed or out of reach."), 16));
+    StationCraftExcludedWidgets.Add(AddText(TEXT("\nChest — shared nearby storage\nInspect a visible chest, choose an item, then store or take one. Contents clear when closed or out of reach."), 16));
     BuildExcludedWidgets.Add(StationCraftExcludedWidgets.Last());
     StationCraftExcludedWidgets.Add(AddText(TEXT("Chest contents use the shared 16-stack interface. Accepted construction and storage records are saved for this world; rejected transfers leave both inventories unchanged."), 16));
     BuildExcludedWidgets.Add(StationCraftExcludedWidgets.Last());
@@ -3226,7 +3226,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
                 && !Text.Contains(TEXT("Tool condition — owner-only"))
                 && !Text.Contains(TEXT("Repair: restore a damaged carried tool"))
                 && !Text.Contains(TEXT("Roasted field meat:"))
-                && !Text.Contains(TEXT("Woven chest — shared nearby storage"))
+                && !Text.Contains(TEXT("Chest — shared nearby storage"))
                 && !Text.Contains(TEXT("Nearby hearth"))
                 && Text.Contains(TEXT("Build the selected structure from its shown materials."))
                 && PreviewText.Contains(TEXT("Preview "))

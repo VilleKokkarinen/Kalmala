@@ -13725,3 +13725,57 @@ Main-checkout handoff synchronization: Complete. Inspected the existing dirty
 main versions before editing, changed only the selected BACKLOG row, and
 appended this entry while preserving all pre-existing content. No implementation
 files or other docs were synchronized.
+
+## Run 2026-10-09 06:51 UTC — Remove leftover catalogue labels
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`; the main checkout already had local edits in
+`BACKLOG.md` and `PROGRESS.md`, which remain preserved.
+
+Completed exactly M12 goal 9's child to remove leftover old labels from
+inventory, ingredients, storage, and prompts. Updated the nearby-storage
+heading to Chest, the food action/status copy to Hearth Broth, and station-open
+results to Cooking Rack and Frying Pan. Added focused assertions for Reed
+Fibre's visible name, search and sort behavior, canonical icon, ingredient
+presentation, chest contents, and the Workbench interaction prompt. Updated the
+catalogue copy audit's source map and handoff notes.
+
+Files changed: `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp`,
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaIngredientTest.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaInteractionPromptTest.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaInventoryBrowseTest.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaInventoryInspectTest.cpp`,
+`docs/44-catalogue-copy-audit.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Lightweight checks passed: `git diff --check`; PowerShell JSON parsing and
+focused catalogue-name assertions for Fibre and Workbench; a case-sensitive
+scan confirmed the replaced labels are absent from active presentation
+sources; manual review of the changed display-name sort/filter expectations
+and unchanged canonical icon IDs; and the changed-path MAX_PATH audit (10
+paths, longest absolute path 106 characters). The focused Unreal assertions
+were added but not compiled or run. No Unreal build, automation, host/client
+runtime, rendered review, or package check was performed. Full M12 verification
+remains deferred.
+
+Observable impact: inventory, ingredient, chest, meal, and station feedback
+uses the reviewed catalogue labels while preserving visible item images.
+
+Networking/authority: presentation and test changes only. Server-owned storage
+transfers, cooking, station interactions, replication, and save data are
+unchanged.
+
+Known limitations: focused automation and rendered wrapping review remain
+unverified. Goal 9's recipe/build/station/upgrade/result text alignment remains.
+
+Next eligible task: M12 goal 9, align recipe/build/station/upgrade/result text
+with the revised shared catalogue, update text assertions/documentation, and
+audit wrapping expectations and preserved manual copy.
+
+Main-checkout handoff synchronization: Complete. Inspected the main versions,
+updated only this selected BACKLOG child and appended this PROGRESS entry while
+preserving earlier edits; no implementation files or other docs were
+synchronized.

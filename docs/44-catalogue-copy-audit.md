@@ -190,13 +190,12 @@ result description was implemented in copy batch 02.
   prompts are assembled in Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp;
   prompts resolve construction names from the shared catalogue, with Campfire
   named directly.
-- The baseline scan found stale player-facing literals in
-  Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp (Joiner's
-  bench in readiness/result text). The Workbench rename now uses the current
-  catalogue name in both shared messages. The separate Woven chest storage
-  heading in Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp and the
-  Build heading's Construction hammer label remain later hard-coded-label
-  propagation targets; these are not additional canonical identities.
+- Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp uses the current
+  Workbench name in its readiness/result text and title-cased Cooking Rack and
+  Frying Pan interaction results. The shared nearby-storage guidance in
+  Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp now says Chest, matching
+  the canonical item name; the Build heading's Construction hammer label
+  remains for the following recipe/build/station text-alignment increment.
 - Source/KalmalaUI/Private/Tests/, Source/KalmalaGameplay/Private/Tests/,
   Scripts/Verify-Crafting.ps1, and the goal 9 copy documentation contain
   expectations or explanatory wording to review alongside each changed
@@ -206,11 +205,19 @@ result description was implemented in copy batch 02.
   asset-review aid, not player-facing copy. Preserve the icon identity and
   mapping while updating text.
 
+The inventory browse/detail rows, ingredient rows, storage selector and
+interaction prompt retain canonical identities and icon mappings while showing
+the current reviewed display names. Focused UI assertions cover Reed Fibre's
+visible name in search, sorting, ingredients and chest contents, its existing
+Fibre icon, and the Workbench catalogue name in its interaction prompt. The
+Hearth Broth food action prompt and status use the reviewed item capitalization.
+
 The original CSV remains a frozen copy baseline, including the retired
 HearthRing item copy. The Campfire retirement removes that normal item
 definition and renames its direct-build recipe/result; no costs, placement
-authority, icon identity, or save schema change. Across the six applied
-batches, names stay aligned across
-inventory, ingredients, recipes, build, stations, storage, prompts and previews;
-confirm accessible/search/sort text and wrapping; and compare all non-text
-catalogue fields against the baseline.
+authority, icon identity, or save schema change. Across the six applied batches
+and this cross-surface label cleanup, names stay aligned across inventory,
+ingredients, storage, prompts and previews. Recipe, build, station, upgrade and
+result text alignment plus wrapping review remain in the following increment;
+compare all non-text catalogue fields against the baseline during final
+milestone verification.

@@ -833,10 +833,10 @@ FString UKalmalaCraftingComponent::GetFoodText() const
     const float Remaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId) : 0.0f;
     if (Remaining > 0.0f)
     {
-        return FString::Printf(TEXT("Steady meal: %.0f seconds remaining; stamina use is 10%% lower. Wait for expiry; food effects cannot stack or replace this meal.\nAvailable: Roasted field meat %d; Hearth broth %d; Smoked field meat %d."),
+        return FString::Printf(TEXT("Steady meal: %.0f seconds remaining; stamina use is 10%% lower. Wait for expiry; food effects cannot stack or replace this meal.\nAvailable: Roasted field meat %d; Hearth Broth %d; Smoked field meat %d."),
             Remaining, RoastCount, BrothCount, SmokedCount);
     }
-    return FString::Printf(TEXT("Roasted field meat: %d available. Hearth broth: %d available. Smoked field meat: %d available. Food is optional. Eat one for 120 seconds of 10%% lower stamina use; only one meal can be active."),
+    return FString::Printf(TEXT("Roasted field meat: %d available. Hearth Broth: %d available. Smoked field meat: %d available. Food is optional. Eat one for 120 seconds of 10%% lower stamina use; only one meal can be active."),
         RoastCount, BrothCount, SmokedCount);
 }
 

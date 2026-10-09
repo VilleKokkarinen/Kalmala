@@ -16,7 +16,7 @@ bool FKalmalaInventoryInspectTest::RunTest(const FString& Parameters)
     Panel->TakeWidget();
     TestNotNull(TEXT("Slate construction creates inspection root before first owner refresh"), Panel->GetRootWidget());
     TArray<FKalmalaCatalogueRow> Rows = {{TEXT("Wood"), TEXT("Wood"), TEXT("Count 7"), false},
-        {TEXT("FieldHatchet"), TEXT("Field hatchet"), TEXT("Condition 17/40"), true}};
+        {TEXT("FieldHatchet"), TEXT("Field Hatchet"), TEXT("Condition 17/40"), true}};
     Panel->SetRows(Rows, 150, 1);
     TestTrue(TEXT("Inspection is focusable within modal"), Panel->IsFocusable());
     TestEqual(TEXT("First supplied slot selected"), Panel->GetSelectedItem(), FName(TEXT("Wood")));
@@ -87,7 +87,7 @@ bool FKalmalaInventoryInspectTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Second owner selection is independent"), OtherOwner->GetSelectedItem(), FName(TEXT("Stone")));
     auto* ChestView = NewObject<UKalmalaInventoryInspectWidget>();
     ChestView->Initialize(); ChestView->TakeWidget();
-    ChestView->SetRows({{TEXT("Iron"), TEXT("Iron"), TEXT("Count 4"), false},
+    ChestView->SetRows({{TEXT("Fibre"), TEXT("Reed Fibre"), TEXT("Count 4"), false},
         {TEXT("Wood"), TEXT("Wood"), TEXT("Count 7"), false}}, 100, 0,
         TEXT("This chest"), TEXT("This chest is empty."), false, 2);
     TArray<UWidget*> ChestWidgets; ChestView->WidgetTree->GetAllWidgets(ChestWidgets);
@@ -113,6 +113,7 @@ bool FKalmalaInventoryInspectTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Chest selector uses two columns for readable image/count cards"), MaxChestColumn, 1);
     TestTrue(TEXT("Chest selector keeps both item counts beside their images"),
         ChestCardText.Contains(TEXT("Count 4")) && ChestCardText.Contains(TEXT("Count 7")));
+    TestTrue(TEXT("Chest selector shows the reviewed Reed Fibre item name"), ChestCardText.Contains(TEXT("Reed Fibre")));
     auto* UnknownView = NewObject<UKalmalaInventoryInspectWidget>();
     UnknownView->Initialize(); UnknownView->TakeWidget();
     UnknownView->SetRows({{TEXT("Forged"), TEXT("Unknown item"), TEXT("Count 1"), false}}, 100, 0);

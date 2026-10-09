@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaCraftingSubsystem.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaSettingsWidget.h"
 #include "InputCoreTypes.h"
 #include "GameFramework/GameUserSettings.h"
@@ -17,6 +18,16 @@ bool FKalmalaInteractionPromptTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Prompt names the supported action"), Available.Contains(TEXT("Use")));
     TestFalse(TEXT("Prompt omits keyboard binding labels"), Available.Contains(TEXT("Keyboard:")));
     TestFalse(TEXT("Prompt omits controller binding labels"), Available.Contains(TEXT("Gamepad:")));
+    const FKalmalaItemDefinition* Workbench = UKalmalaItemCatalogue::Get()->FindItem(TEXT("Workbench"));
+    TestNotNull(TEXT("Prompt target resolves the Workbench catalogue identity"), Workbench);
+    if (Workbench)
+    {
+        TestEqual(TEXT("Workbench prompt resolves the reviewed catalogue label"), Workbench->DisplayName, FString(TEXT("Workbench")));
+        TestEqual(TEXT("Workbench prompt displays the current name and action"),
+            UKalmalaInteractionPromptWidget::BuildPromptText(Workbench->DisplayName,
+                UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("WorkbenchKit"))),
+            FString(TEXT("Workbench\nUse")));
+    }
 
     const FString Unavailable = UKalmalaInteractionPromptWidget::BuildPromptText(
         TEXT("Densewood trunk"), TEXT("Chop"), TEXT("No suitable tool available"));
