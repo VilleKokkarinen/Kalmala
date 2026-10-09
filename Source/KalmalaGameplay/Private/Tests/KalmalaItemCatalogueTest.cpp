@@ -168,6 +168,15 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
                 Catalogue->FindItem(Alias.Key));
         }
     }
+    const FKalmalaItemDefinition* WorkbenchItem = Catalogue->FindItem(TEXT("WorkbenchKit"));
+    if (TestNotNull(TEXT("Workbench keeps its stable runtime item identity"), WorkbenchItem))
+        TestEqual(TEXT("Workbench item uses its current display name"), WorkbenchItem->DisplayName, FString(TEXT("Workbench")));
+    const FKalmalaRecipe* WorkbenchRecipe = Recipes->Find(TEXT("Workbench"));
+    if (TestNotNull(TEXT("Workbench keeps its stable recipe identity"), WorkbenchRecipe))
+    {
+        TestEqual(TEXT("Workbench recipe uses its current display name"), WorkbenchRecipe->DisplayName, FString(TEXT("Workbench")));
+        TestEqual(TEXT("Workbench recipe still produces its stable item identity"), WorkbenchRecipe->Output, FName(TEXT("WorkbenchKit")));
+    }
     const FKalmalaRecipe* GrindingStone = Recipes->Find(TEXT("GrindingStone"));
     TestNotNull(TEXT("Grinding Stone recipe loads"), GrindingStone);
     if (GrindingStone)

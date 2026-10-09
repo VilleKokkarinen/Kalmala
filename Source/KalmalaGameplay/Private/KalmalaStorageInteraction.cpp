@@ -52,7 +52,7 @@ AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyWorkbench() cons
 
 FString UKalmalaCraftingComponent::GetNearbyWorkbenchText() const
 {
-    return FindNearbyWorkbench() ? TEXT("Joiner's bench: ready for floor, wall and roof assembly") : TEXT("No visible workbench within 2.5 m");
+    return FindNearbyWorkbench() ? TEXT("Workbench: ready for floor, wall and roof assembly") : TEXT("No visible workbench within 2.5 m");
 }
 
 FString UKalmalaCraftingComponent::GetNearbyConstructionText() const
@@ -175,7 +175,7 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
         PublishResult(TEXT("Frying pan opened"), true);
     else if (Construction->GetConstructionKit() == TEXT("SmokeFrameKit"))
         PublishResult(TEXT("Smoke frame ready; use Camp crafting with a lit hearth and one extra raw fuel item per serving"), true);
-    else PublishResult(TEXT("Joiner's bench ready; use the Construction Hammer menu to build floors, walls, and roofs from Wood and Fibre"), true);
+    else PublishResult(TEXT("Workbench ready; use the Construction Hammer menu to build floors, walls, and roofs from Wood and Fibre"), true);
 }
 
 bool UKalmalaCraftingComponent::IsStationContextTargetCurrent(AKalmalaConstructionActor* ExpectedActor,

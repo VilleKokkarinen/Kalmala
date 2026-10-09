@@ -15,7 +15,7 @@ Interacting with a placed Chest opens the same themed shell in **Store**. Its tw
 | Recipe | Ingredients per unit | Station | Maximum batch |
 | --- | --- | --- | --- |
 | Campfire | 5 fieldstone + 3 splitwood; also consumes 1 raw fuel item to start with 60 seconds of fuel | Construction Hammer; clear ground ahead | 1 per placement |
-| Joiner's bench | 9 splitwood + 6 reed fibre + 2 fieldstone | Handcrafted | 1 |
+| Workbench | 9 splitwood + 6 reed fibre + 2 fieldstone | Handcrafted | 1 |
 | Chest | 6 splitwood + 8 reed fibre | Handcrafted | 1 |
 | Cooking rack | 9 splitwood + 8 reed fibre | Handcrafted | 1 |
 | Hearth cauldron | 9 splitwood + 6 reed fibre + 3 fieldstone | Handcrafted | 1 |
@@ -134,7 +134,7 @@ The replicated pawn crafting component accepts a recipe ID and integer batch thr
 
 ## Workbench and storage
 
-Place a Joiner's bench, Forge, or Chest through the existing paid construction path. Their original procedural silhouettes and conservative collision bounds derive from the normally replicated construction identity; none adds shelter tags. The Joiner's bench and Forge each start at tool-station level 1. The Forge recipe consumes its former timber-supply value as 15 Wood and 10 Fibre, plus 6 Stone. The hammer builds floor, wall, and roof directly without requiring a bench. Crafting interactions at a bench or Forge still use the existing server view trace and require the station within 250 cm and visible from the authoritative pawn's eyes.
+Place a Workbench, Forge, or Chest through the existing paid construction path. Their original procedural silhouettes and conservative collision bounds derive from the normally replicated construction identity; none adds shelter tags. The Workbench and Forge each start at tool-station level 1. The Forge recipe consumes its former timber-supply value as 15 Wood and 10 Fibre, plus 6 Stone. The hammer builds floor, wall, and roof directly without requiring a bench. Crafting interactions at a bench or Forge still use the existing server view trace and require the station within 250 cm and visible from the authoritative pawn's eyes.
 
 Interact with a placed Chest to open its owner-local Store menu. Pack and chest selectors show current counts; Store and Take move one selected item per action. The selected item name, authorized chest stacks, empty/unavailable states, and result text do not depend on colour. The UI reads only its owning pawn's crafting component.
 

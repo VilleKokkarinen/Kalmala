@@ -13369,3 +13369,51 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 `BACKLOG.md` and `PROGRESS.md` before editing; applied only the selected child
 status and this entry, preserving all pre-existing changes. No implementation
 files or other documentation were synchronized.
+
+## Run 2026-10-09 05:55 UTC — Rename Workbench catalogue copy
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`
+on `codex/m12-hud-feedback-rebuild`; the main checkout's existing `BACKLOG.md`
+and `PROGRESS.md` edits remain preserved.
+
+Completed exactly M12 goal 9's Workbench label child. The Workbench item and
+recipe now display Workbench, as do the shared nearby-readiness and accepted
+interaction-result messages. Stable item/recipe IDs, output identity,
+ingredients, description, stack limit, and all other non-text catalogue fields
+remain unchanged. Added focused catalogue assertions for the new names and
+stable runtime identities. Updated current crafting documentation and the copy
+audit's source-map note; the frozen before/after baseline remains intact.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/10-campfire-and-crafting.md`; `docs/44-catalogue-copy-audit.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `git diff --check`; JSON parsing and focused
+assertions for display-name alignment, stable recipe output, and unchanged
+non-text item/recipe fields; a runtime-source scan confirming the old label is
+gone and both shared messages use Workbench; and a changed-path MAX_PATH audit
+(longest absolute path 108 characters). The new Unreal automation assertions
+were not run. No build, automation, host/client run, rendered review, or package
+check was performed; full M12 verification remains deferred.
+
+Observable impact: carried, build, recipe, readiness, and accepted-interaction
+text now consistently calls the station Workbench.
+
+Networking/authority: presentation text only; server interaction validation,
+station identity, costs, transactions, replication, and save data are
+unchanged.
+
+Known limitations: the new automation assertions and rendered menu/prompt
+acceptance have not been executed. Remaining catalogue copy batches and
+hard-coded label propagation are open.
+
+Next eligible task: M12 goal 9, apply copy batch 01 to the first eight audited
+identities while preserving manual improvements and truthful uses.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; updated only the selected child state and added
+this run entry, preserving all pre-existing changes. No implementation files
+or other documentation were synchronized.

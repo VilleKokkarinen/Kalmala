@@ -33,7 +33,7 @@
     },
     {
       "ItemId": "Workbench",
-      "DisplayName": "Joiner's bench",
+      "DisplayName": "Workbench",
       "Description": "A compact crafting bench for assembling camp furnishings and repairing tools.",
       "MaxStack": 5
     },
@@ -272,7 +272,7 @@
     },
     {
       "RecipeId": "Workbench",
-      "DisplayName": "Joiner's bench",
+      "DisplayName": "Workbench",
       "Ingredients": [
         {
           "ItemId": "Wood",

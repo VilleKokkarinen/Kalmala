@@ -96,13 +96,13 @@ server validation. The proposed Campfire description remains for copy batch 02.
   prompts are assembled in Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp;
   prompts resolve construction names from the shared catalogue, with Campfire
   named directly.
-- The scan found stale player-facing literals in
+- The baseline scan found stale player-facing literals in
   Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp (Joiner's
-  bench in readiness/result text) and
-  Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp (Woven chest in the
-  storage heading). The Build heading also uses a separate Construction
-  hammer label. These are propagation targets for the later hard-coded-label
-  child; they are not additional canonical identities.
+  bench in readiness/result text). The Workbench rename now uses the current
+  catalogue name in both shared messages. The separate Woven chest storage
+  heading in Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp and the
+  Build heading's Construction hammer label remain later hard-coded-label
+  propagation targets; these are not additional canonical identities.
 - Source/KalmalaUI/Private/Tests/, Source/KalmalaGameplay/Private/Tests/,
   Scripts/Verify-Crafting.ps1, and the goal 9 copy documentation contain
   expectations or explanatory wording to review alongside each changed
