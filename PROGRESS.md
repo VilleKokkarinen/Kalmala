@@ -13519,6 +13519,7 @@ leftover hard-coded label propagation, and downstream text alignment remain.
 Next eligible task: M12 goal 9, apply copy batch 03 to StorageKit, CookingRackKit,
 FryingPanKit, CauldronKit, FloorKit, WallKit, RoofKit, and BoarMeat.
 
-Main-checkout handoff synchronization: Pending. After the implementation
-commit, apply only this selected BACKLOG state and PROGRESS entry to the dirty
-main checkout, preserving all other edits.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions, updated only this selected BACKLOG child and appended this PROGRESS
+entry; all earlier main content is preserved and no implementation files were
+synchronized.
