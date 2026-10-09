@@ -117,50 +117,50 @@
     },
     {
       "ItemId": "BoarHide",
-      "DisplayName": "Boar rough hide",
-      "Description": "A tough, bristly hide recovered from a boar.",
+      "DisplayName": "Boar Hide",
+      "Description": "A coarse, bristled hide taken from a boar.",
       "MaxStack": 20
     },
     {
       "ItemId": "DeerMeat",
-      "DisplayName": "Deer meat",
-      "Description": "Lean but tender.",
+      "DisplayName": "Deer Meat",
+      "Description": "Lean deer meat for roasting or stew.",
       "MaxStack": 20
     },
     {
       "ItemId": "DeerHide",
-      "DisplayName": "Deer soft hide",
-      "Description": "A soft hide recovered from a deer.",
+      "DisplayName": "Deer Hide",
+      "Description": "A soft hide taken from a deer.",
       "MaxStack": 20
     },
     {
       "ItemId": "CookedBoarMeat",
-      "DisplayName": "Cooked boar meat",
-      "Description": "Boar meat cooked over a fire, ready to eat.",
+      "DisplayName": "Cooked Boar Meat",
+      "Description": "Roasted boar meat, ready to eat.",
       "MaxStack": 20
     },
     {
       "ItemId": "CookedDeerMeat",
-      "DisplayName": "Cooked deer meat",
-      "Description": "Lean deer meat cooked over a fire.",
+      "DisplayName": "Cooked Deer Meat",
+      "Description": "Roasted deer meat, ready to eat.",
       "MaxStack": 20
     },
     {
       "ItemId": "HearthBroth",
-      "DisplayName": "Hearth broth",
-      "Description": "Boar or deer meat simmered into a warming broth for a steady meal.",
+      "DisplayName": "Hearth Broth",
+      "Description": "A simple savory broth for a camp meal.",
       "MaxStack": 20
     },
     {
       "ItemId": "MeatStew",
-      "DisplayName": "Meat stew",
+      "DisplayName": "Meat Stew",
       "Description": "A hearty stew of boar and deer meat with carrots and potatoes.",
       "MaxStack": 20
     },
     {
       "ItemId": "RootVegetableSoup",
-      "DisplayName": "Root vegetable soup",
-      "Description": "Carrot, potato, rutabaga, and onion simmered together in a cauldron.",
+      "DisplayName": "Root Vegetable Soup",
+      "Description": "Carrot, potato, rutabaga, and onion simmered in a cauldron.",
       "MaxStack": 20
     },
     {
@@ -544,7 +544,7 @@
     },
     {
       "RecipeId": "CookedBoarMeatRecipe",
-      "DisplayName": "Cooked boar meat",
+      "DisplayName": "Cooked Boar Meat",
       "Ingredients": [
         {
           "ItemId": "BoarMeat",
@@ -563,7 +563,7 @@
     },
       {
       "RecipeId": "CookedDeerMeatRecipe",
-      "DisplayName": "Cooked deer meat",
+      "DisplayName": "Cooked Deer Meat",
       "Ingredients": [
         {
           "ItemId": "DeerMeat",
@@ -582,7 +582,7 @@
     },
     {
       "RecipeId": "MeatStewRecipe",
-      "DisplayName": "Meat stew",
+      "DisplayName": "Meat Stew",
       "Ingredients": [
         {
           "ItemId": "BoarMeat",
@@ -613,7 +613,7 @@
     },
     {
       "RecipeId": "RootVegetableSoupRecipe",
-      "DisplayName": "Root vegetable soup",
+      "DisplayName": "Root Vegetable Soup",
       "Ingredients": [
         { "ItemId": "Carrot", "Quantity": 1 },
         { "ItemId": "Potato", "Quantity": 1 },

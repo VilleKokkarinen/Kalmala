@@ -81,6 +81,23 @@ The frozen current-copy columns are unchanged. Item stack limits, recipe output
 IDs, ingredients, batch counts, station requirements, aliases, placement costs,
 and construction/save identities remain unchanged.
 
+## Batch 04 applied
+
+Batch 04 capitalizes Deer Meat, Boar Hide, Deer Hide, Cooked Boar Meat,
+Cooked Deer Meat, Hearth Broth, Meat Stew, and Root Vegetable Soup, and aligns
+the four matching cooked-meat/soup recipe labels. Deer Meat now names its
+supported roasting and stew uses; the hide descriptions retain their accurate
+sources; cooked meat keeps its ready-to-eat cue. Hearth Broth no longer implies
+a warming effect or a production recipe. Meat Stew's authored hearty flavor and
+ingredient list remain verbatim, while Root Vegetable Soup retains its current
+ingredients and cauldron process.
+
+The focused catalogue assertions pin all eight names, descriptions, and stack
+limits, then check recipe/output name alignment and stable output IDs. The
+frozen current-copy columns remain unchanged. Item IDs, stack limits, recipe
+outputs, ingredients, batch counts, station requirements, and cooking effects
+are unchanged.
+
 ## Preserve intentional manual flavor
 
 The source history and copy review identify these distinctive owner-authored
