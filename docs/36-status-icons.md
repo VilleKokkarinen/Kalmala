@@ -129,6 +129,17 @@ directional highlight, transparent margins, and no text, scenery, badges, or
 UI border. The retained sources and prepared files pass the PNG dimension and
 alpha validator and remain recognizable at 64x64.
 
+Batch 02 was generated with the built-in image generator and reviewed at
+native size. Its prompt set asks for: a luminous gold healing cross nestled
+between two green leaves; a compact wooden buckler with a warm amber hearth
+glow; one broad bear paw print with four clear toe pads; and a symmetrical
+pair of branching deer antlers with one small sound ring. The same centered,
+hand-painted inventory style, thin charcoal contour, warm directional
+highlight, transparent margins, and no text, scenery, badges, or UI border
+were used. All four retained 1254x1254 RGBA sources and prepared 64x64 RGBA
+files pass the identity, dimension, alpha and path validator and remain
+recognizable at native size.
+
 The batch is prepared only: no status texture `.uasset` has been imported and
 the hotbar does not consume these images yet. Later goal-10 increments import
 the complete pinned set and switch the local status presentation to these

@@ -13995,3 +13995,60 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions and updated only the selected `BACKLOG.md` child and this progress
 entry. All pre-existing main-checkout edits remain preserved; no implementation
 assets, scripts, or other documentation were synchronized.
+
+## Run 2026-10-09 07:29 UTC — Generate status icon batch 02
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's existing `BACKLOG.md`
+and `PROGRESS.md` edits remain protected.
+
+Completed exactly M12 goal 10's next status-image child. Generated original
+transparent icons for Mending, Hearth shield, Bear's vigor, and Deer call with
+the built-in image generator. Copied the generated files into the project while
+leaving generator outputs intact. The batch preparation script cropped each
+1254x1254 RGBA original and centered its artwork in a transparent 64x64 RGBA
+final. Added the batch 02 prompt subjects and review result to
+`docs/36-status-icons.md` and updated the development setup to cover prepared
+batches 01 and 02.
+
+Files changed: four `Content/Kalmala/UI/Source/IconOriginals/Status/*.png`
+sources; matching four
+`Content/Kalmala/UI/Source/Icons/Status/*.png` finals; `docs/36-status-icons.md`,
+`docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Prompt set: a luminous gold healing cross between two green leaves; a compact
+wooden shield with an amber hearth glow; one broad bear paw with exactly four
+toe pads; and symmetrical branching deer antlers with a small sound ring.
+Each uses the centered hand-painted survival-game inventory style, thin
+charcoal contour, warm directional highlight, and no text, scenery, badges,
+or UI border.
+
+Lightweight checks passed: `python Scripts/Prepare-StatusIconBatch.py --batch
+02`; `Scripts/Validate-StatusIcon.ps1 -Id <IconId>` for Mending, HearthShield,
+BearsVigor, and DeerCall; native-size visual review of all four prepared
+64x64 icons; and `git diff --check`. No Unreal build, automation, texture
+import, or rendered host/client review was run. Full M12 verification remains
+deferred.
+
+Observable impact: the pinned support-effect icon batch now has four original
+sources and readable transparent 64x64 prepared images.
+
+Networking/authority: image and documentation changes only. The status widget
+still reads existing owner-visible state; no RPC, gameplay mutation, timing,
+replication, or persistence contract changed.
+
+Known limitations: no status texture `.uasset` has been imported, and the
+hotbar still renders vector icons and visible names. Import, icon-only/timer
+presentation, compact layout, and rendered acceptance remain in later M12
+increments.
+
+Next eligible task: M12 goal 10, generate/review the remaining Storm icon and
+import/map the complete bounded status-icon set; add batches if needed and
+validate full coverage.
+
+Main-checkout handoff synchronization: Pending. Inspect the dirty main
+`BACKLOG.md` and `PROGRESS.md` before applying only this selected task update
+and run entry; preserve existing user edits and synchronize no implementation
+files or other documentation.
