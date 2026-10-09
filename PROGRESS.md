@@ -14826,3 +14826,44 @@ acceptance, dedicated-server build, release or push was performed in this cleanu
 Previous owner keyboard/controller acceptance and documented platform/meal-use
 limits remain valid. Final status: M12 complete and integrated; no next eligible
 backlog task. This run stops after the cleanup documentation commit.
+
+## 2026-10-09 — User-directed Visual Studio project-file recovery
+
+The owner reported missing `EventLoopUnitTests.vcxproj` and
+`IoStoreOnDemandTests.vcxproj` solution-load errors after the authorized master
+cleanup. Read-only inspection found eight missing legacy solution projects,
+including Kalmala itself, because `Intermediate/ProjectFiles` was removed.
+The engine's Analytics Generators source project still existed. No other
+Kalmala run was active and the tracked checkout was clean. This is an explicit
+IDE recovery request, not another autonomous roadmap increment; the owner
+approved regenerating project files despite AGENTS.md's generated-folder rule.
+
+Backed up the two Kalmala solutions locally, then ran from the installed
+engine's `Engine/Source` directory with normal UnrealBuildTool cache access:
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\ThirdParty\DotNet\10.0\win-x64\dotnet.exe' 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll' -projectfiles '-project=E:\dev\Kalmala\Kalmala.uproject' -game -rocket -progress
+& 'C:\Program Files\Microsoft Visual Studio\18\Professional\MSBuild\Current\Bin\MSBuild.exe' 'E:\dev\Kalmala\Kalmala.slnx' /t:ValidateSolutionConfiguration '/p:Configuration=DebugGame Editor' /p:Platform=Win64 /nologo /v:minimal
+```
+
+Results: regeneration succeeded, exit 0, in 13.10 seconds; MSBuild configuration
+validation passed, exit 0. Both Kalmala solutions have 59 existing project
+references, and both Automation solutions have 53, with zero missing files.
+The installed-engine generator omits unsupported native utilities and low-level
+tests, including the reported stale test references. DotNetPerforceLib and
+LiveLinkHub remain excluded by their absence; XML inspection confirmed the
+UE5 build exclusion and enabled DebugGame Editor/Win64 Kalmala mapping.
+XML/reference checks, git whitespace checks and generated MAX_PATH inspection
+passed; the longest generated absolute path was 180 characters.
+
+Files changed: regenerated ignored `.sln` files and project/rules/IntelliSense
+data in `Intermediate` and plugin `Intermediate`; tracked `Kalmala.slnx` and
+`Automation_Kalmala.slnx`; BACKLOG.md, PROGRESS.md and docs/42-build-repair.md.
+Observable impact: solutions no longer reference missing generated projects;
+reopen Kalmala.slnx in Visual Studio to reload them. This run did not launch
+Visual Studio or Unreal Editor. Full game builds, runtime tests and packaging
+remain deferred for this IDE-only repair; this was not milestone-final
+verification and does not change completed milestone acceptance. The removed
+game binaries still require a normal editor build before play. Gameplay,
+networking/authority, client-request validation, saved data and source assets
+are unchanged. No next eligible roadmap task; stop after committing this repair.

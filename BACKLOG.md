@@ -594,3 +594,7 @@ minutes with lightweight checks. Image-service waits/retries, unknown integratio
 issues and milestone-final verification can exceed estimates; preserve the smallest
 integrated increment and record real results. Batch membership is pinned in manifests,
 with additional bounded children inserted in order if live coverage requires them.
+
+## User-directed project-file recovery — 2026-10-09
+
+- [x] Regenerate Visual Studio project files removed by the authorized cleanup, preserve solution build exclusions, and verify that generated solution references resolve. (Owner authorized recreating `Intermediate`; UnrealBuildTool succeeded, Kalmala and Automation solutions have zero missing project references, and MSBuild solution-configuration validation passed. See docs/42-build-repair.md. No game build or new roadmap increment.)

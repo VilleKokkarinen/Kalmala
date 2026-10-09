@@ -37,3 +37,34 @@ The entire Visual Studio solution was not rebuilt. Runtime tests, rendered
 acceptance, packaging, and full milestone verification were not rerun for these
 identifier and solution-selection changes. No gameplay, networking, authority,
 or persistence contract changed.
+
+## Project-file recovery — 2026-10-09
+
+The authorized master cleanup removed `Intermediate`, while the existing IDE
+solutions still referenced its generated projects. The legacy solution had
+eight missing project files, including `Kalmala.vcxproj`, `EventLoopUnitTests`
+and `IoStoreOnDemandTests`. The installed engine's
+`EpicGames.Analytics.Generators.csproj` existed; the error was a stale solution
+reference, not a missing Analytics source project.
+
+With the owner's explicit permission to recreate generated project files, run
+the installed engine's bundled .NET runtime from its `Engine/Source` directory:
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\ThirdParty\DotNet\10.0\win-x64\dotnet.exe' 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll' -projectfiles '-project=E:\dev\Kalmala\Kalmala.uproject' -game -rocket -progress
+```
+
+UnrealBuildTool succeeded with normal local-cache access. Its installed-engine
+solutions omit the unsupported native utilities and low-level tests, so
+`DotNetPerforceLib` and `LiveLinkHub` cannot be included in solution builds.
+The UE5 build exclusion and `DebugGame Editor | Win64` game mapping remain.
+Both Kalmala solutions contain 59 project references with none missing; both
+Automation solutions contain 53 with none missing. The generated Automation
+XML solution also picks up the existing VisionOS Automation source project.
+
+MSBuild `ValidateSolutionConfiguration` passed for `Kalmala.slnx` with
+`Configuration=DebugGame Editor` and `Platform=Win64`. XML, reference, whitespace
+and generated-path checks passed; the longest generated absolute path was 180
+characters. Reopen `Kalmala.slnx` in Visual Studio after regeneration. No game
+build, editor launch or runtime tests ran for this recovery; the removed game
+binaries still need the editor build documented above.
