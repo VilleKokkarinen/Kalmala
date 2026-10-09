@@ -37,6 +37,30 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Every JSON recipe definition is loaded"), Recipes->Recipes.Num(), JsonRecipes->Num());
     }
     TestFalse(TEXT("The catalogue JSON has no Kit substring in any property or value"), JsonText.Contains(TEXT("Kit"), ESearchCase::IgnoreCase));
+    const FKalmalaRecipe* Campfire = Recipes->Find(TEXT("Campfire"));
+    if (TestNotNull(TEXT("Campfire construction recipe resolves"), Campfire))
+    {
+        TestEqual(TEXT("Legacy HearthRing output becomes a separate buildable descriptor"),
+            Campfire->BuildableOutput, FName(TEXT("CampfireKit")));
+        TestTrue(TEXT("Construction descriptor leaves the inventory output empty"), Campfire->Output.IsNone());
+        TestTrue(TEXT("The loader preserves the transitional HearthRing inventory alias"),
+            Catalogue->FindItem(TEXT("CampfireKit")) != nullptr);
+
+        TArray<FKalmalaInventoryStack> ScaledCosts = {{TEXT("Iron"), 1}};
+        int32 ScaledOutputCount = 77;
+        TestFalse(TEXT("Direct Campfire construction cannot scale into an inventory output"),
+            UKalmalaRecipeCatalogue::Scale(*Campfire, 1, ScaledCosts, ScaledOutputCount));
+        TestEqual(TEXT("Rejected direct output leaves existing costs unchanged"), ScaledCosts.Num(), 1);
+        TestEqual(TEXT("Rejected direct output leaves the output count unchanged"), ScaledOutputCount, 77);
+
+        UKalmalaItemCatalogue* ItemsWithoutCampfire = NewObject<UKalmalaItemCatalogue>();
+        ItemsWithoutCampfire->Items = Catalogue->Items;
+        ItemsWithoutCampfire->Items.RemoveAll([](const FKalmalaItemDefinition& Item)
+            { return Item.ItemId == TEXT("CampfireKit"); });
+        TestTrue(TEXT("Catalogue copy without the Campfire item remains valid"), ItemsWithoutCampfire->IsValidCatalogue());
+        TestTrue(TEXT("Campfire descriptor validates without an inventory item definition"),
+            Recipes->IsValidCatalogue(ItemsWithoutCampfire));
+    }
     for (const TCHAR* RemovedField : { TEXT("OutputTool"), TEXT("bRequiresCampfire"), TEXT("AlternateStation"), TEXT("RequiredSkillLevel") })
         TestFalse(FString::Printf(TEXT("Recipe data omits removed field %s"), RemovedField), JsonText.Contains(RemovedField));
     TestTrue(TEXT("Station requirements use JSON arrays"), JsonText.Contains(TEXT("\"RequiredStation\": [")));

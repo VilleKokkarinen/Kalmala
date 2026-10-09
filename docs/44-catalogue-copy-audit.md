@@ -62,13 +62,17 @@ server validation.
 ## Live text-source map
 
 - Content/Data/GameCatalogues.json is the live source for 42 item
-  DisplayName/Description pairs and 19 recipe DisplayName fields. Recipe
-  rows carry output IDs; result descriptions are resolved from the matching
-  item definition.
+  DisplayName/Description pairs and 19 recipe DisplayName fields. Normal
+  recipe rows carry item output IDs; the loader routes the four direct-build
+  outputs into the runtime `BuildableOutput` descriptor instead. Normal result
+  descriptions are resolved from their matching item definition.
 - Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp maps
   legacy catalogue IDs such as HearthRing and Workbench to stable runtime
-  construction IDs. It normalizes references and does not provide replacement
-  display copy. Keep IDs and aliases stable while changing text.
+  construction IDs. Direct-build outputs become construction descriptors and
+  are validated separately from item outputs. The transitional HearthRing
+  item row still maps to CampfireKit pending its ordered retirement child. The
+  loader does not provide replacement display copy. Keep IDs and aliases
+  stable while changing text.
 - Source/KalmalaGameplay/Private/KalmalaItemCatalogue.cpp and
   KalmalaRecipeCatalogue.cpp load and validate those JSON definitions.
   Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp defines

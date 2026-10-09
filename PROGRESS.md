@@ -13276,3 +13276,23 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 BACKLOG.md and PROGRESS.md. Updated only the selected BACKLOG child and added
 this run entry; pre-existing user edits were preserved. No implementation
 files or documentation were synchronized.
+
+## Run 2026-10-09 05:36 UTC — Split direct-build output descriptors
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run. Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on `codex/m12-hud-feedback-rebuild`; the main checkout's existing `BACKLOG.md` and `PROGRESS.md` edits remain preserved.
+
+Completed exactly M12 goal 9's first child. The catalogue loader now separates direct construction recipe identities into runtime `BuildableOutput`, while normal recipe `Output` remains an inventory item ID. The four direct-build validators check stable descriptors and ingredient costs independently of result-item lookup; normal recipe scaling rejects construction descriptors. Campfire's source `HearthRing` alias still resolves to `CampfireKit`, the transitional item row remains for the next ordered retirement task, and Build-menu selection, preview, raw-material cost, and server placement routing continue to use the stable construction identity.
+
+Files changed: `Source/KalmalaGameplay/Public/KalmalaRecipeCatalogue.h`; `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`; `Source/KalmalaGameplay/Private/KalmalaRecipeCatalogue.cpp`; `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; gameplay tests `KalmalaItemCatalogueTest.cpp` and `KalmalaCraftingTest.cpp`; UI `KalmalaCraftingSubsystem.cpp` and `KalmalaRecipeRequirements.cpp`; UI tests `KalmalaIngredientTest.cpp`, `KalmalaRecipeBrowseTest.cpp`, `KalmalaRecipeRequirementsTest.cpp`, and `KalmalaStatusHotbarTest.cpp`; `docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`; `docs/44-catalogue-copy-audit.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `git diff --check`; `Scripts/Verify-M5DocumentationContracts.ps1` (5/5 contracts); six focused source assertions for loader separation, validator independence, build-cost lookup, blocked recipe crafting, Build-menu identity routing, and prepared compatibility/no-stack coverage; and a changed-path MAX_PATH audit. An initial ad hoc assertion wrapper flattened its labels; the corrected label-safe assertions all passed. The focused Unreal automation assertions were added but not run. No C++ build, automation queue, host/client run, rendered review, or package check was run. Full M12 verification remains deferred.
+
+Observable impact: construction recipes now carry their own runtime descriptor and remain resolvable if Campfire is absent from the item catalogue. Normal inventory recipe scaling cannot emit a direct-build result. Placement costs, validation, RPCs, save identity, and server authority are unchanged.
+
+Networking/authority: no gameplay or authority behavior changed. Clients still submit the existing build identity or payload-free Campfire intent; the server continues to derive costs, validate placement, and commit payment.
+
+Known limitations: the transitional `HearthRing` row still loads as `CampfireKit` until the next ordered child removes its normal inventory definition and presentation. Full M12 runtime/rendered acceptance remains deferred.
+
+Next eligible task: M12 goal 9, remove HearthRing's normal inventory-item definition/presentation after construction resolution, name the recipe/placed result Campfire, update icon/count contracts, and inspect failed placement, current costs, and saved-construction restoration.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main `BACKLOG.md` and `PROGRESS.md`; applied only the selected child update and this entry, preserving all pre-existing main-checkout edits. No implementation files or other docs were synchronized.

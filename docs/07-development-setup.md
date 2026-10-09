@@ -2266,3 +2266,17 @@ the object image. Keep badges as independent UI overlays; unknown IDs must keep
 the honest fallback and no supported manifest identity may use it. This
 increment prepares these assertions; it does not perform the M12 rendered
 acceptance or full verification.
+
+## M12 direct construction descriptor split
+
+Direct-material recipes keep their stable construction identities in the
+runtime `BuildableOutput` field; `Output` is reserved for actual inventory
+results. The catalogue loader maps the legacy Campfire `HearthRing` reference
+to `CampfireKit` in that construction field. `Kalmala.Gameplay.Inventory.Catalogue`
+checks that the descriptor validates when the matching Campfire item is absent,
+that normal recipe scaling rejects direct construction output, and that the
+legacy item mapping remains temporarily loadable. `Kalmala.Gameplay.Crafting`
+and `Kalmala.UI.Crafting.LocalBrowsing` retain raw-cost, Build-menu, icon, and
+placement selection coverage. Run the focused automations after an affected
+editor build; confirm paid placement and failed-placement conservation in the
+M12 milestone-final `Verify-Crafting.ps1` host/client run.

@@ -12,7 +12,7 @@ bool FKalmalaRecipeRequirementsTest::RunTest(const FString& Parameters)
     for (const auto& Recipe : UKalmalaRecipeCatalogue::Get()->Recipes)
     {
         const FString Text = FKalmalaRecipeRequirements::Describe(Recipe, nullptr, -1, TEXT("Waiting for pack"));
-        if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.Output))
+        if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput))
         {
             TestTrue(TEXT("Construction detail keeps actual placement requirements"),
                 Text.Contains(TEXT("Build requirements"))
@@ -24,7 +24,7 @@ bool FKalmalaRecipeRequirementsTest::RunTest(const FString& Parameters)
             TestFalse(TEXT("Construction detail omits generic requirement boilerplate"),
                 Text.Contains(TEXT("Skill level:")) || Text.Contains(TEXT("Unlock:"))
                     || Text.Contains(TEXT("server rechecks")) || Text.Contains(TEXT("Rejected requests")));
-            if (Recipe.Output == TEXT("CampfireKit"))
+            if (Recipe.BuildableOutput == TEXT("CampfireKit"))
                 TestTrue(TEXT("Hearth fuel and duration stay explicit"),
                     Text.Contains(TEXT("one raw Wood, Lightwood, Densewood, or Coal; starts with 60 seconds")));
         }
@@ -52,7 +52,7 @@ bool FKalmalaRecipeRequirementsTest::RunTest(const FString& Parameters)
         if (Recipe.RequiredStation.Contains(TEXT("CookingRackKit")) || Recipe.RequiredStation.Contains(TEXT("CauldronKit"))
             || Recipe.RequiredStation.Contains(TEXT("FryingPanKit")))
             TestTrue(TEXT("Heat described even without a nearby station"), Text.Contains(TEXT("positive heat within 2.5 m of both")));
-        if (FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output))
+        if (FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.GetOutputIdentity()))
             TestTrue(TEXT("Attachment station placement included"), Text.Contains(TEXT("within 1.25 m of its matching station")));
     }
     // Presentation-only fixture: exercise supported reusable-tool metadata without adding a recipe.

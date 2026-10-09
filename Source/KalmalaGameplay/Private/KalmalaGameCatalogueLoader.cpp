@@ -91,6 +91,28 @@ namespace
         return true;
     }
 
+    bool NormalizeRecipeOutput(const TSharedPtr<FJsonObject>& RecipeObject)
+    {
+        FString CatalogueId;
+        if (!RecipeObject.IsValid() || !RecipeObject->TryGetStringField(TEXT("Output"), CatalogueId))
+        {
+            return false;
+        }
+
+        const FName RuntimeId = ToRuntimeItemId(FName(*CatalogueId));
+        if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(RuntimeId))
+        {
+            RecipeObject->SetStringField(TEXT("Output"), TEXT(""));
+            RecipeObject->SetStringField(TEXT("BuildableOutput"), RuntimeId.ToString());
+        }
+        else
+        {
+            RecipeObject->SetStringField(TEXT("Output"), RuntimeId.ToString());
+            RecipeObject->SetStringField(TEXT("BuildableOutput"), TEXT(""));
+        }
+        return true;
+    }
+
     bool NormalizeCatalogueItemReferences(const TArray<TSharedPtr<FJsonValue>>& ItemValues,
         const TArray<TSharedPtr<FJsonValue>>& RecipeValues)
     {
@@ -110,7 +132,7 @@ namespace
                 return false;
             }
             const TSharedPtr<FJsonObject> RecipeObject = Value->AsObject();
-            if (!NormalizeItemReference(RecipeObject, TEXT("Output"))
+            if (!NormalizeRecipeOutput(RecipeObject)
                 || !NormalizeStationArray(RecipeObject)
                 || !NormalizeRequiredTool(RecipeObject))
             {

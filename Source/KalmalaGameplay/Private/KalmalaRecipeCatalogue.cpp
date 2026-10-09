@@ -3,6 +3,30 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaGameCatalogueLoader.h"
 
+namespace
+{
+    bool BuildScaledIngredientCosts(const FKalmalaRecipe& Recipe, const int32 Batch,
+        const UKalmalaItemCatalogue* Items, TArray<FKalmalaInventoryStack>& OutCosts)
+    {
+        if (!Items || Recipe.Ingredients.IsEmpty() || Recipe.Ingredients.Num() > 8) return false;
+        TSet<FName> Seen;
+        TArray<FKalmalaInventoryStack> CandidateCosts;
+        for (const FKalmalaInventoryStack& Ingredient : Recipe.Ingredients)
+        {
+            const int64 Count = int64(Ingredient.Quantity) * Batch;
+            if (Seen.Contains(Ingredient.ItemId) || Count < 1
+                || Count > UKalmalaItemCatalogue::AbsoluteMaxStack
+                || !Items->IsValidStack(Ingredient.ItemId, int32(Count))) return false;
+            Seen.Add(Ingredient.ItemId);
+            FKalmalaInventoryStack& Entry = CandidateCosts.AddDefaulted_GetRef();
+            Entry.ItemId = Ingredient.ItemId;
+            Entry.Quantity = int32(Count);
+        }
+        OutCosts = MoveTemp(CandidateCosts);
+        return true;
+    }
+}
+
 const UKalmalaRecipeCatalogue* UKalmalaRecipeCatalogue::Get()
 {
     FKalmalaGameCatalogueLoader::EnsureLoaded();
@@ -10,45 +34,60 @@ const UKalmalaRecipeCatalogue* UKalmalaRecipeCatalogue::Get()
 }
 
 bool UKalmalaRecipeCatalogue::Scale(const FKalmalaRecipe& Recipe, int32 Batch,
-    TArray<FKalmalaInventoryStack>& Costs, int32& OutputCount)
+    TArray<FKalmalaInventoryStack>& Costs, int32& OutputCount,
+    const UKalmalaItemCatalogue* ItemDefinitions)
 {
-    const auto* Items = UKalmalaItemCatalogue::Get();
+    const auto* Items = ItemDefinitions ? ItemDefinitions : UKalmalaItemCatalogue::Get();
     if (Recipe.MaxBatch < 1 || Recipe.MaxBatch > 10 || Batch < 1 || Batch > Recipe.MaxBatch
-        || Recipe.Ingredients.IsEmpty() || Recipe.Ingredients.Num() > 8) return false;
+        || !Recipe.BuildableOutput.IsNone() || Recipe.Output.IsNone()
+        || !Items) return false;
     const int64 Total = int64(Recipe.OutputCount) * Batch;
     if (Total < 1 || Total > UKalmalaItemCatalogue::AbsoluteMaxStack
         || !Items->IsValidStack(Recipe.Output, int32(Total))) return false;
-    TSet<FName> Seen;
     TArray<FKalmalaInventoryStack> Next;
-    for (const auto& Cost : Recipe.Ingredients)
-    {
-        const int64 Count = int64(Cost.Quantity) * Batch;
-        if (Seen.Contains(Cost.ItemId) || Count < 1 || Count > UKalmalaItemCatalogue::AbsoluteMaxStack
-            || !Items->IsValidStack(Cost.ItemId, int32(Count))) return false;
-        Seen.Add(Cost.ItemId);
-        auto& Entry = Next.AddDefaulted_GetRef(); Entry.ItemId = Cost.ItemId; Entry.Quantity = int32(Count);
-    }
-    Costs = MoveTemp(Next); OutputCount = int32(Total); return true;
+    if (!BuildScaledIngredientCosts(Recipe, Batch, Items, Next)) return false;
+    Costs = MoveTemp(Next);
+    OutputCount = int32(Total);
+    return true;
 }
 
-bool UKalmalaRecipeCatalogue::IsValidCatalogue() const
+bool UKalmalaRecipeCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDefinitions) const
 {
     if (Recipes.IsEmpty() || Recipes.Num() > 32) return false;
+    const UKalmalaItemCatalogue* Items = ItemDefinitions ? ItemDefinitions : UKalmalaItemCatalogue::Get();
+    if (!Items || !Items->IsValidCatalogue()) return false;
     TSet<FName> Seen;
+    TSet<FName> BuildableOutputs;
     for (const auto& Recipe : Recipes)
     {
         TArray<FKalmalaInventoryStack> Costs; int32 Count;
         const bool bHasExperienceAward = Recipe.ExperienceSkill != EKalmalaSkill::None;
+        const bool bDirectBuildable = !Recipe.BuildableOutput.IsNone();
+        bool bValidOutput = false;
+        if (bDirectBuildable)
+        {
+            TArray<FKalmalaInventoryStack> IngredientCosts;
+            bValidOutput = IsDirectMaterialBuildable(Recipe.BuildableOutput)
+                && Recipe.Output.IsNone() && Recipe.OutputCount == 1 && Recipe.MaxBatch == 1
+                && Recipe.RequiredStation.IsEmpty() && Recipe.RequiredTool.IsNone()
+                && !BuildableOutputs.Contains(Recipe.BuildableOutput)
+                && BuildScaledIngredientCosts(Recipe, Recipe.MaxBatch, Items, IngredientCosts);
+        }
+        else
+        {
+            bValidOutput = Recipe.BuildableOutput.IsNone()
+                && Scale(Recipe, Recipe.MaxBatch, Costs, Count, Items);
+        }
         if (Recipe.RecipeId.IsNone() || Seen.Contains(Recipe.RecipeId) || Recipe.DisplayName.TrimStartAndEnd().IsEmpty()
             || Recipe.DisplayName.Len() > 64
             || (bHasExperienceAward && (!FKalmalaSkillProgressionContract::IsKnownSkill(Recipe.ExperienceSkill)
                 || Recipe.ExperienceAward < 1 || Recipe.ExperienceAward > FKalmalaSkillProgressionContract::MaxAwardPerAcceptedAction))
             || (!bHasExperienceAward && Recipe.ExperienceAward != 0)
             || Recipe.RequiredStation.Num() > 4
-            || !Scale(Recipe, Recipe.MaxBatch, Costs, Count)) return false;
+            || !bValidOutput) return false;
         if (!Recipe.RequiredTool.IsNone())
         {
-            if (!UKalmalaItemCatalogue::Get()->IsValidStack(Recipe.RequiredTool, 1)
+            if (!Items->IsValidStack(Recipe.RequiredTool, 1)
                 || Recipe.Ingredients.ContainsByPredicate([&Recipe](const FKalmalaInventoryStack& Ingredient)
                     { return Ingredient.ItemId == Recipe.RequiredTool; })) return false;
         }
@@ -60,6 +99,7 @@ bool UKalmalaRecipeCatalogue::IsValidCatalogue() const
             StationIds.Add(Station);
         }
         Seen.Add(Recipe.RecipeId);
+        if (bDirectBuildable) BuildableOutputs.Add(Recipe.BuildableOutput);
     }
     return true;
 }
@@ -101,7 +141,7 @@ bool UKalmalaRecipeCatalogue::BuildDirectMaterialCost(const FName BuildableId,
     }
     const FKalmalaRecipe* BuildRecipe = Catalogue->Recipes.FindByPredicate([BuildableId](const FKalmalaRecipe& Candidate)
     {
-        return Candidate.Output == BuildableId;
+        return Candidate.BuildableOutput == BuildableId;
     });
     if (!BuildRecipe || !BuildRecipe->bEnabled || BuildRecipe->Ingredients.IsEmpty())
     {

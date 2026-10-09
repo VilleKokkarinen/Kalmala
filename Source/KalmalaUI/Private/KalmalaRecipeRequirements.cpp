@@ -11,7 +11,7 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
         const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Id);
         return Item ? Item->DisplayName : Id.ToString();
     };
-    const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.Output);
+    const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput);
     if (bDirectBuild)
     {
         FString Text = TEXT("Build requirements\n");
@@ -19,7 +19,7 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
             CarriedHammerLevel < 0 ? TEXT("Waiting for your tool state")
                 : CarriedHammerLevel >= 1 ? TEXT("Present") : TEXT("Missing"));
         Text += TEXT("Placement: clear, dry ground with a gentle slope and room for the structure.\n");
-        if (Recipe.Output == TEXT("CampfireKit"))
+        if (Recipe.BuildableOutput == TEXT("CampfireKit"))
             Text += TEXT("Hearth fuel: one raw Wood, Lightwood, Densewood, or Coal; starts with 60 seconds.\n");
         const FString Blocker = !Recipe.bEnabled
             ? FString(TEXT("Recipe unavailable")) : Availability.TrimStartAndEnd();
@@ -28,7 +28,7 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
         return Text;
     }
 
-    const FString ResultName = Name(Recipe.Output);
+    const FString ResultName = Name(Recipe.GetOutputIdentity());
     FString Text = Recipe.OutputCount > 0
         ? FString::Printf(TEXT("Result: %d %s per batch.\n"), Recipe.OutputCount, *ResultName)
         : FString::Printf(TEXT("Result: %s.\n"), *ResultName);
@@ -38,9 +38,9 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
     Text += TEXT(".\n");
     {
         TArray<FName> Stations = Recipe.RequiredStation;
-        if (FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output))
+        if (FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.GetOutputIdentity()))
         {
-            Stations.AddUnique(FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.Output));
+            Stations.AddUnique(FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.GetOutputIdentity()));
             Text += TEXT("Attachment placement: within 1.25 m of its matching station.\n");
         }
         if (!Stations.IsEmpty()) Text += TEXT("Station: any one visible same-world station within 2.5 m: ");

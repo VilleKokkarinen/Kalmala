@@ -47,10 +47,10 @@ bool FKalmalaIngredientTest::RunTest(const FString& Parameters)
     for (const auto& Recipe : UKalmalaRecipeCatalogue::Get()->Recipes)
     {
         Costs = Recipe.Ingredients;
-        if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.Output))
+        if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput))
         {
             FString Reason;
-            TestTrue(TEXT("Direct build resolves real raw costs"), UKalmalaRecipeCatalogue::BuildDirectMaterialCost(Recipe.Output, Costs, Reason));
+            TestTrue(TEXT("Direct build resolves real raw costs"), UKalmalaRecipeCatalogue::BuildDirectMaterialCost(Recipe.BuildableOutput, Costs, Reason));
         }
         for (const auto& Ingredient : Costs)
         {

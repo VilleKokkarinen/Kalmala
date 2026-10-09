@@ -75,9 +75,14 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
     TestEqual(TEXT("Audited recipe/build count"), Recipes->Recipes.Num(), 19);
     for (const auto& Recipe : Recipes->Recipes)
     {
+        const FName OutputIdentity = Recipe.GetOutputIdentity();
         EKalmalaIcon Icon; int32 Variant;
-        TestTrue(*Recipe.RecipeId.ToString(), UKalmalaIconWidget::FindCatalogueIcon(Recipe.Output, Icon, Variant));
-        TestTrue(TEXT("Uses canonical inventory identity"), Items->FindItem(Recipe.Output) != nullptr);
+        TestTrue(*Recipe.RecipeId.ToString(), UKalmalaIconWidget::FindCatalogueIcon(OutputIdentity, Icon, Variant));
+        if (Recipe.BuildableOutput.IsNone())
+            TestTrue(TEXT("Crafted recipe uses a canonical inventory identity"), Items->FindItem(Recipe.Output) != nullptr);
+        else
+            TestTrue(TEXT("Direct construction output is a supported buildable"),
+                UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput));
     }
     static const TPair<FName, FName> Aliases[] = {
         {TEXT("HearthRing"), TEXT("CampfireKit")}, {TEXT("Workbench"), TEXT("WorkbenchKit")},

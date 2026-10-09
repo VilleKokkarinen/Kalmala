@@ -623,7 +623,7 @@ int32 UKalmalaCraftingWidget::GetBuildBrowseGroup(const FName Output)
 
 bool UKalmalaCraftingWidget::CanBuildMenuCraftRecipe(const FKalmalaRecipe& Recipe)
 {
-    return GetBuildBrowseGroup(Recipe.Output) != 0
+    return GetBuildBrowseGroup(Recipe.GetOutputIdentity()) != 0
         && Recipe.RequiredStation.IsEmpty()
         && !FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output);
 }
@@ -649,7 +649,7 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
     for (int32 Index = 0; Index < Recipes.Num(); ++Index)
     {
         const auto& Recipe = Recipes[Index];
-        const int32 BuildGroup = GetBuildBrowseGroup(Recipe.Output);
+        const int32 BuildGroup = GetBuildBrowseGroup(Recipe.GetOutputIdentity());
         const bool bCategoryMatches = StationFilterKit.IsNone()
             ? BuildGroup != 0 && (RecipeCategory == 3 || (RecipeCategory >= 4 && BuildGroup == RecipeCategory))
             : RecipeCategory == 0
@@ -657,8 +657,8 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
                 || (RecipeCategory == 2 && Recipe.ExperienceSkill == EKalmalaSkill::Cooking)
                 || (RecipeCategory == 3 && BuildGroup != 0)
                 || (RecipeCategory >= 4 && BuildGroup == RecipeCategory);
-        const bool bMatchingAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output)
-            && FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.Output) == StationFilterKit;
+        const bool bMatchingAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.GetOutputIdentity())
+            && FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.GetOutputIdentity()) == StationFilterKit;
         const bool bMatchesStation = Recipe.RequiredStation.Contains(StationFilterKit)
             || (StationFilterKit == TEXT("CookingRackKit") && Recipe.RequiredStation.Contains(TEXT("CookingRack")))
             || (StationFilterKit == TEXT("CauldronKit") && Recipe.RequiredStation.Contains(TEXT("Cauldron")))
@@ -676,8 +676,8 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
     {
         if (RecipeCategory == 3)
         {
-            const int32 GroupA = GetBuildBrowseGroup(Recipes[A].Output);
-            const int32 GroupB = GetBuildBrowseGroup(Recipes[B].Output);
+            const int32 GroupA = GetBuildBrowseGroup(Recipes[A].GetOutputIdentity());
+            const int32 GroupB = GetBuildBrowseGroup(Recipes[B].GetOutputIdentity());
             if (GroupA != GroupB) return GroupA < GroupB;
         }
         if (!bRecipeNameSort) return A < B;
@@ -809,7 +809,7 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
         Selected = VisibleBuilds.IndexOfByPredicate([&Recipes](const int32 RecipeIndex)
             {
                 return Recipes.IsValidIndex(RecipeIndex)
-                    && UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipes[RecipeIndex].Output);
+                    && UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipes[RecipeIndex].BuildableOutput);
             });
         if (Selected == INDEX_NONE) Selected = 0;
     }
@@ -1324,12 +1324,12 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             IconBox->SetWidthOverride(40.0f);
             IconBox->SetHeightOverride(40.0f);
             UKalmalaIconWidget* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
-            Icon->SetCatalogueIcon(Recipe.Output);
+            Icon->SetCatalogueIcon(Recipe.GetOutputIdentity());
             IconBox->SetContent(Icon);
             HeadingRow->AddChildToHorizontalBox(IconBox)->SetPadding(FMargin(0.0f, 0.0f, 5.0f, 0.0f));
 
             UTextBlock* Name = WidgetTree->ConstructWidget<UTextBlock>();
-            const int32 BuildGroup = GetBuildBrowseGroup(Recipe.Output);
+            const int32 BuildGroup = GetBuildBrowseGroup(Recipe.GetOutputIdentity());
             Name->SetText(FText::FromString((BuildGroup ? GetBrowseCategoryLabel(BuildGroup) + TEXT("\n") : TEXT("")) + Recipe.DisplayName));
             Name->SetAutoWrapText(true);
             Name->SetWrapTextAt(128.0f);
@@ -1385,7 +1385,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             RecipeStateLabelText = (bFocused ? TEXT("FOCUSED · SELECTED\n") : TEXT("SELECTED\n"))
                 + RecipeStateLabelText;
         }
-        const int32 BuildGroup = GetBuildBrowseGroup(Recipe.Output);
+        const int32 BuildGroup = GetBuildBrowseGroup(Recipe.GetOutputIdentity());
         const FString CardName = (BuildGroup ? GetBrowseCategoryLabel(BuildGroup) + TEXT("\n") : TEXT("")) + Recipe.DisplayName;
         if (RecipeSlotNames[SlotIndex]->GetText().ToString() != CardName)
         {
@@ -1523,7 +1523,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         bBuildGroups &= !Members.IsEmpty() && RecipeCategoryLabel->GetText().ToString().Contains(GetBrowseCategoryLabel(Group));
         bBuildGroups &= !RecipeSlotNames.IsEmpty() && RecipeSlotNames[0]->GetText().ToString().StartsWith(GetBrowseCategoryLabel(Group) + TEXT("\n"));
         for (int32 Index : Members) bBuildGroups &= Builds.Contains(Index)
-            && GetBuildBrowseGroup(UKalmalaRecipeCatalogue::Get()->Recipes[Index].Output) == Group;
+            && GetBuildBrowseGroup(UKalmalaRecipeCatalogue::Get()->Recipes[Index].GetOutputIdentity()) == Group;
     }
     SetRecipeBrowse(TEXT(""), 4, false);
     const auto Structural = GetVisibleRecipeIndices();
@@ -2772,15 +2772,15 @@ void UKalmalaCraftingWidget::Refresh()
     const int32 RecipeIndex = VisibleIndices[Selected];
     const FKalmalaRecipe& SelectedRecipe = Recipes[RecipeIndex];
     TArray<FKalmalaInventoryStack> IngredientCosts = SelectedRecipe.Ingredients;
-    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.Output))
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.BuildableOutput))
     {
         FString Failure;
-        UKalmalaRecipeCatalogue::BuildDirectMaterialCost(SelectedRecipe.Output, IngredientCosts, Failure);
+        UKalmalaRecipeCatalogue::BuildDirectMaterialCost(SelectedRecipe.BuildableOutput, IngredientCosts, Failure);
     }
     Ingredients->SetIngredients(IngredientCosts,
         OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr,
         TextScalePercent, ContrastMode);
-    SelectedIcon->SetCatalogueIcon(SelectedRecipe.Output);
+    SelectedIcon->SetCatalogueIcon(SelectedRecipe.GetOutputIdentity());
     SelectedIcon->SetVisibility(ESlateVisibility::HitTestInvisible);
     const FString StationPrefix = StationFilterKit.IsNone() ? TEXT("")
         : (UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)
@@ -2793,7 +2793,7 @@ void UKalmalaCraftingWidget::Refresh()
         OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr,
         RequirementOwner ? RequirementOwner->GetCarriedToolLevel(TEXT("ConstructionHammer")) : -1,
         Availability)));
-    const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.Output);
+    const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.BuildableOutput);
     const FString RecipeDescription = M->GetRecipeDescription(SelectedRecipe.RecipeId);
     DetailText->SetText(FText::FromString(RecipeDescription));
     if (CraftButton)
@@ -2821,7 +2821,8 @@ void UKalmalaCraftingWidget::Refresh()
     FString PreviewText;
     if (bPlacementPreviewEnabled)
     {
-        const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), GetOwningPlayerPawn(), SelectedRecipe.Output);
+        const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(
+            GetWorld(), GetOwningPlayerPawn(), SelectedRecipe.GetOutputIdentity());
         PreviewText = TEXT("\n") + Preview.Message + (Preview.bIsValid ? FString::Printf(TEXT(" (%.0f, %.0f)"), Preview.Location.X, Preview.Location.Y) : TEXT("")) + TEXT("\n");
     }
     FString ToolConditionText = TEXT("\nTool condition — owner-only:");
@@ -2905,7 +2906,7 @@ void UKalmalaCraftingWidget::Craft()
     if (StationFilterKit.IsNone() && !CanBuildMenuCraftRecipe(Recipe)) return;
     if ((bCookingRackContext || bCauldronContext || bFryingPanContext)
         && (!IsStationContextValid() || !IsCookingMenuRecipe(StationFilterKit, Recipe))) return;
-    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.Output)) { Place(); return; }
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput)) { Place(); return; }
     if (auto* M = Model())
     {
 #if !UE_BUILD_SHIPPING
@@ -2922,7 +2923,7 @@ void UKalmalaCraftingWidget::EnablePlacementPreview()
     const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
     if (!VisibleIndices.IsValidIndex(Selected) || !Recipes.IsValidIndex(VisibleIndices[Selected])
-        || GetBuildBrowseGroup(Recipes[VisibleIndices[Selected]].Output) == 0) return;
+        || GetBuildBrowseGroup(Recipes[VisibleIndices[Selected]].GetOutputIdentity()) == 0) return;
     bPlacementPreviewEnabled = true;
     Refresh();
 }
@@ -2934,7 +2935,7 @@ void UKalmalaCraftingWidget::Place()
     const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
     if (auto* M = Model(); M && VisibleIndices.IsValidIndex(Selected) && Recipes.IsValidIndex(VisibleIndices[Selected]))
     {
-        const FName Kit = Recipes[VisibleIndices[Selected]].Output;
+        const FName Kit = Recipes[VisibleIndices[Selected]].GetOutputIdentity();
         if (GetBuildBrowseGroup(Kit) == 0) return;
         if (Kit == TEXT("CampfireKit")) M->ServerPlaceCampfire(); else M->ServerPlaceConstruction(Kit);
     }

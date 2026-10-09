@@ -170,7 +170,7 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     const auto* Recipe = UKalmalaRecipeCatalogue::Get()->Find(RecipeId);
     Reason = TEXT("Unknown or disabled recipe");
     if (!Recipe || !Recipe->bEnabled) return false;
-    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe->Output))
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe->BuildableOutput))
     {
         Reason = TEXT("Use the construction hammer to build this directly from its recipe materials");
         return false;
@@ -607,7 +607,7 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
     const auto* R = UKalmalaRecipeCatalogue::Get()->Find(Id);
     if (!R || !R->bEnabled) return TEXT("Recipe unavailable");
     auto* Character = GetCharacter();
-    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(R->Output))
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(R->BuildableOutput))
     {
         if (!Character || Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1)
             return TEXT("Need your carried Construction Hammer");
@@ -615,8 +615,8 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
         if (!Inventory) return TEXT("Waiting for pack");
         TArray<FKalmalaInventoryStack> Costs;
         FString Reason;
-        if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(R->Output, Costs, Reason)) return Reason;
-        if (R->Output == TEXT("CampfireKit")
+        if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(R->BuildableOutput, Costs, Reason)) return Reason;
+        if (R->BuildableOutput == TEXT("CampfireKit")
             && !FKalmalaRawFuelContract::AddCosts(Inventory->GetStacks(), 1, Costs, Reason)) return Reason;
         TArray<FKalmalaInventoryStack> Candidate;
         UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Costs, NAME_None, 0, Candidate, Reason);
@@ -809,9 +809,9 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
 {
     const auto* R = UKalmalaRecipeCatalogue::Get()->Find(Id);
     if (!R) return TEXT("Unknown recipe");
-    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(R->Output))
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(R->BuildableOutput))
     {
-        const auto* BuildItem = UKalmalaItemCatalogue::Get()->FindItem(R->Output);
+        const auto* BuildItem = UKalmalaItemCatalogue::Get()->FindItem(R->BuildableOutput);
         if (BuildItem && !BuildItem->Description.IsEmpty()) return BuildItem->Description;
         return TEXT("Description unavailable.");
     }

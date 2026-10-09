@@ -14,14 +14,14 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
     int32 ExpectedBuilds = 0;
     for (int32 Index = 0; Index < Recipes.Num(); ++Index)
     {
-        if (!FKalmalaPlacementPreview::IsSupportedKit(Recipes[Index].Output)) continue;
+        if (!FKalmalaPlacementPreview::IsSupportedKit(Recipes[Index].GetOutputIdentity())) continue;
         ++ExpectedBuilds;
         TestTrue(TEXT("Default Build view includes every supported placeable output"), BuildIndices.Contains(Index));
     }
     TestEqual(TEXT("Default Build view excludes non-placeable production recipes"), BuildIndices.Num(), ExpectedBuilds);
     TestTrue(TEXT("Build view starts populated"), !BuildIndices.IsEmpty());
     for (const int32 Index : BuildIndices)
-        TestTrue(TEXT("Build view contains only supported placeables"), Widget->GetBuildBrowseGroup(Recipes[Index].Output) != 0);
+        TestTrue(TEXT("Build view contains only supported placeables"), Widget->GetBuildBrowseGroup(Recipes[Index].GetOutputIdentity()) != 0);
 
     const auto FindRecipe = [&Recipes](const FName RecipeId) -> const FKalmalaRecipe*
     {
@@ -80,7 +80,7 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Every named Build group is populated"), !Members.IsEmpty());
         PartitionCount += Members.Num();
         for (int32 Index : Members)
-            TestEqual(TEXT("Build group excludes unrelated outputs"), Widget->GetBuildBrowseGroup(Recipes[Index].Output), Group);
+            TestEqual(TEXT("Build group excludes unrelated outputs"), Widget->GetBuildBrowseGroup(Recipes[Index].GetOutputIdentity()), Group);
         if (!Members.IsEmpty())
         {
             Widget->SetRecipeBrowse(TEXT("  ") + Recipes[Members[0]].DisplayName.ToUpper() + TEXT("  "), Group, true);
