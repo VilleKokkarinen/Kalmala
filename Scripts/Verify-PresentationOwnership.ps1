@@ -39,6 +39,8 @@ foreach ($relativePath in $requiredAssets) {
 
 $sourceContracts = @(
     @{ Label = 'accessibility-feedback'; Path = 'Source\KalmalaUI\Private\KalmalaAccessibilityFeedbackSubsystem.cpp'; Patterns = @('MarkerLine', 'COLOUR-INDEPENDENT FEEDBACK', 'GetLocalPlayer()', 'HitTestInvisible') },
+    @{ Label = 'support-selection'; Path = 'Source\KalmalaUI\Private\KalmalaSupportSelectionSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'GetSelectedSupportEffect()', 'HasLearnedEffect', 'SetIsFocusable(false)', 'HitTestInvisible') },
+    @{ Label = 'action-notifications'; Path = 'Source\KalmalaUI\Private\KalmalaNotificationSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'ObserveCombat', 'ObserveSupport', 'ObserveDiscovery', 'HitTestInvisible') },
     @{ Label = 'status-hotbar'; Path = 'Source\KalmalaUI\Private\KalmalaStatusHotbarWidget.cpp'; Patterns = @('HitTestInvisible', 'SetIsFocusable(false)', 'SetExplicitWrapSize', 'ongoing') },
     @{ Label = 'catalogue-icons'; Path = 'Source\KalmalaUI\Private\KalmalaIconWidget.cpp'; Patterns = @('FindCatalogueIcon', 'ConstructionHammer', 'MakeLines') },
     @{ Label = 'player'; Path = 'Source\KalmalaGameplay\Private\KalmalaPlayerModelComponent.cpp'; Patterns = @('M_GeneratedTerrain', 'bTapered', 'CreateMeshSection_LinearColor') },
@@ -48,7 +50,7 @@ $sourceContracts = @(
     @{ Label = 'ui'; Path = 'Source\KalmalaUI\Private\KalmalaMinimapWidget.cpp'; Patterns = @('CreateTransient', 'UpdateTextureRegions') },
     @{ Label = 'survival-status'; Path = 'Source\KalmalaUI\Private\KalmalaSurvivalStatusWidget.cpp'; Patterns = @('BuildStatusText', 'Source: exposed rain or water', 'Source: prepared food', 'Recovery: shelter or a lit hearth restores warmth', 'SetIsFocusable(false)') },
     @{ Label = 'survival-status-owner'; Path = 'Source\KalmalaUI\Private\KalmalaSurvivalStatusSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'GetServerWorldTimeSeconds()', 'SetSnapshot', 'AddToPlayerScreen(54)', 'HotbarWidget->SetSnapshot') },
-    @{ Label = 'feedback-status'; Path = 'Source\KalmalaUI\Private\KalmalaInventorySubsystem.cpp'; Patterns = @('Attack result:', 'Discovery:', 'SetCatalogueRows', 'UKalmalaSupportGlyphWidget', 'SupportGlyphRow', 'SetSupportGlyphState', 'EKalmalaSupportGlyph::DeerCall', 'HasLearnedEffect', 'GetSelectedSupportEffect') },
+    @{ Label = 'inventory-panel'; Path = 'Source\KalmalaUI\Private\KalmalaInventorySubsystem.cpp'; Patterns = @('SetCatalogueRows', 'BuildPreparedFoodDetails') },
     @{ Label = 'feedback-crafting'; Path = 'Source\KalmalaUI\Private\KalmalaCraftingSubsystem.cpp'; Patterns = @('text does not rely on colour', 'Construction feedback: Passed=') }
 )
 $forbiddenPatterns = @('BasicShape', '/Engine/BasicShapes', 'StarterContent', 'Marketplace', 'Quixel', 'ThirdParty')
@@ -66,6 +68,11 @@ foreach ($contract in $sourceContracts) {
     foreach ($forbiddenPattern in $forbiddenPatterns) {
         if ($source -match [regex]::Escape($forbiddenPattern)) {
             throw "Presentation source '$($contract.Label)' contains forbidden asset path/token '$forbiddenPattern'"
+        }
+    }
+    if ($contract.Label -eq 'inventory-panel') {
+        foreach ($movedFeedback in @('Attack result:', 'Discovery:', 'SetSupportGlyphState', 'GetSelectedSupportEffect', 'GetFeedbackSerial')) {
+            if ($source.Contains($movedFeedback)) { throw "Legacy inventory panel still owns moved HUD feedback: $movedFeedback" }
         }
     }
     if ($contract.Label -in @('feedback-status','accessibility-feedback')) {

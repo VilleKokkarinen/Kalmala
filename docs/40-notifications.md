@@ -97,10 +97,11 @@ The local notification subsystem also observes the owning pawn's existing
 owner-only discovery acknowledgement. Its feedback serial establishes a silent
 baseline on first observation and after pawn replacement, so joining or
 reconnecting with an existing acknowledgement does not replay it. A newer
-`LandmarkFound` or `ScrollFound` serial adds the server-provided acknowledgement
-label as a passive discovery row; `AlreadyFound` and `Unavailable` serials are
-consumed without a notice. An unchanged serial does not renew the row, and
-expired feedback is never reconstructed from the last replicated label.
+`LandmarkFound`, `ScrollFound`, `AlreadyFound`, or `Unavailable` serial adds the
+server-provided acknowledgement label as a passive discovery row. Empty labels
+use concise outcome-specific fallbacks, and all labels are trimmed and bounded
+to 48 characters. An unchanged serial does not renew the row, and expired
+feedback is never reconstructed from the last replicated label.
 
 Discovery rows share the three-row, theme-timed queue and use an original
 monochrome inspection glyph. Labels are trimmed and bounded to 48 characters,
@@ -110,9 +111,32 @@ saved-data field was added. Accepted discovery rewards may also produce an
 existing item-gain notice for the actual inventory increase.
 
 Run `Kalmala.UI.Notifications.Discoveries` with the affected editor build. It
-covers silent initial/reconnect baselines, accepted landmark/scroll feedback,
-rejected feedback silence, unchanged refresh, expiry, label bounds, passive
-text and owner-local queue behavior.
+covers silent initial/reconnect baselines, accepted/already-found/unavailable
+acknowledgements, unchanged refresh, expiry, label bounds, passive text and
+owner-local queue behavior.
+
+## Combat and support action results
+
+The local queue also observes the owner's existing owner-only combat and
+support feedback serials. Initial attachment and pawn replacement silently
+baseline both values; a newer serial adds one short text-and-icon notice for
+`Hit confirmed`, `Defeated`, `Attack unavailable`, `Support accepted`, or
+`Support unavailable`. Repeated snapshots do not renew a notice, serial
+rollback silently rebaselines, and the combat notice contains no target name or
+identity. Discovery acknowledgements remain their own existing notice source.
+
+These events use the same three-row bound, theme lifetime, passive presentation,
+and modal collapse as skill, item-gain, and discovery notices. The notification
+subsystem reads only the local owning pawn. The server-owned components still
+validate and publish every result; this presentation adds no request, RPC,
+replicated field, save data, or gameplay mutation. The inventory HUD no longer
+duplicates combat, support, or discovery result text.
+
+`Kalmala.UI.Notifications.CombinedPresentation` checks silent action baselines,
+serial deduplication, concise text, expiry, and absence of hidden target
+identity. The existing rendered capture fixture continues to review the
+skill/item/discovery combination; action-result rendering remains part of the
+M12 milestone-final HUD matrix.
 
 ## Combined acceptance
 

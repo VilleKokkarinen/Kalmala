@@ -16,15 +16,18 @@ bool FKalmalaDiscoveryNoticeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Unchanged feedback does not replay"), Queue.GetRows().Num(), 0);
 
     Queue.ObserveDiscovery(8, EKalmalaDiscoveryFeedback::AlreadyFound, TEXT("Already discovered"), 4);
+    TestEqual(TEXT("Already-found acknowledgement is presented"), Queue.GetRows().Num(), 1);
+    TestEqual(TEXT("Already-found label is retained"), Queue.GetRows()[0].DiscoveryText, FString(TEXT("Already discovered")));
     Queue.ObserveDiscovery(9, EKalmalaDiscoveryFeedback::Unavailable, TEXT("Pack full"), 4);
-    TestEqual(TEXT("Rejected claims remain silent"), Queue.GetRows().Num(), 0);
+    TestEqual(TEXT("Unavailable acknowledgement is presented"), Queue.GetRows().Num(), 2);
+    TestEqual(TEXT("Unavailable label is retained"), Queue.GetRows()[1].DiscoveryText, FString(TEXT("Pack full")));
     Queue.ObserveDiscovery(10, EKalmalaDiscoveryFeedback::LandmarkFound, TEXT("Three-Run Rillstone found"), 4);
-    TestEqual(TEXT("Accepted landmark creates one row"), Queue.GetRows().Num(), 1);
-    TestEqual(TEXT("Accepted server label is presented"), Queue.GetRows()[0].DiscoveryText, FString(TEXT("Three-Run Rillstone found")));
+    TestEqual(TEXT("Accepted landmark remains in the bounded queue"), Queue.GetRows().Num(), FKalmalaSkillNoticeQueue::MaxRows);
+    TestEqual(TEXT("Accepted server label is presented"), Queue.GetRows()[2].DiscoveryText, FString(TEXT("Three-Run Rillstone found")));
     FKalmalaSkillProgressionLedger Skills;
     Skills.Initialize();
     Queue.Observe(Skills.Skills, 4);
-    TestEqual(TEXT("Skill baseline preserves discovery notice"), Queue.GetRows().Num(), 1);
+    TestEqual(TEXT("Skill baseline preserves discovery notices"), Queue.GetRows().Num(), 3);
 
     auto* Widget = NewObject<UKalmalaNotificationWidget>();
     Widget->SetNotices(Queue.GetRows(), 100, 0);
@@ -32,11 +35,11 @@ bool FKalmalaDiscoveryNoticeTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Discovery notification remains passive"), Widget->IsFocusable());
     Queue.Tick(2);
     Queue.ObserveDiscovery(10, EKalmalaDiscoveryFeedback::LandmarkFound, TEXT("Three-Run Rillstone found"), 4);
-    TestEqual(TEXT("Refresh does not renew discovery lifetime"), Queue.GetRows()[0].Remaining, 2.f);
+    TestEqual(TEXT("Refresh does not renew discovery lifetime"), Queue.GetRows()[2].Remaining, 2.f);
 
     Queue.ObserveDiscovery(11, EKalmalaDiscoveryFeedback::ScrollFound, TEXT("Scroll found: Field Notes"), 4);
-    TestEqual(TEXT("Distinct accepted scroll is retained"), Queue.GetRows().Num(), 2);
-    TestEqual(TEXT("Scroll copy stays owner-provided"), Queue.GetRows()[1].DiscoveryText, FString(TEXT("Scroll found: Field Notes")));
+    TestEqual(TEXT("Distinct accepted scroll is retained within row bound"), Queue.GetRows().Num(), FKalmalaSkillNoticeQueue::MaxRows);
+    TestEqual(TEXT("Scroll copy stays owner-provided"), Queue.GetRows().Last().DiscoveryText, FString(TEXT("Scroll found: Field Notes")));
     Queue.ObserveDiscovery(12, EKalmalaDiscoveryFeedback::LandmarkFound, TEXT(""), 4);
     TestEqual(TEXT("Empty landmark label has safe fallback"), Queue.GetRows().Last().DiscoveryText, FString(TEXT("Discovery found")));
     Queue.ObserveDiscovery(13, EKalmalaDiscoveryFeedback::ScrollFound, FString::ChrN(80, TCHAR('x')), 4);
@@ -50,8 +53,9 @@ bool FKalmalaDiscoveryNoticeTest::RunTest(const FString& Parameters)
     Queue.ObserveDiscovery(13, EKalmalaDiscoveryFeedback::ScrollFound, TEXT("Already known"), 4);
     TestEqual(TEXT("Reconnect baseline suppresses existing discovery"), Queue.GetRows().Num(), 0);
     Queue.ObserveDiscovery(14, EKalmalaDiscoveryFeedback::AlreadyFound, TEXT("Already discovered"), 4);
+    TestEqual(TEXT("New already-found acknowledgement remains visible"), Queue.GetRows().Num(), 1);
     Queue.ObserveDiscovery(15, EKalmalaDiscoveryFeedback::LandmarkFound, TEXT("Fresh discovery"), 4);
-    TestEqual(TEXT("Later accepted event remains visible after rejection"), Queue.GetRows().Num(), 1);
+    TestEqual(TEXT("Later accepted event remains visible after prior acknowledgement"), Queue.GetRows().Num(), 2);
 
     FKalmalaSkillNoticeQueue OtherOwner;
     OtherOwner.ObserveDiscovery(15, EKalmalaDiscoveryFeedback::LandmarkFound, TEXT("Existing"), 4);

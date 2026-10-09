@@ -7,9 +7,16 @@ or a new save schema.
 
 M11 places Wet, meal, exposure, support and weather status markers in one
 transparent owner-local hotbar. Escape > Status and weather details exposes
-their live text without hover. The optional feedback overlay retains action
-results and nearby hearth/construction context, with no duplicate active
-status rows. See `36-status-icons.md` for the updated presentation contract.
+their live text without hover. The optional feedback overlay retains nearby
+hearth/construction context, with no duplicate active status rows.
+Owner-local notifications now carry concise combat/support outcomes and
+discovery acknowledgements; a separate text-plus-glyph strip shows the selected
+support effect without control-binding labels. The colour-independent feedback
+system covers Wet, hearth, construction, combat, discovery, and support: the
+optional owner-only overlay shows nearby hearth/construction context while the
+other cues use their dedicated text/icon HUD surfaces. See
+`36-status-icons.md` for the status presentation contract and
+`40-notifications.md` for feedback rules.
 
 ## Existing shell and option groups
 
@@ -30,8 +37,9 @@ to implement:
   `UPlayerInput`, and provides a restore-defaults action without changing what
   the server validates.
 - **Settings:** local text scale and contrast choices, together with the
-  colour-independent feedback preference used by Wet, hearth, construction,
-  combat, discovery, and support presentation.
+  colour-independent feedback preference for the optional nearby hearth and
+  construction text overlay. Combat/support outcomes, discovery notices, and
+  selected-support text remain explicit in their separate HUD surfaces.
 
 The Escape home/settings shell and all four option tabs use the local shared UI
 theme for their background image. Separate per-view keys allow a theme to

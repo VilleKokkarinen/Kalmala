@@ -895,10 +895,12 @@ and config round-trips.
 
 The same tab provides a local colour-independent feedback choice between
 `Text only` and `Text + markers`. Marker mode adds bracketed text markers for
-Wet, nearby hearth, construction, combat, discovery, and support state in an
-owner-only overlay that follows the scaled viewport in a center-right safe
-area. It reads the existing local pawn components and accepted replicated
-results, follows the local contrast palette, and sends no request.
+nearby hearth and construction context in an owner-only overlay that follows
+the scaled viewport in a center-right safe area. Combat/support action results
+and discovery acknowledgements use the separate bounded notification queue;
+the support selection strip has explicit text in either feedback mode. These
+surfaces read only the existing local pawn and accepted replicated results,
+follow the local contrast palette, and send no request.
 `Kalmala.UI.Settings.LocalPresentation` checks its bounded mode and config
 round-trip. The focused automation remains a null-RHI contract check; use the
 rendered peer probe below for the live modal.
@@ -1179,6 +1181,27 @@ missing owner data, an active meal, a stale/replayed request, and a rejected
 request disable or reject use without consumption or effect refresh. Verify
 that the other peer cannot see the owner's pack or action result. Rendered
 scale/contrast and broad regressions remain in the milestone-final matrix.
+
+## M12 HUD feedback decoupling increment
+
+The selected support effect appears in a separate passive owner-local strip,
+using the character's local selection and the owner's learned-effect state.
+Input still uses the existing 1–4/D-pad selection actions and Q/controller
+activation action. The transient notification queue now also observes the
+owner-only combat and support result serials, plus concise discovery
+found/already-found/unavailable acknowledgements from the existing owner
+source. The Inventory HUD must not supply these results or own the support
+glyph selection. No new gameplay request or authority path is introduced.
+
+Run `Scripts/Verify-LocalInputContract.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`,
+`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` after an
+affected editor compile. `Kalmala.UI.SupportSelection.LocalHudCue` checks the
+selection label for learned, unavailable, and no-selection cases.
+`Kalmala.UI.Notifications.CombinedPresentation` checks silent combat/support
+baselines, new serial feedback, deduplication, bounded expiry, and that combat
+text contains no target identity. Rendered strip positioning, action notices,
+modal behavior, and host/client privacy remain in M12 milestone-final review.
 
 ## M5 documentation contract suite
 
