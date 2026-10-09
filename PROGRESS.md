@@ -12973,3 +12973,1779 @@ Main-checkout handoff synchronization: Complete. Inspected the main
 versions before editing; applied only the selected BACKLOG child and
 appended this PROGRESS entry, preserving all other existing content and
 user changes. No implementation assets were synchronized.
+
+## Run 2026-10-08T11:47Z — Generate catalogue icon batch 04
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`; the main checkout was clean before handoff.
+
+Completed exactly the next M12 goal 8 child. Generated original ForgeKit,
+WorkbenchToolRackKit, ForgeAnvilKit, and GrindingStoneKit icons. Retained each
+generated 1254×1254 RGBA source and prepared a transparent 64×64 RGBA import
+PNG, with the visible subject proportionally fitted inside a centered 56×56
+area. Reviewed all four finals at native size beside the earlier icon batches.
+
+Files changed: `Content/Kalmala/UI/Source/IconOriginals/ForgeKit.png`;
+`Content/Kalmala/UI/Source/Icons/ForgeKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/WorkbenchToolRackKit.png`;
+`Content/Kalmala/UI/Source/Icons/WorkbenchToolRackKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/ForgeAnvilKit.png`;
+`Content/Kalmala/UI/Source/Icons/ForgeAnvilKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/GrindingStoneKit.png`;
+`Content/Kalmala/UI/Source/Icons/GrindingStoneKit.png`;
+`docs/43-catalogue-icon-manifest.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Validate-CatalogueIcon.ps1` for all four
+IDs (each 1254×1254 RGBA source and transparent 64×64 RGBA final with the
+pinned import target); manual native-size review; `git diff --check`; and a
+changed-path MAX_PATH audit. No Unreal import/build, automation, rendered or
+controller review, or package check was run. Full M12 verification remains
+deferred; this is a normal child increment.
+
+Observable impact: 16 of the 48 pinned canonical icon identities now have
+retained originals and validated prepared PNGs ready for Unreal import.
+
+Networking/authority: original presentation assets and documentation only; no
+gameplay, RPC, replication, authority, inventory, or save contract changed.
+
+Known limitations: none of these four prepared PNGs has been imported as an
+Unreal `.uasset`; live catalogue views still use vector icons. The next image
+batches, imports, view integration, and rendered acceptance remain open.
+
+Next eligible task: M12 goal 8, generate/review batch 05 for StorageKit,
+CookingRackKit, FryingPanKit, and CauldronKit.
+
+Main-checkout handoff synchronization: Complete. Inspected the main
+`BACKLOG.md` and `PROGRESS.md` before editing; applied only this selected
+BACKLOG child and this PROGRESS entry. No implementation assets were
+synchronized to the main checkout.
+
+
+## Run 2026-10-08T12:00Z — Generate catalogue icon batch 05
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in the clean retained
+worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout contains pre-existing
+modifications to `BACKLOG.md` and `PROGRESS.md`; they were preserved.
+
+Implementation commit: 35bbafb (Generate catalogue icon batch 05).
+
+Completed exactly the next M12 goal 8 child. Generated original StorageKit,
+CookingRackKit, FryingPanKit, and CauldronKit icons using WorkbenchKit, ForgeKit,
+and Coal as style references only. Retained each 1254×1254 RGBA original and
+prepared a transparent 64×64 RGBA PNG with its visible subject proportionally
+fitted inside a centered 56×56 area. Reviewed all four prepared images at
+native size.
+
+Files changed: `Content/Kalmala/UI/Source/IconOriginals/StorageKit.png`;
+`Content/Kalmala/UI/Source/Icons/StorageKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/CookingRackKit.png`;
+`Content/Kalmala/UI/Source/Icons/CookingRackKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/FryingPanKit.png`;
+`Content/Kalmala/UI/Source/Icons/FryingPanKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/CauldronKit.png`;
+`Content/Kalmala/UI/Source/Icons/CauldronKit.png`; `docs/43-catalogue-icon-manifest.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Validate-CatalogueIcon.ps1` for all four
+IDs, confirming each source is 1254×1254 RGBA and each final is transparent
+64×64 RGBA with its pinned import target; manual 64×64 review; `git diff --check`;
+and a changed-path MAX_PATH audit. No Unreal import/build, automation,
+live rendered/controller review, or package check was run. Full M12 verification
+remains deferred; this is a normal child increment.
+
+Observable impact: 20 of the 48 canonical catalogue icon identities now have
+retained originals and validated prepared PNGs ready for Unreal import.
+
+Networking/authority: presentation assets and documentation only; no gameplay,
+RPC, replication, authority, inventory, or save contract changed.
+
+Known limitations: none of these four PNGs has been imported as an Unreal
+`.uasset`; live catalogue views still use vector icons. Remaining icon batches,
+imports, menu integration, and rendered acceptance remain open.
+
+Next eligible task: M12 goal 8, generate and review icon batch 06 for FloorKit,
+WallKit, RoofKit, and BoarMeat.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main BACKLOG.md and PROGRESS.md before editing;
+applied only the selected batch 05 row and appended this progress entry. Preserved all pre-existing main-checkout edits.
+No implementation assets were synchronized.
+
+## Run 2026-10-08T12:17Z — Generate catalogue icon batch 06
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in the clean retained
+worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout had pre-existing modified
+`BACKLOG.md` and `PROGRESS.md` content; preserved it during this handoff.
+
+Completed exactly the next M12 goal 8 child. Generated four separate original
+icons with the built-in image generator: FloorKit (oak plank floor tile),
+WallKit (upright timber panel), RoofKit (reed-thatch roof panel), and BoarMeat
+(fresh red pork cut with pale fat and a small bone). Retained each original
+RGBA PNG and prepared a transparent 64×64 RGBA PNG with visible artwork fitted
+inside a centered 56×56 area. The FloorKit original is 1536×1024; the other
+three are 1254×1254. The prompt set specified one centered subject per icon,
+transparent background, warm soft highlights, ivory edge accents, a thin dark
+contour, and no text, UI chrome, scenery, or extra props.
+
+Files changed in the worktree: `Content/Kalmala/UI/Source/IconOriginals/FloorKit.png`;
+`Content/Kalmala/UI/Source/Icons/FloorKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/WallKit.png`;
+`Content/Kalmala/UI/Source/Icons/WallKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/RoofKit.png`;
+`Content/Kalmala/UI/Source/Icons/RoofKit.png`;
+`Content/Kalmala/UI/Source/IconOriginals/BoarMeat.png`;
+`Content/Kalmala/UI/Source/Icons/BoarMeat.png`;
+`docs/43-catalogue-icon-manifest.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Validate-CatalogueIcon.ps1` for all four
+IDs, native-size visual review of all prepared icons, `git diff --check`, and a
+changed-path MAX_PATH audit (longest path 95 characters). No Unreal import or
+build, automation, in-game rendered/controller review, or package check was
+run. Full M12 verification remains deferred; this is a normal child increment.
+
+Observable impact: 24 of 48 canonical catalogue icon identities now have
+retained originals and validated prepared PNGs ready for Unreal import.
+
+Networking/authority: presentation assets and documentation only; no gameplay,
+RPC, replication, authority, inventory, or save contract changed.
+
+Known limitations: no PNG has been imported as an Unreal `.uasset` and live
+catalogue consumers remain on vector icons. Six more image batches, three
+import batches, menu integration, and rendered acceptance remain open.
+
+Next eligible task: M12 goal 8, generate/review icon batch 07 for DeerMeat,
+BoarHide, DeerHide, and CookedBoarMeat.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; applied only the selected batch 06 row and this
+PROGRESS entry. Preserved all earlier main-checkout edits. No implementation
+assets were synchronized.
+
+## Run 2026-10-08T12:30Z — Generate/review the next 20 catalogue icons
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in the clean retained
+worktree E:\dev\Kalmala\wt\m12-hud-feedback-rebuild on
+codex/m12-hud-feedback-rebuild. The main checkout contains pre-existing
+BACKLOG.md and PROGRESS.md edits; they are preserved during handoff.
+
+The current main-checkout BACKLOG row grouped the next twenty uncompleted
+manifest identities into one M12 goal 8 increment. Completed that exact
+increment: manifest image batches 07–11, covering DeerMeat, BoarHide,
+DeerHide, CookedBoarMeat, CookedDeerMeat, HearthBroth, MeatStew,
+RootVegetableSoup, RoastedRootVegetables, DeerRootRoast, Carrot, Potato,
+Rutabaga, Onion, CarrotSeed, PotatoSeed, RutabagaSeed, OnionSeed, ReedKnife,
+and FieldHatchet. The clean retained worktree still splits those identities
+into five four-item rows; all five rows are checked because all five pinned
+image batches were completed within the one main-checkout increment.
+
+Generated one original transparent image per identity with the built-in image
+generator and retained 1254×1254 RGBA sources. Prepared each as a transparent
+64×64 RGBA PNG by alpha-cropping and fitting the artwork within a centered
+56×56 maximum area. Reviewed all twenty finals at native size.
+
+Files changed: Original and prepared PNGs for the twenty IDs listed above in
+Content/Kalmala/UI/Source/IconOriginals/ and Content/Kalmala/UI/Source/Icons/;
+docs/43-catalogue-icon-manifest.md; BACKLOG.md; and PROGRESS.md.
+
+Lightweight checks passed: Scripts/Validate-CatalogueIcon.ps1 for all twenty
+IDs; native-size review of all twenty transparent icons; git diff --check;
+and a changed-path MAX_PATH audit (passed; longest changed path 108 characters).
+No Unreal import/build, automation suite, rendered game/controller review, or
+package check was run. Full M12 verification remains deferred.
+
+Observable impact: 44 of 48 canonical catalogue icon identities now have
+retained originals and validated prepared PNGs ready for Unreal import.
+
+Networking/authority: original presentation assets and documentation only; no
+gameplay, RPC, replication, authority, inventory, or save contract changed.
+
+Known limitations: the twenty PNGs are not imported as Unreal .uasset files;
+live catalogue consumers remain on vector icons. The final four image
+identities, imports, menu integration, and rendered acceptance remain open.
+
+Next eligible task: M12 goal 8, generate/review and audit final image batch 12
+for StonePick, BronzeAxe, IronAxe, and ConstructionHammer.
+
+Main-checkout handoff synchronization: Complete. Synchronized only the selected
+BACKLOG child and this PROGRESS entry into the main checkout, preserving existing
+main-checkout edits. No implementation assets were synchronized.
+
+## Run 2026-10-08 13:17 UTC — Generate/review final catalogue icon batch 12
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in the clean retained
+worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout had pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits; they were preserved during handoff.
+
+Completed exactly M12 goal 8's final image-generation child: StonePick,
+BronzeAxe, IronAxe, and ConstructionHammer. Generated each original separately
+with existing Wood, Iron, and WorkbenchKit icons as style references only.
+Retained four 1254×1254 RGBA sources and prepared four centered transparent
+64×64 RGBA PNGs with artwork fit within a 56×56 area. Reviewed every final at
+native size.
+
+Files changed in the worktree: `Content/Kalmala/UI/Source/IconOriginals/` and
+`Content/Kalmala/UI/Source/Icons/` for the four IDs above;
+`docs/43-catalogue-icon-manifest.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Validate-CatalogueIcon.ps1` for all four
+new IDs and then all 48 manifest identities; native-size visual review;
+`git diff --check`; and changed-path MAX_PATH audit (longest path 105
+characters). No Unreal import/build, automation suite, rendered game/controller
+review, or package check was run. Full M12 verification remains deferred.
+
+Observable impact: all 48 canonical catalogue identities now have retained
+original RGBA PNGs and validated transparent 64×64 prepared PNGs.
+
+Networking/authority: presentation assets and documentation only; no gameplay,
+RPC, replication, authority, inventory, or save contract changed.
+
+Known limitations: no PNG is imported as an Unreal `.uasset`, and live menu
+consumers remain on vector icons. Three bounded texture-import tasks and two
+menu integration tasks remain open under M12 goal 8.
+
+Next eligible task: M12 goal 8, import/map texture batch A for the first 16
+manifest outputs and aliases.
+
+Main-checkout handoff synchronization: Complete. Inspected the main-checkout
+versions before editing; synchronized only the selected BACKLOG child and this
+PROGRESS entry, preserving its existing edits. No implementation assets were
+synchronized.
+
+
+## Run 2026-10-08 13:37 UTC — Import/map catalogue texture batch A
+
+Concurrency guard: Codex app task inventory showed no other active Kalmala
+automation run. Windows process inspection was restricted. Continued in the
+retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout had pre-existing changes to
+`BACKLOG.md` and `PROGRESS.md`; they were preserved.
+
+Completed exactly M12 goal 8's batch A import child. Added a shared Python
+AssetImportTask importer and a bounded PowerShell runner. The runner uses a
+temporary UE 5.8 content-only project, imports the sixteen batch A manifest
+rows to `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`, then copies only those
+packages into the Kalmala content tree. Imported textures retain 64×64 size,
+source alpha and sRGB, use the UI texture group without mipmaps, and are not
+streamed. The six manifest aliases map to their canonical packages; no alias
+packages were created.
+
+Files changed: `Content/Kalmala/UI/Icons/Items/` for Wood, Lightwood,
+Densewood, Coal, Stone, Iron, Fibre, PeatAmber, FrostSalt, MirelingAsh,
+CampfireKit, WorkbenchKit, ForgeKit, WorkbenchToolRackKit, ForgeAnvilKit, and
+GrindingStoneKit; `Scripts/Import-CatalogueIconBatch.ps1`;
+`Scripts/Import-CatalogueIconBatch.py`; `docs/43-catalogue-icon-manifest.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Import-CatalogueIconBatch.ps1 -Batch A`
+ran the Unreal Python importer successfully and validated the saved 64×64
+Texture2D targets with alpha compression disabled and the UI settings above.
+`Scripts/Validate-CatalogueIcon.ps1` passed for all sixteen IDs, including the
+prepared PNG transparency checks. A focused manifest/alias-to-object-path
+audit, Python syntax parse, PowerShell parser check, `git diff --check`, and
+changed-path MAX_PATH audit passed. An initial validation call used a size
+method not exposed by UE 5.8; the importer now uses its supported Blueprint
+size accessors, and the complete batch was rerun successfully. No Kalmala
+project build, automation suite, rendered review, or package check was run.
+Full M12 verification remains deferred.
+
+Observable impact: the shared runtime lookup now has imported targets for the
+first sixteen canonical identities and their listed aliases. Inventory and
+Build/crafting consumers remain on vector icons until their later integration
+children.
+
+Networking/authority: presentation assets and editor-only import scripts;
+gameplay, RPC, replication, server authority, inventory, and save contracts are
+unchanged.
+
+Known limitations: batches B and C, both menu integration children, and
+rendered host/client acceptance remain open. The full M12 verification is
+deferred until the final implementation increment.
+
+Next eligible task: M12 goal 8, import/map texture batch B for the next sixteen
+manifest identities.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; applied only the batch A child update and this
+entry, preserving all pre-existing main-checkout changes. No implementation
+assets were synchronized.
+
+## Run 2026-10-08 13:51 UTC — Import/map catalogue texture batch B
+
+Concurrency guard: Codex app task inventory showed no other active Kalmala
+automation run. Windows process inspection was restricted. Continued in the
+retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout had pre-existing changes to
+`BACKLOG.md` and `PROGRESS.md`; they were preserved during handoff.
+
+Completed exactly M12 goal 8's batch B import child: StorageKit,
+CookingRackKit, FryingPanKit, CauldronKit, FloorKit, WallKit, RoofKit,
+BoarMeat, DeerMeat, BoarHide, DeerHide, CookedBoarMeat, CookedDeerMeat,
+HearthBroth, MeatStew, and RootVegetableSoup. Imported sixteen canonical
+Texture2D packages to `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`. The seven
+manifest aliases Storage, CookingRack, FryingPan, Cauldron, Floor, Wall, and
+Roof share canonical assignments; no duplicate alias packages were created.
+
+Files changed: `Content/Kalmala/UI/Icons/Items/` for the sixteen IDs above,
+`docs/43-catalogue-icon-manifest.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Lightweight checks passed: `Scripts/Import-CatalogueIconBatch.ps1 -Batch B`
+completed under normal Unreal access and validated each saved 64×64 Texture2D
+with source alpha, sRGB, UI texture group, no mipmaps, and non-streaming
+settings. `Scripts/Validate-CatalogueIcon.ps1` passed for all sixteen IDs; the
+runner checked aliases and emitted object paths. The initial sandboxed run
+exited without an import log and made no repository changes; the normal-access
+retry completed successfully. `git diff --check`, manifest-to-package and
+alias absence checks, and a changed-path MAX_PATH audit passed (longest path
+98 characters). No Kalmala project build, automation suite,
+rendered review, or package check was run. Full M12 verification remains
+deferred.
+
+Observable impact: the shared lookup now has imported targets for 32 of 48
+canonical identities and their listed aliases. Inventory and Build/crafting
+consumers remain on vector icons until their later integration children.
+
+Networking/authority: presentation assets only; gameplay, RPC, replication,
+server authority, inventory, and save contracts are unchanged.
+
+Known limitations: batch C, both menu integration children, rendered
+host/client acceptance, and M12 milestone-final verification remain open.
+
+Next eligible task: M12 goal 8, import/map texture batch C for the remaining
+sixteen manifest identities.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; applied only the selected batch B child update
+and this entry, preserving all earlier main-checkout changes. No implementation
+assets were synchronized.
+
+## Run 2026-10-08 14:02 UTC — Import/map catalogue texture batch C
+
+Concurrency guard: Codex app task inventory showed no other active Kalmala
+automation run. Continued from the committed batch B state in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout already had prior handoff
+edits; only the selected backlog child and this entry were synchronized.
+
+Completed exactly M12 goal 8's batch C child: RoastedRootVegetables,
+DeerRootRoast, Carrot, Potato, Rutabaga, Onion, CarrotSeed, PotatoSeed,
+RutabagaSeed, OnionSeed, ReedKnife, FieldHatchet, StonePick, BronzeAxe,
+IronAxe, and ConstructionHammer. Imported sixteen canonical Texture2D
+packages to `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`.
+
+Files changed by this run: `Content/Kalmala/UI/Icons/Items/` for the sixteen
+IDs above, `docs/43-catalogue-icon-manifest.md`, `BACKLOG.md`, and
+`PROGRESS.md`. Main-checkout handoff synchronized only `BACKLOG.md` and
+`PROGRESS.md`; no implementation assets or docs were copied into it.
+
+Lightweight checks passed: `Scripts/Import-CatalogueIconBatch.ps1 -Batch C`
+completed with normal Unreal access and verified saved 64×64 dimensions,
+source alpha, sRGB, UI texture group, no mipmaps, and non-streaming settings.
+Its sixteen `Scripts/Validate-CatalogueIcon.ps1` calls passed. The complete
+manifest/package audit passed for all 48 canonical identities; all 13 aliases
+have no duplicate packages; a static comparison confirmed all 48 canonical IDs
+have vector-map fallbacks and the shared lookup builds their canonical object
+paths. `git diff --check` and changed-path MAX_PATH checks passed (longest path
+102 characters). An initial default-sandbox import could not create its
+temporary Unreal log and made no Kalmala content changes; the normal-access
+retry succeeded. No project build, automation suite, rendered review, or
+package check was run. Full M12 verification remains deferred.
+
+Observable impact: imported texture targets now cover all 48 manifest
+identities; all menu consumers still use vector icons until the two integration
+children.
+
+Networking/authority: presentation assets only; gameplay, RPC, replication,
+server authority, inventory, and save contracts are unchanged.
+
+Known limitations: shared-image menu integration, rendered host/client
+acceptance, and M12 milestone-final verification remain open.
+
+Next eligible task: M12 goal 8, integrate shared images in Inventory/tool/item/
+ingredient/storage components and prepare focused overlay/count/unknown-ID
+checks while retaining readable text and owner privacy.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; preserved all earlier modifications and applied
+only the selected batch C child update and this progress entry. No implementation
+assets were synchronized.
+
+## Run 2026-10-08 14:16 UTC — Integrate Inventory-facing catalogue images
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run.
+Continued in retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`
+on `codex/m12-hud-feedback-rebuild`. The main checkout contains pre-existing
+handoff edits to `BACKLOG.md` and `PROGRESS.md`; they are preserved.
+
+Completed exactly M12 goal 8's first integration child. Inventory pack slots,
+carried-tool cards, selected item/tool details, inventory and repair browsing,
+recipe ingredient rows, and both chest selectors now use the shared canonical
+texture lookup. The two side-by-side chest lists use two columns to retain room
+for item names and counts. Missing textures keep their existing vector icon;
+unknown identities retain the question-mark fallback. Stack counts, tool
+condition, ingredient owned/required amounts, and owner-scoped rows remain
+readable and unchanged.
+
+Files changed: `Source/KalmalaUI/Public/KalmalaIconWidget.h`;
+`Source/KalmalaUI/Private/KalmalaIconWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaCatalogueRowsWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaItemDetailWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaIngredientWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaInventoryInspectWidget.cpp`;
+`Source/KalmalaUI/Public/KalmalaInventoryInspectWidget.h`;
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaItemDetailTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaIngredientTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaInventoryInspectTest.cpp`;
+`docs/15-presentation-ownership.md`; `docs/43-catalogue-icon-manifest.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `git diff --check`; changed-path MAX_PATH audit
+(longest absolute path 111 characters); imported package inventory (48
+canonical `.uasset` textures, including Wood); and static inspection confirming
+all four affected components call `SetCatalogueIcon`. Focused automation
+assertions were prepared for canonical texture paths, imported texture loading,
+unknown-ID fallback, image/count visibility, ingredient amounts, and owner-local
+inventory/chest rows. No C++ build, automation run, rendered host/client review,
+or package check was run. Full M12 verification remains deferred.
+
+Observable impact: inventory and service views display the original imported
+catalogue art while preserving readable labels and selection feedback.
+
+Networking/authority: presentation-only change. Gameplay, RPCs, replication,
+server authority, inventory transactions, and saves are unchanged; private
+inventory and chest rows still come from the existing owner-scoped sources.
+
+Known limitations: Build/crafting/upgrade grids and selected-result previews
+still use vector icons. Rendered icon/count acceptance and the M12 milestone-final
+verification remain open.
+
+Next eligible task: M12 goal 8, integrate shared images in Build/crafting/
+upgrade grids and selected-result previews; update alias/coverage assertions and
+prepare rendered Favorite/Rank/Recent coexistence checks.
+
+Main-checkout handoff synchronization: Complete. Inspected the existing main
+`BACKLOG.md` and `PROGRESS.md` edits; updated only the selected backlog child
+and appended this run record, preserving all earlier content. No implementation
+files or docs were synchronized.
+
+## Run 2026-10-09 05:07 UTC — Integrate Build/crafting catalogue icons
+
+Concurrency guard: Codex task inventory showed no other active Kalmala run; the only active entry was this automation. Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on `codex/m12-hud-feedback-rebuild`. The main checkout already had pre-existing `BACKLOG.md` and `PROGRESS.md` edits; they are preserved.
+
+Completed exactly M12 goal 8's remaining integration child. Build and crafting recipe-grid cards now load the canonical `Recipe.Output` texture. Selected output previews use the same image at 64×64. Forge Upgrade shows the Iron Axe target image at 64×64. Existing text, focus, selection, availability, requirements, costs, and server routes remain separate and unchanged. Updated the full-coverage automation assertions to load every mapped item/tool texture and verify the 13 manifest aliases stay on canonical image paths without duplicate icon paths; the batch importer continues to reject duplicate alias packages. Added a host/client verifier marker for every visible grid image, selected result, and upgrade target, plus final rendered Favorite/Rank/Recent coexistence review instructions.
+
+Files changed: `Scripts/Verify-Crafting.ps1`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `Source/KalmalaUI/Public/KalmalaIconWidget.h`; `docs/07-development-setup.md`; `docs/43-catalogue-icon-manifest.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `git diff --check`; PowerShell AST parsing for `Verify-Crafting.ps1`; static consumer-binding assertions; manifest/package audit for 48 unique canonical IDs and 13 unique aliases with no duplicate alias packages; changed-path MAX_PATH audit (longest 101 characters); and manual source/authority review. No C++ build, automation run, runtime host/client scenario, rendered review, or package check was run. Full M12 verification remains deferred.
+
+Observable impact: Build, crafting and upgrade selections show the same canonical art used by Inventory while retaining readable labels and independent feedback overlays.
+
+Networking/authority: presentation-only. No server request, replication, save, inventory, or transaction behavior changed.
+
+Known limitations: rendered host/client icon and Favorite/Rank/Recent coexistence acceptance remains open for M12 final verification; badge overlays must remain separate from source images.
+
+Next eligible task: M12 goal 9, create the pinned before/after catalogue text audit and identify manual edits to retain.
+
+Main-checkout handoff synchronization: Complete. Inspected the existing main-checkout edits; updated only this selected BACKLOG parent/child and appended this PROGRESS entry, preserving all earlier content. No implementation files or docs were synchronized.
+
+## Run 2026-10-09 05:23 UTC — Pin M12 catalogue copy audit
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the clean retained worktree E:\dev\Kalmala\wt\m12-hud-feedback-rebuild
+on codex/m12-hud-feedback-rebuild. The main checkout already had pre-existing
+BACKLOG.md and PROGRESS.md changes; they were inspected and preserved.
+
+Completed exactly M12 goal 9's first child. Added a pinned before/after
+catalogue copy audit at baseline 0dfad8e (schema 4), covering all 48 canonical
+identities, all 19 recipe display labels, and six ordered batches of eight.
+Recorded item aliases, the six tool labels with missing authored descriptions,
+the shared item/recipe/build/result copy paths, known hard-coded stale labels,
+and the intentional manual flavor to retain. The Campfire candidate is
+construction-only and leaves its classification, alias, placement, and save
+work to the later ordered children.
+
+Files changed: docs/44-catalogue-copy-audit.md; docs/catalogue-copy-audit.csv;
+BACKLOG.md; and PROGRESS.md.
+
+Lightweight checks passed: a focused PowerShell audit confirmed all 48 unique
+rows match the canonical icon-manifest order, each of six batches has eight
+rows, all 19 recipe labels are covered, and every item current-name/description
+pair exactly matches GameCatalogues.json. git diff --cached --check passed; Git emitted only CRLF/LF normalization warnings. The changed-path MAX_PATH audit passed (longest absolute path 74 characters). Source and factual-use review covered
+docs/04-roadmap.md, docs/07-development-setup.md, docs/10-campfire-and-crafting.md,
+docs/24-m9-second-wave-source-catalogue.md, docs/27-m9-carried-tool-inventory.md,
+docs/43-catalogue-icon-manifest.md, and the live catalogue/tool/UI sources.
+No build, automation, rendered check, or package check was run; full M12
+verification remains deferred.
+
+Observable impact: later name/description edits now have a reviewable baseline,
+stable batch order, source map, and explicit manual-copy preservation notes.
+
+Networking/authority: documentation-only. No catalogue, tool, recipe,
+construction, transaction, network, authority, asset, or save data changed.
+
+Known limitations: proposed wording remains unimplemented and is a candidate
+for its ordered copy batch; Campfire descriptor separation, the HearthRing
+item retirement, Workbench propagation, remaining copy batches and UI
+hard-coded labels remain open. Rendered M12 acceptance and milestone-final
+verification remain deferred.
+
+Next eligible task: M12 goal 9, separate the Campfire construction descriptor
+from inventory-item lookup while retaining aliases and placement behavior.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+BACKLOG.md and PROGRESS.md. Updated only the selected BACKLOG child and added
+this run entry; pre-existing user edits were preserved. No implementation
+files or documentation were synchronized.
+
+
+## Run 2026-10-09 05:36 UTC — Split direct-build output descriptors
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run. Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on `codex/m12-hud-feedback-rebuild`; the main checkout's existing `BACKLOG.md` and `PROGRESS.md` edits remain preserved.
+
+Completed exactly M12 goal 9's first child. The catalogue loader now separates direct construction recipe identities into runtime `BuildableOutput`, while normal recipe `Output` remains an inventory item ID. The four direct-build validators check stable descriptors and ingredient costs independently of result-item lookup; normal recipe scaling rejects construction descriptors. Campfire's source `HearthRing` alias still resolves to `CampfireKit`, the transitional item row remains for the next ordered retirement task, and Build-menu selection, preview, raw-material cost, and server placement routing continue to use the stable construction identity.
+
+Files changed: `Source/KalmalaGameplay/Public/KalmalaRecipeCatalogue.h`; `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`; `Source/KalmalaGameplay/Private/KalmalaRecipeCatalogue.cpp`; `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`; gameplay tests `KalmalaItemCatalogueTest.cpp` and `KalmalaCraftingTest.cpp`; UI `KalmalaCraftingSubsystem.cpp` and `KalmalaRecipeRequirements.cpp`; UI tests `KalmalaIngredientTest.cpp`, `KalmalaRecipeBrowseTest.cpp`, `KalmalaRecipeRequirementsTest.cpp`, and `KalmalaStatusHotbarTest.cpp`; `docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`; `docs/44-catalogue-copy-audit.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `git diff --check`; `Scripts/Verify-M5DocumentationContracts.ps1` (5/5 contracts); six focused source assertions for loader separation, validator independence, build-cost lookup, blocked recipe crafting, Build-menu identity routing, and prepared compatibility/no-stack coverage; and a changed-path MAX_PATH audit. An initial ad hoc assertion wrapper flattened its labels; the corrected label-safe assertions all passed. The focused Unreal automation assertions were added but not run. No C++ build, automation queue, host/client run, rendered review, or package check was run. Full M12 verification remains deferred.
+
+Observable impact: construction recipes now carry their own runtime descriptor and remain resolvable if Campfire is absent from the item catalogue. Normal inventory recipe scaling cannot emit a direct-build result. Placement costs, validation, RPCs, save identity, and server authority are unchanged.
+
+Networking/authority: no gameplay or authority behavior changed. Clients still submit the existing build identity or payload-free Campfire intent; the server continues to derive costs, validate placement, and commit payment.
+
+Known limitations: the transitional `HearthRing` row still loads as `CampfireKit` until the next ordered child removes its normal inventory definition and presentation. Full M12 runtime/rendered acceptance remains deferred.
+
+Next eligible task: M12 goal 9, remove HearthRing's normal inventory-item definition/presentation after construction resolution, name the recipe/placed result Campfire, update icon/count contracts, and inspect failed placement, current costs, and saved-construction restoration.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main `BACKLOG.md` and `PROGRESS.md`; applied only the selected child update and this entry, preserving all pre-existing main-checkout edits. No implementation files or other docs were synchronized.
+
+## Run 2026-10-09 05:50 UTC — Retire Campfire inventory item
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`
+on `codex/m12-hud-feedback-rebuild`. The main checkout already contained
+pre-existing `BACKLOG.md` and `PROGRESS.md` edits; they remain preserved.
+
+Completed exactly M12 goal 9's HearthRing item-retirement child. Removed the
+normal HearthRing item row, kept the legacy recipe output alias resolving to
+the stable `CampfireKit` construction descriptor, and changed the recipe and
+successful placement feedback to Campfire. The recipe description remains
+available through its construction-only result path. CampfireKit retains its
+canonical icon and construction-only manifest classification; runtime icon
+coverage and the status gallery now count 41 normal items, six tools and the
+one construction-only Campfire identity (48 total).
+
+Inspected the server placement and save paths. Placement still validates
+before payment, charges 5 Stone + 3 Wood and one priority-selected raw fuel,
+allocates before the atomic exchange, and destroys the deferred actor if
+payment fails. The existing overlap rejection leaves inventory unchanged.
+No costs, RPCs, authority checks, construction identity or save schema changed.
+The generic construction save continues to accept and round-trip CampfireKit;
+live `AKalmalaCampfire` actors remain outside that generic construction save.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Scripts/Verify-StatusHotbar.ps1`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaConstructionSaveGameTest.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Private/KalmalaRecipeRequirements.cpp`;
+`Source/KalmalaUI/Private/KalmalaSurvivalStatusSubsystem.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaRecipeRequirementsTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`;
+`docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`;
+`docs/36-status-icons.md`; `docs/43-catalogue-icon-manifest.md`;
+`docs/44-catalogue-copy-audit.md`; and `docs/catalogue-icon-manifest.csv`.
+
+Lightweight checks passed: `git diff --check`; JSON parsing and assertions for
+41 items, 19 recipes, no HearthRing/CampfireKit item row, and the retained
+Campfire recipe alias/name; 48 unique icon manifest IDs and Campfire's
+construction-only classification; PowerShell AST parsing of
+`Verify-StatusHotbar.ps1`; `Scripts/Verify-M5DocumentationContracts.ps1`
+(5/5); a stale-label scan with no matches; and MAX_PATH audit across 17 changed
+paths (longest absolute path 115 characters). Added focused automation
+assertions for catalogue absence, Campfire naming, save-record round trip,
+icon coverage, paid placement and failed-placement conservation, but did not
+run them. No Unreal build, automation queue, runtime host/client scenario,
+rendered review, or package check was run; full M12 verification remains
+deferred.
+
+Observable impact: Campfire no longer appears as a normal carried or stored
+item, while Build, recipe-result and placement views retain the canonical
+construction image and identity.
+
+Networking/authority: no RPC, client request, replication or server authority
+behavior changed. The server still derives costs, validates placement and
+commits payment.
+
+Known limitations: paid placement and failed-placement conservation were
+inspected and have prepared automation coverage but were not executed in this
+normal increment. Rendered icon acceptance and full M12 verification remain
+deferred.
+
+Next eligible task: M12 goal 9, rename the Workbench item/recipe and shared
+prompts/results to Workbench without changing stable identities.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md` before editing; applied only the selected child
+status and this entry, preserving all pre-existing changes. No implementation
+files or other documentation were synchronized.
+
+## Run 2026-10-09 05:55 UTC — Rename Workbench catalogue copy
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`
+on `codex/m12-hud-feedback-rebuild`; the main checkout's existing `BACKLOG.md`
+and `PROGRESS.md` edits remain preserved.
+
+Completed exactly M12 goal 9's Workbench label child. The Workbench item and
+recipe now display Workbench, as do the shared nearby-readiness and accepted
+interaction-result messages. Stable item/recipe IDs, output identity,
+ingredients, description, stack limit, and all other non-text catalogue fields
+remain unchanged. Added focused catalogue assertions for the new names and
+stable runtime identities. Updated current crafting documentation and the copy
+audit's source-map note; the frozen before/after baseline remains intact.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/10-campfire-and-crafting.md`; `docs/44-catalogue-copy-audit.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: `git diff --check`; JSON parsing and focused
+assertions for display-name alignment, stable recipe output, and unchanged
+non-text item/recipe fields; a runtime-source scan confirming the old label is
+gone and both shared messages use Workbench; and a changed-path MAX_PATH audit
+(longest absolute path 108 characters). The new Unreal automation assertions
+were not run. No build, automation, host/client run, rendered review, or package
+check was performed; full M12 verification remains deferred.
+
+Observable impact: carried, build, recipe, readiness, and accepted-interaction
+text now consistently calls the station Workbench.
+
+Networking/authority: presentation text only; server interaction validation,
+station identity, costs, transactions, replication, and save data are
+unchanged.
+
+Known limitations: the new automation assertions and rendered menu/prompt
+acceptance have not been executed. Remaining catalogue copy batches and
+hard-coded label propagation are open.
+
+Next eligible task: M12 goal 9, apply copy batch 01 to the first eight audited
+identities while preserving manual improvements and truthful uses.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; updated only the selected child state and added
+this run entry, preserving all pre-existing changes. No implementation files
+or other documentation were synchronized.
+
+## Run 2026-10-09 06:00 UTC — Apply catalogue copy batch 01
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout already contained prior
+`BACKLOG.md` and `PROGRESS.md` handoff edits; they remain preserved.
+
+Completed exactly M12 goal 9's first copy batch for Wood, Lightwood, Densewood,
+Coal, Stone, Iron, Fibre, and Peat Amber. Updated the six descriptions whose
+reviewed copy changed and normalized Fibre's player-facing name to Reed Fibre.
+Retained Coal's concise hearth-fuel description and Stone's authored pet-rock
+line verbatim. Cross-checked item uses against current catalogue recipes, tool
+costs, fuel rules, and source definitions. The proposed Densewood wording
+overstated a structure use, so the candidate and live description now identify
+Ironheart trunks and hearth fuel only. Stable IDs, stack limits, recipe data,
+costs, and all other non-text item fields are unchanged.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/44-catalogue-copy-audit.md`; `docs/catalogue-copy-audit.csv`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: PowerShell JSON/audit assertions confirmed all eight
+batch identities match the reviewed names/descriptions and every non-text item
+field matches baseline commit 0dfad8e; `git diff --check`; manual source review;
+and a changed-path MAX_PATH audit (six paths; longest absolute path 108
+characters). The catalogue automation now pins all eight names,
+descriptions, and stack limits, but was not run. No build, automation queue,
+rendered review, or package check was performed; full M12 verification remains
+deferred.
+
+Observable impact: inventory and item-detail views now show concise, supported
+material copy and the title-cased Reed Fibre name.
+
+Networking/authority: catalogue presentation text only. Stable IDs, stack
+limits, transactions, server authority, replication, and save data are
+unchanged.
+
+Known limitations: copy batches 02–06, leftover hard-coded names, and downstream
+recipe/build/station text alignment remain open. The new C++ assertions and
+rendered copy review have not been executed.
+
+Next eligible task: M12 goal 9, apply copy batch 02 to FrostSalt, MirelingAsh,
+CampfireKit, WorkbenchKit, ForgeKit, WorkbenchToolRackKit, ForgeAnvilKit, and
+GrindingStoneKit.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md`; updated only this selected child state and
+appended this run entry, preserving all pre-existing handoff/user changes. No
+implementation files or other documentation were synchronized.
+
+
+## Run 2026-10-09 06:09 UTC — Apply catalogue copy batch 02
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout has pre-existing backlog
+and progress handoff edits; they remain preserved.
+
+Completed exactly M12 goal 9's copy batch 02. Updated Frost Salt and Mireling
+Ember Ash descriptions, Workbench and Forge descriptions, and the Workbench
+Tool Rack, Forge Anvil, and Grinding Stone names/descriptions. The Campfire
+remains construction-only; its direct-build result now uses the audited short
+description, with no inventory item row. Recipe labels align with their item
+outputs. The Workbench Tool Rack copy states its verified level-2 effect and
+does not claim an unavailable Workbench upgrade recipe.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`docs/10-campfire-and-crafting.md`; `docs/44-catalogue-copy-audit.md`;
+`docs/catalogue-copy-audit.csv`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: PowerShell JSON parsing and exact copy/stack checks
+for all seven live identities; comparisons against the pre-increment catalogue
+confirmed non-copy item fields and all non-display recipe fields are unchanged;
+recipe/output display-name alignment passed for all five normal recipes; the
+Campfire item absence, legacy recipe output, and result description source were
+checked; the eight-row audit retained its frozen current-copy columns;
+`git diff --check`; and the changed-path MAX_PATH audit (longest absolute path
+108 characters). Manually reviewed the station attachment and repair contracts
+for truthful copy. The focused Unreal automation assertions were added but not
+run. No C++ build, full automation queue, host/client runtime, rendered review,
+or package check was run. Full M12 verification remains deferred.
+
+Observable impact: inventory, recipe, build, and result-detail views use the
+reviewed batch 02 names and descriptions.
+
+Networking/authority: presentation copy only. Server authority, transactions,
+replication, inventory behavior, placement costs, save identities, and schemas
+are unchanged.
+
+Known limitations: new catalogue automation assertions have not been compiled
+or executed, and rendered copy review remains open. Copy batches 03–06,
+leftover hard-coded label propagation, and downstream text alignment remain.
+
+Next eligible task: M12 goal 9, apply copy batch 03 to StorageKit, CookingRackKit,
+FryingPanKit, CauldronKit, FloorKit, WallKit, RoofKit, and BoarMeat.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions, updated only this selected BACKLOG child and appended this PROGRESS entry; all earlier main content is preserved and no implementation files were synchronized.
+
+## Run 2026-10-09 06:15 UTC — Apply catalogue copy batch 03
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout has pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits; they remain preserved.
+
+Completed exactly M12 goal 9's copy batch 03 for StorageKit, CookingRackKit,
+FryingPanKit, CauldronKit, FloorKit, WallKit, RoofKit, and BoarMeat. Updated
+eight item names/descriptions and aligned seven recipe labels. Chest capacity
+remains in structured storage details; cooking and shelter descriptions retain
+verified uses, and Boar Meat copy claims no food effect. Stable item IDs, stack
+limits, recipe outputs, ingredients, batches, station requirements, aliases,
+and construction identities are unchanged.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/44-catalogue-copy-audit.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: PowerShell JSON parsing and exact copy assertions for
+all eight audited identities; non-text item-field comparisons against baseline
+commit 0dfad8e and pre-increment HEAD; non-display recipe-field and output-ID
+comparisons; seven recipe/output display-name checks; frozen current/proposed
+copy-column comparisons against pre-increment HEAD; `git diff --check`; manual
+review of the focused automation additions; and the changed-path MAX_PATH audit
+(longest absolute path 108 characters). The focused Unreal catalogue
+assertions were added but not compiled or run. No build, full automation queue,
+host/client runtime, rendered review, or package check was performed. Full M12
+verification remains deferred.
+
+Observable impact: inventory, recipe, and result views use the reviewed batch
+03 names and descriptions.
+
+Networking/authority: presentation copy only. Server authority, transactions,
+replication, inventory behavior, construction costs, save identities, and
+schemas are unchanged.
+
+Known limitations: the new catalogue assertions and rendered copy review have
+not been executed. Copy batches 04–06, leftover hard-coded label propagation,
+and downstream text alignment remain.
+
+Next eligible task: M12 goal 9, apply copy batch 04 to DeerMeat, BoarHide,
+DeerHide, CookedBoarMeat, CookedDeerMeat, HearthBroth, MeatStew, and
+RootVegetableSoup.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and changed only this selected task row plus the new PROGRESS entry; pre-existing content and all implementation files remain untouched.
+
+## Run 2026-10-09 06:24 UTC — Apply catalogue copy batch 04
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout had pre-existing
+`BACKLOG.md` and `PROGRESS.md` handoff edits; they were preserved.
+
+Completed exactly M12 goal 9's copy batch 04 for DeerMeat, BoarHide, DeerHide,
+CookedBoarMeat, CookedDeerMeat, HearthBroth, MeatStew, and RootVegetableSoup.
+Updated all eight display names and the reviewed descriptions, retaining Meat
+Stew's authored hearty flavor and ingredient list. Aligned the four cooked-meat,
+stew, and soup recipe labels. Hearth Broth copy no longer implies a warming
+effect or a production recipe. Stable IDs, stack limits, recipe outputs,
+ingredients, batch caps, stations, and cooking effects are unchanged.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/44-catalogue-copy-audit.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: JSON/audit assertions matched all eight reviewed
+names/descriptions and existing stack limits; four recipe labels match their
+output names and retain stable output IDs; comparisons against pre-increment
+HEAD `da5fe43` and baseline `0dfad8e` confirmed every non-copy item/recipe field
+is unchanged; `git diff --check`; manual review of the focused automation
+assertions and copy against the cooking contract; and a changed-path MAX_PATH
+audit (longest absolute path 108 characters). The focused Unreal catalogue
+assertions were added but not compiled or run. No build, automation queue,
+host/client runtime, rendered review, or package check was performed. Full M12
+verification remains deferred.
+
+Observable impact: inventory, recipe, ingredient, and result views use the
+reviewed batch 04 names and copy.
+
+Networking/authority: presentation copy only. Server authority, transactions,
+replication, cooking effects, save identities, and schemas are unchanged.
+
+Known limitations: the new catalogue assertions and rendered copy review have
+not been executed. Copy batches 05–06, leftover hard-coded label propagation,
+and downstream recipe/build/station text alignment remain open.
+
+Next eligible task: M12 goal 9, apply copy batch 05 to RoastedRootVegetables,
+DeerRootRoast, Carrot, Potato, Rutabaga, Onion, CarrotSeed, and PotatoSeed.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions before editing; updated only the selected BACKLOG child and added this
+PROGRESS entry. Existing content and all implementation files are preserved.
+
+
+## Run 2026-10-09 06:30 UTC — Apply catalogue copy batch 05
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout already had pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits; they remain preserved.
+
+Completed exactly M12 goal 9's copy batch 05 for RoastedRootVegetables,
+DeerRootRoast, Carrot, Potato, Rutabaga, Onion, CarrotSeed, and PotatoSeed.
+Updated six descriptions and four item display names, aligned the two frying-pan
+recipe labels with their result names, retained Carrot's orange-stick wordplay
+and Onion's eye-watering joke, and replaced Potato's recognizable borrowed line
+with original cooking copy. Seed descriptions remain factual and do not imply a
+planting mechanic. Stable IDs, stack limits, recipe outputs, ingredients, batch
+limits, stations, and cooking effects are unchanged.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`docs/44-catalogue-copy-audit.md`; `BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: JSON parsing and exact assertions for all eight
+reviewed names/descriptions/stack limits; audit-proposal/runtime matching for
+all eight; recipe/output name alignment and stable output IDs for both recipes;
+comparisons against pre-increment HEAD confirmed every non-copy item and recipe
+field is unchanged; `git diff --check`; manual copy review against the cooking
+contract; and changed-path MAX_PATH audit (longest absolute path 108
+characters). Focused Unreal catalogue assertions were added but not compiled or
+run. No build, full automation queue, host/client runtime, rendered review, or
+package check was performed. Full M12 verification remains deferred.
+
+Observable impact: inventory, ingredient, recipe, and result views use the
+reviewed batch 05 names and descriptions.
+
+Networking/authority: presentation copy only. Server authority, transactions,
+replication, cooking effects, save identities, and schemas are unchanged.
+
+Known limitations: new catalogue assertions and rendered copy review have not
+been executed. Batch 06, hard-coded old-label cleanup, and downstream text
+alignment remain open.
+
+Next eligible task: M12 goal 9, apply copy batch 06 to RutabagaSeed, OnionSeed,
+ReedKnife, FieldHatchet, StonePick, BronzeAxe, IronAxe, and ConstructionHammer.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions before editing; applied only the selected BACKLOG child and this
+PROGRESS entry, preserving all pre-existing main-checkout content. No
+implementation files or other docs were synchronized.
+
+## Run 2026-10-09 06:41 UTC — Apply catalogue copy batch 06
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`; the main checkout's pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits remain protected.
+
+Completed exactly M12 goal 9 copy batch 06 for RutabagaSeed, OnionSeed,
+ReedKnife, FieldHatchet, StonePick, BronzeAxe, IronAxe, and
+ConstructionHammer. Capitalized the two seed names and replaced planting
+instructions with factual plant-source descriptions. Added the six reviewed
+tool descriptions to the shared carried-tool details, retaining the existing
+tool names, owner-visible level/condition, and fallback for unknown identities.
+Bronze Axe and Iron Axe copy reflects their supported Lightwood and Densewood
+harvest roles; Construction Hammer remains a placement tool. No tool became a
+pack item and no gameplay rule or saved identity changed.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`Source/KalmalaUI/Public/KalmalaItemDetailWidget.h`;
+`Source/KalmalaUI/Private/KalmalaItemDetailWidget.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaItemDetailTest.cpp`;
+`docs/37-item-details.md`; `docs/44-catalogue-copy-audit.md`;
+`BACKLOG.md`; and `PROGRESS.md`.
+
+Lightweight checks passed: PowerShell parsed the catalogue JSON and pinned CSV,
+confirmed all 48 unique identities occur once in six groups of eight, matched
+the batch 06 item text and all six tool descriptions to their proposals, and
+confirmed seed IDs and stack limits match baseline commit `0dfad8e`;
+`git diff --check`; manual review of tool actions against
+`docs/17-m7-tools-and-gathering.md`; and a changed-path MAX_PATH audit. The
+focused C++ assertions were added but not compiled or run. No Unreal build,
+automation, host/client runtime, rendered review, or package check was
+performed. Full M12 verification remains deferred.
+
+Observable impact: Inventory detail now explains carried tools and seed copy
+no longer promises an unimplemented planting mechanic.
+
+Networking/authority: local presentation only. Carried-tool descriptions use
+the existing owner-visible selection/state; no RPC, replication, transaction,
+or save schema changed.
+
+Known limitations: C++ assertions and rendered copy remain unverified. The
+remaining goal 9 hard-coded old-label cleanup and downstream recipe/build/
+station/upgrade/result text alignment are still open.
+
+Next eligible task: M12 goal 9, remove leftover hard-coded old labels from
+inventory/ingredients/storage/prompts and update the focused
+search/sort/name/icon expectations for those sources.
+
+Main-checkout handoff synchronization: Complete. Inspected the existing dirty
+main versions before editing, changed only the selected BACKLOG row, and
+appended this entry while preserving all pre-existing content. No implementation
+files or other docs were synchronized.
+
+## Run 2026-10-09 06:51 UTC — Remove leftover catalogue labels
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`; the main checkout already had local edits in
+`BACKLOG.md` and `PROGRESS.md`, which remain preserved.
+
+Completed exactly M12 goal 9's child to remove leftover old labels from
+inventory, ingredients, storage, and prompts. Updated the nearby-storage
+heading to Chest, the food action/status copy to Hearth Broth, and station-open
+results to Cooking Rack and Frying Pan. Added focused assertions for Reed
+Fibre's visible name, search and sort behavior, canonical icon, ingredient
+presentation, chest contents, and the Workbench interaction prompt. Updated the
+catalogue copy audit's source map and handoff notes.
+
+Files changed: `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`,
+`Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp`,
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaIngredientTest.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaInteractionPromptTest.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaInventoryBrowseTest.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaInventoryInspectTest.cpp`,
+`docs/44-catalogue-copy-audit.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Lightweight checks passed: `git diff --check`; PowerShell JSON parsing and
+focused catalogue-name assertions for Fibre and Workbench; a case-sensitive
+scan confirmed the replaced labels are absent from active presentation
+sources; manual review of the changed display-name sort/filter expectations
+and unchanged canonical icon IDs; and the changed-path MAX_PATH audit (10
+paths, longest absolute path 106 characters). The focused Unreal assertions
+were added but not compiled or run. No Unreal build, automation, host/client
+runtime, rendered review, or package check was performed. Full M12 verification
+remains deferred.
+
+Observable impact: inventory, ingredient, chest, meal, and station feedback
+uses the reviewed catalogue labels while preserving visible item images.
+
+Networking/authority: presentation and test changes only. Server-owned storage
+transfers, cooking, station interactions, replication, and save data are
+unchanged.
+
+Known limitations: focused automation and rendered wrapping review remain
+unverified. Goal 9's recipe/build/station/upgrade/result text alignment remains.
+
+Next eligible task: M12 goal 9, align recipe/build/station/upgrade/result text
+with the revised shared catalogue, update text assertions/documentation, and
+audit wrapping expectations and preserved manual copy.
+
+Main-checkout handoff synchronization: Complete. Inspected the main versions,
+updated only this selected BACKLOG child and appended this PROGRESS entry while
+preserving earlier edits; no implementation files or other docs were
+synchronized.
+
+
+# Run 2026-10-09 06:58 UTC — Align catalogue copy across menus
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the clean retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout has pre-existing edits in
+`BACKLOG.md` and `PROGRESS.md`; they remain protected for handoff sync.
+
+Completed the final M12 goal 9 child. The Build heading now reads
+`Construction Hammer — Build`; Cooking Rack, Cauldron, and Frying Pan guidance
+uses the exact reviewed recipe names. Updated the missing-pan station
+expectation, exact cooking-guidance UI assertions, and the host/client Build
+header marker. Related M12 documentation now uses the same names. The existing
+intentional Stone, Carrot, Onion, Meat Stew, and Potato copy decisions remain
+documented and unchanged.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`,
+`Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp`,
+`Scripts/Verify-Crafting.ps1`, `docs/07-development-setup.md`,
+`docs/09-inventory-verification.md`, `docs/10-campfire-and-crafting.md`,
+`docs/44-catalogue-copy-audit.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Lightweight checks: reviewed all live recipe/output labels and current source
+references; confirmed the updated shell instructions still use the existing
+auto-wrapped text helper and unchanged bounded card wrap widths; and inspected
+the focused source assertions. Full Unreal build, automation, host/client
+rendered review, and package checks remain deferred to M12 milestone-final
+verification.
+
+Observable impact: recipe names, station guidance, Build heading, availability
+expectations, and their focused checks now use one consistent player-facing
+capitalization.
+
+Networking/authority: presentation, assertion, verifier, and documentation
+changes only. Recipe IDs, item IDs, costs, server validation, transactions,
+replication, save state, and gameplay behavior are unchanged.
+
+Known limitations: the Unreal assertions and Verify-Crafting host/client
+fixture were not run. Multi-scale wrapping, accessibility, and rendered copy
+inspection remain part of the final M12 verification.
+
+Next eligible task: M12 goal 10, anchor the active-status group to the minimap's
+actual upper-left layout with shared 12-unit top/separation margins and update
+the narrow scaled-placement validator.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions; updated only the selected goal 9 parent/child state and appended this
+PROGRESS entry while preserving existing edits. No implementation files or
+other documentation were synchronized.
+
+## Run 2026-10-09 07:04 UTC — Anchor status hotbar to minimap
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits were preserved.
+
+Completed exactly M12 goal 10's first placement child. The owner-local status
+hotbar now derives its shared top offset and left-adjacent right-edge position
+from the configured minimap viewport slot, with a default-layout fallback until
+the minimap is available. The minimap inset and default map diameter now share
+named constants. The focused status-hotbar assertions cover actual widget-slot
+alignment and a 4:3, 16:9, and ultrawide layout matrix at 75%, 100%, and 125%
+DPI scales. Updated the development setup notes and checked only this backlog
+child.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaMinimapWidget.cpp`,
+`Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`,
+`Source/KalmalaUI/Public/KalmalaMinimapSubsystem.h`,
+`Source/KalmalaUI/Public/KalmalaMinimapWidget.h`,
+`Source/KalmalaUI/Public/KalmalaStatusHotbarWidget.h`,
+`docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+
+Lightweight checks: `git diff --check` passed; manually reviewed actual slot
+offset derivation, setter ordering, fallback behavior, and the DPI-aware fit
+assertions. The updated Unreal automation assertions were not run. Full builds,
+automation, rendered host/client capture, and package checks remain deferred to
+M12 milestone-final verification.
+
+Observable impact: compact status/weather entries now occupy the minimap's
+upper-left side with matching top alignment and a 12 UI-unit horizontal gap.
+
+Networking/authority: local presentation reads the existing minimap widget
+slot and owner-visible snapshot. It adds no RPC, gameplay mutation, replication,
+or persistence change.
+
+Known limitations: rendered viewport placement and Unreal automation remain
+unverified. Until the minimap widget exists, the hotbar uses the default 208-unit
+map footprint and corrects placement on its next local refresh.
+
+Next eligible task: M12 goal 10, filter the status group to active statuses,
+qualifying Hot/Cold exposure and current Storm; hide normal weather and remove
+expired/empty entries immediately, with focused snapshot/expiry assertions.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions; applied only this selected backlog child and progress entry while
+preserving the pre-existing edits. No implementation files or other docs were
+synchronized.
+
+## Run 2026-10-09 07:09 UTC — Filter active status hotbar entries
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits remain preserved.
+
+Completed exactly M12 goal 10's active-only snapshot child. The local hotbar
+now shows only supported positive-duration owner statuses, existing qualifying
+Hot/Cold exposure, a live supported owner effect, and Storm weather whose
+server-time interval is current and whose intensity meets the shared 0.65
+qualification threshold. Normal weather, fog-only high activity, below-threshold
+storms, and expired/future intervals produce no weather entry. Known status,
+exposure, support, and weather conditions rebuild from each current local
+snapshot; an empty list remains collapsed and calculates to zero height.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`,
+`docs/07-development-setup.md`, `docs/36-status-icons.md`, `BACKLOG.md`, and
+this `PROGRESS.md` entry.
+
+Lightweight checks: `git diff --check` passed. Manually inspected snapshot
+filtering, use of the existing weather threshold/server clock and exposure
+qualifiers, the status/effect expiry paths, empty collapse sizing, and focused
+assertions for high-fog weather, ordinary weather, threshold edges, stale/future
+intervals, and cleared/unsupported statuses. The updated Unreal automation was
+not run. Full build, automation, rendered host/client/accessibility review, and
+package checks remain deferred to M12 milestone-final verification.
+
+Observable impact: the owner-local upper-left status group no longer displays
+calm/ordinary weather or generic activity labels; stale weather and inactive
+or unsupported entries disappear, with no empty widget height.
+
+Networking/authority: presentation only. The local player reads replicated
+owner-visible status/exposure/effect data and the existing server-selected
+weather plus synchronized server time. No RPC, gameplay mutation, replication,
+save-state, or threshold change was added.
+
+Known limitations: the snapshot automation assertions were updated but not
+executed. The hotbar still uses its current vector icons/text layout and its
+weather timer until the later ordered icon and layout children; rendered peer
+behavior remains for final M12 verification.
+
+Next eligible task: M12 goal 10, pin the supported status/weather icon manifest
+and generate/review its first batch of up to four original transparent 64x64
+images through the established asset pipeline.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions and synchronized only this selected backlog child and progress entry.
+All pre-existing changes remain preserved; no implementation files or other
+documentation were synchronized.
+
+## Run 2026-10-09 07:20 UTC — Pin active-status icon batch 01
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's existing
+`BACKLOG.md` and `PROGRESS.md` edits were left untouched during implementation.
+
+Completed exactly M12 goal 10's first status-image child. Pinned the nine
+current hotbar entry/icon identities in `docs/status-icon-manifest.csv` as
+fixed generation batches 01–03 with four, four, and one identity. Generated
+the first batch with the built-in image generator and retained the original
+PNG sources for Wet, SteadyMeal, Heat, and Cold. The batch preparation script
+alpha-crops artwork and centers it in a transparent 64x64 RGBA image with a
+56x56 maximum artwork area; the narrow PowerShell validator checks the pinned
+identity, source/final format, transparency, dimensions, and path lengths.
+Reviewed all four prepared images at native 64x64 size.
+
+Files changed: `Content/Kalmala/UI/Source/IconOriginals/Status/Wet.png`,
+`SteadyMeal.png`, `Heat.png`, and `Cold.png`; matching four files under
+`Content/Kalmala/UI/Source/Icons/Status/`; `Scripts/Prepare-StatusIconBatch.py`,
+`Scripts/Validate-StatusIcon.ps1`, `docs/status-icon-manifest.csv`,
+`docs/36-status-icons.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and
+this `PROGRESS.md` entry.
+
+Prompt set: a clear blue-gray water droplet; a small wooden bowl of amber stew
+with root vegetables, one herb leaf and steam; a golden-orange sun with three
+heat ripples; and a six-point icy frost crystal over a pale-blue shard. Each
+used the same centered hand-painted survival-game inventory style, thin dark
+contour, warm directional highlight, transparent margins, and no text,
+scenery, badges, or UI border.
+
+Lightweight checks: `python Scripts/Prepare-StatusIconBatch.py --batch 01`
+prepared all four images; `Scripts/Validate-StatusIcon.ps1 -Id <ID>` passed
+for Wet, SteadyMeal, Heat, and Cold, confirming 1254x1254 retained RGBA sources
+and transparent 64x64 RGBA finals; manually reviewed all four native-size
+images; `git diff --check` passed. No Unreal build, automation, imported
+texture check, or rendered host/client review was run. Full M12 verification
+remains deferred.
+
+Observable impact: the status HUD now has an explicit nine-entry raster-icon
+identity contract and four prepared, recognizable transparent icon assets.
+
+Networking/authority: image and documentation changes only. The hotbar still
+reads existing owner-visible state; no RPC, gameplay mutation, timing,
+replication, or persistence contract changed.
+
+Known limitations: the icons are prepared for import but no `.uasset` has been
+created and the hotbar still renders its current vector icons and labels.
+Import, layout, timer presentation, rendered acceptance, and full M12 checks
+remain in later goal-10 increments.
+
+Next eligible task: M12 goal 10, generate/review status-icon batch 02 (Mending,
+Hearth shield, Bear's vigor, and Deer call) and validate identities, alpha,
+dimensions, and 64x64 silhouettes.
+
+Commit: `974d9f7` (`Add first status HUD icon batch`).
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions and updated only the selected `BACKLOG.md` child and this progress
+entry. All pre-existing main-checkout edits remain preserved; no implementation
+assets, scripts, or other documentation were synchronized.
+
+## Run 2026-10-09 07:29 UTC — Generate status icon batch 02
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout already had edits in
+`BACKLOG.md` and `PROGRESS.md`; this handoff changed only the selected child
+and this run entry while preserving all prior content.
+
+Completed exactly M12 goal 10's next status-image child. Generated original
+transparent icons for Mending, Hearth shield, Bear's vigor, and Deer call with
+the built-in image generator. Copied the generated files into the project while
+leaving generator outputs intact. The batch preparation script cropped each
+1254x1254 RGBA original and centered its artwork in a transparent 64x64 RGBA
+final. Updated `docs/36-status-icons.md` and `docs/07-development-setup.md` in
+the retained worktree with the batch 02 prompt subjects and review result.
+
+Files changed in the worktree: four
+`Content/Kalmala/UI/Source/IconOriginals/Status/*.png` sources; matching four
+`Content/Kalmala/UI/Source/Icons/Status/*.png` finals;
+`docs/36-status-icons.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and
+`PROGRESS.md`. Main-checkout handoff synchronized only `BACKLOG.md` and
+`PROGRESS.md`.
+
+Prompt set: a luminous gold healing cross between two green leaves; a compact
+wooden shield with an amber hearth glow; one broad bear paw with exactly four
+toe pads; and symmetrical branching deer antlers with a small sound ring.
+Each uses the centered hand-painted survival-game inventory style, thin
+charcoal contour, warm directional highlight, and no text, scenery, badges,
+or UI border.
+
+Lightweight checks passed: `python Scripts/Prepare-StatusIconBatch.py --batch
+02`; `Scripts/Validate-StatusIcon.ps1 -Id <IconId>` for Mending, HearthShield,
+BearsVigor, and DeerCall; native-size visual review of all four prepared
+64x64 icons; `git diff --check`; and MAX_PATH audit (longest path 106
+characters). No Unreal build, automation, texture import, or rendered
+host/client review was run. Full M12 verification remains deferred.
+
+Observable impact: the pinned support-effect icon batch now has four original
+sources and readable transparent 64x64 prepared images.
+
+Networking/authority: image and documentation changes only. The status widget
+still reads existing owner-visible state; no RPC, gameplay mutation, timing,
+replication, or persistence contract changed.
+
+Known limitations: no status texture `.uasset` has been imported, and the
+hotbar still renders vector icons and visible names. Import, icon-only/timer
+presentation, compact layout, and rendered acceptance remain in later M12
+increments.
+
+Next eligible task: M12 goal 10, generate/review the remaining Storm icon and
+import/map the complete bounded status-icon set; add batches if needed and
+validate full coverage.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions first and changed only the selected `BACKLOG.md` child and this
+`PROGRESS.md` entry; all pre-existing main-checkout edits were preserved. No
+implementation files or other documentation were synchronized.
+
+## Run 2026-10-09 07:42 UTC — Import complete status icon set
+
+Completed exactly M12 goal 10's remaining status-image child. Generated the
+Storm original with the built-in image generator, prepared its transparent
+64x64 RGBA import image, and reviewed the native-size silhouette. Imported all
+nine pinned status images as Texture2D packages to
+`/Game/Kalmala/UI/Icons/Status/<IconId>.<IconId>` with source alpha, sRGB, the
+UI texture group, no mipmaps, and non-streaming settings. Added an explicit
+entry-to-image mapping and a nine-image runtime coverage automation.
+
+Files changed: nine `Content/Kalmala/UI/Icons/Status/*.uasset` packages;
+Storm original and prepared PNGs; `Scripts/Import-StatusIconAssets.ps1`,
+`Scripts/Import-StatusIconAssets.py`, and `Scripts/Validate-StatusIconSet.ps1`;
+`Source/KalmalaUI/Private/KalmalaStatusIconLibrary.cpp` and its public header;
+the status hotbar entry mapping and focused automation; `docs/36-status-icons.md`,
+`docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+
+Lightweight checks passed: `python Scripts/Prepare-StatusIconBatch.py --batch
+03`; `Scripts/Validate-StatusIcon.ps1 -Id Storm`; native-size visual review;
+`Scripts/Import-StatusIconAssets.ps1` completed with exit 0 and verified each
+Texture2D's 64x64 size and UI import settings; `Scripts/Validate-StatusIconSet.ps1`
+passed across all nine manifest identities; PowerShell parser checks, Python
+syntax parsing, `git diff --check`, and the MAX_PATH audit passed. The first
+sandboxed commandlet invocation returned without an import log or packages;
+the isolated importer succeeded with normal Unreal process access. No Unreal
+project build, automation test run, or rendered host/client review was run.
+Full M12 verification remains deferred.
+
+Observable impact: every supported active-status/weather entry now carries a
+stable canonical image ID and resolves to one imported texture package; the
+visible hotbar still uses its existing vector icons, names, and durations.
+
+Networking/authority: presentation-only assets and local ID/path lookup. The
+hotbar continues to read owner-visible state; no RPC, gameplay mutation,
+status timing, replication, or persistence contract changed.
+
+Known limitations: the raster images are not rendered yet. Icon-only
+presentation, finite player-effect m:ss display, weather/untimed duration
+removal, compact layout, and rendered acceptance remain in later M12 tasks.
+The new C++ coverage automation is prepared but has not been executed.
+
+Next eligible task: M12 goal 10, render 64x64 icons without visible names,
+show centred m:ss only beneath finite player effects, and remove weather and
+untimed duration text while retaining accessible names and authoritative timing.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions first and changed only the selected `BACKLOG.md` child and this
+`PROGRESS.md` entry; all pre-existing main-checkout edits were preserved. No
+implementation files or other documentation were synchronized.
+
+## Run 2026-10-09 07:54 UTC — Render status icons and timers
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's pre-existing
+`BACKLOG.md` and `PROGRESS.md` changes were inspected and preserved.
+
+Completed exactly M12 goal 10's icon-only status presentation child. The
+hotbar renders the nine imported status images at 64x64 with a vector fallback,
+keeps each status name in visually hidden text for assistive technology, and
+centres an m:ss timer below finite Wet, meal and support effects. Hot, Cold,
+and Storm have no timer. Status detail text retains finite player timing while
+removing weather countdowns and untimed "ongoing" labels.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp`,
+`Source/KalmalaUI/Public/KalmalaStatusHotbarWidget.h`,
+`Source/KalmalaUI/Private/KalmalaSurvivalStatusWidget.cpp`,
+`Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, focused status hotbar
+and survival-status automation assertions, `docs/07-development-setup.md`,
+`docs/36-status-icons.md`, `BACKLOG.md`, and this entry.
+
+Lightweight checks passed: focused source assertions for raster rendering,
+hidden names, centred layout, m:ss formatting, and omitted untimed/weather
+labels; `git diff --check`; manual review of snapshot timing and status-detail
+text; and the MAX_PATH audit (ten changed paths, all below 260 characters).
+Updated Unreal automation assertions were not run. No Unreal build, full
+automation, host/client rendered or screen-reader review, or package check was
+run. Full M12 verification remains deferred.
+
+Observable impact: status icons now use the imported art without visible
+names; finite player effects show a readable timer and untimed/weather entries
+no longer reserve or display a timer label.
+
+Networking/authority: presentation-only. Finite status time uses the existing
+owner-replicated remaining seconds; support uses existing expiry and
+synchronized server time. No local timer mutation, RPC, gameplay authority,
+replication, weather rule, or persistence contract changed.
+
+Known limitations: the visually hidden accessible names, native 64x64 rendering
+and detail copy remain unverified in a rendered peer run. Cells remain wide;
+the next ordered increment compacts them and updates wrap/layout coverage.
+
+Next eligible task: M12 goal 10, replace wide cells with compact columns,
+four-unit gaps and safe leftward/downward wrapping; update zero/one/three/many
+layout assertions across scales and aspect ratios.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions first and synchronized only the selected `BACKLOG.md` child and this
+`PROGRESS.md` entry; all pre-existing main-checkout changes were preserved.
+No implementation files or other documentation were synchronized.
+
+## Run 2026-10-09 08:12 UTC — Compact active-status cells
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run;
+Windows process inspection was restricted. Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's existing `BACKLOG.md`
+and `PROGRESS.md` edits remain preserved.
+
+Completed exactly M12 goal 10's compact-layout child. Status cells now use a
+72-unit base width and 86-unit content height, with four-unit gaps and a
+384-unit row cap. Width derives from the actual minimap-adjacent right edge and
+the viewport's safe left inset; additional entries wrap down. Empty state
+returns zero size. Added zero/one/three/six-state geometry assertions across
+1024x768, 1280x720 and 2560x1080 at 75/100/125% DPI and 100/125/150% text.
+Updated the status-icon layout contract.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp`,
+`Source/KalmalaUI/Public/KalmalaStatusHotbarWidget.h`,
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`,
+`docs/36-status-icons.md`, `BACKLOG.md`, and this `PROGRESS.md` entry.
+
+Lightweight checks passed: `git diff --check`; focused source/document
+assertions for compact sizing, gap, safe width, and all four layout states;
+call-site inspection for the updated `CalculateSize` signature; manual layout
+math review across the viewport/DPI/text-scale matrix; and MAX_PATH audit (all
+changed paths below 260 characters). Unreal automation assertions were not
+run. No build, full automation, rendered host/client or accessibility review,
+or package check was run. Full M12 verification remains deferred.
+
+Observable impact: active statuses use a compact adjacent group and wrap within
+a bounded width while preserving the minimap gap and safe viewport margin.
+
+Networking/authority: presentation-only. Layout reads the local viewport and
+existing minimap placement; status data remains owner-visible. No RPC,
+gameplay mutation, replication, timing, or persistence contract changed.
+
+Known limitations: geometry assertions were added but not executed in Unreal;
+the live WrapBox and rendered wrap remain unverified. The next child adapts the
+host/client rendered helper and final capture matrix before milestone-final
+verification.
+
+Next eligible task: M12 goal 10, adapt the status-hotbar rendered helper for
+active-only/no-name/player-timer presentation and register the prepared
+inventory/station/direct-interaction checks in the final capture matrix; parse
+and inspect now, defer execution to final verification.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions; changed only the selected backlog child and appended this progress
+entry while preserving all pre-existing main-checkout edits. No implementation
+files or other docs were synchronized.
+
+## Run 2026-10-09 08:22 UTC — Prepare M12 final HUD and menu captures
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits were preserved.
+
+Completed exactly M12 goal 10's final implementation child. Updated
+`Scripts/Verify-StatusHotbar.ps1` for the compact group beside the minimap:
+the runner checks the 12-unit map gap/top inset, left and lower safe bounds,
+nonempty host/client phase screenshots, and source/test contracts for loaded
+status images, visually hidden names, centered timers, and finite versus
+untimed effects. Added a final capture handoff in `docs/07-development-setup.md`
+that includes the prepared inventory owner/privacy and reconnect checks,
+station/crafting views and actions, and available/unavailable/modal/no-target/
+Repair All interaction prompts. Manual Inventory captures are specified with
+the existing pack-grid, selection, equipment, and food acceptance steps.
+
+Files changed: `Scripts/Verify-StatusHotbar.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, `docs/07-development-setup.md`,
+`BACKLOG.md`, and this entry.
+
+Lightweight checks passed: PowerShell parser for the changed rendered helper;
+focused source assertions for icon rendering, hidden accessible names, centred
+timers, and the finite/untimed status automation cases; `git diff --check`;
+manual review of viewport-slot math against the minimap's actual 208-unit size,
+12-unit inset and 12-unit status gap; and MAX_PATH audit (all changed paths
+under 110 characters). The first M5 documentation-contract run exposed a stale
+presentation-ownership assertion for the removed `ongoing` label; updated that
+anchor to the current canonical status-icon lookup, then reran all five M5
+contracts successfully. The existing automation and rendered helper were not
+executed. No Unreal build, automation run, rendered peer review, screen-reader
+review, or package check was performed. Full M12 verification remains deferred.
+
+Observable impact: the rendered helper now validates the compact active-status
+layout and catches stale capture/source contracts; the final verification
+handoff includes already prepared inventory, station, and direct-interaction
+coverage alongside its retained visual evidence.
+
+Networking/authority: presentation verification only. No gameplay authority,
+RPC, state, replication, timing, inventory, or persistence contract changed.
+
+Known limitations: no peer screenshots or runtime geometry were produced in
+this increment. The source-contract check does not replace the final automation
+queue or visual inspection of the generated host/client captures.
+
+Next eligible task: M12 milestone-final verification, including combined
+handoffs, full build and automation queue, rendered host/client/accessibility
+matrix, required gameplay/authority/reconnect/performance checks, defect repair,
+and retained capture review.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions and applied only the selected `BACKLOG.md` row and this progress entry;
+all pre-existing main-checkout edits were preserved. No implementation files
+or other documentation were synchronized.
+## Run 2026-10-09 11:26 UTC — M12 milestone-final verification awaiting manual UI acceptance
+
+Concurrency guard: the Codex task inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout still has pre-existing local
+edits in `BACKLOG.md` and `PROGRESS.md`; handoff synchronization is recorded
+separately below. The computer-use surface exposed no open native application
+windows, so it could not drive a live Unreal window for the remaining manual
+acceptance.
+
+Performed M12 milestone-final verification across the combined milestone
+changes. The forced editor build completed all 69 actions in the disposable
+mirror `E:\dev\Kalmala\m12verify` using normal UnrealBuildTool cache access:
+`Build.bat KalmalaEditor Win64 Development
+E:\dev\Kalmala\m12verify\Kalmala.uproject -WaitMutex -NoHotReload -Force
+-MaxParallelActions=4`. An initial build attempt found an unsupported camera
+view-target parameter constructor; switching the fixture to the supported
+`SetViewTarget` call resolved it. The clean compile then exposed missing
+`UHorizontalBoxSlot` and `UVerticalBoxSlot` declarations in the station widget;
+adding their direct headers fixed the standalone compile. The final forced
+build passed.
+
+The full Unreal `Automation RunTests Kalmala` queue passed: 116 tests, zero
+failures, process exit 0. This included gameplay inventory, cooking/hearth,
+storage, crafting/repair and construction contracts plus UI inventory selection,
+notifications, input navigation, status layout, settings/accessibility,
+interaction prompts and presentation ownership. Earlier queue/fixture attempts
+also exposed and repaired stale test assumptions around the dedicated hearth
+light action, recipe output identities, station scoping, owner selection and
+camera placement after persisted construction restore. The camp-choice test now
+uses the server interaction followed by its supported light action. All final
+automation results pass.
+
+Scripted/live acceptance passed for construction persistence across restart and
+remote replication, persisted two-player camp/hearth authority, inventory grant
+and privacy plus two reconnect visits, camp choices, storage persistence across
+two runs, and rendered crafting at 1280x720/100%/standard contrast and
+1024x768/150%/high contrast. The rendered interaction-prompt matrix passed at
+standard and compact settings; Inventory regression passed at both settings;
+settings/accessibility passed at standard and compact settings with persisted
+preferences; the minimap passed at 1920x1080, 1024x768, and 3440x1440; status
+hotbar passed its 12 viewport/text-scale runs; and the rendered player-controls
+host/client scenario passed server-observed movement, jump, sprint, release and
+landing. Reviewed representative standard and high-contrast crafting captures.
+
+All constrained performance profiles passed their two-peer discovery/disembark
+scenario and host/client affinity checks: Reference, Cpu8Threads, and
+Cpu4Threads. Each profile retained 300-frame host/client timing samples. The
+Cpu4Threads final run passed after both peers connected and the client safely
+disembarked.
+
+No-build gates passed: `Verify-LocalInputContract.ps1`,
+`Verify-PresentationOwnership.ps1`, `Verify-M5DocumentationContracts.ps1`,
+`Verify-SettingsAccessibilityContract.ps1`, and `Verify-MenuInputCopy.ps1`;
+PowerShell parsing passed for all scripts, `git diff --check` passed, and the
+candidate committed-path audit stayed below 260 characters. `Verify-Inventory`
+initially hit a polling race when a new client log was empty; the helper now
+casts raw log reads to strings, and both rendered settings passed on rerun. The
+menu-copy audit initially expected the retired crafting-panel label
+`Inspect inventory`; it now checks the current Inventory heading and the
+retained menu/crafting actions, and passes. No unresolved automated failures
+remain.
+
+Files changed by this verification run: `Content/Data/GameCatalogues.json`;
+`Scripts/Verify-Inventory.ps1`; `Scripts/Verify-MenuInputCopy.ps1`;
+`Source/KalmalaGameplay/Private/KalmalaCampChoiceTest.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaHearthStateTest.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaStorageTest.cpp`;
+`Source/KalmalaUI/Private/KalmalaCatalogueRowsWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Private/KalmalaIconWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaMinimapWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaStationContextWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaSupportSelectionSubsystem.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaInteractionPromptTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaNotificationAcceptanceTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`;
+`Source/KalmalaUI/Public/KalmalaCatalogueRowsWidget.h`;
+`Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `BACKLOG.md`; and
+`PROGRESS.md`. Temporary logs, builds and generated captures remain outside the
+staged change set under the run's evidence directories.
+
+Observable impact: repaired M12 test fixtures and their presentation contracts,
+resolved direct-header compile failures, aligned status icon identities, and
+kept the Inventory polling/audit helpers valid against the current UI. No new
+gameplay RPC, replication field or save-data schema was added or changed.
+
+Networking/authority: live construction, cooking/hearth, storage, inventory,
+crafting/repair, reconnect and remote-client checks passed with server-side
+validation and owner privacy. Test-only camera changes are restored after each
+fixture. No authority boundary changed.
+
+Known limitations: the milestone is not complete. `docs/07-development-setup.md`
+requires opening Inventory independently on host and client with distinct owner
+pack contents and again with an empty pack, checking all sixteen empty slots,
+canonical rows/counts, live updates and supported scale/contrast, then retaining
+the views. No Inventory-menu screenshots were produced; the Inventory scripts
+covered transactions/privacy but emit logs rather than menu captures. Physical
+keyboard/controller hardware input was also not exercised. The rendered
+player-controls automation checks server-observed actions but is not a hardware
+input test. A live Unreal app window was not available to the computer-use
+surface. Do not mark M12 complete until these manual acceptance checks and their
+captures are reviewed.
+
+Next eligible task: resume this same M12 milestone-final verification after the
+manual host/client Inventory capture matrix and physical keyboard/controller
+acceptance are available; then rerun any affected checks and finalize M12 only
+if the complete acceptance set passes.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main versions and updated only the selected M12 final-verification row and this run entry; all other existing main-checkout edits were preserved. Implementation files and generated evidence remain in the worktree.
+
+## Run 2026-10-09 — Complete M12 final verification and retained UI acceptance
+
+Continued the same milestone-final task left awaiting manual acceptance by
+`a580e1b`, in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`, branch
+`codex/m12-hud-feedback-rebuild`. Codex chat inventories showed no other
+autonomous Kalmala run modifying this repository. Scheduled chats that observed
+this active run stopped under the concurrency guard without repository changes.
+The worktree started clean apart from its pre-existing untracked `.mvtmp`;
+the main checkout's dirty backlog/progress and disposable mirror remain preserved.
+
+Completed the outstanding owner Inventory capture review and recorded the
+user's physical keyboard/controller acceptance: “Tested both; all passed.”
+That is owner-reported hardware acceptance, not a claim of agent-driven hardware
+testing. Added `Verify-InventoryMenu.ps1` and launch-gated, non-shipping fixtures
+that open the actual subsystem-owned menu on distinct owners, inspect equipment
+and item details, recover search/no-results, accept Hearth Broth and reject a
+repeat, refresh live quantities, show all sixteen empty slots and restore input.
+
+Rendered acceptance found and repaired square-icon stretching in item details,
+recipe grids/results and upgrade previews; clipped large-text Inventory content;
+carried-tool wrapping and missing authored descriptions in repair inspectors;
+tiny status raster images despite successful texture loading; and support/status
+overlap on compact screens. Final Chest images also exposed clipped navigation
+captions at 150%; equal fill slots and wrapped captions keep them within each
+owner/chest column. The support panel now measures its four-card row;
+statuses reserve a 12-unit gap beyond the measured support edge and wrap down.
+Runtime helpers measure real raster geometry and combined HUD separation, with
+both cues using global text scale/contrast. Added eighteen real service views
+per peer to the crafting capture sequence using explicitly unavailable contexts;
+accepted/stale-context actions remain independent live/automation gates.
+
+Files changed: gameplay Inventory component `.h/.cpp` (test fixture only);
+UI Inventory menu subsystem `.h/.cpp`, Inventory menu/widget inspector,
+catalogue rows, item detail, Crafting subsystem `.h/.cpp`, Status hotbar
+`.h/.cpp`, Support selection subsystem `.h/.cpp`, Survival status subsystem
+and `KalmalaStatusHotbarTest.cpp`; `Scripts/Verify-InventoryMenu.ps1`,
+`Verify-Crafting.ps1`, `Verify-StatusHotbar.ps1`; `docs/07-development-setup.md`,
+`docs/36-status-icons.md`, `docs/43-catalogue-icon-manifest.md`,
+`docs/45-m12-acceptance.md`, documentation index/roadmap, retained `docs/m12/`
+evidence, `BACKLOG.md` and this progress entry.
+
+Verification was milestone-final; full verification is no longer deferred.
+The disposable `E:\dev\Kalmala\m12verify` mirror matches all nineteen changed
+source/script hashes. Engine invocations had normal UnrealBuildTool cache access.
+Commands/results:
+
+- `Build.bat KalmalaEditor Win64 Development E:/dev/Kalmala/m12verify/Kalmala.uproject
+  -WaitMutex -NoHotReload -Force -MaxParallelActions=4`: passed after repairs;
+  the final forced target build succeeded. Full
+  `UnrealEditor-Cmd.exe ... -nullrhi -DDC-ForceMemoryCache
+  -ExecCmds="Automation RunTests Kalmala" -TestExit="Automation Test Queue Empty"`
+  passed 116 tests, zero failures, exit 0 on the final source. The new narrowed
+  status-lane assertions also passed a focused two-test rerun before this queue.
+- `Verify-InventoryMenu.ps1` passed at 1280x720/100%/standard contrast and
+  1024x768/150%/high contrast, the latter with 120% interface scale and reduced
+  motion. Eleven stages per owner passed: distinct private packs, equipment,
+  painted 64x64 details, search recovery, meal acceptance/repeat rejection,
+  open-menu updates and empty slots, plus close/input restoration.
+- `Verify-Crafting.ps1 -Rendered` passed at both standard and compact/high-contrast
+  settings, including every existing transaction/context/privacy/input gate and
+  all 32 captures per owner. Final captures were refreshed after the HUD and
+  Chest-caption repairs. `Verify-InteractionPrompt.ps1 -Rendered` also passed
+  both configurations and retained all five stages per owner on the repaired HUD.
+- `Verify-StatusHotbar.ps1` passed all twelve cases: 1024x768, 1280x720 and
+  2560x1080 at 100% standard contrast and 100/125/150% high contrast. Both owners
+  passed painted scaled-64x64 image size, support gap, minimap alignment, safe
+  bounds, active-only/timer/empty/removal gates. Reviewed final combined HUD
+  contact sheets and full compact captures; prior tiny/overlapping images are
+  superseded by the retained final images.
+- `Verify-ConstrainedPerformance.ps1 -Profile Reference|Cpu8Threads|Cpu4Threads
+  -Project E:/dev/Kalmala/m12verify/Kalmala.uproject -OutputDirectory <new root>
+  -TimeoutSeconds 240` passed sequentially after the HUD/support repair. All three
+  discovery/disembark scenarios and observed host/client affinity checks passed,
+  retaining 300-frame timing samples per peer per profile.
+- All PowerShell scripts parse; Local Input, Presentation Ownership, all five
+  M5 documentation contracts, Settings Accessibility, Menu Input Copy,
+  Inventory Panel Removal, all 48 Catalogue Icon identities and all nine Status
+  Icon identities/package mappings pass. `git diff --check` and staged path
+  audits pass; every committed absolute path remains below 260 characters.
+
+Failures diagnosed during this continuation: capture-time UI changes initially
+produced mismatched screenshots, fixed by deferring the next mutation one tick;
+programmatic search text did not dispatch its change delegate, corrected in the
+fixture; an attempted historical-food grant failed the current catalogue, so the
+fixture uses the existing Hearth Broth item; initial client Wood exceeded the
+stack cap, reduced to a valid distinct count; tool-count expectation was corrected
+to the actual owner inventory; empty-log polling was hardened in Crafting.
+An unbraced logging conditional and a `Padding` name shadow caused compile
+errors, fixed with braces and a specific local name. A rebuild attempted while
+the preceding test still held its DLL failed to link; waiting for that owned
+test to exit and rebuilding passed. All relevant failing checks and the required
+full verification were rerun successfully. The final build/automation/static
+logs, peer logs, rendered matrix and performance evidence are in `docs/m12/`;
+`docs/45-m12-acceptance.md` maps the evidence and commands.
+
+Earlier passing milestone-final construction restore/remote replication,
+persisted camp/hearth authority, inventory/privacy/reconnect, camp choices,
+storage/persistence, settings/accessibility persistence, three minimap sizes,
+interaction prompts and player-controls results remain recorded in the 11:26 UTC
+handoff. They were inspected as inherited verification, not falsely presented
+as newly executed here. This continuation rechecked their applicable contracts
+in the full queue and refreshed affected UI/crafting/Inventory/status/prompt
+evidence. After the final Inspector-caption change, the editor target and full
+116-test queue passed again, followed by both affected service capture runs;
+the already passing HUD, Inventory, prompt and performance contracts were unchanged.
+
+Observable impact: Inventory and service details stay readable at large text
+scales, icon images keep their intended dimensions, and compact HUD cues no
+longer cover each other. Networking/authority remains server-owned; no new
+request, authoritative path, replication field, save schema, balance or content
+change. Test mutations use the existing validated server APIs and private snapshots.
+
+Known pre-existing limitation: Hearth Broth is the only current catalogue item
+accepted by the meal-use allowlist and has no production recipe. Historical
+Roasted/Smoked Field Meat IDs were removed before M12; current six cooking
+outputs have no Eat action. Baseline `8c10ab4` has the same allowlist and M9 docs
+record the old-ID retirement. No gameplay expansion was made to disguise this
+limit. No package/release, dedicated-server build or screen-reader session was
+run in this continuation; existing documented release/platform limits remain.
+
+Final milestone status: M12 complete; all ten goal parents and the final
+verification parent/child are checked. Next eligible task: none remaining in M12
+or the main-checkout queue. The retained branch's earlier unchecked M11 rows
+predate this run; main's M11 acceptance handoffs mark those complete. Those
+non-overlapping historical differences are preserved, rather than rewriting
+earlier milestones during this explicitly requested M12 closure. Favorite/Rank/
+Recent overlays are absent in this retained implementation, so the conditional
+coexistence capture is unavailable here. This run stops without selecting
+another increment or merging other implementation branches.
+
+Main-checkout handoff synchronization: complete. Inspected both dirty main
+files and changed only this run's M12 completion rows plus this appended progress
+entry. All prior edits were preserved. No implementation, other documentation,
+evidence or generated files were synchronized, staged or committed in main.

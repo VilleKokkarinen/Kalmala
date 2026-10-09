@@ -9,8 +9,6 @@ Plugins/*/Binaries/
 Plugins/*/Intermediate/
 Plugins/*/Saved/
 
-wt/
-
 # Visual Studio / Rider / VS Code local state
 .vs/
 .vscode/
