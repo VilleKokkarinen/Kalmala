@@ -10,8 +10,8 @@ Committed the existing main-checkout handoffs and `.gitignore` edit as
 `216a107`. Preserved the older uncommitted M12 HUD draft as `cd5af68`, then
 merged its history into master. M11's accepted `2626ba1` chain was merged as
 `499464e`; the draft merge is `728131c`. The final M12 `f433528` chain is
-integrated with those histories, preserving current main backlog completion
-and progress entries. Branch refs remain available after their checkouts are
+integrated as `4e297ba` with those histories, preserving current main backlog
+completion and progress entries. Branch refs remain available after their checkouts are
 removed; no history was reset, rebased or force-pushed.
 
 The merged UI keeps M11's local Favorites, usage ranks, Recent tracking,
@@ -82,9 +82,15 @@ Removed main `Binaries`, `Intermediate`, `DerivedDataCache`, `.cache`, `.ms`,
 `System.Management.Automation.Internal.Host.InternalHost` directory. The user
 saved and closed Visual Studio to release its locked index files. Removed
 ignored plugin build caches and regenerable Saved logs/build/shader/crash caches.
+Removed the remaining `Build` folder after confirming it contained only ignored
+Windows FileOpenOrder logs and empty parent directories.
 Preserved Saved/SaveGames, Saved/Config, Saved/Autosaves and Saved/Collections.
 Generated build and IDE files will be recreated on the next build/editor use.
 
-Worktree and verification-folder removal is finalized after the integrated
-commit. No tracked project source, original art, imported asset, retained
-acceptance evidence, local settings or save-game data is deleted by cleanup.
+After committing the verified integration, removed the three registered
+worktrees (`m11-final`, `m12-pack-grid`, `m12-hud-feedback-rebuild`), the old
+`wt/bf` build-repair mirrors, the empty `wt` container, and `m12verify`.
+Every removed worktree HEAD is an ancestor of master. Git now registers only
+the main checkout. The five existing save-game files retain their original sizes.
+No tracked project source, original art, imported asset, retained acceptance
+evidence, local settings or save-game data was deleted by cleanup.

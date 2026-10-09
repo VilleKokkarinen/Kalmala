@@ -3,7 +3,7 @@
 ## Current state
 
 - Automation bootstrap created on 2026-09-01.
-- As of 2026-10-03, M0–M10 backlog goals are checked under their recorded acceptance scope and limitations. M11 (User experience and visual UI upgrades) remains in implementation. The configurable-theme, top-right status, catalogue-icon, inventory/build/map visual, options-background, and Escape opening-animation parents are complete at their recorded acceptance scope. The next eligible parent is view-specific polishing of the existing HUD and crafting, construction, equipment, and settings UI.
+- As of 2026-10-09, M0–M12 are complete under their recorded acceptance scope and limitations. M11 and the retained M12 histories are integrated into `master` (`4e297ba`), with the combined editor build, 120-test queue and affected rendered checks passing. Temporary worktrees, verification mirrors and regenerable caches were removed at the owner's request; save games, settings, original assets and acceptance evidence remain. No unchecked backlog increment remains.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
 ## Run log
@@ -14749,3 +14749,80 @@ Main-checkout handoff synchronization: complete. Inspected both dirty main
 files and changed only this run's M12 completion rows plus this appended progress
 entry. All prior edits were preserved. No implementation, other documentation,
 evidence or generated files were synchronized, staged or committed in main.
+
+### 2026-10-09T19:52:30Z — Integrate completed work into master and clean workspace
+
+Outcome: Completed the owner's explicit request to commit all retained work to
+master and remove worktrees, m12verify and unnecessary folders. This is
+repository integration/cleanup, not another autonomous backlog increment.
+No other Kalmala run was active. The existing main handoffs/.gitignore were
+preserved in `216a107`; the older uncommitted M12 HUD draft was preserved in
+`cd5af68`. M11 merged as `499464e`, the draft as `728131c`, and final M12 as
+`4e297ba`. All three removed worktree HEADs are ancestors of master, and their
+branch refs remain available. No history was reset, rebased or force-pushed.
+
+Combined behavior: Preserved M11 local Favorites, usage ranks, Recent tracking,
+per-menu browse memory and Forge comparison within M12's scoped Build/station
+menus, private Inventory, concise copy, raster icons and active-only status HUD.
+M12's result view replaces the older duplicate result presentation. Ended status
+rows disappear immediately while local start/refresh bookkeeping remains.
+
+Integration failures and repairs: Resolved overlapping crafting declarations
+and inspector routing, retained M12 station scope, corrected direct-build
+activity and preview identity to GetOutputIdentity(), collapsed Forge upgrade
+comparison outside that section, and cleared stale no-results requirements.
+The initial full queue exposed two UI failures in activity identity and preview
+coverage; both passed after repair. Rendered Build checks exposed comparison
+labels in the wrong context and stale requirements; both complete configurations
+passed after repairs. A capture-helper local shadowed UWidget::Slot and was
+renamed before the successful rebuild. No unrelated feature was added.
+
+Verification: Rechecked the completed milestone's combined integration in the
+disposable mirror, with all current Source/Scripts hashes matching main and
+normal UnrealBuildTool cache access. Final commands actually run:
+
+```powershell
+Build.bat KalmalaEditor Win64 Development E:/dev/Kalmala/m12verify/Kalmala.uproject -WaitMutex -NoHotReload -Force -MaxParallelActions=4
+UnrealEditor-Cmd.exe E:/dev/Kalmala/m12verify/Kalmala.uproject -unattended -nop4 -nosplash -nosound -nullrhi -DDC-ForceMemoryCache -forcelogflush -UserDir=E:/dev/Kalmala/m12verify/.mvtmp/int-ax -abslog=E:/dev/Kalmala/m12verify/.mvtmp/int-tests-last.log '-ExecCmds=Automation RunTests Kalmala' '-TestExit=Automation Test Queue Empty'
+Scripts/Verify-Crafting.ps1 -Port 18740 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-Crafting.ps1 -Port 18741 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Verify-StatusHotbar.ps1 -Port 18752 -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Verify-InventoryMenu.ps1 -Port 18753 -Width 1024 -Height 768 -TextScale 150 -Contrast 1 -InterfaceScale 120 -ReducedMotion
+```
+
+Results: Editor build succeeded; final automation queue passed 120/120 tests,
+zero failures, queue-empty exit 0. Both rendered crafting configurations passed
+all service/Build contexts and distinct owner Favorite/Gold Rank 1/Recent marker
+coexistence with canonical images. Compact status HUD passed scaled raster
+geometry, finite timers, empty/removal and support/minimap separation. Inventory
+passed eleven stages on both owners, including privacy, meal use/repeat, live
+changes, empty slots and input restoration. PowerShell parsing, M5 documentation,
+input, ownership, copy, panel removal and settings/accessibility checks passed.
+Staged whitespace and MAX_PATH checks passed (longest integrated staged path 88).
+The original accepted M11/M12 evidence remains; six final logs and sixteen paired
+screenshots are retained in docs/master-int. Full verification is not deferred.
+
+Cleanup: Removed all three registered worktrees, wt/bf, the empty wt container,
+m12verify, main Binaries/Intermediate/DerivedDataCache, .cache/.ms/.vs, obsolete
+literal shell-variable folders, ignored plugin build caches and regenerable
+Saved build/log/crash/shader caches. Removed Build after confirming it contained
+only generated Windows FileOpenOrder logs. The owner saved and closed Visual Studio
+before its cache was removed. Only the main checkout remains registered.
+Preserved Saved/SaveGames, Config, Autosaves, Collections and all five existing
+save-game files at their original sizes. No tracked source, original art,
+imported asset or retained evidence was deleted. The next editor build must
+regenerate its removed compiled/cache files.
+
+Files changed: Integrated Source, Scripts, Config, Content and documentation
+from the preserved branch histories; resolved crafting/status/icon integration
+and affected tests/helpers; updated BACKLOG.md, PROGRESS.md, docs/45-m12-acceptance.md,
+docs/46-master-cleanup.md and docs/README.md; added docs/master-int evidence.
+Observable impact: All accepted implementation is available in master without
+temporary copies, with M11 activity cues retained alongside the M12 presentation.
+Networking/authority, request validation, replication, save schemas and balance
+are unchanged by integration repairs. Existing DebugGame unity fixes and utility
+solution exclusions remain. No new packaging, performance profile, hardware
+acceptance, dedicated-server build, release or push was performed in this cleanup.
+Previous owner keyboard/controller acceptance and documented platform/meal-use
+limits remain valid. Final status: M12 complete and integrated; no next eligible
+backlog task. This run stops after the cleanup documentation commit.
