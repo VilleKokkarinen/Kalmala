@@ -12,8 +12,11 @@ M11 supersedes the historical status placement below: active status/weather
 now appears only in the transparent owner-local top-right hotbar, with live
 details in Escape > Status and weather details. The lower-left widget retains
 only ocean travel, and pack preparation guidance retains no active timer.
-Original catalogue line art is shared by inventory/tool rows and the build
-selector. See `36-status-icons.md` for identities and verification boundaries.
+Canonical catalogue images are shared by Inventory items, carried tools,
+selected-item details, ingredient rows, and the chest selectors; the existing
+vector assignment remains the missing-texture fallback. Build and crafting
+result grids remain on vector assignments until the next M12 icon integration
+child. See `36-status-icons.md` for identities and verification boundaries.
 
 ## Ownership ledger
 
@@ -22,7 +25,7 @@ selector. See `36-status-icons.md` for identities and verification boundaries.
 | Player | `UKalmalaPlayerModelComponent` procedural mesh and the generated bark/terrain/rock materials | Nine local, collision-free cosmetic parts; shape and pose never author gameplay | Faceted mantle/hood presentation verified in the rendered offscreen host/client controls fixture |
 | Wildlife | `AKalmalaWildlifeSpawn::BuildArchetypePresentation` procedural low-poly geometry and vertex colours | Server-owned replicated actor state; mesh is presentation only and has no collision | Mireling's low forward hunch, reaching arms, and split crown read as a distinct close-view silhouette in the rendered host fixture; dark body planes merge somewhat. Boar has a low wedge-backed profile, broken bristle ridge, tapered muzzle, and paired tusks; deer has a lighter, long-legged alert profile with paired forked antlers |
 | Environment | `AKalmalaGeneratedTerrainPatch`, campfire, and construction procedural meshes using generated materials | Terrain collision and shelter collision remain the gameplay authority; decorative meshes do not add routes or hidden content | Existing generated terrain, water, rock, tree, hearth, and kit sources are audited here |
-| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace, shows its action and current keyboard/controller mappings, and clears for no target or modal input; it does not enumerate targets or authorize actions. The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; a separate top-centre support strip reflects the local character's selected effect and the owner's learned set; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; settings Audio/Controls/Settings tabs expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
+| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace and shows its supported action plus any owner-visible unavailable reason; it clears for no target or modal input and contains no key/button legend. The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; a separate top-centre support strip reflects the local character's selected effect and the owner's learned set; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; settings Audio/Controls/Settings tabs expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
 | Feedback | Text and shape/icon treatments in the owner notification queue, crafting, discovery, and settings widgets | Readable without colour or audio; feedback reports accepted replicated results rather than client claims | Support glyphs reflect only the owner's learned/selected state and retain explicit text names/status; a bounded owner-only queue presents combat/support results and discovery acknowledgements; the optional Text + markers overlay remains for nearby hearth/construction context |
 
 The ledger is an ownership and scope check, not a claim that the complete M5
@@ -35,19 +38,66 @@ readability remains unreviewed. The survival strip's data mapping and lower-left
 viewport slot pass focused UI automation, but rendered host/client layout,
 multi-row clipping, and scaled-font legibility remain unreviewed.
 
+## Owner-local station context shell — 2026-10-08
+
+The shared themed station shell opens from an owner-only event emitted after
+the server accepts and revalidates a construction interaction. It binds the
+current section to the exact replicated station actor and stable construction
+ID. The Cooking Rack embeds its station-filtered Cook view, limited to cooked
+boar/deer meat; the Cauldron uses the same owner-local shell for stew and soup;
+the Frying Pan shows only roasted root vegetables and deer/rutabaga roast.
+All cooking views include ingredient, quantity, and current hearth-heat feedback.
+Workbench opens a Craft section scoped to its supported recipes, matching Tool Rack production,
+and the owner-local Bronze Axe operation; its effective level and Tool Rack
+state come from the accepted station and replicated placement presentation.
+Forge exposes separate Craft, Upgrade, and Repair sections. Upgrade compares the
+owner-only carried Bronze Axe against its authored Iron Axe target and reads
+the owner's tool, material, and skill snapshots for prerequisites; the accepted
+Forge's effective level and Anvil state stay tied to the exact context actor.
+The existing progression RPC remains responsible for authoritative checks,
+material exchange, and persistence.
+These passive Workbench Tool Rack and Forge Anvil status lines remain visible
+in their parent Craft sections. The standalone Build menu no longer duplicates
+inventory, food, repair, upgrade, or storage controls; it keeps placement and
+the Light hearth action, while raw-fuel addition uses Campfire Interact.
+The owner can switch to a separate Repair section without changing the recipe
+selection or Forge Upgrade presentation. Repair rows read only the owning pawn's
+owner-only carried-tool array, show its real level and condition, and submit
+only the selected tool ID to the existing repair RPC. The response remains
+owner-only. The legacy CraftMenu path remains available.
+An accepted Chest interaction opens a Store section with separate selectors
+backed by the owning pawn's private pack and its owner-only current chest view.
+Each list shows the item's current count; the summary reports both 16-stack
+limits and disables a transfer when its current stack or destination slots are
+full. Store/Take submit only the selected item ID through the existing
+one-item server transactions, which revalidate the active chest and persist
+before changing the pack. Closing the shell, losing range, changing pawn, or
+destroying the chest expires the view and shell.
+While open, the local subsystem asks the owning crafting component to verify
+the same actor reference, stable ID, station kit, pawn world, and range. The
+server validated sight during the original interaction. It closes on target
+destruction, loss of range, or pawn replacement, then restores the prior
+movement/look-ignore and cursor states.
+The shell is presentation only: recipe and inventory changes remain on the
+existing server paths, which revalidate their own station, heat, costs, and
+owner inventory. No client target request, RPC, replication authority change,
+or persistence field is added.
+
 ## Owner-local prepared-food inventory detail
 
 When the owning player's private pack contains roasted field meat, Hearth
-Broth, or smoked field meat, the read-only inventory HUD explains that one
+Broth, or smoked field meat, the on-demand Inventory menu explains that one
 serving grants Steady Meal, reducing stamina cost by 10% for 120 seconds. If
-the same pawn's existing replicated status contains an active meal, the panel
+the same pawn's existing replicated status contains an active meal, the menu
 shows its remaining server-published time and the wait-for-expiry rule. The
-display adds no input, RPC, gameplay mutation, or persistence; shape markers
-and explicit text remain visible with the owner's configured text scale and
-contrast. `Kalmala.UI.Inventory.PreparedFoodDetails` checks the bounded benefit,
-active timer formatting, and fail-closed invalid timer behavior. The
-host/client inventory reconnect fixture continues to verify owner-only pack
-visibility; rendered multi-row layout and scaled-font appearance remain open.
+Eat action sends only the selected supported food ID through the existing
+server transaction; the server revalidates quantity and the active meal slot.
+The menu adds no new RPC, replicated field, or save data. Shape markers and
+explicit text remain visible with the owner's configured text scale and
+contrast. `Kalmala.UI.Inventory.PreparedFoodDetails` checks the selected menu
+detail and disabled action while owner data is unavailable. The host/client
+inventory reconnect fixture continues to verify owner-only pack visibility;
+rendered multi-row layout and scaled-font appearance remain open.
 
 ## Owner-local crafting skill and unlock detail
 
@@ -156,7 +206,7 @@ transient host camera does not alter the replicated actor; the same run checks
 server combat, client rejection, owner-only rewards, and same-world defeat
 persistence.
 
-## Local tutorial prompt presentation
+## Local HUD prompts and onboarding status
 
 `UKalmalaAccessibilityFeedbackSubsystem` belongs to each `ULocalPlayer`. When
 the local preference is **Text + markers**, it displays an owner-only text
@@ -165,27 +215,31 @@ discovery, and support state. The bracketed markers remain meaningful without
 colour, and the overlay follows the local high-contrast palette. It reads no
 hidden actor or reward and sends no request.
 
-`UKalmalaTutorialSubsystem` belongs to each `ULocalPlayer`. It displays an
-optional text card and a high-contrast compass mark from normal possession,
-visible local view focus, the local movement offset, the existing crafting
-shell, or that owner's replicated Wet/learned-effect state. It samples no
-hidden population or discovery descriptors, and it sends no gameplay request.
-Dismissal and revisit input are non-consuming local bindings; prompt history
-ends with the local-player session.
+`UKalmalaTutorialSubsystem` remains local-player state but is disabled at
+runtime. Its retained design source uses action names without key/button
+legends; no onboarding card mounts during fresh start, possession changes, or
+reconnect.
 
-`Scripts/Verify-PlayerControls.ps1 -Rendered` captured the arrival prompt for
-both host and client at 1280×720 while retaining the existing movement checks.
-The lower-centre card exposes current W/A/S/D, left-stick, mouse/right-stick,
-jump, sprint, dismiss, and revisit labels. Other prompt contexts, viewport
-scales, and keyboard/controller prompt-button presses remain for the follow-up
-onboarding acceptance check.
+The live near-crosshair prompt reads the actor hit by the owning pawn's current
+short view trace. It presents the target, supported action, and any
+owner-visible unavailable reason as text, then clears for no target or modal
+input. It contains no binding labels; current keyboard/controller mappings
+remain in Options > Controls. Its text remains available without relying on
+colour or a control glyph. A placed Campfire uses the action text **Add fuel**;
+the prompt reads the owner's local raw-fuel availability and the replicated
+hearth capacity, while the server rechecks both before consuming one item.
+Full capacity and an empty raw-fuel selection show explicit unavailable
+reasons. This action does not light the fire. Earlier `Verify-PlayerControls.ps1 -Rendered`
+captures predate this contract and retain historical key labels; they are not
+current presentation acceptance evidence.
 
 ## Rendered survival status HUD layout
 
 `UKalmalaSurvivalStatusWidget` remains a non-focusable local-player view of the
 owning pawn's replicated Wet/food entries, exposure, active support, and server
-weather. Its wrapped lower-left status column uses a 400-unit content width and
-stays clear of the centered arrival card at the documented 1280×720 viewport.
+weather. Its wrapped lower-left status column uses a 400-unit content width.
+The centered arrival card described by the earlier M5 screenshot was removed
+in M12; current gameplay has no bottom tutorial banner.
 The rendered host/client capture shows the weather row and recovery guidance
 without overlap; `Kalmala.UI.SurvivalStatus.LocalPresentation` checks the full
 Wet, food, weather, temperature, support, and empty-state text cases. This

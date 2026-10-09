@@ -324,23 +324,25 @@ PowerShell parsing, and the 260-character path audit. Theme configuration can
 disable interaction motion with `AnimateInteractionStates=False`; the local
 Reduced motion setting below overrides theme animation when enabled.
 
-## M11 near-crosshair interaction prompts
+## M12 HUD and interaction prompt binding text
 
-This no-child parent uses the owner's existing short visibility trace as the
-only interaction candidate. Build the isolated editor mirror with normal
+The owner-local prompt uses the existing short visibility trace as its only
+interaction candidate. Build the isolated editor mirror with normal
 `%LOCALAPPDATA%/UnrealBuildTool` access, then run the full
 `Automation RunTests Kalmala` queue with a unique `-UserDir`, `-abslog`,
 `-nullrhi`, `-DDC-ForceMemoryCache`, and queue-empty `-TestExit`. The focused
 `Kalmala.UI.InteractionPrompt.Presentation` test covers target/action text,
-keyboard and controller labels, unavailable, missing-target, modal, and live
-remapping cases. The full queue also retains
+absence of keyboard/controller labels, unavailable reason, missing-target,
+modal, and live remapping cases. Remapped labels remain available in Options;
+they must not appear in the prompt. The full queue also retains
 `Kalmala.Gameplay.Interaction.ServerOnlyRangeValidation` for server range and
 authority behavior.
 
 Run `Scripts/Verify-InteractionPrompt.ps1` from the mirror at 1280x720/100%
 standard contrast and 1024x768/150% high contrast, with separate unused ports.
-It renders the available and unavailable prompt plus modal/no-target clearing
-on both host and client; inspect the retained source PNGs. Run rendered
+It renders the available and unavailable action plus modal/no-target clearing
+on both host and client; inspect the retained source PNGs for readable action
+text without binding labels. Run rendered
 `Scripts/Verify-Crafting.ps1` at both settings for live modal suppression and
 existing interaction/transaction regressions, and
 `Scripts/Verify-SettingsAccessibility.ps1` for the local Controls remapping
@@ -350,6 +352,19 @@ path. Finish with `Scripts/Verify-LocalInputContract.ps1`,
 parsing, `git diff --check`, and the 260-character path audit. This verifies
 editor-rendered presentation and existing server validation; it does not claim
 physical keyboard/controller hardware or packaged-build acceptance.
+
+## M12 player-facing input-binding text
+
+Gameplay prompts, inventory and service menus, the expanded map, status/detail
+views, and the Settings home screen do not print key/button names or control
+combinations. The map keeps its symbol legend, category state, and concise
+share/ping action names. Options > Controls is the only player-facing view that
+shows current bindings; all existing input paths and remapping behavior remain.
+Run `Scripts/Verify-MenuInputCopy.ps1` for the narrow source audit of visible
+copy, binding-label resolution, retained action names, and keyboard/controller
+navigation seams. After an affected UI build, run the focused map, status,
+inventory, and crafting automations; host/client rendering, text scaling, and
+physical input remain in M12 milestone-final verification.
 
 ## M11 ingredient-count child
 
@@ -365,8 +380,10 @@ combined scale/contrast pixel acceptance wait for remaining ordered children.
 For the requirements child, also run
 `Kalmala.Gameplay.Food.CookingStationHeat` in that focused queue. The
 `Kalmala.UI.Crafting.Requirements` automation is included by the UI prefix;
-rendered Verify-Crafting additionally asserts live selected requirements,
-carried hammer and truthful skill/unlock labels on both peers. See docs/39.
+rendered Verify-Crafting additionally asserts the selected result, ingredients,
+supported batch quantity, live station/heat requirements and one current blocker;
+direct construction retains its carried-hammer and placement checks. Generic
+recipe detail copy omits skill/unlock boilerplate. See docs/39.
 
 ## Baseline
 
@@ -746,7 +763,7 @@ currently has no configured gathering source.
 
 ## Player inventory verification
 
-Run `Scripts/Verify-Inventory.ps1` after an editor build for the inventory component increment. A development-only `-KalmalaInventoryTest` fixture grants ten wood and consumes three on each server pawn, rejects unknown/overflow grants and invalid/insufficient consumption, and verifies removal of an exhausted stone stack. The runner requires two successful server results, seven wood on the remote owner, rejected client-local mutation calls, empty remote contents after owner replication, matching immutable world identity, and read-only local pack presentation on both peers. Separate temporary user directories keep the scenario out of project-generated data. This headless check verifies widget data binding, not rendered layout; rendered harvest feedback and reconnect persistence remain subsequent tasks.
+Run `Scripts/Verify-Inventory.ps1` after an editor build for the inventory component increment. A development-only `-KalmalaInventoryTest` fixture grants ten wood and consumes three on each server pawn, rejects unknown/overflow grants and invalid/insufficient consumption, and verifies removal of an exhausted stone stack. The runner requires two successful server results, seven wood on the remote owner, rejected client-local mutation calls, empty remote contents after owner replication, and matching immutable world identity. `Verify-InventoryPanelRemoval.ps1` separately audits the retired HUD source and keeps the on-demand Inventory menu and its empty-state regression present. Separate temporary user directories keep the scenario out of project-generated data. This headless check verifies authority/privacy, not rendered layout; rendered harvest feedback and reconnect persistence remain subsequent tasks.
 
 The inventory runner also requires `Harvest inventory: Passed=1` for both server pawns. Its development-only fixture exercises twelve isolated initialized nodes covering Wood, Stone, and Fibre, uninitialized-node and distant rejection, full-stack rejection without depletion, successful retry after capacity is freed, duplicate rejection, and exactly one sparse-save callback per accepted grant. It restores the original seven-wood inventory before owner replication checks and destroys its temporary actors; it writes no world-save slot. Run `Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion` and `Kalmala.Gameplay.Inventory.Catalogue` with the headless flags above for the pure authority and malformed quantity gates. This does not yet exercise a client's actual harvest RPC, inventory reconnect restoration, or simultaneous competing player input.
 
@@ -886,15 +903,82 @@ Launch the game with `-KalmalaBiomeDebug` to replace the generated terrain's nor
 
 Movement-triggered raster generation is asynchronous. Run `Kalmala.UI.Minimap.AsyncRefresh` after rebuilding to check nonblocking refresh timing, full-resolution worker equivalence, stationary reuse, movement coalescing, obsolete zoom/identity rejection, and reinitialization. `Kalmala.UI.Minimap.GenerationPerformance` retains the exact revision-3/4 fingerprints and reports total raster time separately from the game-thread refresh cost. Use `Scripts/Verify-Minimap.ps1 -Rendered` for current-world HUD/identity checks and `Scripts/Verify-PlayerControls.ps1 -Rendered` for host/client movement. Both scripts retain revision 1 as their default legacy fixture. Restart any existing editor after the native module build.
 
-The local `UKalmalaMinimapSubsystem` creates a 208-pixel `UKalmalaMinimapWidget` for each local player once its controller is available. The widget is anchored to the top-right viewport corner with a 24-pixel margin. It refreshes local seed-derived terrain/water samples around that player's pawn and draws only samples inside a circular radius, together with a centred marker rotated to the pawn's facing yaw. `MouseWheelAxis` changes only the local session's sampled radius, clamped from 2,500 to 10,000 cm in 750 cm steps; CommonUI's normal-game-input gate leaves wheel input to any modal UI. It reads no world actors, population, landmarks, or gameplay state beyond the already-replicated world identity and owning pawn transform.
+The local `UKalmalaMinimapSubsystem` creates a 208-unit `UKalmalaMinimapWidget` for each local player once its controller is available. The widget is anchored to the top-right viewport corner with 12 UI units of top and right inset, scaled proportionally by the viewport DPI curve. The existing weather badge remains below it with a 24-unit clear gap. It refreshes local seed-derived terrain/water samples around that player's pawn and draws only samples inside a circular radius, together with a centred marker rotated to the pawn's facing yaw. `MouseWheelAxis` changes only the local session's sampled radius, clamped from 2,500 to 10,000 cm in 750 cm steps; CommonUI's normal-game-input gate leaves wheel input to any modal UI. It reads no world actors, population, landmarks, or gameplay state beyond the already-replicated world identity and owning pawn transform.
 
-Run `Scripts/Verify-Minimap.ps1` after an editor build for the two-peer identity check. It starts a memory-only hidden listen server with seed 418 and a conflicting-seed client with seed 999, then confirms that the client receives the server world identity. The focused `Kalmala.UI.Minimap.LocalPresentation` automation checks the two player-centred local views from that same identity, circular clipping, min/max zoom, modal input gating, and the top-right footprint at 4:3/75%, 16:9/100%, and ultrawide/125% UI scales. These checks are local presentation only and create no replicated, gameplay, or save mutation.
+Run `Scripts/Verify-Minimap.ps1` after an editor build for the two-peer identity check. It starts a memory-only hidden listen server with seed 418 and a conflicting-seed client with seed 999, then confirms that the client receives the server world identity. The focused `Kalmala.UI.Minimap.LocalPresentation` automation checks the two player-centred local views from that same identity, circular clipping, min/max zoom, modal input gating, the 12-unit top/right viewport inset at 4:3/75%, 16:9/100%, and ultrawide/125% UI scales, and separation from the weather badge. These checks are local presentation only and create no replicated, gameplay, or save mutation.
+
+The compact active-status group reads the minimap widget's configured viewport slot and shares its top offset; its right edge sits 12 UI units left of the minimap's actual left edge. Both use the same top-right anchor, so Unreal applies the viewport DPI scale uniformly. `Kalmala.UI.StatusHotbar.SnapshotAndLayout` checks the actual slot relationship and wrapping fit across 4:3, 16:9, and ultrawide viewports at 75%, 100%, and 125% DPI scales. It also checks known live owner statuses, the existing Hot/Cold exposure qualifiers, Storm-only weather at the shared 0.65 storm threshold, interval expiry, and a fully empty result when all active conditions clear. Normal/active weather and fog-only highly active weather do not create an entry. If the minimap has not been created yet, the status group temporarily uses the documented default 208-unit map footprint and corrects itself on the next local refresh.
+
+The M12 status-image follow-on pins the nine supported entry/icon identities in `docs/status-icon-manifest.csv` with fixed 4/4/1 generation batches. All three batches have retained originals and prepared transparent 64x64 RGBA PNGs under `Content/Kalmala/UI/Source/IconOriginals/Status` and `Content/Kalmala/UI/Source/Icons/Status`. Prepare a batch with `python Scripts/Prepare-StatusIconBatch.py --batch <Batch>` and validate its IDs with `Scripts/Validate-StatusIcon.ps1 -Id <IconId>`. `Scripts/Import-StatusIconAssets.ps1` imports the nine prepared PNGs in an isolated UE 5.8 content-only project, verifies 64x64 Texture2D assets with source alpha, sRGB, UI texture group, no mipmaps, and non-streaming settings, then copies only those packages to `Content/Kalmala/UI/Icons/Status`. `Scripts/Validate-StatusIconSet.ps1` checks manifest, PNG, entry-map and package coverage; `Kalmala.UI.StatusHotbar.StatusIconCoverage` checks runtime texture paths and loads after an affected editor build. The local `FKalmalaStatusIconLibrary` keeps these IDs separate from catalogue icons. The hotbar now renders each raster image at 64x64 without visible names, retaining accessible names in a visually hidden text label; a centred m:ss appears only beneath finite Wet/meal/support entries. Hot, Cold, Storm, and weather detail have no countdown. Timing remains based on the existing owner snapshot and synchronized server time, without local countdown mutation. See `36-status-icons.md` for the full identity and image review contract. These image assets do not change status ownership or gameplay.
+
+## M12 final HUD, inventory, station, and interaction captures
+
+After the final M12 editor build and automation queue, run
+`Scripts/Verify-StatusHotbar.ps1` for each viewport/text-scale pair in the
+matrix in `36-status-icons.md`. The helper checks the read-only host/client
+snapshot, empty/populated/expired states, active six-icon fixture, icon-only
+visual contract, finite versus untimed timer assertions, and the group's actual
+12-unit top/minimap separation, left safe inset, and lower viewport bound. The
+populated phase also measures each scaled 64x64 raster image and requires a
+12-unit gap beyond the top-centre support selector. The fixture applies the
+same global text scale and contrast to both cues, so combined-layout review
+catches support/status overlap rather than scaling only the hotbar. It
+also checks that the widget source still creates raster images, visually hidden
+accessible names and centred timers, and that the automation source retains the
+finite/untimed assertions; the final automation queue executes those tests.
+Inspect both peers' `empty`, `populated`, `expired`, `details`, and `icons` PNGs;
+the populated captures must show no visible status names, real raster icons,
+centred timers only for finite Wet, meal, and support effects, and safe wrapping.
+
+Add these prepared host/client views to the same final capture handoff at both
+standard 1280x720/100%/standard-contrast and compact 1024x768/150%/high-contrast
+settings:
+
+```powershell
+Scripts/Verify-Inventory.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-Inventory.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Verify-InteractionPrompt.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-InteractionPrompt.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Verify-InventoryMenu.ps1 -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-InventoryMenu.ps1 -Width 1024 -Height 768 -TextScale 150 -Contrast 1 -InterfaceScale 120 -ReducedMotion
+Scripts/Verify-InventoryReconnect.ps1
+```
+
+Run the inventory peer checks for owner privacy and transactions. The Inventory
+menu runner opens the production owner-local instance with distinct server-owned
+packs (host Wood 7/Stone 2; client Wood 23/Iron 4), exercises search recovery and
+Hearth Broth use/repeat, observes live Wood updates to 4/20 while open, then
+empties both packs through the existing server APIs. Inspect all eleven PNG
+stages per peer, including equipment, selected details, and top/bottom empty
+views covering all sixteen slots. It also checks painted 64x64 detail-image
+geometry and close/input restoration. The launch-gated fixture adds no RPC or
+save schema. Physical keyboard/controller acceptance remains a separate owner
+check; injected delegates are not hardware testing.
+Inspect the crafting runner's Build, Workbench/Forge, Cooking Rack/
+Cauldron/Frying Pan, repair/upgrade, chest and Campfire/Grinding Stone captures,
+plus every available/unavailable/modal/no-target/Repair All interaction-prompt
+capture from both peers. Require each runner's owner-privacy, server
+acceptance/rejection, station-context, stale-target and input-restoration
+markers. These views supplement the complete M12 milestone-final authority and
+accessibility checks; they do not replace the prescribed build, automation,
+reconnect, or other verification.
+
+The crafting runner additionally retains top and detail views for nine service
+sections on each peer: Workbench Craft/Repair, Forge Craft/Upgrade/Repair,
+Cooking Rack/Cauldron/Frying Pan Cook, and Chest Store. These read-only views
+explicitly use an unavailable context; they do not fabricate an accepted actor
+or exercise a transaction. Accepted actions, owner privacy and stale-context
+suppression remain the earlier live/automation gates. Rendered timeout is 300
+seconds for the expanded capture sequence. Inspect these service images as
+well as the fourteen original Build/requirements views.
 
 ### Rendered minimap regression check
 
-The Phase 5 visibility repair replaces the sparse terrain dots with a filled, circular 129x129 texture containing original patterns for Meadows, Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, Thunder Mountains, and Ocean. Each pattern stays anchored in world space. The minimap now belongs to each local player rather than only the first game-instance controller. Its 208-unit size and 24-unit margin scale with Unreal's UI DPI curve. Size/position must be set before the top-right anchor: `SetPositionInViewport` resets it to top-left in UE 5.8 and previously put the map off-screen.
+The Phase 5 visibility repair replaces the sparse terrain dots with a filled, circular 129x129 texture containing original patterns for Meadows, Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, Thunder Mountains, and Ocean. Each pattern stays anchored in world space. The minimap now belongs to each local player rather than only the first game-instance controller. Its 208-unit size and 12-unit top/right inset scale with Unreal's UI DPI curve. Size/position must be set before the top-right anchor: `SetPositionInViewport` resets it to top-left in UE 5.8 and previously put the map off-screen.
 
-After building, run `Scripts/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 1080`. Repeat with `-Width 1024 -Height 768` and `-Width 3440 -Height 1440` for different aspect ratios and automatic DPI scales. The runner checks actual paint geometry and full texture sample count on both peers, server identity replication, and the bound input delegate with minimum/maximum zoom, CommonUI Menu ownership, and zoom resumption. It captures `host.png` and `client.png` in the printed temporary log directory for visual inspection. Hidden offscreen captures verify the Slate HUD; the world background may be black and these images do not validate terrain rendering. The configured `CommonGameViewportClient` is required for CommonUI routing. Without `-Rendered`, this script remains an identity-only smoke test.
+After building, run `Scripts/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 1080`. Repeat with `-Width 1024 -Height 768` and `-Width 3440 -Height 1440` for 16:9, 4:3 and ultrawide aspect ratios and automatic DPI scales. The runner checks actual paint geometry, the proportional 12-unit top/right insets, and full texture sample count on both peers, server identity replication, and the bound input delegate with minimum/maximum zoom, CommonUI Menu ownership, and zoom resumption. The focused automation checks that the weather badge remains below the minimap. It captures `host.png` and `client.png` in the printed temporary log directory for visual inspection. Hidden offscreen captures verify the Slate HUD; the world background may be black and these images do not validate terrain rendering. The configured `CommonGameViewportClient` is required for CommonUI routing. Without `-Rendered`, this script remains an identity-only smoke test.
 
 `Kalmala.UI.Minimap.LocalPresentation` now also exercises the production viewport setters, checks filled/transparent raster coverage, distinct deterministic texture patterns for all seven biomes, and sea-level ocean treatment. These checks replace the previous assumption that mathematical placement assertions alone proved on-screen visibility. The launch-gated input scenario temporarily changes local input configuration and restores it and zoom; it sends no RPC or gameplay request. A normal launch requires no minimap flag. Restart the editor/game to load rebuilt C++ modules and viewport configuration; an older packaged executable needs a separate rebuild/package.
 
@@ -1024,14 +1108,14 @@ quality, or packaged persistence.
 
 ## M5 onboarding contract check
 
-`Scripts/Verify-OnboardingContract.ps1` is a no-build check for the optional
-local tutorial specification in `docs/13-onboarding-and-tutorial.md`. It
-requires the ten route-free prompt beats, normal keyboard/controller labels,
+`Scripts/Verify-OnboardingContract.ps1` is a no-build check for the retained
+local tutorial design in `docs/13-onboarding-and-tutorial.md`. It requires the
+ten route-free prompt beats, no key/button legends in prompt examples,
 colour-independent text/icon guidance, visible-context triggers, server
 authority boundaries, hidden-content privacy rules, and protection of prompt
-history from the gameplay save schema. It does not launch Unreal or claim that
-the runtime presenter, input routing, or packaged two-player prompt flow has
-been implemented.
+history from the gameplay save schema. `Scripts/Verify-TutorialRouteFree.ps1` additionally checks that
+the M12 runtime presenter is disabled. These checks do not launch Unreal or
+claim packaged two-player prompt flow has passed.
 
 ## M5 settings and accessibility contract check
 
@@ -1172,8 +1256,9 @@ player controller's pawn inventory component; that component replicates pack
 stacks with `COND_OwnerOnly`. An absent pawn/component is reported as waiting,
 while a valid zero-stack pack explicitly reports that it is empty. The menu
 refreshes on open and while visible so accepted owner inventory changes appear
-without a gameplay request. The existing HUD pack display stays in place until
-the later M12 task removes the persistent panel. This increment adds no RPC,
+without a gameplay request. The persistent HUD pack display was removed by the
+later M12 panel-removal increment; the modal Inventory menu is now the only pack
+grid surface. This increment adds no RPC,
 mutation, replicated field, or saved-data field.
 
 For M12 acceptance, open Inventory independently for the host and client with
@@ -1223,7 +1308,7 @@ the equipment rows, repair action and response at supported scales/contrast.
 
 ## M12 carried-food Inventory increment
 
-When one of the three supported meal items is selected in the owner's pack,
+When Hearth Broth is selected in the owner's pack,
 Inventory shows its existing Steady Meal effect and the live owner-visible
 availability: the current serving count, active meal time remaining, pending
 request, or last owner-only server result. `Eat one serving` is enabled only
@@ -1238,6 +1323,14 @@ replace an active meal. No new RPC, gameplay state, replication field, or save
 data is introduced. `Kalmala.UI.InventoryMenu.Selection` also checks the
 supported-food effect text, visible Eat action, and fail-closed disabled state
 when its owner components are absent; run it after an affected UI build.
+
+Hearth Broth is the only current catalogue item accepted by the existing
+meal-use path. The historical RoastedFieldMeat/SmokedFieldMeat IDs remain in
+its allowlist but are absent from schema 4 and cannot be granted or consumed.
+The six schema-4 cooking outputs do not currently have an Eat action. This
+predates M12; the presentation work preserves that gameplay contract rather
+than adding food effects or reintroducing retired items. See
+`docs/28-m9-camp-equipment-recipes.md`.
 
 For the M12 final host/client acceptance, exercise each supported item through
 Inventory while away from stations, verify the count changes only after server
@@ -1255,7 +1348,7 @@ Input still uses the existing 1–4/D-pad selection actions and Q/controller
 activation action. The transient notification queue now also observes the
 owner-only combat and support result serials, plus concise discovery
 found/already-found/unavailable acknowledgements from the existing owner
-source. The Inventory HUD must not supply these results or own the support
+source. The Inventory menu must not supply these results or own the support
 glyph selection. No new gameplay request or authority path is introduced.
 
 Run `Scripts/Verify-LocalInputContract.ps1`,
@@ -1267,6 +1360,28 @@ selection label for learned, unavailable, and no-selection cases.
 baselines, new serial feedback, deduplication, bounded expiry, and that combat
 text contains no target identity. Rendered strip positioning, action notices,
 modal behavior, and host/client privacy remain in M12 milestone-final review.
+
+## M12 persistent left-panel removal increment
+
+The always-visible `UKalmalaInventorySubsystem`/`UKalmalaInventoryWidget` pack
+panel is retired. Its pack/tool rows, duplicate support glyphs, build/craft
+shortcut, prepared-food banner, HUD-suppression hook and screenshot fixture no
+longer exist. Inventory remains available through its owner-local modal; it is
+collapsed until opened and continues to read only that owner's pack/tools.
+Support selection remains on its separate top-centre strip and combat/support/
+discovery results remain in transient owner notifications.
+
+The focused `Kalmala.UI.InventoryMenu.Selection` automation covers normal
+collapsed startup, owner-specific rows, selection fallback, no-results recovery,
+and the full sixteen-cell empty pack with stale details hidden. The
+`Kalmala.UI.Inventory.PreparedFoodDetails` automation now reads the actual
+Inventory menu. `Scripts/Verify-InventoryPanelRemoval.ps1` checks that retired
+inventory runtime classes, help text, crafting suppression and old capture
+expectations stay absent, then confirms the tutorial presenter cannot mount the
+bottom card; the inventory and reconnect host/client scripts run this check as a
+preflight. After an affected editor build, run the focused menu automations,
+`Scripts/Verify-PresentationOwnership.ps1`, and `Scripts/Verify-Inventory.ps1`.
+Rendered host/client layout and privacy remain in M12 milestone-final review.
 
 ## M5 documentation contract suite
 
@@ -1319,6 +1434,11 @@ focuses the filter list, arrows/D-pad select a category, Enter/A toggles it,
 and Escape/B leaves filter focus. Tab/pad-X pin selection still reaches
 personally hidden and locally filtered pins; the selected-pin text reports
 when its marker is filtered.
+
+The in-game map keeps this symbol/category legend and concise share/ping action
+names but omits keyboard/controller help text. Current binding labels are shown
+in Options > Controls only; map focus, selection, pan, zoom, recenter, pin, and
+sharing inputs remain available.
 
 Visibility is a transient local widget preference. It suppresses marker
 painting only: it does not request map data, change fog/exploration, mutate or
@@ -1527,9 +1647,9 @@ After building, run Scripts/Verify-Crafting.ps1 -Rendered. The paid floor fixtur
 
 ## Local tutorial prompt smoke test
 
-Run `Scripts/Verify-TutorialRouteFree.ps1` for a no-build source audit of the normal local-player prompt presenter. It checks that arrival does not depend on other progress, contextual prompts use only local visibility or already-readable state, exploration follows movement from the player's initial position without choosing a heading, a visible camp is optional, and no tutorial command-line gate, quest flow, hidden-actor scan, RPC, or gameplay save path exists.
+Run `Scripts/Verify-TutorialRouteFree.ps1` for a no-build source audit of the retained route-free prompt design and its disabled runtime presenter. It checks that the bottom gameplay card cannot mount, while the historical arrival/context rules still avoid routes, quest flow, hidden-actor scans, RPCs, and gameplay-save state. `Verify-PlayerControls.ps1` runs this audit before its fresh-pawn host/client scenario; `Verify-InventoryPanelRemoval.ps1` includes it in the reconnect/HUD-absence preflight.
 
-After a forced editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered -Port <unused-port>` from the same isolated project copy. Its fresh-pawn host/client path captures the arrival card while the existing fixture verifies local jump/sprint input and server-observed remote movement. The fixture uses a development-only movement-test flag, but the tutorial presenter has no opt-in flag and shows the arrival card without one. Inspect both 1280×720 captures for the text, bound controls, and compass shape. These checks do not render every contextual beat, simulate physical controller input, or replace the final packaged 20–30 minute no-developer-tools acceptance in `docs/12-vertical-slice-runbook.md`.
+After a forced editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered -Port <unused-port>` from the same isolated project copy. Its fresh-pawn host/client path verifies local jump/sprint input and server-observed remote movement, with the tutorial absence audit as a preflight. Inspect both 1280×720 captures for the absence of the bottom card while checking essential status/action notifications remain visible. The fixture uses a development-only movement-test flag. It does not simulate physical controller input or replace the final packaged 20–30 minute no-developer-tools acceptance in `docs/12-vertical-slice-runbook.md`.
 
 ### M3 rain vertical-slice verification
 
@@ -1580,7 +1700,7 @@ ingredients, stations, and outputs, use the catalogue contract in
 `docs/28-m9-camp-equipment-recipes.md` and the focused current-catalogue tests
 listed below.
 
-The Cooking Rack, Cauldron, and Frying Pan use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. The server resolves each required station and derives heat needs from its cooking identity. A food recipe requires a usable Lit hearth with finite positive heat within 250 cm of both player and station. Looking at a rack, cauldron, or frying pan shows a remappable Interact prompt; the default E interaction is rerun by the server, which replicates the selected station identity and opens an owner-local GUI filtered to that station's recipes. The filter does not authorize crafting: the server independently checks the recipe's visible same-world station, live hearth heat, private inventory, and atomic ingredient exchange. Each recipe exchange consumes only the listed ingredients; the hearth burns its fuel by elapsed server time at the ordinary one-fuel-second-per-second rate. A serving batch creates no raw-fuel item debit or hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming an accepted meal and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. `HearthBroth` remains an item without a production recipe; food recipes and outputs are enumerated in `docs/28-m9-camp-equipment-recipes.md`. Food remains optional, with no hunger drain or travel requirement. Food and the effect remain transient; no save schema changed.
+The Cooking Rack, Cauldron, and Frying Pan use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. The server resolves each required station and derives heat needs from its cooking identity. A food recipe requires a usable Lit hearth with finite positive heat within 250 cm of both player and station. Looking at a rack, cauldron, frying pan, or Workbench shows a remappable Interact prompt; the default E interaction is rerun by the server, which replicates the selected station identity only to its owner. The shared themed shell opens the Cooking Rack, Cauldron, and Frying Pan Cook sections and the Workbench Craft section. Workbench Craft filters to recipes requiring that station or producing its matching Tool Rack attachment, plus the Bronze Axe tool operation; it reports material requirements, effective level, and current Tool Rack state. The exact accepted actor and stable construction ID bind the section, and the shell closes if that actor is destroyed, leaves range, or the owning pawn changes. The older CraftMenu remains available. The filter and shell do not authorize crafting: the server independently validates each recipe/tool request against the visible same-world station, required levels, private inventory, and atomic material exchange. `Kalmala.Gameplay.Food.CookingStationHeat` asserts the exact accepted Cooking Rack context and Workbench interaction identity; the M12 `Verify-Crafting.ps1` presentation check also audits Workbench Craft's limited outputs and Bronze Axe prerequisites on both peers. Each recipe exchange consumes only the listed ingredients; the hearth burns its fuel by elapsed server time at the ordinary one-fuel-second-per-second rate. A serving batch creates no raw-fuel item debit or hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming an accepted meal and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. `HearthBroth` remains an item without a production recipe; food recipes and outputs are enumerated in `docs/28-m9-camp-equipment-recipes.md`. Food remains optional, with no hunger drain or travel requirement. Food and the effect remain transient; no save schema changed.
 
 Each successful prepared-food recipe transaction awards one fixed 10 Cooking experience through the existing server-owned skill component, regardless of its serving batch. The award happens only after the atomic private-pack exchange succeeds. Rejected stations, heat, quantities, inputs, or output capacity award no experience; client-side calls cannot reach the award path. The award is transient. `Kalmala.Gameplay.Food.CookingStationHeat` checks the station-local heat rule, no recipe fuel debit, and time-based fire burn; `Kalmala.Gameplay.Crafting.Transactions` checks recipe batches and raw-fuel selection for hearth refuelling.
 
@@ -1785,29 +1905,37 @@ directory. It checks the paid Workbench recipe, generic construction save and
 placement allowlists, repair of every damaged/broken carried tool, unchanged
 full tools and levels, and whole-action rejection for client authority,
 missing Grinding Stone validation, malformed records, duplicates, and an
-oversized list. In-world use is server-only: interact with a visible accepted
-Grinding Stone within 250 cm; the server reads and repairs the owner's current
-carried list, with no client-supplied IDs/conditions, cost, or Crafting XP.
+oversized list. A repeated Repair All against already repaired tools is an
+accepted no-op whose candidate preserves every tool ID, level, and condition.
+In-world use is server-only: the remappable Interact action (default E) targets
+a visible accepted Grinding Stone within 250 cm; the server reads and repairs
+the owner's current carried list, with no client-supplied IDs/conditions, cost,
+or Crafting XP.
 The accepted transaction sends a parameterless cosmetic multicast for the
 1.2-second procedural sharpening pose; no gameplay or saved state is carried.
 Run `Kalmala.Gameplay.Tools.SharpeningPresentation` with the same isolated
 editor automation setup to check its bounded three-stroke pose and return to
 the current gait. This pose test does not replace rendered in-world review.
+`Kalmala.UI.InteractionPrompt.Presentation` checks the action-only “Repair all”
+prompt, absence of key legends, and stable text when Interact is remapped.
+`Scripts/Verify-InteractionPrompt.ps1 -Rendered` captures the Grinding Stone
+prompt state on both host and client. In the M12 `Scripts/Verify-Crafting.ps1`
+fixture, the server sends one Interact request at a fresh visible Grinding
+Stone and requires exactly one accepted action result, unchanged full tools and
+pack, unchanged station/menu context, and the concise already-full feedback.
+These interaction and rendering fixtures prepare part of the later M12
+host/client acceptance; they do not replace a live damaged-tool repair review.
 
 ### M9 owner-local tool progression feedback
 
-After the forced editor build, run `Scripts/Verify-Crafting.ps1 -Rendered`
-with an unused port. Require `M9 tool feedback: Passed=1` on both the listen
-server and joining client. The check covers private carried-tool status,
-current/target axe levels, material costs and available quantities, matching
-station levels and missing-station requirements, the attachment persistence
-gate, and selected-tool plus Grinding Stone Repair All guidance. The fixture
-captures both 1280x720 peers at the panel's initial scroll
-position; its M9 checks assert the off-screen tool-feedback text through the
-widget presentation seam, so the captures do not visually review the scrolled
-tool section. This fixture checks presentation and existing owner-local data
-flow; it adds no server request, gameplay authority, replicated field, or save
-schema.
+The former combined M9 Build-panel text probe was retired when M12 removed the
+legacy progression panel from standalone Build. Tool progression remains in
+its Workbench Craft and Forge Upgrade contexts. `Scripts/Verify-Crafting.ps1`
+requires both peer markers for the Workbench Bronze Axe prerequisites and
+passive Tool Rack status, plus Forge Upgrade requirements/comparison and the
+passive Anvil status. These checks inspect the current station-scoped
+presentation; they add no server request, gameplay authority, replicated
+field, or save schema.
 
 ### M9 Construction Hammer and direct builds
 
@@ -2087,3 +2215,311 @@ regressions, then run presentation-ownership, M5 documentation contracts,
 PowerShell parsing for changed scripts, `git diff --check`, and the 260-character
 path audit. Full scale/contrast/reopen rendering remains in the later M11
 acceptance pass. See `38-menu-browsing.md` for the local-state contract.
+## M12 Workbench Repair section
+
+The Workbench context shell opens Craft by default and lets the owner switch to
+Repair without closing the accepted station context. Repair shows only that
+owner's carried repairable tools, with their authored level and current
+condition, through a separate selection widget from the Craft recipe state.
+The free repair request reuses `ServerRepairTool` and submits only the selected
+tool ID. The server reads the owner's current tool record, validates a visible
+same-world Workbench or Forge within 250 cm, persists the repaired state, and
+publishes the result only to the owner. Full tools and invalid client-side
+selections do not dispatch a request; the server remains the authority for
+station, tool, and persistence rejection.
+
+`Verify-Crafting.ps1` expects a `Workbench Repair scope` result from both host
+and client. It checks owner-pawn sourcing, tool-only rows, visible condition,
+selection independence from Craft, hidden unrelated controls, and that an
+invalid/stale context dispatches no repair request. `Verify-PresentationOwnership.ps1`
+also checks the owner-only carried-tool and repair-result replication contracts
+and the ID-only server route. The existing
+`Kalmala.Gameplay.Tools.LifecycleContract` covers server repair authority,
+unknown/full/invalid tools, missing stations, and rejected-state preservation.
+The rendered menu and physical controller review remain part of M12's final
+acceptance.
+
+## M12 Forge Craft section
+
+An accepted Forge interaction opens the shared station shell in Craft. Its
+recipe filter includes only recipes requiring the Forge and recipes producing
+its matching attachment, including Frying Pan production and Forge Anvil.
+Ingredient rows and selected recipe requirements retain the catalogue costs,
+station requirement, and current availability. A status line reads the
+effective level and Anvil attachment state from the accepted Forge actor. Craft
+requests continue through the existing recipe-ID/batch RPC without a
+client-selected station or costs; the server revalidates station
+visibility/range, recipe identity, inventory and material exchange. The Craft
+section hides Workbench-only Bronze Axe operations and
+unrelated build, food, repair, and storage controls.
+
+`Verify-Crafting.ps1` expects a `Forge Craft scope` marker from both host and
+client. Its prepared source assertion covers the Frying Pan's five-Iron Forge
+recipe, matching Forge Anvil attachment, station-only recipe filter, accepted
+interaction routing, and focused Craft presentation. The focused
+`Kalmala.Gameplay.Food.CookingStationHeatContract` also checks the owner's exact
+accepted Forge actor/kit/ID and interaction serial. Full runtime host/client
+execution and rendered inspection remain in M12's final acceptance.
+
+## M12 Forge Upgrade section
+
+The Forge menu opens Craft by default and lets the owner switch to Upgrade
+without closing the accepted station context. Upgrade shows the carried
+Bronze Axe's level and condition against the level-two Iron Axe at its authored
+starting condition; it lists Forge level 2, Crafting level 5 and the second-tier
+unlock, the Bronze Axe level-one prerequisite, and every material cost with the
+owner's current counts. It presents the first unmet requirement and enables the
+existing Upgrade action only when the owner-visible progression is ready. The
+action calls `ServerProgressTool` with only `IronAxe`; the server still chooses
+a visible same-world Forge, validates the exact authored prerequisites, commits
+the material/tool exchange, and persists the owner state. A stale or invalid
+station context dispatches no upgrade request. Forge level/Anvil status remains
+bound to the accepted actor; the progression and inventory state remain
+owner-only.
+
+`Verify-Crafting.ps1` requires a `Forge Upgrade scope` result from both host
+and client. The focused marker checks target comparison, authored station/skill
+requirements, all catalogue costs, unavailable-state presentation, section
+routing and scope, plus no request from stale context. The existing
+`Kalmala.Gameplay.M9.ToolStationProgression` covers server acceptance/rejection,
+the Bronze-to-Iron exchange, costs, and unchanged candidates after rejection.
+Run the full host/client and rendered checks only in M12 milestone-final
+verification.
+
+## M12 Forge Repair section
+
+The Forge shell adds a Repair section beside Craft and Upgrade. It reuses the
+owner-only carried-tool inspector and condition rows, with selection independent
+of both the recipe index and the Upgrade presentation. A repair request contains
+only the selected tool ID and uses the existing `ServerRepairTool` path; the
+server still reads the owner's current tool record and accepts only a visible
+same-world Workbench or Forge within 250 cm. Invalid or stale Forge context
+dispatches no request. The accepted Forge context remains bound to its exact
+actor and stable construction ID for UI lifetime, but the existing server
+repair rule may resolve another qualifying nearby station.
+
+`Verify-Crafting.ps1` requires `Forge Repair scope` from both host and client.
+Its prepared marker covers owner-only tool rows and condition, Repair tab
+routing, selection independence from Forge Upgrade and Craft, hidden unrelated
+operations, unavailable-context feedback, and no request after context expiry.
+`Verify-PresentationOwnership.ps1` checks that the client routes only a tool ID
+and that repair results remain owner-only. Existing
+`Kalmala.Gameplay.Tools.LifecycleContract` retains server authority, station,
+unknown/full/invalid-tool, and rejected-state coverage. Runtime and rendered
+host/client execution remain in M12 final verification.
+
+## M12 Cooking Rack menu
+
+The Cooking Rack shell shows only Cooked Boar Meat and Cooked Deer Meat. The
+selected food uses the shared result description, live owned/required ingredient
+counts, the existing one-batch-per-press and five-batch request limit, and a
+live hearth-heat summary derived from the existing recipe-availability path.
+Losing the exact accepted rack context disables Cook and sends no recipe request.
+The owning client submits the existing recipe identity and batch-one request;
+the server still selects a visible same-world Cooking Rack, validates positive
+lit-hearth heat at both the player and station, checks materials/output capacity,
+and commits the existing exchange.
+
+`Verify-Crafting.ps1` expects `Cooking Rack scope: Recipes=1 Ingredients=1
+Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1` on
+both peers. Its focused UI marker covers the two catalogue recipes, their
+ingredient counts and quantity limits, result description, live availability
+presentation, hidden unrelated operations, and no request from an invalid
+context. `Verify-PresentationOwnership.ps1` checks the local availability read
+and existing ID/batch request route. The existing
+`Kalmala.Gameplay.Food.CookingStationHeat` automation covers server acceptance
+and missing-heat rejection for the accepted Cooking Rack. Run these checks with
+the full rendered menu matrix during M12 milestone-final verification.
+
+## M12 Cauldron menu
+
+The Cauldron opens the shared station shell in Cook with only Meat Stew and Root
+Vegetable Soup. Each selection shows its owner-visible ingredient counts,
+existing one-batch-per-press and five-batch request limit, selected result
+description, and live hearth-heat availability. Expired station context disables
+Cook and sends no recipe request; the server's existing recipe-ID request and
+station, heat, cost, capacity, and exchange validation remain authoritative.
+
+`Verify-Crafting.ps1` expects `Cauldron scope: Recipes=1 Ingredients=1
+Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1` on
+both peers. The focused UI marker checks the two catalogue recipes and their
+authored ingredient costs, quantity limits, selected descriptions, heat requirement/status, hidden unrelated
+actions, and stale-context request suppression. `Verify-PresentationOwnership.ps1`
+checks the Cauldron recipe filter, owner-local availability read, and existing
+ID/batch request route. Run the prepared checks with the full rendered menu
+matrix during M12 milestone-final verification.
+
+## M12 Frying Pan menu
+
+The Frying Pan opens the shared station shell in Cook with only Roasted Root
+Vegetables and Deer and Rutabaga Roast. Each selection shows its owner-visible
+ingredient counts, existing one-batch-per-press and five-batch request limit,
+selected result description, and live hearth-heat availability. Expired station
+context disables Cook and sends no recipe request. The narrow UI fixture also
+keeps the three interactions distinct: `FryingPanRecipe` makes the pan at a
+Forge for five Iron, the Construction Hammer Build catalogue places it, and the
+placed pan cooks the two food recipes.
+
+`Verify-Crafting.ps1` expects `Frying Pan scope: Recipes=1 Ingredients=1
+Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1` on
+both peers. The marker checks the authored ingredients and quantity limits,
+result descriptions, heat presentation, exact pan recipe filter, Forge
+production/build-placement separation, hidden unrelated actions, and stale
+context request suppression. `Verify-PresentationOwnership.ps1` checks the
+owner-local availability read and existing recipe-ID/batch request route. Run
+the prepared checks with the full rendered menu matrix during M12 milestone-final
+verification.
+
+## M12 Chest storage menu
+
+An accepted Chest interaction opens the shared station shell in Store. Its pack
+selector reads only the local owner's current pack; its chest selector reads the
+existing owner-only `StorageView`. Both show item descriptions, icons, and
+counts. The summary reports occupied slots out of 16 for each destination and
+disables Store or Take when the selected item, stack, or destination capacity
+cannot accept one item. The UI submits only the selected item ID through the
+existing deposit/withdraw RPCs. On the server, each request refreshes and
+revalidates the exact active chest, visibility/range, current inventory, stack
+limits, and persistence before publishing inventory changes. Closing or losing
+the accepted chest context clears the private snapshot; no RPC or save schema
+is added.
+
+`Verify-Crafting.ps1 -Port <unused-port>` requires
+`Chest scope: OwnerPack=1 OwnerChest=1 Capacity=1 Route=1 StaleNoRequest=1
+UiScope=1` on both peers. Its focused marker checks the owner-local lists,
+capacity feedback, StorageKit interaction route, hidden unrelated actions, and
+no dispatch from a stale context. `Verify-PresentationOwnership.ps1` checks the
+owner-only replication conditions and selected-ID transfer routes.
+`Scripts/Verify-Storage.ps1 -Port <unused-port>` covers the live two-peer
+deposit/withdraw transactions, capacity/conservation, private snapshots, and
+restart persistence. Run those checks with the rendered Chest menu review in
+M12 milestone-final verification; the focused crafting marker alone does not
+replace the live transfer fixture.
+
+## M12 Campfire direct refuelling
+
+Looking at a placed Campfire shows **Add fuel** for the remappable Interact
+action. The server interaction must consume exactly one raw item in the
+existing Wood, Lightwood, Densewood, Coal priority, add 60 seconds up to the
+300-second cap, and leave the hearth state unchanged. Its visible-target trace,
+same-world access, and 250 cm range remain required. Lighting stays on the
+separate existing Build-menu action until the goal-7 cleanup child.
+
+`Scripts/Verify-Crafting.ps1 -Port <unused-port>` requires the server marker
+`Campfire interaction: AddedOne=1 NoLighting=1 FullRejected=1
+NoFuelRejected=1 RangeRejected=1`. The fixture reaches the target through the
+normal server Interact trace and checks priority payment, no-lighting behavior,
+full-capacity and no-fuel preservation, and out-of-range rejection.
+`Kalmala.UI.InteractionPrompt.Presentation` covers the action-only prompt and
+explicit no-fuel/full reasons; `Verify-PresentationOwnership.ps1` checks the
+existing server-owned raw-fuel route and owner-local prompt source. Run the
+host/client runtime and rendered prompt review with the M12 milestone-final
+verification.
+
+## M12 Build catalogue scope
+
+The standalone Construction Hammer menu defaults to the supported placeable
+catalogue and cycles only All builds, Structural pieces, Stations and Camp
+utilities. Bootstrap construction remains available. Station-required item
+production and station attachments remain in their matching Workbench/Forge
+service section; their placeable outputs stay in Build for preview/placement,
+but production is disabled there. The existing selected-output ingredient
+counts, direct-material cost substitution, local preview and server placement
+routes remain intact.
+
+The `Kalmala.UI.Crafting.LocalBrowsing` automation checks that the default Build
+grid equals the supported placement outputs, includes the bootstrap/station/
+attachment recipes, excludes non-placeable outputs, and rejects Build-menu
+production for service-only recipes. `Verify-Crafting.ps1 -Rendered` reviews
+All builds and its named groups plus bootstrap and station-kit costs/requirements
+on both peers. Workbench/Forge scope markers continue to check their production
+lists. Run the affected UI build, full queue, host/client rendered matrix,
+presentation ownership and documentation checks during M12 milestone-final
+verification; this child does not claim those runtime results.
+
+## M12 Build context cleanup
+
+Standalone Build retains placeable browsing, material details, local preview,
+placement, latest action feedback, and the explicit **Light hearth** action.
+The old pack inspector, food controls, raw-fuel button, repair/upgrade panels,
+and chest lists are removed from Build. Inventory/food use lives in Inventory;
+repair and upgrade live in Workbench/Forge contexts; storage lives in Chest.
+Campfire Interact replaces the raw-fuel button, but it only refuels, so the
+separate Light action remains until an equivalent relight route is integrated.
+
+After an affected UI build, `Verify-Crafting.ps1` requires
+`Build context cleanup: Header=1 ObsoleteHidden=1 Placement=1 Relight=1 Status=1
+StorageShell=1` on both peers, alongside Workbench `PassiveRack=1` and Forge
+`PassiveAnvil=1`. Its rendered matrix captures the cleaned standalone Build
+menu and verifies the clean view after category/no-results recovery. Run the
+full queue, host/client rendered matrix, ownership and documentation checks
+during M12 milestone-final verification; this child does not claim those
+runtime results.
+
+## M12 catalogue icon integration
+
+The shared recipe/build grid, selected-output preview and Forge Upgrade target
+use imported canonical textures through `UKalmalaIconWidget`. Each row retains
+its own player-facing name, availability, selection/focus and structured
+requirements. Run `Kalmala.UI.CatalogueIcons.CompleteCoverage` after an affected
+editor build to verify imported texture paths and loads for all current item,
+tool and recipe-output identities. `Scripts/Verify-Crafting.ps1` also requires
+`Catalogue icons: Grid=1 Selected=1 Upgrade=1` from both peers; the grid flag
+checks each visible recipe output against its canonical loaded texture.
+
+The canonical icon count remains 48: 41 normal item definitions, six carried
+tools, and the Campfire construction identity. CampfireKit remains in the
+shared icon map and recipe/build/preview views but is not a pack or storage
+item. The status icon gallery includes unique recipe/build identities so the
+construction-only Campfire texture is included in the same count.
+
+During M12 milestone-final verification, use
+`Scripts/Verify-Crafting.ps1 -Rendered` for Build categories and station
+craft/upgrade contexts, and inspect the selected-output and unavailable views
+for readable image, name, count, focus and requirement overlays. Review host and
+client captures. Once Favorite/Rank/Recent markers are present, render a card
+showing all applicable markers at once and confirm none overlap each other or
+the object image. Keep badges as independent UI overlays; unknown IDs must keep
+the honest fallback and no supported manifest identity may use it. This
+increment prepares these assertions; it does not perform the M12 rendered
+acceptance or full verification.
+
+## M12 direct construction descriptor split
+
+Direct-material recipes keep their stable construction identities in the
+runtime `BuildableOutput` field; `Output` is reserved for actual inventory
+results. The catalogue loader maps the legacy Campfire `HearthRing` reference
+to `CampfireKit` in that construction field. `Kalmala.Gameplay.Inventory.Catalogue`
+checks that the descriptor validates with no Campfire item entry, that normal
+recipe scaling rejects direct construction output, and that the legacy source
+reference still resolves to the stable construction identity.
+`Kalmala.Gameplay.Crafting` and `Kalmala.UI.Crafting.LocalBrowsing` retain
+raw-cost, Build-menu, icon, and placement selection coverage. Run the focused
+automations after an affected editor build; confirm paid placement and
+failed-placement conservation in the M12 milestone-final
+`Verify-Crafting.ps1` host/client run.
+
+## M12 Campfire item retirement
+
+`GameCatalogues.json` has 41 normal item definitions after removing the
+HearthRing inventory row. The Campfire recipe still uses source output
+`HearthRing`, which the loader maps to `BuildableOutput=CampfireKit`; recipe
+and placed-result text say Campfire. CampfireKit remains an internal stable
+construction identity and icon key, never an inventory output. Keep the
+existing 5 Stone + 3 Wood direct cost and one priority-selected raw fuel item.
+
+`Kalmala.Gameplay.Inventory.Catalogue` asserts the item is absent while the
+recipe descriptor validates. `Kalmala.Gameplay.Construction.Schema2Migration`
+retains a CampfireKit save-record round trip. `Kalmala.Gameplay.Crafting`
+continues to cover successful payment and overlap rejection without payment;
+the placement path still allocates before the atomic inventory exchange and
+destroys the deferred actor if payment fails. No save schema or construction
+identity changes. The generic saved-construction path stores the stable kit ID
+and restores supported records through `AKalmalaConstructionActor`. Live
+`AKalmalaCampfire` gameplay actors remain outside that generic construction
+save, as before.
+
+At M12 milestone-final verification, run the applicable automation queue and
+the rendered host/client `Scripts/Verify-Crafting.ps1` matrix. This child only
+prepares the contracts; it does not run a build, runtime scenario, or rendered
+acceptance.

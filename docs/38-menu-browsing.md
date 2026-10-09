@@ -114,25 +114,49 @@ acceptance; full scale/contrast/owner integration remains the ordered final chil
 
 ## Build browsing
 
-The same local search/order/category controls now cycle through All builds,
-Structural pieces, Stations and Camp utilities after the existing recipe
-categories. Classification reads the existing recipe output and placement
-support contract: Floor and shelter pieces are structural; existing crafting
-stations are Stations; other supported placeables (hearth, storage, station
-attachments and grinding stone) are Camp utilities. Unknown or non-placeable
-outputs never enter a build group. No catalogue metadata, identity or save is
-changed. Each build card retains its named group above the canonical display
-name through refresh. All builds groups structural/station/utility entries in
-that order; Catalogue order preserves original relative order within groups,
-and Name order sorts within groups. Individual group filters use ordinary
-catalogue/name ordering. All retains the original full catalogue order.
+The standalone Construction Hammer Build menu defaults to All builds and its
+category control cycles only All builds, Structural pieces, Stations and Camp
+utilities. It never exposes cooking or other station-service production.
+Classification reads the existing recipe output and placement support
+contract: Floor and shelter pieces are structural; existing crafting stations
+are Stations; other supported placeables (hearth, storage, station attachments
+and grinding stone) are Camp utilities. Unknown or non-placeable outputs never
+enter the Build grid. No catalogue metadata, identity or save is changed. Each
+build card retains its named group above the canonical display name through
+refresh. All builds groups structural/station/utility entries in that order;
+Catalogue order preserves original relative order within groups, and Name
+order sorts within groups. Individual group filters use ordinary catalogue/name
+ordering.
 
-Search and station scope intersect these groups. Selection remains canonical
-through sorting and falls back when filtered away; no results disables Craft
-and clears cards/details. Existing Page Up/Down, focused button activation,
-text editing and modal close/navigation behavior apply. Browsing only copies
+Page Up/Down, focused button activation, text editing and modal
+close/navigation remain available in the standalone Build menu.
+
+Search and category scope intersect these placeables. Selection remains
+canonical through sorting and falls back when filtered away; no results
+disables actions and clears cards/details. Bootstrap structures with no station
+requirement can still be produced from the Build menu. Recipes that require a
+station, and station-attachment recipes, remain visible as placeable outputs,
+but their production action is disabled here and names the matching service
+menu. Workbench/Forge service contexts retain their station-scoped production
+recipes. Existing ingredient counts, direct-material costs, preview, and
+placement remain tied to the selected supported output. Browsing only copies
 indices and cancels an obsolete local placement preview; server availability,
 material validation and transactions remain independent.
+
+Build no longer shows the old pack inspector, food-use, refuelling, repair,
+upgrade, or chest lists. Inventory and food use remain in the Inventory menu;
+repair, upgrade, and storage remain in their Workbench, Forge, and Chest
+contexts. Campfire Interact replaces the old Build refuel action. **Light
+hearth** remains in Build because Campfire Interact only adds fuel and does not
+relight an extinguished hearth. The Build feedback block contains only the
+latest action result and local placement-preview result; it no longer lists
+nearby fires, constructions, workbenches, or carried-tool condition.
+
+`Verify-Crafting.ps1` checks the obsolete-control visibility set, retained
+placement and relight actions, filtered Build feedback, and visible Workbench
+Tool Rack / Forge Anvil status. Its rendered review includes a clean Build
+capture after browse recovery; Inventory menu browsing remains covered by
+`Kalmala.UI.InventoryMenu.Selection`.
 
 Child verification extends Kalmala.UI.Crafting.LocalBrowsing with exact supported
 build coverage, disjoint populated groups, name search, group order, unknown

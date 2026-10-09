@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaIconWidget.h"
 #include "Misc/AutomationTest.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/TextBlock.h"
@@ -19,6 +20,31 @@ bool FKalmalaItemDetailTest::RunTest(const FString& Parameters)
     }
     TestEqual(TEXT("Unknown identity has explicit fallback"),
         UKalmalaItemDetailWidget::DescribeItem(TEXT("UnknownItem"), TEXT("")), FString(TEXT("Description unavailable.")));
+    struct FExpectedToolCopy
+    {
+        FName ToolId;
+        const TCHAR* Description;
+    };
+    const FExpectedToolCopy ToolCopies[] = {
+        { TEXT("ReedKnife"), TEXT("A light blade for gathering plants and reeds.") },
+        { TEXT("FieldHatchet"), TEXT("A hand hatchet for gathering wood.") },
+        { TEXT("StonePick"), TEXT("A stone-headed pick for mining.") },
+        { TEXT("BronzeAxe"), TEXT("A bronze axe for harvesting Lightwood.") },
+        { TEXT("IronAxe"), TEXT("An iron axe for harvesting Densewood.") },
+        { TEXT("ConstructionHammer"), TEXT("A hand hammer for placing camp structures.") },
+    };
+    for (const FExpectedToolCopy& Expected : ToolCopies)
+    {
+        TestEqual(FString::Printf(TEXT("%s uses its reviewed tool description and owner state"), *Expected.ToolId.ToString()),
+            UKalmalaItemDetailWidget::DescribeCarriedTool(Expected.ToolId, TEXT("Condition 17/40")),
+            FString(TEXT("Carried equipment\n\n")) + Expected.Description + TEXT("\n\nCondition 17/40"));
+        TestEqual(FString::Printf(TEXT("%s description stands alone without tool state"), *Expected.ToolId.ToString()),
+            UKalmalaItemDetailWidget::DescribeCarriedTool(Expected.ToolId, TEXT("")),
+            FString(TEXT("Carried equipment\n\n")) + Expected.Description);
+    }
+    TestEqual(TEXT("Unknown carried tool has an explicit description fallback"),
+        UKalmalaItemDetailWidget::DescribeCarriedTool(TEXT("UnknownTool"), TEXT("")),
+        FString(TEXT("Carried equipment\n\nDescription unavailable.")));
     auto* Panel = NewObject<UKalmalaItemDetailWidget>();
     Panel->Initialize();
     Panel->SetItem(TEXT("Wood"), TEXT("Wood"), TEXT("x 7"), 150, 1);
@@ -26,10 +52,27 @@ bool FKalmalaItemDetailTest::RunTest(const FString& Parameters)
     TArray<UWidget*> Widgets;
     Panel->WidgetTree->GetAllWidgets(Widgets);
     bool bFoundDetails = false;
+    bool bFoundLoadedItemImage = false;
     for (auto* Widget : Widgets)
+    {
         if (const auto* Text = Cast<UTextBlock>(Widget))
             bFoundDetails |= Text->GetText().ToString() == UKalmalaItemDetailWidget::DescribeItem(TEXT("Wood"), TEXT("x 7"));
+        if (const auto* Icon = Cast<UKalmalaIconWidget>(Widget))
+            bFoundLoadedItemImage |= Icon->HasCatalogueTexture();
+    }
     TestTrue(TEXT("High-contrast scaled panel binds current owner-visible data"), bFoundDetails);
+    TestTrue(TEXT("Selected item detail shows its imported catalogue image"), bFoundLoadedItemImage);
+    Panel->SetCarriedTool(TEXT("ReedKnife"), TEXT("Reed Knife"), TEXT("Condition 17/40"), 100, 0);
+    TArray<UWidget*> ToolWidgets;
+    Panel->WidgetTree->GetAllWidgets(ToolWidgets);
+    bool bFoundToolDetails = false;
+    for (auto* Widget : ToolWidgets)
+    {
+        if (const auto* Text = Cast<UTextBlock>(Widget))
+            bFoundToolDetails |= Text->GetText().ToString()
+                == UKalmalaItemDetailWidget::DescribeCarriedTool(TEXT("ReedKnife"), TEXT("Condition 17/40"));
+    }
+    TestTrue(TEXT("Shared panel binds reviewed tool copy with current condition"), bFoundToolDetails);
     return true;
 }
 #endif

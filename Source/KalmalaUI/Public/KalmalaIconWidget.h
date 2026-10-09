@@ -3,7 +3,9 @@
 #include "Blueprint/UserWidget.h"
 #include "KalmalaIconWidget.generated.h"
 
-/** Original line art shared by read-only HUD and catalogue presentation. */
+class UTexture2D;
+
+/** Shared imported catalogue images with the original vector icon as fallback. */
 enum class EKalmalaIcon : uint8
 {
     Unknown, Drop, Sun, Snow, Cloud, Storm, Bowl, Shield, Cross, Paw, Antlers,
@@ -18,7 +20,12 @@ class KALMALAUI_API UKalmalaIconWidget : public UUserWidget
 public:
     void SetIcon(EKalmalaIcon InIcon, int32 InVariant = 0);
     void SetCueColor(const FLinearColor& InColor);
+    void SetCatalogueIcon(FName CanonicalId);
     static bool FindCatalogueIcon(FName CanonicalId, EKalmalaIcon& OutIcon, int32& OutVariant);
+    bool HasCatalogueTexture() const { return CatalogueTexture != nullptr; }
+#if !UE_BUILD_SHIPPING
+    FName GetCatalogueIdForTest() const { return CatalogueId; }
+#endif
 protected:
     virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling,
         FSlateWindowElementList& Elements, int32 Layer, const FWidgetStyle& Style, bool bEnabled) const override;
@@ -26,4 +33,7 @@ private:
     EKalmalaIcon Icon = EKalmalaIcon::Unknown;
     int32 Variant = 0;
     FLinearColor CueColor = FLinearColor::Transparent;
+    FName CatalogueId = NAME_None;
+    UPROPERTY(Transient)
+    TObjectPtr<UTexture2D> CatalogueTexture = nullptr;
 };

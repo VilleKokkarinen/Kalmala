@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaInventoryMenuWidget.h"
 #include "KalmalaCatalogueRowsWidget.h"
+#include "KalmalaIconWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/EditableTextBox.h"
@@ -20,6 +21,7 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     {
         auto* Menu = NewObject<UKalmalaInventoryMenuWidget>();
         Menu->Initialize();
+        Menu->SetInventoryRowsForVerification({}, 100, 0);
         return Menu;
     };
     auto DetailText = [](UKalmalaInventoryMenuWidget* Menu)
@@ -45,6 +47,8 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TestNotNull(TEXT("First owner inventory menu initializes"), OwnerA);
     TestNotNull(TEXT("Second owner inventory menu initializes"), OwnerB);
     if (!OwnerA || !OwnerB) return false;
+    TestEqual(TEXT("Normal gameplay keeps Inventory collapsed until opened"),
+        OwnerA->GetVisibility(), ESlateVisibility::Collapsed);
 
     const TArray<FKalmalaCatalogueRow> OwnerARows = {
         {TEXT("Wood"), TEXT("Wood"), TEXT("× 7"), false},
@@ -75,6 +79,25 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Tool row remains separate from the sixteen pack slots"), OwnerARowsView->GetCarriedToolCount(), 1);
         TestEqual(TEXT("Tool does not consume a pack slot"), OwnerARowsView->GetFilledSlotCount(), 2);
         TestEqual(TEXT("Pack grid retains its empty cells"), OwnerARowsView->GetEmptySlotCount(), 14);
+        TArray<UWidget*> RowWidgets;
+        OwnerARowsView->WidgetTree->GetAllWidgets(RowWidgets);
+        int32 ImageCount = 0;
+        bool bAllImagesLoaded = true;
+        FString CardLabels;
+        for (UWidget* Child : RowWidgets)
+        {
+            if (const auto* Icon = Cast<UKalmalaIconWidget>(Child))
+            {
+                ++ImageCount;
+                bAllImagesLoaded &= Icon->HasCatalogueTexture();
+            }
+            if (const auto* Label = Cast<UTextBlock>(Child)) CardLabels += Label->GetText().ToString();
+        }
+        TestEqual(TEXT("Pack items and carried tools each retain an icon cell"), ImageCount, 3);
+        TestTrue(TEXT("Known pack/tool identities load their shared textures"), bAllImagesLoaded);
+        TestTrue(TEXT("Stack and tool condition counts remain readable beside icons"),
+            CardLabels.Contains(TEXT("× 7")) && CardLabels.Contains(TEXT("× 2"))
+                && CardLabels.Contains(TEXT("Condition 17/40")));
     }
 
     OwnerA->StepSelectionForVerification(1);
@@ -87,6 +110,7 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
         OwnerA->GetSelectedItemForVerification(), FName(TEXT("ReedKnife")));
     TestTrue(TEXT("Selected tool detail shows its owner-visible level and condition"), DetailText(OwnerA).Contains(TEXT("Condition 17/40")));
     TestFalse(TEXT("First owner's tool detail excludes the second owner's condition"), DetailText(OwnerA).Contains(TEXT("Condition 8/55")));
+    OwnerB->StepSelectionForVerification(1);
     TestTrue(TEXT("Second owner's tool detail keeps its own condition"), DetailText(OwnerB).Contains(TEXT("Condition 8/55")));
     TestFalse(TEXT("Second owner's tool detail excludes the first owner's condition"), DetailText(OwnerB).Contains(TEXT("Condition 17/40")));
 
@@ -132,14 +156,14 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Menu and item area retain scroll fallbacks for viewport/text growth"), ScrollBoxCount >= 2);
         BrowsingMenu->SetViewportSizeForVerification(FVector2D(480.0f, 320.0f));
         TestEqual(TEXT("Inventory menu width leaves a viewport margin after resize"),
-            BrowsingMenu->GetPanelSizeForVerification().X, 448.0f);
+            BrowsingMenu->GetPanelSizeForVerification().X, 448.0);
         TestEqual(TEXT("Inventory menu height leaves room for outer scrolling after resize"),
-            BrowsingMenu->GetPanelSizeForVerification().Y, 288.0f);
+            BrowsingMenu->GetPanelSizeForVerification().Y, 288.0);
         BrowsingMenu->SetViewportSizeForVerification(FVector2D(1024.0f, 768.0f));
         TestEqual(TEXT("Inventory menu returns to its normal width after resize"),
-            BrowsingMenu->GetPanelSizeForVerification().X, 640.0f);
+            BrowsingMenu->GetPanelSizeForVerification().X, 640.0);
         TestEqual(TEXT("Inventory menu returns to its normal height after resize"),
-            BrowsingMenu->GetPanelSizeForVerification().Y, 560.0f);
+            BrowsingMenu->GetPanelSizeForVerification().Y, 560.0);
         TestNotNull(TEXT("Inventory has an editable search control"), SearchBox);
         TestTrue(TEXT("Browse controls have visible category and sort labels"),
             BrowseLabels.Contains(TEXT("Category: All")) && BrowseLabels.Contains(TEXT("Sort: Owner order")));
@@ -275,9 +299,20 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Empty owner pack clears selection"), OwnerA->GetSelectedItemForVerification(), NAME_None);
     TArray<UWidget*> Widgets;
     OwnerA->WidgetTree->GetAllWidgets(Widgets);
+    bool bFoundEmptyPackGrid = false;
     for (UWidget* Widget : Widgets)
+    {
+        if (const auto* Rows = Cast<UKalmalaCatalogueRowsWidget>(Widget))
+        {
+            bFoundEmptyPackGrid = true;
+            TestEqual(TEXT("Empty Inventory retains all sixteen pack slots"), Rows->GetSlotCapacity(), 16);
+            TestEqual(TEXT("Empty Inventory has no filled pack slots"), Rows->GetFilledSlotCount(), 0);
+            TestEqual(TEXT("Empty Inventory renders sixteen empty pack slots"), Rows->GetEmptySlotCount(), 16);
+        }
         if (const auto* Detail = Cast<UKalmalaItemDetailWidget>(Widget))
             TestEqual(TEXT("Empty pack hides the stale detail panel"), Detail->GetVisibility(), ESlateVisibility::Collapsed);
+    }
+    TestTrue(TEXT("Empty Inventory retains its shared pack grid"), bFoundEmptyPackGrid);
 
     return true;
 }

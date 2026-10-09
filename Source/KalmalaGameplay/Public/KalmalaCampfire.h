@@ -49,6 +49,7 @@ public:
     bool HasWindbreak() const { return bWindProtected; }
     bool CanUse(const AKalmalaCharacter* Character) const;
     bool TryRefuelFromServer(AKalmalaCharacter* Character);
+    bool TryLightFromServer(AKalmalaCharacter* Character);
     void InitializePaidFromServer(AKalmalaCharacter* Character);
     void SetSharedFromServer(bool bShared);
     FString GetStatusText() const;

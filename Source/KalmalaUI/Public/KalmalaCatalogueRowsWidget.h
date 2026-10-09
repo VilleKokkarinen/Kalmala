@@ -26,6 +26,7 @@ public:
     int32 GetEmptySlotCount() const { return FMath::Max(0, SlotCapacity - FilledSlotCount); }
     int32 GetCarriedToolCount() const { return CarriedToolCount; }
 #if !UE_BUILD_SHIPPING
+    void InitializeForVerification();
     void SetVerificationBackground();
 #endif
 protected:

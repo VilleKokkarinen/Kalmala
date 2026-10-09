@@ -27,7 +27,7 @@ bool FKalmalaHearthStateTest::RunTest(const FString& Parameters)
     Fire->AdvanceFromServer(1, 0, 0);
     TestTrue(TEXT("Fuel alone does not self-light"), Fire->GetHearthState() == EKalmalaHearthState::Extinguished);
     TestEqual(TEXT("Unlit fuel is not consumed"), Fire->GetFuelSeconds(), 60.0f);
-    Fire->Interact_Implementation(Pawn);
+    TestTrue(TEXT("Dedicated light action starts the paid hearth"), Fire->TryLightFromServer(Pawn));
     Fire->AdvanceFromServer(1, 0, 1);
     TestTrue(TEXT("Dry active fire remains lit despite wind"), Fire->IsLit());
     TestEqual(TEXT("Lit heat is normalized"), Fire->GetEffectiveWarmth(), 1.0f);

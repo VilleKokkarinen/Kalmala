@@ -105,14 +105,12 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
 
     UHorizontalBox* SearchControls = WidgetTree->ConstructWidget<UHorizontalBox>();
     InventorySearchBox = WidgetTree->ConstructWidget<UEditableTextBox>();
-    InventorySearchBox->SetIsFocusable(true);
     InventorySearchBox->SetHintText(FText::FromString(TEXT("Search by visible item name")));
     InventorySearchStyle = FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>(TEXT("NormalEditableTextBox"));
     InventorySearchBox->OnTextChanged.AddDynamic(this, &ThisClass::InventorySearchChanged);
     SearchControls->AddChildToHorizontalBox(InventorySearchBox)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 
     ClearSearchButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-    ClearSearchButton->SetIsFocusable(true);
     ClearSearchButtonLabel = WidgetTree->ConstructWidget<UTextBlock>();
     ClearSearchButtonLabel->SetText(FText::FromString(TEXT("Clear search")));
     ClearSearchButton->SetContent(ClearSearchButtonLabel);
@@ -122,7 +120,6 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
 
     UHorizontalBox* BrowseControls = WidgetTree->ConstructWidget<UHorizontalBox>();
     CategoryButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-    CategoryButton->SetIsFocusable(true);
     CategoryButtonLabel = WidgetTree->ConstructWidget<UTextBlock>();
     CategoryButtonLabel->SetAutoWrapText(true);
     CategoryButton->SetContent(CategoryButtonLabel);
@@ -130,7 +127,6 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     BrowseControls->AddChildToHorizontalBox(CategoryButton)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 
     SortButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-    SortButton->SetIsFocusable(true);
     SortButtonLabel = WidgetTree->ConstructWidget<UTextBlock>();
     SortButtonLabel->SetAutoWrapText(true);
     SortButton->SetContent(SortButtonLabel);
@@ -217,7 +213,9 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     ItemDetailView = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
     PackAndDetail->AddChildToHorizontalBox(ItemDetailView)->SetPadding(FMargin(4.0f, 0.0f, 0.0f, 0.0f));
     USizeBox* InventoryArea = WidgetTree->ConstructWidget<USizeBox>();
-    InventoryArea->SetHeightOverride(300.0f);
+    // Let enlarged descriptions and equipment rows contribute their full
+    // height to the outer scroll range instead of clipping below a fixed pane.
+    InventoryArea->SetMinDesiredHeight(300.0f);
     InventoryArea->SetContent(PackAndDetail);
     Content->AddChildToVerticalBox(InventoryArea);
 
@@ -384,10 +382,11 @@ void UKalmalaInventoryMenuWidget::ApplyInventoryRows(TArray<FKalmalaCatalogueRow
         RememberedSelectedItemId = NAME_None;
     }
 
-    const int32 PackRowCount = SourceInventoryRows.CountByPredicate([](const FKalmalaCatalogueRow& Row)
+    int32 PackRowCount = 0;
+    for (const FKalmalaCatalogueRow& Row : SourceInventoryRows)
     {
-        return !Row.bCarriedTool;
-    });
+        if (!Row.bCarriedTool) ++PackRowCount;
+    }
     FString State;
     if (!bInventoryAvailable) State = TEXT("Waiting for your pack.");
     else if (PackRowCount == 0) State = TEXT("Your pack is empty.");
@@ -550,10 +549,8 @@ void UKalmalaInventoryMenuWidget::UpdateBrowseControls(const int32 TextScale, co
 
     const TCHAR* Categories[] = {TEXT("All"), TEXT("Items"), TEXT("Carried tools")};
     const TCHAR* Sorts[] = {TEXT("Owner order"), TEXT("Name"), TEXT("Category / name")};
-    CategoryButtonLabel->SetText(FText::FromString(FString(TEXT("Category: "))
-        + Categories[InventoryCategoryIndex] + TEXT(" (activate to cycle)")));
-    SortButtonLabel->SetText(FText::FromString(FString(TEXT("Sort: "))
-        + Sorts[InventorySortIndex] + TEXT(" (activate to cycle)")));
+    CategoryButtonLabel->SetText(FText::FromString(FString(TEXT("Category: ")) + Categories[InventoryCategoryIndex]));
+    SortButtonLabel->SetText(FText::FromString(FString(TEXT("Sort: ")) + Sorts[InventorySortIndex]));
     ClearSearchButtonLabel->SetText(FText::FromString(TEXT("Clear search")));
     ClearSearchButton->SetIsEnabled(!InventorySearchQuery.IsEmpty());
     for (UKalmalaThemedButton* Button : {CategoryButton.Get(), SortButton.Get(), ClearSearchButton.Get()})
@@ -623,7 +620,7 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
     NextItemButton->SetIsEnabled(bHasSelection);
 
     const FString SelectionText = bHasSelection
-        ? FString::Printf(TEXT("Selected: %s — use arrows or D-pad to change"), *SelectedRow->Name)
+        ? FString::Printf(TEXT("Selected: %s"), *SelectedRow->Name)
         : TEXT("No item selected.");
     if (SelectedItemText->GetText().ToString() != SelectionText)
         SelectedItemText->SetText(FText::FromString(SelectionText));
@@ -853,6 +850,18 @@ void UKalmalaInventoryMenuWidget::RepairSelectedTool()
 void UKalmalaInventoryMenuWidget::SetInventoryRowsForVerification(const TArray<FKalmalaCatalogueRow>& Rows,
     const int32 TextScale, const int32 Contrast)
 {
+    if (!WidgetTree)
+    {
+        WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"));
+    }
+    if (WidgetTree && !WidgetTree->RootWidget)
+    {
+        NativeOnInitialized();
+    }
+    if (InventoryRowsView)
+    {
+        InventoryRowsView->InitializeForVerification();
+    }
     ApplyInventoryRows(TArray<FKalmalaCatalogueRow>(Rows), true, TextScale, Contrast);
 }
 
@@ -888,10 +897,10 @@ TArray<FName> UKalmalaInventoryMenuWidget::GetVisibleItemIdsForVerification() co
 
 bool UKalmalaInventoryMenuWidget::HasBrowseFocusTargetsForVerification() const
 {
-    return InventorySearchBox && InventorySearchBox->IsFocusable()
-        && CategoryButton && CategoryButton->IsFocusable()
-        && SortButton && SortButton->IsFocusable()
-        && ClearSearchButton && ClearSearchButton->IsFocusable();
+    return InventorySearchBox && InventorySearchBox->TakeWidget()->SupportsKeyboardFocus()
+        && CategoryButton && CategoryButton->GetIsFocusable()
+        && SortButton && SortButton->GetIsFocusable()
+        && ClearSearchButton && ClearSearchButton->GetIsFocusable();
 }
 
 void UKalmalaInventoryMenuWidget::SetInventoryScrollOffsetForVerification(const float Offset)

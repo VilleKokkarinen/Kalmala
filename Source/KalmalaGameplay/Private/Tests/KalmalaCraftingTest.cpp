@@ -128,13 +128,17 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
 
     auto* Invalid = NewObject<UKalmalaRecipeCatalogue>();
     Invalid->Recipes = Recipes->Recipes;
-    Invalid->Recipes[0].Output = TEXT("Forged");
+    const int32 FirstInventoryRecipe = Invalid->Recipes.IndexOfByPredicate(
+        [](const FKalmalaRecipe& Candidate) { return Candidate.BuildableOutput.IsNone(); });
+    TestTrue(TEXT("Catalogue contains a normal inventory recipe for output validation"), FirstInventoryRecipe != INDEX_NONE);
+    if (FirstInventoryRecipe == INDEX_NONE) return false;
+    Invalid->Recipes[FirstInventoryRecipe].Output = TEXT("Forged");
     TestFalse(TEXT("Unknown output fails closed"), Invalid->IsValidCatalogue());
     Invalid->Recipes = Recipes->Recipes;
-    Invalid->Recipes[0].MaxBatch = 11;
+    Invalid->Recipes[FirstInventoryRecipe].MaxBatch = 11;
     TestFalse(TEXT("Out-of-bound recipe batch fails closed"), Invalid->IsValidCatalogue());
     Invalid->Recipes = Recipes->Recipes;
-    Invalid->Recipes[0].RequiredStation.Add(TEXT("Wood"));
+    Invalid->Recipes[FirstInventoryRecipe].RequiredStation.Add(TEXT("Wood"));
     TestFalse(TEXT("A material cannot satisfy a station requirement"), Invalid->IsValidCatalogue());
     Invalid->Recipes = Recipes->Recipes;
     if (FKalmalaRecipe* PanRecipe = Invalid->Recipes.FindByPredicate(

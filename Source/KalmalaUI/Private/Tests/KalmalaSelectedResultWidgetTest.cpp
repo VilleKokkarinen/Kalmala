@@ -16,9 +16,9 @@ bool FKalmalaSelectedResultWidgetTest::RunTest(const FString& Parameters)
     {
         EKalmalaIcon Icon = EKalmalaIcon::Unknown;
         int32 Variant = INDEX_NONE;
-        TestTrue(*FString::Printf(TEXT("%s output uses its canonical catalogue icon"), *Recipe.Output.ToString()),
-            UKalmalaSelectedResultWidget::FindCanonicalIcon(Recipe.Output, Icon, Variant));
-        TestTrue(*FString::Printf(TEXT("%s output never resolves to the unknown fallback"), *Recipe.Output.ToString()),
+        TestTrue(*FString::Printf(TEXT("%s output uses its canonical catalogue icon"), *Recipe.GetOutputIdentity().ToString()),
+            UKalmalaSelectedResultWidget::FindCanonicalIcon(Recipe.GetOutputIdentity(), Icon, Variant));
+        TestTrue(*FString::Printf(TEXT("%s output never resolves to the unknown fallback"), *Recipe.GetOutputIdentity().ToString()),
             Icon != EKalmalaIcon::Unknown);
     }
 

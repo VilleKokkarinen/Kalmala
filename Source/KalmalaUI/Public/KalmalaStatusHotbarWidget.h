@@ -25,8 +25,9 @@ struct KALMALAUI_API FKalmalaStatusHotbarEntry
 {
     FName Id;
     FString Name;
-    FString Duration;
+    FString TimerText;
     EKalmalaIcon Icon = EKalmalaIcon::Unknown;
+    FName StatusIconId = NAME_None;
     float RefreshValue = 0.0f;
     EKalmalaStatusRefreshPolicy RefreshPolicy = EKalmalaStatusRefreshPolicy::None;
     EKalmalaStatusCueKind Cue = EKalmalaStatusCueKind::None;
@@ -58,7 +59,17 @@ public:
     EKalmalaStatusCueKind GetActiveCueKindForVerification(FName Id) const;
     float GetActiveCueOpacityForVerification(FName Id) const;
 #endif
-    static FVector2D CalculateSize(int32 Count, int32 TextScale, FVector2D Viewport);
+    static constexpr float StatusCellWidth = 72.0f;
+    static constexpr float StatusCellContentHeight = 86.0f;
+    static constexpr float StatusCellGap = 4.0f;
+    static constexpr float MaximumStatusRowWidth = 384.0f;
+
+    void ConfigureViewportPlacement(const FVector2D& Size, const FVector2D& Position);
+#if !UE_BUILD_SHIPPING
+    bool HasRasterIconGeometryForVerification(int32 TextScale, int32 ExpectedCount) const;
+#endif
+    static FVector2D CalculateSize(int32 Count, int32 TextScale, FVector2D Viewport, float StatusGroupRightEdge,
+        float StatusGroupLeftEdge = 12.0f);
 protected:
     virtual void NativeOnInitialized() override;
 private:
@@ -71,13 +82,12 @@ private:
     };
 
     UPROPERTY(Transient) TObjectPtr<class UWrapBox> EntriesBox;
-    UPROPERTY(Transient) TArray<TObjectPtr<class UTextBlock>> Labels;
-    UPROPERTY(Transient) TArray<TObjectPtr<class UTextBlock>> Durations;
-    UPROPERTY(Transient) TArray<TObjectPtr<class UKalmalaIconWidget>> Icons;
     TArray<FKalmalaStatusHotbarEntry> PreviousEntries;
     TMap<FName, FActiveCue> ActiveCues;
     TArray<FName> CueOrder;
     double TransitionArmedAtSeconds = 0.0;
     bool bHasTransitionBaseline = false;
+    UPROPERTY(Transient) TArray<TObjectPtr<class UTextBlock>> Timers;
+    UPROPERTY(Transient) TArray<TObjectPtr<class UImage>> RasterImages;
     FString LastIdentity;
 };

@@ -1,16 +1,19 @@
 #include "KalmalaInventoryInspectWidget.h"
+#include "KalmalaIconWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaThemedButton.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/VerticalBox.h"
 #include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
 #include "Components/Border.h"
 #include "Components/EditableTextBox.h"
+#include "Components/SizeBox.h"
 #include "InputCoreTypes.h"
 
 TSharedRef<SWidget> UKalmalaInventoryInspectWidget::RebuildWidget()
@@ -49,8 +52,11 @@ void UKalmalaInventoryInspectWidget::Build()
     {
         auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
-        Label->SetText(FText::FromString(Name)); Button->SetContent(Label);
-        Actions->AddChild(Button); Buttons.Add(Button);
+        Label->SetText(FText::FromString(Name));
+        Label->SetAutoWrapText(true); Label->SetJustification(ETextJustify::Center);
+        Button->SetContent(Label);
+        Actions->AddChildToHorizontalBox(Button)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        Buttons.Add(Button);
     }
     Buttons[0]->OnClicked.AddDynamic(this, &ThisClass::Previous);
     Buttons[1]->OnClicked.AddDynamic(this, &ThisClass::Next);
@@ -70,13 +76,18 @@ FString UKalmalaInventoryInspectWidget::ActionGuidance(FName Id, bool bTool)
     return TEXT("Use existing recipe, hearth or chest controls where this item is accepted. Inspection does not use or transfer an item.");
 }
 
-void UKalmalaInventoryInspectWidget::SetRows(const TArray<FKalmalaCatalogueRow>& InRows, int32 Scale, int32 Contrast)
+void UKalmalaInventoryInspectWidget::SetRows(const TArray<FKalmalaCatalogueRow>& InRows, int32 Scale, int32 Contrast,
+    const FString& InListLabel, const FString& InEmptyLabel, const bool bInAllowToolFilter, const int32 InGridColumns)
 {
-    FString Key = FString::Printf(TEXT("%d|%d"), Scale, Contrast);
+    const int32 BoundedGridColumns = FMath::Clamp(InGridColumns, 1, 4);
+    FString Key = FString::Printf(TEXT("%d|%d|%s|%s|%d|%d"), Scale, Contrast, *InListLabel,
+        *InEmptyLabel, bInAllowToolFilter, BoundedGridColumns);
     for (const auto& Row : InRows) Key += TEXT("|") + Row.Id.ToString() + Row.Name + Row.Detail + (Row.bCarriedTool ? TEXT("T") : TEXT("I"));
     if (Column && Key == LastRows) return;
     LastRows = Key;
     OwnerRows = InRows; TextScale = Scale; ContrastMode = Contrast;
+    ListLabel = InListLabel; EmptyLabel = InEmptyLabel; bAllowToolFilter = bInAllowToolFilter;
+    GridColumns = BoundedGridColumns;
     Build(); Refilter();
 }
 
@@ -114,7 +125,7 @@ void UKalmalaInventoryInspectWidget::Refilter()
     const FName Old = GetSelectedItem();
     Rows.Reset();
     for (const auto& Row : OwnerRows)
-        if ((Category == 0 || Row.bCarriedTool == (Category == 2))
+        if ((!bAllowToolFilter || Category == 0 || Row.bCarriedTool == (Category == 2))
             && (Search.IsEmpty() || Row.Name.Contains(Search, ESearchCase::IgnoreCase))) Rows.Add(Row);
     if (Sort != 0)
         Rows.StableSort([this](const auto& A, const auto& B)
@@ -137,17 +148,19 @@ void UKalmalaInventoryInspectWidget::Refresh()
 {
     if (!Column) return;
     const auto& Theme = FKalmalaUITheme::Get();
-    Instructions->SetText(FText::FromString(TEXT("YOUR INVENTORY DETAILS — Tab to search/controls; arrows / D-pad select. Page Up / left shoulder cycles category; Page Down / right shoulder cycles sort. > marks selection. Escape / B closes.")));
+    Instructions->SetText(FText::FromString(ListLabel + TEXT(" details. > marks the selected item.")));
     Theme.ApplyText(*Instructions, Theme.BodySize, false, TextScale, ContrastMode);
     BrowseSearchStyle = SearchBox->GetWidgetStyle();
+    SearchBox->SetHintText(FText::FromString(FString::Printf(TEXT("Search %s by name"), *ListLabel.ToLower())));
     BrowseSearchStyle.SetFont(Theme.MakeFont(Theme.BodySize, false, TextScale));
     BrowseSearchStyle.SetBackgroundColor(ContrastMode != 0 ? Theme.HighContrastPanel : Theme.ButtonNormal);
     SearchBox->SetWidgetStyle(BrowseSearchStyle);
     SearchBox->SetForegroundColor(Theme.TextColor(false, ContrastMode));
     const TCHAR* Categories[] = {TEXT("All"), TEXT("Items"), TEXT("Carried tools")};
     const TCHAR* Sorts[] = {TEXT("Owner order"), TEXT("Name"), TEXT("Category / name")};
-    CastChecked<UTextBlock>(CategoryButton->GetContent())->SetText(FText::FromString(FString(TEXT("Category: ")) + Categories[Category] + TEXT(" (activate to cycle)")));
-    CastChecked<UTextBlock>(SortButton->GetContent())->SetText(FText::FromString(FString(TEXT("Sort: ")) + Sorts[Sort] + TEXT(" (activate to cycle)")));
+    CastChecked<UTextBlock>(CategoryButton->GetContent())->SetText(FText::FromString(FString(TEXT("Category: ")) + Categories[Category]));
+    CategoryButton->SetVisibility(bAllowToolFilter ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    CastChecked<UTextBlock>(SortButton->GetContent())->SetText(FText::FromString(FString(TEXT("Sort: ")) + Sorts[Sort]));
     CastChecked<UTextBlock>(ClearButton->GetContent())->SetText(FText::FromString(TEXT("Clear search")));
     CastChecked<UTextBlock>(ClearButton->GetContent())->SetAutoWrapText(false);
     for (UButton* Button : {CategoryButton.Get(), SortButton.Get(), ClearButton.Get()})
@@ -155,8 +168,8 @@ void UKalmalaInventoryInspectWidget::Refresh()
         Theme.ApplyButton(*Button, ContrastMode);
         Theme.ApplyText(*CastChecked<UTextBlock>(Button->GetContent()), Theme.BodySize, false, TextScale, ContrastMode);
     }
-    Results->SetText(FText::FromString(OwnerRows.IsEmpty() ? TEXT("Your inventory is empty.") : Rows.IsEmpty()
-        ? TEXT("No results. Clear search or choose All to see your inventory.")
+    Results->SetText(FText::FromString(OwnerRows.IsEmpty() ? EmptyLabel : Rows.IsEmpty()
+        ? FString::Printf(TEXT("No results. Clear search or view all of %s."), *ListLabel.ToLower())
         : FString::Printf(TEXT("Showing %d of %d owner-visible entries."), Rows.Num(), OwnerRows.Num())));
     Theme.ApplyText(*Results, Theme.BodySize, false, TextScale, ContrastMode);
     for (UButton* Button : Buttons)
@@ -175,22 +188,36 @@ void UKalmalaInventoryInspectWidget::Refresh()
             auto* Heading = WidgetTree->ConstructWidget<UTextBlock>();
             Heading->SetText(FText::FromString(Rows[Index].bCarriedTool ? TEXT("Carried tools") : TEXT("Items")));
             Theme.ApplyText(*Heading, Theme.BodySize, true, TextScale, ContrastMode);
-            Grid->AddChildToGrid(Heading, GridRow++, 0)->SetColumnSpan(4);
+            Grid->AddChildToGrid(Heading, GridRow++, 0)->SetColumnSpan(GridColumns);
         }
         auto* Card = WidgetTree->ConstructWidget<UBorder>();
         Theme.ApplySelectablePanel(*Card, Index == Selected, Index == Selected && HasKeyboardFocus(), false, ContrastMode);
+        auto* CardContent = WidgetTree->ConstructWidget<UHorizontalBox>();
+        auto* IconSize = WidgetTree->ConstructWidget<USizeBox>();
+        IconSize->SetWidthOverride(28.0f);
+        IconSize->SetHeightOverride(28.0f);
+        auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+        Icon->SetCatalogueIcon(Rows[Index].Id);
+        IconSize->SetContent(Icon);
+        auto* IconSlot = CardContent->AddChildToHorizontalBox(IconSize);
+        IconSlot->SetVerticalAlignment(VAlign_Center);
+        IconSlot->SetPadding(FMargin(0.0f, 0.0f, Theme.SlotPadding, 0.0f));
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
         Label->SetAutoWrapText(true); Label->SetWrapTextAt(140.0f);
         Label->SetText(FText::FromString((Index == Selected ? TEXT("> ") : TEXT("")) + Rows[Index].Name + TEXT("\n") + Rows[Index].Detail));
         Theme.ApplyText(*Label, Theme.BodySize, Index == Selected, TextScale, ContrastMode);
-        Card->SetContent(Label); Grid->AddChildToGrid(Card, GridRow, GridColumn);
-        if (++GridColumn == 4) { ++GridRow; GridColumn = 0; }
+        auto* LabelSlot = CardContent->AddChildToHorizontalBox(Label);
+        LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        Card->SetContent(CardContent); Grid->AddChildToGrid(Card, GridRow, GridColumn);
+        if (++GridColumn == GridColumns) { ++GridRow; GridColumn = 0; }
     }
     Detail->SetVisibility(Rows.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (Rows.IsValidIndex(Selected))
     {
         const auto& Row = Rows[Selected];
-        Detail->SetItem(Row.Id, Row.Name, Row.Detail + TEXT("\n\n") + ActionGuidance(Row.Id, Row.bCarriedTool), TextScale, ContrastMode);
+        const FString VisibleState = Row.Detail + TEXT("\n\n") + ActionGuidance(Row.Id, Row.bCarriedTool);
+        if (Row.bCarriedTool) Detail->SetCarriedTool(Row.Id, Row.Name, VisibleState, TextScale, ContrastMode);
+        else Detail->SetItem(Row.Id, Row.Name, VisibleState, TextScale, ContrastMode);
     }
 }
 

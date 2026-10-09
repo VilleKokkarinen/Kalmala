@@ -10,6 +10,7 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaSurvivalStatusWidget.h"
 #include "KalmalaStatusHotbarWidget.h"
+#include "KalmalaSupportSelectionSubsystem.h"
 #include "KalmalaWeatherActivityWidget.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "Misc/CommandLine.h"
@@ -18,6 +19,7 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "KalmalaCatalogueRowsWidget.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaRecipeCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
 
 void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
@@ -124,6 +126,8 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
         FParse::Value(FCommandLine::Get(), TEXT("KalmalaHotbarContrast="), HotbarContrast);
         if (VerificationCapture == 0 && VerificationElapsed > 4)
         {
+            UKalmalaSettingsWidget::SetTextScalePercent(HotbarScale);
+            UKalmalaSettingsWidget::SetContrastMode(HotbarContrast);
             UE_LOG(LogTemp, Display, TEXT("Hotbar owner snapshot: NetMode=%d Local=%d Pawn=%s Statuses=%d WeatherValid=%d"),
                 static_cast<int32>(World->GetNetMode()), FoundController->IsLocalController(), *Character->GetName(), Snapshot.Statuses.Num(), Snapshot.bHasWeatherState);
             VerificationCapture = 1;
@@ -182,6 +186,21 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
                 Phase, UKalmalaStatusHotbarWidget::BuildEntries(Snapshot).Num(), !HotbarWidget->IsFocusable(), TL.X,TL.Y,BR.X,BR.Y,HotbarScale,
                 UWidgetLayoutLibrary::GetViewportScale(this));
             FScreenshotRequest::RequestScreenshot(CapturePrefix+TEXT("-")+Phase+TEXT(".png"),true,false);
+            if (VerificationCapture == 2)
+            {
+                UE_LOG(LogTemp, Display, TEXT("Hotbar raster geometry: Passed=%d Icons=6 BaseSize=64 Scale=%d"),
+                    HotbarWidget->HasRasterIconGeometryForVerification(HotbarScale, 6), HotbarScale);
+                const auto* SupportSubsystem = GetLocalPlayer()->GetSubsystem<UKalmalaSupportSelectionSubsystem>();
+                const auto* SupportWidget = SupportSubsystem ? SupportSubsystem->GetSelectionWidget() : nullptr;
+                bool bSeparated = true;
+                if (SupportWidget && SupportWidget->IsVisible())
+                {
+                    const FGeometry& SupportGeometry = SupportWidget->GetCachedGeometry();
+                    const FVector2D SupportRight = SupportGeometry.LocalToAbsolute(SupportGeometry.GetLocalSize());
+                    bSeparated = TL.X >= SupportRight.X + 12.0f * UWidgetLayoutLibrary::GetViewportScale(this) - 1.0f;
+                }
+                UE_LOG(LogTemp, Display, TEXT("Hotbar support separation: Passed=%d"), bSeparated);
+            }
             ++VerificationCapture;
         }
         if (VerificationCapture == 4 && VerificationElapsed >= 22)
@@ -204,11 +223,20 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
         {
             VerificationDetails->Close(); VerificationDetails->RemoveFromParent(); VerificationDetails=nullptr;
             TArray<FKalmalaCatalogueRow> Rows;
-            for (const auto& Item : UKalmalaItemCatalogue::Get()->Items) Rows.Add({Item.ItemId,Item.DisplayName});
-            for (const auto& Tool : FKalmalaToolLifecycleContract::GetDefinitions()) Rows.Add({Tool.ToolId,Tool.ToolId.ToString()});
-            for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) Rows.Add({Tool.ToolId,Tool.ToolId.ToString()});
+            TSet<FName> IncludedIds;
+            const auto AddCanonicalRow = [&Rows, &IncludedIds](const FName Id, const FString& DisplayName)
+            {
+                if (Id.IsNone() || IncludedIds.Contains(Id)) return;
+                IncludedIds.Add(Id);
+                Rows.Add({Id, DisplayName});
+            };
+            for (const auto& Item : UKalmalaItemCatalogue::Get()->Items) AddCanonicalRow(Item.ItemId, Item.DisplayName);
+            for (const auto& Tool : FKalmalaToolLifecycleContract::GetDefinitions()) AddCanonicalRow(Tool.ToolId, Tool.ToolId.ToString());
+            for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) AddCanonicalRow(Tool.ToolId, Tool.ToolId.ToString());
             const FName Hammer = FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ToolId;
-            Rows.Add({Hammer,Hammer.ToString()});
+            AddCanonicalRow(Hammer, Hammer.ToString());
+            for (const auto& Recipe : UKalmalaRecipeCatalogue::Get()->Recipes)
+                AddCanonicalRow(Recipe.GetOutputIdentity(), Recipe.DisplayName);
             const auto Viewport = UWidgetLayoutLibrary::GetViewportSize(this)/UWidgetLayoutLibrary::GetViewportScale(this);
             const float Width = (Viewport.X-48)/3;
             for (int32 Column=0; Column<3; ++Column)
@@ -223,7 +251,7 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
                 Gallery->SetPositionInViewport(FVector2D(24+Width*Column,24),false);
                 VerificationGallery.Add(Gallery);
             }
-            UE_LOG(LogTemp,Display,TEXT("Catalogue icon gallery: ItemsAndTools=%d ReadOnly=1"),Rows.Num());
+            UE_LOG(LogTemp,Display,TEXT("Catalogue icon gallery: Canonical=%d ReadOnly=1"),Rows.Num());
             ++VerificationCapture;
         }
         if (VerificationCapture==7 && VerificationElapsed>=31)

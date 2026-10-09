@@ -50,9 +50,15 @@ try {
         foreach ($peerText in @($serverText, $clientText)) {
             if ($peerText -notmatch 'Minimap input verification: Min=1 Max=1 Modal=1 Resume=1') { throw 'Bound wheel input or CommonUI modal ownership failed.' }
             if ($peerText -match 'CommonUI Input routing will not function correctly') { throw 'CommonUI viewport routing is not configured.' }
-            if ($peerText -notmatch 'Minimap painted:.*Size=208x208 Bounds=(-?\d+),(-?\d+),(-?\d+),(-?\d+) Samples=16641') { throw 'Minimap did not paint at the expected size and detail.' }
-            $left = [int]$Matches[1]; $top = [int]$Matches[2]; $right = [int]$Matches[3]; $bottom = [int]$Matches[4]
+            if ($peerText -notmatch 'Minimap painted:.*Size=(\d+)x(\d+) Bounds=(-?\d+),(-?\d+),(-?\d+),(-?\d+) Samples=16641') { throw 'Minimap did not paint at the expected size and detail.' }
+            $localWidth = [double]$Matches[1]; $localHeight = [double]$Matches[2]
+            $left = [double]$Matches[3]; $top = [double]$Matches[4]; $right = [double]$Matches[5]; $bottom = [double]$Matches[6]
             if ($left -lt ($Width / 2) -or $top -lt 0 -or $right -gt $Width -or $bottom -gt $Height) { throw 'Actual minimap geometry is outside the top-right viewport.' }
+            $scaleX = ($right - $left) / $localWidth
+            $scaleY = ($bottom - $top) / $localHeight
+            $rightInset = $Width - $right
+            if ([Math]::Abs($top - (12.0 * $scaleY)) -gt 1.5 -or [Math]::Abs($rightInset - (12.0 * $scaleX)) -gt 1.5) { throw 'Actual top/right minimap inset is not 12 UI units at the viewport DPI scale.' }
+            if ([Math]::Abs($scaleX - $scaleY) -gt 0.01) { throw 'Minimap viewport scaling is not uniform.' }
         }
         Write-Output 'PASS: both peers painted filled top-right minimaps and captured HUD screenshots; inspect host.png and client.png.'
     }

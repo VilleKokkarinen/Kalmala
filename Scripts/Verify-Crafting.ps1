@@ -1,5 +1,5 @@
 param([int]$Port = 17869, [switch]$Rendered, [int]$Width = 1280, [int]$Height = 720,
-    [int]$TextScale = 100, [int]$Contrast = 0, [switch]$ReducedMotion)
+    [int]$TextScale = 100, [int]$Contrast = 0)
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
@@ -10,8 +10,7 @@ $clientLog = Join-Path $output 'client.log'
 $hostShaderDir = Join-Path $output 'Host\ShaderWorkingDir'
 $clientShaderDir = Join-Path $output 'Client\ShaderWorkingDir'
 New-Item -ItemType Directory -Path $hostShaderDir, $clientShaderDir -Force | Out-Null
-$motion = if ($ReducedMotion) { 1 } else { 0 }
-$common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaCraftingTest -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast -KalmalaUIDeveloperReducedMotion=$motion -ExecCmds=`"t.MaxFPS 60`""
+$common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaCraftingTest -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast -ExecCmds=`"t.MaxFPS 60`""
 if ($Rendered) { $common += " -windowed -RenderOffscreen -ForceRes -ResX=$Width -ResY=$Height" } else { $common += ' -nullrhi' }
 $hostShader = if ($Rendered) { "-ShaderWorkingDir=`"$hostShaderDir`"" } else { '' }
 $clientShader = if ($Rendered) { "-ShaderWorkingDir=`"$clientShaderDir`"" } else { '' }
@@ -29,11 +28,11 @@ try {
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Listen server readiness timed out.' }
     $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common $clientShader $clientCapture -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
-    $deadline = (Get-Date).AddSeconds($(if ($Rendered) { 180 } else { 120 }))
+    $deadline = (Get-Date).AddSeconds($(if ($Rendered) { 300 } else { 120 }))
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before verification.' }
-        $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
-        $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
+        $serverText = if (Test-Path $serverLog) { [string](Get-Content $serverLog -Raw) } else { '' }
+        $clientText = if (Test-Path $clientLog) { [string](Get-Content $clientLog -Raw) } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Crafting fixture FAILED:|Crafting [^\r\n]*Passed=0|M9 camp [^\r\n]*Passed=0|Restored=0') { throw 'Crafting verification failed; inspect retained logs.' }
         $ready = [regex]::Matches($serverText, 'Crafting server gates: Passed=1').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting server final: Passed=1').Count -eq 2 `
@@ -43,26 +42,25 @@ try {
             -and $clientText.Contains('Crafting presentation: Passed=1 Restored=1') `
             -and $serverText.Contains('Interaction prompt modal: Hidden=1') `
             -and $clientText.Contains('Interaction prompt modal: Hidden=1') `
-            -and $serverText.Contains('M9 tool feedback: Passed=1') `
-            -and $clientText.Contains('M9 tool feedback: Passed=1') `
-            -and $serverText.Contains('Inventory inspection: FocusAndKeys=1') `
-            -and $clientText.Contains('Inventory inspection: FocusAndKeys=1') `
             -and $serverText.Contains('M9 camp feedback: Passed=1') `
             -and $clientText.Contains('M9 camp feedback: Passed=1')
+        $ready = $ready -and $serverText.Contains('Grinding Stone interaction: AcceptedOnce=1 NoExtraMutation=1 ActionOnlyFeedback=1 NoMenu=1')
+        $ready = $ready -and $serverText.Contains('Campfire interaction: AddedOne=1 NoLighting=1 FullRejected=1 NoFuelRejected=1 RangeRejected=1')
         foreach ($peerText in @($serverText, $clientText)) {
-            $ready = $ready -and $peerText.Contains('Inventory browsing: CategoryKey=1 SortKey=1 NoResults=1 Restored=1')
+            $ready = $ready -and $peerText.Contains('Catalogue icons: Grid=1 Selected=1 Upgrade=1')
+            $ready = $ready -and $peerText.Contains('Build context cleanup: Header=1 ObsoleteHidden=1 Placement=1 Relight=1 Status=1 StorageShell=1')
             $ready = $ready -and $peerText.Contains('Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1 SearchFocus=1')
             $ready = $ready -and $peerText.Contains('Build browsing: Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1')
-            $ready = $ready -and $peerText.Contains('Result preview: Keyboard=1 DPad=1 Unavailable=1 MissingIconFallback=1 NoResultsCleared=1 Large=1 NoActorsSpawned=1 CatalogueStable=1 IconExtent=88')
+            $ready = $ready -and $peerText.Contains('Workbench Craft scope: BronzeAxe=1 GrindingStone=1 ToolRack=1 NoUnrelated=1 ToolPrerequisites=1 PassiveRack=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Forge Craft scope: FryingPan=1 ForgeAnvil=1 Materials=1 Station=1 NoUnrelated=1 Route=1 PassiveAnvil=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Cooking Rack scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Cauldron scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Frying Pan scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Forge Upgrade scope: Comparison=1 Requirements=1 Materials=1 Status=1 Route=1 UiScope=1 StaleNoRequest=1 ContextUnavailable=1')
+            $ready = $ready -and $peerText.Contains('Forge Repair scope: OwnerOnly=1 ToolRows=1 Condition=1 Selected=1 UpgradeSelectionSeparate=1 Route=1 InvalidContextNoRequest=1 ContextUnavailable=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Workbench Repair scope: OwnerOnly=1 ToolRows=1 Condition=1 Selected=1 CraftSelectionSeparate=1 InvalidContextNoRequest=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Chest scope: OwnerPack=1 OwnerChest=1 Capacity=1 Route=1 StaleNoRequest=1 UiScope=1')
         }
-        $hostMarker = [regex]::Match($serverText, 'Recipe activity markers: Owner=Host FavoriteId=(\S+)')
-        $clientMarker = [regex]::Match($clientText, 'Recipe activity markers: Owner=Client FavoriteId=(\S+)')
-        foreach ($peerText in @($serverText, $clientText)) {
-            $ready = $ready -and $peerText.Contains('Coexist=1 OrdinaryRecent=1 RecentShortcuts=1 NoManualBookmark=1 StaticMotion=1 OwnerIsolation=1')
-            if ($Rendered) { $ready = $ready -and $peerText.Contains('Recipe activity marker review: Prepared=1') }
-        }
-        $ready = $ready -and $hostMarker.Success -and $clientMarker.Success `
-            -and $hostMarker.Groups[1].Value -ne $clientMarker.Groups[1].Value
         $gridPattern = 'Build slot grid: Slots=(\d+) Unavailable=(\d+) Selected=(\d+) Focused=1 ReadOnly=1 Scrollable=1 Navigation=1'
         $serverGrid = [regex]::Match($serverText, $gridPattern)
         $clientGrid = [regex]::Match($clientText, $gridPattern)
@@ -83,21 +81,33 @@ try {
         }
         if ($Rendered) {
             foreach ($peerName in @('host', 'client')) {
-                foreach ($suffix in @('', '-details', '-feedback', '-inspection', '-cooking', '-structural', '-stations', '-utilities', '-no-results', '-inventory-browse', '-build-costs', '-build-requirements', '-cook-costs', '-cook-requirements', '-activity-markers')) {
+                foreach ($suffix in @('', '-details', '-feedback', '-build-menu', '-builds', '-structural', '-stations', '-utilities', '-no-results', '-build-clean', '-build-costs', '-build-requirements', '-station-kit-costs', '-station-kit-requirements')) {
                     $ready = $ready -and (Test-Path "$output\$peerName$suffix.png")
                 }
+                foreach ($view in @('workbench-craft', 'workbench-repair', 'forge-craft', 'forge-upgrade', 'forge-repair', 'rack-cook', 'cauldron-cook', 'pan-cook', 'chest-store')) {
+                    foreach ($suffix in @('', '-details')) {
+                        $ready = $ready -and (Test-Path "$output\$peerName-$view$suffix.png")
+                    }
+                }
+                $ready = $ready -and (Test-Path "$output\$peerName-activity-markers.png")
             }
             foreach ($peerText in @($serverText, $clientText)) {
-                foreach ($view in @('cooking', 'structural', 'stations', 'utilities', 'no-results', 'inventory-browse')) {
+                $ready = $ready -and $peerText.Contains('Recipe activity marker review: Prepared=1')
+                foreach ($view in @('builds', 'structural', 'stations', 'utilities', 'no-results', 'build-clean')) {
                     $ready = $ready -and $peerText.Contains("Browsing review: View=$view Passed=1")
                 }
-                foreach ($view in @('build-costs', 'build-requirements', 'cook-costs', 'cook-requirements')) {
+                foreach ($view in @('build-costs', 'build-requirements', 'station-kit-costs', 'station-kit-requirements')) {
                     $ready = $ready -and $peerText.Contains("Ingredient review: View=$view Passed=1")
+                }
+                foreach ($view in @('workbench-craft', 'workbench-repair', 'forge-craft', 'forge-upgrade', 'forge-repair', 'rack-cook', 'cauldron-cook', 'pan-cook', 'chest-store')) {
+                    foreach ($details in @(0, 1)) {
+                        $ready = $ready -and $peerText.Contains("Service review: View=$view Details=$details Passed=1 UnavailableContext=1")
+                    }
                 }
                 $ready = $ready -and $peerText.Contains('Construction feedback: Passed=1') `
                     -and $peerText.Contains('Crafting review scroll: Section=Details Passed=1') `
                     -and $peerText.Contains('Crafting review scroll: Section=Feedback Passed=1')
-                $ready = $ready -and $peerText.Contains('Inventory detail review: Scrolled=1')
+                $ready = $ready -and $peerText.Contains('Build cleanup review: Passed=1')
             }
         }
         if ($ready) { break }
@@ -105,7 +115,7 @@ try {
     } while ((Get-Date) -lt $deadline)
     if (!$ready) { throw 'Crafting host/client scenario timed out.' }
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client identity mismatch.' }
-    Write-Output 'PASS: interaction prompt modal suppression, build-grid focus/selection/navigation/unavailable states, server validation/payment/atomicity gates, camp feedback, exact inventory, matching fires, and local menu input restoration.'
+    Write-Output 'PASS: interaction prompt modal suppression, cleaned Build context, build-grid focus/selection/navigation/unavailable states, server validation/payment/atomicity gates, camp feedback, exact inventory, matching fires, and local menu input restoration.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

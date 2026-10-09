@@ -1,0 +1,33 @@
+Using bundled DotNet SDK version: 10.0 win-x64
+Running UnrealBuildTool: dotnet "..\..\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll" KalmalaEditor Win64 Development E:/dev/Kalmala/m12verify/Kalmala.uproject -WaitMutex -NoHotReload -Force -MaxParallelActions=4
+Log file: C:\Users\Ville\AppData\Local\UnrealBuildTool\Log.txt
+Executing up to 4 actions based on MaxProcessorCount override
+Using 'git status' to determine working set for adaptive non-unity build (E:\dev\Kalmala\m12verify).
+UbaServer - Listening on 0.0.0.0:1345
+Building KalmalaEditor...
+===== Toolchain Information =====
+Using ISPC compiler (C:\Program Files\Epic Games\UE_5.8\Engine\Source\ThirdParty\Intel\ISPC\bin\Windows\ispc.exe)
+  Intel(r) Implicit SPMD Program Compiler (Intel(r) ISPC), 1.24.0 (build commit  @ 20250404, LLVM 18.1.2)
+Using Visual Studio 14.50.35731 toolchain (C:\Program Files\Microsoft Visual Studio\18\Professional\VC\Tools\MSVC\14.50.35717) and Windows 10.0.22621.0 SDK (C:\Program Files (x86)\Windows Kits\10).
+[Adaptive Build] Excluded from KalmalaEditor unity file: ExportWorldMapsCommandlet.cpp, RenderWorldGenerationVisualizationCommandlet.cpp
+[Adaptive Build] Excluded from VisualStudioBlueprintDebuggerHelper unity file: VisualStudioBlueprintDebuggerHelperModule.cpp
+[Adaptive Build] Excluded from KalmalaWorld unity file: KalmalaGeneratedTerrainPatch.cpp, KalmalaLakeBasin.cpp, KalmalaMasterMap.cpp, KalmalaRegionalGeneration.cpp, KalmalaWaterSurfaceMesh.cpp, KalmalaWorldGenerationGameState.cpp, KalmalaWorldPlayerStartResolver.cpp, KalmalaBiomeClassifierTest.cpp, KalmalaFiniteWorldTest.cpp, KalmalaIslandLocatorTest.cpp, KalmalaMasterMapTest.cpp, KalmalaOceanSamplerTest.cpp, KalmalaRegionalGenerationTest.cpp, KalmalaWaterSurfaceMeshTest.cpp, KalmalaWorldPlayerStartResolverTest.cpp
+[Adaptive Build] Excluded from VisualStudioTools unity file: BlueprintAssetHelper.cpp, BlueprintReferencesCommandlet.cpp, VisualStudioTools.cpp, VisualStudioToolsBlueprintBreakpointExtension.cpp, VisualStudioToolsCommandlet.cpp, VisualStudioToolsCommandletBase.cpp, VSServerCommandlet.cpp, VSTestAdapterCommandlet.cpp
+[Adaptive Build] Excluded from KalmalaGameplay unity file: KalmalaCharacter.cpp, KalmalaCharacterMovementComponent.cpp, KalmalaCraftingComponent.cpp, KalmalaCraftingVerification.cpp, KalmalaGameMode.cpp, KalmalaPlacementPreview.cpp, KalmalaStorageInteraction.cpp, KalmalaStorageSaveGame.cpp, KalmalaStorageVerification.cpp, KalmalaCraftingNetworkContractTest.cpp, KalmalaM9RaisedStorageTest.cpp, KalmalaPlayerMovementTest.cpp
+[Adaptive Build] Excluded from KalmalaUI unity file: KalmalaCraftingSubsystem.cpp, KalmalaIconWidget.cpp, KalmalaInventoryInspectWidget.cpp, KalmalaMinimapViewModel.cpp, KalmalaNotificationSubsystem.cpp, KalmalaSelectedResultWidget.cpp, KalmalaSettingsSubsystem.cpp, KalmalaSettingsWidget.cpp, KalmalaStatComparison.cpp, KalmalaStatusHotbarWidget.cpp, KalmalaSurvivalStatusSubsystem.cpp, KalmalaUITheme.cpp, KalmalaWorldMapWidget.cpp, KalmalaGenerationPerformanceTest.cpp, KalmalaInteractionPromptTest.cpp, KalmalaInventoryBrowseTest.cpp, KalmalaInventoryInspectTest.cpp, KalmalaMinimapAsyncTest.cpp, KalmalaMinimapViewModelTest.cpp, KalmalaRecipeActivityReceiptTest.cpp, KalmalaRecipeBrowseTest.cpp, KalmalaSelectedResultWidgetTest.cpp, KalmalaSettingsWidgetTest.cpp, KalmalaStatComparisonTest.cpp, KalmalaStatusHotbarTest.cpp, KalmalaUIThemeTest.cpp, KalmalaWorldMapPerformanceTest.cpp, KalmalaWorldMapWidgetTest.cpp
+=================================
+Using Unreal Build Accelerator local executor to run 4 action(s)
+  CPU 20 physical cores, 28 logical cores
+  Memory 31.76 GB physical, 26.32 GB/53.76 GB committed
+  UBA Storage capacity 40 GB
+[1/4] Compile [x64] KalmalaCraftingSubsystem.cpp
+[2/4] Link [x64] UnrealEditor-KalmalaUI.lib
+[3/4] Link [x64] UnrealEditor-KalmalaUI.dll
+[4/4] WriteMetadata KalmalaEditor.target [NoUba]
+
+Total time in Unreal Build Accelerator local executor: 6.76 seconds
+Output binary: C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe
+
+Result: Succeeded
+Total execution time: 7.74 seconds
+Trace written to file C:\Users\Ville\AppData\Local\UnrealBuildTool\Trace.uba with size 6.0kb

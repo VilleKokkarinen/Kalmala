@@ -16,6 +16,8 @@ class KALMALAUI_API UKalmalaMinimapSubsystem : public ULocalPlayerSubsystem, pub
     GENERATED_BODY()
 
 public:
+    UKalmalaMinimapWidget* GetMinimapWidget() const { return MinimapWidget; }
+
     virtual void Tick(float DeltaTime) override;
     virtual void Deinitialize() override;
     virtual UWorld* GetTickableGameObjectWorld() const override { return GetWorld(); }

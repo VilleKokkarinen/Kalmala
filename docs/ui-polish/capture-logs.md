@@ -1,5 +1,9 @@
 # Fresh inventory capture evidence
 
+> Retired fixture: M12 removed the persistent pack HUD and its screenshot
+> stages. `Read-InventoryCapture.ps1` is no longer part of the runtime verifier;
+> this page preserves the earlier delayed-log diagnosis as historical evidence.
+
 The inventory verifier used snapshots read before delayed screenshot capture
 finished. This could reject a completed fixture whose files and final logs were
 correct. Read-InventoryCapture.ps1 now polls fresh host/client logs for up to ten

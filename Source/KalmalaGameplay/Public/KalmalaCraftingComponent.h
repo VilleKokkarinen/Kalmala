@@ -52,6 +52,15 @@ public:
     void InteractWithConstructionFromServer(AKalmalaConstructionActor* Construction);
     FName GetLastInteractedCookingStationKit() const { return LastInteractedCookingStationKit; }
     uint32 GetCookingStationInteractionSerial() const { return CookingStationInteractionSerial; }
+    AKalmalaConstructionActor* GetLastStationContextActor() const { return LastStationContextActor; }
+    FName GetLastStationContextKit() const { return LastStationContextKit; }
+    const FString& GetLastStationContextConstructionId() const { return LastStationContextConstructionId; }
+    uint32 GetStationContextInteractionSerial() const { return StationContextInteractionSerial; }
+    /** Owner-local advisory check for the exact server-accepted station context. */
+    bool IsStationContextTargetCurrent(AKalmalaConstructionActor* ExpectedActor, FName ExpectedKit,
+        const FString& ExpectedConstructionId) const;
+    bool IsStationContextUsable(AKalmalaConstructionActor* ExpectedActor, FName ExpectedKit,
+        const FString& ExpectedConstructionId) const;
     bool OpenStorageFromServer(AKalmalaConstructionActor* Construction);
     bool TransferStorageFromServer(FName ItemId, bool bDeposit, FString& Reason);
     const TArray<FKalmalaInventoryStack>& GetStorageView() const { return StorageView; }
@@ -81,7 +90,7 @@ public:
     bool PlaceConstructionFromServer(FName BuildableId, FString& Reason);
     FString GetRecipeDescription(FName RecipeId) const;
     FString GetRecipeAvailability(FName RecipeId) const;
-    FString GetToolProgressionText() const;
+    FString GetToolProgressionText(FName StationFilterKit = NAME_None) const;
     FString GetFoodText() const;
     FString GetNearbyFireText() const;
     const FString& GetLastResult() const { return LastResult; }
@@ -106,6 +115,10 @@ private:
     UPROPERTY(Replicated) bool bStorageViewOpen = false;
     UPROPERTY(Replicated) FName LastInteractedCookingStationKit;
     UPROPERTY(Replicated) uint32 CookingStationInteractionSerial = 0;
+    UPROPERTY(Replicated) TObjectPtr<AKalmalaConstructionActor> LastStationContextActor = nullptr;
+    UPROPERTY(Replicated) FName LastStationContextKit;
+    UPROPERTY(Replicated) FString LastStationContextConstructionId;
+    UPROPERTY(Replicated) uint32 StationContextInteractionSerial = 0;
     int32 StorageVerificationStage = 0;
     float StorageVerificationElapsed = 0;
     double NextRequestTime = 0;

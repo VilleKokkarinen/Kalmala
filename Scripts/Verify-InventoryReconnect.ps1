@@ -1,5 +1,6 @@
 param([int]$Port = 17859)
 $ErrorActionPreference = 'Stop'
+& (Join-Path $PSScriptRoot 'Verify-InventoryPanelRemoval.ps1')
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
 $output = Join-Path $env:TEMP ('KalmalaInventoryReconnect-' + [guid]::NewGuid().ToString('N'))
@@ -35,9 +36,7 @@ try {
                 -and $ownerIndex -ge 0 -and $clientText.IndexOf('Inventory remote: Empty=1', $ownerIndex) -gt $ownerIndex `
                 -and $clientText.Contains('Tool condition owner: Passed=1 FieldHatchet=24 StonePick=20 ReedKnife=16') `
                 -and $clientText.Contains('Tool condition remote: Hidden=1') `
-                -and $clientText.Contains('Notification owner baseline: Silent=1 Rows=0 Sources=5') `
-                -and $serverText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1') `
-                -and $clientText.Contains('Inventory presentation: Owner=1 Wood=7 ReadOnly=1')) { break }
+                -and $clientText.Contains('Notification owner baseline: Silent=1 Rows=0 Sources=5')) { break }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw 'Inventory host/client scenario timed out.' }
@@ -46,7 +45,7 @@ try {
         $client.WaitForExit()
         $client = $null
     }
-    Write-Output 'PASS: two client visits to the same live server; each server pawn starts empty before its fixture grant; gathering and free Workbench repair rejection/acceptance, retired tool replacement rejection, owner-only tool condition, inventory privacy, rejected local mutations, remote privacy after replication, and read-only local presentation verified on both visits.'
+    Write-Output 'PASS: two client visits to the same live server; each server pawn starts empty before its fixture grant; gathering and free Workbench repair rejection/acceptance, retired tool replacement rejection, owner-only tool condition, inventory privacy, rejected local mutations, remote privacy after replication, and legacy-panel absence verified.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

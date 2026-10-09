@@ -1,0 +1,49 @@
+image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliases,recipe_ids,shared_views,inventory_scope
+01,A,Wood,Wood,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack
+01,A,Lightwood,Lightwood,item,none,none,PackInventory;ItemDetail;Storage,pack
+01,A,Densewood,Densewood,item,none,none,PackInventory;ItemDetail;Storage,pack
+01,A,Coal,Coal,item,none,none,PackInventory;ItemDetail;Storage,pack
+02,A,Stone,Stone,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack
+02,A,Iron,Iron,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack
+02,A,Fibre,Reed fibre,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack
+02,A,PeatAmber,Peat Amber,item,none,none,PackInventory;ItemDetail;Storage,pack
+03,A,FrostSalt,Frost Salt,item,none,none,PackInventory;ItemDetail;Storage,pack
+03,A,MirelingAsh,Mireling ember ash,item,none,none,PackInventory;ItemDetail;Storage,pack
+03,A,CampfireKit,Campfire construction (Hearth ring source identity),construction,HearthRing,Campfire,RecipeResult;BuildGrid;BuildResult;PlacementPreview,construction_only
+03,A,WorkbenchKit,Joiner's bench,item,Workbench,Workbench,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+04,A,ForgeKit,Forge,item,Forge,Forge,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+04,A,WorkbenchToolRackKit,Workbench tool rack,item,WorkbenchToolRack,WorkbenchToolRack,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+04,A,ForgeAnvilKit,Forge anvil,item,ForgeAnvil,ForgeAnvil,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+04,A,GrindingStoneKit,Grinding stone,item,GrindingStone,GrindingStone,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+05,B,StorageKit,Chest,item,Storage,Storage,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+05,B,CookingRackKit,Cooking rack,item,CookingRack,CookingRack,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+05,B,FryingPanKit,Frying pan,item,FryingPan,FryingPanRecipe,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+05,B,CauldronKit,Hearth cauldron,item,Cauldron,Cauldron,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+06,B,FloorKit,Timber floor,item,Floor,Floor,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+06,B,WallKit,Windbreak wall,item,Wall,Wall,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+06,B,RoofKit,Reed roof,item,Roof,Roof,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
+06,B,BoarMeat,Boar meat,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack
+07,B,DeerMeat,Deer meat,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack
+07,B,BoarHide,Boar rough hide,item,none,none,PackInventory;ItemDetail;Storage,pack
+07,B,DeerHide,Deer soft hide,item,none,none,PackInventory;ItemDetail;Storage,pack
+07,B,CookedBoarMeat,Cooked boar meat,item,none,CookedBoarMeatRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack
+08,B,CookedDeerMeat,Cooked deer meat,item,none,CookedDeerMeatRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack
+08,B,HearthBroth,Hearth broth,item,none,none,PackInventory;ItemDetail;Storage,pack
+08,B,MeatStew,Meat stew,item,none,MeatStewRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack
+08,B,RootVegetableSoup,Root vegetable soup,item,none,RootVegetableSoupRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack
+09,C,RoastedRootVegetables,Roasted root vegetables,item,none,RoastedRootVegetablesRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack
+09,C,DeerRootRoast,Deer and rutabaga roast,item,none,DeerRootRoastRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack
+09,C,Carrot,Carrot,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack
+09,C,Potato,Potato,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack
+10,C,Rutabaga,Rutabaga,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack
+10,C,Onion,Onion,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack
+10,C,CarrotSeed,Carrot seeds,item,none,none,PackInventory;ItemDetail;Storage,pack
+10,C,PotatoSeed,Potato seeds,item,none,none,PackInventory;ItemDetail;Storage,pack
+11,C,RutabagaSeed,Rutabaga seeds,item,none,none,PackInventory;ItemDetail;Storage,pack
+11,C,OnionSeed,Onion seeds,item,none,none,PackInventory;ItemDetail;Storage,pack
+11,C,ReedKnife,Reed knife,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
+11,C,FieldHatchet,Field hatchet,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
+12,C,StonePick,Stone pick,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
+12,C,BronzeAxe,Bronze axe,tool,none,none,CarriedTool;ToolDetail;Repair;UpgradeSource,carried_tool
+12,C,IronAxe,Iron axe,tool,none,none,CarriedTool;ToolDetail;Repair;UpgradeTarget,carried_tool
+12,C,ConstructionHammer,Construction hammer,tool,none,none,CarriedTool;ToolDetail;Repair;BuildRequirement,carried_tool

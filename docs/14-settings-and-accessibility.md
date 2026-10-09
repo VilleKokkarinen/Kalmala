@@ -18,6 +18,13 @@ other cues use their dedicated text/icon HUD surfaces. See
 `36-status-icons.md` for the status presentation contract and
 `40-notifications.md` for feedback rules.
 
+Gameplay HUD and interaction prompts name the visible action without showing
+key/button names or control legends. Inventory and build/crafting/repair/storage
+views, the expanded map, status/detail views, and the Settings home screen follow
+the same rule while keeping useful action/status names and existing focus
+navigation. Options > Controls is the only player-facing view that displays
+current mappings; prompt actions stay readable as text and remain remappable.
+
 ## Existing shell and option groups
 
 The existing local menu opens and closes with **Escape**, owns modal input while

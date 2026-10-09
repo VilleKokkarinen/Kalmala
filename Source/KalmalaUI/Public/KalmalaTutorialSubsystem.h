@@ -36,7 +36,7 @@ class KALMALAUI_API UKalmalaTutorialPromptWidget : public UUserWidget
     GENERATED_BODY()
 
 public:
-    void SetPrompt(EKalmalaTutorialBeat Beat, const FString& Title, const FString& Body, const FString& Controls);
+    void SetPrompt(EKalmalaTutorialBeat Beat, const FString& Title, const FString& Body);
     void SetPromptVisible(bool bVisible);
     void SetCardSize(float Width, float Height);
 
@@ -48,13 +48,12 @@ protected:
 private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> TitleText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> BodyText;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> ControlsText;
     UPROPERTY(Transient) TObjectPtr<UBorder> CardBorder;
     UPROPERTY(Transient) TObjectPtr<USizeBox> CardSizeBox;
     EKalmalaTutorialBeat DisplayedBeat = EKalmalaTutorialBeat::None;
 };
 
-/** Contextual prompts for this local player; it reads only that player's view and replicated pawn state. */
+/** Historical local prompt model, retained as a route-free design reference and disabled during gameplay. */
 UCLASS()
 class KALMALAUI_API UKalmalaTutorialSubsystem : public ULocalPlayerSubsystem, public FTickableGameObject
 {
@@ -65,7 +64,8 @@ public:
     virtual void Deinitialize() override;
     virtual UWorld* GetTickableGameObjectWorld() const override { return GetWorld(); }
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UKalmalaTutorialSubsystem, STATGROUP_Tickables); }
-    virtual bool IsTickable() const override { return !IsTemplate(); }
+    // M12 removes the bottom onboarding card; keep the presenter inactive across possession and reconnect.
+    virtual bool IsTickable() const override { return false; }
 
 private:
     void BindLocalInput(APlayerController* InController);
@@ -80,7 +80,6 @@ private:
     void RevisitPrompt();
     void NoteAttackIntent();
     FString BuildBody(EKalmalaTutorialBeat Beat) const;
-    FString BuildControls() const;
 
     UPROPERTY(Transient) TObjectPtr<APlayerController> LocalController;
     UPROPERTY(Transient) TObjectPtr<UKalmalaTutorialPromptWidget> PromptWidget;

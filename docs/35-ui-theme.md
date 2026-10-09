@@ -47,7 +47,7 @@ expanded-map, and options views as described below.
 | FontAsset | empty | Project-owned runtime UFont object path; shared text |
 | FontFace / HeadingFace | Regular / Bold | Regular or Bold; missing custom face uses font default |
 | PanelImage | empty | Project-owned Texture2D object path; shared panels |
-| InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D override for the inventory pack panel |
+| InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D override for the modal Inventory panel |
 | BuildPanelImage | `/Game/Kalmala/UI/BuildPanel.BuildPanel` | Texture2D override for build/craft selection |
 | WorldMapPanelImage | `/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel` | Texture2D override for the expanded map shell |
 | EscapePanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Escape home/options shell; fallback source for empty tab overrides |
@@ -109,15 +109,14 @@ does not establish cooking/inclusion of config-only asset references.
 Focused theme automation exercises changed brushes, padding, font face/outline,
 icon dimensions, scroll animation and reduced-motion override, high contrast,
 invalid numbers/paths, missing assets, and a transient in-memory image reference.
-The settings/inventory and prior HUD tests remain required alongside it. No
+The settings and Inventory menu tests remain required alongside it. No
 custom project font or rendered image appearance has been reviewed.
 
 ## Representative view migration
 
-Inventory's pack panel, wrapping text, and scroll use the shared theme. Pack
-text keeps its historical one-unit offset above BodySize. Its fixed wrap width
-and layout prepass include wrapped lines in the panel height, so larger theme
-text remains backed by the panel. Build/craft uses
+The modal Inventory menu's panel, labels, and scrolling use the shared theme.
+The former left-side pack panel and its bespoke wrapping layout were removed in
+M12. Build/craft uses
 ApplyMenu over the existing widget tree: ordinary labels and actions use
 BodySize + 5, its title uses EmphasisSize + 11, and all sizes are bounded before
 local text scaling. Disabled buttons, delegates, selection, tooltips, and
@@ -171,6 +170,13 @@ settings. Populated inventory and the full build menu report positive scroll
 extent in the rendered checks. High contrast hides background art and keeps
 black panels, white text, and borders. Selected host captures and exact checks
 are retained in `docs/ui-inventory-build/`.
+
+The shared station-context shell applies the same configurable panel, heading,
+text scale, contrast, and focused close-button theme. It presents one station
+identity and active service section around an existing local service widget;
+station-specific operation rows remain in that service view. The shell owns
+modal input and closes when its exact server-accepted target is no longer
+usable. Theme changes apply while it remains open, with no gameplay mutation.
 
 Parent verification passed with the forced UE 5.8.2 editor build, all 101
 Kalmala automations, and rendered host/client inventory and crafting runners
@@ -275,6 +281,9 @@ have separate checkboxes, textual shown/filtered states, and eligible-marker
 counts. Focus uses the shared focused-button treatment and a visible outline;
 high contrast uses a black panel, white text, and white row/checkbox outlines.
 Shape and text continue to distinguish marker categories without colour.
+The legend keeps marker names and shown/filtered state, but the map no longer
+prints keyboard/controller help beside its controls. Share, ping, and pin action
+names remain concise; current input labels appear in Options > Controls only.
 
 No theme keys or map content sources were added. The three checkbox states are
 local to the map widget session and affect only marker drawing. Existing owner
@@ -431,19 +440,18 @@ missing glyph/text fragments at 1024x768/150% high contrast. Automated checks
 passed but final visual acceptance failed on both peers. The HUD child remains
 blocked; do not treat these candidate styling changes as verified or complete.
 
-## Near-crosshair interaction prompt — 2026-10-05
+## Near-crosshair interaction prompt — 2026-10-07
 
 The owner-local prompt sits just below screen centre and uses the shared panel,
 font, text-scale, and high-contrast styles. It reads the single actor hit by the
-owning pawn's current short visibility trace, names a supported action, and
-shows the current keyboard and controller mappings for Interact. The key labels
-are resolved on each local update, so the prompt follows a Controls-tab remap
-without a stale cached label. No hit, unsupported actor, or modal input clears
-the prompt. A recognized action that is locally unavailable remains named and
-is labelled Unavailable with a reason where owner-visible state supports one.
-Keyboard and gamepad bindings use separate rows; the bounded panel preserves
-the reason and binding rows at 150% text in the 1024x768 high-contrast review.
-Reviewed host/client captures are retained in `docs/interaction-prompts/`.
+owning pawn's current short visibility trace and presents its target and
+supported action as readable text. The prompt contains no key/button names or
+control legends; current bindings and remapping remain in Options > Controls.
+No hit, unsupported actor, or modal input clears the prompt. A recognized
+action that is locally unavailable remains named and is labelled Unavailable
+with a reason where owner-visible state supports one. Earlier host/client
+captures in `docs/interaction-prompts/` predate this text-only binding contract
+and are retained as historical evidence.
 
 The view trace is an advisory candidate only. The server keeps its own trace,
 range checks, target selection, tool validation, seat/launch checks, and action
@@ -452,10 +460,11 @@ launch preview uses only the hit water sample; the server still checks session
 capacity and hull placement. Skiff exit safety and network-delayed state may
 also cause a server rejection after a visible prompt.
 
-`Kalmala.UI.InteractionPrompt.Presentation` checks current bindings, remap
-reflection, unavailable, no-target, modal, and no-binding text. The disposable
-render fixture supplies available/unavailable labels and silent modal/no-target
-states on both local peers for standard and high-contrast review. Rendered
-crafting acceptance also confirms the live prompt hides while its modal is open.
-This editor evidence does not certify physical keyboard/controller hardware or
-packaged builds.
+`Kalmala.UI.InteractionPrompt.Presentation` checks target/action readability,
+absence of binding labels, unavailable, no-target, and modal text. It also
+confirms that live remapped labels remain available from Options without leaking
+into the prompt. The disposable render fixture supplies available/unavailable
+actions and silent modal/no-target states on both local peers for standard and
+high-contrast review. Rendered crafting acceptance also confirms the live
+prompt hides while its modal is open. This editor evidence does not certify
+physical keyboard/controller hardware or packaged builds.

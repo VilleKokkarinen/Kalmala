@@ -96,7 +96,11 @@ int32 UKalmalaSupportGlyphWidget::NativePaint(const FPaintArgs& Args, const FGeo
         TArray<FVector2D> Points;
         Points.Reserve(Source.Num() + (bClosed ? 1 : 0));
         for (const FVector2D Point : Source) Points.Add(ToLocal(Point));
-        if (bClosed) Points.Add(Points[0]);
+        if (bClosed)
+        {
+            const FVector2D FirstPoint = Points[0];
+            Points.Add(FirstPoint);
+        }
         FSlateDrawElement::MakeLines(OutDrawElements, DrawLayer, AllottedGeometry.ToPaintGeometry(), Points,
             ESlateDrawEffect::None, Ink, true, Thickness);
     };
@@ -206,6 +210,15 @@ FString UKalmalaSupportSelectionWidget::GetSelectionSummary() const
     return SelectedText != nullptr ? SelectedText->GetText().ToString() : FString();
 }
 
+FVector2D UKalmalaSupportSelectionWidget::GetRequiredHudSize() const
+{
+    // The fixed historical width could be narrower than the four glyph cards.
+    // Bound the footer to that row width while allowing its text to wrap.
+    const FMargin PanelPadding = Background ? Background->GetPadding() : FMargin();
+    const float Width = GlyphRow ? GlyphRow->GetDesiredSize().X + PanelPadding.Left + PanelPadding.Right : 264.0f;
+    return FVector2D(FMath::Max(264.0f, Width), FMath::Max(112.0f, GetDesiredSize().Y));
+}
+
 void UKalmalaSupportSelectionWidget::ApplyAccessibility(const int32 TextScale, const int32 Contrast)
 {
     const int32 BoundedScale = UKalmalaSettingsWidget::ClampTextScale(TextScale);
@@ -279,15 +292,6 @@ void UKalmalaSupportSelectionSubsystem::Tick(float DeltaTime)
         return;
     }
 
-    constexpr float PanelWidth = 264.0f;
-    constexpr float PanelHeight = 112.0f;
-    if (!ViewportSize.Equals(LastViewportSize, 0.5f))
-    {
-        Widget->SetDesiredSizeInViewport(FVector2D(PanelWidth, PanelHeight));
-        Widget->SetPositionInViewport(FVector2D(ViewportSize.X * 0.5f, 24.0f), false);
-        LastViewportSize = ViewportSize;
-    }
-
     int32 SelectedIndex = static_cast<int32>(Character->GetSelectedSupportEffect()) - 1;
     if (SelectedIndex < 0 || SelectedIndex >= UE_ARRAY_COUNT(Effects)) SelectedIndex = INDEX_NONE;
     uint8 LearnedMask = 0;
@@ -295,6 +299,15 @@ void UKalmalaSupportSelectionSubsystem::Tick(float DeltaTime)
         if (Support->HasLearnedEffect(Effects[Index])) LearnedMask |= static_cast<uint8>(1u << Index);
     Widget->SetSnapshot(SelectedIndex, LearnedMask,
         UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
+    Widget->ForceLayoutPrepass();
+    const FVector2D RequiredSize = Widget->GetRequiredHudSize();
+    if (!ViewportSize.Equals(LastViewportSize, 0.5f) || !RequiredSize.Equals(LastWidgetSize, 0.5f))
+    {
+        Widget->SetDesiredSizeInViewport(RequiredSize);
+        Widget->SetPositionInViewport(FVector2D(ViewportSize.X * 0.5f, 24.0f), false);
+        LastViewportSize = ViewportSize;
+        LastWidgetSize = RequiredSize;
+    }
     Widget->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
@@ -303,6 +316,7 @@ void UKalmalaSupportSelectionSubsystem::ReleaseWidget()
     if (Widget) Widget->RemoveFromParent();
     Widget = nullptr;
     LastViewportSize = FVector2D::ZeroVector;
+    LastWidgetSize = FVector2D::ZeroVector;
 }
 
 void UKalmalaSupportSelectionSubsystem::Deinitialize()

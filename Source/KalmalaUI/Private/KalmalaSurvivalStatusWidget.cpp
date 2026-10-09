@@ -119,15 +119,12 @@ FString UKalmalaSurvivalStatusWidget::BuildStatusText(const FKalmalaSurvivalStat
             Counterplay += TEXT("wait for the server weather to shift");
         }
 
-        const float Elapsed = FMath::Max(0.0f, Snapshot.ServerTimeSeconds - Weather.ServerStartTimeSeconds);
-        const float Remaining = FMath::Clamp(Weather.DurationSeconds - Elapsed, 0.0f, Weather.DurationSeconds);
         Rows.Add(FString::Printf(
-            TEXT("▲ HAZARD · WEATHER · rain %d%% / fog %d%% / wind %d%% / storm %d%% · %s · Source: server weather · Recovery: %s."),
+            TEXT("▲ HAZARD · WEATHER · rain %d%% / fog %d%% / wind %d%% / storm %d%% · Source: server weather · Recovery: %s."),
             FMath::RoundToInt(Weather.PrecipitationIntensity * 100.0f),
             FMath::RoundToInt(Weather.FogIntensity * 100.0f),
             FMath::RoundToInt(Weather.WindStrength * 100.0f),
             FMath::RoundToInt(Weather.StormIntensity * 100.0f),
-            *FormatSeconds(Remaining),
             Counterplay.IsEmpty() ? TEXT("wait for the next weather interval") : *Counterplay));
         Rows.Add(UKalmalaWeatherActivityWidget::BuildActivityLabel(Weather.ActivityLevel));
     }
@@ -137,7 +134,7 @@ FString UKalmalaSurvivalStatusWidget::BuildStatusText(const FKalmalaSurvivalStat
     if (SafeHeat >= ExposureSignalThreshold)
     {
         Rows.Add(FString::Printf(
-            TEXT("▲ HAZARD · HEAT SIGNAL · intensity %d%% · ongoing · Source: local ambient conditions · Guidance: seek shade or cooler cover."),
+            TEXT("▲ HAZARD · HEAT SIGNAL · intensity %d%% · Source: local ambient conditions · Guidance: seek shade or cooler cover."),
             FMath::RoundToInt(SafeHeat * 100.0f)));
     }
 
@@ -149,7 +146,7 @@ FString UKalmalaSurvivalStatusWidget::BuildStatusText(const FKalmalaSurvivalStat
     {
         const int32 RecoveryPercent = FMath::RoundToInt(FKalmalaExposureResponse::GetStaminaRecoveryMultiplier(SafeWarmth) * 100.0f);
         Rows.Add(FString::Printf(
-            TEXT("◇ HAZARD · COLD · signal %d%% / warmth %d%% / stamina recovery %d%% · ongoing · Source: local ambient conditions · Recovery: shelter or a lit hearth restores warmth."),
+            TEXT("◇ HAZARD · COLD · signal %d%% / warmth %d%% / stamina recovery %d%% · Source: local ambient conditions · Recovery: shelter or a lit hearth restores warmth."),
             FMath::RoundToInt(SafeCold * 100.0f), FMath::RoundToInt(SafeWarmth), RecoveryPercent));
     }
 

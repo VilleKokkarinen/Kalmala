@@ -81,18 +81,40 @@ bool AKalmalaCampfire::IsLightingAllowed(const bool bServerAuthority, const floa
 
 bool AKalmalaCampfire::CanInteract_Implementation(AKalmalaCharacter* Interactor) const
 {
-    return HasAuthority() && IsValid(Interactor) && Interactor->HasAuthority() && CanUse(Interactor)
-        && HearthState == EKalmalaHearthState::Extinguished && FuelSeconds > 0 && IsLightingAllowed(true, FuelWetness);
+    if (!HasAuthority() || !IsValid(Interactor) || !Interactor->HasAuthority() || !CanUse(Interactor)
+        || !FMath::IsFinite(FuelSeconds) || FuelSeconds < 0.0f
+        || FuelSeconds > MaxFuelSeconds - FuelSecondsPerItem)
+    {
+        return false;
+    }
+
+    const UKalmalaInventoryComponent* Inventory = Interactor->FindComponentByClass<UKalmalaInventoryComponent>();
+    TArray<FKalmalaInventoryStack> Costs;
+    FString Reason;
+    return Inventory != nullptr && FKalmalaRawFuelContract::AddCosts(Inventory->GetStacks(), 1, Costs, Reason);
 }
 
 void AKalmalaCampfire::Interact_Implementation(AKalmalaCharacter* Interactor)
 {
     if (CanInteract_Implementation(Interactor))
     {
-        HearthState = EKalmalaHearthState::Lit;
-        UpdateFromServerWeather(0.0f);
-        ForceNetUpdate();
+        TryRefuelFromServer(Interactor);
     }
+}
+
+bool AKalmalaCampfire::TryLightFromServer(AKalmalaCharacter* Character)
+{
+    if (!HasAuthority() || !IsValid(Character) || !Character->HasAuthority() || !CanUse(Character)
+        || HearthState != EKalmalaHearthState::Extinguished || !FMath::IsFinite(FuelSeconds)
+        || FuelSeconds <= 0.0f || !IsLightingAllowed(true, FuelWetness))
+    {
+        return false;
+    }
+
+    HearthState = EKalmalaHearthState::Lit;
+    UpdateFromServerWeather(0.0f);
+    ForceNetUpdate();
+    return true;
 }
 
 float AKalmalaCampfire::GetWarmthContributionAt(const FVector& Location) const
@@ -172,6 +194,7 @@ void AKalmalaCampfire::InitializePaidFromServer(AKalmalaCharacter* Character)
 bool AKalmalaCampfire::TryRefuelFromServer(AKalmalaCharacter* Character)
 {
     if (!HasAuthority() || !IsValid(Character) || !Character->HasAuthority() || !CanUse(Character)
+        || !FMath::IsFinite(FuelSeconds) || FuelSeconds < 0.0f
         || FuelSeconds > MaxFuelSeconds - FuelSecondsPerItem) return false;
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
     if (!Inventory) return false;

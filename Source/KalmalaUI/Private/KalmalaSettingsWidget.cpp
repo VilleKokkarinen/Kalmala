@@ -1017,7 +1017,6 @@ void UKalmalaSettingsWidget::ShowMainMenu()
     Status->OnClicked.AddDynamic(this, &ThisClass::HandleStatusDetailsClicked);
     UButton* Quit = AddButton(ContentBox, FText::FromString(TEXT("Quit")), TEXT("QuitButton"));
     Quit->OnClicked.AddDynamic(this, &ThisClass::HandleQuitClicked);
-    AddLabel(ContentBox, FText::FromString(TEXT("Press Esc to return to the game")), 16.0f)->SetJustification(ETextJustify::Center);
     Options->SetUserFocus(GetOwningPlayer());
     Options->SetKeyboardFocus();
 }
@@ -1301,7 +1300,7 @@ void UKalmalaSettingsWidget::HandleStatusDetailsClicked()
     ApplyModalPalette(&FKalmalaUITheme::Get().EscapePanelImage);
     ContentBox->ClearChildren();
     AddLabel(ContentBox, FText::FromString(TEXT("Your status and weather")), 24);
-    AddLabel(ContentBox, FText::FromString(TEXT("One entry per active effect; effects do not stack. Ongoing signals have no expiry timer. Weather timer is the current server interval.")), 15);
+    AddLabel(ContentBox, FText::FromString(TEXT("One entry per active effect; effects do not stack. Finite player effects show their remaining time; Hot, Cold and weather have no countdown.")), 15);
     UButton* Back = AddButton(ContentBox, FText::FromString(TEXT("Back to main menu")), TEXT("StatusBack"));
     Back->OnClicked.AddDynamic(this, &ThisClass::ShowMainMenu);
     auto* Scroll = WidgetTree->ConstructWidget<UScrollBox>();

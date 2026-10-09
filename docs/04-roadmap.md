@@ -749,3 +749,9 @@ lightweight checks during child increments and the prescribed affected build,
 UI/input/inventory/construction/crafting/repair/cooking/storage/authority/reconnect
 regressions and full milestone-final
 verification from `docs/07-development-setup.md` before declaring M12 complete.
+
+**M12 final acceptance — 2026-10-09:** Complete in the retained
+`codex/m12-hud-feedback-rebuild` implementation. Final repairs, build and
+116-test queue, owner Inventory/service captures, twelve combined-HUD cases,
+diagnostic performance profiles and owner-confirmed keyboard/controller
+acceptance are recorded in [45 M12 final acceptance](45-m12-acceptance.md).

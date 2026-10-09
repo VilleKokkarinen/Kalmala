@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaCraftingSubsystem.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaSettingsWidget.h"
 #include "InputCoreTypes.h"
 #include "GameFramework/GameUserSettings.h"
@@ -12,25 +13,55 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaInteractionPromptTest, "Kalmala.UI.Inte
 bool FKalmalaInteractionPromptTest::RunTest(const FString& Parameters)
 {
     const FString Available = UKalmalaInteractionPromptWidget::BuildPromptText(
-        TEXT("Workbench"), TEXT("Use"), TEXT("F"), TEXT("Gamepad Face Button Right"));
+        TEXT("Workbench"), TEXT("Use"));
     TestTrue(TEXT("Prompt names the visible target"), Available.Contains(TEXT("Workbench")));
     TestTrue(TEXT("Prompt names the supported action"), Available.Contains(TEXT("Use")));
-    TestTrue(TEXT("Prompt shows the keyboard binding"), Available.Contains(TEXT("Keyboard: F")));
-    TestTrue(TEXT("Prompt shows the gamepad binding"), Available.Contains(TEXT("Gamepad: Face Button Right")));
+    TestFalse(TEXT("Prompt omits keyboard binding labels"), Available.Contains(TEXT("Keyboard:")));
+    TestFalse(TEXT("Prompt omits controller binding labels"), Available.Contains(TEXT("Gamepad:")));
+    const FKalmalaItemDefinition* Workbench = UKalmalaItemCatalogue::Get()->FindItem(TEXT("WorkbenchKit"));
+    TestNotNull(TEXT("Prompt target resolves the Workbench catalogue identity"), Workbench);
+    if (Workbench)
+    {
+        TestEqual(TEXT("Workbench prompt resolves the reviewed catalogue label"), Workbench->DisplayName, FString(TEXT("Workbench")));
+        TestEqual(TEXT("Workbench prompt displays the current name and action"),
+            UKalmalaInteractionPromptWidget::BuildPromptText(Workbench->DisplayName,
+                UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("WorkbenchKit"))),
+            FString(TEXT("Workbench\nUse")));
+    }
 
     const FString Unavailable = UKalmalaInteractionPromptWidget::BuildPromptText(
-        TEXT("Densewood trunk"), TEXT("Chop"), TEXT("E"), TEXT("Gamepad Face Button Bottom"), TEXT("No suitable tool available"));
+        TEXT("Densewood trunk"), TEXT("Chop"), TEXT("No suitable tool available"));
     TestTrue(TEXT("Unavailable target retains its supported action"), Unavailable.Contains(TEXT("Densewood trunk\nChop")));
     TestTrue(TEXT("Unavailable state is explicit"), Unavailable.Contains(TEXT("Unavailable: No suitable tool available")));
-    TestTrue(TEXT("Unavailable state keeps both bindings visible"),
-        Unavailable.Contains(TEXT("Keyboard: E")) && Unavailable.Contains(TEXT("Gamepad: Face Button Bottom")));
+    TestFalse(TEXT("Unavailable state omits keyboard and controller bindings"),
+        Unavailable.Contains(TEXT("Keyboard:")) || Unavailable.Contains(TEXT("Gamepad:")));
     TestTrue(TEXT("No crosshair candidate clears the prompt"),
-        UKalmalaInteractionPromptWidget::BuildPromptText(FString(), FString(), TEXT("E"), TEXT("A")).IsEmpty());
+        UKalmalaInteractionPromptWidget::BuildPromptText(FString(), FString()).IsEmpty());
     TestTrue(TEXT("Modal input clears the prompt"),
-        UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Workbench"), TEXT("Use"), TEXT("E"), TEXT("A"), FString(), true).IsEmpty());
-    TestTrue(TEXT("Missing bindings make the action unavailable"),
-        UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Workbench"), TEXT("Use"),
-            TEXT("Not bound"), TEXT("Not bound")).Contains(TEXT("Unavailable: No binding")));
+        UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Workbench"), TEXT("Use"), FString(), true).IsEmpty());
+
+    const FString GrindingStoneAction = UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("GrindingStoneKit"));
+    const FString GrindingStonePrompt = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Grinding Stone"), GrindingStoneAction);
+    TestTrue(TEXT("Grinding Stone prompt names its direct Repair All action"),
+        GrindingStoneAction == TEXT("Repair all") && GrindingStonePrompt == TEXT("Grinding Stone\nRepair all"));
+    TestFalse(TEXT("Grinding Stone prompt does not expose a key binding"),
+        GrindingStonePrompt.Contains(TEXT("Keyboard:")) || GrindingStonePrompt.Contains(TEXT("Gamepad:")));
+    TestTrue(TEXT("Other construction prompts retain their existing Use action"),
+        UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("WorkbenchKit")) == TEXT("Use"));
+
+    const FString CampfirePrompt = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Campfire"), TEXT("Add fuel"));
+    const FString CampfireNoFuelPrompt = UKalmalaInteractionPromptWidget::BuildPromptText(
+        TEXT("Campfire"), TEXT("Add fuel"), TEXT("No raw fuel"));
+    const FString CampfireFullPrompt = UKalmalaInteractionPromptWidget::BuildPromptText(
+        TEXT("Campfire"), TEXT("Add fuel"), TEXT("Fuel full"));
+    TestTrue(TEXT("Campfire Interact prompt names the direct Add fuel action"),
+        CampfirePrompt == TEXT("Campfire\nAdd fuel"));
+    TestTrue(TEXT("Campfire prompt shows the no-fuel rejection"),
+        CampfireNoFuelPrompt.Contains(TEXT("Unavailable: No raw fuel")));
+    TestTrue(TEXT("Campfire prompt shows the full-capacity rejection"),
+        CampfireFullPrompt.Contains(TEXT("Unavailable: Fuel full")));
+    TestFalse(TEXT("Campfire prompt does not expose a key binding"),
+        CampfirePrompt.Contains(TEXT("Keyboard:")) || CampfirePrompt.Contains(TEXT("Gamepad:")));
 
     if (!GConfig)
     {
@@ -54,13 +85,14 @@ bool FKalmalaInteractionPromptTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Current keyboard remap is read live"), bKeyboardChanged && RemappedKeyboard == EKeys::F.GetDisplayName().ToString());
     TestTrue(TEXT("Current controller remap is read live"),
         bControllerChanged && RemappedController == EKeys::Gamepad_FaceButton_Right.GetDisplayName().ToString());
-    const FString Remapped = UKalmalaInteractionPromptWidget::BuildPromptText(
-        TEXT("Workbench"), TEXT("Use"), RemappedKeyboard, RemappedController);
-    FString ShortRemappedController = RemappedController;
-    if (ShortRemappedController.StartsWith(TEXT("Gamepad "))) ShortRemappedController.RightChopInline(8, EAllowShrinking::No);
-    TestTrue(TEXT("Prompt formatting reflects the current remapped bindings"),
-        Remapped.Contains(FString::Printf(TEXT("Keyboard: %s"), *RemappedKeyboard))
-        && Remapped.Contains(FString::Printf(TEXT("Gamepad: %s"), *ShortRemappedController)));
+    const FString RemappedPrompt = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Workbench"), TEXT("Use"));
+    TestTrue(TEXT("Remapping remains available in Options without changing prompt action text"), RemappedPrompt == Available);
+    const FString RemappedGrindingStonePrompt = UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Grinding Stone"),
+        UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("GrindingStoneKit")));
+    TestTrue(TEXT("Interact remapping leaves Grinding Stone action-only prompt unchanged"),
+        RemappedGrindingStonePrompt == GrindingStonePrompt);
+    TestFalse(TEXT("Remapped key names do not leak into the prompt"),
+        RemappedPrompt.Contains(RemappedKeyboard) || RemappedPrompt.Contains(RemappedController));
 
     if (bHadKeyboardOverride) GConfig->SetString(Section, KeyboardConfigKey, *PreviousKeyboard, GGameUserSettingsIni);
     else GConfig->RemoveKey(Section, KeyboardConfigKey, GGameUserSettingsIni);

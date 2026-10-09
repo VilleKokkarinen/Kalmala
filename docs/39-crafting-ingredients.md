@@ -155,3 +155,46 @@ keyboard/controller playthrough, exhaustive viewport matrix, clean-HEAD or
 package acceptance claimed. Other first-unmet reasons retain the existing
 model contract. Earlier pending statements above are historical; this parent
 is now accepted, while the later complete M11 milestone acceptance remains open.
+
+## M12 construction detail template
+
+Direct construction details use the existing result description once, followed
+by the existing owner-local ingredient counts and a compact Build requirements
+block. It names the carried Construction Hammer state, clear/dry/gently sloped
+placement, and the hearth's one-of-four raw-fuel requirement and 60-second
+starting duration. The current first blocker appears once when present; a
+ready recipe does not add success, skill, unlock, request, or rejection prose.
+The result name and material totals stay in their existing header and ingredient
+rows. Catalogue descriptions and all recipe, cost, placement, authority, and
+save behavior remain unchanged.
+
+The `Kalmala.UI.Crafting.Requirements` contract covers each direct build's
+placement and single-blocker copy, the hearth fuel summary, pending/present/
+missing hammer states, and omission of generic boilerplate. The rendered
+Verify-Crafting presentation gate checks the selected hearth copy and ensures
+its old repeated costs, output label, skill list, and request prose are absent.
+Build, full automation, and rendered verification remain deferred to M12's
+milestone-final run.
+
+## M12 food and general recipe detail template
+
+Non-construction recipe details show the canonical output description once,
+the existing owner-local ingredient rows, and a compact requirement summary.
+The summary names the actual result count per batch, one batch per menu press,
+and the catalogue's supported maximum batch when it is greater than one. It
+lists only real station alternatives, the cooking-heat rule for rack/cauldron/
+pan recipes, and a reusable tool when the recipe requires one. The first
+current availability blocker appears once; a ready recipe has no synthetic
+success message. Recipes without station or reusable-tool requirements get no
+empty-state lines, and the selected details omit unrelated skill lists,
+no-lock claims, output-stack limits, request/rejection boilerplate, and repeated
+ingredient totals. Catalogue prose and server recipe validation remain intact.
+
+`Kalmala.UI.Crafting.Requirements` checks result/quantity coverage, station and
+heat requirements, reusable-tool text, omission of generic boilerplate and
+single-blocker behavior. `Kalmala.Gameplay.Food.CookingStationHeat` continues
+to verify the server heat gate and confirms the detail description comes from
+the canonical result item. The rendered Verify-Crafting review checks the live
+cooking result, ingredients, heat line and blocker count for both owners. Build,
+full automation and rendered checks remain deferred to M12's milestone-final
+run.

@@ -36,7 +36,289 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Every JSON item definition is loaded"), Catalogue->Items.Num(), JsonItems->Num());
         TestEqual(TEXT("Every JSON recipe definition is loaded"), Recipes->Recipes.Num(), JsonRecipes->Num());
     }
+    struct FExpectedBatchOneCopy
+    {
+        FName ItemId;
+        const TCHAR* DisplayName;
+        const TCHAR* Description;
+        int32 MaxStack;
+    };
+    const FExpectedBatchOneCopy BatchOneCopy[] = {
+        { TEXT("Wood"), TEXT("Wood"), TEXT("Common timber for tools, structures, and camp equipment."), 50 },
+        { TEXT("Lightwood"), TEXT("Lightwood"), TEXT("Pale birch timber for stronger tools."), 50 },
+        { TEXT("Densewood"), TEXT("Densewood"),
+            TEXT("Dark, dense timber from Ironheart trunks that burns as hearth fuel."), 50 },
+        { TEXT("Coal"), TEXT("Coal"), TEXT("A dense, black mineral that burns directly as hearth fuel."), 40 },
+        { TEXT("Stone"), TEXT("Stone"), TEXT("Add some googly eyes, and it becomes a friendly pet rock."), 40 },
+        { TEXT("Iron"), TEXT("Iron"), TEXT("A bar of iron used to make a frying pan."), 50 },
+        { TEXT("Fibre"), TEXT("Reed Fibre"),
+            TEXT("Plant strands used in simple tools and camp furnishings."), 50 },
+        { TEXT("PeatAmber"), TEXT("Peat Amber"), TEXT("Dark peat threaded with amber from the Mire."), 40 },
+    };
+    for (const FExpectedBatchOneCopy& Expected : BatchOneCopy)
+    {
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        if (TestNotNull(FString::Printf(TEXT("Batch 01 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
+        {
+            TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
+                Item->DisplayName, FString(Expected.DisplayName));
+            TestEqual(FString::Printf(TEXT("%s has the reviewed description"), *Expected.ItemId.ToString()),
+                Item->Description, FString(Expected.Description));
+            TestEqual(FString::Printf(TEXT("%s keeps its existing stack limit"), *Expected.ItemId.ToString()),
+                Item->MaxStack, Expected.MaxStack);
+        }
+    }
+    struct FExpectedBatchTwoCopy
+    {
+        FName ItemId;
+        const TCHAR* DisplayName;
+        const TCHAR* Description;
+        int32 MaxStack;
+    };
+    const FExpectedBatchTwoCopy BatchTwoCopy[] = {
+        { TEXT("FrostSalt"), TEXT("Frost Salt"), TEXT("Pale mineral crystals gathered in the tundra."), 40 },
+        { TEXT("MirelingAsh"), TEXT("Mireling Ember Ash"), TEXT("Fine, soot-dark ash left by a Mireling."), 25 },
+        { TEXT("WorkbenchKit"), TEXT("Workbench"), TEXT("A camp workbench for making furnishings and repairing tools."), 5 },
+        { TEXT("ForgeKit"), TEXT("Forge"), TEXT("A stone-and-timber forge for making and repairing advanced tools."), 5 },
+        { TEXT("WorkbenchToolRackKit"), TEXT("Workbench Tool Rack"),
+            TEXT("A tool rack that raises a Workbench to level 2."), 5 },
+        { TEXT("ForgeAnvilKit"), TEXT("Forge Anvil"),
+            TEXT("An anvil that lets a Forge support higher-tier tools."), 5 },
+        { TEXT("GrindingStoneKit"), TEXT("Grinding Stone"),
+            TEXT("A stone wheel for repairing all worn tools at once."), 5 },
+    };
+    for (const FExpectedBatchTwoCopy& Expected : BatchTwoCopy)
+    {
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        if (TestNotNull(FString::Printf(TEXT("Batch 02 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
+        {
+            TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
+                Item->DisplayName, FString(Expected.DisplayName));
+            TestEqual(FString::Printf(TEXT("%s has the reviewed description"), *Expected.ItemId.ToString()),
+                Item->Description, FString(Expected.Description));
+            TestEqual(FString::Printf(TEXT("%s keeps its existing stack limit"), *Expected.ItemId.ToString()),
+                Item->MaxStack, Expected.MaxStack);
+        }
+    }
+    const TPair<FName, FName> BatchTwoRecipeNames[] = {
+        { TEXT("Workbench"), TEXT("WorkbenchKit") },
+        { TEXT("Forge"), TEXT("ForgeKit") },
+        { TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit") },
+        { TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit") },
+        { TEXT("GrindingStone"), TEXT("GrindingStoneKit") },
+    };
+    for (const TPair<FName, FName>& Expected : BatchTwoRecipeNames)
+    {
+        const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
+        if (TestNotNull(FString::Printf(TEXT("Batch 02 recipe %s remains available"), *Expected.Key.ToString()), Recipe))
+        {
+            const FKalmalaItemDefinition* Output = Catalogue->FindItem(Expected.Value);
+            TestNotNull(FString::Printf(TEXT("Batch 02 recipe %s output item remains available"), *Expected.Key.ToString()), Output);
+            TestEqual(FString::Printf(TEXT("Batch 02 recipe %s matches its output name"), *Expected.Key.ToString()),
+                Recipe->DisplayName, Output ? Output->DisplayName : FString());
+            TestEqual(FString::Printf(TEXT("Batch 02 recipe %s preserves its output identity"), *Expected.Key.ToString()),
+                Recipe->Output, Expected.Value);
+        }
+    }
+    struct FExpectedBatchThreeCopy
+    {
+        FName ItemId;
+        const TCHAR* DisplayName;
+        const TCHAR* Description;
+        int32 MaxStack;
+    };
+    const FExpectedBatchThreeCopy BatchThreeCopy[] = {
+        { TEXT("StorageKit"), TEXT("Chest"), TEXT("A shared chest for storing camp supplies."), 5 },
+        { TEXT("CookingRackKit"), TEXT("Cooking Rack"), TEXT("A rack for roasting boar and deer over a fire."), 5 },
+        { TEXT("FryingPanKit"), TEXT("Frying Pan"), TEXT("An iron pan for cooking over a lit hearth."), 1 },
+        { TEXT("CauldronKit"), TEXT("Cauldron"), TEXT("A pot for simmering soups over a fire."), 5 },
+        { TEXT("FloorKit"), TEXT("Timber Floor"), TEXT("Timber boards for the floor of a camp shelter."), 10 },
+        { TEXT("WallKit"), TEXT("Windbreak Wall"), TEXT("A light timber-and-reed wall that blocks wind around camp."), 10 },
+        { TEXT("RoofKit"), TEXT("Reed Roof"), TEXT("A reed roof that shields a small camp from rain."), 10 },
+        { TEXT("BoarMeat"), TEXT("Boar Meat"), TEXT("Rich boar meat for roasting over a fire."), 20 },
+    };
+    for (const FExpectedBatchThreeCopy& Expected : BatchThreeCopy)
+    {
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        if (TestNotNull(FString::Printf(TEXT("Batch 03 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
+        {
+            TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
+                Item->DisplayName, FString(Expected.DisplayName));
+            TestEqual(FString::Printf(TEXT("%s has the reviewed description"), *Expected.ItemId.ToString()),
+                Item->Description, FString(Expected.Description));
+            TestEqual(FString::Printf(TEXT("%s keeps its existing stack limit"), *Expected.ItemId.ToString()),
+                Item->MaxStack, Expected.MaxStack);
+        }
+    }
+    const TPair<FName, FName> BatchThreeRecipeNames[] = {
+        { TEXT("Storage"), TEXT("StorageKit") },
+        { TEXT("CookingRack"), TEXT("CookingRackKit") },
+        { TEXT("FryingPanRecipe"), TEXT("FryingPanKit") },
+        { TEXT("Cauldron"), TEXT("CauldronKit") },
+        { TEXT("Floor"), TEXT("FloorKit") },
+        { TEXT("Wall"), TEXT("WallKit") },
+        { TEXT("Roof"), TEXT("RoofKit") },
+    };
+    for (const TPair<FName, FName>& Expected : BatchThreeRecipeNames)
+    {
+        const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
+        if (TestNotNull(FString::Printf(TEXT("Batch 03 recipe %s remains available"), *Expected.Key.ToString()), Recipe))
+        {
+            const FKalmalaItemDefinition* Output = Catalogue->FindItem(Expected.Value);
+            TestNotNull(FString::Printf(TEXT("Batch 03 recipe %s output item remains available"), *Expected.Key.ToString()), Output);
+            TestEqual(FString::Printf(TEXT("Batch 03 recipe %s matches its output name"), *Expected.Key.ToString()),
+                Recipe->DisplayName, Output ? Output->DisplayName : FString());
+            TestEqual(FString::Printf(TEXT("Batch 03 recipe %s preserves its output identity"), *Expected.Key.ToString()),
+                Recipe->GetOutputIdentity(), Expected.Value);
+        }
+    }
+    struct FExpectedBatchFourCopy
+    {
+        FName ItemId;
+        const TCHAR* DisplayName;
+        const TCHAR* Description;
+        int32 MaxStack;
+    };
+    const FExpectedBatchFourCopy BatchFourCopy[] = {
+        { TEXT("DeerMeat"), TEXT("Deer Meat"), TEXT("Lean deer meat for roasting or stew."), 20 },
+        { TEXT("BoarHide"), TEXT("Boar Hide"), TEXT("A coarse, bristled hide taken from a boar."), 20 },
+        { TEXT("DeerHide"), TEXT("Deer Hide"), TEXT("A soft hide taken from a deer."), 20 },
+        { TEXT("CookedBoarMeat"), TEXT("Cooked Boar Meat"), TEXT("Roasted boar meat, ready to eat."), 20 },
+        { TEXT("CookedDeerMeat"), TEXT("Cooked Deer Meat"), TEXT("Roasted deer meat, ready to eat."), 20 },
+        { TEXT("HearthBroth"), TEXT("Hearth Broth"), TEXT("A simple savory broth for a camp meal."), 20 },
+        { TEXT("MeatStew"), TEXT("Meat Stew"), TEXT("A hearty stew of boar and deer meat with carrots and potatoes."), 20 },
+        { TEXT("RootVegetableSoup"), TEXT("Root Vegetable Soup"),
+            TEXT("Carrot, potato, rutabaga, and onion simmered in a cauldron."), 20 },
+    };
+    for (const FExpectedBatchFourCopy& Expected : BatchFourCopy)
+    {
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        if (TestNotNull(FString::Printf(TEXT("Batch 04 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
+        {
+            TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
+                Item->DisplayName, FString(Expected.DisplayName));
+            TestEqual(FString::Printf(TEXT("%s has the reviewed description"), *Expected.ItemId.ToString()),
+                Item->Description, FString(Expected.Description));
+            TestEqual(FString::Printf(TEXT("%s keeps its existing stack limit"), *Expected.ItemId.ToString()),
+                Item->MaxStack, Expected.MaxStack);
+        }
+    }
+    const TPair<FName, FName> BatchFourRecipeNames[] = {
+        { TEXT("CookedBoarMeatRecipe"), TEXT("CookedBoarMeat") },
+        { TEXT("CookedDeerMeatRecipe"), TEXT("CookedDeerMeat") },
+        { TEXT("MeatStewRecipe"), TEXT("MeatStew") },
+        { TEXT("RootVegetableSoupRecipe"), TEXT("RootVegetableSoup") },
+    };
+    for (const TPair<FName, FName>& Expected : BatchFourRecipeNames)
+    {
+        const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
+        if (TestNotNull(FString::Printf(TEXT("Batch 04 recipe %s remains available"), *Expected.Key.ToString()), Recipe))
+        {
+            const FKalmalaItemDefinition* Output = Catalogue->FindItem(Expected.Value);
+            TestNotNull(FString::Printf(TEXT("Batch 04 recipe %s output item remains available"), *Expected.Key.ToString()), Output);
+            TestEqual(FString::Printf(TEXT("Batch 04 recipe %s matches its output name"), *Expected.Key.ToString()),
+                Recipe->DisplayName, Output ? Output->DisplayName : FString());
+            TestEqual(FString::Printf(TEXT("Batch 04 recipe %s preserves its output identity"), *Expected.Key.ToString()),
+                Recipe->Output, Expected.Value);
+        }
+    }
+    struct FExpectedBatchFiveCopy
+    {
+        FName ItemId;
+        const TCHAR* DisplayName;
+        const TCHAR* Description;
+        int32 MaxStack;
+    };
+    const FExpectedBatchFiveCopy BatchFiveCopy[] = {
+        { TEXT("RoastedRootVegetables"), TEXT("Roasted Root Vegetables"),
+            TEXT("Carrot, potato, and onion roasted in a pan over a lit hearth."), 20 },
+        { TEXT("DeerRootRoast"), TEXT("Deer and Rutabaga Roast"),
+            TEXT("Deer meat, rutabaga, and onion roasted in a frying pan."), 20 },
+        { TEXT("Carrot"), TEXT("Carrot"), TEXT("The original 'orange stick'."), 20 },
+        { TEXT("Potato"), TEXT("Potato"), TEXT("A trusty root for stews, soups, and pan roasts."), 20 },
+        { TEXT("Rutabaga"), TEXT("Rutabaga"), TEXT("A hardy root with a mild, earthy flavor."), 20 },
+        { TEXT("Onion"), TEXT("Onion"), TEXT("Layers upon layers of destruction to the eyes."), 20 },
+        { TEXT("CarrotSeed"), TEXT("Carrot Seeds"), TEXT("Seeds from the carrot plant."), 50 },
+        { TEXT("PotatoSeed"), TEXT("Potato Seeds"), TEXT("Seeds from the potato plant."), 50 },
+    };
+    for (const FExpectedBatchFiveCopy& Expected : BatchFiveCopy)
+    {
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        if (TestNotNull(FString::Printf(TEXT("Batch 05 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
+        {
+            TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
+                Item->DisplayName, FString(Expected.DisplayName));
+            TestEqual(FString::Printf(TEXT("%s has the reviewed description"), *Expected.ItemId.ToString()),
+                Item->Description, FString(Expected.Description));
+            TestEqual(FString::Printf(TEXT("%s keeps its existing stack limit"), *Expected.ItemId.ToString()),
+                Item->MaxStack, Expected.MaxStack);
+        }
+    }
+    const TPair<FName, FName> BatchFiveRecipeNames[] = {
+        { TEXT("RoastedRootVegetablesRecipe"), TEXT("RoastedRootVegetables") },
+        { TEXT("DeerRootRoastRecipe"), TEXT("DeerRootRoast") },
+    };
+    for (const TPair<FName, FName>& Expected : BatchFiveRecipeNames)
+    {
+        const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
+        if (TestNotNull(FString::Printf(TEXT("Batch 05 recipe %s remains available"), *Expected.Key.ToString()), Recipe))
+        {
+            const FKalmalaItemDefinition* Output = Catalogue->FindItem(Expected.Value);
+            TestNotNull(FString::Printf(TEXT("Batch 05 recipe %s output item remains available"), *Expected.Key.ToString()), Output);
+            TestEqual(FString::Printf(TEXT("Batch 05 recipe %s matches its output name"), *Expected.Key.ToString()),
+                Recipe->DisplayName, Output ? Output->DisplayName : FString());
+            TestEqual(FString::Printf(TEXT("Batch 05 recipe %s preserves its output identity"), *Expected.Key.ToString()),
+                Recipe->Output, Expected.Value);
+        }
+    }
+    struct FExpectedBatchSixCopy
+    {
+        FName ItemId;
+        const TCHAR* DisplayName;
+        const TCHAR* Description;
+        int32 MaxStack;
+    };
+    const FExpectedBatchSixCopy BatchSixCopy[] = {
+        { TEXT("RutabagaSeed"), TEXT("Rutabaga Seeds"), TEXT("Seeds from the rutabaga plant."), 50 },
+        { TEXT("OnionSeed"), TEXT("Onion Seeds"), TEXT("Seeds from the onion plant."), 50 },
+    };
+    for (const FExpectedBatchSixCopy& Expected : BatchSixCopy)
+    {
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        if (TestNotNull(FString::Printf(TEXT("Batch 06 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
+        {
+            TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
+                Item->DisplayName, FString(Expected.DisplayName));
+            TestEqual(FString::Printf(TEXT("%s has the reviewed description"), *Expected.ItemId.ToString()),
+                Item->Description, FString(Expected.Description));
+            TestEqual(FString::Printf(TEXT("%s keeps its existing stack limit"), *Expected.ItemId.ToString()),
+                Item->MaxStack, Expected.MaxStack);
+        }
+    }
     TestFalse(TEXT("The catalogue JSON has no Kit substring in any property or value"), JsonText.Contains(TEXT("Kit"), ESearchCase::IgnoreCase));
+    const FKalmalaRecipe* Campfire = Recipes->Find(TEXT("Campfire"));
+    if (TestNotNull(TEXT("Campfire construction recipe resolves"), Campfire))
+    {
+        TestEqual(TEXT("Legacy HearthRing output becomes a separate buildable descriptor"),
+            Campfire->BuildableOutput, FName(TEXT("CampfireKit")));
+        TestTrue(TEXT("Construction descriptor leaves the inventory output empty"), Campfire->Output.IsNone());
+        TestEqual(TEXT("The construction recipe uses its player-facing Campfire name"),
+            Campfire->DisplayName, FString(TEXT("Campfire")));
+        TestNull(TEXT("Campfire is absent from the normal inventory catalogue"),
+            Catalogue->FindItem(TEXT("CampfireKit")));
+        TestNull(TEXT("Legacy HearthRing remains only as a recipe/build alias"),
+            Catalogue->FindItem(TEXT("HearthRing")));
+
+        TArray<FKalmalaInventoryStack> ScaledCosts = {{TEXT("Iron"), 1}};
+        int32 ScaledOutputCount = 77;
+        TestFalse(TEXT("Direct Campfire construction cannot scale into an inventory output"),
+            UKalmalaRecipeCatalogue::Scale(*Campfire, 1, ScaledCosts, ScaledOutputCount));
+        TestEqual(TEXT("Rejected direct output leaves existing costs unchanged"), ScaledCosts.Num(), 1);
+        TestEqual(TEXT("Rejected direct output leaves the output count unchanged"), ScaledOutputCount, 77);
+
+        TestTrue(TEXT("Campfire descriptor validates without an inventory item definition"),
+            Recipes->IsValidCatalogue(Catalogue));
+    }
     for (const TCHAR* RemovedField : { TEXT("OutputTool"), TEXT("bRequiresCampfire"), TEXT("AlternateStation"), TEXT("RequiredSkillLevel") })
         TestFalse(FString::Printf(TEXT("Recipe data omits removed field %s"), RemovedField), JsonText.Contains(RemovedField));
     TestTrue(TEXT("Station requirements use JSON arrays"), JsonText.Contains(TEXT("\"RequiredStation\": [")));
@@ -144,6 +426,15 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
             TestNull(FString::Printf(TEXT("Clean catalogue ID %s is translated before runtime lookup"), *Alias.Key.ToString()),
                 Catalogue->FindItem(Alias.Key));
         }
+    }
+    const FKalmalaItemDefinition* WorkbenchItem = Catalogue->FindItem(TEXT("WorkbenchKit"));
+    if (TestNotNull(TEXT("Workbench keeps its stable runtime item identity"), WorkbenchItem))
+        TestEqual(TEXT("Workbench item uses its current display name"), WorkbenchItem->DisplayName, FString(TEXT("Workbench")));
+    const FKalmalaRecipe* WorkbenchRecipe = Recipes->Find(TEXT("Workbench"));
+    if (TestNotNull(TEXT("Workbench keeps its stable recipe identity"), WorkbenchRecipe))
+    {
+        TestEqual(TEXT("Workbench recipe uses its current display name"), WorkbenchRecipe->DisplayName, FString(TEXT("Workbench")));
+        TestEqual(TEXT("Workbench recipe still produces its stable item identity"), WorkbenchRecipe->Output, FName(TEXT("WorkbenchKit")));
     }
     const FKalmalaRecipe* GrindingStone = Recipes->Find(TEXT("GrindingStone"));
     TestNotNull(TEXT("Grinding Stone recipe loads"), GrindingStone);

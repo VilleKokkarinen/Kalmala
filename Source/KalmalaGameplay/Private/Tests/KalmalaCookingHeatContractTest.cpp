@@ -9,6 +9,7 @@
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Misc/AutomationTest.h"
@@ -49,13 +50,19 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
 
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Cooking heat test world created"), World)) return false;
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+    const auto DestroyTestWorld = [World]()
+    {
+        World->DestroyWorld(false);
+        GEngine->DestroyWorldContext(World);
+    };
     World->SetGameState(World->SpawnActor<AKalmalaWorldGenerationGameState>());
     AKalmalaCharacter* Pawn = World->SpawnActor<AKalmalaCharacter>();
     APlayerController* Controller = World->SpawnActor<APlayerController>();
     if (!Pawn || !Controller)
     {
         AddError(TEXT("Cooking heat test pawn or controller spawn failed"));
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Controller->Possess(Pawn);
@@ -66,7 +73,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     if (!Crafting || !Inventory || !Progression)
     {
         AddError(TEXT("Cooking heat test pawn components are incomplete"));
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Progression->BeginPlay();
@@ -88,13 +95,13 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Missing Forge preserves iron"), Inventory->GetQuantity(TEXT("Iron")), 5);
     TestFalse(TEXT("Pan cooking rejects when the placeable pan station is missing"),
         Crafting->CraftFromServer(RoastedRootsRecipe->RecipeId, 1, Reason));
-    TestTrue(TEXT("Missing pan feedback names the required station"), Crafting->GetRecipeAvailability(RoastedRootsRecipe->RecipeId).Contains(TEXT("Frying pan")));
+    TestTrue(TEXT("Missing pan feedback names the required station"), Crafting->GetRecipeAvailability(RoastedRootsRecipe->RecipeId).Contains(TEXT("Frying Pan")));
     TestEqual(TEXT("Missing pan preserves vegetable inputs"), Inventory->GetQuantity(TEXT("Carrot")), 2);
 
     AKalmalaConstructionActor* Forge = World->SpawnActor<AKalmalaConstructionActor>();
     if (!TestNotNull(TEXT("Forge fixture spawned"), Forge))
     {
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -200.0f, 0.0f));
@@ -108,7 +115,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("Frying pan fixture spawned"), Pan))
     {
         Forge->Destroy();
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Pan->SetActorLocation(Pawn->GetActorLocation() + FVector(100.0f, 0.0f, 0.0f));
@@ -130,7 +137,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     AKalmalaConstructionActor* Rack = World->SpawnActor<AKalmalaConstructionActor>();
     if (!TestNotNull(TEXT("Cooking Rack fixture spawned"), Rack))
     {
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Rack->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, 120.0f, 0.0f));
@@ -145,13 +152,14 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("Campfire fixture spawned"), Fire))
     {
         Rack->Destroy();
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Fire->SetActorLocation(Rack->GetActorLocation() - FVector(0.0f, 0.0f, 80.0f));
     Fire->InitializePaidFromServer(Pawn);
     TestFalse(TEXT("An unlit fire under the rack cannot cook"), Crafting->CraftFromServer(CookRecipe->RecipeId, 1, Reason));
-    Fire->Interact_Implementation(Pawn);
+    TestTrue(TEXT("The server lights the paid hearth through the dedicated light action"),
+        Fire->TryLightFromServer(Pawn));
     Fire->AdvanceFromServer(0.0f, 0.0f, 0.0f);
     TestTrue(TEXT("The server lights a dry, fuelled hearth"), Fire->IsLit() && Fire->GetEffectiveWarmth() > 0.0f);
 
@@ -169,8 +177,9 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Accepted cooking does not consume an extra fuel item"), Inventory->GetQuantity(TEXT("Wood")), 1);
     TestEqual(TEXT("Accepted cooking does not debit fire fuel per serving"), Fire->GetFuelSeconds(), FuelBeforeCooking);
     TestEqual(TEXT("Accepted batch awards Cooking experience once"), GetCookingExperience(), ExperienceBeforeCooking + 10);
-    TestTrue(TEXT("Recipe detail explains time-based fire fuel"),
-        Crafting->GetRecipeDescription(CookRecipe->RecipeId).Contains(TEXT("fuel burns at the normal rate")));
+    const FKalmalaItemDefinition* CookedMeat = Items->FindItem(CookRecipe->Output);
+    TestTrue(TEXT("Recipe detail uses the result description once"),
+        CookedMeat && Crafting->GetRecipeDescription(CookRecipe->RecipeId) == CookedMeat->Description);
 
     const float FuelBeforeRoots = Fire->GetFuelSeconds();
     const int32 ExperienceBeforeRoots = GetCookingExperience();
@@ -192,7 +201,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     {
         Rack->Destroy();
         Fire->Destroy();
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Cauldron->SetActorLocation(Pawn->GetActorLocation() + FVector(-240.0f, 0.0f, 0.0f));
@@ -240,13 +249,68 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
         Crafting->GetLastInteractedCookingStationKit(), FName(TEXT("CookingRackKit")));
     TestEqual(TEXT("Each accepted cooking-station interaction triggers one GUI open"),
         Crafting->GetCookingStationInteractionSerial(), 1u);
+    TestTrue(TEXT("Accepted station interaction retains exact owner-only actor identity"),
+        Crafting->GetLastStationContextActor() == Rack);
+    TestEqual(TEXT("Station context identity carries its validated station kit"),
+        Crafting->GetLastStationContextKit(), FName(TEXT("CookingRackKit")));
+    TestEqual(TEXT("Station context identity carries the stable construction ID"),
+        Crafting->GetLastStationContextConstructionId(), Rack->GetConstructionId());
+    TestEqual(TEXT("Accepted station context increments one owner event serial"),
+        Crafting->GetStationContextInteractionSerial(), 1u);
+    TestTrue(TEXT("Only the exact accepted station identity remains usable"),
+        Crafting->IsStationContextUsable(Rack, FName(TEXT("CookingRackKit")), Rack->GetConstructionId()));
+    TestFalse(TEXT("Station context rejects a mismatched construction ID"),
+        Crafting->IsStationContextUsable(Rack, FName(TEXT("CookingRackKit")), TEXT("OtherConstruction")));
+    TestFalse(TEXT("Station context rejects a mismatched station kit"),
+        Crafting->IsStationContextUsable(Rack, FName(TEXT("CauldronKit")), Rack->GetConstructionId()));
 
+    AKalmalaConstructionActor* Workbench = World->SpawnActor<AKalmalaConstructionActor>();
+    if (!TestNotNull(TEXT("Workbench fixture spawned"), Workbench))
+    {
+        Rack->Destroy();
+        Cauldron->Destroy();
+        Pan->Destroy();
+        Forge->Destroy();
+        Fire->Destroy();
+        DestroyTestWorld();
+        return false;
+    }
+    World->Tick(LEVELTICK_All, 0.25f);
+    Workbench->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -160.0f, 0.0f));
+    Workbench->InitializeFromServer(TEXT("WorkbenchKit"), TEXT("CookingHeatWorkbench"));
+    Workbench->Interact_Implementation(Pawn);
+    TestTrue(TEXT("Accepted Workbench interaction publishes its exact station context"),
+        Crafting->GetLastStationContextActor() == Workbench
+        && Crafting->GetLastStationContextKit() == FName(TEXT("WorkbenchKit"))
+        && Crafting->GetLastStationContextConstructionId() == Workbench->GetConstructionId());
+    TestEqual(TEXT("Workbench interaction increments the shared station context serial"),
+        Crafting->GetStationContextInteractionSerial(), 2u);
+    TestTrue(TEXT("The accepted Workbench context remains range and identity checked"),
+        Crafting->IsStationContextUsable(Workbench, FName(TEXT("WorkbenchKit")), Workbench->GetConstructionId()));
+    TestEqual(TEXT("Workbench interaction does not trigger the cooking-only menu event"),
+        Crafting->GetCookingStationInteractionSerial(), 1u);
+
+    Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(-150.0f, 150.0f, 0.0f));
+    World->Tick(LEVELTICK_All, 0.25f);
+    Forge->Interact_Implementation(Pawn);
+    TestTrue(TEXT("Accepted Forge interaction publishes its exact station context"),
+        Crafting->GetLastStationContextActor() == Forge
+        && Crafting->GetLastStationContextKit() == FName(TEXT("ForgeKit"))
+        && Crafting->GetLastStationContextConstructionId() == Forge->GetConstructionId());
+    TestEqual(TEXT("Forge interaction increments the shared station context serial"),
+        Crafting->GetStationContextInteractionSerial(), 3u);
+    TestTrue(TEXT("The accepted Forge context remains range and identity checked"),
+        Crafting->IsStationContextUsable(Forge, FName(TEXT("ForgeKit")), Forge->GetConstructionId()));
+    TestEqual(TEXT("Forge interaction does not trigger the cooking-only menu event"),
+        Crafting->GetCookingStationInteractionSerial(), 1u);
+
+    Workbench->Destroy();
     Rack->Destroy();
     Cauldron->Destroy();
     Pan->Destroy();
     Forge->Destroy();
     Fire->Destroy();
-    World->DestroyWorld(false);
+    DestroyTestWorld();
     return true;
 }
 

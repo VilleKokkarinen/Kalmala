@@ -33,7 +33,8 @@ bool FKalmalaSkillNoticeQueue::Observe(const TArray<FKalmalaSkillState>& Snapsho
     for (const auto Skill : Skills)
     {
         if (Next[Skill] <= Levels[Skill]) continue;
-        if (auto* Existing = Rows.FindByPredicate([Skill](const auto& Row) { return Row.Skill == Skill; }))
+        if (auto* Existing = Rows.FindByPredicate([Skill](const auto& Row)
+            { return Row.Kind == EKalmalaNoticeKind::Skill && Row.Skill == Skill; }))
         {
             Existing->Level = Next[Skill]; Existing->Remaining = Duration;
         }
@@ -150,6 +151,7 @@ bool FKalmalaSkillNoticeQueue::ObserveCombat(
         return true;
     }
     if (Serial == LastCombatSerial) return true;
+    LastCombatSerial = Serial;
 
     const TCHAR* Text = nullptr;
     switch (Feedback)
@@ -160,7 +162,6 @@ bool FKalmalaSkillNoticeQueue::ObserveCombat(
     default: return true;
     }
 
-    LastCombatSerial = Serial;
     FKalmalaSkillNotice Row;
     Row.Remaining = FMath::IsFinite(Lifetime) ? FMath::Clamp(Lifetime, 1.f, 10.f) : 4.f;
     Row.Kind = EKalmalaNoticeKind::Combat;
@@ -185,11 +186,11 @@ bool FKalmalaSkillNoticeQueue::ObserveSupport(
         return true;
     }
     if (Serial == LastSupportSerial) return true;
+    LastSupportSerial = Serial;
 
     if (Feedback != EKalmalaSupportFeedback::Accepted && Feedback != EKalmalaSupportFeedback::Unavailable)
         return true;
 
-    LastSupportSerial = Serial;
     FKalmalaSkillNotice Row;
     Row.Remaining = FMath::IsFinite(Lifetime) ? FMath::Clamp(Lifetime, 1.f, 10.f) : 4.f;
     Row.Kind = EKalmalaNoticeKind::Support;

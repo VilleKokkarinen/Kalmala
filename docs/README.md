@@ -20,6 +20,9 @@ This folder is the project’s durable operating manual. An agent must read the 
 | [Settings contract check](../Scripts/Verify-SettingsAccessibilityContract.ps1) | No-build validation for local settings/accessibility rules |
 | [15 Presentation ownership](15-presentation-ownership.md) | Project-owned visual seams, allowed sources, and runtime limits |
 | [Presentation ownership check](../Scripts/Verify-PresentationOwnership.ps1) | No-build audit for presentation assets and source anchors |
+| [Catalogue icon manifest](43-catalogue-icon-manifest.md) | Pinned M12 item/tool icon identities, aliases, shared views, image batches, and the narrow pilot validator |
+| [45 M12 final acceptance](45-m12-acceptance.md) | Final UI repairs, owner Inventory and service captures, combined HUD matrix, verification results, and hardware acceptance |
+| [46 Master integration and cleanup](46-master-cleanup.md) | Preserved branch histories, combined UI verification, and workspace cleanup |
 | [16 Audio cue contract](16-audio-cue-contract.md) | Original audio cues, readable fallbacks, and authority/privacy limits |
 | [18 M7 automated acceptance](18-m7-automated-acceptance.md) | Headless M7 progression, camp recovery, food, creature, discovery, and privacy acceptance |
 | [20 M8 ocean travel budget profile](20-m8-ocean-performance-budget.md) | Serialized travel-save size cap, measurement, and remaining M8 profiling work |

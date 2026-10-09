@@ -1,0 +1,33 @@
+{
+  "Profile": "Reference",
+  "EvidenceClass": "Single-machine CPU contention diagnostic; not target-hardware acceptance",
+  "Project": "E:\\dev\\Kalmala\\m12verify\\Kalmala.uproject",
+  "StartedUtc": "2026-10-09T18:29:05.9379118Z",
+  "ElapsedSeconds": 60.36,
+  "SharedLogicalProcessors": 0,
+  "ReferenceUsesCallerAffinity": true,
+  "RenderingPreset": {
+    "TexturePoolMB": 0,
+    "Quality": -1,
+    "ScreenPercentage": 100,
+    "Threads": 0
+  },
+  "OutputResolution": "1280x720",
+  "OriginalAffinityMask": 268435455,
+  "SelectedAffinityMask": 268435455,
+  "ObservedPeers": [
+    {
+      "Pid": 40720,
+      "AffinityMask": 268435455,
+      "ObservedUtc": "2026-10-09T18:29:06.2183476Z"
+    },
+    {
+      "Pid": 55068,
+      "AffinityMask": 268435455,
+      "ObservedUtc": "2026-10-09T18:29:32.8237436Z"
+    }
+  ],
+  "ScenarioPassed": true,
+  "Failure": null,
+  "Limitations": "Host and client share the mask; logical processors may be SMT siblings or hybrid cores. Named presets combine resource restrictions with quality/workload changes. Texture pool is not total VRAM. Per-core speed, GPU hardware, physical VRAM/RAM and storage are unchanged. No numerical acceptance limits applied."
+}

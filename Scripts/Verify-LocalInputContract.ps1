@@ -14,6 +14,9 @@ if (-not (Test-Path -LiteralPath $InputFile -PathType Leaf)) {
 }
 
 $text = Get-Content -LiteralPath $InputFile -Raw
+if ($text -match 'ActionName="TutorialPrompt(Dismiss|Revisit)"') {
+    throw 'Retired tutorial card dismiss/revisit bindings remain in the default input configuration.'
+}
 $requiredMappings = @{
     MoveForward = @('W', 'S', 'Gamepad_LeftY', 'Up', 'Down')
     MoveRight = @('D', 'A', 'Gamepad_LeftX', 'Right', 'Left')
@@ -26,8 +29,6 @@ $requiredActions = @{
     Attack = @('LeftMouseButton', 'Gamepad_RightShoulder')
     Jump = @('SpaceBar', 'Gamepad_FaceButton_Left')
     Sprint = @('LeftShift', 'RightShift', 'Gamepad_LeftThumbstick')
-    TutorialPromptDismiss = @('F1', 'Gamepad_FaceButton_Right')
-    TutorialPromptRevisit = @('F2', 'Gamepad_RightThumbstick')
     SettingsMenu = @('Escape', 'O')
     WorldMap = @('M')
     WorldMapRecenter = @('R')
