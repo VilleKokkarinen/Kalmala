@@ -42,7 +42,7 @@ $sourceContracts = @(
     @{ Label = 'accessibility-feedback'; Path = 'Source\KalmalaUI\Private\KalmalaAccessibilityFeedbackSubsystem.cpp'; Patterns = @('MarkerLine', 'COLOUR-INDEPENDENT FEEDBACK', 'GetLocalPlayer()', 'HitTestInvisible') },
     @{ Label = 'support-selection'; Path = 'Source\KalmalaUI\Private\KalmalaSupportSelectionSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'GetSelectedSupportEffect()', 'HasLearnedEffect', 'SetIsFocusable(false)', 'HitTestInvisible') },
     @{ Label = 'action-notifications'; Path = 'Source\KalmalaUI\Private\KalmalaNotificationSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'ObserveCombat', 'ObserveSupport', 'ObserveDiscovery', 'HitTestInvisible') },
-    @{ Label = 'status-hotbar'; Path = 'Source\KalmalaUI\Private\KalmalaStatusHotbarWidget.cpp'; Patterns = @('HitTestInvisible', 'SetIsFocusable(false)', 'SetExplicitWrapSize', 'ongoing') },
+    @{ Label = 'status-hotbar'; Path = 'Source\KalmalaUI\Private\KalmalaStatusHotbarWidget.cpp'; Patterns = @('HitTestInvisible', 'SetIsFocusable(false)', 'SetExplicitWrapSize', 'LoadTexture(Entry.StatusIconId)') },
     @{ Label = 'catalogue-icons'; Path = 'Source\KalmalaUI\Private\KalmalaIconWidget.cpp'; Patterns = @('FindCatalogueIcon', 'ConstructionHammer', 'MakeLines') },
     @{ Label = 'player'; Path = 'Source\KalmalaGameplay\Private\KalmalaPlayerModelComponent.cpp'; Patterns = @('M_GeneratedTerrain', 'bTapered', 'CreateMeshSection_LinearColor') },
     @{ Label = 'wildlife'; Path = 'Source\KalmalaGameplay\Private\KalmalaWildlifeSpawn.cpp'; Patterns = @('BuildArchetypePresentation', 'Original low-poly silhouettes', 'CreateMeshSection_LinearColor') },

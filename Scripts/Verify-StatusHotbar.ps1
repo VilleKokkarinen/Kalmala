@@ -4,6 +4,27 @@ $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
 $output = Join-Path $env:TEMP ('kh-' + [guid]::NewGuid().ToString('N').Substring(0,8))
 New-Item -ItemType Directory -Path $output | Out-Null
+$widgetSource = Get-Content (Join-Path $PSScriptRoot '..\Source\KalmalaUI\Private\KalmalaStatusHotbarWidget.cpp') -Raw
+$widgetTest = Get-Content (Join-Path $PSScriptRoot '..\Source\KalmalaUI\Private\Tests\KalmalaStatusHotbarTest.cpp') -Raw
+foreach ($contract in @(
+    'FKalmalaStatusIconLibrary::LoadTexture(Entry.StatusIconId)',
+    'AccessibleName->SetText(FText::FromString(Entry.Name));',
+    'AccessibleName->SetRenderOpacity(0.0f);',
+    'Timer->SetJustification(ETextJustify::Center);',
+    'Entries[Index].TimerText.IsEmpty()'
+)) {
+    if (!$widgetSource.Contains($contract)) { throw "Status-hotbar render contract is missing: $contract" }
+}
+foreach ($contract in @(
+    'Replicated finite status uses rounded m:ss',
+    'Finite meal timer uses m:ss',
+    'Finite support effect uses rounded m:ss',
+    'Untimed heat has no duration label',
+    'Untimed cold has no duration label',
+    'Storm has no countdown'
+)) {
+    if (!$widgetTest.Contains($contract)) { throw "Status-hotbar presentation assertion is missing: $contract" }
+}
 $common = "-game -windowed -RenderOffscreen -ForceRes -ResX=$Width -ResY=$Height -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaHotbarScale=$TextScale -KalmalaHotbarContrast=$Contrast -ExecCmds=`"t.MaxFPS 60`""
 $server = $null; $client = $null
 try {
@@ -21,7 +42,11 @@ try {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited during presentation.' }
         $ready = $true
         foreach ($peer in @('host','client')) {
-            foreach ($phase in @('empty','populated','expired','details','icons')) { $ready = $ready -and (Test-Path "$output/$peer-$phase.png") }
+            foreach ($phase in @('empty','populated','expired','details','icons')) {
+                $capturePath = "$output/$peer-$phase.png"
+                $ready = $ready -and (Test-Path $capturePath)
+                if (Test-Path $capturePath) { $ready = $ready -and (Get-Item $capturePath).Length -gt 32 }
+            }
         }
         if ($ready) { break }
         Start-Sleep -Milliseconds 500
@@ -38,9 +63,16 @@ try {
         if ($log -notmatch 'Hotbar fixture: Phase=populated Entries=6 ReadOnly=1 Bounds=(\d+),(\d+),(\d+),(\d+) Scale=\d+ Dpi=([\d.]+)') { throw "$peer did not paint six non-focusable entries." }
         $left=[int]$Matches[1]; $top=[int]$Matches[2]; $right=[int]$Matches[3]; $bottom=[int]$Matches[4]
         $dpi=[double]::Parse($Matches[5],[Globalization.CultureInfo]::InvariantCulture)
-        if ($left -lt 0 -or $top -le (232*$dpi) -or $right -gt $Width -or $bottom -gt $Height) { throw "$peer hotbar bounds overlap minimap or exceed viewport: $left,$top,$right,$bottom" }
+        $inset = 12 * $dpi
+        $mapLeft = $Width - (12 + 208) * $dpi
+        $expectedRight = $mapLeft - 12 * $dpi
+        if ($left -lt ($inset - 3) -or [Math]::Abs($top - $inset) -gt 3 `
+            -or [Math]::Abs($right - $expectedRight) -gt 4 -or $right -ge $mapLeft `
+            -or $bottom -gt ($Height - $inset + 3)) {
+            throw "$peer hotbar misses the minimap-aligned safe bounds: $left,$top,$right,$bottom at DPI $dpi"
+        }
     }
-    Write-Output "PASS: owner-local host/client empty, six-effect and removal layout at ${Width}x${Height}, text $TextScale%, contrast $Contrast. UI fixture only; inspect captures."
+    Write-Output "PASS: owner-local host/client active-only icons, finite timers, empty/removal, and minimap-aligned layout at ${Width}x${Height}, text $TextScale%, contrast $Contrast. Inspect captures in $output."
 }
 finally {
     foreach ($process in @($client,$server)) { if ($null -ne $process -and !$process.HasExited) { Stop-Process -Id $process.Id } }

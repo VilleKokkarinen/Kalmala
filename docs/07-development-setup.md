@@ -846,6 +846,47 @@ The compact active-status group reads the minimap widget's configured viewport s
 
 The M12 status-image follow-on pins the nine supported entry/icon identities in `docs/status-icon-manifest.csv` with fixed 4/4/1 generation batches. All three batches have retained originals and prepared transparent 64x64 RGBA PNGs under `Content/Kalmala/UI/Source/IconOriginals/Status` and `Content/Kalmala/UI/Source/Icons/Status`. Prepare a batch with `python Scripts/Prepare-StatusIconBatch.py --batch <Batch>` and validate its IDs with `Scripts/Validate-StatusIcon.ps1 -Id <IconId>`. `Scripts/Import-StatusIconAssets.ps1` imports the nine prepared PNGs in an isolated UE 5.8 content-only project, verifies 64x64 Texture2D assets with source alpha, sRGB, UI texture group, no mipmaps, and non-streaming settings, then copies only those packages to `Content/Kalmala/UI/Icons/Status`. `Scripts/Validate-StatusIconSet.ps1` checks manifest, PNG, entry-map and package coverage; `Kalmala.UI.StatusHotbar.StatusIconCoverage` checks runtime texture paths and loads after an affected editor build. The local `FKalmalaStatusIconLibrary` keeps these IDs separate from catalogue icons. The hotbar now renders each raster image at 64x64 without visible names, retaining accessible names in a visually hidden text label; a centred m:ss appears only beneath finite Wet/meal/support entries. Hot, Cold, Storm, and weather detail have no countdown. Timing remains based on the existing owner snapshot and synchronized server time, without local countdown mutation. See `36-status-icons.md` for the full identity and image review contract. These image assets do not change status ownership or gameplay.
 
+## M12 final HUD, inventory, station, and interaction captures
+
+After the final M12 editor build and automation queue, run
+`Scripts/Verify-StatusHotbar.ps1` for each viewport/text-scale pair in the
+matrix in `36-status-icons.md`. The helper checks the read-only host/client
+snapshot, empty/populated/expired states, active six-icon fixture, icon-only
+visual contract, finite versus untimed timer assertions, and the group's actual
+12-unit top/minimap separation, left safe inset, and lower viewport bound. It
+also checks that the widget source still creates raster images, visually hidden
+accessible names and centred timers, and that the automation source retains the
+finite/untimed assertions; the final automation queue executes those tests.
+Inspect both peers' `empty`, `populated`, `expired`, `details`, and `icons` PNGs;
+the populated captures must show no visible status names, real raster icons,
+centred timers only for finite Wet, meal, and support effects, and safe wrapping.
+
+Add these prepared host/client views to the same final capture handoff at both
+standard 1280x720/100%/standard-contrast and compact 1024x768/150%/high-contrast
+settings:
+
+```powershell
+Scripts/Verify-Inventory.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-Inventory.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Verify-InteractionPrompt.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-InteractionPrompt.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Verify-InventoryReconnect.ps1
+```
+
+Run the inventory peer checks for owner privacy and transactions, and make the
+manual Inventory captures prescribed by the preceding pack-grid, selection,
+equipment, and food sections for each peer's distinct, empty, and populated
+state. Inspect the crafting runner's Build, Workbench/Forge, Cooking Rack/
+Cauldron/Frying Pan, repair/upgrade, chest and Campfire/Grinding Stone captures,
+plus every available/unavailable/modal/no-target/Repair All interaction-prompt
+capture from both peers. Require each runner's owner-privacy, server
+acceptance/rejection, station-context, stale-target and input-restoration
+markers. These views supplement the complete M12 milestone-final authority and
+accessibility checks; they do not replace the prescribed build, automation,
+reconnect, or other verification.
+
 ### Rendered minimap regression check
 
 The Phase 5 visibility repair replaces the sparse terrain dots with a filled, circular 129x129 texture containing original patterns for Meadows, Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, Thunder Mountains, and Ocean. Each pattern stays anchored in world space. The minimap now belongs to each local player rather than only the first game-instance controller. Its 208-unit size and 12-unit top/right inset scale with Unreal's UI DPI curve. Size/position must be set before the top-right anchor: `SetPositionInViewport` resets it to top-left in UE 5.8 and previously put the map off-screen.

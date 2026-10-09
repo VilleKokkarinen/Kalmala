@@ -14207,3 +14207,58 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions and changed only the selected `BACKLOG.md` child and this progress
 entry; all pre-existing main-checkout edits remain preserved. No implementation
 files or other documentation were synchronized.
+
+## Run 2026-10-09 08:22 UTC — Prepare M12 final HUD and menu captures
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits remain preserved.
+
+Completed exactly M12 goal 10's final implementation child. Updated
+`Scripts/Verify-StatusHotbar.ps1` for the compact group beside the minimap:
+the runner checks the 12-unit map gap/top inset, left and lower safe bounds,
+nonempty host/client phase screenshots, and source/test contracts for loaded
+status images, visually hidden names, centered timers, and finite versus
+untimed effects. Added a final capture handoff in `docs/07-development-setup.md`
+that includes the prepared inventory owner/privacy and reconnect checks,
+station/crafting views and actions, and available/unavailable/modal/no-target/
+Repair All interaction prompts. Manual Inventory captures are specified with
+the existing pack-grid, selection, equipment, and food acceptance steps.
+
+Files changed: `Scripts/Verify-StatusHotbar.ps1`,
+`Scripts/Verify-PresentationOwnership.ps1`, `docs/07-development-setup.md`,
+`BACKLOG.md`, and this entry.
+
+Lightweight checks passed: PowerShell parser for the changed rendered helper;
+focused source assertions for icon rendering, hidden accessible names, centred
+timers, and the finite/untimed status automation cases; `git diff --check`;
+manual review of viewport-slot math against the minimap's actual 208-unit size,
+12-unit inset and 12-unit status gap; and MAX_PATH audit (all changed paths
+under 110 characters). The first M5 documentation-contract run exposed a stale
+presentation-ownership assertion for the removed `ongoing` label; updated that
+anchor to the current canonical status-icon lookup, then reran all five M5
+contracts successfully. The existing automation and rendered helper were not
+executed. No Unreal build, automation run, rendered peer review, screen-reader
+review, or package check was performed. Full M12 verification remains deferred.
+
+Observable impact: the rendered helper now validates the compact active-status
+layout and catches stale capture/source contracts; the final verification
+handoff includes already prepared inventory, station, and direct-interaction
+coverage alongside its retained visual evidence.
+
+Networking/authority: presentation verification only. No gameplay authority,
+RPC, state, replication, timing, inventory, or persistence contract changed.
+
+Known limitations: no peer screenshots or runtime geometry were produced in
+this increment. The source-contract check does not replace the final automation
+queue or visual inspection of the generated host/client captures.
+
+Next eligible task: M12 milestone-final verification, including combined
+handoffs, full build and automation queue, rendered host/client/accessibility
+matrix, required gameplay/authority/reconnect/performance checks, defect repair,
+and retained capture review.
+
+Main-checkout handoff synchronization: pending implementation commit; only
+`BACKLOG.md` and this `PROGRESS.md` entry are eligible for synchronization.
