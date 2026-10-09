@@ -175,6 +175,8 @@ private:
     FKalmalaWorldGenerationConfig TileConfig;
     uint32 TileEpoch = 1;
     bool bMapOpen = false;
+    /** Keep the local pan/zoom view when the collapsed map is opened again. */
+    bool bHasOpenedMap = false;
     bool bDragging = false;
     bool bPinLabelEntry = false;
     int32 SelectedPinIndex = INDEX_NONE;

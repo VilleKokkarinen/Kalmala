@@ -386,6 +386,30 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         if (SettingsWidget == nullptr) return;
 
         SettingsWidget->OpenForVerification(LocalController, 2);
+        const int32 InterfaceScaleBeforeTabMemory = UKalmalaSettingsWidget::GetInterfaceScalePercent();
+        const int32 TextScaleBeforeTabMemory = UKalmalaSettingsWidget::GetTextScalePercent();
+        const float MasterVolumeBeforeTabMemory = UKalmalaSettingsWidget::GetStoredMasterVolume();
+        SettingsWidget->SetVerificationTab(5); // Return to the main shell.
+        SettingsWidget->SetVerificationTab(4); // Reopen Options in the same local session.
+        const bool bRememberedOptionsTab = SettingsWidget->GetRememberedOptionsTabForVerification() == 3
+            && SettingsWidget->HasFocusedContentForVerification()
+            && UKalmalaSettingsWidget::GetInterfaceScalePercent() == InterfaceScaleBeforeTabMemory
+            && UKalmalaSettingsWidget::GetTextScalePercent() == TextScaleBeforeTabMemory
+            && FMath::IsNearlyEqual(UKalmalaSettingsWidget::GetStoredMasterVolume(), MasterVolumeBeforeTabMemory);
+        UE_LOG(LogTemp, Display,
+            TEXT("Settings accessibility: Authority=%d Stage=RememberedOptionsTab Selected=3 Restored=%d Focused=%d ValuesUnchanged=%d"),
+            Character->HasAuthority() ? 1 : 0,
+            SettingsWidget->GetRememberedOptionsTabForVerification(),
+            SettingsWidget->HasFocusedContentForVerification() ? 1 : 0,
+            (UKalmalaSettingsWidget::GetInterfaceScalePercent() == InterfaceScaleBeforeTabMemory
+                && UKalmalaSettingsWidget::GetTextScalePercent() == TextScaleBeforeTabMemory
+                && FMath::IsNearlyEqual(UKalmalaSettingsWidget::GetStoredMasterVolume(), MasterVolumeBeforeTabMemory)) ? 1 : 0);
+        if (!bRememberedOptionsTab)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL remembered Options tab did not restore cleanly."));
+            bDeveloperSettingsVerificationCompleted = true;
+            return;
+        }
         const FKalmalaUITheme& OpeningTheme = FKalmalaUITheme::Get();
         const float ExpectedOpeningY = OpeningTheme.OptionsOpeningOffset(0.0f);
         bDeveloperOpeningProbeAnimated = SettingsWidget->IsOptionsOpeningAnimationActiveForVerification();

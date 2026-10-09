@@ -84,7 +84,11 @@ disposable mirror with normal `%LOCALAPPDATA%/UnrealBuildTool` access, then run
 Require `LocalBrowsing` and existing inventory tests to pass. Run rendered
 `Scripts/Verify-Crafting.ps1` at 1280x720/100% standard contrast; both peer logs
 must include `Inventory browsing: CategoryKey=1 SortKey=1 NoResults=1 Restored=1`
-and the existing inspection/focus/modal/authority checks. Run presentation
+and the existing inspection/focus/modal/authority checks. Extend `LocalBrowsing`
+to reopen after inspecting and require independent query/category/sort/selection
+and inspector scroll restoration, filtered/consumed-ID fallback, and unchanged
+recipe/station scroll memory; verify scroll clamping after a changed layout.
+Run presentation
 ownership and M5 documentation contracts plus `git diff --check`. This is
 increment-level verification; full parent integration waits for recipe/build
 browsing and the final ordered acceptance child.
@@ -214,6 +218,26 @@ documentation contracts, changed-script PowerShell parsing,
 gameplay requests or spawn actors; no recipe/item catalogue property changes.
 Physical devices and packaged/cooked output remain outside this editor check.
 
+## M11 inline stat comparisons
+
+The local crafting/forge details compare the authored Iron Axe upgrade with
+the owning player's carried Bronze Axe when its level and condition are
+valid. The selected Iron Axe values come from the existing tool progression
+and lifecycle contracts; absent, already-owned, or incompatible state must be
+described as unavailable instead of using fabricated zeroes. The display
+refreshes from owner state while the panel is open and does not submit an
+upgrade request.
+
+`Kalmala.UI.Crafting.StatComparisonPresentation` uses presentation-only
+crush/slash values from the approved Iron Sword/Iron Mace example to check the
+exact `crush 60 (+60)` and `slash 0 (-40)` text, signed deltas, improvement and
+decrease treatments, equal values, lower-is-better semantics, and unavailable
+comparisons. These fixture labels and numbers are not catalogue or combat
+data. Run this test in M11's final full automation pass; rendered host/client
+acceptance must inspect text scaling and high contrast with a valid owner
+comparison and with the prior tool absent. No comparison card, gameplay stat,
+damage type, RPC, or saved field is introduced.
+
 ## M11 status parent and complete icon verification
 
 Follow `36-status-icons.md`: build the isolated editor mirror after the three
@@ -221,8 +245,19 @@ user-requested implementations, then run the full Kalmala automation queue,
 the new rendered `Scripts/Verify-StatusHotbar.ps1` viewport/text-scale matrix,
 and existing rendered crafting, settings/accessibility and owner inventory
 peer regressions. The hotbar probe is explicitly presentation-only and records
-actual owner snapshots before supplying its six-effect fixture. Inspect PNGs;
+actual owner snapshots before supplying its six-effect fixture. For the
+transition-cue increment, additionally run the rendered probe at standard
+motion (`-Width 1280 -Height 720 -TextScale 100 -Contrast 0`) and static reduced
+motion (`-Width 1024 -Height 768 -TextScale 150 -Contrast 1 -ReducedMotion`).
+Require both peers to capture started/refreshed/ended labels with matching cue
+kinds; the reduced-motion run must report alpha 1. Inspect the status screenshots;
 retain exact results and unverified scope in PROGRESS.md.
+
+The Settings accessibility fixture also checks that returning from the selected
+Settings options tab to the main shell and reopening Options restores that tab
+on both peers, keeps a focusable control, and leaves local settings values
+unchanged. This verifies only the Options-tab memory increment; selection and
+scroll restoration in other menus remains open.
 
 ## M11 theme foundation verification
 
@@ -1845,3 +1880,75 @@ changed scripts, `git diff --check`, and the 260-character path audit. Check
 only the notification parent and final child after all required verification
 passes. This parent check does not complete the wider M11 acceptance matrix,
 physical input, package validation, or other M11 parents.
+
+## M11 Favorite, Rank, and Recent marker child
+
+After the affected isolated UI build, run `Kalmala.UI.Theme.LocalPresentation`
+and `Kalmala.UI.Crafting.LocalBrowsing` with isolated logs, UserDirs, and memory
+DDC. The theme test covers valid Favorite styles/colors, bounded border width,
+rank colors, high-contrast fallback, and invalid-value defaults. LocalBrowsing
+covers per-local-owner bookmarks and activity isolation.
+
+Run both rendered host/client modes:
+
+```powershell
+Scripts/Verify-Crafting.ps1 -Rendered -Port 17970 -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Verify-Crafting.ps1 -Rendered -ReducedMotion -Port 17971 -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+```
+
+Both peers must report `Coexist=1 OrdinaryRecent=1 RecentShortcuts=1
+NoManualBookmark=1 StaticMotion=1 OwnerIsolation=1`; the host and client
+Favorite IDs must differ. The fixture checks Recent on ordinary All-category
+slots before confirming Recent-only cards in Favorites.
+Retain and inspect each `*-activity-markers.png` capture for separate
+right-aligned Rank and Recent rows, Favorite at the lower right, distinct
+star/frame treatment, readable Gold/Silver/Bronze rank labels, and the Recent
+clock/text badge. Reduced motion must keep all labels visible. Finish with
+presentation-ownership and M5 documentation
+contracts, changed-script PowerShell parsing, `git diff --check`, and the
+260-character path audit. This child leaves the wider M11 acceptance matrix
+and the Favorites parent integration verification open.
+
+## M11 Favorites parent integration
+
+Build the isolated `KalmalaEditor Win64 Development` mirror with normal
+`%LOCALAPPDATA%/UnrealBuildTool` access and `-MaxParallelActions=4`. Run the
+focused headless queue `Kalmala.Gameplay.Crafting.NetworkContract`,
+`Kalmala.UI.Crafting.ActivityReceiptReplay`,
+`Kalmala.UI.Crafting.LocalBrowsing`, and
+`Kalmala.UI.Theme.LocalPresentation` with isolated UserDir/logs and memory DDC.
+Require a zero editor exit and Success for all four tests. NetworkContract
+checks accepted-receipt replication is owner-only and transient;
+ActivityReceiptReplay checks authority gating, first-observation baselining,
+one-time counting, repeated snapshot suppression, and disjoint action buckets.
+
+Run rendered `Verify-Crafting.ps1` at 1280x720/100%/standard contrast and at
+1024x768/150%/high contrast with `-ReducedMotion`, using separate ports. Both
+peers must report `Coexist=1 OrdinaryRecent=1 RecentShortcuts=1
+NoManualBookmark=1 StaticMotion=1 OwnerIsolation=1`, distinct owner Favorite
+IDs, `Crafting presentation: Passed=1 Restored=1`, and the existing server
+rejection/payment/final-state checks. Inspect the four activity-marker PNGs at
+both settings for distinct Favorite/Rank/Recent rows and readable labels. The
+verification-only fixture supplies a transient ordinary-craft recipe because
+the current active catalogue contains build and cooking recipes only; it does
+not modify shipped catalogue data or saved state. Retain the captures under
+`docs/ui-recipe-activity/` and record this current-catalogue limit in the
+handoff. Finish with presentation-ownership and M5 documentation contracts,
+PowerShell parsing for changed scripts, `git diff --check`, and the path audit.
+This completes only the Favorites parent, not the wider M11 acceptance matrix.
+
+## M11 crafting/build menu memory increment
+
+Compile the affected UI module in the short disposable project mirror with
+normal `%LOCALAPPDATA%/UnrealBuildTool` access, then run
+`Kalmala.UI.Crafting.LocalBrowsing` with an isolated user directory, log,
+memory DDC, null renderer and queue-empty test exit. The test requires the main
+build filter and a cooking-station filter to restore independently, recover the
+same canonical selection when still visible, fall back to the first visible row
+when the saved identity is missing, and queue the saved scroll offset for
+post-layout clamping. Run `Scripts/Verify-Crafting.ps1 -Rendered` at
+1280x720/100%/standard contrast for the existing focus, modal and transaction
+regressions, then run presentation-ownership, M5 documentation contracts,
+PowerShell parsing for changed scripts, `git diff --check`, and the 260-character
+path audit. Full scale/contrast/reopen rendering remains in the later M11
+acceptance pass. See `38-menu-browsing.md` for the local-state contract.

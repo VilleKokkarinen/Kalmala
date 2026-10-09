@@ -14,9 +14,11 @@ public:
     void SetRows(const TArray<FKalmalaCatalogueRow>& InRows, int32 Scale, int32 Contrast);
     bool Navigate(FKey Key);
     FName GetSelectedItem() const;
+    const FString& GetSearch() const { return Search; }
     void SetSearch(const FString& Query);
     void SetCategory(int32 Category);
     void SetSort(int32 Sort);
+    void RestoreBrowseState(const FString& Query, int32 InCategory, int32 InSort, FName SelectedItemId);
     int32 GetVisibleCount() const { return Rows.Num(); }
     int32 GetCategory() const { return Category; }
     int32 GetSort() const { return Sort; }

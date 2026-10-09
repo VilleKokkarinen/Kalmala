@@ -10,6 +10,13 @@ void UKalmalaIconWidget::SetIcon(EKalmalaIcon InIcon, int32 InVariant)
     Invalidate(EInvalidateWidget::Paint);
 }
 
+void UKalmalaIconWidget::SetCueColor(const FLinearColor& InColor)
+{
+    if (CueColor.Equals(InColor, 0.001f)) return;
+    CueColor = InColor;
+    Invalidate(EInvalidateWidget::Paint);
+}
+
 int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G, const FSlateRect& C,
     FSlateWindowElementList& E, int32 Layer, const FWidgetStyle& Style, bool bEnabled) const
 {
@@ -17,6 +24,18 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
     const FVector2D Size = G.GetLocalSize();
     const float Scale = FMath::Min(Size.X, Size.Y) / 36.0f;
     const FVector2D Offset = (Size - FVector2D(36, 36) * Scale) * .5;
+    if (CueColor.A > 0.0f)
+    {
+        TArray<FVector2D> CueRing;
+        for (int32 Index = 0; Index <= 24; ++Index)
+        {
+            const float Angle = 2.0f * PI * static_cast<float>(Index) / 24.0f;
+            CueRing.Add(Offset + (FVector2D(18.0f, 18.0f)
+                + FVector2D(FMath::Cos(Angle), FMath::Sin(Angle)) * 16.5f) * Scale);
+        }
+        FSlateDrawElement::MakeLines(E, Layer, G.ToPaintGeometry(), CueRing, ESlateDrawEffect::None,
+            CueColor, true, 2.4f * Scale);
+    }
     const FLinearColor Ink = FKalmalaUITheme::Get().TextColor(false, UKalmalaSettingsWidget::GetContrastMode());
     const auto Path = [&](TArray<FVector2D> Points, bool bClose = false)
     {

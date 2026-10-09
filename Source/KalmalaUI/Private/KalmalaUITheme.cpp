@@ -128,6 +128,7 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadNumber(Config, TEXT("IconHeight"), Theme.IconHeight, 24, 96);
     ReadNumber(Config, TEXT("ScrollSpeed"), Theme.ScrollSpeed, 1, 60);
     ReadNumber(Config, TEXT("NotificationLifetime"), Theme.NotificationLifetime, 1, 10);
+    ReadNumber(Config, TEXT("StatusCueDuration"), Theme.StatusCueDuration, 0.4f, 3.0f);
     ReadNumber(Config, TEXT("OptionsOpeningDuration"), Theme.OptionsOpeningDuration, 0, 0.8f);
     ReadNumber(Config, TEXT("OptionsOpeningTravel"), Theme.OptionsOpeningTravel, 0, 96);
     ReadColor(Config, TEXT("BorderColor"), Theme.BorderColor);
@@ -137,6 +138,21 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadColor(Config, TEXT("ButtonDisabled"), Theme.ButtonDisabled);
     ReadColor(Config, TEXT("ButtonFocused"), Theme.ButtonFocused);
     ReadColor(Config, TEXT("ButtonSelected"), Theme.ButtonSelected);
+    ReadColor(Config, TEXT("StatusCueStartedColor"), Theme.StatusCueStartedColor);
+    ReadColor(Config, TEXT("StatusCueRefreshedColor"), Theme.StatusCueRefreshedColor);
+    ReadColor(Config, TEXT("StatusCueEndedColor"), Theme.StatusCueEndedColor);
+    ReadColor(Config, TEXT("FavoriteMarkerColor"), Theme.FavoriteMarkerColor);
+    ReadColor(Config, TEXT("RankGoldColor"), Theme.RankGoldColor);
+    ReadColor(Config, TEXT("RankSilverColor"), Theme.RankSilverColor);
+    ReadColor(Config, TEXT("RankBronzeColor"), Theme.RankBronzeColor);
+    ReadColor(Config, TEXT("RecentMarkerColor"), Theme.RecentMarkerColor);
+    ReadNumber(Config, TEXT("FavoriteMarkerBorderWidth"), Theme.FavoriteMarkerBorderWidth, 1, 4);
+    FString FavoriteStyle;
+    if (Config.GetString(ThemeSection, TEXT("FavoriteMarkerStyle"), FavoriteStyle)
+        && (FavoriteStyle == TEXT("Star") || FavoriteStyle == TEXT("Border") || FavoriteStyle == TEXT("Both")))
+    {
+        Theme.FavoriteMarkerStyle = FName(*FavoriteStyle);
+    }
     ReadNumber(Config, TEXT("FocusBorderWidth"), Theme.FocusBorderWidth, 1, 5);
     ReadNumber(Config, TEXT("SelectedBorderWidth"), Theme.SelectedBorderWidth, 1, 5);
     ReadNumber(Config, TEXT("DisabledBorderWidth"), Theme.DisabledBorderWidth, 1, 5);
@@ -203,6 +219,18 @@ int32 FKalmalaUITheme::ScaledFontSize(const int32 BaseSize, const int32 TextScal
 {
     return FMath::RoundToInt(FMath::Clamp(BaseSize, 8, 32)
         * UKalmalaSettingsWidget::ClampTextScale(TextScalePercent) / 100.0f);
+}
+
+FLinearColor FKalmalaUITheme::RankMarkerColor(const int32 Rank, const int32 ContrastMode) const
+{
+    if (ContrastMode != 0) return FLinearColor::White;
+    switch (Rank)
+    {
+    case 1: return RankGoldColor;
+    case 2: return RankSilverColor;
+    case 3: return RankBronzeColor;
+    default: return Text;
+    }
 }
 
 void FKalmalaUITheme::ApplyPanel(UBorder& Border, const int32 ContrastMode, const FString* ImageOverride) const

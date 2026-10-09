@@ -43,6 +43,105 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaStatusHotbarTransitionsTest, "Kalmala.UI.StatusHotbar.Transitions",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FKalmalaStatusHotbarTransitionsTest::RunTest(const FString&)
+{
+    const auto MakeEntry = [](const FName Id, const float RefreshValue,
+        const EKalmalaStatusRefreshPolicy RefreshPolicy, const FString& Name)
+    {
+        FKalmalaStatusHotbarEntry Entry;
+        Entry.Id = Id;
+        Entry.Name = Name;
+        Entry.Duration = TEXT("30 s");
+        Entry.Icon = EKalmalaIcon::Drop;
+        Entry.RefreshValue = RefreshValue;
+        Entry.RefreshPolicy = RefreshPolicy;
+        return Entry;
+    };
+
+    const FKalmalaStatusHotbarEntry Wet = MakeEntry(TEXT("Wet"), 18.0f,
+        EKalmalaStatusRefreshPolicy::RemainingIncreased, TEXT("Wet"));
+    TestEqual(TEXT("A reconnect or first owner snapshot is a silent baseline"),
+        UKalmalaStatusHotbarWidget::BuildTransitions({}, { Wet }, false).Num(), 0);
+
+    const auto Started = UKalmalaStatusHotbarWidget::BuildTransitions({}, { Wet }, true);
+    TestEqual(TEXT("A new authoritative status produces one start cue"), Started.Num(), 1);
+    if (Started.Num() == 1)
+    {
+        TestEqual(TEXT("New status cue kind"), Started[0].Kind, EKalmalaStatusCueKind::Started);
+        TestEqual(TEXT("New status keeps its identity"), Started[0].Entry.Id, Wet.Id);
+    }
+
+    const FKalmalaStatusHotbarEntry Countdown = MakeEntry(TEXT("Wet"), 17.2f,
+        EKalmalaStatusRefreshPolicy::RemainingIncreased, TEXT("Wet"));
+    TestEqual(TEXT("A decreasing replicated countdown does not replay a refresh cue"),
+        UKalmalaStatusHotbarWidget::BuildTransitions({ Wet }, { Countdown }, true).Num(), 0);
+
+    const FKalmalaStatusHotbarEntry RefreshedWet = MakeEntry(TEXT("Wet"), 29.5f,
+        EKalmalaStatusRefreshPolicy::RemainingIncreased, TEXT("Wet"));
+    const auto Refreshed = UKalmalaStatusHotbarWidget::BuildTransitions({ Wet }, { RefreshedWet }, true);
+    TestEqual(TEXT("An authoritative remaining-time reset is a refresh"), Refreshed.Num(), 1);
+    if (Refreshed.Num() == 1)
+    {
+        TestEqual(TEXT("Refresh cue kind"), Refreshed[0].Kind, EKalmalaStatusCueKind::Refreshed);
+    }
+
+    const FKalmalaStatusHotbarEntry Weather = MakeEntry(TEXT("Weather"), 120.0f,
+        EKalmalaStatusRefreshPolicy::AuthorityStampChanged, TEXT("Calm weather"));
+    const FKalmalaStatusHotbarEntry WeatherCountdown = MakeEntry(TEXT("Weather"), 120.0f,
+        EKalmalaStatusRefreshPolicy::AuthorityStampChanged, TEXT("Calm weather"));
+    TestEqual(TEXT("Weather countdown leaves its authoritative interval stamp unchanged"),
+        UKalmalaStatusHotbarWidget::BuildTransitions({ Weather }, { WeatherCountdown }, true).Num(), 0);
+    const FKalmalaStatusHotbarEntry NewWeather = MakeEntry(TEXT("Weather"), 240.0f,
+        EKalmalaStatusRefreshPolicy::AuthorityStampChanged, TEXT("Calm weather"));
+    const auto WeatherRefresh = UKalmalaStatusHotbarWidget::BuildTransitions({ Weather }, { NewWeather }, true);
+    TestEqual(TEXT("A new server weather interval is a refresh"), WeatherRefresh.Num(), 1);
+    if (WeatherRefresh.Num() == 1)
+    {
+        TestEqual(TEXT("Weather refresh cue kind"), WeatherRefresh[0].Kind, EKalmalaStatusCueKind::Refreshed);
+    }
+
+    const FKalmalaStatusHotbarEntry Support = MakeEntry(TEXT("Shield"), 80.0f,
+        EKalmalaStatusRefreshPolicy::ExpiryIncreased, TEXT("Hearth shield"));
+    const FKalmalaStatusHotbarEntry SupportCountdown = MakeEntry(TEXT("Shield"), 79.0f,
+        EKalmalaStatusRefreshPolicy::ExpiryIncreased, TEXT("Hearth shield"));
+    TestEqual(TEXT("Decreasing authoritative support expiry is not a refresh"),
+        UKalmalaStatusHotbarWidget::BuildTransitions({ Support }, { SupportCountdown }, true).Num(), 0);
+    const FKalmalaStatusHotbarEntry SupportExtended = MakeEntry(TEXT("Shield"), 90.0f,
+        EKalmalaStatusRefreshPolicy::ExpiryIncreased, TEXT("Hearth shield"));
+    const auto SupportRefresh = UKalmalaStatusHotbarWidget::BuildTransitions({ Support }, { SupportExtended }, true);
+    TestEqual(TEXT("Extended authoritative support expiry is a refresh"), SupportRefresh.Num(), 1);
+    if (SupportRefresh.Num() == 1)
+    {
+        TestEqual(TEXT("Support refresh cue kind"), SupportRefresh[0].Kind, EKalmalaStatusCueKind::Refreshed);
+    }
+
+    const auto Ended = UKalmalaStatusHotbarWidget::BuildTransitions({ Wet }, {}, true);
+    TestEqual(TEXT("Removal produces one explicit end cue"), Ended.Num(), 1);
+    if (Ended.Num() == 1)
+    {
+        TestEqual(TEXT("End cue kind"), Ended[0].Kind, EKalmalaStatusCueKind::Ended);
+        TestEqual(TEXT("End cue retains the ended icon identity"), Ended[0].Entry.Id, Wet.Id);
+    }
+
+    TestFalse(TEXT("Refresh coalesces into a visible start cue"),
+        UKalmalaStatusHotbarWidget::ShouldReplaceActiveCue(EKalmalaStatusCueKind::Started, EKalmalaStatusCueKind::Refreshed));
+    TestTrue(TEXT("End supersedes an earlier cue"),
+        UKalmalaStatusHotbarWidget::ShouldReplaceActiveCue(EKalmalaStatusCueKind::Started, EKalmalaStatusCueKind::Ended));
+    TestTrue(TEXT("A new start supersedes an ended cue"),
+        UKalmalaStatusHotbarWidget::ShouldReplaceActiveCue(EKalmalaStatusCueKind::Ended, EKalmalaStatusCueKind::Started));
+    TestTrue(TEXT("Reduced motion keeps a static cue visible until its themed expiry"),
+        UKalmalaStatusHotbarWidget::CalculateCueOpacity(0.8f, 1.25f, true, true) == 1.0f);
+    const float AnimatedOpacity = UKalmalaStatusHotbarWidget::CalculateCueOpacity(0.4f, 1.25f, true, false);
+    TestTrue(TEXT("Animated cue remains visible during its brief lifetime"), AnimatedOpacity > 0.0f && AnimatedOpacity < 1.0f);
+    TestEqual(TEXT("Cue clears at the themed expiry"),
+        UKalmalaStatusHotbarWidget::CalculateCueOpacity(1.25f, 1.25f, true, false), 0.0f);
+    TestEqual(TEXT("Theme motion-off path is also static"),
+        UKalmalaStatusHotbarWidget::CalculateCueOpacity(0.4f, 1.25f, false, false), 1.0f);
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaCatalogueIconTest, "Kalmala.UI.CatalogueIcons.CompleteCoverage",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FKalmalaCatalogueIconTest::RunTest(const FString&)

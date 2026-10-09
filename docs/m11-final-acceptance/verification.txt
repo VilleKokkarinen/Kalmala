@@ -1,0 +1,92 @@
+# M11 final rendered acceptance
+
+Date: 2026-10-06
+Result: **Passed; M11 implementation and acceptance are complete.**
+Target: Windows, Unreal Engine 5.8, `KalmalaEditor Win64 Development`.
+
+This is the final M11 increment. The full ordered acceptance matrix in
+`BACKLOG.md` was run against host and client peers. Twenty paired representative
+captures from this run are retained in `evidence/`; the earlier feature-level
+capture sets remain under `docs/status-icons/`, `docs/ui-inventory-build/`,
+`docs/ui-world-map/`, `docs/ui-options-backgrounds/`,
+`docs/ui-recipe-preview/`, `docs/ui-recipe-activity/`,
+`docs/interaction-prompts/`, and `docs/notifications/`.
+
+## Build and repairs
+
+The first full editor build exposed two errors in unity translation units:
+`NoPanelImage` was defined in two merged `.cpp` files (C2086), and the map's
+`PanelColour` local shadowed a name from another merged file (C4459). Renaming
+the local symbols to `CraftingNoPanelImage` and `MapPanelColour` fixed both.
+The affected UI module rebuilt successfully, then the full editor target
+completed successfully. A final post-repair target invocation reported that
+the target was up to date.
+
+The first rendered crafting acceptance reported a false-negative for inventory
+detail review because it inspected cached geometry from before the scroll
+layout settled. A scroll-end-only probe remained timing-sensitive. The final
+development-test helper now requests `ScrollToEnd()` and verifies current
+inspector rows, selection, and visible detail state; it logs the scroll end for
+diagnosis. Standard and high-contrast rendered crafting checks were rerun after
+the helper rebuild and passed. This change affects the test probe only.
+
+## Full automation and performance
+
+Ran the unattended editor queue with isolated `UserDir`, memory DDC, and
+`Automation RunTests Kalmala; Quit`, ending on `Automation Test Queue Empty`.
+All **117 tests completed successfully; 0 failed results**. This includes the
+M11 crafting result preview, stat comparison, browsing, ingredient/requirement,
+recipe activity and authority checks; inventory/notification tests; settings,
+theme, interaction prompt, and map presentation; reconnect and owner-isolation
+coverage; and `Kalmala.UI.WorldMap.PerformanceBudget`.
+
+The map worker budget test passed. Its documented guardrails are a maximum
+278,784-byte CPU tile-pixel payload, 250 ms for one tile, and 1.5 s for a
+four-tile full-minimap update. These are worker/development guardrails, not an
+approved packaged-game frame-time target.
+
+Two generic `LogAutomationTest: Error: Condition failed` lines appear during
+Unreal startup beside the engine's `UE::UnifiedErrorTest` diagnostics, before
+engine initialization and before the Kalmala test queue starts. The completed
+queue contains 117 successes and no failed test result; these startup messages
+were not associated with a Kalmala assertion and were not changed.
+
+## Rendered host/client and regression matrix
+
+Every row passed on both peers. Output folders below are the run's isolated
+capture/log directories under `Temp/` (not committed).
+
+| Check | Configurations and coverage | Result evidence |
+|---|---|---|
+| `Scripts/Verify-StatusHotbar.ps1` | 1024x768, text 150%, high contrast; 1280x720, text 100%, standard; 2560x1080, text 125%, high contrast. Empty/populated, icons, details, start/refresh/end/expiry cues, minimap geometry, and reduced-motion path. | `kh-174673c9`, `kh-307b76ea`, `kh-af56622c` |
+| `Scripts/Verify-Crafting.ps1 -Rendered` | 1280x720/100%/standard and 1024x768/150%/high contrast. Result previews and selection, favorite/rank/recent coexistence, category replacement, counts/reasons, item details, scrolling, no-results/fallback, separate owners, and server rejection/payment checks. | `KalmalaCrafting-8845d1e0e35e49cb9c4e57eaf767b7a9`, `KalmalaCrafting-8ad385bd94d446eb8b4cdd552f05c61f` |
+| `Scripts/Verify-Inventory.ps1 -Rendered -NotificationReview` | 1280x720/100%/standard and 1024x768/150%/high contrast. Inventory states, combined notices, modal collapse/restore, and owner privacy. | `KalmalaInventory-5cd3c8eb3e2040068d705591ca0c2365`, `KalmalaInventory-e774bb9d55984d8e9e0e16af75aeec9d` |
+| `Scripts/Verify-WorldMap.ps1 -BasePort 17880` | Host/client at 1024x768, 1280x720, and 2560x1080; terrain/fog, marker category filters, input, and screenshots. | `KalmalaWorldMap-4c0163881e844dd88fb36c20c0c5982c` |
+| `Scripts/Verify-SettingsAccessibility.ps1` | 1280x720 with host/client text scales 90%/110%; 1024x768 with 100%/120%. Options tabs/backgrounds, focus, interrupted resize/animation, reduced motion, high contrast, and fresh-process local preference reload. | `KalmalaSettingsAccessibility-4464854adf904110b25875343b633be4`, `KalmalaSettingsAccessibility-81aa2b21bfc541b5a4ced4a2e5cff922` |
+| `Scripts/Verify-InteractionPrompt.ps1 -Rendered` | 1280x720/100%/standard and 1024x768/150%/high contrast. Available/unavailable target, modal, no target, and remapped keyboard/controller binding. | `KIP-0b076f8d`, `KIP-f5ebed27` |
+| `Scripts/Verify-InventoryReconnect.ps1 -Port 17950` | Two successive client visits, privacy, silent fresh baselines, and inventory state. | `KalmalaInventoryReconnect-7217cd5afef44e189c1254f7a0c57001` |
+| `Scripts/Verify-WorldMapTiles.ps1 -Port 17963` | Tile fingerprint across identity handoff; fresh peers recover only their own personal coverage. | `KalmalaWorldMapTiles-6fd1c54f0a9740e9832eda93bbb055f4` |
+
+Also passed `Verify-PresentationOwnership.ps1`,
+`Verify-M5DocumentationContracts.ps1`,
+`Verify-SettingsAccessibilityContract.ps1`,
+`Verify-LocalInputContract.ps1`, PowerShell parsing for ten affected scripts,
+and `git diff --check`. Win64 validation was available and passed; other
+platform SDKs were unavailable and are outside this Windows acceptance run.
+
+## Authority, scope, and remaining limits
+
+The run-owned C++ edits resolve unity-build symbol collisions and correct a
+development-only rendered-test probe. They add no gameplay behavior, RPC,
+replication, save field/schema, balance value, or product-scope change. The
+server-side invalid-request, payment, rejection, receipt-owner, privacy, and
+reconnect checks passed in the documented suite.
+
+No packaged build or physical low/mid-tier hardware run was part of M11's
+documented UI acceptance. The constrained-performance documentation does not
+define an approved numerical packaged frame-time ceiling. The acceptance result
+therefore applies to the Windows editor/rendered matrix and worker guardrails
+above; existing M10 hardware/package limitations remain as documented.
+
+`BACKLOG.md` currently defines no milestone after M11, so there is no next
+eligible implementation task until a later roadmap increment is added.

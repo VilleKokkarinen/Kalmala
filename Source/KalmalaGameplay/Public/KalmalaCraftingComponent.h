@@ -4,6 +4,24 @@
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaCraftingComponent.generated.h"
 
+UENUM()
+enum class EKalmalaCraftingActionKind : uint8
+{
+    BuiltPiece,
+    CookedRecipe,
+    CraftedItem
+};
+
+USTRUCT()
+struct KALMALAGAMEPLAY_API FKalmalaAcceptedCraftingActionReceipt
+{
+    GENERATED_BODY()
+
+    UPROPERTY() uint64 Sequence = 0;
+    UPROPERTY() FName RecipeId = NAME_None;
+    UPROPERTY() EKalmalaCraftingActionKind Kind = EKalmalaCraftingActionKind::CraftedItem;
+};
+
 class AKalmalaCampfire;
 class AKalmalaCharacter;
 class AKalmalaConstructionActor;
@@ -15,6 +33,7 @@ class KALMALAGAMEPLAY_API UKalmalaCraftingComponent : public UActorComponent
 {
     GENERATED_BODY()
 public:
+    static constexpr int32 MaxAcceptedCraftingActionReceipts = 64;
     UKalmalaCraftingComponent();
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTick) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out) const override;
@@ -39,6 +58,17 @@ public:
     bool HasStorageView() const { return bStorageViewOpen; }
     uint32 GetResultSerial() const { return ResultSerial; }
     bool WasLastResultAccepted() const { return bLastResultAccepted; }
+    const TArray<FKalmalaAcceptedCraftingActionReceipt>& GetAcceptedCraftingActionReceipts() const
+    {
+        return AcceptedCraftingActionReceipts;
+    }
+#if WITH_DEV_AUTOMATION_TESTS
+    void PublishResultForTest(const FString& Result, bool bAccepted, FName RecipeId,
+        EKalmalaCraftingActionKind Kind)
+    {
+        PublishResult(Result, bAccepted, RecipeId, Kind);
+    }
+#endif
     AKalmalaConstructionActor* FindNearbyWorkbench() const;
     FString GetNearbyWorkbenchText() const;
     FString GetNearbyConstructionText() const;
@@ -58,7 +88,8 @@ public:
     AKalmalaCampfire* FindNearbyFire(bool bRequireUsable) const;
 private:
     bool AcceptRequest();
-    void PublishResult(const FString& Result, bool bAccepted);
+    void PublishResult(const FString& Result, bool bAccepted, FName AcceptedRecipeId = NAME_None,
+        EKalmalaCraftingActionKind AcceptedActionKind = EKalmalaCraftingActionKind::CraftedItem);
     AKalmalaCharacter* GetCharacter() const;
     AKalmalaCampfire* FindNearbyLitFire(const AKalmalaConstructionActor* RequiredStation = nullptr) const;
     void RunVerification(float DeltaTime);
@@ -81,6 +112,8 @@ private:
     UPROPERTY(Replicated) FString LastResult;
     UPROPERTY(Replicated) uint32 ResultSerial = 0;
     UPROPERTY(Replicated) bool bLastResultAccepted = false;
+    UPROPERTY(Replicated) TArray<FKalmalaAcceptedCraftingActionReceipt> AcceptedCraftingActionReceipts;
+    uint64 NextAcceptedCraftingActionSequence = 0;
     int32 VerificationStage = 0;
     float VerificationElapsed = 0;
     int32 LocalVerificationStage = 0;

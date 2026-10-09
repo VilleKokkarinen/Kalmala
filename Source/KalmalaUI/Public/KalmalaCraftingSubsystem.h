@@ -13,6 +13,31 @@ class UScrollBox;
 class UInputComponent;
 class UKalmalaCraftingComponent;
 class UKalmalaSelectedResultWidget;
+class AKalmalaCharacter;
+
+struct FKalmalaMenuBrowseMemory
+{
+    FString Query;
+    int32 Category = 0;
+    bool bNameSort = false;
+    FName SelectedRecipeId;
+    float ScrollOffset = 0.0f;
+};
+
+struct FKalmalaInventoryInspectionMemory
+{
+    bool bHasState = false;
+    bool bWasLastActive = false;
+    FString Query;
+    int32 Category = 0;
+    int32 Sort = 0;
+    FName SelectedItemId;
+    float ScrollOffset = 0.0f;
+};
+
+class UKalmalaCraftingSubsystem;
+enum class EKalmalaCraftingActionKind : uint8;
+struct FKalmalaAcceptedCraftingActionReceipt;
 
 UCLASS()
 class KALMALAUI_API UKalmalaInteractionPromptWidget : public UUserWidget
@@ -45,6 +70,8 @@ public:
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
+    bool VerifyMenuBrowseMemoryForTest();
+    bool PrepareRecipeActivityReviewForTest();
     bool VerifyInventoryInspectionForTest();
     bool ScrollReviewSectionForTest(bool bFeedback);
     bool ScrollInventoryDetailsForTest();
@@ -62,11 +89,21 @@ protected:
     virtual FReply NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
 private:
     UKalmalaCraftingComponent* Model() const;
+    UKalmalaCraftingSubsystem* GetLocalCraftingSubsystem() const;
+    bool IsRecipeFavorite(FName RecipeId) const;
+    bool IsRecipeRecent(FName RecipeId) const;
     void OpenInternal(FName StationKit);
+    void UpdateMenuHeader(FName StationKit);
+    void RememberMenuBrowseState();
+    bool RestoreMenuBrowseState(FName StationKit);
+    bool IsInventoryInspectionFocused() const;
+    void RememberInventoryInspectionState();
+    void RestoreInventoryInspectionState();
     UFUNCTION() void RecipeSearchChanged(const FText& Text);
     UFUNCTION() void CycleRecipeCategory();
     UFUNCTION() void CycleRecipeSort();
     UFUNCTION() void ClearRecipeSearch();
+    UFUNCTION() void ToggleSelectedFavorite();
     UFUNCTION() void Previous();
     UFUNCTION() void Next();
     UFUNCTION() void Craft();
@@ -92,6 +129,8 @@ private:
     UFUNCTION() void CloseClicked();
     UFUNCTION() void FocusInventoryDetails();
     void Refresh();
+    void RefreshInlineToolUpgradeComparison(const AKalmalaCharacter* Character,
+        int32 ContrastMode);
     void RefreshRecipeGrid(const TArray<int32>& VisibleIndices, UKalmalaCraftingComponent* Crafting,
         int32 TextScalePercent, int32 ContrastMode);
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipesText;
@@ -99,8 +138,13 @@ private:
     UPROPERTY(Transient) TObjectPtr<UUniformGridPanel> RecipeGrid;
     UPROPERTY(Transient) TObjectPtr<UScrollBox> CraftingScrollBox;
     UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> RecipeSlotCards;
+    UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> RecipeSlotFavoriteFrames;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotNames;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotStates;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotFavoriteMarkers;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotRankMarkers;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> RecipeSlotRecentMarkers;
+    UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> RecipeSlotRecentBadgeFrames;
     UPROPERTY(Transient) TArray<uint8> RecipeSlotVisualStates;
     UPROPERTY(Transient) TObjectPtr<UKalmalaSelectedResultWidget> SelectedResultPreview;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> HeaderText;
@@ -110,6 +154,9 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RepairText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolProgressionText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeComparisonTitle;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeLevelComparison;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeConditionComparison;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> InventoryInspector;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
@@ -117,10 +164,16 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> RecipeSearchBox;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeCategoryLabel;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeSortLabel;
+    UPROPERTY(Transient) TObjectPtr<UButton> FavoriteButton;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> FavoriteActionLabel;
     UPROPERTY(Transient) FEditableTextBoxStyle RecipeSearchStyle;
     FString RecipeQuery;
     int32 RecipeCategory = 0;
     bool bRecipeNameSort = false;
+    TMap<FName, FKalmalaMenuBrowseMemory> MenuBrowseMemory;
+    FKalmalaInventoryInspectionMemory InventoryInspectionMemory;
+    bool bPendingMenuScrollRestore = false;
+    float PendingMenuScrollRestoreOffset = 0.0f;
     int32 Selected = 0;
     FName StationFilterKit;
     FString GeneralInstructions;
@@ -150,9 +203,27 @@ public:
     virtual bool IsTickable() const override { return !IsTemplate(); }
     bool CloseIfOpen();
     bool IsOpen() const { return Widget != nullptr && Widget->IsOpen(); }
+    bool IsRecipeFavorite(FName RecipeId) const { return FavoriteRecipeIds.Contains(RecipeId); }
+    bool CanFavoriteRecipe(FName RecipeId) const;
+    bool SetRecipeFavorite(FName RecipeId, bool bFavorite);
+    void PruneRecipeFavorites();
+    uint32 GetRecipeActivityCount(EKalmalaCraftingActionKind Kind, FName RecipeId) const;
+    TMap<FName, int32> GetRecipeActivityRanks(EKalmalaCraftingActionKind Kind) const;
+    int32 GetRecipeActivityRank(EKalmalaCraftingActionKind Kind, FName RecipeId) const;
+    FName GetRecentRecipeActivity(EKalmalaCraftingActionKind Kind) const;
+    void PruneRecipeActivity();
+#if !UE_BUILD_SHIPPING
+    void ResetRecipeActivityForTest();
+    void SetRecipeActivityForTest(EKalmalaCraftingActionKind Kind, FName RecipeId, uint32 Count, bool bRecent);
+#endif
+#if WITH_DEV_AUTOMATION_TESTS
+    void ObserveRecipeActivityForTest(UKalmalaCraftingComponent* Crafting) { ObserveRecipeActivity(Crafting); }
+#endif
 private:
     void Toggle();
     void Release();
+    void ObserveRecipeActivity(UKalmalaCraftingComponent* Crafting);
+    void RecordAcceptedRecipeActivity(const FKalmalaAcceptedCraftingActionReceipt& Receipt);
     void UpdateInteractionPrompt(APlayerController* PlayerController);
 #if !UE_BUILD_SHIPPING
     void UpdateInteractionPromptReview(APlayerController* PlayerController, float DeltaTime);
@@ -160,6 +231,16 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaCraftingWidget> Widget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaInteractionPromptWidget> InteractionPrompt;
     UPROPERTY(Transient) TObjectPtr<APlayerController> Controller;
+    UPROPERTY(Transient) TSet<FName> FavoriteRecipeIds;
+    UPROPERTY(Transient) TMap<FName, uint32> BuiltPieceCounts;
+    UPROPERTY(Transient) TMap<FName, uint32> CookedRecipeCounts;
+    UPROPERTY(Transient) TMap<FName, uint32> CraftedItemCounts;
+    TWeakObjectPtr<UKalmalaCraftingComponent> ActivityCraftingComponent;
+    uint64 LastAcceptedRecipeActivitySequence = 0;
+    bool bHasObservedRecipeActivityComponent = false;
+    FName RecentBuiltPieceRecipeId;
+    FName RecentCookedRecipeId;
+    FName RecentCraftedItemRecipeId;
     TWeakObjectPtr<UKalmalaCraftingComponent> StationInteractionModel;
     TWeakObjectPtr<UInputComponent> BoundInput;
     uint32 LastStationInteractionSerial = 0;

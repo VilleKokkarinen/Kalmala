@@ -59,6 +59,7 @@ public:
     /** Opens a requested local tab for the development-only settings acceptance probe. */
     void OpenForVerification(APlayerController* InOwningPlayer, int32 TabIndex);
     void SetVerificationTab(int32 TabIndex);
+    int32 GetRememberedOptionsTabForVerification() const { return LastOptionsTabIndex; }
     FString GetPanelImagePathForVerification() const;
     bool HasFocusableContentForVerification() const;
     bool HasFocusedContentForVerification() const;
@@ -228,6 +229,8 @@ private:
 
     TArray<FIntPoint> ResolutionChoices;
     int32 ResolutionChoiceIndex = 0;
+    // Retained by the owner-local widget across ordinary close/reopen only.
+    int32 LastOptionsTabIndex = 0;
     bool bMenuOpen = false;
     bool bOptionsOpeningAnimationActive = false;
     float OptionsOpeningElapsed = 0.0f;

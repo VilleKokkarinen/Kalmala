@@ -24,7 +24,16 @@ selection survives filter/sort/data refresh. If selection disappears, the first
 visible result is selected. No results clears selection, hides details and names
 Clear search / All as recovery options. Empty inventory has distinct feedback.
 Previous/next disable when no rows are visible; browsing never performs an item,
-craft, repair, construction or transfer action.
+craft, repair, construction or transfer action. During the local widget session,
+the inventory inspector remembers its bounded query, category, sort and selected
+canonical item ID in state separate from each recipe/station menu. Reopen applies
+the filters to current owner-visible rows, restores the selected ID when visible,
+and falls back to the first visible row (or no selection when empty) if it was
+consumed or filtered out. If the inspector had focus when the menu closed, it
+regains focus and its own scroll offset; otherwise the recipe/station scroll
+position is restored. Scroll restoration waits for layout and clamps to the
+current range after viewport or UI-scale changes. This memory is transient and
+never replays an item or gameplay action.
 
 The shared local theme, text scale and contrast style labels, buttons and search
 text. Browse controls are vertically arranged inside the existing scroll view.
@@ -69,8 +78,19 @@ controller access; Page Up/Down cycles category/order when the panel has focus.
 Search focus yields to ordinary text editing. Escape/B keeps modal close behavior.
 Existing controller hearth/build shortcuts outside text editing are retained.
 Theme text scale styles search font and menu labels; search uses a widget-owned
-Slate style to avoid dangling style pointers. Query/category/order last for the
-widget lifetime only; remembered-menu behavior remains a later task.
+Slate style to avoid dangling style pointers. The main hammer menu and each
+station menu remember query, category, sort, selected recipe identity and scroll
+offset independently for the local widget session. Reopening first reapplies the
+saved filters, then restores the canonical selection if it is still visible;
+otherwise it selects the first visible result, or no selection for an empty
+filtered view. Station scopes never inherit another menu's filter. Scroll offsets
+are applied after the reopened layout updates and clamped to the current scroll
+range, so catalogue changes, viewport resize and interface-scale changes do
+not leave an invalid offset. Entries that remain in the catalogue but are
+currently unavailable stay selectable and show their live unavailable reason.
+This memory is transient to the local player's widget session and does not write
+settings, gameplay saves or network state. Inventory-inspector and world-map
+memory remain later ordered children.
 
 Targeted verification: affected UI compilation, Kalmala.UI.Crafting.LocalBrowsing
 for category partition, name matching, ordering/no-results and source-order
@@ -176,3 +196,50 @@ Slate key events do not certify physical keyboard/controller text entry,
 cooking-station physical interaction, exhaustive viewport combinations,
 package inclusion or clean-HEAD/package acceptance. Earlier pending statements
 above are historical; full parent verification is now complete under these limits.
+
+## Owner-local Favorites slice
+
+The crafting/build menu now cycles All, Other crafting, Cooking, All builds,
+Structural pieces, Stations, Camp utilities, and Favorites. Favorites is the
+manually bookmarked subset of the same active catalogue and intersects the
+existing station filter and name query. The focusable Add to Favorites / Remove
+from Favorites button applies to the current selected recipe or build entry;
+it performs no gameplay action. Cards and tooltips identify bookmarks with the
+text label Favorite, and unavailable reasons remain visible. If the selected
+entry is removed while Favorites is active, ordinary browse fallback selects
+the first remaining entry; an empty view leaves Craft disabled.
+
+Bookmark IDs live in the owning `UKalmalaCraftingSubsystem` and are shared by
+that local player across menu reopen and pawn replacement. The set is capped at
+the lesser of 256 and the current recipe-catalogue size; opening the menu
+prunes IDs no longer in the catalogue. This first slice ends with the local
+player subsystem and does not write settings, world/player saves, or network
+state. Usage ranks, accepted-action Recent entries, and configurable corner
+badges remain later work; see `docs/41-recipe-activity.md`.
+
+## M-key world map position memory
+
+The local-player map widget remains alive while the M-key map is collapsed, so
+its marker visibility categories, focused legend category, and selected
+personal pin already remain transient to that local session. Closing cancels
+active legend navigation and hover state; reopening returns keyboard focus to
+the map and does not toggle, complete, or remove a pin. A pin hidden by its
+category filter remains selected and its existing status text reports that it
+is filtered. Existing removal and world-change paths keep their selection
+fallbacks.
+
+The map has no separate scrolling list. Its applicable viewport position is
+the current map centre and zoom radius, so the first successful open keeps the
+existing recenter/optional whole-world default and later opens retain the
+owner's last local pan, zoom, and fit mode. A changed viewport aspect ratio
+recomputes the map extent from the retained radius; it does not reset the
+centre. Explicit Recenter still returns to the owning pawn and exits whole-world
+fit. These values and the marker preferences are widget/view-model state only:
+they add no settings write, map save field, RPC, replication, or gameplay action.
+
+The M11 map-memory acceptance pass should reopen after pin filtering and
+selection, pan and zoom, then exercise recenter and viewport/UI-scale changes.
+Check marker focus/visibility and modal input on separate local owners, alongside
+the existing `Kalmala.UI.WorldMap.LocalPresentation` and rendered
+`Scripts/Verify-WorldMap.ps1` coverage. Cross-restart view restoration is not
+part of this contract.

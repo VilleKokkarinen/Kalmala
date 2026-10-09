@@ -72,6 +72,12 @@ be crafted. Keyboard/controller selection updates this read-only panel; it
 sends no request and creates no actor. No inventory, recipe, item, replicated,
 or save property is added.
 
+The inline Iron Axe upgrade comparison reads the owning player's carried
+Bronze Axe level and condition plus the existing progression/lifecycle
+definitions for the selected Iron Axe. It refreshes from local owner state and
+reports missing or incompatible comparisons as unavailable. It adds no
+request, equipment state, stat authority, replication field, or save data.
+
 ## Allowed and forbidden sources
 
 Allowed visual sources are original project code, the committed Kalmala
@@ -201,3 +207,32 @@ validated inventory publications. The local 32-receipt buffer is transient;
 initial attachment is silent and the shared three-row widget does not inspect
 peer inventory. No server mutation RPC or persistence field is added. See
 40-notifications.md for net-gain and dropped-notice limits.
+
+## Owner-local recipe Favorites
+
+`UKalmalaCraftingSubsystem` keeps canonical recipe/build bookmark IDs for its
+own `ULocalPlayer` session. The crafting menu reads the set only to filter the
+existing owner-visible catalogue and show Favorite text. A selected-entry
+button changes this transient local set; it sends no request, changes no
+availability, and cannot place or craft anything. The bounded set is cleared
+with the local-player subsystem and is not written to gameplay saves, user
+settings, replicated state, or peer-visible data. Usage counts, ranks, and
+Recent IDs are local and derive only from unique server-accepted action
+receipts, under the contract in `docs/41-recipe-activity.md`.
+
+## Owner-local recipe activity
+
+The crafting component publishes a bounded owner-only receipt after a server
+craft or construction placement succeeds. Each receipt identifies the accepted
+recipe/menu entry and action kind; it cannot authorize a request. The local
+crafting subsystem consumes unique sequences, counts only IDs in the active
+catalogue, and derives usage ranks and one Recent entry per action kind. Its
+history remains local across menu and pawn replacement and clears with the local
+player subsystem. Failed requests, cooking counted as other crafting, peer
+state, inventory guesses, and reconnect snapshots do not create local history.
+See `docs/41-recipe-activity.md` for the bounded receipt and deterministic rank
+contract. Each recipe/build card reserves separate right-aligned rows for
+Rank and Recent, with Favorite at the lower right, so their labels can coexist
+without covering the canonical name, availability, or each other. Recent-only
+entries appear in the Favorites filter without becoming bookmarked; all marker
+changes remain static under reduced motion.

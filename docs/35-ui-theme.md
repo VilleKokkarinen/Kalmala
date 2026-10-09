@@ -69,6 +69,11 @@ expanded-map, and options views as described below.
 | OptionsOpeningDuration | 0.18 seconds | 0–0.8 seconds; zero selects the instant path |
 | OptionsOpeningTravel | 32 logical units | 0–96; zero selects the instant path |
 | OptionsOpeningEasing | `EaseOutCubic` | `EaseOutCubic`, `EaseOutQuad`, or `Linear` |
+| FavoriteMarkerStyle | `Both` | `Star`, `Border`, or `Both`; local recipe/build cards |
+| FavoriteMarkerBorderWidth | 2 logical units | 1–4; Favorite frame width when enabled |
+| FavoriteMarkerColor | (0.98, 0.78, 0.20, 1) | Linear RGBA; Favorite star/frame |
+| RankGoldColor / RankSilverColor / RankBronzeColor | gold / silver / bronze tones | Linear RGBA; top-three usage markers |
+| RecentMarkerColor | (0.38, 0.82, 0.90, 1) | Linear RGBA; Recent clock badge |
 
 Asset keys accept only valid `/Game/Package.Asset` object paths shorter than
 180 characters. Empty, invalid, missing, or wrong-type objects retain the
@@ -79,6 +84,15 @@ borders to at least one unit. High contrast uses neutral button fills; pressed
 padding and Unreal's existing keyboard focus indicator remain available.
 Accessibility text scale still takes precedence over theme size. No focus,
 click delegate, navigation, modal ownership, authority, or save binding changed.
+
+Recipe/build activity cards reserve separate right-aligned rows for Rank and
+Recent, followed by the Favorite cue at the lower right, so a single card can
+show all three without overlap. Favorite style selects a star, an outer frame,
+or both; Favorite text is always present. Rank markers name Gold/Silver/Bronze
+and their rank. Recent uses a clock glyph and the word Recent. Local high
+contrast forces marker text and the Favorite frame to white; static labels
+remain visible under reduced motion. Marker changes are immediate and do not
+animate.
 
 The view-specific image keys override `PanelImage` only for their named view.
 The inventory, build, and expanded-map textures are original Kalmala artwork
@@ -181,6 +195,33 @@ no matching result clears and collapses the whole detail panel. The panel uses
 shared theme colours, fonts, text scaling, and high-contrast treatment. Its
 selection follows the existing keyboard/controller recipe navigation and
 remains presentation-only.
+
+## Inline current-versus-selected stat comparison — 2026-10-06
+
+The existing crafting/forge details show the authored Iron Axe target beside
+the owner's carried Bronze Axe values when both comparison records are
+compatible. The current supported rows are tool level and condition; the
+selected condition is the authored new-tool maximum. Signed deltas and the
+selected value remain in accessible text. Improvements reuse the theme's
+positive status cue colour, decreases reuse its ended cue colour, and equal or
+unavailable values use normal theme text. Missing owner data, an already
+carried Iron Axe, or incompatible prior-tool data is stated as unavailable.
+There is no separate comparison card.
+
+The Iron Sword/Iron Mace crush/slash example remains only a presentation test
+fixture because the current catalogue has no such items or damage bonus stats.
+It adds no combat data, item, damage type, balance value, or stat authority.
+
+## Status transition cue theme keys — 2026-10-05
+
+The owner-local status hotbar reads `StatusCueStartedColor`,
+`StatusCueRefreshedColor`, `StatusCueEndedColor`, and `StatusCueDuration` from
+the shared theme. Colours use the same finite `[0,1]` RGBA parser and safely
+fall back when missing or invalid; duration is bounded to 0.4–3 seconds (default
+1.25). The icon ring fades/pulses while `AnimateInteractionStates=True` and
+local Reduced motion is off. Either motion setting produces a static ring until
+the same expiry. High contrast uses a white ring plus the textual Started,
+Refreshed, or Ended label.
 
 ## Parent verification — 2026-10-02
 

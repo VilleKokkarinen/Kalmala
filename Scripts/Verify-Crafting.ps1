@@ -1,5 +1,5 @@
 param([int]$Port = 17869, [switch]$Rendered, [int]$Width = 1280, [int]$Height = 720,
-    [int]$TextScale = 100, [int]$Contrast = 0)
+    [int]$TextScale = 100, [int]$Contrast = 0, [switch]$ReducedMotion)
 $ErrorActionPreference = 'Stop'
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
@@ -10,7 +10,8 @@ $clientLog = Join-Path $output 'client.log'
 $hostShaderDir = Join-Path $output 'Host\ShaderWorkingDir'
 $clientShaderDir = Join-Path $output 'Client\ShaderWorkingDir'
 New-Item -ItemType Directory -Path $hostShaderDir, $clientShaderDir -Force | Out-Null
-$common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaCraftingTest -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast -ExecCmds=`"t.MaxFPS 60`""
+$motion = if ($ReducedMotion) { 1 } else { 0 }
+$common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaCraftingTest -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast -KalmalaUIDeveloperReducedMotion=$motion -ExecCmds=`"t.MaxFPS 60`""
 if ($Rendered) { $common += " -windowed -RenderOffscreen -ForceRes -ResX=$Width -ResY=$Height" } else { $common += ' -nullrhi' }
 $hostShader = if ($Rendered) { "-ShaderWorkingDir=`"$hostShaderDir`"" } else { '' }
 $clientShader = if ($Rendered) { "-ShaderWorkingDir=`"$clientShaderDir`"" } else { '' }
@@ -54,6 +55,14 @@ try {
             $ready = $ready -and $peerText.Contains('Build browsing: Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1')
             $ready = $ready -and $peerText.Contains('Result preview: Keyboard=1 DPad=1 Unavailable=1 MissingIconFallback=1 NoResultsCleared=1 Large=1 NoActorsSpawned=1 CatalogueStable=1 IconExtent=88')
         }
+        $hostMarker = [regex]::Match($serverText, 'Recipe activity markers: Owner=Host FavoriteId=(\S+)')
+        $clientMarker = [regex]::Match($clientText, 'Recipe activity markers: Owner=Client FavoriteId=(\S+)')
+        foreach ($peerText in @($serverText, $clientText)) {
+            $ready = $ready -and $peerText.Contains('Coexist=1 OrdinaryRecent=1 RecentShortcuts=1 NoManualBookmark=1 StaticMotion=1 OwnerIsolation=1')
+            if ($Rendered) { $ready = $ready -and $peerText.Contains('Recipe activity marker review: Prepared=1') }
+        }
+        $ready = $ready -and $hostMarker.Success -and $clientMarker.Success `
+            -and $hostMarker.Groups[1].Value -ne $clientMarker.Groups[1].Value
         $gridPattern = 'Build slot grid: Slots=(\d+) Unavailable=(\d+) Selected=(\d+) Focused=1 ReadOnly=1 Scrollable=1 Navigation=1'
         $serverGrid = [regex]::Match($serverText, $gridPattern)
         $clientGrid = [regex]::Match($clientText, $gridPattern)
@@ -74,7 +83,7 @@ try {
         }
         if ($Rendered) {
             foreach ($peerName in @('host', 'client')) {
-                foreach ($suffix in @('', '-details', '-feedback', '-inspection', '-cooking', '-structural', '-stations', '-utilities', '-no-results', '-inventory-browse', '-build-costs', '-build-requirements', '-cook-costs', '-cook-requirements')) {
+                foreach ($suffix in @('', '-details', '-feedback', '-inspection', '-cooking', '-structural', '-stations', '-utilities', '-no-results', '-inventory-browse', '-build-costs', '-build-requirements', '-cook-costs', '-cook-requirements', '-activity-markers')) {
                     $ready = $ready -and (Test-Path "$output\$peerName$suffix.png")
                 }
             }

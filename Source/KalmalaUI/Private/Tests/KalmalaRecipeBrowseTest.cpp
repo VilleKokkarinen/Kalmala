@@ -1,14 +1,19 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaCraftingSubsystem.h"
+#include "KalmalaCraftingComponent.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaPlacementPreview.h"
 #include "Misc/AutomationTest.h"
+#include "Engine/Engine.h"
+#include "Engine/LocalPlayer.h"
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRecipeBrowseTest, "Kalmala.UI.Crafting.LocalBrowsing",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
 {
     auto* Widget = NewObject<UKalmalaCraftingWidget>();
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
+    TestTrue(TEXT("Craft/build browsing restores per main and cooking-station menu with safe selection fallback"),
+        Widget->VerifyMenuBrowseMemoryForTest());
     const auto All = Widget->GetVisibleRecipeIndices();
     TestEqual(TEXT("All retains the existing catalogue"), All.Num(), Recipes.Num());
     Widget->SetRecipeBrowse(TEXT("  zzz-no-recipe  "), 0, true);
@@ -68,6 +73,40 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Unknown output excluded"), Widget->GetBuildBrowseGroup(TEXT("UnknownKit")), 0);
     Widget->SetRecipeBrowse(TEXT(""), 0, false);
     TestTrue(TEXT("Build browsing preserves complete source order"), Widget->GetVisibleRecipeIndices() == All);
+
+    if (Builds.Num() >= 2 && !Cooking.IsEmpty())
+    {
+        ULocalPlayer* LocalPlayerA = NewObject<ULocalPlayer>(GEngine);
+        ULocalPlayer* LocalPlayerB = NewObject<ULocalPlayer>(GEngine);
+        if (!TestNotNull(TEXT("First local-player fixture"), LocalPlayerA)
+            || !TestNotNull(TEXT("Second local-player fixture"), LocalPlayerB)) return false;
+        auto* OwnerA = NewObject<UKalmalaCraftingSubsystem>(LocalPlayerA);
+        auto* OwnerB = NewObject<UKalmalaCraftingSubsystem>(LocalPlayerB);
+        const FName OwnerABuild = Recipes[Builds[0]].RecipeId;
+        const FName OwnerBBuild = Recipes[Builds.Last()].RecipeId;
+        OwnerA->SetRecipeFavorite(OwnerABuild, true);
+        OwnerB->SetRecipeFavorite(OwnerBBuild, true);
+        OwnerA->SetRecipeActivityForTest(EKalmalaCraftingActionKind::BuiltPiece, OwnerABuild, 9, true);
+        OwnerB->SetRecipeActivityForTest(EKalmalaCraftingActionKind::BuiltPiece, OwnerBBuild, 3, true);
+        TestTrue(TEXT("Each local owner retains its own Favorite set"),
+            OwnerA->IsRecipeFavorite(OwnerABuild) && !OwnerA->IsRecipeFavorite(OwnerBBuild)
+            && OwnerB->IsRecipeFavorite(OwnerBBuild) && !OwnerB->IsRecipeFavorite(OwnerABuild));
+        TestTrue(TEXT("Each local owner retains separate usage counts, ranks, and Recent IDs"),
+            OwnerA->GetRecipeActivityCount(EKalmalaCraftingActionKind::BuiltPiece, OwnerABuild) == 9
+            && OwnerA->GetRecipeActivityRank(EKalmalaCraftingActionKind::BuiltPiece, OwnerABuild) == 1
+            && OwnerA->GetRecentRecipeActivity(EKalmalaCraftingActionKind::BuiltPiece) == OwnerABuild
+            && OwnerA->GetRecipeActivityCount(EKalmalaCraftingActionKind::BuiltPiece, OwnerBBuild) == 0
+            && OwnerB->GetRecipeActivityCount(EKalmalaCraftingActionKind::BuiltPiece, OwnerBBuild) == 3
+            && OwnerB->GetRecipeActivityRank(EKalmalaCraftingActionKind::BuiltPiece, OwnerBBuild) == 1
+            && OwnerB->GetRecentRecipeActivity(EKalmalaCraftingActionKind::BuiltPiece) == OwnerBBuild);
+        TestTrue(TEXT("A build receipt does not leak into unused cooking or crafting buckets"),
+            OwnerA->GetRecentRecipeActivity(EKalmalaCraftingActionKind::CookedRecipe).IsNone()
+            && OwnerA->GetRecentRecipeActivity(EKalmalaCraftingActionKind::CraftedItem).IsNone());
+    }
+    else
+    {
+        AddError(TEXT("The active catalogue needs at least two build recipes and one cooking recipe for owner isolation coverage."));
+    }
     return true;
 }
 #endif

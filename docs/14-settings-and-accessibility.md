@@ -224,3 +224,19 @@ view an explicit desired height without stale centered-text auto-wrap width and
 removes repeated activation hints from individual values. Existing button focus,
 activation, immediate local application, contrast treatment, and persistence stay
 unchanged. Other option tabs remain part of the broader view polish pass.
+
+## Development increment: Options tab memory
+
+The owner-local settings widget retains its last Options tab (Video by default)
+across ordinary close/reopen. Escape still opens the main shell; choosing Options
+rebuilds the remembered tab with current labels and its normal focus target.
+Restoration invokes no setting-changing click handler. The index is bounded to
+four existing tabs, with Video as the dispatch fallback. Memory ends when the
+widget is recreated, including subsystem teardown; it writes no config/save data.
+Scroll position and exact previously focused control are not yet retained.
+The rendered settings accessibility fixture now returns from the Settings tab
+to the main shell, reopens Options, and requires the Settings tab and a focusable
+control to be restored on both peers while local interface/text scales and
+master volume remain unchanged. This covers the Options-tab-only increment;
+other menus, scrolling, exact control focus, and full per-menu restoration remain
+part of the broader M11 task.

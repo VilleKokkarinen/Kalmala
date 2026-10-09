@@ -17,6 +17,7 @@ class KALMALAUI_API UKalmalaIconWidget : public UUserWidget
     GENERATED_BODY()
 public:
     void SetIcon(EKalmalaIcon InIcon, int32 InVariant = 0);
+    void SetCueColor(const FLinearColor& InColor);
     static bool FindCatalogueIcon(FName CanonicalId, EKalmalaIcon& OutIcon, int32& OutVariant);
 protected:
     virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling,
@@ -24,4 +25,5 @@ protected:
 private:
     EKalmalaIcon Icon = EKalmalaIcon::Unknown;
     int32 Variant = 0;
+    FLinearColor CueColor = FLinearColor::Transparent;
 };

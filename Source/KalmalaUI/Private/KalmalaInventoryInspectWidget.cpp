@@ -88,6 +88,24 @@ void UKalmalaInventoryInspectWidget::SetSearch(const FString& Query)
 void UKalmalaInventoryInspectWidget::SearchChanged(const FText& Text) { SetSearch(Text.ToString()); }
 void UKalmalaInventoryInspectWidget::SetCategory(int32 Value) { Category = FMath::Clamp(Value, 0, 2); Build(); Refilter(); }
 void UKalmalaInventoryInspectWidget::SetSort(int32 Value) { Sort = FMath::Clamp(Value, 0, 2); Build(); Refilter(); }
+void UKalmalaInventoryInspectWidget::RestoreBrowseState(const FString& Query, const int32 InCategory,
+    const int32 InSort, const FName SelectedItemId)
+{
+    Search = Query.Left(64).TrimStartAndEnd();
+    Category = FMath::Clamp(InCategory, 0, 2);
+    Sort = FMath::Clamp(InSort, 0, 2);
+    if (SearchBox && SearchBox->GetText().ToString() != Search)
+        SearchBox->SetText(FText::FromString(Search));
+    else
+        Refilter();
+
+    const int32 Found = Rows.IndexOfByPredicate([SelectedItemId](const auto& Row)
+    {
+        return !SelectedItemId.IsNone() && Row.Id == SelectedItemId;
+    });
+    Selected = Found == INDEX_NONE ? 0 : Found;
+    Refresh();
+}
 void UKalmalaInventoryInspectWidget::CycleCategory() { SetCategory((Category + 1) % 3); }
 void UKalmalaInventoryInspectWidget::CycleSort() { SetSort((Sort + 1) % 3); }
 void UKalmalaInventoryInspectWidget::ClearSearch() { SearchBox->SetText(FText::GetEmpty()); SetSearch(TEXT("")); }
