@@ -161,7 +161,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> UpgradeIronAxeButton;
     UPROPERTY(Transient) TObjectPtr<class USizeBox> UpgradeTargetIconBox;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> UpgradeTargetIcon;
-    UPROPERTY(Transient) TObjectPtr<UWidget> ToolProgressionActions;
+    UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> ToolProgressionActions;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchCraftSectionButton;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchRepairSectionButton;
     UPROPERTY(Transient) TObjectPtr<UButton> ForgeCraftSectionButton;

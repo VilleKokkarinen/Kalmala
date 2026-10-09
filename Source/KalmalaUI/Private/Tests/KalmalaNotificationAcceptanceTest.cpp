@@ -45,17 +45,23 @@ bool FKalmalaNotificationAcceptanceTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Gathering ledger establishes a separate baseline"), KindQueue.Observe(GatheringSkills.Skills, 4));
     TArray<FKalmalaItemGainReceipt> GatheringGains{{1, TEXT("Wood"), 1}};
     TestTrue(TEXT("Wood receipt establishes an item-row baseline"), KindQueue.ObserveGains(GatheringGains, 4));
+    GatheringGains.Add({2, TEXT("Wood"), 1});
+    TestTrue(TEXT("New Wood receipt enters the combined queue"), KindQueue.ObserveGains(GatheringGains, 4));
     for (int32 Award = 0; Award < 4; ++Award)
         GatheringSkills.AwardExperienceFromServer(EKalmalaSkill::Gathering, true, true, 25);
     TestTrue(TEXT("Gathering level notice coexists with a Wood receipt"), KindQueue.Observe(GatheringSkills.Skills, 4));
-    TestEqual(TEXT("Skill and item remain distinct notification rows"), KindQueue.GetRows().Num(), 2);
-    TestTrue(TEXT("Item row remains unchanged when its default skill enum matches Gathering"),
-        KindQueue.GetRows()[0].Kind == EKalmalaNoticeKind::ItemGain
-        && KindQueue.GetRows()[0].ItemId == FName(TEXT("Wood"))
-        && KindQueue.GetRows()[0].Quantity == 1);
-    TestTrue(TEXT("Gathering receives its own typed skill row"),
-        KindQueue.GetRows()[1].Kind == EKalmalaNoticeKind::Skill
-        && KindQueue.GetRows()[1].Skill == EKalmalaSkill::Gathering);
+    const TArray<FKalmalaSkillNotice>& KindRows = KindQueue.GetRows();
+    TestEqual(TEXT("Skill and item remain distinct notification rows"), KindRows.Num(), 2);
+    if (KindRows.Num() >= 2)
+    {
+        TestTrue(TEXT("Item row remains unchanged when its default skill enum matches Gathering"),
+            KindRows[0].Kind == EKalmalaNoticeKind::ItemGain
+            && KindRows[0].ItemId == FName(TEXT("Wood"))
+            && KindRows[0].Quantity == 1);
+        TestTrue(TEXT("Gathering receives its own typed skill row"),
+            KindRows[1].Kind == EKalmalaNoticeKind::Skill
+            && KindRows[1].Skill == EKalmalaSkill::Gathering);
+    }
 
     auto* Widget = NewObject<UKalmalaNotificationWidget>();
     Widget->SetNotices(Queue.GetRows(), 150, 1);

@@ -96,7 +96,11 @@ int32 UKalmalaSupportGlyphWidget::NativePaint(const FPaintArgs& Args, const FGeo
         TArray<FVector2D> Points;
         Points.Reserve(Source.Num() + (bClosed ? 1 : 0));
         for (const FVector2D Point : Source) Points.Add(ToLocal(Point));
-        if (bClosed) Points.Add(Points[0]);
+        if (bClosed)
+        {
+            const FVector2D FirstPoint = Points[0];
+            Points.Add(FirstPoint);
+        }
         FSlateDrawElement::MakeLines(OutDrawElements, DrawLayer, AllottedGeometry.ToPaintGeometry(), Points,
             ESlateDrawEffect::None, Ink, true, Thickness);
     };

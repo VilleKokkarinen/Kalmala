@@ -33,7 +33,14 @@ bool FKalmalaStorageSaveTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Path-like identity rejected"), Save->UpsertRecord(TEXT("../chest"), {}));
     TestFalse(TEXT("Empty identity rejected"), Save->UpsertRecord(TEXT(""), {}));
     TestFalse(TEXT("Oversized identity rejected"), Save->UpsertRecord(FString::ChrN(65, 'a'), {}));
-    TestEqual(TEXT("Rejected writes leave contents intact"), Save->FindRecord(TEXT("chest-1"))->Stacks[0].Quantity, 3);
+    const auto* PreservedRecord = Save->FindRecord(TEXT("chest-1"));
+    if (TestNotNull(TEXT("Rejected writes preserve the existing record"), PreservedRecord))
+    {
+        if (TestTrue(TEXT("Preserved record keeps its material stack"), !PreservedRecord->Stacks.IsEmpty()))
+        {
+            TestEqual(TEXT("Rejected writes leave contents intact"), PreservedRecord->Stacks[0].Quantity, 3);
+        }
+    }
     for (int32 N = 2; N <= UKalmalaStorageSaveGame::MaxRecords; ++N)
         TestTrue(TEXT("Bounded chest record accepted"), Save->UpsertRecord(FString::Printf(TEXT("chest-%d"),N), {}));
     TestFalse(TEXT("129th chest rejected"), Save->UpsertRecord(TEXT("overflow"), {}));

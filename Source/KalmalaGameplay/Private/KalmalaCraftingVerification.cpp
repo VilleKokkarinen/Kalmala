@@ -9,6 +9,7 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaSkillProgressionComponent.h"
 #include "GameFramework/PlayerState.h"
+#include "GameFramework/PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "EngineUtils.h"
@@ -51,12 +52,16 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             RepairStone->InitializeFromServer(TEXT("GrindingStoneKit"), FString::Printf(
                 TEXT("m12-repair-all-%d"), C->GetPlayerState()->GetPlayerId()));
             const FRotator PreviousViewRotation = C->GetController()->GetControlRotation();
-            for (int32 Turn = 0; Turn < 8 && !bRepairStoneVisible; ++Turn)
+            const FRotator PreviousActorRotation = C->GetActorRotation();
+            for (int32 Turn = 0; Turn < 16 && !bRepairStoneVisible; ++Turn)
             {
-                const FRotator TestViewRotation(0.0f, Turn * 45.0f, 0.0f);
+                const FRotator TestViewRotation(0.0f, Turn * 22.5f, 0.0f);
                 C->GetController()->SetControlRotation(TestViewRotation);
-                RepairStone->SetActorLocation(C->GetActorLocation()
-                    + TestViewRotation.Vector() * 160.0f + FVector(0.0f, 0.0f, 24.0f));
+                C->SetActorRotation(TestViewRotation);
+                FVector ViewLocation;
+                FRotator ViewRotation;
+                C->GetController()->GetPlayerViewPoint(ViewLocation, ViewRotation);
+                RepairStone->SetActorLocation(ViewLocation + ViewRotation.Vector() * 160.0f);
                 bRepairStoneVisible = RepairStone->CanInteract_Implementation(C);
             }
 
@@ -103,6 +108,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
                 && GetLastInteractedCookingStationKit() == CookingKitBefore
                 && GetCookingStationInteractionSerial() == CookingSerialBefore
                 && HasStorageView() == bHadStorageBefore;
+            C->SetActorRotation(PreviousActorRotation);
             C->GetController()->SetControlRotation(PreviousViewRotation);
         }
         if (RepairStone != nullptr) RepairStone->Destroy();
@@ -188,13 +194,55 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         {
             if (!C->GetController()) return false;
             const FRotator PreviousViewRotation = C->GetController()->GetControlRotation();
+            const FRotator PreviousActorRotation = C->GetActorRotation();
             const FTransform PreviousFireTransform = Fire->GetActorTransform();
-            const float Distance = bInRange ? 160.0f : 300.0f;
-            Fire->SetActorLocation(C->GetActorLocation() + PreviousViewRotation.Vector() * Distance + FVector(0.0f, 0.0f, 24.0f));
-            C->ServerRequestInteract(NAME_None, 0);
+            const float Distance = bInRange ? 160.0f : 350.0f;
+            FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(CraftingFireInteractFixture), false, C);
+            const auto UpdateFixtureViewpoint = [C]()
+            {
+                if (APlayerController* PlayerController = Cast<APlayerController>(C->GetController());
+                    PlayerController != nullptr && PlayerController->PlayerCameraManager != nullptr)
+                {
+                    FMinimalViewInfo ViewInfo = PlayerController->PlayerCameraManager->GetCameraCacheView();
+                    ViewInfo.Location = C->GetPawnViewLocation();
+                    ViewInfo.Rotation = PlayerController->GetControlRotation();
+                    PlayerController->PlayerCameraManager->SetCameraCachePOV(ViewInfo);
+                    PlayerController->PlayerCameraManager->SetLastFrameCameraCachePOV(ViewInfo);
+                }
+            };
+            for (int32 Turn = 0; Turn < 16; ++Turn)
+            {
+                const FRotator Facing(0.0f, PreviousViewRotation.Yaw + Turn * 22.5f, 0.0f);
+                const FVector TestLocation = C->GetActorLocation() + Facing.Vector() * Distance
+                    + FVector(0.0f, 0.0f, bInRange ? 80.0f : 24.0f);
+                Fire->SetActorLocation(TestLocation);
+                UpdateFixtureViewpoint();
+                FVector ViewLocation;
+                FRotator ViewRotation;
+                C->GetController()->GetPlayerViewPoint(ViewLocation, ViewRotation);
+                const FRotator AimRotation = (TestLocation - ViewLocation).Rotation();
+                C->SetActorRotation(FRotator(0.0f, AimRotation.Yaw, 0.0f));
+                C->GetController()->SetControlRotation(AimRotation);
+                UpdateFixtureViewpoint();
+                C->GetController()->GetPlayerViewPoint(ViewLocation, ViewRotation);
+                FHitResult Hit;
+                const bool bHasHit = C->GetWorld()->LineTraceSingleByChannel(Hit, ViewLocation,
+                    ViewLocation + ViewRotation.Vector() * C->GetInteractionRange(), ECC_Visibility, QueryParams);
+                if ((bInRange && (!bHasHit || Hit.GetActor() != Fire))
+                    || (!bInRange && bHasHit && Hit.GetActor() != Fire))
+                {
+                    continue;
+                }
+                C->ServerRequestInteract(NAME_None, 0);
+                Fire->SetActorTransform(PreviousFireTransform);
+                C->SetActorRotation(PreviousActorRotation);
+                C->GetController()->SetControlRotation(PreviousViewRotation);
+                return true;
+            }
             Fire->SetActorTransform(PreviousFireTransform);
+            C->SetActorRotation(PreviousActorRotation);
             C->GetController()->SetControlRotation(PreviousViewRotation);
-            return true;
+            return false;
         };
         Check(I->GetQuantity(TEXT("CampfireKit"))==0 && I->GetQuantity(TEXT("WorkbenchKit"))==5
             && I->GetQuantity(TEXT("Wood"))==HearthWoodBefore-4 && I->GetQuantity(TEXT("Stone"))==HearthStoneBefore-5,
@@ -250,6 +298,19 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
                     C->GetPlayerState()->GetPlayerId(), *C->GetActorLocation().ToCompactString());
             }
             C->SetActorLocation(ConstructionSearchOrigin);
+        }
+        if (APlayerController* PlayerController = Cast<APlayerController>(C->GetController());
+            PlayerController != nullptr)
+        {
+            PlayerController->SetViewTarget(C);
+            if (PlayerController->PlayerCameraManager != nullptr)
+            {
+                FMinimalViewInfo ViewInfo = PlayerController->PlayerCameraManager->GetCameraCacheView();
+                ViewInfo.Location = C->GetPawnViewLocation();
+                ViewInfo.Rotation = PlayerController->GetControlRotation();
+                PlayerController->PlayerCameraManager->SetCameraCachePOV(ViewInfo);
+                PlayerController->PlayerCameraManager->SetLastFrameCameraCachePOV(ViewInfo);
+            }
         }
         Check(ConstructionPlaced, TEXT("Server construction placement ignores local preview and pays once"));
         for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It) if (!ExistingConstruction.Contains(*It))

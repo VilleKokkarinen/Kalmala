@@ -96,6 +96,18 @@ FString UKalmalaCatalogueRowsWidget::BuildToolDetail(const int32 Level, const in
 }
 
 #if !UE_BUILD_SHIPPING
+void UKalmalaCatalogueRowsWidget::InitializeForVerification()
+{
+    if (!WidgetTree)
+    {
+        WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"));
+    }
+    if (WidgetTree && !Column)
+    {
+        NativeOnInitialized();
+    }
+}
+
 void UKalmalaCatalogueRowsWidget::SetVerificationBackground()
 {
     auto* Background = WidgetTree->ConstructWidget<UBorder>();

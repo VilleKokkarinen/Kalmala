@@ -129,7 +129,7 @@ bool FKalmalaWetCampfireTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Missing source cannot remove Wet"), Status->TryRemoveWetAtCampfireFromServer(nullptr));
     TestFalse(TEXT("Unlit nearby fire cannot remove Wet"), Status->TryRemoveWetAtCampfireFromServer(Fire));
     Fire->InitializePaidFromServer(Pawn);
-    Fire->Interact_Implementation(Pawn);
+    TestTrue(TEXT("Dedicated light action starts the paid campfire"), Fire->TryLightFromServer(Pawn));
     TestTrue(TEXT("Fixture is lit"), Fire->IsLit());
     TestFalse(TEXT("Lit with no effective heat cannot remove Wet"), Status->TryRemoveWetAtCampfireFromServer(Fire));
     Fire->AdvanceFromServer(0.0f, 0.0f, 0.0f);

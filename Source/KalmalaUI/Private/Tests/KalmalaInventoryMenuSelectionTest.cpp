@@ -21,6 +21,7 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     {
         auto* Menu = NewObject<UKalmalaInventoryMenuWidget>();
         Menu->Initialize();
+        Menu->SetInventoryRowsForVerification({}, 100, 0);
         return Menu;
     };
     auto DetailText = [](UKalmalaInventoryMenuWidget* Menu)
@@ -109,6 +110,7 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
         OwnerA->GetSelectedItemForVerification(), FName(TEXT("ReedKnife")));
     TestTrue(TEXT("Selected tool detail shows its owner-visible level and condition"), DetailText(OwnerA).Contains(TEXT("Condition 17/40")));
     TestFalse(TEXT("First owner's tool detail excludes the second owner's condition"), DetailText(OwnerA).Contains(TEXT("Condition 8/55")));
+    OwnerB->StepSelectionForVerification(1);
     TestTrue(TEXT("Second owner's tool detail keeps its own condition"), DetailText(OwnerB).Contains(TEXT("Condition 8/55")));
     TestFalse(TEXT("Second owner's tool detail excludes the first owner's condition"), DetailText(OwnerB).Contains(TEXT("Condition 17/40")));
 
@@ -154,14 +156,14 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Menu and item area retain scroll fallbacks for viewport/text growth"), ScrollBoxCount >= 2);
         BrowsingMenu->SetViewportSizeForVerification(FVector2D(480.0f, 320.0f));
         TestEqual(TEXT("Inventory menu width leaves a viewport margin after resize"),
-            BrowsingMenu->GetPanelSizeForVerification().X, 448.0f);
+            BrowsingMenu->GetPanelSizeForVerification().X, 448.0);
         TestEqual(TEXT("Inventory menu height leaves room for outer scrolling after resize"),
-            BrowsingMenu->GetPanelSizeForVerification().Y, 288.0f);
+            BrowsingMenu->GetPanelSizeForVerification().Y, 288.0);
         BrowsingMenu->SetViewportSizeForVerification(FVector2D(1024.0f, 768.0f));
         TestEqual(TEXT("Inventory menu returns to its normal width after resize"),
-            BrowsingMenu->GetPanelSizeForVerification().X, 640.0f);
+            BrowsingMenu->GetPanelSizeForVerification().X, 640.0);
         TestEqual(TEXT("Inventory menu returns to its normal height after resize"),
-            BrowsingMenu->GetPanelSizeForVerification().Y, 560.0f);
+            BrowsingMenu->GetPanelSizeForVerification().Y, 560.0);
         TestNotNull(TEXT("Inventory has an editable search control"), SearchBox);
         TestTrue(TEXT("Browse controls have visible category and sort labels"),
             BrowseLabels.Contains(TEXT("Category: All")) && BrowseLabels.Contains(TEXT("Sort: Owner order")));

@@ -2,7 +2,7 @@
 #include "KalmalaCatalogueIconLibrary.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaUITheme.h"
-#include "Brushes/SlateBrush.h"
+#include "Styling/SlateBrush.h"
 #include "Engine/Texture2D.h"
 #include "Rendering/DrawElements.h"
 

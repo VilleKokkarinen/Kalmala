@@ -39,17 +39,17 @@ FVector2D UKalmalaMinimapWidget::GetStatusGroupViewportPosition() const
 {
     if (UGameViewportSubsystem* ViewportSubsystem = UGameViewportSubsystem::Get())
     {
-        const FGameViewportWidgetSlot Slot = ViewportSubsystem->GetWidgetSlot(this);
-        if (Slot.Anchors == FAnchors(1.0f, 0.0f)
-            && Slot.Alignment == FVector2D(1.0f, 0.0f)
-            && FMath::IsFinite(Slot.Offsets.Left)
-            && FMath::IsFinite(Slot.Offsets.Right)
-            && FMath::IsFinite(Slot.Offsets.Top)
-            && Slot.Offsets.Right > 0.0f)
+        const FGameViewportWidgetSlot MapSlot = ViewportSubsystem->GetWidgetSlot(this);
+        if (MapSlot.Anchors == FAnchors(1.0f, 0.0f)
+            && MapSlot.Alignment == FVector2D(1.0f, 0.0f)
+            && FMath::IsFinite(MapSlot.Offsets.Left)
+            && FMath::IsFinite(MapSlot.Offsets.Right)
+            && FMath::IsFinite(MapSlot.Offsets.Top)
+            && MapSlot.Offsets.Right > 0.0f)
         {
             // Both widgets share the top-right viewport anchor. Derive the status
             // group's right edge from the actual map slot, including its size/margins.
-            return FVector2D(Slot.Offsets.Left - Slot.Offsets.Right - StatusGroupGap, Slot.Offsets.Top);
+            return FVector2D(MapSlot.Offsets.Left - MapSlot.Offsets.Right - StatusGroupGap, MapSlot.Offsets.Top);
         }
     }
 

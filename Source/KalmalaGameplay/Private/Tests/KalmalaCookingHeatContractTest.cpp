@@ -9,6 +9,7 @@
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Misc/AutomationTest.h"
@@ -49,13 +50,19 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
 
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Cooking heat test world created"), World)) return false;
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+    const auto DestroyTestWorld = [World]()
+    {
+        World->DestroyWorld(false);
+        GEngine->DestroyWorldContext(World);
+    };
     World->SetGameState(World->SpawnActor<AKalmalaWorldGenerationGameState>());
     AKalmalaCharacter* Pawn = World->SpawnActor<AKalmalaCharacter>();
     APlayerController* Controller = World->SpawnActor<APlayerController>();
     if (!Pawn || !Controller)
     {
         AddError(TEXT("Cooking heat test pawn or controller spawn failed"));
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Controller->Possess(Pawn);
@@ -66,7 +73,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     if (!Crafting || !Inventory || !Progression)
     {
         AddError(TEXT("Cooking heat test pawn components are incomplete"));
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Progression->BeginPlay();
@@ -94,7 +101,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     AKalmalaConstructionActor* Forge = World->SpawnActor<AKalmalaConstructionActor>();
     if (!TestNotNull(TEXT("Forge fixture spawned"), Forge))
     {
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -200.0f, 0.0f));
@@ -108,7 +115,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("Frying pan fixture spawned"), Pan))
     {
         Forge->Destroy();
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Pan->SetActorLocation(Pawn->GetActorLocation() + FVector(100.0f, 0.0f, 0.0f));
@@ -130,7 +137,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     AKalmalaConstructionActor* Rack = World->SpawnActor<AKalmalaConstructionActor>();
     if (!TestNotNull(TEXT("Cooking Rack fixture spawned"), Rack))
     {
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Rack->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, 120.0f, 0.0f));
@@ -145,13 +152,14 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("Campfire fixture spawned"), Fire))
     {
         Rack->Destroy();
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Fire->SetActorLocation(Rack->GetActorLocation() - FVector(0.0f, 0.0f, 80.0f));
     Fire->InitializePaidFromServer(Pawn);
     TestFalse(TEXT("An unlit fire under the rack cannot cook"), Crafting->CraftFromServer(CookRecipe->RecipeId, 1, Reason));
-    Fire->Interact_Implementation(Pawn);
+    TestTrue(TEXT("The server lights the paid hearth through the dedicated light action"),
+        Fire->TryLightFromServer(Pawn));
     Fire->AdvanceFromServer(0.0f, 0.0f, 0.0f);
     TestTrue(TEXT("The server lights a dry, fuelled hearth"), Fire->IsLit() && Fire->GetEffectiveWarmth() > 0.0f);
 
@@ -193,7 +201,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     {
         Rack->Destroy();
         Fire->Destroy();
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     Cauldron->SetActorLocation(Pawn->GetActorLocation() + FVector(-240.0f, 0.0f, 0.0f));
@@ -264,7 +272,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
         Pan->Destroy();
         Forge->Destroy();
         Fire->Destroy();
-        World->DestroyWorld(false);
+        DestroyTestWorld();
         return false;
     }
     World->Tick(LEVELTICK_All, 0.25f);
@@ -302,7 +310,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     Pan->Destroy();
     Forge->Destroy();
     Fire->Destroy();
-    World->DestroyWorld(false);
+    DestroyTestWorld();
     return true;
 }
 

@@ -18,7 +18,7 @@ bool FKalmalaInteractionPromptTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Prompt names the supported action"), Available.Contains(TEXT("Use")));
     TestFalse(TEXT("Prompt omits keyboard binding labels"), Available.Contains(TEXT("Keyboard:")));
     TestFalse(TEXT("Prompt omits controller binding labels"), Available.Contains(TEXT("Gamepad:")));
-    const FKalmalaItemDefinition* Workbench = UKalmalaItemCatalogue::Get()->FindItem(TEXT("Workbench"));
+    const FKalmalaItemDefinition* Workbench = UKalmalaItemCatalogue::Get()->FindItem(TEXT("WorkbenchKit"));
     TestNotNull(TEXT("Prompt target resolves the Workbench catalogue identity"), Workbench);
     if (Workbench)
     {

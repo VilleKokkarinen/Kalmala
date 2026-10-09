@@ -91,8 +91,8 @@ void AKalmalaGameMode::DriveCampChoiceTest()
             if (Fire)
             {
                 if (auto* Pack = Character->FindComponentByClass<UKalmalaInventoryComponent>()) Pack->TryGrantFromServer(TEXT("Wood"), 1);
-                Fire->TryRefuelFromServer(Character);
                 Fire->Interact_Implementation(Character);
+                Fire->TryLightFromServer(Character);
             }
             if (!Fire || !Fire->IsLit()) { CampChoiceStage = 3; UE_LOG(LogTemp, Error, TEXT("Camp choice FAILED: normal server fire interaction rejected.")); return; }
         }

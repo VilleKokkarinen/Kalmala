@@ -34,8 +34,8 @@ try {
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before verification.' }
-        $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
-        $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
+        $serverText = if (Test-Path $serverLog) { [string](Get-Content -LiteralPath $serverLog -Raw) } else { '' }
+        $clientText = if (Test-Path $clientLog) { [string](Get-Content -LiteralPath $clientLog -Raw) } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Inventory server: Passed=0|Harvest inventory: Passed=0|Inventory remote: Empty=0|Inventory owner: Rejected=0') { throw 'Inventory verification failed.' }
         $ownerIndex = $clientText.IndexOf('Inventory owner: Rejected=1 Wood=7 Slots=1')
         if ([regex]::Matches($serverText, 'Inventory server: Passed=1 Wood=7 Slots=1').Count -eq 2 `

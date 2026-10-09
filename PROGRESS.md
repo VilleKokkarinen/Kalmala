@@ -14264,3 +14264,125 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions and applied only the selected `BACKLOG.md` row and this progress entry;
 all pre-existing main-checkout edits were preserved. No implementation files
 or other documentation were synchronized.
+
+## Run 2026-10-09 11:26 UTC — M12 milestone-final verification awaiting manual UI acceptance
+
+Concurrency guard: the Codex task inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout still has pre-existing local
+edits in `BACKLOG.md` and `PROGRESS.md`; handoff synchronization is recorded
+separately below. The computer-use surface exposed no open native application
+windows, so it could not drive a live Unreal window for the remaining manual
+acceptance.
+
+Performed M12 milestone-final verification across the combined milestone
+changes. The forced editor build completed all 69 actions in the disposable
+mirror `E:\dev\Kalmala\m12verify` using normal UnrealBuildTool cache access:
+`Build.bat KalmalaEditor Win64 Development
+E:\dev\Kalmala\m12verify\Kalmala.uproject -WaitMutex -NoHotReload -Force
+-MaxParallelActions=4`. An initial build attempt found an unsupported camera
+view-target parameter constructor; switching the fixture to the supported
+`SetViewTarget` call resolved it. The clean compile then exposed missing
+`UHorizontalBoxSlot` and `UVerticalBoxSlot` declarations in the station widget;
+adding their direct headers fixed the standalone compile. The final forced
+build passed.
+
+The full Unreal `Automation RunTests Kalmala` queue passed: 116 tests, zero
+failures, process exit 0. This included gameplay inventory, cooking/hearth,
+storage, crafting/repair and construction contracts plus UI inventory selection,
+notifications, input navigation, status layout, settings/accessibility,
+interaction prompts and presentation ownership. Earlier queue/fixture attempts
+also exposed and repaired stale test assumptions around the dedicated hearth
+light action, recipe output identities, station scoping, owner selection and
+camera placement after persisted construction restore. The camp-choice test now
+uses the server interaction followed by its supported light action. All final
+automation results pass.
+
+Scripted/live acceptance passed for construction persistence across restart and
+remote replication, persisted two-player camp/hearth authority, inventory grant
+and privacy plus two reconnect visits, camp choices, storage persistence across
+two runs, and rendered crafting at 1280x720/100%/standard contrast and
+1024x768/150%/high contrast. The rendered interaction-prompt matrix passed at
+standard and compact settings; Inventory regression passed at both settings;
+settings/accessibility passed at standard and compact settings with persisted
+preferences; the minimap passed at 1920x1080, 1024x768, and 3440x1440; status
+hotbar passed its 12 viewport/text-scale runs; and the rendered player-controls
+host/client scenario passed server-observed movement, jump, sprint, release and
+landing. Reviewed representative standard and high-contrast crafting captures.
+
+All constrained performance profiles passed their two-peer discovery/disembark
+scenario and host/client affinity checks: Reference, Cpu8Threads, and
+Cpu4Threads. Each profile retained 300-frame host/client timing samples. The
+Cpu4Threads final run passed after both peers connected and the client safely
+disembarked.
+
+No-build gates passed: `Verify-LocalInputContract.ps1`,
+`Verify-PresentationOwnership.ps1`, `Verify-M5DocumentationContracts.ps1`,
+`Verify-SettingsAccessibilityContract.ps1`, and `Verify-MenuInputCopy.ps1`;
+PowerShell parsing passed for all scripts, `git diff --check` passed, and the
+candidate committed-path audit stayed below 260 characters. `Verify-Inventory`
+initially hit a polling race when a new client log was empty; the helper now
+casts raw log reads to strings, and both rendered settings passed on rerun. The
+menu-copy audit initially expected the retired crafting-panel label
+`Inspect inventory`; it now checks the current Inventory heading and the
+retained menu/crafting actions, and passes. No unresolved automated failures
+remain.
+
+Files changed by this verification run: `Content/Data/GameCatalogues.json`;
+`Scripts/Verify-Inventory.ps1`; `Scripts/Verify-MenuInputCopy.ps1`;
+`Source/KalmalaGameplay/Private/KalmalaCampChoiceTest.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaHearthStateTest.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaStorageTest.cpp`;
+`Source/KalmalaUI/Private/KalmalaCatalogueRowsWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Private/KalmalaIconWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaMinimapWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaStationContextWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp`;
+`Source/KalmalaUI/Private/KalmalaSupportSelectionSubsystem.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaInteractionPromptTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaNotificationAcceptanceTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`;
+`Source/KalmalaUI/Public/KalmalaCatalogueRowsWidget.h`;
+`Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`; `BACKLOG.md`; and
+`PROGRESS.md`. Temporary logs, builds and generated captures remain outside the
+staged change set under the run's evidence directories.
+
+Observable impact: repaired M12 test fixtures and their presentation contracts,
+resolved direct-header compile failures, aligned status icon identities, and
+kept the Inventory polling/audit helpers valid against the current UI. No new
+gameplay RPC, replication field or save-data schema was added or changed.
+
+Networking/authority: live construction, cooking/hearth, storage, inventory,
+crafting/repair, reconnect and remote-client checks passed with server-side
+validation and owner privacy. Test-only camera changes are restored after each
+fixture. No authority boundary changed.
+
+Known limitations: the milestone is not complete. `docs/07-development-setup.md`
+requires opening Inventory independently on host and client with distinct owner
+pack contents and again with an empty pack, checking all sixteen empty slots,
+canonical rows/counts, live updates and supported scale/contrast, then retaining
+the views. No Inventory-menu screenshots were produced; the Inventory scripts
+covered transactions/privacy but emit logs rather than menu captures. Physical
+keyboard/controller hardware input was also not exercised. The rendered
+player-controls automation checks server-observed actions but is not a hardware
+input test. A live Unreal app window was not available to the computer-use
+surface. Do not mark M12 complete until these manual acceptance checks and their
+captures are reviewed.
+
+Next eligible task: resume this same M12 milestone-final verification after the
+manual host/client Inventory capture matrix and physical keyboard/controller
+acceptance are available; then rerun any affected checks and finalize M12 only
+if the complete acceptance set passes.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions and updated only the selected M12 final-verification row and this run
+entry; all other existing main-checkout edits were preserved. Implementation
+files and generated evidence remain in the worktree.

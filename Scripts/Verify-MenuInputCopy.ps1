@@ -102,11 +102,11 @@ foreach ($mapLabel in @('MAP SYMBOLS', 'Personal pins', 'Co-op players', 'Map pi
 }
 
 $requiredActionLabels = @(
+    @{ Source = $inventoryMenu; Label = 'Inventory' },
     @{ Source = $inventoryMenu; Label = 'Previous item' },
     @{ Source = $inventoryMenu; Label = 'Next item' },
     @{ Source = $inventoryMenu; Label = 'Repair selected tool' },
     @{ Source = $inventoryMenu; Label = 'Eat one serving' },
-    @{ Source = $playerFacingCrafting; Label = 'Inspect inventory' },
     @{ Source = $playerFacingCrafting; Label = 'Craft one' },
     @{ Source = $playerFacingCrafting; Label = 'Build / place selected' },
     @{ Source = $playerFacingCrafting; Label = 'Repair Reed Knife' },
@@ -117,7 +117,7 @@ $requiredActionLabels = @(
 foreach ($entry in $requiredActionLabels) {
     $pattern = [regex]::Escape('TEXT("' + $entry.Label + '")')
     if ($entry.Source -notmatch $pattern) {
-        throw "Expected player-facing action label is missing: $($entry.Label)"
+        throw "Expected player-facing label is missing: $($entry.Label)"
     }
 }
 

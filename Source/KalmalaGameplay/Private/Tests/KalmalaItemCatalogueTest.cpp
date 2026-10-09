@@ -128,13 +128,13 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         int32 MaxStack;
     };
     const FExpectedBatchThreeCopy BatchThreeCopy[] = {
-        { TEXT("Storage"), TEXT("Chest"), TEXT("A shared chest for storing camp supplies."), 5 },
-        { TEXT("CookingRack"), TEXT("Cooking Rack"), TEXT("A rack for roasting boar and deer over a fire."), 5 },
-        { TEXT("FryingPan"), TEXT("Frying Pan"), TEXT("An iron pan for cooking over a lit hearth."), 1 },
-        { TEXT("Cauldron"), TEXT("Cauldron"), TEXT("A pot for simmering soups over a fire."), 5 },
-        { TEXT("Floor"), TEXT("Timber Floor"), TEXT("Timber boards for the floor of a camp shelter."), 10 },
-        { TEXT("Wall"), TEXT("Windbreak Wall"), TEXT("A light timber-and-reed wall that blocks wind around camp."), 10 },
-        { TEXT("Roof"), TEXT("Reed Roof"), TEXT("A reed roof that shields a small camp from rain."), 10 },
+        { TEXT("StorageKit"), TEXT("Chest"), TEXT("A shared chest for storing camp supplies."), 5 },
+        { TEXT("CookingRackKit"), TEXT("Cooking Rack"), TEXT("A rack for roasting boar and deer over a fire."), 5 },
+        { TEXT("FryingPanKit"), TEXT("Frying Pan"), TEXT("An iron pan for cooking over a lit hearth."), 1 },
+        { TEXT("CauldronKit"), TEXT("Cauldron"), TEXT("A pot for simmering soups over a fire."), 5 },
+        { TEXT("FloorKit"), TEXT("Timber Floor"), TEXT("Timber boards for the floor of a camp shelter."), 10 },
+        { TEXT("WallKit"), TEXT("Windbreak Wall"), TEXT("A light timber-and-reed wall that blocks wind around camp."), 10 },
+        { TEXT("RoofKit"), TEXT("Reed Roof"), TEXT("A reed roof that shields a small camp from rain."), 10 },
         { TEXT("BoarMeat"), TEXT("Boar Meat"), TEXT("Rich boar meat for roasting over a fire."), 20 },
     };
     for (const FExpectedBatchThreeCopy& Expected : BatchThreeCopy)
@@ -151,13 +151,13 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         }
     }
     const TPair<FName, FName> BatchThreeRecipeNames[] = {
-        { TEXT("Storage"), TEXT("Storage") },
-        { TEXT("CookingRack"), TEXT("CookingRack") },
-        { TEXT("FryingPanRecipe"), TEXT("FryingPan") },
-        { TEXT("Cauldron"), TEXT("Cauldron") },
-        { TEXT("Floor"), TEXT("Floor") },
-        { TEXT("Wall"), TEXT("Wall") },
-        { TEXT("Roof"), TEXT("Roof") },
+        { TEXT("Storage"), TEXT("StorageKit") },
+        { TEXT("CookingRack"), TEXT("CookingRackKit") },
+        { TEXT("FryingPanRecipe"), TEXT("FryingPanKit") },
+        { TEXT("Cauldron"), TEXT("CauldronKit") },
+        { TEXT("Floor"), TEXT("FloorKit") },
+        { TEXT("Wall"), TEXT("WallKit") },
+        { TEXT("Roof"), TEXT("RoofKit") },
     };
     for (const TPair<FName, FName>& Expected : BatchThreeRecipeNames)
     {
@@ -169,7 +169,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
             TestEqual(FString::Printf(TEXT("Batch 03 recipe %s matches its output name"), *Expected.Key.ToString()),
                 Recipe->DisplayName, Output ? Output->DisplayName : FString());
             TestEqual(FString::Printf(TEXT("Batch 03 recipe %s preserves its output identity"), *Expected.Key.ToString()),
-                Recipe->Output, Expected.Value);
+                Recipe->GetOutputIdentity(), Expected.Value);
         }
     }
     struct FExpectedBatchFourCopy

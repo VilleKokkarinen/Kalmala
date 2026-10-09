@@ -145,7 +145,10 @@ TArray<FKalmalaStatusHotbarEntry> UKalmalaStatusHotbarWidget::BuildEntries(const
     const auto AddEntry = [&Entries](FName Id, const TCHAR* Name, FString TimerText, EKalmalaIcon Icon)
     {
         FName StatusIconId = NAME_None;
-        FKalmalaStatusIconLibrary::GetIconIdForEntry(Id, StatusIconId);
+        FName IconEntryId = Id;
+        if (Id == UKalmalaPlayerStatusComponent::WetStatusId) IconEntryId = TEXT("Wet");
+        else if (Id == UKalmalaPlayerStatusComponent::SteadyMealStatusId) IconEntryId = TEXT("SteadyMeal");
+        FKalmalaStatusIconLibrary::GetIconIdForEntry(IconEntryId, StatusIconId);
         Entries.Add({ Id, Name, MoveTemp(TimerText), Icon, StatusIconId });
     };
     // Fixed semantic order, never replication-array order. No local ticking of owner status durations.

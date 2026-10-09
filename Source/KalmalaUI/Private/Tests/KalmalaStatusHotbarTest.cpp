@@ -92,18 +92,19 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     TestEqual(TEXT("Empty state has no retained height"), EmptySize.Y, 0.0);
     const FVector2D OneSize = UKalmalaStatusHotbarWidget::CalculateSize(1, 100, TestViewport, TestGroupRight);
     TestEqual(TEXT("One state uses one compact icon cell"), OneSize.X,
-        UKalmalaStatusHotbarWidget::StatusCellWidth + UKalmalaStatusHotbarWidget::StatusCellGap);
+        static_cast<double>(UKalmalaStatusHotbarWidget::StatusCellWidth + UKalmalaStatusHotbarWidget::StatusCellGap));
     TestEqual(TEXT("One state reserves one icon/timer row"), OneSize.Y,
-        UKalmalaStatusHotbarWidget::StatusCellContentHeight + UKalmalaStatusHotbarWidget::StatusCellGap);
+        static_cast<double>(UKalmalaStatusHotbarWidget::StatusCellContentHeight + UKalmalaStatusHotbarWidget::StatusCellGap));
     S.bHasWeatherState = false;
     TestEqual(TEXT("Missing weather state also stays empty"), UKalmalaStatusHotbarWidget::BuildEntries(S).Num(), 0);
     UKalmalaMinimapWidget* Minimap = NewObject<UKalmalaMinimapWidget>();
     Minimap->ConfigureViewportPlacement();
     const FGameViewportWidgetSlot MinimapSlot = UGameViewportSubsystem::Get()->GetWidgetSlot(Minimap);
     const FVector2D GroupPosition = Minimap->GetStatusGroupViewportPosition();
-    TestEqual(TEXT("Status group shares the minimap's top inset"), GroupPosition.Y, MinimapSlot.Offsets.Top);
+    TestEqual(TEXT("Status group shares the minimap's top inset"), GroupPosition.Y,
+        static_cast<double>(MinimapSlot.Offsets.Top));
     TestEqual(TEXT("Status group right edge uses the minimap's actual left edge and 12-unit gap"),
-        GroupPosition.X, MinimapSlot.Offsets.Left - MinimapSlot.Offsets.Right - UKalmalaMinimapWidget::StatusGroupGap);
+        GroupPosition.X, static_cast<double>(MinimapSlot.Offsets.Left - MinimapSlot.Offsets.Right - UKalmalaMinimapWidget::StatusGroupGap));
 
     UKalmalaStatusHotbarWidget* Hotbar = NewObject<UKalmalaStatusHotbarWidget>();
     const FVector2D SlotSize = UKalmalaStatusHotbarWidget::CalculateSize(6, 100, TestViewport, TestGroupRight);
@@ -122,8 +123,8 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
             const FVector2D LogicalViewport = View / DpiScale;
             const FVector2D ScaledGroupPosition = UKalmalaMinimapWidget::GetDefaultStatusGroupViewportPosition();
             const float ScaledGroupRight = LogicalViewport.X + ScaledGroupPosition.X;
-            const FVector2D EmptySize = UKalmalaStatusHotbarWidget::CalculateSize(0, TextScale, LogicalViewport, ScaledGroupRight);
-            const FVector2D OneSize = UKalmalaStatusHotbarWidget::CalculateSize(1, TextScale, LogicalViewport, ScaledGroupRight);
+            const FVector2D ScaledEmptySize = UKalmalaStatusHotbarWidget::CalculateSize(0, TextScale, LogicalViewport, ScaledGroupRight);
+            const FVector2D ScaledOneSize = UKalmalaStatusHotbarWidget::CalculateSize(1, TextScale, LogicalViewport, ScaledGroupRight);
             const FVector2D ThreeSize = UKalmalaStatusHotbarWidget::CalculateSize(3, TextScale, LogicalViewport, ScaledGroupRight);
             const FVector2D ManySize = UKalmalaStatusHotbarWidget::CalculateSize(6, TextScale, LogicalViewport, ScaledGroupRight);
             const float Scale = TextScale / 100.0f;
@@ -140,18 +141,21 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
             const float GroupRight = LogicalViewport.X + ScaledGroupPosition.X;
             TestEqual(TEXT("DPI-scaled layout keeps the status group 12 units left of the map"),
                 MinimapLeft - GroupRight, UKalmalaMinimapWidget::StatusGroupGap);
-            TestEqual(TEXT("Empty state has zero width at every scale and aspect ratio"), EmptySize.X, 0.0);
-            TestEqual(TEXT("Empty state has zero height at every scale and aspect ratio"), EmptySize.Y, 0.0);
-            TestEqual(TEXT("One state has one compact cell"), OneSize.X, CellWidth + UKalmalaStatusHotbarWidget::StatusCellGap);
-            TestEqual(TEXT("One state remains one row"), OneSize.Y, RowHeight);
+            TestEqual(TEXT("Empty state has zero width at every scale and aspect ratio"), ScaledEmptySize.X, 0.0);
+            TestEqual(TEXT("Empty state has zero height at every scale and aspect ratio"), ScaledEmptySize.Y, 0.0);
+            TestEqual(TEXT("One state has one compact cell"), ScaledOneSize.X,
+                static_cast<double>(CellWidth + UKalmalaStatusHotbarWidget::StatusCellGap));
+            TestEqual(TEXT("One state remains one row"), ScaledOneSize.Y, static_cast<double>(RowHeight));
             TestEqual(TEXT("Three states fit one compact row"), ThreeSize.X,
-                3.0f * (CellWidth + UKalmalaStatusHotbarWidget::StatusCellGap));
-            TestEqual(TEXT("Three states remain one row"), ThreeSize.Y, RowHeight);
-            TestEqual(TEXT("Many states wrap into the predicted number of rows"), ManySize.Y, ManyRows * RowHeight);
+                static_cast<double>(3.0f * (CellWidth + UKalmalaStatusHotbarWidget::StatusCellGap)));
+            TestEqual(TEXT("Three states remain one row"), ThreeSize.Y, static_cast<double>(RowHeight));
+            TestEqual(TEXT("Many states wrap into the predicted number of rows"), ManySize.Y,
+                static_cast<double>(ManyRows * RowHeight));
             TestTrue(TEXT("Many states stay within the compact row width"), ManySize.X <= SafeRowWidth);
             TestTrue(TEXT("DPI-scaled status group stays inside the left viewport margin"),
                 GroupRight - ManySize.X >= UKalmalaMinimapWidget::ViewportInset);
-            TestEqual(TEXT("DPI-scaled layout shares the map's top margin"), ScaledGroupPosition.Y, UKalmalaMinimapWidget::ViewportInset);
+            TestEqual(TEXT("DPI-scaled layout shares the map's top margin"), ScaledGroupPosition.Y,
+                static_cast<double>(UKalmalaMinimapWidget::ViewportInset));
             TestTrue(TEXT("DPI-scaled wrapped layout stays above the bottom safe margin"),
                 ScaledGroupPosition.Y + ManySize.Y <= LogicalViewport.Y - UKalmalaMinimapWidget::ViewportInset);
         }
