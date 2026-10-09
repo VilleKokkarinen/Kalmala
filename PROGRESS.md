@@ -13226,4 +13226,4 @@ Known limitations: rendered host/client icon and Favorite/Rank/Recent coexistenc
 
 Next eligible task: M12 goal 9, create the pinned before/after catalogue text audit and identify manual edits to retain.
 
-Main-checkout handoff synchronization: Pending; only `BACKLOG.md` and `PROGRESS.md` will be synchronized after inspecting and preserving their existing edits.
+Main-checkout handoff synchronization: Complete. Inspected the existing main-checkout edits; updated only this selected BACKLOG parent/child and appended this PROGRESS entry, preserving all earlier content. No implementation files or docs were synchronized.
