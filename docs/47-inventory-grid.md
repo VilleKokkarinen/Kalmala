@@ -66,8 +66,10 @@ and tool persistence limitations still apply.
 This is one user-directed development increment after the completed roadmap,
 not milestone-final verification. Lightweight source/API inspection, input and
 presentation-ownership audits, retired-panel audit, changed PowerShell parser
-checks, whitespace and MAX_PATH checks were performed; full Unreal compilation,
-automation, rendered UI, physical input, and multiplayer execution are deferred.
+checks, whitespace and MAX_PATH checks were performed. The UE5.8.2
+`KalmalaEditor Win64 Development` build now passes after the follow-up repair
+recorded in `docs/42-build-repair.md`. Automation, rendered UI, physical input,
+and multiplayer execution remain deferred.
 
 New automation covers shared capacity, stable gaps, depleted hotbar cells,
 duplicate/overflow rejection and compressed number order. Selection and RPC
@@ -75,7 +77,7 @@ contract coverage were updated for the simpler panel. The prepared rendered
 `Scripts/Verify-InventoryMenu.ps1` now captures filled/detail views, assignment
 to key 0, removal into row two, meal use/repeat, live quantity refresh, depleted
 materials with tools retained, and the normal HUD. These updated Unreal tests
-and captures have not been executed in this increment. After an authorized
-editor build, run the inventory gameplay/UI automations and this helper at
+and captures have not been executed. After an authorized verification run,
+execute the inventory gameplay/UI automations and this helper at
 1280x720/100%/contrast0 and 1024x768/150%/contrast1, then inspect both peers'
 captures and physical drag/controller input before claiming rendered acceptance.

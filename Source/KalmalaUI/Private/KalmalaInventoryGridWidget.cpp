@@ -14,16 +14,16 @@
 #include "Styling/CoreStyle.h"
 #include "InputCoreTypes.h"
 
-FString UKalmalaInventoryGridWidget::SlotLabel(const int32 Slot)
+FString UKalmalaInventoryGridWidget::SlotLabel(const int32 SlotIndex)
 {
-    return Slot >= 0 && Slot < 10 ? FString::FromInt((Slot + 1) % 10) : TEXT("");
+    return SlotIndex >= 0 && SlotIndex < 10 ? FString::FromInt((SlotIndex + 1) % 10) : TEXT("");
 }
 
 TArray<int32> UKalmalaInventoryGridWidget::VisibleSlots(const TArray<FName>& Slots, const bool bHotbar)
 {
     TArray<int32> Result;
-    for (int32 Slot = 0; Slot < (bHotbar ? 10 : 40); ++Slot)
-        if (!bHotbar || (Slots.IsValidIndex(Slot) && !Slots[Slot].IsNone())) Result.Add(Slot);
+    for (int32 SlotIndex = 0; SlotIndex < (bHotbar ? 10 : 40); ++SlotIndex)
+        if (!bHotbar || (Slots.IsValidIndex(SlotIndex) && !Slots[SlotIndex].IsNone())) Result.Add(SlotIndex);
     return Result;
 }
 
@@ -34,7 +34,7 @@ void UKalmalaInventoryGridWidget::NativeOnInitialized()
     Canvas = WidgetTree->ConstructWidget<UCanvasPanel>();
     Canvas->SetVisibility(ESlateVisibility::HitTestInvisible);
     WidgetTree->RootWidget = Canvas;
-    for (int32 Slot = 0; Slot < 40; ++Slot)
+    for (int32 SlotIndex = 0; SlotIndex < 40; ++SlotIndex)
     {
         auto* Border = WidgetTree->ConstructWidget<UBorder>();
         Border->SetPadding(FMargin(2.0f));
@@ -58,24 +58,24 @@ void UKalmalaInventoryGridWidget::Refresh(UKalmalaInventoryComponent* Inventory,
     SelectedItem = Selected;
     TArray<FName> Next;
     Next.Init(NAME_None, 40);
-    if (Inventory) for (int32 Slot = 0; Slot < 40; ++Slot) Next[Slot] = Inventory->GetSlotItem(Slot);
+    if (Inventory) for (int32 SlotIndex = 0; SlotIndex < 40; ++SlotIndex) Next[SlotIndex] = Inventory->GetSlotItem(SlotIndex);
     if (Next != SlotItems)
     {
         SlotItems = MoveTemp(Next);
         if (Icons.Num() == 40)
-            for (int32 Slot = 0; Slot < 40; ++Slot)
-                if (!SlotItems[Slot].IsNone()) Icons[Slot]->SetCatalogueIcon(SlotItems[Slot]);
+            for (int32 SlotIndex = 0; SlotIndex < 40; ++SlotIndex)
+                if (!SlotItems[SlotIndex].IsNone()) Icons[SlotIndex]->SetCatalogueIcon(SlotItems[SlotIndex]);
         LastSize = FVector2D::ZeroVector;
     }
     DisplaySlots = VisibleSlots(SlotItems, bHotbar);
     const auto& Theme = FKalmalaUITheme::Get();
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
-    for (int32 Slot = 0; Slot < Backgrounds.Num(); ++Slot)
+    for (int32 SlotIndex = 0; SlotIndex < Backgrounds.Num(); ++SlotIndex)
     {
-        Backgrounds[Slot]->SetBrushColor((!SelectedItem.IsNone() && SlotItems[Slot] == SelectedItem)
-            || (HasKeyboardFocus() && FocusedSlot == Slot)
+        Backgrounds[SlotIndex]->SetBrushColor((!SelectedItem.IsNone() && SlotItems[SlotIndex] == SelectedItem)
+            || (HasKeyboardFocus() && FocusedSlot == SlotIndex)
             ? Theme.TextColor(true, Contrast) : Theme.BorderColor);
-        CastChecked<UBorder>(Backgrounds[Slot]->GetContent())->SetBrushColor(Contrast == 0
+        CastChecked<UBorder>(Backgrounds[SlotIndex]->GetContent())->SetBrushColor(Contrast == 0
             ? Theme.Panel : Theme.HighContrastPanel);
     }
     if (bModeChanged) LastSize = FVector2D::ZeroVector;
@@ -91,20 +91,20 @@ void UKalmalaInventoryGridWidget::NativeTick(const FGeometry& G, const float Del
         LastSize.Y / (bHotbarOnly ? 1 : 4));
     if (Cell <= 2.0f) return;
     for (const auto& Icon : Icons) Icon->SetVisibility(ESlateVisibility::Collapsed);
-    for (int32 Slot = 0; Slot < Backgrounds.Num(); ++Slot)
+    for (int32 SlotIndex = 0; SlotIndex < Backgrounds.Num(); ++SlotIndex)
     {
-        Backgrounds[Slot]->SetVisibility(bHotbarOnly ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
-        auto* Placement = CastChecked<UCanvasPanelSlot>(Backgrounds[Slot]->Slot);
-        Placement->SetPosition(FVector2D(Slot % 10, Slot / 10) * Cell + FVector2D(1));
+        Backgrounds[SlotIndex]->SetVisibility(bHotbarOnly ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
+        auto* Placement = CastChecked<UCanvasPanelSlot>(Backgrounds[SlotIndex]->Slot);
+        Placement->SetPosition(FVector2D(SlotIndex % 10, SlotIndex / 10) * Cell + FVector2D(1));
         Placement->SetSize(FVector2D(Cell - 2));
     }
     for (int32 Index = 0; Index < DisplaySlots.Num(); ++Index)
     {
-        const int32 Slot = DisplaySlots[Index];
-        if (SlotItems[Slot].IsNone()) continue;
-        auto* Icon = Icons[Slot].Get();
+        const int32 SlotIndex = DisplaySlots[Index];
+        if (SlotItems[SlotIndex].IsNone()) continue;
+        auto* Icon = Icons[SlotIndex].Get();
         auto* Placement = CastChecked<UCanvasPanelSlot>(Icon->Slot);
-        const FVector2D Position = FVector2D(bHotbarOnly ? Index : Slot % 10, bHotbarOnly ? 0 : Slot / 10) * Cell;
+        const FVector2D Position = FVector2D(bHotbarOnly ? Index : SlotIndex % 10, bHotbarOnly ? 0 : SlotIndex / 10) * Cell;
         Placement->SetPosition(Position + FVector2D(Cell * 0.18f, Cell * 0.18f));
         Placement->SetSize(FVector2D(Cell * 0.64f, Cell * 0.64f));
         Icon->SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -126,8 +126,8 @@ int32 UKalmalaInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGe
     const auto* Character = OwnerInventory ? Cast<AKalmalaCharacter>(OwnerInventory->GetOwner()) : nullptr;
     for (int32 Index = 0; Index < DisplaySlots.Num(); ++Index)
     {
-        const int32 Slot = DisplaySlots[Index];
-        const FVector2D P = FVector2D(bHotbarOnly ? Index : Slot % 10, bHotbarOnly ? 0 : Slot / 10) * Cell;
+        const int32 SlotIndex = DisplaySlots[Index];
+        const FVector2D P = FVector2D(bHotbarOnly ? Index : SlotIndex % 10, bHotbarOnly ? 0 : SlotIndex / 10) * Cell;
         auto Text = [&](const FString& Value, const FVector2D Offset)
         {
             if (Value.IsEmpty()) return;
@@ -138,8 +138,8 @@ int32 UKalmalaInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGe
             FSlateDrawElement::MakeText(Elements, Layer + 1, TextGeometry.ToPaintGeometry(), Value, Font, ESlateDrawEffect::None,
                 Theme.TextColor(false, Contrast));
         };
-        Text(SlotLabel(Slot), FVector2D(4, 2));
-        const FName Id = SlotItems[Slot];
+        Text(SlotLabel(SlotIndex), FVector2D(4, 2));
+        const FName Id = SlotItems[SlotIndex];
         const int32 Quantity = OwnerInventory ? OwnerInventory->GetQuantity(Id) : 0;
         if (Quantity > 1) Text(FString::FromInt(Quantity), FVector2D(4, Cell * .72f));
         if (Character)
@@ -166,11 +166,11 @@ int32 UKalmalaInventoryGridWidget::SlotAt(const FGeometry& G, const FVector2D Sc
     return FMath::FloorToInt(P.Y / Cell) * 10 + FMath::FloorToInt(P.X / Cell);
 }
 
-void UKalmalaInventoryGridWidget::SelectSlot(const int32 Slot)
+void UKalmalaInventoryGridWidget::SelectSlot(const int32 SlotIndex)
 {
-    if (!SlotItems.IsValidIndex(Slot)) return;
-    FocusedSlot = Slot;
-    SelectedItem = SlotItems[Slot];
+    if (!SlotItems.IsValidIndex(SlotIndex)) return;
+    FocusedSlot = SlotIndex;
+    SelectedItem = SlotItems[SlotIndex];
     OnItemSelected.Broadcast(SelectedItem);
     Invalidate(EInvalidateWidget::Paint);
 }
@@ -184,18 +184,18 @@ void UKalmalaInventoryGridWidget::RequestMove(const int32 Source, const int32 Ta
 FReply UKalmalaInventoryGridWidget::NativeOnMouseButtonDown(const FGeometry& G, const FPointerEvent& Event)
 {
     if (Event.GetEffectingButton() != EKeys::LeftMouseButton) return Super::NativeOnMouseButtonDown(G, Event);
-    const int32 Slot = SlotAt(G, Event.GetScreenSpacePosition());
-    if (Slot == INDEX_NONE) return FReply::Unhandled();
+    const int32 SlotIndex = SlotAt(G, Event.GetScreenSpacePosition());
+    if (SlotIndex == INDEX_NONE) return FReply::Unhandled();
     if (MoveSource != INDEX_NONE)
     {
-        RequestMove(MoveSource, Slot, MoveItem, SlotItems[Slot]);
+        RequestMove(MoveSource, SlotIndex, MoveItem, SlotItems[SlotIndex]);
         MoveSource = INDEX_NONE;
-        SelectSlot(Slot);
+        SelectSlot(SlotIndex);
         return FReply::Handled();
     }
-    SelectSlot(Slot);
-    DragSource = Slot;
-    DragItem = SlotItems[Slot];
+    SelectSlot(SlotIndex);
+    DragSource = SlotIndex;
+    DragItem = SlotItems[SlotIndex];
     return FReply::Handled().CaptureMouse(TakeWidget()).SetUserFocus(TakeWidget());
 }
 
@@ -216,8 +216,8 @@ void UKalmalaInventoryGridWidget::NativeOnMouseCaptureLost(const FCaptureLostEve
 
 FReply UKalmalaInventoryGridWidget::NativeOnMouseMove(const FGeometry& G, const FPointerEvent& Event)
 {
-    const int32 Slot = SlotAt(G, Event.GetScreenSpacePosition());
-    const FName Id = SlotItems.IsValidIndex(Slot) ? SlotItems[Slot] : NAME_None;
+    const int32 SlotIndex = SlotAt(G, Event.GetScreenSpacePosition());
+    const FName Id = SlotItems.IsValidIndex(SlotIndex) ? SlotItems[SlotIndex] : NAME_None;
     const auto* Definition = UKalmalaItemCatalogue::Get()->FindItem(Id);
     SetToolTipText(FText::FromString(Definition ? Definition->DisplayName : Id.IsNone() ? TEXT("Empty slot") : Id.ToString()));
     return Super::NativeOnMouseMove(G, Event);

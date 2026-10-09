@@ -6,7 +6,7 @@
 - As of 2026-10-09, M0–M12 are complete under their recorded acceptance scope and limitations. M11 and the retained M12 histories are integrated into `master` (`4e297ba`), with the combined editor build, 120-test queue and affected rendered checks passing. Temporary worktrees, verification mirrors and regenerable caches were removed at the owner's request; save games, settings, original assets and acceptance evidence remain. No unchecked backlog increment remains.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
-- The 2026-10-09 user-directed inventory simplification is implemented with lightweight checks: one 10×4 shared grid and occupied-cell hotbar. Its new Unreal build/rendered/input/peer verification is deferred; see docs/47-inventory-grid.md and the latest handoff.
+- The 2026-10-09 user-directed inventory simplification is implemented with lightweight checks: one 10×4 shared grid and occupied-cell hotbar. The UE5.8.2 `KalmalaEditor Win64 Development` target now builds after the follow-up repair below; automation and rendered/input/peer verification remain deferred. See docs/47-inventory-grid.md and the latest handoff.
 
 ## Run log
 
@@ -14925,11 +14925,12 @@ Lightweight checks actually performed (passed):
   Repaired the initial custom-paint layering approach before delivery so cell
   backgrounds are child widgets behind the existing original icon widgets.
 
-Full verification remains deferred. This was not milestone-final verification:
-no Unreal/project build, Unreal automation execution, editor/headless peer
-launch, rendered capture, packaging, physical input, or performance profile
-was run. New/updated Unreal tests and the prepared rendered Inventory helper
-are an unexecuted verification handoff; previous M12/master acceptance remains
+At this original implementation handoff, full verification was deferred: no
+Unreal/project build, Unreal automation execution, editor/headless peer launch,
+rendered capture, packaging, physical input, or performance profile had run.
+The later editor-build repair and successful target rebuild are recorded below.
+New/updated Unreal tests and the prepared rendered Inventory helper remain an
+unexecuted verification handoff; previous M12/master acceptance remains
 historical evidence and does not certify this new layout.
 
 Observable impact when rebuilt: one shared player storage area, direct numbered
@@ -14950,5 +14951,42 @@ Some service views retain inspection controls over the same holdings. Final
 visual/input/multiplayer acceptance awaits the checks in docs/47.
 
 Next eligible task: none in the completed roadmap. A separately authorized
-verification run can build and execute the new inventory automation and paired
+verification run can execute the new inventory automation and paired
 rendered/input checks. Stop after this increment's commit.
+
+### 2026-10-09 — Repair reported inventory editor build failure
+
+Outcome: fixed the UE5.8.2 editor compile failures in the latest shared-grid
+change. The clean isolated `KalmalaEditor Win64 Development` build first ran
+239 actions and failed in `KalmalaInventoryGridWidget.cpp`: ten local or
+parameter declarations named `Slot` triggered C4458 because `UWidget` already
+has a `Slot` member. `KalmalaInventoryMenuSubsystem.cpp` also used `auto*` for
+`APlayerController::GetPawn()`, which returns `TObjectPtr<APawn>` in this engine;
+the remaining errors at that expression were cascades. Grid variables and
+parameters now use `SlotIndex`, preserving `UWidget::Slot` member accesses, and
+the subsystem explicitly unwraps the pawn with `.Get()`.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaInventoryGridWidget.cpp`,
+`Source/KalmalaUI/Public/KalmalaInventoryGridWidget.h`,
+`Source/KalmalaUI/Private/KalmalaInventoryMenuSubsystem.cpp`, `BACKLOG.md`,
+`PROGRESS.md`, `docs/42-build-repair.md`, and `docs/47-inventory-grid.md`.
+
+Verification: the post-fix editor target rebuild compiled and linked all nine
+actions requested by UBT and returned `Result: Succeeded` with exit code 0.
+`git diff --check` passed. This was not milestone-final verification. No
+automation tests, editor launch, rendered capture, packaging, host/client
+session, or physical input run was performed; those checks remain deferred.
+
+Observable impact: the shared-grid/hotbar code now compiles in the editor
+target. Networking and authority are unchanged: grid moves and item state
+remain server-owned, and this repair changes no RPC, persistence, or gameplay
+contract. No saved-data schema, assets, or project-generated directories in the
+main checkout were changed.
+
+Limitations: runtime, visual, input, and multiplayer acceptance for the new
+inventory layout is still unverified. Existing armor and weight display limits
+remain as documented in `docs/47-inventory-grid.md`.
+
+Next eligible task: none in the completed roadmap. A separately authorized
+verification run can execute the new inventory gameplay/UI automations and the
+paired rendered/input checks.

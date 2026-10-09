@@ -68,3 +68,30 @@ and generated-path checks passed; the longest generated absolute path was 180
 characters. Reopen `Kalmala.slnx` in Visual Studio after regeneration. No game
 build, editor launch or runtime tests ran for this recovery; the removed game
 binaries still need the editor build documented above.
+
+## Inventory editor build repair — 2026-10-09
+
+The new inventory-grid editor target failed compilation with MSVC C4458 in
+`KalmalaInventoryGridWidget.cpp`: local variables and parameters named `Slot`
+hid the inherited `UWidget::Slot` member. Rename the integer identifiers to
+`SlotIndex`; keep the `.Slot` widget-layout accesses unchanged.
+
+`KalmalaInventoryMenuSubsystem.cpp` also used `auto*` for
+`APlayerController::GetPawn()`. In the installed UE5.8.2 headers this returns
+`TObjectPtr<APawn>`, so explicitly unwrap it with `.Get()`. The reported errors
+on the following expressions were parser/type cascades from that declaration.
+
+The first clean short-path mirror build ran 239 actions and failed on those
+compile errors. After applying the source fixes, the editor target was rebuilt
+in that mirror with normal read/write access to `%LOCALAPPDATA%\UnrealBuildTool`:
+
+```powershell
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat' KalmalaEditor Win64 Development '-Project=E:\dev\Kalmala\wt\bf\Kalmala.uproject' -WaitMutex -MaxParallelActions=4
+```
+
+The UE5.8.2 `KalmalaEditor Win64 Development` rebuild succeeded, compiling and
+linking the nine actions dirtied by the repair. The target build was the only
+build verification in this follow-up; automation, editor launch, rendered UI,
+input and host/client acceptance remain deferred. The temporary mirror was
+removed after the build; the command records the executed path and is not a
+retained project directory.

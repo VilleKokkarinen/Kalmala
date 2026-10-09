@@ -601,4 +601,8 @@ with additional bounded children inserted in order if live coverage requires the
 
 ## User-directed inventory simplification — 2026-10-09
 
-- [x] Replace the player pack/toolbelt presentation with one 10×4 grid; use its 1–9, 0 top row as the directly assigned hotbar, show current armor and carried weight/capacity beneath it, and render only occupied numbered cells at the upper left during ordinary gameplay. (Implementation and lightweight checks complete. Server-owned positions and shared capacity include tools; move/swap and hotbar intents are validated. Armor currently displays None / 0 and weight uses prototype metrics. Full Unreal build, automation and rendered/input/peer acceptance are deferred; see docs/47-inventory-grid.md. One owner-directed increment after the completed roadmap.)
+- [x] Replace the player pack/toolbelt presentation with one 10×4 grid; use its 1–9, 0 top row as the directly assigned hotbar, show current armor and carried weight/capacity beneath it, and render only occupied numbered cells at the upper left during ordinary gameplay. (Implementation and lightweight checks complete. Server-owned positions and shared capacity include tools; move/swap and hotbar intents are validated. Armor currently displays None / 0 and weight uses prototype metrics. The UE5.8.2 `KalmalaEditor Win64 Development` build passes after the follow-up repair below; automation and rendered/input/peer acceptance are deferred. See docs/47-inventory-grid.md. One owner-directed increment after the completed roadmap.)
+
+## User-directed build repair — 2026-10-09
+
+- [x] Reproduce and fix the reported editor build failure introduced by the inventory-grid update. (Renamed grid indices that shadowed `UWidget::Slot` and explicitly unwrapped UE5.8 `TObjectPtr<APawn>`; the isolated `KalmalaEditor Win64 Development` rebuild succeeded. No automation or runtime tests were run. See docs/42-build-repair.md and docs/47-inventory-grid.md.)

@@ -19,7 +19,7 @@ public:
     void Refresh(UKalmalaInventoryComponent* Inventory, bool bHotbar, FName Selected = NAME_None);
     FKalmalaGridSelection OnItemSelected;
     void CancelMove();
-    static FString SlotLabel(int32 Slot);
+    static FString SlotLabel(int32 SlotIndex);
     static TArray<int32> VisibleSlots(const TArray<FName>& Slots, bool bHotbar);
 protected:
     virtual void NativeOnInitialized() override;
@@ -33,7 +33,7 @@ protected:
     virtual FReply NativeOnKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
 private:
     int32 SlotAt(const FGeometry& Geometry, FVector2D ScreenPosition) const;
-    void SelectSlot(int32 Slot);
+    void SelectSlot(int32 SlotIndex);
     void RequestMove(int32 Source, int32 Target, FName SourceId, FName TargetId);
     UPROPERTY(Transient) TObjectPtr<UCanvasPanel> Canvas;
     UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaIconWidget>> Icons;

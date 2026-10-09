@@ -39,7 +39,7 @@ void UKalmalaInventoryMenuSubsystem::Tick(float DeltaTime)
     }
     if (HotbarWidget)
     {
-        auto* Pawn = LocalController->GetPawn();
+        APawn* Pawn = LocalController->GetPawn().Get();
         auto* Inventory = Pawn ? Pawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
         HotbarWidget->Refresh(Inventory, true);
         const int32 Count = Inventory ? UKalmalaInventoryGridWidget::VisibleSlots(Inventory->GetGridSlots(), true).Num() : 0;
