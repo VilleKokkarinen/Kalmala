@@ -138,7 +138,8 @@ remapping is added:
 | WorldMap / WorldMapRecenter | M / R | — |
 | InventoryMenu | Tab / I | — |
 | Build and crafting menu (`CraftMenu`) | B | Special left |
-| Support selection | 1–4 | D-pad directions |
+| Numbered inventory hotbar | 1–9, 0 | Inventory grid via D-pad and A |
+| Support selection | F1–F4 | D-pad directions |
 | Support activation | Q | Face button top |
 
 The baseline check proves that these existing names and inputs are present; it

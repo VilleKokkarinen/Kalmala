@@ -157,6 +157,7 @@ void AKalmalaCharacter::BeginPlay()
     if (HasAuthority())
     {
         CarriedTools = FKalmalaToolLifecycleContract::BuildInitialCarriedTools();
+        if (Inventory) Inventory->SynchronizeGridFromServer();
         ForceNetUpdate();
     }
     bTraversalTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaTraversalTest"));
@@ -552,6 +553,16 @@ void AKalmalaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction(TEXT("SupportSelectBearsVigor"), IE_Pressed, this, &AKalmalaCharacter::SelectBearsVigor);
     PlayerInputComponent->BindAction(TEXT("SupportSelectDeerCall"), IE_Pressed, this, &AKalmalaCharacter::SelectDeerCall);
     PlayerInputComponent->BindAction(TEXT("SupportActivate"), IE_Pressed, this, &AKalmalaCharacter::ActivateSelectedSupportEffect);
+    for (int32 Slot = 0; Slot < UKalmalaInventoryComponent::Columns; ++Slot)
+    {
+        FInputActionBinding Binding(FName(*FString::Printf(TEXT("Hotbar%d"), (Slot + 1) % 10)), IE_Pressed);
+        Binding.ActionDelegate.GetDelegateForManualSet().BindWeakLambda(this, [this, Slot]()
+        {
+            if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored()
+                && !Controller->IsLookInputIgnored() && Inventory) Inventory->ServerUseHotbarSlot(Slot);
+        });
+        PlayerInputComponent->AddActionBinding(Binding);
+    }
 }
 
 void AKalmalaCharacter::ConfigureSwimmingTestTarget()
@@ -828,11 +839,14 @@ bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNo
             > FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind)) Definition = &Candidate;
     }
     if (Definition == nullptr) Definition = FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(Selection);
+    if (Inventory && FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem()))
+        Definition = FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem());
     if (Definition == nullptr) return false;
 
     OutToolId = Definition->ToolId;
     OutAction = static_cast<uint8>(Selection.Action);
-    bOutHasUsableTool = GetToolDurability(Definition->ToolId) > 0;
+    bOutHasUsableTool = GetToolDurability(Definition->ToolId) > 0
+        && FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*Definition, Selection);
     return true;
 }
 

@@ -8,6 +8,7 @@
 class APlayerController;
 class UInputComponent;
 class UKalmalaInventoryMenuWidget;
+class UKalmalaInventoryGridWidget;
 
 /** Owns one local inventory-menu instance and input binding for each local player. */
 UCLASS()
@@ -32,9 +33,11 @@ private:
 
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaInventoryMenuWidget> InventoryWidget;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaInventoryGridWidget> HotbarWidget;
     UPROPERTY(Transient)
     TObjectPtr<APlayerController> LocalController;
     TWeakObjectPtr<UInputComponent> BoundInputComponent;
+    FVector2D LastHotbarSize = FVector2D::ZeroVector;
 #if !UE_BUILD_SHIPPING
     void TickMenuReview(float DeltaTime);
     int32 ReviewStage = 0;

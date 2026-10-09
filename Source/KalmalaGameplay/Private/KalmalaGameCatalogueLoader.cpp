@@ -123,6 +123,13 @@ namespace
             {
                 return false;
             }
+            const auto Item = Value->AsObject();
+            // Keep weight optional in schema-4 content while retaining strict
+            // conversion and validation for every authored field.
+            if (!Item->HasField(TEXT("WeightKg"))) Item->SetNumberField(TEXT("WeightKg"), 1.0);
+            double Weight = 0.0;
+            if (!Item->TryGetNumberField(TEXT("WeightKg"), Weight)
+                || !FMath::IsFinite(Weight) || Weight < 0.0 || Weight > 300.0) return false;
         }
 
         for (const TSharedPtr<FJsonValue>& Value : RecipeValues)

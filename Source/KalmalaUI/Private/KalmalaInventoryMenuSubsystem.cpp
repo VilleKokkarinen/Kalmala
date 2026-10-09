@@ -5,18 +5,14 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "KalmalaInventoryMenuWidget.h"
+#include "KalmalaInventoryGridWidget.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaCharacter.h"
-#include "KalmalaCraftingComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
-#include "KalmalaCatalogueRowsWidget.h"
-#include "KalmalaItemDetailWidget.h"
-#include "KalmalaIconWidget.h"
 #include "KalmalaThemedButton.h"
 #include "Blueprint/WidgetTree.h"
-#include "Components/EditableTextBox.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "Engine/Engine.h"
@@ -24,6 +20,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "TimerManager.h"
+#include "Algo/Count.h"
 
 void UKalmalaInventoryMenuSubsystem::Tick(float DeltaTime)
 {
@@ -35,6 +32,32 @@ void UKalmalaInventoryMenuSubsystem::Tick(float DeltaTime)
 
     LocalController = FoundController;
     BindLocalInput(LocalController);
+    if (!HotbarWidget)
+    {
+        HotbarWidget = CreateWidget<UKalmalaInventoryGridWidget>(LocalController, UKalmalaInventoryGridWidget::StaticClass());
+        if (HotbarWidget) HotbarWidget->AddToPlayerScreen(55);
+    }
+    if (HotbarWidget)
+    {
+        auto* Pawn = LocalController->GetPawn();
+        auto* Inventory = Pawn ? Pawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+        HotbarWidget->Refresh(Inventory, true);
+        const int32 Count = Inventory ? UKalmalaInventoryGridWidget::VisibleSlots(Inventory->GetGridSlots(), true).Num() : 0;
+        int32 Width = 0, Height = 0;
+        LocalController->GetViewportSize(Width, Height);
+        const float Cell = FMath::Clamp(float(Width) * .04f, 28.0f, 56.0f);
+        const FVector2D Size(FMath::Max(1, Count) * Cell, Cell);
+        if (Size != LastHotbarSize)
+        {
+            LastHotbarSize = Size;
+            HotbarWidget->SetDesiredSizeInViewport(Size);
+            HotbarWidget->SetPositionInViewport(FVector2D(16.0f), false);
+            HotbarWidget->SetAlignmentInViewport(FVector2D::ZeroVector);
+            HotbarWidget->SetAnchorsInViewport(FAnchors(0.0f));
+        }
+        HotbarWidget->SetVisibility(Count > 0 && !IsMenuOpen() && !LocalController->IsMoveInputIgnored()
+            ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+    }
     if (InventoryWidget != nullptr && InventoryWidget->IsMenuOpen())
     {
         InventoryWidget->RefreshOwnerInventory();
@@ -68,6 +91,8 @@ void UKalmalaInventoryMenuSubsystem::ReleaseController()
         }
     }
     BoundInputComponent.Reset();
+    if (HotbarWidget) { HotbarWidget->RemoveFromParent(); HotbarWidget = nullptr; }
+    LastHotbarSize = FVector2D::ZeroVector;
     if (InventoryWidget != nullptr)
     {
         InventoryWidget->Close();
@@ -137,17 +162,16 @@ bool UKalmalaInventoryMenuSubsystem::CloseIfOpen()
 void UKalmalaInventoryMenuSubsystem::TickMenuReview(const float DeltaTime)
 {
     FString Capture;
-    if (ReviewStage >= 13 || !FParse::Value(FCommandLine::Get(), TEXT("KalmalaInventoryMenuCapture="), Capture)) return;
-    const auto* Character = Cast<AKalmalaCharacter>(LocalController->GetPawn());
-    const auto* Pack = Character ? Character->GetInventoryComponent() : nullptr;
+    if (ReviewStage >= 11 || !FParse::Value(FCommandLine::Get(), TEXT("KalmalaInventoryMenuCapture="), Capture)) return;
+    auto* Character = Cast<AKalmalaCharacter>(LocalController->GetPawn());
+    auto* Pack = Character ? Character->GetInventoryComponent() : nullptr;
     if (!Pack) return;
     const bool bHost = Character->HasAuthority();
     const int32 InitialWood = bHost ? 7 : 23;
-    FString Food(TEXT("HearthBroth"));
-    FParse::Value(FCommandLine::Get(), TEXT("KalmalaInventoryMenuFood="), Food);
+    const FName Food(TEXT("HearthBroth"));
     if (ReviewStage == 0)
     {
-        if (Pack->GetQuantity(TEXT("Wood")) != InitialWood || Pack->GetQuantity(FName(*Food)) != 2) return;
+        if (Pack->GetQuantity(TEXT("Wood")) != InitialWood || Pack->GetQuantity(Food) != 2 || Pack->GetGridSlots().Num() != 40) return;
         int32 Scale = 100, Contrast = 0, InterfaceScale = 100;
         FParse::Value(FCommandLine::Get(), TEXT("KalmalaUIDeveloperTextScale="), Scale);
         FParse::Value(FCommandLine::Get(), TEXT("KalmalaUIDeveloperContrast="), Contrast);
@@ -155,146 +179,92 @@ void UKalmalaInventoryMenuSubsystem::TickMenuReview(const float DeltaTime)
         UKalmalaSettingsWidget::SetTextScalePercent(Scale);
         UKalmalaSettingsWidget::SetContrastMode(Contrast);
         UKalmalaSettingsWidget::SetInterfaceScalePercent(InterfaceScale);
-        UKalmalaSettingsWidget::SetReducedMotionEnabled(FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryMenuReducedMotion")));
-        // Open the subsystem-owned production instance via its bound toggle.
         ToggleInventoryMenu();
-        if (!InventoryWidget || !InventoryWidget->IsMenuOpen()) return;
+        if (!InventoryWidget || !IsMenuOpen()) return;
         ReviewStage = 1;
         ReviewElapsed = 0.0f;
     }
     ReviewElapsed += DeltaTime;
     if (ReviewElapsed < 1.0f) return;
     auto* Menu = InventoryWidget.Get();
-    if (!Menu || !Menu->WidgetTree) return;
-    UEditableTextBox* Search = nullptr;
-    UKalmalaCatalogueRowsWidget* Rows = nullptr;
-    UKalmalaItemDetailWidget* Details = nullptr;
     UKalmalaThemedButton* Eat = nullptr;
-    TArray<UScrollBox*> Scrolls;
+    UScrollBox* Scroll = nullptr;
+    if (!Menu || !Menu->WidgetTree) return;
     Menu->WidgetTree->ForEachWidget([&](UWidget* Widget)
     {
-        if (auto* Value = Cast<UEditableTextBox>(Widget)) Search = Value;
-        if (auto* Value = Cast<UKalmalaCatalogueRowsWidget>(Widget)) Rows = Value;
-        if (auto* Value = Cast<UKalmalaItemDetailWidget>(Widget)) Details = Value;
-        if (auto* Value = Cast<UScrollBox>(Widget)) Scrolls.Add(Value);
+        if (auto* Value = Cast<UScrollBox>(Widget)) Scroll = Value;
         if (auto* Button = Cast<UKalmalaThemedButton>(Widget))
             if (const auto* Label = Cast<UTextBlock>(Button->GetContent()); Label && Label->GetText().ToString() == TEXT("Eat one serving")) Eat = Button;
     });
-    if (!Search || !Rows || !Details || !Eat || Scrolls.Num() != 2) return;
+    if (!Eat || !Scroll) return;
     const auto CaptureStage = [&](const TCHAR* Name, const bool bPassed)
     {
-        bool bSquareIcon = true;
-        if (Details->GetVisibility() != ESlateVisibility::Collapsed)
-        {
-            bSquareIcon = false;
-            Details->WidgetTree->ForEachWidget([&](UWidget* Widget) {
-                if (const auto* Icon = Cast<UKalmalaIconWidget>(Widget))
-                    bSquareIcon = Icon->HasCatalogueTexture()
-                        && Icon->GetCachedGeometry().GetLocalSize().Equals(FVector2D(64.0f, 64.0f), 0.5f);
-            });
-        }
         bool bPrivate = true;
         if (!bHost)
             for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
                 if (*It != Character) bPrivate &= It->GetInventoryComponent()->GetStacks().IsEmpty()
-                    && It->GetCarriedToolInventory().IsEmpty();
-        UE_LOG(LogTemp, Display, TEXT("Inventory menu review: Stage=%s Passed=%d Host=%d Private=%d IconSquare=%d Wood=%d Selected=%s"),
-            Name, bPassed && bPrivate && bSquareIcon, bHost, bPrivate, bSquareIcon, Pack->GetQuantity(TEXT("Wood")), *Menu->GetSelectedItemForVerification().ToString());
+                    && It->GetInventoryComponent()->GetGridSlots().IsEmpty() && It->GetCarriedToolInventory().IsEmpty();
+        UE_LOG(LogTemp, Display, TEXT("Inventory menu review: Stage=%s Passed=%d Host=%d Private=%d Wood=%d Selected=%s"),
+            Name, bPassed && bPrivate, bHost, bPrivate, Pack->GetQuantity(TEXT("Wood")), *Menu->GetSelectedItemForVerification().ToString());
         FScreenshotRequest::RequestScreenshot(Capture + TEXT("-") + Name + TEXT(".png"), true, false);
         ReviewElapsed = 0.0f;
         ++ReviewStage;
     };
-    // Screenshot requests are fulfilled at the end of this frame. Change the
-    // next view only on the following tick so each PNG matches its marker.
     const auto NextFrame = [&](TFunction<void()> Action)
-    {
-        GetWorld()->GetTimerManager().SetTimerForNextTick(MoveTemp(Action));
-    };
+    { GetWorld()->GetTimerManager().SetTimerForNextTick(MoveTemp(Action)); };
     switch (ReviewStage)
     {
     case 1:
-        CaptureStage(TEXT("filled"), Rows->GetFilledSlotCount() == 3 && Rows->GetCarriedToolCount() == Character->GetCarriedToolInventory().Num()
-            && Menu->GetSelectedItemForVerification() == TEXT("Wood"));
-        NextFrame([Scrolls] { Scrolls[0]->ScrollToEnd(); });
+        CaptureStage(TEXT("filled"), Pack->GetGridSlots().Num() == 40 && HotbarWidget->GetVisibility() == ESlateVisibility::Collapsed);
+        NextFrame([Scroll] { Scroll->ScrollToEnd(); });
         break;
     case 2:
-        CaptureStage(TEXT("details"), Menu->IsMenuOpen() && Details->GetVisibility() != ESlateVisibility::Collapsed);
-        NextFrame([Menu, Scrolls] {
-            Menu->SetInventoryBrowseForVerification(TEXT(""), 2, 0);
-            Menu->StepSelectionForVerification(1);
-            Menu->SetInventoryScrollOffsetForVerification(10000.0f);
-            Scrolls[1]->ScrollToEnd();
+        CaptureStage(TEXT("details"), Menu->IsMenuOpen() && !Menu->GetSelectedItemForVerification().IsNone());
+        NextFrame([Pack, Scroll] {
+            const int32 Source = Pack->GetGridSlots().IndexOfByKey(FName(TEXT("Wood")));
+            Pack->ServerMoveSlot(Source, 9, TEXT("Wood"), Pack->GetSlotItem(9));
+            Scroll->ScrollToStart();
         });
         break;
     case 3:
-        CaptureStage(TEXT("equipment"), Rows->GetCarriedToolCount() == Character->GetCarriedToolInventory().Num() && Rows->GetFilledSlotCount() == 0);
-        NextFrame([Menu, Search, Scrolls] {
-            Menu->SetInventoryScrollOffsetForVerification(0.0f);
-            Search->SetText(FText::FromString(TEXT("absent owner item")));
-            Search->OnTextChanged.Broadcast(Search->GetText());
-            Scrolls[0]->ScrollToStart();
-        });
+        if (Pack->GetSlotItem(9) != TEXT("Wood")) return;
+        CaptureStage(TEXT("hotbar-assigned"), UKalmalaInventoryGridWidget::SlotLabel(9) == TEXT("0") && Pack->GetQuantity(TEXT("Wood")) == InitialWood);
+        NextFrame([Pack] { Pack->ServerMoveSlot(9, 10, TEXT("Wood"), Pack->GetSlotItem(10)); });
         break;
     case 4:
-        CaptureStage(TEXT("no-results"), Menu->GetVisibleItemIdsForVerification().IsEmpty()
-            && Menu->GetSelectedItemForVerification().IsNone() && Details->GetVisibility() == ESlateVisibility::Collapsed);
-        NextFrame([Search, Menu] {
-            Search->SetText(FText::GetEmpty());
-            Search->OnTextChanged.Broadcast(Search->GetText());
-            Menu->SetInventoryBrowseForVerification(TEXT(""), 0, 0);
-        });
+        if (Pack->GetSlotItem(10) != TEXT("Wood") || Pack->GetSlotItem(9) == TEXT("Wood")) return;
+        CaptureStage(TEXT("hotbar-removed"), Pack->GetQuantity(TEXT("Wood")) == InitialWood);
+        NextFrame([Menu, Food, Scroll] { Menu->SelectItemForVerification(Food); Scroll->ScrollToEnd(); });
         break;
     case 5:
-        CaptureStage(TEXT("recovered"), Rows->GetFilledSlotCount() == 3 && Menu->HasBrowseFocusTargetsForVerification());
-        NextFrame([Search, Food] {
-            Search->SetText(FText::FromString(UKalmalaItemCatalogue::Get()->FindItem(FName(*Food))->DisplayName));
-            Search->OnTextChanged.Broadcast(Search->GetText());
-        });
-        break;
-    case 6:
-        CaptureStage(TEXT("food-ready"), Menu->GetSelectedItemForVerification() == FName(*Food) && Eat->GetIsEnabled());
-        NextFrame([Eat, Scrolls] { Eat->OnClicked.Broadcast(); Scrolls[0]->ScrollToEnd(); });
-        break;
-    case 7:
-        if (Pack->GetQuantity(FName(*Food)) != 1 || !Character->GetStatusComponent()->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId)) return;
-        CaptureStage(TEXT("food-accepted"), !Eat->GetIsEnabled());
-        // Exercise a repeated menu action while its meal slot is occupied.
+        CaptureStage(TEXT("food-ready"), Menu->GetSelectedItemForVerification() == Food && Eat->GetIsEnabled());
         NextFrame([Eat] { Eat->OnClicked.Broadcast(); });
         break;
+    case 6:
+        if (Pack->GetQuantity(Food) != 1 || !Character->GetStatusComponent()->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId)) return;
+        CaptureStage(TEXT("food-accepted"), !Eat->GetIsEnabled());
+        NextFrame([Eat] { Eat->OnClicked.Broadcast(); });
+        break;
+    case 7:
+        CaptureStage(TEXT("food-repeat"), Pack->GetQuantity(Food) == 1 && !Eat->GetIsEnabled());
+        NextFrame([Menu] { Menu->SelectItemForVerification(TEXT("Wood")); });
+        break;
     case 8:
-        CaptureStage(TEXT("food-repeat"), Pack->GetQuantity(FName(*Food)) == 1 && !Eat->GetIsEnabled());
-        NextFrame([Menu, Scrolls] {
-            Menu->SetInventoryBrowseForVerification(TEXT("Wood"), 0, 0);
-            Scrolls[0]->ScrollToEnd();
-        });
+        if (Pack->GetQuantity(TEXT("Wood")) != InitialWood - 3) return;
+        CaptureStage(TEXT("live"), Pack->GetSlotItem(10) == TEXT("Wood") && Menu->IsMenuOpen());
         break;
     case 9:
-        if (Pack->GetQuantity(TEXT("Wood")) != InitialWood - 3) return;
-        CaptureStage(TEXT("live"), Menu->GetSelectedItemForVerification() == TEXT("Wood") && Menu->IsMenuOpen());
+        if (!Pack->GetStacks().IsEmpty()) return;
+        Scroll->ScrollToStart();
+        CaptureStage(TEXT("materials-empty"), Pack->GetGridSlots().Num() == 40 && Pack->GetSlotItem(10).IsNone()
+            && Algo::CountIf(Pack->GetGridSlots(), [](FName Id) { return !Id.IsNone(); }) == Character->GetCarriedToolInventory().Num());
+        NextFrame([this] { CloseIfOpen(); });
         break;
     case 10:
-        if (!Pack->GetStacks().IsEmpty()) return;
-        Menu->SetInventoryBrowseForVerification(TEXT(""), 1, 0);
-        Menu->SetInventoryScrollOffsetForVerification(0.0f);
-        Scrolls[0]->ScrollToStart(); Scrolls[1]->ScrollToStart();
-        ReviewStage = 11; ReviewElapsed = 0.0f;
-        break;
-    case 11:
-        CaptureStage(TEXT("empty"), Rows->GetSlotCapacity() == 16 && Rows->GetEmptySlotCount() == 16
-            && Rows->GetFilledSlotCount() == 0 && Menu->GetSelectedItemForVerification().IsNone()
-            && Details->GetVisibility() == ESlateVisibility::Collapsed);
-        NextFrame([Menu, Scrolls] {
-            Menu->SetInventoryScrollOffsetForVerification(10000.0f);
-            Scrolls[0]->ScrollToEnd(); Scrolls[1]->ScrollToEnd();
-        });
-        break;
-    case 12:
-        CaptureStage(TEXT("empty-bottom"), Rows->GetEmptySlotCount() == 16);
-        NextFrame([this, bHost, Food] {
-            CloseIfOpen();
-            UE_LOG(LogTemp, Display, TEXT("Inventory menu review complete: Passed=%d Host=%d Food=%s"),
-                !IsMenuOpen() && !LocalController->IsMoveInputIgnored() && !LocalController->IsLookInputIgnored(), bHost, *Food);
-        });
+        CaptureStage(TEXT("hud"), !IsMenuOpen() && !LocalController->IsMoveInputIgnored() && !LocalController->IsLookInputIgnored()
+            && HotbarWidget && HotbarWidget->GetVisibility() == ESlateVisibility::HitTestInvisible);
+        UE_LOG(LogTemp, Display, TEXT("Inventory menu review complete: Passed=%d Host=%d Food=HearthBroth"),
+            !IsMenuOpen() && !LocalController->IsMoveInputIgnored() && !LocalController->IsLookInputIgnored(), bHost);
         break;
     }
 }

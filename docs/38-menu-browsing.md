@@ -1,5 +1,10 @@
 # Local menu browsing
 
+The owner-directed player inventory panel now uses the fixed forty-cell grid
+in `47-inventory-grid.md`, without search, filters, sorting or separate tool
+rows. Earlier inventory-menu acceptance below is historical. Recipe, build,
+station and chest browsing contracts remain applicable to their own views.
+
 The first M11 browsing increment extends interactive inventory inspection in
 the existing crafting/build modal. The read-only gameplay HUD remains unchanged.
 Only the owning pawn's supplied inventory/tool rows can become search results;

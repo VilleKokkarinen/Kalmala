@@ -1,5 +1,11 @@
 # M9 carried-tool inventory contract
 
+**Current player inventory:** the 2026-10-09 owner request places these tool
+records in the same forty-cell inventory as item stacks. Records retain their
+existing condition/level and persistence roles; they provide no extra player
+carrying capacity or separate toolbelt. See `47-inventory-grid.md`. The
+sections below retain the tool gameplay and persistence contract.
+
 The first tool-progression increment replaces separate per-tool condition
 properties with the character's bounded `CarriedTools` record array. Each
 `FKalmalaToolState` carries a canonical tool ID, condition, and authored tool

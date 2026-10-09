@@ -20,6 +20,9 @@ struct KALMALAGAMEPLAY_API FKalmalaItemDefinition
 
     UPROPERTY(EditAnywhere)
     int32 MaxStack = 1;
+
+    UPROPERTY(EditAnywhere)
+    float WeightKg = 1.0f;
 };
 
 /** JSON-backed game data. Client copies are presentation only, never authority. */

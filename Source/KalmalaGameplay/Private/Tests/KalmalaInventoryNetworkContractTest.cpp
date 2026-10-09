@@ -31,14 +31,17 @@ bool FKalmalaInventoryNetworkContractTest::RunTest(const FString& Parameters)
     {
         for (TFieldIterator<UFunction> Function(Class, EFieldIteratorFlags::ExcludeSuper); Function; ++Function)
         {
-            TestFalse(*FString::Printf(TEXT("No client-callable mutation RPC: %s"), *Function->GetName()),
-                Function->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
+            const bool bLayoutIntent = Class == UKalmalaInventoryComponent::StaticClass()
+                && (Function->GetFName() == TEXT("ServerMoveSlot") || Function->GetFName() == TEXT("ServerUseHotbarSlot"));
+            TestTrue(*FString::Printf(TEXT("Only validated grid/hotbar intents are client-callable: %s"), *Function->GetName()),
+                !Function->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer) || bLayoutIntent);
         }
     }
     auto* Inventory = NewObject<UKalmalaInventoryComponent>();
     TestTrue(TEXT("New inventory is empty"), Inventory->GetStacks().IsEmpty());
     TestFalse(TEXT("An ownerless component cannot mint items"), Inventory->TryGrantFromServer(TEXT("Wood"), 1));
     TestFalse(TEXT("An ownerless component cannot consume items"), Inventory->TryConsumeFromServer(TEXT("Wood"), 1));
+    TestFalse(TEXT("An ownerless component cannot move slots"), Inventory->MoveSlotFromServer(0, 1, TEXT("Wood"), NAME_None));
     return true;
 }
 #endif

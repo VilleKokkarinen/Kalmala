@@ -4,6 +4,7 @@
 #include "KalmalaIngredientWidget.h"
 #include "KalmalaRecipeRequirements.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaStorageSaveGame.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaThemedButton.h"
 #include "KalmalaIconWidget.h"
@@ -3212,10 +3213,13 @@ void UKalmalaCraftingWidget::Refresh()
     if (StorageContextStatusText)
     {
         const TArray<FKalmalaInventoryStack>& ChestStacks = M->GetStorageView();
+        const auto* StorageOwner = Cast<AKalmalaCharacter>(OwnerPawn);
+        const int32 OwnedSlotCount = (OwnerInventory ? OwnerInventory->GetStacks().Num() : 0)
+            + (StorageOwner ? StorageOwner->GetCarriedToolInventory().Num() : 0);
         const bool bStorageContextValid = bStorageContext && IsStationContextValid();
-        FString ContextStatus = FString::Printf(TEXT("Pack stacks: %d / %d · Chest stacks: %d / %d\nOne item moves per action."),
-            OwnerInventory ? OwnerInventory->GetStacks().Num() : 0, UKalmalaInventoryComponent::MaxSlots,
-            M->HasStorageView() ? ChestStacks.Num() : 0, UKalmalaInventoryComponent::MaxSlots);
+        FString ContextStatus = FString::Printf(TEXT("Inventory slots: %d / %d · Chest stacks: %d / %d\nOne item moves per action."),
+            OwnedSlotCount, UKalmalaInventoryComponent::MaxSlots,
+            M->HasStorageView() ? ChestStacks.Num() : 0, UKalmalaStorageSaveGame::MaxStorageSlots);
         const FName DepositId = StoragePackInspector ? StoragePackInspector->GetSelectedItem() : NAME_None;
         const FName WithdrawId = StorageContentsInspector ? StorageContentsInspector->GetSelectedItem() : NAME_None;
         const UKalmalaItemCatalogue* ItemsCatalogue = UKalmalaItemCatalogue::Get();
@@ -3227,7 +3231,7 @@ void UKalmalaCraftingWidget::Refresh()
             && M->HasStorageView()
             && (ChestDepositStack
                 ? ItemsCatalogue->CanAddToStack(DepositId, ChestDepositStack->Quantity, 1)
-                : ChestStacks.Num() < UKalmalaInventoryComponent::MaxSlots);
+                : ChestStacks.Num() < UKalmalaStorageSaveGame::MaxStorageSlots);
         const auto* ChestWithdrawStack = ChestStacks.FindByPredicate(
             [WithdrawId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == WithdrawId; });
         const auto* PackWithdrawStack = OwnerInventory ? OwnerInventory->GetStacks().FindByPredicate(
@@ -3236,7 +3240,7 @@ void UKalmalaCraftingWidget::Refresh()
             && ItemsCatalogue->FindItem(WithdrawId)
             && (PackWithdrawStack
                 ? ItemsCatalogue->CanAddToStack(WithdrawId, PackWithdrawStack->Quantity, 1)
-                : OwnerInventory->GetStacks().Num() < UKalmalaInventoryComponent::MaxSlots);
+                : OwnedSlotCount < UKalmalaInventoryComponent::MaxSlots);
         if (!M->HasStorageView()) ContextStatus += TEXT("\nChest view unavailable.");
         else if (!bStorageContextValid) ContextStatus += TEXT("\nChest context expired. Interact with a nearby Chest again.");
         else if (!bCanStoreSelected && !DepositId.IsNone()) ContextStatus += TEXT("\nStore unavailable: chest stack or slot capacity reached.");

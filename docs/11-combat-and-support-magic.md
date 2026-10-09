@@ -185,7 +185,7 @@ replicated presentation and has no combat or world mutation.
 
 The local learned-effect panel reads the owner-only learned mask, the owning
 pawn's replicated stamina, owner-only cooldown expiry and result, and the
-relevant active-effect presentation. Keyboard 1–4 or controller D-pad selects
+relevant active-effect presentation. Keyboard F1–F4 or controller D-pad selects
 Mending, Hearth Shield, Bear's Vigor, or Deer Call; Q or the controller top
 face button requests activation. The owned pawn sends only the selected
 allowlisted enum and its monotonically increasing session sequence. Server

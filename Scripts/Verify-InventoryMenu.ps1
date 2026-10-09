@@ -42,7 +42,7 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Inventory menu review timed out.' }
-    $stages = @('filled', 'details', 'equipment', 'no-results', 'recovered', 'food-ready', 'food-accepted', 'food-repeat', 'live', 'empty', 'empty-bottom')
+    $stages = @('filled', 'details', 'hotbar-assigned', 'hotbar-removed', 'food-ready', 'food-accepted', 'food-repeat', 'live', 'materials-empty', 'hud')
     foreach ($peer in @(@{ Name = 'host'; Text = $hostText; Host = 1 }, @{ Name = 'client'; Text = $clientText; Host = 0 })) {
         foreach ($stage in $stages) {
             if ($peer.Text -notmatch "Inventory menu review: Stage=$stage Passed=1 Host=$($peer.Host) Private=1") {
@@ -58,7 +58,7 @@ try {
         $clientText -notmatch 'Inventory remote: Empty=1' -or $clientText -match 'Inventory remote: Empty=0') {
         throw 'Inventory menu owner privacy/world identity failed.'
     }
-    Write-Output "PASS: Inventory menu host/client owner packs, equipment, search recovery, $Food use/repeat, live refresh, sixteen empty slots, and input restoration at ${Width}x${Height}/$TextScale%/contrast$Contrast."
+    Write-Output "PASS: Inventory menu host/client shared forty-cell grids, hotbar assignment/removal, $Food use/repeat, live refresh, materials depleted without moving tools, and input restoration at ${Width}x${Height}/$TextScale%/contrast$Contrast."
 }
 finally {
     foreach ($peer in @($clientPeer, $hostPeer)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

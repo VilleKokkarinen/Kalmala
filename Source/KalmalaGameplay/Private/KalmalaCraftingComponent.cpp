@@ -341,7 +341,8 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FStri
     {
         return false;
     }
-    if (!Inventory->TryCommitStacksFromServer(Before, CandidateInventory))
+    if (!Inventory->CanFitContents(CandidateInventory, CandidateTools.Num())
+        || !Inventory->TryCommitStacksFromServer(Before, CandidateInventory))
     {
         Reason = TEXT("Pack changed; tool progression was not applied");
         return false;
@@ -361,6 +362,8 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FStri
         return false;
     }
 
+    Inventory->ReplaceGridItemFromServer(Entry->PreviousToolId, ToolId);
+    Inventory->SynchronizeGridFromServer();
     Character->ForceNetUpdate();
     Reason = FString::Printf(TEXT("Crafted %s at level %d; previous tool exchanged where required"),
         *ToolId.ToString(), Entry->TargetToolLevel);

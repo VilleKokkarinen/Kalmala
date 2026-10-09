@@ -54,7 +54,7 @@ if (-not $menuSubsystem.Contains('CreateWidget<UKalmalaInventoryMenuWidget>') -o
 foreach ($emptyPath in @(
     'Normal gameplay keeps Inventory collapsed until opened',
     'Empty owner pack clears selection',
-    'Empty Inventory renders sixteen empty pack slots',
+    'Empty Inventory retains forty grid cells',
     'Empty pack hides the stale detail panel'
 )) {
     if (-not $menuTest.Contains($emptyPath)) {

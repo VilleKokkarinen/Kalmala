@@ -1,5 +1,18 @@
 # Development setup
 
+## User-directed inventory simplification — 2026-10-09
+
+The current player inventory/hotbar contract is `47-inventory-grid.md`; it
+supersedes earlier sixteen-slot Inventory menu captures and browsing checks.
+This normal user-directed increment uses lightweight input, ownership,
+retired-panel, PowerShell parser, whitespace and path audits. Full Unreal
+builds and execution remain deferred. Following a later authorized editor
+build, run `Kalmala.Gameplay.Inventory` and `Kalmala.UI.InventoryMenu` plus
+`Kalmala.UI.Inventory.NumberedHotbar`, then the updated
+`Scripts/Verify-InventoryMenu.ps1` at standard and enlarged high-contrast
+settings. Its materials-empty capture retains the tools in the same grid;
+its final HUD capture verifies the occupied numbered row after the modal closes.
+
 ## M11 skill notification child
 
 See `docs/40-notifications.md`. Build the affected editor target in the short

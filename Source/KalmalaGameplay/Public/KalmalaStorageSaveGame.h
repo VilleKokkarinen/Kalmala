@@ -21,6 +21,7 @@ class KALMALAGAMEPLAY_API UKalmalaStorageSaveGame : public USaveGame
 public:
     static constexpr int32 CurrentSchemaVersion = 1;
     static constexpr int32 MaxRecords = 128;
+    static constexpr int32 MaxStorageSlots = 16;
     void InitializeForWorld(const FKalmalaWorldGenerationConfig& Config);
     bool MatchesWorld(const FKalmalaWorldGenerationConfig& Config) const;
     static bool IsValidConstructionId(const FString& Id);

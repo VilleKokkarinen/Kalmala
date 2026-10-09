@@ -23,6 +23,7 @@ This folder is the project’s durable operating manual. An agent must read the 
 | [Catalogue icon manifest](43-catalogue-icon-manifest.md) | Pinned M12 item/tool icon identities, aliases, shared views, image batches, and the narrow pilot validator |
 | [45 M12 final acceptance](45-m12-acceptance.md) | Final UI repairs, owner Inventory and service captures, combined HUD matrix, verification results, and hardware acceptance |
 | [46 Master integration and cleanup](46-master-cleanup.md) | Preserved branch histories, combined UI verification, and workspace cleanup |
+| [47 Shared player inventory](47-inventory-grid.md) | Forty-cell inventory, numbered hotbar, armor/weight presentation, authority, and verification handoff |
 | [16 Audio cue contract](16-audio-cue-contract.md) | Original audio cues, readable fallbacks, and authority/privacy limits |
 | [18 M7 automated acceptance](18-m7-automated-acceptance.md) | Headless M7 progression, camp recovery, food, creature, discovery, and privacy acceptance |
 | [20 M8 ocean travel budget profile](20-m8-ocean-performance-budget.md) | Serialized travel-save size cap, measurement, and remaining M8 profiling work |

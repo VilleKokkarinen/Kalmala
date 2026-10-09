@@ -26,7 +26,24 @@ class KALMALAGAMEPLAY_API UKalmalaInventoryComponent : public UActorComponent
     GENERATED_BODY()
 public:
     UKalmalaInventoryComponent();
-    static constexpr int32 MaxSlots = 16;
+    static constexpr int32 Columns = 10;
+    static constexpr int32 Rows = 4;
+    static constexpr int32 MaxSlots = Columns * Rows;
+    const TArray<FName>& GetGridSlots() const { return GridSlots; }
+    FName GetSlotItem(int32 Slot) const;
+    FName GetActiveItem() const { return ActiveItem; }
+    bool OwnsGridItem(FName ItemId) const;
+    float GetCarriedWeight() const;
+    float GetCarryCapacity() const { return CarryCapacity; }
+    bool CanFitContents(const TArray<FKalmalaInventoryStack>& Items, int32 ToolCount) const;
+    /** Stable, gap-preserving placement; tools and stacks share these same cells. */
+    static bool BuildGridLayout(const TArray<FName>& Owned, const TArray<FName>& Before, TArray<FName>& After);
+    void SynchronizeGridFromServer();
+    /** Retain a cell when a trusted tool-upgrade transaction replaces its identity. */
+    void ReplaceGridItemFromServer(FName Previous, FName Replacement);
+    bool MoveSlotFromServer(int32 Source, int32 Target, FName ExpectedSource, FName ExpectedTarget);
+    UFUNCTION(Server, Reliable) void ServerMoveSlot(int32 Source, int32 Target, FName ExpectedSource, FName ExpectedTarget);
+    UFUNCTION(Server, Reliable) void ServerUseHotbarSlot(int32 Slot);
     const TArray<FKalmalaInventoryStack>& GetStacks() const { return Stacks; }
     /** Local owner receipt buffer, never used as inventory authority or persistence. */
     const TArray<FKalmalaItemGainReceipt>& GetGainReceipts() const { return GainReceipts; }
@@ -63,6 +80,11 @@ private:
     TArray<FKalmalaItemGainReceipt> GainReceipts;
     int64 GainSequence = 0;
     UPROPERTY(Replicated) TArray<FKalmalaInventoryStack> Stacks;
+    UPROPERTY(Replicated) TArray<FName> GridSlots;
+    UPROPERTY(Replicated) FName ActiveItem;
+    UPROPERTY(EditDefaultsOnly, Category = "Inventory", meta = (ClampMin = "1.0")) float CarryCapacity = 300.0f;
+    double LastLayoutRequestTime = -1.0;
+    double LastHotbarRequestTime = -1.0;
     bool bVerificationComplete = false;
 #if !UE_BUILD_SHIPPING
     void TickMenuReview(float DeltaTime);

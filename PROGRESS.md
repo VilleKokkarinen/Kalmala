@@ -6,6 +6,8 @@
 - As of 2026-10-09, M0–M12 are complete under their recorded acceptance scope and limitations. M11 and the retained M12 histories are integrated into `master` (`4e297ba`), with the combined editor build, 120-test queue and affected rendered checks passing. Temporary worktrees, verification mirrors and regenerable caches were removed at the owner's request; save games, settings, original assets and acceptance evidence remain. No unchecked backlog increment remains.
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
+- The 2026-10-09 user-directed inventory simplification is implemented with lightweight checks: one 10×4 shared grid and occupied-cell hotbar. Its new Unreal build/rendered/input/peer verification is deferred; see docs/47-inventory-grid.md and the latest handoff.
+
 ## Run log
 
 ### 2026-10-03T09:01:54Z — Animate Escape options opening
@@ -14867,3 +14869,86 @@ verification and does not change completed milestone acceptance. The removed
 game binaries still require a normal editor build before play. Gameplay,
 networking/authority, client-request validation, saved data and source assets
 are unchanged. No next eligible roadmap task; stop after committing this repair.
+
+## 2026-10-09 — User-directed shared inventory and numbered hotbar
+
+Outcome: implemented exactly one owner-directed inventory simplification after
+M0–M12 completion. The initially clean main checkout had no other active
+Kalmala chat modifying it; a second status check before handoff confirmed this.
+The request supersedes autonomous backlog selection because it explicitly
+specifies new work and no unchecked roadmap increment remains.
+
+Work: one ten-column/four-row player grid now holds tools and item stacks in
+forty shared cells. Its top row is labelled 1–9, 0 and is the hotbar itself.
+Owner-local dragging swaps/moves cells through validated server intent;
+keyboard/controller navigation includes empty cells and supports pick/place
+and cancellation. Position reconciliation retains gaps, removes exhausted
+stacks without renumbering, and places new holdings into free cells. Trusted
+tool upgrades retain the replaced tool's cell. Live grants, exchanges,
+withdrawals and paid tool progression count tool records against the same
+forty-cell limit. Existing world chests retain sixteen slots and their schema.
+The simpler upper-left inventory panel removes search/filter/sort and separate
+tool rows, retaining selected-item descriptions and existing food/repair
+transactions. Current armor and weight/capacity appear below the grid.
+The ordinary upper-left HUD displays only occupied numbered cells in 1–9, 0
+order, with original icons, quantities, tool condition and active underline;
+modals suppress it. Number keys select the server-owned cell, supported food
+uses the existing server transaction, and selected tools supply validated
+harvest intent. Support selection moves from 1–4 to F1–F4 to free the digits.
+
+Files changed: Config/DefaultInput.ini; Scripts/Verify-LocalInputContract.ps1,
+Verify-InventoryMenu.ps1 and Verify-InventoryPanelRemoval.ps1; gameplay
+KalmalaCharacter, KalmalaCraftingComponent, KalmalaGameCatalogueLoader,
+KalmalaInventoryComponent, KalmalaInventoryTransactions, KalmalaInventoryGrid,
+KalmalaItemCatalogue and KalmalaStorageSaveGame sources/headers; UI
+KalmalaInventoryMenuSubsystem, KalmalaInventoryMenuWidget and the new
+KalmalaInventoryGridWidget sources/headers; KalmalaCraftingSubsystem storage
+capacity presentation; inventory network/selection tests plus new shared-grid
+and numbered-hotbar automation; BACKLOG.md, PROGRESS.md and docs/02,05,07,11,14,
+27,38,47 and README.md.
+
+Lightweight checks actually performed (passed):
+- Scripts/Verify-LocalInputContract.ps1: five axes and twenty-four actions.
+- Scripts/Verify-PresentationOwnership.ps1, including retired inventory-panel
+  and disabled tutorial-card audits; Verify-InventoryPanelRemoval.ps1 also
+  ran explicitly.
+- Scripts/Verify-M5DocumentationContracts.ps1: all five no-build contracts.
+- PowerShell AST parsing of all three changed scripts; catalogue JSON parsing
+  and schema-4 bounds (forty-one items); UI method declaration/definition
+  consistency checks; git diff --check; changed-path MAX_PATH audit (maximum
+  ninety-one characters before this handoff, rechecked before commit).
+- Careful source inspection of merged item/tool capacity, owner-only cell and
+  active-item replication, index/identity/cadence validation, stale drag
+  rejection, storage bounds, selected-tool intent and modal restoration.
+  Consulted installed UE5.8 headers/implementation for the delegate, UMG input,
+  canvas placement, Slate paint layering and strict catalogue conversion APIs.
+  Repaired the initial custom-paint layering approach before delivery so cell
+  backgrounds are child widgets behind the existing original icon widgets.
+
+Full verification remains deferred. This was not milestone-final verification:
+no Unreal/project build, Unreal automation execution, editor/headless peer
+launch, rendered capture, packaging, physical input, or performance profile
+was run. New/updated Unreal tests and the prepared rendered Inventory helper
+are an unexecuted verification handoff; previous M12/master acceptance remains
+historical evidence and does not certify this new layout.
+
+Observable impact when rebuilt: one shared player storage area, direct numbered
+assignment, stable empty cells and a sparse gameplay hotbar. Authority: the
+server still controls contents, quantities, condition, progression, food and
+harvesting; clients request only indices/expected identities or a hotbar index.
+New cell/active state is owner-only and never a grant/delete/quantity RPC.
+Existing tool records are metadata rather than extra inventory capacity.
+Saved-data fields/versions, original assets and generated project directories
+were not modified. Main checkout work requires no worktree handoff sync.
+
+Limits: there are no existing armor-equipment records, so armor displays None
+and 0. Weight is a presentation metric with provisional 1 kg/item, 2 kg/tool
+and a 300 kg component-default capacity; no new encumbrance penalty or weight
+rejection was added. Cell arrangement/active selection are session state and
+rebuild on reconnect; existing material/tool persistence limitations remain.
+Some service views retain inspection controls over the same holdings. Final
+visual/input/multiplayer acceptance awaits the checks in docs/47.
+
+Next eligible task: none in the completed roadmap. A separately authorized
+verification run can build and execute the new inventory automation and paired
+rendered/input checks. Stop after this increment's commit.

@@ -218,14 +218,16 @@ UKalmalaInventoryComponent::UKalmalaInventoryComponent()
 {
     SetIsReplicatedByDefault(true);
     PrimaryComponentTick.bCanEverTick = true;
-    PrimaryComponentTick.bStartWithTickEnabled = false;
-    PrimaryComponentTick.TickInterval = 1.0f;
+    PrimaryComponentTick.bStartWithTickEnabled = true;
+    PrimaryComponentTick.TickInterval = 0.25f;
 }
 
 void UKalmalaInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, Stacks, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, GridSlots, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, ActiveItem, COND_OwnerOnly);
 }
 
 int32 UKalmalaInventoryComponent::GetQuantity(FName ItemId) const
@@ -242,11 +244,14 @@ bool UKalmalaInventoryComponent::TryGrantFromServer(FName ItemId, int32 Quantity
     auto* Stack = Stacks.FindByPredicate([ItemId](const FKalmalaInventoryStack& Entry) { return Entry.ItemId == ItemId; });
     if (!Stack)
     {
-        if (Stacks.Num() >= MaxSlots) return false;
+        const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
+        const int32 ToolCount = Character ? Character->GetCarriedToolInventory().Num() : 0;
+        if (Stacks.Num() + ToolCount >= MaxSlots) return false;
         Stack = &Stacks.AddDefaulted_GetRef();
         Stack->ItemId = ItemId;
     }
     Stack->Quantity += Quantity;
+    SynchronizeGridFromServer();
     ClientAcceptedGain(ItemId, Quantity);
     GetOwner()->ForceNetUpdate();
     return true;
@@ -260,6 +265,7 @@ bool UKalmalaInventoryComponent::TryConsumeFromServer(FName ItemId, int32 Quanti
     if (Index == INDEX_NONE || Stacks[Index].Quantity < Quantity) return false;
     Stacks[Index].Quantity -= Quantity;
     if (Stacks[Index].Quantity == 0) Stacks.RemoveAt(Index);
+    SynchronizeGridFromServer();
     GetOwner()->ForceNetUpdate();
     return true;
 }
@@ -267,9 +273,7 @@ bool UKalmalaInventoryComponent::TryConsumeFromServer(FName ItemId, int32 Quanti
 void UKalmalaInventoryComponent::BeginPlay()
 {
     Super::BeginPlay();
-#if !UE_BUILD_SHIPPING
-    SetComponentTickEnabled(FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryTest")));
-#endif
+    SynchronizeGridFromServer();
 }
 
 void UKalmalaInventoryComponent::ClientAcceptedGain_Implementation(FName ItemId, int32 Quantity)
@@ -293,7 +297,9 @@ void UKalmalaInventoryComponent::RecordAcceptedGains(const TArray<FKalmalaInvent
 void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTick)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTick);
+    SynchronizeGridFromServer();
 #if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryTest"))) return;
     APawn* Pawn = Cast<APawn>(GetOwner());
     if (!Pawn || !Pawn->GetPlayerState()) return;
     if (bVerificationComplete)

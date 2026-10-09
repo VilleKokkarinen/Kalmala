@@ -1,0 +1,81 @@
+# Shared player inventory and numbered hotbar
+
+The owner's 2026-10-09 request supersedes the earlier sixteen-slot pack and
+separate carried-tool presentation. The player has one ten-column, four-row
+inventory. Materials, meals, kits and tools all occupy this same forty-cell
+space; tool condition/level records are metadata for those cells, with no
+additional toolbelt capacity. Existing station and chest inspection panels
+read the same holdings and do not create another player inventory.
+
+The upper row is labelled `1 2 3 4 5 6 7 8 9 0`. Its cells are the hotbar.
+Moving or swapping an item into a numbered cell assigns that number directly;
+moving it into a lower row removes its hotbar entry. Exhausting a stack leaves
+its cell empty and preserves every other cell's position. New holdings enter
+the first free cell. Existing starting tools occupy ordinary cells. Tool
+upgrades retain the replaced tool's cell.
+
+Tab / I opens the panel at the upper left. Drag between cells to move or swap.
+Arrows / D-pad navigate all forty cells, including empty cells; Enter / A picks
+up and places, and Escape / B cancels a pending keyboard move before closing
+the panel. The selected item retains its shared description, food-use action,
+and applicable free selected-tool repair. Search, category, sorting, and the
+separate tool section are removed from this player panel. Its outer scroll
+retains access to descriptions/actions on small viewports and at larger text
+scales. The grid remains ten by four while fitting the panel width.
+
+Normal gameplay shows only occupied numbered cells in a compact upper-left
+row, preserving their original numbers in `1` through `9`, then `0` order.
+For example, occupied cells 1, 4 and 0 render three entries labelled 1, 4, 0.
+The row hides during inventory and other movement-blocking modals, and when
+all ten cells are empty. Original catalogue icons, quantities, condition bars,
+and an active-item underline remain visible. Number keys select the server's
+item in that cell; supported food uses the existing validated meal transaction.
+An active tool supplies subsequent harvest intent, which the server still
+independently validates. Support-magic selection moves to F1–F4; its controller
+D-pad and Q / controller activation bindings retain their existing meanings.
+
+Below the grid, current armor displays `None` / armor 0 because the existing
+game has no armor-equipment records. Carry weight includes stack quantities
+and tools. Current prototype defaults are 1 kg per item unit, 2 kg per tool,
+and a 300 kg displayed capacity. `FKalmalaItemDefinition::WeightKg` is an
+optional validated catalogue value and capacity is a component class default.
+These are presentation metrics; this increment introduces no encumbrance
+penalty or weight-based transaction rejection. Armor items, equipment rules,
+and final weight balance require separate gameplay work.
+
+## Authority and compatibility
+
+The server reconciles trusted item stacks and tool records into one runtime
+cell array, retaining valid positions and removing depleted identities. Cell
+positions and active identity replicate with `COND_OwnerOnly`. A move RPC
+carries only source/target indices and their expected identities: bounds,
+current server ownership, stale contents, and request cadence are checked
+before swapping. It cannot grant, delete, split, duplicate, repair, or author
+quantities. Hotbar intent carries only an index in 0–9; the server derives its
+identity and validates food through the existing transaction path.
+
+Live grant, exchange, storage withdrawal and tool progression account for
+both tools and stacks within forty cells. World chest capacity remains sixteen
+stacks; its persistence validation and schema stay unchanged. No saved-data
+field or version changes. Grid arrangement and active selection are session
+state; reconnects rebuild arrangement from available holdings. Existing item
+and tool persistence limitations still apply.
+
+## Verification handoff
+
+This is one user-directed development increment after the completed roadmap,
+not milestone-final verification. Lightweight source/API inspection, input and
+presentation-ownership audits, retired-panel audit, changed PowerShell parser
+checks, whitespace and MAX_PATH checks were performed; full Unreal compilation,
+automation, rendered UI, physical input, and multiplayer execution are deferred.
+
+New automation covers shared capacity, stable gaps, depleted hotbar cells,
+duplicate/overflow rejection and compressed number order. Selection and RPC
+contract coverage were updated for the simpler panel. The prepared rendered
+`Scripts/Verify-InventoryMenu.ps1` now captures filled/detail views, assignment
+to key 0, removal into row two, meal use/repeat, live quantity refresh, depleted
+materials with tools retained, and the normal HUD. These updated Unreal tests
+and captures have not been executed in this increment. After an authorized
+editor build, run the inventory gameplay/UI automations and this helper at
+1280x720/100%/contrast0 and 1024x768/150%/contrast1, then inspect both peers'
+captures and physical drag/controller input before claiming rendered acceptance.

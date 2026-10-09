@@ -2,10 +2,6 @@
 
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
-#include "Components/Button.h"
-#include "Components/EditableTextBox.h"
-#include "Components/HorizontalBox.h"
-#include "Components/HorizontalBoxSlot.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
 #include "Components/ScrollBox.h"
@@ -14,13 +10,13 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "Framework/Application/SlateApplication.h"
-#include "Styling/CoreStyle.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCraftingComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "InputCoreTypes.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaInventoryGridWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaPlayerStatusComponent.h"
@@ -58,181 +54,78 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
     SetIsFocusable(true);
-
-    if (WidgetTree == nullptr) return;
-
-    UOverlay* Root = WidgetTree->ConstructWidget<UOverlay>();
-    WidgetTree->RootWidget = Root;
-
-    UBorder* Scrim = WidgetTree->ConstructWidget<UBorder>();
-    Scrim->SetBrushColor(FLinearColor(0.008f, 0.012f, 0.014f, 0.72f));
-    UOverlaySlot* ScrimSlot = Root->AddChildToOverlay(Scrim);
-    ScrimSlot->SetHorizontalAlignment(HAlign_Fill);
-    ScrimSlot->SetVerticalAlignment(VAlign_Fill);
-
-    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    if (!WidgetTree) return;
+    const auto& Theme = FKalmalaUITheme::Get();
     const int32 TextScale = UKalmalaSettingsWidget::GetTextScalePercent();
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
-
-    UBorder* Panel = WidgetTree->ConstructWidget<UBorder>();
+    auto* Root = WidgetTree->ConstructWidget<UOverlay>();
+    WidgetTree->RootWidget = Root;
+    auto* Scrim = WidgetTree->ConstructWidget<UBorder>();
+    Scrim->SetBrushColor(FLinearColor(0.008f, 0.012f, 0.014f, 0.25f));
+    auto* ScrimSlot = Root->AddChildToOverlay(Scrim);
+    ScrimSlot->SetHorizontalAlignment(HAlign_Fill);
+    ScrimSlot->SetVerticalAlignment(VAlign_Fill);
+    auto* Panel = WidgetTree->ConstructWidget<UBorder>();
     Theme.ApplyPanel(*Panel, Contrast, &Theme.InventoryPanelImage);
     Panel->SetPadding(FMargin(Theme.PaddingX * 1.5f, Theme.PaddingY * 1.5f));
-
-    UVerticalBox* Content = WidgetTree->ConstructWidget<UVerticalBox>();
+    auto* Content = WidgetTree->ConstructWidget<UVerticalBox>();
     MenuContentScrollBox = WidgetTree->ConstructWidget<UScrollBox>();
     Theme.ApplyScroll(*MenuContentScrollBox);
     MenuContentScrollBox->OnUserScrolled.AddDynamic(this, &ThisClass::MenuScrolled);
     MenuContentScrollBox->AddChild(Content);
-    UTextBlock* Heading = WidgetTree->ConstructWidget<UTextBlock>();
-    Heading->SetText(FText::FromString(TEXT("Inventory")));
-    Theme.ApplyText(*Heading, Theme.EmphasisSize, true, TextScale, Contrast);
-    Content->AddChildToVerticalBox(Heading);
-
-    UTextBlock* Section = WidgetTree->ConstructWidget<UTextBlock>();
-    Section->SetText(FText::FromString(TEXT("Pack contents")));
-    Theme.ApplyText(*Section, Theme.BodySize, false, TextScale, Contrast);
-    Content->AddChildToVerticalBox(Section);
-
-    PackStateText = WidgetTree->ConstructWidget<UTextBlock>();
-    PackStateText->SetText(FText::FromString(TEXT("Waiting for your pack.")));
-    Theme.ApplyText(*PackStateText, Theme.BodySize, false, TextScale, Contrast);
-    Content->AddChildToVerticalBox(PackStateText);
-
-    BrowseSearchLabel = WidgetTree->ConstructWidget<UTextBlock>();
-    BrowseSearchLabel->SetText(FText::FromString(TEXT("Search carried items and tools")));
-    Theme.ApplyText(*BrowseSearchLabel, Theme.BodySize, true, TextScale, Contrast);
-    Content->AddChildToVerticalBox(BrowseSearchLabel);
-
-    UHorizontalBox* SearchControls = WidgetTree->ConstructWidget<UHorizontalBox>();
-    InventorySearchBox = WidgetTree->ConstructWidget<UEditableTextBox>();
-    InventorySearchBox->SetHintText(FText::FromString(TEXT("Search by visible item name")));
-    InventorySearchStyle = FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>(TEXT("NormalEditableTextBox"));
-    InventorySearchBox->OnTextChanged.AddDynamic(this, &ThisClass::InventorySearchChanged);
-    SearchControls->AddChildToHorizontalBox(InventorySearchBox)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-
-    ClearSearchButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-    ClearSearchButtonLabel = WidgetTree->ConstructWidget<UTextBlock>();
-    ClearSearchButtonLabel->SetText(FText::FromString(TEXT("Clear search")));
-    ClearSearchButton->SetContent(ClearSearchButtonLabel);
-    ClearSearchButton->OnClicked.AddDynamic(this, &ThisClass::ClearInventorySearch);
-    SearchControls->AddChildToHorizontalBox(ClearSearchButton)->SetPadding(FMargin(6.0f, 0.0f, 0.0f, 0.0f));
-    Content->AddChildToVerticalBox(SearchControls);
-
-    UHorizontalBox* BrowseControls = WidgetTree->ConstructWidget<UHorizontalBox>();
-    CategoryButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-    CategoryButtonLabel = WidgetTree->ConstructWidget<UTextBlock>();
-    CategoryButtonLabel->SetAutoWrapText(true);
-    CategoryButton->SetContent(CategoryButtonLabel);
-    CategoryButton->OnClicked.AddDynamic(this, &ThisClass::CycleInventoryCategory);
-    BrowseControls->AddChildToHorizontalBox(CategoryButton)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-
-    SortButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-    SortButtonLabel = WidgetTree->ConstructWidget<UTextBlock>();
-    SortButtonLabel->SetAutoWrapText(true);
-    SortButton->SetContent(SortButtonLabel);
-    SortButton->OnClicked.AddDynamic(this, &ThisClass::CycleInventorySort);
-    UHorizontalBoxSlot* SortSlot = BrowseControls->AddChildToHorizontalBox(SortButton);
-    SortSlot->SetPadding(FMargin(6.0f, 0.0f, 0.0f, 0.0f));
-    SortSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-    Content->AddChildToVerticalBox(BrowseControls);
-
-    BrowseStateText = WidgetTree->ConstructWidget<UTextBlock>();
-    BrowseStateText->SetAutoWrapText(true);
-    Theme.ApplyText(*BrowseStateText, Theme.BodySize, false, TextScale, Contrast);
-    Content->AddChildToVerticalBox(BrowseStateText);
-
-    UHorizontalBox* SelectionControls = WidgetTree->ConstructWidget<UHorizontalBox>();
-    PreviousItemButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-    UTextBlock* PreviousLabel = WidgetTree->ConstructWidget<UTextBlock>();
-    PreviousLabel->SetText(FText::FromString(TEXT("Previous item")));
-    PreviousItemButton->SetContent(PreviousLabel);
-    Theme.ApplyButton(*PreviousItemButton, Contrast);
-    Theme.ApplyText(*PreviousLabel, Theme.BodySize, false, TextScale, Contrast);
-    SelectionControls->AddChildToHorizontalBox(PreviousItemButton)->SetPadding(FMargin(0.0f, 0.0f, 6.0f, 0.0f));
-
-    SelectedItemText = WidgetTree->ConstructWidget<UTextBlock>();
-    SelectedItemText->SetJustification(ETextJustify::Center);
-    SelectedItemText->SetAutoWrapText(true);
-    Theme.ApplyText(*SelectedItemText, Theme.BodySize, true, TextScale, Contrast);
-    SelectionControls->AddChildToHorizontalBox(SelectedItemText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-
-    NextItemButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-    UTextBlock* NextLabel = WidgetTree->ConstructWidget<UTextBlock>();
-    NextLabel->SetText(FText::FromString(TEXT("Next item")));
-    NextItemButton->SetContent(NextLabel);
-    Theme.ApplyButton(*NextItemButton, Contrast);
-    Theme.ApplyText(*NextLabel, Theme.BodySize, false, TextScale, Contrast);
-    SelectionControls->AddChildToHorizontalBox(NextItemButton)->SetPadding(FMargin(6.0f, 0.0f, 0.0f, 0.0f));
-    PreviousItemButton->OnClicked.AddDynamic(this, &ThisClass::SelectPreviousItem);
-    NextItemButton->OnClicked.AddDynamic(this, &ThisClass::SelectNextItem);
-    Content->AddChildToVerticalBox(SelectionControls);
-
-    UHorizontalBox* ToolActions = WidgetTree->ConstructWidget<UHorizontalBox>();
-    RepairToolButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-    UTextBlock* RepairLabel = WidgetTree->ConstructWidget<UTextBlock>();
-    RepairLabel->SetText(FText::FromString(TEXT("Repair selected tool")));
-    RepairToolButton->SetContent(RepairLabel);
-    Theme.ApplyButton(*RepairToolButton, Contrast);
-    Theme.ApplyText(*RepairLabel, Theme.BodySize, false, TextScale, Contrast);
-    RepairToolButton->OnClicked.AddDynamic(this, &ThisClass::RepairSelectedTool);
-    ToolActions->AddChildToHorizontalBox(RepairToolButton)->SetPadding(FMargin(0.0f, 0.0f, 8.0f, 0.0f));
-
-    ToolActionStatusText = WidgetTree->ConstructWidget<UTextBlock>();
-    ToolActionStatusText->SetAutoWrapText(true);
-    Theme.ApplyText(*ToolActionStatusText, Theme.BodySize, false, TextScale, Contrast);
-    ToolActions->AddChildToHorizontalBox(ToolActionStatusText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-    Content->AddChildToVerticalBox(ToolActions);
-    RepairToolButton->SetVisibility(ESlateVisibility::Collapsed);
-    ToolActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
-
-    UHorizontalBox* FoodActions = WidgetTree->ConstructWidget<UHorizontalBox>();
-    EatFoodButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-    UTextBlock* EatFoodLabel = WidgetTree->ConstructWidget<UTextBlock>();
-    EatFoodLabel->SetText(FText::FromString(TEXT("Eat one serving")));
-    EatFoodButton->SetContent(EatFoodLabel);
-    Theme.ApplyButton(*EatFoodButton, Contrast);
-    Theme.ApplyText(*EatFoodLabel, Theme.BodySize, false, TextScale, Contrast);
-    EatFoodButton->OnClicked.AddDynamic(this, &ThisClass::EatSelectedFood);
-    FoodActions->AddChildToHorizontalBox(EatFoodButton)->SetPadding(FMargin(0.0f, 0.0f, 8.0f, 0.0f));
-
-    FoodActionStatusText = WidgetTree->ConstructWidget<UTextBlock>();
-    FoodActionStatusText->SetAutoWrapText(true);
-    Theme.ApplyText(*FoodActionStatusText, Theme.BodySize, false, TextScale, Contrast);
-    FoodActions->AddChildToHorizontalBox(FoodActionStatusText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-    Content->AddChildToVerticalBox(FoodActions);
-    EatFoodButton->SetVisibility(ESlateVisibility::Collapsed);
-    FoodActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
-
-    UHorizontalBox* PackAndDetail = WidgetTree->ConstructWidget<UHorizontalBox>();
-    InventoryScrollBox = WidgetTree->ConstructWidget<UScrollBox>();
-    Theme.ApplyScroll(*InventoryScrollBox);
-    InventoryScrollBox->OnUserScrolled.AddDynamic(this, &ThisClass::InventoryScrolled);
-    InventoryRowsView = WidgetTree->ConstructWidget<UKalmalaCatalogueRowsWidget>();
-    InventoryScrollBox->AddChild(InventoryRowsView);
-    PackAndDetail->AddChildToHorizontalBox(InventoryScrollBox)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    auto AddText = [&](const FString& Value, const bool bEmphasis)
+    {
+        auto* Text = WidgetTree->ConstructWidget<UTextBlock>();
+        Text->SetText(FText::FromString(Value));
+        Text->SetAutoWrapText(true);
+        Theme.ApplyText(*Text, bEmphasis ? Theme.EmphasisSize : Theme.BodySize, bEmphasis, TextScale, Contrast);
+        Content->AddChildToVerticalBox(Text);
+        return Text;
+    };
+    AddText(TEXT("Inventory"), true);
+    GridView = WidgetTree->ConstructWidget<UKalmalaInventoryGridWidget>();
+    GridView->OnItemSelected.AddUObject(this, &ThisClass::SelectGridItem);
+    GridSizeBox = WidgetTree->ConstructWidget<USizeBox>();
+    GridSizeBox->SetHeightOverride((ResponsivePanelWidth - Theme.PaddingX * 3.0f) * 0.4f);
+    GridSizeBox->SetContent(GridView);
+    Content->AddChildToVerticalBox(GridSizeBox);
+    ArmorWeightText = AddText(TEXT("Current armor: None · Armor 0     Weight: 0 / 300 kg"), false);
+    PackStateText = AddText(TEXT("Waiting for your pack."), false);
+    AddText(TEXT("Drag to move or swap. Arrows / D-pad select; Enter / A picks up and places. Top row: 1–9, 0."), false);
+    SelectedItemText = AddText(TEXT("No item selected."), false);
     ItemDetailView = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
-    PackAndDetail->AddChildToHorizontalBox(ItemDetailView)->SetPadding(FMargin(4.0f, 0.0f, 0.0f, 0.0f));
-    USizeBox* InventoryArea = WidgetTree->ConstructWidget<USizeBox>();
-    // Let enlarged descriptions and equipment rows contribute their full
-    // height to the outer scroll range instead of clipping below a fixed pane.
-    InventoryArea->SetMinDesiredHeight(300.0f);
-    InventoryArea->SetContent(PackAndDetail);
-    Content->AddChildToVerticalBox(InventoryArea);
-
-    UpdateBrowseControls(TextScale, Contrast);
-
+    Content->AddChildToVerticalBox(ItemDetailView);
+    auto AddAction = [&](const FString& Label)
+    {
+        auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+        auto* Text = WidgetTree->ConstructWidget<UTextBlock>();
+        Text->SetText(FText::FromString(Label));
+        Theme.ApplyText(*Text, Theme.BodySize, false, TextScale, Contrast);
+        Button->SetContent(Text);
+        Theme.ApplyButton(*Button, Contrast);
+        Content->AddChildToVerticalBox(Button);
+        Button->SetVisibility(ESlateVisibility::Collapsed);
+        return Button;
+    };
+    RepairToolButton = AddAction(TEXT("Repair selected tool"));
+    RepairToolButton->OnClicked.AddDynamic(this, &ThisClass::RepairSelectedTool);
+    ToolActionStatusText = AddText(TEXT(""), false);
+    ToolActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
+    EatFoodButton = AddAction(TEXT("Eat one serving"));
+    EatFoodButton->OnClicked.AddDynamic(this, &ThisClass::EatSelectedFood);
+    FoodActionStatusText = AddText(TEXT(""), false);
+    FoodActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
     Panel->SetContent(MenuContentScrollBox);
     PanelSizeBox = WidgetTree->ConstructWidget<USizeBox>();
     PanelSizeBox->SetWidthOverride(ResponsivePanelWidth);
     PanelSizeBox->SetHeightOverride(ResponsivePanelHeight);
     PanelSizeBox->SetContent(Panel);
-
-    UOverlaySlot* PanelSlot = Root->AddChildToOverlay(PanelSizeBox);
-    PanelSlot->SetHorizontalAlignment(HAlign_Center);
-    PanelSlot->SetVerticalAlignment(VAlign_Center);
+    auto* PanelSlot = Root->AddChildToOverlay(PanelSizeBox);
+    PanelSlot->SetHorizontalAlignment(HAlign_Left);
+    PanelSlot->SetVerticalAlignment(VAlign_Top);
+    PanelSlot->SetPadding(FMargin(16.0f));
     SetVisibility(ESlateVisibility::Collapsed);
 }
-
 void UKalmalaInventoryMenuWidget::NativeTick(const FGeometry& MyGeometry, const float InDeltaTime)
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
@@ -249,6 +142,8 @@ void UKalmalaInventoryMenuWidget::UpdateResponsivePanelSize(const FVector2D View
         ResponsivePanelWidth = NewWidth;
         PanelSizeBox->SetWidthOverride(ResponsivePanelWidth);
     }
+    if (GridSizeBox) GridSizeBox->SetHeightOverride(
+        FMath::Max(40.0f, (ResponsivePanelWidth - FKalmalaUITheme::Get().PaddingX * 3.0f) * 0.4f));
     if (!FMath::IsNearlyEqual(NewHeight, ResponsivePanelHeight))
     {
         ResponsivePanelHeight = NewHeight;
@@ -269,14 +164,15 @@ void UKalmalaInventoryMenuWidget::Open()
     bAcquiredLookIgnore = !Controller->IsLookInputIgnored();
     if (bAcquiredMoveIgnore) Controller->SetIgnoreMoveInput(true);
     if (bAcquiredLookIgnore) Controller->SetIgnoreLookInput(true);
+    if (GridView) GridView->CancelMove();
     Controller->bShowMouseCursor = true;
     FInputModeGameAndUI InputMode;
-    UWidget* FocusTarget = InventorySearchBox ? static_cast<UWidget*>(InventorySearchBox.Get()) : this;
+    UWidget* FocusTarget = GridView ? static_cast<UWidget*>(GridView.Get()) : this;
     InputMode.SetWidgetToFocus(FocusTarget->TakeWidget());
     InputMode.SetHideCursorDuringCapture(false);
     Controller->SetInputMode(InputMode);
     if (MenuContentScrollBox) MenuContentScrollBox->SetScrollOffset(RememberedMenuScrollOffset);
-    if (InventoryScrollBox) InventoryScrollBox->SetScrollOffset(RememberedInventoryScrollOffset);
+
 
     bMenuOpen = true;
     SetVisibility(ESlateVisibility::Visible);
@@ -287,7 +183,7 @@ void UKalmalaInventoryMenuWidget::Open()
 void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
 {
     APlayerController* Controller = GetOwningPlayer();
-    if (Controller == nullptr || !Controller->IsLocalController() || InventoryRowsView == nullptr) return;
+    if (Controller == nullptr || !Controller->IsLocalController()) return;
 
     TArray<FKalmalaCatalogueRow> InventoryRows;
     APawn* OwnerPawn = Controller->GetPawn();
@@ -322,6 +218,15 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
         }
     }
 
+    if (Inventory)
+    {
+        const auto& Slots = Inventory->GetGridSlots();
+        InventoryRows.StableSort([&Slots](const FKalmalaCatalogueRow& A, const FKalmalaCatalogueRow& B)
+        {
+            const int32 Left = Slots.IndexOfByKey(A.Id), Right = Slots.IndexOfByKey(B.Id);
+            return (Left == INDEX_NONE ? 40 : Left) < (Right == INDEX_NONE ? 40 : Right);
+        });
+    }
     const int32 TextScale = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
     ApplyInventoryRows(MoveTemp(InventoryRows), Inventory != nullptr, TextScale, Contrast);
@@ -382,219 +287,79 @@ void UKalmalaInventoryMenuWidget::ApplyInventoryRows(TArray<FKalmalaCatalogueRow
         RememberedSelectedItemId = NAME_None;
     }
 
-    int32 PackRowCount = 0;
-    for (const FKalmalaCatalogueRow& Row : SourceInventoryRows)
-    {
-        if (!Row.bCarriedTool) ++PackRowCount;
-    }
+    int32 PackRowCount = SourceInventoryRows.Num();
     FString State;
     if (!bInventoryAvailable) State = TEXT("Waiting for your pack.");
     else if (PackRowCount == 0) State = TEXT("Your pack is empty.");
-    else State = FString::Printf(TEXT("Your pack has %d of %d slots filled."),
+    else State = FString::Printf(TEXT("Inventory: %d / %d slots"),
         FMath::Min(PackRowCount, UKalmalaInventoryComponent::MaxSlots), UKalmalaInventoryComponent::MaxSlots);
     if (PackStateText->GetText().ToString() != State) PackStateText->SetText(FText::FromString(State));
+
+    auto* Inventory = GetOwningPlayerPawn() ? GetOwningPlayerPawn()->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    if (GridView) GridView->Refresh(Inventory, false, RememberedSelectedItemId);
+    if (ArmorWeightText && Inventory)
+        ArmorWeightText->SetText(FText::FromString(FString::Printf(
+            TEXT("Current armor: None · Armor 0     Weight: %.1f / %.0f kg"),
+            Inventory->GetCarriedWeight(), Inventory->GetCarryCapacity())));
 
     RebuildVisibleInventoryRows(TextScale, Contrast);
 }
 
 void UKalmalaInventoryMenuWidget::RebuildVisibleInventoryRows(const int32 TextScale, const int32 Contrast)
 {
-    const FName PreviouslySelected = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
-        ? OwnerInventoryRows[SelectedInventoryIndex].Id : NAME_None;
-
-    TArray<FKalmalaCatalogueRow> VisibleRows;
-    for (const FKalmalaCatalogueRow& Row : SourceInventoryRows)
-    {
-        const bool bCategoryMatches = InventoryCategoryIndex == 0
-            || Row.bCarriedTool == (InventoryCategoryIndex == 2);
-        const bool bSearchMatches = InventorySearchQuery.IsEmpty()
-            || Row.Name.Contains(InventorySearchQuery, ESearchCase::IgnoreCase);
-        if (bCategoryMatches && bSearchMatches) VisibleRows.Add(Row);
-    }
-
-    if (InventorySortIndex != 0)
-    {
-        VisibleRows.StableSort([this](const FKalmalaCatalogueRow& A, const FKalmalaCatalogueRow& B)
-        {
-            // The shared rows widget renders pack slots before the equipment group.
-            // Keep navigation in that same visible order for both name sorts.
-            if (A.bCarriedTool != B.bCarriedTool) return !A.bCarriedTool;
-            const int32 NameComparison = A.Name.Compare(B.Name, ESearchCase::IgnoreCase);
-            return NameComparison == 0 ? A.Id.LexicalLess(B.Id) : NameComparison < 0;
-        });
-    }
-
-    OwnerInventoryRows = MoveTemp(VisibleRows);
+    OwnerInventoryRows = SourceInventoryRows;
     SelectedInventoryIndex = OwnerInventoryRows.IndexOfByPredicate([this](const FKalmalaCatalogueRow& Row)
-    {
-        return !RememberedSelectedItemId.IsNone() && Row.Id == RememberedSelectedItemId;
-    });
-    if (SelectedInventoryIndex == INDEX_NONE)
-    {
-        SelectedInventoryIndex = OwnerInventoryRows.IndexOfByPredicate([PreviouslySelected](const FKalmalaCatalogueRow& Row)
-        {
-            return !PreviouslySelected.IsNone() && Row.Id == PreviouslySelected;
-        });
-    }
-    if (SelectedInventoryIndex == INDEX_NONE && !OwnerInventoryRows.IsEmpty()) SelectedInventoryIndex = 0;
-
-    const bool bRememberedItemStillOwned = !RememberedSelectedItemId.IsNone()
-        && SourceInventoryRows.ContainsByPredicate([this](const FKalmalaCatalogueRow& Row)
-            { return Row.Id == RememberedSelectedItemId; });
-    if (!bRememberedItemStillOwned)
-    {
-        RememberedSelectedItemId = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
-            ? OwnerInventoryRows[SelectedInventoryIndex].Id : NAME_None;
-    }
-
+    { return Row.Id == RememberedSelectedItemId; });
+    if (SelectedInventoryIndex == INDEX_NONE && !OwnerInventoryRows.IsEmpty() && !bEmptyCellSelected) SelectedInventoryIndex = 0;
+    RememberedSelectedItemId = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
+        ? OwnerInventoryRows[SelectedInventoryIndex].Id : NAME_None;
     RefreshSelectionPresentation(TextScale, Contrast);
 }
-
-void UKalmalaInventoryMenuWidget::SetInventorySearch(const FString& Search)
+void UKalmalaInventoryMenuWidget::SelectGridItem(const FName ItemId)
 {
-    const FString DisplaySearch = Search.Left(64);
-    if (InventorySearchBox && InventorySearchBox->GetText().ToString() != DisplaySearch)
-        InventorySearchBox->SetText(FText::FromString(DisplaySearch));
-    const FString EffectiveSearch = DisplaySearch.TrimStartAndEnd();
-    if (InventorySearchQuery == EffectiveSearch) return;
-    InventorySearchQuery = EffectiveSearch;
-    RebuildVisibleInventoryRows(UKalmalaSettingsWidget::ClampTextScale(
-        UKalmalaSettingsWidget::GetTextScalePercent()), UKalmalaSettingsWidget::GetContrastMode());
-}
-
-void UKalmalaInventoryMenuWidget::SetInventoryCategory(const int32 Category)
-{
-    const int32 NewCategory = FMath::Clamp(Category, 0, 2);
-    if (InventoryCategoryIndex == NewCategory) return;
-    InventoryCategoryIndex = NewCategory;
-    RebuildVisibleInventoryRows(UKalmalaSettingsWidget::ClampTextScale(
-        UKalmalaSettingsWidget::GetTextScalePercent()), UKalmalaSettingsWidget::GetContrastMode());
-}
-
-void UKalmalaInventoryMenuWidget::SetInventorySort(const int32 Sort)
-{
-    const int32 NewSort = FMath::Clamp(Sort, 0, 2);
-    if (InventorySortIndex == NewSort) return;
-    InventorySortIndex = NewSort;
-    RebuildVisibleInventoryRows(UKalmalaSettingsWidget::ClampTextScale(
-        UKalmalaSettingsWidget::GetTextScalePercent()), UKalmalaSettingsWidget::GetContrastMode());
-}
-
-void UKalmalaInventoryMenuWidget::InventorySearchChanged(const FText& Search)
-{
-    SetInventorySearch(Search.ToString());
-}
-
-void UKalmalaInventoryMenuWidget::ClearInventorySearch()
-{
-    SetInventorySearch(TEXT(""));
-}
-
-void UKalmalaInventoryMenuWidget::CycleInventoryCategory()
-{
-    SetInventoryCategory((InventoryCategoryIndex + 1) % 3);
-}
-
-void UKalmalaInventoryMenuWidget::CycleInventorySort()
-{
-    SetInventorySort((InventorySortIndex + 1) % 3);
+    bEmptyCellSelected = ItemId.IsNone();
+    RememberedSelectedItemId = ItemId;
+    SelectedInventoryIndex = OwnerInventoryRows.IndexOfByPredicate(
+        [ItemId](const FKalmalaCatalogueRow& Row) { return Row.Id == ItemId; });
+    RefreshSelectionPresentation(UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
 }
 
 bool UKalmalaInventoryMenuWidget::NavigateInventoryMenu(const FKey Key)
 {
-    if (Key == EKeys::PageUp || Key == EKeys::Gamepad_LeftShoulder)
-    {
-        CycleInventoryCategory();
-        return true;
-    }
-    if (Key == EKeys::PageDown || Key == EKeys::Gamepad_RightShoulder)
-    {
-        CycleInventorySort();
-        return true;
-    }
+    if (GridView && (GridView->HasKeyboardFocus()
+        || (GetOwningPlayer() && GridView->HasUserFocus(GetOwningPlayer())))) return false;
     if (Key == EKeys::Left || Key == EKeys::Up || Key == EKeys::Gamepad_DPad_Left || Key == EKeys::Gamepad_DPad_Up)
-    {
-        StepSelection(-1);
-        return true;
-    }
+    { StepSelection(-1); return true; }
     if (Key == EKeys::Right || Key == EKeys::Down || Key == EKeys::Gamepad_DPad_Right || Key == EKeys::Gamepad_DPad_Down)
-    {
-        StepSelection(1);
-        return true;
-    }
+    { StepSelection(1); return true; }
     return false;
 }
-
-void UKalmalaInventoryMenuWidget::InventoryScrolled(const float Offset)
-{
-    if (!bApplyingInventoryRows && !OwnerInventoryRows.IsEmpty()) RememberedInventoryScrollOffset = Offset;
-}
-
 void UKalmalaInventoryMenuWidget::MenuScrolled(const float Offset)
 {
     RememberedMenuScrollOffset = Offset;
 }
 
-void UKalmalaInventoryMenuWidget::UpdateBrowseControls(const int32 TextScale, const int32 Contrast)
-{
-    if (!InventorySearchBox || !BrowseSearchLabel || !CategoryButton || !SortButton || !ClearSearchButton
-        || !CategoryButtonLabel || !SortButtonLabel || !ClearSearchButtonLabel || !BrowseStateText) return;
-
-    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
-    Theme.ApplyText(*BrowseSearchLabel, Theme.BodySize, true, TextScale, Contrast);
-    InventorySearchStyle.SetFont(Theme.MakeFont(Theme.BodySize, false, TextScale));
-    InventorySearchStyle.SetBackgroundColor(Contrast != 0 ? Theme.HighContrastPanel : Theme.ButtonNormal);
-    InventorySearchBox->SetWidgetStyle(InventorySearchStyle);
-    InventorySearchBox->SetForegroundColor(Theme.TextColor(false, Contrast));
-
-    const TCHAR* Categories[] = {TEXT("All"), TEXT("Items"), TEXT("Carried tools")};
-    const TCHAR* Sorts[] = {TEXT("Owner order"), TEXT("Name"), TEXT("Category / name")};
-    CategoryButtonLabel->SetText(FText::FromString(FString(TEXT("Category: ")) + Categories[InventoryCategoryIndex]));
-    SortButtonLabel->SetText(FText::FromString(FString(TEXT("Sort: ")) + Sorts[InventorySortIndex]));
-    ClearSearchButtonLabel->SetText(FText::FromString(TEXT("Clear search")));
-    ClearSearchButton->SetIsEnabled(!InventorySearchQuery.IsEmpty());
-    for (UKalmalaThemedButton* Button : {CategoryButton.Get(), SortButton.Get(), ClearSearchButton.Get()})
-    {
-        Theme.ApplyButton(*Button, Contrast);
-        UTextBlock* Label = CastChecked<UTextBlock>(Button->GetContent());
-        Label->SetAutoWrapText(true);
-        Theme.ApplyText(*Label, Theme.BodySize, false, TextScale, Contrast);
-    }
-
-    FString BrowseState;
-    if (SourceInventoryRows.IsEmpty()) BrowseState = TEXT("Your inventory has no carried items or tools.");
-    else if (OwnerInventoryRows.IsEmpty()) BrowseState = TEXT("No results. Clear search or choose All to see your inventory.");
-    else BrowseState = FString::Printf(TEXT("Showing %d of %d owner-visible entries."),
-        OwnerInventoryRows.Num(), SourceInventoryRows.Num());
-    BrowseStateText->SetText(FText::FromString(BrowseState));
-    Theme.ApplyText(*BrowseStateText, Theme.BodySize, false, TextScale, Contrast);
-}
-
 void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextScale, const int32 Contrast)
 {
-    if (InventoryRowsView == nullptr || ItemDetailView == nullptr || SelectedItemText == nullptr
-        || PackStateText == nullptr || PreviousItemButton == nullptr || NextItemButton == nullptr
+    if (GridView == nullptr || ItemDetailView == nullptr || SelectedItemText == nullptr
+        || PackStateText == nullptr
         || RepairToolButton == nullptr || ToolActionStatusText == nullptr
-        || EatFoodButton == nullptr || FoodActionStatusText == nullptr || InventoryScrollBox == nullptr) return;
-
-    UpdateBrowseControls(TextScale, Contrast);
+        || EatFoodButton == nullptr || FoodActionStatusText == nullptr) return;
 
     if (LastTextScalePercent != TextScale || LastContrastMode != Contrast)
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
         Theme.ApplyText(*PackStateText, Theme.BodySize, false, TextScale, Contrast);
+        Theme.ApplyText(*ArmorWeightText, Theme.BodySize, false, TextScale, Contrast);
         Theme.ApplyText(*SelectedItemText, Theme.BodySize, true, TextScale, Contrast);
-        Theme.ApplyButton(*PreviousItemButton, Contrast);
-        Theme.ApplyButton(*NextItemButton, Contrast);
-        Theme.ApplyText(*CastChecked<UTextBlock>(PreviousItemButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
-        Theme.ApplyText(*CastChecked<UTextBlock>(NextItemButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
+
         Theme.ApplyButton(*RepairToolButton, Contrast);
         Theme.ApplyText(*CastChecked<UTextBlock>(RepairToolButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
         Theme.ApplyText(*ToolActionStatusText, Theme.BodySize, false, TextScale, Contrast);
         Theme.ApplyButton(*EatFoodButton, Contrast);
         Theme.ApplyText(*CastChecked<UTextBlock>(EatFoodButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
         Theme.ApplyText(*FoodActionStatusText, Theme.BodySize, false, TextScale, Contrast);
-        Theme.ApplyScroll(*InventoryScrollBox);
+
         if (MenuContentScrollBox) Theme.ApplyScroll(*MenuContentScrollBox);
         LastTextScalePercent = TextScale;
         LastContrastMode = Contrast;
@@ -612,12 +377,13 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
             LastRepairResultToolId = NAME_None;
         }
     }
-    bApplyingInventoryRows = true;
-    InventoryRowsView->SetRows(OwnerInventoryRows, UKalmalaInventoryComponent::MaxSlots, TextScale, Contrast, SelectedItem);
-    InventoryScrollBox->SetScrollOffset(RememberedInventoryScrollOffset);
-    bApplyingInventoryRows = false;
-    PreviousItemButton->SetIsEnabled(bHasSelection);
-    NextItemButton->SetIsEnabled(bHasSelection);
+
+
+    if (GridView)
+    {
+        auto* Inventory = GetOwningPlayerPawn() ? GetOwningPlayerPawn()->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+        GridView->Refresh(Inventory, false, SelectedItem);
+    }
 
     const FString SelectionText = bHasSelection
         ? FString::Printf(TEXT("Selected: %s"), *SelectedRow->Name)
@@ -809,9 +575,6 @@ void UKalmalaInventoryMenuWidget::StepSelection(const int32 Direction)
     RefreshSelectionPresentation(TextScale, UKalmalaSettingsWidget::GetContrastMode());
 }
 
-void UKalmalaInventoryMenuWidget::SelectPreviousItem() { StepSelection(-1); }
-void UKalmalaInventoryMenuWidget::SelectNextItem() { StepSelection(1); }
-
 void UKalmalaInventoryMenuWidget::RepairSelectedTool()
 {
     if (!OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)) return;
@@ -858,10 +621,7 @@ void UKalmalaInventoryMenuWidget::SetInventoryRowsForVerification(const TArray<F
     {
         NativeOnInitialized();
     }
-    if (InventoryRowsView)
-    {
-        InventoryRowsView->InitializeForVerification();
-    }
+
     ApplyInventoryRows(TArray<FKalmalaCatalogueRow>(Rows), true, TextScale, Contrast);
 }
 
@@ -875,39 +635,6 @@ void UKalmalaInventoryMenuWidget::StepSelectionForVerification(const int32 Direc
     StepSelection(Direction);
 }
 
-void UKalmalaInventoryMenuWidget::SetInventoryBrowseForVerification(const FString& Search,
-    const int32 Category, const int32 Sort)
-{
-    SetInventorySearch(Search);
-    SetInventoryCategory(Category);
-    SetInventorySort(Sort);
-}
-
-bool UKalmalaInventoryMenuWidget::NavigateForVerification(const FKey Key)
-{
-    return NavigateInventoryMenu(Key);
-}
-
-TArray<FName> UKalmalaInventoryMenuWidget::GetVisibleItemIdsForVerification() const
-{
-    TArray<FName> Ids;
-    for (const FKalmalaCatalogueRow& Row : OwnerInventoryRows) Ids.Add(Row.Id);
-    return Ids;
-}
-
-bool UKalmalaInventoryMenuWidget::HasBrowseFocusTargetsForVerification() const
-{
-    return InventorySearchBox && InventorySearchBox->TakeWidget()->SupportsKeyboardFocus()
-        && CategoryButton && CategoryButton->GetIsFocusable()
-        && SortButton && SortButton->GetIsFocusable()
-        && ClearSearchButton && ClearSearchButton->GetIsFocusable();
-}
-
-void UKalmalaInventoryMenuWidget::SetInventoryScrollOffsetForVerification(const float Offset)
-{
-    RememberedInventoryScrollOffset = FMath::Max(0.0f, Offset);
-}
-
 void UKalmalaInventoryMenuWidget::SetViewportSizeForVerification(const FVector2D ViewportSize)
 {
     UpdateResponsivePanelSize(ViewportSize);
@@ -918,8 +645,8 @@ void UKalmalaInventoryMenuWidget::Close()
 {
     if (!bMenuOpen) return;
     if (MenuContentScrollBox) RememberedMenuScrollOffset = MenuContentScrollBox->GetScrollOffset();
-    if (InventoryScrollBox && !OwnerInventoryRows.IsEmpty())
-        RememberedInventoryScrollOffset = InventoryScrollBox->GetScrollOffset();
+    if (GridView) GridView->CancelMove();
+
     bMenuOpen = false;
     SetVisibility(ESlateVisibility::Collapsed);
 
@@ -945,18 +672,13 @@ bool UKalmalaInventoryMenuWidget::HasTextEntryFocus() const
 
 FReply UKalmalaInventoryMenuWidget::NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event)
 {
-    if (bMenuOpen && !HasTextEntryFocus())
-    {
-        const FKey Key = Event.GetKey();
-        if (Key == EKeys::Gamepad_FaceButton_Right)
-        {
-            Close();
-            return FReply::Handled();
-        }
-        const bool bBrowseButtonFocused = (CategoryButton && CategoryButton->HasKeyboardFocus())
-            || (SortButton && SortButton->HasKeyboardFocus()) || (ClearSearchButton && ClearSearchButton->HasKeyboardFocus());
-        if (!bBrowseButtonFocused && NavigateInventoryMenu(Key)) return FReply::Handled();
-    }
-
+    if (bMenuOpen && NavigateInventoryMenu(Event.GetKey())) return FReply::Handled();
     return Super::NativeOnPreviewKeyDown(Geometry, Event);
+}
+
+FReply UKalmalaInventoryMenuWidget::NativeOnKeyDown(const FGeometry& Geometry, const FKeyEvent& Event)
+{
+    if (bMenuOpen && (Event.GetKey() == EKeys::Escape || Event.GetKey() == EKeys::Gamepad_FaceButton_Right))
+    { Close(); return FReply::Handled(); }
+    return Super::NativeOnKeyDown(Geometry, Event);
 }

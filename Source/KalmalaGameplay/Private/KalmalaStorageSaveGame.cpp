@@ -16,7 +16,7 @@ bool UKalmalaStorageSaveGame::IsValidConstructionId(const FString& Id)
 
 bool UKalmalaStorageSaveGame::IsValidStacks(const TArray<FKalmalaInventoryStack>& Stacks)
 {
-    if (Stacks.Num() > UKalmalaInventoryComponent::MaxSlots) return false;
+    if (Stacks.Num() > MaxStorageSlots) return false;
     TSet<FName> Seen;
     for (const auto& Stack : Stacks)
     {
@@ -28,7 +28,7 @@ bool UKalmalaStorageSaveGame::IsValidStacks(const TArray<FKalmalaInventoryStack>
 
 bool UKalmalaStorageSaveGame::NormalizeLegacyStacks(TArray<FKalmalaInventoryStack>& Stacks)
 {
-    if (Stacks.Num() > UKalmalaInventoryComponent::MaxSlots) return false;
+    if (Stacks.Num() > MaxStorageSlots) return false;
     const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
     TArray<FName> ItemOrder;
     TMap<FName, int64> Quantities;
@@ -62,7 +62,7 @@ bool UKalmalaStorageSaveGame::NormalizeLegacyStacks(TArray<FKalmalaInventoryStac
         int64 Remaining = Quantities.FindRef(ItemId);
         while (Remaining > 0)
         {
-            if (Normalized.Num() >= UKalmalaInventoryComponent::MaxSlots) return false;
+            if (Normalized.Num() >= MaxStorageSlots) return false;
             FKalmalaInventoryStack& Stack = Normalized.AddDefaulted_GetRef();
             Stack.ItemId = ItemId;
             Stack.Quantity = int32(FMath::Min<int64>(Remaining, Definition->MaxStack));

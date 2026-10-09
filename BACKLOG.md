@@ -598,3 +598,7 @@ with additional bounded children inserted in order if live coverage requires the
 ## User-directed project-file recovery — 2026-10-09
 
 - [x] Regenerate Visual Studio project files removed by the authorized cleanup, preserve solution build exclusions, and verify that generated solution references resolve. (Owner authorized recreating `Intermediate`; UnrealBuildTool succeeded, Kalmala and Automation solutions have zero missing project references, and MSBuild solution-configuration validation passed. See docs/42-build-repair.md. No game build or new roadmap increment.)
+
+## User-directed inventory simplification — 2026-10-09
+
+- [x] Replace the player pack/toolbelt presentation with one 10×4 grid; use its 1–9, 0 top row as the directly assigned hotbar, show current armor and carried weight/capacity beneath it, and render only occupied numbered cells at the upper left during ordinary gameplay. (Implementation and lightweight checks complete. Server-owned positions and shared capacity include tools; move/swap and hotbar intents are validated. Armor currently displays None / 0 and weight uses prototype metrics. Full Unreal build, automation and rendered/input/peer acceptance are deferred; see docs/47-inventory-grid.md. One owner-directed increment after the completed roadmap.)
