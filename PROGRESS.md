@@ -13879,3 +13879,54 @@ Main-checkout handoff synchronization: Complete. Inspected the dirty main
 versions; applied only this selected backlog child and progress entry while
 preserving the pre-existing edits. No implementation files or other docs were
 synchronized.
+
+## Run 2026-10-09 07:09 UTC — Filter active status hotbar entries
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in retained worktree
+`E:\dev\Kalmala\wt\m12-hud-feedback-rebuild` on
+`codex/m12-hud-feedback-rebuild`. The main checkout's pre-existing
+`BACKLOG.md` and `PROGRESS.md` edits remain preserved.
+
+Completed exactly M12 goal 10's active-only snapshot child. The local hotbar
+now shows only supported positive-duration owner statuses, existing qualifying
+Hot/Cold exposure, a live supported owner effect, and Storm weather whose
+server-time interval is current and whose intensity meets the shared 0.65
+qualification threshold. Normal weather, fog-only high activity, below-threshold
+storms, and expired/future intervals produce no weather entry. Known status,
+exposure, support, and weather conditions rebuild from each current local
+snapshot; an empty list remains collapsed and calculates to zero height.
+
+Files changed: `Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp`,
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`,
+`docs/07-development-setup.md`, `docs/36-status-icons.md`, `BACKLOG.md`, and
+this `PROGRESS.md` entry.
+
+Lightweight checks: `git diff --check` passed. Manually inspected snapshot
+filtering, use of the existing weather threshold/server clock and exposure
+qualifiers, the status/effect expiry paths, empty collapse sizing, and focused
+assertions for high-fog weather, ordinary weather, threshold edges, stale/future
+intervals, and cleared/unsupported statuses. The updated Unreal automation was
+not run. Full build, automation, rendered host/client/accessibility review, and
+package checks remain deferred to M12 milestone-final verification.
+
+Observable impact: the owner-local upper-left status group no longer displays
+calm/ordinary weather or generic activity labels; stale weather and inactive
+or unsupported entries disappear, with no empty widget height.
+
+Networking/authority: presentation only. The local player reads replicated
+owner-visible status/exposure/effect data and the existing server-selected
+weather plus synchronized server time. No RPC, gameplay mutation, replication,
+save-state, or threshold change was added.
+
+Known limitations: the snapshot automation assertions were updated but not
+executed. The hotbar still uses its current vector icons/text layout and its
+weather timer until the later ordered icon and layout children; rendered peer
+behavior remains for final M12 verification.
+
+Next eligible task: M12 goal 10, pin the supported status/weather icon manifest
+and generate/review its first batch of up to four original transparent 64x64
+images through the established asset pipeline.
+
+Main-checkout handoff synchronization: Pending at the time of this branch
+commit; only `BACKLOG.md` and this `PROGRESS.md` entry will be synchronized.

@@ -7,6 +7,7 @@
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaCatalogueIconLibrary.h"
 #include "KalmalaIconWidget.h"
+#include "KalmalaExposureResponse.h"
 #include "Blueprint/GameViewportSubsystem.h"
 #include "Misc/AutomationTest.h"
 
@@ -32,11 +33,50 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     TestEqual(TEXT("Replicated duration rounded up"), Entries[0].Duration, FString(TEXT("32 s")));
     TestEqual(TEXT("Untimed heat"), Entries[2].Duration, FString(TEXT("ongoing")));
     TestEqual(TEXT("Storm distinct"), Entries[5].Icon, EKalmalaIcon::Storm);
-    TestEqual(TEXT("Server weather interval"), Entries[5].Duration, FString(TEXT("90 s")));
+    TestEqual(TEXT("Current storm weather interval"), Entries[5].Duration, FString(TEXT("90 s")));
     S.Statuses.Reset(); S.ActiveSupportEffectExpiry = 45;
     TestEqual(TEXT("Expired statuses removed together"), UKalmalaStatusHotbarWidget::BuildEntries(S).Num(), 3);
-    S.bHasWeatherState = false; S.Exposure.HeatIntensity = 0; S.Exposure.ColdIntensity = 0;
-    TestEqual(TEXT("Last expiry returns to empty"), UKalmalaStatusHotbarWidget::BuildEntries(S).Num(), 0);
+    auto HasEntry = [](const TArray<FKalmalaStatusHotbarEntry>& Values, FName Id)
+    {
+        return Values.ContainsByPredicate([Id](const FKalmalaStatusHotbarEntry& Entry) { return Entry.Id == Id; });
+    };
+    S.Exposure.Warmth = FKalmalaExposureResponse::ColdStaminaRecoveryWarmthThreshold;
+    auto QualifiedExposure = UKalmalaStatusHotbarWidget::BuildEntries(S);
+    TestTrue(TEXT("Hot remains while heat exposure qualifies"), HasEntry(QualifiedExposure, FName(TEXT("Heat"))));
+    TestFalse(TEXT("Cold disappears at its recovery threshold"), HasEntry(QualifiedExposure, FName(TEXT("Cold"))));
+
+    S.Weather.FogIntensity = .85f; S.Weather.PrecipitationIntensity = .1f; S.Weather.WindStrength = .2f;
+    S.Weather.RefreshActivityLevel();
+    const auto FogOnly = UKalmalaStatusHotbarWidget::BuildEntries(S);
+    TestFalse(TEXT("Highly active fog without a storm adds no weather entry"), HasEntry(FogOnly, FName(TEXT("Weather"))));
+    S.Weather.FogIntensity = 0; S.Weather.PrecipitationIntensity = .9f; S.Weather.WindStrength = .7f;
+    S.Weather.RefreshActivityLevel();
+    const auto BelowStormThreshold = UKalmalaStatusHotbarWidget::BuildEntries(S);
+    TestFalse(TEXT("Active weather below the shared storm threshold stays hidden"), HasEntry(BelowStormThreshold, FName(TEXT("Weather"))));
+    S.Weather.PrecipitationIntensity = 1.0f; S.Weather.WindStrength = FKalmalaWeatherState::HighlyActiveStormThreshold;
+    S.Weather.RefreshActivityLevel();
+    const auto QualifiedStorm = UKalmalaStatusHotbarWidget::BuildEntries(S);
+    TestTrue(TEXT("Storm appears at the shared qualification threshold"), HasEntry(QualifiedStorm, FName(TEXT("Weather"))));
+    S.ServerTimeSeconds = S.Weather.ServerStartTimeSeconds + S.Weather.DurationSeconds;
+    const auto ExpiredStorm = UKalmalaStatusHotbarWidget::BuildEntries(S);
+    TestFalse(TEXT("Expired weather interval removes its storm immediately"), HasEntry(ExpiredStorm, FName(TEXT("Weather"))));
+    S.ServerTimeSeconds = S.Weather.ServerStartTimeSeconds - 1.0f;
+    TestFalse(TEXT("Future weather interval is not treated as current"),
+        HasEntry(UKalmalaStatusHotbarWidget::BuildEntries(S), FName(TEXT("Weather"))));
+
+    S.ServerTimeSeconds = 45; S.Weather.ServerStartTimeSeconds = 15;
+    S.Exposure.HeatIntensity = 0; S.Exposure.ColdIntensity = 0;
+    S.Statuses.Add({UKalmalaPlayerStatusComponent::WetStatusId, 0});
+    S.Statuses.Add({UKalmalaPlayerStatusComponent::SteadyMealStatusId, -1});
+    S.Statuses.Add({FName(TEXT("State.Unknown")), 20});
+    S.ActiveSupportEffectExpiry = 45;
+    S.Weather.PrecipitationIntensity = 0; S.Weather.WindStrength = 0; S.Weather.RefreshActivityLevel();
+    const auto EmptySnapshot = UKalmalaStatusHotbarWidget::BuildEntries(S);
+    TestEqual(TEXT("Cleared, expired, unsupported and ordinary weather leave no end icons"), EmptySnapshot.Num(), 0);
+    TestEqual(TEXT("Empty state has no retained height"),
+        UKalmalaStatusHotbarWidget::CalculateSize(EmptySnapshot.Num(), 100, FVector2D(1280, 720)).Y, 0.0);
+    S.bHasWeatherState = false;
+    TestEqual(TEXT("Missing weather state also stays empty"), UKalmalaStatusHotbarWidget::BuildEntries(S).Num(), 0);
     UKalmalaMinimapWidget* Minimap = NewObject<UKalmalaMinimapWidget>();
     Minimap->ConfigureViewportPlacement();
     const FGameViewportWidgetSlot MinimapSlot = UGameViewportSubsystem::Get()->GetWidgetSlot(Minimap);

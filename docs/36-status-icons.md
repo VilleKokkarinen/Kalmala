@@ -87,3 +87,15 @@ audits. Reviewed captures and selected assertions are retained in
 1280x720/100% standard, and 2560x1080/125% high contrast; geometry automation
 covers all nine resolution/text-scale pairs. No package or physical-input
 walkthrough was performed, and full M11 acceptance remains a later task.
+
+## M12 active-only follow-on
+
+The hotbar now includes only known positive-duration player statuses, the
+existing qualifying Hot/Cold exposure states, a live supported owner effect,
+and a current Storm. Storm uses the shared `HighlyActiveStormThreshold` of
+0.65 and must be inside its replicated server-time interval; ordinary weather,
+fog-only high activity, stale intervals, and future intervals stay hidden.
+Expired or cleared entries disappear from the rebuilt local snapshot list, and
+an empty list collapses the whole widget with zero calculated height. This is
+presentation-only and adds no timer, gameplay threshold, replication, or save
+state.

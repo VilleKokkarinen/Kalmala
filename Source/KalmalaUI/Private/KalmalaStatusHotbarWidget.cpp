@@ -133,13 +133,15 @@ TArray<FKalmalaStatusHotbarEntry> UKalmalaStatusHotbarWidget::BuildEntries(const
         default: break;
         }
     }
-    if (S.bHasWeatherState && S.Weather.IsValid() && FMath::IsFinite(S.ServerTimeSeconds))
+    const bool bCurrentWeatherInterval = S.bHasWeatherState && S.Weather.IsValid()
+        && FMath::IsFinite(S.ServerTimeSeconds)
+        && S.ServerTimeSeconds >= S.Weather.ServerStartTimeSeconds
+        && S.ServerTimeSeconds < S.Weather.ServerStartTimeSeconds + S.Weather.DurationSeconds;
+    if (bCurrentWeatherInterval
+        && S.Weather.GetStormIntensity() >= FKalmalaWeatherState::HighlyActiveStormThreshold)
     {
-        const bool bStorm = S.Weather.StormIntensity >= .05f;
-        const float WeatherRemaining = FMath::Clamp(S.Weather.DurationSeconds - FMath::Max(0.0f, S.ServerTimeSeconds - S.Weather.ServerStartTimeSeconds), 0.0f, S.Weather.DurationSeconds);
-        const FString Name = bStorm ? TEXT("Storm") : S.Weather.ActivityLevel == EKalmalaWeatherActivityLevel::HighlyActive
-            ? TEXT("High activity") : S.Weather.ActivityLevel == EKalmalaWeatherActivityLevel::Active ? TEXT("Active weather") : TEXT("Calm weather");
-        Entries.Add({ TEXT("Weather"), Name, WeatherRemaining > 0 ? Seconds(WeatherRemaining) : TEXT("awaiting update"), bStorm ? EKalmalaIcon::Storm : EKalmalaIcon::Cloud });
+        const float WeatherRemaining = S.Weather.ServerStartTimeSeconds + S.Weather.DurationSeconds - S.ServerTimeSeconds;
+        Entries.Add({ TEXT("Weather"), TEXT("Storm"), Seconds(WeatherRemaining), EKalmalaIcon::Storm });
     }
     return Entries;
 }
