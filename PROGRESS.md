@@ -13989,6 +13989,9 @@ Next eligible task: M12 goal 10, generate/review status-icon batch 02 (Mending,
 Hearth shield, Bear's vigor, and Deer call) and validate identities, alpha,
 dimensions, and 64x64 silhouettes.
 
-Main-checkout handoff synchronization: Pending; after the implementation
-commit, synchronize only the selected `BACKLOG.md` child and this progress
-entry while preserving existing main-checkout edits.
+Commit: `974d9f7` (`Add first status HUD icon batch`).
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions and updated only the selected `BACKLOG.md` child and this progress
+entry. All pre-existing main-checkout edits remain preserved; no implementation
+assets, scripts, or other documentation were synchronized.
