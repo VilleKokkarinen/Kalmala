@@ -14260,5 +14260,7 @@ handoffs, full build and automation queue, rendered host/client/accessibility
 matrix, required gameplay/authority/reconnect/performance checks, defect repair,
 and retained capture review.
 
-Main-checkout handoff synchronization: pending implementation commit; only
-`BACKLOG.md` and this `PROGRESS.md` entry are eligible for synchronization.
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+versions and applied only the selected `BACKLOG.md` row and this progress entry;
+all pre-existing main-checkout edits were preserved. No implementation files
+or other documentation were synchronized.
