@@ -34,7 +34,7 @@ try {
         foreach ($phase in @('empty','expired')) {
             if ($log -notmatch "Hotbar fixture: Phase=$phase Entries=0 ReadOnly=1") { throw "$peer $phase did not remove entries." }
         }
-        if ($log -notmatch 'Hotbar details: Focusable=1 OwnerLocal=1 LiveDetails=1' -or $log -notmatch 'Catalogue icon gallery: ItemsAndTools=48 ReadOnly=1') { throw "$peer details/gallery coverage failed." }
+        if ($log -notmatch 'Hotbar details: Focusable=1 OwnerLocal=1 LiveDetails=1' -or $log -notmatch 'Catalogue icon gallery: Canonical=48 ReadOnly=1') { throw "$peer details/gallery coverage failed." }
         if ($log -notmatch 'Hotbar fixture: Phase=populated Entries=6 ReadOnly=1 Bounds=(\d+),(\d+),(\d+),(\d+) Scale=\d+ Dpi=([\d.]+)') { throw "$peer did not paint six non-focusable entries." }
         $left=[int]$Matches[1]; $top=[int]$Matches[2]; $right=[int]$Matches[3]; $bottom=[int]$Matches[4]
         $dpi=[double]::Parse($Matches[5],[Globalization.CultureInfo]::InvariantCulture)

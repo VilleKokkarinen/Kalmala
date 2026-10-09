@@ -2,9 +2,9 @@
 
 The pinned identity table is
 [catalogue-icon-manifest.csv](catalogue-icon-manifest.csv). It defines one
-canonical raster-image identity for each current item or carried tool, then
-records the aliases, consumer views, recipe outputs, and fixed image/import
-batches for that identity.
+canonical raster-image identity for each current item, carried tool, or
+construction-only output, then records the aliases, consumer views, recipe
+outputs, and fixed image/import batches for that identity.
 
 ## Sources and coverage
 
@@ -14,10 +14,12 @@ KalmalaGameCatalogueLoader.cpp, the six carried tool definitions in
 KalmalaToolLifecycleContract.cpp, and the existing identity map in
 KalmalaIconWidget.cpp.
 
-The source catalogue has 42 item definitions, 19 recipe outputs, and 13
-construction outputs. Those outputs share item identities rather than adding
-separate images. The six carried tool IDs are separate identities, giving 48
-unique canonical rows. The manifest keys each row by the normalized runtime
+The current source catalogue has 41 normal item definitions, 19 recipe
+outputs, and 13 construction outputs. The construction-only Campfire identity
+has no item row; the other outputs share their item identities rather than
+adding separate images. The six carried tool IDs are separate identities,
+giving 48 unique canonical rows: 41 normal items, one construction-only
+identity, and six tools. The manifest keys each row by the normalized runtime
 ID; catalogue_aliases lists source catalogue IDs normalized to that key, and
 recipe_ids lists recipes whose output resolves to it. Neither an alias nor a
 recipe gets a duplicate image. Every view uses the same canonical ID recorded
@@ -30,9 +32,9 @@ list. inventory_scope is pack, carried_tool, or construction_only.
 CampfireKit is intentionally construction_only: its HearthRing source alias
 and Campfire recipe output resolve to the construction image used by Build,
 recipe-result, and placement-preview views. It has no pack-inventory or
-storage image assignment. The existing gameplay catalogue still has the
-legacy HearthRing item record; retiring that item identity remains in M12
-goal 9 and is not part of this manifest increment.
+storage image assignment or normal inventory item definition. The legacy
+HearthRing source alias remains for construction recipe normalization and
+saved-ID compatibility.
 
 ## Pinned batches
 

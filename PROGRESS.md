@@ -13296,3 +13296,76 @@ Known limitations: the transitional `HearthRing` row still loads as `CampfireKit
 Next eligible task: M12 goal 9, remove HearthRing's normal inventory-item definition/presentation after construction resolution, name the recipe/placed result Campfire, update icon/count contracts, and inspect failed placement, current costs, and saved-construction restoration.
 
 Main-checkout handoff synchronization: Complete. Inspected the dirty main `BACKLOG.md` and `PROGRESS.md`; applied only the selected child update and this entry, preserving all pre-existing main-checkout edits. No implementation files or other docs were synchronized.
+
+## Run 2026-10-09 05:50 UTC — Retire Campfire inventory item
+
+Concurrency guard: Codex app inventory showed no other active Kalmala run.
+Continued in the clean retained worktree `E:\dev\Kalmala\wt\m12-hud-feedback-rebuild`
+on `codex/m12-hud-feedback-rebuild`. The main checkout already contained
+pre-existing `BACKLOG.md` and `PROGRESS.md` edits; they remain preserved.
+
+Completed exactly M12 goal 9's HearthRing item-retirement child. Removed the
+normal HearthRing item row, kept the legacy recipe output alias resolving to
+the stable `CampfireKit` construction descriptor, and changed the recipe and
+successful placement feedback to Campfire. The recipe description remains
+available through its construction-only result path. CampfireKit retains its
+canonical icon and construction-only manifest classification; runtime icon
+coverage and the status gallery now count 41 normal items, six tools and the
+one construction-only Campfire identity (48 total).
+
+Inspected the server placement and save paths. Placement still validates
+before payment, charges 5 Stone + 3 Wood and one priority-selected raw fuel,
+allocates before the atomic exchange, and destroys the deferred actor if
+payment fails. The existing overlap rejection leaves inventory unchanged.
+No costs, RPCs, authority checks, construction identity or save schema changed.
+The generic construction save continues to accept and round-trip CampfireKit;
+live `AKalmalaCampfire` actors remain outside that generic construction save.
+
+Files changed: `Content/Data/GameCatalogues.json`;
+`Scripts/Verify-StatusHotbar.ps1`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`;
+`Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaConstructionSaveGameTest.cpp`;
+`Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`;
+`Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`;
+`Source/KalmalaUI/Private/KalmalaRecipeRequirements.cpp`;
+`Source/KalmalaUI/Private/KalmalaSurvivalStatusSubsystem.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaRecipeRequirementsTest.cpp`;
+`Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`;
+`docs/07-development-setup.md`; `docs/10-campfire-and-crafting.md`;
+`docs/36-status-icons.md`; `docs/43-catalogue-icon-manifest.md`;
+`docs/44-catalogue-copy-audit.md`; and `docs/catalogue-icon-manifest.csv`.
+
+Lightweight checks passed: `git diff --check`; JSON parsing and assertions for
+41 items, 19 recipes, no HearthRing/CampfireKit item row, and the retained
+Campfire recipe alias/name; 48 unique icon manifest IDs and Campfire's
+construction-only classification; PowerShell AST parsing of
+`Verify-StatusHotbar.ps1`; `Scripts/Verify-M5DocumentationContracts.ps1`
+(5/5); a stale-label scan with no matches; and MAX_PATH audit across 17 changed
+paths (longest absolute path 115 characters). Added focused automation
+assertions for catalogue absence, Campfire naming, save-record round trip,
+icon coverage, paid placement and failed-placement conservation, but did not
+run them. No Unreal build, automation queue, runtime host/client scenario,
+rendered review, or package check was run; full M12 verification remains
+deferred.
+
+Observable impact: Campfire no longer appears as a normal carried or stored
+item, while Build, recipe-result and placement views retain the canonical
+construction image and identity.
+
+Networking/authority: no RPC, client request, replication or server authority
+behavior changed. The server still derives costs, validates placement and
+commits payment.
+
+Known limitations: paid placement and failed-placement conservation were
+inspected and have prepared automation coverage but were not executed in this
+normal increment. Rendered icon acceptance and full M12 verification remain
+deferred.
+
+Next eligible task: M12 goal 9, rename the Workbench item/recipe and shared
+prompts/results to Workbench without changing stable identities.
+
+Main-checkout handoff synchronization: Complete. Inspected the dirty main
+`BACKLOG.md` and `PROGRESS.md` before editing; applied only the selected child
+status and this entry, preserving all pre-existing changes. No implementation
+files or other documentation were synchronized.

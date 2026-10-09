@@ -9,7 +9,7 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 02,A,PeatAmber,Peat Amber,item,none,none,PackInventory;ItemDetail;Storage,pack
 03,A,FrostSalt,Frost Salt,item,none,none,PackInventory;ItemDetail;Storage,pack
 03,A,MirelingAsh,Mireling ember ash,item,none,none,PackInventory;ItemDetail;Storage,pack
-03,A,CampfireKit,Campfire construction (Hearth ring source identity),item,HearthRing,Campfire,RecipeResult;BuildGrid;BuildResult;PlacementPreview,construction_only
+03,A,CampfireKit,Campfire construction (Hearth ring source identity),construction,HearthRing,Campfire,RecipeResult;BuildGrid;BuildResult;PlacementPreview,construction_only
 03,A,WorkbenchKit,Joiner's bench,item,Workbench,Workbench,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
 04,A,ForgeKit,Forge,item,Forge,Forge,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack
 04,A,WorkbenchToolRackKit,Workbench tool rack,item,WorkbenchToolRack,WorkbenchToolRack,PackInventory;ItemDetail;Storage;RecipeResult;BuildGrid;BuildResult;PlacementPreview,pack

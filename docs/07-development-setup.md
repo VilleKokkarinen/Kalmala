@@ -2256,6 +2256,12 @@ tool and recipe-output identities. `Scripts/Verify-Crafting.ps1` also requires
 `Catalogue icons: Grid=1 Selected=1 Upgrade=1` from both peers; the grid flag
 checks each visible recipe output against its canonical loaded texture.
 
+The canonical icon count remains 48: 41 normal item definitions, six carried
+tools, and the Campfire construction identity. CampfireKit remains in the
+shared icon map and recipe/build/preview views but is not a pack or storage
+item. The status icon gallery includes unique recipe/build identities so the
+construction-only Campfire texture is included in the same count.
+
 During M12 milestone-final verification, use
 `Scripts/Verify-Crafting.ps1 -Rendered` for Build categories and station
 craft/upgrade contexts, and inspect the selected-output and unavailable views
@@ -2273,10 +2279,36 @@ Direct-material recipes keep their stable construction identities in the
 runtime `BuildableOutput` field; `Output` is reserved for actual inventory
 results. The catalogue loader maps the legacy Campfire `HearthRing` reference
 to `CampfireKit` in that construction field. `Kalmala.Gameplay.Inventory.Catalogue`
-checks that the descriptor validates when the matching Campfire item is absent,
-that normal recipe scaling rejects direct construction output, and that the
-legacy item mapping remains temporarily loadable. `Kalmala.Gameplay.Crafting`
-and `Kalmala.UI.Crafting.LocalBrowsing` retain raw-cost, Build-menu, icon, and
-placement selection coverage. Run the focused automations after an affected
-editor build; confirm paid placement and failed-placement conservation in the
-M12 milestone-final `Verify-Crafting.ps1` host/client run.
+checks that the descriptor validates with no Campfire item entry, that normal
+recipe scaling rejects direct construction output, and that the legacy source
+reference still resolves to the stable construction identity.
+`Kalmala.Gameplay.Crafting` and `Kalmala.UI.Crafting.LocalBrowsing` retain
+raw-cost, Build-menu, icon, and placement selection coverage. Run the focused
+automations after an affected editor build; confirm paid placement and
+failed-placement conservation in the M12 milestone-final
+`Verify-Crafting.ps1` host/client run.
+
+## M12 Campfire item retirement
+
+`GameCatalogues.json` has 41 normal item definitions after removing the
+HearthRing inventory row. The Campfire recipe still uses source output
+`HearthRing`, which the loader maps to `BuildableOutput=CampfireKit`; recipe
+and placed-result text say Campfire. CampfireKit remains an internal stable
+construction identity and icon key, never an inventory output. Keep the
+existing 5 Stone + 3 Wood direct cost and one priority-selected raw fuel item.
+
+`Kalmala.Gameplay.Inventory.Catalogue` asserts the item is absent while the
+recipe descriptor validates. `Kalmala.Gameplay.Construction.Schema2Migration`
+retains a CampfireKit save-record round trip. `Kalmala.Gameplay.Crafting`
+continues to cover successful payment and overlap rejection without payment;
+the placement path still allocates before the atomic inventory exchange and
+destroys the deferred actor if payment fails. No save schema or construction
+identity changes. The generic saved-construction path stores the stable kit ID
+and restores supported records through `AKalmalaConstructionActor`. Live
+`AKalmalaCampfire` gameplay actors remain outside that generic construction
+save, as before.
+
+At M12 milestone-final verification, run the applicable automation queue and
+the rendered host/client `Scripts/Verify-Crafting.ps1` matrix. This child only
+prepares the contracts; it does not run a build, runtime scenario, or rendered
+acceptance.

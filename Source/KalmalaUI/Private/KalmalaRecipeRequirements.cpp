@@ -20,7 +20,7 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
                 : CarriedHammerLevel >= 1 ? TEXT("Present") : TEXT("Missing"));
         Text += TEXT("Placement: clear, dry ground with a gentle slope and room for the structure.\n");
         if (Recipe.BuildableOutput == TEXT("CampfireKit"))
-            Text += TEXT("Hearth fuel: one raw Wood, Lightwood, Densewood, or Coal; starts with 60 seconds.\n");
+            Text += TEXT("Campfire fuel: one raw Wood, Lightwood, Densewood, or Coal; starts with 60 seconds.\n");
         const FString Blocker = !Recipe.bEnabled
             ? FString(TEXT("Recipe unavailable")) : Availability.TrimStartAndEnd();
         if (!Blocker.IsEmpty() && !Blocker.Equals(TEXT("Ready"), ESearchCase::IgnoreCase))

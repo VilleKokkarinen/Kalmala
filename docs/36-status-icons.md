@@ -34,9 +34,10 @@ left-side feedback source.
 
 ## Catalogue audit
 
-The schema-4 JSON currently contains 42 item definitions and 19 recipe
-outputs, including 13 construction outputs. There are six carried tool
-identities from the tool lifecycle catalogue. All 48 canonical item/tool
+The schema-4 JSON now contains 41 normal item definitions and 19 recipe
+outputs, including 13 construction outputs. CampfireKit is one construction-
+only output without a normal item row. There are six carried tool identities
+from the tool lifecycle catalogue. All 48 canonical item/tool/construction
 identities have explicit original line-art assignments in
 KalmalaIconWidget.cpp. M12 pins raster-image identity, aliases, shared views,
 and fixed batches in docs/43-catalogue-icon-manifest.md and

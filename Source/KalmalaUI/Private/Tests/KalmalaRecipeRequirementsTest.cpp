@@ -25,8 +25,8 @@ bool FKalmalaRecipeRequirementsTest::RunTest(const FString& Parameters)
                 Text.Contains(TEXT("Skill level:")) || Text.Contains(TEXT("Unlock:"))
                     || Text.Contains(TEXT("server rechecks")) || Text.Contains(TEXT("Rejected requests")));
             if (Recipe.BuildableOutput == TEXT("CampfireKit"))
-                TestTrue(TEXT("Hearth fuel and duration stay explicit"),
-                    Text.Contains(TEXT("one raw Wood, Lightwood, Densewood, or Coal; starts with 60 seconds")));
+                TestTrue(TEXT("Campfire fuel and duration stay explicit"),
+                    Text.Contains(TEXT("Campfire fuel: one raw Wood, Lightwood, Densewood, or Coal; starts with 60 seconds")));
         }
         else
         {

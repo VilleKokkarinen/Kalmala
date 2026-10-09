@@ -18,6 +18,7 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "KalmalaCatalogueRowsWidget.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaRecipeCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
 
 void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
@@ -172,11 +173,20 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
         {
             VerificationDetails->Close(); VerificationDetails->RemoveFromParent(); VerificationDetails=nullptr;
             TArray<FKalmalaCatalogueRow> Rows;
-            for (const auto& Item : UKalmalaItemCatalogue::Get()->Items) Rows.Add({Item.ItemId,Item.DisplayName});
-            for (const auto& Tool : FKalmalaToolLifecycleContract::GetDefinitions()) Rows.Add({Tool.ToolId,Tool.ToolId.ToString()});
-            for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) Rows.Add({Tool.ToolId,Tool.ToolId.ToString()});
+            TSet<FName> IncludedIds;
+            const auto AddCanonicalRow = [&Rows, &IncludedIds](const FName Id, const FString& DisplayName)
+            {
+                if (Id.IsNone() || IncludedIds.Contains(Id)) return;
+                IncludedIds.Add(Id);
+                Rows.Add({Id, DisplayName});
+            };
+            for (const auto& Item : UKalmalaItemCatalogue::Get()->Items) AddCanonicalRow(Item.ItemId, Item.DisplayName);
+            for (const auto& Tool : FKalmalaToolLifecycleContract::GetDefinitions()) AddCanonicalRow(Tool.ToolId, Tool.ToolId.ToString());
+            for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) AddCanonicalRow(Tool.ToolId, Tool.ToolId.ToString());
             const FName Hammer = FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ToolId;
-            Rows.Add({Hammer,Hammer.ToString()});
+            AddCanonicalRow(Hammer, Hammer.ToString());
+            for (const auto& Recipe : UKalmalaRecipeCatalogue::Get()->Recipes)
+                AddCanonicalRow(Recipe.GetOutputIdentity(), Recipe.DisplayName);
             const auto Viewport = UWidgetLayoutLibrary::GetViewportSize(this)/UWidgetLayoutLibrary::GetViewportScale(this);
             const float Width = (Viewport.X-48)/3;
             for (int32 Column=0; Column<3; ++Column)
@@ -191,7 +201,7 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
                 Gallery->SetPositionInViewport(FVector2D(24+Width*Column,24),false);
                 VerificationGallery.Add(Gallery);
             }
-            UE_LOG(LogTemp,Display,TEXT("Catalogue icon gallery: ItemsAndTools=%d ReadOnly=1"),Rows.Num());
+            UE_LOG(LogTemp,Display,TEXT("Catalogue icon gallery: Canonical=%d ReadOnly=1"),Rows.Num());
             ++VerificationCapture;
         }
         if (VerificationCapture==7 && VerificationElapsed>=31)

@@ -43,8 +43,12 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Legacy HearthRing output becomes a separate buildable descriptor"),
             Campfire->BuildableOutput, FName(TEXT("CampfireKit")));
         TestTrue(TEXT("Construction descriptor leaves the inventory output empty"), Campfire->Output.IsNone());
-        TestTrue(TEXT("The loader preserves the transitional HearthRing inventory alias"),
-            Catalogue->FindItem(TEXT("CampfireKit")) != nullptr);
+        TestEqual(TEXT("The construction recipe uses its player-facing Campfire name"),
+            Campfire->DisplayName, FString(TEXT("Campfire")));
+        TestNull(TEXT("Campfire is absent from the normal inventory catalogue"),
+            Catalogue->FindItem(TEXT("CampfireKit")));
+        TestNull(TEXT("Legacy HearthRing remains only as a recipe/build alias"),
+            Catalogue->FindItem(TEXT("HearthRing")));
 
         TArray<FKalmalaInventoryStack> ScaledCosts = {{TEXT("Iron"), 1}};
         int32 ScaledOutputCount = 77;
@@ -53,13 +57,8 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Rejected direct output leaves existing costs unchanged"), ScaledCosts.Num(), 1);
         TestEqual(TEXT("Rejected direct output leaves the output count unchanged"), ScaledOutputCount, 77);
 
-        UKalmalaItemCatalogue* ItemsWithoutCampfire = NewObject<UKalmalaItemCatalogue>();
-        ItemsWithoutCampfire->Items = Catalogue->Items;
-        ItemsWithoutCampfire->Items.RemoveAll([](const FKalmalaItemDefinition& Item)
-            { return Item.ItemId == TEXT("CampfireKit"); });
-        TestTrue(TEXT("Catalogue copy without the Campfire item remains valid"), ItemsWithoutCampfire->IsValidCatalogue());
         TestTrue(TEXT("Campfire descriptor validates without an inventory item definition"),
-            Recipes->IsValidCatalogue(ItemsWithoutCampfire));
+            Recipes->IsValidCatalogue(Catalogue));
     }
     for (const TCHAR* RemovedField : { TEXT("OutputTool"), TEXT("bRequiresCampfire"), TEXT("AlternateStation"), TEXT("RequiredSkillLevel") })
         TestFalse(FString::Printf(TEXT("Recipe data omits removed field %s"), RemovedField), JsonText.Contains(RemovedField));

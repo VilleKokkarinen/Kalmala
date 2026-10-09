@@ -8,9 +8,12 @@ runtime changes or an approval to change gameplay data.
 
 ## Coverage and order
 
-The table has one row per canonical identity in
-[the icon manifest](catalogue-icon-manifest.csv): 42 item identities and six
-carried tools. It captures the exact item name/description source ID, current
+The frozen baseline table has one row per canonical identity in
+[the icon manifest](catalogue-icon-manifest.csv): 42 original item identities
+and six carried tools. After the Campfire item retirement, the live catalogue
+has 41 normal item definitions; the CampfireKit row remains in the audit as a
+construction-only identity and its original item copy stays frozen for
+baseline comparison. It captures the exact item name/description source ID, current
 and proposed name/description, matching recipe IDs and recipe display names,
 and a copy decision. Recipe labels are aligned with their output identity.
 There are 19 recipe labels, including the Campfire construction recipe. Tool
@@ -54,14 +57,14 @@ Every proposed use must be checked against the current recipes, tool actions,
 construction rules, and cooking contracts before its batch is implemented.
 The candidates avoid costs, quantities, conditions, levels, invented effects,
 new unlocks, and planting mechanics. Campfire's proposed copy is for a
-construction result only: the later Campfire classification tasks must remove
-the normal HearthRing item presentation, preserve its legacy/runtime aliases
-and saved-construction compatibility, and keep existing placement costs and
-server validation.
+construction result only: its ordered classification task removes the normal
+HearthRing item presentation, preserves legacy/runtime aliases and
+saved-construction compatibility, and keeps existing placement costs and
+server validation. The proposed Campfire description remains for copy batch 02.
 
 ## Live text-source map
 
-- Content/Data/GameCatalogues.json is the live source for 42 item
+- Content/Data/GameCatalogues.json is the live source for 41 normal item
   DisplayName/Description pairs and 19 recipe DisplayName fields. Normal
   recipe rows carry item output IDs; the loader routes the four direct-build
   outputs into the runtime `BuildableOutput` descriptor instead. Normal result
@@ -69,10 +72,11 @@ server validation.
 - Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp maps
   legacy catalogue IDs such as HearthRing and Workbench to stable runtime
   construction IDs. Direct-build outputs become construction descriptors and
-  are validated separately from item outputs. The transitional HearthRing
-  item row still maps to CampfireKit pending its ordered retirement child. The
-  loader does not provide replacement display copy. Keep IDs and aliases
-  stable while changing text.
+  are validated separately from item outputs. The legacy HearthRing recipe
+  output maps to CampfireKit only as a construction descriptor; there is no
+  Campfire inventory row. The Campfire recipe provides its construction-result
+  description separately from item lookup. Keep IDs and aliases stable while
+  changing text.
 - Source/KalmalaGameplay/Private/KalmalaItemCatalogue.cpp and
   KalmalaRecipeCatalogue.cpp load and validate those JSON definitions.
   Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp defines
@@ -108,9 +112,11 @@ server validation.
   asset-review aid, not player-facing copy. Preserve the icon identity and
   mapping while updating text.
 
-The audit is presentation copy only. This increment changes no catalogue,
-tool, recipe, construction, authority, transaction, networking, asset, or save
-data. For each later applied batch, verify that names stay aligned across
+The original CSV remains a frozen copy baseline, including the retired
+HearthRing item copy. The Campfire retirement removes that normal item
+definition and renames its direct-build recipe/result; no costs, placement
+authority, icon identity, or save schema change. For each later applied batch,
+verify that names stay aligned across
 inventory, ingredients, recipes, build, stations, storage, prompts and previews;
 confirm accessible/search/sort text and wrapping; and compare all non-text
 catalogue fields against the baseline.

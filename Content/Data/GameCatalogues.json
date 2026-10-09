@@ -32,12 +32,6 @@
       "MaxStack": 50
     },
     {
-      "ItemId": "HearthRing",
-      "DisplayName": "Hearth ring",
-      "Description": "A low stone-and-wood hearth built in place with a Construction Hammer; raw fuel lights it.",
-      "MaxStack": 5
-    },
-    {
       "ItemId": "Workbench",
       "DisplayName": "Joiner's bench",
       "Description": "A compact crafting bench for assembling camp furnishings and repairing tools.",
@@ -257,7 +251,7 @@
   "recipes": [
     {
       "RecipeId": "Campfire",
-      "DisplayName": "Hearth ring",
+      "DisplayName": "Campfire",
       "Ingredients": [
         {
           "ItemId": "Stone",

@@ -112,7 +112,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             bAcceptedOnce ? 1 : 0, bNoExtraMutation ? 1 : 0, bActionOnlyFeedback ? 1 : 0, bNoMenu ? 1 : 0);
 
         Check(!PlaceFromServer(Reason), TEXT("No ingredients cannot create a hearth"));
-        Check(!CraftFromServer(TEXT("Campfire"),1,Reason), TEXT("Hearth ring cannot be crafted into a kit"));
+        Check(!CraftFromServer(TEXT("Campfire"),1,Reason), TEXT("Campfire cannot be crafted into an inventory item"));
         Check(!CraftFromServer(TEXT("Forged"),1,Reason), TEXT("Unknown recipe"));
         for (int32 Batch : {MIN_int32,-1,0,MAX_int32}) Check(!CraftFromServer(TEXT("Workbench"),Batch,Reason),TEXT("Malformed batch"));
         Check(I->TryGrantFromServer(TEXT("Wood"),50) && I->TryGrantFromServer(TEXT("Stone"),40)
@@ -127,8 +127,8 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Check(I->TryGrantFromServer(TEXT("WorkbenchKit"),5),TEXT("Fill output stack"));
         const int32 WoodBefore=I->GetQuantity(TEXT("Wood"));
         Check(!CraftFromServer(TEXT("Workbench"),1,Reason) && I->GetQuantity(TEXT("Wood"))==WoodBefore,TEXT("Full output cannot consume inputs"));
-        Check(!CraftFromServer(TEXT("Campfire"),1,Reason),TEXT("Normal crafting cannot create a hearth kit"));
-        Check(GetRecipeAvailability(TEXT("Campfire")) == TEXT("Ready"),TEXT("Hearth direct build checks recipe materials and raw fuel"));
+        Check(!CraftFromServer(TEXT("Campfire"),1,Reason),TEXT("Normal crafting cannot create a Campfire inventory item"));
+        Check(GetRecipeAvailability(TEXT("Campfire")) == TEXT("Ready"),TEXT("Campfire direct build checks recipe materials and raw fuel"));
         const int32 HearthWoodBefore = I->GetQuantity(TEXT("Wood"));
         const int32 HearthStoneBefore = I->GetQuantity(TEXT("Stone"));
 
@@ -173,6 +173,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             else C->SetActorLocation(SearchOrigin);
         }
         Check(Placed,TEXT("Paid placement on actual generated collision"));
+        Check(Reason.StartsWith(TEXT("Campfire placed")), TEXT("Placed result is named Campfire"));
         for(TActorIterator<AKalmalaCampfire> It(GetWorld());It;++It) if(!Existing.Contains(*It)) VerificationFire=*It;
         if (!VerificationFire) { VerificationStage=99; return; }
         auto* Fire=VerificationFire.Get(); Fire->SetActorTickEnabled(false);

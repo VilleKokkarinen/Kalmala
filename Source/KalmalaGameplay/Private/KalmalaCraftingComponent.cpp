@@ -377,7 +377,7 @@ bool UKalmalaCraftingComponent::PlaceFromServer(FString& Reason)
     if (!Inventory->TryExchangeFromServer(Costs, NAME_None, 0, Reason)) { Fire->Destroy(); return false; }
     Fire->InitializePaidFromServer(Character);
     Fire->FinishSpawning(FTransform(Location));
-    Reason = TEXT("Placed hearth with 60 seconds of fuel; light it nearby");
+    Reason = TEXT("Campfire placed with 60 seconds of fuel; light it nearby");
     return true;
 }
 
@@ -811,6 +811,8 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     if (!R) return TEXT("Unknown recipe");
     if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(R->BuildableOutput))
     {
+        if (R->BuildableOutput == TEXT("CampfireKit"))
+            return TEXT("A low stone-and-wood hearth built in place with a Construction Hammer; raw fuel lights it.");
         const auto* BuildItem = UKalmalaItemCatalogue::Get()->FindItem(R->BuildableOutput);
         if (BuildItem && !BuildItem->Description.IsEmpty()) return BuildItem->Description;
         return TEXT("Description unavailable.");

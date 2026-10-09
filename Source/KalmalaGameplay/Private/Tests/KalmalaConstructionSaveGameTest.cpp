@@ -74,13 +74,15 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     Save->InitializeForWorld(World);
     const FKalmalaConstructionSaveRecord Floor = MakeRecord(TEXT("camp-floor-01"), TEXT("FloorKit"));
     const FKalmalaConstructionSaveRecord Rack = MakeRecord(TEXT("camp-rack-01"), TEXT("WorkbenchToolRackKit"));
+    const FKalmalaConstructionSaveRecord Campfire = MakeRecord(TEXT("camp-fire-01"), TEXT("CampfireKit"));
     TestTrue(TEXT("Schema 2 accepts an established camp record"), Save->AddRecord(Floor));
     TestTrue(TEXT("Schema 2 accepts a bounded station attachment"), Save->AddStationAttachmentRecord(Rack));
+    TestTrue(TEXT("Schema 2 retains the stable Campfire construction identity"), Save->AddRecord(Campfire));
     TestFalse(TEXT("Schema 2 rejects a duplicate stable construction ID across record kinds"),
         Save->AddStationAttachmentRecord(MakeRecord(TEXT("camp-floor-01"), TEXT("ForgeAnvilKit"))));
     TestFalse(TEXT("Schema 2 rejects unsupported construction identities"),
         Save->AddRecord(MakeRecord(TEXT("camp-unknown-01"), TEXT("UnknownConstructionKit"))));
-    TestEqual(TEXT("Rejected schema-2 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 2);
+    TestEqual(TEXT("Rejected schema-2 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 3);
 
     TArray<uint8> CurrentBytes;
     TestTrue(TEXT("Schema 2 construction records serialize in memory"), Serialize(Save, CurrentBytes));
@@ -89,7 +91,12 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     if (TestNotNull(TEXT("Schema 2 construction records reload with their type"), Reloaded))
     {
         TestTrue(TEXT("Reloaded container carries exact world, revision, and world scope"), Reloaded->MatchesWorld(World));
-        TestEqual(TEXT("Existing construction and attachment records round-trip together"), Reloaded->GetRecords().Num(), 2);
+        TestEqual(TEXT("Existing construction, Campfire, and attachment records round-trip together"), Reloaded->GetRecords().Num(), 3);
+        TestTrue(TEXT("Reloaded container retains the Campfire construction ID"),
+            Reloaded->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return Record.ConstructionId == TEXT("camp-fire-01") && Record.KitId == TEXT("CampfireKit");
+            }));
         TestTrue(TEXT("Reloaded container retains its station attachment"),
             Reloaded->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
             {
