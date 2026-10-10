@@ -28,6 +28,11 @@ public:
 private:
     static FIntPoint ToCoverageCell(FVector2D WorldLocation);
     static FVector2D GetCoverageCellCentre(FIntPoint Cell);
+    void EnsureExploredCellLookup() const;
+
+    // Rebuilt from the unchanged save array after load; this lookup is transient.
+    mutable TSet<FIntPoint> ExploredCellLookup;
+    mutable bool bExploredCellLookupReady = false;
 
     UPROPERTY(SaveGame)
     int32 SchemaVersion = CoverageSchemaVersion;

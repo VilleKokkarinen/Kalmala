@@ -214,7 +214,6 @@ void UKalmalaWorldMapWidget::Recenter()
     bFitWholeWorld = false;
     ViewModel->RecenterOnOwningPlayer();
     ViewModel->SetMapRadius(MapZoom);
-    InvalidateOutstandingTileJobs();
 }
 
 void UKalmalaWorldMapWidget::RunDeveloperVerification()
@@ -684,22 +683,27 @@ TArray<FColor> UKalmalaWorldMapWidget::BuildTilePixels(const FKalmalaWorldGenera
         FIntPoint(TileSamplesPerAxis, TileSamplesPerAxis));
 }
 
-void UKalmalaWorldMapWidget::InvalidateOutstandingTileJobs()
+void UKalmalaWorldMapWidget::ResetTileCacheForWorldChange()
 {
     ++TileEpoch;
     if (TileEpoch == 0) ++TileEpoch;
-    // The old view can have a full pending set. Drop those local handles so
-    // a pan or zoom cannot accumulate multiple capped request sets; workers
-    // retain their epoch and their output is never uploaded into the new view.
+    // Tile pixels depend on immutable world identity. Pan and zoom do not
+    // invalidate world-aligned data; their tile-size key selects another cache
+    // entry instead. A new identity drops every handle and rejects old workers.
     Tiles.Reset();
+    TileUseSerial = 0;
+    bHasFogPawnLocation = false;
+    bHasFogRevealAll = false;
 }
 
-void UKalmalaWorldMapWidget::StartTile(const FIntPoint& TileCoordinate, const FKalmalaWorldGenerationConfig& Config)
+void UKalmalaWorldMapWidget::StartTile(const FWorldMapTileKey& TileKey, const FKalmalaWorldGenerationConfig& Config)
 {
-    FWorldMapTile& Tile = Tiles.FindOrAdd(TileCoordinate);
+    FWorldMapTile& Tile = Tiles.FindOrAdd(TileKey);
     if (Tile.PendingPixels.IsValid() || Tile.Texture != nullptr) return;
     Tile.RequestEpoch = TileEpoch;
-    Tile.PendingPixels = Async(EAsyncExecution::ThreadPool, [Config, TileCoordinate, WorldSize = ActiveTileWorldSize]()
+    const FIntPoint TileCoordinate = TileKey.Coordinate;
+    const float WorldSize = static_cast<float>(TileKey.WorldSize);
+    Tile.PendingPixels = Async(EAsyncExecution::ThreadPool, [Config, TileCoordinate, WorldSize]()
     {
         FWorldMapTile::FBuildResult Result;
         const double StartedAt = FPlatformTime::Seconds();
@@ -711,15 +715,16 @@ void UKalmalaWorldMapWidget::StartTile(const FIntPoint& TileCoordinate, const FK
 
 void UKalmalaWorldMapWidget::UploadCompletedTiles()
 {
-    const int32 Resolution = ActiveTileWorldSize > TileWorldSize ? 65 : TileSamplesPerAxis;
-    for (TPair<FIntPoint, FWorldMapTile>& Pair : Tiles)
+    for (TPair<FWorldMapTileKey, FWorldMapTile>& Pair : Tiles)
     {
         FWorldMapTile& Tile = Pair.Value;
         if (!Tile.PendingPixels.IsValid() || !Tile.PendingPixels.IsReady()) continue;
         FWorldMapTile::FBuildResult BuildResult = Tile.PendingPixels.Get();
         Tile.PendingPixels = {};
-        // A stale worker never reaches the render resource after pan, zoom,
-        // identity, or player-centre changes.
+        const int32 Resolution = Pair.Key.WorldSize > TileWorldSize ? 65 : TileSamplesPerAxis;
+        // Workers from a prior world identity can never publish into this cache.
+        // View changes keep the result reusable because its key includes the
+        // exact world-aligned tile size and coordinate.
         if (Tile.RequestEpoch != TileEpoch || BuildResult.Pixels.Num() != Resolution * Resolution) continue;
         DeveloperProfileWorkerSeconds += BuildResult.WorkerSeconds;
         DeveloperProfileMaxWorkerSeconds = FMath::Max(DeveloperProfileMaxWorkerSeconds, BuildResult.WorkerSeconds);
@@ -736,28 +741,57 @@ void UKalmalaWorldMapWidget::UploadCompletedTiles()
     }
 }
 
-void UKalmalaWorldMapWidget::UpdateFogTexture(const FVector2D MapCentre, const FVector2D MapExtent,
-    const FVector2D OwningPawnLocation, const FIntPoint Dimensions)
+void UKalmalaWorldMapWidget::InvalidateFogTileCache()
 {
-    const TArray<FColor> Pixels = BuildFogPixels(MapCentre, MapExtent, OwningPawnLocation, Dimensions, ExplorationSave, RevealWorldMap.GetValueOnGameThread() != 0, FKalmalaWorldBounds::IsBounded(TileConfig));
+    for (TPair<FWorldMapTileKey, FWorldMapTile>& Pair : Tiles)
+    {
+        Pair.Value.FogTexture.Reset();
+    }
+}
+
+void UKalmalaWorldMapWidget::InvalidateFogTilesNearPawn(const FVector2D PawnLocation)
+{
+    const double RevealRadiusSquared = FMath::Square(static_cast<double>(LocalRevealRadius));
+    for (TPair<FWorldMapTileKey, FWorldMapTile>& Pair : Tiles)
+    {
+        const double WorldSize = Pair.Key.WorldSize;
+        const FVector2D Minimum = FVector2D(Pair.Key.Coordinate) * WorldSize;
+        const FVector2D Maximum = Minimum + FVector2D(WorldSize);
+        const FVector2D ClosestPoint(FMath::Clamp(PawnLocation.X, Minimum.X, Maximum.X),
+            FMath::Clamp(PawnLocation.Y, Minimum.Y, Maximum.Y));
+        if (FVector2D::DistSquared(PawnLocation, ClosestPoint) <= RevealRadiusSquared)
+        {
+            Pair.Value.FogTexture.Reset();
+        }
+    }
+}
+
+void UKalmalaWorldMapWidget::UpdateFogTileTexture(FWorldMapTile& Tile, const FWorldMapTileKey& TileKey,
+    const FVector2D OwningPawnLocation)
+{
+    if (Tile.FogTexture != nullptr) return;
+    const float WorldSize = static_cast<float>(TileKey.WorldSize);
+    const FVector2D Centre = (FVector2D(TileKey.Coordinate) + FVector2D(0.5f)) * WorldSize;
+    const FVector2D Extent(WorldSize * 0.5f);
+    const FIntPoint Dimensions(FogTileSamplesPerAxis);
+    const TArray<FColor> Pixels = BuildFogPixels(Centre, Extent, OwningPawnLocation, Dimensions, ExplorationSave,
+        RevealWorldMap.GetValueOnGameThread() != 0, FKalmalaWorldBounds::IsBounded(TileConfig));
     if (Pixels.Num() != Dimensions.X * Dimensions.Y) return;
-    if (FogTexture != nullptr && (FogTexture->GetSizeX() != Dimensions.X || FogTexture->GetSizeY() != Dimensions.Y))
-    {
-        FogBrush.SetResourceObject(nullptr);
-        FogTexture = nullptr;
-    }
-    if (FogTexture == nullptr)
-    {
-        FogTexture = TStrongObjectPtr<UTexture2D>(UTexture2D::CreateTransient(Dimensions.X, Dimensions.Y, PF_B8G8R8A8));
-        if (FogTexture == nullptr) return;
-        FogTexture->SRGB = true; FogTexture->Filter = TF_Bilinear; FogTexture->NeverStream = true; FogTexture->UpdateResource();
-        FogBrush.SetResourceObject(FogTexture.Get()); FogBrush.ImageSize = FVector2D(Dimensions); FogBrush.DrawAs = ESlateBrushDrawType::Image;
-    }
-    if (FogTexture->GetResource() == nullptr) return;
+
+    Tile.FogTexture = TStrongObjectPtr<UTexture2D>(UTexture2D::CreateTransient(
+        Dimensions.X, Dimensions.Y, PF_B8G8R8A8));
+    if (Tile.FogTexture == nullptr) return;
+    Tile.FogTexture->SRGB = true;
+    Tile.FogTexture->Filter = TF_Bilinear;
+    Tile.FogTexture->NeverStream = true;
+    Tile.FogTexture->UpdateResource();
+    if (Tile.FogTexture->GetResource() == nullptr) { Tile.FogTexture.Reset(); return; }
+
     const uint32 ByteCount = Pixels.Num() * sizeof(FColor);
-    uint8* Upload = static_cast<uint8*>(FMemory::Malloc(ByteCount)); FMemory::Memcpy(Upload, Pixels.GetData(), ByteCount);
+    uint8* Upload = static_cast<uint8*>(FMemory::Malloc(ByteCount));
+    FMemory::Memcpy(Upload, Pixels.GetData(), ByteCount);
     auto* Region = new FUpdateTextureRegion2D(0, 0, 0, 0, Dimensions.X, Dimensions.Y);
-    FogTexture->UpdateTextureRegions(0, 1, Region, Dimensions.X * sizeof(FColor), sizeof(FColor), Upload,
+    Tile.FogTexture->UpdateTextureRegions(0, 1, Region, Dimensions.X * sizeof(FColor), sizeof(FColor), Upload,
         [](uint8* Data, const FUpdateTextureRegion2D* Regions) { FMemory::Free(Data); delete Regions; });
 }
 
@@ -785,12 +819,18 @@ void UKalmalaWorldMapWidget::EnsureExplorationForWorld(const FKalmalaWorldGenera
     }
 }
 
-void UKalmalaWorldMapWidget::RecordLocalExploration(const FVector2D OwningPawnLocation)
+bool UKalmalaWorldMapWidget::RecordLocalExploration(const FVector2D OwningPawnLocation)
 {
-    if (ExplorationSave != nullptr && ExplorationSave->RecordReveal(OwningPawnLocation, LocalRevealRadius))
-    {
-        UGameplayStatics::SaveGameToSlot(ExplorationSave, GetExplorationSaveSlot(TileConfig), 0);
-    }
+    if (ExplorationSave == nullptr) return false;
+    const int32 PreviousCellCount = ExplorationSave->GetExploredCellCount();
+    if (!ExplorationSave->RecordReveal(OwningPawnLocation, LocalRevealRadius)) return false;
+    UGameplayStatics::SaveGameToSlot(ExplorationSave, GetExplorationSaveSlot(TileConfig), 0);
+    constexpr int32 MaximumRevealCells = 27 * 27;
+    if (PreviousCellCount > UKalmalaWorldMapExplorationSaveGame::MaxExploredCells - MaximumRevealCells)
+        InvalidateFogTileCache();
+    else
+        InvalidateFogTilesNearPawn(OwningPawnLocation);
+    return true;
 }
 
 void UKalmalaWorldMapWidget::TickExploration(const float DeltaTime)
@@ -801,7 +841,7 @@ void UKalmalaWorldMapWidget::TickExploration(const float DeltaTime)
     FVector2D PawnLocation;
     if (!ViewModel->GetPresentationInputs(Config, PawnLocation)) return;
     ExplorationAccumulator = 0.0f;
-    if (!(Config == TileConfig)) { TileConfig = Config; InvalidateOutstandingTileJobs(); }
+    if (!(Config == TileConfig)) { TileConfig = Config; ResetTileCacheForWorldChange(); }
     EnsureExplorationForWorld(Config);
     RecordLocalExploration(PawnLocation);
     if (!bMapOpen && !bDeveloperClosedExplorationLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
@@ -836,20 +876,30 @@ void UKalmalaWorldMapWidget::PersistPins()
     }
 }
 
-void UKalmalaWorldMapWidget::EvictUnusedTiles()
+bool UKalmalaWorldMapWidget::EvictLeastRecentlyUsedTile(const TSet<FWorldMapTileKey>& ProtectedTiles)
 {
-    if (Tiles.Num() <= MaxCachedTiles) return;
-    TArray<FIntPoint> Evictable;
-    for (const TPair<FIntPoint, FWorldMapTile>& Pair : Tiles)
+    FWorldMapTileKey Candidate;
+    uint64 OldestUse = MAX_uint64;
+    bool bFoundCandidate = false;
+    for (const TPair<FWorldMapTileKey, FWorldMapTile>& Pair : Tiles)
     {
-        if (Pair.Value.LastUsedEpoch != TileEpoch && !Pair.Value.PendingPixels.IsValid()) Evictable.Add(Pair.Key);
+        if (ProtectedTiles.Contains(Pair.Key) || Pair.Value.PendingPixels.IsValid()) continue;
+        const bool bEarlierUse = Pair.Value.LastUsedSerial < OldestUse;
+        const bool bStableTieBreak = bFoundCandidate && Pair.Value.LastUsedSerial == OldestUse
+            && (Pair.Key.WorldSize < Candidate.WorldSize
+                || (Pair.Key.WorldSize == Candidate.WorldSize
+                    && (Pair.Key.Coordinate.X < Candidate.Coordinate.X
+                        || (Pair.Key.Coordinate.X == Candidate.Coordinate.X && Pair.Key.Coordinate.Y < Candidate.Coordinate.Y))));
+        if (!bFoundCandidate || bEarlierUse || bStableTieBreak)
+        {
+            Candidate = Pair.Key;
+            OldestUse = Pair.Value.LastUsedSerial;
+            bFoundCandidate = true;
+        }
     }
-    Evictable.Sort([](const FIntPoint& Left, const FIntPoint& Right) { return Left.X == Right.X ? Left.Y < Right.Y : Left.X < Right.X; });
-    for (const FIntPoint& Key : Evictable)
-    {
-        if (Tiles.Num() <= MaxCachedTiles) break;
-        Tiles.Remove(Key);
-    }
+    if (!bFoundCandidate) return false;
+    Tiles.Remove(Candidate);
+    return true;
 }
 
 TArray<FIntPoint> UKalmalaWorldMapWidget::BuildPrioritizedTileCoordinates(const FVector2D& Centre, const FVector2D& Extent, const float WorldSize)
@@ -873,23 +923,23 @@ TArray<FIntPoint> UKalmalaWorldMapWidget::BuildPrioritizedTileCoordinates(const 
 
 void UKalmalaWorldMapWidget::LogDeveloperTileFingerprint()
 {
-    if (bDeveloperTileFingerprintLogged || !bDeveloperVerificationLogged || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification"))) return;
-    TArray<FIntPoint> Coordinates;
+    if (bDeveloperTileFingerprintLogged || !bDeveloperVerificationLogged
+        || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")) || !ViewModel) return;
+    const TArray<FIntPoint> Coordinates = BuildPrioritizedTileCoordinates(
+        ViewModel->GetMapCentre(), ViewModel->GetMapExtent(), ActiveTileWorldSize);
     uint32 Digest = 0;
-    for (const TPair<FIntPoint, FWorldMapTile>& Pair : Tiles)
-    {
-        if (Pair.Value.LastUsedEpoch != TileEpoch) continue;
-        if (Pair.Value.Texture == nullptr) return;
-        Coordinates.Add(Pair.Key);
-    }
-    if (Coordinates.IsEmpty() || !ViewModel || Coordinates.Num() != BuildPrioritizedTileCoordinates(ViewModel->GetMapCentre(), ViewModel->GetMapExtent(), ActiveTileWorldSize).Num()) return;
-    Coordinates.Sort([](const FIntPoint& Left, const FIntPoint& Right) { return Left.X == Right.X ? Left.Y < Right.Y : Left.X < Right.X; });
     for (const FIntPoint& Coordinate : Coordinates)
     {
-        const FWorldMapTile& Tile = Tiles.FindChecked(Coordinate);
+        FWorldMapTileKey Key;
+        Key.Coordinate = Coordinate;
+        Key.WorldSize = FMath::RoundToInt(ActiveTileWorldSize);
+        const FWorldMapTile* Tile = Tiles.Find(Key);
+        if (Tile == nullptr || Tile->Texture == nullptr || Tile->FogTexture == nullptr) return;
         Digest = FCrc::MemCrc32(&Coordinate, sizeof(Coordinate), Digest);
-        Digest = FCrc::MemCrc32(&Tile.PixelHash, sizeof(Tile.PixelHash), Digest);
+        Digest = FCrc::MemCrc32(&Key.WorldSize, sizeof(Key.WorldSize), Digest);
+        Digest = FCrc::MemCrc32(&Tile->PixelHash, sizeof(Tile->PixelHash), Digest);
     }
+    if (Coordinates.IsEmpty()) return;
     bDeveloperTileFingerprintLogged = true;
     UE_LOG(LogTemp, Display, TEXT("World map tile presentation: Seed=%llu Tiles=%d Fingerprint=%u PollOnly=1."),
         TileConfig.WorldSeed, Coordinates.Num(), Digest);
@@ -897,23 +947,37 @@ void UKalmalaWorldMapWidget::LogDeveloperTileFingerprint()
 
 void UKalmalaWorldMapWidget::LogDeveloperProfile()
 {
-    if (bDeveloperProfileLogged || !bDeveloperVerificationLogged || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapProfile"))) return;
+    if (bDeveloperProfileLogged || !bDeveloperVerificationLogged
+        || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapProfile")) || !ViewModel) return;
+    const TArray<FIntPoint> Coordinates = BuildPrioritizedTileCoordinates(
+        ViewModel->GetMapCentre(), ViewModel->GetMapExtent(), ActiveTileWorldSize);
     int32 ReadyTiles = 0;
-    for (const TPair<FIntPoint, FWorldMapTile>& Pair : Tiles)
+    for (const FIntPoint& Coordinate : Coordinates)
     {
-        if (Pair.Value.LastUsedEpoch != TileEpoch) continue;
-        if (Pair.Value.Texture == nullptr) return;
+        FWorldMapTileKey Key;
+        Key.Coordinate = Coordinate;
+        Key.WorldSize = FMath::RoundToInt(ActiveTileWorldSize);
+        const FWorldMapTile* Tile = Tiles.Find(Key);
+        if (Tile == nullptr || Tile->Texture == nullptr || Tile->FogTexture == nullptr) return;
         ++ReadyTiles;
     }
     if (ReadyTiles == 0) return;
+
+    SIZE_T CacheBytes = 0;
+    for (const TPair<FWorldMapTileKey, FWorldMapTile>& Pair : Tiles)
+    {
+        const int32 TerrainResolution = Pair.Key.WorldSize > TileWorldSize ? 65 : TileSamplesPerAxis;
+        if (Pair.Value.Texture != nullptr)
+            CacheBytes += static_cast<SIZE_T>(TerrainResolution) * TerrainResolution * sizeof(FColor);
+        if (Pair.Value.FogTexture != nullptr)
+            CacheBytes += static_cast<SIZE_T>(FogTileSamplesPerAxis) * FogTileSamplesPerAxis * sizeof(FColor);
+    }
     bDeveloperProfileLogged = true;
     const double OpenMilliseconds = (FPlatformTime::Seconds() - DeveloperProfileOpenedAt) * 1000.0;
-    const int32 Resolution = ActiveTileWorldSize > TileWorldSize ? 65 : TileSamplesPerAxis;
-    const SIZE_T CacheBytes = static_cast<SIZE_T>(ReadyTiles) * Resolution * Resolution * sizeof(FColor);
-    UE_LOG(LogTemp, Display, TEXT("World map profile: OpenMs=%.3f WorkerTotalMs=%.3f WorkerMaxMs=%.3f GameThreadTotalMs=%.3f GameThreadMaxMs=%.3f Ticks=%d Tiles=%d CacheBytes=%llu."),
+    UE_LOG(LogTemp, Display, TEXT("World map profile: OpenMs=%.3f WorkerTotalMs=%.3f WorkerMaxMs=%.3f GameThreadTotalMs=%.3f GameThreadMaxMs=%.3f Ticks=%d Tiles=%d CacheBytes=%llu CachedTiles=%d."),
         OpenMilliseconds, DeveloperProfileWorkerSeconds * 1000.0, DeveloperProfileMaxWorkerSeconds * 1000.0,
         DeveloperProfileGameThreadSeconds * 1000.0, DeveloperProfileMaxGameThreadSeconds * 1000.0,
-        DeveloperProfileGameThreadTicks, ReadyTiles, static_cast<uint64>(CacheBytes));
+        DeveloperProfileGameThreadTicks, ReadyTiles, static_cast<uint64>(CacheBytes), Tiles.Num());
 }
 
 void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
@@ -930,18 +994,33 @@ void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
         }
         return;
     }
-    if (!(Config == TileConfig)) { TileConfig = Config; InvalidateOutstandingTileJobs(); }
+    if (!(Config == TileConfig)) { TileConfig = Config; ResetTileCacheForWorldChange(); }
     const FVector2D Centre = ViewModel->GetMapCentre();
     const FVector2D Extent = ViewModel->GetMapExtent();
-    const float NewTileSize = ChooseTileWorldSize(Extent);
-    if (NewTileSize != ActiveTileWorldSize) { ActiveTileWorldSize = NewTileSize; InvalidateOutstandingTileJobs(); }
+    ActiveTileWorldSize = ChooseTileWorldSize(Extent);
     EnsureExplorationForWorld(Config);
     EnsurePinsForWorld(Config);
-    const FIntPoint FogDimensions = FKalmalaWorldBounds::IsBounded(Config)
-        ? FIntPoint(513, FMath::Clamp(FMath::RoundToInt(513.0 * MapSize.Y / MapSize.X), 171, 1026))
-        : ViewModel->GetMapSampleDimensions();
-    UpdateFogTexture(Centre, Extent, PawnLocation, FogDimensions);
-    if (!bDeveloperFogVerificationLogged && bDeveloperVerificationLogged && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
+
+    const bool bRevealAll = RevealWorldMap.GetValueOnGameThread() != 0;
+    if (!bHasFogRevealAll || bLastFogRevealAll != bRevealAll)
+    {
+        InvalidateFogTileCache();
+        bLastFogRevealAll = bRevealAll;
+        bHasFogRevealAll = true;
+    }
+    if (!bHasFogPawnLocation)
+    {
+        InvalidateFogTileCache();
+        bHasFogPawnLocation = true;
+    }
+    else if (!LastFogPawnLocation.Equals(PawnLocation, 0.5f))
+    {
+        InvalidateFogTilesNearPawn(LastFogPawnLocation);
+        InvalidateFogTilesNearPawn(PawnLocation);
+    }
+    LastFogPawnLocation = PawnLocation;
+    if (!bDeveloperFogVerificationLogged && bDeveloperVerificationLogged
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
     {
         const FVector2D RemoteProbe = PawnLocation + FVector2D(LocalRevealRadius * 2.0f + 1.0f, 0.0f);
         const bool bRemoteExplored = ExplorationSave != nullptr && ExplorationSave->IsExplored(RemoteProbe);
@@ -950,17 +1029,45 @@ void UKalmalaWorldMapWidget::RefreshTiles(const FVector2D& MapSize)
             Config.WorldSeed, ExplorationSave != nullptr ? ExplorationSave->GetExploredCellCount() : 0,
             bExplorationLoadedForWorld ? 1 : 0, bRemoteExplored ? 1 : 0);
     }
-    int32 PendingCount = 0;
-    for (const auto& Pair : Tiles) if (Pair.Value.PendingPixels.IsValid()) ++PendingCount;
-    for (const FIntPoint& Key : BuildPrioritizedTileCoordinates(Centre, Extent, ActiveTileWorldSize))
+
+    const TArray<FIntPoint> Coordinates = BuildPrioritizedTileCoordinates(Centre, Extent, ActiveTileWorldSize);
+    TSet<FWorldMapTileKey> ProtectedTiles;
+    for (const FIntPoint& Coordinate : Coordinates)
     {
+        FWorldMapTileKey Key;
+        Key.Coordinate = Coordinate;
+        Key.WorldSize = FMath::RoundToInt(ActiveTileWorldSize);
+        ProtectedTiles.Add(Key);
+    }
+
+    // Poll workers before choosing cache slots. No game-thread waits are used.
+    UploadCompletedTiles();
+    int32 PendingCount = 0;
+    for (const TPair<FWorldMapTileKey, FWorldMapTile>& Pair : Tiles)
+        if (Pair.Value.PendingPixels.IsValid()) ++PendingCount;
+
+    for (const FIntPoint& Coordinate : Coordinates)
+    {
+        FWorldMapTileKey Key;
+        Key.Coordinate = Coordinate;
+        Key.WorldSize = FMath::RoundToInt(ActiveTileWorldSize);
         FWorldMapTile* ExistingTile = Tiles.Find(Key);
-        if (ExistingTile == nullptr && (Tiles.Num() >= MaxCachedTiles || PendingCount >= 2)) continue;
-        if (ExistingTile == nullptr) ++PendingCount;
-        FWorldMapTile& Tile = Tiles.FindOrAdd(Key); Tile.LastUsedEpoch = TileEpoch; StartTile(Key, Config);
+        if (ExistingTile == nullptr)
+        {
+            if (PendingCount >= 2) continue;
+            while (Tiles.Num() >= MaxCachedTiles && EvictLeastRecentlyUsedTile(ProtectedTiles)) {}
+            if (Tiles.Num() >= MaxCachedTiles) continue;
+            ExistingTile = &Tiles.Add(Key);
+            ++PendingCount;
+        }
+
+        ++TileUseSerial;
+        if (TileUseSerial == 0) ++TileUseSerial;
+        ExistingTile->LastUsedSerial = TileUseSerial;
+        UpdateFogTileTexture(*ExistingTile, Key, PawnLocation);
+        StartTile(Key, Config);
     }
     UploadCompletedTiles();
-    EvictUnusedTiles();
 }
 
 void UKalmalaWorldMapWidget::TickTilePresentation(const float DeltaTime)
@@ -983,11 +1090,12 @@ void UKalmalaWorldMapWidget::TickTilePresentation(const float DeltaTime)
     if (bFitWholeWorld)
     {
         const float FitZoom = FullWorldZoom(AspectRatio);
-        if (MapZoom != FitZoom) { MapZoom = FitZoom; InvalidateOutstandingTileJobs(); }
+        if (MapZoom != FitZoom) MapZoom = FitZoom;
         ViewModel->SetMapRadius(MapZoom);
         ViewModel->SetMapCentre(FVector2D::ZeroVector);
     }
     ViewModel->SetMapSampleDimensions(FIntPoint(161, FMath::Clamp(FMath::RoundToInt(161.0f / AspectRatio), 61, 129)));
+    ActiveTileWorldSize = ChooseTileWorldSize(ViewModel->GetMapExtent());
     RefreshAccumulator += DeltaTime;
     if (RefreshAccumulator >= 0.10f) { RefreshAccumulator = 0.0f; RefreshTiles(MapSize); LogDeveloperTileFingerprint(); LogDeveloperProfile(); }
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapProfile")))
@@ -1051,35 +1159,57 @@ int32 UKalmalaWorldMapWidget::NativePaint(const FPaintArgs& Args, const FGeometr
             FSlateDrawElement::MakeLines(OutDrawElements, DrawLayer + 1, MapGeometry,
                 { FVector2D(0.0f, NormalizedY * MapSize.Y), FVector2D(MapSize.X, NormalizedY * MapSize.Y) }, ESlateDrawEffect::None, GridColour, true, 1.0f);
         }
-        for (const TPair<FIntPoint, FWorldMapTile>& Pair : Tiles) if (Pair.Value.Texture != nullptr)
+        for (const TPair<FWorldMapTileKey, FWorldMapTile>& Pair : Tiles)
         {
-            const FVector2D WorldMin = FVector2D(Pair.Key) * ActiveTileWorldSize;
+            if (Pair.Key.WorldSize != FMath::RoundToInt(ActiveTileWorldSize)) continue;
+            const float TileWorldExtent = static_cast<float>(Pair.Key.WorldSize);
+            const FVector2D WorldMin = FVector2D(Pair.Key.Coordinate) * TileWorldExtent;
             const FVector2D Offset = (WorldMin - (Centre - Extent)) / (Extent * 2.0f);
-            const FVector2D TileFraction(ActiveTileWorldSize / (Extent.X * 2.0f), ActiveTileWorldSize / (Extent.Y * 2.0f));
+            const FVector2D TileFraction(TileWorldExtent / (Extent.X * 2.0f), TileWorldExtent / (Extent.Y * 2.0f));
             const FPaintGeometry TileGeometry = AllottedGeometry.ToPaintGeometry(MapSize * TileFraction,
                 FSlateLayoutTransform(FVector2D(Margin.Left, Margin.Top) + Offset * MapSize));
-            FSlateBrush TileBrush;
-            TileBrush.SetResourceObject(Pair.Value.Texture.Get()); TileBrush.ImageSize = FVector2D(Pair.Value.Texture->GetSizeX()); TileBrush.DrawAs = ESlateBrushDrawType::Image;
-            FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 1, TileGeometry, &TileBrush, ESlateDrawEffect::None, FLinearColor::White);
-        }
-        if (FogTexture != nullptr)
-        {
-            FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 2, MapGeometry, &FogBrush, ESlateDrawEffect::None, FLinearColor::White);
+            if (Pair.Value.Texture != nullptr && Pair.Value.FogTexture != nullptr)
+            {
+                FSlateBrush TileBrush;
+                TileBrush.SetResourceObject(Pair.Value.Texture.Get());
+                TileBrush.ImageSize = FVector2D(Pair.Value.Texture->GetSizeX(), Pair.Value.Texture->GetSizeY());
+                TileBrush.DrawAs = ESlateBrushDrawType::Image;
+                FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 1, TileGeometry, &TileBrush,
+                    ESlateDrawEffect::None, FLinearColor::White);
+            }
+            if (Pair.Value.FogTexture != nullptr)
+            {
+                FSlateBrush TileFogBrush;
+                TileFogBrush.SetResourceObject(Pair.Value.FogTexture.Get());
+                TileFogBrush.ImageSize = FVector2D(Pair.Value.FogTexture->GetSizeX(), Pair.Value.FogTexture->GetSizeY());
+                TileFogBrush.DrawAs = ESlateBrushDrawType::Image;
+                FSlateDrawElement::MakeBox(OutDrawElements, DrawLayer + 2, TileGeometry, &TileFogBrush,
+                    ESlateDrawEffect::None, FLinearColor::White);
+            }
         }
         OutDrawElements.PopClip();
         MarkerCounts.PersonalPins = DrawPins(AllottedGeometry, MapSize, DrawLayer + 3, OutDrawElements);
         DrawMapPings(AllottedGeometry, MapSize, DrawLayer + 6, OutDrawElements);
-        if (!bDeveloperPaintVerified && bDeveloperVerificationLogged && FogTexture != nullptr
+        if (!bDeveloperPaintVerified && bDeveloperVerificationLogged
             && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapVerification")))
         {
             const FGeometry PlayerScreen = UWidgetLayoutLibrary::GetPlayerScreenWidgetGeometry(GetOwningPlayer());
+            const int32 ExpectedTiles = BuildPrioritizedTileCoordinates(Centre, Extent, ActiveTileWorldSize).Num();
             int32 ReadyTiles = 0;
-            for (const auto& Pair : Tiles) if (Pair.Value.Texture != nullptr) ++ReadyTiles;
+            int32 ReadyFogTiles = 0;
+            for (const FIntPoint& Coordinate : BuildPrioritizedTileCoordinates(Centre, Extent, ActiveTileWorldSize))
+            {
+                FWorldMapTileKey Key;
+                Key.Coordinate = Coordinate;
+                Key.WorldSize = FMath::RoundToInt(ActiveTileWorldSize);
+                const FWorldMapTile* Tile = Tiles.Find(Key);
+                if (Tile != nullptr && Tile->Texture != nullptr) ++ReadyTiles;
+                if (Tile != nullptr && Tile->FogTexture != nullptr) ++ReadyFogTiles;
+            }
             const bool bFillsPlayerScreen = Size.X > 88.0f && Size.Y > 88.0f
                 && Size.Equals(PlayerScreen.GetLocalSize(), 1.0f)
                 && AllottedGeometry.LocalToAbsolute(FVector2D::ZeroVector).Equals(PlayerScreen.LocalToAbsolute(FVector2D::ZeroVector), 1.0f);
-            const int32 ExpectedTiles = BuildPrioritizedTileCoordinates(Centre, Extent, ActiveTileWorldSize).Num();
-            if (bFillsPlayerScreen && ReadyTiles > 0 && ReadyTiles == ExpectedTiles)
+            if (bFillsPlayerScreen && ReadyTiles > 0 && ReadyTiles == ExpectedTiles && ReadyFogTiles == ExpectedTiles)
             {
                 bDeveloperPaintVerified = true;
                 if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldOverviewVerification")))
@@ -1370,7 +1500,6 @@ void UKalmalaWorldMapWidget::PanByScreenDelta(const FVector2D& ScreenDelta, cons
     const FVector2D WorldDelta(-ScreenDelta.X / MapSize.X * 2.0f * Extent.X, -ScreenDelta.Y / MapSize.Y * 2.0f * Extent.Y);
     bFitWholeWorld = false;
     ViewModel->SetMapCentre(ViewModel->GetMapCentre() + WorldDelta);
-    InvalidateOutstandingTileJobs();
 }
 
 void UKalmalaWorldMapWidget::ZoomAtScreenPosition(const float WheelDelta, const FVector2D& ScreenPosition, const FVector2D& MapSize)
@@ -1382,7 +1511,6 @@ void UKalmalaWorldMapWidget::ZoomAtScreenPosition(const float WheelDelta, const 
     MapZoom = ClampMapZoom(MapZoom * (1.0f - WheelDelta * ZoomStep), MinZoom, MaxZoom);
     ViewModel->SetMapRadius(MapZoom);
     ViewModel->SetMapCentre(PinnedWorld - Normalized * ViewModel->GetMapExtent());
-    InvalidateOutstandingTileJobs();
 }
 
 FReply UKalmalaWorldMapWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)

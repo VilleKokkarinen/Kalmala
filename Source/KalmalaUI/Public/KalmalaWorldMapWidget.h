@@ -107,6 +107,22 @@ private:
         float ButtonHeight = 52.0f;
         float ButtonGap = 4.0f;
     };
+    struct FWorldMapTileKey
+    {
+        FIntPoint Coordinate = FIntPoint::ZeroValue;
+        int32 WorldSize = 10000;
+
+        bool operator==(const FWorldMapTileKey& Other) const
+        {
+            return Coordinate == Other.Coordinate && WorldSize == Other.WorldSize;
+        }
+        friend uint32 GetTypeHash(const FWorldMapTileKey& Key)
+        {
+            return HashCombine(
+                HashCombine(::GetTypeHash(Key.Coordinate.X), ::GetTypeHash(Key.Coordinate.Y)),
+                ::GetTypeHash(Key.WorldSize));
+        }
+    };
     struct FWorldMapTile
     {
         struct FBuildResult
@@ -116,24 +132,27 @@ private:
         };
         TFuture<FBuildResult> PendingPixels;
         TStrongObjectPtr<UTexture2D> Texture;
+        TStrongObjectPtr<UTexture2D> FogTexture;
         uint32 RequestEpoch = 0;
-        uint32 LastUsedEpoch = 0;
+        uint64 LastUsedSerial = 0;
         uint32 PixelHash = 0;
     };
     void RefreshTiles(const FVector2D& MapSize);
-    void StartTile(const FIntPoint& TileCoordinate, const FKalmalaWorldGenerationConfig& Config);
+    void StartTile(const FWorldMapTileKey& TileKey, const FKalmalaWorldGenerationConfig& Config);
     void UploadCompletedTiles();
-    void EvictUnusedTiles();
-    void UpdateFogTexture(FVector2D MapCentre, FVector2D MapExtent, FVector2D OwningPawnLocation, FIntPoint Dimensions);
+    bool EvictLeastRecentlyUsedTile(const TSet<FWorldMapTileKey>& ProtectedTiles);
+    void UpdateFogTileTexture(FWorldMapTile& Tile, const FWorldMapTileKey& TileKey, FVector2D OwningPawnLocation);
+    void InvalidateFogTileCache();
+    void InvalidateFogTilesNearPawn(FVector2D PawnLocation);
     void EnsureExplorationForWorld(const FKalmalaWorldGenerationConfig& Config);
-    void RecordLocalExploration(FVector2D OwningPawnLocation);
+    bool RecordLocalExploration(FVector2D OwningPawnLocation);
     FString GetExplorationSaveSlot(const FKalmalaWorldGenerationConfig& Config) const;
     void EnsurePinsForWorld(const FKalmalaWorldGenerationConfig& Config);
     void PersistPins();
     FString GetPinsSaveSlot(const FKalmalaWorldGenerationConfig& Config) const;
     void LogDeveloperTileFingerprint();
     void LogDeveloperProfile();
-    void InvalidateOutstandingTileJobs();
+    void ResetTileCacheForWorldChange();
     static TArray<FColor> BuildTilePixels(FKalmalaWorldGenerationConfig Config, FIntPoint TileCoordinate, float WorldSize = 10000.0f);
     static TArray<FIntPoint> BuildPrioritizedTileCoordinates(const FVector2D& Centre, const FVector2D& Extent, float WorldSize = 10000.0f);
     void PanByScreenDelta(const FVector2D& ScreenDelta, const FVector2D& MapSize);
@@ -171,16 +190,19 @@ private:
 
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaMinimapViewModel> ViewModel;
-    TMap<FIntPoint, FWorldMapTile> Tiles;
+    TMap<FWorldMapTileKey, FWorldMapTile> Tiles;
     TArray<FKalmalaWorldMapPersonalPin> LocalPins;
-    TStrongObjectPtr<UTexture2D> FogTexture;
-    FSlateBrush FogBrush;
+    FVector2D LastFogPawnLocation = FVector2D::ZeroVector;
+    bool bHasFogPawnLocation = false;
+    bool bLastFogRevealAll = false;
+    bool bHasFogRevealAll = false;
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaWorldMapExplorationSaveGame> ExplorationSave;
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaWorldMapPinsSaveGame> PinsSave;
     FKalmalaWorldGenerationConfig TileConfig;
     uint32 TileEpoch = 1;
+    uint64 TileUseSerial = 0;
     bool bMapOpen = false;
     /** Keep the local pan/zoom view when the collapsed map is opened again. */
     bool bHasOpenedMap = false;
@@ -227,6 +249,7 @@ private:
     static constexpr float ZoomStep = 0.18f;
     static constexpr float TileWorldSize = 10000.0f;
     static constexpr int32 TileSamplesPerAxis = 33;
+    static constexpr int32 FogTileSamplesPerAxis = 129;
     static constexpr int32 MaxCachedTiles = 64;
     // Local coverage is versioned and persisted independently from world deltas.
     static constexpr float LocalRevealRadius = 6500.0f;

@@ -182,7 +182,10 @@ replicated biome map. Its personal-pin legend filter reads only pins already
 loaded for that local player. Temporary server-relayed pings render as unlabeled
 beacons over the map; fog remains opaque over hidden terrain beneath them. The
 map displays no remote player positions or co-op status and exposes no sharing
-control. The personal-pin filter changes drawing only; it does not request
+control. Its bounded 64-entry terrain/fog cache is local, keyed by world-tile
+size and coordinate, reused across view-only pan/zoom, and cleared on
+world-identity changes; terrain is drawn only with its matching fog tile, and
+prior-identity worker results are rejected. The personal-pin filter changes drawing only; it does not request
 hidden content, change exploration, alter co-op consent, or mutate/remove pin
 data. Its transient widget state has no authority, RPC, replication, or
 persistence path.
