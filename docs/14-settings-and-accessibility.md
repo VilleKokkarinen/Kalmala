@@ -66,14 +66,154 @@ gameplay, with a visible theme highlight for hovered and keyboard/controller-
 focused options. High contrast must retain a clear non-colour focus cue. This
 does not change the separate Options tabs or the menu's existing input ownership.
 
-The later 2026-10-10 M13 Settings refresh request supersedes the separate
-per-view background appearance for the existing Settings/options tabs: they
-will use the same original wood texture as the Inventory backplate and the
-shared theme's button treatment. The Escape home list remains transparent.
-High contrast continues to replace the decorative texture with an opaque black
-surface. Existing option groups, values, local persistence, focus, and modal
-input behavior remain unchanged; no settings or tabs are added from the visual
-references.
+The later 2026-10-10 M13 Settings refresh request uses the same original wood
+texture as the Inventory backplate and the shared theme's button treatment.
+The Escape home list remains transparent. High contrast continues to replace
+the decorative texture with an opaque black surface. A follow-up request asks
+for the option groups and change controls to follow the attached references;
+the candidate options and their current selection state are listed below.
+
+## M13 Settings groups and reference-option checklist — 2026-10-10
+
+Use the six reference group names: **Gameplay**, **Keyboard & Mouse**,
+**Controller**, **Graphics**, **Audio**, and **Accessibility**. Move Kalmala's
+existing Video options into Graphics, split existing Controls by device family,
+and place existing Settings options in Accessibility. Audio remains Audio.
+Gameplay currently has no documented Kalmala setting. Do not leave an empty
+group visible if no Gameplay candidate is selected. Keep all existing Kalmala
+settings available regardless of the candidate checks below.
+
+The checkboxes are for the user to select candidate options for later M13
+scope; checking one does **not** mean it has been implemented. New candidates
+must have a Kalmala-supported behavior, use local configuration, and remain
+reachable with keyboard/controller focus. Their default, range, and persistence
+behavior should be specified when selected. Do not copy reference artwork.
+
+### Gameplay candidates
+
+- [ ] Language selector — previous/next arrows cycle available languages.
+- [ ] Auto-run — on/off toggle. The reference repeats this under Accessibility;
+  select one group only if adding it.
+- [ ] Attack towards look direction — on/off toggle.
+- [ ] Show button hints — on/off toggle.
+- [ ] Enable raven hints — on/off toggle.
+- [ ] Reduce background performance — on/off toggle.
+- [ ] Enable Console — on/off toggle.
+- [ ] Show build piece author — on/off toggle.
+- [ ] Skip intro cinematic — on/off toggle.
+- [ ] Auto-backup history — slider with a visible selected count.
+
+### Keyboard & Mouse candidates
+
+- [ ] Mouse sensitivity — slider with a visible percentage/value.
+- [ ] Invert mouse — on/off toggle.
+- [ ] Right-click build selection — on/off toggle.
+- [ ] Direct keyboard/mouse rebinding — show one row per action and its current
+  binding; activating a binding captures the next valid key or mouse input,
+  Escape cancels capture, and Reset controls restores defaults. This replaces
+  the current bounded-choice interaction if selected.
+
+The reference does not show a keyboard-layout preset selector. It shows
+per-action binding rows; changing a key means activating that row and pressing
+the desired input. Existing Kalmala remapping remains available even if direct
+capture and the new sensitivity/toggle candidates are not selected. If desired,
+the user can select direct capture above to match the reference's interaction.
+
+### Controller candidates
+
+- [ ] Gamepad enabled — on/off toggle.
+- [ ] Swap triggers — on/off toggle.
+- [ ] Invert camera X axis — on/off toggle.
+- [ ] Invert camera Y axis — on/off toggle.
+- [ ] Vibration strength — slider with a visible percentage/value.
+- [ ] Controller sensitivity — slider with a visible percentage/value.
+- [ ] Glyphs — selector; previous/next arrows cycle supported glyph styles.
+- [ ] Controller layout — selector; previous/next arrows cycle supported
+  layouts, show the selected layout name, and update the controller diagram.
+
+Keep Kalmala's existing controller binding choices in this group. The
+Controller layout reference is a separate preset selector, not a per-button
+editor. Its selected preset and diagram must stay in sync. Do not invent layout
+names; show only presets actually supported by Kalmala.
+
+### Graphics candidates
+
+- [ ] 3D resolution limit — selector cycles supported limits.
+- [ ] Upscaling method — selector cycles supported methods.
+- [ ] Framerate limit — slider, including the supported Unlimited choice.
+- [ ] Graphics preset — previous/next selector, including Custom when applicable.
+- [ ] Vegetation quality — slider.
+- [ ] Level of detail — slider.
+- [ ] Particle lights — slider.
+- [ ] Shadow quality — slider.
+- [ ] Active point lights — slider.
+- [ ] Active point light shadows — slider.
+- [ ] SSAO — slider.
+- [ ] Cloth quality — slider.
+- [ ] Draw distance — slider with a readable value.
+- [ ] Distant shadows — on/off toggle.
+- [ ] Tessellation — on/off toggle.
+- [ ] Bloom — on/off toggle.
+- [ ] Depth of field — on/off toggle (the reference repeats it in Accessibility;
+  check only one group).
+- [ ] Motion blur — on/off toggle (the reference repeats it in Accessibility;
+  check only one group).
+- [ ] Chromatic aberration — on/off toggle.
+- [ ] Sun shafts — on/off toggle.
+- [ ] Soft particles — on/off toggle.
+- [ ] Anti-aliasing — on/off toggle.
+
+### Audio candidates
+
+- [ ] Replace the existing 25%-step audio controls with sliders for the same
+  master, ambient, music, and interaction/combat-feedback settings; keep
+  visible percentage/value labels.
+- [ ] Continuous music — on/off toggle.
+
+### Accessibility candidates
+
+- [ ] Auto-run — duplicate reference entry; if selected, use the single Gameplay
+  setting instead of showing a second control here.
+- [ ] Immersive camera — on/off toggle.
+- [ ] Camera shake — on/off toggle or supported intensity control.
+- [ ] Reduce flashing lights — on/off toggle.
+- [ ] Motion blur — alternate placement for the Graphics candidate; check only
+  one group.
+- [ ] Toggle block — on/off toggle.
+- [ ] Depth of field — alternate placement for the Graphics candidate; check
+  only one group.
+
+The reference also shows **Reset raven hints**, **Delete PlayFab account**, and
+**Radial Menu** as buttons. They are actions rather than settings, so they are
+not in this checklist. Account deletion is an external account action; none of
+these actions is added to M13 by these screenshots.
+
+### Existing Kalmala settings retained in the new groups
+
+- **Graphics** (currently Video): resolution, V-Sync, window mode, and
+  render-distance quality. Keep these settings; their screenshot-like controls
+  are a resolution selector, V-Sync toggle, window-mode toggle/selector, and
+  quality slider.
+- **Audio:** master volume, mute/restore, music, ambient, and
+  interaction/combat feedback levels. Keep these settings; only the optional
+  checkbox above changes their current 25%-step control to sliders.
+- **Keyboard & Mouse / Controller** (currently Controls): existing allowlisted
+  per-action binding choices and restore-defaults behavior for each device
+  family. The optional direct-capture checkbox changes only the keyboard/mouse
+  interaction model if selected.
+- **Accessibility** (currently Settings): text scale, interface scale,
+  Standard/High contrast, colour-independent feedback preference, and Reduced
+  motion. Interface scale is the existing equivalent of the reference's Scale
+  GUI control; keep it in this group with a visible value and do not add a
+  duplicate setting.
+
+Keep the selected tab, current values, and focus order readable. Sliders expose
+their values as text; toggles expose on/off text; selectors expose the current
+choice and can be changed with visible previous/next buttons plus keyboard or
+controller navigation. Long Graphics and binding pages remain scrollable.
+High contrast, local persistence, modal ownership, and reduced-motion behavior
+continue to apply. Candidate options stay out of implementation scope until the
+user checks them and their underlying behavior is confirmed.
 
 Exact control ranges and device-specific labels remain implementation details;
 they must stay bounded, reversible, and compatible with the current input
@@ -301,9 +441,12 @@ unchanged. Other option tabs remain part of the broader view polish pass.
 The owner-local settings widget retains its last Options tab (Video by default)
 across ordinary close/reopen. Escape still opens the main shell; choosing Options
 rebuilds the remembered tab with current labels and its normal focus target.
-Restoration invokes no setting-changing click handler. The index is bounded to
-four existing tabs, with Video as the dispatch fallback. Memory ends when the
-widget is recreated, including subsystem teardown; it writes no config/save data.
+Restoration invokes no setting-changing click handler. The current M11 runtime
+index is bounded to four tabs, with Video as the dispatch fallback. M13 replaces
+that tab set with the applicable groups from the six-group Settings checklist
+above; retained selection must resolve to a valid group, with Graphics as the
+fallback for a stale Video index. Memory ends when the widget is recreated,
+including subsystem teardown; it writes no config/save data.
 Scroll position and exact previously focused control are not yet retained.
 The rendered settings accessibility fixture now returns from the Settings tab
 to the main shell, reopens Options, and requires the Settings tab and a focusable

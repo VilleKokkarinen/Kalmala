@@ -490,14 +490,15 @@ change.
 
 ## M13 Settings menu visual refresh request — 2026-10-10
 
-The existing Settings/options tabs are to use the same original wood texture as
-the Inventory backplate (`/Game/Kalmala/UI/InventoryPanel.InventoryPanel`) as
-their consistent full-panel background. Each existing option-tab image key
-must resolve to that same texture for this shell; do not substitute separate
-art between tabs. This supersedes the separate per-view image appearance for
-those tabs while leaving the transparent Escape home options list unchanged.
-Keep the existing option groups and content; the reference screenshots do not
-add tabs or settings to Kalmala.
+The Settings/options tabs are to use the same original wood texture as the
+Inventory backplate (`/Game/Kalmala/UI/InventoryPanel.InventoryPanel`) as their
+consistent full-panel background. Each option-tab image key must resolve to
+that same texture for this shell; do not substitute separate art between tabs.
+This supersedes the separate per-view image appearance for those tabs while
+leaving the transparent Escape home options list unchanged. The six reference
+group names and proposed options are recorded in
+`docs/14-settings-and-accessibility.md`; only the existing options and the
+candidate options explicitly selected there are in scope for implementation.
 
 All buttons in the Settings/options tabs, including tabs and Back/OK/action
 controls, use the existing shared theme button treatment and state brushes for
@@ -506,7 +507,9 @@ tab and keyboard/controller focus cues. Do not introduce Settings-specific
 button styling. Local text scaling, interface scaling, reduced motion, and
 high-contrast precedence continue to apply; high contrast suppresses the wood
 and keeps the established opaque black panel, readable text, and focus borders.
-Existing values, local persistence, actions, and modal input ownership are
-unchanged. This is a presentation-only request; no option, setting field, or
-save schema is added. Implementation and rendered verification remain queued
-in M13; the current defaults listed above describe the existing runtime.
+Existing values, local persistence, actions, and modal input ownership remain
+unchanged. Any selected candidate must use the shared theme and local settings
+path; it must not add replicated settings or world/player save fields. The
+candidate checklist is not itself an implementation request until options are
+selected. Implementation and rendered verification remain queued in M13; the
+current defaults listed above describe the existing runtime.

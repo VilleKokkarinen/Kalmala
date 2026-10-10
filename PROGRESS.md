@@ -10,7 +10,7 @@
 - The latest M13 request adds a right-aligned current-biome label above the top-right minimap and a transparent main Escape menu with visible hover/focus highlighting; both are queued as presentation work.
 - M13 now also includes reusable support-scroll items in numbered inventory hotbar cells. They use the existing learned-effect entitlement, share a five-minute cooldown, last three minutes where effects are sustained, and allow only one active effect per caster. Deer Call also lasts three minutes; Mending remains instant. Scrolls are reconstructed from learned progression without new save fields, and server authority remains in force.
 - M13 now includes a Build-menu refresh: right-click entry with the hammer active, icon-only cards with contextual details, icon-only top-row filters, click-to-enter placement mode, right-click favorites, transient search, and direct Campfire lighting by Interact. Existing build/fuel costs and server validation remain the contract; implementation is queued.
-- M13 now also includes a Settings visual refresh: use the Inventory wood backplate and shared-theme button states across the existing Settings/options tabs; preserve all option behavior and high-contrast override. Implementation is queued.
+- M13 Settings scope now uses the six reference group names: Gameplay, Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility. Existing local options are mapped to those groups. `docs/14-settings-and-accessibility.md` contains the unchecked screenshot-derived option checklist; only candidates the user checks enter implementation scope. It describes optional per-action keyboard/mouse capture and a candidate previous/next controller-layout selector with synchronized diagram.
 - A Win64 Development package launched and loaded the prototype map on 2026-10-10. This confirms startup and map loading; rendered icon visibility and the remaining M13 UI acceptance are still pending.
 
 ## Completed work log
@@ -57,6 +57,16 @@
 - **Impact and authority:** planning only. Existing settings remain local and keep their current values, persistence, actions, and modal/input ownership; no replicated setting or save-schema change is introduced.
 - **Limits:** the shared wood backplate and theme-button appearance across Settings/options tabs are not implemented or rendered-verified.
 - **Next eligible task:** implement and verify support-scroll hotbar use under the active inventory/HUD/service revalidation; Build-menu and Settings visual refreshes remain later in backlog order.
+
+## 2026-10-10 — Add selectable Settings options to M13
+
+- **Completed:** mapped the six reference groups and added unchecked option candidates under Gameplay, Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility. Documented the optional per-action keyboard/mouse rebinding flow and controller layout previous/next selector with synchronized diagram. Marked Reset raven hints, PlayFab account deletion, and Radial Menu as actions outside this settings checklist.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/04-roadmap.md`, `docs/14-settings-and-accessibility.md`, and `docs/35-ui-theme.md`.
+- **Lightweight checks:** inspected the updated requirements and scoped screenshot-only options against current Kalmala settings; `git diff --check` and the 260-character path audit passed.
+- **Full verification:** deferred to M13 milestone-final verification; documentation only, with no runtime, build, automation, or rendered checks.
+- **Impact and authority:** planning only. Existing settings remain local. Candidate options are not implementation scope until the user checks them; no runtime, replicated state, or saved-data changes were made.
+- **Limits:** option candidates need user selection, and selected candidates need implementation/runtime verification. The Settings visual refresh and content reorganization are not implemented.
+- **Next eligible task:** complete support-scroll hotbar integration in the active inventory/HUD/service revalidation, then proceed through the queued M13 tasks in backlog order.
 
 ## 2026-10-10 — M13 shared foundation revalidation and inventory craft request
 
