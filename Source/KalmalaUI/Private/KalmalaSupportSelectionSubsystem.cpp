@@ -292,8 +292,7 @@ void UKalmalaSupportSelectionSubsystem::Tick(float DeltaTime)
         return;
     }
 
-    int32 SelectedIndex = static_cast<int32>(Character->GetSelectedSupportEffect()) - 1;
-    if (SelectedIndex < 0 || SelectedIndex >= UE_ARRAY_COUNT(Effects)) SelectedIndex = INDEX_NONE;
+    const int32 SelectedIndex = INDEX_NONE;
     uint8 LearnedMask = 0;
     for (int32 Index = 0; Index < UE_ARRAY_COUNT(Effects); ++Index)
         if (Support->HasLearnedEffect(Effects[Index])) LearnedMask |= static_cast<uint8>(1u << Index);

@@ -3239,7 +3239,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
                 const bool bLearned = Support->LearnEffectFromServer(EKalmalaSupportEffect::HearthShield);
                 if (bLearned)
                 {
-                    Support->ServerRequestActivateSupportEffect(EKalmalaSupportEffect::HearthShield, 1);
+                    Support->ActivateSupportEffectFromHotbarServer(EKalmalaSupportEffect::HearthShield);
                 }
                 UE_LOG(LogTemp, Display,
                     TEXT("Ambient audio verification server support result: Learned=%d Accepted=%d Serial=%u"),
@@ -3259,13 +3259,13 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
                     const bool bLearned = Support->LearnEffectFromServer(EKalmalaSupportEffect::BearsVigor);
                     if (bLearned)
                     {
-                        Support->ServerRequestActivateSupportEffect(EKalmalaSupportEffect::BearsVigor, 2);
+                        Support->ActivateSupportEffectFromHotbarServer(EKalmalaSupportEffect::BearsVigor);
                     }
                     UE_LOG(LogTemp, Display,
                         TEXT("Ambient audio verification server support result: Learned=%d Accepted=%d Serial=%u Effect=BearsVigor"),
                         bLearned ? 1 : 0, Support->GetFeedback() == EKalmalaSupportFeedback::Accepted ? 1 : 0,
                         Support->GetFeedbackSerial());
-                }), 4.5f, false);
+                }), UKalmalaSupportMagicComponent::CooldownSeconds + 0.5f, false);
             FTimerHandle AcceptedInteractionTimer;
             GetWorldTimerManager().SetTimer(AcceptedInteractionTimer,
                 FTimerDelegate::CreateWeakLambda(this, [WeakCharacter]()

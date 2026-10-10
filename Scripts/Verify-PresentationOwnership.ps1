@@ -4,12 +4,15 @@ param()
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot
 & (Join-Path $PSScriptRoot 'Verify-InventoryPanelRemoval.ps1')
-$documentPath = Join-Path $projectRoot 'docs\15-presentation-ownership.md'
+$documentPath = Join-Path $projectRoot 'docs\02-technical-architecture.md'
 if (-not (Test-Path -LiteralPath $documentPath -PathType Leaf)) {
     throw "Presentation ownership document was not found: $documentPath"
 }
 
 $document = Get-Content -LiteralPath $documentPath -Raw
+$section = [regex]::Match($document, '(?ms)^## Presentation ownership\r?\n(.*?)(?=^## Audio cues\r?$)')
+if (-not $section.Success) { throw 'Consolidated presentation ownership section was not found' }
+$document = $section.Groups[1].Value
 $requiredSections = @(
     '## Ownership ledger',
     '## Allowed and forbidden sources',
@@ -40,7 +43,7 @@ foreach ($relativePath in $requiredAssets) {
 
 $sourceContracts = @(
     @{ Label = 'accessibility-feedback'; Path = 'Source\KalmalaUI\Private\KalmalaAccessibilityFeedbackSubsystem.cpp'; Patterns = @('MarkerLine', 'COLOUR-INDEPENDENT FEEDBACK', 'GetLocalPlayer()', 'HitTestInvisible') },
-    @{ Label = 'support-selection'; Path = 'Source\KalmalaUI\Private\KalmalaSupportSelectionSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'GetSelectedSupportEffect()', 'HasLearnedEffect', 'SetIsFocusable(false)', 'HitTestInvisible') },
+    @{ Label = 'support-selection-retired'; Path = 'Source\KalmalaUI\Public\KalmalaSupportSelectionSubsystem.h'; Patterns = @('virtual bool IsTickable() const override { return false; }') },
     @{ Label = 'action-notifications'; Path = 'Source\KalmalaUI\Private\KalmalaNotificationSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'ObserveCombat', 'ObserveSupport', 'ObserveDiscovery', 'HitTestInvisible') },
     @{ Label = 'status-hotbar'; Path = 'Source\KalmalaUI\Private\KalmalaStatusHotbarWidget.cpp'; Patterns = @('HitTestInvisible', 'SetIsFocusable(false)', 'SetExplicitWrapSize', 'LoadTexture(Entry.StatusIconId)') },
     @{ Label = 'catalogue-icons'; Path = 'Source\KalmalaUI\Private\KalmalaIconWidget.cpp'; Patterns = @('FindCatalogueIcon', 'ConstructionHammer', 'MakeLines') },

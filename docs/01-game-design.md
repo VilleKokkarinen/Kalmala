@@ -8,7 +8,7 @@
 4. Return with materials and, on major discoveries, new materials, gear and or magic scrolls.
 5. Improve the sanctuary and range farther into stranger parts of the world.
 
-## Vertical-slice player kit
+## Player-kit design targets
 
 - Movement: walk, sprint, jump, dodge, swim
 - Vitality: health, stamina, warmth, hunger (simple and legible).
@@ -32,7 +32,7 @@ Magic uses no runes, and does not use combinable verses.
 
 ## World simulation v0
 
-New generated worlds use an independently seeded land/water master map, cropped and rotated by the game seed at the existing 16 km radius. The centre through 350 m contains only Meadows/Ocean. Eligible land can develop Shimmering Lakes beyond 350 m, Elderwood from 750 m, Mossy Mire from 2 km and Freezing Tundra from 4 km according to procedural environmental suitability. Meadows is limited to 4 km. Meadows and Thunder Mountains fill remaining land; beyond 4 km the fallback is Thunder Mountains. These are origin-distance placement rules, not compulsory routes or enemy levels. The full generation and compatibility contract is in `08-world-generation-and-biomes.md`.
+New generated worlds use an independently seeded land/water master map, cropped and rotated by the game seed at the existing 16 km radius. The centre through 350 m contains only Meadows/Ocean. Eligible land can develop Shimmering Lakes beyond 350 m, Elderwood from 750 m, Mossy Mire from 3 km and Freezing Tundra from 4 km according to procedural environmental suitability. Meadows is limited to 4 km. Meadows and Thunder Mountains fill remaining land; beyond 4 km the fallback is Thunder Mountains. These are origin-distance placement rules, not compulsory routes or enemy levels. The full generation and compatibility contract is in `02-technical-architecture.md`.
 
 M3 starts with a **bounded, server-owned interaction grid** around active gameplay areas. It is not a full world cellular simulation: only cells near a possessed player or lit hearth exist at runtime, and only authoritative nearby changes are presented to a client. Its exact coordinate, activation, persistence, and client-intent rules are in the interaction-grid contract in `02-technical-architecture.md`.
 
@@ -69,3 +69,16 @@ Subtitles, remappable input, scalable text, adjustable camera shake, color-indep
 This section supersedes earlier references to continuous player wetness, warmth-derived wetness penalties, fuel wetness extinguishing, or rain damage below. `Wet` is only a server-owned player debuff with a reusable parameter definition: default maximum duration 120 seconds, unroofed-rain trigger 10 uninterrupted seconds, movement multiplier 0.92, and stamina-use multiplier 1.15. Standing in server-confirmed water applies it immediately. Rain applies it only when the server finds no accepted roof above the pawn. Reapplication cannot exceed 120 seconds; a nearby lit campfire with nonzero authoritative heat removes it. Surface moisture remains a grid material/fire input and is never a second player wetness system.
 
 Roofs are rain-immune. Unroofed floors, walls, workbenches, and storage take slow server-owned rain wear, clamped at 50% health; an accepted overhead roof prevents that wear. A fuelled campfire is normal in dry weather. Rain without a roof makes it `Smouldering`, with zero heat; roof protection automatically returns it to `Lit`. Clients submit no wetness, duration, roof, health, weather, fire, or relight state.
+
+
+## Implemented gameplay and current limits
+
+See [Game features](game-features.md) for a short inventory of additions. The player kit above describes design targets; it is not proof that every listed weapon, equipment slot, hunger system, or action is implemented.
+
+The implemented survival loop includes tool-based gathering, paid camp construction, weather/shelter recovery, six cooking recipes, free tool repair, Workbench/Forge axe progression, optional creature encounters and discoveries, a two-seat ocean skiff, local maps, and owner-private inventory/progression feedback. Four support effects remain non-damaging and scroll-learned. Exact transactions, privacy, persistence, and current overrides are consolidated in [Technical architecture](02-technical-architecture.md#consolidated-system-contracts).
+
+The current player inventory is one 10×4 grid with its first row assigned to hotbar numbers 1–0. Armor/weight are prototype display metrics; there is no armor equipment or encumbrance loop. Ordinary materials, meals, cell positions, skill XP, weather, and active effects are not generally persisted. Saved tool state, discovered entitlements, construction, storage, and approved sparse world/player facts have separate validated owners.
+
+Root vegetables and their seeds are catalogue definitions; farming is not implemented. Iron and Coal have no configured natural gathering source. Storm-rated shelter, insulated clothing/equipment rules, and vessel cargo/hull durability remain outside the accepted scope.
+
+M0–M12 have recorded acceptance with limitations. M13 UI refresh work and the M14 map rework have incomplete integrated acceptance. Settings candidates in the architecture and roadmap are requested scope, not implemented features; consult the live backlog before describing them as available.

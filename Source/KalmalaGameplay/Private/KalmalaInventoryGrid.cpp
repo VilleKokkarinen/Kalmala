@@ -1,6 +1,7 @@
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCraftingComponent.h"
+#include "KalmalaSupportMagicComponent.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "Engine/World.h"
@@ -122,6 +123,15 @@ void UKalmalaInventoryComponent::ServerUseHotbarSlot_Implementation(const int32 
     SynchronizeGridFromServer();
     const FName Id = GetSlotItem(Slot);
     if (Id.IsNone()) return;
+    const EKalmalaSupportEffect SupportEffect = UKalmalaSupportMagicComponent::FromScrollItemId(Id);
+    if (SupportEffect != EKalmalaSupportEffect::None)
+    {
+        if (UKalmalaSupportMagicComponent* Support = Character->GetSupportMagicComponent())
+        {
+            Support->ActivateSupportEffectFromHotbarServer(SupportEffect);
+        }
+        return;
+    }
     ActiveItem = Id;
     if (UKalmalaPlayerStatusComponent::IsKnownFoodItem(Id))
         if (auto* Crafting = GetOwner()->FindComponentByClass<UKalmalaCraftingComponent>()) Crafting->ServerConsumeFood(Id);

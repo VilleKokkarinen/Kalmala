@@ -246,6 +246,34 @@
       "DisplayName": "Onion Seeds",
       "Description": "Seeds from the onion plant.",
       "MaxStack": 50
+    },
+    {
+      "ItemId": "MendingScroll",
+      "DisplayName": "Mending Scroll",
+      "Description": "A reusable support scroll for restoring a nearby ally's health.",
+      "MaxStack": 1,
+      "WeightKg": 0.25
+    },
+    {
+      "ItemId": "HearthShieldScroll",
+      "DisplayName": "Hearth Shield Scroll",
+      "Description": "A reusable support scroll that grants temporary protection.",
+      "MaxStack": 1,
+      "WeightKg": 0.25
+    },
+    {
+      "ItemId": "BearsVigorScroll",
+      "DisplayName": "Bear's Vigor Scroll",
+      "Description": "A reusable support scroll that temporarily bolsters strength and stamina.",
+      "MaxStack": 1,
+      "WeightKg": 0.25
+    },
+    {
+      "ItemId": "DeerCallScroll",
+      "DisplayName": "Deer Call Scroll",
+      "Description": "A reusable support scroll that calls nearby deer.",
+      "MaxStack": 1,
+      "WeightKg": 0.25
     }
   ],
   "recipes": [

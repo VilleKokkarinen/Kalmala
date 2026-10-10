@@ -363,12 +363,18 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         const bool bDirectRefuelAccepted = InteractWithFire(true) && bExpectedFuelExchange
             && AreStacksEqual(ExpectedPackAfterRefuel, I->GetStacks())
             && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), FuelBeforeDirectRefuel + AKalmalaCampfire::FuelSecondsPerItem);
-        const bool bDirectRefuelDidNotLight = Fire->GetHearthState() == EKalmalaHearthState::Extinguished;
-        Check(bDirectRefuelAccepted && bDirectRefuelDidNotLight,
-            TEXT("Campfire Interact consumes exactly one priority raw fuel item without lighting"));
-        UE_LOG(LogTemp, Display, TEXT("Campfire interaction: AddedOne=%d NoLighting=%d FullRejected=%d NoFuelRejected=%d RangeRejected=%d"),
-            bDirectRefuelAccepted ? 1 : 0, bDirectRefuelDidNotLight ? 1 : 0, bFullInteractRejected ? 1 : 0,
-            bNoFuelInteractRejected ? 1 : 0, bRangeInteractRejected ? 1 : 0);
+        const bool bRefuelInteractDidNotLight = Fire->GetHearthState() == EKalmalaHearthState::Extinguished;
+        const TArray<FKalmalaInventoryStack> PackBeforeDirectLight = I->GetStacks();
+        const float FuelBeforeDirectLight = Fire->GetFuelSeconds();
+        const bool bDirectLightAccepted = InteractWithFire(true) && Fire->IsLit()
+            && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), FuelBeforeDirectLight)
+            && AreStacksEqual(PackBeforeDirectLight, I->GetStacks());
+        Check(bDirectRefuelAccepted && bRefuelInteractDidNotLight,
+            TEXT("Campfire Interact adds exactly one priority raw fuel item without lighting"));
+        Check(bDirectLightAccepted, TEXT("Campfire Interact lights eligible existing fuel without a cost"));
+        UE_LOG(LogTemp, Display, TEXT("Campfire interaction: AddedOne=%d RefuelNoLighting=%d Light=%d FullRejected=%d NoFuelRejected=%d RangeRejected=%d"),
+            bDirectRefuelAccepted ? 1 : 0, bRefuelInteractDidNotLight ? 1 : 0, bDirectLightAccepted ? 1 : 0,
+            bFullInteractRejected ? 1 : 0, bNoFuelInteractRejected ? 1 : 0, bRangeInteractRejected ? 1 : 0);
         // Real server shelter traces must shield the fire; no authored protection volume.
         auto* WorldState=GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
         const auto SavedWeather=WorldState->GetWeatherState(); auto Storm=SavedWeather;

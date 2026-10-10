@@ -2,6 +2,7 @@
 #include "KalmalaPlayerDiscoverySaveGame.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaSupportMagicComponent.h"
+#include "KalmalaWildlifeSpawn.h"
 #include "KalmalaGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
@@ -35,12 +36,14 @@ bool FKalmalaDiscoveryProgressTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Malformed support effect is rejected"), UKalmalaSupportMagicComponent::IsKnownEffect(static_cast<EKalmalaSupportEffect>(255)));
     TestFalse(TEXT("Malformed support effect cannot be treated as non-damaging gameplay"), UKalmalaSupportMagicComponent::IsNonDamagingEffect(static_cast<EKalmalaSupportEffect>(255)));
     TestEqual(TEXT("Support effects use the tuned shared base stamina cost"), UKalmalaSupportMagicComponent::ActivationCost, 18.0f);
-    TestEqual(TEXT("Support effects use the tuned five-second shared cooldown"), UKalmalaSupportMagicComponent::CooldownSeconds, 5.0f);
-    TestEqual(TEXT("Hearth Shield uses the tuned ten-second server duration"), UKalmalaSupportMagicComponent::HearthShieldDurationSeconds, 10.0f);
-    TestEqual(TEXT("Bear's Vigor uses the tuned ten-second server duration"), UKalmalaSupportMagicComponent::BearsVigorDurationSeconds, 10.0f);
-    TestTrue(TEXT("Activation requires authority, entitlement, sequence, cooldown, and stamina"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, true, true, true));
+    TestEqual(TEXT("Support effects share the five-minute server cooldown"), UKalmalaSupportMagicComponent::CooldownSeconds, 300.0f);
+    TestEqual(TEXT("Hearth Shield lasts three minutes"), UKalmalaSupportMagicComponent::HearthShieldDurationSeconds, 180.0f);
+    TestEqual(TEXT("Bear's Vigor lasts three minutes"), UKalmalaSupportMagicComponent::BearsVigorDurationSeconds, 180.0f);
+    TestEqual(TEXT("Deer Call influence lasts three minutes"), AKalmalaWildlifeSpawn::DeerCallInfluenceDurationSeconds, 180.0f);
+    TestEqual(TEXT("Deer Call caster effect lasts three minutes"), UKalmalaSupportMagicComponent::DeerCallDurationSeconds, 180.0f);
+    TestTrue(TEXT("Activation requires authority, entitlement, request cadence, cooldown, and stamina"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, true, true, true));
     TestFalse(TEXT("Client-role activation is rejected"), UKalmalaSupportMagicComponent::IsActivationAllowed(false, true, true, true, true));
-    TestFalse(TEXT("Replay or zero-sequence activation is rejected"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, false, true, true));
+    TestFalse(TEXT("A request rejected by hotbar cadence is rejected"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, false, true, true));
     TestFalse(TEXT("Activation cannot bypass stamina"), UKalmalaSupportMagicComponent::IsActivationAllowed(true, true, true, true, false));
     TestTrue(TEXT("Hearth Shield needs the same server activation gates and rejects an active refresh"), UKalmalaSupportMagicComponent::IsHearthShieldActivationAllowed(true, false));
     TestFalse(TEXT("Hearth Shield cannot refresh while its server-owned protection is active"), UKalmalaSupportMagicComponent::IsHearthShieldActivationAllowed(true, true));

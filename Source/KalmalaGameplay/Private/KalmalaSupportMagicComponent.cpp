@@ -1,6 +1,7 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCharacterMovementComponent.h"
+#include "KalmalaInventoryComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "GameFramework/Pawn.h"
@@ -12,6 +13,25 @@ FString UKalmalaSupportMagicComponent::CanonicalId(const EKalmalaSupportEffect E
 {
     switch (Effect) { case EKalmalaSupportEffect::Mending: return TEXT("Effect:mending"); case EKalmalaSupportEffect::HearthShield: return TEXT("Effect:hearth-shield"); case EKalmalaSupportEffect::BearsVigor: return TEXT("Effect:bears-vigor"); case EKalmalaSupportEffect::DeerCall: return TEXT("Effect:deer-call"); default: return FString(); }
 }
+FName UKalmalaSupportMagicComponent::ScrollItemId(const EKalmalaSupportEffect Effect)
+{
+    switch (Effect)
+    {
+    case EKalmalaSupportEffect::Mending: return TEXT("MendingScroll");
+    case EKalmalaSupportEffect::HearthShield: return TEXT("HearthShieldScroll");
+    case EKalmalaSupportEffect::BearsVigor: return TEXT("BearsVigorScroll");
+    case EKalmalaSupportEffect::DeerCall: return TEXT("DeerCallScroll");
+    default: return NAME_None;
+    }
+}
+EKalmalaSupportEffect UKalmalaSupportMagicComponent::FromScrollItemId(const FName ItemId)
+{
+    if (ItemId == TEXT("MendingScroll")) return EKalmalaSupportEffect::Mending;
+    if (ItemId == TEXT("HearthShieldScroll")) return EKalmalaSupportEffect::HearthShield;
+    if (ItemId == TEXT("BearsVigorScroll")) return EKalmalaSupportEffect::BearsVigor;
+    if (ItemId == TEXT("DeerCallScroll")) return EKalmalaSupportEffect::DeerCall;
+    return EKalmalaSupportEffect::None;
+}
 EKalmalaSupportEffect UKalmalaSupportMagicComponent::FromScrollDefinition(const FString& Definition)
 { if (Definition == TEXT("mending")) return EKalmalaSupportEffect::Mending; if (Definition == TEXT("hearth-shield")) return EKalmalaSupportEffect::HearthShield; if (Definition == TEXT("bears-vigor")) return EKalmalaSupportEffect::BearsVigor; if (Definition == TEXT("deer-call")) return EKalmalaSupportEffect::DeerCall; return EKalmalaSupportEffect::None; }
 bool UKalmalaSupportMagicComponent::IsKnownEffect(const EKalmalaSupportEffect Effect)
@@ -19,11 +39,28 @@ bool UKalmalaSupportMagicComponent::IsKnownEffect(const EKalmalaSupportEffect Ef
 bool UKalmalaSupportMagicComponent::IsNonDamagingEffect(const EKalmalaSupportEffect Effect)
 { return IsKnownEffect(Effect); }
 bool UKalmalaSupportMagicComponent::LearnEffectFromServer(const EKalmalaSupportEffect Effect)
-{ if (!GetOwner() || !GetOwner()->HasAuthority() || !IsKnownEffect(Effect)) return false; LearnedMask |= static_cast<uint8>(1u << static_cast<uint8>(Effect)); GetOwner()->ForceNetUpdate(); return true; }
+{
+    if (!GetOwner() || !GetOwner()->HasAuthority() || !IsKnownEffect(Effect)) return false;
+    LearnedMask |= static_cast<uint8>(1u << static_cast<uint8>(Effect));
+    if (APawn* Pawn = Cast<APawn>(GetOwner()))
+    {
+        if (UKalmalaInventoryComponent* Inventory = Pawn->FindComponentByClass<UKalmalaInventoryComponent>())
+        {
+            const FName ScrollId = ScrollItemId(Effect);
+            if (!ScrollId.IsNone() && Inventory->GetQuantity(ScrollId) == 0)
+            {
+                // This ordinary runtime stack is rebuilt from the persisted entitlement, never saved.
+                Inventory->TryGrantFromServer(ScrollId, 1);
+            }
+        }
+    }
+    GetOwner()->ForceNetUpdate();
+    return true;
+}
 bool UKalmalaSupportMagicComponent::HasLearnedEffect(const EKalmalaSupportEffect Effect) const
 { return !CanonicalId(Effect).IsEmpty() && (LearnedMask & static_cast<uint8>(1u << static_cast<uint8>(Effect))) != 0; }
-bool UKalmalaSupportMagicComponent::IsActivationAllowed(const bool bAuthority, const bool bLearned, const bool bNewSequence, const bool bCooldownExpired, const bool bHasStamina)
-{ return bAuthority && bLearned && bNewSequence && bCooldownExpired && bHasStamina; }
+bool UKalmalaSupportMagicComponent::IsActivationAllowed(const bool bAuthority, const bool bLearned, const bool bRequestCadenceAllowed, const bool bCooldownExpired, const bool bHasStamina)
+{ return bAuthority && bLearned && bRequestCadenceAllowed && bCooldownExpired && bHasStamina; }
 bool UKalmalaSupportMagicComponent::IsHearthShieldActivationAllowed(const bool bBaseActivationAllowed, const bool bShieldAlreadyActive)
 { return bBaseActivationAllowed && !bShieldAlreadyActive; }
 bool UKalmalaSupportMagicComponent::IsBearsVigorActivationAllowed(const bool bBaseActivationAllowed, const bool bVigorAlreadyActive)
@@ -118,27 +155,56 @@ void UKalmalaSupportMagicComponent::SetFeedbackFromServer(const EKalmalaSupportF
     GetOwner()->ForceNetUpdate();
 }
 
-void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implementation(const EKalmalaSupportEffect Effect, const uint32 RequestSequence)
+bool UKalmalaSupportMagicComponent::ActivateSupportEffectFromHotbarServer(const EKalmalaSupportEffect Effect)
 {
-    APawn* Pawn = Cast<APawn>(GetOwner()); const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
-    if (!IsKnownEffect(Effect)) return;
-    UKalmalaCharacterMovementComponent* Movement = Pawn ? Cast<UKalmalaCharacterMovementComponent>(Pawn->GetMovementComponent()) : nullptr;
+    APawn* Pawn = Cast<APawn>(GetOwner());
+    UWorld* World = GetWorld();
+    if (!Pawn || !Pawn->HasAuthority() || !World || !IsKnownEffect(Effect)) return false;
+    const float Now = World->GetTimeSeconds();
+    UKalmalaCharacterMovementComponent* Movement = Cast<UKalmalaCharacterMovementComponent>(Pawn->GetMovementComponent());
     const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Pawn);
     const UKalmalaPlayerStatusComponent* Status = Character ? Character->GetStatusComponent() : nullptr;
     const float EffectiveActivationCost = Status ? Status->CalculateStaminaCost(ActivationCost) : ActivationCost;
-    const bool bBaseActivationAllowed = IsActivationAllowed(Pawn && Pawn->HasAuthority(), HasLearnedEffect(Effect), RequestSequence != 0 && RequestSequence > LastRequestSequence, Now >= CooldownExpiry, Movement != nullptr && FMath::IsFinite(EffectiveActivationCost) && EffectiveActivationCost > 0.0f && Movement->GetStamina() >= EffectiveActivationCost);
+    const bool bHasStamina = Movement != nullptr && FMath::IsFinite(EffectiveActivationCost)
+        && EffectiveActivationCost > 0.0f && Movement->GetStamina() >= EffectiveActivationCost;
+    const bool bBaseActivationAllowed = IsActivationAllowed(Pawn->HasAuthority(), HasLearnedEffect(Effect),
+        true, Now >= CooldownExpiry, bHasStamina);
+    const bool bOngoingEffectActive = ActiveEffect != EKalmalaSupportEffect::None
+        && ActiveEffect != EKalmalaSupportEffect::Mending && ActiveEffectExpiry > Now;
     const bool bShieldAlreadyActive = HearthShieldExpiry > Now && HearthShieldStrength > 0.0f;
     const bool bVigorAlreadyActive = BearsVigorExpiry > Now && BearsVigorStrengthMultiplier > 1.0f;
-    const bool bEffectActivationAllowed = Effect == EKalmalaSupportEffect::HearthShield ? IsHearthShieldActivationAllowed(bBaseActivationAllowed, bShieldAlreadyActive)
-        : Effect == EKalmalaSupportEffect::BearsVigor ? IsBearsVigorActivationAllowed(bBaseActivationAllowed, bVigorAlreadyActive) : bBaseActivationAllowed;
-    if (!bEffectActivationAllowed) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
-    // Mending has no client target payload: the server forward trace finds one eligible allied pawn before the transaction charges stamina.
+    const bool bEffectActivationAllowed = !bOngoingEffectActive
+        && (Effect == EKalmalaSupportEffect::HearthShield ? IsHearthShieldActivationAllowed(bBaseActivationAllowed, bShieldAlreadyActive)
+        : Effect == EKalmalaSupportEffect::BearsVigor ? IsBearsVigorActivationAllowed(bBaseActivationAllowed, bVigorAlreadyActive)
+        : bBaseActivationAllowed);
+    if (!bEffectActivationAllowed) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return false; }
+
+    // Mending has no client target payload: the server forward trace finds one eligible allied pawn before charging.
     AKalmalaCharacter* MendingTarget = Effect == EKalmalaSupportEffect::Mending ? ResolveMendingTargetFromServer(Pawn) : nullptr;
-    if (Effect == EKalmalaSupportEffect::Mending && MendingTarget == nullptr) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
-    if (Effect == EKalmalaSupportEffect::DeerCall && !InfluenceNearbyDeerFromServer(Pawn)) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
-    if (!Movement->TryConsumeStaminaFromServer(EffectiveActivationCost)) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
-    if (MendingTarget != nullptr && !MendingTarget->ReceiveMendingFromServer(CastChecked<AKalmalaCharacter>(Pawn), MendingHealAmount)) { SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now); return; }
-    LastRequestSequence = RequestSequence; CooldownExpiry = Now + CooldownSeconds; ActiveEffect = Effect;
+    if (Effect == EKalmalaSupportEffect::Mending && MendingTarget == nullptr)
+    {
+        SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now);
+        return false;
+    }
+    // Deer selection and influence remain bounded and server-owned; validate it before charging.
+    if (Effect == EKalmalaSupportEffect::DeerCall && !InfluenceNearbyDeerFromServer(Pawn))
+    {
+        SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now);
+        return false;
+    }
+    if (!Movement->TryConsumeStaminaFromServer(EffectiveActivationCost))
+    {
+        SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now);
+        return false;
+    }
+    if (MendingTarget != nullptr && !MendingTarget->ReceiveMendingFromServer(CastChecked<AKalmalaCharacter>(Pawn), MendingHealAmount))
+    {
+        SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now);
+        return false;
+    }
+
+    CooldownExpiry = Now + CooldownSeconds;
+    ActiveEffect = Effect;
     if (Effect == EKalmalaSupportEffect::HearthShield)
     {
         HearthShieldStrength = HearthShieldAbsorption;
@@ -149,12 +215,31 @@ void UKalmalaSupportMagicComponent::ServerRequestActivateSupportEffect_Implement
     {
         BearsVigorStrengthMultiplier = BearsVigorStrength;
         BearsVigorExpiry = Now + BearsVigorDuration;
-        if (!Movement->SetBearsVigorFromServer(true)) return;
+        if (!Movement->SetBearsVigorFromServer(true))
+        {
+            BearsVigorStrengthMultiplier = 1.0f;
+            BearsVigorExpiry = 0.0f;
+            CooldownExpiry = 0.0f;
+            ActiveEffect = EKalmalaSupportEffect::None;
+            ActiveEffectExpiry = 0.0f;
+            SetFeedbackFromServer(EKalmalaSupportFeedback::Unavailable, Now);
+            return false;
+        }
         ActiveEffectExpiry = BearsVigorExpiry;
     }
-    else ActiveEffectExpiry = Now + PresentationSeconds;
+    else if (Effect == EKalmalaSupportEffect::DeerCall)
+    {
+        ActiveEffectExpiry = Now + DeerCallDurationSeconds;
+    }
+    else
+    {
+        // Mending is an instantaneous transaction, not an ongoing active effect.
+        ActiveEffect = EKalmalaSupportEffect::None;
+        ActiveEffectExpiry = 0.0f;
+    }
     SetFeedbackFromServer(EKalmalaSupportFeedback::Accepted, Now);
     GetOwner()->ForceNetUpdate();
+    return true;
 }
 void UKalmalaSupportMagicComponent::TickComponent(const float DeltaTime, const ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {

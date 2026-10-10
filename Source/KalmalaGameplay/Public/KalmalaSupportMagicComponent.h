@@ -19,7 +19,7 @@ public:
     UKalmalaSupportMagicComponent();
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-    UFUNCTION(Server, Reliable) void ServerRequestActivateSupportEffect(EKalmalaSupportEffect Effect, uint32 RequestSequence);
+    bool ActivateSupportEffectFromHotbarServer(EKalmalaSupportEffect Effect);
     bool LearnEffectFromServer(EKalmalaSupportEffect Effect);
     bool HasLearnedEffect(EKalmalaSupportEffect Effect) const;
     EKalmalaSupportEffect GetActiveEffect() const { return ActiveEffect; }
@@ -33,10 +33,12 @@ public:
     float GetBearsVigorStrengthMultiplier() const { return BearsVigorStrengthMultiplier; }
     float AbsorbHearthShieldDamageFromServer(float IncomingDamage);
     static FString CanonicalId(EKalmalaSupportEffect Effect);
+    static FName ScrollItemId(EKalmalaSupportEffect Effect);
+    static EKalmalaSupportEffect FromScrollItemId(FName ItemId);
     static EKalmalaSupportEffect FromScrollDefinition(const FString& Definition);
     static bool IsKnownEffect(EKalmalaSupportEffect Effect);
     static bool IsNonDamagingEffect(EKalmalaSupportEffect Effect);
-    static bool IsActivationAllowed(bool bAuthority, bool bLearned, bool bNewSequence, bool bCooldownExpired, bool bHasStamina);
+    static bool IsActivationAllowed(bool bAuthority, bool bLearned, bool bRequestCadenceAllowed, bool bCooldownExpired, bool bHasStamina);
     static bool IsHearthShieldActivationAllowed(bool bBaseActivationAllowed, bool bShieldAlreadyActive);
     static bool IsBearsVigorActivationAllowed(bool bBaseActivationAllowed, bool bVigorAlreadyActive);
     static bool IsDeerCallActivationAllowed(bool bBaseActivationAllowed, bool bHasEligibleDeer);
@@ -44,14 +46,13 @@ public:
     static float CalculateBearsVigorDamage(bool bServerAuthority, bool bVigorActive, float BaseDamage, float StrengthMultiplier);
     // Shared base cost used by every learned effect before server-owned status modifiers.
     static constexpr float ActivationCost = 18.0f;
-    // Shared server-owned cooldown keeps repeated support use deliberate without changing effect durations.
-    static constexpr float CooldownSeconds = 5.0f;
-    // Hearth Shield remains a short, finite protection window for optional encounters.
-    static constexpr float HearthShieldDurationSeconds = 10.0f;
-    // Bear's Vigor remains a finite self-support window for a committed exchange.
-    static constexpr float BearsVigorDurationSeconds = 10.0f;
+    // All accepted support casts share this server-owned per-caster cooldown.
+    static constexpr float CooldownSeconds = 300.0f;
+    // Sustained support effects use the requested three-minute server duration.
+    static constexpr float HearthShieldDurationSeconds = 180.0f;
+    static constexpr float BearsVigorDurationSeconds = 180.0f;
+    static constexpr float DeerCallDurationSeconds = 180.0f;
 private:
-    static constexpr float PresentationSeconds = 2.0f;
     static constexpr float MendingRange = 350.0f;
     static constexpr float MendingHealAmount = 30.0f;
     static constexpr float HearthShieldDuration = HearthShieldDurationSeconds;
@@ -71,6 +72,5 @@ private:
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") float CooldownExpiry = 0.0f;
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") EKalmalaSupportFeedback Feedback = EKalmalaSupportFeedback::None;
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") uint32 FeedbackSerial = 0;
-    uint32 LastRequestSequence = 0;
     float NextUnavailableFeedbackTime = 0.0f;
 };

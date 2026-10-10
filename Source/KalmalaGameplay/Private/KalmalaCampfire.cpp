@@ -79,14 +79,23 @@ bool AKalmalaCampfire::IsLightingAllowed(const bool bServerAuthority, const floa
         && InFuelWetness < FKalmalaCampfireWeatherResponse::ExtinguishWetness;
 }
 
+bool AKalmalaCampfire::CanLightFromInteraction(const AKalmalaCharacter* Character) const
+{
+    return IsValid(Character) && Character->GetWorld() == GetWorld() && CanUse(Character)
+        && HearthState == EKalmalaHearthState::Extinguished
+        && FMath::IsFinite(FuelSeconds) && FuelSeconds > 0.0f
+        && IsLightingAllowed(true, FuelWetness);
+}
+
 bool AKalmalaCampfire::CanInteract_Implementation(AKalmalaCharacter* Interactor) const
 {
     if (!HasAuthority() || !IsValid(Interactor) || !Interactor->HasAuthority() || !CanUse(Interactor)
-        || !FMath::IsFinite(FuelSeconds) || FuelSeconds < 0.0f
-        || FuelSeconds > MaxFuelSeconds - FuelSecondsPerItem)
+        || !FMath::IsFinite(FuelSeconds) || FuelSeconds < 0.0f)
     {
         return false;
     }
+    if (CanLightFromInteraction(Interactor)) return true;
+    if (FuelSeconds > MaxFuelSeconds - FuelSecondsPerItem) return false;
 
     const UKalmalaInventoryComponent* Inventory = Interactor->FindComponentByClass<UKalmalaInventoryComponent>();
     TArray<FKalmalaInventoryStack> Costs;
@@ -96,10 +105,13 @@ bool AKalmalaCampfire::CanInteract_Implementation(AKalmalaCharacter* Interactor)
 
 void AKalmalaCampfire::Interact_Implementation(AKalmalaCharacter* Interactor)
 {
-    if (CanInteract_Implementation(Interactor))
+    if (!CanInteract_Implementation(Interactor)) return;
+    if (CanLightFromInteraction(Interactor))
     {
-        TryRefuelFromServer(Interactor);
+        TryLightFromServer(Interactor);
+        return;
     }
+    TryRefuelFromServer(Interactor);
 }
 
 bool AKalmalaCampfire::TryLightFromServer(AKalmalaCharacter* Character)
