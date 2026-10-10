@@ -784,6 +784,13 @@ They share one owner-local modal, focus/input lifecycle, and existing server-
 validated crafting actions; this adds no recipes, gameplay transactions, RPCs,
 replicated fields, or save data.
 
+The inventory keeps only a compact armor/weight summary visible by default.
+Hovering an occupied slot (or focusing/selecting one with keyboard/controller)
+shows a tidy contextual name, description, and existing-stat tooltip. Both
+panels use original Kalmala wood art, with darker opaque rounded inventory and
+recipe cells plus a small inset/gap. High contrast retains its established
+black accessibility surfaces.
+
 **M13 boundary:** UI presentation, original icon sources, imported UI assets,
 and their integration only. Do not add gameplay content, change server
 authority or gameplay transactions, alter saved-data schemas, introduce new
@@ -797,6 +804,10 @@ online services, or expand platform scope.
   together, with the inventory entering from above and crafting entering from
   the right; reduced motion, focus/navigation, close/restore behavior, and
   supported viewport/text-scale layouts remain correct.
+- Inventory shows only the compact armor/weight summary at rest; item details
+  appear contextually on hover or keyboard/controller focus. Both panels use
+  the original wood treatment and rounded, inset dark-brown cells, with high
+  contrast still readable.
 - All 48 canonical catalogue icons and nine status icons have their required
   original/prepared image sources and imported Texture2D packages tracked in
   main. Runtime references resolve to those packages, and every supported

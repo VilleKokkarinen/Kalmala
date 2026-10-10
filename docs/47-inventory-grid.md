@@ -34,14 +34,15 @@ An active tool supplies subsequent harvest intent, which the server still
 independently validates. Support-magic selection moves to F1–F4; its controller
 D-pad and Q / controller activation bindings retain their existing meanings.
 
-Below the grid, current armor displays `None` / armor 0 because the existing
-game has no armor-equipment records. Carry weight includes stack quantities
-and tools. Current prototype defaults are 1 kg per item unit, 2 kg per tool,
-and a 300 kg displayed capacity. `FKalmalaItemDefinition::WeightKg` is an
-optional validated catalogue value and capacity is a component class default.
-These are presentation metrics; this increment introduces no encumbrance
-penalty or weight-based transaction rejection. Armor items, equipment rules,
-and final weight balance require separate gameplay work.
+Below the grid, show one compact line such as `Armor 0 · Weight 8/300`.
+Current armor remains 0 because the game has no armor-equipment records. Carry
+weight includes stack quantities and tools. Current prototype defaults are
+1 kg per item unit, 2 kg per tool, and a 300 kg displayed capacity.
+`FKalmalaItemDefinition::WeightKg` is an optional validated catalogue value
+and capacity is a component class default. These are presentation metrics; this
+increment introduces no encumbrance penalty or weight-based transaction
+rejection. Armor items, equipment rules, and final weight balance require
+separate gameplay work.
 
 ## M13 inventory crafting companion
 
@@ -50,7 +51,10 @@ it shows the same 10x4 inventory on the left and the standard player crafting
 list and selected-recipe details on the right. The right panel reads the
 existing owner-visible recipe and ingredient presentation; crafting continues
 through the existing server-validated action. Station-specific service views
-and the separate Build menu keep their current contexts.
+and the separate Build menu keep their current contexts. After implementation,
+the presentation rules below supersede the selected-detail and scroll
+presentation described earlier in this handoff; the grid and authority
+contracts remain in effect.
 
 On open, the inventory panel slides down from above and the crafting panel
 slides in from the right. Both use the existing options-opening duration and
@@ -62,8 +66,27 @@ start/interruption/completion, and recipe-action visibility are part of M13's
 rendered host/client acceptance at supported viewport and accessibility
 settings.
 
+Keep the inventory's always-visible summary to the compact armor/weight line.
+Do not show the slot-count line, a `Selected:` heading, control instructions,
+or a persistent full-width item-detail card. Hovering an occupied cell opens a
+nearby, dark, opaque detail tooltip with the item name, description and any
+existing authored stats arranged as tidy, separate lines. Keyboard/controller
+focus or selection on an occupied cell shows the same contextual details so
+the information remains reachable without a pointer. Existing item actions
+remain available only for applicable items and retain their current
+server-validated path.
+
+Both panels use an original Kalmala wood texture. Inventory cells and crafting
+cards use opaque, slightly darker brown rounded surfaces with a few UI units of
+gap and icon inset. Keep canonical icons, quantities, condition bars, focus
+states and selected states legible over those fills. Existing high-contrast
+behavior still suppresses decorative wood art and uses the black accessibility
+surface, white text and borders.
+
 This is a UI presentation change only. It adds no recipe, crafting outcome,
-RPC, replicated field, gameplay authority, or saved-data field.
+RPC, replicated field, gameplay authority, or saved-data field. Tooltip stats
+are limited to existing catalogue/tool data; this task adds no combat-stat
+fields such as Pierce, Poison or Knockback.
 
 ## Authority and compatibility
 

@@ -6,6 +6,7 @@
 - The main tree already tracks 48 catalogue icon packages and 9 status icon packages, along with validated source/prepared images. Import commits 2d83c90 and d96d532 are ancestors of main. This proves the files are integrated; M13 still needs to verify runtime loading, cooking, and rendered visibility.
 - The inventory screenshot showed the legacy vector fallback. The lookup constructs texture paths dynamically, so the cooker did not have a declared reference to include those icon packages. `DefaultGame.ini` now always cooks both catalogue and status icon directories.
 - The 2026-10-09 user-directed 10×4 inventory is implemented and the UE5.8.2 editor target builds after the recorded repair. Runtime, rendered, input, and peer acceptance for that layout remains deferred; see [inventory handoff](docs/47-inventory-grid.md).
+- M13 now also scopes a paired inventory/crafting modal, contextual item detail, compact armor/weight summary, and wood-panel/rounded-slot styling. The tooltip will show only existing catalogue/tool values; item combat-stat data is not currently defined.
 - A Win64 Development package launched and loaded the prototype map on 2026-10-10. This confirms startup and map loading; rendered icon visibility and the remaining M13 UI acceptance are still pending.
 
 ## Completed work log
@@ -22,6 +23,16 @@
 - **Impact and authority:** M13 now requires Inventory to open with the standard crafting list/details on the right; inventory enters from above and crafting from the right, following reduced-motion and existing owner-local modal behavior. This run changed documentation/backlog only; runtime behavior and server authority are unchanged.
 - **Limits:** the requested companion panels are not implemented yet. Icon cooking/rendering, complete M11/M12 revalidation, peer acceptance, and the stale M12 menu-copy audit remain open.
 - **Next eligible task:** restore and verify local menu browsing, Favorites/usage ranks/Recent indicators, notifications, recipe activity, and Forge comparison against docs/37–41 and docs/46.
+
+## 2026-10-10 — M13 inventory presentation refinement and M11 menu audit
+
+- **Completed:** refined the M13 inventory companion contract with the compact `Armor 0 · Weight 8/300` line, transient item details on hover or keyboard/controller focus, wood-panel backgrounds, and rounded inset dark-brown cells. Rechecked the M11 local menu browsing, Favorites/ranks/Recent, notification, recipe activity, and Forge comparison source against docs/37–41 and docs/46; no implementation defect was found.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/04-roadmap.md`, and `docs/47-inventory-grid.md`.
+- **Lightweight checks:** `Verify-PresentationOwnership.ps1`, `Verify-M5DocumentationContracts.ps1`, and `Verify-LocalInputContract.ps1` passed. Source review confirmed local-player browsing/activity state, owner-local notices, and the existing Forge upgrade comparison. `git diff --check` and the 260-character path audit passed.
+- **Full verification:** deferred to the M13 milestone-final gate; no build, full automation suite, rendered capture, physical input, or package smoke ran.
+- **Impact and authority:** M13 scope now specifies the requested compact inventory, contextual tooltip, and panel/cell styling. No runtime, gameplay, network, or save behavior changed; existing crafting and item actions remain server validated.
+- **Limits:** the requested UI is not implemented. The item catalogue has no Pierce/Poison/Knockback fields, so M13 will display existing data only. Rendered M11/M12 checks and the stale M12 `Verify-MenuInputCopy.ps1` expectations remain open for the later inventory task/final acceptance.
+- **Next eligible task:** re-establish the current 10×4 inventory, numbered hotbar, owner-local actions, and modal/input behavior, including the M13 companion crafting view and presentation refinements.
 
 ## 2026-10-10 — Include dynamic icon assets in package cooks
 
