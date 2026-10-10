@@ -774,6 +774,16 @@ and the accepted Forge comparison. Preserve M12's retirement of the persistent
 inventory panel and tutorial card, menu and station contexts, canonical icons,
 compact status group, accessibility, and existing server-validated actions.
 
+The 2026-10-10 inventory request adds a UI-only companion craft view: opening
+Inventory with Tab / I shows the current 10x4 inventory on the left and the
+standard player crafting list/details on the right. The inventory panel slides
+down into place from above while the crafting panel slides left into place from
+the right, using the existing options-opening timing and easing by default.
+Reduced motion or disabled opening animation presents both panels immediately.
+They share one owner-local modal, focus/input lifecycle, and existing server-
+validated crafting actions; this adds no recipes, gameplay transactions, RPCs,
+replicated fields, or save data.
+
 **M13 boundary:** UI presentation, original icon sources, imported UI assets,
 and their integration only. Do not add gameplay content, change server
 authority or gameplay transactions, alter saved-data schemas, introduce new
@@ -783,6 +793,10 @@ online services, or expand platform scope.
 
 - The combined M11/M12 UI matches the current contracts and latest inventory
   handoff on the integrated main branch; identified regressions are repaired.
+- Opening Inventory displays the current inventory and standard crafting view
+  together, with the inventory entering from above and crafting entering from
+  the right; reduced motion, focus/navigation, close/restore behavior, and
+  supported viewport/text-scale layouts remain correct.
 - All 48 canonical catalogue icons and nine status icons have their required
   original/prepared image sources and imported Texture2D packages tracked in
   main. Runtime references resolve to those packages, and every supported

@@ -43,6 +43,28 @@ These are presentation metrics; this increment introduces no encumbrance
 penalty or weight-based transaction rejection. Armor items, equipment rules,
 and final weight balance require separate gameplay work.
 
+## M13 inventory crafting companion
+
+The 2026-10-10 UI request extends Inventory's existing Tab / I modal. Opening
+it shows the same 10x4 inventory on the left and the standard player crafting
+list and selected-recipe details on the right. The right panel reads the
+existing owner-visible recipe and ingredient presentation; crafting continues
+through the existing server-validated action. Station-specific service views
+and the separate Build menu keep their current contexts.
+
+On open, the inventory panel slides down from above and the crafting panel
+slides in from the right. Both use the existing options-opening duration and
+easing by default, and both appear immediately when opening animation is
+disabled or the owner's Reduced motion preference is enabled. The panels are
+one owner-local modal: they share existing close, cursor/input restoration, and
+keyboard/controller focus behavior. Layout, focus, reduced motion, transition
+start/interruption/completion, and recipe-action visibility are part of M13's
+rendered host/client acceptance at supported viewport and accessibility
+settings.
+
+This is a UI presentation change only. It adds no recipe, crafting outcome,
+RPC, replicated field, gameplay authority, or saved-data field.
+
 ## Authority and compatibility
 
 The server reconciles trusted item stacks and tool records into one runtime

@@ -38,10 +38,11 @@ The M13 scope and acceptance criteria are in [the roadmap](docs/04-roadmap.md). 
 - [x] Include dynamically loaded icon assets in game package cooks.
   - [x] Always cook the item and status icon directories because their lookup paths are assembled at runtime. (2026-10-10; added both package directories and documented the cooker requirement.)
 - [ ] Rebuild and revalidate the M11 shared UI foundation.
-  - [ ] Reconcile shared theme, settings/accessibility, common menu styling, focus, and input behavior against docs/14 and docs/35.
+  - [x] Reconcile shared theme, settings/accessibility, common menu styling, focus, and input behavior against docs/14 and docs/35. (2026-10-10; settings/accessibility contract, local input baseline, and presentation ownership audits pass; no defect found in the M11 shared foundation.)
   - [ ] Restore and verify local menu browsing, Favorites/usage ranks/Recent indicators, notifications, recipe activity, and Forge comparison against docs/37–41 and docs/46.
 - [ ] Rebuild and revalidate the M12 inventory, HUD, and service contexts.
   - [ ] Re-establish the current 10×4 inventory, numbered hotbar, owner-local actions, and modal/input behavior from docs/47.
+    - [ ] Add the standard player crafting list/details beside Inventory; animate Inventory from above and crafting from the right, respecting reduced motion and the existing owner-local modal/input lifecycle. (User request, 2026-10-10; contract in docs/47.)
   - [ ] Reconcile inventory details, construction/build, station menus, recipe copy, retired persistent panel/tutorial card, and active-only status group against docs/35–45.
 - [ ] Verify icon assets from source through packaged, rendered use on main.
   - [ ] Confirm all 48 catalogue and 9 status images load and visibly render in their supported consumers; restore or reimport only a demonstrated gap, and ensure any repair is committed in the integrated main tree.
