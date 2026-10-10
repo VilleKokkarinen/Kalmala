@@ -140,7 +140,7 @@ probe changes each isolated window from 1280x720 to 1600x900 and back while the
 panel is moving, interrupts and reopens it mid-transition, and checks the
 intermediate/final positions, center anchoring, immediate focus, modal input
 suppression/restoration, keyboard/controller mappings, gameplay stability, and
-the fourteen existing view captures. The Escape capture must show gameplay
+the sixteen current view captures. The Escape capture must show gameplay
 through a transparent home surface with only its three option buttons and a
 visible focused option; the other option tabs retain their configured panel
 backgrounds. The temporary viewport change is restored
@@ -183,17 +183,18 @@ Run the full `Automation RunTests Kalmala` queue, then
 `Scripts/Verify-SettingsAccessibilityContract.ps1`,
 `Scripts/Verify-M5DocumentationContracts.ps1`,
 `Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`. The
-host/client settings probe visits the Escape shell and Video, Audio, Controls,
-and Settings pages; require the Escape surface to be transparent in standard
+host/client settings probe visits the Escape shell and Keyboard & Mouse,
+Controller, Graphics, Audio, and Accessibility groups; require the Escape surface to be transparent in standard
 contrast, retain its three existing actions and visible focus cue, and require
 the configured option-tab images to resolve. High contrast must suppress
 decorative images and retain an opaque surface with a visible non-colour focus
 cue. Existing values, focus, text scale, keyboard and
 controller bindings, modal ownership, and local persistence checks to pass.
-Retain the runner output and inspect all fourteen PNGs: standard-contrast
-Escape, Video, Settings, reduced-motion Settings, and restored HUD captures,
-plus high-contrast Controls and Audio captures on both peers. Use the two
-viewport runs described in the Local Settings tab section; physical input and
+Retain the runner output and inspect all sixteen PNGs: standard-contrast
+Escape, Graphics, Accessibility, reduced-motion Accessibility, and restored HUD
+captures, plus high-contrast Keyboard & Mouse, Controller, and Audio captures
+on both peers. Use the two
+viewport runs described in the Local Accessibility group section; physical input and
 packaged asset inclusion remain separate checks.
 
 ## M11 inventory/build backgrounds and slot grids
@@ -379,8 +380,9 @@ physical keyboard/controller hardware or packaged-build acceptance.
 Gameplay prompts, inventory and service menus, the expanded map, status/detail
 views, and the Settings home screen do not print key/button names or control
 combinations. The map keeps its symbol legend, category state, and concise
-share/ping action names. Options > Controls is the only player-facing view that
-shows current bindings; all existing input paths and remapping behavior remain.
+share/ping action names. Options > Keyboard & Mouse and Options > Controller are
+the only player-facing views that show current bindings; all existing input
+paths and remapping behavior remain.
 Run `Scripts/Verify-MenuInputCopy.ps1` for the narrow source audit of visible
 copy, binding-label resolution, retained action names, and keyboard/controller
 navigation seams. After an affected UI build, run the focused map, status,
@@ -1005,7 +1007,7 @@ After building, run `Scripts/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 10
 
 ## Local settings menu
 
-Press Escape during normal play to open the local Settings menu; press Escape again to close it and restore game input. The menu's main screen provides Options and Quit. Options contains Video, Audio, Controls, and Settings tabs; Video immediately applies and saves resolution, V-Sync, window mode, and render-distance quality through Unreal `GameUserSettings`. Run `Kalmala.UI.Settings.LocalPresentation` after an editor build for the render-distance bounds seam. This is local presentation/preferences only: no setting, menu action, or quit request is sent to the server.
+Press Escape during normal play to open the local Settings menu; press Escape again to close it and restore game input. The menu's main screen provides Options and Quit. Options contains Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility groups; Gameplay stays hidden until a candidate setting is selected. Graphics immediately applies and saves resolution, V-Sync, window mode, and render-distance quality through Unreal `GameUserSettings`. Run `Kalmala.UI.Settings.LocalPresentation` after an editor build for the render-distance bounds seam. This is local presentation/preferences only: no setting, menu action, or quit request is sent to the server.
 
 The Audio tab now cycles local master volume in 25% steps and provides
 mute/restore, with text showing the current level and action. It saves these
@@ -1037,23 +1039,23 @@ category bounds and local config round-trips alongside master mute/restore.
 contracts without launching Unreal. These checks do not render the Audio tab,
 simulate physical controller input, or establish audible quality/device mix.
 
-### Local Controls tab
+### Local Keyboard & Mouse and Controller groups
 
-The Controls tab exposes the existing movement, look, interact, attack, jump,
-sprint, settings, map, recenter, craft, and support-activation intents. Each
-row shows the current keyboard and controller label and cycles through a small
-allowlisted set of alternatives; movement rows retain positive/negative axis
-pairs. Restore default controls clears only the local overrides. The runtime
-applies overrides to the owning `UPlayerInput` and stores them in the local
+The Keyboard & Mouse and Controller groups expose the existing movement, look,
+interact, attack, jump, sprint, settings, map, recenter, craft, and
+support-activation intents. Each page shows its device-family binding and cycles
+through a small allowlisted set of alternatives; movement rows retain
+positive/negative axis pairs. Restore default controls clears only the local
+overrides. The runtime applies overrides to the owning `UPlayerInput` and stores them in the local
 `GameUserSettings` configuration, so `Config/DefaultInput.ini` and server
 validation remain unchanged. Escape remains an always-available modal close
 path even if the alternate Settings key is changed. The settings automation
 checks bounded labels, local persistence, rejection of an out-of-set key, and
 restore defaults.
 
-### Local Settings tab
+### Local Accessibility group
 
-The Settings tab cycles local text scale through 100%, 125%, and 150%, and
+The Accessibility group cycles local text scale through 100%, 125%, and 150%, and
 cycles between Standard and High contrast. Changes rebuild the current modal
 immediately, use auto-wrapped text, and retain a larger bounded panel so the
 Controls list remains scrollable at the largest scale. Contrast updates the
@@ -1111,13 +1113,14 @@ packaged-build checks are outside this parent increment.
 
 `Scripts/Verify-SettingsAccessibility.ps1` starts isolated host/client profiles.
 It starts a seed-418 listen server and conflicting-seed client, opens the live
-Escape shell and Video, Audio, Controls, and Settings tabs, and captures each
+Escape shell and Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility
+groups, and captures each
 at the selected 1280x720 or 1024x768 viewport. The Escape capture keeps gameplay
 visible behind only the three existing options and shows the focused option
 highlight; its transparent area is excluded from the dark modal-gutter pixel
-assertion used by the tab captures. Video, Settings,
-reduced-motion Settings, and restored HUD use standard contrast; Controls and
-Audio also retain high-contrast captures. The development-only probe writes
+assertion used by the tab captures. Graphics, Accessibility,
+reduced-motion Accessibility, and restored HUD use standard contrast; Keyboard &
+Mouse, Controller, and Audio also retain high-contrast captures. The development-only probe writes
 bounded local audio, text, contrast, colour-independent feedback, interface
 scale, reduced motion, and keyboard/controller remapping values to each peer's
 `GameUserSettings.ini`, applies those mappings to only the owning `UPlayerInput`,
@@ -1125,7 +1128,7 @@ verifies focus ownership and the Escape mapping, then closes the modal. It
 compares pawn health, transform, and the replicated server world identity before
 and after local changes. A fresh pair of processes reuses each local user
 directory to verify saved scale and motion choices. The printed temporary
-directory retains host/client logs and fourteen PNG captures per viewport run.
+directory retains host/client logs and sixteen PNG captures per viewport run.
 Inspect the rendered modal, HUD, and backgrounds; this verifies the two
 representative viewport sizes, not physical controller hardware, audible
 quality, or packaged persistence.
@@ -1144,8 +1147,8 @@ claim packaged two-player prompt flow has passed.
 ## M5 settings and accessibility contract check
 
 `Scripts/Verify-SettingsAccessibilityContract.ps1` is a no-build check for
-`docs/02-technical-architecture.md`. It validates the existing Video,
-Audio, Controls, and Settings groups, text-scale and contrast requirements,
+`docs/02-technical-architecture.md`. It validates the visible Keyboard & Mouse,
+Controller, Graphics, Audio, and Accessibility groups, text-scale and contrast requirements,
 bounded control remapping and restore defaults, keyboard/controller focus
 access, text-scale and contrast requirements, the bounded colour-independent
 feedback mode and owner-only markers, reversible local storage, no-RPC
@@ -1461,7 +1464,7 @@ when its marker is filtered.
 
 The in-game map keeps this symbol/category legend and concise share/ping action
 names but omits keyboard/controller help text. Current binding labels are shown
-in Options > Controls only; map focus, selection, pan, zoom, recenter, pin, and
+in Options > Keyboard & Mouse and Options > Controller only; map focus, selection, pan, zoom, recenter, pin, and
 sharing inputs remain available.
 
 Visibility is a transient local widget preference. It suppresses marker

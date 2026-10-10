@@ -43,8 +43,8 @@ private:
 };
 
 /**
- * Local-only pause and options presentation. Video settings are applied through
- * UGameUserSettings; this widget never changes replicated gameplay state.
+ * Local-only pause and options presentation. Graphics settings are applied
+ * through UGameUserSettings; this widget never changes replicated gameplay state.
  */
 UCLASS()
 class KALMALAUI_API UKalmalaSettingsWidget : public UUserWidget
@@ -119,10 +119,12 @@ private:
     UFUNCTION()
     void ShowMainMenu();
     void ShowOptionsMenu();
-    void ShowVideoTab();
+    void ShowGraphicsTab();
+    void ShowKeyboardAndMouseTab();
+    void ShowControllerTab();
+    void ShowInputTab(bool bGamepad);
     void ShowAudioTab();
-    void ShowControlsTab();
-    void ShowSettingsTab();
+    void ShowAccessibilityTab();
     void ShowPlaceholderTab(const FText& Title, const FText& Description);
     void ApplyVideoSettings();
     void UpdateVideoLabels();
@@ -145,13 +147,15 @@ private:
     UFUNCTION()
     void HandleQuitClicked();
     UFUNCTION()
-    void HandleVideoClicked();
+    void HandleGraphicsClicked();
+    UFUNCTION()
+    void HandleKeyboardAndMouseClicked();
+    UFUNCTION()
+    void HandleControllerClicked();
     UFUNCTION()
     void HandleAudioClicked();
     UFUNCTION()
-    void HandleControlsClicked();
-    UFUNCTION()
-    void HandleSettingsClicked();
+    void HandleAccessibilityClicked();
     UFUNCTION()
     void HandleResolutionClicked();
     UFUNCTION()
