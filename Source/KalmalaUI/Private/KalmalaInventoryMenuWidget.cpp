@@ -125,7 +125,9 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     InventoryPanel->SetPadding(FMargin(Theme.PaddingX, Theme.PaddingY));
     InventoryPanel->SetContent(MenuContentScrollBox);
     auto* InventorySlot = Split->AddChildToHorizontalBox(InventoryPanel);
-    InventorySlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 0.43f));
+    FSlateChildSize InventorySlotSize(ESlateSizeRule::Fill);
+    InventorySlotSize.Value = 0.43f;
+    InventorySlot->SetSize(InventorySlotSize);
     InventorySlot->SetPadding(FMargin(4.0f));
     CraftingCompanion = GetOwningPlayer()
         ? CreateWidget<UKalmalaCraftingWidget>(GetOwningPlayer(), UKalmalaCraftingWidget::StaticClass())
@@ -134,7 +136,9 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     if (CraftingCompanion)
     {
         auto* CraftingSlot = Split->AddChildToHorizontalBox(CraftingCompanion);
-        CraftingSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 0.57f));
+        FSlateChildSize CraftingSlotSize(ESlateSizeRule::Fill);
+        CraftingSlotSize.Value = 0.57f;
+        CraftingSlot->SetSize(CraftingSlotSize);
         CraftingSlot->SetPadding(FMargin(4.0f));
     }
     PanelBackplate->SetContent(Split);
