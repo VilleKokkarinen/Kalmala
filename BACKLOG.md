@@ -63,3 +63,19 @@ The M13 scope and acceptance criteria are in [the roadmap](docs/04-roadmap.md). 
   - [ ] Run the prescribed build, relevant automation/UI/input/authority/reconnect checks, rendered host/client matrix, and packaged icon smoke check against the final integrated tree; repair M13 defects, rerun affected checks, and retain fresh evidence before closing the milestone.
 
 The next task is to finish the current inventory/HUD/service revalidation, including the support-scroll hotbar integration, then reconcile the queued Build-menu refresh and proceed to the M13 minimap, transparent Escape home-menu, and Settings visual refinements. Dynamic item and status icon directories are included in package cooks; cooked loading and rendered visibility remain to be verified in M13.
+
+## M14 — Expanded world-map rework
+
+M14 starts after M13 milestone-final verification. Its scope and acceptance criteria are in [the roadmap](docs/04-roadmap.md).
+
+- [ ] Rework the expanded map presentation and interactions.
+  - [ ] Replace flat biome colours with distinct original per-biome textures that stay recognizable at every supported zoom level.
+  - [ ] Restore fog over undiscovered terrain using the owner's existing exploration coverage; pan, zoom, pins, and pings must not reveal hidden map content.
+  - [ ] Add selectable bottom-right personal-marker icons. Select an icon and click the map to place it; allow an optional text label and keep the pin icon-only when the label is blank. Keep pins owner-local.
+  - [ ] Replace the ping control box with direct right-click map pings at any valid world location, without distance, discovery, or biome restrictions. Server-validate and relay a world beacon to all connected players; show it at the clicked position for ten seconds, then expire it without saving.
+  - [ ] Remove map-screen co-op text, player-presence entries, visibility/share toggles, and other co-op controls. Do not implement map sharing or shared pins in M14; preserve the requested temporary global ping.
+  - [ ] Keep pan/zoom responsive by caching bounded terrain/biome and fog tiles independently of view-only zoom/pan changes; avoid rebuilding all visible data on every input and reject stale async results.
+- [ ] Complete M14 milestone-final verification.
+  - [ ] Verify fog/privacy, pin ownership and labels, host/client ping visibility and ten-second expiry, zoom-stable biome textures, input/focus, and responsive pan/zoom on the integrated tree; retain rendered and performance evidence.
+
+M13 remains the earliest incomplete milestone. M14's map-sharing scope is explicitly deferred; no co-op map text or sharing controls are planned for this map view.

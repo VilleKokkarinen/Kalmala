@@ -953,3 +953,51 @@ saved-data schemas, introduce new online services, or expand platform scope.
   pass against the final integrated tree. Record exact commands, results,
   failures and repairs in the retained M13 acceptance evidence before marking
   the milestone complete.
+
+## M14 — Expanded world-map rework
+
+M14 reworks the M-key expanded map after M13's final verification. The attached
+images are interaction/layout references only; use Kalmala's original map and
+biome presentation, not copied Valheim artwork. Preserve M-toggle/Escape,
+pan/zoom/recenter, player orientation, keyboard/controller navigation, modal
+input ownership, and the existing owner-local exploration and pin save owners.
+
+**M14 boundary:** change the expanded map presentation, personal pins, and
+transient map pings only. Keep terrain generation and biome classification
+unchanged. Do not implement shared cartography or map sharing in M14. Remove
+map-screen co-op controls and status; the explicitly requested temporary
+world-visible ping remains the only peer-visible map action. Do not change
+unrelated co-op gameplay or introduce a new online service.
+
+**M14 accept:**
+
+- The expanded map presents a distinct original texture for each biome instead
+  of a flat biome colour. Biome textures remain visible and recognizable across
+  every supported zoom level rather than flattening or disappearing when zoom
+  changes.
+- Undiscovered terrain remains covered by exploration fog. The map reveals
+  only the owning player's existing discovery coverage; pan, zoom, pins, and
+  pings do not reveal terrain, landmarks, actors, or discoveries behind fog.
+- Selectable personal-marker icons appear at the map's bottom-right. Selecting
+  an icon and clicking a map location places that icon there; the owner may
+  enter an optional text label, and leaving it blank produces an icon-only pin.
+  Pins and labels remain owner-local and use the existing per-player map state;
+  they are not shared with co-op players.
+- Right-clicking any valid world position on the map places a ping directly,
+  without a separate ping control box or proximity, explored-area, or biome
+  restriction. The server validates the world position and relays one small
+  world-space beacon at that position to all connected players. It is visible
+  globally for ten seconds, expires automatically, and is not saved. No client
+  may use a ping to submit or alter gameplay state.
+- Remove map-screen co-op labels, player-presence entries, visibility/share
+  toggles, and other co-op controls. Do not add map sharing or shared pins;
+  transient pings above remain available without a co-op visibility setting.
+- Map zoom and pan remain responsive. Reuse bounded cached biome/terrain and
+  fog tiles across view-only zoom or pan changes instead of discarding and
+  recomputing the visible raster on every input. Asynchronous tile work remains
+  bounded and stale results cannot replace the current view. Keep fog and map
+  drawing clipped so undiscovered content cannot leak outside the map panel.
+- Host/client, local pin ownership, ping broadcast/expiry, fog privacy, marker
+  text/blank-label behavior, keyboard/controller focus, and supported viewport
+  and zoom-range checks pass. Retain rendered and performance evidence; map
+  sharing remains out of scope.
