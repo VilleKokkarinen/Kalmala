@@ -177,6 +177,7 @@ behavior should be specified when selected. Do not copy reference artwork.
 - [ ] Replace the existing 25%-step audio controls with sliders for the same
   master, ambient, music, and interaction/combat-feedback settings; keep
   visible percentage/value labels.
+- [ ] Environmental — volume slider with a visible percentage/value.
 - [ ] Continuous music — on/off toggle.
 
 ### Accessibility candidates
