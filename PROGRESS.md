@@ -10,6 +10,7 @@
 - The latest M13 request adds a right-aligned current-biome label above the top-right minimap and a transparent main Escape menu with visible hover/focus highlighting; both are queued as presentation work.
 - M13 now also includes reusable support-scroll items in numbered inventory hotbar cells. They use the existing learned-effect entitlement, share a five-minute cooldown, last three minutes where effects are sustained, and allow only one active effect per caster. Deer Call also lasts three minutes; Mending remains instant. Scrolls are reconstructed from learned progression without new save fields, and server authority remains in force.
 - M13 now includes a Build-menu refresh: right-click entry with the hammer active, icon-only cards with contextual details, icon-only top-row filters, click-to-enter placement mode, right-click favorites, transient search, and direct Campfire lighting by Interact. Existing build/fuel costs and server validation remain the contract; implementation is queued.
+- M13 now also includes a Settings visual refresh: use the Inventory wood backplate and shared-theme button states across the existing Settings/options tabs; preserve all option behavior and high-contrast override. Implementation is queued.
 - A Win64 Development package launched and loaded the prototype map on 2026-10-10. This confirms startup and map loading; rendered icon visibility and the remaining M13 UI acceptance are still pending.
 
 ## Completed work log
@@ -46,6 +47,16 @@
 - **Impact and authority:** planning only. Build selection continues into the existing local placement mode and server-validated placement path. The direct Light Campfire prompt reuses the existing payload-free server lighting intent and preserves target, access, distance, fuel, and fuel-condition checks. No saved-data or authority change is planned.
 - **Limits:** the redesigned Build menu, right-click favorite/open routing, transient search, direct Campfire lighting prompt, and rendered behavior are not implemented or verified.
 - **Next eligible task:** implement and verify support-scroll hotbar use under the active inventory/HUD/service revalidation; the Build-menu refresh follows in backlog order.
+
+## 2026-10-10 — Add Settings visual refresh to M13
+
+- **Completed:** added the requested Settings/options presentation refresh to M13. The screenshots are visual references only; Kalmala keeps its existing option tabs and content.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/04-roadmap.md`, `docs/14-settings-and-accessibility.md`, and `docs/35-ui-theme.md`.
+- **Lightweight checks:** reviewed the existing local settings, theme image keys, shared button states, high-contrast precedence, and M13 Escape-home-menu contract. `git diff --check` and the 260-character path audit passed.
+- **Full verification:** deferred to M13 milestone-final verification; this scope update changes documentation only. No runtime, build, automation, or rendered check ran.
+- **Impact and authority:** planning only. Existing settings remain local and keep their current values, persistence, actions, and modal/input ownership; no replicated setting or save-schema change is introduced.
+- **Limits:** the shared wood backplate and theme-button appearance across Settings/options tabs are not implemented or rendered-verified.
+- **Next eligible task:** implement and verify support-scroll hotbar use under the active inventory/HUD/service revalidation; Build-menu and Settings visual refreshes remain later in backlog order.
 
 ## 2026-10-10 — M13 shared foundation revalidation and inventory craft request
 

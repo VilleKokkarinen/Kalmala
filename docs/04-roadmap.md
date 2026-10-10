@@ -850,6 +850,17 @@ and validates the visible same-world target, access, range, positive fuel, and
 fuel condition on the server; it adds no cost, state field, or save change.
 This is the only Campfire interaction added by the Build-menu scope.
 
+The 2026-10-10 Settings refresh uses the same original wood texture as the
+Inventory backplate across the existing Settings/options tabs. Apply the shared
+theme's button treatment to every tab, action, and control button rather than
+creating a Settings-specific style. Keep the Escape home options list
+transparent as already requested; the wood backing applies after opening
+Settings. Preserve existing tabs, values, actions, local persistence, focus and
+modal input ownership. In high contrast, suppress the decorative wood and keep
+the established opaque black surface and visible focus treatment. The attached
+screenshots are visual references only; do not copy their artwork or add tabs
+or settings shown only in those images.
+
 **M13 boundary:** allow UI presentation, original icon sources, imported UI
 assets and their integration, the support-scroll inventory/hotbar integration,
 and the build-menu/Campfire interaction changes specified above. Do not add
@@ -882,6 +893,12 @@ saved-data schemas, introduce new online services, or expand platform scope.
   transparent background and no dimming scrim. Hover and keyboard/controller
   focus visibly highlight the active option, including in high contrast and
   reduced motion; current actions and modal ownership still work.
+- The existing Settings/options tabs use the same original wood texture as the
+  Inventory backplate. Every button uses the shared theme's normal, hover,
+  pressed, disabled, selected, and focus treatments. High contrast replaces
+  decorative wood with the existing opaque black surface. Existing settings,
+  tabs, local persistence, accessibility, and modal/input behavior remain
+  unchanged; the main Escape home list remains transparent.
 - With the Construction Hammer active, right-click opens the Build menu; its
   existing keyboard/controller entry remains available. Build entries show
   icons only. Hover/focus presents the selected piece's name, description,

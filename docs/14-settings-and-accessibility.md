@@ -66,6 +66,15 @@ gameplay, with a visible theme highlight for hovered and keyboard/controller-
 focused options. High contrast must retain a clear non-colour focus cue. This
 does not change the separate Options tabs or the menu's existing input ownership.
 
+The later 2026-10-10 M13 Settings refresh request supersedes the separate
+per-view background appearance for the existing Settings/options tabs: they
+will use the same original wood texture as the Inventory backplate and the
+shared theme's button treatment. The Escape home list remains transparent.
+High contrast continues to replace the decorative texture with an opaque black
+surface. Existing option groups, values, local persistence, focus, and modal
+input behavior remain unchanged; no settings or tabs are added from the visual
+references.
+
 Exact control ranges and device-specific labels remain implementation details;
 they must stay bounded, reversible, and compatible with the current input
 bindings. This increment makes no platform, visual-identity, or audio-content

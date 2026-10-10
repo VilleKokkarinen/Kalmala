@@ -481,9 +481,32 @@ draw directly over gameplay with no visible panel fill, image, border, or
 dimming scrim. Keep each existing action as a readable option in the menu list.
 The hovered option and the keyboard/controller-focused option receive a clear
 theme highlight; focus remains distinguishable without colour alone in high
-contrast and remains visible when motion is reduced. The existing per-tab
-background images and Options behavior are unchanged. `EscapePanelImage` remains
-available as the fallback image for tabs whose individual image key is empty;
-it will no longer be applied to the transparent home menu when this request is
-implemented. This is a presentation-only change with no action, input ownership,
-or gameplay behavior change.
+contrast and remains visible when motion is reduced. Existing Options content
+and behavior are unchanged; the later M13 Settings visual request below updates
+the option-tab backgrounds. `EscapePanelImage` will not be applied to the
+transparent home menu when this request is implemented. This is a
+presentation-only change with no action, input ownership, or gameplay behavior
+change.
+
+## M13 Settings menu visual refresh request — 2026-10-10
+
+The existing Settings/options tabs are to use the same original wood texture as
+the Inventory backplate (`/Game/Kalmala/UI/InventoryPanel.InventoryPanel`) as
+their consistent full-panel background. Each existing option-tab image key
+must resolve to that same texture for this shell; do not substitute separate
+art between tabs. This supersedes the separate per-view image appearance for
+those tabs while leaving the transparent Escape home options list unchanged.
+Keep the existing option groups and content; the reference screenshots do not
+add tabs or settings to Kalmala.
+
+All buttons in the Settings/options tabs, including tabs and Back/OK/action
+controls, use the existing shared theme button treatment and state brushes for
+normal, hovered, pressed, and disabled states, alongside the current selected
+tab and keyboard/controller focus cues. Do not introduce Settings-specific
+button styling. Local text scaling, interface scaling, reduced motion, and
+high-contrast precedence continue to apply; high contrast suppresses the wood
+and keeps the established opaque black panel, readable text, and focus borders.
+Existing values, local persistence, actions, and modal input ownership are
+unchanged. This is a presentation-only request; no option, setting field, or
+save schema is added. Implementation and rendered verification remain queued
+in M13; the current defaults listed above describe the existing runtime.
