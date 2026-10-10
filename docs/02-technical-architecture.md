@@ -187,6 +187,8 @@ The sparse container must round-trip through `SaveGame` memory serialization bef
 
 Magic-scroll discoveries and learned support effects are server-authoritative progression. Save stable scroll IDs and learned-effect IDs, validate scroll rewards once, and replicate only the effect state needed by other players (such as an active shield or stat boost), not private inventory detail.
 
+M13 represents each learned effect as a reusable item in the owner's transient inventory; reconstruct those items from the existing learned-effect entitlement when that inventory initializes. The numbered hotbar sends only its cell index, and the server resolves the item/effect and invokes the existing support activation gates. Scroll activation does not consume the item or add save fields; the existing shared cooldown, stamina, learned entitlement, and effect-specific server validation remain in force.
+
 ## Prototype player presentation and movement
 
 `AKalmalaCharacter` constructs a collision-free, nine-part original humanoid through `UKalmalaPlayerModelComponent`. Each rendering peer generates the same rigid geometry using existing project materials; velocity drives a simple limb swing and airborne pose. Dedicated servers skip the model. The character capsule remains the collision authority.

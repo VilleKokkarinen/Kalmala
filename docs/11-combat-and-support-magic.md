@@ -194,6 +194,28 @@ the owner only; rejected-result updates are rate-limited. Other peers do not
 receive learned-effect or private discovery acknowledgement state. Each effect
 row names its matching controller D-pad direction and keyboard key.
 
+### M13 reusable support-scroll inventory and hotbar integration
+
+The 2026-10-10 user request supersedes the F1–F4/Q effect-selection path above:
+each existing learned support effect is represented by a reusable scroll item
+in the standard carried inventory, can be assigned to one of numbered hotbar
+cells, and activates from that hotbar cell. Scroll use does not consume the item.
+The learned-effect entitlement remains the persisted progression gate; when a
+pawn's transient inventory is initialized, the server reconstructs the matching
+scroll items from that existing entitlement without adding save fields. This
+preserves discovery/learned-effect records and reconnect behavior while keeping
+scrolls in the ordinary inventory UI.
+
+Hotbar intent identifies only the cell index. The server derives the scroll's
+canonical item/effect mapping from that current owned cell, confirms the learned
+entitlement and existing server-side request/rate, cooldown, stamina, and
+effect-specific target gates, then uses the existing support activation path.
+Keep the shared five-second server cooldown, current costs, targeting, effects,
+durations, owner-only feedback, and relevant-peer active-effect presentation unchanged.
+Never accept a client effect ID, target, cost, duration, magnitude, or result.
+This is an inventory/action integration, not a new spell, effect balance, or
+saved-data migration.
+
 | Effect | Server-selected target and result |
 | --- | --- |
 | Mending | Living allied pawn in range and line of sight; positive heal clamped to maximum health; reject full health; no revive |

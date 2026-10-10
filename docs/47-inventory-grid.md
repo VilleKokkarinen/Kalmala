@@ -31,8 +31,15 @@ all ten cells are empty. Original catalogue icons, quantities, condition bars,
 and an active-item underline remain visible. Number keys select the server's
 item in that cell; supported food uses the existing validated meal transaction.
 An active tool supplies subsequent harvest intent, which the server still
-independently validates. Support-magic selection moves to F1–F4; its controller
-D-pad and Q / controller activation bindings retain their existing meanings.
+independently validates. The M13 support-scroll integration supersedes the
+earlier F1–F4/Q support-effect selection: a reusable scroll item occupies an
+ordinary inventory cell, can be assigned to a numbered hotbar cell, and is
+activated from that cell. Hotbar use sends the cell index only; the server
+derives the current item and its allowlisted effect, checks learned entitlement
+and existing activation gates, then routes through the support-magic authority
+path. Scrolls are not consumed; the existing server cooldown controls reuse.
+The current controller D-pad/Q support-magic bindings are retired when this
+integration is complete.
 
 Below the grid, show one compact line such as `Armor 0 · Weight 8/300`.
 Current armor remains 0 because the game has no armor-equipment records. Carry

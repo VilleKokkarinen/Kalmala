@@ -8,12 +8,23 @@
 - The 2026-10-09 user-directed 10×4 inventory is implemented and the UE5.8.2 editor target builds after the recorded repair. Runtime, rendered, input, and peer acceptance for that layout remains deferred; see [inventory handoff](docs/47-inventory-grid.md).
 - M13 now also includes a paired inventory/crafting modal, contextual item detail, compact armor/weight summary, and one continuous wood-textured backplate behind opaque solid panes. The tooltip will show only existing catalogue/tool values; item combat-stat data is not currently defined.
 - The latest M13 request adds a right-aligned current-biome label above the top-right minimap and a transparent main Escape menu with visible hover/focus highlighting; both are queued as presentation work.
+- M13 now also includes reusable support-scroll items in numbered inventory hotbar cells. They use the existing learned-effect entitlement, remain reusable behind the existing five-second cooldown, and are reconstructed from learned progression without new save fields; the current M4 server validation/effects remain authoritative.
 - A Win64 Development package launched and loaded the prototype map on 2026-10-10. This confirms startup and map loading; rendered icon visibility and the remaining M13 UI acceptance are still pending.
 
 ## Completed work log
 
 - **M0–M12 and world-generation Phases 1–9:** completed under their recorded acceptance scope; milestone evidence remains linked from [the docs index](docs/README.md).
 - **M13 baseline audit — 2026-10-10:** confirmed main-branch icon source/package custody and validated all manifest entries. M13 implementation and final acceptance remain open.
+
+## 2026-10-10 — Add reusable support-scroll hotbar integration to M13
+
+- **Completed:** added the requested support-scroll inventory/hotbar integration to M13. Existing learned support effects become reusable inventory items, activatable from numbered hotbar cells; scroll items are reconstructed from saved learned-effect entitlement, and activation retains the server-owned shared five-second cooldown and current effect validation. The previous F1–F4/Q effect-selection path is retired by this scope.
+- **Files changed:** `BACKLOG.md`, `docs/02-technical-architecture.md`, `docs/04-roadmap.md`, `docs/11-combat-and-support-magic.md`, `docs/47-inventory-grid.md`, and `PROGRESS.md`.
+- **Lightweight checks:** reviewed current support-effect, discovery, inventory, hotbar, and persistence contracts; `git diff --check` and the 260-character path audit passed.
+- **Full verification:** deferred to M13 milestone-final verification; this scope update changed documentation only. No runtime, build, automation, or rendered check ran.
+- **Impact and authority:** planning only; the requested behavior is now an M13 requirement. Future hotbar use must resolve the owned cell and effect on the server and preserve learned entitlement, cooldown, costs, target checks, and save schema.
+- **Limits:** reusable scroll items and hotbar activation are not implemented or rendered-verified. Existing inventory remains pawn-lifetime; scroll reconstruction from learned progression is part of the queued integration.
+- **Next eligible task:** finish the active inventory/HUD/service revalidation, including the support-scroll hotbar integration, then proceed to the minimap and Escape-menu refinements in backlog order.
 
 ## 2026-10-10 — M13 shared foundation revalidation and inventory craft request
 

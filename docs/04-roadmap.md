@@ -801,9 +801,22 @@ theme highlight for hovered and keyboard/controller-focused options. These are
 local presentation changes; existing option actions and modal input rules remain
 intact.
 
+The 2026-10-10 support-magic request adds a narrowly scoped gameplay
+integration: represent each existing allowlisted support effect with a reusable
+scroll item in the standard inventory and let its numbered hotbar cell activate
+that effect. Scroll use does not consume the item; it observes the existing
+five-second, server-owned shared support cooldown. Reconstruct scroll items from
+the existing learned-effect entitlement when the pawn inventory initializes, so
+the transient inventory needs no new save fields. The current learned
+entitlement, effect definitions, target rules, costs, durations, and server
+validation remain authoritative. The existing F1–F4 effect selection and Q
+activation path is superseded by using the assigned inventory scroll from the
+hotbar. Do not add effects or retune support magic.
+
 **M13 boundary:** UI presentation, original icon sources, imported UI assets,
-and their integration only. Do not add gameplay content, change server
-authority or gameplay transactions, alter saved-data schemas, introduce new
+and their integration, plus only the support-scroll inventory/hotbar integration
+requested above. Do not add other gameplay content, alter existing support
+effect mechanics, weaken server authority, alter saved-data schemas, introduce new
 online services, or expand platform scope.
 
 **M13 accept:**
@@ -828,6 +841,13 @@ online services, or expand platform scope.
   transparent background and no dimming scrim. Hover and keyboard/controller
   focus visibly highlight the active option, including in high contrast and
   reduced motion; current actions and modal ownership still work.
+- Each existing learned support effect has a matching reusable scroll item in
+  the standard inventory, assignable to a numbered hotbar cell and activatable
+  from that cell. Learned entitlements restore scroll items after pawn inventory
+  initialization/reconnect without new save fields; using a scroll preserves it
+  and follows the existing shared five-second cooldown, stamina, targeting, and
+  server validation. Add no effect, balance change, or client authority; retire
+  the former F1–F4/Q selection-and-activation path.
 - All 48 canonical catalogue icons and nine status icons have their required
   original/prepared image sources and imported Texture2D packages tracked in
   main. Runtime references resolve to those packages, and every supported
