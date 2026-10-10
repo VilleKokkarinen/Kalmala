@@ -257,6 +257,23 @@ FSlateBrush FKalmalaUITheme::MakePanelBrush(const int32 ContrastMode, const FStr
     return Brush;
 }
 
+FSlateBrush FKalmalaUITheme::MakeSolidPanelBrush(const int32 ContrastMode) const
+{
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    FLinearColor Fill = bContrast ? HighContrastPanel : Panel;
+    Fill.A = 1.0f;
+    return FSlateRoundedBoxBrush(Fill, CornerRadius,
+        bContrast ? FLinearColor::White : BorderColor,
+        bContrast ? FMath::Max(1.0f, BorderWidth) : BorderWidth);
+}
+
+void FKalmalaUITheme::ApplySolidPanel(UBorder& Border, const int32 ContrastMode) const
+{
+    Border.SetPadding(PanelPadding());
+    Border.SetBrush(MakeSolidPanelBrush(ContrastMode));
+    Border.SetBrushColor(FLinearColor::White);
+}
+
 void FKalmalaUITheme::ApplyText(UTextBlock& Label, const int32 BaseSize, const bool bHeading,
     const int32 TextScalePercent, const int32 ContrastMode) const
 {

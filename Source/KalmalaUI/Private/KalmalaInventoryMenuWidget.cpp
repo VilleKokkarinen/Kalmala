@@ -4,6 +4,8 @@
 #include "Components/Border.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
 #include "Components/ScrollBox.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
@@ -12,6 +14,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCraftingComponent.h"
+#include "KalmalaCraftingSubsystem.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "InputCoreTypes.h"
@@ -24,6 +27,7 @@
 #include "KalmalaThemedButton.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaUITheme.h"
+#include "Styling/SlateTypes.h"
 
 namespace
 {
@@ -65,9 +69,11 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     auto* ScrimSlot = Root->AddChildToOverlay(Scrim);
     ScrimSlot->SetHorizontalAlignment(HAlign_Fill);
     ScrimSlot->SetVerticalAlignment(VAlign_Fill);
-    auto* Panel = WidgetTree->ConstructWidget<UBorder>();
-    Theme.ApplyPanel(*Panel, Contrast, &Theme.InventoryPanelImage);
-    Panel->SetPadding(FMargin(Theme.PaddingX * 1.5f, Theme.PaddingY * 1.5f));
+    PanelBackplate = WidgetTree->ConstructWidget<UBorder>();
+    if (Contrast == 0) Theme.ApplyPanel(*PanelBackplate, Contrast, &Theme.InventoryPanelImage);
+    else Theme.ApplySolidPanel(*PanelBackplate, Contrast);
+    PanelBackplate->SetPadding(FMargin(8.0f));
+    auto* Split = WidgetTree->ConstructWidget<UHorizontalBox>();
     auto* Content = WidgetTree->ConstructWidget<UVerticalBox>();
     MenuContentScrollBox = WidgetTree->ConstructWidget<UScrollBox>();
     Theme.ApplyScroll(*MenuContentScrollBox);
@@ -85,16 +91,15 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     AddText(TEXT("Inventory"), true);
     GridView = WidgetTree->ConstructWidget<UKalmalaInventoryGridWidget>();
     GridView->OnItemSelected.AddUObject(this, &ThisClass::SelectGridItem);
+    GridView->OnItemHovered.AddUObject(this, &ThisClass::HoverGridItem);
     GridSizeBox = WidgetTree->ConstructWidget<USizeBox>();
-    GridSizeBox->SetHeightOverride((ResponsivePanelWidth - Theme.PaddingX * 3.0f) * 0.4f);
+    GridSizeBox->SetHeightOverride((ResponsivePanelWidth * 0.43f - Theme.PaddingX * 2.0f - 24.0f) * 0.4f);
     GridSizeBox->SetContent(GridView);
     Content->AddChildToVerticalBox(GridSizeBox);
-    ArmorWeightText = AddText(TEXT("Current armor: None · Armor 0     Weight: 0 / 300 kg"), false);
-    PackStateText = AddText(TEXT("Waiting for your pack."), false);
-    AddText(TEXT("Drag to move or swap. Arrows / D-pad select; Enter / A picks up and places. Top row: 1–9, 0."), false);
-    SelectedItemText = AddText(TEXT("No item selected."), false);
+    ArmorWeightText = AddText(TEXT("Armor 0 · Weight 0/300"), false);
     ItemDetailView = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
     Content->AddChildToVerticalBox(ItemDetailView);
+    ItemDetailView->SetVisibility(ESlateVisibility::Collapsed);
     auto AddAction = [&](const FString& Label)
     {
         auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
@@ -115,35 +120,79 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     EatFoodButton->OnClicked.AddDynamic(this, &ThisClass::EatSelectedFood);
     FoodActionStatusText = AddText(TEXT(""), false);
     FoodActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
-    Panel->SetContent(MenuContentScrollBox);
+    InventoryPanel = WidgetTree->ConstructWidget<UBorder>();
+    Theme.ApplySolidPanel(*InventoryPanel, Contrast);
+    InventoryPanel->SetPadding(FMargin(Theme.PaddingX, Theme.PaddingY));
+    InventoryPanel->SetContent(MenuContentScrollBox);
+    auto* InventorySlot = Split->AddChildToHorizontalBox(InventoryPanel);
+    InventorySlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 0.43f));
+    InventorySlot->SetPadding(FMargin(4.0f));
+    CraftingCompanion = GetOwningPlayer()
+        ? CreateWidget<UKalmalaCraftingWidget>(GetOwningPlayer(), UKalmalaCraftingWidget::StaticClass())
+        : nullptr;
+    if (!CraftingCompanion) CraftingCompanion = WidgetTree->ConstructWidget<UKalmalaCraftingWidget>();
+    if (CraftingCompanion)
+    {
+        auto* CraftingSlot = Split->AddChildToHorizontalBox(CraftingCompanion);
+        CraftingSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 0.57f));
+        CraftingSlot->SetPadding(FMargin(4.0f));
+    }
+    PanelBackplate->SetContent(Split);
     PanelSizeBox = WidgetTree->ConstructWidget<USizeBox>();
     PanelSizeBox->SetWidthOverride(ResponsivePanelWidth);
     PanelSizeBox->SetHeightOverride(ResponsivePanelHeight);
-    PanelSizeBox->SetContent(Panel);
+    PanelSizeBox->SetContent(PanelBackplate);
     auto* PanelSlot = Root->AddChildToOverlay(PanelSizeBox);
-    PanelSlot->SetHorizontalAlignment(HAlign_Left);
-    PanelSlot->SetVerticalAlignment(VAlign_Top);
-    PanelSlot->SetPadding(FMargin(16.0f));
+    PanelSlot->SetHorizontalAlignment(HAlign_Center);
+    PanelSlot->SetVerticalAlignment(VAlign_Center);
+    PanelSlot->SetPadding(FMargin(0.0f));
     SetVisibility(ESlateVisibility::Collapsed);
 }
 void UKalmalaInventoryMenuWidget::NativeTick(const FGeometry& MyGeometry, const float InDeltaTime)
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
-    if (bMenuOpen) UpdateResponsivePanelSize(MyGeometry.GetLocalSize());
+    if (!bMenuOpen) return;
+    UpdateResponsivePanelSize(MyGeometry.GetLocalSize());
+    if (bOpeningAnimationActive)
+    {
+        if (UKalmalaSettingsWidget::IsReducedMotionEnabled())
+        {
+            bOpeningAnimationActive = false;
+            if (InventoryPanel) InventoryPanel->SetRenderTranslation(FVector2D::ZeroVector);
+            if (CraftingCompanion) CraftingCompanion->SetRenderTranslation(FVector2D::ZeroVector);
+        }
+        else
+        {
+            const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+            OpeningElapsed = FMath::Min(OpeningElapsed + FMath::Clamp(InDeltaTime, 0.0f, 1.0f / 30.0f),
+                Theme.OptionsOpeningDuration);
+            const float Progress = Theme.OptionsOpeningDuration > 0.0f
+                ? OpeningElapsed / Theme.OptionsOpeningDuration : 1.0f;
+            const float Offset = Theme.OptionsOpeningOffset(Progress);
+            if (InventoryPanel) InventoryPanel->SetRenderTranslation(FVector2D(0.0f, Offset));
+            if (CraftingCompanion) CraftingCompanion->SetRenderTranslation(FVector2D(-Offset, 0.0f));
+            if (Progress >= 1.0f)
+            {
+                bOpeningAnimationActive = false;
+                if (InventoryPanel) InventoryPanel->SetRenderTranslation(FVector2D::ZeroVector);
+                if (CraftingCompanion) CraftingCompanion->SetRenderTranslation(FVector2D::ZeroVector);
+            }
+        }
+    }
 }
 
 void UKalmalaInventoryMenuWidget::UpdateResponsivePanelSize(const FVector2D ViewportSize)
 {
     if (!PanelSizeBox) return;
-    const float NewWidth = FMath::Clamp(ViewportSize.X - 32.0f, 160.0f, 640.0f);
-    const float NewHeight = FMath::Clamp(ViewportSize.Y - 32.0f, 160.0f, 560.0f);
+    const float NewWidth = FMath::Clamp(ViewportSize.X - 32.0f, 160.0f, 1220.0f);
+    const float NewHeight = FMath::Clamp(ViewportSize.Y - 32.0f, 160.0f, 900.0f);
     if (!FMath::IsNearlyEqual(NewWidth, ResponsivePanelWidth))
     {
         ResponsivePanelWidth = NewWidth;
         PanelSizeBox->SetWidthOverride(ResponsivePanelWidth);
     }
-    if (GridSizeBox) GridSizeBox->SetHeightOverride(
-        FMath::Max(40.0f, (ResponsivePanelWidth - FKalmalaUITheme::Get().PaddingX * 3.0f) * 0.4f));
+    if (GridSizeBox) GridSizeBox->SetHeightOverride(FMath::Max(40.0f,
+        (ResponsivePanelWidth * 0.43f - FKalmalaUITheme::Get().PaddingX * 2.0f - 24.0f) * 0.4f));
     if (!FMath::IsNearlyEqual(NewHeight, ResponsivePanelHeight))
     {
         ResponsivePanelHeight = NewHeight;
@@ -157,7 +206,11 @@ void UKalmalaInventoryMenuWidget::Open()
     APlayerController* Controller = GetOwningPlayer();
     if (Controller == nullptr || !Controller->IsLocalController()) return;
 
+    HoveredItemId = NAME_None;
+    bSelectionDetailsRequested = false;
+    if (GridView) GridView->ClearHover();
     RefreshOwnerInventory();
+    if (CraftingCompanion) CraftingCompanion->OpenAsInventoryCompanion();
 
     bPreviousCursorVisibility = Controller->bShowMouseCursor;
     bAcquiredMoveIgnore = !Controller->IsMoveInputIgnored();
@@ -175,6 +228,12 @@ void UKalmalaInventoryMenuWidget::Open()
 
 
     bMenuOpen = true;
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    bOpeningAnimationActive = Theme.ShouldAnimateOptionsOpening();
+    OpeningElapsed = 0.0f;
+    const float InitialOffset = Theme.OptionsOpeningOffset(0.0f);
+    if (InventoryPanel) InventoryPanel->SetRenderTranslation(FVector2D(0.0f, InitialOffset));
+    if (CraftingCompanion) CraftingCompanion->SetRenderTranslation(FVector2D(-InitialOffset, 0.0f));
     SetVisibility(ESlateVisibility::Visible);
     FocusTarget->SetUserFocus(Controller);
     FocusTarget->SetKeyboardFocus();
@@ -280,6 +339,7 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
 void UKalmalaInventoryMenuWidget::ApplyInventoryRows(TArray<FKalmalaCatalogueRow>&& Rows,
     const bool bInventoryAvailable, const int32 TextScale, const int32 Contrast)
 {
+    (void)bInventoryAvailable;
     SourceInventoryRows = MoveTemp(Rows);
     if (!RememberedSelectedItemId.IsNone() && !SourceInventoryRows.ContainsByPredicate([this](const FKalmalaCatalogueRow& Row)
         { return Row.Id == RememberedSelectedItemId; }))
@@ -287,20 +347,17 @@ void UKalmalaInventoryMenuWidget::ApplyInventoryRows(TArray<FKalmalaCatalogueRow
         RememberedSelectedItemId = NAME_None;
     }
 
-    int32 PackRowCount = SourceInventoryRows.Num();
-    FString State;
-    if (!bInventoryAvailable) State = TEXT("Waiting for your pack.");
-    else if (PackRowCount == 0) State = TEXT("Your pack is empty.");
-    else State = FString::Printf(TEXT("Inventory: %d / %d slots"),
-        FMath::Min(PackRowCount, UKalmalaInventoryComponent::MaxSlots), UKalmalaInventoryComponent::MaxSlots);
-    if (PackStateText->GetText().ToString() != State) PackStateText->SetText(FText::FromString(State));
-
     auto* Inventory = GetOwningPlayerPawn() ? GetOwningPlayerPawn()->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (GridView) GridView->Refresh(Inventory, false, RememberedSelectedItemId);
-    if (ArmorWeightText && Inventory)
+    if (ArmorWeightText)
+    {
+        const float Weight = Inventory ? Inventory->GetCarriedWeight() : 0.0f;
+        const float Capacity = Inventory ? Inventory->GetCarryCapacity() : 300.0f;
+        const FString WeightText = FMath::IsNearlyEqual(Weight, FMath::RoundToFloat(Weight))
+            ? FString::Printf(TEXT("%.0f"), Weight) : FString::Printf(TEXT("%.1f"), Weight);
         ArmorWeightText->SetText(FText::FromString(FString::Printf(
-            TEXT("Current armor: None · Armor 0     Weight: %.1f / %.0f kg"),
-            Inventory->GetCarriedWeight(), Inventory->GetCarryCapacity())));
+            TEXT("Armor 0 · Weight %s/%.0f"), *WeightText, Capacity)));
+    }
 
     RebuildVisibleInventoryRows(TextScale, Contrast);
 }
@@ -318,9 +375,17 @@ void UKalmalaInventoryMenuWidget::RebuildVisibleInventoryRows(const int32 TextSc
 void UKalmalaInventoryMenuWidget::SelectGridItem(const FName ItemId)
 {
     bEmptyCellSelected = ItemId.IsNone();
+    bSelectionDetailsRequested = !ItemId.IsNone();
     RememberedSelectedItemId = ItemId;
     SelectedInventoryIndex = OwnerInventoryRows.IndexOfByPredicate(
         [ItemId](const FKalmalaCatalogueRow& Row) { return Row.Id == ItemId; });
+    RefreshSelectionPresentation(UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
+}
+
+void UKalmalaInventoryMenuWidget::HoverGridItem(const FName ItemId)
+{
+    if (HoveredItemId == ItemId) return;
+    HoveredItemId = ItemId;
     RefreshSelectionPresentation(UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
 }
 
@@ -341,17 +406,21 @@ void UKalmalaInventoryMenuWidget::MenuScrolled(const float Offset)
 
 void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextScale, const int32 Contrast)
 {
-    if (GridView == nullptr || ItemDetailView == nullptr || SelectedItemText == nullptr
-        || PackStateText == nullptr
+    if (GridView == nullptr || ItemDetailView == nullptr || ArmorWeightText == nullptr
         || RepairToolButton == nullptr || ToolActionStatusText == nullptr
         || EatFoodButton == nullptr || FoodActionStatusText == nullptr) return;
 
     if (LastTextScalePercent != TextScale || LastContrastMode != Contrast)
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
-        Theme.ApplyText(*PackStateText, Theme.BodySize, false, TextScale, Contrast);
         Theme.ApplyText(*ArmorWeightText, Theme.BodySize, false, TextScale, Contrast);
-        Theme.ApplyText(*SelectedItemText, Theme.BodySize, true, TextScale, Contrast);
+        if (InventoryPanel) Theme.ApplySolidPanel(*InventoryPanel, Contrast);
+        if (PanelBackplate)
+        {
+            if (Contrast == 0) Theme.ApplyPanel(*PanelBackplate, Contrast, &Theme.InventoryPanelImage);
+            else Theme.ApplySolidPanel(*PanelBackplate, Contrast);
+            PanelBackplate->SetPadding(FMargin(8.0f));
+        }
 
         Theme.ApplyButton(*RepairToolButton, Contrast);
         Theme.ApplyText(*CastChecked<UTextBlock>(RepairToolButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
@@ -368,6 +437,8 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
     const bool bHasSelection = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex);
     const FKalmalaCatalogueRow* SelectedRow = bHasSelection ? &OwnerInventoryRows[SelectedInventoryIndex] : nullptr;
     const FName SelectedItem = SelectedRow ? SelectedRow->Id : NAME_None;
+    if (!HoveredItemId.IsNone() && !OwnerInventoryRows.ContainsByPredicate([this](const FKalmalaCatalogueRow& Row)
+        { return Row.Id == HoveredItemId; })) HoveredItemId = NAME_None;
     if (SelectedItem != LastPresentedSelectionId)
     {
         LastPresentedSelectionId = SelectedItem;
@@ -385,19 +456,20 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         GridView->Refresh(Inventory, false, SelectedItem);
     }
 
-    const FString SelectionText = bHasSelection
-        ? FString::Printf(TEXT("Selected: %s"), *SelectedRow->Name)
-        : TEXT("No item selected.");
-    if (SelectedItemText->GetText().ToString() != SelectionText)
-        SelectedItemText->SetText(FText::FromString(SelectionText));
-
+    const FKalmalaCatalogueRow* HoveredRow = HoveredItemId.IsNone() ? nullptr
+        : OwnerInventoryRows.FindByPredicate([this](const FKalmalaCatalogueRow& Row) { return Row.Id == HoveredItemId; });
+    const FKalmalaCatalogueRow* DetailRow = HoveredRow ? HoveredRow
+        : (bSelectionDetailsRequested ? SelectedRow : nullptr);
+    const bool bShowSelectedActions = bSelectionDetailsRequested && HoveredItemId.IsNone();
     const bool bSelectedTool = SelectedRow != nullptr && SelectedRow->bCarriedTool;
-    RepairToolButton->SetVisibility(bSelectedTool ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-    ToolActionStatusText->SetVisibility(bSelectedTool ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    RepairToolButton->SetVisibility(bSelectedTool && bShowSelectedActions
+        ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    ToolActionStatusText->SetVisibility(bSelectedTool && bShowSelectedActions
+        ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 
-    if (SelectedRow != nullptr)
+    if (DetailRow != nullptr)
     {
-        const FKalmalaCatalogueRow& Row = *SelectedRow;
+        const FKalmalaCatalogueRow& Row = *DetailRow;
         const FString DetailKey = FString::Printf(TEXT("%s|%d|%s|%s|%d|%d"), *Row.Id.ToString(),
             Row.bCarriedTool, *Row.Name, *Row.Detail, TextScale, Contrast);
         if (DetailKey != LastSelectedDetailKey)
@@ -416,34 +488,6 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
             LastSelectedDetailKey = DetailKey;
         }
         ItemDetailView->SetVisibility(ESlateVisibility::Visible);
-
-        if (Row.bCarriedTool)
-        {
-            const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
-            const FKalmalaToolState* Tool = Character
-                ? Character->GetCarriedToolInventory().FindByPredicate([&Row](const FKalmalaToolState& Entry)
-                    { return Entry.ToolId == Row.Id; })
-                : nullptr;
-            const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Row.Id);
-            const bool bToolStateValid = Tool != nullptr && Definition != nullptr && Tool->ToolLevel >= 1
-                && Tool->Durability >= 0 && Tool->Durability <= Definition->MaxDurability;
-            const bool bNeedsRepair = bToolStateValid && Tool->Durability < Definition->MaxDurability;
-            const bool bHasRepairAction = Character != nullptr
-                && Character->FindComponentByClass<UKalmalaCraftingComponent>() != nullptr;
-            RepairToolButton->SetIsEnabled(bNeedsRepair && bHasRepairAction);
-
-            FString StatusText;
-            if (!bToolStateValid) StatusText = TEXT("Tool state unavailable.");
-            else if (bAwaitingRepairResult && AwaitingRepairToolId == Row.Id)
-                StatusText = TEXT("Repair requested. Waiting for the server result.");
-            else if (LastRepairResultToolId == Row.Id && !LastRepairResultText.IsEmpty())
-                StatusText = LastRepairResultText;
-            else if (bNeedsRepair)
-                StatusText = TEXT("Repair is free at a visible, same-world Workbench or Forge within 2.5 m.");
-            else StatusText = TEXT("This tool is at full condition.");
-            if (ToolActionStatusText->GetText().ToString() != StatusText)
-                ToolActionStatusText->SetText(FText::FromString(StatusText));
-        }
     }
     else
     {
@@ -451,12 +495,43 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         ItemDetailView->SetVisibility(ESlateVisibility::Collapsed);
     }
 
-    RefreshFoodActionPresentation(SelectedRow, TextScale, Contrast);
+    if (bSelectedTool && bShowSelectedActions)
+    {
+        const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
+        const FKalmalaToolState* Tool = Character
+            ? Character->GetCarriedToolInventory().FindByPredicate([SelectedRow](const FKalmalaToolState& Entry)
+                { return Entry.ToolId == SelectedRow->Id; }) : nullptr;
+        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(SelectedRow->Id);
+        const bool bToolStateValid = Tool != nullptr && Definition != nullptr && Tool->ToolLevel >= 1
+            && Tool->Durability >= 0 && Tool->Durability <= Definition->MaxDurability;
+        const bool bNeedsRepair = bToolStateValid && Tool->Durability < Definition->MaxDurability;
+        const bool bHasRepairAction = Character != nullptr
+            && Character->FindComponentByClass<UKalmalaCraftingComponent>() != nullptr;
+        RepairToolButton->SetIsEnabled(bNeedsRepair && bHasRepairAction);
+        FString StatusText;
+        if (!bToolStateValid) StatusText = TEXT("Tool state unavailable.");
+        else if (bAwaitingRepairResult && AwaitingRepairToolId == SelectedRow->Id)
+            StatusText = TEXT("Repair requested. Waiting for the server result.");
+        else if (LastRepairResultToolId == SelectedRow->Id && !LastRepairResultText.IsEmpty())
+            StatusText = LastRepairResultText;
+        else if (bNeedsRepair)
+            StatusText = TEXT("Repair is free at a visible, same-world Workbench or Forge within 2.5 m.");
+        else StatusText = TEXT("This tool is at full condition.");
+        if (ToolActionStatusText->GetText().ToString() != StatusText)
+            ToolActionStatusText->SetText(FText::FromString(StatusText));
+    }
+    RefreshFoodActionPresentation(bShowSelectedActions ? SelectedRow : nullptr, TextScale, Contrast);
 }
 
 void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCatalogueRow* SelectedRow,
     const int32 TextScale, const int32 Contrast)
 {
+    if (!bSelectionDetailsRequested || !HoveredItemId.IsNone())
+    {
+        EatFoodButton->SetVisibility(ESlateVisibility::Collapsed);
+        FoodActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
+        return;
+    }
     const bool bSelectedFood = SelectedRow != nullptr && !SelectedRow->bCarriedTool
         && UKalmalaPlayerStatusComponent::IsKnownFoodItem(SelectedRow->Id);
     const bool bShowFoodStatus = bSelectedFood || bAwaitingFoodResult || !LastFoodResultText.IsEmpty();
@@ -571,6 +646,8 @@ void UKalmalaInventoryMenuWidget::StepSelection(const int32 Direction)
     const int32 Current = SelectedInventoryIndex == INDEX_NONE ? 0 : SelectedInventoryIndex;
     SelectedInventoryIndex = (Current + NumRows + (Direction < 0 ? -1 : 1)) % NumRows;
     RememberedSelectedItemId = OwnerInventoryRows[SelectedInventoryIndex].Id;
+    HoveredItemId = NAME_None;
+    bSelectionDetailsRequested = true;
     const int32 TextScale = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
     RefreshSelectionPresentation(TextScale, UKalmalaSettingsWidget::GetContrastMode());
 }
@@ -646,8 +723,15 @@ void UKalmalaInventoryMenuWidget::Close()
     if (!bMenuOpen) return;
     if (MenuContentScrollBox) RememberedMenuScrollOffset = MenuContentScrollBox->GetScrollOffset();
     if (GridView) GridView->CancelMove();
+    if (CraftingCompanion) CraftingCompanion->CloseInventoryCompanion();
 
     bMenuOpen = false;
+    bOpeningAnimationActive = false;
+    OpeningElapsed = 0.0f;
+    HoveredItemId = NAME_None;
+    bSelectionDetailsRequested = false;
+    if (InventoryPanel) InventoryPanel->SetRenderTranslation(FVector2D::ZeroVector);
+    if (CraftingCompanion) CraftingCompanion->SetRenderTranslation(FVector2D::ZeroVector);
     SetVisibility(ESlateVisibility::Collapsed);
 
     if (APlayerController* Controller = GetOwningPlayer())

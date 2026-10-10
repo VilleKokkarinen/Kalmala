@@ -12,6 +12,7 @@
 #include "Components/Border.h"
 #include "Rendering/DrawElements.h"
 #include "Styling/CoreStyle.h"
+#include "Styling/SlateTypes.h"
 #include "InputCoreTypes.h"
 
 FString UKalmalaInventoryGridWidget::SlotLabel(const int32 SlotIndex)
@@ -72,11 +73,19 @@ void UKalmalaInventoryGridWidget::Refresh(UKalmalaInventoryComponent* Inventory,
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
     for (int32 SlotIndex = 0; SlotIndex < Backgrounds.Num(); ++SlotIndex)
     {
-        Backgrounds[SlotIndex]->SetBrushColor((!SelectedItem.IsNone() && SlotItems[SlotIndex] == SelectedItem)
-            || (HasKeyboardFocus() && FocusedSlot == SlotIndex)
-            ? Theme.TextColor(true, Contrast) : Theme.BorderColor);
-        CastChecked<UBorder>(Backgrounds[SlotIndex]->GetContent())->SetBrushColor(Contrast == 0
-            ? Theme.Panel : Theme.HighContrastPanel);
+        const bool bHighlighted = (!SelectedItem.IsNone() && SlotItems[SlotIndex] == SelectedItem)
+            || (HasKeyboardFocus() && FocusedSlot == SlotIndex);
+        const FLinearColor Outline = Contrast != 0 ? FLinearColor::White
+            : (bHighlighted ? Theme.TextColor(true, Contrast) : FLinearColor(0.32f, 0.20f, 0.12f, 1.0f));
+        Backgrounds[SlotIndex]->SetBrush(FSlateRoundedBoxBrush(FLinearColor::Transparent,
+            FMath::Min(6.0f, Theme.CornerRadius), Outline,
+            bHighlighted ? FMath::Max(2.0f, Theme.BorderWidth) : 1.0f));
+        Backgrounds[SlotIndex]->SetBrushColor(FLinearColor::White);
+        auto* Fill = CastChecked<UBorder>(Backgrounds[SlotIndex]->GetContent());
+        const FLinearColor FillColor = Contrast != 0 ? FLinearColor::Black
+            : FLinearColor(0.12f, 0.073f, 0.041f, 1.0f);
+        Fill->SetBrush(FSlateRoundedBoxBrush(FillColor, FMath::Min(5.0f, Theme.CornerRadius)));
+        Fill->SetBrushColor(FLinearColor::White);
     }
     if (bModeChanged) LastSize = FVector2D::ZeroVector;
     Invalidate(EInvalidateWidget::Paint);
@@ -169,10 +178,18 @@ int32 UKalmalaInventoryGridWidget::SlotAt(const FGeometry& G, const FVector2D Sc
 void UKalmalaInventoryGridWidget::SelectSlot(const int32 SlotIndex)
 {
     if (!SlotItems.IsValidIndex(SlotIndex)) return;
+    ClearHover();
     FocusedSlot = SlotIndex;
     SelectedItem = SlotItems[SlotIndex];
     OnItemSelected.Broadcast(SelectedItem);
     Invalidate(EInvalidateWidget::Paint);
+}
+
+void UKalmalaInventoryGridWidget::ClearHover()
+{
+    if (HoveredItem.IsNone()) return;
+    HoveredItem = NAME_None;
+    OnItemHovered.Broadcast(NAME_None);
 }
 
 void UKalmalaInventoryGridWidget::RequestMove(const int32 Source, const int32 Target, const FName SourceId, const FName TargetId)
@@ -218,9 +235,24 @@ FReply UKalmalaInventoryGridWidget::NativeOnMouseMove(const FGeometry& G, const 
 {
     const int32 SlotIndex = SlotAt(G, Event.GetScreenSpacePosition());
     const FName Id = SlotItems.IsValidIndex(SlotIndex) ? SlotItems[SlotIndex] : NAME_None;
+    if (HoveredItem != Id)
+    {
+        HoveredItem = Id;
+        OnItemHovered.Broadcast(Id);
+    }
     const auto* Definition = UKalmalaItemCatalogue::Get()->FindItem(Id);
     SetToolTipText(FText::FromString(Definition ? Definition->DisplayName : Id.IsNone() ? TEXT("Empty slot") : Id.ToString()));
     return Super::NativeOnMouseMove(G, Event);
+}
+
+void UKalmalaInventoryGridWidget::NativeOnMouseLeave(const FPointerEvent& Event)
+{
+    if (!HoveredItem.IsNone())
+    {
+        HoveredItem = NAME_None;
+        OnItemHovered.Broadcast(NAME_None);
+    }
+    Super::NativeOnMouseLeave(Event);
 }
 
 FReply UKalmalaInventoryGridWidget::NativeOnKeyDown(const FGeometry& G, const FKeyEvent& Event)

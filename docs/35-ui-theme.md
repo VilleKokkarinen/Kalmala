@@ -47,7 +47,7 @@ expanded-map, and options views as described below.
 | FontAsset | empty | Project-owned runtime UFont object path; shared text |
 | FontFace / HeadingFace | Regular / Bold | Regular or Bold; missing custom face uses font default |
 | PanelImage | empty | Project-owned Texture2D object path; shared panels |
-| InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D override for the modal Inventory panel |
+| InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D for the shared Inventory-and-Crafting backplate |
 | BuildPanelImage | `/Game/Kalmala/UI/BuildPanel.BuildPanel` | Texture2D override for build/craft selection |
 | WorldMapPanelImage | `/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel` | Texture2D override for the expanded map shell |
 | EscapePanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Escape home/options shell; fallback source for empty tab overrides |
@@ -97,8 +97,9 @@ animate.
 The view-specific image keys override `PanelImage` only for their named view.
 The inventory, build, and expanded-map textures are original Kalmala artwork
 imported from `Content/Kalmala/UI/Source/` into `/Game/Kalmala/UI`; missing or
-invalid view paths keep the geometric fallback. High contrast intentionally
-suppresses the decorative backgrounds.
+invalid view paths keep the geometric fallback. The Inventory texture covers
+the shared backplate behind both Inventory and Crafting panes; each pane uses
+an opaque solid theme fill, and high contrast suppresses the decorative wood.
 
 `ApplyScroll` has an explicit reduced-motion override; scroll animation defaults off.
 The local Reduced motion choice also overrides scrolling. The options-opening

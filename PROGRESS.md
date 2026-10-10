@@ -6,7 +6,7 @@
 - The main tree already tracks 48 catalogue icon packages and 9 status icon packages, along with validated source/prepared images. Import commits 2d83c90 and d96d532 are ancestors of main. This proves the files are integrated; M13 still needs to verify runtime loading, cooking, and rendered visibility.
 - The inventory screenshot showed the legacy vector fallback. The lookup constructs texture paths dynamically, so the cooker did not have a declared reference to include those icon packages. `DefaultGame.ini` now always cooks both catalogue and status icon directories.
 - The 2026-10-09 user-directed 10×4 inventory is implemented and the UE5.8.2 editor target builds after the recorded repair. Runtime, rendered, input, and peer acceptance for that layout remains deferred; see [inventory handoff](docs/47-inventory-grid.md).
-- M13 now also scopes a paired inventory/crafting modal, contextual item detail, compact armor/weight summary, and wood-panel/rounded-slot styling. The tooltip will show only existing catalogue/tool values; item combat-stat data is not currently defined.
+- M13 now also includes a paired inventory/crafting modal, contextual item detail, compact armor/weight summary, and one continuous wood-textured backplate behind opaque solid panes. The tooltip will show only existing catalogue/tool values; item combat-stat data is not currently defined.
 - A Win64 Development package launched and loaded the prototype map on 2026-10-10. This confirms startup and map loading; rendered icon visibility and the remaining M13 UI acceptance are still pending.
 
 ## Completed work log
@@ -33,6 +33,16 @@
 - **Impact and authority:** M13 scope now specifies the requested compact inventory, contextual tooltip, and panel/cell styling. No runtime, gameplay, network, or save behavior changed; existing crafting and item actions remain server validated.
 - **Limits:** the requested UI is not implemented. The item catalogue has no Pierce/Poison/Knockback fields, so M13 will display existing data only. Rendered M11/M12 checks and the stale M12 `Verify-MenuInputCopy.ps1` expectations remain open for the later inventory task/final acceptance.
 - **Next eligible task:** re-establish the current 10×4 inventory, numbered hotbar, owner-local actions, and modal/input behavior, including the M13 companion crafting view and presentation refinements.
+
+## 2026-10-10 — M13 inventory and crafting companion implementation
+
+- **Completed:** added the standard item recipe list/details beside the owner inventory; the Inventory pane and Crafting pane open together with the existing options easing, Inventory moving down from above and Crafting moving left from the right. A single Inventory texture backs both panes; each pane and each inventory/recipe cell is solid and opaque. Reduced motion skips the transitions. Inventory now presents the compact armor/weight summary, hides details until hover/focus/selection, and omits the previous persistent navigation/state clutter.
+- **Files changed:** `BACKLOG.md`, `Scripts/Verify-MenuInputCopy.ps1`, `Scripts/Verify-PresentationOwnership.ps1`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryGridWidget.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`, `Source/KalmalaUI/Private/KalmalaItemDetailWidget.cpp`, `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuFoodTest.cpp`, `Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `Source/KalmalaUI/Public/KalmalaInventoryGridWidget.h`, `Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h`, `Source/KalmalaUI/Public/KalmalaUITheme.h`, `docs/04-roadmap.md`, `docs/35-ui-theme.md`, and `docs/47-inventory-grid.md`.
+- **Lightweight checks:** `Verify-MenuInputCopy.ps1`, `Verify-LocalInputContract.ps1`, `Verify-PresentationOwnership.ps1`, `Verify-M5DocumentationContracts.ps1`, and `Verify-SettingsAccessibilityContract.ps1` passed. `git diff --check` and the 260-character path audit passed. No project build or automation suite was run.
+- **Full verification:** deferred to M13 milestone-final verification; no runtime/rendered, input-device, peer, package, or build validation ran for this increment.
+- **Impact and authority:** local inventory opening now also displays the recipe companion. Craft requests still use the existing crafting component/server validation; no recipe, gameplay stat, replication, or saved-data schema was added or changed.
+- **Limits:** rendered layout and modal interaction have not been verified in Unreal. Existing catalogue/tool details are used; new combat stat fields were not introduced. The Crafting companion uses the existing non-build recipe catalogue, with station-required recipes showing their existing requirement/availability context.
+- **Next eligible task:** reconcile inventory details, construction/build, station menus, recipe copy, the retired persistent panel/tutorial card, and the active-only status group against docs/35–45.
 
 ## 2026-10-10 — Include dynamic icon assets in package cooks
 

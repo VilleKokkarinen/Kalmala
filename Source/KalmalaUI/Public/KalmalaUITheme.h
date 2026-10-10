@@ -80,10 +80,12 @@ struct KALMALAUI_API FKalmalaUITheme
     int32 ScaledFontSize(int32 BaseSize, int32 TextScalePercent) const;
     FMargin PanelPadding() const { return FMargin(PaddingX, PaddingY); }
     FSlateBrush MakePanelBrush(int32 ContrastMode, const FString* ImageOverride = nullptr) const;
+    FSlateBrush MakeSolidPanelBrush(int32 ContrastMode) const;
     FSlateFontInfo MakeFont(int32 BaseSize, bool bHeading, int32 TextScalePercent) const;
     FLinearColor TextColor(bool bHeading, int32 ContrastMode) const;
     void ApplyMenu(UWidgetTree& Tree, UTextBlock* HeadingLabel, int32 TextScalePercent, int32 ContrastMode) const;
     void ApplyPanel(UBorder& Border, int32 ContrastMode, const FString* ImageOverride = nullptr) const;
+    void ApplySolidPanel(UBorder& Border, int32 ContrastMode) const;
     void ApplyButton(UButton& Button, int32 ContrastMode, bool bReducedMotion = false) const;
     void ApplySelectablePanel(UBorder& Border, bool bSelected, bool bFocused, bool bUnavailable,
         int32 ContrastMode, bool bReducedMotion = false) const;

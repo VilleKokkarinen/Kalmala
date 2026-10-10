@@ -11,6 +11,9 @@ class UKalmalaItemDetailWidget;
 class UScrollBox;
 class UKalmalaThemedButton;
 class UKalmalaInventoryGridWidget;
+class UKalmalaCraftingWidget;
+class UBorder;
+class UHorizontalBox;
 
 /** One owner-local inventory grid with existing selected-tool and food actions. */
 UCLASS()
@@ -51,15 +54,17 @@ private:
     UFUNCTION() void MenuScrolled(float Offset);
     void RefreshFoodActionPresentation(const FKalmalaCatalogueRow* SelectedRow, int32 TextScale, int32 Contrast);
     void SelectGridItem(FName ItemId);
+    void HoverGridItem(FName ItemId);
     UPROPERTY(Transient) TObjectPtr<UKalmalaInventoryGridWidget> GridView;
     UPROPERTY(Transient) TObjectPtr<USizeBox> GridSizeBox;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ArmorWeightText;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> PackStateText;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> SelectedItemText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolActionStatusText;
     UPROPERTY(Transient) TObjectPtr<UKalmalaItemDetailWidget> ItemDetailView;
     UPROPERTY(Transient) TObjectPtr<UScrollBox> MenuContentScrollBox;
     UPROPERTY(Transient) TObjectPtr<USizeBox> PanelSizeBox;
+    UPROPERTY(Transient) TObjectPtr<UBorder> PanelBackplate;
+    UPROPERTY(Transient) TObjectPtr<UBorder> InventoryPanel;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaCraftingWidget> CraftingCompanion;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> RepairToolButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> EatFoodButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodActionStatusText;
@@ -67,10 +72,14 @@ private:
     TArray<FKalmalaCatalogueRow> OwnerInventoryRows;
     int32 SelectedInventoryIndex = INDEX_NONE;
     FName RememberedSelectedItemId = NAME_None;
+    FName HoveredItemId = NAME_None;
     bool bEmptyCellSelected = false;
+    bool bSelectionDetailsRequested = false;
     float RememberedMenuScrollOffset = 0.0f;
-    float ResponsivePanelWidth = 640.0f;
-    float ResponsivePanelHeight = 560.0f;
+    float ResponsivePanelWidth = 1120.0f;
+    float ResponsivePanelHeight = 800.0f;
+    float OpeningElapsed = 0.0f;
+    bool bOpeningAnimationActive = false;
     FString LastSelectedDetailKey;
     FString LastRepairResultText;
     FName LastRepairResultToolId = NAME_None;

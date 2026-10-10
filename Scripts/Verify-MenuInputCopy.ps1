@@ -103,10 +103,10 @@ foreach ($mapLabel in @('MAP SYMBOLS', 'Personal pins', 'Co-op players', 'Map pi
 
 $requiredActionLabels = @(
     @{ Source = $inventoryMenu; Label = 'Inventory' },
-    @{ Source = $inventoryMenu; Label = 'Previous item' },
-    @{ Source = $inventoryMenu; Label = 'Next item' },
+    @{ Source = $inventoryMenu; Label = 'Armor 0 · Weight 0/300' },
     @{ Source = $inventoryMenu; Label = 'Repair selected tool' },
     @{ Source = $inventoryMenu; Label = 'Eat one serving' },
+    @{ Source = $playerFacingCrafting; Label = 'Crafting' },
     @{ Source = $playerFacingCrafting; Label = 'Craft one' },
     @{ Source = $playerFacingCrafting; Label = 'Build / place selected' },
     @{ Source = $playerFacingCrafting; Label = 'Repair Reed Knife' },

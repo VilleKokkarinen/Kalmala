@@ -20,6 +20,7 @@ bool FKalmalaInventoryMenuPreparedFoodDetailsTest::RunTest(const FString& Parame
     Menu->SetInventoryRowsForVerification({
         {TEXT("HearthBroth"), TEXT("Hearth Broth"), TEXT("× 1"), false}
     }, 100, 0);
+    Menu->SelectItemForVerification(TEXT("HearthBroth"));
 
     FString DetailText;
     TArray<UWidget*> Widgets;

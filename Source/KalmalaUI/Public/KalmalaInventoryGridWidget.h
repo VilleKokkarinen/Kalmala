@@ -9,6 +9,7 @@ class UCanvasPanel;
 class UBorder;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaGridSelection, FName);
+DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaGridHover, FName);
 
 /** One owner inventory view; HUD mode displays only occupied numbered cells. */
 UCLASS()
@@ -18,6 +19,8 @@ class KALMALAUI_API UKalmalaInventoryGridWidget : public UUserWidget
 public:
     void Refresh(UKalmalaInventoryComponent* Inventory, bool bHotbar, FName Selected = NAME_None);
     FKalmalaGridSelection OnItemSelected;
+    FKalmalaGridHover OnItemHovered;
+    void ClearHover();
     void CancelMove();
     static FString SlotLabel(int32 SlotIndex);
     static TArray<int32> VisibleSlots(const TArray<FName>& Slots, bool bHotbar);
@@ -29,6 +32,7 @@ protected:
     virtual FReply NativeOnMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Event) override;
     virtual FReply NativeOnMouseButtonUp(const FGeometry& Geometry, const FPointerEvent& Event) override;
     virtual FReply NativeOnMouseMove(const FGeometry& Geometry, const FPointerEvent& Event) override;
+    virtual void NativeOnMouseLeave(const FPointerEvent& Event) override;
     virtual void NativeOnMouseCaptureLost(const FCaptureLostEvent& Event) override;
     virtual FReply NativeOnKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
 private:
@@ -43,6 +47,7 @@ private:
     TArray<int32> DisplaySlots;
     bool bHotbarOnly = false;
     FName SelectedItem;
+    FName HoveredItem;
     int32 FocusedSlot = 0;
     int32 DragSource = INDEX_NONE;
     FName DragItem;

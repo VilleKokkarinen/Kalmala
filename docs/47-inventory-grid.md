@@ -76,12 +76,14 @@ the information remains reachable without a pointer. Existing item actions
 remain available only for applicable items and retain their current
 server-validated path.
 
-Both panels use an original Kalmala wood texture. Inventory cells and crafting
-cards use opaque, slightly darker brown rounded surfaces with a few UI units of
-gap and icon inset. Keep canonical icons, quantities, condition bars, focus
-states and selected states legible over those fills. Existing high-contrast
-behavior still suppresses decorative wood art and uses the black accessibility
-surface, white text and borders.
+One original Kalmala wood texture spans the complete combined Inventory and
+Crafting backplate, including the narrow inset and gap around and between the
+panes. The Inventory pane and Crafting pane each use an opaque solid theme
+fill. Inventory cells and crafting cards use opaque, slightly darker brown
+rounded surfaces with a few UI units of gap and icon inset. Keep canonical
+icons, quantities, condition bars, focus states and selected states legible
+over those fills. Existing high-contrast behavior suppresses decorative wood
+art and uses opaque black accessibility surfaces, white text and borders.
 
 This is a UI presentation change only. It adds no recipe, crafting outcome,
 RPC, replicated field, gameplay authority, or saved-data field. Tooltip stats

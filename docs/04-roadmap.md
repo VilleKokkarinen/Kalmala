@@ -786,10 +786,11 @@ replicated fields, or save data.
 
 The inventory keeps only a compact armor/weight summary visible by default.
 Hovering an occupied slot (or focusing/selecting one with keyboard/controller)
-shows a tidy contextual name, description, and existing-stat tooltip. Both
-panels use original Kalmala wood art, with darker opaque rounded inventory and
-recipe cells plus a small inset/gap. High contrast retains its established
-black accessibility surfaces.
+shows a tidy contextual name, description, and existing-stat tooltip. One
+original Kalmala wood texture spans the complete combined backplate behind the
+Inventory and Crafting panes; each pane uses an opaque solid fill. Rounded,
+inset inventory cells and craft cards use opaque dark-brown fills. High contrast
+suppresses the wood and retains opaque black accessibility surfaces.
 
 **M13 boundary:** UI presentation, original icon sources, imported UI assets,
 and their integration only. Do not add gameplay content, change server
@@ -805,9 +806,10 @@ online services, or expand platform scope.
   the right; reduced motion, focus/navigation, close/restore behavior, and
   supported viewport/text-scale layouts remain correct.
 - Inventory shows only the compact armor/weight summary at rest; item details
-  appear contextually on hover or keyboard/controller focus. Both panels use
-  the original wood treatment and rounded, inset dark-brown cells, with high
-  contrast still readable.
+  appear contextually on hover or keyboard/controller focus. One wood texture
+  spans both panes as a shared backing, each pane has a solid opaque fill, and
+  the inset rounded cells/cards use dark-brown opaque fills, with high contrast
+  still readable.
 - All 48 canonical catalogue icons and nine status icons have their required
   original/prepared image sources and imported Texture2D packages tracked in
   main. Runtime references resolve to those packages, and every supported

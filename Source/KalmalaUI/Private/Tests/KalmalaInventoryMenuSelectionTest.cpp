@@ -33,6 +33,8 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     };
     TestEqual(TEXT("Normal gameplay keeps Inventory collapsed until opened"), OwnerA->GetVisibility(), ESlateVisibility::Collapsed);
     TestEqual(TEXT("First owned item is selected"), OwnerA->GetSelectedItemForVerification(), FName(TEXT("Wood")));
+    TestFalse(TEXT("Item detail stays hidden until an item is focused or hovered"), DetailText(OwnerA).Contains(TEXT("× 7")));
+    OwnerA->SelectItemForVerification(TEXT("Wood"));
     TestTrue(TEXT("Owner detail includes its quantity"), DetailText(OwnerA).Contains(TEXT("× 7")));
     TestFalse(TEXT("Owner detail excludes peer contents"), DetailText(OwnerA).Contains(TEXT("× 93")));
     OwnerA->SelectItemForVerification(TEXT("ReedKnife"));
@@ -45,8 +47,8 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
         if (Cast<UKalmalaInventoryGridWidget>(Widget)) ++Grids;
         if (Cast<UEditableTextBox>(Widget)) ++Searches;
         if (const auto* Text = Cast<UTextBlock>(Widget)) {
-            bArmor |= Text->GetText().ToString().Contains(TEXT("Current armor:"));
-            bWeight |= Text->GetText().ToString().Contains(TEXT("Weight:"));
+            bArmor |= Text->GetText().ToString().Contains(TEXT("Armor 0"));
+            bWeight |= Text->GetText().ToString().Contains(TEXT("Weight "));
         }
     });
     TestEqual(TEXT("Player inventory mounts exactly one grid"), Grids, 1);

@@ -27,7 +27,7 @@ FString UKalmalaItemDetailWidget::DescribeCarriedTool(FName Id, const FString& V
     else if (Id == TEXT("IronAxe")) Description = TEXT("An iron axe for harvesting Densewood.");
     else if (Id == TEXT("ConstructionHammer")) Description = TEXT("A hand hammer for placing camp structures.");
 
-    FString Text = TEXT("Carried equipment\n\n") + Description;
+    FString Text = Description;
     if (!VisibleState.IsEmpty()) Text += TEXT("\n\n") + VisibleState;
     return Text;
 }
@@ -82,8 +82,8 @@ void UKalmalaItemDetailWidget::SetPresentation(FName Id, const FString& Name, co
     BuildPanel();
     if (!Panel) return;
     const auto& Theme = FKalmalaUITheme::Get();
-    const FString NoImage;
-    Theme.ApplyPanel(*Panel, Contrast, &NoImage);
+    Theme.ApplySolidPanel(*Panel, Contrast);
+    Panel->SetPadding(FMargin(8.0f));
     Theme.ApplyText(*Title, Theme.HeadingSize, true, TextScale, Contrast);
     Theme.ApplyText(*Details, Theme.BodySize, false, TextScale, Contrast);
     Title->SetText(FText::FromString(Name));

@@ -4,6 +4,7 @@
 #include "KalmalaIngredientWidget.h"
 #include "KalmalaRecipeRequirements.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaInventoryMenuSubsystem.h"
 #include "KalmalaStorageSaveGame.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaThemedButton.h"
@@ -500,7 +501,9 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     Column->RemoveChild(FavoriteButton); Column->InsertChildAt(5, FavoriteButton);
     WorkbenchRepairExcludedWidgets.Add(SortButton);
     CookingRackExcludedWidgets.Add(SortButton);
-    WorkbenchRepairExcludedWidgets.Add(AddText(TEXT("All recipes stay within this menu's station scope."), 14));
+    UTextBlock* BrowseScopeText = AddText(TEXT("All recipes stay within this menu's station scope."), 14);
+    WorkbenchRepairExcludedWidgets.Add(BrowseScopeText);
+    StationCraftExcludedWidgets.Add(BrowseScopeText);
     WorkbenchRepairExcludedWidgets.Add(FavoriteButton);
     CookingRackExcludedWidgets.Add(FavoriteButton);
     auto* RecipeActions=WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(RecipeActions);
@@ -728,7 +731,13 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
         const auto& Recipe = Recipes[Index];
         const int32 BuildGroup = GetBuildBrowseGroup(Recipe.GetOutputIdentity());
         const bool bCategoryMatches = StationFilterKit.IsNone()
-            ? BuildGroup != 0 && (RecipeCategory == 3 || (RecipeCategory == 7 && (IsRecipeFavorite(Recipe.RecipeId) || IsRecipeRecent(Recipe.RecipeId))) || (RecipeCategory >= 4 && RecipeCategory <= 6 && BuildGroup == RecipeCategory))
+            ? bInventoryCompanion
+                ? BuildGroup == 0
+                    && (RecipeCategory == 0
+                        || (RecipeCategory == 1 && Recipe.ExperienceSkill != EKalmalaSkill::Cooking)
+                        || (RecipeCategory == 2 && Recipe.ExperienceSkill == EKalmalaSkill::Cooking)
+                        || (RecipeCategory == 7 && (IsRecipeFavorite(Recipe.RecipeId) || IsRecipeRecent(Recipe.RecipeId))))
+                : BuildGroup != 0 && (RecipeCategory == 3 || (RecipeCategory == 7 && (IsRecipeFavorite(Recipe.RecipeId) || IsRecipeRecent(Recipe.RecipeId))) || (RecipeCategory >= 4 && RecipeCategory <= 6 && BuildGroup == RecipeCategory))
             : RecipeCategory == 0
                 || (RecipeCategory == 1 && Recipe.ExperienceSkill != EKalmalaSkill::Cooking)
                 || (RecipeCategory == 2 && Recipe.ExperienceSkill == EKalmalaSkill::Cooking)
@@ -770,7 +779,7 @@ void UKalmalaCraftingWidget::SetRecipeBrowse(const FString& Query, int32 Categor
     const auto Before = GetVisibleRecipeIndices();
     const int32 OldRecipe = Before.IsValidIndex(Selected) ? Before[Selected] : INDEX_NONE;
     RecipeQuery = Query.Left(64).TrimStartAndEnd();
-    RecipeCategory = StationFilterKit.IsNone()
+    RecipeCategory = StationFilterKit.IsNone() && !bInventoryCompanion
         ? FMath::Clamp(Category, 3, 7) : FMath::Clamp(Category, 0, 7);
     bRecipeNameSort = bNameSort;
     const auto After = GetVisibleRecipeIndices();
@@ -778,19 +787,20 @@ void UKalmalaCraftingWidget::SetRecipeBrowse(const FString& Query, int32 Categor
     if (Selected == INDEX_NONE) Selected = 0;
     bPlacementPreviewEnabled = false;
     if (RecipeCategoryLabel) RecipeCategoryLabel->SetText(FText::FromString(
-        (StationFilterKit.IsNone() ? TEXT("Builds: ") : TEXT("Recipes: ")) + GetBrowseCategoryLabel(RecipeCategory)));
+        (StationFilterKit.IsNone() ? (bInventoryCompanion ? TEXT("Crafting: ") : TEXT("Builds: ")) : TEXT("Recipes: ")) + GetBrowseCategoryLabel(RecipeCategory)));
     if (RecipeSearchBox) RecipeSearchBox->SetHintText(FText::FromString(
-        StationFilterKit.IsNone() ? TEXT("Search build names") : TEXT("Search recipe names")));
+        StationFilterKit.IsNone() && !bInventoryCompanion ? TEXT("Search build names") : TEXT("Search recipe names")));
     if (RecipeSortLabel) RecipeSortLabel->SetText(FText::FromString(bRecipeNameSort
-        ? (StationFilterKit.IsNone() ? TEXT("Build order: Name") : TEXT("Recipe order: Name"))
-        : (StationFilterKit.IsNone() ? TEXT("Build order: Catalogue") : TEXT("Recipe order: Catalogue"))));
+        ? (StationFilterKit.IsNone() && !bInventoryCompanion ? TEXT("Build order: Name") : TEXT("Recipe order: Name"))
+        : (StationFilterKit.IsNone() && !bInventoryCompanion ? TEXT("Build order: Catalogue") : TEXT("Recipe order: Catalogue"))));
     if (bOpen) Refresh();
 }
 void UKalmalaCraftingWidget::RecipeSearchChanged(const FText& Text) { SetRecipeBrowse(Text.ToString(), RecipeCategory, bRecipeNameSort); }
 void UKalmalaCraftingWidget::CycleRecipeCategory()
 {
-    const int32 NextCategory = StationFilterKit.IsNone()
+    const int32 NextCategory = StationFilterKit.IsNone() && !bInventoryCompanion
         ? (RecipeCategory < 3 || RecipeCategory >= 7 ? 3 : RecipeCategory + 1)
+        : bInventoryCompanion ? (RecipeCategory == 0 ? 1 : RecipeCategory == 1 ? 2 : RecipeCategory == 2 ? 7 : 0)
         : (RecipeCategory + 1) % 8;
     SetRecipeBrowse(RecipeQuery, NextCategory, bRecipeNameSort);
 }
@@ -810,6 +820,20 @@ void UKalmalaCraftingWidget::ToggleSelectedFavorite()
 }
 
 void UKalmalaCraftingWidget::Open() { OpenInternal(NAME_None); }
+
+bool UKalmalaCraftingWidget::OpenAsInventoryCompanion()
+{
+    if (bOpen) return false;
+    bInventoryCompanion = true;
+    if (OpenInternal(NAME_None, nullptr, FString(), true, FString())) return true;
+    bInventoryCompanion = false;
+    return false;
+}
+
+void UKalmalaCraftingWidget::CloseInventoryCompanion()
+{
+    if (bInventoryCompanion) Close();
+}
 
 void UKalmalaCraftingWidget::RememberMenuBrowseState()
 {
@@ -963,7 +987,7 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     if (!StationKit.IsNone() && !IsInWorldCookingStation(StationKit)
         && !(bInEmbeddedContext && IsStationContextShellKit(StationKit)
             && IsStationContextSectionSupported(StationKit, RequestedStationContextSection))) return false;
-    if (bInEmbeddedContext && !StationActor) return false;
+    if (bInEmbeddedContext && !StationActor && !bInventoryCompanion) return false;
     if (StationActor)
     {
         const UKalmalaCraftingComponent* Crafting = Model();
@@ -997,19 +1021,26 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     }
     auto* PC = GetOwningPlayer(); if (!PC || PC->IsMoveInputIgnored() || !Model()) return false;
     const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn());
-    if (!Character || (StationKit.IsNone() && Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1)) return false;
+    if (!Character || (!bInventoryCompanion && StationKit.IsNone()
+        && Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1)) return false;
     StationFilterKit = StationKit;
     bEmbeddedContext = bInEmbeddedContext;
     ContextStationActor = StationActor;
     ContextOwnerPawn = StationActor ? PC->GetPawn() : nullptr;
     ContextConstructionId = StationActor ? MoveTemp(StationContextConstructionId) : FString();
     this->StationContextSection = MoveTemp(StationContextSection);
-    if (StationKit.IsNone())
+    if (StationKit.IsNone() && bInventoryCompanion)
+    {
+        RecipeQuery.Reset();
+        SetRecipeBrowse(TEXT(""), 0, false);
+        Selected = 0;
+    }
+    else if (StationKit.IsNone())
     {
         SetRecipeBrowse(RecipeQuery, 3, bRecipeNameSort);
     }
-    RestoreMenuBrowseState(StationKit);
-    if (StationKit.IsNone() && !MenuBrowseMemory.Contains(StationKit))
+    if (!bInventoryCompanion) RestoreMenuBrowseState(StationKit);
+    if (!bInventoryCompanion && StationKit.IsNone() && !MenuBrowseMemory.Contains(StationKit))
     {
         const TArray<int32> VisibleBuilds = GetVisibleRecipeIndices();
         const TArray<FKalmalaRecipe>& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
@@ -1055,7 +1086,13 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
         SetAlignmentInViewport(FVector2D(.5,.5)); SetPositionInViewport(FVector2D(X*.5f,Y*.5f), true);
     }
     if (CloseButton) CloseButton->SetVisibility(bEmbeddedContext ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
-    if (bEmbeddedContext && MenuBackground)
+    if (bEmbeddedContext && MenuBackground && bInventoryCompanion)
+    {
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        Theme.ApplySolidPanel(*MenuBackground, UKalmalaSettingsWidget::GetContrastMode());
+        MenuBackground->SetPadding(FMargin(8.0f));
+    }
+    else if (bEmbeddedContext && MenuBackground)
     {
         MenuBackground->SetPadding(FMargin(0.0f));
         MenuBackground->SetBrushColor(FLinearColor::Transparent);
@@ -1102,11 +1139,13 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
 
     if (StationFilterKit.IsNone())
     {
-        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Construction Hammer — Build")));
-        if (InstructionsText) InstructionsText->SetText(FText::FromString(GeneralInstructions));
+        if (HeaderText) HeaderText->SetText(FText::FromString(bInventoryCompanion ? TEXT("Crafting") : TEXT("Construction Hammer — Build")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(bInventoryCompanion
+            ? TEXT("Item recipes, ingredients, and any required service station.") : GeneralInstructions));
         if (RecipeCategoryLabel) RecipeCategoryLabel->SetText(FText::FromString(
-            TEXT("Builds: ") + GetBrowseCategoryLabel(RecipeCategory)));
-        if (RecipeSearchBox) RecipeSearchBox->SetHintText(FText::FromString(TEXT("Search build names")));
+            (bInventoryCompanion ? TEXT("Crafting: ") : TEXT("Builds: ")) + GetBrowseCategoryLabel(RecipeCategory)));
+        if (RecipeSearchBox) RecipeSearchBox->SetHintText(FText::FromString(
+            bInventoryCompanion ? TEXT("Search recipe names") : TEXT("Search build names")));
         return;
     }
 
@@ -1184,7 +1223,7 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
     const bool bStationContext = bStationCraftContext || bForgeUpgradeContext || bRepairContext || bStorageContext;
     const bool bNonCraftSection = bRepairContext || bForgeUpgradeContext || bStorageContext;
-    const ESlateVisibility ExcludedVisibility = bStationContext
+    const ESlateVisibility ExcludedVisibility = bStationContext || bInventoryCompanion
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible;
     for (UWidget* Excluded : StationCraftExcludedWidgets)
         if (Excluded) Excluded->SetVisibility(ExcludedVisibility);
@@ -1261,21 +1300,21 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
         StationContextStatusText->SetVisibility(bStationContext && !bStorageContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (UpgradeIronAxeButton)
-        UpgradeIronAxeButton->SetVisibility(bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bWorkbenchRepairContext || bStorageContext
+        UpgradeIronAxeButton->SetVisibility(bInventoryCompanion || bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bWorkbenchRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (CraftBronzeAxeButton)
-        CraftBronzeAxeButton->SetVisibility(bCookingContext || bForgeCraftContext || bForgeUpgradeContext || bWorkbenchRepairContext || bStorageContext
+        CraftBronzeAxeButton->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext || bForgeUpgradeContext || bWorkbenchRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (ToolProgressionText)
-        ToolProgressionText->SetVisibility(bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
+        ToolProgressionText->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (ToolProgressionActions)
-        ToolProgressionActions->SetVisibility(bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
+        ToolProgressionActions->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (UpgradeTargetIconBox)
         UpgradeTargetIconBox->SetVisibility(bForgeUpgradeContext
             ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
-    const bool bStandaloneBuild = !bEmbeddedContext && StationFilterKit.IsNone();
+    const bool bStandaloneBuild = bInventoryCompanion || (!bEmbeddedContext && StationFilterKit.IsNone());
     if (bStandaloneBuild)
         for (UWidget* Excluded : BuildExcludedWidgets)
             if (Excluded) Excluded->SetVisibility(ESlateVisibility::Collapsed);
@@ -1469,8 +1508,10 @@ void UKalmalaCraftingWidget::RefreshWorkbenchRepairState(UKalmalaCraftingCompone
 
 void UKalmalaCraftingWidget::Close()
 {
-    if (!bOpen) return; RememberMenuBrowseState(); bOpen = false; bPlacementPreviewEnabled = false; SetVisibility(ESlateVisibility::Collapsed);
-    if (auto* M = Model()) M->ServerCloseStorage();
+    if (!bOpen) return;
+    if (!bInventoryCompanion) RememberMenuBrowseState();
+    bOpen = false; bPlacementPreviewEnabled = false; SetVisibility(ESlateVisibility::Collapsed);
+    if (auto* M = Model(); M && !bInventoryCompanion) M->ServerCloseStorage();
     if (CloseButton) CloseButton->SetVisibility(ESlateVisibility::Visible);
     if (auto* PC=GetOwningPlayer(); PC && !bEmbeddedContext)
     {
@@ -1487,6 +1528,7 @@ void UKalmalaCraftingWidget::Close()
         Theme.ApplyPanel(*MenuBackground, UKalmalaSettingsWidget::GetContrastMode(), &Theme.BuildPanelImage);
     }
     bEmbeddedContext = false;
+    bInventoryCompanion = false;
     bCookingRackContext = false;
     bCauldronContext = false;
     bFryingPanContext = false;
@@ -1730,7 +1772,15 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
         if (bRestyle || RecipeSlotVisualStates[SlotIndex] != VisualState)
         {
             RecipeSlotVisualStates[SlotIndex] = VisualState;
-            Theme.ApplySelectablePanel(*RecipeSlotCards[SlotIndex], bSelected, bFocused, bUnavailable, ContrastMode);
+            Theme.ApplySelectablePanel(*RecipeSlotCards[SlotIndex], bSelected, bFocused, bUnavailable,
+                ContrastMode, bInventoryCompanion);
+            if (bInventoryCompanion && ContrastMode == 0)
+            {
+                const FLinearColor Fill = bUnavailable ? FLinearColor(0.075f, 0.052f, 0.034f, 1.0f)
+                    : bSelected ? FLinearColor(0.20f, 0.12f, 0.055f, 1.0f)
+                    : FLinearColor(0.12f, 0.073f, 0.041f, 1.0f);
+                RecipeSlotCards[SlotIndex]->SetBrushColor(Fill);
+            }
             Theme.ApplyText(*RecipeSlotNames[SlotIndex], 11, bSelected, TextScalePercent, ContrastMode);
             Theme.ApplyText(*RecipeSlotStates[SlotIndex], 9, false, TextScalePercent, ContrastMode);
         }
@@ -3203,7 +3253,12 @@ void UKalmalaCraftingWidget::Refresh()
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
         Theme.ApplyMenu(*WidgetTree, HeaderText, TextScalePercent, ContrastMode);
-        if (bEmbeddedContext)
+        if (bInventoryCompanion)
+        {
+            Theme.ApplySolidPanel(*MenuBackground, ContrastMode);
+            MenuBackground->SetPadding(FMargin(8.0f));
+        }
+        else if (bEmbeddedContext)
         {
             MenuBackground->SetPadding(FMargin(0.0f));
             MenuBackground->SetBrushColor(FLinearColor::Transparent);
@@ -3341,8 +3396,9 @@ void UKalmalaCraftingWidget::Refresh()
     DetailText->SetText(FText::FromString(RecipeDescription));
     if (CraftButton)
     {
-        const bool bBuildContextCanCraft = !StationFilterKit.IsNone()
-            || UKalmalaCraftingWidget::CanBuildMenuCraftRecipe(SelectedRecipe);
+        const bool bBuildContextCanCraft = bInventoryCompanion
+            ? SelectedRecipe.RequiredStation.IsEmpty() && GetBuildBrowseGroup(SelectedRecipe.GetOutputIdentity()) == 0
+            : (!StationFilterKit.IsNone() || UKalmalaCraftingWidget::CanBuildMenuCraftRecipe(SelectedRecipe));
         if (UTextBlock* ButtonLabel = Cast<UTextBlock>(CraftButton->GetContent()))
             ButtonLabel->SetText(FText::FromString(bDirectBuild ? TEXT("Build selected")
                 : (bBuildContextCanCraft ? TEXT("Craft one") : TEXT("Produce at station"))));
@@ -3389,7 +3445,7 @@ void UKalmalaCraftingWidget::Refresh()
     for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) AppendToolCondition(Definition);
     AppendToolCondition(FKalmalaToolLifecycleContract::GetConstructionHammerDefinition());
     if (CarriedToolConditionCount == 0) ToolConditionText += TEXT("\nNo carried tools.");
-    const bool bStandaloneBuild = !bEmbeddedContext && StationFilterKit.IsNone();
+    const bool bStandaloneBuild = bInventoryCompanion || (!bEmbeddedContext && StationFilterKit.IsNone());
     const FString StatePresentation = bStandaloneBuild
         ? M->GetLastResult() + TEXT("\n") + PreviewText
         : TEXT("\nNearby hearth (replicated shared state; text does not rely on colour):\n")
@@ -3533,7 +3589,9 @@ void UKalmalaCraftingWidget::Craft()
     const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
     if (!VisibleIndices.IsValidIndex(Selected) || !Recipes.IsValidIndex(VisibleIndices[Selected])) return;
     const FKalmalaRecipe& Recipe = Recipes[VisibleIndices[Selected]];
-    if (StationFilterKit.IsNone() && !CanBuildMenuCraftRecipe(Recipe)) return;
+    if (StationFilterKit.IsNone() && !bInventoryCompanion && !CanBuildMenuCraftRecipe(Recipe)) return;
+    if (bInventoryCompanion && (!Recipe.RequiredStation.IsEmpty()
+        || GetBuildBrowseGroup(Recipe.GetOutputIdentity()) != 0)) return;
     if ((bCookingRackContext || bCauldronContext || bFryingPanContext)
         && (!IsStationContextValid() || !IsCookingMenuRecipe(StationFilterKit, Recipe))) return;
     if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput)) { Place(); return; }
@@ -3678,7 +3736,8 @@ void UKalmalaCraftingWidget::CloseClicked() { Close(); }
 FReply UKalmalaCraftingWidget::NativeOnPreviewKeyDown(const FGeometry& G,const FKeyEvent& E)
 {
     const FKey K=E.GetKey();
-    if(K==EKeys::Escape || K==EKeys::Gamepad_FaceButton_Right) { Close(); return FReply::Handled(); }
+    if((K==EKeys::Escape || K==EKeys::Gamepad_FaceButton_Right) && !bInventoryCompanion)
+    { Close(); return FReply::Handled(); }
     if (WorkbenchRepairInspector && (WorkbenchRepairInspector->HasKeyboardFocus()
         || WorkbenchRepairInspector->HasFocusedDescendants()))
         return Super::NativeOnPreviewKeyDown(G,E);
@@ -4412,6 +4471,9 @@ void UKalmalaCraftingSubsystem::SetRecipeActivityForTest(
 void UKalmalaCraftingSubsystem::Toggle()
 {
     if(!Controller) return;
+    if (const ULocalPlayer* LocalPlayer = Controller->GetLocalPlayer())
+        if (const UKalmalaInventoryMenuSubsystem* InventoryMenu = LocalPlayer->GetSubsystem<UKalmalaInventoryMenuSubsystem>();
+            InventoryMenu && InventoryMenu->IsMenuOpen()) return;
     if (StationContextWidget && StationContextWidget->IsOpen())
     {
         StationContextWidget->Close();

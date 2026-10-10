@@ -67,6 +67,8 @@ class KALMALAUI_API UKalmalaCraftingWidget : public UUserWidget
     GENERATED_BODY()
 public:
     void Open();
+    bool OpenAsInventoryCompanion();
+    void CloseInventoryCompanion();
     bool OpenForStation(FName StationKit);
     bool OpenInStationContext(AKalmalaConstructionActor* Station, const FString& Section);
     bool IsStationContextValid() const;
@@ -251,6 +253,7 @@ private:
     TArray<int32> LastRecipeGridIndices;
     bool bOpen = false;
     bool bEmbeddedContext = false;
+    bool bInventoryCompanion = false;
     bool bCookingRackContext = false;
     bool bCauldronContext = false;
     bool bFryingPanContext = false;
