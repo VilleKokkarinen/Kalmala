@@ -8,7 +8,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$manifestPath = Join-Path $repoRoot 'docs\catalogue-icon-manifest.csv'
+$manifestPath = Join-Path $repoRoot 'Scripts\Data\catalogue-icon-manifest.csv'
 $importerPath = Join-Path $repoRoot 'Scripts\Import-CatalogueIconBatch.py'
 $lookupPath = Join-Path $repoRoot 'Source\KalmalaUI\Private\KalmalaCatalogueIconLibrary.cpp'
 $sourceDir = Join-Path $repoRoot 'Content\Kalmala\UI\Source\Icons'

@@ -27,7 +27,7 @@ FString UKalmalaItemDetailWidget::DescribeCarriedTool(FName Id, const FString& V
     else if (Id == TEXT("IronAxe")) Description = TEXT("An iron axe for harvesting Densewood.");
     else if (Id == TEXT("ConstructionHammer")) Description = TEXT("A hand hammer for placing camp structures.");
 
-    FString Text = Description;
+    FString Text = FString(TEXT("Carried equipment\n\n")) + Description;
     if (!VisibleState.IsEmpty()) Text += TEXT("\n\n") + VisibleState;
     return Text;
 }

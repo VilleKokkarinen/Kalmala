@@ -164,7 +164,7 @@ $reloadServer = $null
 $reloadClient = $null
 $reloadPassed = $false
 try {
-    $reloadServer = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $reloadCommon -KalmalaSettingsPreferenceReloadTest -KalmalaExpectedInterfaceScale=$HostInterfaceScale -KalmalaExpectedReducedMotion=1 -ShaderWorkingDir=`"$hostShaderDir`" -abslog=`"$reloadServerLog`" -UserDir=`"$output\Host`""
+    $reloadServer = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $reloadCommon -KalmalaSettingsPreferenceReloadTest -KalmalaExpectedInterfaceScale=$HostInterfaceScale -KalmalaExpectedReducedMotion=1 -KalmalaExpectedContrast=1 -ShaderWorkingDir=`"$hostShaderDir`" -abslog=`"$reloadServerLog`" -UserDir=`"$output\Host`""
     $deadline = (Get-Date).AddSeconds(60)
     do {
         if ($reloadServer.HasExited) { throw 'Settings preference reload host exited during startup.' }
@@ -173,7 +173,7 @@ try {
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Settings preference reload host startup timed out.' }
 
-    $reloadClient = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $reloadCommon -KalmalaSettingsPreferenceReloadTest -KalmalaExpectedInterfaceScale=$ClientInterfaceScale -KalmalaExpectedReducedMotion=0 -ShaderWorkingDir=`"$clientShaderDir`" -abslog=`"$reloadClientLog`" -UserDir=`"$output\Client`""
+    $reloadClient = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $reloadCommon -KalmalaSettingsPreferenceReloadTest -KalmalaExpectedInterfaceScale=$ClientInterfaceScale -KalmalaExpectedReducedMotion=0 -KalmalaExpectedContrast=1 -ShaderWorkingDir=`"$clientShaderDir`" -abslog=`"$reloadClientLog`" -UserDir=`"$output\Client`""
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($reloadServer.HasExited -or $reloadClient.HasExited) { throw 'A settings preference reload peer exited.' }
@@ -182,8 +182,8 @@ try {
         if (($hostReload + $clientReload) -match 'Fatal error:|Assertion failed:|Settings accessibility reload: FAIL') {
             throw 'Settings preference reload verification failed; inspect the retained logs.'
         }
-        $hostReloaded = $hostReload -match "Settings accessibility reload: Authority=1 Completed=1 InterfaceScale=$HostInterfaceScale ReducedMotion=1 .*ScaleApplied=1"
-        $clientReloaded = $clientReload -match "Settings accessibility reload: Authority=0 Completed=1 InterfaceScale=$ClientInterfaceScale ReducedMotion=0 .*ScaleApplied=1"
+        $hostReloaded = $hostReload -match "Settings accessibility reload: Authority=1 Completed=1 InterfaceScale=$HostInterfaceScale ReducedMotion=1 Contrast=1 .*ScaleApplied=1"
+        $clientReloaded = $clientReload -match "Settings accessibility reload: Authority=0 Completed=1 InterfaceScale=$ClientInterfaceScale ReducedMotion=0 Contrast=1 .*ScaleApplied=1"
         if ($hostReloaded -and $clientReloaded) { $reloadPassed = $true; break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
