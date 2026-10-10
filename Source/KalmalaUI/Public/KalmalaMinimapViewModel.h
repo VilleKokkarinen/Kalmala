@@ -70,6 +70,9 @@ public:
     UFUNCTION(BlueprintPure, Category = "Minimap")
     float GetPlayerFacingDegrees() const { return PlayerFacingDegrees; }
 
+    /** Current-position biome derived locally from the replicated world identity and owning pawn location. */
+    const FString& GetCurrentBiomeLabel() const { return CurrentBiomeLabel; }
+
     /** Changes only the local presentation radius; it is never replicated or persisted. */
     void SetMapRadius(float InMapRadius);
     void SetMapAspectRatio(float InAspectRatio);
@@ -111,6 +114,7 @@ private:
     FIntPoint SampleDimensions = FIntPoint(129, 129);
 
     FVector2D LastLocation = FVector2D::ZeroVector;
+    FString CurrentBiomeLabel;
     uint64 LastSeed = 0;
     float LastRadius = 0.0f;
     FVector2D LastExtent = FVector2D::ZeroVector;

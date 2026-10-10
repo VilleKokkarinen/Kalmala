@@ -66,9 +66,10 @@ try {
         $left=[int]$Matches[1]; $top=[int]$Matches[2]; $right=[int]$Matches[3]; $bottom=[int]$Matches[4]
         $dpi=[double]::Parse($Matches[5],[Globalization.CultureInfo]::InvariantCulture)
         $inset = 12 * $dpi
+        $mapTop = (12 + 26 + 4) * $dpi
         $mapLeft = $Width - (12 + 208) * $dpi
         $expectedRight = $mapLeft - 12 * $dpi
-        if ($left -lt ($inset - 3) -or [Math]::Abs($top - $inset) -gt 3 `
+        if ($left -lt ($inset - 3) -or [Math]::Abs($top - $mapTop) -gt 3 `
             -or [Math]::Abs($right - $expectedRight) -gt 4 -or $right -ge $mapLeft `
             -or $bottom -gt ($Height - $inset + 3)) {
             throw "$peer hotbar misses the minimap-aligned safe bounds: $left,$top,$right,$bottom at DPI $dpi"

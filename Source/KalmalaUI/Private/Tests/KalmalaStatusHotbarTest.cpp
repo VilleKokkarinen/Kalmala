@@ -101,8 +101,8 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     Minimap->ConfigureViewportPlacement();
     const FGameViewportWidgetSlot MinimapSlot = UGameViewportSubsystem::Get()->GetWidgetSlot(Minimap);
     const FVector2D GroupPosition = Minimap->GetStatusGroupViewportPosition();
-    TestEqual(TEXT("Status group shares the minimap's top inset"), GroupPosition.Y,
-        static_cast<double>(MinimapSlot.Offsets.Top));
+    TestEqual(TEXT("Status group aligns with the lowered minimap below its biome label"), GroupPosition.Y,
+        static_cast<double>(MinimapSlot.Offsets.Top + UKalmalaMinimapWidget::BiomeHeaderHeight));
     TestEqual(TEXT("Status group right edge uses the minimap's actual left edge and 12-unit gap"),
         GroupPosition.X, static_cast<double>(MinimapSlot.Offsets.Left - MinimapSlot.Offsets.Right - UKalmalaMinimapWidget::StatusGroupGap));
 
@@ -112,7 +112,8 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     const FGameViewportWidgetSlot HotbarSlot = UGameViewportSubsystem::Get()->GetWidgetSlot(Hotbar);
     TestTrue(TEXT("Status group uses the same top-right anchor and right alignment as the minimap"),
         HotbarSlot.Anchors == MinimapSlot.Anchors && HotbarSlot.Alignment == MinimapSlot.Alignment);
-    TestEqual(TEXT("Actual status slot shares the map's top offset"), HotbarSlot.Offsets.Top, MinimapSlot.Offsets.Top);
+    TestEqual(TEXT("Actual status slot aligns with the map below the biome label"), HotbarSlot.Offsets.Top,
+        MinimapSlot.Offsets.Top + UKalmalaMinimapWidget::BiomeHeaderHeight);
     TestEqual(TEXT("Actual status slot ends 12 UI units left of the map"), HotbarSlot.Offsets.Left,
         MinimapSlot.Offsets.Left - MinimapSlot.Offsets.Right - UKalmalaMinimapWidget::StatusGroupGap);
 
@@ -161,8 +162,8 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
             TestTrue(TEXT("Many states stay within the compact row width"), ManySize.X <= SafeRowWidth);
             TestTrue(TEXT("DPI-scaled status group stays inside the left viewport margin"),
                 GroupRight - ManySize.X >= UKalmalaMinimapWidget::ViewportInset);
-            TestEqual(TEXT("DPI-scaled layout shares the map's top margin"), ScaledGroupPosition.Y,
-                static_cast<double>(UKalmalaMinimapWidget::ViewportInset));
+            TestEqual(TEXT("DPI-scaled layout shares the map's lowered top margin"), ScaledGroupPosition.Y,
+                static_cast<double>(UKalmalaMinimapWidget::ViewportInset + UKalmalaMinimapWidget::BiomeHeaderHeight));
             TestTrue(TEXT("DPI-scaled wrapped layout stays above the bottom safe margin"),
                 ScaledGroupPosition.Y + ManySize.Y <= LogicalViewport.Y - UKalmalaMinimapWidget::ViewportInset);
         }
