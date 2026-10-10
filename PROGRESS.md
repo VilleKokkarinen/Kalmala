@@ -199,3 +199,13 @@
 - **Impact and authority:** map tile work remains local presentation state; no RPC, replication, gameplay authority, or saved-data schema changed. Exploration hash lookup is transient and rebuilt from the existing local save array.
 - **Limits:** M14 is awaiting integrated verification on the M13/M14 acceptance tree. M13 remains incomplete; rendered fog/privacy, pin ownership/labels, ping visibility/expiry, responsive-input captures, and performance evidence are not verified.
 - **Next eligible task:** complete M14 milestone-final verification after M13 integration and after a successful editor build is available.
+
+## 2026-10-10 11:58 UTC — M14 awaiting integrated acceptance
+
+- **Milestone-final verification:** reran the isolated UE 5.8 editor target from `C:\Users\Ville\AppData\Local\Temp\km14-accept-20261010\Kalmala.uproject` with `Build.bat KalmalaEditor Win64 Development -WaitMutex -MaxParallelActions=4`. The 239-action build exited 6 with `OtherCompilationError`. The changed M14 map translation units and map automation test units compiled, but the target did not link.
+- **Failure and evidence:** `KalmalaInventoryMenuWidget.cpp` still fails with C2440 at lines 128 and 137 because `FSlateChildSize` has no two-argument constructor. `git diff --quiet 768a64df05d26d611ac13c2f8d663bfc5760bd85 HEAD -- Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp` returned success, confirming this M14 commit range does not change the failing file. No repair was attempted because the file is outside M14 scope and the paired M13 run remains active.
+- **Checks not run:** `Automation RunTests Kalmala`, `Scripts/Verify-MapAwareness.ps1`, `Scripts/Verify-WorldMap.ps1` at 1024x768/1280x720/2560x1080, `Scripts/Verify-WorldMapTiles.ps1`, `Scripts/Verify-WorldMapProfile.ps1`, and rendered/performance evidence were blocked because the editor target did not link. These remain required on the integrated M13/M14 acceptance tree.
+- **Impact and authority:** documentation and handoff status only. No gameplay, replication, server authority, or saved-data behavior changed.
+- **Limits and status:** M14 remains awaiting integrated verification; M13 remains incomplete. No milestone completion is claimed.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md`.
+- **Next eligible M14 task:** rerun milestone-final verification after M13 integration and a successful editor build.
