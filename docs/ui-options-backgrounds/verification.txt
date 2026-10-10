@@ -1,9 +1,0 @@
-Escape options backgrounds — parent verification
-
-UE 5.8.2 KalmalaEditor Win64 Development: the disposable mirror's forced build passed with 204 actions before the final probe restoration; the final restoration change compiled and linked successfully in 4 actions. A post-change forced build completed successfully and reported the target up to date (0 actions). UnrealBuildTool had normal LOCALAPPDATA access. Build logs: C:\Users\Ville\AppData\Local\Temp\kopt\Build-normal-access.log, Build-restore.log, and Build-parent.log.
-
-The original OptionsPanel texture imported to /Game/Kalmala/UI/OptionsPanel with exit code 0. Full Automation RunTests Kalmala passed 101/101 with exit code 0 after the final code; log: C:\Users\Ville\AppData\Local\Temp\kopt\Automation-parent.log.
-
-Scripts/Verify-SettingsAccessibility.ps1 passed after the build and automation run on host and client. All five views resolved the configured image; high contrast suppressed it, then restored and persisted the local high-contrast setting. Local values and keyboard/controller bindings persisted, modal input and Escape recovery passed, and health, transform, and replicated world identity remained stable. Ten 1280x720 PNG captures are retained here. Runner logs: C:\Users\Ville\AppData\Local\Temp\KalmalaSettingsAccessibility-305fecf01d5549aaa13f13f2441d016a.
-
-Verify-SettingsAccessibilityContract.ps1, Verify-M5DocumentationContracts.ps1, Verify-PresentationOwnership.ps1, and git diff --check passed. This is parent-level verification. It does not verify cooked/package asset inclusion, other viewport sizes, or physical keyboard/controller hardware.
