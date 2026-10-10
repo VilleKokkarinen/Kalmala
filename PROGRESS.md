@@ -2,34 +2,22 @@
 
 ## Current state
 
-- Roadmap milestones M0–M12 and world-generation Phases 1–9 are complete under their recorded acceptance scope and limitations. No unchecked roadmap increment remains.
-- M11 and M12 final acceptance and master integration are recorded in [M12 acceptance](docs/45-m12-acceptance.md) and [master integration](docs/46-master-cleanup.md).
-- The 2026-10-09 user-directed inventory simplification is implemented. The UE5.8.2 editor target builds after the follow-up repair; runtime, rendered, input, and peer acceptance for the new grid remain deferred. See [inventory handoff](docs/47-inventory-grid.md).
-- On 2026-10-10, a Win64 Development package built and launched from a fresh profile, and startup reached the prototype map. The Escape-to-Settings check remains pending while the Windows Firewall prompt is active.
+- M0–M12 and world-generation Phases 1–9 are complete under their recorded acceptance scope and limitations. M13 is active; its goal is to re-establish and freshly accept the combined M11/M12 UI on main.
+- The main tree already tracks 48 catalogue icon packages and 9 status icon packages, along with validated source/prepared images. Import commits 2d83c90 and d96d532 are ancestors of main. This proves the files are integrated; M13 still needs to verify runtime loading, cooking, and rendered visibility.
+- The 2026-10-09 user-directed 10×4 inventory is implemented and the UE5.8.2 editor target builds after the recorded repair. Runtime, rendered, input, and peer acceptance for that layout remains deferred; see [inventory handoff](docs/47-inventory-grid.md).
+- The 2026-10-10 Win64 Development package launched and loaded the prototype map. The Escape-to-Settings check remains pending the Windows Firewall prompt.
 
 ## Completed work log
 
-- **M0 — Bootstrap:** project setup and initial build/package path.
-- **M1 — Networked traversal and interaction:** replicated movement and server-validated interactions.
-- **World generation, Phases 1–9:** deterministic generation, survival, biome expansion, ocean travel, and expanded maps.
-- **M2 — Survival camp loop:** gathering, crafting, construction, and persistence.
-- **M3 — Elemental world prototype:** weather, exposure, wetness, and recovery.
-- **M4 — Combat and support magic:** combat, creatures, discoveries, and support effects.
-- **M5 — Vertical-slice finish:** completed under the recorded acceptance scope.
-- **M6 — Production hardening:** completed under the recorded release scope and limits.
-- **M7 — Survival progression and readable gameplay UI:** completed.
-- **M8 — Ocean and long-distance travel:** completed; dry-shore acceptance waived.
-- **M9 — Expanded biome content and encounter depth:** completed under the recorded scope.
-- **M10 — Release completion and launch validation:** completed under the recorded scope and limits.
-- **M11 — User experience and visual UI upgrades:** final acceptance passed 2026-10-06.
-- **M12 — Inventory menu and cleaner gameplay HUD:** final acceptance passed 2026-10-09.
+- **M0–M12 and world-generation Phases 1–9:** completed under their recorded acceptance scope; milestone evidence remains linked from [the docs index](docs/README.md).
+- **M13 baseline audit — 2026-10-10:** confirmed main-branch icon source/package custody and validated all manifest entries. M13 implementation and final acceptance remain open.
 
-## 2026-10-10 documentation cleanup
+## 2026-10-10 — Add M13 and audit main-branch icon custody
 
-- **Completed:** replaced the per-increment history with a milestone-level log and current follow-ups.
-- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/README.md.
-- **Lightweight checks:** checked milestone/task counts and current follow-up against the source files; git diff --check passed.
-- **Full verification:** deferred; this documentation-only update does not change project code.
-- **Impact and authority:** no gameplay, networking, persistence, or authority behavior changed.
-- **Limits:** detailed per-increment narratives were removed from the backlog and progress log; feature contracts and formal acceptance evidence remain in docs/ and Git history.
-- **Next eligible task:** none in the roadmap; the Escape check above remains a user-side follow-up.
+- **Completed:** added M13 to the roadmap and backlog; confirmed the icon import commits and assets are present in main.
+- **Files changed:** docs/04-roadmap.md, BACKLOG.md, and PROGRESS.md.
+- **Lightweight checks:** all 48 catalogue IDs passed Validate-CatalogueIcon.ps1; all 9 status IDs passed Validate-StatusIconSet.ps1; both icon-import commits are ancestors of main; git diff --check passed.
+- **Full verification:** deferred. No build, automation suite, cook, package, or rendered UI check ran.
+- **Impact and authority:** planning and documentation only; no runtime, gameplay, networking, persistence, or server-authority behavior changed.
+- **Limits:** tracked assets and valid source files do not prove cooked or visible runtime output. M13 requires fresh checks on the final integrated main tree.
+- **Next eligible task:** revalidate and repair the M11 shared theme, accessibility, common menu, and local browsing foundation.

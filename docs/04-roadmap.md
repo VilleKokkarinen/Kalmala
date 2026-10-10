@@ -755,3 +755,46 @@ verification from `docs/07-development-setup.md` before declaring M12 complete.
 116-test queue, owner Inventory/service captures, twelve combined-HUD cases,
 diagnostic performance profiles and owner-confirmed keyboard/controller
 acceptance are recorded in [45 M12 final acceptance](45-m12-acceptance.md).
+
+## M13 — Rebuild and revalidate the M11/M12 UI on main
+
+Re-establish the combined M11 presentation foundation and M12 user interface
+against the current main branch, then repeat acceptance on that integrated
+tree. The owner observed missing icons after integration. First compare the
+tracked main-tree assets and runtime references with the M12 manifests; do not
+assume the packages are absent or regenerate original art without evidence.
+Repair any actual source, package, reference, cook, or rendering gaps found.
+
+Use `docs/35-ui-theme.md` through `docs/47-inventory-grid.md` as the current
+UI and verification contracts. In particular, the latest player inventory is
+the shared 10x4 grid and occupied-cell hotbar in `docs/47-inventory-grid.md`;
+it supersedes the earlier sixteen-slot inventory presentation. Preserve M11's
+shared theme, local browsing state, Favorites/usage ranks/Recent indicators,
+and the accepted Forge comparison. Preserve M12's retirement of the persistent
+inventory panel and tutorial card, menu and station contexts, canonical icons,
+compact status group, accessibility, and existing server-validated actions.
+
+**M13 boundary:** UI presentation, original icon sources, imported UI assets,
+and their integration only. Do not add gameplay content, change server
+authority or gameplay transactions, alter saved-data schemas, introduce new
+online services, or expand platform scope.
+
+**M13 accept:**
+
+- The combined M11/M12 UI matches the current contracts and latest inventory
+  handoff on the integrated main branch; identified regressions are repaired.
+- All 48 canonical catalogue icons and nine status icons have their required
+  original/prepared image sources and imported Texture2D packages tracked in
+  main. Runtime references resolve to those packages, and every supported
+  consumer visibly paints the expected image in a cooked/packaged game. If
+  verification uses a temporary mirror, its source and asset tree is confirmed
+  identical to the final main commit; worktree-only content cannot satisfy
+  acceptance.
+- Host/client, owner privacy, keyboard/controller, focus restoration, text and
+  interface scaling, high contrast, reduced motion, and supported aspect-ratio
+  checks pass for the affected M11/M12 surfaces. Retain fresh rendered evidence.
+- The prescribed build and applicable UI, inventory, crafting/service,
+  authority, reconnect, and automation checks from `docs/07-development-setup.md`
+  pass against the final integrated tree. Record exact commands, results,
+  failures and repairs in the retained M13 acceptance evidence before marking
+  the milestone complete.
