@@ -22,12 +22,10 @@ enum class EKalmalaWorldMapFogTreatment : uint8
     ReservedShared
 };
 
-/** Owner-local visibility controls for marker sources already available to this map. */
+/** Owner-local visibility control for personal pins only. */
 enum class EKalmalaWorldMapMarkerCategory : uint8
 {
     PersonalPins,
-    CoopPlayers,
-    CoopPings,
     Count
 };
 
@@ -56,8 +54,6 @@ public:
     static float ClampMapZoom(float RequestedZoom, float MinZoom, float MaxZoom);
     /** Pure local fog seam. Only the owning pawn position may open the reveal circle. */
     static bool IsWithinLocalRevealRadius(FVector2D WorldPosition, FVector2D OwningPawnLocation, float RevealRadius);
-    static bool CanShowCoopLocation(FVector2D WorldPosition, FVector2D OwningPawnLocation,
-        const UKalmalaWorldMapExplorationSaveGame* Exploration);
     /** Converts a world location to the local map's normalized presentation space. */
     static FVector2D WorldToMapNormalized(FVector2D WorldPosition, FVector2D MapCentre, FVector2D MapExtent);
     /** Inverse local presentation conversion used for pointer/pin coordinates at every zoom. */
@@ -92,8 +88,6 @@ private:
     struct FMarkerCounts
     {
         int32 PersonalPins = 0;
-        int32 CoopPlayers = 0;
-        int32 CoopPings = 0;
     };
     struct FMarkerLegendLayout
     {
@@ -156,7 +150,7 @@ private:
     void PanByKeyboardDelta(const FVector2D& ScreenDelta);
     void ZoomAtMapCentre(float WheelDelta);
     int32 DrawPins(const FGeometry& AllottedGeometry, const FVector2D& MapSize, int32 LayerId, FSlateWindowElementList& OutDrawElements) const;
-    FMarkerCounts DrawCoopAwareness(const FGeometry& Geometry, FVector2D MapSize, int32 LayerId, FSlateWindowElementList& Elements) const;
+    void DrawMapPings(const FGeometry& Geometry, FVector2D MapSize, int32 LayerId, FSlateWindowElementList& Elements) const;
     void DrawMarkerLegend(const FGeometry& Geometry, int32 LayerId, const FMarkerCounts& Counts, FSlateWindowElementList& Elements) const;
     FMarkerLegendLayout GetMarkerLegendLayout(const FVector2D& WidgetSize) const;
     int32 GetMarkerCategoryAtPosition(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const;
@@ -201,8 +195,8 @@ private:
     EKalmalaWorldMapPinStyle PendingPinStyle = EKalmalaWorldMapPinStyle::Cairn;
     EKalmalaWorldMapPinStyle SelectedPinStyle = EKalmalaWorldMapPinStyle::Cairn;
     float MapZoom = 18000.0f;
-    /** Three low bits are local drawing preferences only; none are saved or replicated. */
-    uint8 MarkerVisibilityMask = 0x07;
+    /** The personal-pin filter is local drawing state only; it is not saved or replicated. */
+    uint8 MarkerVisibilityMask = 0x01;
     int32 FocusedMarkerCategoryIndex = 0;
     int32 HoveredMarkerCategoryIndex = INDEX_NONE;
     bool bMarkerFilterNavigationActive = false;

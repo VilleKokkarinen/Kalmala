@@ -178,15 +178,14 @@ behind its locally generated terrain and fog. Expanded-map terrain uses
 world-anchored biome patterns with broad features retained at overview zoom;
 fine texture detail fades as tile sample spacing grows. These patterns are
 cosmetic raster output from the existing local biome samples, not a saved or
-replicated biome map. Its owner-local legend
-and personal-pin/co-op-player/temporary-ping filters read only pins already
-loaded for that local player and co-op markers already returned through the
-owner's visibility-gated map-awareness component. A separate local fog check
-still gates every co-op marker. Legend counts describe eligible markers in the
-current map view. Filters suppress painting only; they do not request hidden
-content, change exploration, alter co-op consent, or mutate/remove pin data.
-Their transient widget state has no authority, RPC, replication, or persistence
-path.
+replicated biome map. Its personal-pin legend filter reads only pins already
+loaded for that local player. Temporary server-relayed pings render as unlabeled
+beacons over the map; fog remains opaque over hidden terrain beneath them. The
+map displays no remote player positions or co-op status and exposes no sharing
+control. The personal-pin filter changes drawing only; it does not request
+hidden content, change exploration, alter co-op consent, or mutate/remove pin
+data. Its transient widget state has no authority, RPC, replication, or
+persistence path.
 
 ## Rendered deer silhouette review
 
