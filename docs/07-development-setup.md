@@ -1735,7 +1735,25 @@ selection for hearth refuelling separately from recipe ingredient exchanges:
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
-## Windows Development package smoke
+## Windows Development and Shipping package smoke
+
+Use the repository script to create a disposable source mirror, package, and
+launch a visible Win64 build:
+
+```powershell
+.\Scripts\Package-And-Run.ps1 -Mode Dev
+.\Scripts\Package-And-Run.ps1 -Mode Prod
+```
+
+`Dev` selects Unreal's Development configuration and checks the startup log
+for engine initialization and the prototype map. `Prod` selects Shipping and
+checks that the packaged game process stays open. Each run gets a unique
+directory under `%USERPROFILE%\KalmalaBuilds` by default, with the archive,
+fresh user profile, and log outside the source mirror. Both modes use
+`-pak -iostore`; no repository build-output directories are modified. Use
+`-UnrealRoot`, `-OutputRoot`, `-Map`, `-Width`, or `-Height` to override the
+defaults. Add `-WhatIf` to show the selected configuration and planned run
+directory without copying or building.
 
 Create a disposable mirror of the current workspace, excluding .git,
 Binaries, Intermediate, Saved, and DerivedDataCache. Put the archive and fresh

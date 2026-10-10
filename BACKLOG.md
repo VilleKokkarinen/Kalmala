@@ -27,6 +27,7 @@ M0–M12 and world-generation Phases 1–9 are complete under their recorded acc
 
 - **2026-10-09 — Inventory simplification:** replaced the pack/toolbelt presentation with one 10×4 grid and occupied-cell hotbar. The editor build passes after the follow-up repair; runtime, rendered, input, and peer acceptance remain deferred. See [shared player inventory](docs/47-inventory-grid.md).
 - **2026-10-09 — Project-file recovery and build repairs:** regenerated missing project files, validated solution references, and repaired the inventory editor build. See [build repairs](docs/42-build-repair.md).
+- **2026-10-10 — Win64 package launcher:** added a Development/Shipping package-and-run script with fresh mirrors, profiles, and startup checks. See [Windows package smoke](docs/07-development-setup.md).
 
 ## M13 — Rebuild and revalidate M11/M12 UI on main
 
