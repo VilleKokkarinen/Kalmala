@@ -159,3 +159,13 @@
 - **Impact and authority:** undiscovered map terrain is fogged by default using existing owner-local coverage. No server authority, terrain generation, replication, save schema, or gameplay behavior changed.
 - **Limits:** rendered fog/privacy behavior remains unverified. M13 remains incomplete, so integrated M14 acceptance is still pending.
 - **Next eligible task:** add selectable bottom-right personal-marker icons with optional labels and owner-local persistence.
+
+## 2026-10-10 — M14 selectable personal-marker icons
+
+- **Completed:** added a bottom-right palette for original Cairn, Lantern, and Thread icons. Selecting an icon and clicking the map begins placement and optional label entry; an empty label saves as an icon-only pin, and nonempty labels display beside their icons. The existing owner-local pin slot and version-1 save format are reused.
+- **Files changed:** BACKLOG.md, PROGRESS.md, Source/KalmalaUI/Private/KalmalaWorldMapPinsSaveGame.cpp, Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp, Source/KalmalaUI/Public/KalmalaWorldMapWidget.h, and docs/02-technical-architecture.md.
+- **Lightweight checks:** git diff --check passed. Static inspection confirmed selection and label state stay in the local widget, persistence uses the existing world/local-player-scoped slot, and no RPC, replicated state, or saved-data schema changed. No tests or project build ran.
+- **Full verification:** deferred to M14 milestone-final verification on the integrated acceptance tree; no Unreal build, automation, rendered capture, or host/client verification ran.
+- **Impact and authority:** players can place and label private map annotations using three distinct original icons. Pin placement and persistence remain owner-local; gameplay and server authority are unchanged.
+- **Limits:** rendered selector, optional-label, focus, and supported viewport behavior remain unverified. M13 remains incomplete, and integrated M14 acceptance is still pending.
+- **Next eligible task:** replace the ping control box with direct right-click map pings at valid world locations, server validated and relayed to all connected players for ten seconds.

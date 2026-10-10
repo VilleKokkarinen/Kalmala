@@ -103,6 +103,16 @@ private:
         float HeaderHeight = 0.0f;
         float RowHeight = 0.0f;
     };
+    struct FPinPaletteLayout
+    {
+        FVector2D Position = FVector2D::ZeroVector;
+        FVector2D Size = FVector2D::ZeroVector;
+        float Padding = 6.0f;
+        float HeaderHeight = 18.0f;
+        float ButtonWidth = 60.0f;
+        float ButtonHeight = 52.0f;
+        float ButtonGap = 4.0f;
+    };
     struct FWorldMapTile
     {
         struct FBuildResult
@@ -152,6 +162,11 @@ private:
     int32 GetMarkerCategoryAtPosition(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const;
     bool IsInsideMarkerLegend(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const;
     bool HandleMarkerFilterKey(const FKey& Key);
+    FPinPaletteLayout GetPinPaletteLayout(const FVector2D& WidgetSize) const;
+    int32 GetPinStyleIndexAtPosition(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const;
+    bool IsInsidePinPalette(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const;
+    void SelectPinStyle(EKalmalaWorldMapPinStyle Style, bool bArmPlacement);
+    void DrawPinPalette(const FGeometry& Geometry, int32 LayerId, FSlateWindowElementList& Elements) const;
     bool IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory Category) const;
     void ToggleMarkerCategory(EKalmalaWorldMapMarkerCategory Category);
     static EKalmalaWorldMapMarkerCategory MarkerCategoryFromIndex(int32 Index);
@@ -176,6 +191,8 @@ private:
     bool bMapOpen = false;
     /** Keep the local pan/zoom view when the collapsed map is opened again. */
     bool bHasOpenedMap = false;
+    bool bPinPlacementArmed = false;
+    int32 HoveredPinStyleIndex = INDEX_NONE;
     bool bDragging = false;
     bool bPinLabelEntry = false;
     int32 SelectedPinIndex = INDEX_NONE;
@@ -183,6 +200,7 @@ private:
     FVector2D PendingPinLocation = FVector2D::ZeroVector;
     FString PendingPinLabel;
     EKalmalaWorldMapPinStyle PendingPinStyle = EKalmalaWorldMapPinStyle::Cairn;
+    EKalmalaWorldMapPinStyle SelectedPinStyle = EKalmalaWorldMapPinStyle::Cairn;
     float MapZoom = 18000.0f;
     /** Three low bits are local drawing preferences only; none are saved or replicated. */
     uint8 MarkerVisibilityMask = 0x07;

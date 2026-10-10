@@ -30,6 +30,6 @@ bool UKalmalaWorldMapPinsSaveGame::IsValidPin(const FKalmalaWorldMapPersonalPin&
 {
     const bool bKnownStyle = Pin.Style == EKalmalaWorldMapPinStyle::Cairn || Pin.Style == EKalmalaWorldMapPinStyle::Lantern
         || Pin.Style == EKalmalaWorldMapPinStyle::Thread;
-    return FMath::IsFinite(Pin.WorldLocation.X) && FMath::IsFinite(Pin.WorldLocation.Y) && !Pin.Label.IsEmpty()
+    return FMath::IsFinite(Pin.WorldLocation.X) && FMath::IsFinite(Pin.WorldLocation.Y)
         && Pin.Label.Len() <= MaxPinLabelLength && bKnownStyle;
 }
