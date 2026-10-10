@@ -6,7 +6,13 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$manifestPath = Join-Path $repoRoot 'docs/catalogue-icon-manifest.csv'
+$manifestPath = Join-Path $repoRoot 'Scripts/Data/catalogue-icon-manifest.csv'
+$mappingPath = Join-Path $repoRoot 'Source/KalmalaUI/Private/KalmalaIconWidget.cpp'
+$mappingSource = [System.IO.File]::ReadAllText($mappingPath)
+$mappingNeedle = 'TEXT("' + $Id + '")'
+if (!$mappingSource.Contains($mappingNeedle)) {
+    throw "Runtime catalogue mapping is missing canonical ID '$Id'."
+}
 $manifestRows = @(Import-Csv -LiteralPath $manifestPath)
 $identityRows = @($manifestRows | Where-Object { $_.canonical_id -ceq $Id })
 if ($identityRows.Count -ne 1) {
@@ -68,5 +74,8 @@ function Get-PngInfo([string]$Path, [bool]$bRequire64) {
 }
 
 $originalInfo = Get-PngInfo -Path $sourcePath -bRequire64 $false
+if (!(Test-Path -LiteralPath $importTargetPath -PathType Leaf)) {
+    throw "Imported catalogue Texture2D package is missing: $importTargetPath"
+}
 $preparedInfo = Get-PngInfo -Path $preparedPath -bRequire64 $true
 Write-Output "Validated $Id source=$($originalInfo.Width)x$($originalInfo.Height) RGBA final=$($preparedInfo.Width)x$($preparedInfo.Height) RGBA transparent=1 target=/Game/Kalmala/UI/Icons/Items/$Id.$Id"

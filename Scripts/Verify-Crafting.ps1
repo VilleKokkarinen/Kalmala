@@ -45,7 +45,7 @@ try {
             -and $serverText.Contains('M9 camp feedback: Passed=1') `
             -and $clientText.Contains('M9 camp feedback: Passed=1')
         $ready = $ready -and $serverText.Contains('Grinding Stone interaction: AcceptedOnce=1 NoExtraMutation=1 ActionOnlyFeedback=1 NoMenu=1')
-        $ready = $ready -and $serverText.Contains('Campfire interaction: AddedOne=1 RefuelNoLighting=1 Light=1 FullRejected=1 NoFuelRejected=1 RangeRejected=1')
+        $ready = $ready -and $serverText.Contains('Campfire interaction: AddedOne=1 RefuelNoLighting=1 Light=1 FullLitNoRefuel=1 NoFuelRejected=1 RangeRejected=1')
         foreach ($peerText in @($serverText, $clientText)) {
             $ready = $ready -and $peerText.Contains('Catalogue icons: Grid=1 Selected=1 Upgrade=1')
             $ready = $ready -and $peerText.Contains('Build context cleanup: Headerless=1 BrowseControls=1 ObsoleteHidden=1 Placement=1 CardActionsHidden=1 RelightRemoved=1 Status=1 StorageShell=1')

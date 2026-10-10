@@ -63,7 +63,8 @@ function Assert-MirrorPathsFit {
 function Get-GameProcess {
     param([Parameter(Mandatory = $true)][string]$ExpectedPath)
 
-    foreach ($candidate in (Get-Process -Name "Kalmala" -ErrorAction SilentlyContinue)) {
+    $expectedProcessName = [System.IO.Path]::GetFileNameWithoutExtension($ExpectedPath)
+    foreach ($candidate in (Get-Process -Name $expectedProcessName -ErrorAction SilentlyContinue)) {
         try {
             if ([System.StringComparer]::OrdinalIgnoreCase.Equals(
                     [System.IO.Path]::GetFullPath($candidate.Path), $ExpectedPath)) {
@@ -121,7 +122,8 @@ $userDir = Join-Path $smokeRoot "User"
 $logRoot = Join-Path $smokeRoot "Logs"
 $logPath = Join-Path $logRoot "Kalmala.log"
 $wrapperPath = Join-Path $packageRoot "Kalmala.exe"
-$gamePath = Join-Path $packageRoot "Kalmala\Binaries\Win64\Kalmala.exe"
+$gameExecutableName = if ($clientConfig -eq "Shipping") { "Kalmala-Win64-Shipping.exe" } else { "Kalmala.exe" }
+$gamePath = Join-Path $packageRoot "Kalmala\Binaries\Win64\$gameExecutableName"
 
 foreach ($path in @($runRoot, $mirrorRoot, $archiveRoot, $packageRoot, $userDir, $logRoot, $logPath, $wrapperPath, $gamePath)) {
     $null = Assert-ShortPath $path

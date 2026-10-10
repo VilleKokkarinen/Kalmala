@@ -134,21 +134,24 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         }
         int32 ExpectedInterfaceScale = 100;
         int32 ExpectedReducedMotion = 0;
+        int32 ExpectedContrast = 0;
         FParse::Value(FCommandLine::Get(), TEXT("KalmalaExpectedInterfaceScale="), ExpectedInterfaceScale);
         FParse::Value(FCommandLine::Get(), TEXT("KalmalaExpectedReducedMotion="), ExpectedReducedMotion);
+        FParse::Value(FCommandLine::Get(), TEXT("KalmalaExpectedContrast="), ExpectedContrast);
         const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(LocalController->GetPawn());
         const int32 InterfaceScale = UKalmalaSettingsWidget::GetInterfaceScalePercent();
         const bool bReducedMotion = UKalmalaSettingsWidget::IsReducedMotionEnabled();
+        const int32 ContrastMode = UKalmalaSettingsWidget::GetContrastMode();
         const float ExpectedApplicationScale = UKalmalaSettingsWidget::GetThemeDefaultApplicationScale()
             * InterfaceScale / 100.0f;
         const bool bScaleApplied = FMath::IsNearlyEqual(UKalmalaSettingsWidget::GetAppliedApplicationScale(),
             ExpectedApplicationScale, 0.001f);
         const bool bPreferencesRestored = Character != nullptr && InterfaceScale == ExpectedInterfaceScale
-            && bReducedMotion == (ExpectedReducedMotion != 0) && bScaleApplied;
+            && bReducedMotion == (ExpectedReducedMotion != 0) && ContrastMode == ExpectedContrast && bScaleApplied;
         UE_LOG(LogTemp, Display,
-            TEXT("Settings accessibility reload: Authority=%d Completed=%d InterfaceScale=%d ReducedMotion=%d AppliedScale=%.3f ScaleApplied=%d"),
+            TEXT("Settings accessibility reload: Authority=%d Completed=%d InterfaceScale=%d ReducedMotion=%d Contrast=%d AppliedScale=%.3f ScaleApplied=%d"),
             Character != nullptr && Character->HasAuthority() ? 1 : 0, bPreferencesRestored ? 1 : 0,
-            InterfaceScale, bReducedMotion ? 1 : 0, UKalmalaSettingsWidget::GetAppliedApplicationScale(),
+            InterfaceScale, bReducedMotion ? 1 : 0, ContrastMode, UKalmalaSettingsWidget::GetAppliedApplicationScale(),
             bScaleApplied ? 1 : 0);
         if (!bPreferencesRestored)
         {
@@ -689,6 +692,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         return;
     }
 
+    UKalmalaSettingsWidget::SetContrastMode(1);
     if (SettingsWidget != nullptr && SettingsWidget->IsMenuOpen()) SettingsWidget->Close();
     const bool bGameplayStable = Character->GetHealth() == DeveloperSettingsInitialHealth
         && WorldState->GetWorldGenerationConfig().WorldSeed == DeveloperSettingsInitialWorldSeed

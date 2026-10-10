@@ -61,11 +61,11 @@ The M13 scope and acceptance criteria are in [the roadmap](docs/04-roadmap.md). 
     - **Accessibility candidates:** Immersive camera; Camera shake slider from 0% to 100%; Reduce flashing lights; Toggle block.
     - Keep current Graphics settings (resolution, V-Sync, window mode, render-distance quality), Audio settings, Controls mappings/default reset, and Accessibility settings (text/interface scale, contrast, feedback preference, reduced motion). Do not add a Controller layout selector; it was removed from the latest the architecture Settings checklist candidate list.
 - [ ] Verify icon assets from source through packaged, rendered use on main.
-  - [ ] Confirm all 48 catalogue and 9 status images load and visibly render in their supported consumers; restore or reimport only a demonstrated gap, and ensure any repair is committed in the integrated main tree.
+  - [ ] Confirm all 48 catalogue and 9 status images load and visibly render in their supported consumers; restore or reimport only a demonstrated gap, and ensure any repair is committed in the integrated main tree. (2026-10-10 isolated M13 candidate passed 48/48 catalogue and 9/9 status manifest/package checks, runtime texture coverage, and rendered consumers; see PROGRESS.md. Remains open until this tested candidate is integrated into main and the checks are repeated there.)
 - [ ] Complete M13 milestone-final verification.
-  - [ ] Run the prescribed build, relevant automation/UI/input/authority/reconnect checks, rendered host/client matrix, and packaged icon smoke check against the final integrated tree; repair M13 defects, rerun affected checks, and retain fresh evidence before closing the milestone.
+  - [ ] Run the prescribed build, relevant automation/UI/input/authority/reconnect checks, rendered host/client matrix, and packaged icon smoke check against the final integrated tree; repair M13 defects, rerun affected checks, and retain fresh evidence before closing the milestone. (The isolated candidate passed its final gate on 2026-10-10; main still lacks the candidate implementation, so M13 remains open pending integrated verification.)
 
-The next task is to verify all 48 catalogue and 9 status icons from source through package/rendered use on the integrated main tree. Runtime host/client behavior, input, package, and rendered acceptance remain for the M13 final verification gate.
+Next: integrate the tested M13 candidate into main, repeat the icon source/package/rendered acceptance there, and rerun the M13 final gate on that integrated tree.
 
 ## M14 — Expanded world-map rework
 

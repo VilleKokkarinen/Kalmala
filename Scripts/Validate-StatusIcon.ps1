@@ -6,7 +6,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$manifestPath = Join-Path $repoRoot 'docs/status-icon-manifest.csv'
+$manifestPath = Join-Path $repoRoot 'Scripts/Data/status-icon-manifest.csv'
 $manifestRows = @(Import-Csv -LiteralPath $manifestPath)
 $identityRows = @($manifestRows | Where-Object { $_.icon_id -ceq $Id })
 if ($identityRows.Count -ne 1) {
