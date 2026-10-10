@@ -177,6 +177,28 @@ const TCHAR* GetHarvestActionName(const EKalmalaToolAction Action)
     }
 }
 
+#if !WITH_EDITORONLY_DATA
+FString GetRuntimeTargetClassName(const UClass* TargetClass)
+{
+    FString Name = TargetClass ? TargetClass->GetName() : FString();
+    Name.RemoveFromStart(TEXT("BP_"));
+    Name.RemoveFromStart(TEXT("A"));
+    Name.RemoveFromStart(TEXT("Kalmala"));
+    Name.RemoveFromEnd(TEXT("_C"));
+
+    for (int32 Index = Name.Len() - 1; Index > 0; --Index)
+    {
+        if (FChar::IsLower(Name[Index - 1]) && FChar::IsUpper(Name[Index]))
+        {
+            Name.InsertAt(Index, TEXT(' '));
+        }
+    }
+
+    if (Name.IsEmpty()) return TEXT("Object");
+    return Name;
+}
+#endif
+
 bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target,
     const FHitResult& Hit, FInteractionPromptDescription& OutDescription)
 {
@@ -293,7 +315,11 @@ bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target
 
     if (Target->Implements<UKalmalaInteractable>())
     {
+#if WITH_EDITORONLY_DATA
         OutDescription.TargetName = Target->GetClass()->GetDisplayNameText().ToString();
+#else
+        OutDescription.TargetName = GetRuntimeTargetClassName(Target->GetClass());
+#endif
         if (OutDescription.TargetName.IsEmpty()) OutDescription.TargetName = TEXT("Object");
         OutDescription.ActionName = TEXT("Use");
         return true;

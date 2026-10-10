@@ -7,8 +7,45 @@
 - The working tree contained user work before automation setup. Automation runs must preserve it and may stage only files they themselves changed.
 
 - The 2026-10-09 user-directed inventory simplification is implemented with lightweight checks: one 10×4 shared grid and occupied-cell hotbar. The UE5.8.2 `KalmalaEditor Win64 Development` target now builds after the follow-up repair below; automation and rendered/input/peer verification remain deferred. See docs/47-inventory-grid.md and the latest handoff.
+- On 2026-10-10, a short-path UE5.8.2 Win64 Development package built and launched from a fresh temporary profile. Its startup log confirms the prototype map loaded. The in-game Escape check is pending because Windows displayed a firewall permission dialog that requires the user to choose Allow or Cancel; see the latest run log.
 
 ## Run log
+
+### 2026-10-10T05:34:59Z — Package game for editor-free Escape debugging
+
+Outcome: The requested Win64 Development package was built from a disposable
+short-path mirror and launched as a normal game window. Startup reached
+`/Game/Kalmala/Maps/Prototype/L_Prototype` without showing the editor. The
+Escape-to-Settings check is pending user handling of a Windows Firewall prompt.
+
+Changed: `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp` now keeps the
+localized target label in editor builds and derives a readable native or
+Blueprint class label for packaged builds, where `GetDisplayNameText` is
+editor-only. Updated the interaction-prompt backlog note, this handoff, and
+`docs/35-ui-theme.md`.
+
+Verification: `git diff --check` passed. The first documented UE 5.8.2
+`RunUAT.bat BuildCookRun` attempt failed with C2039 because the generic prompt
+called editor-only `UClass::GetDisplayNameText`. After the fallback repair,
+the same build/cook/stage/package/archive command with `-pak -iostore` passed
+with exit code 0. Full log: `C:/Users/Ville/AppData/Local/Temp/k1010c/BuildCookRun.log`;
+package: `C:/Users/Ville/AppData/Local/Temp/k1010c/Archive/Windows/Kalmala.exe`.
+The launched child process was
+`C:/Users/Ville/AppData/Local/Temp/k1010c/Archive/Windows/Kalmala/Binaries/Win64/Kalmala.exe`.
+Its absolute log contains `Game Engine Initialized` and
+`Load map complete /Game/Kalmala/Maps/Prototype/L_Prototype`. The launch used
+`-log`, an absolute log, a new `-UserDir`, and a 1280x720 window. The full
+automation suite and rendered regression matrix were not run.
+
+Impact and authority: Generic packaged interaction prompts now have readable
+class-derived names. No server authority, RPC, save schema, or gameplay state
+changed. The package showed the expected local game view; no network permission
+was granted and no multiplayer session was tested.
+
+Known limits and next task: Windows Firewall is showing a prompt asking whether
+to allow public and private network access. The Escape input has not been sent
+while this security dialog is active. After the user handles it, confirm that
+Escape opens Settings in the packaged game. No unchecked backlog task remains.
 
 ### 2026-10-03T09:01:54Z — Animate Escape options opening
 

@@ -453,6 +453,10 @@ with a reason where owner-visible state supports one. Earlier host/client
 captures in `docs/interaction-prompts/` predate this text-only binding contract
 and are retained as historical evidence.
 
+Editor builds use localized class display metadata for a generic interactable
+target name. Packaged non-editor builds derive a readable label from the class
+name because that display metadata is editor-only.
+
 The view trace is an advisory candidate only. The server keeps its own trace,
 range checks, target selection, tool validation, seat/launch checks, and action
 validation. The prompt never submits a target or queries other actors. Water
