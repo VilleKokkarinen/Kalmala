@@ -315,6 +315,7 @@ public:
     void ObserveRecipeActivityForTest(UKalmalaCraftingComponent* Crafting) { ObserveRecipeActivity(Crafting); }
 #endif
 private:
+    UFUNCTION() void OpenBuildFromRightClick();
     void Toggle();
     void Release();
     void ObserveRecipeActivity(UKalmalaCraftingComponent* Crafting);

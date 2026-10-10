@@ -1021,8 +1021,11 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     }
     auto* PC = GetOwningPlayer(); if (!PC || PC->IsMoveInputIgnored() || !Model()) return false;
     const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn());
+    const UKalmalaInventoryComponent* Inventory = Character
+        ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (!Character || (!bInventoryCompanion && StationKit.IsNone()
-        && Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1)) return false;
+        && (Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1
+            || !Inventory || Inventory->GetActiveItem() != TEXT("ConstructionHammer")))) return false;
     StationFilterKit = StationKit;
     bEmbeddedContext = bInEmbeddedContext;
     ContextStationActor = StationActor;
@@ -3767,6 +3770,9 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
     if(PC->InputComponent && BoundInput.Get()!=PC->InputComponent)
     {
         PC->InputComponent->BindAction(TEXT("CraftMenu"),IE_Pressed,this,&ThisClass::Toggle).bConsumeInput=true;
+        FInputKeyBinding& BuildMouseBinding = PC->InputComponent->BindKey(
+            EKeys::RightMouseButton, IE_Pressed, this, &ThisClass::OpenBuildFromRightClick);
+        BuildMouseBinding.bConsumeInput = false;
         BoundInput=PC->InputComponent;
     }
     if (StationContextWidget && StationContextWidget->IsOpen() && !StationContextWidget->IsTargetValid())
@@ -4490,6 +4496,29 @@ void UKalmalaCraftingSubsystem::Toggle()
         }
     }
 }
+
+void UKalmalaCraftingSubsystem::OpenBuildFromRightClick()
+{
+    if (!Controller || IsOpen()) return;
+    if (const ULocalPlayer* LocalPlayer = Controller->GetLocalPlayer())
+        if (const UKalmalaInventoryMenuSubsystem* InventoryMenu = LocalPlayer->GetSubsystem<UKalmalaInventoryMenuSubsystem>();
+            InventoryMenu && InventoryMenu->IsMenuOpen()) return;
+
+    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller->GetPawn());
+    const UKalmalaInventoryComponent* Inventory = Character
+        ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    if (!Character || !Inventory || Inventory->GetActiveItem() != TEXT("ConstructionHammer")
+        || Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1) return;
+
+    if (!Widget)
+    {
+        Widget = CreateWidget<UKalmalaCraftingWidget>(Controller);
+        if (Widget) Widget->AddToPlayerScreen(160);
+    }
+    if (!Widget) return;
+    if (!Widget->IsInViewport()) Widget->AddToPlayerScreen(160);
+    Widget->Open();
+}
 bool UKalmalaCraftingSubsystem::IsOpen() const
 {
     return (StationContextWidget && StationContextWidget->IsOpen()) || (Widget && Widget->IsOpen());
@@ -4511,6 +4540,9 @@ void UKalmalaCraftingSubsystem::Release()
 {
     if(auto* Input=BoundInput.Get()) for(int32 I=Input->GetNumActionBindings()-1;I>=0;--I)
         if(Input->GetActionBinding(I).ActionDelegate.IsBoundToObject(this)) Input->RemoveActionBinding(I);
+    if (auto* Input = BoundInput.Get())
+        for (int32 I = Input->KeyBindings.Num() - 1; I >= 0; --I)
+            if (Input->KeyBindings[I].KeyDelegate.IsBoundToObject(this)) Input->KeyBindings.RemoveAt(I);
     BoundInput.Reset();
     if (StationContextWidget)
     {

@@ -150,3 +150,13 @@
 - **Impact and authority:** clients activate by numbered cell index only. The server derives the scroll/effect from its inventory, validates existing entitlement and action gates, and owns cooldowns, timed effect state, target selection, stamina costs, and Deer Call influence. Scrolls rebuild from existing learned-effect persistence and add no save or replicated field.
 - **Limits:** source/API and lightweight contract checks passed, but no UE compile or gameplay runtime verification ran. The updated ambient peer helper now exercises both support audio expiries at their requested durations, but remains unrun until the M13 final peer gate.
 - **Next eligible task:** reconcile inventory details, construction/build, station menus, recipe copy, the retired persistent panel/tutorial card, and active-only status presentation against docs/35-45.
+
+## 2026-10-10 — Start M13 Build-menu refresh
+
+- **Completed:** implemented the first integrated Build-menu slice. Right-click opens the standalone Build menu only when the local player carries and has the Construction Hammer active. Existing remappable `CraftMenu` input remains bound; the new mouse binding is non-consuming and is removed with this subsystem's other input bindings.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `Scripts/Verify-LocalInputContract.ps1` passed; `git diff --check` passed; manually inspected the binding cleanup and active-item guard; changed source paths are below 260 characters.
+- **Full verification:** deferred to the M13 milestone-final gate. No Unreal build, automation suite, or rendered input check ran.
+- **Impact and authority:** Build entry now follows the documented local right-click/active-hammer gate. This adds no gameplay RPC, replicated state, costs, persistence, or server authority changes.
+- **Limits:** Build cards, hover/focus details, icon-only filters, placement mode, search reset, Favorite toggling, obsolete action removal, and direct Campfire lighting remain to be implemented and verified.
+- **Next eligible task:** continue the same M13 Build child by implementing icon-only card selection and placement entry, then complete its remaining menu and Campfire interaction requirements.
