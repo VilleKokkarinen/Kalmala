@@ -7,6 +7,7 @@
 #include "Components/VerticalBoxSlot.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaMinimapWidget.h"
 #include "KalmalaWeatherState.h"
 
 void UKalmalaWeatherActivityWidget::NativeOnInitialized()
@@ -31,10 +32,12 @@ void UKalmalaWeatherActivityWidget::NativeOnInitialized()
 
 void UKalmalaWeatherActivityWidget::ConfigureViewportPlacement()
 {
-    // The minimap ends at y=220; the 24-unit gap keeps this badge below it.
+    // Keep the existing 24-unit gap below the lowered minimap.
     // UE 5.8 resets anchors in the size and position setters, so set anchors last.
+    const float Top = UKalmalaMinimapWidget::ViewportInset + UKalmalaMinimapWidget::BiomeHeaderHeight
+        + UKalmalaMinimapWidget::DefaultMapDiameter + 24.0f;
     SetDesiredSizeInViewport(FVector2D(252.0f, 72.0f));
-    SetPositionInViewport(FVector2D(-24.0f, 244.0f), false);
+    SetPositionInViewport(FVector2D(-24.0f, Top), false);
     SetAlignmentInViewport(FVector2D(1.0f, 0.0f));
     SetAnchorsInViewport(FAnchors(1.0f, 0.0f));
 }

@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaWeatherActivityWidget.h"
+#include "KalmalaMinimapWidget.h"
 #include "Blueprint/GameViewportSubsystem.h"
 #include "KalmalaWeatherState.h"
 #include "Misc/AutomationTest.h"
@@ -30,7 +31,9 @@ bool FKalmalaWeatherActivityWidgetTest::RunTest(const FString& Parameters)
     const FGameViewportWidgetSlot Slot = UGameViewportSubsystem::Get()->GetWidgetSlot(Widget);
     TestTrue(TEXT("Weather activity stays anchored at the top-right"), Slot.Anchors == FAnchors(1.0f, 0.0f));
     TestEqual(TEXT("Weather activity aligns to the minimap's right edge"), Slot.Alignment, FVector2D(1.0f, 0.0f));
-    TestEqual(TEXT("Weather activity sits 12 UI units below the minimap"), Slot.Offsets.Top, 244.0f);
+    TestEqual(TEXT("Weather activity keeps its 24-unit gap below the lowered minimap"), Slot.Offsets.Top,
+        UKalmalaMinimapWidget::ViewportInset + UKalmalaMinimapWidget::BiomeHeaderHeight
+            + UKalmalaMinimapWidget::DefaultMapDiameter + 24.0f);
     TestEqual(TEXT("Weather activity keeps a compact fixed width"), Slot.Offsets.Right, 252.0f);
     UGameViewportSubsystem::Get()->RemoveWidget(Widget);
     return true;
