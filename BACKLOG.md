@@ -84,3 +84,5 @@ M14 starts after M13 milestone-final verification. Its scope and acceptance crit
   - [ ] Verify fog/privacy, pin ownership and labels, host/client ping visibility and ten-second expiry, zoom-stable biome textures, input/focus, and responsive pan/zoom on the integrated tree; retain rendered and performance evidence.
 
 M13 remains the earliest incomplete milestone. M14's map-sharing scope is explicitly deferred; no co-op map text or sharing controls are planned for this map view.
+
+- Latest integrated acceptance retry on 2026-10-10 used candidate 8a5de3e94bc5e8acf4a620e007fe79e0920cbf1c (tree d881c7cfe4d60d605ab342c2a88f4577600dcf2d), with M13 merge a15a70bfc575212f22e5c09869afb42c4b7ca7a3 and main/docs baseline fe7d28228522fcee0966fa06c2a828a5f17beefb. The editor build ran 239 actions and failed on 12 M13 KalmalaCraftingSubsystem.cpp diagnostics from e08d037; the authorized Slate Fill weights 0.43/0.57 compiled. Automation RunTests Kalmala and all four requested map runners stopped because KalmalaCore was unavailable. No PNGs or rendered/performance evidence were produced; M14 remains incomplete and awaiting the M13 compile repair plus integrated verification.
