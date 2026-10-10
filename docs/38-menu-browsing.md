@@ -272,3 +272,41 @@ Check marker focus/visibility and modal input on separate local owners, alongsid
 the existing `Kalmala.UI.WorldMap.LocalPresentation` and rendered
 `Scripts/Verify-WorldMap.ps1` coverage. Cross-restart view restoration is not
 part of this contract.
+
+## M13 requested Build-menu refresh
+
+The 2026-10-10 M13 request supersedes the standalone Build menu's older entry,
+card, search-memory, and lighting-button behavior above. With the Construction
+Hammer active in gameplay, right-click opens Build; the existing remappable
+keyboard/controller entry remains available. Build cards display only their
+original Kalmala icon. Hovering or focusing a card shows its name, short
+description, applicable required-station icon, and existing material costs and
+owner-visible carried counts in a tidy detail area below the menu. Existing
+category/filter and grouping controls move into the top row as icon-only
+controls, with no visible text in the menu header. Controls retain accessible
+names and useful hover/focus labels.
+
+Left-clicking a build card (or activating its focused entry) closes Build and
+enters the existing local placement mode for that canonical buildable; selection
+does not place it. Right-clicking a card toggles its existing local Favorite
+state and does not trigger menu entry, close, or placement. The separate **Add
+to favorites**, **Build / place selected**, and **Light hearth** actions are
+removed. Existing placement controls and server validation remain in effect.
+The build search does not receive focus on open; clear its query on menu close
+and when placement mode starts. Other existing per-menu browse memory may remain.
+
+Lighting moves to the Campfire's direct **Interact** action. When a visible,
+same-world Campfire is unlit and eligible under existing server rules, Interact
+shows **Light Campfire** and reuses the existing payload-free lighting intent.
+Otherwise, the existing **Add fuel** interaction remains available when
+applicable. The server still validates target visibility, access, range, fuel,
+and fuel condition; this request adds no new client authority, recipe, cost, or
+saved state. The attached screenshot guides layout only; use existing Kalmala
+icons and UI materials.
+
+M13 rendered/input verification replaces the earlier retained-relight-button
+expectation: confirm those three named buttons are absent; test right-click
+menu entry and Favorite toggling, left-click/focused entry into placement mode,
+search clearing and initial focus, and direct Light Campfire interaction on
+eligible host/client-owned fires. Existing server rejection/payment checks and
+placement validation remain required.

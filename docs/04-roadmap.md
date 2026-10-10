@@ -817,13 +817,48 @@ entitlement, effect identities, target rules, costs, magnitudes, and server
 validation. The existing F1–F4 effect selection and Q activation path is
 superseded by using the assigned inventory scroll from the hotbar.
 
-**M13 boundary:** UI presentation, original icon sources, imported UI assets,
-and their integration, plus only the support-scroll inventory/hotbar integration
-requested above. Do not add other gameplay content, alter existing support
-effect identities, target rules, costs, or magnitudes. The requested cooldown,
-duration, and one-active-effect rules are the only support-magic tuning in M13.
-Do not weaken server authority, alter saved-data schemas, introduce new online
-services, or expand platform scope.
+The 2026-10-10 build-menu request reworks only the hammer's existing Build
+browser and its entry into placement. With the Construction Hammer active in
+gameplay, right-click opens Build; retain the remappable keyboard/controller
+entry for non-mouse access. Inside Build, left-clicking a buildable icon (or
+activating its focused entry) closes the browser and starts the existing local
+placement mode for that canonical piece; it does not place the piece by itself.
+Build cards contain only their original Kalmala item icon. Hover or keyboard/
+controller focus shows the piece name, short description, required-station icon
+when applicable, and existing material costs/counts in a tidy detail area below
+the menu. Put existing filter/group controls in the top row as icon-only buttons
+and remove visible text from the menu header; controls retain accessible names
+and useful hover/focus labels. Keep the search available, but do not focus it on
+menu open, and clear its query both when Build closes and when placement mode
+starts so a later reopen starts with an empty query.
+
+Remove the Build-menu buttons/actions named **Add to favorites**, **Build / place
+selected**, and **Light hearth**. Right-clicking a build card toggles that
+existing piece's local Favorite state. A right-click in gameplay while the
+hammer is active opens Build; a right-click on a card while Build is open is
+reserved for Favorite and does not open/close the menu or start placement.
+Keep current placement controls after entering placement mode, recipe/build
+definitions, costs, previews, and server-side validation unchanged. Use the
+existing original Kalmala UI materials and icons; the attached image is a layout
+reference, not an asset source.
+
+The removed **Light hearth** action becomes a direct **Light Campfire**
+interaction on an eligible unlit Campfire. Interact on a lit, smouldering, or
+otherwise ineligible fire keeps the existing **Add fuel** behavior when
+applicable. Lighting reuses the existing payload-free server lighting intent
+and validates the visible same-world target, access, range, positive fuel, and
+fuel condition on the server; it adds no cost, state field, or save change.
+This is the only Campfire interaction added by the Build-menu scope.
+
+**M13 boundary:** allow UI presentation, original icon sources, imported UI
+assets and their integration, the support-scroll inventory/hotbar integration,
+and the build-menu/Campfire interaction changes specified above. Do not add
+other gameplay content, or alter existing support-effect identities, target
+rules, costs, or magnitudes. The requested cooldown, duration, and
+one-active-effect rules are the only support-magic tuning in M13. Build and
+lighting changes reuse existing recipes, costs, placement and lighting
+validation, and saved identities. Do not weaken server authority, alter
+saved-data schemas, introduce new online services, or expand platform scope.
 
 **M13 accept:**
 
@@ -847,6 +882,21 @@ services, or expand platform scope.
   transparent background and no dimming scrim. Hover and keyboard/controller
   focus visibly highlight the active option, including in high contrast and
   reduced motion; current actions and modal ownership still work.
+- With the Construction Hammer active, right-click opens the Build menu; its
+  existing keyboard/controller entry remains available. Build entries show
+  icons only. Hover/focus presents the selected piece's name, description,
+  applicable required-station icon, and owner-visible material costs/counts
+  below the menu. Icon-only filter/group controls sit at the top with no
+  visible header text and remain accessible by name. The search does not
+  auto-focus and clears on close or entry to placement mode.
+- Left-clicking a build icon enters the existing local placement mode for that
+  piece; it does not place immediately. Right-clicking an entry toggles its
+  existing Favorite state. The Add to favorites, Build / place selected, and
+  Light hearth menu actions are absent. Interacting with an eligible unlit
+  Campfire lights it through the existing server-validated, payload-free
+  lighting intent; Add fuel and current construction costs/placement checks
+  remain correct. No client-supplied placement/fire state or saved-data schema
+  is added.
 - Each existing learned support effect has a matching reusable scroll item in
   the standard inventory, assignable to a numbered hotbar cell and activatable
   from that cell. Learned entitlements restore scroll items after pawn inventory
