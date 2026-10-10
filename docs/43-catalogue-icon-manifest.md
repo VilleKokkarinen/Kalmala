@@ -71,6 +71,8 @@ uses the existing vector assignment when the raster is missing and the
 question-mark vector for unknown IDs. The first M12 integration child now uses
 this lookup in Inventory pack/tool slots, selected-item details, inventory and
 repair browsing, chest pack/content selectors, and recipe ingredient rows.
+Because these object paths are assembled dynamically, the item icon directory
+is explicitly included in package cooks in `DefaultGame.ini`.
 Names, stack counts, tool condition, and owner-supplied state remain readable
 text. Build/crafting grids and selected-result previews remain on vector
 assignments until the next integration child.

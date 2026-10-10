@@ -34,6 +34,8 @@ The M13 scope and acceptance criteria are in [the roadmap](docs/04-roadmap.md). 
 
 - [x] Confirm main-branch icon asset custody and static lookup mappings.
   - [x] Compare the canonical manifests, source/prepared PNGs, imported packages, and code lookup paths with the main tree. (2026-10-10; all 48 catalogue IDs passed Validate-CatalogueIcon.ps1, all 9 status IDs passed Validate-StatusIconSet.ps1, both icon-import commits are ancestors of main, and all 57 imported packages are tracked.)
+- [x] Include dynamically loaded icon assets in game package cooks.
+  - [x] Always cook the item and status icon directories because their lookup paths are assembled at runtime. (2026-10-10; added both package directories and documented the cooker requirement.)
 - [ ] Rebuild and revalidate the M11 shared UI foundation.
   - [ ] Reconcile shared theme, settings/accessibility, common menu styling, focus, and input behavior against docs/14 and docs/35.
   - [ ] Restore and verify local menu browsing, Favorites/usage ranks/Recent indicators, notifications, recipe activity, and Forge comparison against docs/37–41 and docs/46.
@@ -45,4 +47,4 @@ The M13 scope and acceptance criteria are in [the roadmap](docs/04-roadmap.md). 
 - [ ] Complete M13 milestone-final verification.
   - [ ] Run the prescribed build, relevant automation/UI/input/authority/reconnect checks, rendered host/client matrix, and packaged icon smoke check against the final integrated tree; repair M13 defects, rerun affected checks, and retain fresh evidence before closing the milestone.
 
-The first remaining task is the M11 shared UI foundation revalidation. The current file audit confirms the imported icons are present in main; runtime loading, cooking, and rendered visibility remain unverified for M13.
+The next task is the M11 shared UI foundation revalidation. Dynamic item and status icon directories are now included in package cooks; cooked loading and rendered visibility remain to be verified in M13.

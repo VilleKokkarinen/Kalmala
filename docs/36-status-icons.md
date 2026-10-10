@@ -164,7 +164,9 @@ visible artwork and centers it in a transparent 64x64 RGBA canvas with a
 `Scripts/Validate-StatusIcon.ps1 -Id <IconId>`. The complete set is imported
 as Texture2D packages at `/Game/Kalmala/UI/Icons/Status/<IconId>.<IconId>`.
 `FKalmalaStatusIconLibrary` maps each hotbar entry ID to its manifest image ID
-and constructs only those nine supported object paths.
+and constructs only those nine supported object paths. Since the paths are
+assembled dynamically, `DefaultGame.ini` explicitly includes the status icon
+directory in package cooks.
 
 Batch 01 was generated with the built-in image generator and reviewed at
 native size. Its prompt set asks for: a clear blue-gray water droplet with a
