@@ -162,8 +162,6 @@ namespace
                 { EKeys::Tab, EKeys::I }, {}));
             Result.Add(MakeSingleInput(TEXT("CraftMenu"), TEXT("Build and crafting menu"), ELocalInputMappingKind::Action,
                 { EKeys::B, EKeys::C }, { EKeys::Gamepad_Special_Left, EKeys::Gamepad_Special_Right }));
-            Result.Add(MakeSingleInput(TEXT("SupportActivate"), TEXT("Activate support effect"), ELocalInputMappingKind::Action,
-                { EKeys::Q, EKeys::E }, { EKeys::Gamepad_FaceButton_Top, EKeys::Gamepad_FaceButton_Bottom }));
             return Result;
         }();
         return Definitions;

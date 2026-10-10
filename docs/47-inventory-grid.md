@@ -42,8 +42,7 @@ Each accepted support cast starts the shared, server-owned five-minute cooldown.
 Hearth Shield, Bear's Vigor and Deer Call last three minutes; Mending is
 instantaneous. Deer Call's bounded wildlife influence also lasts three minutes.
 Only one support effect may be active per caster at a time. The current
-controller D-pad/Q support-magic bindings are retired when this integration is
-complete.
+legacy F1–F4/Q and D-pad support-magic bindings are retired by this integration.
 
 Below the grid, show one compact line such as `Armor 0 · Weight 8/300`.
 Current armor remains 0 because the game has no armor-equipment records. Carry
@@ -110,7 +109,15 @@ carries only source/target indices and their expected identities: bounds,
 current server ownership, stale contents, and request cadence are checked
 before swapping. It cannot grant, delete, split, duplicate, repair, or author
 quantities. Hotbar intent carries only an index in 0–9; the server derives its
-identity and validates food through the existing transaction path.
+identity and validates food through the existing transaction path. Learned
+support effects reconstruct as reusable `MendingScroll`, `HearthShieldScroll`,
+`BearsVigorScroll`, or `DeerCallScroll` items from the existing entitlement,
+without new save fields. Using one resolves its effect from the server-owned cell
+and preserves the learned, stamina, target and effect gates. Each accepted cast
+starts the shared five-minute cooldown; timed effects and Deer Call's bounded
+wildlife influence last three minutes, with at most one active support effect
+per caster. The F1–F4/Q and D-pad support selection bindings and persistent
+support-selection panel are retired.
 
 Live grant, exchange, storage withdrawal and tool progression account for
 both tools and stacks within forty cells. World chest capacity remains sixteen

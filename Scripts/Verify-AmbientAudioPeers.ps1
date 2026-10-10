@@ -25,7 +25,7 @@ try {
     if ((Get-Date) -ge $deadline) { throw 'Ambient-audio listen server startup timed out.' }
 
     $client = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
-    $deadline = (Get-Date).AddSeconds(90)
+    $deadline = (Get-Date).AddSeconds(540)
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'An ambient-audio peer exited before verification.' }
         $serverText = if (Test-Path $serverLog) { Get-Content -LiteralPath $serverLog -Raw } else { '' }

@@ -67,6 +67,7 @@ public:
     static float GetEcologicalFleeDistance(FName CreatureNicheId);
     // Server-owned repeat-hit interval keeps optional Mireling pressure readable.
     static constexpr float MirelingMeleeCooldownSeconds = 1.25f;
+    static constexpr float DeerCallInfluenceDurationSeconds = 180.0f;
     static EKalmalaWildlifeArchetype GetArchetypeForSpawnSeed(uint64 SpawnSeed);
     static bool IsBoarChargeAllowed(bool bServerAuthority, bool bAlreadyDefeated, bool bAtRest, float DistanceToRestingArea);
     static bool IsBehaviourTransitionAllowed(bool bServerAuthority, bool bAlreadyDefeated, EKalmalaWildlifeBehaviour From, EKalmalaWildlifeBehaviour To);
@@ -76,7 +77,8 @@ public:
 
 private:
     void ApplyDefeatedState();
-    void BeginServerBehaviour(EKalmalaWildlifeBehaviour NextBehaviour, float DurationSeconds, const FVector& Destination);
+    void BeginServerBehaviour(EKalmalaWildlifeBehaviour NextBehaviour, float DurationSeconds, const FVector& Destination,
+        bool bHoldDurationAtDestination = false);
     void AdvanceServerBehaviour(float DeltaSeconds);
     FVector GetDeterministicOffset(float Distance) const;
     void UpdateMirelingScavenge(float DeltaSeconds);
@@ -113,6 +115,7 @@ private:
     FVector SpawnOrigin = FVector::ZeroVector;
     FVector BehaviourDestination = FVector::ZeroVector;
     float BehaviourSecondsRemaining = 0.0f;
+    bool bHoldBehaviourDurationAtDestination = false;
     EKalmalaWildlifeBehaviour Behaviour = EKalmalaWildlifeBehaviour::Idle;
     TWeakObjectPtr<class AKalmalaCharacter> LastValidatedAttacker;
     TWeakObjectPtr<class AKalmalaCharacter> BoarChargeTarget;
