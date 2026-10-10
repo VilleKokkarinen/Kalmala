@@ -48,6 +48,7 @@ public:
     bool HasRoof() const { return bRoofProtected; }
     bool HasWindbreak() const { return bWindProtected; }
     bool CanUse(const AKalmalaCharacter* Character) const;
+    bool CanLightFromInteraction(const AKalmalaCharacter* Character) const;
     bool TryRefuelFromServer(AKalmalaCharacter* Character);
     bool TryLightFromServer(AKalmalaCharacter* Character);
     void InitializePaidFromServer(AKalmalaCharacter* Character);

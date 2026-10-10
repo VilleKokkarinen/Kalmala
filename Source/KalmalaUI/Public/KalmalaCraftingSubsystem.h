@@ -8,6 +8,7 @@
 class UTextBlock;
 class UButton;
 class UBorder;
+class UHorizontalBox;
 class UUniformGridPanel;
 class UScrollBox;
 class UInputComponent;
@@ -108,6 +109,7 @@ protected:
     virtual void NativeOnInitialized() override;
     virtual void NativeTick(const FGeometry& Geometry, float DeltaTime) override;
     virtual FReply NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
+    virtual FReply NativeOnPreviewMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Event) override;
 private:
     UKalmalaCraftingComponent* Model() const;
     UKalmalaCraftingSubsystem* GetLocalCraftingSubsystem() const;
@@ -115,6 +117,8 @@ private:
     bool IsRecipeRecent(FName RecipeId) const;
     void RememberMenuBrowseState();
     bool RestoreMenuBrowseState(FName StationKit);
+    void RefreshBrowseControlLabels();
+    void BeginPlacementForSelectedBuild();
     bool IsInventoryInspectionFocused() const;
     void RememberInventoryInspectionState();
     void RestoreInventoryInspectionState();
@@ -168,6 +172,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipesText;
     UPROPERTY(Transient) TObjectPtr<UBorder> MenuBackground;
     UPROPERTY(Transient) TObjectPtr<UUniformGridPanel> RecipeGrid;
+    UPROPERTY(Transient) TObjectPtr<UHorizontalBox> BrowseControlsRow;
     UPROPERTY(Transient) TObjectPtr<UScrollBox> CraftingScrollBox;
     UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> RecipeSlotCards;
     UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> RecipeSlotFavoriteFrames;
@@ -231,6 +236,9 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> CloseButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeCategoryLabel;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipeSortLabel;
+    UPROPERTY(Transient) TObjectPtr<UButton> RecipeCategoryButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> RecipeSortButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> ClearSearchButton;
     UPROPERTY(Transient) TObjectPtr<UButton> FavoriteButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FavoriteActionLabel;
     UPROPERTY(Transient) FEditableTextBoxStyle RecipeSearchStyle;
@@ -301,6 +309,7 @@ public:
     virtual bool IsTickable() const override { return !IsTemplate(); }
     bool CloseIfOpen();
     bool IsOpen() const;
+    bool BeginBuildPlacement(FName BuildableId);
     bool IsRecipeFavorite(FName RecipeId) const { return FavoriteRecipeIds.Contains(RecipeId); }
     bool CanFavoriteRecipe(FName RecipeId) const;
     bool SetRecipeFavorite(FName RecipeId, bool bFavorite);
@@ -319,6 +328,8 @@ public:
 #endif
 private:
     UFUNCTION() void OpenBuildFromRightClick();
+    void ConfirmBuildPlacementInput();
+    void CancelBuildPlacementInput();
     void Toggle();
     void Release();
     void ObserveRecipeActivity(UKalmalaCraftingComponent* Crafting);
@@ -331,6 +342,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaStationContextWidget> StationContextWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaInteractionPromptWidget> InteractionPrompt;
     UPROPERTY(Transient) TObjectPtr<APlayerController> Controller;
+    FName PendingBuildPlacementKit;
+    uint64 PendingBuildPlacementStartedFrame = 0;
     UPROPERTY(Transient) TSet<FName> FavoriteRecipeIds;
     UPROPERTY(Transient) TMap<FName, uint32> BuiltPieceCounts;
     UPROPERTY(Transient) TMap<FName, uint32> CookedRecipeCounts;
