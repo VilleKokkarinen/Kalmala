@@ -149,3 +149,13 @@
 - **Impact and authority:** expanded-map terrain now has biome-specific cosmetic patterns in local raster output. No terrain generation, biome classification, exploration, saved data, gameplay, replication, or server authority changed.
 - **Limits:** texture visibility has not been reviewed in rendered host/client captures. M13 remains incomplete, and the M14 acceptance gate still requires integrated M13/M14 verification.
 - **Next eligible task:** restore fog over undiscovered terrain using the owning player's existing exploration coverage, without allowing pan, zoom, pins, or pings to reveal hidden content.
+
+## 2026-10-10 — Restore M14 discovery fog default
+
+- **Completed:** disabled the expanded map's developer reveal-all setting by default. The existing fog raster now governs normal map presentation using current local sight and the owning player's saved exploration coverage; explicitly enabling the developer console setting remains available for inspection.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`, and `docs/08-world-generation-and-biomes.md`.
+- **Lightweight checks:** `git diff --check` passed; static inspection confirmed map refresh reads the owner's exploration save, reveal-all defaults off, exploration recording depends on the owning pawn's location, and remote markers pass the separate local fog gate. No tests or project build ran.
+- **Full verification:** deferred to M14 milestone-final verification on the integrated acceptance tree; no rendered host/client or runtime capture ran.
+- **Impact and authority:** undiscovered map terrain is fogged by default using existing owner-local coverage. No server authority, terrain generation, replication, save schema, or gameplay behavior changed.
+- **Limits:** rendered fog/privacy behavior remains unverified. M13 remains incomplete, so integrated M14 acceptance is still pending.
+- **Next eligible task:** add selectable bottom-right personal-marker icons with optional labels and owner-local persistence.

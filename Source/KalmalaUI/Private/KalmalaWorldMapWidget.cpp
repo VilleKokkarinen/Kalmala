@@ -30,7 +30,7 @@
 
 namespace
 {
-    TAutoConsoleVariable<int32> RevealWorldMap(TEXT("kalmala.Map.RevealAll"), 1, TEXT("Debug: show all generated terrain without changing exploration."));
+    TAutoConsoleVariable<int32> RevealWorldMap(TEXT("kalmala.Map.RevealAll"), 0, TEXT("Debug: show all generated terrain without changing exploration."));
     TAutoConsoleVariable<int32> FitWorldMap(TEXT("kalmala.Map.FitWorldOnOpen"), 1, TEXT("Debug: open M at world origin and fit the full 16 km radius."));
 
     float DrawMapLabel(FSlateWindowElementList& Elements, int32 Layer, const FGeometry& Geometry,
