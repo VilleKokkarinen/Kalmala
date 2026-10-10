@@ -444,6 +444,19 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     WorkbenchRepairExcludedWidgets.Add(Ingredients);
     RequirementText = AddText(TEXT(""), 18);
     WorkbenchRepairExcludedWidgets.Add(RequirementText);
+    Column->RemoveChild(RequirementText);
+    auto* RequirementRow = WidgetTree->ConstructWidget<UHorizontalBox>();
+    auto* RequirementTextSlot = RequirementRow->AddChildToHorizontalBox(RequirementText);
+    RequirementTextSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    BuildRequiredStationIconBox = WidgetTree->ConstructWidget<USizeBox>();
+    BuildRequiredStationIconBox->SetWidthOverride(48.0f);
+    BuildRequiredStationIconBox->SetHeightOverride(48.0f);
+    BuildRequiredStationIconBox->SetVisibility(ESlateVisibility::Collapsed);
+    BuildRequiredStationIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+    BuildRequiredStationIcon->SetVisibility(ESlateVisibility::HitTestInvisible);
+    BuildRequiredStationIconBox->SetContent(BuildRequiredStationIcon);
+    RequirementRow->AddChildToHorizontalBox(BuildRequiredStationIconBox)->SetVerticalAlignment(VAlign_Center);
+    Column->AddChild(RequirementRow);
     auto AddButton = [&](const TCHAR* Label, UHorizontalBox* Row = nullptr, const TCHAR* Help = nullptr) {
         auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>(); auto* Text = WidgetTree->ConstructWidget<UTextBlock>();
         Text->SetText(FText::FromString(Label)); Text->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(),18));
@@ -1558,7 +1571,9 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
     if (!RecipeGrid || !WidgetTree) return;
 
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
-    const bool bRebuild = LastRecipeGridIndices != VisibleIndices;
+    const bool bIconOnlyBuildCards = StationFilterKit.IsNone() && !bInventoryCompanion && !bEmbeddedContext;
+    const bool bRebuild = LastRecipeGridIndices != VisibleIndices
+        || bLastRecipeGridIconOnlyBuild != bIconOnlyBuildCards;
     if (bRebuild)
     {
         RecipeGrid->ClearChildren();
@@ -1585,20 +1600,22 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             UBorder* Card = WidgetTree->ConstructWidget<UBorder>();
             Card->SetPadding(FMargin(4.0f));
             USizeBox* CardSize = WidgetTree->ConstructWidget<USizeBox>();
-            CardSize->SetWidthOverride(184.0f);
-            CardSize->SetMinDesiredHeight(104.0f);
+            CardSize->SetWidthOverride(bIconOnlyBuildCards ? 88.0f : 184.0f);
+            if (bIconOnlyBuildCards) CardSize->SetHeightOverride(88.0f);
+            else CardSize->SetMinDesiredHeight(104.0f);
 
             UVerticalBox* CardContent = WidgetTree->ConstructWidget<UVerticalBox>();
             UHorizontalBox* HeadingRow = WidgetTree->ConstructWidget<UHorizontalBox>();
             USizeBox* IconBox = WidgetTree->ConstructWidget<USizeBox>();
-            IconBox->SetWidthOverride(40.0f);
-            IconBox->SetHeightOverride(40.0f);
+            IconBox->SetWidthOverride(bIconOnlyBuildCards ? 56.0f : 40.0f);
+            IconBox->SetHeightOverride(bIconOnlyBuildCards ? 56.0f : 40.0f);
             UKalmalaIconWidget* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
             Icon->SetCatalogueIcon(Recipe.GetOutputIdentity());
             IconBox->SetContent(Icon);
             auto* GridIconSlot = HeadingRow->AddChildToHorizontalBox(IconBox);
             GridIconSlot->SetVerticalAlignment(VAlign_Top);
             GridIconSlot->SetPadding(FMargin(0.0f, 0.0f, 5.0f, 0.0f));
+            if (bIconOnlyBuildCards) GridIconSlot->SetHorizontalAlignment(HAlign_Center);
 
             UTextBlock* Name = WidgetTree->ConstructWidget<UTextBlock>();
             const int32 BuildGroup = GetBuildBrowseGroup(Recipe.GetOutputIdentity());
@@ -1606,6 +1623,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             Name->SetAutoWrapText(true);
             Name->SetWrapTextAt(128.0f);
             HeadingRow->AddChildToHorizontalBox(Name)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+            if (bIconOnlyBuildCards) Name->SetVisibility(ESlateVisibility::Collapsed);
             CardContent->AddChild(HeadingRow);
 
             UTextBlock* State = WidgetTree->ConstructWidget<UTextBlock>();
@@ -1613,6 +1631,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             State->SetWrapTextAt(168.0f);
             CardContent->AddChildToVerticalBox(State)->SetPadding(
                 FMargin(0.0f, FKalmalaUITheme::Get().SlotPadding, 0.0f, 0.0f));
+            if (bIconOnlyBuildCards) State->SetVisibility(ESlateVisibility::Collapsed);
             const auto AddMarker = [this, CardContent]()
             {
                 UTextBlock* Marker = WidgetTree->ConstructWidget<UTextBlock>();
@@ -1647,6 +1666,11 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
                 CellMargin, SlotIndex / RecipeGridColumns, SlotIndex % RecipeGridColumns);
             GridPanelSlot->SetHorizontalAlignment(HAlign_Fill);
             GridPanelSlot->SetVerticalAlignment(VAlign_Fill);
+            if (bIconOnlyBuildCards)
+            {
+                CellMargin->SetHorizontalAlignment(HAlign_Center);
+                CellMargin->SetVerticalAlignment(VAlign_Center);
+            }
 
             RecipeSlotCards.Add(Card);
             RecipeSlotFavoriteFrames.Add(FavoriteFrame);
@@ -1660,6 +1684,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             RecipeSlotVisualStates.Add(0xff);
         }
         LastRecipeGridIndices = VisibleIndices;
+        bLastRecipeGridIconOnlyBuild = bIconOnlyBuildCards;
     }
 
     const bool bFocused = HasKeyboardFocus();
@@ -1705,6 +1730,12 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
         }
         const int32 BuildGroup = GetBuildBrowseGroup(Recipe.GetOutputIdentity());
         const FString CardName = (BuildGroup ? GetBrowseCategoryLabel(BuildGroup) + TEXT("\n") : TEXT("")) + Recipe.DisplayName;
+        const ESlateVisibility CardLabelVisibility = bIconOnlyBuildCards
+            ? ESlateVisibility::Collapsed : ESlateVisibility::Visible;
+        if (RecipeSlotNames[SlotIndex]->GetVisibility() != CardLabelVisibility)
+            RecipeSlotNames[SlotIndex]->SetVisibility(CardLabelVisibility);
+        if (RecipeSlotStates[SlotIndex]->GetVisibility() != CardLabelVisibility)
+            RecipeSlotStates[SlotIndex]->SetVisibility(CardLabelVisibility);
         if (RecipeSlotNames[SlotIndex]->GetText().ToString() != CardName)
         {
             RecipeSlotNames[SlotIndex]->SetText(FText::FromString(CardName));
@@ -1720,12 +1751,13 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             ? FString::Printf(TEXT("● %s Rank %d"), RankNames[ActivityRank - 1], ActivityRank) : TEXT("");
         const FString RecentMarkerText = bRecent ? TEXT("◷ Recent") : TEXT("");
         const auto UpdateMarker = [&Theme, TextScalePercent, ContrastMode, bRestyle](
-            UTextBlock* Marker, const FString& Label, const FLinearColor& Color)
+            UTextBlock* Marker, const FString& Label, const FLinearColor& Color,
+            const bool bShowLabel)
         {
             if (!Marker) return;
             const bool bTextChanged = Marker->GetText().ToString() != Label;
             if (bTextChanged) Marker->SetText(FText::FromString(Label));
-            const ESlateVisibility WantedVisibility = Label.IsEmpty()
+            const ESlateVisibility WantedVisibility = Label.IsEmpty() || !bShowLabel
                 ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible;
             if (Marker->GetVisibility() != WantedVisibility) Marker->SetVisibility(WantedVisibility);
             if (bRestyle || bTextChanged) Theme.ApplyText(*Marker, 9, false, TextScalePercent, ContrastMode);
@@ -1736,15 +1768,15 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
         const FLinearColor RankColor = Theme.RankMarkerColor(ActivityRank, ContrastMode);
         const FLinearColor RecentColor = ContrastMode == 0 ? Theme.RecentMarkerColor : FLinearColor::White;
         UpdateMarker(RecipeSlotFavoriteMarkers.IsValidIndex(SlotIndex) ? RecipeSlotFavoriteMarkers[SlotIndex] : nullptr,
-            FavoriteMarkerText, FavoriteColor);
+            FavoriteMarkerText, FavoriteColor, !bIconOnlyBuildCards);
         UpdateMarker(RecipeSlotRankMarkers.IsValidIndex(SlotIndex) ? RecipeSlotRankMarkers[SlotIndex] : nullptr,
-            RankMarkerText, RankColor);
+            RankMarkerText, RankColor, !bIconOnlyBuildCards);
         UpdateMarker(RecipeSlotRecentMarkers.IsValidIndex(SlotIndex) ? RecipeSlotRecentMarkers[SlotIndex] : nullptr,
-            RecentMarkerText, RecentColor);
+            RecentMarkerText, RecentColor, !bIconOnlyBuildCards);
         if (RecipeSlotRecentBadgeFrames.IsValidIndex(SlotIndex) && RecipeSlotRecentBadgeFrames[SlotIndex])
         {
             UBorder* RecentBadge = RecipeSlotRecentBadgeFrames[SlotIndex];
-            const ESlateVisibility BadgeVisibility = bRecent
+            const ESlateVisibility BadgeVisibility = bRecent && !bIconOnlyBuildCards
                 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed;
             if (RecentBadge->GetVisibility() != BadgeVisibility) RecentBadge->SetVisibility(BadgeVisibility);
             const FLinearColor BadgeColor = ContrastMode == 0
@@ -1763,6 +1795,11 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
         if (bFavorite) RecipeTooltip = TEXT("Favorite. ") + RecipeTooltip;
         if (ActivityRank > 0) RecipeTooltip = FString::Printf(TEXT("Rank %d. "), ActivityRank) + RecipeTooltip;
         if (bRecent) RecipeTooltip = TEXT("Recent. ") + RecipeTooltip;
+        if (bIconOnlyBuildCards && Crafting)
+        {
+            const FString Description = Crafting->GetRecipeDescription(Recipe.RecipeId);
+            if (!Description.IsEmpty()) RecipeTooltip += TEXT(". ") + Description;
+        }
         const FText ToolTip = FText::FromString(RecipeTooltip);
         if (RecipeSlotCards[SlotIndex]->GetToolTipText().ToString() != ToolTip.ToString())
         {
@@ -3380,13 +3417,44 @@ void UKalmalaCraftingWidget::Refresh()
     if (SelectedResultPreview)
         SelectedResultPreview->SetResult(SelectedRecipe.GetOutputIdentity(), SelectedRecipe.DisplayName,
             M->GetRecipeDescription(SelectedRecipe.RecipeId), FString(), TextScalePercent, ContrastMode);
+    const bool bStandaloneBuildMenu = !bInventoryCompanion && !bEmbeddedContext && StationFilterKit.IsNone();
+    if (BuildRequiredStationIconBox && BuildRequiredStationIcon)
+    {
+        if (bStandaloneBuildMenu && !SelectedRecipe.RequiredStation.IsEmpty())
+        {
+            const FName RequiredStation = SelectedRecipe.RequiredStation[0];
+            BuildRequiredStationIcon->SetCatalogueIcon(RequiredStation);
+            BuildRequiredStationIconBox->SetToolTipText(FText::FromString(
+                GetPromptItemName(RequiredStation, TEXT("Required station"))));
+            BuildRequiredStationIconBox->SetVisibility(ESlateVisibility::Visible);
+        }
+        else BuildRequiredStationIconBox->SetVisibility(ESlateVisibility::Collapsed);
+    }
     SelectedIcon->SetCatalogueIcon(SelectedRecipe.GetOutputIdentity());
     SelectedIcon->SetVisibility(ESlateVisibility::HitTestInvisible);
     const FString StationPrefix = StationFilterKit.IsNone() ? TEXT("")
         : (UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)
             ? UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)->DisplayName : StationFilterKit.ToString()) + TEXT(" recipes: ");
-    RecipesText->SetText(FText::FromString(FString::Printf(TEXT("> %s%d of %d: %s\n"),
-        *StationPrefix, Selected + 1, VisibleIndices.Num(), *SelectedRecipe.DisplayName)));
+    FString SelectedRecipeLabel = FString::Printf(TEXT("> %s%d of %d: %s"),
+        *StationPrefix, Selected + 1, VisibleIndices.Num(), *SelectedRecipe.DisplayName);
+    if (bStandaloneBuildMenu)
+    {
+        const UKalmalaCraftingSubsystem* ActivityState = GetLocalCraftingSubsystem();
+        const bool bFavorite = ActivityState && ActivityState->IsRecipeFavorite(SelectedRecipe.RecipeId);
+        const EKalmalaCraftingActionKind ActivityKind = GetActivityKindForRecipe(SelectedRecipe);
+        const int32 Rank = ActivityState
+            ? ActivityState->GetRecipeActivityRank(ActivityKind, SelectedRecipe.RecipeId) : 0;
+        const bool bRecent = ActivityState
+            && ActivityState->GetRecentRecipeActivity(ActivityKind) == SelectedRecipe.RecipeId;
+        if (bFavorite) SelectedRecipeLabel += TEXT(" · Favorite");
+        if (Rank >= 1 && Rank <= 3)
+        {
+            static const TCHAR* RankNames[] = { TEXT("Gold"), TEXT("Silver"), TEXT("Bronze") };
+            SelectedRecipeLabel += FString::Printf(TEXT(" · %s Rank %d"), RankNames[Rank - 1], Rank);
+        }
+        if (bRecent) SelectedRecipeLabel += TEXT(" · Recent");
+    }
+    RecipesText->SetText(FText::FromString(SelectedRecipeLabel + TEXT("\n")));
     const FString Availability = M->GetRecipeAvailability(SelectedRecipe.RecipeId);
     const auto* RequirementOwner = Cast<AKalmalaCharacter>(OwnerPawn);
     const FString Requirements = FKalmalaRecipeRequirements::Describe(SelectedRecipe,
@@ -3571,6 +3639,21 @@ void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D)
 {
     Super::NativeTick(G,D);
     if (!bOpen) return;
+    if (StationFilterKit.IsNone() && !bInventoryCompanion && !bEmbeddedContext)
+    {
+        for (int32 SlotIndex = 0; SlotIndex < RecipeSlotCards.Num(); ++SlotIndex)
+        {
+            if (RecipeSlotCards[SlotIndex] && RecipeSlotCards[SlotIndex]->IsHovered())
+            {
+                if (Selected != SlotIndex)
+                {
+                    Selected = SlotIndex;
+                    bPlacementPreviewEnabled = false;
+                }
+                break;
+            }
+        }
+    }
     Refresh();
     if (!CraftingScrollBox) return;
 

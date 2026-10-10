@@ -189,6 +189,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairStatusText;
     UPROPERTY(Transient) TObjectPtr<UWidget> StationSectionSwitcher;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailText;
+    UPROPERTY(Transient) TObjectPtr<class USizeBox> BuildRequiredStationIconBox;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> BuildRequiredStationIcon;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIngredientWidget> Ingredients;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StateText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodText;
@@ -250,6 +252,7 @@ private:
     int32 RecipeGridUnavailableCount = 0;
     int32 RecipeGridSelectedIndex = INDEX_NONE;
     bool bRecipeGridFocused = false;
+    bool bLastRecipeGridIconOnlyBuild = false;
     TArray<int32> LastRecipeGridIndices;
     bool bOpen = false;
     bool bEmbeddedContext = false;

@@ -160,3 +160,13 @@
 - **Impact and authority:** Build entry now follows the documented local right-click/active-hammer gate. This adds no gameplay RPC, replicated state, costs, persistence, or server authority changes.
 - **Limits:** Build cards, hover/focus details, icon-only filters, placement mode, search reset, Favorite toggling, obsolete action removal, and direct Campfire lighting remain to be implemented and verified.
 - **Next eligible task:** continue the same M13 Build child by implementing icon-only card selection and placement entry, then complete its remaining menu and Campfire interaction requirements.
+
+## 2026-10-10 09:18 UTC — M13 Build icon-card browsing
+
+- **Completed:** implemented the next presentation slice of the active M13 Build child. Standalone Build cards now use compact original catalogue icons without visible names, availability text, or activity labels. Hovering a card selects it and refreshes the detail area below; keyboard/controller selection continues to use the existing selected-entry details. The details include the current recipe description, material availability/counts, and required-station icon where applicable. Selected Favorite/Rank/Recent text remains readable in the detail area.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `Scripts/Verify-LocalInputContract.ps1`, `Scripts/Verify-PresentationOwnership.ps1`, and `Scripts/Verify-M5DocumentationContracts.ps1` passed. `git diff --check` and the changed-path MAX_PATH audit passed. Manually reviewed the UMG API calls and local-only selection path.
+- **Full verification:** deferred to M13 milestone-final verification. No Unreal build, automation suite, runtime input, peer, package, or rendered UI check ran.
+- **Impact and authority:** local Build-menu presentation only. Hover changes the locally selected recipe and its displayed details; this increment adds no RPC, replicated state, gameplay transaction, cost, or saved-data field. Server-side placement validation is unchanged.
+- **Limits:** card click/focused activation into placement mode, Favorite right-click, icon-only header/filter controls, search reset, removal of legacy Build actions, and direct Campfire lighting remain open. No rendered layout or pointer behavior was verified in Unreal.
+- **Next eligible task:** continue the same M13 Build child with card activation into placement mode, then finish Favorite toggling, menu cleanup/search behavior, and direct Campfire lighting.
