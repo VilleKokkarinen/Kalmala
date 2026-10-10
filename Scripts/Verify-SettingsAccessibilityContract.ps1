@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($Document)) {
-    $Document = Join-Path $projectRoot 'docs\14-settings-and-accessibility.md'
+    $Document = Join-Path $projectRoot 'docs\02-technical-architecture.md'
 }
 
 if (-not (Test-Path -LiteralPath $Document -PathType Leaf)) {
@@ -14,6 +14,11 @@ if (-not (Test-Path -LiteralPath $Document -PathType Leaf)) {
 }
 
 $text = Get-Content -LiteralPath $Document -Raw
+if ($text.Contains('## Consolidated system contracts')) {
+    $section = [regex]::Match($text, '(?ms)^## Settings and accessibility\r?\n(.*?)(?=^## Presentation ownership\r?$)')
+    if (-not $section.Success) { throw 'Consolidated settings/accessibility section was not found' }
+    $text = $section.Groups[1].Value
+}
 $requiredSections = @(
     '## Existing shell and option groups',
     '## Accessibility requirements',

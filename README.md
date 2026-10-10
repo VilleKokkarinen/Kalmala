@@ -13,6 +13,8 @@ The project is designed to be built primarily by AI agents. The documentation in
 
 ## Start here
 
+For a short overview of implemented additions, read [Game features](docs/game-features.md).
+
 1. Read [`docs/00-project-brief.md`](docs/00-project-brief.md).
 2. Follow the delivery sequence in [`docs/04-roadmap.md`](docs/04-roadmap.md).
 3. Give an implementation agent the relevant prompt from [`docs/06-agent-prompts.md`](docs/06-agent-prompts.md).

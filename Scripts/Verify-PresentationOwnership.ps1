@@ -4,12 +4,15 @@ param()
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot
 & (Join-Path $PSScriptRoot 'Verify-InventoryPanelRemoval.ps1')
-$documentPath = Join-Path $projectRoot 'docs\15-presentation-ownership.md'
+$documentPath = Join-Path $projectRoot 'docs\02-technical-architecture.md'
 if (-not (Test-Path -LiteralPath $documentPath -PathType Leaf)) {
     throw "Presentation ownership document was not found: $documentPath"
 }
 
 $document = Get-Content -LiteralPath $documentPath -Raw
+$section = [regex]::Match($document, '(?ms)^## Presentation ownership\r?\n(.*?)(?=^## Audio cues\r?$)')
+if (-not $section.Success) { throw 'Consolidated presentation ownership section was not found' }
+$document = $section.Groups[1].Value
 $requiredSections = @(
     '## Ownership ledger',
     '## Allowed and forbidden sources',

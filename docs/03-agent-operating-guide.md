@@ -18,7 +18,9 @@
 
 ## Definition of done
 
-A task is complete only when it:
+AGENTS.md governs autonomous sequencing, concurrency, preservation, commits, and verification. Normal increments use lightweight checks; the final implementation increment in a milestone runs required full verification. An individual checked task means implementation is complete, while milestone completion requires its acceptance gate.
+
+A task handoff must state whether it:
 
 - builds or has a documented, concrete reason it cannot;
 - has been exercised in the requested networking mode;
