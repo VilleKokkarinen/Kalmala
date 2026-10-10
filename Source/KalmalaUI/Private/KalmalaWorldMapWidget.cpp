@@ -231,6 +231,39 @@ void UKalmalaWorldMapWidget::RunDeveloperVerification()
     const bool bRecentered = ViewModel->GetMapCentre().Equals(InitialCentre, 1.0f);
     MapZoom = 18000.0f;
     Recenter();
+    float CaptureZoom = MapZoom;
+    if (FParse::Value(FCommandLine::Get(), TEXT("KalmalaWorldMapCaptureZoom="), CaptureZoom))
+    {
+        MapZoom = ClampMapZoom(CaptureZoom, MinZoom, MaxZoom);
+        Recenter();
+    }
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapAcceptanceEvidence")))
+    {
+        FKalmalaWorldGenerationConfig Config;
+        FVector2D PawnLocation;
+        if (ViewModel->GetPresentationInputs(Config, PawnLocation))
+        {
+            EnsureExplorationForWorld(Config);
+            EnsurePinsForWorld(Config);
+            const int32 CellsBefore = ExplorationSave->GetExploredCellCount();
+            BeginPinPlacement(PawnLocation + FVector2D(-2000.0, 1000.0));
+            PendingPinStyle = EKalmalaWorldMapPinStyle::Lantern;
+            CommitPinPlacement();
+            BeginPinPlacement(PawnLocation + FVector2D(2000.0, -1000.0));
+            PendingPinStyle = EKalmalaWorldMapPinStyle::Thread;
+            PendingPinLabel = GetOwningPlayer()->HasAuthority() ? TEXT("Host trail") : TEXT("Client trail");
+            CommitPinPlacement();
+            const auto RemoteFog = BuildFogPixels(FVector2D(1000000.0, 0.0), FVector2D(1.0), PawnLocation,
+                FIntPoint(1), ExplorationSave);
+            SendMapPing(PawnLocation + FVector2D(3000.0, 2500.0));
+            UE_LOG(LogTemp, Display, TEXT("World map acceptance: Owner=%s Pins=%d Blank=%d Label=%s CoverageUnchanged=%d RemoteOpaque=%d TextScale=%d Contrast=%d ApplicationScale=%.2f Zoom=%.0f."),
+                GetOwningPlayer()->HasAuthority() ? TEXT("Host") : TEXT("Client"), LocalPins.Num(),
+                LocalPins[LocalPins.Num() - 2].Label.IsEmpty() ? 1 : 0, *LocalPins.Last().Label,
+                CellsBefore == ExplorationSave->GetExploredCellCount() ? 1 : 0, RemoteFog[0].A == 255 ? 1 : 0,
+                UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode(),
+                UKalmalaSettingsWidget::GetAppliedApplicationScale(), MapZoom);
+        }
+    }
     bFitWholeWorld = FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldOverviewVerification"));
     bDeveloperVerificationLogged = true;
     const uint8 OriginalVisibilityMask = MarkerVisibilityMask;
@@ -1117,6 +1150,29 @@ void UKalmalaWorldMapWidget::NativeTick(const FGeometry& MyGeometry, const float
         FString ScreenshotPath;
         if (VerificationElapsed >= 3.0f && bDeveloperPaintVerified && FParse::Value(FCommandLine::Get(), TEXT("KalmalaWorldMapScreenshot="), ScreenshotPath))
         {
+            if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapAcceptanceEvidence")))
+            {
+                TMap<FWorldMapTileKey, UTexture2D*> ReadyTextures;
+                for (const auto& Pair : Tiles) if (Pair.Value.Texture.Get()) ReadyTextures.Add(Pair.Key, Pair.Value.Texture.Get());
+                const FVector2D CentreBefore = ViewModel->GetMapCentre();
+                const float ZoomBefore = MapZoom;
+                const bool bFitBefore = bFitWholeWorld;
+                const double Started = FPlatformTime::Seconds();
+                PanByScreenDelta(FVector2D(1.0, 1.0), MyGeometry.GetLocalSize() - FVector2D(88.0));
+                ZoomAtMapCentre(0.001f);
+                RefreshTiles(MyGeometry.GetLocalSize() - FVector2D(88.0));
+                int32 Reused = 0;
+                for (const auto& Pair : ReadyTextures)
+                    if (const auto* Tile = Tiles.Find(Pair.Key); Tile && Tile->Texture.Get() == Pair.Value) ++Reused;
+                MapZoom = ZoomBefore;
+                bFitWholeWorld = bFitBefore;
+                ViewModel->SetMapCentre(CentreBefore);
+                ViewModel->SetMapRadius(MapZoom);
+                RefreshTiles(MyGeometry.GetLocalSize() - FVector2D(88.0));
+                UE_LOG(LogTemp, Display, TEXT("World map cache acceptance: Ready=%d Reused=%d Bounded=%d PanZoomMs=%.3f."),
+                    ReadyTextures.Num(), Reused, Tiles.Num() <= MaxCachedTiles ? 1 : 0,
+                    (FPlatformTime::Seconds() - Started) * 1000.0);
+            }
             FScreenshotRequest::RequestScreenshot(ScreenshotPath, true, false);
             bRequestedVerificationScreenshot = true;
         }
@@ -1343,6 +1399,22 @@ bool UKalmalaWorldMapWidget::RemoveSelectedPin()
 UKalmalaWorldMapWidget::FPinPaletteLayout UKalmalaWorldMapWidget::GetPinPaletteLayout(const FVector2D& WidgetSize) const
 {
     FPinPaletteLayout Layout;
+    const auto& Theme = FKalmalaUITheme::Get();
+    const int32 Scale = UKalmalaSettingsWidget::GetTextScalePercent();
+    if (FSlateApplication::IsInitialized())
+    {
+        const auto Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+        const auto LabelFont = Theme.MakeFont(Theme.BodySize - 3, false, Scale);
+        const FVector2D TitleSize = Measure->Measure(TEXT("PERSONAL PINS"), Theme.MakeFont(Theme.BodySize - 2, true, Scale));
+        Layout.HeaderHeight = FMath::Max(Layout.HeaderHeight, static_cast<float>(TitleSize.Y) + 4.0f);
+        for (int32 Index = 0; Index < 3; ++Index)
+        {
+            const FVector2D LabelSize = Measure->Measure(PinStyleName(PinStyleFromIndex(Index)), LabelFont);
+            Layout.ButtonWidth = FMath::Max(Layout.ButtonWidth, static_cast<float>(LabelSize.X) + Layout.Padding * 2.0f);
+            Layout.ButtonHeight = FMath::Max(Layout.ButtonHeight, 34.0f + static_cast<float>(LabelSize.Y) + Layout.Padding);
+        }
+        Layout.ButtonWidth = FMath::Max(Layout.ButtonWidth, (static_cast<float>(TitleSize.X) - Layout.ButtonGap * 2.0f) / 3.0f);
+    }
     Layout.Size.X = Layout.Padding * 2.0f + Layout.ButtonWidth * 3.0f + Layout.ButtonGap * 2.0f;
     Layout.Size.Y = Layout.Padding * 2.0f + Layout.HeaderHeight + 4.0f + Layout.ButtonHeight;
     Layout.Position.X = FMath::Max(12.0f, WidgetSize.X - 44.0f - Layout.Size.X);

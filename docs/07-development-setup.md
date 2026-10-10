@@ -1420,9 +1420,9 @@ two-player verification.
 
 ## Expanded world map
 
-The map now renders continuous opaque terrain tiles; circular clipping applies only to the companion minimap. Both views sample the same generated terrain/water colours at matching world coordinates. Exploration is collected every 0.5 seconds during ordinary gameplay, including before the first M press and while the map is closed, so travelled areas accumulate on the main map. Unvisited areas remain fogged. Tile drawing is clipped to the map panel so edge tiles cannot leak into the controls. Existing coverage saves and the original map palette remain compatible.
+The map now renders continuous opaque terrain tiles; circular clipping applies only to the companion minimap. Both views use the same generated terrain/water classification at matching world coordinates; M14 applies original biome textures only to the expanded map. Exploration is collected every 0.5 seconds during ordinary gameplay, including before the first M press and while the map is closed, so travelled areas accumulate on the main map. Unvisited areas remain fogged. Tile drawing is clipped to the map panel so edge tiles cannot leak into the controls. Existing coverage saves and the original map palette remain compatible.
 
-`Kalmala.UI.WorldMap.LocalPresentation` checks opaque square-tile corners, both tile-join directions, matching minimap/world-map RGB, and connected remembered walking coverage. The rendered `Scripts/Verify-WorldMap.ps1` fixture additionally requires both peers to record coverage while closed with zero terrain tiles before accepting the usual input/identity/paint screenshots. Run `Scripts/Verify-Minimap.ps1 -Rendered` to inspect the persistent companion HUD crop during gameplay.
+`Kalmala.UI.WorldMap.LocalPresentation` checks opaque square-tile corners, both tile-join directions, matching expanded-map tile/crop RGB, and connected remembered walking coverage. The rendered `Scripts/Verify-WorldMap.ps1` fixture additionally requires both peers to record coverage while closed with zero terrain tiles before accepting the usual input/identity/paint screenshots. Run `Scripts/Verify-Minimap.ps1 -Rendered` to inspect the persistent companion HUD crop during gameplay.
 
 The expanded map uses full-stretch viewport anchors with zero offsets. In UE 5.8, `SetDesiredSizeInViewport` becomes right/bottom margins under stretch anchors; setting a fixed 1920x1080 size collapses the surface at common viewport sizes and leaves only a marker near the top-left. Keep those margins zero and derive tile aspect ratio from the same DPI-scaled Slate geometry used for painting and pointer input. `Scripts/Verify-WorldMap.ps1` now requires actual full-player-viewport paint geometry, completed terrain tiles, and a fog texture on both peers before accepting screenshots at all three resolutions. Its zoom-bound probes restore the normal opening zoom before capture.
 
@@ -1484,6 +1484,27 @@ These editor/rendered checks do not establish physical-controller or packaged
 acceptance.
 
 ### M14 current expanded-map acceptance
+
+`Verify-WorldMap.ps1 -AcceptanceEvidence` adds fresh owner-specific labeled and
+icon-only pins through the placement path, a server-requested ping, a remote
+opaque-fog probe, and a measured pan/zoom cache-reuse probe. The runner requires
+both owners' own labels, no opposite-owner label, unchanged exploration after
+placement, and reuse of every ready terrain texture within the bounded cache.
+Use `-Resolution` for one viewport, `-TextScale 150 -Contrast 1` for the small
+high-contrast case, `-ApplicationScale 1.25` or `1.5` for wide-view scale stress,
+and `-CaptureZoom 2500` or `3500000` for the zoom bounds. ApplicationScale is an
+engine configuration override for acceptance; the player setting remains the
+existing 80–120% choices. The overview gate requires `Reveal=0`, retaining fog.
+
+The marker palette measures its caption and heading fonts so 150% text fits
+inside distinct buttons and pointer targets follow their rendered geometry.
+
+`Kalmala.UI.WorldMap.BiomeTextures` checks spatial variation and distinct raster
+signatures for all seven original biome treatments at four sample spacings,
+and exports `Saved/M14BiomeTextures.bmp` in the disposable test user directory.
+Its columns are Meadows, Lakes, Elderwood, Mire, Tundra, Mountains, and Ocean;
+rows are 78.125, 312.5, 5000, and 100000 cm sample spacing. Inspect this actual
+raster evidence alongside the normal fogged host/client map captures.
 
 The expanded map uses original world-anchored biome patterns over existing locally sampled biome data. Broad forms remain recognizable in the fitted overview, while fine texture detail fades as tile sample spacing grows. Its bounded 64-entry terrain/fog cache reuses matching world-tile coordinates across pan and zoom; terrain is drawn only with the corresponding fog tile, fog refreshes with owner exploration, and stale results from another world identity are rejected.
 

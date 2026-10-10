@@ -35,8 +35,9 @@ try {
     foreach ($result in @('Malformed', 'OutOfBounds', 'Excessive')) {
         if ([regex]::Matches($serverText, "Map ping request: Result=$result").Count -ne 2) { throw "Expected server rejection from both host and remote owner: $result" }
     }
+    # A valid global ping can arrive before the client's initial sample; peer positions remain private.
     foreach ($peerText in @($serverText, $clientText)) {
-        if ($peerText -notmatch 'Map awareness default: Private=1 Peers=0 Pings=0') { throw 'Default player-position privacy failed.' }
+        if ($peerText -notmatch 'Map awareness default: Private=1 Peers=0 Pings=\d+') { throw 'Default player-position privacy failed.' }
         if ($peerText -notmatch 'Map ping without consent: Count=\d+') { throw 'A peer did not receive a ping while sharing was off.' }
         if ($peerText -notmatch 'Map ping survives opt-out: Count=4') { throw 'Opting out removed global pings.' }
         if ($peerText -notmatch 'Map awareness verification: Peers=0 Seen=4 Expired=1') { throw 'Ten-second expiry verification missing.' }
