@@ -37,7 +37,7 @@ scenario is not required by the revised roadmap scope.
 
 ## M5 — Vertical-slice finish
 
-The world-generation track places **Phase 7 — Coherent biome generation and hydrology** before **Phase 8 — Ocean and long-distance travel**. Its current user-directed revision-7 rework samples a separately seeded land/water master atlas through a game-seeded crop and rotation, then applies the specified hard origin-distance biome limits with Meadows/Mountains fallback. It retains existing regional signals, enclosed lakes, large rivers and the 16 km radius. Revision 8 provides opt-in debug streams; revisions 1–6 remain compatible. Detailed contracts and acceptance checks are in `docs/08-world-generation-and-biomes.md` and `BACKLOG.md`. This does not expand the vertical-slice creature, platform, or online-service scope.
+The world-generation track places **Phase 7 — Coherent biome generation and hydrology** before **Phase 8 — Ocean and long-distance travel**. Its current user-directed revision-7 rework samples a separately seeded land/water master atlas through a game-seeded crop and rotation, then applies the specified hard origin-distance biome limits with Meadows/Mountains fallback. It retains existing regional signals, enclosed lakes, large rivers and the 16 km radius. Revision 8 provides opt-in debug streams; revisions 1–6 remain compatible. Detailed contracts and acceptance checks are in `docs/02-technical-architecture.md` and `BACKLOG.md`. This does not expand the vertical-slice creature, platform, or online-service scope.
 
 Add original art/audio pass, tutorial beats, settings/accessibility, performance pass, balance, regression tests, packaging, and a dedicated-server playtest.
 
@@ -358,9 +358,9 @@ M9 has five ordered goals:
    - Show tool level, skill requirement, matching station level, material cost for upgrades, repair availability, and rejection reasons in readable text as well as colour or icons. Keep upgrades optional and recoverable, and award progression only after an accepted server transaction.
    - Keep detailed tool and skill state owner-scoped. Do not persist new tool levels or workstation attachment progression until the M9 persistence goal defines and verifies the versioned migration contract; extend existing tool-condition and construction authority rather than adding parallel subsystems.
 
-3. **Exploration rewards without quest routing.** Add optional clue, landmark, treasure, boss, or environmental-discovery structures that reward observation and travel without turning the world into a prescribed quest chain. The first two land-discovery candidates and their reward boundaries are defined in `29-m9-exploration-rewards.md`; server placement and claim behavior are implemented, with durable claims still gated by the M9 persistence contract.
+3. **Exploration rewards without quest routing.** Add optional clue, landmark, treasure, boss, or environmental-discovery structures that reward observation and travel without turning the world into a prescribed quest chain. The first two land-discovery candidates and their reward boundaries are defined in `02-technical-architecture.md`; server placement and claim behavior are implemented, with durable claims still gated by the M9 persistence contract.
 
-4. **Persistence schema expansion.** Version and migrate any newly persistent progression, creature, discovery, storage, equipment, or encounter state before enabling it in normal saves. Preserve exact identity/world matching and bounded sparse records. The accepted M9 tool, station, land-discovery migration boundary is defined in `docs/30-m9-persistence-migration.md`; schema-2 writes remain gated on its round-trip and rejection coverage.
+4. **Persistence schema expansion.** Version and migrate any newly persistent progression, creature, discovery, storage, equipment, or encounter state before enabling it in normal saves. Preserve exact identity/world matching and bounded sparse records. The accepted M9 tool, station, land-discovery migration boundary is defined in `docs/02-technical-architecture.md`; schema-2 writes remain gated on its round-trip and rejection coverage.
 
 5. **Cross-system regression.** Verify the second content wave against land/ocean travel, weather, survival HUD, crafting, combat, support effects, construction, reconnect, persistence, and the retained supported-session loop.
 
@@ -376,7 +376,7 @@ Start only after M9 acceptance passes. Freeze feature scope and turn the complet
 
 M10 has six ordered goals:
 
-1. **Feature and content freeze.** Close or defer remaining backlog items, lock accepted gameplay and save schemas, and require any post-freeze change to include a focused regression and explicit release rationale. The accepted baseline and change rule are recorded in `docs/31-m10-scope-freeze.md`.
+1. **Feature and content freeze.** Close or defer remaining backlog items, lock accepted gameplay and save schemas, and require any post-freeze change to include a focused regression and explicit release rationale. The accepted baseline and change rule are recorded in `docs/02-technical-architecture.md`.
 
 2. **Full clean-profile validation.** Run the complete automated, rendered, authority, persistence, reconnect, world-generation, land-travel, ocean-travel, combat, support, construction, crafting, progression, weather, HUD, accessibility, and performance suite from clean temporary user directories.
 
@@ -754,7 +754,7 @@ verification from `docs/07-development-setup.md` before declaring M12 complete.
 `codex/m12-hud-feedback-rebuild` implementation. Final repairs, build and
 116-test queue, owner Inventory/service captures, twelve combined-HUD cases,
 diagnostic performance profiles and owner-confirmed keyboard/controller
-acceptance are recorded in [45 M12 final acceptance](45-m12-acceptance.md).
+acceptance are summarized in [historical M12 acceptance](07-development-setup.md#historical-acceptance-and-limits).
 
 ## M13 — Rebuild and revalidate the M11/M12 UI on main
 
@@ -765,9 +765,9 @@ tracked main-tree assets and runtime references with the M12 manifests; do not
 assume the packages are absent or regenerate original art without evidence.
 Repair any actual source, package, reference, cook, or rendering gaps found.
 
-Use `docs/35-ui-theme.md` through `docs/47-inventory-grid.md` as the current
+Use the consolidated contracts in `docs/02-technical-architecture.md` and the verification index in `docs/07-development-setup.md` as the current
 UI and verification contracts. In particular, the latest player inventory is
-the shared 10x4 grid and occupied-cell hotbar in `docs/47-inventory-grid.md`;
+the shared 10x4 grid and occupied-cell hotbar in `docs/02-technical-architecture.md`;
 it supersedes the earlier sixteen-slot inventory presentation. Preserve M11's
 shared theme, local browsing state, Favorites/usage ranks/Recent indicators,
 and the accepted Forge comparison. Preserve M12's retirement of the persistent
@@ -859,7 +859,7 @@ follow-up Settings request uses the reference group names Gameplay, Keyboard &
 Mouse, Controller, Graphics, Audio, and Accessibility. Existing Kalmala
 options are retained and organized into those groups; the screenshot-derived
 candidate list and change interactions are in
-`docs/14-settings-and-accessibility.md`. Candidate checkboxes are for the
+`docs/02-technical-architecture.md`. Candidate checkboxes are for the
 user's option selection, not implementation status. Only checked candidates
 enter M13 implementation scope, after confirming Kalmala can support their
 behavior. In high contrast, suppress decorative wood and keep the established
@@ -904,13 +904,13 @@ saved-data schemas, introduce new online services, or expand platform scope.
   selected, and focus treatments. High contrast replaces decorative wood with
   the existing opaque black surface. Organize existing settings into the six
   groups from the reference and implement only the additional options selected
-  in `docs/14-settings-and-accessibility.md`. Keep current bounded-choice
+  in `docs/02-technical-architecture.md`. Keep current bounded-choice
   remapping unless direct keyboard/mouse capture is selected. If selected,
   activating a binding row captures the next valid input and Escape cancels.
   Apply the same selected action rows to controller rebinding and show Xbox,
   PlayStation, or Switch glyphs when those glyph candidates are selected. Keep
   mouse sensitivity within the requested 1%–1000% range. The game-hints and
-  intro-skip settings marked “add but hide for now” in docs/14 must not expose
+  intro-skip settings marked “add but hide for now” in the architecture's Settings checklist must not expose
   controls yet. Values remain local, and modal/input, accessibility, and the
   transparent Escape home list remain correct.
 - With the Construction Hammer active, right-click opens the Build menu; its

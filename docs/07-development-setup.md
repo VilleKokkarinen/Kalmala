@@ -1,8 +1,10 @@
 # Development setup
 
+Start with [Baseline](#baseline), [First build](#first-build), and the [consolidated verification index](#consolidated-verification-index). Earlier milestone-specific entries below are historical diagnostic procedures; current acceptance requirements remain in the roadmap and live backlog.
+
 ## User-directed inventory simplification — 2026-10-09
 
-The current player inventory/hotbar contract is `47-inventory-grid.md`; it
+The current player inventory/hotbar contract is `02-technical-architecture.md`; it
 supersedes earlier sixteen-slot Inventory menu captures and browsing checks.
 This normal user-directed increment uses lightweight input, ownership,
 retired-panel, PowerShell parser, whitespace and path audits. Full Unreal
@@ -15,7 +17,7 @@ its final HUD capture verifies the occupied numbered row after the modal closes.
 
 ## M11 skill notification child
 
-See `docs/40-notifications.md`. Build the affected editor target in the short
+See `docs/02-technical-architecture.md`. Build the affected editor target in the short
 isolated mirror, then run `Kalmala.UI.Notifications.SkillLevels` plus
 `Kalmala.UI.Theme.LocalPresentation`, `Kalmala.Gameplay.Progression.SkillContract`
 and `Kalmala.Gameplay.Progression.ReplicationContract` with isolated user/log
@@ -25,7 +27,7 @@ remain pending until the combined acceptance child is complete.
 
 ## M11 ingredient/requirements parent acceptance
 
-Follow `39-crafting-ingredients.md`: build the short isolated editor mirror
+Follow `02-technical-architecture.md`: build the short isolated editor mirror
 with normal UnrealBuildTool access, run the full `Automation RunTests Kalmala`
 queue with isolated UserDir/logs and queue-empty TestExit, then rendered
 `Verify-Crafting.ps1` at1280x720/100%/contrast0 and1024x768/150%/contrast1.
@@ -36,7 +38,7 @@ extra capture stages; no gameplay timing changes. Inspect both peers' source
 PNGs for complete readable counts and requirements through the normal scroll
 view. Run mirror Verify-Inventory for owner privacy/transaction regression,
 ownership, five M5 contracts, script parser and diff/path checks. Retain accepted
-captures and exact results/limits in docs/39 and PROGRESS before parent closeout.
+captures and exact results/limits in the architecture's Item and recipe details section and PROGRESS before parent closeout.
 
 ## M11 combined menu browsing acceptance
 
@@ -61,13 +63,13 @@ cards, no-results recovery, and non-overlapping inventory headings/cards.
 Run mirror `Scripts/Verify-Inventory.ps1` for owner-only state and transaction
 regression, then presentation ownership, all five M5 documentation contracts,
 PowerShell parser and diff/path checks. Preserve source capture evidence and
-exact roots/results in `38-menu-browsing.md` and PROGRESS.md. This completes the
+exact roots/results in `02-technical-architecture.md` and PROGRESS.md. This completes the
 browsing parent only; physical keyboard/controller text entry, exhaustive
 viewport combinations and packaged acceptance are not certified by the fixture.
 
 ## M11 build browsing increment
 
-Follow `38-menu-browsing.md`: compile affected UI in the short disposable mirror
+Follow `02-technical-architecture.md`: compile affected UI in the short disposable mirror
 with normal UnrealBuildTool access, run Kalmala.UI.Crafting.LocalBrowsing with
 isolated UserDir/logs/null renderer/memory DDC, and require Success/test exit0.
 Run rendered Verify-Crafting at standard1280x720; both peers must report Build
@@ -78,7 +80,7 @@ until the final browsing acceptance child.
 
 ## M11 recipe browsing increment
 
-Follow `38-menu-browsing.md`: compile affected UI in the short disposable mirror
+Follow `02-technical-architecture.md`: compile affected UI in the short disposable mirror
 with normal UnrealBuildTool access. Run `Kalmala.UI.Crafting.LocalBrowsing` with
 isolated UserDir/logs, null renderer and memory DDC; require Result={Success}
 and test exit0. Run rendered `Scripts/Verify-Crafting.ps1` at 1280x720/100%
@@ -90,7 +92,7 @@ remain pending.
 
 ## M11 inventory browsing increment
 
-Follow `38-menu-browsing.md`: compile affected `KalmalaUI` sources in the short
+Follow `02-technical-architecture.md`: compile affected `KalmalaUI` sources in the short
 disposable mirror with normal `%LOCALAPPDATA%/UnrealBuildTool` access, then run
 `Automation RunTests Kalmala.UI.Inventory` with isolated `-UserDir`, `-abslog`,
 `-nullrhi`, `-DDC-ForceMemoryCache` and `-TestExit="Automation Test Queue Empty"`.
@@ -270,7 +272,7 @@ damage type, RPC, or saved field is introduced.
 
 ## M11 status parent and complete icon verification
 
-Follow `36-status-icons.md`: build the isolated editor mirror after the three
+Follow `02-technical-architecture.md`: build the isolated editor mirror after the three
 user-requested implementations, then run the full Kalmala automation queue,
 the new rendered `Scripts/Verify-StatusHotbar.ps1` viewport/text-scale matrix,
 and existing rendered crafting, settings/accessibility and owner inventory
@@ -291,7 +293,7 @@ scroll restoration in other menus remains open.
 
 ## M11 theme foundation verification
 
-Theme keys and the restart/load workflow are documented in `35-ui-theme.md`.
+Theme keys and the restart/load workflow are documented in `02-technical-architecture.md`.
 Build a disposable project mirror (including existing project plugin source,
 excluding generated directories) to keep generated outputs out of the checkout.
 The theme foundation children use these focused tests after compilation:
@@ -318,7 +320,7 @@ build checks with changed theme values in the disposable mirror, and with
 150% text/high contrast in its local settings. Restore mirror config afterward.
 This gate verifies representative editor presentation and existing authority /
 modal input contracts; it does not establish a new package or physical-input
-playthrough. Evidence and remaining M11 scope are recorded in `35-ui-theme.md`.
+playthrough. Evidence and remaining M11 scope are recorded in `02-technical-architecture.md`.
 
 ## M11 shared hover and focus feedback
 
@@ -381,7 +383,7 @@ physical input remain in M12 milestone-final verification.
 
 ## M11 ingredient-count child
 
-Follow `39-crafting-ingredients.md`: compile affected UI in the short disposable
+Follow `02-technical-architecture.md`: compile affected UI in the short disposable
 mirror with normal UnrealBuildTool access. Run
 `Kalmala.UI.Crafting+Kalmala.Gameplay.Crafting.Transactions` with isolated
 UserDir/logs, null renderer and TestExit queue-empty; require success and exit0.
@@ -396,7 +398,7 @@ For the requirements child, also run
 rendered Verify-Crafting additionally asserts the selected result, ingredients,
 supported batch quantity, live station/heat requirements and one current blocker;
 direct construction retains its carried-hammer and placement checks. Generic
-recipe detail copy omits skill/unlock boilerplate. See docs/39.
+recipe detail copy omits skill/unlock boilerplate. See the architecture's Item and recipe details section.
 
 ## Baseline
 
@@ -426,7 +428,7 @@ After the editor build, run it with the documented temporary-user pattern:
 
 The accepted schema-2 design extends the existing construction and
 player-discovery save owners; it leaves the M7 sparse ledger and storage schema
-unchanged. Read `docs/30-m9-persistence-migration.md` for exact seed/revision/
+unchanged. Read `docs/02-technical-architecture.md` for exact seed/revision/
 scope matching, caps, and the schema-1 migration rules. Normal schema-2 writes
 are enabled after the focused round-trip, migration, rejection, and host/client
 reconnect checks passed. Construction and player writers preserve validated
@@ -519,7 +521,7 @@ outcome. The server retraces, validates the source/tool/action/skill/condition,
 preflights the catalogue reward against inventory capacity, and commits pack,
 condition, node depletion, and the existing sparse callback as one accepted
 action. Owner-only condition replication and the current no-persistence limit
-are specified in `17-m7-tools-and-gathering.md`. Run its focused automation,
+are specified in `02-technical-architecture.md`. Run its focused automation,
 then `Scripts/Verify-InventoryReconnect.ps1` for the host/client inventory and
 tool transaction fixture. The Camp crafting panel provides one repair action
 per tool at a visible Joiner's workbench; the server derives the matching
@@ -539,7 +541,7 @@ only crafting RPC fields.
 ## First build
 
 For M10 lower-resource diagnostics on the available high-end PC, see
-[`34-m10-constrained-performance.md`](34-m10-constrained-performance.md).
+[`07-development-setup.md`](07-development-setup.md#performance-diagnostics).
 `Scripts/Verify-ConstrainedPerformance.ps1` runs the existing rendered two-peer
 fixture with Potato/Low/Med/High/Ultra resource and quality presets or the
 original reference/eight-thread/four-thread CPU-only profiles. It verifies
@@ -782,7 +784,7 @@ The inventory runner also requires `Harvest inventory: Passed=1` for both server
 
 ## Workbench and storage verification
 
-After the editor build, run `Kalmala.Gameplay.Storage` with the headless flags and unique temporary user/log paths above. It covers bounded storage serialization, identity mismatch, invalid stacks and quantities, transfer conservation/capacity, RPC payloads, and owner-only chest snapshots. Then run `Scripts/Verify-Storage.ps1` for paid workbench/chest placement, kit assembly, actual owner deposit/withdraw RPCs, distance/obstruction rejection, write-failure conservation, private peer snapshots, and a same-user-directory restart retaining the exact two chest IDs and contents. The runner writes only temporary user/save/log data. See `10-campfire-and-crafting.md` for controls and limits; this fixture does not close the later complete M2 camp acceptance gate.
+After the editor build, run `Kalmala.Gameplay.Storage` with the headless flags and unique temporary user/log paths above. It covers bounded storage serialization, identity mismatch, invalid stacks and quantities, transfer conservation/capacity, RPC payloads, and owner-only chest snapshots. Then run `Scripts/Verify-Storage.ps1` for paid workbench/chest placement, kit assembly, actual owner deposit/withdraw RPCs, distance/obstruction rejection, write-failure conservation, private peer snapshots, and a same-user-directory restart retaining the exact two chest IDs and contents. The runner writes only temporary user/save/log data. See `02-technical-architecture.md` for controls and limits; this fixture does not close the later complete M2 camp acceptance gate.
 
 ## Dedicated-server build
 
@@ -922,13 +924,13 @@ Run `Scripts/Verify-Minimap.ps1` after an editor build for the two-peer identity
 
 The compact active-status group reads the minimap widget's configured viewport slot and shares its top offset; its right edge sits 12 UI units left of the minimap's actual left edge. Both use the same top-right anchor, so Unreal applies the viewport DPI scale uniformly. `Kalmala.UI.StatusHotbar.SnapshotAndLayout` checks the actual slot relationship and wrapping fit across 4:3, 16:9, and ultrawide viewports at 75%, 100%, and 125% DPI scales. It also checks known live owner statuses, the existing Hot/Cold exposure qualifiers, Storm-only weather at the shared 0.65 storm threshold, interval expiry, and a fully empty result when all active conditions clear. Normal/active weather and fog-only highly active weather do not create an entry. If the minimap has not been created yet, the status group temporarily uses the documented default 208-unit map footprint and corrects itself on the next local refresh.
 
-The M12 status-image follow-on pins the nine supported entry/icon identities in `docs/status-icon-manifest.csv` with fixed 4/4/1 generation batches. All three batches have retained originals and prepared transparent 64x64 RGBA PNGs under `Content/Kalmala/UI/Source/IconOriginals/Status` and `Content/Kalmala/UI/Source/Icons/Status`. Prepare a batch with `python Scripts/Prepare-StatusIconBatch.py --batch <Batch>` and validate its IDs with `Scripts/Validate-StatusIcon.ps1 -Id <IconId>`. `Scripts/Import-StatusIconAssets.ps1` imports the nine prepared PNGs in an isolated UE 5.8 content-only project, verifies 64x64 Texture2D assets with source alpha, sRGB, UI texture group, no mipmaps, and non-streaming settings, then copies only those packages to `Content/Kalmala/UI/Icons/Status`. `Scripts/Validate-StatusIconSet.ps1` checks manifest, PNG, entry-map and package coverage; `Kalmala.UI.StatusHotbar.StatusIconCoverage` checks runtime texture paths and loads after an affected editor build. The local `FKalmalaStatusIconLibrary` keeps these IDs separate from catalogue icons. The hotbar now renders each raster image at 64x64 without visible names, retaining accessible names in a visually hidden text label; a centred m:ss appears only beneath finite Wet/meal/support entries. Hot, Cold, Storm, and weather detail have no countdown. Timing remains based on the existing owner snapshot and synchronized server time, without local countdown mutation. See `36-status-icons.md` for the full identity and image review contract. These image assets do not change status ownership or gameplay.
+The M12 status-image follow-on pins the nine supported entry/icon identities in `docs/status-icon-manifest.csv` with fixed 4/4/1 generation batches. All three batches have retained originals and prepared transparent 64x64 RGBA PNGs under `Content/Kalmala/UI/Source/IconOriginals/Status` and `Content/Kalmala/UI/Source/Icons/Status`. Prepare a batch with `python Scripts/Prepare-StatusIconBatch.py --batch <Batch>` and validate its IDs with `Scripts/Validate-StatusIcon.ps1 -Id <IconId>`. `Scripts/Import-StatusIconAssets.ps1` imports the nine prepared PNGs in an isolated UE 5.8 content-only project, verifies 64x64 Texture2D assets with source alpha, sRGB, UI texture group, no mipmaps, and non-streaming settings, then copies only those packages to `Content/Kalmala/UI/Icons/Status`. `Scripts/Validate-StatusIconSet.ps1` checks manifest, PNG, entry-map and package coverage; `Kalmala.UI.StatusHotbar.StatusIconCoverage` checks runtime texture paths and loads after an affected editor build. The local `FKalmalaStatusIconLibrary` keeps these IDs separate from catalogue icons. The hotbar now renders each raster image at 64x64 without visible names, retaining accessible names in a visually hidden text label; a centred m:ss appears only beneath finite Wet/meal/support entries. Hot, Cold, Storm, and weather detail have no countdown. Timing remains based on the existing owner snapshot and synchronized server time, without local countdown mutation. See `02-technical-architecture.md` for the full identity and image review contract. These image assets do not change status ownership or gameplay.
 
 ## M12 final HUD, inventory, station, and interaction captures
 
 After the final M12 editor build and automation queue, run
 `Scripts/Verify-StatusHotbar.ps1` for each viewport/text-scale pair in the
-matrix in `36-status-icons.md`. The helper checks the read-only host/client
+matrix in `02-technical-architecture.md`. The helper checks the read-only host/client
 snapshot, empty/populated/expired states, active six-icon fixture, icon-only
 visual contract, finite versus untimed timer assertions, and the group's actual
 12-unit top/minimap separation, left safe inset, and lower viewport bound. The
@@ -1122,7 +1124,7 @@ quality, or packaged persistence.
 ## M5 onboarding contract check
 
 `Scripts/Verify-OnboardingContract.ps1` is a no-build check for the retained
-local tutorial design in `docs/13-onboarding-and-tutorial.md`. It requires the
+local tutorial design in `docs/02-technical-architecture.md`. It requires the
 ten route-free prompt beats, no key/button legends in prompt examples,
 colour-independent text/icon guidance, visible-context triggers, server
 authority boundaries, hidden-content privacy rules, and protection of prompt
@@ -1133,7 +1135,7 @@ claim packaged two-player prompt flow has passed.
 ## M5 settings and accessibility contract check
 
 `Scripts/Verify-SettingsAccessibilityContract.ps1` is a no-build check for
-`docs/14-settings-and-accessibility.md`. It validates the existing Video,
+`docs/02-technical-architecture.md`. It validates the existing Video,
 Audio, Controls, and Settings groups, text-scale and contrast requirements,
 bounded control remapping and restore defaults, keyboard/controller focus
 access, text-scale and contrast requirements, the bounded colour-independent
@@ -1144,7 +1146,7 @@ Unreal or claim that the full option set is functional.
 ## M5 presentation ownership check
 
 `Scripts/Verify-PresentationOwnership.ps1` is a no-build audit for
-`docs/15-presentation-ownership.md`. It confirms the seven project-owned world
+`docs/02-technical-architecture.md`. It confirms the seven project-owned world
 materials, the procedural player/wildlife/environment/hearth sources, the local
 UI texture/feedback sources, the four code-drawn support-effect glyphs, and the
 absence of known engine-basic-shape, Starter Content, Marketplace, or third-
@@ -1175,7 +1177,7 @@ planes merge somewhat, and other distances and lighting remain unreviewed.
 ## M5 audio cue contract check
 
 `Scripts/Verify-AudioCueContract.ps1` is a no-build check for
-`docs/16-audio-cue-contract.md`. It requires the eight original cue groups,
+`docs/02-technical-architecture.md`. It requires the eight original cue groups,
 readable text/shape fallbacks, local mix scope, project-owned asset rule,
 server-authority/privacy boundaries, silence fallback, and no new RPC/save
 field. It does not create or play sound assets, test mixing/spatialization, or
@@ -1243,7 +1245,7 @@ packaged playback.
 
 `Scripts/Verify-LocalInputContract.ps1` is a no-build check for the current
 keyboard/mouse and controller baseline in `Config/DefaultInput.ini`, as
-documented in `docs/14-settings-and-accessibility.md`. It validates the
+documented in `docs/02-technical-architecture.md`. It validates the
 movement/look/map axes and Interact, Attack, Jump, Sprint, SettingsMenu,
 WorldMap, WorldMapRecenter, InventoryMenu, and CraftMenu action bindings,
 including the default Tab/I Inventory keys. It does not launch Unreal or prove
@@ -1343,7 +1345,7 @@ its allowlist but are absent from schema 4 and cannot be granted or consumed.
 The six schema-4 cooking outputs do not currently have an Eat action. This
 predates M12; the presentation work preserves that gameplay contract rather
 than adding food effects or reintroducing retired items. See
-`docs/28-m9-camp-equipment-recipes.md`.
+`docs/02-technical-architecture.md`.
 
 For the M12 final host/client acceptance, exercise each supported item through
 Inventory while away from stations, verify the count changes only after server
@@ -1540,7 +1542,7 @@ Build `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -MaxParallelActio
 
 ## Fuelled hearth and crafting verification
 
-After the editor build, run `Kalmala.Gameplay.Crafting`, `Kalmala.Gameplay.Inventory` and `Kalmala.Gameplay.Campfire` with the headless temporary-user/log flags above, then `Scripts/Verify-Crafting.ps1 -Rendered`. Rendered runs need access to Unreal's shader working directory as well as the build-tool cache. The runner requires exact inventory conservation for both players, rejection of real forged/malformed RPCs and insufficient placement, two matching dry/rain-extinguished fire states, paid placement and fuel/protection gates, local menu input restoration, and retained host/client screenshots. Also run `Scripts/Verify-InventoryReconnect.ps1` and `Scripts/Verify-CampChoices.ps1`. Full contract and test limits: `10-campfire-and-crafting.md`.
+After the editor build, run `Kalmala.Gameplay.Crafting`, `Kalmala.Gameplay.Inventory` and `Kalmala.Gameplay.Campfire` with the headless temporary-user/log flags above, then `Scripts/Verify-Crafting.ps1 -Rendered`. Rendered runs need access to Unreal's shader working directory as well as the build-tool cache. The runner requires exact inventory conservation for both players, rejection of real forged/malformed RPCs and insufficient placement, two matching dry/rain-extinguished fire states, paid placement and fuel/protection gates, local menu input restoration, and retained host/client screenshots. Also run `Scripts/Verify-InventoryReconnect.ps1` and `Scripts/Verify-CampChoices.ps1`. Full contract and test limits: `02-technical-architecture.md`.
 
 ## Master-map generation verification
 
@@ -1662,7 +1664,7 @@ After building, run Scripts/Verify-Crafting.ps1 -Rendered. The paid floor fixtur
 
 Run `Scripts/Verify-TutorialRouteFree.ps1` for a no-build source audit of the retained route-free prompt design and its disabled runtime presenter. It checks that the bottom gameplay card cannot mount, while the historical arrival/context rules still avoid routes, quest flow, hidden-actor scans, RPCs, and gameplay-save state. `Verify-PlayerControls.ps1` runs this audit before its fresh-pawn host/client scenario; `Verify-InventoryPanelRemoval.ps1` includes it in the reconnect/HUD-absence preflight.
 
-After a forced editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered -Port <unused-port>` from the same isolated project copy. Its fresh-pawn host/client path verifies local jump/sprint input and server-observed remote movement, with the tutorial absence audit as a preflight. Inspect both 1280×720 captures for the absence of the bottom card while checking essential status/action notifications remain visible. The fixture uses a development-only movement-test flag. It does not simulate physical controller input or replace the final packaged 20–30 minute no-developer-tools acceptance in `docs/12-vertical-slice-runbook.md`.
+After a forced editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered -Port <unused-port>` from the same isolated project copy. Its fresh-pawn host/client path verifies local jump/sprint input and server-observed remote movement, with the tutorial absence audit as a preflight. Inspect both 1280×720 captures for the absence of the bottom card while checking essential status/action notifications remain visible. The fixture uses a development-only movement-test flag. It does not simulate physical controller input or replace the final packaged 20–30 minute no-developer-tools acceptance in `docs/07-development-setup.md`.
 
 ### M3 rain vertical-slice verification
 
@@ -1710,10 +1712,10 @@ contract check and does not replace rendered readability review.
 The original M7 acceptance used roasted field-meat IDs. That content was
 superseded by the current schema-4 catalogue. For current recipe IDs,
 ingredients, stations, and outputs, use the catalogue contract in
-`docs/28-m9-camp-equipment-recipes.md` and the focused current-catalogue tests
+`docs/02-technical-architecture.md` and the focused current-catalogue tests
 listed below.
 
-The Cooking Rack, Cauldron, and Frying Pan use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. The server resolves each required station and derives heat needs from its cooking identity. A food recipe requires a usable Lit hearth with finite positive heat within 250 cm of both player and station. Looking at a rack, cauldron, frying pan, or Workbench shows a remappable Interact prompt; the default E interaction is rerun by the server, which replicates the selected station identity only to its owner. The shared themed shell opens the Cooking Rack, Cauldron, and Frying Pan Cook sections and the Workbench Craft section. Workbench Craft filters to recipes requiring that station or producing its matching Tool Rack attachment, plus the Bronze Axe tool operation; it reports material requirements, effective level, and current Tool Rack state. The exact accepted actor and stable construction ID bind the section, and the shell closes if that actor is destroyed, leaves range, or the owning pawn changes. The older CraftMenu remains available. The filter and shell do not authorize crafting: the server independently validates each recipe/tool request against the visible same-world station, required levels, private inventory, and atomic material exchange. `Kalmala.Gameplay.Food.CookingStationHeat` asserts the exact accepted Cooking Rack context and Workbench interaction identity; the M12 `Verify-Crafting.ps1` presentation check also audits Workbench Craft's limited outputs and Bronze Axe prerequisites on both peers. Each recipe exchange consumes only the listed ingredients; the hearth burns its fuel by elapsed server time at the ordinary one-fuel-second-per-second rate. A serving batch creates no raw-fuel item debit or hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming an accepted meal and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. `HearthBroth` remains an item without a production recipe; food recipes and outputs are enumerated in `docs/28-m9-camp-equipment-recipes.md`. Food remains optional, with no hunger drain or travel requirement. Food and the effect remain transient; no save schema changed.
+The Cooking Rack, Cauldron, and Frying Pan use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. The server resolves each required station and derives heat needs from its cooking identity. A food recipe requires a usable Lit hearth with finite positive heat within 250 cm of both player and station. Looking at a rack, cauldron, frying pan, or Workbench shows a remappable Interact prompt; the default E interaction is rerun by the server, which replicates the selected station identity only to its owner. The shared themed shell opens the Cooking Rack, Cauldron, and Frying Pan Cook sections and the Workbench Craft section. Workbench Craft filters to recipes requiring that station or producing its matching Tool Rack attachment, plus the Bronze Axe tool operation; it reports material requirements, effective level, and current Tool Rack state. The exact accepted actor and stable construction ID bind the section, and the shell closes if that actor is destroyed, leaves range, or the owning pawn changes. The older CraftMenu remains available. The filter and shell do not authorize crafting: the server independently validates each recipe/tool request against the visible same-world station, required levels, private inventory, and atomic material exchange. `Kalmala.Gameplay.Food.CookingStationHeat` asserts the exact accepted Cooking Rack context and Workbench interaction identity; the M12 `Verify-Crafting.ps1` presentation check also audits Workbench Craft's limited outputs and Bronze Axe prerequisites on both peers. Each recipe exchange consumes only the listed ingredients; the hearth burns its fuel by elapsed server time at the ordinary one-fuel-second-per-second rate. A serving batch creates no raw-fuel item debit or hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming an accepted meal and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. `HearthBroth` remains an item without a production recipe; food recipes and outputs are enumerated in `docs/02-technical-architecture.md`. Food remains optional, with no hunger drain or travel requirement. Food and the effect remain transient; no save schema changed.
 
 Each successful prepared-food recipe transaction awards one fixed 10 Cooking experience through the existing server-owned skill component, regardless of its serving batch. The award happens only after the atomic private-pack exchange succeeds. Rejected stations, heat, quantities, inputs, or output capacity award no experience; client-side calls cannot reach the award path. The award is transient. `Kalmala.Gameplay.Food.CookingStationHeat` checks the station-local heat rule, no recipe fuel debit, and time-based fire burn; `Kalmala.Gameplay.Crafting.Transactions` checks recipe batches and raw-fuel selection for hearth refuelling.
 
@@ -1999,7 +2001,7 @@ identity.
 Then run `Scripts/Verify-Crafting.ps1 -Port <unused-port>`,
 `Scripts/Verify-ConstructionPersistence.ps1 -Port <unused-port>`, and the
 single-session `Scripts/Verify-PersistedCampHearth.ps1 -Port <unused-port>`
-fixture described in `10-campfire-and-crafting.md`. The crafting runner checks
+fixture described in `02-technical-architecture.md`. The crafting runner checks
 the owner-local menu, two-peer input restoration, hearth raw-material and
 ignition payment, rejection gates, and exact final inventories. The construction
 runner confirms that two raw-material floor builds replicate with
@@ -2245,7 +2247,7 @@ post-layout clamping. Run `Scripts/Verify-Crafting.ps1 -Rendered` at
 regressions, then run presentation-ownership, M5 documentation contracts,
 PowerShell parsing for changed scripts, `git diff --check`, and the 260-character
 path audit. Full scale/contrast/reopen rendering remains in the later M11
-acceptance pass. See `38-menu-browsing.md` for the local-state contract.
+acceptance pass. See `02-technical-architecture.md` for the local-state contract.
 ## M12 Workbench Repair section
 
 The Workbench context shell opens Craft by default and lets the owner switch to
@@ -2554,3 +2556,70 @@ At M12 milestone-final verification, run the applicable automation queue and
 the rendered host/client `Scripts/Verify-Crafting.ps1` matrix. This child only
 prepares the contracts; it does not run a build, runtime scenario, or rendered
 acceptance.
+
+
+## Consolidated verification index
+
+The core docs now own the contracts formerly split across docs 08–47. Historical incremental procedures below remain diagnostic references; the live roadmap/backlog selects the required current acceptance suite. Current forty-cell Inventory and M13/M14 overrides supersede old sixteen-slot, F1–F4/Q support, persistent tutorial/status panel, Build relight-button, and co-op map-control expectations.
+
+| Area | Current verification entry points |
+| --- | --- |
+| Documentation, input, presentation | Verify-M5DocumentationContracts.ps1; Verify-LocalInputContract.ps1; Verify-MenuInputCopy.ps1; Verify-InventoryPanelRemoval.ps1 |
+| Generated world and hydrology | Verify-RegionalGeneration.ps1; master-map automation; world-map exporter checks |
+| Inventory, harvesting, food, storage | Verify-InventoryReconnect.ps1; Verify-InventoryMenu.ps1; Verify-Crafting.ps1; Verify-Storage.ps1 |
+| Combat, discoveries, support | Verify-CombatPeer.ps1; Verify-DiscoveryPeer.ps1; Verify-M4VerticalSlice.ps1; relevant Kalmala.Gameplay automations |
+| Survival and progression | Verify-CampChoices.ps1; Verify-M7AutomatedAcceptance.ps1; inventory/tool/progression/food/weather automations |
+| Ocean journey and persistence | Verify-OceanTravel.ps1; Verify-OceanSkiffDiscoveryDisembark.ps1; travel-save/restore automations and existing restart/late-join scenarios |
+| Settings and HUD | Verify-SettingsAccessibility.ps1; Verify-StatusHotbar.ps1; theme, notification, recipe activity and local browsing automations |
+| Integrated M14 map | Verify-MapAwareness.ps1; Verify-WorldMap.ps1; Verify-WorldMapTiles.ps1; Verify-WorldMapProfile.ps1 |
+| Package and performance | Windows package smoke below; Verify-ConstrainedPerformance.ps1 |
+
+All helpers are under Scripts/. Check each helper's supported parameters before invoking it. For milestone-final acceptance, use a successfully built integrated tree, the prescribed full Kalmala automation namespace, fresh isolated profiles, and the relevant live/rendered/package checks. A static contract PASS never proves rendered or physical input acceptance. Run UnrealBuildTool with normal read/write access to %LOCALAPPDATA%/UnrealBuildTool. Use short paths and avoid generating Binaries, Intermediate, Saved, or DerivedDataCache inside the source checkout during autonomous work.
+
+## Fresh-player co-op acceptance
+
+The retained M5 charter is one normal packaged, tool-free 20–30 minute listen-host/client session: start and orient, choose/gather/build a camp, travel by choice, exercise optional creatures/discoveries/support, return or recover, then reconnect to the same world. Use normal input and joining rather than verification flags, teleports, fixed routes, developer commands, or hidden-content queries. Cover Mireling/boar/deer and all four support effects without direct-damage magic. Observe shared world identity, paid transactions, readable non-colour feedback, private entitlement/reward state, and exact-once matching-world restoration.
+
+The historical native-window skip closes only the documented M5 execution gate. It does not pass the player-visible journey, physical input, packaged persistence, audible quality, or long-session balance. Its evidence rule requires a passed release/package aggregate, at least three normal packaged launches with no targetable native game window (including fresh-profile windowed launch), computer-use inventory showing no surface, and retained attempt/process/cleanup evidence.
+
+Verify-M7AutomatedAcceptance.ps1 provides the separate headless progression/recovery/privacy and rendered-fixture gate when combined with M6 regression slices and clean-profile package smoke. It is not evidence of an unscripted fresh-player journey. Apply current Inventory/hotbar support and Build interaction contracts during new walkthroughs; obsolete M5 key legends are historical.
+
+## Performance diagnostics
+
+Each schema-1 travel save record is capped at 3,072 serialized bytes through SaveGameToMemory; rejection rolls back the candidate. One vessel and two seats have a 9,216-byte arithmetic ceiling, excluding the separate sparse discovery ledger. The existing terrain cap is 25 active patches.
+
+Verify-ConstrainedPerformance.ps1 wraps the rendered two-peer discovery/disembark fixture and retains 300 positive frame/GameThread/RenderThread/GPU samples per peer. NullRHI is rejected. Reference uses caller affinity; Cpu8Threads/Cpu4Threads restrict both peers to the first eight/four allowed logical processors with identical rendering. The runner verifies actual peer affinity and restores its own mask in finally.
+
+| Preset | Shared logical processors | Quality | Screen percentage | Texture pool MB |
+| --- | ---: | --- | ---: | ---: |
+| Potato | 2 | Low | 50 | 256 |
+| Low | 4 | Low | 75 | 512 |
+| Med | 8 | Medium | 100 | 1024 |
+| High | 16 | High | 100 | 2048 |
+| Ultra | Caller affinity | Epic | 100 | 4096 |
+
+List with `Scripts/Verify-ConstrainedPerformance.ps1 -ListProfiles`. Run profiles sequentially using a built short mirror, fresh OutputDirectory, and unused Port. Keep profile.json, scenario.txt, peer logs, and CSVs; repeat at least three times before interpreting timing differences. PASS validates scenario/capture integrity, not an approved hardware budget.
+
+These profiles retain the actual i7-14700K/RTX 5090, physical memory, storage, and network. Texture-pool settings are not total VRAM caps, quality changes do not emulate an older GPU, and affinity limits are logical processors shared by two peers. M10 owner acceptance retained those limitations; minimum/recommended hardware, numeric release ceilings, sustained/peak travel, and independent low/mid-tier hardware coverage were not certified.
+
+## Project-file recovery
+
+Use the direct KalmalaEditor target or the supported game-project mapping in Kalmala.slnx. The installed distribution cannot build DotNetPerforceLib and LiveLinkHub utility targets; after authorized project-file regeneration, recheck solution exclusions and referenced files rather than treating stale generated references as missing engine source. DebugGame Editor | Win64 is the documented Visual Studio mapping. `-DisableAdaptiveUnity` exercises unity-name collisions.
+
+Only regenerate project files when authorized to write the generated directories. From the installed engine's Engine/Source directory, the documented recovery command is:
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/DotNet/10.0/win-x64/dotnet.exe' 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll' -projectfiles '-project=E:/dev/Kalmala/Kalmala.uproject' -game -rocket -progress
+```
+
+Do not infer a passing game build from successful generation or solution validation.
+
+## Historical acceptance and limits
+
+M0–M12 and world-generation Phases 1–9 have recorded acceptance under their documented scope. M11 final acceptance is dated 2026-10-06; M12 final acceptance is dated 2026-10-09. M12's isolated final queue passed 116/116; the subsequent combined master integration passed 120/120 after activity-identity, preview-coverage, stale-requirement, and misplaced Forge-comparison repairs. These are historical results, not checks rerun by this cleanup.
+
+The combined integration build and rendered Crafting at 1280x720/100%/standard contrast and 1024x768/150%/high contrast passed. Compact status and Inventory checks included image geometry, support/minimap separation, active-only timers, eleven inventory stages, owner privacy, and input restoration. Earlier small-icon/overlapping-panel captures are superseded. The M12 status matrix also covered 2560x1080 and high-contrast 100/125/150% scales. Later forty-cell Inventory and M13 modifications require fresh acceptance.
+
+Historical M10 fixes changed a camp test's probe spacing to avoid integer Perlin-phase aliasing, corrected retired Smoke Frame recipe assertions, and repaired Settings widget initialization/large-scale layout. They did not reopen gameplay scope or alter saves. M8 dry-shore acceptance was waived; diagnostics/automated gates do not establish physical input, production online identity, audible quality, or screen-reader compatibility.
+
+Historical milestone diaries and screenshots can be recovered from Git history. Existing evidence/manifest deletions in the working tree were preserved; this cleanup neither reran those historic tests nor treats unavailable evidence as newly retained. Current M13/M14 status remains in BACKLOG.md and PROGRESS.md. Integrated M14 builds/automation/rendered/privacy/ping-expiry/input/performance acceptance must succeed before marking M14 complete.
