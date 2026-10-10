@@ -907,10 +907,12 @@ saved-data schemas, introduce new online services, or expand platform scope.
   in `docs/14-settings-and-accessibility.md`. Keep current bounded-choice
   remapping unless direct keyboard/mouse capture is selected. If selected,
   activating a binding row captures the next valid input and Escape cancels.
-  If Controller layout is selected, previous/next controls cycle supported
-  presets and keep the displayed name and diagram synchronized. Values remain
-  local, and modal/input, accessibility, and the transparent Escape home list
-  remain correct.
+  Apply the same selected action rows to controller rebinding and show Xbox,
+  PlayStation, or Switch glyphs when those glyph candidates are selected. Keep
+  mouse sensitivity within the requested 1%–1000% range. The game-hints and
+  intro-skip settings marked “add but hide for now” in docs/14 must not expose
+  controls yet. Values remain local, and modal/input, accessibility, and the
+  transparent Escape home list remain correct.
 - With the Construction Hammer active, right-click opens the Build menu; its
   existing keyboard/controller entry remains available. Build entries show
   icons only. Hover/focus presents the selected piece's name, description,
