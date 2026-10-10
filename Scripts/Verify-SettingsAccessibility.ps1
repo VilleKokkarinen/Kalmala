@@ -104,14 +104,14 @@ try {
             $clientText -match "Authority=0 Stage=HUDScale InterfaceScale=$ClientInterfaceScale ReducedMotion=0 InputRestored=1 Viewport=${Width}x${Height}"
         $hostBackgrounds = $serverText -match 'Authority=1 Stage=Settings .*PanelImages=1 ContrastImageSuppressed=1' -and
             $serverText -match 'Authority=1 Stage=StandardBackgroundCapture Loaded=1 Contrast=0' -and
-            $serverText -match 'Authority=1 Stage=EscapeBackgroundCapture Loaded=1 Contrast=0 FocusTargets=1' -and
+            $serverText -match 'Authority=1 Stage=EscapeBackgroundCapture Transparent=1 Contrast=0 OptionList=1 Focused=1 FocusCue=1' -and
             $serverText -match 'Authority=1 Stage=VideoBackgroundCapture Loaded=1 Contrast=0 FocusTargets=1' -and
-            $serverText -match 'Authority=1 Stage=ContrastRestore Mode=1 ImageSuppressed=1'
+            $serverText -match 'Authority=1 Stage=ContrastRestore Mode=1 ImageSuppressed=1 HomeTransparent=0 HomeFocusCue=1'
         $clientBackgrounds = $clientText -match 'Authority=0 Stage=Settings .*PanelImages=1 ContrastImageSuppressed=1' -and
             $clientText -match 'Authority=0 Stage=StandardBackgroundCapture Loaded=1 Contrast=0' -and
-            $clientText -match 'Authority=0 Stage=EscapeBackgroundCapture Loaded=1 Contrast=0 FocusTargets=1' -and
+            $clientText -match 'Authority=0 Stage=EscapeBackgroundCapture Transparent=1 Contrast=0 OptionList=1 Focused=1 FocusCue=1' -and
             $clientText -match 'Authority=0 Stage=VideoBackgroundCapture Loaded=1 Contrast=0 FocusTargets=1' -and
-            $clientText -match 'Authority=0 Stage=ContrastRestore Mode=1 ImageSuppressed=1'
+            $clientText -match 'Authority=0 Stage=ContrastRestore Mode=1 ImageSuppressed=1 HomeTransparent=0 HomeFocusCue=1'
         $capturesReady = ($captures | Where-Object { !(Test-Path $_) -or (Get-Item $_).Length -le 32 }).Count -eq 0
         if ($hostComplete -and $clientComplete -and $hostStages -and $clientStages -and $hostBackgrounds -and $clientBackgrounds -and $capturesReady) { break }
         Start-Sleep -Milliseconds 500
@@ -126,6 +126,7 @@ try {
         $bitmap = [System.Drawing.Bitmap]::FromFile($capture)
         try {
             if ($capture -match '-hud\.png$') { continue }
+            if ($capture -match '-escape\.png$') { continue }
             # A resized 1600x900 capture places (1100,360) inside an option button.
             # Sample the outer gutter, beyond the centred menu, at either viewport size.
             $backdropPixel = $bitmap.GetPixel([int]($bitmap.Width * 0.975), [int]($bitmap.Height * 0.5))

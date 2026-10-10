@@ -201,6 +201,16 @@
 - **Limits:** focused static/source checks do not establish runtime layout, station behavior, timer rendering, icon cooking/loading, or host/client acceptance. The M13 final gate remains open.
 - **Next eligible task:** implement the minimap-biome label refinement, then the transparent Escape home menu and Settings presentation.
 
+## 2026-10-10 13:47 UTC — Make Escape home menu transparent
+
+- **Completed:** made the standard-contrast Escape home surface transparent over gameplay and removed the title labels so only the existing Options, Status and weather details, and Quit buttons remain. The buttons continue using shared hover/focus styling. High contrast keeps the existing black surface and white focus border. Modal input ownership, opening/reduced-motion behavior, all actions, and per-tab backgrounds are unchanged.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`, `Scripts/Verify-SettingsAccessibility.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `Verify-SettingsAccessibilityContract.ps1`, `Verify-M5DocumentationContracts.ps1`, `Verify-PresentationOwnership.ps1`, and `Verify-LocalInputContract.ps1` passed. The changed settings verifier parsed successfully; focused source assertions for transparency, the exact option list, standard/high-contrast focus cues, and Escape-capture handling passed. `git diff --check` and the MAX_PATH audit passed. The live `Verify-SettingsAccessibility.ps1`, Unreal build, automation suite, and rendered host/client captures were not run.
+- **Full verification:** deferred to the M13 milestone-final gate.
+- **Impact and authority:** local presentation only. No gameplay, server authority, RPC, replication, persistence, or saved-data behavior changed; existing owner-local modal input and movement/look suppression remain intact.
+- **Limitations:** rendered transparency and pointer-hover feedback remain to be inspected on host/client at supported sizes and text scales. The integrated M13 crafting compile errors recorded by the paired M14 acceptance run also remain for the final gate.
+- **Next eligible task:** rework Settings using the selected six groups and existing local options.
+
 ## 2026-10-10 13:25 UTC — Add M13 minimap biome label
 
 - **Completed:** displayed the owning player's current biome as a right-aligned label above the circular minimap. The map moved down by a 26-unit label row plus a 4-unit gap; the status group follows the map and keeps its 12-unit horizontal gap, while the weather badge keeps its 24-unit gap below the map. The label uses the existing deterministic world-field classifier and locally cached theme font sized to fit its row and width.

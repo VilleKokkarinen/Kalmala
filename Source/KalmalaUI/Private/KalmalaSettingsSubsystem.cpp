@@ -548,11 +548,20 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
     {
         UKalmalaSettingsWidget::SetContrastMode(0);
         SettingsWidget->SetVerificationTab(5);
-        const bool bImageLoaded = !SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
+        const bool bTransparentHomeMenu = SettingsWidget->IsHomeMenuSurfaceTransparentForVerification();
+        const bool bOnlyOptions = SettingsWidget->HasOnlyHomeMenuOptionsForVerification();
+        const bool bFocusedOptionCue = SettingsWidget->HasVisibleFocusedHomeMenuOptionForVerification();
         UE_LOG(LogTemp, Display,
-            TEXT("Settings accessibility: Authority=%d Stage=EscapeBackgroundCapture Loaded=%d Contrast=%d FocusTargets=%d"),
-            Character->HasAuthority() ? 1 : 0, bImageLoaded ? 1 : 0,
-            UKalmalaSettingsWidget::GetContrastMode(), SettingsWidget->HasFocusableContentForVerification() ? 1 : 0);
+            TEXT("Settings accessibility: Authority=%d Stage=EscapeBackgroundCapture Transparent=%d Contrast=%d OptionList=%d Focused=%d FocusCue=%d"),
+            Character->HasAuthority() ? 1 : 0, bTransparentHomeMenu ? 1 : 0,
+            UKalmalaSettingsWidget::GetContrastMode(), bOnlyOptions ? 1 : 0,
+            SettingsWidget->HasFocusedContentForVerification() ? 1 : 0, bFocusedOptionCue ? 1 : 0);
+        if (!bTransparentHomeMenu || !bOnlyOptions || !bFocusedOptionCue)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL Escape home surface, option list, or focus cue."));
+            bDeveloperSettingsVerificationCompleted = true;
+            return;
+        }
         DeveloperSettingsScreenshotTab = 3;
         bDeveloperScreenshotPending = true;
         DeveloperScreenshotDelay = 0.0f;
@@ -578,15 +587,18 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
     if (DeveloperSettingsVerificationStage == 4)
     {
         UKalmalaSettingsWidget::SetContrastMode(1);
+        SettingsWidget->SetVerificationTab(5);
+        const bool bHomeRemainsOpaque = !SettingsWidget->IsHomeMenuSurfaceTransparentForVerification();
+        const bool bHomeFocusCue = SettingsWidget->HasVisibleFocusedHomeMenuOptionForVerification();
         SettingsWidget->SetVerificationTab(1);
         const bool bHighContrastSuppressesImage = SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
         UE_LOG(LogTemp, Display,
-            TEXT("Settings accessibility: Authority=%d Stage=ContrastRestore Mode=%d ImageSuppressed=%d"),
+            TEXT("Settings accessibility: Authority=%d Stage=ContrastRestore Mode=%d ImageSuppressed=%d HomeTransparent=%d HomeFocusCue=%d"),
             Character->HasAuthority() ? 1 : 0, UKalmalaSettingsWidget::GetContrastMode(),
-            bHighContrastSuppressesImage ? 1 : 0);
-        if (!bHighContrastSuppressesImage)
+            bHighContrastSuppressesImage ? 1 : 0, bHomeRemainsOpaque ? 0 : 1, bHomeFocusCue ? 1 : 0);
+        if (!bHighContrastSuppressesImage || !bHomeRemainsOpaque || !bHomeFocusCue)
         {
-            UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL high contrast was not restored after standard captures."));
+            UE_LOG(LogTemp, Error, TEXT("Settings accessibility: FAIL high contrast surface or focus cue was not retained."));
             bDeveloperSettingsVerificationCompleted = true;
             return;
         }
