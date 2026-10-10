@@ -92,32 +92,47 @@ behavior should be specified when selected. Do not copy reference artwork.
 ### Gameplay candidates
 
 - [ ] Language selector — previous/next arrows cycle available languages.
-- [ ] Auto-run — on/off toggle. The reference repeats this under Accessibility;
-  select one group only if adding it.
+- [ ] Auto-run — on/off toggle.
 - [ ] Attack towards look direction — on/off toggle.
 - [ ] Show button hints — on/off toggle.
-- [ ] Enable raven hints — on/off toggle.
+- [ ] Enable game hints — on/off toggle. (add but hide for now)
 - [ ] Reduce background performance — on/off toggle.
 - [ ] Enable Console — on/off toggle.
 - [ ] Show build piece author — on/off toggle.
-- [ ] Skip intro cinematic — on/off toggle.
+- [ ] Skip intro cinematic — on/off toggle. (add but hide for now)
 - [ ] Auto-backup history — slider with a visible selected count.
 
 ### Keyboard & Mouse candidates
 
-- [ ] Mouse sensitivity — slider with a visible percentage/value.
+- [ ] Mouse sensitivity — slider with a visible percentage/value. [1% to 1000%]
 - [ ] Invert mouse — on/off toggle.
-- [ ] Right-click build selection — on/off toggle.
 - [ ] Direct keyboard/mouse rebinding — show one row per action and its current
   binding; activating a binding captures the next valid key or mouse input,
   Escape cancels capture, and Reset controls restores defaults. This replaces
   the current bounded-choice interaction if selected.
+  - actions:
+    - Attack
+    - Secondary Attack
+    - Block
+    - Use (Action)
+    - Jump
+    - Run
+    - Crouch
+    - Dodge
+    - Alternative Dodge
+    - Holster Weapon
+    - Hotbar keys for 1,2,3,4,5,6,7,8,9,0
+    - Move keys Forward, Backward, Left, Right
+    - Inventory
+    - Alternative Inventory
+    - Map
+    - Map Zoom in
+    - Map zoom out
+    - Deconstruct (while holding hammer)
+    - Alternative placement (while holding hammer, normal by attack key)
+    - Prev snap point (in build mode)
+    - Next snap point (in build mode)
 
-The reference does not show a keyboard-layout preset selector. It shows
-per-action binding rows; changing a key means activating that row and pressing
-the desired input. Existing Kalmala remapping remains available even if direct
-capture and the new sensitivity/toggle candidates are not selected. If desired,
-the user can select direct capture above to match the reference's interaction.
 
 ### Controller candidates
 
@@ -127,17 +142,13 @@ the user can select direct capture above to match the reference's interaction.
 - [ ] Invert camera Y axis — on/off toggle.
 - [ ] Vibration strength — slider with a visible percentage/value.
 - [ ] Controller sensitivity — slider with a visible percentage/value.
-- [ ] Glyphs — selector; previous/next arrows cycle supported glyph styles.
-- [ ] Controller layout — selector; previous/next arrows cycle supported
-  layouts, show the selected layout name, and update the controller diagram.
-
-Keep Kalmala's existing controller binding choices in this group. The
-Controller layout reference is a separate preset selector, not a per-button
-editor. Its selected preset and diagram must stay in sync. Do not invent layout
-names; show only presets actually supported by Kalmala.
+- [ ] Glyphs — selector; previous/next arrows cycle supported glyph styles. (xbox/ps/switch controller)
+- Same re-bindable actions as above.
 
 ### Graphics candidates
 
+- [ ] Resolution — selector cycles supported limits.
+- [ ] Full screen - on/off toggle.  
 - [ ] 3D resolution limit — selector cycles supported limits.
 - [ ] Upscaling method — selector cycles supported methods.
 - [ ] Framerate limit — slider, including the supported Unlimited choice.
@@ -154,10 +165,8 @@ names; show only presets actually supported by Kalmala.
 - [ ] Distant shadows — on/off toggle.
 - [ ] Tessellation — on/off toggle.
 - [ ] Bloom — on/off toggle.
-- [ ] Depth of field — on/off toggle (the reference repeats it in Accessibility;
-  check only one group).
-- [ ] Motion blur — on/off toggle (the reference repeats it in Accessibility;
-  check only one group).
+- [ ] Depth of field — on/off toggle.
+- [ ] Motion blur — on/off toggle.
 - [ ] Chromatic aberration — on/off toggle.
 - [ ] Sun shafts — on/off toggle.
 - [ ] Soft particles — on/off toggle.
@@ -172,21 +181,10 @@ names; show only presets actually supported by Kalmala.
 
 ### Accessibility candidates
 
-- [ ] Auto-run — duplicate reference entry; if selected, use the single Gameplay
-  setting instead of showing a second control here.
 - [ ] Immersive camera — on/off toggle.
-- [ ] Camera shake — on/off toggle or supported intensity control.
+- [ ] Camera shake — slider 0-100%.
 - [ ] Reduce flashing lights — on/off toggle.
-- [ ] Motion blur — alternate placement for the Graphics candidate; check only
-  one group.
 - [ ] Toggle block — on/off toggle.
-- [ ] Depth of field — alternate placement for the Graphics candidate; check
-  only one group.
-
-The reference also shows **Reset raven hints**, **Delete PlayFab account**, and
-**Radial Menu** as buttons. They are actions rather than settings, so they are
-not in this checklist. Account deletion is an external account action; none of
-these actions is added to M13 by these screenshots.
 
 ### Existing Kalmala settings retained in the new groups
 
