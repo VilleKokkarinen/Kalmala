@@ -140,7 +140,10 @@ probe changes each isolated window from 1280x720 to 1600x900 and back while the
 panel is moving, interrupts and reopens it mid-transition, and checks the
 intermediate/final positions, center anchoring, immediate focus, modal input
 suppression/restoration, keyboard/controller mappings, gameplay stability, and
-the ten existing view captures. The temporary viewport change is restored
+the fourteen existing view captures. The Escape capture must show gameplay
+through a transparent home surface with only its three option buttons and a
+visible focused option; the other option tabs retain their configured panel
+backgrounds. The temporary viewport change is restored
 before captures complete. Then run `Scripts/Verify-SettingsAccessibilityContract.ps1`,
 `Scripts/Verify-M5DocumentationContracts.ps1`,
 `Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`.
@@ -181,8 +184,11 @@ Run the full `Automation RunTests Kalmala` queue, then
 `Scripts/Verify-M5DocumentationContracts.ps1`,
 `Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`. The
 host/client settings probe visits the Escape shell and Video, Audio, Controls,
-and Settings pages; require every configured panel image to resolve, high
-contrast to suppress it, and existing values, focus, text scale, keyboard and
+and Settings pages; require the Escape surface to be transparent in standard
+contrast, retain its three existing actions and visible focus cue, and require
+the configured option-tab images to resolve. High contrast must suppress
+decorative images and retain an opaque surface with a visible non-colour focus
+cue. Existing values, focus, text scale, keyboard and
 controller bindings, modal ownership, and local persistence checks to pass.
 Retain the runner output and inspect all fourteen PNGs: standard-contrast
 Escape, Video, Settings, reduced-motion Settings, and restored HUD captures,
@@ -1096,7 +1102,7 @@ Choose another unused port if either example port is occupied.
 
 Require local settings to survive a fresh-process restart, menu focus and
 modal input to remain correct, both motion paths to behave as selected, and
-the Escape panel to fit. Inspect the retained standard/high-contrast menu and
+the Escape option list to fit. Inspect the retained standard/high-contrast menu and
 HUD captures from both viewports. Run
 `Scripts/Verify-SettingsAccessibilityContract.ps1`, the ownership and M5
 documentation audits, changed-script PowerShell parsing, `git diff --check`,
@@ -1106,7 +1112,10 @@ packaged-build checks are outside this parent increment.
 `Scripts/Verify-SettingsAccessibility.ps1` starts isolated host/client profiles.
 It starts a seed-418 listen server and conflicting-seed client, opens the live
 Escape shell and Video, Audio, Controls, and Settings tabs, and captures each
-at the selected 1280x720 or 1024x768 viewport. Escape, Video, Settings,
+at the selected 1280x720 or 1024x768 viewport. The Escape capture keeps gameplay
+visible behind only the three existing options and shows the focused option
+highlight; its transparent area is excluded from the dark modal-gutter pixel
+assertion used by the tab captures. Video, Settings,
 reduced-motion Settings, and restored HUD use standard contrast; Controls and
 Audio also retain high-contrast captures. The development-only probe writes
 bounded local audio, text, contrast, colour-independent feedback, interface

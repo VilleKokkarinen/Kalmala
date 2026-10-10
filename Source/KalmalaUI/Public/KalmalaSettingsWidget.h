@@ -63,6 +63,9 @@ public:
     FString GetPanelImagePathForVerification() const;
     bool HasFocusableContentForVerification() const;
     bool HasFocusedContentForVerification() const;
+    bool IsHomeMenuSurfaceTransparentForVerification() const;
+    bool HasOnlyHomeMenuOptionsForVerification() const;
+    bool HasVisibleFocusedHomeMenuOptionForVerification() const;
     bool HasFocusableControlsForVerification() const;
     bool IsOptionsOpeningAnimationActiveForVerification() const { return bOptionsOpeningAnimationActive; }
     float GetOptionsPanelPositionYForVerification() const;
@@ -128,6 +131,7 @@ private:
     void UpdateControlsLabels();
     void CycleAudioCategory(EKalmalaAudioCategory Category);
     void ApplyModalPalette(const FString* ImageOverride = nullptr);
+    void ApplyHomeMenuPalette();
     void StartOptionsOpeningAnimation();
     void ResetOptionsOpeningAnimation();
     UButton* AddButton(class UVerticalBox* Parent, const FText& Label, FName Name);

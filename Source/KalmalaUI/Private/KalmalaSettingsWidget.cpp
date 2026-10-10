@@ -477,6 +477,43 @@ bool UKalmalaSettingsWidget::HasFocusedContentForVerification() const
     return bHasFocusedWidget;
 }
 
+bool UKalmalaSettingsWidget::IsHomeMenuSurfaceTransparentForVerification() const
+{
+    return BackdropBorder != nullptr && PanelBorder != nullptr
+        && BackdropBorder->GetBrushColor().A <= KINDA_SMALL_NUMBER
+        && PanelBorder->GetBrushColor().A <= KINDA_SMALL_NUMBER
+        && PanelBorder->Background.GetResourceObject() == nullptr;
+}
+
+bool UKalmalaSettingsWidget::HasOnlyHomeMenuOptionsForVerification() const
+{
+    if (ContentBox == nullptr || ContentBox->GetChildrenCount() != 3) return false;
+    static const FName ExpectedNames[] = {
+        TEXT("OptionsButton"), TEXT("StatusDetailsButton"), TEXT("QuitButton")
+    };
+    for (int32 Index = 0; Index < UE_ARRAY_COUNT(ExpectedNames); ++Index)
+    {
+        const UWidget* Child = ContentBox->GetChildAt(Index);
+        if (Child == nullptr || Child->GetFName() != ExpectedNames[Index] || !Cast<UButton>(Child)) return false;
+    }
+    return true;
+}
+
+bool UKalmalaSettingsWidget::HasVisibleFocusedHomeMenuOptionForVerification() const
+{
+    if (!HasOnlyHomeMenuOptionsForVerification()) return false;
+    for (int32 Index = 0; Index < ContentBox->GetChildrenCount(); ++Index)
+    {
+        const UButton* Button = Cast<UButton>(ContentBox->GetChildAt(Index));
+        if (Button == nullptr || !Button->HasAnyUserFocus()) continue;
+        const FSlateBrush& FocusedBrush = Button->GetStyle().Normal;
+        if (FocusedBrush.OutlineSettings.Width <= 0.0f) return false;
+        return GetContrastMode() == 0
+            || FocusedBrush.OutlineSettings.Color.GetSpecifiedColor().Equals(FLinearColor::White, 0.01f);
+    }
+    return false;
+}
+
 bool UKalmalaSettingsWidget::HasFocusableControlsForVerification() const
 {
     return ControlButtons.Num() > 0 && ControlButtons.ContainsByPredicate([](const UKalmalaControlButton* Button)
@@ -557,6 +594,24 @@ void UKalmalaSettingsWidget::ApplyModalPalette(const FString* ImageOverride)
     if (SelectedImage == nullptr || SelectedImage->IsEmpty()) SelectedImage = &Theme.EscapePanelImage;
     if (SelectedImage->IsEmpty()) SelectedImage = nullptr;
     if (PanelBorder != nullptr) Theme.ApplyPanel(*PanelBorder, GetContrastMode(), SelectedImage);
+}
+
+void UKalmalaSettingsWidget::ApplyHomeMenuPalette()
+{
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    if (GetContrastMode() != 0)
+    {
+        ApplyModalPalette(&Theme.EscapePanelImage);
+        return;
+    }
+
+    if (BackdropBorder != nullptr) BackdropBorder->SetBrushColor(FLinearColor::Transparent);
+    if (PanelBorder != nullptr)
+    {
+        const FString NoImage;
+        Theme.ApplyPanel(*PanelBorder, GetContrastMode(), &NoImage);
+        PanelBorder->SetBrushColor(FLinearColor::Transparent);
+    }
 }
 
 int32 UKalmalaSettingsWidget::ClampViewDistanceQuality(const int32 Quality)
@@ -1004,11 +1059,9 @@ void UKalmalaSettingsWidget::SelectOptionsTab(const int32 SelectedIndex)
 void UKalmalaSettingsWidget::ShowMainMenu()
 {
     OptionsTabButtons.Reset();
-    ApplyModalPalette(&FKalmalaUITheme::Get().EscapePanelImage);
+    ApplyHomeMenuPalette();
     StatusDetailsLabel = nullptr;
     ContentBox->ClearChildren();
-    AddLabel(ContentBox, FText::FromString(TEXT("KALMALA")), 34.0f)->SetJustification(ETextJustify::Center);
-    AddLabel(ContentBox, FText::FromString(TEXT("Settings")), 23.0f)->SetJustification(ETextJustify::Center);
     UButton* Options = AddButton(ContentBox, FText::FromString(TEXT("Options")), TEXT("OptionsButton"));
     Options->OnClicked.AddDynamic(this, &ThisClass::HandleOptionsClicked);
     UButton* Status = AddButton(ContentBox, FText::FromString(TEXT("Status and weather details")), TEXT("StatusDetailsButton"));
