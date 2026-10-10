@@ -38,8 +38,12 @@ activated from that cell. Hotbar use sends the cell index only; the server
 derives the current item and its allowlisted effect, checks learned entitlement
 and existing activation gates, then routes through the support-magic authority
 path. Scrolls are not consumed; the existing server cooldown controls reuse.
-The current controller D-pad/Q support-magic bindings are retired when this
-integration is complete.
+Each accepted support cast starts the shared, server-owned five-minute cooldown.
+Hearth Shield, Bear's Vigor and Deer Call last three minutes; Mending is
+instantaneous. Deer Call's bounded wildlife influence also lasts three minutes.
+Only one support effect may be active per caster at a time. The current
+controller D-pad/Q support-magic bindings are retired when this integration is
+complete.
 
 Below the grid, show one compact line such as `Armor 0 · Weight 8/300`.
 Current armor remains 0 because the game has no armor-equipment records. Carry

@@ -210,11 +210,17 @@ Hotbar intent identifies only the cell index. The server derives the scroll's
 canonical item/effect mapping from that current owned cell, confirms the learned
 entitlement and existing server-side request/rate, cooldown, stamina, and
 effect-specific target gates, then uses the existing support activation path.
-Keep the shared five-second server cooldown, current costs, targeting, effects,
-durations, owner-only feedback, and relevant-peer active-effect presentation unchanged.
-Never accept a client effect ID, target, cost, duration, magnitude, or result.
-This is an inventory/action integration, not a new spell, effect balance, or
-saved-data migration.
+This M13 timing override supersedes earlier M4 cooldown and duration values: each
+accepted support cast starts a shared 300-second per-caster server cooldown.
+Hearth Shield, Bear's Vigor, and Deer Call last 180 seconds; Mending remains an
+instant heal with no active duration. Deer Call's existing bounded, server-
+selected deer influence lasts 180 seconds. At most one support effect may be
+active per caster; reject any new cast while an ongoing effect remains active,
+and do not stack or refresh effects. The cooldown remains active after the
+effect expires. Preserve current costs, magnitudes, targets, owner-only feedback,
+and relevant-peer effect presentation. Never accept a client effect ID, target,
+cost, duration, magnitude, or result. No new spell or saved-data migration is
+introduced.
 
 | Effect | Server-selected target and result |
 | --- | --- |

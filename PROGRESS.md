@@ -8,7 +8,7 @@
 - The 2026-10-09 user-directed 10×4 inventory is implemented and the UE5.8.2 editor target builds after the recorded repair. Runtime, rendered, input, and peer acceptance for that layout remains deferred; see [inventory handoff](docs/47-inventory-grid.md).
 - M13 now also includes a paired inventory/crafting modal, contextual item detail, compact armor/weight summary, and one continuous wood-textured backplate behind opaque solid panes. The tooltip will show only existing catalogue/tool values; item combat-stat data is not currently defined.
 - The latest M13 request adds a right-aligned current-biome label above the top-right minimap and a transparent main Escape menu with visible hover/focus highlighting; both are queued as presentation work.
-- M13 now also includes reusable support-scroll items in numbered inventory hotbar cells. They use the existing learned-effect entitlement, remain reusable behind the existing five-second cooldown, and are reconstructed from learned progression without new save fields; the current M4 server validation/effects remain authoritative.
+- M13 now also includes reusable support-scroll items in numbered inventory hotbar cells. They use the existing learned-effect entitlement, share a five-minute cooldown, last three minutes where effects are sustained, and allow only one active effect per caster. Deer Call also lasts three minutes; Mending remains instant. Scrolls are reconstructed from learned progression without new save fields, and server authority remains in force.
 - A Win64 Development package launched and loaded the prototype map on 2026-10-10. This confirms startup and map loading; rendered icon visibility and the remaining M13 UI acceptance are still pending.
 
 ## Completed work log
@@ -25,6 +25,16 @@
 - **Impact and authority:** planning only; the requested behavior is now an M13 requirement. Future hotbar use must resolve the owned cell and effect on the server and preserve learned entitlement, cooldown, costs, target checks, and save schema.
 - **Limits:** reusable scroll items and hotbar activation are not implemented or rendered-verified. Existing inventory remains pawn-lifetime; scroll reconstruction from learned progression is part of the queued integration.
 - **Next eligible task:** finish the active inventory/HUD/service revalidation, including the support-scroll hotbar integration, then proceed to the minimap and Escape-menu refinements in backlog order.
+
+## 2026-10-10 — Set support-magic timing for M13 scrolls
+
+- **Completed:** updated the M13 support-scroll contract to use one shared, server-owned five-minute cooldown per caster. Hearth Shield, Bear's Vigor, and Deer Call last three minutes; Mending remains an instant heal. Deer Call's bounded server-selected deer influence lasts three minutes, and only one support effect may be active per caster at once.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/02-technical-architecture.md`, `docs/04-roadmap.md`, `docs/11-combat-and-support-magic.md`, and `docs/47-inventory-grid.md`.
+- **Lightweight checks:** reviewed existing support effect timing and target contracts; `git diff --check` and the 260-character path audit passed.
+- **Full verification:** deferred to M13 milestone-final verification; documentation only, no runtime/build/automation/rendered check ran.
+- **Impact and authority:** M13 now allows only these requested timing and exclusivity changes; activation, effect, target, and cooldown gates remain server-owned. No saved-data schema changes.
+- **Limits:** implementation and rendered behavior are still queued. Scroll cooldown, effect timers, Deer Call duration, and mutual exclusion are not runtime-verified.
+- **Next eligible task:** continue the active inventory/HUD/service revalidation by implementing and verifying support-scroll hotbar use with these timing rules.
 
 ## 2026-10-10 — M13 shared foundation revalidation and inventory craft request
 

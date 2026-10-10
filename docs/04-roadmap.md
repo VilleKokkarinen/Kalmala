@@ -805,19 +805,25 @@ The 2026-10-10 support-magic request adds a narrowly scoped gameplay
 integration: represent each existing allowlisted support effect with a reusable
 scroll item in the standard inventory and let its numbered hotbar cell activate
 that effect. Scroll use does not consume the item; it observes the existing
-five-second, server-owned shared support cooldown. Reconstruct scroll items from
-the existing learned-effect entitlement when the pawn inventory initializes, so
-the transient inventory needs no new save fields. The current learned
-entitlement, effect definitions, target rules, costs, durations, and server
-validation remain authoritative. The existing F1–F4 effect selection and Q
-activation path is superseded by using the assigned inventory scroll from the
-hotbar. Do not add effects or retune support magic.
+server-owned shared support cooldown of five minutes (300 seconds) per caster.
+Timed effects last three minutes (180 seconds); this includes Deer Call's
+server-selected deer influence. Mending remains an instantaneous heal. Only one
+support effect may be active per caster; reject a cast while an ongoing support
+effect is active, with no stacking or refresh. The shared cooldown remains in
+force after an effect expires. Reconstruct scroll items from the existing
+learned-effect entitlement when the pawn inventory initializes, so the
+transient inventory needs no new save fields. Preserve the existing learned
+entitlement, effect identities, target rules, costs, magnitudes, and server
+validation. The existing F1–F4 effect selection and Q activation path is
+superseded by using the assigned inventory scroll from the hotbar.
 
 **M13 boundary:** UI presentation, original icon sources, imported UI assets,
 and their integration, plus only the support-scroll inventory/hotbar integration
 requested above. Do not add other gameplay content, alter existing support
-effect mechanics, weaken server authority, alter saved-data schemas, introduce new
-online services, or expand platform scope.
+effect identities, target rules, costs, or magnitudes. The requested cooldown,
+duration, and one-active-effect rules are the only support-magic tuning in M13.
+Do not weaken server authority, alter saved-data schemas, introduce new online
+services, or expand platform scope.
 
 **M13 accept:**
 
@@ -845,9 +851,12 @@ online services, or expand platform scope.
   the standard inventory, assignable to a numbered hotbar cell and activatable
   from that cell. Learned entitlements restore scroll items after pawn inventory
   initialization/reconnect without new save fields; using a scroll preserves it
-  and follows the existing shared five-second cooldown, stamina, targeting, and
-  server validation. Add no effect, balance change, or client authority; retire
-  the former F1–F4/Q selection-and-activation path.
+  and starts a shared 300-second per-caster cooldown. Hearth Shield, Bear's
+  Vigor, and Deer Call have 180-second durations; Mending remains instantaneous.
+  Deer Call's bounded, server-selected wildlife influence lasts 180 seconds.
+  Server authority enforces at most one active support effect per caster and
+  prevents overlapping or stacked effects. Preserve costs, magnitudes, targets,
+  learned progression and save schema; retire F1–F4/Q selection and activation.
 - All 48 canonical catalogue icons and nine status icons have their required
   original/prepared image sources and imported Texture2D packages tracked in
   main. Runtime references resolve to those packages, and every supported
