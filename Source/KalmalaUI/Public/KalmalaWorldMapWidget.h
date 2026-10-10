@@ -173,7 +173,6 @@ private:
     int32 CountEligiblePersonalPins() const;
     bool IsPersonalPinOnCurrentView(const FKalmalaWorldMapPersonalPin& Pin) const;
     void SendMapPing(FVector2D Location);
-    FString PingFeedback;
     static FLinearColor GetPinColour(EKalmalaWorldMapPinStyle Style);
 
     UPROPERTY(Transient)

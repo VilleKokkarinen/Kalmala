@@ -313,17 +313,7 @@ bool UKalmalaWorldMapWidget::CanShowCoopLocation(FVector2D WorldPosition, FVecto
 void UKalmalaWorldMapWidget::SendMapPing(FVector2D Location)
 {
     auto* Awareness = GetOwningPlayer() ? GetOwningPlayer()->FindComponentByClass<UKalmalaMapAwarenessComponent>() : nullptr;
-    FVector2D PawnLocation;
-    FKalmalaWorldGenerationConfig Config;
-    if (!Awareness || !Awareness->IsSharingEnabled()) { PingFeedback = TEXT("Enable co-op sharing first."); return; }
-    if (!ViewModel || !ViewModel->GetPresentationInputs(Config, PawnLocation)
-        || !UKalmalaMapAwarenessComponent::IsLocationInRange(Location, PawnLocation))
-    {
-        PingFeedback = TEXT("Ping must be within 65m of you.");
-        return;
-    }
-    Awareness->RequestPing(Location);
-    PingFeedback = TEXT("Ping requested (6s lifetime; 2s cooldown; nearby opted-in peers only).");
+    if (Awareness) Awareness->RequestPing(Location);
 }
 
 UKalmalaWorldMapWidget::FMarkerLegendLayout UKalmalaWorldMapWidget::GetMarkerLegendLayout(const FVector2D& WidgetSize) const
@@ -455,10 +445,7 @@ UKalmalaWorldMapWidget::FMarkerCounts UKalmalaWorldMapWidget::DrawCoopAwareness(
     if (!Awareness) return Counts;
     const float FooterY = Geometry.GetLocalSize().Y - FKalmalaUITheme::Get().ScaledFontSize(
         FKalmalaUITheme::Get().BodySize - 1, UKalmalaSettingsWidget::GetTextScalePercent()) * 5 - 30;
-    const float NextY = DrawMapLabel(Elements, LayerId, Geometry, FVector2D(20, FooterY), Awareness->GetStatusText(), -1);
-    const float FeedbackY = DrawMapLabel(Elements, LayerId, Geometry, FVector2D(20, NextY),
-        TEXT("Share map · Ping · Ping centre"), -1);
-    if (!PingFeedback.IsEmpty()) DrawMapLabel(Elements, LayerId, Geometry, FVector2D(20, FeedbackY), PingFeedback, -1);
+    DrawMapLabel(Elements, LayerId, Geometry, FVector2D(20, FooterY), Awareness->GetStatusText(), -1);
     FVector2D Here;
     FKalmalaWorldGenerationConfig Config;
     if (!ViewModel || !ViewModel->GetPresentationInputs(Config, Here)) return Counts;
@@ -466,7 +453,7 @@ UKalmalaWorldMapWidget::FMarkerCounts UKalmalaWorldMapWidget::DrawCoopAwareness(
     Elements.PushClip(FSlateClippingZone(Geometry.ToPaintGeometry(MapSize, FSlateLayoutTransform(FVector2D(44)))));
     const auto DrawMarker = [&](FVector2D Location, const FString& Text, const bool bPing)
     {
-        if (!CanShowCoopLocation(Location, Here, Coverage)) return false;
+        if (!bPing && !CanShowCoopLocation(Location, Here, Coverage)) return false;
         const FVector2D N = WorldToMapNormalized(Location, ViewModel->GetMapCentre(), ViewModel->GetMapExtent());
         if (N.X < 0 || N.X > 1 || N.Y < 0 || N.Y > 1) return false;
         if (bPing) ++Counts.CoopPings;
@@ -1466,21 +1453,17 @@ FReply UKalmalaWorldMapWidget::NativeOnMouseButtonDown(const FGeometry& InGeomet
     }
     const FVector2D MapSize = InGeometry.GetLocalSize() - FVector2D(88.0f);
     const FVector2D MapPosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition()) - FVector2D(44.0f);
+    const bool bInsideMap = MapPosition.X >= 0 && MapPosition.Y >= 0
+        && MapPosition.X <= MapSize.X && MapPosition.Y <= MapSize.Y;
+    if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+    {
+        if (bInsideMap) SendMapPing(ScreenToWorld(MapPosition, MapSize));
+        return FReply::Handled();
+    }
     if (bPinPlacementArmed && InMouseEvent.GetEffectingButton() != EKeys::LeftMouseButton) return FReply::Handled();
     if (InMouseEvent.GetEffectingButton() == EKeys::MiddleMouseButton)
     {
-        if (!bPinLabelEntry && MapPosition.X >= 0 && MapPosition.Y >= 0 && MapPosition.X <= MapSize.X && MapPosition.Y <= MapSize.Y)
-            SendMapPing(ScreenToWorld(MapPosition, MapSize));
-        return FReply::Handled();
-    }
-    if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
-    {
-        if (const int32 PinIndex = FindVisiblePinAtScreenPosition(MapPosition, MapSize); PinIndex != INDEX_NONE)
-        {
-            LocalPins.RemoveAt(PinIndex);
-            SelectedPinIndex = LocalPins.IsEmpty() ? INDEX_NONE : FMath::Min(PinIndex, LocalPins.Num() - 1);
-            PersistPins();
-        }
+        if (bInsideMap) SendMapPing(ScreenToWorld(MapPosition, MapSize));
         return FReply::Handled();
     }
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)

@@ -26,17 +26,20 @@ try {
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:') { throw 'Unreal reported an assertion.' }
-        if ($serverText -match 'Map awareness revoked: Peers=0 Pings=0' -and $clientText -match 'Map awareness revoked: Peers=0 Pings=0') { break }
+        if ($serverText -match 'Map awareness share closed: Peers=0 Pings=0' -and $clientText -match 'Map awareness share closed: Peers=0 Pings=0') { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Host/client awareness scenario timed out.' }
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Client world identity mismatch.' }
-    foreach ($result in @('Unauthorized', 'Malformed', 'Distant', 'Excessive')) {
-        if ([regex]::Matches($serverText, "Map ping request: Result=$result").Count -ne 2) { throw "Expected rejection on both host and remote owner: $result" }
+    if ([regex]::Matches($serverText, 'Map ping request: Result=Accepted').Count -ne 4) { throw 'Expected two accepted pings from each connected player.' }
+    foreach ($result in @('Malformed', 'OutOfBounds', 'Excessive')) {
+        if ([regex]::Matches($serverText, "Map ping request: Result=$result").Count -ne 2) { throw "Expected server rejection from both host and remote owner: $result" }
     }
     foreach ($peerText in @($serverText, $clientText)) {
-        if ($peerText -notmatch 'Map awareness default: Private=1 Peers=0 Pings=0') { throw 'Default privacy failed.' }
-        if ($peerText -notmatch 'Map awareness verification: Peers=\d Seen=4 Expired=1') { throw 'Expiry verification missing.' }
+        if ($peerText -notmatch 'Map awareness default: Private=1 Peers=0 Pings=0') { throw 'Default player-position privacy failed.' }
+        if ($peerText -notmatch 'Map ping without consent: Count=\d+') { throw 'A peer did not receive a ping while sharing was off.' }
+        if ($peerText -notmatch 'Map ping survives opt-out: Count=4') { throw 'Opting out removed global pings.' }
+        if ($peerText -notmatch 'Map awareness verification: Peers=0 Seen=4 Expired=1') { throw 'Ten-second expiry verification missing.' }
     }
     $pattern = 'Map ping observed: Sender=(\d+) Sequence=(\d+) Issued=([\d.]+) Expires=([\d.]+) X=([-\d.]+) Y=([-\d.]+)'
     $hostPings = [regex]::Matches($serverText, $pattern)
@@ -46,9 +49,11 @@ try {
         if ($hostPings[$index].Value -ne $clientPings[$index].Value) { throw 'Host/client ping order, position, or authoritative expiry disagrees.' }
         $issued = [double]::Parse($hostPings[$index].Groups[3].Value, [cultureinfo]::InvariantCulture)
         $expires = [double]::Parse($hostPings[$index].Groups[4].Value, [cultureinfo]::InvariantCulture)
-        if ([math]::Abs($expires - $issued - 6) -gt 0.00001) { throw 'Server lifetime differs from six seconds.' }
+        if ([math]::Abs($expires - $issued - 10) -gt 0.00001) { throw 'Server lifetime differs from ten seconds.' }
     }
-    Write-Output 'PASS: default privacy, owner consent, host/remote rejection matrix, four matching ordered relays with six-second expiry, and opt-out clearing.'
+    if (-not ($hostPings | Where-Object { [double]::Parse($_.Groups[5].Value, [cultureinfo]::InvariantCulture) -eq 1000000.0 })) { throw 'Host did not receive the accepted remote-world ping.' }
+    if (-not ($clientPings | Where-Object { [double]::Parse($_.Groups[5].Value, [cultureinfo]::InvariantCulture) -eq 1000000.0 })) { throw 'Client did not receive the accepted remote-world ping.' }
+    Write-Output 'PASS: private player positions, global pings without share consent, world-bound validation, remote-world relay, per-sender cooldown, host/client ordering, ten-second expiry, and opt-out independence.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

@@ -50,11 +50,10 @@ public:
     TArray<FKalmalaMapPeerMarker> GetPeerMarkers() const;
     TArray<FKalmalaMapPing> GetVisiblePings() const;
     FString GetStatusText() const;
-    static constexpr double PingLifetime = 6.0;
+    static constexpr double PingLifetime = 10.0;
     static constexpr double PingCooldown = 2.0;
-    static constexpr double PingRange = 6500.0;
     static constexpr int32 MaxInboxPings = 16;
-    static bool IsLocationInRange(FVector2D Location, FVector2D PawnLocation);
+    static bool IsValidPingLocation(FVector2D Location);
     static bool PingLess(const FKalmalaMapPing& A, const FKalmalaMapPing& B);
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -62,7 +61,6 @@ private:
     friend class FKalmalaMapAwarenessTest;
     APlayerController* Controller() const;
     bool IsEligible() const;
-    bool IsSenderConnectedAndSharing(int32 PlayerId) const;
     double ServerNow() const;
     const TCHAR* TryAcceptPing(FVector2D Location);
     void PruneInbox();
@@ -78,6 +76,8 @@ private:
     double VerificationStageTime = 0;
     TSet<uint64> VerificationSeen;
     bool bVerificationExpiryLogged = false;
+    bool bVerificationNoConsentLogged = false;
+    bool bVerificationSharingIndependentLogged = false;
 };
 
 UCLASS()
