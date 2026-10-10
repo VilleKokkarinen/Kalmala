@@ -177,7 +177,10 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         {
             bDeveloperScreenshotPending = false;
             DeveloperScreenshotDelay = 0.0f;
-            static const TCHAR* ScreenshotTabs[] = { TEXT("settings"), TEXT("controls"), TEXT("audio"), TEXT("escape"), TEXT("video"), TEXT("motion"), TEXT("hud") };
+            static const TCHAR* ScreenshotTabs[] = {
+                TEXT("accessibility"), TEXT("keyboard-mouse"), TEXT("controller"), TEXT("audio"),
+                TEXT("escape"), TEXT("graphics"), TEXT("motion"), TEXT("hud")
+            };
             if (ScreenshotTabs[0] != nullptr && DeveloperSettingsScreenshotTab >= 0
                 && DeveloperSettingsScreenshotTab < UE_ARRAY_COUNT(ScreenshotTabs))
             {
@@ -394,13 +397,13 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         const float MasterVolumeBeforeTabMemory = UKalmalaSettingsWidget::GetStoredMasterVolume();
         SettingsWidget->SetVerificationTab(5); // Return to the main shell.
         SettingsWidget->SetVerificationTab(4); // Reopen Options in the same local session.
-        const bool bRememberedOptionsTab = SettingsWidget->GetRememberedOptionsTabForVerification() == 3
+        const bool bRememberedOptionsTab = SettingsWidget->GetRememberedOptionsTabForVerification() == 4
             && SettingsWidget->HasFocusedContentForVerification()
             && UKalmalaSettingsWidget::GetInterfaceScalePercent() == InterfaceScaleBeforeTabMemory
             && UKalmalaSettingsWidget::GetTextScalePercent() == TextScaleBeforeTabMemory
             && FMath::IsNearlyEqual(UKalmalaSettingsWidget::GetStoredMasterVolume(), MasterVolumeBeforeTabMemory);
         UE_LOG(LogTemp, Display,
-            TEXT("Settings accessibility: Authority=%d Stage=RememberedOptionsTab Selected=3 Restored=%d Focused=%d ValuesUnchanged=%d"),
+            TEXT("Settings accessibility: Authority=%d Stage=RememberedOptionsTab Selected=4 Restored=%d Focused=%d ValuesUnchanged=%d"),
             Character->HasAuthority() ? 1 : 0,
             SettingsWidget->GetRememberedOptionsTabForVerification(),
             SettingsWidget->HasFocusedContentForVerification() ? 1 : 0,
@@ -455,7 +458,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             && UKalmalaSettingsWidget::GetContrastMode() == 1
             && UKalmalaSettingsWidget::GetFeedbackMode() == 1;
         UKalmalaSettingsWidget::SetContrastMode(0);
-        static const int32 OptionViews[] = { 5, 4, 0, 1, 2 };
+        static const int32 OptionViews[] = { 1, 7, 6, 0, 2 };
         bool bOptionPanelImagesLoaded = true;
         for (const int32 ViewIndex : OptionViews)
         {
@@ -463,10 +466,16 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             bOptionPanelImagesLoaded &= !SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
         }
         UKalmalaSettingsWidget::SetContrastMode(1);
+        bool bHighContrastSuppressesImage = true;
+        for (const int32 ViewIndex : OptionViews)
+        {
+            SettingsWidget->SetVerificationTab(ViewIndex);
+            bHighContrastSuppressesImage &= SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
+        }
+        UKalmalaSettingsWidget::SetContrastMode(0);
         SettingsWidget->SetVerificationTab(2);
-        const bool bHighContrastSuppressesImage = SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
         UE_LOG(LogTemp, Display,
-            TEXT("Settings accessibility: Authority=%d Stage=Settings Open=%d Focused=%d FocusTargets=%d MoveIgnored=%d LookIgnored=%d LocalRoundTrip=%d InputApplied=%d InterfaceScale=%d ReducedMotion=%d AppliedScale=%.3f TextScale=%d Contrast=%d Feedback=%d PanelImages=%d ContrastImageSuppressed=%d"),
+            TEXT("Settings accessibility: Authority=%d Stage=Accessibility Open=%d Focused=%d FocusTargets=%d MoveIgnored=%d LookIgnored=%d LocalRoundTrip=%d InputApplied=%d InterfaceScale=%d ReducedMotion=%d AppliedScale=%.3f TextScale=%d Contrast=%d Feedback=%d PanelImages=%d ContrastImageSuppressed=%d"),
             Character->HasAuthority() ? 1 : 0, SettingsWidget->IsMenuOpen() ? 1 : 0,
             SettingsWidget->HasFocusedContentForVerification() ? 1 : 0, SettingsWidget->HasFocusableContentForVerification() ? 1 : 0,
             LocalController->IsMoveInputIgnored() ? 1 : 0,
@@ -476,8 +485,6 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode(),
             UKalmalaSettingsWidget::GetFeedbackMode(), bOptionPanelImagesLoaded ? 1 : 0,
             bHighContrastSuppressesImage ? 1 : 0);
-        UKalmalaSettingsWidget::SetContrastMode(0);
-        SettingsWidget->SetVerificationTab(2);
         const bool bStandardBackgroundLoaded = !SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
         UE_LOG(LogTemp, Display,
             TEXT("Settings accessibility: Authority=%d Stage=StandardBackgroundCapture Loaded=%d Contrast=%d"),
@@ -511,13 +518,12 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
         UKalmalaSettingsWidget::SetContrastMode(1);
         SettingsWidget->SetVerificationTab(1);
         UE_LOG(LogTemp, Display,
-            TEXT("Settings accessibility: Authority=%d Stage=Controls Open=%d Focused=%d FocusTargets=%d FocusableControls=%d Keyboard=%s Controller=%s Escape=%d"),
+            TEXT("Settings accessibility: Authority=%d Stage=KeyboardMouse Open=%d Focused=%d FocusTargets=%d FocusableControls=%d Keyboard=%s Escape=%d"),
             Character->HasAuthority() ? 1 : 0, SettingsWidget->IsMenuOpen() ? 1 : 0,
             SettingsWidget->HasFocusedContentForVerification() ? 1 : 0,
             SettingsWidget->HasFocusableContentForVerification() ? 1 : 0,
             SettingsWidget->HasFocusableControlsForVerification() ? 1 : 0,
             *UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), false).ToString(),
-            *UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), true).ToString(),
             HasEscapeSettingsMapping(LocalController->PlayerInput) ? 1 : 0);
         DeveloperSettingsScreenshotTab = 1;
         bDeveloperScreenshotPending = true;
@@ -528,6 +534,24 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
 
     if (DeveloperSettingsVerificationStage == 1)
     {
+        SettingsWidget->SetVerificationTab(7);
+        UE_LOG(LogTemp, Display,
+            TEXT("Settings accessibility: Authority=%d Stage=Controller Open=%d Focused=%d FocusTargets=%d FocusableControls=%d Binding=%s Escape=%d"),
+            Character->HasAuthority() ? 1 : 0, SettingsWidget->IsMenuOpen() ? 1 : 0,
+            SettingsWidget->HasFocusedContentForVerification() ? 1 : 0,
+            SettingsWidget->HasFocusableContentForVerification() ? 1 : 0,
+            SettingsWidget->HasFocusableControlsForVerification() ? 1 : 0,
+            *UKalmalaSettingsWidget::GetLocalInputBindingLabel(TEXT("Interact"), true).ToString(),
+            HasEscapeSettingsMapping(LocalController->PlayerInput) ? 1 : 0);
+        DeveloperSettingsScreenshotTab = 2;
+        bDeveloperScreenshotPending = true;
+        DeveloperScreenshotDelay = 0.0f;
+        ++DeveloperSettingsVerificationStage;
+        return;
+    }
+
+    if (DeveloperSettingsVerificationStage == 2)
+    {
         SettingsWidget->SetVerificationTab(0);
         UE_LOG(LogTemp, Display,
             TEXT("Settings accessibility: Authority=%d Stage=Audio Open=%d Focused=%d FocusTargets=%d Master=%.2f Ambient=%.2f Music=%.2f InteractionCombat=%.2f"),
@@ -537,14 +561,14 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::Ambient),
             UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::Music),
             UKalmalaSettingsWidget::GetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat));
-        DeveloperSettingsScreenshotTab = 2;
+        DeveloperSettingsScreenshotTab = 3;
         bDeveloperScreenshotPending = true;
         DeveloperScreenshotDelay = 0.0f;
         ++DeveloperSettingsVerificationStage;
         return;
     }
 
-    if (DeveloperSettingsVerificationStage == 2)
+    if (DeveloperSettingsVerificationStage == 3)
     {
         UKalmalaSettingsWidget::SetContrastMode(0);
         SettingsWidget->SetVerificationTab(5);
@@ -562,21 +586,6 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             bDeveloperSettingsVerificationCompleted = true;
             return;
         }
-        DeveloperSettingsScreenshotTab = 3;
-        bDeveloperScreenshotPending = true;
-        DeveloperScreenshotDelay = 0.0f;
-        ++DeveloperSettingsVerificationStage;
-        return;
-    }
-
-    if (DeveloperSettingsVerificationStage == 3)
-    {
-        SettingsWidget->SetVerificationTab(4);
-        const bool bImageLoaded = !SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
-        UE_LOG(LogTemp, Display,
-            TEXT("Settings accessibility: Authority=%d Stage=VideoBackgroundCapture Loaded=%d Contrast=%d FocusTargets=%d"),
-            Character->HasAuthority() ? 1 : 0, bImageLoaded ? 1 : 0,
-            UKalmalaSettingsWidget::GetContrastMode(), SettingsWidget->HasFocusableContentForVerification() ? 1 : 0);
         DeveloperSettingsScreenshotTab = 4;
         bDeveloperScreenshotPending = true;
         DeveloperScreenshotDelay = 0.0f;
@@ -585,6 +594,21 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
     }
 
     if (DeveloperSettingsVerificationStage == 4)
+    {
+        SettingsWidget->SetVerificationTab(6);
+        const bool bImageLoaded = !SettingsWidget->GetPanelImagePathForVerification().IsEmpty();
+        UE_LOG(LogTemp, Display,
+            TEXT("Settings accessibility: Authority=%d Stage=GraphicsBackgroundCapture Loaded=%d Contrast=%d FocusTargets=%d"),
+            Character->HasAuthority() ? 1 : 0, bImageLoaded ? 1 : 0,
+            UKalmalaSettingsWidget::GetContrastMode(), SettingsWidget->HasFocusableContentForVerification() ? 1 : 0);
+        DeveloperSettingsScreenshotTab = 5;
+        bDeveloperScreenshotPending = true;
+        DeveloperScreenshotDelay = 0.0f;
+        ++DeveloperSettingsVerificationStage;
+        return;
+    }
+
+    if (DeveloperSettingsVerificationStage == 5)
     {
         UKalmalaSettingsWidget::SetContrastMode(1);
         SettingsWidget->SetVerificationTab(5);
@@ -602,11 +626,12 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             bDeveloperSettingsVerificationCompleted = true;
             return;
         }
+        UKalmalaSettingsWidget::SetContrastMode(0);
         ++DeveloperSettingsVerificationStage;
         return;
     }
 
-    if (DeveloperSettingsVerificationStage == 5)
+    if (DeveloperSettingsVerificationStage == 6)
     {
         const bool bExpectedReducedMotion = Character->HasAuthority();
         UKalmalaSettingsWidget::SetReducedMotionEnabled(bExpectedReducedMotion);
@@ -634,14 +659,14 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             bDeveloperSettingsVerificationCompleted = true;
             return;
         }
-        DeveloperSettingsScreenshotTab = 5;
+        DeveloperSettingsScreenshotTab = 6;
         bDeveloperScreenshotPending = true;
         DeveloperScreenshotDelay = 0.0f;
         ++DeveloperSettingsVerificationStage;
         return;
     }
 
-    if (DeveloperSettingsVerificationStage == 6)
+    if (DeveloperSettingsVerificationStage == 7)
     {
         if (SettingsWidget != nullptr && SettingsWidget->IsMenuOpen()) SettingsWidget->Close();
         const bool bInputRestored = !LocalController->IsMoveInputIgnored() && !LocalController->IsLookInputIgnored();
@@ -657,7 +682,7 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
             bDeveloperSettingsVerificationCompleted = true;
             return;
         }
-        DeveloperSettingsScreenshotTab = 6;
+        DeveloperSettingsScreenshotTab = 7;
         bDeveloperScreenshotPending = true;
         DeveloperScreenshotDelay = 0.0f;
         ++DeveloperSettingsVerificationStage;

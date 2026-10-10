@@ -44,7 +44,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Environmental exposure | server | sample ambient temperature, precipitation, wind exposure, and shelter for each pawn; update clamped wetness and warmth at a fixed server interval; replicate the resulting state for display only |
 | Biome expansion | server | `FKalmalaBiomeExpansionContract` supplies deterministic per-biome terrain-feature intent, bounded population multipliers, normalized exposure modifiers, and stable discovery candidates. The completed Shimmering Lakes slice applies its profile only in lake-classified spatial keys and pawn samples, then materializes at most one dry, water-adjacent harvest discovery per active lake key. The Elderwood slice applies its profile only in Elderwood-classified keys and pawn samples, materializes at most one gently sloped lower-flora clearing discovery per active key, and locally derives dense field-driven canopy and roots with natural clearings. The Mossy Mire slice applies its profile only in Mire-classified keys and pawn samples, applies bounded server-owned footing drag through the existing replicated exposure state, and materializes at most one gently sloped relatively dry hummock harvest discovery per active key. The Freezing Tundra slice applies its sparse-cover, stronger-wind profile only in Tundra-classified keys and pawn samples, and materializes at most one exposed, gently rolling high-ground harvest discovery per active key. The Thunder Mountains slice applies its high-wind profile only in Mountain-classified keys and pawn samples, and materializes at most one steep-but-traversable storm-carved overlook discovery per active key. All use the normal validated harvest path and persist only sparse depletion deltas. Clients receive no candidate list or discovery location. |
 | Companion minimap | client UI | `UKalmalaMinimapViewModel` derives a local terrain/water sample grid from the replicated world identity and owning pawn transform; `UKalmalaMinimapSubsystem` creates a local top-right circular presentation that draws only in-circle terrain/water samples and a centred facing marker. Local mouse-wheel input adjusts a session-only view radius between tunable 2,500–10,000 cm bounds only while CommonUI allows normal game input; a modal UI retains wheel ownership. The UI never reveals hidden server-owned content. |
-| Settings menu | client UI | `UKalmalaSettingsSubsystem` binds local Escape input and opens/closes a local `UKalmalaSettingsWidget`. The main screen provides Options and safe engine quit; Options presents Video, Audio, Controls, and Settings tabs. Video persists `UGameUserSettings` resolution, V-Sync, window mode, and scalability view-distance quality. Settings also stores local text scale, whole-interface scale over the project DPI/ApplicationScale defaults, contrast, feedback, and reduced motion in the existing local `GameUserSettings` config. These choices affect only presentation, are never replicated, and cannot mutate gameplay authority or save schemas. |
+| Settings menu | client UI | `UKalmalaSettingsSubsystem` binds local Escape input and opens/closes a local `UKalmalaSettingsWidget`. Options presents selected Gameplay, Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility groups; Gameplay stays hidden while it has no selected option. Existing bindings split by device; resolution, V-Sync, window mode, and scalability view-distance quality remain in Graphics. Audio retains local volume and mute controls. Text scale, whole-interface scale, contrast, feedback, and reduced motion remain in Accessibility and the local `GameUserSettings` config. These choices affect only presentation, are never replicated, and cannot mutate gameplay authority or save schemas. |
 | Inventory menu | client UI with validated server slot intent | UKalmalaInventoryMenuSubsystem owns the Tab/I panel and an upper-left gameplay hotbar for each local player. One 10×4 runtime grid contains item stacks and tools; its numbered top row is the hotbar. Grid positions and active identity replicate owner-only. Drag or keyboard/controller moves send source/target indices and expected identities for server validation; quantities, grants, repairs and food outcomes remain server-owned. The panel shows armor/weight beneath the grid and retains selected-item details and existing food/repair actions. The gameplay bar displays only occupied cells in 1–9, 0 order and hides during modals. Tool metadata and save schemas retain their established contracts; arrangement is session state. See `02-technical-architecture.md`. |
 | Expanded world map | client UI plus bounded temporary-ping relay | The local M-toggle overlay uses asynchronous terrain/water tiles derived from the immutable world identity. A bounded 64-entry least-recently-used cache keys terrain and fog rasters by world-tile size and coordinate, reusing entries across pan and zoom; identity changes clear the cache and invalidate older workers. At most two terrain jobs run concurrently, and only matching-size tiles are drawn for the current view. Pan, zoom, and recenter remain local; Escape closes the map before Settings. Personal fog and pins remain independent identity/local-player saves. The map exposes no co-op sharing control and draws no remote player positions; direct temporary pings are server-validated and relayed independently to connected players. Neither path makes terrain, discoveries, annotations, or gameplay state authoritative. |
 | Cosmetics | client | derive from replicated state/events |
@@ -1126,10 +1126,10 @@ expanded-map, and options views as described below.
 | BuildPanelImage | `/Game/Kalmala/UI/BuildPanel.BuildPanel` | Texture2D override for build/craft selection |
 | WorldMapPanelImage | `/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel` | Texture2D override for the expanded map shell |
 | EscapePanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Fallback source for empty option-tab overrides; M13 requests a transparent Escape home menu |
-| VideoOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Video tab; empty falls back to EscapePanelImage |
-| AudioOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Audio tab; empty falls back to EscapePanelImage |
-| ControlsOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Controls tab; empty falls back to EscapePanelImage |
-| SettingsOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Settings tab; empty falls back to EscapePanelImage |
+| VideoOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Legacy Video tab key retained for config compatibility; M13 Options groups share InventoryPanelImage |
+| AudioOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Legacy Audio tab key retained for config compatibility; M13 Options groups share InventoryPanelImage |
+| ControlsOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Legacy Controls tab key retained for config compatibility; M13 Options groups share InventoryPanelImage |
+| SettingsOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Legacy Settings tab key retained for config compatibility; M13 Options groups share InventoryPanelImage |
 | OutlineSize | 0 | 0–3, rounded; black text outline |
 | BorderWidth / CornerRadius | 1 / 3 | 0–3 / 0–12; geometric panels and button states |
 | BorderColor | (0.35, 0.45, 0.42, 1) | Linear RGBA 0–1 |
@@ -1523,7 +1523,8 @@ replicated property, or online service.
   they must not select a destination, camp site, creature, reward, recipe
   outcome, or support target.
 - Input-binding labels are not displayed in prompts. Key/button names and
-  control legends stay in Options > Controls. Prompt text and non-colour
+  control legends stay in Options > Keyboard & Mouse and Options > Controller.
+  Prompt text and non-colour
   icon/shape cues remain available, and a player can dismiss, revisit, or
   ignore all prompts without losing normal movement or menu access.
 - Prompt timing is local presentation timing. It cannot pause the server, grant
@@ -1564,8 +1565,9 @@ coordinates:
 3. Camp, weather, exploration, optional encounter, discovery, support, and
    return prompts appear only when their local visible context exists.
 4. Every prompt can be understood from text and shape/icon cues without colour
-   or audio. Keyboard/controller mappings remain readable in Options > Controls,
-   and prompts retain their full action text.
+   or audio. Keyboard/controller mappings remain readable in Options >
+   Keyboard & Mouse and Options > Controller, and prompts retain their full
+   action text.
 5. Dismissing or ignoring prompts leaves movement, interaction, combat intent,
    support UI, map access, and reconnect behaviour unchanged.
 6. A two-player observation shows no prompt-driven replication, reward leak,
@@ -1624,38 +1626,39 @@ Gameplay HUD and interaction prompts name the visible action without showing
 key/button names or control legends. Inventory and build/crafting/repair/storage
 views, the expanded map, status/detail views, and the Settings home screen follow
 the same rule while keeping useful action/status names and existing focus
-navigation. Options > Controls is the only player-facing view that displays
-current mappings; prompt actions stay readable as text and remain remappable.
+navigation. Options > Keyboard & Mouse and Options > Controller are the only
+player-facing views that display current mappings; prompt actions stay readable
+as text and remain remappable.
 
 ## Existing shell and option groups
 
 The existing local menu opens and closes with **Escape**, owns modal input while
-open, and exposes the Options and Quit actions. Options already contains the
-Video, Audio, Controls, and Settings tabs. Video currently applies local
-resolution, V-Sync, window mode, and render-distance quality through Unreal's
-local `GameUserSettings` path. The remaining groups are the ordered M5 surface
-to implement:
+open, and exposes the Options and Quit actions. Options follows the six-group
+reference order: Gameplay, Keyboard & Mouse, Controller, Graphics, Audio, and
+Accessibility. Gameplay stays hidden while no candidate option is selected.
+Existing Video controls move to Graphics; existing input bindings split into
+Keyboard & Mouse and Controller. Resolution, V-Sync, window mode, and
+render-distance quality continue through Unreal's local `GameUserSettings` path.
 
 - **Audio:** local master, music, ambient, and interaction/combat feedback
   levels plus a mute path. Audio changes must have a readable text confirmation
   and must not be required to understand gameplay state.
-- **Controls:** local keyboard/controller bindings for the existing movement,
+- **Keyboard & Mouse / Controller:** local bindings for the existing movement,
   look, jump, sprint, interact, attack, map, recenter, settings, and craft
-  actions. The Controls tab now exposes bounded keyboard/controller choices,
-  shows each current label, applies a change to only the owning local
-  `UPlayerInput`, and provides a restore-defaults action without changing what
-  the server validates.
-- **Settings:** local text scale and contrast choices, together with the
+  actions. Each device page shows its own current labels, applies a change to
+  only the owning local `UPlayerInput`, and provides restore-defaults without
+  changing what the server validates.
+- **Accessibility:** local text scale and contrast choices, together with the
   colour-independent feedback preference for the optional nearby hearth and
   construction text overlay. Combat/support outcomes, discovery notices, and
   selected-support text remain explicit in their separate HUD surfaces.
 
-The Escape home/settings shell and all four option tabs use the local shared UI
-theme for their background image. Separate per-view keys allow a theme to
-customize the shell and tabs independently; the default reuses one original
-spruce-and-slate texture. High contrast suppresses decorative images and keeps
-the black panel, white text, and focus borders. This presentation does not
-change settings, input bindings, or modal ownership.
+The Escape home menu remains transparent in standard contrast. All five visible
+Options groups use the original `InventoryPanelImage` shared with the Inventory
+backplate. Buttons use shared-theme hover, pressed, selected, and focus states.
+High contrast suppresses the decorative image and keeps the opaque black panel,
+white text, and focus borders. This presentation does not change settings,
+input bindings, or modal ownership.
 
 The Escape panel opens with a short theme-configured downward slide. Focus and
 modal input ownership take effect immediately, and closing/reopening or
@@ -1832,7 +1835,7 @@ scales owner-local movement, status, crafting/gathering, discovery, combat, and
 support one-shots. The music value is ready for a future music playback path;
 there is no music track in the current runtime.
 
-The Controls tab stores only allowlisted local choices in the existing
+The Keyboard & Mouse and Controller groups store only allowlisted local choices in the existing
 `GameUserSettings` configuration. Movement axes retain positive/negative pairs
 when a keyboard layout is changed; action and look bindings replace only the
 selected keyboard or controller device family. Applying or restoring a choice
@@ -1841,16 +1844,16 @@ instance rehydrates the same local choices. The project baseline in
 `Config/DefaultInput.ini` is never rewritten. Escape remains available for the
 modal close path even when the alternate Settings action key is changed.
 
-The Settings tab now provides local text-scale choices of 100%, 125%, and 150%
+The Accessibility group now provides local text-scale choices of 100%, 125%, and 150%
 and Standard or High contrast. Text choices immediately rebuild the modal with
 scaled, auto-wrapped labels and buttons inside its larger bounded panel;
-Controls remains scrollable at the largest size. Contrast updates the local
+The binding list remains scrollable at the largest size. Contrast updates the local
 backdrop, panel, button surfaces, text, and focusable state controls together,
 while every state continues to expose an explicit text value. Both choices
 persist in the existing local `GameUserSettings` configuration and affect no
 gameplay widget, replicated property, or server request.
 
-The Settings tab also provides a whole-interface scale from 80%, 90%, 100%,
+The Accessibility group also provides a whole-interface scale from 80%, 90%, 100%,
 110%, or 120%, defaulting to 100%, plus a Reduced motion On/Off choice that
 defaults to Off. Interface scale is a local multiplier over the project's
 existing DPI curve and `UUserInterfaceSettings::ApplicationScale`; it changes
@@ -1864,7 +1867,7 @@ visible. Theme animation keys continue to control those effects when Reduced
 motion is Off. Neither option creates a gameplay setting, RPC, replicated
 value, world/player save field, or new save schema.
 
-The Settings tab also provides a local colour-independent feedback choice:
+The Accessibility group also provides a local colour-independent feedback choice:
 **Text only** keeps the existing readable state lines, while **Text + markers**
 adds explicit bracketed state markers for Wet, hearth, construction, combat,
 discovery, and support status in a local owner-only overlay. The marker mode
@@ -1876,7 +1879,7 @@ becomes a gameplay signal.
 ## Existing input baseline
 
 The current normal-player baseline in `Config/DefaultInput.ini` is the source
-for the Controls tab's initial labels. It must remain available while local
+for the Keyboard & Mouse and Controller groups' initial labels. It must remain available while local
 remapping is added:
 
 | Action or axis | Keyboard/mouse baseline | Controller baseline |
@@ -1997,16 +2000,17 @@ The runtime implementation is accepted when a fresh local profile can open,
 navigate, change, cancel, apply, reset, and persist each option group with
 keyboard and controller bindings, while a second player observes no
 replicated settings state. `Scripts/Verify-SettingsAccessibility.ps1` runs
-isolated host/client profiles, opens the Escape shell and live Video, Audio,
-Controls, and Settings tabs; it checks focusable targets, modal input
+isolated host/client profiles, opens the Escape shell and live Keyboard & Mouse,
+Controller, Graphics, Audio, and Accessibility groups; it checks focusable targets, modal input
 ownership, and Escape recovery, persists every local option, and compares the
 pawn health, transform, and server-selected world identity before and after
 the probe. It checks interface scale and reduced motion in local config, then
 restarts both peers with the same user directories and confirms both choices
-reload and the scale is applied over the project default. It retains fourteen
+reload and the scale is applied over the project default. It retains sixteen
 host/client PNG captures at either 1280x720 or 1024x768: standard-contrast
-Escape, Video, Settings, reduced-motion Settings, and restored HUD views plus
-high-contrast Controls and Audio views. Run both viewport sizes and inspect the
+Escape, Graphics, Accessibility, reduced-motion Accessibility, and restored
+HUD views plus high-contrast Keyboard & Mouse, Controller, and Audio views. Run
+both viewport sizes and inspect the
 modal, HUD, and artwork; these checks do not replace physical
 keyboard/controller or packaged verification.
 
@@ -2037,20 +2041,20 @@ removes repeated activation hints from individual values. Existing button focus,
 activation, immediate local application, contrast treatment, and persistence stay
 unchanged. Other option tabs remain part of the broader view polish pass.
 
-## Development increment: Options tab memory
+## Development increment: Options group memory
 
-The owner-local settings widget retains its last Options tab (Video by default)
+The owner-local settings widget retains its last Options group (Keyboard & Mouse by default)
 across ordinary close/reopen. Escape still opens the main shell; choosing Options
-rebuilds the remembered tab with current labels and its normal focus target.
+rebuilds the remembered group with current labels and its normal focus target.
 Restoration invokes no setting-changing click handler. The current M11 runtime
-index is bounded to four tabs, with Video as the dispatch fallback. M13 replaces
-that tab set with the applicable groups from the six-group Settings checklist
-above; retained selection must resolve to a valid group, with Graphics as the
-fallback for a stale Video index. Memory ends when the widget is recreated,
+index was bounded to four tabs. M13 replaces that set with applicable groups
+from the six-group Settings checklist above; the five visible groups remain
+within bounds, with Keyboard & Mouse as the default. Memory ends when the widget
+is recreated,
 including subsystem teardown; it writes no config/save data.
 Scroll position and exact previously focused control are not yet retained.
-The rendered settings accessibility fixture now returns from the Settings tab
-to the main shell, reopens Options, and requires the Settings tab and a focusable
+The rendered settings accessibility fixture now returns from the Accessibility group
+to the main shell, reopens Options, and requires the Accessibility group and a focusable
 control to be restored on both peers while local interface/text scales and
 master volume remain unchanged. This covers the Options-tab-only increment;
 other menus, scrolling, exact control focus, and full per-menu restoration remain
@@ -2085,7 +2089,7 @@ child. See `02-technical-architecture.md` for identities and verification bounda
 | Player | `UKalmalaPlayerModelComponent` procedural mesh and the generated bark/terrain/rock materials | Nine local, collision-free cosmetic parts; shape and pose never author gameplay | Faceted mantle/hood presentation verified in the rendered offscreen host/client controls fixture |
 | Wildlife | `AKalmalaWildlifeSpawn::BuildArchetypePresentation` procedural low-poly geometry and vertex colours | Server-owned replicated actor state; mesh is presentation only and has no collision | Mireling's low forward hunch, reaching arms, and split crown read as a distinct close-view silhouette in the rendered host fixture; dark body planes merge somewhat. Boar has a low wedge-backed profile, broken bristle ridge, tapered muzzle, and paired tusks; deer has a lighter, long-legged alert profile with paired forked antlers |
 | Environment | `AKalmalaGeneratedTerrainPatch`, campfire, and construction procedural meshes using generated materials | Terrain collision and shelter collision remain the gameplay authority; decorative meshes do not add routes or hidden content | Existing generated terrain, water, rock, tree, hearth, and kit sources are audited here |
-| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace and shows its supported action plus any owner-visible unavailable reason; it clears for no target or modal input and contains no key/button legend. The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; a separate top-centre support strip reflects the local character's selected effect and the owner's learned set; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; settings Audio/Controls/Settings tabs expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
+| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace and shows its supported action plus any owner-visible unavailable reason; it clears for no target or modal input and contains no key/button legend. The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; a separate top-centre support strip reflects the local character's selected effect and the owner's learned set; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; settings Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility groups expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
 | Feedback | Text and shape/icon treatments in the owner notification queue, crafting, discovery, and settings widgets | Readable without colour or audio; feedback reports accepted replicated results rather than client claims | Support glyphs reflect only the owner's learned/selected state and retain explicit text names/status; a bounded owner-only queue presents combat/support results and discovery acknowledgements; the optional Text + markers overlay remains for nearby hearth/construction context |
 
 The ledger is an ownership and scope check, not a claim that the complete M5
@@ -2261,7 +2265,7 @@ non-audio equivalent so silence never hides authoritative state.
 | Cue group | Normal trigger | Audio intent | Required non-audio equivalent | Authority/privacy boundary |
 | --- | --- | --- | --- | --- |
 | Ambient wilderness | Local player is in normal play | Quiet wind, water, fire, and biome atmosphere establish place without a fixed route | Terrain, weather, hearth, and exposure text/shape cues remain readable | Only local visible context; no hidden population, discovery, or route hint |
-| Movement and traversal | Local movement, jump, sprint, landing, or water entry is already visible | Sparse original footfall, jump, landing, and movement-state cues reinforce action | Existing movement pose and HUD state remain readable; current bindings remain in Options > Controls | Local cosmetic response; no movement result, speed, stamina, or terrain authority is authored by audio |
+| Movement and traversal | Local movement, jump, sprint, landing, or water entry is already visible | Sparse original footfall, jump, landing, and movement-state cues reinforce action | Existing movement pose and HUD state remain readable; current bindings remain in Options > Keyboard & Mouse and Options > Controller | Local cosmetic response; no movement result, speed, stamina, or terrain authority is authored by audio |
 | Weather and exposure | Existing replicated weather/Wet presentation changes | Rain, wind, and shelter contrast communicates changing conditions | Wet duration, shelter, warmth, hearth, and recovery text/shape cues remain visible | Server owns weather/exposure/Wet; audio reads accepted replicated state only |
 | Interaction and gathering | A normal interaction receives an accepted or rejected result | Short, distinct confirmation or rejection cue avoids ambiguous input | Existing interaction text and inventory result identify accepted, rejected, or unavailable state | Server validates actor, range, payment, item, quantity, and outcome; audio carries no request payload |
 | Combat | Replicated committed action or feedback changes for the owning player/relevant actor | Windup, recovery, hit, defeat, and unavailable cues clarify timing and outcome | Combat phase and colour-independent HIT/DEFEAT/UNAVAILABLE text remain authoritative presentation | Server selects target, damage, cooldown, and defeat; clients never infer or author them from sound |

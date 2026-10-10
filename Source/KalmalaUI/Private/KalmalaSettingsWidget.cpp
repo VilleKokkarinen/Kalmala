@@ -440,10 +440,12 @@ void UKalmalaSettingsWidget::SetVerificationTab(const int32 TabIndex)
     switch (TabIndex)
     {
     case 0: ShowAudioTab(); break;
-    case 1: ShowControlsTab(); break;
-    case 2: ShowSettingsTab(); break;
+    case 1: ShowKeyboardAndMouseTab(); break;
+    case 2: ShowAccessibilityTab(); break;
     case 3: HandleStatusDetailsClicked(); break;
     case 4: ShowOptionsMenu(); break;
+    case 6: ShowGraphicsTab(); break;
+    case 7: ShowControllerTab(); break;
     default: ShowMainMenu(); break;
     }
 }
@@ -1041,8 +1043,10 @@ void UKalmalaSettingsWidget::SetReducedMotionEnabled(const bool bEnabled)
 
 void UKalmalaSettingsWidget::SelectOptionsTab(const int32 SelectedIndex)
 {
-    LastOptionsTabIndex = FMath::Clamp(SelectedIndex, 0, 3);
-    static const TCHAR* TabNames[] = { TEXT("Video"), TEXT("Audio"), TEXT("Controls"), TEXT("Settings") };
+    LastOptionsTabIndex = FMath::Clamp(SelectedIndex, 0, 4);
+    static const TCHAR* TabNames[] = {
+        TEXT("Keyboard & Mouse"), TEXT("Controller"), TEXT("Graphics"), TEXT("Audio"), TEXT("Accessibility")
+    };
     for (int32 Index = 0; Index < OptionsTabButtons.Num(); ++Index)
     {
         UKalmalaThemedButton* Tab = OptionsTabButtons[Index];
@@ -1077,6 +1081,7 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
     OptionsTabButtons.Reset();
     StatusDetailsLabel = nullptr;
     ContentBox->ClearChildren();
+    ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
     AddLabel(ContentBox, FText::FromString(TEXT("Options")), 30.0f)->SetJustification(ETextJustify::Center);
     UHorizontalBox* Tabs = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
     const auto AddTab = [this, Tabs](const FText& Label, FName Name, FScriptDelegate Delegate)
@@ -1094,27 +1099,29 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
         Tab->OnClicked.Add(Delegate);
         UHorizontalBoxSlot* Slot = Tabs->AddChildToHorizontalBox(Tab); Slot->SetSize(FSlateChildSize(ESlateSizeRule::Fill)); Slot->SetPadding(FMargin(3.0f));
     };
-    FScriptDelegate VideoDelegate; VideoDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleVideoClicked)); AddTab(FText::FromString(TEXT("Video")), TEXT("VideoTab"), VideoDelegate);
+    FScriptDelegate KeyboardDelegate; KeyboardDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleKeyboardAndMouseClicked)); AddTab(FText::FromString(TEXT("Keyboard & Mouse")), TEXT("KeyboardMouseTab"), KeyboardDelegate);
+    FScriptDelegate ControllerDelegate; ControllerDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleControllerClicked)); AddTab(FText::FromString(TEXT("Controller")), TEXT("ControllerTab"), ControllerDelegate);
+    FScriptDelegate GraphicsDelegate; GraphicsDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleGraphicsClicked)); AddTab(FText::FromString(TEXT("Graphics")), TEXT("GraphicsTab"), GraphicsDelegate);
     FScriptDelegate AudioDelegate; AudioDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAudioClicked)); AddTab(FText::FromString(TEXT("Audio")), TEXT("AudioTab"), AudioDelegate);
-    FScriptDelegate ControlsDelegate; ControlsDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleControlsClicked)); AddTab(FText::FromString(TEXT("Controls")), TEXT("ControlsTab"), ControlsDelegate);
-    FScriptDelegate SettingsDelegate; SettingsDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleSettingsClicked)); AddTab(FText::FromString(TEXT("Settings")), TEXT("SettingsTab"), SettingsDelegate);
+    FScriptDelegate AccessibilityDelegate; AccessibilityDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAccessibilityClicked)); AddTab(FText::FromString(TEXT("Accessibility")), TEXT("AccessibilityTab"), AccessibilityDelegate);
     ContentBox->AddChildToVerticalBox(Tabs);
     // Restore presentation and focus without invoking option-changing handlers.
     switch (LastOptionsTabIndex)
     {
-    case 1: ShowAudioTab(); break;
-    case 2: ShowControlsTab(); break;
-    case 3: ShowSettingsTab(); break;
-    default: ShowVideoTab(); break;
+    case 1: ShowControllerTab(); break;
+    case 2: ShowGraphicsTab(); break;
+    case 3: ShowAudioTab(); break;
+    case 4: ShowAccessibilityTab(); break;
+    default: ShowKeyboardAndMouseTab(); break;
     }
 }
 
-void UKalmalaSettingsWidget::ShowVideoTab()
+void UKalmalaSettingsWidget::ShowGraphicsTab()
 {
-    SelectOptionsTab(0);
-    ApplyModalPalette(&FKalmalaUITheme::Get().VideoOptionsPanelImage);
+    SelectOptionsTab(2);
+    ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
-    AddLabel(ContentBox, FText::FromString(TEXT("Video")), 24.0f);
+    AddLabel(ContentBox, FText::FromString(TEXT("Graphics")), 24.0f);
     UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
     if (Settings == nullptr) return;
     ResolutionChoices = { FIntPoint(1280, 720), FIntPoint(1600, 900), FIntPoint(1920, 1080), FIntPoint(2560, 1440), FIntPoint(3840, 2160) };
@@ -1133,8 +1140,8 @@ void UKalmalaSettingsWidget::ShowVideoTab()
 
 void UKalmalaSettingsWidget::ShowAudioTab()
 {
-    SelectOptionsTab(1);
-    ApplyModalPalette(&FKalmalaUITheme::Get().AudioOptionsPanelImage);
+    SelectOptionsTab(3);
+    ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     AddLabel(ContentBox, FText::FromString(TEXT("Audio")), 24.0f);
     UButton* MasterVolume = AddButton(ContentBox, FText::GetEmpty(), TEXT("MasterVolumeButton"));
@@ -1157,16 +1164,26 @@ void UKalmalaSettingsWidget::ShowAudioTab()
     MasterVolume->SetUserFocus(GetOwningPlayer());
 }
 
-void UKalmalaSettingsWidget::ShowControlsTab()
+void UKalmalaSettingsWidget::ShowKeyboardAndMouseTab()
 {
-    SelectOptionsTab(2);
-    ApplyModalPalette(&FKalmalaUITheme::Get().ControlsOptionsPanelImage);
+    ShowInputTab(false);
+}
+
+void UKalmalaSettingsWidget::ShowControllerTab()
+{
+    ShowInputTab(true);
+}
+
+void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
+{
+    SelectOptionsTab(bGamepad ? 1 : 0);
+    ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     ControlButtons.Reset();
-    AddLabel(ContentBox, FText::FromString(TEXT("Controls")), 24.0f);
+    AddLabel(ContentBox, FText::FromString(bGamepad ? TEXT("Controller") : TEXT("Keyboard & Mouse")), 24.0f);
     UButton* Restore = AddButton(ContentBox, FText::FromString(TEXT("Restore default controls")), TEXT("RestoreControlsButton"));
     Restore->OnClicked.AddDynamic(this, &ThisClass::HandleRestoreControlsClicked);
-    AddLabel(ContentBox, FText::FromString(TEXT("Activate a keyboard or controller row to cycle its local binding.")), 15.0f);
+    AddLabel(ContentBox, FText::FromString(TEXT("Activate a row to cycle its local binding.")), 15.0f);
 
     UScrollBox* Scroll = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("ControlsScroll"));
     FKalmalaUITheme::Get().ApplyScroll(*Scroll);
@@ -1187,20 +1204,19 @@ void UKalmalaSettingsWidget::ShowControlsTab()
         UVerticalBoxSlot* LabelSlot = Row->AddChildToVerticalBox(Label);
         LabelSlot->SetPadding(FMargin(4.0f, 3.0f));
 
-        const auto AddControlButton = [this, Row, ControlName](const bool bGamepad)
+        const auto AddControlButton = [this, Row, ControlName](const bool bForGamepad)
         {
             UKalmalaControlButton* Button = WidgetTree->ConstructWidget<UKalmalaControlButton>(
                 UKalmalaControlButton::StaticClass());
             ApplyButtonPalette(Button);
-            Button->Configure(ControlName, bGamepad);
+            Button->Configure(ControlName, bForGamepad);
             Button->SetDisplayText(FText::GetEmpty());
             Button->OnControlBindingClicked.AddDynamic(this, &ThisClass::HandleControlBindingClicked);
             UVerticalBoxSlot* ButtonSlot = Row->AddChildToVerticalBox(Button);
             ButtonSlot->SetPadding(FMargin(3.0f, 2.0f));
             ControlButtons.Add(Button);
         };
-        AddControlButton(false);
-        AddControlButton(true);
+        AddControlButton(bGamepad);
         UVerticalBoxSlot* RowSlot = Rows->AddChildToVerticalBox(Row);
         RowSlot->SetPadding(FMargin(3.0f, 6.0f));
     }
@@ -1223,12 +1239,12 @@ void UKalmalaSettingsWidget::UpdateControlsLabels()
     }
 }
 
-void UKalmalaSettingsWidget::ShowSettingsTab()
+void UKalmalaSettingsWidget::ShowAccessibilityTab()
 {
-    SelectOptionsTab(3);
+    SelectOptionsTab(4);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
-    ApplyModalPalette(&FKalmalaUITheme::Get().SettingsOptionsPanelImage);
-    AddLabel(ContentBox, FText::FromString(TEXT("Settings")), 24.0f);
+    ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
+    AddLabel(ContentBox, FText::FromString(TEXT("Accessibility")), 24.0f);
 
     UButton* InterfaceScale = AddButton(ContentBox, FText::GetEmpty(), TEXT("InterfaceScaleButton"));
     InterfaceScale->OnClicked.AddDynamic(this, &ThisClass::HandleInterfaceScaleClicked);
@@ -1414,10 +1430,11 @@ void UKalmalaSettingsWidget::NativeTick(const FGeometry& Geometry, float DeltaTi
     Theme.ApplyText(*StatusDetailsLabel, Theme.BodySize, false, GetTextScalePercent(), GetContrastMode());
 }
 void UKalmalaSettingsWidget::HandleQuitClicked() { UKismetSystemLibrary::QuitGame(this, GetOwningPlayer(), EQuitPreference::Quit, false); }
-void UKalmalaSettingsWidget::HandleVideoClicked() { ShowVideoTab(); }
+void UKalmalaSettingsWidget::HandleGraphicsClicked() { ShowGraphicsTab(); }
+void UKalmalaSettingsWidget::HandleKeyboardAndMouseClicked() { ShowKeyboardAndMouseTab(); }
+void UKalmalaSettingsWidget::HandleControllerClicked() { ShowControllerTab(); }
 void UKalmalaSettingsWidget::HandleAudioClicked() { ShowAudioTab(); }
-void UKalmalaSettingsWidget::HandleControlsClicked() { ShowControlsTab(); }
-void UKalmalaSettingsWidget::HandleSettingsClicked() { ShowSettingsTab(); }
+void UKalmalaSettingsWidget::HandleAccessibilityClicked() { ShowAccessibilityTab(); }
 void UKalmalaSettingsWidget::HandleResolutionClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { ResolutionChoiceIndex = (ResolutionChoiceIndex + 1) % ResolutionChoices.Num(); Settings->SetScreenResolution(ResolutionChoices[ResolutionChoiceIndex]); ApplyVideoSettings(); } }
 void UKalmalaSettingsWidget::HandleVSyncClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->SetVSyncEnabled(!Settings->IsVSyncEnabled()); ApplyVideoSettings(); } }
 void UKalmalaSettingsWidget::HandleWindowModeClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { const EWindowMode::Type Mode = Settings->GetFullscreenMode(); Settings->SetFullscreenMode(Mode == EWindowMode::Fullscreen ? EWindowMode::Windowed : Mode == EWindowMode::Windowed ? EWindowMode::WindowedFullscreen : EWindowMode::Fullscreen); ApplyVideoSettings(); } }
@@ -1476,7 +1493,7 @@ void UKalmalaSettingsWidget::HandleTextScaleClicked()
     const int32 Current = GetTextScalePercent();
     const int32 Next = Current == 100 ? 125 : Current == 125 ? 150 : 100;
     SetTextScalePercent(Next);
-    ShowSettingsTab();
+    ShowAccessibilityTab();
 }
 
 void UKalmalaSettingsWidget::HandleInterfaceScaleClicked()
@@ -1484,23 +1501,23 @@ void UKalmalaSettingsWidget::HandleInterfaceScaleClicked()
     const int32 Current = GetInterfaceScalePercent();
     const int32 Next = Current >= 120 ? 80 : Current + 10;
     SetInterfaceScalePercent(Next);
-    ShowSettingsTab();
+    ShowAccessibilityTab();
 }
 
 void UKalmalaSettingsWidget::HandleReducedMotionClicked()
 {
     SetReducedMotionEnabled(!IsReducedMotionEnabled());
-    ShowSettingsTab();
+    ShowAccessibilityTab();
 }
 
 void UKalmalaSettingsWidget::HandleContrastClicked()
 {
     SetContrastMode(GetContrastMode() == 0 ? 1 : 0);
-    ShowSettingsTab();
+    ShowAccessibilityTab();
 }
 
 void UKalmalaSettingsWidget::HandleFeedbackClicked()
 {
     SetFeedbackMode(GetFeedbackMode() == 0 ? 1 : 0);
-    ShowSettingsTab();
+    ShowAccessibilityTab();
 }
