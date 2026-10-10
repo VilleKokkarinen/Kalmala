@@ -139,3 +139,13 @@
 - **Impact and authority:** planning and documentation only; no runtime, gameplay, networking, persistence, or server-authority behavior changed.
 - **Limits:** tracked assets and valid source files do not prove cooked or visible runtime output. M13 requires fresh checks on the final integrated main tree.
 - **Next eligible task:** revalidate and repair the M11 shared theme, accessibility, common menu, and local browsing foundation.
+
+## 2026-10-10 — M14 expanded-map biome texture increment
+
+- **Completed:** added a separate expanded-map sampler with world-anchored, broad texture patterns for all existing biomes; small details taper as raster spacing grows. The minimap keeps its existing texture sampler, and the map continues to use the existing generated biome and water samples.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaUI/Private/KalmalaMinimapRaster.cpp`, `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`, `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`, `Source/KalmalaUI/Public/KalmalaMinimapRaster.h`, `Source/KalmalaUI/Public/KalmalaMinimapViewModel.h`, and `docs/15-presentation-ownership.md`.
+- **Lightweight checks:** `git diff --check` passed; source inspection confirmed both expanded-map tile paths use the new sampler while the minimap path retains its existing sampler. No test suite or build ran.
+- **Full verification:** deferred to M14 milestone-final verification on the integrated acceptance tree; no Unreal build, automation, rendered capture, or performance capture ran.
+- **Impact and authority:** expanded-map terrain now has biome-specific cosmetic patterns in local raster output. No terrain generation, biome classification, exploration, saved data, gameplay, replication, or server authority changed.
+- **Limits:** texture visibility has not been reviewed in rendered host/client captures. M13 remains incomplete, and the M14 acceptance gate still requires integrated M13/M14 verification.
+- **Next eligible task:** restore fog over undiscovered terrain using the owning player's existing exploration coverage, without allowing pan, zoom, pins, or pings to reveal hidden content.

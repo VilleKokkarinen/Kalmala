@@ -174,7 +174,11 @@ peer. Local cosmetic geometry, UI preferences, and transient raster textures
 are not replicated and do not change saved-data schemas.
 
 The expanded map's `WorldMapPanelImage` is static project artwork painted
-behind its existing locally generated terrain and fog. Its owner-local legend
+behind its locally generated terrain and fog. Expanded-map terrain uses
+world-anchored biome patterns with broad features retained at overview zoom;
+fine texture detail fades as tile sample spacing grows. These patterns are
+cosmetic raster output from the existing local biome samples, not a saved or
+replicated biome map. Its owner-local legend
 and personal-pin/co-op-player/temporary-ping filters read only pins already
 loaded for that local player and co-op markers already returned through the
 owner's visibility-gated map-awareness component. A separate local fog check

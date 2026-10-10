@@ -69,7 +69,7 @@ The next task is to finish the current inventory/HUD/service revalidation, inclu
 M14 starts after M13 milestone-final verification. Its scope and acceptance criteria are in [the roadmap](docs/04-roadmap.md).
 
 - [ ] Rework the expanded map presentation and interactions.
-  - [ ] Replace flat biome colours with distinct original per-biome textures that stay recognizable at every supported zoom level.
+  - [x] Replace flat biome colours with distinct original per-biome textures that stay recognizable at every supported zoom level. (2026-10-10; added world-anchored macro patterns for all map biomes and faded fine detail with coarser raster spacing; full rendered verification deferred to the integrated M14 gate.)
   - [ ] Restore fog over undiscovered terrain using the owner's existing exploration coverage; pan, zoom, pins, and pings must not reveal hidden map content.
   - [ ] Add selectable bottom-right personal-marker icons. Select an icon and click the map to place it; allow an optional text label and keep the pin icon-only when the label is blank. Keep pins owner-local.
   - [ ] Replace the ping control box with direct right-click map pings at any valid world location, without distance, discovery, or biome restrictions. Server-validate and relay a world beacon to all connected players; show it at the clicked position for ten seconds, then expire it without saving.

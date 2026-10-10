@@ -655,13 +655,14 @@ TArray<FColor> UKalmalaWorldMapWidget::BuildTilePixels(const FKalmalaWorldGenera
             S.TerrainHeight = R.Height;
             S.bIsWater = R.Height < 0 || R.bHasWater;
             const auto Biome = static_cast<EKalmalaBiome>(R.Biome);
-            S.TerrainColour = FKalmalaMinimapRaster::SampleBiomeTexture(S.bIsWater ? EKalmalaBiome::Ocean : Biome, P);
+            S.TerrainColour = FKalmalaMinimapRaster::SampleExpandedMapBiomeTexture(
+                S.bIsWater ? EKalmalaBiome::Ocean : Biome, P, WorldSize / static_cast<float>(SamplesPerAxis - 1));
             if (S.bIsWater && Biome == EKalmalaBiome::ShimmeringLakes) S.TerrainColour *= FLinearColor(1.3f, 1.8f, 1.6f);
         }
         return FKalmalaMinimapRaster::BuildPixels(Samples, FIntPoint(SamplesPerAxis));
     }
     return FKalmalaMinimapRaster::BuildPixels(UKalmalaMinimapViewModel::BuildTerrainSamples(
-        Config, Centre, FVector2D(WorldSize * 0.5f), FIntPoint(TileSamplesPerAxis, TileSamplesPerAxis)),
+        Config, Centre, FVector2D(WorldSize * 0.5f), FIntPoint(TileSamplesPerAxis, TileSamplesPerAxis), true),
         FIntPoint(TileSamplesPerAxis, TileSamplesPerAxis));
 }
 
