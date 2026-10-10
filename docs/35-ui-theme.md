@@ -50,7 +50,7 @@ expanded-map, and options views as described below.
 | InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D for the shared Inventory-and-Crafting backplate |
 | BuildPanelImage | `/Game/Kalmala/UI/BuildPanel.BuildPanel` | Texture2D override for build/craft selection |
 | WorldMapPanelImage | `/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel` | Texture2D override for the expanded map shell |
-| EscapePanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Escape home/options shell; fallback source for empty tab overrides |
+| EscapePanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Fallback source for empty option-tab overrides; M13 requests a transparent Escape home menu |
 | VideoOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Video tab; empty falls back to EscapePanelImage |
 | AudioOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Audio tab; empty falls back to EscapePanelImage |
 | ControlsOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Controls tab; empty falls back to EscapePanelImage |
@@ -473,3 +473,17 @@ actions and silent modal/no-target states on both local peers for standard and
 high-contrast review. Rendered crafting acceptance also confirms the live
 prompt hides while its modal is open. This editor evidence does not certify
 physical keyboard/controller hardware or packaged builds.
+
+## M13 Escape home menu presentation request — 2026-10-10
+
+The main Escape home menu (Continue, Save, Settings, Log Out, and Quit) is to
+draw directly over gameplay with no visible panel fill, image, border, or
+dimming scrim. Keep each existing action as a readable option in the menu list.
+The hovered option and the keyboard/controller-focused option receive a clear
+theme highlight; focus remains distinguishable without colour alone in high
+contrast and remains visible when motion is reduced. The existing per-tab
+background images and Options behavior are unchanged. `EscapePanelImage` remains
+available as the fallback image for tabs whose individual image key is empty;
+it will no longer be applied to the transparent home menu when this request is
+implemented. This is a presentation-only change with no action, input ownership,
+or gameplay behavior change.

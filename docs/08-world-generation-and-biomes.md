@@ -151,7 +151,10 @@ Connect rain, wind, wetness, warmth, fires, and shelter to the generated terrain
 
 Add a circular, top-right minimap that keeps the owning player at its centre, shows facing direction, and uses mouse-wheel zoom clamped between tunable minimum and maximum levels. It is a local UI view of available seed-derived terrain, water, and player-facing landmarks; it must not reveal hidden server-owned gameplay content, create a second biome map, or direct travel.
 
-**Done when:** the map remains circular and legible at supported UI scales and aspect ratios, zoom clamps at both bounds, and host/client peers each see only their own player-centred local view without any gameplay-state mutation.
+The M13 HUD refinement places a right-aligned label for the current biome immediately above the minimap and moves the minimap down slightly to make room.
+Derive the label from the existing world biome classification at the local player's current position; do not add a replicated biome field or a separate map sampler.
+
+**Done when:** the map remains circular and legible at supported UI scales and aspect ratios, the right-aligned current-biome label fits above it without clipping or colliding with the top-right status group, zoom clamps at both bounds, and host/client peers each see only their own player-centred local view without any gameplay-state mutation.
 
 ### 6. Add biomes one at a time
 

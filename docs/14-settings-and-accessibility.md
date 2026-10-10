@@ -61,6 +61,11 @@ resizing during the animation does not delay gameplay actions or change menu
 content. Theme configuration can disable the animation for an instant path, and
 the local Reduced motion setting below also overrides decorative animation.
 
+The M13 presentation request makes the main Escape home menu transparent over
+gameplay, with a visible theme highlight for hovered and keyboard/controller-
+focused options. High contrast must retain a clear non-colour focus cue. This
+does not change the separate Options tabs or the menu's existing input ownership.
+
 Exact control ranges and device-specific labels remain implementation details;
 they must stay bounded, reversible, and compatible with the current input
 bindings. This increment makes no platform, visual-identity, or audio-content

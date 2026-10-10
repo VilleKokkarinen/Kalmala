@@ -7,6 +7,7 @@
 - The inventory screenshot showed the legacy vector fallback. The lookup constructs texture paths dynamically, so the cooker did not have a declared reference to include those icon packages. `DefaultGame.ini` now always cooks both catalogue and status icon directories.
 - The 2026-10-09 user-directed 10×4 inventory is implemented and the UE5.8.2 editor target builds after the recorded repair. Runtime, rendered, input, and peer acceptance for that layout remains deferred; see [inventory handoff](docs/47-inventory-grid.md).
 - M13 now also includes a paired inventory/crafting modal, contextual item detail, compact armor/weight summary, and one continuous wood-textured backplate behind opaque solid panes. The tooltip will show only existing catalogue/tool values; item combat-stat data is not currently defined.
+- The latest M13 request adds a right-aligned current-biome label above the top-right minimap and a transparent main Escape menu with visible hover/focus highlighting; both are queued as presentation work.
 - A Win64 Development package launched and loaded the prototype map on 2026-10-10. This confirms startup and map loading; rendered icon visibility and the remaining M13 UI acceptance are still pending.
 
 ## Completed work log
@@ -43,6 +44,16 @@
 - **Impact and authority:** local inventory opening now also displays the recipe companion. Craft requests still use the existing crafting component/server validation; no recipe, gameplay stat, replication, or saved-data schema was added or changed.
 - **Limits:** rendered layout and modal interaction have not been verified in Unreal. Existing catalogue/tool details are used; new combat stat fields were not introduced. The Crafting companion uses the existing non-build recipe catalogue, with station-required recipes showing their existing requirement/availability context.
 - **Next eligible task:** reconcile inventory details, construction/build, station menus, recipe copy, the retired persistent panel/tutorial card, and the active-only status group against docs/35–45.
+
+## 2026-10-10 — Add M13 minimap and Escape-menu refinements
+
+- **Completed:** added the requested top-right minimap biome label and transparent main Escape home-menu treatment to the M13 scope and contracts. The label is right-aligned above the minimap, which moves down slightly; it uses the existing current-position biome classification. The home menu keeps its current options/actions and gains visible hover/focus highlighting over gameplay; individual Options tabs retain their documented backgrounds.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/04-roadmap.md`, `docs/08-world-generation-and-biomes.md`, `docs/14-settings-and-accessibility.md`, and `docs/35-ui-theme.md`.
+- **Lightweight checks:** reviewed the existing minimap, theme, accessibility, and M13 roadmap contracts; `git diff --check` and the 260-character path audit passed.
+- **Full verification:** deferred to the M13 final gate. No runtime code or rendered UI was changed or verified in this scope update.
+- **Impact and authority:** planning/documentation only. The biome label is specified to read existing local position/world classification; no new replicated state or gameplay authority change is requested. The Escape-menu refinement is local presentation only.
+- **Limits:** both visual refinements remain queued for implementation and rendered validation. Existing M11 menu/background implementation is still present until that M13 work is done.
+- **Next eligible task:** finish the active inventory/HUD/service revalidation, then implement the queued minimap label and transparent Escape home-menu refinements.
 
 ## 2026-10-10 — Include dynamic icon assets in package cooks
 

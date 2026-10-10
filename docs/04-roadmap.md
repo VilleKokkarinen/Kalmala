@@ -792,6 +792,15 @@ Inventory and Crafting panes; each pane uses an opaque solid fill. Rounded,
 inset inventory cells and craft cards use opaque dark-brown fills. High contrast
 suppresses the wood and retains opaque black accessibility surfaces.
 
+The 2026-10-10 HUD/menu request adds a right-aligned current-biome label directly
+above the top-right minimap, with the minimap moved slightly down to make room.
+The label comes from the existing current-position biome classification; it adds
+no second biome map or replicated state. The main Escape home menu becomes fully
+transparent over gameplay, showing its existing options list with a visible
+theme highlight for hovered and keyboard/controller-focused options. These are
+local presentation changes; existing option actions and modal input rules remain
+intact.
+
 **M13 boundary:** UI presentation, original icon sources, imported UI assets,
 and their integration only. Do not add gameplay content, change server
 authority or gameplay transactions, alter saved-data schemas, introduce new
@@ -810,6 +819,15 @@ online services, or expand platform scope.
   spans both panes as a shared backing, each pane has a solid opaque fill, and
   the inset rounded cells/cards use dark-brown opaque fills, with high contrast
   still readable.
+- The top-right minimap has a right-aligned current-biome label above it, and is
+  shifted down enough to fit the label without clipping or overlapping the
+  status group across supported layouts. The label reads the current local
+  position's existing biome classification without adding a map or replicated
+  biome data.
+- The main Escape home options list appears directly over gameplay with a fully
+  transparent background and no dimming scrim. Hover and keyboard/controller
+  focus visibly highlight the active option, including in high contrast and
+  reduced motion; current actions and modal ownership still work.
 - All 48 canonical catalogue icons and nine status icons have their required
   original/prepared image sources and imported Texture2D packages tracked in
   main. Runtime references resolve to those packages, and every supported
