@@ -126,6 +126,16 @@ if (!(Test-Path -LiteralPath $stamp) -or [IO.File]::ReadAllText($stamp) -ne $sou
 if (!(Test-Path -LiteralPath (Join-Path $Cache 'Binaries/Win64/UnrealEditor-KalmalaEditor.dll'))) {
     throw 'A compiled editor cache is required once. Seed with -SeedCache <compiled-project> and use -BuildModules.'
 }
+if (!($singleMenu -and $Output)) {
+    New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
+    $renderedMenuNames = ($menuIds | ForEach-Object { [regex]::Escape($_) }) -join '|'
+    $renderedPNGPattern = '^(?:' + $renderedMenuNames + ')-[0-9a-f]{8}\.png$'
+    $staleRenderedPNGs = @(Get-ChildItem -LiteralPath $outputDirectory -File |
+        Where-Object { $_.Name -match $renderedPNGPattern })
+    foreach ($staleRenderedPNG in $staleRenderedPNGs) {
+        Remove-Item -LiteralPath $staleRenderedPNG.FullName
+    }
+}
 foreach ($target in $renderTargets) {
     $menuId = $target.Menu
     $outputPath = $target.PNG

@@ -595,3 +595,12 @@
 - **Impact/authority:** Build-menu presentation and hover guidance only. Existing client build requests, server-side placement and cost validation, networking authority, persistence, and save data are unchanged.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Full build and rendered menu verification remain deferred; actual 64×64 icon-slot appearance still needs a fresh Build menu capture.
 - **Next eligible work:** the unchecked Escape home border transparency item remains first in the post-roadmap backlog; M14 main-checkout integration is also pending.
+
+## User-directed increment 2026-10-11 — Clear previous Render-Menu PNGs
+
+- **Completed:** directory-mode runs now remove prior PNGs matching the renderer's menu-name/random-suffix convention after cache/editor preflight and before generating a new set. Other directory contents and exact single-file `-Output` behavior are preserved.
+- **Files changed:** `Scripts/Render-Menu.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** inspected output-mode branching, cleanup placement, and the filename matcher; `git diff --check` passed. No PowerShell render, parser/test, or Unreal process was run; no PNGs were deleted during this update.
+- **Impact/authority:** script output housekeeping only; no gameplay, networking, persistence, or saved-data changes.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. A subsequent directory-mode render will apply the cleanup behavior; render results remain unverified.
+- **Next eligible work:** the unchecked Escape home border transparency item remains first in the post-roadmap backlog; M14 main-checkout integration is also pending.

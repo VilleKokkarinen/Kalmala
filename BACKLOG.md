@@ -29,6 +29,8 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-11 — Clear previous Render-Menu PNGs:** before directory-mode renders, remove prior renderer-named PNGs from the selected output folder after renderer preflight; preserve unrelated files and exact single-file output behavior. Lightweight source inspection only; Unreal rendering not run.
+
 - [x] **2026-10-11 — Refine standalone Build menu icons and requirements:** center the fixed 64×64 build icons, match Inventory's warm brown card treatment, and subtly gray cards/icons with unmet requirements. Remove all visible text below the requirements icons; keep quantities in icon tooltips and detailed conditions in the panel tooltip. Lightweight source checks only; build/render verification deferred.
 
 - [x] **2026-10-11 — Remove Escape status/weather details page:** remove its home-menu button and live text screen; keep the Escape shell to Options and Quit and preserve the active status HUD. Align the status-hotbar capture flow and current UI documentation; build and rendered verification deferred.

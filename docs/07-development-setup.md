@@ -2681,12 +2681,14 @@ Do not infer a passing game build from successful generation or solution validat
 Run `Scripts/Render-Menu.ps1` without `-Menu` to render all 12 supported menu
 IDs sequentially. It writes one PNG per menu to `%TEMP%\kmmenu\png` by default,
 using names like `inventory-<random>.png`; the returned objects include each
-PNG and its render log path. `-Menu inventory` selects one menu. For a single
-menu, `-Output <new-file.png>` sets the exact PNG path; when rendering all menus,
-`-Output <directory>` selects the destination folder. `-Cache` changes the
-default cache and therefore the default PNG and log locations. The renderer
-supports Windows PowerShell 5.1 and requires a compiled editor cache; use
-`-BuildModules` when the cache needs its first build.
+PNG and its render log path. Before directory-mode rendering, it removes prior
+renderer-named PNGs from the selected output directory while preserving other
+files there. `-Menu inventory` selects one menu. For a single menu,
+`-Output <new-file.png>` sets the exact PNG path and leaves its parent directory
+alone; when rendering a menu set, `-Output <directory>` selects the destination
+folder. `-Cache` changes the default cache and therefore the default PNG and log
+locations. The renderer supports Windows PowerShell 5.1 and requires a compiled
+editor cache; use `-BuildModules` when the cache needs its first build.
 
 ## Historical acceptance and limits
 
