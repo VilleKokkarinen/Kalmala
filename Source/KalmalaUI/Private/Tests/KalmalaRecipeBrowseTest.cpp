@@ -11,6 +11,10 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRecipeBrowseTest, "Kalmala.UI.Crafting.
 bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
 {
     auto* Widget = NewObject<UKalmalaCraftingWidget>();
+    auto* InventoryCraft = NewObject<UKalmalaCraftingWidget>();
+    InventoryCraft->Initialize();
+    TestTrue(TEXT("Inventory crafting separates list/details, shows icon costs, disables missing-material actions and handles empty search"),
+        InventoryCraft->VerifyInventoryCraftLayoutForTest());
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
     TestTrue(TEXT("Main and station menus retain separate browse memory"), Widget->VerifyMenuBrowseMemoryForTest());
     const auto BuildIndices = Widget->GetVisibleRecipeIndices();

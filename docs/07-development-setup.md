@@ -2675,3 +2675,16 @@ full-durability carried hammer and survives reconnect. A fresh character's
 starter hammer must trigger duplicate rejection. Verify persistence-failure
 rollback with the existing transaction fixture. No runtime or rendered result
 is claimed for this increment.
+
+The subsequent wood/detail-layout repair also requires
+`Kalmala.UI.Theme.LocalPresentation` and `Kalmala.UI.Crafting.LocalBrowsing` regression coverage
+Verify
+standard-contrast Inventory and all Settings tabs show their original wood
+textures, while Escape home stays transparent and high contrast uses its opaque
+fallback. Player crafting must show compact search/x, a left list, right icon/
+title/description/durability, simple icon/amount costs and bottom Craft button.
+Check missing materials, duplicate hammer, full capacity, empty search, search
+clear, pointer/keyboard/controller recipe selection and disabled activation.
+No Favorites/order/status or Previous/Next section may appear in that surface;
+station service layouts must remain intact. This revision's added Unreal
+assertions and rendered/native checks remain deferred until rebuilding.

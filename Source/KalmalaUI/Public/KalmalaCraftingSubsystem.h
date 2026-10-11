@@ -83,6 +83,7 @@ public:
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
+    bool VerifyInventoryCraftLayoutForTest();
     bool VerifyMenuBrowseMemoryForTest();
     bool PrepareRecipeActivityReviewForTest();
     bool VerifyInventoryInspectionForTest();
@@ -112,6 +113,22 @@ protected:
     virtual FReply NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
     virtual FReply NativeOnPreviewMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Event) override;
 private:
+    void BuildInventoryCraftLayout();
+    void RefreshInventoryCraftLayout();
+    UFUNCTION() void SelectInventoryCraftRecipe();
+    UPROPERTY(Transient) TObjectPtr<UBorder> InventoryCraftBackground;
+    UPROPERTY(Transient) TObjectPtr<class UVerticalBox> InventoryCraftList;
+    UPROPERTY(Transient) TObjectPtr<UHorizontalBox> InventoryCraftCosts;
+    UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> InventoryCraftSearch;
+    UPROPERTY(Transient) TObjectPtr<UButton> InventoryCraftClear;
+    UPROPERTY(Transient) TObjectPtr<UButton> InventoryCraftButton;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> InventoryCraftIcon;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> InventoryCraftTitle;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> InventoryCraftDescription;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> InventoryCraftStats;
+    UPROPERTY(Transient) TArray<TObjectPtr<UButton>> InventoryCraftChoices;
+    TArray<int32> InventoryCraftIndices;
+    FString InventoryCraftCostSignature;
     UKalmalaCraftingComponent* Model() const;
     UKalmalaCraftingSubsystem* GetLocalCraftingSubsystem() const;
     bool IsRecipeFavorite(FName RecipeId) const;

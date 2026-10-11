@@ -35,6 +35,7 @@
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Border.h"
+#include "Components/Overlay.h"
 #include "Components/Button.h"
 #include "Components/EditableTextBox.h"
 #include "Components/HorizontalBox.h"
@@ -698,6 +699,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     Theme.ApplyMenu(*WidgetTree, HeaderText,
         UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
     Theme.ApplyPanel(*MenuBackground, UKalmalaSettingsWidget::GetContrastMode(), &Theme.BuildPanelImage);
+    BuildInventoryCraftLayout();
     SetVisibility(ESlateVisibility::Collapsed);
 }
 
@@ -882,7 +884,12 @@ void UKalmalaCraftingWidget::CycleRecipeCategory()
     SetRecipeBrowse(RecipeQuery, NextCategory, bRecipeNameSort);
 }
 void UKalmalaCraftingWidget::CycleRecipeSort() { SetRecipeBrowse(RecipeQuery, RecipeCategory, !bRecipeNameSort); }
-void UKalmalaCraftingWidget::ClearRecipeSearch() { RecipeSearchBox->SetText(FText::GetEmpty()); SetRecipeBrowse(TEXT(""), RecipeCategory, bRecipeNameSort); }
+void UKalmalaCraftingWidget::ClearRecipeSearch()
+{
+    if (bInventoryCompanion && InventoryCraftSearch) InventoryCraftSearch->SetText(FText::GetEmpty());
+    else if (RecipeSearchBox) RecipeSearchBox->SetText(FText::GetEmpty());
+    SetRecipeBrowse(TEXT(""), RecipeCategory, bRecipeNameSort);
+}
 
 void UKalmalaCraftingWidget::ToggleSelectedFavorite()
 {
@@ -1112,6 +1119,7 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     if (StationKit.IsNone() && bInventoryCompanion)
     {
         RecipeQuery.Reset();
+        if (InventoryCraftSearch) InventoryCraftSearch->SetText(FText::GetEmpty());
         SetRecipeBrowse(TEXT(""), 0, false);
         Selected = 0;
     }
@@ -3349,6 +3357,9 @@ bool UKalmalaCraftingWidget::PrepareRecipeActivityReviewForTest()
 
 void UKalmalaCraftingWidget::Refresh()
 {
+    if (InventoryCraftBackground) InventoryCraftBackground->SetVisibility(bInventoryCompanion ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (MenuBackground) MenuBackground->SetVisibility(bInventoryCompanion ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+    if (bInventoryCompanion) { RefreshInventoryCraftLayout(); return; }
     auto* M=Model(); if (!M) { Close(); return; }
     if (ToolProgressionText)
     {
@@ -3791,6 +3802,7 @@ void UKalmalaCraftingWidget::Previous() { const int32 N=GetVisibleRecipeIndices(
 void UKalmalaCraftingWidget::Next() { const int32 N=GetVisibleRecipeIndices().Num(); if(N) Selected=(Selected+1)%N; Refresh(); }
 void UKalmalaCraftingWidget::Craft()
 {
+    if (bInventoryCompanion && (!InventoryCraftButton || !InventoryCraftButton->GetIsEnabled())) return;
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
     const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
     if (!VisibleIndices.IsValidIndex(Selected) || !Recipes.IsValidIndex(VisibleIndices[Selected])) return;
@@ -3971,13 +3983,15 @@ FReply UKalmalaCraftingWidget::NativeOnPreviewKeyDown(const FGeometry& G,const F
 {
     if (bInventoryCompanion && (E.GetKey() == EKeys::Tab || E.GetKey() == EKeys::Escape
         || E.GetKey() == EKeys::Gamepad_FaceButton_Right
-        || (E.GetKey() == EKeys::I && !(RecipeSearchBox && (RecipeSearchBox->HasKeyboardFocus() || RecipeSearchBox->HasFocusedDescendants())))))
+        || (E.GetKey() == EKeys::I && !(InventoryCraftSearch && (InventoryCraftSearch->HasKeyboardFocus() || InventoryCraftSearch->HasFocusedDescendants())))))
     {
         if (auto* LocalPlayer = GetOwningLocalPlayer())
             if (auto* InventoryMenu = LocalPlayer->GetSubsystem<UKalmalaInventoryMenuSubsystem>()) InventoryMenu->CloseIfOpen();
         return FReply::Handled();
     }
     const FKey K=E.GetKey();
+    if (bInventoryCompanion && InventoryCraftSearch && (InventoryCraftSearch->HasKeyboardFocus() || InventoryCraftSearch->HasFocusedDescendants()))
+        return Super::NativeOnPreviewKeyDown(G,E);
     if((K==EKeys::Escape || K==EKeys::Gamepad_FaceButton_Right) && !bInventoryCompanion)
     { Close(); return FReply::Handled(); }
     if (WorkbenchRepairInspector && (WorkbenchRepairInspector->HasKeyboardFocus()

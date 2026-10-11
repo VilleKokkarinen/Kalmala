@@ -270,6 +270,8 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     MissingAssets.PanelImage = Texture->GetPathName();
     MissingAssets.ApplyPanel(*Panel, 0);
     TestTrue(TEXT("Valid image reference reaches the shared panel"), Panel->Background.GetResourceObject() == Texture);
+    TestTrue(TEXT("Texture panel uses a colour image brush"), Panel->Background.ImageType == ESlateBrushImageType::FullColor);
+    TestTrue(TEXT("Texture is not obscured by the fallback panel tint"), Panel->Background.TintColor.GetSpecifiedColor() == FLinearColor::White);
     MissingAssets.InventoryPanelImage = InventoryTexture->GetPathName();
     MissingAssets.BuildPanelImage = BuildTexture->GetPathName();
     MissingAssets.ApplyPanel(*Panel, 0, &MissingAssets.InventoryPanelImage);

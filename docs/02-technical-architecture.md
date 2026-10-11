@@ -1027,6 +1027,24 @@ hammer grants remain in effect. Cooking recipes appear only in matching cooking
 station views and retain existing server station/heat requirements. No saved
 schema, new tool identity, or client gameplay authority is introduced.
 
+The subsequent user-directed presentation revision uses a compact search field
+and adjacent x clear button. Player crafting has a vertical recipe list on the
+left and a larger detail column on the right: large icon, centred item title,
+description, authored tool durability, icon/amount costs and a bottom Craft
+button. The legacy grid markers, numbered selection summary, result/quantity/
+unavailable text, Favorites/order controls and Previous/Next buttons are not
+part of this player view. Missing quantities use colour plus cost tooltips;
+Craft is disabled for insufficient materials, duplicate hammer ownership or
+capacity failure, including keyboard/controller activation. Station views
+retain their existing layout. No stats or additional player recipes are invented.
+
+Shared textured panel brushes explicitly use FullColor image type, actual
+texture dimensions and white tint. Converting a rounded fallback to Image
+without resetting its NoImage type/dark fill could suppress or obscure the
+wood. This correction applies to Inventory, player Crafting and Settings tabs;
+high contrast/missing assets retain their solid fallback and Escape home retains
+its expressly transparent surface.
+
 ## M13 inventory crafting companion
 
 The 2026-10-10 UI request extends Inventory's existing Tab / I modal. Opening

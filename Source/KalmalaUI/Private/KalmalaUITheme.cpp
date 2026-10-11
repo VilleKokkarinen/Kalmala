@@ -252,6 +252,9 @@ FSlateBrush FKalmalaUITheme::MakePanelBrush(const int32 ContrastMode, const FStr
         {
             Brush.SetResourceObject(Image);
             Brush.DrawAs = ESlateBrushDrawType::Image;
+            Brush.ImageType = ESlateBrushImageType::FullColor;
+            Brush.ImageSize = FVector2D(Image->GetSizeX(), Image->GetSizeY());
+            Brush.TintColor = FSlateColor(FLinearColor::White);
         }
     }
     return Brush;
