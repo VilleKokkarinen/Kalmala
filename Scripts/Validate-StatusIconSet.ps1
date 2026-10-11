@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$manifestPath = Join-Path $repoRoot 'docs\status-icon-manifest.csv'
+$manifestPath = Join-Path $repoRoot 'Scripts\Data\status-icon-manifest.csv'
 $lookupPath = Join-Path $repoRoot 'Source\KalmalaUI\Private\KalmalaStatusIconLibrary.cpp'
 $assetDir = Join-Path $repoRoot 'Content\Kalmala\UI\Icons\Status'
 $rows = @(Import-Csv -LiteralPath $manifestPath)

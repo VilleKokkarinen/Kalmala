@@ -20,7 +20,7 @@ def fail(message):
 repo_root = os.path.abspath(
     os.environ.get("KALMALA_STATUS_ICON_REPO_ROOT", unreal.Paths.project_dir())
 )
-manifest_path = os.path.join(repo_root, "docs", "status-icon-manifest.csv")
+manifest_path = os.path.join(repo_root, "Scripts", "Data", "status-icon-manifest.csv")
 source_dir = os.path.join(
     repo_root, "Content", "Kalmala", "UI", "Source", "Icons", "Status"
 )

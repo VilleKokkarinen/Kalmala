@@ -238,14 +238,16 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
             for (const auto& Recipe : UKalmalaRecipeCatalogue::Get()->Recipes)
                 AddCanonicalRow(Recipe.GetOutputIdentity(), Recipe.DisplayName);
             const auto Viewport = UWidgetLayoutLibrary::GetViewportSize(this)/UWidgetLayoutLibrary::GetViewportScale(this);
-            const float Width = (Viewport.X-48)/3;
-            for (int32 Column=0; Column<3; ++Column)
+            constexpr int32 ColumnCount = 4;
+            const int32 RowsPerColumn = FMath::DivideAndRoundUp(Rows.Num(), ColumnCount);
+            const float Width = (Viewport.X-48)/ColumnCount;
+            for (int32 Column=0; Column<ColumnCount; ++Column)
             {
                 auto* Gallery = CreateWidget<UKalmalaCatalogueRowsWidget>(FoundController,UKalmalaCatalogueRowsWidget::StaticClass());
                 Gallery->SetVerificationBackground();
                 Gallery->AddToPlayerScreen(220);
                 TArray<FKalmalaCatalogueRow> Part;
-                for (int32 Index=Column*16; Index<FMath::Min(Rows.Num(),(Column+1)*16); ++Index) Part.Add(Rows[Index]);
+                for (int32 Index=Column*RowsPerColumn; Index<FMath::Min(Rows.Num(),(Column+1)*RowsPerColumn); ++Index) Part.Add(Rows[Index]);
                 Gallery->SetRows(Part,100,1);
                 Gallery->SetDesiredSizeInViewport(FVector2D(Width,Viewport.Y-48));
                 Gallery->SetPositionInViewport(FVector2D(24+Width*Column,24),false);
@@ -269,6 +271,30 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
             }
             VerificationGallery.Reset();
             ++VerificationCapture;
+        }
+        // Read-only consumer coverage for the three support images absent from
+        // the six-entry fixture. No effect is activated or sent to the server.
+        if (VerificationElapsed >= 40.0f && VerificationElapsed < 52.0f)
+        {
+            static const EKalmalaSupportEffect Effects[] = {
+                EKalmalaSupportEffect::Mending, EKalmalaSupportEffect::BearsVigor,
+                EKalmalaSupportEffect::DeerCall};
+            static const TCHAR* Names[] = {TEXT("Mending"), TEXT("BearsVigor"), TEXT("DeerCall")};
+            const int32 Index = FMath::Clamp(FMath::FloorToInt((VerificationElapsed - 40.0f) / 4.0f), 0, 2);
+            Snapshot = FKalmalaSurvivalStatusSnapshot();
+            Snapshot.bHasCharacter = true;
+            Snapshot.bHasWeatherState = true;
+            Snapshot.ActiveSupportEffect = Effects[Index];
+            Snapshot.ActiveSupportEffectExpiry = 80.0f;
+            Snapshot.ServerTimeSeconds = 45.0f;
+            bSuppressHotbarTransitions = true;
+            if (VerificationCapture == 9 + Index && VerificationElapsed >= 42.0f + Index * 4.0f)
+            {
+                UE_LOG(LogTemp, Display, TEXT("Status image consumer: Id=%s Geometry=%d ReadOnly=1"),
+                    Names[Index], HotbarWidget->HasRasterIconGeometryForVerification(HotbarScale, 1));
+                FScreenshotRequest::RequestScreenshot(CapturePrefix + TEXT("-") + Names[Index] + TEXT(".png"), true, false);
+                ++VerificationCapture;
+            }
         }
     }
 #endif

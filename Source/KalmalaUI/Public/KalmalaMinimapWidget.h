@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Fonts/SlateFontInfo.h"
 #include "KalmalaMinimapWidget.generated.h"
 
 class UKalmalaMinimapViewModel;
@@ -21,10 +22,13 @@ public:
     static constexpr float ViewportInset = 12.0f;
     static constexpr float StatusGroupGap = 12.0f;
     static constexpr float DefaultMapDiameter = 208.0f;
+    static constexpr float BiomeLabelHeight = 26.0f;
+    static constexpr float BiomeLabelMapGap = 4.0f;
+    static constexpr float BiomeHeaderHeight = BiomeLabelHeight + BiomeLabelMapGap;
 
     void InitializeForLocalPlayer(APlayerController* InOwningPlayer, float InitialZoom = 5000.0f);
     void ConfigureViewportPlacement();
-    /** Position offset for a right-anchored status group immediately left of this map's configured slot. */
+    /** Position for a right-anchored status group beside the map, below its biome label. */
     FVector2D GetStatusGroupViewportPosition() const;
 
     static FVector2D GetDefaultStatusGroupViewportPosition(float InMapDiameter = DefaultMapDiameter);
@@ -50,11 +54,16 @@ protected:
 
 private:
     void UpdateMapTexture();
+    void UpdateBiomeLabelLayout();
 
     UPROPERTY(Transient)
     TObjectPtr<UTexture2D> MapTexture;
 
     FSlateBrush MapBrush;
+    FSlateFontInfo BiomeLabelFont;
+    FVector2D BiomeLabelTextSize = FVector2D::ZeroVector;
+    FString MeasuredBiomeLabel;
+    int32 BiomeLabelTextScale = -1;
     uint32 UploadedRevision = 0;
     mutable bool bLoggedPaint = false;
     bool bRequestedVerificationScreenshot = false;

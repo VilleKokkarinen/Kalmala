@@ -81,4 +81,4 @@ The current player inventory is one 10×4 grid with its first row assigned to ho
 
 Root vegetables and their seeds are catalogue definitions; farming is not implemented. Iron and Coal have no configured natural gathering source. Storm-rated shelter, insulated clothing/equipment rules, and vessel cargo/hull durability remain outside the accepted scope.
 
-M0–M12 have recorded acceptance with limitations. M13 UI refresh work and the M14 map rework have incomplete integrated acceptance. Settings candidates in the architecture and roadmap are requested scope, not implemented features; consult the live backlog before describing them as available.
+M0–M13 have recorded acceptance with limitations; M13's integrated-main scripted/offscreen gate passed on 2026-10-11. M14's separate isolated acceptance does not integrate its source into main. Settings candidates in the architecture and roadmap are requested scope, not implemented features; consult the live backlog before describing them as available.

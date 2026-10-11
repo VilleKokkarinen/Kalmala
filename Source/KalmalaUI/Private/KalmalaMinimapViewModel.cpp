@@ -11,12 +11,32 @@
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPlayerStartResolver.h"
+#include "KalmalaBiomeClassifier.h"
+
+namespace
+{
+    const TCHAR* GetBiomeDisplayName(const EKalmalaBiome Biome)
+    {
+        switch (Biome)
+        {
+        case EKalmalaBiome::Meadows: return TEXT("Meadows");
+        case EKalmalaBiome::ShimmeringLakes: return TEXT("Shimmering Lakes");
+        case EKalmalaBiome::Elderwood: return TEXT("Elderwood");
+        case EKalmalaBiome::MossyMire: return TEXT("Mossy Mire");
+        case EKalmalaBiome::FreezingTundra: return TEXT("Freezing Tundra");
+        case EKalmalaBiome::ThunderMountains: return TEXT("Thunder Mountains");
+        case EKalmalaBiome::Ocean: return TEXT("Ocean");
+        default: return TEXT("");
+        }
+    }
+}
 
 void UKalmalaMinimapViewModel::Initialize(APlayerController* InOwningPlayer)
 {
     OwningPlayer = InOwningPlayer;
     PendingSamples = {};
     TerrainSamples.Reset();
+    CurrentBiomeLabel.Reset();
     bIsReady = false;
 }
 
@@ -69,6 +89,7 @@ bool UKalmalaMinimapViewModel::Refresh()
 {
     if (OwningPlayer == nullptr || !OwningPlayer->IsLocalController() || OwningPlayer->GetPawn() == nullptr || OwningPlayer->GetWorld() == nullptr)
     {
+        CurrentBiomeLabel.Reset();
         bIsReady = false;
         return false;
     }
@@ -76,6 +97,7 @@ bool UKalmalaMinimapViewModel::Refresh()
     const AKalmalaWorldGenerationGameState* WorldGenerationState = OwningPlayer->GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (WorldGenerationState == nullptr || !WorldGenerationState->GetWorldGenerationConfig().IsValid())
     {
+        CurrentBiomeLabel.Reset();
         bIsReady = false;
         return false;
     }
@@ -84,6 +106,8 @@ bool UKalmalaMinimapViewModel::Refresh()
     const FVector2D PawnLocation(OwningPawn->GetActorLocation());
     const FVector2D Location = bUseCustomCentre ? CustomCentre : PawnLocation;
     const FKalmalaWorldGenerationConfig& Config = WorldGenerationState->GetWorldGenerationConfig();
+    CurrentBiomeLabel = GetBiomeDisplayName(FKalmalaBiomeClassifier::Classify(
+        FKalmalaWorldFieldSampler::Sample(Config, PawnLocation)));
     PlayerFacingDegrees = OwningPawn->GetActorRotation().Yaw;
     return RefreshTerrain(Config, Location);
 }

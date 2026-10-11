@@ -32,7 +32,10 @@ foreach ($section in $requiredSections) {
 }
 
 $requiredTerms = @{
-    'Video option group' = 'Video'
+    'M13 Settings groups' = '(?s)Keyboard & Mouse.*Controller.*Graphics.*Audio.*Accessibility'
+    'Empty Gameplay group stays hidden' = 'Gameplay stays hidden while no candidate option is selected'
+    'Inventory backplate reused' = '(?s)`InventoryPanelImage` shared with the Inventory\s+backplate'
+    'Shared-theme button states' = 'shared-theme hover, pressed, selected, and focus states'
     'Audio option group' = 'Audio'
     'Local master volume' = 'master-volume cycle in\s+25% steps'
     'Mute and restore' = 'mute/restore button'
@@ -42,11 +45,10 @@ $requiredTerms = @{
     'Current music playback limit' = 'there is no music track in the current runtime'
     'Local audio configuration' = 'local `GameUserSettings` config'
     'Local primary output' = 'primary output-volume multiplier'
-    'Controls option group' = 'Controls'
-    'Control remapping' = 'bounded keyboard/controller choices|bounded local remapping'
+    'Control remapping' = 'per-action binding choices|bounded keyboard/controller choices|bounded local remapping'
     'Control restore defaults' = 'restore.?defaults|Restore default controls'
     'Control local input ownership' = 'owning local\s+`UPlayerInput`|owning `UPlayerInput`'
-    'Control config persistence' = 'stores only allowlisted local choices|local overrides'
+    'Control config persistence' = 'store(?:s)? only allowlisted local choices|local overrides'
     'Control baseline preservation' = 'DefaultInput\.ini.*never rewritten|DefaultInput\.ini.*unchanged'
     'Text scale option' = 'text scale'
     'Text-scale choices' = '100%, 125%, and 150%'

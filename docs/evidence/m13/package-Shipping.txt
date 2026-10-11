@@ -1,0 +1,9 @@
+Result: Succeeded
+Took 86,12s to run dotnet.exe, ExitCode=0
+Took 17,17s to run UnrealEditor-Cmd.exe, ExitCode=0
+Took 4,26s to run UnrealPak.exe, ExitCode=0
+Took 0,62s to run UnrealPak.exe, ExitCode=0
+Took 1,16s to run UnrealPak.exe, ExitCode=0
+BuildCookRun time: 137.66 s
+BUILD SUCCESSFUL
+AutomationTool exiting with ExitCode=0 (Success)

@@ -17,6 +17,14 @@ $text = Get-Content -LiteralPath $InputFile -Raw
 if ($text -match 'ActionName="TutorialPrompt(Dismiss|Revisit)"') {
     throw 'Retired tutorial card dismiss/revisit bindings remain in the default input configuration.'
 }
+foreach ($retiredSupportAction in @(
+    'SupportSelectMending', 'SupportSelectHearthShield', 'SupportSelectBearsVigor',
+    'SupportSelectDeerCall', 'SupportActivate'
+)) {
+    if ($text -match ('(?:AxisName|ActionName)="' + [regex]::Escape($retiredSupportAction) + '"')) {
+        throw "Retired support selection input remains in the default input configuration: $retiredSupportAction"
+    }
+}
 $requiredMappings = @{
     MoveForward = @('W', 'S', 'Gamepad_LeftY', 'Up', 'Down')
     MoveRight = @('D', 'A', 'Gamepad_LeftX', 'Right', 'Left')
@@ -34,10 +42,6 @@ $requiredActions = @{
     WorldMapRecenter = @('R')
     InventoryMenu = @('Tab', 'I')
     CraftMenu = @('B', 'Gamepad_Special_Left')
-    SupportSelectMending = @('F1', 'Gamepad_DPad_Up')
-    SupportSelectHearthShield = @('F2', 'Gamepad_DPad_Right')
-    SupportSelectBearsVigor = @('F3', 'Gamepad_DPad_Down')
-    SupportSelectDeerCall = @('F4', 'Gamepad_DPad_Left')
     Hotbar1 = @('One')
     Hotbar2 = @('Two')
     Hotbar3 = @('Three')
@@ -48,7 +52,6 @@ $requiredActions = @{
     Hotbar8 = @('Eight')
     Hotbar9 = @('Nine')
     Hotbar0 = @('Zero')
-    SupportActivate = @('Q', 'Gamepad_FaceButton_Top')
 }
 
 foreach ($mapping in $requiredMappings.GetEnumerator()) {
@@ -74,13 +77,8 @@ if ($text -notmatch 'DefaultInputComponentClass=/Script/EnhancedInput.EnhancedIn
 
 $characterSourcePath = Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaCharacter.cpp'
 $characterSource = Get-Content -LiteralPath $characterSourcePath -Raw
-foreach ($binding in @(
-    'SupportSelectMending', 'SupportSelectHearthShield', 'SupportSelectBearsVigor',
-    'SupportSelectDeerCall', 'SupportActivate'
-)) {
-    if ($characterSource -notmatch ('BindAction\(TEXT\("' + [regex]::Escape($binding) + '"\)')) {
-        throw "Support input action is configured but not bound by the character: $binding"
-    }
+if ($characterSource -match 'BindAction\(TEXT\("Support(?:SelectMending|SelectHearthShield|SelectBearsVigor|SelectDeerCall|Activate)"\)') {
+    throw 'Retired support selection action is still bound by the character.'
 }
 
-Write-Output "PASS: local input baseline contains $($requiredMappings.Count) axes and $($requiredActions.Count) actions with their documented keyboard/controller bindings."
+Write-Output "PASS: local input baseline contains $($requiredMappings.Count) axes and $($requiredActions.Count) actions; retired support selection bindings are absent."

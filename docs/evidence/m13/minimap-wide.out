@@ -1,0 +1,4 @@
+PASS: Regional verification Seed=418 Fingerprint=7644800015248745432 Samples=81
+PASS: both peers painted filled top-right minimaps and captured HUD screenshots; inspect host.png and client.png.
+PASS: conflicting-seed client received the server identity for the local-only minimap model.
+Scenario logs: C:\Users\Ville\AppData\Local\Temp\KalmalaMinimap-a46ed9d4a46740128c3a3cf64e3edf35

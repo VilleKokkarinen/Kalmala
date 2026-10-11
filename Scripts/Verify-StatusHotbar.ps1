@@ -42,7 +42,7 @@ try {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited during presentation.' }
         $ready = $true
         foreach ($peer in @('host','client')) {
-            foreach ($phase in @('empty','populated','expired','details','icons')) {
+            foreach ($phase in @('empty','populated','expired','details','icons','Mending','BearsVigor','DeerCall')) {
                 $capturePath = "$output/$peer-$phase.png"
                 $ready = $ready -and (Test-Path $capturePath)
                 if (Test-Path $capturePath) { $ready = $ready -and (Get-Item $capturePath).Length -gt 32 }
@@ -61,14 +61,18 @@ try {
         foreach ($phase in @('empty','expired')) {
             if ($log -notmatch "Hotbar fixture: Phase=$phase Entries=0 ReadOnly=1") { throw "$peer $phase did not remove entries." }
         }
-        if ($log -notmatch 'Hotbar details: Focusable=1 OwnerLocal=1 LiveDetails=1' -or $log -notmatch 'Catalogue icon gallery: Canonical=48 ReadOnly=1') { throw "$peer details/gallery coverage failed." }
+        if ($log -notmatch 'Hotbar details: Focusable=1 OwnerLocal=1 LiveDetails=1' -or $log -notmatch 'Catalogue icon gallery: Canonical=52 ReadOnly=1') { throw "$peer details/gallery coverage failed." }
+        foreach ($id in @('Mending','BearsVigor','DeerCall')) {
+            if (!$log.Contains("Status image consumer: Id=$id Geometry=1 ReadOnly=1")) { throw "$peer $id image consumer failed." }
+        }
         if ($log -notmatch 'Hotbar fixture: Phase=populated Entries=6 ReadOnly=1 Bounds=(\d+),(\d+),(\d+),(\d+) Scale=\d+ Dpi=([\d.]+)') { throw "$peer did not paint six non-focusable entries." }
         $left=[int]$Matches[1]; $top=[int]$Matches[2]; $right=[int]$Matches[3]; $bottom=[int]$Matches[4]
         $dpi=[double]::Parse($Matches[5],[Globalization.CultureInfo]::InvariantCulture)
         $inset = 12 * $dpi
+        $mapTop = (12 + 26 + 4) * $dpi
         $mapLeft = $Width - (12 + 208) * $dpi
         $expectedRight = $mapLeft - 12 * $dpi
-        if ($left -lt ($inset - 3) -or [Math]::Abs($top - $inset) -gt 3 `
+        if ($left -lt ($inset - 3) -or [Math]::Abs($top - $mapTop) -gt 3 `
             -or [Math]::Abs($right - $expectedRight) -gt 4 -or $right -ge $mapLeft `
             -or $bottom -gt ($Height - $inset + 3)) {
             throw "$peer hotbar misses the minimap-aligned safe bounds: $left,$top,$right,$bottom at DPI $dpi"

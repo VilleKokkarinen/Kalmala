@@ -101,8 +101,8 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     Minimap->ConfigureViewportPlacement();
     const FGameViewportWidgetSlot MinimapSlot = UGameViewportSubsystem::Get()->GetWidgetSlot(Minimap);
     const FVector2D GroupPosition = Minimap->GetStatusGroupViewportPosition();
-    TestEqual(TEXT("Status group shares the minimap's top inset"), GroupPosition.Y,
-        static_cast<double>(MinimapSlot.Offsets.Top));
+    TestEqual(TEXT("Status group aligns with the lowered minimap below its biome label"), GroupPosition.Y,
+        static_cast<double>(MinimapSlot.Offsets.Top + UKalmalaMinimapWidget::BiomeHeaderHeight));
     TestEqual(TEXT("Status group right edge uses the minimap's actual left edge and 12-unit gap"),
         GroupPosition.X, static_cast<double>(MinimapSlot.Offsets.Left - MinimapSlot.Offsets.Right - UKalmalaMinimapWidget::StatusGroupGap));
 
@@ -112,7 +112,8 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     const FGameViewportWidgetSlot HotbarSlot = UGameViewportSubsystem::Get()->GetWidgetSlot(Hotbar);
     TestTrue(TEXT("Status group uses the same top-right anchor and right alignment as the minimap"),
         HotbarSlot.Anchors == MinimapSlot.Anchors && HotbarSlot.Alignment == MinimapSlot.Alignment);
-    TestEqual(TEXT("Actual status slot shares the map's top offset"), HotbarSlot.Offsets.Top, MinimapSlot.Offsets.Top);
+    TestEqual(TEXT("Actual status slot aligns with the map below the biome label"), HotbarSlot.Offsets.Top,
+        MinimapSlot.Offsets.Top + UKalmalaMinimapWidget::BiomeHeaderHeight);
     TestEqual(TEXT("Actual status slot ends 12 UI units left of the map"), HotbarSlot.Offsets.Left,
         MinimapSlot.Offsets.Left - MinimapSlot.Offsets.Right - UKalmalaMinimapWidget::StatusGroupGap);
 
@@ -161,8 +162,8 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
             TestTrue(TEXT("Many states stay within the compact row width"), ManySize.X <= SafeRowWidth);
             TestTrue(TEXT("DPI-scaled status group stays inside the left viewport margin"),
                 GroupRight - ManySize.X >= UKalmalaMinimapWidget::ViewportInset);
-            TestEqual(TEXT("DPI-scaled layout shares the map's top margin"), ScaledGroupPosition.Y,
-                static_cast<double>(UKalmalaMinimapWidget::ViewportInset));
+            TestEqual(TEXT("DPI-scaled layout shares the map's lowered top margin"), ScaledGroupPosition.Y,
+                static_cast<double>(UKalmalaMinimapWidget::ViewportInset + UKalmalaMinimapWidget::BiomeHeaderHeight));
             TestTrue(TEXT("DPI-scaled wrapped layout stays above the bottom safe margin"),
                 ScaledGroupPosition.Y + ManySize.Y <= LogicalViewport.Y - UKalmalaMinimapWidget::ViewportInset);
         }
@@ -318,6 +319,19 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
 {
     TSet<int32> Shapes;
     TSet<FName> CheckedIds;
+    const auto ExpectedTexturePath = [](FName Id)
+    {
+        FName StatusIconId = NAME_None;
+        if (Id == TEXT("MendingScroll")) StatusIconId = TEXT("Mending");
+        else if (Id == TEXT("HearthShieldScroll")) StatusIconId = TEXT("HearthShield");
+        else if (Id == TEXT("BearsVigorScroll")) StatusIconId = TEXT("BearsVigor");
+        else if (Id == TEXT("DeerCallScroll")) StatusIconId = TEXT("DeerCall");
+
+        const bool bUsesStatusTexture = !StatusIconId.IsNone();
+        const FString AssetName = (bUsesStatusTexture ? StatusIconId : Id).ToString();
+        const TCHAR* Directory = bUsesStatusTexture ? TEXT("Status") : TEXT("Items");
+        return FString::Printf(TEXT("/Game/Kalmala/UI/Icons/%s/%s.%s"), Directory, *AssetName, *AssetName);
+    };
     const auto Check = [&](FName Id)
     {
         if (CheckedIds.Contains(Id)) return;
@@ -328,15 +342,15 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
         FSoftObjectPath TexturePath;
         TestTrue(TEXT("Known identity resolves to an imported texture path"),
             FKalmalaCatalogueIconLibrary::GetTextureObjectPath(Id, TexturePath));
-        TestEqual(TEXT("Texture path keeps the canonical identity"), TexturePath.ToString(),
-            FString::Printf(TEXT("/Game/Kalmala/UI/Icons/Items/%s.%s"), *Id.ToString(), *Id.ToString()));
+        TestEqual(TEXT("Texture path matches the canonical item or shared status identity"),
+            TexturePath.ToString(), ExpectedTexturePath(Id));
         TestNotNull(*FString::Printf(TEXT("%s imported texture loads"), *Id.ToString()),
             FKalmalaCatalogueIconLibrary::LoadTexture(Id));
         const int32 Key = static_cast<int32>(Icon)*8 + Variant;
         TestFalse(TEXT("Distinct canonical icon assignment"), Shapes.Contains(Key)); Shapes.Add(Key);
     };
     const auto* Items = UKalmalaItemCatalogue::Get();
-    TestEqual(TEXT("Audited inventory item count"), Items->Items.Num(), 41);
+    TestEqual(TEXT("Audited inventory item count"), Items->Items.Num(), 45);
     for (const auto& Item : Items->Items) Check(Item.ItemId);
     for (const auto& Tool : FKalmalaToolLifecycleContract::GetDefinitions()) Check(Tool.ToolId);
     for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) Check(Tool.ToolId);
@@ -355,7 +369,7 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
             TestTrue(TEXT("Direct construction output is a supported buildable"),
                 UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput));
     }
-    TestEqual(TEXT("Canonical item, tool, and construction icon count"), CheckedIds.Num(), 48);
+    TestEqual(TEXT("Canonical item, tool, and construction identity count"), CheckedIds.Num(), 52);
     static const TPair<FName, FName> Aliases[] = {
         {TEXT("HearthRing"), TEXT("CampfireKit")}, {TEXT("Workbench"), TEXT("WorkbenchKit")},
         {TEXT("Forge"), TEXT("ForgeKit")}, {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit")},

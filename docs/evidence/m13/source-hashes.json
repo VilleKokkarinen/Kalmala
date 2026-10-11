@@ -1,0 +1,2806 @@
+[
+  {
+    "path": "Config/DefaultEngine.ini",
+    "sha256": "45F64D3573FE2276367C6F469D4D98526628C3302D6EDFAD7EBCE4F7D8620A10"
+  },
+  {
+    "path": "Config/DefaultGame.ini",
+    "sha256": "D3E54D135126654215299CB1405BBFB848BB3D907F1A344BC4E2DE0F51B105A1"
+  },
+  {
+    "path": "Config/DefaultInput.ini",
+    "sha256": "53E468B6905846E7648471DDE601EDF859F102ACEFB35FB4C7EA22C3A86A2D43"
+  },
+  {
+    "path": "Config/DefaultKalmalaTheme.ini",
+    "sha256": "747DA82E875EC0377C3BBA17E5B2E19E889D3535FECFF8B17DCD5638A835CCA1"
+  },
+  {
+    "path": "Content/Data/GameCatalogues.json",
+    "sha256": "79AA4DBD9127483B449852CA1F64ADF6834FEC3A3CAA22C3EB4D6D11227028E1"
+  },
+  {
+    "path": "Content/Data/GameCatalogues.uasset",
+    "sha256": "9F3E7D2435AAB4C2D3F5165908520CCFAEA8A7CD0BB4E83FF49C8684DEF65DD1"
+  },
+  {
+    "path": "Content/Kalmala/Audio/BiomeBed.uasset",
+    "sha256": "6C1A9E573039872025BFCD50C96EA0994A388FCFA02D2231FAD69893AF56BAAD"
+  },
+  {
+    "path": "Content/Kalmala/Audio/CombatResultCue.uasset",
+    "sha256": "2A370CEC620AFD2DA40E11E8F35B3BCD696A6F7169C66BC7A3DE8C3A1DF5CC9E"
+  },
+  {
+    "path": "Content/Kalmala/Audio/DiscoveryAcknowledgedCue.uasset",
+    "sha256": "C8373B18CA86B85BBEC0FB2E56040A6989B9D489991CF1BF40B6CCC62ED6290B"
+  },
+  {
+    "path": "Content/Kalmala/Audio/FireBed.uasset",
+    "sha256": "C81546BF14E1155AE11CF121150A51D1A484CAF71C15B24A1983990E88B6BFA9"
+  },
+  {
+    "path": "Content/Kalmala/Audio/GeneratedOceanEntryCue.uasset",
+    "sha256": "E1DCC7E397C37A3A6A30509E08581BA2E70CA0BD52A4F5A4AC47790670991210"
+  },
+  {
+    "path": "Content/Kalmala/Audio/GeneratedOceanExitCue.uasset",
+    "sha256": "F531C24DE2B4FCAD3973BFA720F2F9BB354A171B48D8F9E30CFBB9E027675AEA"
+  },
+  {
+    "path": "Content/Kalmala/Audio/InteractionAcceptedCue.uasset",
+    "sha256": "192FB7EDCF6868C9C791BDB8B0499F50C86EC7D49BB4BEDE06D96CABD74ED1FC"
+  },
+  {
+    "path": "Content/Kalmala/Audio/InteractionRejectedCue.uasset",
+    "sha256": "E2346956F3ED572F75A8CDED33C3EC67AE7443E0E348651CFCFE80B1163F109C"
+  },
+  {
+    "path": "Content/Kalmala/Audio/MovementFootfallCue.uasset",
+    "sha256": "E6395A6AD6DDA44E9AB14A928DE3726524293F3E987873CF4E7DC323EF1457A3"
+  },
+  {
+    "path": "Content/Kalmala/Audio/MovementJumpCue.uasset",
+    "sha256": "03A132941D351B4F5FA72C2587AC19E4BE75A9D69AEABDC5654F22462F8DA1BD"
+  },
+  {
+    "path": "Content/Kalmala/Audio/MovementLandingCue.uasset",
+    "sha256": "EA7137E4F7A60FF83463D8242AAE4F4CDB936BC633810D5699A970D642738037"
+  },
+  {
+    "path": "Content/Kalmala/Audio/RainBed.uasset",
+    "sha256": "954416B9E58E6F10810BD4ADB88B2569A1D749DEC916AB8785DA6CC6B0E44042"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/BiomeBed.wav",
+    "sha256": "AFEA621F15F8F0488C0811F2F59AFAE3EC0ACDAF9995A826DC42A2C565A3B398"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/CombatResultCue.wav",
+    "sha256": "D1D8BC516ED4A22D16C5106C39F4BF51330D9CF0E79FD8576F44B785C41365DE"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/DiscoveryAcknowledgedCue.wav",
+    "sha256": "ADC37F6FB729AAEE00AEBBACFF7F6FCE59F48F1D29C6AB7D6D4678D2DBFE8A4A"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/FireBed.wav",
+    "sha256": "15EF8DD0E31F6C6F24993A10D2B3995931EE7D99D4713C414D7A739CA8BEA2C0"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/GeneratedOceanEntryCue.wav",
+    "sha256": "82928E6D9AABDEAB8BD7FE317EC44A110F962326088D7ACCB918C5847A0F7FCC"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/GeneratedOceanExitCue.wav",
+    "sha256": "76E39933119ABC41E2988E641CC12C3369B625CA6AAC67252D1C94735555C4D8"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/InteractionAcceptedCue.wav",
+    "sha256": "417E49A7702B677E0C281DE4833428934D11807F5315274CA3D89B337D4E870C"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/InteractionRejectedCue.wav",
+    "sha256": "E65D0E7F53248BFEFD7C3A1F64C1BFAD3693EB62E6BB54104C97782297CAA6D6"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/MovementFootfallCue.wav",
+    "sha256": "4EF5E7FE9325E7CA3AB3705440EEDA9D95FDBA46FA0F7A46D7CC96F9718FC105"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/MovementJumpCue.wav",
+    "sha256": "1D48E0D36B74A6C048F4AE653A50D81060E3BF5344D41BA8DD62388DA144EB55"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/MovementLandingCue.wav",
+    "sha256": "2921F800E11449B6BF56F78C043C5B8C9D8D55B7A3E6D27C5977E08A683C63B6"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/RainBed.wav",
+    "sha256": "C6848ADD9DEC6FF0C4FF3EDEA96FB822C5835D103D9C01F2022B8F4B5063B898"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportAcceptedCue.wav",
+    "sha256": "7538234548E28F4DCAC247A01D4A2F5285E2BE84F693E2D1543F5F804A669CBC"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportBearsVigorCue.uasset",
+    "sha256": "6A17B48341AFBC5A79A0AD8645D8CE871B9E794CEF42BB93CC22CB078BE74600"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportBearsVigorCue.wav",
+    "sha256": "3E7069E52996B955453433720739DC03AFE8AA709492CFE2AE225694930C07AC"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportBearsVigorExpiryCue.uasset",
+    "sha256": "D04007DAC9F534EDC923132BD619C25B1F6835D84462D7FB8451333886F61AA6"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportBearsVigorExpiryCue.wav",
+    "sha256": "F8265647D0A83E2E0E6E23BD9BC3469F511CB2C036E296885DDA34AE6C0B6231"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportDeerCallCue.uasset",
+    "sha256": "842EFF3AA7D1D5172D7F6F1BCCDDB9D381C12B2C5D15CA9E170F7016F514A21F"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportDeerCallCue.wav",
+    "sha256": "B31C926601FE9FACC54E578B6D8236C3FF9A849DC1A612AD83A381CF38386937"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportHearthShieldCue.uasset",
+    "sha256": "90D674AF472F742FA7B5CB74939F535B8C28D81176D424614E270883FF01674D"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportHearthShieldCue.wav",
+    "sha256": "80920C7558B5338340234D77B5DD79FBF51F19A361ED01D239CE8D8CC737FE6A"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportHearthShieldExpiryCue.uasset",
+    "sha256": "DB1A90602C7EB87A895389185F0A4E9B0E7F506B9BD93D089A7E5BD6662F8F37"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportHearthShieldExpiryCue.wav",
+    "sha256": "A7B1375E8773A62B2E43AA85C01F6DCE8A2043A0B418A929EF28133E973572E0"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportMendingCue.uasset",
+    "sha256": "3E5A00E0D1F4EB833136E1E7269439EA81334839E867CAC0363BF1A0E70A96D3"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/SupportMendingCue.wav",
+    "sha256": "EFB6F37E3D9137D444E281286BA1EB40ACCAFE1CE9D4E26BFF4520BED12C3BEB"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/WaterBed.wav",
+    "sha256": "920A6F462F1FCA181036E6F47325C684F13D2D4AFE229A09835597D861BB038D"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/WetStatusCue.wav",
+    "sha256": "EC5ACBA3F795374096D26AAFDAD69346A5A210F046F5DC4A7B99A7C597311BB1"
+  },
+  {
+    "path": "Content/Kalmala/Audio/Source/WindBed.wav",
+    "sha256": "DA182E424CF9C3FEF5683A8F0C00908B982B1D6BB852D4F310B9C6E1E03C3926"
+  },
+  {
+    "path": "Content/Kalmala/Audio/SupportAcceptedCue.uasset",
+    "sha256": "31DDD17C046C91F68EEB98E27179D23CB14FAAAB44FB03F9C26AE8719EFF2B59"
+  },
+  {
+    "path": "Content/Kalmala/Audio/SupportBearsVigorCue.uasset",
+    "sha256": "997CE0BC645360115D6A16B02D5594AFC13628009D5CFF78D4FA636BDFC49D19"
+  },
+  {
+    "path": "Content/Kalmala/Audio/SupportBearsVigorExpiryCue.uasset",
+    "sha256": "7003853EF479E5A7FAA44CEA11EAFA8654A09E437D164409C4F4C5E31634C642"
+  },
+  {
+    "path": "Content/Kalmala/Audio/SupportDeerCallCue.uasset",
+    "sha256": "C4059A41CDD1A396D36874425B86B6291FB0BF329A3CBDC6C4417383C8EA9FF7"
+  },
+  {
+    "path": "Content/Kalmala/Audio/SupportHearthShieldCue.uasset",
+    "sha256": "225859022C5E226352F231AA65FD5F3681DCA0EA99D95D62E309360CBE588C50"
+  },
+  {
+    "path": "Content/Kalmala/Audio/SupportHearthShieldExpiryCue.uasset",
+    "sha256": "663391C4805600B2B09C75EE915A197E6E858CC5A7A34611CEFE258347CDE567"
+  },
+  {
+    "path": "Content/Kalmala/Audio/SupportMendingCue.uasset",
+    "sha256": "F0E2733E87824FD5F41987029AE9E762A6D7343999DB8A12E8269311B93B33A9"
+  },
+  {
+    "path": "Content/Kalmala/Audio/WaterBed.uasset",
+    "sha256": "C4ABE9851A4D6E89B32156FBCC8FF5857184500D0DE7A15F9029705C824320FA"
+  },
+  {
+    "path": "Content/Kalmala/Audio/WetStatusCue.uasset",
+    "sha256": "8C28D25697D7C6B0FD769CA930586CF640F6039E9F7F1AEF154BCC05EA72392A"
+  },
+  {
+    "path": "Content/Kalmala/Audio/WindBed.uasset",
+    "sha256": "8378545B17EC7984B309537F7F24C0B9ACA104C3044C4B6B392743B8096F7C5E"
+  },
+  {
+    "path": "Content/Kalmala/Developer/WorldGeneration/BiomeClassification.ppm",
+    "sha256": "C10092CB325872221F0A1F10890A9D6055130FC5C45E6D6BC0FF2FAFBF2D3269"
+  },
+  {
+    "path": "Content/Kalmala/Developer/WorldGeneration/Elevation.ppm",
+    "sha256": "C9CC9CA2C08331141D0A20AD106F871AD0B1EAB7D4AC2767D8784F72D11D1030"
+  },
+  {
+    "path": "Content/Kalmala/Developer/WorldGeneration/Flora.ppm",
+    "sha256": "57F91BC6725F3743B61150F56599008EF05CDB2724B4175BBCC09A617E484137"
+  },
+  {
+    "path": "Content/Kalmala/Developer/WorldGeneration/Humidity.ppm",
+    "sha256": "A1E269D8D29F395DE93AFDFC9AC25F35F6688D75FF01A1640957C35DA724FE83"
+  },
+  {
+    "path": "Content/Kalmala/Developer/WorldGeneration/Temperature.ppm",
+    "sha256": "2974B6D7B5C1E100DC400846B4CAF05378FDEC84C0E090A244E51592F22D70EF"
+  },
+  {
+    "path": "Content/Kalmala/Maps/Prototype/L_Prototype.umap",
+    "sha256": "0355B0B625D3B5E4AD8E6E3356746B6AFD9AAB2042E6CB4F32837B88CA498D84"
+  },
+  {
+    "path": "Content/Kalmala/UI/BuildPanel.uasset",
+    "sha256": "F959580B4C93CE03DC2F34DDD23274E9ECD7441304F4B75700883FDF2B50D0FB"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/BoarHide.uasset",
+    "sha256": "5998C73D6C9045D06D714E3D917DDDAB07858441809EC7F3D7CFBE32D4B2172C"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/BoarMeat.uasset",
+    "sha256": "8B12A89D0F0434E0F86D24AB9C50EAD87036A478AA74277EE223F7D6ED6D5B3D"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/BronzeAxe.uasset",
+    "sha256": "6DE6F73E436D1CB1525675BBC9C372E2840CDE4E5F44CED7DB23CBA6E068D20D"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/CampfireKit.uasset",
+    "sha256": "57BC114CA51E8F6B0564A9568A4B3B4B08E9D12519082AA2D83F3CDF78410EBD"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/Carrot.uasset",
+    "sha256": "70F3A9F1F0D74FE8E7BEB27AAEC6BB504CBD749F45A99183712EE62AF3E88EDA"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/CarrotSeed.uasset",
+    "sha256": "D2B96E126D2758729D79B64B6AC8285BF40687D861ABF41857C2C270649B9695"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/CauldronKit.uasset",
+    "sha256": "059D55C62161796D6981D5B40C70F854033A1BC72D3848DA75A761CA232BC648"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/Coal.uasset",
+    "sha256": "0EA64120F6180BC6D0476FCE351FCF727B377585772ACCD92954ED9496B8968A"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/ConstructionHammer.uasset",
+    "sha256": "2ED61D759650F3A5DEC890581C7B45655277B909427A399D480F4A36C014D332"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/CookedBoarMeat.uasset",
+    "sha256": "D08EDCEE9602F4EB609A6729502C75398264C863744169D48F8C5B323B16E3C0"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/CookedDeerMeat.uasset",
+    "sha256": "E355CCFC12033CF19738A80470C8D0544FBE3CE6674F569D6BAA82C2B2F0C6D9"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/CookingRackKit.uasset",
+    "sha256": "677400D24F1C7FAA9A1FF247F4E75E0DC352F5EABD1F44DB979779B7F35FFB5E"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/DeerHide.uasset",
+    "sha256": "BC858BF65C2CE239AFA1CB6E7602509E8D0B5A2095D57542B3D5A82DA9662298"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/DeerMeat.uasset",
+    "sha256": "6E09C855FA7D3E342C90436451600051F2BEB7C398C34D857CCA1C493668743E"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/DeerRootRoast.uasset",
+    "sha256": "A6631F57258FED49FE9ACE0FC4AABF911B5619F4A110D8D90156A15231384D64"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/Densewood.uasset",
+    "sha256": "3A9B48B7F75A5870382EFF1D67BEB5E415405ADAB9A85118E2D5848E6CD23A17"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/Fibre.uasset",
+    "sha256": "E5B956BAE228B4403CB13941C78972FADDAA2C99C76540DF7EF91975F696239F"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/FieldHatchet.uasset",
+    "sha256": "038709C48C2D966B53A6F69212C2E727200ECB21DFDCF501D2D82256FEDEA9F3"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/FloorKit.uasset",
+    "sha256": "52FFC62C03A16343EA38C8B52DF7F82508148A0C281F6A25A09232A39786F340"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/ForgeAnvilKit.uasset",
+    "sha256": "45F3E44316ECB97CF2F9DE1F7D34B321AB180D50E8FEA0B1949D577B0BE3E57F"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/ForgeKit.uasset",
+    "sha256": "F09EF60E2FC7AE05F90C7729C5AADC0E7B5119D9FA63F95D961B2E4A806F120E"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/FrostSalt.uasset",
+    "sha256": "B51953BDD2457DE0BCAA1ECD4E8816B6EC2F8AA58EA6D515E041D675340E8759"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/FryingPanKit.uasset",
+    "sha256": "8361199531116190B863807FB90F694BBE7908053CFDAFFEB137E4B6B8D8EEF0"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/GrindingStoneKit.uasset",
+    "sha256": "4574F80C735D8BF66F257BA6DA8240020F309FBDFD3915B989DC6AE526A62CBA"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/HearthBroth.uasset",
+    "sha256": "7E33ABAE6A0D7EC6443DA42B291F6E15DCD60FB971714D4A46807A506875BFDF"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/Iron.uasset",
+    "sha256": "3A35CED0C91B92194703BBA77DEA775F198E06E2BB890776A409C87B27F036FC"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/IronAxe.uasset",
+    "sha256": "4735A732945398A44CC8F5CCB794BBB60D53D5CAB441B410B1F041A44EFE8374"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/Lightwood.uasset",
+    "sha256": "C2CC49BEB146BF21C73B38E70473FE06361F0384E4EBD7175D31261907184955"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/MeatStew.uasset",
+    "sha256": "41906039CBCCECA62113D0EBFB58DF9D6B726F0E26026DEF8C3E371F1CB0024F"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/MirelingAsh.uasset",
+    "sha256": "DAB1D0F38F85321B72A354B8A3D5066D38CBA8248328245C126C430EAEB20AEB"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/Onion.uasset",
+    "sha256": "2E06934C44C659F6DFB321B36862922A38E4C88D4A2D86E92126A5F6966AB3BC"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/OnionSeed.uasset",
+    "sha256": "92B5B172B51E08B776B5F7B61D31B917430F291BEE5698B08AC6D2E080EF3BD9"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/PeatAmber.uasset",
+    "sha256": "388B85CF3BA78ADD10E15E398083294C24712931B464E434262BB4D5C9FA50E7"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/Potato.uasset",
+    "sha256": "CCA47AA6B02092FD00AE8328A60CF22CBFCEAF14BD333A909BB988AEA95FF788"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/PotatoSeed.uasset",
+    "sha256": "382ACFB00E67AF26AD2C3B6D467BA4F37AD783486C42CD9BCFE2CCAECB8B91D8"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/ReedKnife.uasset",
+    "sha256": "B3A724397C58D6E77FCE28D23C1FB460B8CC4DA2080065A8A847B984D38A8AE1"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/RoastedRootVegetables.uasset",
+    "sha256": "45ED2FCAD8CD094D279ACDE7F92F10CC8FE6C7FBDF7C2F0E79AD06F341C14786"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/RoofKit.uasset",
+    "sha256": "CF5694AFAA64F151266A07672E359549CB8FA05C1D961F01E883891DA7E1D322"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/RootVegetableSoup.uasset",
+    "sha256": "BB03202AD2D7BA6A3C2E37F7B2101666D1C3329D8F7FD1174D211740DDC50EA9"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/Rutabaga.uasset",
+    "sha256": "A28128DE25A967C2C5AAC2E71609C94A885156ED49772152591BC24F4296ACDA"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/RutabagaSeed.uasset",
+    "sha256": "E9F7ABCC88925D9F7EB4D247BC12E51CA0E60D05757C476DFE1E225F4B6A1A72"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/Stone.uasset",
+    "sha256": "FCAF4A0CCEA13EFBB5EAA7C7BB333147B80BA1EC8010888446B6A807E810C014"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/StonePick.uasset",
+    "sha256": "3C80B04B4D8C4C83BC6116FC00B71B5420843DEF090932B54968043F68B5A078"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/StorageKit.uasset",
+    "sha256": "FD5133A87B5EFD1CE9398CF71B2043666626101411CEB19FB11B3407544E8F1E"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/WallKit.uasset",
+    "sha256": "909F501E428C4710276E7722435EB180DFCD41078ADF844C30572944B214A629"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/Wood.uasset",
+    "sha256": "570F908D71C81F1F17302DB70AAA9ADE19A4D84EBB1E960C2D9F3BED4F0EEF76"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/WorkbenchKit.uasset",
+    "sha256": "E57DF110B49A51F4A187957AE4A4902AA69F6E328461DE3E86780720609C692F"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Items/WorkbenchToolRackKit.uasset",
+    "sha256": "AFF813575EBCA48C7A350F60F4775DCD8B206BC8251E55B06007124FC426B205"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Status/BearsVigor.uasset",
+    "sha256": "383C69BF2636C47EF2EB8B6960FEE262D9AA76262BD95C970CD75C05C54F4208"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Status/Cold.uasset",
+    "sha256": "8855916E17322CB4C0CD25BBA8B5DC9ECACFF53A737F8E016BAF1AB88C8AB2D9"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Status/DeerCall.uasset",
+    "sha256": "34EC3B7CD2A025B07C144C9FF76B5DED4694062FF3CAD42C8951AC274202DF8D"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Status/HearthShield.uasset",
+    "sha256": "4E2671B7367AE15C2078F92BBF429F6D606A693C2DAC3C2F32C6BEE36FA085E8"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Status/Heat.uasset",
+    "sha256": "DF5E7F1D6E64D0FE90A079FC7B6CB8642F429A963E9CF89F5B7E9C3C5FA1484A"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Status/Mending.uasset",
+    "sha256": "440E10C6BC3714277982ECCAC824073E2A92DCB624ACD8238CA8489CC16056C9"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Status/SteadyMeal.uasset",
+    "sha256": "9C2EDF55F8963650D7F7E5F36737C228F1B1429042A268577BA598E8CB246626"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Status/Storm.uasset",
+    "sha256": "1648C5C1D833969C02600FD1DA5EEF43F15F1D8C662980CD48F2283442CB7994"
+  },
+  {
+    "path": "Content/Kalmala/UI/Icons/Status/Wet.uasset",
+    "sha256": "732C37C3C9251B72E78C277678424A8A024B21A755F04D4D00B9227A904FBB3F"
+  },
+  {
+    "path": "Content/Kalmala/UI/InventoryPanel.uasset",
+    "sha256": "7F9DEF6318FF8E487B3AFF77D2E6FD25700136718360942FF78CC0577E1D5502"
+  },
+  {
+    "path": "Content/Kalmala/UI/OptionsPanel.uasset",
+    "sha256": "39817C0B586714DB42F5D40D5A084A5BA5173752AFC1DDE2453B5E37647D1409"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/BuildPanel.png",
+    "sha256": "EE3CC99EFB788C7427E485926C66C01EF272B06AE8C3A3B7E5C619E071F933F8"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/BoarHide.png",
+    "sha256": "06FAF53A33A469F6E256933C86851BB1A7C81BFD50CE2A4534ABFE011A82E197"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/BoarMeat.png",
+    "sha256": "D35FCB697AAC7E0A421126619BF9A1D5022A282E8F0E71734454FA2D738812E4"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/BronzeAxe.png",
+    "sha256": "BDD77C4345FAD7ED56E1738C927806F3ACAF87C1376FBFE3BA046363FAA74039"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/CampfireKit.png",
+    "sha256": "087F762008A13390732B706E8EEF0106878BA1D9C98C3E9DFA7499D8B4D1E16D"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Carrot.png",
+    "sha256": "03FF915EAD02473B0983383E54695E491DCAF7C29D92D77D434A8E296B0332CF"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/CarrotSeed.png",
+    "sha256": "78AF633E3CC4F1329A6C0132FF9799243B31F8D7025F313B8A834E59077E6F6A"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/CauldronKit.png",
+    "sha256": "F40D7BF43C704447DA49BC3CF16C06DA5189C7E7D975D516DFEA3D7753A035BF"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Coal.png",
+    "sha256": "9CD3DD42C3B3AAFD935B5E00F4D724B21B9E508E1F922583591C51E519F85EE0"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/ConstructionHammer.png",
+    "sha256": "8936B64475965F369B59ADC8B179396490BC9063E9DED5FEE659B19AF9C90AFD"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/CookedBoarMeat.png",
+    "sha256": "7BECCD8F589D0D81AF8099BC2F35D7A7FF54CABBC1B6B251DB0C92FB57CF9CA1"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/CookedDeerMeat.png",
+    "sha256": "0B6A32A063AD98D9AD3AE7CAB009B1CDA97A73143F74BB98AF121AE3C00992C5"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/CookingRackKit.png",
+    "sha256": "818A7C7F3EB5A1977DFE55D129349D4E4A3E48A3EFAF2329EEF17327FCD720A6"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/DeerHide.png",
+    "sha256": "B8C9B1F1E8A319669C4642D6FD126E44669D7F3228643C492EBE0C7859B10B20"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/DeerMeat.png",
+    "sha256": "718CCF2A18E53C58E47AA4116FC14CACC24684950030F1DFFF034C526D6A728D"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/DeerRootRoast.png",
+    "sha256": "2B2160F101FDCAF7B119AA0C1F8CC2F18CC6E3F788081F68016E3C08A3DA1F11"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Densewood.png",
+    "sha256": "747EDB4C63A9C2D22EF0CB931167393F16B761FE4F3D7F998CE1860A8CBE8B2B"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Fibre.png",
+    "sha256": "11099A6AC7DD5B72583352078EA9FDC9C20E2446DA0EA7D1DDDB5BB673995A38"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/FieldHatchet.png",
+    "sha256": "85128108B0DC05914A0FD3F60BC0BE2E9900C1E138DD669DEF6BCDBF81198F40"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/FloorKit.png",
+    "sha256": "C3D3E5932F82F20E3DF51506777E2ECED7FDE79AC2B677D72B3CC7D8D502528A"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/ForgeAnvilKit.png",
+    "sha256": "F0D1148FA6B463D30D06D935F377713AEF142593416CDAD6FD65CDD0F43EDABD"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/ForgeKit.png",
+    "sha256": "0B134956E358809A06E47443D330060102C17F686CF28AA017024E377FFC8969"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/FrostSalt.png",
+    "sha256": "252FF6585B60A5885703990681975966EB92E3C58446B2210E29FB80B833B77E"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/FryingPanKit.png",
+    "sha256": "A04C15242F0946123BBD73B205DCAC70665CBB9F012C00124BC016E92C3F040B"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/GrindingStoneKit.png",
+    "sha256": "D15C39668426C13BADC04BBE3A9329BDA784DC956872DACF4736EF03D78DBC66"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/HearthBroth.png",
+    "sha256": "26B1D23523AA42955FC84AC76E845E458EF7B5A735E186D81574A2B3BB00508E"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Iron.png",
+    "sha256": "602AB52AAF37AF24C9B5BD4C62652BFA1A1503CE6B04FD08ACFA9C0EC963E448"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/IronAxe.png",
+    "sha256": "772D968632573E9EA38E4BB78414D96306E4DE360429561186E3BA0349A24B18"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Lightwood.png",
+    "sha256": "104AC28B4C9D105A64D14F6D6EF87887F6085A7B3285C78D8B01E52E2A0AE380"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/MeatStew.png",
+    "sha256": "8CBCE7678B26B16FC6223E30BDFEB78A57485F5B3DA0E6115953E99A68947C51"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/MirelingAsh.png",
+    "sha256": "4322B209554F8D67E474400B94DB9626653A308329C4687C50E429ACD5192BAA"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Onion.png",
+    "sha256": "62A9DE0BA3C01A553BC65F6603FF375627D0C82B9826E544597B98CC745C1A07"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/OnionSeed.png",
+    "sha256": "F22D1FB9A72DB26018D3EB5531CD21AE1C2F47348390A0E624A898426E40DF30"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/PeatAmber.png",
+    "sha256": "2FDEB069D0A35EFB53AC159E4C7808D3C753047F0546AC5F4A2663CCE05C26F4"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Potato.png",
+    "sha256": "45302ABB347F8FBD8E26EE7E7984CD01887F9A2CA0A1E2A7555ED11F6FADA561"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/PotatoSeed.png",
+    "sha256": "FED22C7686F680DFEBCCD06B38DB2A5E20178F8EAEB58EB56E5394CF6957FA0C"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/ReedKnife.png",
+    "sha256": "3FBE11226F7C9B5B41A5E78661F35252BB2D45CB2940BB412BD80F8CBCC9FB68"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/RoastedRootVegetables.png",
+    "sha256": "D0B8B5AC019E160ECB5CF150D080E57F54A075747F4DBF4748C28BCBF7F7635F"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/RoofKit.png",
+    "sha256": "6A26F5EDCD856C22E695C3F9AECEC1FC2BDC44AB52C678003E2AA881ED12A562"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/RootVegetableSoup.png",
+    "sha256": "AECCD8101A1607E029E85C337D169DDB155F47E230AA439781070FFAAB0291DE"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Rutabaga.png",
+    "sha256": "5D286FAFA5FD4E5A77449076A08D5E23FB1B05AA3A26CD4E4FE70A05FDEF0F6A"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/RutabagaSeed.png",
+    "sha256": "43E9E9484A0D34E6B855D0C1DAA6B8C9E36D3F033E73107FDDB5D2DDDA2FFFE7"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Status/BearsVigor.png",
+    "sha256": "2AE851A973C942565396DCA564A26546F30C5ACF3F393919ABE6C7128A63BAC9"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Status/Cold.png",
+    "sha256": "47EF1B0EC8F8654A721DF17C71D732C58F08D6DA56673C71B3A4B60C6F350B26"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Status/DeerCall.png",
+    "sha256": "16EE19EECB0F902CDEC1A350A17457BB53957FB285DFBF7FE361223FF9DA77E9"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Status/HearthShield.png",
+    "sha256": "F294C085370D69A29CFFD1EC7E802FD933BE0FB550BCB5AF2458070821AC77A3"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Status/Heat.png",
+    "sha256": "5D8004E753DC8AD783E53B370E38DDB47BB716D6C7091E1E78808DE4717B3619"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Status/Mending.png",
+    "sha256": "927FE4FF164442A9746BA37F7DE3E4516407E3FAE2310BBE3C8977813FF4E0A5"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Status/SteadyMeal.png",
+    "sha256": "486BF8E5C2FEEF9A32573EBC385432CD0FA42DD54A5586313A7B4F50BA3427E2"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Status/Storm.png",
+    "sha256": "E9C9236B74891844F218AFB5267A64E8078A6EEB5AB035553520D685BA36F51C"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Status/Wet.png",
+    "sha256": "3A13D2329C5A75C201EFB42174EA6E83AFEF35549EEEDFF6C1694C4B31405740"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Stone.png",
+    "sha256": "0B3E516D9354A3C8045E55E4416708B4E04CEE59B21FA514EB7147AEB99B0A7E"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/StonePick.png",
+    "sha256": "F8A06C53479285F0AFA5F83B6ACC14E375EF6DBC7D4F2EBCC4A810DAB1E3C8BA"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/StorageKit.png",
+    "sha256": "A3D5D5E1F6A57E1D90C96150795401FD07A270DF161F94CF952D5D22EF837492"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/WallKit.png",
+    "sha256": "1E5F992706BA44BD9314FD7B4EC4F4A566F4AA8B508939785AE70B88D0109D02"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/Wood.png",
+    "sha256": "E0B275B603C2D298D2E37551BE6C735AE91DEF40A93D7CB7402C15CB67198831"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/WorkbenchKit.png",
+    "sha256": "6505F2FC47ECAC2EAADA328B1599AB7FA69B8FAF7D33FD6D05CA8EB9B76032EE"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/IconOriginals/WorkbenchToolRackKit.png",
+    "sha256": "D4D6F8368D57D661FF6FD5AD15D95813F034EF14733734D8DDBA5766E77FED48"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/BoarHide.png",
+    "sha256": "4450A370939C5939F4C267EB7CFB9F4D8F2E7AA0AA486CEF2CB3E4DC4937DA41"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/BoarMeat.png",
+    "sha256": "80B8B94801606FE9F0BD742FB91B1F8B2DD5427BA91940BCFE89FB052A556F5C"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/BronzeAxe.png",
+    "sha256": "44B2F1595839A1F454BEA6DE21B0229318968B0BABFBC8A7F7B22E0D686C184D"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/CampfireKit.png",
+    "sha256": "A79B944DCC256546E2158FDBE7AC3FCCA7D19D40C404DDD613FAF580F65CD2A4"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Carrot.png",
+    "sha256": "21AFB1487B426D0AFAB5B72698BA72B86985E779BAE8E92394E31A426903B532"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/CarrotSeed.png",
+    "sha256": "2272D6C192EB725FE5F203B8066BF7D5F13B2E43C929ED9B6D96F966012F203D"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/CauldronKit.png",
+    "sha256": "ABC67084037FA5EE24C06B8C11BB891D27924536A3FC67B80ECBE8281026E5CD"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Coal.png",
+    "sha256": "1E3FA412D9C1B54D15B57B7DE7E58C60C14430B3B329133497FD830DA2AF2153"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/ConstructionHammer.png",
+    "sha256": "A7BE642CEBBC88C4D3910D07952D58FD3ECB6DC9CD9B9724402C841599C23C70"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/CookedBoarMeat.png",
+    "sha256": "3FB0EDD29CC9E9969DAD7122C61909D850EF0B0AEA88EA425BC9D578D584AA3C"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/CookedDeerMeat.png",
+    "sha256": "88BF7AA0C2301A8DAEB1610F51D7CC745FEBFB4EC685B8AE96FEC21EBF5714AF"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/CookingRackKit.png",
+    "sha256": "7BA19D8C4CCB5C8C25726B86D1FF047C0E5B4EE232C4F9A014899C6B8A5E5CCF"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/DeerHide.png",
+    "sha256": "3B31AFB708C6640EA3C34DB55051254B26E4930B36EA6D8528FE42DC2384DBC5"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/DeerMeat.png",
+    "sha256": "571CFC4A1A8CC4939816E63419E1E38E43338BAB5309DBB7E5A5EB6219739D15"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/DeerRootRoast.png",
+    "sha256": "9978C3717AF5D5FFFF95EE652418D56C854F40284C59288B541959D5C35D9F76"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Densewood.png",
+    "sha256": "2D17686B551FD50071CEF2814812079C5E605BAB8328437E28E81F46B587E819"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Fibre.png",
+    "sha256": "34D571EA785BF2DA5B16F0502CFE4D7A8E2E036617DD278535B2263FA2BF7AD8"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/FieldHatchet.png",
+    "sha256": "27172E649BD4CE06976E682C35C2EBEC60B0E5B3E2C46C127C2DA01306A609DE"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/FloorKit.png",
+    "sha256": "ECEDE23F1DA2161B3664D8625FFEE2F5EF28E43424EE465DD5E11113A2F4C27D"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/ForgeAnvilKit.png",
+    "sha256": "FE5F1C6613097482D068331D9558141B893479D07E2CABD01F028B09A9C23846"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/ForgeKit.png",
+    "sha256": "7CE1B43137D3D57DB9C8CBC3B070DDD057341AEF498BE8786B57856580459979"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/FrostSalt.png",
+    "sha256": "C4E942498DA64D3D3EF4F6270F9B322EDFFDDB43F168BED4778D72769C698D32"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/FryingPanKit.png",
+    "sha256": "9DC48B1FFD52150B6DB17859C3C76080A98AE57B588DFDF76A630D055E0E375A"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/GrindingStoneKit.png",
+    "sha256": "F21A4214D97ED9799DC9C6CAE0B3BA55BAF086DCBF2A10D8AA9681F0A7954C9F"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/HearthBroth.png",
+    "sha256": "F441A187926175CF61532A2A14491555349821F6D0ED75A026AFA41BEF35EDB7"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Iron.png",
+    "sha256": "2A2EC051E129FAE6663318B756CB6C2CF46A148793737A17D70E46169D99EEE1"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/IronAxe.png",
+    "sha256": "E1E02611D7894EDE01B350F994D60F9CB308940CA1316178D8A3C299F46A297C"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Lightwood.png",
+    "sha256": "5D8E72193B15929EFB1C89B4188881FF7154FC4C429B82F9807FD7129DA7A291"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/MeatStew.png",
+    "sha256": "C077B0EF21B750ACA3011AC19F5C5511EE8922A72D4A80A7F0275FCCD2ADA5CB"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/MirelingAsh.png",
+    "sha256": "879FCCC64A6431F6D67D330AAD9C4B3A0A201C07C197A16F13664040FAD96912"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Onion.png",
+    "sha256": "8FEF9405E6CB500AF5BC2B4EA02535EDDB66E58B5CB735573E5A42B76582C122"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/OnionSeed.png",
+    "sha256": "F571CD1C69A43145362557B96AB4608E4F3924F39818F9CE54FD78E8E0128DCE"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/PeatAmber.png",
+    "sha256": "0D0FEA603CB0695148C293110C8833B6BD06697D649025AC3A467513F58A5D10"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Potato.png",
+    "sha256": "250635C77C4715C00C6858E85F97A00B6B5A4C559DA1E2FE5347E6A5E7C8E7B1"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/PotatoSeed.png",
+    "sha256": "3751A9CD9AAB4FF952848A72CD7B51345E098D118620416B3BAFB2332ABA809E"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/ReedKnife.png",
+    "sha256": "16E8C008AB78D69B010F1C416209361036C8057983D17CBB8A680CB802A8BBF3"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/RoastedRootVegetables.png",
+    "sha256": "58AA6A9738590A8CD5882BED577C2F291884B0C6D71B43B458F20CEE4B8DAF73"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/RoofKit.png",
+    "sha256": "D03D0A5EFAA92E419735CA588EA0F811C259B355FC668B15245448FBC97834AA"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/RootVegetableSoup.png",
+    "sha256": "F98FD627973C0FA53A906BC74425736E37601C9012885F8D0C293D250919F6CC"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Rutabaga.png",
+    "sha256": "23F8F069BB5682C910390CE52B9D50440E64EE6940BFB0D2F59F61D29E8D53F0"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/RutabagaSeed.png",
+    "sha256": "0404E087A6BC4A68C7D93B7FACDFB746DBEDA681090DB1347089487CE878AA71"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Status/BearsVigor.png",
+    "sha256": "774A74F00F4E03319481B1E35039B46020138311E0ABC52DFB09D3C9EFF4F5D5"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Status/Cold.png",
+    "sha256": "DD2E4FE509B019FEFA542DD3141898603A1920BA8C1507D04E9AEB01DB46DABD"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Status/DeerCall.png",
+    "sha256": "90A561BDD96EA7ED6AE6774F70284ED529259345EB28F77C25B44D999A04D301"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Status/HearthShield.png",
+    "sha256": "F20DE9491AF4D0102AB33B24F5C3E10014F216C9111024D8B80B8C16F99321E1"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Status/Heat.png",
+    "sha256": "3251311ECC4A93A390679EC844234050389BDAF4866666EE9F012B1DF3449647"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Status/Mending.png",
+    "sha256": "A98319E0886983245AFAA4E372CA1F70114C0450E4F2EC86BA4724C8D90458E2"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Status/SteadyMeal.png",
+    "sha256": "DBBDDCF4F9514985EBDD786642DF87EE7570C1099A96105883BA33F1AA66BBC4"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Status/Storm.png",
+    "sha256": "71E6F118F7EFD5A20B19B9B99A3CF1A74E9248FA42489CA8190A551384E31A28"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Status/Wet.png",
+    "sha256": "7923126E2C9FF49A35353443210567E36C635FAD4D76CAE859B3402D1095AC2D"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Stone.png",
+    "sha256": "75D4BDE68579F3EF03AA1C037C65D7AE78F6D2238F2A1890A834BCFC468B527F"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/StonePick.png",
+    "sha256": "C145EA31DBF4B6B3F9A207FA6F7D9C2B60AB1F894760665C81315C565ACFBC66"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/StorageKit.png",
+    "sha256": "1FD591318279F32D3A3DF1F9A03924E8D96592019F2907DF0A62095B32A59DC0"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/WallKit.png",
+    "sha256": "3817DC2B587F2552100CF26D1927A28B461915AC40097F4F07C449BF10F95C5E"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/Wood.png",
+    "sha256": "8C0D7902390DE98CC08BDD3908CA0D943AB89EC6E3A549462A146CEBF23DDF14"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/WorkbenchKit.png",
+    "sha256": "029FF20797B4D73E62F5D5FF68F986432141BDEA92FDC5A9CD376CB502C76D4E"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/Icons/WorkbenchToolRackKit.png",
+    "sha256": "D3EF34A55850172B9B2AA79404247C0F8A0DB367444784A8DAC8FE92A4F19A05"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/InventoryPanel.png",
+    "sha256": "3376F9FAF09D49C9BFB4A5F0407D9CD1BCD12CB42E9E635A55C0CE01AC683125"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/OptionsPanel.png",
+    "sha256": "210092455B1342E3FF50E4846F18DF010BC41A31421CFC4DBB5A3D251DE90CD2"
+  },
+  {
+    "path": "Content/Kalmala/UI/Source/WorldMapPanel.png",
+    "sha256": "51D1A3BEA0CB18CE4B9ECECABEAC0A4670F19138847F73BF9A1E91A852B75620"
+  },
+  {
+    "path": "Content/Kalmala/UI/WorldMapPanel.uasset",
+    "sha256": "7DAE3D4084BC9237B66DF51FD0A5BFF8C44100985D7DAB0ED6A84B1E7CAA2D7E"
+  },
+  {
+    "path": "Content/Kalmala/World/Materials/M_GeneratedBark.uasset",
+    "sha256": "F069D4377D4E8956FCF2A6B9B4A55FB4FAE0491957699E6951682ED703CB3D7F"
+  },
+  {
+    "path": "Content/Kalmala/World/Materials/M_GeneratedCanopy.uasset",
+    "sha256": "621593535DC42296F99449A73D4117A18BFDA3900822387D7F4F18BCF3536D75"
+  },
+  {
+    "path": "Content/Kalmala/World/Materials/M_GeneratedLakeShore.uasset",
+    "sha256": "C1B0335D23A45E282376049CFDF25FA1CBE3B7DC73811174F6FD71354DAAA5B1"
+  },
+  {
+    "path": "Content/Kalmala/World/Materials/M_GeneratedRock.uasset",
+    "sha256": "F0F8E1D9731BED8EDF6DA2331A38D6368B311E5A12257FEEC616FF77C60D0C30"
+  },
+  {
+    "path": "Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset",
+    "sha256": "CF6E295D0C0D5ABA90FE5F28B6B714D384DE740A8712FC55A56810EC84598414"
+  },
+  {
+    "path": "Content/Kalmala/World/Materials/M_GeneratedTerrainBiomeDebug.uasset",
+    "sha256": "0BF285EC0966A88B9F924FED25F8C7D7BE6E711688C246300F66B1B72C1B60AE"
+  },
+  {
+    "path": "Content/Kalmala/World/Materials/M_GeneratedWater.uasset",
+    "sha256": "B7D2E4846185E9EE1398B3B27BDC5385BDF2113331D87030124DC1525B4258FF"
+  },
+  {
+    "path": "Kalmala.uproject",
+    "sha256": "53816AAA4E85A67A5D7573B9679747E11809EA6778011647AA8D6D8000E52409"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/.gitignore",
+    "sha256": "CC230A857918371DB889102EC1FA1BEA2CF8F8D9976EFA29CD6B2E7FAB965B78"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/CODEOWNERS",
+    "sha256": "BD31A4CA4531912ED29C8D0DFCD054413E8431CE0180AD87C5A034DF9598B24D"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/CODE_OF_CONDUCT.md",
+    "sha256": "9DAEAE709A0BD71BCFD1C96DC5822ECEC5210327EFF929DA64B0AE7F8FAF1444"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/CONTRIBUTING.md",
+    "sha256": "58DF68977356B5B3F6AD61C38CB050969BACBDAC4171D91C38ADDB5591437103"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Config/FilterPlugin.ini",
+    "sha256": "5367CF1E30155F7FC3D5098BBDB7E8908DC7CC563B76098B72856FE8F6D106AB"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Docs/Marketplace_Readme.md",
+    "sha256": "4EC350D0410822734D6F589924E82EEA926332B733352B8BBE9916DB37275FDA"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Docs/Troubleshooting.md",
+    "sha256": "D0577E6CA2A9CFE216E3D49832AFADA7E7A53B618C250529DFE027FA90369FFA"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Docs/Visual Studio Integration Tool Documentation.pdf",
+    "sha256": "11C3EEA5CE379FB5E317BEA226DD4F44677F214182066E134C2640126E3EB8F9"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Docs/images/configuration_page.png",
+    "sha256": "2A6552FFB9DD7F4FD791B567269FEEDA18A253E8FBA9AEFC4EE862D4148D1DFF"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Docs/images/ide_support_ue.png",
+    "sha256": "F5FF01A6DF479D49717BF5781E04E9942C53A55AAE2A0EDC67562A0CC02A85DB"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Docs/images/test_explorer.png",
+    "sha256": "0BD7D6AF4DDED70D83FC1122F6FF2BC6CAC4B2E74EE7C8CA8D2E01F105D9A42B"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Docs/images/test_options.png",
+    "sha256": "045CA6D9A2736B78BA64A39E321E53CAFC0629DDBF543470FF27614331C38687"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/LICENSE",
+    "sha256": "58627D7F029571DF3CFC1716FFBA26E0CAF5E543961038209A1409D5CEF579DD"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/README.md",
+    "sha256": "19734F5CEB8A9AE6D79F3A518DF804E7F980CD72259F4D5EEDD8FFFFBA3D7B99"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/SECURITY.md",
+    "sha256": "430987B8C5F30C366ECD501BC344C8B29B6280E8A10174376A769F7443A187CD"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/SUPPORT.md",
+    "sha256": "CD8DD77AFA1E9E118D3080E6D7210599253DEE5850DEAAF8ED4D8DDCA82B695A"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Scripts/Package-Plugin.ps1",
+    "sha256": "EA54D989311FC75BAA96903D6E04007898FC49C88AC2D6D024E42BF1F2A771C6"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Scripts/SignDetached.proj",
+    "sha256": "12BE3075A3DBB67E0AD5B0F60436980E710F41DAFD9CE878A16448F8FA687A16"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Scripts/packages.config",
+    "sha256": "137F214FE2C72391283981BE9AB6735E1A84DF5E9B9ED6CFB7231DBC55A635C4"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/.editorconfig",
+    "sha256": "F41DA2F0ACEF87A3F28F7BA129C2897F7FE3A85AAA7449767F658FE4AEF4C992"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioBlueprintDebuggerHelper/Private/VisualStudioBlueprintDebuggerHelperModule.cpp",
+    "sha256": "D30612F279B7E28D883A4966776BA88AC6B1C6B288E1586FC5170E839312D109"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioBlueprintDebuggerHelper/Private/VisualStudioBlueprintDebuggerHelperModule.h",
+    "sha256": "ADF3F62AC9E38289DEC68B6856F7FF4C6DEC73468DF88FD341A83DAF3B41008B"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioBlueprintDebuggerHelper/VisualStudioBlueprintDebuggerHelper.Build.cs",
+    "sha256": "3B5D86D7E48DB47104DFC06526EA09C21BFAC9B7A176ED85BDFC84C556F63C6C"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/BlueprintAssetHelper.cpp",
+    "sha256": "129B71F3B31E8D8C47E54DA1C2C81481CF622AC9A150081EAAE12A0E66A4817C"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/BlueprintAssetHelpers.h",
+    "sha256": "ED0029D1977F72D098A5E6DCFD0BD3BF1080AE0B48A7D42DF8010887F5BF019C"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/BlueprintReferencesCommandlet.cpp",
+    "sha256": "6F7CDC70D91A1BB652B8B1931331F9DA9A9A92E32B6B3F2B485BE58F7BC86030"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/BlueprintReferencesCommandlet.h",
+    "sha256": "6EDB45E2D0E51794D7299B59A2A129B12B96BEB23154CA4FBDDCD3FD21D35B24"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/FSmartBSTR.h",
+    "sha256": "E7BC6D46AE213202816E8A013CC53A8E9CC2E7C6FDF99D65EC3173718D2DACAE"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/VSServerCommandlet.cpp",
+    "sha256": "92B26B797B292B169FB764A813C70EABE7436B9D7362248DDF9F7C09638D42B5"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/VSServerCommandlet.h",
+    "sha256": "0686E180460945B4A6057F911166414E2A8BC4F0393FE914F7887567980222D6"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/VSTestAdapterCommandlet.cpp",
+    "sha256": "B76E120FADC889F0DBA800F6A361F5D1D2FDB3203B43E84C85DF1B40F0B2BCC2"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/VSTestAdapterCommandlet.h",
+    "sha256": "9ECC89628C262412B49978C73EC321DF10496CD8DC2441471A3DE8EB858E06F1"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/VisualStudioTools.cpp",
+    "sha256": "7C7A91D1EE0AE93CE981FC2BDB82242B9FD95C66D862907DBC109E241F942178"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/VisualStudioToolsBlueprintBreakpointExtension.cpp",
+    "sha256": "3275541A44395E91965D3A730947BA49B9D3538B317F66E518E8992DB54B42A5"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/VisualStudioToolsBlueprintBreakpointExtension.h",
+    "sha256": "56FDEF896EB44EA83F44CBD68F1EE316940BEF50BC5DEDAC9F310DF213CAB45D"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/VisualStudioToolsCommandlet.cpp",
+    "sha256": "5FC56D6F35143FCB2D11158E09466D0E09DCEBE5A2CA95369AD630EE239B4CCA"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/VisualStudioToolsCommandlet.h",
+    "sha256": "B6AEE1CF69529BCC6E543932DD51733D4F46BE1349131DA6478A253BE3ED89CD"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/VisualStudioToolsCommandletBase.cpp",
+    "sha256": "E1F5C7473B9B2746A2DD69FCC536510058FD204C247C50D978C98787034B6DA8"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Private/VisualStudioToolsCommandletBase.h",
+    "sha256": "337800953CC8F58E4F462C7D24829F6BEBE4EC7590F68211CB30A147008E56C9"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/Public/VisualStudioTools.h",
+    "sha256": "9DB2DF707751CD707752783D25BBB23527B9EDADB56BF15348A62EC3285E289C"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/Source/VisualStudioTools/VisualStudioTools.Build.cs",
+    "sha256": "3EE603B2617457956AC45FE7C1F7F36A6D542796B34E3595F4B6D982F51E4380"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/VisualStudioTools.uplugin",
+    "sha256": "5569099A3E418B45CD98E12BA08261E3C7DEB4024164377F7B956D5126C414CB"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/azure-pipelines/Support-extra-UBT-args-in-UAT.BuildPlugin.patch",
+    "sha256": "13819BD75F16ECD7CBC5D8479EE074EF7A9022D5A0290EF3D110EA9B6E49E6E5"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/azure-pipelines/TSAOptions.json",
+    "sha256": "2342620191989508F0502A2712E74D18D7BFAEE10E45E6DB9230CB0F8CBD3C87"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/azure-pipelines/compliance.yml",
+    "sha256": "8FAE8DBF1F03B9CB1C4537EF4A3C96970B98B18E766168766BC22C1B28D5B663"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/azure-pipelines/release.yml",
+    "sha256": "62ECD8B4A3E4BB162CD9FBFC014B2F7B669E727DBA1AD652E4BD04034585C951"
+  },
+  {
+    "path": "Plugins/VisualStudioTools/build.proj",
+    "sha256": "A008C09E36F65DF9FF00CCFF6D2D7284847CEB61869417938B7AACBC1E015442"
+  },
+  {
+    "path": "Scripts/Data/catalogue-icon-manifest.csv",
+    "sha256": "F52A35041520E9094570A109422E71F171E8CE580563FB001F46BB612F046C41"
+  },
+  {
+    "path": "Scripts/Data/status-icon-manifest.csv",
+    "sha256": "FDCABF77E0FE177C2B270D584DFFCDDE1BE62B9273C1228487AF0E99C19A7467"
+  },
+  {
+    "path": "Scripts/Export-UITextCrop.ps1",
+    "sha256": "C3307237DCE5A3950084F87588278A21303057D9DA32A21552E0B5A4BBF5E684"
+  },
+  {
+    "path": "Scripts/Export-WorldMaps.ps1",
+    "sha256": "A54DCA5BEC69FAA8C15B6FA2CF7AB9E850D9692272100F6E22DA7E16F697525E"
+  },
+  {
+    "path": "Scripts/Generate-BiomeAmbience.ps1",
+    "sha256": "88DF521CBBB77FE9577B9812A876EBA46304773DC48D3BAE607A59CC8A164E15"
+  },
+  {
+    "path": "Scripts/Generate-CombatResultAudio.ps1",
+    "sha256": "7D91D6D19B8CC843CA011EF6DC0D40090788C8CE21FA5AEE347638AAD3243E9D"
+  },
+  {
+    "path": "Scripts/Generate-DiscoveryAcknowledgementAudio.ps1",
+    "sha256": "CB9FB8F6C0E45B5141D3FF2FA64ECAAA235E71BF2CC862EA2B7B9042B5028F77"
+  },
+  {
+    "path": "Scripts/Generate-FireAmbience.ps1",
+    "sha256": "B97B61DD68FC0E83E78A6A255C64276627AE949504D4D68E1B56E97AD0350CF3"
+  },
+  {
+    "path": "Scripts/Generate-InteractionFeedbackAudio.ps1",
+    "sha256": "F95D8351D06241F8FA140980ED4C94D4DC02ECA1B0E0F26E1C4FA25F9FCCC2D8"
+  },
+  {
+    "path": "Scripts/Generate-MovementTraversalAudio.ps1",
+    "sha256": "05A959B991F850DA2BAF9CCA21F81AF082B2C0AAD2E138BF5FFE50EF7AE54C97"
+  },
+  {
+    "path": "Scripts/Generate-SupportEffectAudio.ps1",
+    "sha256": "6CFCAD7C41D7BBB53258CACF747BC57C7891E24CEC7E09DB875783819634D9CD"
+  },
+  {
+    "path": "Scripts/Generate-SupportFeedbackAudio.ps1",
+    "sha256": "B84D7F2B3A58756F90608BC134A057D55A387D0F819B1B91B8390E5982F5E76F"
+  },
+  {
+    "path": "Scripts/Generate-WaterAmbience.ps1",
+    "sha256": "FFA9C60AEAA98B87AD2B95C370B68267F7E4996B3EF5D6583556964D2582CA28"
+  },
+  {
+    "path": "Scripts/Generate-WaterTraversalAudio.ps1",
+    "sha256": "D3869D207C1D78BCC932909C5061265C796AED2969CDC9D75FEBEF59DC38B038"
+  },
+  {
+    "path": "Scripts/Generate-WeatherExposureAudio.ps1",
+    "sha256": "DDACE3032682EE64643503017D7087A8398167A1A7F67B519B9657D053C6A289"
+  },
+  {
+    "path": "Scripts/Generate-WildernessWind.ps1",
+    "sha256": "F0916498BF27DBAD0CE58815E100196D054EAF11E92E07AE12E04D529C7CD9AC"
+  },
+  {
+    "path": "Scripts/Import-CatalogueIconBatch.ps1",
+    "sha256": "7274A6434A0DE19F5AB18EEE1A24EA479BA4C612F029BEDE47E70C383B9852EF"
+  },
+  {
+    "path": "Scripts/Import-CatalogueIconBatch.py",
+    "sha256": "02FF74676AFFFBE5145256443E72EED758C088C3F7A35FC0729A6996C38730D6"
+  },
+  {
+    "path": "Scripts/Import-StatusIconAssets.ps1",
+    "sha256": "CA5EB28BFF140FC8EF4B4FB3927C0B44F416220EE19A8A066ABE33446D7BA770"
+  },
+  {
+    "path": "Scripts/Import-StatusIconAssets.py",
+    "sha256": "C6A7B8B5BC28E5747D6651E07D71ED8349AAD8D79C7085683D0B708196A15897"
+  },
+  {
+    "path": "Scripts/Package-And-Run.ps1",
+    "sha256": "DE2307AFDAFFF6E5050487194C25D5A0A401310539393104DC0CC95AC74E0242"
+  },
+  {
+    "path": "Scripts/Prepare-StatusIconBatch.py",
+    "sha256": "3CB5ED0D695E89D862F50DF01ED47304DF03359FAB49673385FE76176CC08958"
+  },
+  {
+    "path": "Scripts/Setup-PrototypeEnvironment.py",
+    "sha256": "E3DE5F420FD3BA78639B621E41840B9C430197A490AEFBD4C25BF7CD78C6BDF2"
+  },
+  {
+    "path": "Scripts/Validate-CatalogueIcon.ps1",
+    "sha256": "D5C5290D1C498331D45734FF25F4E935E7AA099B3450B728C3765719D79B41F2"
+  },
+  {
+    "path": "Scripts/Validate-CatalogueIconSet.ps1",
+    "sha256": "617B7A4C2A220F4A2745F2BD6442BEF3DF0B5B986CE289C78676FAC6084FD6E9"
+  },
+  {
+    "path": "Scripts/Validate-StatusIcon.ps1",
+    "sha256": "FC9E8EC4A16C865773C97F31CD1F2764E593B6A2ADC6CB29B7F67BEF7129913D"
+  },
+  {
+    "path": "Scripts/Validate-StatusIconSet.ps1",
+    "sha256": "8B82D172883AF90963E36A51DEC6C96EF4A5AE5541C1704C9B06A9BA607A49B1"
+  },
+  {
+    "path": "Scripts/Verify-AmbientAudio.ps1",
+    "sha256": "261689F6A41B61B343C60703FAAF3525D1BAB3D04BD7FC161EAE08E6A5A25420"
+  },
+  {
+    "path": "Scripts/Verify-AmbientAudioPeers.ps1",
+    "sha256": "3D9D4C03FE85856D0916DE2BA700990C8FF8729EC89A7C3416C147C5B7F97B1E"
+  },
+  {
+    "path": "Scripts/Verify-AudioCueContract.ps1",
+    "sha256": "86E97648266CE482B50D83D31DD0044DE51248F0EC45041C63A9E9E12BAB6DF0"
+  },
+  {
+    "path": "Scripts/Verify-BiomeExpansion.ps1",
+    "sha256": "12586FFFDE4FD384C53144BFF7559408E82A611F4F7D6A2457BFA9AD371B470D"
+  },
+  {
+    "path": "Scripts/Verify-BoarPeer.ps1",
+    "sha256": "91AA7B3484F0B5C4C22CD5C0359CB2CA6AD8B3882799BDE987E082E3CEB73CAB"
+  },
+  {
+    "path": "Scripts/Verify-CampChoices.ps1",
+    "sha256": "E50D7CE3BBAE6D6154FB5C2E3EAA27FC751C98DF784E2CDA7D8DD6EC2D499DCF"
+  },
+  {
+    "path": "Scripts/Verify-CombatPeer.ps1",
+    "sha256": "8626B5CA6735AA9463AACD51B6C6C210945C5AF46E7FE91F6D4BE73809DF21BA"
+  },
+  {
+    "path": "Scripts/Verify-ConstrainedPerformance.ps1",
+    "sha256": "0B6E8D7D9153881084173C0D84D0313C6D2AC55EDE476E6338D73EA32B918810"
+  },
+  {
+    "path": "Scripts/Verify-ConstructionMovement.ps1",
+    "sha256": "39819D904882EA1B38B44F056CC787856055307269524516A3F94216827CC2F6"
+  },
+  {
+    "path": "Scripts/Verify-ConstructionPersistence.ps1",
+    "sha256": "A16C382D0CEBA3B8DC293616FBF8640AC059A4EE773DE507BA04AE90C8105A73"
+  },
+  {
+    "path": "Scripts/Verify-Crafting.ps1",
+    "sha256": "AA892377EF1029AB437708A17B539A418F986225BF10CB0B913F0807EF072AF8"
+  },
+  {
+    "path": "Scripts/Verify-DeerPeer.ps1",
+    "sha256": "52FF487FD1E34A52F1C4FF2B5EB0158FBCC25175897D5EE8966EF17EB2E0DC3A"
+  },
+  {
+    "path": "Scripts/Verify-DiscoveryPeer.ps1",
+    "sha256": "18684EAA84BA2084D0D4F1445F09EB01204BDD2F2CBE38B7E36BD78E61900434"
+  },
+  {
+    "path": "Scripts/Verify-InteractionPrompt.ps1",
+    "sha256": "9E88C3F6A243C029528EA985987583FE0536B86BE38FCA1495FCCC06DC1D0DB5"
+  },
+  {
+    "path": "Scripts/Verify-Inventory.ps1",
+    "sha256": "C4F7FCEC3F3E17FE04188DE72E0CD50AF67B5CF49A34CE94F2A9953EDBCE118B"
+  },
+  {
+    "path": "Scripts/Verify-InventoryMenu.ps1",
+    "sha256": "2D0DA2F79DC81C1CADEE542ECDA5EF3A363CCE70C5F2CB08FB155607AFBC6BA5"
+  },
+  {
+    "path": "Scripts/Verify-InventoryPanelRemoval.ps1",
+    "sha256": "A2768D58F8AB2A6B300C6ED3B5F30FAC8C2253256F8B6D731180C110E011360E"
+  },
+  {
+    "path": "Scripts/Verify-InventoryReconnect.ps1",
+    "sha256": "0093CA2FA51F50A43F2A98AEBB42595791819A025FFAEAE90CA0A8A146C99244"
+  },
+  {
+    "path": "Scripts/Verify-LocalInputContract.ps1",
+    "sha256": "1189E666F25C1F2810951F72CC784BC44325DCD47E46748C405440E6A34BDBC4"
+  },
+  {
+    "path": "Scripts/Verify-M4VerticalSlice.ps1",
+    "sha256": "662522989B3B728CAAB4B3477D3846ED9CE443CD7EB29CFC422BC5915685C0C0"
+  },
+  {
+    "path": "Scripts/Verify-M5DocumentationContracts.ps1",
+    "sha256": "6B685D029D2566A75DC9EF882EABDD0EBC91DBFFA2DCCFED83288817A2B15349"
+  },
+  {
+    "path": "Scripts/Verify-M7AutomatedAcceptance.ps1",
+    "sha256": "69FABE32EE4778E9D9EFE3646B405C927DEFA3E56E2871A4D61CFB10DDCE2AA0"
+  },
+  {
+    "path": "Scripts/Verify-M9ExplorationRewards.ps1",
+    "sha256": "F23FD7DD418654427C9475F0AFBF6B134E9DD08CD7A6E129B257116D170512F7"
+  },
+  {
+    "path": "Scripts/Verify-M9Schema2CandidateReconnect.ps1",
+    "sha256": "2E48D0F2EEFB90C2300D7342DE77939817DBCB6F919AA1824B3842101547A8C9"
+  },
+  {
+    "path": "Scripts/Verify-MapAwareness.ps1",
+    "sha256": "A3B46C73E4E8BBD28A9BF609902B7F0C3BE4B7BCFA9A0E83AA6D0424CF3FC3DE"
+  },
+  {
+    "path": "Scripts/Verify-MenuInputCopy.ps1",
+    "sha256": "DEA95CE85335158C0140F3B571B4EEA351BBA51C011FD8F53F85850D3868B609"
+  },
+  {
+    "path": "Scripts/Verify-Minimap.ps1",
+    "sha256": "D087ACB827E0D4D21AEBDF0AD52B08611A41626E656C6EB1E2A592583978D23C"
+  },
+  {
+    "path": "Scripts/Verify-MirelingPeer.ps1",
+    "sha256": "8AB73BBF51B416E5A6FD033DBC0CB5F2098B7325A774D9F9ADC3FB9146C04846"
+  },
+  {
+    "path": "Scripts/Verify-OceanSkiffDiscoveryDisembark.ps1",
+    "sha256": "FEAC268DA0D15C86CABE027348B1EB39ACAE7B463DBB368639FB9CDD6C8587B7"
+  },
+  {
+    "path": "Scripts/Verify-OceanSkiffFeedback.ps1",
+    "sha256": "BA472CB36781B0C5ED4C8E05E4470041029A64478CC5ABD10BE125FBE760AA40"
+  },
+  {
+    "path": "Scripts/Verify-OceanSkiffIntegratedJourney.ps1",
+    "sha256": "8B83892B74C1BB98010C63C969C0A5C652ED1C9E36E39728D0A6F197133A5782"
+  },
+  {
+    "path": "Scripts/Verify-OceanSkiffIntegratedReconnectJourney.ps1",
+    "sha256": "3BD2135D2A5DADB1BF95D3DFF7DEA6668136B14EF5FBDF2047B909AEB7BFAF57"
+  },
+  {
+    "path": "Scripts/Verify-OceanSkiffJourney.ps1",
+    "sha256": "7A34BC63FF55EA48A63AB059A88C2D19CED1A0E6AC88B50F95C7BDD854160B9C"
+  },
+  {
+    "path": "Scripts/Verify-OceanSkiffOriginStability.ps1",
+    "sha256": "B5AA22E857247B33216AB79D3583BBAD199E2A3F5E99E80ED944BEB0BDA47918"
+  },
+  {
+    "path": "Scripts/Verify-OceanSkiffReconnect.ps1",
+    "sha256": "AD793FD319545A139A796F2D59ADA11972E5665B8C17EE62BA3369FE76E58906"
+  },
+  {
+    "path": "Scripts/Verify-OceanSkiffWeather.ps1",
+    "sha256": "789CEDD26E761DFDDBA8834FC5A249263CA698BD96DCB7FD6893F24E57853519"
+  },
+  {
+    "path": "Scripts/Verify-OceanTravel.ps1",
+    "sha256": "D9C87939AA6E73503E62775855A3EE7F3A078087A4DD108B9C3F7F8C413E06EE"
+  },
+  {
+    "path": "Scripts/Verify-OnboardingContract.ps1",
+    "sha256": "065B2379A9E40F0D0B6DF3E0BC95C2CD1E60369D1DE6552D13495211A5AD4D92"
+  },
+  {
+    "path": "Scripts/Verify-PersistedCamp.ps1",
+    "sha256": "4FB50072CAF409F9A958BB3E3924B28E000754D8BF463B6C35EA4724AB20C099"
+  },
+  {
+    "path": "Scripts/Verify-PersistedCampHearth.ps1",
+    "sha256": "8829ECED5585E1846319B5A525248133C838658EF0A97929C2564A61A1504AE2"
+  },
+  {
+    "path": "Scripts/Verify-PersistedCampRestart.ps1",
+    "sha256": "8279220DD29BA6D5D3B2A9AFFA3BA2EB0915A8A25DFDF2F9454F6942793E22EF"
+  },
+  {
+    "path": "Scripts/Verify-PlayerControls.ps1",
+    "sha256": "BF4E2DCF0E23B93B6754905EBE2A4D4A8F8B681E655D5EEB266AE37EE538B276"
+  },
+  {
+    "path": "Scripts/Verify-PresentationOwnership.ps1",
+    "sha256": "4D1882F545970A9175CC2AE9F081CBD0DBA27527ED45663F05911DAB619C8104"
+  },
+  {
+    "path": "Scripts/Verify-RainVerticalSlice.ps1",
+    "sha256": "E8ADC322E2179E777C050DEFD6EC00ABB72834F4490B7E78FBE6B7B0A11DA14C"
+  },
+  {
+    "path": "Scripts/Verify-RegionalGeneration.ps1",
+    "sha256": "60C14DF208EFCD7A8AEC98289BA455D00C62D8521A0EC6CABF13873FA9D0BA48"
+  },
+  {
+    "path": "Scripts/Verify-SettingsAccessibility.ps1",
+    "sha256": "35622CD6F42B77B3ECA5C37E8913567542A837350DE5646BF544A8C1B20B3FEF"
+  },
+  {
+    "path": "Scripts/Verify-SettingsAccessibilityContract.ps1",
+    "sha256": "599B483D10548CF8EAF66699238B807781D29EEF4499DB7C39A55C3D475BF288"
+  },
+  {
+    "path": "Scripts/Verify-StatusHotbar.ps1",
+    "sha256": "98B81D81BEE90988BD9296DD71225056A34D9165AC6D07E0C099E0E0C797DC2C"
+  },
+  {
+    "path": "Scripts/Verify-Storage.ps1",
+    "sha256": "041066472F05D5428058EB186DF0B6ECC74CCAD30368730A4F6F548C70670C5D"
+  },
+  {
+    "path": "Scripts/Verify-Swimming.ps1",
+    "sha256": "147A7350D0A485CB6374291E9D2BAD3B3B1654C330BD3A07E7AD378A0896BE17"
+  },
+  {
+    "path": "Scripts/Verify-TutorialRouteFree.ps1",
+    "sha256": "D72FB524CCAFB04673E73F7C72EBFD1AC26DA6A28F768D29E51A59419D7CBF23"
+  },
+  {
+    "path": "Scripts/Verify-WorldMap.ps1",
+    "sha256": "3C6BC31B078E3706F7A7555138B59E3D3D988ED7FAD5AEA4B828F625D638A3E5"
+  },
+  {
+    "path": "Scripts/Verify-WorldMapExport.ps1",
+    "sha256": "F99ED357B6DD5275A437EEF5DC794EB7BC6A6FD37F905EAFEEBA2AB6A76B5361"
+  },
+  {
+    "path": "Scripts/Verify-WorldMapProfile.ps1",
+    "sha256": "CC26BF284F74D42679385BE8221BDE865B19C850AD675B962D4B478FC011C719"
+  },
+  {
+    "path": "Scripts/Verify-WorldMapTiles.ps1",
+    "sha256": "17CF9B07C2032B49440088BB1A257DBA84B41533D216238AC76C5F15E6D75255"
+  },
+  {
+    "path": "Scripts/Verify-WorldProfile.ps1",
+    "sha256": "62BFC1B552E822F1F9F7CF9A8875EAE766CB71E718263EC9CB2149707DCE78D7"
+  },
+  {
+    "path": "Scripts/WorldMapPreview.params",
+    "sha256": "70F5A570321A8C6402FC6751BD14B535E632F9868C2A2388B565CBCAF9379303"
+  },
+  {
+    "path": "Source/Kalmala.Target.cs",
+    "sha256": "4B9ECFE8A348C9C7E48BCC4EE8C5318FF53693ED5F4C0B4C5557BF899233882F"
+  },
+  {
+    "path": "Source/KalmalaCore/KalmalaCore.Build.cs",
+    "sha256": "834EF4B8FF32AB4C7239C336E8E1BCB47446D02ED5AFDA74362A8F5323F38335"
+  },
+  {
+    "path": "Source/KalmalaCore/Private/KalmalaCoreModule.cpp",
+    "sha256": "209A7C16C1799FF6EFAC7383F1074F5F686DCB039B585E5EF798AEE6EAEAB2EE"
+  },
+  {
+    "path": "Source/KalmalaEditor.Target.cs",
+    "sha256": "92053872776E2884A4886B985C70CEB4CA3190A507866FA3C9525DCE22DBF3C4"
+  },
+  {
+    "path": "Source/KalmalaEditor/KalmalaEditor.Build.cs",
+    "sha256": "763AA8672E0A77E0BD0F0294721F02261F31596BD32153C1BFE09B90DC4E8359"
+  },
+  {
+    "path": "Source/KalmalaEditor/Private/CreatePrototypeMapCommandlet.cpp",
+    "sha256": "FA6CA6ECBCA7EEC208BF5F351FB2336616D3840FBF2DA71C61E702B7A1BFD4B7"
+  },
+  {
+    "path": "Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp",
+    "sha256": "B749A8EAA571C74707D532928D098E0DF1CFBDA2F7E793BE4385FE78229F227C"
+  },
+  {
+    "path": "Source/KalmalaEditor/Private/ExportWorldMapsCommandlet.cpp",
+    "sha256": "756E4820C35C1C39116613257A9CD13F5C5BA941FBA7613B565C888BFBE5C091"
+  },
+  {
+    "path": "Source/KalmalaEditor/Private/KalmalaEditorModule.cpp",
+    "sha256": "0A05F954567602ED15CC4A6F1D028B6605114F4DE7A0FF1A6DC24219A44E6505"
+  },
+  {
+    "path": "Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp",
+    "sha256": "C260266C33B1AEA8C64C28A35208C429CF3302CA19C99C4E1F5D6361EBB4EAD2"
+  },
+  {
+    "path": "Source/KalmalaEditor/Private/SetupM1TestMapCommandlet.cpp",
+    "sha256": "92A302060CA4B5E80DD7A4F5770CD562DEB9536CD9F8E7A13DB84467A5C67381"
+  },
+  {
+    "path": "Source/KalmalaEditor/Public/CreatePrototypeMapCommandlet.h",
+    "sha256": "5FABAA3D5766941A6525F2EC97D96F11989F9FF366B0772D9F60340F022EEBCB"
+  },
+  {
+    "path": "Source/KalmalaEditor/Public/CreateWorldMaterialsCommandlet.h",
+    "sha256": "1AA1169AA88EDFC63790A701E4BBBEAAD075E5C1A91B2CEA304DE1AD6C85888A"
+  },
+  {
+    "path": "Source/KalmalaEditor/Public/ExportWorldMapsCommandlet.h",
+    "sha256": "C331684717CFB38EB863B331CCEBFB06550827C778D2ADA72ADBD3CF4D0D8DC3"
+  },
+  {
+    "path": "Source/KalmalaEditor/Public/RenderWorldGenerationVisualizationCommandlet.h",
+    "sha256": "0DDEB1C751171EC33D784AC814B7281AAB545EBDD1EEB17FE8F494C05D95F7DC"
+  },
+  {
+    "path": "Source/KalmalaEditor/Public/SetupM1TestMapCommandlet.h",
+    "sha256": "E42FE6D2D3215626D6CC6F7C5D2A3329A5E63A7CF834327954B6F07929BC6FC0"
+  },
+  {
+    "path": "Source/KalmalaGameplay/KalmalaGameplay.Build.cs",
+    "sha256": "A4F16714BF8565F335E3B2F9E63106BD516E2D7EC214FEDCC13DD2EE0D2D181A"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaCampChoiceTest.cpp",
+    "sha256": "2B0C3BA49B961F349BA77FC2D6BD9A678DE9974DEDAFCC2D7647A1F6FBB5A46E"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaCampfire.cpp",
+    "sha256": "ABF87C45E7AC22AE970C760D3155CD7E5285784282CA41BAEE6D275E8C095315"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaCharacter.cpp",
+    "sha256": "5A9DCB9640C546E6B8EADC7A337793E14A1B7E97454109CB1341ECC1951B56E8"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaCharacterMovementComponent.cpp",
+    "sha256": "A8FB7670DB5B2D9E6C2F465B36D79F598B17F696E9A1E04A1DBF9D8B01C178F5"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp",
+    "sha256": "438E3D039B895BF13432D93CF0D3A48B325422E8E6696FD2FE29097AEDC73226"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp",
+    "sha256": "A762920F5A50FC31D9528F4ED6EB4C687B8D0545F5D8925578F5A9F3B284F0B5"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaConstructionMovementVerification.cpp",
+    "sha256": "D5A684A8B24A590872BCFAEF7F621CD9A408CCEA13D5C06B885EE21ACA05E05A"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaConstructionSaveGame.cpp",
+    "sha256": "1B6195F1A716E1445F22C39520A81745EA09A908B7C57F9730E6EAF45FED806F"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp",
+    "sha256": "029B1594469B18542F11F486E74CDA63A10CDBE44666CB5B60202895D08464C8"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp",
+    "sha256": "B77C5EA3F30A41718536ACE98F268D8833F84F65576E083D59B46C0D62C3FA20"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaDiscoveryActor.cpp",
+    "sha256": "F779C4859D9A42A7C4D8AB732017038B172C9244A6420A47CA2B96FC5C37AF29"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaDiscoveryProgressComponent.cpp",
+    "sha256": "895140A6FCFB82B0EB7EFD00C9673D4952A2779B5410833D743F617E92C883FE"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp",
+    "sha256": "AF459ADD4EDA708D752132B3E05BAD81679AA60EB6717ED8E15CA4C39E89CF2D"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.h",
+    "sha256": "A3550567A6CA2FE544A96B6DFEF9F5B1F5A1A954AC3D44F72763D64D5E4F5343"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaGameMode.cpp",
+    "sha256": "C5DA2F6E3E7E5C91255830D0D40C56A2EF0037561409F84568DCB50812FCFB55"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaGameplayModule.cpp",
+    "sha256": "EAA39949AA8640A81AC711BEEE537F63F8E249CFB6BE1783A19C2177C71D6CC3"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp",
+    "sha256": "89AB9DA73A5076800D097B0CD396AAEE4D1D353D7C5BC9FF1AD538A1AA090802"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaHazardSpawn.cpp",
+    "sha256": "0D171111271412494A435080EEA36DFC4BC0641C86EC741058F373669771CCEB"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaInteractionGrid.cpp",
+    "sha256": "7C09A3B5F59A44B55EB449709002E816EB748BEFFBF31F4889CE73BEA17618FB"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaInteractionTestActor.cpp",
+    "sha256": "7596CEC46B18962B4AAEBD2D2458F5A541672B121D8ADA1C242A14429D8F2455"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp",
+    "sha256": "1F593F0C79C33B1E8D5F01C2D1A4B31E69DA32189C62A0213717E835F4473B61"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaInventoryGrid.cpp",
+    "sha256": "7EC5E78E8421201BD0E6BFCC40C36FC7D3ABA8F6DA4388F4232451849FFB3079"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaInventoryTransactions.cpp",
+    "sha256": "71F39B4E37C0DD78731E37AB9FD84440DDA3AF78C97820C60B2782966B7AC867"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaItemCatalogue.cpp",
+    "sha256": "17A293A3CABE568D70645D61A04720DE100800289650ADFA6E151D5CA85FEFB5"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaM9ExplorationRewardCatalogue.cpp",
+    "sha256": "E5FAE61A91DF446D02580561A46AF8FC77BBA03FBE24754CB538B0650D1BAB81"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaM9SourceLootContract.cpp",
+    "sha256": "8CE3C549026A2F52F00E1614A8C01F74082C1485BDDE5AB39C235B02E081753D"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaMapAwarenessComponent.cpp",
+    "sha256": "9A780FA587B7FC16607FAE067E4283B6AE3E0A6A559F1176AAE3D0989D2E26DD"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryCatalogue.cpp",
+    "sha256": "08AE15AC52CF02B16B0C07648366944E9619FA71853925F4C3CAC3C60EC1F523"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryDisembarkPeerTest.cpp",
+    "sha256": "A7716C538D6C4301CAFC87958DD85497AECED6C64B7A8D84D44836ABAD06BC87"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaOceanIntegratedReconnectPeerTest.cpp",
+    "sha256": "C8CDCAC58C4D6CF4A6C18ACAEAA291F05F95B3461BEEF2D3206067563CF74130"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaOceanOriginStabilityPeerTestSubsystem.cpp",
+    "sha256": "A4C661060D72552288F5346FD3C7D2B9967F246DEE863B295ACD3FC7A88FEC6C"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp",
+    "sha256": "1DF7CE340823722FB27935E43CF60407E90D52D5F354F600C3CFFF9172818528"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaOceanTravelFeedbackComponent.cpp",
+    "sha256": "8C33C7C83326A174DE03E485C588B41881C09AE8BF3A8FB5C76DBA02470BFDF3"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaOceanTravelTestFixture.cpp",
+    "sha256": "D28B01F890AA0850FB172563455676FDF1E24DAB949B7D5D23C8F8D455BE6C33"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaPlacementPreview.cpp",
+    "sha256": "07D44DEBF29FC8672C7FBB2BD2FFA0285111D10CE80346FCD458401A4634FAEC"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaPlayerControlsTest.cpp",
+    "sha256": "07495E515039E74B18C1EE367D233B30164D2C1596CC6CA3E78756D30A29BD5B"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaPlayerDiscoverySaveGame.cpp",
+    "sha256": "6918C98E01FDA322FEDBED108616E6AA4DDD202561E2C46A88F8A8E57739B433"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaPlayerModelComponent.cpp",
+    "sha256": "35F0A8964B283D122732B301BD7784964AE4B0321B7CA45390520805FE2DCDE3"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaPlayerStatusComponent.cpp",
+    "sha256": "0952B8DFBB9673436821A3C824FA0DF18405084D9384EC8B3D0C1E653F721081"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaRecipeCatalogue.cpp",
+    "sha256": "E639A6472A3EA4AD5F0FF8A575C151835A6CFDE3E706A2C2E510230D14B8C207"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaSkillProgressionComponent.cpp",
+    "sha256": "878111A37057CA81A91E014053E332E031356111B850A4C9CCC59B745FDA0916"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaSkillProgressionContract.cpp",
+    "sha256": "681902AEE50D68EAD9948BEE6DAA91C95B1297BB560A3A755892312B10D44967"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp",
+    "sha256": "299A80D6C69C2F4F8A480DEC8E94BFF34424C6F0CA042B93A452EE9543C0468E"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaStorageSaveGame.cpp",
+    "sha256": "108AD73A8B908C9A305B8060926E74589D33306EBB4C0DD476C8D191BCE46F2C"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaStorageVerification.cpp",
+    "sha256": "E71C3081D2E8DD5BD78C159E2F5EA19EBAF10E4275D12986F999EA116DEDE273"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaSupportMagicComponent.cpp",
+    "sha256": "8B5B3F92C38E7579315E65C00CC5EFB0E345C06CC3CDC1784776AF504685D858"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp",
+    "sha256": "3ABDA1032E307697EA9495AA1FD6E75351ECAC043740ED3F9CE2CC3975803BE1"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaToolProgressionContract.cpp",
+    "sha256": "52F2421441357D422E3A7EED1F64C2928994BF5DD00E12F923AE12B09749A45B"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp",
+    "sha256": "20A362696C3B8A9FB0A6B48A4045FDFA1E0982734C8C6FDDD4264B3BEC92272F"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaCarriedToolInventoryTest.cpp",
+    "sha256": "FEC299762264FD23BAD0401F1C51943AFCF280BC6C08ACADE5D4DCEBA184C04F"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaCombatIntentContractTest.cpp",
+    "sha256": "9A50D486827A2E8876F013F2FD172A8316EC322A86BB55BAF12D27F9FE66071E"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaCombatLoopTest.cpp",
+    "sha256": "124E9621BAECEFABDD8232A006E3843F4E963B07B689F5E629AF606D7D0F4C6F"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaConstructionRainWearTest.cpp",
+    "sha256": "3DCBE448D6C83691B6BC87A7CB646891FD3A87C4DBE7972C890FE6E672E9275A"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaConstructionSaveGameTest.cpp",
+    "sha256": "F48984DD430936315ABA39151FECEDE9856E7A6C9B5B05B25EF67530AFE5C923"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaConstructionSaveWriteCandidateTest.cpp",
+    "sha256": "754CC8873CD087519B7910AC16FDBCBD0B2C57A400AC98A2CF8C3D558F3A24F9"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaConstructionShelterPieceTest.cpp",
+    "sha256": "D138FAD2E82F33527165BD7431E7C283D9373C5B1AB0B8C1856F9D237FB3B449"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaConstructionShelterSamplingTest.cpp",
+    "sha256": "72E4E42FB69A49109A36E2BC044D7B8B94E52F1A93D79D55AB478832783B574D"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp",
+    "sha256": "8F4095722A2E485B9184237E659C52B66D91A612571FD5B3E97303FFE3FEC047"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaCraftingNetworkContractTest.cpp",
+    "sha256": "ADB0FC87416F87E21324CBA06BD78D04A7A1B051532520127650BDB339415F5B"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaCraftingTest.cpp",
+    "sha256": "E3E8262E6BB9E791C9065575F6651AF9D556A5C1E8336C30CA28539FBEA6BACA"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp",
+    "sha256": "796F21B30A9A0C646F23CAD9304968748C138677B777135E53F0C0ECA0DC7752"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaHearthStateTest.cpp",
+    "sha256": "909EEE9C49849B5D147FB31482BF659CCFB712DDED6757AC59539065C6A331E4"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp",
+    "sha256": "1C7FB8D3A3F282788F9219AC7C30F28B5FB38F12DBB55C33447FE2DFA97B83D8"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaInteractionGridTest.cpp",
+    "sha256": "19B9C7BB1EEFC803EE96A25717CAC86646ECAAC5AD8749A59ADF0C861ADC0F92"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaInventoryGridTest.cpp",
+    "sha256": "987DED6455A0C8953D2C5F4D9CDFFB4CC32346AB1213E9476AFC994A9B90C2EB"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaInventoryNetworkContractTest.cpp",
+    "sha256": "A49D6D6F71F9596E5A5E425253793ADF456C31B1A3E25738C9AB3859356DECBF"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp",
+    "sha256": "F26695F261B913E2A397DFEA88B1C18F19874EC84EC687047B5C98A2CD7A4C0F"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaM9AxeHarvestGateTest.cpp",
+    "sha256": "D7168A372715120674EAA828E6F2C4581E41292FAA90C2B2036F321E0B8E7809"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaM9ExplorationRewardCatalogueTest.cpp",
+    "sha256": "BB95D8CADCCBEB97DCFD38C65FCD549B08E1D469BA5C5AE8A48AF9B70B3FB782"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaM9GrindingStoneRepairTest.cpp",
+    "sha256": "4D254A8FBD09AE1FB6297217033817AEF54DC646ECE662A4D7276CAD69BD558D"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaM9RaisedStorageTest.cpp",
+    "sha256": "BAFC9AAC145C0356ADE4ADCE925CBC93718CC6D6351D768D52ACE6BF86F5283F"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp",
+    "sha256": "391D1C6066A039195B81CC068F488CECAA49F3345910B57FB706389C937B766E"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceLootContractTest.cpp",
+    "sha256": "4F60C7552C0EEA72C7EE0E6D150B9F590E32A03E5F734164E13D56CA68632EA8"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolProgressionCatalogueTest.cpp",
+    "sha256": "B1D3643685AE9CEEA792A15CE3A3F4BF3079BCCE5BF41EC8E2BB1C0CB8D002B4"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolStationProgressionTest.cpp",
+    "sha256": "3F93C72897A2DE389B281F17F269C578928D2C83BEA568B6F3A63FCA9ECDEEB7"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaMapAwarenessTest.cpp",
+    "sha256": "A2F82F05894DA8A5D05FAAFD6972B34B2899CD9DEF698A13C82F95F2B0009D2C"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaOceanDiscoveryCatalogueTest.cpp",
+    "sha256": "A305EC3FDF54F9B75B0871E5CFDC9912FAF0A1A1D9DB65433F442FB6DF183E1D"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaOceanDiscoveryClaimTest.cpp",
+    "sha256": "917B633B01D62C5D32F2CFA042810A7CEA91C98DA2E9851D9B96A1E6450C3F43"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaOceanSkiffTest.cpp",
+    "sha256": "4E466AD1EB119C0E30F8713497478876792253228E29D7C0B88F2843FF6C223F"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaPlacementPreviewTest.cpp",
+    "sha256": "07C2F35B5E244D19E87DA988E1038F143B503566DF753E6A989B5549238D59FD"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaPlayerDiscoverySaveGameTest.cpp",
+    "sha256": "06164703D0A979CD3B50C88744208DFA9CAFD2DE1C0ED78B8E30FD2394E51AA8"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaPlayerMovementTest.cpp",
+    "sha256": "99046EBF715091E86B5998C167A4A1A0BD72630BAD0ABF8FEFDB548E2870710B"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp",
+    "sha256": "5FA33B4F5E5BF4CE5D8045709BB5706BD21A038CDEE959D7D686380FC109C3D3"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaRainAuthorityTest.cpp",
+    "sha256": "103DC1F134343FE99386C03F18ABB78F30565490D5229DC6EEE1A9591AB2AFA0"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaSkillProgressionContractTest.cpp",
+    "sha256": "E07F2C8304C82E06039B9F4D072E653BF424717BDD282A9DBF29D17A8927D21D"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaSkillProgressionReplicationTest.cpp",
+    "sha256": "BBF3819A88C121F53489A3E3D3E8C1A4896E0B7A6AE791CDB0283B15BC859CBC"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaStorageTest.cpp",
+    "sha256": "B94D1E137AB1FCF588BF263C61E1019DC7A42565B1A940737B12E4ABE9A31E1B"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaToolLifecycleContractTest.cpp",
+    "sha256": "696AF2936360B0E55738C07673F52E714181E618FC9EBFF301A06D2AD2BE28E6"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaToolSharpeningPresentationTest.cpp",
+    "sha256": "B63EDBE9C77DA7749B994454BC1F0CFB0F09A3090EE267B955F8CFC63271813F"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaWeatherHazardResponseTest.cpp",
+    "sha256": "437E92CA3AC3F50D54E2E76C4720F7A762D5CD10F54C9898DBCE256170D81C2A"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp",
+    "sha256": "A2C7CA9979E7D7FC45DD912272269A4C023F349053294DED764E61A2F3E0E1A0"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Private/Tests/KalmalaWorldBoundaryMovementTest.cpp",
+    "sha256": "D5F21F164C64194349045F238BD72952E0BD55B4806B7603A1AF7060E6930278"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaCampfire.h",
+    "sha256": "85F0E2F3047F1148A5F95E35286F44240626CA9791CD49C7383FA03226F9F478"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaCampfireWeatherResponse.h",
+    "sha256": "A153B2D3350C86F566BCAB5204D675E8AB1B95B2307B8619F5246438192B3763"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaCharacter.h",
+    "sha256": "ED3B17FD03E634CC4AB69122F274A2D2CBF7203021BEC8ED34B759BD1F59BA14"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaCharacterMovementComponent.h",
+    "sha256": "2BA69DC602207380275540394C4250DBFFEA911CC37C4CD70585FF4D141D8C2A"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaCombatComponent.h",
+    "sha256": "B622C61CDCDE777DC55D0E1332E74CDB5E44E1B72F426371AA4517A6ACDA3B17"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaCombatIntentContract.h",
+    "sha256": "53AB2394DD18762EBB8BCFA4C79E746E593834CB913E07702DF71FBCBB0855F4"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaConstructionActor.h",
+    "sha256": "879F193FDDE7C7821CE54FEB44CA5B465BC58AA8AA03EE218CDA4703DA9E76A8"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaConstructionSaveGame.h",
+    "sha256": "78B46DFDCDC084BE7C70B42859966CBFACEDDC77E7034A87E45A960080D188E9"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h",
+    "sha256": "543955AE60D73B8FDE13D0D2EF878458A153973168EBD7D99DADD9B7ED052751"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaDiscoveryActor.h",
+    "sha256": "95453C0EE559FC2A7D43AA11A2439AF7A7E065A3E690BF309B897317B11777B6"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaDiscoveryProgressComponent.h",
+    "sha256": "4AD25D3C4CDE37E542ADE5EC9C158C970F9571B75D750DCB73A26D17D5433F2B"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaExposureResponse.h",
+    "sha256": "968E82736041102AACD868C1393DFE0D6599E2405649DA0403A7CDB0BF2704E1"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaGameMode.h",
+    "sha256": "ADB447313C0EA6370EAA56512468CD663C52F977B31FAC63EA079308E9AC62BA"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaHarvestNode.h",
+    "sha256": "3B43DD257494063464B213E6EFE8760A1197730139397BEFE8D15ABD91EA328C"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaHazardSpawn.h",
+    "sha256": "A93611C0871AA25ED72CE267AEAE05A45B9AAEF9C53D5EDEF9D076AB17F19C58"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaInteractable.h",
+    "sha256": "37AAC652AD3E85D8723B4D15E6577CFBA895FCAC6A9412CECFDE0497F19B8CD2"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaInteractionGrid.h",
+    "sha256": "67B702FB1844A11FA272BBFDF73A107E233E6B65742EEAF757BA1A7BF784BD2A"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaInteractionTestActor.h",
+    "sha256": "D500E84536AE466307F2963B2829001CC4C724F9C9352AC961CBD0D1F7DABB0F"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaInventoryComponent.h",
+    "sha256": "D6C653154A6816818AB92EC5EF07FD54D6972D9C4B008727C72C113E27883C3A"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaItemCatalogue.h",
+    "sha256": "0D7737D66716956A5D824395E3E7B58CA729A0C194C8690E3A9156C6C71656E0"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaM9ExplorationRewardCatalogue.h",
+    "sha256": "4A1FFE5CD2D70B8247DAB8C7A7B54C35BBA826C1015C5D063A09E73D98A1187F"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaM9SourceLootContract.h",
+    "sha256": "0CF9FCA75A3C1CB7BC2ED41DEE22B44C494C5C0A1B289EA324A5362975953947"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaMapAwarenessComponent.h",
+    "sha256": "225EB938BC58DC218EF1E0FA19D98BC0ACC7AE086C6B79AE5AF3DF37281DEDC0"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryCatalogue.h",
+    "sha256": "D1C28CC6D230509E289040AAB77DD97C6C967C2B15FC8E360D3EDA1111431361"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryDisembarkPeerTest.h",
+    "sha256": "2167519DB8CED6962008923DB3817BE766408A9946AA674FA6491E4CB26FA111"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaOceanOriginStabilityPeerTestSubsystem.h",
+    "sha256": "89ADE0438AB9AEFE95CAD42557A3A874D9A76CB2362C0798BB4020D4FF5784CA"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaOceanSkiff.h",
+    "sha256": "C4253CA272AD9B2B2CBFD015CE7599EF5C7F2C792D75331F85D53014B08B5AD7"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaOceanTravelFeedbackComponent.h",
+    "sha256": "D6A5810419567574650A94554CF0AD972C7B96F4B332477B1D915C8267B3EEF9"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaOceanTravelTestFixture.h",
+    "sha256": "EDBE7A7D248AEB6D8C2726E3F64023A91BC83574143ABCC6406030BD5E3A77F0"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaPlacementPreview.h",
+    "sha256": "07B9A1D251C3D0C69FB093D591F20862D2E5C3A545B05F309E228D5F9F38FE93"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaPlayerDiscoverySaveGame.h",
+    "sha256": "3BE4DB502FF8E5D1C3D3A1463ACFCBA9D8AFBE2E8FE723A26D96FC34E8F352B7"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaPlayerModelComponent.h",
+    "sha256": "1E4C686AE72183D7DD11BE35E4E909162F95342A1F129AA7739F0DBFF10485DA"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaPlayerStatusComponent.h",
+    "sha256": "ACAC59F7617D012590CFA5ADD520E2BC4BCB0D047C15AD0DFE029C8115AEDE24"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaRawFuelContract.h",
+    "sha256": "BC9E347DE387135E1E8A6B60BC94DE239B8463F579E221B8E505D2BE5E48910C"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaRecipeCatalogue.h",
+    "sha256": "9C9F903E85B171D22C53DCD86330A1169B46E475278418763104DC5ACBAA1171"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaSkillProgressionComponent.h",
+    "sha256": "53C441FA46AD1F117424EEE9586FD06684712604DF237CBC3713503D4A182087"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaSkillProgressionContract.h",
+    "sha256": "17402C4E5909FF5F5D9047138F48F25EFA04C55381925922EE096FB53F77893A"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaStorageSaveGame.h",
+    "sha256": "B40986C43C8CA59040D1C975757877A3CB0F394C46EF398AE6888CAC86747476"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaSupportMagicComponent.h",
+    "sha256": "0DCBE5CDF5F1D6DC889169FF2409F11AD88F3E662B1EE2DFC0FCD4E321298888"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaToolLifecycleContract.h",
+    "sha256": "3F753DD6241003F143F2DD03C914CC1A880D329885756297D0A474525B74910D"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaToolProgressionContract.h",
+    "sha256": "CB61CB80CF33E52959682842E3F96E027B91FB4D834DA789F8A6A5E0F7B78CA8"
+  },
+  {
+    "path": "Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h",
+    "sha256": "F12C3A4300801FD425C0FDF599DE1341F5C5BAF7915D70FC69E0C69E97C5797B"
+  },
+  {
+    "path": "Source/KalmalaServer.Target.cs",
+    "sha256": "ADE4F1F550E2C7DBF5782957E7DB9EF7E3D4D1F48F59BD3FB81C2584117B0A93"
+  },
+  {
+    "path": "Source/KalmalaServer/KalmalaServer.Build.cs",
+    "sha256": "8969391043271007F914E6C84160078BDF1882733B5BDAF9FBBF72615AE3D111"
+  },
+  {
+    "path": "Source/KalmalaServer/Private/KalmalaServerModule.cpp",
+    "sha256": "A401DD60F4DC6223953BAF9281D5CE84A33A2BA10B14052662BE652B7EF5E4D1"
+  },
+  {
+    "path": "Source/KalmalaUI/KalmalaUI.Build.cs",
+    "sha256": "7C25E03649FC3FDFBFDC5C0010E7F598C95CB3FB98CD7B81FC826A0025AC179C"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaAccessibilityFeedbackSubsystem.cpp",
+    "sha256": "73482B77DFCB7F29271409FC00B47CF265B8C100D02F46B6533C03D7FC71334A"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp",
+    "sha256": "EBF5A84126C0CEEB2BD36DC7FF861A5D3A10335C2B521213F8C83E9A8E427827"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaCatalogueIconLibrary.cpp",
+    "sha256": "9EA9339B68E88B3CE0458736CAACDB08DCBBB16786A18D61375F697FF618132F"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaCatalogueRowsWidget.cpp",
+    "sha256": "664A323338D710E7C120233F294994A3ACFECE36FA89AAA64AF61D8E4BADB9BE"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp",
+    "sha256": "B17DA7F1BD79679C0190651D063210DD38AA8474AFCC45043A01A0FDA8BC2918"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaIconWidget.cpp",
+    "sha256": "8D169FF8ED6D496D357347D8971159092FB2F2812FEECCEF66139C2F317C7161"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaIngredientWidget.cpp",
+    "sha256": "5C37838B2099004217FD9642297D6054A45570294A78698967EA09F9E842F7DE"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaInventoryGridWidget.cpp",
+    "sha256": "36F3DB5B5D5E8A0248D54A7E31B537E74D4EA0907AB206B89A779974FA243466"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaInventoryInspectWidget.cpp",
+    "sha256": "2D67E1003E090CDB6B81990684DBF856AAB256179548D0961CE3D7EF9F2105E6"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaInventoryMenuSubsystem.cpp",
+    "sha256": "65986E6FC5DE3C6C8BFF2095972BE98923AE768D82B7FC7422F249141B9418F5"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp",
+    "sha256": "FB9E6B1E518D7D4DA8952DF0699994FCAF1DC3C18C308ADC0B96A7085BCB3382"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaItemDetailWidget.cpp",
+    "sha256": "39630B90136DAE904CC4657DA732E9E98F9126019E01DC881304C2D0B3CBAA9D"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaMinimapRaster.cpp",
+    "sha256": "A7C130740CA5A2C6CE262555C21565A80AA805051B6B435664A1668614B71362"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaMinimapSubsystem.cpp",
+    "sha256": "2BBD408C6E8199DF41858ECDBE928B8D57E06B7B7765891059F3CD6DEA3BA191"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp",
+    "sha256": "54B2DB5675EF1AFD823F45B0775C0A929C196298409F966F55ACA6C4F2FD3227"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaMinimapWidget.cpp",
+    "sha256": "AD542C4C9FA6FE0AE69617800A9961CFB5F581FC689B727D9057A24F4851BB75"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaNotificationSubsystem.cpp",
+    "sha256": "1D5885995510991A654E9F922AD2AD1D65C5FA9F004B7E9BA3847CF58D4CB964"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaRecipeRequirements.cpp",
+    "sha256": "6DDEC7CA27F7FEBB9F074CB9B2E5574EE90C26692F1CEB0693A91A77D088F4FA"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaSelectedResultWidget.cpp",
+    "sha256": "15710CBE9D5AACC02F14EF78BA379F24AE609ABC3FA9FD1EA12EC7EACEAD4893"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp",
+    "sha256": "17F58AF10E28BFD5454A3D962BABDD7120D57E1B61CD1482E1F1F7370D8B474B"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp",
+    "sha256": "AB6D0D45327D7EE6AC721CE6D15BDDE83E91301A226D05F233D57292155E3660"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaSkillNotice.cpp",
+    "sha256": "FAEED76F24391C5124E8BC29EE5821B61D865EB4E32D027C216920D75F24BCD5"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaStatComparison.cpp",
+    "sha256": "08E91B01E9C33EAF3001C3BB4AEDE9848898EA28A269F0B0055ABF27B677FA16"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaStationContextWidget.cpp",
+    "sha256": "86DC85B6FF0F6AC043B9100DD21D85F264D769CE0764A145BCC26E59E05AAF30"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp",
+    "sha256": "B9A9506D8B9F8E41BDD54C7F1C3840D0A480623DDA721D287E5897D6CB61B6E6"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaStatusIconLibrary.cpp",
+    "sha256": "3369796F1793BD835C486D3215DA672CFA75C73E124B58A571C5747AEEC46794"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaSupportSelectionSubsystem.cpp",
+    "sha256": "6F30406F7DEC067DEB07872ADE0D0A657DA7C552F1A23CA8F210366ED8186CDF"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaSurvivalStatusSubsystem.cpp",
+    "sha256": "ED9C9A87EA43434E8F770043F21A147C6ADB9FC3F017B6E14A17C2C8207EADDE"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaSurvivalStatusWidget.cpp",
+    "sha256": "8FE41F4817311DCC305FB8AE520BCF62018E5C877BA2687E6D990556A9D1DEFE"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaThemedButton.cpp",
+    "sha256": "440FAC98702C6BCE9D57CB2B95E24609EEF3C421E4ACC0FE243C3FDFF6B86F79"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaTutorialSubsystem.cpp",
+    "sha256": "CF4729BF0BFA6D80C0ABEFC452ED2A13045D8110BF80176266131905DC4E3DFE"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaUIModule.cpp",
+    "sha256": "030DCA49593FE246E48B3967F5D08E663A21A86CB5935F87CB1923760A44B98E"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaUITheme.cpp",
+    "sha256": "03C7B45C781CF9575285CC36788E5DF876C037AD68006A179004D88FBB64971C"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp",
+    "sha256": "B780BD0D9DE341F37253816507DCD922B5B05E466E9C08469BF07B24F218AFB9"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaWeatherActivityWidget.cpp",
+    "sha256": "74A9783C136B37EBB0B2D0BBB60B96D6D44CAFB25EFF9D84A68936961A2C2C68"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaWorldMapExplorationSaveGame.cpp",
+    "sha256": "C95BD8063663EC657EC17E9E68384DD2D063B27953CBAE28800FD627CB149D0F"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaWorldMapPinsSaveGame.cpp",
+    "sha256": "147244388CD56442F98662B5B4D6FB467142C5170CB470B3BA03B82C42723B95"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaWorldMapSubsystem.cpp",
+    "sha256": "27BB8A981B485CCBA6A79A3F1C6DC4D4F9F4423B264DAA1F560D2A6FB95520EC"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp",
+    "sha256": "9E34FA30F3F001C503617E86244FAC0F1B56E6334B4CB9B9A03B56B8A53AD001"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaDiscoveryNoticeTest.cpp",
+    "sha256": "2DEF6A925F4D870EBF9761D5283109485BF7DBFC11296F3A488CD1B22F4B3BD7"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaGenerationPerformanceTest.cpp",
+    "sha256": "D730C86A5D185BD0B332DA31873CCDCE0B385F56D119825DBC86677A82A66191"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaIngredientTest.cpp",
+    "sha256": "E2E78FDBF50ECCF57A206733EF0AC0A67A0F7614A84A02502DC5097DC6FD6453"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaInteractionPromptTest.cpp",
+    "sha256": "B7B8C7384004521DFF9E388BA8BFC17FCF89918FAD391B77811B74628FBC1059"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaInventoryBrowseTest.cpp",
+    "sha256": "22CD8CDD570B3CD9EDF30984CC1C00563A1E19258E58947C0E681753B48FD458"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaInventoryGridWidgetTest.cpp",
+    "sha256": "8D5FB4847AB5E7272D5B60901633468F46F8CD3F69F7DBF89DDF865433C5C93E"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaInventoryInspectTest.cpp",
+    "sha256": "104C4B8BED24C961CFC7F26BAA9F7C96E0794ED48D9010726A1F6C48B61D5559"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuFoodTest.cpp",
+    "sha256": "D0CED6A1F6A01DC202585B663AE71B6BD8890EDA79E6CB9162C6C62C000337D0"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp",
+    "sha256": "8D3A0A57BF19A3CB54F06A26FE49E7E9B508E1CF136E4B05CEF17C5BD74F3A61"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaItemDetailTest.cpp",
+    "sha256": "E576515D6C03E807BCC76ECDE21676573F959728FBC1E92982ADA3A882670D01"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaItemGainNoticeTest.cpp",
+    "sha256": "2D5B128D0032F24B92C5D38F25425C97CDB7547B2D4B5212406B7F778629192B"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaMinimapAsyncTest.cpp",
+    "sha256": "60D04B26696D7E300D39D8686059E371E002CCF343360BB3B8F77D950B06E31B"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp",
+    "sha256": "6E275FD6D5A360A32F78EE8A9A0BB68E398ACFEC59C43B689525F69F6838A886"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaNotificationAcceptanceTest.cpp",
+    "sha256": "255F95BF65BBDE68A7BDCD898E625C8A1A101755F30B4F4ED5BAA7372E000B69"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaRecipeActivityReceiptTest.cpp",
+    "sha256": "7ADB68C811FC03B78361C80397CBB13E1B5B3E4D8BEF8B8B62D44492290394BB"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaRecipeBrowseTest.cpp",
+    "sha256": "562EC91942762D999F705EA972184A2DB32135A25905691542493733E7F2AB6E"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaRecipeRequirementsTest.cpp",
+    "sha256": "B7D5BB2CDE8FC86465CAD21D6AA5E229F52664EF08DD45F01025B15C63FE0BA6"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaSelectedResultWidgetTest.cpp",
+    "sha256": "D00BF1DE3B71D4CFC63423A0003E72680129CD6CA3F1D173E3525F96C458F77B"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaSettingsWidgetTest.cpp",
+    "sha256": "C2C7E62A7B01630E8402AF62698FDC974F0D62C5719604B5A61F59F83408B604"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaSkillNoticeTest.cpp",
+    "sha256": "20ED2778C1FF4FF16AA9FE60C51AA71AE86EC0F9654654E28C63EC2EEF26EFD1"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaStatComparisonTest.cpp",
+    "sha256": "D8C65D3D993DDFB5810758A4209A5B0A1117577159F0F8BA89B59B6A14D52E09"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp",
+    "sha256": "F8A65772B5CB9B69961FFA205CD70A962907865CA599BB69614C5FA99FA94E4A"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaSupportSelectionWidgetTest.cpp",
+    "sha256": "AE0AE5963C605312041DE3E38E6DF813ED22E85D4742A1F630511F4C1FC0E77D"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaSurvivalStatusWidgetTest.cpp",
+    "sha256": "848EA251ED7936230B4EF2D0FCA0C0B5764A088BB34C8C3CF3234FDD7D85B8CB"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaToolPresentationTest.cpp",
+    "sha256": "EAD43AD10151137CD3E026A95D92841C47C6C76487D66C1B54C224EA85333653"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaUIThemeTest.cpp",
+    "sha256": "7DDAF9206CAA2D0FDBCD90096B0285BE2AA99363A23897F713BEE774814AA2E7"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaWeatherActivityWidgetTest.cpp",
+    "sha256": "D10B7C22E625E3462DCFC44EF05BFFE02E21900C86EDA8BFED944F63238D53C3"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaWorldMapPerformanceTest.cpp",
+    "sha256": "80F5563396B122881117681E1DAF530B9F8C7912FBB3E73ACDC20A7638FD4F94"
+  },
+  {
+    "path": "Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp",
+    "sha256": "9A1371E9C50C228842B72A09E3072A274158A31D0DA47AD7F8D1E98A3DC793F0"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaAccessibilityFeedbackSubsystem.h",
+    "sha256": "ACF1EEE981E90659503946762142F01B070F884707CFD211E70A13D438A3B624"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaAmbientAudioSubsystem.h",
+    "sha256": "AA73D2563D03939348C9873E51FF45DF534115E6EB8032D96CCF3D4F7FF95BFB"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaCatalogueIconLibrary.h",
+    "sha256": "E971A1234E7B9B087A7E10F90276571B33585F09D6D028F4E07DB59F3F9432F1"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaCatalogueRowsWidget.h",
+    "sha256": "4E24DCF3DABE7D1EFD830FB5B851561656DF744477D607414AD4622E52489803"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h",
+    "sha256": "A51F0F00E06A194F43549E729B1BC919780606EDE600236BE6AE5BB9BF2EB1D5"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaIconWidget.h",
+    "sha256": "23D273152E86C975CAECD629D82E19227EC4A4D41B39E638B642BEB931BEE28B"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaIngredientWidget.h",
+    "sha256": "14DAC5B706AA155BE698603AF86295C32E05993796901DE2B508E6618781B2D0"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaInventoryGridWidget.h",
+    "sha256": "F3E87AE5F5D13B648F5983C70D694E4AD616684B0F9D58E872466D2A929FD7DD"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaInventoryInspectWidget.h",
+    "sha256": "0B29C8EE78E09C2C18AFBD01FFBB14E55A56959578C66A7FCA2D71783FEA3455"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaInventoryMenuSubsystem.h",
+    "sha256": "25F5141F52CEDE154E33BFBC86D22EF7BF01E3788567FD35CE6F20DA5FB1392E"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h",
+    "sha256": "B7D0DCB87F7066ECC776A9CF0A4C8E1949BBB34130E7C35FED069E6E90571477"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaItemDetailWidget.h",
+    "sha256": "E2C9EC7221C35829007CE58011E8B0261EAD763EE5CF6B13DE51C4BBBF6FF866"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaMinimapRaster.h",
+    "sha256": "96BEDAAB76DE6C10E5F5276336749A8471D71E3DC93AD9C9F5DEC73C0D9871B3"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaMinimapSubsystem.h",
+    "sha256": "1CCB482B84F8E410922A3D5B4AE295C9A9E7696197F2C7A3A9DAAB50C7EA571F"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaMinimapViewModel.h",
+    "sha256": "B98ADCB22B0D5CF127243D65B2F9ACFB6615EBDC62E5FCFB8C917FC0F33E268B"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaMinimapWidget.h",
+    "sha256": "16135889B99D0779AA2F41AC19ED2DF675323A97414AB8AD6BF577C615AE3D0D"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaNotificationSubsystem.h",
+    "sha256": "B4E8382C607ABAB9125549E52F3A8CB2E90194A62F210DBD059EA67C2A508B55"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaRecipeRequirements.h",
+    "sha256": "8D549DB54CD848974701198955EC56CA1896349059E51B9766D83431847C2799"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaSelectedResultWidget.h",
+    "sha256": "C7DF86F05A4F31EE17E6E0C9B24DD2F08917F60E03E70169A8E6A971952CFB7F"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaSettingsSubsystem.h",
+    "sha256": "35A9934444D06674D6272896D5924D12A46B7656075798FBE65B5DAC7E3535D5"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaSettingsWidget.h",
+    "sha256": "92592400D5239077B318346BAF2B4DBBF784FD0543F188A4279D2B63DEC9F80E"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaSkillNotice.h",
+    "sha256": "18D83DC9E3448E0FA9C9C3C81F0C57C140BA559566A31F9CF19C11652E5322E5"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaStatComparison.h",
+    "sha256": "72C4F8836E5F5D2EDB012FF3F10BA2F4C5F8657C942097040B9D7FF783E45065"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaStationContextWidget.h",
+    "sha256": "512FA829391CAAE399D12AC5F6660A1144480D3458A78C48266D4312E583A279"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaStatusHotbarWidget.h",
+    "sha256": "D7DC184CABAAA6060791704626784302BF9B5B255F20EB4455CEC83C08F63811"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaStatusIconLibrary.h",
+    "sha256": "9F2BEEC6070EA1BAD31762087F6DF7B4309F588B55B477FF512914D3146274AD"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaSupportSelectionSubsystem.h",
+    "sha256": "5578E1F17EB1FE8D928B71362CEB0324A6FFB4C0244F9226899958C4FB605EB7"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaSurvivalStatusSubsystem.h",
+    "sha256": "4583AB09C9A84F53D020AD4F9FF2A52206188914CC8697B8F85E68E4122A92CA"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaSurvivalStatusWidget.h",
+    "sha256": "2FBA36F83BAF3987A4F41DE243354F70E48EFAEF22C7382FBF2FAB6809A7D568"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaThemedButton.h",
+    "sha256": "118BD1F606533C436AE7E8A7BC68DF7A474AD2184535BB732B535C43F3C0699D"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaTutorialSubsystem.h",
+    "sha256": "94729112BCEA3E1A3F07A0C37FF9F4EE22224B5A06A140E32495194983F1B49B"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaUITheme.h",
+    "sha256": "F68560E2135B51E7DD78B4E2BB975870B55604CBFA7585ABBD96D1139828E56F"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaWeatherActivitySubsystem.h",
+    "sha256": "45E5F327E0810E7CAFACEB7E48D40855237B4E3BCC2ECD1C742AD506B8E831D9"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaWeatherActivityWidget.h",
+    "sha256": "EC0B73FC00B6892FD1F36EC3EB14D42D1B7248367AC6CE5350F7626E7FC18555"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaWorldMapExplorationSaveGame.h",
+    "sha256": "BC9C53EF5D8728D5E8B5118B202901DD09AE699D85CAC6E66B7E8AD7DA14C3A1"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaWorldMapPinsSaveGame.h",
+    "sha256": "E8215B0668E9B0CE1145375EBEED5FE15E7A2B5132CE4367D6D5D7994BC1CAE6"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaWorldMapSubsystem.h",
+    "sha256": "0FABDA87C569D47F6264D9F44277F10260D0990EECB449A9DB4060BEE2D151FC"
+  },
+  {
+    "path": "Source/KalmalaUI/Public/KalmalaWorldMapWidget.h",
+    "sha256": "36F822C65AF4F000CF8BF8D717D46FBAD11FBC98FBF95E1E6B51CDB30B449B82"
+  },
+  {
+    "path": "Source/KalmalaWorld/KalmalaWorld.Build.cs",
+    "sha256": "159D7909577D69014D55FA37C0EEE5B14A27754E5F85D87C8067F8101638D051"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp",
+    "sha256": "AC287EF6582870EB831EDEB217CD2B261961EB86B323F7D0100D66DD69BF94DA"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaGeneratedTerrainTile.cpp",
+    "sha256": "A25C594C420AE6F4B1DF59D53327D846CD4B400BAE790B20C2515C92F3263A46"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaGenerationPreview.cpp",
+    "sha256": "D31173B69EE5CCC1675D00746B47BEF1C918149DDE172682B97132DEE6197E68"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaLakeBasin.cpp",
+    "sha256": "EFD8FAB6FCDE08AF0E0FBF271F693A5A1637926493797CEC9622326BFEA37486"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaM7PersistenceContract.cpp",
+    "sha256": "7B8BD82C433B1924017A402A7F3D14D1ABD600FEAD90B4DC8627EDCA0F81432B"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaMasterMap.cpp",
+    "sha256": "F7246FF9F2EE58EA466B13A629B01D6214766914B9ADC51918F5B10028E3AEEF"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaOceanSampler.cpp",
+    "sha256": "017EED269B23EE4FB4F8589D57B9285BE40CC24619D5628C6289DCAE0C16175E"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaOceanTravelPersistenceContract.cpp",
+    "sha256": "784E488E1D774100A323820B125B72C23385C8CCB020DADA26C4D631A3347A37"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp",
+    "sha256": "115175F9B6895FE0A13EB208900A0D2BFD20137E9A60B62604DC52F0EC98C38C"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaShelterSampler.cpp",
+    "sha256": "FDF174BBF24B86057567591D2DFB833E61C7F255E5AABE0B2924E850426629FA"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaWaterSurfaceMesh.cpp",
+    "sha256": "F6C80C2D979B03ECE3E0AB6E630CCE8E4941917C7E97DC9A93FA2FDF9C01BB4B"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp",
+    "sha256": "F453045D5E34E3006554F471ED8ED9C277FB5BBD383CBF1D35B50BA17F0CE509"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaWorldModule.cpp",
+    "sha256": "917DDEA4DB6BCCB6F741C9FDF215CDB8FFB8373498890E257E95876FFA04C4B5"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaWorldPlayerStartResolver.cpp",
+    "sha256": "1C2079BA5E3A9341376AA8242EAB0208F7D61B26198BEC2406233E4CB970EA12"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaWorldPopulationMarker.cpp",
+    "sha256": "792A6B60D687656E52ACF033E5D5BDD30865A948E392DDD997ABFE044FCDCBAC"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp",
+    "sha256": "D2219F53D50AA8D5F7E40E6413724B43D944BEEF8E146F897583A7A7C27C1288"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/Tests/KalmalaBiomeClassifierTest.cpp",
+    "sha256": "20CCA31FFC3BC29A65AE2E37E4B79FC95284CE6A1AA615C3C275BF893F55C22A"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/Tests/KalmalaBiomeContentContractTest.cpp",
+    "sha256": "8EF7BF665913510A7C201629A07FAAF9916DD8248D8D46035C9C4D31900D90C5"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/Tests/KalmalaFiniteWorldTest.cpp",
+    "sha256": "99AA2ECDD2AC80DD763C62F2938CB9112A0FC976AC13E71ECBFB36779D7296F5"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/Tests/KalmalaIslandLocatorTest.cpp",
+    "sha256": "319220731E71F9257D6541DB47163B3342ABA6DEE6023AD2FC13984379360FA1"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/Tests/KalmalaM7PersistenceContractTest.cpp",
+    "sha256": "F8E1879856D1EA8BB802F904E362A1708E2D6EEC267E180E9B542D969BE7E983"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/Tests/KalmalaMasterMapTest.cpp",
+    "sha256": "E1734C0657A40D4A9DB321C91378EF4ACF4FD6EFA44B8B1D868CD653891E1DD8"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/Tests/KalmalaOceanSamplerTest.cpp",
+    "sha256": "05DF2F8736E518E1BDA2DFCDB2B14E5F402BCB787C66EBC517775229B15CAC8A"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/Tests/KalmalaOceanTravelPersistenceContractTest.cpp",
+    "sha256": "4A62EDFB81080212E7B9E21488B7E362495E70E09B6679EFA18BE13787CDB1BF"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp",
+    "sha256": "BD35109663C1826172743C0632029C08C91EBCDF32F6EA09F4E0C9502B64FDC0"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/Tests/KalmalaWaterSurfaceMeshTest.cpp",
+    "sha256": "C5A8C82A7E55A51B3716D88F5E491E66C2074982AD160D09C1CF9AD62F566628"
+  },
+  {
+    "path": "Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp",
+    "sha256": "C053DCF3EFC9C703726668C70639373C096B366D651BBF41CB23671E4B620EAC"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaBiomeClassifier.h",
+    "sha256": "7EBFDD2E59225C1427803DD627E496E2C31209E824E10A716771FD827B782AF0"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaBiomeContentContract.h",
+    "sha256": "936223C37B10FDAB9770C1FFC0FC7F1348B2998E201912A231025C65FF9660DF"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h",
+    "sha256": "3B00AAF63D9FBCFF08C286EE78632CC0BD7DD1CD16752D413B7C57A9DCD37890"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaCampConditionSampler.h",
+    "sha256": "C006BF3A0F62D15556BC34A4BA679C80A47D2EBBCEF8B6761932F270B870AB3E"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaEnvironmentalExposureSampler.h",
+    "sha256": "434B4F395B14221123C5CC033D46F37B449B4BF17B1FD2EDC2CFF21B69B434B1"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h",
+    "sha256": "74522E3D6E0C9FEBDFB387368E75A6D22D7621CB244F55DB71DE56AE72D5822D"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaGeneratedTerrainTile.h",
+    "sha256": "D02AAB318E227C2150FE83CD5467BFE2F07CD89EDB8F1990842E9AC1F17E4BE8"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaGenerationPreview.h",
+    "sha256": "0C2DB0DA24508B09229BDB049190E2B2871BF1937E3F83A2CE2CA38A0C434D02"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaIslandLocator.h",
+    "sha256": "65511EB44A3E9E175686322ADF970E74500B246F70D191A5A3829B08DC195D8C"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaLakeBasin.h",
+    "sha256": "2E8F36E04A0397F32F44F00CCBA5F1C21B9F7EB52B6F942CB18B77F49E25CF06"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaM7PersistenceContract.h",
+    "sha256": "82AAFF8778AC037EECB450784AB44459BB3FACED5AD952348F431618B2447BA6"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaMasterMap.h",
+    "sha256": "30BD994CF601A93E14020788FE24CAAFF6A0E061DCC794D5629B105B678AD745"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaOceanSampler.h",
+    "sha256": "6560D025BB6484B6E8BD937FAD5F440EBA91C4CAA7B1B9024092F2870BB1485B"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaOceanTravelPersistenceContract.h",
+    "sha256": "45D08FA5302ADBED1AB1143B1425A7D273FB134E0EF4A8B65C781FCBBC299F56"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h",
+    "sha256": "84B05F2D4D982393467A6C9A7C3C4C1E60DC4829AA815B112931CFB44AAB34C7"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaRegionalTuning.h",
+    "sha256": "1990ABADE4B9A53BBC68C7A2EDBB8647D99D81043C7AD7A67DAFEDAEE0EC7EC0"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaShelterSampler.h",
+    "sha256": "86D1EFC4F8900C59D43C4743719053FFCA78C7733D6D768A597944EA3BB9250D"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaShimmeringLakeSampler.h",
+    "sha256": "CA49FFA699788DCE99B4285F5DA93BA3E467697501604C5475E2CE99EFEC3199"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaTerrainHeightSampler.h",
+    "sha256": "2976D42C85315332846B805D6D7F249FAF5C520984842F8E2220DB623BEAC69C"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaTerrainPatchLayout.h",
+    "sha256": "18B97EB392FB735A077EA93109B22CD6BCC5C8589B86A8CBF9FA0C29F491C72A"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWaterSurfaceMesh.h",
+    "sha256": "F566F1AC58AB1F8209B05382C58D302C802911DF4590BCD70AB623F6089476BA"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWeatherCycle.h",
+    "sha256": "018A595233F8010A4BA48C0C1090CA64AA48146B62034510889D0F98156F447B"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWeatherState.h",
+    "sha256": "C997E20B61D25FB074C65554B0BC3F7943DE04223F69472AE7C030D81923F4B4"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWorldBounds.h",
+    "sha256": "DF8F0DE16A6DE28896E3787812FD8021BD34CBEED4A8438FECF35D2DE0FC2B47"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWorldFieldSampler.h",
+    "sha256": "11C8D30CA2C119FD07388916A55FC2F20DD1DD7AFA6BF4B8BDA0651188965413"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWorldGenerationConfig.h",
+    "sha256": "132731C9129FF1A079FB7C9FFFB2178E87426D427D9F76188CE0B15228CC8B71"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWorldGenerationGameState.h",
+    "sha256": "D4A3F79C9C2AF14ED89D5AAD1FDF74C2149719BEB0FC23C2AFBE1F98F7E57918"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWorldGenerationSeeds.h",
+    "sha256": "435DBB569DD36C2CD2F86EB1D1C2D8CDBA881A00F714E3DFEC4A2EDB30D260DC"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWorldPlayerStartResolver.h",
+    "sha256": "AADF66CAA5859CC14A619857342BDE5DE3F3018EEF9233DADC3B9EEA6171F76E"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h",
+    "sha256": "52F6D42B149D50FC84F4D93477754EA5A82E3854FA14F790F4295C5FBC6282D8"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWorldPopulationMarker.h",
+    "sha256": "32691F6062873111A916563E105D96805ADEE0D88961FF5BC841B168CE60B0D3"
+  },
+  {
+    "path": "Source/KalmalaWorld/Public/KalmalaWorldPopulationSaveGame.h",
+    "sha256": "9019F6A74A78E16B6692E35AFD42F79EFBAA3D026BF558D84D4634917299884E"
+  }
+]

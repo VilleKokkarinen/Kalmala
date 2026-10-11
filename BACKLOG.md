@@ -6,7 +6,7 @@ This is the short execution queue and completion index. The roadmap and feature 
 
 ## Roadmap status
 
-M0–M12 and world-generation Phases 1–9 are complete under their recorded acceptance scope and limitations. M13 is now the earliest incomplete milestone.
+M0–M13 and world-generation Phases 1–9 are complete under their recorded acceptance scope and limitations. M13 integrated-main acceptance passed on 2026-10-11. M14 source integration remains separate from this run.
 
 ## Completed roadmap log
 
@@ -24,6 +24,7 @@ M0–M12 and world-generation Phases 1–9 are complete under their recorded acc
 - **M10 — Release completion and launch validation:** completed under the recorded scope and limits.
 - **M11 — User experience and visual UI upgrades:** final acceptance passed 2026-10-06.
 - **M12 — Inventory menu and cleaner gameplay HUD:** final acceptance passed 2026-10-09.
+- **M13 — Revalidated UI on main:** final acceptance passed 2026-10-11; evidence in docs/evidence/m13/.
 
 ## Post-roadmap user-directed work
 
@@ -59,12 +60,12 @@ The M13 scope and acceptance criteria are in [the roadmap](docs/04-roadmap.md). 
     - **Audio candidates:** Replace the existing 25%-step controls with labeled sliders for master, ambient, music, and interaction/combat-feedback levels; add an Environmental volume slider; Continuous music toggle.
     - **Accessibility candidates:** Immersive camera; Camera shake slider from 0% to 100%; Reduce flashing lights; Toggle block.
     - Keep current Graphics settings (resolution, V-Sync, window mode, render-distance quality), Audio settings, Controls mappings/default reset, and Accessibility settings (text/interface scale, contrast, feedback preference, reduced motion). Do not add a Controller layout selector; it was removed from the latest the architecture Settings checklist candidate list.
-- [ ] Verify icon assets from source through packaged, rendered use on main.
-  - [ ] Confirm all 48 catalogue and 9 status images load and visibly render in their supported consumers; restore or reimport only a demonstrated gap, and ensure any repair is committed in the integrated main tree.
-- [ ] Complete M13 milestone-final verification.
-  - [ ] Run the prescribed build, relevant automation/UI/input/authority/reconnect checks, rendered host/client matrix, and packaged icon smoke check against the final integrated tree; repair M13 defects, rerun affected checks, and retain fresh evidence before closing the milestone.
+- [x] Verify icon assets from source through packaged, rendered use on main.
+  - [x] Confirm all 48 catalogue and 9 status images load and visibly render in their supported consumers; restore or reimport only a demonstrated gap, and ensure any repair is committed in the integrated main tree. (2026-10-11: integrated committed main passed the full gallery, all nine status images and Development package render checks; earlier pending-main note is superseded.)
+- [x] Complete M13 milestone-final verification.
+  - [x] Run the prescribed build, relevant automation/UI/input/authority/reconnect checks, rendered host/client matrix, and packaged icon smoke check against the final integrated tree; repair M13 defects, rerun affected checks, and retain fresh evidence before closing the milestone. (2026-10-11: editor build, 122/122 automation, complete rendered peer matrix and Dev/Shipping smoke passed on tree 21a54ded; see docs/evidence/m13/. Separate unstaged Esc-border work is excluded. Earlier candidate-only note is superseded.)
 
-The next task is to verify all 48 catalogue and 9 status icons from source through package/rendered use on the integrated main tree. Runtime host/client behavior, input, package, and rendered acceptance remain for the M13 final verification gate.
+Next: no M13 increment remains. Separate Esc-border verification/commit and M14 source integration are outside this run.
 
 ## M14 — Expanded world-map rework
 
@@ -81,4 +82,4 @@ M14 starts after M13 milestone-final verification. Its scope and acceptance crit
   - Latest integrated retry on 2026-10-10 at f170bbf (latest committed M13 be5784c; docs/main baseline d23fbf7) still fails the 239-action UE editor build with the same 12 M13 KalmalaCraftingSubsystem.cpp diagnostics. Automation RunTests Kalmala reports KalmalaCore missing; MapAwareness, WorldMap at 1024x768 (1280x720 and 2560x1080 not reached), WorldMapTiles, WorldMapProfile, and WorldMap overview fail before host readiness. No rendered evidence; M14 remains awaiting final verification.
   - [ ] Verify fog/privacy, pin ownership and labels, host/client ping visibility and ten-second expiry, zoom-stable biome textures, input/focus, and responsive pan/zoom on the integrated tree; retain rendered and performance evidence.
 
-M13 remains the earliest incomplete milestone. M14's map-sharing scope is explicitly deferred; no co-op map text or sharing controls are planned for this map view.
+M13 integrated-main acceptance is complete. M14's map-sharing scope is explicitly deferred; no co-op map text or sharing controls are planned for this map view.

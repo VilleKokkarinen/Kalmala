@@ -43,8 +43,8 @@ private:
 };
 
 /**
- * Local-only pause and options presentation. Video settings are applied through
- * UGameUserSettings; this widget never changes replicated gameplay state.
+ * Local-only pause and options presentation. Graphics settings are applied
+ * through UGameUserSettings; this widget never changes replicated gameplay state.
  */
 UCLASS()
 class KALMALAUI_API UKalmalaSettingsWidget : public UUserWidget
@@ -63,6 +63,9 @@ public:
     FString GetPanelImagePathForVerification() const;
     bool HasFocusableContentForVerification() const;
     bool HasFocusedContentForVerification() const;
+    bool IsHomeMenuSurfaceTransparentForVerification() const;
+    bool HasOnlyHomeMenuOptionsForVerification() const;
+    bool HasVisibleFocusedHomeMenuOptionForVerification() const;
     bool HasFocusableControlsForVerification() const;
     bool IsOptionsOpeningAnimationActiveForVerification() const { return bOptionsOpeningAnimationActive; }
     float GetOptionsPanelPositionYForVerification() const;
@@ -116,10 +119,12 @@ private:
     UFUNCTION()
     void ShowMainMenu();
     void ShowOptionsMenu();
-    void ShowVideoTab();
+    void ShowGraphicsTab();
+    void ShowKeyboardAndMouseTab();
+    void ShowControllerTab();
+    void ShowInputTab(bool bGamepad);
     void ShowAudioTab();
-    void ShowControlsTab();
-    void ShowSettingsTab();
+    void ShowAccessibilityTab();
     void ShowPlaceholderTab(const FText& Title, const FText& Description);
     void ApplyVideoSettings();
     void UpdateVideoLabels();
@@ -128,6 +133,7 @@ private:
     void UpdateControlsLabels();
     void CycleAudioCategory(EKalmalaAudioCategory Category);
     void ApplyModalPalette(const FString* ImageOverride = nullptr);
+    void ApplyHomeMenuPalette();
     void StartOptionsOpeningAnimation();
     void ResetOptionsOpeningAnimation();
     UButton* AddButton(class UVerticalBox* Parent, const FText& Label, FName Name);
@@ -141,13 +147,15 @@ private:
     UFUNCTION()
     void HandleQuitClicked();
     UFUNCTION()
-    void HandleVideoClicked();
+    void HandleGraphicsClicked();
+    UFUNCTION()
+    void HandleKeyboardAndMouseClicked();
+    UFUNCTION()
+    void HandleControllerClicked();
     UFUNCTION()
     void HandleAudioClicked();
     UFUNCTION()
-    void HandleControlsClicked();
-    UFUNCTION()
-    void HandleSettingsClicked();
+    void HandleAccessibilityClicked();
     UFUNCTION()
     void HandleResolutionClicked();
     UFUNCTION()

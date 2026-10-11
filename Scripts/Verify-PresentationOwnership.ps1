@@ -43,7 +43,7 @@ foreach ($relativePath in $requiredAssets) {
 
 $sourceContracts = @(
     @{ Label = 'accessibility-feedback'; Path = 'Source\KalmalaUI\Private\KalmalaAccessibilityFeedbackSubsystem.cpp'; Patterns = @('MarkerLine', 'COLOUR-INDEPENDENT FEEDBACK', 'GetLocalPlayer()', 'HitTestInvisible') },
-    @{ Label = 'support-selection'; Path = 'Source\KalmalaUI\Private\KalmalaSupportSelectionSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'GetSelectedSupportEffect()', 'HasLearnedEffect', 'SetIsFocusable(false)', 'HitTestInvisible') },
+    @{ Label = 'support-selection-retired'; Path = 'Source\KalmalaUI\Public\KalmalaSupportSelectionSubsystem.h'; Patterns = @('virtual bool IsTickable() const override { return false; }') },
     @{ Label = 'action-notifications'; Path = 'Source\KalmalaUI\Private\KalmalaNotificationSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'ObserveCombat', 'ObserveSupport', 'ObserveDiscovery', 'HitTestInvisible') },
     @{ Label = 'status-hotbar'; Path = 'Source\KalmalaUI\Private\KalmalaStatusHotbarWidget.cpp'; Patterns = @('HitTestInvisible', 'SetIsFocusable(false)', 'SetExplicitWrapSize', 'LoadTexture(Entry.StatusIconId)') },
     @{ Label = 'catalogue-icons'; Path = 'Source\KalmalaUI\Private\KalmalaIconWidget.cpp'; Patterns = @('FindCatalogueIcon', 'ConstructionHammer', 'MakeLines') },

@@ -1,0 +1,6 @@
+START package-Development
+PASS package-Development
+PASS smoke-Development (fresh raster captures, engine initialization and prototype load)
+START package-Shipping
+PASS package-Shipping
+PASS smoke-Shipping

@@ -13,7 +13,7 @@ Start with [Game features](game-features.md) for a short list of additions. The 
 | [06 Agent prompts](06-agent-prompts.md) | Implementation and review prompts |
 | [07 Development setup](07-development-setup.md) | Builds, verification, package tools, and historical acceptance limits |
 
-[BACKLOG.md](../BACKLOG.md) is the live queue; [PROGRESS.md](../PROGRESS.md) records implementation and verification handoffs. A checked child means implementation is complete; milestone completion requires final acceptance. M13 and integrated M14 acceptance remain open.
+[BACKLOG.md](../BACKLOG.md) is the live queue; [PROGRESS.md](../PROGRESS.md) records implementation and verification handoffs. A checked child means implementation is complete; milestone completion requires final acceptance. M13 integrated-main acceptance passed on 2026-10-11; see [retained evidence](evidence/m13/README.md). M14's separate source integration and acceptance scope remain recorded in the backlog.
 
 Former docs 08–47 are consolidated here. Repeated milestone reports, copy-audit diaries, image-generation batches, obsolete interaction descriptions, and temporary build histories remain recoverable in Git history. Useful contracts were folded into architecture and setup. Existing evidence/manifest deletions were preserved; CSV manifests required by icon tools are machine inputs, not narrative documentation.
 

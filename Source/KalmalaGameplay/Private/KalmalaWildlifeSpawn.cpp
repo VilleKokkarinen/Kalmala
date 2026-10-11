@@ -125,8 +125,8 @@ bool AKalmalaWildlifeSpawn::ApplyDeerCallFromServer(const FVector& SourceLocatio
 
     const FVector AwayFromSource = (GetActorLocation() - SourceLocation).GetSafeNormal2D();
     const FVector Direction = AwayFromSource.IsNearlyZero() ? GetDeterministicOffset(1.0f).GetSafeNormal2D() : AwayFromSource;
-    BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f,
-        GetActorLocation() + Direction * GetEcologicalFleeDistance(CreatureNicheId));
+    BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, DeerCallInfluenceDurationSeconds,
+        GetActorLocation() + Direction * GetEcologicalFleeDistance(CreatureNicheId), true);
     ForceNetUpdate();
     return Behaviour == EKalmalaWildlifeBehaviour::Flee;
 }
@@ -459,7 +459,8 @@ void AKalmalaWildlifeSpawn::AlertNearbyDeerFromServer()
     }
 }
 
-void AKalmalaWildlifeSpawn::BeginServerBehaviour(const EKalmalaWildlifeBehaviour NextBehaviour, const float DurationSeconds, const FVector& Destination)
+void AKalmalaWildlifeSpawn::BeginServerBehaviour(const EKalmalaWildlifeBehaviour NextBehaviour, const float DurationSeconds,
+    const FVector& Destination, const bool bHoldDurationAtDestination)
 {
     if (!IsBehaviourTransitionAllowed(HasAuthority(), bDefeated, Behaviour, NextBehaviour) || !FMath::IsFinite(DurationSeconds) || DurationSeconds <= 0.0f || !FMath::IsFinite(Destination.X) || !FMath::IsFinite(Destination.Y) || !FMath::IsFinite(Destination.Z))
     {
@@ -467,7 +468,9 @@ void AKalmalaWildlifeSpawn::BeginServerBehaviour(const EKalmalaWildlifeBehaviour
     }
 
     Behaviour = NextBehaviour;
-    BehaviourSecondsRemaining = FMath::Min(DurationSeconds, 2.0f);
+    bHoldBehaviourDurationAtDestination = bHoldDurationAtDestination && NextBehaviour == EKalmalaWildlifeBehaviour::Flee;
+    const float DurationLimit = bHoldBehaviourDurationAtDestination ? DeerCallInfluenceDurationSeconds : 2.0f;
+    BehaviourSecondsRemaining = FMath::Min(DurationSeconds, DurationLimit);
     BehaviourDestination = Destination;
 }
 
@@ -487,7 +490,8 @@ void AKalmalaWildlifeSpawn::AdvanceServerBehaviour(float DeltaSeconds)
     }
 
     BehaviourSecondsRemaining -= DeltaSeconds;
-    if (BehaviourSecondsRemaining > 0.0f && !ToDestination.IsNearlyZero(5.0f))
+    if (BehaviourSecondsRemaining > 0.0f
+        && (bHoldBehaviourDurationAtDestination || !ToDestination.IsNearlyZero(5.0f)))
     {
         return;
     }
@@ -504,6 +508,7 @@ void AKalmalaWildlifeSpawn::AdvanceServerBehaviour(float DeltaSeconds)
     {
         Behaviour = EKalmalaWildlifeBehaviour::Idle;
         BehaviourSecondsRemaining = 0.0f;
+        bHoldBehaviourDurationAtDestination = false;
         BehaviourDestination = SpawnOrigin;
     }
 }

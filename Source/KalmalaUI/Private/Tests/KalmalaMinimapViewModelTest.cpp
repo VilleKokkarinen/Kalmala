@@ -59,12 +59,17 @@ bool FKalmalaMinimapViewModelTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Right margin stays at 12 UI units without double DPI scaling"), Slot.Offsets.Left, -12.0f);
     TestEqual(TEXT("Top margin stays at 12 UI units without double DPI scaling"), Slot.Offsets.Top, 12.0f);
     TestEqual(TEXT("Actual viewport slot has a nonzero fixed width"), Slot.Offsets.Right, 208.0f);
+    TestEqual(TEXT("Biome header moves the circular minimap down while retaining its viewport margin"),
+        Slot.Offsets.Top + UKalmalaMinimapWidget::BiomeHeaderHeight,
+        UKalmalaMinimapWidget::ViewportInset + UKalmalaMinimapWidget::BiomeHeaderHeight);
+    TestEqual(TEXT("Minimap slot reserves room for the biome label above the circular map"), Slot.Offsets.Bottom,
+        UKalmalaMinimapWidget::DefaultMapDiameter + UKalmalaMinimapWidget::BiomeHeaderHeight);
 
     UKalmalaWeatherActivityWidget* WeatherWidget = NewObject<UKalmalaWeatherActivityWidget>();
     WeatherWidget->ConfigureViewportPlacement();
     const FGameViewportWidgetSlot WeatherSlot = UGameViewportSubsystem::Get()->GetWidgetSlot(WeatherWidget);
     const float MinimapBottom = Slot.Offsets.Top + Slot.Offsets.Bottom;
-    TestEqual(TEXT("Weather badge stays below the minimap with its existing clear gap"), WeatherSlot.Offsets.Top - MinimapBottom, 24.0f);
+    TestEqual(TEXT("Weather badge stays below the lowered minimap with its existing clear gap"), WeatherSlot.Offsets.Top - MinimapBottom, 24.0f);
     TestTrue(TEXT("Weather badge remains separated by at least the minimap edge inset"), WeatherSlot.Offsets.Top - MinimapBottom >= 12.0f);
     UGameViewportSubsystem::Get()->RemoveWidget(Widget);
     UGameViewportSubsystem::Get()->RemoveWidget(WeatherWidget);

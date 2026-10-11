@@ -140,7 +140,10 @@ probe changes each isolated window from 1280x720 to 1600x900 and back while the
 panel is moving, interrupts and reopens it mid-transition, and checks the
 intermediate/final positions, center anchoring, immediate focus, modal input
 suppression/restoration, keyboard/controller mappings, gameplay stability, and
-the ten existing view captures. The temporary viewport change is restored
+the sixteen current view captures. The Escape capture must show gameplay
+through a transparent home surface with only its three option buttons and a
+visible focused option; the other option tabs retain their configured panel
+backgrounds. The temporary viewport change is restored
 before captures complete. Then run `Scripts/Verify-SettingsAccessibilityContract.ps1`,
 `Scripts/Verify-M5DocumentationContracts.ps1`,
 `Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`.
@@ -180,14 +183,18 @@ Run the full `Automation RunTests Kalmala` queue, then
 `Scripts/Verify-SettingsAccessibilityContract.ps1`,
 `Scripts/Verify-M5DocumentationContracts.ps1`,
 `Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`. The
-host/client settings probe visits the Escape shell and Video, Audio, Controls,
-and Settings pages; require every configured panel image to resolve, high
-contrast to suppress it, and existing values, focus, text scale, keyboard and
+host/client settings probe visits the Escape shell and Keyboard & Mouse,
+Controller, Graphics, Audio, and Accessibility groups; require the Escape surface to be transparent in standard
+contrast, retain its three existing actions and visible focus cue, and require
+the configured option-tab images to resolve. High contrast must suppress
+decorative images and retain an opaque surface with a visible non-colour focus
+cue. Existing values, focus, text scale, keyboard and
 controller bindings, modal ownership, and local persistence checks to pass.
-Retain the runner output and inspect all fourteen PNGs: standard-contrast
-Escape, Video, Settings, reduced-motion Settings, and restored HUD captures,
-plus high-contrast Controls and Audio captures on both peers. Use the two
-viewport runs described in the Local Settings tab section; physical input and
+Retain the runner output and inspect all sixteen PNGs: standard-contrast
+Escape, Graphics, Accessibility, reduced-motion Accessibility, and restored HUD
+captures, plus high-contrast Keyboard & Mouse, Controller, and Audio captures
+on both peers. Use the two
+viewport runs described in the Local Accessibility group section; physical input and
 packaged asset inclusion remain separate checks.
 
 ## M11 inventory/build backgrounds and slot grids
@@ -373,8 +380,9 @@ physical keyboard/controller hardware or packaged-build acceptance.
 Gameplay prompts, inventory and service menus, the expanded map, status/detail
 views, and the Settings home screen do not print key/button names or control
 combinations. The map keeps its symbol legend, category state, and concise
-share/ping action names. Options > Controls is the only player-facing view that
-shows current bindings; all existing input paths and remapping behavior remain.
+share/ping action names. Options > Keyboard & Mouse and Options > Controller are
+the only player-facing views that show current bindings; all existing input
+paths and remapping behavior remain.
 Run `Scripts/Verify-MenuInputCopy.ps1` for the narrow source audit of visible
 copy, binding-label resolution, retained action names, and keyboard/controller
 navigation seams. After an affected UI build, run the focused map, status,
@@ -918,13 +926,13 @@ Launch the game with `-KalmalaBiomeDebug` to replace the generated terrain's nor
 
 Movement-triggered raster generation is asynchronous. Run `Kalmala.UI.Minimap.AsyncRefresh` after rebuilding to check nonblocking refresh timing, full-resolution worker equivalence, stationary reuse, movement coalescing, obsolete zoom/identity rejection, and reinitialization. `Kalmala.UI.Minimap.GenerationPerformance` retains the exact revision-3/4 fingerprints and reports total raster time separately from the game-thread refresh cost. Use `Scripts/Verify-Minimap.ps1 -Rendered` for current-world HUD/identity checks and `Scripts/Verify-PlayerControls.ps1 -Rendered` for host/client movement. Both scripts retain revision 1 as their default legacy fixture. Restart any existing editor after the native module build.
 
-The local `UKalmalaMinimapSubsystem` creates a 208-unit `UKalmalaMinimapWidget` for each local player once its controller is available. The widget is anchored to the top-right viewport corner with 12 UI units of top and right inset, scaled proportionally by the viewport DPI curve. The existing weather badge remains below it with a 24-unit clear gap. It refreshes local seed-derived terrain/water samples around that player's pawn and draws only samples inside a circular radius, together with a centred marker rotated to the pawn's facing yaw. `MouseWheelAxis` changes only the local session's sampled radius, clamped from 2,500 to 10,000 cm in 750 cm steps; CommonUI's normal-game-input gate leaves wheel input to any modal UI. It reads no world actors, population, landmarks, or gameplay state beyond the already-replicated world identity and owning pawn transform.
+The local `UKalmalaMinimapSubsystem` creates a 208-unit circular `UKalmalaMinimapWidget` for each local player once its controller is available. A 26-unit right-aligned biome-label row and 4-unit gap sit above the circle; the map itself starts 42 UI units below the top-right viewport edge and keeps a 12-unit right inset. The full widget and label scale proportionally with viewport DPI. The label uses the existing current-position biome classifier over the already-replicated world identity and owning pawn transform, and its theme font follows the local text-scale preference while shrinking only enough to fit the row. No biome map, replicated label, or save field is added. The active-status group aligns with the lowered map and remains 12 UI units left of its edge. The weather badge remains below the map with its 24-unit clear gap. The map refreshes local seed-derived terrain/water samples around that player's pawn and draws only samples inside a circular radius, together with a centred marker rotated to the pawn's facing yaw. `MouseWheelAxis` changes only the local session's sampled radius, clamped from 2,500 to 10,000 cm in 750 cm steps; CommonUI's normal-game-input gate leaves wheel input to any modal UI. It reads no world actors, population, landmarks, or gameplay state beyond the already-replicated world identity and owning pawn transform.
 
-Run `Scripts/Verify-Minimap.ps1` after an editor build for the two-peer identity check. It starts a memory-only hidden listen server with seed 418 and a conflicting-seed client with seed 999, then confirms that the client receives the server world identity. The focused `Kalmala.UI.Minimap.LocalPresentation` automation checks the two player-centred local views from that same identity, circular clipping, min/max zoom, modal input gating, the 12-unit top/right viewport inset at 4:3/75%, 16:9/100%, and ultrawide/125% UI scales, and separation from the weather badge. These checks are local presentation only and create no replicated, gameplay, or save mutation.
+Run `Scripts/Verify-Minimap.ps1` after an editor build for the two-peer identity check. It starts a memory-only hidden listen server with seed 418 and a conflicting-seed client with seed 999, then confirms that the client receives the server world identity. The focused `Kalmala.UI.Minimap.LocalPresentation` automation checks the two player-centred local views from that same identity, circular clipping, min/max zoom, modal input gating, the biome-label header plus right-aligned current-position name, the label-adjusted top inset and 12-unit right inset at 4:3/75%, 16:9/100%, and ultrawide/125% UI scales, and separation from the weather badge. These checks are local presentation only and create no replicated, gameplay, or save mutation.
 
-The compact active-status group reads the minimap widget's configured viewport slot and shares its top offset; its right edge sits 12 UI units left of the minimap's actual left edge. Both use the same top-right anchor, so Unreal applies the viewport DPI scale uniformly. `Kalmala.UI.StatusHotbar.SnapshotAndLayout` checks the actual slot relationship and wrapping fit across 4:3, 16:9, and ultrawide viewports at 75%, 100%, and 125% DPI scales. It also checks known live owner statuses, the existing Hot/Cold exposure qualifiers, Storm-only weather at the shared 0.65 storm threshold, interval expiry, and a fully empty result when all active conditions clear. Normal/active weather and fog-only highly active weather do not create an entry. If the minimap has not been created yet, the status group temporarily uses the documented default 208-unit map footprint and corrects itself on the next local refresh.
+The compact active-status group reads the minimap widget's configured viewport slot and aligns with the circular map below its header; its right edge sits 12 UI units left of the minimap's actual left edge. Both use the same top-right anchor, so Unreal applies the viewport DPI scale uniformly. `Kalmala.UI.StatusHotbar.SnapshotAndLayout` checks the actual slot relationship and wrapping fit across 4:3, 16:9, and ultrawide viewports at 75%, 100%, and 125% DPI scales. It also checks known live owner statuses, the existing Hot/Cold exposure qualifiers, Storm-only weather at the shared 0.65 storm threshold, interval expiry, and a fully empty result when all active conditions clear. Normal/active weather and fog-only highly active weather do not create an entry. If the minimap has not been created yet, the status group temporarily uses the documented default 208-unit map footprint and corrects itself on the next local refresh.
 
-The M12 status-image follow-on pins the nine supported entry/icon identities in `docs/status-icon-manifest.csv` with fixed 4/4/1 generation batches. All three batches have retained originals and prepared transparent 64x64 RGBA PNGs under `Content/Kalmala/UI/Source/IconOriginals/Status` and `Content/Kalmala/UI/Source/Icons/Status`. Prepare a batch with `python Scripts/Prepare-StatusIconBatch.py --batch <Batch>` and validate its IDs with `Scripts/Validate-StatusIcon.ps1 -Id <IconId>`. `Scripts/Import-StatusIconAssets.ps1` imports the nine prepared PNGs in an isolated UE 5.8 content-only project, verifies 64x64 Texture2D assets with source alpha, sRGB, UI texture group, no mipmaps, and non-streaming settings, then copies only those packages to `Content/Kalmala/UI/Icons/Status`. `Scripts/Validate-StatusIconSet.ps1` checks manifest, PNG, entry-map and package coverage; `Kalmala.UI.StatusHotbar.StatusIconCoverage` checks runtime texture paths and loads after an affected editor build. The local `FKalmalaStatusIconLibrary` keeps these IDs separate from catalogue icons. The hotbar now renders each raster image at 64x64 without visible names, retaining accessible names in a visually hidden text label; a centred m:ss appears only beneath finite Wet/meal/support entries. Hot, Cold, Storm, and weather detail have no countdown. Timing remains based on the existing owner snapshot and synchronized server time, without local countdown mutation. See `02-technical-architecture.md` for the full identity and image review contract. These image assets do not change status ownership or gameplay.
+The M12 status-image follow-on pins the nine supported entry/icon identities in `Scripts/Data/status-icon-manifest.csv` with fixed 4/4/1 generation batches. All three batches have retained originals and prepared transparent 64x64 RGBA PNGs under `Content/Kalmala/UI/Source/IconOriginals/Status` and `Content/Kalmala/UI/Source/Icons/Status`. Prepare a batch with `python Scripts/Prepare-StatusIconBatch.py --batch <Batch>` and validate its IDs with `Scripts/Validate-StatusIcon.ps1 -Id <IconId>`. `Scripts/Import-StatusIconAssets.ps1` imports the nine prepared PNGs in an isolated UE 5.8 content-only project, verifies 64x64 Texture2D assets with source alpha, sRGB, UI texture group, no mipmaps, and non-streaming settings, then copies only those packages to `Content/Kalmala/UI/Icons/Status`. `Scripts/Validate-StatusIconSet.ps1` checks manifest, PNG, entry-map and package coverage; `Kalmala.UI.StatusHotbar.StatusIconCoverage` checks runtime texture paths and loads after an affected editor build. The local `FKalmalaStatusIconLibrary` keeps these IDs separate from catalogue icons. The hotbar now renders each raster image at 64x64 without visible names, retaining accessible names in a visually hidden text label; a centred m:ss appears only beneath finite Wet/meal/support entries. Hot, Cold, Storm, and weather detail have no countdown. Timing remains based on the existing owner snapshot and synchronized server time, without local countdown mutation. See `02-technical-architecture.md` for the full identity and image review contract. These image assets do not change status ownership or gameplay.
 
 ## M12 final HUD, inventory, station, and interaction captures
 
@@ -991,15 +999,15 @@ well as the fourteen original Build/requirements views.
 
 ### Rendered minimap regression check
 
-The Phase 5 visibility repair replaces the sparse terrain dots with a filled, circular 129x129 texture containing original patterns for Meadows, Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, Thunder Mountains, and Ocean. Each pattern stays anchored in world space. The minimap now belongs to each local player rather than only the first game-instance controller. Its 208-unit size and 12-unit top/right inset scale with Unreal's UI DPI curve. Size/position must be set before the top-right anchor: `SetPositionInViewport` resets it to top-left in UE 5.8 and previously put the map off-screen.
+The Phase 5 visibility repair replaces the sparse terrain dots with a filled, circular 129x129 texture containing original patterns for Meadows, Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, Thunder Mountains, and Ocean. Each pattern stays anchored in world space. The minimap now belongs to each local player rather than only the first game-instance controller. Its 208-unit circle has a 26-unit biome-label row plus a 4-unit gap above it; the map itself begins at 42 UI units below the top-right edge and retains a 12-unit right inset. All dimensions scale with Unreal's UI DPI curve. Size/position must be set before the top-right anchor: `SetPositionInViewport` resets it to top-left in UE 5.8 and previously put the map off-screen.
 
-After building, run `Scripts/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 1080`. Repeat with `-Width 1024 -Height 768` and `-Width 3440 -Height 1440` for 16:9, 4:3 and ultrawide aspect ratios and automatic DPI scales. The runner checks actual paint geometry, the proportional 12-unit top/right insets, and full texture sample count on both peers, server identity replication, and the bound input delegate with minimum/maximum zoom, CommonUI Menu ownership, and zoom resumption. The focused automation checks that the weather badge remains below the minimap. It captures `host.png` and `client.png` in the printed temporary log directory for visual inspection. Hidden offscreen captures verify the Slate HUD; the world background may be black and these images do not validate terrain rendering. The configured `CommonGameViewportClient` is required for CommonUI routing. Without `-Rendered`, this script remains an identity-only smoke test.
+After building, run `Scripts/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 1080`. Repeat with `-Width 1024 -Height 768` and `-Width 3440 -Height 1440` for 16:9, 4:3 and ultrawide aspect ratios and automatic DPI scales. Inspect captures at 75%, 100%, 125%, and 150% text scale to confirm the current-biome name remains right-aligned and unclipped. The runner checks actual circle paint geometry, the 42-unit label-adjusted top inset, 12-unit right inset, current-biome log value, and full texture sample count on both peers, server identity replication, and the bound input delegate with minimum/maximum zoom, CommonUI Menu ownership, and zoom resumption. The focused automation checks that the weather badge remains below the lowered minimap with the 24-unit gap. It captures `host.png` and `client.png` in the printed temporary log directory for visual inspection. Hidden offscreen captures verify the Slate HUD; the world background may be black and these images do not validate terrain rendering. The configured `CommonGameViewportClient` is required for CommonUI routing. Without `-Rendered`, this script remains an identity-only smoke test.
 
 `Kalmala.UI.Minimap.LocalPresentation` now also exercises the production viewport setters, checks filled/transparent raster coverage, distinct deterministic texture patterns for all seven biomes, and sea-level ocean treatment. These checks replace the previous assumption that mathematical placement assertions alone proved on-screen visibility. The launch-gated input scenario temporarily changes local input configuration and restores it and zoom; it sends no RPC or gameplay request. A normal launch requires no minimap flag. Restart the editor/game to load rebuilt C++ modules and viewport configuration; an older packaged executable needs a separate rebuild/package.
 
 ## Local settings menu
 
-Press Escape during normal play to open the local Settings menu; press Escape again to close it and restore game input. The menu's main screen provides Options and Quit. Options contains Video, Audio, Controls, and Settings tabs; Video immediately applies and saves resolution, V-Sync, window mode, and render-distance quality through Unreal `GameUserSettings`. Run `Kalmala.UI.Settings.LocalPresentation` after an editor build for the render-distance bounds seam. This is local presentation/preferences only: no setting, menu action, or quit request is sent to the server.
+Press Escape during normal play to open the local Settings menu; press Escape again to close it and restore game input. The menu's main screen provides Options and Quit. Options contains Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility groups; Gameplay stays hidden until a candidate setting is selected. Graphics immediately applies and saves resolution, V-Sync, window mode, and render-distance quality through Unreal `GameUserSettings`. Run `Kalmala.UI.Settings.LocalPresentation` after an editor build for the render-distance bounds seam. This is local presentation/preferences only: no setting, menu action, or quit request is sent to the server.
 
 The Audio tab now cycles local master volume in 25% steps and provides
 mute/restore, with text showing the current level and action. It saves these
@@ -1031,23 +1039,23 @@ category bounds and local config round-trips alongside master mute/restore.
 contracts without launching Unreal. These checks do not render the Audio tab,
 simulate physical controller input, or establish audible quality/device mix.
 
-### Local Controls tab
+### Local Keyboard & Mouse and Controller groups
 
-The Controls tab exposes the existing movement, look, interact, attack, jump,
-sprint, settings, map, recenter, craft, and support-activation intents. Each
-row shows the current keyboard and controller label and cycles through a small
-allowlisted set of alternatives; movement rows retain positive/negative axis
-pairs. Restore default controls clears only the local overrides. The runtime
-applies overrides to the owning `UPlayerInput` and stores them in the local
+The Keyboard & Mouse and Controller groups expose the existing movement, look,
+interact, attack, jump, sprint, settings, map, recenter, craft, and
+support-activation intents. Each page shows its device-family binding and cycles
+through a small allowlisted set of alternatives; movement rows retain
+positive/negative axis pairs. Restore default controls clears only the local
+overrides. The runtime applies overrides to the owning `UPlayerInput` and stores them in the local
 `GameUserSettings` configuration, so `Config/DefaultInput.ini` and server
 validation remain unchanged. Escape remains an always-available modal close
 path even if the alternate Settings key is changed. The settings automation
 checks bounded labels, local persistence, rejection of an out-of-set key, and
 restore defaults.
 
-### Local Settings tab
+### Local Accessibility group
 
-The Settings tab cycles local text scale through 100%, 125%, and 150%, and
+The Accessibility group cycles local text scale through 100%, 125%, and 150%, and
 cycles between Standard and High contrast. Changes rebuild the current modal
 immediately, use auto-wrapped text, and retain a larger bounded panel so the
 Controls list remains scrollable at the largest scale. Contrast updates the
@@ -1096,7 +1104,7 @@ Choose another unused port if either example port is occupied.
 
 Require local settings to survive a fresh-process restart, menu focus and
 modal input to remain correct, both motion paths to behave as selected, and
-the Escape panel to fit. Inspect the retained standard/high-contrast menu and
+the Escape option list to fit. Inspect the retained standard/high-contrast menu and
 HUD captures from both viewports. Run
 `Scripts/Verify-SettingsAccessibilityContract.ps1`, the ownership and M5
 documentation audits, changed-script PowerShell parsing, `git diff --check`,
@@ -1105,10 +1113,14 @@ packaged-build checks are outside this parent increment.
 
 `Scripts/Verify-SettingsAccessibility.ps1` starts isolated host/client profiles.
 It starts a seed-418 listen server and conflicting-seed client, opens the live
-Escape shell and Video, Audio, Controls, and Settings tabs, and captures each
-at the selected 1280x720 or 1024x768 viewport. Escape, Video, Settings,
-reduced-motion Settings, and restored HUD use standard contrast; Controls and
-Audio also retain high-contrast captures. The development-only probe writes
+Escape shell and Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility
+groups, and captures each
+at the selected 1280x720 or 1024x768 viewport. The Escape capture keeps gameplay
+visible behind only the three existing options and shows the focused option
+highlight; its transparent area is excluded from the dark modal-gutter pixel
+assertion used by the tab captures. Graphics, Accessibility,
+reduced-motion Accessibility, and restored HUD use standard contrast; Keyboard &
+Mouse, Controller, and Audio also retain high-contrast captures. The development-only probe writes
 bounded local audio, text, contrast, colour-independent feedback, interface
 scale, reduced motion, and keyboard/controller remapping values to each peer's
 `GameUserSettings.ini`, applies those mappings to only the owning `UPlayerInput`,
@@ -1116,7 +1128,7 @@ verifies focus ownership and the Escape mapping, then closes the modal. It
 compares pawn health, transform, and the replicated server world identity before
 and after local changes. A fresh pair of processes reuses each local user
 directory to verify saved scale and motion choices. The printed temporary
-directory retains host/client logs and fourteen PNG captures per viewport run.
+directory retains host/client logs and sixteen PNG captures per viewport run.
 Inspect the rendered modal, HUD, and backgrounds; this verifies the two
 representative viewport sizes, not physical controller hardware, audible
 quality, or packaged persistence.
@@ -1135,8 +1147,8 @@ claim packaged two-player prompt flow has passed.
 ## M5 settings and accessibility contract check
 
 `Scripts/Verify-SettingsAccessibilityContract.ps1` is a no-build check for
-`docs/02-technical-architecture.md`. It validates the existing Video,
-Audio, Controls, and Settings groups, text-scale and contrast requirements,
+`docs/02-technical-architecture.md`. It validates the visible Keyboard & Mouse,
+Controller, Graphics, Audio, and Accessibility groups, text-scale and contrast requirements,
 bounded control remapping and restore defaults, keyboard/controller focus
 access, text-scale and contrast requirements, the bounded colour-independent
 feedback mode and owner-only markers, reversible local storage, no-RPC
@@ -1452,7 +1464,7 @@ when its marker is filtered.
 
 The in-game map keeps this symbol/category legend and concise share/ping action
 names but omits keyboard/controller help text. Current binding labels are shown
-in Options > Controls only; map focus, selection, pan, zoom, recenter, pin, and
+in Options > Keyboard & Mouse and Options > Controller only; map focus, selection, pan, zoom, recenter, pin, and
 sharing inputs remain available.
 
 Visibility is a transient local widget preference. It suppresses marker
@@ -2491,6 +2503,17 @@ runtime results.
 
 ## M12 catalogue icon integration
 
+For integrated M13 icon acceptance, `Verify-StatusHotbar.ps1` captures all 52
+runtime catalogue identities (48 catalogue textures plus four support-scroll
+aliases) in four complete columns. Its populated fixture covers six status
+images; separate read-only Mending, Bear's Vigor, and Deer Call snapshots cover
+the remaining three. Both peers must retain these captures and pass raster
+geometry checks. These fixtures change only the local presentation snapshot;
+they never activate an effect or send a gameplay request. Repeat the same
+gallery and status captures in the Development package to check cooked lookup
+paths, alongside the Shipping startup smoke. Inspect the images; successful
+texture loading alone does not establish visible consumer coverage.
+
 The shared recipe/build grid, selected-output preview and Forge Upgrade target
 use imported canonical textures through `UKalmalaIconWidget`. Each row retains
 its own player-facing name, availability, selection/focus and structured
@@ -2498,13 +2521,16 @@ requirements. Run `Kalmala.UI.CatalogueIcons.CompleteCoverage` after an affected
 editor build to verify imported texture paths and loads for all current item,
 tool and recipe-output identities. `Scripts/Verify-Crafting.ps1` also requires
 `Catalogue icons: Grid=1 Selected=1 Upgrade=1` from both peers; the grid flag
-checks each visible recipe output against its canonical loaded texture.
+checks each visible recipe output against its canonical loaded texture. Before an editor build, run `Scripts/Validate-CatalogueIconSet.ps1` to check all 48 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set.
 
-The canonical icon count remains 48: 41 normal item definitions, six carried
-tools, and the Campfire construction identity. CampfireKit remains in the
-shared icon map and recipe/build/preview views but is not a pack or storage
-item. The status icon gallery includes unique recipe/build identities so the
-construction-only Campfire texture is included in the same count.
+The catalogue image ledger contains 48 imported textures: 45 normal item
+definitions, six carried tools, and the Campfire construction identity. Four
+support-scroll item identities reuse their matching imported status textures,
+so the runtime lookup covers 52 item/tool/construction identities with those
+four shared paths. CampfireKit remains in the shared icon map and
+recipe/build/preview views but is not a pack or storage item. The nine-entry
+status gallery includes the four shared support textures and other status
+identities; it does not add duplicate catalogue image packages.
 
 During M12 milestone-final verification, use
 `Scripts/Verify-Crafting.ps1 -Rendered` for Build categories and station

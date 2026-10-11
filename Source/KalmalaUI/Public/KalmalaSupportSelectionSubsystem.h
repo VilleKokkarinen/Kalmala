@@ -81,7 +81,8 @@ public:
     {
         RETURN_QUICK_DECLARE_CYCLE_STAT(UKalmalaSupportSelectionSubsystem, STATGROUP_Tickables);
     }
-    virtual bool IsTickable() const override { return !IsTemplate(); }
+    // M13 moves support activation to reusable inventory scrolls on the numbered hotbar.
+    virtual bool IsTickable() const override { return false; }
     const UKalmalaSupportSelectionWidget* GetSelectionWidget() const { return Widget; }
 
 private:

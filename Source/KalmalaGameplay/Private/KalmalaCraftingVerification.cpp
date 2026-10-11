@@ -323,10 +323,13 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         for(int32 N=0; N<4; ++N) Check(Fire->TryRefuelFromServer(C),TEXT("Bounded refuel"));
         const TArray<FKalmalaInventoryStack> PackBeforeFullInteract = I->GetStacks();
         const float FuelBeforeFullInteract = Fire->GetFuelSeconds();
-        const bool bFullInteractRejected = !Fire->CanInteract_Implementation(C) && InteractWithFire(true)
+        const bool bFullInteractLightsWithoutRefuel = Fire->CanInteract_Implementation(C) && InteractWithFire(true)
+            && Fire->IsLit() && Fire->GetFuelSeconds() == FuelBeforeFullInteract
+            && AreStacksEqual(PackBeforeFullInteract, I->GetStacks())
             && !Fire->TryRefuelFromServer(C) && Fire->GetFuelSeconds() == FuelBeforeFullInteract
             && AreStacksEqual(PackBeforeFullInteract, I->GetStacks());
-        Check(bFullInteractRejected, TEXT("Full hearth rejects direct Interact without consuming fuel"));
+        Check(bFullInteractLightsWithoutRefuel,
+            TEXT("Full extinguished hearth lights on direct Interact without consuming fuel"));
         Fire->TryLightFromServer(C); Fire->AdvanceFromServer(300,0,0);
         Check(Fire->GetFuelSeconds()==0 && !Fire->IsLit() && Fire->GetEffectiveWarmth()==0,TEXT("Fuel exhaustion extinguishes warmth"));
         const TArray<FKalmalaInventoryStack> PackBeforeNoFuelInteract = I->GetStacks();
@@ -363,12 +366,18 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         const bool bDirectRefuelAccepted = InteractWithFire(true) && bExpectedFuelExchange
             && AreStacksEqual(ExpectedPackAfterRefuel, I->GetStacks())
             && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), FuelBeforeDirectRefuel + AKalmalaCampfire::FuelSecondsPerItem);
-        const bool bDirectRefuelDidNotLight = Fire->GetHearthState() == EKalmalaHearthState::Extinguished;
-        Check(bDirectRefuelAccepted && bDirectRefuelDidNotLight,
-            TEXT("Campfire Interact consumes exactly one priority raw fuel item without lighting"));
-        UE_LOG(LogTemp, Display, TEXT("Campfire interaction: AddedOne=%d NoLighting=%d FullRejected=%d NoFuelRejected=%d RangeRejected=%d"),
-            bDirectRefuelAccepted ? 1 : 0, bDirectRefuelDidNotLight ? 1 : 0, bFullInteractRejected ? 1 : 0,
-            bNoFuelInteractRejected ? 1 : 0, bRangeInteractRejected ? 1 : 0);
+        const bool bRefuelInteractDidNotLight = Fire->GetHearthState() == EKalmalaHearthState::Extinguished;
+        const TArray<FKalmalaInventoryStack> PackBeforeDirectLight = I->GetStacks();
+        const float FuelBeforeDirectLight = Fire->GetFuelSeconds();
+        const bool bDirectLightAccepted = InteractWithFire(true) && Fire->IsLit()
+            && FMath::IsNearlyEqual(Fire->GetFuelSeconds(), FuelBeforeDirectLight)
+            && AreStacksEqual(PackBeforeDirectLight, I->GetStacks());
+        Check(bDirectRefuelAccepted && bRefuelInteractDidNotLight,
+            TEXT("Campfire Interact adds exactly one priority raw fuel item without lighting"));
+        Check(bDirectLightAccepted, TEXT("Campfire Interact lights eligible existing fuel without a cost"));
+        UE_LOG(LogTemp, Display, TEXT("Campfire interaction: AddedOne=%d RefuelNoLighting=%d Light=%d FullLitNoRefuel=%d NoFuelRejected=%d RangeRejected=%d"),
+            bDirectRefuelAccepted ? 1 : 0, bRefuelInteractDidNotLight ? 1 : 0, bDirectLightAccepted ? 1 : 0,
+            bFullInteractLightsWithoutRefuel ? 1 : 0, bNoFuelInteractRejected ? 1 : 0, bRangeInteractRejected ? 1 : 0);
         // Real server shelter traces must shield the fire; no authored protection volume.
         auto* WorldState=GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
         const auto SavedWeather=WorldState->GetWeatherState(); auto Storm=SavedWeather;

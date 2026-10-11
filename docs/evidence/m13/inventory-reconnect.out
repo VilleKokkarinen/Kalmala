@@ -1,0 +1,4 @@
+PASS: tutorial design remains route-free and local; the runtime presenter is disabled, so no gameplay help card mounts.
+PASS: legacy inventory HUD and bottom tutorial card are absent; on-demand Inventory and empty-state coverage remain.
+PASS: two client visits to the same live server; each server pawn starts empty before its fixture grant; gathering and free Workbench repair rejection/acceptance, retired tool replacement rejection, owner-only tool condition, inventory privacy, rejected local mutations, remote privacy after replication, and legacy-panel absence verified.
+Scenario logs: C:\Users\Ville\AppData\Local\Temp\KalmalaInventoryReconnect-5be0588d858a4704abee56c9ab2b1517

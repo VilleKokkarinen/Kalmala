@@ -9,7 +9,7 @@ from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = ROOT / "docs" / "status-icon-manifest.csv"
+MANIFEST = ROOT / "Scripts" / "Data" / "status-icon-manifest.csv"
 SOURCE_DIR = ROOT / "Content" / "Kalmala" / "UI" / "Source" / "IconOriginals" / "Status"
 OUTPUT_DIR = ROOT / "Content" / "Kalmala" / "UI" / "Source" / "Icons" / "Status"
 CANVAS_SIZE = 64

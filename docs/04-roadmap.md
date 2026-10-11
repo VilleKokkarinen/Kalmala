@@ -923,7 +923,8 @@ saved-data schemas, introduce new online services, or expand platform scope.
 - Left-clicking a build icon enters the existing local placement mode for that
   piece; it does not place immediately. Right-clicking an entry toggles its
   existing Favorite state. The Add to favorites, Build / place selected, and
-  Light hearth menu actions are absent. Interacting with an eligible unlit
+  Light hearth menu actions are absent, along with the retired persistent
+  build/place and raw-fuel tutorial copy. Interacting with an eligible unlit
   Campfire lights it through the existing server-validated, payload-free
   lighting intent; Add fuel and current construction costs/placement checks
   remain correct. No client-supplied placement/fire state or saved-data schema
