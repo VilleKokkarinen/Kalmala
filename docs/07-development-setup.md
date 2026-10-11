@@ -206,6 +206,12 @@ the forced `KalmalaEditor Win64 Development` build. Import the two original
 PNG sources from `Content/Kalmala/UI/Source/` into `/Game/Kalmala/UI` with
 Unreal's `ImportAssets` commandlet before runtime verification.
 
+The Inventory source is the new original 1254×1254 walnut texture at
+`Content/Kalmala/UI/Source/InventoryPanel.png`, imported at
+`/Game/Kalmala/UI/InventoryPanel`. `InventoryPanelImage` is shared by the
+Inventory and Crafting panels and the Settings option groups; the high-contrast
+fallback is unchanged. Reimport this source after future texture edits.
+
 Run the full `Automation RunTests Kalmala` queue. Then run the rendered
 two-peer checks from the mirror:
 

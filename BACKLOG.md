@@ -29,6 +29,8 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-11 — Generated walnut Inventory background:** create a new warm-brown wood texture, replace the Inventory source image, and reimport the existing Unreal texture package. The shared background now appears on Inventory, Crafting and Settings option groups; an isolated editor build/import and one offscreen Inventory preview succeeded. Full automation/package verification remains deferred.
+
 - [x] **2026-10-11 — Render all menus without an ID:** make `Scripts/Render-Menu.ps1` render each supported menu when `-Menu` is omitted, while preserving single-menu selection and documenting PNG output paths. Lightweight script checks only; no Unreal menu render was run.
 
 - [x] **2026-10-11 — Inventory/crafting sizing and background asset repair:** fill the right-anchored crafting area, widen and frame its columns; provide/load/cook original panel images; remove Inventory armor/weight and excess grid/scrollbar space. Lightweight checks only; rebuilt/editor/package visual verification deferred.
