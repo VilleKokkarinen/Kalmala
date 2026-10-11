@@ -66,6 +66,7 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     auto* Content = WidgetTree->ConstructWidget<UVerticalBox>();
     MenuContentScrollBox = WidgetTree->ConstructWidget<UScrollBox>();
     Theme.ApplyScroll(*MenuContentScrollBox);
+    MenuContentScrollBox->SetScrollBarVisibility(ESlateVisibility::Collapsed);
     MenuContentScrollBox->OnUserScrolled.AddDynamic(this, &ThisClass::MenuScrolled);
     MenuContentScrollBox->AddChild(Content);
     auto AddText = [&](const FString& Value, const bool bEmphasis)
@@ -81,10 +82,9 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     GridView->OnItemSelected.AddUObject(this, &ThisClass::SelectGridItem);
     GridView->OnItemHovered.AddUObject(this, &ThisClass::HoverGridItem);
     GridSizeBox = WidgetTree->ConstructWidget<USizeBox>();
-    GridSizeBox->SetHeightOverride((ResponsivePanelWidth - Theme.PaddingX * 2.0f - 24.0f) * 0.4f);
+    GridSizeBox->SetHeightOverride((ResponsivePanelWidth - Theme.PaddingX * 2.0f) * 0.4f);
     GridSizeBox->SetContent(GridView);
     Content->AddChildToVerticalBox(GridSizeBox);
-    ArmorWeightText = AddText(TEXT("Armor 0 · Weight 0/300"), false);
     ItemDetailView = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
     Content->AddChildToVerticalBox(ItemDetailView);
     ItemDetailView->SetVisibility(ESlateVisibility::Collapsed);
@@ -164,14 +164,14 @@ void UKalmalaInventoryMenuWidget::UpdateResponsivePanelSize(const FVector2D View
     const float GridHeight = FMath::Max(32.0f, (NewWidth - FKalmalaUITheme::Get().PaddingX * 2.0f) * 0.4f);
     const bool bDetails = bSelectionDetailsRequested || !HoveredItemId.IsNone();
     const float NewHeight = FMath::Min(FMath::Max(80.0f, ViewportSize.Y - 32.0f),
-        bDetails ? GridHeight + 280.0f : GridHeight + 64.0f);
+        bDetails ? GridHeight + 280.0f : GridHeight + FKalmalaUITheme::Get().PaddingY * 2.0f);
     if (!FMath::IsNearlyEqual(NewWidth, ResponsivePanelWidth))
     {
         ResponsivePanelWidth = NewWidth;
         PanelSizeBox->SetWidthOverride(ResponsivePanelWidth);
     }
     if (GridSizeBox) GridSizeBox->SetHeightOverride(FMath::Max(40.0f,
-        (ResponsivePanelWidth - FKalmalaUITheme::Get().PaddingX * 2.0f - 24.0f) * 0.4f));
+        (ResponsivePanelWidth - FKalmalaUITheme::Get().PaddingX * 2.0f) * 0.4f));
     if (!FMath::IsNearlyEqual(NewHeight, ResponsivePanelHeight))
     {
         ResponsivePanelHeight = NewHeight;
@@ -337,16 +337,6 @@ void UKalmalaInventoryMenuWidget::ApplyInventoryRows(TArray<FKalmalaCatalogueRow
 
     auto* Inventory = GetOwningPlayerPawn() ? GetOwningPlayerPawn()->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (GridView) GridView->Refresh(Inventory, false, RememberedSelectedItemId);
-    if (ArmorWeightText)
-    {
-        const float Weight = Inventory ? Inventory->GetCarriedWeight() : 0.0f;
-        const float Capacity = Inventory ? Inventory->GetCarryCapacity() : 300.0f;
-        const FString WeightText = FMath::IsNearlyEqual(Weight, FMath::RoundToFloat(Weight))
-            ? FString::Printf(TEXT("%.0f"), Weight) : FString::Printf(TEXT("%.1f"), Weight);
-        ArmorWeightText->SetText(FText::FromString(FString::Printf(
-            TEXT("Armor 0 · Weight %s/%.0f"), *WeightText, Capacity)));
-    }
-
     RebuildVisibleInventoryRows(TextScale, Contrast);
 }
 
@@ -394,14 +384,13 @@ void UKalmalaInventoryMenuWidget::MenuScrolled(const float Offset)
 
 void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextScale, const int32 Contrast)
 {
-    if (GridView == nullptr || ItemDetailView == nullptr || ArmorWeightText == nullptr
+    if (GridView == nullptr || ItemDetailView == nullptr
         || RepairToolButton == nullptr || ToolActionStatusText == nullptr
         || EatFoodButton == nullptr || FoodActionStatusText == nullptr) return;
 
     if (LastTextScalePercent != TextScale || LastContrastMode != Contrast)
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
-        Theme.ApplyText(*ArmorWeightText, Theme.BodySize, false, TextScale, Contrast);
         if (InventoryPanel)
         {
             Theme.ApplyPanel(*InventoryPanel, Contrast, &Theme.InventoryPanelImage);

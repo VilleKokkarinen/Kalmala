@@ -57,7 +57,6 @@ private:
     void HoverGridItem(FName ItemId);
     UPROPERTY(Transient) TObjectPtr<UKalmalaInventoryGridWidget> GridView;
     UPROPERTY(Transient) TObjectPtr<USizeBox> GridSizeBox;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> ArmorWeightText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolActionStatusText;
     UPROPERTY(Transient) TObjectPtr<UKalmalaItemDetailWidget> ItemDetailView;
     UPROPERTY(Transient) TObjectPtr<UScrollBox> MenuContentScrollBox;

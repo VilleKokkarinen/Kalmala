@@ -14,6 +14,8 @@
 #include "Engine/Font.h"
 #include "Engine/Texture2D.h"
 #include "Misc/PackageName.h"
+#include "Misc/Paths.h"
+#include "UObject/SoftObjectPath.h"
 #include "Blueprint/WidgetTree.h"
 
 namespace
@@ -73,8 +75,7 @@ namespace
     {
         if (!FPackageName::IsValidObjectPath(Path)) return nullptr;
         if (UObject* Loaded = FindObject<UObject>(nullptr, *Path)) return Loaded;
-        if (!FPackageName::DoesPackageExist(FPackageName::ObjectPathToPackageName(Path))) return nullptr;
-        return LoadObject<UObject>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+        return FSoftObjectPath(Path).TryLoad();
     }
 
     void ReadColor(const FConfigFile& Config, const TCHAR* Key, FLinearColor& Value)
@@ -209,8 +210,17 @@ const FKalmalaUITheme& FKalmalaUITheme::Get()
     static const FKalmalaUITheme Theme = []
     {
         FConfigFile Config;
-        FConfigCacheIni::LoadLocalIniFile(Config, TEXT("KalmalaTheme"), true);
-        return FromConfig(Config);
+        if (!FConfigCacheIni::LoadLocalIniFile(Config, TEXT("KalmalaTheme"), true) || !Config.Find(ThemeSection))
+            Config.Read(FPaths::ProjectConfigDir() / TEXT("DefaultKalmalaTheme.ini"));
+        FKalmalaUITheme RuntimeTheme = FromConfig(Config);
+        // Bundled view art must remain available when a custom ini is not staged/resolved.
+        if (RuntimeTheme.InventoryPanelImage.IsEmpty()) RuntimeTheme.InventoryPanelImage = TEXT("/Game/Kalmala/UI/InventoryPanel.InventoryPanel");
+        if (RuntimeTheme.BuildPanelImage.IsEmpty()) RuntimeTheme.BuildPanelImage = TEXT("/Game/Kalmala/UI/BuildPanel.BuildPanel");
+        if (RuntimeTheme.EscapePanelImage.IsEmpty()) RuntimeTheme.EscapePanelImage = TEXT("/Game/Kalmala/UI/OptionsPanel.OptionsPanel");
+        for (FString* OptionsPath : {&RuntimeTheme.VideoOptionsPanelImage, &RuntimeTheme.AudioOptionsPanelImage,
+            &RuntimeTheme.ControlsOptionsPanelImage, &RuntimeTheme.SettingsOptionsPanelImage})
+            if (OptionsPath->IsEmpty()) *OptionsPath = RuntimeTheme.EscapePanelImage;
+        return RuntimeTheme;
     }();
     return Theme;
 }

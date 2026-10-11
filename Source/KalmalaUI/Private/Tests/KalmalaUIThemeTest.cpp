@@ -20,6 +20,13 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaUIThemeTest, "Kalmala.UI.Theme.LocalPre
 
 bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
 {
+    const auto& RuntimeTheme = FKalmalaUITheme::Get();
+    for (const FString* ViewPath : {&RuntimeTheme.InventoryPanelImage, &RuntimeTheme.VideoOptionsPanelImage,
+        &RuntimeTheme.AudioOptionsPanelImage, &RuntimeTheme.ControlsOptionsPanelImage, &RuntimeTheme.SettingsOptionsPanelImage})
+    {
+        TestFalse(TEXT("Runtime view texture path is provided"), ViewPath->IsEmpty());
+        TestNotNull(TEXT("Original view background texture actually loads"), RuntimeTheme.MakePanelBrush(0, ViewPath).GetResourceObject());
+    }
     FConfigFile Config;
     Config.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nBodySize=20\nHeadingSize=12\n"
         "EmphasisSize=24\nPaddingX=16\nText=(R=0.4,G=0.5,B=0.6,A=1)\n"

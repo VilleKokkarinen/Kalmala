@@ -15,6 +15,8 @@
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Overlay.h"
+#include "Components/OverlaySlot.h"
+#include "Brushes/SlateRoundedBoxBrush.h"
 #include "Components/ScrollBox.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
@@ -25,11 +27,15 @@
 void UKalmalaCraftingWidget::BuildInventoryCraftLayout()
 {
     auto* Root = WidgetTree->ConstructWidget<UOverlay>();
-    Root->AddChild(MenuBackground);
+    auto* ServiceSlot = Root->AddChildToOverlay(MenuBackground);
+    ServiceSlot->SetHorizontalAlignment(HAlign_Fill);
+    ServiceSlot->SetVerticalAlignment(VAlign_Fill);
     InventoryCraftBackground = WidgetTree->ConstructWidget<UBorder>();
     auto* Column = WidgetTree->ConstructWidget<UVerticalBox>();
     InventoryCraftBackground->SetContent(Column);
-    Root->AddChild(InventoryCraftBackground);
+    auto* CraftSlot = Root->AddChildToOverlay(InventoryCraftBackground);
+    CraftSlot->SetHorizontalAlignment(HAlign_Fill);
+    CraftSlot->SetVerticalAlignment(VAlign_Fill);
     WidgetTree->RootWidget = Root;
     InventoryCraftBackground->SetVisibility(ESlateVisibility::Collapsed);
 
@@ -61,13 +67,17 @@ void UKalmalaCraftingWidget::BuildInventoryCraftLayout()
     FKalmalaUITheme::Get().ApplyScroll(*ListScroll);
     InventoryCraftList = WidgetTree->ConstructWidget<UVerticalBox>();
     ListScroll->AddChild(InventoryCraftList);
-    auto* ListSlot = Split->AddChildToHorizontalBox(ListScroll);
+    InventoryCraftListFrame = WidgetTree->ConstructWidget<UBorder>();
+    InventoryCraftListFrame->SetContent(ListScroll);
+    auto* ListSlot = Split->AddChildToHorizontalBox(InventoryCraftListFrame);
     FSlateChildSize ListSize(ESlateSizeRule::Fill);
     ListSize.Value = 0.36f;
     ListSlot->SetSize(ListSize);
     ListSlot->SetPadding(FMargin(0, 0, 12, 0));
     auto* Details = WidgetTree->ConstructWidget<UVerticalBox>();
-    auto* DetailSlot = Split->AddChildToHorizontalBox(Details);
+    InventoryCraftDetailFrame = WidgetTree->ConstructWidget<UBorder>();
+    InventoryCraftDetailFrame->SetContent(Details);
+    auto* DetailSlot = Split->AddChildToHorizontalBox(InventoryCraftDetailFrame);
     FSlateChildSize DetailSize(ESlateSizeRule::Fill);
     DetailSize.Value = 0.64f;
     DetailSlot->SetSize(DetailSize);
@@ -120,6 +130,13 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
     Theme.ApplyPanel(*InventoryCraftBackground, Contrast, &Theme.InventoryPanelImage);
     InventoryCraftBackground->SetPadding(FMargin(12));
+    for (UBorder* Section : {InventoryCraftListFrame.Get(), InventoryCraftDetailFrame.Get()})
+    {
+        Section->SetBrush(FSlateRoundedBoxBrush(Contrast ? FLinearColor::Black : FLinearColor(.09f, .045f, .02f, .65f),
+            3.f, Contrast ? FLinearColor::White : FLinearColor(.45f, .27f, .12f, 1.f), 1.f));
+        Section->SetBrushColor(FLinearColor::White);
+        Section->SetPadding(FMargin(10));
+    }
     RecipeSearchStyle.SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), FMath::RoundToInt(14 * Scale / 100.f)));
     InventoryCraftSearch->SetWidgetStyle(RecipeSearchStyle);
     const auto StyleButton = [&](UButton* Button)
@@ -256,6 +273,10 @@ bool UKalmalaCraftingWidget::VerifyInventoryCraftLayoutForTest()
         && InventoryCraftTitle->GetText().ToString() == TEXT("Building Hammer")
         && InventoryCraftCosts->GetChildrenCount() == 2
         && !InventoryCraftButton->GetIsEnabled(); // No owning character or materials in this fixture.
+    const auto* BackgroundSlot = Cast<UOverlaySlot>(InventoryCraftBackground->Slot);
+    const bool bFill = BackgroundSlot && BackgroundSlot->GetHorizontalAlignment() == HAlign_Fill
+        && BackgroundSlot->GetVerticalAlignment() == VAlign_Fill
+        && InventoryCraftListFrame && InventoryCraftDetailFrame;
     RecipeQuery = TEXT("no-matching-player-recipe");
     Refresh();
     const bool bEmpty = InventoryCraftChoices.IsEmpty() && InventoryCraftCosts->GetChildrenCount() == 0
@@ -263,6 +284,6 @@ bool UKalmalaCraftingWidget::VerifyInventoryCraftLayoutForTest()
     bInventoryCompanion = PreviousCompanion;
     RecipeQuery = PreviousQuery;
     Selected = PreviousSelected;
-    return bLayout && bEmpty;
+    return bLayout && bEmpty && bFill;
 }
 #endif

@@ -1150,11 +1150,11 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     int32 X, Y; PC->GetViewportSize(X,Y);
     const float Scale = FMath::Max(.1f, UWidgetLayoutLibrary::GetViewportScale(this));
     const float PanelWidth = bInventoryCompanion
-        ? FMath::Min(600.0f, FMath::Max(80.0f, X / Scale * 0.44f))
+        ? FMath::Min(860.0f, FMath::Max(80.0f, X / Scale * 0.52f))
         : FMath::Min(840.0f, X / Scale - 32.0f);
     if (bInventoryCompanion)
     {
-        SetDesiredSizeInViewport(FVector2D(PanelWidth, FMath::Max(80.0f, Y / Scale - 32.0f)));
+        SetDesiredSizeInViewport(FVector2D(PanelWidth, FMath::Min(760.0f, FMath::Max(80.0f, Y / Scale - 32.0f))));
         SetPositionInViewport(FVector2D(-16.0f, 16.0f), false);
         SetAlignmentInViewport(FVector2D(1.0f, 0.0f));
         SetAnchorsInViewport(FAnchors(1.0f, 0.0f));
@@ -3762,8 +3762,8 @@ void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D)
     if (bInventoryCompanion)
     {
         const FVector2D Viewport = UWidgetLayoutLibrary::GetViewportSize(this) / FMath::Max(0.1f, UWidgetLayoutLibrary::GetViewportScale(this));
-        const float Width = FMath::Min(600.0f, FMath::Max(80.0f, Viewport.X * 0.44f));
-        SetDesiredSizeInViewport(FVector2D(Width, FMath::Max(80.0f, Viewport.Y - 32.0f)));
+        const float Width = FMath::Min(860.0f, FMath::Max(80.0f, Viewport.X * 0.52f));
+        SetDesiredSizeInViewport(FVector2D(Width, FMath::Min(760.0f, FMath::Max(80.0f, Viewport.Y - 32.0f))));
         for (UTextBlock* Label : WrappedTextBlocks)
             if (Label) Label->SetWrapTextAt(FMath::Max(40.0f, Width - 64.0f));
         SetPositionInViewport(FVector2D(-16.0f, 16.0f), false);

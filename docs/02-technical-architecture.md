@@ -1045,6 +1045,25 @@ wood. This correction applies to Inventory, player Crafting and Settings tabs;
 high contrast/missing assets retain their solid fallback and Escape home retains
 its expressly transparent surface.
 
+The following layout/loading correction removes the armor/weight summary from
+Inventory entirely; those values are reserved for a later location. Its grid
+height is exactly four tenths of the content width, without the former extra
+24-pixel subtraction or reserved scrollbar space. Player Crafting's overlay
+children fill their allotted viewport area, so the drawn wood panel reaches the
+right anchor rather than stopping at a narrow desired-content width. Its size
+is 52% of logical viewport width capped at 860, with height capped at 760 and
+16-pixel outer margins. Warm translucent framed list/detail sections separate
+the two columns; high contrast uses black sections with white borders.
+
+Runtime theme loading reads the project default file if the custom ini fails
+to resolve, supplies bundled Inventory/Build/Options paths when absent, and
+loads object paths through the soft-object loader without a disk-existence
+preflight. The full /Game/Kalmala/UI directory is explicitly cooked, including
+panel packages that were previously outside the icon-only cook directories.
+Configured valid custom image paths still take precedence. Actual view-package
+loading and fill alignment now have regression assertions; earlier brush-only
+checks did not prove that the image was supplied or packaged.
+
 ## M13 inventory crafting companion
 
 The 2026-10-10 UI request extends Inventory's existing Tab / I modal. Opening

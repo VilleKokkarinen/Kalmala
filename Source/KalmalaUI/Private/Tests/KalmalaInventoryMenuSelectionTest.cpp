@@ -54,8 +54,8 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     });
     TestEqual(TEXT("Player inventory mounts exactly one grid"), Grids, 1);
     TestEqual(TEXT("Simple inventory has no search/filter/sort input"), Searches, 0);
-    TestTrue(TEXT("Armor section is present under inventory"), bArmor);
-    TestTrue(TEXT("Carried weight and capacity section is present"), bWeight);
+    TestFalse(TEXT("Armor summary is absent from Inventory"), bArmor);
+    TestFalse(TEXT("Weight summary is absent from Inventory"), bWeight);
     OwnerA->WidgetTree->ForEachWidget([&](UWidget* Widget) {
         TestFalse(TEXT("Crafting is not parented inside the Inventory tree"), Widget->IsA<UKalmalaCraftingWidget>());
         if (const auto* Text = Cast<UTextBlock>(Widget))

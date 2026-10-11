@@ -2688,3 +2688,13 @@ clear, pointer/keyboard/controller recipe selection and disabled activation.
 No Favorites/order/status or Previous/Next section may appear in that surface;
 station service layouts must remain intact. This revision's added Unreal
 assertions and rendered/native checks remain deferred until rebuilding.
+
+The subsequent panel-fill/loading correction extends the above checks: require
+the original Inventory and each Options background package to load in
+Kalmala.UI.Theme.LocalPresentation, and verify those same textures in a newly
+cooked package. Check that the crafting wood reaches the screen's right margin
+at 1280x720 and 1920x1080 across supported DPI/text scales, that list/detail
+frames are distinct, and that Inventory's grid has equal left/right inset with
+no armor/weight summary. Config/DefaultGame.ini now explicitly cooks the UI
+folder rather than only its icon subfolders. These live/package checks remain
+deferred for this normal increment.

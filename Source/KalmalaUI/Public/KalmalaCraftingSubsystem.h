@@ -117,6 +117,8 @@ private:
     void RefreshInventoryCraftLayout();
     UFUNCTION() void SelectInventoryCraftRecipe();
     UPROPERTY(Transient) TObjectPtr<UBorder> InventoryCraftBackground;
+    UPROPERTY(Transient) TObjectPtr<UBorder> InventoryCraftListFrame;
+    UPROPERTY(Transient) TObjectPtr<UBorder> InventoryCraftDetailFrame;
     UPROPERTY(Transient) TObjectPtr<class UVerticalBox> InventoryCraftList;
     UPROPERTY(Transient) TObjectPtr<UHorizontalBox> InventoryCraftCosts;
     UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> InventoryCraftSearch;

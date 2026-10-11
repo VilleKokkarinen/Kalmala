@@ -29,6 +29,8 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-11 — Inventory/crafting sizing and background asset repair:** fill the right-anchored crafting area, widen and frame its columns; provide/load/cook original panel images; remove Inventory armor/weight and excess grid/scrollbar space. Lightweight checks only; rebuilt/editor/package visual verification deferred.
+
 - [x] **2026-10-11 — Wood brush and inventory crafting detail layout:** correct textured image type/tint for Inventory and Settings; compact search/x, left recipe list, right icon/title/description/stats and simple icon costs, disabled Craft action; hide legacy browse/status/navigation sections. Lightweight checks only; rebuilt/runtime verification deferred.
 
 - [x] **2026-10-11 — Inventory/crafting layout and hammer recipe:** separate top-left/top-right wood panels, remove title/intro headings, close with Tab before focus navigation, limit player crafting to Building Hammer (3 Wood + 1 Stone), preserve cooking-station scope. Lightweight checks only; full build, runtime/rendered/input/peer verification deferred.
