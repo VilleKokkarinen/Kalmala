@@ -9,12 +9,15 @@ class UTextBlock;
 class UButton;
 class UBorder;
 class UHorizontalBox;
+class UVerticalBox;
 class UUniformGridPanel;
 class UScrollBox;
 class UInputComponent;
 class UKalmalaCraftingComponent;
+class UKalmalaInventoryComponent;
 class UKalmalaSelectedResultWidget;
 class AKalmalaCharacter;
+struct FKalmalaInventoryStack;
 
 struct FKalmalaMenuBrowseMemory
 {
@@ -117,8 +120,19 @@ protected:
 private:
     void BuildInventoryCraftLayout();
     void RefreshInventoryCraftLayout();
+    void RefreshBuildRequirements(const FString& Title,
+        const TArray<FKalmalaInventoryStack>& Costs, const UKalmalaInventoryComponent* Inventory,
+        const FString& Details, int32 TextScalePercent, int32 ContrastMode);
     UFUNCTION() void SelectInventoryCraftRecipe();
     UPROPERTY(Transient) TObjectPtr<UBorder> InventoryCraftBackground;
+    UPROPERTY(Transient) TObjectPtr<UVerticalBox> BuildMenuStack;
+    UPROPERTY(Transient) TObjectPtr<class USizeBox> BuildRequirementsSizeBox;
+    UPROPERTY(Transient) TObjectPtr<UBorder> BuildRequirementsPanel;
+    UPROPERTY(Transient) TObjectPtr<UBorder> BuildRequirementsFrame;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> BuildRequirementsTitle;
+    UPROPERTY(Transient) TObjectPtr<UHorizontalBox> BuildRequirementsCosts;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> BuildRequirementsDetails;
+    UPROPERTY(Transient) TObjectPtr<UButton> BuildCloseButton;
     UPROPERTY(Transient) TObjectPtr<UBorder> InventoryCraftListFrame;
     UPROPERTY(Transient) TObjectPtr<UBorder> InventoryCraftDetailFrame;
     UPROPERTY(Transient) TObjectPtr<class UVerticalBox> InventoryCraftList;
@@ -133,6 +147,9 @@ private:
     UPROPERTY(Transient) TArray<TObjectPtr<UButton>> InventoryCraftChoices;
     TArray<int32> InventoryCraftIndices;
     FString InventoryCraftCostSignature;
+    FString BuildRequirementCostSignature;
+    int32 LastBuildRequirementTextScale = INDEX_NONE;
+    int32 LastBuildRequirementContrast = INDEX_NONE;
     UKalmalaCraftingComponent* Model() const;
     UKalmalaCraftingSubsystem* GetLocalCraftingSubsystem() const;
     bool IsRecipeFavorite(FName RecipeId) const;
@@ -277,6 +294,7 @@ private:
     int32 SelectedStorageItem = 0;
     int32 LastDetailTextScalePercent = INDEX_NONE;
     int32 LastDetailContrastMode = INDEX_NONE;
+    int32 LastMenuPanelContext = INDEX_NONE;
     int32 LastRecipeGridTextScalePercent = INDEX_NONE;
     int32 LastRecipeGridContrastMode = INDEX_NONE;
     int32 RecipeGridUnavailableCount = 0;

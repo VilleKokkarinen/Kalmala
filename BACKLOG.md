@@ -48,6 +48,8 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 
 - [x] **2026-10-11 — Inventory/crafting layout and hammer recipe:** separate top-left/top-right wood panels, remove title/intro headings, close with Tab before focus navigation, limit player crafting to Building Hammer (3 Wood + 1 Stone), preserve cooking-station scope. Lightweight checks only; full build, runtime/rendered/input/peer verification deferred.
 
+- [x] **2026-10-11 — Standalone Build menu layout:** use the Inventory wood background and 64×64 spaced build icons; keep the main window clear below the grid, move Close into the browse row, and show material icons/counts plus placement requirements in a compact separate panel below. Update the existing Build cleanup verifier contract; runtime/rendered verification deferred.
+
 - **2026-10-11 — Escape home border transparency:** disabled drawing the home panel brush so its themed outline cannot remain visible over gameplay. Option hover/focus and high-contrast styling remain intact; lightweight checks only, full verification deferred.
 - **2026-10-09 — Inventory simplification:** replaced the pack/toolbelt presentation with one 10×4 grid and occupied-cell hotbar. The editor build passes after the follow-up repair; runtime, rendered, input, and peer acceptance remain deferred. See [shared player inventory](docs/02-technical-architecture.md#shared-inventory-and-hotbar).
 - **2026-10-09 — Project-file recovery and build repairs:** regenerated missing project files, validated solution references, and repaired the inventory editor build. See [build repairs](docs/07-development-setup.md#project-file-recovery).

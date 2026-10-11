@@ -33,7 +33,53 @@ FVector2D UKalmalaCraftingWidget::GetInventoryCraftPanelSize(const FVector2D Vie
 void UKalmalaCraftingWidget::BuildInventoryCraftLayout()
 {
     auto* Root = WidgetTree->ConstructWidget<UOverlay>();
-    auto* ServiceSlot = Root->AddChildToOverlay(MenuBackground);
+    BuildMenuStack = WidgetTree->ConstructWidget<UVerticalBox>();
+    BuildMenuStack->AddChildToVerticalBox(MenuBackground)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    BuildRequirementsPanel = WidgetTree->ConstructWidget<UBorder>();
+    BuildRequirementsFrame = WidgetTree->ConstructWidget<UBorder>();
+    auto* BuildRequirementsColumn = WidgetTree->ConstructWidget<UVerticalBox>();
+    BuildRequirementsTitle = WidgetTree->ConstructWidget<UTextBlock>();
+    BuildRequirementsTitle->SetAutoWrapText(true);
+    BuildRequirementsTitle->SetJustification(ETextJustify::Center);
+    BuildRequirementsColumn->AddChildToVerticalBox(BuildRequirementsTitle)->SetPadding(FMargin(0, 0, 0, 6));
+    BuildRequirementsCosts = WidgetTree->ConstructWidget<UHorizontalBox>();
+    BuildRequirementsColumn->AddChildToVerticalBox(BuildRequirementsCosts)
+        ->SetHorizontalAlignment(HAlign_Center);
+    BuildRequirementsDetails = WidgetTree->ConstructWidget<UTextBlock>();
+    BuildRequirementsDetails->SetAutoWrapText(true);
+    BuildRequirementsDetails->SetWrapTextAt(520.0f);
+    BuildRequirementsColumn->AddChildToVerticalBox(BuildRequirementsDetails);
+    BuildRequirementsFrame->SetContent(BuildRequirementsColumn);
+    BuildRequirementsPanel->SetContent(BuildRequirementsFrame);
+    BuildRequirementsPanel->SetPadding(FMargin(8.0f));
+    BuildRequirementsFrame->SetPadding(FMargin(10.0f));
+    BuildRequirementsSizeBox = WidgetTree->ConstructWidget<USizeBox>();
+    BuildRequirementsSizeBox->SetMaxDesiredWidth(560.0f);
+    BuildRequirementsSizeBox->SetContent(BuildRequirementsPanel);
+    auto* RequirementsSlot = BuildMenuStack->AddChildToVerticalBox(BuildRequirementsSizeBox);
+    RequirementsSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+    RequirementsSlot->SetPadding(FMargin(0, 8, 0, 0));
+    RequirementsSlot->SetHorizontalAlignment(HAlign_Center);
+    BuildRequirementsPanel->SetVisibility(ESlateVisibility::Collapsed);
+
+    BuildCloseButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+    auto* BuildCloseLabel = WidgetTree->ConstructWidget<UTextBlock>();
+    BuildCloseLabel->SetText(FText::FromString(TEXT("×")));
+    BuildCloseLabel->SetJustification(ETextJustify::Center);
+    BuildCloseButton->SetContent(BuildCloseLabel);
+    BuildCloseButton->SetToolTipText(FText::FromString(TEXT("Close Build menu")));
+    BuildCloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseClicked);
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    Theme.ApplyButton(*BuildCloseButton, UKalmalaSettingsWidget::GetContrastMode());
+    Theme.ApplyText(*BuildCloseLabel, 18, false, UKalmalaSettingsWidget::GetTextScalePercent(),
+        UKalmalaSettingsWidget::GetContrastMode());
+    auto* BuildCloseSize = WidgetTree->ConstructWidget<USizeBox>();
+    BuildCloseSize->SetWidthOverride(32.0f);
+    BuildCloseSize->SetContent(BuildCloseButton);
+    BrowseControlsRow->AddChildToHorizontalBox(BuildCloseSize)->SetPadding(FMargin(3.0f, 4.0f));
+    BuildCloseButton->SetVisibility(ESlateVisibility::Collapsed);
+
+    auto* ServiceSlot = Root->AddChildToOverlay(BuildMenuStack);
     ServiceSlot->SetHorizontalAlignment(HAlign_Fill);
     ServiceSlot->SetVerticalAlignment(VAlign_Fill);
     InventoryCraftBackground = WidgetTree->ConstructWidget<UBorder>();
@@ -117,6 +163,79 @@ void UKalmalaCraftingWidget::BuildInventoryCraftLayout()
     InventoryCraftButton->SetContent(CraftText);
     InventoryCraftButton->OnClicked.AddDynamic(this, &ThisClass::Craft);
     Details->AddChildToVerticalBox(InventoryCraftButton)->SetPadding(FMargin(0, 4, 0, 0));
+}
+
+void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
+    const TArray<FKalmalaInventoryStack>& Costs, const UKalmalaInventoryComponent* Inventory,
+    const FString& Details, const int32 TextScalePercent, const int32 ContrastMode)
+{
+    if (!BuildRequirementsPanel || !BuildRequirementsFrame || !BuildRequirementsTitle
+        || !BuildRequirementsCosts || !BuildRequirementsDetails) return;
+
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    if (LastBuildRequirementTextScale != TextScalePercent
+        || LastBuildRequirementContrast != ContrastMode)
+    {
+        Theme.ApplyPanel(*BuildRequirementsPanel, ContrastMode, &Theme.InventoryPanelImage);
+        BuildRequirementsFrame->SetBrush(FSlateRoundedBoxBrush(
+            ContrastMode ? FLinearColor::Black : FLinearColor(.09f, .045f, .02f, .65f), 3.f,
+            ContrastMode ? FLinearColor::White : FLinearColor(.45f, .27f, .12f, 1.f), 1.f));
+        BuildRequirementsFrame->SetBrushColor(FLinearColor::White);
+        Theme.ApplyText(*BuildRequirementsTitle, 17, true, TextScalePercent, ContrastMode);
+        Theme.ApplyText(*BuildRequirementsDetails, 14, false, TextScalePercent, ContrastMode);
+        LastBuildRequirementTextScale = TextScalePercent;
+        LastBuildRequirementContrast = ContrastMode;
+    }
+    if (BuildRequirementsTitle->GetText().ToString() != Title)
+        BuildRequirementsTitle->SetText(FText::FromString(Title));
+    if (BuildRequirementsDetails->GetText().ToString() != Details)
+        BuildRequirementsDetails->SetText(FText::FromString(Details));
+
+    FString Signature = FString::Printf(TEXT("%s/%s/%d/%d"), *Title, *Details,
+        TextScalePercent, ContrastMode);
+    TArray<int32> OwnedCounts;
+    OwnedCounts.Reserve(Costs.Num());
+    for (const FKalmalaInventoryStack& Cost : Costs)
+    {
+        int32 Owned = 0;
+        if (Inventory)
+            for (const FKalmalaInventoryStack& Stack : Inventory->GetStacks())
+                if (Stack.ItemId == Cost.ItemId) Owned += Stack.Quantity;
+        OwnedCounts.Add(Owned);
+        Signature += FString::Printf(TEXT("/%s:%d:%d"), *Cost.ItemId.ToString(), Cost.Quantity, Owned);
+    }
+
+    if (Signature == BuildRequirementCostSignature) return;
+    BuildRequirementCostSignature = MoveTemp(Signature);
+    BuildRequirementsCosts->ClearChildren();
+    for (int32 Index = 0; Index < Costs.Num(); ++Index)
+    {
+        const FKalmalaInventoryStack& Cost = Costs[Index];
+        auto* CostColumn = WidgetTree->ConstructWidget<UVerticalBox>();
+        auto* IconSize = WidgetTree->ConstructWidget<USizeBox>();
+        IconSize->SetWidthOverride(44.0f);
+        IconSize->SetHeightOverride(44.0f);
+        auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+        Icon->SetCatalogueIcon(Cost.ItemId);
+        IconSize->SetContent(Icon);
+        CostColumn->AddChildToVerticalBox(IconSize)->SetHorizontalAlignment(HAlign_Center);
+
+        auto* Amount = WidgetTree->ConstructWidget<UTextBlock>();
+        Amount->SetText(FText::AsNumber(Cost.Quantity));
+        Amount->SetJustification(ETextJustify::Center);
+        Theme.ApplyText(*Amount, 16, true, TextScalePercent, ContrastMode);
+        if (ContrastMode == 0 && OwnedCounts[Index] < Cost.Quantity)
+            Amount->SetColorAndOpacity(FSlateColor(FLinearColor(1.f, .35f, .25f)));
+        CostColumn->AddChildToVerticalBox(Amount);
+
+        const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Cost.ItemId);
+        CostColumn->SetToolTipText(FText::FromString(FString::Printf(
+            TEXT("%s: %d owned, %d required"),
+            Item ? *Item->DisplayName : *Cost.ItemId.ToString(), OwnedCounts[Index], Cost.Quantity)));
+        BuildRequirementsCosts->AddChildToHorizontalBox(CostColumn)->SetPadding(FMargin(6.0f, 0.0f));
+    }
+    BuildRequirementsCosts->SetVisibility(Costs.IsEmpty()
+        ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 }
 
 void UKalmalaCraftingWidget::SelectInventoryCraftRecipe()

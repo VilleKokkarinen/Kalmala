@@ -1373,6 +1373,20 @@ placement validation remain required.
 
 This M13 request remains governed by the live backlog; do not infer completion from its specification.
 
+The 2026-10-11 standalone Build presentation update supersedes the earlier
+detail-area-under-menu wording above. Build uses the same original wood
+backplate as Inventory. Its icon grid shows 64×64 catalogue icons with clear
+spacing between cards. The main Build window ends after the item grid and its
+browse controls; it does not show selected-item details, ingredient rows,
+placement preview, status text, or action buttons below the grid. A separate,
+compact wood panel sits below the main window and shows the selected item's
+requirements. Material costs use the same icon-and-amount presentation as
+Inventory Crafting, including owner-visible counts in tooltips and an
+insufficient-cost cue. Requirement text retains the applicable hammer,
+placement, station, fuel, and availability conditions. Clicking a build card
+still enters the existing local placement mode, and the server continues to
+validate placement and costs.
+
 ## Owner notifications
 
 

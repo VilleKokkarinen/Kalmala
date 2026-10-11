@@ -2513,13 +2513,27 @@ Campfire Interact replaces the raw-fuel button, but it only refuels, so the
 separate Light action remains until an equivalent relight route is integrated.
 
 After an affected UI build, `Verify-Crafting.ps1` requires
-`Build context cleanup: Header=1 ObsoleteHidden=1 Placement=1 Relight=1 Status=1
+`Build context cleanup: Headerless=1 BrowseControls=1 ObsoleteHidden=1
+GridAndRequirements=1 CardActionsHidden=1 RelightRemoved=1 StatusHidden=1
 StorageShell=1` on both peers, alongside Workbench `PassiveRack=1` and Forge
 `PassiveAnvil=1`. Its rendered matrix captures the cleaned standalone Build
 menu and verifies the clean view after category/no-results recovery. Run the
 full queue, host/client rendered matrix, ownership and documentation checks
 during M12 milestone-final verification; this child does not claim those
 runtime results.
+
+## Standalone Build requirements panel — 2026-10-11
+
+The latest standalone Build presentation uses the Inventory wood backplate,
+64×64 item icons with card spacing, and a compact requirements panel below the
+main grid. That panel uses Inventory Crafting's material-icon and amount style,
+then shows the selected build's applicable hammer, placement, station, fuel,
+and availability requirements. The main window has no selected-item details,
+ingredient list, preview button, status rows, or other action rows beneath the
+grid. The existing Build-menu cleanup verifier checks this split layout; card
+selection continues to enter the existing local placement mode. These current
+visual expectations supersede the older M11/M12 Build screenshot descriptions
+above.
 
 ## M12 catalogue icon integration
 
