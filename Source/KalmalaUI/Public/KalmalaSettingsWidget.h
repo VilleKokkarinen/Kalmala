@@ -146,8 +146,6 @@ private:
     UFUNCTION()
     void HandleOptionsClicked();
     UFUNCTION()
-    void HandleStatusDetailsClicked();
-    UFUNCTION()
     void HandleQuitClicked();
     UFUNCTION()
     void HandleGraphicsClicked();
@@ -230,8 +228,6 @@ private:
     TObjectPtr<UTextBlock> ContrastLabel;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> FeedbackLabel;
-    UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> StatusDetailsLabel;
     UPROPERTY(Transient)
     TArray<TObjectPtr<UKalmalaThemedButton>> OptionsTabButtons;
 

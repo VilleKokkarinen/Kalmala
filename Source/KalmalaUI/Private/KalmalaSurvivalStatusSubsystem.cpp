@@ -113,7 +113,6 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
 
     StatusWidget->SetSnapshot(Snapshot,
         UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
-    StatusDetailsText = UKalmalaSurvivalStatusWidget::BuildStatusText(Snapshot);
     int32 HotbarScale = UKalmalaSettingsWidget::GetTextScalePercent();
     int32 HotbarContrast = UKalmalaSettingsWidget::GetContrastMode();
     bool bSuppressHotbarTransitions = false;
@@ -205,23 +204,6 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
         }
         if (VerificationCapture == 4 && VerificationElapsed >= 22)
         {
-            VerificationDetails = CreateWidget<UKalmalaSettingsWidget>(FoundController, UKalmalaSettingsWidget::StaticClass());
-            VerificationDetails->AddToPlayerScreen(200);
-            UKalmalaSettingsWidget::SetTextScalePercent(HotbarScale);
-            UKalmalaSettingsWidget::SetContrastMode(HotbarContrast);
-            VerificationDetails->OpenForVerification(FoundController,3);
-            ++VerificationCapture;
-        }
-        if (VerificationCapture == 5 && VerificationElapsed >= 25)
-        {
-            UE_LOG(LogTemp,Display,TEXT("Hotbar details: Focusable=%d OwnerLocal=1 LiveDetails=%d"),
-                VerificationDetails->HasFocusableContentForVerification(), !StatusDetailsText.IsEmpty());
-            FScreenshotRequest::RequestScreenshot(CapturePrefix+TEXT("-details.png"),true,false);
-            ++VerificationCapture;
-        }
-        if (VerificationCapture == 6 && VerificationElapsed >= 28)
-        {
-            VerificationDetails->Close(); VerificationDetails->RemoveFromParent(); VerificationDetails=nullptr;
             TArray<FKalmalaCatalogueRow> Rows;
             TSet<FName> IncludedIds;
             const auto AddCanonicalRow = [&Rows, &IncludedIds](const FName Id, const FString& DisplayName)
@@ -256,12 +238,12 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
             UE_LOG(LogTemp,Display,TEXT("Catalogue icon gallery: Canonical=%d ReadOnly=1"),Rows.Num());
             ++VerificationCapture;
         }
-        if (VerificationCapture==7 && VerificationElapsed>=31)
+        if (VerificationCapture==5 && VerificationElapsed>=31)
         {
             FScreenshotRequest::RequestScreenshot(CapturePrefix+TEXT("-icons.png"),true,false);
             ++VerificationCapture;
         }
-        if (VerificationCapture == 8 && VerificationElapsed >= 31.7f)
+        if (VerificationCapture == 6 && VerificationElapsed >= 31.7f)
         {
             // Let the icon-gallery screenshot flush before removing its full-screen
             // background; transition-cue captures must show the live HUD again.
@@ -270,7 +252,7 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
                 if (Gallery != nullptr) Gallery->RemoveFromParent();
             }
             VerificationGallery.Reset();
-            ++VerificationCapture;
+            VerificationCapture = 7;
         }
         // Read-only consumer coverage for the three support images absent from
         // the six-entry fixture. No effect is activated or sent to the server.
@@ -288,7 +270,7 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
             Snapshot.ActiveSupportEffectExpiry = 80.0f;
             Snapshot.ServerTimeSeconds = 45.0f;
             bSuppressHotbarTransitions = true;
-            if (VerificationCapture == 9 + Index && VerificationElapsed >= 42.0f + Index * 4.0f)
+            if (VerificationCapture == 7 + Index && VerificationElapsed >= 42.0f + Index * 4.0f)
             {
                 UE_LOG(LogTemp, Display, TEXT("Status image consumer: Id=%s Geometry=%d ReadOnly=1"),
                     Names[Index], HotbarWidget->HasRasterIconGeometryForVerification(HotbarScale, 1));
@@ -360,10 +342,7 @@ void UKalmalaSurvivalStatusSubsystem::ReleaseController()
     StatusWidget = nullptr;
     if (HotbarWidget) HotbarWidget->RemoveFromParent();
     HotbarWidget = nullptr;
-    StatusDetailsText.Empty();
     VerificationElapsed=0; VerificationCapture=0;
-    if (VerificationDetails) { VerificationDetails->Close(); VerificationDetails->RemoveFromParent(); }
-    VerificationDetails=nullptr;
     for (auto Gallery : VerificationGallery) if (Gallery) Gallery->RemoveFromParent();
     VerificationGallery.Reset();
     FeedbackPawn = nullptr;

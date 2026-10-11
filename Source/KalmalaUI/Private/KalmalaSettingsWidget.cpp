@@ -11,8 +11,6 @@
 #include "Components/ScrollBox.h"
 #include "Components/SizeBox.h"
 #include "Components/Slider.h"
-#include "KalmalaSurvivalStatusSubsystem.h"
-#include "Engine/LocalPlayer.h"
 #include "Engine/UserInterfaceSettings.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -445,7 +443,6 @@ void UKalmalaSettingsWidget::SetVerificationTab(const int32 TabIndex)
     case 0: ShowAudioTab(); break;
     case 1: ShowKeyboardAndMouseTab(); break;
     case 2: ShowAccessibilityTab(); break;
-    case 3: HandleStatusDetailsClicked(); break;
     case 4: ShowOptionsMenu(); break;
     case 6: ShowGraphicsTab(); break;
     case 7: ShowControllerTab(); break;
@@ -500,10 +497,8 @@ bool UKalmalaSettingsWidget::IsHomeMenuSurfaceTransparentForVerification() const
 
 bool UKalmalaSettingsWidget::HasOnlyHomeMenuOptionsForVerification() const
 {
-    if (ContentBox == nullptr || ContentBox->GetChildrenCount() != 3) return false;
-    static const FName ExpectedNames[] = {
-        TEXT("OptionsButton"), TEXT("StatusDetailsButton"), TEXT("QuitButton")
-    };
+    if (ContentBox == nullptr || ContentBox->GetChildrenCount() != 2) return false;
+    static const FName ExpectedNames[] = { TEXT("OptionsButton"), TEXT("QuitButton") };
     for (int32 Index = 0; Index < UE_ARRAY_COUNT(ExpectedNames); ++Index)
     {
         const UWidget* Child = ContentBox->GetChildAt(Index);
@@ -1082,12 +1077,9 @@ void UKalmalaSettingsWidget::ShowMainMenu()
 {
     OptionsTabButtons.Reset();
     ApplyHomeMenuPalette();
-    StatusDetailsLabel = nullptr;
     ContentBox->ClearChildren();
     UButton* Options = AddButton(ContentBox, FText::FromString(TEXT("Options")), TEXT("OptionsButton"));
     Options->OnClicked.AddDynamic(this, &ThisClass::HandleOptionsClicked);
-    UButton* Status = AddButton(ContentBox, FText::FromString(TEXT("Status and weather details")), TEXT("StatusDetailsButton"));
-    Status->OnClicked.AddDynamic(this, &ThisClass::HandleStatusDetailsClicked);
     UButton* Quit = AddButton(ContentBox, FText::FromString(TEXT("Quit")), TEXT("QuitButton"));
     Quit->OnClicked.AddDynamic(this, &ThisClass::HandleQuitClicked);
     Options->SetUserFocus(GetOwningPlayer());
@@ -1097,7 +1089,6 @@ void UKalmalaSettingsWidget::ShowMainMenu()
 void UKalmalaSettingsWidget::ShowOptionsMenu()
 {
     OptionsTabButtons.Reset();
-    StatusDetailsLabel = nullptr;
     ContentBox->ClearChildren();
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
     AddLabel(ContentBox, FText::FromString(TEXT("Options")), 30.0f)->SetJustification(ETextJustify::Center);
@@ -1452,23 +1443,6 @@ void UKalmalaSettingsWidget::UpdateSettingsLabels()
 
 void UKalmalaSettingsWidget::ApplyVideoSettings() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->ApplySettings(false); Settings->SaveSettings(); UpdateVideoLabels(); } }
 void UKalmalaSettingsWidget::HandleOptionsClicked() { ShowOptionsMenu(); }
-void UKalmalaSettingsWidget::HandleStatusDetailsClicked()
-{
-    ApplyModalPalette(&FKalmalaUITheme::Get().EscapePanelImage);
-    ContentBox->ClearChildren();
-    AddLabel(ContentBox, FText::FromString(TEXT("Your status and weather")), 24);
-    AddLabel(ContentBox, FText::FromString(TEXT("One entry per active effect; effects do not stack. Finite player effects show their remaining time; Hot, Cold and weather have no countdown.")), 15);
-    UButton* Back = AddButton(ContentBox, FText::FromString(TEXT("Back to main menu")), TEXT("StatusBack"));
-    Back->OnClicked.AddDynamic(this, &ThisClass::ShowMainMenu);
-    auto* Scroll = WidgetTree->ConstructWidget<UScrollBox>();
-    FKalmalaUITheme::Get().ApplyScroll(*Scroll);
-    ContentBox->AddChildToVerticalBox(Scroll)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-    StatusDetailsLabel = WidgetTree->ConstructWidget<UTextBlock>();
-    StatusDetailsLabel->SetAutoWrapText(true);
-    Scroll->AddChild(StatusDetailsLabel);
-    Back->SetUserFocus(GetOwningPlayer()); Back->SetKeyboardFocus();
-}
-
 void UKalmalaSettingsWidget::NativeTick(const FGeometry& Geometry, float DeltaTime)
 {
     Super::NativeTick(Geometry, DeltaTime);
@@ -1515,13 +1489,6 @@ void UKalmalaSettingsWidget::NativeTick(const FGeometry& Geometry, float DeltaTi
             if (Progress >= 1.0f) ResetOptionsOpeningAnimation();
         }
     }
-    if (!bMenuOpen || !StatusDetailsLabel) return;
-    const auto* LocalPlayer = GetOwningLocalPlayer();
-    const auto* Status = LocalPlayer ? LocalPlayer->GetSubsystem<UKalmalaSurvivalStatusSubsystem>() : nullptr;
-    const FString Details = Status ? Status->GetStatusDetailsText() : TEXT("Waiting for player character.");
-    StatusDetailsLabel->SetText(FText::FromString(Details));
-    const auto& Theme = FKalmalaUITheme::Get();
-    Theme.ApplyText(*StatusDetailsLabel, Theme.BodySize, false, GetTextScalePercent(), GetContrastMode());
 }
 void UKalmalaSettingsWidget::HandleQuitClicked() { UKismetSystemLibrary::QuitGame(this, GetOwningPlayer(), EQuitPreference::Quit, false); }
 void UKalmalaSettingsWidget::HandleGraphicsClicked() { ShowGraphicsTab(); }

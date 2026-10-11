@@ -141,7 +141,7 @@ panel is moving, interrupts and reopens it mid-transition, and checks the
 intermediate/final positions, center anchoring, immediate focus, modal input
 suppression/restoration, keyboard/controller mappings, gameplay stability, and
 the sixteen current view captures. The Escape capture must show gameplay
-through a transparent home surface with only its three option buttons and a
+through a transparent home surface with only its Options and Quit buttons and a
 visible focused option; the other option tabs retain their configured panel
 backgrounds. The temporary viewport change is restored
 before captures complete. Then run `Scripts/Verify-SettingsAccessibilityContract.ps1`,
@@ -185,7 +185,7 @@ Run the full `Automation RunTests Kalmala` queue, then
 `Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`. The
 host/client settings probe visits the Escape shell and Keyboard & Mouse,
 Controller, Graphics, Audio, and Accessibility groups; require the Escape surface to be transparent in standard
-contrast, retain its three existing actions and visible focus cue, and require
+contrast, retain its two existing actions and visible focus cue, and require
 the configured option-tab images to resolve. High contrast must suppress
 decorative images and retain an opaque surface with a visible non-colour focus
 cue. Existing values, focus, text scale, keyboard and
@@ -968,7 +968,7 @@ catches support/status overlap rather than scaling only the hotbar. It
 also checks that the widget source still creates raster images, visually hidden
 accessible names and centred timers, and that the automation source retains the
 finite/untimed assertions; the final automation queue executes those tests.
-Inspect both peers' `empty`, `populated`, `expired`, `details`, and `icons` PNGs;
+Inspect both peers' `empty`, `populated`, `expired`, and `icons` PNGs;
 the populated captures must show no visible status names, real raster icons,
 centred timers only for finite Wet, meal, and support effects, and safe wrapping.
 
@@ -1136,7 +1136,7 @@ It starts a seed-418 listen server and conflicting-seed client, opens the live
 Escape shell and Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility
 groups, and captures each
 at the selected 1280x720 or 1024x768 viewport. The Escape capture keeps gameplay
-visible behind only the three existing options and shows the focused option
+visible behind only the two existing options and shows the focused option
 highlight; its transparent area is excluded from the dark modal-gutter pixel
 assertion used by the tab captures. Graphics, Accessibility,
 reduced-motion Accessibility, and restored HUD use standard contrast; Keyboard &

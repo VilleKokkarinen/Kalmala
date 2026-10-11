@@ -42,7 +42,7 @@ try {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited during presentation.' }
         $ready = $true
         foreach ($peer in @('host','client')) {
-            foreach ($phase in @('empty','populated','expired','details','icons','Mending','BearsVigor','DeerCall')) {
+            foreach ($phase in @('empty','populated','expired','icons','Mending','BearsVigor','DeerCall')) {
                 $capturePath = "$output/$peer-$phase.png"
                 $ready = $ready -and (Test-Path $capturePath)
                 if (Test-Path $capturePath) { $ready = $ready -and (Get-Item $capturePath).Length -gt 32 }
@@ -61,7 +61,7 @@ try {
         foreach ($phase in @('empty','expired')) {
             if ($log -notmatch "Hotbar fixture: Phase=$phase Entries=0 ReadOnly=1") { throw "$peer $phase did not remove entries." }
         }
-        if ($log -notmatch 'Hotbar details: Focusable=1 OwnerLocal=1 LiveDetails=1' -or $log -notmatch 'Catalogue icon gallery: Canonical=52 ReadOnly=1') { throw "$peer details/gallery coverage failed." }
+        if ($log -notmatch 'Catalogue icon gallery: Canonical=52 ReadOnly=1') { throw "$peer catalogue icon gallery coverage failed." }
         foreach ($id in @('Mending','BearsVigor','DeerCall')) {
             if (!$log.Contains("Status image consumer: Id=$id Geometry=1 ReadOnly=1")) { throw "$peer $id image consumer failed." }
         }

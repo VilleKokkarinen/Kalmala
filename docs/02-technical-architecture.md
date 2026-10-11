@@ -1270,7 +1270,7 @@ Hover, keyboard/controller focus, selection, and disabled states share theme bru
 
 The active-only owner HUD is transparent, non-focusable, and hit-test-invisible, beside the minimap. Stable order is Wet, meal, Hot, Cold, current support, then Storm. Known active effects appear once; expired entries disappear immediately and empty groups collapse. Finite player/support timers use authoritative remaining time or synchronized server expiry. Hot/Cold/Storm have no countdown. Storm requires the existing 0.65 threshold and a current server weather interval. Start/refresh cues are local; obsolete M11 Ended rows must not survive M12's active-only contract.
 
-Each raster fills its scaled 64x64 box. Status layout wraps within a 384-unit row cap and preserves minimap/support separation. Visible names are omitted but hidden accessible labels remain; Escape's status/weather details provide text access without hover.
+Each raster fills its scaled 64x64 box. Status layout wraps within a 384-unit row cap and preserves minimap/support separation. Visible names are omitted but hidden accessible labels remain. The Escape home menu contains Options and Quit; it does not open a separate status/weather detail page.
 
 The accepted catalogue icon baseline covers 48 canonical item/tool/construction identities and nine status identities. Views reuse canonical IDs and one image per identity; aliases and recipes do not get duplicate art. Unknown IDs retain a question-mark fallback; missing imported textures retain existing vector fallbacks. Current runtime/catalogue additions must receive explicit coverage rather than assuming the historical counts include them.
 
@@ -1700,8 +1700,8 @@ only; it does not add gameplay tuning, a replicated option, a server setting,
 or a new save schema.
 
 M11 places Wet, meal, exposure, support and weather status markers in one
-transparent owner-local hotbar. Escape > Status and weather details exposes
-their live text without hover. The optional feedback overlay retains nearby
+transparent owner-local hotbar, with hidden accessible labels and existing
+timers. The Escape home menu contains Options and Quit only. The optional feedback overlay retains nearby
 hearth/construction context, with no duplicate active status rows.
 Owner-local notifications now carry concise combat/support outcomes and
 discovery acknowledgements; a separate text-plus-glyph strip shows the selected
@@ -2163,9 +2163,10 @@ Every audited seam is presentation-only: it may improve readability or
 feedback, but it cannot become a gameplay source.
 
 M11 supersedes the historical status placement below: active status/weather
-now appears only in the transparent owner-local top-right hotbar, with live
-details in Escape > Status and weather details. The lower-left widget retains
-only ocean travel, and pack preparation guidance retains no active timer.
+now appears only in the transparent owner-local top-right hotbar, with hidden
+accessible labels and existing timers. The Escape home menu contains Options
+and Quit only. The lower-left widget retains only ocean travel, and pack
+preparation guidance retains no active timer.
 Canonical catalogue images are shared by Inventory items, carried tools,
 selected-item details, ingredient rows, and the chest selectors; the existing
 vector assignment remains the missing-texture fallback. Build and crafting

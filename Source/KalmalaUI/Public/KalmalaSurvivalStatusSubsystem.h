@@ -17,7 +17,6 @@ class KALMALAUI_API UKalmalaSurvivalStatusSubsystem : public ULocalPlayerSubsyst
     GENERATED_BODY()
 
 public:
-    const FString& GetStatusDetailsText() const { return StatusDetailsText; }
     virtual void Tick(float DeltaTime) override;
     virtual void Deinitialize() override;
     virtual UWorld* GetTickableGameObjectWorld() const override { return GetWorld(); }
@@ -35,11 +34,9 @@ private:
 
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaStatusHotbarWidget> HotbarWidget;
-    FString StatusDetailsText;
     float VerificationElapsed = 0;
     int32 VerificationCapture = 0;
     int32 VerificationCueCapture = 0;
-    UPROPERTY(Transient) TObjectPtr<class UKalmalaSettingsWidget> VerificationDetails;
     UPROPERTY(Transient) TArray<TObjectPtr<class UKalmalaCatalogueRowsWidget>> VerificationGallery;
 
     TWeakObjectPtr<APlayerController> LocalController;

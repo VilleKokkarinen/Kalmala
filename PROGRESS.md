@@ -577,3 +577,12 @@
 - **Impact/authority:** standalone Build presentation only; clicked build cards keep their existing local placement route and server-side placement/cost checks. No networking, persistence, or saved-data changes.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Full build, automation, host/client, package, and rendered-menu verification remain deferred.
 - **Next eligible work:** the unchecked Escape home border transparency entry remains ahead in post-roadmap user-directed work; the accepted M14 main-checkout integration handoff also remains pending.
+
+## User-directed increment 2026-10-11 — Remove Escape status/weather details page
+
+- **Completed:** removed the status/weather details button from the Escape home menu and removed the separate live text screen, its refresh path, and its development-only capture. The Escape shell now contains Options and Quit. The active-only status hotbar, its hidden accessible names, and existing timers remain unchanged.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, `Source/KalmalaUI/Private/KalmalaSurvivalStatusSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaSurvivalStatusSubsystem.h`, `Scripts/Verify-StatusHotbar.ps1`, `docs/02-technical-architecture.md`, `docs/04-roadmap.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** inspected the changed Escape construction/focus and developer capture flow; searched for remaining button, handler, subsystem getter, and details-capture references; `git diff --check` and changed-path MAX_PATH audit passed. No test, build, or Unreal menu render was run.
+- **Impact/authority:** local UI navigation and presentation only. Existing replicated status/weather snapshots, status HUD presentation, gameplay authority, timers, persistence, and save schemas are unchanged.
+- **Verification/limitations:** normal user-directed post-roadmap increment, not milestone-final. Runtime visual/focus verification and full editor/build verification remain deferred.
+- **Next eligible work:** integrate the accepted isolated M14 world-map source into main and perform applicable integration verification.
