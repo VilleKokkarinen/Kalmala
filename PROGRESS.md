@@ -604,3 +604,12 @@
 - **Impact/authority:** script output housekeeping only; no gameplay, networking, persistence, or saved-data changes.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. A subsequent directory-mode render will apply the cleanup behavior; render results remain unverified.
 - **Next eligible work:** the unchecked Escape home border transparency item remains first in the post-roadmap backlog; M14 main-checkout integration is also pending.
+
+## User-directed increment 2026-10-11 — Fix standalone Build card fill and visible icon scale
+
+- **Completed:** fixed the root of the gray Build cards: `ApplySelectablePanel` started an asynchronous gray fill transition after the Build code applied its brown overlay, so the parent `UBorder` card repainted gray. Added an explicit fill-animation option and disabled it for icon-only Build cards, allowing the brown/selected/unavailable fills to remain visible. The icon is a child of that card border; the `USizeBox` is only the 64×64 layout slot. Catalogue PNGs have transparent edge pixels, so the Build icon widget now renders slightly enlarged around its center while retaining image aspect ratio.
+- **Files:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `Source/KalmalaUI/Public/KalmalaUITheme.h`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** traced the `ApplySelectablePanel` fill ticker and Build widget nesting; confirmed the explicit Build slot is 64×64 and transparent PNG margins shrink the visible art. `git diff --check` and changed-path MAX_PATH audit passed. No test, build, automation, or Unreal menu render ran.
+- **Impact/authority:** standalone Build presentation only. Selection, local placement entry, server-side placement/cost validation, persistence, networking authority, and saved data are unchanged.
+- **Verification/limitations:** normal post-roadmap user-directed increment, not milestone-final. The running game needs a rebuilt native module for this change to appear; a fresh Build-menu render remains deferred.
+- **Next eligible work:** the unchecked Escape home border transparency item remains first in the post-roadmap backlog; M14 main-checkout integration is also pending.

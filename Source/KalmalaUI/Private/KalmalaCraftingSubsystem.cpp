@@ -1733,6 +1733,10 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             IconBox->SetHeightOverride(RecipeIconSize);
             UKalmalaIconWidget* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
             Icon->SetCatalogueIcon(Recipe.GetOutputIdentity());
+            // Catalogue images use a 64x64 canvas but transparent edge pixels make the visible art smaller.
+            const float IconRenderScale = bIconOnlyBuildCards ? 1.085f : 1.0f;
+            Icon->SetRenderScale(FVector2D(IconRenderScale, IconRenderScale));
+            Icon->SetRenderTransformPivot(FVector2D(0.5f, 0.5f));
             IconBox->SetContent(Icon);
             auto* GridIconSlot = HeadingRow->AddChildToHorizontalBox(IconBox);
             GridIconSlot->SetVerticalAlignment(VAlign_Top);
@@ -1936,7 +1940,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
         {
             RecipeSlotVisualStates[SlotIndex] = VisualState;
             Theme.ApplySelectablePanel(*RecipeSlotCards[SlotIndex], bSelected, bFocused, bUnavailable,
-                ContrastMode, bInventoryCompanion);
+                ContrastMode, bInventoryCompanion, !bIconOnlyBuildCards);
             if ((bInventoryCompanion || bIconOnlyBuildCards) && ContrastMode == 0)
             {
                 FLinearColor Fill = bUnavailable ? FLinearColor(0.075f, 0.052f, 0.034f, 1.0f)

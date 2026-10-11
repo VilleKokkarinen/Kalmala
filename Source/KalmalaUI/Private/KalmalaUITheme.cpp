@@ -467,7 +467,8 @@ void FKalmalaUITheme::ApplySlider(USlider& Slider, const int32 ContrastMode) con
 }
 
 void FKalmalaUITheme::ApplySelectablePanel(UBorder& Border, const bool bSelected, const bool bFocused,
-    const bool bUnavailable, const int32 ContrastMode, const bool bReducedMotion) const
+    const bool bUnavailable, const int32 ContrastMode, const bool bReducedMotion,
+    const bool bAnimateFill) const
 {
     const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
     const FLinearColor Fill = bContrast ? HighContrastPanel
@@ -483,7 +484,8 @@ void FKalmalaUITheme::ApplySelectablePanel(UBorder& Border, const bool bSelected
     Border.SetBrush(FSlateRoundedBoxBrush(FLinearColor::White, CornerRadius, Outline, OutlineWidth));
     Border.SetPadding(FMargin(SlotPadding + ((bSelected || bFocused) ? 1.0f : 0.0f)));
     // Selection and focus labels remain the non-colour cue; the fill transition is decorative.
-    if (!bAnimateInteractionStates || bReducedMotion || UKalmalaSettingsWidget::IsReducedMotionEnabled()
+    if (!bAnimateInteractionStates || bReducedMotion || !bAnimateFill
+        || UKalmalaSettingsWidget::IsReducedMotionEnabled()
         || InteractionTransitionDuration <= 0.0f)
     {
         TransitionBorderFill(Border, Fill, 0.0f, false);

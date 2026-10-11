@@ -94,7 +94,7 @@ struct KALMALAUI_API FKalmalaUITheme
     void SizeButtonToContent(UButton& Button) const;
     void ApplySlider(USlider& Slider, int32 ContrastMode) const;
     void ApplySelectablePanel(UBorder& Border, bool bSelected, bool bFocused, bool bUnavailable,
-        int32 ContrastMode, bool bReducedMotion = false) const;
+        int32 ContrastMode, bool bReducedMotion = false, bool bAnimateFill = true) const;
     void ApplyIconSlot(USizeBox& Slot) const;
     void ApplyScroll(UScrollBox& Scroll, bool bReducedMotion = false) const;
     bool ShouldAnimateOptionsOpening() const;
