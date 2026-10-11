@@ -1,6 +1,7 @@
 #include "KalmalaInventoryMenuWidget.h"
 
 #include "Blueprint/WidgetTree.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Border.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
@@ -62,18 +63,6 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     const auto& Theme = FKalmalaUITheme::Get();
     const int32 TextScale = UKalmalaSettingsWidget::GetTextScalePercent();
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
-    auto* Root = WidgetTree->ConstructWidget<UOverlay>();
-    WidgetTree->RootWidget = Root;
-    auto* Scrim = WidgetTree->ConstructWidget<UBorder>();
-    Scrim->SetBrushColor(FLinearColor(0.008f, 0.012f, 0.014f, 0.25f));
-    auto* ScrimSlot = Root->AddChildToOverlay(Scrim);
-    ScrimSlot->SetHorizontalAlignment(HAlign_Fill);
-    ScrimSlot->SetVerticalAlignment(VAlign_Fill);
-    PanelBackplate = WidgetTree->ConstructWidget<UBorder>();
-    if (Contrast == 0) Theme.ApplyPanel(*PanelBackplate, Contrast, &Theme.InventoryPanelImage);
-    else Theme.ApplySolidPanel(*PanelBackplate, Contrast);
-    PanelBackplate->SetPadding(FMargin(8.0f));
-    auto* Split = WidgetTree->ConstructWidget<UHorizontalBox>();
     auto* Content = WidgetTree->ConstructWidget<UVerticalBox>();
     MenuContentScrollBox = WidgetTree->ConstructWidget<UScrollBox>();
     Theme.ApplyScroll(*MenuContentScrollBox);
@@ -88,12 +77,11 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
         Content->AddChildToVerticalBox(Text);
         return Text;
     };
-    AddText(TEXT("Inventory"), true);
     GridView = WidgetTree->ConstructWidget<UKalmalaInventoryGridWidget>();
     GridView->OnItemSelected.AddUObject(this, &ThisClass::SelectGridItem);
     GridView->OnItemHovered.AddUObject(this, &ThisClass::HoverGridItem);
     GridSizeBox = WidgetTree->ConstructWidget<USizeBox>();
-    GridSizeBox->SetHeightOverride((ResponsivePanelWidth * 0.43f - Theme.PaddingX * 2.0f - 24.0f) * 0.4f);
+    GridSizeBox->SetHeightOverride((ResponsivePanelWidth - Theme.PaddingX * 2.0f - 24.0f) * 0.4f);
     GridSizeBox->SetContent(GridView);
     Content->AddChildToVerticalBox(GridSizeBox);
     ArmorWeightText = AddText(TEXT("Armor 0 · Weight 0/300"), false);
@@ -121,42 +109,26 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     FoodActionStatusText = AddText(TEXT(""), false);
     FoodActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
     InventoryPanel = WidgetTree->ConstructWidget<UBorder>();
-    Theme.ApplySolidPanel(*InventoryPanel, Contrast);
+    Theme.ApplyPanel(*InventoryPanel, Contrast, &Theme.InventoryPanelImage);
     InventoryPanel->SetPadding(FMargin(Theme.PaddingX, Theme.PaddingY));
     InventoryPanel->SetContent(MenuContentScrollBox);
-    auto* InventorySlot = Split->AddChildToHorizontalBox(InventoryPanel);
-    auto InventorySize = FSlateChildSize(ESlateSizeRule::Fill);
-    InventorySize.Value = 0.43f;
-    InventorySlot->SetSize(InventorySize);
-    InventorySlot->SetPadding(FMargin(4.0f));
+    PanelBackplate = InventoryPanel;
     CraftingCompanion = GetOwningPlayer()
         ? CreateWidget<UKalmalaCraftingWidget>(GetOwningPlayer(), UKalmalaCraftingWidget::StaticClass())
         : nullptr;
-    if (!CraftingCompanion) CraftingCompanion = WidgetTree->ConstructWidget<UKalmalaCraftingWidget>();
-    if (CraftingCompanion)
-    {
-        auto* CraftingSlot = Split->AddChildToHorizontalBox(CraftingCompanion);
-        auto CraftingSize = FSlateChildSize(ESlateSizeRule::Fill);
-        CraftingSize.Value = 0.57f;
-        CraftingSlot->SetSize(CraftingSize);
-        CraftingSlot->SetPadding(FMargin(4.0f));
-    }
-    PanelBackplate->SetContent(Split);
     PanelSizeBox = WidgetTree->ConstructWidget<USizeBox>();
     PanelSizeBox->SetWidthOverride(ResponsivePanelWidth);
     PanelSizeBox->SetHeightOverride(ResponsivePanelHeight);
     PanelSizeBox->SetContent(PanelBackplate);
-    auto* PanelSlot = Root->AddChildToOverlay(PanelSizeBox);
-    PanelSlot->SetHorizontalAlignment(HAlign_Center);
-    PanelSlot->SetVerticalAlignment(VAlign_Center);
-    PanelSlot->SetPadding(FMargin(0.0f));
+    WidgetTree->RootWidget = PanelSizeBox;
     SetVisibility(ESlateVisibility::Collapsed);
 }
 void UKalmalaInventoryMenuWidget::NativeTick(const FGeometry& MyGeometry, const float InDeltaTime)
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
     if (!bMenuOpen) return;
-    UpdateResponsivePanelSize(MyGeometry.GetLocalSize());
+    const FVector2D Viewport = UWidgetLayoutLibrary::GetViewportSize(this) / FMath::Max(0.1f, UWidgetLayoutLibrary::GetViewportScale(this));
+    UpdateResponsivePanelSize(Viewport);
     if (bOpeningAnimationActive)
     {
         if (UKalmalaSettingsWidget::IsReducedMotionEnabled())
@@ -188,20 +160,27 @@ void UKalmalaInventoryMenuWidget::NativeTick(const FGeometry& MyGeometry, const 
 void UKalmalaInventoryMenuWidget::UpdateResponsivePanelSize(const FVector2D ViewportSize)
 {
     if (!PanelSizeBox) return;
-    const float NewWidth = FMath::Clamp(ViewportSize.X - 32.0f, 160.0f, 1220.0f);
-    const float NewHeight = FMath::Clamp(ViewportSize.Y - 32.0f, 160.0f, 900.0f);
+    const float NewWidth = FMath::Min(520.0f, FMath::Max(80.0f, ViewportSize.X * 0.38f));
+    const float GridHeight = FMath::Max(32.0f, (NewWidth - FKalmalaUITheme::Get().PaddingX * 2.0f) * 0.4f);
+    const bool bDetails = bSelectionDetailsRequested || !HoveredItemId.IsNone();
+    const float NewHeight = FMath::Min(FMath::Max(80.0f, ViewportSize.Y - 32.0f),
+        bDetails ? GridHeight + 280.0f : GridHeight + 64.0f);
     if (!FMath::IsNearlyEqual(NewWidth, ResponsivePanelWidth))
     {
         ResponsivePanelWidth = NewWidth;
         PanelSizeBox->SetWidthOverride(ResponsivePanelWidth);
     }
     if (GridSizeBox) GridSizeBox->SetHeightOverride(FMath::Max(40.0f,
-        (ResponsivePanelWidth * 0.43f - FKalmalaUITheme::Get().PaddingX * 2.0f - 24.0f) * 0.4f));
+        (ResponsivePanelWidth - FKalmalaUITheme::Get().PaddingX * 2.0f - 24.0f) * 0.4f));
     if (!FMath::IsNearlyEqual(NewHeight, ResponsivePanelHeight))
     {
         ResponsivePanelHeight = NewHeight;
         PanelSizeBox->SetHeightOverride(ResponsivePanelHeight);
     }
+    SetDesiredSizeInViewport(FVector2D(NewWidth, NewHeight));
+    SetPositionInViewport(FVector2D(16.0f, 16.0f), false);
+    SetAlignmentInViewport(FVector2D::ZeroVector);
+    SetAnchorsInViewport(FAnchors(0.0f, 0.0f));
 }
 
 void UKalmalaInventoryMenuWidget::Open()
@@ -214,7 +193,12 @@ void UKalmalaInventoryMenuWidget::Open()
     bSelectionDetailsRequested = false;
     if (GridView) GridView->ClearHover();
     RefreshOwnerInventory();
-    if (CraftingCompanion) CraftingCompanion->OpenAsInventoryCompanion();
+    UpdateResponsivePanelSize(UWidgetLayoutLibrary::GetViewportSize(this) / FMath::Max(0.1f, UWidgetLayoutLibrary::GetViewportScale(this)));
+    if (CraftingCompanion)
+    {
+        CraftingCompanion->AddToPlayerScreen(251);
+        if (!CraftingCompanion->OpenAsInventoryCompanion()) CraftingCompanion->RemoveFromParent();
+    }
 
     bPreviousCursorVisibility = Controller->bShowMouseCursor;
     bAcquiredMoveIgnore = !Controller->IsMoveInputIgnored();
@@ -418,12 +402,10 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
         Theme.ApplyText(*ArmorWeightText, Theme.BodySize, false, TextScale, Contrast);
-        if (InventoryPanel) Theme.ApplySolidPanel(*InventoryPanel, Contrast);
-        if (PanelBackplate)
+        if (InventoryPanel)
         {
-            if (Contrast == 0) Theme.ApplyPanel(*PanelBackplate, Contrast, &Theme.InventoryPanelImage);
-            else Theme.ApplySolidPanel(*PanelBackplate, Contrast);
-            PanelBackplate->SetPadding(FMargin(8.0f));
+            Theme.ApplyPanel(*InventoryPanel, Contrast, &Theme.InventoryPanelImage);
+            InventoryPanel->SetPadding(FMargin(Theme.PaddingX, Theme.PaddingY));
         }
 
         Theme.ApplyButton(*RepairToolButton, Contrast);
@@ -727,7 +709,7 @@ void UKalmalaInventoryMenuWidget::Close()
     if (!bMenuOpen) return;
     if (MenuContentScrollBox) RememberedMenuScrollOffset = MenuContentScrollBox->GetScrollOffset();
     if (GridView) GridView->CancelMove();
-    if (CraftingCompanion) CraftingCompanion->CloseInventoryCompanion();
+    if (CraftingCompanion) { CraftingCompanion->CloseInventoryCompanion(); CraftingCompanion->RemoveFromParent(); }
 
     bMenuOpen = false;
     bOpeningAnimationActive = false;
@@ -760,6 +742,8 @@ bool UKalmalaInventoryMenuWidget::HasTextEntryFocus() const
 
 FReply UKalmalaInventoryMenuWidget::NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event)
 {
+    if (bMenuOpen && (Event.GetKey() == EKeys::Tab || (Event.GetKey() == EKeys::I && !HasTextEntryFocus())))
+    { Close(); return FReply::Handled(); }
     if (bMenuOpen && NavigateInventoryMenu(Event.GetKey())) return FReply::Handled();
     return Super::NativeOnPreviewKeyDown(Geometry, Event);
 }

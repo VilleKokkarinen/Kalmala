@@ -131,7 +131,6 @@ void UKalmalaInventoryMenuSubsystem::ToggleInventoryMenu()
 
     if (IsMenuOpen())
     {
-        if (InventoryWidget->HasTextEntryFocus()) return;
         InventoryWidget->Close();
         return;
     }

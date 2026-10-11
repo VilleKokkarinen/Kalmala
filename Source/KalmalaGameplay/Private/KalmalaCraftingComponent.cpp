@@ -205,6 +205,38 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     TArray<FKalmalaInventoryStack> Costs; int32 OutputCount;
     Reason = TEXT("Invalid batch quantity");
     if (!UKalmalaRecipeCatalogue::Scale(*Recipe, Batch, Costs, OutputCount)) return false;
+    if (Recipe->Output == TEXT("ConstructionHammer"))
+    {
+        auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
+        Reason = TEXT("Already carrying a building hammer");
+        if (Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) > 0) return false;
+        Reason = TEXT("Carried tool slots are full");
+        if (!Inventory || Character->CarriedTools.Num() >= FKalmalaToolLifecycleContract::MaxCarriedToolRecords) return false;
+        const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
+        TArray<FKalmalaInventoryStack> After;
+        if (!UKalmalaInventoryComponent::BuildExchange(Before, Costs, NAME_None, 0, After, Reason)
+            || !Inventory->CanFitContents(After, Character->CarriedTools.Num() + 1)) return false;
+        const TArray<FKalmalaToolState> PreviousTools = Character->CarriedTools;
+        FKalmalaToolState Hammer;
+        Hammer.ToolId = TEXT("ConstructionHammer");
+        Hammer.ToolLevel = 1;
+        Hammer.Durability = FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().MaxDurability;
+        if (!Inventory->TryCommitStacksFromServer(Before, After)) return false;
+        Character->CarriedTools.Add(Hammer);
+        auto* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (!GameMode || !GameMode->PersistPlayerStateFromServer(Character))
+        {
+            Character->CarriedTools = PreviousTools;
+            if (!Inventory->TryCommitStacksFromServer(After, Before))
+                UE_LOG(LogTemp, Error, TEXT("Failed to roll back building hammer material payment."));
+            Reason = TEXT("Could not save the building hammer; no materials were spent");
+            return false;
+        }
+        Inventory->SynchronizeGridFromServer();
+        Character->ForceNetUpdate();
+        Reason = TEXT("Crafted Building Hammer");
+        return true;
+    }
     if (FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe->Output))
     {
         const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe->Output);
@@ -700,7 +732,11 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
     FString Reason;
     if (!UKalmalaRecipeCatalogue::Scale(*R, 1, Costs, OutputCount)) return TEXT("Recipe material list is invalid");
     TArray<FKalmalaInventoryStack> Next;
-    UKalmalaInventoryComponent::BuildExchange(Inv->GetStacks(), Costs, R->Output, OutputCount, Next, Reason);
+    if (R->Output == TEXT("ConstructionHammer") && C->GetCarriedToolLevel(TEXT("ConstructionHammer")) > 0)
+        return TEXT("Already carrying a building hammer");
+    UKalmalaInventoryComponent::BuildExchange(Inv->GetStacks(), Costs,
+        R->Output == TEXT("ConstructionHammer") ? NAME_None : R->Output,
+        R->Output == TEXT("ConstructionHammer") ? 0 : OutputCount, Next, Reason);
     return Reason;
 }
 
@@ -867,6 +903,7 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
         if (BuildItem && !BuildItem->Description.IsEmpty()) return BuildItem->Description;
         return TEXT("Description unavailable.");
     }
+    if (R->Output == TEXT("ConstructionHammer")) return TEXT("A building tool for placing camp structures.");
     const auto* OutputItem = UKalmalaItemCatalogue::Get()->FindItem(R->Output);
     return OutputItem && !OutputItem->Description.IsEmpty()
         ? OutputItem->Description : TEXT("Description unavailable.");

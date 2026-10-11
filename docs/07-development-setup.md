@@ -2649,3 +2649,29 @@ The combined integration build and rendered Crafting at 1280x720/100%/standard c
 Historical M10 fixes changed a camp test's probe spacing to avoid integer Perlin-phase aliasing, corrected retired Smoke Frame recipe assertions, and repaired Settings widget initialization/large-scale layout. They did not reopen gameplay scope or alter saves. M8 dry-shore acceptance was waived; diagnostics/automated gates do not establish physical input, production online identity, audible quality, or screen-reader compatibility.
 
 Historical milestone diaries and screenshots can be recovered from Git history. Existing evidence/manifest deletions in the working tree were preserved; this cleanup neither reran those historic tests nor treats unavailable evidence as newly retained. Current M13/M14 status remains in BACKLOG.md and PROGRESS.md. Integrated M14 builds/automation/rendered/privacy/ping-expiry/input/performance acceptance must succeed before marking M14 complete.
+
+## Inventory layout and hammer follow-up — 2026-10-11
+
+The user-directed layout/recipe revision is a normal post-roadmap increment;
+it does not reuse M13 acceptance as verification of the new source. Lightweight
+checks cover JSON recipe identity/cost/station scope, menu copy, local input and
+presentation/documentation contracts. Added Unreal regression assertions cover
+hammer cost scaling/payment/batch rejection, player recipe scope, separate
+Inventory widget ancestry and removed title; these require a rebuilt module
+and have not run in this increment.
+
+At the next applicable full verification, rebuild the editor and run
+`Kalmala.Gameplay.Crafting.Transactions`, `Kalmala.UI.Crafting.LocalBrowsing`,
+`Kalmala.UI.InventoryMenu.Selection` and the catalogue icon coverage tests.
+Exercise two live owners at supported resolutions, text scales and contrast
+modes: separate top-left/right panels, visible wood in standard contrast,
+no headings/introduction, Tab close with a grid cell/button/search field focused,
+Escape/controller back, repeated open/close, resize and reduced motion.
+Player Crafting must expose only Building Hammer; each cooking service retains
+only its appropriate food recipes. Verify server rejection of duplicate hammers,
+missing materials and invalid batches without payment; verify crafting from a
+server fixture without a hammer spends exactly 3 Wood + 1 Stone, creates one
+full-durability carried hammer and survives reconnect. A fresh character's
+starter hammer must trigger duplicate rejection. Verify persistence-failure
+rollback with the existing transaction fixture. No runtime or rendered result
+is claimed for this increment.

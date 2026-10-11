@@ -104,6 +104,7 @@ public:
     static int32 GetBuildBrowseGroup(FName Output);
     static FString GetBrowseCategoryLabel(int32 Category);
     static bool CanBuildMenuCraftRecipe(const FKalmalaRecipe& Recipe);
+    static bool CanInventoryMenuCraftRecipe(const FKalmalaRecipe& Recipe);
     void EnablePlacementPreview();
 protected:
     virtual void NativeOnInitialized() override;

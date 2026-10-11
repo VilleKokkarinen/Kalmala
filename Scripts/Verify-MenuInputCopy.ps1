@@ -102,7 +102,6 @@ foreach ($mapLabel in @('MAP SYMBOLS', 'Personal pins', 'Co-op players', 'Map pi
 }
 
 $requiredActionLabels = @(
-    @{ Source = $inventoryMenu; Label = 'Inventory' },
     @{ Source = $inventoryMenu; Label = 'Armor 0 · Weight 0/300' },
     @{ Source = $inventoryMenu; Label = 'Repair selected tool' },
     @{ Source = $inventoryMenu; Label = 'Eat one serving' },
@@ -114,6 +113,11 @@ $requiredActionLabels = @(
     @{ Source = $playerFacingCrafting; Label = 'Store one' },
     @{ Source = $playerFacingCrafting; Label = 'Take one' }
 )
+if ($inventoryMenu -match 'AddText\(TEXT\("Inventory"\)' -or
+    $crafting -notmatch 'HeaderText->SetVisibility\(bStandaloneBuildMenu \|\| bInventoryCompanion' -or
+    $crafting -notmatch 'InstructionsText->SetVisibility\(bStandaloneBuildMenu \|\| bInventoryCompanion') {
+    throw 'Inventory/crafting companion still exposes a retired title or introduction.'
+}
 foreach ($entry in $requiredActionLabels) {
     $pattern = [regex]::Escape('TEXT("' + $entry.Label + '")')
     if ($entry.Source -notmatch $pattern) {

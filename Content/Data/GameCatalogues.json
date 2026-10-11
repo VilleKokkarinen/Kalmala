@@ -278,6 +278,18 @@
   ],
   "recipes": [
     {
+      "RecipeId": "BuildingHammer",
+      "DisplayName": "Building Hammer",
+      "Ingredients": [{"ItemId": "Wood", "Quantity": 3}, {"ItemId": "Stone", "Quantity": 1}],
+      "Output": "ConstructionHammer",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
       "RecipeId": "Campfire",
       "DisplayName": "Campfire",
       "Ingredients": [

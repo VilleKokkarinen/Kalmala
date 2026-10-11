@@ -1006,6 +1006,27 @@ increment introduces no encumbrance penalty or weight-based transaction
 rejection. Armor items, equipment rules, and final weight balance require
 separate gameplay work.
 
+## Player inventory layout revision — 2026-10-11
+
+This user-directed revision supersedes the shared backplate and generic player
+crafting list in the historical M13 handoff. Inventory and Crafting are separate
+owner-local viewport widgets, anchored top-left and top-right with 16 logical
+pixel margins. They retain one modal lifetime and cursor/input restoration.
+Each panel directly uses the original Inventory wood texture in standard
+contrast. Inventory has no title, and player Crafting hides its title and
+introduction. Tab is handled before Slate focus navigation in either panel,
+including the recipe search field, and closes both panels.
+
+Player Crafting exposes only Building Hammer, costing 3 Wood + 1 Stone, one
+hammer per request with no station prerequisite. It creates the existing
+ConstructionHammer carried-tool record at full durability rather than an
+inventory material stack. The server validates recipe/batch, ownership,
+materials and capacity, rejects duplicate carried hammers, and persists the
+tool and material payment together with rollback on save failure. Starter
+hammer grants remain in effect. Cooking recipes appear only in matching cooking
+station views and retain existing server station/heat requirements. No saved
+schema, new tool identity, or client gameplay authority is introduced.
+
 ## M13 inventory crafting companion
 
 The 2026-10-10 UI request extends Inventory's existing Tab / I modal. Opening
@@ -1122,7 +1143,7 @@ expanded-map, and options views as described below.
 | FontAsset | empty | Project-owned runtime UFont object path; shared text |
 | FontFace / HeadingFace | Regular / Bold | Regular or Bold; missing custom face uses font default |
 | PanelImage | empty | Project-owned Texture2D object path; shared panels |
-| InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D for the shared Inventory-and-Crafting backplate |
+| InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D for separate Inventory and Crafting wood panels |
 | BuildPanelImage | `/Game/Kalmala/UI/BuildPanel.BuildPanel` | Texture2D override for build/craft selection |
 | WorldMapPanelImage | `/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel` | Texture2D override for the expanded map shell |
 | EscapePanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Fallback source for empty option-tab overrides; M13 requests a transparent Escape home menu |
@@ -1173,8 +1194,8 @@ The view-specific image keys override `PanelImage` only for their named view.
 The inventory, build, and expanded-map textures are original Kalmala artwork
 imported from `Content/Kalmala/UI/Source/` into `/Game/Kalmala/UI`; missing or
 invalid view paths keep the geometric fallback. The Inventory texture covers
-the shared backplate behind both Inventory and Crafting panes; each pane uses
-an opaque solid theme fill, and high contrast suppresses the decorative wood.
+each independent Inventory and Crafting panel directly; no opaque pane fill
+covers the wood. High contrast suppresses the decorative wood.
 
 `ApplyScroll` has an explicit reduced-motion override; scroll animation defaults off.
 The local Reduced motion choice also overrides scrolling. The options-opening

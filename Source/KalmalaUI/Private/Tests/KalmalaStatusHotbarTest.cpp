@@ -356,7 +356,7 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
     for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) Check(Tool.ToolId);
     Check(FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ToolId);
     const auto* Recipes = UKalmalaRecipeCatalogue::Get();
-    TestEqual(TEXT("Audited recipe/build count"), Recipes->Recipes.Num(), 19);
+    TestEqual(TEXT("Audited recipe/build count"), Recipes->Recipes.Num(), 20);
     for (const auto& Recipe : Recipes->Recipes)
     {
         const FName OutputIdentity = Recipe.GetOutputIdentity();

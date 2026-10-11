@@ -714,6 +714,12 @@ int32 UKalmalaCraftingWidget::GetBuildBrowseGroup(const FName Output)
     return 6;
 }
 
+bool UKalmalaCraftingWidget::CanInventoryMenuCraftRecipe(const FKalmalaRecipe& Recipe)
+{
+    return Recipe.RecipeId == TEXT("BuildingHammer") && Recipe.Output == TEXT("ConstructionHammer")
+        && Recipe.RequiredStation.IsEmpty() && Recipe.BuildableOutput.IsNone();
+}
+
 bool UKalmalaCraftingWidget::CanBuildMenuCraftRecipe(const FKalmalaRecipe& Recipe)
 {
     return GetBuildBrowseGroup(Recipe.GetOutputIdentity()) != 0
@@ -768,11 +774,7 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
         const int32 BuildGroup = GetBuildBrowseGroup(Recipe.GetOutputIdentity());
         const bool bCategoryMatches = StationFilterKit.IsNone()
             ? bInventoryCompanion
-                ? BuildGroup == 0
-                    && (RecipeCategory == 0
-                        || (RecipeCategory == 1 && Recipe.ExperienceSkill != EKalmalaSkill::Cooking)
-                        || (RecipeCategory == 2 && Recipe.ExperienceSkill == EKalmalaSkill::Cooking)
-                        || (RecipeCategory == 7 && (IsRecipeFavorite(Recipe.RecipeId) || IsRecipeRecent(Recipe.RecipeId))))
+                ? CanInventoryMenuCraftRecipe(Recipe)
                 : BuildGroup != 0 && (RecipeCategory == 3 || (RecipeCategory == 7 && (IsRecipeFavorite(Recipe.RecipeId) || IsRecipeRecent(Recipe.RecipeId))) || (RecipeCategory >= 4 && RecipeCategory <= 6 && BuildGroup == RecipeCategory))
             : RecipeCategory == 0
                 || (RecipeCategory == 1 && Recipe.ExperienceSkill != EKalmalaSkill::Cooking)
@@ -1139,7 +1141,16 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     if (!bEmbeddedContext) bPreviousCursor = PC->bShowMouseCursor;
     int32 X, Y; PC->GetViewportSize(X,Y);
     const float Scale = FMath::Max(.1f, UWidgetLayoutLibrary::GetViewportScale(this));
-    const float PanelWidth = FMath::Min(840.0f, X / Scale - 32.0f);
+    const float PanelWidth = bInventoryCompanion
+        ? FMath::Min(600.0f, FMath::Max(80.0f, X / Scale * 0.44f))
+        : FMath::Min(840.0f, X / Scale - 32.0f);
+    if (bInventoryCompanion)
+    {
+        SetDesiredSizeInViewport(FVector2D(PanelWidth, FMath::Max(80.0f, Y / Scale - 32.0f)));
+        SetPositionInViewport(FVector2D(-16.0f, 16.0f), false);
+        SetAlignmentInViewport(FVector2D(1.0f, 0.0f));
+        SetAnchorsInViewport(FAnchors(1.0f, 0.0f));
+    }
     if (!bEmbeddedContext)
         SetDesiredSizeInViewport(FVector2D(PanelWidth, FMath::Min(980.0f, Y / Scale - 32.0f)));
     const float TextWrapWidth = FMath::Max(240.0f, PanelWidth - 64.0f);
@@ -1167,7 +1178,7 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     if (bEmbeddedContext && MenuBackground && bInventoryCompanion)
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
-        Theme.ApplySolidPanel(*MenuBackground, UKalmalaSettingsWidget::GetContrastMode());
+        Theme.ApplyPanel(*MenuBackground, UKalmalaSettingsWidget::GetContrastMode(), &Theme.InventoryPanelImage);
         MenuBackground->SetPadding(FMargin(8.0f));
     }
     else if (bEmbeddedContext && MenuBackground)
@@ -1400,16 +1411,17 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
         for (UWidget* Excluded : BuildExcludedWidgets)
             if (Excluded) Excluded->SetVisibility(ESlateVisibility::Collapsed);
     const bool bStandaloneBuildMenu = !bInventoryCompanion && !bEmbeddedContext && StationFilterKit.IsNone();
-    if (HeaderText) HeaderText->SetVisibility(bStandaloneBuildMenu
+    if (HeaderText) HeaderText->SetVisibility(bStandaloneBuildMenu || bInventoryCompanion
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
-    if (InstructionsText) InstructionsText->SetVisibility(bStandaloneBuildMenu
+    if (InstructionsText) InstructionsText->SetVisibility(bStandaloneBuildMenu || bInventoryCompanion
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (FavoriteButton) FavoriteButton->SetVisibility(
         bStandaloneBuildMenu || bNonCraftSection || bCookingContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (CraftButton) CraftButton->SetVisibility(bStandaloneBuildMenu
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
-    if (BuildPlacementButton) BuildPlacementButton->SetVisibility(bStandaloneBuildMenu
+    if (RecipeCategoryButton && bInventoryCompanion) RecipeCategoryButton->SetVisibility(ESlateVisibility::Collapsed);
+    if (BuildPlacementButton) BuildPlacementButton->SetVisibility(bStandaloneBuildMenu || bInventoryCompanion
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 }
 
@@ -3392,7 +3404,7 @@ void UKalmalaCraftingWidget::Refresh()
         Theme.ApplyMenu(*WidgetTree, HeaderText, TextScalePercent, ContrastMode);
         if (bInventoryCompanion)
         {
-            Theme.ApplySolidPanel(*MenuBackground, ContrastMode);
+            Theme.ApplyPanel(*MenuBackground, ContrastMode, &Theme.InventoryPanelImage);
             MenuBackground->SetPadding(FMargin(8.0f));
         }
         else if (bEmbeddedContext)
@@ -3565,7 +3577,7 @@ void UKalmalaCraftingWidget::Refresh()
     if (CraftButton)
     {
         const bool bBuildContextCanCraft = bInventoryCompanion
-            ? SelectedRecipe.RequiredStation.IsEmpty() && GetBuildBrowseGroup(SelectedRecipe.GetOutputIdentity()) == 0
+            ? CanInventoryMenuCraftRecipe(SelectedRecipe)
             : (!StationFilterKit.IsNone() || UKalmalaCraftingWidget::CanBuildMenuCraftRecipe(SelectedRecipe));
         if (UTextBlock* ButtonLabel = Cast<UTextBlock>(CraftButton->GetContent()))
             ButtonLabel->SetText(FText::FromString(bDirectBuild ? TEXT("Build selected")
@@ -3736,6 +3748,17 @@ void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D)
 {
     Super::NativeTick(G,D);
     if (!bOpen) return;
+    if (bInventoryCompanion)
+    {
+        const FVector2D Viewport = UWidgetLayoutLibrary::GetViewportSize(this) / FMath::Max(0.1f, UWidgetLayoutLibrary::GetViewportScale(this));
+        const float Width = FMath::Min(600.0f, FMath::Max(80.0f, Viewport.X * 0.44f));
+        SetDesiredSizeInViewport(FVector2D(Width, FMath::Max(80.0f, Viewport.Y - 32.0f)));
+        for (UTextBlock* Label : WrappedTextBlocks)
+            if (Label) Label->SetWrapTextAt(FMath::Max(40.0f, Width - 64.0f));
+        SetPositionInViewport(FVector2D(-16.0f, 16.0f), false);
+        SetAlignmentInViewport(FVector2D(1.0f, 0.0f));
+        SetAnchorsInViewport(FAnchors(1.0f, 0.0f));
+    }
     if (StationFilterKit.IsNone() && !bInventoryCompanion && !bEmbeddedContext)
     {
         for (int32 SlotIndex = 0; SlotIndex < RecipeSlotCards.Num(); ++SlotIndex)
@@ -3773,8 +3796,7 @@ void UKalmalaCraftingWidget::Craft()
     if (!VisibleIndices.IsValidIndex(Selected) || !Recipes.IsValidIndex(VisibleIndices[Selected])) return;
     const FKalmalaRecipe& Recipe = Recipes[VisibleIndices[Selected]];
     if (StationFilterKit.IsNone() && !bInventoryCompanion && !CanBuildMenuCraftRecipe(Recipe)) return;
-    if (bInventoryCompanion && (!Recipe.RequiredStation.IsEmpty()
-        || GetBuildBrowseGroup(Recipe.GetOutputIdentity()) != 0)) return;
+    if (bInventoryCompanion && !CanInventoryMenuCraftRecipe(Recipe)) return;
     if ((bCookingRackContext || bCauldronContext || bFryingPanContext)
         && (!IsStationContextValid() || !IsCookingMenuRecipe(StationFilterKit, Recipe))) return;
     if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput)) { Place(); return; }
@@ -3947,6 +3969,14 @@ FReply UKalmalaCraftingWidget::NativeOnPreviewMouseButtonDown(
 
 FReply UKalmalaCraftingWidget::NativeOnPreviewKeyDown(const FGeometry& G,const FKeyEvent& E)
 {
+    if (bInventoryCompanion && (E.GetKey() == EKeys::Tab || E.GetKey() == EKeys::Escape
+        || E.GetKey() == EKeys::Gamepad_FaceButton_Right
+        || (E.GetKey() == EKeys::I && !(RecipeSearchBox && (RecipeSearchBox->HasKeyboardFocus() || RecipeSearchBox->HasFocusedDescendants())))))
+    {
+        if (auto* LocalPlayer = GetOwningLocalPlayer())
+            if (auto* InventoryMenu = LocalPlayer->GetSubsystem<UKalmalaInventoryMenuSubsystem>()) InventoryMenu->CloseIfOpen();
+        return FReply::Handled();
+    }
     const FKey K=E.GetKey();
     if((K==EKeys::Escape || K==EKeys::Gamepad_FaceButton_Right) && !bInventoryCompanion)
     { Close(); return FReply::Handled(); }

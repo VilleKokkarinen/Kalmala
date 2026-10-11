@@ -97,6 +97,15 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Workbench is a station"), Widget->GetBuildBrowseGroup(TEXT("WorkbenchKit")), 5);
     TestEqual(TEXT("Hearth is a camp utility"), Widget->GetBuildBrowseGroup(TEXT("CampfireKit")), 6);
     TestEqual(TEXT("Unknown output is excluded"), Widget->GetBuildBrowseGroup(TEXT("UnknownKit")), 0);
+    int32 PlayerRecipes = 0;
+    for (const FKalmalaRecipe& Recipe : Recipes)
+    {
+        const bool bPlayerRecipe = Widget->CanInventoryMenuCraftRecipe(Recipe);
+        if (bPlayerRecipe) ++PlayerRecipes;
+        TestEqual(TEXT("Player crafting excludes food, station recipes and builds"), bPlayerRecipe,
+            Recipe.RecipeId == TEXT("BuildingHammer"));
+    }
+    TestEqual(TEXT("Player crafting contains only the building hammer"), PlayerRecipes, 1);
     Widget->SetRecipeBrowse(TEXT(""), 3, false);
     TestTrue(TEXT("Build browsing preserves full supported source order"), Widget->GetVisibleRecipeIndices() == BuildIndices);
     if (BuildIndices.Num() >= 2 && Recipes.ContainsByPredicate([](const auto& Recipe) { return Recipe.ExperienceSkill == EKalmalaSkill::Cooking; }))

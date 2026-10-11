@@ -12,6 +12,31 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
     const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
     TestTrue(TEXT("Configured recipes validate"), Recipes->IsValidCatalogue());
+    const FKalmalaRecipe* Hammer = Recipes->Find(TEXT("BuildingHammer"));
+    if (TestNotNull(TEXT("Building hammer has a player recipe"), Hammer))
+    {
+        TArray<FKalmalaInventoryStack> Costs, After;
+        int32 Count = 0;
+        FString Reason;
+        TestTrue(TEXT("One hammer scales without a station"), UKalmalaRecipeCatalogue::Scale(*Hammer, 1, Costs, Count));
+        TestTrue(TEXT("Hammer recipe is station free"), Hammer->RequiredStation.IsEmpty());
+        TestEqual(TEXT("Hammer output count is one"), Count, 1);
+        TestEqual(TEXT("Hammer has two materials"), Costs.Num(), 2);
+        for (const auto& Expected : TArray<FKalmalaInventoryStack>{{TEXT("Wood"),3},{TEXT("Stone"),1}})
+        {
+            const auto* Actual = Costs.FindByPredicate([&Expected](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == Expected.ItemId; });
+            if (TestNotNull(TEXT("Hammer material exists"), Actual)) TestEqual(TEXT("Hammer material cost"), Actual->Quantity, Expected.Quantity);
+        }
+        TestTrue(TEXT("Hammer payment consumes exact materials"), UKalmalaInventoryComponent::BuildExchange(
+            {{TEXT("Wood"),3},{TEXT("Stone"),1}}, Costs, NAME_None, 0, After, Reason));
+        TestTrue(TEXT("Hammer payment leaves no item output in pack stacks"), After.IsEmpty());
+        TestFalse(TEXT("Missing stone rejects payment"), UKalmalaInventoryComponent::BuildExchange(
+            {{TEXT("Wood"),3}}, Costs, NAME_None, 0, After, Reason));
+        TestFalse(TEXT("Hammer cannot be batch crafted"), UKalmalaRecipeCatalogue::Scale(*Hammer, 2, Costs, Count));
+        FKalmalaRecipe Forged = *Hammer;
+        Forged.RecipeId = TEXT("ForgedHammer");
+        TestFalse(TEXT("Other recipes cannot mint carried tools"), UKalmalaRecipeCatalogue::Scale(Forged, 1, Costs, Count));
+    }
     for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("Timber")), FName(TEXT("RaisedStorage")) })
         TestNull(TEXT("Removed recipe is not available"), Recipes->Find(Id));
     for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply")), FName(TEXT("RaisedStorage")) })

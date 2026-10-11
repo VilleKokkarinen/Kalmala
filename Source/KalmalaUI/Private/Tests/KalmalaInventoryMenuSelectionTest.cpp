@@ -3,6 +3,7 @@
 #include "KalmalaInventoryGridWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaThemedButton.h"
+#include "KalmalaCraftingSubsystem.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/EditableTextBox.h"
 #include "Components/TextBlock.h"
@@ -55,6 +56,11 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Simple inventory has no search/filter/sort input"), Searches, 0);
     TestTrue(TEXT("Armor section is present under inventory"), bArmor);
     TestTrue(TEXT("Carried weight and capacity section is present"), bWeight);
+    OwnerA->WidgetTree->ForEachWidget([&](UWidget* Widget) {
+        TestFalse(TEXT("Crafting is not parented inside the Inventory tree"), Widget->IsA<UKalmalaCraftingWidget>());
+        if (const auto* Text = Cast<UTextBlock>(Widget))
+            TestFalse(TEXT("Inventory has no title heading"), Text->GetText().ToString() == TEXT("Inventory"));
+    });
     OwnerA->SetViewportSizeForVerification(FVector2D(320, 240));
     TestTrue(TEXT("Panel remains inside small viewport"), OwnerA->GetPanelSizeForVerification().X <= 288
         && OwnerA->GetPanelSizeForVerification().Y <= 208);
