@@ -24,6 +24,12 @@
 #include "Components/VerticalBoxSlot.h"
 #include "Styling/CoreStyle.h"
 
+FVector2D UKalmalaCraftingWidget::GetInventoryCraftPanelSize(const FVector2D Viewport)
+{
+    return FVector2D(FMath::Min(860.f, FMath::Max(80.f, Viewport.X * .52f)),
+        FMath::Min(760.f, FMath::Max(80.f, Viewport.Y - 32.f)));
+}
+
 void UKalmalaCraftingWidget::BuildInventoryCraftLayout()
 {
     auto* Root = WidgetTree->ConstructWidget<UOverlay>();
@@ -257,6 +263,19 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
 }
 
 #if !UE_BUILD_SHIPPING
+void UKalmalaCraftingWidget::PrepareMenuRender(const bool bPlayerCrafting)
+{
+    bInventoryCompanion = bPlayerCrafting;
+    bEmbeddedContext = bPlayerCrafting;
+    StationFilterKit = NAME_None;
+    RecipeQuery.Reset();
+    RecipeCategory = bPlayerCrafting ? 0 : 3;
+    Selected = 0;
+    ConfigureStationContextPresentation(FString());
+    Refresh();
+    SetVisibility(ESlateVisibility::Visible);
+}
+
 bool UKalmalaCraftingWidget::VerifyInventoryCraftLayoutForTest()
 {
     if (!InventoryCraftBackground || !InventoryCraftList) return false;

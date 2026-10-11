@@ -12,6 +12,7 @@ public class KalmalaEditor : ModuleRules
             "CoreUObject",
             "Engine",
             "UnrealEd",
+            "UMG", "Slate", "SlateCore", "SlateRHIRenderer", "RenderCore", "RHI", "KalmalaUI",
             "KalmalaGameplay",
             "KalmalaWorld"
         });

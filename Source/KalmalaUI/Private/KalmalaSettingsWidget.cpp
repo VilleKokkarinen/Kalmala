@@ -450,6 +450,13 @@ void UKalmalaSettingsWidget::SetVerificationTab(const int32 TabIndex)
     }
 }
 
+void UKalmalaSettingsWidget::PrepareMenuRender(const int32 TabIndex)
+{
+    SetVerificationTab(TabIndex);
+    ResetOptionsOpeningAnimation();
+    SetVisibility(ESlateVisibility::Visible);
+}
+
 FString UKalmalaSettingsWidget::GetPanelImagePathForVerification() const
 {
     const UObject* Image = PanelBorder != nullptr ? PanelBorder->Background.GetResourceObject() : nullptr;

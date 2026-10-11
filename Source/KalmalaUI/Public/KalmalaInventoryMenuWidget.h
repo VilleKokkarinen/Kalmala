@@ -29,6 +29,7 @@ public:
     bool HasTextEntryFocus() const;
 #if !UE_BUILD_SHIPPING
     void SetInventoryRowsForVerification(const TArray<FKalmalaCatalogueRow>& Rows, int32 TextScale, int32 Contrast);
+    void PrepareMenuRender(FVector2D ViewportSize);
     FName GetSelectedItemForVerification() const;
     void StepSelectionForVerification(int32 Direction);
     void SelectItemForVerification(FName ItemId) { SelectGridItem(ItemId); }

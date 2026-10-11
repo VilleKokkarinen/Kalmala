@@ -84,6 +84,7 @@ public:
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
     bool VerifyInventoryCraftLayoutForTest();
+    void PrepareMenuRender(bool bPlayerCrafting);
     bool VerifyMenuBrowseMemoryForTest();
     bool PrepareRecipeActivityReviewForTest();
     bool VerifyInventoryInspectionForTest();
@@ -106,6 +107,7 @@ public:
     static FString GetBrowseCategoryLabel(int32 Category);
     static bool CanBuildMenuCraftRecipe(const FKalmalaRecipe& Recipe);
     static bool CanInventoryMenuCraftRecipe(const FKalmalaRecipe& Recipe);
+    static FVector2D GetInventoryCraftPanelSize(FVector2D Viewport);
     void EnablePlacementPreview();
 protected:
     virtual void NativeOnInitialized() override;

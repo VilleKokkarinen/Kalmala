@@ -210,7 +210,7 @@ const FKalmalaUITheme& FKalmalaUITheme::Get()
     static const FKalmalaUITheme Theme = []
     {
         FConfigFile Config;
-        if (!FConfigCacheIni::LoadLocalIniFile(Config, TEXT("KalmalaTheme"), true) || !Config.Find(ThemeSection))
+        if (!FConfigCacheIni::LoadLocalIniFile(Config, TEXT("KalmalaTheme"), true) || !Config.FindSection(ThemeSection))
             Config.Read(FPaths::ProjectConfigDir() / TEXT("DefaultKalmalaTheme.ini"));
         FKalmalaUITheme RuntimeTheme = FromConfig(Config);
         // Bundled view art must remain available when a custom ini is not staged/resolved.

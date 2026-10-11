@@ -691,6 +691,13 @@ void UKalmalaInventoryMenuWidget::SetViewportSizeForVerification(const FVector2D
 {
     UpdateResponsivePanelSize(ViewportSize);
 }
+
+void UKalmalaInventoryMenuWidget::PrepareMenuRender(const FVector2D ViewportSize)
+{
+    RefreshOwnerInventory();
+    UpdateResponsivePanelSize(ViewportSize);
+    SetVisibility(ESlateVisibility::Visible);
+}
 #endif
 
 void UKalmalaInventoryMenuWidget::Close()
