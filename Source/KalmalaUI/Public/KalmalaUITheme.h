@@ -68,7 +68,7 @@ struct KALMALAUI_API FKalmalaUITheme
     float InteractionTransitionDuration = 0.12f;
     bool bAnimateInteractionStates = true;
     float SlotPadding = 3;
-    float ButtonPadding = 7;
+    float ButtonPadding = 9;
     float IconWidth = 64;
     float IconHeight = 42;
     bool bAnimateScrolling = false;

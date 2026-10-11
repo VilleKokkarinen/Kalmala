@@ -29,6 +29,7 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-11 — Add button padding and smooth the slider thumb:** increase shared button-content padding from 7 to 9 units and replace the slider thumb source with a cleaner, smoother charcoal slate puck. Reimported the existing texture asset; rendered menu verification deferred.
 - [x] **2026-10-11 — Add button padding and soften sliders:** introduce shared button-content padding without changing panel padding; use a thinner rounded slider track without the standard-mode outline and finer keyboard/controller steps. High contrast keeps its outline; render verification deferred.
 
 - [x] **2026-10-11 — Fix Inventory menu render slot assertion:** remove content sizing from `UKalmalaThemedButton::SynchronizeProperties`, where Slate can still be constructing the parent slot; size Inventory action buttons after insertion into their vertical box. A new Inventory render was not run; lightweight inspection only.

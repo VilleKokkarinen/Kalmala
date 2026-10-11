@@ -221,7 +221,7 @@ short, wide buttons. Reimport the 160×53 derivative, not the high-resolution
 master. `ButtonImage` applies the transparent beveled surface through the shared
 theme; high contrast retains the opaque geometric button and focus outline.
 `Content/Kalmala/UI/Source/StoneSliderThumb.png` is the separate generated
-1254×1254 transparent slate thumb, imported as
+1254×1254 transparent, smoothly beveled slate puck, imported as
 `/Game/Kalmala/UI/StoneSliderThumb`. The shared theme draws it at 44×44 logical
 units and uses a geometric fallback in high contrast.
 
