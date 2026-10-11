@@ -29,7 +29,7 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
-- [x] **2026-10-11 — Shared stone button texture:** generate one alpha-backed, irregular beveled stone plate and apply it through the shared button theme with nine-slice scaling and distinct interaction tints. High contrast retains its geometric button and focus treatment. Targeted UI module build and asset import succeeded; rendered/package verification deferred.
+- [x] **2026-10-11 — Shared stone button texture:** generate one alpha-backed, irregular beveled stone plate and apply it through the shared button theme with nine-slice scaling and distinct interaction tints. Preserve the 2170×725 master while importing its 160×53 UI-scale derivative so short, wide controls keep intact ends. High contrast retains its geometric button and focus treatment; rendered/package verification deferred.
 
 - [x] **2026-10-11 — Generated walnut Inventory background:** create a new warm-brown wood texture, replace the Inventory source image, and reimport the existing Unreal texture package. The shared background now appears on Inventory, Crafting and Settings option groups; an isolated editor build/import and one offscreen Inventory preview succeeded. Full automation/package verification remains deferred.
 

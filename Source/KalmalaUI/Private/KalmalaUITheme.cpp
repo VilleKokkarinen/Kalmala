@@ -333,7 +333,9 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, con
     {
         if (ButtonSurface != nullptr)
         {
-            FSlateBoxBrush StoneBrush(ButtonSurface, FMargin(0.16f, 0.32f),
+            // Slate converts the UV margins to logical units using the texture's pixel size.
+            // StoneButton.png is authored at 160x53 so these slices stay around 26x10 units.
+            FSlateBoxBrush StoneBrush(ButtonSurface, FMargin(0.16f, 0.18f),
                 FSlateColor(FLinearColor(StoneBrightness, StoneBrightness, StoneBrightness, 1.0f)));
             // The image already carries its own uneven beveled edge. Keep the normal state free
             // of a rectangular outline; focus and hover states add their existing explicit cue.

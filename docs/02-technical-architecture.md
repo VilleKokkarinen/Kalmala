@@ -1183,7 +1183,7 @@ expanded-map, and options views as described below.
 | InventoryPanelImage | `/Game/Kalmala/UI/InventoryPanel.InventoryPanel` | Texture2D for separate Inventory and Crafting wood panels |
 | BuildPanelImage | `/Game/Kalmala/UI/BuildPanel.BuildPanel` | Texture2D override for build/craft selection |
 | WorldMapPanelImage | `/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel` | Texture2D override for the expanded map shell |
-| ButtonImage | `/Game/Kalmala/UI/StoneButton.StoneButton` | Shared transparent, nine-sliced stone slab for themed button surfaces; high contrast uses geometric brushes |
+| ButtonImage | `/Game/Kalmala/UI/StoneButton.StoneButton` | Shared transparent stone slab, imported at 160×53 Slate-oriented size so nine-slice margins preserve its chipped ends; high contrast uses geometric brushes |
 | EscapePanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Fallback source for empty option-tab overrides; M13 requests a transparent Escape home menu |
 | VideoOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Legacy Video tab key retained for config compatibility; M13 Options groups share InventoryPanelImage |
 | AudioOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Legacy Audio tab key retained for config compatibility; M13 Options groups share InventoryPanelImage |
@@ -1214,7 +1214,9 @@ Asset keys accept only valid `/Game/Package.Asset` object paths shorter than
 built-in font or geometric panel/button brushes. Offline bitmap fonts also fall
 back safely. The shared stone button image uses an alpha silhouette with
 nine-slice margins so its beveled irregular edges remain visible at different
-button sizes; hover, press, selected, and disabled states tint the same texture.
+button sizes; its 160×53 import size keeps the 0.16/0.18 UV margins near 26×10
+Slate units instead of hundreds of units. Hover, press, selected, and disabled
+states tint the same texture.
 High contrast suppresses decorative images and retains the opaque geometric
 button surface and visible focus outline. A panel image replaces the geometric
 panel border; high contrast ignores it, uses a black-backed panel and white

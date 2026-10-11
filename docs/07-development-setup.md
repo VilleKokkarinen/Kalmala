@@ -212,12 +212,14 @@ The Inventory source is the new original 1254×1254 walnut texture at
 Inventory and Crafting panels and the Settings option groups; the high-contrast
 fallback is unchanged. Reimport this source after future texture edits.
 
-The shared button texture is `Content/Kalmala/UI/Source/StoneButton.png`,
-imported as `/Game/Kalmala/UI/StoneButton`. `ButtonImage` applies its transparent
-chipped-stone silhouette and beveled nine-slice surface through the shared theme
-to themed buttons. High contrast suppresses the decorative texture and keeps the
-opaque geometric button and focus outline. Import it with the UI textures before
-rendered or packaged verification.
+The generated 2170×725 button master is preserved at
+`Content/Kalmala/UI/Source/StoneButtonMaster.png`. Its UI-scale derivative at
+`Content/Kalmala/UI/Source/StoneButton.png` is 160×53 and is imported as
+`/Game/Kalmala/UI/StoneButton`. This size matters: Slate converts its 0.16/0.18
+UV margins to about 26×10 logical units, keeping the chipped ends intact on
+short, wide buttons. Reimport the 160×53 derivative, not the high-resolution
+master. `ButtonImage` applies the transparent beveled surface through the shared
+theme; high contrast retains the opaque geometric button and focus outline.
 
 Run the full `Automation RunTests Kalmala` queue. Then run the rendered
 two-peer checks from the mirror:

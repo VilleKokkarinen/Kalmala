@@ -31,6 +31,11 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
         Cast<UTexture2D>(SharedStoneButton->GetStyle().Normal.GetResourceObject()) != nullptr
         && SharedStoneButton->GetStyle().Normal.Margin.Left > 0.0f
         && SharedStoneButton->GetStyle().Normal.Margin.Top > 0.0f);
+    const UTexture2D* StoneButtonTexture = Cast<UTexture2D>(SharedStoneButton->GetStyle().Normal.GetResourceObject());
+    TestTrue(TEXT("The UI-scale texture keeps 9-slice edges near 26x10 Slate units"),
+        StoneButtonTexture != nullptr && StoneButtonTexture->GetSizeX() == 160 && StoneButtonTexture->GetSizeY() == 53
+        && FMath::IsNearlyEqual(SharedStoneButton->GetStyle().Normal.Margin.Left, 0.16f)
+        && FMath::IsNearlyEqual(SharedStoneButton->GetStyle().Normal.Margin.Top, 0.18f));
     RuntimeTheme.ApplyButton(*SharedStoneButton, 1);
     TestTrue(TEXT("High contrast uses its opaque geometric button fallback"),
         SharedStoneButton->GetStyle().Normal.DrawAs == ESlateBrushDrawType::RoundedBox
