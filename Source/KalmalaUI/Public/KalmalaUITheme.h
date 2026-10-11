@@ -33,6 +33,7 @@ struct KALMALAUI_API FKalmalaUITheme
     FString InventoryPanelImage;
     FString BuildPanelImage;
     FString WorldMapPanelImage;
+    FString ButtonImage;
     FString EscapePanelImage;
     FString VideoOptionsPanelImage;
     FString AudioOptionsPanelImage;

@@ -5,6 +5,7 @@
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaThemedButton.h"
 #include "Misc/ConfigCacheIni.h"
+#include "Brushes/SlateBoxBrush.h"
 #include "Styling/CoreStyle.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "Containers/Ticker.h"
@@ -192,6 +193,7 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadAsset(TEXT("InventoryPanelImage"), Theme.InventoryPanelImage);
     ReadAsset(TEXT("BuildPanelImage"), Theme.BuildPanelImage);
     ReadAsset(TEXT("WorldMapPanelImage"), Theme.WorldMapPanelImage);
+    ReadAsset(TEXT("ButtonImage"), Theme.ButtonImage);
     ReadAsset(TEXT("EscapePanelImage"), Theme.EscapePanelImage);
     ReadAsset(TEXT("VideoOptionsPanelImage"), Theme.VideoOptionsPanelImage);
     ReadAsset(TEXT("AudioOptionsPanelImage"), Theme.AudioOptionsPanelImage);
@@ -216,6 +218,7 @@ const FKalmalaUITheme& FKalmalaUITheme::Get()
         // Bundled view art must remain available when a custom ini is not staged/resolved.
         if (RuntimeTheme.InventoryPanelImage.IsEmpty()) RuntimeTheme.InventoryPanelImage = TEXT("/Game/Kalmala/UI/InventoryPanel.InventoryPanel");
         if (RuntimeTheme.BuildPanelImage.IsEmpty()) RuntimeTheme.BuildPanelImage = TEXT("/Game/Kalmala/UI/BuildPanel.BuildPanel");
+        if (RuntimeTheme.ButtonImage.IsEmpty()) RuntimeTheme.ButtonImage = TEXT("/Game/Kalmala/UI/StoneButton.StoneButton");
         if (RuntimeTheme.EscapePanelImage.IsEmpty()) RuntimeTheme.EscapePanelImage = TEXT("/Game/Kalmala/UI/OptionsPanel.OptionsPanel");
         for (FString* OptionsPath : {&RuntimeTheme.VideoOptionsPanelImage, &RuntimeTheme.AudioOptionsPanelImage,
             &RuntimeTheme.ControlsOptionsPanelImage, &RuntimeTheme.SettingsOptionsPanelImage})
@@ -323,13 +326,26 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, con
     FButtonStyle Style = Button.GetStyle();
     const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
     const bool bSuppressMotion = bReducedMotion || UKalmalaSettingsWidget::IsReducedMotionEnabled();
-    const auto Brush = [this, bContrast](FLinearColor Color, float ContrastShade)
+    UTexture2D* ButtonSurface = bContrast || ButtonImage.IsEmpty()
+        ? nullptr : Cast<UTexture2D>(LoadThemeAsset(ButtonImage));
+    const auto Brush = [this, bContrast, ButtonSurface](FLinearColor Color, float ContrastShade,
+        float StoneBrightness) -> FSlateBrush
     {
+        if (ButtonSurface != nullptr)
+        {
+            FSlateBoxBrush StoneBrush(ButtonSurface, FMargin(0.16f, 0.32f),
+                FSlateColor(FLinearColor(StoneBrightness, StoneBrightness, StoneBrightness, 1.0f)));
+            // The image already carries its own uneven beveled edge. Keep the normal state free
+            // of a rectangular outline; focus and hover states add their existing explicit cue.
+            StoneBrush.OutlineSettings.Color = FSlateColor(BorderColor);
+            StoneBrush.OutlineSettings.Width = 0.0f;
+            return StoneBrush;
+        }
         return FSlateRoundedBoxBrush(bContrast ? FLinearColor(ContrastShade, ContrastShade, ContrastShade, 1) : Color,
             CornerRadius, bContrast ? FLinearColor::White : BorderColor, bContrast ? FMath::Max(1.0f, BorderWidth) : BorderWidth);
     };
-    Style.SetNormal(Brush(ButtonNormal, 0.08f)).SetHovered(Brush(ButtonHovered, 0.20f))
-        .SetPressed(Brush(ButtonPressed, 0.0f)).SetDisabled(Brush(ButtonDisabled, 0.04f));
+    Style.SetNormal(Brush(ButtonNormal, 0.08f, 0.94f)).SetHovered(Brush(ButtonHovered, 0.20f, 1.08f))
+        .SetPressed(Brush(ButtonPressed, 0.0f, 0.72f)).SetDisabled(Brush(ButtonDisabled, 0.04f, 0.44f));
     const FLinearColor FocusOutline = bContrast ? FLinearColor::White : ButtonFocused;
     Style.Normal.OutlineSettings.Color = FSlateColor(bContrast ? FLinearColor::White : BorderColor);
     Style.Hovered.OutlineSettings.Color = FSlateColor(FocusOutline);
@@ -345,7 +361,8 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, con
     if (UKalmalaThemedButton* ThemedButton = Cast<UKalmalaThemedButton>(&Button))
     {
         ThemedButton->SetThemeStyle(Style, FocusOutline,
-            bContrast ? FLinearColor(0.12f, 0.12f, 0.12f, 1.0f) : ButtonSelected,
+            bContrast ? FLinearColor(0.12f, 0.12f, 0.12f, 1.0f)
+                : ButtonSurface != nullptr ? FMath::Lerp(FLinearColor::White, ButtonSelected, 0.18f) : ButtonSelected,
             bContrast ? FMath::Max(2.0f, FocusBorderWidth) : FocusBorderWidth,
             bContrast ? FMath::Max(2.0f, SelectedBorderWidth) : SelectedBorderWidth,
             bContrast ? FMath::Max(DisabledBorderWidth, 1.0f) : DisabledBorderWidth,

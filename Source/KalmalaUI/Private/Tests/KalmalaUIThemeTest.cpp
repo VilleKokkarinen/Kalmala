@@ -21,6 +21,22 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaUIThemeTest, "Kalmala.UI.Theme.LocalPre
 bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
 {
     const auto& RuntimeTheme = FKalmalaUITheme::Get();
+    TestEqual(TEXT("Runtime theme points buttons at the shared stone texture"), RuntimeTheme.ButtonImage,
+        FString(TEXT("/Game/Kalmala/UI/StoneButton.StoneButton")));
+    UButton* SharedStoneButton = NewObject<UButton>();
+    RuntimeTheme.ApplyButton(*SharedStoneButton, 0);
+    TestTrue(TEXT("The shared UI buttons use the stone box texture"),
+        SharedStoneButton->GetStyle().Normal.DrawAs == ESlateBrushDrawType::Box);
+    TestTrue(TEXT("The stone button texture loads and keeps alpha-backed 9-slice margins"),
+        Cast<UTexture2D>(SharedStoneButton->GetStyle().Normal.GetResourceObject()) != nullptr
+        && SharedStoneButton->GetStyle().Normal.Margin.Left > 0.0f
+        && SharedStoneButton->GetStyle().Normal.Margin.Top > 0.0f);
+    RuntimeTheme.ApplyButton(*SharedStoneButton, 1);
+    TestTrue(TEXT("High contrast uses its opaque geometric button fallback"),
+        SharedStoneButton->GetStyle().Normal.DrawAs == ESlateBrushDrawType::RoundedBox
+        && SharedStoneButton->GetStyle().Normal.GetResourceObject() == nullptr);
+    TestTrue(TEXT("High contrast retains a visible structural outline"),
+        SharedStoneButton->GetStyle().Normal.OutlineSettings.Width >= 1.0f);
     for (const FString* ViewPath : {&RuntimeTheme.InventoryPanelImage, &RuntimeTheme.VideoOptionsPanelImage,
         &RuntimeTheme.AudioOptionsPanelImage, &RuntimeTheme.ControlsOptionsPanelImage, &RuntimeTheme.SettingsOptionsPanelImage})
     {
@@ -121,6 +137,12 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     "RankGoldColor=(R=0.9,G=0.8,B=0.2,A=1)\nRankSilverColor=(R=0.7,G=0.8,B=0.9,A=1)\n"
     "RankBronzeColor=(R=0.8,G=0.4,B=0.2,A=1)\nRecentMarkerColor=(R=0.2,G=0.8,B=0.9,A=1)\n"), TEXT("ExtendedTheme.ini"));
     const FKalmalaUITheme Extension = FKalmalaUITheme::FromConfig(Extended);
+    FConfigFile ButtonTextureConfig;
+    ButtonTextureConfig.ProcessInputFileContents(TEXT("[Kalmala.UI.Theme]\nButtonImage=/Game/Kalmala/UI/StoneButton.StoneButton\n"),
+        TEXT("ButtonTexture.ini"));
+    const FKalmalaUITheme ButtonTextureTheme = FKalmalaUITheme::FromConfig(ButtonTextureConfig);
+    TestEqual(TEXT("Shared button texture path is configurable"), ButtonTextureTheme.ButtonImage,
+        FString(TEXT("/Game/Kalmala/UI/StoneButton.StoneButton")));
     UKalmalaThemedButton* Button = NewObject<UKalmalaThemedButton>();
     USizeBox* Icon = NewObject<USizeBox>();
     UScrollBox* Scroll = NewObject<UScrollBox>();
