@@ -55,7 +55,7 @@ void UKalmalaInventoryInspectWidget::Build()
         Label->SetText(FText::FromString(Name));
         Label->SetAutoWrapText(true); Label->SetJustification(ETextJustify::Center);
         Button->SetContent(Label);
-        Actions->AddChildToHorizontalBox(Button)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        Actions->AddChildToHorizontalBox(Button)->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
         Buttons.Add(Button);
     }
     Buttons[0]->OnClicked.AddDynamic(this, &ThisClass::Previous);

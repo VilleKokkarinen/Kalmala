@@ -203,7 +203,7 @@ For the inventory/build visual parent, prepare a disposable project mirror
 with project/plugin source and content, excluding generated directories. Use
 normal `%LOCALAPPDATA%/UnrealBuildTool` access and `-MaxParallelActions=4` for
 the forced `KalmalaEditor Win64 Development` build. Import the two original
-PNG sources from `Content/Kalmala/UI/Source/` into `/Game/Kalmala/UI` with
+original PNG sources from `Content/Kalmala/UI/Source/` into `/Game/Kalmala/UI` with
 Unreal's `ImportAssets` commandlet before runtime verification.
 
 The Inventory source is the new original 1254×1254 walnut texture at
@@ -220,6 +220,10 @@ UV margins to about 26×10 logical units, keeping the chipped ends intact on
 short, wide buttons. Reimport the 160×53 derivative, not the high-resolution
 master. `ButtonImage` applies the transparent beveled surface through the shared
 theme; high contrast retains the opaque geometric button and focus outline.
+`Content/Kalmala/UI/Source/StoneSliderThumb.png` is the separate generated
+1254×1254 transparent slate thumb, imported as
+`/Game/Kalmala/UI/StoneSliderThumb`. The shared theme draws it at 44×44 logical
+units and uses a geometric fallback in high contrast.
 
 Run the full `Automation RunTests Kalmala` queue. Then run the rendered
 two-peer checks from the mirror:
@@ -1024,9 +1028,11 @@ After building, run `Scripts/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 10
 
 Press Escape during normal play to open the local Settings menu; press Escape again to close it and restore game input. The menu's main screen provides Options and Quit. Options contains Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility groups; Gameplay stays hidden until a candidate setting is selected. Graphics immediately applies and saves resolution, V-Sync, window mode, and render-distance quality through Unreal `GameUserSettings`. Run `Kalmala.UI.Settings.LocalPresentation` after an editor build for the render-distance bounds seam. This is local presentation/preferences only: no setting, menu action, or quit request is sent to the server.
 
-The Audio tab now cycles local master volume in 25% steps and provides
-mute/restore, with text showing the current level and action. It saves these
-preferences in the local `GameUserSettings` config and applies the engine's
+The Audio tab uses a focusable master-volume slider and separate mute/restore
+button. Ambient, Music, and Interaction/Combat Feedback each use a focusable
+0–100% slider with a live percentage label. Values save in the local
+`GameUserSettings` config; slider writes are coalesced until 350 ms after the
+last change or flushed when the menu closes. Master volume applies the engine's
 primary output-volume multiplier at local-player initialization. The focused
 `Kalmala.UI.Settings.LocalPresentation` automation checks bounds, config
 persistence, mute, and restore; run it after an editor build with the standard
@@ -1038,9 +1044,8 @@ follow-up surface.
 
 ### Local audio category controls
 
-Since the master-only increment above, the Audio tab now includes focusable
-Ambient, Music, and Interaction/Combat Feedback buttons. Each displays its
-current value and cycles through 0%, 25%, 50%, 75%, and 100%; values save in the local
+The Audio tab includes focusable Ambient, Music, and Interaction/Combat Feedback
+sliders. Each displays its current value from 0% through 100%; values save in the local
 `GameUserSettings` config. Ambient scales the local wind, rain, water, fire,
 and biome loops, while Interaction/Combat Feedback scales owner-local
 movement, status, crafting/gathering, discovery, combat, and support cues. The

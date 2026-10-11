@@ -9,6 +9,8 @@
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/ScrollBox.h"
+#include "Components/SizeBox.h"
+#include "Components/Slider.h"
 #include "KalmalaSurvivalStatusSubsystem.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/UserInterfaceSettings.h"
@@ -20,6 +22,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerInput.h"
 #include "InputCoreTypes.h"
+#include "HAL/PlatformTime.h"
 #include "Misc/App.h"
 #include "Misc/ConfigCacheIni.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -582,6 +585,7 @@ void UKalmalaSettingsWidget::ResetOptionsOpeningAnimation()
 
 void UKalmalaSettingsWidget::Close()
 {
+    FlushAudioSettingsIfDirty();
     if (!bMenuOpen) return;
     bMenuOpen = false;
     ResetOptionsOpeningAnimation();
@@ -648,7 +652,7 @@ bool UKalmalaSettingsWidget::IsAudioMuted()
     return GetStoredMasterVolume() <= 0.0f;
 }
 
-void UKalmalaSettingsWidget::SetMasterVolume(const float Volume)
+void UKalmalaSettingsWidget::SetMasterVolume(const float Volume, const bool bFlush)
 {
     const float ClampedVolume = ClampMasterVolume(Volume);
     if (GConfig != nullptr)
@@ -658,7 +662,7 @@ void UKalmalaSettingsWidget::SetMasterVolume(const float Volume)
             : (ExistingVolume > 0.0f ? ExistingVolume : ReadStoredVolume(RestoreVolumeKey, DefaultMasterVolume));
         GConfig->SetFloat(AudioSettingsSection, MasterVolumeKey, ClampedVolume, GGameUserSettingsIni);
         GConfig->SetFloat(AudioSettingsSection, RestoreVolumeKey, RestoreVolume, GGameUserSettingsIni);
-        GConfig->Flush(false, GGameUserSettingsIni);
+        if (bFlush) GConfig->Flush(false, GGameUserSettingsIni);
     }
     FApp::SetVolumeMultiplier(ClampedVolume);
 }
@@ -691,7 +695,8 @@ float UKalmalaSettingsWidget::GetAudioCategoryVolume(const EKalmalaAudioCategory
     return Key != nullptr ? ReadStoredVolume(Key, DefaultMasterVolume) : DefaultMasterVolume;
 }
 
-void UKalmalaSettingsWidget::SetAudioCategoryVolume(const EKalmalaAudioCategory Category, const float Volume)
+void UKalmalaSettingsWidget::SetAudioCategoryVolume(const EKalmalaAudioCategory Category, const float Volume,
+    const bool bFlush)
 {
     const TCHAR* Key = GetAudioCategoryKey(Category);
     if (Key == nullptr || GConfig == nullptr)
@@ -700,7 +705,7 @@ void UKalmalaSettingsWidget::SetAudioCategoryVolume(const EKalmalaAudioCategory 
     }
 
     GConfig->SetFloat(AudioSettingsSection, Key, ClampAudioCategoryVolume(Volume), GGameUserSettingsIni);
-    GConfig->Flush(false, GGameUserSettingsIni);
+    if (bFlush) GConfig->Flush(false, GGameUserSettingsIni);
 }
 
 int32 UKalmalaSettingsWidget::ClampTextScale(const int32 Percent)
@@ -980,6 +985,7 @@ UButton* UKalmalaSettingsWidget::AddButton(UVerticalBox* Parent, const FText& La
     UVerticalBoxSlot* BoxSlot = Parent->AddChildToVerticalBox(Button);
     BoxSlot->SetPadding(FMargin(4.0f, 7.0f));
     BoxSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+    FKalmalaUITheme::Get().SizeButtonToContent(*Button);
     return Button;
 }
 
@@ -1109,7 +1115,8 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
         Tab->SetContent(Text);
         OptionsTabButtons.Add(Tab);
         Tab->OnClicked.Add(Delegate);
-        UHorizontalBoxSlot* Slot = Tabs->AddChildToHorizontalBox(Tab); Slot->SetSize(FSlateChildSize(ESlateSizeRule::Fill)); Slot->SetPadding(FMargin(3.0f));
+        UHorizontalBoxSlot* Slot = Tabs->AddChildToHorizontalBox(Tab); Slot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic)); Slot->SetPadding(FMargin(3.0f));
+        FKalmalaUITheme::Get().SizeButtonToContent(*Tab);
     };
     FScriptDelegate KeyboardDelegate; KeyboardDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleKeyboardAndMouseClicked)); AddTab(FText::FromString(TEXT("Keyboard & Mouse")), TEXT("KeyboardMouseTab"), KeyboardDelegate);
     FScriptDelegate ControllerDelegate; ControllerDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleControllerClicked)); AddTab(FText::FromString(TEXT("Controller")), TEXT("ControllerTab"), ControllerDelegate);
@@ -1156,24 +1163,84 @@ void UKalmalaSettingsWidget::ShowAudioTab()
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     AddLabel(ContentBox, FText::FromString(TEXT("Audio")), 24.0f);
-    UButton* MasterVolume = AddButton(ContentBox, FText::GetEmpty(), TEXT("MasterVolumeButton"));
-    MasterVolume->OnClicked.AddDynamic(this, &ThisClass::HandleMasterVolumeClicked);
-    MasterVolumeLabel = Cast<UTextBlock>(MasterVolume->GetContent());
+
+    struct FVolumeSliderWidgets
+    {
+        USlider* Slider = nullptr;
+        UTextBlock* Value = nullptr;
+    };
+    const auto AddVolumeSlider = [this](const TCHAR* LabelText, const FName Name, const float InitialValue)
+        -> FVolumeSliderWidgets
+    {
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        auto* Row = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+
+        auto* Label = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+        Label->SetText(FText::FromString(LabelText));
+        Label->SetAutoWrapText(true);
+        Theme.ApplyText(*Label, Theme.BodySize + 3, false, GetTextScalePercent(), GetContrastMode());
+        auto* LabelSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+        LabelSize->SetWidthOverride(230.0f);
+        LabelSize->SetContent(Label);
+        Row->AddChildToHorizontalBox(LabelSize)->SetPadding(FMargin(4.0f, 6.0f, 10.0f, 6.0f));
+
+        auto* Slider = WidgetTree->ConstructWidget<USlider>(USlider::StaticClass(), Name);
+        Slider->SetMinValue(0.0f);
+        Slider->SetMaxValue(1.0f);
+        Slider->SetStepSize(0.01f);
+        Slider->SetValue(InitialValue);
+        Slider->SetToolTipText(FText::FromString(FString::Printf(TEXT("Adjust %s volume from 0 to 100 percent."), LabelText)));
+        Theme.ApplySlider(*Slider, GetContrastMode());
+        UHorizontalBoxSlot* SliderSlot = Row->AddChildToHorizontalBox(Slider);
+        SliderSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        SliderSlot->SetPadding(FMargin(4.0f, 6.0f));
+        SliderSlot->SetVerticalAlignment(VAlign_Center);
+
+        auto* Value = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+        Value->SetAutoWrapText(false);
+        Value->SetJustification(ETextJustify::Center);
+        Value->SetText(FText::FromString(FString::Printf(TEXT("%d%%"), FMath::RoundToInt(InitialValue * 100.0f))));
+        Theme.ApplyText(*Value, Theme.BodySize + 3, false, GetTextScalePercent(), GetContrastMode());
+        auto* ValueSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+        ValueSize->SetWidthOverride(64.0f);
+        ValueSize->SetContent(Value);
+        Row->AddChildToHorizontalBox(ValueSize)->SetPadding(FMargin(8.0f, 6.0f, 4.0f, 6.0f));
+        ContentBox->AddChildToVerticalBox(Row)->SetPadding(FMargin(4.0f, 3.0f));
+        return { Slider, Value };
+    };
+
+    const FVolumeSliderWidgets Master = AddVolumeSlider(TEXT("Master volume"), TEXT("MasterVolumeSlider"),
+        GetStoredMasterVolume());
+    MasterVolumeSlider = Master.Slider;
+    MasterVolumeValueLabel = Master.Value;
+    MasterVolumeSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleMasterVolumeChanged);
+
     UButton* Mute = AddButton(ContentBox, FText::GetEmpty(), TEXT("AudioMuteButton"));
     Mute->OnClicked.AddDynamic(this, &ThisClass::HandleAudioMuteClicked);
     AudioMuteLabel = Cast<UTextBlock>(Mute->GetContent());
-    UButton* Ambient = AddButton(ContentBox, FText::GetEmpty(), TEXT("AmbientVolumeButton"));
-    Ambient->OnClicked.AddDynamic(this, &ThisClass::HandleAmbientVolumeClicked);
-    AmbientVolumeLabel = Cast<UTextBlock>(Ambient->GetContent());
-    UButton* Music = AddButton(ContentBox, FText::GetEmpty(), TEXT("MusicVolumeButton"));
-    Music->OnClicked.AddDynamic(this, &ThisClass::HandleMusicVolumeClicked);
-    MusicVolumeLabel = Cast<UTextBlock>(Music->GetContent());
-    UButton* InteractionCombat = AddButton(ContentBox, FText::GetEmpty(), TEXT("InteractionCombatVolumeButton"));
-    InteractionCombat->OnClicked.AddDynamic(this, &ThisClass::HandleInteractionCombatVolumeClicked);
-    InteractionCombatVolumeLabel = Cast<UTextBlock>(InteractionCombat->GetContent());
+
+    const FVolumeSliderWidgets Ambient = AddVolumeSlider(TEXT("Ambient volume"), TEXT("AmbientVolumeSlider"),
+        GetAudioCategoryVolume(EKalmalaAudioCategory::Ambient));
+    AmbientVolumeSlider = Ambient.Slider;
+    AmbientVolumeValueLabel = Ambient.Value;
+    AmbientVolumeSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleAmbientVolumeChanged);
+
+    const FVolumeSliderWidgets Music = AddVolumeSlider(TEXT("Music volume"), TEXT("MusicVolumeSlider"),
+        GetAudioCategoryVolume(EKalmalaAudioCategory::Music));
+    MusicVolumeSlider = Music.Slider;
+    MusicVolumeValueLabel = Music.Value;
+    MusicVolumeSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleMusicVolumeChanged);
+
+    const FVolumeSliderWidgets InteractionCombat = AddVolumeSlider(TEXT("Interaction / combat feedback"),
+        TEXT("InteractionCombatVolumeSlider"), GetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat));
+    InteractionCombatVolumeSlider = InteractionCombat.Slider;
+    InteractionCombatVolumeValueLabel = InteractionCombat.Value;
+    InteractionCombatVolumeSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleInteractionCombatVolumeChanged);
+
     AddLabel(ContentBox, FText::FromString(TEXT("Saved locally. Music volume is ready for future music playback.")), 15.0f);
     UpdateAudioLabels();
-    MasterVolume->SetUserFocus(GetOwningPlayer());
+    MasterVolumeSlider->SetUserFocus(GetOwningPlayer());
+    MasterVolumeSlider->SetKeyboardFocus();
 }
 
 void UKalmalaSettingsWidget::ShowKeyboardAndMouseTab()
@@ -1226,6 +1293,7 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
             Button->OnControlBindingClicked.AddDynamic(this, &ThisClass::HandleControlBindingClicked);
             UVerticalBoxSlot* ButtonSlot = Row->AddChildToVerticalBox(Button);
             ButtonSlot->SetPadding(FMargin(3.0f, 2.0f));
+            FKalmalaUITheme::Get().SizeButtonToContent(*Button);
             ControlButtons.Add(Button);
         };
         AddControlButton(bGamepad);
@@ -1314,31 +1382,40 @@ void UKalmalaSettingsWidget::UpdateVideoLabels()
 
 void UKalmalaSettingsWidget::UpdateAudioLabels()
 {
-    const int32 Percent = FMath::RoundToInt(GetStoredMasterVolume() * 100.0f);
-    if (MasterVolumeLabel != nullptr)
-    {
-        MasterVolumeLabel->SetText(FText::FromString(FString::Printf(
-            TEXT("Master Volume: %d%% (Activate to change)"), Percent)));
-    }
+    const bool bWasUpdatingAudioControls = bUpdatingAudioControls;
+    bUpdatingAudioControls = true;
+    const float MasterValue = GetStoredMasterVolume();
+    if (MasterVolumeSlider != nullptr) MasterVolumeSlider->SetValue(MasterValue);
+    if (MasterVolumeValueLabel != nullptr) MasterVolumeValueLabel->SetText(FText::AsPercent(MasterValue));
     if (AudioMuteLabel != nullptr)
     {
         AudioMuteLabel->SetText(FText::FromString(IsAudioMuted() ? TEXT("Restore audio") : TEXT("Mute audio")));
     }
 
-    const auto UpdateCategoryLabel = [](UTextBlock* Label, const TCHAR* CategoryLabel,
-        const EKalmalaAudioCategory Category)
+    const auto UpdateCategory = [](USlider* Slider, UTextBlock* ValueLabel, const EKalmalaAudioCategory Category)
     {
-        if (Label != nullptr)
-        {
-            const int32 CategoryPercent = FMath::RoundToInt(GetAudioCategoryVolume(Category) * 100.0f);
-            Label->SetText(FText::FromString(FString::Printf(
-                TEXT("%s Volume: %d%% (Activate to change)"), CategoryLabel, CategoryPercent)));
-        }
+        const float Value = GetAudioCategoryVolume(Category);
+        if (Slider != nullptr) Slider->SetValue(Value);
+        if (ValueLabel != nullptr) ValueLabel->SetText(FText::AsPercent(Value));
     };
-    UpdateCategoryLabel(AmbientVolumeLabel, TEXT("Ambient"), EKalmalaAudioCategory::Ambient);
-    UpdateCategoryLabel(MusicVolumeLabel, TEXT("Music"), EKalmalaAudioCategory::Music);
-    UpdateCategoryLabel(InteractionCombatVolumeLabel, TEXT("Interaction/Combat Feedback"),
+    UpdateCategory(AmbientVolumeSlider, AmbientVolumeValueLabel, EKalmalaAudioCategory::Ambient);
+    UpdateCategory(MusicVolumeSlider, MusicVolumeValueLabel, EKalmalaAudioCategory::Music);
+    UpdateCategory(InteractionCombatVolumeSlider, InteractionCombatVolumeValueLabel,
         EKalmalaAudioCategory::InteractionCombat);
+    bUpdatingAudioControls = bWasUpdatingAudioControls;
+}
+
+void UKalmalaSettingsWidget::MarkAudioSettingsDirty()
+{
+    bAudioSettingsDirty = true;
+    AudioSettingsLastChangedTime = FPlatformTime::Seconds();
+}
+
+void UKalmalaSettingsWidget::FlushAudioSettingsIfDirty()
+{
+    if (!bAudioSettingsDirty || GConfig == nullptr) return;
+    GConfig->Flush(false, GGameUserSettingsIni);
+    bAudioSettingsDirty = false;
 }
 
 void UKalmalaSettingsWidget::UpdateSettingsLabels()
@@ -1394,6 +1471,10 @@ void UKalmalaSettingsWidget::HandleStatusDetailsClicked()
 void UKalmalaSettingsWidget::NativeTick(const FGeometry& Geometry, float DeltaTime)
 {
     Super::NativeTick(Geometry, DeltaTime);
+    if (bAudioSettingsDirty && FPlatformTime::Seconds() - AudioSettingsLastChangedTime >= 0.35)
+    {
+        FlushAudioSettingsIfDirty();
+    }
     const FVector2D ViewportSize = Geometry.GetLocalSize();
     if (PanelCanvasSlot != nullptr && ViewportSize.X > 0.0f && ViewportSize.Y > 0.0f)
     {
@@ -1451,11 +1532,11 @@ void UKalmalaSettingsWidget::HandleResolutionClicked() { if (UGameUserSettings* 
 void UKalmalaSettingsWidget::HandleVSyncClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->SetVSyncEnabled(!Settings->IsVSyncEnabled()); ApplyVideoSettings(); } }
 void UKalmalaSettingsWidget::HandleWindowModeClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { const EWindowMode::Type Mode = Settings->GetFullscreenMode(); Settings->SetFullscreenMode(Mode == EWindowMode::Fullscreen ? EWindowMode::Windowed : Mode == EWindowMode::Windowed ? EWindowMode::WindowedFullscreen : EWindowMode::Fullscreen); ApplyVideoSettings(); } }
 void UKalmalaSettingsWidget::HandleViewDistanceClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->ScalabilityQuality.ViewDistanceQuality = (ClampViewDistanceQuality(Settings->ScalabilityQuality.ViewDistanceQuality) + 1) % 4; ApplyVideoSettings(); } }
-void UKalmalaSettingsWidget::HandleMasterVolumeClicked()
+void UKalmalaSettingsWidget::HandleMasterVolumeChanged(const float Value)
 {
-    const int32 CurrentStep = FMath::RoundToInt(GetStoredMasterVolume() * 4.0f);
-    const int32 NextStep = (CurrentStep % 4) + 1;
-    SetMasterVolume(static_cast<float>(NextStep) * 0.25f);
+    if (bUpdatingAudioControls) return;
+    SetMasterVolume(Value, false);
+    MarkAudioSettingsDirty();
     UpdateAudioLabels();
 }
 
@@ -1465,27 +1546,28 @@ void UKalmalaSettingsWidget::HandleAudioMuteClicked()
     UpdateAudioLabels();
 }
 
-void UKalmalaSettingsWidget::CycleAudioCategory(const EKalmalaAudioCategory Category)
+void UKalmalaSettingsWidget::HandleAmbientVolumeChanged(const float Value)
 {
-    const int32 CurrentStep = FMath::RoundToInt(GetAudioCategoryVolume(Category) * 4.0f);
-    const int32 NextStep = (CurrentStep + 1) % 5;
-    SetAudioCategoryVolume(Category, static_cast<float>(NextStep) * 0.25f);
+    if (bUpdatingAudioControls) return;
+    SetAudioCategoryVolume(EKalmalaAudioCategory::Ambient, Value, false);
+    MarkAudioSettingsDirty();
     UpdateAudioLabels();
 }
 
-void UKalmalaSettingsWidget::HandleAmbientVolumeClicked()
+void UKalmalaSettingsWidget::HandleMusicVolumeChanged(const float Value)
 {
-    CycleAudioCategory(EKalmalaAudioCategory::Ambient);
+    if (bUpdatingAudioControls) return;
+    SetAudioCategoryVolume(EKalmalaAudioCategory::Music, Value, false);
+    MarkAudioSettingsDirty();
+    UpdateAudioLabels();
 }
 
-void UKalmalaSettingsWidget::HandleMusicVolumeClicked()
+void UKalmalaSettingsWidget::HandleInteractionCombatVolumeChanged(const float Value)
 {
-    CycleAudioCategory(EKalmalaAudioCategory::Music);
-}
-
-void UKalmalaSettingsWidget::HandleInteractionCombatVolumeClicked()
-{
-    CycleAudioCategory(EKalmalaAudioCategory::InteractionCombat);
+    if (bUpdatingAudioControls) return;
+    SetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat, Value, false);
+    MarkAudioSettingsDirty();
+    UpdateAudioLabels();
 }
 
 void UKalmalaSettingsWidget::HandleControlBindingClicked(const FName ControlName, const bool bGamepad)

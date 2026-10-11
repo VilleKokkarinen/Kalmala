@@ -478,7 +478,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         Text->SetText(FText::FromString(Label)); Text->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(),18));
         Text->SetColorAndOpacity(FSlateColor(FLinearColor::Black)); Button->SetContent(Text);
         Button->SetToolTipText(FText::FromString(Help ? Help : Label));
-        if(Row) { auto* Slot=Row->AddChildToHorizontalBox(Button); Slot->SetSize(FSlateChildSize(ESlateSizeRule::Fill)); Slot->SetPadding(FMargin(2,4)); }
+        if(Row) { auto* Slot=Row->AddChildToHorizontalBox(Button); Slot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic)); Slot->SetPadding(FMargin(2,4)); }
         else Column->AddChild(Button); return Button;
     };
     auto* WorkbenchSections = WidgetTree->ConstructWidget<UHorizontalBox>();

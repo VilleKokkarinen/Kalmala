@@ -13,6 +13,7 @@ class KALMALAUI_API UKalmalaThemedButton : public UButton
 
 public:
 	UKalmalaThemedButton(const FObjectInitializer& ObjectInitializer);
+	virtual void SynchronizeProperties() override;
 
 	void SetThemeStyle(const FButtonStyle& InBaseStyle, const FLinearColor& InFocusColor,
 		const FLinearColor& InSelectedFillColor,

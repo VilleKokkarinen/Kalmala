@@ -6,12 +6,21 @@
 #include "KalmalaThemedButton.h"
 #include "Misc/ConfigCacheIni.h"
 #include "Brushes/SlateBoxBrush.h"
+#include "Brushes/SlateImageBrush.h"
 #include "Styling/CoreStyle.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "Containers/Ticker.h"
 #include "Components/Button.h"
+#include "Components/CanvasPanelSlot.h"
+#include "Components/GridSlot.h"
+#include "Components/HorizontalBoxSlot.h"
+#include "Components/OverlaySlot.h"
 #include "Components/SizeBox.h"
 #include "Components/ScrollBox.h"
+#include "Components/ScrollBoxSlot.h"
+#include "Components/Slider.h"
+#include "Components/UniformGridSlot.h"
+#include "Components/VerticalBoxSlot.h"
 #include "Engine/Font.h"
 #include "Engine/Texture2D.h"
 #include "Misc/PackageName.h"
@@ -194,6 +203,7 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadAsset(TEXT("BuildPanelImage"), Theme.BuildPanelImage);
     ReadAsset(TEXT("WorldMapPanelImage"), Theme.WorldMapPanelImage);
     ReadAsset(TEXT("ButtonImage"), Theme.ButtonImage);
+    ReadAsset(TEXT("SliderThumbImage"), Theme.SliderThumbImage);
     ReadAsset(TEXT("EscapePanelImage"), Theme.EscapePanelImage);
     ReadAsset(TEXT("VideoOptionsPanelImage"), Theme.VideoOptionsPanelImage);
     ReadAsset(TEXT("AudioOptionsPanelImage"), Theme.AudioOptionsPanelImage);
@@ -219,6 +229,7 @@ const FKalmalaUITheme& FKalmalaUITheme::Get()
         if (RuntimeTheme.InventoryPanelImage.IsEmpty()) RuntimeTheme.InventoryPanelImage = TEXT("/Game/Kalmala/UI/InventoryPanel.InventoryPanel");
         if (RuntimeTheme.BuildPanelImage.IsEmpty()) RuntimeTheme.BuildPanelImage = TEXT("/Game/Kalmala/UI/BuildPanel.BuildPanel");
         if (RuntimeTheme.ButtonImage.IsEmpty()) RuntimeTheme.ButtonImage = TEXT("/Game/Kalmala/UI/StoneButton.StoneButton");
+        if (RuntimeTheme.SliderThumbImage.IsEmpty()) RuntimeTheme.SliderThumbImage = TEXT("/Game/Kalmala/UI/StoneSliderThumb.StoneSliderThumb");
         if (RuntimeTheme.EscapePanelImage.IsEmpty()) RuntimeTheme.EscapePanelImage = TEXT("/Game/Kalmala/UI/OptionsPanel.OptionsPanel");
         for (FString* OptionsPath : {&RuntimeTheme.VideoOptionsPanelImage, &RuntimeTheme.AudioOptionsPanelImage,
             &RuntimeTheme.ControlsOptionsPanelImage, &RuntimeTheme.SettingsOptionsPanelImage})
@@ -376,6 +387,82 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, con
     }
     Button.SetBackgroundColor(FLinearColor::White);
     Button.SetColorAndOpacity(FLinearColor::White);
+    SizeButtonToContent(Button);
+}
+
+void FKalmalaUITheme::SizeButtonToContent(UButton& Button) const
+{
+    UPanelSlot* const ButtonSlot = Button.Slot.Get();
+    if (auto* VerticalSlot = Cast<UVerticalBoxSlot>(ButtonSlot))
+    {
+        VerticalSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+        VerticalSlot->SetHorizontalAlignment(HAlign_Center);
+    }
+    else if (auto* HorizontalSlot = Cast<UHorizontalBoxSlot>(ButtonSlot))
+    {
+        HorizontalSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+    }
+    else if (auto* ScrollSlot = Cast<UScrollBoxSlot>(ButtonSlot))
+    {
+        ScrollSlot->SetHorizontalAlignment(HAlign_Center);
+    }
+    else if (auto* CanvasSlot = Cast<UCanvasPanelSlot>(ButtonSlot))
+    {
+        CanvasSlot->SetAutoSize(true);
+    }
+    else if (auto* OverlaySlot = Cast<UOverlaySlot>(ButtonSlot))
+    {
+        OverlaySlot->SetHorizontalAlignment(HAlign_Center);
+    }
+    else if (auto* GridSlot = Cast<UGridSlot>(ButtonSlot))
+    {
+        GridSlot->SetHorizontalAlignment(HAlign_Center);
+    }
+    else if (auto* UniformGridSlot = Cast<UUniformGridSlot>(ButtonSlot))
+    {
+        UniformGridSlot->SetHorizontalAlignment(HAlign_Center);
+    }
+}
+
+void FKalmalaUITheme::ApplySlider(USlider& Slider, const int32 ContrastMode) const
+{
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    UTexture2D* ThumbSurface = bContrast || SliderThumbImage.IsEmpty()
+        ? nullptr : Cast<UTexture2D>(LoadThemeAsset(SliderThumbImage));
+
+    const auto MakeTrack = [this, bContrast](const FLinearColor Color) -> FSlateBrush
+    {
+        const FLinearColor Outline = bContrast ? FLinearColor::White : BorderColor;
+        FSlateRoundedBoxBrush Brush(Color, 4.0f, Outline, bContrast ? 1.5f : 0.5f);
+        Brush.OutlineSettings.Width = bContrast ? 1.5f : 0.5f;
+        return Brush;
+    };
+    const auto MakeThumb = [this, bContrast, ThumbSurface](const FLinearColor Tint) -> FSlateBrush
+    {
+        if (ThumbSurface != nullptr)
+        {
+            return FSlateImageBrush(ThumbSurface, FVector2D(44.0f, 44.0f), Tint);
+        }
+        const FLinearColor Fill = bContrast ? FLinearColor(0.14f, 0.14f, 0.14f, 1.0f) : Tint;
+        const FLinearColor Outline = bContrast ? FLinearColor::White : BorderColor;
+        return FSlateRoundedBoxBrush(Fill, 16.0f, Outline, bContrast ? 2.0f : 1.0f);
+    };
+
+    FSliderStyle Style = Slider.GetWidgetStyle();
+    Style.SetNormalBarImage(MakeTrack(bContrast ? FLinearColor(0.04f, 0.04f, 0.04f, 1.0f)
+        : FLinearColor(0.055f, 0.065f, 0.07f, 1.0f)));
+    Style.SetHoveredBarImage(MakeTrack(bContrast ? FLinearColor(0.18f, 0.18f, 0.18f, 1.0f)
+        : FLinearColor(0.13f, 0.15f, 0.16f, 1.0f)));
+    Style.SetDisabledBarImage(MakeTrack(FLinearColor(0.035f, 0.035f, 0.035f, 1.0f)));
+    Style.SetNormalThumbImage(MakeThumb(FLinearColor::White));
+    Style.SetHoveredThumbImage(MakeThumb(bContrast ? FLinearColor::White : FLinearColor(1.08f, 1.08f, 1.08f, 1.0f)));
+    Style.SetDisabledThumbImage(MakeThumb(bContrast ? FLinearColor(0.55f, 0.55f, 0.55f, 1.0f)
+        : FLinearColor(0.42f, 0.44f, 0.45f, 1.0f)));
+    Style.SetBarThickness(8.0f);
+    Slider.SetWidgetStyle(Style);
+    Slider.SetSliderBarColor(FLinearColor::White);
+    Slider.SetSliderHandleColor(FLinearColor::White);
+    Slider.IsFocusable = true;
 }
 
 void FKalmalaUITheme::ApplySelectablePanel(UBorder& Border, const bool bSelected, const bool bFocused,

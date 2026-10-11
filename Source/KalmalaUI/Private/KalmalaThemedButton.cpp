@@ -1,4 +1,5 @@
 #include "KalmalaThemedButton.h"
+#include "KalmalaUITheme.h"
 
 #include "Containers/Ticker.h"
 #include "KalmalaSettingsWidget.h"
@@ -49,6 +50,12 @@ UKalmalaThemedButton::UKalmalaThemedButton(const FObjectInitializer& ObjectIniti
 	OnUnhovered.AddDynamic(this, &ThisClass::HandleThemeUnhovered);
 	OnReceivedFocus.BindUObject(this, &ThisClass::HandleThemeFocusReceived);
 	OnLostFocus.BindUObject(this, &ThisClass::HandleThemeFocusLost);
+}
+
+void UKalmalaThemedButton::SynchronizeProperties()
+{
+	Super::SynchronizeProperties();
+	FKalmalaUITheme::Get().SizeButtonToContent(*this);
 }
 
 void UKalmalaThemedButton::SetThemeStyle(const FButtonStyle& InBaseStyle, const FLinearColor& InFocusColor,

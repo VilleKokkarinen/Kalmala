@@ -8,6 +8,7 @@
 
 class UTextBlock;
 class UCanvasPanelSlot;
+class USlider;
 
 enum class EKalmalaAudioCategory : uint8
 {
@@ -80,12 +81,12 @@ public:
     static float ClampMasterVolume(float Volume);
     static float GetStoredMasterVolume();
     static bool IsAudioMuted();
-    static void SetMasterVolume(float Volume);
+    static void SetMasterVolume(float Volume, bool bFlush = true);
     static void ToggleAudioMute();
     static void ApplySavedMasterVolume();
     static float ClampAudioCategoryVolume(float Volume);
     static float GetAudioCategoryVolume(EKalmalaAudioCategory Category);
-    static void SetAudioCategoryVolume(EKalmalaAudioCategory Category, float Volume);
+    static void SetAudioCategoryVolume(EKalmalaAudioCategory Category, float Volume, bool bFlush = true);
     static int32 ClampTextScale(int32 Percent);
     static int32 GetTextScalePercent();
     static void SetTextScalePercent(int32 Percent);
@@ -132,7 +133,8 @@ private:
     void UpdateAudioLabels();
     void UpdateSettingsLabels();
     void UpdateControlsLabels();
-    void CycleAudioCategory(EKalmalaAudioCategory Category);
+    void MarkAudioSettingsDirty();
+    void FlushAudioSettingsIfDirty();
     void ApplyModalPalette(const FString* ImageOverride = nullptr);
     void ApplyHomeMenuPalette();
     void StartOptionsOpeningAnimation();
@@ -166,15 +168,15 @@ private:
     UFUNCTION()
     void HandleViewDistanceClicked();
     UFUNCTION()
-    void HandleMasterVolumeClicked();
+    void HandleMasterVolumeChanged(float Value);
     UFUNCTION()
     void HandleAudioMuteClicked();
     UFUNCTION()
-    void HandleAmbientVolumeClicked();
+    void HandleAmbientVolumeChanged(float Value);
     UFUNCTION()
-    void HandleMusicVolumeClicked();
+    void HandleMusicVolumeChanged(float Value);
     UFUNCTION()
-    void HandleInteractionCombatVolumeClicked();
+    void HandleInteractionCombatVolumeChanged(float Value);
     UFUNCTION()
     void HandleControlBindingClicked(FName ControlName, bool bGamepad);
     UFUNCTION()
@@ -201,15 +203,23 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> ViewDistanceLabel;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> MasterVolumeLabel;
+    TObjectPtr<UTextBlock> MasterVolumeValueLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<USlider> MasterVolumeSlider;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> AudioMuteLabel;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> AmbientVolumeLabel;
+    TObjectPtr<UTextBlock> AmbientVolumeValueLabel;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> MusicVolumeLabel;
+    TObjectPtr<USlider> AmbientVolumeSlider;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> InteractionCombatVolumeLabel;
+    TObjectPtr<UTextBlock> MusicVolumeValueLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<USlider> MusicVolumeSlider;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> InteractionCombatVolumeValueLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<USlider> InteractionCombatVolumeSlider;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> TextScaleLabel;
     UPROPERTY(Transient)
@@ -232,6 +242,9 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<UCanvasPanelSlot> PanelCanvasSlot;
     FVector2D LastLayoutViewportSize = FVector2D::ZeroVector;
+    bool bAudioSettingsDirty = false;
+    bool bUpdatingAudioControls = false;
+    double AudioSettingsLastChangedTime = 0.0;
 
     UPROPERTY(Transient)
     TArray<TObjectPtr<UKalmalaControlButton>> ControlButtons;

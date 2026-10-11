@@ -1184,6 +1184,7 @@ expanded-map, and options views as described below.
 | BuildPanelImage | `/Game/Kalmala/UI/BuildPanel.BuildPanel` | Texture2D override for build/craft selection |
 | WorldMapPanelImage | `/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel` | Texture2D override for the expanded map shell |
 | ButtonImage | `/Game/Kalmala/UI/StoneButton.StoneButton` | Shared transparent stone slab, imported at 160×53 Slate-oriented size so nine-slice margins preserve its chipped ends; high contrast uses geometric brushes |
+| SliderThumbImage | `/Game/Kalmala/UI/StoneSliderThumb.StoneSliderThumb` | Separate irregular slate thumb image for sliders; high contrast uses a geometric thumb |
 | EscapePanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Fallback source for empty option-tab overrides; M13 requests a transparent Escape home menu |
 | VideoOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Legacy Video tab key retained for config compatibility; M13 Options groups share InventoryPanelImage |
 | AudioOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Legacy Audio tab key retained for config compatibility; M13 Options groups share InventoryPanelImage |
@@ -1217,14 +1218,19 @@ nine-slice margins so its beveled irregular edges remain visible at different
 button sizes; its 160×53 import size keeps the 0.16/0.18 UV margins near 26×10
 Slate units instead of hundreds of units. Hover, press, selected, and disabled
 states tint the same texture.
+Slider thumbs use their own small irregular stone image and a recessed rounded
+track. Buttons in vertical, horizontal, scroll, overlay, grid, and canvas slots
+use content-driven width instead of filling the parent; horizontal slider tracks
+remain fill-sized within their rows.
 High contrast suppresses decorative images and retains the opaque geometric
 button surface and visible focus outline. A panel image replaces the geometric
 panel border; high contrast ignores it, uses a black-backed panel and white
 border/text, and forces button borders to at least one unit. High contrast uses
 neutral button fills; pressed padding and Unreal's existing keyboard focus
 indicator remain available.
-Accessibility text scale still takes precedence over theme size. No focus,
-click delegate, navigation, modal ownership, authority, or save binding changed.
+Accessibility text scale still takes precedence over theme size. Button
+activation, menu navigation, modal ownership, gameplay authority, and saved
+data schemas remain unchanged; audio values keep their existing local keys.
 
 Recipe/build activity cards reserve separate right-aligned rows for Rank and
 Recent, followed by the Favorite cue at the lower right, so a single card can
@@ -1845,7 +1851,7 @@ behavior should be specified when selected. Do not copy reference artwork.
 
 ### Audio candidates
 
-- [ ] Replace the existing 25%-step audio controls with sliders for the same
+- [x] Replace the existing 25%-step audio controls with sliders for the same
   master, ambient, music, and interaction/combat-feedback settings; keep
   visible percentage/value labels.
 - [ ] Environmental — volume slider with a visible percentage/value.
@@ -1865,8 +1871,8 @@ behavior should be specified when selected. Do not copy reference artwork.
   are a resolution selector, V-Sync toggle, window-mode toggle/selector, and
   quality slider.
 - **Audio:** master volume, mute/restore, music, ambient, and
-  interaction/combat feedback levels. Keep these settings; only the optional
-  checkbox above changes their current 25%-step control to sliders.
+  interaction/combat feedback levels. The selected audio candidate now uses
+  focusable sliders with visible percentage values.
 - **Keyboard & Mouse / Controller** (currently Controls): existing allowlisted
   per-action binding choices and restore-defaults behavior for each device
   family. The optional direct-capture checkbox changes only the keyboard/mouse
@@ -1890,11 +1896,11 @@ they must stay bounded, reversible, and compatible with the current input
 bindings. This increment makes no platform, visual-identity, or audio-content
 decision.
 
-The Audio tab provides a local master-volume cycle in 25% steps and a
-mute/restore button. Ambient, music, and interaction/combat feedback each have
-a focusable category button that cycles through 0%, 25%, 50%, 75%, and 100%.
-Every button reports its current level or action in text. These values save in
-the local `GameUserSettings` config. The master value applies through the
+The Audio tab provides a focusable master-volume slider and a mute/restore
+button. Ambient, music, and interaction/combat feedback each have a focusable
+0–100% slider with a live percentage label. Slider changes update immediately
+and save to the local `GameUserSettings` config after a brief idle delay or when
+the menu closes. The master value applies through the
 engine's primary output-volume multiplier; the ambient value scales the local
 wind, rain, water, fire, and biome loops, and the interaction/combat value
 scales owner-local movement, status, crafting/gathering, discovery, combat, and

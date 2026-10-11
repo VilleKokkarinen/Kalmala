@@ -9,6 +9,7 @@ class FConfigFile;
 class UBorder;
 class UTextBlock;
 class UButton;
+class USlider;
 class USizeBox;
 class UScrollBox;
 class UWidgetTree;
@@ -34,6 +35,7 @@ struct KALMALAUI_API FKalmalaUITheme
     FString BuildPanelImage;
     FString WorldMapPanelImage;
     FString ButtonImage;
+    FString SliderThumbImage;
     FString EscapePanelImage;
     FString VideoOptionsPanelImage;
     FString AudioOptionsPanelImage;
@@ -88,6 +90,8 @@ struct KALMALAUI_API FKalmalaUITheme
     void ApplyPanel(UBorder& Border, int32 ContrastMode, const FString* ImageOverride = nullptr) const;
     void ApplySolidPanel(UBorder& Border, int32 ContrastMode) const;
     void ApplyButton(UButton& Button, int32 ContrastMode, bool bReducedMotion = false) const;
+    void SizeButtonToContent(UButton& Button) const;
+    void ApplySlider(USlider& Slider, int32 ContrastMode) const;
     void ApplySelectablePanel(UBorder& Border, bool bSelected, bool bFocused, bool bUnavailable,
         int32 ContrastMode, bool bReducedMotion = false) const;
     void ApplyIconSlot(USizeBox& Slot) const;
