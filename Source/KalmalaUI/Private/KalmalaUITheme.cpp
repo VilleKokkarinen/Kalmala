@@ -135,6 +135,7 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadNumber(Config, TEXT("BorderWidth"), Theme.BorderWidth, 0, 3);
     ReadNumber(Config, TEXT("CornerRadius"), Theme.CornerRadius, 0, 12);
     ReadNumber(Config, TEXT("SlotPadding"), Theme.SlotPadding, 0, 16);
+    ReadNumber(Config, TEXT("ButtonPadding"), Theme.ButtonPadding, 0, 24);
     ReadNumber(Config, TEXT("IconWidth"), Theme.IconWidth, 24, 96);
     ReadNumber(Config, TEXT("IconHeight"), Theme.IconHeight, 24, 96);
     ReadNumber(Config, TEXT("ScrollSpeed"), Theme.ScrollSpeed, 1, 60);
@@ -370,7 +371,7 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, con
     Style.SetPressedForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
     Style.SetDisabledForeground(FSlateColor(bContrast ? FLinearColor(0.72f, 0.72f, 0.72f, 1)
         : FLinearColor(0.55f, 0.58f, 0.57f, 1)));
-    Style.SetNormalPadding(FMargin(SlotPadding)).SetPressedPadding(FMargin(SlotPadding + 1));
+    Style.SetNormalPadding(FMargin(ButtonPadding)).SetPressedPadding(FMargin(ButtonPadding + 1));
     if (UKalmalaThemedButton* ThemedButton = Cast<UKalmalaThemedButton>(&Button))
     {
         ThemedButton->SetThemeStyle(Style, FocusOutline,
@@ -432,9 +433,9 @@ void FKalmalaUITheme::ApplySlider(USlider& Slider, const int32 ContrastMode) con
 
     const auto MakeTrack = [this, bContrast](const FLinearColor Color) -> FSlateBrush
     {
-        const FLinearColor Outline = bContrast ? FLinearColor::White : BorderColor;
-        FSlateRoundedBoxBrush Brush(Color, 4.0f, Outline, bContrast ? 1.5f : 0.5f);
-        Brush.OutlineSettings.Width = bContrast ? 1.5f : 0.5f;
+        const FLinearColor Outline = bContrast ? FLinearColor::White : FLinearColor::Transparent;
+        FSlateRoundedBoxBrush Brush(Color, 3.0f, Outline, bContrast ? 1.0f : 0.0f);
+        Brush.OutlineSettings.Width = bContrast ? 1.0f : 0.0f;
         return Brush;
     };
     const auto MakeThumb = [this, bContrast, ThumbSurface](const FLinearColor Tint) -> FSlateBrush
@@ -450,15 +451,15 @@ void FKalmalaUITheme::ApplySlider(USlider& Slider, const int32 ContrastMode) con
 
     FSliderStyle Style = Slider.GetWidgetStyle();
     Style.SetNormalBarImage(MakeTrack(bContrast ? FLinearColor(0.04f, 0.04f, 0.04f, 1.0f)
-        : FLinearColor(0.055f, 0.065f, 0.07f, 1.0f)));
+        : FLinearColor(0.11f, 0.10f, 0.085f, 1.0f)));
     Style.SetHoveredBarImage(MakeTrack(bContrast ? FLinearColor(0.18f, 0.18f, 0.18f, 1.0f)
-        : FLinearColor(0.13f, 0.15f, 0.16f, 1.0f)));
+        : FLinearColor(0.16f, 0.145f, 0.12f, 1.0f)));
     Style.SetDisabledBarImage(MakeTrack(FLinearColor(0.035f, 0.035f, 0.035f, 1.0f)));
     Style.SetNormalThumbImage(MakeThumb(FLinearColor::White));
     Style.SetHoveredThumbImage(MakeThumb(bContrast ? FLinearColor::White : FLinearColor(1.08f, 1.08f, 1.08f, 1.0f)));
     Style.SetDisabledThumbImage(MakeThumb(bContrast ? FLinearColor(0.55f, 0.55f, 0.55f, 1.0f)
         : FLinearColor(0.42f, 0.44f, 0.45f, 1.0f)));
-    Style.SetBarThickness(8.0f);
+    Style.SetBarThickness(6.0f);
     Slider.SetWidgetStyle(Style);
     Slider.SetSliderBarColor(FLinearColor::White);
     Slider.SetSliderHandleColor(FLinearColor::White);

@@ -1187,7 +1187,8 @@ void UKalmalaSettingsWidget::ShowAudioTab()
         auto* Slider = WidgetTree->ConstructWidget<USlider>(USlider::StaticClass(), Name);
         Slider->SetMinValue(0.0f);
         Slider->SetMaxValue(1.0f);
-        Slider->SetStepSize(0.01f);
+        Slider->SetStepSize(0.005f);
+        Slider->MouseUsesStep = false;
         Slider->SetValue(InitialValue);
         Slider->SetToolTipText(FText::FromString(FString::Printf(TEXT("Adjust %s volume from 0 to 100 percent."), LabelText)));
         Theme.ApplySlider(*Slider, GetContrastMode());

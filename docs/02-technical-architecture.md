@@ -1197,7 +1197,8 @@ expanded-map, and options views as described below.
 | ButtonHovered | (0.18, 0.25, 0.28, 1) | Linear RGBA 0–1 |
 | ButtonPressed | (0.07, 0.10, 0.12, 1) | Linear RGBA 0–1 |
 | ButtonDisabled | (0.08, 0.08, 0.08, 1) | Linear RGBA 0–1 |
-| SlotPadding | 3 | 0–16; button content, pressed adds one unit |
+| SlotPadding | 3 | 0–16; selectable-panel content |
+| ButtonPadding | 7 | 0–24; shared button content, pressed adds one unit |
 | IconWidth / IconHeight | 64 / 42 | 24–96; existing support glyph slots |
 | AnimateScrolling / ScrollSpeed | False / 15 | Boolean / 1–60; Controls wheel scrolling |
 | AnimateOptionsOpening | True | Boolean; set False for an instant/reduced-motion opening |
@@ -1218,10 +1219,12 @@ nine-slice margins so its beveled irregular edges remain visible at different
 button sizes; its 160×53 import size keeps the 0.16/0.18 UV margins near 26×10
 Slate units instead of hundreds of units. Hover, press, selected, and disabled
 states tint the same texture.
-Slider thumbs use their own small irregular stone image and a recessed rounded
-track. Buttons in vertical, horizontal, scroll, overlay, grid, and canvas slots
-use content-driven width instead of filling the parent; horizontal slider tracks
-remain fill-sized within their rows.
+Slider thumbs use their own small irregular stone image and a thin, softly
+rounded recessed track without a standard-mode outline. High contrast retains a
+white track outline. Audio slider pointer drags stay continuous, with 0.5%
+keyboard/controller steps. Buttons in vertical, horizontal, scroll, overlay,
+grid, and canvas slots use content-driven width instead of filling the parent;
+horizontal slider tracks remain fill-sized within their rows.
 High contrast suppresses decorative images and retains the opaque geometric
 button surface and visible focus outline. A panel image replaces the geometric
 panel border; high contrast ignores it, uses a black-backed panel and white

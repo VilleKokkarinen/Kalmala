@@ -550,3 +550,11 @@
 - **Lightweight checks:** inspected the failure log and call stack, reviewed the changed lifecycle and button insertion paths, and checked the diff/paths. No build, automation, or Unreal menu render ran.
 - **Impact/authority:** removes the Slate construction assertion while retaining content-width sizing for Inventory actions; local UI only. Gameplay, networking, persistence, and save data are unchanged.
 - **Verification/limitations:** the failure is traced to the sizing callsite, but a post-fix Inventory capture remains unverified under normal-increment limits. Full verification is deferred. Next roadmap handoff remains M14 main integration.
+
+## User-directed increment 2026-10-11 — Button padding and smoother sliders
+
+- **Completed:** added configurable 7-unit shared button padding while keeping selectable-panel padding independent. Slimmed the slider track to a softer rounded groove and removed its standard-mode outline; high contrast retains a visible white outline. Audio sliders remain continuous for pointer drags and now use 0.5% keyboard/controller steps.
+- **Files:** `Config/DefaultKalmalaTheme.ini`, `Source/KalmalaUI/Public/KalmalaUITheme.h`, `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** reviewed the changed theme/config parsing and slider input setup; `git diff --check` and changed-path length checks passed. No build, automation, or Unreal render ran.
+- **Impact/authority:** shared UI styling and local audio slider navigation only; existing audio config keys and game behavior are unchanged.
+- **Verification/limitations:** normal user-directed post-roadmap increment, not milestone-final. No rendered capture was made. Next roadmap handoff remains M14 main integration.
