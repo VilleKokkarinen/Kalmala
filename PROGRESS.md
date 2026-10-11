@@ -507,3 +507,11 @@
 - **Rendered check:** `RenderMenu -Menu=inventory -Width=1280 -Height=720 -TextScale=100 -Contrast=0` succeeded in the mirror and saved `InventoryWoodPreview.png`. The texture loaded as `BGRA8, 1254x1254` and was visible behind the inventory grid. The PNG signature, dimensions, copied package hash, `git diff --check`, and changed-path MAX_PATH limits were checked.
 - **Verification/authority:** normal user-directed post-roadmap increment, not milestone-final. Full automation, host/client contrast and scale matrix, package cook and packaged runtime checks remain deferred. This changes local UI artwork only; gameplay, networking, authority, persistence and save data are unchanged.
 - **Limitations/next task:** the preview covers one offscreen Inventory rendering only; no two-peer or package verification ran. The next roadmap handoff remains integrating the isolated accepted M14 source into main and performing applicable integration verification.
+
+## User-directed repair 2026-10-11 — Windows PowerShell menu renderer compatibility
+
+- **Completed:** replaced `.NET` APIs unavailable in Windows PowerShell 5.1 with compatible relative-path and SHA-256 helpers, and changed timeout cleanup to use the supported `Process.Kill()` call. This addresses the reported `Path.GetRelativePath` failure and avoids the next .NET-version failures later in the script.
+- **Files:** `Scripts/Render-Menu.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** Windows PowerShell 5.1.26100.9444 parsed the script, executed both compatibility helpers against a relative path and known SHA-256 vector, and ran `-List` to print all 12 menu IDs. `git diff --check` and changed-path length inspection passed.
+- **Impact and authority:** the no-argument all-menu workflow now avoids APIs missing from Windows PowerShell 5.1. Local preview utility only; gameplay, networking, authority, persistence and saved-data schemas are unchanged.
+- **Verification/limitations:** normal post-roadmap repair, not milestone-final. No full all-menu Unreal render was run; the workflow still needs a compiled editor cache and renderer executable. The timeout fallback kills the launched Unreal process directly.

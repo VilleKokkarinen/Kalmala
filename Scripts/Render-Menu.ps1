@@ -16,6 +16,25 @@ param(
     [ValidateRange(10,300)][int]$TimeoutSeconds = 180
 )
 $ErrorActionPreference = 'Stop'
+function Get-RelativePath([string]$BasePath, [string]$TargetPath) {
+    $baseFullPath = [IO.Path]::GetFullPath($BasePath)
+    $targetFullPath = [IO.Path]::GetFullPath($TargetPath)
+    $rootPath = [IO.Path]::GetPathRoot($baseFullPath)
+    $trimChars = [char[]]@([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+    if ($baseFullPath.Length -gt $rootPath.Length) { $baseFullPath = $baseFullPath.TrimEnd($trimChars) }
+
+    if ($targetFullPath.Equals($baseFullPath, [StringComparison]::OrdinalIgnoreCase)) { return '.' }
+    $prefix = if ($baseFullPath.EndsWith([string][IO.Path]::DirectorySeparatorChar)) { $baseFullPath } else { $baseFullPath + [IO.Path]::DirectorySeparatorChar }
+    if (!$targetFullPath.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Target path '$TargetPath' is not under base path '$BasePath'."
+    }
+    return $targetFullPath.Substring($prefix.Length)
+}
+function Get-Sha256Hex([byte[]]$Bytes) {
+    $sha256 = [Security.Cryptography.SHA256]::Create()
+    try { return [BitConverter]::ToString($sha256.ComputeHash($Bytes)).Replace('-', '') }
+    finally { $sha256.Dispose() }
+}
 $menuIds = @('inventory','crafting','inventory-crafting','build','settings.home','settings.options',
     'settings.audio','settings.controls','settings.controller','settings.video','settings.accessibility','settings.status')
 if ($List) { $menuIds; return }
@@ -67,7 +86,7 @@ if ($SeedCache) {
     if ($SeedCache -eq $Cache) { throw 'Seed and destination cache must differ.' }
     if (Test-Path -LiteralPath (Join-Path $Cache 'Kalmala.uproject')) { throw 'SeedCache is only for a new cache.' }
     foreach ($seedFile in Get-ChildItem -LiteralPath $SeedCache -File -Recurse) {
-        $destination = Join-Path $Cache ([IO.Path]::GetRelativePath($SeedCache, $seedFile.FullName))
+        $destination = Join-Path $Cache (Get-RelativePath $SeedCache $seedFile.FullName)
         Assert-ShortPath $destination
     }
     New-Item -ItemType Directory -Force -Path $Cache | Out-Null
@@ -78,7 +97,7 @@ New-Item -ItemType Directory -Force -Path $Cache | Out-Null
 # Never mirror generated files back into source. Keep source/asset edits fresh even without compiling.
 foreach ($directory in @('Source','Config','Content')) {
     foreach ($file in Get-ChildItem -LiteralPath (Join-Path $sourceRoot $directory) -File -Recurse) {
-        $destination = Join-Path $Cache ([IO.Path]::GetRelativePath($sourceRoot, $file.FullName))
+        $destination = Join-Path $Cache (Get-RelativePath $sourceRoot $file.FullName)
         Assert-ShortPath $destination
         if (!(Test-Path -LiteralPath $destination) -or (Get-Item -LiteralPath $destination).LastWriteTimeUtc -ne $file.LastWriteTimeUtc) {
             New-Item -ItemType Directory -Force -Path (Split-Path $destination) | Out-Null
@@ -90,9 +109,9 @@ Copy-Item -LiteralPath (Join-Path $sourceRoot 'Kalmala.uproject') -Destination (
 $project = Join-Path $Cache 'Kalmala.uproject'
 $nativeSources = foreach ($module in @('KalmalaUI','KalmalaEditor','KalmalaGameplay')) {
     Get-ChildItem -LiteralPath (Join-Path $sourceRoot "Source/$module") -Recurse -File |
-        Sort-Object FullName | ForEach-Object { ([IO.Path]::GetRelativePath($sourceRoot,$_.FullName)) + ':' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
+        Sort-Object FullName | ForEach-Object { (Get-RelativePath $sourceRoot $_.FullName) + ':' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
 }
-$sourceDigest = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes(($nativeSources -join "`n"))))
+$sourceDigest = Get-Sha256Hex ([Text.Encoding]::UTF8.GetBytes(($nativeSources -join "`n")))
 $stamp = Join-Path $Cache 'menu-source.sha256'
 if ($BuildModules) {
     $engine = Split-Path (Split-Path (Split-Path $EditorCmd))
@@ -123,7 +142,7 @@ foreach ($target in $renderTargets) {
     if ($WidgetClass) { $arguments += "-WidgetClass=`"$WidgetClass`"" }
     $timer = [Diagnostics.Stopwatch]::StartNew()
     $process = Start-Process -FilePath $EditorCmd -ArgumentList $arguments -PassThru -WindowStyle Hidden
-    if (!$process.WaitForExit($TimeoutSeconds * 1000)) { $process.Kill($true); throw "Render timed out. Log: $log" }
+    if (!$process.WaitForExit($TimeoutSeconds * 1000)) { $process.Kill(); throw "Render timed out. Log: $log" }
     if ($process.ExitCode -ne 0 -or !(Test-Path -LiteralPath $outputPath)) { throw "Menu render '$menuId' failed ($($process.ExitCode)). Log: $log" }
     $pngBytes = [IO.File]::ReadAllBytes($outputPath)
     if ($pngBytes.Length -lt 24 -or [BitConverter]::ToString($pngBytes[0..7]) -ne '89-50-4E-47-0D-0A-1A-0A') { throw "Renderer did not produce a PNG for '$menuId'." }

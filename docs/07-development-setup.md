@@ -2655,8 +2655,8 @@ PNG and its render log path. `-Menu inventory` selects one menu. For a single
 menu, `-Output <new-file.png>` sets the exact PNG path; when rendering all menus,
 `-Output <directory>` selects the destination folder. `-Cache` changes the
 default cache and therefore the default PNG and log locations. The renderer
-requires a compiled editor cache; use `-BuildModules` when the cache needs its
-first build.
+supports Windows PowerShell 5.1 and requires a compiled editor cache; use
+`-BuildModules` when the cache needs its first build.
 
 ## Historical acceptance and limits
 
