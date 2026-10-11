@@ -484,6 +484,7 @@ bool UKalmalaSettingsWidget::IsHomeMenuSurfaceTransparentForVerification() const
     return BackdropBorder != nullptr && PanelBorder != nullptr
         && BackdropBorder->GetBrushColor().A <= KINDA_SMALL_NUMBER
         && PanelBorder->GetBrushColor().A <= KINDA_SMALL_NUMBER
+        && PanelBorder->Background.DrawAs == ESlateBrushDrawType::NoDrawType
         && PanelBorder->Background.GetResourceObject() == nullptr;
 }
 
@@ -612,6 +613,10 @@ void UKalmalaSettingsWidget::ApplyHomeMenuPalette()
     {
         const FString NoImage;
         Theme.ApplyPanel(*PanelBorder, GetContrastMode(), &NoImage);
+        // A transparent tint alone can leave the rounded brush's outline visible.
+        FSlateBrush HomeBrush = PanelBorder->Background;
+        HomeBrush.DrawAs = ESlateBrushDrawType::NoDrawType;
+        PanelBorder->SetBrush(HomeBrush);
         PanelBorder->SetBrushColor(FLinearColor::Transparent);
     }
 }
