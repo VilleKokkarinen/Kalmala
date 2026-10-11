@@ -488,3 +488,12 @@
 - **Authority/next work:** owner-local presentation and original asset inclusion only; no RPC, gameplay authority, materials, weight rules or saved schema change. Next runtime checks are documented in docs/07-development-setup.md. Separate isolated M14 integration remains the next roadmap handoff; no M13 task was reopened.
 
 - **Audit follow-up:** after fully removing the retired summary code, PresentationOwnership still required its Armor/Weight text. Updated the ownership anchor to the original Inventory panel image and reran the menu-copy and all five documentation contracts successfully. Scripts/Verify-PresentationOwnership.ps1 is also part of this increment.
+
+## User-directed increment 2026-10-11 — Render all menus without an ID
+
+- **Completed:** `Scripts/Render-Menu.ps1` now selects all 12 supported menus when `-Menu` is omitted and renders them sequentially to separate PNGs. Explicit `-Menu <id>` still selects one. For one menu, `-Output` remains an exact PNG path; for multiple menus, it selects an output directory. A custom `-WidgetClass` with no menu retains the prior `inventory-crafting` context.
+- **Files:** `Scripts/Render-Menu.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** PowerShell parser validation, `-List` output against the 12 supported IDs, `git diff --check`, and changed-path MAX_PATH inspection. No Unreal build or menu render ran.
+- **Output and impact:** default PNGs are written under `%TEMP%\kmmenu\png`; logs are under `%TEMP%\kmmenu\run\<random>\render.log`. `-Cache` changes both default locations. One no-argument invocation now produces one PNG for every supported menu.
+- **Verification and authority:** normal user-directed post-roadmap increment, not milestone-final; full Unreal/editor rendering remains deferred and requires a compiled editor cache. This is an offscreen local presentation utility change; gameplay, networking, authority, persistence and saved-data schemas are unchanged.
+- **Limitations/next task:** no rendered PNGs were produced in this increment. The next roadmap handoff remains integrating the isolated accepted M14 source into main and performing applicable integration verification.

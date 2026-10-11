@@ -2640,6 +2640,18 @@ Only regenerate project files when authorized to write the generated directories
 
 Do not infer a passing game build from successful generation or solution validation.
 
+## Offscreen menu preview images
+
+Run `Scripts/Render-Menu.ps1` without `-Menu` to render all 12 supported menu
+IDs sequentially. It writes one PNG per menu to `%TEMP%\kmmenu\png` by default,
+using names like `inventory-<random>.png`; the returned objects include each
+PNG and its render log path. `-Menu inventory` selects one menu. For a single
+menu, `-Output <new-file.png>` sets the exact PNG path; when rendering all menus,
+`-Output <directory>` selects the destination folder. `-Cache` changes the
+default cache and therefore the default PNG and log locations. The renderer
+requires a compiled editor cache; use `-BuildModules` when the cache needs its
+first build.
+
 ## Historical acceptance and limits
 
 M0–M12 and world-generation Phases 1–9 have recorded acceptance under their documented scope. M11 final acceptance is dated 2026-10-06; M12 final acceptance is dated 2026-10-09. M12's isolated final queue passed 116/116; the subsequent combined master integration passed 120/120 after activity-identity, preview-coverage, stale-requirement, and misplaced Forge-comparison repairs. These are historical results, not checks rerun by this cleanup.
