@@ -97,6 +97,7 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
         Button->SetContent(Text);
         Theme.ApplyButton(*Button, Contrast);
         Content->AddChildToVerticalBox(Button);
+        Theme.SizeButtonToContent(*Button);
         Button->SetVisibility(ESlateVisibility::Collapsed);
         return Button;
     };

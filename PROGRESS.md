@@ -542,3 +542,11 @@
 - **Impact/authority:** local UI interaction and visual styling only. Master output volume continues through `FApp`; category settings retain existing local config keys and audio mix paths. No gameplay, networking/authority, persistence schema, or asset cook-directory changes.
 - **Verification/limitations:** normal user-directed post-roadmap increment, not milestone-final. Full automation, high-contrast/scale renders, package cook, and packaged runtime checks remain deferred. The generated slider thumb was imported and compiled into the theme but was not inspected in an Unreal-rendered menu.
 - **Next work:** the separate Escape home border transparency entry remains unchecked; M14's accepted isolated source integration and main-checkout acceptance also remain pending.
+
+## User-directed repair 2026-10-11 — Inventory menu render slot assertion
+
+- **Completed:** the reported Inventory render log asserted in `UVerticalBoxSlot::SetHorizontalAlignment` while Slate was constructing its slot. Removed the shared sizing call from `UKalmalaThemedButton::SynchronizeProperties`, which ran during that construction, and explicitly apply content sizing to Inventory action buttons after adding them to the vertical box.
+- **Files:** `Source/KalmalaUI/Public/KalmalaThemedButton.h`, `Source/KalmalaUI/Private/KalmalaThemedButton.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the failure log and call stack, reviewed the changed lifecycle and button insertion paths, and checked the diff/paths. No build, automation, or Unreal menu render ran.
+- **Impact/authority:** removes the Slate construction assertion while retaining content-width sizing for Inventory actions; local UI only. Gameplay, networking, persistence, and save data are unchanged.
+- **Verification/limitations:** the failure is traced to the sizing callsite, but a post-fix Inventory capture remains unverified under normal-increment limits. Full verification is deferred. Next roadmap handoff remains M14 main integration.

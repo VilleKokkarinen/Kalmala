@@ -29,6 +29,8 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-11 — Fix Inventory menu render slot assertion:** remove content sizing from `UKalmalaThemedButton::SynchronizeProperties`, where Slate can still be constructing the parent slot; size Inventory action buttons after insertion into their vertical box. A new Inventory render was not run; lightweight inspection only.
+
 - [x] **2026-10-11 — Stone slider thumb and content-sized buttons:** generate and import a distinct irregular slate thumb; replace the Audio tab's cycling volume buttons with live, focusable 0–100% sliders; size buttons to their content throughout shared UI layouts. Audio values keep the existing local settings keys, and slider writes are coalesced. Full rendered/package verification deferred.
 
 - [x] **2026-10-11 — Shared stone button texture:** generate one alpha-backed, irregular beveled stone plate and apply it through the shared button theme with nine-slice scaling and distinct interaction tints. Preserve the 2170×725 master while importing its 160×53 UI-scale derivative so short, wide controls keep intact ends. High contrast retains its geometric button and focus treatment; rendered/package verification deferred.
