@@ -29,6 +29,8 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-11 — Refine standalone Build menu icons and requirements:** center the fixed 64×64 build icons, match Inventory's warm brown card treatment, and subtly gray cards/icons with unmet requirements. Remove all visible text below the requirements icons; keep quantities in icon tooltips and detailed conditions in the panel tooltip. Lightweight source checks only; build/render verification deferred.
+
 - [x] **2026-10-11 — Remove Escape status/weather details page:** remove its home-menu button and live text screen; keep the Escape shell to Options and Quit and preserve the active status HUD. Align the status-hotbar capture flow and current UI documentation; build and rendered verification deferred.
 - [x] **2026-10-11 — Add button padding and smooth the slider thumb:** increase shared button-content padding from 7 to 9 units and replace the slider thumb source with a cleaner, smoother charcoal slate puck. Reimported the existing texture asset; rendered menu verification deferred.
 - [x] **2026-10-11 — Add button padding and soften sliders:** introduce shared button-content padding without changing panel padding; use a thinner rounded slider track without the standard-mode outline and finer keyboard/controller steps. High contrast keeps its outline; render verification deferred.

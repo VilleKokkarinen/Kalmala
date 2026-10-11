@@ -131,7 +131,6 @@ private:
     UPROPERTY(Transient) TObjectPtr<UBorder> BuildRequirementsFrame;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> BuildRequirementsTitle;
     UPROPERTY(Transient) TObjectPtr<UHorizontalBox> BuildRequirementsCosts;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> BuildRequirementsDetails;
     UPROPERTY(Transient) TObjectPtr<UButton> BuildCloseButton;
     UPROPERTY(Transient) TObjectPtr<UBorder> InventoryCraftListFrame;
     UPROPERTY(Transient) TObjectPtr<UBorder> InventoryCraftDetailFrame;

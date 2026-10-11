@@ -2526,14 +2526,16 @@ runtime results.
 
 The latest standalone Build presentation uses the Inventory wood backplate,
 64×64 item icons with card spacing, and a compact requirements panel below the
-main grid. That panel uses Inventory Crafting's material-icon and amount style,
-then shows the selected build's applicable hammer, placement, station, fuel,
-and availability requirements. The main window has no selected-item details,
-ingredient list, preview button, status rows, or other action rows beneath the
-grid. The existing Build-menu cleanup verifier checks this split layout; card
-selection continues to enter the existing local placement mode. These current
-visual expectations supersede the older M11/M12 Build screenshot descriptions
-above.
+main grid. The icons are centered in their slots; cards use Inventory's warm
+brown overlay, with a subtle gray tint and slightly subdued icons when
+requirements are missing. The requirements panel shows material icons only,
+with owned/required counts in each icon's tooltip. The main window has no
+selected-item details, ingredient list, preview button, status rows, or other
+action rows beneath the grid. Its tooltip retains applicable hammer,
+placement, station, fuel, and availability conditions. The existing Build-menu cleanup verifier checks this
+split layout; card selection continues to enter the existing local
+placement mode. These current visual expectations supersede the older M11/M12
+Build screenshot descriptions above.
 
 ## M12 catalogue icon integration
 

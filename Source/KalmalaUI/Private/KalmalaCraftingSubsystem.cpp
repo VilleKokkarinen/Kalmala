@@ -1727,8 +1727,10 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             UVerticalBox* CardContent = WidgetTree->ConstructWidget<UVerticalBox>();
             UHorizontalBox* HeadingRow = WidgetTree->ConstructWidget<UHorizontalBox>();
             USizeBox* IconBox = WidgetTree->ConstructWidget<USizeBox>();
-            IconBox->SetWidthOverride(bIconOnlyBuildCards ? 64.0f : 40.0f);
-            IconBox->SetHeightOverride(bIconOnlyBuildCards ? 64.0f : 40.0f);
+            constexpr float StandaloneBuildIconSize = 64.0f;
+            const float RecipeIconSize = bIconOnlyBuildCards ? StandaloneBuildIconSize : 40.0f;
+            IconBox->SetWidthOverride(RecipeIconSize);
+            IconBox->SetHeightOverride(RecipeIconSize);
             UKalmalaIconWidget* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
             Icon->SetCatalogueIcon(Recipe.GetOutputIdentity());
             IconBox->SetContent(Icon);
@@ -1744,7 +1746,8 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             Name->SetWrapTextAt(128.0f);
             HeadingRow->AddChildToHorizontalBox(Name)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
             if (bIconOnlyBuildCards) Name->SetVisibility(ESlateVisibility::Collapsed);
-            CardContent->AddChild(HeadingRow);
+            UVerticalBoxSlot* HeadingSlot = CardContent->AddChildToVerticalBox(HeadingRow);
+            if (bIconOnlyBuildCards) HeadingSlot->SetHorizontalAlignment(HAlign_Center);
 
             UTextBlock* State = WidgetTree->ConstructWidget<UTextBlock>();
             State->SetAutoWrapText(true);
@@ -1934,13 +1937,17 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             RecipeSlotVisualStates[SlotIndex] = VisualState;
             Theme.ApplySelectablePanel(*RecipeSlotCards[SlotIndex], bSelected, bFocused, bUnavailable,
                 ContrastMode, bInventoryCompanion);
-            if (bInventoryCompanion && ContrastMode == 0)
+            if ((bInventoryCompanion || bIconOnlyBuildCards) && ContrastMode == 0)
             {
-                const FLinearColor Fill = bUnavailable ? FLinearColor(0.075f, 0.052f, 0.034f, 1.0f)
+                FLinearColor Fill = bUnavailable ? FLinearColor(0.075f, 0.052f, 0.034f, 1.0f)
                     : bSelected ? FLinearColor(0.20f, 0.12f, 0.055f, 1.0f)
                     : FLinearColor(0.12f, 0.073f, 0.041f, 1.0f);
+                if (bIconOnlyBuildCards && bUnavailable)
+                    Fill = FMath::Lerp(Fill, FLinearColor(0.42f, 0.42f, 0.42f, 1.0f), 0.14f);
                 RecipeSlotCards[SlotIndex]->SetBrushColor(Fill);
             }
+            if (RecipeSlotIcons.IsValidIndex(SlotIndex) && RecipeSlotIcons[SlotIndex])
+                RecipeSlotIcons[SlotIndex]->SetRenderOpacity(bIconOnlyBuildCards && bUnavailable ? 0.88f : 1.0f);
             Theme.ApplyText(*RecipeSlotNames[SlotIndex], 11, bSelected, TextScalePercent, ContrastMode);
             Theme.ApplyText(*RecipeSlotStates[SlotIndex], 9, false, TextScalePercent, ContrastMode);
         }
@@ -2074,7 +2081,7 @@ bool UKalmalaCraftingWidget::VerifyBuildMenuCleanupForTest()
         && RecipeSearchBox->GetVisibility() == ESlateVisibility::Visible
         && RecipeGrid && RecipeGrid->GetVisibility() == ESlateVisibility::Visible
         && BuildRequirementsPanel && BuildRequirementsPanel->GetVisibility() == ESlateVisibility::Visible
-        && BuildRequirementsDetails && !BuildRequirementsDetails->GetText().IsEmpty()
+        && BuildRequirementsTitle && !BuildRequirementsTitle->GetText().IsEmpty()
         && BuildRequirementsCosts && BuildRequirementsCosts->GetChildrenCount() > 0
         && PlacementPreviewButton && PlacementPreviewButton->GetVisibility() == ESlateVisibility::Collapsed;
     const bool bRelightRemoved = !CampfireLightButton
@@ -3553,7 +3560,7 @@ void UKalmalaCraftingWidget::Refresh()
         DetailText->SetText(FText::GetEmpty());
         RequirementText->SetText(FText::GetEmpty());
         RefreshBuildRequirements(TEXT("Build requirements"), TArray<FKalmalaInventoryStack>(),
-            OwnerInventory, TEXT("Choose a build to see its materials and placement requirements."),
+            OwnerInventory, TEXT("Choose a build to see its materials and requirements."),
             TextScalePercent, ContrastMode);
         if (SelectedResultPreview) SelectedResultPreview->ClearResult();
         Ingredients->SetIngredients({}, nullptr, TextScalePercent, ContrastMode);

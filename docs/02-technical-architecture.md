@@ -1380,12 +1380,14 @@ spacing between cards. The main Build window ends after the item grid and its
 browse controls; it does not show selected-item details, ingredient rows,
 placement preview, status text, or action buttons below the grid. A separate,
 compact wood panel sits below the main window and shows the selected item's
-requirements. Material costs use the same icon-and-amount presentation as
-Inventory Crafting, including owner-visible counts in tooltips and an
-insufficient-cost cue. Requirement text retains the applicable hammer,
-placement, station, fuel, and availability conditions. Clicking a build card
-still enters the existing local placement mode, and the server continues to
-validate placement and costs.
+requirements. Material costs follow Inventory Crafting's icon presentation but
+display only material icons; hovering an icon reveals the owned and required
+counts. Build cards use the same warm brown overlay as
+Inventory, and cards missing any requirement receive a subtle gray tint and
+subdued icons. The requirements panel tooltip retains hammer, placement,
+station, fuel, and availability conditions. Clicking a build card still enters
+the existing local placement mode, and the server continues to validate
+placement and costs.
 
 ## Owner notifications
 

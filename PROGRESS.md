@@ -586,3 +586,12 @@
 - **Impact/authority:** local UI navigation and presentation only. Existing replicated status/weather snapshots, status HUD presentation, gameplay authority, timers, persistence, and save schemas are unchanged.
 - **Verification/limitations:** normal user-directed post-roadmap increment, not milestone-final. Runtime visual/focus verification and full editor/build verification remain deferred.
 - **Next eligible work:** integrate the accepted isolated M14 world-map source into main and perform applicable integration verification.
+
+## User-directed increment 2026-10-11 — Refine standalone Build menu cards and requirements
+
+- **Completed:** centered the standalone Build menu's fixed 64×64 catalogue icon slots, applied Inventory's warm brown card treatment, and added a subtle gray blend to unavailable cards with slightly reduced icon opacity. Removed all visible text below the requirements icons; the material counts stay available in cost-icon tooltips, and the panel tooltip retains detailed requirements.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryCraftLayout.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** inspected Build menu construction, sizing, availability styling, tooltip and cost refresh paths; searched for obsolete `BuildRequirementsDetails` references and checked the updated callsites. No test, build, automation, or Unreal menu render ran.
+- **Impact/authority:** Build-menu presentation and hover guidance only. Existing client build requests, server-side placement and cost validation, networking authority, persistence, and save data are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Full build and rendered menu verification remain deferred; actual 64×64 icon-slot appearance still needs a fresh Build menu capture.
+- **Next eligible work:** the unchecked Escape home border transparency item remains first in the post-roadmap backlog; M14 main-checkout integration is also pending.

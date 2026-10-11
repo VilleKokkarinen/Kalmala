@@ -45,10 +45,6 @@ void UKalmalaCraftingWidget::BuildInventoryCraftLayout()
     BuildRequirementsCosts = WidgetTree->ConstructWidget<UHorizontalBox>();
     BuildRequirementsColumn->AddChildToVerticalBox(BuildRequirementsCosts)
         ->SetHorizontalAlignment(HAlign_Center);
-    BuildRequirementsDetails = WidgetTree->ConstructWidget<UTextBlock>();
-    BuildRequirementsDetails->SetAutoWrapText(true);
-    BuildRequirementsDetails->SetWrapTextAt(520.0f);
-    BuildRequirementsColumn->AddChildToVerticalBox(BuildRequirementsDetails);
     BuildRequirementsFrame->SetContent(BuildRequirementsColumn);
     BuildRequirementsPanel->SetContent(BuildRequirementsFrame);
     BuildRequirementsPanel->SetPadding(FMargin(8.0f));
@@ -170,7 +166,7 @@ void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
     const FString& Details, const int32 TextScalePercent, const int32 ContrastMode)
 {
     if (!BuildRequirementsPanel || !BuildRequirementsFrame || !BuildRequirementsTitle
-        || !BuildRequirementsCosts || !BuildRequirementsDetails) return;
+        || !BuildRequirementsCosts) return;
 
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     if (LastBuildRequirementTextScale != TextScalePercent
@@ -182,14 +178,13 @@ void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
             ContrastMode ? FLinearColor::White : FLinearColor(.45f, .27f, .12f, 1.f), 1.f));
         BuildRequirementsFrame->SetBrushColor(FLinearColor::White);
         Theme.ApplyText(*BuildRequirementsTitle, 17, true, TextScalePercent, ContrastMode);
-        Theme.ApplyText(*BuildRequirementsDetails, 14, false, TextScalePercent, ContrastMode);
         LastBuildRequirementTextScale = TextScalePercent;
         LastBuildRequirementContrast = ContrastMode;
     }
     if (BuildRequirementsTitle->GetText().ToString() != Title)
         BuildRequirementsTitle->SetText(FText::FromString(Title));
-    if (BuildRequirementsDetails->GetText().ToString() != Details)
-        BuildRequirementsDetails->SetText(FText::FromString(Details));
+    if (BuildRequirementsPanel->GetToolTipText().ToString() != Details)
+        BuildRequirementsPanel->SetToolTipText(FText::FromString(Details));
 
     FString Signature = FString::Printf(TEXT("%s/%s/%d/%d"), *Title, *Details,
         TextScalePercent, ContrastMode);
@@ -219,14 +214,6 @@ void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
         Icon->SetCatalogueIcon(Cost.ItemId);
         IconSize->SetContent(Icon);
         CostColumn->AddChildToVerticalBox(IconSize)->SetHorizontalAlignment(HAlign_Center);
-
-        auto* Amount = WidgetTree->ConstructWidget<UTextBlock>();
-        Amount->SetText(FText::AsNumber(Cost.Quantity));
-        Amount->SetJustification(ETextJustify::Center);
-        Theme.ApplyText(*Amount, 16, true, TextScalePercent, ContrastMode);
-        if (ContrastMode == 0 && OwnedCounts[Index] < Cost.Quantity)
-            Amount->SetColorAndOpacity(FSlateColor(FLinearColor(1.f, .35f, .25f)));
-        CostColumn->AddChildToVerticalBox(Amount);
 
         const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Cost.ItemId);
         CostColumn->SetToolTipText(FText::FromString(FString::Printf(
