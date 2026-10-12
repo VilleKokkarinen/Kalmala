@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Two-column Keyboard & Mouse controls
+
+- **Completed:** removed the Keyboard & Mouse row-cycling hint and split its bindings into two equal-width columns. Each half has right-aligned labels and equal-width value buttons; the Keyboard & Mouse columns now use half-width cells, and Controller retains its single-column view and hint.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** reviewed column slot weights, row assignment, scroll layout, and preservation of controller layout; `git diff --check` passed. No build, test suite, or rendered menu run.
+- **Impact and authority:** local Settings presentation only; bindings, gameplay/network authority, replicated state, and saved settings remain unchanged.
+- **Limits:** the rendered balance between columns and text wrapping has not been checked; full verification is deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Compact Settings control rows
 
 - **Completed:** split Keyboard & Mouse movement into Forward, Backward, Right, and Left rows that cycle only their own allowlisted key while preserving the existing axis mappings; kept Controller's paired stick axes. All binding rows now right-align their labels beside uniform-width value buttons and use compact vertical padding. Binding buttons show the key or axis value without repeating the active tab's device name.

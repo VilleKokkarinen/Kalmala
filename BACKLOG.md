@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Use two-column Keyboard & Mouse controls:** remove the row-cycling hint and split the bindings into two equal-width columns, keeping each label and value button aligned within its half of the panel.
+
 - [x] **2026-10-12 — Align Settings control rows:** split keyboard movement into separate Forward, Backward, Right, and Left settings with independent key cycling; right-align labels beside uniform binding buttons on the right, and reduce vertical row padding.
 
 - [x] **2026-10-12 — Unify square item-icon tiles:** add a shared 64×64 tile theme with a 4-unit gap between tiles and the requested translucent orange-brown fill; use it in Inventory, Build, item details, and crafting views, with crafting material quantities below the tile. Follow-up ingredient row slot typing now compiles and the inventory-crafting render succeeds.

@@ -1347,18 +1347,52 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
     AddLabel(ContentBox, FText::FromString(bGamepad ? TEXT("Controller") : TEXT("Keyboard & Mouse")), 24.0f);
     UButton* Restore = AddButton(ContentBox, FText::FromString(TEXT("Restore default controls")), TEXT("RestoreControlsButton"));
     Restore->OnClicked.AddDynamic(this, &ThisClass::HandleRestoreControlsClicked);
-    AddLabel(ContentBox, FText::FromString(TEXT("Activate a row to cycle its local binding.")), 15.0f);
+    if (bGamepad)
+    {
+        AddLabel(ContentBox, FText::FromString(TEXT("Activate a row to cycle its local binding.")), 15.0f);
+    }
 
     UScrollBox* Scroll = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("ControlsScroll"));
     FKalmalaUITheme::Get().ApplyScroll(*Scroll);
-    UVerticalBox* Rows = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("ControlRows"));
-    Scroll->AddChild(Rows);
+    int32 TotalRowCount = 0;
+    for (int32 Index = 0; Index < GetRemappableControlCount(); ++Index)
+    {
+        const FLocalInputDefinition* Definition = FindLocalInputDefinition(GetRemappableControlName(Index));
+        TotalRowCount += !bGamepad && Definition != nullptr && Definition->Kind == ELocalInputMappingKind::AxisPair
+            ? 2 : 1;
+    }
+    const int32 LeftColumnRowCount = (TotalRowCount + 1) / 2;
+    UVerticalBox* LeftColumn = nullptr;
+    UVerticalBox* RightColumn = nullptr;
+    if (bGamepad)
+    {
+        LeftColumn = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("ControlRows"));
+        Scroll->AddChild(LeftColumn);
+    }
+    else
+    {
+        UHorizontalBox* Columns = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("ControlColumns"));
+        Scroll->AddChild(Columns);
+        LeftColumn = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("ControlLeftColumn"));
+        RightColumn = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("ControlRightColumn"));
+        UHorizontalBoxSlot* LeftColumnSlot = Columns->AddChildToHorizontalBox(LeftColumn);
+        LeftColumnSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 1.0f));
+        LeftColumnSlot->SetPadding(FMargin(0.0f, 0.0f, 8.0f, 0.0f));
+        UHorizontalBoxSlot* RightColumnSlot = Columns->AddChildToHorizontalBox(RightColumn);
+        RightColumnSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 1.0f));
+        RightColumnSlot->SetPadding(FMargin(8.0f, 0.0f, 0.0f, 0.0f));
+    }
     UVerticalBoxSlot* ScrollSlot = ContentBox->AddChildToVerticalBox(Scroll);
     ScrollSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 
-    const auto AddControlRow = [this, Rows, bGamepad](const FName ControlName, const FText& ControlLabel,
+    int32 CurrentRowIndex = 0;
+    const auto AddControlRow = [this, LeftColumn, RightColumn, LeftColumnRowCount, &CurrentRowIndex, bGamepad](
+        const FName ControlName, const FText& ControlLabel,
         const bool bAxisPairSide, const bool bPositiveAxisSide)
     {
+        UVerticalBox* TargetColumn = bGamepad || CurrentRowIndex < LeftColumnRowCount
+            ? LeftColumn : RightColumn;
+        ++CurrentRowIndex;
         UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
         UTextBlock* Label = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
         Label->SetText(ControlLabel);
@@ -1371,22 +1405,32 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
         LabelSlot->SetVerticalAlignment(VAlign_Center);
         LabelSlot->SetPadding(FMargin(4.0f, 2.0f, 8.0f, 2.0f));
 
-        USizeBox* ButtonSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
-        ButtonSize->SetWidthOverride(240.0f);
         UKalmalaControlButton* Button = WidgetTree->ConstructWidget<UKalmalaControlButton>(
             UKalmalaControlButton::StaticClass());
         ApplyButtonPalette(Button);
         Button->Configure(ControlName, bGamepad, bAxisPairSide, bPositiveAxisSide);
         Button->SetDisplayText(FText::GetEmpty());
         Button->OnControlBindingClicked.AddDynamic(this, &ThisClass::HandleControlBindingClicked);
-        ButtonSize->SetContent(Button);
-        UHorizontalBoxSlot* ButtonSlot = Row->AddChildToHorizontalBox(ButtonSize);
+        UHorizontalBoxSlot* ButtonSlot = nullptr;
+        if (bGamepad)
+        {
+            USizeBox* ButtonSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+            ButtonSize->SetWidthOverride(240.0f);
+            ButtonSize->SetContent(Button);
+            ButtonSlot = Row->AddChildToHorizontalBox(ButtonSize);
+            ButtonSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+        }
+        else
+        {
+            ButtonSlot = Row->AddChildToHorizontalBox(Button);
+            ButtonSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 1.0f));
+        }
         ButtonSlot->SetHorizontalAlignment(HAlign_Right);
         ButtonSlot->SetVerticalAlignment(VAlign_Center);
         ButtonSlot->SetPadding(FMargin(2.0f, 1.0f, 4.0f, 1.0f));
         ControlButtons.Add(Button);
 
-        UVerticalBoxSlot* RowSlot = Rows->AddChildToVerticalBox(Row);
+        UVerticalBoxSlot* RowSlot = TargetColumn->AddChildToVerticalBox(Row);
         RowSlot->SetPadding(FMargin(3.0f, 2.0f));
     };
 
