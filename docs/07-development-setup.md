@@ -2034,18 +2034,19 @@ identity.
 
 Then run `Scripts/Verify-Crafting.ps1 -Port <unused-port>`,
 `Scripts/Verify-ConstructionPersistence.ps1 -Port <unused-port>`, and the
-single-session `Scripts/Verify-PersistedCampHearth.ps1 -Port <unused-port>`
-fixture described in `02-technical-architecture.md`. The crafting runner checks
+combined `Scripts/Verify-PersistedCampRestart.ps1 -Port <unused-port>` fixture
+described in `02-technical-architecture.md`. The crafting runner checks
 the owner-local menu, two-peer input restoration, hearth raw-material and
 ignition payment, rejection gates, and exact final inventories. The construction
 runner confirms that two raw-material floor builds replicate with
 server-generated identities, those same identities restore after restart, and
-subsequent paid builds replicate as two new records. The gathered-camp fixture
-checks direct hearth construction alongside the full camp's material budget.
-Use the scripts' `-Rendered` option for the crafting run when visually reviewing
-the menu; a null-renderer peer run proves menu data and input flow but does not
-inspect layout or the in-hand model visually. These checks add no RPC fields,
-replicated gameplay field, or saved-data schema.
+subsequent paid builds replicate as two new records. The combined gathered-camp
+fixture checks direct hearth construction and the client mutation boundary,
+then restores the exact camp across a host restart, validates a reconnecting
+client, and rejects cross-world reuse. Use `Verify-Crafting.ps1 -Rendered` when
+visually reviewing the menu; a null-renderer peer run proves menu data and input
+flow but does not inspect layout or the in-hand model visually. These checks add
+no RPC fields, replicated gameplay field, or saved-data schema.
 
 ### M9 retired camp variants and raw-material catalogue
 

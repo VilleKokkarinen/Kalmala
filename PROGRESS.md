@@ -640,3 +640,12 @@
 - **Impact/authority:** test-entrypoint consolidation only. No settings behavior, local config contract, server authority, networking, or saved-data format changed.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Static inspection confirms the assertions were carried over; the no-build contract mode and rendered run remain unexecuted.
 - **Next eligible work:** continue the `Verify-*` audit, next consolidating the user-named PersistedCamp, WorldMap, or Audio groups only where callers and acceptance assertions remain covered. The overall goal of approximately 20 test runners is not complete; M14 main integration remains pending.
+
+## User-directed increment 2026-10-12 — Consolidate persisted-camp verification
+
+- **Completed:** moved the two-peer gathered-camp build and mutation-isolation assertions into `Verify-PersistedCampRestart.ps1`, so its default run now covers camp creation, exact construction identity restore, reconnect replication, sparse harvest persistence, and cross-world rejection. Removed the separate Hearth launcher. Retired `Verify-PersistedCamp.ps1`, an undocumented preflight wrapper whose crafting, storage, and shelter checks already have standalone runners and whose output explicitly deferred the actual gathered-camp fixture.
+- **Files changed:** `Scripts/Verify-PersistedCampRestart.ps1`, deleted `Scripts/Verify-PersistedCampHearth.ps1` and `Scripts/Verify-PersistedCamp.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** compared the moved build result patterns and flags with the existing Hearth runner, traced the sole restart-to-Hearth caller, and confirmed the removed preflight had no other active callers; PowerShell parser validation and `git diff --check` passed. No Unreal peer scenario, build, or full test suite ran.
+- **Impact/authority:** runner consolidation only. The same development-only server-authority mutation probe and persistence/identity checks remain; gameplay authority, save schemas, and runtime behavior are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Runtime scenarios remain unexecuted in this cleanup turn.
+- **Next eligible work:** continue consolidating the user-named WorldMap and Audio groups where their caller and assertion analysis confirms safe overlap. The overall goal of approximately 20 test runners is not complete; M14 main integration remains pending.

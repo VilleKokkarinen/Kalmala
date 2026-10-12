@@ -33,6 +33,7 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
   - [x] Retire the superseded standalone integrated ocean skiff journey runner; the integrated reconnect runner already covers its journey/discovery/weather checks and adds late-join/restart coverage.
   - [x] Merge ocean weather and fixed-origin assertions into the focused two-peer journey runner; remove their separate launchers.
   - [x] Combine settings runtime and no-build contract verification under `Verify-SettingsAccessibility.ps1`, retaining a contract-only mode.
+  - [x] Fold the persisted-camp build fixture into the restart runner and retire its standalone wrappers.
   - [ ] Audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage; retire or consolidate only confirmed duplicates.
   - [ ] Document the non-`.ps1` support tools, their runtime requirements, and why they remain in their native formats.
 
