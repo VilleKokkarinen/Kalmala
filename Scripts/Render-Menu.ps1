@@ -41,11 +41,24 @@ $retiredMenuOutputIds = @('settings.status')
 if ($List) { $menuIds; return }
 if ($Menu.Count -eq 0) {
     # Keep the custom-widget invocation's previous single-context behavior.
-    $Menu = if ($WidgetClass) { @('inventory-crafting') } else { @($menuIds) }
+    $Menu = if ($WidgetClass) { @('inventory-crafting') } else { @($menuIds | Where-Object { $_ -ne 'settings.options' }) }
 }
 if (!$WidgetClass) {
     $unknownMenus = @($Menu | Where-Object { $_ -notin $menuIds })
     if ($unknownMenus.Count -gt 0) { throw "Unknown menu(s) '$($unknownMenus -join ', ')'. Use -List." }
+
+    # Render every Options selection together when the grouped target is requested.
+    $expandedMenuIds = [System.Collections.Generic.List[string]]::new()
+    foreach ($requestedMenuId in $Menu) {
+        $requestedTargets = if ($requestedMenuId -eq 'settings.options') {
+            @('settings.options','settings.controller','settings.video','settings.audio','settings.accessibility')
+        }
+        else { @($requestedMenuId) }
+        foreach ($requestedTarget in $requestedTargets) {
+            if (!$expandedMenuIds.Contains($requestedTarget)) { $expandedMenuIds.Add($requestedTarget) }
+        }
+    }
+    $Menu = @($expandedMenuIds.ToArray())
 }
 $sourceRoot = [IO.Path]::GetFullPath((Split-Path $PSScriptRoot))
 $Cache = [IO.Path]::GetFullPath($Cache)

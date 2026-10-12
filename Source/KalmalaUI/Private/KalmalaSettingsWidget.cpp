@@ -479,7 +479,15 @@ void UKalmalaSettingsWidget::SetVerificationTab(const int32 TabIndex)
 
 void UKalmalaSettingsWidget::PrepareMenuRender(const int32 TabIndex)
 {
-    SetVerificationTab(TabIndex);
+    if (TabIndex == 5)
+    {
+        SetVerificationTab(TabIndex);
+    }
+    else
+    {
+        ShowOptionsMenu();
+        if (TabIndex != 4) SetVerificationTab(TabIndex);
+    }
     ResetOptionsOpeningAnimation();
     SetVisibility(ESlateVisibility::Visible);
 }

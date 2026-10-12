@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Render every Options selection
+
+- **Completed:** made `Render-Menu.ps1 -Menu settings.options` render separate Controls, Controller, Graphics, Audio, and Accessibility previews. The default all-menu run now omits the `settings.options` group alias because its Controls page is already rendered through `settings.controls`.
+- **Files changed:** `Scripts/Render-Menu.ps1`, `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** the PowerShell parser and `Render-Menu.ps1 -List` passed. `Render-Menu.ps1 -Menu settings.options -BuildModules` compiled successfully and produced all five 1920×1080 previews; visual inspection confirmed each view includes the shared tab row with the active selection highlighted. The first run detected a stale compiled cache; rerunning with `-BuildModules` updated it successfully. `git diff --check` and the 260-character path audit passed. Full verification remains deferred.
+- **Impact and authority:** local preview tooling and documentation only; game UI, gameplay/network authority, replicated state, and saved settings are unchanged.
+- **Limits:** render previews confirm each Options page at the selected scale/contrast only.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Rename the Controls tab
 
 - **Completed:** changed the Keyboard & Mouse Settings tab label to “Controls” wherever the tab is constructed or refreshed, preserving the existing tab identity and input behavior.

@@ -2694,8 +2694,11 @@ Do not infer a passing game build from successful generation or solution validat
 
 ## Offscreen menu preview images
 
-Run `Scripts/Render-Menu.ps1` without `-Menu` to render all 11 supported menu
-IDs sequentially. It writes one PNG per menu to `%TEMP%\kmmenu\png` by default,
+Run `Scripts/Render-Menu.ps1` without `-Menu` to render all 10 individual menu
+views sequentially. To inspect every Options selection, run
+`Scripts/Render-Menu.ps1 -Menu settings.options`; it writes separate previews
+for Controls, Controller, Graphics, Audio, and Accessibility. It writes one PNG
+per rendered view to `%TEMP%\kmmenu\png` by default,
 using names like `inventory-<random>.png`; the returned objects include each
 PNG and its render log path. Before directory-mode rendering, it removes prior
 renderer-named PNGs from the selected output directory while preserving other

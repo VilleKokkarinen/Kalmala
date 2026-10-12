@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Render all Options selections together:** make `-Menu settings.options` produce separate previews for Controls, Controller, Graphics, Audio, and Accessibility.
+
 - [x] **2026-10-12 — Rename the Keyboard & Mouse Settings tab:** display the input group under the concise “Controls” tab label.
 
 - [x] **2026-10-12 — Fill Settings Options tab row:** make all five category tabs share the full panel content width equally with consistent horizontal gutters.
