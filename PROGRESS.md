@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Rename the Controls tab
+
+- **Completed:** changed the Keyboard & Mouse Settings tab label to “Controls” wherever the tab is constructed or refreshed, preserving the existing tab identity and input behavior.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.options -BuildModules` compiled `KalmalaSettingsWidget.cpp`, linked KalmalaUI, and rendered the Options menu at 1920×1080; the Controls label is visible and the selected input tab remains highlighted. `git diff --check` and the 260-character path audit passed. `Verify-SettingsAccessibility.ps1 -ContractOnly` failed on the pre-existing line-wrap-sensitive “mute/restore button” contract; the same split phrase is present in `HEAD`. No full test suite or project-wide verification ran.
+- **Full verification:** deferred; this is post-roadmap presentation work.
+- **Impact and authority:** visible Settings text and documentation only; input mappings, gameplay/network authority, replicated state, and saved settings are unchanged.
+- **Limits:** larger text scales and alternate viewport sizes were not rendered.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Fill Settings Options tabs
 
 - **Completed:** distributed the five Settings category tabs across the full content width with equal-width slots and symmetric 3-unit horizontal gutters. Reduced tab label size to the theme body size so Keyboard & Mouse remains on one line.

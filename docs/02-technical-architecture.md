@@ -1638,7 +1638,7 @@ replicated property, or online service.
   they must not select a destination, camp site, creature, reward, recipe
   outcome, or support target.
 - Input-binding labels are not displayed in prompts. Key/button names and
-  control legends stay in Options > Keyboard & Mouse and Options > Controller.
+  control legends stay in Options > Controls and Options > Controller.
   Prompt text and non-colour
   icon/shape cues remain available, and a player can dismiss, revisit, or
   ignore all prompts without losing normal movement or menu access.
@@ -1741,7 +1741,7 @@ Gameplay HUD and interaction prompts name the visible action without showing
 key/button names or control legends. Inventory and build/crafting/repair/storage
 views, the expanded map, status/detail views, and the Settings home screen follow
 the same rule while keeping useful action/status names and existing focus
-navigation. Options > Keyboard & Mouse and Options > Controller are the only
+navigation. Options > Controls and Options > Controller are the only
 player-facing views that display current mappings; prompt actions stay readable
 as text and remain remappable.
 
@@ -1749,10 +1749,10 @@ as text and remain remappable.
 
 The existing local menu opens and closes with **Escape**, owns modal input while
 open, and exposes the Options and Quit actions. Options follows the six-group
-reference order: Gameplay, Keyboard & Mouse, Controller, Graphics, Audio, and
-Accessibility. Gameplay stays hidden while no candidate option is selected.
-Existing Video controls move to Graphics; existing input bindings split into
-Keyboard & Mouse and Controller. Resolution, V-Sync, window mode, and
+reference order: Gameplay, Keyboard & Mouse (shown as Controls), Controller,
+Graphics, Audio, and Accessibility. Gameplay stays hidden while no candidate
+option is selected. Existing Video controls move to Graphics; existing input
+bindings split into Keyboard & Mouse and Controller. Resolution, V-Sync, window mode, and
 render-distance quality continue through Unreal's local `GameUserSettings` path.
 
 - **Audio:** local master, music, ambient, and interaction/combat feedback
@@ -1950,7 +1950,8 @@ scales owner-local movement, status, crafting/gathering, discovery, combat, and
 support one-shots. The music value is ready for a future music playback path;
 there is no music track in the current runtime.
 
-The Keyboard & Mouse and Controller groups store only allowlisted local choices in the existing
+The Keyboard & Mouse group is labeled Controls in Options. It and the Controller
+group store only allowlisted local choices in the existing
 `GameUserSettings` configuration. Keyboard movement presents Forward, Backward,
 Right, and Left as separate rows in two equal-width, centered columns; the
 selected Options tab identifies the group without a duplicate page heading.
@@ -2212,7 +2213,7 @@ child. See `02-technical-architecture.md` for identities and verification bounda
 | Player | `UKalmalaPlayerModelComponent` procedural mesh and the generated bark/terrain/rock materials | Nine local, collision-free cosmetic parts; shape and pose never author gameplay | Faceted mantle/hood presentation verified in the rendered offscreen host/client controls fixture |
 | Wildlife | `AKalmalaWildlifeSpawn::BuildArchetypePresentation` procedural low-poly geometry and vertex colours | Server-owned replicated actor state; mesh is presentation only and has no collision | Mireling's low forward hunch, reaching arms, and split crown read as a distinct close-view silhouette in the rendered host fixture; dark body planes merge somewhat. Boar has a low wedge-backed profile, broken bristle ridge, tapered muzzle, and paired tusks; deer has a lighter, long-legged alert profile with paired forked antlers |
 | Environment | `AKalmalaGeneratedTerrainPatch`, campfire, and construction procedural meshes using generated materials | Terrain collision and shelter collision remain the gameplay authority; decorative meshes do not add routes or hidden content | Existing generated terrain, water, rock, tree, hearth, and kit sources are audited here |
-| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace and shows its supported action plus any owner-visible unavailable reason; it clears for no target or modal input and contains no key/button legend. The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; a separate top-centre support strip reflects the local character's selected effect and the owner's learned set; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; settings Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility groups expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
+| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace and shows its supported action plus any owner-visible unavailable reason; it clears for no target or modal input and contains no key/button legend. The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; a separate top-centre support strip reflects the local character's selected effect and the owner's learned set; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; Settings' Controls (keyboard/mouse), Controller, Graphics, Audio, and Accessibility groups expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
 | Feedback | Text and shape/icon treatments in the owner notification queue, crafting, discovery, and settings widgets | Readable without colour or audio; feedback reports accepted replicated results rather than client claims | Support glyphs reflect only the owner's learned/selected state and retain explicit text names/status; a bounded owner-only queue presents combat/support results and discovery acknowledgements; the optional Text + markers overlay remains for nearby hearth/construction context |
 
 The ledger is an ownership and scope check, not a claim that the complete M5
@@ -2390,7 +2391,7 @@ non-audio equivalent so silence never hides authoritative state.
 | Cue group | Normal trigger | Audio intent | Required non-audio equivalent | Authority/privacy boundary |
 | --- | --- | --- | --- | --- |
 | Ambient wilderness | Local player is in normal play | Quiet wind, water, fire, and biome atmosphere establish place without a fixed route | Terrain, weather, hearth, and exposure text/shape cues remain readable | Only local visible context; no hidden population, discovery, or route hint |
-| Movement and traversal | Local movement, jump, sprint, landing, or water entry is already visible | Sparse original footfall, jump, landing, and movement-state cues reinforce action | Existing movement pose and HUD state remain readable; current bindings remain in Options > Keyboard & Mouse and Options > Controller | Local cosmetic response; no movement result, speed, stamina, or terrain authority is authored by audio |
+| Movement and traversal | Local movement, jump, sprint, landing, or water entry is already visible | Sparse original footfall, jump, landing, and movement-state cues reinforce action | Existing movement pose and HUD state remain readable; current bindings remain in Options > Controls and Options > Controller | Local cosmetic response; no movement result, speed, stamina, or terrain authority is authored by audio |
 | Weather and exposure | Existing replicated weather/Wet presentation changes | Rain, wind, and shelter contrast communicates changing conditions | Wet duration, shelter, warmth, hearth, and recovery text/shape cues remain visible | Server owns weather/exposure/Wet; audio reads accepted replicated state only |
 | Interaction and gathering | A normal interaction receives an accepted or rejected result | Short, distinct confirmation or rejection cue avoids ambiguous input | Existing interaction text and inventory result identify accepted, rejected, or unavailable state | Server validates actor, range, payment, item, quantity, and outcome; audio carries no request payload |
 | Combat | Replicated committed action or feedback changes for the owning player/relevant actor | Windup, recovery, hit, defeat, and unavailable cues clarify timing and outcome | Combat phase and colour-independent HIT/DEFEAT/UNAVAILABLE text remain authoritative presentation | Server selects target, damage, cooldown, and defeat; clients never infer or author them from sound |

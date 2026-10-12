@@ -398,7 +398,7 @@ physical keyboard/controller hardware or packaged-build acceptance.
 Gameplay prompts, inventory and service menus, the expanded map, status/detail
 views, and the Settings home screen do not print key/button names or control
 combinations. The map keeps its symbol legend, category state, and concise
-share/ping action names. Options > Keyboard & Mouse and Options > Controller are
+share/ping action names. Options > Controls and Options > Controller are
 the only player-facing views that show current bindings; all existing input
 paths and remapping behavior remain.
 Run `Scripts/Tests/Presentation/Verify-MenuInputCopy.ps1` for the narrow source audit of visible
@@ -1057,7 +1057,8 @@ simulate physical controller input, or establish audible quality/device mix.
 
 ### Local Keyboard & Mouse and Controller groups
 
-The Keyboard & Mouse and Controller groups expose the existing movement, look,
+The Controls tab presents the Keyboard & Mouse group, while Controller has its
+own tab; both expose the existing movement, look,
 interact, attack, jump, sprint, settings, map, recenter, craft, and
 support-activation intents. Keyboard & Mouse shows movement as separate
 Forward, Backward, Right, and Left rows, and places all controls in two equal-
@@ -1479,7 +1480,7 @@ remain visible over fog and do not have a separate filter.
 
 The in-game map keeps this symbol/pin-filter legend and concise ping action
 names but omits keyboard/controller help text. Current binding labels are shown
-in Options > Keyboard & Mouse and Options > Controller only; map focus, selection, pan, zoom, recenter, pin, and
+in Options > Controls and Options > Controller only; map focus, selection, pan, zoom, recenter, pin, and
 ping inputs remain available.
 
 Visibility is a transient local widget preference. It suppresses pin painting

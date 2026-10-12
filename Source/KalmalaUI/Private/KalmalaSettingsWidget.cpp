@@ -1152,7 +1152,7 @@ void UKalmalaSettingsWidget::SelectOptionsTab(const int32 SelectedIndex)
 {
     LastOptionsTabIndex = FMath::Clamp(SelectedIndex, 0, 4);
     static const TCHAR* TabNames[] = {
-        TEXT("Keyboard & Mouse"), TEXT("Controller"), TEXT("Graphics"), TEXT("Audio"), TEXT("Accessibility")
+        TEXT("Controls"), TEXT("Controller"), TEXT("Graphics"), TEXT("Audio"), TEXT("Accessibility")
     };
     for (int32 Index = 0; Index < OptionsTabButtons.Num(); ++Index)
     {
@@ -1215,7 +1215,7 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
         Slot->SetHorizontalAlignment(HAlign_Fill);
         Slot->SetPadding(FMargin(3.0f, 0.0f));
     };
-    FScriptDelegate KeyboardDelegate; KeyboardDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleKeyboardAndMouseClicked)); AddTab(FText::FromString(TEXT("Keyboard & Mouse")), TEXT("KeyboardMouseTab"), KeyboardDelegate);
+    FScriptDelegate KeyboardDelegate; KeyboardDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleKeyboardAndMouseClicked)); AddTab(FText::FromString(TEXT("Controls")), TEXT("KeyboardMouseTab"), KeyboardDelegate);
     FScriptDelegate ControllerDelegate; ControllerDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleControllerClicked)); AddTab(FText::FromString(TEXT("Controller")), TEXT("ControllerTab"), ControllerDelegate);
     FScriptDelegate GraphicsDelegate; GraphicsDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleGraphicsClicked)); AddTab(FText::FromString(TEXT("Graphics")), TEXT("GraphicsTab"), GraphicsDelegate);
     FScriptDelegate AudioDelegate; AudioDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAudioClicked)); AddTab(FText::FromString(TEXT("Audio")), TEXT("AudioTab"), AudioDelegate);
