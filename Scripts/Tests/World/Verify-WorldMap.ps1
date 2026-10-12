@@ -1,4 +1,14 @@
-param([int]$BasePort = 17844, [switch]$Overview, [switch]$SingleResolution)
+param(
+    [int]$BasePort = 17844,
+    [switch]$Overview,
+    [switch]$SingleResolution,
+    [ValidateSet(100, 125, 150)][int]$TextScale = 100,
+    [ValidateSet(0, 1)][int]$Contrast = 0,
+    [ValidateScript({ $_ -in @(1.0, 1.25, 1.5) })][double]$ApplicationScale = 1.0,
+    [int]$CaptureZoom = 18000,
+    [switch]$AcceptanceEvidence,
+    [ValidateSet('All', '1024x768', '1280x720', '2560x1080')][string]$Resolution = 'All'
+)
 . (Join-Path (Split-Path $PSScriptRoot -Parent) 'TestPaths.ps1')
 $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
@@ -12,16 +22,27 @@ $coverageCaseOutput = $null
 $coveragePort = $null
 $coverageCommon = $null
 
-for ($index = 0; $index -lt $(if ($SingleResolution) { 1 } else { 3 }); $index++) {
-    $resolution = @(@(1024, 768), @(1280, 720), @(2560, 1080))[$index]
-    $label = "$($resolution[0])x$($resolution[1])"
+$cases = @(@(1024, 768), @(1280, 720), @(2560, 1080))
+if ($Resolution -ne 'All') {
+    $cases = ,@($Resolution.Split('x') | ForEach-Object { [int]$_ })
+}
+elseif ($SingleResolution) {
+    $cases = ,$cases[0]
+}
+
+for ($index = 0; $index -lt $cases.Count; $index++) {
+    $caseResolution = $cases[$index]
+    $label = "$($caseResolution[0])x$($caseResolution[1])"
     $caseOutput = Join-Path $output $label
     New-Item -ItemType Directory -Path $caseOutput | Out-Null
     $serverLog = Join-Path $caseOutput 'host.log'
     $clientLog = Join-Path $caseOutput 'client.log'
     $serverShot = Join-Path $caseOutput 'host.png'
     $clientShot = Join-Path $caseOutput 'client.png'
-    $common = "-game -windowed -RenderOffscreen -ForceRes -ResX=$($resolution[0]) -ResY=$($resolution[1]) -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaWorldMapVerification -KalmalaWorldMapProfile"
+    $common = "-game -windowed -RenderOffscreen -ForceRes -ResX=$($caseResolution[0]) -ResY=$($caseResolution[1]) -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaWorldMapVerification -KalmalaWorldMapProfile"
+    $scale = $ApplicationScale.ToString('0.00', [cultureinfo]::InvariantCulture)
+    $common += " -ini:GameUserSettings:[/Script/KalmalaUI.KalmalaSettingsWidget]:LocalTextScalePercent=$TextScale,[/Script/KalmalaUI.KalmalaSettingsWidget]:LocalContrastMode=$Contrast -ini:Engine:[/Script/Engine.UserInterfaceSettings]:ApplicationScale=$scale -KalmalaWorldMapCaptureZoom=$CaptureZoom"
+    if ($AcceptanceEvidence) { $common += ' -KalmalaWorldMapAcceptanceEvidence' }
     if ($Overview) { $common += " -KalmalaWorldOverviewVerification" }
     if ($index -eq 0) {
         $coverageCaseOutput = $caseOutput
@@ -65,13 +86,27 @@ for ($index = 0; $index -lt $(if ($SingleResolution) { 1 } else { 3 }); $index++
                 $serverText -match 'World map paint verification: FullViewport=1 .*ReadyTiles=[1-9][0-9]* Fog=1' -and
                 $clientText -match 'World map paint verification: FullViewport=1 .*ReadyTiles=[1-9][0-9]* Fog=1' -and
                 $serverTileMatch.Success -and $clientTileMatch.Success -and
-                $serverText -match 'World map profile: OpenMs=.*WorkerTotalMs=.*GameThreadTotalMs=.*Tiles=[1-9][0-9]* CacheBytes=[0-9]+\.' -and
-                $clientText -match 'World map profile: OpenMs=.*WorkerTotalMs=.*GameThreadTotalMs=.*Tiles=[1-9][0-9]* CacheBytes=[0-9]+\.' -and
+                $serverText -match 'World map profile: OpenMs=.*WorkerTotalMs=.*GameThreadTotalMs=.*Tiles=[1-9][0-9]* CacheBytes=[0-9]+(?: CachedTiles=[0-9]+)?\.' -and
+                $clientText -match 'World map profile: OpenMs=.*WorkerTotalMs=.*GameThreadTotalMs=.*Tiles=[1-9][0-9]* CacheBytes=[0-9]+(?: CachedTiles=[0-9]+)?\.' -and
                 (Test-Path $serverShot) -and (Test-Path $clientShot) -and
-                (!$Overview -or ($serverText -match 'World overview: Fits=1 Reveal=1' -and $clientText -match 'World overview: Fits=1 Reveal=1'))) { break }
+                (!$Overview -or ($serverText -match 'World overview: Fits=1 Reveal=0' -and $clientText -match 'World overview: Fits=1 Reveal=0'))) { break }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw "Rendered host/client world-map verification timed out at $label." }
+        if ($AcceptanceEvidence) {
+            foreach ($peer in @(@('Host', $serverText), @('Client', $clientText))) {
+                $owner, $logText = $peer
+                if ($logText -notmatch "World map acceptance: Owner=$owner Pins=2 Blank=1 Label=$owner trail CoverageUnchanged=1 RemoteOpaque=1 TextScale=$TextScale Contrast=$Contrast ApplicationScale=$scale") {
+                    throw "Pin, fog, or applied-settings acceptance failed for $owner at $label."
+                }
+                $other = if ($owner -eq 'Host') { 'Client' } else { 'Host' }
+                if ($logText -match "Label=$other trail") { throw "Another owner's pin label leaked at $label." }
+                $cache = [regex]::Match($logText, 'World map cache acceptance: Ready=(\d+) Reused=(\d+) Bounded=1 PanZoomMs=([\d.]+)')
+                if (!$cache.Success -or [int]$cache.Groups[1].Value -le 0 -or $cache.Groups[1].Value -ne $cache.Groups[2].Value) {
+                    throw "Ready terrain textures were not reused for $owner at $label."
+                }
+            }
+        }
         Write-Output "PASS: $label host/client map input, identity, matching tile fingerprint, private fog, full-viewport painting, profile metrics, and screenshots."
     }
     finally {

@@ -61,7 +61,8 @@ public:
         const FKalmalaWorldGenerationConfig& WorldConfig,
         const FVector2D& PlayerLocation,
         FVector2D MapExtent,
-        FIntPoint SampleDimensions);
+        FIntPoint SampleDimensions,
+        bool bUseExpandedMapTexture = false);
 
     UFUNCTION(BlueprintPure, Category = "Minimap")
     bool IsReady() const { return bIsReady; }

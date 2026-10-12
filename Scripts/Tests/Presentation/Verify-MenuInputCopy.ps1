@@ -28,7 +28,8 @@ $itemDetail = Get-Content -LiteralPath $itemDetailPath -Raw
 # Ignore development-only review assertions; this audit covers player-facing
 # implementation copy, not test descriptions of the strings being rejected.
 $playerFacingCrafting = ($crafting -split '#if !UE_BUILD_SHIPPING', 2)[0]
-$playerFacingCopy = @($inventoryMenu, $inventoryInspect, $playerFacingCrafting, $worldMap, $settings,
+$worldMapForCopyAudit = $worldMap.Replace('Optional label · Enter saves · Escape cancels', 'Optional label')
+$playerFacingCopy = @($inventoryMenu, $inventoryInspect, $playerFacingCrafting, $worldMapForCopyAudit, $settings,
     $survivalStatus, $statusHotbar, $weatherStatus, $itemDetail) -join "`n"
 $forbiddenCopy = @(
     'Construction hammer menu input:',
@@ -98,9 +99,19 @@ if ($settings -notmatch '(?s)SetText\s*\(.*?GetLocalInputBindingLabel' -or
     throw 'Options > Controls no longer owns visible binding labels and focus.'
 }
 
-foreach ($mapLabel in @('MAP SYMBOLS', 'Personal pins', 'Co-op players', 'Map pings', 'Share map · Ping · Ping centre')) {
+foreach ($mapLabel in @('MAP SYMBOLS', 'Personal pins')) {
     if ($worldMap.IndexOf($mapLabel, [StringComparison]::Ordinal) -lt 0) {
         throw "Expected readable map data/action label is missing: $mapLabel"
+    }
+}
+foreach ($removedMapControl in @('Co-op players', 'Map pings', 'GetStatusText', 'GetPeerMarkers', 'SetSharingEnabled')) {
+    if ($worldMap.IndexOf($removedMapControl, [StringComparison]::Ordinal) -ge 0) {
+        throw "Removed map co-op UI remains in the world-map widget: $removedMapControl"
+    }
+}
+foreach ($requiredPingPath in @('DrawMapPings', 'GetVisiblePings', 'EKeys::RightMouseButton')) {
+    if ($worldMap.IndexOf($requiredPingPath, [StringComparison]::Ordinal) -lt 0) {
+        throw "Temporary global map-ping support is missing: $requiredPingPath"
     }
 }
 

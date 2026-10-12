@@ -9,6 +9,14 @@
 #include "KalmalaWorldMapPinsSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "KalmalaBiomeClassifier.h"
+#include "KalmalaSettingsWidget.h"
+#include "KalmalaUITheme.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Fonts/FontMeasure.h"
+#include "Rendering/SlateRenderer.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWorldMapWidgetTest, "Kalmala.UI.WorldMap.LocalPresentation",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -35,20 +43,8 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Debug overview reveals distant generated terrain"), DebugFog[13].A, uint8(0));
     TestEqual(TEXT("Circle corners stay masked"), DebugFog[0].A, uint8(255));
     TestEqual(TEXT("Outside rim stays masked"), DebugFog[14].A, uint8(255));
-    TestTrue(TEXT("Co-op symbol may show in current personal sight"),
-        UKalmalaWorldMapWidget::CanShowCoopLocation(FVector2D(100, 0), FVector2D::ZeroVector, nullptr));
-    TestFalse(TEXT("Co-op symbols cannot reveal unexplored remote terrain"),
-        UKalmalaWorldMapWidget::CanShowCoopLocation(FVector2D(20000, 0), FVector2D::ZeroVector, nullptr));
-    auto* CoopCoverage = NewObject<UKalmalaWorldMapExplorationSaveGame>();
-    FKalmalaWorldGenerationConfig CoopConfig;
-    CoopCoverage->InitializeForWorld(CoopConfig);
-    CoopCoverage->RecordReveal(FVector2D(20000, 0), 1000);
-    const int32 CoverageBefore = CoopCoverage->GetExploredCellCount();
-    TestTrue(TEXT("Co-op symbol may show on remembered personal coverage"),
-        UKalmalaWorldMapWidget::CanShowCoopLocation(FVector2D(20000, 0), FVector2D::ZeroVector, CoopCoverage));
-    TestFalse(TEXT("Remote symbol cannot add coverage"),
-        UKalmalaWorldMapWidget::CanShowCoopLocation(FVector2D(40000, 0), FVector2D::ZeroVector, CoopCoverage));
-    TestEqual(TEXT("Co-op presentation does not mutate exploration"), CoopCoverage->GetExploredCellCount(), CoverageBefore);
+    TestEqual(TEXT("Map legend exposes only the personal-pin filter"),
+        static_cast<int32>(EKalmalaWorldMapMarkerCategory::Count), 1);
     TestEqual(TEXT("Expanded-map zoom clamps at its minimum"), UKalmalaWorldMapWidget::ClampMapZoom(100.0f, 2500.0f, 50000.0f), 2500.0f);
     TestEqual(TEXT("Expanded-map zoom clamps at its maximum"), UKalmalaWorldMapWidget::ClampMapZoom(100000.0f, 2500.0f, 50000.0f), 50000.0f);
     TestEqual(TEXT("Expanded-map zoom preserves valid values"), UKalmalaWorldMapWidget::ClampMapZoom(18000.0f, 2500.0f, 50000.0f), 18000.0f);
@@ -77,6 +73,27 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     UKalmalaWorldMapWidget* PinWidget = NewObject<UKalmalaWorldMapWidget>();
     PinWidget->SetIsFocusable(true);
     TestTrue(TEXT("Expanded map accepts local keyboard focus for pin actions"), PinWidget->IsFocusable());
+    const int32 OriginalTextScale = UKalmalaSettingsWidget::GetTextScalePercent();
+    for (const int32 Scale : { 100, 125, 150 })
+    {
+        UKalmalaSettingsWidget::SetTextScalePercent(Scale);
+        const auto Layout = PinWidget->GetPinPaletteLayout(FVector2D(1024.0, 768.0));
+        const auto Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+        const auto& Theme = FKalmalaUITheme::Get();
+        const auto LabelFont = Theme.MakeFont(Theme.BodySize - 3, false, Scale);
+        for (int32 Index = 0; Index < 3; ++Index)
+        {
+            const FString Label = Index == 0 ? TEXT("Cairn") : Index == 1 ? TEXT("Lantern") : TEXT("Thread");
+            const FVector2D TextSize = Measure->Measure(Label, LabelFont);
+            TestTrue(TEXT("Scaled marker captions fit inside separate padded buttons"), TextSize.X + Layout.Padding * 2.0 <= Layout.ButtonWidth + 0.01);
+            TestTrue(TEXT("Scaled marker captions fit below the icon"), 34.0 + TextSize.Y + Layout.Padding <= Layout.ButtonHeight + 0.01);
+            const FVector2D ButtonCentre = Layout.Position + FVector2D(Layout.Padding + Index * (Layout.ButtonWidth + Layout.ButtonGap) + Layout.ButtonWidth * 0.5,
+                Layout.Padding + Layout.HeaderHeight + 4.0 + Layout.ButtonHeight * 0.5);
+            TestEqual(TEXT("Marker pointer target follows the scaled rendered button"), PinWidget->GetPinStyleIndexAtPosition(ButtonCentre, FVector2D(1024.0, 768.0)), Index);
+        }
+        TestTrue(TEXT("Marker palette stays within the small viewport"), Layout.Position.X >= 0 && Layout.Position.Y >= 0 && Layout.Position.X + Layout.Size.X <= 1024.0 && Layout.Position.Y + Layout.Size.Y <= 768.0);
+    }
+    UKalmalaSettingsWidget::SetTextScalePercent(OriginalTextScale);
     PinWidget->BeginPinPlacement(FVector2D(1250.0f, -750.0f));
     PinWidget->PendingPinLabel = TEXT("  Lantern! ridge  ");
     PinWidget->PendingPinStyle = EKalmalaWorldMapPinStyle::Lantern;
@@ -122,10 +139,8 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
         PinWidget->FindVisiblePinAtScreenPosition(OverlapScreenPosition, FVector2D(1000.0f, 1000.0f)), OverlappedOlderIndex);
     const int32 PinCountBeforeFilter = PinWidget->LocalPins.Num();
     const int32 EligiblePinCount = PinWidget->CountEligiblePersonalPins();
-    TestTrue(TEXT("New map marker categories start shown"),
-        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::PersonalPins)
-        && PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPlayers)
-        && PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPings));
+    TestTrue(TEXT("Personal-pin filter starts shown"),
+        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::PersonalPins));
     PinWidget->ToggleMarkerCategory(EKalmalaWorldMapMarkerCategory::PersonalPins);
     TestFalse(TEXT("Personal-pin filter hides only the marker drawing category"),
         PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::PersonalPins));
@@ -154,21 +169,19 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
 
     TestTrue(TEXT("F focuses the keyboard marker filters"), PinWidget->HandleMarkerFilterKey(EKeys::F));
     TestTrue(TEXT("Keyboard filter focus is visibly active"), PinWidget->bMarkerFilterNavigationActive);
-    TestTrue(TEXT("Down selects the next marker category"), PinWidget->HandleMarkerFilterKey(EKeys::Down));
-    TestEqual(TEXT("Keyboard selection moves from pins to co-op players"), PinWidget->FocusedMarkerCategoryIndex, 1);
-    TestTrue(TEXT("Enter toggles only the focused player category"), PinWidget->HandleMarkerFilterKey(EKeys::Enter));
-    TestFalse(TEXT("Keyboard toggle suppresses co-op player drawing"),
-        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPlayers));
-    TestTrue(TEXT("Keyboard toggle leaves ping visibility unchanged"),
-        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPings));
+    TestTrue(TEXT("Keyboard selection stays on the sole personal-pin filter"), PinWidget->HandleMarkerFilterKey(EKeys::Down));
+    TestEqual(TEXT("Keyboard filter has no co-op categories"), PinWidget->FocusedMarkerCategoryIndex, 0);
+    TestTrue(TEXT("Enter toggles the local personal-pin filter"), PinWidget->HandleMarkerFilterKey(EKeys::Enter));
+    TestFalse(TEXT("Keyboard toggle hides only personal pins"),
+        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::PersonalPins));
     TestTrue(TEXT("Escape leaves keyboard filter focus"), PinWidget->HandleMarkerFilterKey(EKeys::Escape));
     TestFalse(TEXT("Leaving filter focus restores normal map navigation state"), PinWidget->bMarkerFilterNavigationActive);
     TestTrue(TEXT("Left-stick click focuses controller marker filters"), PinWidget->HandleMarkerFilterKey(EKeys::Gamepad_LeftThumbstick));
-    TestTrue(TEXT("D-pad selects the next controller marker category"), PinWidget->HandleMarkerFilterKey(EKeys::Gamepad_DPad_Down));
-    TestEqual(TEXT("Controller selection reaches map pings"), PinWidget->FocusedMarkerCategoryIndex, 2);
-    TestTrue(TEXT("Controller A toggles the focused ping category"), PinWidget->HandleMarkerFilterKey(EKeys::Gamepad_FaceButton_Bottom));
-    TestFalse(TEXT("Controller toggle suppresses map ping drawing"),
-        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::CoopPings));
+    TestTrue(TEXT("D-pad keeps controller focus on the sole pin filter"), PinWidget->HandleMarkerFilterKey(EKeys::Gamepad_DPad_Down));
+    TestEqual(TEXT("Controller focus has no co-op categories"), PinWidget->FocusedMarkerCategoryIndex, 0);
+    TestTrue(TEXT("Controller A restores the personal-pin filter"), PinWidget->HandleMarkerFilterKey(EKeys::Gamepad_FaceButton_Bottom));
+    TestTrue(TEXT("Controller A restores personal pins"),
+        PinWidget->IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory::PersonalPins));
     TestTrue(TEXT("Controller B leaves filter focus"), PinWidget->HandleMarkerFilterKey(EKeys::Gamepad_FaceButton_Right));
     TestTrue(TEXT("Filter navigation preserves selected personal pin identity"),
         PinWidget->LocalPins.IsValidIndex(PinWidget->SelectedPinIndex));
@@ -185,11 +198,19 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     UKalmalaWorldMapPinsSaveGame* Pins = NewObject<UKalmalaWorldMapPinsSaveGame>();
     Pins->InitializeForWorld(Config);
     TestTrue(TEXT("Personal pins accept bounded local presentation data"), Pins->SetPins(PinWidget->LocalPins));
+    TArray<FKalmalaWorldMapPersonalPin> OptionalLabelPins = PinWidget->LocalPins;
+    OptionalLabelPins[0].Label.Reset();
+    TestTrue(TEXT("Blank labels remain valid icon-only personal pins"), Pins->SetPins(OptionalLabelPins));
+    TArray<uint8> OptionalLabelBytes;
+    TestTrue(TEXT("Icon-only personal pins serialize"), UGameplayStatics::SaveGameToMemory(Pins, OptionalLabelBytes));
+    auto* OptionalLabelReload = Cast<UKalmalaWorldMapPinsSaveGame>(UGameplayStatics::LoadGameFromMemory(OptionalLabelBytes));
+    TestTrue(TEXT("Icon-only labels stay blank after reload"), OptionalLabelReload && !OptionalLabelReload->GetPins().IsEmpty() && OptionalLabelReload->GetPins()[0].Label.IsEmpty());
+    TestTrue(TEXT("Restore labeled fixture for rejection checks"), Pins->SetPins(PinWidget->LocalPins));
     const int32 ValidPinCount = Pins->GetPins().Num();
     TArray<FKalmalaWorldMapPersonalPin> MalformedPins = PinWidget->LocalPins;
     if (!MalformedPins.IsEmpty())
     {
-        MalformedPins[0].Label.Reset();
+        MalformedPins[0].Label = FString::ChrN(UKalmalaWorldMapPinsSaveGame::MaxPinLabelLength + 1, TEXT('a'));
     }
     TestFalse(TEXT("Malformed local pin data is rejected"), Pins->SetPins(MalformedPins));
     TestEqual(TEXT("Rejecting malformed local pin data preserves the prior set"), Pins->GetPins().Num(), ValidPinCount);
@@ -226,15 +247,15 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("World-space tile reproduces for the same identity"), Tile == RepeatedTile);
     TestFalse(TEXT("Every terrain tile pixel is opaque, including corners and joins"),
         Tile.ContainsByPredicate([](const FColor& Pixel) { return Pixel.A != 255; }));
-    // A local HUD crop must retain the exact RGB at matching world coordinates.
+    // Expanded-map texture samples retain world-coordinate alignment independently of the HUD palette.
     const auto LocalSamples = UKalmalaMinimapViewModel::BuildTerrainSamples(Config,
-        FVector2D(35000, -15000), 5000.0f, 33);
+        FVector2D(35000, -15000), FVector2D(5000.0f), FIntPoint(33), true);
     const auto LocalCrop = FKalmalaMinimapRaster::BuildPixels(LocalSamples);
     TestEqual(TEXT("Only the HUD crop hides its square corners"), LocalCrop[0].A, uint8(0));
     bool bSameTerrain = Tile.Num() == LocalCrop.Num();
     for (int32 I = 0; bSameTerrain && I < Tile.Num(); ++I)
         bSameTerrain = Tile[I].R == LocalCrop[I].R && Tile[I].G == LocalCrop[I].G && Tile[I].B == LocalCrop[I].B;
-    TestTrue(TEXT("Minimap is a circular viewport onto the same world terrain"), bSameTerrain);
+    TestTrue(TEXT("Expanded-map crop and tile use identical textured world samples"), bSameTerrain);
     bool bSeamMatches = Tile.Num() == 33 * 33 && AdjacentTile.Num() == 33 * 33;
     for (int32 Y = 0; bSeamMatches && Y < 33; ++Y) bSeamMatches = Tile[Y * 33 + 32] == AdjacentTile[Y * 33];
     TestTrue(TEXT("Adjacent world-space tiles share their edge samples"), bSeamMatches);
@@ -311,4 +332,44 @@ bool FKalmalaWorldMapWidgetTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWorldMapTextureTest, "Kalmala.UI.WorldMap.BiomeTextures",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaWorldMapTextureTest::RunTest(const FString& Parameters)
+{
+    constexpr int32 Side = 96;
+    constexpr int32 BiomeCount = 7;
+    constexpr int32 ZoomCount = 4;
+    const EKalmalaBiome Biomes[] = { EKalmalaBiome::Meadows, EKalmalaBiome::ShimmeringLakes,
+        EKalmalaBiome::Elderwood, EKalmalaBiome::MossyMire, EKalmalaBiome::FreezingTundra,
+        EKalmalaBiome::ThunderMountains, EKalmalaBiome::Ocean };
+    const float Spacings[] = { 78.125f, 312.5f, 5000.0f, 100000.0f };
+    TArray<FColor> Gallery;
+    Gallery.SetNum(Side * BiomeCount * Side * ZoomCount);
+    for (int32 Zoom = 0; Zoom < ZoomCount; ++Zoom)
+    {
+        TSet<uint32> BiomeSignatures;
+        for (int32 Biome = 0; Biome < BiomeCount; ++Biome)
+        {
+            TSet<uint32> Colours;
+            uint32 Signature = 2166136261u;
+            for (int32 Y = 0; Y < Side; ++Y) for (int32 X = 0; X < Side; ++X)
+            {
+                const FVector2D Position = FVector2D(X, Y) * Spacings[Zoom] + FVector2D(1234.0, -5678.0);
+                const FColor Colour = FKalmalaMinimapRaster::SampleExpandedMapBiomeTexture(Biomes[Biome], Position, Spacings[Zoom]).ToFColorSRGB();
+                Colours.Add(Colour.DWColor());
+                Signature = (Signature ^ Colour.DWColor()) * 16777619u;
+                Gallery[(Zoom * Side + Y) * Side * BiomeCount + Biome * Side + X] = Colour;
+            }
+            TestTrue(FString::Printf(TEXT("Biome %d remains textured at spacing %.3f"), Biome, Spacings[Zoom]), Colours.Num() > 8);
+            BiomeSignatures.Add(Signature);
+        }
+        TestEqual(FString::Printf(TEXT("Every biome remains distinct at spacing %.3f"), Spacings[Zoom]), BiomeSignatures.Num(), BiomeCount);
+    }
+    const FString Path = FPaths::ProjectSavedDir() / TEXT("M14BiomeTextures.bmp");
+    TestTrue(TEXT("Retain actual biome raster evidence across zoom spacings"),
+        FFileHelper::CreateBitmap(*Path, Side * BiomeCount, Side * ZoomCount, Gallery.GetData()));
+    AddInfo(TEXT("Biome raster columns: Meadows, Lakes, Elderwood, Mire, Tundra, Mountains, Ocean; rows: 78.125, 312.5, 5000, 100000 cm sample spacing."));
+    return true;
+}
 #endif

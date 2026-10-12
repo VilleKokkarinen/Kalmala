@@ -1,0 +1,8 @@
+PASS: onboarding contract has 10 route-free beats, accessibility cues, authority boundaries, and local-persistence limits.
+PASS: settings/accessibility contract covers option groups, input access, non-colour feedback, interface scale, reduced motion, local persistence, and server authority.
+PASS: tutorial design remains route-free and local; the runtime presenter is disabled, so no gameplay help card mounts.
+PASS: legacy inventory HUD and bottom tutorial card are absent; on-demand Inventory and empty-state coverage remain.
+PASS: presentation ownership covers 7 project assets and 29 procedural/UI source seams without external asset paths.
+PASS: audio cue contract has 8 cue groups, local category mix controls, non-audio fallbacks, project ownership, and multiplayer boundaries.
+PASS: local input baseline contains 5 axes and 19 actions; retired support selection bindings are absent.
+PASS: all 5 M5 no-build documentation contracts passed in one run.

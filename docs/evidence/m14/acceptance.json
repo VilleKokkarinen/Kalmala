@@ -1,0 +1,421 @@
+{
+  "mirror": "C:/Users/Ville/AppData/Local/Temp/km14fix",
+  "sources": [
+    {
+      "gitBlob": "2a3e6b62c0b7b852b6bf5f2bed5a312425e4da75",
+      "sha256": "D6F63316B3D879D2734122180D92CE3C78E01B39C56F3B21F49B530358172576",
+      "path": "Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp"
+    },
+    {
+      "gitBlob": "1e05572af22b27ee022736d2c81982437e5cb354",
+      "sha256": "C7842110FD456B0614BD7E3AB8DBE16762F2E70BC64480A6824010FA4ED10ED3",
+      "path": "Source/KalmalaUI/Private/Tests/KalmalaWorldMapWidgetTest.cpp"
+    },
+    {
+      "gitBlob": "307652fe380930524ddfdd93e046819593a76c55",
+      "sha256": "D06964BB16E664D3ADC986FAAE0499092840F1C388DAF71358BBFFF347C89939",
+      "path": "Scripts/Verify-WorldMap.ps1"
+    },
+    {
+      "gitBlob": "15a8695d12cda1bded2262c8a960baea9974245f",
+      "sha256": "DD9DD9D107B6E9666BA4C21B19FD108F345EE52CDC2CD0C0E0261C0354E563BC",
+      "path": "Scripts/Verify-MapAwareness.ps1"
+    }
+  ],
+  "integrationCommit": "d5e1141cb05193f66cede3be96b6fc735d22296b",
+  "build": {
+    "result": "PASS",
+    "command": "& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/km14fix/Kalmala.uproject' -WaitMutex -MaxParallelActions=4",
+    "initialActions": 239,
+    "initialLog": "C:/Users/Ville/AppData/Local/Temp/km14fix/build.log",
+    "finalLog": "C:/Users/Ville/AppData/Local/Temp/km14fix/build-layout.log"
+  },
+  "automation": {
+    "log": "C:\\Users\\Ville\\AppData\\Local\\Temp\\km14fix\\tests-accept.log",
+    "passed": 123,
+    "sha256": "803EAE5E47B6D0CE7E3353F3C49AFAB05C3540661417C69820999B0CF578F5EF",
+    "result": "PASS",
+    "failed": 0,
+    "command": "& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' 'C:/Users/Ville/AppData/Local/Temp/km14fix/Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir=C:/Users/Ville/AppData/Local/Temp/km14fix/test-accept -abslog=C:/Users/Ville/AppData/Local/Temp/km14fix/tests-accept.log '-ExecCmds=Automation RunTests Kalmala; Quit' '-TestExit=Automation Test Queue Empty'"
+  },
+  "m13": "5ac3b05d197692a8ef6fd2f7be05234f40c60c7a",
+  "cases": [
+    {
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-b5cf4d9c4a7f407c8b74aac6f7a7c790\\1024x768\\client.log",
+          "sha256": "85D0509B6C9B0260E2D6E86CF445AEDCF1FE7199CA530C339331384A90E3BDF4"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-b5cf4d9c4a7f407c8b74aac6f7a7c790\\1024x768\\host.log",
+          "sha256": "2B56CFF76B052D8BDBF625CBB6B06CA3980EFCFDB52660279E3179BBF1E874BE"
+        }
+      ],
+      "name": "contrast",
+      "transcript": "PASS: 1024x768 host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots.\r\nScenario logs and screenshots: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-b5cf4d9c4a7f407c8b74aac6f7a7c790\r\n",
+      "result": "PASS",
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-b5cf4d9c4a7f407c8b74aac6f7a7c790",
+      "screenshots": [
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-b5cf4d9c4a7f407c8b74aac6f7a7c790\\1024x768\\client.png",
+          "sha256": "2695D232104DF8374EBB67E190202E1433E1646DD0F37ED7B25062298B6D734F",
+          "file": "contrast-1024x768-client.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-b5cf4d9c4a7f407c8b74aac6f7a7c790\\1024x768\\host.png",
+          "sha256": "8D97E456DC928F694E6441E5A1DDD937726F0B272355F8564FAAE01BDD07C0B7",
+          "file": "contrast-1024x768-host.png"
+        }
+      ],
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-WorldMap.ps1' -BasePort 19650 -Resolution 1024x768 -TextScale 150 -Contrast 1 -AcceptanceEvidence"
+    },
+    {
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-005a478ce7864b828fe15ce2837194d1\\2560x1080\\client.log",
+          "sha256": "EE90F18B89BFBF80DA2D97ECE5C1107740CB0900B2EC6A455CA234A425EB11C4"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-005a478ce7864b828fe15ce2837194d1\\2560x1080\\host.log",
+          "sha256": "30EE582541FC0F460ECC36FEA2DFAA99D17E38B435167BD7B0EAA994F0B44FBC"
+        }
+      ],
+      "name": "scale125",
+      "transcript": "PASS: 2560x1080 host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots.\r\nScenario logs and screenshots: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-005a478ce7864b828fe15ce2837194d1\r\n",
+      "result": "PASS",
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-005a478ce7864b828fe15ce2837194d1",
+      "screenshots": [
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-005a478ce7864b828fe15ce2837194d1\\2560x1080\\client.png",
+          "sha256": "4F7ECDC5213A5C60214364C65CB28A7175BC07EC2377318AAA3C148704506B25",
+          "file": "scale125-2560x1080-client.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-005a478ce7864b828fe15ce2837194d1\\2560x1080\\host.png",
+          "sha256": "DC140EB36474FF8C1E8A6C07EEFE61844505311163347A3DECA8678FF1CFF49B",
+          "file": "scale125-2560x1080-host.png"
+        }
+      ],
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-WorldMap.ps1' -BasePort 19651 -Resolution 2560x1080 -ApplicationScale 1.25 -AcceptanceEvidence"
+    },
+    {
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-1bfd24fc16284a18b31bcd2ecdf85e84\\2560x1080\\client.log",
+          "sha256": "E9BDB85C40042F319B15B7105F2F10A8A9EF12FC10E7CA25CB4A7EAE22293ECE"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-1bfd24fc16284a18b31bcd2ecdf85e84\\2560x1080\\host.log",
+          "sha256": "604F7AA618C0BB980FF09C337B9BE7CB9FF8ACE50FB850424AE8920D187B03CD"
+        }
+      ],
+      "name": "scale150",
+      "transcript": "PASS: 2560x1080 host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots.\r\nScenario logs and screenshots: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-1bfd24fc16284a18b31bcd2ecdf85e84\r\n",
+      "result": "PASS",
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-1bfd24fc16284a18b31bcd2ecdf85e84",
+      "screenshots": [
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-1bfd24fc16284a18b31bcd2ecdf85e84\\2560x1080\\client.png",
+          "sha256": "C40E4A3B4CABD1326B125A2B4091442AC1D693AF06B91997080AAC867CDD4965",
+          "file": "scale150-2560x1080-client.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-1bfd24fc16284a18b31bcd2ecdf85e84\\2560x1080\\host.png",
+          "sha256": "0D571A8F433A50A0D06F82A169C978DC72BDB79F3B5566B23A9A139A794F151C",
+          "file": "scale150-2560x1080-host.png"
+        }
+      ],
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-WorldMap.ps1' -BasePort 19652 -Resolution 2560x1080 -ApplicationScale 1.5 -AcceptanceEvidence"
+    },
+    {
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\1024x768\\client.log",
+          "sha256": "4D80336B0785CFAF5ABC9823A9FDEB5EA14E73A9175F5A45728C036076EAC7E0"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\1024x768\\host.log",
+          "sha256": "C57752815E43350F9983374A3CB42EC8AE2ADC3BDC3A37584D66F86D95207B60"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\1280x720\\client.log",
+          "sha256": "E24ACA7B1255E1CAF911CB453118DE7CBA39AC146614F5DDA188118112AD5CA7"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\1280x720\\host.log",
+          "sha256": "C16A3772FB60B78FA4ADCCD7710C4E56C552F901A9528D38A7F4E06F5CDBD586"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\2560x1080\\client.log",
+          "sha256": "A7C34266AF63E53ABBB3B03C717C0368344B9153D091091B2BC16DD378303365"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\2560x1080\\host.log",
+          "sha256": "F7F4DBEEF458BE83634824A71D20DBAE355E5FDADE607DD89569F9E2E0A3C4C5"
+        }
+      ],
+      "name": "map",
+      "transcript": "PASS: 1024x768 host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots.\r\nPASS: 1280x720 host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots.\r\nPASS: 2560x1080 host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots.\r\nScenario logs and screenshots: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\r\n",
+      "result": "PASS",
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204",
+      "screenshots": [
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\1024x768\\client.png",
+          "sha256": "76036D9145B9E47DB76ED38B726CAB44C40B55EB889DA503E55F7C4C8D84CEDD",
+          "file": "map-1024x768-client.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\1024x768\\host.png",
+          "sha256": "96C4B281F3F4D955151C3479313D52320BF86FE753F3CC1178B4BE5D3176AA6F",
+          "file": "map-1024x768-host.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\1280x720\\client.png",
+          "sha256": "68B288F634D1200172ADC04E26641EB9558F44EEB4B5B0A5E82BA1031F1AC140",
+          "file": "map-1280x720-client.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\1280x720\\host.png",
+          "sha256": "B8FCD4F4A1CAF3E66775942300F77BCCBA41A21D67D07E8D4C8CCE180EFEC4BC",
+          "file": "map-1280x720-host.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\2560x1080\\client.png",
+          "sha256": "86A57A283FE59F57AF1B6DC8E452C062E648A236F3583D816EE0EC792A629217",
+          "file": "map-2560x1080-client.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-d365ac83cf5943f693d914170cb8b204\\2560x1080\\host.png",
+          "sha256": "6FD9D0B69C18070EDF7BDC3001E11EDDB9507EB5666D47ACCB702B742F4A23FB",
+          "file": "map-2560x1080-host.png"
+        }
+      ],
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-WorldMap.ps1' -BasePort 19644 -AcceptanceEvidence"
+    },
+    {
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMapTiles-b2b93c9a0d37445fae49d3dc27a14f7f\\client-restart.log",
+          "sha256": "3600CCEC1D896FFC777FF1B646E1200A7876DBFA4BF1C8BB13B8E07140DC25E9"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMapTiles-b2b93c9a0d37445fae49d3dc27a14f7f\\client.log",
+          "sha256": "B95270C2D12B24F4C25DACFF9DAA65FBED8353B916AF21EB754B6A6F2E07B7ED"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMapTiles-b2b93c9a0d37445fae49d3dc27a14f7f\\server-restart.log",
+          "sha256": "8A802B2FC4BD569151CC1ECF67072336E1481B0AFB91CB4BAC90C68188843E5D"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMapTiles-b2b93c9a0d37445fae49d3dc27a14f7f\\server.log",
+          "sha256": "FB60770DD23819222C8F996EB9F625D4DB3BB0FBE6CD054D87A18330CAA0BEC2"
+        }
+      ],
+      "name": "tiles",
+      "transcript": "PASS: World map tile presentation: Seed=418 Tiles=12 Fingerprint=3727081142 PollOnly=1. matches the conflicting-seed client after authoritative identity replication; each peer kept remote terrain unexplored.\r\nPASS: matching personal coverage reloaded after restart without revealing remote terrain.\r\nScenario logs: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMapTiles-b2b93c9a0d37445fae49d3dc27a14f7f\r\n",
+      "result": "PASS",
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMapTiles-b2b93c9a0d37445fae49d3dc27a14f7f",
+      "screenshots": [],
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-WorldMapTiles.ps1' -Port 19647"
+    },
+    {
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMapProfile-97889287bc8b40b09b252cc42425fb2d\\client.log",
+          "sha256": "1DACA9CFEE16DD8CD93BEEC6AD17585DA5D2DEFA614350634DD850BEF46A6310"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMapProfile-97889287bc8b40b09b252cc42425fb2d\\host.log",
+          "sha256": "0B1866BDAFB0266680941AE51F0860332C5AD6D0E7C723B9C2837963450FB2E6"
+        }
+      ],
+      "name": "profile",
+      "transcript": "PASS: captured host/client full-map open, worker, game-thread, cache, and late-join identity metrics.\r\nProfile logs: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMapProfile-97889287bc8b40b09b252cc42425fb2d\r\n",
+      "result": "PASS",
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMapProfile-97889287bc8b40b09b252cc42425fb2d",
+      "screenshots": [],
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-WorldMapProfile.ps1' -Port 19648"
+    },
+    {
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaMapAwareness-1514a5893a3241a3966622dc05a342a4\\client.log",
+          "sha256": "59A24E6B3A82C45C69FFEB6C12DD26439B580DC9A88567C34F644A6BC0A7C540"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaMapAwareness-1514a5893a3241a3966622dc05a342a4\\server.log",
+          "sha256": "2F011756E4B4D1FEA144CBEF1D3A3E09B6AC985CF543D24E043F685FD6222E4B"
+        }
+      ],
+      "name": "awareness",
+      "transcript": "PASS: private player positions, global pings without share consent, world-bound validation, remote-world relay, per-sender cooldown, host/client ordering, ten-second expiry, and opt-out independence.\r\nScenario logs: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaMapAwareness-1514a5893a3241a3966622dc05a342a4\r\n",
+      "result": "PASS",
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaMapAwareness-1514a5893a3241a3966622dc05a342a4",
+      "screenshots": [],
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-MapAwareness.ps1' -Port 19642"
+    },
+    {
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-09d25fc14dd644d18ebf77213f08f8d6\\1280x720\\client.log",
+          "sha256": "003019E8FCF6E971E0EA21DA907BDD31C7654BD98CB2B97B902D02B78AA0F05D"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-09d25fc14dd644d18ebf77213f08f8d6\\1280x720\\host.log",
+          "sha256": "FBF12F051452B3759CA69937C58085B403AB808213C899D58D53742D190D5AA5"
+        }
+      ],
+      "name": "overview",
+      "transcript": "PASS: 1280x720 host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots.\r\nScenario logs and screenshots: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-09d25fc14dd644d18ebf77213f08f8d6\r\n",
+      "result": "PASS",
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-09d25fc14dd644d18ebf77213f08f8d6",
+      "screenshots": [
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-09d25fc14dd644d18ebf77213f08f8d6\\1280x720\\client.png",
+          "sha256": "8E9A6CE9D2F0A4B497DEFCD37750011DB6202EC0859B479DE48815EDA6D547FD",
+          "file": "overview-1280x720-client.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-09d25fc14dd644d18ebf77213f08f8d6\\1280x720\\host.png",
+          "sha256": "6BD47366DAE1E123B515CDB3F231CA877EA1D08CC9C413EAE4CD83CF8EA022F1",
+          "file": "overview-1280x720-host.png"
+        }
+      ],
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-WorldMap.ps1' -BasePort 19649 -Resolution 1280x720 -Overview -AcceptanceEvidence"
+    },
+    {
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-2d386f07a69a49c198fe4061047fd7dd\\1280x720\\client.log",
+          "sha256": "D8B750FE4DE55DAE98371D87DD79781F407B49E3170F5D5E9A7E7E25CA95439A"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-2d386f07a69a49c198fe4061047fd7dd\\1280x720\\host.log",
+          "sha256": "D0F8E8934A9E5B17F3413D17A3059C840783BE4295C9E8ABD3C5F18EC673EF20"
+        }
+      ],
+      "name": "close",
+      "transcript": "PASS: 1280x720 host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots.\r\nScenario logs and screenshots: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-2d386f07a69a49c198fe4061047fd7dd\r\n",
+      "result": "PASS",
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-2d386f07a69a49c198fe4061047fd7dd",
+      "screenshots": [
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-2d386f07a69a49c198fe4061047fd7dd\\1280x720\\client.png",
+          "sha256": "2B0DF68A71ABC892A22C6636258D0E6FC9397116EDFBAAC6315D7EA5A5671034",
+          "file": "close-1280x720-client.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-2d386f07a69a49c198fe4061047fd7dd\\1280x720\\host.png",
+          "sha256": "E371BDB9DAD8B75DB644109929754D5D3A610AD6D5A0DFD48391315476CBFA1E",
+          "file": "close-1280x720-host.png"
+        }
+      ],
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-WorldMap.ps1' -BasePort 19653 -Resolution 1280x720 -CaptureZoom 2500 -AcceptanceEvidence"
+    },
+    {
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-388fd385d56a494d91a7e3c2f543dff2\\1280x720\\client.log",
+          "sha256": "E8A310BC5CADC34152235EDCF8E4B90E9B973A3E2F00B7322133E4439F73A4DE"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-388fd385d56a494d91a7e3c2f543dff2\\1280x720\\host.log",
+          "sha256": "AE152624F12530FF1EE2F4A591AC1DC8379174C1FE407719DE42197744053FB6"
+        }
+      ],
+      "name": "maxzoom",
+      "transcript": "PASS: 1280x720 host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots.\r\nScenario logs and screenshots: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-388fd385d56a494d91a7e3c2f543dff2\r\n",
+      "result": "PASS",
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-388fd385d56a494d91a7e3c2f543dff2",
+      "screenshots": [
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-388fd385d56a494d91a7e3c2f543dff2\\1280x720\\client.png",
+          "sha256": "C63164A3948B77A14A836EBF71C9CB787B43BACF47516EE036E616681430424C",
+          "file": "maxzoom-1280x720-client.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-388fd385d56a494d91a7e3c2f543dff2\\1280x720\\host.png",
+          "sha256": "82FBBD3E991E018450A99AD82F913FF6FEDBE121E2C72745D6635BF62A997144",
+          "file": "maxzoom-1280x720-host.png"
+        }
+      ],
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-WorldMap.ps1' -BasePort 19654 -Resolution 1280x720 -CaptureZoom 3500000 -AcceptanceEvidence"
+    },
+    {
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-WorldMap.ps1' -BasePort 19755 -Resolution 1280x720 -AcceptanceEvidence",
+      "transcript": "PASS: 1280x720 host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots.\r\nScenario logs and screenshots: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-57d9bded7140431196bcb98441048753\r\n",
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-57d9bded7140431196bcb98441048753\\1280x720\\client.log",
+          "sha256": "89785FB961A720087FAC98717C94E99080DB1CBB9BED57142FFA5FAC46B4A63A"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-57d9bded7140431196bcb98441048753\\1280x720\\host.log",
+          "sha256": "09A880C19D15669B66967955C9AB730B9D7DB1F53B88A3112EAE42FE2D393663"
+        }
+      ],
+      "result": "PASS",
+      "name": "theme",
+      "themeOverride": {
+        "restored": true,
+        "ButtonFocused": "(R=0.15,G=0.60,B=0.78,A=1)",
+        "WorldMapPanelImage": "/Game/Kalmala/UI/BuildPanel.BuildPanel"
+      },
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-57d9bded7140431196bcb98441048753",
+      "screenshots": [
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-57d9bded7140431196bcb98441048753\\1280x720\\client.png",
+          "sha256": "F868B89533DB0661446BC4D947400222676A0C223D08A9A68D43F2BB3715BF41",
+          "file": "theme-1280x720-client.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-57d9bded7140431196bcb98441048753\\1280x720\\host.png",
+          "sha256": "64B4888EED42074D52C7A05D33C6309E6FAC9E2DFF346150D9F29A6F52B99C1E",
+          "file": "theme-1280x720-host.png"
+        }
+      ]
+    },
+    {
+      "command": "& 'C:/Users/Ville/AppData/Local/Temp/km14fix/Scripts/Verify-WorldMap.ps1' -BasePort 19756 -Resolution 1024x768 -TextScale 150 -Contrast 1 -AcceptanceEvidence",
+      "transcript": "PASS: 1024x768 host/client map input, authoritative identity, full-viewport terrain/fog painting, and screenshots.\r\nScenario logs and screenshots: C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-ac64d62d43a641ef9b2ee3bb3860c66a\r\n",
+      "rawLogs": [
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-ac64d62d43a641ef9b2ee3bb3860c66a\\1024x768\\client.log",
+          "sha256": "E3905CB1AF670FE2F25BA4DAB131A48E20235AD50DDE426FD4B919EAA3032F10"
+        },
+        {
+          "path": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-ac64d62d43a641ef9b2ee3bb3860c66a\\1024x768\\host.log",
+          "sha256": "47A84BD6DE8A007D7E877313C8A3DF295560697C00374720CBDFF1CCDB12F89E"
+        }
+      ],
+      "result": "PASS",
+      "name": "theme-contrast",
+      "themeOverride": {
+        "restored": true,
+        "ButtonFocused": "(R=0.15,G=0.60,B=0.78,A=1)",
+        "WorldMapPanelImage": "/Game/Kalmala/UI/BuildPanel.BuildPanel"
+      },
+      "output": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-ac64d62d43a641ef9b2ee3bb3860c66a",
+      "screenshots": [
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-ac64d62d43a641ef9b2ee3bb3860c66a\\1024x768\\client.png",
+          "sha256": "B5A5895A949E74C78AA5647F35EF6409485C707E6567A6B8B07D92F209CE2D54",
+          "file": "theme-contrast-1024x768-client.png"
+        },
+        {
+          "original": "C:\\Users\\Ville\\AppData\\Local\\Temp\\KalmalaWorldMap-ac64d62d43a641ef9b2ee3bb3860c66a\\1024x768\\host.png",
+          "sha256": "595B1972909FEDF19B08E720EFC879173FC87ECE31E42671D11BD1DC593962DF",
+          "file": "theme-contrast-1024x768-host.png"
+        }
+      ]
+    }
+  ],
+  "main": "fe7d28228522fcee0966fa06c2a828a5f17beefb",
+  "m14Implementation": "38371b512c7d919eea58cb12e6d1fa04079aed37",
+  "sourceTree": "b838d623b9783eab5203735b1d95926d9412428d",
+  "sourceCommit": "1a411c6d2b76b3d9b4bd438b8449632fd5bac1f4",
+  "biomeRaster": {
+    "file": "biome-textures.bmp",
+    "sha256": "0F2E4B15819D7FDB07D79CA46D626AA7A37C43F4F025EDFECA83ED5BEAAB10C3"
+  }
+}

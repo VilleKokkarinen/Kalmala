@@ -5,6 +5,8 @@ void UKalmalaWorldMapExplorationSaveGame::InitializeForWorld(const FKalmalaWorld
     SchemaVersion = CoverageSchemaVersion;
     WorldConfig = InWorldConfig;
     ExploredCells.Reset();
+    ExploredCellLookup.Reset();
+    bExploredCellLookupReady = true;
 }
 
 bool UKalmalaWorldMapExplorationSaveGame::MatchesWorld(const FKalmalaWorldGenerationConfig& InWorldConfig) const
@@ -22,9 +24,19 @@ FVector2D UKalmalaWorldMapExplorationSaveGame::GetCoverageCellCentre(const FIntP
     return (FVector2D(Cell) + FVector2D(0.5f)) * CoverageCellSize;
 }
 
+void UKalmalaWorldMapExplorationSaveGame::EnsureExploredCellLookup() const
+{
+    if (bExploredCellLookupReady) return;
+    ExploredCellLookup.Reset();
+    ExploredCellLookup.Reserve(ExploredCells.Num());
+    for (const FIntPoint& Cell : ExploredCells) ExploredCellLookup.Add(Cell);
+    bExploredCellLookupReady = true;
+}
+
 bool UKalmalaWorldMapExplorationSaveGame::RecordReveal(const FVector2D WorldLocation, const float RevealRadius)
 {
     if (!FMath::IsFinite(WorldLocation.X) || !FMath::IsFinite(WorldLocation.Y) || RevealRadius <= 0.0f) return false;
+    EnsureExploredCellLookup();
     const FIntPoint CentreCell = ToCoverageCell(WorldLocation);
     const int32 RadiusInCells = FMath::CeilToInt(RevealRadius / CoverageCellSize);
     bool bChanged = false;
@@ -33,13 +45,16 @@ bool UKalmalaWorldMapExplorationSaveGame::RecordReveal(const FVector2D WorldLoca
         for (int32 X = CentreCell.X - RadiusInCells; X <= CentreCell.X + RadiusInCells; ++X)
         {
             const FIntPoint Cell(X, Y);
-            if (FVector2D::DistSquared(GetCoverageCellCentre(Cell), WorldLocation) > FMath::Square(RevealRadius) || ExploredCells.Contains(Cell)) continue;
+            if (FVector2D::DistSquared(GetCoverageCellCentre(Cell), WorldLocation) > FMath::Square(RevealRadius)
+                || ExploredCellLookup.Contains(Cell)) continue;
             ExploredCells.Add(Cell);
+            ExploredCellLookup.Add(Cell);
             bChanged = true;
         }
     }
     while (ExploredCells.Num() > MaxExploredCells)
     {
+        ExploredCellLookup.Remove(ExploredCells[0]);
         ExploredCells.RemoveAt(0);
         bChanged = true;
     }
@@ -48,5 +63,7 @@ bool UKalmalaWorldMapExplorationSaveGame::RecordReveal(const FVector2D WorldLoca
 
 bool UKalmalaWorldMapExplorationSaveGame::IsExplored(const FVector2D WorldLocation) const
 {
-    return FMath::IsFinite(WorldLocation.X) && FMath::IsFinite(WorldLocation.Y) && ExploredCells.Contains(ToCoverageCell(WorldLocation));
+    if (!FMath::IsFinite(WorldLocation.X) || !FMath::IsFinite(WorldLocation.Y)) return false;
+    EnsureExploredCellLookup();
+    return ExploredCellLookup.Contains(ToCoverageCell(WorldLocation));
 }

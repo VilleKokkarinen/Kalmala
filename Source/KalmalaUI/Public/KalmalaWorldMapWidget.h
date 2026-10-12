@@ -22,12 +22,10 @@ enum class EKalmalaWorldMapFogTreatment : uint8
     ReservedShared
 };
 
-/** Owner-local visibility controls for marker sources already available to this map. */
+/** Owner-local visibility control for personal pins only. */
 enum class EKalmalaWorldMapMarkerCategory : uint8
 {
     PersonalPins,
-    CoopPlayers,
-    CoopPings,
     Count
 };
 
@@ -56,8 +54,6 @@ public:
     static float ClampMapZoom(float RequestedZoom, float MinZoom, float MaxZoom);
     /** Pure local fog seam. Only the owning pawn position may open the reveal circle. */
     static bool IsWithinLocalRevealRadius(FVector2D WorldPosition, FVector2D OwningPawnLocation, float RevealRadius);
-    static bool CanShowCoopLocation(FVector2D WorldPosition, FVector2D OwningPawnLocation,
-        const UKalmalaWorldMapExplorationSaveGame* Exploration);
     /** Converts a world location to the local map's normalized presentation space. */
     static FVector2D WorldToMapNormalized(FVector2D WorldPosition, FVector2D MapCentre, FVector2D MapExtent);
     /** Inverse local presentation conversion used for pointer/pin coordinates at every zoom. */
@@ -92,8 +88,6 @@ private:
     struct FMarkerCounts
     {
         int32 PersonalPins = 0;
-        int32 CoopPlayers = 0;
-        int32 CoopPings = 0;
     };
     struct FMarkerLegendLayout
     {
@@ -102,6 +96,32 @@ private:
         float Padding = 10.0f;
         float HeaderHeight = 0.0f;
         float RowHeight = 0.0f;
+    };
+    struct FPinPaletteLayout
+    {
+        FVector2D Position = FVector2D::ZeroVector;
+        FVector2D Size = FVector2D::ZeroVector;
+        float Padding = 6.0f;
+        float HeaderHeight = 18.0f;
+        float ButtonWidth = 60.0f;
+        float ButtonHeight = 52.0f;
+        float ButtonGap = 4.0f;
+    };
+    struct FWorldMapTileKey
+    {
+        FIntPoint Coordinate = FIntPoint::ZeroValue;
+        int32 WorldSize = 10000;
+
+        bool operator==(const FWorldMapTileKey& Other) const
+        {
+            return Coordinate == Other.Coordinate && WorldSize == Other.WorldSize;
+        }
+        friend uint32 GetTypeHash(const FWorldMapTileKey& Key)
+        {
+            return HashCombine(
+                HashCombine(::GetTypeHash(Key.Coordinate.X), ::GetTypeHash(Key.Coordinate.Y)),
+                ::GetTypeHash(Key.WorldSize));
+        }
     };
     struct FWorldMapTile
     {
@@ -112,24 +132,27 @@ private:
         };
         TFuture<FBuildResult> PendingPixels;
         TStrongObjectPtr<UTexture2D> Texture;
+        TStrongObjectPtr<UTexture2D> FogTexture;
         uint32 RequestEpoch = 0;
-        uint32 LastUsedEpoch = 0;
+        uint64 LastUsedSerial = 0;
         uint32 PixelHash = 0;
     };
     void RefreshTiles(const FVector2D& MapSize);
-    void StartTile(const FIntPoint& TileCoordinate, const FKalmalaWorldGenerationConfig& Config);
+    void StartTile(const FWorldMapTileKey& TileKey, const FKalmalaWorldGenerationConfig& Config);
     void UploadCompletedTiles();
-    void EvictUnusedTiles();
-    void UpdateFogTexture(FVector2D MapCentre, FVector2D MapExtent, FVector2D OwningPawnLocation, FIntPoint Dimensions);
+    bool EvictLeastRecentlyUsedTile(const TSet<FWorldMapTileKey>& ProtectedTiles);
+    void UpdateFogTileTexture(FWorldMapTile& Tile, const FWorldMapTileKey& TileKey, FVector2D OwningPawnLocation);
+    void InvalidateFogTileCache();
+    void InvalidateFogTilesNearPawn(FVector2D PawnLocation);
     void EnsureExplorationForWorld(const FKalmalaWorldGenerationConfig& Config);
-    void RecordLocalExploration(FVector2D OwningPawnLocation);
+    bool RecordLocalExploration(FVector2D OwningPawnLocation);
     FString GetExplorationSaveSlot(const FKalmalaWorldGenerationConfig& Config) const;
     void EnsurePinsForWorld(const FKalmalaWorldGenerationConfig& Config);
     void PersistPins();
     FString GetPinsSaveSlot(const FKalmalaWorldGenerationConfig& Config) const;
     void LogDeveloperTileFingerprint();
     void LogDeveloperProfile();
-    void InvalidateOutstandingTileJobs();
+    void ResetTileCacheForWorldChange();
     static TArray<FColor> BuildTilePixels(FKalmalaWorldGenerationConfig Config, FIntPoint TileCoordinate, float WorldSize = 10000.0f);
     static TArray<FIntPoint> BuildPrioritizedTileCoordinates(const FVector2D& Centre, const FVector2D& Extent, float WorldSize = 10000.0f);
     void PanByScreenDelta(const FVector2D& ScreenDelta, const FVector2D& MapSize);
@@ -146,36 +169,45 @@ private:
     void PanByKeyboardDelta(const FVector2D& ScreenDelta);
     void ZoomAtMapCentre(float WheelDelta);
     int32 DrawPins(const FGeometry& AllottedGeometry, const FVector2D& MapSize, int32 LayerId, FSlateWindowElementList& OutDrawElements) const;
-    FMarkerCounts DrawCoopAwareness(const FGeometry& Geometry, FVector2D MapSize, int32 LayerId, FSlateWindowElementList& Elements) const;
+    void DrawMapPings(const FGeometry& Geometry, FVector2D MapSize, int32 LayerId, FSlateWindowElementList& Elements) const;
     void DrawMarkerLegend(const FGeometry& Geometry, int32 LayerId, const FMarkerCounts& Counts, FSlateWindowElementList& Elements) const;
     FMarkerLegendLayout GetMarkerLegendLayout(const FVector2D& WidgetSize) const;
     int32 GetMarkerCategoryAtPosition(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const;
     bool IsInsideMarkerLegend(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const;
     bool HandleMarkerFilterKey(const FKey& Key);
+    FPinPaletteLayout GetPinPaletteLayout(const FVector2D& WidgetSize) const;
+    int32 GetPinStyleIndexAtPosition(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const;
+    bool IsInsidePinPalette(const FVector2D& WidgetPosition, const FVector2D& WidgetSize) const;
+    void SelectPinStyle(EKalmalaWorldMapPinStyle Style, bool bArmPlacement);
+    void DrawPinPalette(const FGeometry& Geometry, int32 LayerId, FSlateWindowElementList& Elements) const;
     bool IsMarkerCategoryVisible(EKalmalaWorldMapMarkerCategory Category) const;
     void ToggleMarkerCategory(EKalmalaWorldMapMarkerCategory Category);
     static EKalmalaWorldMapMarkerCategory MarkerCategoryFromIndex(int32 Index);
     int32 CountEligiblePersonalPins() const;
     bool IsPersonalPinOnCurrentView(const FKalmalaWorldMapPersonalPin& Pin) const;
     void SendMapPing(FVector2D Location);
-    FString PingFeedback;
     static FLinearColor GetPinColour(EKalmalaWorldMapPinStyle Style);
 
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaMinimapViewModel> ViewModel;
-    TMap<FIntPoint, FWorldMapTile> Tiles;
+    TMap<FWorldMapTileKey, FWorldMapTile> Tiles;
     TArray<FKalmalaWorldMapPersonalPin> LocalPins;
-    TStrongObjectPtr<UTexture2D> FogTexture;
-    FSlateBrush FogBrush;
+    FVector2D LastFogPawnLocation = FVector2D::ZeroVector;
+    bool bHasFogPawnLocation = false;
+    bool bLastFogRevealAll = false;
+    bool bHasFogRevealAll = false;
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaWorldMapExplorationSaveGame> ExplorationSave;
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaWorldMapPinsSaveGame> PinsSave;
     FKalmalaWorldGenerationConfig TileConfig;
     uint32 TileEpoch = 1;
+    uint64 TileUseSerial = 0;
     bool bMapOpen = false;
     /** Keep the local pan/zoom view when the collapsed map is opened again. */
     bool bHasOpenedMap = false;
+    bool bPinPlacementArmed = false;
+    int32 HoveredPinStyleIndex = INDEX_NONE;
     bool bDragging = false;
     bool bPinLabelEntry = false;
     int32 SelectedPinIndex = INDEX_NONE;
@@ -183,9 +215,10 @@ private:
     FVector2D PendingPinLocation = FVector2D::ZeroVector;
     FString PendingPinLabel;
     EKalmalaWorldMapPinStyle PendingPinStyle = EKalmalaWorldMapPinStyle::Cairn;
+    EKalmalaWorldMapPinStyle SelectedPinStyle = EKalmalaWorldMapPinStyle::Cairn;
     float MapZoom = 18000.0f;
-    /** Three low bits are local drawing preferences only; none are saved or replicated. */
-    uint8 MarkerVisibilityMask = 0x07;
+    /** The personal-pin filter is local drawing state only; it is not saved or replicated. */
+    uint8 MarkerVisibilityMask = 0x01;
     int32 FocusedMarkerCategoryIndex = 0;
     int32 HoveredMarkerCategoryIndex = INDEX_NONE;
     bool bMarkerFilterNavigationActive = false;
@@ -216,6 +249,7 @@ private:
     static constexpr float ZoomStep = 0.18f;
     static constexpr float TileWorldSize = 10000.0f;
     static constexpr int32 TileSamplesPerAxis = 33;
+    static constexpr int32 FogTileSamplesPerAxis = 129;
     static constexpr int32 MaxCachedTiles = 64;
     // Local coverage is versioned and persisted independently from world deltas.
     static constexpr float LocalRevealRadius = 6500.0f;

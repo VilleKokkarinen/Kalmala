@@ -168,7 +168,8 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
     const FKalmalaWorldGenerationConfig& WorldConfig,
     const FVector2D& PlayerLocation,
     const FVector2D InMapExtent,
-    const FIntPoint InSampleDimensions)
+    const FIntPoint InSampleDimensions,
+    const bool bUseExpandedMapTexture)
 {
     TArray<FKalmalaMinimapTerrainSample> Samples;
     if (!WorldConfig.IsValid() || InMapExtent.X <= 0.0f || InMapExtent.Y <= 0.0f || InSampleDimensions.X < 3 || InSampleDimensions.Y < 3)
@@ -177,6 +178,9 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
     }
 
     const FIntPoint Dimensions(FMath::Clamp(InSampleDimensions.X, 3, 193), FMath::Clamp(InSampleDimensions.Y, 3, 129));
+    const float SampleSpacingWorld = FMath::Max(
+        2.0f * InMapExtent.X / static_cast<float>(Dimensions.X - 1),
+        2.0f * InMapExtent.Y / static_cast<float>(Dimensions.Y - 1));
     // Scratch results live only for this raster build. Adjacent pixels share
     // collision vertices; sample each once for both terrain and inland water.
     // This is not a persistent biome/height map or an authoritative world cache.
@@ -230,7 +234,9 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
                 Sample.bIsWater = Sample.TerrainHeight < 0.0f || InlandDepth > 0.0;
                 Biome = static_cast<EKalmalaBiome>(FKalmalaRegionalGeneration::Sample(WorldConfig, WorldPosition).Biome);
             }
-            Sample.TerrainColour = FKalmalaMinimapRaster::SampleBiomeTexture(Sample.bIsWater ? EKalmalaBiome::Ocean : Biome, WorldPosition);
+            Sample.TerrainColour = bUseExpandedMapTexture
+                ? FKalmalaMinimapRaster::SampleExpandedMapBiomeTexture(Sample.bIsWater ? EKalmalaBiome::Ocean : Biome, WorldPosition, SampleSpacingWorld)
+                : FKalmalaMinimapRaster::SampleBiomeTexture(Sample.bIsWater ? EKalmalaBiome::Ocean : Biome, WorldPosition);
             if (Sample.bIsWater && Biome == EKalmalaBiome::ShimmeringLakes)
             {
                 Sample.TerrainColour = Sample.TerrainColour * FLinearColor(1.3f, 1.8f, 1.6f);

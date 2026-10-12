@@ -8,15 +8,18 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMapAwarenessTest, "Kalmala.Gameplay.Map
 
 bool FKalmalaMapAwarenessTest::RunTest(const FString& Parameters)
 {
-    TestFalse(TEXT("NaN coordinate is not in range"),
-        UKalmalaMapAwarenessComponent::IsLocationInRange(FVector2D(std::numeric_limits<double>::quiet_NaN(), 0), FVector2D::ZeroVector));
-    TestFalse(TEXT("Infinity coordinate is not in range"),
-        UKalmalaMapAwarenessComponent::IsLocationInRange(FVector2D(0, std::numeric_limits<double>::infinity()), FVector2D::ZeroVector));
-    TestFalse(TEXT("Out-of-bound coordinate is not in range"),
-        UKalmalaMapAwarenessComponent::IsLocationInRange(FVector2D(1.0e9, 0), FVector2D::ZeroVector));
-    TestFalse(TEXT("Distant coordinate is not in range"),
-        UKalmalaMapAwarenessComponent::IsLocationInRange(FVector2D(6501, 0), FVector2D::ZeroVector));
-    TestTrue(TEXT("Exact range boundary allowed"), UKalmalaMapAwarenessComponent::IsLocationInRange(FVector2D(6500, 0), FVector2D::ZeroVector));
+    TestFalse(TEXT("NaN world location is rejected"),
+        UKalmalaMapAwarenessComponent::IsValidPingLocation(FVector2D(std::numeric_limits<double>::quiet_NaN(), 0)));
+    TestFalse(TEXT("Infinity world location is rejected"),
+        UKalmalaMapAwarenessComponent::IsValidPingLocation(FVector2D(0, std::numeric_limits<double>::infinity())));
+    TestFalse(TEXT("Location beyond the world boundary is rejected"),
+        UKalmalaMapAwarenessComponent::IsValidPingLocation(FVector2D(1600001, 0)));
+    TestTrue(TEXT("Location beyond the former 65m range is allowed"),
+        UKalmalaMapAwarenessComponent::IsValidPingLocation(FVector2D(6501, 0)));
+    TestTrue(TEXT("Remote world location inside the boundary is allowed"),
+        UKalmalaMapAwarenessComponent::IsValidPingLocation(FVector2D(1000000, 0)));
+    TestTrue(TEXT("World boundary location is allowed"),
+        UKalmalaMapAwarenessComponent::IsValidPingLocation(FVector2D(1600000, 0)));
     FKalmalaMapPing A, B, C;
     A.IssuedAt = B.IssuedAt = C.IssuedAt = 10;
     A.SenderId = B.SenderId = 1; C.SenderId = 2;

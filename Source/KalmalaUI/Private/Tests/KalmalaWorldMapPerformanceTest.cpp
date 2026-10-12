@@ -10,6 +10,8 @@
 namespace KalmalaWorldMapBudget
 {
     constexpr int32 TileSamplesPerAxis = 33;
+    constexpr int32 OverviewSamplesPerAxis = 65;
+    constexpr int32 FogTileSamplesPerAxis = 129;
     constexpr int32 MaxCachedTiles = 64;
     constexpr double MaximumTileSeconds = 0.25;
     constexpr double MaximumMinimapSecondsWhileTilesRun = 1.50;
@@ -30,10 +32,10 @@ bool FKalmalaWorldMapPerformanceTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    const SIZE_T TilePayloadBytes = KalmalaWorldMapBudget::TileSamplesPerAxis * KalmalaWorldMapBudget::TileSamplesPerAxis * sizeof(FColor);
-    const SIZE_T MaximumCachePayloadBytes = KalmalaWorldMapBudget::MaxCachedTiles * TilePayloadBytes;
-    TestEqual(TEXT("Expanded-map cache has a bounded CPU pixel payload"), MaximumCachePayloadBytes, SIZE_T(278784));
-
+    const SIZE_T TerrainAndFogTileBytes = (KalmalaWorldMapBudget::OverviewSamplesPerAxis * KalmalaWorldMapBudget::OverviewSamplesPerAxis
+        + KalmalaWorldMapBudget::FogTileSamplesPerAxis * KalmalaWorldMapBudget::FogTileSamplesPerAxis) * sizeof(FColor);
+    const SIZE_T MaximumCachePayloadBytes = KalmalaWorldMapBudget::MaxCachedTiles * TerrainAndFogTileBytes;
+    TestEqual(TEXT("Expanded-map terrain and fog cache has a bounded CPU pixel payload"), MaximumCachePayloadBytes, SIZE_T(5341696));
     const double TileStart = FPlatformTime::Seconds();
     const TArray<FColor> Tile = KalmalaWorldMapBudget::BuildTile(Config, FIntPoint(0, 0));
     const double TileSeconds = FPlatformTime::Seconds() - TileStart;
