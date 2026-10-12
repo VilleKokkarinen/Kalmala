@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Tighten Options page content layout:** remove explanatory footer labels, add a 10-unit gap below the category tabs, and move Audio mute above a grouped volume-slider stack.
+
 - [x] **2026-10-12 — Match Controller settings alignment to Controls:** present controller bindings in the same centered, balanced two-column layout with matching row spacing, while preserving controller mappings and paired stick axes.
 
 - [x] **2026-10-12 — Remove duplicate headings from Settings pages:** use each selected Options tab as the page label on Controller, Graphics, Audio, and Accessibility, matching Controls.

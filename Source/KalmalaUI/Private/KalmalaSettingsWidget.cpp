@@ -1229,6 +1229,9 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
     FScriptDelegate AudioDelegate; AudioDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAudioClicked)); AddTab(FText::FromString(TEXT("Audio")), TEXT("AudioTab"), AudioDelegate);
     FScriptDelegate AccessibilityDelegate; AccessibilityDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAccessibilityClicked)); AddTab(FText::FromString(TEXT("Accessibility")), TEXT("AccessibilityTab"), AccessibilityDelegate);
     ContentBox->AddChildToVerticalBox(Tabs);
+    USizeBox* ContentTopGap = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("OptionsContentTopGap"));
+    ContentTopGap->SetHeightOverride(10.0f);
+    ContentBox->AddChildToVerticalBox(ContentTopGap);
     // Restore presentation and focus without invoking option-changing handlers.
     switch (LastOptionsTabIndex)
     {
@@ -1244,7 +1247,7 @@ void UKalmalaSettingsWidget::ShowGraphicsTab()
 {
     SelectOptionsTab(2);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
-    while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
+    while (ContentBox->GetChildrenCount() > 3) ContentBox->RemoveChildAt(3);
     UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
     if (Settings == nullptr) return;
     ResolutionChoices = { FIntPoint(1280, 720), FIntPoint(1600, 900), FIntPoint(1920, 1080), FIntPoint(2560, 1440), FIntPoint(3840, 2160) };
@@ -1255,7 +1258,6 @@ void UKalmalaSettingsWidget::ShowGraphicsTab()
     UButton* VSync = AddButton(ContentBox, FText::GetEmpty(), TEXT("VSyncButton")); VSync->OnClicked.AddDynamic(this, &ThisClass::HandleVSyncClicked); VSyncLabel = Cast<UTextBlock>(VSync->GetContent());
     UButton* WindowMode = AddButton(ContentBox, FText::GetEmpty(), TEXT("WindowModeButton")); WindowMode->OnClicked.AddDynamic(this, &ThisClass::HandleWindowModeClicked); WindowModeLabel = Cast<UTextBlock>(WindowMode->GetContent());
     UButton* ViewDistance = AddButton(ContentBox, FText::GetEmpty(), TEXT("ViewDistanceButton")); ViewDistance->OnClicked.AddDynamic(this, &ThisClass::HandleViewDistanceClicked); ViewDistanceLabel = Cast<UTextBlock>(ViewDistance->GetContent());
-    AddLabel(ContentBox, FText::FromString(TEXT("Changes are applied and saved immediately.")), 15.0f)->SetJustification(ETextJustify::Center);
     UpdateVideoLabels();
     Resolution->SetUserFocus(GetOwningPlayer());
     Resolution->SetKeyboardFocus();
@@ -1265,14 +1267,15 @@ void UKalmalaSettingsWidget::ShowAudioTab()
 {
     SelectOptionsTab(3);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
-    while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
+    while (ContentBox->GetChildrenCount() > 3) ContentBox->RemoveChildAt(3);
 
     struct FVolumeSliderWidgets
     {
         USlider* Slider = nullptr;
         UTextBlock* Value = nullptr;
     };
-    const auto AddVolumeSlider = [this](const TCHAR* LabelText, const FName Name, const float InitialValue)
+    UVerticalBox* SliderGroup = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("AudioSliderGroup"));
+    const auto AddVolumeSlider = [this, SliderGroup](const TCHAR* LabelText, const FName Name, const float InitialValue)
         -> FVolumeSliderWidgets
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
@@ -1309,19 +1312,20 @@ void UKalmalaSettingsWidget::ShowAudioTab()
         ValueSize->SetWidthOverride(64.0f);
         ValueSize->SetContent(Value);
         Row->AddChildToHorizontalBox(ValueSize)->SetPadding(FMargin(8.0f, 6.0f, 4.0f, 6.0f));
-        ContentBox->AddChildToVerticalBox(Row)->SetPadding(FMargin(4.0f, 3.0f));
+        SliderGroup->AddChildToVerticalBox(Row)->SetPadding(FMargin(4.0f, 3.0f));
         return { Slider, Value };
     };
 
+    UButton* Mute = AddButton(ContentBox, FText::GetEmpty(), TEXT("AudioMuteButton"));
+    Mute->OnClicked.AddDynamic(this, &ThisClass::HandleAudioMuteClicked);
+    AudioMuteLabel = Cast<UTextBlock>(Mute->GetContent());
+
+    ContentBox->AddChildToVerticalBox(SliderGroup);
     const FVolumeSliderWidgets Master = AddVolumeSlider(TEXT("Master volume"), TEXT("MasterVolumeSlider"),
         GetStoredMasterVolume());
     MasterVolumeSlider = Master.Slider;
     MasterVolumeValueLabel = Master.Value;
     MasterVolumeSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleMasterVolumeChanged);
-
-    UButton* Mute = AddButton(ContentBox, FText::GetEmpty(), TEXT("AudioMuteButton"));
-    Mute->OnClicked.AddDynamic(this, &ThisClass::HandleAudioMuteClicked);
-    AudioMuteLabel = Cast<UTextBlock>(Mute->GetContent());
 
     const FVolumeSliderWidgets Ambient = AddVolumeSlider(TEXT("Ambient volume"), TEXT("AmbientVolumeSlider"),
         GetAudioCategoryVolume(EKalmalaAudioCategory::Ambient));
@@ -1341,7 +1345,6 @@ void UKalmalaSettingsWidget::ShowAudioTab()
     InteractionCombatVolumeValueLabel = InteractionCombat.Value;
     InteractionCombatVolumeSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleInteractionCombatVolumeChanged);
 
-    AddLabel(ContentBox, FText::FromString(TEXT("Saved locally. Music volume is ready for future music playback.")), 15.0f);
     UpdateAudioLabels();
     MasterVolumeSlider->SetUserFocus(GetOwningPlayer());
     MasterVolumeSlider->SetKeyboardFocus();
@@ -1361,7 +1364,7 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
 {
     SelectOptionsTab(bGamepad ? 1 : 0);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
-    while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
+    while (ContentBox->GetChildrenCount() > 3) ContentBox->RemoveChildAt(3);
     ControlButtons.Reset();
     UButton* Restore = AddButton(ContentBox, FText::FromString(TEXT("Restore default controls")), TEXT("RestoreControlsButton"));
     Restore->OnClicked.AddDynamic(this, &ThisClass::HandleRestoreControlsClicked);
@@ -1474,7 +1477,7 @@ void UKalmalaSettingsWidget::UpdateControlsLabels()
 void UKalmalaSettingsWidget::ShowAccessibilityTab()
 {
     SelectOptionsTab(4);
-    while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
+    while (ContentBox->GetChildrenCount() > 3) ContentBox->RemoveChildAt(3);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
 
     UButton* InterfaceScale = AddButton(ContentBox, FText::GetEmpty(), TEXT("InterfaceScaleButton"));
@@ -1497,9 +1500,6 @@ void UKalmalaSettingsWidget::ShowAccessibilityTab()
     Feedback->OnClicked.AddDynamic(this, &ThisClass::HandleFeedbackClicked);
     FeedbackLabel = Cast<UTextBlock>(Feedback->GetContent());
 
-    AddLabel(ContentBox,
-        FText::FromString(TEXT("Changes apply immediately to this local menu and are saved on this device.")),
-        15.0f)->SetJustification(ETextJustify::Center);
     // Explicit lines avoid auto-wrap measuring centered button text at a stale width.
     for (UTextBlock* Label : { InterfaceScaleLabel, TextScaleLabel, ReducedMotionLabel, ContrastLabel, FeedbackLabel })
     {

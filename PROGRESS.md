@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Tighten Options page content layout
+
+- **Completed:** removed the bottom helper/status labels from Graphics, Audio, and Accessibility; added a shared 10-unit spacer between the category tabs and each tab's content; moved Mute audio above four volume sliders and placed the sliders in a dedicated vertical group.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.options -BuildModules` compiled the UI module and rendered all five Options tabs at 1920×1080. Inspected each render: the content gap is present and the footer text is absent; Audio shows Mute audio first followed by the grouped slider rows. Full verification remains deferred.
+- **Impact and authority:** local Settings presentation and documentation only; saved setting behavior, gameplay/network authority, and replicated state are unchanged.
+- **Limits:** previews used the standard render scale and contrast only. Full project verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Match Controller settings alignment to Controls
 
 - **Completed:** changed Controller bindings from a right-side single column to the same centered, equal-width two-column layout as Controls, using matching label/button padding and compact row spacing. Removed the controller-only row-cycling hint so both pages begin their bindings at the same vertical position. Controller bindings, allowlisted choices, and paired stick axes are unchanged.

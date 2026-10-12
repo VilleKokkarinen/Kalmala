@@ -1065,7 +1065,9 @@ equal-width centered columns, with matching row spacing and no row-cycling hint.
 Keyboard & Mouse shows movement as separate Forward, Backward, Right, and Left
 rows, while Controller keeps the paired left-stick axes. Every Options page uses
 its selected tab as the page label without repeating a page heading below the
-tab row. The five Options tabs fill the content width in equal slots with
+tab row. A 10-unit gap separates the tab row from page content; explanatory
+footer text is omitted. Audio places Mute audio above the grouped volume
+sliders. The five Options tabs fill the content width in equal slots with
 matching horizontal gutters. The selected Options tab is highlighted without
 a text marker. Each right-aligned label sits beside a binding button within its
 half of the panel, using balanced horizontal padding and compact vertical row
