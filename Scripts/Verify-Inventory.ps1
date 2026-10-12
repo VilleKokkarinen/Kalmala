@@ -1,9 +1,88 @@
 param([int]$Port = 17849, [switch]$Rendered, [int]$Width = 1280, [int]$Height = 720,
-    [int]$TextScale = 100, [int]$Contrast = 0, [switch]$NotificationReview)
+    [int]$TextScale = 100, [int]$Contrast = 0, [switch]$NotificationReview, [switch]$ContractOnly)
 $ErrorActionPreference = 'Stop'
 if ($NotificationReview -and !$Rendered) { throw 'Notification review requires -Rendered.' }
-$panelRemovalCheck = Join-Path $PSScriptRoot 'Verify-InventoryPanelRemoval.ps1'
-& $panelRemovalCheck
+if ($ContractOnly -and ($Rendered -or $NotificationReview)) { throw '-ContractOnly cannot be combined with rendered or notification review options.' }
+
+function Invoke-InventoryContractChecks {
+    $projectRoot = Split-Path $PSScriptRoot
+    $retiredPaths = @(
+        'Source\KalmalaUI\Private\KalmalaInventorySubsystem.cpp',
+        'Source\KalmalaUI\Public\KalmalaInventorySubsystem.h',
+        'Source\KalmalaUI\Private\Tests\KalmalaInventoryWidgetTest.cpp',
+        'Scripts\Read-InventoryCapture.ps1'
+    )
+    foreach ($relativePath in $retiredPaths) {
+        if (Test-Path -LiteralPath (Join-Path $projectRoot $relativePath)) {
+            throw "Retired persistent inventory HUD source remains: $relativePath"
+        }
+    }
+
+    $uiRoot = Join-Path $projectRoot 'Source\KalmalaUI'
+    $uiSources = Get-ChildItem -LiteralPath $uiRoot -Recurse -File |
+        Where-Object { $_.Extension -in @('.h', '.cpp') }
+    $retiredSourceTerms = @(
+        'UKalmalaInventorySubsystem',
+        'UKalmalaInventoryWidget',
+        'SetCraftingMenuSuppressed',
+        'IsCraftingMenuSuppressed',
+        'Pack | Build/craft:',
+        'Inventory grid fixture:',
+        'Inventory presentation: Owner=1',
+        'Crafting HUD overlap:',
+        'BuildPreparedFoodDetails'
+    )
+    foreach ($sourceFile in $uiSources) {
+        $source = Get-Content -LiteralPath $sourceFile.FullName -Raw
+        foreach ($term in $retiredSourceTerms) {
+            if ($source.Contains($term)) {
+                throw "Retired panel source remains in $($sourceFile.FullName): $term"
+            }
+        }
+    }
+
+    $inventoryScript = Get-Content -LiteralPath $PSCommandPath -Raw
+    $runtimeStart = $inventoryScript.LastIndexOf('# Live host/client inventory verification')
+    if ($runtimeStart -lt 0) { throw 'Inventory peer-verification boundary marker is missing.' }
+    $inventoryRuntime = $inventoryScript.Substring($runtimeStart)
+    foreach ($term in @('Inventory presentation: Owner=1', 'Inventory grid fixture:', 'Read-InventoryCapture.ps1', '-EquipmentView')) {
+        if ($inventoryRuntime.Contains($term)) {
+            throw "Inventory runtime verification still depends on retired HUD output: $term"
+        }
+    }
+
+    $menuSubsystem = Get-Content -LiteralPath (Join-Path $uiRoot 'Private\KalmalaInventoryMenuSubsystem.cpp') -Raw
+    $menuWidget = Get-Content -LiteralPath (Join-Path $uiRoot 'Private\KalmalaInventoryMenuWidget.cpp') -Raw
+    $menuTest = Get-Content -LiteralPath (Join-Path $uiRoot 'Private\Tests\KalmalaInventoryMenuSelectionTest.cpp') -Raw
+    if (-not $menuSubsystem.Contains('CreateWidget<UKalmalaInventoryMenuWidget>') -or
+        -not $menuSubsystem.Contains('InventoryWidget->Open()') -or
+        -not $menuWidget.Contains('SetVisibility(ESlateVisibility::Collapsed)')) {
+        throw 'The owner-local Inventory menu must remain on-demand and collapsed before opening.'
+    }
+    foreach ($emptyPath in @(
+        'Normal gameplay keeps Inventory collapsed until opened',
+        'Empty owner pack clears selection',
+        'Empty Inventory retains forty grid cells',
+        'Empty pack hides the stale detail panel'
+    )) {
+        if (-not $menuTest.Contains($emptyPath)) {
+            throw "Inventory empty-state automation is missing: $emptyPath"
+        }
+    }
+
+    $architecture = Get-Content -LiteralPath (Join-Path $projectRoot 'docs\02-technical-architecture.md') -Raw
+    if ($architecture.Contains('UKalmalaInventorySubsystem') -or $architecture.Contains('hit-test-invisible pack panel')) {
+        throw 'Technical architecture still describes the retired persistent inventory panel.'
+    }
+
+    & (Join-Path $PSScriptRoot 'Verify-TutorialRouteFree.ps1')
+    Write-Output 'PASS: legacy inventory HUD and bottom tutorial card are absent; on-demand Inventory and empty-state coverage remain.'
+}
+
+Invoke-InventoryContractChecks
+if ($ContractOnly) { return }
+
+# Live host/client inventory verification begins here.
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
 $output = Join-Path $env:TEMP ('KalmalaInventory-' + [guid]::NewGuid().ToString('N'))

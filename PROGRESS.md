@@ -676,3 +676,12 @@
 - **Impact/authority:** verification-entrypoint consolidation only. The feedback fixture remains development-only and server selected; gameplay RPCs, network authority, persistence, and save schemas are unchanged.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Runtime equivalence is based on source and runner inspection; the combined entrypoint remains unexecuted. Full project verification is deferred.
 - **Next eligible work:** continue auditing `Verify-*` entrypoints against active acceptance requirements, callers, and equivalent coverage, then document the remaining non-`.ps1` support tools. The goal of approximately 20 runners is not complete; M14 main integration remains pending.
+
+## User-directed increment 2026-10-12 — Merge inventory panel-removal preflight
+
+- **Completed:** moved the legacy inventory HUD source checks, on-demand menu assertions, empty-state automation checks, and route-free tutorial audit into `Verify-Inventory.ps1 -ContractOnly`. The live inventory runner uses the same checks before launching peers; reconnect and presentation-ownership runners now call the contract-only mode. Removed `Verify-InventoryPanelRemoval.ps1`. The active `Verify-*.ps1` count falls from 46 to 45.
+- **Files changed:** `Scripts/Verify-Inventory.ps1`, `Scripts/Verify-InventoryReconnect.ps1`, `Scripts/Verify-PresentationOwnership.ps1`, deleted `Scripts/Verify-InventoryPanelRemoval.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** compare moved assertions and all active callers with the retired helper; parse changed PowerShell files; run `git diff --check`. No contract execution, Unreal runtime, build, or full test suite ran.
+- **Impact/authority:** verification-entrypoint consolidation only. Inventory ownership and gameplay authority, network state, persistence, and save schemas are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Contract-only equivalence is based on source inspection and parser validation; it remains unexecuted. Full project verification is deferred.
+- **Next eligible work:** continue auditing the remaining `Verify-*` entrypoints against active acceptance requirements, callers, and equivalent coverage, then document the non-`.ps1` support tools. The goal of approximately 20 runners is not complete; M14 main integration remains pending.

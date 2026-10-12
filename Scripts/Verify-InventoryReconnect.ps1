@@ -1,6 +1,6 @@
 param([int]$Port = 17859)
 $ErrorActionPreference = 'Stop'
-& (Join-Path $PSScriptRoot 'Verify-InventoryPanelRemoval.ps1')
+& (Join-Path $PSScriptRoot 'Verify-Inventory.ps1') -ContractOnly
 $project = Join-Path (Split-Path $PSScriptRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
 $output = Join-Path $env:TEMP ('KalmalaInventoryReconnect-' + [guid]::NewGuid().ToString('N'))

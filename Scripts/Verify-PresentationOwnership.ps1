@@ -3,7 +3,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot
-& (Join-Path $PSScriptRoot 'Verify-InventoryPanelRemoval.ps1')
+& (Join-Path $PSScriptRoot 'Verify-Inventory.ps1') -ContractOnly
 $documentPath = Join-Path $projectRoot 'docs\02-technical-architecture.md'
 if (-not (Test-Path -LiteralPath $documentPath -PathType Leaf)) {
     throw "Presentation ownership document was not found: $documentPath"

@@ -801,7 +801,7 @@ currently has no configured gathering source.
 
 ## Player inventory verification
 
-Run `Scripts/Verify-Inventory.ps1` after an editor build for the inventory component increment. A development-only `-KalmalaInventoryTest` fixture grants ten wood and consumes three on each server pawn, rejects unknown/overflow grants and invalid/insufficient consumption, and verifies removal of an exhausted stone stack. The runner requires two successful server results, seven wood on the remote owner, rejected client-local mutation calls, empty remote contents after owner replication, and matching immutable world identity. `Verify-InventoryPanelRemoval.ps1` separately audits the retired HUD source and keeps the on-demand Inventory menu and its empty-state regression present. Separate temporary user directories keep the scenario out of project-generated data. This headless check verifies authority/privacy, not rendered layout; rendered harvest feedback and reconnect persistence remain subsequent tasks.
+Run `Scripts/Verify-Inventory.ps1` after an editor build for the inventory component increment. A development-only `-KalmalaInventoryTest` fixture grants ten wood and consumes three on each server pawn, rejects unknown/overflow grants and invalid/insufficient consumption, and verifies removal of an exhausted stone stack. The runner requires two successful server results, seven wood on the remote owner, rejected client-local mutation calls, empty remote contents after owner replication, and matching immutable world identity. Its `-ContractOnly` mode checks retired HUD source, the on-demand Inventory menu, and empty-state coverage without starting Unreal; the live inventory, reconnect, and presentation-ownership runners use this mode as a preflight. Separate temporary user directories keep the scenario out of project-generated data. This headless check verifies authority/privacy, not rendered layout; rendered harvest feedback and reconnect persistence remain subsequent tasks.
 
 The inventory runner also requires `Harvest inventory: Passed=1` for both server pawns. Its development-only fixture exercises twelve isolated initialized nodes covering Wood, Stone, and Fibre, uninitialized-node and distant rejection, full-stack rejection without depletion, successful retry after capacity is freed, duplicate rejection, and exactly one sparse-save callback per accepted grant. It restores the original seven-wood inventory before owner replication checks and destroys its temporary actors; it writes no world-save slot. Run `Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion` and `Kalmala.Gameplay.Inventory.Catalogue` with the headless flags above for the pure authority and malformed quantity gates. This does not yet exercise a client's actual harvest RPC, inventory reconnect restoration, or simultaneous competing player input.
 
@@ -1419,11 +1419,11 @@ The focused `Kalmala.UI.InventoryMenu.Selection` automation covers normal
 collapsed startup, owner-specific rows, selection fallback, no-results recovery,
 and the full sixteen-cell empty pack with stale details hidden. The
 `Kalmala.UI.Inventory.PreparedFoodDetails` automation now reads the actual
-Inventory menu. `Scripts/Verify-InventoryPanelRemoval.ps1` checks that retired
+Inventory menu. `Scripts/Verify-Inventory.ps1 -ContractOnly` checks that retired
 inventory runtime classes, help text, crafting suppression and old capture
 expectations stay absent, then confirms the tutorial presenter cannot mount the
-bottom card; the inventory and reconnect host/client scripts run this check as a
-preflight. After an affected editor build, run the focused menu automations,
+bottom card; the inventory, reconnect, and presentation-ownership scripts run
+this check as a preflight. After an affected editor build, run the focused menu automations,
 `Scripts/Verify-PresentationOwnership.ps1`, and `Scripts/Verify-Inventory.ps1`.
 Rendered host/client layout and privacy remain in M12 milestone-final review.
 
@@ -1688,7 +1688,7 @@ After building, run Scripts/Verify-Crafting.ps1 -Rendered. The paid floor fixtur
 
 ## Local tutorial prompt smoke test
 
-Run `Scripts/Verify-TutorialRouteFree.ps1` for a no-build source audit of the retained route-free prompt design and its disabled runtime presenter. It checks that the bottom gameplay card cannot mount, while the historical arrival/context rules still avoid routes, quest flow, hidden-actor scans, RPCs, and gameplay-save state. `Verify-PlayerControls.ps1` runs this audit before its fresh-pawn host/client scenario; `Verify-InventoryPanelRemoval.ps1` includes it in the reconnect/HUD-absence preflight.
+Run `Scripts/Verify-TutorialRouteFree.ps1` for a no-build source audit of the retained route-free prompt design and its disabled runtime presenter. It checks that the bottom gameplay card cannot mount, while the historical arrival/context rules still avoid routes, quest flow, hidden-actor scans, RPCs, and gameplay-save state. `Verify-PlayerControls.ps1` runs this audit before its fresh-pawn host/client scenario; `Verify-Inventory.ps1 -ContractOnly` includes it in the reconnect/HUD-absence preflight.
 
 After a forced editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered -Port <unused-port>` from the same isolated project copy. Its fresh-pawn host/client path verifies local jump/sprint input and server-observed remote movement, with the tutorial absence audit as a preflight. Inspect both 1280×720 captures for the absence of the bottom card while checking essential status/action notifications remain visible. The fixture uses a development-only movement-test flag. It does not simulate physical controller input or replace the final packaged 20–30 minute no-developer-tools acceptance in `docs/07-development-setup.md`.
 
@@ -2628,9 +2628,9 @@ The core docs now own the contracts formerly split across docs 08–47. Historic
 
 | Area | Current verification entry points |
 | --- | --- |
-| Documentation, input, presentation | Verify-M5DocumentationContracts.ps1; Verify-LocalInputContract.ps1; Verify-MenuInputCopy.ps1; Verify-InventoryPanelRemoval.ps1 |
+| Documentation, input, presentation | Verify-M5DocumentationContracts.ps1; Verify-LocalInputContract.ps1; Verify-MenuInputCopy.ps1; Verify-Inventory.ps1 -ContractOnly |
 | Generated world and hydrology | Verify-RegionalGeneration.ps1; master-map automation; world-map exporter checks |
-| Inventory, harvesting, food, storage | Verify-InventoryReconnect.ps1; Verify-InventoryMenu.ps1; Verify-Crafting.ps1; Verify-Storage.ps1 |
+| Inventory, harvesting, food, storage | Verify-Inventory.ps1; Verify-InventoryReconnect.ps1; Verify-InventoryMenu.ps1; Verify-Crafting.ps1; Verify-Storage.ps1 |
 | Combat, discoveries, support | Verify-CombatPeer.ps1; Verify-DiscoveryPeer.ps1; Verify-M4VerticalSlice.ps1; relevant Kalmala.Gameplay automations |
 | Survival and progression | Verify-CampChoices.ps1; Verify-M7AutomatedAcceptance.ps1; inventory/tool/progression/food/weather automations |
 | Ocean journey and persistence | Verify-OceanTravel.ps1; Verify-OceanSkiffJourney.ps1; Verify-OceanSkiffDiscoveryDisembark.ps1; Verify-OceanSkiffIntegratedReconnectJourney.ps1; travel-save/restore automations |
