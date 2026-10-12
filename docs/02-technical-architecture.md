@@ -1953,10 +1953,10 @@ there is no music track in the current runtime.
 The Keyboard & Mouse group is labeled Controls in Options. It and the Controller
 group store only allowlisted local choices in the existing
 `GameUserSettings` configuration. Keyboard movement presents Forward, Backward,
-Right, and Left as separate rows in two equal-width, centered columns; the
-selected Options tab identifies the group without a duplicate page heading.
-The five Options tabs divide the full content width into equal buttons with
-matching horizontal gutters.
+Right, and Left as separate rows in two equal-width, centered columns. Each
+Options page uses its selected tab as the page label without repeating a page
+heading in the content area. The five Options tabs divide the full content
+width into equal buttons with matching horizontal gutters.
 Each row changes only its own key within the existing positive/negative
 movement-axis pair; Controller keeps the paired left-stick axes. Action and
 look bindings replace only the selected keyboard or controller device family.

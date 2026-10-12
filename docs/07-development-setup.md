@@ -1062,11 +1062,13 @@ own tab; both expose the existing movement, look,
 interact, attack, jump, sprint, settings, map, recenter, craft, and
 support-activation intents. Keyboard & Mouse shows movement as separate
 Forward, Backward, Right, and Left rows, and places all controls in two equal-
-width centered columns without the row-cycling hint or a duplicate page heading.
-The five Options tabs fill the content width in equal slots with matching
-horizontal gutters. The selected Options tab is highlighted without a text
-marker. Each right-aligned label sits beside a binding button within its half of
-the panel, using balanced horizontal padding and compact vertical row spacing.
+width centered columns without the row-cycling hint. Every Options page uses
+its selected tab as the page label without repeating a page heading below the
+tab row. The five Options tabs fill the content width in equal slots with
+matching horizontal gutters. The selected Options tab is highlighted without
+a text marker. Each right-aligned label sits beside a binding button within its
+half of the panel, using balanced horizontal padding and compact vertical row
+spacing.
 Each movement button cycles only its direction's keys within the existing axis
 mapping. Controller keeps the paired left-stick axes in its single-column layout.
 Other controls cycle through a small allowlisted set of alternatives. Restore

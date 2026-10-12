@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Remove duplicate headings from Settings pages
+
+- **Completed:** removed the repeated Controller, Graphics, Audio, and Accessibility headings below the shared Options tab row. The selected tab now identifies each page, matching Controls; page controls and the active-tab highlight remain intact.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.options -BuildModules` compiled the UI module and rendered the Controls, Controller, Graphics, Audio, and Accessibility previews successfully at 1920×1080. Inspected all five renders and confirmed each retains the shared highlighted tab row without a repeated page heading. `git diff --check` and the 260-character path audit passed. Full verification remains deferred.
+- **Impact and authority:** local Settings presentation and its documented layout only; input mappings, gameplay/network authority, replicated state, and saved settings are unchanged.
+- **Limits:** previews used the standard render scale and contrast only; the Graphics preview reports a 0×0 resolution in this render environment. Full project verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Render every Options selection
 
 - **Completed:** made `Render-Menu.ps1 -Menu settings.options` render separate Controls, Controller, Graphics, Audio, and Accessibility previews. The default all-menu run now omits the `settings.options` group alias because its Controls page is already rendered through `settings.controls`.

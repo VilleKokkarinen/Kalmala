@@ -1245,7 +1245,6 @@ void UKalmalaSettingsWidget::ShowGraphicsTab()
     SelectOptionsTab(2);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
-    AddLabel(ContentBox, FText::FromString(TEXT("Graphics")), 24.0f);
     UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
     if (Settings == nullptr) return;
     ResolutionChoices = { FIntPoint(1280, 720), FIntPoint(1600, 900), FIntPoint(1920, 1080), FIntPoint(2560, 1440), FIntPoint(3840, 2160) };
@@ -1267,7 +1266,6 @@ void UKalmalaSettingsWidget::ShowAudioTab()
     SelectOptionsTab(3);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
-    AddLabel(ContentBox, FText::FromString(TEXT("Audio")), 24.0f);
 
     struct FVolumeSliderWidgets
     {
@@ -1365,10 +1363,6 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     ControlButtons.Reset();
-    if (bGamepad)
-    {
-        AddLabel(ContentBox, FText::FromString(TEXT("Controller")), 24.0f);
-    }
     UButton* Restore = AddButton(ContentBox, FText::FromString(TEXT("Restore default controls")), TEXT("RestoreControlsButton"));
     Restore->OnClicked.AddDynamic(this, &ThisClass::HandleRestoreControlsClicked);
     if (bGamepad)
@@ -1498,7 +1492,6 @@ void UKalmalaSettingsWidget::ShowAccessibilityTab()
     SelectOptionsTab(4);
     while (ContentBox->GetChildrenCount() > 2) ContentBox->RemoveChildAt(2);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
-    AddLabel(ContentBox, FText::FromString(TEXT("Accessibility")), 24.0f);
 
     UButton* InterfaceScale = AddButton(ContentBox, FText::GetEmpty(), TEXT("InterfaceScaleButton"));
     InterfaceScale->OnClicked.AddDynamic(this, &ThisClass::HandleInterfaceScaleClicked);
