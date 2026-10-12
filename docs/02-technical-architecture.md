@@ -1954,6 +1954,8 @@ The Keyboard & Mouse and Controller groups store only allowlisted local choices 
 `GameUserSettings` configuration. Keyboard movement presents Forward, Backward,
 Right, and Left as separate rows in two equal-width, centered columns; the
 selected Options tab identifies the group without a duplicate page heading.
+The five Options tabs divide the full content width into equal buttons with
+matching horizontal gutters.
 Each row changes only its own key within the existing positive/negative
 movement-axis pair; Controller keeps the paired left-stick axes. Action and
 look bindings replace only the selected keyboard or controller device family.
