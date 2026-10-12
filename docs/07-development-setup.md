@@ -2754,3 +2754,22 @@ frames are distinct, and that Inventory's grid has equal left/right inset with
 no armor/weight summary. Config/DefaultGame.ini now explicitly cooks the UI
 folder rather than only its icon subfolders. These live/package checks remain
 deferred for this normal increment.
+
+## Crafting menu presentation — 2026-10-12
+
+Crafting item choices render as flat selectable list rows using the shared
+`ListViewRow*` theme keys. Selected rows keep a leading marker for a
+color-independent cue. Workbench/Forge section tabs align at the shell's
+top-left; the accepted station icon, catalogue name, and existing level,
+attachment, or cooking-heat status align at the top-right. Requirement material
+icons use a separate theme-configurable frame, with white borders in high
+contrast. This changes local presentation only; recipe selection, station
+context validation, RPCs, server authority, and saved data are unchanged.
+
+At the next applicable full UI verification, rebuild and run
+`Kalmala.UI.Theme.LocalPresentation` and `Kalmala.UI.Crafting.LocalBrowsing`,
+then review rendered Workbench Craft, Forge Craft/Upgrade/Repair, cooking
+stations, and Player Crafting at standard/high contrast and supported text
+scales. Confirm list navigation, selected/focused distinction, station status
+alignment, and requirement-icon borders. No build, automation, or rendered
+verification was run for this normal increment.

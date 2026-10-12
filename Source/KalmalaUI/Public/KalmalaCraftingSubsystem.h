@@ -16,6 +16,7 @@ class UInputComponent;
 class UKalmalaCraftingComponent;
 class UKalmalaInventoryComponent;
 class UKalmalaSelectedResultWidget;
+class UKalmalaIconWidget;
 class AKalmalaCharacter;
 struct FKalmalaInventoryStack;
 
@@ -228,6 +229,9 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> HeaderText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StationContextStatusText;
+    UPROPERTY(Transient) TObjectPtr<UHorizontalBox> StationHeaderRow;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaIconWidget> StationHeaderIcon;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> StationHeaderNameText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairContextText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairStatusText;
     UPROPERTY(Transient) TObjectPtr<UWidget> StationSectionSwitcher;

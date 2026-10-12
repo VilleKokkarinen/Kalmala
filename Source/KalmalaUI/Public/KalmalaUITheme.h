@@ -51,6 +51,12 @@ struct KALMALAUI_API FKalmalaUITheme
     FLinearColor ButtonDisabled = FLinearColor(0.08f, 0.08f, 0.08f, 1);
     FLinearColor ButtonFocused = FLinearColor(0.58f, 0.43f, 0.20f, 1);
     FLinearColor ButtonSelected = FLinearColor(0.18f, 0.23f, 0.17f, 1);
+    FLinearColor ListViewRowNormal = FLinearColor(0.12f, 0.075f, 0.045f, 0.35f);
+    FLinearColor ListViewRowHovered = FLinearColor(0.28f, 0.16f, 0.065f, 0.70f);
+    FLinearColor ListViewRowSelected = FLinearColor(0.48f, 0.29f, 0.08f, 0.90f);
+    FLinearColor ListViewRowDisabled = FLinearColor(0.10f, 0.08f, 0.06f, 0.55f);
+    FLinearColor ListViewRowBorderColor = FLinearColor(0.45f, 0.27f, 0.12f, 1.0f);
+    FLinearColor RequirementIconBorderColor = FLinearColor(0.45f, 0.27f, 0.12f, 1.0f);
     FLinearColor StatusCueStartedColor = FLinearColor(0.28f, 0.72f, 0.42f, 1);
     FLinearColor StatusCueRefreshedColor = FLinearColor(0.95f, 0.69f, 0.24f, 1);
     FLinearColor StatusCueEndedColor = FLinearColor(0.88f, 0.36f, 0.29f, 1);
@@ -69,6 +75,10 @@ struct KALMALAUI_API FKalmalaUITheme
     bool bAnimateInteractionStates = true;
     float SlotPadding = 3;
     float ButtonPadding = 9;
+    float ListViewRowPadding = 5;
+    float ListViewRowCornerRadius = 2;
+    float ListViewRowBorderWidth = 0;
+    float RequirementIconBorderWidth = 1;
     float IconWidth = 64;
     float IconHeight = 42;
     bool bAnimateScrolling = false;
@@ -91,6 +101,8 @@ struct KALMALAUI_API FKalmalaUITheme
     void ApplyPanel(UBorder& Border, int32 ContrastMode, const FString* ImageOverride = nullptr) const;
     void ApplySolidPanel(UBorder& Border, int32 ContrastMode) const;
     void ApplyButton(UButton& Button, int32 ContrastMode, bool bReducedMotion = false) const;
+    void ApplyListViewItem(UButton& Button, int32 ContrastMode, bool bReducedMotion = false) const;
+    void ApplyRequirementIconFrame(UBorder& Border, int32 ContrastMode) const;
     void SizeButtonToContent(UButton& Button) const;
     void ApplySlider(USlider& Slider, int32 ContrastMode) const;
     void ApplySelectablePanel(UBorder& Border, bool bSelected, bool bFocused, bool bUnavailable,

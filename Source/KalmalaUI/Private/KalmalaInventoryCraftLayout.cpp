@@ -213,7 +213,10 @@ void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
         auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
         Icon->SetCatalogueIcon(Cost.ItemId);
         IconSize->SetContent(Icon);
-        CostColumn->AddChildToVerticalBox(IconSize)->SetHorizontalAlignment(HAlign_Center);
+        auto* IconFrame = WidgetTree->ConstructWidget<UBorder>();
+        Theme.ApplyRequirementIconFrame(*IconFrame, ContrastMode);
+        IconFrame->SetContent(IconSize);
+        CostColumn->AddChildToVerticalBox(IconFrame)->SetHorizontalAlignment(HAlign_Center);
 
         const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Cost.ItemId);
         CostColumn->SetToolTipText(FText::FromString(FString::Printf(
@@ -278,7 +281,7 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
             Row->AddChildToHorizontalBox(IconSize)->SetVerticalAlignment(VAlign_Center);
             auto* Name = WidgetTree->ConstructWidget<UTextBlock>();
             Name->SetText(FText::FromString(Recipes[RecipeIndex].DisplayName));
-            Name->SetJustification(ETextJustify::Center);
+            Name->SetJustification(ETextJustify::Left);
             Name->SetAutoWrapText(true);
             auto* NameSlot = Row->AddChildToHorizontalBox(Name);
             NameSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
@@ -293,10 +296,14 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
     for (int32 Index = 0; Index < InventoryCraftChoices.Num(); ++Index)
     {
         auto* Button = CastChecked<UKalmalaThemedButton>(InventoryCraftChoices[Index]);
-        Theme.ApplyButton(*Button, Contrast);
+        Theme.ApplyListViewItem(*Button, Contrast);
         Button->SetInteractionSelected(Index == Selected);
         auto* Row = CastChecked<UHorizontalBox>(Button->GetContent());
-        Theme.ApplyText(*CastChecked<UTextBlock>(Row->GetChildAt(1)), 14, Index == Selected, Scale, Contrast);
+        UTextBlock* Name = CastChecked<UTextBlock>(Row->GetChildAt(1));
+        const int32 RecipeIndex = Visible[Index];
+        Name->SetText(FText::FromString(FString::Printf(TEXT("%s%s"),
+            Index == Selected ? TEXT("› ") : TEXT("  "), *Recipes[RecipeIndex].DisplayName)));
+        Theme.ApplyText(*Name, 14, Index == Selected, Scale, Contrast);
     }
     Theme.ApplyText(*InventoryCraftTitle, 22, true, Scale, Contrast);
     Theme.ApplyText(*InventoryCraftDescription, 16, false, Scale, Contrast);
@@ -346,7 +353,10 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
             IconSize->SetWidthOverride(44); IconSize->SetHeightOverride(44);
             auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
             Icon->SetCatalogueIcon(Costs[Index].ItemId); IconSize->SetContent(Icon);
-            CostColumn->AddChildToVerticalBox(IconSize)->SetHorizontalAlignment(HAlign_Center);
+            auto* IconFrame = WidgetTree->ConstructWidget<UBorder>();
+            Theme.ApplyRequirementIconFrame(*IconFrame, Contrast);
+            IconFrame->SetContent(IconSize);
+            CostColumn->AddChildToVerticalBox(IconFrame)->SetHorizontalAlignment(HAlign_Center);
             auto* Amount = WidgetTree->ConstructWidget<UTextBlock>();
             Amount->SetText(FText::AsNumber(Costs[Index].Quantity)); Amount->SetJustification(ETextJustify::Center);
             Theme.ApplyText(*Amount, 16, true, Scale, Contrast);

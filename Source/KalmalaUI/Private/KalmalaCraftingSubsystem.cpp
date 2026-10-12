@@ -40,6 +40,7 @@
 #include "Components/EditableTextBox.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
+#include "Components/Spacer.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "Components/ScrollBox.h"
@@ -503,7 +504,37 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     ForgeRepairSectionButton = AddButton(TEXT("Repair"), WorkbenchSections,
         TEXT("Inspect and repair one selected carried tool at no cost."));
     ForgeRepairSectionButton->OnClicked.AddDynamic(this, &ThisClass::SelectForgeRepairSection);
-    Column->InsertChildAt(2, StationSectionSwitcher);
+    StationHeaderRow = WidgetTree->ConstructWidget<UHorizontalBox>();
+    StationHeaderRow->SetVisibility(ESlateVisibility::Collapsed);
+    StationHeaderRow->AddChildToHorizontalBox(StationSectionSwitcher)
+        ->SetVerticalAlignment(VAlign_Center);
+    auto* StationHeaderSpacer = WidgetTree->ConstructWidget<USpacer>();
+    StationHeaderRow->AddChildToHorizontalBox(StationHeaderSpacer)
+        ->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    auto* StationSummary = WidgetTree->ConstructWidget<UHorizontalBox>();
+    auto* StationIconSize = WidgetTree->ConstructWidget<USizeBox>();
+    StationIconSize->SetWidthOverride(44.0f);
+    StationIconSize->SetHeightOverride(44.0f);
+    StationHeaderIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+    StationIconSize->SetContent(StationHeaderIcon);
+    StationSummary->AddChildToHorizontalBox(StationIconSize)
+        ->SetVerticalAlignment(VAlign_Center);
+    auto* StationSummaryText = WidgetTree->ConstructWidget<UVerticalBox>();
+    StationHeaderNameText = WidgetTree->ConstructWidget<UTextBlock>();
+    StationHeaderNameText->SetAutoWrapText(true);
+    StationHeaderNameText->SetJustification(ETextJustify::Right);
+    StationHeaderNameText->SetText(FText::GetEmpty());
+    WrappedTextBlocks.Add(StationHeaderNameText);
+    StationSummaryText->AddChildToVerticalBox(StationHeaderNameText)
+        ->SetHorizontalAlignment(HAlign_Right);
+    Column->RemoveChild(StationContextStatusText);
+    StationContextStatusText->SetJustification(ETextJustify::Right);
+    StationSummaryText->AddChildToVerticalBox(StationContextStatusText)
+        ->SetHorizontalAlignment(HAlign_Right);
+    StationSummary->AddChildToHorizontalBox(StationSummaryText)
+        ->SetVerticalAlignment(VAlign_Center);
+    StationHeaderRow->AddChildToHorizontalBox(StationSummary)
+        ->SetVerticalAlignment(VAlign_Center);
     BrowseControlsRow = WidgetTree->ConstructWidget<UHorizontalBox>();
     Column->InsertChildAt(2, BrowseControlsRow);
     RecipeSearchBox = WidgetTree->ConstructWidget<UEditableTextBox>();
@@ -700,6 +731,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     CloseButton=AddButton(TEXT("Close")); CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseClicked);
     CloseButton->RemoveFromParent();
     auto* Outer=WidgetTree->ConstructWidget<UVerticalBox>();
+    Outer->AddChildToVerticalBox(StationHeaderRow);
     Outer->AddChildToVerticalBox(CraftingScrollBox)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     Outer->AddChildToVerticalBox(CloseButton)->SetPadding(FMargin(0,8,0,0));
     Border->SetContent(Outer); WidgetTree->RootWidget = Border;
@@ -1243,6 +1275,21 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
     RefreshStationContextState();
     RefreshBrowseControlLabels();
 
+    if (StationHeaderIcon)
+    {
+        const bool bHasStation = !StationFilterKit.IsNone();
+        StationHeaderIcon->SetVisibility(bHasStation
+            ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+        if (bHasStation) StationHeaderIcon->SetCatalogueIcon(StationFilterKit);
+    }
+    if (StationHeaderNameText)
+    {
+        const FKalmalaItemDefinition* HeaderStation = StationFilterKit.IsNone()
+            ? nullptr : UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit);
+        StationHeaderNameText->SetText(FText::FromString(HeaderStation
+            ? HeaderStation->DisplayName : StationFilterKit.IsNone() ? FString() : StationFilterKit.ToString()));
+    }
+
     if (StationFilterKit.IsNone())
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(bInventoryCompanion ? TEXT("Crafting") : TEXT("Construction Hammer — Build")));
@@ -1355,6 +1402,9 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     if (StationSectionSwitcher)
         StationSectionSwitcher->SetVisibility(bWorkbenchContext || bForgeContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (StationHeaderRow)
+        StationHeaderRow->SetVisibility(bStationContext
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (WorkbenchRepairContextText)
         WorkbenchRepairContextText->SetVisibility(bRepairContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
@@ -1439,7 +1489,7 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     if (BuildCloseButton)
         BuildCloseButton->SetVisibility(bStandaloneBuildMenu
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-    if (HeaderText) HeaderText->SetVisibility(bStandaloneBuildMenu || bInventoryCompanion
+    if (HeaderText) HeaderText->SetVisibility(bStandaloneBuildMenu || bInventoryCompanion || bStationContext
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (InstructionsText) InstructionsText->SetVisibility(bStandaloneBuildMenu || bInventoryCompanion
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
@@ -3461,6 +3511,9 @@ void UKalmalaCraftingWidget::Refresh()
     {
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
         Theme.ApplyMenu(*WidgetTree, HeaderText, TextScalePercent, ContrastMode);
+        if (StationHeaderNameText)
+            Theme.ApplyText(*StationHeaderNameText, Theme.EmphasisSize + 4, true,
+                TextScalePercent, ContrastMode);
         if (bInventoryCompanion)
         {
             Theme.ApplyPanel(*MenuBackground, ContrastMode, &Theme.InventoryPanelImage);

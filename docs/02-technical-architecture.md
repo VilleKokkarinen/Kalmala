@@ -1197,6 +1197,10 @@ expanded-map, and options views as described below.
 | ButtonHovered | (0.18, 0.25, 0.28, 1) | Linear RGBA 0–1 |
 | ButtonPressed | (0.07, 0.10, 0.12, 1) | Linear RGBA 0–1 |
 | ButtonDisabled | (0.08, 0.08, 0.08, 1) | Linear RGBA 0–1 |
+| ListViewRowNormal / ListViewRowHovered / ListViewRowSelected / ListViewRowDisabled | warm translucent row fills | Linear RGBA 0–1; crafting item-selection rows |
+| ListViewRowBorderColor | (0.45, 0.27, 0.12, 1) | Linear RGBA; selected/focused crafting rows |
+| ListViewRowPadding / ListViewRowCornerRadius / ListViewRowBorderWidth | 5 / 2 / 0 | 0–24 / 0–12 / 0–3 logical units; list rows |
+| RequirementIconBorderColor / RequirementIconBorderWidth | (0.45, 0.27, 0.12, 1) / 1 | Linear RGBA / 0–4 logical units; crafting/build material icons |
 | SlotPadding | 3 | 0–16; selectable-panel content |
 | ButtonPadding | 9 | 0–24; shared button content, pressed adds one unit |
 | IconWidth / IconHeight | 64 / 42 | 24–96; existing support glyph slots |
@@ -1232,6 +1236,11 @@ panel border; high contrast ignores it, uses a black-backed panel and white
 border/text, and forces button borders to at least one unit. High contrast uses
 neutral button fills; pressed padding and Unreal's existing keyboard focus
 indicator remain available.
+Crafting item-selection rows use the dedicated list-view theme rather than the
+shared stone button surface. The selected item keeps a visible leading marker;
+pointer hover, keyboard/controller focus, disabled state, and high-contrast
+borders remain distinct. Requirement icons use their own theme-configurable
+frame, with a white border over the black high-contrast surface.
 Accessibility text scale still takes precedence over theme size. Button
 activation, menu navigation, modal ownership, gameplay authority, and saved
 data schemas remain unchanged; audio values keep their existing local keys.
@@ -2215,6 +2224,8 @@ Forge exposes separate Craft, Upgrade, and Repair sections. Upgrade compares the
 owner-only carried Bronze Axe against its authored Iron Axe target and reads
 the owner's tool, material, and skill snapshots for prerequisites; the accepted
 Forge's effective level and Anvil state stay tied to the exact context actor.
+The section tabs sit at the top-left of the shell; the station catalogue icon,
+name, and existing level/attachment or cooking-heat status sit at the top-right.
 The existing progression RPC remains responsible for authoritative checks,
 material exchange, and persistence.
 These passive Workbench Tool Rack and Forge Anvil status lines remain visible

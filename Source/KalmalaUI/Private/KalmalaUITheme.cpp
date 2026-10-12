@@ -136,6 +136,10 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadNumber(Config, TEXT("CornerRadius"), Theme.CornerRadius, 0, 12);
     ReadNumber(Config, TEXT("SlotPadding"), Theme.SlotPadding, 0, 16);
     ReadNumber(Config, TEXT("ButtonPadding"), Theme.ButtonPadding, 0, 24);
+    ReadNumber(Config, TEXT("ListViewRowPadding"), Theme.ListViewRowPadding, 0, 24);
+    ReadNumber(Config, TEXT("ListViewRowCornerRadius"), Theme.ListViewRowCornerRadius, 0, 12);
+    ReadNumber(Config, TEXT("ListViewRowBorderWidth"), Theme.ListViewRowBorderWidth, 0, 3);
+    ReadNumber(Config, TEXT("RequirementIconBorderWidth"), Theme.RequirementIconBorderWidth, 0, 4);
     ReadNumber(Config, TEXT("IconWidth"), Theme.IconWidth, 24, 96);
     ReadNumber(Config, TEXT("IconHeight"), Theme.IconHeight, 24, 96);
     ReadNumber(Config, TEXT("ScrollSpeed"), Theme.ScrollSpeed, 1, 60);
@@ -150,6 +154,12 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadColor(Config, TEXT("ButtonDisabled"), Theme.ButtonDisabled);
     ReadColor(Config, TEXT("ButtonFocused"), Theme.ButtonFocused);
     ReadColor(Config, TEXT("ButtonSelected"), Theme.ButtonSelected);
+    ReadColor(Config, TEXT("ListViewRowNormal"), Theme.ListViewRowNormal);
+    ReadColor(Config, TEXT("ListViewRowHovered"), Theme.ListViewRowHovered);
+    ReadColor(Config, TEXT("ListViewRowSelected"), Theme.ListViewRowSelected);
+    ReadColor(Config, TEXT("ListViewRowDisabled"), Theme.ListViewRowDisabled);
+    ReadColor(Config, TEXT("ListViewRowBorderColor"), Theme.ListViewRowBorderColor);
+    ReadColor(Config, TEXT("RequirementIconBorderColor"), Theme.RequirementIconBorderColor);
     ReadColor(Config, TEXT("StatusCueStartedColor"), Theme.StatusCueStartedColor);
     ReadColor(Config, TEXT("StatusCueRefreshedColor"), Theme.StatusCueRefreshedColor);
     ReadColor(Config, TEXT("StatusCueEndedColor"), Theme.StatusCueEndedColor);
@@ -389,6 +399,69 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, con
     Button.SetBackgroundColor(FLinearColor::White);
     Button.SetColorAndOpacity(FLinearColor::White);
     SizeButtonToContent(Button);
+}
+
+void FKalmalaUITheme::ApplyListViewItem(UButton& Button, const int32 ContrastMode,
+    const bool bReducedMotion) const
+{
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const bool bSuppressMotion = bReducedMotion || UKalmalaSettingsWidget::IsReducedMotionEnabled();
+    const FLinearColor Border = bContrast ? FLinearColor::White : ListViewRowBorderColor;
+    const float BaseOutlineWidth = bContrast ? 1.0f : ListViewRowBorderWidth;
+    const auto MakeBrush = [this, Border, BaseOutlineWidth](const float Radius) -> FSlateBrush
+    {
+        FSlateRoundedBoxBrush Brush(FLinearColor::White, Radius, Border, BaseOutlineWidth);
+        Brush.OutlineSettings.Width = BaseOutlineWidth;
+        return Brush;
+    };
+
+    FButtonStyle Style = Button.GetStyle();
+    Style.SetNormal(MakeBrush(bContrast ? 0.0f : ListViewRowCornerRadius))
+        .SetHovered(MakeBrush(bContrast ? 0.0f : ListViewRowCornerRadius))
+        .SetPressed(MakeBrush(bContrast ? 0.0f : ListViewRowCornerRadius))
+        .SetDisabled(MakeBrush(bContrast ? 0.0f : ListViewRowCornerRadius));
+    Style.Normal.TintColor = FSlateColor(bContrast ? HighContrastPanel : ListViewRowNormal);
+    Style.Hovered.TintColor = FSlateColor(bContrast ? HighContrastPanel : ListViewRowHovered);
+    Style.Pressed.TintColor = FSlateColor(bContrast ? HighContrastPanel : ListViewRowSelected);
+    Style.Disabled.TintColor = FSlateColor(bContrast ? HighContrastPanel : ListViewRowDisabled);
+    Style.SetNormalForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
+    Style.SetHoveredForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
+    Style.SetPressedForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
+    Style.SetDisabledForeground(FSlateColor(bContrast ? FLinearColor(0.72f, 0.72f, 0.72f, 1)
+        : FLinearColor(0.55f, 0.58f, 0.57f, 1)));
+    Style.SetNormalPadding(FMargin(ListViewRowPadding)).SetPressedPadding(FMargin(ListViewRowPadding + 1.0f));
+
+    const FLinearColor FocusOutline = bContrast ? FLinearColor::White : ButtonFocused;
+    if (UKalmalaThemedButton* ThemedButton = Cast<UKalmalaThemedButton>(&Button))
+    {
+        ThemedButton->SetThemeStyle(Style, FocusOutline,
+            bContrast ? HighContrastPanel : ListViewRowSelected,
+            bContrast ? FMath::Max(2.0f, FocusBorderWidth) : FocusBorderWidth,
+            bContrast ? FMath::Max(2.0f, SelectedBorderWidth) : SelectedBorderWidth,
+            bContrast ? FMath::Max(DisabledBorderWidth, 1.0f) : DisabledBorderWidth,
+            InteractionTransitionDuration, bAnimateInteractionStates && !bSuppressMotion);
+    }
+    else
+    {
+        Button.SetStyle(Style);
+    }
+    Button.SetBackgroundColor(FLinearColor::White);
+    Button.SetColorAndOpacity(FLinearColor::White);
+
+    if (auto* VerticalSlot = Cast<UVerticalBoxSlot>(Button.Slot.Get()))
+        VerticalSlot->SetHorizontalAlignment(HAlign_Fill);
+}
+
+void FKalmalaUITheme::ApplyRequirementIconFrame(UBorder& Border, const int32 ContrastMode) const
+{
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const float Width = bContrast ? FMath::Max(2.0f, RequirementIconBorderWidth) : RequirementIconBorderWidth;
+    const FLinearColor Outline = bContrast ? FLinearColor::White : RequirementIconBorderColor;
+    const FLinearColor Fill = bContrast ? HighContrastPanel : FLinearColor(0.08f, 0.045f, 0.025f, 0.92f);
+    Border.SetBrush(FSlateRoundedBoxBrush(FLinearColor::White,
+        bContrast ? 0.0f : CornerRadius, Outline, Width));
+    Border.SetBrushColor(Fill);
+    Border.SetPadding(FMargin(2.0f));
 }
 
 void FKalmalaUITheme::SizeButtonToContent(UButton& Button) const

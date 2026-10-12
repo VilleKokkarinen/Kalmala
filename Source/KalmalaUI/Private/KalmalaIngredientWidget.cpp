@@ -3,6 +3,7 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaUITheme.h"
 #include "Blueprint/WidgetTree.h"
+#include "Components/Border.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/SizeBox.h"
@@ -63,7 +64,11 @@ void UKalmalaIngredientWidget::SetIngredients(const TArray<FKalmalaInventoryStac
         Box->SetHeightOverride(SquareIconSize);
         auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
         Icon->SetCatalogueIcon(Costs[Index].ItemId);
-        Box->SetContent(Icon); Row->AddChild(Box);
+        Box->SetContent(Icon);
+        auto* IconFrame = WidgetTree->ConstructWidget<UBorder>();
+        Theme.ApplyRequirementIconFrame(*IconFrame, Contrast);
+        IconFrame->SetContent(Box);
+        Row->AddChildToHorizontalBox(IconFrame)->SetVerticalAlignment(VAlign_Center);
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
         Label->SetText(FText::FromString(Labels[Index])); Label->SetAutoWrapText(true);
         Theme.ApplyText(*Label, Theme.BodySize, false, TextScale, Contrast);

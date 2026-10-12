@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## 2026-10-12 — Refine crafting menu presentation
+
+- **Completed:** added a dedicated configurable list-row theme for Player Crafting choices, placed Workbench/Forge section controls at the station shell's top-left and station icon/name/current status at the top-right, and framed material icons in crafting/build requirements. Selected list rows retain a leading marker for color-independent selection feedback.
+- **Files changed:** `Config/DefaultKalmalaTheme.ini`, `Source/KalmalaUI/Public/KalmalaUITheme.h`, `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryCraftLayout.cpp`, `Source/KalmalaUI/Private/KalmalaIngredientWidget.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the theme parsing/application paths, crafting widget hierarchy, selection flow, requirement widgets, station context state, and changed-source diff; `git diff --check` passed.
+- **Full verification:** deferred. No Unreal build, automation queue, host/client runner, or rendered menu review was run.
+- **Impact and authority:** local presentation only. Recipe selection remains on existing owner-local UI paths; station/cost checks, RPCs, server authority, persistence, and saved-data schemas are unchanged.
+- **Limits:** rendered sizing, asset/icon visibility, and keyboard/controller focus appearance have not been reviewed after this change.
+- **Next eligible task:** audit the remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## 2026-10-12 — Resolve M14 integrated-main UI automation failures
 
 - **Completed:** repaired the three failures from the first integrated-main Kalmala queue and closed M14's milestone-final verification gate.
