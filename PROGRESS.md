@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## 2026-10-12 — Pack Build tiles like Inventory
+
+- **Completed:** changed standalone Build from a stretched four-column uniform grid to ten left-aligned columns, matching Inventory's tile count and using the shared 64×64 size with 4-unit gaps. Crafting and station recipe grids retain four columns.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the grid's shared contexts, selected-state layout, slot sizing, and navigation; `git diff --check` passed.
+- **Full verification:** deferred. No Unreal build, test suite, or rendered menu review was run for this increment.
+- **Impact and authority:** local presentation/layout only; recipe identity, selection sequence, placement, RPCs, and server authority are unchanged.
+- **Limits:** rendered spacing and small-viewport behavior have not been checked.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## 2026-10-12 — Fix ingredient row slot compilation
 
 - **Completed:** replaced a generic vertical panel slot call with `AddChildToVerticalBox`, applying the 2-unit top/bottom row padding through the correctly typed slot while preserving the 4-unit inter-row gap.

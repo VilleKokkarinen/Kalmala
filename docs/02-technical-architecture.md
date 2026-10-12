@@ -1394,9 +1394,10 @@ This M13 request remains governed by the live backlog; do not infer completion f
 
 The 2026-10-11 standalone Build presentation update supersedes the earlier
 detail-area-under-menu wording above. Build uses the same original wood
-backplate as Inventory. Its icon grid shows 64×64 catalogue icons with clear
-spacing between cards. The Build card border paints the warm background behind
-each icon; the icon itself is drawn above it. Catalogue art keeps its aspect
+backplate as Inventory. Its icon grid uses ten left-aligned columns of 64×64
+catalogue tiles with the shared 4-unit gap, rather than stretching four columns
+across the menu. The Build card border paints the warm background behind each
+icon; the icon itself is drawn above it. Catalogue art keeps its aspect
 ratio and is scaled slightly within the fixed slot to compensate for transparent
 pixels around the artwork. The main Build window ends after the item grid and its
 browse controls; it does not show selected-item details, ingredient rows,

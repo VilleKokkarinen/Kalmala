@@ -63,6 +63,7 @@
 namespace
 {
 constexpr int32 RecipeGridColumns = 4;
+constexpr int32 BuildTileGridColumns = 10;
 constexpr int32 MaxFavoriteRecipeCount = 256;
 const FString CraftingNoPanelImage;
 
@@ -1755,6 +1756,9 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
 
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
     const bool bIconOnlyBuildCards = StationFilterKit.IsNone() && !bInventoryCompanion && !bEmbeddedContext;
+    const int32 GridColumns = bIconOnlyBuildCards ? BuildTileGridColumns : RecipeGridColumns;
+    if (UVerticalBoxSlot* GridParentSlot = Cast<UVerticalBoxSlot>(RecipeGrid->Slot))
+        GridParentSlot->SetHorizontalAlignment(bIconOnlyBuildCards ? HAlign_Left : HAlign_Fill);
     const bool bRebuild = LastRecipeGridIndices != VisibleIndices
         || bLastRecipeGridIconOnlyBuild != bIconOnlyBuildCards;
     if (bRebuild)
@@ -1862,7 +1866,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             CellMargin->SetPadding(FMargin(bIconOnlyBuildCards ? 0.0f : 3.0f));
             CellMargin->SetContent(FavoriteFrame);
             UUniformGridSlot* GridPanelSlot = RecipeGrid->AddChildToUniformGrid(
-                CellMargin, SlotIndex / RecipeGridColumns, SlotIndex % RecipeGridColumns);
+                CellMargin, SlotIndex / GridColumns, SlotIndex % GridColumns);
             GridPanelSlot->SetHorizontalAlignment(bIconOnlyBuildCards ? HAlign_Center : HAlign_Fill);
             GridPanelSlot->SetVerticalAlignment(bIconOnlyBuildCards ? VAlign_Center : VAlign_Fill);
             if (bIconOnlyBuildCards)
