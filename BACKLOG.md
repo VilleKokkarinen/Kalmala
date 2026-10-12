@@ -39,6 +39,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 - [x] **2026-10-12 — Pack Build tiles like Inventory:** use ten left-aligned columns of the shared 64×64 item tiles with a 4-unit gap, keeping the existing four-column layout for crafting/station grids.
 
+- [x] **2026-10-12 — Remove duplicate Settings Status render target:** exclude `settings.status` from `Render-Menu.ps1` because Settings Home already renders the same PNG.
+
 - [x] **2026-10-12 — Refine crafting menu presentation:** add configurable list-row styling for item selection, align station sections at top-left and station identity/status at top-right, and frame requirement icons.
   - [x] Apply the shared list-view theme to crafting choices and the requested station/header and material-icon presentation; preserve existing selection and authority behavior.
 

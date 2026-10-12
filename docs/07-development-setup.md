@@ -2686,7 +2686,7 @@ Do not infer a passing game build from successful generation or solution validat
 
 ## Offscreen menu preview images
 
-Run `Scripts/Render-Menu.ps1` without `-Menu` to render all 12 supported menu
+Run `Scripts/Render-Menu.ps1` without `-Menu` to render all 11 supported menu
 IDs sequentially. It writes one PNG per menu to `%TEMP%\kmmenu\png` by default,
 using names like `inventory-<random>.png`; the returned objects include each
 PNG and its render log path. Before directory-mode rendering, it removes prior

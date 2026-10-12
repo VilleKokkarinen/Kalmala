@@ -36,7 +36,7 @@ function Get-Sha256Hex([byte[]]$Bytes) {
     finally { $sha256.Dispose() }
 }
 $menuIds = @('inventory','crafting','inventory-crafting','build','settings.home','settings.options',
-    'settings.audio','settings.controls','settings.controller','settings.video','settings.accessibility','settings.status')
+    'settings.audio','settings.controls','settings.controller','settings.video','settings.accessibility')
 if ($List) { $menuIds; return }
 if ($Menu.Count -eq 0) {
     # Keep the custom-widget invocation's previous single-context behavior.

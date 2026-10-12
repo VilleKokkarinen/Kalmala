@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## 2026-10-12 — Remove duplicate Settings Status render target
+
+- **Completed:** removed `settings.status` from the renderer's supported menu IDs and updated the documented all-menu render count from 12 to 11.
+- **Files changed:** `Scripts/Render-Menu.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** confirmed the supported ID list contains only the eleven intended targets and `git diff --check` passed.
+- **Full verification:** deferred. No menu render or test suite was run.
+- **Impact and authority:** renderer target selection only; the Settings Status screen and game UI are unchanged.
+- **Limits:** pre-existing PNGs named for `settings.status` are left untouched in prior output folders.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## 2026-10-12 — Pack Build tiles like Inventory
 
 - **Completed:** changed standalone Build from a stretched four-column uniform grid to ten left-aligned columns, matching Inventory's tile count and using the shared 64×64 size with 4-unit gaps. Crafting and station recipe grids retain four columns.
