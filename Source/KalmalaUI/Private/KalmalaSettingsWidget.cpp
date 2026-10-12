@@ -1229,6 +1229,17 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
     FScriptDelegate AudioDelegate; AudioDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAudioClicked)); AddTab(FText::FromString(TEXT("Audio")), TEXT("AudioTab"), AudioDelegate);
     FScriptDelegate AccessibilityDelegate; AccessibilityDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAccessibilityClicked)); AddTab(FText::FromString(TEXT("Accessibility")), TEXT("AccessibilityTab"), AccessibilityDelegate);
     ContentBox->AddChildToVerticalBox(Tabs);
+    UBorder* ContentDivider = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("OptionsContentDivider"));
+    const bool bHighContrast = GetContrastMode() != 0;
+    const FLinearColor DividerColor = bHighContrast
+        ? FLinearColor::White
+        : FKalmalaUITheme::Get().ButtonFocused.CopyWithNewOpacity(0.72f);
+    ContentDivider->SetBrushColor(DividerColor);
+    USizeBox* DividerSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("OptionsContentDividerSize"));
+    DividerSize->SetHeightOverride(1.0f);
+    DividerSize->SetContent(ContentDivider);
+    UVerticalBoxSlot* DividerSlot = ContentBox->AddChildToVerticalBox(DividerSize);
+    DividerSlot->SetHorizontalAlignment(HAlign_Fill);
     USizeBox* ContentTopGap = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("OptionsContentTopGap"));
     ContentTopGap->SetHeightOverride(10.0f);
     ContentBox->AddChildToVerticalBox(ContentTopGap);
@@ -1247,7 +1258,7 @@ void UKalmalaSettingsWidget::ShowGraphicsTab()
 {
     SelectOptionsTab(2);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
-    while (ContentBox->GetChildrenCount() > 3) ContentBox->RemoveChildAt(3);
+    while (ContentBox->GetChildrenCount() > 4) ContentBox->RemoveChildAt(4);
     UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
     if (Settings == nullptr) return;
     ResolutionChoices = { FIntPoint(1280, 720), FIntPoint(1600, 900), FIntPoint(1920, 1080), FIntPoint(2560, 1440), FIntPoint(3840, 2160) };
@@ -1267,7 +1278,7 @@ void UKalmalaSettingsWidget::ShowAudioTab()
 {
     SelectOptionsTab(3);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
-    while (ContentBox->GetChildrenCount() > 3) ContentBox->RemoveChildAt(3);
+    while (ContentBox->GetChildrenCount() > 4) ContentBox->RemoveChildAt(4);
 
     struct FVolumeSliderWidgets
     {
@@ -1364,7 +1375,7 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
 {
     SelectOptionsTab(bGamepad ? 1 : 0);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
-    while (ContentBox->GetChildrenCount() > 3) ContentBox->RemoveChildAt(3);
+    while (ContentBox->GetChildrenCount() > 4) ContentBox->RemoveChildAt(4);
     ControlButtons.Reset();
     UButton* Restore = AddButton(ContentBox, FText::FromString(TEXT("Restore default controls")), TEXT("RestoreControlsButton"));
     Restore->OnClicked.AddDynamic(this, &ThisClass::HandleRestoreControlsClicked);
@@ -1477,7 +1488,7 @@ void UKalmalaSettingsWidget::UpdateControlsLabels()
 void UKalmalaSettingsWidget::ShowAccessibilityTab()
 {
     SelectOptionsTab(4);
-    while (ContentBox->GetChildrenCount() > 3) ContentBox->RemoveChildAt(3);
+    while (ContentBox->GetChildrenCount() > 4) ContentBox->RemoveChildAt(4);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
 
     UButton* InterfaceScale = AddButton(ContentBox, FText::GetEmpty(), TEXT("InterfaceScaleButton"));

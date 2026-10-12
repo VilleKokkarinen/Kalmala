@@ -1957,8 +1957,9 @@ equal-width, centered columns. Keyboard movement presents Forward, Backward,
 Right, and Left as separate rows; Controller keeps the paired left-stick axes.
 Each Options page uses its selected tab as the page label without repeating a
 page heading in the content area. The five Options tabs divide the full content
-width into equal buttons with matching horizontal gutters. A 10-unit gap
-separates the tab row from page content, and pages omit explanatory footer text.
+width into equal buttons with matching horizontal gutters. A shared, thin
+divider separates the tab row from page content, followed by a 10-unit gap;
+pages omit explanatory footer text.
 Audio places its mute/restore button above a grouped set of volume sliders.
 Each row changes only its own key within the existing positive/negative
 movement-axis pair. Action and look bindings replace only the selected keyboard

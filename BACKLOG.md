@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Add a shared divider below Options tabs:** add a full-width, high-contrast-aware divider between the category tabs and page content, preserving the 10-unit content gap.
+
 - [x] **2026-10-12 — Tighten Options page content layout:** remove explanatory footer labels, add a 10-unit gap below the category tabs, and move Audio mute above a grouped volume-slider stack.
 
 - [x] **2026-10-12 — Match Controller settings alignment to Controls:** present controller bindings in the same centered, balanced two-column layout with matching row spacing, while preserving controller mappings and paired stick axes.

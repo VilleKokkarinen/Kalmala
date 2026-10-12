@@ -1065,13 +1065,13 @@ equal-width centered columns, with matching row spacing and no row-cycling hint.
 Keyboard & Mouse shows movement as separate Forward, Backward, Right, and Left
 rows, while Controller keeps the paired left-stick axes. Every Options page uses
 its selected tab as the page label without repeating a page heading below the
-tab row. A 10-unit gap separates the tab row from page content; explanatory
-footer text is omitted. Audio places Mute audio above the grouped volume
-sliders. The five Options tabs fill the content width in equal slots with
-matching horizontal gutters. The selected Options tab is highlighted without
-a text marker. Each right-aligned label sits beside a binding button within its
-half of the panel, using balanced horizontal padding and compact vertical row
-spacing.
+tab row. A shared, thin divider separates the tab row from page content,
+followed by a 10-unit gap; explanatory footer text is omitted. Audio places
+Mute audio above the grouped volume sliders. The five Options tabs fill the
+content width in equal slots with matching horizontal gutters. The selected
+Options tab is highlighted without a text marker. Each right-aligned label
+sits beside a binding button within its half of the panel, using balanced
+horizontal padding and compact vertical row spacing.
 Each movement button cycles only its direction's keys within the existing axis
 mapping. Other controls cycle through a small allowlisted set of alternatives.
 Restore default controls clears only the local overrides. The runtime applies
