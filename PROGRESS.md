@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## 2026-10-12 — Fix ingredient row slot compilation
+
+- **Completed:** replaced a generic vertical panel slot call with `AddChildToVerticalBox`, applying the 2-unit top/bottom row padding through the correctly typed slot while preserving the 4-unit inter-row gap.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaIngredientWidget.cpp`, `BACKLOG.md`, and this entry.
+- **Checks:** reproduced the reported C2039 compile error; reran `Scripts/Render-Menu.ps1 -Menu inventory-crafting -BuildModules -TimeoutSeconds 240`. The editor/module build succeeded, and the inventory-crafting menu rendered to `%TEMP%\kmmenu\png\inventory-crafting-bc888bc9.png`.
+- **Full verification:** deferred. No full test suite or broader menu-resolution matrix was run.
+- **Impact and authority:** fixes the UI module compile failure; tile dimensions and spacing remain presentation-only. Gameplay/network authority and saved data are unchanged.
+- **Limits:** only the inventory-crafting render was reviewed; other menu variants remain outside this repair.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## 2026-10-12 — Correct shared item-tile spacing
 
 - **Completed:** changed the shared 4-unit item-tile margin to control the gap between neighboring tiles instead of padding inside each tile. Inventory cells now have a 4-unit border-to-border gap; crafting material columns use 2 units per side for a 4-unit gap. Build cards and ingredient rows use the same spacing, and item icons retain the full 64×64 tile size.

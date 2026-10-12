@@ -9,6 +9,7 @@
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
 
 TSharedRef<SWidget> UKalmalaIngredientWidget::RebuildWidget()
 {
@@ -73,6 +74,7 @@ void UKalmalaIngredientWidget::SetIngredients(const TArray<FKalmalaInventoryStac
         auto* LabelSlot = Row->AddChildToHorizontalBox(Label);
         LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
         LabelSlot->SetPadding(FMargin(Theme.SlotPadding, 0));
-        Rows->AddChild(Row)->SetPadding(FMargin(0.0f, Theme.ItemIconTileMargin * 0.5f));
+        auto* RowSlot = Rows->AddChildToVerticalBox(Row);
+        RowSlot->SetPadding(FMargin(0.0f, Theme.ItemIconTileMargin * 0.5f));
     }
 }
