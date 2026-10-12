@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## 2026-10-12 — Consolidate icon validation tools
+
+- **Completed:** replaced four catalogue/status per-icon and full-set validators with `Scripts/Validate-UIIcons.ps1`. `-Category Catalogue|Status` selects the ledger and asset paths; optional `-Id` keeps per-icon checks, and omitting it retains whole-set manifest, runtime mapping, image, and package coverage.
+- **Files changed:** `Scripts/Validate-UIIcons.ps1`; removed `Validate-CatalogueIcon.ps1`, `Validate-CatalogueIconSet.ps1`, `Validate-StatusIcon.ps1`, and `Validate-StatusIconSet.ps1`; updated both icon import wrappers and `docs/07-development-setup.md`; updated `BACKLOG.md` and `PROGRESS.md`.
+- **Lightweight checks:** PowerShell parser validation, active-reference scan, and `git diff --check` passed. The icon validators were not executed, and no Unreal import/build was run.
+- **Full verification:** deferred. The checked-in PNG sources and `.uasset` packages were not changed; no full test suite or game build was run.
+- **Impact and authority:** reduces four validator entrypoints to one without changing runtime assets, icon identities, or gameplay/network authority. Imported `.uasset` packages are the game content; preparation/import scripts are optional maintenance tools for artwork changes.
+- **Limits:** image preparation and Unreal import remain separate format-specific tools. The one-off text-crop helper and importers were not consolidated in this increment.
+- **Next eligible task:** audit the remaining `Verify-*` test runners against acceptance requirements and callers, and remove or merge only confirmed duplicates.
+
 ## 2026-10-10 — M13 icon and final candidate verification
 
 - **Completed:** verified source, prepared PNG, imported package, runtime lookup, and rendered consumer coverage for all 48 catalogue textures and all nine status textures on the isolated `codex/m13-inventory-context` candidate. The Dev and Shipping package smokes and the remaining M13 final-gate checks passed on the candidate; this does not complete the main-scoped backlog child or close M13.

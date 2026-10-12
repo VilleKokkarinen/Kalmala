@@ -65,7 +65,7 @@ foreach ($row in $rows) {
     if (!$lookupSource.Contains($mappingNeedle)) {
         throw "Runtime status map is missing $entryId -> $iconId."
     }
-    & (Join-Path $repoRoot 'Scripts\Validate-StatusIcon.ps1') -Id $iconId
+    & (Join-Path $repoRoot 'Scripts\Validate-UIIcons.ps1') -Category Status -Id $iconId
 }
 
 if (Test-Path -LiteralPath $destinationDir) {
@@ -165,7 +165,7 @@ try {
         Copy-Item -LiteralPath $file.FullName -Destination $target
     }
 
-    & (Join-Path $repoRoot 'Scripts\Validate-StatusIconSet.ps1')
+    & (Join-Path $repoRoot 'Scripts\Validate-UIIcons.ps1') -Category Status
     Write-Output 'Imported and validated the complete bounded status icon set (nine textures).'
     $success = $true
 }

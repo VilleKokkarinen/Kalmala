@@ -148,7 +148,7 @@ try {
     }
 
     foreach ($id in $canonicalIds) {
-        & (Join-Path $repoRoot 'Scripts\Validate-CatalogueIcon.ps1') -Id $id
+        & (Join-Path $repoRoot 'Scripts\Validate-UIIcons.ps1') -Category Catalogue -Id $id
     }
     foreach ($row in $rows) {
         $aliasText = $row.catalogue_aliases.Trim()
