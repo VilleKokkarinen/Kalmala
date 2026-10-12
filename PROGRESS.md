@@ -7,7 +7,7 @@
 - **Lightweight checks:** confirmed the supported ID list contains only the eleven intended targets and `git diff --check` passed.
 - **Full verification:** deferred. No menu render or test suite was run.
 - **Impact and authority:** renderer target selection only; the Settings Status screen and game UI are unchanged.
-- **Limits:** pre-existing PNGs named for `settings.status` are left untouched in prior output folders.
+- **Limits:** `settings.status` remains only in the directory-render cleanup pattern so prior duplicate PNGs are removed; it is not a supported or generated menu target.
 - **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
 
 ## 2026-10-12 — Pack Build tiles like Inventory

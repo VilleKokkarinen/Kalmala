@@ -37,6 +37,7 @@ function Get-Sha256Hex([byte[]]$Bytes) {
 }
 $menuIds = @('inventory','crafting','inventory-crafting','build','settings.home','settings.options',
     'settings.audio','settings.controls','settings.controller','settings.video','settings.accessibility')
+$retiredMenuOutputIds = @('settings.status')
 if ($List) { $menuIds; return }
 if ($Menu.Count -eq 0) {
     # Keep the custom-widget invocation's previous single-context behavior.
@@ -128,7 +129,8 @@ if (!(Test-Path -LiteralPath (Join-Path $Cache 'Binaries/Win64/UnrealEditor-Kalm
 }
 if (!($singleMenu -and $Output)) {
     New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
-    $renderedMenuNames = ($menuIds | ForEach-Object { [regex]::Escape($_) }) -join '|'
+    $renderedMenuNames = (@($menuIds) + @($retiredMenuOutputIds) |
+        ForEach-Object { [regex]::Escape($_) }) -join '|'
     $renderedPNGPattern = '^(?:' + $renderedMenuNames + ')-[0-9a-f]{8}\.png$'
     $staleRenderedPNGs = @(Get-ChildItem -LiteralPath $outputDirectory -File |
         Where-Object { $_.Name -match $renderedPNGPattern })
