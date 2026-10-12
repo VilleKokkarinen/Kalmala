@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Match Repair and Upgrade presentation to Craft
+
+- **Completed:** placed Workbench Repair, Forge Repair, and Forge Upgrade on the same wood-backed station canvas and inset used by Craft. Repair now uses matching side-by-side framed carried-tool and detail panels, with search/filter controls grouped on one row and no selected-row caret. Forge Upgrade pairs its requirement summary with the owner-only comparison and action in matching frames. Repair and upgrade actions and data flow remain unchanged.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryCraftLayout.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryInspectWidget.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `Source/KalmalaUI/Public/KalmalaInventoryInspectWidget.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** targeted Unreal UI/editor module build succeeded after adding the required vertical-box slot include. `Scripts/Render-Menu.ps1 -Menu workbench.repair,forge.upgrade,forge.repair -BuildModules` rendered all three views at 1920×1080 and the captures were inspected. `git diff --check` passed. No automation tests were run; full project verification remains deferred.
+- **Impact and authority:** station menu presentation only. Tool inspection remains owner-local, and repair/upgrade requests retain their existing server validation and authority; networking and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Render previews use unavailable station and inventory context, so they verify framing and layout rather than live requirements or transactions. Full project verification remains deferred.
+- **Next eligible work:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Show Workbench/Forge station levels
 
 - **Completed:** replaced the Workbench Tool Rack and Forge Anvil status labels with the station's level in the top-right header. Each uses its base level 1 when no station actor is available in a render or stale context; otherwise it displays the effective level derived from compatible nearby upgrades.

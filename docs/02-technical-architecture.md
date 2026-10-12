@@ -2254,6 +2254,10 @@ the shell; the station catalogue icon, name, and level or cooking-heat status
 sit at the top-right.
 The selected Workbench/Forge tab uses the shared gold text accent without a
 leading selection marker.
+Workbench Repair, Forge Repair, and Forge Upgrade use the same wood-backed
+content area and top inset as station Craft. Repair pairs its carried-tool list
+and item detail in framed columns; Upgrade pairs its requirement summary with
+the owner-only comparison and action in matching framed columns.
 The existing progression RPC remains responsible for authoritative checks,
 material exchange, and persistence.
 These Workbench and Forge level lines remain visible in their parent Craft

@@ -5,6 +5,7 @@
 #include "KalmalaThemedButton.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Button.h"
@@ -13,8 +14,10 @@
 #include "Components/GridSlot.h"
 #include "Components/Border.h"
 #include "Components/EditableTextBox.h"
+#include "Components/ScrollBox.h"
 #include "Components/SizeBox.h"
 #include "InputCoreTypes.h"
+#include "Brushes/SlateRoundedBoxBrush.h"
 
 TSharedRef<SWidget> UKalmalaInventoryInspectWidget::RebuildWidget()
 {
@@ -34,12 +37,14 @@ void UKalmalaInventoryInspectWidget::Build()
     SearchBox->SetHintText(FText::FromString(TEXT("Search your inventory by name")));
     SearchBox->OnTextChanged.AddDynamic(this, &ThisClass::SearchChanged);
     Column->AddChild(SearchBox);
-    auto* Browse = WidgetTree->ConstructWidget<UVerticalBox>(); Column->AddChild(Browse);
-    auto MakeControl = [this, Browse]()
+    BrowseStack = WidgetTree->ConstructWidget<UVerticalBox>();
+    BrowseRow = WidgetTree->ConstructWidget<UHorizontalBox>();
+    Column->AddChild(BrowseStack);
+    auto MakeControl = [this]()
     {
         auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
-        Label->SetAutoWrapText(true); Button->SetContent(Label); Browse->AddChild(Button);
+        Label->SetAutoWrapText(true); Button->SetContent(Label);
         return Button;
     };
     CategoryButton = MakeControl(); SortButton = MakeControl(); ClearButton = MakeControl();
@@ -60,9 +65,64 @@ void UKalmalaInventoryInspectWidget::Build()
     }
     Buttons[0]->OnClicked.AddDynamic(this, &ThisClass::Previous);
     Buttons[1]->OnClicked.AddDynamic(this, &ThisClass::Next);
+    ListContent = WidgetTree->ConstructWidget<UVerticalBox>();
+    ListScroll = WidgetTree->ConstructWidget<UScrollBox>();
+    FKalmalaUITheme::Get().ApplyScroll(*ListScroll);
     Grid = WidgetTree->ConstructWidget<UGridPanel>();
-    Column->AddChild(Grid);
-    Detail = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>(); Column->AddChild(Detail);
+    ListScroll->AddChild(Grid);
+    ListContent->AddChildToVerticalBox(ListScroll)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    Actions->RemoveFromParent();
+    ListContent->AddChildToVerticalBox(Actions)->SetPadding(FMargin(0.0f, 6.0f, 0.0f, 0.0f));
+    ListFrame = WidgetTree->ConstructWidget<UBorder>();
+    ListFrame->SetContent(ListContent);
+    Detail = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
+    DetailFrame = WidgetTree->ConstructWidget<UBorder>();
+    DetailFrame->SetContent(Detail);
+    Split = WidgetTree->ConstructWidget<UHorizontalBox>();
+    ApplyLayout();
+}
+
+void UKalmalaInventoryInspectWidget::ApplyLayout()
+{
+    if (!Column || !ListFrame || !DetailFrame || !Split || !BrowseStack || !BrowseRow) return;
+    for (UButton* Button : {CategoryButton.Get(), SortButton.Get(), ClearButton.Get()})
+        Button->RemoveFromParent();
+    BrowseStack->RemoveFromParent();
+    BrowseRow->RemoveFromParent();
+    if (bUseSplitLayout)
+    {
+        Column->InsertChildAt(2, BrowseRow);
+        for (UButton* Button : {CategoryButton.Get(), SortButton.Get(), ClearButton.Get()})
+            BrowseRow->AddChildToHorizontalBox(Button)->SetPadding(FMargin(3.0f, 2.0f));
+    }
+    else
+    {
+        Column->InsertChildAt(2, BrowseStack);
+        BrowseStack->AddChild(CategoryButton);
+        BrowseStack->AddChild(SortButton);
+        BrowseStack->AddChild(ClearButton);
+    }
+    ListFrame->RemoveFromParent();
+    DetailFrame->RemoveFromParent();
+    Split->RemoveFromParent();
+    if (bUseSplitLayout)
+    {
+        auto* ListSlot = Split->AddChildToHorizontalBox(ListFrame);
+        FSlateChildSize ListSize(ESlateSizeRule::Fill);
+        ListSize.Value = 0.36f;
+        ListSlot->SetSize(ListSize);
+        ListSlot->SetPadding(FMargin(0.0f, 0.0f, 8.0f, 0.0f));
+        auto* DetailSlot = Split->AddChildToHorizontalBox(DetailFrame);
+        FSlateChildSize DetailSize(ESlateSizeRule::Fill);
+        DetailSize.Value = 0.64f;
+        DetailSlot->SetSize(DetailSize);
+        Column->AddChildToVerticalBox(Split)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    }
+    else
+    {
+        Column->AddChildToVerticalBox(ListFrame);
+        Column->AddChildToVerticalBox(DetailFrame);
+    }
 }
 
 FString UKalmalaInventoryInspectWidget::ActionGuidance(FName Id, bool bTool)
@@ -77,18 +137,24 @@ FString UKalmalaInventoryInspectWidget::ActionGuidance(FName Id, bool bTool)
 }
 
 void UKalmalaInventoryInspectWidget::SetRows(const TArray<FKalmalaCatalogueRow>& InRows, int32 Scale, int32 Contrast,
-    const FString& InListLabel, const FString& InEmptyLabel, const bool bInAllowToolFilter, const int32 InGridColumns)
+    const FString& InListLabel, const FString& InEmptyLabel, const bool bInAllowToolFilter,
+    const int32 InGridColumns, const bool bInUseSplitLayout)
 {
     const int32 BoundedGridColumns = FMath::Clamp(InGridColumns, 1, 4);
     FString Key = FString::Printf(TEXT("%d|%d|%s|%s|%d|%d"), Scale, Contrast, *InListLabel,
         *InEmptyLabel, bInAllowToolFilter, BoundedGridColumns);
+    Key += bInUseSplitLayout ? TEXT("|split") : TEXT("|stacked");
     for (const auto& Row : InRows) Key += TEXT("|") + Row.Id.ToString() + Row.Name + Row.Detail + (Row.bCarriedTool ? TEXT("T") : TEXT("I"));
     if (Column && Key == LastRows) return;
     LastRows = Key;
     OwnerRows = InRows; TextScale = Scale; ContrastMode = Contrast;
     ListLabel = InListLabel; EmptyLabel = InEmptyLabel; bAllowToolFilter = bInAllowToolFilter;
     GridColumns = BoundedGridColumns;
-    Build(); Refilter();
+    const bool bLayoutChanged = bUseSplitLayout != bInUseSplitLayout;
+    bUseSplitLayout = bInUseSplitLayout;
+    Build();
+    if (bLayoutChanged) ApplyLayout();
+    Refilter();
 }
 
 void UKalmalaInventoryInspectWidget::SetSearch(const FString& Query)
@@ -148,12 +214,15 @@ void UKalmalaInventoryInspectWidget::Refresh()
 {
     if (!Column) return;
     const auto& Theme = FKalmalaUITheme::Get();
-    Instructions->SetText(FText::FromString(ListLabel + TEXT(" details. > marks the selected item.")));
+    Instructions->SetText(FText::FromString(bUseSplitLayout
+        ? TEXT("Select a carried tool to inspect its level and condition.")
+        : ListLabel + TEXT(" details. > marks the selected item.")));
     Theme.ApplyText(*Instructions, Theme.BodySize, false, TextScale, ContrastMode);
     BrowseSearchStyle = SearchBox->GetWidgetStyle();
     SearchBox->SetHintText(FText::FromString(FString::Printf(TEXT("Search %s by name"), *ListLabel.ToLower())));
     BrowseSearchStyle.SetFont(Theme.MakeFont(Theme.BodySize, false, TextScale));
-    BrowseSearchStyle.SetBackgroundColor(ContrastMode != 0 ? Theme.HighContrastPanel : Theme.ButtonNormal);
+    BrowseSearchStyle.SetBackgroundColor(ContrastMode != 0 ? Theme.HighContrastPanel
+        : (bUseSplitLayout ? FLinearColor(.02f, .025f, .03f, 1.f) : Theme.ButtonNormal));
     SearchBox->SetWidgetStyle(BrowseSearchStyle);
     SearchBox->SetForegroundColor(Theme.TextColor(false, ContrastMode));
     const TCHAR* Categories[] = {TEXT("All"), TEXT("Items"), TEXT("Carried tools")};
@@ -177,6 +246,25 @@ void UKalmalaInventoryInspectWidget::Refresh()
         Button->SetIsEnabled(!Rows.IsEmpty());
         Theme.ApplyButton(*Button, ContrastMode);
         Theme.ApplyText(*CastChecked<UTextBlock>(Button->GetContent()), Theme.BodySize, false, TextScale, ContrastMode);
+    }
+    const FLinearColor PanelFill = ContrastMode
+        ? FLinearColor::Black : FLinearColor(.09f, .045f, .02f, .65f);
+    const FLinearColor PanelBorder = ContrastMode
+        ? FLinearColor::White : FLinearColor(.45f, .27f, .12f, 1.0f);
+    for (UBorder* Frame : {ListFrame.Get(), DetailFrame.Get()})
+    {
+        if (bUseSplitLayout)
+        {
+            Frame->SetBrush(FSlateRoundedBoxBrush(PanelFill, 3.0f, PanelBorder, 1.0f));
+            Frame->SetBrushColor(FLinearColor::White);
+            Frame->SetPadding(FMargin(10.0f));
+        }
+        else
+        {
+            Frame->SetBrush(FSlateBrush());
+            Frame->SetBrushColor(FLinearColor::Transparent);
+            Frame->SetPadding(FMargin(0.0f));
+        }
     }
     Grid->ClearChildren();
     int32 GridRow = 0, GridColumn = 0;
@@ -204,7 +292,8 @@ void UKalmalaInventoryInspectWidget::Refresh()
         IconSlot->SetPadding(FMargin(0.0f, 0.0f, Theme.SlotPadding, 0.0f));
         auto* Label = WidgetTree->ConstructWidget<UTextBlock>();
         Label->SetAutoWrapText(true); Label->SetWrapTextAt(140.0f);
-        Label->SetText(FText::FromString((Index == Selected ? TEXT("> ") : TEXT("")) + Rows[Index].Name + TEXT("\n") + Rows[Index].Detail));
+        Label->SetText(FText::FromString((!bUseSplitLayout && Index == Selected ? TEXT("> ") : TEXT(""))
+            + Rows[Index].Name + TEXT("\n") + Rows[Index].Detail));
         Theme.ApplyText(*Label, Theme.BodySize, Index == Selected, TextScale, ContrastMode);
         auto* LabelSlot = CardContent->AddChildToHorizontalBox(Label);
         LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
@@ -212,6 +301,8 @@ void UKalmalaInventoryInspectWidget::Refresh()
         if (++GridColumn == GridColumns) { ++GridRow; GridColumn = 0; }
     }
     Detail->SetVisibility(Rows.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+    DetailFrame->SetVisibility(Rows.IsEmpty() && !bUseSplitLayout
+        ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (Rows.IsValidIndex(Selected))
     {
         const auto& Row = Rows[Selected];

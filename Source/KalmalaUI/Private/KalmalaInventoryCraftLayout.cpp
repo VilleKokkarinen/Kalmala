@@ -84,6 +84,20 @@ void UKalmalaCraftingWidget::BuildInventoryCraftLayout()
     auto* CraftSlot = Root->AddChildToOverlay(InventoryCraftBackground);
     CraftSlot->SetHorizontalAlignment(HAlign_Fill);
     CraftSlot->SetVerticalAlignment(VAlign_Fill);
+    StationServiceBackground = WidgetTree->ConstructWidget<UBorder>();
+    StationServiceContent = WidgetTree->ConstructWidget<UVerticalBox>();
+    StationServiceBackground->SetContent(StationServiceContent);
+    auto* StationServiceSlot = Root->AddChildToOverlay(StationServiceBackground);
+    StationServiceSlot->SetHorizontalAlignment(HAlign_Fill);
+    StationServiceSlot->SetVerticalAlignment(VAlign_Fill);
+    for (UBorder* ServicePanel : {WorkbenchRepairPanel.Get(), StationUpgradePanel.Get()})
+    {
+        if (!ServicePanel) continue;
+        ServicePanel->RemoveFromParent();
+        auto* PanelSlot = StationServiceContent->AddChildToVerticalBox(ServicePanel);
+        PanelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        PanelSlot->SetHorizontalAlignment(HAlign_Fill);
+    }
     if (StationHeaderRow)
     {
         StationHeaderRow->RemoveFromParent();
@@ -94,6 +108,7 @@ void UKalmalaCraftingWidget::BuildInventoryCraftLayout()
     }
     WidgetTree->RootWidget = Root;
     InventoryCraftBackground->SetVisibility(ESlateVisibility::Collapsed);
+    StationServiceBackground->SetVisibility(ESlateVisibility::Collapsed);
 
     auto* SearchRow = WidgetTree->ConstructWidget<UHorizontalBox>();
     Column->AddChildToVerticalBox(SearchRow)->SetPadding(FMargin(0, 0, 0, 8));

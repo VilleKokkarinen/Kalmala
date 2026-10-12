@@ -13,7 +13,7 @@ class KALMALAUI_API UKalmalaInventoryInspectWidget : public UUserWidget
 public:
     void SetRows(const TArray<FKalmalaCatalogueRow>& InRows, int32 Scale, int32 Contrast,
         const FString& ListLabel = TEXT("Inventory"), const FString& EmptyLabel = TEXT("Your inventory is empty."),
-        bool bAllowToolFilter = true, int32 GridColumns = 4);
+        bool bAllowToolFilter = true, int32 GridColumns = 4, bool bUseSplitLayout = false);
     bool Navigate(FKey Key);
     FName GetSelectedItem() const;
     const FString& GetSearch() const { return Search; }
@@ -32,6 +32,7 @@ private:
     void Build();
     void Refresh();
     void Refilter();
+    void ApplyLayout();
     UFUNCTION() void SearchChanged(const FText& Text);
     UFUNCTION() void CycleCategory();
     UFUNCTION() void CycleSort();
@@ -40,6 +41,13 @@ private:
     UFUNCTION() void Next();
     UPROPERTY(Transient) TObjectPtr<class UVerticalBox> Column;
     UPROPERTY(Transient) TObjectPtr<class UGridPanel> Grid;
+    UPROPERTY(Transient) TObjectPtr<class UVerticalBox> BrowseStack;
+    UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> BrowseRow;
+    UPROPERTY(Transient) TObjectPtr<class UBorder> ListFrame;
+    UPROPERTY(Transient) TObjectPtr<class UBorder> DetailFrame;
+    UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> Split;
+    UPROPERTY(Transient) TObjectPtr<class UScrollBox> ListScroll;
+    UPROPERTY(Transient) TObjectPtr<class UVerticalBox> ListContent;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaItemDetailWidget> Detail;
     UPROPERTY(Transient) TObjectPtr<class UTextBlock> Instructions;
     UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> SearchBox;
@@ -62,5 +70,6 @@ private:
     FString EmptyLabel = TEXT("Your inventory is empty.");
     bool bAllowToolFilter = true;
     int32 GridColumns = 4;
+    bool bUseSplitLayout = false;
     FString LastRows;
 };

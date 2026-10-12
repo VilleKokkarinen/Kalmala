@@ -127,6 +127,8 @@ private:
         const FString& Details, int32 TextScalePercent, int32 ContrastMode);
     UFUNCTION() void SelectInventoryCraftRecipe();
     UPROPERTY(Transient) TObjectPtr<UBorder> InventoryCraftBackground;
+    UPROPERTY(Transient) TObjectPtr<UBorder> StationServiceBackground;
+    UPROPERTY(Transient) TObjectPtr<class UVerticalBox> StationServiceContent;
     UPROPERTY(Transient) TObjectPtr<UVerticalBox> BuildMenuStack;
     UPROPERTY(Transient) TObjectPtr<class USizeBox> BuildRequirementsSizeBox;
     UPROPERTY(Transient) TObjectPtr<UBorder> BuildRequirementsPanel;
@@ -237,6 +239,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StationHeaderNameText;
     UPROPERTY(Transient) TObjectPtr<UBorder> WorkbenchRepairPanel;
     UPROPERTY(Transient) TObjectPtr<UBorder> StationUpgradePanel;
+    UPROPERTY(Transient) TObjectPtr<UBorder> UpgradeRequirementsFrame;
+    UPROPERTY(Transient) TObjectPtr<UBorder> UpgradeComparisonFrame;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairContextText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairStatusText;
     UPROPERTY(Transient) TObjectPtr<UWidget> StationSectionSwitcher;

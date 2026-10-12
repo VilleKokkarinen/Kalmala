@@ -2307,6 +2307,8 @@ The Workbench context shell opens Craft by default and lets the owner switch to
 Repair without closing the accepted station context. Repair shows only that
 owner's carried repairable tools, with their authored level and current
 condition, through a separate selection widget from the Craft recipe state.
+Its station view shares the wood-backed content area with Craft and presents
+the tool list and selected-item detail in side-by-side framed panels.
 The free repair request reuses `ServerRepairTool` and submits only the selected
 tool ID. The server reads the owner's current tool record, validates a visible
 same-world Workbench or Forge within 250 cm, persists the repaired state, and
@@ -2356,6 +2358,8 @@ starting condition; it lists Forge level 2, Crafting level 5 and the second-tier
 unlock, the Bronze Axe level-one prerequisite, and every material cost with the
 owner's current counts. It presents the first unmet requirement and enables the
 existing Upgrade action only when the owner-visible progression is ready. The
+station view pairs the requirement summary with the owner-only comparison and
+Upgrade action in framed columns matching the station Craft layout. The
 action calls `ServerProgressTool` with only `IronAxe`; the server still chooses
 a visible same-world Forge, validates the exact authored prerequisites, commits
 the material/tool exchange, and persists the owner state. A stale or invalid

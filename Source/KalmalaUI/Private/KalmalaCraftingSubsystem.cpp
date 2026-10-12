@@ -677,6 +677,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         auto* RepairSlot = RepairPanelContent->AddChildToVerticalBox(RepairControl);
         RepairSlot->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
         RepairSlot->SetHorizontalAlignment(HAlign_Fill);
+        if (RepairControl == WorkbenchRepairInspector)
+            RepairSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     }
     Column->AddChildToVerticalBox(WorkbenchRepairPanel);
     BuildExcludedWidgets.Add(WorkbenchRepairPanel);
@@ -711,20 +713,37 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     UpgradeIronAxeButton = AddButton(TEXT("Upgrade to Iron Axe"), ToolProgressionActions,
         TEXT("Exchange a level-one Bronze Axe for a level-two Iron Axe when the Forge and shown requirements are ready."));
     UpgradeIronAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeIronAxe);
-    auto* UpgradePanelContent = WidgetTree->ConstructWidget<UVerticalBox>();
+    auto* UpgradePanelContent = WidgetTree->ConstructWidget<UHorizontalBox>();
     StationUpgradePanel = WidgetTree->ConstructWidget<UBorder>();
     StationUpgradePanel->SetContent(UpgradePanelContent);
-    for (UWidget* UpgradeControl : {static_cast<UWidget*>(ToolProgressionText.Get()),
-            static_cast<UWidget*>(ToolUpgradeComparisonTitle.Get()),
+    auto* UpgradeRequirements = WidgetTree->ConstructWidget<UVerticalBox>();
+    UpgradeRequirementsFrame = WidgetTree->ConstructWidget<UBorder>();
+    UpgradeRequirementsFrame->SetContent(UpgradeRequirements);
+    ToolProgressionText->RemoveFromParent();
+    UpgradeRequirements->AddChildToVerticalBox(ToolProgressionText);
+    auto* RequirementsSlot = UpgradePanelContent->AddChildToHorizontalBox(UpgradeRequirementsFrame);
+    FSlateChildSize RequirementsSize(ESlateSizeRule::Fill);
+    RequirementsSize.Value = 0.62f;
+    RequirementsSlot->SetSize(RequirementsSize);
+    RequirementsSlot->SetPadding(FMargin(0.0f, 0.0f, 8.0f, 0.0f));
+
+    auto* UpgradeComparison = WidgetTree->ConstructWidget<UVerticalBox>();
+    UpgradeComparisonFrame = WidgetTree->ConstructWidget<UBorder>();
+    UpgradeComparisonFrame->SetContent(UpgradeComparison);
+    for (UWidget* UpgradeControl : {static_cast<UWidget*>(ToolUpgradeComparisonTitle.Get()),
             static_cast<UWidget*>(ToolUpgradeLevelComparison.Get()),
             static_cast<UWidget*>(ToolUpgradeConditionComparison.Get()),
             static_cast<UWidget*>(ToolProgressionActions.Get())})
     {
         UpgradeControl->RemoveFromParent();
-        auto* UpgradeSlot = UpgradePanelContent->AddChildToVerticalBox(UpgradeControl);
+        auto* UpgradeSlot = UpgradeComparison->AddChildToVerticalBox(UpgradeControl);
         UpgradeSlot->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
         UpgradeSlot->SetHorizontalAlignment(HAlign_Fill);
     }
+    auto* ComparisonSlot = UpgradePanelContent->AddChildToHorizontalBox(UpgradeComparisonFrame);
+    FSlateChildSize ComparisonSize(ESlateSizeRule::Fill);
+    ComparisonSize.Value = 0.38f;
+    ComparisonSlot->SetSize(ComparisonSize);
     Column->AddChildToVerticalBox(StationUpgradePanel);
     BuildExcludedWidgets.Add(CraftBronzeAxeButton);
     BuildExcludedWidgets.Add(UpgradeIronAxeButton);
@@ -1427,6 +1446,7 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     const bool bCookingContext = bCookingRackContext || bCauldronContext || bFryingPanContext;
     const bool bStationCraftContext = bCookingContext || bWorkbenchCraftContext || bForgeCraftContext;
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
+    const bool bStationServicePresentation = bRepairContext || bForgeUpgradeContext;
     const bool bStationContext = bStationCraftContext || bForgeUpgradeContext || bRepairContext || bStorageContext;
     const bool bNonCraftSection = bRepairContext || bForgeUpgradeContext || bStorageContext;
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
@@ -1480,6 +1500,9 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     if (StationHeaderRow)
         StationHeaderRow->SetVisibility(bStationContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (StationServiceBackground)
+        StationServiceBackground->SetVisibility(bStationServicePresentation
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (WorkbenchRepairContextText)
         WorkbenchRepairContextText->SetVisibility(bRepairContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
@@ -1518,8 +1541,8 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
         ToolProgressionActions->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (StationUpgradePanel)
-        StationUpgradePanel->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext
-            || bRepairContext || bStorageContext ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+        StationUpgradePanel->SetVisibility(bForgeUpgradeContext
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (UpgradeTargetIconBox)
         UpgradeTargetIconBox->SetVisibility(bForgeUpgradeContext
             ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
@@ -3511,9 +3534,12 @@ void UKalmalaCraftingWidget::Refresh()
 {
     const bool bStationCraftPresentation = bWorkbenchCraftContext || bForgeCraftContext;
     const bool bInventoryCraftPresentation = bInventoryCompanion || bStationCraftPresentation;
+    const bool bStationServicePresentation = bWorkbenchRepairContext || bForgeUpgradeContext || bForgeRepairContext;
     if (InventoryCraftBackground) InventoryCraftBackground->SetVisibility(bInventoryCraftPresentation
         ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-    if (MenuBackground) MenuBackground->SetVisibility(bInventoryCraftPresentation
+    if (StationServiceBackground) StationServiceBackground->SetVisibility(bStationServicePresentation
+        ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (MenuBackground) MenuBackground->SetVisibility(bInventoryCraftPresentation || bStationServicePresentation
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     const bool bStandaloneBuildMenu = !bInventoryCompanion && !bEmbeddedContext && StationFilterKit.IsNone();
     if (BuildRequirementsPanel)
@@ -3593,10 +3619,18 @@ void UKalmalaCraftingWidget::Refresh()
         for (UBorder* StationPanel : {WorkbenchRepairPanel.Get(), StationUpgradePanel.Get()})
         {
             if (!StationPanel) continue;
-            StationPanel->SetBrush(FSlateRoundedBoxBrush(StationPanelFill, 3.0f,
-                StationPanelBorder, 1.0f));
+            StationPanel->SetBrush(FSlateRoundedBoxBrush(FLinearColor::Transparent, 0.0f,
+                FLinearColor::Transparent, 0.0f));
             StationPanel->SetBrushColor(FLinearColor::White);
-            StationPanel->SetPadding(FMargin(10.0f));
+            StationPanel->SetPadding(FMargin(0.0f));
+        }
+        for (UBorder* StationFrame : {UpgradeRequirementsFrame.Get(), UpgradeComparisonFrame.Get()})
+        {
+            if (!StationFrame) continue;
+            StationFrame->SetBrush(FSlateRoundedBoxBrush(StationPanelFill, 3.0f,
+                StationPanelBorder, 1.0f));
+            StationFrame->SetBrushColor(FLinearColor::White);
+            StationFrame->SetPadding(FMargin(10.0f));
         }
         if (StationHeaderNameText)
             Theme.ApplyText(*StationHeaderNameText, Theme.EmphasisSize + 4, true,
@@ -3605,6 +3639,11 @@ void UKalmalaCraftingWidget::Refresh()
         {
             Theme.ApplyPanel(*MenuBackground, ContrastMode, &Theme.InventoryPanelImage);
             MenuBackground->SetPadding(FMargin(8.0f));
+        }
+        else if (bEmbeddedContext && bStationServicePresentation)
+        {
+            Theme.ApplyPanel(*StationServiceBackground, ContrastMode, &Theme.InventoryPanelImage);
+            StationServiceBackground->SetPadding(FMargin(12.0f, 112.0f, 12.0f, 12.0f));
         }
         else if (bEmbeddedContext)
         {
@@ -3641,7 +3680,8 @@ void UKalmalaCraftingWidget::Refresh()
             TEXT("This chest"), M->HasStorageView() ? TEXT("This chest is empty.") : TEXT("Chest contents are unavailable."), false, 2);
     if (WorkbenchRepairInspector)
     {
-        WorkbenchRepairInspector->SetRows(WorkbenchRepairRows, TextScalePercent, ContrastMode);
+        WorkbenchRepairInspector->SetRows(WorkbenchRepairRows, TextScalePercent, ContrastMode,
+            TEXT("Carried tools"), TEXT("You have no repairable tools."), true, 1, true);
         RefreshWorkbenchRepairState(M);
     }
     if (StorageContextStatusText)

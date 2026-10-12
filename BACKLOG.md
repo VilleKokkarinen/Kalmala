@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Match Workbench Repair and Forge Repair/Upgrade styling:** reuse the wood-backed station content area, place repair browsing beside item details, and frame Forge upgrade requirements and comparison together.
+
 - [x] **2026-10-12 — Polish Workbench/Forge selection cues:** use gold text for the active station tab, remove selection carets, and align recipe names left beside their icons.
 
 - [x] **2026-10-12 — Match Workbench and Forge menus to Inventory Craft:** use the shared split list/detail layout for both Craft tabs, keep station tabs and identity/status anchored at the top, frame Repair and Upgrade content, and expose render targets for every Workbench/Forge section.
