@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Show Workbench/Forge station levels
+
+- **Completed:** replaced the Workbench Tool Rack and Forge Anvil status labels with the station's level in the top-right header. Each uses its base level 1 when no station actor is available in a render or stale context; otherwise it displays the effective level derived from compatible nearby upgrades.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Scripts/Tests/Construction/Verify-Crafting.ps1`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** compile the affected Unreal UI module and render Workbench Craft, Forge Craft, Upgrade, and Repair previews; inspect the displayed station levels and confirm the attachment-state wording is gone. `git diff --check` passed. No automation tests were run; full project verification remains deferred.
+- **Impact and authority:** local station-header presentation only. Displayed levels read the existing effective station-level contract; attachment placement, station checks, RPC validation, saved records, and server authority are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. A missing/expired actor falls back to the station's base level 1 because no attachment-derived level is available. Render previews do not establish live upgrade behavior. Full project verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Correct crafting list content alignment
 
 - **Completed:** set the shared list-row buttons' content slots to fill horizontally and center vertically. The item icon and left-justified label now share a consistent left inset in selected and unselected Workbench, Forge, and Inventory Craft rows.

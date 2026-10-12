@@ -2536,8 +2536,8 @@ separate Light action remains until an equivalent relight route is integrated.
 After an affected UI build, `Verify-Crafting.ps1` requires
 `Build context cleanup: Headerless=1 BrowseControls=1 ObsoleteHidden=1
 GridAndRequirements=1 CardActionsHidden=1 RelightRemoved=1 StatusHidden=1
-StorageShell=1` on both peers, alongside Workbench `PassiveRack=1` and Forge
-`PassiveAnvil=1`. Its rendered matrix captures the cleaned standalone Build
+StorageShell=1` on both peers, alongside Workbench and Forge `StationLevel=1`
+scope markers. Its rendered matrix captures the cleaned standalone Build
 menu and verifies the clean view after category/no-results recovery. Run the
 full queue, host/client rendered matrix, ownership and documentation checks
 during M12 milestone-final verification; this child does not claim those
@@ -2798,9 +2798,10 @@ Crafting item choices render as flat selectable list rows using the shared
 `ListViewRow*` theme keys. Item names stay left-aligned beside their icons;
 selection uses the row treatment without adding a leading marker. Selected
 Workbench/Forge section tabs use the shared gold text accent without a marker.
-The tabs align at the shell's top-left; the accepted station icon, catalogue name, and existing level,
-attachment, or cooking-heat status align at the top-right. Requirement material
-icons use a separate theme-configurable frame, with white borders in high
+The tabs align at the shell's top-left; the accepted station icon and catalogue
+name align at the top-right with its effective level, starting at level 1 and
+increasing by one for a compatible nearby upgrade, or with cooking-heat status.
+Requirement material icons use a separate theme-configurable frame, with white borders in high
 contrast. This changes local presentation only; recipe selection, station
 context validation, RPCs, server authority, and saved data are unchanged.
 

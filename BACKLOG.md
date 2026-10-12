@@ -76,6 +76,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 - [x] **2026-10-12 — Refine crafting menu presentation:** add configurable list-row styling for item selection, align station sections at top-left and station identity/status at top-right, and frame requirement icons.
   - [x] Apply the shared list-view theme to crafting choices and the requested station/header and material-icon presentation; preserve existing selection and authority behavior.
 - [x] **2026-10-12 — Correct crafting list content alignment:** stretch each list button's content slot so item icons and left-justified labels start at the row's left inset in Workbench, Forge, and Inventory Craft.
+- [x] **2026-10-12 — Show station levels in Workbench/Forge headers:** replace attachment-state text with each station's effective level, using level 1 as its base and adding a level for a compatible upgrade.
 
 - [ ] **2026-10-12 — Streamline verification scripts:** reduce redundant or obsolete test entrypoints while retaining required acceptance coverage; distinguish test runners from Python support tools.
   - [x] Retire the superseded standalone integrated ocean skiff journey runner; the integrated reconnect runner already covers its journey/discovery/weather checks and adds late-join/restart coverage.

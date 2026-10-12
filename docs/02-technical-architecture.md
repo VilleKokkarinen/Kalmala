@@ -2243,20 +2243,21 @@ boar/deer meat; the Cauldron uses the same owner-local shell for stew and soup;
 the Frying Pan shows only roasted root vegetables and deer/rutabaga roast.
 All cooking views include ingredient, quantity, and current hearth-heat feedback.
 Workbench opens a Craft section scoped to its supported recipes, matching Tool Rack production,
-and the owner-local Bronze Axe operation; its effective level and Tool Rack
-state come from the accepted station and replicated placement presentation.
+and the owner-local Bronze Axe operation. Its header shows the accepted station's effective
+level, starting at level 1 and increasing by one for a nearby compatible Tool Rack.
 Forge exposes separate Craft, Upgrade, and Repair sections. Upgrade compares the
 owner-only carried Bronze Axe against its authored Iron Axe target and reads
-the owner's tool, material, and skill snapshots for prerequisites; the accepted
-Forge's effective level and Anvil state stay tied to the exact context actor.
-The section tabs sit at the top-left of the shell; the station catalogue icon,
-name, and existing level/attachment or cooking-heat status sit at the top-right.
+the owner's tool, material, and skill snapshots for prerequisites; its header
+shows the accepted Forge's effective level, starting at level 1 and increasing
+by one for a nearby compatible Anvil. The section tabs sit at the top-left of
+the shell; the station catalogue icon, name, and level or cooking-heat status
+sit at the top-right.
 The selected Workbench/Forge tab uses the shared gold text accent without a
 leading selection marker.
 The existing progression RPC remains responsible for authoritative checks,
 material exchange, and persistence.
-These passive Workbench Tool Rack and Forge Anvil status lines remain visible
-in their parent Craft sections. The standalone Build menu no longer duplicates
+These Workbench and Forge level lines remain visible in their parent Craft
+sections. The standalone Build menu no longer duplicates
 inventory, food, repair, upgrade, or storage controls; it keeps placement and
 the Light hearth action, while raw-fuel addition uses Campfire Interact.
 The owner can switch to a separate Repair section without changing the recipe

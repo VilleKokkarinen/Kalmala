@@ -1627,20 +1627,17 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
 
     const bool bForgeContext = bForgeCraftContext || bForgeUpgradeContext || bForgeRepairContext;
     const FName ExpectedKit = bForgeContext ? FName(TEXT("ForgeKit")) : FName(TEXT("WorkbenchKit"));
-    const TCHAR* StationName = bForgeContext ? TEXT("Forge") : TEXT("Workbench");
-    const TCHAR* AttachmentName = bForgeContext ? TEXT("Anvil") : TEXT("Tool Rack");
+    const int32 BaseLevel = FKalmalaToolProgressionContract::GetBaseStationLevel(ExpectedKit);
     if (!IsValid(Station) || Station->GetConstructionKit() != ExpectedKit)
     {
         StationContextStatusText->SetText(FText::FromString(FString::Printf(
-            TEXT("%s level unavailable · %s state unavailable"), StationName, AttachmentName)));
+            TEXT("Level %d"), BaseLevel)));
         return;
     }
-    const int32 BaseLevel = FKalmalaToolProgressionContract::GetBaseStationLevel(ExpectedKit);
-    const int32 EffectiveLevel = FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station);
-    const bool bAttachmentPresent = EffectiveLevel > BaseLevel;
+    const int32 EffectiveLevel = FMath::Max(BaseLevel,
+        FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station));
     StationContextStatusText->SetText(FText::FromString(FString::Printf(
-        TEXT("%s level %d · %s: %s"), StationName, EffectiveLevel, AttachmentName,
-        bAttachmentPresent ? TEXT("attached") : TEXT("not attached"))));
+        TEXT("Level %d"), EffectiveLevel)));
 }
 
 void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting)
@@ -2368,11 +2365,11 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     RefreshStationContextState();
     const FString WorkbenchStatus = StationContextStatusText
         ? StationContextStatusText->GetText().ToString() : FString();
-    const bool bPassiveRackState = WorkbenchStatus.Contains(TEXT("Workbench level"))
-        && WorkbenchStatus.Contains(TEXT("Tool Rack"));
+    const bool bWorkbenchLevelShown = WorkbenchStatus == TEXT("Level 1")
+        || WorkbenchStatus == TEXT("Level 2");
     bool bWorkbenchUiScope = StationContextStatusText
         && StationContextStatusText->GetVisibility() == ESlateVisibility::Visible
-        && bPassiveRackState
+        && bWorkbenchLevelShown
         && CraftButton && CraftButton->GetVisibility() != ESlateVisibility::Collapsed
         && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() != ESlateVisibility::Collapsed
         && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed;
@@ -2427,11 +2424,11 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     RefreshStationContextState();
     const FString ForgeStatus = StationContextStatusText
         ? StationContextStatusText->GetText().ToString() : FString();
-    const bool bPassiveAnvilState = ForgeStatus.Contains(TEXT("Forge level"))
-        && ForgeStatus.Contains(TEXT("Anvil"));
+    const bool bForgeLevelShown = ForgeStatus == TEXT("Level 1")
+        || ForgeStatus == TEXT("Level 2");
     bool bForgeUiScope = StationContextStatusText
         && StationContextStatusText->GetVisibility() == ESlateVisibility::Visible
-        && bPassiveAnvilState
+        && bForgeLevelShown
         && CraftButton && CraftButton->GetVisibility() != ESlateVisibility::Collapsed
         && RecipeGrid && RecipeGrid->GetVisibility() != ESlateVisibility::Collapsed
         && Ingredients && Ingredients->GetVisibility() != ESlateVisibility::Collapsed
@@ -2466,20 +2463,20 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const bool bCauldronScope = VerifyCauldronScopeForTest();
     const bool bFryingPanScope = VerifyFryingPanScopeForTest();
     const bool bChestScope = VerifyStorageContextScopeForTest();
-    UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: BronzeAxe=%d GrindingStone=%d ToolRack=%d NoUnrelated=%d ToolPrerequisites=%d PassiveRack=%d UiScope=%d"),
-        bBronzeAxeScoped, bHasGrindingStone, bHasToolRack, bNoUnrelatedRecipes, bToolPrerequisites, bPassiveRackState, bWorkbenchUiScope);
-    UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d ForgeAnvil=%d Materials=%d Station=%d NoUnrelated=%d Route=%d PassiveAnvil=%d UiScope=%d"),
+    UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: BronzeAxe=%d GrindingStone=%d ToolRack=%d NoUnrelated=%d ToolPrerequisites=%d StationLevel=%d UiScope=%d"),
+        bBronzeAxeScoped, bHasGrindingStone, bHasToolRack, bNoUnrelatedRecipes, bToolPrerequisites, bWorkbenchLevelShown, bWorkbenchUiScope);
+    UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d ForgeAnvil=%d Materials=%d Station=%d NoUnrelated=%d Route=%d StationLevel=%d UiScope=%d"),
         bHasFryingPan, bHasForgeAnvil, bFryingPanMaterials, bFryingPanStation,
-        bForgeOnlyRecipes, bForgeInteractionRoute, bPassiveAnvilState, bForgeUiScope);
+        bForgeOnlyRecipes, bForgeInteractionRoute, bForgeLevelShown, bForgeUiScope);
     return bGridIconsLoaded && bSelectedIconLoaded && bUpgradeIconLoaded
         && bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
         && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe
         && bBuildMenuCleanup && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty
         && bBronzeAxeScoped && bHasGrindingStone && bHasToolRack && bNoUnrelatedRecipes
-        && bToolPrerequisites && bPassiveRackState && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
+        && bToolPrerequisites && bWorkbenchLevelShown && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
         && bForgeRepairScope
         && bHasFryingPan && bHasForgeAnvil && bFryingPanRequirements && bForgeOnlyRecipes
-        && bForgeInteractionRoute && bPassiveAnvilState && bForgeUiScope && bCookingRackScope && bCauldronScope && bFryingPanScope
+        && bForgeInteractionRoute && bForgeLevelShown && bForgeUiScope && bCookingRackScope && bCauldronScope && bFryingPanScope
         && bChestScope;
 }
 
@@ -3107,7 +3104,7 @@ bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
         && ToolProgressionText->GetText().ToString().Contains(TEXT("Forge context unavailable"))
         && UpgradeIronAxeButton && !UpgradeIronAxeButton->GetIsEnabled()
         && StationContextStatusText
-        && StationContextStatusText->GetText().ToString().Contains(TEXT("Forge level unavailable"));
+        && StationContextStatusText->GetText().ToString() == TEXT("Level 1");
     const uint32 RequestsBeforeStaleClick = ForgeUpgradeRequestCountForTest;
     UpgradeIronAxe();
     const bool bStaleNoRequest = ForgeUpgradeRequestCountForTest == RequestsBeforeStaleClick;
