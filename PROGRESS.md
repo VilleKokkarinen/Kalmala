@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## 2026-10-12 — Square Build selection buttons
+
+- **Completed:** moved the 64×64 size constraint outside the styled Build-card border, so the border and its selection/unavailable fills stay square even when the uniform-grid slot expands to fill a column.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `BACKLOG.md`, `PROGRESS.md`, and this entry.
+- **Lightweight checks:** inspected the card/size-box/transparent-frame hierarchy and confirmed the size box now constrains the styled border; `git diff --check` passed.
+- **Full verification:** deferred. No Unreal build, automation, or rendered menu review was run.
+- **Impact and authority:** local Build-menu presentation only. Recipe selection and existing placement authority are unchanged.
+- **Limits:** the updated square button appearance has not been confirmed in an Unreal render.
+- **Next eligible task:** audit the remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## 2026-10-12 — Match Build icon tiles to Inventory sizing
 
 - **Completed:** changed standalone Build choices from 96×96 button-like cards to compact 64×64 selectable icon tiles, removed card padding that reduced the drawable area, and rendered catalogue images at native scale to match Inventory.

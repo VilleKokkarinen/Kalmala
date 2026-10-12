@@ -1830,9 +1830,18 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             RecentSlot->SetHorizontalAlignment(HAlign_Right);
             RecentSlot->SetPadding(FMargin(0.0f, FKalmalaUITheme::Get().SlotPadding, 0.0f, 0.0f));
             UTextBlock* FavoriteMarker = AddMarker();
-            CardSize->SetContent(CardContent);
-            Card->SetContent(CardSize);
-            FavoriteFrame->SetContent(Card);
+            if (bIconOnlyBuildCards)
+            {
+                Card->SetContent(CardContent);
+                CardSize->SetContent(Card);
+                FavoriteFrame->SetContent(CardSize);
+            }
+            else
+            {
+                CardSize->SetContent(CardContent);
+                Card->SetContent(CardSize);
+                FavoriteFrame->SetContent(Card);
+            }
             UBorder* CellMargin = WidgetTree->ConstructWidget<UBorder>();
             CellMargin->SetBrushColor(FLinearColor::Transparent);
             CellMargin->SetPadding(FMargin(bIconOnlyBuildCards ? 6.0f : 3.0f));

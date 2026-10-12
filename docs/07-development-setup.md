@@ -2524,12 +2524,12 @@ runtime results.
 ## Standalone Build requirements panel — 2026-10-11
 
 The latest standalone Build presentation uses the Inventory wood backplate,
-64×64 selectable icon tiles with matching 64×64 catalogue-image rendering,
+square 64×64 selection borders around matching 64×64 catalogue-image tiles,
 and a compact requirements panel below the main grid. The icons are centered
-in their tiles; cards use Inventory's warm
-brown overlay, with a subtle gray tint and slightly subdued icons when
-requirements are missing. The requirements panel shows material icons only,
-with owned/required counts in each icon's tooltip. The main window has no
+in their tiles; cards use Inventory's warm brown overlay, with a subtle gray
+tint and slightly subdued icons when requirements are missing. The requirements
+panel shows material icons only, with owned/required counts in each icon's
+tooltip. The main window has no
 selected-item details, ingredient list, preview button, status rows, or other
 action rows beneath the grid. Its tooltip retains applicable hammer,
 placement, station, fuel, and availability conditions. The existing Build-menu cleanup verifier checks this
