@@ -1,6 +1,18 @@
 # Autonomous development progress
 
-## 2026-10-12 — Integrate accepted M14 world map into main
+## 2026-10-12 — Resolve M14 integrated-main UI automation failures
+
+- **Completed:** repaired the three failures from the first integrated-main Kalmala queue and closed M14's milestone-final verification gate.
+- **Files changed:** `Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp`, `KalmalaRecipeBrowseTest.cpp`, `KalmalaUIThemeTest.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryCraftLayout.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `BACKLOG.md`, `PROGRESS.md`, and the M14 evidence README/report.
+- **Milestone-final build:** UE 5.8 `Build.bat KalmalaEditor Win64 Development -Project=C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\Kalmala.uproject -WaitMutex -MaxParallelActions=4` succeeded after the edited UI sources were rebuilt and linked in the isolated mirror. The initial integrated build completed 241 actions; post-repair target rebuilds compiled the final changed files. UnrealBuildTool used its normal writable local directory.
+- **Focused rerun:** `Kalmala.UI.CatalogueIcons.CompleteCoverage`, `Kalmala.UI.Crafting.LocalBrowsing`, and `Kalmala.UI.Theme.LocalPresentation` all passed together with editor exit code 0.
+- **Milestone-final full automation:** `C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\Kalmala.uproject -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir=C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\test-final-main -abslog=C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\automation-final-main.log -ExecCmds="Automation RunTests Kalmala; Quit" -TestExit="Automation Test Queue Empty"` passed **123/123**; the editor exited 0.
+- **Failures repaired:** CatalogueIcons now recognizes `ConstructionHammer` as the canonical carried-tool output. Crafting now creates its native widget tree through a registered transient-world local-player/controller fixture and reports specific layout-probe failures. Theme now expects the configured 9-unit button padding and validates the imported 160×53 source dimensions rather than uninitialized NullRHI platform dimensions.
+- **Impact and authority:** repairs are confined to UI automation expectations and fixture setup. No gameplay behavior, networking/authority, or saved-data schema changed. Previously passing M14 map, ping, privacy, export, cache, viewport, zoom, and theme acceptance remains documented in [M14 main-integration evidence](docs/evidence/m14/main-integration.md).
+- **Status/limits:** M14 integrated-main final verification passed and the milestone is complete. Map sharing remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements and callers under the script-streamlining task.
+
+## 2026-10-12 — Integrate accepted M14 world map into main (initial verification)
 
 - **Completed:** merged the accepted `codex/m14-fix` M14 source into `master`, preserving main's current inventory UI and `Scripts/Tests/<Category>/` organization. Integrated M14 biome tiles, fog/cache work, owner-local pins, validated global pings, and the consolidated world-map acceptance runner.
 - **Files changed:** M14 map/ping source, automation tests and category runners; `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `docs/evidence/m14/` (candidate evidence plus eight reviewed integrated-main captures and this report), `BACKLOG.md`, and `PROGRESS.md`.

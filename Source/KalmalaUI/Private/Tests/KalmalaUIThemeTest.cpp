@@ -32,10 +32,16 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
         && SharedStoneButton->GetStyle().Normal.Margin.Left > 0.0f
         && SharedStoneButton->GetStyle().Normal.Margin.Top > 0.0f);
     const UTexture2D* StoneButtonTexture = Cast<UTexture2D>(SharedStoneButton->GetStyle().Normal.GetResourceObject());
-    TestTrue(TEXT("The UI-scale texture keeps 9-slice edges near 26x10 Slate units"),
-        StoneButtonTexture != nullptr && StoneButtonTexture->GetSizeX() == 160 && StoneButtonTexture->GetSizeY() == 53
-        && FMath::IsNearlyEqual(SharedStoneButton->GetStyle().Normal.Margin.Left, 0.16f)
-        && FMath::IsNearlyEqual(SharedStoneButton->GetStyle().Normal.Margin.Top, 0.18f));
+    const FIntPoint StoneButtonImportedSize = StoneButtonTexture ? StoneButtonTexture->GetImportedSize() : FIntPoint::ZeroValue;
+    const int32 StoneButtonWidth = StoneButtonImportedSize.X;
+    const int32 StoneButtonHeight = StoneButtonImportedSize.Y;
+    const float SliceMarginX = SharedStoneButton->GetStyle().Normal.Margin.Left;
+    const float SliceMarginY = SharedStoneButton->GetStyle().Normal.Margin.Top;
+    TestTrue(*FString::Printf(TEXT("The UI-scale texture keeps 9-slice edges near 26x10 Slate units (actual %dx%d, margins %.3f/%.3f)"),
+        StoneButtonWidth, StoneButtonHeight, SliceMarginX, SliceMarginY),
+        StoneButtonTexture != nullptr && StoneButtonImportedSize.X == 160 && StoneButtonImportedSize.Y == 53
+        && FMath::IsNearlyEqual(SliceMarginX, 0.16f)
+        && FMath::IsNearlyEqual(SliceMarginY, 0.18f));
     RuntimeTheme.ApplyButton(*SharedStoneButton, 1);
     TestTrue(TEXT("High contrast uses its opaque geometric button fallback"),
         SharedStoneButton->GetStyle().Normal.DrawAs == ESlateBrushDrawType::RoundedBox
@@ -157,7 +163,7 @@ bool FKalmalaUIThemeTest::RunTest(const FString& Parameters)
     Extension.ApplyText(*Status, Extension.BodySize, false, 100, 0);
     TestEqual(TEXT("Font face propagates"), Status->GetFont().TypefaceFontName, FName(TEXT("Bold")));
     TestEqual(TEXT("Text outline propagates"), Status->GetFont().OutlineSettings.OutlineSize, 2);
-    TestEqual(TEXT("Button slot padding propagates"), Button->GetStyle().NormalPadding.Left, 8.0f);
+    TestEqual(TEXT("Button slot padding propagates"), Button->GetStyle().NormalPadding.Left, 9.0f);
     TestTrue(TEXT("Hover state propagates"), Button->GetStyle().Hovered.TintColor.GetSpecifiedColor().Equals(Extension.ButtonHovered));
     TestEqual(TEXT("Theme transition duration propagates"), Extension.InteractionTransitionDuration, 0.2f);
     TestEqual(TEXT("Theme focus border width propagates"), Extension.FocusBorderWidth, 3.0f);

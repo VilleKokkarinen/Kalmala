@@ -6,13 +6,27 @@ The accepted source candidate `codex/m14-fix` (tip `4bb141e`) was integrated int
 
 The UE 5.8 Win64 Development editor build passed all 241 actions from the isolated merged-source mirror `C:\Users\Ville\AppData\Local\Temp\m14-b8673a84`. Command: `Build.bat KalmalaEditor Win64 Development -Project=C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\Kalmala.uproject -WaitMutex -MaxParallelActions=4`. The final build log is `C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\build-main.log`; UnrealBuildTool used its normal writable local directory.
 
-The full command-line `Automation RunTests Kalmala` queue completed with **120 successes and 3 failures** (123 tests total). The three failures were:
+The first integrated-main command-line `Automation RunTests Kalmala` queue completed with **120 successes and 3 failures** (123 tests total). The three failures were:
 
 - `Kalmala.UI.CatalogueIcons.CompleteCoverage`: expected “Crafted recipe uses a canonical inventory identity” (`KalmalaStatusHotbarTest.cpp:360`).
 - `Kalmala.UI.Crafting.LocalBrowsing`: expected the current crafting-browsing acceptance assertion (`KalmalaRecipeBrowseTest.cpp:18`).
 - `Kalmala.UI.Theme.LocalPresentation`: its 9-slice edge and button-padding expectations failed (`KalmalaUIThemeTest.cpp:39,161`).
 
-The failing test files and relevant supporting UI files were byte-identical to pre-merge `master`; none were changed by M14. No unrelated UI behavior was modified to suppress these failures. The integrated M14 automation cases `Kalmala.UI.WorldMap.BiomeTextures`, `Kalmala.UI.WorldMap.LocalPresentation`, and `Kalmala.UI.WorldMap.PerformanceBudget` passed. Full-queue log: `C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\automation-main.log`.
+The failing test files and relevant supporting UI files were byte-identical to pre-merge `master`; none were changed by M14. The integrated M14 automation cases `Kalmala.UI.WorldMap.BiomeTextures`, `Kalmala.UI.WorldMap.LocalPresentation`, and `Kalmala.UI.WorldMap.PerformanceBudget` passed. The first full-queue log is `C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\automation-main.log`.
+
+## Final integrated-main verification — 2026-10-12
+
+The three initial failures were repaired, then the Development editor target was rebuilt and the full automation queue rerun in the isolated mirror. The build command `C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat KalmalaEditor Win64 Development -Project=C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\Kalmala.uproject -WaitMutex -MaxParallelActions=4` succeeded after recompiling the changed UI test sources and linking the editor target. UnrealBuildTool used its normal writable local directory.
+
+The focused command `C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\Kalmala.uproject -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir=C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\test-focused-final -abslog=C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\automation-focused-final.log -ExecCmds="Automation RunTests Kalmala.UI.CatalogueIcons.CompleteCoverage+Kalmala.UI.Crafting.LocalBrowsing+Kalmala.UI.Theme.LocalPresentation; Quit" -TestExit="Automation Test Queue Empty"` passed all three requested tests. The final full command `C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\Kalmala.uproject -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir=C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\test-final-main -abslog=C:\Users\Ville\AppData\Local\Temp\m14-b8673a84\automation-final-main.log -ExecCmds="Automation RunTests Kalmala; Quit" -TestExit="Automation Test Queue Empty"` completed with **123 successes, 0 failures**, and editor exit code 0. The log recorded 123 test starts and 123 successes.
+
+Repairs:
+
+- `Kalmala.UI.CatalogueIcons.CompleteCoverage`: the Building Hammer recipe outputs `ConstructionHammer`, a canonical carried-tool identity intentionally absent from the inventory item catalogue. The assertion now verifies that recipe output against the construction-hammer tool definition while preserving the regular item checks for other crafted recipes.
+- `Kalmala.UI.Crafting.LocalBrowsing`: the layout fixture created a native `UUserWidget` without a registered local-player controller, so Unreal skipped `NativeOnInitialized` and the test inspected an empty widget tree. The fixture now creates a transient world, registers its controller and local player, and creates the widget through the normal player-context path. Its test-only layout probe also returns the specific failed conditions.
+- `Kalmala.UI.Theme.LocalPresentation`: the expected default button padding was stale at 8 after the configured default became 9. The 9-slice test now checks the imported 160×53 source size; `GetSizeX/Y()` returned zero in the null-RHI run before platform resource data was initialized, while the imported dimensions and 0.16/0.18 slice margins were correct.
+
+The repairs update automation expectations and setup only; no unrelated UI behavior, gameplay authority, networking, or save schema changed. With the final full queue passing, **M14 integrated-main milestone verification is complete**. Map sharing remains deferred.
 
 ## M14 live and rendered checks
 
@@ -51,4 +65,4 @@ The integrated host/client screenshots reviewed during verification are retained
 | [Changed theme](main/changed-theme-1280x720-host.png) | `F7CC1B498431F8165E412E33F76CC43AFCE3DAF1F5CC28BDAF5C5C1CBEEA0588` |
 | [Changed theme, high contrast](main/changed-theme-contrast-1024x768-client.png) | `6EEAA0F8AF14EC331BED5CF72F6E2627BE0C9F1896859106C404C85A1F218725` |
 
-The M14 source is integrated and its map-specific build, automation, network, exporter, rendering, privacy, cache, viewport, zoom, and theme checks passed. **Do not mark M14 complete yet:** the required integrated-main full automation gate remains at 120/123 because of the three unchanged main-tree failures listed above. No saved-data schema or gameplay authority changed; pings remain server-validated and transient, while exploration and pins remain owner-local.
+The M14 source is integrated and its map-specific build, automation, network, exporter, rendering, privacy, cache, viewport, zoom, and theme checks passed. The first integrated-main queue's three failures are resolved by the rerun above; final integrated-main automation passed 123/123. **M14 is complete.** No saved-data schema or gameplay authority changed; pings remain server-validated and transient, while exploration and pins remain owner-local.

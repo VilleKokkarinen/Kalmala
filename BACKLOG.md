@@ -6,7 +6,7 @@ This is the short execution queue and completion index. The roadmap and feature 
 
 ## Roadmap status
 
-M0–M13 and world-generation Phases 1–9 are complete under their recorded acceptance scope and limitations. M13 integrated-main acceptance passed on 2026-10-11. The accepted M14 source is integrated on main; its final integrated-main verification remains open because the full automation queue currently has three pre-existing failures. See [M14 integration evidence](docs/evidence/m14/main-integration.md).
+M0–M14 and world-generation Phases 1–9 are complete under their recorded acceptance scope and limitations. M13 integrated-main acceptance passed on 2026-10-11; M14 integrated-main acceptance passed on 2026-10-12. See [M14 integration evidence](docs/evidence/m14/main-integration.md).
 
 ## Completed roadmap log
 
@@ -25,7 +25,7 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 - **M11 — User experience and visual UI upgrades:** final acceptance passed 2026-10-06.
 - **M12 — Inventory menu and cleaner gameplay HUD:** final acceptance passed 2026-10-09.
 - **M13 — Revalidated UI on main:** final acceptance passed 2026-10-11; evidence in docs/evidence/m13/.
-- **M14 — Expanded world map:** isolated integrated acceptance passed 2026-10-10 on source 1a411c6 and accepted source is integrated on main; final main verification remains open.
+- **M14 — Expanded world map:** isolated acceptance passed 2026-10-10 on source 1a411c6; integrated-main build, acceptance matrix, and final 123/123 automation queue passed 2026-10-12. Evidence is in docs/evidence/m14/.
 
 ## Post-roadmap user-directed work
 
@@ -93,7 +93,7 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## M14 — Expanded world-map rework
 
-**Accepted isolated source:** `1a411c6d2b76b3d9b4bd438b8449632fd5bac1f4`, accepted 2026-10-10. That source is now integrated on main; the 2026-10-12 integrated-main build and map-specific acceptance passed, while the full automation gate remains open. [Scope and criteria](docs/04-roadmap.md#m14--expanded-world-map-rework) remain authoritative.
+**Complete:** accepted isolated source `1a411c6d2b76b3d9b4bd438b8449632fd5bac1f4`, integrated on main; final integrated-main build, full automation queue, and M14 acceptance passed 2026-10-12. [Scope and criteria](docs/04-roadmap.md#m14--expanded-world-map-rework) remain authoritative.
 
 - [x] Render distinct original biome textures across supported zoom levels.
 - [x] Preserve owner exploration fog without revealing hidden terrain through view changes or markers.
@@ -102,8 +102,8 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 - [x] Remove map co-op controls/presence; keep map sharing and shared pins out of scope.
 - [x] Cache bounded terrain/fog tiles across pan/zoom and reject stale async work.
 - [x] Pass final editor build, 123/123 automation tests, four live map runners, viewport/scale/contrast/zoom/theme matrix and rendered/performance checks.
-- [ ] Complete the integrated-main milestone-final automation gate. Current result: 120/123; the three failing test files and relevant UI implementations are unchanged from pre-merge main. See [integrated-main verification and failures](docs/evidence/m14/main-integration.md).
+- [x] Complete the integrated-main milestone-final automation gate: UE 5.8 editor target rebuilt successfully after the test repairs; the full `Automation RunTests Kalmala` queue passed 123/123 with exit code 0. See [integrated-main verification and repairs](docs/evidence/m14/main-integration.md).
 
 The accepted evidence includes 22 native PNGs, biome raster, exact commands, hashes and performance measurements. Recover the report and manifest from commit `9f11e09` with `git show 9f11e09:docs/evidence/m14/README.md` and `git show 9f11e09:docs/evidence/m14/acceptance.json`. Detailed verification and superseded retry history remain in [PROGRESS.md](PROGRESS.md) and Git history.
 
-The accepted M14 source is integrated on main, and its map-specific integrated verification passed. Keep the M14 milestone open until the integrated-main full automation gate is resolved or otherwise accepted under project policy; the current three failures predate this integration and no unrelated UI repair was included. Map sharing remains deferred.
+The M14 integrated-main verification is complete; no M14 increment remains. Map sharing remains deferred.

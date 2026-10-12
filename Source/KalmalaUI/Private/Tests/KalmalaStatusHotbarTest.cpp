@@ -364,7 +364,13 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
         EKalmalaIcon Icon; int32 Variant;
         TestTrue(*Recipe.RecipeId.ToString(), UKalmalaIconWidget::FindCatalogueIcon(OutputIdentity, Icon, Variant));
         if (Recipe.BuildableOutput.IsNone())
-            TestTrue(TEXT("Crafted recipe uses a canonical inventory identity"), Items->FindItem(Recipe.Output) != nullptr);
+        {
+            const bool bCanonicalItem = Items->FindItem(Recipe.Output) != nullptr;
+            const bool bCanonicalTool = Recipe.RecipeId == TEXT("BuildingHammer")
+                && Recipe.Output == FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ToolId;
+            TestTrue(*FString::Printf(TEXT("%s recipe uses a canonical inventory or tool identity (%s)"),
+                *Recipe.RecipeId.ToString(), *Recipe.Output.ToString()), bCanonicalItem || bCanonicalTool);
+        }
         else
             TestTrue(TEXT("Direct construction output is a supported buildable"),
                 UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput));

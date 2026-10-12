@@ -382,33 +382,53 @@ void UKalmalaCraftingWidget::PrepareMenuRender(const bool bPlayerCrafting)
     SetVisibility(ESlateVisibility::Visible);
 }
 
-bool UKalmalaCraftingWidget::VerifyInventoryCraftLayoutForTest()
+bool UKalmalaCraftingWidget::VerifyInventoryCraftLayoutForTest(FString& OutFailureReason)
 {
-    if (!InventoryCraftBackground || !InventoryCraftList) return false;
+    if (!InventoryCraftBackground || !InventoryCraftList || !MenuBackground || !InventoryCraftTitle
+        || !InventoryCraftCosts || !InventoryCraftButton)
+    {
+        OutFailureReason = FString::Printf(TEXT("Missing fixture widgets (background=%d list=%d shell=%d title=%d costs=%d action=%d contextInitialized=%d contextValid=%d)"),
+            InventoryCraftBackground != nullptr, InventoryCraftList != nullptr, MenuBackground != nullptr,
+            InventoryCraftTitle != nullptr, InventoryCraftCosts != nullptr, InventoryCraftButton != nullptr,
+            GetPlayerContext().IsInitialized(), GetPlayerContext().IsValid());
+        return false;
+    }
     const bool PreviousCompanion = bInventoryCompanion;
     const FString PreviousQuery = RecipeQuery;
     const int32 PreviousSelected = Selected;
+    const int32 PreviousCategory = RecipeCategory;
     bInventoryCompanion = true;
+    RecipeCategory = 0;
     RecipeQuery.Reset();
     Selected = 0;
     Refresh();
-    const bool bLayout = MenuBackground->GetVisibility() == ESlateVisibility::Collapsed
-        && InventoryCraftBackground->GetVisibility() == ESlateVisibility::Visible
-        && InventoryCraftChoices.Num() == 1
-        && InventoryCraftTitle->GetText().ToString() == TEXT("Building Hammer")
-        && InventoryCraftCosts->GetChildrenCount() == 2
-        && !InventoryCraftButton->GetIsEnabled(); // No owning character or materials in this fixture.
+    const int32 InitialChoiceCount = InventoryCraftChoices.Num();
+    const bool bShellCollapsed = MenuBackground->GetVisibility() == ESlateVisibility::Collapsed;
+    const bool bPanelVisible = InventoryCraftBackground->GetVisibility() == ESlateVisibility::Visible;
+    const bool bOneChoice = InitialChoiceCount == 1;
+    const FString SelectedTitle = InventoryCraftTitle->GetText().ToString();
+    const bool bHammerTitle = SelectedTitle == TEXT("Building Hammer");
+    const int32 InitialCostCount = InventoryCraftCosts->GetChildrenCount();
+    const bool bTwoCosts = InitialCostCount == 2;
+    const bool bInitialDisabled = !InventoryCraftButton->GetIsEnabled(); // No owning character or materials in this fixture.
+    const bool bLayout = bShellCollapsed && bPanelVisible && bOneChoice && bHammerTitle && bTwoCosts && bInitialDisabled;
     const auto* BackgroundSlot = Cast<UOverlaySlot>(InventoryCraftBackground->Slot);
     const bool bFill = BackgroundSlot && BackgroundSlot->GetHorizontalAlignment() == HAlign_Fill
         && BackgroundSlot->GetVerticalAlignment() == VAlign_Fill
         && InventoryCraftListFrame && InventoryCraftDetailFrame;
     RecipeQuery = TEXT("no-matching-player-recipe");
     Refresh();
-    const bool bEmpty = InventoryCraftChoices.IsEmpty() && InventoryCraftCosts->GetChildrenCount() == 0
-        && !InventoryCraftButton->GetIsEnabled();
+    const int32 EmptyChoiceCount = InventoryCraftChoices.Num();
+    const int32 EmptyCostCount = InventoryCraftCosts->GetChildrenCount();
+    const bool bEmptyDisabled = !InventoryCraftButton->GetIsEnabled();
+    const bool bEmpty = EmptyChoiceCount == 0 && EmptyCostCount == 0 && bEmptyDisabled;
     bInventoryCompanion = PreviousCompanion;
     RecipeQuery = PreviousQuery;
     Selected = PreviousSelected;
+    RecipeCategory = PreviousCategory;
+    OutFailureReason = FString::Printf(TEXT("shellCollapsed=%d panelVisible=%d choices=%d title='%s' costs=%d craftDisabled=%d fill=%d noResults=(choices:%d costs:%d disabled:%d)"),
+        bShellCollapsed, bPanelVisible, InitialChoiceCount, *SelectedTitle, InitialCostCount, bInitialDisabled,
+        bFill, EmptyChoiceCount, EmptyCostCount, bEmptyDisabled);
     return bLayout && bEmpty && bFill;
 }
 #endif

@@ -86,7 +86,7 @@ public:
     FString GetRecipeGridSummary() const;
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
-    bool VerifyInventoryCraftLayoutForTest();
+    bool VerifyInventoryCraftLayoutForTest(FString& OutFailureReason);
     void PrepareMenuRender(bool bPlayerCrafting);
     bool VerifyMenuBrowseMemoryForTest();
     bool PrepareRecipeActivityReviewForTest();

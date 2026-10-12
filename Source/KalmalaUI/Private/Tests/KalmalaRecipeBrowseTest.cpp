@@ -6,15 +6,31 @@
 #include "Misc/AutomationTest.h"
 #include "Engine/Engine.h"
 #include "Engine/LocalPlayer.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "Misc/ScopeExit.h"
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRecipeBrowseTest, "Kalmala.UI.Crafting.LocalBrowsing",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
 {
     auto* Widget = NewObject<UKalmalaCraftingWidget>();
-    auto* InventoryCraft = NewObject<UKalmalaCraftingWidget>();
-    InventoryCraft->Initialize();
-    TestTrue(TEXT("Inventory crafting separates list/details, shows icon costs, disables missing-material actions and handles empty search"),
-        InventoryCraft->VerifyInventoryCraftLayoutForTest());
+    UWorld* WidgetWorld = UWorld::CreateWorld(EWorldType::Game, false);
+    if (!TestNotNull(TEXT("Crafting layout test world created"), WidgetWorld)) return false;
+    ON_SCOPE_EXIT { WidgetWorld->DestroyWorld(false); };
+    APlayerController* WidgetController = WidgetWorld->SpawnActor<APlayerController>();
+    ULocalPlayer* WidgetLocalPlayer = NewObject<ULocalPlayer>(GEngine);
+    if (!TestNotNull(TEXT("Crafting layout player controller created"), WidgetController)
+        || !TestNotNull(TEXT("Crafting layout local player created"), WidgetLocalPlayer)) return false;
+    WidgetController->SetPlayer(WidgetLocalPlayer);
+    WidgetWorld->AddController(WidgetController);
+    auto* InventoryCraft = CreateWidget<UKalmalaCraftingWidget>(WidgetController);
+    if (!TestNotNull(TEXT("Crafting layout widget initialized with player context"), InventoryCraft)) return false;
+    TestTrue(TEXT("Crafting layout fixture supplies valid local-player context"), InventoryCraft->GetPlayerContext().IsValid());
+    InventoryCraft->TakeWidget();
+    FString InventoryCraftFailure;
+    const bool bInventoryCraftLayout = InventoryCraft->VerifyInventoryCraftLayoutForTest(InventoryCraftFailure);
+    TestTrue(*FString::Printf(TEXT("Inventory crafting separates list/details, shows icon costs, disables missing-material actions and handles empty search: %s"),
+        *InventoryCraftFailure), bInventoryCraftLayout);
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
     TestTrue(TEXT("Main and station menus retain separate browse memory"), Widget->VerifyMenuBrowseMemoryForTest());
     const auto BuildIndices = Widget->GetVisibleRecipeIndices();
