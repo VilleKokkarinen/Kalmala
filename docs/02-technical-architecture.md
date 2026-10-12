@@ -1193,6 +1193,7 @@ expanded-map, and options views as described below.
 | WorldMapPanelImage | `/Game/Kalmala/UI/WorldMapPanel.WorldMapPanel` | Texture2D override for the expanded map shell |
 | ButtonImage | `/Game/Kalmala/UI/StoneButton.StoneButton` | Shared transparent stone slab, imported at 160×53 Slate-oriented size so nine-slice margins preserve its chipped ends; high contrast uses geometric brushes |
 | SliderThumbImage | `/Game/Kalmala/UI/StoneSliderThumb.StoneSliderThumb` | Separate irregular slate thumb image for sliders; high contrast uses a geometric thumb |
+| OptionsDividerImage | `/Game/Kalmala/UI/OptionsDivider.OptionsDivider` | Transparent generated medieval knotwork ornament layered over the shared Options separator; suppressed in high contrast |
 | EscapePanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Fallback source for empty option-tab overrides; M13 requests a transparent Escape home menu |
 | VideoOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Legacy Video tab key retained for config compatibility; M13 Options groups share InventoryPanelImage |
 | AudioOptionsPanelImage | `/Game/Kalmala/UI/OptionsPanel.OptionsPanel` | Legacy Audio tab key retained for config compatibility; M13 Options groups share InventoryPanelImage |
@@ -1957,9 +1958,10 @@ equal-width, centered columns. Keyboard movement presents Forward, Backward,
 Right, and Left as separate rows; Controller keeps the paired left-stick axes.
 Each Options page uses its selected tab as the page label without repeating a
 page heading in the content area. The five Options tabs divide the full content
-width into equal buttons with matching horizontal gutters. A shared, thin
-divider separates the tab row from page content, followed by a 10-unit gap;
-pages omit explanatory footer text.
+width into equal buttons with matching horizontal gutters. A shared divider
+uses the transparent medieval knotwork ornament over a fine rule, followed by a
+10-unit gap; high contrast uses a geometric rule without the decorative image.
+Pages omit explanatory footer text.
 Audio places its mute/restore button above a grouped set of volume sliders.
 Each row changes only its own key within the existing positive/negative
 movement-axis pair. Action and look bindings replace only the selected keyboard

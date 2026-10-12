@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Give the Options divider a generated medieval ornament:** import a transparent knotwork separator image and layer it over the shared Options rule; suppress the image in high contrast.
+
 - [x] **2026-10-12 — Add a shared divider below Options tabs:** add a full-width, high-contrast-aware divider between the category tabs and page content, preserving the 10-unit content gap.
 
 - [x] **2026-10-12 — Tighten Options page content layout:** remove explanatory footer labels, add a 10-unit gap below the category tabs, and move Audio mute above a grouped volume-slider stack.

@@ -218,6 +218,7 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadAsset(TEXT("WorldMapPanelImage"), Theme.WorldMapPanelImage);
     ReadAsset(TEXT("ButtonImage"), Theme.ButtonImage);
     ReadAsset(TEXT("SliderThumbImage"), Theme.SliderThumbImage);
+    ReadAsset(TEXT("OptionsDividerImage"), Theme.OptionsDividerImage);
     ReadAsset(TEXT("EscapePanelImage"), Theme.EscapePanelImage);
     ReadAsset(TEXT("VideoOptionsPanelImage"), Theme.VideoOptionsPanelImage);
     ReadAsset(TEXT("AudioOptionsPanelImage"), Theme.AudioOptionsPanelImage);
@@ -244,6 +245,7 @@ const FKalmalaUITheme& FKalmalaUITheme::Get()
         if (RuntimeTheme.BuildPanelImage.IsEmpty()) RuntimeTheme.BuildPanelImage = TEXT("/Game/Kalmala/UI/BuildPanel.BuildPanel");
         if (RuntimeTheme.ButtonImage.IsEmpty()) RuntimeTheme.ButtonImage = TEXT("/Game/Kalmala/UI/StoneButton.StoneButton");
         if (RuntimeTheme.SliderThumbImage.IsEmpty()) RuntimeTheme.SliderThumbImage = TEXT("/Game/Kalmala/UI/StoneSliderThumb.StoneSliderThumb");
+        if (RuntimeTheme.OptionsDividerImage.IsEmpty()) RuntimeTheme.OptionsDividerImage = TEXT("/Game/Kalmala/UI/OptionsDivider.OptionsDivider");
         if (RuntimeTheme.EscapePanelImage.IsEmpty()) RuntimeTheme.EscapePanelImage = TEXT("/Game/Kalmala/UI/OptionsPanel.OptionsPanel");
         for (FString* OptionsPath : {&RuntimeTheme.VideoOptionsPanelImage, &RuntimeTheme.AudioOptionsPanelImage,
             &RuntimeTheme.ControlsOptionsPanelImage, &RuntimeTheme.SettingsOptionsPanelImage})

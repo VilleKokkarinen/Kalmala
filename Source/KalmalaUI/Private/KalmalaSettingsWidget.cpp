@@ -8,6 +8,9 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
+#include "Components/Image.h"
+#include "Components/Overlay.h"
+#include "Components/OverlaySlot.h"
 #include "Components/ScrollBox.h"
 #include "Components/ScrollBoxSlot.h"
 #include "Components/SizeBox.h"
@@ -16,6 +19,7 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Engine/Texture2D.h"
 #include "GameFramework/GameUserSettings.h"
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/PlayerController.h"
@@ -1229,15 +1233,41 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
     FScriptDelegate AudioDelegate; AudioDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAudioClicked)); AddTab(FText::FromString(TEXT("Audio")), TEXT("AudioTab"), AudioDelegate);
     FScriptDelegate AccessibilityDelegate; AccessibilityDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAccessibilityClicked)); AddTab(FText::FromString(TEXT("Accessibility")), TEXT("AccessibilityTab"), AccessibilityDelegate);
     ContentBox->AddChildToVerticalBox(Tabs);
-    UBorder* ContentDivider = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("OptionsContentDivider"));
     const bool bHighContrast = GetContrastMode() != 0;
     const FLinearColor DividerColor = bHighContrast
         ? FLinearColor::White
         : FKalmalaUITheme::Get().ButtonFocused.CopyWithNewOpacity(0.72f);
-    ContentDivider->SetBrushColor(DividerColor);
+    UOverlay* DividerRow = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("OptionsContentDivider"));
+    UBorder* DividerRule = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("OptionsDividerRule"));
+    DividerRule->SetBrush(FSlateRoundedBoxBrush(DividerColor, 0.0f));
+    USizeBox* DividerRuleSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("OptionsDividerRuleSize"));
+    DividerRuleSize->SetHeightOverride(bHighContrast ? 2.0f : 1.0f);
+    DividerRuleSize->SetContent(DividerRule);
+    UOverlaySlot* DividerRuleSlot = DividerRow->AddChildToOverlay(DividerRuleSize);
+    DividerRuleSlot->SetHorizontalAlignment(HAlign_Fill);
+    DividerRuleSlot->SetVerticalAlignment(VAlign_Center);
+    bool bHasOrnament = false;
+    if (!bHighContrast && !FKalmalaUITheme::Get().OptionsDividerImage.IsEmpty())
+    {
+        UTexture2D* OrnamentTexture = LoadObject<UTexture2D>(nullptr, *FKalmalaUITheme::Get().OptionsDividerImage);
+        if (OrnamentTexture != nullptr)
+        {
+            UImage* Ornament = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("OptionsDividerOrnament"));
+            Ornament->SetBrushFromTexture(OrnamentTexture, false);
+            Ornament->SetColorAndOpacity(FLinearColor::White);
+            USizeBox* OrnamentSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("OptionsDividerOrnamentSize"));
+            OrnamentSize->SetWidthOverride(180.0f);
+            OrnamentSize->SetHeightOverride(60.0f);
+            OrnamentSize->SetContent(Ornament);
+            UOverlaySlot* OrnamentSlot = DividerRow->AddChildToOverlay(OrnamentSize);
+            OrnamentSlot->SetHorizontalAlignment(HAlign_Center);
+            OrnamentSlot->SetVerticalAlignment(VAlign_Center);
+            bHasOrnament = true;
+        }
+    }
     USizeBox* DividerSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("OptionsContentDividerSize"));
-    DividerSize->SetHeightOverride(1.0f);
-    DividerSize->SetContent(ContentDivider);
+    DividerSize->SetHeightOverride(bHasOrnament ? 60.0f : (bHighContrast ? 2.0f : 1.0f));
+    DividerSize->SetContent(DividerRow);
     UVerticalBoxSlot* DividerSlot = ContentBox->AddChildToVerticalBox(DividerSize);
     DividerSlot->SetHorizontalAlignment(HAlign_Fill);
     USizeBox* ContentTopGap = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("OptionsContentTopGap"));

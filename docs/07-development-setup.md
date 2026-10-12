@@ -175,6 +175,13 @@ New-Item -ItemType Directory -Force -Path $userDir, $ddc | Out-Null
   "-abslog=$mirror\ImportAssets.log" -forcelogflush
 ```
 
+The shared Options divider source is the generated transparent image at
+`Content/Kalmala/UI/Source/OptionsDivider.png`, imported as
+`/Game/Kalmala/UI/OptionsDivider`. Use the same `ImportAssets` command with
+that source file. `OptionsDividerImage` in the UI theme selects the texture;
+standard contrast shows it over a thin full-width rule, while high contrast
+hides the decorative image.
+
 Use a mirror/temp root and output paths that keep every absolute Windows path
 below 260 characters.
 
@@ -1065,8 +1072,10 @@ equal-width centered columns, with matching row spacing and no row-cycling hint.
 Keyboard & Mouse shows movement as separate Forward, Backward, Right, and Left
 rows, while Controller keeps the paired left-stick axes. Every Options page uses
 its selected tab as the page label without repeating a page heading below the
-tab row. A shared, thin divider separates the tab row from page content,
-followed by a 10-unit gap; explanatory footer text is omitted. Audio places
+tab row. A shared transparent medieval knotwork ornament overlays a fine
+divider between the tabs and page content, followed by a 10-unit gap. High
+contrast suppresses the ornament and uses a geometric divider. Footer text is
+omitted. Audio places
 Mute audio above the grouped volume sliders. The five Options tabs fill the
 content width in equal slots with matching horizontal gutters. The selected
 Options tab is highlighted without a text marker. Each right-aligned label

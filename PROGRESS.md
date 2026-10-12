@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Use generated art for the Options divider
+
+- **Completed:** replaced the manually assembled glyph motif with one generated, transparent medieval knotwork image. The image overlays a thin full-width rule in standard contrast; high contrast hides the decorative image and retains a white geometric rule. The 10-unit gap below the divider remains.
+- **Files changed:** `Content/Kalmala/UI/Source/OptionsDivider.png`, `Content/Kalmala/UI/OptionsDivider.uasset`, `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `Source/KalmalaUI/Public/KalmalaUITheme.h`, `Config/DefaultKalmalaTheme.ini`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** verified the generated PNG has transparent corner pixels; imported it into the temporary Unreal mirror with `ImportAssets` (0 errors); `Scripts/Render-Menu.ps1 -Menu settings.options -BuildModules -TimeoutSeconds 240` compiled the affected module and rendered Controls, Controller, Graphics, Audio, and Accessibility at 1920×1080. Inspected Controls and confirmed the generated ornament overlays the full-width rule. Rendered Controls in high contrast and confirmed the ornament is suppressed while the white rule remains visible. `git diff --check` passed. Full verification remains deferred.
+- **Impact and authority:** local UI presentation, theme asset configuration, and docs only; saved settings, gameplay/network authority, and replicated state are unchanged.
+- **Limits:** high contrast was checked on Controls only; the five standard-contrast pages were rendered together. Full project verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Add shared Options section divider
 
 - **Completed:** added one full-width divider directly below the shared Options tab row, with a gold theme accent in standard contrast and white in high-contrast mode. The existing 10-unit gap below it is preserved on all five Options pages.
