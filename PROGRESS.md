@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Compact Settings control rows
+
+- **Completed:** split Keyboard & Mouse movement into Forward, Backward, Right, and Left rows that cycle only their own allowlisted key while preserving the existing axis mappings; kept Controller's paired stick axes. All binding rows now right-align their labels beside uniform-width value buttons and use compact vertical padding. Binding buttons show the key or axis value without repeating the active tab's device name.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** reviewed the row-building and input-remapping paths, including local persistence, independent pair-side updates, controller mapping behavior, and restore defaults; `git diff --check` passed. No build, test suite, or rendered menu run.
+- **Impact and authority:** local Settings presentation and local `GameUserSettings` input overrides only. Gameplay/server authority, `DefaultInput.ini`, replicated state, and save schemas are unchanged.
+- **Limits:** visual fit and navigation have not been checked in a rendered menu, especially at large text scale; full verification is deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## 2026-10-12 — Remove duplicate Settings Status render target
 
 - **Completed:** removed `settings.status` from the renderer's supported menu IDs and updated the documented all-menu render count from 12 to 11.

@@ -1059,10 +1059,14 @@ simulate physical controller input, or establish audible quality/device mix.
 
 The Keyboard & Mouse and Controller groups expose the existing movement, look,
 interact, attack, jump, sprint, settings, map, recenter, craft, and
-support-activation intents. Each page shows its device-family binding and cycles
-through a small allowlisted set of alternatives; movement rows retain
-positive/negative axis pairs. Restore default controls clears only the local
-overrides. The runtime applies overrides to the owning `UPlayerInput` and stores them in the local
+support-activation intents. Keyboard & Mouse shows movement as separate
+Forward, Backward, Right, and Left rows; each right-aligned label sits beside a
+same-width binding button at the row's right edge, with only a few pixels of
+vertical row padding. Both pages use this aligned compact row layout. Each
+movement button cycles only its direction's keys within the existing axis
+mapping. Controller keeps the paired left-stick axes.
+Other controls cycle through a small allowlisted set of alternatives. Restore
+default controls clears only the local overrides. The runtime applies overrides to the owning `UPlayerInput` and stores them in the local
 `GameUserSettings` configuration, so `Config/DefaultInput.ini` and server
 validation remain unchanged. Escape remains an always-available modal close
 path even if the alternate Settings key is changed. The settings automation

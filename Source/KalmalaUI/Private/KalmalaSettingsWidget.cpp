@@ -97,6 +97,8 @@ namespace
     {
         FName Name;
         const TCHAR* Label = TEXT("");
+        const TCHAR* PositiveLabel = TEXT("");
+        const TCHAR* NegativeLabel = TEXT("");
         ELocalInputMappingKind Kind = ELocalInputMappingKind::Action;
         TArray<FKey> KeyboardKeys;
         TArray<FKey> GamepadKeys;
@@ -117,11 +119,14 @@ namespace
     }
 
     FLocalInputDefinition MakeAxisPairInput(const FName Name, const TCHAR* Label,
+        const TCHAR* PositiveLabel, const TCHAR* NegativeLabel,
         const TArray<FLocalInputAxisPair>& KeyboardPairs, const TArray<FKey>& GamepadKeys)
     {
         FLocalInputDefinition Definition;
         Definition.Name = Name;
         Definition.Label = Label;
+        Definition.PositiveLabel = PositiveLabel;
+        Definition.NegativeLabel = NegativeLabel;
         Definition.Kind = ELocalInputMappingKind::AxisPair;
         Definition.KeyboardPairs = KeyboardPairs;
         Definition.GamepadKeys = GamepadKeys;
@@ -134,9 +139,11 @@ namespace
         {
             TArray<FLocalInputDefinition> Result;
             Result.Add(MakeAxisPairInput(TEXT("MoveForward"), TEXT("Move forward / back"),
+                TEXT("Forward"), TEXT("Backward"),
                 { { EKeys::W, EKeys::S }, { EKeys::Up, EKeys::Down }, { EKeys::I, EKeys::K } },
                 { EKeys::Gamepad_LeftY }));
             Result.Add(MakeAxisPairInput(TEXT("MoveRight"), TEXT("Move right / left"),
+                TEXT("Right"), TEXT("Left"),
                 { { EKeys::D, EKeys::A }, { EKeys::Right, EKeys::Left }, { EKeys::L, EKeys::J } },
                 { EKeys::Gamepad_LeftX }));
             Result.Add(MakeSingleInput(TEXT("Turn"), TEXT("Look right / left"), ELocalInputMappingKind::Axis,
@@ -204,12 +211,27 @@ namespace
         return Key.IsValid() && Candidates.Contains(Key);
     }
 
+    TArray<FKey> GetAxisPairSideCandidates(const FLocalInputDefinition& Definition, const bool bPositiveSide)
+    {
+        TArray<FKey> Candidates;
+        for (const FLocalInputAxisPair& Pair : Definition.KeyboardPairs)
+        {
+            Candidates.AddUnique(bPositiveSide ? Pair.Positive : Pair.Negative);
+        }
+        return Candidates;
+    }
+
     bool IsCandidatePair(const FLocalInputDefinition& Definition, const FLocalInputAxisPair& Pair)
     {
-        return Definition.KeyboardPairs.ContainsByPredicate([Pair](const FLocalInputAxisPair& Candidate)
+        const bool bHasPositive = Definition.KeyboardPairs.ContainsByPredicate([Pair](const FLocalInputAxisPair& Candidate)
         {
-            return Candidate.Positive == Pair.Positive && Candidate.Negative == Pair.Negative;
+            return Candidate.Positive == Pair.Positive;
         });
+        const bool bHasNegative = Definition.KeyboardPairs.ContainsByPredicate([Pair](const FLocalInputAxisPair& Candidate)
+        {
+            return Candidate.Negative == Pair.Negative;
+        });
+        return bHasPositive && bHasNegative && Pair.Positive != Pair.Negative;
     }
 
     FString GetKeyDisplayLabel(const FKey& Key)
@@ -358,10 +380,13 @@ UKalmalaControlButton::UKalmalaControlButton(const FObjectInitializer& ObjectIni
     OnClicked.AddDynamic(this, &UKalmalaControlButton::HandleButtonClicked);
 }
 
-void UKalmalaControlButton::Configure(const FName InControlName, const bool bInGamepad)
+void UKalmalaControlButton::Configure(const FName InControlName, const bool bInGamepad,
+    const bool bInAxisPairSide, const bool bInPositiveAxisSide)
 {
     ControlName = InControlName;
     bGamepad = bInGamepad;
+    bAxisPairSide = bInAxisPairSide;
+    bPositiveAxisSide = bInPositiveAxisSide;
 }
 
 void UKalmalaControlButton::SetDisplayText(const FText& Text)
@@ -374,6 +399,7 @@ void UKalmalaControlButton::SetDisplayText(const FText& Text)
     }
     Label->SetText(Text);
     Label->SetColorAndOpacity(FSlateColor(GetSettingsPalette().ButtonText));
+    Label->SetJustification(ETextJustify::Center);
     Label->SetAutoWrapText(true);
     FKalmalaUITheme::Get().ApplyText(*Label, FKalmalaUITheme::Get().BodySize + 3, false,
         UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
@@ -381,7 +407,7 @@ void UKalmalaControlButton::SetDisplayText(const FText& Text)
 
 void UKalmalaControlButton::HandleButtonClicked()
 {
-    OnControlBindingClicked.Broadcast(ControlName, bGamepad);
+    OnControlBindingClicked.Broadcast(ControlName, bGamepad, bAxisPairSide, bPositiveAxisSide);
 }
 
 void UKalmalaSettingsWidget::NativeOnInitialized()
@@ -798,10 +824,27 @@ FText UKalmalaSettingsWidget::GetRemappableControlLabel(const FName ControlName)
     return Definition != nullptr ? FText::FromString(Definition->Label) : FText::FromString(TEXT("Unknown control"));
 }
 
-FText UKalmalaSettingsWidget::GetLocalInputBindingLabel(const FName ControlName, const bool bGamepad)
+FText UKalmalaSettingsWidget::GetLocalInputBindingLabel(const FName ControlName, const bool bGamepad,
+    const bool bAxisPairSide, const bool bPositiveAxisSide)
 {
     const FLocalInputDefinition* Definition = FindLocalInputDefinition(ControlName);
     if (Definition == nullptr) return FText::FromString(TEXT("Not bound"));
+
+    if (bAxisPairSide)
+    {
+        if (bGamepad || Definition->Kind != ELocalInputMappingKind::AxisPair)
+            return FText::FromString(TEXT("Not bound"));
+
+        FLocalInputAxisPair Pair;
+        if (!ReadStoredPair(*Definition, Pair))
+        {
+            const int32 DefaultIndex = GetDefaultPairIndex(*Definition);
+            if (Definition->KeyboardPairs.IsValidIndex(DefaultIndex)) Pair = Definition->KeyboardPairs[DefaultIndex];
+        }
+        const FKey Key = bPositiveAxisSide ? Pair.Positive : Pair.Negative;
+        return IsCandidateKey(GetAxisPairSideCandidates(*Definition, bPositiveAxisSide), Key)
+            ? FText::FromString(GetKeyDisplayLabel(Key)) : FText::FromString(TEXT("Not bound"));
+    }
 
     if (Definition->Kind == ELocalInputMappingKind::AxisPair && !bGamepad)
     {
@@ -826,10 +869,37 @@ FText UKalmalaSettingsWidget::GetLocalInputBindingLabel(const FName ControlName,
     return FText::FromString(GetKeyDisplayLabel(Key));
 }
 
-bool UKalmalaSettingsWidget::SetLocalInputBinding(const FName ControlName, const bool bGamepad, const FKey& Key)
+bool UKalmalaSettingsWidget::SetLocalInputBinding(const FName ControlName, const bool bGamepad, const FKey& Key,
+    const bool bAxisPairSide, const bool bPositiveAxisSide)
 {
     const FLocalInputDefinition* Definition = FindLocalInputDefinition(ControlName);
-    if (Definition == nullptr || Definition->Kind == ELocalInputMappingKind::AxisPair || GConfig == nullptr) return false;
+    if (Definition == nullptr || GConfig == nullptr) return false;
+
+    if (Definition->Kind == ELocalInputMappingKind::AxisPair)
+    {
+        if (bGamepad || !bAxisPairSide
+            || !IsCandidateKey(GetAxisPairSideCandidates(*Definition, bPositiveAxisSide), Key)) return false;
+
+        FLocalInputAxisPair Pair;
+        if (!ReadStoredPair(*Definition, Pair))
+        {
+            const int32 DefaultIndex = GetDefaultPairIndex(*Definition);
+            if (!Definition->KeyboardPairs.IsValidIndex(DefaultIndex)) return false;
+            Pair = Definition->KeyboardPairs[DefaultIndex];
+        }
+        if (bPositiveAxisSide) Pair.Positive = Key;
+        else Pair.Negative = Key;
+        if (!IsCandidatePair(*Definition, Pair)) return false;
+
+        GConfig->SetString(AudioSettingsSection, *GetLocalInputPairKey(ControlName, false, true),
+            *Pair.Positive.GetFName().ToString(), GGameUserSettingsIni);
+        GConfig->SetString(AudioSettingsSection, *GetLocalInputPairKey(ControlName, false, false),
+            *Pair.Negative.GetFName().ToString(), GGameUserSettingsIni);
+        GConfig->Flush(false, GGameUserSettingsIni);
+        return true;
+    }
+
+    if (bAxisPairSide) return false;
     const TArray<FKey>& Candidates = bGamepad ? Definition->GamepadKeys : Definition->KeyboardKeys;
     if (!IsCandidateKey(Candidates, Key)) return false;
 
@@ -840,10 +910,33 @@ bool UKalmalaSettingsWidget::SetLocalInputBinding(const FName ControlName, const
 }
 
 void UKalmalaSettingsWidget::CycleLocalInputBinding(APlayerController* Controller, const FName ControlName,
-    const bool bGamepad)
+    const bool bGamepad, const bool bAxisPairSide, const bool bPositiveAxisSide)
 {
     const FLocalInputDefinition* Definition = FindLocalInputDefinition(ControlName);
     if (Definition == nullptr || GConfig == nullptr) return;
+
+    if (Definition->Kind == ELocalInputMappingKind::AxisPair && bAxisPairSide && !bGamepad)
+    {
+        const TArray<FKey> Candidates = GetAxisPairSideCandidates(*Definition, bPositiveAxisSide);
+        if (Candidates.Num() < 2) return;
+
+        FLocalInputAxisPair CurrentPair;
+        if (!ReadStoredPair(*Definition, CurrentPair))
+        {
+            const int32 DefaultIndex = GetDefaultPairIndex(*Definition);
+            if (!Definition->KeyboardPairs.IsValidIndex(DefaultIndex)) return;
+            CurrentPair = Definition->KeyboardPairs[DefaultIndex];
+        }
+        const FKey CurrentKey = bPositiveAxisSide ? CurrentPair.Positive : CurrentPair.Negative;
+        int32 CurrentIndex = Candidates.IndexOfByKey(CurrentKey);
+        if (CurrentIndex == INDEX_NONE) CurrentIndex = 0;
+        if (SetLocalInputBinding(ControlName, false, Candidates[(CurrentIndex + 1) % Candidates.Num()],
+            true, bPositiveAxisSide))
+        {
+            ApplySavedInputBindings(Controller);
+        }
+        return;
+    }
 
     if (Definition->Kind == ELocalInputMappingKind::AxisPair && !bGamepad)
     {
@@ -1263,34 +1356,52 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
     UVerticalBoxSlot* ScrollSlot = ContentBox->AddChildToVerticalBox(Scroll);
     ScrollSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 
+    const auto AddControlRow = [this, Rows, bGamepad](const FName ControlName, const FText& ControlLabel,
+        const bool bAxisPairSide, const bool bPositiveAxisSide)
+    {
+        UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+        UTextBlock* Label = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+        Label->SetText(ControlLabel);
+        Label->SetColorAndOpacity(FSlateColor(GetSettingsPalette().Text));
+        Label->SetAutoWrapText(true);
+        Label->SetJustification(ETextJustify::Right);
+        FKalmalaUITheme::Get().ApplyText(*Label, FKalmalaUITheme::Get().BodySize + 3, false, GetTextScalePercent(), GetContrastMode());
+        UHorizontalBoxSlot* LabelSlot = Row->AddChildToHorizontalBox(Label);
+        LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        LabelSlot->SetVerticalAlignment(VAlign_Center);
+        LabelSlot->SetPadding(FMargin(4.0f, 2.0f, 8.0f, 2.0f));
+
+        USizeBox* ButtonSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+        ButtonSize->SetWidthOverride(240.0f);
+        UKalmalaControlButton* Button = WidgetTree->ConstructWidget<UKalmalaControlButton>(
+            UKalmalaControlButton::StaticClass());
+        ApplyButtonPalette(Button);
+        Button->Configure(ControlName, bGamepad, bAxisPairSide, bPositiveAxisSide);
+        Button->SetDisplayText(FText::GetEmpty());
+        Button->OnControlBindingClicked.AddDynamic(this, &ThisClass::HandleControlBindingClicked);
+        ButtonSize->SetContent(Button);
+        UHorizontalBoxSlot* ButtonSlot = Row->AddChildToHorizontalBox(ButtonSize);
+        ButtonSlot->SetHorizontalAlignment(HAlign_Right);
+        ButtonSlot->SetVerticalAlignment(VAlign_Center);
+        ButtonSlot->SetPadding(FMargin(2.0f, 1.0f, 4.0f, 1.0f));
+        ControlButtons.Add(Button);
+
+        UVerticalBoxSlot* RowSlot = Rows->AddChildToVerticalBox(Row);
+        RowSlot->SetPadding(FMargin(3.0f, 2.0f));
+    };
+
     for (int32 Index = 0; Index < GetRemappableControlCount(); ++Index)
     {
         const FName ControlName = GetRemappableControlName(Index);
-        UVerticalBox* Row = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass());
-        UTextBlock* Label = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
-        Label->SetText(GetRemappableControlLabel(ControlName));
-        Label->SetColorAndOpacity(FSlateColor(GetSettingsPalette().Text));
-        Label->SetAutoWrapText(true);
-        FKalmalaUITheme::Get().ApplyText(*Label, FKalmalaUITheme::Get().BodySize + 3, false, GetTextScalePercent(), GetContrastMode());
-        UVerticalBoxSlot* LabelSlot = Row->AddChildToVerticalBox(Label);
-        LabelSlot->SetPadding(FMargin(4.0f, 3.0f));
-
-        const auto AddControlButton = [this, Row, ControlName](const bool bForGamepad)
+        const FLocalInputDefinition* Definition = FindLocalInputDefinition(ControlName);
+        if (!bGamepad && Definition != nullptr && Definition->Kind == ELocalInputMappingKind::AxisPair)
         {
-            UKalmalaControlButton* Button = WidgetTree->ConstructWidget<UKalmalaControlButton>(
-                UKalmalaControlButton::StaticClass());
-            ApplyButtonPalette(Button);
-            Button->Configure(ControlName, bForGamepad);
-            Button->SetDisplayText(FText::GetEmpty());
-            Button->OnControlBindingClicked.AddDynamic(this, &ThisClass::HandleControlBindingClicked);
-            UVerticalBoxSlot* ButtonSlot = Row->AddChildToVerticalBox(Button);
-            ButtonSlot->SetPadding(FMargin(3.0f, 2.0f));
-            FKalmalaUITheme::Get().SizeButtonToContent(*Button);
-            ControlButtons.Add(Button);
-        };
-        AddControlButton(bGamepad);
-        UVerticalBoxSlot* RowSlot = Rows->AddChildToVerticalBox(Row);
-        RowSlot->SetPadding(FMargin(3.0f, 6.0f));
+            AddControlRow(ControlName, FText::FromString(Definition->PositiveLabel), true, true);
+            AddControlRow(ControlName, FText::FromString(Definition->NegativeLabel), true, false);
+            continue;
+        }
+
+        AddControlRow(ControlName, GetRemappableControlLabel(ControlName), false, true);
     }
     UpdateControlsLabels();
     if (ControlButtons.Num() > 0)
@@ -1305,9 +1416,8 @@ void UKalmalaSettingsWidget::UpdateControlsLabels()
     for (UKalmalaControlButton* Button : ControlButtons)
     {
         if (Button == nullptr) continue;
-        const TCHAR* DeviceLabel = Button->IsGamepadBinding() ? TEXT("Controller") : TEXT("Keyboard");
-        Button->SetDisplayText(FText::FromString(FString::Printf(TEXT("%s: %s"), DeviceLabel,
-            *GetLocalInputBindingLabel(Button->GetControlName(), Button->IsGamepadBinding()).ToString())));
+        Button->SetDisplayText(GetLocalInputBindingLabel(Button->GetControlName(), Button->IsGamepadBinding(),
+            Button->IsAxisPairSideBinding(), Button->IsPositiveAxisSideBinding()));
     }
 }
 
@@ -1538,9 +1648,10 @@ void UKalmalaSettingsWidget::HandleInteractionCombatVolumeChanged(const float Va
     UpdateAudioLabels();
 }
 
-void UKalmalaSettingsWidget::HandleControlBindingClicked(const FName ControlName, const bool bGamepad)
+void UKalmalaSettingsWidget::HandleControlBindingClicked(const FName ControlName, const bool bGamepad,
+    const bool bAxisPairSide, const bool bPositiveAxisSide)
 {
-    CycleLocalInputBinding(GetOwningPlayer(), ControlName, bGamepad);
+    CycleLocalInputBinding(GetOwningPlayer(), ControlName, bGamepad, bAxisPairSide, bPositiveAxisSide);
     UpdateControlsLabels();
 }
 

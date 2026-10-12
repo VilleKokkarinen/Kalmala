@@ -17,7 +17,8 @@ enum class EKalmalaAudioCategory : uint8
     InteractionCombat
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FKalmalaControlBindingClicked, FName, ControlName, bool, bGamepad);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FKalmalaControlBindingClicked, FName, ControlName, bool, bGamepad,
+    bool, bAxisPairSide, bool, bPositiveAxisSide);
 
 UCLASS()
 class KALMALAUI_API UKalmalaControlButton : public UKalmalaThemedButton
@@ -27,10 +28,13 @@ class KALMALAUI_API UKalmalaControlButton : public UKalmalaThemedButton
 public:
     UKalmalaControlButton(const FObjectInitializer& ObjectInitializer);
 
-    void Configure(FName InControlName, bool bInGamepad);
+    void Configure(FName InControlName, bool bInGamepad, bool bInAxisPairSide = false,
+        bool bInPositiveAxisSide = true);
     void SetDisplayText(const FText& Text);
     FName GetControlName() const { return ControlName; }
     bool IsGamepadBinding() const { return bGamepad; }
+    bool IsAxisPairSideBinding() const { return bAxisPairSide; }
+    bool IsPositiveAxisSideBinding() const { return bPositiveAxisSide; }
 
     UPROPERTY(BlueprintAssignable)
     FKalmalaControlBindingClicked OnControlBindingClicked;
@@ -41,6 +45,8 @@ private:
 
     FName ControlName;
     bool bGamepad = false;
+    bool bAxisPairSide = false;
+    bool bPositiveAxisSide = true;
 };
 
 /**
@@ -107,9 +113,12 @@ public:
     static int32 GetRemappableControlCount();
     static FName GetRemappableControlName(int32 Index);
     static FText GetRemappableControlLabel(FName ControlName);
-    static FText GetLocalInputBindingLabel(FName ControlName, bool bGamepad);
-    static bool SetLocalInputBinding(FName ControlName, bool bGamepad, const FKey& Key);
-    static void CycleLocalInputBinding(class APlayerController* Controller, FName ControlName, bool bGamepad);
+    static FText GetLocalInputBindingLabel(FName ControlName, bool bGamepad,
+        bool bAxisPairSide = false, bool bPositiveAxisSide = true);
+    static bool SetLocalInputBinding(FName ControlName, bool bGamepad, const FKey& Key,
+        bool bAxisPairSide = false, bool bPositiveAxisSide = true);
+    static void CycleLocalInputBinding(class APlayerController* Controller, FName ControlName, bool bGamepad,
+        bool bAxisPairSide = false, bool bPositiveAxisSide = true);
     static void ApplySavedInputBindings(class APlayerController* Controller);
     static void RestoreDefaultInputBindings(class APlayerController* Controller);
 
@@ -176,7 +185,7 @@ private:
     UFUNCTION()
     void HandleInteractionCombatVolumeChanged(float Value);
     UFUNCTION()
-    void HandleControlBindingClicked(FName ControlName, bool bGamepad);
+    void HandleControlBindingClicked(FName ControlName, bool bGamepad, bool bAxisPairSide, bool bPositiveAxisSide);
     UFUNCTION()
     void HandleRestoreControlsClicked();
     UFUNCTION()
