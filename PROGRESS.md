@@ -649,3 +649,12 @@
 - **Impact/authority:** runner consolidation only. The same development-only server-authority mutation probe and persistence/identity checks remain; gameplay authority, save schemas, and runtime behavior are unchanged.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Runtime scenarios remain unexecuted in this cleanup turn.
 - **Next eligible work:** continue consolidating the user-named WorldMap and Audio groups where their caller and assertion analysis confirms safe overlap. The overall goal of approximately 20 test runners is not complete; M14 main integration remains pending.
+
+## User-directed increment 2026-10-12 — Consolidate WorldMap verification
+
+- **Completed:** merged the duplicate viewport tile-count/fingerprint and host/client profile probes into `Verify-WorldMap.ps1`, and added the existing host/client restart check for matching-identity personal coverage with remote terrain hidden. Removed the separate `Verify-WorldMapTiles.ps1` and `Verify-WorldMapProfile.ps1` launchers. Kept map export and co-op awareness separate because they cover distinct commandlet and network-consent behavior.
+- **Files changed:** `Scripts/Verify-WorldMap.ps1`; deleted `Scripts/Verify-WorldMapTiles.ps1` and `Scripts/Verify-WorldMapProfile.ps1`; `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** compared all retired runner flags/log assertions with the surviving map fixture and verified the map runtime emits tile fingerprints and profile metrics from the same refresh path; PowerShell parser validation and `git diff --check` passed. No Unreal peer scenario, build, or full test suite ran.
+- **Impact/authority:** verification-entrypoint consolidation only. Host/client are still checked against the same authoritative seed and local-only exploration; no gameplay, RPC, persistence implementation, or save schema changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. The combined live/rendered/restart scenario was validated statically only and remains unexecuted; full project verification is deferred.
+- **Next eligible work:** audit and consolidate the remaining `Verify-*` families against active instructions and equivalent coverage, prioritizing the user-named Audio group. The overall goal of approximately 20 test runners is not complete; M14 main integration remains pending.
