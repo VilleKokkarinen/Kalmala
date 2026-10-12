@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Polish Settings tab selection and control alignment:** remove the selected-tab text marker and duplicate Keyboard & Mouse heading, highlight the active tab, and center the equal-width control columns with balanced row padding.
+
 - [x] **2026-10-12 — Repair Keyboard & Mouse column compilation and button fill:** set Unreal fill weights through `FSlateChildSize::Value`, and stretch binding buttons to fill their row slots while preserving Controller alignment.
 
 - [x] **2026-10-12 — Use two-column Keyboard & Mouse controls:** remove the row-cycling hint and split the bindings into two equal-width columns, keeping each label and value button aligned within its half of the panel.

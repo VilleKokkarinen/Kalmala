@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Settings tab and control alignment
+
+- **Completed:** removed the `>` prefix from Settings tabs, highlighted the selected tab with the gold theme accent, and removed the duplicate Keyboard & Mouse page heading. The two equal-width Keyboard & Mouse control columns now sit inside a centered 880-unit region with balanced horizontal row padding and consistent 240-unit binding buttons.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Checks:** `Scripts/Render-Menu.ps1 -Menu settings.options -BuildModules` compiled `KalmalaSettingsWidget.cpp`, linked KalmalaUI, and rendered the full Options menu at 1920×1080. Also rendered and inspected high-contrast Options to confirm the selected tab retains a white cue. The standard render confirms the absent duplicate heading, centered columns, and one-line direction labels. `git diff --check` passed. No full test suite or project-wide verification ran.
+- **Impact and authority:** local Settings presentation only; input mappings, gameplay/network authority, replicated state, and saved settings are unchanged.
+- **Limits:** broader project verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed repair 2026-10-12 — Keyboard & Mouse columns
 
 - **Completed:** fixed the invalid two-argument `FSlateChildSize` constructor calls by setting each fill weight through `Value`. The controls render also showed that right-aligned buttons remained content-sized, so Keyboard & Mouse buttons now fill their row slots; Controller alignment remains unchanged.

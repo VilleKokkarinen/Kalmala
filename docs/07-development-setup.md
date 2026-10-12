@@ -1061,11 +1061,12 @@ The Keyboard & Mouse and Controller groups expose the existing movement, look,
 interact, attack, jump, sprint, settings, map, recenter, craft, and
 support-activation intents. Keyboard & Mouse shows movement as separate
 Forward, Backward, Right, and Left rows, and places all controls in two equal-
-width columns without the row-cycling hint. Each right-aligned label sits beside
-an equal-width binding button within its half of the panel, with only a few
-pixels of vertical row padding. Each movement button cycles only its
-direction's keys within the existing axis mapping. Controller keeps the paired
-left-stick axes in its single-column layout.
+width centered columns without the row-cycling hint or a duplicate page heading.
+The selected Options tab is highlighted without a text marker. Each right-aligned
+label sits beside a binding button within its half of the panel, using balanced
+horizontal padding and compact vertical row spacing. Each movement button cycles
+only its direction's keys within the existing axis mapping. Controller keeps the
+paired left-stick axes in its single-column layout.
 Other controls cycle through a small allowlisted set of alternatives. Restore
 default controls clears only the local overrides. The runtime applies overrides to the owning `UPlayerInput` and stores them in the local
 `GameUserSettings` configuration, so `Config/DefaultInput.ini` and server

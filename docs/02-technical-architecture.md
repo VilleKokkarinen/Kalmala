@@ -1952,12 +1952,14 @@ there is no music track in the current runtime.
 
 The Keyboard & Mouse and Controller groups store only allowlisted local choices in the existing
 `GameUserSettings` configuration. Keyboard movement presents Forward, Backward,
-Right, and Left as separate rows in two equal-width columns, each changing only
-its own key within the existing positive/negative movement-axis pair; Controller
-keeps the paired left-stick axes. Action and look bindings replace only the
-selected keyboard or controller device family. Applying or restoring a choice
-rebuilds the local player's input map immediately, and a fresh controller
-instance rehydrates the same local choices. The project baseline in
+Right, and Left as separate rows in two equal-width, centered columns; the
+selected Options tab identifies the group without a duplicate page heading.
+Each row changes only its own key within the existing positive/negative
+movement-axis pair; Controller keeps the paired left-stick axes. Action and
+look bindings replace only the selected keyboard or controller device family.
+Applying or restoring a choice rebuilds the local player's input map
+immediately, and a fresh controller instance rehydrates the same local choices.
+The project baseline in
 `Config/DefaultInput.ini` is never rewritten. Escape remains available for the
 modal close path even when the alternate Settings action key is changed.
 
