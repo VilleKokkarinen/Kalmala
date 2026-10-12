@@ -8,6 +8,7 @@
 
 class UTextBlock;
 class UCanvasPanelSlot;
+class UCheckBox;
 class USlider;
 
 enum class EKalmalaAudioCategory : uint8
@@ -141,6 +142,7 @@ private:
     void UpdateVideoLabels();
     void UpdateAudioLabels();
     void UpdateSettingsLabels();
+    void CommitAccessibilitySliderValues();
     void UpdateControlsLabels();
     void MarkAudioSettingsDirty();
     void FlushAudioSettingsIfDirty();
@@ -189,13 +191,17 @@ private:
     UFUNCTION()
     void HandleRestoreControlsClicked();
     UFUNCTION()
-    void HandleTextScaleClicked();
+    void HandleTextScaleChanged(float Value);
     UFUNCTION()
-    void HandleInterfaceScaleClicked();
+    void HandleInterfaceScaleChanged(float Value);
     UFUNCTION()
-    void HandleReducedMotionClicked();
+    void HandleContrastChanged(float Value);
     UFUNCTION()
-    void HandleContrastClicked();
+    void HandleReducedMotionChanged(bool bIsChecked);
+    UFUNCTION()
+    void HandleAccessibilitySliderCaptureBegan();
+    UFUNCTION()
+    void HandleAccessibilitySliderCaptureEnded();
     UFUNCTION()
     void HandleFeedbackClicked();
 
@@ -228,13 +234,23 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<USlider> InteractionCombatVolumeSlider;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> TextScaleLabel;
+    TObjectPtr<UTextBlock> TextScaleValueLabel;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> InterfaceScaleLabel;
+    TObjectPtr<USlider> TextScaleSlider;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> ReducedMotionLabel;
+    TObjectPtr<UTextBlock> InterfaceScaleValueLabel;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> ContrastLabel;
+    TObjectPtr<USlider> InterfaceScaleSlider;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> ContrastValueLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<USlider> ContrastSlider;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> ReducedMotionStateLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> ReducedMotionCheckMarkLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UCheckBox> ReducedMotionCheckBox;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> FeedbackLabel;
     UPROPERTY(Transient)
@@ -249,6 +265,8 @@ private:
     FVector2D LastLayoutViewportSize = FVector2D::ZeroVector;
     bool bAudioSettingsDirty = false;
     bool bUpdatingAudioControls = false;
+    bool bUpdatingAccessibilityControls = false;
+    bool bAccessibilitySliderCaptured = false;
     double AudioSettingsLastChangedTime = 0.0;
 
     UPROPERTY(Transient)

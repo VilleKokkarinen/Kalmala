@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Use shared sliders and a reusable checkbox in Accessibility:** convert interface scale, text scale, and contrast to snapped shared-theme sliders; add the reusable stone checkbox style for Reduced Motion; retain local values and repair high-contrast slider thumb sizing.
+
 - [x] **2026-10-12 — Make Workbench/Forge Repair All direct actions:** remove the per-tool station repair page; clicking either station's button repairs all damaged carried tools through server validation and atomic persistence.
 
 - [x] **2026-10-12 — Match Workbench Repair and Forge Repair/Upgrade styling:** reuse the wood-backed station content area, place repair browsing beside item details, and frame Forge upgrade requirements and comparison together.

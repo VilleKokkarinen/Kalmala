@@ -6,6 +6,7 @@
 #include "Components/Button.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Components/CheckBox.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Image.h"
@@ -83,6 +84,55 @@ namespace
     {
         if (Button == nullptr) return;
         FKalmalaUITheme::Get().ApplyButton(*Button, UKalmalaSettingsWidget::GetContrastMode());
+    }
+
+    struct FSettingsSliderWidgets
+    {
+        USlider* Slider = nullptr;
+        UTextBlock* Value = nullptr;
+    };
+
+    FSettingsSliderWidgets AddSettingsSliderRow(UWidgetTree& WidgetTree, UVerticalBox& Parent,
+        const TCHAR* LabelText, const FName Name, const float MinValue, const float MaxValue,
+        const float StepSize, const float InitialValue, const FText& InitialValueText,
+        const FText& ToolTip, const int32 TextScalePercent, const int32 ContrastMode)
+    {
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        UHorizontalBox* Row = WidgetTree.ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+
+        UTextBlock* Label = WidgetTree.ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+        Label->SetText(FText::FromString(LabelText));
+        Label->SetAutoWrapText(true);
+        Theme.ApplyText(*Label, Theme.BodySize + 3, false, TextScalePercent, ContrastMode);
+        USizeBox* LabelSize = WidgetTree.ConstructWidget<USizeBox>(USizeBox::StaticClass());
+        LabelSize->SetWidthOverride(230.0f);
+        LabelSize->SetContent(Label);
+        Row->AddChildToHorizontalBox(LabelSize)->SetPadding(FMargin(4.0f, 6.0f, 10.0f, 6.0f));
+
+        USlider* Slider = WidgetTree.ConstructWidget<USlider>(USlider::StaticClass(), Name);
+        Slider->SetMinValue(MinValue);
+        Slider->SetMaxValue(MaxValue);
+        Slider->SetStepSize(StepSize);
+        Slider->MouseUsesStep = false;
+        Slider->SetValue(InitialValue);
+        Slider->SetToolTipText(ToolTip);
+        Theme.ApplySlider(*Slider, ContrastMode);
+        UHorizontalBoxSlot* SliderSlot = Row->AddChildToHorizontalBox(Slider);
+        SliderSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        SliderSlot->SetPadding(FMargin(4.0f, 6.0f));
+        SliderSlot->SetVerticalAlignment(VAlign_Center);
+
+        UTextBlock* Value = WidgetTree.ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+        Value->SetAutoWrapText(false);
+        Value->SetJustification(ETextJustify::Center);
+        Value->SetText(InitialValueText);
+        Theme.ApplyText(*Value, Theme.BodySize + 3, false, TextScalePercent, ContrastMode);
+        USizeBox* ValueSize = WidgetTree.ConstructWidget<USizeBox>(USizeBox::StaticClass());
+        ValueSize->SetWidthOverride(64.0f);
+        ValueSize->SetContent(Value);
+        Row->AddChildToHorizontalBox(ValueSize)->SetPadding(FMargin(8.0f, 6.0f, 4.0f, 6.0f));
+        Parent.AddChildToVerticalBox(Row)->SetPadding(FMargin(4.0f, 3.0f));
+        return { Slider, Value };
     }
 
     enum class ELocalInputMappingKind : uint8
@@ -509,6 +559,8 @@ bool UKalmalaSettingsWidget::HasFocusableContentForVerification() const
     WidgetTree->ForEachWidget([&bHasFocusableButton](UWidget* Widget)
     {
         if (const UButton* Button = Cast<UButton>(Widget)) bHasFocusableButton |= Button->GetIsFocusable();
+        if (const USlider* Slider = Cast<USlider>(Widget)) bHasFocusableButton |= Slider->IsFocusable;
+        if (const UCheckBox* CheckBox = Cast<UCheckBox>(Widget)) bHasFocusableButton |= CheckBox->GetIsFocusable();
     });
     return bHasFocusableButton;
 }
@@ -521,6 +573,10 @@ bool UKalmalaSettingsWidget::HasFocusedContentForVerification() const
     {
         if (const UButton* Button = Cast<UButton>(Widget))
             bHasFocusedWidget |= Button->GetIsFocusable() && Button->HasAnyUserFocus();
+        if (const USlider* Slider = Cast<USlider>(Widget))
+            bHasFocusedWidget |= Slider->IsFocusable && Slider->HasAnyUserFocus();
+        if (const UCheckBox* CheckBox = Cast<UCheckBox>(Widget))
+            bHasFocusedWidget |= CheckBox->GetIsFocusable() && CheckBox->HasAnyUserFocus();
     });
     return bHasFocusedWidget;
 }
@@ -1180,7 +1236,7 @@ void UKalmalaSettingsWidget::SelectOptionsTab(const int32 SelectedIndex)
         if (UTextBlock* Label = Cast<UTextBlock>(Tab->GetContent()))
         {
             Label->SetText(FText::FromString(TabNames[Index]));
-            Theme.ApplyText(*Label, Theme.BodySize + 5, bSelected,
+            Theme.ApplyText(*Label, Theme.BodySize, bSelected,
                 GetTextScalePercent(), GetContrastMode());
             Label->SetColorAndOpacity(FSlateColor(bSelected ? SelectedAccent : GetSettingsPalette().ButtonText));
         }
@@ -1215,7 +1271,7 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
         Text->SetText(Label);
         Text->SetColorAndOpacity(FSlateColor(GetSettingsPalette().ButtonText));
         Text->SetJustification(ETextJustify::Center);
-        Text->SetAutoWrapText(false);
+        Text->SetAutoWrapText(true);
         FKalmalaUITheme::Get().ApplyText(*Text, FKalmalaUITheme::Get().BodySize, false, GetTextScalePercent(), GetContrastMode());
         Tab->SetContent(Text);
         OptionsTabButtons.Add(Tab);
@@ -1313,78 +1369,47 @@ void UKalmalaSettingsWidget::ShowAudioTab()
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
     while (ContentBox->GetChildrenCount() > 4) ContentBox->RemoveChildAt(4);
 
-    struct FVolumeSliderWidgets
-    {
-        USlider* Slider = nullptr;
-        UTextBlock* Value = nullptr;
-    };
     UVerticalBox* SliderGroup = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("AudioSliderGroup"));
-    const auto AddVolumeSlider = [this, SliderGroup](const TCHAR* LabelText, const FName Name, const float InitialValue)
-        -> FVolumeSliderWidgets
-    {
-        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
-        auto* Row = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
-
-        auto* Label = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
-        Label->SetText(FText::FromString(LabelText));
-        Label->SetAutoWrapText(true);
-        Theme.ApplyText(*Label, Theme.BodySize + 3, false, GetTextScalePercent(), GetContrastMode());
-        auto* LabelSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
-        LabelSize->SetWidthOverride(230.0f);
-        LabelSize->SetContent(Label);
-        Row->AddChildToHorizontalBox(LabelSize)->SetPadding(FMargin(4.0f, 6.0f, 10.0f, 6.0f));
-
-        auto* Slider = WidgetTree->ConstructWidget<USlider>(USlider::StaticClass(), Name);
-        Slider->SetMinValue(0.0f);
-        Slider->SetMaxValue(1.0f);
-        Slider->SetStepSize(0.005f);
-        Slider->MouseUsesStep = false;
-        Slider->SetValue(InitialValue);
-        Slider->SetToolTipText(FText::FromString(FString::Printf(TEXT("Adjust %s volume from 0 to 100 percent."), LabelText)));
-        Theme.ApplySlider(*Slider, GetContrastMode());
-        UHorizontalBoxSlot* SliderSlot = Row->AddChildToHorizontalBox(Slider);
-        SliderSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-        SliderSlot->SetPadding(FMargin(4.0f, 6.0f));
-        SliderSlot->SetVerticalAlignment(VAlign_Center);
-
-        auto* Value = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
-        Value->SetAutoWrapText(false);
-        Value->SetJustification(ETextJustify::Center);
-        Value->SetText(FText::FromString(FString::Printf(TEXT("%d%%"), FMath::RoundToInt(InitialValue * 100.0f))));
-        Theme.ApplyText(*Value, Theme.BodySize + 3, false, GetTextScalePercent(), GetContrastMode());
-        auto* ValueSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
-        ValueSize->SetWidthOverride(64.0f);
-        ValueSize->SetContent(Value);
-        Row->AddChildToHorizontalBox(ValueSize)->SetPadding(FMargin(8.0f, 6.0f, 4.0f, 6.0f));
-        SliderGroup->AddChildToVerticalBox(Row)->SetPadding(FMargin(4.0f, 3.0f));
-        return { Slider, Value };
-    };
-
     UButton* Mute = AddButton(ContentBox, FText::GetEmpty(), TEXT("AudioMuteButton"));
     Mute->OnClicked.AddDynamic(this, &ThisClass::HandleAudioMuteClicked);
     AudioMuteLabel = Cast<UTextBlock>(Mute->GetContent());
 
     ContentBox->AddChildToVerticalBox(SliderGroup);
-    const FVolumeSliderWidgets Master = AddVolumeSlider(TEXT("Master volume"), TEXT("MasterVolumeSlider"),
-        GetStoredMasterVolume());
+    const FSettingsSliderWidgets Master = AddSettingsSliderRow(*WidgetTree, *SliderGroup,
+        TEXT("Master volume"), TEXT("MasterVolumeSlider"), 0.0f, 1.0f, 0.005f,
+        GetStoredMasterVolume(), FText::AsPercent(GetStoredMasterVolume()),
+        FText::FromString(TEXT("Adjust master volume from 0 to 100 percent.")),
+        GetTextScalePercent(), GetContrastMode());
     MasterVolumeSlider = Master.Slider;
     MasterVolumeValueLabel = Master.Value;
     MasterVolumeSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleMasterVolumeChanged);
 
-    const FVolumeSliderWidgets Ambient = AddVolumeSlider(TEXT("Ambient volume"), TEXT("AmbientVolumeSlider"),
-        GetAudioCategoryVolume(EKalmalaAudioCategory::Ambient));
+    const float AmbientInitialValue = GetAudioCategoryVolume(EKalmalaAudioCategory::Ambient);
+    const FSettingsSliderWidgets Ambient = AddSettingsSliderRow(*WidgetTree, *SliderGroup,
+        TEXT("Ambient volume"), TEXT("AmbientVolumeSlider"), 0.0f, 1.0f, 0.005f,
+        AmbientInitialValue, FText::AsPercent(AmbientInitialValue),
+        FText::FromString(TEXT("Adjust ambient volume from 0 to 100 percent.")),
+        GetTextScalePercent(), GetContrastMode());
     AmbientVolumeSlider = Ambient.Slider;
     AmbientVolumeValueLabel = Ambient.Value;
     AmbientVolumeSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleAmbientVolumeChanged);
 
-    const FVolumeSliderWidgets Music = AddVolumeSlider(TEXT("Music volume"), TEXT("MusicVolumeSlider"),
-        GetAudioCategoryVolume(EKalmalaAudioCategory::Music));
+    const float MusicInitialValue = GetAudioCategoryVolume(EKalmalaAudioCategory::Music);
+    const FSettingsSliderWidgets Music = AddSettingsSliderRow(*WidgetTree, *SliderGroup,
+        TEXT("Music volume"), TEXT("MusicVolumeSlider"), 0.0f, 1.0f, 0.005f,
+        MusicInitialValue, FText::AsPercent(MusicInitialValue),
+        FText::FromString(TEXT("Adjust music volume from 0 to 100 percent.")),
+        GetTextScalePercent(), GetContrastMode());
     MusicVolumeSlider = Music.Slider;
     MusicVolumeValueLabel = Music.Value;
     MusicVolumeSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleMusicVolumeChanged);
 
-    const FVolumeSliderWidgets InteractionCombat = AddVolumeSlider(TEXT("Interaction / combat feedback"),
-        TEXT("InteractionCombatVolumeSlider"), GetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat));
+    const float InteractionCombatInitialValue = GetAudioCategoryVolume(EKalmalaAudioCategory::InteractionCombat);
+    const FSettingsSliderWidgets InteractionCombat = AddSettingsSliderRow(*WidgetTree, *SliderGroup,
+        TEXT("Interaction / combat feedback"), TEXT("InteractionCombatVolumeSlider"), 0.0f, 1.0f, 0.005f,
+        InteractionCombatInitialValue, FText::AsPercent(InteractionCombatInitialValue),
+        FText::FromString(TEXT("Adjust interaction and combat feedback volume from 0 to 100 percent.")),
+        GetTextScalePercent(), GetContrastMode());
     InteractionCombatVolumeSlider = InteractionCombat.Slider;
     InteractionCombatVolumeValueLabel = InteractionCombat.Value;
     InteractionCombatVolumeSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleInteractionCombatVolumeChanged);
@@ -1524,36 +1549,109 @@ void UKalmalaSettingsWidget::ShowAccessibilityTab()
     while (ContentBox->GetChildrenCount() > 4) ContentBox->RemoveChildAt(4);
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
 
-    UButton* InterfaceScale = AddButton(ContentBox, FText::GetEmpty(), TEXT("InterfaceScaleButton"));
-    InterfaceScale->OnClicked.AddDynamic(this, &ThisClass::HandleInterfaceScaleClicked);
-    InterfaceScaleLabel = Cast<UTextBlock>(InterfaceScale->GetContent());
+    UVerticalBox* SliderGroup = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(),
+        TEXT("AccessibilitySliderGroup"));
+    ContentBox->AddChildToVerticalBox(SliderGroup);
 
-    UButton* TextScale = AddButton(ContentBox, FText::GetEmpty(), TEXT("TextScaleButton"));
-    TextScale->OnClicked.AddDynamic(this, &ThisClass::HandleTextScaleClicked);
-    TextScaleLabel = Cast<UTextBlock>(TextScale->GetContent());
+    const int32 TextScalePercent = GetTextScalePercent();
+    const int32 InterfaceScalePercent = GetInterfaceScalePercent();
+    const int32 ContrastMode = GetContrastMode();
+    const FSettingsSliderWidgets InterfaceScale = AddSettingsSliderRow(*WidgetTree, *SliderGroup,
+        TEXT("Interface scale"), TEXT("InterfaceScaleSlider"), 80.0f, 120.0f, 10.0f,
+        static_cast<float>(InterfaceScalePercent),
+        FText::FromString(FString::Printf(TEXT("%d%%"), InterfaceScalePercent)),
+        FText::FromString(TEXT("Adjust the whole interface scale from 80 to 120 percent.")),
+        TextScalePercent, ContrastMode);
+    InterfaceScaleSlider = InterfaceScale.Slider;
+    InterfaceScaleValueLabel = InterfaceScale.Value;
+    InterfaceScaleSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleInterfaceScaleChanged);
+    InterfaceScaleSlider->OnMouseCaptureBegin.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureBegan);
+    InterfaceScaleSlider->OnControllerCaptureBegin.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureBegan);
+    InterfaceScaleSlider->OnMouseCaptureEnd.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureEnded);
+    InterfaceScaleSlider->OnControllerCaptureEnd.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureEnded);
 
-    UButton* ReducedMotion = AddButton(ContentBox, FText::GetEmpty(), TEXT("ReducedMotionButton"));
-    ReducedMotion->OnClicked.AddDynamic(this, &ThisClass::HandleReducedMotionClicked);
-    ReducedMotionLabel = Cast<UTextBlock>(ReducedMotion->GetContent());
+    const FSettingsSliderWidgets TextScale = AddSettingsSliderRow(*WidgetTree, *SliderGroup,
+        TEXT("Text scale"), TEXT("TextScaleSlider"), 100.0f, 150.0f, 25.0f,
+        static_cast<float>(TextScalePercent),
+        FText::FromString(FString::Printf(TEXT("%d%%"), TextScalePercent)),
+        FText::FromString(TEXT("Adjust text size from 100 to 150 percent.")),
+        TextScalePercent, ContrastMode);
+    TextScaleSlider = TextScale.Slider;
+    TextScaleValueLabel = TextScale.Value;
+    TextScaleSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleTextScaleChanged);
+    TextScaleSlider->OnMouseCaptureBegin.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureBegan);
+    TextScaleSlider->OnControllerCaptureBegin.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureBegan);
+    TextScaleSlider->OnMouseCaptureEnd.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureEnded);
+    TextScaleSlider->OnControllerCaptureEnd.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureEnded);
 
-    UButton* Contrast = AddButton(ContentBox, FText::GetEmpty(), TEXT("ContrastButton"));
-    Contrast->OnClicked.AddDynamic(this, &ThisClass::HandleContrastClicked);
-    ContrastLabel = Cast<UTextBlock>(Contrast->GetContent());
+    const FSettingsSliderWidgets Contrast = AddSettingsSliderRow(*WidgetTree, *SliderGroup,
+        TEXT("Contrast"), TEXT("ContrastSlider"), 0.0f, 1.0f, 1.0f,
+        static_cast<float>(ContrastMode),
+        FText::FromString(ContrastMode == 0 ? TEXT("Standard") : TEXT("High")),
+        FText::FromString(TEXT("Choose standard or high contrast.")),
+        TextScalePercent, ContrastMode);
+    ContrastSlider = Contrast.Slider;
+    ContrastValueLabel = Contrast.Value;
+    ContrastSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleContrastChanged);
+    ContrastSlider->OnMouseCaptureBegin.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureBegan);
+    ContrastSlider->OnControllerCaptureBegin.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureBegan);
+    ContrastSlider->OnMouseCaptureEnd.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureEnded);
+    ContrastSlider->OnControllerCaptureEnd.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureEnded);
+
+    UHorizontalBox* ReducedMotionRow = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(),
+        TEXT("ReducedMotionRow"));
+    UTextBlock* ReducedMotionLabel = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+    ReducedMotionLabel->SetText(FText::FromString(TEXT("Reduced motion")));
+    ReducedMotionLabel->SetAutoWrapText(true);
+    FKalmalaUITheme::Get().ApplyText(*ReducedMotionLabel, FKalmalaUITheme::Get().BodySize + 3,
+        false, TextScalePercent, ContrastMode);
+    USizeBox* ReducedMotionLabelSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+    ReducedMotionLabelSize->SetWidthOverride(230.0f);
+    ReducedMotionLabelSize->SetContent(ReducedMotionLabel);
+    ReducedMotionRow->AddChildToHorizontalBox(ReducedMotionLabelSize)
+        ->SetPadding(FMargin(4.0f, 6.0f, 10.0f, 6.0f));
+
+    ReducedMotionCheckBox = WidgetTree->ConstructWidget<UCheckBox>(UCheckBox::StaticClass(),
+        TEXT("ReducedMotionCheckBox"));
+    ReducedMotionCheckMarkLabel = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+    ReducedMotionCheckMarkLabel->SetAutoWrapText(false);
+    ReducedMotionCheckMarkLabel->SetJustification(ETextJustify::Center);
+    ReducedMotionCheckMarkLabel->SetText(FText::FromString(IsReducedMotionEnabled() ? TEXT("✓") : TEXT("")));
+    FKalmalaUITheme::Get().ApplyText(*ReducedMotionCheckMarkLabel, FKalmalaUITheme::Get().BodySize + 3,
+        false, TextScalePercent, ContrastMode);
+    ReducedMotionCheckBox->SetContent(ReducedMotionCheckMarkLabel);
+    ReducedMotionCheckBox->SetIsChecked(IsReducedMotionEnabled());
+    ReducedMotionCheckBox->SetToolTipText(FText::FromString(TEXT("Reduce decorative interface motion.")));
+    FKalmalaUITheme::Get().ApplyCheckBox(*ReducedMotionCheckBox, ContrastMode);
+    ReducedMotionCheckBox->OnCheckStateChanged.AddDynamic(this, &ThisClass::HandleReducedMotionChanged);
+    USizeBox* ReducedMotionCheckBoxSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+    ReducedMotionCheckBoxSize->SetWidthOverride(36.0f);
+    ReducedMotionCheckBoxSize->SetHeightOverride(36.0f);
+    ReducedMotionCheckBoxSize->SetContent(ReducedMotionCheckBox);
+    UHorizontalBoxSlot* ReducedMotionSlot = ReducedMotionRow->AddChildToHorizontalBox(ReducedMotionCheckBoxSize);
+    ReducedMotionSlot->SetPadding(FMargin(4.0f, 6.0f));
+    ReducedMotionSlot->SetVerticalAlignment(VAlign_Center);
+    ReducedMotionStateLabel = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+    ReducedMotionStateLabel->SetText(FText::FromString(IsReducedMotionEnabled() ? TEXT("On") : TEXT("Off")));
+    FKalmalaUITheme::Get().ApplyText(*ReducedMotionStateLabel, FKalmalaUITheme::Get().BodySize + 3,
+        false, TextScalePercent, ContrastMode);
+    ReducedMotionRow->AddChildToHorizontalBox(ReducedMotionStateLabel)->SetPadding(FMargin(4.0f, 6.0f));
+    SliderGroup->AddChildToVerticalBox(ReducedMotionRow)->SetPadding(FMargin(4.0f, 3.0f));
 
     UButton* Feedback = AddButton(ContentBox, FText::GetEmpty(), TEXT("FeedbackButton"));
     Feedback->OnClicked.AddDynamic(this, &ThisClass::HandleFeedbackClicked);
     FeedbackLabel = Cast<UTextBlock>(Feedback->GetContent());
 
     // Explicit lines avoid auto-wrap measuring centered button text at a stale width.
-    for (UTextBlock* Label : { InterfaceScaleLabel, TextScaleLabel, ReducedMotionLabel, ContrastLabel, FeedbackLabel })
+    for (UTextBlock* Label : { FeedbackLabel })
     {
         Label->SetAutoWrapText(false);
         FKalmalaUITheme::Get().ApplyText(*Label, FKalmalaUITheme::Get().BodySize + 3,
-            false, GetTextScalePercent(), GetContrastMode());
+            false, TextScalePercent, ContrastMode);
     }
     UpdateSettingsLabels();
-    InterfaceScale->SetUserFocus(GetOwningPlayer());
-    InterfaceScale->SetKeyboardFocus();
+    InterfaceScaleSlider->SetUserFocus(GetOwningPlayer());
+    InterfaceScaleSlider->SetKeyboardFocus();
 }
 
 void UKalmalaSettingsWidget::ShowPlaceholderTab(const FText& Title, const FText& Description)
@@ -1615,32 +1713,96 @@ void UKalmalaSettingsWidget::FlushAudioSettingsIfDirty()
 
 void UKalmalaSettingsWidget::UpdateSettingsLabels()
 {
-    if (InterfaceScaleLabel != nullptr)
+    const int32 InterfaceScalePercent = InterfaceScaleSlider != nullptr
+        ? ClampInterfaceScalePercent(FMath::RoundToInt(InterfaceScaleSlider->GetValue()))
+        : GetInterfaceScalePercent();
+    if (InterfaceScaleValueLabel != nullptr)
     {
-        InterfaceScaleLabel->SetText(FText::FromString(FString::Printf(
-            TEXT("Interface scale\n%d%%"), GetInterfaceScalePercent())));
+        InterfaceScaleValueLabel->SetText(FText::FromString(FString::Printf(TEXT("%d%%"), InterfaceScalePercent)));
     }
-    if (TextScaleLabel != nullptr)
+
+    const int32 TextScalePercent = TextScaleSlider != nullptr
+        ? ClampTextScale(FMath::RoundToInt(TextScaleSlider->GetValue()))
+        : GetTextScalePercent();
+    if (TextScaleValueLabel != nullptr)
     {
-        TextScaleLabel->SetText(FText::FromString(FString::Printf(
-            TEXT("Text scale\n%d%%"), GetTextScalePercent())));
+        TextScaleValueLabel->SetText(FText::FromString(FString::Printf(TEXT("%d%%"), TextScalePercent)));
     }
-    if (ReducedMotionLabel != nullptr)
+
+    const int32 ContrastMode = ContrastSlider != nullptr
+        ? ClampContrastMode(FMath::RoundToInt(ContrastSlider->GetValue()))
+        : GetContrastMode();
+    if (ContrastValueLabel != nullptr)
     {
-        ReducedMotionLabel->SetText(FText::FromString(FString::Printf(
-            TEXT("Reduced motion\n%s"), IsReducedMotionEnabled() ? TEXT("On") : TEXT("Off"))));
+        ContrastValueLabel->SetText(FText::FromString(ContrastMode == 0 ? TEXT("Standard") : TEXT("High")));
     }
-    if (ContrastLabel != nullptr)
+
+    const bool bReducedMotion = IsReducedMotionEnabled();
+    if (ReducedMotionCheckMarkLabel != nullptr)
     {
-        ContrastLabel->SetText(FText::FromString(FString::Printf(
-            TEXT("Contrast\n%s"),
-            GetContrastMode() == 0 ? TEXT("Standard") : TEXT("High"))));
+        ReducedMotionCheckMarkLabel->SetText(FText::FromString(bReducedMotion ? TEXT("✓") : TEXT("")));
+    }
+    if (ReducedMotionStateLabel != nullptr)
+    {
+        ReducedMotionStateLabel->SetText(FText::FromString(bReducedMotion ? TEXT("On") : TEXT("Off")));
     }
     if (FeedbackLabel != nullptr)
     {
         FeedbackLabel->SetText(FText::FromString(FString::Printf(
             TEXT("Colour-independent feedback\n%s"),
             GetFeedbackMode() == 0 ? TEXT("Text only") : TEXT("Text + markers"))));
+    }
+}
+
+void UKalmalaSettingsWidget::CommitAccessibilitySliderValues()
+{
+    const bool bInterfaceScaleHadFocus = InterfaceScaleSlider != nullptr && InterfaceScaleSlider->HasAnyUserFocus();
+    const bool bTextScaleHadFocus = TextScaleSlider != nullptr && TextScaleSlider->HasAnyUserFocus();
+    const bool bContrastHadFocus = ContrastSlider != nullptr && ContrastSlider->HasAnyUserFocus();
+    bool bChanged = false;
+    if (InterfaceScaleSlider != nullptr)
+    {
+        const int32 Value = ClampInterfaceScalePercent(FMath::RoundToInt(InterfaceScaleSlider->GetValue()));
+        if (Value != GetInterfaceScalePercent())
+        {
+            SetInterfaceScalePercent(Value);
+            bChanged = true;
+        }
+    }
+    if (TextScaleSlider != nullptr)
+    {
+        const int32 Value = ClampTextScale(FMath::RoundToInt(TextScaleSlider->GetValue()));
+        if (Value != GetTextScalePercent())
+        {
+            SetTextScalePercent(Value);
+            bChanged = true;
+        }
+    }
+    if (ContrastSlider != nullptr)
+    {
+        const int32 Value = ClampContrastMode(FMath::RoundToInt(ContrastSlider->GetValue()));
+        if (Value != GetContrastMode())
+        {
+            SetContrastMode(Value);
+            bChanged = true;
+        }
+    }
+
+    if (bChanged)
+    {
+        ShowAccessibilityTab();
+        USlider* FocusSlider = bTextScaleHadFocus ? TextScaleSlider
+            : bContrastHadFocus ? ContrastSlider
+            : bInterfaceScaleHadFocus ? InterfaceScaleSlider : nullptr;
+        if (FocusSlider != nullptr)
+        {
+            FocusSlider->SetUserFocus(GetOwningPlayer());
+            FocusSlider->SetKeyboardFocus();
+        }
+    }
+    else
+    {
+        UpdateSettingsLabels();
     }
 }
 
@@ -1754,32 +1916,57 @@ void UKalmalaSettingsWidget::HandleRestoreControlsClicked()
     UpdateControlsLabels();
 }
 
-void UKalmalaSettingsWidget::HandleTextScaleClicked()
+void UKalmalaSettingsWidget::HandleTextScaleChanged(const float Value)
 {
-    const int32 Current = GetTextScalePercent();
-    const int32 Next = Current == 100 ? 125 : Current == 125 ? 150 : 100;
-    SetTextScalePercent(Next);
-    ShowAccessibilityTab();
+    if (bUpdatingAccessibilityControls || TextScaleSlider == nullptr) return;
+    bUpdatingAccessibilityControls = true;
+    TextScaleSlider->SetValue(static_cast<float>(ClampTextScale(FMath::RoundToInt(Value))));
+    bUpdatingAccessibilityControls = false;
+    if (bAccessibilitySliderCaptured) UpdateSettingsLabels();
+    else CommitAccessibilitySliderValues();
 }
 
-void UKalmalaSettingsWidget::HandleInterfaceScaleClicked()
+void UKalmalaSettingsWidget::HandleInterfaceScaleChanged(const float Value)
 {
-    const int32 Current = GetInterfaceScalePercent();
-    const int32 Next = Current >= 120 ? 80 : Current + 10;
-    SetInterfaceScalePercent(Next);
-    ShowAccessibilityTab();
+    if (bUpdatingAccessibilityControls || InterfaceScaleSlider == nullptr) return;
+    bUpdatingAccessibilityControls = true;
+    InterfaceScaleSlider->SetValue(static_cast<float>(ClampInterfaceScalePercent(FMath::RoundToInt(Value))));
+    bUpdatingAccessibilityControls = false;
+    if (bAccessibilitySliderCaptured) UpdateSettingsLabels();
+    else CommitAccessibilitySliderValues();
 }
 
-void UKalmalaSettingsWidget::HandleReducedMotionClicked()
+void UKalmalaSettingsWidget::HandleContrastChanged(const float Value)
 {
-    SetReducedMotionEnabled(!IsReducedMotionEnabled());
-    ShowAccessibilityTab();
+    if (bUpdatingAccessibilityControls || ContrastSlider == nullptr) return;
+    bUpdatingAccessibilityControls = true;
+    ContrastSlider->SetValue(static_cast<float>(ClampContrastMode(FMath::RoundToInt(Value))));
+    bUpdatingAccessibilityControls = false;
+    if (bAccessibilitySliderCaptured) UpdateSettingsLabels();
+    else CommitAccessibilitySliderValues();
 }
 
-void UKalmalaSettingsWidget::HandleContrastClicked()
+void UKalmalaSettingsWidget::HandleReducedMotionChanged(const bool bIsChecked)
 {
-    SetContrastMode(GetContrastMode() == 0 ? 1 : 0);
+    if (bUpdatingAccessibilityControls) return;
+    SetReducedMotionEnabled(bIsChecked);
     ShowAccessibilityTab();
+    if (ReducedMotionCheckBox != nullptr)
+    {
+        ReducedMotionCheckBox->SetUserFocus(GetOwningPlayer());
+        ReducedMotionCheckBox->SetKeyboardFocus();
+    }
+}
+
+void UKalmalaSettingsWidget::HandleAccessibilitySliderCaptureBegan()
+{
+    bAccessibilitySliderCaptured = true;
+}
+
+void UKalmalaSettingsWidget::HandleAccessibilitySliderCaptureEnded()
+{
+    bAccessibilitySliderCaptured = false;
+    CommitAccessibilitySliderValues();
 }
 
 void UKalmalaSettingsWidget::HandleFeedbackClicked()

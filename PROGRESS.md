@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Use sliders and a reusable checkbox in Accessibility
+
+- **Completed:** replaced Accessibility's interface-scale, text-scale, and contrast choice buttons with snapped sliders that share the Audio slider row builder, theme, value labels, and spacing. Their existing allowed values and local `GameUserSettings` storage remain unchanged. Added a reusable stone toggle-checkbox theme API and made Reduced Motion a square check control with an explicit On/Off label. Kept keyboard/controller focus on the control being adjusted. Sized the shared geometric slider thumb so high-contrast sliders show their handles, and kept the selected top tab within its width at the largest text scale.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `Source/KalmalaUI/Public/KalmalaUITheme.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.accessibility -BuildModules` compiled KalmalaUI/KalmalaEditor and rendered Accessibility successfully. Inspected standard 100% and high-contrast 150% previews; the three slider values/handles and checkbox state were visible, and the top tab text fit. `git diff --check` passed. No automation suite ran; full verification remains deferred.
+- **Impact and authority:** local Settings presentation and local preference persistence only. No gameplay request, RPC, replicated state, or saved-data schema changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Render fixtures verify presentation but do not exercise mouse/controller slider interactions or fresh-profile persistence. Full project verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-12 — Make Workbench/Forge repair a direct Repair All action
 
 - **Completed:** changed the Workbench and Forge Repair buttons to send a payload-free server request that repairs every damaged carried tool. Both actions leave the station Craft/Upgrade view open, report the server result beside the station header, and do not expose a per-tool repair page. The server independently validates a nearby visible Workbench or Forge and persists the full bounded candidate list before publishing. Inventory's selected-tool repair and Grinding Stone Interact remain separate existing actions.

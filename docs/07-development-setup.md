@@ -1094,13 +1094,15 @@ restore defaults.
 
 ### Local Accessibility group
 
-The Accessibility group cycles local text scale through 100%, 125%, and 150%, and
-cycles between Standard and High contrast. Changes rebuild the current modal
-immediately, use auto-wrapped text, and retain a larger bounded panel so the
-Controls list remains scrollable at the largest scale. Contrast updates the
-modal backdrop, panel, button surfaces, text, and focusable state controls as
-one local palette; every value remains visible as text. Values persist in the
-local `GameUserSettings` configuration and send no RPC or gameplay request.
+The Accessibility group uses the shared themed slider controls for text scale
+(100%, 125%, and 150%), whole-interface scale (80%, 90%, 100%, 110%, and 120%),
+and contrast (Standard or High). The sliders snap to those existing values and
+show a text value beside each track. Changes rebuild the current modal when a
+slider adjustment ends, use auto-wrapped text, and retain a larger bounded panel
+so the Controls list remains scrollable at the largest scale. Contrast updates
+the modal backdrop, panel, button surfaces, text, and focusable state controls
+as one local palette. Values persist in the local `GameUserSettings`
+configuration and send no RPC or gameplay request.
 The `Kalmala.UI.Settings.LocalPresentation` automation checks bounded choices
 and config round-trips.
 
@@ -1116,12 +1118,12 @@ follow the local contrast palette, and send no request.
 round-trip. The focused automation remains a null-RHI contract check; use the
 rendered peer probe below for the live modal.
 
-Whole-interface scale is a separate 80/90/100/110/120% choice, defaulting to
-100%, layered over the project's UI scale. It reflows the game HUD and menus;
-the bounded Escape panel follows the viewport and keeps a 16-unit margin.
-Reduced motion defaults off and removes the opening slide, themed button/card
-highlight transitions, and animated scrolling. Focus, selection, text, and
-actions remain immediately visible. Both preferences are stored in the local
+Whole-interface scale defaults to 100% and is layered over the project's UI
+scale. It reflows the game HUD and menus; the bounded Escape panel follows the
+viewport and keeps a 16-unit margin. Reduced motion is a stone-themed checkbox
+that defaults off and removes the opening slide, themed button/card highlight
+transitions, and animated scrolling. Focus, selection, text, and actions remain
+immediately visible. Both preferences are stored in the local
 `GameUserSettings` config and are restored when the same local profile restarts.
 `Kalmala.UI.Settings.LocalPresentation` checks scaling bounds/application and
 local persistence; `Kalmala.UI.Theme.LocalPresentation` checks the static

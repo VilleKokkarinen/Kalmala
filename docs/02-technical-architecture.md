@@ -1973,18 +1973,19 @@ The project baseline in
 `Config/DefaultInput.ini` is never rewritten. Escape remains available for the
 modal close path even when the alternate Settings action key is changed.
 
-The Accessibility group now provides local text-scale choices of 100%, 125%, and 150%
-and Standard or High contrast. Text choices immediately rebuild the modal with
-scaled, auto-wrapped labels and buttons inside its larger bounded panel;
-The binding list remains scrollable at the largest size. Contrast updates the local
-backdrop, panel, button surfaces, text, and focusable state controls together,
-while every state continues to expose an explicit text value. Both choices
-persist in the existing local `GameUserSettings` configuration and affect no
-gameplay widget, replicated property, or server request.
+The Accessibility group now provides shared themed sliders for text scale
+(100%, 125%, and 150%) and Standard or High contrast. The sliders snap to those
+existing values and show explicit text values. Text changes rebuild the modal
+with scaled, auto-wrapped labels and buttons inside its larger bounded panel;
+the binding list remains scrollable at the largest size. Contrast updates the
+local backdrop, panel, button surfaces, text, and focusable state controls
+together. Both settings persist in the existing local `GameUserSettings`
+configuration and affect no gameplay widget, replicated property, or server
+request.
 
-The Accessibility group also provides a whole-interface scale from 80%, 90%, 100%,
-110%, or 120%, defaulting to 100%, plus a Reduced motion On/Off choice that
-defaults to Off. Interface scale is a local multiplier over the project's
+The Accessibility group also provides a shared themed whole-interface scale
+slider at 80%, 90%, 100%, 110%, or 120%, defaulting to 100%, plus a stone-themed
+Reduced motion checkbox that defaults to Off. Interface scale is a local multiplier over the project's
 existing DPI curve and `UUserInterfaceSettings::ApplicationScale`; it changes
 the game-layer DPI scale so all game UI reflows together and hit testing follows
 the displayed geometry. It remains separate from text scale and is stored only

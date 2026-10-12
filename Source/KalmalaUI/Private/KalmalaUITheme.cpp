@@ -11,6 +11,7 @@
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "Containers/Ticker.h"
 #include "Components/Button.h"
+#include "Components/CheckBox.h"
 #include "Components/ButtonSlot.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/GridSlot.h"
@@ -407,6 +408,51 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, con
     SizeButtonToContent(Button);
 }
 
+void FKalmalaUITheme::ApplyCheckBox(UCheckBox& CheckBox, const int32 ContrastMode) const
+{
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    UTexture2D* ButtonSurface = bContrast || ButtonImage.IsEmpty()
+        ? nullptr : Cast<UTexture2D>(LoadThemeAsset(ButtonImage));
+
+    const auto MakeBrush = [this, bContrast, ButtonSurface](const FLinearColor TextureTint,
+        const FLinearColor FallbackFill) -> FSlateBrush
+    {
+        if (ButtonSurface != nullptr)
+        {
+            FSlateBoxBrush StoneBrush(ButtonSurface, FMargin(0.16f, 0.18f),
+                FSlateColor(TextureTint));
+            StoneBrush.ImageSize = FVector2D(30.0f, 30.0f);
+            StoneBrush.OutlineSettings.Color = FSlateColor(BorderColor);
+            StoneBrush.OutlineSettings.Width = 0.0f;
+            return StoneBrush;
+        }
+
+        return FSlateRoundedBoxBrush(FallbackFill,
+            CornerRadius, bContrast ? FLinearColor::White : BorderColor,
+            bContrast ? FMath::Max(2.0f, FocusBorderWidth) : BorderWidth);
+    };
+
+    FCheckBoxStyle Style = FCheckBoxStyle::GetDefault();
+    Style.SetCheckBoxType(ESlateCheckBoxType::ToggleButton)
+        .SetUncheckedImage(MakeBrush(FLinearColor(0.62f, 0.64f, 0.65f, 1.0f),
+            FLinearColor(0.035f, 0.035f, 0.035f, 1.0f)))
+        .SetUncheckedHoveredImage(MakeBrush(FLinearColor(0.86f, 0.88f, 0.90f, 1.0f),
+            FLinearColor(0.16f, 0.16f, 0.16f, 1.0f)))
+        .SetUncheckedPressedImage(MakeBrush(FLinearColor(0.46f, 0.48f, 0.50f, 1.0f),
+            FLinearColor(0.025f, 0.025f, 0.025f, 1.0f)))
+        .SetCheckedImage(MakeBrush(FLinearColor(1.0f, 0.78f, 0.42f, 1.0f),
+            FLinearColor(0.78f, 0.78f, 0.78f, 1.0f)))
+        .SetCheckedHoveredImage(MakeBrush(FLinearColor(1.0f, 0.90f, 0.60f, 1.0f),
+            FLinearColor::White))
+        .SetCheckedPressedImage(MakeBrush(FLinearColor(0.72f, 0.52f, 0.24f, 1.0f),
+            FLinearColor(0.52f, 0.52f, 0.52f, 1.0f)))
+        .SetForegroundColor(FSlateColor(bContrast ? FLinearColor::White : Text))
+        .SetCheckedForegroundColor(FSlateColor(bContrast ? FLinearColor::White : Text))
+        .SetPadding(FMargin(0.0f));
+    CheckBox.SetWidgetStyle(Style);
+    CheckBox.HorizontalAlignment = HAlign_Center;
+}
+
 void FKalmalaUITheme::ApplyListViewItem(UButton& Button, const int32 ContrastMode,
     const bool bReducedMotion) const
 {
@@ -541,7 +587,9 @@ void FKalmalaUITheme::ApplySlider(USlider& Slider, const int32 ContrastMode) con
         }
         const FLinearColor Fill = bContrast ? FLinearColor(0.14f, 0.14f, 0.14f, 1.0f) : Tint;
         const FLinearColor Outline = bContrast ? FLinearColor::White : BorderColor;
-        return FSlateRoundedBoxBrush(Fill, 16.0f, Outline, bContrast ? 2.0f : 1.0f);
+        FSlateRoundedBoxBrush Thumb(Fill, 16.0f, Outline, bContrast ? 2.0f : 1.0f);
+        Thumb.SetImageSize(FVector2D(32.0f, 32.0f));
+        return Thumb;
     };
 
     FSliderStyle Style = Slider.GetWidgetStyle();

@@ -9,6 +9,7 @@ class FConfigFile;
 class UBorder;
 class UTextBlock;
 class UButton;
+class UCheckBox;
 class USlider;
 class USizeBox;
 class UScrollBox;
@@ -107,6 +108,8 @@ struct KALMALAUI_API FKalmalaUITheme
     void ApplyPanel(UBorder& Border, int32 ContrastMode, const FString* ImageOverride = nullptr) const;
     void ApplySolidPanel(UBorder& Border, int32 ContrastMode) const;
     void ApplyButton(UButton& Button, int32 ContrastMode, bool bReducedMotion = false) const;
+    /** Applies the reusable stone toggle-checkbox style, with a geometric high-contrast fallback. */
+    void ApplyCheckBox(UCheckBox& CheckBox, int32 ContrastMode) const;
     void ApplyListViewItem(UButton& Button, int32 ContrastMode, bool bReducedMotion = false) const;
     void ApplyItemIconTile(UBorder& Border, int32 ContrastMode) const;
     void ApplyItemIconTileFill(UBorder& Border, int32 ContrastMode) const;
