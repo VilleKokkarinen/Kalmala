@@ -35,6 +35,7 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
   - [x] Combine settings runtime and no-build contract verification under `Verify-SettingsAccessibility.ps1`, retaining a contract-only mode.
   - [x] Fold the persisted-camp build fixture into the restart runner and retire its standalone wrappers.
   - [x] Merge WorldMap viewport, tile identity, private-coverage restart, and profile checks into `Verify-WorldMap.ps1`; retain separate export and co-op-awareness checks.
+  - [x] Move the no-build audio cue contract into `Verify-AmbientAudio.ps1 -ContractOnly` and combine movement/ocean cue assertions in one PlayerControls run.
   - [ ] Audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage; retire or consolidate only confirmed duplicates.
   - [ ] Document the non-`.ps1` support tools, their runtime requirements, and why they remain in their native formats.
 

@@ -7,7 +7,7 @@ $checks = @(
     'Verify-OnboardingContract.ps1',
     'Verify-SettingsAccessibility.ps1',
     'Verify-PresentationOwnership.ps1',
-    'Verify-AudioCueContract.ps1',
+    'Verify-AmbientAudio.ps1',
     'Verify-LocalInputContract.ps1'
 )
 
@@ -18,7 +18,7 @@ foreach ($check in $checks) {
         throw "M5 documentation check is missing: $check"
     }
     try {
-        $checkArguments = if ($check -eq 'Verify-SettingsAccessibility.ps1') { @('-ContractOnly') } else { @() }
+        $checkArguments = if ($check -in @('Verify-SettingsAccessibility.ps1', 'Verify-AmbientAudio.ps1')) { @('-ContractOnly') } else { @() }
         & $checkPath @checkArguments
         if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) {
             throw "exit code $LASTEXITCODE"

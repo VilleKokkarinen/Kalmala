@@ -1050,7 +1050,7 @@ plays. These settings remain process-local and do not change gameplay state.
 Run `Kalmala.UI.Settings.LocalPresentation` after an editor build to check
 category bounds and local config round-trips alongside master mute/restore.
 `Scripts/Verify-SettingsAccessibility.ps1 -ContractOnly` and
-`Scripts/Verify-AudioCueContract.ps1` check the written option and mix
+`Scripts/Verify-AmbientAudio.ps1 -ContractOnly` check the written option and mix
 contracts without launching Unreal. These checks do not render the Audio tab,
 simulate physical controller input, or establish audible quality/device mix.
 
@@ -1204,7 +1204,7 @@ planes merge somewhat, and other distances and lighting remain unreviewed.
 
 ## M5 audio cue contract check
 
-`Scripts/Verify-AudioCueContract.ps1` is a no-build check for
+`Scripts/Verify-AmbientAudio.ps1 -ContractOnly` is a no-build check for
 `docs/02-technical-architecture.md`. It requires the eight original cue groups,
 readable text/shape fallbacks, local mix scope, project-owned asset rule,
 server-authority/privacy boundaries, silence fallback, and no new RPC/save
@@ -1262,12 +1262,12 @@ check. The test support casts still use the server component and wait for its
 existing timed states to end. These checks do not claim audible device mix or packaged
 verification.
 
-`Scripts/Verify-PlayerControls.ps1 -MovementAudio` drives the existing local
-walk/sprint/jump/landing fixture on a listen host and connected client. It
-requires each owning player to submit its own distance-paced footfall, upward
-jump, and landing cues while retaining the existing rendered model and bound
-input checks. It does not establish audible quality, hardware mixing, or
-packaged playback.
+`Scripts/Verify-PlayerControls.ps1 -MovementAudio -OceanTraversalAudio` drives
+the existing local walk/sprint/jump/landing fixture and one generated-ocean
+entry/exit transition on a listen host and connected client. It requires each
+owner to submit distance-paced footfall, jump, landing, and traversal cues
+while retaining rendered model and bound-input checks. It does not establish
+audible quality, hardware mixing, or packaged playback.
 
 ## M5 local input contract check
 

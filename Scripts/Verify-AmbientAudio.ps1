@@ -1,5 +1,103 @@
+[CmdletBinding()]
+param(
+    [switch]$ContractOnly,
+    [string]$Document = ''
+)
+
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($Document)) {
+    $Document = Join-Path $projectRoot 'docs\02-technical-architecture.md'
+}
+
+function Invoke-AudioCueContractCheck {
+    param([string]$DocumentPath)
+
+    if (-not (Test-Path -LiteralPath $DocumentPath -PathType Leaf)) {
+        throw "Audio cue contract was not found: $DocumentPath"
+    }
+
+    $text = Get-Content -LiteralPath $DocumentPath -Raw
+    if ($text.Contains('## Consolidated system contracts')) {
+        $section = [regex]::Match($text, '(?ms)^## Audio cues\r?\n(.*)\z')
+        if (-not $section.Success) { throw 'Consolidated audio cue section was not found' }
+        $text = $section.Groups[1].Value
+    }
+    $requiredSections = @(
+        '## Cue matrix',
+        '## Original asset and mix requirements',
+        '## No-build audit and runtime limits',
+        '## Multiplayer and persistence boundary'
+    )
+    foreach ($section in $requiredSections) {
+        if ($text -notmatch [regex]::Escape($section)) {
+            throw "Audio cue contract is missing section: $section"
+        }
+    }
+
+    $cueGroups = @(
+        'Ambient wilderness',
+        'Movement and traversal',
+        'Weather and exposure',
+        'Interaction and gathering',
+        'Combat',
+        'Discovery',
+        'Support magic',
+        'Camp and storage'
+    )
+    $cueRows = @()
+    foreach ($cueGroup in $cueGroups) {
+        $row = @($text -split "`r?`n" | Where-Object { $_ -match "^\| $([regex]::Escape($cueGroup)) \|" })
+        if ($row.Count -ne 1) {
+            throw "Expected exactly one cue row for '$cueGroup'; found $($row.Count)"
+        }
+        if (($row[0].ToCharArray() | Where-Object { $_ -eq '|' }).Count -lt 6) {
+            throw "Cue row '$cueGroup' does not contain all five contract columns"
+        }
+        $cueRows += $row[0]
+    }
+
+    $requiredTerms = @{
+        'project-owned audio rule' = 'project-owned'
+        'non-audio/accessibility fallback' = 'non-audio equivalent|text/shape equivalent'
+        'local audio settings' = 'Audio settings contract|master/music/ambient/interaction-combat'
+        'ambient category mix' = '(?s)Every local ambient component.*Ambient category value'
+        'interaction/combat cue mix' = '(?s)Owner-local movement.*Interaction/Combat Feedback value'
+        'music playback limit' = '(?s)Music volume is saved.*no music playback path or track currently exists'
+        'server authority' = 'server remains authoritative'
+        'hidden-content privacy' = 'hidden.*population|undiscovered IDs|private state'
+        'no RPC boundary' = 'no request payload|without adding an RPC'
+        'no save boundary' = 'no save field|gameplay save schemas'
+        'silence fallback' = 'muted or unavailable device'
+        'accepted replicated weather cue' = 'FKalmalaWeatherState::WindStrength|accepted replicated.*precipitation'
+        'owner-scoped Wet status cue' = 'State\.Wet|WetStatusCue'
+        'owner-only accepted interaction/gathering cue' = '(?s)owner-only crafting result.*owner-only inventory stack increases|owner-only inventory stack increases.*owner-only crafting result'
+        'distinct rejected interaction cue' = 'distinct.*InteractionRejectedCue|InteractionRejectedCue.*rejected'
+        'owner-only accepted support cue' = '(?s)owner-only.*support.*FeedbackSerial.*Accepted|FeedbackSerial.*Accepted.*owner-only'
+        'effect-specific support activation and server-state expiry cues' = '(?s)SupportMendingCue.*SupportHearthShieldCue.*SupportBearsVigorCue.*SupportDeerCallCue.*SupportHearthShieldExpiryCue.*SupportBearsVigorExpiryCue'
+        'owner-only combat result cue' = '(?s)owner-only.*combat.*FeedbackSerial.*EKalmalaCombatFeedback::Hit.*Defeat|FeedbackSerial.*EKalmalaCombatFeedback::Hit.*Defeat.*owner-only'
+        'owner-only accepted discovery cue' = '(?s)owner-only.*LandmarkFound.*ScrollFound.*DiscoveryAcknowledgedCue|DiscoveryAcknowledgedCue.*LandmarkFound.*ScrollFound.*owner-only'
+        'owner-local generated-ocean entry/exit cues' = '(?s)GeneratedOceanEntryCue.*GeneratedOceanExitCue.*IsSwimmingInGeneratedOcean'
+    }
+    foreach ($term in $requiredTerms.GetEnumerator()) {
+        if ($text -notmatch $term.Value) {
+            throw "Audio cue contract is missing $($term.Key)"
+        }
+    }
+
+    if ($text -match 'third party' -and $text -notmatch 'Do not copy music') {
+        throw 'Audio cue contract contains an unqualified external-audio reference'
+    }
+    if ($text -notmatch 'does not create sound assets|does not.*launch Unreal') {
+        throw 'Audio cue contract does not state its no-build limitation'
+    }
+
+    Write-Output "PASS: audio cue contract has $($cueRows.Count) cue groups, local category mix controls, non-audio fallbacks, project ownership, and multiplayer boundaries."
+}
+
+Invoke-AudioCueContractCheck -DocumentPath $Document
+if ($ContractOnly) { return }
+
 $wavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\WindBed.wav'
 $assetPath = Join-Path $projectRoot 'Content\Kalmala\Audio\WindBed.uasset'
 $waterWavePath = Join-Path $projectRoot 'Content\Kalmala\Audio\Source\WaterBed.wav'

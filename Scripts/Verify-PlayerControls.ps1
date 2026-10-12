@@ -65,7 +65,10 @@ try {
         $statusFactor = if ($WetStamina) { 0.92 } else { 1.0 }
         if ([Math]::Abs([double]$match.Groups[1].Value - 1.5 * $statusFactor * [double]$match.Groups[2].Value) -gt 0.2) { throw 'Server sprint did not retain its status multiplier.' }
     }
-    if ($MovementAudio) {
+    if ($MovementAudio -and $OceanTraversalAudio) {
+        Write-Output 'PASS: host/client models and controls plus owner-local footfall, jump, landing, and generated-ocean entry/exit cues; remote movement remains server-observed.'
+    }
+    elseif ($MovementAudio) {
         Write-Output 'PASS: host/client models and controls plus owner-local footfall, jump, and landing cues; remote movement remains server-observed.'
     }
     elseif ($OceanTraversalAudio) {

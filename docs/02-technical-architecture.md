@@ -2502,8 +2502,7 @@ GeneratedOceanExitCue are short one-shots. Import all twenty-two assets to
 `/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
 `Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`,
 `Scripts/Verify-CombatPeer.ps1`, `Scripts/Verify-DiscoveryPeer.ps1`,
-`Scripts/Verify-PlayerControls.ps1 -MovementAudio`,
-`Scripts/Verify-PlayerControls.ps1 -OceanTraversalAudio`, and the forced editor build.
+`Scripts/Verify-PlayerControls.ps1 -MovementAudio -OceanTraversalAudio`, and the forced editor build.
 Pass
 `-WeatherExposureOnly` to the peer runner when
 focusing on the weather and Wet cues; its default mode also requires visible
@@ -2541,7 +2540,7 @@ field.
 
 ## No-build audit and runtime limits
 
-`Scripts/Verify-AudioCueContract.ps1` checks all eight cue rows, the
+`Scripts/Verify-AmbientAudio.ps1 -ContractOnly` checks all eight cue rows, the
 non-audio/accessibility requirement, project-owned asset rule, local mix scope,
 server authority/privacy boundary, the owner-only combat/support feedback
 sources, owner-only discovery cue gating, generated-ocean movement transitions,
