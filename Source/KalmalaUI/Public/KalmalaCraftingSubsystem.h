@@ -88,7 +88,7 @@ public:
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
     bool VerifyInventoryCraftLayoutForTest(FString& OutFailureReason);
-    void PrepareMenuRender(bool bPlayerCrafting);
+    void PrepareMenuRender(bool bPlayerCrafting, bool bWorkbenchCrafting = false);
     bool VerifyMenuBrowseMemoryForTest();
     bool PrepareRecipeActivityReviewForTest();
     bool VerifyInventoryInspectionForTest();

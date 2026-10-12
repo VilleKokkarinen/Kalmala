@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Consolidate menu captures and polish the Options divider:** use the combined Inventory/player-crafting preview in the default render set, make `crafting` show Workbench Craft, and replace the rough divider art while removing its gold underlay.
+
 - [x] **2026-10-12 — Give the Options divider a generated medieval ornament:** import a transparent knotwork separator image and layer it over the shared Options rule; suppress the image in high contrast.
 
 - [x] **2026-10-12 — Add a shared divider below Options tabs:** add a full-width, high-contrast-aware divider between the category tabs and page content, preserving the 10-unit content gap.

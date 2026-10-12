@@ -1234,18 +1234,7 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
     FScriptDelegate AccessibilityDelegate; AccessibilityDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAccessibilityClicked)); AddTab(FText::FromString(TEXT("Accessibility")), TEXT("AccessibilityTab"), AccessibilityDelegate);
     ContentBox->AddChildToVerticalBox(Tabs);
     const bool bHighContrast = GetContrastMode() != 0;
-    const FLinearColor DividerColor = bHighContrast
-        ? FLinearColor::White
-        : FKalmalaUITheme::Get().ButtonFocused.CopyWithNewOpacity(0.72f);
     UOverlay* DividerRow = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("OptionsContentDivider"));
-    UBorder* DividerRule = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("OptionsDividerRule"));
-    DividerRule->SetBrush(FSlateRoundedBoxBrush(DividerColor, 0.0f));
-    USizeBox* DividerRuleSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("OptionsDividerRuleSize"));
-    DividerRuleSize->SetHeightOverride(bHighContrast ? 2.0f : 1.0f);
-    DividerRuleSize->SetContent(DividerRule);
-    UOverlaySlot* DividerRuleSlot = DividerRow->AddChildToOverlay(DividerRuleSize);
-    DividerRuleSlot->SetHorizontalAlignment(HAlign_Fill);
-    DividerRuleSlot->SetVerticalAlignment(VAlign_Center);
     bool bHasOrnament = false;
     if (!bHighContrast && !FKalmalaUITheme::Get().OptionsDividerImage.IsEmpty())
     {
@@ -1264,6 +1253,20 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
             OrnamentSlot->SetVerticalAlignment(VAlign_Center);
             bHasOrnament = true;
         }
+    }
+    if (bHighContrast || !bHasOrnament)
+    {
+        UBorder* DividerRule = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("OptionsDividerRule"));
+        const FLinearColor DividerColor = bHighContrast
+            ? FLinearColor::White
+            : FKalmalaUITheme::Get().ButtonFocused.CopyWithNewOpacity(0.72f);
+        DividerRule->SetBrush(FSlateRoundedBoxBrush(DividerColor, 0.0f));
+        USizeBox* DividerRuleSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("OptionsDividerRuleSize"));
+        DividerRuleSize->SetHeightOverride(bHighContrast ? 2.0f : 1.0f);
+        DividerRuleSize->SetContent(DividerRule);
+        UOverlaySlot* DividerRuleSlot = DividerRow->AddChildToOverlay(DividerRuleSize);
+        DividerRuleSlot->SetHorizontalAlignment(HAlign_Fill);
+        DividerRuleSlot->SetVerticalAlignment(VAlign_Center);
     }
     USizeBox* DividerSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("OptionsContentDividerSize"));
     DividerSize->SetHeightOverride(bHasOrnament ? 60.0f : (bHighContrast ? 2.0f : 1.0f));

@@ -382,15 +382,16 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
 }
 
 #if !UE_BUILD_SHIPPING
-void UKalmalaCraftingWidget::PrepareMenuRender(const bool bPlayerCrafting)
+void UKalmalaCraftingWidget::PrepareMenuRender(const bool bPlayerCrafting, const bool bWorkbenchCrafting)
 {
     bInventoryCompanion = bPlayerCrafting;
-    bEmbeddedContext = bPlayerCrafting;
-    StationFilterKit = NAME_None;
+    bEmbeddedContext = bPlayerCrafting || bWorkbenchCrafting;
+    StationFilterKit = bWorkbenchCrafting ? FName(TEXT("WorkbenchKit")) : NAME_None;
+    StationContextSection = bWorkbenchCrafting ? FString(TEXT("Craft")) : FString();
     RecipeQuery.Reset();
-    RecipeCategory = bPlayerCrafting ? 0 : 3;
+    RecipeCategory = bPlayerCrafting || bWorkbenchCrafting ? 0 : 3;
     Selected = 0;
-    ConfigureStationContextPresentation(FString());
+    ConfigureStationContextPresentation(StationContextSection);
     Refresh();
     SetVisibility(ESlateVisibility::Visible);
 }

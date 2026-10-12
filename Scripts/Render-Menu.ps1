@@ -41,7 +41,9 @@ $retiredMenuOutputIds = @('settings.status')
 if ($List) { $menuIds; return }
 if ($Menu.Count -eq 0) {
     # Keep the custom-widget invocation's previous single-context behavior.
-    $Menu = if ($WidgetClass) { @('inventory-crafting') } else { @($menuIds | Where-Object { $_ -ne 'settings.options' }) }
+    # The combined view already contains Inventory and player crafting. Keep
+    # Workbench Craft as its own view and avoid rendering Inventory twice.
+    $Menu = if ($WidgetClass) { @('inventory-crafting') } else { @($menuIds | Where-Object { $_ -notin @('inventory','settings.options') }) }
 }
 if (!$WidgetClass) {
     $unknownMenus = @($Menu | Where-Object { $_ -notin $menuIds })

@@ -104,7 +104,7 @@ int32 URenderMenuCommandlet::Main(const FString& Params)
     if (bCrafting)
     {
         auto* Widget = CastChecked<UKalmalaCraftingWidget>(MakeWidget(UKalmalaCraftingWidget::StaticClass()));
-        Widget->PrepareMenuRender(Menu != TEXT("build"));
+        Widget->PrepareMenuRender(Menu == TEXT("inventory-crafting"), Menu == TEXT("crafting"));
         const bool bBuild = Menu == TEXT("build");
         const FVector2D Size = bBuild ? FVector2D(FMath::Min(840.f,Width - 32.f),FMath::Min(980.f,Height - 32.f))
             : UKalmalaCraftingWidget::GetInventoryCraftPanelSize(Viewport);
