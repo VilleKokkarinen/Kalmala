@@ -631,3 +631,12 @@
 - **Impact/authority:** verification-entrypoint consolidation only. Runtime behavior, server authority, persistence, and networking implementation are unchanged; the retained assertions still check weather acceptance and forgery rejection on both peers.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Static validation cannot establish live runtime equivalence; the host/client journey remains unexecuted.
 - **Next eligible work:** continue auditing remaining `Verify-*` entrypoints against current acceptance requirements and merge confirmed duplicates, prioritizing the other user-named families. The overall goal of approximately 20 test runners is not complete; M14 main integration remains pending.
+
+## User-directed increment 2026-10-12 — Consolidate settings verification entrypoint
+
+- **Completed:** moved the no-build settings/accessibility documentation and source assertions into `Verify-SettingsAccessibility.ps1`. The normal rendered host/client run performs the contract check first; `-ContractOnly` keeps a no-Unreal quick path. Removed the separate `Verify-SettingsAccessibilityContract.ps1` entrypoint and updated the M5 documentation wrapper to call the contract-only mode.
+- **Files changed:** `Scripts/Verify-SettingsAccessibility.ps1`, deleted `Scripts/Verify-SettingsAccessibilityContract.ps1`, `Scripts/Verify-M5DocumentationContracts.ps1`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** compared all moved section, term, source-anchor, and exclusion assertions with the retired contract runner; PowerShell parser validation and `git diff --check` passed. No contract run, Unreal editor, rendered peer scenario, build, or full test suite ran.
+- **Impact/authority:** test-entrypoint consolidation only. No settings behavior, local config contract, server authority, networking, or saved-data format changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Static inspection confirms the assertions were carried over; the no-build contract mode and rendered run remain unexecuted.
+- **Next eligible work:** continue the `Verify-*` audit, next consolidating the user-named PersistedCamp, WorldMap, or Audio groups only where callers and acceptance assertions remain covered. The overall goal of approximately 20 test runners is not complete; M14 main integration remains pending.

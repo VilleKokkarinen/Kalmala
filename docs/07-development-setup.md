@@ -144,8 +144,8 @@ the sixteen current view captures. The Escape capture must show gameplay
 through a transparent home surface with only its Options and Quit buttons and a
 visible focused option; the other option tabs retain their configured panel
 backgrounds. The temporary viewport change is restored
-before captures complete. Then run `Scripts/Verify-SettingsAccessibilityContract.ps1`,
-`Scripts/Verify-M5DocumentationContracts.ps1`,
+before captures complete. The rendered runner performs its no-build settings
+contract check before launching Unreal. Then run `Scripts/Verify-M5DocumentationContracts.ps1`,
 `Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`.
 
 The probes use rendered offscreen editor peers and isolated settings profiles;
@@ -180,7 +180,6 @@ below 260 characters.
 
 Run the full `Automation RunTests Kalmala` queue, then
 `Scripts/Verify-SettingsAccessibility.ps1`,
-`Scripts/Verify-SettingsAccessibilityContract.ps1`,
 `Scripts/Verify-M5DocumentationContracts.ps1`,
 `Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`. The
 host/client settings probe visits the Escape shell and Keyboard & Mouse,
@@ -1050,7 +1049,7 @@ plays. These settings remain process-local and do not change gameplay state.
 
 Run `Kalmala.UI.Settings.LocalPresentation` after an editor build to check
 category bounds and local config round-trips alongside master mute/restore.
-`Scripts/Verify-SettingsAccessibilityContract.ps1` and
+`Scripts/Verify-SettingsAccessibility.ps1 -ContractOnly` and
 `Scripts/Verify-AudioCueContract.ps1` check the written option and mix
 contracts without launching Unreal. These checks do not render the Audio tab,
 simulate physical controller input, or establish audible quality/device mix.
@@ -1122,7 +1121,7 @@ Require local settings to survive a fresh-process restart, menu focus and
 modal input to remain correct, both motion paths to behave as selected, and
 the Escape option list to fit. Inspect the retained standard/high-contrast menu and
 HUD captures from both viewports. Run
-`Scripts/Verify-SettingsAccessibilityContract.ps1`, the ownership and M5
+`Scripts/Verify-SettingsAccessibility.ps1 -ContractOnly`, the ownership and M5
 documentation audits, changed-script PowerShell parsing, `git diff --check`,
 and the 260-character path audit. The remaining physical controller and
 packaged-build checks are outside this parent increment.
@@ -1162,8 +1161,9 @@ claim packaged two-player prompt flow has passed.
 
 ## M5 settings and accessibility contract check
 
-`Scripts/Verify-SettingsAccessibilityContract.ps1` is a no-build check for
-`docs/02-technical-architecture.md`. It validates the visible Keyboard & Mouse,
+`Scripts/Verify-SettingsAccessibility.ps1 -ContractOnly` is a no-build check for
+`docs/02-technical-architecture.md`; the normal rendered run performs the same
+check before launching Unreal. It validates the visible Keyboard & Mouse,
 Controller, Graphics, Audio, and Accessibility groups, text-scale and contrast requirements,
 bounded control remapping and restore defaults, keyboard/controller focus
 access, text-scale and contrast requirements, the bounded colour-independent
@@ -2634,7 +2634,7 @@ The core docs now own the contracts formerly split across docs 08–47. Historic
 | Combat, discoveries, support | Verify-CombatPeer.ps1; Verify-DiscoveryPeer.ps1; Verify-M4VerticalSlice.ps1; relevant Kalmala.Gameplay automations |
 | Survival and progression | Verify-CampChoices.ps1; Verify-M7AutomatedAcceptance.ps1; inventory/tool/progression/food/weather automations |
 | Ocean journey and persistence | Verify-OceanTravel.ps1; Verify-OceanSkiffDiscoveryDisembark.ps1; travel-save/restore automations and existing restart/late-join scenarios |
-| Settings and HUD | Verify-SettingsAccessibility.ps1; Verify-StatusHotbar.ps1; theme, notification, recipe activity and local browsing automations |
+| Settings and HUD | Verify-SettingsAccessibility.ps1 (includes `-ContractOnly` mode); Verify-StatusHotbar.ps1; theme, notification, recipe activity and local browsing automations |
 | Integrated M14 map | Verify-MapAwareness.ps1; Verify-WorldMap.ps1; Verify-WorldMapTiles.ps1; Verify-WorldMapProfile.ps1 |
 | Package and performance | Windows package smoke below; Verify-ConstrainedPerformance.ps1 |
 

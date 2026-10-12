@@ -2109,8 +2109,9 @@ both viewport sizes and inspect the
 modal, HUD, and artwork; these checks do not replace physical
 keyboard/controller or packaged verification.
 
-`Scripts/Verify-SettingsAccessibilityContract.ps1` checks this contract
-without Unreal. The focused `Kalmala.UI.Settings.LocalPresentation` automation
+`Scripts/Verify-SettingsAccessibility.ps1 -ContractOnly` checks this contract
+without Unreal; the same entry point runs this check before its rendered peer
+probe. The focused `Kalmala.UI.Settings.LocalPresentation` automation
 and the rendered peer probe cover local round-trips, bounded input mappings,
 focusable controls, and the authority boundary. They do not simulate physical
 controller hardware, establish audible quality, prove packaged persistence,
