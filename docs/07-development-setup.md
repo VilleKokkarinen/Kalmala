@@ -2524,9 +2524,10 @@ runtime results.
 ## Standalone Build requirements panel — 2026-10-11
 
 The latest standalone Build presentation uses the Inventory wood backplate,
-square 64×64 selection borders around matching 64×64 catalogue-image tiles,
-and a compact requirements panel below the main grid. The icons are centered
-in their tiles; cards use Inventory's warm brown overlay, with a subtle gray
+square 64×64 selection borders around matching 64×64 catalogue-image tiles;
+the Build-only grid centers each fixed-size tile and keeps shared selectable
+padding from shrinking its icon area. A compact requirements panel appears
+below the main grid. Cards use Inventory's warm brown overlay, with a subtle gray
 tint and slightly subdued icons when requirements are missing. The requirements
 panel shows material icons only, with owned/required counts in each icon's
 tooltip. The main window has no

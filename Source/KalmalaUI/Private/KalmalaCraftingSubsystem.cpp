@@ -1848,8 +1848,8 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             CellMargin->SetContent(FavoriteFrame);
             UUniformGridSlot* GridPanelSlot = RecipeGrid->AddChildToUniformGrid(
                 CellMargin, SlotIndex / RecipeGridColumns, SlotIndex % RecipeGridColumns);
-            GridPanelSlot->SetHorizontalAlignment(HAlign_Fill);
-            GridPanelSlot->SetVerticalAlignment(VAlign_Fill);
+            GridPanelSlot->SetHorizontalAlignment(bIconOnlyBuildCards ? HAlign_Center : HAlign_Fill);
+            GridPanelSlot->SetVerticalAlignment(bIconOnlyBuildCards ? VAlign_Center : VAlign_Fill);
             if (bIconOnlyBuildCards)
             {
                 CellMargin->SetHorizontalAlignment(HAlign_Center);
@@ -1998,6 +1998,8 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             RecipeSlotVisualStates[SlotIndex] = VisualState;
             Theme.ApplySelectablePanel(*RecipeSlotCards[SlotIndex], bSelected, bFocused, bUnavailable,
                 ContrastMode, bInventoryCompanion, !bIconOnlyBuildCards);
+            if (bIconOnlyBuildCards)
+                RecipeSlotCards[SlotIndex]->SetPadding(FMargin(0.0f));
             if ((bInventoryCompanion || bIconOnlyBuildCards) && ContrastMode == 0)
             {
                 FLinearColor Fill = bUnavailable ? FLinearColor(0.075f, 0.052f, 0.034f, 1.0f)

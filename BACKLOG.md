@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Fix Build square button sizing chain:** center each standalone Build tile in its UniformGrid cell and prevent shared selectable styling from reapplying content insets inside the 64×64 button.
+
 - [x] **2026-10-12 — Square Build selection buttons:** constrain the themed card border itself to the 64×64 tile so the grid cannot stretch its background across a row.
 
 - [x] **2026-10-12 — Match Build icon tiles to Inventory sizing:** use compact 64×64 selectable tiles and native 64×64 catalogue-image rendering instead of larger button-like cards and extra image scaling.

@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## 2026-10-12 — Fix Build square button sizing chain
+
+- **Completed:** traced the standalone Build grid slot, transparent cell margin, favorite frame, fixed-size wrapper, styled card, and catalogue image. The grid slot's Fill alignment still allocated the full column width; additionally, `ApplySelectablePanel` reapplied shared slot padding after the Build card was constructed. Centered Build-only grid slots and reset the styled card's content padding to zero after theme application, preserving 64×64 tile and icon geometry. Other recipe layouts keep Fill alignment and shared padding.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `BACKLOG.md`, `PROGRESS.md`, and this entry.
+- **Lightweight checks:** inspected the entire Build card construction, UniformGrid slot sizing, native icon paint geometry, and theme styling path; `git diff --check` passed.
+- **Full verification:** deferred. No Unreal build, automation, or rendered menu review was run.
+- **Impact and authority:** local Build-menu presentation only. Selection, availability, placement, server authority, persistence, and save schemas are unchanged.
+- **Limits:** rendered square geometry and focus/selection border appearance still need an Unreal visual check.
+- **Next eligible task:** audit the remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## 2026-10-12 — Square Build selection buttons
 
 - **Completed:** moved the 64×64 size constraint outside the styled Build-card border, so the border and its selection/unavailable fills stay square even when the uniform-grid slot expands to fill a column.
