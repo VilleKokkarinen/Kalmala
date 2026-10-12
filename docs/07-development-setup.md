@@ -1060,9 +1060,10 @@ simulate physical controller input, or establish audible quality/device mix.
 The Controls tab presents the Keyboard & Mouse group, while Controller has its
 own tab; both expose the existing movement, look,
 interact, attack, jump, sprint, settings, map, recenter, craft, and
-support-activation intents. Keyboard & Mouse shows movement as separate
-Forward, Backward, Right, and Left rows, and places all controls in two equal-
-width centered columns without the row-cycling hint. Every Options page uses
+support-activation intents. Both input tabs place controls in the same two
+equal-width centered columns, with matching row spacing and no row-cycling hint.
+Keyboard & Mouse shows movement as separate Forward, Backward, Right, and Left
+rows, while Controller keeps the paired left-stick axes. Every Options page uses
 its selected tab as the page label without repeating a page heading below the
 tab row. The five Options tabs fill the content width in equal slots with
 matching horizontal gutters. The selected Options tab is highlighted without
@@ -1070,9 +1071,9 @@ a text marker. Each right-aligned label sits beside a binding button within its
 half of the panel, using balanced horizontal padding and compact vertical row
 spacing.
 Each movement button cycles only its direction's keys within the existing axis
-mapping. Controller keeps the paired left-stick axes in its single-column layout.
-Other controls cycle through a small allowlisted set of alternatives. Restore
-default controls clears only the local overrides. The runtime applies overrides to the owning `UPlayerInput` and stores them in the local
+mapping. Other controls cycle through a small allowlisted set of alternatives.
+Restore default controls clears only the local overrides. The runtime applies
+overrides to the owning `UPlayerInput` and stores them in the local
 `GameUserSettings` configuration, so `Config/DefaultInput.ini` and server
 validation remain unchanged. Escape remains an always-available modal close
 path even if the alternate Settings key is changed. The settings automation

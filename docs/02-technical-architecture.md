@@ -1952,14 +1952,15 @@ there is no music track in the current runtime.
 
 The Keyboard & Mouse group is labeled Controls in Options. It and the Controller
 group store only allowlisted local choices in the existing
-`GameUserSettings` configuration. Keyboard movement presents Forward, Backward,
-Right, and Left as separate rows in two equal-width, centered columns. Each
-Options page uses its selected tab as the page label without repeating a page
-heading in the content area. The five Options tabs divide the full content
+`GameUserSettings` configuration. Both input tabs present their bindings in two
+equal-width, centered columns. Keyboard movement presents Forward, Backward,
+Right, and Left as separate rows; Controller keeps the paired left-stick axes.
+Each Options page uses its selected tab as the page label without repeating a
+page heading in the content area. The five Options tabs divide the full content
 width into equal buttons with matching horizontal gutters.
 Each row changes only its own key within the existing positive/negative
-movement-axis pair; Controller keeps the paired left-stick axes. Action and
-look bindings replace only the selected keyboard or controller device family.
+movement-axis pair. Action and look bindings replace only the selected keyboard
+or controller device family.
 Applying or restoring a choice rebuilds the local player's input map
 immediately, and a fresh controller instance rehydrates the same local choices.
 The project baseline in

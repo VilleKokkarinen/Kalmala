@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Match Controller settings alignment to Controls
+
+- **Completed:** changed Controller bindings from a right-side single column to the same centered, equal-width two-column layout as Controls, using matching label/button padding and compact row spacing. Removed the controller-only row-cycling hint so both pages begin their bindings at the same vertical position. Controller bindings, allowlisted choices, and paired stick axes are unchanged.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.options -BuildModules` compiled the UI module and rendered all five Options previews at 1920×1080. Inspected Controls and Controller side by side; both now use centered two-column layouts, and their first binding rows align vertically. Full verification remains deferred.
+- **Impact and authority:** local Settings presentation and documentation only; controller mappings, gameplay/network authority, replicated state, and saved settings are unchanged.
+- **Limits:** previews used the standard render scale and contrast only. Full project verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Remove duplicate headings from Settings pages
 
 - **Completed:** removed the repeated Controller, Graphics, Audio, and Accessibility headings below the shared Options tab row. The selected tab now identifies each page, matching Controls; page controls and the active-tab highlight remain intact.
