@@ -208,8 +208,10 @@ void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
         const FKalmalaInventoryStack& Cost = Costs[Index];
         auto* CostColumn = WidgetTree->ConstructWidget<UVerticalBox>();
         auto* IconSize = WidgetTree->ConstructWidget<USizeBox>();
-        IconSize->SetWidthOverride(44.0f);
-        IconSize->SetHeightOverride(44.0f);
+        const float IconContentSize = FMath::Max(1.0f,
+            Theme.ItemIconTileSize - Theme.ItemIconTileMargin * 2.0f);
+        IconSize->SetWidthOverride(IconContentSize);
+        IconSize->SetHeightOverride(IconContentSize);
         auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
         Icon->SetCatalogueIcon(Cost.ItemId);
         IconSize->SetContent(Icon);
@@ -350,7 +352,10 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
         {
             auto* CostColumn = WidgetTree->ConstructWidget<UVerticalBox>();
             auto* IconSize = WidgetTree->ConstructWidget<USizeBox>();
-            IconSize->SetWidthOverride(44); IconSize->SetHeightOverride(44);
+            const float IconContentSize = FMath::Max(1.0f,
+                Theme.ItemIconTileSize - Theme.ItemIconTileMargin * 2.0f);
+            IconSize->SetWidthOverride(IconContentSize);
+            IconSize->SetHeightOverride(IconContentSize);
             auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
             Icon->SetCatalogueIcon(Costs[Index].ItemId); IconSize->SetContent(Icon);
             auto* IconFrame = WidgetTree->ConstructWidget<UBorder>();

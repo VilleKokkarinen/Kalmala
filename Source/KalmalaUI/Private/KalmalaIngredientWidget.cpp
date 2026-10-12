@@ -58,8 +58,8 @@ void UKalmalaIngredientWidget::SetIngredients(const TArray<FKalmalaInventoryStac
     {
         auto* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
         auto* Box = WidgetTree->ConstructWidget<USizeBox>();
-        Theme.ApplyIconSlot(*Box);
-        const float SquareIconSize = FMath::Min(Theme.IconWidth, Theme.IconHeight);
+        const float SquareIconSize = FMath::Max(1.0f,
+            Theme.ItemIconTileSize - Theme.ItemIconTileMargin * 2.0f);
         Box->SetWidthOverride(SquareIconSize);
         Box->SetHeightOverride(SquareIconSize);
         auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();

@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Unify square item-icon tiles:** add a shared 64×64 tile theme with 4-unit icon inset and the requested translucent orange-brown fill; use it in Inventory, Build, item details, and crafting views, with crafting material quantities below the tile.
+
 - [x] **2026-10-12 — Fix Build square button sizing chain:** center each standalone Build tile in its UniformGrid cell and prevent shared selectable styling from reapplying content insets inside the 64×64 button.
 
 - [x] **2026-10-12 — Square Build selection buttons:** constrain the themed card border itself to the 64×64 tile so the grid cannot stretch its background across a row.

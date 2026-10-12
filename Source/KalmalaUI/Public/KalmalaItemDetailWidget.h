@@ -20,6 +20,7 @@ private:
     void BuildPanel();
     void SetPresentation(FName Id, const FString& Name, const FString& Description, int32 TextScale, int32 Contrast);
     UPROPERTY(Transient) TObjectPtr<class UBorder> Panel;
+    UPROPERTY(Transient) TObjectPtr<class UBorder> IconTile;
     UPROPERTY(Transient) TObjectPtr<class UTextBlock> Title;
     UPROPERTY(Transient) TObjectPtr<class UTextBlock> Details;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> Icon;

@@ -447,9 +447,18 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     Column->RemoveChild(RecipesText);
     auto* RecipeRow = WidgetTree->ConstructWidget<UHorizontalBox>();
     auto* IconBox = WidgetTree->ConstructWidget<USizeBox>();
-    IconBox->SetWidthOverride(64); IconBox->SetHeightOverride(64);
+    IconBox->SetWidthOverride(FKalmalaUITheme::Get().ItemIconTileSize);
+    IconBox->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
+    SelectedIconTile = WidgetTree->ConstructWidget<UBorder>();
+    auto* SelectedIconContent = WidgetTree->ConstructWidget<USizeBox>();
+    const float SelectedIconContentSize = FMath::Max(1.0f, FKalmalaUITheme::Get().ItemIconTileSize
+        - FKalmalaUITheme::Get().ItemIconTileMargin * 2.0f);
+    SelectedIconContent->SetWidthOverride(SelectedIconContentSize);
+    SelectedIconContent->SetHeightOverride(SelectedIconContentSize);
     SelectedIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
-    IconBox->SetContent(SelectedIcon);
+    SelectedIconContent->SetContent(SelectedIcon);
+    SelectedIconTile->SetContent(SelectedIconContent);
+    IconBox->SetContent(SelectedIconTile);
     RecipeRow->AddChildToHorizontalBox(IconBox)->SetVerticalAlignment(VAlign_Top);
     RecipeRow->AddChildToHorizontalBox(RecipesText)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     Column->AddChild(RecipeRow);
@@ -666,11 +675,19 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         TEXT("Ask the server to craft the level-one Bronze Axe at a visible same-world level-one Workbench. The server checks materials and private tool inventory."));
     CraftBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeAxe);
     UpgradeTargetIconBox = WidgetTree->ConstructWidget<USizeBox>();
-    UpgradeTargetIconBox->SetWidthOverride(64.0f);
-    UpgradeTargetIconBox->SetHeightOverride(64.0f);
+    UpgradeTargetIconBox->SetWidthOverride(FKalmalaUITheme::Get().ItemIconTileSize);
+    UpgradeTargetIconBox->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
+    UpgradeTargetIconTile = WidgetTree->ConstructWidget<UBorder>();
+    auto* UpgradeIconContent = WidgetTree->ConstructWidget<USizeBox>();
+    const float UpgradeIconContentSize = FMath::Max(1.0f, FKalmalaUITheme::Get().ItemIconTileSize
+        - FKalmalaUITheme::Get().ItemIconTileMargin * 2.0f);
+    UpgradeIconContent->SetWidthOverride(UpgradeIconContentSize);
+    UpgradeIconContent->SetHeightOverride(UpgradeIconContentSize);
     UpgradeTargetIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
     UpgradeTargetIcon->SetCatalogueIcon(TEXT("IronAxe"));
-    UpgradeTargetIconBox->SetContent(UpgradeTargetIcon);
+    UpgradeIconContent->SetContent(UpgradeTargetIcon);
+    UpgradeTargetIconTile->SetContent(UpgradeIconContent);
+    UpgradeTargetIconBox->SetContent(UpgradeTargetIconTile);
     UpgradeTargetIconBox->SetVisibility(ESlateVisibility::Collapsed);
     ToolProgressionActions->AddChildToHorizontalBox(UpgradeTargetIconBox)->SetVerticalAlignment(VAlign_Center);
     UpgradeIronAxeButton = AddButton(TEXT("Upgrade to Iron Axe"), ToolProgressionActions,
@@ -1770,7 +1787,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             UBorder* Card = WidgetTree->ConstructWidget<UBorder>();
             Card->SetPadding(FMargin(bIconOnlyBuildCards ? 0.0f : 4.0f));
             USizeBox* CardSize = WidgetTree->ConstructWidget<USizeBox>();
-            constexpr float StandaloneBuildIconSize = 64.0f;
+            const float StandaloneBuildIconSize = FKalmalaUITheme::Get().ItemIconTileSize;
             CardSize->SetWidthOverride(bIconOnlyBuildCards ? StandaloneBuildIconSize : 184.0f);
             if (bIconOnlyBuildCards) CardSize->SetHeightOverride(StandaloneBuildIconSize);
             else CardSize->SetMinDesiredHeight(104.0f);
@@ -1778,7 +1795,9 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             UVerticalBox* CardContent = WidgetTree->ConstructWidget<UVerticalBox>();
             UHorizontalBox* HeadingRow = WidgetTree->ConstructWidget<UHorizontalBox>();
             USizeBox* IconBox = WidgetTree->ConstructWidget<USizeBox>();
-            const float RecipeIconSize = bIconOnlyBuildCards ? StandaloneBuildIconSize : 40.0f;
+            const float RecipeIconSize = bIconOnlyBuildCards
+                ? FMath::Max(1.0f, StandaloneBuildIconSize - FKalmalaUITheme::Get().ItemIconTileMargin * 2.0f)
+                : 40.0f;
             IconBox->SetWidthOverride(RecipeIconSize);
             IconBox->SetHeightOverride(RecipeIconSize);
             UKalmalaIconWidget* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
@@ -1999,14 +2018,12 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             Theme.ApplySelectablePanel(*RecipeSlotCards[SlotIndex], bSelected, bFocused, bUnavailable,
                 ContrastMode, bInventoryCompanion, !bIconOnlyBuildCards);
             if (bIconOnlyBuildCards)
-                RecipeSlotCards[SlotIndex]->SetPadding(FMargin(0.0f));
-            if ((bInventoryCompanion || bIconOnlyBuildCards) && ContrastMode == 0)
+                Theme.ApplyItemIconTileFill(*RecipeSlotCards[SlotIndex], ContrastMode);
+            if (bInventoryCompanion && ContrastMode == 0)
             {
                 FLinearColor Fill = bUnavailable ? FLinearColor(0.075f, 0.052f, 0.034f, 1.0f)
                     : bSelected ? FLinearColor(0.20f, 0.12f, 0.055f, 1.0f)
                     : FLinearColor(0.12f, 0.073f, 0.041f, 1.0f);
-                if (bIconOnlyBuildCards && bUnavailable)
-                    Fill = FMath::Lerp(Fill, FLinearColor(0.42f, 0.42f, 0.42f, 1.0f), 0.14f);
                 RecipeSlotCards[SlotIndex]->SetBrushColor(Fill);
             }
             if (RecipeSlotIcons.IsValidIndex(SlotIndex) && RecipeSlotIcons[SlotIndex])
@@ -3480,6 +3497,8 @@ void UKalmalaCraftingWidget::Refresh()
         UKalmalaSettingsWidget::GetTextScalePercent());
     const int32 ContrastMode = UKalmalaSettingsWidget::ClampContrastMode(
         UKalmalaSettingsWidget::GetContrastMode());
+    if (SelectedIconTile) FKalmalaUITheme::Get().ApplyItemIconTile(*SelectedIconTile, ContrastMode);
+    if (UpgradeTargetIconTile) FKalmalaUITheme::Get().ApplyItemIconTile(*UpgradeTargetIconTile, ContrastMode);
     TArray<FKalmalaCatalogueRow> WorkbenchRepairRows;
     TArray<FKalmalaCatalogueRow> StoragePackRows;
     TArray<FKalmalaCatalogueRow> StorageContentsRows;

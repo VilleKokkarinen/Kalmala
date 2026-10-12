@@ -140,6 +140,8 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadNumber(Config, TEXT("ListViewRowCornerRadius"), Theme.ListViewRowCornerRadius, 0, 12);
     ReadNumber(Config, TEXT("ListViewRowBorderWidth"), Theme.ListViewRowBorderWidth, 0, 3);
     ReadNumber(Config, TEXT("RequirementIconBorderWidth"), Theme.RequirementIconBorderWidth, 0, 4);
+    ReadNumber(Config, TEXT("ItemIconTileSize"), Theme.ItemIconTileSize, 24, 96);
+    ReadNumber(Config, TEXT("ItemIconTileMargin"), Theme.ItemIconTileMargin, 0, 16);
     ReadNumber(Config, TEXT("IconWidth"), Theme.IconWidth, 24, 96);
     ReadNumber(Config, TEXT("IconHeight"), Theme.IconHeight, 24, 96);
     ReadNumber(Config, TEXT("ScrollSpeed"), Theme.ScrollSpeed, 1, 60);
@@ -160,6 +162,7 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadColor(Config, TEXT("ListViewRowDisabled"), Theme.ListViewRowDisabled);
     ReadColor(Config, TEXT("ListViewRowBorderColor"), Theme.ListViewRowBorderColor);
     ReadColor(Config, TEXT("RequirementIconBorderColor"), Theme.RequirementIconBorderColor);
+    ReadColor(Config, TEXT("ItemIconTileFill"), Theme.ItemIconTileFill);
     ReadColor(Config, TEXT("StatusCueStartedColor"), Theme.StatusCueStartedColor);
     ReadColor(Config, TEXT("StatusCueRefreshedColor"), Theme.StatusCueRefreshedColor);
     ReadColor(Config, TEXT("StatusCueEndedColor"), Theme.StatusCueEndedColor);
@@ -452,16 +455,26 @@ void FKalmalaUITheme::ApplyListViewItem(UButton& Button, const int32 ContrastMod
         VerticalSlot->SetHorizontalAlignment(HAlign_Fill);
 }
 
-void FKalmalaUITheme::ApplyRequirementIconFrame(UBorder& Border, const int32 ContrastMode) const
+void FKalmalaUITheme::ApplyItemIconTileFill(UBorder& Border, const int32 ContrastMode) const
+{
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    Border.SetBrushColor(bContrast ? HighContrastPanel : ItemIconTileFill);
+    Border.SetPadding(FMargin(ItemIconTileMargin));
+}
+
+void FKalmalaUITheme::ApplyItemIconTile(UBorder& Border, const int32 ContrastMode) const
 {
     const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
     const float Width = bContrast ? FMath::Max(2.0f, RequirementIconBorderWidth) : RequirementIconBorderWidth;
     const FLinearColor Outline = bContrast ? FLinearColor::White : RequirementIconBorderColor;
-    const FLinearColor Fill = bContrast ? HighContrastPanel : FLinearColor(0.08f, 0.045f, 0.025f, 0.92f);
     Border.SetBrush(FSlateRoundedBoxBrush(FLinearColor::White,
         bContrast ? 0.0f : CornerRadius, Outline, Width));
-    Border.SetBrushColor(Fill);
-    Border.SetPadding(FMargin(2.0f));
+    ApplyItemIconTileFill(Border, ContrastMode);
+}
+
+void FKalmalaUITheme::ApplyRequirementIconFrame(UBorder& Border, const int32 ContrastMode) const
+{
+    ApplyItemIconTile(Border, ContrastMode);
 }
 
 void FKalmalaUITheme::SizeButtonToContent(UButton& Button) const

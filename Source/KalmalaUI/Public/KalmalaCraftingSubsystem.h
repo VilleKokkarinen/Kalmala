@@ -225,6 +225,7 @@ private:
     UPROPERTY(Transient) TArray<uint8> RecipeSlotVisualStates;
     UPROPERTY(Transient) TObjectPtr<UKalmalaSelectedResultWidget> SelectedResultPreview;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> SelectedIcon;
+    UPROPERTY(Transient) TObjectPtr<UBorder> SelectedIconTile;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RequirementText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> HeaderText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> InstructionsText;
@@ -261,6 +262,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeAxeButton;
     UPROPERTY(Transient) TObjectPtr<UButton> UpgradeIronAxeButton;
     UPROPERTY(Transient) TObjectPtr<class USizeBox> UpgradeTargetIconBox;
+    UPROPERTY(Transient) TObjectPtr<UBorder> UpgradeTargetIconTile;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> UpgradeTargetIcon;
     UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> ToolProgressionActions;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchCraftSectionButton;

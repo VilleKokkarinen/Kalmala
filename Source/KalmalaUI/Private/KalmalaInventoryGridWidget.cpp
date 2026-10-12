@@ -38,7 +38,6 @@ void UKalmalaInventoryGridWidget::NativeOnInitialized()
     for (int32 SlotIndex = 0; SlotIndex < 40; ++SlotIndex)
     {
         auto* Border = WidgetTree->ConstructWidget<UBorder>();
-        Border->SetPadding(FMargin(2.0f));
         Border->SetContent(WidgetTree->ConstructWidget<UBorder>());
         Canvas->AddChildToCanvas(Border)->SetZOrder(0);
         Backgrounds.Add(Border);
@@ -81,11 +80,11 @@ void UKalmalaInventoryGridWidget::Refresh(UKalmalaInventoryComponent* Inventory,
             FMath::Min(6.0f, Theme.CornerRadius), Outline,
             bHighlighted ? FMath::Max(2.0f, Theme.BorderWidth) : 1.0f));
         Backgrounds[SlotIndex]->SetBrushColor(FLinearColor::White);
+        Backgrounds[SlotIndex]->SetPadding(FMargin(Theme.ItemIconTileMargin));
         auto* Fill = CastChecked<UBorder>(Backgrounds[SlotIndex]->GetContent());
-        const FLinearColor FillColor = Contrast != 0 ? FLinearColor::Black
-            : FLinearColor(0.12f, 0.073f, 0.041f, 1.0f);
-        Fill->SetBrush(FSlateRoundedBoxBrush(FillColor, FMath::Min(5.0f, Theme.CornerRadius)));
-        Fill->SetBrushColor(FLinearColor::White);
+        Fill->SetBrush(FSlateRoundedBoxBrush(FLinearColor::White,
+            Contrast != 0 ? 0.0f : FMath::Min(5.0f, Theme.CornerRadius)));
+        Theme.ApplyItemIconTileFill(*Fill, Contrast);
     }
     if (bModeChanged) LastSize = FVector2D::ZeroVector;
     Invalidate(EInvalidateWidget::Paint);

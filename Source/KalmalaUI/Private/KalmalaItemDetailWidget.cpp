@@ -52,11 +52,19 @@ void UKalmalaItemDetailWidget::BuildPanel()
     auto* Width = WidgetTree->ConstructWidget<USizeBox>();
     Width->SetWidthOverride(300.0f);
     auto* Column = WidgetTree->ConstructWidget<UVerticalBox>();
+    auto* IconTileSize = WidgetTree->ConstructWidget<USizeBox>();
+    IconTileSize->SetWidthOverride(FKalmalaUITheme::Get().ItemIconTileSize);
+    IconTileSize->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
+    IconTile = WidgetTree->ConstructWidget<UBorder>();
     auto* IconSize = WidgetTree->ConstructWidget<USizeBox>();
-    IconSize->SetWidthOverride(64.0f); IconSize->SetHeightOverride(64.0f);
+    const float IconContentSize = FMath::Max(1.0f, FKalmalaUITheme::Get().ItemIconTileSize
+        - FKalmalaUITheme::Get().ItemIconTileMargin * 2.0f);
+    IconSize->SetWidthOverride(IconContentSize); IconSize->SetHeightOverride(IconContentSize);
     Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
     IconSize->SetContent(Icon);
-    Column->AddChildToVerticalBox(IconSize)->SetHorizontalAlignment(HAlign_Left);
+    IconTile->SetContent(IconSize);
+    IconTileSize->SetContent(IconTile);
+    Column->AddChildToVerticalBox(IconTileSize)->SetHorizontalAlignment(HAlign_Left);
     Title = WidgetTree->ConstructWidget<UTextBlock>(); Column->AddChild(Title);
     Title->SetAutoWrapText(true);
     Details = WidgetTree->ConstructWidget<UTextBlock>();
@@ -84,6 +92,7 @@ void UKalmalaItemDetailWidget::SetPresentation(FName Id, const FString& Name, co
     const auto& Theme = FKalmalaUITheme::Get();
     Theme.ApplySolidPanel(*Panel, Contrast);
     Panel->SetPadding(FMargin(8.0f));
+    Theme.ApplyItemIconTile(*IconTile, Contrast);
     Theme.ApplyText(*Title, Theme.HeadingSize, true, TextScale, Contrast);
     Theme.ApplyText(*Details, Theme.BodySize, false, TextScale, Contrast);
     Title->SetText(FText::FromString(Name));

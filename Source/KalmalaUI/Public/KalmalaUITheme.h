@@ -57,6 +57,8 @@ struct KALMALAUI_API FKalmalaUITheme
     FLinearColor ListViewRowDisabled = FLinearColor(0.10f, 0.08f, 0.06f, 0.55f);
     FLinearColor ListViewRowBorderColor = FLinearColor(0.45f, 0.27f, 0.12f, 1.0f);
     FLinearColor RequirementIconBorderColor = FLinearColor(0.45f, 0.27f, 0.12f, 1.0f);
+    // CSS rgba(159, 86, 28, 0.5), converted from sRGB to the linear color space.
+    FLinearColor ItemIconTileFill = FLinearColor(0.346704f, 0.093059f, 0.011612f, 0.5f);
     FLinearColor StatusCueStartedColor = FLinearColor(0.28f, 0.72f, 0.42f, 1);
     FLinearColor StatusCueRefreshedColor = FLinearColor(0.95f, 0.69f, 0.24f, 1);
     FLinearColor StatusCueEndedColor = FLinearColor(0.88f, 0.36f, 0.29f, 1);
@@ -79,6 +81,8 @@ struct KALMALAUI_API FKalmalaUITheme
     float ListViewRowCornerRadius = 2;
     float ListViewRowBorderWidth = 0;
     float RequirementIconBorderWidth = 1;
+    float ItemIconTileSize = 64;
+    float ItemIconTileMargin = 4;
     float IconWidth = 64;
     float IconHeight = 42;
     bool bAnimateScrolling = false;
@@ -102,6 +106,8 @@ struct KALMALAUI_API FKalmalaUITheme
     void ApplySolidPanel(UBorder& Border, int32 ContrastMode) const;
     void ApplyButton(UButton& Button, int32 ContrastMode, bool bReducedMotion = false) const;
     void ApplyListViewItem(UButton& Button, int32 ContrastMode, bool bReducedMotion = false) const;
+    void ApplyItemIconTile(UBorder& Border, int32 ContrastMode) const;
+    void ApplyItemIconTileFill(UBorder& Border, int32 ContrastMode) const;
     void ApplyRequirementIconFrame(UBorder& Border, int32 ContrastMode) const;
     void SizeButtonToContent(UButton& Button) const;
     void ApplySlider(USlider& Slider, int32 ContrastMode) const;

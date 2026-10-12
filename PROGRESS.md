@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## 2026-10-12 — Unify square item-icon tiles
+
+- **Completed:** added shared theme values and helpers for 64×64 item-icon tiles, a 4-unit inset, and the requested CSS `rgba(159, 86, 28, 0.5)` fill. Applied the tile style to inventory cells, standalone Build choices, crafting requirement materials, selected crafting/upgrade icons, and the item detail view. Crafting requirement quantities stay beneath their framed tiles; Build requirement quantities remain in tooltips.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaUITheme.h`, `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `Config/DefaultKalmalaTheme.ini`, `Source/KalmalaUI/Private/KalmalaInventoryGridWidget.cpp`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `Source/KalmalaUI/Private/KalmalaInventoryCraftLayout.cpp`, `Source/KalmalaUI/Private/KalmalaIngredientWidget.cpp`, `Source/KalmalaUI/Private/KalmalaItemDetailWidget.cpp`, `Source/KalmalaUI/Public/KalmalaItemDetailWidget.h`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** source-inspected all shared tile consumers, tile sizing/padding, and high-contrast handling; `git diff --check` passed.
+- **Full verification:** deferred. No Unreal build, automation, or rendered menu review was run.
+- **Impact and authority:** local Inventory, Build, item-detail, and crafting presentation only. Selection, crafting requests, server authority, persistence, and saved-data schemas are unchanged.
+- **Limits:** the tile fill and spacing have not been checked in an Unreal render; high-contrast tiles retain the opaque black panel fill.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## 2026-10-12 — Fix Build square button sizing chain
 
 - **Completed:** traced the standalone Build grid slot, transparent cell margin, favorite frame, fixed-size wrapper, styled card, and catalogue image. The grid slot's Fill alignment still allocated the full column width; additionally, `ApplySelectablePanel` reapplied shared slot padding after the Build card was constructed. Centered Build-only grid slots and reset the styled card's content padding to zero after theme application, preserving 64×64 tile and icon geometry. Other recipe layouts keep Fill alignment and shared padding.

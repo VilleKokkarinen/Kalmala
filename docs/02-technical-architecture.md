@@ -1159,6 +1159,13 @@ black panel. The weather badge now uses the same panel padding as survival
 status. No input, owner-state query, RPC, timer, authority, or gameplay/save
 contract changes.
 
+`ItemIconTileSize`, `ItemIconTileMargin`, and `ItemIconTileFill` define the shared
+square used by item icons in Inventory, Build, and crafting views. The 4-unit
+margin reserves an inset for the icon inside the 64-unit tile. A labeled tile
+keeps its text as a separate row beneath the same framed square; crafting
+material quantities use this layout, while Build material quantities remain in
+their tooltips.
+
 Verify the foundation with `Kalmala.UI.Theme.LocalPresentation`,
 `Kalmala.UI.SurvivalStatus.LocalPresentation`, and
 `Kalmala.UI.WeatherActivity.LocalPresentation` using the isolated headless
@@ -1201,6 +1208,8 @@ expanded-map, and options views as described below.
 | ListViewRowBorderColor | (0.45, 0.27, 0.12, 1) | Linear RGBA; selected/focused crafting rows |
 | ListViewRowPadding / ListViewRowCornerRadius / ListViewRowBorderWidth | 5 / 2 / 0 | 0–24 / 0–12 / 0–3 logical units; list rows |
 | RequirementIconBorderColor / RequirementIconBorderWidth | (0.45, 0.27, 0.12, 1) / 1 | Linear RGBA / 0–4 logical units; crafting/build material icons |
+| ItemIconTileSize / ItemIconTileMargin | 64 / 4 | 24–96 / 0–16 logical units; shared square item-icon tiles |
+| ItemIconTileFill | CSS `rgba(159, 86, 28, 0.5)` (stored as linear `(0.346704, 0.093059, 0.011612, 0.5)`) | Shared Inventory, Build, and crafting tile fill; high contrast replaces it with the black panel fill |
 | SlotPadding | 3 | 0–16; selectable-panel content |
 | ButtonPadding | 9 | 0–24; shared button content, pressed adds one unit |
 | IconWidth / IconHeight | 64 / 42 | 24–96; existing support glyph slots |
