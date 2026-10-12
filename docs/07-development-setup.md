@@ -1212,27 +1212,24 @@ server-authority/privacy boundaries, silence fallback, and no new RPC/save
 field. It does not create or play sound assets, test mixing/spatialization, or
 claim packaged two-player audio verification.
 
-For local ambience, `Scripts/Generate-WildernessWind.ps1`,
-`Scripts/Generate-WaterAmbience.ps1`, `Scripts/Generate-FireAmbience.ps1`,
-`Scripts/Generate-BiomeAmbience.ps1`, and
-`Scripts/Generate-WeatherExposureAudio.ps1`,
-`Scripts/Generate-SupportFeedbackAudio.ps1`,
-`Scripts/Generate-CombatResultAudio.ps1`, and
-`Scripts/Generate-InteractionFeedbackAudio.ps1`,
-`Scripts/Generate-DiscoveryAcknowledgementAudio.ps1`,
-`Scripts/Generate-SupportEffectAudio.ps1`,
-`Scripts/Generate-MovementTraversalAudio.ps1`, and
-`Scripts/Generate-WaterTraversalAudio.ps1` recreate original mono sources
-under `Content/Kalmala/Audio/Source`, including the loop-seamed `RainBed.wav`
+Audio generation is an optional content-authoring step. The 22 source WAVs in
+`Content/Kalmala/Audio/Source` and their imported Unreal `.uasset` packages are
+checked in; ordinary game builds and runs do not need a generator. To recreate
+sources, use `Scripts/Generate-AudioSources.ps1 -ListGenerators`, select a
+group with `-Generator WaterAmbience -Force`, or regenerate all with
+`-All -Force`. The tool only writes WAVs and does not update Unreal packages.
+The sources include the loop-seamed `RainBed.wav`
 and the one-shot `WetStatusCue.wav`, `SupportAcceptedCue.wav`,
 four support activation cues, two timed-effect expiry cues,
 `CombatResultCue.wav`, `InteractionAcceptedCue.wav`,
 `InteractionRejectedCue.wav`, `DiscoveryAcknowledgedCue.wav`,
 `MovementFootfallCue.wav`, `MovementJumpCue.wav`, `MovementLandingCue.wav`,
-`GeneratedOceanEntryCue.wav`, and `GeneratedOceanExitCue.wav`. Import the
-twenty-two audio assets to
-`/Game/Kalmala/Audio` with Unreal's
-`ImportAssets` commandlet, then run `Scripts/Tests/Audio/Verify-AmbientAudio.ps1`,
+`GeneratedOceanEntryCue.wav`, and `GeneratedOceanExitCue.wav`. The committed
+Unreal packages load directly in a normal checkout. When intentionally
+reimporting from WAV sources, import the full set to `/Game/Kalmala/Audio`, or
+reimport only affected assets after regeneration. Use Unreal's `ImportAssets`
+commandlet, then run
+`Scripts/Tests/Audio/Verify-AmbientAudio.ps1`,
 `Scripts/Tests/Audio/Verify-AmbientAudioPeers.ps1`, `Scripts/Tests/Combat/Verify-CombatPeer.ps1`,
 `Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`, `Scripts/Tests/Presentation/Verify-PlayerControls.ps1
 -MovementAudio -OceanTraversalAudio`, and the forced editor build. This

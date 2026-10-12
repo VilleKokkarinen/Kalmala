@@ -39,6 +39,7 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
   - [x] Fold the skiff owner-feedback host/owner scenario into a preliminary phase of `Verify-OceanSkiffIntegratedReconnectJourney.ps1` and retire its separate launcher.
   - [x] Fold the inventory HUD-removal and empty-menu preflight into `Verify-Inventory.ps1 -ContractOnly`; update its callers and retire the standalone audit launcher.
   - [x] Move the retained PowerShell verification runners into domain categories under `Scripts/Tests/`; update path resolution, internal callers, and active documentation references.
+  - [x] Consolidate the optional procedural audio-source generators into one selectable tool; keep checked-in WAV and Unreal assets as game content and document that generation is not a runtime/build step.
   - [ ] Audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage; retire or consolidate only confirmed duplicates.
   - [ ] Document the non-`.ps1` support tools, their runtime requirements, and why they remain in their native formats.
 

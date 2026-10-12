@@ -694,3 +694,12 @@
 - **Impact/authority:** organization and path-resolution change only. Test scenarios, gameplay/server authority, networking, persistence, and save schemas are unchanged. The active runner count remains 45, so the goal of approximately 20 is not complete.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Static checks confirm parser validity and path resolution; live runners remain unexecuted and full project verification is deferred.
 - **Next eligible work:** audit the remaining runners against current acceptance requirements and continue consolidating confirmed overlaps toward approximately 20; then document the remaining non-`.ps1` support tools. M14 main integration remains pending.
+
+## User-directed increment 2026-10-12 — Consolidate audio source generators
+
+- **Completed:** replaced the 12 separate audio-generation launchers with `Scripts/Generate-AudioSources.ps1`, which lists, selects, or batches the same 12 procedural generators. It checks every selected WAV for overwrite before starting and keeps the existing `-Force` protection. The 22 source WAVs and imported Unreal audio packages are already checked in; regeneration is optional authoring tooling, not a game runtime or ordinary build step. The tool does not import or modify `.uasset` packages.
+- **Files changed:** added `Scripts/Generate-AudioSources.ps1`; removed the 12 `Scripts/Generate-*.ps1` launchers; updated `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** PowerShell parser reported no syntax errors; `-ListGenerators` displayed all 12 groups and their 22 checked-in WAV outputs; all 12 combined function bodies matched the prior scripts apart from shared root resolution; the overwrite guard stopped `-All` before touching existing WAVs. No WAV was regenerated, no Unreal import/build/runtime was run, and no audio package changed.
+- **Impact/authority:** authoring-tool consolidation only. Checked-in audio source and packaged content, playback behavior, gameplay/server authority, networking, and saves are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Waveform reproducibility was not exercised; game builds continue to use the committed source and Unreal assets.
+- **Next eligible work:** continue auditing remaining `Verify-*` coverage toward approximately 20 runners, then document the remaining non-`.ps1` support tools. M14 main integration remains pending.

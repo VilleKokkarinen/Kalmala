@@ -2483,23 +2483,20 @@ with smoothed transitions; it does not scan ahead, reveal landmarks, or imply a
 route. All five local loops stop when local play ends; no hidden population,
 discovery, or remote-biome query is used.
 
-`Scripts/Generate-WildernessWind.ps1`, `Scripts/Generate-WaterAmbience.ps1`,
-`Scripts/Generate-FireAmbience.ps1`, `Scripts/Generate-BiomeAmbience.ps1`,
-`Scripts/Generate-WeatherExposureAudio.ps1`,
-`Scripts/Generate-SupportFeedbackAudio.ps1`,
-`Scripts/Generate-CombatResultAudio.ps1`,
-`Scripts/Generate-InteractionFeedbackAudio.ps1`,
-`Scripts/Generate-DiscoveryAcknowledgementAudio.ps1`,
-`Scripts/Generate-SupportEffectAudio.ps1`, and
-`Scripts/Generate-MovementTraversalAudio.ps1` and
-`Scripts/Generate-WaterTraversalAudio.ps1` recreate the original mono sources
-under `Content/Kalmala/Audio/Source`; the rain bed is seam-crossfaded
+`Scripts/Generate-AudioSources.ps1` optionally recreates the original mono
+sources under `Content/Kalmala/Audio/Source`. Use `-ListGenerators` to see the
+groups, `-Generator WaterAmbience -Force` to rebuild one group, or
+`-All -Force` to regenerate all twenty-two source WAVs. The source WAVs and
+their imported Unreal `.uasset` packages are checked in as game content, so
+normal builds and runtime do not need this tool. It only writes WAV sources;
+use Unreal's `ImportAssets` commandlet to refresh packages after changing them.
+The rain bed is seam-crossfaded
 and the WetStatusCue, SupportAcceptedCue, six effect-specific support cues,
 CombatResultCue,
 DiscoveryAcknowledgedCue, interaction cues, MovementFootfallCue,
 MovementJumpCue, MovementLandingCue, GeneratedOceanEntryCue, and
-GeneratedOceanExitCue are short one-shots. Import all twenty-two assets to
-`/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
+GeneratedOceanExitCue are short one-shots. When audio sources change, import
+the affected assets to `/Game/Kalmala/Audio`, then run
 `Scripts/Tests/Audio/Verify-AmbientAudio.ps1`, `Scripts/Tests/Audio/Verify-AmbientAudioPeers.ps1`,
 `Scripts/Tests/Combat/Verify-CombatPeer.ps1`, `Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`,
 `Scripts/Tests/Presentation/Verify-PlayerControls.ps1 -MovementAudio -OceanTraversalAudio`, and the forced editor build.
