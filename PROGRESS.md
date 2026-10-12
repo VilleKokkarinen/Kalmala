@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## 2026-10-12 — Correct shared item-tile spacing
+
+- **Completed:** changed the shared 4-unit item-tile margin to control the gap between neighboring tiles instead of padding inside each tile. Inventory cells now have a 4-unit border-to-border gap; crafting material columns use 2 units per side for a 4-unit gap. Build cards and ingredient rows use the same spacing, and item icons retain the full 64×64 tile size.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaUITheme.h`, `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryGridWidget.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryCraftLayout.cpp`, `Source/KalmalaUI/Private/KalmalaIngredientWidget.cpp`, `Source/KalmalaUI/Private/KalmalaItemDetailWidget.cpp`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected each layout's effective slot/cell spacing and icon dimensions; `git diff --check` passed.
+- **Full verification:** deferred. No Unreal build, automation, or rendered menu review was run.
+- **Impact and authority:** local tile spacing and icon sizing only. Selection, crafting requests, server authority, persistence, and saved-data schemas are unchanged.
+- **Limits:** rendered spacing has not been checked in Unreal.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## 2026-10-12 — Unify square item-icon tiles
 
 - **Completed:** added shared theme values and helpers for 64×64 item-icon tiles, a 4-unit inset, and the requested CSS `rgba(159, 86, 28, 0.5)` fill. Applied the tile style to inventory cells, standalone Build choices, crafting requirement materials, selected crafting/upgrade icons, and the item detail view. Crafting requirement quantities stay beneath their framed tiles; Build requirement quantities remain in tooltips.

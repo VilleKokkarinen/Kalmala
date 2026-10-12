@@ -57,9 +57,8 @@ void UKalmalaItemDetailWidget::BuildPanel()
     IconTileSize->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
     IconTile = WidgetTree->ConstructWidget<UBorder>();
     auto* IconSize = WidgetTree->ConstructWidget<USizeBox>();
-    const float IconContentSize = FMath::Max(1.0f, FKalmalaUITheme::Get().ItemIconTileSize
-        - FKalmalaUITheme::Get().ItemIconTileMargin * 2.0f);
-    IconSize->SetWidthOverride(IconContentSize); IconSize->SetHeightOverride(IconContentSize);
+    IconSize->SetWidthOverride(FKalmalaUITheme::Get().ItemIconTileSize);
+    IconSize->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
     Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
     IconSize->SetContent(Icon);
     IconTile->SetContent(IconSize);

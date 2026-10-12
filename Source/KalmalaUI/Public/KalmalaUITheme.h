@@ -82,6 +82,7 @@ struct KALMALAUI_API FKalmalaUITheme
     float ListViewRowBorderWidth = 0;
     float RequirementIconBorderWidth = 1;
     float ItemIconTileSize = 64;
+    // Total gap between neighboring tiles; each layout applies half on either edge.
     float ItemIconTileMargin = 4;
     float IconWidth = 64;
     float IconHeight = 42;

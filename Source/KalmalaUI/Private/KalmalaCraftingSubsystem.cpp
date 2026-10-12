@@ -451,10 +451,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     IconBox->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
     SelectedIconTile = WidgetTree->ConstructWidget<UBorder>();
     auto* SelectedIconContent = WidgetTree->ConstructWidget<USizeBox>();
-    const float SelectedIconContentSize = FMath::Max(1.0f, FKalmalaUITheme::Get().ItemIconTileSize
-        - FKalmalaUITheme::Get().ItemIconTileMargin * 2.0f);
-    SelectedIconContent->SetWidthOverride(SelectedIconContentSize);
-    SelectedIconContent->SetHeightOverride(SelectedIconContentSize);
+    SelectedIconContent->SetWidthOverride(FKalmalaUITheme::Get().ItemIconTileSize);
+    SelectedIconContent->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
     SelectedIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
     SelectedIconContent->SetContent(SelectedIcon);
     SelectedIconTile->SetContent(SelectedIconContent);
@@ -679,10 +677,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     UpgradeTargetIconBox->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
     UpgradeTargetIconTile = WidgetTree->ConstructWidget<UBorder>();
     auto* UpgradeIconContent = WidgetTree->ConstructWidget<USizeBox>();
-    const float UpgradeIconContentSize = FMath::Max(1.0f, FKalmalaUITheme::Get().ItemIconTileSize
-        - FKalmalaUITheme::Get().ItemIconTileMargin * 2.0f);
-    UpgradeIconContent->SetWidthOverride(UpgradeIconContentSize);
-    UpgradeIconContent->SetHeightOverride(UpgradeIconContentSize);
+    UpgradeIconContent->SetWidthOverride(FKalmalaUITheme::Get().ItemIconTileSize);
+    UpgradeIconContent->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
     UpgradeTargetIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
     UpgradeTargetIcon->SetCatalogueIcon(TEXT("IronAxe"));
     UpgradeIconContent->SetContent(UpgradeTargetIcon);
@@ -1782,7 +1778,9 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             const FKalmalaRecipe& Recipe = Recipes[RecipeIndex];
 
             UBorder* FavoriteFrame = WidgetTree->ConstructWidget<UBorder>();
-            FavoriteFrame->SetPadding(FMargin(FKalmalaUITheme::Get().FavoriteMarkerBorderWidth));
+            const auto& TileTheme = FKalmalaUITheme::Get();
+            FavoriteFrame->SetPadding(FMargin(bIconOnlyBuildCards
+                ? TileTheme.ItemIconTileMargin * 0.5f : TileTheme.FavoriteMarkerBorderWidth));
             FavoriteFrame->SetBrushColor(FLinearColor::Transparent);
             UBorder* Card = WidgetTree->ConstructWidget<UBorder>();
             Card->SetPadding(FMargin(bIconOnlyBuildCards ? 0.0f : 4.0f));
@@ -1795,9 +1793,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             UVerticalBox* CardContent = WidgetTree->ConstructWidget<UVerticalBox>();
             UHorizontalBox* HeadingRow = WidgetTree->ConstructWidget<UHorizontalBox>();
             USizeBox* IconBox = WidgetTree->ConstructWidget<USizeBox>();
-            const float RecipeIconSize = bIconOnlyBuildCards
-                ? FMath::Max(1.0f, StandaloneBuildIconSize - FKalmalaUITheme::Get().ItemIconTileMargin * 2.0f)
-                : 40.0f;
+            const float RecipeIconSize = bIconOnlyBuildCards ? StandaloneBuildIconSize : 40.0f;
             IconBox->SetWidthOverride(RecipeIconSize);
             IconBox->SetHeightOverride(RecipeIconSize);
             UKalmalaIconWidget* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
@@ -1863,7 +1859,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             }
             UBorder* CellMargin = WidgetTree->ConstructWidget<UBorder>();
             CellMargin->SetBrushColor(FLinearColor::Transparent);
-            CellMargin->SetPadding(FMargin(bIconOnlyBuildCards ? 6.0f : 3.0f));
+            CellMargin->SetPadding(FMargin(bIconOnlyBuildCards ? 0.0f : 3.0f));
             CellMargin->SetContent(FavoriteFrame);
             UUniformGridSlot* GridPanelSlot = RecipeGrid->AddChildToUniformGrid(
                 CellMargin, SlotIndex / RecipeGridColumns, SlotIndex % RecipeGridColumns);

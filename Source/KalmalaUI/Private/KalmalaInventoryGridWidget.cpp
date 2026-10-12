@@ -80,7 +80,7 @@ void UKalmalaInventoryGridWidget::Refresh(UKalmalaInventoryComponent* Inventory,
             FMath::Min(6.0f, Theme.CornerRadius), Outline,
             bHighlighted ? FMath::Max(2.0f, Theme.BorderWidth) : 1.0f));
         Backgrounds[SlotIndex]->SetBrushColor(FLinearColor::White);
-        Backgrounds[SlotIndex]->SetPadding(FMargin(Theme.ItemIconTileMargin));
+        Backgrounds[SlotIndex]->SetPadding(FMargin(1.0f));
         auto* Fill = CastChecked<UBorder>(Backgrounds[SlotIndex]->GetContent());
         Fill->SetBrush(FSlateRoundedBoxBrush(FLinearColor::White,
             Contrast != 0 ? 0.0f : FMath::Min(5.0f, Theme.CornerRadius)));
@@ -98,13 +98,17 @@ void UKalmalaInventoryGridWidget::NativeTick(const FGeometry& G, const float Del
     const float Cell = FMath::Min(LastSize.X / (bHotbarOnly ? FMath::Max(1, DisplaySlots.Num()) : 10),
         LastSize.Y / (bHotbarOnly ? 1 : 4));
     if (Cell <= 2.0f) return;
+    const float TileGap = FMath::Min(FKalmalaUITheme::Get().ItemIconTileMargin,
+        FMath::Max(0.0f, Cell - 2.0f));
+    const float TileEdgeMargin = TileGap * 0.5f;
     for (const auto& Icon : Icons) Icon->SetVisibility(ESlateVisibility::Collapsed);
     for (int32 SlotIndex = 0; SlotIndex < Backgrounds.Num(); ++SlotIndex)
     {
         Backgrounds[SlotIndex]->SetVisibility(bHotbarOnly ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
         auto* Placement = CastChecked<UCanvasPanelSlot>(Backgrounds[SlotIndex]->Slot);
-        Placement->SetPosition(FVector2D(SlotIndex % 10, SlotIndex / 10) * Cell + FVector2D(1));
-        Placement->SetSize(FVector2D(Cell - 2));
+        Placement->SetPosition(FVector2D(SlotIndex % 10, SlotIndex / 10) * Cell
+            + FVector2D(TileEdgeMargin));
+        Placement->SetSize(FVector2D(Cell - TileGap));
     }
     for (int32 Index = 0; Index < DisplaySlots.Num(); ++Index)
     {

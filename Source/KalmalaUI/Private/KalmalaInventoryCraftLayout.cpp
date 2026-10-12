@@ -208,10 +208,8 @@ void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
         const FKalmalaInventoryStack& Cost = Costs[Index];
         auto* CostColumn = WidgetTree->ConstructWidget<UVerticalBox>();
         auto* IconSize = WidgetTree->ConstructWidget<USizeBox>();
-        const float IconContentSize = FMath::Max(1.0f,
-            Theme.ItemIconTileSize - Theme.ItemIconTileMargin * 2.0f);
-        IconSize->SetWidthOverride(IconContentSize);
-        IconSize->SetHeightOverride(IconContentSize);
+        IconSize->SetWidthOverride(Theme.ItemIconTileSize);
+        IconSize->SetHeightOverride(Theme.ItemIconTileSize);
         auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
         Icon->SetCatalogueIcon(Cost.ItemId);
         IconSize->SetContent(Icon);
@@ -224,7 +222,8 @@ void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
         CostColumn->SetToolTipText(FText::FromString(FString::Printf(
             TEXT("%s: %d owned, %d required"),
             Item ? *Item->DisplayName : *Cost.ItemId.ToString(), OwnedCounts[Index], Cost.Quantity)));
-        BuildRequirementsCosts->AddChildToHorizontalBox(CostColumn)->SetPadding(FMargin(6.0f, 0.0f));
+        const float TileEdgeMargin = Theme.ItemIconTileMargin * 0.5f;
+        BuildRequirementsCosts->AddChildToHorizontalBox(CostColumn)->SetPadding(FMargin(TileEdgeMargin, 0.0f));
     }
     BuildRequirementsCosts->SetVisibility(Costs.IsEmpty()
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
@@ -352,10 +351,8 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
         {
             auto* CostColumn = WidgetTree->ConstructWidget<UVerticalBox>();
             auto* IconSize = WidgetTree->ConstructWidget<USizeBox>();
-            const float IconContentSize = FMath::Max(1.0f,
-                Theme.ItemIconTileSize - Theme.ItemIconTileMargin * 2.0f);
-            IconSize->SetWidthOverride(IconContentSize);
-            IconSize->SetHeightOverride(IconContentSize);
+            IconSize->SetWidthOverride(Theme.ItemIconTileSize);
+            IconSize->SetHeightOverride(Theme.ItemIconTileSize);
             auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
             Icon->SetCatalogueIcon(Costs[Index].ItemId); IconSize->SetContent(Icon);
             auto* IconFrame = WidgetTree->ConstructWidget<UBorder>();
@@ -370,7 +367,8 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
             const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Costs[Index].ItemId);
             CostColumn->SetToolTipText(FText::FromString(FString::Printf(TEXT("%s: %d owned, %d required"),
                 Item ? *Item->DisplayName : *Costs[Index].ItemId.ToString(), Owned[Index], Costs[Index].Quantity)));
-            InventoryCraftCosts->AddChildToHorizontalBox(CostColumn)->SetPadding(FMargin(6, 0));
+            const float TileEdgeMargin = Theme.ItemIconTileMargin * 0.5f;
+            InventoryCraftCosts->AddChildToHorizontalBox(CostColumn)->SetPadding(FMargin(TileEdgeMargin, 0.0f));
         }
     }
     FString Reason;

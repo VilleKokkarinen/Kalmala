@@ -58,10 +58,8 @@ void UKalmalaIngredientWidget::SetIngredients(const TArray<FKalmalaInventoryStac
     {
         auto* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
         auto* Box = WidgetTree->ConstructWidget<USizeBox>();
-        const float SquareIconSize = FMath::Max(1.0f,
-            Theme.ItemIconTileSize - Theme.ItemIconTileMargin * 2.0f);
-        Box->SetWidthOverride(SquareIconSize);
-        Box->SetHeightOverride(SquareIconSize);
+        Box->SetWidthOverride(Theme.ItemIconTileSize);
+        Box->SetHeightOverride(Theme.ItemIconTileSize);
         auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
         Icon->SetCatalogueIcon(Costs[Index].ItemId);
         Box->SetContent(Icon);
@@ -75,6 +73,6 @@ void UKalmalaIngredientWidget::SetIngredients(const TArray<FKalmalaInventoryStac
         auto* LabelSlot = Row->AddChildToHorizontalBox(Label);
         LabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
         LabelSlot->SetPadding(FMargin(Theme.SlotPadding, 0));
-        Rows->AddChild(Row);
+        Rows->AddChild(Row)->SetPadding(FMargin(0.0f, Theme.ItemIconTileMargin * 0.5f));
     }
 }

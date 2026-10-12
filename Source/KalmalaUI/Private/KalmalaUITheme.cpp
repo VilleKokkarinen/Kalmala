@@ -459,7 +459,7 @@ void FKalmalaUITheme::ApplyItemIconTileFill(UBorder& Border, const int32 Contras
 {
     const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
     Border.SetBrushColor(bContrast ? HighContrastPanel : ItemIconTileFill);
-    Border.SetPadding(FMargin(ItemIconTileMargin));
+    Border.SetPadding(FMargin(0.0f));
 }
 
 void FKalmalaUITheme::ApplyItemIconTile(UBorder& Border, const int32 ContrastMode) const
