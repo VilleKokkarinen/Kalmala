@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Match Workbench and Forge menus to Inventory Craft:** use the shared split list/detail layout for both Craft tabs, keep station tabs and identity/status anchored at the top, frame Repair and Upgrade content, and expose render targets for every Workbench/Forge section.
+
 - [x] **2026-10-12 — Simplify the Options divider ornament:** use the provided reference to generate four progressively smaller mirrored loops on each side, joined cleanly at center.
 
 - [x] **2026-10-12 — Consolidate menu captures and polish the Options divider:** use the combined Inventory/player-crafting preview in the default render set, make `crafting` show Workbench Craft, and replace the rough divider art while removing its gold underlay.

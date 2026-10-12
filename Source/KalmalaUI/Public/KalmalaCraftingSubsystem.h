@@ -88,7 +88,8 @@ public:
 #if !UE_BUILD_SHIPPING
     bool VerifyRecipeGridNavigationForTest();
     bool VerifyInventoryCraftLayoutForTest(FString& OutFailureReason);
-    void PrepareMenuRender(bool bPlayerCrafting, bool bWorkbenchCrafting = false);
+    void PrepareMenuRender(bool bPlayerCrafting, bool bWorkbenchCrafting = false,
+        bool bForgeCrafting = false, const FString& StationSection = TEXT("Craft"));
     bool VerifyMenuBrowseMemoryForTest();
     bool PrepareRecipeActivityReviewForTest();
     bool VerifyInventoryInspectionForTest();
@@ -147,6 +148,7 @@ private:
     UPROPERTY(Transient) TArray<TObjectPtr<UButton>> InventoryCraftChoices;
     TArray<int32> InventoryCraftIndices;
     FString InventoryCraftCostSignature;
+    bool bUpdatingInventoryCraftSearch = false;
     FString BuildRequirementCostSignature;
     int32 LastBuildRequirementTextScale = INDEX_NONE;
     int32 LastBuildRequirementContrast = INDEX_NONE;
@@ -233,6 +235,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<UHorizontalBox> StationHeaderRow;
     UPROPERTY(Transient) TObjectPtr<UKalmalaIconWidget> StationHeaderIcon;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StationHeaderNameText;
+    UPROPERTY(Transient) TObjectPtr<UBorder> WorkbenchRepairPanel;
+    UPROPERTY(Transient) TObjectPtr<UBorder> StationUpgradePanel;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairContextText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> WorkbenchRepairStatusText;
     UPROPERTY(Transient) TObjectPtr<UWidget> StationSectionSwitcher;

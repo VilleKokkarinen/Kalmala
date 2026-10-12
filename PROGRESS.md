@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Match Workbench and Forge menus to Inventory Craft
+
+- **Completed:** routed Workbench Craft and Forge Craft through the shared Inventory Craft list/detail layout, including the same framed ingredient tiles and bottom Craft action. Kept station tabs at the top-left and station icon/name/status at the top-right, with enough top spacing to prevent the station header from overlapping recipe content. Wrapped Workbench Repair and Forge Upgrade/Repair in matching framed panels, and added render targets for every station section.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryCraftLayout.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `Source/KalmalaEditor/Private/RenderMenuCommandlet.cpp`, `Scripts/Render-Menu.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** the targeted Unreal UI/editor module build succeeded. `Scripts/Render-Menu.ps1 -Menu crafting,forge,workbench.repair,forge.upgrade,forge.repair,inventory-crafting -BuildModules` rendered all six views at 1920×1080; inspected the Workbench Craft, Forge Craft, Workbench Repair, Forge Upgrade, Forge Repair, and Inventory Craft previews. `git diff --check` passed. Full project verification remains deferred.
+- **Impact and authority:** local UI presentation and editor render coverage only. Craft requests continue through the existing server-validated path; no gameplay authority, networking, replicated state, or saved-data schema changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Render fixtures report unavailable live station context and inventory; previews verify layout and styling, not live access or transactions. Full project verification remains deferred.
+- **Next eligible work:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Simplify the Options divider ornament
 
 - **Completed:** regenerated the divider using the provided image as its base. The ornamental chain now has four progressively smaller linked loops on each side, mirrors across the center, and joins without a large medallion.

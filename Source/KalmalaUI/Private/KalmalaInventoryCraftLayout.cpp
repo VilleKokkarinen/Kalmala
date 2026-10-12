@@ -84,6 +84,14 @@ void UKalmalaCraftingWidget::BuildInventoryCraftLayout()
     auto* CraftSlot = Root->AddChildToOverlay(InventoryCraftBackground);
     CraftSlot->SetHorizontalAlignment(HAlign_Fill);
     CraftSlot->SetVerticalAlignment(VAlign_Fill);
+    if (StationHeaderRow)
+    {
+        StationHeaderRow->RemoveFromParent();
+        auto* StationHeaderSlot = Root->AddChildToOverlay(StationHeaderRow);
+        StationHeaderSlot->SetHorizontalAlignment(HAlign_Fill);
+        StationHeaderSlot->SetVerticalAlignment(VAlign_Top);
+        StationHeaderSlot->SetPadding(FMargin(12.0f, 12.0f, 12.0f, 0.0f));
+    }
     WidgetTree->RootWidget = Root;
     InventoryCraftBackground->SetVisibility(ESlateVisibility::Collapsed);
 
@@ -244,8 +252,12 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
     const auto& Theme = FKalmalaUITheme::Get();
     const int32 Scale = UKalmalaSettingsWidget::GetTextScalePercent();
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
+    const bool bStationCraftPresentation = bWorkbenchCraftContext || bForgeCraftContext;
     Theme.ApplyPanel(*InventoryCraftBackground, Contrast, &Theme.InventoryPanelImage);
-    InventoryCraftBackground->SetPadding(FMargin(12));
+    InventoryCraftBackground->SetPadding(FMargin(12.0f,
+        bStationCraftPresentation ? 112.0f : 12.0f, 12.0f, 12.0f));
+    InventoryCraftSearch->SetHintText(FText::FromString(
+        bStationCraftPresentation ? TEXT("Search recipes") : TEXT("Search items")));
     for (UBorder* Section : {InventoryCraftListFrame.Get(), InventoryCraftDetailFrame.Get()})
     {
         Section->SetBrush(FSlateRoundedBoxBrush(Contrast ? FLinearColor::Black : FLinearColor(.09f, .045f, .02f, .65f),
@@ -262,6 +274,12 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
     };
     StyleButton(InventoryCraftClear);
     StyleButton(InventoryCraftButton);
+    if (InventoryCraftSearch->GetText().ToString() != RecipeQuery)
+    {
+        bUpdatingInventoryCraftSearch = true;
+        InventoryCraftSearch->SetText(FText::FromString(RecipeQuery));
+        bUpdatingInventoryCraftSearch = false;
+    }
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
     const TArray<int32> Visible = GetVisibleRecipeIndices();
     if (InventoryCraftIndices != Visible)
@@ -312,7 +330,8 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
     if (!Visible.IsValidIndex(Selected))
     {
         InventoryCraftButton->SetIsEnabled(false);
-        InventoryCraftTitle->SetText(FText::FromString(TEXT("No matching items")));
+        InventoryCraftTitle->SetText(FText::FromString(
+            bStationCraftPresentation ? TEXT("No matching recipes") : TEXT("No matching items")));
         InventoryCraftDescription->SetText(FText::GetEmpty());
         InventoryCraftStats->SetText(FText::GetEmpty());
         InventoryCraftIcon->SetVisibility(ESlateVisibility::Collapsed);
@@ -372,24 +391,32 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
         }
     }
     FString Reason;
-    const bool bCanCraft = Recipe.bEnabled && bMaterials && Inventory && Character
-        && Character->GetCarriedToolLevel(Recipe.Output) == 0
-        && Character->GetCarriedToolInventory().Num() < FKalmalaToolLifecycleContract::MaxCarriedToolRecords
-        && UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Costs, NAME_None, 0, After, Reason)
-        && Inventory->CanFitContents(After, Character->GetCarriedToolInventory().Num() + 1);
+    const FString Availability = Crafting ? Crafting->GetRecipeAvailability(Recipe.RecipeId) : TEXT("Waiting for inventory");
+    const bool bCanCraft = bStationCraftPresentation
+        ? Recipe.bEnabled && bMaterials && Inventory && Character && IsStationContextValid()
+            && Crafting && Availability.IsEmpty()
+        : Recipe.bEnabled && bMaterials && Inventory && Character
+            && Character->GetCarriedToolLevel(Recipe.Output) == 0
+            && Character->GetCarriedToolInventory().Num() < FKalmalaToolLifecycleContract::MaxCarriedToolRecords
+            && UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Costs, NAME_None, 0, After, Reason)
+            && Inventory->CanFitContents(After, Character->GetCarriedToolInventory().Num() + 1);
     InventoryCraftButton->SetIsEnabled(bCanCraft);
-    InventoryCraftButton->SetToolTipText(FText::FromString(Crafting ? Crafting->GetRecipeAvailability(Recipe.RecipeId) : TEXT("Waiting for inventory")));
+    InventoryCraftButton->SetToolTipText(FText::FromString(
+        bStationCraftPresentation && !IsStationContextValid()
+            ? TEXT("Station context unavailable. Reopen this station.") : Availability));
 }
 
 #if !UE_BUILD_SHIPPING
-void UKalmalaCraftingWidget::PrepareMenuRender(const bool bPlayerCrafting, const bool bWorkbenchCrafting)
+void UKalmalaCraftingWidget::PrepareMenuRender(const bool bPlayerCrafting,
+    const bool bWorkbenchCrafting, const bool bForgeCrafting, const FString& StationSection)
 {
     bInventoryCompanion = bPlayerCrafting;
-    bEmbeddedContext = bPlayerCrafting || bWorkbenchCrafting;
-    StationFilterKit = bWorkbenchCrafting ? FName(TEXT("WorkbenchKit")) : NAME_None;
-    StationContextSection = bWorkbenchCrafting ? FString(TEXT("Craft")) : FString();
+    bEmbeddedContext = bPlayerCrafting || bWorkbenchCrafting || bForgeCrafting;
+    StationFilterKit = bWorkbenchCrafting ? FName(TEXT("WorkbenchKit"))
+        : bForgeCrafting ? FName(TEXT("ForgeKit")) : NAME_None;
+    StationContextSection = bWorkbenchCrafting || bForgeCrafting ? StationSection : FString();
     RecipeQuery.Reset();
-    RecipeCategory = bPlayerCrafting || bWorkbenchCrafting ? 0 : 3;
+    RecipeCategory = bPlayerCrafting || bWorkbenchCrafting || bForgeCrafting ? 0 : 3;
     Selected = 0;
     ConfigureStationContextPresentation(StationContextSection);
     Refresh();

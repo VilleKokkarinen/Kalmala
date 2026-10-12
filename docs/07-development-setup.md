@@ -2773,7 +2773,13 @@ title/description/durability, simple icon/amount costs and bottom Craft button.
 Check missing materials, duplicate hammer, full capacity, empty search, search
 clear, pointer/keyboard/controller recipe selection and disabled activation.
 No Favorites/order/status or Previous/Next section may appear in that surface;
-station service layouts must remain intact. This revision's added Unreal
+Workbench Craft and Forge Craft should use the same left list and right
+detail frame, with the station tabs at the top-left, station identity/status at
+the top-right, a clear gap below wrapped header status, bordered 64px
+requirement tiles, and a bottom Craft action.
+Workbench Repair and Forge Upgrade/Repair should retain their existing owner
+inspection and comparison behavior inside the matching framed content area.
+Check those station views at standard and high contrast. This revision's added Unreal
 assertions and rendered/native checks remain deferred until rebuilding.
 
 The subsequent panel-fill/loading correction extends the above checks: require
