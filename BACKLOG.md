@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-12 — Match Build icon tiles to Inventory sizing:** use compact 64×64 selectable tiles and native 64×64 catalogue-image rendering instead of larger button-like cards and extra image scaling.
+
 - [x] **2026-10-12 — Refine crafting menu presentation:** add configurable list-row styling for item selection, align station sections at top-left and station identity/status at top-right, and frame requirement icons.
   - [x] Apply the shared list-view theme to crafting choices and the requested station/header and material-icon presentation; preserve existing selection and authority behavior.
 

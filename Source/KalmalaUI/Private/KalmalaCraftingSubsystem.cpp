@@ -1768,24 +1768,22 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             FavoriteFrame->SetPadding(FMargin(FKalmalaUITheme::Get().FavoriteMarkerBorderWidth));
             FavoriteFrame->SetBrushColor(FLinearColor::Transparent);
             UBorder* Card = WidgetTree->ConstructWidget<UBorder>();
-            Card->SetPadding(FMargin(4.0f));
+            Card->SetPadding(FMargin(bIconOnlyBuildCards ? 0.0f : 4.0f));
             USizeBox* CardSize = WidgetTree->ConstructWidget<USizeBox>();
-            CardSize->SetWidthOverride(bIconOnlyBuildCards ? 96.0f : 184.0f);
-            if (bIconOnlyBuildCards) CardSize->SetHeightOverride(96.0f);
+            constexpr float StandaloneBuildIconSize = 64.0f;
+            CardSize->SetWidthOverride(bIconOnlyBuildCards ? StandaloneBuildIconSize : 184.0f);
+            if (bIconOnlyBuildCards) CardSize->SetHeightOverride(StandaloneBuildIconSize);
             else CardSize->SetMinDesiredHeight(104.0f);
 
             UVerticalBox* CardContent = WidgetTree->ConstructWidget<UVerticalBox>();
             UHorizontalBox* HeadingRow = WidgetTree->ConstructWidget<UHorizontalBox>();
             USizeBox* IconBox = WidgetTree->ConstructWidget<USizeBox>();
-            constexpr float StandaloneBuildIconSize = 64.0f;
             const float RecipeIconSize = bIconOnlyBuildCards ? StandaloneBuildIconSize : 40.0f;
             IconBox->SetWidthOverride(RecipeIconSize);
             IconBox->SetHeightOverride(RecipeIconSize);
             UKalmalaIconWidget* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
             Icon->SetCatalogueIcon(Recipe.GetOutputIdentity());
-            // Catalogue images use a 64x64 canvas but transparent edge pixels make the visible art smaller.
-            const float IconRenderScale = bIconOnlyBuildCards ? 1.085f : 1.0f;
-            Icon->SetRenderScale(FVector2D(IconRenderScale, IconRenderScale));
+            // Match Inventory's native 64x64 catalogue-image rendering without a separate scale.
             Icon->SetRenderTransformPivot(FVector2D(0.5f, 0.5f));
             IconBox->SetContent(Icon);
             auto* GridIconSlot = HeadingRow->AddChildToHorizontalBox(IconBox);

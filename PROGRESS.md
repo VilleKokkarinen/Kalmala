@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## 2026-10-12 — Match Build icon tiles to Inventory sizing
+
+- **Completed:** changed standalone Build choices from 96×96 button-like cards to compact 64×64 selectable icon tiles, removed card padding that reduced the drawable area, and rendered catalogue images at native scale to match Inventory.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** reviewed the widget sizing hierarchy, Inventory icon rendering geometry, and changed-source diff; `git diff --check` passed.
+- **Full verification:** deferred. No Unreal build, automation, or rendered menu review was run.
+- **Impact and authority:** local Build-menu presentation only. Selection, favorites, availability, placement, server authority, persistence, and saved-data schemas are unchanged.
+- **Limits:** visual appearance and keyboard/controller focus spacing have not been checked in an Unreal render.
+- **Next eligible task:** audit the remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## 2026-10-12 — Refine crafting menu presentation
 
 - **Completed:** added a dedicated configurable list-row theme for Player Crafting choices, placed Workbench/Forge section controls at the station shell's top-left and station icon/name/current status at the top-right, and framed material icons in crafting/build requirements. Selected list rows retain a leading marker for color-independent selection feedback.
