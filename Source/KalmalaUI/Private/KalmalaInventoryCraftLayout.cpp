@@ -305,6 +305,7 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
             auto* NameSlot = Row->AddChildToHorizontalBox(Name);
             NameSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
             NameSlot->SetVerticalAlignment(VAlign_Center);
+            NameSlot->SetHorizontalAlignment(HAlign_Fill);
             NameSlot->SetPadding(FMargin(4));
             Button->SetContent(Row);
             InventoryCraftList->AddChildToVerticalBox(Button)->SetPadding(FMargin(0, 0, 0, 4));
@@ -320,8 +321,8 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
         auto* Row = CastChecked<UHorizontalBox>(Button->GetContent());
         UTextBlock* Name = CastChecked<UTextBlock>(Row->GetChildAt(1));
         const int32 RecipeIndex = Visible[Index];
-        Name->SetText(FText::FromString(FString::Printf(TEXT("%s%s"),
-            Index == Selected ? TEXT("› ") : TEXT("  "), *Recipes[RecipeIndex].DisplayName)));
+        Name->SetText(FText::FromString(Recipes[RecipeIndex].DisplayName));
+        Name->SetJustification(ETextJustify::Left);
         Theme.ApplyText(*Name, 14, Index == Selected, Scale, Contrast);
     }
     Theme.ApplyText(*InventoryCraftTitle, 22, true, Scale, Contrast);

@@ -1429,6 +1429,25 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
     const bool bStationContext = bStationCraftContext || bForgeUpgradeContext || bRepairContext || bStorageContext;
     const bool bNonCraftSection = bRepairContext || bForgeUpgradeContext || bStorageContext;
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(
+        UKalmalaSettingsWidget::GetTextScalePercent());
+    const int32 ContrastMode = UKalmalaSettingsWidget::ClampContrastMode(
+        UKalmalaSettingsWidget::GetContrastMode());
+    const auto SetSectionTab = [&Theme, TextScalePercent, ContrastMode](
+        UButton* Button, const TCHAR* Name, const bool bVisible, const bool bSelected)
+    {
+        if (!Button) return;
+        Button->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+        if (UTextBlock* Label = Cast<UTextBlock>(Button->GetContent()))
+        {
+            Label->SetText(FText::FromString(Name));
+            Theme.ApplyText(*Label, Theme.BodySize + 5, bSelected, TextScalePercent, ContrastMode);
+            const FLinearColor LabelColor = bSelected && ContrastMode == 0
+                ? Theme.ButtonFocused : Theme.TextColor(false, ContrastMode);
+            Label->SetColorAndOpacity(FSlateColor(LabelColor));
+        }
+    };
     const ESlateVisibility ExcludedVisibility = bStationContext || bInventoryCompanion
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible;
     for (UWidget* Excluded : StationCraftExcludedWidgets)
@@ -1478,41 +1497,11 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (StorageContextPanel)
         StorageContextPanel->SetVisibility(bStorageContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-    if (WorkbenchCraftSectionButton)
-    {
-        WorkbenchCraftSectionButton->SetVisibility(bWorkbenchContext
-            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-        if (UTextBlock* Label = Cast<UTextBlock>(WorkbenchCraftSectionButton->GetContent()))
-            Label->SetText(FText::FromString(bWorkbenchCraftContext ? TEXT("> Craft") : TEXT("Craft")));
-    }
-    if (WorkbenchRepairSectionButton)
-    {
-        WorkbenchRepairSectionButton->SetVisibility(bWorkbenchContext
-            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-        if (UTextBlock* Label = Cast<UTextBlock>(WorkbenchRepairSectionButton->GetContent()))
-            Label->SetText(FText::FromString(bWorkbenchRepairContext ? TEXT("> Repair") : TEXT("Repair")));
-    }
-    if (ForgeCraftSectionButton)
-    {
-        ForgeCraftSectionButton->SetVisibility(bForgeContext
-            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-        if (UTextBlock* Label = Cast<UTextBlock>(ForgeCraftSectionButton->GetContent()))
-            Label->SetText(FText::FromString(bForgeCraftContext ? TEXT("> Craft") : TEXT("Craft")));
-    }
-    if (ForgeUpgradeSectionButton)
-    {
-        ForgeUpgradeSectionButton->SetVisibility(bForgeContext
-            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-        if (UTextBlock* Label = Cast<UTextBlock>(ForgeUpgradeSectionButton->GetContent()))
-            Label->SetText(FText::FromString(bForgeUpgradeContext ? TEXT("> Upgrade") : TEXT("Upgrade")));
-    }
-    if (ForgeRepairSectionButton)
-    {
-        ForgeRepairSectionButton->SetVisibility(bForgeContext
-            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-        if (UTextBlock* Label = Cast<UTextBlock>(ForgeRepairSectionButton->GetContent()))
-            Label->SetText(FText::FromString(bForgeRepairContext ? TEXT("> Repair") : TEXT("Repair")));
-    }
+    SetSectionTab(WorkbenchCraftSectionButton, TEXT("Craft"), bWorkbenchContext, bWorkbenchCraftContext);
+    SetSectionTab(WorkbenchRepairSectionButton, TEXT("Repair"), bWorkbenchContext, bWorkbenchRepairContext);
+    SetSectionTab(ForgeCraftSectionButton, TEXT("Craft"), bForgeContext, bForgeCraftContext);
+    SetSectionTab(ForgeUpgradeSectionButton, TEXT("Upgrade"), bForgeContext, bForgeUpgradeContext);
+    SetSectionTab(ForgeRepairSectionButton, TEXT("Repair"), bForgeContext, bForgeRepairContext);
     if (StationContextStatusText)
         StationContextStatusText->SetVisibility(bStationContext && !bStorageContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
@@ -3636,6 +3625,9 @@ void UKalmalaCraftingWidget::Refresh()
         LastDetailContrastMode = ContrastMode;
         LastMenuPanelContext = MenuPanelContext;
     }
+    if (bWorkbenchCraftContext || bWorkbenchRepairContext || bForgeCraftContext
+        || bForgeUpgradeContext || bForgeRepairContext)
+        ApplyStationCraftLayout();
     if (bForgeUpgradeContext)
         RefreshInlineToolUpgradeComparison(Cast<AKalmalaCharacter>(OwnerPawn), ContrastMode);
     else

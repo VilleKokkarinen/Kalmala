@@ -1248,10 +1248,11 @@ border/text, and forces button borders to at least one unit. High contrast uses
 neutral button fills; pressed padding and Unreal's existing keyboard focus
 indicator remain available.
 Crafting item-selection rows use the dedicated list-view theme rather than the
-shared stone button surface. The selected item keeps a visible leading marker;
-pointer hover, keyboard/controller focus, disabled state, and high-contrast
-borders remain distinct. Requirement icons use their own theme-configurable
-frame, with a white border over the black high-contrast surface.
+shared stone button surface. Item names stay left-aligned beside their icons,
+and selection uses the row treatment without a leading marker; pointer hover,
+keyboard/controller focus, disabled state, and high-contrast borders remain
+distinct. Requirement icons use their own theme-configurable frame, with a
+white border over the black high-contrast surface.
 Accessibility text scale still takes precedence over theme size. Button
 activation, menu navigation, modal ownership, gameplay authority, and saved
 data schemas remain unchanged; audio values keep their existing local keys.
@@ -2250,6 +2251,8 @@ the owner's tool, material, and skill snapshots for prerequisites; the accepted
 Forge's effective level and Anvil state stay tied to the exact context actor.
 The section tabs sit at the top-left of the shell; the station catalogue icon,
 name, and existing level/attachment or cooking-heat status sit at the top-right.
+The selected Workbench/Forge tab uses the shared gold text accent without a
+leading selection marker.
 The existing progression RPC remains responsible for authoritative checks,
 material exchange, and persistence.
 These passive Workbench Tool Rack and Forge Anvil status lines remain visible

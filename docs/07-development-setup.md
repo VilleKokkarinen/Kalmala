@@ -2795,9 +2795,10 @@ deferred for this normal increment.
 ## Crafting menu presentation — 2026-10-12
 
 Crafting item choices render as flat selectable list rows using the shared
-`ListViewRow*` theme keys. Selected rows keep a leading marker for a
-color-independent cue. Workbench/Forge section tabs align at the shell's
-top-left; the accepted station icon, catalogue name, and existing level,
+`ListViewRow*` theme keys. Item names stay left-aligned beside their icons;
+selection uses the row treatment without adding a leading marker. Selected
+Workbench/Forge section tabs use the shared gold text accent without a marker.
+The tabs align at the shell's top-left; the accepted station icon, catalogue name, and existing level,
 attachment, or cooking-heat status align at the top-right. Requirement material
 icons use a separate theme-configurable frame, with white borders in high
 contrast. This changes local presentation only; recipe selection, station
