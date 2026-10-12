@@ -1460,7 +1460,7 @@ Late initial skill replication does not clear already accepted item feedback.
 Run `Kalmala.UI.Notifications.ItemGains` and `.SkillLevels`,
 `Kalmala.Gameplay.Inventory.NetworkContract`, `Kalmala.Gameplay.Crafting.Transactions`
 and `Kalmala.UI.Theme.LocalPresentation` after the affected editor build.
-`Scripts/Verify-Inventory.ps1` additionally requires live owning-client receipt
+`Scripts/Tests/Inventory/Verify-Inventory.ps1` additionally requires live owning-client receipt
 presence/bounds and empty remote receipt buffers, alongside existing inventory
 privacy and rejected-client-mutation gates. Rendered combined notification
 placement and real reconnect pixels remain final-child acceptance scope.
@@ -1674,10 +1674,10 @@ mount a card. The default F1/F2 dismiss/revisit mappings have been removed with
 the gameplay prompts. The source-level route-free audit now also verifies that
 the presenter remains inactive.
 
-`Scripts/Verify-OnboardingContract.ps1` validates the retained design
-specification; it is not a runtime presentation test. `Scripts/Verify-TutorialRouteFree.ps1`
+`Scripts/Tests/Presentation/Verify-OnboardingContract.ps1` validates the retained design
+specification; it is not a runtime presentation test. `Scripts/Tests/Presentation/Verify-TutorialRouteFree.ps1`
 checks the route-free source contract and confirms that the presenter is
-disabled. `Scripts/Verify-LocalInputContract.ps1` checks the current
+disabled. `Scripts/Tests/Presentation/Verify-LocalInputContract.ps1` checks the current
 keyboard/controller movement and interaction bindings. Fresh-player prompt
 walkthrough and prompt rendering are not part of current runtime acceptance.
 
@@ -2094,7 +2094,7 @@ results; it creates no request, target, reward, or hidden-content indication.
 The runtime implementation is accepted when a fresh local profile can open,
 navigate, change, cancel, apply, reset, and persist each option group with
 keyboard and controller bindings, while a second player observes no
-replicated settings state. `Scripts/Verify-SettingsAccessibility.ps1` runs
+replicated settings state. `Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1` runs
 isolated host/client profiles, opens the Escape shell and live Keyboard & Mouse,
 Controller, Graphics, Audio, and Accessibility groups; it checks focusable targets, modal input
 ownership, and Escape recovery, persists every local option, and compares the
@@ -2109,7 +2109,7 @@ both viewport sizes and inspect the
 modal, HUD, and artwork; these checks do not replace physical
 keyboard/controller or packaged verification.
 
-`Scripts/Verify-SettingsAccessibility.ps1 -ContractOnly` checks this contract
+`Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1 -ContractOnly` checks this contract
 without Unreal; the same entry point runs this check before its rendered peer
 probe. The focused `Kalmala.UI.Settings.LocalPresentation` automation
 and the rendered peer probe cover local round-trips, bounded input mappings,
@@ -2272,7 +2272,7 @@ no aggregate peer badge is used as a substitute for private skill detail.
 The selected-recipe details and skill block follow the local text-scale and
 high-contrast settings inside the existing scroll view. This is read-only
 presentation: it adds no RPC, focus target, progression mutation, or save
-field. `Scripts/Verify-Crafting.ps1` checks the fresh-owner values and
+field. `Scripts/Tests/Construction/Verify-Crafting.ps1` checks the fresh-owner values and
 host/client presentation; `-Rendered` retains both 1280x720 captures.
 
 The selected-result preview reads only the existing selected recipe output,
@@ -2315,7 +2315,7 @@ the remaining visual and accessibility work stays in M5.
 
 ## Static audit and runtime limits
 
-`Scripts/Verify-PresentationOwnership.ps1` checks the committed project-owned
+`Scripts/Tests/Presentation/Verify-PresentationOwnership.ps1` checks the committed project-owned
 material files, the source anchors for player, wildlife, environment, UI, and
 feedback presentation, and the absence of known external/prototype asset
 paths. It also checks this ledger's scope and authority statements without
@@ -2500,9 +2500,9 @@ DiscoveryAcknowledgedCue, interaction cues, MovementFootfallCue,
 MovementJumpCue, MovementLandingCue, GeneratedOceanEntryCue, and
 GeneratedOceanExitCue are short one-shots. Import all twenty-two assets to
 `/Game/Kalmala/Audio` with Unreal's `ImportAssets` commandlet, then run
-`Scripts/Verify-AmbientAudio.ps1`, `Scripts/Verify-AmbientAudioPeers.ps1`,
-`Scripts/Verify-CombatPeer.ps1`, `Scripts/Verify-DiscoveryPeer.ps1`,
-`Scripts/Verify-PlayerControls.ps1 -MovementAudio -OceanTraversalAudio`, and the forced editor build.
+`Scripts/Tests/Audio/Verify-AmbientAudio.ps1`, `Scripts/Tests/Audio/Verify-AmbientAudioPeers.ps1`,
+`Scripts/Tests/Combat/Verify-CombatPeer.ps1`, `Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`,
+`Scripts/Tests/Presentation/Verify-PlayerControls.ps1 -MovementAudio -OceanTraversalAudio`, and the forced editor build.
 Pass
 `-WeatherExposureOnly` to the peer runner when
 focusing on the weather and Wet cues; its default mode also requires visible
@@ -2540,7 +2540,7 @@ field.
 
 ## No-build audit and runtime limits
 
-`Scripts/Verify-AmbientAudio.ps1 -ContractOnly` checks all eight cue rows, the
+`Scripts/Tests/Audio/Verify-AmbientAudio.ps1 -ContractOnly` checks all eight cue rows, the
 non-audio/accessibility requirement, project-owned asset rule, local mix scope,
 server authority/privacy boundary, the owner-only combat/support feedback
 sources, owner-only discovery cue gating, generated-ocean movement transitions,

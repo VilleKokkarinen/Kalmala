@@ -685,3 +685,12 @@
 - **Impact/authority:** verification-entrypoint consolidation only. Inventory ownership and gameplay authority, network state, persistence, and save schemas are unchanged.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Contract-only equivalence is based on source inspection and parser validation; it remains unexecuted. Full project verification is deferred.
 - **Next eligible work:** continue auditing the remaining `Verify-*` entrypoints against active acceptance requirements, callers, and equivalent coverage, then document the non-`.ps1` support tools. The goal of approximately 20 runners is not complete; M14 main integration remains pending.
+
+## User-directed increment 2026-10-12 — Organize verification runners
+
+- **Completed:** moved all 45 remaining `Verify-*.ps1` entrypoints out of `Scripts/` into 11 domain folders under `Scripts/Tests/`: Acceptance, Audio, Combat, Construction, Inventory, Performance, Presentation, Progression, Survival, Travel, and World. Added a shared project/test-root resolver, updated cross-runner calls, and changed active architecture/setup references. Non-test asset, build, export, package, and render tools remain directly under `Scripts/`.
+- **Files changed:** moved 45 PowerShell runners; added `Scripts/Tests/TestPaths.ps1`; updated `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed all 46 PowerShell files under `Scripts/Tests/` with zero syntax errors; exercised project-root resolution and checked category-qualified internal runner paths; confirmed changed paths are below 260 characters; `git diff --check` passed. No Unreal scenario, build, or full test suite ran.
+- **Impact/authority:** organization and path-resolution change only. Test scenarios, gameplay/server authority, networking, persistence, and save schemas are unchanged. The active runner count remains 45, so the goal of approximately 20 is not complete.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Static checks confirm parser validity and path resolution; live runners remain unexecuted and full project verification is deferred.
+- **Next eligible work:** audit the remaining runners against current acceptance requirements and continue consolidating confirmed overlaps toward approximately 20; then document the remaining non-`.ps1` support tools. M14 main integration remains pending.

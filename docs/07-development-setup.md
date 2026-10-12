@@ -11,7 +11,7 @@ retired-panel, PowerShell parser, whitespace and path audits. Full Unreal
 builds and execution remain deferred. Following a later authorized editor
 build, run `Kalmala.Gameplay.Inventory` and `Kalmala.UI.InventoryMenu` plus
 `Kalmala.UI.Inventory.NumberedHotbar`, then the updated
-`Scripts/Verify-InventoryMenu.ps1` at standard and enlarged high-contrast
+`Scripts/Tests/Inventory/Verify-InventoryMenu.ps1` at standard and enlarged high-contrast
 settings. Its materials-empty capture retains the tools in the same grid;
 its final HUD capture verifies the occupied numbered row after the modal closes.
 
@@ -49,7 +49,7 @@ Run the full `Automation RunTests Kalmala` queue with isolated UserDir/logs,
 null renderer, memory DDC and the queue-empty TestExit gate. Require every
 test to succeed and process/test exit 0.
 
-Run mirror `Scripts/Verify-Crafting.ps1 -Rendered` at 1280x720/100%/contrast0
+Run mirror `Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered` at 1280x720/100%/contrast0
 and 1024x768/150%/contrast1 with separate unused ports. Require both peers'
 inventory, recipe and build browsing, focus/navigation, modal restoration,
 server rejection/payment and final-state checks. Each peer must produce the
@@ -60,7 +60,7 @@ capture; high text scale retains the normal scrollable header and close control.
 Review saved source PNGs for readable controls, group names, selected/unavailable
 cards, no-results recovery, and non-overlapping inventory headings/cards.
 
-Run mirror `Scripts/Verify-Inventory.ps1` for owner-only state and transaction
+Run mirror `Scripts/Tests/Inventory/Verify-Inventory.ps1` for owner-only state and transaction
 regression, then presentation ownership, all five M5 documentation contracts,
 PowerShell parser and diff/path checks. Preserve source capture evidence and
 exact roots/results in `02-technical-architecture.md` and PROGRESS.md. This completes the
@@ -83,7 +83,7 @@ until the final browsing acceptance child.
 Follow `02-technical-architecture.md`: compile affected UI in the short disposable mirror
 with normal UnrealBuildTool access. Run `Kalmala.UI.Crafting.LocalBrowsing` with
 isolated UserDir/logs, null renderer and memory DDC; require Result={Success}
-and test exit0. Run rendered `Scripts/Verify-Crafting.ps1` at 1280x720/100%
+and test exit0. Run rendered `Scripts/Tests/Construction/Verify-Crafting.ps1` at 1280x720/100%
 standard contrast; both peers must report Recipe browsing SelectionKept,
 Category, NoResults, Restored and SearchFocus all1 alongside existing navigation/modal,
 transaction and capture checks. Run M5 documentation contracts and diff/path
@@ -97,7 +97,7 @@ disposable mirror with normal `%LOCALAPPDATA%/UnrealBuildTool` access, then run
 `Automation RunTests Kalmala.UI.Inventory` with isolated `-UserDir`, `-abslog`,
 `-nullrhi`, `-DDC-ForceMemoryCache` and `-TestExit="Automation Test Queue Empty"`.
 Require `LocalBrowsing` and existing inventory tests to pass. Run rendered
-`Scripts/Verify-Crafting.ps1` at 1280x720/100% standard contrast; both peer logs
+`Scripts/Tests/Construction/Verify-Crafting.ps1` at 1280x720/100% standard contrast; both peer logs
 must include `Inventory browsing: CategoryKey=1 SortKey=1 NoResults=1 Restored=1`
 and the existing inspection/focus/modal/authority checks. Extend `LocalBrowsing`
 to reopen after inspecting and require independent query/category/sort/selection
@@ -133,7 +133,7 @@ run the full `Automation RunTests Kalmala` queue. Require
 `Kalmala.UI.Theme.LocalPresentation` to pass its duration/travel/easing bounds,
 easing, invalid-value fallback, and theme-disabled instant-motion assertions.
 
-Run `Scripts/Verify-SettingsAccessibility.ps1` from the mirror. Both host and
+Run `Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1` from the mirror. Both host and
 client logs must contain successful `OpeningStart`, `OpeningResize`,
 `OpeningCloseReopen`, `OpeningResizeRestore`, and `OpeningAnimation` stages. The
 probe changes each isolated window from 1280x720 to 1600x900 and back while the
@@ -145,8 +145,8 @@ through a transparent home surface with only its Options and Quit buttons and a
 visible focused option; the other option tabs retain their configured panel
 backgrounds. The temporary viewport change is restored
 before captures complete. The rendered runner performs its no-build settings
-contract check before launching Unreal. Then run `Scripts/Verify-M5DocumentationContracts.ps1`,
-`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`.
+contract check before launching Unreal. Then run `Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Tests/Presentation/Verify-PresentationOwnership.ps1`, and `git diff --check`.
 
 The probes use rendered offscreen editor peers and isolated settings profiles;
 they do not establish physical controller hardware behavior or package cooking.
@@ -179,9 +179,9 @@ Use a mirror/temp root and output paths that keep every absolute Windows path
 below 260 characters.
 
 Run the full `Automation RunTests Kalmala` queue, then
-`Scripts/Verify-SettingsAccessibility.ps1`,
-`Scripts/Verify-M5DocumentationContracts.ps1`,
-`Scripts/Verify-PresentationOwnership.ps1`, and `git diff --check`. The
+`Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1`,
+`Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1`,
+`Scripts/Tests/Presentation/Verify-PresentationOwnership.ps1`, and `git diff --check`. The
 host/client settings probe visits the Escape shell and Keyboard & Mouse,
 Controller, Graphics, Audio, and Accessibility groups; require the Escape surface to be transparent in standard
 contrast, retain its two existing actions and visible focus cue, and require
@@ -228,10 +228,10 @@ Run the full `Automation RunTests Kalmala` queue. Then run the rendered
 two-peer checks from the mirror:
 
 ```powershell
-Scripts/Verify-Inventory.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
-Scripts/Verify-Inventory.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
-Scripts/Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
-Scripts/Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Tests/Inventory/Verify-Inventory.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Tests/Inventory/Verify-Inventory.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
 ```
 
 Inventory verification requires 16 empty slots, a populated stack with its
@@ -255,8 +255,8 @@ exit code 0. Run the rendered two-peer crafting fixture at standard contrast
 and at the high-contrast enlarged-text setting:
 
 ```powershell
-Scripts/Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
-Scripts/Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
 ```
 
 Both host and client must report `Result preview: Keyboard=1 DPad=1
@@ -299,7 +299,7 @@ damage type, RPC, or saved field is introduced.
 
 Follow `02-technical-architecture.md`: build the isolated editor mirror after the three
 user-requested implementations, then run the full Kalmala automation queue,
-the new rendered `Scripts/Verify-StatusHotbar.ps1` viewport/text-scale matrix,
+the new rendered `Scripts/Tests/Presentation/Verify-StatusHotbar.ps1` viewport/text-scale matrix,
 and existing rendered crafting, settings/accessibility and owner inventory
 peer regressions. The hotbar probe is explicitly presentation-only and records
 actual owner snapshots before supplying its six-effect fixture. For the
@@ -328,7 +328,7 @@ The theme foundation children use these focused tests after compilation:
 ```
 
 Require all five `Result={Success}` results. Run
-`Scripts/Verify-M5DocumentationContracts.ps1` and `git diff --check` as well.
+`Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1` and `git diff --check` as well.
 These are increment-level checks; they do not complete the theme parent or
 verify rendered menu propagation, viewport layout, or packaged theme loading.
 
@@ -336,9 +336,9 @@ For the final theme child / parent integration gate, build the isolated editor
 mirror with normal `%LOCALAPPDATA%/UnrealBuildTool` access and
 `-MaxParallelActions=4`. Run the full `Automation RunTests Kalmala` queue with
 the isolated headless flags above; require every completed test to succeed and
-test exit code 0. From the mirror, run `Scripts/Verify-Inventory.ps1`,
-`Scripts/Verify-Crafting.ps1 -Rendered`, `Scripts/Verify-SettingsAccessibility.ps1`,
-and `Scripts/Verify-WorldMap.ps1` with unused ports. The map runner covers
+test exit code 0. From the mirror, run `Scripts/Tests/Inventory/Verify-Inventory.ps1`,
+`Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered`, `Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1`,
+and `Scripts/Tests/World/Verify-WorldMap.ps1` with unused ports. The map runner covers
 1024x768, 1280x720, and 2560x1080; settings covers 150% text/high contrast.
 Inspect retained PNGs as well as runner assertions. Repeat rendered map and
 build checks with changed theme values in the disposable mirror, and with
@@ -353,8 +353,8 @@ After an isolated editor build with normal `%LOCALAPPDATA%/UnrealBuildTool`
 access, run the full `Automation RunTests Kalmala` queue and require exit 0.
 `Kalmala.UI.Theme.LocalPresentation` covers themed pointer/focus/selection and
 disabled states, high-contrast outlines, transition settings, and immediate
-reduced-motion presentation. Run `Scripts/Verify-SettingsAccessibility.ps1`,
-`Scripts/Verify-Crafting.ps1 -Rendered`, and `Scripts/Verify-Inventory.ps1
+reduced-motion presentation. Run `Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1`,
+`Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered`, and `Scripts/Tests/Inventory/Verify-Inventory.ps1
 -Rendered` from the mirror with unused ports. Require host/client focus,
 selection, modal restoration, owner presentation, and existing transaction
 checks to pass; inspect the retained standard and high-contrast captures for
@@ -378,17 +378,17 @@ they must not appear in the prompt. The full queue also retains
 `Kalmala.Gameplay.Interaction.ServerOnlyRangeValidation` for server range and
 authority behavior.
 
-Run `Scripts/Verify-InteractionPrompt.ps1` from the mirror at 1280x720/100%
+Run `Scripts/Tests/Presentation/Verify-InteractionPrompt.ps1` from the mirror at 1280x720/100%
 standard contrast and 1024x768/150% high contrast, with separate unused ports.
 It renders the available and unavailable action plus modal/no-target clearing
 on both host and client; inspect the retained source PNGs for readable action
 text without binding labels. Run rendered
-`Scripts/Verify-Crafting.ps1` at both settings for live modal suppression and
+`Scripts/Tests/Construction/Verify-Crafting.ps1` at both settings for live modal suppression and
 existing interaction/transaction regressions, and
-`Scripts/Verify-SettingsAccessibility.ps1` for the local Controls remapping
-path. Finish with `Scripts/Verify-LocalInputContract.ps1`,
-`Scripts/Verify-PresentationOwnership.ps1`,
-`Scripts/Verify-M5DocumentationContracts.ps1`, changed-script PowerShell
+`Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1` for the local Controls remapping
+path. Finish with `Scripts/Tests/Presentation/Verify-LocalInputContract.ps1`,
+`Scripts/Tests/Presentation/Verify-PresentationOwnership.ps1`,
+`Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1`, changed-script PowerShell
 parsing, `git diff --check`, and the 260-character path audit. This verifies
 editor-rendered presentation and existing server validation; it does not claim
 physical keyboard/controller hardware or packaged-build acceptance.
@@ -401,7 +401,7 @@ combinations. The map keeps its symbol legend, category state, and concise
 share/ping action names. Options > Keyboard & Mouse and Options > Controller are
 the only player-facing views that show current bindings; all existing input
 paths and remapping behavior remain.
-Run `Scripts/Verify-MenuInputCopy.ps1` for the narrow source audit of visible
+Run `Scripts/Tests/Presentation/Verify-MenuInputCopy.ps1` for the narrow source audit of visible
 copy, binding-label resolution, retained action names, and keyboard/controller
 navigation seams. After an affected UI build, run the focused map, status,
 inventory, and crafting automations; host/client rendering, text scaling, and
@@ -413,7 +413,7 @@ Follow `02-technical-architecture.md`: compile affected UI in the short disposab
 mirror with normal UnrealBuildTool access. Run
 `Kalmala.UI.Crafting+Kalmala.Gameplay.Crafting.Transactions` with isolated
 UserDir/logs, null renderer and TestExit queue-empty; require success and exit0.
-Run mirror `Scripts/Verify-Crafting.ps1 -Rendered` for actual Slate geometry
+Run mirror `Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered` for actual Slate geometry
 and existing navigation/modal/transaction gates, plus ownership, five M5
 documentation contracts and diff/path checks. Parent/full integration and
 combined scale/contrast pixel acceptance wait for remaining ordered children.
@@ -548,7 +548,7 @@ preflights the catalogue reward against inventory capacity, and commits pack,
 condition, node depletion, and the existing sparse callback as one accepted
 action. Owner-only condition replication and the current no-persistence limit
 are specified in `02-technical-architecture.md`. Run its focused automation,
-then `Scripts/Verify-InventoryReconnect.ps1` for the host/client inventory and
+then `Scripts/Tests/Inventory/Verify-InventoryReconnect.ps1` for the host/client inventory and
 tool transaction fixture. The Camp crafting panel provides one repair action
 per tool at a visible Joiner's workbench; the server derives the matching
 gathered material cost from current condition and publishes payment and repair
@@ -568,7 +568,7 @@ only crafting RPC fields.
 
 For M10 lower-resource diagnostics on the available high-end PC, see
 [`07-development-setup.md`](07-development-setup.md#performance-diagnostics).
-`Scripts/Verify-ConstrainedPerformance.ps1` runs the existing rendered two-peer
+`Scripts/Tests/Performance/Verify-ConstrainedPerformance.ps1` runs the existing rendered two-peer
 fixture with Potato/Low/Med/High/Ultra resource and quality presets or the
 original reference/eight-thread/four-thread CPU-only profiles. It verifies
 peer masks and requested rendering settings and preserves isolated evidence. Use a built
@@ -602,13 +602,13 @@ cooked, staged, and archived successfully. The archived packaged listen server
 reached network readiness in 12,025.8 ms. This is a local Development/null-RHI
 startup baseline, not a shipping frame-time target.
 
-`Scripts/Verify-WorldProfile.ps1` recorded 179.99 ms initial generation,
+`Scripts/Tests/World/Verify-WorldProfile.ps1` recorded 179.99 ms initial generation,
 1,760.48 MiB used physical memory, 46 actors, 28 replicated actors, 9 terrain
 patches, 1 active population key, and 2,215 serialized save bytes before the
-two-peer late-join check. `Scripts/Verify-PlayerControls.ps1` passed normal
-generated-world movement and replicated remote movement. `Scripts/Verify-CampChoices.ps1`
+two-peer late-join check. `Scripts/Tests/Presentation/Verify-PlayerControls.ps1` passed normal
+generated-world movement and replicated remote movement. `Scripts/Tests/Survival/Verify-CampChoices.ps1`
 passed two freely chosen camp sites with 31 matched server exposure snapshots
-per pawn and normal fire recovery. The former `Scripts/Verify-WorldMapProfile.ps1`
+per pawn and normal fire recovery. The former standalone WorldMap profile runner
 recorded host/client map profiles; the client measured 826.540 ms open,
 760.878 ms total worker time, 203.300 ms maximum worker time, 16.343 ms total
 game-thread time, 12 ready tiles, and 202,800 cached CPU bytes. The focused
@@ -621,7 +621,7 @@ growth, shipping GPU frame time, or the final tool-free co-op acceptance.
 
 ## Bounded generated-world profile
 
-After an editor build, run `Scripts/Verify-WorldProfile.ps1`. It starts a seed-418 listen server using the current generator revision, then joins a conflicting-seed client and waits for the existing replicated immutable identity. The server logs initial generated-world setup time, process physical-memory snapshot, total and replicated actor counts, active terrain patches/population keys, and sparse population-save bytes serialized to memory. It does not mutate the save, change the 25-patch budget, adjust density, or accept client-selected world data. The runner succeeds only after the late-joining client reports `Seed=418` and the server reports two players plus successful save serialization.
+After an editor build, run `Scripts/Tests/World/Verify-WorldProfile.ps1`. It starts a seed-418 listen server using the current generator revision, then joins a conflicting-seed client and waits for the existing replicated immutable identity. The server logs initial generated-world setup time, process physical-memory snapshot, total and replicated actor counts, active terrain patches/population keys, and sparse population-save bytes serialized to memory. It does not mutate the save, change the 25-patch budget, adjust density, or accept client-selected world data. The runner succeeds only after the late-joining client reports `Seed=418` and the server reports two players plus successful save serialization.
 
 The 2026-09-23 M7 seed-418 profile measured 103.13 ms initial generation,
 1,776.77 MB used physical memory, 47 actors, 29 replicated actors, 9 terrain
@@ -637,7 +637,7 @@ rejects more than 256 sparse identities.
 
 ## Water surface regression check
 
-`Kalmala.World.Water.ClippedSurface` checks partial-cell coverage, winding, flat levels, shallow shore treatment, seeded closed basins, rejection of sea-connected/unbounded/unseeded basins, deterministic meshes, and nonempty matching patch-edge intersections. Lake-biome fields seed enclosed terrain basins rather than clipping floating sheets at humidity/temperature boundaries. Basins exceeding 8,192 wet lattice vertices are conservatively omitted. The minimap uses the same visible water decision. Terrain/collision, server wetland rules, saved-data schemas are unchanged. Run `Scripts/Verify-PlayerControls.ps1 -Rendered` for rendered host/client traversal and screenshots after building. Restart the editor to load the repaired native module.
+`Kalmala.World.Water.ClippedSurface` checks partial-cell coverage, winding, flat levels, shallow shore treatment, seeded closed basins, rejection of sea-connected/unbounded/unseeded basins, deterministic meshes, and nonempty matching patch-edge intersections. Lake-biome fields seed enclosed terrain basins rather than clipping floating sheets at humidity/temperature boundaries. Basins exceeding 8,192 wet lattice vertices are conservatively omitted. The minimap uses the same visible water decision. Terrain/collision, server wetland rules, saved-data schemas are unchanged. Run `Scripts/Tests/Presentation/Verify-PlayerControls.ps1 -Rendered` for rendered host/client traversal and screenshots after building. Restart the editor to load the repaired native module.
 
 ## Ocean-depth regression
 
@@ -645,11 +645,11 @@ After an editor build, run headless automation with `-unattended -nop4 -nosplash
 
 ## Generated-ocean swimming regression
 
-After an editor build, run `Scripts/Verify-Swimming.ps1`. It starts a memory-only listen server with seed 418 and a conflicting-seed client with seed 999. Each owning pawn walks to the nearest deterministic sea-depth fixture and must enter the generated-ocean custom movement mode; the server log proves authoritative entry and the client log proves prediction from the server-replicated identity. Entry requires at least 100 cm depth and return-to-land uses a 75 cm hysteresis threshold. The test adds no water volume, RPC, client depth input, island, boat, or streaming change.
+After an editor build, run `Scripts/Tests/Travel/Verify-Swimming.ps1`. It starts a memory-only listen server with seed 418 and a conflicting-seed client with seed 999. Each owning pawn walks to the nearest deterministic sea-depth fixture and must enter the generated-ocean custom movement mode; the server log proves authoritative entry and the client log proves prediction from the server-replicated identity. Entry requires at least 100 cm depth and return-to-land uses a 75 cm hysteresis threshold. The test adds no water volume, RPC, client depth input, island, boat, or streaming change.
 
 ## Long-distance ocean travel regression
 
-After an editor build, run `Scripts/Verify-OceanTravel.ps1`. It starts a current-generator seed-418 listen server and a conflicting-seed client. The server resolves the existing nearest emergent-island endpoint once, spawns a non-shipping replicated deep-water ribbon from a nearby entry point to that endpoint, and both peers adopt only that server-owned fixture descriptor. Each locally controlled pawn crosses the spawned water through predicted Character Movement and must log ocean entry, island arrival, and a complete duplicate-free terrain neighborhood. The fixture's temporary world-static collision relaxation and faster traversal cap exist only under `-KalmalaOceanTravelTest`; normal swimming, terrain collision, island lookup, client intent, save data, and production replication contracts remain unchanged.
+After an editor build, run `Scripts/Tests/Travel/Verify-OceanTravel.ps1`. It starts a current-generator seed-418 listen server and a conflicting-seed client. The server resolves the existing nearest emergent-island endpoint once, spawns a non-shipping replicated deep-water ribbon from a nearby entry point to that endpoint, and both peers adopt only that server-owned fixture descriptor. Each locally controlled pawn crosses the spawned water through predicted Character Movement and must log ocean entry, island arrival, and a complete duplicate-free terrain neighborhood. The fixture's temporary world-static collision relaxation and faster traversal cap exist only under `-KalmalaOceanTravelTest`; normal swimming, terrain collision, island lookup, client intent, save data, and production replication contracts remain unchanged.
 
 ## M8 skiff launch and occupancy contract
 
@@ -677,7 +677,7 @@ deep-water fallback.
 ## M8 late-join and restart/reconnect verification
 
 After a forced editor build, create a short disposable project mirror and run
-`Scripts\Verify-OceanSkiffReconnect.ps1 -Port 18171 -Project '<mirror>\Kalmala.uproject'`.
+`Scripts\Tests\Travel\Verify-OceanSkiffReconnect.ps1 -Port 18171 -Project '<mirror>\Kalmala.uproject'`.
 The runner starts a seed-418 listen host, its returning owner, and a third late
 joiner using isolated user directories. It verifies the late peer sees one
 moored vessel with the original helm/passenger occupants, remains unattached,
@@ -708,7 +708,7 @@ session capacity, and invalid coast hits. The UI test checks one-metre
 open-ocean access guidance, all-nine-sample hull depth, safe-stop text, and
 generated-terrain collision recovery guidance.
 
-`Scripts\Verify-OceanSkiffIntegratedReconnectJourney.ps1 -Port 18181` starts
+`Scripts\Tests\Travel\Verify-OceanSkiffIntegratedReconnectJourney.ps1 -Port 18181` starts
 with a short isolated host/owner phase that checks distinct server-published
 messages. Both local HUD text paths must show their own result, while the
 owner's client copy of the host pawn must retain no feedback. The runner then
@@ -732,7 +732,7 @@ and origin stability, so it no longer needs a separate runner.
 
 ## M8 integrated skiff crossing
 
-After a forced editor build, run `Scripts\Verify-OceanSkiffJourney.ps1 -Port 18169`.
+After a forced editor build, run `Scripts\Tests\Travel\Verify-OceanSkiffJourney.ps1 -Port 18169`.
 The development-only seed-418 listen host and conflicting-seed client create a
 server launch from an active generated terrain patch, occupy the helm and
 passenger seats, and sail 2.4 km with the existing bounded steering rules. The
@@ -772,7 +772,7 @@ rendered travel, or origin rebasing. Retained logs:
 ## M8 owner-scoped discovery and safe disembark peer check
 
 After a forced editor build, run
-`Scripts\Verify-OceanSkiffDiscoveryDisembark.ps1 -Port 18170`. The development-
+`Scripts\Tests\Travel\Verify-OceanSkiffDiscoveryDisembark.ps1 -Port 18170`. The development-
 only seed-418 listen host and conflicting-seed client use a canonical
 deep-ocean discovery descriptor and isolated user directories. The server
 places both players in the helm/passenger seats, accepts that optional claim
@@ -801,13 +801,13 @@ currently has no configured gathering source.
 
 ## Player inventory verification
 
-Run `Scripts/Verify-Inventory.ps1` after an editor build for the inventory component increment. A development-only `-KalmalaInventoryTest` fixture grants ten wood and consumes three on each server pawn, rejects unknown/overflow grants and invalid/insufficient consumption, and verifies removal of an exhausted stone stack. The runner requires two successful server results, seven wood on the remote owner, rejected client-local mutation calls, empty remote contents after owner replication, and matching immutable world identity. Its `-ContractOnly` mode checks retired HUD source, the on-demand Inventory menu, and empty-state coverage without starting Unreal; the live inventory, reconnect, and presentation-ownership runners use this mode as a preflight. Separate temporary user directories keep the scenario out of project-generated data. This headless check verifies authority/privacy, not rendered layout; rendered harvest feedback and reconnect persistence remain subsequent tasks.
+Run `Scripts/Tests/Inventory/Verify-Inventory.ps1` after an editor build for the inventory component increment. A development-only `-KalmalaInventoryTest` fixture grants ten wood and consumes three on each server pawn, rejects unknown/overflow grants and invalid/insufficient consumption, and verifies removal of an exhausted stone stack. The runner requires two successful server results, seven wood on the remote owner, rejected client-local mutation calls, empty remote contents after owner replication, and matching immutable world identity. Its `-ContractOnly` mode checks retired HUD source, the on-demand Inventory menu, and empty-state coverage without starting Unreal; the live inventory, reconnect, and presentation-ownership runners use this mode as a preflight. Separate temporary user directories keep the scenario out of project-generated data. This headless check verifies authority/privacy, not rendered layout; rendered harvest feedback and reconnect persistence remain subsequent tasks.
 
 The inventory runner also requires `Harvest inventory: Passed=1` for both server pawns. Its development-only fixture exercises twelve isolated initialized nodes covering Wood, Stone, and Fibre, uninitialized-node and distant rejection, full-stack rejection without depletion, successful retry after capacity is freed, duplicate rejection, and exactly one sparse-save callback per accepted grant. It restores the original seven-wood inventory before owner replication checks and destroys its temporary actors; it writes no world-save slot. Run `Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion` and `Kalmala.Gameplay.Inventory.Catalogue` with the headless flags above for the pure authority and malformed quantity gates. This does not yet exercise a client's actual harvest RPC, inventory reconnect restoration, or simultaneous competing player input.
 
 ## Workbench and storage verification
 
-After the editor build, run `Kalmala.Gameplay.Storage` with the headless flags and unique temporary user/log paths above. It covers bounded storage serialization, identity mismatch, invalid stacks and quantities, transfer conservation/capacity, RPC payloads, and owner-only chest snapshots. Then run `Scripts/Verify-Storage.ps1` for paid workbench/chest placement, kit assembly, actual owner deposit/withdraw RPCs, distance/obstruction rejection, write-failure conservation, private peer snapshots, and a same-user-directory restart retaining the exact two chest IDs and contents. The runner writes only temporary user/save/log data. See `02-technical-architecture.md` for controls and limits; this fixture does not close the later complete M2 camp acceptance gate.
+After the editor build, run `Kalmala.Gameplay.Storage` with the headless flags and unique temporary user/log paths above. It covers bounded storage serialization, identity mismatch, invalid stacks and quantities, transfer conservation/capacity, RPC payloads, and owner-only chest snapshots. Then run `Scripts/Tests/Construction/Verify-Storage.ps1` for paid workbench/chest placement, kit assembly, actual owner deposit/withdraw RPCs, distance/obstruction rejection, write-failure conservation, private peer snapshots, and a same-user-directory restart retaining the exact two chest IDs and contents. The runner writes only temporary user/save/log data. See `02-technical-architecture.md` for controls and limits; this fixture does not close the later complete M2 camp acceptance gate.
 
 ## Dedicated-server build
 
@@ -829,7 +829,7 @@ Run the prototype map twice as a listen server with `-KalmalaReconnectVerificati
 
 ## Deer peer and restart regression
 
-After an editor build, run `Scripts/Verify-DeerPeer.ps1`. It starts a seed-418
+After an editor build, run `Scripts/Tests/Combat/Verify-DeerPeer.ps1`. It starts a seed-418
 listen server and conflicting-seed client (999) with isolated temporary user
 directories. The server derives a bounded Deer descriptor and a second existing
 Deer descriptor from its 3x3 population neighborhood, positions that normal
@@ -845,7 +845,7 @@ replication property, or save schema.
 
 ## Discovery peer privacy regression
 
-After an editor build, run `Scripts/Verify-DiscoveryPeer.ps1`. It starts a
+After an editor build, run `Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`. It starts a
 seed-418 listen server and a conflicting-seed client (999) with isolated
 temporary user directories. The server derives the same bounded descriptor
 twice, confirms a different seed does not retain its canonical ID, materializes
@@ -902,7 +902,7 @@ remains part of the M4 vertical slice.
 
 ## M4 vertical-slice harness
 
-After an editor build, run `Scripts/Verify-M4VerticalSlice.ps1`. The harness
+After an editor build, run `Scripts/Tests/Acceptance/Verify-M4VerticalSlice.ps1`. The harness
 executes the existing isolated two-peer Mireling, boar, and deer scenarios on
 separate ports, retaining each server/client/restart log under one evidence
 directory, then runs `Kalmala.Gameplay.Discovery.PlayerScopedPersistence` for
@@ -925,7 +925,7 @@ Launch a headless listen server and then join one headless client with `-Kalmala
 
 ## Two-player camp-choice scenario
 
-After the editor build, run `Scripts/Verify-CampChoices.ps1` from PowerShell. It starts a hidden listen server (seed 418) and a conflicting-seed client (999) on port 17841, with logs and user data in a unique temporary directory. Both use `-KalmalaCampChoiceTest`; this developer-only scenario requires two normal possessed pawns including a remote player. It compares separated low/high-cover dry-land fixtures within the generated starting neighborhood, logs ground wetness, water distance, and harvest availability, and samples twelve seconds without fires followed by twenty seconds with normally interacted server-owned fires. Both players must dry, warm, and improve travel speed. The runner checks matching world identity, weather, and at least ten exact exposure snapshots per replicated player ID, then stops only its own processes. It fails on timeout or scenario assertions and retains logs for diagnosis.
+After the editor build, run `Scripts/Tests/Survival/Verify-CampChoices.ps1` from PowerShell. It starts a hidden listen server (seed 418) and a conflicting-seed client (999) on port 17841, with logs and user data in a unique temporary directory. Both use `-KalmalaCampChoiceTest`; this developer-only scenario requires two normal possessed pawns including a remote player. It compares separated low/high-cover dry-land fixtures within the generated starting neighborhood, logs ground wetness, water distance, and harvest availability, and samples twelve seconds without fires followed by twenty seconds with normally interacted server-owned fires. Both players must dry, warm, and improve travel speed. The runner checks matching world identity, weather, and at least ten exact exposure snapshots per replicated player ID, then stops only its own processes. It fails on timeout or scenario assertions and retains logs for diagnosis.
 
 The fixtures represent two optional camp choices, not runtime camp recommendations: no route, camp marker, authored shelter, or persistent content is added. This is automated systems verification in cold, dry starting weather, not a human usability test or validation of inventory, construction, rain preparation, or rendered feedback. Those systems retain their existing scope and limitations.
 
@@ -939,11 +939,11 @@ Launch the game with `-KalmalaBiomeDebug` to replace the generated terrain's nor
 
 ## Companion minimap presentation
 
-Movement-triggered raster generation is asynchronous. Run `Kalmala.UI.Minimap.AsyncRefresh` after rebuilding to check nonblocking refresh timing, full-resolution worker equivalence, stationary reuse, movement coalescing, obsolete zoom/identity rejection, and reinitialization. `Kalmala.UI.Minimap.GenerationPerformance` retains the exact revision-3/4 fingerprints and reports total raster time separately from the game-thread refresh cost. Use `Scripts/Verify-Minimap.ps1 -Rendered` for current-world HUD/identity checks and `Scripts/Verify-PlayerControls.ps1 -Rendered` for host/client movement. Both scripts retain revision 1 as their default legacy fixture. Restart any existing editor after the native module build.
+Movement-triggered raster generation is asynchronous. Run `Kalmala.UI.Minimap.AsyncRefresh` after rebuilding to check nonblocking refresh timing, full-resolution worker equivalence, stationary reuse, movement coalescing, obsolete zoom/identity rejection, and reinitialization. `Kalmala.UI.Minimap.GenerationPerformance` retains the exact revision-3/4 fingerprints and reports total raster time separately from the game-thread refresh cost. Use `Scripts/Tests/World/Verify-Minimap.ps1 -Rendered` for current-world HUD/identity checks and `Scripts/Tests/Presentation/Verify-PlayerControls.ps1 -Rendered` for host/client movement. Both scripts retain revision 1 as their default legacy fixture. Restart any existing editor after the native module build.
 
 The local `UKalmalaMinimapSubsystem` creates a 208-unit circular `UKalmalaMinimapWidget` for each local player once its controller is available. A 26-unit right-aligned biome-label row and 4-unit gap sit above the circle; the map itself starts 42 UI units below the top-right viewport edge and keeps a 12-unit right inset. The full widget and label scale proportionally with viewport DPI. The label uses the existing current-position biome classifier over the already-replicated world identity and owning pawn transform, and its theme font follows the local text-scale preference while shrinking only enough to fit the row. No biome map, replicated label, or save field is added. The active-status group aligns with the lowered map and remains 12 UI units left of its edge. The weather badge remains below the map with its 24-unit clear gap. The map refreshes local seed-derived terrain/water samples around that player's pawn and draws only samples inside a circular radius, together with a centred marker rotated to the pawn's facing yaw. `MouseWheelAxis` changes only the local session's sampled radius, clamped from 2,500 to 10,000 cm in 750 cm steps; CommonUI's normal-game-input gate leaves wheel input to any modal UI. It reads no world actors, population, landmarks, or gameplay state beyond the already-replicated world identity and owning pawn transform.
 
-Run `Scripts/Verify-Minimap.ps1` after an editor build for the two-peer identity check. It starts a memory-only hidden listen server with seed 418 and a conflicting-seed client with seed 999, then confirms that the client receives the server world identity. The focused `Kalmala.UI.Minimap.LocalPresentation` automation checks the two player-centred local views from that same identity, circular clipping, min/max zoom, modal input gating, the biome-label header plus right-aligned current-position name, the label-adjusted top inset and 12-unit right inset at 4:3/75%, 16:9/100%, and ultrawide/125% UI scales, and separation from the weather badge. These checks are local presentation only and create no replicated, gameplay, or save mutation.
+Run `Scripts/Tests/World/Verify-Minimap.ps1` after an editor build for the two-peer identity check. It starts a memory-only hidden listen server with seed 418 and a conflicting-seed client with seed 999, then confirms that the client receives the server world identity. The focused `Kalmala.UI.Minimap.LocalPresentation` automation checks the two player-centred local views from that same identity, circular clipping, min/max zoom, modal input gating, the biome-label header plus right-aligned current-position name, the label-adjusted top inset and 12-unit right inset at 4:3/75%, 16:9/100%, and ultrawide/125% UI scales, and separation from the weather badge. These checks are local presentation only and create no replicated, gameplay, or save mutation.
 
 The compact active-status group reads the minimap widget's configured viewport slot and aligns with the circular map below its header; its right edge sits 12 UI units left of the minimap's actual left edge. Both use the same top-right anchor, so Unreal applies the viewport DPI scale uniformly. `Kalmala.UI.StatusHotbar.SnapshotAndLayout` checks the actual slot relationship and wrapping fit across 4:3, 16:9, and ultrawide viewports at 75%, 100%, and 125% DPI scales. It also checks known live owner statuses, the existing Hot/Cold exposure qualifiers, Storm-only weather at the shared 0.65 storm threshold, interval expiry, and a fully empty result when all active conditions clear. Normal/active weather and fog-only highly active weather do not create an entry. If the minimap has not been created yet, the status group temporarily uses the documented default 208-unit map footprint and corrects itself on the next local refresh.
 
@@ -952,7 +952,7 @@ The M12 status-image follow-on pins the nine supported entry/icon identities in 
 ## M12 final HUD, inventory, station, and interaction captures
 
 After the final M12 editor build and automation queue, run
-`Scripts/Verify-StatusHotbar.ps1` for each viewport/text-scale pair in the
+`Scripts/Tests/Presentation/Verify-StatusHotbar.ps1` for each viewport/text-scale pair in the
 matrix in `02-technical-architecture.md`. The helper checks the read-only host/client
 snapshot, empty/populated/expired states, active six-icon fixture, icon-only
 visual contract, finite versus untimed timer assertions, and the group's actual
@@ -973,15 +973,15 @@ standard 1280x720/100%/standard-contrast and compact 1024x768/150%/high-contrast
 settings:
 
 ```powershell
-Scripts/Verify-Inventory.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
-Scripts/Verify-Inventory.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
-Scripts/Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
-Scripts/Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
-Scripts/Verify-InteractionPrompt.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
-Scripts/Verify-InteractionPrompt.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
-Scripts/Verify-InventoryMenu.ps1 -Width 1280 -Height 720 -TextScale 100 -Contrast 0
-Scripts/Verify-InventoryMenu.ps1 -Width 1024 -Height 768 -TextScale 150 -Contrast 1 -InterfaceScale 120 -ReducedMotion
-Scripts/Verify-InventoryReconnect.ps1
+Scripts/Tests/Inventory/Verify-Inventory.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Tests/Inventory/Verify-Inventory.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Tests/Presentation/Verify-InteractionPrompt.ps1 -Rendered -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Tests/Presentation/Verify-InteractionPrompt.ps1 -Rendered -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Tests/Inventory/Verify-InventoryMenu.ps1 -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Tests/Inventory/Verify-InventoryMenu.ps1 -Width 1024 -Height 768 -TextScale 150 -Contrast 1 -InterfaceScale 120 -ReducedMotion
+Scripts/Tests/Inventory/Verify-InventoryReconnect.ps1
 ```
 
 Run the inventory peer checks for owner privacy and transactions. The Inventory
@@ -1016,7 +1016,7 @@ well as the fourteen original Build/requirements views.
 
 The Phase 5 visibility repair replaces the sparse terrain dots with a filled, circular 129x129 texture containing original patterns for Meadows, Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, Thunder Mountains, and Ocean. Each pattern stays anchored in world space. The minimap now belongs to each local player rather than only the first game-instance controller. Its 208-unit circle has a 26-unit biome-label row plus a 4-unit gap above it; the map itself begins at 42 UI units below the top-right edge and retains a 12-unit right inset. All dimensions scale with Unreal's UI DPI curve. Size/position must be set before the top-right anchor: `SetPositionInViewport` resets it to top-left in UE 5.8 and previously put the map off-screen.
 
-After building, run `Scripts/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 1080`. Repeat with `-Width 1024 -Height 768` and `-Width 3440 -Height 1440` for 16:9, 4:3 and ultrawide aspect ratios and automatic DPI scales. Inspect captures at 75%, 100%, 125%, and 150% text scale to confirm the current-biome name remains right-aligned and unclipped. The runner checks actual circle paint geometry, the 42-unit label-adjusted top inset, 12-unit right inset, current-biome log value, and full texture sample count on both peers, server identity replication, and the bound input delegate with minimum/maximum zoom, CommonUI Menu ownership, and zoom resumption. The focused automation checks that the weather badge remains below the lowered minimap with the 24-unit gap. It captures `host.png` and `client.png` in the printed temporary log directory for visual inspection. Hidden offscreen captures verify the Slate HUD; the world background may be black and these images do not validate terrain rendering. The configured `CommonGameViewportClient` is required for CommonUI routing. Without `-Rendered`, this script remains an identity-only smoke test.
+After building, run `Scripts/Tests/World/Verify-Minimap.ps1 -Rendered -Width 1920 -Height 1080`. Repeat with `-Width 1024 -Height 768` and `-Width 3440 -Height 1440` for 16:9, 4:3 and ultrawide aspect ratios and automatic DPI scales. Inspect captures at 75%, 100%, 125%, and 150% text scale to confirm the current-biome name remains right-aligned and unclipped. The runner checks actual circle paint geometry, the 42-unit label-adjusted top inset, 12-unit right inset, current-biome log value, and full texture sample count on both peers, server identity replication, and the bound input delegate with minimum/maximum zoom, CommonUI Menu ownership, and zoom resumption. The focused automation checks that the weather badge remains below the lowered minimap with the 24-unit gap. It captures `host.png` and `client.png` in the printed temporary log directory for visual inspection. Hidden offscreen captures verify the Slate HUD; the world background may be black and these images do not validate terrain rendering. The configured `CommonGameViewportClient` is required for CommonUI routing. Without `-Rendered`, this script remains an identity-only smoke test.
 
 `Kalmala.UI.Minimap.LocalPresentation` now also exercises the production viewport setters, checks filled/transparent raster coverage, distinct deterministic texture patterns for all seven biomes, and sea-level ocean treatment. These checks replace the previous assumption that mathematical placement assertions alone proved on-screen visibility. The launch-gated input scenario temporarily changes local input configuration and restores it and zoom; it sends no RPC or gameplay request. A normal launch requires no minimap flag. Restart the editor/game to load rebuilt C++ modules and viewport configuration; an older packaged executable needs a separate rebuild/package.
 
@@ -1050,8 +1050,8 @@ plays. These settings remain process-local and do not change gameplay state.
 
 Run `Kalmala.UI.Settings.LocalPresentation` after an editor build to check
 category bounds and local config round-trips alongside master mute/restore.
-`Scripts/Verify-SettingsAccessibility.ps1 -ContractOnly` and
-`Scripts/Verify-AmbientAudio.ps1 -ContractOnly` check the written option and mix
+`Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1 -ContractOnly` and
+`Scripts/Tests/Audio/Verify-AmbientAudio.ps1 -ContractOnly` check the written option and mix
 contracts without launching Unreal. These checks do not render the Audio tab,
 simulate physical controller input, or establish audible quality/device mix.
 
@@ -1112,8 +1112,8 @@ with normal `%LOCALAPPDATA%\UnrealBuildTool` access, then run the full
 viewport sizes, using the extreme local scales on the smaller view:
 
 ```powershell
-Scripts/Verify-SettingsAccessibility.ps1 -Width 1280 -Height 720 -HostInterfaceScale 90 -ClientInterfaceScale 110 -Port 18461
-Scripts/Verify-SettingsAccessibility.ps1 -Width 1024 -Height 768 -HostInterfaceScale 80 -ClientInterfaceScale 120 -Port 18462
+Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1 -Width 1280 -Height 720 -HostInterfaceScale 90 -ClientInterfaceScale 110 -Port 18461
+Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1 -Width 1024 -Height 768 -HostInterfaceScale 80 -ClientInterfaceScale 120 -Port 18462
 ```
 
 Choose another unused port if either example port is occupied.
@@ -1122,12 +1122,12 @@ Require local settings to survive a fresh-process restart, menu focus and
 modal input to remain correct, both motion paths to behave as selected, and
 the Escape option list to fit. Inspect the retained standard/high-contrast menu and
 HUD captures from both viewports. Run
-`Scripts/Verify-SettingsAccessibility.ps1 -ContractOnly`, the ownership and M5
+`Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1 -ContractOnly`, the ownership and M5
 documentation audits, changed-script PowerShell parsing, `git diff --check`,
 and the 260-character path audit. The remaining physical controller and
 packaged-build checks are outside this parent increment.
 
-`Scripts/Verify-SettingsAccessibility.ps1` starts isolated host/client profiles.
+`Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1` starts isolated host/client profiles.
 It starts a seed-418 listen server and conflicting-seed client, opens the live
 Escape shell and Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility
 groups, and captures each
@@ -1151,18 +1151,18 @@ quality, or packaged persistence.
 
 ## M5 onboarding contract check
 
-`Scripts/Verify-OnboardingContract.ps1` is a no-build check for the retained
+`Scripts/Tests/Presentation/Verify-OnboardingContract.ps1` is a no-build check for the retained
 local tutorial design in `docs/02-technical-architecture.md`. It requires the
 ten route-free prompt beats, no key/button legends in prompt examples,
 colour-independent text/icon guidance, visible-context triggers, server
 authority boundaries, hidden-content privacy rules, and protection of prompt
-history from the gameplay save schema. `Scripts/Verify-TutorialRouteFree.ps1` additionally checks that
+history from the gameplay save schema. `Scripts/Tests/Presentation/Verify-TutorialRouteFree.ps1` additionally checks that
 the M12 runtime presenter is disabled. These checks do not launch Unreal or
 claim packaged two-player prompt flow has passed.
 
 ## M5 settings and accessibility contract check
 
-`Scripts/Verify-SettingsAccessibility.ps1 -ContractOnly` is a no-build check for
+`Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1 -ContractOnly` is a no-build check for
 `docs/02-technical-architecture.md`; the normal rendered run performs the same
 check before launching Unreal. It validates the visible Keyboard & Mouse,
 Controller, Graphics, Audio, and Accessibility groups, text-scale and contrast requirements,
@@ -1174,7 +1174,7 @@ Unreal or claim that the full option set is functional.
 
 ## M5 presentation ownership check
 
-`Scripts/Verify-PresentationOwnership.ps1` is a no-build audit for
+`Scripts/Tests/Presentation/Verify-PresentationOwnership.ps1` is a no-build audit for
 `docs/02-technical-architecture.md`. It confirms the seven project-owned world
 materials, the procedural player/wildlife/environment/hearth sources, the local
 UI texture/feedback sources, the four code-drawn support-effect glyphs, and the
@@ -1183,7 +1183,7 @@ party asset paths. It does not prove material loading, visual readability,
 audio, animation, packaging, or host/client screenshots; those still require
 the relevant Unreal verification.
 
-After an editor build, run `Scripts/Verify-DeerPeer.ps1 -Rendered` for a
+After an editor build, run `Scripts/Tests/Combat/Verify-DeerPeer.ps1 -Rendered` for a
 positioned host capture of the original deer silhouette plus the bounded
 host/client combat, reward-privacy, and defeat-persistence checks. The
 development-only capture camera is requested by the server fixture after it
@@ -1194,7 +1194,7 @@ not establish readability at other distances or during other lighting.
 
 ## M5 rendered Mireling silhouette review
 
-Run `Scripts/Verify-MirelingPeer.ps1 -Rendered` after an editor build to capture
+Run `Scripts/Tests/Combat/Verify-MirelingPeer.ps1 -Rendered` after an editor build to capture
 the original Mireling in a bounded listen-host/client encounter. The transient
 host camera is positioned after the fixture arranges the generated actor; the
 runner also checks server combat, rejected client target-free attacks,
@@ -1205,7 +1205,7 @@ planes merge somewhat, and other distances and lighting remain unreviewed.
 
 ## M5 audio cue contract check
 
-`Scripts/Verify-AmbientAudio.ps1 -ContractOnly` is a no-build check for
+`Scripts/Tests/Audio/Verify-AmbientAudio.ps1 -ContractOnly` is a no-build check for
 `docs/02-technical-architecture.md`. It requires the eight original cue groups,
 readable text/shape fallbacks, local mix scope, project-owned asset rule,
 server-authority/privacy boundaries, silence fallback, and no new RPC/save
@@ -1232,9 +1232,9 @@ four support activation cues, two timed-effect expiry cues,
 `GeneratedOceanEntryCue.wav`, and `GeneratedOceanExitCue.wav`. Import the
 twenty-two audio assets to
 `/Game/Kalmala/Audio` with Unreal's
-`ImportAssets` commandlet, then run `Scripts/Verify-AmbientAudio.ps1`,
-`Scripts/Verify-AmbientAudioPeers.ps1`, `Scripts/Verify-CombatPeer.ps1`,
-`Scripts/Verify-DiscoveryPeer.ps1`, `Scripts/Verify-PlayerControls.ps1
+`ImportAssets` commandlet, then run `Scripts/Tests/Audio/Verify-AmbientAudio.ps1`,
+`Scripts/Tests/Audio/Verify-AmbientAudioPeers.ps1`, `Scripts/Tests/Combat/Verify-CombatPeer.ps1`,
+`Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`, `Scripts/Tests/Presentation/Verify-PlayerControls.ps1
 -MovementAudio -OceanTraversalAudio`, and the forced editor build. This
 development-only audio mode injects one local sample transition pair and
 requires each host/client owner to submit one entry and one exit cue; it never
@@ -1263,7 +1263,7 @@ check. The test support casts still use the server component and wait for its
 existing timed states to end. These checks do not claim audible device mix or packaged
 verification.
 
-`Scripts/Verify-PlayerControls.ps1 -MovementAudio -OceanTraversalAudio` drives
+`Scripts/Tests/Presentation/Verify-PlayerControls.ps1 -MovementAudio -OceanTraversalAudio` drives
 the existing local walk/sprint/jump/landing fixture and one generated-ocean
 entry/exit transition on a listen host and connected client. It requires each
 owner to submit distance-paced footfall, jump, landing, and traversal cues
@@ -1272,7 +1272,7 @@ audible quality, hardware mixing, or packaged playback.
 
 ## M5 local input contract check
 
-`Scripts/Verify-LocalInputContract.ps1` is a no-build check for the current
+`Scripts/Tests/Presentation/Verify-LocalInputContract.ps1` is a no-build check for the current
 keyboard/mouse and controller baseline in `Config/DefaultInput.ini`, as
 documented in `docs/02-technical-architecture.md`. It validates the
 movement/look/map axes and Interact, Attack, Jump, Sprint, SettingsMenu,
@@ -1282,7 +1282,7 @@ runtime input routing.
 
 ## M12 inventory modal input increment
 
-Run `Scripts/Verify-LocalInputContract.ps1` to check the default Tab/I action.
+Run `Scripts/Tests/Presentation/Verify-LocalInputContract.ps1` to check the default Tab/I action.
 Inspect the owner-local Inventory shell's gameplay-only open gate, Escape close
 through the existing SettingsMenu action, editable-text focus guard, gamepad B
 close, and restoration of the prior cursor plus movement/look ignore state.
@@ -1395,9 +1395,9 @@ found/already-found/unavailable acknowledgements from the existing owner
 source. The Inventory menu must not supply these results or own the support
 glyph selection. No new gameplay request or authority path is introduced.
 
-Run `Scripts/Verify-LocalInputContract.ps1`,
-`Scripts/Verify-PresentationOwnership.ps1`,
-`Scripts/Verify-M5DocumentationContracts.ps1`, and `git diff --check` after an
+Run `Scripts/Tests/Presentation/Verify-LocalInputContract.ps1`,
+`Scripts/Tests/Presentation/Verify-PresentationOwnership.ps1`,
+`Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1`, and `git diff --check` after an
 affected editor compile. `Kalmala.UI.SupportSelection.LocalHudCue` checks the
 selection label for learned, unavailable, and no-selection cases.
 `Kalmala.UI.Notifications.CombinedPresentation` checks silent combat/support
@@ -1419,17 +1419,17 @@ The focused `Kalmala.UI.InventoryMenu.Selection` automation covers normal
 collapsed startup, owner-specific rows, selection fallback, no-results recovery,
 and the full sixteen-cell empty pack with stale details hidden. The
 `Kalmala.UI.Inventory.PreparedFoodDetails` automation now reads the actual
-Inventory menu. `Scripts/Verify-Inventory.ps1 -ContractOnly` checks that retired
+Inventory menu. `Scripts/Tests/Inventory/Verify-Inventory.ps1 -ContractOnly` checks that retired
 inventory runtime classes, help text, crafting suppression and old capture
 expectations stay absent, then confirms the tutorial presenter cannot mount the
 bottom card; the inventory, reconnect, and presentation-ownership scripts run
 this check as a preflight. After an affected editor build, run the focused menu automations,
-`Scripts/Verify-PresentationOwnership.ps1`, and `Scripts/Verify-Inventory.ps1`.
+`Scripts/Tests/Presentation/Verify-PresentationOwnership.ps1`, and `Scripts/Tests/Inventory/Verify-Inventory.ps1`.
 Rendered host/client layout and privacy remain in M12 milestone-final review.
 
 ## M5 documentation contract suite
 
-Run `Scripts/Verify-M5DocumentationContracts.ps1` to execute the onboarding,
+Run `Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1` to execute the onboarding,
 settings/accessibility, presentation ownership, audio-cue, and local-input
 checks together. This is a no-build consistency gate for the current M5
 contracts; it does not replace Unreal runtime, rendered, packaged, or
@@ -1439,11 +1439,11 @@ two-player verification.
 
 The map now renders continuous opaque terrain tiles; circular clipping applies only to the companion minimap. Both views sample the same generated terrain/water colours at matching world coordinates. Exploration is collected every 0.5 seconds during ordinary gameplay, including before the first M press and while the map is closed, so travelled areas accumulate on the main map. Unvisited areas remain fogged. Tile drawing is clipped to the map panel so edge tiles cannot leak into the controls. Existing coverage saves and the original map palette remain compatible.
 
-`Kalmala.UI.WorldMap.LocalPresentation` checks opaque square-tile corners, both tile-join directions, matching minimap/world-map RGB, and connected remembered walking coverage. The rendered `Scripts/Verify-WorldMap.ps1` fixture additionally requires both peers to record coverage while closed with zero terrain tiles before accepting the usual input/identity/paint screenshots. Run `Scripts/Verify-Minimap.ps1 -Rendered` to inspect the persistent companion HUD crop during gameplay.
+`Kalmala.UI.WorldMap.LocalPresentation` checks opaque square-tile corners, both tile-join directions, matching minimap/world-map RGB, and connected remembered walking coverage. The rendered `Scripts/Tests/World/Verify-WorldMap.ps1` fixture additionally requires both peers to record coverage while closed with zero terrain tiles before accepting the usual input/identity/paint screenshots. Run `Scripts/Tests/World/Verify-Minimap.ps1 -Rendered` to inspect the persistent companion HUD crop during gameplay.
 
-The expanded map uses full-stretch viewport anchors with zero offsets. In UE 5.8, `SetDesiredSizeInViewport` becomes right/bottom margins under stretch anchors; setting a fixed 1920x1080 size collapses the surface at common viewport sizes and leaves only a marker near the top-left. Keep those margins zero and derive tile aspect ratio from the same DPI-scaled Slate geometry used for painting and pointer input. `Scripts/Verify-WorldMap.ps1` now requires actual full-player-viewport paint geometry, completed terrain tiles, and a fog texture on both peers before accepting screenshots at all three resolutions. Its zoom-bound probes restore the normal opening zoom before capture.
+The expanded map uses full-stretch viewport anchors with zero offsets. In UE 5.8, `SetDesiredSizeInViewport` becomes right/bottom margins under stretch anchors; setting a fixed 1920x1080 size collapses the surface at common viewport sizes and leaves only a marker near the top-left. Keep those margins zero and derive tile aspect ratio from the same DPI-scaled Slate geometry used for painting and pointer input. `Scripts/Tests/World/Verify-WorldMap.ps1` now requires actual full-player-viewport paint geometry, completed terrain tiles, and a fog texture on both peers before accepting screenshots at all three resolutions. Its zoom-bound probes restore the normal opening zoom before capture.
 
-Press `M` to open the local expanded map. It occupies the viewport with cached 10,000 cm world-space terrain/water tiles, generated asynchronously from the replicated world identity and owning pawn, so it never reveals population, discoveries, or other server-only data. Drag with the left mouse button to pan, use the mouse wheel to zoom at the pointer, and press `R` to recenter on the owning player. Press `M` or Escape to close it; Escape closes the map before opening Settings. A view or identity change immediately drops obsolete local tile handles before requesting at most 64 centre-prioritized tiles; stale workers are epoch-rejected and never block the game thread. A 6,500 cm circle around only the owning pawn's already replicated transform is clear; revealed 500 cm cells persist in a bounded 8,192-cell local save keyed by seed and local-player index. Remembered personal coverage has a translucent sea-glass teal tint; a contrasting lichen-ember tint is reserved for future explicitly opted-in shared coverage, which is not yet loaded or rendered. The local save is independent of generated-world sparse saves and identity mismatches are rejected. Pan and zoom cannot change the reveal source or radius. A pale facing triangle shows only the owning pawn at its true world-to-map position (centred after recentering); world-aligned reference lines use a local 2,500, 5,000, or 10,000 cm scale and provide no route or destination. Run `Kalmala.UI.WorldMap.LocalPresentation`, `Kalmala.UI.WorldMap.PerformanceBudget`, and `Kalmala.UI.Minimap.LocalPresentation` after an editor build to verify deterministic tile edges, a 278,784-byte maximum CPU tile-pixel payload, a 250 ms single-tile worker budget, and a 1.5 s full-minimap worker budget while four map tiles are running. The live `Scripts/Verify-WorldMap.ps1` runner launches a seed-418 host and conflicting-seed client at 1024x768, 1280x720, and 2560x1080. It checks closed-map exploration and marker filters; map input, authoritative identity, full-viewport terrain/fog, matching ready-tile counts and deterministic fingerprints, and profile metrics; and captures a screenshot from each peer at each size. After the rendered cases, it restarts the first pair with retained user directories to verify loaded personal coverage still leaves remote terrain hidden. Tile fingerprints are logged only after polling ready workers; the game thread never waits on a future. These are development hardware guardrails rather than shipping frame-time targets; screen-reader integration and input remapping remain later accessibility increments.
+Press `M` to open the local expanded map. It occupies the viewport with cached 10,000 cm world-space terrain/water tiles, generated asynchronously from the replicated world identity and owning pawn, so it never reveals population, discoveries, or other server-only data. Drag with the left mouse button to pan, use the mouse wheel to zoom at the pointer, and press `R` to recenter on the owning player. Press `M` or Escape to close it; Escape closes the map before opening Settings. A view or identity change immediately drops obsolete local tile handles before requesting at most 64 centre-prioritized tiles; stale workers are epoch-rejected and never block the game thread. A 6,500 cm circle around only the owning pawn's already replicated transform is clear; revealed 500 cm cells persist in a bounded 8,192-cell local save keyed by seed and local-player index. Remembered personal coverage has a translucent sea-glass teal tint; a contrasting lichen-ember tint is reserved for future explicitly opted-in shared coverage, which is not yet loaded or rendered. The local save is independent of generated-world sparse saves and identity mismatches are rejected. Pan and zoom cannot change the reveal source or radius. A pale facing triangle shows only the owning pawn at its true world-to-map position (centred after recentering); world-aligned reference lines use a local 2,500, 5,000, or 10,000 cm scale and provide no route or destination. Run `Kalmala.UI.WorldMap.LocalPresentation`, `Kalmala.UI.WorldMap.PerformanceBudget`, and `Kalmala.UI.Minimap.LocalPresentation` after an editor build to verify deterministic tile edges, a 278,784-byte maximum CPU tile-pixel payload, a 250 ms single-tile worker budget, and a 1.5 s full-minimap worker budget while four map tiles are running. The live `Scripts/Tests/World/Verify-WorldMap.ps1` runner launches a seed-418 host and conflicting-seed client at 1024x768, 1280x720, and 2560x1080. It checks closed-map exploration and marker filters; map input, authoritative identity, full-viewport terrain/fog, matching ready-tile counts and deterministic fingerprints, and profile metrics; and captures a screenshot from each peer at each size. After the rendered cases, it restarts the first pair with retained user directories to verify loaded personal coverage still leaves remote terrain hidden. Tile fingerprints are logged only after polling ready workers; the game thread never waits on a future. These are development hardware guardrails rather than shipping frame-time targets; screen-reader integration and input remapping remain later accessibility increments.
 
 Shift-click the expanded map to begin a personal pin: type a 1–32-character label, choose `1` Cairn, `2` Lantern, or `3` Thread, and press Enter to place. Click a visible pin to mark it complete, Ctrl-click to hide it, and right-click to remove it. Every marker displays textual style, label, completion, and visibility information in addition to its visual treatment. `Tab` selects pins (including hidden ones), `Enter` toggles completion, `H` toggles visibility, `Delete` removes, and `P` begins placement at the map centre; arrow keys pan, Page Up/Down zoom, and `R` recentres. Gamepad face buttons select, place/toggle, visibility/cancel, and recenter; left trigger removes while D-pad/shoulders pan/zoom. Pins persist locally in an independent version-1 slot keyed by immutable seed and local-player index; only the newest 256 finite, validated annotations are retained, and a mismatched world slot is discarded. They never create an RPC, discovery claim, route, or gameplay instruction. `Kalmala.UI.WorldMap.LocalPresentation` verifies memory serialization/reload, mismatch rejection, and non-colour keyboard pin state actions alongside the existing local rendering checks.
 
@@ -1458,7 +1458,7 @@ full-screen background is drawn beneath the existing live map layers. It must
 not carry geographic information or replace terrain/fog rendering. Empty or
 missing paths retain the geometric panel brush, and high contrast suppresses
 the decorative image. Verify the theme fallback assertions, then run
-`Scripts/Verify-WorldMap.ps1` for host/client input, rendered map, tile identity,
+`Scripts/Tests/World/Verify-WorldMap.ps1` for host/client input, rendered map, tile identity,
 profile, and private saved-coverage checks at 1024x768, 1280x720, and 2560x1080. Inspect captures for map
 readability; these tests do not establish packaged asset cooking.
 
@@ -1485,10 +1485,10 @@ Visibility is a transient local widget preference. It suppresses marker
 painting only: it does not request map data, change fog/exploration, mutate or
 remove pins, alter co-op consent/pings, or add an RPC or save field. After an
 isolated editor build, run the full `Automation RunTests Kalmala` queue and
-`Scripts/Verify-WorldMap.ps1` at 1024x768, 1280x720, and 2560x1080. Require each
+`Scripts/Tests/World/Verify-WorldMap.ps1` at 1024x768, 1280x720, and 2560x1080. Require each
 peer to log `World map marker filters: PointerTargets=1 Keyboard=1 Controller=1 PinsPreserved=1`; inspect the host/client captures for legend
 layout, checkbox state, text scaling, and keyboard focus. Run
-`Scripts/Verify-WorldMap.ps1` also checks current seed/fog and private saved
+`Scripts/Tests/World/Verify-WorldMap.ps1` also checks current seed/fog and private saved
 coverage. The focused `Kalmala.UI.WorldMap.LocalPresentation` test
 covers category defaults, pointer target mapping, keyboard/controller focus,
 filtered hit-testing, unchanged eligibility counts, and pin preservation.
@@ -1534,17 +1534,17 @@ After an editor build, run the focused `Kalmala.World.BiomeExpansion.ThunderMoun
 
 ## Integrated biome-expansion scenario
 
-After an editor build, run `Scripts/Verify-BiomeExpansion.ps1`. It runs `Kalmala.World.BiomeExpansion.IntegratedScenario`, which compares same-seed host/client terrain, classification, exposure inputs, seams, stable optional-discovery IDs, and roof/windbreak counterplay across Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, and Thunder Mountains. It then runs the existing conflicting-seed two-player camp scenario to verify replicated world identity, weather, exposure state, and recovery from two freely selected camps. This is verification only: it does not activate remote biome content, add paths, or let a client choose a server location or outcome.
+After an editor build, run `Scripts/Tests/World/Verify-BiomeExpansion.ps1`. It runs `Kalmala.World.BiomeExpansion.IntegratedScenario`, which compares same-seed host/client terrain, classification, exposure inputs, seams, stable optional-discovery IDs, and roof/windbreak counterplay across Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, and Thunder Mountains. It then runs the existing conflicting-seed two-player camp scenario to verify replicated world identity, weather, exposure state, and recovery from two freely selected camps. This is verification only: it does not activate remote biome content, add paths, or let a client choose a server location or outcome.
 
 ## Basic player controls
 
 Restart the editor after building the native modules, then play `L_Prototype`. The third-person character uses the original faceted wanderer silhouette with a tapered mantle, hood, face guard, and walking/airborne poses. Press Space to jump once; hold either Shift key to sprint at 1.5 times the current walking speed. Releasing Shift restores walking speed, including the existing exposure penalty. Sprint has no stamina cost in this prototype.
 
-After an editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered`. It launches a hidden listen server and client, exercises the bound jump/sprint/release delegates through normal movement prediction, and checks server-observed remote sprint, upward jump, release, landing, matching world identity, and nine collision-free model parts. It retains host/client screenshots and logs in its printed temporary directory and stops its own processes. Physical keyboard input is not simulated by this test. Run the focused `Kalmala.Gameplay.Movement.SprintSavedMoves` headless automation to verify compressed flags, release, move-combination boundaries, and saved-move clearing.
+After an editor build, run `Scripts/Tests/Presentation/Verify-PlayerControls.ps1 -Rendered`. It launches a hidden listen server and client, exercises the bound jump/sprint/release delegates through normal movement prediction, and checks server-observed remote sprint, upward jump, release, landing, matching world identity, and nine collision-free model parts. It retains host/client screenshots and logs in its printed temporary directory and stops its own processes. Physical keyboard input is not simulated by this test. Run the focused `Kalmala.Gameplay.Movement.SprintSavedMoves` headless automation to verify compressed flags, release, move-combination boundaries, and saved-move clearing.
 
 ## Boar encounter verification
 
-After an editor build, run `Scripts/Verify-BoarPeer.ps1 -Port <unused-port>`. It starts a seed-418 listen server and a conflicting-seed client with separate temporary user directories. The fixture derives a bounded stable boar descriptor entirely on the server, verifies its normal territorial charge damages the host, rejects the remote player's normal target-free attack sequence, then exercises four server-selected player-combat windups in the ordinary trace range. It requires relevant host/client action, health, and defeat replication, owner-only `BoarMeat`/`BoarHide`, and an identity-matched restart where the same server-derived boar remains absent. It adds no gameplay RPC, client target/damage/reward payload, descriptor replication, or save-schema change.
+After an editor build, run `Scripts/Tests/Combat/Verify-BoarPeer.ps1 -Port <unused-port>`. It starts a seed-418 listen server and a conflicting-seed client with separate temporary user directories. The fixture derives a bounded stable boar descriptor entirely on the server, verifies its normal territorial charge damages the host, rejects the remote player's normal target-free attack sequence, then exercises four server-selected player-combat windups in the ordinary trace range. It requires relevant host/client action, health, and defeat replication, owner-only `BoarMeat`/`BoarHide`, and an identity-matched restart where the same server-derived boar remains absent. It adds no gameplay RPC, client target/damage/reward payload, descriptor replication, or save-schema change.
 
 ## Regional generation verification (Phase 7)
 
@@ -1552,13 +1552,13 @@ After an editor build, run `Scripts/Verify-BoarPeer.ps1 -Port <unused-port>`. It
 
 After an editor build, run `Kalmala.UI.Minimap.GenerationPerformance`. It measures moving 129x129 rasters at 25/50/100 m zoom radii, checks repeated hashes and compares batched output with independent terrain/water/biome queries for seeds 418 and 419. Timings exclude engine startup.
 
-Sampling shares per-position warp and region calculations and reuses collision vertices within each raster. Run regional/water/island/minimap regressions and `Scripts/Verify-Minimap.ps1` after shared sampling changes.
+Sampling shares per-position warp and region calculations and reuses collision vertices within each raster. Run regional/water/island/minimap regressions and `Scripts/Tests/World/Verify-Minimap.ps1` after shared sampling changes.
 
-Build `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -MaxParallelActions=4`, then run `Scripts/Verify-RegionalGeneration.ps1`. The runner explicitly rejects failed automation results even when Unreal returns exit code zero, generates two seed-418 previews and one seed-419 preview, hashes every PPM for reproduction, checks biome/hydrology/height variation, and launches a current-generator seed-418 host with a conflicting-seed client. It uses a unique temporary user/cache/output directory and retains all logs and images. `-SkipPeers` is available for local analysis only; full Phase 7 acceptance requires the peer run.
+Build `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -MaxParallelActions=4`, then run `Scripts/Tests/World/Verify-RegionalGeneration.ps1`. The runner explicitly rejects failed automation results even when Unreal returns exit code zero, generates two seed-418 previews and one seed-419 preview, hashes every PPM for reproduction, checks biome/hydrology/height variation, and launches a current-generator seed-418 host with a conflicting-seed client. It uses a unique temporary user/cache/output directory and retains all logs and images. `-SkipPeers` is available for local analysis only; full Phase 7 acceptance requires the peer run.
 
 `Kalmala.World.Regional.Integrated` samples a 16 km square for seeds 418/419, verifies seven-biome coverage, boundary density below 0.18, fewer than 2% tiny isolated components relative to sample count, continuous weights/heights, Flora independence, deterministic spline rebuild and water patch edges. This broad 100 m lattice can undersample narrow regions.
 
-`Scripts/Verify-Minimap.ps1` compares 81 host/client positions across a 20 km square, including biome weights, terrain, water and river signals. It creates no RPC or saved inspection data.
+`Scripts/Tests/World/Verify-Minimap.ps1` compares 81 host/client positions across a 20 km square, including biome weights, terrain, water and river signals. It creates no RPC or saved inspection data.
 
 ## Source-control rules
 
@@ -1568,7 +1568,7 @@ Build `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -MaxParallelActio
 
 ## Fuelled hearth and crafting verification
 
-After the editor build, run `Kalmala.Gameplay.Crafting`, `Kalmala.Gameplay.Inventory` and `Kalmala.Gameplay.Campfire` with the headless temporary-user/log flags above, then `Scripts/Verify-Crafting.ps1 -Rendered`. Rendered runs need access to Unreal's shader working directory as well as the build-tool cache. The runner requires exact inventory conservation for both players, rejection of real forged/malformed RPCs and insufficient placement, two matching dry/rain-extinguished fire states, paid placement and fuel/protection gates, local menu input restoration, and retained host/client screenshots. Also run `Scripts/Verify-InventoryReconnect.ps1` and `Scripts/Verify-CampChoices.ps1`. Full contract and test limits: `02-technical-architecture.md`.
+After the editor build, run `Kalmala.Gameplay.Crafting`, `Kalmala.Gameplay.Inventory` and `Kalmala.Gameplay.Campfire` with the headless temporary-user/log flags above, then `Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered`. Rendered runs need access to Unreal's shader working directory as well as the build-tool cache. The runner requires exact inventory conservation for both players, rejection of real forged/malformed RPCs and insufficient placement, two matching dry/rain-extinguished fire states, paid placement and fuel/protection gates, local menu input restoration, and retained host/client screenshots. Also run `Scripts/Tests/Inventory/Verify-InventoryReconnect.ps1` and `Scripts/Tests/Survival/Verify-CampChoices.ps1`. Full contract and test limits: `02-technical-architecture.md`.
 
 ## Master-map generation verification
 
@@ -1580,7 +1580,7 @@ Check every requested result reports Success; engine exit code alone is insuffic
 
 The master-map test covers independent master seed variation, repeatable crop/rotation, containment, coastline agreement, biome coverage, exact distance boundaries, zero forbidden weights, continuous gates and dry central Meadows starts. The exporter verification additionally gives Lakes and Mire identical ranges and requires identical wetland weights at every sampled pixel.
 
-Run `Scripts/Verify-Minimap.ps1` for a conflicting-seed client and matching 81-position host/client terrain, biome-weight, water and hydrology fingerprints across a 20 km square (inside the playable circle). This proves replicated identity and sampler agreement across inner and outer biome distances; it does not establish a full-world human traversal playtest.
+Run `Scripts/Tests/World/Verify-Minimap.ps1` for a conflicting-seed client and matching 81-position host/client terrain, biome-weight, water and hydrology fingerprints across a 20 km square (inside the playable circle). This proves replicated identity and sampler agreement across inner and outer biome distances; it does not establish a full-world human traversal playtest.
 
 The visualization commandlet accepts `-Revision=7 -Seed=418 -Size=256 -Extent=3200000 -SkipSplineOverlay -Output=<temporary-directory>`. Use `-NoZenAutoLaunch -DDC=NoZenLocalFallback -LocalDataCachePath=<temporary-DDC>` for commandlets so a restricted disk-cache fallback error does not force failure. It writes the existing field/biome/weight/height images plus:
 
@@ -1650,9 +1650,9 @@ The fast path shares the production regional classifier and wetland suitability/
 
 ### Export verification
 
-After building, run `Scripts/Verify-WorldMapExport.ps1`. In one warm headless process it verifies PNG signatures, every visible fast/full biome pixel at 64×64, changed master/region tuning, restoration of default output hashes, and preservation of the last good PNGs after malformed input. It keeps its parameter edits and outputs in a temporary directory; the user's parameter file is untouched.
+After building, run `Scripts/Tests/World/Verify-WorldMapExport.ps1`. In one warm headless process it verifies PNG signatures, every visible fast/full biome pixel at 64×64, changed master/region tuning, restoration of default output hashes, and preservation of the last good PNGs after malformed input. It keeps its parameter edits and outputs in a temporary directory; the user's parameter file is untouched.
 
-Run `Kalmala.World.Regional`, `Kalmala.UI.Minimap.GenerationPerformance`, `Scripts/Verify-WorldMapExport.ps1` and `Scripts/Verify-Minimap.ps1` after shared sampling changes. The exporter has no gameplay authority or persistence path.
+Run `Kalmala.World.Regional`, `Kalmala.UI.Minimap.GenerationPerformance`, `Scripts/Tests/World/Verify-WorldMapExport.ps1` and `Scripts/Tests/World/Verify-Minimap.ps1` after shared sampling changes. The exporter has no gameplay authority or persistence path.
 ## M3 wetness and rain override (2026-09-14)
 
 `Kalmala.Gameplay.Status.WetModifiers` adds a spawned-pawn regression for the tuned 0.92 walking/sprint/swim speed, duplicate-status non-stacking, expiry recovery, and 1.15 stamina-cost calculation. It is included by the `Kalmala.Gameplay.Status.Wet` prefix. The M5 balance pass keeps the 120-second duration, 10-second rain trigger, and campfire recovery unchanged while reducing the travel/stamina tax. This test does not prove live network agreement or stamina drain; there is no stamina consumer yet. Legacy exposure speed assertions are historical and no longer represent the M3 movement contract.
@@ -1665,7 +1665,7 @@ After an editor build, run `Kalmala.Gameplay.InteractionGrid.SurfaceMoisture+Kal
 
 ### M3 Wet stamina verification
 
-The sprint stamina implementation supersedes earlier statements that sprint has no stamina cost. Run the headless prefix Kalmala.Gameplay.Status.Wet plus Kalmala.Gameplay.Movement.SprintSavedMoves after building. WetStamina checks actual dry/Wet consumption, zero/max clamping, exhaustion gating, recovery hysteresis, stationary intent, and malformed elapsed time. Run Scripts/Verify-PlayerControls.ps1 -WetStamina on an unused port for normal bound sprint/jump/release in a listen-server session with a conflicting-seed client. The server fixture maintains Wet; both server pawns and the remote owner must report stamina below 99 and matching 0.92-adjusted sprint speed. The remote owner also attempts the local stamina update and must observe no mutation. This fixture does not test natural rain/water triggers, expiry, or latency at exhaustion. The original controls scenario remains available without the switch.
+The sprint stamina implementation supersedes earlier statements that sprint has no stamina cost. Run the headless prefix Kalmala.Gameplay.Status.Wet plus Kalmala.Gameplay.Movement.SprintSavedMoves after building. WetStamina checks actual dry/Wet consumption, zero/max clamping, exhaustion gating, recovery hysteresis, stationary intent, and malformed elapsed time. Run Scripts/Tests/Presentation/Verify-PlayerControls.ps1 -WetStamina on an unused port for normal bound sprint/jump/release in a listen-server session with a conflicting-seed client. The server fixture maintains Wet; both server pawns and the remote owner must report stamina below 99 and matching 0.92-adjusted sprint speed. The remote owner also attempts the local stamina update and must observe no mutation. This fixture does not test natural rain/water triggers, expiry, or latency at exhaustion. The original controls scenario remains available without the switch.
 
 The Kalmala.Gameplay.Status.Wet prefix now includes WetCampfire. It spawns and lights an actual paid-initialized hearth and checks missing/unlit/zero-heat/radius-edge/exhausted-source rejection, client-role rejection without mutation, successful nearby heat removal, default movement/stamina restoration, idempotence, reapplication, and ordinary expiry. It exercises the server component seam with real actors; live replication of campfire removal and the combined rain/roof/smoulder scenario remain part of the later M3 acceptance task.
 
@@ -1675,7 +1675,7 @@ After the editor build, run Kalmala.Gameplay.Construction headlessly with the us
 
 ### Three-state hearth verification
 
-Run Kalmala.Gameplay.Hearth+Kalmala.Gameplay.Status.Wet headlessly after building. Hearth.RainState exercises real paid-initialized actors: no self-lighting, dry/windy Lit, threshold Smouldering, zero light/heat, normal fuel consumption, client mutation rejection, actual roof collision and loss of protection, dry reignition, invalid input rejection, fuel exhaustion and Wet removal only after heat returns. Scripts/Verify-Crafting.ps1 now requires enum State=1 and State=2 on both server and client in its existing paid crafting scenario. Earlier rain-extinguishing descriptions are superseded by Smouldering; later combined M3 acceptance still owns the complete live roof/rain loop.
+Run Kalmala.Gameplay.Hearth+Kalmala.Gameplay.Status.Wet headlessly after building. Hearth.RainState exercises real paid-initialized actors: no self-lighting, dry/windy Lit, threshold Smouldering, zero light/heat, normal fuel consumption, client mutation rejection, actual roof collision and loss of protection, dry reignition, invalid input rejection, fuel exhaustion and Wet removal only after heat returns. Scripts/Tests/Construction/Verify-Crafting.ps1 now requires enum State=1 and State=2 on both server and client in its existing paid crafting scenario. Earlier rain-extinguishing descriptions are superseded by Smouldering; later combined M3 acceptance still owns the complete live roof/rain loop.
 
 ## M3 rain authority regression
 
@@ -1683,18 +1683,18 @@ After a forced editor build, run `Kalmala.Gameplay.Hearth+Kalmala.Gameplay.Const
 
 ### Construction feedback rendering
 
-After building, run Scripts/Verify-Crafting.ps1 -Rendered. The paid floor fixture now advances rain wear through the authoritative actor seam to the 50-health floor. Both peer captures require the local nearby-construction text to report Health: 50.0 / 100 and the rain-wear limit. Inspect host.png and client.png for readable status and recovery cues. This covers floor health replication and rendered feedback, not all construction kits, camera occlusion cases, aspect ratios or the complete natural-weather M3 scenario.
+After building, run Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered. The paid floor fixture now advances rain wear through the authoritative actor seam to the 50-health floor. Both peer captures require the local nearby-construction text to report Health: 50.0 / 100 and the rain-wear limit. Inspect host.png and client.png for readable status and recovery cues. This covers floor health replication and rendered feedback, not all construction kits, camera occlusion cases, aspect ratios or the complete natural-weather M3 scenario.
 
 
 ## Local tutorial prompt smoke test
 
-Run `Scripts/Verify-TutorialRouteFree.ps1` for a no-build source audit of the retained route-free prompt design and its disabled runtime presenter. It checks that the bottom gameplay card cannot mount, while the historical arrival/context rules still avoid routes, quest flow, hidden-actor scans, RPCs, and gameplay-save state. `Verify-PlayerControls.ps1` runs this audit before its fresh-pawn host/client scenario; `Verify-Inventory.ps1 -ContractOnly` includes it in the reconnect/HUD-absence preflight.
+Run `Scripts/Tests/Presentation/Verify-TutorialRouteFree.ps1` for a no-build source audit of the retained route-free prompt design and its disabled runtime presenter. It checks that the bottom gameplay card cannot mount, while the historical arrival/context rules still avoid routes, quest flow, hidden-actor scans, RPCs, and gameplay-save state. `Verify-PlayerControls.ps1` runs this audit before its fresh-pawn host/client scenario; `Verify-Inventory.ps1 -ContractOnly` includes it in the reconnect/HUD-absence preflight.
 
-After a forced editor build, run `Scripts/Verify-PlayerControls.ps1 -Rendered -Port <unused-port>` from the same isolated project copy. Its fresh-pawn host/client path verifies local jump/sprint input and server-observed remote movement, with the tutorial absence audit as a preflight. Inspect both 1280×720 captures for the absence of the bottom card while checking essential status/action notifications remain visible. The fixture uses a development-only movement-test flag. It does not simulate physical controller input or replace the final packaged 20–30 minute no-developer-tools acceptance in `docs/07-development-setup.md`.
+After a forced editor build, run `Scripts/Tests/Presentation/Verify-PlayerControls.ps1 -Rendered -Port <unused-port>` from the same isolated project copy. Its fresh-pawn host/client path verifies local jump/sprint input and server-observed remote movement, with the tutorial absence audit as a preflight. Inspect both 1280×720 captures for the absence of the bottom card while checking essential status/action notifications remain visible. The fixture uses a development-only movement-test flag. It does not simulate physical controller input or replace the final packaged 20–30 minute no-developer-tools acceptance in `docs/07-development-setup.md`.
 
 ### M3 rain vertical-slice verification
 
-After a forced editor build, run `Scripts/Verify-RainVerticalSlice.ps1` on an unused port. Its development-only listen-server fixture activates the deterministic seed-418 coverage domain, locates water using the authoritative ocean/lake samplers, and freezes two ordinary peer pawns while it drives the production weather, status, roof-trace, rain-wear, and hearth update paths. The client joins with seed 999 and must receive seed 418. The server then requires immediate water Wet, heat-based removal, Highly Active rain Wet by 8.5 seconds (7.5-second trigger), an exposed floor at the 50-health cap, rain-immune roofed floor and roof, a Smouldering fire, and roof-driven Lit recovery; the remote owner independently reads the replicated final construction IDs, hearth state, roof state, and no-Wet status. The fixture adds no gameplay RPC, save record, client-supplied mutation, or normal-play grant, and uses separate temporary user directories.
+After a forced editor build, run `Scripts/Tests/Acceptance/Verify-RainVerticalSlice.ps1` on an unused port. Its development-only listen-server fixture activates the deterministic seed-418 coverage domain, locates water using the authoritative ocean/lake samplers, and freezes two ordinary peer pawns while it drives the production weather, status, roof-trace, rain-wear, and hearth update paths. The client joins with seed 999 and must receive seed 418. The server then requires immediate water Wet, heat-based removal, Highly Active rain Wet by 8.5 seconds (7.5-second trigger), an exposed floor at the 50-health cap, rain-immune roofed floor and roof, a Smouldering fire, and roof-driven Lit recovery; the remote owner independently reads the replicated final construction IDs, hearth state, roof state, and no-Wet status. The fixture adds no gameplay RPC, save record, client-supplied mutation, or normal-play grant, and uses separate temporary user directories.
 
 ### M7 weather hazards and stamina recovery
 
@@ -1707,7 +1707,7 @@ weather shortens the normal 10-second unroofed-rain Wet trigger to 7.5 seconds. 
 `Kalmala.Gameplay.Exposure.ColdStaminaRecoveryAuthority` checks the live server
 stamina path at cold and recovered warmth, and rejects mutation from a
 simulated client copy. After the forced editor build, run these tests with an
-isolated temporary user directory. Then run `Scripts/Verify-CampChoices.ps1`
+isolated temporary user directory. Then run `Scripts/Tests/Survival/Verify-CampChoices.ps1`
 to compare replicated weather tier/fog and both players' heat/cold exposure
 snapshots against server logs. `Kalmala.UI.WeatherActivity.LocalPresentation`
 verifies that each replicated tier maps to distinct shape-plus-text feedback
@@ -1717,8 +1717,8 @@ replace rendered viewport inspection.
 The focused command is:
 
     & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7WeatherUser' -abslog='C:\temp\KalmalaM7Weather.log' -ExecCmds="Automation RunTests Kalmala.World.WeatherCycle.Determinism+Kalmala.Gameplay.Exposure.RecoverableTravelPenalty+Kalmala.Gameplay.Exposure.WeatherHazardResponse+Kalmala.Gameplay.Exposure.ColdStaminaRecoveryAuthority+Kalmala.Gameplay.Hearth.WeatherMutation+Kalmala.Gameplay.Hearth.RainState+Kalmala.UI.WeatherActivity.LocalPresentation; Quit" -TestExit="Automation Test Queue Empty"
-    Scripts\Verify-CampChoices.ps1 -Port 17842
-    Scripts\Verify-RainVerticalSlice.ps1 -Port 18119
+    Scripts\Tests\Survival\Verify-CampChoices.ps1 -Port 17842
+    Scripts\Tests\Acceptance\Verify-RainVerticalSlice.ps1 -Port 18119
 
 ### M7 local survival status presentation
 
@@ -1887,7 +1887,7 @@ rendered presentation review in the later two-player journey acceptance.
 ## M8 combined-voyage late-join and restart verification
 
 After a forced `KalmalaEditor Win64 Development` build, run
-`Scripts/Verify-OceanSkiffIntegratedReconnectJourney.ps1 -Port 18181`.
+`Scripts/Tests/Travel/Verify-OceanSkiffIntegratedReconnectJourney.ps1 -Port 18181`.
 The isolated seed-418 host and returning helm owner sail the existing 2.4 km
 development route through the server-selected crosswind and calm intervals. A
 third peer joins underway; the host verifies one vessel, the original seats,
@@ -1962,7 +1962,7 @@ Material-paid repair and broken-tool replacement recipes are retired.
 tool definitions, including zero condition and tool-level preservation, plus
 authority, station, unknown-tool, full, and invalid-condition rejection.
 `Kalmala.Gameplay.Crafting.Transactions` confirms the old replacement recipes
-are absent. `Scripts/Verify-InventoryReconnect.ps1` checks live Workbench
+are absent. `Scripts/Tests/Inventory/Verify-InventoryReconnect.ps1` checks live Workbench
 range/rejection, repair with an empty pack, unchanged Crafting experience,
 retired replacement requests, and owner-only condition across two visits.
 After the forced editor build, run
@@ -1984,8 +1984,8 @@ editor automation setup to check its bounded three-stroke pose and return to
 the current gait. This pose test does not replace rendered in-world review.
 `Kalmala.UI.InteractionPrompt.Presentation` checks the action-only “Repair all”
 prompt, absence of key legends, and stable text when Interact is remapped.
-`Scripts/Verify-InteractionPrompt.ps1 -Rendered` captures the Grinding Stone
-prompt state on both host and client. In the M12 `Scripts/Verify-Crafting.ps1`
+`Scripts/Tests/Presentation/Verify-InteractionPrompt.ps1 -Rendered` captures the Grinding Stone
+prompt state on both host and client. In the M12 `Scripts/Tests/Construction/Verify-Crafting.ps1`
 fixture, the server sends one Interact request at a fresh visible Grinding
 Stone and requires exactly one accepted action result, unchanged full tools and
 pack, unchanged station/menu context, and the concise already-full feedback.
@@ -1996,7 +1996,7 @@ host/client acceptance; they do not replace a live damaged-tool repair review.
 
 The former combined M9 Build-panel text probe was retired when M12 removed the
 legacy progression panel from standalone Build. Tool progression remains in
-its Workbench Craft and Forge Upgrade contexts. `Scripts/Verify-Crafting.ps1`
+its Workbench Craft and Forge Upgrade contexts. `Scripts/Tests/Construction/Verify-Crafting.ps1`
 requires both peer markers for the Workbench Bronze Axe prerequisites and
 passive Tool Rack status, plus Forge Upgrade requirements/comparison and the
 passive Anvil status. These checks inspect the current station-scoped
@@ -2031,9 +2031,9 @@ refusal to craft direct-build items;
 the network test checks that construction requests carry only the buildable
 identity.
 
-Then run `Scripts/Verify-Crafting.ps1 -Port <unused-port>`,
-`Scripts/Verify-ConstructionPersistence.ps1 -Port <unused-port>`, and the
-combined `Scripts/Verify-PersistedCampRestart.ps1 -Port <unused-port>` fixture
+Then run `Scripts/Tests/Construction/Verify-Crafting.ps1 -Port <unused-port>`,
+`Scripts/Tests/Construction/Verify-ConstructionPersistence.ps1 -Port <unused-port>`, and the
+combined `Scripts/Tests/Survival/Verify-PersistedCampRestart.ps1 -Port <unused-port>` fixture
 described in `02-technical-architecture.md`. The crafting runner checks
 the owner-local menu, two-peer input restoration, hearth raw-material and
 ignition payment, rejection gates, and exact final inventories. The construction
@@ -2082,10 +2082,10 @@ New-Item -ItemType Directory -Path $userDir | Out-Null
 Require `Result={Success}` for `ExplorationRewardCatalogue`. If the command-line
 editor stops at the existing LinuxArm64/VisionOS SDK preflight, use
 `UnrealEditor.exe` with the same project and automation arguments. Then run
-`Scripts/Verify-M9ExplorationRewards.ps1 -Port <unused-port>` from the same
-project mirror. This script resolves `Kalmala.uproject` relative to its own
-`Scripts` directory, so use the copied script inside the mirror when verifying
-a mirror build. The host/client fixture requires the server to accept the
+`Scripts/Tests/Progression/Verify-M9ExplorationRewards.ps1 -Port <unused-port>` from the same
+project mirror. It loads the shared `Scripts/Tests/TestPaths.ps1` helper, which
+walks up from the category folder to locate `Kalmala.uproject`; keep the helper
+alongside the categorized runners in the mirror. The host/client fixture requires the server to accept the
 exact reward for each player while rejecting distant, forged, duplicate, and
 replayed claims, and checks that owner-only feedback and inventory state do not
 leak to the other peer. Claims now persist in the authenticated player's
@@ -2139,7 +2139,7 @@ After the forced editor build and both focused migration automations, run the
 two-client restart fixture against the isolated project mirror:
 
 ```powershell
-& '.\Scripts\Verify-M9Schema2CandidateReconnect.ps1' -Port 19725 -ProjectPath "$projectMirror/Kalmala.uproject"
+& '.\Scripts\Tests\Progression\Verify-M9Schema2CandidateReconnect.ps1' -Port 19725 -ProjectPath "$projectMirror/Kalmala.uproject"
 ```
 
 The fixture writes a dedicated world candidate and a schema-1 player fixture
@@ -2151,7 +2151,7 @@ without changing the claim set. Each client must receive only its own carried-
 tool details. Normal construction and player slots must both report schema 2.
 This fixture adds no replicated fields;
 normal construction restart coverage is provided separately by
-`Scripts/Verify-ConstructionPersistence.ps1` and the focused write-candidate
+`Scripts/Tests/Construction/Verify-ConstructionPersistence.ps1` and the focused write-candidate
 automation.
 
 This null-renderer authority and replication check uses deterministic
@@ -2165,7 +2165,7 @@ then checks those facts after host restart and owner reconnect.
 After the affected isolated editor build, run Kalmala.UI.Notifications plus
 Kalmala.Gameplay.Inventory.NetworkContract, Kalmala.Gameplay.Crafting.Transactions
 and Kalmala.UI.Theme.LocalPresentation with memory DDC and isolated user/log
-paths. Run the mirror's Scripts/Verify-Inventory.ps1 for live owner receipt
+paths. Run the mirror's Scripts/Tests/Inventory/Verify-Inventory.ps1 for live owner receipt
 delivery and remote privacy. Full parent and combined renderer checks remain
 pending until the combined acceptance child is complete.
 
@@ -2191,9 +2191,9 @@ require every requested test and process exit to pass, including
 Run the two-peer rendered review at both supported acceptance settings:
 
 ```powershell
-Scripts/Verify-Inventory.ps1 -Rendered -NotificationReview -Width 1280 -Height 720 -TextScale 100 -Contrast 0
-Scripts/Verify-Inventory.ps1 -Rendered -NotificationReview -Width 1024 -Height 768 -TextScale 150 -Contrast 1
-Scripts/Verify-InventoryReconnect.ps1
+Scripts/Tests/Inventory/Verify-Inventory.ps1 -Rendered -NotificationReview -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Tests/Inventory/Verify-Inventory.ps1 -Rendered -NotificationReview -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Tests/Inventory/Verify-InventoryReconnect.ps1
 ```
 
 Both rendered peers must report silent owner baselines, a complete three-source
@@ -2204,8 +2204,8 @@ to the same live host and requires a silent skill, item-receipt, and discovery
 baseline on each visit. The local synthetic review labels are presentation-only;
 the live inventory run remains the receipt-privacy and transaction check.
 
-Then run `Scripts/Verify-PresentationOwnership.ps1`,
-`Scripts/Verify-M5DocumentationContracts.ps1`, the PowerShell parser for the
+Then run `Scripts/Tests/Presentation/Verify-PresentationOwnership.ps1`,
+`Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1`, the PowerShell parser for the
 changed scripts, `git diff --check`, and the 260-character path audit. Check
 only the notification parent and final child after all required verification
 passes. This parent check does not complete the wider M11 acceptance matrix,
@@ -2222,8 +2222,8 @@ covers per-local-owner bookmarks and activity isolation.
 Run both rendered host/client modes:
 
 ```powershell
-Scripts/Verify-Crafting.ps1 -Rendered -Port 17970 -Width 1280 -Height 720 -TextScale 100 -Contrast 0
-Scripts/Verify-Crafting.ps1 -Rendered -ReducedMotion -Port 17971 -Width 1024 -Height 768 -TextScale 150 -Contrast 1
+Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered -Port 17970 -Width 1280 -Height 720 -TextScale 100 -Contrast 0
+Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered -ReducedMotion -Port 17971 -Width 1024 -Height 768 -TextScale 150 -Contrast 1
 ```
 
 Both peers must report `Coexist=1 OrdinaryRecent=1 RecentShortcuts=1
@@ -2276,7 +2276,7 @@ memory DDC, null renderer and queue-empty test exit. The test requires the main
 build filter and a cooking-station filter to restore independently, recover the
 same canonical selection when still visible, fall back to the first visible row
 when the saved identity is missing, and queue the saved scroll offset for
-post-layout clamping. Run `Scripts/Verify-Crafting.ps1 -Rendered` at
+post-layout clamping. Run `Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered` at
 1280x720/100%/standard contrast for the existing focus, modal and transaction
 regressions, then run presentation-ownership, M5 documentation contracts,
 PowerShell parsing for changed scripts, `git diff --check`, and the 260-character
@@ -2457,7 +2457,7 @@ UiScope=1` on both peers. Its focused marker checks the owner-local lists,
 capacity feedback, StorageKit interaction route, hidden unrelated actions, and
 no dispatch from a stale context. `Verify-PresentationOwnership.ps1` checks the
 owner-only replication conditions and selected-ID transfer routes.
-`Scripts/Verify-Storage.ps1 -Port <unused-port>` covers the live two-peer
+`Scripts/Tests/Construction/Verify-Storage.ps1 -Port <unused-port>` covers the live two-peer
 deposit/withdraw transactions, capacity/conservation, private snapshots, and
 restart persistence. Run those checks with the rendered Chest menu review in
 M12 milestone-final verification; the focused crafting marker alone does not
@@ -2472,7 +2472,7 @@ existing Wood, Lightwood, Densewood, Coal priority, add 60 seconds up to the
 same-world access, and 250 cm range remain required. Lighting stays on the
 separate existing Build-menu action until the goal-7 cleanup child.
 
-`Scripts/Verify-Crafting.ps1 -Port <unused-port>` requires the server marker
+`Scripts/Tests/Construction/Verify-Crafting.ps1 -Port <unused-port>` requires the server marker
 `Campfire interaction: AddedOne=1 NoLighting=1 FullRejected=1
 NoFuelRejected=1 RangeRejected=1`. The fixture reaches the target through the
 normal server Interact trace and checks priority payment, no-lighting behavior,
@@ -2557,7 +2557,7 @@ use imported canonical textures through `UKalmalaIconWidget`. Each row retains
 its own player-facing name, availability, selection/focus and structured
 requirements. Run `Kalmala.UI.CatalogueIcons.CompleteCoverage` after an affected
 editor build to verify imported texture paths and loads for all current item,
-tool and recipe-output identities. `Scripts/Verify-Crafting.ps1` also requires
+tool and recipe-output identities. `Scripts/Tests/Construction/Verify-Crafting.ps1` also requires
 `Catalogue icons: Grid=1 Selected=1 Upgrade=1` from both peers; the grid flag
 checks each visible recipe output against its canonical loaded texture. Before an editor build, run `Scripts/Validate-CatalogueIconSet.ps1` to check all 48 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set.
 
@@ -2571,7 +2571,7 @@ status gallery includes the four shared support textures and other status
 identities; it does not add duplicate catalogue image packages.
 
 During M12 milestone-final verification, use
-`Scripts/Verify-Crafting.ps1 -Rendered` for Build categories and station
+`Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered` for Build categories and station
 craft/upgrade contexts, and inspect the selected-output and unavailable views
 for readable image, name, count, focus and requirement overlays. Review host and
 client captures. Once Favorite/Rank/Recent markers are present, render a card
@@ -2617,7 +2617,7 @@ and restores supported records through `AKalmalaConstructionActor`. Live
 save, as before.
 
 At M12 milestone-final verification, run the applicable automation queue and
-the rendered host/client `Scripts/Verify-Crafting.ps1` matrix. This child only
+the rendered host/client `Scripts/Tests/Construction/Verify-Crafting.ps1` matrix. This child only
 prepares the contracts; it does not run a build, runtime scenario, or rendered
 acceptance.
 
@@ -2626,7 +2626,14 @@ acceptance.
 
 The core docs now own the contracts formerly split across docs 08–47. Historical incremental procedures below remain diagnostic references; the live roadmap/backlog selects the required current acceptance suite. Current forty-cell Inventory and M13/M14 overrides supersede old sixteen-slot, F1–F4/Q support, persistent tutorial/status panel, Build relight-button, and co-op map-control expectations.
 
-| Area | Current verification entry points |
+PowerShell verification runners are organized under `Scripts/Tests/<Category>/`:
+Acceptance, Audio, Combat, Construction, Inventory, Performance, Presentation,
+Progression, Survival, Travel, and World. Run them from the repository root,
+for example `pwsh -File Scripts/Tests/World/Verify-WorldMap.ps1`. Asset,
+build, export, package, and render utilities remain directly under `Scripts/`;
+`Scripts/Tests/TestPaths.ps1` resolves the project and test roots for runners.
+
+| Area | Current verification entry point names (under `Scripts/Tests/<Category>/`) |
 | --- | --- |
 | Documentation, input, presentation | Verify-M5DocumentationContracts.ps1; Verify-LocalInputContract.ps1; Verify-MenuInputCopy.ps1; Verify-Inventory.ps1 -ContractOnly |
 | Generated world and hydrology | Verify-RegionalGeneration.ps1; master-map automation; world-map exporter checks |
@@ -2638,7 +2645,7 @@ The core docs now own the contracts formerly split across docs 08–47. Historic
 | Integrated M14 map | Verify-MapAwareness.ps1; Verify-WorldMap.ps1 (render, tiles, privacy, profile); Verify-WorldMapExport.ps1 |
 | Package and performance | Windows package smoke below; Verify-ConstrainedPerformance.ps1 |
 
-All helpers are under Scripts/. Check each helper's supported parameters before invoking it. For milestone-final acceptance, use a successfully built integrated tree, the prescribed full Kalmala automation namespace, fresh isolated profiles, and the relevant live/rendered/package checks. A static contract PASS never proves rendered or physical input acceptance. Run UnrealBuildTool with normal read/write access to %LOCALAPPDATA%/UnrealBuildTool. Use short paths and avoid generating Binaries, Intermediate, Saved, or DerivedDataCache inside the source checkout during autonomous work.
+Check each runner's supported parameters before invoking it. For milestone-final acceptance, use a successfully built integrated tree, the prescribed full Kalmala automation namespace, fresh isolated profiles, and the relevant live/rendered/package checks. A static contract PASS never proves rendered or physical input acceptance. Run UnrealBuildTool with normal read/write access to %LOCALAPPDATA%/UnrealBuildTool. Use short paths and avoid generating Binaries, Intermediate, Saved, or DerivedDataCache inside the source checkout during autonomous work.
 
 ## Fresh-player co-op acceptance
 
@@ -2662,7 +2669,7 @@ Verify-ConstrainedPerformance.ps1 wraps the rendered two-peer discovery/disembar
 | High | 16 | High | 100 | 2048 |
 | Ultra | Caller affinity | Epic | 100 | 4096 |
 
-List with `Scripts/Verify-ConstrainedPerformance.ps1 -ListProfiles`. Run profiles sequentially using a built short mirror, fresh OutputDirectory, and unused Port. Keep profile.json, scenario.txt, peer logs, and CSVs; repeat at least three times before interpreting timing differences. PASS validates scenario/capture integrity, not an approved hardware budget.
+List with `Scripts/Tests/Performance/Verify-ConstrainedPerformance.ps1 -ListProfiles`. Run profiles sequentially using a built short mirror, fresh OutputDirectory, and unused Port. Keep profile.json, scenario.txt, peer logs, and CSVs; repeat at least three times before interpreting timing differences. PASS validates scenario/capture integrity, not an approved hardware budget.
 
 These profiles retain the actual i7-14700K/RTX 5090, physical memory, storage, and network. Texture-pool settings are not total VRAM caps, quality changes do not emulate an older GPU, and affinity limits are logical processors shared by two peers. M10 owner acceptance retained those limitations; minimum/recommended hardware, numeric release ceilings, sustained/peak travel, and independent low/mid-tier hardware coverage were not certified.
 
