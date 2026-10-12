@@ -36,7 +36,7 @@ try {
         if ($hostProcess.HasExited -or $client.HasExited) { throw 'An ocean skiff journey peer exited before verification completed.' }
         $hostText = if (Test-Path -LiteralPath $hostLog) { Get-Content -LiteralPath $hostLog -Raw } else { '' }
         $clientText = if (Test-Path -LiteralPath $clientLog) { Get-Content -LiteralPath $clientLog -Raw } else { '' }
-        if (($hostText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Ocean journey peer verification FAILED:|Passed=0') {
+        if (($hostText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Ocean journey peer verification FAILED:|Ocean origin stability verification FAILED:|Passed=0') {
             throw 'Ocean skiff journey peer verification failed; inspect retained logs.'
         }
 
@@ -45,11 +45,14 @@ try {
         $clientAttach = $clientText -match 'Ocean journey peer replica attached: Authority=0 Seat=Helm Mode=[0-2] Seed=418'
         $clientTravel = $clientText -match 'Ocean journey peer replica observed travel: Authority=0 Seat=Helm Mode=Underway Distance=1[0-9]{5,} Seed=418'
         $clientStop = $clientText -match 'Ocean journey peer replica observed stop: Authority=0 Seat=Helm Mode=Moored Distance=2[3-9][0-9]{4} Seed=418'
-        $hostCrosswind = $hostText -match 'Ocean weather peer result: Authority=1 Cycle=7001 Direction=90 Strength=1\.000 .*Passed=1'
-        $clientCrosswind = $clientText -match 'Ocean weather peer result: Authority=0 Cycle=7001 Direction=90 Strength=1\.000 .*ClientForgeryRejected=1 Passed=1'
-        $hostCalm = $hostText -match 'Ocean weather peer result: Authority=1 Cycle=7002 Direction=0 Strength=0\.000 .*Passed=1'
-        $clientCalm = $clientText -match 'Ocean weather peer result: Authority=0 Cycle=7002 Direction=0 Strength=0\.000 .*ClientForgeryRejected=1 Passed=1'
-        $ready = $hostJourney -and $hostReplica -and $clientAttach -and $clientTravel -and $clientStop -and $hostCrosswind -and $clientCrosswind -and $hostCalm -and $clientCalm
+        $hostCrosswind = $hostText -match 'Ocean weather peer result: Authority=1 Cycle=7001 Direction=90 Strength=1\.000 WindRate=4\.000 CounterRate=-3\.000 ClientForgeryRejected=0 Passed=1'
+        $clientCrosswind = $clientText -match 'Ocean weather peer result: Authority=0 Cycle=7001 Direction=90 Strength=1\.000 WindRate=4\.000 CounterRate=-3\.000 ClientForgeryRejected=1 Passed=1'
+        $hostCalm = $hostText -match 'Ocean weather peer result: Authority=1 Cycle=7002 Direction=0 Strength=0\.000 WindRate=0\.000 .*ClientForgeryRejected=0 Passed=1'
+        $clientCalm = $clientText -match 'Ocean weather peer result: Authority=0 Cycle=7002 Direction=0 Strength=0\.000 WindRate=0\.000 .*ClientForgeryRejected=1 Passed=1'
+        $serverWeatherComplete = $hostText -match 'Ocean weather peer verification server states complete\.'
+        $hostOrigin = $hostText -match 'Ocean origin stability verification passed: Peer=ListenServer Seat=Passenger Distance=2[3-9][0-9]{4} StartOrigin=\(0,0,0\) EndOrigin=\(0,0,0\) OriginStable=1'
+        $clientOrigin = $clientText -match 'Ocean origin stability verification passed: Peer=RemoteClient Seat=Helm Distance=2[3-9][0-9]{4} StartOrigin=\(0,0,0\) EndOrigin=\(0,0,0\) OriginStable=1'
+        $ready = $hostJourney -and $hostReplica -and $clientAttach -and $clientTravel -and $clientStop -and $hostCrosswind -and $clientCrosswind -and $hostCalm -and $clientCalm -and $serverWeatherComplete -and $hostOrigin -and $clientOrigin
         if ($ready) { break }
         Start-Sleep -Seconds 1
     } while ((Get-Date) -lt $deadline)
@@ -58,7 +61,10 @@ try {
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') {
         throw 'Ocean skiff journey client did not adopt the server world identity.'
     }
-    Write-Output 'PASS: host and client observed a 2.4 km server-authoritative skiff crossing under crosswind/calm weather with a bounded terrain-patch transition.'
+    if ($clientText -match 'Client received weather cycle 7003') {
+        throw 'Ocean skiff journey client received forged weather state.'
+    }
+    Write-Output 'PASS: host and client observed a 2.4 km server-authoritative skiff crossing, matching crosswind/calm pressure, rejected client-forged weather, and stable origin.'
 }
 finally {
     foreach ($peer in @($client, $hostProcess)) {

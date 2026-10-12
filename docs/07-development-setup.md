@@ -726,17 +726,9 @@ server wind and vessel speed, helm counter-steering works, and the combined
 steering rate retains its 35 degrees/second cap. The local status test checks
 that the crosswind guidance appears aboard a skiff and clears when replicated
 wind subsides. The focused tests do not replace the remaining host/client
-weather-pressure and recovery agreement check.
-
-Then run `Scripts\Verify-OceanSkiffWeather.ps1 -Port 18167`. The development-
-only host/client fixture selects a full crosswind state and then calm weather
-on the server. Both locally controlled peers must derive the same 4 degrees/s
-pressure and -3 degrees/s counter-steered rate from the production skiff helper
-at 350 cm/s, then derive zero wind pressure after the calm state replicates.
-The client also attempts to replace the accepted crosswind with a forged calm
-state; its server-only setter must leave the replicated weather unchanged.
-This check covers accepted weather replication, derived pressure/recovery, and
-client authority rejection, but does not move or render a live skiff.
+weather-pressure and recovery agreement check. The two-peer crossing below
+checks that agreement during a live voyage, including client-forgery rejection
+and origin stability, so it no longer needs a separate runner.
 
 ## M8 integrated skiff crossing
 
@@ -747,11 +739,15 @@ passenger seats, and sail 2.4 km with the existing bounded steering rules. The
 fixture also selects crosswind and calm weather, requires both local peers to
 observe replicated seats, underway movement, and the final moored state, and
 checks that terrain-patch coordinates transition while active patches remain
-at or below 25. The generated launch hit and seat assignment are driven by the
-server fixture; the remote client owning the helm sends bounded steering through
-the existing server RPC. The fixture does not test physical input or a
-client-originated launch/boarding request. The finite 16 km world does not configure origin rebasing,
-so the fixture verifies patch streaming and records `OriginShift=inactive`.
+at or below 25. Both peers must report the expected 4 degrees/s crosswind,
+-3 degrees/s counter-steering, and zero calm pressure; the client must fail to
+replace server weather with a forged state. The origin-stability fixture also
+requires each peer to retain origin `(0,0,0)` through the voyage. The generated
+launch hit and seat assignment are driven by the server fixture; the remote
+client owning the helm sends bounded steering through the existing server RPC.
+The fixture does not test physical input or a client-originated launch/boarding
+request. The finite 16 km world does not configure origin rebasing, so the
+fixture verifies patch streaming and records `OriginShift=inactive`.
 Discovery claims, disembark, late join, restart/reconnect, and long-session
 resource budgets remain separate M8 acceptance work.
 

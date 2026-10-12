@@ -622,3 +622,12 @@
 - **Impact/authority:** test-entrypoint cleanup only. The retained integrated reconnect scenario uses the existing development-only peer fixtures; gameplay authority, RPCs, persistence, and save schemas are unchanged.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Runtime equivalence was established by static runner/contract inspection only; full script execution remains deferred.
 - **Next eligible work:** audit the remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage; retire or consolidate only confirmed duplicates. M14 main integration remains pending.
+
+## User-directed increment 2026-10-12 — Consolidate ocean weather and origin checks
+
+- **Completed:** folded the strict host/client weather replication, pressure/recovery, client-forgery rejection, and fixed-origin assertions into `Verify-OceanSkiffJourney.ps1`; removed the duplicate weather and origin-stability launchers. The focused journey now preserves all those checks in the same two-peer crossing run.
+- **Files changed:** `Scripts/Verify-OceanSkiffJourney.ps1`, deleted `Scripts/Verify-OceanSkiffWeather.ps1` and `Scripts/Verify-OceanSkiffOriginStability.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** compared merged output patterns with the C++ fixture logs and confirmed the origin subsystem is enabled by the journey flag; PowerShell parser validation and `git diff --check` passed. No Unreal peer scenario, build, or full test suite ran.
+- **Impact/authority:** verification-entrypoint consolidation only. Runtime behavior, server authority, persistence, and networking implementation are unchanged; the retained assertions still check weather acceptance and forgery rejection on both peers.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Static validation cannot establish live runtime equivalence; the host/client journey remains unexecuted.
+- **Next eligible work:** continue auditing remaining `Verify-*` entrypoints against current acceptance requirements and merge confirmed duplicates, prioritizing the other user-named families. The overall goal of approximately 20 test runners is not complete; M14 main integration remains pending.
