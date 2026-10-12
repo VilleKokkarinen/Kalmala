@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Simplify the Options divider ornament
+
+- **Completed:** regenerated the divider using the provided image as its base. The ornamental chain now has four progressively smaller linked loops on each side, mirrors across the center, and joins without a large medallion.
+- **Files changed:** `Content/Kalmala/UI/Source/OptionsDivider.png`, `Content/Kalmala/UI/OptionsDivider.uasset`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** Unreal `ImportAssets -replaceexisting` succeeded with 0 errors (one unrelated default ocean-skiff material warning). `Scripts/Render-Menu.ps1 -Menu settings.controls` rendered at 1920×1080; inspected the Options preview and confirmed the updated centered ornament appears without the gold underlay. Full project verification remains deferred.
+- **Impact and authority:** local UI artwork only. No gameplay, networking, saved settings, or replicated state changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Full verification remains deferred.
+- **Generated image:** built-in ImageGen, saved to `Content/Kalmala/UI/Source/OptionsDivider.png`. Final prompt: “Simplify and clean up the attached ornament while keeping its interlaced ivory-and-muted-gold line-art style. Make one continuous, perfectly mirrored ornament with exactly four linked oval loops on the left and exactly four on the right. From the center outward on each side, the first loop is largest and each next loop is smaller, ending in the smallest loop at the edge. Join both sides seamlessly at the center with a small simple crossover; no gap, no large medallion, no extra eye shapes, and no extra loops. Keep the linework smooth, even, crisp, and free of speckled or colored fringe. The ornament must fill nearly the full canvas width and use about 65% of its height, leaving only modest transparent margins above and below. Keep the background fully transparent. No text, glow, shadow, bevel, texture, grain, or straight line underneath.”
+- **Next eligible work:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Consolidate menu captures and polish the Options divider
 
 - **Completed:** default `Render-Menu.ps1` now skips the standalone Inventory capture while retaining the combined Inventory/player-crafting view. `-Menu crafting` now shows the Workbench Craft station section. Replaced the divider source with a newly generated, cleaner ivory-and-gold line-art ornament; the standard-mode gold rule appears only as an asset fallback, and high contrast keeps its white rule.
