@@ -29,6 +29,11 @@ M0–M13 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [ ] **2026-10-12 — Streamline verification scripts:** reduce redundant or obsolete test entrypoints while retaining required acceptance coverage; distinguish test runners from Python support tools.
+  - [x] Retire the superseded standalone integrated ocean skiff journey runner; the integrated reconnect runner already covers its journey/discovery/weather checks and adds late-join/restart coverage.
+  - [ ] Audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage; retire or consolidate only confirmed duplicates.
+  - [ ] Document the non-`.ps1` support tools, their runtime requirements, and why they remain in their native formats.
+
 - [x] **2026-10-11 — Fix Build card fill and visible icon scale:** prevent the shared selectable-fill animation from overwriting the standalone Build menu's brown card overlay, and compensate for transparent margins in the 64×64 catalogue canvases while preserving icon proportions. Source inspection and `git diff --check` only; build/render verification deferred.
 
 - [x] **2026-10-11 — Clear previous Render-Menu PNGs:** before directory-mode renders, remove prior renderer-named PNGs from the selected output folder after renderer preflight; preserve unrelated files and exact single-file output behavior. Lightweight source inspection only; Unreal rendering not run.

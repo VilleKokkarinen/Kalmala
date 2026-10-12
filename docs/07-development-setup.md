@@ -1919,6 +1919,12 @@ acceptance was waived on 2026-09-26; the integrated journey accepts a safe
 stopped disembark through the qualifying deep-water fallback. It adds no
 production RPC or saved-data field.
 
+This integrated reconnect runner supersedes the earlier standalone
+`Verify-OceanSkiffIntegratedJourney.ps1`: its first phase enables the same
+journey, discovery/disembark, and weather fixtures, then adds underway late
+join and restart/reconnect checks. Keep `Verify-OceanSkiffJourney.ps1` for a
+focused two-peer crossing.
+
 ## M9 tool stations and progression
 
 The Forge is a paid construction kit handled by the existing placement and

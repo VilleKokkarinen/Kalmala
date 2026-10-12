@@ -613,3 +613,12 @@
 - **Impact/authority:** standalone Build presentation only. Selection, local placement entry, server-side placement/cost validation, persistence, networking authority, and saved data are unchanged.
 - **Verification/limitations:** normal post-roadmap user-directed increment, not milestone-final. The running game needs a rebuilt native module for this change to appear; a fresh Build-menu render remains deferred.
 - **Next eligible work:** the unchecked Escape home border transparency item remains first in the post-roadmap backlog; M14 main-checkout integration is also pending.
+
+## User-directed increment 2026-10-12 — Retire superseded integrated ocean runner
+
+- **Completed:** removed `Scripts/Verify-OceanSkiffIntegratedJourney.ps1`. The surviving `Verify-OceanSkiffIntegratedReconnectJourney.ps1` enables the same integrated journey, discovery/disembark, and weather fixtures in its first phase, then adds underway late-join, restart, and duplicate-claim checks. Kept `Verify-OceanSkiffJourney.ps1` as the focused two-peer crossing. The 55 remaining `Verify-*.ps1` entrypoints are still being audited; the four `.py` files are asset import/preparation or Unreal map-setup helpers, not test runners.
+- **Files changed:** deleted `Scripts/Verify-OceanSkiffIntegratedJourney.ps1`; updated `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** compared the retired runner's startup flags and accepted log patterns with the integrated reconnect runner's journey phase; confirmed no pre-existing executable caller or active verification instruction referenced the retired script (the M13 source-hash manifest remains historical provenance); checked `git diff --check`. No Unreal test, build, or peer scenario ran.
+- **Impact/authority:** test-entrypoint cleanup only. The retained integrated reconnect scenario uses the existing development-only peer fixtures; gameplay authority, RPCs, persistence, and save schemas are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Runtime equivalence was established by static runner/contract inspection only; full script execution remains deferred.
+- **Next eligible work:** audit the remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage; retire or consolidate only confirmed duplicates. M14 main integration remains pending.
