@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-12 — Correct crafting list content alignment
+
+- **Completed:** set the shared list-row buttons' content slots to fill horizontally and center vertically. The item icon and left-justified label now share a consistent left inset in selected and unselected Workbench, Forge, and Inventory Craft rows.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** the targeted Unreal editor UI module compile succeeded. `Scripts/Render-Menu.ps1 -Menu crafting,forge,inventory-crafting -BuildModules` rendered all three views at 1920×1080; visually inspected selected and unselected rows and confirmed consistent left alignment. `git diff --check` passed. Full project verification remains deferred.
+- **Impact and authority:** local crafting menu presentation only. Recipe selection, crafting requests, server authority, networking, and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Render fixtures lack live station context, so these previews validate presentation only. Full project verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Polish Workbench/Forge selection cues
 
 - **Completed:** active Workbench and Forge section tabs now use the Options gold text accent with bold emphasis and no leading caret. Removed the caret from selected recipe rows and aligned each name to the left immediately after its icon; the selected row background remains the selection cue.

@@ -11,6 +11,7 @@
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "Containers/Ticker.h"
 #include "Components/Button.h"
+#include "Components/ButtonSlot.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/GridSlot.h"
 #include "Components/HorizontalBoxSlot.h"
@@ -452,6 +453,12 @@ void FKalmalaUITheme::ApplyListViewItem(UButton& Button, const int32 ContrastMod
     }
     Button.SetBackgroundColor(FLinearColor::White);
     Button.SetColorAndOpacity(FLinearColor::White);
+
+    if (auto* ContentSlot = Cast<UButtonSlot>(Button.GetContentSlot()))
+    {
+        ContentSlot->SetHorizontalAlignment(HAlign_Fill);
+        ContentSlot->SetVerticalAlignment(VAlign_Center);
+    }
 
     if (auto* VerticalSlot = Cast<UVerticalBoxSlot>(Button.Slot.Get()))
         VerticalSlot->SetHorizontalAlignment(HAlign_Fill);
