@@ -708,10 +708,11 @@ session capacity, and invalid coast hits. The UI test checks one-metre
 open-ocean access guidance, all-nine-sample hull depth, safe-stop text, and
 generated-terrain collision recovery guidance.
 
-Then run `Scripts\Verify-OceanSkiffFeedback.ps1 -Port 18166`. Its listen-host
-and conflicting-seed client receive distinct server-published owner messages;
-both local HUD text paths must show their own result, while the client copy of
-the host pawn must retain no feedback. This headless check verifies owner-only
+`Scripts\Verify-OceanSkiffIntegratedReconnectJourney.ps1 -Port 18181` starts
+with a short isolated host/owner phase that checks distinct server-published
+messages. Both local HUD text paths must show their own result, while the
+owner's client copy of the host pawn must retain no feedback. The runner then
+starts its journey/reconnect scenario. This headless check verifies owner-only
 replication and message text, not a rendered viewport or live launch trace.
 
 ## M8 ocean weather navigation pressure
@@ -1913,10 +1914,11 @@ stopped disembark through the qualifying deep-water fallback. It adds no
 production RPC or saved-data field.
 
 This integrated reconnect runner supersedes the earlier standalone
-`Verify-OceanSkiffIntegratedJourney.ps1`: its first phase enables the same
+`Verify-OceanSkiffIntegratedJourney.ps1`: its voyage phase enables the same
 journey, discovery/disembark, and weather fixtures, then adds underway late
-join and restart/reconnect checks. Keep `Verify-OceanSkiffJourney.ps1` for a
-focused two-peer crossing.
+join and restart/reconnect checks. Its preliminary feedback phase verifies
+owner-only messages on the host and returning owner's local HUD. Keep
+`Verify-OceanSkiffJourney.ps1` for a focused two-peer crossing.
 
 ## M9 tool stations and progression
 
@@ -2631,7 +2633,7 @@ The core docs now own the contracts formerly split across docs 08–47. Historic
 | Inventory, harvesting, food, storage | Verify-InventoryReconnect.ps1; Verify-InventoryMenu.ps1; Verify-Crafting.ps1; Verify-Storage.ps1 |
 | Combat, discoveries, support | Verify-CombatPeer.ps1; Verify-DiscoveryPeer.ps1; Verify-M4VerticalSlice.ps1; relevant Kalmala.Gameplay automations |
 | Survival and progression | Verify-CampChoices.ps1; Verify-M7AutomatedAcceptance.ps1; inventory/tool/progression/food/weather automations |
-| Ocean journey and persistence | Verify-OceanTravel.ps1; Verify-OceanSkiffDiscoveryDisembark.ps1; travel-save/restore automations and existing restart/late-join scenarios |
+| Ocean journey and persistence | Verify-OceanTravel.ps1; Verify-OceanSkiffJourney.ps1; Verify-OceanSkiffDiscoveryDisembark.ps1; Verify-OceanSkiffIntegratedReconnectJourney.ps1; travel-save/restore automations |
 | Settings and HUD | Verify-SettingsAccessibility.ps1 (includes `-ContractOnly` mode); Verify-StatusHotbar.ps1; theme, notification, recipe activity and local browsing automations |
 | Integrated M14 map | Verify-MapAwareness.ps1; Verify-WorldMap.ps1 (render, tiles, privacy, profile); Verify-WorldMapExport.ps1 |
 | Package and performance | Windows package smoke below; Verify-ConstrainedPerformance.ps1 |

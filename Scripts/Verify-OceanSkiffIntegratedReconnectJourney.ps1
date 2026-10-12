@@ -12,7 +12,7 @@ $output = if ($OutputDirectory) { $OutputDirectory } else { Join-Path $env:TEMP 
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $processes = [System.Collections.Generic.List[System.Diagnostics.Process]]::new()
 $allLogs = [System.Collections.Generic.List[string]]::new()
-$failurePattern = 'FAILED:|Fatal error:|Assertion failed:|Ensure condition failed:'
+$failurePattern = 'FAILED:|Ocean skiff feedback verification server: Passed=0|Ocean skiff feedback verification client received another player|Fatal error:|Assertion failed:|Ensure condition failed:'
 
 function Start-OceanPeer {
     param(
@@ -21,6 +21,7 @@ function Start-OceanPeer {
         [string]$Url,
         [string]$UserDirectory,
         [string]$PortArgument,
+        [switch]$Feedback,
         [switch]$Journey,
         [string]$ExpectedX,
         [string]$ExpectedY
@@ -29,13 +30,19 @@ function Start-OceanPeer {
     $log = Join-Path $output "$Phase-$Role.log"
     $shaderDirectory = Join-Path $output "$Phase-$Role-ShaderWorkingDir"
     New-Item -ItemType Directory -Path $UserDirectory, $shaderDirectory -Force | Out-Null
-    $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaOceanDiscoveryDisembarkPeerTest -KalmalaOceanIntegratedReconnectPeerTest'
-    if ($Journey) {
-        $common += ' -KalmalaOceanIntegratedJourneyPeerTest'
-        if ($Role -ne 'late') { $common += ' -KalmalaOceanWeatherPeerTest' }
+    $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush'
+    if ($Feedback) {
+        $common += ' -KalmalaOceanSkiffFeedbackTest'
     }
     else {
-        $common += " -KalmalaOceanReconnectPhase=$Phase -KalmalaOceanReconnectExpectedX=$ExpectedX -KalmalaOceanReconnectExpectedY=$ExpectedY"
+        $common += ' -KalmalaOceanDiscoveryDisembarkPeerTest -KalmalaOceanIntegratedReconnectPeerTest'
+        if ($Journey) {
+            $common += ' -KalmalaOceanIntegratedJourneyPeerTest'
+            if ($Role -ne 'late') { $common += ' -KalmalaOceanWeatherPeerTest' }
+        }
+        else {
+            $common += " -KalmalaOceanReconnectPhase=$Phase -KalmalaOceanReconnectExpectedX=$ExpectedX -KalmalaOceanReconnectExpectedY=$ExpectedY"
+        }
     }
     $arguments = "`"$projectPath`" $Url -WorldSeed=$(if ($Role -eq 'host') { '418' } else { '999' }) $common"
     if ($PortArgument) { $arguments += " $PortArgument" }
@@ -115,7 +122,23 @@ $lateDirectory = Join-Path $output 'LateJoiner'
 $hostPeer = $null
 $owner = $null
 $late = $null
+$feedbackHost = $null
+$feedbackOwner = $null
 try {
+    $feedbackHost = Start-OceanPeer -Role 'host' -Phase 'Feedback' -Url '/Game/Kalmala/Maps/Prototype/L_Prototype?listen?Name=KalmalaFeedbackHost' -UserDirectory (Join-Path $output 'FeedbackHost') -PortArgument "-port=$Port" -Feedback
+    Wait-ForLogPatterns -Checks @(@{ Log = $feedbackHost.Log; Pattern = 'GameNetDriver.*listening on port' }) -ActiveProcesses @($feedbackHost.Process) -Seconds 90 -FailureMessage 'Ocean feedback listen-server startup failed.'
+    $feedbackOwner = Start-OceanPeer -Role 'owner' -Phase 'Feedback' -Url "127.0.0.1:$Port`?Name=KalmalaFeedbackOwner" -UserDirectory (Join-Path $output 'FeedbackOwner') -Feedback
+    Wait-ForLogPatterns -Checks @(
+        @{ Log = $feedbackHost.Log; Pattern = 'Ocean skiff feedback verification server: Passed=1 Host=ShallowLaunch Remote=SeatsFull HostSerial=1 RemoteSerial=1' },
+        @{ Log = $feedbackHost.Log; Pattern = 'Ocean skiff feedback UI local: .*Serial=1 Message=.*SHALLOW WATER.*Wade or swim farther out' },
+        @{ Log = $feedbackOwner.Log; Pattern = 'Ocean skiff feedback UI local: .*Serial=1 Message=.*SEATS FULL.*Both skiff seats are occupied' },
+        @{ Log = $feedbackOwner.Log; Pattern = 'Ocean skiff feedback verification client retained no other-owner feedback\.' },
+        @{ Log = $feedbackOwner.Log; Pattern = 'Client received world-generation identity: Seed=418' }
+    ) -ActiveProcesses @($feedbackHost.Process, $feedbackOwner.Process) -Seconds 120 -FailureMessage 'Ocean owner-only travel feedback verification failed.'
+    Write-Output 'PASS: host and owner displayed their own server-selected travel feedback; the owner client received none for the host pawn.'
+    Stop-OceanPeer $feedbackOwner.Process; $feedbackOwner = $null
+    Stop-OceanPeer $feedbackHost.Process; $feedbackHost = $null
+
     $hostPeer = Start-OceanPeer -Role 'host' -Phase 'Journey' -Url '/Game/Kalmala/Maps/Prototype/L_Prototype?listen?Name=KalmalaReconnectHost' -UserDirectory $hostDirectory -PortArgument "-port=$Port" -Journey
     Wait-ForLogPatterns -Checks @(@{ Log = $hostPeer.Log; Pattern = 'GameNetDriver.*listening on port' }) -ActiveProcesses @($hostPeer.Process) -Seconds 90 -FailureMessage 'Integrated journey listen-server startup failed.'
     $owner = Start-OceanPeer -Role 'owner' -Phase 'Journey' -Url "127.0.0.1:$Port`?Name=KalmalaReconnectOwner" -UserDirectory $ownerDirectory -Journey
@@ -174,7 +197,7 @@ try {
     Write-Output 'PASS: the late peer joined during the 2.4 km voyage without private rewards; the original authenticated seats and moored stop restored, and discovery replay was rejected after restart.'
 }
 finally {
-    foreach ($peer in @($late, $owner, $hostPeer)) {
+    foreach ($peer in @($late, $owner, $hostPeer, $feedbackOwner, $feedbackHost)) {
         if ($null -ne $peer) { Stop-OceanPeer $peer.Process }
     }
     Write-Output "Integrated voyage reconnect logs: $output"

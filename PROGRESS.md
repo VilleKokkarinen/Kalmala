@@ -667,3 +667,12 @@
 - **Impact/authority:** verification entrypoint consolidation only. Audio assets, runtime cue submission, local mix behavior, gameplay authority, network state, and saved data are unchanged. Host/client ambience, combat, discovery, movement, and traversal runtime fixtures remain distinct where they exercise different behavior.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Runtime equivalence and audible output were not exercised; full project verification remains deferred.
 - **Next eligible work:** continue auditing the remaining `Verify-*` runners for confirmed duplicate or obsolete coverage. The overall goal of approximately 20 runners is not complete; M14 main integration remains pending.
+
+## User-directed increment 2026-10-12 — Merge ocean skiff feedback launcher
+
+- **Completed:** moved the two-peer owner-only skiff feedback scenario into a preliminary isolated phase of `Verify-OceanSkiffIntegratedReconnectJourney.ps1`; removed `Verify-OceanSkiffFeedback.ps1`. The combined entrypoint verifies both local feedback messages and that the returning owner's client does not receive feedback for the host pawn before starting its existing voyage/reconnect scenario. The active `Verify-*.ps1` count falls from 47 to 46.
+- **Files changed:** `Scripts/Verify-OceanSkiffIntegratedReconnectJourney.ps1`, deleted `Scripts/Verify-OceanSkiffFeedback.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** compare the moved host/client assertions and command-line fixture against the retired launcher; parse the changed PowerShell runner; run `git diff --check`. No live peer scenario, Unreal build, or full test suite ran.
+- **Impact/authority:** verification-entrypoint consolidation only. The feedback fixture remains development-only and server selected; gameplay RPCs, network authority, persistence, and save schemas are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Runtime equivalence is based on source and runner inspection; the combined entrypoint remains unexecuted. Full project verification is deferred.
+- **Next eligible work:** continue auditing `Verify-*` entrypoints against active acceptance requirements, callers, and equivalent coverage, then document the remaining non-`.ps1` support tools. The goal of approximately 20 runners is not complete; M14 main integration remains pending.
