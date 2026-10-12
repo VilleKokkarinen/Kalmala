@@ -220,7 +220,7 @@ Every feature needs an automated test where practical, plus a reproducible multi
 
 `UKalmalaCraftingComponent` accepts owner intent only; configured recipes and atomic inventory exchanges determine all costs and outputs on the server. A new character carries a level-one Construction Hammer record in the owner-only carried-tool array, and the local hammer menu requires that record. The server independently checks the same authoritative tool before any construction request. Hearth placement consumes its JSON-backed raw recipe cost of 5 Stone and 3 Wood plus one Wood, Lightwood, Densewood, or Coal to start the hearth with 60 seconds; normal crafting cannot create the former CampfireKit item. Floors, walls, and roofs are also direct hammer builds: their Wood/Fibre costs derive from the JSON-backed construction recipes, the server builds the full inventory candidate, and no catalogue item is granted or consumed. Stable internal CampfireKit, FloorKit, WallKit, and RoofKit identities remain for construction and save compatibility. Every other craftable camp item is also built from the JSON recipe's direct materials. Construction RPCs accept only a buildable identity or the existing payload-free hearth placement intent; position, yaw, materials, terrain, collision, persistence, and outcome remain server-selected or server-validated. Each peer derives original collision/presentation from the replicated construction identity. The server adds the shelter sampler's roof or windbreak tag only to accepted matching constructions, never from a client request. See `02-technical-architecture.md` for recipe costs, access rules, controls, replication and current persistence limits.
 
-M9 supersedes the M7 tool-output replacement recipes and material-paid repair. The owner-local crafting panel submits only a carried tool ID; the server selects the owner's current record, validates a visible same-world Workbench or Forge within 250 cm, and restores any damaged or broken tool to its authored maximum at no cost. Rejected requests preserve condition, and accepted repair awards no Crafting experience. The paid buildable Grinding Stone uses the existing construction placement and schema-1 save record; its server-validated in-world Repair All builds a complete candidate from the bounded owner-only carried-tool array before publishing any change. Clients submit no list, tool ID, or condition for that action. The owner panel shows private tool condition, tool levels and costs, station requirements, and selected-tool or Grinding Stone repair guidance; M9 tool and station progression remains transient until the save migration contract passes. The parameterless sharpening multicast remains presentation-only and carries no repair state.
+M9 supersedes the M7 tool-output replacement recipes and material-paid repair. The owner-local Inventory action submits only a carried tool ID; the server selects the owner's current record, validates a visible same-world Workbench or Forge within 250 cm, and restores that damaged or broken known tool to its authored maximum at no cost. Rejected requests preserve condition, and accepted repair awards no Crafting experience. The Workbench and Forge station menus expose a payload-free Repair All action instead of a tool-selection page. The server validates a visible same-world Workbench or Forge within 250 cm, builds a complete candidate from the bounded owner-only carried-tool array, then persists and publishes the accepted repairs together; clients send no list, tool ID, or condition. The paid buildable Grinding Stone keeps its in-world Repair All action and existing construction/save record, with the same atomic carried-list validation. The owner Inventory panel shows private tool condition and its selected-tool repair action; station Repair All does not open a menu. M9 tool and station progression remains transient until the save migration contract passes. The parameterless sharpening multicast remains presentation-only and carries no repair state.
 
 The normal Chest is the sole storage construction. Current schema-4 food processing uses the Cooking Rack, Cauldron, and Frying Pan; it has no Smoke Frame or smoke recipe. Recipes consume direct Wood, Fibre, Stone, and other listed material costs; intermediate Fuel and ConstructionSupply items no longer exist. Cooking recipes consume their listed ingredients only. Wood, Lightwood, Densewood, and Coal each add 60 seconds of hearth fuel, and a lit hearth burns one fuel second per elapsed server second. The server derives cooking heat requirements from the resolved station and a usable lit hearth near both the player and station. Storage schema 1 migrates saved Fuel to Wood and each ConstructionSupply into its original value of 3 Wood and 2 Fibre. These changes preserve existing chest and construction save schemas.
 
@@ -549,7 +549,7 @@ Bronze Axe level 1 costs 4 Wood, 3 Stone, and 2 Fibre at a level-one Workbench. 
 
 A paid Tool Rack or Forge Anvil within 125 cm adds one level to its matching station. One attachment per station, a level-two ceiling, 32 attachments, and 128 total construction records bound progression. Placement and station use recheck visibility and the normal 250 cm range. Station levels are derived from placed actors, not saved as numbers.
 
-Selected-tool repair is free at a visible same-world Workbench or Forge within 250 cm. It restores damaged/broken known tools without changing level or granting Crafting XP. Grinding Stone Interact performs atomic Repair All across the validated carried list; malformed records reject the whole action. Its accepted 1.2-second sharpening pose is cosmetic and carries no tool state. M9 free repair supersedes historical M7 material-paid repair and broken-tool replacement recipes. Accepted tool changes save the validated schema-2 candidate before publication.
+Inventory's selected-tool repair is free at a visible same-world Workbench or Forge within 250 cm. The Workbench and Forge Repair All actions restore every damaged carried tool in one operation without changing levels or granting Crafting XP; the server validates the nearby station and the complete carried-tool candidate before saving or publishing anything. Grinding Stone Interact performs the same atomic Repair All against its validated carried list; malformed records reject the whole action. Its accepted 1.2-second sharpening pose is cosmetic and carries no tool state. M9 free repair supersedes historical M7 material-paid repair and broken-tool replacement recipes. Accepted tool changes save the validated schema-2 candidate before publication.
 
 ## Camp crafting and station services
 
@@ -632,7 +632,7 @@ there is an approved equipment-slot and effect contract.
 
 Build supports direct hearth, floor, wall, and roof construction plus placement of supported produced station/utility items. Campfire is construction-only, never a carried item. Raw construction costs and one available ignition fuel item are paid server-side; fuel priority is Wood, Lightwood, Densewood, then Coal. Placement checks the carried hammer, finite-world bounds, ground, clearance, and collisions using server-derived transforms. Local previews cannot place or pay.
 
-Interacting with a Workbench opens Craft/Repair; Forge opens Craft/Upgrade/Repair. Cooking Rack, Cauldron, and Frying Pan show only their two declared dishes. Forge creates Frying Pan from five Iron; Build places the produced pan. Station views bind to the exact accepted actor/stable construction ID and close on destruction, range loss, or pawn replacement. Every action independently revalidates the server station and transaction.
+Interacting with a Workbench opens Craft; Forge opens Craft/Upgrade. Each station also has a direct Repair All action that repairs all damaged carried tools without opening a separate page. Cooking Rack, Cauldron, and Frying Pan show only their two declared dishes. Forge creates Frying Pan from five Iron; Build places the produced pan. Station views bind to the exact accepted actor/stable construction ID and close on destruction, range loss, or pawn replacement. Every action independently revalidates the server station and transaction.
 
 Chest Store/Take transfers one selected allowlisted item through the existing server RPCs. Its owner-local pack/chest views do not create extra player capacity. Chest contents are bounded, private, and saved as a validated candidate before the live pack is changed; rejected/stale transfers preserve both. Campfire refuelling adds 60 seconds from one raw fuel item up to 300 seconds without lighting it. M13's requested direct Interact lighting replaces the older Build relight button only when implemented and accepted; see Menu browsing.
 
@@ -2245,30 +2245,32 @@ All cooking views include ingredient, quantity, and current hearth-heat feedback
 Workbench opens a Craft section scoped to its supported recipes, matching Tool Rack production,
 and the owner-local Bronze Axe operation. Its header shows the accepted station's effective
 level, starting at level 1 and increasing by one for a nearby compatible Tool Rack.
-Forge exposes separate Craft, Upgrade, and Repair sections. Upgrade compares the
-owner-only carried Bronze Axe against its authored Iron Axe target and reads
-the owner's tool, material, and skill snapshots for prerequisites; its header
-shows the accepted Forge's effective level, starting at level 1 and increasing
-by one for a nearby compatible Anvil. The section tabs sit at the top-left of
-the shell; the station catalogue icon, name, and level or cooking-heat status
-sit at the top-right.
+Forge exposes Craft and Upgrade views; Upgrade compares the owner-only carried
+Bronze Axe against its authored Iron Axe target and reads the owner's tool,
+material, and skill snapshots for prerequisites. Both station shells provide a
+direct Repair All action that repairs all damaged carried tools without opening
+a separate menu. Their headers show the accepted station's effective level,
+starting at level 1 and increasing by one for a nearby compatible attachment.
+The section/action buttons sit at the top-left of the shell; the station
+catalogue icon, name, and level sit at the top-right.
 The selected Workbench/Forge tab uses the shared gold text accent without a
 leading selection marker.
-Workbench Repair, Forge Repair, and Forge Upgrade use the same wood-backed
-content area and top inset as station Craft. Repair pairs its carried-tool list
-and item detail in framed columns; Upgrade pairs its requirement summary with
-the owner-only comparison and action in matching framed columns.
+Forge Upgrade uses the same wood-backed content area and top inset as station
+Craft, pairing its requirement summary with the owner-only comparison and action
+in matching framed columns. Repair All keeps the current Craft or Upgrade view
+open and reports the server result in the station header.
 The existing progression RPC remains responsible for authoritative checks,
 material exchange, and persistence.
 These Workbench and Forge level lines remain visible in their parent Craft
 sections. The standalone Build menu no longer duplicates
 inventory, food, repair, upgrade, or storage controls; it keeps placement and
 the Light hearth action, while raw-fuel addition uses Campfire Interact.
-The owner can switch to a separate Repair section without changing the recipe
-selection or Forge Upgrade presentation. Repair rows read only the owning pawn's
-owner-only carried-tool array, show its real level and condition, and submit
-only the selected tool ID to the existing repair RPC. The response remains
-owner-only. The legacy CraftMenu path remains available.
+The station Repair All button sends a payload-free server request and keeps the
+current recipe or Upgrade selection unchanged. The server requires a visible
+same-world Workbench or Forge within 250 cm, validates the entire bounded
+owner-only carried-tool array, repairs every damaged known tool, and persists
+the complete candidate before publication. The Inventory panel retains its
+selected-tool repair action. The legacy CraftMenu path remains available.
 An accepted Chest interaction opens a Store section with separate selectors
 backed by the owning pawn's private pack and its owner-only current chest view.
 Each list shows the item's current count; the summary reports both 16-stack

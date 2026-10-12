@@ -173,6 +173,8 @@ private:
     void RefreshStationContextState();
     void RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting);
     void RefreshWorkbenchRepairState(UKalmalaCraftingComponent* Crafting);
+    void RefreshStationRepairActionState(UKalmalaCraftingComponent* Crafting);
+    void RequestStationRepairAll(FName RequiredStationKit);
     UFUNCTION() void SelectWorkbenchCraftSection();
     UFUNCTION() void SelectWorkbenchRepairSection();
     UFUNCTION() void SelectForgeCraftSection();
@@ -328,6 +330,7 @@ private:
     bool bWorkbenchRepairContext = false;
     bool bStorageContext = false;
     bool bWorkbenchRepairPending = false;
+    bool bStationRepairPending = false;
 #if !UE_BUILD_SHIPPING
     uint32 WorkbenchRepairRequestCountForTest = 0;
     uint32 ForgeUpgradeRequestCountForTest = 0;
@@ -348,6 +351,8 @@ private:
     FName WorkbenchRepairPendingToolId = NAME_None;
     FName WorkbenchRepairResultToolId = NAME_None;
     uint32 WorkbenchRepairResultSerial = 0;
+    uint32 StationRepairResultSerial = 0;
+    FString StationRepairFeedback;
 };
 
 UCLASS()

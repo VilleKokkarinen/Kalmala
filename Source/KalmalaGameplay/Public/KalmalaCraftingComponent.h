@@ -43,6 +43,7 @@ public:
     UFUNCTION(Server, Reliable) void ServerRefuel();
     UFUNCTION(Server, Reliable) void ServerLight();
     UFUNCTION(Server, Reliable) void ServerRepairTool(FName ToolId);
+    UFUNCTION(Server, Reliable) void ServerRepairAllTools();
     UFUNCTION(Server, Reliable) void ServerProgressTool(FName ToolId);
     UFUNCTION(Server, Reliable) void ServerConsumeFood(FName FoodItemId);
     UFUNCTION(Server, Reliable) void ServerOpenStorage();
@@ -83,6 +84,7 @@ public:
     FString GetNearbyConstructionText() const;
     bool CraftFromServer(FName RecipeId, int32 Batch, FString& Reason);
     bool RepairToolFromServer(FName ToolId, FString& Reason);
+    bool RepairAllToolsAtStationFromServer(FString& Reason);
     bool RepairAllToolsFromServer(AKalmalaConstructionActor* GrindingStone, FString& Reason);
     bool ProgressToolFromServer(FName ToolId, FString& Reason);
     bool ConsumeFoodFromServer(FName FoodItemId, FString& Reason);
@@ -97,6 +99,7 @@ public:
     AKalmalaCampfire* FindNearbyFire(bool bRequireUsable) const;
 private:
     bool AcceptRequest();
+    bool CommitRepairAllToolsFromServer(const TCHAR* StationName, FString& Reason);
     void PublishResult(const FString& Result, bool bAccepted, FName AcceptedRecipeId = NAME_None,
         EKalmalaCraftingActionKind AcceptedActionKind = EKalmalaCraftingActionKind::CraftedItem);
     AKalmalaCharacter* GetCharacter() const;

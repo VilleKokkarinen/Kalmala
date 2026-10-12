@@ -1011,8 +1011,9 @@ accessibility checks; they do not replace the prescribed build, automation,
 reconnect, or other verification.
 
 The crafting runner additionally retains top and detail views for nine service
-sections on each peer: Workbench Craft/Repair, Forge Craft/Upgrade/Repair,
-Cooking Rack/Cauldron/Frying Pan Cook, and Chest Store. These read-only views
+captures on each peer: Workbench Craft with its Repair All action, Forge
+Craft/Upgrade with its Repair All action, Cooking Rack/Cauldron/Frying Pan
+Cook, and Chest Store. These read-only views
 explicitly use an unavailable context; they do not fabricate an accepted actor
 or exercise a transaction. Accepted actions, owner privacy and stale-context
 suppression remain the earlier live/automation gates. Rendered timeout is 300
@@ -1970,7 +1971,7 @@ placement range; duplicate rejection; and the kit-only placement RPC payload.
 
 ### M9 free selected-tool repair
 
-The owner-only crafting panel offers one selected-tool action for each of the
+The owner-only Inventory panel offers one selected-tool action for each of the
 three starting tools and both axe tiers. The owning client sends only the tool
 ID. The server reads the carried record and requires a visible same-world
 Workbench or Forge within 250 cm; damaged and zero-condition tools restore to
@@ -2301,31 +2302,27 @@ regressions, then run presentation-ownership, M5 documentation contracts,
 PowerShell parsing for changed scripts, `git diff --check`, and the 260-character
 path audit. Full scale/contrast/reopen rendering remains in the later M11
 acceptance pass. See `02-technical-architecture.md` for the local-state contract.
-## M12 Workbench Repair section
+## M12 Workbench Repair All action
 
-The Workbench context shell opens Craft by default and lets the owner switch to
-Repair without closing the accepted station context. Repair shows only that
-owner's carried repairable tools, with their authored level and current
-condition, through a separate selection widget from the Craft recipe state.
-Its station view shares the wood-backed content area with Craft and presents
-the tool list and selected-item detail in side-by-side framed panels.
-The free repair request reuses `ServerRepairTool` and submits only the selected
-tool ID. The server reads the owner's current tool record, validates a visible
-same-world Workbench or Forge within 250 cm, persists the repaired state, and
-publishes the result only to the owner. Full tools and invalid client-side
-selections do not dispatch a request; the server remains the authority for
-station, tool, and persistence rejection.
+The Workbench context shell opens Craft by default. Its `Repair All` button
+repairs every damaged carried tool directly without opening another menu or
+asking the owner to select tools. The client sends a payload-free server RPC;
+the server independently requires a visible same-world Workbench or Forge
+within 250 cm, validates the complete bounded carried-tool list, saves one
+candidate, and publishes repairs only after persistence succeeds. Full tools
+are an accepted no-op. Invalid records, missing stations, and save failures
+leave the carried list unchanged. Inventory's selected-tool repair remains a
+separate action.
 
-`Verify-Crafting.ps1` expects a `Workbench Repair scope` result from both host
-and client. It checks owner-pawn sourcing, tool-only rows, visible condition,
-selection independence from Craft, hidden unrelated controls, and that an
-invalid/stale context dispatches no repair request. `Verify-PresentationOwnership.ps1`
-also checks the owner-only carried-tool and repair-result replication contracts
-and the ID-only server route. The existing
-`Kalmala.Gameplay.Tools.LifecycleContract` covers server repair authority,
-unknown/full/invalid tools, missing stations, and rejected-state preservation.
-The rendered menu and physical controller review remain part of M12's final
-acceptance.
+`Verify-Crafting.ps1` expects a `Workbench Repair All action` result from both
+host and client. It checks the local station action is visible while the normal
+Craft view stays open, the selection menu is absent, and a stale/unavailable
+context sends no request. `Verify-PresentationOwnership.ps1` checks owner-only
+carried-tool and repair-result replication; the new station request contains no
+tool ID or condition. The existing `Kalmala.Gameplay.Tools.LifecycleContract`
+covers server repair authority, unknown/full/invalid tools, missing stations,
+and rejected-state preservation. Runtime host/client repair checks remain in
+M12 final acceptance.
 
 ## M12 Forge Craft section
 
@@ -2376,27 +2373,23 @@ the Bronze-to-Iron exchange, costs, and unchanged candidates after rejection.
 Run the full host/client and rendered checks only in M12 milestone-final
 verification.
 
-## M12 Forge Repair section
+## M12 Forge Repair All action
 
-The Forge shell adds a Repair section beside Craft and Upgrade. It reuses the
-owner-only carried-tool inspector and condition rows, with selection independent
-of both the recipe index and the Upgrade presentation. A repair request contains
-only the selected tool ID and uses the existing `ServerRepairTool` path; the
-server still reads the owner's current tool record and accepts only a visible
-same-world Workbench or Forge within 250 cm. Invalid or stale Forge context
-dispatches no request. The accepted Forge context remains bound to its exact
-actor and stable construction ID for UI lifetime, but the existing server
-repair rule may resolve another qualifying nearby station.
+The Forge shell keeps its Craft and Upgrade views and exposes the same direct
+`Repair All` action as the Workbench. It repairs all damaged carried tools at
+once, without an inspector or separate Repair page. The payload-free request
+reuses the server's bounded-list validation and atomic persistence path; the
+server confirms a visible same-world Workbench or Forge within 250 cm rather
+than trusting the client's selected Forge actor. A stale/unavailable UI context
+sends no request, and the server still rejects a request if station visibility
+or range has changed.
 
-`Verify-Crafting.ps1` requires `Forge Repair scope` from both host and client.
-Its prepared marker covers owner-only tool rows and condition, Repair tab
-routing, selection independence from Forge Upgrade and Craft, hidden unrelated
-operations, unavailable-context feedback, and no request after context expiry.
-`Verify-PresentationOwnership.ps1` checks that the client routes only a tool ID
-and that repair results remain owner-only. Existing
-`Kalmala.Gameplay.Tools.LifecycleContract` retains server authority, station,
-unknown/full/invalid-tool, and rejected-state coverage. Runtime and rendered
-host/client execution remain in M12 final verification.
+`Verify-Crafting.ps1` expects `Forge Repair All action` from both host and
+client. Its marker checks the action remains beside the Forge Craft/Upgrade
+controls, does not alter Forge Upgrade selection, has no Repair menu, and sends
+no request for an unavailable context. `Verify-PresentationOwnership.ps1`
+checks that repair results remain owner-only. Runtime host/client execution and
+rendered inspection remain in M12 final verification.
 
 ## M12 Cooking Rack menu
 
@@ -2781,9 +2774,11 @@ Workbench Craft and Forge Craft should use the same left list and right
 detail frame, with the station tabs at the top-left, station identity/status at
 the top-right, a clear gap below wrapped header status, bordered 64px
 requirement tiles, and a bottom Craft action.
-Workbench Repair and Forge Upgrade/Repair should retain their existing owner
-inspection and comparison behavior inside the matching framed content area.
-Check those station views at standard and high contrast. This revision's added Unreal
+Workbench Repair All and Forge Repair All should remain visible as direct
+station actions; the Forge Upgrade view retains its owner comparison and
+requirements inside the matching framed content area. No separate station
+repair page or per-tool selector should appear. Check those station views at
+standard and high contrast. This revision's added Unreal
 assertions and rendered/native checks remain deferred until rebuilding.
 
 The subsequent panel-fill/loading correction extends the above checks: require
@@ -2811,8 +2806,8 @@ context validation, RPCs, server authority, and saved data are unchanged.
 
 At the next applicable full UI verification, rebuild and run
 `Kalmala.UI.Theme.LocalPresentation` and `Kalmala.UI.Crafting.LocalBrowsing`,
-then review rendered Workbench Craft, Forge Craft/Upgrade/Repair, cooking
-stations, and Player Crafting at standard/high contrast and supported text
-scales. Confirm list navigation, selected/focused distinction, station status
-alignment, and requirement-icon borders. No build, automation, or rendered
-verification was run for this normal increment.
+then review rendered Workbench Craft with Repair All, Forge Craft/Upgrade with
+Repair All, cooking stations, and Player Crafting at standard/high contrast and
+supported text scales. Confirm list navigation, selected/focused distinction,
+station status alignment, and requirement-icon borders. No build, automation,
+or rendered verification was run for this normal increment.

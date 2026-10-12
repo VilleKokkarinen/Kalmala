@@ -295,14 +295,14 @@ bool FKalmalaToolLifecycleContract::BuildServerFreeRepair(
 
 bool FKalmalaToolLifecycleContract::BuildServerRepairAll(
     const bool bServerAuthority,
-    const bool bAtValidatedGrindingStone,
+    const bool bAtValidatedRepairStation,
     const TArray<FKalmalaToolState>& ToolStates,
     TArray<FKalmalaToolState>& OutRepairedStates,
     int32& OutRepairedCount)
 {
     OutRepairedStates = ToolStates;
     OutRepairedCount = 0;
-    if (!bServerAuthority || !bAtValidatedGrindingStone || ToolStates.Num() > MaxCarriedToolRecords) return false;
+    if (!bServerAuthority || !bAtValidatedRepairStation || ToolStates.Num() > MaxCarriedToolRecords) return false;
 
     TSet<FName> SeenToolIds;
     for (int32 Index = 0; Index < ToolStates.Num(); ++Index)

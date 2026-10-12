@@ -645,6 +645,29 @@ bool UKalmalaCraftingComponent::RepairAllToolsFromServer(
     Reason = TEXT("Need to interact with a visible same-world Grinding Stone within 2.5 m");
     if (!bAtGrindingStone) return false;
 
+    return CommitRepairAllToolsFromServer(TEXT("Grinding Stone"), Reason);
+}
+
+bool UKalmalaCraftingComponent::RepairAllToolsAtStationFromServer(FString& Reason)
+{
+    auto* Character = GetCharacter();
+    Reason = TEXT("Server authority required");
+    if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
+
+    const bool bAtRepairStation = FindNearbyWorkbench() != nullptr
+        || FindNearbyToolProgressionStation(TEXT("ForgeKit")) != nullptr;
+    Reason = TEXT("Need a visible same-world Workbench or Forge within 2.5 m");
+    if (!bAtRepairStation) return false;
+
+    return CommitRepairAllToolsFromServer(TEXT("Workbench or Forge"), Reason);
+}
+
+bool UKalmalaCraftingComponent::CommitRepairAllToolsFromServer(const TCHAR* StationName, FString& Reason)
+{
+    auto* Character = GetCharacter();
+    Reason = TEXT("Server authority required");
+    if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
+
     TArray<FKalmalaToolState> CandidateTools;
     int32 RepairedCount = 0;
     if (!FKalmalaToolLifecycleContract::BuildServerRepairAll(
@@ -671,8 +694,8 @@ bool UKalmalaCraftingComponent::RepairAllToolsFromServer(
     }
 
     Character->ForceNetUpdate();
-    Reason = FString::Printf(TEXT("Grinding Stone repaired %d carried tool%s to full condition at no cost"),
-        RepairedCount, RepairedCount == 1 ? TEXT("") : TEXT("s"));
+    Reason = FString::Printf(TEXT("%s repaired %d carried tool%s to full condition at no cost"),
+        StationName, RepairedCount, RepairedCount == 1 ? TEXT("") : TEXT("s"));
     return true;
 }
 
@@ -681,6 +704,14 @@ void UKalmalaCraftingComponent::ServerRepairTool_Implementation(const FName Tool
     if (!AcceptRequest()) return;
     FString Reason;
     const bool bAccepted = RepairToolFromServer(ToolId, Reason);
+    PublishResult(Reason, bAccepted);
+}
+
+void UKalmalaCraftingComponent::ServerRepairAllTools_Implementation()
+{
+    if (!AcceptRequest()) return;
+    FString Reason;
+    const bool bAccepted = RepairAllToolsAtStationFromServer(Reason);
     PublishResult(Reason, bAccepted);
 }
 
