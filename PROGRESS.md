@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed repair 2026-10-12 — Keyboard & Mouse columns
+
+- **Completed:** fixed the invalid two-argument `FSlateChildSize` constructor calls by setting each fill weight through `Value`. The controls render also showed that right-aligned buttons remained content-sized, so Keyboard & Mouse buttons now fill their row slots; Controller alignment remains unchanged.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `BACKLOG.md`, and this entry.
+- **Checks:** `Scripts/Render-Menu.ps1 -Menu settings.controls -BuildModules` compiled `KalmalaSettingsWidget.cpp` and linked KalmalaUI successfully, then rendered `settings.controls` at 1920×1080. Inspected the PNG and confirmed two balanced columns and full-width binding buttons. `git diff --check` passed. No full test suite or project-wide verification ran.
+- **Impact and authority:** local Settings presentation only; input mappings, gameplay/network authority, replicated state, and saved settings are unchanged.
+- **Limits:** broader project verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the streamlining task.
+
 ## User-directed increment 2026-10-12 — Two-column Keyboard & Mouse controls
 
 - **Completed:** removed the Keyboard & Mouse row-cycling hint and split its bindings into two equal-width columns. Each half has right-aligned labels and equal-width value buttons; the Keyboard & Mouse columns now use half-width cells, and Controller retains its single-column view and hint.

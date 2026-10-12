@@ -1376,10 +1376,14 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
         LeftColumn = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("ControlLeftColumn"));
         RightColumn = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("ControlRightColumn"));
         UHorizontalBoxSlot* LeftColumnSlot = Columns->AddChildToHorizontalBox(LeftColumn);
-        LeftColumnSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 1.0f));
+        FSlateChildSize LeftColumnSize(ESlateSizeRule::Fill);
+        LeftColumnSize.Value = 1.0f;
+        LeftColumnSlot->SetSize(LeftColumnSize);
         LeftColumnSlot->SetPadding(FMargin(0.0f, 0.0f, 8.0f, 0.0f));
         UHorizontalBoxSlot* RightColumnSlot = Columns->AddChildToHorizontalBox(RightColumn);
-        RightColumnSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 1.0f));
+        FSlateChildSize RightColumnSize(ESlateSizeRule::Fill);
+        RightColumnSize.Value = 1.0f;
+        RightColumnSlot->SetSize(RightColumnSize);
         RightColumnSlot->SetPadding(FMargin(8.0f, 0.0f, 0.0f, 0.0f));
     }
     UVerticalBoxSlot* ScrollSlot = ContentBox->AddChildToVerticalBox(Scroll);
@@ -1423,9 +1427,11 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
         else
         {
             ButtonSlot = Row->AddChildToHorizontalBox(Button);
-            ButtonSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 1.0f));
+            FSlateChildSize ButtonSize(ESlateSizeRule::Fill);
+            ButtonSize.Value = 1.0f;
+            ButtonSlot->SetSize(ButtonSize);
         }
-        ButtonSlot->SetHorizontalAlignment(HAlign_Right);
+        ButtonSlot->SetHorizontalAlignment(bGamepad ? HAlign_Right : HAlign_Fill);
         ButtonSlot->SetVerticalAlignment(VAlign_Center);
         ButtonSlot->SetPadding(FMargin(2.0f, 1.0f, 4.0f, 1.0f));
         ControlButtons.Add(Button);
