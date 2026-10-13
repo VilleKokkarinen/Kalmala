@@ -21,7 +21,7 @@ namespace
             FString ItemId;
             if (!Object.IsValid() || !Object->TryGetStringField(TEXT("ItemId"), ItemId)) return false;
             for (const TCHAR* Retired : { TEXT("ToolId"), TEXT("ToolSet"), TEXT("ToolKind"),
-                TEXT("Action"), TEXT("RequiredSkill") })
+                TEXT("Action"), TEXT("RequiredSkill"), TEXT("ItemCategory") })
             {
                 if (Object->HasField(Retired)) return false;
             }

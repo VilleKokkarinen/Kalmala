@@ -1,5 +1,12 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Remove redundant item categories
+
+- **Completed/files:** removed ItemCategory from all six equipment profile JSON files and ToolCatalogue.h/.cpp. Profile IsWeapon derives classification from validated Knife/Axe/Mace/Spear identity; InventoryInspectWidget.cpp and ItemDetailWidget.cpp use this method. GameCatalogueLoader.cpp rejects the retired authored property. Architecture/setup docs and BACKLOG updated.
+- **Checks:** parsed all catalogue JSON; confirmed 16 category-free profiles and unchanged remaining staged fields; checked derived 12-weapon/4-tool classification. Source inspection, git diff --check and staged MAX_PATH/scope checks passed. Full Unreal build/automation/UI verification deferred; normal increment, not milestone-final.
+- **Impact/authority:** Inventory categories/details remain correct without duplicated item metadata. Shared lifecycle, stats, harvesting and server authority remain unchanged; no RPC/save schema change. User item/reward edits and unrelated changes preserved and excluded.
+- **Next eligible task:** surface remaining tier acquisitions/stats/costs in station and Inventory Craft views.
+
 ## User-directed increment 2026-10-13 — Condensed equipment identity
 
 - **Completed/files:** six equipment JSON profile files replace ToolId with ItemId and remove ToolSet, ToolKind, Action and RequiredSkill. Manifest and GameCatalogueLoader.cpp use schema 12 and ItemId ordering. Loader derives existing runtime metadata from the validated tier/family identity before strict conversion. Architecture/setup docs and BACKLOG updated.

@@ -9,8 +9,7 @@
       "DamageBonuses": {
         "Crush": 26.0
       },
-      "MaterialTier": 1,
-      "ItemCategory": "Tool"
+      "MaterialTier": 1
     },
     {
       "ItemId": "BronzePick",
@@ -21,8 +20,7 @@
       "DamageBonuses": {
         "Crush": 38.0
       },
-      "MaterialTier": 2,
-      "ItemCategory": "Tool"
+      "MaterialTier": 2
     },
     {
       "ItemId": "IronPick",
@@ -33,8 +31,7 @@
       "DamageBonuses": {
         "Crush": 52.0
       },
-      "MaterialTier": 3,
-      "ItemCategory": "Tool"
+      "MaterialTier": 3
     }
   ]
 }

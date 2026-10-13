@@ -68,9 +68,6 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     FString ToolKind;
 
     UPROPERTY(EditAnywhere)
-    FString ItemCategory;
-
-    UPROPERTY(EditAnywhere)
     FString Action;
 
     UPROPERTY(EditAnywhere)
@@ -88,6 +85,13 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
 
     UPROPERTY(EditAnywhere)
     FKalmalaDamageChannels DamageBonuses;
+
+    /** Classification follows the validated item family, without an authored category field. */
+    bool IsWeapon() const
+    {
+        return ToolKind.EndsWith(TEXT("Knife")) || ToolKind.EndsWith(TEXT("Axe"))
+            || ToolKind.EndsWith(TEXT("Mace")) || ToolKind.EndsWith(TEXT("Spear"));
+    }
 
     bool GetLevelStats(int32 ToolLevel, const FKalmalaToolRewardData& Reward, FKalmalaToolLevelStats& OutStats) const;
 };

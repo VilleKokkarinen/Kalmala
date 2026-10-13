@@ -193,7 +193,7 @@ namespace
     {
         if (!Row.bCarriedTool) return 1;
         const auto* Profile = UKalmalaToolCatalogue::Get()->FindProfile(Row.Id);
-        return Profile && Profile->ItemCategory == TEXT("Weapon") ? 3 : 2;
+        return Profile && Profile->IsWeapon() ? 3 : 2;
     }
 }
 
@@ -205,7 +205,7 @@ void UKalmalaInventoryInspectWidget::Refilter()
     {
         const FKalmalaToolProfileData* Profile = Row.bCarriedTool
             ? UKalmalaToolCatalogue::Get()->FindProfile(Row.Id) : nullptr;
-        const bool bWeapon = Profile && Profile->ItemCategory == TEXT("Weapon");
+        const bool bWeapon = Profile && Profile->IsWeapon();
         const bool bCategoryMatch = Category == 0 || (Category == 1 && !Row.bCarriedTool)
             || (Category == 2 && Row.bCarriedTool && !bWeapon) || (Category == 3 && bWeapon);
         if ((!bAllowToolFilter || bCategoryMatch)

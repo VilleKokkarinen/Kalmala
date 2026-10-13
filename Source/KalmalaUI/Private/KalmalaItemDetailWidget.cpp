@@ -35,7 +35,7 @@ FString UKalmalaItemDetailWidget::DescribeCarriedTool(FName Id, const FString& V
     else if (Id == TEXT("ConstructionHammer")) Description = TEXT("A hand hammer for placing camp structures.");
 
     const FKalmalaToolProfileData* Profile = UKalmalaToolCatalogue::Get()->FindProfile(Id);
-    FString Text = FString(Profile && Profile->ItemCategory == TEXT("Weapon")
+    FString Text = FString(Profile && Profile->IsWeapon()
         ? TEXT("Weapon\n\n") : TEXT("Tool\n\n")) + Description;
     if (!VisibleState.IsEmpty()) Text += TEXT("\n\n") + VisibleState;
     return Text;

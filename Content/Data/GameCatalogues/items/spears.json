@@ -8,8 +8,7 @@
       "MaxDurability": 36,
       "DamageBonuses": {
         "Stab": 42.0
-      },
-      "ItemCategory": "Weapon"
+      }
     },
     {
       "ItemId": "BronzeSpear",
@@ -19,8 +18,7 @@
       "MaxDurability": 90,
       "DamageBonuses": {
         "Stab": 58.0
-      },
-      "ItemCategory": "Weapon"
+      }
     },
     {
       "ItemId": "IronSpear",
@@ -30,8 +28,7 @@
       "MaxDurability": 150,
       "DamageBonuses": {
         "Stab": 76.0
-      },
-      "ItemCategory": "Weapon"
+      }
     }
   ]
 }
