@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Remove empty recipe skill requirements:** omit None/0 skill properties from all authored acquisition/upgrade JSON and default them in the loader. Lightweight checks passed; Unreal verification deferred.
+
 - [x] **2026-10-13 — Separate axe/pick resource families:** enforce family before material tier; regress all axe/pick tiers against wood/ore sources and high item levels. Lightweight checks passed; Unreal verification deferred.
 
 - [ ] **2026-10-13 — Attack-driven tree harvesting:** axes swing at trees, fell them into 3D trunks, and break trunks into collectible wood.

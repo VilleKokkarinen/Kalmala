@@ -6,8 +6,6 @@
       "ToolId": "BronzeSpear",
       "RequiredStation": "Workbench",
       "RequiredStationLevel": 1,
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
       "Ingredients": [
         {
           "ItemId": "Wood",
@@ -30,8 +28,6 @@
       "ToolId": "IronSpear",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
       "Ingredients": [
         {
           "ItemId": "Iron",

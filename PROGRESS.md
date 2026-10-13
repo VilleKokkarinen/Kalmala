@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Implicit zero recipe skill requirements
+
+- **Completed/files:** removed RequiredSkill None/RequiredSkillLevel 0 pairs from all 11 acquisition/upgrade-cost entries across recipes/axes,knives,maces,pickaxes,spears,upgrades.json. GameCatalogueLoader.cpp supplies missing None/0 defaults before strict conversion. Architecture/setup docs and BACKLOG updated.
+- **Checks:** parsed all Data JSON; checked no authored RequiredSkill/RequiredSkillLevel fields remain, reconstructed defaults and compared all six recipe files with HEAD for identical effective content. Inspected defaults before conversion and retained server validation; git diff --check and staged MAX_PATH/scope checks passed.
+- **Impact/authority:** no repeated zero skill parameters in recipes; crafting/upgrade eligibility, material/station checks and server authority remain unchanged. No item stats, acquisition costs, client requests or save schemas changed. Harvesting skill runtime fields remain separate.
+- **Verification/limitations:** normal user-directed increment; full Unreal build/automation/runtime verification deferred. Existing user item/reward edits and unrelated files preserved and excluded.
+- **Next eligible task:** convert decorative generated forest into individually attackable sources with compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-13 — Resource-family isolation
 
 - **Completed/files:** ToolLifecycleContract.h/.cpp adds an explicit Kind-to-resource-family gate to the shared suitability check before material-tier comparison. Axe tree damage and mining interaction already consume that shared check; axe/pick family mismatches cannot reach damage, condition, material grant or depletion mutation. Added ResourceFamilyGateTest.cpp and architecture/setup docs; BACKLOG updated.

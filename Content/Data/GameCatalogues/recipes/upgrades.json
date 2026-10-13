@@ -5,8 +5,6 @@
       "DisplayName": "Bronze Axe",
       "ToolId": "BronzeAxe",
       "RequiredStation": "Forge",
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
       "Ingredients": [
         {
           "ItemId": "Lightwood",

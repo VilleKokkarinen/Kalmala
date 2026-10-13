@@ -448,6 +448,18 @@ namespace
             }
         }
 
+        // Zero skill requirements are implicit for acquisitions and upgrade-cost records.
+        for (const TArray<TSharedPtr<FJsonValue>>* Values : { &ToolRecipeValues, &ToolUpgradeValues })
+        {
+            for (const TSharedPtr<FJsonValue>& Value : *Values)
+            {
+                const TSharedPtr<FJsonObject> Object = Value->AsObject();
+                if (!Object.IsValid()) return false;
+                if (!Object->HasField(TEXT("RequiredSkill"))) Object->SetStringField(TEXT("RequiredSkill"), TEXT("None"));
+                if (!Object->HasField(TEXT("RequiredSkillLevel"))) Object->SetNumberField(TEXT("RequiredSkillLevel"), 0.0);
+            }
+        }
+
         TArray<FKalmalaItemDefinition> ParsedItems;
         TArray<FKalmalaRecipe> ParsedRecipes;
         TArray<FKalmalaToolProfileData> ParsedToolProfiles;

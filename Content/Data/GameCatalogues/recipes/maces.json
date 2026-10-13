@@ -6,8 +6,6 @@
       "ToolId": "BronzeMace",
       "RequiredStation": "Workbench",
       "RequiredStationLevel": 1,
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
       "Ingredients": [
         {
           "ItemId": "Wood",
@@ -30,8 +28,6 @@
       "ToolId": "IronMace",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
       "Ingredients": [
         {
           "ItemId": "Iron",
