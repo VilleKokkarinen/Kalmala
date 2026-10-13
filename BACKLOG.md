@@ -139,7 +139,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
   - [x] Establish the Stone starting set with per-item combat stats and a Stone Spear identity/icon; keep harvesting access tied to each existing item identity.
   - [x] Add Bronze Knife, Axe, Pick, and Spear stats and their matching acquisition recipes; retain Bronze Axe's same-item level upgrade.
   - [x] Add Iron Knife, Axe, Pick, and Spear stats and level-one Forge recipes; make the mire bog-iron vein an Iron source for Bronze-tier mining tools or better, and preserve independent item identity instead of Bronze-to-Iron upgrades.
-  - [ ] Expose all new tier gear and stats through the shared crafting and inventory views with canonical themed icons.
+  - [x] Add unique imported 64×64 canonical icons for the Bronze and Iron Knife, Pick, and Spear identities; preserve the existing Stone/Axe icons and extend canonical coverage.
+  - [ ] Surface all Stone, Bronze, and Iron tool acquisitions, authored stats, and material costs in station and Inventory Craft views, with crafting routed through the server-authoritative tool progression action.
 
 - [x] **2026-10-11 — Fix Build card fill and visible icon scale:** prevent the shared selectable-fill animation from overwriting the standalone Build menu's brown card overlay, and compensate for transparent margins in the 64×64 catalogue canvases while preserving icon proportions. Source inspection and `git diff --check` only; build/render verification deferred.
 

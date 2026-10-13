@@ -48,3 +48,9 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 12,C,IronAxe,Iron axe,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
 12,C,ConstructionHammer,Construction hammer,tool,none,none,CarriedTool;ToolDetail;Repair;BuildRequirement,carried_tool
 13,D,StoneSpear,Stone spear,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
+14,E,BronzeKnife,Bronze knife,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
+15,E,BronzePick,Bronze pick,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
+16,E,BronzeSpear,Bronze spear,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
+17,E,IronKnife,Iron knife,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
+18,E,IronPick,Iron pick,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
+19,E,IronSpear,Iron spear,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool

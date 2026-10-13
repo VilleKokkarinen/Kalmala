@@ -375,7 +375,7 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
             TestTrue(TEXT("Direct construction output is a supported buildable"),
                 UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput));
     }
-    TestEqual(TEXT("Canonical item, tool, and construction identity count"), CheckedIds.Num(), 53);
+    TestEqual(TEXT("Canonical item, tool, and construction identity count"), CheckedIds.Num(), 59);
     static const TPair<FName, FName> Aliases[] = {
         {TEXT("HearthRing"), TEXT("CampfireKit")}, {TEXT("Workbench"), TEXT("WorkbenchKit")},
         {TEXT("Forge"), TEXT("ForgeKit")}, {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit")},
