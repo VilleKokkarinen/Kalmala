@@ -185,7 +185,7 @@ private:
     UFUNCTION()
     void HandleMasterVolumeChanged(float Value);
     UFUNCTION()
-    void HandleAudioMuteClicked();
+    void HandleAudioMuteChanged(bool bIsChecked);
     UFUNCTION()
     void HandleAmbientVolumeChanged(float Value);
     UFUNCTION()
@@ -242,7 +242,9 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<USlider> MasterVolumeSlider;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> AudioMuteLabel;
+    TObjectPtr<UCheckBox> AudioMuteCheckBox;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> AudioMuteCheckMarkLabel;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> AmbientVolumeValueLabel;
     UPROPERTY(Transient)

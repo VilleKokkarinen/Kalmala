@@ -1037,10 +1037,11 @@ input. Custom dimensions accept whole pixels from 320–7680 wide and 240–4320
 high, and apply through the adjacent button. V-Sync uses the shared stone
 checkbox and window mode uses the shared dropdown.
 
-The Audio tab uses a focusable master-volume slider and separate mute/restore
-button. Ambient, Music, and Interaction/Combat Feedback each use a focusable
-0–100% slider with a live percentage label. Values save in the local
-`GameUserSettings` config; slider writes are coalesced until 350 ms after the
+The Audio tab uses the shared stone checkbox to mute or restore audio, followed
+by a focusable master-volume slider. Ambient, Music, and Interaction/Combat
+Feedback each use a focusable 0–100% slider with a live percentage label.
+Values save in the local `GameUserSettings` config; slider writes are coalesced
+until 350 ms after the
 last change or flushed when the menu closes. Master volume applies the engine's
 primary output-volume multiplier at local-player initialization. The focused
 `Kalmala.UI.Settings.LocalPresentation` automation checks bounds, config
@@ -1081,9 +1082,9 @@ its selected tab as the page label without repeating a page heading below the
 tab row. A shared transparent medieval knotwork ornament overlays a fine
 divider between the tabs and page content, followed by a 10-unit gap. High
 contrast suppresses the ornament and uses a geometric divider. Footer text is
-omitted. Audio places
-Mute audio above the grouped volume sliders. The five Options tabs fill the
-content width in equal slots with matching horizontal gutters. The selected
+omitted. Audio places its Mute audio checkbox above the grouped volume sliders.
+The five Options tabs fill the content width in equal slots with matching
+horizontal gutters. The selected
 Options tab is highlighted without a text marker. Each right-aligned label
 sits beside a binding button within its half of the panel, using balanced
 horizontal padding and compact vertical row spacing.

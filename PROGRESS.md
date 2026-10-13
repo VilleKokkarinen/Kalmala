@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Use the shared checkbox for Audio mute
+
+- **Completed:** replaced the Audio page's Mute/Restore button with the shared stone checkbox row labeled “Mute audio.” Checked means muted; unchecking restores the saved master level. The checkbox stays above the grouped volume sliders and receives initial keyboard focus.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.audio -BuildModules -TimeoutSeconds 300 -Output C:\Users\Ville\AppData\Local\Temp\kmmenu-audio-checkbox.png` compiled the affected modules and rendered Audio successfully; inspected the preview to confirm the shared checkbox row above the grouped sliders. `git diff --check` passed, and source search confirmed the old button handler and label references are gone. No automation suite ran; full verification remains deferred.
+- **Impact and authority:** local audio preference/UI only; mute and restore continue through the existing local master-volume config and output multiplier. No RPC, replicated state, or gameplay authority changes.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Audio playback and preference round-trip were not exercised at runtime.
+- **Next eligible work:** continue auditing `Verify-*` entrypoints against active acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Set Graphics render distance in meters
 
 - **Completed:** changed the Graphics render-distance slider to 17 values from 64 m through 576 m in 32 m increments. Values persist locally and cap registered local-world primitive components' maximum draw distance, preserving shorter authored limits. Unreal's view-distance scalability is kept at its full setting so the meter cap remains the controlling distance.

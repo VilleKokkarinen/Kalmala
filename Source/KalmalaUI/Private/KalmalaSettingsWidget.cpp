@@ -1665,9 +1665,12 @@ void UKalmalaSettingsWidget::ShowAudioTab()
     while (ContentBox->GetChildrenCount() > 4) ContentBox->RemoveChildAt(4);
 
     UVerticalBox* SliderGroup = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("AudioSliderGroup"));
-    UButton* Mute = AddButton(ContentBox, FText::GetEmpty(), TEXT("AudioMuteButton"));
-    Mute->OnClicked.AddDynamic(this, &ThisClass::HandleAudioMuteClicked);
-    AudioMuteLabel = Cast<UTextBlock>(Mute->GetContent());
+    const FSettingsCheckBoxWidgets Mute = AddSettingsCheckBoxRow(*WidgetTree, *ContentBox,
+        TEXT("Mute audio"), TEXT("AudioMuteCheckBox"), IsAudioMuted(),
+        FText::FromString(TEXT("Mute or restore audio output.")), GetTextScalePercent(), GetContrastMode());
+    AudioMuteCheckBox = Mute.CheckBox;
+    AudioMuteCheckMarkLabel = Mute.CheckMark;
+    AudioMuteCheckBox->OnCheckStateChanged.AddDynamic(this, &ThisClass::HandleAudioMuteChanged);
 
     ContentBox->AddChildToVerticalBox(SliderGroup);
     const FSettingsSliderWidgets Master = AddSettingsSliderRow(*WidgetTree, *SliderGroup,
@@ -1710,8 +1713,8 @@ void UKalmalaSettingsWidget::ShowAudioTab()
     InteractionCombatVolumeSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleInteractionCombatVolumeChanged);
 
     UpdateAudioLabels();
-    MasterVolumeSlider->SetUserFocus(GetOwningPlayer());
-    MasterVolumeSlider->SetKeyboardFocus();
+    AudioMuteCheckBox->SetUserFocus(GetOwningPlayer());
+    AudioMuteCheckBox->SetKeyboardFocus();
 }
 
 void UKalmalaSettingsWidget::ShowKeyboardAndMouseTab()
@@ -2040,9 +2043,13 @@ void UKalmalaSettingsWidget::UpdateAudioLabels()
     const float MasterValue = GetStoredMasterVolume();
     if (MasterVolumeSlider != nullptr) MasterVolumeSlider->SetValue(MasterValue);
     if (MasterVolumeValueLabel != nullptr) MasterVolumeValueLabel->SetText(FText::AsPercent(MasterValue));
-    if (AudioMuteLabel != nullptr)
+    if (AudioMuteCheckBox != nullptr)
     {
-        AudioMuteLabel->SetText(FText::FromString(IsAudioMuted() ? TEXT("Restore audio") : TEXT("Mute audio")));
+        AudioMuteCheckBox->SetIsChecked(IsAudioMuted());
+    }
+    if (AudioMuteCheckMarkLabel != nullptr)
+    {
+        AudioMuteCheckMarkLabel->SetText(FText::FromString(IsAudioMuted() ? TEXT("✓") : TEXT("")));
     }
 
     const auto UpdateCategory = [](USlider* Slider, UTextBlock* ValueLabel, const EKalmalaAudioCategory Category)
@@ -2354,8 +2361,9 @@ void UKalmalaSettingsWidget::HandleMasterVolumeChanged(const float Value)
     UpdateAudioLabels();
 }
 
-void UKalmalaSettingsWidget::HandleAudioMuteClicked()
+void UKalmalaSettingsWidget::HandleAudioMuteChanged(const bool bIsChecked)
 {
+    if (bUpdatingAudioControls || bIsChecked == IsAudioMuted()) return;
     ToggleAudioMute();
     UpdateAudioLabels();
 }
