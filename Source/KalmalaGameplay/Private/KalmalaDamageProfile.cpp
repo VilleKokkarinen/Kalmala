@@ -1,16 +1,16 @@
 #include "KalmalaDamageProfile.h"
 
-bool FKalmalaDamageChannels::IsValid(const float Maximum) const
+bool FKalmalaDamageChannels::IsValid(const float Maximum, const float Minimum) const
 {
-    return FMath::IsFinite(Maximum) && Maximum >= 0.0f
-        && FMath::IsFinite(Slash) && Slash >= 0.0f && Slash <= Maximum
-        && FMath::IsFinite(Stab) && Stab >= 0.0f && Stab <= Maximum
-        && FMath::IsFinite(Crush) && Crush >= 0.0f && Crush <= Maximum
-        && FMath::IsFinite(Pierce) && Pierce >= 0.0f && Pierce <= Maximum
-        && FMath::IsFinite(Fire) && Fire >= 0.0f && Fire <= Maximum
-        && FMath::IsFinite(Water) && Water >= 0.0f && Water <= Maximum
-        && FMath::IsFinite(Holy) && Holy >= 0.0f && Holy <= Maximum
-        && FMath::IsFinite(Poison) && Poison >= 0.0f && Poison <= Maximum;
+    return FMath::IsFinite(Maximum) && FMath::IsFinite(Minimum) && Maximum >= Minimum
+        && FMath::IsFinite(Slash) && Slash >= Minimum && Slash <= Maximum
+        && FMath::IsFinite(Stab) && Stab >= Minimum && Stab <= Maximum
+        && FMath::IsFinite(Crush) && Crush >= Minimum && Crush <= Maximum
+        && FMath::IsFinite(Pierce) && Pierce >= Minimum && Pierce <= Maximum
+        && FMath::IsFinite(Fire) && Fire >= Minimum && Fire <= Maximum
+        && FMath::IsFinite(Water) && Water >= Minimum && Water <= Maximum
+        && FMath::IsFinite(Holy) && Holy >= Minimum && Holy <= Maximum
+        && FMath::IsFinite(Poison) && Poison >= Minimum && Poison <= Maximum;
 }
 
 float FKalmalaDamageChannels::Total() const
@@ -62,7 +62,7 @@ FString FKalmalaDamageChannels::Describe() const
 
 bool FKalmalaResistanceProfile::IsValid() const
 {
-    return FMath::IsFinite(Armor) && Armor >= 0.0f && Armor <= 100000.0f && Reductions.IsValid();
+    return FMath::IsFinite(Armor) && Armor >= 0.0f && Armor <= 100000.0f && Reductions.IsValid(100000.0f, -100000.0f);
 }
 
 bool FKalmalaResistanceProfile::Resolve(const FKalmalaDamageChannels& Incoming, float& OutDamage) const
@@ -70,14 +70,14 @@ bool FKalmalaResistanceProfile::Resolve(const FKalmalaDamageChannels& Incoming, 
     OutDamage = 0.0f;
     if (!IsValid() || !Incoming.IsValid()) return false;
     float Remaining = 0.0f;
-    Remaining += FMath::Max(0.0f, Incoming.Slash - Reductions.Slash);
-    Remaining += FMath::Max(0.0f, Incoming.Stab - Reductions.Stab);
-    Remaining += FMath::Max(0.0f, Incoming.Crush - Reductions.Crush);
-    Remaining += FMath::Max(0.0f, Incoming.Pierce - Reductions.Pierce);
-    Remaining += FMath::Max(0.0f, Incoming.Fire - Reductions.Fire);
-    Remaining += FMath::Max(0.0f, Incoming.Water - Reductions.Water);
-    Remaining += FMath::Max(0.0f, Incoming.Holy - Reductions.Holy);
-    Remaining += FMath::Max(0.0f, Incoming.Poison - Reductions.Poison);
+    if (Incoming.Slash > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Slash - Reductions.Slash);
+    if (Incoming.Stab > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Stab - Reductions.Stab);
+    if (Incoming.Crush > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Crush - Reductions.Crush);
+    if (Incoming.Pierce > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Pierce - Reductions.Pierce);
+    if (Incoming.Fire > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Fire - Reductions.Fire);
+    if (Incoming.Water > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Water - Reductions.Water);
+    if (Incoming.Holy > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Holy - Reductions.Holy);
+    if (Incoming.Poison > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Poison - Reductions.Poison);
     OutDamage = FMath::Max(0.0f, Remaining - Armor);
     return true;
 }

@@ -33,7 +33,7 @@ struct KALMALAGAMEPLAY_API FKalmalaDamageChannels
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Damage")
     float Poison = 0.0f;
 
-    bool IsValid(float Maximum = 100000.0f) const;
+    bool IsValid(float Maximum = 100000.0f, float Minimum = 0.0f) const;
     float Total() const;
     FKalmalaDamageChannels Added(const FKalmalaDamageChannels& Other) const;
     FKalmalaDamageChannels Scaled(float Multiplier) const;
@@ -48,6 +48,7 @@ struct KALMALAGAMEPLAY_API FKalmalaResistanceProfile
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Resistance")
     float Armor = 0.0f;
 
+    /** Negative channel reductions are flat weaknesses; inactive channels add no damage. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Resistance")
     FKalmalaDamageChannels Reductions;
 

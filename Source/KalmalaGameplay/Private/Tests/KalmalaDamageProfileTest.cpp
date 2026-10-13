@@ -53,6 +53,21 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     Defenses.Armor = std::numeric_limits<float>::infinity();
     TestFalse(TEXT("Nonfinite defenses fail closed"), Defenses.Resolve(Combined, Resolved));
 
+    FKalmalaDamageChannels WeaknessHit;
+    WeaknessHit.Slash = 10.0f;
+    FKalmalaResistanceProfile Weakness;
+    Weakness.Reductions.Slash = -5.0f;
+    Weakness.Reductions.Fire = -100.0f;
+    Weakness.Armor = 2.0f;
+    TestTrue(TEXT("Negative resistance is a valid authored weakness"), Weakness.Resolve(WeaknessHit, Resolved));
+    TestEqual(TEXT("Slash weakness adds flat damage before armor; absent fire adds none"), Resolved, 13.0f);
+    TestTrue(TEXT("An empty hit remains empty despite weaknesses"), Weakness.Resolve(FKalmalaDamageChannels(), Resolved));
+    TestEqual(TEXT("Weaknesses cannot create damage from inactive channels"), Resolved, 0.0f);
+    Weakness.Reductions.Slash = -100001.0f;
+    TestFalse(TEXT("Excessively negative resistance fails closed"), Weakness.Resolve(WeaknessHit, Resolved));
+    Weakness.Reductions.Slash = std::numeric_limits<float>::quiet_NaN();
+    TestFalse(TEXT("Nonfinite weakness fails closed"), Weakness.Resolve(WeaknessHit, Resolved));
+
     const FKalmalaDamageChannels Axe = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("BronzeAxe"), 1, TEXT("Basic"));
     TestEqual(TEXT("Bronze Axe level one has a slash bonus"), Axe.Slash, 50.0f);
     TestEqual(TEXT("Bronze Axe upgrade changes the slash bonus"),
