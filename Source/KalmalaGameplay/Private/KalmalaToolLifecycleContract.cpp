@@ -246,21 +246,28 @@ bool FKalmalaToolLifecycleContract::IsKnownToolTier(const EKalmalaToolTier Tier)
 
 EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(const EKalmalaToolKind Tool)
 {
+    const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
+    if (Catalogue)
+    {
+        for (const FKalmalaToolProfileData& Profile : Catalogue->Profiles)
+        {
+            if (ParseToolKind(Profile.ToolKind) == Tool
+                && (Profile.Action == TEXT("Woodcutting") || Profile.Action == TEXT("Mining")))
+            {
+                return static_cast<EKalmalaToolTier>(Profile.MaterialTier);
+            }
+        }
+    }
+
     switch (Tool)
     {
     case EKalmalaToolKind::StoneKnife:
-    case EKalmalaToolKind::StoneAxe:
-    case EKalmalaToolKind::StonePick:
     case EKalmalaToolKind::StoneMace:
     case EKalmalaToolKind::StoneSpear: return EKalmalaToolTier::Stone;
-    case EKalmalaToolKind::BronzeAxe:
     case EKalmalaToolKind::BronzeKnife:
-    case EKalmalaToolKind::BronzePick:
     case EKalmalaToolKind::BronzeMace:
     case EKalmalaToolKind::BronzeSpear: return EKalmalaToolTier::Bronze;
-    case EKalmalaToolKind::IronAxe:
     case EKalmalaToolKind::IronKnife:
-    case EKalmalaToolKind::IronPick:
     case EKalmalaToolKind::IronMace:
     case EKalmalaToolKind::IronSpear: return EKalmalaToolTier::Iron;
     default: return EKalmalaToolTier::None;
@@ -270,7 +277,7 @@ EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(const EKalmalaToolKi
 EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(
     const EKalmalaToolKind Tool, const int32)
 {
-    // A tool's harvesting tier comes from its item identity; progression level only affects item stats.
+    // A tool's material tier is fixed by its profile; progression level only affects item stats.
     return GetToolTier(Tool);
 }
 

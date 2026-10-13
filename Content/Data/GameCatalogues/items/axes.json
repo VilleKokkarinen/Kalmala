@@ -12,7 +12,8 @@
       "MaxDurability": 24,
       "DamageBonuses": {
         "Slash": 34.0
-      }
+      },
+      "MaterialTier": 1
     },
     {
       "ToolId": "BronzeAxe",
@@ -26,7 +27,8 @@
       "MaxDurability": 100,
       "DamageBonuses": {
         "Slash": 50.0
-      }
+      },
+      "MaterialTier": 2
     },
     {
       "ToolId": "IronAxe",
@@ -40,7 +42,8 @@
       "MaxDurability": 180,
       "DamageBonuses": {
         "Slash": 72.0
-      }
+      },
+      "MaterialTier": 3
     }
   ]
 }

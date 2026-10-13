@@ -90,6 +90,8 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             || !IsOneOf(Profile.Action, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"), TEXT("Mining")})
             || !IsOneOf(Profile.RequiredSkill, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"),
                 TEXT("Mining"), TEXT("Crafting"), TEXT("Cooking"), TEXT("Survival")})
+            || ((Profile.Action == TEXT("Woodcutting") || Profile.Action == TEXT("Mining"))
+                ? (Profile.MaterialTier < 1 || Profile.MaterialTier > 3) : Profile.MaterialTier != 0)
             || Profile.MinimumSkillLevel < 1 || Profile.MinimumSkillLevel > 10
             || Profile.MaxDurability < 1 || Profile.MaxDurability > 1000
             || !Profile.DamageBonuses.IsValid(1000.0f))

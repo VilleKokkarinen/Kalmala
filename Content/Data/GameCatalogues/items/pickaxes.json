@@ -12,7 +12,8 @@
       "MaxDurability": 20,
       "DamageBonuses": {
         "Crush": 26.0
-      }
+      },
+      "MaterialTier": 1
     },
     {
       "ToolId": "BronzePick",
@@ -26,7 +27,8 @@
       "MaxDurability": 90,
       "DamageBonuses": {
         "Crush": 38.0
-      }
+      },
+      "MaterialTier": 2
     },
     {
       "ToolId": "IronPick",
@@ -40,7 +42,8 @@
       "MaxDurability": 160,
       "DamageBonuses": {
         "Crush": 52.0
-      }
+      },
+      "MaterialTier": 3
     }
   ]
 }

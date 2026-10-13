@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Axe and pickaxe material tiers
+
+- **Completed/files:** axes.json and pickaxes.json now author MaterialTier 1/2/3 for Stone/Bronze/Iron. ToolCatalogue.h/.cpp defines and validates the property; GameCatalogueLoader.cpp defaults non-harvesting profiles to zero while requiring harvesting profiles to author a tier. ToolLifecycleContract.cpp resolves axe/pick resource tiers from the catalogue instead of hard-coded identity. Architecture/setup docs and BACKLOG updated.
+- **Checks:** JSON parsed; all six tier assignments and unchanged existing profile data inspected; server lookup/validation and level independence inspected. git diff --check, staged scope and MAX_PATH checks passed. Full Unreal build/automation/runtime verification deferred; normal user-directed increment, not milestone-final.
+- **Impact/authority:** existing resource access remains Stone/Bronze/Iron; editing the authoritative profile changes maximum material tier, with action/skill/condition/resource checks still server-owned. Level rewards never alter MaterialTier. No RPC, saved fields or new resource types. Other profiles retain existing tier behavior and omit the new property.
+- **Limitations:** supported material tiers remain 1–3. User weapon stats/reward changes and unrelated existing edits are preserved and excluded from commit.
+- **Next eligible task:** surface remaining Stone/Bronze/Iron acquisitions, stats and costs in station and Inventory Craft views.
+
 ## User-directed increment 2026-10-13 — Complete weapon-family rewards
 
 - **Completed/files:** tools/LevelUpRewards.json now covers all 15 weapon identities in five non-overlapping family groups. Axes retain +50 durability/+5 Slash; knives add +50/+5 Slash/+5 Stab, pickaxes and maces +50/+5 Crush/+5 Pierce, spears +50/+5 Stab. Chosen defaults extend the existing axe gains; shared mace gains introduce Pierce on leveled Stone Maces. User-filled base profiles remain untouched.

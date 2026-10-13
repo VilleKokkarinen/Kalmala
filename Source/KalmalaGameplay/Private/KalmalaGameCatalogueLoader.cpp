@@ -366,6 +366,13 @@ namespace
             {
                 return false;
             }
+            FString Action;
+            ProfileObject->TryGetStringField(TEXT("Action"), Action);
+            if (Action != TEXT("Woodcutting") && Action != TEXT("Mining")
+                && !ProfileObject->HasField(TEXT("MaterialTier")))
+            {
+                ProfileObject->SetNumberField(TEXT("MaterialTier"), 0.0);
+            }
             for (const TCHAR* Channel : { TEXT("Slash"), TEXT("Stab"), TEXT("Crush"), TEXT("Pierce"),
                 TEXT("Fire"), TEXT("Water"), TEXT("Holy"), TEXT("Poison") })
             {

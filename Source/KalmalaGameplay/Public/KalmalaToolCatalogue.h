@@ -76,6 +76,10 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     UPROPERTY(EditAnywhere)
     int32 MinimumSkillLevel = 1;
 
+    /** Maximum resource material tier; required for axes/pickaxes, zero for other profiles. */
+    UPROPERTY(EditAnywhere)
+    int32 MaterialTier = 0;
+
     UPROPERTY(EditAnywhere)
     int32 MaxDurability = 0;
 
