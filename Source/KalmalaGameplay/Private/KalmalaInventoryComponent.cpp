@@ -70,8 +70,8 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
     }
     bPassed &= Materials.Num() == 3;
 
-    // Exercise the generated-source tool transaction, including a full-pack
-    // rejection that must preserve condition and leave the node available.
+    // Exercise axe attacks followed by the generated wood pickup transaction;
+    // a full-pack rejection preserves the drop and spends no further condition.
     FActorSpawnParameters Parameters;
     Parameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
     auto* ToolNode = Character->GetWorld()->SpawnActor<AKalmalaHarvestNode>(
@@ -98,11 +98,23 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
         const int32 FullWood = Inventory->GetQuantity(TEXT("Wood"));
         const bool bWrongToolRejected = !ToolNode->InteractWithToolIntentFromServer(
             Character, 0.0f, 250.0f, TEXT("StonePick"), static_cast<uint8>(EKalmalaToolAction::Mining));
+        Inventory->SynchronizeGridFromServer();
+        const int32 AxeSlot = Inventory->GetGridSlots().IndexOfByKey(FName(TEXT("StoneAxe")));
+        if (AxeSlot >= 0 && AxeSlot < UKalmalaInventoryComponent::Columns) Inventory->ServerUseHotbarSlot(AxeSlot);
+        const FKalmalaDamageChannels AxeDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
+            TEXT("StoneAxe"), Character->GetCarriedToolLevel(TEXT("StoneAxe")), TEXT("Basic"));
+        int32 AcceptedHits = 0;
+        while (!ToolNode->IsWoodDrop() && AcceptedHits < 30)
+        {
+            if (!ToolNode->ApplyAxeDamageFromServer(Character, AxeDamage)) break;
+            ++AcceptedHits;
+        }
+        bPassed &= ToolNode->IsWoodDrop() && Inventory->GetQuantity(TEXT("Wood")) == FullWood;
         const bool bFullPackRejected = !ToolNode->InteractWithToolIntentFromServer(
             Character, 0.0f, 250.0f, TEXT("StoneAxe"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
         bPassed &= bWrongToolRejected && bFullPackRejected && !ToolNode->IsHarvested()
             && ToolHarvestEvents == 0 && Inventory->GetQuantity(TEXT("Wood")) == FullWood
-            && Character->GetToolDurability(TEXT("StoneAxe")) == HatchetBefore;
+            && Character->GetToolDurability(TEXT("StoneAxe")) == HatchetBefore - AcceptedHits;
         if (FullWood > 0) bPassed &= Inventory->TryConsumeFromServer(TEXT("Wood"), 1);
         const bool bAccepted = ToolNode->InteractWithToolIntentFromServer(
             Character, 0.0f, 250.0f, TEXT("StoneAxe"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
@@ -113,7 +125,7 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
             bAccepted, bDuplicateRejected, ToolNode->IsHarvested(), Inventory->GetQuantity(TEXT("Wood")),
             Character->GetToolDurability(TEXT("StoneAxe")));
         bPassed &= bAccepted && bDuplicateRejected && ToolNode->IsHarvested() && ToolHarvestEvents == 1
-            && Inventory->GetQuantity(TEXT("Wood")) == FullWood && Character->GetToolDurability(TEXT("StoneAxe")) == HatchetBefore - 1;
+            && Inventory->GetQuantity(TEXT("Wood")) == FullWood && Character->GetToolDurability(TEXT("StoneAxe")) == HatchetBefore - AcceptedHits;
         if (Inventory->GetQuantity(TEXT("Wood")) > BeforeWood)
         {
             bPassed &= Inventory->TryConsumeFromServer(TEXT("Wood"), Inventory->GetQuantity(TEXT("Wood")) - BeforeWood);

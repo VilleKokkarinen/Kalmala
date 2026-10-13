@@ -1,5 +1,8 @@
-#include "KalmalaResistanceComponent.h"
 #include "KalmalaHarvestNode.h"
+#include "KalmalaResistanceComponent.h"
+#include "KalmalaToolLifecycleContract.h"
+#include "KalmalaGameMode.h"
+#include "KalmalaWorldGenerationGameState.h"
 
 #include "Components/SphereComponent.h"
 #include "KalmalaCharacter.h"
@@ -128,7 +131,7 @@ void AKalmalaHarvestNode::InitializeDiscoveryServer(const FString& InPersistentS
 
 bool AKalmalaHarvestNode::CanInteract_Implementation(AKalmalaCharacter* Interactor) const
 {
-    return IsValid(Interactor) && Interactor->HasAuthority() && Interactor->GetWorld() == GetWorld()
+    return (!IsTreeResource() || IsWoodDrop()) && IsValid(Interactor) && Interactor->HasAuthority() && Interactor->GetWorld() == GetWorld()
         && !PersistentSpawnId.IsEmpty()
         && IsHarvestAllowed(HasAuthority(), bHarvested, Interactor->GetActorLocation(), GetActorLocation());
 }
@@ -152,6 +155,33 @@ FString AKalmalaHarvestNode::GetM9ResourceDepletionId() const
 
 void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
 {
+    if (IsTreeResource())
+    {
+        if (!IsWoodDrop() || !CanInteract_Implementation(Interactor)) return;
+        FKalmalaToolServerSelection Selection;
+        if (!FKalmalaToolLifecycleContract::BuildServerSelection(GatheringSourceId, Selection)) return;
+        if (FKalmalaM9SourceLootContract::IsM9Source(GatheringSourceId))
+        {
+            const auto* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+            if (!WorldState || !FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
+                WorldState->GetWorldGenerationConfig(), GatheringSourceId, PersistentSpawnId, Selection.RewardQuantity)) return;
+        }
+        auto* Inventory = Interactor->GetInventoryComponent();
+        auto* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
+        if (!Inventory || !GameMode) return;
+        const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
+        TArray<FKalmalaInventoryStack> After;
+        FString Reason;
+        if (!UKalmalaInventoryComponent::BuildGrant(Before, Selection.RewardItemId, Selection.RewardQuantity, After, Reason)
+            || !Inventory->TryCommitStacksFromServer(Before, After)) return;
+        if (!GameMode->PersistPlayerStateFromServer(Interactor))
+        {
+            Inventory->TryCommitStacksFromServer(After, Before);
+            return;
+        }
+        CommitHarvestedStateFromServer();
+        return;
+    }
     // Generated biome sources must pass through the server trace/tool transaction.
     if (!GatheringSourceId.IsNone()) return;
     // No client-selected reward or quantity. Commit depletion only after the complete grant succeeds.
@@ -169,6 +199,14 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
 bool AKalmalaHarvestNode::InteractWithToolIntentFromServer(AKalmalaCharacter* Interactor,
     const float TraceDistance, const float MaximumRange, const FName ClientToolId, const uint8 ClientAction)
 {
+    if (IsTreeResource())
+    {
+        if (!FMath::IsFinite(TraceDistance) || !FMath::IsFinite(MaximumRange)
+            || TraceDistance < 0.0f || MaximumRange <= 0.0f || TraceDistance > MaximumRange
+            || !CanInteract_Implementation(Interactor)) return false;
+        Interact_Implementation(Interactor);
+        return bHarvested;
+    }
     if (!HasAuthority() || !IsValid(Interactor) || !Interactor->HasAuthority()
         || Interactor->GetWorld() != GetWorld()
         || !FKalmalaBiomeContentContract::IsValidGatheringSourceId(GatheringSourceId)
@@ -176,6 +214,64 @@ bool AKalmalaHarvestNode::InteractWithToolIntentFromServer(AKalmalaCharacter* In
 
     return Interactor->CommitToolHarvestFromServer(this, TraceDistance, MaximumRange, ClientToolId, ClientAction);
 }
+
+bool AKalmalaHarvestNode::IsTreeResource() const
+{
+    return GatheringSourceId == TEXT("meadows-birch-bark") || GatheringSourceId == TEXT("elderwood-resinwood")
+        || GatheringSourceId == TEXT("meadows-birch-trunk") || GatheringSourceId == TEXT("elderwood-ironheart-trunk");
+}
+
+bool AKalmalaHarvestNode::AdvanceTreeHit(const uint8 Stage, const float Health, const float Damage,
+    uint8& OutStage, float& OutHealth)
+{
+    OutStage = Stage;
+    OutHealth = Health;
+    if (Stage >= 2 || !FMath::IsFinite(Health) || Health <= 0.0f
+        || !FMath::IsFinite(Damage) || Damage <= 0.0f || Damage > 100000.0f) return false;
+    OutHealth = FMath::Max(0.0f, Health - Damage);
+    if (OutHealth == 0.0f)
+    {
+        OutStage = Stage + 1;
+        OutHealth = OutStage == 1 ? 60.0f : 0.0f; // Excess damage never skips the trunk stage.
+    }
+    return true;
+}
+
+bool AKalmalaHarvestNode::ApplyAxeDamageFromServer(AKalmalaCharacter* Interactor,
+    const FKalmalaDamageChannels& Damage)
+{
+    if (!HasAuthority() || !CanReceiveAxeAttack() || !IsValid(Interactor) || !Interactor->HasAuthority()
+        || Interactor->GetWorld() != GetWorld() || Interactor->GetHealth() <= 1.0f || PersistentSpawnId.IsEmpty()
+        || FVector::DistSquared(Interactor->GetActorLocation(), GetActorLocation()) > FMath::Square(220.0f)) return false;
+    const auto* Inventory = Interactor->GetInventoryComponent();
+    const FName ItemId = Inventory ? Inventory->GetActiveItem() : NAME_None;
+    const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(ItemId);
+    FKalmalaToolServerSelection Selection;
+    if (!Definition || Definition->Action != EKalmalaToolAction::Woodcutting
+        || !FKalmalaToolLifecycleContract::BuildServerSelection(GatheringSourceId, Selection)
+        || !FKalmalaToolLifecycleContract::IsToolSuitableForSelection(
+            *Definition, Interactor->GetCarriedToolLevel(ItemId), Selection)) return false;
+    int32* Condition = Interactor->FindToolDurabilityFromServer(ItemId);
+    const int32 MaximumCondition = FKalmalaToolLifecycleContract::GetMaxDurability(ItemId, Interactor->GetCarriedToolLevel(ItemId));
+    if (!Condition || *Condition <= 0 || *Condition > MaximumCondition) return false;
+    float ResolvedDamage = 0.0f;
+    const auto* Resistances = FindComponentByClass<UKalmalaResistanceComponent>();
+    uint8 NextStage;
+    float NextHealth;
+    if (!Resistances || !Resistances->ResolveFromServer(Damage, ResolvedDamage)
+        || !AdvanceTreeHit(TreeStage, TreeHealth, ResolvedDamage, NextStage, NextHealth)) return false;
+    auto* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
+    if (!GameMode) return false;
+    --*Condition;
+    if (!GameMode->PersistPlayerStateFromServer(Interactor)) { ++*Condition; return false; }
+    TreeHealth = NextHealth;
+    if (TreeStage != NextStage) { TreeStage = NextStage; BuildSourcePresentation(); }
+    Interactor->ForceNetUpdate();
+    ForceNetUpdate();
+    return true;
+}
+
+void AKalmalaHarvestNode::OnRep_TreeStage() { BuildSourcePresentation(); }
 
 void AKalmalaHarvestNode::CommitHarvestedStateFromServer()
 {
@@ -205,6 +301,8 @@ void AKalmalaHarvestNode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaHarvestNode, bHarvested);
+    DOREPLIFETIME(AKalmalaHarvestNode, TreeStage);
+    DOREPLIFETIME(AKalmalaHarvestNode, TreeHealth);
     DOREPLIFETIME(AKalmalaHarvestNode, PersistentSpawnId);
     DOREPLIFETIME(AKalmalaHarvestNode, GatheringSourceId);
 }
@@ -235,7 +333,25 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     TArray<FVector> Vertices;
     TArray<int32> Triangles;
     TArray<FLinearColor> Colors;
-    if (PresentationId == TEXT("reed-cluster") || PresentationId == TEXT("frostmoss-clump"))
+    if (IsTreeResource())
+    {
+        if (TreeStage == 0)
+        {
+            AddTaperedBox(Vertices, Triangles, Colors, FVector::ZeroVector, FVector(20, 20, 0), 280, 0.7f, 0, FLinearColor(0.34f, 0.22f, 0.12f));
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, 175), FVector(85, 85, 0), 145, 0.15f, 25, FLinearColor(0.18f, 0.35f, 0.12f));
+        }
+        else if (TreeStage == 1)
+        {
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, 5), FVector(100, 22, 0), 45, 0.85f, 0, FLinearColor(0.34f, 0.22f, 0.12f));
+        }
+        else
+        {
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(-12, 0, 0), FVector(12, 35, 0), 22, 0.85f, 12, FLinearColor(0.6f, 0.4f, 0.2f));
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(12, 0, 0), FVector(12, 35, 0), 22, 0.85f, -12, FLinearColor(0.6f, 0.4f, 0.2f));
+        }
+        Collision->SetSphereRadius(TreeStage == 0 ? 80.0f : 65.0f);
+    }
+    else if (PresentationId == TEXT("reed-cluster") || PresentationId == TEXT("frostmoss-clump"))
     {
         AddTaperedBox(Vertices, Triangles, Colors, FVector(-18.0f, 0.0f, 0.0f), FVector(5.0f, 5.0f, 0.0f), 58.0f, 0.55f, -8.0f, Accent);
         AddTaperedBox(Vertices, Triangles, Colors, FVector(0.0f, 7.0f, 0.0f), FVector(5.0f, 5.0f, 0.0f), PresentationId == TEXT("frostmoss-clump") ? 42.0f : 78.0f, 0.65f, 4.0f, Accent);
@@ -254,7 +370,9 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     }
 
     SourceMesh->SetMaterial(0, IsRockSource(PresentationId) ? RockMaterial : BarkMaterial);
-    SourceMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, {}, {}, Colors, {}, false);
+    SourceMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, {}, {}, Colors, {}, IsTreeResource());
+    SourceMesh->SetCollisionProfileName(TEXT("BlockAll"));
+    SourceMesh->SetCollisionEnabled(IsTreeResource() && !bHarvested ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
     SourceMesh->SetVisibility(!bHarvested);
 }
 
@@ -262,5 +380,9 @@ void AKalmalaHarvestNode::ApplyHarvestedState()
 {
     SetActorHiddenInGame(bHarvested);
     Collision->SetCollisionEnabled(bHarvested ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryOnly);
-    if (SourceMesh) SourceMesh->SetVisibility(!bHarvested && !GetGatheringPresentationId().IsNone());
+    if (SourceMesh)
+    {
+        SourceMesh->SetVisibility(!bHarvested && !GetGatheringPresentationId().IsNone());
+        SourceMesh->SetCollisionEnabled(IsTreeResource() && !bHarvested ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+    }
 }

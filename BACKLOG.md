@@ -31,6 +31,11 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [ ] **2026-10-13 — Attack-driven tree harvesting:** axes swing at trees, fell them into 3D trunks, and break trunks into collectible wood.
+  - [x] Integrate the server-authoritative tree/trunk/drop loop into existing wood-resource actors, preserving tiers, yields and sparse depletion; replicate stages and remove tree interaction harvesting.
+  - [ ] Convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+  - [ ] Add a moving fall/log presentation and verify the integrated tree flow in Unreal and on peers.
+
 - [x] **2026-10-13 — Remove redundant item categories:** derive weapon/tool classification from item family; remove ItemCategory authoring/runtime property while retaining Inventory grouping. Lightweight checks passed; Unreal verification deferred.
 
 - [x] **2026-10-13 — Condense equipment identity:** schema 12 profiles use ItemId and derive legacy set/kind/action/skill; keep authored stats and behavior. Lightweight checks passed; Unreal verification deferred.

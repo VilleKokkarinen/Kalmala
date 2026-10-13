@@ -251,6 +251,18 @@ bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target
         const FString ItemName = GetPromptItemName(Node->GetHarvestItemId(), TEXT("Resource"));
         OutDescription.TargetName = FString::Printf(TEXT("%s source"), *ItemName);
         OutDescription.ActionName = TEXT("Harvest");
+        if (Node->IsTreeResource())
+        {
+            OutDescription.TargetName = Node->IsWoodDrop() ? FString::Printf(TEXT("%s drop"), *ItemName)
+                : Node->IsFelledTrunk() ? TEXT("Fallen trunk") : TEXT("Tree");
+            OutDescription.ActionName = Node->IsWoodDrop() ? TEXT("Pick up") : TEXT("Attack with an axe");
+            if (Node->IsHarvested()) OutDescription.UnavailableReason = TEXT("Depleted");
+            else if (FVector::DistSquared(Character->GetActorLocation(), Node->GetActorLocation())
+                > FMath::Square(Node->IsWoodDrop() ? Character->GetInteractionRange() : 220.0f))
+                OutDescription.UnavailableReason = TEXT("Out of reach");
+            return true;
+        }
+
         if (Node->IsHarvested())
         {
             OutDescription.UnavailableReason = TEXT("Depleted");

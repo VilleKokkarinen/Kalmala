@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "KalmalaInteractable.h"
+#include "KalmalaDamageProfile.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaHarvestNode.generated.h"
 
@@ -31,6 +32,13 @@ public:
     FName GetGatheringPresentationId() const;
     FName GetHarvestItemId() const;
     bool IsHarvested() const { return bHarvested; }
+    bool IsTreeResource() const;
+    bool IsFelledTrunk() const { return TreeStage == 1; }
+    bool IsWoodDrop() const { return TreeStage == 2; }
+    bool CanReceiveAxeAttack() const { return IsTreeResource() && !bHarvested && TreeStage < 2; }
+    bool ApplyAxeDamageFromServer(AKalmalaCharacter* Interactor, const FKalmalaDamageChannels& Damage);
+    static bool AdvanceTreeHit(uint8 Stage, float Health, float Damage, uint8& OutStage, float& OutHealth);
+
     bool InteractWithToolIntentFromServer(AKalmalaCharacter* Interactor, float TraceDistance, float MaximumRange,
         FName ClientToolId, uint8 ClientAction);
     FKalmalaHarvestNodeHarvested OnHarvested;
@@ -49,6 +57,16 @@ private:
 
     UPROPERTY(VisibleAnywhere, Category = "Harvest")
     TObjectPtr<USphereComponent> Collision;
+
+    /** 0 standing tree, 1 fallen trunk, 2 dropped wood. Session state; depletion uses existing IDs. */
+    UPROPERTY(ReplicatedUsing = OnRep_TreeStage)
+    uint8 TreeStage = 0;
+
+    UPROPERTY(Replicated)
+    float TreeHealth = 100.0f;
+
+    UFUNCTION()
+    void OnRep_TreeStage();
 
     UPROPERTY(ReplicatedUsing = OnRep_Harvested, VisibleAnywhere, Category = "Harvest")
     bool bHarvested = false;

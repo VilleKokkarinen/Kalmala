@@ -30,8 +30,8 @@ public:
     static constexpr float GetRecoverySeconds() { return RecoverySeconds; }
     static bool IsAttackRequestAllowed(bool bAuthority, bool bNewSequence, uint32 Sequence, bool bActionIdle, bool bTargetValid);
 private:
-    AKalmalaWildlifeSpawn* FindServerTarget() const;
-    bool IsServerTargetValid(const AKalmalaWildlifeSpawn* Target) const;
+    AActor* FindServerTarget() const;
+    bool IsServerTargetValid(const AActor* Target) const;
     void BeginRecovery();
     void PublishFeedbackFromServer(EKalmalaCombatFeedback NewFeedback);
     static constexpr float AttackRange = 220.0f;
@@ -45,7 +45,7 @@ private:
     uint32 LastRequestSequence = 0;
     float PhaseEndTime = 0.0f;
     float LastUnavailableFeedbackTime = -1.0f;
-    TWeakObjectPtr<AKalmalaWildlifeSpawn> PendingTarget;
+    TWeakObjectPtr<AActor> PendingTarget;
     bool bClientCombatVerificationActionLogged = false;
     bool bClientCombatVerificationRejectionLogged = false;
 };

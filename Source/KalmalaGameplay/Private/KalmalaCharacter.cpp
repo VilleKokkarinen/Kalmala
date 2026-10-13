@@ -828,6 +828,12 @@ bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNo
     bOutHasUsableTool = false;
     if (!IsLocallyControlled() || !IsValid(Node)) return false;
 
+    if (Node->IsTreeResource())
+    {
+        bOutHasUsableTool = Node->IsWoodDrop() && !Node->IsHarvested();
+        return true;
+    }
+
     if (Node->GetGatheringSourceId().IsNone())
     {
         bOutHasUsableTool = !Node->IsHarvested();

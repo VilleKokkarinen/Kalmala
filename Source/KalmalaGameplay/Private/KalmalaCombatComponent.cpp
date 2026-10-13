@@ -5,6 +5,7 @@
 #include "KalmalaCombatIntentContract.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWildlifeSpawn.h"
+#include "KalmalaHarvestNode.h"
 #include "GameFramework/Pawn.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -15,7 +16,7 @@ bool UKalmalaCombatComponent::IsAttackRequestAllowed(const bool bAuthority, cons
 { return FKalmalaCombatIntentContract::IsAttackMutationAllowed(bAuthority, true, true, bNewSequence, Sequence, true, bActionIdle, bTargetValid, bTargetValid); }
 void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 RequestSequence)
 {
-    APawn* Pawn = Cast<APawn>(GetOwner()); AKalmalaWildlifeSpawn* Target = FindServerTarget();
+    APawn* Pawn = Cast<APawn>(GetOwner()); AActor* Target = FindServerTarget();
     const bool bAllowed = Pawn != nullptr && IsAttackRequestAllowed(Pawn->HasAuthority(), RequestSequence != 0 && RequestSequence > LastRequestSequence, RequestSequence, ActionPhase == EKalmalaCombatActionPhase::Idle, IsServerTargetValid(Target));
     if (!bAllowed)
     {
@@ -53,7 +54,7 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
     if (!GetOwner()->HasAuthority() || ActionPhase == EKalmalaCombatActionPhase::Idle || GetWorld() == nullptr || GetWorld()->GetTimeSeconds() < PhaseEndTime) return;
     if (ActionPhase == EKalmalaCombatActionPhase::Windup)
     {
-        if (AKalmalaWildlifeSpawn* Target = PendingTarget.Get(); IsServerTargetValid(Target))
+        if (AActor* Target = PendingTarget.Get(); IsServerTargetValid(Target) && FindServerTarget() == Target)
         {
             const AKalmalaCharacter* OwnerCharacter = Cast<AKalmalaCharacter>(GetOwner());
             const auto* Support = OwnerCharacter ? OwnerCharacter->GetSupportMagicComponent() : nullptr;
@@ -72,22 +73,25 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
                 Support && Support->GetBearsVigorExpiry() > Now, 1.0f,
                 Support ? Support->GetBearsVigorStrengthMultiplier() : 1.0f);
             Damage = Damage.Scaled(Multiplier);
-            const bool bApplied = Target->ApplyCombatDamageFromServer(Damage, Cast<AKalmalaCharacter>(GetOwner()));
-            const bool bDefeated = bApplied && Target->GetHealth() <= 0.0f;
+            AKalmalaWildlifeSpawn* Wildlife = Cast<AKalmalaWildlifeSpawn>(Target);
+            AKalmalaHarvestNode* Tree = Cast<AKalmalaHarvestNode>(Target);
+            const bool bApplied = Wildlife ? Wildlife->ApplyCombatDamageFromServer(Damage, Cast<AKalmalaCharacter>(GetOwner()))
+                : Tree && Tree->ApplyAxeDamageFromServer(Cast<AKalmalaCharacter>(GetOwner()), Damage);
+            const bool bDefeated = bApplied && Wildlife && Wildlife->GetHealth() <= 0.0f;
 #if !UE_BUILD_SHIPPING
             if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")))
             {
-                UE_LOG(LogTemp, Display, TEXT("Boar verification attack execution: Applied=%d Distance=%.1f Health=%.1f."), bApplied, FVector::Dist(Cast<APawn>(GetOwner())->GetActorLocation(), Target->GetActorLocation()), Target->GetHealth());
+                UE_LOG(LogTemp, Display, TEXT("Boar verification attack execution: Applied=%d Distance=%.1f Health=%.1f."), bApplied, FVector::Dist(Cast<APawn>(GetOwner())->GetActorLocation(), Target->GetActorLocation()), Wildlife ? Wildlife->GetHealth() : 0.0f);
             }
 #endif
-            if (bApplied) PublishFeedbackFromServer(bDefeated ? EKalmalaCombatFeedback::Defeat : EKalmalaCombatFeedback::Hit);
+            PublishFeedbackFromServer(bApplied ? (bDefeated ? EKalmalaCombatFeedback::Defeat : EKalmalaCombatFeedback::Hit) : EKalmalaCombatFeedback::Unavailable);
         }
         else
         {
 #if !UE_BUILD_SHIPPING
             if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")))
             {
-                const AKalmalaWildlifeSpawn* Pending = PendingTarget.Get();
+                const AActor* Pending = PendingTarget.Get();
                 const APawn* OwnerPawn = Cast<APawn>(GetOwner());
                 UE_LOG(LogTemp, Display, TEXT("Boar verification attack execution: target valid=%d distance=%.1f."), Pending != nullptr, Pending != nullptr && OwnerPawn != nullptr ? FVector::Dist(OwnerPawn->GetActorLocation(), Pending->GetActorLocation()) : -1.0f);
             }
@@ -99,14 +103,31 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
     }
     ActionPhase = EKalmalaCombatActionPhase::Idle; PendingTarget.Reset(); GetOwner()->ForceNetUpdate();
 }
-AKalmalaWildlifeSpawn* UKalmalaCombatComponent::FindServerTarget() const
+AActor* UKalmalaCombatComponent::FindServerTarget() const
 {
     const APawn* Pawn = Cast<APawn>(GetOwner()); if (Pawn == nullptr || GetWorld() == nullptr) return nullptr;
     const FVector Start = Pawn->GetActorLocation() + FVector(0, 0, 55); FHitResult Hit; FCollisionQueryParams Params(SCENE_QUERY_STAT(KalmalaCombatTarget), false, Pawn);
-    return GetWorld()->LineTraceSingleByChannel(Hit, Start, Start + Pawn->GetActorForwardVector() * AttackRange, ECC_Visibility, Params) ? Cast<AKalmalaWildlifeSpawn>(Hit.GetActor()) : nullptr;
+    if (GetWorld()->LineTraceSingleByChannel(Hit, Start, Start + Pawn->GetActorForwardVector() * AttackRange, ECC_Visibility, Params)
+        && (Cast<AKalmalaWildlifeSpawn>(Hit.GetActor()) || Cast<AKalmalaHarvestNode>(Hit.GetActor()))) return Hit.GetActor();
+    // A low melee sweep reaches fallen logs below the ordinary wildlife aim trace.
+    const FVector LowStart = Pawn->GetActorLocation() - FVector(0, 0, 20);
+    if (GetWorld()->SweepSingleByChannel(Hit, LowStart, LowStart + Pawn->GetActorForwardVector() * AttackRange,
+        FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(60.0f), Params))
+    {
+        const auto* Tree = Cast<AKalmalaHarvestNode>(Hit.GetActor());
+        if (Tree && Tree->CanReceiveAxeAttack()) return Hit.GetActor();
+    }
+    return nullptr;
 }
-bool UKalmalaCombatComponent::IsServerTargetValid(const AKalmalaWildlifeSpawn* Target) const
-{ const APawn* Pawn = Cast<APawn>(GetOwner()); return Pawn != nullptr && Target != nullptr && !Target->IsDefeated() && FVector::DistSquared(Pawn->GetActorLocation(), Target->GetActorLocation()) <= FMath::Square(AttackRange); }
+bool UKalmalaCombatComponent::IsServerTargetValid(const AActor* Target) const
+{
+    const APawn* Pawn = Cast<APawn>(GetOwner());
+    if (!Pawn || !IsValid(Target) || Target->GetWorld() != GetWorld()
+        || FVector::DistSquared(Pawn->GetActorLocation(), Target->GetActorLocation()) > FMath::Square(AttackRange)) return false;
+    if (const auto* Wildlife = Cast<AKalmalaWildlifeSpawn>(Target)) return !Wildlife->IsDefeated();
+    if (const auto* Tree = Cast<AKalmalaHarvestNode>(Target)) return Tree->CanReceiveAxeAttack();
+    return false;
+}
 void UKalmalaCombatComponent::BeginRecovery() { ActionPhase = EKalmalaCombatActionPhase::Recovery; PhaseEndTime = GetWorld()->GetTimeSeconds() + RecoverySeconds; GetOwner()->ForceNetUpdate(); }
 void UKalmalaCombatComponent::PublishFeedbackFromServer(const EKalmalaCombatFeedback NewFeedback)
 {

@@ -193,13 +193,36 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         FString DepletedId;
         Node->OnM9ResourceDepleted.AddLambda([&DepletedId](const FString& ResourceId) { DepletedId = ResourceId; });
 
-        TestTrue(FString::Printf(TEXT("%s accepts its matching in-range server harvest"), *SourceLabel),
+        int32 AcceptedUses = 1;
+        if (Node->IsTreeResource())
+        {
+            TestFalse(TEXT("A standing tree cannot be interaction-harvested"),
+                Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolId, ExpectedAction));
+            auto* Inventory = Pawn->GetInventoryComponent();
+            Inventory->SynchronizeGridFromServer();
+            const int32 Slot = Inventory->GetGridSlots().IndexOfByKey(Source.ToolId);
+            if (!TestTrue(TEXT("Axe is in the usable hotbar"), Slot >= 0 && Slot < UKalmalaInventoryComponent::Columns)) continue;
+            Inventory->ServerUseHotbarSlot(Slot);
+            const FKalmalaDamageChannels AxeDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
+                Source.ToolId, Source.ToolLevel, TEXT("Basic"));
+            AcceptedUses = 0;
+            while (!Node->IsWoodDrop() && AcceptedUses < 30)
+            {
+                if (!TestTrue(TEXT("Equipped axe damages the tree or fallen trunk"), Node->ApplyAxeDamageFromServer(Pawn, AxeDamage))) break;
+                ++AcceptedUses;
+            }
+            TestTrue(TEXT("Broken trunk leaves a world wood drop"), Node->IsWoodDrop());
+            TestEqual(TEXT("Breaking a trunk does not automatically grant wood"), Inventory->GetQuantity(Source.ItemId), 0);
+        }
+        TestTrue(FString::Printf(TEXT("%s accepts harvest or wood pickup"), *SourceLabel),
+            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolId, ExpectedAction));
+        TestFalse(TEXT("Depleted resource cannot be collected twice"),
             Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolId, ExpectedAction));
         TestTrue(FString::Printf(TEXT("%s accepted harvest depletes exactly once"), *SourceLabel), Node->IsHarvested());
         TestEqual(FString::Printf(TEXT("%s grants only its deterministic catalogue reward"), *SourceLabel),
             Pawn->GetInventoryComponent()->GetQuantity(Source.ItemId), ExpectedYield);
         TestEqual(FString::Printf(TEXT("%s accepted use spends one server-owned condition"), *SourceLabel),
-            Pawn->GetToolDurability(Source.ToolId), InitialCondition - 1);
+            Pawn->GetToolDurability(Source.ToolId), InitialCondition - AcceptedUses);
         TestEqual(FString::Printf(TEXT("%s depletion callback carries its stable sparse ID"), *SourceLabel),
             DepletedId, FKalmalaM9SourceLootContract::BuildResourceDepletionId(Source.SourceId, Node->GetPersistentSpawnId()));
     }
