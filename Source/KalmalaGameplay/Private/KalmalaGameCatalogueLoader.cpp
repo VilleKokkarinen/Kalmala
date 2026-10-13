@@ -2,6 +2,7 @@
 
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaRecipeCatalogue.h"
+#include "KalmalaToolCatalogue.h"
 #include "Dom/JsonObject.h"
 #include "JsonObjectConverter.h"
 #include "Misc/FileHelper.h"
@@ -184,12 +185,19 @@ namespace
         double SchemaVersion = 0.0;
         const TArray<TSharedPtr<FJsonValue>>* ItemValues = nullptr;
         const TArray<TSharedPtr<FJsonValue>>* RecipeValues = nullptr;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 4.0
+        const TArray<TSharedPtr<FJsonValue>>* ToolProfileValues = nullptr;
+        const TArray<TSharedPtr<FJsonValue>>* ToolRecipeValues = nullptr;
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 5.0
             || !Root->TryGetArrayField(TEXT("items"), ItemValues)
             || !Root->TryGetArrayField(TEXT("recipes"), RecipeValues)
+            || !Root->TryGetArrayField(TEXT("toolProfiles"), ToolProfileValues)
+            || !Root->TryGetArrayField(TEXT("toolRecipes"), ToolRecipeValues)
             || ItemValues == nullptr || RecipeValues == nullptr
+            || ToolProfileValues == nullptr || ToolRecipeValues == nullptr
             || ItemValues->IsEmpty() || ItemValues->Num() > UKalmalaItemCatalogue::MaxDefinitions
-            || RecipeValues->IsEmpty() || RecipeValues->Num() > 32)
+            || RecipeValues->IsEmpty() || RecipeValues->Num() > 32
+            || ToolProfileValues->IsEmpty() || ToolProfileValues->Num() > UKalmalaToolCatalogue::MaxProfiles
+            || ToolRecipeValues->IsEmpty() || ToolRecipeValues->Num() > UKalmalaToolCatalogue::MaxRecipes)
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON has an unsupported schema or invalid catalogue bounds: %s"), *JsonPath);
             return false;
@@ -203,27 +211,40 @@ namespace
 
         TArray<FKalmalaItemDefinition> ParsedItems;
         TArray<FKalmalaRecipe> ParsedRecipes;
+        TArray<FKalmalaToolProfileData> ParsedToolProfiles;
+        TArray<FKalmalaToolRecipeData> ParsedToolRecipes;
         if (!FJsonObjectConverter::JsonArrayToUStruct<FKalmalaItemDefinition>(*ItemValues, &ParsedItems, 0, 0, true)
-            || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaRecipe>(*RecipeValues, &ParsedRecipes, 0, 0, true))
+            || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaRecipe>(*RecipeValues, &ParsedRecipes, 0, 0, true)
+            || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaToolProfileData>(
+                *ToolProfileValues, &ParsedToolProfiles, 0, 0, true)
+            || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaToolRecipeData>(
+                *ToolRecipeValues, &ParsedToolRecipes, 0, 0, true))
         {
-            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON does not match the item and recipe definitions: %s"), *JsonPath);
+            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON does not match its item, recipe, and tool definitions: %s"), *JsonPath);
             return false;
         }
 
         UKalmalaItemCatalogue* ItemCatalogue = GetMutableDefault<UKalmalaItemCatalogue>();
         UKalmalaRecipeCatalogue* RecipeCatalogue = GetMutableDefault<UKalmalaRecipeCatalogue>();
+        UKalmalaToolCatalogue* ToolCatalogue = GetMutableDefault<UKalmalaToolCatalogue>();
         ItemCatalogue->Items = MoveTemp(ParsedItems);
         RecipeCatalogue->Recipes = MoveTemp(ParsedRecipes);
-        if (!ItemCatalogue->IsValidCatalogue() || !RecipeCatalogue->IsValidCatalogue())
+        ToolCatalogue->Profiles = MoveTemp(ParsedToolProfiles);
+        ToolCatalogue->Recipes = MoveTemp(ParsedToolRecipes);
+        if (!ItemCatalogue->IsValidCatalogue() || !RecipeCatalogue->IsValidCatalogue()
+            || !ToolCatalogue->IsValidCatalogue(ItemCatalogue))
         {
             ItemCatalogue->Items.Reset();
             RecipeCatalogue->Recipes.Reset();
-            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON failed item or recipe validation: %s"), *JsonPath);
+            ToolCatalogue->Profiles.Reset();
+            ToolCatalogue->Recipes.Reset();
+            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON failed item, recipe, or tool validation: %s"), *JsonPath);
             return false;
         }
 
-        UE_LOG(LogTemp, Log, TEXT("Loaded %d items and %d recipes from %s"),
-            ItemCatalogue->Items.Num(), RecipeCatalogue->Recipes.Num(), *JsonPath);
+        UE_LOG(LogTemp, Log, TEXT("Loaded %d items, %d recipes, %d tool profiles, and %d tool recipes from %s"),
+            ItemCatalogue->Items.Num(), RecipeCatalogue->Recipes.Num(), ToolCatalogue->Profiles.Num(),
+            ToolCatalogue->Recipes.Num(), *JsonPath);
         return true;
     }
 }

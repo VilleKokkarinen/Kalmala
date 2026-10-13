@@ -23,7 +23,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolMaterialCost
     int32 Quantity = 0;
 };
 
-/** Static progression data; it does not itself grant or upgrade a carried tool. */
+/** Authored progression entry; it does not itself grant or upgrade a carried tool. */
 struct KALMALAGAMEPLAY_API FKalmalaToolProgressionEntry
 {
     FName ToolId = NAME_None;

@@ -3,120 +3,101 @@
 #include "KalmalaBiomeContentContract.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaM9SourceLootContract.h"
+#include "KalmalaToolCatalogue.h"
 
 namespace
 {
+    EKalmalaToolKind ParseToolKind(const FString& Value)
+    {
+        if (Value == TEXT("ReedKnife")) return EKalmalaToolKind::ReedKnife;
+        if (Value == TEXT("FieldHatchet")) return EKalmalaToolKind::FieldHatchet;
+        if (Value == TEXT("StonePick")) return EKalmalaToolKind::StonePick;
+        if (Value == TEXT("StoneSpear")) return EKalmalaToolKind::StoneSpear;
+        if (Value == TEXT("BronzeAxe")) return EKalmalaToolKind::BronzeAxe;
+        if (Value == TEXT("BronzeKnife")) return EKalmalaToolKind::BronzeKnife;
+        if (Value == TEXT("BronzePick")) return EKalmalaToolKind::BronzePick;
+        if (Value == TEXT("BronzeSpear")) return EKalmalaToolKind::BronzeSpear;
+        if (Value == TEXT("IronAxe")) return EKalmalaToolKind::IronAxe;
+        if (Value == TEXT("IronKnife")) return EKalmalaToolKind::IronKnife;
+        if (Value == TEXT("IronPick")) return EKalmalaToolKind::IronPick;
+        if (Value == TEXT("IronSpear")) return EKalmalaToolKind::IronSpear;
+        if (Value == TEXT("ConstructionHammer")) return EKalmalaToolKind::ConstructionHammer;
+        return EKalmalaToolKind::None;
+    }
+
+    EKalmalaToolAction ParseToolAction(const FString& Value)
+    {
+        if (Value == TEXT("Gathering")) return EKalmalaToolAction::Gathering;
+        if (Value == TEXT("Woodcutting")) return EKalmalaToolAction::Woodcutting;
+        if (Value == TEXT("Mining")) return EKalmalaToolAction::Mining;
+        return EKalmalaToolAction::None;
+    }
+
+    EKalmalaSkill ParseToolSkill(const FString& Value)
+    {
+        if (Value == TEXT("Gathering")) return EKalmalaSkill::Gathering;
+        if (Value == TEXT("Woodcutting")) return EKalmalaSkill::Woodcutting;
+        if (Value == TEXT("Mining")) return EKalmalaSkill::Mining;
+        if (Value == TEXT("Crafting")) return EKalmalaSkill::Crafting;
+        if (Value == TEXT("Cooking")) return EKalmalaSkill::Cooking;
+        if (Value == TEXT("Survival")) return EKalmalaSkill::Survival;
+        return EKalmalaSkill::None;
+    }
+
+    EKalmalaWeaponDamageType ParseWeaponDamageType(const FString& Value)
+    {
+        if (Value == TEXT("Slash")) return EKalmalaWeaponDamageType::Slash;
+        if (Value == TEXT("Pierce")) return EKalmalaWeaponDamageType::Pierce;
+        if (Value == TEXT("Blunt")) return EKalmalaWeaponDamageType::Blunt;
+        return EKalmalaWeaponDamageType::None;
+    }
+
+    FKalmalaToolDefinition ConvertProfile(const FKalmalaToolProfileData& Profile)
+    {
+        FKalmalaToolDefinition Definition;
+        Definition.ToolId = Profile.ToolId;
+        Definition.Kind = ParseToolKind(Profile.ToolKind);
+        Definition.Action = ParseToolAction(Profile.Action);
+        Definition.RequiredSkill = ParseToolSkill(Profile.RequiredSkill);
+        Definition.MinimumSkillLevel = Profile.MinimumSkillLevel;
+        Definition.DurabilityCost = Profile.DurabilityCost;
+        Definition.DamageType = ParseWeaponDamageType(Profile.DamageType);
+        for (const FKalmalaToolLevelData& LevelData : Profile.Levels)
+        {
+            FKalmalaToolLevelStats& Level = Definition.LevelStats.AddDefaulted_GetRef();
+            Level.ToolLevel = LevelData.ToolLevel;
+            Level.MaxDurability = LevelData.MaxDurability;
+            Level.CombatDamage = LevelData.CombatDamage;
+            if (Level.ToolLevel == 1)
+            {
+                Definition.MaxDurability = Level.MaxDurability;
+                Definition.CombatDamage = Level.CombatDamage;
+            }
+        }
+        return Definition;
+    }
+
+    TArray<FKalmalaToolDefinition> BuildDefinitionsForSet(const TCHAR* ToolSet)
+    {
+        TArray<FKalmalaToolDefinition> Definitions;
+        const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
+        if (!Catalogue) return Definitions;
+        for (const FKalmalaToolProfileData& Profile : Catalogue->Profiles)
+        {
+            if (Profile.ToolSet == ToolSet) Definitions.Add(ConvertProfile(Profile));
+        }
+        return Definitions;
+    }
+
     const TArray<FKalmalaToolDefinition>& ToolDefinitions()
     {
-        static const TArray<FKalmalaToolDefinition> Definitions =
-        {
-            { TEXT("ReedKnife"), EKalmalaToolKind::ReedKnife, EKalmalaToolAction::Gathering, EKalmalaSkill::Gathering, 1, 16, 1,
-                EKalmalaWeaponDamageType::Slash, 30.0f },
-            { TEXT("FieldHatchet"), EKalmalaToolKind::FieldHatchet, EKalmalaToolAction::Woodcutting, EKalmalaSkill::Woodcutting, 1, 24, 1,
-                EKalmalaWeaponDamageType::Slash, 34.0f },
-            { TEXT("StonePick"), EKalmalaToolKind::StonePick, EKalmalaToolAction::Mining, EKalmalaSkill::Mining, 1, 20, 1,
-                EKalmalaWeaponDamageType::Blunt, 26.0f },
-            { TEXT("StoneSpear"), EKalmalaToolKind::StoneSpear, EKalmalaToolAction::None, EKalmalaSkill::None, 1, 36, 1,
-                EKalmalaWeaponDamageType::Pierce, 42.0f },
-        };
+        static const TArray<FKalmalaToolDefinition> Definitions = BuildDefinitionsForSet(TEXT("Starter"));
         return Definitions;
     }
 
     const TArray<FKalmalaToolDefinition>& TieredToolDefinitions()
     {
-        static const TArray<FKalmalaToolDefinition> Definitions = []
-        {
-            FKalmalaToolDefinition Bronze;
-            Bronze.ToolId = TEXT("BronzeAxe");
-            Bronze.Kind = EKalmalaToolKind::BronzeAxe;
-            Bronze.Action = EKalmalaToolAction::Woodcutting;
-            Bronze.RequiredSkill = EKalmalaSkill::Woodcutting;
-            Bronze.MinimumSkillLevel = 1;
-            Bronze.MaxDurability = 100;
-            Bronze.DurabilityCost = 1;
-            Bronze.DamageType = EKalmalaWeaponDamageType::Slash;
-            Bronze.CombatDamage = 50.0f;
-
-            FKalmalaToolDefinition BronzeKnife;
-            BronzeKnife.ToolId = TEXT("BronzeKnife");
-            BronzeKnife.Kind = EKalmalaToolKind::BronzeKnife;
-            BronzeKnife.Action = EKalmalaToolAction::Gathering;
-            BronzeKnife.RequiredSkill = EKalmalaSkill::Gathering;
-            BronzeKnife.MinimumSkillLevel = 1;
-            BronzeKnife.MaxDurability = 48;
-            BronzeKnife.DurabilityCost = 1;
-            BronzeKnife.DamageType = EKalmalaWeaponDamageType::Slash;
-            BronzeKnife.CombatDamage = 42.0f;
-
-            FKalmalaToolDefinition BronzePick;
-            BronzePick.ToolId = TEXT("BronzePick");
-            BronzePick.Kind = EKalmalaToolKind::BronzePick;
-            BronzePick.Action = EKalmalaToolAction::Mining;
-            BronzePick.RequiredSkill = EKalmalaSkill::Mining;
-            BronzePick.MinimumSkillLevel = 1;
-            BronzePick.MaxDurability = 90;
-            BronzePick.DurabilityCost = 1;
-            BronzePick.DamageType = EKalmalaWeaponDamageType::Blunt;
-            BronzePick.CombatDamage = 38.0f;
-
-            FKalmalaToolDefinition BronzeSpear;
-            BronzeSpear.ToolId = TEXT("BronzeSpear");
-            BronzeSpear.Kind = EKalmalaToolKind::BronzeSpear;
-            BronzeSpear.Action = EKalmalaToolAction::None;
-            BronzeSpear.RequiredSkill = EKalmalaSkill::None;
-            BronzeSpear.MinimumSkillLevel = 1;
-            BronzeSpear.MaxDurability = 90;
-            BronzeSpear.DurabilityCost = 1;
-            BronzeSpear.DamageType = EKalmalaWeaponDamageType::Pierce;
-            BronzeSpear.CombatDamage = 58.0f;
-
-            FKalmalaToolDefinition Iron;
-            Iron.ToolId = TEXT("IronAxe");
-            Iron.Kind = EKalmalaToolKind::IronAxe;
-            Iron.Action = EKalmalaToolAction::Woodcutting;
-            Iron.RequiredSkill = EKalmalaSkill::Woodcutting;
-            Iron.MinimumSkillLevel = 1;
-            Iron.MaxDurability = 180;
-            Iron.DurabilityCost = 1;
-            Iron.DamageType = EKalmalaWeaponDamageType::Slash;
-            Iron.CombatDamage = 72.0f;
-
-            FKalmalaToolDefinition IronKnife;
-            IronKnife.ToolId = TEXT("IronKnife");
-            IronKnife.Kind = EKalmalaToolKind::IronKnife;
-            IronKnife.Action = EKalmalaToolAction::Gathering;
-            IronKnife.RequiredSkill = EKalmalaSkill::Gathering;
-            IronKnife.MinimumSkillLevel = 1;
-            IronKnife.MaxDurability = 80;
-            IronKnife.DurabilityCost = 1;
-            IronKnife.DamageType = EKalmalaWeaponDamageType::Slash;
-            IronKnife.CombatDamage = 58.0f;
-
-            FKalmalaToolDefinition IronPick;
-            IronPick.ToolId = TEXT("IronPick");
-            IronPick.Kind = EKalmalaToolKind::IronPick;
-            IronPick.Action = EKalmalaToolAction::Mining;
-            IronPick.RequiredSkill = EKalmalaSkill::Mining;
-            IronPick.MinimumSkillLevel = 1;
-            IronPick.MaxDurability = 160;
-            IronPick.DurabilityCost = 1;
-            IronPick.DamageType = EKalmalaWeaponDamageType::Blunt;
-            IronPick.CombatDamage = 52.0f;
-
-            FKalmalaToolDefinition IronSpear;
-            IronSpear.ToolId = TEXT("IronSpear");
-            IronSpear.Kind = EKalmalaToolKind::IronSpear;
-            IronSpear.Action = EKalmalaToolAction::None;
-            IronSpear.RequiredSkill = EKalmalaSkill::None;
-            IronSpear.MinimumSkillLevel = 1;
-            IronSpear.MaxDurability = 150;
-            IronSpear.DurabilityCost = 1;
-            IronSpear.DamageType = EKalmalaWeaponDamageType::Pierce;
-            IronSpear.CombatDamage = 76.0f;
-
-            return TArray<FKalmalaToolDefinition>{
-                Bronze, BronzeKnife, BronzePick, BronzeSpear, Iron, IronKnife, IronPick, IronSpear};
-        }();
+        static const TArray<FKalmalaToolDefinition> Definitions = BuildDefinitionsForSet(TEXT("Crafted"));
         return Definitions;
     }
 
@@ -124,15 +105,10 @@ namespace
     {
         static const FKalmalaToolDefinition Definition = []
         {
-            FKalmalaToolDefinition Hammer;
-            Hammer.ToolId = TEXT("ConstructionHammer");
-            Hammer.Kind = EKalmalaToolKind::ConstructionHammer;
-            Hammer.Action = EKalmalaToolAction::None;
-            Hammer.RequiredSkill = EKalmalaSkill::None;
-            Hammer.MinimumSkillLevel = 1;
-            Hammer.MaxDurability = 100;
-            Hammer.DurabilityCost = 0;
-            return Hammer;
+            const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
+            const FKalmalaToolProfileData* Profile = Catalogue
+                ? Catalogue->FindProfile(TEXT("ConstructionHammer")) : nullptr;
+            return Profile ? ConvertProfile(*Profile) : FKalmalaToolDefinition();
         }();
         return Definition;
     }
@@ -212,15 +188,13 @@ int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ToolId, const 
 {
     const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
     if (Definition == nullptr || ToolLevel < 1) return 0;
-    if (ToolId == TEXT("BronzeAxe"))
+    const FKalmalaToolLevelStats* LevelStats = Definition->LevelStats.FindByPredicate([ToolLevel](const auto& Stats)
     {
-        if (ToolLevel == 1) return 100;
-        if (ToolLevel == 2) return 150;
-        return 0;
-    }
-    // Preserve older Iron Axe level-two records while level one is now crafted independently.
-    if (ToolId == TEXT("IronAxe")) return ToolLevel <= 2 ? Definition->MaxDurability : 0;
-    return ToolLevel == 1 ? Definition->MaxDurability : 0;
+        return Stats.ToolLevel == ToolLevel;
+    });
+    if (LevelStats) return LevelStats->MaxDurability;
+    // Older saves can contain Iron Axe level two even though it has no authored upgrade recipe.
+    return ToolId == TEXT("IronAxe") && ToolLevel == 2 ? Definition->MaxDurability : 0;
 }
 
 float FKalmalaToolLifecycleContract::GetSlashDamage(const FName ToolId, const int32 ToolLevel)
@@ -232,9 +206,15 @@ float FKalmalaToolLifecycleContract::GetSlashDamage(const FName ToolId, const in
 float FKalmalaToolLifecycleContract::GetWeaponDamage(const FName ToolId, const int32 ToolLevel)
 {
     if (ToolId.IsNone() || GetMaxDurability(ToolId, ToolLevel) <= 0) return 0.0f;
-    if (ToolId == TEXT("BronzeAxe") && ToolLevel == 2) return 55.0f;
     const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
-    return Definition ? Definition->CombatDamage : 0.0f;
+    if (!Definition) return 0.0f;
+    const FKalmalaToolLevelStats* LevelStats = Definition->LevelStats.FindByPredicate([ToolLevel](const auto& Stats)
+    {
+        return Stats.ToolLevel == ToolLevel;
+    });
+    // Keep the same stats for old Iron Axe level-two saves; the level is not craftable.
+    return LevelStats ? LevelStats->CombatDamage
+        : (ToolId == TEXT("IronAxe") && ToolLevel == 2 ? Definition->CombatDamage : 0.0f);
 }
 
 EKalmalaWeaponDamageType FKalmalaToolLifecycleContract::GetWeaponDamageType(const FName ToolId)

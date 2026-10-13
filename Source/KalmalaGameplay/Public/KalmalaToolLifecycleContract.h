@@ -50,6 +50,13 @@ enum class EKalmalaToolTier : uint8
     Iron
 };
 
+struct KALMALAGAMEPLAY_API FKalmalaToolLevelStats
+{
+    int32 ToolLevel = 0;
+    int32 MaxDurability = 0;
+    float CombatDamage = 0.0f;
+};
+
 struct KALMALAGAMEPLAY_API FKalmalaToolDefinition
 {
     FName ToolId = NAME_None;
@@ -61,6 +68,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolDefinition
     int32 DurabilityCost = 1;
     EKalmalaWeaponDamageType DamageType = EKalmalaWeaponDamageType::None;
     float CombatDamage = 0.0f;
+    TArray<FKalmalaToolLevelStats> LevelStats;
 };
 
 USTRUCT(BlueprintType)

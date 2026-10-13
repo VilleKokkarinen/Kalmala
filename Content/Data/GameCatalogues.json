@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "items": [
     {
       "ItemId": "Wood",
@@ -705,6 +705,336 @@
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
       "bEnabled": true
+    }
+  ],
+  "toolProfiles": [
+    {
+      "ToolId": "ReedKnife",
+      "DisplayName": "Stone Knife",
+      "Description": "A chipped stone knife for gathering and close combat.",
+      "ToolSet": "Starter",
+      "ToolKind": "ReedKnife",
+      "Action": "Gathering",
+      "RequiredSkill": "Gathering",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 16, "CombatDamage": 30.0 }]
+    },
+    {
+      "ToolId": "FieldHatchet",
+      "DisplayName": "Stone Axe",
+      "Description": "A simple stone axe for woodcutting and close combat.",
+      "ToolSet": "Starter",
+      "ToolKind": "FieldHatchet",
+      "Action": "Woodcutting",
+      "RequiredSkill": "Woodcutting",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 24, "CombatDamage": 34.0 }]
+    },
+    {
+      "ToolId": "StonePick",
+      "DisplayName": "Stone Pick",
+      "Description": "A stone pick for breaking slate and gathering ore.",
+      "ToolSet": "Starter",
+      "ToolKind": "StonePick",
+      "Action": "Mining",
+      "RequiredSkill": "Mining",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Blunt",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 20, "CombatDamage": 26.0 }]
+    },
+    {
+      "ToolId": "StoneSpear",
+      "DisplayName": "Stone Spear",
+      "Description": "A stone-tipped spear for piercing attacks.",
+      "ToolSet": "Starter",
+      "ToolKind": "StoneSpear",
+      "Action": "None",
+      "RequiredSkill": "None",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Pierce",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 36, "CombatDamage": 42.0 }]
+    },
+    {
+      "ToolId": "BronzeAxe",
+      "DisplayName": "Bronze Axe",
+      "Description": "A bronze axe for woodcutting and slash attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzeAxe",
+      "Action": "Woodcutting",
+      "RequiredSkill": "Woodcutting",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [
+        { "ToolLevel": 1, "MaxDurability": 100, "CombatDamage": 50.0 },
+        { "ToolLevel": 2, "MaxDurability": 150, "CombatDamage": 55.0 }
+      ]
+    },
+    {
+      "ToolId": "BronzeKnife",
+      "DisplayName": "Bronze Knife",
+      "Description": "A bronze knife for gathering and slash attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzeKnife",
+      "Action": "Gathering",
+      "RequiredSkill": "Gathering",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 48, "CombatDamage": 42.0 }]
+    },
+    {
+      "ToolId": "BronzePick",
+      "DisplayName": "Bronze Pick",
+      "Description": "A bronze pick for mining and blunt attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzePick",
+      "Action": "Mining",
+      "RequiredSkill": "Mining",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Blunt",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 90, "CombatDamage": 38.0 }]
+    },
+    {
+      "ToolId": "BronzeSpear",
+      "DisplayName": "Bronze Spear",
+      "Description": "A bronze-tipped spear for piercing attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzeSpear",
+      "Action": "None",
+      "RequiredSkill": "None",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Pierce",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 90, "CombatDamage": 58.0 }]
+    },
+    {
+      "ToolId": "IronAxe",
+      "DisplayName": "Iron Axe",
+      "Description": "A strong iron axe for woodcutting and slash attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "IronAxe",
+      "Action": "Woodcutting",
+      "RequiredSkill": "Woodcutting",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 180, "CombatDamage": 72.0 }]
+    },
+    {
+      "ToolId": "IronKnife",
+      "DisplayName": "Iron Knife",
+      "Description": "A keen iron knife for gathering and slash attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "IronKnife",
+      "Action": "Gathering",
+      "RequiredSkill": "Gathering",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 80, "CombatDamage": 58.0 }]
+    },
+    {
+      "ToolId": "IronPick",
+      "DisplayName": "Iron Pick",
+      "Description": "A durable iron pick for mining and blunt attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "IronPick",
+      "Action": "Mining",
+      "RequiredSkill": "Mining",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Blunt",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 160, "CombatDamage": 52.0 }]
+    },
+    {
+      "ToolId": "IronSpear",
+      "DisplayName": "Iron Spear",
+      "Description": "An iron-tipped spear for piercing attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "IronSpear",
+      "Action": "None",
+      "RequiredSkill": "None",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Pierce",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 150, "CombatDamage": 76.0 }]
+    },
+    {
+      "ToolId": "ConstructionHammer",
+      "DisplayName": "Building Hammer",
+      "Description": "A reusable hammer for placing camp structures.",
+      "ToolSet": "Utility",
+      "ToolKind": "ConstructionHammer",
+      "Action": "None",
+      "RequiredSkill": "None",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 0,
+      "DamageType": "None",
+      "Levels": [{ "ToolLevel": 1, "MaxDurability": 100, "CombatDamage": 0.0 }]
+    }
+  ],
+  "toolRecipes": [
+    {
+      "RecipeId": "BronzeAxeLevel1",
+      "DisplayName": "Bronze Axe",
+      "ToolId": "BronzeAxe",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        { "ItemId": "Wood", "Quantity": 4 },
+        { "ItemId": "Stone", "Quantity": 3 },
+        { "ItemId": "Fibre", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeId": "BronzeAxeLevel2",
+      "DisplayName": "Bronze Axe Level 2",
+      "ToolId": "BronzeAxe",
+      "TargetToolLevel": 2,
+      "PreviousToolId": "BronzeAxe",
+      "PreviousToolLevel": 1,
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 2,
+      "RequiredSkill": "Crafting",
+      "RequiredSkillLevel": 5,
+      "Ingredients": [
+        { "ItemId": "Lightwood", "Quantity": 3 },
+        { "ItemId": "PeatAmber", "Quantity": 2 },
+        { "ItemId": "Stone", "Quantity": 4 },
+        { "ItemId": "Fibre", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeId": "BronzeKnifeLevel1",
+      "DisplayName": "Bronze Knife",
+      "ToolId": "BronzeKnife",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        { "ItemId": "Wood", "Quantity": 2 },
+        { "ItemId": "Stone", "Quantity": 2 },
+        { "ItemId": "Fibre", "Quantity": 3 }
+      ]
+    },
+    {
+      "RecipeId": "BronzePickLevel1",
+      "DisplayName": "Bronze Pick",
+      "ToolId": "BronzePick",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        { "ItemId": "Wood", "Quantity": 4 },
+        { "ItemId": "Stone", "Quantity": 4 },
+        { "ItemId": "Fibre", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeId": "BronzeSpearLevel1",
+      "DisplayName": "Bronze Spear",
+      "ToolId": "BronzeSpear",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        { "ItemId": "Wood", "Quantity": 4 },
+        { "ItemId": "Stone", "Quantity": 3 },
+        { "ItemId": "Fibre", "Quantity": 3 }
+      ]
+    },
+    {
+      "RecipeId": "IronKnifeLevel1",
+      "DisplayName": "Iron Knife",
+      "ToolId": "IronKnife",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        { "ItemId": "Iron", "Quantity": 2 },
+        { "ItemId": "Wood", "Quantity": 2 },
+        { "ItemId": "Fibre", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeId": "IronAxeLevel1",
+      "DisplayName": "Iron Axe",
+      "ToolId": "IronAxe",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        { "ItemId": "Iron", "Quantity": 4 },
+        { "ItemId": "Wood", "Quantity": 3 },
+        { "ItemId": "Fibre", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeId": "IronPickLevel1",
+      "DisplayName": "Iron Pick",
+      "ToolId": "IronPick",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        { "ItemId": "Iron", "Quantity": 4 },
+        { "ItemId": "Wood", "Quantity": 2 },
+        { "ItemId": "Stone", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeId": "IronSpearLevel1",
+      "DisplayName": "Iron Spear",
+      "ToolId": "IronSpear",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        { "ItemId": "Iron", "Quantity": 3 },
+        { "ItemId": "Wood", "Quantity": 3 },
+        { "ItemId": "Fibre", "Quantity": 1 }
+      ]
     }
   ]
 }

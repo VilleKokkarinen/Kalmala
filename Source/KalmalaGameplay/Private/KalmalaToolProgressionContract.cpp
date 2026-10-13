@@ -2,6 +2,7 @@
 
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaToolCatalogue.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaSkillProgressionComponent.h"
@@ -9,6 +10,24 @@
 
 namespace
 {
+    EKalmalaSkill ParseToolSkill(const FString& Value)
+    {
+        if (Value == TEXT("Gathering")) return EKalmalaSkill::Gathering;
+        if (Value == TEXT("Woodcutting")) return EKalmalaSkill::Woodcutting;
+        if (Value == TEXT("Mining")) return EKalmalaSkill::Mining;
+        if (Value == TEXT("Crafting")) return EKalmalaSkill::Crafting;
+        if (Value == TEXT("Cooking")) return EKalmalaSkill::Cooking;
+        if (Value == TEXT("Survival")) return EKalmalaSkill::Survival;
+        return EKalmalaSkill::None;
+    }
+
+    EKalmalaToolStationKind ParseToolStation(const FString& Value)
+    {
+        if (Value == TEXT("Workbench")) return EKalmalaToolStationKind::Workbench;
+        if (Value == TEXT("Forge")) return EKalmalaToolStationKind::Forge;
+        return EKalmalaToolStationKind::None;
+    }
+
     const TCHAR* GetSkillName(const EKalmalaSkill Skill)
     {
         switch (Skill)
@@ -36,113 +55,28 @@ namespace
     {
         static const TArray<FKalmalaToolProgressionEntry> Entries = []
         {
-            FKalmalaToolProgressionEntry BronzeAxe;
-            BronzeAxe.ToolId = TEXT("BronzeAxe");
-            BronzeAxe.TargetToolLevel = 1;
-            BronzeAxe.RequiredStation = EKalmalaToolStationKind::Workbench;
-            BronzeAxe.RequiredStationLevel = 1;
-            BronzeAxe.MaterialCosts = {
-                {TEXT("Wood"), 4},
-                {TEXT("Stone"), 3},
-                {TEXT("Fibre"), 2}
-            };
-
-            FKalmalaToolProgressionEntry BronzeAxeLevelTwo;
-            BronzeAxeLevelTwo.ToolId = TEXT("BronzeAxe");
-            BronzeAxeLevelTwo.TargetToolLevel = 2;
-            BronzeAxeLevelTwo.PreviousToolId = TEXT("BronzeAxe");
-            BronzeAxeLevelTwo.PreviousToolLevel = 1;
-            BronzeAxeLevelTwo.RequiredStation = EKalmalaToolStationKind::Forge;
-            BronzeAxeLevelTwo.RequiredStationLevel = 2;
-            BronzeAxeLevelTwo.RequiredSkill = EKalmalaSkill::Crafting;
-            BronzeAxeLevelTwo.RequiredSkillLevel = 5;
-            BronzeAxeLevelTwo.MaterialCosts = {
-                {TEXT("Lightwood"), 3},
-                {TEXT("PeatAmber"), 2},
-                {TEXT("Stone"), 4},
-                {TEXT("Fibre"), 2}
-            };
-
-            FKalmalaToolProgressionEntry BronzeKnife;
-            BronzeKnife.ToolId = TEXT("BronzeKnife");
-            BronzeKnife.TargetToolLevel = 1;
-            BronzeKnife.RequiredStation = EKalmalaToolStationKind::Workbench;
-            BronzeKnife.RequiredStationLevel = 1;
-            BronzeKnife.MaterialCosts = {
-                {TEXT("Wood"), 2},
-                {TEXT("Stone"), 2},
-                {TEXT("Fibre"), 3}
-            };
-
-            FKalmalaToolProgressionEntry BronzePick;
-            BronzePick.ToolId = TEXT("BronzePick");
-            BronzePick.TargetToolLevel = 1;
-            BronzePick.RequiredStation = EKalmalaToolStationKind::Workbench;
-            BronzePick.RequiredStationLevel = 1;
-            BronzePick.MaterialCosts = {
-                {TEXT("Wood"), 4},
-                {TEXT("Stone"), 4},
-                {TEXT("Fibre"), 2}
-            };
-
-            FKalmalaToolProgressionEntry BronzeSpear;
-            BronzeSpear.ToolId = TEXT("BronzeSpear");
-            BronzeSpear.TargetToolLevel = 1;
-            BronzeSpear.RequiredStation = EKalmalaToolStationKind::Workbench;
-            BronzeSpear.RequiredStationLevel = 1;
-            BronzeSpear.MaterialCosts = {
-                {TEXT("Wood"), 4},
-                {TEXT("Stone"), 3},
-                {TEXT("Fibre"), 3}
-            };
-
-            FKalmalaToolProgressionEntry IronKnife;
-            IronKnife.ToolId = TEXT("IronKnife");
-            IronKnife.TargetToolLevel = 1;
-            IronKnife.RequiredStation = EKalmalaToolStationKind::Forge;
-            IronKnife.RequiredStationLevel = 1;
-            IronKnife.MaterialCosts = {
-                {TEXT("Iron"), 2},
-                {TEXT("Wood"), 2},
-                {TEXT("Fibre"), 2}
-            };
-
-            FKalmalaToolProgressionEntry IronAxe;
-            IronAxe.ToolId = TEXT("IronAxe");
-            IronAxe.TargetToolLevel = 1;
-            IronAxe.RequiredStation = EKalmalaToolStationKind::Forge;
-            IronAxe.RequiredStationLevel = 1;
-            IronAxe.MaterialCosts = {
-                {TEXT("Iron"), 4},
-                {TEXT("Wood"), 3},
-                {TEXT("Fibre"), 2}
-            };
-
-            FKalmalaToolProgressionEntry IronPick;
-            IronPick.ToolId = TEXT("IronPick");
-            IronPick.TargetToolLevel = 1;
-            IronPick.RequiredStation = EKalmalaToolStationKind::Forge;
-            IronPick.RequiredStationLevel = 1;
-            IronPick.MaterialCosts = {
-                {TEXT("Iron"), 4},
-                {TEXT("Wood"), 2},
-                {TEXT("Stone"), 2}
-            };
-
-            FKalmalaToolProgressionEntry IronSpear;
-            IronSpear.ToolId = TEXT("IronSpear");
-            IronSpear.TargetToolLevel = 1;
-            IronSpear.RequiredStation = EKalmalaToolStationKind::Forge;
-            IronSpear.RequiredStationLevel = 1;
-            IronSpear.MaterialCosts = {
-                {TEXT("Iron"), 3},
-                {TEXT("Wood"), 3},
-                {TEXT("Fibre"), 1}
-            };
-
-            return TArray<FKalmalaToolProgressionEntry>{
-                BronzeAxe, BronzeAxeLevelTwo, BronzeKnife, BronzePick, BronzeSpear,
-                IronKnife, IronAxe, IronPick, IronSpear};
+            TArray<FKalmalaToolProgressionEntry> LoadedEntries;
+            const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
+            if (!Catalogue) return LoadedEntries;
+            LoadedEntries.Reserve(Catalogue->Recipes.Num());
+            for (const FKalmalaToolRecipeData& Recipe : Catalogue->Recipes)
+            {
+                FKalmalaToolProgressionEntry& Entry = LoadedEntries.AddDefaulted_GetRef();
+                Entry.ToolId = Recipe.ToolId;
+                Entry.TargetToolLevel = Recipe.TargetToolLevel;
+                Entry.PreviousToolId = Recipe.PreviousToolId;
+                Entry.PreviousToolLevel = Recipe.PreviousToolLevel;
+                Entry.RequiredStation = ParseToolStation(Recipe.RequiredStation);
+                Entry.RequiredStationLevel = Recipe.RequiredStationLevel;
+                Entry.RequiredSkill = ParseToolSkill(Recipe.RequiredSkill);
+                Entry.RequiredSkillLevel = Recipe.RequiredSkillLevel;
+                Entry.MaterialCosts.Reserve(Recipe.Ingredients.Num());
+                for (const FKalmalaToolRecipeIngredientData& Ingredient : Recipe.Ingredients)
+                {
+                    Entry.MaterialCosts.Add({Ingredient.ItemId, Ingredient.Quantity});
+                }
+            }
+            return LoadedEntries;
         }();
         return Entries;
     }
