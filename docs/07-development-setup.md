@@ -684,26 +684,15 @@ deep-water fallback.
 
 ## M8 late-join and restart/reconnect verification
 
-After a forced editor build, create a short disposable project mirror and run
-`Scripts\Tests\Travel\Verify-OceanSkiffReconnect.ps1 -Port 18171 -Project '<mirror>\Kalmala.uproject'`.
-The runner starts a seed-418 listen host, its returning owner, and a third late
-joiner using isolated user directories. It verifies the late peer sees one
-moored vessel with the original helm/passenger occupants, remains unattached,
-and receives no private discovery reward. It then stops all peers, restarts the
-host with its original profile, reconnects the owner with the owner's original
-profile, and checks that the same vessel and both authenticated seats restore.
-The returning owner retries the same discovery; the server must report
-`AlreadyFound` and leave the fresh inventory at zero. A second late join checks
-that restart preserved the same public vessel state and private reward boundary.
-
-This non-shipping fixture assigns stable local test-provider identities so the
-headless null network driver can exercise the existing authenticated save-key
-path across separate processes. It does not integrate an external online
-identity provider. Player travel restore is server-owned and retries after a
-controller's pawn and PlayerState are available; repeated restore calls are
-idempotent for a peer already attached to its saved seat. The fixture adds no
-gameplay RPC, replicated gameplay field, or save-schema change. Keep the live
-logs under the runner's temporary output directory for diagnosis.
+The former focused `Verify-OceanSkiffReconnect.ps1` launcher was retired on
+2026-10-13 after its seed/restart, authenticated-seat restoration, late-join,
+and exact-once private-discovery checks were confirmed inside
+`Verify-OceanSkiffIntegratedReconnectJourney.ps1`. Use that integrated runner
+for the retained acceptance coverage; it adds the underway journey and owner-
+feedback checks to the same restore/replay assertions. The development-only
+fixture still uses stable local test-provider identities with the headless null
+network driver; it does not integrate an external online identity provider or
+change the gameplay RPC, replicated-state, or save-schema contracts.
 
 ## M8 coast feedback presentation
 
@@ -2666,17 +2655,28 @@ for example `pwsh -File Scripts/Tests/World/Verify-WorldMap.ps1`. Asset,
 build, export, package, and render utilities remain directly under `Scripts/`;
 `Scripts/Tests/TestPaths.ps1` resolves the project and test roots for runners.
 
-| Area | Current verification entry point names (under `Scripts/Tests/<Category>/`) |
+| Area | Current verification entry points (under `Scripts/Tests/<Category>/`) |
 | --- | --- |
-| Documentation, input, presentation | Verify-M5DocumentationContracts.ps1; Verify-LocalInputContract.ps1; Verify-MenuInputCopy.ps1; Verify-Inventory.ps1 -ContractOnly |
-| Generated world and hydrology | Verify-RegionalGeneration.ps1; master-map automation; world-map exporter checks |
-| Inventory, harvesting, food, storage | Verify-Inventory.ps1; Verify-InventoryReconnect.ps1; Verify-InventoryMenu.ps1; Verify-Crafting.ps1; Verify-Storage.ps1 |
-| Combat, discoveries, support | Verify-CombatPeer.ps1; Verify-DiscoveryPeer.ps1; Verify-M4VerticalSlice.ps1; relevant Kalmala.Gameplay automations |
-| Survival and progression | Verify-CampChoices.ps1; Verify-M7AutomatedAcceptance.ps1; inventory/tool/progression/food/weather automations |
-| Ocean journey and persistence | Verify-OceanTravel.ps1; Verify-OceanSkiffJourney.ps1; Verify-OceanSkiffDiscoveryDisembark.ps1; Verify-OceanSkiffIntegratedReconnectJourney.ps1; travel-save/restore automations |
-| Settings and HUD | Verify-SettingsAccessibility.ps1 (includes `-ContractOnly` mode); Verify-StatusHotbar.ps1; theme, notification, recipe activity and local browsing automations |
-| Integrated M14 map | Verify-MapAwareness.ps1; Verify-WorldMap.ps1 (render, tiles, privacy, profile); Verify-WorldMapExport.ps1 |
-| Package and performance | Windows package smoke below; Verify-ConstrainedPerformance.ps1 |
+| Acceptance | `Acceptance/Verify-M4VerticalSlice.ps1`; `Verify-M5DocumentationContracts.ps1`; `Verify-M7AutomatedAcceptance.ps1`; `Verify-RainVerticalSlice.ps1` |
+| Audio | `Audio/Verify-AmbientAudio.ps1` (includes `-ContractOnly`); `Verify-AmbientAudioPeers.ps1` |
+| Combat and discoveries | `Combat/Verify-BoarPeer.ps1`; `Verify-CombatPeer.ps1`; `Verify-DeerPeer.ps1`; `Verify-DiscoveryPeer.ps1`; `Verify-MirelingPeer.ps1` |
+| Construction and inventory | `Construction/Verify-ConstructionMovement.ps1` (floor/wall collision, roof jump/land, and replicated exposure); `Verify-ConstructionPersistence.ps1`; `Verify-Crafting.ps1`; `Verify-Storage.ps1`; `Inventory/Verify-Inventory.ps1` (includes `-ContractOnly`); `Verify-InventoryMenu.ps1`; `Verify-InventoryReconnect.ps1` |
+| Performance | `Performance/Verify-ConstrainedPerformance.ps1` |
+| Presentation and input | `Presentation/Verify-InteractionPrompt.ps1`; `Verify-LocalInputContract.ps1`; `Verify-MenuInputCopy.ps1`; `Verify-OnboardingContract.ps1`; `Verify-PlayerControls.ps1`; `Verify-PresentationOwnership.ps1`; `Verify-SettingsAccessibility.ps1` (includes `-ContractOnly`); `Verify-StatusHotbar.ps1`; `Verify-TutorialRouteFree.ps1` |
+| Progression | `Progression/Verify-M9ExplorationRewards.ps1`; `Verify-M9Schema2CandidateReconnect.ps1` |
+| Survival | `Survival/Verify-CampChoices.ps1`; `Verify-PersistedCampRestart.ps1` |
+| Travel | `Travel/Verify-OceanSkiffDiscoveryDisembark.ps1`; `Verify-OceanSkiffIntegratedReconnectJourney.ps1`; `Verify-OceanSkiffJourney.ps1`; `Verify-OceanTravel.ps1`; `Verify-Swimming.ps1` |
+| World and maps | `World/Verify-BiomeExpansion.ps1`; `Verify-MapAwareness.ps1`; `Verify-Minimap.ps1`; `Verify-RegionalGeneration.ps1`; `Verify-WorldMap.ps1`; `Verify-WorldMapExport.ps1`; `Verify-WorldProfile.ps1` |
+| Package smoke | Windows package smoke below |
+
+The runner audit found no byte-identical scripts or wrapper entry points.
+`Verify-ConstructionMovement.ps1` had no active documentation caller, but its
+floor/wall/roof movement and exposure-replication scenario was not covered by
+another current runner, so it is retained and listed above. The standalone
+`Verify-OceanSkiffReconnect.ps1` was the one confirmed duplicate: the integrated
+journey/reconnect runner checks the same resume identity, restored seats,
+post-restart late join, and rejected discovery replay, in addition to the
+underway voyage and owner feedback.
 
 Check each runner's supported parameters before invoking it. For milestone-final acceptance, use a successfully built integrated tree, the prescribed full Kalmala automation namespace, fresh isolated profiles, and the relevant live/rendered/package checks. A static contract PASS never proves rendered or physical input acceptance. Run UnrealBuildTool with normal read/write access to %LOCALAPPDATA%/UnrealBuildTool. Use short paths and avoid generating Binaries, Intermediate, Saved, or DerivedDataCache inside the source checkout during autonomous work.
 

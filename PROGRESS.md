@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-13 — Audit verification entrypoints
+
+- **Completed:** audited the current `Verify-*` script inventory, documentation callers, wrapper references, and overlapping ocean-reconnect checks. Retired the standalone skiff reconnect launcher after confirming its seat restore, late-join privacy, and discovery-replay assertions are also required by the integrated journey/reconnect runner. Kept the standalone skiff crossing because it uniquely checks fixed-origin stability, and kept/disclosed the otherwise undocumented construction movement runner because its floor/wall/roof movement and replicated exposure coverage has no equivalent current runner. The verification index now lists every remaining runner.
+- **Files changed:** deleted `Scripts/Tests/Travel/Verify-OceanSkiffReconnect.ps1`; updated `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** exact SHA-256 inventory found no byte-identical runners; source search found no runner wrapper callers; documentation-reference audit found only the retained construction movement runner lacked a current caller, and the updated index lists all 44 remaining entrypoints. `git diff --check` passed. No tests, Unreal build, or runners were executed; full verification remains deferred.
+- **Impact and authority:** verification scripts and their documentation only; no gameplay, networking, save, or runtime behavior changed. The integrated skiff runner retains the retired check's acceptance assertions.
+- **Verification/limitations:** normal backlog child increment, not milestone-final. No runner was executed; the audit compares source assertions and documentation rather than runtime outcomes.
+- **Next eligible task:** document the non-`.ps1` support tools, their runtime requirements, and why they remain in their native formats.
+
 ## User-directed increment 2026-10-13 — Apply Bronze Axe level stats
 
 - **Completed:** set Bronze Axe level 1 to 100 maximum durability / 50 slash damage and level 2 to 150 / 55. The server uses the active carried Bronze Axe's level and condition to resolve combat damage; otherwise it retains the unarmed 25 damage. Level-aware durability now flows through upgrades, harvesting validation, repair, save validation, inventory displays, and the Forge comparison, which shows +50 durability and +5 slash damage.

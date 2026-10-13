@@ -130,7 +130,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
   - [x] Move the retained PowerShell verification runners into domain categories under `Scripts/Tests/`; update path resolution, internal callers, and active documentation references.
   - [x] Consolidate the optional procedural audio-source generators into one selectable tool; keep checked-in WAV and Unreal assets as game content and document that generation is not a runtime/build step.
     - [x] Consolidate catalogue and status icon validation into one parameterized maintenance script; document that imported icon packages are runtime content while their source-art tools are optional.
-  - [ ] Audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage; retire or consolidate only confirmed duplicates.
+  - [x] Audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage; retire or consolidate only confirmed duplicates. Retained the unique construction movement runner, documented it, and retired the skiff reconnect launcher whose checks are covered by the integrated journey/reconnect runner.
   - [ ] Document the non-`.ps1` support tools, their runtime requirements, and why they remain in their native formats.
 
 - [x] **2026-10-11 — Fix Build card fill and visible icon scale:** prevent the shared selectable-fill animation from overwriting the standalone Build menu's brown card overlay, and compensate for transparent margins in the 64×64 catalogue canvases while preserving icon proportions. Source inspection and `git diff --check` only; build/render verification deferred.
