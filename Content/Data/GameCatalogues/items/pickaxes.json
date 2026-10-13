@@ -4,7 +4,6 @@
       "ItemId": "StonePick",
       "DisplayName": "Stone Pick",
       "Description": "A stone pick for breaking slate and gathering ore.",
-      "MinimumSkillLevel": 1,
       "MaxDurability": 20,
       "DamageBonuses": {
         "Crush": 26.0
@@ -15,7 +14,6 @@
       "ItemId": "BronzePick",
       "DisplayName": "Bronze Pick",
       "Description": "A bronze pick for mining and blunt attacks.",
-      "MinimumSkillLevel": 1,
       "MaxDurability": 90,
       "DamageBonuses": {
         "Crush": 38.0
@@ -26,7 +24,6 @@
       "ItemId": "IronPick",
       "DisplayName": "Iron Pick",
       "Description": "A durable iron pick for mining and blunt attacks.",
-      "MinimumSkillLevel": 1,
       "MaxDurability": 160,
       "DamageBonuses": {
         "Crush": 52.0

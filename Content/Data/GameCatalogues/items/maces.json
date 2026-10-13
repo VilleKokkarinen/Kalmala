@@ -4,7 +4,6 @@
       "ItemId": "StoneMace",
       "DisplayName": "Stone Mace",
       "Description": "A stone mace for crushing attacks.",
-      "MinimumSkillLevel": 1,
       "MaxDurability": 16,
       "DamageBonuses": {
         "Crush": 30.0
@@ -14,7 +13,6 @@
       "ItemId": "BronzeMace",
       "DisplayName": "Bronze Mace",
       "Description": "A bronze mace for crushing attacks.",
-      "MinimumSkillLevel": 1,
       "MaxDurability": 48,
       "DamageBonuses": {
         "Crush": 42.0
@@ -24,7 +22,6 @@
       "ItemId": "IronMace",
       "DisplayName": "Iron Mace",
       "Description": "A iron mace for crushing attacks.",
-      "MinimumSkillLevel": 1,
       "MaxDurability": 80,
       "DamageBonuses": {
         "Crush": 58.0

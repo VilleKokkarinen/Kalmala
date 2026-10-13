@@ -46,6 +46,7 @@ namespace
             Object->SetStringField(TEXT("ToolSet"), Set);
             Object->SetStringField(TEXT("Action"), Action);
             Object->SetStringField(TEXT("RequiredSkill"), Action);
+            if (!Object->HasField(TEXT("MinimumSkillLevel"))) Object->SetNumberField(TEXT("MinimumSkillLevel"), 1.0);
         }
         return true;
     }

@@ -4,7 +4,6 @@
       "ItemId": "StoneKnife",
       "DisplayName": "Stone Knife",
       "Description": "A chipped stone knife for gathering and close combat.",
-      "MinimumSkillLevel": 1,
       "MaxDurability": 16,
       "DamageBonuses": {
         "Slash": 30.0
@@ -14,7 +13,6 @@
       "ItemId": "BronzeKnife",
       "DisplayName": "Bronze Knife",
       "Description": "A bronze knife for gathering and slash attacks.",
-      "MinimumSkillLevel": 1,
       "MaxDurability": 48,
       "DamageBonuses": {
         "Slash": 42.0
@@ -24,7 +22,6 @@
       "ItemId": "IronKnife",
       "DisplayName": "Iron Knife",
       "Description": "A keen iron knife for gathering and slash attacks.",
-      "MinimumSkillLevel": 1,
       "MaxDurability": 80,
       "DamageBonuses": {
         "Slash": 58.0

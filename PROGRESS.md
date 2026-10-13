@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Implicit minimum equipment skill level
+
+- **Completed/files:** removed MinimumSkillLevel from all 16 equipment profiles in five item-family JSON files and tools/building-hammer.json. GameCatalogueLoader.cpp supplies the existing default 1 before strict conversion. Architecture/setup docs and BACKLOG updated.
+- **Checks:** parsed catalogue JSON, confirmed every removed value was 1 and reconstructed staged profiles equal HEAD after removal; verified no authored MinimumSkillLevel remains. Loader/default order, git diff --check and staged MAX_PATH/scope checks passed.
+- **Impact/authority:** removes repeated item metadata without changing existing eligibility, stats, resource families/tiers, client requests or saved fields. Existing user item/reward stats and unrelated changes preserved and excluded.
+- **Verification/limitations:** normal user-directed increment; full Unreal build/automation/runtime verification deferred. Runtime harvesting skill contracts retain their current default requirement.
+- **Next eligible task:** convert decorative forest into individually attackable sources with compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-13 — Implicit zero recipe skill requirements
 
 - **Completed/files:** removed RequiredSkill None/RequiredSkillLevel 0 pairs from all 11 acquisition/upgrade-cost entries across recipes/axes,knives,maces,pickaxes,spears,upgrades.json. GameCatalogueLoader.cpp supplies missing None/0 defaults before strict conversion. Architecture/setup docs and BACKLOG updated.

@@ -4,7 +4,6 @@
       "ItemId": "ConstructionHammer",
       "DisplayName": "Building Hammer",
       "Description": "A reusable hammer for placing camp structures.",
-      "MinimumSkillLevel": 1,
       "MaxDurability": 100,
       "DamageBonuses": {}
     }
