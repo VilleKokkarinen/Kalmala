@@ -107,7 +107,9 @@ namespace
         USizeBox* LabelSize = WidgetTree.ConstructWidget<USizeBox>(USizeBox::StaticClass());
         LabelSize->SetWidthOverride(230.0f);
         LabelSize->SetContent(Label);
-        Row->AddChildToHorizontalBox(LabelSize)->SetPadding(FMargin(4.0f, 6.0f, 10.0f, 6.0f));
+        UHorizontalBoxSlot* LabelSlot = Row->AddChildToHorizontalBox(LabelSize);
+        LabelSlot->SetPadding(FMargin(4.0f, 6.0f, 10.0f, 6.0f));
+        LabelSlot->SetVerticalAlignment(VAlign_Center);
 
         USlider* Slider = WidgetTree.ConstructWidget<USlider>(USlider::StaticClass(), Name);
         Slider->SetMinValue(MinValue);
@@ -130,7 +132,9 @@ namespace
         USizeBox* ValueSize = WidgetTree.ConstructWidget<USizeBox>(USizeBox::StaticClass());
         ValueSize->SetWidthOverride(64.0f);
         ValueSize->SetContent(Value);
-        Row->AddChildToHorizontalBox(ValueSize)->SetPadding(FMargin(8.0f, 6.0f, 4.0f, 6.0f));
+        UHorizontalBoxSlot* ValueSlot = Row->AddChildToHorizontalBox(ValueSize);
+        ValueSlot->SetPadding(FMargin(8.0f, 6.0f, 4.0f, 6.0f));
+        ValueSlot->SetVerticalAlignment(VAlign_Center);
         Parent.AddChildToVerticalBox(Row)->SetPadding(FMargin(4.0f, 3.0f));
         return { Slider, Value };
     }
@@ -1608,8 +1612,9 @@ void UKalmalaSettingsWidget::ShowAccessibilityTab()
     USizeBox* ReducedMotionLabelSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
     ReducedMotionLabelSize->SetWidthOverride(230.0f);
     ReducedMotionLabelSize->SetContent(ReducedMotionLabel);
-    ReducedMotionRow->AddChildToHorizontalBox(ReducedMotionLabelSize)
-        ->SetPadding(FMargin(4.0f, 6.0f, 10.0f, 6.0f));
+    UHorizontalBoxSlot* ReducedMotionLabelSlot = ReducedMotionRow->AddChildToHorizontalBox(ReducedMotionLabelSize);
+    ReducedMotionLabelSlot->SetPadding(FMargin(4.0f, 6.0f, 10.0f, 6.0f));
+    ReducedMotionLabelSlot->SetVerticalAlignment(VAlign_Center);
 
     ReducedMotionCheckBox = WidgetTree->ConstructWidget<UCheckBox>(UCheckBox::StaticClass(),
         TEXT("ReducedMotionCheckBox"));

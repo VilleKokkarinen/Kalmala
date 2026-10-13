@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Vertically center Settings row text:** center shared slider labels/values and the Reduced Motion label alongside their controls; preserve the existing centered binding-row layout.
+
 - [x] **2026-10-13 — Center Reduced Motion checkmark:** align the checkmark in the middle of the 44×44 checkbox content area on both axes.
 
 - [x] **2026-10-13 — Enlarge and simplify Reduced Motion toggle:** increase the stone checkbox target to 44×44 and remove the separate On/Off text, leaving the checkmark to show its state.

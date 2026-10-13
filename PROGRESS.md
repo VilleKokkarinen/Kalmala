@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Center text beside Settings controls
+
+- **Completed:** vertically centered both labels and values alongside sliders in the shared Settings row builder, and centered the Reduced Motion label beside its checkbox. Controls and Controller binding rows already used centered vertical slot alignment; Graphics choices use text centered inside their own buttons.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.options -BuildModules -TimeoutSeconds 300` compiled the affected Unreal UI module and rendered Controls, Controller, Graphics, Audio, and Accessibility at 1920×1080. Inspected all five previews for row alignment. `git diff --check` passed. No automation suite ran; full verification remains deferred.
+- **Impact and authority:** local Settings presentation only. No setting values, persistence, networking, or gameplay authority changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Rendered previews verify layout only; live input interactions and full verification remain deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Center the Reduced Motion checkmark
 
 - **Completed:** placed the checkmark in a 44×44 overlay with horizontal and vertical center alignment, so the glyph sits in the center of the stone checkbox.
