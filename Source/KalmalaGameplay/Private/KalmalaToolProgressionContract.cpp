@@ -429,9 +429,14 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
 
     OutTools = MoveTemp(CandidateTools);
     OutInventory = MoveTemp(CandidateInventory);
-    Reason = FString::Printf(Entry->PreviousToolId.IsNone()
-        ? TEXT("Crafted %s at level %d") : TEXT("Upgraded %s to level %d"),
-        *Entry->ToolId.ToString(), Entry->TargetToolLevel);
+    if (Entry->PreviousToolId.IsNone())
+    {
+        Reason = FString::Printf(TEXT("Crafted %s at level %d"), *Entry->ToolId.ToString(), Entry->TargetToolLevel);
+    }
+    else
+    {
+        Reason = FString::Printf(TEXT("Upgraded %s to level %d"), *Entry->ToolId.ToString(), Entry->TargetToolLevel);
+    }
     return true;
 }
 

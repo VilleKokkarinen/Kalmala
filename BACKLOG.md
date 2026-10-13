@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Fix duplicate progression format compile error:** use separate checked format literals in the shared progression contract, matching the server result-message fix.
+
 - [x] **2026-10-13 — Fix crafting result format compile error:** use separate checked format literals for crafted and upgraded tool result messages so the Unreal `FString::Printf` overload compiles.
 
 - [x] **2026-10-13 — Upgrade tools in place:** Forge advances a carried Bronze Axe from level 1 to level 2 under the same item ID, charges materials, preserves condition and inventory cell, and displays the Iron woodcutting tier/Densewood gain. Cross-item upgrades are rejected; legacy Iron Axe saves remain readable.

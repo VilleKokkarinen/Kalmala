@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Fix duplicate progression format compile error
+
+- **Completed:** the latest UnrealBuildTool log exposed a second conditional `FString::Printf` format in `KalmalaToolProgressionContract.cpp`. Split it into separate checked string-literal calls for craft and upgrade results, preserving the existing messages and behavior.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaToolProgressionContract.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** confirmed the reported C2664 in `C:\Users\Ville\AppData\Local\UnrealBuildTool\Log.txt`; searched gameplay sources and found no remaining progression result call with a conditional format argument. `git diff --check` passed. No Unreal build or automation suite was run; full verification remains deferred.
+- **Impact and authority:** compile-only correction in the shared progression candidate builder. Server authority, progression validation, inventory exchange, networking, and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. The newly found source error is corrected but needs the user's next compiler run for confirmation.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Fix crafting result format compile error
 
 - **Completed:** replaced the conditional `FString::Printf` format argument in the crafting progression result with separate checked format literals for craft and upgrade outcomes. The result text and progression behavior are unchanged.
