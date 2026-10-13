@@ -331,6 +331,28 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
         && Catalogue->IsValidStack(OutSelection.RewardItemId, OutSelection.RewardQuantity);
 }
 
+bool FKalmalaToolLifecycleContract::IsResourceFamilyCompatible(
+    const EKalmalaToolKind Kind, const EKalmalaToolAction ResourceAction)
+{
+    switch (Kind)
+    {
+    case EKalmalaToolKind::StoneAxe:
+    case EKalmalaToolKind::BronzeAxe:
+    case EKalmalaToolKind::IronAxe:
+        return ResourceAction == EKalmalaToolAction::Woodcutting;
+    case EKalmalaToolKind::StonePick:
+    case EKalmalaToolKind::BronzePick:
+    case EKalmalaToolKind::IronPick:
+        return ResourceAction == EKalmalaToolAction::Mining;
+    case EKalmalaToolKind::StoneKnife:
+    case EKalmalaToolKind::BronzeKnife:
+    case EKalmalaToolKind::IronKnife:
+        return ResourceAction == EKalmalaToolAction::Gathering;
+    default:
+        return false;
+    }
+}
+
 bool FKalmalaToolLifecycleContract::IsToolSuitableForSelection(
     const FKalmalaToolDefinition& Definition,
     const FKalmalaToolServerSelection& Selection)
@@ -344,7 +366,8 @@ bool FKalmalaToolLifecycleContract::IsToolSuitableForSelection(
     const FKalmalaToolServerSelection& Selection)
 {
     if (GetMaxDurability(Definition.ToolId, ToolLevel) <= 0) return false;
-    if (Definition.Action != Selection.Action) return false;
+    if (Definition.Action != Selection.Action
+        || !IsResourceFamilyCompatible(Definition.Kind, Selection.Action)) return false;
     if (Selection.MinimumToolTier == EKalmalaToolTier::None)
     {
         return Definition.Kind == Selection.RequiredTool;

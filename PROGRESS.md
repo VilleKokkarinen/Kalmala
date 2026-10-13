@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Resource-family isolation
+
+- **Completed/files:** ToolLifecycleContract.h/.cpp adds an explicit Kind-to-resource-family gate to the shared suitability check before material-tier comparison. Axe tree damage and mining interaction already consume that shared check; axe/pick family mismatches cannot reach damage, condition, material grant or depletion mutation. Added ResourceFamilyGateTest.cpp and architecture/setup docs; BACKLOG updated.
+- **Checks:** inspected both consumers and modeled all six axe/pick identities against eight wood/mining source gates at levels 1/10/20 (144 combinations), including adequate-tier cross-family rejection and insufficient-tier same-family rejection. Source gate-order/consumer checks, git diff --check and staged MAX_PATH/scope checks passed. Authored regression also rejects altered runtime Actions and unrelated weapon/tool families; Unreal automation not executed.
+- **Impact/authority:** tier only controls strength within a matching resource family. No item balance, acquisition, RPC, save schema or client damage input change. Existing user catalogue/reward and unrelated edits preserved and excluded.
+- **Verification/limitations:** normal user-directed increment; full Unreal build/automation/runtime verification deferred. Mining remains its existing interaction flow. Decorative forest conversion and fall/log presentation remain unfinished in the prior tree-harvest backlog.
+- **Next eligible task:** convert decorative forest into attackable individual sources with compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-13 — Axe attacks fell resource trees
 
 - **Completed:** existing four wood-source families now require equipped-axe attacks. Replicated stage/health represents standing tree (100), 3D fallen trunk (60), then collectible wood; overflow cannot skip stages. The procedural presentation rebuilds on stage/source replication. Interaction cannot instantly harvest trees/trunks; only dropped bundles grant the existing deterministic material/yield.

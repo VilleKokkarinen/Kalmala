@@ -142,6 +142,8 @@ public:
     static EKalmalaToolTier GetToolTier(EKalmalaToolKind Tool);
     static EKalmalaToolTier GetToolTier(EKalmalaToolKind Tool, int32 ToolLevel);
     static bool BuildServerSelection(FName ServerSourceId, FKalmalaToolServerSelection& OutSelection);
+    /** Resource family must match before material tier is considered. */
+    static bool IsResourceFamilyCompatible(EKalmalaToolKind Kind, EKalmalaToolAction ResourceAction);
     static bool IsToolSuitableForSelection(const FKalmalaToolDefinition& Definition, const FKalmalaToolServerSelection& Selection);
     static bool IsToolSuitableForSelection(const FKalmalaToolDefinition& Definition, int32 ToolLevel,
         const FKalmalaToolServerSelection& Selection);
