@@ -2638,3 +2638,5 @@ preferences and must not be replicated or added to gameplay save schemas.
 
 
 M13's reusable-scroll timing overrides earlier instant Deer Call and short support-duration descriptions above when integrated. Audio still reads accepted replicated results; this cleanup adds no cue or gameplay behavior.
+
+Item profile `DamageBonuses` may omit inactive channels: the loader fills omitted Slash/Stab/Crush/Pierce/Fire/Water/Holy/Poison with zero before strict conversion. Keep the object itself (`{}` for zero damage); other required profile fields remain strict. Nonzero authored values retain existing validation. Shared attack and reward authoring is unchanged.

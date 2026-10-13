@@ -356,6 +356,26 @@ namespace
             return false;
         }
 
+        // Damage channels are optional in item JSON; retain strict conversion for other fields.
+        for (const TSharedPtr<FJsonValue>& ProfileValue : ToolProfileValues)
+        {
+            const TSharedPtr<FJsonObject> ProfileObject = ProfileValue->AsObject();
+            const TSharedPtr<FJsonObject>* Bonuses = nullptr;
+            if (!ProfileObject.IsValid()
+                || !ProfileObject->TryGetObjectField(TEXT("DamageBonuses"), Bonuses))
+            {
+                return false;
+            }
+            for (const TCHAR* Channel : { TEXT("Slash"), TEXT("Stab"), TEXT("Crush"), TEXT("Pierce"),
+                TEXT("Fire"), TEXT("Water"), TEXT("Holy"), TEXT("Poison") })
+            {
+                if (!(*Bonuses)->HasField(Channel))
+                {
+                    (*Bonuses)->SetNumberField(Channel, 0.0);
+                }
+            }
+        }
+
         TArray<FKalmalaItemDefinition> ParsedItems;
         TArray<FKalmalaRecipe> ParsedRecipes;
         TArray<FKalmalaToolProfileData> ParsedToolProfiles;

@@ -11,14 +11,7 @@
       "MinimumSkillLevel": 1,
       "MaxDurability": 24,
       "DamageBonuses": {
-        "Slash": 34.0,
-        "Stab": 0.0,
-        "Crush": 0.0,
-        "Pierce": 0.0,
-        "Fire": 0.0,
-        "Water": 0.0,
-        "Holy": 0.0,
-        "Poison": 0.0
+        "Slash": 34.0
       }
     },
     {
@@ -32,14 +25,7 @@
       "MinimumSkillLevel": 1,
       "MaxDurability": 100,
       "DamageBonuses": {
-        "Slash": 50.0,
-        "Stab": 0.0,
-        "Crush": 0.0,
-        "Pierce": 0.0,
-        "Fire": 0.0,
-        "Water": 0.0,
-        "Holy": 0.0,
-        "Poison": 0.0
+        "Slash": 50.0
       }
     },
     {
@@ -53,14 +39,7 @@
       "MinimumSkillLevel": 1,
       "MaxDurability": 180,
       "DamageBonuses": {
-        "Slash": 72.0,
-        "Stab": 0.0,
-        "Crush": 0.0,
-        "Pierce": 0.0,
-        "Fire": 0.0,
-        "Water": 0.0,
-        "Holy": 0.0,
-        "Poison": 0.0
+        "Slash": 72.0
       }
     }
   ]

@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Sparse item damage bonuses
+
+- **Completed/files:** removed zero channels from five weapon-family JSON files and tools/building-hammer.json. KalmalaGameCatalogueLoader.cpp fills omitted item channels with zero before strict conversion; the DamageBonuses object and other profile fields remain required. Updated architecture/setup docs and BACKLOG.md.
+- **Lightweight checks:** parsed affected JSON and compared reconstructed damage with each original working profile (16 profiles); inspected Unreal strict-conversion source and loader normalization. git diff --check and staged path checks passed.
+- **Impact/authority:** authors list active channels only; an empty object means zero damage. Server validation, combat authority and save schemas remain unchanged. Shared attacks/rewards retain their explicit channels.
+- **Verification/limitations:** normal user-directed increment; full Unreal build/automation/runtime verification deferred. Pre-existing axe descriptions/balance edits and three unrelated files are preserved and excluded.
+- **Next eligible task:** surface remaining Stone/Bronze/Iron acquisitions, stats and costs in station and Inventory Craft views.
+
 ## User-directed increment 2026-10-13 — Shared weapon-family attacks
 
 - **Completed:** removed Attacks from all 16 individual profiles and added `Content/Data/GameCatalogues/tools/Attacks.json`, loaded by the schema-11 attackFiles manifest list. Each named AttackListId lists ItemIds and attack styles. Axes, Knives, Pickaxes, Spears and Maces each share a list across Stone/Bronze/Iron; BuildingHammer has its own zero-bonus utility list. Server runtime weapon definitions resolve their attacks from the catalogue group before combining style and item/level bonuses. All existing Basic styles and damage values are preserved.
