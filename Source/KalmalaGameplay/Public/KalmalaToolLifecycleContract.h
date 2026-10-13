@@ -17,8 +17,8 @@ enum class EKalmalaToolAction : uint8
 enum class EKalmalaToolKind : uint8
 {
     None,
-    ReedKnife,
-    FieldHatchet,
+    StoneKnife,
+    StoneAxe,
     StonePick,
     BronzeAxe,
     BronzeKnife,
@@ -126,6 +126,8 @@ public:
     static const TArray<FKalmalaToolDefinition>& GetTieredToolDefinitions();
     static const FKalmalaToolDefinition& GetConstructionHammerDefinition();
     static TArray<FKalmalaToolState> BuildInitialCarriedTools();
+    /** Maps retired saved IDs to the current canonical tool IDs. */
+    static FName CanonicalizeToolId(FName ToolId);
     static const FKalmalaToolDefinition* FindDefinition(FName ToolId);
     /** Level-aware condition capacity; zero means the tool/level combination is invalid. */
     static int32 GetMaxDurability(FName ToolId, int32 ToolLevel);

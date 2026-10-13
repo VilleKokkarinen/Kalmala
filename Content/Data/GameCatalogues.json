@@ -24,7 +24,7 @@
   ],
   "recipeOrder": [
     "BuildingHammer",
-    "Campfire",
+    "CampFire",
     "Workbench",
     "Forge",
     "FryingPanRecipe",
@@ -54,8 +54,8 @@
     "tools/building-hammer.json"
   ],
   "toolProfileOrder": [
-    "ReedKnife",
-    "FieldHatchet",
+    "StoneKnife",
+    "StoneAxe",
     "StonePick",
     "StoneSpear",
     "BronzeAxe",

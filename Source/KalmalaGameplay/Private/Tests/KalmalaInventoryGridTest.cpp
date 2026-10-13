@@ -15,21 +15,21 @@ bool FKalmalaInventoryGridTest::RunTest(const FString& Parameters)
     TArray<FName> Before;
     Before.Init(NAME_None, 40);
     Before[9] = TEXT("Wood");
-    Before[14] = TEXT("FieldHatchet");
+    Before[14] = TEXT("StoneAxe");
     Before[31] = TEXT("Stone");
     TArray<FName> After;
     TestTrue(TEXT("Tools and stacks fit in one grid"), UKalmalaInventoryComponent::BuildGridLayout(
-        {TEXT("FieldHatchet"), TEXT("Wood"), TEXT("Stone")}, Before, After));
+        {TEXT("StoneAxe"), TEXT("Wood"), TEXT("Stone")}, Before, After));
     TestEqual(TEXT("Custom hotbar assignment survives refresh"), After[9], FName(TEXT("Wood")));
-    TestEqual(TEXT("Tool uses a regular inventory cell"), After[14], FName(TEXT("FieldHatchet")));
+    TestEqual(TEXT("Tool uses a regular inventory cell"), After[14], FName(TEXT("StoneAxe")));
     TestTrue(TEXT("Reconciliation preserves all gaps"), Before == After);
     TestTrue(TEXT("Exhausted stack is removed"), UKalmalaInventoryComponent::BuildGridLayout(
-        {TEXT("FieldHatchet"), TEXT("Stone")}, Before, After));
+        {TEXT("StoneAxe"), TEXT("Stone")}, Before, After));
     TestEqual(TEXT("Exhausted hotbar remains empty"), After[9], NAME_None);
     TestEqual(TEXT("Unrelated material stays in its assigned cell"), After[31], FName(TEXT("Stone")));
     Before = After;
     TestTrue(TEXT("New item uses free space"), UKalmalaInventoryComponent::BuildGridLayout(
-        {TEXT("FieldHatchet"), TEXT("Stone"), TEXT("Fibre")}, Before, After));
+        {TEXT("StoneAxe"), TEXT("Stone"), TEXT("Fibre")}, Before, After));
     TestEqual(TEXT("New stack fills first empty cell"), After[0], FName(TEXT("Fibre")));
     const auto Valid = After;
     TestFalse(TEXT("Duplicate identities fail closed"), UKalmalaInventoryComponent::BuildGridLayout(

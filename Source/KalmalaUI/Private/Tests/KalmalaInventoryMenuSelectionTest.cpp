@@ -18,7 +18,7 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     auto* OwnerB = NewObject<UKalmalaInventoryMenuWidget>(); OwnerB->Initialize();
     const TArray<FKalmalaCatalogueRow> Rows = {
         {TEXT("Wood"), TEXT("Wood"), TEXT("× 7"), false},
-        {TEXT("ReedKnife"), TEXT("Stone Knife"), TEXT("Level 1\nCondition 17/40"), true}};
+        {TEXT("StoneKnife"), TEXT("Stone Knife"), TEXT("Level 1\nCondition 17/40"), true}};
     OwnerA->SetInventoryRowsForVerification(Rows, 150, 1);
     OwnerB->SetInventoryRowsForVerification({{TEXT("Stone"), TEXT("Stone"), TEXT("× 93"), false}}, 100, 0);
     const auto DetailText = [](UKalmalaInventoryMenuWidget* Menu)
@@ -38,10 +38,10 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     OwnerA->SelectItemForVerification(TEXT("Wood"));
     TestTrue(TEXT("Owner detail includes its quantity"), DetailText(OwnerA).Contains(TEXT("× 7")));
     TestFalse(TEXT("Owner detail excludes peer contents"), DetailText(OwnerA).Contains(TEXT("× 93")));
-    OwnerA->SelectItemForVerification(TEXT("ReedKnife"));
+    OwnerA->SelectItemForVerification(TEXT("StoneKnife"));
     TestTrue(TEXT("Tool cell selects existing condition and repair detail"), DetailText(OwnerA).Contains(TEXT("Condition 17/40")));
     OwnerA->SetInventoryRowsForVerification(Rows, 150, 1);
-    TestEqual(TEXT("Owner refresh preserves selected identity"), OwnerA->GetSelectedItemForVerification(), FName(TEXT("ReedKnife")));
+    TestEqual(TEXT("Owner refresh preserves selected identity"), OwnerA->GetSelectedItemForVerification(), FName(TEXT("StoneKnife")));
     int32 Grids = 0, Searches = 0;
     bool bArmor = false, bWeight = false;
     OwnerA->WidgetTree->ForEachWidget([&](UWidget* Widget) {

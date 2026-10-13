@@ -50,7 +50,7 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
     {
         return Recipes.FindByPredicate([RecipeId](const FKalmalaRecipe& Recipe) { return Recipe.RecipeId == RecipeId; });
     };
-    for (const FName RecipeId : { FName(TEXT("Campfire")), FName(TEXT("Workbench")), FName(TEXT("Forge")),
+    for (const FName RecipeId : { FName(TEXT("CampFire")), FName(TEXT("Workbench")), FName(TEXT("Forge")),
              FName(TEXT("WorkbenchToolRack")), FName(TEXT("ForgeAnvil")), FName(TEXT("FryingPanRecipe")),
              FName(TEXT("GrindingStone")) })
     {

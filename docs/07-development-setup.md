@@ -2607,8 +2607,8 @@ acceptance or full verification.
 
 Direct-material recipes keep their stable construction identities in the
 runtime `BuildableOutput` field; `Output` is reserved for actual inventory
-results. The catalogue loader maps the legacy Campfire `HearthRing` reference
-to `CampfireKit` in that construction field. `Kalmala.Gameplay.Inventory.Catalogue`
+results. The catalogue loader maps canonical `CampFire` and legacy `HearthRing`
+references to `CampfireKit` in that construction field. `Kalmala.Gameplay.Inventory.Catalogue`
 checks that the descriptor validates with no Campfire item entry, that normal
 recipe scaling rejects direct construction output, and that the legacy source
 reference still resolves to the stable construction identity.
@@ -2621,8 +2621,9 @@ failed-placement conservation in the M12 milestone-final
 ## M12 Campfire item retirement
 
 The schema-version-5 category files have 41 normal item definitions after removing the
-HearthRing inventory row. The Campfire recipe still uses source output
-`HearthRing`, which the loader maps to `BuildableOutput=CampfireKit`; recipe
+HearthRing inventory row. The Campfire recipe uses canonical source output
+`CampFire`, which the loader maps to `BuildableOutput=CampfireKit`; legacy
+`HearthRing` input continues to resolve to the same internal build identity. The recipe
 and placed-result text say Campfire. CampfireKit remains an internal stable
 construction identity and icon key, never an inventory output. Keep the
 existing 5 Stone + 3 Wood direct cost and one priority-selected raw fuel item.

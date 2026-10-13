@@ -118,7 +118,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             bAcceptedOnce ? 1 : 0, bNoExtraMutation ? 1 : 0, bActionOnlyFeedback ? 1 : 0, bNoMenu ? 1 : 0);
 
         Check(!PlaceFromServer(Reason), TEXT("No ingredients cannot create a hearth"));
-        Check(!CraftFromServer(TEXT("Campfire"),1,Reason), TEXT("Campfire cannot be crafted into an inventory item"));
+        Check(!CraftFromServer(TEXT("CampFire"),1,Reason), TEXT("Campfire cannot be crafted into an inventory item"));
         Check(!CraftFromServer(TEXT("Forged"),1,Reason), TEXT("Unknown recipe"));
         for (int32 Batch : {MIN_int32,-1,0,MAX_int32}) Check(!CraftFromServer(TEXT("Workbench"),Batch,Reason),TEXT("Malformed batch"));
         Check(I->TryGrantFromServer(TEXT("Wood"),50) && I->TryGrantFromServer(TEXT("Stone"),40)
@@ -133,8 +133,8 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Check(I->TryGrantFromServer(TEXT("WorkbenchKit"),5),TEXT("Fill output stack"));
         const int32 WoodBefore=I->GetQuantity(TEXT("Wood"));
         Check(!CraftFromServer(TEXT("Workbench"),1,Reason) && I->GetQuantity(TEXT("Wood"))==WoodBefore,TEXT("Full output cannot consume inputs"));
-        Check(!CraftFromServer(TEXT("Campfire"),1,Reason),TEXT("Normal crafting cannot create a Campfire inventory item"));
-        Check(GetRecipeAvailability(TEXT("Campfire")) == TEXT("Ready"),TEXT("Campfire direct build checks recipe materials and raw fuel"));
+        Check(!CraftFromServer(TEXT("CampFire"),1,Reason),TEXT("Normal crafting cannot create a Campfire inventory item"));
+        Check(GetRecipeAvailability(TEXT("CampFire")) == TEXT("Ready"),TEXT("Campfire direct build checks recipe materials and raw fuel"));
         const int32 HearthWoodBefore = I->GetQuantity(TEXT("Wood"));
         const int32 HearthStoneBefore = I->GetQuantity(TEXT("Stone"));
 

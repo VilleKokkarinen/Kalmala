@@ -26,8 +26,8 @@ bool FKalmalaItemDetailTest::RunTest(const FString& Parameters)
         const TCHAR* Description;
     };
     const FExpectedToolCopy ToolCopies[] = {
-        { TEXT("ReedKnife"), TEXT("A light blade for gathering plants and reeds.") },
-        { TEXT("FieldHatchet"), TEXT("A hand hatchet for gathering wood.") },
+        { TEXT("StoneKnife"), TEXT("A light blade for gathering plants and reeds.") },
+        { TEXT("StoneAxe"), TEXT("A hand hatchet for gathering wood.") },
         { TEXT("StonePick"), TEXT("A stone-headed pick for mining.") },
         { TEXT("BronzeAxe"), TEXT("A bronze axe for harvesting Lightwood.") },
         { TEXT("IronAxe"), TEXT("An iron axe for harvesting Densewood.") },
@@ -62,7 +62,7 @@ bool FKalmalaItemDetailTest::RunTest(const FString& Parameters)
     }
     TestTrue(TEXT("High-contrast scaled panel binds current owner-visible data"), bFoundDetails);
     TestTrue(TEXT("Selected item detail shows its imported catalogue image"), bFoundLoadedItemImage);
-    Panel->SetCarriedTool(TEXT("ReedKnife"), TEXT("Stone Knife"), TEXT("Condition 17/40"), 100, 0);
+    Panel->SetCarriedTool(TEXT("StoneKnife"), TEXT("Stone Knife"), TEXT("Condition 17/40"), 100, 0);
     TArray<UWidget*> ToolWidgets;
     Panel->WidgetTree->GetAllWidgets(ToolWidgets);
     bool bFoundToolDetails = false;
@@ -70,7 +70,7 @@ bool FKalmalaItemDetailTest::RunTest(const FString& Parameters)
     {
         if (const auto* Text = Cast<UTextBlock>(Widget))
             bFoundToolDetails |= Text->GetText().ToString()
-                == UKalmalaItemDetailWidget::DescribeCarriedTool(TEXT("ReedKnife"), TEXT("Condition 17/40"));
+                == UKalmalaItemDetailWidget::DescribeCarriedTool(TEXT("StoneKnife"), TEXT("Condition 17/40"));
     }
     TestTrue(TEXT("Shared panel binds reviewed tool copy with current condition"), bFoundToolDetails);
     return true;

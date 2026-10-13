@@ -16,19 +16,19 @@ bool FKalmalaInventoryInspectTest::RunTest(const FString& Parameters)
     Panel->TakeWidget();
     TestNotNull(TEXT("Slate construction creates inspection root before first owner refresh"), Panel->GetRootWidget());
     TArray<FKalmalaCatalogueRow> Rows = {{TEXT("Wood"), TEXT("Wood"), TEXT("Count 7"), false},
-        {TEXT("FieldHatchet"), TEXT("Stone Axe"), TEXT("Condition 17/40"), true}};
+        {TEXT("StoneAxe"), TEXT("Stone Axe"), TEXT("Condition 17/40"), true}};
     Panel->SetRows(Rows, 150, 1);
     TestTrue(TEXT("Inspection is focusable within modal"), Panel->IsFocusable());
     TestEqual(TEXT("First supplied slot selected"), Panel->GetSelectedItem(), FName(TEXT("Wood")));
     TestTrue(TEXT("Keyboard selects next"), Panel->Navigate(EKeys::Right));
-    TestEqual(TEXT("Tool selected"), Panel->GetSelectedItem(), FName(TEXT("FieldHatchet")));
+    TestEqual(TEXT("Tool selected"), Panel->GetSelectedItem(), FName(TEXT("StoneAxe")));
     TestTrue(TEXT("Controller wraps next"), Panel->Navigate(EKeys::Gamepad_DPad_Down));
     TestEqual(TEXT("Wrap returns first"), Panel->GetSelectedItem(), FName(TEXT("Wood")));
     Panel->Navigate(EKeys::Gamepad_DPad_Left);
-    TestEqual(TEXT("Controller wraps previous"), Panel->GetSelectedItem(), FName(TEXT("FieldHatchet")));
+    TestEqual(TEXT("Controller wraps previous"), Panel->GetSelectedItem(), FName(TEXT("StoneAxe")));
     TestFalse(TEXT("Inspection does not dispatch a use action"), Panel->Navigate(EKeys::Gamepad_FaceButton_Bottom));
     Swap(Rows[0], Rows[1]); Panel->SetRows(Rows, 150, 1);
-    TestEqual(TEXT("Refresh preserves canonical selection"), Panel->GetSelectedItem(), FName(TEXT("FieldHatchet")));
+    TestEqual(TEXT("Refresh preserves canonical selection"), Panel->GetSelectedItem(), FName(TEXT("StoneAxe")));
     TArray<UWidget*> Widgets; Panel->WidgetTree->GetAllWidgets(Widgets);
     bool bToolPanel = false;
     int32 InitialImageCount = 0;

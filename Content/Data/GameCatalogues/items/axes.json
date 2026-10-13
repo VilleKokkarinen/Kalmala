@@ -1,11 +1,11 @@
 {
   "toolProfiles": [
     {
-      "ToolId": "FieldHatchet",
+      "ToolId": "StoneAxe",
       "DisplayName": "Stone Axe",
       "Description": "A simple stone axe for woodcutting and close combat.",
       "ToolSet": "Starter",
-      "ToolKind": "FieldHatchet",
+      "ToolKind": "StoneAxe",
       "Action": "Woodcutting",
       "RequiredSkill": "Woodcutting",
       "MinimumSkillLevel": 1,

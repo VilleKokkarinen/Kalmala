@@ -2362,7 +2362,7 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
         for (const FKalmalaPlayerToolSaveRecord& Record : Save->GetToolRecords())
         {
             FKalmalaToolState ToolState;
-            ToolState.ToolId = Record.ToolId;
+            ToolState.ToolId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
             ToolState.ToolLevel = Record.ToolLevel;
             ToolState.Durability = Record.Condition;
             Interactor->CarriedTools.Add(ToolState);
@@ -3566,7 +3566,7 @@ void AKalmalaGameMode::RunM9Schema2CandidatePlayerPeerTest(APlayerController* Pl
         const bool bCandidateBuilt = Candidate->AddDiscovery(DiscoveryId)
             && Candidate->AddM9Claim(ClaimId)
             && Candidate->AddLearnedEffect(TEXT("Effect:mending"))
-            && AddTool(TEXT("ReedKnife"), 1, 9)
+            && AddTool(TEXT("StoneKnife"), 1, 9)
             && AddTool(TEXT("BronzeAxe"), 1, 0)
             && AddTool(TEXT("IronAxe"), 2, 20);
         if (!bCandidateBuilt || !UGameplayStatics::SaveGameToSlot(Candidate, TestSlot, 0))
@@ -3607,7 +3607,7 @@ void AKalmalaGameMode::RunM9Schema2CandidatePlayerPeerTest(APlayerController* Pl
     }
     Character->ForceNetUpdate();
     const bool bServerAgreement = Character->CarriedTools.Num() == Candidate->GetToolRecords().Num()
-        && Character->GetToolDurability(TEXT("ReedKnife")) == 9
+        && Character->GetToolDurability(TEXT("StoneKnife")) == 9
         && Character->GetToolDurability(TEXT("BronzeAxe")) == 0
         && Character->GetToolDurability(TEXT("IronAxe")) == 20
         && Character->GetCarriedToolLevel(TEXT("IronAxe")) == 2;

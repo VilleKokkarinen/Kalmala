@@ -20,7 +20,11 @@ bool FKalmalaCatalogueIconLibrary::GetTextureObjectPath(FName CanonicalId, FSoft
     else if (CanonicalId == TEXT("DeerCallScroll")) StatusIconId = TEXT("DeerCall");
     if (!StatusIconId.IsNone()) return FKalmalaStatusIconLibrary::GetTextureObjectPath(StatusIconId, OutObjectPath);
 
-    const FString AssetName = CanonicalId.ToString();
+    FName TextureAssetId = CanonicalId;
+    if (CanonicalId == TEXT("StoneKnife")) TextureAssetId = TEXT("ReedKnife");
+    else if (CanonicalId == TEXT("StoneAxe")) TextureAssetId = TEXT("FieldHatchet");
+    else if (CanonicalId == TEXT("CampFire")) TextureAssetId = TEXT("CampfireKit");
+    const FString AssetName = TextureAssetId.ToString();
     OutObjectPath = FSoftObjectPath(FString::Printf(
         TEXT("/Game/Kalmala/UI/Icons/Items/%s.%s"), *AssetName, *AssetName));
     return OutObjectPath.IsValid();

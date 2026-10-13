@@ -224,9 +224,9 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
             bool bOwnToolsMatch = false;
             if (TestRole.Equals(TEXT("Owner"), ESearchCase::IgnoreCase))
             {
-                const FKalmalaToolState* ReedKnife = CarriedTools.FindByPredicate([](const FKalmalaToolState& State)
+                const FKalmalaToolState* StoneKnife = CarriedTools.FindByPredicate([](const FKalmalaToolState& State)
                 {
-                    return State.ToolId == TEXT("ReedKnife");
+                    return State.ToolId == TEXT("StoneKnife");
                 });
                 const FKalmalaToolState* BronzeAxe = CarriedTools.FindByPredicate([](const FKalmalaToolState& State)
                 {
@@ -236,7 +236,7 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
                 {
                     return State.ToolId == TEXT("IronAxe");
                 });
-                bOwnToolsMatch = CarriedTools.Num() == 3 && ReedKnife != nullptr && ReedKnife->Durability == 9
+                bOwnToolsMatch = CarriedTools.Num() == 3 && StoneKnife != nullptr && StoneKnife->Durability == 9
                     && BronzeAxe != nullptr && BronzeAxe->ToolLevel == 1 && BronzeAxe->Durability == 0
                     && IronAxe != nullptr && IronAxe->ToolLevel == 2 && IronAxe->Durability == 20;
             }
@@ -983,24 +983,26 @@ void AKalmalaCharacter::ServerSubmitOceanSkiffSteeringInput_Implementation(const
 
 int32 AKalmalaCharacter::GetToolDurability(const FName ToolId) const
 {
-    if (const FKalmalaToolState* State = CarriedTools.FindByPredicate([ToolId](const FKalmalaToolState& Candidate)
-        { return Candidate.ToolId == ToolId; })) return State->Durability;
+    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolId);
+    if (const FKalmalaToolState* State = CarriedTools.FindByPredicate([CanonicalId](const FKalmalaToolState& Candidate)
+        { return Candidate.ToolId == CanonicalId; })) return State->Durability;
 #if WITH_EDITORONLY_DATA
-    if (ToolId == TEXT("ReedKnife")) return ReedKnifeDurability;
-    if (ToolId == TEXT("FieldHatchet")) return FieldHatchetDurability;
-    if (ToolId == TEXT("StonePick")) return StonePickDurability;
-    if (ToolId == TEXT("BronzeAxe")) return BronzeAxeDurability;
-    if (ToolId == TEXT("IronAxe")) return IronAxeDurability;
+    if (CanonicalId == TEXT("StoneKnife")) return StoneKnifeDurability;
+    if (CanonicalId == TEXT("StoneAxe")) return StoneAxeDurability;
+    if (CanonicalId == TEXT("StonePick")) return StonePickDurability;
+    if (CanonicalId == TEXT("BronzeAxe")) return BronzeAxeDurability;
+    if (CanonicalId == TEXT("IronAxe")) return IronAxeDurability;
 #endif
-    if (ToolId == TEXT("BronzeAxe") || ToolId == TEXT("IronAxe")) return -1;
+    if (CanonicalId == TEXT("BronzeAxe") || CanonicalId == TEXT("IronAxe")) return -1;
     return 0;
 }
 
 int32 AKalmalaCharacter::GetCarriedToolLevel(const FName ToolId) const
 {
-    const FKalmalaToolState* State = CarriedTools.FindByPredicate([ToolId](const FKalmalaToolState& Candidate)
+    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolId);
+    const FKalmalaToolState* State = CarriedTools.FindByPredicate([CanonicalId](const FKalmalaToolState& Candidate)
     {
-        return Candidate.ToolId == ToolId;
+        return Candidate.ToolId == CanonicalId;
     });
     return State ? State->ToolLevel : 0;
 }
@@ -1008,23 +1010,24 @@ int32 AKalmalaCharacter::GetCarriedToolLevel(const FName ToolId) const
 int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FName ToolId)
 {
     if (!HasAuthority()) return nullptr;
-    if (FKalmalaToolState* State = CarriedTools.FindByPredicate([ToolId](FKalmalaToolState& Candidate)
-        { return Candidate.ToolId == ToolId; })) return &State->Durability;
+    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolId);
+    if (FKalmalaToolState* State = CarriedTools.FindByPredicate([CanonicalId](FKalmalaToolState& Candidate)
+        { return Candidate.ToolId == CanonicalId; })) return &State->Durability;
 #if WITH_EDITORONLY_DATA
     int32* LegacyCondition = nullptr;
-    if (ToolId == TEXT("ReedKnife")) LegacyCondition = &ReedKnifeDurability;
-    else if (ToolId == TEXT("FieldHatchet")) LegacyCondition = &FieldHatchetDurability;
-    else if (ToolId == TEXT("StonePick")) LegacyCondition = &StonePickDurability;
-    else if (ToolId == TEXT("BronzeAxe")) LegacyCondition = &BronzeAxeDurability;
-    else if (ToolId == TEXT("IronAxe")) LegacyCondition = &IronAxeDurability;
+    if (CanonicalId == TEXT("StoneKnife")) LegacyCondition = &StoneKnifeDurability;
+    else if (CanonicalId == TEXT("StoneAxe")) LegacyCondition = &StoneAxeDurability;
+    else if (CanonicalId == TEXT("StonePick")) LegacyCondition = &StonePickDurability;
+    else if (CanonicalId == TEXT("BronzeAxe")) LegacyCondition = &BronzeAxeDurability;
+    else if (CanonicalId == TEXT("IronAxe")) LegacyCondition = &IronAxeDurability;
 
-    const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(ToolId);
+    const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(CanonicalId);
     if (LegacyCondition != nullptr && Definition != nullptr && *LegacyCondition >= 0
-        && *LegacyCondition <= FKalmalaToolLifecycleContract::GetMaxDurability(ToolId, 1)
+        && *LegacyCondition <= FKalmalaToolLifecycleContract::GetMaxDurability(CanonicalId, 1)
         && CarriedTools.Num() < FKalmalaToolLifecycleContract::MaxCarriedToolRecords)
     {
         FKalmalaToolState SeededState;
-        SeededState.ToolId = ToolId;
+        SeededState.ToolId = CanonicalId;
         SeededState.ToolLevel = 1;
         SeededState.Durability = *LegacyCondition;
         CarriedTools.Add(SeededState);

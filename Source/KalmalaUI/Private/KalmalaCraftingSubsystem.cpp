@@ -106,8 +106,8 @@ bool IsCookingMenuRecipe(const FName StationKit, const FKalmalaRecipe& Recipe)
 
 FString GetReadableToolName(const FName ToolId)
 {
-    if (ToolId == TEXT("ReedKnife")) return TEXT("Stone Knife");
-    if (ToolId == TEXT("FieldHatchet")) return TEXT("Stone Axe");
+    if (ToolId == TEXT("StoneKnife")) return TEXT("Stone Knife");
+    if (ToolId == TEXT("StoneAxe")) return TEXT("Stone Axe");
     if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
     if (ToolId == TEXT("StoneSpear")) return TEXT("Stone Spear");
     if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
@@ -643,8 +643,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     StationCraftExcludedWidgets.Add(RepairActions);
     BuildExcludedWidgets.Add(RepairText);
     BuildExcludedWidgets.Add(RepairActions);
-    AddButton(TEXT("Repair Stone Knife"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairReedKnife);
-    AddButton(TEXT("Repair Stone Axe"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairFieldHatchet);
+    AddButton(TEXT("Repair Stone Knife"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairStoneKnife);
+    AddButton(TEXT("Repair Stone Axe"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairStoneAxe);
     AddButton(TEXT("Repair Stone Pick"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairStonePick);
     auto* AxeRepairActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(AxeRepairActions);
     StationCraftExcludedWidgets.Add(AxeRepairActions);
@@ -4059,8 +4059,8 @@ void UKalmalaCraftingWidget::Light() { if(auto* M=Model()) M->ServerLight(); }
 void UKalmalaCraftingWidget::EatFood() { if(auto* M=Model()) M->ServerConsumeFood(TEXT("RoastedFieldMeat")); }
 void UKalmalaCraftingWidget::EatBroth() { if(auto* M=Model()) M->ServerConsumeFood(TEXT("HearthBroth")); }
 void UKalmalaCraftingWidget::EatSmokedMeat() { if(auto* M=Model()) M->ServerConsumeFood(TEXT("SmokedFieldMeat")); }
-void UKalmalaCraftingWidget::RepairReedKnife() { if(auto* M=Model()) M->ServerRepairTool(TEXT("ReedKnife")); }
-void UKalmalaCraftingWidget::RepairFieldHatchet() { if(auto* M=Model()) M->ServerRepairTool(TEXT("FieldHatchet")); }
+void UKalmalaCraftingWidget::RepairStoneKnife() { if(auto* M=Model()) M->ServerRepairTool(TEXT("StoneKnife")); }
+void UKalmalaCraftingWidget::RepairStoneAxe() { if(auto* M=Model()) M->ServerRepairTool(TEXT("StoneAxe")); }
 void UKalmalaCraftingWidget::RepairStonePick() { if(auto* M=Model()) M->ServerRepairTool(TEXT("StonePick")); }
 void UKalmalaCraftingWidget::RepairBronzeAxe() { if(auto* M=Model()) M->ServerRepairTool(TEXT("BronzeAxe")); }
 void UKalmalaCraftingWidget::RepairIronAxe() { if(auto* M=Model()) M->ServerRepairTool(TEXT("IronAxe")); }
@@ -4389,11 +4389,11 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
         if(Widget && Widget->IsOpen() && (bGridLayoutReady || VerificationLayoutWait >= 2.0f))
         {
             const auto& BuildRecipes = UKalmalaRecipeCatalogue::Get()->Recipes;
-            Widget->SetRecipeBrowse(TEXT("Campfire"), 3, false);
+            Widget->SetRecipeBrowse(TEXT("CampFire"), 3, false);
             const TArray<int32> CampfireIndices = Widget->GetVisibleRecipeIndices();
             const bool bCampfireBuildSelected = CampfireIndices.Num() == 1
                 && BuildRecipes.IsValidIndex(CampfireIndices[0])
-                && BuildRecipes[CampfireIndices[0]].RecipeId == TEXT("Campfire");
+                && BuildRecipes[CampfireIndices[0]].RecipeId == TEXT("CampFire");
             Widget->SetRecipeBrowse(TEXT(""), 3, false);
             const auto Text=Widget->GetPresentationText();
             Widget->EnablePlacementPreview();

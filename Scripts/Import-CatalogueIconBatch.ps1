@@ -39,10 +39,17 @@ if ($rows.Count -eq 0 -or $rows.Count -gt 16) {
 }
 
 $canonicalIds = @($rows | ForEach-Object { $_.canonical_id.Trim() })
+$textureAssetIds = @($rows | ForEach-Object {
+    if ($_.texture_asset_id -and $_.texture_asset_id.Trim()) { $_.texture_asset_id.Trim() }
+    else { $_.canonical_id.Trim() }
+})
 if (@($canonicalIds | Select-Object -Unique).Count -ne $canonicalIds.Count) {
     throw "Batch $Batch contains duplicate canonical IDs."
 }
-foreach ($id in $canonicalIds) {
+if (@($textureAssetIds | Select-Object -Unique).Count -ne $textureAssetIds.Count) {
+    throw "Batch $Batch contains duplicate texture asset IDs."
+}
+foreach ($id in $textureAssetIds) {
     foreach ($path in @(
         (Join-Path $sourceDir "$id.png"),
         (Join-Path $destinationDir "$id.uasset")
@@ -120,20 +127,22 @@ try {
     if ($log -notmatch "KALMALA_ICON_IMPORT_COMPLETE: batch=$Batch count=$($rows.Count)") {
         throw "The Unreal importer did not complete batch $Batch. See $logPath"
     }
-    foreach ($id in $canonicalIds) {
-        $marker = "KALMALA_ICON_IMPORTED: batch=$Batch canonical=$id object=/Game/Kalmala/UI/Icons/Items/$id.$id size=64x64 alpha=1 group=UI"
+    for ($index = 0; $index -lt $canonicalIds.Count; $index++) {
+        $id = $canonicalIds[$index]
+        $assetId = $textureAssetIds[$index]
+        $marker = "KALMALA_ICON_IMPORTED: batch=$Batch canonical=$id object=/Game/Kalmala/UI/Icons/Items/$assetId.$assetId size=64x64 alpha=1 group=UI"
         if ($log -notmatch [regex]::Escape($marker)) {
             throw "Batch $Batch did not verify the expected object assignment for $id. See $logPath"
         }
     }
 
-    foreach ($id in $canonicalIds) {
+    foreach ($id in $textureAssetIds) {
         $assetPath = Join-Path $scratchAssets "$id.uasset"
         if (!(Test-Path -LiteralPath $assetPath -PathType Leaf)) {
             throw "Unreal did not save the expected package for $id. See $logPath"
         }
     }
-    $unexpected = @(Get-ChildItem -LiteralPath $scratchAssets -File | Where-Object { $_.BaseName -notin $canonicalIds })
+    $unexpected = @(Get-ChildItem -LiteralPath $scratchAssets -File | Where-Object { $_.BaseName -notin $textureAssetIds })
     if ($unexpected.Count -gt 0) {
         throw "Scratch import created unexpected package files: $($unexpected.Name -join ', ')"
     }

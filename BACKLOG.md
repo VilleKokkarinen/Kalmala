@@ -31,7 +31,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 - [x] **2026-10-13 — Split ordinary building and station recipes:** put construction/general building recipes in `recipes/building.json`, each station's recipe in its own JSON file, and preserve the existing runtime order through the manifest.
 
-- [x] **2026-10-13 — Rename Stone starter tools:** display ReedKnife as Stone Knife and FieldHatchet as Stone Axe across inventory, crafting, repair labels, and item details. Preserve both canonical IDs for existing saves and gameplay contracts.
+- [x] **2026-10-13 — Rename Stone starter tools in the UI:** display the starter knife and axe as Stone Knife and Stone Axe across inventory, crafting, repair labels, and item details; their former IDs were retained at this stage.
 
 - [x] **2026-10-13 — Finish Bronze Axe level-two gains:** keep harvesting tier tied to item identity; set level 1 to 100 durability/50 slash damage and level 2 to 150/55, apply the slash values in server combat, and show the stat deltas in the upgrade comparison.
   - [x] Remove the named-item upgrade button text and the carried-level prerequisite sentence from the comparison header; stop Bronze Axe level from unlocking Iron harvesting.
@@ -145,6 +145,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
   - [x] Move authored carried-tool profiles, per-level stats, and acquisition/upgrade recipe requirements and costs into schema-version-5 `GameCatalogues.json`; load them into the existing server-side tool contracts.
   - [x] Split the schema-version-5 `GameCatalogues` definitions into category JSON files with an ordered manifest; preserve catalogue contents, order, validation, and runtime behavior.
   - [x] Group weapon profiles under item-family categories and their recipes under matching recipe categories; keep only the Building Hammer profile in `tools/` and preserve the prior assembly order.
+  - [x] Canonicalize the starter IDs to `StoneKnife` and `StoneAxe`, and use `CampFire` for the campfire recipe/output; read old saved/source IDs through compatibility mappings without changing save schema or icon packages.
   - [ ] Surface all Stone, Bronze, and Iron tool acquisitions, authored stats, and material costs in station and Inventory Craft views, with crafting routed through the server-authoritative tool progression action.
 
 - [x] **2026-10-11 — Fix Build card fill and visible icon scale:** prevent the shared selectable-fill animation from overwriting the standalone Build menu's brown card overlay, and compensate for transparent margins in the 64×64 catalogue canvases while preserving icon proportions. Source inspection and `git diff --check` only; build/render verification deferred.

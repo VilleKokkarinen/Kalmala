@@ -54,12 +54,18 @@ if not rows or len(rows) > MAX_BATCH_SIZE:
     ))
 
 canonical_ids = [row["canonical_id"].strip() for row in rows]
+texture_asset_ids = [
+    (row.get("texture_asset_id", "") or "").strip() or canonical_id
+    for row, canonical_id in zip(rows, canonical_ids)
+]
 if len(set(canonical_ids)) != len(canonical_ids):
     fail("Batch %s contains duplicate canonical IDs." % batch)
+if len(set(texture_asset_ids)) != len(texture_asset_ids):
+    fail("Batch %s contains duplicate texture asset IDs." % batch)
 
 alias_assignments = {}
 tasks = []
-for row, canonical_id in zip(rows, canonical_ids):
+for row, canonical_id, texture_asset_id in zip(rows, canonical_ids, texture_asset_ids):
     if not canonical_id or not canonical_id.replace("_", "").isalnum():
         fail("Batch %s contains an invalid canonical ID." % batch)
 
@@ -75,7 +81,7 @@ for row, canonical_id in zip(rows, canonical_ids):
             ))
         alias_assignments[alias] = canonical_id
 
-    source_path = os.path.abspath(os.path.join(source_dir, canonical_id + ".png"))
+    source_path = os.path.abspath(os.path.join(source_dir, texture_asset_id + ".png"))
     if not os.path.isfile(source_path):
         fail("Prepared source is missing for %s: %s" % (canonical_id, source_path))
 
@@ -92,7 +98,7 @@ for row, canonical_id in zip(rows, canonical_ids):
     task = unreal.AssetImportTask()
     task.set_editor_property("filename", source_path)
     task.set_editor_property("destination_path", DESTINATION)
-    task.set_editor_property("destination_name", canonical_id)
+    task.set_editor_property("destination_name", texture_asset_id)
     task.set_editor_property("automated", True)
     task.set_editor_property("replace_existing", True)
     task.set_editor_property("save", True)
@@ -102,8 +108,8 @@ unreal.log("KALMALA_ICON_IMPORT_START: batch=%s count=%d" % (batch, len(tasks)))
 asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
 asset_tools.import_asset_tasks(tasks)
 
-for row, canonical_id in zip(rows, canonical_ids):
-    object_path = "%s/%s.%s" % (DESTINATION, canonical_id, canonical_id)
+for row, canonical_id, texture_asset_id in zip(rows, canonical_ids, texture_asset_ids):
+    object_path = "%s/%s.%s" % (DESTINATION, texture_asset_id, texture_asset_id)
     texture = unreal.load_asset(object_path)
     if not texture or texture.get_class().get_name() != "Texture2D":
         fail("Expected Texture2D was not imported at " + object_path)

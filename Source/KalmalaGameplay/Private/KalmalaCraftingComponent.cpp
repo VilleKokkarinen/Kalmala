@@ -41,8 +41,8 @@ FName FindUniqueRecipeIdForOutput(const FName Output)
 
 FString GetToolDisplayName(const FName ToolId)
 {
-    if (ToolId == TEXT("ReedKnife")) return TEXT("Stone Knife");
-    if (ToolId == TEXT("FieldHatchet")) return TEXT("Stone Axe");
+    if (ToolId == TEXT("StoneKnife")) return TEXT("Stone Knife");
+    if (ToolId == TEXT("StoneAxe")) return TEXT("Stone Axe");
     if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
     if (ToolId == TEXT("StoneSpear")) return TEXT("Stone Spear");
     if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
@@ -613,6 +613,7 @@ void UKalmalaCraftingComponent::ServerLight_Implementation()
 
 bool UKalmalaCraftingComponent::RepairToolFromServer(const FName ToolId, FString& Reason)
 {
+    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolId);
     auto* Character = GetCharacter();
     Reason = TEXT("Server authority required");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
@@ -624,12 +625,12 @@ bool UKalmalaCraftingComponent::RepairToolFromServer(const FName ToolId, FString
         return false;
     }
 
-    int32* CurrentDurability = Character->FindToolDurabilityFromServer(ToolId);
+    int32* CurrentDurability = Character->FindToolDurabilityFromServer(CanonicalId);
     if (CurrentDurability == nullptr) { Reason = TEXT("Unknown tool"); return false; }
     FKalmalaToolState CurrentState;
-    CurrentState.ToolId = ToolId;
+    CurrentState.ToolId = CanonicalId;
     CurrentState.Durability = *CurrentDurability;
-    CurrentState.ToolLevel = Character->GetCarriedToolLevel(ToolId);
+    CurrentState.ToolLevel = Character->GetCarriedToolLevel(CanonicalId);
     FKalmalaToolState RepairedState;
     if (!FKalmalaToolLifecycleContract::BuildServerFreeRepair(true, true, CurrentState, RepairedState))
     {
@@ -642,7 +643,7 @@ bool UKalmalaCraftingComponent::RepairToolFromServer(const FName ToolId, FString
     AKalmalaGameMode* GameMode = GetWorld() != nullptr ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
     if (GameMode == nullptr || !GameMode->PersistPlayerStateFromServer(Character))
     {
-        if (int32* CurrentCondition = Character->FindToolDurabilityFromServer(ToolId)) *CurrentCondition = PreviousDurability;
+        if (int32* CurrentCondition = Character->FindToolDurabilityFromServer(CanonicalId)) *CurrentCondition = PreviousDurability;
         Character->ForceNetUpdate();
         Reason = TEXT("Player tool repair could not be saved");
         return false;

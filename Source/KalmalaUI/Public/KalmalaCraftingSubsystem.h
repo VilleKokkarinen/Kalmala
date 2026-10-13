@@ -195,8 +195,8 @@ private:
     UFUNCTION() void EatFood();
     UFUNCTION() void EatBroth();
     UFUNCTION() void EatSmokedMeat();
-    UFUNCTION() void RepairReedKnife();
-    UFUNCTION() void RepairFieldHatchet();
+    UFUNCTION() void RepairStoneKnife();
+    UFUNCTION() void RepairStoneAxe();
     UFUNCTION() void RepairStonePick();
     UFUNCTION() void RepairBronzeAxe();
     UFUNCTION() void RepairIronAxe();

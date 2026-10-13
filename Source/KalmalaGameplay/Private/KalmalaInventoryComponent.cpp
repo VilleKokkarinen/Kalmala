@@ -87,7 +87,7 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
     const FKalmalaItemDefinition* WoodDefinition = UKalmalaItemCatalogue::Get()->FindItem(TEXT("Wood"));
     if (WoodDefinition == nullptr) { ToolNode->Destroy(); return false; }
     const int32 MaxWood = WoodDefinition->MaxStack;
-    const int32 HatchetBefore = Character->GetToolDurability(TEXT("FieldHatchet"));
+    const int32 HatchetBefore = Character->GetToolDurability(TEXT("StoneAxe"));
     int32 ToolHarvestEvents = 0;
     ToolNode->OnHarvested.AddLambda([&](const FString&) { ++ToolHarvestEvents; });
     if (BeforeWood > MaxWood || HatchetBefore <= 0) bPassed = false;
@@ -99,21 +99,21 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
         const bool bWrongToolRejected = !ToolNode->InteractWithToolIntentFromServer(
             Character, 0.0f, 250.0f, TEXT("StonePick"), static_cast<uint8>(EKalmalaToolAction::Mining));
         const bool bFullPackRejected = !ToolNode->InteractWithToolIntentFromServer(
-            Character, 0.0f, 250.0f, TEXT("FieldHatchet"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
+            Character, 0.0f, 250.0f, TEXT("StoneAxe"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
         bPassed &= bWrongToolRejected && bFullPackRejected && !ToolNode->IsHarvested()
             && ToolHarvestEvents == 0 && Inventory->GetQuantity(TEXT("Wood")) == FullWood
-            && Character->GetToolDurability(TEXT("FieldHatchet")) == HatchetBefore;
+            && Character->GetToolDurability(TEXT("StoneAxe")) == HatchetBefore;
         if (FullWood > 0) bPassed &= Inventory->TryConsumeFromServer(TEXT("Wood"), 1);
         const bool bAccepted = ToolNode->InteractWithToolIntentFromServer(
-            Character, 0.0f, 250.0f, TEXT("FieldHatchet"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
+            Character, 0.0f, 250.0f, TEXT("StoneAxe"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
         const bool bDuplicateRejected = !ToolNode->InteractWithToolIntentFromServer(
-            Character, 0.0f, 250.0f, TEXT("FieldHatchet"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
+            Character, 0.0f, 250.0f, TEXT("StoneAxe"), static_cast<uint8>(EKalmalaToolAction::Woodcutting));
         UE_LOG(LogTemp, Display,
             TEXT("Inventory persistence harvest detail: Accepted=%d DuplicateRejected=%d Harvested=%d Wood=%d Hatchet=%d"),
             bAccepted, bDuplicateRejected, ToolNode->IsHarvested(), Inventory->GetQuantity(TEXT("Wood")),
-            Character->GetToolDurability(TEXT("FieldHatchet")));
+            Character->GetToolDurability(TEXT("StoneAxe")));
         bPassed &= bAccepted && bDuplicateRejected && ToolNode->IsHarvested() && ToolHarvestEvents == 1
-            && Inventory->GetQuantity(TEXT("Wood")) == FullWood && Character->GetToolDurability(TEXT("FieldHatchet")) == HatchetBefore - 1;
+            && Inventory->GetQuantity(TEXT("Wood")) == FullWood && Character->GetToolDurability(TEXT("StoneAxe")) == HatchetBefore - 1;
         if (Inventory->GetQuantity(TEXT("Wood")) > BeforeWood)
         {
             bPassed &= Inventory->TryConsumeFromServer(TEXT("Wood"), Inventory->GetQuantity(TEXT("Wood")) - BeforeWood);
@@ -125,13 +125,13 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
     // Verify selected-tool free repair against a real accepted workbench actor.
     auto* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
     if (!Crafting) return false;
-    const int32 ConditionAfterGather = Character->GetToolDurability(TEXT("FieldHatchet"));
+    const int32 ConditionAfterGather = Character->GetToolDurability(TEXT("StoneAxe"));
     const int32 RepairBaselineWood = Inventory->GetQuantity(TEXT("Wood"));
     const TArray<FKalmalaInventoryStack> RepairBaselineStacks = Inventory->GetStacks();
     FString RepairReason;
     const bool bNoStationRejected = Crafting != nullptr
-        && !Crafting->RepairToolFromServer(TEXT("FieldHatchet"), RepairReason)
-        && Character->GetToolDurability(TEXT("FieldHatchet")) == ConditionAfterGather
+        && !Crafting->RepairToolFromServer(TEXT("StoneAxe"), RepairReason)
+        && Character->GetToolDurability(TEXT("StoneAxe")) == ConditionAfterGather
         && Inventory->GetStacks().Num() == RepairBaselineStacks.Num();
 
     const FVector Forward = Character->GetActorForwardVector().GetSafeNormal2D();
@@ -143,8 +143,8 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
     Bench->InitializeFromServer(TEXT("WorkbenchKit"), FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower));
     Bench->FinishSpawning(FarTransform);
     RepairReason.Reset();
-    const bool bFarStationRejected = !Crafting->RepairToolFromServer(TEXT("FieldHatchet"), RepairReason)
-        && Character->GetToolDurability(TEXT("FieldHatchet")) == ConditionAfterGather
+    const bool bFarStationRejected = !Crafting->RepairToolFromServer(TEXT("StoneAxe"), RepairReason)
+        && Character->GetToolDurability(TEXT("StoneAxe")) == ConditionAfterGather
         && Inventory->GetStacks().Num() == RepairBaselineStacks.Num();
 
     const FTransform NearTransform(FRotator::ZeroRotator, Character->GetActorLocation() + Forward * 150.0f);
@@ -156,17 +156,17 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
     const FKalmalaSkillState* CraftingBefore = Progression
         ? Progression->GetServerLedger().Find(EKalmalaSkill::Crafting) : nullptr;
     const int32 CraftingExperienceBefore = CraftingBefore ? CraftingBefore->Experience : -1;
-    const auto* HatchetDefinition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("FieldHatchet"));
+    const auto* HatchetDefinition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("StoneAxe"));
     RepairReason.Reset();
-    const bool bRepairRequestAccepted = Crafting->RepairToolFromServer(TEXT("FieldHatchet"), RepairReason);
+    const bool bRepairRequestAccepted = Crafting->RepairToolFromServer(TEXT("StoneAxe"), RepairReason);
     const bool bRepairAccepted = bPackCleared && HatchetDefinition && Inventory->GetStacks().IsEmpty()
         && bRepairRequestAccepted
-        && Character->GetToolDurability(TEXT("FieldHatchet")) == HatchetDefinition->MaxDurability
+        && Character->GetToolDurability(TEXT("StoneAxe")) == HatchetDefinition->MaxDurability
         && Inventory->GetStacks().IsEmpty() && RepairReason.Contains(TEXT("at no cost"));
     const FString AcceptedRepairReason = RepairReason;
     RepairReason.Reset();
-    const bool bFullConditionRejected = !Crafting->RepairToolFromServer(TEXT("FieldHatchet"), RepairReason)
-        && HatchetDefinition && Character->GetToolDurability(TEXT("FieldHatchet")) == HatchetDefinition->MaxDurability
+    const bool bFullConditionRejected = !Crafting->RepairToolFromServer(TEXT("StoneAxe"), RepairReason)
+        && HatchetDefinition && Character->GetToolDurability(TEXT("StoneAxe")) == HatchetDefinition->MaxDurability
         && Inventory->GetStacks().IsEmpty();
     const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(EmptyPack, RepairBaselineStacks);
     const FKalmalaSkillState* CraftingAfter = Progression
@@ -182,14 +182,14 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
         bRepairPassed, bRepairRequestAccepted, *AcceptedRepairReason, bPackCleared);
     bPassed &= bRepairPassed;
 
-    const TArray<FName> RetiredToolIds = {TEXT("FieldHatchet"), TEXT("StonePick"), TEXT("ReedKnife")};
+    const TArray<FName> RetiredToolIds = {TEXT("StoneAxe"), TEXT("StonePick"), TEXT("StoneKnife")};
     TArray<int32> RetiredToolConditions;
     RetiredToolConditions.Reserve(RetiredToolIds.Num());
     for (const FName ToolId : RetiredToolIds) RetiredToolConditions.Add(Character->GetToolDurability(ToolId));
     const TArray<FKalmalaInventoryStack> RetiredRecipePack = Inventory->GetStacks();
     const int32 ExperienceBeforeRetiredRecipes = CraftingAfter ? CraftingAfter->Experience : -1;
     bool bRetiredRecipesRejected = Crafting != nullptr;
-    for (const FName RecipeId : {FName(TEXT("ReplaceFieldHatchet")), FName(TEXT("ReplaceStonePick")), FName(TEXT("ReplaceReedKnife"))})
+    for (const FName RecipeId : {FName(TEXT("ReplaceStoneAxe")), FName(TEXT("ReplaceStonePick")), FName(TEXT("ReplaceStoneKnife"))})
     {
         FString RetiredReason;
         bRetiredRecipesRejected &= !Crafting->CraftFromServer(RecipeId, 1, RetiredReason);
@@ -325,22 +325,22 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
     {
         if (GetQuantity(TEXT("Wood")) != 7 || GainReceipts.IsEmpty()) return;
         const auto* Character = Cast<AKalmalaCharacter>(Pawn);
-        const auto* Hatchet = FKalmalaToolLifecycleContract::FindDefinition(TEXT("FieldHatchet"));
+        const auto* Hatchet = FKalmalaToolLifecycleContract::FindDefinition(TEXT("StoneAxe"));
         const auto* StonePick = FKalmalaToolLifecycleContract::FindDefinition(TEXT("StonePick"));
-        const auto* ReedKnife = FKalmalaToolLifecycleContract::FindDefinition(TEXT("ReedKnife"));
-        if (!Character || !Hatchet || !StonePick || !ReedKnife
-            || Character->GetToolDurability(TEXT("FieldHatchet")) != Hatchet->MaxDurability
+        const auto* StoneKnife = FKalmalaToolLifecycleContract::FindDefinition(TEXT("StoneKnife"));
+        if (!Character || !Hatchet || !StonePick || !StoneKnife
+            || Character->GetToolDurability(TEXT("StoneAxe")) != Hatchet->MaxDurability
             || Character->GetToolDurability(TEXT("StonePick")) != StonePick->MaxDurability
-            || Character->GetToolDurability(TEXT("ReedKnife")) != ReedKnife->MaxDurability) return;
+            || Character->GetToolDurability(TEXT("StoneKnife")) != StoneKnife->MaxDurability) return;
         const bool bRejected = !TryGrantFromServer(TEXT("Wood"), 1) && !TryConsumeFromServer(TEXT("Wood"), 1);
         UE_LOG(LogTemp, Display, TEXT("Inventory owner: Rejected=%d Wood=%d Slots=%d"), bRejected, GetQuantity(TEXT("Wood")), Stacks.Num());
         UE_LOG(LogTemp, Display, TEXT("Item gain receipts owner: Present=%d Bounded=%d"), !GainReceipts.IsEmpty(), GainReceipts.Num() <= MaxGainReceipts);
-        UE_LOG(LogTemp, Display, TEXT("Tool condition owner: Passed=%d FieldHatchet=%d StonePick=%d ReedKnife=%d"),
-            Character->GetToolDurability(TEXT("FieldHatchet")) == Hatchet->MaxDurability && StonePick && ReedKnife
+        UE_LOG(LogTemp, Display, TEXT("Tool condition owner: Passed=%d StoneAxe=%d StonePick=%d StoneKnife=%d"),
+            Character->GetToolDurability(TEXT("StoneAxe")) == Hatchet->MaxDurability && StonePick && StoneKnife
                 && Character->GetToolDurability(TEXT("StonePick")) == StonePick->MaxDurability
-                && Character->GetToolDurability(TEXT("ReedKnife")) == ReedKnife->MaxDurability,
-            Character->GetToolDurability(TEXT("FieldHatchet")), Character->GetToolDurability(TEXT("StonePick")),
-            Character->GetToolDurability(TEXT("ReedKnife")));
+                && Character->GetToolDurability(TEXT("StoneKnife")) == StoneKnife->MaxDurability,
+            Character->GetToolDurability(TEXT("StoneAxe")), Character->GetToolDurability(TEXT("StonePick")),
+            Character->GetToolDurability(TEXT("StoneKnife")));
     }
     else
     {
@@ -349,8 +349,8 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
         UE_LOG(LogTemp, Display, TEXT("Item gain receipts remote: Empty=%d"), GainReceipts.IsEmpty());
         const auto* Character = Cast<AKalmalaCharacter>(Pawn);
         UE_LOG(LogTemp, Display, TEXT("Tool condition remote: Hidden=%d"), Character == nullptr
-            || (Character->GetToolDurability(TEXT("FieldHatchet")) == 0 && Character->GetToolDurability(TEXT("StonePick")) == 0
-                && Character->GetToolDurability(TEXT("ReedKnife")) == 0));
+            || (Character->GetToolDurability(TEXT("StoneAxe")) == 0 && Character->GetToolDurability(TEXT("StonePick")) == 0
+                && Character->GetToolDurability(TEXT("StoneKnife")) == 0));
         return;
     }
     bVerificationComplete = true;

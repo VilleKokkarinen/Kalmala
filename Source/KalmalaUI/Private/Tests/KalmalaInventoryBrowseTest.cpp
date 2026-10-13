@@ -13,7 +13,7 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
     auto* Panel = NewObject<UKalmalaInventoryInspectWidget>(); Panel->Initialize(); Panel->TakeWidget();
     const TArray<FKalmalaCatalogueRow> Source = {
         {TEXT("Wood"), TEXT("Wood"), TEXT("Count 7"), false},
-        {TEXT("FieldHatchet"), TEXT("Stone Axe"), TEXT("Condition 17/40"), true},
+        {TEXT("StoneAxe"), TEXT("Stone Axe"), TEXT("Condition 17/40"), true},
         {TEXT("Stone"), TEXT("Stone"), TEXT("Count 3"), false},
         {TEXT("Fibre"), TEXT("Reed Fibre"), TEXT("Count 4"), false}};
     Panel->SetRows(Source, 150, 1);
@@ -41,7 +41,7 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Inventory rows load their canonical item and tool icons"), bInitialIconsLoaded);
     Panel->Navigate(EKeys::Right);
     Panel->SetSort(1);
-    TestEqual(TEXT("Name sorting retains selected canonical identity"), Panel->GetSelectedItem(), FName(TEXT("FieldHatchet")));
+    TestEqual(TEXT("Name sorting retains selected canonical identity"), Panel->GetSelectedItem(), FName(TEXT("StoneAxe")));
     Panel->Navigate(EKeys::Right);
     TestEqual(TEXT("Name sorting uses the reviewed Reed Fibre display name"), Panel->GetSelectedItem(), FName(TEXT("Fibre")));
     Panel->Navigate(EKeys::Right);
@@ -52,7 +52,7 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
     Panel->SetSearch(TEXT(""));
     Panel->SetCategory(2);
     TestEqual(TEXT("Tools filter contains only supplied tool"), Panel->GetVisibleCount(), 1);
-    TestEqual(TEXT("Filtered selection falls back safely"), Panel->GetSelectedItem(), FName(TEXT("FieldHatchet")));
+    TestEqual(TEXT("Filtered selection falls back safely"), Panel->GetSelectedItem(), FName(TEXT("StoneAxe")));
     Panel->SetSearch(TEXT("  HATCHET  "));
     TestEqual(TEXT("Trimmed case-insensitive display-name search"), Panel->GetVisibleCount(), 1);
     Panel->SetSearch(TEXT("Count 7"));
@@ -84,7 +84,7 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
     Panel->Navigate(EKeys::PageUp);
     TestEqual(TEXT("Keyboard category cycling wraps to All"), Panel->GetVisibleCount(), 4);
     Panel->Navigate(EKeys::Gamepad_RightShoulder);
-    TestEqual(TEXT("Controller sorting retains canonical selection"), Panel->GetSelectedItem(), FName(TEXT("FieldHatchet")));
+    TestEqual(TEXT("Controller sorting retains canonical selection"), Panel->GetSelectedItem(), FName(TEXT("StoneAxe")));
     Panel->SetCategory(1);
     Panel->SetRows({{TEXT("Wood"), TEXT("Wood"), TEXT("Count 6"), false}}, 100, 0);
     TestEqual(TEXT("Owner refresh retains filters and excludes removed rows"), Panel->GetVisibleCount(), 1);

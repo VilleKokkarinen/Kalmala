@@ -1,11 +1,11 @@
 {
   "toolProfiles": [
     {
-      "ToolId": "ReedKnife",
+      "ToolId": "StoneKnife",
       "DisplayName": "Stone Knife",
       "Description": "A chipped stone knife for gathering and close combat.",
       "ToolSet": "Starter",
-      "ToolKind": "ReedKnife",
+      "ToolKind": "StoneKnife",
       "Action": "Gathering",
       "RequiredSkill": "Gathering",
       "MinimumSkillLevel": 1,

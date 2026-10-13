@@ -1,7 +1,7 @@
 {
   "recipes": [
     {
-      "RecipeId": "Campfire",
+      "RecipeId": "CampFire",
       "DisplayName": "Campfire",
       "Ingredients": [
         {
@@ -13,7 +13,7 @@
           "Quantity": 3
         }
       ],
-      "Output": "HearthRing",
+      "Output": "CampFire",
       "OutputCount": 1,
       "MaxBatch": 1,
       "RequiredStation": [],

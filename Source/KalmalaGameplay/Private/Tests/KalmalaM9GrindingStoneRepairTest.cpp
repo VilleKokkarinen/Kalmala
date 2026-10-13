@@ -39,8 +39,8 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
         State.ToolLevel = Level;
         Before.Add(State);
     };
-    AddTool(TEXT("ReedKnife"), 0, 1);
-    AddTool(TEXT("FieldHatchet"), 12, 1);
+    AddTool(TEXT("StoneKnife"), 0, 1);
+    AddTool(TEXT("StoneAxe"), 12, 1);
     AddTool(TEXT("StonePick"), 20, 1);
     AddTool(TEXT("BronzeAxe"), 0, 1);
     AddTool(TEXT("IronAxe"), 23, 2);
@@ -98,7 +98,7 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
     Malformed.Add(Before[0]);
     TestRejectedWithoutMutation(TEXT("Oversized carried list is rejected atomically"), true, true, Malformed);
     Malformed = Before;
-    Malformed[4].ToolId = TEXT("FieldHatchet");
+    Malformed[4].ToolId = TEXT("StoneAxe");
     TestRejectedWithoutMutation(TEXT("Duplicate carried tool is rejected atomically"), true, true, Malformed);
     Malformed = Before;
     Malformed[3].ToolId = TEXT("ForgedTool");

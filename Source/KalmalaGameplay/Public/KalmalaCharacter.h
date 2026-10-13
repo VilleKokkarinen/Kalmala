@@ -200,10 +200,10 @@ private:
 #if WITH_EDITORONLY_DATA
     /** Legacy fixture seed fields; production tool state lives only in CarriedTools. */
     UPROPERTY(Transient)
-    int32 ReedKnifeDurability = 0;
+    int32 StoneKnifeDurability = 0;
 
     UPROPERTY(Transient)
-    int32 FieldHatchetDurability = 0;
+    int32 StoneAxeDurability = 0;
 
     UPROPERTY(Transient)
     int32 StonePickDurability = 0;

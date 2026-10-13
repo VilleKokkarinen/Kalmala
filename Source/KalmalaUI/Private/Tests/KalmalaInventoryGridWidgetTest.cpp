@@ -10,7 +10,7 @@ bool FKalmalaInventoryGridWidgetTest::RunTest(const FString& Parameters)
     Slots.Init(NAME_None, 40);
     TestEqual(TEXT("Inventory always retains forty cells"), UKalmalaInventoryGridWidget::VisibleSlots(Slots, false).Num(), 40);
     TestTrue(TEXT("Empty hotbar hides every cell"), UKalmalaInventoryGridWidget::VisibleSlots(Slots, true).IsEmpty());
-    Slots[0] = TEXT("ReedKnife"); Slots[3] = TEXT("HearthBroth"); Slots[9] = TEXT("FieldHatchet"); Slots[10] = TEXT("Wood");
+    Slots[0] = TEXT("StoneKnife"); Slots[3] = TEXT("HearthBroth"); Slots[9] = TEXT("StoneAxe"); Slots[10] = TEXT("Wood");
     const auto Visible = UKalmalaInventoryGridWidget::VisibleSlots(Slots, true);
     TestTrue(TEXT("Hotbar omits empty cells and lower rows without renumbering"), Visible == TArray<int32>({0, 3, 9}));
     TestEqual(TEXT("First cell is key one"), UKalmalaInventoryGridWidget::SlotLabel(0), FString(TEXT("1")));

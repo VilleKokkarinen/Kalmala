@@ -107,9 +107,10 @@ bool UKalmalaPlayerDiscoverySaveGameV2::IsValidM9ClaimId(const FString& Id)
 bool UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(const FKalmalaPlayerToolSaveRecord& Record)
 {
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Record.ToolId);
+    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
     const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Record.ToolId, Record.ToolLevel);
     return Definition != nullptr
-        && Record.ToolId.ToString() == Definition->ToolId.ToString()
+        && CanonicalId == Definition->ToolId
         && FKalmalaToolProgressionContract::IsValidToolLevel(Record.ToolId, Record.ToolLevel)
         && MaxDurability > 0 && Record.Condition >= 0 && Record.Condition <= MaxDurability;
 }
@@ -149,8 +150,9 @@ bool UKalmalaPlayerDiscoverySaveGameV2::MatchesPlayer(
     TSet<FName> SeenToolIds;
     for (const FKalmalaPlayerToolSaveRecord& ToolRecord : ToolRecords)
     {
-        if (!IsValidToolRecord(ToolRecord) || SeenToolIds.Contains(ToolRecord.ToolId)) return false;
-        SeenToolIds.Add(ToolRecord.ToolId);
+        const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolRecord.ToolId);
+        if (!IsValidToolRecord(ToolRecord) || SeenToolIds.Contains(CanonicalId)) return false;
+        SeenToolIds.Add(CanonicalId);
     }
     return true;
 }
@@ -193,13 +195,15 @@ bool UKalmalaPlayerDiscoverySaveGameV2::AddLearnedEffect(const FString& Id)
 
 bool UKalmalaPlayerDiscoverySaveGameV2::AddToolRecord(const FKalmalaPlayerToolSaveRecord& Record)
 {
+    FKalmalaPlayerToolSaveRecord CanonicalRecord = Record;
+    CanonicalRecord.ToolId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
     if (!MatchesPlayer(WorldConfig, PlayerIdentity) || !IsValidToolRecord(Record)
         || ToolRecords.Num() >= MaxCarriedTools
-        || ToolRecords.ContainsByPredicate([&Record](const FKalmalaPlayerToolSaveRecord& Existing)
+        || ToolRecords.ContainsByPredicate([&CanonicalRecord](const FKalmalaPlayerToolSaveRecord& Existing)
         {
-            return Existing.ToolId == Record.ToolId;
+            return FKalmalaToolLifecycleContract::CanonicalizeToolId(Existing.ToolId) == CanonicalRecord.ToolId;
         })) return false;
-    ToolRecords.Add(Record);
+    ToolRecords.Add(CanonicalRecord);
     return true;
 }
 
@@ -211,11 +215,16 @@ bool UKalmalaPlayerDiscoverySaveGameV2::TryReplaceToolRecords(
     TSet<FName> SeenToolIds;
     for (const FKalmalaPlayerToolSaveRecord& Record : Records)
     {
-        if (!IsValidToolRecord(Record) || SeenToolIds.Contains(Record.ToolId)) return false;
-        SeenToolIds.Add(Record.ToolId);
+        const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
+        if (!IsValidToolRecord(Record) || SeenToolIds.Contains(CanonicalId)) return false;
+        SeenToolIds.Add(CanonicalId);
     }
 
     ToolRecords = Records;
+    for (FKalmalaPlayerToolSaveRecord& Record : ToolRecords)
+    {
+        Record.ToolId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
+    }
     return true;
 }
 

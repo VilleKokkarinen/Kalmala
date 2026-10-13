@@ -56,7 +56,7 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Schema 2 accepts a canonical M9 land claim"), Current->AddM9Claim(M9RillstoneId));
     TestTrue(TEXT("Schema 2 accepts a second independent M9 candidate"), Current->AddM9Claim(M9GrainId));
     TestTrue(TEXT("Schema 2 accepts an allowlisted learned effect"), Current->AddLearnedEffect(TEXT("Effect:mending")));
-    TestTrue(TEXT("Schema 2 accepts a valid carried starter tool"), Current->AddToolRecord(MakeToolRecord(TEXT("ReedKnife"), 1, 9)));
+    TestTrue(TEXT("Schema 2 accepts an old carried starter ID"), Current->AddToolRecord(MakeToolRecord(TEXT("ReedKnife"), 1, 9)));
     TestTrue(TEXT("Schema 2 accepts the authored Bronze Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("BronzeAxe"), 1, 0)));
     TestTrue(TEXT("Schema 2 accepts the authored Iron Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("IronAxe"), 2, 20)));
     TestFalse(TEXT("A duplicate first-wave discovery is rejected without mutation"), Current->AddDiscovery(PoiId));
@@ -208,7 +208,7 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
     InvalidCurrent->ToolRecords.Add(DuplicateToolRecord);
     RejectCurrentCandidate(InvalidCurrent, TEXT("Current-duplicate-tool"));
     InvalidCurrent = DuplicateObject<UKalmalaPlayerDiscoverySaveGameV2>(Current, GetTransientPackage());
-    InvalidCurrent->ToolRecords[0].Condition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("ReedKnife"))->MaxDurability + 1;
+    InvalidCurrent->ToolRecords[0].Condition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("StoneKnife"))->MaxDurability + 1;
     RejectCurrentCandidate(InvalidCurrent, TEXT("Current-over-condition"));
     InvalidCurrent = DuplicateObject<UKalmalaPlayerDiscoverySaveGameV2>(Current, GetTransientPackage());
     InvalidCurrent->ToolRecords[1].ToolLevel = 2;
@@ -238,7 +238,7 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
     UKalmalaPlayerDiscoverySaveGameV2* FullTools = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(GetTransientPackage());
     FullTools->InitializeForPlayer(World, PlayerIdentity);
     const TArray<FKalmalaPlayerToolSaveRecord> AllTools = {
-        MakeToolRecord(TEXT("ReedKnife"), 1, 16), MakeToolRecord(TEXT("FieldHatchet"), 1, 24),
+        MakeToolRecord(TEXT("StoneKnife"), 1, 16), MakeToolRecord(TEXT("StoneAxe"), 1, 24),
         MakeToolRecord(TEXT("StonePick"), 1, 20), MakeToolRecord(TEXT("BronzeAxe"), 1, 24),
         MakeToolRecord(TEXT("IronAxe"), 2, 24), MakeToolRecord(TEXT("ConstructionHammer"), 1, 100)
     };
@@ -251,7 +251,7 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
     TestEqual(TEXT("Rejected carried-tool addition leaves all six records"), FullTools->GetToolRecords().Num(),
         UKalmalaPlayerDiscoverySaveGameV2::MaxCarriedTools);
     TestFalse(TEXT("Unknown tool IDs are rejected"), UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(MakeToolRecord(TEXT("UnknownTool"), 1, 0)));
-    TestFalse(TEXT("Negative tool condition is rejected"), UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(MakeToolRecord(TEXT("ReedKnife"), 1, -1)));
+    TestFalse(TEXT("Negative tool condition is rejected"), UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(MakeToolRecord(TEXT("StoneKnife"), 1, -1)));
     TestFalse(TEXT("Iron Axe levels above the legacy maximum are rejected"), UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(MakeToolRecord(TEXT("IronAxe"), 3, 24)));
 
     UKalmalaPlayerDiscoverySaveGameV2* OverCapCurrent = DuplicateObject<UKalmalaPlayerDiscoverySaveGameV2>(FullClaims, GetTransientPackage());

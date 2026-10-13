@@ -329,18 +329,18 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         }
     }
     TestFalse(TEXT("The catalogue JSON has no Kit substring in any property or value"), JsonText.Contains(TEXT("Kit"), ESearchCase::IgnoreCase));
-    const FKalmalaRecipe* Campfire = Recipes->Find(TEXT("Campfire"));
+    const FKalmalaRecipe* Campfire = Recipes->Find(TEXT("CampFire"));
     if (TestNotNull(TEXT("Campfire construction recipe resolves"), Campfire))
     {
-        TestEqual(TEXT("Legacy HearthRing output becomes a separate buildable descriptor"),
+        TestEqual(TEXT("Canonical CampFire output becomes a separate buildable descriptor"),
             Campfire->BuildableOutput, FName(TEXT("CampfireKit")));
         TestTrue(TEXT("Construction descriptor leaves the inventory output empty"), Campfire->Output.IsNone());
         TestEqual(TEXT("The construction recipe uses its player-facing Campfire name"),
             Campfire->DisplayName, FString(TEXT("Campfire")));
         TestNull(TEXT("Campfire is absent from the normal inventory catalogue"),
             Catalogue->FindItem(TEXT("CampfireKit")));
-        TestNull(TEXT("Legacy HearthRing remains only as a recipe/build alias"),
-            Catalogue->FindItem(TEXT("HearthRing")));
+        TestNull(TEXT("CampFire remains a build alias without an inventory row"),
+            Catalogue->FindItem(TEXT("CampFire")));
 
         TArray<FKalmalaInventoryStack> ScaledCosts = {{TEXT("Iron"), 1}};
         int32 ScaledOutputCount = 77;

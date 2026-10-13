@@ -85,13 +85,16 @@ function Get-PngInfo([string]$Path, [bool]$Require64) {
 
 function Test-IconRow($Row, [bool]$RequirePackage) {
     $id = $Row.$idColumn.Trim()
+    $assetId = if ($Category -eq 'Catalogue' -and $Row.texture_asset_id -and $Row.texture_asset_id.Trim()) {
+        $Row.texture_asset_id.Trim()
+    } else { $id }
     if ($Category -eq 'Catalogue' -and -not $runtimeSource.Contains('TEXT("' + $id + '")')) {
         throw "Runtime catalogue mapping is missing canonical ID '$id'."
     }
 
-    $sourcePath = Join-Path $sourceDir "$id.png"
-    $preparedPath = Join-Path $preparedDir "$id.png"
-    $packagePath = Join-Path $assetDir "$id.uasset"
+    $sourcePath = Join-Path $sourceDir "$assetId.png"
+    $preparedPath = Join-Path $preparedDir "$assetId.png"
+    $packagePath = Join-Path $assetDir "$assetId.uasset"
     foreach ($path in @($sourcePath, $preparedPath, $packagePath)) {
         if ($path.Length -ge 260) {
             throw "Path must be shorter than 260 characters: $path"
@@ -105,7 +108,7 @@ function Test-IconRow($Row, [bool]$RequirePackage) {
     }
 
     if ($Category -eq 'Catalogue') {
-        Write-Output "Validated $id source=$($originalInfo.Width)x$($originalInfo.Height) RGBA final=$($preparedInfo.Width)x$($preparedInfo.Height) RGBA transparent=1 target=/Game/Kalmala/UI/Icons/Items/$id.$id"
+        Write-Output "Validated $id asset=$assetId source=$($originalInfo.Width)x$($originalInfo.Height) RGBA final=$($preparedInfo.Width)x$($preparedInfo.Height) RGBA transparent=1 target=/Game/Kalmala/UI/Icons/Items/$assetId.$assetId"
     }
     else {
         Write-Output "Validated status icon $id entry=$($Row.entry_id) batch=$($Row.batch) source=$($originalInfo.Width)x$($originalInfo.Height) RGBA final=$($preparedInfo.Width)x$($preparedInfo.Height) RGBA transparent=1 target=/Game/Kalmala/UI/Icons/Status/$id.$id"
@@ -129,6 +132,13 @@ if ($Category -eq 'Catalogue') {
     $ids = @($rows | ForEach-Object { $_.$idColumn.Trim() })
     if (@($ids | Select-Object -Unique).Count -ne $expectedCount) {
         throw 'Catalogue canonical IDs must be unique.'
+    }
+    $packageIds = @($rows | ForEach-Object {
+        if ($_.texture_asset_id -and $_.texture_asset_id.Trim()) { $_.texture_asset_id.Trim() }
+        else { $_.$idColumn.Trim() }
+    })
+    if (@($packageIds | Select-Object -Unique).Count -ne $expectedCount) {
+        throw 'Catalogue texture asset IDs must be unique.'
     }
 }
 else {
@@ -166,7 +176,8 @@ foreach ($row in $rows) {
 }
 
 foreach ($package in $packages) {
-    if ($package.BaseName -notin $ids) {
+    $expectedPackageIds = if ($Category -eq 'Catalogue') { $packageIds } else { $ids }
+    if ($package.BaseName -notin $expectedPackageIds) {
         throw "Unexpected $Category texture package: $($package.Name)"
     }
 }

@@ -20,8 +20,8 @@ FString UKalmalaItemDetailWidget::DescribeItem(FName Id, const FString& VisibleS
 FString UKalmalaItemDetailWidget::DescribeCarriedTool(FName Id, const FString& VisibleState)
 {
     FString Description = TEXT("Description unavailable.");
-    if (Id == TEXT("ReedKnife")) Description = TEXT("A light stone blade for gathering plants and reeds.");
-    else if (Id == TEXT("FieldHatchet")) Description = TEXT("A stone hand axe for gathering wood.");
+    if (Id == TEXT("StoneKnife")) Description = TEXT("A light stone blade for gathering plants and reeds.");
+    else if (Id == TEXT("StoneAxe")) Description = TEXT("A stone hand axe for gathering wood.");
     else if (Id == TEXT("StonePick")) Description = TEXT("A stone-headed pick for mining.");
     else if (Id == TEXT("BronzeAxe")) Description = TEXT("A bronze axe for harvesting Lightwood.");
     else if (Id == TEXT("IronAxe")) Description = TEXT("An iron axe for harvesting Densewood.");

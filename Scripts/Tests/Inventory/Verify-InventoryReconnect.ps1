@@ -37,7 +37,7 @@ try {
                 -and [regex]::Matches($serverText, 'Tool free repair fixture: Passed=1').Count -eq (1 + $visit) `
                 -and [regex]::Matches($serverText, 'Retired tool replacement fixture: Passed=1').Count -eq (1 + $visit) `
                 -and $ownerIndex -ge 0 -and $clientText.IndexOf('Inventory remote: Empty=1', $ownerIndex) -gt $ownerIndex `
-                -and $clientText.Contains('Tool condition owner: Passed=1 FieldHatchet=24 StonePick=20 ReedKnife=16') `
+                -and $clientText.Contains('Tool condition owner: Passed=1 StoneAxe=24 StonePick=20 StoneKnife=16') `
                 -and $clientText.Contains('Tool condition remote: Hidden=1') `
                 -and $clientText.Contains('Notification owner baseline: Silent=1 Rows=0 Sources=5')) { break }
             Start-Sleep -Milliseconds 500

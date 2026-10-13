@@ -9,8 +9,10 @@ namespace
 {
     EKalmalaToolKind ParseToolKind(const FString& Value)
     {
-        if (Value == TEXT("ReedKnife")) return EKalmalaToolKind::ReedKnife;
-        if (Value == TEXT("FieldHatchet")) return EKalmalaToolKind::FieldHatchet;
+        if (Value == TEXT("ReedKnife")) return EKalmalaToolKind::StoneKnife;
+        if (Value == TEXT("FieldHatchet")) return EKalmalaToolKind::StoneAxe;
+        if (Value == TEXT("StoneKnife")) return EKalmalaToolKind::StoneKnife;
+        if (Value == TEXT("StoneAxe")) return EKalmalaToolKind::StoneAxe;
         if (Value == TEXT("StonePick")) return EKalmalaToolKind::StonePick;
         if (Value == TEXT("StoneSpear")) return EKalmalaToolKind::StoneSpear;
         if (Value == TEXT("BronzeAxe")) return EKalmalaToolKind::BronzeAxe;
@@ -169,19 +171,27 @@ TArray<FKalmalaToolState> FKalmalaToolLifecycleContract::BuildInitialCarriedTool
     return CarriedTools;
 }
 
+FName FKalmalaToolLifecycleContract::CanonicalizeToolId(FName ToolId)
+{
+    if (ToolId == TEXT("ReedKnife")) return TEXT("StoneKnife");
+    if (ToolId == TEXT("FieldHatchet")) return TEXT("StoneAxe");
+    return ToolId;
+}
+
 const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindDefinition(const FName ToolId)
 {
-    const FKalmalaToolDefinition* Definition = ToolDefinitions().FindByPredicate([ToolId](const FKalmalaToolDefinition& Candidate)
+    const FName CanonicalId = CanonicalizeToolId(ToolId);
+    const FKalmalaToolDefinition* Definition = ToolDefinitions().FindByPredicate([CanonicalId](const FKalmalaToolDefinition& Candidate)
     {
-        return Candidate.ToolId == ToolId;
+        return Candidate.ToolId == CanonicalId;
     });
     if (Definition != nullptr) return Definition;
-    Definition = TieredToolDefinitions().FindByPredicate([ToolId](const FKalmalaToolDefinition& Candidate)
+    Definition = TieredToolDefinitions().FindByPredicate([CanonicalId](const FKalmalaToolDefinition& Candidate)
     {
-        return Candidate.ToolId == ToolId;
+        return Candidate.ToolId == CanonicalId;
     });
     if (Definition != nullptr) return Definition;
-    return ToolId == ConstructionHammerDefinition().ToolId ? &ConstructionHammerDefinition() : nullptr;
+    return CanonicalId == ConstructionHammerDefinition().ToolId ? &ConstructionHammerDefinition() : nullptr;
 }
 
 int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ToolId, const int32 ToolLevel)
@@ -194,7 +204,7 @@ int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ToolId, const 
     });
     if (LevelStats) return LevelStats->MaxDurability;
     // Older saves can contain Iron Axe level two even though it has no authored upgrade recipe.
-    return ToolId == TEXT("IronAxe") && ToolLevel == 2 ? Definition->MaxDurability : 0;
+    return CanonicalizeToolId(ToolId) == TEXT("IronAxe") && ToolLevel == 2 ? Definition->MaxDurability : 0;
 }
 
 float FKalmalaToolLifecycleContract::GetSlashDamage(const FName ToolId, const int32 ToolLevel)
@@ -214,7 +224,7 @@ float FKalmalaToolLifecycleContract::GetWeaponDamage(const FName ToolId, const i
     });
     // Keep the same stats for old Iron Axe level-two saves; the level is not craftable.
     return LevelStats ? LevelStats->CombatDamage
-        : (ToolId == TEXT("IronAxe") && ToolLevel == 2 ? Definition->CombatDamage : 0.0f);
+        : (CanonicalizeToolId(ToolId) == TEXT("IronAxe") && ToolLevel == 2 ? Definition->CombatDamage : 0.0f);
 }
 
 EKalmalaWeaponDamageType FKalmalaToolLifecycleContract::GetWeaponDamageType(const FName ToolId)
@@ -242,7 +252,7 @@ bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Actio
 
 bool FKalmalaToolLifecycleContract::IsKnownTool(const EKalmalaToolKind Tool)
 {
-    return Tool >= EKalmalaToolKind::ReedKnife && Tool <= EKalmalaToolKind::ConstructionHammer;
+    return Tool >= EKalmalaToolKind::StoneKnife && Tool <= EKalmalaToolKind::ConstructionHammer;
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownToolTier(const EKalmalaToolTier Tier)
@@ -254,8 +264,8 @@ EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(const EKalmalaToolKi
 {
     switch (Tool)
     {
-    case EKalmalaToolKind::ReedKnife:
-    case EKalmalaToolKind::FieldHatchet:
+    case EKalmalaToolKind::StoneKnife:
+    case EKalmalaToolKind::StoneAxe:
     case EKalmalaToolKind::StonePick:
     case EKalmalaToolKind::StoneSpear: return EKalmalaToolTier::Stone;
     case EKalmalaToolKind::BronzeAxe:
@@ -387,7 +397,7 @@ bool FKalmalaToolLifecycleContract::IsUseAllowed(
         || Definition->Action != ClientAction
         || !IsToolSuitableForSelection(*Definition, ToolState.ToolLevel, ServerSelection)
         || Definition->RequiredSkill != ServerSelection.RequiredSkill
-        || ToolState.ToolId != ClientToolId
+        || CanonicalizeToolId(ToolState.ToolId) != CanonicalizeToolId(ClientToolId)
         || ToolState.Durability <= 0 || ToolState.Durability > GetMaxDurability(ToolState.ToolId, ToolState.ToolLevel)
         || !SkillState.IsValid() || SkillState.Skill != ServerSelection.RequiredSkill
         || SkillState.Level < Definition->MinimumSkillLevel) return false;
@@ -413,6 +423,7 @@ bool FKalmalaToolLifecycleContract::ApplyServerUse(
         || Definition == nullptr || ToolState.Durability < Definition->DurabilityCost) return false;
 
     ToolState.Durability -= Definition->DurabilityCost;
+    ToolState.ToolId = Definition->ToolId;
     OutRewardItemId = ServerSelection.RewardItemId;
     OutRewardQuantity = ServerSelection.RewardQuantity;
     return true;

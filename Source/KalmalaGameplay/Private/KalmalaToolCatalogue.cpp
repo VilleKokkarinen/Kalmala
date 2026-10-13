@@ -43,7 +43,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             || Profile.Description.TrimStartAndEnd().IsEmpty() || Profile.Description.Len() > 180
             || SeenToolKinds.Contains(Profile.ToolKind)
             || Profile.ToolId != FName(*Profile.ToolKind)
-            || !IsOneOf(Profile.ToolKind, {TEXT("ReedKnife"), TEXT("FieldHatchet"), TEXT("StonePick"),
+            || !IsOneOf(Profile.ToolKind, {TEXT("StoneKnife"), TEXT("StoneAxe"), TEXT("StonePick"),
                 TEXT("StoneSpear"), TEXT("BronzeAxe"), TEXT("BronzeKnife"), TEXT("BronzePick"),
                 TEXT("BronzeSpear"), TEXT("IronAxe"), TEXT("IronKnife"), TEXT("IronPick"),
                 TEXT("IronSpear"), TEXT("ConstructionHammer")})
