@@ -1619,7 +1619,16 @@ void UKalmalaSettingsWidget::ShowAccessibilityTab()
     ReducedMotionCheckMarkLabel->SetText(FText::FromString(IsReducedMotionEnabled() ? TEXT("✓") : TEXT("")));
     FKalmalaUITheme::Get().ApplyText(*ReducedMotionCheckMarkLabel, FKalmalaUITheme::Get().BodySize + 3,
         false, TextScalePercent, ContrastMode);
-    ReducedMotionCheckBox->SetContent(ReducedMotionCheckMarkLabel);
+    UOverlay* ReducedMotionCheckMarkOverlay = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
+    UOverlaySlot* ReducedMotionCheckMarkSlot = ReducedMotionCheckMarkOverlay->AddChildToOverlay(
+        ReducedMotionCheckMarkLabel);
+    ReducedMotionCheckMarkSlot->SetHorizontalAlignment(HAlign_Center);
+    ReducedMotionCheckMarkSlot->SetVerticalAlignment(VAlign_Center);
+    USizeBox* ReducedMotionCheckMarkContentSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+    ReducedMotionCheckMarkContentSize->SetWidthOverride(44.0f);
+    ReducedMotionCheckMarkContentSize->SetHeightOverride(44.0f);
+    ReducedMotionCheckMarkContentSize->SetContent(ReducedMotionCheckMarkOverlay);
+    ReducedMotionCheckBox->SetContent(ReducedMotionCheckMarkContentSize);
     ReducedMotionCheckBox->SetIsChecked(IsReducedMotionEnabled());
     ReducedMotionCheckBox->SetToolTipText(FText::FromString(TEXT("Reduce decorative interface motion.")));
     FKalmalaUITheme::Get().ApplyCheckBox(*ReducedMotionCheckBox, ContrastMode);

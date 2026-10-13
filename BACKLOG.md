@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Center Reduced Motion checkmark:** align the checkmark in the middle of the 44×44 checkbox content area on both axes.
+
 - [x] **2026-10-13 — Enlarge and simplify Reduced Motion toggle:** increase the stone checkbox target to 44×44 and remove the separate On/Off text, leaving the checkmark to show its state.
 
 - [x] **2026-10-12 — Use shared sliders and a reusable checkbox in Accessibility:** convert interface scale, text scale, and contrast to snapped shared-theme sliders; add the reusable stone checkbox style for Reduced Motion; retain local values and repair high-contrast slider thumb sizing.

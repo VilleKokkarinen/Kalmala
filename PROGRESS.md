@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Center the Reduced Motion checkmark
+
+- **Completed:** placed the checkmark in a 44×44 overlay with horizontal and vertical center alignment, so the glyph sits in the center of the stone checkbox.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.accessibility -BuildModules -TimeoutSeconds 240` compiled the affected Unreal UI module and rendered the Accessibility preview at 1920×1080. Inspected `C:\Users\Ville\AppData\Local\Temp\kmmenu\png\settings.accessibility-6f602f28.png`; the checkmark is centered in the tile. `git diff --check` passed. No automation suite ran; full verification remains deferred.
+- **Impact and authority:** local settings presentation only. The Reduced Motion value and local persistence are unchanged; no networking or gameplay authority changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. The rendered preview checks layout but not live pointer/controller interaction or persistence; full verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Enlarge the Reduced Motion checkbox
 
 - **Completed:** increased the stone checkbox from 36×36 to 44×44 and removed the separate On/Off label. The adjacent “Reduced motion” label remains, and the in-box checkmark shows whether the setting is enabled.
