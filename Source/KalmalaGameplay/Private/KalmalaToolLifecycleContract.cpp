@@ -24,6 +24,9 @@ namespace
         if (Value == TEXT("IronPick")) return EKalmalaToolKind::IronPick;
         if (Value == TEXT("IronSpear")) return EKalmalaToolKind::IronSpear;
         if (Value == TEXT("ConstructionHammer")) return EKalmalaToolKind::ConstructionHammer;
+        if (Value == TEXT("StoneMace")) return EKalmalaToolKind::StoneMace;
+        if (Value == TEXT("BronzeMace")) return EKalmalaToolKind::BronzeMace;
+        if (Value == TEXT("IronMace")) return EKalmalaToolKind::IronMace;
         return EKalmalaToolKind::None;
     }
 
@@ -235,7 +238,7 @@ bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Actio
 
 bool FKalmalaToolLifecycleContract::IsKnownTool(const EKalmalaToolKind Tool)
 {
-    return Tool >= EKalmalaToolKind::StoneKnife && Tool <= EKalmalaToolKind::ConstructionHammer;
+    return Tool >= EKalmalaToolKind::StoneKnife && Tool <= EKalmalaToolKind::IronMace;
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownToolTier(const EKalmalaToolTier Tier)
@@ -250,14 +253,17 @@ EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(const EKalmalaToolKi
     case EKalmalaToolKind::StoneKnife:
     case EKalmalaToolKind::StoneAxe:
     case EKalmalaToolKind::StonePick:
+    case EKalmalaToolKind::StoneMace:
     case EKalmalaToolKind::StoneSpear: return EKalmalaToolTier::Stone;
     case EKalmalaToolKind::BronzeAxe:
     case EKalmalaToolKind::BronzeKnife:
     case EKalmalaToolKind::BronzePick:
+    case EKalmalaToolKind::BronzeMace:
     case EKalmalaToolKind::BronzeSpear: return EKalmalaToolTier::Bronze;
     case EKalmalaToolKind::IronAxe:
     case EKalmalaToolKind::IronKnife:
     case EKalmalaToolKind::IronPick:
+    case EKalmalaToolKind::IronMace:
     case EKalmalaToolKind::IronSpear: return EKalmalaToolTier::Iron;
     default: return EKalmalaToolTier::None;
     }

@@ -17,7 +17,7 @@ if ($Category -eq 'Catalogue') {
     $sourceDir = Join-Path $repoRoot 'Content\Kalmala\UI\Source\IconOriginals'
     $preparedDir = Join-Path $repoRoot 'Content\Kalmala\UI\Source\Icons'
     $idColumn = 'canonical_id'
-    $expectedCount = 55
+    $expectedCount = 58
 }
 else {
     $manifestPath = Join-Path $PSScriptRoot 'Data\status-icon-manifest.csv'
@@ -183,7 +183,7 @@ foreach ($package in $packages) {
 }
 
 if ($Category -eq 'Catalogue') {
-    Write-Output 'PASS: all 55 catalogue identities map to validated originals, prepared PNGs, and imported Texture2D packages.'
+    Write-Output 'PASS: all 58 catalogue identities map to validated originals, prepared PNGs, and imported Texture2D packages.'
 }
 else {
     Write-Output 'PASS: all nine manifest entries map to unique imported Texture2D packages and validated transparent PNGs.'

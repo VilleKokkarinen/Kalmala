@@ -48,7 +48,8 @@
     "items/axes.json",
     "items/knives.json",
     "items/pickaxes.json",
-    "items/spears.json"
+    "items/spears.json",
+    "items/maces.json"
   ],
   "toolFiles": [
     "tools/building-hammer.json"
@@ -66,13 +67,17 @@
     "IronKnife",
     "IronPick",
     "IronSpear",
+    "StoneMace",
+    "BronzeMace",
+    "IronMace",
     "ConstructionHammer"
   ],
   "toolRecipeFiles": [
     "recipes/axes.json",
     "recipes/knives.json",
     "recipes/pickaxes.json",
-    "recipes/spears.json"
+    "recipes/spears.json",
+    "recipes/maces.json"
   ],
   "toolRecipeOrder": [
     "BronzeAxe",
@@ -82,7 +87,9 @@
     "IronKnife",
     "IronAxe",
     "IronPick",
-    "IronSpear"
+    "IronSpear",
+    "BronzeMace",
+    "IronMace"
   ],
   "toolUpgradeFiles": [
     "recipes/upgrades.json"

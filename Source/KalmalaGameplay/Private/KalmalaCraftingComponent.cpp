@@ -41,6 +41,9 @@ FName FindUniqueRecipeIdForOutput(const FName Output)
 
 FString GetToolDisplayName(const FName ToolId)
 {
+    if (ToolId == TEXT("StoneMace")) return TEXT("Stone Mace");
+    if (ToolId == TEXT("BronzeMace")) return TEXT("Bronze Mace");
+    if (ToolId == TEXT("IronMace")) return TEXT("Iron Mace");
     if (ToolId == TEXT("StoneKnife")) return TEXT("Stone Knife");
     if (ToolId == TEXT("StoneAxe")) return TEXT("Stone Axe");
     if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");

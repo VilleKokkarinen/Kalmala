@@ -106,6 +106,9 @@ bool IsCookingMenuRecipe(const FName StationKit, const FKalmalaRecipe& Recipe)
 
 FString GetReadableToolName(const FName ToolId)
 {
+    if (ToolId == TEXT("StoneMace")) return TEXT("Stone Mace");
+    if (ToolId == TEXT("BronzeMace")) return TEXT("Bronze Mace");
+    if (ToolId == TEXT("IronMace")) return TEXT("Iron Mace");
     if (ToolId == TEXT("StoneKnife")) return TEXT("Stone Knife");
     if (ToolId == TEXT("StoneAxe")) return TEXT("Stone Axe");
     if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
@@ -702,6 +705,13 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     CraftBronzeAxeButton = AddButton(TEXT("Craft Bronze Axe"), ToolProgressionActions,
         TEXT("Ask the server to craft the level-one Bronze Axe at a visible same-world level-one Workbench. The server checks materials and private tool inventory."));
     CraftBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeAxe);
+    MaceCraftActions = WidgetTree->ConstructWidget<UHorizontalBox>();
+    Column->AddChild(MaceCraftActions);
+    BuildExcludedWidgets.Add(MaceCraftActions);
+    CraftBronzeMaceButton = AddButton(TEXT("Craft Bronze Mace"), MaceCraftActions);
+    CraftBronzeMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeMace);
+    CraftIronMaceButton = AddButton(TEXT("Craft Iron Mace"), MaceCraftActions);
+    CraftIronMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftIronMace);
     UpgradeTargetIconBox = WidgetTree->ConstructWidget<USizeBox>();
     UpgradeTargetIconBox->SetWidthOverride(FKalmalaUITheme::Get().ItemIconTileSize);
     UpgradeTargetIconBox->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
@@ -1546,6 +1556,9 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     if (ToolProgressionText)
         ToolProgressionText->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+    if (MaceCraftActions)
+        MaceCraftActions->SetVisibility(!bInventoryCompanion && (bWorkbenchCraftContext || bForgeCraftContext)
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (ToolProgressionActions)
         ToolProgressionActions->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
@@ -1670,6 +1683,43 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
         FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station));
     StationContextStatusText->SetText(FText::FromString(FString::Printf(
         TEXT("Level %d"), EffectiveLevel)));
+}
+
+void UKalmalaCraftingWidget::RefreshMaceCraftState()
+{
+    if (!MaceCraftActions || !CraftBronzeMaceButton || !CraftIronMaceButton) return;
+    const bool bVisible = !bInventoryCompanion && (bWorkbenchCraftContext || bForgeCraftContext);
+    MaceCraftActions->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    CraftBronzeMaceButton->SetVisibility(bWorkbenchCraftContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    CraftIronMaceButton->SetVisibility(bForgeCraftContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    const APlayerController* PC = GetOwningPlayer();
+    const AKalmalaCharacter* Owner = PC ? Cast<AKalmalaCharacter>(PC->GetPawn()) : nullptr;
+    const UKalmalaInventoryComponent* Inventory = Owner ? Owner->GetInventoryComponent() : nullptr;
+    const AKalmalaConstructionActor* Station = ContextStationActor.Get();
+    const auto RefreshButton = [&](UButton* Button, const FName ToolId)
+    {
+        const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(ToolId, 1);
+        bool bReady = bVisible && Entry && PC && PC->IsLocalController() && Owner && Inventory
+            && IsStationContextValid() && IsValid(Station)
+            && Station->GetConstructionKit() == FKalmalaToolProgressionContract::GetStationKit(Entry->RequiredStation)
+            && FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station) == Entry->RequiredStationLevel
+            && Owner->GetCarriedToolLevel(ToolId) == 0;
+        FString Requirements = TEXT("Requires an accepted matching station and an uncarried item.");
+        if (Entry)
+        {
+            Requirements += FString::Printf(TEXT("\nStation level %d."), Entry->RequiredStationLevel);
+            for (const FKalmalaToolMaterialCost& Cost : Entry->MaterialCosts)
+            {
+                const int32 Available = Inventory ? Inventory->GetQuantity(Cost.ItemId) : 0;
+                bReady &= Available >= Cost.Quantity;
+                Requirements += FString::Printf(TEXT("\n%s: %d/%d"), *Cost.ItemId.ToString(), Available, Cost.Quantity);
+            }
+        }
+        Button->SetIsEnabled(bReady);
+        Button->SetToolTipText(FText::FromString(Requirements));
+    };
+    RefreshButton(CraftBronzeMaceButton, TEXT("BronzeMace"));
+    RefreshButton(CraftIronMaceButton, TEXT("IronMace"));
 }
 
 void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting)
@@ -3537,6 +3587,7 @@ void UKalmalaCraftingWidget::Refresh()
     }
     RefreshStationContextState();
     RefreshForgeUpgradeState(M);
+    RefreshMaceCraftState();
     RefreshStationRepairActionState(M);
     const auto& Recipes=UKalmalaRecipeCatalogue::Get()->Recipes;
     const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();
@@ -4097,6 +4148,16 @@ void UKalmalaCraftingWidget::RepairWorkbenchSelectedTool()
 #endif
     Crafting->ServerRepairTool(SelectedToolId);
     RefreshWorkbenchRepairState(Crafting);
+}
+void UKalmalaCraftingWidget::CraftBronzeMace()
+{
+    if (!bWorkbenchCraftContext || StationFilterKit != TEXT("WorkbenchKit") || !IsStationContextValid()) return;
+    if (auto* M = Model()) M->ServerProgressTool(TEXT("BronzeMace"));
+}
+void UKalmalaCraftingWidget::CraftIronMace()
+{
+    if (!bForgeCraftContext || StationFilterKit != TEXT("ForgeKit") || !IsStationContextValid()) return;
+    if (auto* M = Model()) M->ServerProgressTool(TEXT("IronMace"));
 }
 void UKalmalaCraftingWidget::CraftBronzeAxe() { if(auto* M=Model()) M->ServerProgressTool(TEXT("BronzeAxe")); }
 void UKalmalaCraftingWidget::UpgradeBronzeAxe()

@@ -10,7 +10,7 @@ enum class EKalmalaIcon : uint8
 {
     Unknown, Drop, Sun, Snow, Cloud, Storm, Bowl, Shield, Cross, Paw, Antlers,
     Log, Fibre, Rock, Ingot, Hide, Meat, Root, Seed, Axe, Knife, Pick, Hammer,
-    Floor, Wall, Roof, Bench, Rack, Cauldron, Pan, Forge, Chest, Fire, Bed, Fence, Lamp, Skiff, Discovery, Spear
+    Floor, Wall, Roof, Bench, Rack, Cauldron, Pan, Forge, Chest, Fire, Bed, Fence, Lamp, Skiff, Discovery, Spear, Mace
 };
 
 UCLASS()

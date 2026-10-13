@@ -30,7 +30,10 @@ enum class EKalmalaToolKind : uint8
     IronPick,
     IronSpear,
     StoneSpear,
-    ConstructionHammer
+    ConstructionHammer,
+    StoneMace,
+    BronzeMace,
+    IronMace
 };
 
 /** M9 harvesting tiers; station level is validated only by later craft/upgrade transactions. */
@@ -112,7 +115,7 @@ class KALMALAGAMEPLAY_API FKalmalaToolLifecycleContract
 public:
     /** Absolute item-level limit, including non-station sources. */
     static constexpr int32 MaxToolLevel = 20;
-    static constexpr int32 MaxFirstWaveToolDefinitions = 4;
+    static constexpr int32 MaxFirstWaveToolDefinitions = 5;
     static constexpr int32 MaxCarriedToolRecords = 16;
     static constexpr float DefaultMaximumRange = 250.0f;
 

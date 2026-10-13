@@ -54,3 +54,6 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 17,E,IronKnife,Iron knife,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool,
 18,E,IronPick,Iron pick,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool,
 19,E,IronSpear,Iron spear,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool,
+20,F,StoneMace,Stone mace,tool,none,none,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,
+21,F,BronzeMace,Bronze mace,tool,none,BronzeMace,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,
+22,F,IronMace,Iron mace,tool,none,IronMace,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,

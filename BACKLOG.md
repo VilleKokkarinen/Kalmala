@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Add mace tiers and icons:** Stone/Bronze/Iron maces use knife-tier durability and costs with crush bonuses, starter/station acquisition, inventory/detail/icon mappings and imported original transparent icons.
+
 - [x] **2026-10-13 — Allow negative per-type resistance:** bounded negative reductions act as flat weaknesses on active damage channels; retain nonnegative damage/Armor and prevent absent channels from adding damage.
 
 - [x] **2026-10-13 — Define typed weapon bonuses and entity defenses:** migrate scalar damage to slash/stab/crush/pierce/fire/water/holy/poison channels; add weapon attack-style bonuses and flat resistance/Armor definitions to production gameplay entities; resolve current player/wildlife hits on the server and display mixed weapon bonuses.

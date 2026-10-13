@@ -1,0 +1,52 @@
+{
+  "toolRecipes": [
+    {
+      "RecipeId": "BronzeMace",
+      "DisplayName": "Bronze Mace",
+      "ToolId": "BronzeMace",
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 3
+        }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "IronMace",
+      "DisplayName": "Iron Mace",
+      "ToolId": "IronMace",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Wood",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 2
+        }
+      ],
+      "Level": 1
+    }
+  ]
+}

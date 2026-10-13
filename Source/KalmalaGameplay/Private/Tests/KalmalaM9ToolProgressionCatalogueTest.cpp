@@ -88,7 +88,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     const TArray<FKalmalaToolProgressionEntry>& Entries = FKalmalaToolProgressionContract::GetEntries();
     TestTrue(TEXT("Crafted tool progression catalogue is bounded and internally valid"),
         FKalmalaToolProgressionContract::IsCatalogueValid());
-    TestEqual(TEXT("Current authored stats generate nine progression entries"), Entries.Num(), 9);
+    TestEqual(TEXT("Current authored stats generate eleven progression entries"), Entries.Num(), 11);
     TestTrue(TEXT("Generated entries remain bounded"), Entries.Num() <= FKalmalaToolProgressionContract::MaxToolProgressionEntries);
 
     const FKalmalaToolProgressionEntry* Bronze = FKalmalaToolProgressionContract::FindEntry(TEXT("BronzeAxe"));

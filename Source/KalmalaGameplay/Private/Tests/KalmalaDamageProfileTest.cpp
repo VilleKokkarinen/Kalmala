@@ -77,6 +77,19 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     const FKalmalaDamageChannels Spear = FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(TEXT("StoneSpear"), 1);
     TestEqual(TEXT("Melee spears use stab"), Spear.Stab, 42.0f);
     TestEqual(TEXT("Melee spears do not use ranged pierce"), Spear.Pierce, 0.0f);
+    for (const TPair<FName, float>& Mace : TArray<TPair<FName, float>>{
+        {TEXT("StoneMace"), 30.0f}, {TEXT("BronzeMace"), 42.0f}, {TEXT("IronMace"), 58.0f}})
+    {
+        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Mace.Key);
+        if (TestNotNull(TEXT("Mace identity resolves to a server weapon definition"), Definition))
+        {
+            const FKalmalaDamageChannels Bonuses = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(Mace.Key, 1, TEXT("Basic"));
+            TestEqual(TEXT("Mace Basic attack uses the knife-tier amount as crush"), Bonuses.Crush, Mace.Value);
+            TestEqual(TEXT("Maces have only crush by default"), Bonuses.Total(), Bonuses.Crush);
+            TestEqual(TEXT("Maces cannot perform material gathering"), Definition->Action, EKalmalaToolAction::None);
+            TestTrue(TEXT("Appended mace kind is allowlisted"), FKalmalaToolLifecycleContract::IsKnownTool(Definition->Kind));
+        }
+    }
     TestTrue(TEXT("The migrated mixed-channel catalogue remains valid"), UKalmalaToolCatalogue::Get()->IsValidCatalogue());
     return true;
 }

@@ -172,6 +172,7 @@ private:
     void ApplyStationCraftLayout();
     void RefreshStationContextState();
     void RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting);
+    void RefreshMaceCraftState();
     void RefreshWorkbenchRepairState(UKalmalaCraftingComponent* Crafting);
     void RefreshStationRepairActionState(UKalmalaCraftingComponent* Crafting);
     void RequestStationRepairAll(FName RequiredStationKit);
@@ -202,6 +203,8 @@ private:
     UFUNCTION() void RepairIronAxe();
     UFUNCTION() void RepairWorkbenchSelectedTool();
     UFUNCTION() void CraftBronzeAxe();
+    UFUNCTION() void CraftBronzeMace();
+    UFUNCTION() void CraftIronMace();
     UFUNCTION() void UpgradeBronzeAxe();
     UFUNCTION() void InspectStorage();
     UFUNCTION() void PreviousStorageItem();
@@ -270,6 +273,9 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> BuildPlacementButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CampfireLightButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeAxeButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeMaceButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> CraftIronMaceButton;
+    UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> MaceCraftActions;
     UPROPERTY(Transient) TObjectPtr<UButton> UpgradeBronzeAxeButton;
     UPROPERTY(Transient) TObjectPtr<class USizeBox> UpgradeTargetIconBox;
     UPROPERTY(Transient) TObjectPtr<UBorder> UpgradeTargetIconTile;

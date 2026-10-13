@@ -14,7 +14,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FKalmalaCarriedToolInventoryTest::RunTest(const FString& Parameters)
 {
     const TArray<FKalmalaToolState> InitialTools = FKalmalaToolLifecycleContract::BuildInitialCarriedTools();
-    TestEqual(TEXT("Starting inventory contains three gathering tools, the Stone Spear, and the construction hammer"), InitialTools.Num(), 5);
+    TestEqual(TEXT("Starting inventory contains three gathering tools, the Stone Spear, Stone Mace, and the construction hammer"), InitialTools.Num(), 6);
     TestTrue(TEXT("Starting tool records stay within the carried-tool cap"),
         InitialTools.Num() <= FKalmalaToolLifecycleContract::MaxCarriedToolRecords);
 

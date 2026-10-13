@@ -110,6 +110,7 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
     case EKalmalaIcon::Spear: Path({{5,31},{29,7}}); Path({{23,7},{31,5},{29,13}},true); Path({{13,23},{18,28}}); break;
     case EKalmalaIcon::Knife: Path({{10,31},{15,22},{29,5},{29,15},{19,25},{16,23}},true); Path({{12,21},{20,27}}); break;
     case EKalmalaIcon::Pick: Path({{12,32},{21,9}}); Path({{5,13},{17,6},{27,8},{32,17},{23,12},{15,12},{5,13}}); break;
+    case EKalmalaIcon::Mace: Path({{15,17},{29,31},{32,28},{18,14}},true); Path({{5,7},{13,3},{22,12},{17,21},{8,19},{3,12}},true); break;
     case EKalmalaIcon::Hammer: Path({{14,32},{20,14}}); Path({{9,5},{28,10},{26,18},{7,13}},true); break;
     case EKalmalaIcon::Floor: Path({{4,19},{17,8},{32,17},{19,29}},true); Path({{9,22},{22,11}}); Path({{14,25},{27,14}}); break;
     case EKalmalaIcon::Wall: Path({{7,5},{29,5},{29,31},{7,31}},true); Path({{14,5},{14,31}}); Path({{22,5},{22,31}}); Path({{7,12},{29,25}}); break;
@@ -158,6 +159,7 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
         {TEXT("BronzePick"),EKalmalaIcon::Pick,1}, {TEXT("BronzeSpear"),EKalmalaIcon::Spear,1},
         {TEXT("IronAxe"),EKalmalaIcon::Axe,2}, {TEXT("IronKnife"),EKalmalaIcon::Knife,2},
         {TEXT("IronPick"),EKalmalaIcon::Pick,2}, {TEXT("IronSpear"),EKalmalaIcon::Spear,2},
+        {TEXT("StoneMace"),EKalmalaIcon::Mace,0}, {TEXT("BronzeMace"),EKalmalaIcon::Mace,1}, {TEXT("IronMace"),EKalmalaIcon::Mace,2},
         {TEXT("ConstructionHammer"),EKalmalaIcon::Hammer,0},
         {TEXT("MendingScroll"),EKalmalaIcon::Cross,0}, {TEXT("HearthShieldScroll"),EKalmalaIcon::Shield,0},
         {TEXT("BearsVigorScroll"),EKalmalaIcon::Paw,0}, {TEXT("DeerCallScroll"),EKalmalaIcon::Antlers,0}
