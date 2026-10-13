@@ -519,12 +519,13 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         ->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     auto* StationSummary = WidgetTree->ConstructWidget<UHorizontalBox>();
     auto* StationIconSize = WidgetTree->ConstructWidget<USizeBox>();
-    StationIconSize->SetWidthOverride(44.0f);
-    StationIconSize->SetHeightOverride(44.0f);
+    StationIconSize->SetWidthOverride(64.0f);
+    StationIconSize->SetHeightOverride(64.0f);
     StationHeaderIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
     StationIconSize->SetContent(StationHeaderIcon);
-    StationSummary->AddChildToHorizontalBox(StationIconSize)
-        ->SetVerticalAlignment(VAlign_Center);
+    auto* StationIconSlot = StationSummary->AddChildToHorizontalBox(StationIconSize);
+    StationIconSlot->SetVerticalAlignment(VAlign_Center);
+    StationIconSlot->SetPadding(FMargin(0.0f, 0.0f, 8.0f, 0.0f));
     auto* StationSummaryText = WidgetTree->ConstructWidget<UVerticalBox>();
     StationHeaderNameText = WidgetTree->ConstructWidget<UTextBlock>();
     StationHeaderNameText->SetAutoWrapText(true);
@@ -541,10 +542,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         ->SetHorizontalAlignment(HAlign_Right);
     StationSummary->AddChildToHorizontalBox(StationSummaryText)
         ->SetVerticalAlignment(VAlign_Center);
-    auto* StationSummarySize = WidgetTree->ConstructWidget<USizeBox>();
-    StationSummarySize->SetWidthOverride(448.0f);
-    StationSummarySize->SetContent(StationSummary);
-    StationHeaderRow->AddChildToHorizontalBox(StationSummarySize)
+    StationHeaderRow->AddChildToHorizontalBox(StationSummary)
         ->SetVerticalAlignment(VAlign_Center);
     BrowseControlsRow = WidgetTree->ConstructWidget<UHorizontalBox>();
     Column->InsertChildAt(2, BrowseControlsRow);

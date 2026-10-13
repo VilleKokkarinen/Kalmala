@@ -1030,6 +1030,15 @@
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Runtime equivalence is based on source and runner inspection; the combined entrypoint remains unexecuted. Full project verification is deferred.
 - **Next eligible work:** continue auditing `Verify-*` entrypoints against active acceptance requirements, callers, and equivalent coverage, then document the remaining non-`.ps1` support tools. The goal of approximately 20 runners is not complete; M14 main integration remains pending.
 
+## User-directed increment 2026-10-13 — Right-align and enlarge Workbench/Forge headers
+
+- **Completed:** removed the fixed-width spacer inside the station summary so the icon, name, and level form a compact group at the right side of the shared Workbench/Forge header. Increased the station icon from 44×44 to 64×64 and added an 8px gap before the right-aligned name and level.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** the targeted Unreal UI/editor module compile succeeded. `Scripts/Render-Menu.ps1 -Menu crafting,forge -BuildModules` rendered Workbench Craft and Forge Craft at 1920×1080; both captures were inspected and show the larger station icon and right-aligned header group. `git diff --check` passed. No automation tests were run; full project verification is deferred.
+- **Impact and authority:** station menu presentation only. Station identity, level calculation, recipe behavior, network authority, and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Render previews use unavailable live station context and inventory, so they verify layout only. Full project verification remains deferred.
+- **Next eligible work:** streamline verification scripts while retaining required acceptance coverage and distinguishing test runners from Python support tools.
+
 ## User-directed increment 2026-10-12 — Merge inventory panel-removal preflight
 
 - **Completed:** moved the legacy inventory HUD source checks, on-demand menu assertions, empty-state automation checks, and route-free tutorial audit into `Verify-Inventory.ps1 -ContractOnly`. The live inventory runner uses the same checks before launching peers; reconnect and presentation-ownership runners now call the contract-only mode. Removed `Verify-InventoryPanelRemoval.ps1`. The active `Verify-*.ps1` count falls from 46 to 45.

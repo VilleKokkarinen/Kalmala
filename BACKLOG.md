@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Right-align and enlarge Workbench/Forge headers:** let the station icon/name group size naturally at the right of the header, use a 64×64 station icon, and keep the name and level right-aligned.
+
 - [x] **2026-10-13 — Rename and split Settings controls:** shorten Controls/Controller action labels to Build, Inventory, Settings, and Map; default Settings to Escape; show controller movement as separate Forward/Backward/Right/Left rows.
 
 - [x] **2026-10-13 — Vertically center Settings row text:** center shared slider labels/values and the Reduced Motion label alongside their controls; preserve the existing centered binding-row layout.
