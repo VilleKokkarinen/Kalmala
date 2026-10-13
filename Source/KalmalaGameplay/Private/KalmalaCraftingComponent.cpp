@@ -346,9 +346,12 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FStri
     Reason = TEXT("Server authority required");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
 
-    const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(ToolId);
-    Reason = TEXT("Unknown tool progression");
+    const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindNextEntry(
+        ToolId, Character->GetCarriedToolLevel(ToolId));
+    Reason = TEXT("No same-item upgrade is available for that tool level");
     if (!Entry || !FKalmalaToolProgressionContract::IsCatalogueValid()) return false;
+    Reason = TEXT("Tool upgrades must keep the same item identity");
+    if (!Entry->PreviousToolId.IsNone() && Entry->PreviousToolId != ToolId) return false;
     const FName StationKit = FKalmalaToolProgressionContract::GetStationKit(Entry->RequiredStation);
     const TCHAR* StationName = Entry->RequiredStation == EKalmalaToolStationKind::Workbench
         ? TEXT("Workbench") : TEXT("Forge");
@@ -394,10 +397,10 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FStri
         return false;
     }
 
-    Inventory->ReplaceGridItemFromServer(Entry->PreviousToolId, ToolId);
     Inventory->SynchronizeGridFromServer();
     Character->ForceNetUpdate();
-    Reason = FString::Printf(TEXT("Crafted %s at level %d; previous tool exchanged where required"),
+    Reason = FString::Printf(Entry->PreviousToolId.IsNone()
+        ? TEXT("Crafted %s at level %d") : TEXT("Upgraded %s to level %d"),
         *ToolId.ToString(), Entry->TargetToolLevel);
     return true;
 }
@@ -802,7 +805,13 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
         }
         if (!TargetDefinition) continue;
 
-        if (ExistingTarget)
+        if (ExistingTarget && ExistingTarget->ToolLevel >= Entry.TargetToolLevel)
+        {
+            Text += FString::Printf(TEXT("%s is already level %d.\nStatus: Already at this level.\n"),
+                *GetToolDisplayName(Entry.ToolId), ExistingTarget->ToolLevel);
+            continue;
+        }
+        if (ExistingTarget && Entry.PreviousToolId.IsNone())
         {
             Text += FString::Printf(TEXT("%s %d · carried, condition %d/%d.\nStatus: Already carried.\n"),
                 *GetToolDisplayName(Entry.ToolId), ExistingTarget->ToolLevel, ExistingTarget->Durability,
@@ -820,7 +829,26 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
             PreviousDefinition = FKalmalaToolLifecycleContract::GetTieredAxeDefinitions().FindByPredicate(
                 [&Entry](const FKalmalaToolDefinition& Definition) { return Definition.ToolId == Entry.PreviousToolId; });
         }
-        if (!Entry.PreviousToolId.IsNone())
+        if (Entry.PreviousToolId == Entry.ToolId)
+        {
+            const EKalmalaToolTier PreviousTier = FKalmalaToolLifecycleContract::GetToolTier(
+                TargetDefinition->Kind, Entry.PreviousToolLevel);
+            const EKalmalaToolTier TargetTier = FKalmalaToolLifecycleContract::GetToolTier(
+                TargetDefinition->Kind, Entry.TargetToolLevel);
+            const auto TierName = [](const EKalmalaToolTier Tier)
+            {
+                switch (Tier)
+                {
+                case EKalmalaToolTier::Bronze: return TEXT("Bronze");
+                case EKalmalaToolTier::Iron: return TEXT("Iron");
+                default: return TEXT("None");
+                }
+            };
+            Text += FString::Printf(TEXT("Comparison: %s level %d → level %d.\nGain: Woodcutting tier %s → %s; unlocks Ironheart trunks (Densewood).\n"),
+                *GetToolDisplayName(Entry.ToolId), Entry.PreviousToolLevel, Entry.TargetToolLevel,
+                TierName(PreviousTier), TierName(TargetTier));
+        }
+        else if (!Entry.PreviousToolId.IsNone())
         {
             const FString PreviousState = PreviousTool && PreviousDefinition
                 ? FString::Printf(TEXT("%s %d (%d/%d condition)"), *GetToolDisplayName(Entry.PreviousToolId),

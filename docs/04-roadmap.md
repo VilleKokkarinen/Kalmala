@@ -523,8 +523,8 @@ M12 has ten ordered UI goals:
      state; do not put the full build catalogue, cooking, storage, or eating here.
    - **Forge -> Forge menu.** Separate Craft, Upgrade, and Repair sections. Craft
      includes Forge-compatible production such as the Frying Pan. Upgrade includes
-     supported tool upgrades such as Bronze Axe -> Iron Axe, showing current and
-     resulting tool, required station/skill level, material counts, concise stat
+     same-item tool level upgrades such as Bronze Axe level 1 -> level 2, showing
+     the gained tier, required station/skill level, material counts, concise stat
      comparison, and Upgrade. Repair contains carried-tool condition and the
      existing free selected-tool Repair. Show effective Forge level/attachment
      state. Exclude unrelated building, cooking, inventory browsing, and storage.

@@ -104,8 +104,11 @@ public:
     static bool IsKnownTool(EKalmalaToolKind Tool);
     static bool IsKnownToolTier(EKalmalaToolTier Tier);
     static EKalmalaToolTier GetToolTier(EKalmalaToolKind Tool);
+    static EKalmalaToolTier GetToolTier(EKalmalaToolKind Tool, int32 ToolLevel);
     static bool BuildServerSelection(FName ServerSourceId, FKalmalaToolServerSelection& OutSelection);
     static bool IsToolSuitableForSelection(const FKalmalaToolDefinition& Definition, const FKalmalaToolServerSelection& Selection);
+    static bool IsToolSuitableForSelection(const FKalmalaToolDefinition& Definition, int32 ToolLevel,
+        const FKalmalaToolServerSelection& Selection);
     static const FKalmalaToolDefinition* FindMinimumQualifiedTool(const FKalmalaToolServerSelection& Selection);
     static bool IsUseAllowed(
         const FKalmalaToolServerContext& Context,

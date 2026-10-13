@@ -31,7 +31,6 @@
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaToolProgressionContract.h"
-#include "KalmalaStatComparison.h"
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Border.h"
@@ -155,7 +154,7 @@ FString BuildForgeUpgradePresentationText(const UKalmalaCraftingComponent* Craft
     Text.ReplaceInline(TEXT("Cost:"), TEXT("Materials:"));
     Text.ReplaceInline(TEXT("Status: Ready to upgrade."), TEXT("Ready to upgrade."));
     Text.ReplaceInline(TEXT("Status: Blocked — "), TEXT("Unavailable: "));
-    Text.ReplaceInline(TEXT("Status: Already carried."), TEXT("Iron Axe is already carried."));
+    Text.ReplaceInline(TEXT("Status: Already at this level."), TEXT("Bronze Axe is already at this level."));
     return Text.TrimStartAndEnd();
 }
 
@@ -505,7 +504,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         TEXT("Show recipes supported by this Forge."));
     ForgeCraftSectionButton->OnClicked.AddDynamic(this, &ThisClass::SelectForgeCraftSection);
     ForgeUpgradeSectionButton = AddButton(TEXT("Upgrade"), WorkbenchSections,
-        TEXT("Compare the carried Bronze Axe with its Iron Axe upgrade."));
+        TEXT("Upgrade the carried Bronze Axe to level 2 while keeping the same item."));
     ForgeUpgradeSectionButton->OnClicked.AddDynamic(this, &ThisClass::SelectForgeUpgradeSection);
     ForgeRepairSectionButton = AddButton(TEXT("Repair All"), WorkbenchSections,
         TEXT("Repair all damaged carried tools at this Forge for free."));
@@ -686,10 +685,10 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     ToolProgressionText = AddText(TEXT(""), 18);
     ToolUpgradeComparisonTitle = AddText(TEXT(""), 16);
     ToolUpgradeLevelComparison = AddText(TEXT(""), 16);
-    ToolUpgradeConditionComparison = AddText(TEXT(""), 16);
+    ToolUpgradeBenefitComparison = AddText(TEXT(""), 16);
     ToolUpgradeComparisonTitle->SetVisibility(ESlateVisibility::Collapsed);
     ToolUpgradeLevelComparison->SetVisibility(ESlateVisibility::Collapsed);
-    ToolUpgradeConditionComparison->SetVisibility(ESlateVisibility::Collapsed);
+    ToolUpgradeBenefitComparison->SetVisibility(ESlateVisibility::Collapsed);
     BuildExcludedWidgets.Add(ToolProgressionText);
     ToolProgressionActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(ToolProgressionActions);
     BuildExcludedWidgets.Add(ToolProgressionActions);
@@ -704,15 +703,15 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     UpgradeIconContent->SetWidthOverride(FKalmalaUITheme::Get().ItemIconTileSize);
     UpgradeIconContent->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
     UpgradeTargetIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
-    UpgradeTargetIcon->SetCatalogueIcon(TEXT("IronAxe"));
+    UpgradeTargetIcon->SetCatalogueIcon(TEXT("BronzeAxe"));
     UpgradeIconContent->SetContent(UpgradeTargetIcon);
     UpgradeTargetIconTile->SetContent(UpgradeIconContent);
     UpgradeTargetIconBox->SetContent(UpgradeTargetIconTile);
     UpgradeTargetIconBox->SetVisibility(ESlateVisibility::Collapsed);
     ToolProgressionActions->AddChildToHorizontalBox(UpgradeTargetIconBox)->SetVerticalAlignment(VAlign_Center);
-    UpgradeIronAxeButton = AddButton(TEXT("Upgrade to Iron Axe"), ToolProgressionActions,
-        TEXT("Exchange a level-one Bronze Axe for a level-two Iron Axe when the Forge and shown requirements are ready."));
-    UpgradeIronAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeIronAxe);
+    UpgradeBronzeAxeButton = AddButton(TEXT("Upgrade Bronze Axe to Level 2"), ToolProgressionActions,
+        TEXT("Improve the carried Bronze Axe to level 2. Its woodcutting tier increases to Iron while its condition and inventory slot are preserved."));
+    UpgradeBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeBronzeAxe);
     auto* UpgradePanelContent = WidgetTree->ConstructWidget<UHorizontalBox>();
     StationUpgradePanel = WidgetTree->ConstructWidget<UBorder>();
     StationUpgradePanel->SetContent(UpgradePanelContent);
@@ -732,7 +731,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     UpgradeComparisonFrame->SetContent(UpgradeComparison);
     for (UWidget* UpgradeControl : {static_cast<UWidget*>(ToolUpgradeComparisonTitle.Get()),
             static_cast<UWidget*>(ToolUpgradeLevelComparison.Get()),
-            static_cast<UWidget*>(ToolUpgradeConditionComparison.Get()),
+            static_cast<UWidget*>(ToolUpgradeBenefitComparison.Get()),
             static_cast<UWidget*>(ToolProgressionActions.Get())})
     {
         UpgradeControl->RemoveFromParent();
@@ -746,13 +745,13 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     ComparisonSlot->SetSize(ComparisonSize);
     Column->AddChildToVerticalBox(StationUpgradePanel);
     BuildExcludedWidgets.Add(CraftBronzeAxeButton);
-    BuildExcludedWidgets.Add(UpgradeIronAxeButton);
+    BuildExcludedWidgets.Add(UpgradeBronzeAxeButton);
     BuildExcludedWidgets.Add(StationUpgradePanel);
     StationCraftExcludedWidgets.Add(AddText(TEXT("\nChest — shared nearby storage\nInspect a visible chest, choose an item, then store or take one. Contents clear when closed or out of reach."), 16));
     BuildExcludedWidgets.Add(StationCraftExcludedWidgets.Last());
     StationCraftExcludedWidgets.Add(AddText(TEXT("Chest contents use the shared 16-stack interface. Accepted construction and storage records are saved for this world; rejected transfers leave both inventories unchanged."), 16));
     BuildExcludedWidgets.Add(StationCraftExcludedWidgets.Last());
-    BuildExcludedWidgets.Append({ToolUpgradeComparisonTitle, ToolUpgradeLevelComparison, ToolUpgradeConditionComparison});
+    BuildExcludedWidgets.Append({ToolUpgradeComparisonTitle, ToolUpgradeLevelComparison, ToolUpgradeBenefitComparison});
     StorageText = AddText(TEXT(""), 18);
     StationCraftExcludedWidgets.Add(StorageText);
     BuildExcludedWidgets.Add(StorageText);
@@ -1429,7 +1428,7 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Forge — Upgrade")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Compare your carried Bronze Axe with the Iron Axe upgrade. The Forge, skill, tool, and material requirements are shown below.")));
+            TEXT("Upgrade the carried Bronze Axe without changing its identity. The comparison shows its increased level and woodcutting tier.")));
     }
     else
     {
@@ -1531,8 +1530,8 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     if (StationContextStatusText)
         StationContextStatusText->SetVisibility(bStationContext && !bStorageContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-    if (UpgradeIronAxeButton)
-        UpgradeIronAxeButton->SetVisibility(bInventoryCompanion || bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bWorkbenchRepairContext || bStorageContext
+    if (UpgradeBronzeAxeButton)
+        UpgradeBronzeAxeButton->SetVisibility(bInventoryCompanion || bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bWorkbenchRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (CraftBronzeAxeButton)
         CraftBronzeAxeButton->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext || bForgeUpgradeContext || bWorkbenchRepairContext || bStorageContext
@@ -1668,10 +1667,10 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
 
 void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting)
 {
-    if (!UpgradeIronAxeButton) return;
+    if (!UpgradeBronzeAxeButton) return;
     if (!bForgeUpgradeContext)
     {
-        UpgradeIronAxeButton->SetIsEnabled(true);
+        UpgradeBronzeAxeButton->SetIsEnabled(true);
         return;
     }
 
@@ -1683,7 +1682,7 @@ void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent*
         : TEXT("Forge context unavailable. Reopen a nearby Forge.");
     if (ToolProgressionText && ToolProgressionText->GetText().ToString() != Details)
         ToolProgressionText->SetText(FText::FromString(Details));
-    UpgradeIronAxeButton->SetIsEnabled(bContextValid && PC && PC->IsLocalController()
+    UpgradeBronzeAxeButton->SetIsEnabled(bContextValid && PC && PC->IsLocalController()
         && Details.Contains(TEXT("Ready to upgrade.")));
 }
 
@@ -2325,7 +2324,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && SelectedIcon->GetCatalogueIdForTest() == RecipeCatalogueEntries[InitialIndices[Selected]].GetOutputIdentity()
         && SelectedIcon->HasCatalogueTexture();
     const bool bUpgradeIconLoaded = UpgradeTargetIcon
-        && UpgradeTargetIcon->GetCatalogueIdForTest() == TEXT("IronAxe")
+        && UpgradeTargetIcon->GetCatalogueIdForTest() == TEXT("BronzeAxe")
         && UpgradeTargetIcon->HasCatalogueTexture();
     UE_LOG(LogTemp, Display, TEXT("Catalogue icons: Grid=%d Selected=%d Upgrade=%d"),
         bGridIconsLoaded, bSelectedIconLoaded, bUpgradeIconLoaded);
@@ -2440,7 +2439,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const AKalmalaCharacter* ToolOwner = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
     const bool bBronzeAlreadyCarried = ToolOwner && ToolOwner->GetCarriedToolLevel(TEXT("BronzeAxe")) > 0;
     const bool bToolPrerequisites = bBronzeAlreadyCarried
-        ? WorkbenchToolOptions.Contains(TEXT("Already carried"))
+        ? WorkbenchToolOptions.Contains(TEXT("Already at this level"))
         : WorkbenchToolOptions.Contains(TEXT("Cost:"))
             && WorkbenchToolOptions.Contains(TEXT("Requires: Workbench level 1"));
     const bool bPreviousWorkbenchContext = bWorkbenchCraftContext;
@@ -2458,7 +2457,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && bWorkbenchLevelShown
         && CraftButton && CraftButton->GetVisibility() != ESlateVisibility::Collapsed
         && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() != ESlateVisibility::Collapsed
-        && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed;
+        && UpgradeBronzeAxeButton && UpgradeBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed;
     for (const TObjectPtr<UWidget>& ExcludedWidget : StationCraftExcludedWidgets)
     {
         const UWidget* Excluded = ExcludedWidget.Get();
@@ -2709,7 +2708,7 @@ bool UKalmalaCraftingWidget::VerifyCookingRackScopeForTest()
         && ToolProgressionText->GetVisibility() == ESlateVisibility::Collapsed
         && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Collapsed
         && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
-        && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed
+        && UpgradeBronzeAxeButton && UpgradeBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
         && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Collapsed;
     const bool bMenuContents = HeaderText && HeaderText->GetText().ToString() == TEXT("Cooking Rack — Cook")
         && InstructionsText && InstructionsText->GetText().ToString()
@@ -2882,7 +2881,7 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
         && ToolProgressionText->GetVisibility() == ESlateVisibility::Collapsed
         && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Collapsed
         && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
-        && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed
+        && UpgradeBronzeAxeButton && UpgradeBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
         && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Collapsed;
     const bool bMenuContents = HeaderText && HeaderText->GetText().ToString() == TEXT("Cauldron — Cook")
         && InstructionsText && InstructionsText->GetText().ToString()
@@ -3075,7 +3074,7 @@ bool UKalmalaCraftingWidget::VerifyFryingPanScopeForTest()
         && ToolProgressionText->GetVisibility() == ESlateVisibility::Collapsed
         && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Collapsed
         && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
-        && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed
+        && UpgradeBronzeAxeButton && UpgradeBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
         && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Collapsed;
     const bool bMenuContents = HeaderText && HeaderText->GetText().ToString() == TEXT("Frying Pan — Cook")
         && InstructionsText && InstructionsText->GetText().ToString()
@@ -3124,14 +3123,14 @@ bool UKalmalaCraftingWidget::VerifyFryingPanScopeForTest()
 bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
 {
     const FName ForgeKit(TEXT("ForgeKit"));
-    const FName IronAxe(TEXT("IronAxe"));
+    const FName BronzeAxe(TEXT("BronzeAxe"));
     const FString CraftSection(TEXT("Craft"));
     const FString UpgradeSection(TEXT("Upgrade"));
     const FString Details = BuildForgeUpgradePresentationText(Model());
-    const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(IronAxe);
-    const bool bComparison = Details.Contains(TEXT("Comparison: Bronze Axe"))
-        && Details.Contains(TEXT("Iron Axe 2")) && Details.Contains(TEXT("→"))
-        && Details.Contains(TEXT("24/24 condition"));
+    const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(BronzeAxe, 2);
+    const bool bComparison = Details.Contains(TEXT("Comparison: Bronze Axe level 1 → level 2"))
+        && Details.Contains(TEXT("Woodcutting tier Bronze → Iron"))
+        && Details.Contains(TEXT("Ironheart trunks (Densewood)"));
     const bool bRequirements = Entry && Entry->RequiredStation == EKalmalaToolStationKind::Forge
         && Entry->RequiredStationLevel == 2 && Entry->RequiredSkill == EKalmalaSkill::Crafting
         && Entry->RequiredSkillLevel == 5
@@ -3152,7 +3151,7 @@ bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
     else bMaterials = false;
     const bool bStatus = Details.Contains(TEXT("Ready to upgrade."))
         || Details.Contains(TEXT("Unavailable: "))
-        || Details.Contains(TEXT("already carried."))
+        || Details.Contains(TEXT("already at this level."))
         || Details.Contains(TEXT("details unavailable."))
         || Details.Contains(TEXT("requirements unavailable."));
     const bool bRoute = IsStationContextShellKit(ForgeKit)
@@ -3189,11 +3188,11 @@ bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
     RefreshForgeUpgradeState(Model());
     const bool bContextUnavailable = ToolProgressionText
         && ToolProgressionText->GetText().ToString().Contains(TEXT("Forge context unavailable"))
-        && UpgradeIronAxeButton && !UpgradeIronAxeButton->GetIsEnabled()
+        && UpgradeBronzeAxeButton && !UpgradeBronzeAxeButton->GetIsEnabled()
         && StationContextStatusText
         && StationContextStatusText->GetText().ToString() == TEXT("Level 1");
     const uint32 RequestsBeforeStaleClick = ForgeUpgradeRequestCountForTest;
-    UpgradeIronAxe();
+    UpgradeBronzeAxe();
     const bool bStaleNoRequest = ForgeUpgradeRequestCountForTest == RequestsBeforeStaleClick;
     bool bUiScope = HeaderText && HeaderText->GetText().ToString() == TEXT("Forge — Upgrade")
         && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Visible
@@ -3206,10 +3205,10 @@ bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
         && ToolProgressionText && ToolProgressionText->GetVisibility() == ESlateVisibility::Visible
         && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Visible
         && UpgradeTargetIconBox && UpgradeTargetIconBox->GetVisibility() == ESlateVisibility::HitTestInvisible
-        && UpgradeTargetIcon && UpgradeTargetIcon->GetCatalogueIdForTest() == TEXT("IronAxe")
+        && UpgradeTargetIcon && UpgradeTargetIcon->GetCatalogueIdForTest() == TEXT("BronzeAxe")
         && UpgradeTargetIcon->HasCatalogueTexture()
-        && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Visible
-        && !UpgradeIronAxeButton->GetIsEnabled()
+        && UpgradeBronzeAxeButton && UpgradeBronzeAxeButton->GetVisibility() == ESlateVisibility::Visible
+        && !UpgradeBronzeAxeButton->GetIsEnabled()
         && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
         && CraftButton && CraftButton->GetParent()
         && CraftButton->GetParent()->GetVisibility() == ESlateVisibility::Collapsed
@@ -3413,7 +3412,7 @@ bool UKalmalaCraftingWidget::VerifyStorageContextScopeForTest()
         && WorkbenchRepairInspector && WorkbenchRepairInspector->GetVisibility() == ESlateVisibility::Collapsed
         && StationContextStatusText && StationContextStatusText->GetVisibility() == ESlateVisibility::Collapsed
         && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Collapsed
-        && UpgradeIronAxeButton && UpgradeIronAxeButton->GetVisibility() == ESlateVisibility::Collapsed
+        && UpgradeBronzeAxeButton && UpgradeBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
         && ToolProgressionText && ToolProgressionText->GetVisibility() == ESlateVisibility::Collapsed
         && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Collapsed
         && StorageStoreButton->GetVisibility() == ESlateVisibility::Visible && !StorageStoreButton->GetIsEnabled()
@@ -3636,7 +3635,7 @@ void UKalmalaCraftingWidget::Refresh()
     {
         ToolUpgradeComparisonTitle->SetVisibility(ESlateVisibility::Collapsed);
         ToolUpgradeLevelComparison->SetVisibility(ESlateVisibility::Collapsed);
-        ToolUpgradeConditionComparison->SetVisibility(ESlateVisibility::Collapsed);
+        ToolUpgradeBenefitComparison->SetVisibility(ESlateVisibility::Collapsed);
     }
     if (StoragePackInspector)
         StoragePackInspector->SetRows(StoragePackRows, TextScalePercent, ContrastMode,
@@ -3899,70 +3898,50 @@ void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(
     const AKalmalaCharacter* Character,
     const int32 ContrastMode)
 {
-    if (!ToolUpgradeComparisonTitle || !ToolUpgradeLevelComparison || !ToolUpgradeConditionComparison) return;
+    if (!ToolUpgradeComparisonTitle || !ToolUpgradeLevelComparison || !ToolUpgradeBenefitComparison) return;
 
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
-    const FKalmalaToolProgressionEntry* Upgrade = FKalmalaToolProgressionContract::FindEntry(TEXT("IronAxe"));
-    const FKalmalaToolDefinition* PreviousDefinition = Upgrade
-        ? FKalmalaToolLifecycleContract::FindDefinition(Upgrade->PreviousToolId) : nullptr;
-    const FKalmalaToolDefinition* SelectedDefinition = Upgrade
-        ? FKalmalaToolLifecycleContract::FindDefinition(Upgrade->ToolId) : nullptr;
-    const FString SelectedName = SelectedDefinition ? GetReadableToolName(SelectedDefinition->ToolId) : TEXT("Iron Axe");
-    const FString PreviousName = PreviousDefinition ? GetReadableToolName(PreviousDefinition->ToolId) : TEXT("previous tool");
-    FString UnavailableReason;
-    const FKalmalaToolState* CurrentTool = nullptr;
+    const FKalmalaToolProgressionEntry* Upgrade = FKalmalaToolProgressionContract::FindEntry(
+        TEXT("BronzeAxe"), 2);
+    const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("BronzeAxe"));
+    const FKalmalaToolState* CurrentTool = Character
+        ? Character->GetCarriedToolInventory().FindByPredicate([](const FKalmalaToolState& Tool)
+            { return Tool.ToolId == TEXT("BronzeAxe"); })
+        : nullptr;
+    const bool bValidUpgrade = Upgrade && Definition && Upgrade->PreviousToolId == Upgrade->ToolId
+        && Upgrade->PreviousToolLevel == 1 && Upgrade->TargetToolLevel == 2;
+    const FString CurrentTier = bValidUpgrade
+        && FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind, Upgrade->PreviousToolLevel) == EKalmalaToolTier::Bronze
+        ? TEXT("Bronze") : TEXT("unavailable");
+    const FString TargetTier = bValidUpgrade
+        && FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind, Upgrade->TargetToolLevel) == EKalmalaToolTier::Iron
+        ? TEXT("Iron") : TEXT("unavailable");
+    const FString LevelComparison = !bValidUpgrade ? TEXT("Tool level comparison unavailable.")
+        : CurrentTool && CurrentTool->ToolLevel >= Upgrade->TargetToolLevel
+            ? FString::Printf(TEXT("Already level %d."), Upgrade->TargetToolLevel)
+            : CurrentTool
+                ? FString::Printf(TEXT("Tool level: %d → %d (+1)."),
+                    Upgrade->PreviousToolLevel, Upgrade->TargetToolLevel)
+                : FString::Printf(TEXT("Tool level: %d → %d (+1); requires a carried level %d axe."),
+                    Upgrade->PreviousToolLevel, Upgrade->TargetToolLevel, Upgrade->PreviousToolLevel);
 
-    if (!Character)
-    {
-        UnavailableReason = TEXT("owner tool state is unavailable");
-    }
-    else if (!Upgrade || !PreviousDefinition || !SelectedDefinition
-        || Upgrade->PreviousToolLevel < 1 || Upgrade->TargetToolLevel <= Upgrade->PreviousToolLevel
-        || PreviousDefinition->MaxDurability < 1 || SelectedDefinition->MaxDurability < 1)
-    {
-        UnavailableReason = TEXT("authored progression data is unavailable");
-    }
-    else if (Character->GetCarriedToolInventory().ContainsByPredicate([Upgrade](const FKalmalaToolState& Tool)
-        { return Tool.ToolId == Upgrade->ToolId; }))
-    {
-        UnavailableReason = FString::Printf(TEXT("%s is already carried"), *SelectedName);
-    }
-    else
-    {
-        CurrentTool = Character->GetCarriedToolInventory().FindByPredicate([Upgrade](const FKalmalaToolState& Tool)
-            { return Tool.ToolId == Upgrade->PreviousToolId; });
-        if (!CurrentTool)
-        {
-            UnavailableReason = FString::Printf(TEXT("a matching %s is not carried"), *PreviousName);
-        }
-        else if (CurrentTool->ToolLevel != Upgrade->PreviousToolLevel
-            || CurrentTool->Durability < 0 || CurrentTool->Durability > PreviousDefinition->MaxDurability)
-        {
-            CurrentTool = nullptr;
-            UnavailableReason = FString::Printf(TEXT("the carried %s does not match its authored level or condition bounds"), *PreviousName);
-        }
-    }
-
-    ToolUpgradeComparisonTitle->SetText(FText::FromString(
-        FString::Printf(TEXT("Owner-only upgrade comparison: %s versus %s."),
-            *SelectedName, *PreviousName)));
-    const FKalmalaStatComparisonLine LevelLine = CurrentTool && Upgrade
-        ? FKalmalaStatComparisonLine::FromValues(TEXT("tool level"), CurrentTool->ToolLevel,
-            Upgrade->TargetToolLevel, true)
-        : FKalmalaStatComparisonLine::Unavailable(TEXT("tool level"), UnavailableReason);
-    const FKalmalaStatComparisonLine ConditionLine = CurrentTool && SelectedDefinition
-        ? FKalmalaStatComparisonLine::FromValues(TEXT("condition"), CurrentTool->Durability,
-            SelectedDefinition->MaxDurability, true)
-        : FKalmalaStatComparisonLine::Unavailable(TEXT("condition"), UnavailableReason);
-    ToolUpgradeLevelComparison->SetText(FText::FromString(LevelLine.Text));
-    ToolUpgradeConditionComparison->SetText(FText::FromString(ConditionLine.Text));
+    ToolUpgradeComparisonTitle->SetText(FText::FromString(bValidUpgrade
+        ? TEXT("Bronze Axe · Level 1 → Level 2")
+        : TEXT("Upgrade comparison unavailable")));
+    ToolUpgradeLevelComparison->SetText(FText::FromString(LevelComparison));
+    ToolUpgradeBenefitComparison->SetText(FText::FromString(bValidUpgrade
+        ? FString::Printf(TEXT("Woodcutting tier: %s → %s; unlocks Ironheart trunks (Densewood)."),
+            *CurrentTier, *TargetTier)
+        : TEXT("Upgrade gains unavailable.")));
 
     ToolUpgradeComparisonTitle->SetColorAndOpacity(FSlateColor(Theme.TextColor(false, ContrastMode)));
-    ToolUpgradeLevelComparison->SetColorAndOpacity(FSlateColor(LevelLine.ResolveColor(Theme, ContrastMode)));
-    ToolUpgradeConditionComparison->SetColorAndOpacity(FSlateColor(ConditionLine.ResolveColor(Theme, ContrastMode)));
+    const FLinearColor BenefitColor = bValidUpgrade
+        ? Theme.StatusCueStartedColor : Theme.TextColor(false, ContrastMode);
+    ToolUpgradeLevelComparison->SetColorAndOpacity(FSlateColor(BenefitColor));
+    ToolUpgradeBenefitComparison->SetColorAndOpacity(FSlateColor(BenefitColor));
     ToolUpgradeComparisonTitle->SetVisibility(ESlateVisibility::HitTestInvisible);
     ToolUpgradeLevelComparison->SetVisibility(ESlateVisibility::HitTestInvisible);
-    ToolUpgradeConditionComparison->SetVisibility(ESlateVisibility::HitTestInvisible);
+    ToolUpgradeBenefitComparison->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
 void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D)
@@ -4106,19 +4085,19 @@ void UKalmalaCraftingWidget::RepairWorkbenchSelectedTool()
     RefreshWorkbenchRepairState(Crafting);
 }
 void UKalmalaCraftingWidget::CraftBronzeAxe() { if(auto* M=Model()) M->ServerProgressTool(TEXT("BronzeAxe")); }
-void UKalmalaCraftingWidget::UpgradeIronAxe()
+void UKalmalaCraftingWidget::UpgradeBronzeAxe()
 {
     UKalmalaCraftingComponent* Crafting = Model();
     if (!Crafting) return;
     if (bForgeUpgradeContext)
     {
         RefreshForgeUpgradeState(Crafting);
-        if (!UpgradeIronAxeButton || !UpgradeIronAxeButton->GetIsEnabled()) return;
+        if (!UpgradeBronzeAxeButton || !UpgradeBronzeAxeButton->GetIsEnabled()) return;
 #if !UE_BUILD_SHIPPING
         ++ForgeUpgradeRequestCountForTest;
 #endif
     }
-    Crafting->ServerProgressTool(TEXT("IronAxe"));
+    Crafting->ServerProgressTool(TEXT("BronzeAxe"));
 }
 void UKalmalaCraftingWidget::InspectStorage() { if (auto* M=Model()) M->ServerOpenStorage(); }
 void UKalmalaCraftingWidget::PreviousStorageItem()

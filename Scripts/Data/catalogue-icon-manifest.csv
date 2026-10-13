@@ -44,6 +44,6 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 11,C,ReedKnife,Reed knife,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
 11,C,FieldHatchet,Field hatchet,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
 12,C,StonePick,Stone pick,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
-12,C,BronzeAxe,Bronze axe,tool,none,none,CarriedTool;ToolDetail;Repair;UpgradeSource,carried_tool
-12,C,IronAxe,Iron axe,tool,none,none,CarriedTool;ToolDetail;Repair;UpgradeTarget,carried_tool
+12,C,BronzeAxe,Bronze axe,tool,none,none,CarriedTool;ToolDetail;Repair;UpgradeSource;UpgradeTarget,carried_tool
+12,C,IronAxe,Iron axe,tool,none,none,CarriedTool;ToolDetail;Repair,carried_tool
 12,C,ConstructionHammer,Construction hammer,tool,none,none,CarriedTool;ToolDetail;Repair;BuildRequirement,carried_tool

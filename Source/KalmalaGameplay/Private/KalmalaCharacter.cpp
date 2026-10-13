@@ -826,22 +826,36 @@ bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNo
     if (!FKalmalaToolLifecycleContract::BuildServerSelection(Node->GetGatheringSourceId(), Selection)) return false;
 
     const FKalmalaToolDefinition* Definition = nullptr;
+    int32 DefinitionLevel = 0;
     for (const FKalmalaToolDefinition& Candidate : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions())
     {
-        if (!FKalmalaToolLifecycleContract::IsToolSuitableForSelection(Candidate, Selection)
+        const int32 CandidateLevel = GetCarriedToolLevel(Candidate.ToolId);
+        if (CandidateLevel < 1 || !FKalmalaToolLifecycleContract::IsToolSuitableForSelection(
+                Candidate, CandidateLevel, Selection)
             || GetToolDurability(Candidate.ToolId) <= 0) continue;
-        if (Definition == nullptr || FKalmalaToolLifecycleContract::GetToolTier(Candidate.Kind)
-            > FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind)) Definition = &Candidate;
+        if (Definition == nullptr || FKalmalaToolLifecycleContract::GetToolTier(Candidate.Kind, CandidateLevel)
+            > FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind, DefinitionLevel))
+        {
+            Definition = &Candidate;
+            DefinitionLevel = CandidateLevel;
+        }
     }
-    if (Definition == nullptr) Definition = FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(Selection);
+    if (Definition == nullptr)
+    {
+        Definition = FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(Selection);
+        DefinitionLevel = Definition ? GetCarriedToolLevel(Definition->ToolId) : 0;
+    }
     if (Inventory && FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem()))
+    {
         Definition = FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem());
+        DefinitionLevel = GetCarriedToolLevel(Definition->ToolId);
+    }
     if (Definition == nullptr) return false;
 
     OutToolId = Definition->ToolId;
     OutAction = static_cast<uint8>(Selection.Action);
     bOutHasUsableTool = GetToolDurability(Definition->ToolId) > 0
-        && FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*Definition, Selection);
+        && FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*Definition, DefinitionLevel, Selection);
     return true;
 }
 

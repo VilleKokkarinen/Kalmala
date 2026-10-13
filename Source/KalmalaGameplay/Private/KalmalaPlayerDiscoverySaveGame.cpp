@@ -46,11 +46,6 @@ namespace
         return Id == FString::Printf(TEXT("%s:1:%s:%d,%d:%d"), *Parts[0], *Parts[2], KeyX, KeyY, Ordinal);
     }
 
-    int32 GetExpectedToolLevel(const FName ToolId)
-    {
-        const FKalmalaToolProgressionEntry* Progression = FKalmalaToolProgressionContract::FindEntry(ToolId);
-        return Progression != nullptr ? Progression->TargetToolLevel : 1;
-    }
 }
 
 void UKalmalaPlayerDiscoverySaveGame::InitializeForPlayer(const FKalmalaWorldGenerationConfig& InWorld, const FString& InPlayerIdentity)
@@ -114,7 +109,7 @@ bool UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(const FKalmalaPlayerTo
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Record.ToolId);
     return Definition != nullptr
         && Record.ToolId.ToString() == Definition->ToolId.ToString()
-        && Record.ToolLevel == GetExpectedToolLevel(Record.ToolId)
+        && FKalmalaToolProgressionContract::IsValidToolLevel(Record.ToolId, Record.ToolLevel)
         && Record.Condition >= 0 && Record.Condition <= Definition->MaxDurability;
 }
 

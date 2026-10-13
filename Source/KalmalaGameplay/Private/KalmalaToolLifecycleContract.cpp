@@ -156,6 +156,14 @@ EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(const EKalmalaToolKi
     }
 }
 
+EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(
+    const EKalmalaToolKind Tool, const int32 ToolLevel)
+{
+    // A level-two Bronze Axe gains the Iron woodcutting tier without changing item identity.
+    if (Tool == EKalmalaToolKind::BronzeAxe && ToolLevel >= 2) return EKalmalaToolTier::Iron;
+    return GetToolTier(Tool);
+}
+
 bool FKalmalaToolLifecycleContract::BuildServerSelection(
     const FName ServerSourceId,
     FKalmalaToolServerSelection& OutSelection)
@@ -202,14 +210,25 @@ bool FKalmalaToolLifecycleContract::IsToolSuitableForSelection(
     const FKalmalaToolDefinition& Definition,
     const FKalmalaToolServerSelection& Selection)
 {
+    return IsToolSuitableForSelection(Definition, 1, Selection);
+}
+
+bool FKalmalaToolLifecycleContract::IsToolSuitableForSelection(
+    const FKalmalaToolDefinition& Definition,
+    const int32 ToolLevel,
+    const FKalmalaToolServerSelection& Selection)
+{
+    const bool bTieredAxe = Definition.Kind == EKalmalaToolKind::BronzeAxe
+        || Definition.Kind == EKalmalaToolKind::IronAxe;
+    if (ToolLevel < 1 || (bTieredAxe ? ToolLevel > 2 : ToolLevel != 1)) return false;
     if (Definition.Action != Selection.Action) return false;
     if (Selection.MinimumToolTier == EKalmalaToolTier::None)
     {
         return Definition.Kind == Selection.RequiredTool;
     }
     return IsKnownToolTier(Selection.MinimumToolTier)
-        && IsKnownToolTier(GetToolTier(Definition.Kind))
-        && GetToolTier(Definition.Kind) >= Selection.MinimumToolTier;
+        && IsKnownToolTier(GetToolTier(Definition.Kind, ToolLevel))
+        && GetToolTier(Definition.Kind, ToolLevel) >= Selection.MinimumToolTier;
 }
 
 const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(
@@ -245,7 +264,7 @@ bool FKalmalaToolLifecycleContract::IsUseAllowed(
     const FKalmalaToolDefinition* Definition = FindDefinition(ClientToolId);
     if (Definition == nullptr || !IsKnownAction(ClientAction)
         || Definition->Action != ClientAction
-        || !IsToolSuitableForSelection(*Definition, ServerSelection)
+        || !IsToolSuitableForSelection(*Definition, ToolState.ToolLevel, ServerSelection)
         || Definition->RequiredSkill != ServerSelection.RequiredSkill
         || ToolState.ToolId != ClientToolId
         || ToolState.Durability <= 0 || ToolState.Durability > Definition->MaxDurability

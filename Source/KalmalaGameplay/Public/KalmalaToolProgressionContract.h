@@ -53,7 +53,7 @@ struct KALMALAGAMEPLAY_API FKalmalaStationAttachmentCandidate
     bool bInitialized = false;
 };
 
-/** Bounded authored progression catalogue for M9's two tiered axes. */
+/** Bounded authored progression catalogue for tiered axe acquisition and same-item upgrades. */
 class KALMALAGAMEPLAY_API FKalmalaToolProgressionContract
 {
 public:
@@ -65,6 +65,10 @@ public:
     static const TArray<FKalmalaToolProgressionEntry>& GetEntries();
     static const TArray<FKalmalaStationAttachmentDefinition>& GetAttachmentDefinitions();
     static const FKalmalaToolProgressionEntry* FindEntry(FName ToolId);
+    static const FKalmalaToolProgressionEntry* FindEntry(FName ToolId, int32 TargetToolLevel);
+    static const FKalmalaToolProgressionEntry* FindNextEntry(FName ToolId, int32 CurrentToolLevel);
+    static int32 GetMaximumToolLevel(FName ToolId);
+    static bool IsValidToolLevel(FName ToolId, int32 ToolLevel);
     static const FKalmalaStationAttachmentDefinition* FindAttachment(FName KitId);
     static bool IsStationAttachmentKit(FName KitId);
     static FName GetAttachmentStationKit(FName AttachmentKitId);

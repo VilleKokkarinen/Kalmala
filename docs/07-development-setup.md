@@ -284,13 +284,12 @@ Physical devices and packaged/cooked output remain outside this editor check.
 
 ## M11 inline stat comparisons
 
-The local crafting/forge details compare the authored Iron Axe upgrade with
-the owning player's carried Bronze Axe when its level and condition are
-valid. The selected Iron Axe values come from the existing tool progression
-and lifecycle contracts; absent, already-owned, or incompatible state must be
-described as unavailable instead of using fabricated zeroes. The display
-refreshes from owner state while the panel is open and does not submit an
-upgrade request.
+The local crafting/forge details compare the owner's carried Bronze Axe level
+1 with its same-item level 2 upgrade. The comparison shows the level increase
+and the Iron woodcutting tier/Densewood access gained. Missing or already
+upgraded state must be described clearly rather than using fabricated values.
+The display refreshes from owner state while the panel is open and does not
+submit an upgrade request.
 
 `Kalmala.UI.Crafting.StatComparisonPresentation` uses presentation-only
 crush/slash values from the approved Iron Sword/Iron Mace example to check the
@@ -1973,7 +1972,7 @@ Kalmala.Gameplay.Construction.LocalPreview, and
 Kalmala.Gameplay.Construction.SaveContract.
 
 ToolStationProgression covers Bronze Axe creation, exact station family and
-level checks, Iron Axe prerequisite/replacement, full condition, paid costs,
+level checks, the same-ID level upgrade and preserved condition, paid costs,
 and unchanged candidates after rejection; it also verifies the RPC accepts only
 the target tool ID. The catalogue check covers the paid Forge, Workbench rack,
 and Forge anvil recipes; base/effective station levels; compatible families;
@@ -2360,16 +2359,18 @@ execution and rendered inspection remain in M12's final acceptance.
 
 The Forge menu opens Craft by default and lets the owner switch to Upgrade
 without closing the accepted station context. Upgrade shows the carried
-Bronze Axe's level and condition against the level-two Iron Axe at its authored
-starting condition; it lists Forge level 2, Crafting level 5 and the second-tier
-unlock, the Bronze Axe level-one prerequisite, and every material cost with the
-owner's current counts. It presents the first unmet requirement and enables the
+Bronze Axe level 1 against the same Bronze Axe at level 2, including its gain
+from Bronze to Iron woodcutting tier and its Ironheart trunk/Densewood unlock.
+It lists Forge level 2, Crafting level 5 and the second-tier unlock, the
+level-one prerequisite, and every material cost with the owner's current
+counts. It presents the first unmet requirement and enables the
 existing Upgrade action only when the owner-visible progression is ready. The
 station view pairs the requirement summary with the owner-only comparison and
 Upgrade action in framed columns matching the station Craft layout. The
-action calls `ServerProgressTool` with only `IronAxe`; the server still chooses
-a visible same-world Forge, validates the exact authored prerequisites, commits
-the material/tool exchange, and persists the owner state. A stale or invalid
+action calls `ServerProgressTool` with only `BronzeAxe`; the server still chooses
+a visible same-world Forge, validates the exact authored same-item progression
+step, charges the materials, preserves tool condition and inventory slot, and
+persists the owner state. A stale or invalid
 station context dispatches no upgrade request. Forge level/Anvil status remains
 bound to the accepted actor; the progression and inventory state remain
 owner-only.
@@ -2379,7 +2380,8 @@ and client. The focused marker checks target comparison, authored station/skill
 requirements, all catalogue costs, unavailable-state presentation, section
 routing and scope, plus no request from stale context. The existing
 `Kalmala.Gameplay.M9.ToolStationProgression` covers server acceptance/rejection,
-the Bronze-to-Iron exchange, costs, and unchanged candidates after rejection.
+the Bronze Axe level increase without an item exchange, tier benefit, costs,
+and unchanged candidates after rejection.
 Run the full host/client and rendered checks only in M12 milestone-final
 verification.
 

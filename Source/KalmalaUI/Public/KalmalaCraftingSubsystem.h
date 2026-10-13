@@ -202,7 +202,7 @@ private:
     UFUNCTION() void RepairIronAxe();
     UFUNCTION() void RepairWorkbenchSelectedTool();
     UFUNCTION() void CraftBronzeAxe();
-    UFUNCTION() void UpgradeIronAxe();
+    UFUNCTION() void UpgradeBronzeAxe();
     UFUNCTION() void InspectStorage();
     UFUNCTION() void PreviousStorageItem();
     UFUNCTION() void NextStorageItem();
@@ -256,7 +256,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolProgressionText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeComparisonTitle;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeLevelComparison;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeConditionComparison;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeBenefitComparison;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
     UPROPERTY(Transient) TObjectPtr<class UVerticalBox> StorageContextPanel;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageContextStatusText;
@@ -270,7 +270,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> BuildPlacementButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CampfireLightButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeAxeButton;
-    UPROPERTY(Transient) TObjectPtr<UButton> UpgradeIronAxeButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> UpgradeBronzeAxeButton;
     UPROPERTY(Transient) TObjectPtr<class USizeBox> UpgradeTargetIconBox;
     UPROPERTY(Transient) TObjectPtr<UBorder> UpgradeTargetIconTile;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> UpgradeTargetIcon;
