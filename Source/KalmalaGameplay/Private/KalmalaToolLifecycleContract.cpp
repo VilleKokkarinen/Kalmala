@@ -76,9 +76,46 @@ namespace
             Iron.Action = EKalmalaToolAction::Woodcutting;
             Iron.RequiredSkill = EKalmalaSkill::Woodcutting;
             Iron.MinimumSkillLevel = 1;
-            Iron.MaxDurability = 24;
+            Iron.MaxDurability = 180;
             Iron.DurabilityCost = 1;
-            return TArray<FKalmalaToolDefinition>{Bronze, BronzeKnife, BronzePick, BronzeSpear, Iron};
+            Iron.DamageType = EKalmalaWeaponDamageType::Slash;
+            Iron.CombatDamage = 72.0f;
+
+            FKalmalaToolDefinition IronKnife;
+            IronKnife.ToolId = TEXT("IronKnife");
+            IronKnife.Kind = EKalmalaToolKind::IronKnife;
+            IronKnife.Action = EKalmalaToolAction::Gathering;
+            IronKnife.RequiredSkill = EKalmalaSkill::Gathering;
+            IronKnife.MinimumSkillLevel = 1;
+            IronKnife.MaxDurability = 80;
+            IronKnife.DurabilityCost = 1;
+            IronKnife.DamageType = EKalmalaWeaponDamageType::Slash;
+            IronKnife.CombatDamage = 58.0f;
+
+            FKalmalaToolDefinition IronPick;
+            IronPick.ToolId = TEXT("IronPick");
+            IronPick.Kind = EKalmalaToolKind::IronPick;
+            IronPick.Action = EKalmalaToolAction::Mining;
+            IronPick.RequiredSkill = EKalmalaSkill::Mining;
+            IronPick.MinimumSkillLevel = 1;
+            IronPick.MaxDurability = 160;
+            IronPick.DurabilityCost = 1;
+            IronPick.DamageType = EKalmalaWeaponDamageType::Blunt;
+            IronPick.CombatDamage = 52.0f;
+
+            FKalmalaToolDefinition IronSpear;
+            IronSpear.ToolId = TEXT("IronSpear");
+            IronSpear.Kind = EKalmalaToolKind::IronSpear;
+            IronSpear.Action = EKalmalaToolAction::None;
+            IronSpear.RequiredSkill = EKalmalaSkill::None;
+            IronSpear.MinimumSkillLevel = 1;
+            IronSpear.MaxDurability = 150;
+            IronSpear.DurabilityCost = 1;
+            IronSpear.DamageType = EKalmalaWeaponDamageType::Pierce;
+            IronSpear.CombatDamage = 76.0f;
+
+            return TArray<FKalmalaToolDefinition>{
+                Bronze, BronzeKnife, BronzePick, BronzeSpear, Iron, IronKnife, IronPick, IronSpear};
         }();
         return Definitions;
     }
@@ -181,7 +218,7 @@ int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ToolId, const 
         if (ToolLevel == 2) return 150;
         return 0;
     }
-    // Older saves may contain an Iron Axe at level 2 from the superseded cross-item upgrade.
+    // Preserve older Iron Axe level-two records while level one is now crafted independently.
     if (ToolId == TEXT("IronAxe")) return ToolLevel <= 2 ? Definition->MaxDurability : 0;
     return ToolLevel == 1 ? Definition->MaxDurability : 0;
 }
@@ -245,7 +282,10 @@ EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(const EKalmalaToolKi
     case EKalmalaToolKind::BronzeKnife:
     case EKalmalaToolKind::BronzePick:
     case EKalmalaToolKind::BronzeSpear: return EKalmalaToolTier::Bronze;
-    case EKalmalaToolKind::IronAxe: return EKalmalaToolTier::Iron;
+    case EKalmalaToolKind::IronAxe:
+    case EKalmalaToolKind::IronKnife:
+    case EKalmalaToolKind::IronPick:
+    case EKalmalaToolKind::IronSpear: return EKalmalaToolTier::Iron;
     default: return EKalmalaToolTier::None;
     }
 }
@@ -275,7 +315,12 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
         OutSelection = { ServerSourceId, EKalmalaToolAction::Gathering, EKalmalaToolKind::None,
             EKalmalaSkill::Gathering, TEXT("Fibre"), 1, EKalmalaToolTier::Stone };
     }
-    else if (ServerSourceId == TEXT("mire-bog-iron") || ServerSourceId == TEXT("mountains-slate-vein"))
+    else if (ServerSourceId == TEXT("mire-bog-iron"))
+    {
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
+            EKalmalaSkill::Mining, TEXT("Iron"), 1, EKalmalaToolTier::Bronze };
+    }
+    else if (ServerSourceId == TEXT("mountains-slate-vein"))
     {
         OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
             EKalmalaSkill::Mining, TEXT("Stone"), 1, EKalmalaToolTier::Stone };

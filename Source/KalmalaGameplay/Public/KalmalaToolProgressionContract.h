@@ -57,7 +57,7 @@ struct KALMALAGAMEPLAY_API FKalmalaStationAttachmentCandidate
 class KALMALAGAMEPLAY_API FKalmalaToolProgressionContract
 {
 public:
-    static constexpr int32 MaxToolProgressionEntries = 5;
+    static constexpr int32 MaxToolProgressionEntries = 9;
     static constexpr int32 MaxStationAttachments = 32;
     static constexpr int32 MaxStationLevel = 2;
     static constexpr float MaxAttachmentDistanceCm = 125.0f;

@@ -25,6 +25,9 @@ enum class EKalmalaToolKind : uint8
     BronzePick,
     BronzeSpear,
     IronAxe,
+    IronKnife,
+    IronPick,
+    IronSpear,
     StoneSpear,
     ConstructionHammer
 };

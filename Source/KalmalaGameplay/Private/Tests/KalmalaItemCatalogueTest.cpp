@@ -50,7 +50,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
             TEXT("Dark, dense timber from Ironheart trunks that burns as hearth fuel."), 50 },
         { TEXT("Coal"), TEXT("Coal"), TEXT("A dense, black mineral that burns directly as hearth fuel."), 40 },
         { TEXT("Stone"), TEXT("Stone"), TEXT("Add some googly eyes, and it becomes a friendly pet rock."), 40 },
-        { TEXT("Iron"), TEXT("Iron"), TEXT("A bar of iron used to make a frying pan."), 50 },
+        { TEXT("Iron"), TEXT("Iron"), TEXT("A forged iron bar used for durable tools and camp equipment."), 50 },
         { TEXT("Fibre"), TEXT("Reed Fibre"),
             TEXT("Plant strands used in simple tools and camp furnishings."), 50 },
         { TEXT("PeatAmber"), TEXT("Peat Amber"), TEXT("Dark peat threaded with amber from the Mire."), 40 },

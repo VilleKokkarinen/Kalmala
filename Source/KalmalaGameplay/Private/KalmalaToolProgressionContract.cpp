@@ -96,8 +96,53 @@ namespace
                 {TEXT("Fibre"), 3}
             };
 
+            FKalmalaToolProgressionEntry IronKnife;
+            IronKnife.ToolId = TEXT("IronKnife");
+            IronKnife.TargetToolLevel = 1;
+            IronKnife.RequiredStation = EKalmalaToolStationKind::Forge;
+            IronKnife.RequiredStationLevel = 1;
+            IronKnife.MaterialCosts = {
+                {TEXT("Iron"), 2},
+                {TEXT("Wood"), 2},
+                {TEXT("Fibre"), 2}
+            };
+
+            FKalmalaToolProgressionEntry IronAxe;
+            IronAxe.ToolId = TEXT("IronAxe");
+            IronAxe.TargetToolLevel = 1;
+            IronAxe.RequiredStation = EKalmalaToolStationKind::Forge;
+            IronAxe.RequiredStationLevel = 1;
+            IronAxe.MaterialCosts = {
+                {TEXT("Iron"), 4},
+                {TEXT("Wood"), 3},
+                {TEXT("Fibre"), 2}
+            };
+
+            FKalmalaToolProgressionEntry IronPick;
+            IronPick.ToolId = TEXT("IronPick");
+            IronPick.TargetToolLevel = 1;
+            IronPick.RequiredStation = EKalmalaToolStationKind::Forge;
+            IronPick.RequiredStationLevel = 1;
+            IronPick.MaterialCosts = {
+                {TEXT("Iron"), 4},
+                {TEXT("Wood"), 2},
+                {TEXT("Stone"), 2}
+            };
+
+            FKalmalaToolProgressionEntry IronSpear;
+            IronSpear.ToolId = TEXT("IronSpear");
+            IronSpear.TargetToolLevel = 1;
+            IronSpear.RequiredStation = EKalmalaToolStationKind::Forge;
+            IronSpear.RequiredStationLevel = 1;
+            IronSpear.MaterialCosts = {
+                {TEXT("Iron"), 3},
+                {TEXT("Wood"), 3},
+                {TEXT("Fibre"), 1}
+            };
+
             return TArray<FKalmalaToolProgressionEntry>{
-                BronzeAxe, BronzeAxeLevelTwo, BronzeKnife, BronzePick, BronzeSpear};
+                BronzeAxe, BronzeAxeLevelTwo, BronzeKnife, BronzePick, BronzeSpear,
+                IronKnife, IronAxe, IronPick, IronSpear};
         }();
         return Entries;
     }
@@ -151,7 +196,7 @@ int32 FKalmalaToolProgressionContract::GetMaximumToolLevel(const FName ToolId)
         if (Entry.ToolId == ToolId) MaximumLevel = FMath::Max(MaximumLevel, Entry.TargetToolLevel);
     }
 
-    // Iron Axe records can exist in saves created before upgrades kept the same item identity.
+    // Older saves can retain the superseded level-two Iron Axe record.
     if (ToolId == TEXT("IronAxe")) MaximumLevel = FMath::Max(MaximumLevel, 2);
     return MaximumLevel > 0 ? MaximumLevel : 1;
 }
@@ -159,8 +204,8 @@ int32 FKalmalaToolProgressionContract::GetMaximumToolLevel(const FName ToolId)
 bool FKalmalaToolProgressionContract::IsValidToolLevel(const FName ToolId, const int32 ToolLevel)
 {
     if (ToolId.IsNone() || ToolLevel < 1) return false;
-    // Retain the exact level accepted by the previous Bronze-to-Iron exchange for existing saves.
-    if (ToolId == TEXT("IronAxe")) return ToolLevel == 2;
+    // Level one is the independent acquisition; retain level two only for older saves.
+    if (ToolId == TEXT("IronAxe")) return ToolLevel == 1 || ToolLevel == 2;
     if (FindEntry(ToolId, ToolLevel) != nullptr) return true;
     return ToolLevel == 1 && FKalmalaToolLifecycleContract::FindDefinition(ToolId) != nullptr;
 }

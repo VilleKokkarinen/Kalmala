@@ -68,7 +68,7 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
 
     UKalmalaPlayerDiscoverySaveGameV2* ToolReplacement = DuplicateObject<UKalmalaPlayerDiscoverySaveGameV2>(
         Current, GetTransientPackage());
-    TArray<FKalmalaPlayerToolSaveRecord> InvalidReplacement = { MakeToolRecord(TEXT("IronAxe"), 1, 20) };
+    TArray<FKalmalaPlayerToolSaveRecord> InvalidReplacement = { MakeToolRecord(TEXT("IronAxe"), 3, 20) };
     TestFalse(TEXT("Invalid complete tool replacement is rejected"), ToolReplacement->TryReplaceToolRecords(InvalidReplacement));
     TestEqual(TEXT("Rejected tool replacement preserves the original records"), ToolReplacement->GetToolRecords().Num(), 3);
     TestEqual(TEXT("Rejected tool replacement preserves the original Iron Axe level"),
@@ -252,7 +252,7 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
         UKalmalaPlayerDiscoverySaveGameV2::MaxCarriedTools);
     TestFalse(TEXT("Unknown tool IDs are rejected"), UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(MakeToolRecord(TEXT("UnknownTool"), 1, 0)));
     TestFalse(TEXT("Negative tool condition is rejected"), UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(MakeToolRecord(TEXT("ReedKnife"), 1, -1)));
-    TestFalse(TEXT("Wrong authored tool level is rejected"), UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(MakeToolRecord(TEXT("IronAxe"), 1, 24)));
+    TestFalse(TEXT("Iron Axe levels above the legacy maximum are rejected"), UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(MakeToolRecord(TEXT("IronAxe"), 3, 24)));
 
     UKalmalaPlayerDiscoverySaveGameV2* OverCapCurrent = DuplicateObject<UKalmalaPlayerDiscoverySaveGameV2>(FullClaims, GetTransientPackage());
     OverCapCurrent->M9ClaimIds.Add(MakeM9ClaimId(TEXT("lakes-rillworn-marker"), 101));

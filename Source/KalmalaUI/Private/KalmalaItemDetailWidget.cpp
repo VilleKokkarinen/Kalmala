@@ -25,6 +25,9 @@ FString UKalmalaItemDetailWidget::DescribeCarriedTool(FName Id, const FString& V
     else if (Id == TEXT("StonePick")) Description = TEXT("A stone-headed pick for mining.");
     else if (Id == TEXT("BronzeAxe")) Description = TEXT("A bronze axe for harvesting Lightwood.");
     else if (Id == TEXT("IronAxe")) Description = TEXT("An iron axe for harvesting Densewood.");
+    else if (Id == TEXT("IronKnife")) Description = TEXT("A forged iron blade for gathering plants and reeds.");
+    else if (Id == TEXT("IronPick")) Description = TEXT("A forged iron pick for mining ore and stone.");
+    else if (Id == TEXT("IronSpear")) Description = TEXT("A long iron spear built for piercing attacks.");
     else if (Id == TEXT("ConstructionHammer")) Description = TEXT("A hand hammer for placing camp structures.");
 
     FString Text = FString(TEXT("Carried equipment\n\n")) + Description;

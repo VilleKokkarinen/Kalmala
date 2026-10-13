@@ -27,7 +27,7 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Server selection reward is catalogue-valid"), UKalmalaItemCatalogue::Get()->IsValidStack(Selection.RewardItemId, Selection.RewardQuantity));
         Rewards.Add(Selection.RewardItemId);
     }
-    TestEqual(TEXT("First-wave selection covers the three existing material rewards"), Rewards.Num(), 3);
+    TestEqual(TEXT("First-wave selection covers four material rewards"), Rewards.Num(), 4);
 
     FKalmalaToolServerSelection Selection;
     TestFalse(TEXT("Forged source fails closed"), FKalmalaToolLifecycleContract::BuildServerSelection(TEXT("forged-source"), Selection));
