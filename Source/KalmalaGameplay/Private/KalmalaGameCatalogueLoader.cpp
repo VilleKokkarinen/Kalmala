@@ -252,6 +252,46 @@ namespace
         return true;
     }
 
+    bool OrderCategoryValues(const TSharedPtr<FJsonObject>& Manifest, const TCHAR* OrderField,
+        const TCHAR* IdField, TArray<TSharedPtr<FJsonValue>>& InOutValues)
+    {
+        const TArray<TSharedPtr<FJsonValue>>* OrderedIds = nullptr;
+        if (!Manifest.IsValid() || !Manifest->TryGetArrayField(OrderField, OrderedIds)
+            || OrderedIds == nullptr || OrderedIds->Num() != InOutValues.Num())
+        {
+            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an invalid ordering list: %s"), OrderField);
+            return false;
+        }
+
+        TMap<FName, TSharedPtr<FJsonValue>> ValuesById;
+        for (const TSharedPtr<FJsonValue>& Value : InOutValues)
+        {
+            if (!Value.IsValid() || Value->Type != EJson::Object) return false;
+            FString IdString;
+            if (!Value->AsObject()->TryGetStringField(IdField, IdString) || IdString.IsEmpty()) return false;
+            const FName Id(*IdString);
+            if (Id.IsNone() || ValuesById.Contains(Id)) return false;
+            ValuesById.Add(Id, Value);
+        }
+
+        TArray<TSharedPtr<FJsonValue>> OrderedValues;
+        OrderedValues.Reserve(OrderedIds->Num());
+        for (const TSharedPtr<FJsonValue>& OrderedIdValue : *OrderedIds)
+        {
+            if (!OrderedIdValue.IsValid() || OrderedIdValue->Type != EJson::String
+                || OrderedIdValue->AsString().IsEmpty()) return false;
+            const FName Id(*OrderedIdValue->AsString());
+            TSharedPtr<FJsonValue>* Value = ValuesById.Find(Id);
+            if (Value == nullptr) return false;
+            OrderedValues.Add(*Value);
+            ValuesById.Remove(Id);
+        }
+
+        if (!ValuesById.IsEmpty()) return false;
+        InOutValues = MoveTemp(OrderedValues);
+        return true;
+    }
+
     bool LoadCataloguesFromJson()
     {
         const FString JsonPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Data/GameCatalogues.json"));
@@ -286,10 +326,14 @@ namespace
                 UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues)
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 32, TotalJsonCharacters, RecipeValues)
-            || !LoadCategoryFiles(Root, TEXT("toolProfileFiles"), TEXT("toolProfiles"), TEXT("tools"),
+            || !LoadCategoryFiles(Root, TEXT("toolProfileFiles"), TEXT("toolProfiles"), TEXT("items"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
-            || !LoadCategoryFiles(Root, TEXT("toolRecipeFiles"), TEXT("toolRecipes"), TEXT("tools"),
-                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues))
+            || !LoadCategoryFiles(Root, TEXT("toolFiles"), TEXT("toolProfiles"), TEXT("tools"),
+                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
+            || !LoadCategoryFiles(Root, TEXT("toolRecipeFiles"), TEXT("toolRecipes"), TEXT("recipes"),
+                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues)
+            || !OrderCategoryValues(Root, TEXT("toolProfileOrder"), TEXT("ToolId"), ToolProfileValues)
+            || !OrderCategoryValues(Root, TEXT("toolRecipeOrder"), TEXT("RecipeId"), ToolRecipeValues))
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest could not load its category files: %s"), *JsonPath);
             return false;

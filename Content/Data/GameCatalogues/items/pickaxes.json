@@ -1,0 +1,61 @@
+{
+  "toolProfiles": [
+    {
+      "ToolId": "StonePick",
+      "DisplayName": "Stone Pick",
+      "Description": "A stone pick for breaking slate and gathering ore.",
+      "ToolSet": "Starter",
+      "ToolKind": "StonePick",
+      "Action": "Mining",
+      "RequiredSkill": "Mining",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Blunt",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 20,
+          "CombatDamage": 26.0
+        }
+      ]
+    },
+    {
+      "ToolId": "BronzePick",
+      "DisplayName": "Bronze Pick",
+      "Description": "A bronze pick for mining and blunt attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzePick",
+      "Action": "Mining",
+      "RequiredSkill": "Mining",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Blunt",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 90,
+          "CombatDamage": 38.0
+        }
+      ]
+    },
+    {
+      "ToolId": "IronPick",
+      "DisplayName": "Iron Pick",
+      "Description": "A durable iron pick for mining and blunt attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "IronPick",
+      "Action": "Mining",
+      "RequiredSkill": "Mining",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Blunt",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 160,
+          "CombatDamage": 52.0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "toolRecipes": [
+    {
+      "RecipeId": "BronzeSpearLevel1",
+      "DisplayName": "Bronze Spear",
+      "ToolId": "BronzeSpear",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 4
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 3
+        }
+      ]
+    },
+    {
+      "RecipeId": "IronSpearLevel1",
+      "DisplayName": "Iron Spear",
+      "ToolId": "IronSpear",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Wood",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 1
+        }
+      ]
+    }
+  ]
+}

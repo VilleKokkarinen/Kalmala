@@ -1,0 +1,61 @@
+{
+  "toolProfiles": [
+    {
+      "ToolId": "StoneSpear",
+      "DisplayName": "Stone Spear",
+      "Description": "A stone-tipped spear for piercing attacks.",
+      "ToolSet": "Starter",
+      "ToolKind": "StoneSpear",
+      "Action": "None",
+      "RequiredSkill": "None",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Pierce",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 36,
+          "CombatDamage": 42.0
+        }
+      ]
+    },
+    {
+      "ToolId": "BronzeSpear",
+      "DisplayName": "Bronze Spear",
+      "Description": "A bronze-tipped spear for piercing attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzeSpear",
+      "Action": "None",
+      "RequiredSkill": "None",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Pierce",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 90,
+          "CombatDamage": 58.0
+        }
+      ]
+    },
+    {
+      "ToolId": "IronSpear",
+      "DisplayName": "Iron Spear",
+      "Description": "An iron-tipped spear for piercing attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "IronSpear",
+      "Action": "None",
+      "RequiredSkill": "None",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Pierce",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 150,
+          "CombatDamage": 76.0
+        }
+      ]
+    }
+  ]
+}

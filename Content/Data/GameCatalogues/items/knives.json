@@ -1,0 +1,61 @@
+{
+  "toolProfiles": [
+    {
+      "ToolId": "ReedKnife",
+      "DisplayName": "Stone Knife",
+      "Description": "A chipped stone knife for gathering and close combat.",
+      "ToolSet": "Starter",
+      "ToolKind": "ReedKnife",
+      "Action": "Gathering",
+      "RequiredSkill": "Gathering",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 16,
+          "CombatDamage": 30.0
+        }
+      ]
+    },
+    {
+      "ToolId": "BronzeKnife",
+      "DisplayName": "Bronze Knife",
+      "Description": "A bronze knife for gathering and slash attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzeKnife",
+      "Action": "Gathering",
+      "RequiredSkill": "Gathering",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 48,
+          "CombatDamage": 42.0
+        }
+      ]
+    },
+    {
+      "ToolId": "IronKnife",
+      "DisplayName": "Iron Knife",
+      "Description": "A keen iron knife for gathering and slash attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "IronKnife",
+      "Action": "Gathering",
+      "RequiredSkill": "Gathering",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 80,
+          "CombatDamage": 58.0
+        }
+      ]
+    }
+  ]
+}

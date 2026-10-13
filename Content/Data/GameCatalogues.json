@@ -13,13 +13,44 @@
     "recipes/cooking.json"
   ],
   "toolProfileFiles": [
-    "tools/stone-profiles.json",
-    "tools/bronze-profiles.json",
-    "tools/iron-profiles.json",
-    "tools/utility-profiles.json"
+    "items/axes.json",
+    "items/knives.json",
+    "items/pickaxes.json",
+    "items/spears.json"
+  ],
+  "toolFiles": [
+    "tools/building-hammer.json"
+  ],
+  "toolProfileOrder": [
+    "ReedKnife",
+    "FieldHatchet",
+    "StonePick",
+    "StoneSpear",
+    "BronzeAxe",
+    "BronzeKnife",
+    "BronzePick",
+    "BronzeSpear",
+    "IronAxe",
+    "IronKnife",
+    "IronPick",
+    "IronSpear",
+    "ConstructionHammer"
   ],
   "toolRecipeFiles": [
-    "tools/bronze-recipes.json",
-    "tools/iron-recipes.json"
+    "recipes/axes.json",
+    "recipes/knives.json",
+    "recipes/pickaxes.json",
+    "recipes/spears.json"
+  ],
+  "toolRecipeOrder": [
+    "BronzeAxeLevel1",
+    "BronzeAxeLevel2",
+    "BronzeKnifeLevel1",
+    "BronzePickLevel1",
+    "BronzeSpearLevel1",
+    "IronKnifeLevel1",
+    "IronAxeLevel1",
+    "IronPickLevel1",
+    "IronSpearLevel1"
   ]
 }

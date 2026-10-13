@@ -57,80 +57,28 @@
       ]
     },
     {
-      "RecipeId": "BronzeKnifeLevel1",
-      "DisplayName": "Bronze Knife",
-      "ToolId": "BronzeKnife",
+      "RecipeId": "IronAxeLevel1",
+      "DisplayName": "Iron Axe",
+      "ToolId": "IronAxe",
       "TargetToolLevel": 1,
       "PreviousToolId": "",
       "PreviousToolLevel": 0,
-      "RequiredStation": "Workbench",
+      "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "RequiredSkill": "None",
       "RequiredSkillLevel": 0,
       "Ingredients": [
         {
-          "ItemId": "Wood",
-          "Quantity": 2
-        },
-        {
-          "ItemId": "Stone",
-          "Quantity": 2
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 3
-        }
-      ]
-    },
-    {
-      "RecipeId": "BronzePickLevel1",
-      "DisplayName": "Bronze Pick",
-      "ToolId": "BronzePick",
-      "TargetToolLevel": 1,
-      "PreviousToolId": "",
-      "PreviousToolLevel": 0,
-      "RequiredStation": "Workbench",
-      "RequiredStationLevel": 1,
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "Ingredients": [
-        {
-          "ItemId": "Wood",
+          "ItemId": "Iron",
           "Quantity": 4
         },
         {
-          "ItemId": "Stone",
-          "Quantity": 4
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 2
-        }
-      ]
-    },
-    {
-      "RecipeId": "BronzeSpearLevel1",
-      "DisplayName": "Bronze Spear",
-      "ToolId": "BronzeSpear",
-      "TargetToolLevel": 1,
-      "PreviousToolId": "",
-      "PreviousToolLevel": 0,
-      "RequiredStation": "Workbench",
-      "RequiredStationLevel": 1,
-      "RequiredSkill": "None",
-      "RequiredSkillLevel": 0,
-      "Ingredients": [
-        {
           "ItemId": "Wood",
-          "Quantity": 4
-        },
-        {
-          "ItemId": "Stone",
           "Quantity": 3
         },
         {
           "ItemId": "Fibre",
-          "Quantity": 3
+          "Quantity": 2
         }
       ]
     }

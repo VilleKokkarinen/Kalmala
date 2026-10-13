@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Group carried gear by item family
+
+- **Work completed:** moved Stone, Bronze, and Iron axe, knife, pick, and spear profiles into `items/axes.json`, `items/knives.json`, `items/pickaxes.json`, and `items/spears.json`. Kept the Construction Hammer profile as the sole file under `tools/` at `tools/building-hammer.json`. Grouped their acquisition and upgrade recipes under matching `recipes/` files. Added manifest order lists so the runtime still exposes all 13 profiles and 9 recipes in their previous order. Removed the old tier-based profile/recipe category files.
+- **Files changed:** `Content/Data/GameCatalogues.json`; four item-family profile files; four matching tool-recipe files; `Content/Data/GameCatalogues/tools/building-hammer.json`; six superseded files removed from `tools/`; `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`; `docs/02-technical-architecture.md`; `docs/05-decision-log.md`; `docs/07-development-setup.md`; `BACKLOG.md`; and this entry.
+- **Lightweight checks:** PowerShell parsed both layouts and confirmed exact profile and recipe data and ordering across 13 profiles and 9 recipes. `git diff --check` passed. No Unreal build or automation suite was run; full verification remains deferred.
+- **Impact and authority:** this changes catalogue file organization only. Runtime tool stats, acquisition costs, save IDs, server-side validation, authority, and gameplay behavior remain unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Full Unreal and automation verification remains deferred.
+- **Next eligible task:** surface all Stone, Bronze, and Iron tool acquisitions, stats, and material costs in station and Inventory Craft views through the existing server-authoritative progression action.
+
 ## User-directed increment 2026-10-13 — Split GameCatalogues into category files
 
 - **Work completed:** replaced the monolithic schema-version-5 catalogue with an ordered manifest and 14 category files covering common/natural materials, stations, food, crops, scrolls, building/cooking recipes, Stone/Bronze/Iron/utility tool profiles, and Bronze/Iron tool recipes. Updated the loader to read bounded category files through Unreal's file layer, validate manifest paths, aggregate each catalogue in manifest order, then apply the existing parsing, normalization, duplicate/reference checks, and server-side catalogue validation.

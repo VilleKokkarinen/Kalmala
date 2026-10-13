@@ -1,0 +1,66 @@
+{
+  "toolProfiles": [
+    {
+      "ToolId": "FieldHatchet",
+      "DisplayName": "Stone Axe",
+      "Description": "A simple stone axe for woodcutting and close combat.",
+      "ToolSet": "Starter",
+      "ToolKind": "FieldHatchet",
+      "Action": "Woodcutting",
+      "RequiredSkill": "Woodcutting",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 24,
+          "CombatDamage": 34.0
+        }
+      ]
+    },
+    {
+      "ToolId": "BronzeAxe",
+      "DisplayName": "Bronze Axe",
+      "Description": "A bronze axe for woodcutting and slash attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzeAxe",
+      "Action": "Woodcutting",
+      "RequiredSkill": "Woodcutting",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 100,
+          "CombatDamage": 50.0
+        },
+        {
+          "ToolLevel": 2,
+          "MaxDurability": 150,
+          "CombatDamage": 55.0
+        }
+      ]
+    },
+    {
+      "ToolId": "IronAxe",
+      "DisplayName": "Iron Axe",
+      "Description": "A strong iron axe for woodcutting and slash attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "IronAxe",
+      "Action": "Woodcutting",
+      "RequiredSkill": "Woodcutting",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 180,
+          "CombatDamage": 72.0
+        }
+      ]
+    }
+  ]
+}
