@@ -1107,7 +1107,8 @@ configuration and send no RPC or gameplay request.
 The `Kalmala.UI.Settings.LocalPresentation` automation checks bounded choices
 and config round-trips.
 
-The same tab provides a local colour-independent feedback choice between
+The same tab provides a local colour-independent feedback choice in a labeled
+shared-theme dropdown between
 `Text only` and `Text + markers`. Marker mode adds bracketed text markers for
 nearby hearth and construction context in an owner-only overlay that follows
 the scaled viewport in a center-right safe area. Combat/support action results

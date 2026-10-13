@@ -12,6 +12,7 @@
 #include "Containers/Ticker.h"
 #include "Components/Button.h"
 #include "Components/CheckBox.h"
+#include "Components/ComboBoxString.h"
 #include "Components/ButtonSlot.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/GridSlot.h"
@@ -454,6 +455,91 @@ void FKalmalaUITheme::ApplyCheckBox(UCheckBox& CheckBox, const int32 ContrastMod
         .SetPadding(FMargin(0.0f));
     CheckBox.SetWidgetStyle(Style);
     CheckBox.HorizontalAlignment = HAlign_Center;
+}
+
+void FKalmalaUITheme::ApplyDropdown(UComboBoxString& Dropdown, const int32 ContrastMode) const
+{
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) > 0;
+    UTexture2D* ButtonSurface = bContrast || ButtonImage.IsEmpty()
+        ? nullptr : Cast<UTexture2D>(LoadThemeAsset(ButtonImage));
+    const auto MakeButtonBrush = [this, bContrast, ButtonSurface](const FLinearColor Color,
+        const float ContrastShade, const float StoneBrightness) -> FSlateBrush
+    {
+        if (ButtonSurface != nullptr)
+        {
+            FSlateBoxBrush StoneBrush(ButtonSurface, FMargin(0.16f, 0.18f),
+                FSlateColor(FLinearColor(StoneBrightness, StoneBrightness, StoneBrightness, 1.0f)));
+            StoneBrush.OutlineSettings.Color = FSlateColor(BorderColor);
+            StoneBrush.OutlineSettings.Width = 0.0f;
+            return StoneBrush;
+        }
+        return FSlateRoundedBoxBrush(bContrast
+                ? FLinearColor(ContrastShade, ContrastShade, ContrastShade, 1.0f) : Color,
+            CornerRadius, bContrast ? FLinearColor::White : BorderColor,
+            bContrast ? FMath::Max(1.0f, BorderWidth) : BorderWidth);
+    };
+
+    FButtonStyle ButtonStyle = FButtonStyle::GetDefault();
+    ButtonStyle.SetNormal(MakeButtonBrush(ButtonNormal, 0.08f, 0.94f))
+        .SetHovered(MakeButtonBrush(ButtonHovered, 0.20f, 1.08f))
+        .SetPressed(MakeButtonBrush(ButtonPressed, 0.0f, 0.72f))
+        .SetDisabled(MakeButtonBrush(ButtonDisabled, 0.04f, 0.44f));
+    const FLinearColor FocusOutline = bContrast ? FLinearColor::White : ButtonFocused;
+    ButtonStyle.Normal.OutlineSettings.Color = FSlateColor(bContrast ? FLinearColor::White : BorderColor);
+    ButtonStyle.Hovered.OutlineSettings.Color = FSlateColor(FocusOutline);
+    ButtonStyle.Pressed.OutlineSettings.Color = FSlateColor(FocusOutline);
+    ButtonStyle.Disabled.OutlineSettings.Color = FSlateColor(bContrast ? FLinearColor::White : BorderColor);
+    ButtonStyle.Disabled.OutlineSettings.Width = FMath::Max(DisabledBorderWidth, BorderWidth);
+    const FLinearColor DropdownText = TextColor(false, ContrastMode);
+    ButtonStyle.SetNormalForeground(FSlateColor(DropdownText));
+    ButtonStyle.SetHoveredForeground(FSlateColor(DropdownText));
+    ButtonStyle.SetPressedForeground(FSlateColor(DropdownText));
+    ButtonStyle.SetDisabledForeground(FSlateColor(bContrast ? FLinearColor(0.72f, 0.72f, 0.72f, 1.0f)
+        : FLinearColor(0.55f, 0.58f, 0.57f, 1.0f)));
+    ButtonStyle.SetNormalPadding(FMargin(ButtonPadding)).SetPressedPadding(FMargin(ButtonPadding + 1.0f));
+
+    const FLinearColor MenuFill = bContrast ? HighContrastPanel : Panel;
+    const FLinearColor MenuOutline = bContrast ? FLinearColor::White : BorderColor;
+    FSlateRoundedBoxBrush MenuBorder(MenuFill, CornerRadius, MenuOutline,
+        bContrast ? FMath::Max(1.0f, BorderWidth) : BorderWidth);
+    FComboBoxStyle ComboStyle = Dropdown.GetWidgetStyle();
+    FComboButtonStyle ComboButtonStyle = ComboStyle.ComboButtonStyle;
+    ComboButtonStyle.SetButtonStyle(ButtonStyle)
+        .SetContentPadding(FMargin(ButtonPadding, 4.0f))
+        .SetDownArrowPadding(FMargin(6.0f, 0.0f, 12.0f, 0.0f))
+        .SetMenuBorderBrush(MenuBorder)
+        .SetMenuBorderPadding(FMargin(3.0f));
+
+    ComboStyle.SetComboButtonStyle(ComboButtonStyle)
+        .SetContentPadding(FMargin(4.0f, 2.0f))
+        .SetMenuRowPadding(FMargin(3.0f, 2.0f));
+    Dropdown.SetWidgetStyle(ComboStyle);
+
+    const auto MakeRowBrush = [this, bContrast](const FLinearColor Fill) -> FSlateBrush
+    {
+        return FSlateRoundedBoxBrush(Fill,
+            bContrast ? 0.0f : ListViewRowCornerRadius,
+            bContrast ? FLinearColor::White : ListViewRowBorderColor,
+            bContrast ? 1.0f : ListViewRowBorderWidth);
+    };
+    const FLinearColor NormalRow = bContrast ? HighContrastPanel : ListViewRowNormal;
+    const FLinearColor HoveredRow = bContrast ? HighContrastPanel : ListViewRowHovered;
+    const FLinearColor SelectedRow = bContrast ? HighContrastPanel : ListViewRowSelected;
+    FTableRowStyle ItemStyle = FTableRowStyle::GetDefault();
+    ItemStyle.SetEvenRowBackgroundBrush(MakeRowBrush(NormalRow))
+        .SetOddRowBackgroundBrush(MakeRowBrush(NormalRow))
+        .SetEvenRowBackgroundHoveredBrush(MakeRowBrush(HoveredRow))
+        .SetOddRowBackgroundHoveredBrush(MakeRowBrush(HoveredRow))
+        .SetActiveBrush(MakeRowBrush(SelectedRow))
+        .SetInactiveBrush(MakeRowBrush(SelectedRow))
+        .SetActiveHoveredBrush(MakeRowBrush(HoveredRow))
+        .SetInactiveHoveredBrush(MakeRowBrush(HoveredRow))
+        .SetTextColor(FSlateColor(DropdownText))
+        .SetSelectedTextColor(FSlateColor(DropdownText));
+    Dropdown.SetItemStyle(ItemStyle);
+    Dropdown.SetContentPadding(FMargin(4.0f, 2.0f));
+    Dropdown.SetHasDownArrow(false);
+    Dropdown.SetEnableGamepadNavigationMode(true);
 }
 
 void FKalmalaUITheme::ApplyListViewItem(UButton& Button, const int32 ContrastMode,

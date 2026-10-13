@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Use a shared dropdown for Accessibility feedback:** separate the colour-independent feedback label from its selection control and use a reusable stone-styled dropdown with themed option rows.
+
 - [x] **2026-10-13 — Retire station Repair All render targets:** remove `workbench.repair` and `forge.repair` from the PowerShell and native menu renderers; inspect the direct Repair All actions in Workbench Craft and Forge captures.
 
 - [x] **2026-10-13 — Center Accessibility text and contrast controls:** center 100% text scale and Standard contrast by adding supported lower choices while retaining the existing higher scale and High contrast mode.

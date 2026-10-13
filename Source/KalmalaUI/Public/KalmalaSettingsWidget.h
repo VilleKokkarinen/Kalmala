@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/Button.h"
+#include "Components/ComboBoxString.h"
 #include "Blueprint/UserWidget.h"
 #include "KalmalaThemedButton.h"
 #include "KalmalaSettingsWidget.generated.h"
@@ -199,11 +200,13 @@ private:
     UFUNCTION()
     void HandleReducedMotionChanged(bool bIsChecked);
     UFUNCTION()
+    void HandleFeedbackSelectionChanged(FString SelectedOption, ESelectInfo::Type SelectionType);
+    UFUNCTION()
+    UWidget* GenerateDropdownOptionWidget(FString Option);
+    UFUNCTION()
     void HandleAccessibilitySliderCaptureBegan();
     UFUNCTION()
     void HandleAccessibilitySliderCaptureEnded();
-    UFUNCTION()
-    void HandleFeedbackClicked();
 
     UPROPERTY(Transient)
     TObjectPtr<class UVerticalBox> ContentBox;
@@ -250,7 +253,7 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<UCheckBox> ReducedMotionCheckBox;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> FeedbackLabel;
+    TObjectPtr<UComboBoxString> FeedbackDropdown;
     UPROPERTY(Transient)
     TArray<TObjectPtr<UKalmalaThemedButton>> OptionsTabButtons;
 

@@ -7,6 +7,7 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/CheckBox.h"
+#include "Components/ComboBoxString.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Image.h"
@@ -148,6 +149,50 @@ namespace
         ValueSlot->SetVerticalAlignment(VAlign_Center);
         Parent.AddChildToVerticalBox(Row)->SetPadding(FMargin(4.0f, 3.0f));
         return { Slider, Value };
+    }
+
+    UComboBoxString* AddSettingsDropdownRow(UWidgetTree& WidgetTree, UVerticalBox& Parent,
+        const TCHAR* LabelText, const FName Name, const int32 TextScalePercent,
+        const int32 ContrastMode)
+    {
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        UHorizontalBox* Row = WidgetTree.ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+        UTextBlock* Label = WidgetTree.ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+        Label->SetText(FText::FromString(LabelText));
+        Label->SetAutoWrapText(true);
+        Theme.ApplyText(*Label, Theme.BodySize + 3, false, TextScalePercent, ContrastMode);
+        USizeBox* LabelSize = WidgetTree.ConstructWidget<USizeBox>(USizeBox::StaticClass());
+        LabelSize->SetWidthOverride(230.0f);
+        LabelSize->SetContent(Label);
+        UHorizontalBoxSlot* LabelSlot = Row->AddChildToHorizontalBox(LabelSize);
+        LabelSlot->SetPadding(FMargin(4.0f, 6.0f, 10.0f, 6.0f));
+        LabelSlot->SetVerticalAlignment(VAlign_Center);
+
+        UComboBoxString* Dropdown = WidgetTree.ConstructWidget<UComboBoxString>(
+            UComboBoxString::StaticClass(), Name);
+        Theme.ApplyDropdown(*Dropdown, ContrastMode);
+        Dropdown->SetToolTipText(FText::FromString(FString::Printf(TEXT("Choose %s."), LabelText)));
+        USizeBox* DropdownSize = WidgetTree.ConstructWidget<USizeBox>(USizeBox::StaticClass());
+        DropdownSize->SetWidthOverride(260.0f);
+        UOverlay* DropdownContents = WidgetTree.ConstructWidget<UOverlay>(UOverlay::StaticClass());
+        UOverlaySlot* DropdownControlSlot = DropdownContents->AddChildToOverlay(Dropdown);
+        DropdownControlSlot->SetHorizontalAlignment(HAlign_Fill);
+        DropdownControlSlot->SetVerticalAlignment(VAlign_Fill);
+        UTextBlock* DropdownArrow = WidgetTree.ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+        DropdownArrow->SetText(FText::FromString(TEXT("▼")));
+        DropdownArrow->SetJustification(ETextJustify::Center);
+        DropdownArrow->SetVisibility(ESlateVisibility::HitTestInvisible);
+        Theme.ApplyText(*DropdownArrow, Theme.BodySize, false, TextScalePercent, ContrastMode);
+        UOverlaySlot* DropdownArrowSlot = DropdownContents->AddChildToOverlay(DropdownArrow);
+        DropdownArrowSlot->SetHorizontalAlignment(HAlign_Right);
+        DropdownArrowSlot->SetVerticalAlignment(VAlign_Center);
+        DropdownArrowSlot->SetPadding(FMargin(0.0f, 0.0f, 12.0f, 0.0f));
+        DropdownSize->SetContent(DropdownContents);
+        UHorizontalBoxSlot* DropdownSlot = Row->AddChildToHorizontalBox(DropdownSize);
+        DropdownSlot->SetPadding(FMargin(4.0f, 6.0f));
+        DropdownSlot->SetVerticalAlignment(VAlign_Center);
+        Parent.AddChildToVerticalBox(Row)->SetPadding(FMargin(4.0f, 3.0f));
+        return Dropdown;
     }
 
     enum class ELocalInputMappingKind : uint8
@@ -1658,17 +1703,16 @@ void UKalmalaSettingsWidget::ShowAccessibilityTab()
     ReducedMotionSlot->SetVerticalAlignment(VAlign_Center);
     SliderGroup->AddChildToVerticalBox(ReducedMotionRow)->SetPadding(FMargin(4.0f, 3.0f));
 
-    UButton* Feedback = AddButton(ContentBox, FText::GetEmpty(), TEXT("FeedbackButton"));
-    Feedback->OnClicked.AddDynamic(this, &ThisClass::HandleFeedbackClicked);
-    FeedbackLabel = Cast<UTextBlock>(Feedback->GetContent());
-
-    // Explicit lines avoid auto-wrap measuring centered button text at a stale width.
-    for (UTextBlock* Label : { FeedbackLabel })
-    {
-        Label->SetAutoWrapText(false);
-        FKalmalaUITheme::Get().ApplyText(*Label, FKalmalaUITheme::Get().BodySize + 3,
-            false, TextScalePercent, ContrastMode);
-    }
+    FeedbackDropdown = AddSettingsDropdownRow(*WidgetTree, *SliderGroup,
+        TEXT("Colour-independent feedback"), TEXT("FeedbackDropdown"), TextScalePercent, ContrastMode);
+    FeedbackDropdown->OnGenerateWidgetEvent.BindDynamic(this,
+        &ThisClass::GenerateDropdownOptionWidget);
+    FeedbackDropdown->OnSelectionChanged.AddDynamic(this,
+        &ThisClass::HandleFeedbackSelectionChanged);
+    FeedbackDropdown->AddOption(TEXT("Text only"));
+    FeedbackDropdown->AddOption(TEXT("Text + markers"));
+    FeedbackDropdown->SetSelectedOption(
+        GetFeedbackMode() == 0 ? TEXT("Text only") : TEXT("Text + markers"));
     UpdateSettingsLabels();
     InterfaceScaleSlider->SetUserFocus(GetOwningPlayer());
     InterfaceScaleSlider->SetKeyboardFocus();
@@ -1762,12 +1806,6 @@ void UKalmalaSettingsWidget::UpdateSettingsLabels()
     if (ReducedMotionCheckMarkLabel != nullptr)
     {
         ReducedMotionCheckMarkLabel->SetText(FText::FromString(bReducedMotion ? TEXT("✓") : TEXT("")));
-    }
-    if (FeedbackLabel != nullptr)
-    {
-        FeedbackLabel->SetText(FText::FromString(FString::Printf(
-            TEXT("Colour-independent feedback\n%s"),
-            GetFeedbackMode() == 0 ? TEXT("Text only") : TEXT("Text + markers"))));
     }
 }
 
@@ -1986,8 +2024,29 @@ void UKalmalaSettingsWidget::HandleAccessibilitySliderCaptureEnded()
     CommitAccessibilitySliderValues();
 }
 
-void UKalmalaSettingsWidget::HandleFeedbackClicked()
+void UKalmalaSettingsWidget::HandleFeedbackSelectionChanged(const FString SelectedOption,
+    const ESelectInfo::Type SelectionType)
 {
-    SetFeedbackMode(GetFeedbackMode() == 0 ? 1 : 0);
-    ShowAccessibilityTab();
+    if (bUpdatingAccessibilityControls || SelectionType == ESelectInfo::Direct) return;
+    if (SelectedOption == TEXT("Text only"))
+    {
+        SetFeedbackMode(0);
+    }
+    else if (SelectedOption == TEXT("Text + markers"))
+    {
+        SetFeedbackMode(1);
+    }
+}
+
+UWidget* UKalmalaSettingsWidget::GenerateDropdownOptionWidget(const FString Option)
+{
+    if (WidgetTree == nullptr) return nullptr;
+    UTextBlock* OptionText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+    OptionText->SetText(FText::FromString(Option));
+    OptionText->SetAutoWrapText(false);
+    OptionText->SetJustification(ETextJustify::Center);
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    Theme.ApplyText(*OptionText, Theme.BodySize + 3, false,
+        GetTextScalePercent(), GetContrastMode());
+    return OptionText;
 }

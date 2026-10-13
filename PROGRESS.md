@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Add a shared Accessibility dropdown
+
+- **Completed:** replaced the single text-toggle button for colour-independent feedback with a separate label and a reusable stone-styled dropdown. The dropdown shows `Text only` or `Text + markers`, has a themed popup list and a clear chevron, and updates the existing local preference immediately.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `Source/KalmalaUI/Public/KalmalaUITheme.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.accessibility -BuildModules -TimeoutSeconds 300 -Output C:\Users\Ville\AppData\Local\Temp\kmmenu-feedback-4.png` compiled the affected Unreal UI/editor modules and rendered Accessibility at 1920×1080. Inspected the preview: the feedback label is separate from the stone dropdown, the selected text is readable, and the chevron is visible. An initial compile caught an unsupported `UComboBoxString` API call; it was removed before the passing build. `git diff --check` passed. No automation suite ran; full verification remains deferred.
+- **Impact and authority:** local Settings presentation and the existing local feedback preference only. Selection persists through the current local settings path; no RPC, replicated state, gameplay authority, or save schema changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. The preview checks layout, not live dropdown pointer/controller selection or preference round-trip behavior; full verification remains deferred.
+- **Next eligible work:** continue auditing `Verify-*` entrypoints against active acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Remove station Repair All render targets
 
 - **Completed:** removed `workbench.repair` and `forge.repair` from the renderer's accepted menu IDs and native commandlet. The default batch now has eleven captures, and direct Repair All buttons remain visible in the Workbench Craft and Forge views.

@@ -2000,7 +2000,8 @@ visible. Theme animation keys continue to control those effects when Reduced
 motion is Off. Neither option creates a gameplay setting, RPC, replicated
 value, world/player save field, or new save schema.
 
-The Accessibility group also provides a local colour-independent feedback choice:
+The Accessibility group provides a local colour-independent feedback choice in a
+labeled dropdown using the shared stone-control theme:
 **Text only** keeps the existing readable state lines, while **Text + markers**
 adds explicit bracketed state markers for Wet, hearth, construction, combat,
 discovery, and support status in a local owner-only overlay. The marker mode

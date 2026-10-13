@@ -10,6 +10,7 @@ class UBorder;
 class UTextBlock;
 class UButton;
 class UCheckBox;
+class UComboBoxString;
 class USlider;
 class USizeBox;
 class UScrollBox;
@@ -110,6 +111,8 @@ struct KALMALAUI_API FKalmalaUITheme
     void ApplyButton(UButton& Button, int32 ContrastMode, bool bReducedMotion = false) const;
     /** Applies the reusable stone toggle-checkbox style, with a geometric high-contrast fallback. */
     void ApplyCheckBox(UCheckBox& CheckBox, int32 ContrastMode) const;
+    /** Applies the shared stone dropdown and themed option-row styles. */
+    void ApplyDropdown(UComboBoxString& Dropdown, int32 ContrastMode) const;
     void ApplyListViewItem(UButton& Button, int32 ContrastMode, bool bReducedMotion = false) const;
     void ApplyItemIconTile(UBorder& Border, int32 ContrastMode) const;
     void ApplyItemIconTileFill(UBorder& Border, int32 ContrastMode) const;
