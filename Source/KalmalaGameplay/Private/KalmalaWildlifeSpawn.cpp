@@ -1,3 +1,4 @@
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaWildlifeSpawn.h"
 
 #include "Components/SphereComponent.h"
@@ -41,6 +42,7 @@ namespace
 
 AKalmalaWildlifeSpawn::AKalmalaWildlifeSpawn()
 {
+    CreateDefaultSubobject<UKalmalaResistanceComponent>(TEXT("Resistances"));
     PrimaryActorTick.bCanEverTick = true;
     USphereComponent* Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
     Collision->InitSphereRadius(70.0f);
@@ -92,11 +94,22 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
 
 bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const float Damage, AKalmalaCharacter* Attacker)
 {
-    if (!HasAuthority() || bDefeated || !FMath::IsFinite(Damage) || Damage <= 0.0f || Damage > 100.0f) return false;
+    if (!FMath::IsFinite(Damage) || Damage <= 0.0f || Damage > 100.0f) return false;
+    FKalmalaDamageChannels Channels;
+    Channels.Crush = Damage;
+    return ApplyCombatDamageFromServer(Channels, Attacker);
+}
+
+bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker)
+{
+    if (!HasAuthority() || bDefeated || !Damage.IsValid() || Damage.Total() <= 0.0f) return false;
     if (Attacker != nullptr && (!Attacker->HasAuthority() || Attacker->GetWorld() != GetWorld()
         || FVector::DistSquared(Attacker->GetActorLocation(), GetActorLocation()) > FMath::Square(220.0f))) return false;
+    const UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>();
+    float ResolvedDamage = 0.0f;
+    if (!Defenses || !Defenses->ResolveFromServer(Damage, ResolvedDamage)) return false;
     if (Attacker != nullptr) LastValidatedAttacker = Attacker;
-    Health = FMath::Clamp(Health - Damage, 0.0f, 100.0f);
+    Health = FMath::Clamp(Health - ResolvedDamage, 0.0f, 100.0f);
     if (Health <= 0.0f) return DefeatServer();
     if (Archetype == EKalmalaWildlifeArchetype::Boar && Attacker != nullptr)
     {

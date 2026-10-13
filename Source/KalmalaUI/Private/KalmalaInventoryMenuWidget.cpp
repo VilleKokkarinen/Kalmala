@@ -57,13 +57,8 @@ FString BuildToolInspectionText(const FKalmalaToolState& Tool)
         Tool.ToolLevel, Tool.Durability, MaxDurability);
     if (MaxDurability <= 0 || Tool.Durability < 0 || Tool.Durability > MaxDurability)
         return Text + TEXT("\nRepair unavailable.");
-    const float WeaponDamage = FKalmalaToolLifecycleContract::GetWeaponDamage(Tool.ToolId, Tool.ToolLevel);
-    if (WeaponDamage > 0.0f)
-    {
-        const TCHAR* DamageType = FKalmalaToolLifecycleContract::GetWeaponDamageTypeLabel(
-            FKalmalaToolLifecycleContract::GetWeaponDamageType(Tool.ToolId));
-        Text += FString::Printf(TEXT("\n%s damage: %.0f."), DamageType, WeaponDamage);
-    }
+    const FKalmalaDamageChannels Bonuses = FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(Tool.ToolId, Tool.ToolLevel);
+    if (Bonuses.Total() > 0.0f) Text += TEXT("\n") + Bonuses.Describe() + TEXT(".");
     return Text + (Tool.Durability < MaxDurability
         ? TEXT("\nFree repair at a visible Workbench or Forge.")
         : TEXT("\nNo repair needed."));

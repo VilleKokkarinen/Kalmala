@@ -1,3 +1,4 @@
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaHarvestNode.h"
 
 #include "Components/SphereComponent.h"
@@ -82,6 +83,7 @@ namespace
 
 AKalmalaHarvestNode::AKalmalaHarvestNode()
 {
+    CreateDefaultSubobject<UKalmalaResistanceComponent>(TEXT("Resistances"));
     bReplicates = true;
     SetReplicateMovement(false);
     Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));

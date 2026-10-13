@@ -52,14 +52,14 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
             FKalmalaToolLevelData& Stats = BoundaryAxe->Levels.AddDefaulted_GetRef();
             Stats.ToolLevel = NextLevel;
             Stats.MaxDurability = 150;
-            Stats.CombatDamage = 55.0f;
+            Stats.DamageBonuses.Slash = 55.0f;
         }
         TestTrue(TEXT("Twenty authored levels are valid without level-twenty stations"),
             BoundaryCatalogue->IsValidCatalogue());
         FKalmalaToolLevelData& TooHigh = BoundaryAxe->Levels.AddDefaulted_GetRef();
         TooHigh.ToolLevel = 21;
         TooHigh.MaxDurability = 150;
-        TooHigh.CombatDamage = 55.0f;
+        TooHigh.DamageBonuses.Slash = 55.0f;
         TestFalse(TEXT("The catalogue rejects authored level twenty-one"),
             BoundaryCatalogue->IsValidCatalogue());
     }

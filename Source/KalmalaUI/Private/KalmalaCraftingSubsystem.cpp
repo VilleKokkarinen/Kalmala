@@ -717,7 +717,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     UpgradeTargetIconBox->SetVisibility(ESlateVisibility::Collapsed);
     ToolProgressionActions->AddChildToHorizontalBox(UpgradeTargetIconBox)->SetVerticalAlignment(VAlign_Center);
     UpgradeBronzeAxeButton = AddButton(TEXT("Upgrade"), ToolProgressionActions,
-        TEXT("Upgrade the carried Bronze Axe to level 2: durability 150 and slash damage 55. Its item identity and harvesting tier are preserved."));
+        TEXT("Upgrade the carried Bronze Axe to level 2: durability 150 and slash bonus 55. Its item identity and harvesting tier are preserved."));
     UpgradeBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeBronzeAxe);
     auto* UpgradePanelContent = WidgetTree->ConstructWidget<UHorizontalBox>();
     StationUpgradePanel = WidgetTree->ConstructWidget<UBorder>();
@@ -1435,7 +1435,7 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Forge — Upgrade")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Upgrade the carried Bronze Axe's durability and slash damage without changing its identity or harvesting tier.")));
+            TEXT("Upgrade the carried Bronze Axe's durability and slash bonus without changing its identity or harvesting tier.")));
     }
     else
     {
@@ -3935,7 +3935,7 @@ void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(
     const float TargetSlashDamage = bValidUpgrade
         ? FKalmalaToolLifecycleContract::GetSlashDamage(TEXT("BronzeAxe"), Upgrade->TargetToolLevel) : 0.0f;
     const FString BenefitComparison = bValidUpgrade
-        ? FString::Printf(TEXT("Durability: %d → %d (+%d) · Slash damage: %.0f → %.0f (+%.0f)."),
+        ? FString::Printf(TEXT("Durability: %d → %d (+%d) · Slash bonus: %.0f → %.0f (+%.0f)."),
             PreviousMaxDurability, TargetMaxDurability, TargetMaxDurability - PreviousMaxDurability,
             PreviousSlashDamage, TargetSlashDamage, TargetSlashDamage - PreviousSlashDamage)
         : FString(TEXT("Upgrade gains unavailable."));

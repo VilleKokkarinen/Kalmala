@@ -1,3 +1,4 @@
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaCampfire.h"
 
 #include "Components/PointLightComponent.h"
@@ -24,6 +25,7 @@ namespace KalmalaCampfire
 
 AKalmalaCampfire::AKalmalaCampfire()
 {
+    CreateDefaultSubobject<UKalmalaResistanceComponent>(TEXT("Resistances"));
     bReplicates = true;
     SetReplicateMovement(false);
     PrimaryActorTick.bCanEverTick = true;

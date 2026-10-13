@@ -52,7 +52,6 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             || !IsOneOf(Profile.Action, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"), TEXT("Mining")})
             || !IsOneOf(Profile.RequiredSkill, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"),
                 TEXT("Mining"), TEXT("Crafting"), TEXT("Cooking"), TEXT("Survival")})
-            || !IsOneOf(Profile.DamageType, {TEXT("None"), TEXT("Slash"), TEXT("Pierce"), TEXT("Blunt")})
             || Profile.MinimumSkillLevel < 1 || Profile.MinimumSkillLevel > 10
             || Profile.DurabilityCost < 0 || Profile.DurabilityCost > 10
             || Profile.Levels.IsEmpty() || Profile.Levels.Num() > MaxLevels)
@@ -66,15 +65,25 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         else if (Profile.ToolSet == TEXT("Crafted")) ++CraftedCount;
         else ++UtilityCount;
 
+        if (Profile.Attacks.IsEmpty() || Profile.Attacks.Num() > 8) return false;
+        TSet<FName> SeenAttacks;
+        for (const FKalmalaWeaponAttackData& Attack : Profile.Attacks)
+        {
+            if (Attack.AttackId.IsNone() || Attack.AttackId.ToString().Len() > 32
+                || SeenAttacks.Contains(Attack.AttackId) || !Attack.DamageBonuses.IsValid(1000.0f)) return false;
+            SeenAttacks.Add(Attack.AttackId);
+        }
+        if (!SeenAttacks.Contains(TEXT("Basic"))) return false;
+
         TSet<int32> SeenLevels;
         bool bHasLevelOne = false;
         for (const FKalmalaToolLevelData& Level : Profile.Levels)
         {
             if (Level.ToolLevel < 1 || Level.ToolLevel > MaxLevels || SeenLevels.Contains(Level.ToolLevel)
                 || Level.MaxDurability < 1 || Level.MaxDurability > 1000
-                || !FMath::IsFinite(Level.CombatDamage) || Level.CombatDamage < 0.0f || Level.CombatDamage > 1000.0f
-                || (Profile.DamageType == TEXT("None") && Level.CombatDamage != 0.0f)
-                || (Profile.DamageType != TEXT("None") && Level.CombatDamage <= 0.0f))
+                || !Level.DamageBonuses.IsValid(1000.0f)
+                || (Profile.ToolKind == TEXT("ConstructionHammer") ? Level.DamageBonuses.Total() != 0.0f
+                    : Level.DamageBonuses.Total() <= 0.0f))
             {
                 return false;
             }

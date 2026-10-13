@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Define typed weapon bonuses and entity defenses:** migrate scalar damage to slash/stab/crush/pierce/fire/water/holy/poison channels; add weapon attack-style bonuses and flat resistance/Armor definitions to production gameplay entities; resolve current player/wildlife hits on the server and display mixed weapon bonuses.
+
 - [x] **2026-10-13 — Separate item level caps:** station upgrades stop at level 10; any-source item levels and authored stats stop at 20; validate higher authored item levels independently of station recipes. Existing station content retained.
 
 - [x] **2026-10-13 — Simplify item upgrade definitions:** stable acquisition RecipeIds with Level; one JSON file for level-one upgrade costs; derive doubling costs and target station level; keep upgrade RequiredSkillLevel at zero and remove JSON predecessor fields. Current playable levels and existing ingredients retained.

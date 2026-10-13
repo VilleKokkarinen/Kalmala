@@ -1,3 +1,4 @@
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaOceanSkiff.h"
 
 #include "KalmalaCharacter.h"
@@ -48,6 +49,7 @@ namespace KalmalaOceanSkiff
 
 AKalmalaOceanSkiff::AKalmalaOceanSkiff()
 {
+    CreateDefaultSubobject<UKalmalaResistanceComponent>(TEXT("Resistances"));
     PrimaryActorTick.bCanEverTick = true;
     bReplicates = true;
     SetReplicateMovement(true);

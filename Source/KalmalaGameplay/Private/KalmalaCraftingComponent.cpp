@@ -58,11 +58,7 @@ FString GetToolDisplayName(const FName ToolId)
 
 FString GetToolCombatSummary(const FName ToolId, const int32 ToolLevel)
 {
-    const float Damage = FKalmalaToolLifecycleContract::GetWeaponDamage(ToolId, ToolLevel);
-    if (Damage <= 0.0f) return TEXT("No combat damage");
-    const TCHAR* DamageType = FKalmalaToolLifecycleContract::GetWeaponDamageTypeLabel(
-        FKalmalaToolLifecycleContract::GetWeaponDamageType(ToolId));
-    return FString::Printf(TEXT("%s damage %.0f"), DamageType, Damage);
+    return FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(ToolId, ToolLevel).Describe();
 }
 
 FString GetStationDisplayName(const FName KitId)
@@ -862,16 +858,12 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
                 Entry.PreviousToolId, Entry.PreviousToolLevel);
             const int32 TargetMaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(
                 Entry.ToolId, Entry.TargetToolLevel);
-            const float PreviousDamage = FKalmalaToolLifecycleContract::GetWeaponDamage(
-                Entry.PreviousToolId, Entry.PreviousToolLevel);
-            const float TargetDamage = FKalmalaToolLifecycleContract::GetWeaponDamage(
-                Entry.ToolId, Entry.TargetToolLevel);
-            const TCHAR* DamageType = FKalmalaToolLifecycleContract::GetWeaponDamageTypeLabel(
-                FKalmalaToolLifecycleContract::GetWeaponDamageType(Entry.ToolId));
-            Text += FString::Printf(TEXT("Comparison: %s level %d → level %d.\nDurability: %d → %d (+%d).\n%s damage: %.0f → %.0f (+%.0f).\n"),
+            const FString PreviousBonuses = GetToolCombatSummary(Entry.ToolId, Entry.PreviousToolLevel);
+            const FString TargetBonuses = GetToolCombatSummary(Entry.ToolId, Entry.TargetToolLevel);
+            Text += FString::Printf(TEXT("Comparison: %s level %d → level %d.\nDurability: %d → %d (+%d).\n%s → %s.\n"),
                 *GetToolDisplayName(Entry.ToolId), Entry.PreviousToolLevel, Entry.TargetToolLevel,
                 PreviousMaxDurability, TargetMaxDurability, TargetMaxDurability - PreviousMaxDurability,
-                DamageType, PreviousDamage, TargetDamage, TargetDamage - PreviousDamage);
+                *PreviousBonuses, *TargetBonuses);
         }
         else if (!Entry.PreviousToolId.IsNone())
         {

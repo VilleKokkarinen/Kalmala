@@ -1,3 +1,4 @@
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaDiscoveryActor.h"
 #include "Components/SphereComponent.h"
 #include "KalmalaCharacter.h"
@@ -64,6 +65,7 @@ namespace
 
 AKalmalaDiscoveryActor::AKalmalaDiscoveryActor()
 {
+    CreateDefaultSubobject<UKalmalaResistanceComponent>(TEXT("Resistances"));
     bReplicates = true; SetReplicateMovement(false);
     Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision")); Collision->InitSphereRadius(55.0f); Collision->SetCollisionProfileName(TEXT("BlockAll")); RootComponent = Collision;
     DiscoveryMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("DiscoveryPresentation"));

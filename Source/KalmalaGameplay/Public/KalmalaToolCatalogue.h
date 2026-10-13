@@ -18,7 +18,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolLevelData
     int32 MaxDurability = 0;
 
     UPROPERTY(EditAnywhere)
-    float CombatDamage = 0.0f;
+    FKalmalaDamageChannels DamageBonuses;
 };
 
 USTRUCT()
@@ -54,7 +54,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     int32 DurabilityCost = 1;
 
     UPROPERTY(EditAnywhere)
-    FString DamageType;
+    TArray<FKalmalaWeaponAttackData> Attacks;
 
     UPROPERTY(EditAnywhere)
     TArray<FKalmalaToolLevelData> Levels;

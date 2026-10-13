@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KalmalaDamageProfile.h"
 #include "GameFramework/Actor.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWildlifeSpawn.generated.h"
@@ -54,6 +55,7 @@ public:
     void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn);
     static bool IsDefeatAllowed(bool bServerAuthority, bool bAlreadyDefeated);
     bool DefeatServer();
+    bool ApplyCombatDamageFromServer(const FKalmalaDamageChannels& Damage, class AKalmalaCharacter* Attacker = nullptr);
     bool ApplyCombatDamageFromServer(float Damage, class AKalmalaCharacter* Attacker = nullptr);
     bool ApplyDeerCallFromServer(const FVector& SourceLocation);
     bool IsMirelingBossRewardCandidate() const;

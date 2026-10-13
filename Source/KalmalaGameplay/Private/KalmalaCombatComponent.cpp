@@ -61,13 +61,19 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
             const UKalmalaInventoryComponent* Inventory = OwnerCharacter ? OwnerCharacter->GetInventoryComponent() : nullptr;
             const FName EquippedItem = Inventory ? Inventory->GetActiveItem() : NAME_None;
             const int32 EquippedLevel = OwnerCharacter ? OwnerCharacter->GetCarriedToolLevel(EquippedItem) : 0;
-            const float WeaponDamage = FKalmalaToolLifecycleContract::GetWeaponDamage(EquippedItem, EquippedLevel);
-            const float BaseDamage = OwnerCharacter && OwnerCharacter->GetToolDurability(EquippedItem) > 0
-                && WeaponDamage > 0.0f ? WeaponDamage : UnarmedAttackDamage;
-            const float Damage = UKalmalaSupportMagicComponent::CalculateBearsVigorDamage(true,
-                Support && Support->GetBearsVigorExpiry() > Now, BaseDamage, Support ? Support->GetBearsVigorStrengthMultiplier() : 1.0f);
-            const bool bDefeated = Target->GetHealth() <= Damage;
+            FKalmalaDamageChannels Damage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
+                EquippedItem, EquippedLevel, TEXT("Basic"));
+            if (!OwnerCharacter || OwnerCharacter->GetToolDurability(EquippedItem) <= 0 || Damage.Total() <= 0.0f)
+            {
+                Damage = {};
+                Damage.Crush = UnarmedAttackDamage;
+            }
+            const float Multiplier = UKalmalaSupportMagicComponent::CalculateBearsVigorDamage(true,
+                Support && Support->GetBearsVigorExpiry() > Now, 1.0f,
+                Support ? Support->GetBearsVigorStrengthMultiplier() : 1.0f);
+            Damage = Damage.Scaled(Multiplier);
             const bool bApplied = Target->ApplyCombatDamageFromServer(Damage, Cast<AKalmalaCharacter>(GetOwner()));
+            const bool bDefeated = bApplied && Target->GetHealth() <= 0.0f;
 #if !UE_BUILD_SHIPPING
             if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")))
             {

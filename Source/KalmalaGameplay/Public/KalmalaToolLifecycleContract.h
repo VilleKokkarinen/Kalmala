@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KalmalaDamageProfile.h"
 #include "KalmalaSkillProgressionContract.h"
 #include "KalmalaToolLifecycleContract.generated.h"
 
@@ -32,15 +33,6 @@ enum class EKalmalaToolKind : uint8
     ConstructionHammer
 };
 
-/** Damage profile used for item inspection; wildlife currently consumes the authored scalar. */
-enum class EKalmalaWeaponDamageType : uint8
-{
-    None,
-    Slash,
-    Pierce,
-    Blunt
-};
-
 /** M9 harvesting tiers; station level is validated only by later craft/upgrade transactions. */
 enum class EKalmalaToolTier : uint8
 {
@@ -54,7 +46,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolLevelStats
 {
     int32 ToolLevel = 0;
     int32 MaxDurability = 0;
-    float CombatDamage = 0.0f;
+    FKalmalaDamageChannels DamageBonuses;
 };
 
 struct KALMALAGAMEPLAY_API FKalmalaToolDefinition
@@ -66,9 +58,9 @@ struct KALMALAGAMEPLAY_API FKalmalaToolDefinition
     int32 MinimumSkillLevel = 1;
     int32 MaxDurability = 0;
     int32 DurabilityCost = 1;
-    EKalmalaWeaponDamageType DamageType = EKalmalaWeaponDamageType::None;
-    float CombatDamage = 0.0f;
+    FKalmalaDamageChannels DamageBonuses;
     TArray<FKalmalaToolLevelStats> LevelStats;
+    TArray<FKalmalaWeaponAttackData> Attacks;
 };
 
 USTRUCT(BlueprintType)
@@ -137,8 +129,9 @@ public:
     static float GetSlashDamage(FName ToolId, int32 ToolLevel);
     /** Authored combat damage for an equipped weapon at this level. */
     static float GetWeaponDamage(FName ToolId, int32 ToolLevel);
-    static EKalmalaWeaponDamageType GetWeaponDamageType(FName ToolId);
-    static const TCHAR* GetWeaponDamageTypeLabel(EKalmalaWeaponDamageType DamageType);
+    static FKalmalaDamageChannels GetWeaponDamageBonuses(FName ToolId, int32 ToolLevel);
+    static FKalmalaDamageChannels GetAttackDamageBonuses(FName ToolId, int32 ToolLevel, FName AttackId);
+
     static bool IsKnownAction(EKalmalaToolAction Action);
     static bool IsKnownTool(EKalmalaToolKind Tool);
     static bool IsKnownToolTier(EKalmalaToolTier Tier);

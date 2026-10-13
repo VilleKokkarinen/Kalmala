@@ -1,3 +1,4 @@
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCraftingComponent.h"
@@ -20,6 +21,7 @@ namespace
 
 AKalmalaConstructionActor::AKalmalaConstructionActor()
 {
+    CreateDefaultSubobject<UKalmalaResistanceComponent>(TEXT("Resistances"));
     bReplicates = true;
     SetReplicateMovement(true);
     Collision = CreateDefaultSubobject<UBoxComponent>(TEXT("ConstructionCollision"));

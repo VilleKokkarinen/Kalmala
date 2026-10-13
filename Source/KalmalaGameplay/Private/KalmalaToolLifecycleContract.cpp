@@ -46,14 +46,6 @@ namespace
         return EKalmalaSkill::None;
     }
 
-    EKalmalaWeaponDamageType ParseWeaponDamageType(const FString& Value)
-    {
-        if (Value == TEXT("Slash")) return EKalmalaWeaponDamageType::Slash;
-        if (Value == TEXT("Pierce")) return EKalmalaWeaponDamageType::Pierce;
-        if (Value == TEXT("Blunt")) return EKalmalaWeaponDamageType::Blunt;
-        return EKalmalaWeaponDamageType::None;
-    }
-
     FKalmalaToolDefinition ConvertProfile(const FKalmalaToolProfileData& Profile)
     {
         FKalmalaToolDefinition Definition;
@@ -63,17 +55,17 @@ namespace
         Definition.RequiredSkill = ParseToolSkill(Profile.RequiredSkill);
         Definition.MinimumSkillLevel = Profile.MinimumSkillLevel;
         Definition.DurabilityCost = Profile.DurabilityCost;
-        Definition.DamageType = ParseWeaponDamageType(Profile.DamageType);
+        Definition.Attacks = Profile.Attacks;
         for (const FKalmalaToolLevelData& LevelData : Profile.Levels)
         {
             FKalmalaToolLevelStats& Level = Definition.LevelStats.AddDefaulted_GetRef();
             Level.ToolLevel = LevelData.ToolLevel;
             Level.MaxDurability = LevelData.MaxDurability;
-            Level.CombatDamage = LevelData.CombatDamage;
+            Level.DamageBonuses = LevelData.DamageBonuses;
             if (Level.ToolLevel == 1)
             {
                 Definition.MaxDurability = Level.MaxDurability;
-                Definition.CombatDamage = Level.CombatDamage;
+                Definition.DamageBonuses = Level.DamageBonuses;
             }
         }
         return Definition;
@@ -207,42 +199,33 @@ int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ToolId, const 
     return CanonicalizeToolId(ToolId) == TEXT("IronAxe") && ToolLevel == 2 ? Definition->MaxDurability : 0;
 }
 
+FKalmalaDamageChannels FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(const FName ToolId, const int32 ToolLevel)
+{
+    const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
+    if (!Definition || GetMaxDurability(ToolId, ToolLevel) <= 0) return {};
+    const FKalmalaToolLevelStats* Stats = Definition->LevelStats.FindByPredicate(
+        [ToolLevel](const FKalmalaToolLevelStats& Level) { return Level.ToolLevel == ToolLevel; });
+    return Stats ? Stats->DamageBonuses : Definition->DamageBonuses;
+}
+
+FKalmalaDamageChannels FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
+    const FName ToolId, const int32 ToolLevel, const FName AttackId)
+{
+    const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
+    if (!Definition || GetMaxDurability(ToolId, ToolLevel) <= 0) return {};
+    const FKalmalaWeaponAttackData* Attack = Definition->Attacks.FindByPredicate(
+        [AttackId](const FKalmalaWeaponAttackData& Entry) { return Entry.AttackId == AttackId; });
+    return Attack ? GetWeaponDamageBonuses(ToolId, ToolLevel).Added(Attack->DamageBonuses) : FKalmalaDamageChannels();
+}
+
 float FKalmalaToolLifecycleContract::GetSlashDamage(const FName ToolId, const int32 ToolLevel)
 {
-    if (GetWeaponDamageType(ToolId) != EKalmalaWeaponDamageType::Slash) return 0.0f;
-    return GetWeaponDamage(ToolId, ToolLevel);
+    return GetWeaponDamageBonuses(ToolId, ToolLevel).Slash;
 }
 
 float FKalmalaToolLifecycleContract::GetWeaponDamage(const FName ToolId, const int32 ToolLevel)
 {
-    if (ToolId.IsNone() || GetMaxDurability(ToolId, ToolLevel) <= 0) return 0.0f;
-    const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
-    if (!Definition) return 0.0f;
-    const FKalmalaToolLevelStats* LevelStats = Definition->LevelStats.FindByPredicate([ToolLevel](const auto& Stats)
-    {
-        return Stats.ToolLevel == ToolLevel;
-    });
-    // Keep the same stats for old Iron Axe level-two saves; the level is not craftable.
-    return LevelStats ? LevelStats->CombatDamage
-        : (CanonicalizeToolId(ToolId) == TEXT("IronAxe") && ToolLevel == 2 ? Definition->CombatDamage : 0.0f);
-}
-
-EKalmalaWeaponDamageType FKalmalaToolLifecycleContract::GetWeaponDamageType(const FName ToolId)
-{
-    const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
-    return Definition ? Definition->DamageType : EKalmalaWeaponDamageType::None;
-}
-
-const TCHAR* FKalmalaToolLifecycleContract::GetWeaponDamageTypeLabel(
-    const EKalmalaWeaponDamageType DamageType)
-{
-    switch (DamageType)
-    {
-    case EKalmalaWeaponDamageType::Slash: return TEXT("Slash");
-    case EKalmalaWeaponDamageType::Pierce: return TEXT("Pierce");
-    case EKalmalaWeaponDamageType::Blunt: return TEXT("Blunt");
-    default: return TEXT("Damage");
-    }
+    return GetWeaponDamageBonuses(ToolId, ToolLevel).Total();
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Action)

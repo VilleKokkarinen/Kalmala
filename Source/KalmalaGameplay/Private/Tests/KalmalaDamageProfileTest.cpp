@@ -1,0 +1,68 @@
+#if WITH_DEV_AUTOMATION_TESTS
+#include "KalmalaDamageProfile.h"
+#include "KalmalaToolCatalogue.h"
+#include "KalmalaToolLifecycleContract.h"
+#include "Misc/AutomationTest.h"
+#include <limits>
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaDamageProfileTest,
+    "Kalmala.Gameplay.Combat.DamageProfiles",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
+{
+    FKalmalaDamageChannels Weapon;
+    Weapon.Slash = 50.0f;
+    Weapon.Stab = 10.0f;
+    Weapon.Fire = 5.0f;
+    FKalmalaDamageChannels Attack;
+    Attack.Slash = 5.0f;
+    Attack.Crush = 8.0f;
+    Attack.Poison = 2.0f;
+    const FKalmalaDamageChannels Combined = Weapon.Added(Attack);
+    TestEqual(TEXT("Weapon and attack add the same channel"), Combined.Slash, 55.0f);
+    TestEqual(TEXT("Attack can add another simultaneous melee channel"), Combined.Crush, 8.0f);
+    TestEqual(TEXT("Elemental channels contribute to the hit"), Combined.Total(), 80.0f);
+    TestEqual(TEXT("Strength scales every active channel"), Combined.Scaled(2.0f).Poison, 4.0f);
+    TestTrue(TEXT("Inspection names every active type"), Combined.Describe().Contains(TEXT("Slash bonus"))
+        && Combined.Describe().Contains(TEXT("Stab bonus")) && Combined.Describe().Contains(TEXT("Fire bonus")));
+
+    FKalmalaResistanceProfile Defenses;
+    Defenses.Reductions.Slash = 5.0f;
+    Defenses.Reductions.Stab = 20.0f; // Excess resistance cannot cancel other types.
+    Defenses.Reductions.Fire = 2.0f;
+    Defenses.Reductions.Pierce = 999.0f; // Ranged resistance does not resist melee stab.
+    Defenses.Armor = 4.0f;
+    float Resolved = -1.0f;
+    TestTrue(TEXT("Valid mixed hit resolves"), Defenses.Resolve(Combined, Resolved));
+    TestEqual(TEXT("Flat per-type resistance, clamping, then armor once"), Resolved, 59.0f);
+    Defenses.Armor = 100.0f;
+    TestTrue(TEXT("Armor can fully block a hit"), Defenses.Resolve(Combined, Resolved));
+    TestEqual(TEXT("Blocked hits cannot heal"), Resolved, 0.0f);
+    Defenses.Armor = -1.0f;
+    TestFalse(TEXT("Negative armor fails closed"), Defenses.Resolve(Combined, Resolved));
+    TestEqual(TEXT("Invalid resolution returns no damage"), Resolved, 0.0f);
+    FKalmalaDamageChannels Invalid = Combined;
+    Invalid.Poison = -1.0f;
+    TestFalse(TEXT("Negative damage is invalid"), Invalid.IsValid());
+    Invalid.Poison = 100001.0f;
+    TestFalse(TEXT("Unbounded damage is invalid"), Invalid.IsValid());
+
+    Invalid.Fire = std::numeric_limits<float>::quiet_NaN();
+    TestFalse(TEXT("Nonfinite damage is invalid"), Invalid.IsValid());
+    Defenses.Armor = std::numeric_limits<float>::infinity();
+    TestFalse(TEXT("Nonfinite defenses fail closed"), Defenses.Resolve(Combined, Resolved));
+
+    const FKalmalaDamageChannels Axe = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("BronzeAxe"), 1, TEXT("Basic"));
+    TestEqual(TEXT("Bronze Axe level one has a slash bonus"), Axe.Slash, 50.0f);
+    TestEqual(TEXT("Bronze Axe upgrade changes the slash bonus"),
+        FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(TEXT("BronzeAxe"), 2).Slash, 55.0f);
+    TestEqual(TEXT("Undefined attack styles cannot authorize damage"),
+        FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("BronzeAxe"), 1, TEXT("Unknown")).Total(), 0.0f);
+    const FKalmalaDamageChannels Spear = FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(TEXT("StoneSpear"), 1);
+    TestEqual(TEXT("Melee spears use stab"), Spear.Stab, 42.0f);
+    TestEqual(TEXT("Melee spears do not use ranged pierce"), Spear.Pierce, 0.0f);
+    TestTrue(TEXT("The migrated mixed-channel catalogue remains valid"), UKalmalaToolCatalogue::Get()->IsValidCatalogue());
+    return true;
+}
+#endif

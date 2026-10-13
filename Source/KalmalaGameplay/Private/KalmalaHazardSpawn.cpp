@@ -1,3 +1,4 @@
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaHazardSpawn.h"
 
 #include "Components/SceneComponent.h"
@@ -5,6 +6,7 @@
 
 AKalmalaHazardSpawn::AKalmalaHazardSpawn()
 {
+    CreateDefaultSubobject<UKalmalaResistanceComponent>(TEXT("Resistances"));
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     bReplicates = true;
     SetReplicateMovement(false);

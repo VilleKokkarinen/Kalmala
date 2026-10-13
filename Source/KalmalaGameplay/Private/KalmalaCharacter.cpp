@@ -1,3 +1,4 @@
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaHarvestNode.h"
@@ -39,6 +40,7 @@
 AKalmalaCharacter::AKalmalaCharacter(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<UKalmalaCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
+    CreateDefaultSubobject<UKalmalaResistanceComponent>(TEXT("Resistances"));
     bReplicates = true;
     Inventory = CreateDefaultSubobject<UKalmalaInventoryComponent>(TEXT("Inventory"));
     Crafting = CreateDefaultSubobject<UKalmalaCraftingComponent>(TEXT("Crafting"));
@@ -117,12 +119,22 @@ void AKalmalaCharacter::OnRep_Health()
 
 bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor, const float Damage)
 {
+    FKalmalaDamageChannels Channels;
+    Channels.Crush = Damage;
+    return ApplyWildlifeDamageFromServer(SourceActor, Channels);
+}
+
+bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor, const FKalmalaDamageChannels& Damage)
+{
     if (!HasAuthority() || !IsValid(SourceActor) || !SourceActor->HasAuthority() || SourceActor->GetWorld() != GetWorld()
-        || !FMath::IsFinite(Damage) || Damage <= 0.0f || Damage > 25.0f
+        || !Damage.IsValid() || Damage.Total() <= 0.0f || Damage.Total() > 25.0f
         || FVector::DistSquared(SourceActor->GetActorLocation(), GetActorLocation()) > FMath::Square(180.0f)) return false;
     // The first Mireling creates recoverable pressure; player defeat/respawn remains a later policy decision.
-    const float Absorbed = SupportMagic ? SupportMagic->AbsorbHearthShieldDamageFromServer(Damage) : 0.0f;
-    Health = FMath::Clamp(Health - FMath::Max(0.0f, Damage - Absorbed), 1.0f, 100.0f);
+    const UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>();
+    float ResolvedDamage = 0.0f;
+    if (!Defenses || !Defenses->ResolveFromServer(Damage, ResolvedDamage)) return false;
+    const float Absorbed = SupportMagic ? SupportMagic->AbsorbHearthShieldDamageFromServer(ResolvedDamage) : 0.0f;
+    Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, 100.0f);
     ForceNetUpdate();
     return true;
 }
