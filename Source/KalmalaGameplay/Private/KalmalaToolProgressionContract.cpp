@@ -78,7 +78,8 @@ namespace
             {
                 const FKalmalaToolProfileData* Profile = Catalogue->FindProfile(Upgrade.ToolId);
                 if (!Profile) return TArray<FKalmalaToolProgressionEntry>();
-                for (int32 CurrentLevel = 1; CurrentLevel < Profile->Levels.Num(); ++CurrentLevel)
+                const int32 StationTargetCap = FMath::Min(Profile->Levels.Num(), FKalmalaToolProgressionContract::MaxStationToolLevel);
+                for (int32 CurrentLevel = 1; CurrentLevel < StationTargetCap; ++CurrentLevel)
                 {
                     TArray<FKalmalaToolRecipeIngredientData> Costs;
                     if (!UKalmalaToolCatalogue::ScaleUpgradeCosts(Upgrade.Ingredients, CurrentLevel, Costs))
@@ -131,7 +132,7 @@ const FKalmalaToolProgressionEntry* FKalmalaToolProgressionContract::FindEntry(c
 const FKalmalaToolProgressionEntry* FKalmalaToolProgressionContract::FindEntry(
     const FName ToolId, const int32 TargetToolLevel)
 {
-    if (ToolId.IsNone() || TargetToolLevel < 1) return nullptr;
+    if (ToolId.IsNone() || TargetToolLevel < 1 || TargetToolLevel > MaxStationToolLevel) return nullptr;
     return ToolProgressionEntries().FindByPredicate([ToolId, TargetToolLevel](const FKalmalaToolProgressionEntry& Entry)
     {
         return Entry.ToolId == ToolId && Entry.TargetToolLevel == TargetToolLevel;
@@ -141,7 +142,7 @@ const FKalmalaToolProgressionEntry* FKalmalaToolProgressionContract::FindEntry(
 const FKalmalaToolProgressionEntry* FKalmalaToolProgressionContract::FindNextEntry(
     const FName ToolId, const int32 CurrentToolLevel)
 {
-    if (ToolId.IsNone() || CurrentToolLevel < 0) return nullptr;
+    if (ToolId.IsNone() || CurrentToolLevel < 0 || CurrentToolLevel >= MaxStationToolLevel) return nullptr;
     return ToolProgressionEntries().FindByPredicate([ToolId, CurrentToolLevel](const FKalmalaToolProgressionEntry& Entry)
     {
         return Entry.ToolId == ToolId && Entry.PreviousToolId == (CurrentToolLevel == 0 ? NAME_None : ToolId)
@@ -151,24 +152,21 @@ const FKalmalaToolProgressionEntry* FKalmalaToolProgressionContract::FindNextEnt
 
 int32 FKalmalaToolProgressionContract::GetMaximumToolLevel(const FName ToolId)
 {
-    int32 MaximumLevel = 0;
-    for (const FKalmalaToolProgressionEntry& Entry : ToolProgressionEntries())
-    {
-        if (Entry.ToolId == ToolId) MaximumLevel = FMath::Max(MaximumLevel, Entry.TargetToolLevel);
-    }
-
-    // Older saves can retain the superseded level-two Iron Axe record.
-    if (ToolId == TEXT("IronAxe")) MaximumLevel = FMath::Max(MaximumLevel, 2);
-    return MaximumLevel > 0 ? MaximumLevel : 1;
+    const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(ToolId);
+    if (!Definition) return 0;
+    int32 MaximumLevel = 1;
+    for (const FKalmalaToolLevelStats& Stats : Definition->LevelStats)
+        MaximumLevel = FMath::Max(MaximumLevel, Stats.ToolLevel);
+    // Legacy Iron Axe level two remains readable with level-one-equivalent stats.
+    if (Definition->ToolId == TEXT("IronAxe")) MaximumLevel = FMath::Max(MaximumLevel, 2);
+    return FMath::Min(MaximumLevel, FKalmalaToolLifecycleContract::MaxToolLevel);
 }
 
 bool FKalmalaToolProgressionContract::IsValidToolLevel(const FName ToolId, const int32 ToolLevel)
 {
-    if (ToolId.IsNone() || ToolLevel < 1) return false;
-    // Level one is the independent acquisition; retain level two only for older saves.
-    if (ToolId == TEXT("IronAxe") && ToolLevel == 2) return true;
-    if (FindEntry(ToolId, ToolLevel) != nullptr) return true;
-    return ToolLevel == 1 && FKalmalaToolLifecycleContract::FindDefinition(ToolId) != nullptr;
+    if (ToolId.IsNone() || ToolLevel < 1 || ToolLevel > FKalmalaToolLifecycleContract::MaxToolLevel) return false;
+    // Item validity is independent of station recipes, including levels 11–20.
+    return FKalmalaToolLifecycleContract::GetMaxDurability(ToolId, ToolLevel) > 0;
 }
 
 const FKalmalaStationAttachmentDefinition* FKalmalaToolProgressionContract::FindAttachment(const FName KitId)
@@ -215,7 +213,8 @@ bool FKalmalaToolProgressionContract::IsCatalogueValid()
         const FString EntryId = FString::Printf(TEXT("%s:%d"), *Entry.ToolId.ToString(), Entry.TargetToolLevel);
         if (Entry.ToolId.IsNone() || SeenEntryIds.Contains(EntryId) || Tool == nullptr
             || FKalmalaToolLifecycleContract::GetToolTier(Tool->Kind) == EKalmalaToolTier::None
-            || Entry.TargetToolLevel <= 0 || Entry.RequiredStationLevel != Entry.TargetToolLevel
+            || Entry.TargetToolLevel <= 0 || Entry.TargetToolLevel > MaxStationToolLevel
+            || Entry.RequiredStationLevel != Entry.TargetToolLevel
             || (Entry.RequiredStation != EKalmalaToolStationKind::Workbench
                 && Entry.RequiredStation != EKalmalaToolStationKind::Forge)
             || Entry.RequiredSkill != EKalmalaSkill::None || Entry.RequiredSkillLevel != 0
@@ -228,7 +227,7 @@ bool FKalmalaToolProgressionContract::IsCatalogueValid()
         TSet<FName> SeenCostIds;
         for (const FKalmalaToolMaterialCost& Cost : Entry.MaterialCosts)
         {
-            if (SeenCostIds.Contains(Cost.ItemId) || !ItemCatalogue->IsValidStack(Cost.ItemId, Cost.Quantity))
+            if (SeenCostIds.Contains(Cost.ItemId) || !ItemCatalogue->FindItem(Cost.ItemId) || Cost.Quantity <= 0)
                 return false;
             SeenCostIds.Add(Cost.ItemId);
         }

@@ -197,7 +197,7 @@ const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindDefinition(cons
 int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ToolId, const int32 ToolLevel)
 {
     const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
-    if (Definition == nullptr || ToolLevel < 1) return 0;
+    if (Definition == nullptr || ToolLevel < 1 || ToolLevel > MaxToolLevel) return 0;
     const FKalmalaToolLevelStats* LevelStats = Definition->LevelStats.FindByPredicate([ToolLevel](const auto& Stats)
     {
         return Stats.ToolLevel == ToolLevel;

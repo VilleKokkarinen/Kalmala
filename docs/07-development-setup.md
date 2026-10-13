@@ -1965,7 +1965,7 @@ Kalmala.Gameplay.Construction.SaveContract.
 ToolStationProgression covers Bronze Axe creation, exact station family and
 level checks, the same-ID level upgrade and preserved condition, paid costs,
 and unchanged candidates after rejection; it also verifies the RPC accepts only
-the target tool ID. The catalogue check additionally covers base upgrade costs, consecutive doubling, invalid levels and overflow; the station transaction check accepts upgrades with low skill levels or no skill ledger. Full runtime verification remains deferred for the schema-6 change. The catalogue check covers the paid Forge, Workbench rack,
+the target tool ID. The catalogue check additionally covers the station item-level cap of 10, hard item-level/stat-authoring cap of 20, rejection of station targets above 10 and item levels above 20, legacy level compatibility, base upgrade costs, consecutive doubling, invalid levels and overflow; the station transaction check accepts upgrades with low skill levels or no skill ledger. Full runtime verification remains deferred for the schema-6 change. The catalogue check covers the paid Forge, Workbench rack,
 and Forge anvil recipes; base/effective station levels; compatible families;
 placement range; duplicate rejection; and the kit-only placement RPC payload.
 

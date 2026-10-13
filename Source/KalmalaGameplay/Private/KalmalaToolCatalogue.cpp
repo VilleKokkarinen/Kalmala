@@ -2,6 +2,7 @@
 
 #include "KalmalaGameCatalogueLoader.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaToolProgressionContract.h"
 
 #include <initializer_list>
 
@@ -156,12 +157,13 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             if (SeenCostIds.Contains(Cost.ItemId) || !Items->IsValidStack(Cost.ItemId, Cost.Quantity)) return false;
             SeenCostIds.Add(Cost.ItemId);
         }
-        for (int32 CurrentLevel = 1; CurrentLevel < Profile->Levels.Num(); ++CurrentLevel)
+        const int32 StationTargetCap = FMath::Min(Profile->Levels.Num(), FKalmalaToolProgressionContract::MaxStationToolLevel);
+        for (int32 CurrentLevel = 1; CurrentLevel < StationTargetCap; ++CurrentLevel)
         {
             TArray<FKalmalaToolRecipeIngredientData> ScaledCosts;
             if (!ScaleUpgradeCosts(Upgrade.Ingredients, CurrentLevel, ScaledCosts)) return false;
             for (const FKalmalaToolRecipeIngredientData& Cost : ScaledCosts)
-                if (!Items->IsValidStack(Cost.ItemId, Cost.Quantity)) return false;
+                if (!Items->FindItem(Cost.ItemId) || Cost.Quantity <= 0) return false;
         }
     }
     if (UpgradeCosts.Num() > MaxRecipes) return false;

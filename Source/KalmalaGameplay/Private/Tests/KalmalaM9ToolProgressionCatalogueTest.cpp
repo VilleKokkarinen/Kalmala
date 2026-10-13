@@ -16,6 +16,54 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
 {
+    TestEqual(TEXT("Station upgrades have a level-ten cap"), FKalmalaToolProgressionContract::MaxStationToolLevel, 10);
+    TestEqual(TEXT("All item sources share the hard level-twenty cap"), FKalmalaToolLifecycleContract::MaxToolLevel, 20);
+    TestEqual(TEXT("Authored stats support levels through the hard cap"), UKalmalaToolCatalogue::MaxLevels, 20);
+    TestNull(TEXT("Station progression has no level-eleven target"),
+        FKalmalaToolProgressionContract::FindEntry(TEXT("BronzeAxe"), 11));
+    TestNull(TEXT("A level-ten item cannot be upgraded further by a station"),
+        FKalmalaToolProgressionContract::FindNextEntry(TEXT("BronzeAxe"), 10));
+    TestNull(TEXT("A non-station level-twenty item cannot enter station upgrades"),
+        FKalmalaToolProgressionContract::FindNextEntry(TEXT("BronzeAxe"), 20));
+    TestFalse(TEXT("Level twenty-one is rejected for any item"),
+        FKalmalaToolProgressionContract::IsValidToolLevel(TEXT("BronzeAxe"), 21));
+    TestFalse(TEXT("Zero remains an invalid carried-item level"),
+        FKalmalaToolProgressionContract::IsValidToolLevel(TEXT("BronzeAxe"), 0));
+    TestEqual(TEXT("Above-cap durability cannot authorize use, repair or saving"),
+        FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("BronzeAxe"), 21), 0);
+    TestEqual(TEXT("Above-cap damage cannot authorize combat"),
+        FKalmalaToolLifecycleContract::GetWeaponDamage(TEXT("BronzeAxe"), 21), 0.0f);
+    TestTrue(TEXT("Legacy Iron Axe level two remains valid"),
+        FKalmalaToolProgressionContract::IsValidToolLevel(TEXT("IronAxe"), 2));
+
+    // Use a transient catalogue so boundary authoring does not mutate live defaults.
+    const UKalmalaToolCatalogue* AuthoredCatalogue = UKalmalaToolCatalogue::Get();
+    UKalmalaToolCatalogue* BoundaryCatalogue = NewObject<UKalmalaToolCatalogue>();
+    BoundaryCatalogue->Profiles = AuthoredCatalogue->Profiles;
+    BoundaryCatalogue->Recipes = AuthoredCatalogue->Recipes;
+    BoundaryCatalogue->UpgradeCosts = AuthoredCatalogue->UpgradeCosts;
+    FKalmalaToolProfileData* BoundaryAxe = BoundaryCatalogue->Profiles.FindByPredicate(
+        [](const FKalmalaToolProfileData& Profile) { return Profile.ToolId == TEXT("BronzeAxe"); });
+    if (TestNotNull(TEXT("Boundary catalogue contains Bronze Axe"), BoundaryAxe))
+    {
+        while (BoundaryAxe->Levels.Num() < FKalmalaToolLifecycleContract::MaxToolLevel)
+        {
+            const int32 NextLevel = BoundaryAxe->Levels.Num() + 1;
+            FKalmalaToolLevelData& Stats = BoundaryAxe->Levels.AddDefaulted_GetRef();
+            Stats.ToolLevel = NextLevel;
+            Stats.MaxDurability = 150;
+            Stats.CombatDamage = 55.0f;
+        }
+        TestTrue(TEXT("Twenty authored levels are valid without level-twenty stations"),
+            BoundaryCatalogue->IsValidCatalogue());
+        FKalmalaToolLevelData& TooHigh = BoundaryAxe->Levels.AddDefaulted_GetRef();
+        TooHigh.ToolLevel = 21;
+        TooHigh.MaxDurability = 150;
+        TooHigh.CombatDamage = 55.0f;
+        TestFalse(TEXT("The catalogue rejects authored level twenty-one"),
+            BoundaryCatalogue->IsValidCatalogue());
+    }
+
     TArray<FKalmalaToolRecipeIngredientData> BaseCosts;
     FKalmalaToolRecipeIngredientData& Wood = BaseCosts.AddDefaulted_GetRef();
     Wood.ItemId = TEXT("Wood"); Wood.Quantity = 5;

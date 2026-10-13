@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "KalmalaToolCatalogue.generated.h"
 
 class UKalmalaItemCatalogue;
@@ -112,7 +113,7 @@ class KALMALAGAMEPLAY_API UKalmalaToolCatalogue : public UObject
 
 public:
     static constexpr int32 MaxProfiles = 32;
-    static constexpr int32 MaxLevels = 10;
+    static constexpr int32 MaxLevels = FKalmalaToolLifecycleContract::MaxToolLevel;
     static constexpr int32 MaxRecipes = 32;
     static constexpr int32 MaxIngredientsPerRecipe = 4;
 
