@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Condense equipment identity:** schema 12 profiles use ItemId and derive legacy set/kind/action/skill; keep authored stats and behavior. Lightweight checks passed; Unreal verification deferred.
+
 - [x] **2026-10-13 — Classify carried weapons:** mark knives/axes/maces/spears Weapon, retain pickaxes/hammer as Tool, and expose separate Inventory categories and detail labels. Lightweight checks passed; Unreal verification deferred.
 
 - [x] **2026-10-13 — Authored axe/pickaxe material tiers:** expose MaterialTier 1/2/3 in profiles and use it in server harvesting gates, independent of level. Lightweight validation passed; Unreal verification deferred.

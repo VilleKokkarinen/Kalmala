@@ -1,13 +1,9 @@
 {
   "toolProfiles": [
     {
-      "ToolId": "StoneAxe",
+      "ItemId": "StoneAxe",
       "DisplayName": "Stone Axe",
       "Description": "A simple stone axe for woodcutting and close combat.",
-      "ToolSet": "Starter",
-      "ToolKind": "StoneAxe",
-      "Action": "Woodcutting",
-      "RequiredSkill": "Woodcutting",
       "MinimumSkillLevel": 1,
       "MaxDurability": 24,
       "DamageBonuses": {
@@ -17,13 +13,9 @@
       "ItemCategory": "Weapon"
     },
     {
-      "ToolId": "BronzeAxe",
+      "ItemId": "BronzeAxe",
       "DisplayName": "Bronze Axe",
       "Description": "A bronze axe for woodcutting and slash attacks.",
-      "ToolSet": "Crafted",
-      "ToolKind": "BronzeAxe",
-      "Action": "Woodcutting",
-      "RequiredSkill": "Woodcutting",
       "MinimumSkillLevel": 1,
       "MaxDurability": 100,
       "DamageBonuses": {
@@ -33,13 +25,9 @@
       "ItemCategory": "Weapon"
     },
     {
-      "ToolId": "IronAxe",
+      "ItemId": "IronAxe",
       "DisplayName": "Iron Axe",
       "Description": "A strong iron axe for woodcutting and slash attacks.",
-      "ToolSet": "Crafted",
-      "ToolKind": "IronAxe",
-      "Action": "Woodcutting",
-      "RequiredSkill": "Woodcutting",
       "MinimumSkillLevel": 1,
       "MaxDurability": 180,
       "DamageBonuses": {

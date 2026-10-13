@@ -12,6 +12,44 @@
 
 namespace
 {
+    // Item authoring has one identity; legacy runtime fields are derived for shared equipment contracts.
+    bool NormalizeEquipmentProfiles(const TArray<TSharedPtr<FJsonValue>>& Values)
+    {
+        for (const TSharedPtr<FJsonValue>& Value : Values)
+        {
+            const TSharedPtr<FJsonObject> Object = Value->AsObject();
+            FString ItemId;
+            if (!Object.IsValid() || !Object->TryGetStringField(TEXT("ItemId"), ItemId)) return false;
+            for (const TCHAR* Retired : { TEXT("ToolId"), TEXT("ToolSet"), TEXT("ToolKind"),
+                TEXT("Action"), TEXT("RequiredSkill") })
+            {
+                if (Object->HasField(Retired)) return false;
+            }
+            FString Set;
+            FString Action = TEXT("None");
+            if (ItemId == TEXT("ConstructionHammer")) Set = TEXT("Utility");
+            else
+            {
+                FString Family;
+                if (ItemId.StartsWith(TEXT("Stone"))) { Set = TEXT("Starter"); Family = ItemId.Mid(5); }
+                else if (ItemId.StartsWith(TEXT("Bronze"))) { Set = TEXT("Crafted"); Family = ItemId.Mid(6); }
+                else if (ItemId.StartsWith(TEXT("Iron"))) { Set = TEXT("Crafted"); Family = ItemId.Mid(4); }
+                else return false;
+                if (Family == TEXT("Axe")) Action = TEXT("Woodcutting");
+                else if (Family == TEXT("Pick")) Action = TEXT("Mining");
+                else if (Family == TEXT("Knife")) Action = TEXT("Gathering");
+                else if (Family != TEXT("Mace") && Family != TEXT("Spear")) return false;
+            }
+            Object->RemoveField(TEXT("ItemId"));
+            Object->SetStringField(TEXT("ToolId"), ItemId);
+            Object->SetStringField(TEXT("ToolKind"), ItemId);
+            Object->SetStringField(TEXT("ToolSet"), Set);
+            Object->SetStringField(TEXT("Action"), Action);
+            Object->SetStringField(TEXT("RequiredSkill"), Action);
+        }
+        return true;
+    }
+
     enum class ECatalogueLoadState : uint8
     {
         NotStarted,
@@ -311,7 +349,7 @@ namespace
         }
 
         double SchemaVersion = 0.0;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 11.0)
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 12.0)
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an unsupported schema: %s"), *JsonPath);
             return false;
@@ -342,7 +380,7 @@ namespace
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, LevelUpRewardValues)
             || !LoadCategoryFiles(Root, TEXT("attackFiles"), TEXT("attackLists"), TEXT("tools"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, AttackListValues)
-            || !OrderCategoryValues(Root, TEXT("toolProfileOrder"), TEXT("ToolId"), ToolProfileValues)
+            || !OrderCategoryValues(Root, TEXT("toolProfileOrder"), TEXT("ItemId"), ToolProfileValues)
             || !OrderCategoryValues(Root, TEXT("toolRecipeOrder"), TEXT("RecipeId"), ToolRecipeValues))
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest could not load its category files: %s"), *JsonPath);
@@ -350,7 +388,8 @@ namespace
         }
 
         if (ItemValues.IsEmpty() || RecipeValues.IsEmpty() || ToolProfileValues.IsEmpty() || ToolRecipeValues.IsEmpty()
-            || !NormalizeCatalogueItemReferences(ItemValues, RecipeValues))
+            || !NormalizeCatalogueItemReferences(ItemValues, RecipeValues)
+            || !NormalizeEquipmentProfiles(ToolProfileValues))
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue category data has invalid clean item or station references: %s"), *JsonPath);
             return false;

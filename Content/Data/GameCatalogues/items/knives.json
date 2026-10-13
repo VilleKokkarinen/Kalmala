@@ -1,13 +1,9 @@
 {
   "toolProfiles": [
     {
-      "ToolId": "StoneKnife",
+      "ItemId": "StoneKnife",
       "DisplayName": "Stone Knife",
       "Description": "A chipped stone knife for gathering and close combat.",
-      "ToolSet": "Starter",
-      "ToolKind": "StoneKnife",
-      "Action": "Gathering",
-      "RequiredSkill": "Gathering",
       "MinimumSkillLevel": 1,
       "MaxDurability": 16,
       "DamageBonuses": {
@@ -16,13 +12,9 @@
       "ItemCategory": "Weapon"
     },
     {
-      "ToolId": "BronzeKnife",
+      "ItemId": "BronzeKnife",
       "DisplayName": "Bronze Knife",
       "Description": "A bronze knife for gathering and slash attacks.",
-      "ToolSet": "Crafted",
-      "ToolKind": "BronzeKnife",
-      "Action": "Gathering",
-      "RequiredSkill": "Gathering",
       "MinimumSkillLevel": 1,
       "MaxDurability": 48,
       "DamageBonuses": {
@@ -31,13 +23,9 @@
       "ItemCategory": "Weapon"
     },
     {
-      "ToolId": "IronKnife",
+      "ItemId": "IronKnife",
       "DisplayName": "Iron Knife",
       "Description": "A keen iron knife for gathering and slash attacks.",
-      "ToolSet": "Crafted",
-      "ToolKind": "IronKnife",
-      "Action": "Gathering",
-      "RequiredSkill": "Gathering",
       "MinimumSkillLevel": 1,
       "MaxDurability": 80,
       "DamageBonuses": {

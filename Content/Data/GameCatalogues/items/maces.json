@@ -1,13 +1,9 @@
 {
   "toolProfiles": [
     {
-      "ToolId": "StoneMace",
+      "ItemId": "StoneMace",
       "DisplayName": "Stone Mace",
       "Description": "A stone mace for crushing attacks.",
-      "ToolSet": "Starter",
-      "ToolKind": "StoneMace",
-      "Action": "None",
-      "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
       "MaxDurability": 16,
       "DamageBonuses": {
@@ -16,13 +12,9 @@
       "ItemCategory": "Weapon"
     },
     {
-      "ToolId": "BronzeMace",
+      "ItemId": "BronzeMace",
       "DisplayName": "Bronze Mace",
       "Description": "A bronze mace for crushing attacks.",
-      "ToolSet": "Crafted",
-      "ToolKind": "BronzeMace",
-      "Action": "None",
-      "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
       "MaxDurability": 48,
       "DamageBonuses": {
@@ -31,13 +23,9 @@
       "ItemCategory": "Weapon"
     },
     {
-      "ToolId": "IronMace",
+      "ItemId": "IronMace",
       "DisplayName": "Iron Mace",
       "Description": "A iron mace for crushing attacks.",
-      "ToolSet": "Crafted",
-      "ToolKind": "IronMace",
-      "Action": "None",
-      "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
       "MaxDurability": 80,
       "DamageBonuses": {

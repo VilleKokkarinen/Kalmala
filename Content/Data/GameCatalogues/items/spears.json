@@ -1,13 +1,9 @@
 {
   "toolProfiles": [
     {
-      "ToolId": "StoneSpear",
+      "ItemId": "StoneSpear",
       "DisplayName": "Stone Spear",
       "Description": "A stone-tipped spear for piercing attacks.",
-      "ToolSet": "Starter",
-      "ToolKind": "StoneSpear",
-      "Action": "None",
-      "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
       "MaxDurability": 36,
       "DamageBonuses": {
@@ -16,13 +12,9 @@
       "ItemCategory": "Weapon"
     },
     {
-      "ToolId": "BronzeSpear",
+      "ItemId": "BronzeSpear",
       "DisplayName": "Bronze Spear",
       "Description": "A bronze-tipped spear for piercing attacks.",
-      "ToolSet": "Crafted",
-      "ToolKind": "BronzeSpear",
-      "Action": "None",
-      "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
       "MaxDurability": 90,
       "DamageBonuses": {
@@ -31,13 +23,9 @@
       "ItemCategory": "Weapon"
     },
     {
-      "ToolId": "IronSpear",
+      "ItemId": "IronSpear",
       "DisplayName": "Iron Spear",
       "Description": "An iron-tipped spear for piercing attacks.",
-      "ToolSet": "Crafted",
-      "ToolKind": "IronSpear",
-      "Action": "None",
-      "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
       "MaxDurability": 150,
       "DamageBonuses": {

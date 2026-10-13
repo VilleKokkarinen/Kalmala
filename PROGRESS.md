@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Condensed equipment identity
+
+- **Completed/files:** six equipment JSON profile files replace ToolId with ItemId and remove ToolSet, ToolKind, Action and RequiredSkill. Manifest and GameCatalogueLoader.cpp use schema 12 and ItemId ordering. Loader derives existing runtime metadata from the validated tier/family identity before strict conversion. Architecture/setup docs and BACKLOG updated.
+- **Checks:** parsed all catalogue JSON; reconstructed legacy metadata for all 16 profiles and compared against prior definitions; checked ordering/schema agreement, unknown identities and retired-field rejection by source inspection. git diff --check and staged MAX_PATH/scope checks passed. Full Unreal build/automation/runtime verification deferred; normal increment, not milestone-final.
+- **Impact/authority:** one authored identity now defines kind, starter/acquisition set and harvesting action/skill. Base stats, MinimumSkillLevel, material tiers/categories, rewards/attacks and server behavior are preserved. Saved tool IDs and runtime contracts remain unchanged; no RPC/save schema change.
+- **Limitations:** supported identities remain Stone/Bronze/Iron Knife/Axe/Pick/Spear/Mace and ConstructionHammer; new families require a server mapping. Existing user item/reward stats and unrelated edits are preserved and excluded from commit.
+- **Next eligible task:** surface remaining tier acquisitions/stats/costs in station and Inventory Craft views.
+
 ## User-directed increment 2026-10-13 — Weapon classification
 
 - **Completed/files:** six equipment profile JSON files author ItemCategory Weapon for the 12 knife/axe/mace/spear identities and Tool for three pickaxes plus hammer. ToolCatalogue.h/.cpp declares and validates the field. InventoryInspectWidget.cpp/.h adds a Weapons category and separates Tools; ItemDetailWidget.cpp labels equipment Weapon or Tool; InventoryBrowseTest.cpp category assertions updated. Architecture/setup docs and BACKLOG updated.
