@@ -399,9 +399,14 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FStri
 
     Inventory->SynchronizeGridFromServer();
     Character->ForceNetUpdate();
-    Reason = FString::Printf(Entry->PreviousToolId.IsNone()
-        ? TEXT("Crafted %s at level %d") : TEXT("Upgraded %s to level %d"),
-        *ToolId.ToString(), Entry->TargetToolLevel);
+    if (Entry->PreviousToolId.IsNone())
+    {
+        Reason = FString::Printf(TEXT("Crafted %s at level %d"), *ToolId.ToString(), Entry->TargetToolLevel);
+    }
+    else
+    {
+        Reason = FString::Printf(TEXT("Upgraded %s to level %d"), *ToolId.ToString(), Entry->TargetToolLevel);
+    }
     return true;
 }
 

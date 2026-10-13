@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Fix crafting result format compile error
+
+- **Completed:** replaced the conditional `FString::Printf` format argument in the crafting progression result with separate checked format literals for craft and upgrade outcomes. The result text and progression behavior are unchanged.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** matched the repair directly to the pasted Unreal compiler diagnostic and inspected the resulting branch and call signatures. `git diff --check` passed. No Unreal build or automation suite was run; full verification remains deferred.
+- **Impact and authority:** compile-only correction to an existing server-side progression result message. Tool progression, server authority, networking, inventory, and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. The reported C2664 is resolved in source, but compiler confirmation remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Upgrade tools in place
 
 - **Completed:** changed Forge progression from Bronze Axe level 1 → Iron Axe level 2 to Bronze Axe level 1 → Bronze Axe level 2. The upgrade now changes only the carried tool's level, keeps its inventory ID/cell and current condition, and charges the existing Lightwood, Peat Amber, Stone, and Fibre costs. Level 2 gains the Iron woodcutting tier and unlocks Ironheart trunks/Densewood. Catalogue validation rejects cross-item upgrade links, and legacy Iron Axe level-2 save records remain readable.
