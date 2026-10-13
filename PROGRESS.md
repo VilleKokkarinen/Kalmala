@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Equipment items arrays
+
+- **Completed/files:** five equipment item-family JSON files and tools/building-hammer.json now use the root items array instead of toolProfiles. GameCatalogueLoader.cpp reads items in both equipment category passes. Architecture/setup docs and BACKLOG updated.
+- **Checks:** parsed all category JSON; manifest equipment lists assemble 16 unique ItemIds with complete ordered coverage. Staged JSON comparison confirms only the root key changed. Source inspection confirms ordinary and equipment item arrays remain separate by manifest category. git diff --check and staged MAX_PATH/scope checks passed.
+- **Impact/authority:** simpler authoring names with unchanged runtime definitions, bounds, server authority, stats, attacks/rewards, costs or saved fields. User item/reward edits and unrelated changes preserved and excluded.
+- **Verification/limitations:** normal user-directed increment; full Unreal build/automation/runtime verification deferred. Manifest equipment file/order keys and internal shared lifecycle names retain compatibility.
+- **Next eligible task:** convert decorative forest into individually attackable sources with compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-13 — Station-only crafting/upgrade eligibility
 
 - **Completed/files:** ToolProgressionContract.cpp removes player-skill/second-tier-unlock gating and character skill-component lookup; its header documents the ignored compatibility ledger argument. CraftingComponent.cpp removes skill requirement/blocker text and skill-state lookup from equipment progression presentation. CraftingSubsystem.cpp Forge verification now expects station-only requirements. M9ToolStationProgressionTest.cpp additionally supplies an uninitialized ledger to demonstrate independence. Core design/architecture/setup docs and BACKLOG updated.

@@ -369,9 +369,9 @@ namespace
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 32, TotalJsonCharacters, RecipeValues)
             || !OrderCategoryValues(Root, TEXT("recipeOrder"), TEXT("RecipeId"), RecipeValues)
-            || !LoadCategoryFiles(Root, TEXT("toolProfileFiles"), TEXT("toolProfiles"), TEXT("items"),
+            || !LoadCategoryFiles(Root, TEXT("toolProfileFiles"), TEXT("items"), TEXT("items"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
-            || !LoadCategoryFiles(Root, TEXT("toolFiles"), TEXT("toolProfiles"), TEXT("tools"),
+            || !LoadCategoryFiles(Root, TEXT("toolFiles"), TEXT("items"), TEXT("tools"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
             || !LoadCategoryFiles(Root, TEXT("toolRecipeFiles"), TEXT("toolRecipes"), TEXT("recipes"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues)
