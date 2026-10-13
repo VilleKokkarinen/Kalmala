@@ -1,0 +1,140 @@
+{
+  "attackLists": [
+    {
+      "AttackListId": "Axes",
+      "ItemIds": [
+        "StoneAxe",
+        "BronzeAxe",
+        "IronAxe"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Basic",
+          "DamageBonuses": {
+            "Slash": 0.0,
+            "Stab": 0.0,
+            "Crush": 0.0,
+            "Pierce": 0.0,
+            "Fire": 0.0,
+            "Water": 0.0,
+            "Holy": 0.0,
+            "Poison": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "AttackListId": "Knives",
+      "ItemIds": [
+        "StoneKnife",
+        "BronzeKnife",
+        "IronKnife"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Basic",
+          "DamageBonuses": {
+            "Slash": 0.0,
+            "Stab": 0.0,
+            "Crush": 0.0,
+            "Pierce": 0.0,
+            "Fire": 0.0,
+            "Water": 0.0,
+            "Holy": 0.0,
+            "Poison": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "AttackListId": "Pickaxes",
+      "ItemIds": [
+        "StonePick",
+        "BronzePick",
+        "IronPick"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Basic",
+          "DamageBonuses": {
+            "Slash": 0.0,
+            "Stab": 0.0,
+            "Crush": 0.0,
+            "Pierce": 0.0,
+            "Fire": 0.0,
+            "Water": 0.0,
+            "Holy": 0.0,
+            "Poison": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "AttackListId": "Spears",
+      "ItemIds": [
+        "StoneSpear",
+        "BronzeSpear",
+        "IronSpear"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Basic",
+          "DamageBonuses": {
+            "Slash": 0.0,
+            "Stab": 0.0,
+            "Crush": 0.0,
+            "Pierce": 0.0,
+            "Fire": 0.0,
+            "Water": 0.0,
+            "Holy": 0.0,
+            "Poison": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "AttackListId": "Maces",
+      "ItemIds": [
+        "StoneMace",
+        "BronzeMace",
+        "IronMace"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Basic",
+          "DamageBonuses": {
+            "Slash": 0.0,
+            "Stab": 0.0,
+            "Crush": 0.0,
+            "Pierce": 0.0,
+            "Fire": 0.0,
+            "Water": 0.0,
+            "Holy": 0.0,
+            "Poison": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "AttackListId": "BuildingHammer",
+      "ItemIds": [
+        "ConstructionHammer"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Basic",
+          "DamageBonuses": {
+            "Slash": 0.0,
+            "Stab": 0.0,
+            "Crush": 0.0,
+            "Pierce": 0.0,
+            "Fire": 0.0,
+            "Water": 0.0,
+            "Holy": 0.0,
+            "Poison": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

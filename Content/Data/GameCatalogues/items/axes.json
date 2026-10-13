@@ -9,21 +9,6 @@
       "Action": "Woodcutting",
       "RequiredSkill": "Woodcutting",
       "MinimumSkillLevel": 1,
-      "Attacks": [
-        {
-          "AttackId": "Basic",
-          "DamageBonuses": {
-            "Slash": 0.0,
-            "Stab": 0.0,
-            "Crush": 0.0,
-            "Pierce": 0.0,
-            "Fire": 0.0,
-            "Water": 0.0,
-            "Holy": 0.0,
-            "Poison": 0.0
-          }
-        }
-      ],
       "MaxDurability": 24,
       "DamageBonuses": {
         "Slash": 34.0,
@@ -45,21 +30,6 @@
       "Action": "Woodcutting",
       "RequiredSkill": "Woodcutting",
       "MinimumSkillLevel": 1,
-      "Attacks": [
-        {
-          "AttackId": "Basic",
-          "DamageBonuses": {
-            "Slash": 0.0,
-            "Stab": 0.0,
-            "Crush": 0.0,
-            "Pierce": 0.0,
-            "Fire": 0.0,
-            "Water": 0.0,
-            "Holy": 0.0,
-            "Poison": 0.0
-          }
-        }
-      ],
       "MaxDurability": 100,
       "DamageBonuses": {
         "Slash": 50.0,
@@ -81,21 +51,6 @@
       "Action": "Woodcutting",
       "RequiredSkill": "Woodcutting",
       "MinimumSkillLevel": 1,
-      "Attacks": [
-        {
-          "AttackId": "Basic",
-          "DamageBonuses": {
-            "Slash": 0.0,
-            "Stab": 0.0,
-            "Crush": 0.0,
-            "Pierce": 0.0,
-            "Fire": 0.0,
-            "Water": 0.0,
-            "Holy": 0.0,
-            "Poison": 0.0
-          }
-        }
-      ],
       "MaxDurability": 180,
       "DamageBonuses": {
         "Slash": 72.0,

@@ -31,6 +31,22 @@ struct KALMALAGAMEPLAY_API FKalmalaLevelUpRewardGroupData
     FKalmalaToolRewardData LevelUpReward;
 };
 
+/** Shared attack styles for all tier identities of a weapon family. */
+USTRUCT()
+struct KALMALAGAMEPLAY_API FKalmalaWeaponAttackListData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere)
+    FName AttackListId;
+
+    UPROPERTY(EditAnywhere)
+    TArray<FName> ItemIds;
+
+    UPROPERTY(EditAnywhere)
+    TArray<FKalmalaWeaponAttackData> Attacks;
+};
+
 USTRUCT()
 struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
 {
@@ -59,9 +75,6 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
 
     UPROPERTY(EditAnywhere)
     int32 MinimumSkillLevel = 1;
-
-    UPROPERTY(EditAnywhere)
-    TArray<FKalmalaWeaponAttackData> Attacks;
 
     UPROPERTY(EditAnywhere)
     int32 MaxDurability = 0;
@@ -143,6 +156,10 @@ public:
     UPROPERTY(EditDefaultsOnly)
     TArray<FKalmalaLevelUpRewardGroupData> LevelUpRewards;
 
+    UPROPERTY(EditDefaultsOnly)
+    TArray<FKalmalaWeaponAttackListData> AttackLists;
+
+    const TArray<FKalmalaWeaponAttackData>& GetAttacks(FName ToolId) const;
     static bool ScaleUpgradeCosts(const TArray<FKalmalaToolRecipeIngredientData>& BaseCosts,
         int32 CurrentLevel, TArray<FKalmalaToolRecipeIngredientData>& OutCosts);
     const FKalmalaToolRewardData& GetLevelUpReward(FName ToolId) const;

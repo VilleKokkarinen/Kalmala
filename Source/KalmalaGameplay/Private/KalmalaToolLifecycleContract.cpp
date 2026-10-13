@@ -57,7 +57,7 @@ namespace
         Definition.Action = ParseToolAction(Profile.Action);
         Definition.RequiredSkill = ParseToolSkill(Profile.RequiredSkill);
         Definition.MinimumSkillLevel = Profile.MinimumSkillLevel;
-        Definition.Attacks = Profile.Attacks;
+        Definition.Attacks = Catalogue.GetAttacks(Profile.ToolId);
         for (int32 ToolLevel = 1; ToolLevel <= FKalmalaToolLifecycleContract::MaxToolLevel; ++ToolLevel)
         {
             FKalmalaToolLevelStats Level;

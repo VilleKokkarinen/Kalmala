@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Share attacks by weapon family:** move item Attacks arrays into tools/Attacks.json; axe/knife/pickaxe/spear/mace tiers each share one list with validated membership and unchanged Basic values.
+
 - [x] **2026-10-13 — Share level rewards across items:** move rewards to tools/LevelUpRewards.json with explicit item groups; all axes share +5 slash/+50 durability per level, with validated references and zero default gains for unlisted items.
 
 - [x] **2026-10-13 — Replace item Levels with LevelUpReward:** define base durability/damage plus additive per-level gains; derive stats through 20 and configured station upgrade recipes through 10, preserving existing level-one/two gains.

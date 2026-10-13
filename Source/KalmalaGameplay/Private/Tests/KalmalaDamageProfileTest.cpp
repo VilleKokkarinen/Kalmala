@@ -90,7 +90,36 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
             TestTrue(TEXT("Appended mace kind is allowlisted"), FKalmalaToolLifecycleContract::IsKnownTool(Definition->Kind));
         }
     }
-    TestTrue(TEXT("The migrated mixed-channel catalogue remains valid"), UKalmalaToolCatalogue::Get()->IsValidCatalogue());
+    const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
+    TestTrue(TEXT("Knife tiers share one attack list"),
+        &Catalogue->GetAttacks(TEXT("StoneKnife")) == &Catalogue->GetAttacks(TEXT("BronzeKnife"))
+        && &Catalogue->GetAttacks(TEXT("StoneKnife")) == &Catalogue->GetAttacks(TEXT("IronKnife")));
+    TestTrue(TEXT("Axes have their own family list"),
+        &Catalogue->GetAttacks(TEXT("StoneAxe")) != &Catalogue->GetAttacks(TEXT("StoneKnife")));
+    UKalmalaToolCatalogue* InvalidCatalogue = NewObject<UKalmalaToolCatalogue>();
+    InvalidCatalogue->Profiles = Catalogue->Profiles;
+    InvalidCatalogue->Recipes = Catalogue->Recipes;
+    InvalidCatalogue->UpgradeCosts = Catalogue->UpgradeCosts;
+    InvalidCatalogue->LevelUpRewards = Catalogue->LevelUpRewards;
+    InvalidCatalogue->AttackLists = Catalogue->AttackLists;
+    if (!InvalidCatalogue->AttackLists.IsEmpty())
+    {
+        const FKalmalaWeaponAttackListData Original = InvalidCatalogue->AttackLists[0];
+        InvalidCatalogue->AttackLists[0].ItemIds.Add(TEXT("UnknownTool"));
+        TestFalse(TEXT("Unknown shared attack item IDs are rejected"), InvalidCatalogue->IsValidCatalogue());
+        InvalidCatalogue->AttackLists[0] = Original;
+        FKalmalaWeaponAttackListData Overlap = Original;
+        Overlap.AttackListId = TEXT("Overlap");
+        InvalidCatalogue->AttackLists.Add(Overlap);
+        TestFalse(TEXT("Overlapping attack lists are rejected"), InvalidCatalogue->IsValidCatalogue());
+        InvalidCatalogue->AttackLists.RemoveAt(InvalidCatalogue->AttackLists.Num() - 1);
+        InvalidCatalogue->AttackLists[0].Attacks.Reset();
+        TestFalse(TEXT("Empty family attack lists are rejected"), InvalidCatalogue->IsValidCatalogue());
+        InvalidCatalogue->AttackLists[0] = Original;
+        InvalidCatalogue->AttackLists[0].Attacks.Add(Original.Attacks[0]);
+        TestFalse(TEXT("Duplicate attack styles are rejected"), InvalidCatalogue->IsValidCatalogue());
+    }
+    TestTrue(TEXT("The migrated mixed-channel catalogue remains valid"), Catalogue->IsValidCatalogue());
     return true;
 }
 #endif

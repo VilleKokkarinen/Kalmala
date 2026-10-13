@@ -46,6 +46,30 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         }
     }
 
+    if (AttackLists.IsEmpty() || AttackLists.Num() > MaxProfiles) return false;
+    TSet<FName> AttackListIds;
+    TSet<FName> AttackItemIds;
+    for (const FKalmalaWeaponAttackListData& List : AttackLists)
+    {
+        if (List.AttackListId.IsNone() || List.AttackListId.ToString().Len() > 32
+            || AttackListIds.Contains(List.AttackListId) || List.ItemIds.IsEmpty() || List.ItemIds.Num() > MaxProfiles
+            || List.Attacks.IsEmpty() || List.Attacks.Num() > 8) return false;
+        AttackListIds.Add(List.AttackListId);
+        TSet<FName> SeenAttacks;
+        for (const FKalmalaWeaponAttackData& Attack : List.Attacks)
+        {
+            if (Attack.AttackId.IsNone() || Attack.AttackId.ToString().Len() > 32
+                || SeenAttacks.Contains(Attack.AttackId) || !Attack.DamageBonuses.IsValid(1000.0f)) return false;
+            SeenAttacks.Add(Attack.AttackId);
+        }
+        if (!SeenAttacks.Contains(TEXT("Basic"))) return false;
+        for (const FName ItemId : List.ItemIds)
+        {
+            if (ItemId.IsNone() || AttackItemIds.Contains(ItemId) || !FindProfile(ItemId)) return false;
+            AttackItemIds.Add(ItemId);
+        }
+    }
+
     TSet<FName> SeenToolIds;
     TSet<FString> SeenToolKinds;
     int32 StarterCount = 0;
@@ -53,7 +77,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     int32 UtilityCount = 0;
     for (const FKalmalaToolProfileData& Profile : Profiles)
     {
-        if (Profile.ToolId.IsNone() || SeenToolIds.Contains(Profile.ToolId)
+        if (Profile.ToolId.IsNone() || SeenToolIds.Contains(Profile.ToolId) || !AttackItemIds.Contains(Profile.ToolId)
             || Profile.DisplayName.TrimStartAndEnd().IsEmpty() || Profile.DisplayName.Len() > 64
             || Profile.Description.TrimStartAndEnd().IsEmpty() || Profile.Description.Len() > 180
             || SeenToolKinds.Contains(Profile.ToolKind)
@@ -78,16 +102,6 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         if (Profile.ToolSet == TEXT("Starter")) ++StarterCount;
         else if (Profile.ToolSet == TEXT("Crafted")) ++CraftedCount;
         else ++UtilityCount;
-
-        if (Profile.Attacks.IsEmpty() || Profile.Attacks.Num() > 8) return false;
-        TSet<FName> SeenAttacks;
-        for (const FKalmalaWeaponAttackData& Attack : Profile.Attacks)
-        {
-            if (Attack.AttackId.IsNone() || Attack.AttackId.ToString().Len() > 32
-                || SeenAttacks.Contains(Attack.AttackId) || !Attack.DamageBonuses.IsValid(1000.0f)) return false;
-            SeenAttacks.Add(Attack.AttackId);
-        }
-        if (!SeenAttacks.Contains(TEXT("Basic"))) return false;
 
         for (int32 ToolLevel = 1; ToolLevel <= MaxLevels; ++ToolLevel)
         {
@@ -236,4 +250,12 @@ bool UKalmalaToolCatalogue::GetLevelStats(const FName ToolId, const int32 ToolLe
     OutStats = {};
     const FKalmalaToolProfileData* Profile = FindProfile(ToolId);
     return Profile && Profile->GetLevelStats(ToolLevel, GetLevelUpReward(ToolId), OutStats);
+}
+
+const TArray<FKalmalaWeaponAttackData>& UKalmalaToolCatalogue::GetAttacks(const FName ToolId) const
+{
+    const FKalmalaWeaponAttackListData* List = AttackLists.FindByPredicate(
+        [ToolId](const FKalmalaWeaponAttackListData& Entry) { return Entry.ItemIds.Contains(ToolId); });
+    static const TArray<FKalmalaWeaponAttackData> NoAttacks;
+    return List ? List->Attacks : NoAttacks;
 }

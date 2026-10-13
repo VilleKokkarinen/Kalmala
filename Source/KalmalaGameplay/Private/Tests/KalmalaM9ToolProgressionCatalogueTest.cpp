@@ -43,6 +43,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     BoundaryCatalogue->Recipes = AuthoredCatalogue->Recipes;
     BoundaryCatalogue->UpgradeCosts = AuthoredCatalogue->UpgradeCosts;
     BoundaryCatalogue->LevelUpRewards = AuthoredCatalogue->LevelUpRewards;
+    BoundaryCatalogue->AttackLists = AuthoredCatalogue->AttackLists;
     FKalmalaToolProfileData* BoundaryAxe = BoundaryCatalogue->Profiles.FindByPredicate(
         [](const FKalmalaToolProfileData& Profile) { return Profile.ToolId == TEXT("BronzeAxe"); });
     if (TestNotNull(TEXT("Boundary catalogue contains Bronze Axe"), BoundaryAxe))
