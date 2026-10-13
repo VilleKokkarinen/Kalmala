@@ -164,6 +164,94 @@ namespace
         return true;
     }
 
+    bool IsValidCategoryPath(const FString& RelativePath, const TCHAR* ExpectedDirectory, FString& OutNormalizedPath)
+    {
+        OutNormalizedPath = RelativePath.Replace(TEXT("\\"), TEXT("/"));
+        if (OutNormalizedPath.IsEmpty() || OutNormalizedPath.StartsWith(TEXT("/"))
+            || OutNormalizedPath.EndsWith(TEXT("/")) || OutNormalizedPath.Contains(TEXT(":")))
+        {
+            return false;
+        }
+
+        TArray<FString> PathParts;
+        OutNormalizedPath.ParseIntoArray(PathParts, TEXT("/"), false);
+        if (PathParts.Num() != 2 || PathParts[0] != ExpectedDirectory
+            || PathParts[1].IsEmpty() || !PathParts[1].EndsWith(TEXT(".json"), ESearchCase::IgnoreCase))
+        {
+            return false;
+        }
+
+        for (const FString& Part : PathParts)
+        {
+            if (Part == TEXT(".") || Part == TEXT("..")) return false;
+            for (const TCHAR Character : Part)
+            {
+                const bool bAllowed = (Character >= TEXT('a') && Character <= TEXT('z'))
+                    || (Character >= TEXT('A') && Character <= TEXT('Z'))
+                    || (Character >= TEXT('0') && Character <= TEXT('9'))
+                    || Character == TEXT('-') || Character == TEXT('_') || Character == TEXT('.');
+                if (!bAllowed) return false;
+            }
+        }
+        return true;
+    }
+
+    bool LoadCategoryFiles(const TSharedPtr<FJsonObject>& Manifest, const TCHAR* ManifestField,
+        const TCHAR* ArrayField, const TCHAR* ExpectedDirectory, int32 MaxEntries,
+        int32& InOutJsonCharacters, TArray<TSharedPtr<FJsonValue>>& OutValues)
+    {
+        const TArray<TSharedPtr<FJsonValue>>* FileValues = nullptr;
+        if (!Manifest.IsValid() || !Manifest->TryGetArrayField(ManifestField, FileValues)
+            || FileValues == nullptr || FileValues->IsEmpty() || FileValues->Num() > 16)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an invalid file list: %s"), ManifestField);
+            return false;
+        }
+
+        OutValues.Reset();
+        for (const TSharedPtr<FJsonValue>& FileValue : *FileValues)
+        {
+            if (!FileValue.IsValid() || FileValue->Type != EJson::String)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest contains a non-string file path: %s"), ManifestField);
+                return false;
+            }
+
+            FString RelativePath;
+            if (!IsValidCategoryPath(FileValue->AsString(), ExpectedDirectory, RelativePath))
+            {
+                UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest contains an unsafe category path: %s"),
+                    *FileValue->AsString());
+                return false;
+            }
+
+            FString CategoryPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Data/GameCatalogues"));
+            CategoryPath = FPaths::Combine(CategoryPath, RelativePath);
+            FString CategoryText;
+            if (!FFileHelper::LoadFileToString(CategoryText, *CategoryPath) || CategoryText.IsEmpty()
+                || CategoryText.Len() > 262144 - InOutJsonCharacters)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Could not read bounded gameplay catalogue category at %s"), *CategoryPath);
+                return false;
+            }
+            InOutJsonCharacters += CategoryText.Len();
+
+            const TSharedRef<TJsonReader<>> CategoryReader = TJsonReaderFactory<>::Create(CategoryText);
+            TSharedPtr<FJsonObject> CategoryRoot;
+            const TArray<TSharedPtr<FJsonValue>>* CategoryValues = nullptr;
+            if (!FJsonSerializer::Deserialize(CategoryReader, CategoryRoot) || !CategoryRoot.IsValid()
+                || !CategoryRoot->TryGetArrayField(ArrayField, CategoryValues) || CategoryValues == nullptr
+                || CategoryValues->IsEmpty() || OutValues.Num() + CategoryValues->Num() > MaxEntries)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue category is malformed or exceeds its bounds: %s"),
+                    *CategoryPath);
+                return false;
+            }
+            OutValues.Append(*CategoryValues);
+        }
+        return true;
+    }
+
     bool LoadCataloguesFromJson()
     {
         const FString JsonPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Data/GameCatalogues.json"));
@@ -183,29 +271,34 @@ namespace
         }
 
         double SchemaVersion = 0.0;
-        const TArray<TSharedPtr<FJsonValue>>* ItemValues = nullptr;
-        const TArray<TSharedPtr<FJsonValue>>* RecipeValues = nullptr;
-        const TArray<TSharedPtr<FJsonValue>>* ToolProfileValues = nullptr;
-        const TArray<TSharedPtr<FJsonValue>>* ToolRecipeValues = nullptr;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 5.0
-            || !Root->TryGetArrayField(TEXT("items"), ItemValues)
-            || !Root->TryGetArrayField(TEXT("recipes"), RecipeValues)
-            || !Root->TryGetArrayField(TEXT("toolProfiles"), ToolProfileValues)
-            || !Root->TryGetArrayField(TEXT("toolRecipes"), ToolRecipeValues)
-            || ItemValues == nullptr || RecipeValues == nullptr
-            || ToolProfileValues == nullptr || ToolRecipeValues == nullptr
-            || ItemValues->IsEmpty() || ItemValues->Num() > UKalmalaItemCatalogue::MaxDefinitions
-            || RecipeValues->IsEmpty() || RecipeValues->Num() > 32
-            || ToolProfileValues->IsEmpty() || ToolProfileValues->Num() > UKalmalaToolCatalogue::MaxProfiles
-            || ToolRecipeValues->IsEmpty() || ToolRecipeValues->Num() > UKalmalaToolCatalogue::MaxRecipes)
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 5.0)
         {
-            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON has an unsupported schema or invalid catalogue bounds: %s"), *JsonPath);
+            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an unsupported schema: %s"), *JsonPath);
             return false;
         }
 
-        if (!NormalizeCatalogueItemReferences(*ItemValues, *RecipeValues))
+        int32 TotalJsonCharacters = JsonText.Len();
+        TArray<TSharedPtr<FJsonValue>> ItemValues;
+        TArray<TSharedPtr<FJsonValue>> RecipeValues;
+        TArray<TSharedPtr<FJsonValue>> ToolProfileValues;
+        TArray<TSharedPtr<FJsonValue>> ToolRecipeValues;
+        if (!LoadCategoryFiles(Root, TEXT("itemFiles"), TEXT("items"), TEXT("items"),
+                UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues)
+            || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
+                32, TotalJsonCharacters, RecipeValues)
+            || !LoadCategoryFiles(Root, TEXT("toolProfileFiles"), TEXT("toolProfiles"), TEXT("tools"),
+                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
+            || !LoadCategoryFiles(Root, TEXT("toolRecipeFiles"), TEXT("toolRecipes"), TEXT("tools"),
+                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues))
         {
-            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON has invalid clean item or station references: %s"), *JsonPath);
+            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest could not load its category files: %s"), *JsonPath);
+            return false;
+        }
+
+        if (ItemValues.IsEmpty() || RecipeValues.IsEmpty() || ToolProfileValues.IsEmpty() || ToolRecipeValues.IsEmpty()
+            || !NormalizeCatalogueItemReferences(ItemValues, RecipeValues))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue category data has invalid clean item or station references: %s"), *JsonPath);
             return false;
         }
 
@@ -213,14 +306,14 @@ namespace
         TArray<FKalmalaRecipe> ParsedRecipes;
         TArray<FKalmalaToolProfileData> ParsedToolProfiles;
         TArray<FKalmalaToolRecipeData> ParsedToolRecipes;
-        if (!FJsonObjectConverter::JsonArrayToUStruct<FKalmalaItemDefinition>(*ItemValues, &ParsedItems, 0, 0, true)
-            || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaRecipe>(*RecipeValues, &ParsedRecipes, 0, 0, true)
+        if (!FJsonObjectConverter::JsonArrayToUStruct<FKalmalaItemDefinition>(ItemValues, &ParsedItems, 0, 0, true)
+            || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaRecipe>(RecipeValues, &ParsedRecipes, 0, 0, true)
             || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaToolProfileData>(
-                *ToolProfileValues, &ParsedToolProfiles, 0, 0, true)
+                ToolProfileValues, &ParsedToolProfiles, 0, 0, true)
             || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaToolRecipeData>(
-                *ToolRecipeValues, &ParsedToolRecipes, 0, 0, true))
+                ToolRecipeValues, &ParsedToolRecipes, 0, 0, true))
         {
-            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON does not match its item, recipe, and tool definitions: %s"), *JsonPath);
+            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue data does not match its item, recipe, and tool definitions: %s"), *JsonPath);
             return false;
         }
 

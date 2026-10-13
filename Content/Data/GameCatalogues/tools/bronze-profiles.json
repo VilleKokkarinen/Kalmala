@@ -1,0 +1,85 @@
+{
+  "toolProfiles": [
+    {
+      "ToolId": "BronzeAxe",
+      "DisplayName": "Bronze Axe",
+      "Description": "A bronze axe for woodcutting and slash attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzeAxe",
+      "Action": "Woodcutting",
+      "RequiredSkill": "Woodcutting",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 100,
+          "CombatDamage": 50.0
+        },
+        {
+          "ToolLevel": 2,
+          "MaxDurability": 150,
+          "CombatDamage": 55.0
+        }
+      ]
+    },
+    {
+      "ToolId": "BronzeKnife",
+      "DisplayName": "Bronze Knife",
+      "Description": "A bronze knife for gathering and slash attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzeKnife",
+      "Action": "Gathering",
+      "RequiredSkill": "Gathering",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Slash",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 48,
+          "CombatDamage": 42.0
+        }
+      ]
+    },
+    {
+      "ToolId": "BronzePick",
+      "DisplayName": "Bronze Pick",
+      "Description": "A bronze pick for mining and blunt attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzePick",
+      "Action": "Mining",
+      "RequiredSkill": "Mining",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Blunt",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 90,
+          "CombatDamage": 38.0
+        }
+      ]
+    },
+    {
+      "ToolId": "BronzeSpear",
+      "DisplayName": "Bronze Spear",
+      "Description": "A bronze-tipped spear for piercing attacks.",
+      "ToolSet": "Crafted",
+      "ToolKind": "BronzeSpear",
+      "Action": "None",
+      "RequiredSkill": "None",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 1,
+      "DamageType": "Pierce",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 90,
+          "CombatDamage": 58.0
+        }
+      ]
+    }
+  ]
+}

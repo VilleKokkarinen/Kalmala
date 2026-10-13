@@ -1,0 +1,76 @@
+{
+  "items": [
+    {
+      "ItemId": "MirelingAsh",
+      "DisplayName": "Mireling Ember Ash",
+      "Description": "Fine, soot-dark ash left by a Mireling.",
+      "MaxStack": 25
+    },
+    {
+      "ItemId": "BoarMeat",
+      "DisplayName": "Boar Meat",
+      "Description": "Rich boar meat for roasting over a fire.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "BoarHide",
+      "DisplayName": "Boar Hide",
+      "Description": "A coarse, bristled hide taken from a boar.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "DeerMeat",
+      "DisplayName": "Deer Meat",
+      "Description": "Lean deer meat for roasting or stew.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "DeerHide",
+      "DisplayName": "Deer Hide",
+      "Description": "A soft hide taken from a deer.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "CookedBoarMeat",
+      "DisplayName": "Cooked Boar Meat",
+      "Description": "Roasted boar meat, ready to eat.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "CookedDeerMeat",
+      "DisplayName": "Cooked Deer Meat",
+      "Description": "Roasted deer meat, ready to eat.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "HearthBroth",
+      "DisplayName": "Hearth Broth",
+      "Description": "A simple savory broth for a camp meal.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "MeatStew",
+      "DisplayName": "Meat Stew",
+      "Description": "A hearty stew of boar and deer meat with carrots and potatoes.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "RootVegetableSoup",
+      "DisplayName": "Root Vegetable Soup",
+      "Description": "Carrot, potato, rutabaga, and onion simmered in a cauldron.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "RoastedRootVegetables",
+      "DisplayName": "Roasted Root Vegetables",
+      "Description": "Carrot, potato, and onion roasted in a pan over a lit hearth.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "DeerRootRoast",
+      "DisplayName": "Deer and Rutabaga Roast",
+      "Description": "Deer meat, rutabaga, and onion roasted in a frying pan.",
+      "MaxStack": 20
+    }
+  ]
+}

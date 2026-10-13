@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Split GameCatalogues into category files
+
+- **Work completed:** replaced the monolithic schema-version-5 catalogue with an ordered manifest and 14 category files covering common/natural materials, stations, food, crops, scrolls, building/cooking recipes, Stone/Bronze/Iron/utility tool profiles, and Bronze/Iron tool recipes. Updated the loader to read bounded category files through Unreal's file layer, validate manifest paths, aggregate each catalogue in manifest order, then apply the existing parsing, normalization, duplicate/reference checks, and server-side catalogue validation.
+- **Files changed:** `Content/Data/GameCatalogues.json`; 14 files under `Content/Data/GameCatalogues/`; `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`; `docs/02-technical-architecture.md`; `docs/05-decision-log.md`; `docs/07-development-setup.md`; `BACKLOG.md`; and this entry.
+- **Lightweight checks:** PowerShell parsed and reassembled the category files and confirmed exact record and ordering preservation for 45 items, 20 recipes, 13 tool profiles, and 9 tool recipes. Static inspection confirmed traversal-resistant manifest paths, the existing aggregate size/count bounds, and ordered aggregation. `git diff --check` passed. No Unreal build or automation suite was run; full verification remains deferred.
+- **Impact and authority:** catalogue content remains the server-side source for inventory, crafting, and tool progression; transaction authority, runtime IDs, save records, and networking are unchanged. Manifest order preserves UI/runtime catalogue order, and packaged UFS loading still uses the staged `Data` directory.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Full Unreal and automation verification remains deferred.
+- **Next eligible task:** surface all Stone, Bronze, and Iron tool acquisitions, stats, and material costs in station and Inventory Craft views through the existing server-authoritative progression action.
+
 ## User-directed increment 2026-10-13 — Move tool stats and progression recipes into GameCatalogues.json
 
 - **Work completed:** added schema-5 `toolProfiles` and `toolRecipes` arrays to the packaged catalogue JSON. Moved the Stone, Bronze, and Iron tool action/skill metadata, durability wear, damage type, all authored per-level durability/combat stats, starter hammer profile, and all nine acquisition/upgrade costs and requirements into that data. The loader validates profile and recipe bounds/references, and the existing lifecycle/progression contracts now resolve their runtime data from the JSON. Bronze Axe level 2 remains a same-item 150 durability/55 slash upgrade; legacy Iron Axe level-two saves keep their previous level-one-equivalent stats.

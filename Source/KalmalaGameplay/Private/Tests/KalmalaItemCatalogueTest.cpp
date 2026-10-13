@@ -8,6 +8,40 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
+namespace
+{
+    bool LoadManifestCategoryArray(const TSharedPtr<FJsonObject>& Manifest, const TCHAR* ManifestField,
+        const TCHAR* ArrayField, TArray<TSharedPtr<FJsonValue>>& OutValues)
+    {
+        const TArray<TSharedPtr<FJsonValue>>* FileValues = nullptr;
+        if (!Manifest.IsValid() || !Manifest->TryGetArrayField(ManifestField, FileValues) || FileValues == nullptr)
+        {
+            return false;
+        }
+
+        OutValues.Reset();
+        for (const TSharedPtr<FJsonValue>& FileValue : *FileValues)
+        {
+            if (!FileValue.IsValid() || FileValue->Type != EJson::String) return false;
+            FString CategoryPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Data/GameCatalogues"));
+            CategoryPath = FPaths::Combine(CategoryPath, FileValue->AsString());
+            FString CategoryText;
+            if (!FFileHelper::LoadFileToString(CategoryText, *CategoryPath)) return false;
+
+            const TSharedRef<TJsonReader<>> CategoryReader = TJsonReaderFactory<>::Create(CategoryText);
+            TSharedPtr<FJsonObject> CategoryRoot;
+            const TArray<TSharedPtr<FJsonValue>>* CategoryValues = nullptr;
+            if (!FJsonSerializer::Deserialize(CategoryReader, CategoryRoot) || !CategoryRoot.IsValid()
+                || !CategoryRoot->TryGetArrayField(ArrayField, CategoryValues) || CategoryValues == nullptr)
+            {
+                return false;
+            }
+            OutValues.Append(*CategoryValues);
+        }
+        return !OutValues.IsEmpty();
+    }
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaItemCatalogueTest, "Kalmala.Gameplay.Inventory.Catalogue",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -24,17 +58,16 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     TSharedPtr<FJsonObject> JsonRoot;
     const bool bParsedJson = FJsonSerializer::Deserialize(JsonReader, JsonRoot) && JsonRoot.IsValid();
     TestTrue(TEXT("The catalogue JSON parses for completeness verification"), bParsedJson);
-    const TArray<TSharedPtr<FJsonValue>>* JsonItems = nullptr;
-    const TArray<TSharedPtr<FJsonValue>>* JsonRecipes = nullptr;
+    TArray<TSharedPtr<FJsonValue>> JsonItems;
+    TArray<TSharedPtr<FJsonValue>> JsonRecipes;
     const bool bHasCatalogueArrays = bParsedJson
-        && JsonRoot->TryGetArrayField(TEXT("items"), JsonItems)
-        && JsonRoot->TryGetArrayField(TEXT("recipes"), JsonRecipes)
-        && JsonItems != nullptr && JsonRecipes != nullptr;
-    TestTrue(TEXT("The JSON has item and recipe arrays"), bHasCatalogueArrays);
+        && LoadManifestCategoryArray(JsonRoot, TEXT("itemFiles"), TEXT("items"), JsonItems)
+        && LoadManifestCategoryArray(JsonRoot, TEXT("recipeFiles"), TEXT("recipes"), JsonRecipes);
+    TestTrue(TEXT("The manifest category files load item and recipe arrays"), bHasCatalogueArrays);
     if (bHasCatalogueArrays)
     {
-        TestEqual(TEXT("Every JSON item definition is loaded"), Catalogue->Items.Num(), JsonItems->Num());
-        TestEqual(TEXT("Every JSON recipe definition is loaded"), Recipes->Recipes.Num(), JsonRecipes->Num());
+        TestEqual(TEXT("Every JSON item definition is loaded"), Catalogue->Items.Num(), JsonItems.Num());
+        TestEqual(TEXT("Every JSON recipe definition is loaded"), Recipes->Recipes.Num(), JsonRecipes.Num());
     }
     struct FExpectedBatchOneCopy
     {

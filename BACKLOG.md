@@ -141,6 +141,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
   - [x] Add Iron Knife, Axe, Pick, and Spear stats and level-one Forge recipes; make the mire bog-iron vein an Iron source for Bronze-tier mining tools or better, and preserve independent item identity instead of Bronze-to-Iron upgrades.
   - [x] Add unique imported 64×64 canonical icons for the Bronze and Iron Knife, Pick, and Spear identities; preserve the existing Stone/Axe icons and extend canonical coverage.
   - [x] Move authored carried-tool profiles, per-level stats, and acquisition/upgrade recipe requirements and costs into schema-version-5 `GameCatalogues.json`; load them into the existing server-side tool contracts.
+  - [x] Split the schema-version-5 `GameCatalogues` definitions into category JSON files with an ordered manifest; preserve catalogue contents, order, validation, and runtime behavior.
   - [ ] Surface all Stone, Bronze, and Iron tool acquisitions, authored stats, and material costs in station and Inventory Craft views, with crafting routed through the server-authoritative tool progression action.
 
 - [x] **2026-10-11 — Fix Build card fill and visible icon scale:** prevent the shared selectable-fill animation from overwriting the standalone Build menu's brown card overlay, and compensate for transparent margins in the 64×64 catalogue canvases while preserving icon proportions. Source inspection and `git diff --check` only; build/render verification deferred.

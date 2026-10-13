@@ -1,0 +1,52 @@
+{
+  "items": [
+    {
+      "ItemId": "Carrot",
+      "DisplayName": "Carrot",
+      "Description": "The original 'orange stick'.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "Potato",
+      "DisplayName": "Potato",
+      "Description": "A trusty root for stews, soups, and pan roasts.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "Rutabaga",
+      "DisplayName": "Rutabaga",
+      "Description": "A hardy root with a mild, earthy flavor.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "Onion",
+      "DisplayName": "Onion",
+      "Description": "Layers upon layers of destruction to the eyes.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "CarrotSeed",
+      "DisplayName": "Carrot Seeds",
+      "Description": "Seeds from the carrot plant.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "PotatoSeed",
+      "DisplayName": "Potato Seeds",
+      "Description": "Seeds from the potato plant.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "RutabagaSeed",
+      "DisplayName": "Rutabaga Seeds",
+      "Description": "Seeds from the rutabaga plant.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "OnionSeed",
+      "DisplayName": "Onion Seeds",
+      "Description": "Seeds from the onion plant.",
+      "MaxStack": 50
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "items": [
+    {
+      "ItemId": "Wood",
+      "DisplayName": "Wood",
+      "Description": "Common timber for tools, structures, and camp equipment.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "Coal",
+      "DisplayName": "Coal",
+      "Description": "A dense, black mineral that burns directly as hearth fuel.",
+      "MaxStack": 40
+    },
+    {
+      "ItemId": "Stone",
+      "DisplayName": "Stone",
+      "Description": "Add some googly eyes, and it becomes a friendly pet rock.",
+      "MaxStack": 40
+    },
+    {
+      "ItemId": "Iron",
+      "DisplayName": "Iron",
+      "Description": "A forged iron bar used for durable tools and camp equipment.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "Fibre",
+      "DisplayName": "Reed Fibre",
+      "Description": "Plant strands used in simple tools and camp furnishings.",
+      "MaxStack": 50
+    }
+  ]
+}

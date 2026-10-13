@@ -1,0 +1,318 @@
+{
+  "recipes": [
+    {
+      "RecipeId": "BuildingHammer",
+      "DisplayName": "Building Hammer",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 1
+        }
+      ],
+      "Output": "ConstructionHammer",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "Campfire",
+      "DisplayName": "Campfire",
+      "Ingredients": [
+        {
+          "ItemId": "Stone",
+          "Quantity": 5
+        },
+        {
+          "ItemId": "Wood",
+          "Quantity": 3
+        }
+      ],
+      "Output": "HearthRing",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "Workbench",
+      "DisplayName": "Workbench",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 9
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 2
+        }
+      ],
+      "Output": "Workbench",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "Forge",
+      "DisplayName": "Forge",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 15
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 6
+        }
+      ],
+      "Output": "Forge",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "FryingPanRecipe",
+      "DisplayName": "Frying Pan",
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 5
+        }
+      ],
+      "Output": "FryingPan",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Forge"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "WorkbenchToolRack",
+      "DisplayName": "Workbench Tool Rack",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 6
+        }
+      ],
+      "Output": "WorkbenchToolRack",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "ForgeAnvil",
+      "DisplayName": "Forge Anvil",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 9
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 4
+        }
+      ],
+      "Output": "ForgeAnvil",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "GrindingStone",
+      "DisplayName": "Grinding Stone",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 4
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 4
+        }
+      ],
+      "Output": "GrindingStone",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "Storage",
+      "DisplayName": "Chest",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 8
+        }
+      ],
+      "Output": "Storage",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "CookingRack",
+      "DisplayName": "Cooking Rack",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 9
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 8
+        }
+      ],
+      "Output": "CookingRack",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "Cauldron",
+      "DisplayName": "Cauldron",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 9
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 3
+        }
+      ],
+      "Output": "Cauldron",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "Floor",
+      "DisplayName": "Timber Floor",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 4
+        }
+      ],
+      "Output": "Floor",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "Wall",
+      "DisplayName": "Windbreak Wall",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 6
+        }
+      ],
+      "Output": "Wall",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "Roof",
+      "DisplayName": "Reed Roof",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 8
+        }
+      ],
+      "Output": "Roof",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    }
+  ]
+}

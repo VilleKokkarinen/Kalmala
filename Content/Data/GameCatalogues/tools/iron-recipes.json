@@ -1,0 +1,108 @@
+{
+  "toolRecipes": [
+    {
+      "RecipeId": "IronKnifeLevel1",
+      "DisplayName": "Iron Knife",
+      "ToolId": "IronKnife",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Wood",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 2
+        }
+      ]
+    },
+    {
+      "RecipeId": "IronAxeLevel1",
+      "DisplayName": "Iron Axe",
+      "ToolId": "IronAxe",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 4
+        },
+        {
+          "ItemId": "Wood",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 2
+        }
+      ]
+    },
+    {
+      "RecipeId": "IronPickLevel1",
+      "DisplayName": "Iron Pick",
+      "ToolId": "IronPick",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 4
+        },
+        {
+          "ItemId": "Wood",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 2
+        }
+      ]
+    },
+    {
+      "RecipeId": "IronSpearLevel1",
+      "DisplayName": "Iron Spear",
+      "ToolId": "IronSpear",
+      "TargetToolLevel": 1,
+      "PreviousToolId": "",
+      "PreviousToolLevel": 0,
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "RequiredSkill": "None",
+      "RequiredSkillLevel": 0,
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Wood",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 1
+        }
+      ]
+    }
+  ]
+}

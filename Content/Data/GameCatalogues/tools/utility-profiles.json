@@ -1,0 +1,23 @@
+{
+  "toolProfiles": [
+    {
+      "ToolId": "ConstructionHammer",
+      "DisplayName": "Building Hammer",
+      "Description": "A reusable hammer for placing camp structures.",
+      "ToolSet": "Utility",
+      "ToolKind": "ConstructionHammer",
+      "Action": "None",
+      "RequiredSkill": "None",
+      "MinimumSkillLevel": 1,
+      "DurabilityCost": 0,
+      "DamageType": "None",
+      "Levels": [
+        {
+          "ToolLevel": 1,
+          "MaxDurability": 100,
+          "CombatDamage": 0.0
+        }
+      ]
+    }
+  ]
+}
