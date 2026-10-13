@@ -10,6 +10,7 @@
 #include "Styling/CoreStyle.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaUITheme.h"
 
 namespace
 {
@@ -38,13 +39,13 @@ void UKalmalaAccessibilityFeedbackWidget::SetFeedbackText(const FString& Text)
 {
     if (Background == nullptr || FeedbackText == nullptr) return;
 
-    const bool bHighContrast = UKalmalaSettingsWidget::GetContrastMode() != 0;
+    const int32 ContrastMode = UKalmalaSettingsWidget::GetContrastMode();
+    const bool bHighContrast = ContrastMode > 0;
     Background->SetBrushColor(bHighContrast
         ? FLinearColor(0.0f, 0.0f, 0.0f, 0.98f)
         : FLinearColor(0.025f, 0.035f, 0.04f, 0.94f));
-    FeedbackText->SetColorAndOpacity(FSlateColor(bHighContrast
-        ? FLinearColor::White
-        : FLinearColor(0.9f, 0.95f, 0.92f, 1.0f)));
+    FeedbackText->SetColorAndOpacity(FSlateColor(
+        FKalmalaUITheme::Get().TextColor(false, ContrastMode)));
     FeedbackText->SetText(FText::FromString(Text));
 }
 

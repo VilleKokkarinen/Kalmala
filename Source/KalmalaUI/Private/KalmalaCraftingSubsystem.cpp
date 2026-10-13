@@ -1465,7 +1465,7 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
         {
             Label->SetText(FText::FromString(Name));
             Theme.ApplyText(*Label, Theme.BodySize + 5, bSelected, TextScalePercent, ContrastMode);
-            const FLinearColor LabelColor = bSelected && ContrastMode == 0
+            const FLinearColor LabelColor = bSelected && ContrastMode <= 0
                 ? Theme.ButtonFocused : Theme.TextColor(false, ContrastMode);
             Label->SetColorAndOpacity(FSlateColor(LabelColor));
         }
@@ -2096,9 +2096,9 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             if (!Marker->GetColorAndOpacity().GetSpecifiedColor().Equals(Color))
                 Marker->SetColorAndOpacity(FSlateColor(Color));
         };
-        const FLinearColor FavoriteColor = ContrastMode == 0 ? Theme.FavoriteMarkerColor : FLinearColor::White;
+        const FLinearColor FavoriteColor = ContrastMode <= 0 ? Theme.FavoriteMarkerColor : FLinearColor::White;
         const FLinearColor RankColor = Theme.RankMarkerColor(ActivityRank, ContrastMode);
-        const FLinearColor RecentColor = ContrastMode == 0 ? Theme.RecentMarkerColor : FLinearColor::White;
+        const FLinearColor RecentColor = ContrastMode <= 0 ? Theme.RecentMarkerColor : FLinearColor::White;
         UpdateMarker(RecipeSlotFavoriteMarkers.IsValidIndex(SlotIndex) ? RecipeSlotFavoriteMarkers[SlotIndex] : nullptr,
             FavoriteMarkerText, FavoriteColor, !bIconOnlyBuildCards);
         UpdateMarker(RecipeSlotRankMarkers.IsValidIndex(SlotIndex) ? RecipeSlotRankMarkers[SlotIndex] : nullptr,
@@ -2111,7 +2111,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
             const ESlateVisibility BadgeVisibility = bRecent && !bIconOnlyBuildCards
                 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed;
             if (RecentBadge->GetVisibility() != BadgeVisibility) RecentBadge->SetVisibility(BadgeVisibility);
-            const FLinearColor BadgeColor = ContrastMode == 0
+            const FLinearColor BadgeColor = ContrastMode <= 0
                 ? FLinearColor(RecentColor.R, RecentColor.G, RecentColor.B, 0.16f)
                 : FLinearColor(0.12f, 0.12f, 0.12f, 1.0f);
             if (!RecentBadge->GetBrushColor().Equals(BadgeColor)) RecentBadge->SetBrushColor(BadgeColor);
@@ -2140,7 +2140,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
 
         const uint8 VisualState = static_cast<uint8>((bSelected ? 1 : 0) | (bFocused ? 2 : 0)
             | (bFavorite ? 16 : 0)
-            | (bUnavailable ? 4 : 0) | (ContrastMode != 0 ? 8 : 0));
+            | (bUnavailable ? 4 : 0) | (ContrastMode > 0 ? 8 : 0));
         if (bRestyle || RecipeSlotVisualStates[SlotIndex] != VisualState)
         {
             RecipeSlotVisualStates[SlotIndex] = VisualState;
@@ -2148,7 +2148,7 @@ void UKalmalaCraftingWidget::RefreshRecipeGrid(const TArray<int32>& VisibleIndic
                 ContrastMode, bInventoryCompanion, !bIconOnlyBuildCards);
             if (bIconOnlyBuildCards)
                 Theme.ApplyItemIconTileFill(*RecipeSlotCards[SlotIndex], ContrastMode);
-            if (bInventoryCompanion && ContrastMode == 0)
+            if (bInventoryCompanion && ContrastMode <= 0)
             {
                 FLinearColor Fill = bUnavailable ? FLinearColor(0.075f, 0.052f, 0.034f, 1.0f)
                     : bSelected ? FLinearColor(0.20f, 0.12f, 0.055f, 1.0f)

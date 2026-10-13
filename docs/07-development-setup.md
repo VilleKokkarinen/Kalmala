@@ -1095,9 +1095,10 @@ restore defaults.
 ### Local Accessibility group
 
 The Accessibility group uses the shared themed slider controls for text scale
-(100%, 125%, and 150%), whole-interface scale (80%, 90%, 100%, 110%, and 120%),
-and contrast (Standard or High). The sliders snap to those existing values and
-show a text value beside each track. Changes rebuild the current modal when a
+(50%, 75%, 100%, 125%, and 150%), whole-interface scale (80%, 90%, 100%, 110%, and 120%),
+and contrast (Low, Standard, or High). Text scale defaults to 100% and contrast
+defaults to Standard, centered between the lower and higher choices. The sliders
+snap to those values and show a text value beside each track. Changes rebuild the current modal when a
 slider adjustment ends, use auto-wrapped text, and retain a larger bounded panel
 so the Controls list remains scrollable at the largest scale. Contrast updates
 the modal backdrop, panel, button surfaces, text, and focusable state controls
@@ -2725,6 +2726,9 @@ alone; when rendering a menu set, `-Output <directory>` selects the destination
 folder. `-Cache` changes the default cache and therefore the default PNG and log
 locations. The renderer supports Windows PowerShell 5.1 and requires a compiled
 editor cache; use `-BuildModules` when the cache needs its first build.
+Accessibility previews use `-TextScale 50` through `150` (the widget snaps to
+its five supported values) and `-Contrast -1`, `0`, or `1` for Low, Standard,
+or High contrast.
 
 ## Historical acceptance and limits
 

@@ -221,7 +221,7 @@ void UKalmalaInventoryInspectWidget::Refresh()
     BrowseSearchStyle = SearchBox->GetWidgetStyle();
     SearchBox->SetHintText(FText::FromString(FString::Printf(TEXT("Search %s by name"), *ListLabel.ToLower())));
     BrowseSearchStyle.SetFont(Theme.MakeFont(Theme.BodySize, false, TextScale));
-    BrowseSearchStyle.SetBackgroundColor(ContrastMode != 0 ? Theme.HighContrastPanel
+    BrowseSearchStyle.SetBackgroundColor(ContrastMode > 0 ? Theme.HighContrastPanel
         : (bUseSplitLayout ? FLinearColor(.02f, .025f, .03f, 1.f) : Theme.ButtonNormal));
     SearchBox->SetWidgetStyle(BrowseSearchStyle);
     SearchBox->SetForegroundColor(Theme.TextColor(false, ContrastMode));

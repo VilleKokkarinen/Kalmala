@@ -61,7 +61,7 @@ namespace
         // Controls stay readable over terrain, independent of the selected theme image.
         FSlateDrawElement::MakeBox(Elements, Layer, Geometry.ToPaintGeometry(FVector2D(Width + 8, TextSize.Y + 4),
             FSlateLayoutTransform(FVector2D(Position.X - 4, Y - 2))), FCoreStyle::Get().GetBrush("WhiteBrush"),
-            ESlateDrawEffect::None, Contrast != 0 ? Theme.HighContrastPanel : Theme.Panel);
+            ESlateDrawEffect::None, Contrast > 0 ? Theme.HighContrastPanel : Theme.Panel);
         FSlateDrawElement::MakeText(Elements, Layer + 1, Geometry.ToPaintGeometry(FSlateLayoutTransform(FVector2D(Position.X, Y))),
             Wrapped, Font, ESlateDrawEffect::None, Theme.TextColor(bHeading, Contrast));
         return Y + TextSize.Y + 6;
@@ -484,7 +484,7 @@ void UKalmalaWorldMapWidget::DrawMarkerLegend(const FGeometry& Geometry, const i
     const FMarkerLegendLayout Layout = GetMarkerLegendLayout(Geometry.GetLocalSize());
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
-    const bool bHighContrast = Contrast != 0;
+    const bool bHighContrast = Contrast > 0;
     const FSlateFontInfo Font = Theme.MakeFont(Theme.BodySize - 1, false, UKalmalaSettingsWidget::GetTextScalePercent());
     const FSlateFontInfo SmallFont = Theme.MakeFont(Theme.BodySize - 2, false, UKalmalaSettingsWidget::GetTextScalePercent());
     const TSharedRef<FSlateFontMeasure> Measure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
@@ -1456,7 +1456,7 @@ void UKalmalaWorldMapWidget::DrawPinPalette(const FGeometry& Geometry, const int
     const FPinPaletteLayout Layout = GetPinPaletteLayout(Geometry.GetLocalSize());
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
-    const bool bHighContrast = Contrast != 0;
+    const bool bHighContrast = Contrast > 0;
     const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush("WhiteBrush");
     const FLinearColor Panel = bHighContrast ? Theme.HighContrastPanel : Theme.Panel;
     FSlateDrawElement::MakeBox(Elements, LayerId, Geometry.ToPaintGeometry(Layout.Size, FSlateLayoutTransform(Layout.Position)),

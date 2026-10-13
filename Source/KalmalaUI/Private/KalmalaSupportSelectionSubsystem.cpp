@@ -84,7 +84,8 @@ int32 UKalmalaSupportGlyphWidget::NativePaint(const FPaintArgs& Args, const FGeo
 
     const FVector2D Centre = Size * 0.5f;
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
-    const FLinearColor Ink = Contrast != 0 ? FLinearColor::White : Theme.TextColor(bSelected || !bLearned, 0);
+    const FLinearColor Ink = Contrast > 0 ? FLinearColor::White
+        : Theme.TextColor(bSelected || !bLearned, Contrast);
     const auto ToLocal = [Centre, Scale](const FVector2D Point)
     {
         return Centre + (Point - FVector2D(18.0f, 18.0f)) * Scale;

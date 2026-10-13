@@ -74,7 +74,7 @@ void UKalmalaInventoryGridWidget::Refresh(UKalmalaInventoryComponent* Inventory,
     {
         const bool bHighlighted = (!SelectedItem.IsNone() && SlotItems[SlotIndex] == SelectedItem)
             || (HasKeyboardFocus() && FocusedSlot == SlotIndex);
-        const FLinearColor Outline = Contrast != 0 ? FLinearColor::White
+        const FLinearColor Outline = Contrast > 0 ? FLinearColor::White
             : (bHighlighted ? Theme.TextColor(true, Contrast) : FLinearColor(0.32f, 0.20f, 0.12f, 1.0f));
         Backgrounds[SlotIndex]->SetBrush(FSlateRoundedBoxBrush(FLinearColor::Transparent,
             FMath::Min(6.0f, Theme.CornerRadius), Outline,
@@ -83,7 +83,7 @@ void UKalmalaInventoryGridWidget::Refresh(UKalmalaInventoryComponent* Inventory,
         Backgrounds[SlotIndex]->SetPadding(FMargin(1.0f));
         auto* Fill = CastChecked<UBorder>(Backgrounds[SlotIndex]->GetContent());
         Fill->SetBrush(FSlateRoundedBoxBrush(FLinearColor::White,
-            Contrast != 0 ? 0.0f : FMath::Min(5.0f, Theme.CornerRadius)));
+            Contrast > 0 ? 0.0f : FMath::Min(5.0f, Theme.CornerRadius)));
         Theme.ApplyItemIconTileFill(*Fill, Contrast);
     }
     if (bModeChanged) LastSize = FVector2D::ZeroVector;

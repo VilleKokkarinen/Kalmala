@@ -81,8 +81,8 @@ bool FKalmalaSettingsWidgetTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Reduced motion persists in local settings"), UKalmalaSettingsWidget::IsReducedMotionEnabled());
     UKalmalaSettingsWidget::SetReducedMotionEnabled(bOriginalReducedMotion);
 
-    TestEqual(TEXT("Contrast mode clamps below standard"),
-        UKalmalaSettingsWidget::ClampContrastMode(-1), 0);
+    TestEqual(TEXT("Contrast mode clamps below low contrast"),
+        UKalmalaSettingsWidget::ClampContrastMode(-2), -1);
     TestEqual(TEXT("Contrast mode accepts high contrast"),
         UKalmalaSettingsWidget::ClampContrastMode(1), 1);
     TestEqual(TEXT("Contrast mode clamps unknown values to high contrast"),

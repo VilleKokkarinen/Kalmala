@@ -27,7 +27,7 @@ UBorder* MakeSlot(UWidgetTree& Tree, const FKalmalaCatalogueRow* Row,
     UBorder* Card = Tree.ConstructWidget<UBorder>();
     Theme.ApplyPanel(*Card, Contrast, &CatalogueNoPanelImage);
     Card->SetPadding(FMargin(3.0f));
-    Card->SetBrushColor(Contrast == 0
+    Card->SetBrushColor(Contrast <= 0
         ? (bEmpty ? FLinearColor(0.035f, 0.048f, 0.055f, 0.92f) : FLinearColor(0.07f, 0.095f, 0.11f, 0.98f))
         : FLinearColor::White);
     if (bSelected) Theme.ApplySelectablePanel(*Card, true, false, false, Contrast);

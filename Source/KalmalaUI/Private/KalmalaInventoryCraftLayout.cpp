@@ -197,8 +197,8 @@ void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
     {
         Theme.ApplyPanel(*BuildRequirementsPanel, ContrastMode, &Theme.InventoryPanelImage);
         BuildRequirementsFrame->SetBrush(FSlateRoundedBoxBrush(
-            ContrastMode ? FLinearColor::Black : FLinearColor(.09f, .045f, .02f, .65f), 3.f,
-            ContrastMode ? FLinearColor::White : FLinearColor(.45f, .27f, .12f, 1.f), 1.f));
+            ContrastMode > 0 ? FLinearColor::Black : FLinearColor(.09f, .045f, .02f, .65f), 3.f,
+            ContrastMode > 0 ? FLinearColor::White : FLinearColor(.45f, .27f, .12f, 1.f), 1.f));
         BuildRequirementsFrame->SetBrushColor(FLinearColor::White);
         Theme.ApplyText(*BuildRequirementsTitle, 17, true, TextScalePercent, ContrastMode);
         LastBuildRequirementTextScale = TextScalePercent;
@@ -275,8 +275,8 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
         bStationCraftPresentation ? TEXT("Search recipes") : TEXT("Search items")));
     for (UBorder* Section : {InventoryCraftListFrame.Get(), InventoryCraftDetailFrame.Get()})
     {
-        Section->SetBrush(FSlateRoundedBoxBrush(Contrast ? FLinearColor::Black : FLinearColor(.09f, .045f, .02f, .65f),
-            3.f, Contrast ? FLinearColor::White : FLinearColor(.45f, .27f, .12f, 1.f), 1.f));
+        Section->SetBrush(FSlateRoundedBoxBrush(Contrast > 0 ? FLinearColor::Black : FLinearColor(.09f, .045f, .02f, .65f),
+            3.f, Contrast > 0 ? FLinearColor::White : FLinearColor(.45f, .27f, .12f, 1.f), 1.f));
         Section->SetBrushColor(FLinearColor::White);
         Section->SetPadding(FMargin(10));
     }
@@ -397,7 +397,7 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
             auto* Amount = WidgetTree->ConstructWidget<UTextBlock>();
             Amount->SetText(FText::AsNumber(Costs[Index].Quantity)); Amount->SetJustification(ETextJustify::Center);
             Theme.ApplyText(*Amount, 16, true, Scale, Contrast);
-            if (Contrast == 0 && Owned[Index] < Costs[Index].Quantity) Amount->SetColorAndOpacity(FSlateColor(FLinearColor(1.f, .35f, .25f)));
+            if (Contrast <= 0 && Owned[Index] < Costs[Index].Quantity) Amount->SetColorAndOpacity(FSlateColor(FLinearColor(1.f, .35f, .25f)));
             CostColumn->AddChild(Amount);
             const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Costs[Index].ItemId);
             CostColumn->SetToolTipText(FText::FromString(FString::Printf(TEXT("%s: %d owned, %d required"),

@@ -265,7 +265,7 @@ int32 FKalmalaUITheme::ScaledFontSize(const int32 BaseSize, const int32 TextScal
 
 FLinearColor FKalmalaUITheme::RankMarkerColor(const int32 Rank, const int32 ContrastMode) const
 {
-    if (ContrastMode != 0) return FLinearColor::White;
+    if (ContrastMode > 0) return FLinearColor::White;
     switch (Rank)
     {
     case 1: return RankGoldColor;
@@ -284,7 +284,7 @@ void FKalmalaUITheme::ApplyPanel(UBorder& Border, const int32 ContrastMode, cons
 
 FSlateBrush FKalmalaUITheme::MakePanelBrush(const int32 ContrastMode, const FString* ImageOverride) const
 {
-    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) > 0;
     FSlateBrush Brush = FSlateRoundedBoxBrush(bContrast ? HighContrastPanel : Panel, CornerRadius,
         bContrast ? FLinearColor::White : BorderColor, bContrast ? FMath::Max(1.0f, BorderWidth) : BorderWidth);
     const FString& SelectedImage = ImageOverride ? *ImageOverride : PanelImage;
@@ -304,7 +304,7 @@ FSlateBrush FKalmalaUITheme::MakePanelBrush(const int32 ContrastMode, const FStr
 
 FSlateBrush FKalmalaUITheme::MakeSolidPanelBrush(const int32 ContrastMode) const
 {
-    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) > 0;
     FLinearColor Fill = bContrast ? HighContrastPanel : Panel;
     Fill.A = 1.0f;
     return FSlateRoundedBoxBrush(Fill, CornerRadius,
@@ -328,8 +328,10 @@ void FKalmalaUITheme::ApplyText(UTextBlock& Label, const int32 BaseSize, const b
 
 FLinearColor FKalmalaUITheme::TextColor(const bool bHeading, const int32 ContrastMode) const
 {
-    return UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0
-        ? FLinearColor::White : (bHeading ? Heading : Text);
+    const int32 BoundedContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode);
+    if (BoundedContrast > 0) return FLinearColor::White;
+    const FLinearColor StandardColor = bHeading ? Heading : Text;
+    return BoundedContrast < 0 ? FMath::Lerp(StandardColor, Panel, 0.32f) : StandardColor;
 }
 
 FSlateFontInfo FKalmalaUITheme::MakeFont(const int32 BaseSize, const bool bHeading, const int32 TextScalePercent) const
@@ -353,7 +355,7 @@ FSlateFontInfo FKalmalaUITheme::MakeFont(const int32 BaseSize, const bool bHeadi
 void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, const bool bReducedMotion) const
 {
     FButtonStyle Style = Button.GetStyle();
-    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) > 0;
     const bool bSuppressMotion = bReducedMotion || UKalmalaSettingsWidget::IsReducedMotionEnabled();
     UTexture2D* ButtonSurface = bContrast || ButtonImage.IsEmpty()
         ? nullptr : Cast<UTexture2D>(LoadThemeAsset(ButtonImage));
@@ -383,9 +385,10 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, con
     Style.Pressed.OutlineSettings.Color = FSlateColor(FocusOutline);
     Style.Disabled.OutlineSettings.Color = FSlateColor(bContrast ? FLinearColor::White : BorderColor);
     Style.Disabled.OutlineSettings.Width = FMath::Max(DisabledBorderWidth, BorderWidth);
-    Style.SetNormalForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
-    Style.SetHoveredForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
-    Style.SetPressedForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
+    const FLinearColor ButtonText = TextColor(false, ContrastMode);
+    Style.SetNormalForeground(FSlateColor(ButtonText));
+    Style.SetHoveredForeground(FSlateColor(ButtonText));
+    Style.SetPressedForeground(FSlateColor(ButtonText));
     Style.SetDisabledForeground(FSlateColor(bContrast ? FLinearColor(0.72f, 0.72f, 0.72f, 1)
         : FLinearColor(0.55f, 0.58f, 0.57f, 1)));
     Style.SetNormalPadding(FMargin(ButtonPadding)).SetPressedPadding(FMargin(ButtonPadding + 1));
@@ -410,7 +413,7 @@ void FKalmalaUITheme::ApplyButton(UButton& Button, const int32 ContrastMode, con
 
 void FKalmalaUITheme::ApplyCheckBox(UCheckBox& CheckBox, const int32 ContrastMode) const
 {
-    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) > 0;
     UTexture2D* ButtonSurface = bContrast || ButtonImage.IsEmpty()
         ? nullptr : Cast<UTexture2D>(LoadThemeAsset(ButtonImage));
 
@@ -446,8 +449,8 @@ void FKalmalaUITheme::ApplyCheckBox(UCheckBox& CheckBox, const int32 ContrastMod
             FLinearColor::White))
         .SetCheckedPressedImage(MakeBrush(FLinearColor(0.72f, 0.52f, 0.24f, 1.0f),
             FLinearColor(0.52f, 0.52f, 0.52f, 1.0f)))
-        .SetForegroundColor(FSlateColor(bContrast ? FLinearColor::White : Text))
-        .SetCheckedForegroundColor(FSlateColor(bContrast ? FLinearColor::White : Text))
+        .SetForegroundColor(FSlateColor(TextColor(false, ContrastMode)))
+        .SetCheckedForegroundColor(FSlateColor(TextColor(false, ContrastMode)))
         .SetPadding(FMargin(0.0f));
     CheckBox.SetWidgetStyle(Style);
     CheckBox.HorizontalAlignment = HAlign_Center;
@@ -456,7 +459,7 @@ void FKalmalaUITheme::ApplyCheckBox(UCheckBox& CheckBox, const int32 ContrastMod
 void FKalmalaUITheme::ApplyListViewItem(UButton& Button, const int32 ContrastMode,
     const bool bReducedMotion) const
 {
-    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) > 0;
     const bool bSuppressMotion = bReducedMotion || UKalmalaSettingsWidget::IsReducedMotionEnabled();
     const FLinearColor Border = bContrast ? FLinearColor::White : ListViewRowBorderColor;
     const float BaseOutlineWidth = bContrast ? 1.0f : ListViewRowBorderWidth;
@@ -476,9 +479,10 @@ void FKalmalaUITheme::ApplyListViewItem(UButton& Button, const int32 ContrastMod
     Style.Hovered.TintColor = FSlateColor(bContrast ? HighContrastPanel : ListViewRowHovered);
     Style.Pressed.TintColor = FSlateColor(bContrast ? HighContrastPanel : ListViewRowSelected);
     Style.Disabled.TintColor = FSlateColor(bContrast ? HighContrastPanel : ListViewRowDisabled);
-    Style.SetNormalForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
-    Style.SetHoveredForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
-    Style.SetPressedForeground(FSlateColor(bContrast ? FLinearColor::White : Text));
+    const FLinearColor ItemText = TextColor(false, ContrastMode);
+    Style.SetNormalForeground(FSlateColor(ItemText));
+    Style.SetHoveredForeground(FSlateColor(ItemText));
+    Style.SetPressedForeground(FSlateColor(ItemText));
     Style.SetDisabledForeground(FSlateColor(bContrast ? FLinearColor(0.72f, 0.72f, 0.72f, 1)
         : FLinearColor(0.55f, 0.58f, 0.57f, 1)));
     Style.SetNormalPadding(FMargin(ListViewRowPadding)).SetPressedPadding(FMargin(ListViewRowPadding + 1.0f));
@@ -512,14 +516,14 @@ void FKalmalaUITheme::ApplyListViewItem(UButton& Button, const int32 ContrastMod
 
 void FKalmalaUITheme::ApplyItemIconTileFill(UBorder& Border, const int32 ContrastMode) const
 {
-    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) > 0;
     Border.SetBrushColor(bContrast ? HighContrastPanel : ItemIconTileFill);
     Border.SetPadding(FMargin(0.0f));
 }
 
 void FKalmalaUITheme::ApplyItemIconTile(UBorder& Border, const int32 ContrastMode) const
 {
-    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) > 0;
     const float Width = bContrast ? FMath::Max(2.0f, RequirementIconBorderWidth) : RequirementIconBorderWidth;
     const FLinearColor Outline = bContrast ? FLinearColor::White : RequirementIconBorderColor;
     Border.SetBrush(FSlateRoundedBoxBrush(FLinearColor::White,
@@ -568,7 +572,7 @@ void FKalmalaUITheme::SizeButtonToContent(UButton& Button) const
 
 void FKalmalaUITheme::ApplySlider(USlider& Slider, const int32 ContrastMode) const
 {
-    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) > 0;
     UTexture2D* ThumbSurface = bContrast || SliderThumbImage.IsEmpty()
         ? nullptr : Cast<UTexture2D>(LoadThemeAsset(SliderThumbImage));
 
@@ -613,7 +617,7 @@ void FKalmalaUITheme::ApplySelectablePanel(UBorder& Border, const bool bSelected
     const bool bUnavailable, const int32 ContrastMode, const bool bReducedMotion,
     const bool bAnimateFill) const
 {
-    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) != 0;
+    const bool bContrast = UKalmalaSettingsWidget::ClampContrastMode(ContrastMode) > 0;
     const FLinearColor Fill = bContrast ? HighContrastPanel
         : bUnavailable ? ButtonDisabled : bSelected ? ButtonSelected : ButtonNormal;
     const FLinearColor Outline = bContrast ? FLinearColor::White

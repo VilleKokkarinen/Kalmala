@@ -60,7 +60,7 @@ namespace
 
     FSettingsPalette GetSettingsPalette()
     {
-        if (UKalmalaSettingsWidget::GetContrastMode() != 0)
+        if (UKalmalaSettingsWidget::GetContrastMode() > 0)
         {
             return {
                 FLinearColor(0.0f, 0.0f, 0.0f, 0.98f),
@@ -68,6 +68,17 @@ namespace
                 FLinearColor::White,
                 FLinearColor(0.18f, 0.18f, 0.18f, 1.0f),
                 FLinearColor::White
+            };
+        }
+
+        if (UKalmalaSettingsWidget::GetContrastMode() < 0)
+        {
+            return {
+                BackgroundColour,
+                PanelColour,
+                FLinearColor(0.62f, 0.64f, 0.62f, 1.0f),
+                FLinearColor(0.11f, 0.16f, 0.19f, 1.0f),
+                FLinearColor(0.66f, 0.68f, 0.66f, 1.0f)
             };
         }
 
@@ -615,7 +626,7 @@ bool UKalmalaSettingsWidget::HasVisibleFocusedHomeMenuOptionForVerification() co
         if (Button == nullptr || !Button->HasAnyUserFocus()) continue;
         const FSlateBrush& FocusedBrush = Button->GetStyle().Normal;
         if (FocusedBrush.OutlineSettings.Width <= 0.0f) return false;
-        return GetContrastMode() == 0
+        return GetContrastMode() <= 0
             || FocusedBrush.OutlineSettings.Color.GetSpecifiedColor().Equals(FLinearColor::White, 0.01f);
     }
     return false;
@@ -707,7 +718,7 @@ void UKalmalaSettingsWidget::ApplyModalPalette(const FString* ImageOverride)
 void UKalmalaSettingsWidget::ApplyHomeMenuPalette()
 {
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
-    if (GetContrastMode() != 0)
+    if (GetContrastMode() > 0)
     {
         ApplyModalPalette(&Theme.EscapePanelImage);
         return;
@@ -804,7 +815,7 @@ void UKalmalaSettingsWidget::SetAudioCategoryVolume(const EKalmalaAudioCategory 
 
 int32 UKalmalaSettingsWidget::ClampTextScale(const int32 Percent)
 {
-    constexpr int32 Choices[] = { 100, 125, 150 };
+    constexpr int32 Choices[] = { 50, 75, 100, 125, 150 };
     int32 ClosestChoice = Choices[0];
     int32 ClosestDistance = FMath::Abs(Percent - ClosestChoice);
     for (const int32 Choice : Choices)
@@ -838,7 +849,7 @@ void UKalmalaSettingsWidget::SetTextScalePercent(const int32 Percent)
 
 int32 UKalmalaSettingsWidget::ClampContrastMode(const int32 Mode)
 {
-    return FMath::Clamp(Mode, 0, 1);
+    return FMath::Clamp(Mode, -1, 1);
 }
 
 int32 UKalmalaSettingsWidget::GetContrastMode()
@@ -1233,7 +1244,7 @@ void UKalmalaSettingsWidget::SelectOptionsTab(const int32 SelectedIndex)
         const bool bSelected = Index == SelectedIndex;
         Tab->SetInteractionSelected(bSelected);
         const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
-        const bool bHighContrast = GetContrastMode() != 0;
+        const bool bHighContrast = GetContrastMode() > 0;
         const FLinearColor SelectedAccent = bHighContrast ? FLinearColor::White : Theme.ButtonFocused;
         Tab->SetBackgroundColor(bSelected && !bHighContrast
             ? FMath::Lerp(FLinearColor::White, SelectedAccent, 0.45f) : FLinearColor::White);
@@ -1293,7 +1304,7 @@ void UKalmalaSettingsWidget::ShowOptionsMenu()
     FScriptDelegate AudioDelegate; AudioDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAudioClicked)); AddTab(FText::FromString(TEXT("Audio")), TEXT("AudioTab"), AudioDelegate);
     FScriptDelegate AccessibilityDelegate; AccessibilityDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(ThisClass, HandleAccessibilityClicked)); AddTab(FText::FromString(TEXT("Accessibility")), TEXT("AccessibilityTab"), AccessibilityDelegate);
     ContentBox->AddChildToVerticalBox(Tabs);
-    const bool bHighContrast = GetContrastMode() != 0;
+    const bool bHighContrast = GetContrastMode() > 0;
     UOverlay* DividerRow = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT("OptionsContentDivider"));
     bool bHasOrnament = false;
     if (!bHighContrast && !FKalmalaUITheme::Get().OptionsDividerImage.IsEmpty())
@@ -1575,10 +1586,10 @@ void UKalmalaSettingsWidget::ShowAccessibilityTab()
     InterfaceScaleSlider->OnControllerCaptureEnd.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureEnded);
 
     const FSettingsSliderWidgets TextScale = AddSettingsSliderRow(*WidgetTree, *SliderGroup,
-        TEXT("Text scale"), TEXT("TextScaleSlider"), 100.0f, 150.0f, 25.0f,
+        TEXT("Text scale"), TEXT("TextScaleSlider"), 50.0f, 150.0f, 25.0f,
         static_cast<float>(TextScalePercent),
         FText::FromString(FString::Printf(TEXT("%d%%"), TextScalePercent)),
-        FText::FromString(TEXT("Adjust text size from 100 to 150 percent.")),
+        FText::FromString(TEXT("Adjust text size from 50 to 150 percent.")),
         TextScalePercent, ContrastMode);
     TextScaleSlider = TextScale.Slider;
     TextScaleValueLabel = TextScale.Value;
@@ -1589,10 +1600,10 @@ void UKalmalaSettingsWidget::ShowAccessibilityTab()
     TextScaleSlider->OnControllerCaptureEnd.AddDynamic(this, &ThisClass::HandleAccessibilitySliderCaptureEnded);
 
     const FSettingsSliderWidgets Contrast = AddSettingsSliderRow(*WidgetTree, *SliderGroup,
-        TEXT("Contrast"), TEXT("ContrastSlider"), 0.0f, 1.0f, 1.0f,
+        TEXT("Contrast"), TEXT("ContrastSlider"), -1.0f, 1.0f, 1.0f,
         static_cast<float>(ContrastMode),
-        FText::FromString(ContrastMode == 0 ? TEXT("Standard") : TEXT("High")),
-        FText::FromString(TEXT("Choose standard or high contrast.")),
+        FText::FromString(ContrastMode < 0 ? TEXT("Low") : ContrastMode > 0 ? TEXT("High") : TEXT("Standard")),
+        FText::FromString(TEXT("Choose low, standard, or high contrast.")),
         TextScalePercent, ContrastMode);
     ContrastSlider = Contrast.Slider;
     ContrastValueLabel = Contrast.Value;
@@ -1743,7 +1754,8 @@ void UKalmalaSettingsWidget::UpdateSettingsLabels()
         : GetContrastMode();
     if (ContrastValueLabel != nullptr)
     {
-        ContrastValueLabel->SetText(FText::FromString(ContrastMode == 0 ? TEXT("Standard") : TEXT("High")));
+        ContrastValueLabel->SetText(FText::FromString(ContrastMode < 0 ? TEXT("Low")
+            : ContrastMode > 0 ? TEXT("High") : TEXT("Standard")));
     }
 
     const bool bReducedMotion = IsReducedMotionEnabled();

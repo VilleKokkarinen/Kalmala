@@ -1923,7 +1923,7 @@ behavior should be specified when selected. Do not copy reference artwork.
   family. The optional direct-capture checkbox changes only the keyboard/mouse
   interaction model if selected.
 - **Accessibility** (currently Settings): text scale, interface scale,
-  Standard/High contrast, colour-independent feedback preference, and Reduced
+  Low/Standard/High contrast, colour-independent feedback preference, and Reduced
   motion. Interface scale is the existing equivalent of the reference's Scale
   GUI control; keep it in this group with a visible value and do not add a
   duplicate setting.
@@ -1974,8 +1974,11 @@ The project baseline in
 modal close path even when the alternate Settings action key is changed.
 
 The Accessibility group now provides shared themed sliders for text scale
-(100%, 125%, and 150%) and Standard or High contrast. The sliders snap to those
-existing values and show explicit text values. Text changes rebuild the modal
+(50%, 75%, 100%, 125%, and 150%) and Low, Standard, or High contrast. Text scale
+defaults to 100%; contrast defaults to Standard, centered between Low and High.
+The sliders snap to those values and show explicit text values. Low contrast
+uses muted text while retaining the standard surfaces; high contrast keeps its
+black-backed panels and white text. Text changes rebuild the modal
 with scaled, auto-wrapped labels and buttons inside its larger bounded panel;
 the binding list remains scrollable at the largest size. Contrast updates the
 local backdrop, panel, button surfaces, text, and focusable state controls
