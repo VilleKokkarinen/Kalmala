@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Split ordinary building and station recipes:** put construction/general building recipes in `recipes/building.json`, each station's recipe in its own JSON file, and preserve the existing runtime order through the manifest.
+
 - [x] **2026-10-13 — Rename Stone starter tools:** display ReedKnife as Stone Knife and FieldHatchet as Stone Axe across inventory, crafting, repair labels, and item details. Preserve both canonical IDs for existing saves and gameplay contracts.
 
 - [x] **2026-10-13 — Finish Bronze Axe level-two gains:** keep harvesting tier tied to item identity; set level 1 to 100 durability/50 slash damage and level 2 to 150/55, apply the slash values in server combat, and show the stat deltas in the upgrade comparison.

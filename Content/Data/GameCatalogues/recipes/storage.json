@@ -1,0 +1,25 @@
+{
+  "recipes": [
+    {
+      "RecipeId": "Storage",
+      "DisplayName": "Chest",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 8
+        }
+      ],
+      "Output": "Storage",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    }
+  ]
+}

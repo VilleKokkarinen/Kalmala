@@ -1,0 +1,25 @@
+{
+  "recipes": [
+    {
+      "RecipeId": "WorkbenchToolRack",
+      "DisplayName": "Workbench Tool Rack",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 6
+        }
+      ],
+      "Output": "WorkbenchToolRack",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    }
+  ]
+}

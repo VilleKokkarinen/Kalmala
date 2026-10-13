@@ -1,0 +1,31 @@
+{
+  "recipes": [
+    {
+      "RecipeId": "GrindingStone",
+      "DisplayName": "Grinding Stone",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 4
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 4
+        }
+      ],
+      "Output": "GrindingStone",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    }
+  ]
+}

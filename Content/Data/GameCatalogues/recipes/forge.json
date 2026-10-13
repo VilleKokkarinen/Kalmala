@@ -1,0 +1,29 @@
+{
+  "recipes": [
+    {
+      "RecipeId": "Forge",
+      "DisplayName": "Forge",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 15
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 6
+        }
+      ],
+      "Output": "Forge",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    }
+  ]
+}

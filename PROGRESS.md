@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Split building and station recipes
+
+- **Work completed:** moved ordinary construction/general building recipes to `recipes/building.json` and each station recipe into its own JSON file. Added a manifest `recipeOrder` and loader ordering pass so the assembled 20 ordinary recipes retain their prior runtime order.
+- **Files changed:** `Content/Data/GameCatalogues.json`; eleven new files under `Content/Data/GameCatalogues/recipes/`; removed `recipes/building-and-stations.json`; `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`; `docs/02-technical-architecture.md`; `docs/05-decision-log.md`; `docs/07-development-setup.md`; `BACKLOG.md`; and this entry.
+- **Lightweight checks:** PowerShell parsed all manifest recipe files and confirmed 20 unique recipes, exact record equality against the previous committed files, and the original recipe ID order. Confirmed every manifest category/order field remains an array, including the one-entry `toolFiles` list. `git diff --check` passed. No Unreal build or automation suite was run; full verification remains deferred.
+- **Impact and authority:** this changes catalogue organization and restores ordinary recipe order by ID in the loader. Recipe definitions, runtime IDs, server validation, transaction authority, save identities, and networking are unchanged.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Full Unreal and automation verification remains deferred.
+- **Next eligible task:** surface all Stone, Bronze, and Iron tool acquisitions, stats, and material costs in station and Inventory Craft views through the existing server-authoritative progression action.
+
 ## User-directed increment 2026-10-13 — Group carried gear by item family
 
 - **Work completed:** moved Stone, Bronze, and Iron axe, knife, pick, and spear profiles into `items/axes.json`, `items/knives.json`, `items/pickaxes.json`, and `items/spears.json`. Kept the Construction Hammer profile as the sole file under `tools/` at `tools/building-hammer.json`. Grouped their acquisition and upgrade recipes under matching `recipes/` files. Added manifest order lists so the runtime still exposes all 13 profiles and 9 recipes in their previous order. Removed the old tier-based profile/recipe category files.

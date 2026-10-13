@@ -326,6 +326,7 @@ namespace
                 UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues)
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 32, TotalJsonCharacters, RecipeValues)
+            || !OrderCategoryValues(Root, TEXT("recipeOrder"), TEXT("RecipeId"), RecipeValues)
             || !LoadCategoryFiles(Root, TEXT("toolProfileFiles"), TEXT("toolProfiles"), TEXT("items"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
             || !LoadCategoryFiles(Root, TEXT("toolFiles"), TEXT("toolProfiles"), TEXT("tools"),
