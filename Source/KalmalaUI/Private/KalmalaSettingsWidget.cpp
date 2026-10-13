@@ -8,6 +8,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/CheckBox.h"
 #include "Components/ComboBoxString.h"
+#include "Components/EditableTextBox.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Image.h"
@@ -30,6 +31,7 @@
 #include "HAL/PlatformTime.h"
 #include "Misc/App.h"
 #include "Misc/ConfigCacheIni.h"
+#include "Styling/CoreStyle.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 namespace
@@ -104,6 +106,12 @@ namespace
         UTextBlock* Value = nullptr;
     };
 
+    struct FSettingsCheckBoxWidgets
+    {
+        UCheckBox* CheckBox = nullptr;
+        UTextBlock* CheckMark = nullptr;
+    };
+
     FSettingsSliderWidgets AddSettingsSliderRow(UWidgetTree& WidgetTree, UVerticalBox& Parent,
         const TCHAR* LabelText, const FName Name, const float MinValue, const float MaxValue,
         const float StepSize, const float InitialValue, const FText& InitialValueText,
@@ -149,6 +157,88 @@ namespace
         ValueSlot->SetVerticalAlignment(VAlign_Center);
         Parent.AddChildToVerticalBox(Row)->SetPadding(FMargin(4.0f, 3.0f));
         return { Slider, Value };
+    }
+
+    FSettingsCheckBoxWidgets AddSettingsCheckBoxRow(UWidgetTree& WidgetTree, UVerticalBox& Parent,
+        const TCHAR* LabelText, const FName Name, const bool bInitiallyChecked,
+        const FText& ToolTip, const int32 TextScalePercent, const int32 ContrastMode)
+    {
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        UHorizontalBox* Row = WidgetTree.ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+        UTextBlock* Label = WidgetTree.ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+        Label->SetText(FText::FromString(LabelText));
+        Label->SetAutoWrapText(true);
+        Theme.ApplyText(*Label, Theme.BodySize + 3, false, TextScalePercent, ContrastMode);
+        USizeBox* LabelSize = WidgetTree.ConstructWidget<USizeBox>(USizeBox::StaticClass());
+        LabelSize->SetWidthOverride(230.0f);
+        LabelSize->SetContent(Label);
+        UHorizontalBoxSlot* LabelSlot = Row->AddChildToHorizontalBox(LabelSize);
+        LabelSlot->SetPadding(FMargin(4.0f, 6.0f, 10.0f, 6.0f));
+        LabelSlot->SetVerticalAlignment(VAlign_Center);
+
+        UCheckBox* CheckBox = WidgetTree.ConstructWidget<UCheckBox>(UCheckBox::StaticClass(), Name);
+        UTextBlock* CheckMark = WidgetTree.ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+        CheckMark->SetText(FText::FromString(bInitiallyChecked ? TEXT("✓") : TEXT("")));
+        CheckMark->SetAutoWrapText(false);
+        CheckMark->SetJustification(ETextJustify::Center);
+        Theme.ApplyText(*CheckMark, Theme.BodySize + 3, false, TextScalePercent, ContrastMode);
+        UOverlay* CheckMarkOverlay = WidgetTree.ConstructWidget<UOverlay>(UOverlay::StaticClass());
+        UOverlaySlot* CheckMarkSlot = CheckMarkOverlay->AddChildToOverlay(CheckMark);
+        CheckMarkSlot->SetHorizontalAlignment(HAlign_Center);
+        CheckMarkSlot->SetVerticalAlignment(VAlign_Center);
+        USizeBox* CheckMarkSize = WidgetTree.ConstructWidget<USizeBox>(USizeBox::StaticClass());
+        CheckMarkSize->SetWidthOverride(44.0f);
+        CheckMarkSize->SetHeightOverride(44.0f);
+        CheckMarkSize->SetContent(CheckMarkOverlay);
+        CheckBox->SetContent(CheckMarkSize);
+        CheckBox->SetIsChecked(bInitiallyChecked);
+        CheckBox->SetToolTipText(ToolTip);
+        Theme.ApplyCheckBox(*CheckBox, ContrastMode);
+        USizeBox* CheckBoxSize = WidgetTree.ConstructWidget<USizeBox>(USizeBox::StaticClass());
+        CheckBoxSize->SetWidthOverride(44.0f);
+        CheckBoxSize->SetHeightOverride(44.0f);
+        CheckBoxSize->SetContent(CheckBox);
+        UHorizontalBoxSlot* CheckBoxSlot = Row->AddChildToHorizontalBox(CheckBoxSize);
+        CheckBoxSlot->SetPadding(FMargin(4.0f, 6.0f));
+        CheckBoxSlot->SetVerticalAlignment(VAlign_Center);
+        Parent.AddChildToVerticalBox(Row)->SetPadding(FMargin(4.0f, 3.0f));
+        return { CheckBox, CheckMark };
+    }
+
+    UEditableTextBox* CreateResolutionInput(UWidgetTree& WidgetTree, const FName Name,
+        const TCHAR* Hint, const int32 InitialValue, const int32 TextScalePercent,
+        const int32 ContrastMode)
+    {
+        UEditableTextBox* Input = WidgetTree.ConstructWidget<UEditableTextBox>(
+            UEditableTextBox::StaticClass(), Name);
+        Input->SetHintText(FText::FromString(Hint));
+        Input->SetText(FText::FromString(FString::FromInt(InitialValue)));
+        Input->SetJustification(ETextJustify::Center);
+        Input->KeyboardType = EVirtualKeyboardType::Number;
+        Input->SetSelectAllTextWhenFocused(true);
+        Input->SetToolTipText(FText::FromString(TEXT("Enter a pixel dimension, then choose Apply.")));
+
+        const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+        FEditableTextBoxStyle Style = FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>(
+            TEXT("NormalEditableTextBox"));
+        const FSlateColor TextColor(Theme.TextColor(false, ContrastMode));
+        FTextBlockStyle TextStyle = Style.TextStyle;
+        TextStyle.SetFont(Theme.MakeFont(Theme.BodySize + 3, false, TextScalePercent));
+        TextStyle.SetColorAndOpacity(TextColor);
+        Style.SetTextStyle(TextStyle)
+            .SetForegroundColor(TextColor)
+            .SetFocusedForegroundColor(TextColor)
+            .SetReadOnlyForegroundColor(TextColor)
+            .SetBackgroundColor(FSlateColor(ContrastMode > 0
+                ? FLinearColor::Black : FLinearColor(0.035f, 0.025f, 0.02f, 1.0f)))
+            .SetPadding(FMargin(6.0f, 3.0f));
+        Input->SetWidgetStyle(Style);
+        return Input;
+    }
+
+    FString FormatResolutionOption(const FIntPoint& Resolution)
+    {
+        return FString::Printf(TEXT("%d × %d"), Resolution.X, Resolution.Y);
     }
 
     UComboBoxString* AddSettingsDropdownRow(UWidgetTree& WidgetTree, UVerticalBox& Parent,
@@ -1410,17 +1500,144 @@ void UKalmalaSettingsWidget::ShowGraphicsTab()
     while (ContentBox->GetChildrenCount() > 4) ContentBox->RemoveChildAt(4);
     UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
     if (Settings == nullptr) return;
-    ResolutionChoices = { FIntPoint(1280, 720), FIntPoint(1600, 900), FIntPoint(1920, 1080), FIntPoint(2560, 1440), FIntPoint(3840, 2160) };
+    ResolutionChoices = {
+        FIntPoint(1280, 720), FIntPoint(1366, 768), FIntPoint(1600, 900),
+        FIntPoint(1920, 1080), FIntPoint(2560, 1440), FIntPoint(3440, 1440),
+        FIntPoint(3840, 2160)
+    };
     const FIntPoint CurrentResolution = Settings->GetScreenResolution();
-    ResolutionChoiceIndex = ResolutionChoices.IndexOfByPredicate([CurrentResolution](const FIntPoint& Choice) { return Choice == CurrentResolution; });
-    if (ResolutionChoiceIndex == INDEX_NONE) { ResolutionChoices.Insert(CurrentResolution, 0); ResolutionChoiceIndex = 0; }
-    UButton* Resolution = AddButton(ContentBox, FText::GetEmpty(), TEXT("ResolutionButton")); Resolution->OnClicked.AddDynamic(this, &ThisClass::HandleResolutionClicked); ResolutionLabel = Cast<UTextBlock>(Resolution->GetContent());
-    UButton* VSync = AddButton(ContentBox, FText::GetEmpty(), TEXT("VSyncButton")); VSync->OnClicked.AddDynamic(this, &ThisClass::HandleVSyncClicked); VSyncLabel = Cast<UTextBlock>(VSync->GetContent());
-    UButton* WindowMode = AddButton(ContentBox, FText::GetEmpty(), TEXT("WindowModeButton")); WindowMode->OnClicked.AddDynamic(this, &ThisClass::HandleWindowModeClicked); WindowModeLabel = Cast<UTextBlock>(WindowMode->GetContent());
+    const FIntPoint DefaultResolution(1920, 1080);
+    const bool bHasCurrentResolution = CurrentResolution.X > 0 && CurrentResolution.Y > 0;
+    const int32 CurrentResolutionChoiceIndex = ResolutionChoices.IndexOfByKey(CurrentResolution);
+    bCustomResolutionEnabled = bHasCurrentResolution && CurrentResolutionChoiceIndex == INDEX_NONE;
+    const FIntPoint PresetResolution = CurrentResolutionChoiceIndex != INDEX_NONE
+        ? CurrentResolution : DefaultResolution;
+
+    const int32 TextScalePercent = GetTextScalePercent();
+    const int32 ContrastMode = GetContrastMode();
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    ResolutionDropdown = AddSettingsDropdownRow(*WidgetTree, *ContentBox, TEXT("Resolution"),
+        TEXT("ResolutionDropdown"), TextScalePercent, ContrastMode);
+    ResolutionDropdown->OnGenerateWidgetEvent.BindDynamic(this,
+        &ThisClass::GenerateDropdownOptionWidget);
+    ResolutionDropdown->OnSelectionChanged.AddDynamic(this,
+        &ThisClass::HandleResolutionSelectionChanged);
+    for (const FIntPoint& Choice : ResolutionChoices)
+    {
+        ResolutionDropdown->AddOption(FormatResolutionOption(Choice));
+    }
+    ResolutionDropdown->SetSelectedOption(FormatResolutionOption(PresetResolution));
+
+    const FSettingsCheckBoxWidgets CustomResolution = AddSettingsCheckBoxRow(*WidgetTree,
+        *ContentBox, TEXT("Enable custom resolution"), TEXT("CustomResolutionCheckBox"),
+        bCustomResolutionEnabled,
+        FText::FromString(TEXT("Enable typed width and height fields for a custom resolution.")),
+        TextScalePercent, ContrastMode);
+    CustomResolutionCheckBox = CustomResolution.CheckBox;
+    CustomResolutionCheckMarkLabel = CustomResolution.CheckMark;
+    CustomResolutionCheckBox->OnCheckStateChanged.AddDynamic(this,
+        &ThisClass::HandleCustomResolutionChanged);
+
+    CustomResolutionFieldsRow = WidgetTree->ConstructWidget<UHorizontalBox>(
+        UHorizontalBox::StaticClass(), TEXT("CustomResolutionFieldsRow"));
+    UTextBlock* CustomResolutionLabel = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+    CustomResolutionLabel->SetText(FText::FromString(TEXT("Custom resolution")));
+    CustomResolutionLabel->SetAutoWrapText(true);
+    Theme.ApplyText(*CustomResolutionLabel, Theme.BodySize + 3, false, TextScalePercent, ContrastMode);
+    USizeBox* CustomResolutionLabelSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+    CustomResolutionLabelSize->SetWidthOverride(230.0f);
+    CustomResolutionLabelSize->SetContent(CustomResolutionLabel);
+    UHorizontalBoxSlot* CustomResolutionLabelSlot =
+        CustomResolutionFieldsRow->AddChildToHorizontalBox(CustomResolutionLabelSize);
+    CustomResolutionLabelSlot->SetPadding(FMargin(4.0f, 6.0f, 10.0f, 6.0f));
+    CustomResolutionLabelSlot->SetVerticalAlignment(VAlign_Center);
+
+    const FIntPoint InitialCustomResolution = bHasCurrentResolution ? CurrentResolution : DefaultResolution;
+    CustomResolutionWidthInput = CreateResolutionInput(*WidgetTree, TEXT("CustomResolutionWidth"),
+        TEXT("Width"), InitialCustomResolution.X, TextScalePercent, ContrastMode);
+    USizeBox* CustomResolutionWidthSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+    CustomResolutionWidthSize->SetWidthOverride(88.0f);
+    CustomResolutionWidthSize->SetMinDesiredHeight(44.0f);
+    CustomResolutionWidthSize->SetContent(CustomResolutionWidthInput);
+    CustomResolutionFieldsRow->AddChildToHorizontalBox(CustomResolutionWidthSize)
+        ->SetPadding(FMargin(4.0f, 6.0f));
+
+    UTextBlock* ResolutionSeparator = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+    ResolutionSeparator->SetText(FText::FromString(TEXT("×")));
+    ResolutionSeparator->SetJustification(ETextJustify::Center);
+    Theme.ApplyText(*ResolutionSeparator, Theme.BodySize + 3, false, TextScalePercent, ContrastMode);
+    USizeBox* ResolutionSeparatorSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+    ResolutionSeparatorSize->SetWidthOverride(20.0f);
+    ResolutionSeparatorSize->SetContent(ResolutionSeparator);
+    UHorizontalBoxSlot* ResolutionSeparatorSlot =
+        CustomResolutionFieldsRow->AddChildToHorizontalBox(ResolutionSeparatorSize);
+    ResolutionSeparatorSlot->SetPadding(FMargin(2.0f));
+    ResolutionSeparatorSlot->SetVerticalAlignment(VAlign_Center);
+
+    CustomResolutionHeightInput = CreateResolutionInput(*WidgetTree, TEXT("CustomResolutionHeight"),
+        TEXT("Height"), InitialCustomResolution.Y, TextScalePercent, ContrastMode);
+    USizeBox* CustomResolutionHeightSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+    CustomResolutionHeightSize->SetWidthOverride(88.0f);
+    CustomResolutionHeightSize->SetMinDesiredHeight(44.0f);
+    CustomResolutionHeightSize->SetContent(CustomResolutionHeightInput);
+    CustomResolutionFieldsRow->AddChildToHorizontalBox(CustomResolutionHeightSize)
+        ->SetPadding(FMargin(4.0f, 6.0f));
+
+    UKalmalaThemedButton* ApplyCustomResolution = WidgetTree->ConstructWidget<UKalmalaThemedButton>(
+        UKalmalaThemedButton::StaticClass(), TEXT("ApplyCustomResolutionButton"));
+    ApplyButtonPalette(ApplyCustomResolution);
+    UTextBlock* ApplyCustomResolutionLabel = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+    ApplyCustomResolutionLabel->SetText(FText::FromString(TEXT("Apply")));
+    ApplyCustomResolutionLabel->SetJustification(ETextJustify::Center);
+    Theme.ApplyText(*ApplyCustomResolutionLabel, Theme.BodySize + 3, false,
+        TextScalePercent, ContrastMode);
+    ApplyCustomResolution->SetContent(ApplyCustomResolutionLabel);
+    ApplyCustomResolution->SetToolTipText(FText::FromString(
+        TEXT("Apply the custom pixel width and height.")));
+    ApplyCustomResolution->OnClicked.AddDynamic(this, &ThisClass::HandleCustomResolutionApplyClicked);
+    USizeBox* ApplyCustomResolutionSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
+    ApplyCustomResolutionSize->SetWidthOverride(80.0f);
+    ApplyCustomResolutionSize->SetHeightOverride(44.0f);
+    ApplyCustomResolutionSize->SetContent(ApplyCustomResolution);
+    CustomResolutionFieldsRow->AddChildToHorizontalBox(ApplyCustomResolutionSize)
+        ->SetPadding(FMargin(4.0f, 6.0f));
+    UVerticalBoxSlot* CustomResolutionFieldsSlot = ContentBox->AddChildToVerticalBox(
+        CustomResolutionFieldsRow);
+    CustomResolutionFieldsSlot->SetPadding(FMargin(4.0f, 3.0f));
+
+    const FSettingsCheckBoxWidgets VSync = AddSettingsCheckBoxRow(*WidgetTree, *ContentBox,
+        TEXT("V-Sync"), TEXT("VSyncCheckBox"), Settings->IsVSyncEnabled(),
+        FText::FromString(TEXT("Synchronize rendered frames with the display refresh.")),
+        TextScalePercent, ContrastMode);
+    VSyncCheckBox = VSync.CheckBox;
+    VSyncCheckMarkLabel = VSync.CheckMark;
+    VSyncCheckBox->OnCheckStateChanged.AddDynamic(this, &ThisClass::HandleVSyncChanged);
+
+    const TArray<FString> WindowModeOptions = {
+        TEXT("Windowed"), TEXT("Borderless"), TEXT("Fullscreen")
+    };
+    const TCHAR* CurrentWindowMode = Settings->GetFullscreenMode() == EWindowMode::Windowed
+        ? TEXT("Windowed")
+        : Settings->GetFullscreenMode() == EWindowMode::WindowedFullscreen
+            ? TEXT("Borderless") : TEXT("Fullscreen");
+    WindowModeDropdown = AddSettingsDropdownRow(*WidgetTree, *ContentBox, TEXT("Window mode"),
+        TEXT("WindowModeDropdown"), TextScalePercent, ContrastMode);
+    WindowModeDropdown->OnGenerateWidgetEvent.BindDynamic(this,
+        &ThisClass::GenerateDropdownOptionWidget);
+    WindowModeDropdown->OnSelectionChanged.AddDynamic(this,
+        &ThisClass::HandleWindowModeSelectionChanged);
+    for (const FString& Option : WindowModeOptions)
+    {
+        WindowModeDropdown->AddOption(Option);
+    }
+    WindowModeDropdown->SetSelectedOption(CurrentWindowMode);
+
     UButton* ViewDistance = AddButton(ContentBox, FText::GetEmpty(), TEXT("ViewDistanceButton")); ViewDistance->OnClicked.AddDynamic(this, &ThisClass::HandleViewDistanceClicked); ViewDistanceLabel = Cast<UTextBlock>(ViewDistance->GetContent());
     UpdateVideoLabels();
-    Resolution->SetUserFocus(GetOwningPlayer());
-    Resolution->SetKeyboardFocus();
+    UWidget* InitialFocus = bCustomResolutionEnabled
+        ? static_cast<UWidget*>(CustomResolutionWidthInput) : static_cast<UWidget*>(ResolutionDropdown);
+    InitialFocus->SetUserFocus(GetOwningPlayer());
+    InitialFocus->SetKeyboardFocus();
 }
 
 void UKalmalaSettingsWidget::ShowAudioTab()
@@ -1729,12 +1946,53 @@ void UKalmalaSettingsWidget::UpdateVideoLabels()
 {
     UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
     if (Settings == nullptr) return;
+    bUpdatingGraphicsControls = true;
     const FIntPoint Resolution = Settings->GetScreenResolution();
-    if (ResolutionLabel) ResolutionLabel->SetText(FText::FromString(FString::Printf(TEXT("Resolution: %d x %d"), Resolution.X, Resolution.Y)));
-    if (VSyncLabel) VSyncLabel->SetText(FText::FromString(FString::Printf(TEXT("V-Sync: %s"), Settings->IsVSyncEnabled() ? TEXT("On") : TEXT("Off"))));
-    const TCHAR* Mode = Settings->GetFullscreenMode() == EWindowMode::Windowed ? TEXT("Windowed") : Settings->GetFullscreenMode() == EWindowMode::WindowedFullscreen ? TEXT("Borderless") : TEXT("Fullscreen");
-    if (WindowModeLabel) WindowModeLabel->SetText(FText::FromString(FString::Printf(TEXT("Window Mode: %s"), Mode)));
+    if (ResolutionDropdown != nullptr)
+    {
+        ResolutionDropdown->SetIsEnabled(!bCustomResolutionEnabled);
+        if (!bCustomResolutionEnabled)
+        {
+            const int32 CurrentChoice = ResolutionChoices.IndexOfByKey(Resolution);
+            if (CurrentChoice != INDEX_NONE)
+            {
+                ResolutionDropdown->SetSelectedOption(FormatResolutionOption(ResolutionChoices[CurrentChoice]));
+            }
+        }
+    }
+    if (CustomResolutionCheckBox != nullptr)
+    {
+        CustomResolutionCheckBox->SetIsChecked(bCustomResolutionEnabled);
+    }
+    if (CustomResolutionCheckMarkLabel != nullptr)
+    {
+        CustomResolutionCheckMarkLabel->SetText(FText::FromString(
+            bCustomResolutionEnabled ? TEXT("✓") : TEXT("")));
+    }
+    if (CustomResolutionFieldsRow != nullptr)
+    {
+        CustomResolutionFieldsRow->SetVisibility(bCustomResolutionEnabled
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    }
+    if (VSyncCheckBox != nullptr)
+    {
+        VSyncCheckBox->SetIsChecked(Settings->IsVSyncEnabled());
+    }
+    if (VSyncCheckMarkLabel != nullptr)
+    {
+        VSyncCheckMarkLabel->SetText(FText::FromString(
+            Settings->IsVSyncEnabled() ? TEXT("✓") : TEXT("")));
+    }
     if (ViewDistanceLabel) ViewDistanceLabel->SetText(FText::FromString(FString::Printf(TEXT("Render Distance: %d / 3"), ClampViewDistanceQuality(Settings->ScalabilityQuality.ViewDistanceQuality))));
+    if (WindowModeDropdown != nullptr)
+    {
+        const TCHAR* Mode = Settings->GetFullscreenMode() == EWindowMode::Windowed
+            ? TEXT("Windowed")
+            : Settings->GetFullscreenMode() == EWindowMode::WindowedFullscreen
+                ? TEXT("Borderless") : TEXT("Fullscreen");
+        WindowModeDropdown->SetSelectedOption(Mode);
+    }
+    bUpdatingGraphicsControls = false;
 }
 
 void UKalmalaSettingsWidget::UpdateAudioLabels()
@@ -1916,9 +2174,124 @@ void UKalmalaSettingsWidget::HandleKeyboardAndMouseClicked() { ShowKeyboardAndMo
 void UKalmalaSettingsWidget::HandleControllerClicked() { ShowControllerTab(); }
 void UKalmalaSettingsWidget::HandleAudioClicked() { ShowAudioTab(); }
 void UKalmalaSettingsWidget::HandleAccessibilityClicked() { ShowAccessibilityTab(); }
-void UKalmalaSettingsWidget::HandleResolutionClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { ResolutionChoiceIndex = (ResolutionChoiceIndex + 1) % ResolutionChoices.Num(); Settings->SetScreenResolution(ResolutionChoices[ResolutionChoiceIndex]); ApplyVideoSettings(); } }
-void UKalmalaSettingsWidget::HandleVSyncClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->SetVSyncEnabled(!Settings->IsVSyncEnabled()); ApplyVideoSettings(); } }
-void UKalmalaSettingsWidget::HandleWindowModeClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { const EWindowMode::Type Mode = Settings->GetFullscreenMode(); Settings->SetFullscreenMode(Mode == EWindowMode::Fullscreen ? EWindowMode::Windowed : Mode == EWindowMode::Windowed ? EWindowMode::WindowedFullscreen : EWindowMode::Fullscreen); ApplyVideoSettings(); } }
+void UKalmalaSettingsWidget::HandleResolutionSelectionChanged(const FString SelectedOption,
+    const ESelectInfo::Type SelectionType)
+{
+    if (bUpdatingGraphicsControls || bCustomResolutionEnabled || SelectionType == ESelectInfo::Direct)
+    {
+        return;
+    }
+    for (const FIntPoint& Choice : ResolutionChoices)
+    {
+        if (SelectedOption == FormatResolutionOption(Choice))
+        {
+            if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+            {
+                Settings->SetScreenResolution(Choice);
+                ApplyVideoSettings();
+            }
+            return;
+        }
+    }
+}
+
+void UKalmalaSettingsWidget::HandleVSyncChanged(const bool bIsChecked)
+{
+    if (bUpdatingGraphicsControls) return;
+    if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+    {
+        Settings->SetVSyncEnabled(bIsChecked);
+        ApplyVideoSettings();
+    }
+}
+
+void UKalmalaSettingsWidget::HandleWindowModeSelectionChanged(const FString SelectedOption,
+    const ESelectInfo::Type SelectionType)
+{
+    if (bUpdatingGraphicsControls || SelectionType == ESelectInfo::Direct) return;
+    EWindowMode::Type Mode;
+    if (SelectedOption == TEXT("Windowed"))
+    {
+        Mode = EWindowMode::Windowed;
+    }
+    else if (SelectedOption == TEXT("Borderless"))
+    {
+        Mode = EWindowMode::WindowedFullscreen;
+    }
+    else if (SelectedOption == TEXT("Fullscreen"))
+    {
+        Mode = EWindowMode::Fullscreen;
+    }
+    else
+    {
+        return;
+    }
+
+    if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+    {
+        Settings->SetFullscreenMode(Mode);
+        ApplyVideoSettings();
+    }
+}
+
+void UKalmalaSettingsWidget::HandleCustomResolutionChanged(const bool bIsChecked)
+{
+    if (bUpdatingGraphicsControls) return;
+    bCustomResolutionEnabled = bIsChecked;
+    UpdateVideoLabels();
+    if (bIsChecked || ResolutionDropdown == nullptr) return;
+
+    const FString SelectedOption = ResolutionDropdown->GetSelectedOption();
+    for (const FIntPoint& Choice : ResolutionChoices)
+    {
+        if (SelectedOption == FormatResolutionOption(Choice))
+        {
+            if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+            {
+                Settings->SetScreenResolution(Choice);
+                ApplyVideoSettings();
+            }
+            return;
+        }
+    }
+}
+
+void UKalmalaSettingsWidget::HandleCustomResolutionApplyClicked()
+{
+    if (!bCustomResolutionEnabled || CustomResolutionWidthInput == nullptr
+        || CustomResolutionHeightInput == nullptr)
+    {
+        return;
+    }
+
+    constexpr int32 MinWidth = 320;
+    constexpr int32 MaxWidth = 7680;
+    constexpr int32 MinHeight = 240;
+    constexpr int32 MaxHeight = 4320;
+    const auto ParseDimension = [](const UEditableTextBox& Input, const int32 Minimum,
+        const int32 Maximum, int32& OutValue)
+    {
+        FString Value = Input.GetText().ToString();
+        Value.TrimStartAndEndInline();
+        return LexTryParseString(OutValue, *Value) && OutValue >= Minimum && OutValue <= Maximum;
+    };
+
+    int32 Width = 0;
+    int32 Height = 0;
+    const bool bWidthValid = ParseDimension(*CustomResolutionWidthInput, MinWidth, MaxWidth, Width);
+    const bool bHeightValid = ParseDimension(*CustomResolutionHeightInput, MinHeight, MaxHeight, Height);
+    CustomResolutionWidthInput->SetError(bWidthValid ? FText::GetEmpty()
+        : FText::FromString(TEXT("Enter a whole width from 320 to 7680 pixels.")));
+    CustomResolutionHeightInput->SetError(bHeightValid ? FText::GetEmpty()
+        : FText::FromString(TEXT("Enter a whole height from 240 to 4320 pixels.")));
+    if (!bWidthValid || !bHeightValid) return;
+
+    if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+    {
+        Settings->SetScreenResolution(FIntPoint(Width, Height));
+        ApplyVideoSettings();
+    }
+}
 void UKalmalaSettingsWidget::HandleViewDistanceClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->ScalabilityQuality.ViewDistanceQuality = (ClampViewDistanceQuality(Settings->ScalabilityQuality.ViewDistanceQuality) + 1) % 4; ApplyVideoSettings(); } }
 void UKalmalaSettingsWidget::HandleMasterVolumeChanged(const float Value)
 {

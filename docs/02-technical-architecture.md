@@ -1912,9 +1912,10 @@ behavior should be specified when selected. Do not copy reference artwork.
 ### Existing Kalmala settings retained in the new groups
 
 - **Graphics** (currently Video): resolution, V-Sync, window mode, and
-  render-distance quality. Keep these settings; their screenshot-like controls
-  are a resolution selector, V-Sync toggle, window-mode toggle/selector, and
-  quality slider.
+  render-distance quality. Resolution uses common presets with an optional
+  custom width/height input (320–7680 by 240–4320 pixels) and explicit Apply;
+  V-Sync uses the shared checkbox, window mode uses the shared dropdown, and
+  render-distance quality retains its existing selector.
 - **Audio:** master volume, mute/restore, music, ambient, and
   interaction/combat feedback levels. The selected audio candidate now uses
   focusable sliders with visible percentage values.

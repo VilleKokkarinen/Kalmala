@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Restyle Graphics settings controls
+
+- **Completed:** replaced V-Sync's button with the shared stone checkbox and moved window mode to the shared dropdown. Resolution now offers common presets plus an optional custom-resolution checkbox; when enabled, separate width and height fields and an Apply button accept bounded whole-pixel dimensions (320–7680 wide, 240–4320 high). Selecting any choice applies and saves via the existing local `GameUserSettings` path.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.video -BuildModules -TimeoutSeconds 300 -Output C:\Users\Ville\AppData\Local\Temp\kmmenu-video-settings.png` compiled the affected Unreal UI/editor modules and rendered Graphics at 1920×1080. Inspected the preview for preset resolution and window-mode dropdowns plus the shared V-Sync/custom-resolution checkboxes. `git diff --check` passed. No automation suite ran; full verification remains deferred.
+- **Impact and authority:** local video settings presentation and the existing local `GameUserSettings` values only. No RPC, replicated state, gameplay authority, or save schema changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. The render used preset mode and did not interact with dropdowns or exercise custom dimension validation/application; full verification remains deferred.
+- **Next eligible work:** continue auditing `Verify-*` entrypoints against active acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Add a shared Accessibility dropdown
 
 - **Completed:** replaced the single text-toggle button for colour-independent feedback with a separate label and a reusable stone-styled dropdown. The dropdown shows `Text only` or `Text + markers`, has a themed popup list and a clear chevron, and updates the existing local preference immediately.

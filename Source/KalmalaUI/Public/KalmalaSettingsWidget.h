@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/Button.h"
 #include "Components/ComboBoxString.h"
+#include "Components/EditableTextBox.h"
 #include "Blueprint/UserWidget.h"
 #include "KalmalaThemedButton.h"
 #include "KalmalaSettingsWidget.generated.h"
@@ -10,6 +11,7 @@
 class UTextBlock;
 class UCanvasPanelSlot;
 class UCheckBox;
+class UHorizontalBox;
 class USlider;
 
 enum class EKalmalaAudioCategory : uint8
@@ -170,11 +172,15 @@ private:
     UFUNCTION()
     void HandleAccessibilityClicked();
     UFUNCTION()
-    void HandleResolutionClicked();
+    void HandleResolutionSelectionChanged(FString SelectedOption, ESelectInfo::Type SelectionType);
     UFUNCTION()
-    void HandleVSyncClicked();
+    void HandleVSyncChanged(bool bIsChecked);
     UFUNCTION()
-    void HandleWindowModeClicked();
+    void HandleWindowModeSelectionChanged(FString SelectedOption, ESelectInfo::Type SelectionType);
+    UFUNCTION()
+    void HandleCustomResolutionChanged(bool bIsChecked);
+    UFUNCTION()
+    void HandleCustomResolutionApplyClicked();
     UFUNCTION()
     void HandleViewDistanceClicked();
     UFUNCTION()
@@ -211,11 +217,23 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<class UVerticalBox> ContentBox;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> ResolutionLabel;
+    TObjectPtr<UComboBoxString> ResolutionDropdown;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> VSyncLabel;
+    TObjectPtr<UCheckBox> VSyncCheckBox;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> WindowModeLabel;
+    TObjectPtr<UTextBlock> VSyncCheckMarkLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UCheckBox> CustomResolutionCheckBox;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> CustomResolutionCheckMarkLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<UHorizontalBox> CustomResolutionFieldsRow;
+    UPROPERTY(Transient)
+    TObjectPtr<UEditableTextBox> CustomResolutionWidthInput;
+    UPROPERTY(Transient)
+    TObjectPtr<UEditableTextBox> CustomResolutionHeightInput;
+    UPROPERTY(Transient)
+    TObjectPtr<UComboBoxString> WindowModeDropdown;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> ViewDistanceLabel;
     UPROPERTY(Transient)
@@ -266,6 +284,8 @@ private:
     FVector2D LastLayoutViewportSize = FVector2D::ZeroVector;
     bool bAudioSettingsDirty = false;
     bool bUpdatingAudioControls = false;
+    bool bUpdatingGraphicsControls = false;
+    bool bCustomResolutionEnabled = false;
     bool bUpdatingAccessibilityControls = false;
     bool bAccessibilitySliderCaptured = false;
     double AudioSettingsLastChangedTime = 0.0;
@@ -274,7 +294,6 @@ private:
     TArray<TObjectPtr<UKalmalaControlButton>> ControlButtons;
 
     TArray<FIntPoint> ResolutionChoices;
-    int32 ResolutionChoiceIndex = 0;
     // Retained by the owner-local widget across ordinary close/reopen only.
     int32 LastOptionsTabIndex = 0;
     bool bMenuOpen = false;

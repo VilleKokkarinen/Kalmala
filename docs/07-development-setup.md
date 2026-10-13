@@ -1032,6 +1032,11 @@ After building, run `Scripts/Tests/World/Verify-Minimap.ps1 -Rendered -Width 192
 
 Press Escape during normal play to open the local Settings menu; press Escape again to close it and restore game input. The menu's main screen provides Options and Quit. Options contains Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility groups; Gameplay stays hidden until a candidate setting is selected. Graphics immediately applies and saves resolution, V-Sync, window mode, and render-distance quality through Unreal `GameUserSettings`. Run `Kalmala.UI.Settings.LocalPresentation` after an editor build for the render-distance bounds seam. This is local presentation/preferences only: no setting, menu action, or quit request is sent to the server.
 
+Graphics provides common resolution presets and an optional custom width/height
+input. Custom dimensions accept whole pixels from 320–7680 wide and 240–4320
+high, and apply through the adjacent button. V-Sync uses the shared stone
+checkbox and window mode uses the shared dropdown.
+
 The Audio tab uses a focusable master-volume slider and separate mute/restore
 button. Ambient, Music, and Interaction/Combat Feedback each use a focusable
 0–100% slider with a live percentage label. Values save in the local
