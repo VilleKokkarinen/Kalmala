@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Shorten and split Settings controls
+
+- **Completed:** renamed the shared Controls/Controller action labels to Build, Inventory, Settings, and Map. Changed the default SettingsMenu action mapping to Escape only (O remains an available remap choice). Controller movement now uses separate Forward, Backward, Right, and Left rows to match Controls; each direction pair continues to use its shared analog stick axis.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Config/DefaultInput.ini`, `Scripts/Tests/Presentation/Verify-LocalInputContract.ps1`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.options -BuildModules -TimeoutSeconds 300` compiled the affected Unreal UI module and rendered Controls, Controller, Graphics, Audio, and Accessibility at 1920×1080. Inspected Controls and Controller previews: labels are shortened, Settings shows Escape, and Controller movement is split into four directional rows. `git diff --check` passed. The local-input contract assertion was updated but its test script was not run; full verification remains deferred.
+- **Impact and authority:** local Settings labels and input defaults only. A controller's paired directions still share the corresponding physical analog axis; no server authority or saved gameplay data changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Rendered previews validate layout/default display; live remapping and input behavior were not exercised. Full verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Center text beside Settings controls
 
 - **Completed:** vertically centered both labels and values alongside sliders in the shared Settings row builder, and centered the Reduced Motion label beside its checkbox. Controls and Controller binding rows already used centered vertical slot alignment; Graphics choices use text centered inside their own buttons.

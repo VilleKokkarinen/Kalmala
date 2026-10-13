@@ -219,15 +219,15 @@ namespace
             Result.Add(MakeSingleInput(TEXT("Sprint"), TEXT("Sprint"), ELocalInputMappingKind::Action,
                 { EKeys::LeftShift, EKeys::RightShift },
                 { EKeys::Gamepad_LeftThumbstick, EKeys::Gamepad_RightThumbstick }));
-            Result.Add(MakeSingleInput(TEXT("SettingsMenu"), TEXT("Settings menu"), ELocalInputMappingKind::Action,
+            Result.Add(MakeSingleInput(TEXT("SettingsMenu"), TEXT("Settings"), ELocalInputMappingKind::Action,
                 { EKeys::Escape, EKeys::O }, {}));
-            Result.Add(MakeSingleInput(TEXT("WorldMap"), TEXT("World map"), ELocalInputMappingKind::Action,
+            Result.Add(MakeSingleInput(TEXT("WorldMap"), TEXT("Map"), ELocalInputMappingKind::Action,
                 { EKeys::M, EKeys::N }, { EKeys::Gamepad_Special_Right }));
             Result.Add(MakeSingleInput(TEXT("WorldMapRecenter"), TEXT("Recenter map"), ELocalInputMappingKind::Action,
                 { EKeys::R, EKeys::T }, {}));
-            Result.Add(MakeSingleInput(TEXT("InventoryMenu"), TEXT("Inventory menu"), ELocalInputMappingKind::Action,
+            Result.Add(MakeSingleInput(TEXT("InventoryMenu"), TEXT("Inventory"), ELocalInputMappingKind::Action,
                 { EKeys::Tab, EKeys::I }, {}));
-            Result.Add(MakeSingleInput(TEXT("CraftMenu"), TEXT("Build and crafting menu"), ELocalInputMappingKind::Action,
+            Result.Add(MakeSingleInput(TEXT("CraftMenu"), TEXT("Build"), ELocalInputMappingKind::Action,
                 { EKeys::B, EKeys::C }, { EKeys::Gamepad_Special_Left, EKeys::Gamepad_Special_Right }));
             return Result;
         }();
@@ -1447,7 +1447,7 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
     for (int32 Index = 0; Index < GetRemappableControlCount(); ++Index)
     {
         const FLocalInputDefinition* Definition = FindLocalInputDefinition(GetRemappableControlName(Index));
-        TotalRowCount += !bGamepad && Definition != nullptr && Definition->Kind == ELocalInputMappingKind::AxisPair
+        TotalRowCount += Definition != nullptr && Definition->Kind == ELocalInputMappingKind::AxisPair
             ? 2 : 1;
     }
     const int32 LeftColumnRowCount = (TotalRowCount + 1) / 2;
@@ -1520,10 +1520,10 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
     {
         const FName ControlName = GetRemappableControlName(Index);
         const FLocalInputDefinition* Definition = FindLocalInputDefinition(ControlName);
-        if (!bGamepad && Definition != nullptr && Definition->Kind == ELocalInputMappingKind::AxisPair)
+        if (Definition != nullptr && Definition->Kind == ELocalInputMappingKind::AxisPair)
         {
-            AddControlRow(ControlName, FText::FromString(Definition->PositiveLabel), true, true);
-            AddControlRow(ControlName, FText::FromString(Definition->NegativeLabel), true, false);
+            AddControlRow(ControlName, FText::FromString(Definition->PositiveLabel), !bGamepad, true);
+            AddControlRow(ControlName, FText::FromString(Definition->NegativeLabel), !bGamepad, false);
             continue;
         }
 

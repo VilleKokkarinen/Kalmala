@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Rename and split Settings controls:** shorten Controls/Controller action labels to Build, Inventory, Settings, and Map; default Settings to Escape; show controller movement as separate Forward/Backward/Right/Left rows.
+
 - [x] **2026-10-13 — Vertically center Settings row text:** center shared slider labels/values and the Reduced Motion label alongside their controls; preserve the existing centered binding-row layout.
 
 - [x] **2026-10-13 — Center Reduced Motion checkmark:** align the checkmark in the middle of the 44×44 checkbox content area on both axes.
