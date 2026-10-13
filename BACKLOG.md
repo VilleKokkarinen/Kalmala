@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Standard recipe arrays:** use recipes roots for all categories, including equipment acquisitions and upgrade costs; update loader routing. Lightweight checks passed; Unreal verification deferred.
+
 - [x] **2026-10-13 — Equipment items arrays:** rename toolProfiles roots to items in all equipment JSON and update both loader passes. Lightweight checks passed; Unreal verification deferred.
 
 - [x] **2026-10-13 — Station-only crafting/upgrade eligibility:** remove obsolete player-skill/unlock checks and requirement text, retain station/material/item constraints, and regress missing/uninitialized ledgers. Lightweight checks passed; Unreal verification deferred.

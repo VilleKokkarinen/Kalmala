@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Standard recipe arrays
+
+- **Completed/files:** recipes/axes,knives,maces,pickaxes,spears.json rename toolRecipes to recipes; recipes/upgrades.json renames toolUpgradeCosts to recipes. GameCatalogueLoader.cpp reads recipes for both equipment passes, with ordinary recipes already using that key. Architecture/setup docs and BACKLOG updated.
+- **Checks:** parsed all category JSON, checked every recipe file uses recipes, and compared affected JSON with HEAD for unchanged entries. Manifest routes still assemble 10 equipment acquisitions and one base upgrade record separately with complete acquisition order. Source inspection, git diff --check and staged MAX_PATH/scope checks passed.
+- **Impact/authority:** one root key for all recipe authoring; unchanged costs, station checks, upgrades, bounds and server authority. No save schema/client requests changed. Existing user item/reward edits and unrelated changes preserved and excluded.
+- **Verification/limitations:** normal increment; full Unreal build/automation/runtime verification deferred. Manifest route/order names retain compatibility.
+- **Next eligible task:** convert decorative generated forest into individually attackable sources with compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-13 — Equipment items arrays
 
 - **Completed/files:** five equipment item-family JSON files and tools/building-hammer.json now use the root items array instead of toolProfiles. GameCatalogueLoader.cpp reads items in both equipment category passes. Architecture/setup docs and BACKLOG updated.

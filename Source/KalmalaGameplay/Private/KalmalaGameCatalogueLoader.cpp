@@ -373,9 +373,9 @@ namespace
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
             || !LoadCategoryFiles(Root, TEXT("toolFiles"), TEXT("items"), TEXT("tools"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
-            || !LoadCategoryFiles(Root, TEXT("toolRecipeFiles"), TEXT("toolRecipes"), TEXT("recipes"),
+            || !LoadCategoryFiles(Root, TEXT("toolRecipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues)
-            || !LoadCategoryFiles(Root, TEXT("toolUpgradeFiles"), TEXT("toolUpgradeCosts"), TEXT("recipes"),
+            || !LoadCategoryFiles(Root, TEXT("toolUpgradeFiles"), TEXT("recipes"), TEXT("recipes"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues)
             || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("tools"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, LevelUpRewardValues)

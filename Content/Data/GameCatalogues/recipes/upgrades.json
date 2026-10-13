@@ -1,5 +1,5 @@
 {
-  "toolUpgradeCosts": [
+  "recipes": [
     {
       "RecipeId": "BronzeAxe",
       "DisplayName": "Bronze Axe",
