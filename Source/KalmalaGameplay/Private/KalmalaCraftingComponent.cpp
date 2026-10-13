@@ -836,22 +836,8 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
         }
         if (Entry.PreviousToolId == Entry.ToolId)
         {
-            const EKalmalaToolTier PreviousTier = FKalmalaToolLifecycleContract::GetToolTier(
-                TargetDefinition->Kind, Entry.PreviousToolLevel);
-            const EKalmalaToolTier TargetTier = FKalmalaToolLifecycleContract::GetToolTier(
-                TargetDefinition->Kind, Entry.TargetToolLevel);
-            const auto TierName = [](const EKalmalaToolTier Tier)
-            {
-                switch (Tier)
-                {
-                case EKalmalaToolTier::Bronze: return TEXT("Bronze");
-                case EKalmalaToolTier::Iron: return TEXT("Iron");
-                default: return TEXT("None");
-                }
-            };
-            Text += FString::Printf(TEXT("Comparison: %s level %d → level %d.\nGain: Woodcutting tier %s → %s; unlocks Ironheart trunks (Densewood).\n"),
-                *GetToolDisplayName(Entry.ToolId), Entry.PreviousToolLevel, Entry.TargetToolLevel,
-                TierName(PreviousTier), TierName(TargetTier));
+            Text += FString::Printf(TEXT("Comparison: %s level %d → level %d.\nHarvesting tier remains tied to item identity.\n"),
+                *GetToolDisplayName(Entry.ToolId), Entry.PreviousToolLevel, Entry.TargetToolLevel);
         }
         else if (!Entry.PreviousToolId.IsNone())
         {

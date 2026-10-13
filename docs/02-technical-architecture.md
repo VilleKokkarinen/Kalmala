@@ -539,13 +539,13 @@ Bronze-or-better and the ironheart trunk to the Iron woodcutting tier; it does n
 station at the source. Tool acquisition and upgrades validate their matching
 visible Workbench or Forge separately.
 
-First-wave sources remain birch bark and resinwood for Wood, reed clusters and frostmoss for Fibre, and bog iron and slate veins for Stone. Peat Amber and Frost Salt require Stone Pick/Mining; birch trunks require Bronze Axe or better and ironheart trunks require the Iron woodcutting tier. Bronze Axe level 2 gains that tier while retaining the Bronze Axe identity; existing legacy Iron Axe records remain valid. Accepted harvest preflights the entire inventory reward, spends one tool-condition point, and depletes once. Failure preserves inventory, condition, and availability. Clients never choose reward, quantity, target, sparse ID, or bonus.
+First-wave sources remain birch bark and resinwood for Wood, reed clusters and frostmoss for Fibre, and bog iron and slate veins for Stone. Peat Amber and Frost Salt require Stone Pick/Mining; birch trunks require Bronze Axe or better and ironheart trunks require the Iron woodcutting tier. Harvesting tier is determined by the axe item identity: Bronze Axe level 2 remains Bronze, and only Iron Axe meets the Iron gate. Existing legacy Iron Axe records remain valid. Accepted harvest preflights the entire inventory reward, spends one tool-condition point, and depletes once. Failure preserves inventory, condition, and availability. Clients never choose reward, quantity, target, sparse ID, or bonus.
 
 ## Tools and station progression
 
 Tools occupy the same forty-cell inventory as materials, rather than extra carrying slots. The owner-only CarriedTools array has at most six unique known records; condition and authored tool level are independent of the transient player skill ledger. Starting tools are Reed Knife, Field Hatchet, Stone Pick, and level-one Construction Hammer. The hammer has 100 condition and no use wear; axes must be crafted.
 
-Bronze Axe level 1 costs 4 Wood, 3 Stone, and 2 Fibre at a level-one Workbench. Bronze Axe level 2 upgrades that same carried item at a level-two Forge, requires Crafting level 5, and costs 3 Lightwood, 2 PeatAmber, 4 Stone, and 2 Fibre. The upgrade raises its woodcutting tier from Bronze to Iron, unlocking ironheart trunks and Densewood. It preserves the item ID, inventory cell, and current condition. The server-selected station family and effective level must match the authored progression step exactly; rejection leaves both candidates unchanged. Legacy Iron Axe records remain readable but are not created as an upgrade result.
+Bronze Axe level 1 costs 4 Wood, 3 Stone, and 2 Fibre at a level-one Workbench. Bronze Axe level 2 upgrades that same carried item at a level-two Forge, requires Crafting level 5, and costs 3 Lightwood, 2 PeatAmber, 4 Stone, and 2 Fibre. An upgrade may change only item-authored stats, currently limited by user direction to durability and slash damage; exact level-two values are pending. Tool level never changes the item's harvesting tier or unlocks resources. It preserves item ID, inventory cell, and current condition. The server-selected station family and effective level must match the authored progression step exactly; rejection leaves both candidates unchanged. Legacy Iron Axe records remain readable but are not created as an upgrade result.
 
 A paid Tool Rack or Forge Anvil within 125 cm adds one level to its matching station. One attachment per station, a level-two ceiling, 32 attachments, and 128 total construction records bound progression. Placement and station use recheck visibility and the normal 250 cm range. Station levels are derived from placed actors, not saved as numbers.
 
@@ -2254,8 +2254,8 @@ Workbench opens a Craft section scoped to its supported recipes, matching Tool R
 and the owner-local Bronze Axe operation. Its header shows the accepted station's effective
 level, starting at level 1 and increasing by one for a nearby compatible Tool Rack.
 Forge exposes Craft and Upgrade views; Upgrade compares the owner-only carried
-Bronze Axe level 1 with the same Bronze Axe at level 2, showing the Iron
-woodcutting tier and Densewood access gained. It reads the owner's tool,
+Bronze Axe level 1 with the same Bronze Axe at level 2, showing only its
+item-specific stat gains and no harvesting-tier change. It reads the owner's tool,
 material, and skill snapshots for prerequisites. Both station shells provide a
 direct Repair All action that repairs all damaged carried tools without opening
 a separate menu. Their headers show the accepted station's effective level,
@@ -2339,7 +2339,8 @@ or save property is added.
 
 The inline Bronze Axe upgrade comparison reads the existing level-one to
 level-two progression and lifecycle definitions. It shows the same item ID,
-the level increase, and the resulting woodcutting tier/unlock. It refreshes the
+the level increase, and item-specific stat gains without changing harvesting
+tier or resource access. It refreshes the
 carried level from local owner state and reports an already-upgraded tool
 without offering another upgrade. It adds no
 request, equipment state, stat authority, replication field, or save data.

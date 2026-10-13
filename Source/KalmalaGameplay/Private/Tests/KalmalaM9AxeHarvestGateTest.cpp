@@ -87,11 +87,13 @@ bool FKalmalaM9AxeHarvestGateTest::RunTest(const FString& Parameters)
         ToolState.Durability == 5 && RewardId.IsNone() && RewardQuantity == 0);
 
     ToolState = {TEXT("BronzeAxe"), 5, 2};
-    TestTrue(TEXT("Level-two Bronze Axe gains the Iron tier without changing its item ID"),
+    RewardId = TEXT("StaleReward");
+    RewardQuantity = 99;
+    TestFalse(TEXT("Level-two Bronze Axe retains its item-bound Bronze harvesting tier"),
         FKalmalaToolLifecycleContract::ApplyServerUse(ToolState, Context, TEXT("BronzeAxe"),
             EKalmalaToolAction::Woodcutting, *Woodcutting, DensewoodSelection, RewardId, RewardQuantity));
-    TestEqual(TEXT("Upgraded Bronze Axe still spends one condition per harvest"), ToolState.Durability, 4);
-    TestEqual(TEXT("Upgraded Bronze Axe receives the server-selected Densewood reward"), RewardId, FName(TEXT("Densewood")));
+    TestTrue(TEXT("Bronze-tier rejection preserves condition and clears reward"),
+        ToolState.Durability == 5 && RewardId.IsNone() && RewardQuantity == 0);
 
     ToolState = {TEXT("IronAxe"), 5};
     TestTrue(TEXT("Iron Axe satisfies Bronze-or-better Lightwood gate"),

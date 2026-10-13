@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Correct Bronze Axe upgrade scope and screen
+
+- **Completed:** changed the Forge action label to “Upgrade,” removed the carried-level prerequisite sentence from the comparison heading, and stopped Bronze Axe level 2 from gaining Iron harvesting access. Updated the upgrade copy and architecture notes to reserve level-two gains for item-specific durability and slash damage.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9AxeHarvestGateTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolStationProgressionTest.cpp`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** source inspection confirmed the button label is generic, the comparison header no longer appends the carried-level prerequisite, and Bronze Axe level no longer changes its harvest tier. `git diff --check` passed. No tests, Unreal build, or menu render were run; full verification remains deferred.
+- **Impact and authority:** removes an unintended harvesting-tier/resource unlock; the harvest tier remains derived from item identity and server-side checks. No new RPC, replicated state, or save schema was introduced.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. The level-two durability and slash-damage values, server effect, and displayed numeric comparison remain incomplete until the user specifies those values. The upgrade currently retains its existing level/material transaction and condition-preservation behavior.
+- **Next eligible task:** obtain and apply the Bronze Axe level-two maximum durability and slash-damage bonus values supplied by the user.
+
 ## User-directed increment 2026-10-13 — Fix duplicate progression format compile error
 
 - **Completed:** the latest UnrealBuildTool log exposed a second conditional `FString::Printf` format in `KalmalaToolProgressionContract.cpp`. Split it into separate checked string-literal calls for craft and upgrade results, preserving the existing messages and behavior.

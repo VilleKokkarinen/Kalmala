@@ -29,11 +29,15 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [ ] **2026-10-13 — Finish Bronze Axe level-two gains:** keep harvesting tier tied to item identity and show only item-specific durability and slash-damage gains. The upgrade button and comparison-heading cleanup is implemented; level-two stat values and their server gameplay effect await user specification.
+  - [x] Remove the named-item upgrade button text and the carried-level prerequisite sentence from the comparison header; stop Bronze Axe level from unlocking Iron harvesting.
+  - [ ] Apply and display the user-specified level-two durability and slash-damage values.
+
 - [x] **2026-10-13 — Fix duplicate progression format compile error:** use separate checked format literals in the shared progression contract, matching the server result-message fix.
 
 - [x] **2026-10-13 — Fix crafting result format compile error:** use separate checked format literals for crafted and upgraded tool result messages so the Unreal `FString::Printf` overload compiles.
 
-- [x] **2026-10-13 — Upgrade tools in place:** Forge advances a carried Bronze Axe from level 1 to level 2 under the same item ID, charges materials, preserves condition and inventory cell, and displays the Iron woodcutting tier/Densewood gain. Cross-item upgrades are rejected; legacy Iron Axe saves remain readable.
+- [x] **2026-10-13 — Upgrade tools in place:** Forge advances a carried Bronze Axe from level 1 to level 2 under the same item ID, charges materials, preserves condition and inventory cell. Its original Iron woodcutting tier/Densewood gain was removed by the follow-up task above. Cross-item upgrades are rejected; legacy Iron Axe saves remain readable.
 
 - [x] **2026-10-13 — Use the shared checkbox for Audio mute:** replace the Mute/Restore button with the shared stone checkbox, keeping the master-volume restore behavior and grouped slider layout.
 

@@ -157,10 +157,9 @@ EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(const EKalmalaToolKi
 }
 
 EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(
-    const EKalmalaToolKind Tool, const int32 ToolLevel)
+    const EKalmalaToolKind Tool, const int32)
 {
-    // A level-two Bronze Axe gains the Iron woodcutting tier without changing item identity.
-    if (Tool == EKalmalaToolKind::BronzeAxe && ToolLevel >= 2) return EKalmalaToolTier::Iron;
+    // A tool's harvesting tier comes from its item identity; progression level only affects item stats.
     return GetToolTier(Tool);
 }
 

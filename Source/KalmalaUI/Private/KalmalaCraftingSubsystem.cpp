@@ -709,8 +709,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     UpgradeTargetIconBox->SetContent(UpgradeTargetIconTile);
     UpgradeTargetIconBox->SetVisibility(ESlateVisibility::Collapsed);
     ToolProgressionActions->AddChildToHorizontalBox(UpgradeTargetIconBox)->SetVerticalAlignment(VAlign_Center);
-    UpgradeBronzeAxeButton = AddButton(TEXT("Upgrade Bronze Axe to Level 2"), ToolProgressionActions,
-        TEXT("Improve the carried Bronze Axe to level 2. Its woodcutting tier increases to Iron while its condition and inventory slot are preserved."));
+    UpgradeBronzeAxeButton = AddButton(TEXT("Upgrade"), ToolProgressionActions,
+        TEXT("Upgrade the carried Bronze Axe to level 2. Its item identity, harvesting tier, and inventory slot are preserved."));
     UpgradeBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeBronzeAxe);
     auto* UpgradePanelContent = WidgetTree->ConstructWidget<UHorizontalBox>();
     StationUpgradePanel = WidgetTree->ConstructWidget<UBorder>();
@@ -1428,7 +1428,7 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Forge — Upgrade")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Upgrade the carried Bronze Axe without changing its identity. The comparison shows its increased level and woodcutting tier.")));
+            TEXT("Upgrade the carried Bronze Axe without changing its identity or harvesting tier.")));
     }
     else
     {
@@ -3129,8 +3129,8 @@ bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
     const FString Details = BuildForgeUpgradePresentationText(Model());
     const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(BronzeAxe, 2);
     const bool bComparison = Details.Contains(TEXT("Comparison: Bronze Axe level 1 → level 2"))
-        && Details.Contains(TEXT("Woodcutting tier Bronze → Iron"))
-        && Details.Contains(TEXT("Ironheart trunks (Densewood)"));
+        && Details.Contains(TEXT("Harvesting tier remains tied to item identity"))
+        && !Details.Contains(TEXT("Ironheart trunks (Densewood)"));
     const bool bRequirements = Entry && Entry->RequiredStation == EKalmalaToolStationKind::Forge
         && Entry->RequiredStationLevel == 2 && Entry->RequiredSkill == EKalmalaSkill::Crafting
         && Entry->RequiredSkillLevel == 5
@@ -3910,28 +3910,18 @@ void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(
         : nullptr;
     const bool bValidUpgrade = Upgrade && Definition && Upgrade->PreviousToolId == Upgrade->ToolId
         && Upgrade->PreviousToolLevel == 1 && Upgrade->TargetToolLevel == 2;
-    const FString CurrentTier = bValidUpgrade
-        && FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind, Upgrade->PreviousToolLevel) == EKalmalaToolTier::Bronze
-        ? TEXT("Bronze") : TEXT("unavailable");
-    const FString TargetTier = bValidUpgrade
-        && FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind, Upgrade->TargetToolLevel) == EKalmalaToolTier::Iron
-        ? TEXT("Iron") : TEXT("unavailable");
     const FString LevelComparison = !bValidUpgrade ? TEXT("Tool level comparison unavailable.")
         : CurrentTool && CurrentTool->ToolLevel >= Upgrade->TargetToolLevel
             ? FString::Printf(TEXT("Already level %d."), Upgrade->TargetToolLevel)
-            : CurrentTool
-                ? FString::Printf(TEXT("Tool level: %d → %d (+1)."),
-                    Upgrade->PreviousToolLevel, Upgrade->TargetToolLevel)
-                : FString::Printf(TEXT("Tool level: %d → %d (+1); requires a carried level %d axe."),
-                    Upgrade->PreviousToolLevel, Upgrade->TargetToolLevel, Upgrade->PreviousToolLevel);
+            : FString::Printf(TEXT("Tool level: %d → %d (+1)."),
+                Upgrade->PreviousToolLevel, Upgrade->TargetToolLevel);
 
     ToolUpgradeComparisonTitle->SetText(FText::FromString(bValidUpgrade
         ? TEXT("Bronze Axe · Level 1 → Level 2")
         : TEXT("Upgrade comparison unavailable")));
     ToolUpgradeLevelComparison->SetText(FText::FromString(LevelComparison));
     ToolUpgradeBenefitComparison->SetText(FText::FromString(bValidUpgrade
-        ? FString::Printf(TEXT("Woodcutting tier: %s → %s; unlocks Ironheart trunks (Densewood)."),
-            *CurrentTier, *TargetTier)
+        ? TEXT("Harvesting tier remains Bronze.")
         : TEXT("Upgrade gains unavailable.")));
 
     ToolUpgradeComparisonTitle->SetColorAndOpacity(FSlateColor(Theme.TextColor(false, ContrastMode)));

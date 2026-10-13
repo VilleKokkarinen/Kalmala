@@ -173,8 +173,8 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Bronze Axe reaches its next authored level"), UpgradedBronze->ToolLevel, 2);
         TestEqual(TEXT("Same-item upgrade preserves tool condition"), UpgradedBronze->Durability, WornCondition);
         const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("BronzeAxe"));
-        TestTrue(TEXT("Level-two Bronze Axe gains the Iron harvesting tier"), Definition
-            && FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind, UpgradedBronze->ToolLevel) == EKalmalaToolTier::Iron);
+        TestTrue(TEXT("Level-two Bronze Axe keeps its item-bound Bronze harvesting tier"), Definition
+            && FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind, UpgradedBronze->ToolLevel) == EKalmalaToolTier::Bronze);
     }
     TestFalse(TEXT("Upgrade does not create or exchange to an Iron Axe"),
         UpgradedTools.ContainsByPredicate([](const FKalmalaToolState& State) { return State.ToolId == TEXT("IronAxe"); }));
