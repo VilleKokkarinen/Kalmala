@@ -13,7 +13,8 @@
       "DamageBonuses": {
         "Slash": 34.0
       },
-      "MaterialTier": 1
+      "MaterialTier": 1,
+      "ItemCategory": "Weapon"
     },
     {
       "ToolId": "BronzeAxe",
@@ -28,7 +29,8 @@
       "DamageBonuses": {
         "Slash": 50.0
       },
-      "MaterialTier": 2
+      "MaterialTier": 2,
+      "ItemCategory": "Weapon"
     },
     {
       "ToolId": "IronAxe",
@@ -43,7 +45,8 @@
       "DamageBonuses": {
         "Slash": 72.0
       },
-      "MaterialTier": 3
+      "MaterialTier": 3,
+      "ItemCategory": "Weapon"
     }
   ]
 }

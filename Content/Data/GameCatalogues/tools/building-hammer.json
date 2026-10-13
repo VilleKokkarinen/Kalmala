@@ -10,7 +10,8 @@
       "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
       "MaxDurability": 100,
-      "DamageBonuses": {}
+      "DamageBonuses": {},
+      "ItemCategory": "Tool"
     }
   ]
 }

@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Weapon classification
+
+- **Completed/files:** six equipment profile JSON files author ItemCategory Weapon for the 12 knife/axe/mace/spear identities and Tool for three pickaxes plus hammer. ToolCatalogue.h/.cpp declares and validates the field. InventoryInspectWidget.cpp/.h adds a Weapons category and separates Tools; ItemDetailWidget.cpp labels equipment Weapon or Tool; InventoryBrowseTest.cpp category assertions updated. Architecture/setup docs and BACKLOG updated.
+- **Checks:** parsed classifications and complete 12/4 coverage; inspected category clamp/cycle/filter and detail lookup; staged profile comparison confirms only ItemCategory is changed. git diff --check and MAX_PATH checks passed. Full Unreal build/automation/UI rendering deferred; normal user-directed increment, not milestone-final.
+- **Impact/authority:** classification controls catalogue/UI grouping; axes retain woodcutting and knives gathering. Existing equipment lifecycle, server-authoritative combat/harvesting/repair/progression and save IDs remain. No RPC or save schema changes.
+- **Limitations:** internal shared equipment contracts retain legacy Tool names for compatibility. User base stats, reward changes and unrelated files are preserved and excluded from commit. Updated Inventory browse regression category expectations; automation not executed.
+- **Next eligible task:** surface remaining Stone/Bronze/Iron acquisitions, stats and costs in station and Inventory Craft views.
+
 ## User-directed increment 2026-10-13 — Axe and pickaxe material tiers
 
 - **Completed/files:** axes.json and pickaxes.json now author MaterialTier 1/2/3 for Stone/Bronze/Iron. ToolCatalogue.h/.cpp defines and validates the property; GameCatalogueLoader.cpp defaults non-harvesting profiles to zero while requiring harvesting profiles to author a tier. ToolLifecycleContract.cpp resolves axe/pick resource tiers from the catalogue instead of hard-coded identity. Architecture/setup docs and BACKLOG updated.

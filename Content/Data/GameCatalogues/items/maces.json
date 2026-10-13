@@ -12,7 +12,8 @@
       "MaxDurability": 16,
       "DamageBonuses": {
         "Crush": 30.0
-      }
+      },
+      "ItemCategory": "Weapon"
     },
     {
       "ToolId": "BronzeMace",
@@ -26,7 +27,8 @@
       "MaxDurability": 48,
       "DamageBonuses": {
         "Crush": 42.0
-      }
+      },
+      "ItemCategory": "Weapon"
     },
     {
       "ToolId": "IronMace",
@@ -40,7 +42,8 @@
       "MaxDurability": 80,
       "DamageBonuses": {
         "Crush": 58.0
-      }
+      },
+      "ItemCategory": "Weapon"
     }
   ]
 }

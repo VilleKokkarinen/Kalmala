@@ -1,4 +1,5 @@
 #include "KalmalaItemDetailWidget.h"
+#include "KalmalaToolCatalogue.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaIconWidget.h"
 #include "KalmalaUITheme.h"
@@ -33,7 +34,9 @@ FString UKalmalaItemDetailWidget::DescribeCarriedTool(FName Id, const FString& V
     else if (Id == TEXT("IronMace")) Description = TEXT("An iron mace for crushing attacks.");
     else if (Id == TEXT("ConstructionHammer")) Description = TEXT("A hand hammer for placing camp structures.");
 
-    FString Text = FString(TEXT("Carried equipment\n\n")) + Description;
+    const FKalmalaToolProfileData* Profile = UKalmalaToolCatalogue::Get()->FindProfile(Id);
+    FString Text = FString(Profile && Profile->ItemCategory == TEXT("Weapon")
+        ? TEXT("Weapon\n\n") : TEXT("Tool\n\n")) + Description;
     if (!VisibleState.IsEmpty()) Text += TEXT("\n\n") + VisibleState;
     return Text;
 }

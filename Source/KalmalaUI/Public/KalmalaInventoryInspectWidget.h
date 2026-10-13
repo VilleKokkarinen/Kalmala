@@ -61,7 +61,7 @@ private:
     TArray<FKalmalaCatalogueRow> Rows;
     TArray<FKalmalaCatalogueRow> OwnerRows;
     FString Search;
-    int32 Category = 0; // All, items, carried tools.
+    int32 Category = 0; // All, items, tools, weapons.
     int32 Sort = 0; // Owner order, name, category/name.
     int32 Selected = 0;
     int32 TextScale = 100;

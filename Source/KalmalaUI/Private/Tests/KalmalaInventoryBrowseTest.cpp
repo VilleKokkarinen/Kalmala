@@ -50,8 +50,8 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Trimmed search finds the reviewed item display name"), Panel->GetVisibleCount(), 1);
     TestEqual(TEXT("Display-name search retains the canonical item identity"), Panel->GetSelectedItem(), FName(TEXT("Fibre")));
     Panel->SetSearch(TEXT(""));
-    Panel->SetCategory(2);
-    TestEqual(TEXT("Tools filter contains only supplied tool"), Panel->GetVisibleCount(), 1);
+    Panel->SetCategory(3);
+    TestEqual(TEXT("Weapons filter contains only supplied weapon"), Panel->GetVisibleCount(), 1);
     TestEqual(TEXT("Filtered selection falls back safely"), Panel->GetSelectedItem(), FName(TEXT("StoneAxe")));
     Panel->SetSearch(TEXT("  HATCHET  "));
     TestEqual(TEXT("Trimmed case-insensitive display-name search"), Panel->GetVisibleCount(), 1);
@@ -80,7 +80,9 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
     Panel->SetCategory(1);
     TestEqual(TEXT("Items excludes carried tools"), Panel->GetVisibleCount(), 3);
     Panel->Navigate(EKeys::Gamepad_LeftShoulder);
-    TestEqual(TEXT("Controller category cycling reaches tools"), Panel->GetVisibleCount(), 1);
+    TestEqual(TEXT("Tools excludes the supplied axe weapon"), Panel->GetVisibleCount(), 0);
+    Panel->Navigate(EKeys::PageUp);
+    TestEqual(TEXT("Weapons contains the supplied axe"), Panel->GetVisibleCount(), 1);
     Panel->Navigate(EKeys::PageUp);
     TestEqual(TEXT("Keyboard category cycling wraps to All"), Panel->GetVisibleCount(), 4);
     Panel->Navigate(EKeys::Gamepad_RightShoulder);

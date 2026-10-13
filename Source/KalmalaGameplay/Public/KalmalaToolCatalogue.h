@@ -68,6 +68,9 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     FString ToolKind;
 
     UPROPERTY(EditAnywhere)
+    FString ItemCategory;
+
+    UPROPERTY(EditAnywhere)
     FString Action;
 
     UPROPERTY(EditAnywhere)

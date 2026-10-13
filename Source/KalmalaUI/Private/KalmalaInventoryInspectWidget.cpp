@@ -1,4 +1,5 @@
 #include "KalmalaInventoryInspectWidget.h"
+#include "KalmalaToolCatalogue.h"
 #include "KalmalaIconWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaUITheme.h"
@@ -163,13 +164,13 @@ void UKalmalaInventoryInspectWidget::SetSearch(const FString& Query)
     Build(); Refilter();
 }
 void UKalmalaInventoryInspectWidget::SearchChanged(const FText& Text) { SetSearch(Text.ToString()); }
-void UKalmalaInventoryInspectWidget::SetCategory(int32 Value) { Category = FMath::Clamp(Value, 0, 2); Build(); Refilter(); }
+void UKalmalaInventoryInspectWidget::SetCategory(int32 Value) { Category = FMath::Clamp(Value, 0, 3); Build(); Refilter(); }
 void UKalmalaInventoryInspectWidget::SetSort(int32 Value) { Sort = FMath::Clamp(Value, 0, 2); Build(); Refilter(); }
 void UKalmalaInventoryInspectWidget::RestoreBrowseState(const FString& Query, const int32 InCategory,
     const int32 InSort, const FName SelectedItemId)
 {
     Search = Query.Left(64).TrimStartAndEnd();
-    Category = FMath::Clamp(InCategory, 0, 2);
+    Category = FMath::Clamp(InCategory, 0, 3);
     Sort = FMath::Clamp(InSort, 0, 2);
     if (SearchBox && SearchBox->GetText().ToString() != Search)
         SearchBox->SetText(FText::FromString(Search));
@@ -183,20 +184,38 @@ void UKalmalaInventoryInspectWidget::RestoreBrowseState(const FString& Query, co
     Selected = Found == INDEX_NONE ? 0 : Found;
     Refresh();
 }
-void UKalmalaInventoryInspectWidget::CycleCategory() { SetCategory((Category + 1) % 3); }
+void UKalmalaInventoryInspectWidget::CycleCategory() { SetCategory((Category + 1) % 4); }
 void UKalmalaInventoryInspectWidget::CycleSort() { SetSort((Sort + 1) % 3); }
 void UKalmalaInventoryInspectWidget::ClearSearch() { SearchBox->SetText(FText::GetEmpty()); SetSearch(TEXT("")); }
+namespace
+{
+    int32 EquipmentCategory(const FKalmalaCatalogueRow& Row)
+    {
+        if (!Row.bCarriedTool) return 1;
+        const auto* Profile = UKalmalaToolCatalogue::Get()->FindProfile(Row.Id);
+        return Profile && Profile->ItemCategory == TEXT("Weapon") ? 3 : 2;
+    }
+}
+
 void UKalmalaInventoryInspectWidget::Refilter()
 {
     const FName Old = GetSelectedItem();
     Rows.Reset();
     for (const auto& Row : OwnerRows)
-        if ((!bAllowToolFilter || Category == 0 || Row.bCarriedTool == (Category == 2))
+    {
+        const FKalmalaToolProfileData* Profile = Row.bCarriedTool
+            ? UKalmalaToolCatalogue::Get()->FindProfile(Row.Id) : nullptr;
+        const bool bWeapon = Profile && Profile->ItemCategory == TEXT("Weapon");
+        const bool bCategoryMatch = Category == 0 || (Category == 1 && !Row.bCarriedTool)
+            || (Category == 2 && Row.bCarriedTool && !bWeapon) || (Category == 3 && bWeapon);
+        if ((!bAllowToolFilter || bCategoryMatch)
             && (Search.IsEmpty() || Row.Name.Contains(Search, ESearchCase::IgnoreCase))) Rows.Add(Row);
+    }
     if (Sort != 0)
         Rows.StableSort([this](const auto& A, const auto& B)
         {
-            if (Sort == 2 && A.bCarriedTool != B.bCarriedTool) return !A.bCarriedTool;
+            if (Sort == 2 && EquipmentCategory(A) != EquipmentCategory(B))
+                return EquipmentCategory(A) < EquipmentCategory(B);
             const int32 Compare = A.Name.Compare(B.Name, ESearchCase::IgnoreCase);
             return Compare == 0 ? A.Id.LexicalLess(B.Id) : Compare < 0;
         });
@@ -215,7 +234,7 @@ void UKalmalaInventoryInspectWidget::Refresh()
     if (!Column) return;
     const auto& Theme = FKalmalaUITheme::Get();
     Instructions->SetText(FText::FromString(bUseSplitLayout
-        ? TEXT("Select a carried tool to inspect its level and condition.")
+        ? TEXT("Select equipment to inspect its level and condition.")
         : ListLabel + TEXT(" details. > marks the selected item.")));
     Theme.ApplyText(*Instructions, Theme.BodySize, false, TextScale, ContrastMode);
     BrowseSearchStyle = SearchBox->GetWidgetStyle();
@@ -225,7 +244,7 @@ void UKalmalaInventoryInspectWidget::Refresh()
         : (bUseSplitLayout ? FLinearColor(.02f, .025f, .03f, 1.f) : Theme.ButtonNormal));
     SearchBox->SetWidgetStyle(BrowseSearchStyle);
     SearchBox->SetForegroundColor(Theme.TextColor(false, ContrastMode));
-    const TCHAR* Categories[] = {TEXT("All"), TEXT("Items"), TEXT("Carried tools")};
+    const TCHAR* Categories[] = {TEXT("All"), TEXT("Items"), TEXT("Tools"), TEXT("Weapons")};
     const TCHAR* Sorts[] = {TEXT("Owner order"), TEXT("Name"), TEXT("Category / name")};
     CastChecked<UTextBlock>(CategoryButton->GetContent())->SetText(FText::FromString(FString(TEXT("Category: ")) + Categories[Category]));
     CategoryButton->SetVisibility(bAllowToolFilter ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
@@ -270,11 +289,11 @@ void UKalmalaInventoryInspectWidget::Refresh()
     int32 GridRow = 0, GridColumn = 0;
     for (int32 Index = 0; Index < Rows.Num(); ++Index)
     {
-        if (Sort == 2 && (Index == 0 || Rows[Index].bCarriedTool != Rows[Index-1].bCarriedTool))
+        if (Sort == 2 && (Index == 0 || EquipmentCategory(Rows[Index]) != EquipmentCategory(Rows[Index-1])))
         {
             if (GridColumn != 0) { ++GridRow; GridColumn = 0; }
             auto* Heading = WidgetTree->ConstructWidget<UTextBlock>();
-            Heading->SetText(FText::FromString(Rows[Index].bCarriedTool ? TEXT("Carried tools") : TEXT("Items")));
+            Heading->SetText(FText::FromString(Categories[EquipmentCategory(Rows[Index])]));
             Theme.ApplyText(*Heading, Theme.BodySize, true, TextScale, ContrastMode);
             Grid->AddChildToGrid(Heading, GridRow++, 0)->SetColumnSpan(GridColumns);
         }
