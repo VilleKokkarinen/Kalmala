@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Make Graphics render distance a slider
+
+- **Completed:** replaced the text-bearing render-distance cycle button with the shared label/slider/value row. The slider snaps across quality levels 0–3, displays the selected value, and immediately applies/saves through the existing local `GameUserSettings` path.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.video -BuildModules -TimeoutSeconds 300 -Output C:\Users\Ville\AppData\Local\Temp\kmmenu-render-distance.png` compiled the affected modules and rendered the Graphics page successfully; inspected the image to confirm a visible 0–3 slider and selected value. `git diff --check` passed, and source search confirmed the old button handler/control references are gone. The first sandboxed render attempt was stopped after UnrealBuildAccelerator could not access its session directory; the same focused render succeeded with normal UnrealBuildTool access. No automation suite ran; full verification remains deferred.
+- **Impact and authority:** local Graphics settings presentation and local `GameUserSettings` only. No RPC, replicated state, gameplay authority, or save schema changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. The rendered menu confirms the slider layout; exhaustive runtime settings persistence remains outside this check.
+- **Next eligible work:** continue auditing `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Restyle Graphics settings controls
 
 - **Completed:** replaced V-Sync's button with the shared stone checkbox and moved window mode to the shared dropdown. Resolution now offers common presets plus an optional custom-resolution checkbox; when enabled, separate width and height fields and an Apply button accept bounded whole-pixel dimensions (320–7680 wide, 240–4320 high). Selecting any choice applies and saves via the existing local `GameUserSettings` path.

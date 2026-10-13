@@ -182,7 +182,7 @@ private:
     UFUNCTION()
     void HandleCustomResolutionApplyClicked();
     UFUNCTION()
-    void HandleViewDistanceClicked();
+    void HandleViewDistanceChanged(float Value);
     UFUNCTION()
     void HandleMasterVolumeChanged(float Value);
     UFUNCTION()
@@ -235,7 +235,9 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<UComboBoxString> WindowModeDropdown;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> ViewDistanceLabel;
+    TObjectPtr<UTextBlock> ViewDistanceValueLabel;
+    UPROPERTY(Transient)
+    TObjectPtr<USlider> ViewDistanceSlider;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> MasterVolumeValueLabel;
     UPROPERTY(Transient)

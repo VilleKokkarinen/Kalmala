@@ -1632,7 +1632,18 @@ void UKalmalaSettingsWidget::ShowGraphicsTab()
     }
     WindowModeDropdown->SetSelectedOption(CurrentWindowMode);
 
-    UButton* ViewDistance = AddButton(ContentBox, FText::GetEmpty(), TEXT("ViewDistanceButton")); ViewDistance->OnClicked.AddDynamic(this, &ThisClass::HandleViewDistanceClicked); ViewDistanceLabel = Cast<UTextBlock>(ViewDistance->GetContent());
+    const int32 ViewDistanceQuality = ClampViewDistanceQuality(
+        Settings->ScalabilityQuality.ViewDistanceQuality);
+    const FSettingsSliderWidgets ViewDistance = AddSettingsSliderRow(*WidgetTree, *ContentBox,
+        TEXT("Render Distance"), TEXT("ViewDistanceSlider"), 0.0f, 3.0f, 1.0f,
+        static_cast<float>(ViewDistanceQuality),
+        FText::FromString(FString::Printf(TEXT("%d / 3"), ViewDistanceQuality)),
+        FText::FromString(TEXT("Adjust render-distance quality from 0 to 3.")),
+        TextScalePercent, ContrastMode);
+    ViewDistanceSlider = ViewDistance.Slider;
+    ViewDistanceValueLabel = ViewDistance.Value;
+    ViewDistanceSlider->MouseUsesStep = true;
+    ViewDistanceSlider->OnValueChanged.AddDynamic(this, &ThisClass::HandleViewDistanceChanged);
     UpdateVideoLabels();
     UWidget* InitialFocus = bCustomResolutionEnabled
         ? static_cast<UWidget*>(CustomResolutionWidthInput) : static_cast<UWidget*>(ResolutionDropdown);
@@ -1983,7 +1994,17 @@ void UKalmalaSettingsWidget::UpdateVideoLabels()
         VSyncCheckMarkLabel->SetText(FText::FromString(
             Settings->IsVSyncEnabled() ? TEXT("✓") : TEXT("")));
     }
-    if (ViewDistanceLabel) ViewDistanceLabel->SetText(FText::FromString(FString::Printf(TEXT("Render Distance: %d / 3"), ClampViewDistanceQuality(Settings->ScalabilityQuality.ViewDistanceQuality))));
+    const int32 ViewDistanceQuality = ClampViewDistanceQuality(
+        Settings->ScalabilityQuality.ViewDistanceQuality);
+    if (ViewDistanceSlider != nullptr)
+    {
+        ViewDistanceSlider->SetValue(static_cast<float>(ViewDistanceQuality));
+    }
+    if (ViewDistanceValueLabel != nullptr)
+    {
+        ViewDistanceValueLabel->SetText(FText::FromString(
+            FString::Printf(TEXT("%d / 3"), ViewDistanceQuality)));
+    }
     if (WindowModeDropdown != nullptr)
     {
         const TCHAR* Mode = Settings->GetFullscreenMode() == EWindowMode::Windowed
@@ -2292,7 +2313,17 @@ void UKalmalaSettingsWidget::HandleCustomResolutionApplyClicked()
         ApplyVideoSettings();
     }
 }
-void UKalmalaSettingsWidget::HandleViewDistanceClicked() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->ScalabilityQuality.ViewDistanceQuality = (ClampViewDistanceQuality(Settings->ScalabilityQuality.ViewDistanceQuality) + 1) % 4; ApplyVideoSettings(); } }
+void UKalmalaSettingsWidget::HandleViewDistanceChanged(const float Value)
+{
+    if (bUpdatingGraphicsControls) return;
+    if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+    {
+        const int32 Quality = ClampViewDistanceQuality(FMath::RoundToInt(Value));
+        if (Settings->ScalabilityQuality.ViewDistanceQuality == Quality) return;
+        Settings->ScalabilityQuality.ViewDistanceQuality = Quality;
+        ApplyVideoSettings();
+    }
+}
 void UKalmalaSettingsWidget::HandleMasterVolumeChanged(const float Value)
 {
     if (bUpdatingAudioControls) return;

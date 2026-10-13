@@ -1915,7 +1915,7 @@ behavior should be specified when selected. Do not copy reference artwork.
   render-distance quality. Resolution uses common presets with an optional
   custom width/height input (320–7680 by 240–4320 pixels) and explicit Apply;
   V-Sync uses the shared checkbox, window mode uses the shared dropdown, and
-  render-distance quality retains its existing selector.
+  render-distance quality uses a snapped 0–3 slider with a visible value.
 - **Audio:** master volume, mute/restore, music, ambient, and
   interaction/combat feedback levels. The selected audio candidate now uses
   focusable sliders with visible percentage values.

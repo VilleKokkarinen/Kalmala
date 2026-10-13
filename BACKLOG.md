@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Make Graphics render distance a slider:** replace the text-in-button cycle control with the shared snapped 0–3 slider row and keep its current quality value visible.
+
 - [x] **2026-10-13 — Restyle Graphics settings controls:** use the shared stone checkbox for V-Sync, shared dropdowns for resolution presets and window mode, and an optional bounded custom resolution input with separate width/height fields.
 
 - [x] **2026-10-13 — Use a shared dropdown for Accessibility feedback:** separate the colour-independent feedback label from its selection control and use a reusable stone-styled dropdown with themed option rows.
