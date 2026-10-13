@@ -54,7 +54,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             || !IsOneOf(Profile.DamageType, {TEXT("None"), TEXT("Slash"), TEXT("Pierce"), TEXT("Blunt")})
             || Profile.MinimumSkillLevel < 1 || Profile.MinimumSkillLevel > 10
             || Profile.DurabilityCost < 0 || Profile.DurabilityCost > 10
-            || Profile.Levels.IsEmpty() || Profile.Levels.Num() > 2)
+            || Profile.Levels.IsEmpty() || Profile.Levels.Num() > MaxLevels)
         {
             return false;
         }
@@ -67,10 +67,9 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
 
         TSet<int32> SeenLevels;
         bool bHasLevelOne = false;
-        bool bHasLevelTwo = false;
         for (const FKalmalaToolLevelData& Level : Profile.Levels)
         {
-            if (Level.ToolLevel < 1 || Level.ToolLevel > 2 || SeenLevels.Contains(Level.ToolLevel)
+            if (Level.ToolLevel < 1 || Level.ToolLevel > MaxLevels || SeenLevels.Contains(Level.ToolLevel)
                 || Level.MaxDurability < 1 || Level.MaxDurability > 1000
                 || !FMath::IsFinite(Level.CombatDamage) || Level.CombatDamage < 0.0f || Level.CombatDamage > 1000.0f
                 || (Profile.DamageType == TEXT("None") && Level.CombatDamage != 0.0f)
@@ -80,15 +79,16 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             }
             SeenLevels.Add(Level.ToolLevel);
             bHasLevelOne |= Level.ToolLevel == 1;
-            bHasLevelTwo |= Level.ToolLevel == 2;
         }
-        if (!bHasLevelOne || (bHasLevelTwo && !SeenLevels.Contains(1))) return false;
+        if (!bHasLevelOne) return false;
+        for (int32 Level = 1; Level <= Profile.Levels.Num(); ++Level)
+            if (!SeenLevels.Contains(Level)) return false;
 
         if (Profile.ToolSet == TEXT("Crafted"))
         {
             const bool bHasAcquisition = Recipes.ContainsByPredicate([&Profile](const FKalmalaToolRecipeData& Recipe)
             {
-                return Recipe.ToolId == Profile.ToolId && Recipe.TargetToolLevel == 1;
+                return Recipe.ToolId == Profile.ToolId && Recipe.Level == 1;
             });
             if (!bHasAcquisition) return false;
         }
@@ -100,13 +100,13 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     for (const FKalmalaToolRecipeData& Recipe : Recipes)
     {
         const FKalmalaToolProfileData* Profile = FindProfile(Recipe.ToolId);
-        const FString TargetKey = FString::Printf(TEXT("%s:%d"), *Recipe.ToolId.ToString(), Recipe.TargetToolLevel);
+        const FString TargetKey = FString::Printf(TEXT("%s:%d"), *Recipe.ToolId.ToString(), Recipe.Level);
         if (Recipe.RecipeId.IsNone() || SeenRecipeIds.Contains(Recipe.RecipeId)
             || Recipe.DisplayName.TrimStartAndEnd().IsEmpty() || Recipe.DisplayName.Len() > 64
             || Profile == nullptr || Profile->ToolSet != TEXT("Crafted")
             || SeenRecipeTargets.Contains(TargetKey)
-            || Recipe.TargetToolLevel < 1 || Recipe.TargetToolLevel > 2
-            || Recipe.RequiredStationLevel != Recipe.TargetToolLevel
+            || Recipe.Level != 1
+            || Recipe.RequiredStationLevel != Recipe.Level
             || !IsOneOf(Recipe.RequiredStation, {TEXT("Workbench"), TEXT("Forge")})
             || !IsOneOf(Recipe.RequiredSkill, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"),
                 TEXT("Mining"), TEXT("Crafting"), TEXT("Cooking"), TEXT("Survival")})
@@ -118,22 +118,12 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
 
         const bool bHasTargetLevel = Profile->Levels.ContainsByPredicate([&Recipe](const FKalmalaToolLevelData& Level)
         {
-            return Level.ToolLevel == Recipe.TargetToolLevel;
+            return Level.ToolLevel == Recipe.Level;
         });
         if (!bHasTargetLevel) return false;
 
-        if (Recipe.TargetToolLevel == 1)
-        {
-            if (!Recipe.PreviousToolId.IsNone() || Recipe.PreviousToolLevel != 0
-                || Recipe.RequiredSkill != TEXT("None") || Recipe.RequiredSkillLevel != 0
-                || Recipe.RequiredStationLevel != 1) return false;
-        }
-        else if (Recipe.PreviousToolId != Recipe.ToolId || Recipe.PreviousToolLevel != Recipe.TargetToolLevel - 1
-            || Recipe.RequiredSkill == TEXT("None") || Recipe.RequiredSkillLevel < 2
-            || Recipe.RequiredStation != TEXT("Forge"))
-        {
-            return false;
-        }
+        if (Recipe.Level != 1 || Recipe.RecipeId != Recipe.ToolId
+            || Recipe.RequiredSkill != TEXT("None") || Recipe.RequiredSkillLevel != 0) return false;
 
         TSet<FName> SeenCostIds;
         for (const FKalmalaToolRecipeIngredientData& Ingredient : Recipe.Ingredients)
@@ -147,14 +137,57 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         SeenRecipeTargets.Add(TargetKey);
     }
 
-    for (const FKalmalaToolProfileData& Profile : Profiles)
+    TSet<FName> SeenUpgradeIds;
+    for (const FKalmalaToolRecipeData& Upgrade : UpgradeCosts)
     {
-        const bool bHasLevelTwo = Profile.Levels.ContainsByPredicate([](const FKalmalaToolLevelData& Level)
-        {
-            return Level.ToolLevel == 2;
-        });
-        if (bHasLevelTwo && !SeenRecipeTargets.Contains(FString::Printf(TEXT("%s:2"), *Profile.ToolId.ToString())))
+        const FKalmalaToolProfileData* Profile = FindProfile(Upgrade.ToolId);
+        if (!Profile || Profile->ToolSet != TEXT("Crafted") || Profile->Levels.Num() < 2
+            || SeenUpgradeIds.Contains(Upgrade.ToolId) || Upgrade.RecipeId != Upgrade.ToolId
+            || Upgrade.Level != 1 || Upgrade.RequiredStationLevel != 0
+            || !IsOneOf(Upgrade.RequiredStation, {TEXT("Workbench"), TEXT("Forge")})
+            || Upgrade.RequiredSkill != TEXT("None") || Upgrade.RequiredSkillLevel != 0
+            || Upgrade.DisplayName.TrimStartAndEnd().IsEmpty() || Upgrade.DisplayName.Len() > 64
+            || Upgrade.Ingredients.IsEmpty() || Upgrade.Ingredients.Num() > MaxIngredientsPerRecipe)
             return false;
+        SeenUpgradeIds.Add(Upgrade.ToolId);
+        TSet<FName> SeenCostIds;
+        for (const FKalmalaToolRecipeIngredientData& Cost : Upgrade.Ingredients)
+        {
+            if (SeenCostIds.Contains(Cost.ItemId) || !Items->IsValidStack(Cost.ItemId, Cost.Quantity)) return false;
+            SeenCostIds.Add(Cost.ItemId);
+        }
+        for (int32 CurrentLevel = 1; CurrentLevel < Profile->Levels.Num(); ++CurrentLevel)
+        {
+            TArray<FKalmalaToolRecipeIngredientData> ScaledCosts;
+            if (!ScaleUpgradeCosts(Upgrade.Ingredients, CurrentLevel, ScaledCosts)) return false;
+            for (const FKalmalaToolRecipeIngredientData& Cost : ScaledCosts)
+                if (!Items->IsValidStack(Cost.ItemId, Cost.Quantity)) return false;
+        }
+    }
+    if (UpgradeCosts.Num() > MaxRecipes) return false;
+    for (const FKalmalaToolProfileData& Profile : Profiles)
+        if (Profile.Levels.Num() > 1 && !SeenUpgradeIds.Contains(Profile.ToolId)) return false;
+    return true;
+}
+
+bool UKalmalaToolCatalogue::ScaleUpgradeCosts(
+    const TArray<FKalmalaToolRecipeIngredientData>& BaseCosts, const int32 CurrentLevel,
+    TArray<FKalmalaToolRecipeIngredientData>& OutCosts)
+{
+    OutCosts.Reset();
+    if (CurrentLevel < 1 || CurrentLevel > 31 || BaseCosts.IsEmpty()) return false;
+    const int64 Multiplier = int64(1) << (CurrentLevel - 1);
+    for (const FKalmalaToolRecipeIngredientData& Base : BaseCosts)
+    {
+        const int64 Quantity = int64(Base.Quantity) * Multiplier;
+        if (Base.ItemId.IsNone() || Base.Quantity <= 0 || Quantity > MAX_int32)
+        {
+            OutCosts.Reset();
+            return false;
+        }
+        FKalmalaToolRecipeIngredientData& Cost = OutCosts.AddDefaulted_GetRef();
+        Cost.ItemId = Base.ItemId;
+        Cost.Quantity = static_cast<int32>(Quantity);
     }
     return true;
 }

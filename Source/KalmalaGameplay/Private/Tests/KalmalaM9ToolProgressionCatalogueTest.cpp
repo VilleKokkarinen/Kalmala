@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaToolCatalogue.h"
 #include "KalmalaToolProgressionContract.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaPlacementPreview.h"
@@ -15,11 +16,32 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
 {
+    TArray<FKalmalaToolRecipeIngredientData> BaseCosts;
+    FKalmalaToolRecipeIngredientData& Wood = BaseCosts.AddDefaulted_GetRef();
+    Wood.ItemId = TEXT("Wood"); Wood.Quantity = 5;
+    FKalmalaToolRecipeIngredientData& Iron = BaseCosts.AddDefaulted_GetRef();
+    Iron.ItemId = TEXT("Iron"); Iron.Quantity = 2;
+    TArray<FKalmalaToolRecipeIngredientData> ScaledCosts;
+    for (int32 CurrentLevel = 1; CurrentLevel <= 3; ++CurrentLevel)
+    {
+        if (TestTrue(TEXT("Base upgrade costs scale at consecutive levels"),
+            UKalmalaToolCatalogue::ScaleUpgradeCosts(BaseCosts, CurrentLevel, ScaledCosts)))
+        {
+            TestEqual(TEXT("Wood doubles for every subsequent upgrade"), ScaledCosts[0].Quantity, 5 << (CurrentLevel - 1));
+            TestEqual(TEXT("Other ingredients double with Wood"), ScaledCosts[1].Quantity, 2 << (CurrentLevel - 1));
+        }
+    }
+    TestFalse(TEXT("Invalid current level rejects upgrade costs"),
+        UKalmalaToolCatalogue::ScaleUpgradeCosts(BaseCosts, 0, ScaledCosts));
+    TestFalse(TEXT("Overflow rejects upgrade costs"),
+        UKalmalaToolCatalogue::ScaleUpgradeCosts(BaseCosts, 31, ScaledCosts));
+    TestTrue(TEXT("Rejected scaling returns no partial costs"), ScaledCosts.IsEmpty());
+
     const TArray<FKalmalaToolProgressionEntry>& Entries = FKalmalaToolProgressionContract::GetEntries();
     TestTrue(TEXT("Crafted tool progression catalogue is bounded and internally valid"),
         FKalmalaToolProgressionContract::IsCatalogueValid());
-    TestEqual(TEXT("Tool progression entries stay within their authored bound"), Entries.Num(),
-        FKalmalaToolProgressionContract::MaxToolProgressionEntries);
+    TestEqual(TEXT("Current authored stats generate nine progression entries"), Entries.Num(), 9);
+    TestTrue(TEXT("Generated entries remain bounded"), Entries.Num() <= FKalmalaToolProgressionContract::MaxToolProgressionEntries);
 
     const FKalmalaToolProgressionEntry* Bronze = FKalmalaToolProgressionContract::FindEntry(TEXT("BronzeAxe"));
     TestNotNull(TEXT("Bronze Axe has a progression entry"), Bronze);

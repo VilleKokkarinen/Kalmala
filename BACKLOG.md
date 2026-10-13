@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Simplify item upgrade definitions:** stable acquisition RecipeIds with Level; one JSON file for level-one upgrade costs; derive doubling costs and target station level; keep upgrade RequiredSkillLevel at zero and remove JSON predecessor fields. Current playable levels and existing ingredients retained.
+
 - [x] **2026-10-13 — Finish CampFire identifier cleanup:** replace superseded catalogue, component, icon, manifest, fixture, and documentation names with `CampFire`; retain the internal `CampfireKit` construction identity.
 
 - [x] **2026-10-13 — Split ordinary building and station recipes:** put construction/general building recipes in `recipes/building.json`, each station's recipe in its own JSON file, and preserve the existing runtime order through the manifest.

@@ -349,9 +349,7 @@ bool FKalmalaToolLifecycleContract::IsToolSuitableForSelection(
     const int32 ToolLevel,
     const FKalmalaToolServerSelection& Selection)
 {
-    const bool bTieredAxe = Definition.Kind == EKalmalaToolKind::BronzeAxe
-        || Definition.Kind == EKalmalaToolKind::IronAxe;
-    if (ToolLevel < 1 || (bTieredAxe ? ToolLevel > 2 : ToolLevel != 1)) return false;
+    if (GetMaxDurability(Definition.ToolId, ToolLevel) <= 0) return false;
     if (Definition.Action != Selection.Action) return false;
     if (Selection.MinimumToolTier == EKalmalaToolTier::None)
     {

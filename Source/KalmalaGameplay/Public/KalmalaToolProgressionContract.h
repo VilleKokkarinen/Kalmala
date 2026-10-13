@@ -23,7 +23,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolMaterialCost
     int32 Quantity = 0;
 };
 
-/** Authored progression entry; it does not itself grant or upgrade a carried tool. */
+/** Derived progression entry; it does not itself grant or upgrade a carried tool. */
 struct KALMALAGAMEPLAY_API FKalmalaToolProgressionEntry
 {
     FName ToolId = NAME_None;
@@ -57,7 +57,7 @@ struct KALMALAGAMEPLAY_API FKalmalaStationAttachmentCandidate
 class KALMALAGAMEPLAY_API FKalmalaToolProgressionContract
 {
 public:
-    static constexpr int32 MaxToolProgressionEntries = 9;
+    static constexpr int32 MaxToolProgressionEntries = 128;
     static constexpr int32 MaxStationAttachments = 32;
     static constexpr int32 MaxStationLevel = 2;
     static constexpr float MaxAttachmentDistanceCm = 125.0f;

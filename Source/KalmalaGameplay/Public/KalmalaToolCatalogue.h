@@ -86,13 +86,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolRecipeData
     FName ToolId;
 
     UPROPERTY(EditAnywhere)
-    int32 TargetToolLevel = 0;
-
-    UPROPERTY(EditAnywhere)
-    FName PreviousToolId;
-
-    UPROPERTY(EditAnywhere)
-    int32 PreviousToolLevel = 0;
+    int32 Level = 1;
 
     UPROPERTY(EditAnywhere)
     FString RequiredStation;
@@ -118,6 +112,7 @@ class KALMALAGAMEPLAY_API UKalmalaToolCatalogue : public UObject
 
 public:
     static constexpr int32 MaxProfiles = 32;
+    static constexpr int32 MaxLevels = 10;
     static constexpr int32 MaxRecipes = 32;
     static constexpr int32 MaxIngredientsPerRecipe = 4;
 
@@ -127,6 +122,12 @@ public:
     UPROPERTY(EditDefaultsOnly)
     TArray<FKalmalaToolRecipeData> Recipes;
 
+    /** Level-one upgrade costs; later costs are derived, never separately authored. */
+    UPROPERTY(EditDefaultsOnly)
+    TArray<FKalmalaToolRecipeData> UpgradeCosts;
+
+    static bool ScaleUpgradeCosts(const TArray<FKalmalaToolRecipeIngredientData>& BaseCosts,
+        int32 CurrentLevel, TArray<FKalmalaToolRecipeIngredientData>& OutCosts);
     static const UKalmalaToolCatalogue* Get();
     bool IsValidCatalogue(const UKalmalaItemCatalogue* ItemDefinitions = nullptr) const;
     const FKalmalaToolProfileData* FindProfile(FName ToolId) const;

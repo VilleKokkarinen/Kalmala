@@ -38,8 +38,8 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     TestNotNull(TEXT("Bronze Axe level-two progression entry exists"), UpgradeEntry);
     if (UpgradeEntry)
     {
-        TestEqual(TEXT("Bronze Axe level two requires Crafting"), UpgradeEntry->RequiredSkill, EKalmalaSkill::Crafting);
-        TestEqual(TEXT("Bronze Axe level two requires the level-five second-tier unlock"), UpgradeEntry->RequiredSkillLevel, 5);
+        TestEqual(TEXT("Bronze Axe upgrades do not require a skill"), UpgradeEntry->RequiredSkill, EKalmalaSkill::None);
+        TestEqual(TEXT("Upgrade skill level always remains zero"), UpgradeEntry->RequiredSkillLevel, 0);
     }
     FKalmalaSkillProgressionLedger CraftingLevelOne;
     CraftingLevelOne.Initialize();
@@ -129,14 +129,16 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     };
     TArray<FKalmalaToolState> UpgradedTools;
     TArray<FKalmalaInventoryStack> UpgradedInventory;
-    RejectWithoutMutation(true, &CraftingLevelOne, TEXT("ForgeKit"), 2, TEXT("BronzeAxe"), BronzeTools, UpgradeMaterials,
-        TEXT("Bronze Axe upgrade rejects Crafting level one without changing candidate state"));
-    RejectWithoutMutation(true, &CraftingLevelFour, TEXT("ForgeKit"), 2, TEXT("BronzeAxe"), BronzeTools, UpgradeMaterials,
-        TEXT("Bronze Axe upgrade rejects Crafting level four without the second-tier unlock"));
-    RejectWithoutMutation(true, nullptr, TEXT("ForgeKit"), 2, TEXT("BronzeAxe"), BronzeTools, UpgradeMaterials,
-        TEXT("Bronze Axe upgrade rejects a missing server skill ledger"));
+    for (const FKalmalaSkillProgressionLedger* Skills : {&CraftingLevelOne, &CraftingLevelFour,
+        static_cast<FKalmalaSkillProgressionLedger*>(nullptr)})
+    {
+        TestTrue(TEXT("Upgrade succeeds independently of skill level or a skill ledger"),
+            FKalmalaToolProgressionContract::BuildServerUpgrade(
+                true, Skills, TEXT("ForgeKit"), 2, TEXT("BronzeAxe"), BronzeTools, UpgradeMaterials,
+                UpgradedTools, UpgradedInventory, Reason));
+    }
     RejectWithoutMutation(true, &CraftingLevelFive, TEXT("ForgeKit"), 2, TEXT("BronzeAxe"), BronzeTools, {},
-        TEXT("Bronze Axe upgrade rejects insufficient materials after skill acceptance"));
+        TEXT("Bronze Axe upgrade rejects insufficient materials without a skill gate"));
     TestFalse(TEXT("Level-one Forge cannot satisfy the level-two Bronze Axe target"),
         FKalmalaToolProgressionContract::BuildServerUpgrade(
             true, &CraftingLevelFive, TEXT("ForgeKit"), 1, TEXT("BronzeAxe"), BronzeTools, UpgradeMaterials,

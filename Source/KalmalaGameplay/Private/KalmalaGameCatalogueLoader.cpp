@@ -311,7 +311,7 @@ namespace
         }
 
         double SchemaVersion = 0.0;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 5.0)
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 6.0)
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an unsupported schema: %s"), *JsonPath);
             return false;
@@ -322,6 +322,7 @@ namespace
         TArray<TSharedPtr<FJsonValue>> RecipeValues;
         TArray<TSharedPtr<FJsonValue>> ToolProfileValues;
         TArray<TSharedPtr<FJsonValue>> ToolRecipeValues;
+        TArray<TSharedPtr<FJsonValue>> ToolUpgradeValues;
         if (!LoadCategoryFiles(Root, TEXT("itemFiles"), TEXT("items"), TEXT("items"),
                 UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues)
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
@@ -333,6 +334,8 @@ namespace
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
             || !LoadCategoryFiles(Root, TEXT("toolRecipeFiles"), TEXT("toolRecipes"), TEXT("recipes"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues)
+            || !LoadCategoryFiles(Root, TEXT("toolUpgradeFiles"), TEXT("toolUpgradeCosts"), TEXT("recipes"),
+                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues)
             || !OrderCategoryValues(Root, TEXT("toolProfileOrder"), TEXT("ToolId"), ToolProfileValues)
             || !OrderCategoryValues(Root, TEXT("toolRecipeOrder"), TEXT("RecipeId"), ToolRecipeValues))
         {
@@ -351,12 +354,15 @@ namespace
         TArray<FKalmalaRecipe> ParsedRecipes;
         TArray<FKalmalaToolProfileData> ParsedToolProfiles;
         TArray<FKalmalaToolRecipeData> ParsedToolRecipes;
+        TArray<FKalmalaToolRecipeData> ParsedUpgradeCosts;
         if (!FJsonObjectConverter::JsonArrayToUStruct<FKalmalaItemDefinition>(ItemValues, &ParsedItems, 0, 0, true)
             || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaRecipe>(RecipeValues, &ParsedRecipes, 0, 0, true)
             || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaToolProfileData>(
                 ToolProfileValues, &ParsedToolProfiles, 0, 0, true)
             || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaToolRecipeData>(
-                ToolRecipeValues, &ParsedToolRecipes, 0, 0, true))
+                ToolRecipeValues, &ParsedToolRecipes, 0, 0, true)
+            || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaToolRecipeData>(
+                ToolUpgradeValues, &ParsedUpgradeCosts, 0, 0, true))
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue data does not match its item, recipe, and tool definitions: %s"), *JsonPath);
             return false;
@@ -369,6 +375,7 @@ namespace
         RecipeCatalogue->Recipes = MoveTemp(ParsedRecipes);
         ToolCatalogue->Profiles = MoveTemp(ParsedToolProfiles);
         ToolCatalogue->Recipes = MoveTemp(ParsedToolRecipes);
+        ToolCatalogue->UpgradeCosts = MoveTemp(ParsedUpgradeCosts);
         if (!ItemCatalogue->IsValidCatalogue() || !RecipeCatalogue->IsValidCatalogue()
             || !ToolCatalogue->IsValidCatalogue(ItemCatalogue))
         {
@@ -376,6 +383,7 @@ namespace
             RecipeCatalogue->Recipes.Reset();
             ToolCatalogue->Profiles.Reset();
             ToolCatalogue->Recipes.Reset();
+            ToolCatalogue->UpgradeCosts.Reset();
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON failed item, recipe, or tool validation: %s"), *JsonPath);
             return false;
         }

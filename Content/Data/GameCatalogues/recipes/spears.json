@@ -1,12 +1,9 @@
 {
   "toolRecipes": [
     {
-      "RecipeId": "BronzeSpearLevel1",
+      "RecipeId": "BronzeSpear",
       "DisplayName": "Bronze Spear",
       "ToolId": "BronzeSpear",
-      "TargetToolLevel": 1,
-      "PreviousToolId": "",
-      "PreviousToolLevel": 0,
       "RequiredStation": "Workbench",
       "RequiredStationLevel": 1,
       "RequiredSkill": "None",
@@ -24,15 +21,13 @@
           "ItemId": "Fibre",
           "Quantity": 3
         }
-      ]
+      ],
+      "Level": 1
     },
     {
-      "RecipeId": "IronSpearLevel1",
+      "RecipeId": "IronSpear",
       "DisplayName": "Iron Spear",
       "ToolId": "IronSpear",
-      "TargetToolLevel": 1,
-      "PreviousToolId": "",
-      "PreviousToolLevel": 0,
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "RequiredSkill": "None",
@@ -50,7 +45,8 @@
           "ItemId": "Fibre",
           "Quantity": 1
         }
-      ]
+      ],
+      "Level": 1
     }
   ]
 }

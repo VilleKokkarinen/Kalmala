@@ -1,12 +1,9 @@
 {
   "toolRecipes": [
     {
-      "RecipeId": "BronzePickLevel1",
+      "RecipeId": "BronzePick",
       "DisplayName": "Bronze Pick",
       "ToolId": "BronzePick",
-      "TargetToolLevel": 1,
-      "PreviousToolId": "",
-      "PreviousToolLevel": 0,
       "RequiredStation": "Workbench",
       "RequiredStationLevel": 1,
       "RequiredSkill": "None",
@@ -24,15 +21,13 @@
           "ItemId": "Fibre",
           "Quantity": 2
         }
-      ]
+      ],
+      "Level": 1
     },
     {
-      "RecipeId": "IronPickLevel1",
+      "RecipeId": "IronPick",
       "DisplayName": "Iron Pick",
       "ToolId": "IronPick",
-      "TargetToolLevel": 1,
-      "PreviousToolId": "",
-      "PreviousToolLevel": 0,
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "RequiredSkill": "None",
@@ -50,7 +45,8 @@
           "ItemId": "Stone",
           "Quantity": 2
         }
-      ]
+      ],
+      "Level": 1
     }
   ]
 }

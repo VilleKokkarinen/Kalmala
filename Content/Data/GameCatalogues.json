@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "itemFiles": [
     "items/materials.json",
     "items/stations.json",
@@ -75,14 +75,16 @@
     "recipes/spears.json"
   ],
   "toolRecipeOrder": [
-    "BronzeAxeLevel1",
-    "BronzeAxeLevel2",
-    "BronzeKnifeLevel1",
-    "BronzePickLevel1",
-    "BronzeSpearLevel1",
-    "IronKnifeLevel1",
-    "IronAxeLevel1",
-    "IronPickLevel1",
-    "IronSpearLevel1"
+    "BronzeAxe",
+    "BronzeKnife",
+    "BronzePick",
+    "BronzeSpear",
+    "IronKnife",
+    "IronAxe",
+    "IronPick",
+    "IronSpear"
+  ],
+  "toolUpgradeFiles": [
+    "recipes/upgrades.json"
   ]
 }
