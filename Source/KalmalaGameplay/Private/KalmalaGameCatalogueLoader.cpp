@@ -376,6 +376,32 @@ namespace
             }
         }
 
+        // Shared rewards use the same sparse channel authoring as item base stats.
+        for (const TSharedPtr<FJsonValue>& RewardValue : LevelUpRewardValues)
+        {
+            const TSharedPtr<FJsonObject> GroupObject = RewardValue->AsObject();
+            const TSharedPtr<FJsonObject>* RewardObject = nullptr;
+            const TSharedPtr<FJsonObject>* Bonuses = nullptr;
+            if (!GroupObject.IsValid()
+                || !GroupObject->TryGetObjectField(TEXT("LevelUpReward"), RewardObject)
+                || !(*RewardObject)->TryGetObjectField(TEXT("DamageBonuses"), Bonuses))
+            {
+                return false;
+            }
+            if (!(*RewardObject)->HasField(TEXT("MaxDurability")))
+            {
+                (*RewardObject)->SetNumberField(TEXT("MaxDurability"), 0.0);
+            }
+            for (const TCHAR* Channel : { TEXT("Slash"), TEXT("Stab"), TEXT("Crush"), TEXT("Pierce"),
+                TEXT("Fire"), TEXT("Water"), TEXT("Holy"), TEXT("Poison") })
+            {
+                if (!(*Bonuses)->HasField(Channel))
+                {
+                    (*Bonuses)->SetNumberField(Channel, 0.0);
+                }
+            }
+        }
+
         TArray<FKalmalaItemDefinition> ParsedItems;
         TArray<FKalmalaRecipe> ParsedRecipes;
         TArray<FKalmalaToolProfileData> ParsedToolProfiles;

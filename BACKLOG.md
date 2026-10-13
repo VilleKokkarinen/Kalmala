@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Rewards for all weapon families:** add shared knife/pickaxe/mace/spear rewards, preserving user base stats; allow omitted zero reward channels and durability. Lightweight checks passed; Unreal verification deferred.
+
 - [x] **2026-10-13 — Share attacks by weapon family:** move item Attacks arrays into tools/Attacks.json; axe/knife/pickaxe/spear/mace tiers each share one list with validated membership and unchanged Basic values.
 
 - [x] **2026-10-13 — Share level rewards across items:** move rewards to tools/LevelUpRewards.json with explicit item groups; all axes share +5 slash/+50 durability per level, with validated references and zero default gains for unlisted items.

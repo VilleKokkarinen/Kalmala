@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Complete weapon-family rewards
+
+- **Completed/files:** tools/LevelUpRewards.json now covers all 15 weapon identities in five non-overlapping family groups. Axes retain +50 durability/+5 Slash; knives add +50/+5 Slash/+5 Stab, pickaxes and maces +50/+5 Crush/+5 Pierce, spears +50/+5 Stab. Chosen defaults extend the existing axe gains; shared mace gains introduce Pierce on leveled Stone Maces. User-filled base profiles remain untouched.
+- **Loader/docs:** KalmalaGameCatalogueLoader.cpp fills omitted reward damage channels and MaxDurability with zero before strict conversion. Required reward/bonus objects, existing bounds and membership checks remain. Architecture/setup and BACKLOG updated.
+- **Lightweight checks:** parsed JSON, checked five disjoint known-item groups covering all 15 weapons, no zero reward values, level 1/2/10/20 arithmetic and bounds, inspected normalization before strict conversion. git diff --check and staged path checks passed. Full Unreal build/automation/runtime verification deferred; not milestone-final.
+- **Impact/authority:** all weapon families derive per-level gains server-side; no new RPC/save schema, upgrade costs, stations or acquisition paths. Only Bronze Axe currently has station upgrade costs. Building Hammer remains unlisted with zero rewards. Existing user weapon stats and unrelated edits are preserved and excluded.
+- **Next eligible task:** surface remaining Stone/Bronze/Iron acquisitions, stats and costs in station and Inventory Craft views.
+
 ## User-directed increment 2026-10-13 — Sparse item damage bonuses
 
 - **Completed/files:** removed zero channels from five weapon-family JSON files and tools/building-hammer.json. KalmalaGameCatalogueLoader.cpp fills omitted item channels with zero before strict conversion; the DamageBonuses object and other profile fields remain required. Updated architecture/setup docs and BACKLOG.md.

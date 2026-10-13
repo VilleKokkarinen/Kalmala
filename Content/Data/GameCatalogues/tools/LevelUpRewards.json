@@ -9,14 +9,62 @@
       "LevelUpReward": {
         "MaxDurability": 50,
         "DamageBonuses": {
+          "Slash": 5.0
+        }
+      }
+    },
+    {
+      "ItemIds": [
+        "StoneKnife",
+        "BronzeKnife",
+        "IronKnife"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 50,
+        "DamageBonuses": {
           "Slash": 5.0,
-          "Stab": 0.0,
-          "Crush": 0.0,
-          "Pierce": 0.0,
-          "Fire": 0.0,
-          "Water": 0.0,
-          "Holy": 0.0,
-          "Poison": 0.0
+          "Stab": 5.0
+        }
+      }
+    },
+    {
+      "ItemIds": [
+        "StonePick",
+        "BronzePick",
+        "IronPick"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 50,
+        "DamageBonuses": {
+          "Crush": 5.0,
+          "Pierce": 5.0
+        }
+      }
+    },
+    {
+      "ItemIds": [
+        "StoneMace",
+        "BronzeMace",
+        "IronMace"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 50,
+        "DamageBonuses": {
+          "Crush": 5.0,
+          "Pierce": 5.0
+        }
+      }
+    },
+    {
+      "ItemIds": [
+        "StoneSpear",
+        "BronzeSpear",
+        "IronSpear"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 50,
+        "DamageBonuses": {
+          "Stab": 5.0
         }
       }
     }
