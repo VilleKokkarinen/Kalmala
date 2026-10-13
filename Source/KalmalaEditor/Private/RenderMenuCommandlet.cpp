@@ -43,14 +43,14 @@ int32 URenderMenuCommandlet::Main(const FString& Params)
         {TEXT("settings.audio"),0},{TEXT("settings.controls"),1},{TEXT("settings.accessibility"),2},
         {TEXT("settings.status"),3},{TEXT("settings.video"),6},{TEXT("settings.controller"),7}};
     const bool bInventory = WidgetClass.IsEmpty() && (Menu == TEXT("inventory") || Menu == TEXT("inventory-crafting"));
-    const bool bWorkbenchMenu = Menu == TEXT("crafting") || Menu == TEXT("workbench.repair");
-    const bool bForgeMenu = Menu == TEXT("forge") || Menu == TEXT("forge.upgrade") || Menu == TEXT("forge.repair");
+    const bool bWorkbenchMenu = Menu == TEXT("crafting");
+    const bool bForgeMenu = Menu == TEXT("forge") || Menu == TEXT("forge.upgrade");
     const bool bCrafting = WidgetClass.IsEmpty() && (bWorkbenchMenu || bForgeMenu
         || Menu == TEXT("inventory-crafting") || Menu == TEXT("build"));
     if ((!bInventory && !bCrafting && !Tabs.Contains(Menu) && WidgetClass.IsEmpty())
         || Width < 320 || Height < 240 || Width > 4096 || Height > 2160 || Output.IsEmpty())
     {
-        UE_LOG(LogTemp, Error, TEXT("Unknown menu or invalid request. Use inventory, crafting, forge, workbench.repair, forge.upgrade, forge.repair, inventory-crafting, build, settings.{home,options,audio,controls,controller,video,accessibility,status}, or WidgetClass=/Script/...; Output=...png."));
+        UE_LOG(LogTemp, Error, TEXT("Unknown menu or invalid request. Use inventory, crafting, forge, forge.upgrade, inventory-crafting, build, settings.{home,options,audio,controls,controller,video,accessibility,status}, or WidgetClass=/Script/...; Output=...png."));
         return 1;
     }
     Output = FPaths::ConvertRelativePathToFull(Output);
@@ -107,8 +107,7 @@ int32 URenderMenuCommandlet::Main(const FString& Params)
     if (bCrafting)
     {
         auto* Widget = CastChecked<UKalmalaCraftingWidget>(MakeWidget(UKalmalaCraftingWidget::StaticClass()));
-        const FString StationSection = Menu == TEXT("workbench.repair") || Menu == TEXT("forge.repair")
-            ? TEXT("Repair") : Menu == TEXT("forge.upgrade") ? TEXT("Upgrade") : TEXT("Craft");
+        const FString StationSection = Menu == TEXT("forge.upgrade") ? TEXT("Upgrade") : TEXT("Craft");
         Widget->PrepareMenuRender(Menu == TEXT("inventory-crafting"), bWorkbenchMenu, bForgeMenu,
             StationSection);
         const bool bBuild = Menu == TEXT("build");

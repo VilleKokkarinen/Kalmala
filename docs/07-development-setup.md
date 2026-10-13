@@ -2708,10 +2708,13 @@ Do not infer a passing game build from successful generation or solution validat
 
 ## Offscreen menu preview images
 
-Run `Scripts/Render-Menu.ps1` without `-Menu` to render its nine default menu
+Run `Scripts/Render-Menu.ps1` without `-Menu` to render its eleven default menu
 views sequentially. The `inventory-crafting` view combines Inventory and
 player crafting, so the redundant standalone Inventory capture is omitted from
 the default set. The `crafting` view previews the Workbench Craft section.
+Repair All is a direct station action, so there are no separate
+`workbench.repair` or `forge.repair` render targets; inspect those buttons in
+the Workbench Craft and Forge views.
 Use `-Menu inventory` only when an Inventory-only capture is useful. To inspect
 every Options selection, run
 `Scripts/Render-Menu.ps1 -Menu settings.options`; it writes separate previews

@@ -35,7 +35,7 @@ function Get-Sha256Hex([byte[]]$Bytes) {
     try { return [BitConverter]::ToString($sha256.ComputeHash($Bytes)).Replace('-', '') }
     finally { $sha256.Dispose() }
 }
-$menuIds = @('inventory','crafting','forge','workbench.repair','forge.upgrade','forge.repair',
+$menuIds = @('inventory','crafting','forge','forge.upgrade',
     'inventory-crafting','build','settings.home','settings.options',
     'settings.audio','settings.controls','settings.controller','settings.video','settings.accessibility')
 $retiredMenuOutputIds = @('settings.status')

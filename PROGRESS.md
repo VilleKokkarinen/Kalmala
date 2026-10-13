@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Remove station Repair All render targets
+
+- **Completed:** removed `workbench.repair` and `forge.repair` from the renderer's accepted menu IDs and native commandlet. The default batch now has eleven captures, and direct Repair All buttons remain visible in the Workbench Craft and Forge views.
+- **Files changed:** `Scripts/Render-Menu.ps1`, `Source/KalmalaEditor/Private/RenderMenuCommandlet.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** PowerShell parser passed; `Render-Menu.ps1 -List` omits both repair targets; the default target calculation returns eleven; native commandlet selection/validation was inspected; `git diff --check` passed. No Unreal build or image capture was run; full verification remains deferred.
+- **Impact and authority:** menu-preview tooling only. The existing Workbench/Forge Repair All UI action and server behavior are unchanged; no gameplay, networking, or save behavior changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Native commandlet compilation and rendered output were not exercised. Existing PNG files were left untouched.
+- **Next eligible work:** continue auditing `Verify-*` entrypoints against active acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Shorten and split Settings controls
 
 - **Completed:** renamed the shared Controls/Controller action labels to Build, Inventory, Settings, and Map. Changed the default SettingsMenu action mapping to Escape only (O remains an available remap choice). Controller movement now uses separate Forward, Backward, Right, and Left rows to match Controls; each direction pair continues to use its shared analog stick axis.
