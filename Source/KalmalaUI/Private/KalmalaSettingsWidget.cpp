@@ -1625,17 +1625,12 @@ void UKalmalaSettingsWidget::ShowAccessibilityTab()
     FKalmalaUITheme::Get().ApplyCheckBox(*ReducedMotionCheckBox, ContrastMode);
     ReducedMotionCheckBox->OnCheckStateChanged.AddDynamic(this, &ThisClass::HandleReducedMotionChanged);
     USizeBox* ReducedMotionCheckBoxSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
-    ReducedMotionCheckBoxSize->SetWidthOverride(36.0f);
-    ReducedMotionCheckBoxSize->SetHeightOverride(36.0f);
+    ReducedMotionCheckBoxSize->SetWidthOverride(44.0f);
+    ReducedMotionCheckBoxSize->SetHeightOverride(44.0f);
     ReducedMotionCheckBoxSize->SetContent(ReducedMotionCheckBox);
     UHorizontalBoxSlot* ReducedMotionSlot = ReducedMotionRow->AddChildToHorizontalBox(ReducedMotionCheckBoxSize);
     ReducedMotionSlot->SetPadding(FMargin(4.0f, 6.0f));
     ReducedMotionSlot->SetVerticalAlignment(VAlign_Center);
-    ReducedMotionStateLabel = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
-    ReducedMotionStateLabel->SetText(FText::FromString(IsReducedMotionEnabled() ? TEXT("On") : TEXT("Off")));
-    FKalmalaUITheme::Get().ApplyText(*ReducedMotionStateLabel, FKalmalaUITheme::Get().BodySize + 3,
-        false, TextScalePercent, ContrastMode);
-    ReducedMotionRow->AddChildToHorizontalBox(ReducedMotionStateLabel)->SetPadding(FMargin(4.0f, 6.0f));
     SliderGroup->AddChildToVerticalBox(ReducedMotionRow)->SetPadding(FMargin(4.0f, 3.0f));
 
     UButton* Feedback = AddButton(ContentBox, FText::GetEmpty(), TEXT("FeedbackButton"));
@@ -1741,10 +1736,6 @@ void UKalmalaSettingsWidget::UpdateSettingsLabels()
     if (ReducedMotionCheckMarkLabel != nullptr)
     {
         ReducedMotionCheckMarkLabel->SetText(FText::FromString(bReducedMotion ? TEXT("✓") : TEXT("")));
-    }
-    if (ReducedMotionStateLabel != nullptr)
-    {
-        ReducedMotionStateLabel->SetText(FText::FromString(bReducedMotion ? TEXT("On") : TEXT("Off")));
     }
     if (FeedbackLabel != nullptr)
     {

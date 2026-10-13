@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Enlarge the Reduced Motion checkbox
+
+- **Completed:** increased the stone checkbox from 36×36 to 44×44 and removed the separate On/Off label. The adjacent “Reduced motion” label remains, and the in-box checkmark shows whether the setting is enabled.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.accessibility -BuildModules -TimeoutSeconds 240` compiled the affected Unreal UI/editor modules and rendered the Accessibility preview at 1920×1080. Inspected `C:\Users\Ville\AppData\Local\Temp\kmmenu\png\settings.accessibility-8c1f9615.png`; the enlarged checkbox shows its checkmark without On/Off text. `git diff --check` passed. No automation suite ran; full verification remains deferred.
+- **Impact and authority:** local settings presentation only. The Reduced Motion value and local persistence are unchanged; no networking or gameplay authority changed.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. The rendered preview checks layout but not live pointer/controller interaction or persistence; full verification remains deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-12 — Use sliders and a reusable checkbox in Accessibility
 
 - **Completed:** replaced Accessibility's interface-scale, text-scale, and contrast choice buttons with snapped sliders that share the Audio slider row builder, theme, value labels, and spacing. Their existing allowed values and local `GameUserSettings` storage remain unchanged. Added a reusable stone toggle-checkbox theme API and made Reduced Motion a square check control with an explicit On/Off label. Kept keyboard/controller focus on the control being adjusted. Sized the shared geometric slider thumb so high-contrast sliders show their handles, and kept the selected top tab within its width at the largest text scale.

@@ -246,8 +246,6 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<USlider> ContrastSlider;
     UPROPERTY(Transient)
-    TObjectPtr<UTextBlock> ReducedMotionStateLabel;
-    UPROPERTY(Transient)
     TObjectPtr<UTextBlock> ReducedMotionCheckMarkLabel;
     UPROPERTY(Transient)
     TObjectPtr<UCheckBox> ReducedMotionCheckBox;
